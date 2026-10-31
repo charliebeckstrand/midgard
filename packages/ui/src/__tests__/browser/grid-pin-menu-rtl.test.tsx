@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, present, renderUI, waitFor } from '../helpers'
+import { gridHeader } from '../helpers/grid-cells'
 
 /**
  * The header menu of a right-to-left grid names the physical edge of each pin
@@ -19,12 +20,7 @@ describe('grid pin menu in a right-to-left grid (real browser)', () => {
 
 	/** Opens the header menu of `id` and returns its Pin submenu items by label. */
 	function openPinItems(container: HTMLElement, id: string) {
-		fireEvent.contextMenu(
-			present(
-				container.querySelector<HTMLElement>(`th[data-grid-col="${id}"]`),
-				`the ${id} header`,
-			),
-		)
+		fireEvent.contextMenu(gridHeader(container, id))
 
 		const pin = Array.from(document.querySelectorAll<HTMLElement>('[role="menuitem"]')).find(
 			(item) => item.textContent?.trim() === 'Pin',
@@ -59,11 +55,6 @@ describe('grid pin menu in a right-to-left grid (real browser)', () => {
 		fireEvent.click(pinRight)
 
 		// The inline start of a right-to-left grid is its right edge.
-		await waitFor(() =>
-			expect(
-				present(container.querySelector<HTMLElement>('th[data-grid-col="role"]'), 'the role header')
-					.style.insetInlineStart,
-			).toBe('0px'),
-		)
+		await waitFor(() => expect(gridHeader(container, 'role').style.insetInlineStart).toBe('0px'))
 	})
 })

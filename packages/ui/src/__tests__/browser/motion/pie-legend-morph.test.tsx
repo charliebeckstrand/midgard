@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { REDUCED_MOTION_QUERY } from '../../../utilities/media-query'
 import { renderUI, stubMatchMedia, waitFor } from '../../helpers'
+import { legendItem } from '../../helpers/chart-legend'
 import { nextPaint } from '../../helpers/frames'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 import { budget } from '../helpers/wall-clock'
@@ -34,17 +35,6 @@ function slices(container: HTMLElement): string[] {
 	return [...container.querySelectorAll('[data-slot="chart-slice"]')].map(
 		(slice) => slice.getAttribute('d') ?? '',
 	)
-}
-
-/** The legend switch of a row. */
-function legendItem(container: HTMLElement, name: string): HTMLButtonElement {
-	const item = [
-		...container.querySelectorAll<HTMLButtonElement>('button[data-slot="chart-legend-item"]'),
-	].find((button) => button.textContent?.includes(name))
-
-	if (!item) throw new Error(`expected the legend item ${name}`)
-
-	return item
 }
 
 /**

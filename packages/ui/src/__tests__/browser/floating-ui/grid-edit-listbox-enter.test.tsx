@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { bySlot, present, renderUI, screen, waitFor } from '../../helpers'
+import { bySlot, renderUI, screen, waitFor } from '../../helpers'
+import { gridCell } from '../../helpers/grid-cells'
 
 /**
  * Why the inline listbox editor has no Enter-to-commit, recorded as a test
@@ -32,9 +33,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 			/>,
 		)
 
-		await userEvent.dblClick(
-			present(view.container.querySelector('td[data-grid-col="done"]'), 'td[data-grid-col="done"]'),
-		)
+		await userEvent.dblClick(gridCell(view.container, 'done'))
 
 		// The entry opens the panel. Escape closes it, and leaves focus on the
 		// trigger.
@@ -69,9 +68,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 			/>,
 		)
 
-		await userEvent.dblClick(
-			present(view.container.querySelector('td[data-grid-col="done"]'), 'td[data-grid-col="done"]'),
-		)
+		await userEvent.dblClick(gridCell(view.container, 'done'))
 
 		const trigger = await screen.findByRole('combobox')
 

@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { holdRootClass } from './helpers/root-state'
 
 /**
  * The root element has the color scheme of the theme: `light`, and `dark` while
@@ -13,16 +14,12 @@ import { afterEach, describe, expect, it } from 'vitest'
 describe('the color scheme of the root (real browser)', () => {
 	const root = document.documentElement
 
-	afterEach(() => {
-		root.classList.remove('dark')
-	})
-
 	it('is light without the dark class', () => {
 		expect(getComputedStyle(root).colorScheme).toBe('light')
 	})
 
 	it('is dark with the dark class', () => {
-		root.classList.add('dark')
+		holdRootClass('dark')
 
 		expect(getComputedStyle(root).colorScheme).toBe('dark')
 	})

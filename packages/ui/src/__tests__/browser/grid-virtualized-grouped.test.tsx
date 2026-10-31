@@ -52,7 +52,16 @@ describe('grid virtualized grouped body (real browser)', () => {
 		role: `Team ${String(Math.floor(index / 10) % 40).padStart(2, '0')}`,
 	}))
 
-	function renderGrid({ virtualize = true, overscan = 4, rows = people, expanded = true } = {}) {
+	/**
+	 * Renders the grid. A measured window waits for its first item row. The full
+	 * body has no window, so the case settles it itself.
+	 */
+	async function renderGrid({
+		virtualize = true,
+		overscan = 4,
+		rows = people,
+		expanded = true,
+	} = {}) {
 		const view = renderUI(
 			<div style={{ width: 560 }}>
 				<Grid<Person>
@@ -71,7 +80,11 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		const scroll = getSlot(view.container, 'grid-scroll')
 
-		return { ...view, scroll, body: windowBody(view.container) }
+		const body = windowBody(view.container)
+
+		if (virtualize) await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
+
+		return { ...view, scroll, body }
 	}
 
 	/** The rendered item rows of the window, in DOM order. */
@@ -94,24 +107,18 @@ describe('grid virtualized grouped body (real browser)', () => {
 		return { spacers, rows, total: spacers + rows }
 	}
 
-	async function settle(count = 3) {
-		for (let i = 0; i < count; i++) await frames()
-	}
-
 	it('holds the view still on a scroll up, matches the full height, and keeps the head stuck', async () => {
-		const reference = renderGrid({ virtualize: false })
+		const reference = await renderGrid({ virtualize: false })
 
-		await settle()
+		await frames(3)
 
 		const fullHeight = reference.body.getBoundingClientRect().height
 
 		reference.unmount()
 
-		const measured = renderGrid()
+		const measured = await renderGrid()
 
 		const { scroll, body } = measured
-
-		await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
 
 		const head = present(scroll.querySelector('thead th'), 'a head cell')
 
@@ -141,7 +148,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 		}
 
 		// Let the measurements of the last step land, and read the head after them.
-		await settle(1)
+		await frames()
 
 		readHead()
 
@@ -153,13 +160,11 @@ describe('grid virtualized grouped body (real browser)', () => {
 		// steps. A row that stays in view moves down by the step and no more.
 		measured.unmount()
 
-		const fresh = renderGrid()
-
-		await waitFor(() => expect(itemRows(fresh.body).length).toBeGreaterThan(0))
+		const fresh = await renderGrid()
 
 		fresh.scroll.scrollTop = 12_000
 
-		await settle(4)
+		await frames(4)
 
 		let drift = 0
 
@@ -176,7 +181,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 			fresh.scroll.scrollTop = from - 100
 
-			await settle(2)
+			await frames(2)
 
 			if (!anchor.isConnected) continue
 
@@ -199,9 +204,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 	})
 
 	it('animates the collapse of a group in view, then releases its rows', async () => {
-		const { body } = renderGrid()
-
-		await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
+		const { body } = await renderGrid()
 
 		const runs = watchReveals(body, (row) => row)
 
@@ -229,9 +232,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 	})
 
 	it('bounds the expand animation to the rows that fit in one viewport', async () => {
-		const { scroll, body } = renderGrid({ overscan: 30 })
-
-		await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
+		const { scroll, body } = await renderGrid({ overscan: 30 })
 
 		screen.getByRole('button', { name: /^Alpha \(/, expanded: true }).click()
 
@@ -247,7 +248,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		await waitFor(() => expect(animated()).toBeGreaterThan(0))
 
-		await settle(20)
+		await frames(20)
 
 		// Alpha is the first group, so its leaves follow its header at the top.
 		const bound = Math.ceil(scroll.clientHeight / 44)
@@ -268,9 +269,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 	})
 
 	it('indexes each rendered row over the item list and counts the items', async () => {
-		const { scroll, body } = renderGrid()
-
-		await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
+		const { scroll, body } = await renderGrid()
 
 		const table = present(body.closest('table'), 'table')
 
@@ -287,7 +286,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 		for (let top = 5000; rowKinds(rows).size < 3 && top < 10_000; top += 400) {
 			scroll.scrollTop = top
 
-			await settle(4)
+			await frames(4)
 
 			rows = itemRows(body)
 		}
@@ -331,9 +330,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 	}
 
 	it('holds the view still when groups above the viewport collapse and expand', async () => {
-		const { scroll, body } = renderGrid({ rows: manyGroups })
-
-		await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
+		const { scroll, body } = await renderGrid({ rows: manyGroups })
 
 		const head = present(scroll.querySelector('thead th'), 'a head cell')
 
@@ -343,7 +340,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 		for (let top = 8000; !header && top < scroll.scrollHeight; top += 300) {
 			scroll.scrollTop = top
 
-			await settle(2)
+			await frames(2)
 
 			header = itemRows(body).find(
 				(row) =>
@@ -361,7 +358,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 			present(anchor(), 'the anchor').getBoundingClientRect().top -
 			head.getBoundingClientRect().bottom
 
-		await settle(4)
+		await frames(4)
 
 		// Several groups sit above the viewport.
 		expect(scroll.scrollTop).toBeGreaterThan(5000)
@@ -386,9 +383,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 	})
 
 	it('holds the view still when groups that never rendered expand above the viewport', async () => {
-		const { scroll, body } = renderGrid({ rows: manyGroups, expanded: false })
-
-		await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
+		const { scroll, body } = await renderGrid({ rows: manyGroups, expanded: false })
 
 		const head = present(scroll.querySelector('thead th'), 'a head cell')
 
@@ -396,7 +391,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 		// middle first in view, so that half of the groups sit above it.
 		scroll.scrollTop = 800
 
-		await settle(2)
+		await frames(2)
 
 		const header = present(
 			itemRows(body).find(
@@ -411,7 +406,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		scroll.scrollTop += header.getBoundingClientRect().top - head.getBoundingClientRect().bottom
 
-		await settle(4)
+		await frames(4)
 
 		const before = present(anchor(), 'the anchor').getBoundingClientRect().top
 

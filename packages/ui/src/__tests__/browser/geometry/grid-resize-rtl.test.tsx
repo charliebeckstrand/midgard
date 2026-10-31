@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { COLUMN_RESIZE_STEP } from '../../../modules/grid/engine/grid-constants'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
-import { getCenter } from '../../helpers/geometry/box'
 import { PIXEL } from '../../helpers/geometry/tolerance'
+import { dragResize } from '../helpers/resize-handle'
 
 /**
  * Column resizing in a right-to-left grid. The trailing edge of a header is
@@ -71,13 +71,7 @@ describe('grid column resizing in a right-to-left grid (real browser)', () => {
 
 		const start = header.getBoundingClientRect().width
 
-		const { x, y } = getCenter(separator)
-
-		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
-
-		fireEvent.mouseMove(document, { clientX: x - 70, clientY: y })
-
-		fireEvent.mouseUp(document, { clientX: x - 70, clientY: y })
+		dragResize(separator, -70)
 
 		await waitFor(() => expect(header.getBoundingClientRect().width).toBeGreaterThan(start + 40))
 	})

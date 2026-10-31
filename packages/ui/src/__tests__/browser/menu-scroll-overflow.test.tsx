@@ -36,16 +36,6 @@ describe('Menu scroll edge fade (real browser)', () => {
 		return getSlot(container, 'menu-viewport')
 	}
 
-	it('fades the bottom edge only in the first paint', async () => {
-		const viewport = viewportFor(true)
-
-		// The scroll timeline resolves in the update of the frame, so a read in the
-		// commit task is too early. The first paint is what the reader sees.
-		await nextPaint()
-
-		expect(fadedEdges(viewport)).toEqual({ top: false, bottom: true })
-	})
-
 	it('moves the fade to the top edge as the viewport scrolls to the bottom', async () => {
 		const viewport = viewportFor(true)
 
@@ -81,6 +71,8 @@ describe('Menu scroll edge fade (real browser)', () => {
 
 			expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight)
 
+			// The scroll timeline resolves in the update of the frame, so a read in the
+			// commit task is too early. The first paint is what the reader sees.
 			await nextPaint()
 
 			expect(fadedEdges(viewport)).toEqual({ top: false, bottom: true })

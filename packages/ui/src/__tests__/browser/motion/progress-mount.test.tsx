@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { ProgressBar, ProgressGauge } from '../../../components/progress'
-import { bySlot, renderUI } from '../../helpers'
+import { renderUI } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
+import { barFill, gaugeFill } from '../helpers/progress'
 
 /**
  * Real-Motion check of the progress fills on mount. The other suites mock
@@ -20,11 +21,7 @@ describe('Progress fills on mount (real Motion)', () => {
 
 		await nextPaint()
 
-		const fill = bySlot(container, 'progress-bar')?.firstElementChild
-
-		if (!fill) throw new Error('expected the fill')
-
-		expect(fill.getBoundingClientRect().width).toBeCloseTo(140, 0)
+		expect(barFill(container).getBoundingClientRect().width).toBeCloseTo(140, 0)
 	})
 
 	it('paints the gauge ring at its value on the first frame', async () => {
@@ -32,9 +29,7 @@ describe('Progress fills on mount (real Motion)', () => {
 
 		await nextPaint()
 
-		const ring = bySlot(container, 'progress-gauge')?.querySelectorAll('circle')[1]
-
-		if (!ring) throw new Error('expected the fill ring')
+		const ring = gaugeFill(container)
 
 		const circumference = Number(ring.getAttribute('stroke-dasharray'))
 

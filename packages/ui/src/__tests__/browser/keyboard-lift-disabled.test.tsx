@@ -1,5 +1,5 @@
 import { type ReactElement, useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListItem } from '../../components/list'
 import {
@@ -33,35 +33,37 @@ describe('keyboard lift on disable (real browser)', () => {
 	 * Lifts the first item, disables the surface, and enables it again. The item
 	 * must be at rest while disabled, and the next arrow must not move it.
 	 */
-	async function liftThenDisable(
-		surface: (disabled: boolean) => ReactElement,
-		parts: {
-			handle: () => HTMLElement
-			lifted: () => boolean
-			order: () => (string | undefined)[]
+	const liftThenDisable = vi.defineHelper(
+		async (
+			surface: (disabled: boolean) => ReactElement,
+			parts: {
+				handle: () => HTMLElement
+				lifted: () => boolean
+				order: () => (string | undefined)[]
+			},
+		) => {
+			const { rerender } = renderUI(surface(false))
+
+			parts.handle().focus()
+
+			await userEvent.keyboard(' ')
+
+			await expect.poll(parts.lifted).toBe(true)
+
+			rerender(surface(true))
+
+			expect(parts.lifted()).toBe(false)
+
+			rerender(surface(false))
+
+			parts.handle().focus()
+
+			await userEvent.keyboard('{ArrowDown}')
+
+			// Not lifted, so the arrow moves focus and not the item.
+			expect(parts.order()).toEqual(['a', 'b'])
 		},
-	) {
-		const { rerender } = renderUI(surface(false))
-
-		parts.handle().focus()
-
-		await userEvent.keyboard(' ')
-
-		await expect.poll(parts.lifted).toBe(true)
-
-		rerender(surface(true))
-
-		expect(parts.lifted()).toBe(false)
-
-		rerender(surface(false))
-
-		parts.handle().focus()
-
-		await userEvent.keyboard('{ArrowDown}')
-
-		// Not lifted, so the arrow moves focus and not the item.
-		expect(parts.order()).toEqual(['a', 'b'])
-	}
+	)
 
 	it('drops the lift of a Kanban card when the board turns disabled', async () => {
 		type Column = { id: string; items: Item[] }

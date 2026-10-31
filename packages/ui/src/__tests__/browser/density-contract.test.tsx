@@ -7,6 +7,7 @@ import { type DensityStep, densitySteps, writeRootDensity } from '../../core/den
 import { DensityProvider } from '../../providers/density'
 import { dan } from '../../recipes/kiso/dan'
 import { attach, getSlot, present, readDensityStep, renderUI } from '../helpers'
+import { holdRoot } from './helpers/root-state'
 
 /**
  * The contract of the density scopes, in computed style.
@@ -106,22 +107,6 @@ function probeStep(element: Element) {
 /** The step of the oracle and the padding that {@link PROBE} gives at `step`. */
 function atStep(step: DensityStep) {
 	return { step, padding: PROBE_PX[step] }
-}
-
-/**
- * Writes `step` on the root element for the current test. The root class goes back to its value
- * before the test when the test finishes.
- */
-function holdRoot(step: DensityStep) {
-	const root = document.documentElement
-
-	const before = root.className
-
-	writeRootDensity(root, step)
-
-	onTestFinished(() => {
-		root.className = before
-	})
 }
 
 /**

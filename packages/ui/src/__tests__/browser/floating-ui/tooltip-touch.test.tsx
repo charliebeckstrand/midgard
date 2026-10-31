@@ -85,16 +85,16 @@ function renderHoverTooltip(onClick?: () => void) {
 }
 
 /** Waits until the tooltip text is present. @internal */
-async function expectOpen() {
+const expectOpen = vi.defineHelper(async () => {
 	await waitFor(() => expect(screen.getByText('Hide password')).toBeInTheDocument())
-}
+})
 
 /** Waits two frames, then expects no tooltip text. @internal */
-async function expectClosed() {
+const expectClosed = vi.defineHelper(async () => {
 	await frames()
 
 	expect(screen.queryByText('Hide password')).not.toBeInTheDocument()
-}
+})
 
 describe('Tooltip trigger (real browser)', () => {
 	it('does not open a hover tooltip on a tap, and keeps the click action of the trigger', async () => {

@@ -9,6 +9,7 @@ import {
 	KanbanColumnBody,
 } from '../../modules/kanban'
 import { allBySlot, getSlot, renderUI } from '../helpers'
+import { getCenter } from '../helpers/geometry/box'
 import { drag } from './helpers/drag'
 
 /**
@@ -160,9 +161,7 @@ describe('kanban card handle (real browser)', () => {
 
 		const handle = getSlot(card, 'kanban-card-handle')
 
-		const box = handle.getBoundingClientRect()
-
-		const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+		const from = getCenter(handle)
 
 		const held = await drag(handle, from, [{ x: from.x, y: from.y + 20 }])
 
@@ -182,9 +181,7 @@ describe('kanban card handle (real browser)', () => {
 
 		const handle = getSlot(card, 'kanban-card-handle')
 
-		const box = handle.getBoundingClientRect()
-
-		const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+		const from = getCenter(handle)
 
 		const held = await drag(handle, from, [{ x: from.x, y: from.y + 20 }])
 

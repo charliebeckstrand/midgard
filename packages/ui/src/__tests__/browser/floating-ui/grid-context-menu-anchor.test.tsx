@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
@@ -29,24 +30,35 @@ describe('grid context menu anchoring (real browser)', () => {
 
 	const getKey = (row: Row) => row.id
 
-	it('follows the right-clicked cell as the surrounding container scrolls', async () => {
+	/**
+	 * Renders the grid in a box with `style`, and opens the menu with a right-click on the cell of
+	 * `Person 2`.
+	 *
+	 * @param style - More style for the box.
+	 * @returns The box, the cell, the box of the cell at the press, and the menu.
+	 */
+	async function openOnCell(style: CSSProperties = {}) {
 		const { container } = renderUI(
 			// Pushed down the page so the menu opens mid-viewport, clear of the
 			// shift() collision padding at the edges.
-			<div style={{ marginTop: 240, maxHeight: 160, overflow: 'auto' }}>
+			<div style={{ marginTop: 240, ...style }}>
 				<Grid columns={columns} rows={rows} getKey={getKey} />
 			</div>,
 		)
 
-		const scroller = container.firstElementChild as HTMLElement
-
 		const cell = screen.getByText('Person 2')
 
-		const opened = cell.getBoundingClientRect()
+		const rect = cell.getBoundingClientRect()
 
-		fireEvent.contextMenu(cell, { clientX: opened.left + 4, clientY: opened.top + 4 })
+		fireEvent.contextMenu(cell, { clientX: rect.left + 4, clientY: rect.top + 4 })
 
 		const menu = await screen.findByRole('menu')
+
+		return { box: container.firstElementChild as HTMLElement, cell, rect, menu }
+	}
+
+	it('follows the right-clicked cell as the surrounding container scrolls', async () => {
+		const { box: scroller, cell, menu } = await openOnCell({ maxHeight: 160, overflow: 'auto' })
 
 		// The cell and the menu at open time, before any scroll.
 		const cellTop0 = cell.getBoundingClientRect().top
@@ -73,19 +85,7 @@ describe('grid context menu anchoring (real browser)', () => {
 	})
 
 	it('stays put when the open menu itself is right-clicked', async () => {
-		renderUI(
-			<div style={{ marginTop: 240 }}>
-				<Grid columns={columns} rows={rows} getKey={getKey} />
-			</div>,
-		)
-
-		const cell = screen.getByText('Person 2')
-
-		const opened = cell.getBoundingClientRect()
-
-		fireEvent.contextMenu(cell, { clientX: opened.left + 4, clientY: opened.top + 4 })
-
-		const menu = await screen.findByRole('menu')
+		const { menu } = await openOnCell()
 
 		const before = menu.getBoundingClientRect()
 
@@ -109,19 +109,7 @@ describe('grid context menu anchoring (real browser)', () => {
 	})
 
 	it('closes when the cell it was opened from is pressed', async () => {
-		renderUI(
-			<div style={{ marginTop: 240 }}>
-				<Grid columns={columns} rows={rows} getKey={getKey} />
-			</div>,
-		)
-
-		const cell = screen.getByText('Person 2')
-
-		const rect = cell.getBoundingClientRect()
-
-		fireEvent.contextMenu(cell, { clientX: rect.left + 4, clientY: rect.top + 4 })
-
-		await screen.findByRole('menu')
+		const { cell, rect } = await openOnCell()
 
 		// A press on the very cell the menu was opened from is an ordinary outside
 		// press: the cell anchors the menu's position but is not its dismissal

@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { cdp, page, userEvent } from 'vitest/browser'
 import { Accordion, AccordionItem, AccordionTrigger } from '../../components/accordion'
 import { Badge } from '../../components/badge'
@@ -35,6 +35,7 @@ import { HeatmapChart } from '../../modules/chart'
 import { ChatList, ChatListItem } from '../../modules/chat'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { bySlot, frames, present, renderUI, waitFor } from '../helpers'
+import { emulateForcedColors, systemColor } from './helpers/forced-colors'
 
 /**
  * Under forced colors, each control still shows its state. The two renders of
@@ -42,16 +43,6 @@ import { bySlot, frames, present, renderUI, waitFor } from '../helpers'
  * the tabs indicator, the active indicator, and the slider tracks and thumbs
  * draw state only with a background or a shadow, which forced colors remove.
  */
-/** The color that forced colors give the page background. */
-function canvasColor(): string {
-	const probe = document.createElement('div')
-	probe.style.cssText = 'forced-color-adjust: none; background-color: Canvas'
-	document.body.append(probe)
-	const canvas = getComputedStyle(probe).backgroundColor
-	probe.remove()
-	return canvas
-}
-
 async function pixels(ui: ReactElement): Promise<string> {
 	const { container, unmount } = renderUI(<div style={{ padding: 8, width: 240 }}>{ui}</div>)
 	await frames()
@@ -111,21 +102,21 @@ const insetStops = {
 } as const
 
 /** The computed outline of a stop after a keyboard Tab moves focus to it. */
-async function focusOutline(
-	name: keyof typeof insetStops,
-): Promise<{ style: string; width: string }> {
-	const { ui, selector } = insetStops[name]
-	const { container } = renderUI(ui)
-	const stop = await waitFor(() => {
-		const node = present(container.querySelector<HTMLElement>(selector), name)
-		expect(node.tabIndex).toBe(0)
-		return node
-	})
-	await userEvent.tab()
-	expect(document.activeElement).toBe(stop)
-	const style = getComputedStyle(stop)
-	return { style: style.outlineStyle, width: style.outlineWidth }
-}
+const focusOutline = vi.defineHelper(
+	async (name: keyof typeof insetStops): Promise<{ style: string; width: string }> => {
+		const { ui, selector } = insetStops[name]
+		const { container } = renderUI(ui)
+		const stop = await waitFor(() => {
+			const node = present(container.querySelector<HTMLElement>(selector), name)
+			expect(node.tabIndex).toBe(0)
+			return node
+		})
+		await userEvent.tab()
+		expect(document.activeElement).toBe(stop)
+		const style = getComputedStyle(stop)
+		return { style: style.outlineStyle, width: style.outlineWidth }
+	},
+)
 
 type Person = { id: number; name: string }
 
@@ -331,14 +322,7 @@ function indicatorOutline(container: HTMLElement): string {
 }
 
 describe('controls show their state under forced colors (real browser)', () => {
-	beforeAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', {
-			features: [{ name: 'forced-colors', value: 'active' }],
-		}),
-	)
-	afterAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: '' }] }),
-	)
+	emulateForcedColors()
 
 	it('emulates forced colors', () => {
 		expect(matchMedia('(forced-colors: active)').matches).toBe(true)
@@ -370,7 +354,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 		)
 		const tab = present(container.querySelector('[data-slot=tab][aria-selected=true]'), 'tab')
 		const indicator = present(tab.parentElement?.children[1], 'indicator')
-		const canvas = canvasColor()
+		const canvas = systemColor('Canvas')
 		const style = getComputedStyle(indicator)
 		expect(style.backgroundColor === canvas && style.borderTopWidth === '0px').toBe(false)
 	})
@@ -457,7 +441,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 					</TimelineItem>
 				</Timeline>,
 			)
-			const canvas = canvasColor()
+			const canvas = systemColor('Canvas')
 			const markers = [...container.querySelectorAll<HTMLElement>('[data-slot=timeline-marker]')]
 			expect(markers).toHaveLength(3)
 			const middle = present(markers[1], 'marker')
@@ -593,25 +577,10 @@ describe('controls show their state under forced colors (real browser)', () => {
  * `CanvasText`, and a white mark is lost on a light palette. Each case runs on
  * the light and the dark forced palette.
  */
-describe.each(['light', 'dark'])(
+describe.each(['light', 'dark'] as const)(
 	'tree rows show their state on a %s forced palette (real browser)',
 	(scheme) => {
-		beforeAll(() =>
-			cdp().send('Emulation.setEmulatedMedia', {
-				features: [
-					{ name: 'forced-colors', value: 'active' },
-					{ name: 'prefers-color-scheme', value: scheme },
-				],
-			}),
-		)
-		afterAll(() =>
-			cdp().send('Emulation.setEmulatedMedia', {
-				features: [
-					{ name: 'forced-colors', value: '' },
-					{ name: 'prefers-color-scheme', value: '' },
-				],
-			}),
-		)
+		emulateForcedColors(scheme)
 
 		const row = (props: { checked?: boolean | 'mixed'; current?: boolean }) => (
 			<Tree aria-label="Files">
@@ -643,14 +612,7 @@ describe.each(['light', 'dark'])(
  * legend, the tooltip, and the status dot.
  */
 describe('Swatch under forced colors (real browser)', () => {
-	beforeAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', {
-			features: [{ name: 'forced-colors', value: 'active' }],
-		}),
-	)
-	afterAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: '' }] }),
-	)
+	emulateForcedColors()
 
 	it.each(['square', 'circle', 'line'] as const)(
 		'a solid %s paints a color other than Canvas',
@@ -658,7 +620,7 @@ describe('Swatch under forced colors (real browser)', () => {
 			const { container } = renderUI(<Swatch shape={shape} color="blue" />)
 			const el = present(bySlot(container, 'swatch'), 'swatch')
 
-			expect(getComputedStyle(el).backgroundColor).not.toBe(canvasColor())
+			expect(getComputedStyle(el).backgroundColor).not.toBe(systemColor('Canvas'))
 		},
 	)
 
@@ -669,7 +631,7 @@ describe('Swatch under forced colors (real browser)', () => {
 
 		expect(style.backgroundImage).toContain('repeating-linear-gradient')
 
-		expect(style.color).not.toBe(canvasColor())
+		expect(style.color).not.toBe(systemColor('Canvas'))
 	})
 })
 
@@ -679,14 +641,7 @@ describe('Swatch under forced colors (real browser)', () => {
  * would make every preset chip alike and remove the hue track.
  */
 describe('color parts under forced colors (real browser)', () => {
-	beforeAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', {
-			features: [{ name: 'forced-colors', value: 'active' }],
-		}),
-	)
-	afterAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: '' }] }),
-	)
+	emulateForcedColors()
 
 	it('the preset chips keep their colors', () => {
 		const { container } = renderUI(
@@ -720,19 +675,9 @@ describe('color parts under forced colors (real browser)', () => {
 	})
 })
 
-/** The color that forced colors give a selection, which a `mark` paints. */
-function highlightColor(): string {
-	const probe = document.createElement('div')
-	probe.style.cssText = 'forced-color-adjust: none; background-color: Highlight'
-	document.body.append(probe)
-	const highlight = getComputedStyle(probe).backgroundColor
-	probe.remove()
-	return highlight
-}
-
 /** Whether an element in `container` paints the `Highlight` of a `mark`. */
 function paintsMark(container: Element): boolean {
-	const highlight = highlightColor()
+	const highlight = systemColor('Highlight')
 	return [...container.querySelectorAll('*')].some(
 		(el) => getComputedStyle(el).backgroundColor === highlight,
 	)
@@ -744,14 +689,7 @@ function paintsMark(container: Element): boolean {
  * each paints the `Highlight` of a `mark`.
  */
 describe('state marks under forced colors (real browser)', () => {
-	beforeAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', {
-			features: [{ name: 'forced-colors', value: 'active' }],
-		}),
-	)
-	afterAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: '' }] }),
-	)
+	emulateForcedColors()
 
 	it('JsonTree: a search match paints the mark, and no match paints none', () => {
 		const data = { alpha: 1, beta: 2 }

@@ -1,16 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { ProgressGauge } from '../../../components/progress'
-import { bySlot, renderUI, waitFor } from '../../helpers'
+import { renderUI, waitFor } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
+import { gaugeFill } from '../helpers/progress'
 import { budget } from '../helpers/wall-clock'
-
-function readFill(container: HTMLElement) {
-	const ring = bySlot(container, 'progress-gauge')?.querySelectorAll('circle')[1]
-
-	if (!ring) throw new Error('expected the fill ring')
-
-	return ring
-}
 
 /**
  * Real-Motion check of the gauge fill at 0%. The other suites mock
@@ -25,7 +18,7 @@ describe('ProgressGauge at 0% (real Motion)', () => {
 
 		await nextPaint()
 
-		expect(getComputedStyle(readFill(container)).opacity).toBe('0')
+		expect(getComputedStyle(gaugeFill(container)).opacity).toBe('0')
 	})
 
 	it('paints the fill at full opacity above 0%', async () => {
@@ -33,7 +26,7 @@ describe('ProgressGauge at 0% (real Motion)', () => {
 
 		await nextPaint()
 
-		expect(getComputedStyle(readFill(container)).opacity).toBe('1')
+		expect(getComputedStyle(gaugeFill(container)).opacity).toBe('1')
 	})
 
 	it('removes the fill when the value goes down to 0%', async () => {
@@ -43,7 +36,7 @@ describe('ProgressGauge at 0% (real Motion)', () => {
 
 		rerender(<ProgressGauge aria-label="Upload" value={0} />)
 
-		await waitFor(() => expect(getComputedStyle(readFill(container)).opacity).toBe('0'), {
+		await waitFor(() => expect(getComputedStyle(gaugeFill(container)).opacity).toBe('0'), {
 			timeout: budget(3000),
 		})
 	})

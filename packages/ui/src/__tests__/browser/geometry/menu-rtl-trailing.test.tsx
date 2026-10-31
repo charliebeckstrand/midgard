@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
 	Menu,
 	MenuContent,
@@ -9,6 +9,7 @@ import {
 } from '../../../components/menu'
 import { getSlot, present, renderUI, screen } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { holdDir } from '../helpers/root-state'
 
 /**
  * The trailing parts of a menu row sit at the inline end, in both directions.
@@ -19,12 +20,8 @@ import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
  * so this rides the real browser.
  */
 describe('menu row trailing parts (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.removeAttribute('dir')
-	})
-
 	function rows(dir: 'ltr' | 'rtl') {
-		document.documentElement.dir = dir
+		holdDir(dir)
 
 		renderUI(
 			<Menu defaultOpen>

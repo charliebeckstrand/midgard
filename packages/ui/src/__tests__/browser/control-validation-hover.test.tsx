@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { describe, expect, it } from 'vitest'
 import { Input } from '../../components/input'
 import { present, renderUI } from '../helpers'
+import { acrossHover } from './helpers/across-hover'
+import { holdRootClass } from './helpers/root-state'
 
 /**
  * A framed control keeps its validation ring under the pointer, in both modes.
@@ -14,32 +15,21 @@ import { present, renderUI } from '../helpers'
  * Rides the real browser because the claim is a computed one: jsdom loads no stylesheet.
  */
 describe('the validation ring of a framed control under the pointer (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.classList.remove('dark')
-	})
-
 	async function ringBeforeAndAfterHover(dark: boolean) {
-		if (dark) document.documentElement.classList.add('dark')
+		if (dark) holdRootClass('dark')
 
 		const { container } = renderUI(<Input aria-label="Email" invalid />)
 
 		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'control frame')
 
-		const before = getComputedStyle(frame).boxShadow
-
-		await userEvent.hover(frame)
-
-		return { before, after: getComputedStyle(frame).boxShadow }
+		return acrossHover(frame, 'boxShadow')
 	}
 
-	it('keeps the red ring on hover in light mode', async () => {
-		const { before, after } = await ringBeforeAndAfterHover(false)
-
-		expect(after).toBe(before)
-	})
-
-	it('keeps the red ring on hover in dark mode', async () => {
-		const { before, after } = await ringBeforeAndAfterHover(true)
+	it.for([
+		['light', false],
+		['dark', true],
+	] as const)('keeps the red ring on hover in %s mode', async ([, dark]) => {
+		const { before, after } = await ringBeforeAndAfterHover(dark)
 
 		expect(after).toBe(before)
 	})
@@ -50,10 +40,8 @@ describe('the validation ring of a framed control under the pointer (real browse
 
 		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'control frame')
 
-		const before = getComputedStyle(frame).boxShadow
+		const { before, after } = await acrossHover(frame, 'boxShadow')
 
-		await userEvent.hover(frame)
-
-		expect(getComputedStyle(frame).boxShadow).not.toBe(before)
+		expect(after).not.toBe(before)
 	})
 })

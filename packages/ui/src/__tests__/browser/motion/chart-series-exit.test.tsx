@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { MARKER_RADIUS } from '../../../modules/chart/engine/chart-constants'
 import { LineChart } from '../../../modules/chart/line-chart'
 import { ScatterChart } from '../../../modules/chart/scatter-chart'
 import { REDUCED_MOTION_QUERY } from '../../../utilities/media-query'
 import { renderUI, stubMatchMedia, waitFor } from '../../helpers'
+import { legendItem } from '../../helpers/chart-legend'
 import { nextPaint } from '../../helpers/frames'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 import { budget } from '../helpers/wall-clock'
@@ -60,19 +61,8 @@ function barScale(bar: SVGPathElement | undefined): number {
 	return scale ? Number(scale[1]) : 1
 }
 
-/** The legend switch of a series. */
-function legendItem(container: HTMLElement, name: string): HTMLButtonElement {
-	const item = [
-		...container.querySelectorAll<HTMLButtonElement>('button[data-slot="chart-legend-item"]'),
-	].find((button) => button.textContent?.includes(name))
-
-	if (!item) throw new Error(`expected the legend item ${name}`)
-
-	return item
-}
-
 /** Waits for each bar of a fresh chart to stand at its full height. */
-async function grown(container: HTMLElement, count: number) {
+const grown = vi.defineHelper(async (container: HTMLElement, count: number) => {
 	await waitFor(() => {
 		const nodes = barNodes(container)
 
@@ -80,7 +70,7 @@ async function grown(container: HTMLElement, count: number) {
 
 		expect(nodes.every((bar) => barScale(bar) === 1)).toBe(true)
 	}, SETTLE)
-}
+})
 
 /**
  * Real-Motion check of the exit of a hidden series or reference rule. The other

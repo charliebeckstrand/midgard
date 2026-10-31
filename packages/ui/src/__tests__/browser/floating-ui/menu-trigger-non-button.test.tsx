@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
 import { renderUI, screen, waitFor } from '../../helpers'
@@ -31,6 +31,13 @@ describe('MenuTrigger keyboard activation (real floating engine)', () => {
 		)
 	}
 
+	/** A trigger that the browser gives a synthesized click. */
+	const nativeButton = (
+		<button type="button" data-testid="trigger">
+			Open
+		</button>
+	)
+
 	/** A trigger shape `cloneElement` accepts and the browser gives no synthesized click for. */
 	const nonButton = (
 		// biome-ignore lint/a11y/useSemanticElements: the non-semantic trigger is the subject under test
@@ -40,7 +47,7 @@ describe('MenuTrigger keyboard activation (real floating engine)', () => {
 	)
 
 	/** Focuses the rendered trigger, presses `key`, and resolves once the menu is up. */
-	async function opensFrom(trigger: React.ReactElement, key: string) {
+	const opensFrom = vi.defineHelper(async (trigger: React.ReactElement, key: string) => {
 		renderUI(tree(trigger))
 
 		screen.getByTestId('trigger').focus()
@@ -48,22 +55,13 @@ describe('MenuTrigger keyboard activation (real floating engine)', () => {
 		await userEvent.keyboard(key)
 
 		await waitFor(() => expect(screen.getByRole('menu')).toBeInTheDocument())
-	}
-
-	it('opens from Enter on a native button (the covered path)', async () => {
-		await opensFrom(
-			<button type="button" data-testid="trigger">
-				Open
-			</button>,
-			'{Enter}',
-		)
 	})
 
-	it('opens from Enter on a focusable non-button child', async () => {
-		await opensFrom(nonButton, '{Enter}')
-	})
-
-	it('opens from Space on a focusable non-button child', async () => {
-		await opensFrom(nonButton, ' ')
+	it.for<[string, React.ReactElement, string]>([
+		['Enter on a native button (the covered path)', nativeButton, '{Enter}'],
+		['Enter on a focusable non-button child', nonButton, '{Enter}'],
+		['Space on a focusable non-button child', nonButton, ' '],
+	])('opens from %s', async ([, trigger, key]) => {
+		await opensFrom(trigger, key)
 	})
 })

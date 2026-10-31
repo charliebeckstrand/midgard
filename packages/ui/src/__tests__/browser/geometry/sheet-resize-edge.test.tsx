@@ -1,10 +1,9 @@
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Sheet, SheetBody, SheetPanel } from '../../../components/sheet'
-import { frames, getSlot, renderUI } from '../../helpers'
-import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
-import { drag } from '../helpers/drag'
+import { openSheet } from '../helpers/open-sheet'
+import { holdDir } from '../helpers/root-state'
 
 /**
  * Real-browser check of the edge a sheet stays docked to while a drag resizes it.
@@ -24,8 +23,6 @@ describe('sheet resize edge (real browser)', () => {
 	// The `full` step floats on its insets only above `sm`.
 	beforeAll(() => page.viewport(1100, 800))
 
-	afterEach(() => document.documentElement.removeAttribute('dir'))
-
 	it.each([
 		['right', 'ltr'],
 		['left', 'ltr'],
@@ -34,12 +31,12 @@ describe('sheet resize edge (real browser)', () => {
 	] as const)(
 		'keeps a full %s sheet on its edge as it shrinks, in a %s page',
 		async (side, dir) => {
-			document.documentElement.dir = dir
+			holdDir(dir)
 
 			// The grip faces the middle of the screen, so a shrink moves it there.
 			const toward = side === 'right' ? 1 : -1
 
-			renderUI(
+			const { panel, dragBy } = await openSheet(
 				<Sheet open onOpenChange={() => {}}>
 					<SheetPanel handle side={side} width="full" aria-label="Full">
 						<SheetBody>Body</SheetBody>
@@ -47,17 +44,9 @@ describe('sheet resize edge (real browser)', () => {
 				</Sheet>,
 			)
 
-			await frames()
-
-			const panel = getSlot(document.body, 'sheet')
-
-			const handle = getSlot(document.body, 'sheet-handle')
-
 			const start = panel.getBoundingClientRect()
 
-			const { x, y } = getCenter(handle)
-
-			const held = await drag(handle, { x, y }, [{ x: x + toward * STEP, y }])
+			const held = await dragBy(toward * STEP, 0)
 
 			const end = panel.getBoundingClientRect()
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { renderUI, screen, stubMatchMedia, waitFor } from '../../helpers'
@@ -68,11 +68,11 @@ describe('grid edit drawer arrival (real Motion)', () => {
 
 		observer.observe(document.body, { childList: true, subtree: true })
 
+		onTestFinished(() => observer.disconnect())
+
 		await userEvent.click(screen.getByRole('button', { name: 'edit-1' }))
 
 		const panel = await screen.findByRole('dialog', { name: 'Edit row 1' })
-
-		observer.disconnect()
 
 		// The commit that opens the drawer still shows the pencil.
 		expect(atMount).toEqual({ pencil: true, check: false })

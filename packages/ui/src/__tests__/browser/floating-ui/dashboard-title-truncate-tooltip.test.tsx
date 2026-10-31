@@ -3,7 +3,7 @@ import { userEvent } from 'vitest/browser'
 import { LineChart } from '../../../modules/chart/line-chart'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
 import { getSlot, renderUI, screen } from '../../helpers'
-import { pause } from '../helpers/wall-clock'
+import { tooltipAfterHover } from '../helpers/tooltip'
 
 /**
  * The title tooltip of a dashboard tile, against the real floating engine and
@@ -82,9 +82,7 @@ describe('dashboard tile title truncation tooltip (real browser)', () => {
 
 		// An enabled tooltip opens at the 250 ms hover delay. Wait past it, with no
 		// pointer leave to cancel it, and then look.
-		await pause(400)
-
-		expect(screen.queryByRole('tooltip')).toBeNull()
+		expect(await tooltipAfterHover()).toBeNull()
 	})
 
 	it('opens no tooltip in edit mode, where the title is a part of the drag surface', async () => {
@@ -92,8 +90,6 @@ describe('dashboard tile title truncation tooltip (real browser)', () => {
 
 		await hoverTitle(LONG)
 
-		await pause(400)
-
-		expect(screen.queryByRole('tooltip')).toBeNull()
+		expect(await tooltipAfterHover()).toBeNull()
 	})
 })

@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, frames, present, renderUI, waitFor } from '../../helpers'
-import { getCenter } from '../../helpers/geometry/box'
+import { frames, present, renderUI, waitFor } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { pressResize, resizeHandle } from '../helpers/resize-handle'
+import { inFrame, resizeObserverLoopErrors } from '../helpers/resize-observer-loop'
 
 /**
  * Column pinning against a real layout engine: sticky positioning only resolves
@@ -180,7 +181,7 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 		root.querySelector<HTMLElement>(`td[data-grid-col="${id}"]`)
 
 	// The grid is forced narrower than its columns so it scrolls sideways.
-	async function setup(resizable: boolean) {
+	const setup = vi.defineHelper(async (resizable: boolean) => {
 		const { container } = renderUI(
 			<div style={{ width: '420px' }}>
 				<Grid
@@ -197,10 +198,10 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 		await waitFor(() => expect(cell(container, 'name')).not.toBeNull())
 
 		return container
-	}
+	})
 
 	// Each frozen column's left edge lands on its neighbor's right edge.
-	async function expectFlush(container: HTMLElement) {
+	const expectFlush = vi.defineHelper(async (container: HTMLElement) => {
 		const edges = (id: string) => (cell(container, id) as HTMLElement).getBoundingClientRect()
 
 		// The selection column leads the left edge; it carries no `data-grid-col`.
@@ -211,7 +212,7 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 		expect(edges('code').left).toBeNear(edges('name').right, HALF_PIXEL)
 
 		expect(edges('d').left).toBeNear(edges('c').right, HALF_PIXEL)
-	}
+	})
 
 	it.each([
 		['a non-resizable', false],
@@ -351,16 +352,10 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 			),
 		)
 
-		const handle = container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]')
-
-		if (!handle) throw new Error('resize handle not found')
-
-		const { x: startX, y } = getCenter(handle)
-
 		// Hold the drag open: mousedown and a move, with no mouseup to settle it.
-		fireEvent.mouseDown(handle, { clientX: startX, clientY: y })
+		const held = pressResize(resizeHandle(container, 'Name'))
 
-		fireEvent.mouseMove(document, { clientX: startX + 90, clientY: y })
+		held.move(90)
 
 		await waitFor(() =>
 			expect(cell(container, 'name').getBoundingClientRect().width).toBeGreaterThan(200),
@@ -377,7 +372,7 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 			HALF_PIXEL,
 		)
 
-		fireEvent.mouseUp(document, { clientX: startX + 90, clientY: y })
+		held.release()
 	})
 })
 
@@ -446,15 +441,7 @@ describe('grid frozen offsets follow a width change in its frame (real browser)'
 	 * renders them first.
 	 */
 	it('moves a frozen follower in the frame of rows that land, with no ResizeObserver loop error', async () => {
-		const errors: string[] = []
-
-		const record = (event: ErrorEvent) => {
-			if (event.message.includes('ResizeObserver loop')) errors.push(event.message)
-		}
-
-		window.addEventListener('error', record)
-
-		onTestFinished(() => window.removeEventListener('error', record))
+		const errors = resizeObserverLoopErrors()
 
 		const late: Row[] = Array.from({ length: 20 }, (_, index) => ({
 			id: index + 1,
@@ -487,15 +474,11 @@ describe('grid frozen offsets follow a width change in its frame (real browser)'
 
 		await frames()
 
-		await new Promise<void>((resolve) =>
-			requestAnimationFrame(() => {
-				land()
+		await inFrame(() => {
+			land()
 
-				head(container, 'name').style.minWidth = '300px'
-
-				resolve()
-			}),
-		)
+			head(container, 'name').style.minWidth = '300px'
+		})
 
 		await frames()
 

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { JsonTree } from '../../../components/json-tree'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
-import { fireEvent, present, renderUI, waitFor } from '../../helpers'
+import { present, renderUI, waitFor } from '../../helpers'
+import { EXIT_MOTION_CASES, getGroup, pressKey } from '../helpers/exit'
 
 /**
  * A closed JsonTree group stays on screen for its 200 ms exit, and
@@ -33,50 +34,42 @@ function rows(container: HTMLElement) {
 	}
 }
 
-function getGroup(branch: HTMLElement) {
-	return present(document.getElementById(branch.getAttribute('aria-owns') ?? ''), 'group of a')
-}
-
-function press(key: string) {
-	fireEvent.keyDown(present(document.activeElement, 'focused row'), { key })
-}
-
 describe('JsonTree exiting group (real Motion)', () => {
-	it.each([
-		{ reduced: false, name: 'the full exit' },
-		{ reduced: true, name: 'the reduced exit' },
-	])('moves focus past the rows of a closing group under $name', async ({ reduced }) => {
-		const { container } = renderUI(
-			<ReducedMotionContext value={reduced}>
-				<JsonTree data={data} defaultExpandDepth={2} />
-			</ReducedMotionContext>,
-		)
+	it.each(EXIT_MOTION_CASES)(
+		'moves focus past the rows of a closing group under $name',
+		async ({ reduced }) => {
+			const { container } = renderUI(
+				<ReducedMotionContext value={reduced}>
+					<JsonTree data={data} defaultExpandDepth={2} />
+				</ReducedMotionContext>,
+			)
 
-		const { branch, x, last } = rows(container)
+			const { branch, x, last } = rows(container)
 
-		const group = getGroup(branch)
+			const group = getGroup(branch)
 
-		branch.focus()
+			branch.focus()
 
-		press('ArrowLeft')
+			pressKey('ArrowLeft')
 
-		expect(branch).toHaveAttribute('aria-expanded', 'false')
+			expect(branch).toHaveAttribute('aria-expanded', 'false')
 
-		// The group stays for its exit, and its rows stay with it.
-		expect(group).toBeInTheDocument()
+			// The group stays for its exit, and its rows stay with it.
+			expect(group).toBeInTheDocument()
 
-		expect(group).toContainElement(x)
+			expect(group).toContainElement(x)
 
-		press('ArrowDown')
+			pressKey('ArrowDown')
 
-		expect(document.activeElement).toBe(last)
+			expect(document.activeElement).toBe(last)
 
-		expect(group).toHaveAttribute('inert')
+			expect(group).toHaveAttribute('inert')
 
-		await waitFor(() => expect(group).not.toBeInTheDocument())
+			await waitFor(() => expect(group).not.toBeInTheDocument())
 
-		expect(document.activeElement).toBe(last)
-	})
+			expect(document.activeElement).toBe(last)
+		},
+	)
 
 	it('clears the mark when the branch opens again during the exit', () => {
 		const { container } = renderUI(<JsonTree data={data} defaultExpandDepth={2} />)
@@ -87,18 +80,18 @@ describe('JsonTree exiting group (real Motion)', () => {
 
 		branch.focus()
 
-		press('ArrowLeft')
+		pressKey('ArrowLeft')
 
 		expect(group).toHaveAttribute('inert')
 
-		press('ArrowRight')
+		pressKey('ArrowRight')
 
 		// The open keeps the same node, so the mark must go.
 		expect(getGroup(branch)).toBe(group)
 
 		expect(group).not.toHaveAttribute('inert')
 
-		press('ArrowDown')
+		pressKey('ArrowDown')
 
 		expect(document.activeElement).toBe(x)
 	})

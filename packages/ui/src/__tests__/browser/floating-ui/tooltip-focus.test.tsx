@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { renderUI, screen, waitFor } from '../../helpers'
@@ -34,7 +34,7 @@ function Harness({ interactive = true, children }: { interactive?: boolean; chil
 }
 
 /** Tabs to the trigger, opening the tooltip on focus, and returns it. @internal */
-async function openByKeyboard() {
+const openByKeyboard = vi.defineHelper(async () => {
 	await userEvent.keyboard('{Tab}')
 
 	const trigger = screen.getByRole('button', { name: 'Details' })
@@ -42,7 +42,7 @@ async function openByKeyboard() {
 	await waitFor(() => expect(trigger).toHaveFocus())
 
 	return trigger
-}
+})
 
 describe('Tooltip focus order (real browser)', () => {
 	it('puts the panel controls in the tab order after the trigger', async () => {

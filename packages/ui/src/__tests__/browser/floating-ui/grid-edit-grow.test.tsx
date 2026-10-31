@@ -1,9 +1,10 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import { Grid, type GridColumn } from '../../../modules/grid'
+import { Grid, type GridColumn, type GridProps } from '../../../modules/grid'
 import { LocaleProvider } from '../../../providers/locale'
 import { present, renderUI, waitFor } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
+import { gridCell } from '../../helpers/grid-cells'
 
 /**
  * The focused text editor of a narrow cell grows past the cell as the user
@@ -39,17 +40,11 @@ const columns = (extra: Partial<Record<keyof Row, Partial<GridColumn<Row>>>> = {
 		}),
 	)
 
-const getCell = (container: HTMLElement, column: string, row = 0) =>
-	present<HTMLElement>(
-		container.querySelectorAll(`td[data-grid-col="${column}"]`)[row],
-		`td[data-grid-col="${column}"]`,
-	)
-
 const getSlot = (cell: HTMLElement) =>
 	present<HTMLElement>(cell.querySelector('[data-slot="grid-edit-slot"]'), 'the editor slot')
 
 /** Opens the editor of `cell` under a cell-scoped session, and types `text` at its end. */
-async function openAndType(cell: HTMLElement, text: string) {
+const openAndType = vi.defineHelper(async (cell: HTMLElement, text: string) => {
 	await userEvent.dblClick(cell)
 
 	const input = await waitFor(() =>
@@ -65,19 +60,41 @@ async function openAndType(cell: HTMLElement, text: string) {
 	await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
 
 	return { input, slot }
-}
+})
 
 const cellScope = { session: 'managed', scope: 'cell', onCommit: () => {} } as const
 
+/**
+ * Renders the grid in a box of `width`, with a cell-scoped session unless `props` sets another.
+ *
+ * @param props - The props that replace the defaults of the grid.
+ * @param options - The width of the box, and the direction of a locale scope around it.
+ * @returns The render result.
+ */
+function renderGrid(
+	props: Partial<GridProps<Row>> = {},
+	{ width = 900, dir }: { width?: number; dir?: 'rtl' } = {},
+) {
+	const grid = (
+		<div style={{ width, marginInline: dir ? 'auto' : undefined }}>
+			<Grid
+				columns={columns()}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={cellScope}
+				{...props}
+			/>
+		</div>
+	)
+
+	return renderUI(dir ? <LocaleProvider dir={dir}>{grid}</LocaleProvider> : grid)
+}
+
 describe('grid editor grow (real floating engine)', () => {
 	it('grows toward the inline end as the user types, and keeps the place of the text', async () => {
-		const { container } = renderUI(
-			<div style={{ width: 900 }}>
-				<Grid columns={columns()} rows={rows} getKey={(row) => row.id} editable={cellScope} />
-			</div>,
-		)
+		const { container } = renderGrid()
 
-		const cell = getCell(container, 'email')
+		const cell = gridCell(container, 'email')
 
 		const rowHeight = present(cell.closest('tr'), 'the row').getBoundingClientRect().height
 
@@ -120,30 +137,17 @@ describe('grid editor grow (real floating engine)', () => {
 	})
 
 	it('caps the width at 28rem', async () => {
-		const { container } = renderUI(
-			<div style={{ width: 900 }}>
-				<Grid columns={columns()} rows={rows} getKey={(row) => row.id} editable={cellScope} />
-			</div>,
-		)
+		const { container } = renderGrid()
 
-		const { slot } = await openAndType(getCell(container, 'email'), LONG.repeat(4))
+		const { slot } = await openAndType(gridCell(container, 'email'), LONG.repeat(4))
 
 		await waitFor(() => expect(slot.getBoundingClientRect().width).toBeNear(28 * 16, PIXEL))
 	})
 
 	it('goes back into the cell as focus leaves the editor', async () => {
-		const { container } = renderUI(
-			<div style={{ width: 900 }}>
-				<Grid
-					columns={columns()}
-					rows={rows}
-					getKey={(row) => row.id}
-					editable={{ rows: new Set([1]), onCommit: () => {} }}
-				/>
-			</div>,
-		)
+		const { container } = renderGrid({ editable: { rows: new Set([1]), onCommit: () => {} } })
 
-		const email = getCell(container, 'email')
+		const email = gridCell(container, 'email')
 
 		await userEvent.click(present(email.querySelector('input'), 'the email editor'))
 
@@ -153,7 +157,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
 
-		await userEvent.click(present(getCell(container, 'name').querySelector('input'), 'name'))
+		await userEvent.click(present(gridCell(container, 'name').querySelector('input'), 'name'))
 
 		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(false))
 
@@ -165,13 +169,9 @@ describe('grid editor grow (real floating engine)', () => {
 	})
 
 	it('moves toward the start at the end edge of the scroll area', async () => {
-		const { container } = renderUI(
-			<div style={{ width: 600 }}>
-				<Grid columns={columns()} rows={rows} getKey={(row) => row.id} editable={cellScope} />
-			</div>,
-		)
+		const { container } = renderGrid({}, { width: 600 })
 
-		const cell = getCell(container, 'role')
+		const cell = gridCell(container, 'role')
 
 		const { slot } = await openAndType(cell, LONG)
 
@@ -187,15 +187,9 @@ describe('grid editor grow (real floating engine)', () => {
 	})
 
 	it('grows toward the left in a right-to-left grid', async () => {
-		const { container } = renderUI(
-			<LocaleProvider dir="rtl">
-				<div style={{ width: 900, marginInline: 'auto' }}>
-					<Grid columns={columns()} rows={rows} getKey={(row) => row.id} editable={cellScope} />
-				</div>
-			</LocaleProvider>,
-		)
+		const { container } = renderGrid({}, { dir: 'rtl' })
 
-		const cell = getCell(container, 'email')
+		const cell = gridCell(container, 'email')
 
 		const { slot } = await openAndType(cell, LONG)
 
@@ -210,22 +204,13 @@ describe('grid editor grow (real floating engine)', () => {
 	})
 
 	it('paints above a pinned cell', async () => {
-		const { container } = renderUI(
-			<div style={{ width: 900 }}>
-				<Grid
-					columns={columns({ role: { pinned: 'right' } })}
-					rows={rows}
-					getKey={(row) => row.id}
-					editable={cellScope}
-				/>
-			</div>,
-		)
+		const { container } = renderGrid({ columns: columns({ role: { pinned: 'right' } }) })
 
-		const cell = getCell(container, 'email')
+		const cell = gridCell(container, 'email')
 
 		const { slot } = await openAndType(cell, LONG.repeat(2))
 
-		const pinned = getCell(container, 'role')
+		const pinned = gridCell(container, 'role')
 
 		const pinnedBox = pinned.getBoundingClientRect()
 
@@ -239,20 +224,9 @@ describe('grid editor grow (real floating engine)', () => {
 	})
 
 	it('paints under the sticky head, and stays on its cell through a scroll', async () => {
-		const { container } = renderUI(
-			<div style={{ width: 900 }}>
-				<Grid
-					columns={columns()}
-					rows={rows}
-					getKey={(row) => row.id}
-					header={{ position: 'sticky' }}
-					maxHeight="240px"
-					editable={cellScope}
-				/>
-			</div>,
-		)
+		const { container } = renderGrid({ header: { position: 'sticky' }, maxHeight: '240px' })
 
-		const cell = getCell(container, 'email', 2)
+		const cell = gridCell(container, 'email', 2)
 
 		const { slot } = await openAndType(cell, LONG)
 
@@ -275,20 +249,9 @@ describe('grid editor grow (real floating engine)', () => {
 	})
 
 	it('stays on its cell through a scroll of a virtualized grid', async () => {
-		const { container } = renderUI(
-			<div style={{ width: 900 }}>
-				<Grid
-					columns={columns()}
-					rows={rows}
-					getKey={(row) => row.id}
-					virtualize={{ estimateSize: 46 }}
-					maxHeight="300px"
-					editable={cellScope}
-				/>
-			</div>,
-		)
+		const { container } = renderGrid({ virtualize: { estimateSize: 46 }, maxHeight: '300px' })
 
-		const cell = getCell(container, 'email', 3)
+		const cell = gridCell(container, 'email', 3)
 
 		const { slot } = await openAndType(cell, LONG)
 
@@ -330,7 +293,7 @@ describe('grid editor grow (real floating engine)', () => {
 			</div>,
 		)
 
-		const cell = getCell(container, 'email')
+		const cell = gridCell(container, 'email')
 
 		const { slot } = await openAndType(cell, LONG)
 

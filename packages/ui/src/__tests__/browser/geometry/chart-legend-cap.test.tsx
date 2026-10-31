@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { PieChart } from '../../../modules/chart/pie-chart'
@@ -45,16 +45,26 @@ describe('chart stacked legend row cap (real browser)', () => {
 	const overflowChip = (root: ParentNode) =>
 		root.querySelector('[aria-label^="Show "]') as HTMLButtonElement | null
 
-	it('chips the overflow, keeps the row to its budget, and never mounts a hidden switch off-screen', async () => {
-		const { container } = renderUI(
-			<BarChart aria-label="Ten series" data={data} series={series} width={360} legend="top" />,
+	/**
+	 * Renders the ten series in a 360px box, and waits for the chip of the cap. A
+	 * `dir` puts the chart in a region of that direction.
+	 */
+	const cappedChart = vi.defineHelper(async (dir?: 'ltr' | 'rtl') => {
+		const chart = (
+			<BarChart aria-label="Ten series" data={data} series={series} width={360} legend="top" />
 		)
+
+		const view = renderUI(dir ? <LocaleProvider dir={dir}>{chart}</LocaleProvider> : chart)
 
 		// The chip lands once the ghost measures the overflow (a layout effect after
 		// the first paint), so wait for it rather than reading a pre-measure frame.
-		await waitFor(() => expect(overflowChip(container)).not.toBeNull())
+		const chip = await waitFor(() => present(overflowChip(view.container), 'the overflow chip'))
 
-		const chip = overflowChip(container) as HTMLButtonElement
+		return { ...view, chip }
+	})
+
+	it('chips the overflow, keeps the row to its budget, and never mounts a hidden switch off-screen', async () => {
+		const { container, chip } = await cappedChart()
 
 		const visibleItems = allBySlot(container, 'chart-legend-item')
 
@@ -88,13 +98,7 @@ describe('chart stacked legend row cap (real browser)', () => {
 	// width that it uses from that edge.
 	it('keeps the same entries in a right-to-left region', async () => {
 		const count = async (dir: 'ltr' | 'rtl') => {
-			const { container, unmount } = renderUI(
-				<LocaleProvider dir={dir}>
-					<BarChart aria-label="Ten series" data={data} series={series} width={360} legend="top" />
-				</LocaleProvider>,
-			)
-
-			await waitFor(() => expect(overflowChip(container)).not.toBeNull())
+			const { container, unmount } = await cappedChart(dir)
 
 			const visible = allBySlot(container, 'chart-legend-item').length
 
@@ -109,13 +113,7 @@ describe('chart stacked legend row cap (real browser)', () => {
 	// The chip sits inside the toolbar, so it shares the one Tab stop, and the
 	// arrows reach it from the switches.
 	it('roves to the chip with the arrows, and keeps it off the Tab order at rest', async () => {
-		const { container } = renderUI(
-			<BarChart aria-label="Ten series" data={data} series={series} width={360} legend="top" />,
-		)
-
-		await waitFor(() => expect(overflowChip(container)).not.toBeNull())
-
-		const chip = overflowChip(container) as HTMLButtonElement
+		const { container, chip } = await cappedChart()
 
 		const row = getSlot(container, 'chart-legend')
 
@@ -137,11 +135,7 @@ describe('chart stacked legend row cap (real browser)', () => {
 	})
 
 	it('opens the overflow as a switchboard whose switches toggle the same series', async () => {
-		const { container } = renderUI(
-			<BarChart aria-label="Ten series" data={data} series={series} width={360} legend="top" />,
-		)
-
-		await waitFor(() => expect(overflowChip(container)).not.toBeNull())
+		const { container, chip } = await cappedChart()
 
 		// The visible row itself, so its switch count reads free of the popover's own
 		// (which may portal inside the container once open).
@@ -149,7 +143,7 @@ describe('chart stacked legend row cap (real browser)', () => {
 
 		const before = allBySlot(row, 'chart-legend-item').length
 
-		await userEvent.click(overflowChip(container) as HTMLButtonElement)
+		await userEvent.click(chip)
 
 		// The panel teleports through a portal; find it on the document, then read the
 		// switchboard it holds.

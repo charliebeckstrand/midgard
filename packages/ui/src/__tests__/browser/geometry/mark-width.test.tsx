@@ -11,29 +11,18 @@ import { bySlot, present, renderUI } from '../../helpers'
  * Rides the real browser because the claim is a computed one: jsdom loads no stylesheet.
  */
 describe('inline mark width (real browser)', () => {
-	it.each([
-		['Code', 'code', <Code key="code">pnpm install</Code>],
-		['Kbd', 'kbd', <Kbd key="kbd">⌘K</Kbd>],
-	])('keeps a %s at the width of its text in a flex column', (_, slot, mark) => {
+	it.for([
+		['Code', 'flex column', 'code', 'flex flex-col', <Code key="code">pnpm install</Code>],
+		['Kbd', 'flex column', 'kbd', 'flex flex-col', <Kbd key="kbd">⌘K</Kbd>],
+		['Code', 'grid cell', 'code', 'grid', <Code key="code">pnpm install</Code>],
+	] as const)('keeps a %s at the width of its text in a %s', ([, , slot, parent, mark]) => {
 		const { container } = renderUI(
-			<div className="flex flex-col" style={{ width: 600 }}>
+			<div className={parent} style={{ width: 600 }}>
 				{mark}
 			</div>,
 		)
 
 		const width = present(bySlot(container, slot), slot).getBoundingClientRect().width
-
-		expect(width).toBeLessThan(200)
-	})
-
-	it('keeps a Code at the width of its text in a grid cell', () => {
-		const { container } = renderUI(
-			<div className="grid" style={{ width: 600 }}>
-				<Code>pnpm install</Code>
-			</div>,
-		)
-
-		const width = present(bySlot(container, 'code'), 'code').getBoundingClientRect().width
 
 		expect(width).toBeLessThan(200)
 	})

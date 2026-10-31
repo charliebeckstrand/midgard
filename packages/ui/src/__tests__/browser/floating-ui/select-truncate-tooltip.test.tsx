@@ -6,6 +6,7 @@ import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbo
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { bySlot, frames, present, renderUI, screen } from '../../helpers'
 import { once } from '../helpers/signals'
+import { tooltipAfterHover } from '../helpers/tooltip'
 import { pause } from '../helpers/wall-clock'
 
 const LONG = 'awaiting approval from finance'
@@ -69,16 +70,6 @@ const cases: Case[] = [
 		),
 	},
 ]
-
-/**
- * Waits past the 250 ms hover delay of the tooltip, with no pointer leave to
- * cancel it. Returns the open tooltip, or `null`.
- */
-async function tooltipAfterHover(): Promise<HTMLElement | null> {
-	await pause(400)
-
-	return screen.queryByRole('tooltip')
-}
 
 /**
  * The truncation tooltip of the select family, against the real floating engine and

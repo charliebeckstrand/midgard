@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
@@ -48,7 +48,7 @@ describe('grid edit validation visibility (real browser)', () => {
 	}
 
 	/** Whether the message sits inside the box of its scroll container. */
-	const expectInView = (message: HTMLElement) => {
+	const expectInView = vi.defineHelper((message: HTMLElement) => {
 		const scroller = scrollParent(message)
 
 		expect(scroller).not.toBeNull()
@@ -60,7 +60,7 @@ describe('grid edit validation visibility (real browser)', () => {
 		expect(messageBox.bottom).toBeLessThanOrEqual(scrollerBox.bottom + 1)
 
 		expect(messageBox.top).toBeGreaterThanOrEqual(scrollerBox.top - 1)
-	}
+	})
 
 	function Harness({ rows }: { rows: Row[] }) {
 		const [editing, setEditing] = useState<Set<string | number>>(new Set())

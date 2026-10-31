@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { BarChart } from '../../modules/chart/bar-chart'
+import { BarChart, type BarChartProps } from '../../modules/chart/bar-chart'
 import { allBySlot, frames, present, renderUI, waitFor } from '../helpers'
 
 /**
@@ -36,16 +36,37 @@ describe('chart legend focus persistence (real browser)', () => {
 	// before reading the marks so an absent dim reflects state, not timing.
 	const settle = () => frames()
 
-	it('does not dim the other series when a backgrounded tab re-fires focus on a clicked switch', async () => {
+	const TARGET = [{ value: 20, label: 'Target' }]
+
+	/**
+	 * Renders a button before the chart, so a Tab from it enters the legend. Returns the button,
+	 * the first series switch, and the first reference chip.
+	 */
+	function renderChart(props: Pick<BarChartProps, 'legend' | 'reference'> = {}) {
 		const { container } = renderUI(
 			<>
 				<button type="button">before</button>
 
-				<BarChart aria-label="Quarterlies" data={data} series={[...series]} width={400} />
+				<BarChart
+					aria-label="Quarterlies"
+					data={data}
+					series={[...series]}
+					width={400}
+					{...props}
+				/>
 			</>,
 		)
 
-		const revenue = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
+		return {
+			container,
+			before: present<HTMLButtonElement>(container.querySelector('button'), 'button'),
+			revenue: allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement,
+			chip: allBySlot(container, 'chart-legend-reference')[0] as HTMLButtonElement,
+		}
+	}
+
+	it('does not dim the other series when a backgrounded tab re-fires focus on a clicked switch', async () => {
+		const { container, revenue } = renderChart()
 
 		// Toggle the series off then on (a reader inspecting it) so it stays
 		// visible while the button holds the pointer's ring-less focus.
@@ -69,52 +90,8 @@ describe('chart legend focus persistence (real browser)', () => {
 		expect(dimmed(otherSeriesBar(container))).toBe(false)
 	})
 
-	it('still dims the other series while a switch holds keyboard focus', async () => {
-		const { container } = renderUI(
-			<>
-				<button type="button">before</button>
-
-				<BarChart
-					aria-label="Quarterlies"
-					data={data}
-					series={[...series]}
-					width={400}
-					legend="top"
-				/>
-			</>,
-		)
-
-		const before = present<HTMLButtonElement>(container.querySelector('button'), 'button')
-		const revenue = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
-
-		// Tab into the legend from the preceding control: a keyboard focus carries
-		// the ring, so it emphasizes the way a hover does.
-		before.focus()
-		await userEvent.tab()
-
-		expect(document.activeElement).toBe(revenue)
-		expect(revenue.matches(':focus-visible')).toBe(true)
-
-		await waitFor(() => expect(dimmed(otherSeriesBar(container))).toBe(true))
-	})
-
 	it('keeps the emphasis when a hover leaves a switch that still holds keyboard focus', async () => {
-		const { container } = renderUI(
-			<>
-				<button type="button">before</button>
-
-				<BarChart
-					aria-label="Quarterlies"
-					data={data}
-					series={[...series]}
-					width={400}
-					legend="top"
-				/>
-			</>,
-		)
-
-		const before = present<HTMLButtonElement>(container.querySelector('button'), 'button')
-		const revenue = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
+		const { container, before, revenue } = renderChart({ legend: 'top' })
 
 		// Keyboard-focus the first switch (the other series dims) then point at it
 		// and leave. Hover doesn't disturb the ring, so the focus emphasis must hold.
@@ -138,23 +115,7 @@ describe('chart legend focus persistence (real browser)', () => {
 		(allBySlot(container, 'chart-marks')[0]?.getAttribute('class') ?? '').includes('opacity-25')
 
 	it('recedes the marks while a reference chip holds keyboard focus', async () => {
-		const { container } = renderUI(
-			<>
-				<button type="button">before</button>
-
-				<BarChart
-					aria-label="Quarterlies"
-					data={data}
-					series={[...series]}
-					width={400}
-					legend="top"
-					reference={[{ value: 20, label: 'Target' }]}
-				/>
-			</>,
-		)
-
-		const before = present<HTMLButtonElement>(container.querySelector('button'), 'button')
-		const chip = allBySlot(container, 'chart-legend-reference')[0] as HTMLButtonElement
+		const { container, before, chip } = renderChart({ legend: 'top', reference: TARGET })
 
 		// Tab into the legend (landing on the first switch), then rove past the two
 		// switches to the reference chip: a keyboard focus carries the ring, so the
@@ -170,23 +131,7 @@ describe('chart legend focus persistence (real browser)', () => {
 	})
 
 	it('stops the recede when keyboard focus leaves a reference chip toggled off and on', async () => {
-		const { container } = renderUI(
-			<>
-				<button type="button">before</button>
-
-				<BarChart
-					aria-label="Quarterlies"
-					data={data}
-					series={[...series]}
-					width={400}
-					legend="top"
-					reference={[{ value: 20, label: 'Target' }]}
-				/>
-			</>,
-		)
-
-		const before = present<HTMLButtonElement>(container.querySelector('button'), 'button')
-		const chip = allBySlot(container, 'chart-legend-reference')[0] as HTMLButtonElement
+		const { container, before, chip } = renderChart({ legend: 'top', reference: TARGET })
 
 		// Rove to the chip, then toggle its rule off and on with the keyboard.
 		before.focus()
@@ -216,22 +161,7 @@ describe('chart legend focus persistence (real browser)', () => {
 	})
 
 	it('does not recede the marks on a reference chip clicked into ring-less focus', async () => {
-		const { container } = renderUI(
-			<>
-				<button type="button">before</button>
-
-				<BarChart
-					aria-label="Quarterlies"
-					data={data}
-					series={[...series]}
-					width={400}
-					legend="top"
-					reference={[{ value: 20, label: 'Target' }]}
-				/>
-			</>,
-		)
-
-		const chip = allBySlot(container, 'chart-legend-reference')[0] as HTMLButtonElement
+		const { container, chip } = renderChart({ legend: 'top', reference: TARGET })
 
 		// Clicking the chip toggles its rule off and leaves the chip DOM-focused with
 		// no ring; leaving must settle the marks back to full rather than stranding

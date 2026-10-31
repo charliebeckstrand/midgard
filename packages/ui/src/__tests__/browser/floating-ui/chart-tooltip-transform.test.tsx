@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { HeatmapChart, LineChart, PieChart } from '../../../modules/chart'
 import { bySlot, fireEvent, getSlot, present, renderUI, waitFor } from '../../helpers'
@@ -45,11 +45,11 @@ async function pointAt(target: Element, at: { x: number; y: number }) {
 }
 
 /** Asserts that the panel sits centered above `at`, the gap clear of it. */
-function expectAbove(panel: DOMRect, at: { x: number; y: number }) {
+const expectAbove = vi.defineHelper((panel: DOMRect, at: { x: number; y: number }) => {
 	expect(Math.abs(getCenter(panel).x - at.x)).toBeLessThan(TOLERANCE)
 
 	expect(Math.abs(panel.bottom - (at.y - GAP))).toBeLessThan(TOLERANCE)
-}
+})
 
 describe('chart readout under a scaled ancestor (real browser)', () => {
 	beforeAll(() => page.viewport(1400, 1200))

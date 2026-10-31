@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../../components/button'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
 import { frames, getSlot, renderUI, screen, userEvent, waitFor } from '../../helpers'
@@ -13,19 +13,13 @@ const rows = Array.from({ length: 60 }, (_, index) => `Item ${index + 1}`)
  * floating engine, because the jsdom suite mocks `@floating-ui/react`.
  */
 describe('a Menu taller than the viewport (real floating engine)', () => {
-	async function settle() {
-		await frames()
-
-		await frames()
-	}
-
-	function expectOnScreen(element: Element) {
+	const expectOnScreen = vi.defineHelper((element: Element) => {
 		const rect = element.getBoundingClientRect()
 
 		expect(rect.top).toBeGreaterThanOrEqual(0)
 
 		expect(rect.bottom).toBeLessThanOrEqual(window.innerHeight)
-	}
+	})
 
 	it('keeps a dropdown panel on screen and scrolls its rows', async () => {
 		renderUI(
@@ -44,7 +38,7 @@ describe('a Menu taller than the viewport (real floating engine)', () => {
 			</div>,
 		)
 
-		await settle()
+		await frames(2)
 
 		const panel = screen.getByRole('menu')
 
@@ -86,11 +80,11 @@ describe('a Menu taller than the viewport (real floating engine)', () => {
 			</Menu>,
 		)
 
-		await settle()
+		await frames(2)
 
 		await userEvent.click(screen.getByRole('menuitem', { name: /More/ }))
 
-		await settle()
+		await frames(2)
 
 		// The submenu panel takes its name from the parent row.
 		expectOnScreen(screen.getByRole('menu', { name: /More/ }))

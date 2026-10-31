@@ -3,6 +3,34 @@ import { commands, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { present, renderUI, screen, waitFor } from '../helpers'
 
+/** The selector of the cell of a column in the row with a key. */
+const cellSelector = (key: number, column: string) =>
+	`tr[data-grid-row="${key}"] td[data-grid-col="${column}"]`
+
+/** The cell of a column in the row with a key. */
+const cell = (key: number, column: string) =>
+	present(document.querySelector<HTMLElement>(cellSelector(key, column)), cellSelector(key, column))
+
+/**
+ * Keeps the text of each copy event on the window for the current test. The window hears the
+ * event after the grid's own handler wrote the text.
+ *
+ * @returns The texts, in the order of the copies.
+ */
+function captureCopies(): string[] {
+	const written: string[] = []
+
+	const read = (event: ClipboardEvent) => {
+		written.push(event.clipboardData?.getData('text/plain') ?? '')
+	}
+
+	window.addEventListener('copy', read)
+
+	onTestFinished(() => window.removeEventListener('copy', read))
+
+	return written
+}
+
 /**
  * The pointer and the clipboard of a cell range (real browser). A drag reads
  * the cell under a real mouse with `elementFromPoint`, which jsdom does not
@@ -25,17 +53,7 @@ describe('grid range pointer and clipboard (real browser)', () => {
 
 	const getKey = (row: Row) => row.id
 
-	/** The selector of the cell of a column in the row with a key. */
-	const cellSelector = (key: number, column: string) =>
-		`tr[data-grid-row="${key}"] td[data-grid-col="${column}"]`
-
-	const cell = (key: number, column: string) =>
-		present(
-			document.querySelector<HTMLElement>(cellSelector(key, column)),
-			cellSelector(key, column),
-		)
-
-	const renderGrid = async () => {
+	const renderGrid = vi.defineHelper(async () => {
 		renderUI(
 			<>
 				<div style={{ width: '320px' }}>
@@ -56,7 +74,7 @@ describe('grid range pointer and clipboard (real browser)', () => {
 		)
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
-	}
+	})
 
 	/** The count of the cells that carry `data-in-range`. */
 	const marked = () => document.querySelectorAll('td[data-in-range]').length
@@ -138,16 +156,7 @@ describe('grid range pointer and clipboard (real browser)', () => {
 
 		expect(document.activeElement).toBe(grid)
 
-		const written: string[] = []
-
-		// The window hears the event after the grid's own handler wrote the text.
-		const read = (event: ClipboardEvent) => {
-			written.push(event.clipboardData?.getData('text/plain') ?? '')
-		}
-
-		window.addEventListener('copy', read)
-
-		onTestFinished(() => window.removeEventListener('copy', read))
+		const written = captureCopies()
 
 		document.execCommand('copy')
 
@@ -161,15 +170,7 @@ describe('grid range pointer and clipboard (real browser)', () => {
 
 		await userEvent.tab()
 
-		const written: string[] = []
-
-		const read = (event: ClipboardEvent) => {
-			written.push(event.clipboardData?.getData('text/plain') ?? '')
-		}
-
-		window.addEventListener('copy', read)
-
-		onTestFinished(() => window.removeEventListener('copy', read))
+		const written = captureCopies()
 
 		expect(document.activeElement).toBe(screen.getByRole('grid'))
 
@@ -211,37 +212,21 @@ describe('grid range copy and paste round trip (real browser)', () => {
 			/>,
 		)
 
-		const cell = (key: number, column: string) =>
-			present(
-				document.querySelector<HTMLElement>(
-					`tr[data-grid-row="${key}"] td[data-grid-col="${column}"]`,
-				),
-				`${key} ${column}`,
-			)
-
 		await userEvent.click(cell(1, 'name'))
 
 		await userEvent.keyboard('{Shift>}{ArrowRight}{/Shift}')
 
-		let copied = ''
-
-		const read = (event: ClipboardEvent) => {
-			copied = event.clipboardData?.getData('text/plain') ?? ''
-		}
-
-		window.addEventListener('copy', read)
-
-		onTestFinished(() => window.removeEventListener('copy', read))
+		const written = captureCopies()
 
 		document.execCommand('copy')
 
-		expect(copied).toBe("'=cmd\t1")
+		expect(written).toEqual(["'=cmd\t1"])
 
 		await userEvent.click(cell(3, 'name'))
 
 		const transfer = new DataTransfer()
 
-		transfer.setData('text/plain', copied)
+		transfer.setData('text/plain', written[0] ?? '')
 
 		document.body.dispatchEvent(
 			new ClipboardEvent('paste', { clipboardData: transfer, bubbles: true, cancelable: true }),
@@ -327,15 +312,6 @@ describe('grid fill handle (real browser)', () => {
 		name: `Name ${index + 1}`,
 	}))
 
-	const cellSelector = (key: number, column: string) =>
-		`tr[data-grid-row="${key}"] td[data-grid-col="${column}"]`
-
-	const cell = (key: number, column: string) =>
-		present(
-			document.querySelector<HTMLElement>(cellSelector(key, column)),
-			cellSelector(key, column),
-		)
-
 	const renderGrid = () => {
 		const onCommit = vi.fn()
 
@@ -410,15 +386,6 @@ describe('grid fill handle over a closed group (real browser)', () => {
 		{ id: 2, name: 'Bob', team: 'B' },
 		{ id: 3, name: 'Carol', team: 'C' },
 	]
-
-	const cellSelector = (key: number, column: string) =>
-		`tr[data-grid-row="${key}"] td[data-grid-col="${column}"]`
-
-	const cell = (key: number, column: string) =>
-		present(
-			document.querySelector<HTMLElement>(cellSelector(key, column)),
-			cellSelector(key, column),
-		)
 
 	it('fills the next row that the cursor shows, past the closed group', async () => {
 		const onCommit = vi.fn()

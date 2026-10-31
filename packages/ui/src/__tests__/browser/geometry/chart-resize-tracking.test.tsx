@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../../modules/chart/heatmap-chart'
@@ -196,15 +196,7 @@ describe('chart resize tracking (real browser)', () => {
 
 		const host = getHost(container)
 
-		const tier = () => {
-			const root = container.querySelector<HTMLElement>('[data-slot="chart"]')
-
-			if (!root) throw new Error('no chart root')
-
-			return root.getAttribute('data-tier')
-		}
-
-		await waitFor(() => expect(tier()).not.toBeNull())
+		await waitFor(() => expect(chartTier(container)).not.toBeNull())
 
 		// Sweep container heights through the region where the plot remainder crosses
 		// the 96px spark floor; at every step the tier must be the same across two
@@ -215,11 +207,11 @@ describe('chart resize tracking (real browser)', () => {
 
 			await frames()
 
-			const settled = tier()
+			const settled = chartTier(container)
 
 			await frames()
 
-			expect(tier()).toBe(settled)
+			expect(chartTier(container)).toBe(settled)
 		}
 	})
 
@@ -246,7 +238,7 @@ describe('chart resize tracking (real browser)', () => {
 		const host = getHost(container)
 
 		/** The committed drawing size tracks the plot box: width and height alike. */
-		const tracks = () => {
+		const tracks = vi.defineHelper(() => {
 			const svg = container.querySelector<SVGSVGElement>('[data-slot="chart-plot"] svg')
 
 			if (!svg?.parentElement) throw new Error('no heatmap svg')
@@ -256,7 +248,7 @@ describe('chart resize tracking (real browser)', () => {
 			expect(Number(svg.getAttribute('width'))).toBe(Math.round(box.width))
 
 			expect(Number(svg.getAttribute('height'))).toBe(Math.round(box.height))
-		}
+		})
 
 		/** Whether the range bar sits beside the plot (aside) or banded below it. */
 		const asideNow = () => {
@@ -336,19 +328,19 @@ describe('chart fill-mode resize stability (real browser)', () => {
 		)
 	}
 
-	/** Uncaught errors reported while `run` executes: the crash channel React aborts through. */
-	async function collectErrors(run: () => Promise<void>): Promise<unknown[]> {
+	/**
+	 * Collects the uncaught errors of the case from this call on: the crash
+	 * channel React aborts through. The listener comes off when the case
+	 * finishes, also after a timeout.
+	 */
+	function collectErrors(): unknown[] {
 		const errors: unknown[] = []
 
 		const onError = (event: ErrorEvent) => errors.push(event.error ?? event.message)
 
 		window.addEventListener('error', onError)
 
-		try {
-			await run()
-		} finally {
-			window.removeEventListener('error', onError)
-		}
+		onTestFinished(() => window.removeEventListener('error', onError))
 
 		return errors
 	}
@@ -369,16 +361,16 @@ describe('chart fill-mode resize stability (real browser)', () => {
 
 		await waitFor(() => expect(frameWidth(container)).toBe('400'))
 
-		const errors = await collectErrors(async () => {
-			for (const width of [360, 320, 280, 260, 240]) {
-				host.style.width = `${width}px`
+		const errors = collectErrors()
 
-				await frames()
+		for (const width of [360, 320, 280, 260, 240]) {
+			host.style.width = `${width}px`
 
-				// Fill never sparks by height, whatever remainder this drag frame left.
-				expect(chartTier(container)).not.toBe('spark')
-			}
-		})
+			await frames()
+
+			// Fill never sparks by height, whatever remainder this drag frame left.
+			expect(chartTier(container)).not.toBe('spark')
+		}
 
 		expect(errors).toEqual([])
 
@@ -402,25 +394,25 @@ describe('chart fill-mode resize stability (real browser)', () => {
 			value: index + 1,
 		}))
 
-		const errors = await collectErrors(async () => {
-			const { container } = renderUI(
-				<div data-testid="host" style={{ width: 300, height: 240 }}>
-					<PieChart
-						aria-label="Share by slice"
-						data={SLICES}
-						series={[{ xKey: 'slice', yKey: 'value' }]}
-						aspectRatio={false}
-						legend="right"
-					/>
-				</div>,
-			)
+		const errors = collectErrors()
 
-			await waitFor(() => expect(chartTier(container)).toBe('compact'))
+		const { container } = renderUI(
+			<div data-testid="host" style={{ width: 300, height: 240 }}>
+				<PieChart
+					aria-label="Share by slice"
+					data={SLICES}
+					series={[{ xKey: 'slice', yKey: 'value' }]}
+					aspectRatio={false}
+					legend="right"
+				/>
+			</div>,
+		)
 
-			await frames()
+		await waitFor(() => expect(chartTier(container)).toBe('compact'))
 
-			expect(chartTier(container)).toBe('compact')
-		})
+		await frames()
+
+		expect(chartTier(container)).toBe('compact')
 
 		expect(errors).toEqual([])
 	})
@@ -430,15 +422,15 @@ describe('chart fill-mode resize stability (real browser)', () => {
 		// remainder collapses to content: a height fill mode cannot trust. The
 		// chrome still resolves from the width: a framed compact chart with a
 		// collapsed plot, never a sparkline and never a re-measure loop.
-		const errors = await collectErrors(async () => {
-			const { container } = renderUI(<div style={{ width: 400 }}>{fillChart()}</div>)
+		const errors = collectErrors()
 
-			await waitFor(() => expect(chartTier(container)).toBe('compact'))
+		const { container } = renderUI(<div style={{ width: 400 }}>{fillChart()}</div>)
 
-			await frames()
+		await waitFor(() => expect(chartTier(container)).toBe('compact'))
 
-			expect(chartTier(container)).toBe('compact')
-		})
+		await frames()
+
+		expect(chartTier(container)).toBe('compact')
 
 		expect(errors).toEqual([])
 	})

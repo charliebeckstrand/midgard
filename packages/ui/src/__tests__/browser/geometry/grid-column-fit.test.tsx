@@ -6,31 +6,11 @@ import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vites
 import { cdp } from 'vitest/browser'
 import { Badge } from '../../../components/badge'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, frame, frames, present, renderUI, waitFor } from '../../helpers'
+import { frame, frames, present, renderUI, waitFor } from '../../helpers'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
+import { menuAction } from '../helpers/grid-header-menu'
+import { inFrame, resizeObserverLoopErrors } from '../helpers/resize-observer-loop'
 import { sampleUntil } from '../helpers/sample'
-
-/** Opens the header menu's Auto-size parent, which holds both fits. */
-const openAutoSizeMenu = () => {
-	const parent = Array.from(document.querySelectorAll('[role="menuitem"]')).find(
-		(item) => item.textContent?.trim() === 'Auto-size',
-	)
-
-	if (!parent) throw new Error('no Auto-size menu')
-
-	fireEvent.click(parent)
-}
-
-/** Clicks the open menu item whose text holds `label`. */
-const clickMenuItem = (label: string) => {
-	const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((candidate) =>
-		candidate.textContent?.includes(label),
-	)
-
-	if (!item) throw new Error(`no ${label} item`)
-
-	fireEvent.click(item)
-}
 
 /**
  * Content-aware column auto-sizing against a real layout engine. The autosizer
@@ -335,11 +315,7 @@ describe('grid column auto-sizing (real browser)', () => {
 			// The automatic fit holds the runaway column at the content cap, truncating it.
 			await waitFor(() => expect(leaf().scrollWidth).toBeGreaterThan(leaf().clientWidth + 1))
 
-			fireEvent.contextMenu(header('big'))
-
-			openAutoSizeMenu()
-
-			clickMenuItem(label)
+			menuAction(container, 'big', label)
 
 			// The user-invoked fit lifts the cap: the column grows to the smallest width
 			// that shows the content untruncated, overflowing the frame.
@@ -360,7 +336,7 @@ describe('grid column auto-sizing (real browser)', () => {
 	)
 
 	it('"Auto-size this column" shrinks a surplus-stretched column to its content', async () => {
-		const { header } = render(600, [
+		const { container, header } = render(600, [
 			{ id: 'name', title: 'Name', cell: (row) => row.tiny },
 			{ id: 'role', title: 'Role', cell: (row) => row.tiny },
 		])
@@ -368,11 +344,7 @@ describe('grid column auto-sizing (real browser)', () => {
 		// The surplus levels both undemanding columns to an even split.
 		await waitFor(() => expect(header('name').getBoundingClientRect().width).toBeGreaterThan(250))
 
-		fireEvent.contextMenu(header('name'))
-
-		openAutoSizeMenu()
-
-		clickMenuItem('Auto-size this column')
+		menuAction(container, 'name', 'Auto-size this column')
 
 		// The reset column drops to the smallest width its header and data need…
 		await waitFor(() => expect(header('name').getBoundingClientRect().width).toBeLessThan(150))
@@ -382,7 +354,7 @@ describe('grid column auto-sizing (real browser)', () => {
 	})
 
 	it('"Auto-size this column" re-fits a width-seeded column to its content', async () => {
-		const { header } = render(600, [
+		const { container, header } = render(600, [
 			{ id: 'fixed', title: 'Fixed', cell: (row) => row.tiny, width: '250px' },
 			{ id: 'role', title: 'Role', cell: (row) => row.tiny },
 		])
@@ -392,11 +364,7 @@ describe('grid column auto-sizing (real browser)', () => {
 			expect(header('fixed').getBoundingClientRect().width).toBeNear(250, HALF_PIXEL),
 		)
 
-		fireEvent.contextMenu(header('fixed'))
-
-		openAutoSizeMenu()
-
-		clickMenuItem('Auto-size this column')
+		menuAction(container, 'fixed', 'Auto-size this column')
 
 		// The reset releases the seed, so the column drops to what its content needs.
 		await waitFor(() => expect(header('fixed').getBoundingClientRect().width).toBeLessThan(150))
@@ -417,8 +385,6 @@ describe('grid column auto-sizing (real browser)', () => {
 			</div>,
 		)
 
-		const _table = present(container.querySelector('table'), 'table')
-
 		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
 
 		await frames()
@@ -436,37 +402,33 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		document.head.append(style)
 
-		try {
-			const { container } = renderUI(
-				<div style={{ width: '600px' }}>
-					<Grid
-						header={{ position: 'sticky' }}
-						columns={[
-							{ id: 'name', title: 'Name', cell: (row) => row.tiny },
-							{ id: 'role', title: 'Role', cell: (row) => row.tiny },
-						]}
-						rows={tinyRows}
-						getKey={getKey}
-					/>
-				</div>,
-			)
+		onTestFinished(() => style.remove())
 
-			const _table = present(container.querySelector('table'), 'table')
+		const { container } = renderUI(
+			<div style={{ width: '600px' }}>
+				<Grid
+					header={{ position: 'sticky' }}
+					columns={[
+						{ id: 'name', title: 'Name', cell: (row) => row.tiny },
+						{ id: 'role', title: 'Role', cell: (row) => row.tiny },
+					]}
+					rows={tinyRows}
+					getKey={getKey}
+				/>
+			</div>,
+		)
 
-			const scroll = present(
-				container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-				'[data-slot="grid-scroll"]',
-			)
+		const scroll = present(
+			container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
 
-			await frames()
+		await frames()
 
-			// The gutter takes width from the scroll region, so the fit must use its content box.
-			expect(scroll.offsetWidth - scroll.clientWidth).toBeGreaterThan(0)
+		// The gutter takes width from the scroll region, so the fit must use its content box.
+		expect(scroll.offsetWidth - scroll.clientWidth).toBeGreaterThan(0)
 
-			expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
-		} finally {
-			style.remove()
-		}
+		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
 	})
 })
 
@@ -629,35 +591,10 @@ describe('grid column fit when rows land in the frame of a resize tick (real bro
 		)
 	}
 
-	/** Runs `step` in the next animation frame callback. */
-	const inFrame = (step: () => void) =>
-		new Promise<void>((resolve) =>
-			requestAnimationFrame(() => {
-				step()
-
-				resolve()
-			}),
-		)
-
-	/** Records each "ResizeObserver loop" error until the test finishes. */
-	function loopErrors(): string[] {
-		const errors: string[] = []
-
-		const record = (event: ErrorEvent) => {
-			if (event.message.includes('ResizeObserver loop')) errors.push(event.message)
-		}
-
-		window.addEventListener('error', record)
-
-		onTestFinished(() => window.removeEventListener('error', record))
-
-		return errors
-	}
-
 	const getRows = (container: HTMLElement) => container.querySelectorAll('td[data-grid-col="name"]')
 
 	it('fits on the first tick of a new grid with no ResizeObserver loop error', async () => {
-		const errors = loopErrors()
+		const errors = resizeObserverLoopErrors()
 
 		let container: HTMLElement | null = null
 
@@ -679,7 +616,7 @@ describe('grid column fit when rows land in the frame of a resize tick (real bro
 	})
 
 	it('fits on a width tick with no ResizeObserver loop error', async () => {
-		const errors = loopErrors()
+		const errors = resizeObserverLoopErrors()
 
 		const { container } = renderUI(<LateRows />)
 
@@ -774,16 +711,6 @@ describe('grid column auto-sizing at device pixel ratio 2 (real browser)', () =>
 		})
 	}
 
-	function menuAction(root: HTMLElement, id: string, label: string) {
-		fireEvent.contextMenu(
-			present(root.querySelector(`th[data-grid-col="${id}"]`), `th[data-grid-col="${id}"]`),
-		)
-
-		openAutoSizeMenu()
-
-		clickMenuItem(label)
-	}
-
 	for (const width of [200, 1400]) {
 		it(`clips no header and no cell in a ${width}px frame`, async () => {
 			expect(window.devicePixelRatio).toBe(2)
@@ -793,8 +720,6 @@ describe('grid column auto-sizing at device pixel ratio 2 (real browser)', () =>
 					<Grid columns={columns} rows={rows} getKey={(row) => row.id} />
 				</div>,
 			)
-
-			const _table = present(container.querySelector('table'), 'table')
 
 			await frames()
 

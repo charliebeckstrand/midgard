@@ -1,8 +1,25 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
 import { frames, renderUI, screen, waitFor } from '../../helpers'
+
+/**
+ * Renders `element`, focuses its trigger, and opens the menu with a click.
+ *
+ * @returns The trigger.
+ */
+async function openMenu(element: ReactElement): Promise<HTMLElement> {
+	renderUI(element)
+	const trigger = screen.getByRole('button', { name: 'Open' })
+	trigger.focus()
+
+	await userEvent.click(trigger)
+	await screen.findByRole('menu')
+
+	return trigger
+}
 
 /**
  * Opening a dropdown menu keeps keyboard focus on the trigger: it is never
@@ -47,12 +64,7 @@ describe('MenuTrigger focus on open (real floating engine)', () => {
 	})
 
 	it('closes the menu and moves focus onward when Tab is pressed', async () => {
-		renderUI(tree())
-		const trigger = screen.getByRole('button', { name: 'Open' })
-		trigger.focus()
-
-		await userEvent.click(trigger)
-		await screen.findByRole('menu')
+		const trigger = await openMenu(tree())
 		expect(trigger).toHaveFocus()
 
 		await userEvent.keyboard('{Tab}')
@@ -88,11 +100,7 @@ describe('MenuTrigger arrow-key roving (real floating engine)', () => {
 	}
 
 	it('ArrowDown roves the active item while focus stays on the trigger', async () => {
-		renderUI(menu())
-		const trigger = screen.getByRole('button', { name: 'Open' })
-		trigger.focus()
-		await userEvent.click(trigger)
-		await screen.findByRole('menu')
+		const trigger = await openMenu(menu())
 
 		const edit = screen.getByRole('menuitem', { name: 'Edit' })
 		const duplicate = screen.getByRole('menuitem', { name: 'Duplicate' })
@@ -114,11 +122,7 @@ describe('MenuTrigger arrow-key roving (real floating engine)', () => {
 
 	it('Enter activates the active item and closes the menu', async () => {
 		const onEdit = vi.fn()
-		renderUI(menu(onEdit))
-		const trigger = screen.getByRole('button', { name: 'Open' })
-		trigger.focus()
-		await userEvent.click(trigger)
-		await screen.findByRole('menu')
+		await openMenu(menu(onEdit))
 
 		await userEvent.keyboard('{ArrowDown}')
 		await waitFor(() =>
@@ -135,11 +139,7 @@ describe('MenuTrigger arrow-key roving (real floating engine)', () => {
 
 	it('Space activates the active item and stays closed (does not re-toggle)', async () => {
 		const onEdit = vi.fn()
-		renderUI(menu(onEdit))
-		const trigger = screen.getByRole('button', { name: 'Open' })
-		trigger.focus()
-		await userEvent.click(trigger)
-		await screen.findByRole('menu')
+		await openMenu(menu(onEdit))
 
 		await userEvent.keyboard('{ArrowDown}')
 		await waitFor(() =>
@@ -162,11 +162,7 @@ describe('MenuTrigger arrow-key roving (real floating engine)', () => {
 	})
 
 	it('clears aria-activedescendant when the menu closes', async () => {
-		renderUI(menu())
-		const trigger = screen.getByRole('button', { name: 'Open' })
-		trigger.focus()
-		await userEvent.click(trigger)
-		await screen.findByRole('menu')
+		const trigger = await openMenu(menu())
 
 		await userEvent.keyboard('{ArrowDown}')
 		await waitFor(() => expect(trigger).toHaveAttribute('aria-activedescendant'))

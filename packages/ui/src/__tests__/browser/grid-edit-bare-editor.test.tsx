@@ -1,8 +1,10 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { cdp, userEvent } from 'vitest/browser'
+import { describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { getSlot, present, renderUI, waitFor } from '../helpers'
+import { gridCell } from '../helpers/grid-cells'
+import { emulateForcedColors } from './helpers/forced-colors'
 
 /**
  * A data cell edits on the `bare` surface: the editor draws no frame, its text
@@ -32,12 +34,6 @@ describe('grid bare editor (real browser)', () => {
 		},
 	]
 
-	const getCell = (container: HTMLElement, column: string, row = 0) =>
-		present<HTMLElement>(
-			container.querySelectorAll(`td[data-grid-col="${column}"]`)[row],
-			`td[data-grid-col="${column}"]`,
-		)
-
 	const firstRow = (container: HTMLElement) =>
 		present<HTMLElement>(container.querySelector('tbody tr'), 'the first row')
 
@@ -59,7 +55,7 @@ describe('grid bare editor (real browser)', () => {
 				const height = firstRow(container).getBoundingClientRect().height
 
 				const text = present<HTMLElement>(
-					getCell(container, 'email').querySelector('[data-grid-content]'),
+					gridCell(container, 'email').querySelector('[data-grid-content]'),
 					'the display content',
 				)
 
@@ -83,7 +79,7 @@ describe('grid bare editor (real browser)', () => {
 
 				const input = await waitFor(() =>
 					present<HTMLInputElement>(
-						getCell(container, 'email').querySelector('input'),
+						gridCell(container, 'email').querySelector('input'),
 						'the email editor',
 					),
 				)
@@ -102,7 +98,7 @@ describe('grid bare editor (real browser)', () => {
 				else expect(inputBox.right).toBeCloseTo(textBox.right, 0)
 
 				// The editor takes the content width of the cell.
-				const cell = getCell(container, 'email')
+				const cell = gridCell(container, 'email')
 
 				const cellStyle = getComputedStyle(cell)
 
@@ -126,15 +122,15 @@ describe('grid bare editor (real browser)', () => {
 			/>,
 		)
 
-		const frame = await waitFor(() => getSlot(getCell(container, 'email'), 'control-frame'))
+		const frame = await waitFor(() => getSlot(gridCell(container, 'email'), 'control-frame'))
 
 		expect(getComputedStyle(frame).boxShadow).toBe('none')
 
 		expect(getComputedStyle(frame).backgroundColor).toBe('rgba(0, 0, 0, 0)')
 
-		const email = getCell(container, 'email')
+		const email = gridCell(container, 'email')
 
-		const name = getCell(container, 'name')
+		const name = gridCell(container, 'name')
 
 		// No cell has the cursor or focus yet, so each open cell shows its hairline.
 		expect(getComputedStyle(email).boxShadow).toMatch(/0px 0px 0px 1px inset/)
@@ -146,23 +142,11 @@ describe('grid bare editor (real browser)', () => {
 		expect(getComputedStyle(name).boxShadow).toMatch(/0px 0px 0px 1px inset/)
 
 		// A closed row draws no ring.
-		expect(getComputedStyle(getCell(container, 'email', 1)).boxShadow).toBe('none')
+		expect(getComputedStyle(gridCell(container, 'email', 1)).boxShadow).toBe('none')
 	})
 
 	describe('under forced colors', () => {
-		// The instance shares one page across its files, and the emulation is page
-		// state. Thus `afterAll` gives the feature back to the browser.
-		beforeAll(() =>
-			cdp().send('Emulation.setEmulatedMedia', {
-				features: [{ name: 'forced-colors', value: 'active' }],
-			}),
-		)
-
-		afterAll(() =>
-			cdp().send('Emulation.setEmulatedMedia', {
-				features: [{ name: 'forced-colors', value: '' }],
-			}),
-		)
+		emulateForcedColors()
 
 		it('outlines an open cell, and the cell with focus in 2px', async () => {
 			expect(matchMedia('(forced-colors: active)').matches).toBe(true)
@@ -177,7 +161,7 @@ describe('grid bare editor (real browser)', () => {
 			)
 
 			const email = await waitFor(() => {
-				const cell = getCell(container, 'email')
+				const cell = gridCell(container, 'email')
 
 				present(cell.querySelector('input'), 'the email editor')
 

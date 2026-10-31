@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { frame, present, renderUI, waitFor } from '../../helpers'
+import { attach, frame, present, renderUI, waitFor } from '../../helpers'
 
 /**
  * The grid's table is `table-fixed` at a pixel width the autosizer computes, so between a
@@ -28,11 +28,9 @@ describe('grid refit on container resize (real browser)', () => {
 	]
 
 	it('carries the matching widths in the frame that resized the container', async () => {
-		const host = document.createElement('div')
+		const host = attach(document.createElement('div'))
 
 		host.style.width = '800px'
-
-		document.body.append(host)
 
 		const { container } = renderUI(
 			<Grid columns={columns} rows={rows} getKey={(row) => row.id} />,
@@ -87,7 +85,5 @@ describe('grid refit on container resize (real browser)', () => {
 		// width. Before the refit was flushed, the first of these entries read the 800px table
 		// inside a 500px box: the flash.
 		for (const entry of atNewWidth) expect(entry.table).toBe(settled)
-
-		host.remove()
 	})
 })

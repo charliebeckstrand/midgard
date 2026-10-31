@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
+import { Lightbox, LightboxTrigger } from '../../../components/lightbox'
 import { renderUI, screen } from '../../helpers'
+import { fieldPhoto, viewerTweens } from '../helpers/lightbox'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 
 /**
@@ -14,19 +15,7 @@ import { sampleMotionFrames } from '../helpers/motion-frame'
  * and runs no tween.
  */
 
-const photo: LightboxPhoto = {
-	src: `data:image/svg+xml;utf8,${encodeURIComponent(
-		'<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><rect width="200" height="100" fill="teal"/></svg>',
-	)}`,
-	alt: 'teal field',
-	width: 200,
-	height: 100,
-}
-
-/** Whether no tween runs in the viewer. */
-const still = () =>
-	(document.querySelector('[data-slot="lightbox"]')?.getAnimations({ subtree: true }) ?? [])
-		.length === 0
+const photo = fieldPhoto('teal', { width: 200, height: 100 })
 
 describe('Lightbox raised from a thumbnail of its size (real browser)', () => {
 	it('keeps the size of the photo in each frame of the raise', async () => {
@@ -50,7 +39,7 @@ describe('Lightbox raised from a thumbnail of its size (real browser)', () => {
 
 				sizes.push(`${Math.round(width)}x${Math.round(height)}`)
 
-				return sizes.length > 1 && still()
+				return sizes.length > 1 && viewerTweens().length === 0
 			},
 			(landed) => landed,
 		)

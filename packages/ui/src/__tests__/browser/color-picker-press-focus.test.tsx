@@ -14,7 +14,7 @@ import { getSlot, renderUI, waitFor } from '../helpers'
  * The file runs in the real browser, because jsdom does not move the focus on a press.
  */
 describe('the focus after a press in an open ColorPicker (real browser)', () => {
-	async function openPicker() {
+	const openPicker = vi.defineHelper(async () => {
 		vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined)
 
 		const { container } = renderUI(<ColorPicker defaultValue="#3b82f6" />)
@@ -29,7 +29,7 @@ describe('the focus after a press in an open ColorPicker (real browser)', () => 
 		expect(document.activeElement).toBe(getSlot(content, 'color-hex-input'))
 
 		return content
-	}
+	})
 
 	it('moves the focus to the copy button that the press lands on', async () => {
 		const content = await openPicker()

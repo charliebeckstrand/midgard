@@ -1,9 +1,10 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Calendar } from '../../components/calendar'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Tree, TreeItem } from '../../components/tree'
 import { renderUI, screen } from '../helpers'
+import { holdDir } from './helpers/root-state'
 
 /**
  * A horizontal arrow steps through the reading order, so it swaps in a right-to-left layout.
@@ -17,10 +18,6 @@ import { renderUI, screen } from '../helpers'
  * resolve from a `dir` attribute.
  */
 describe('horizontal arrow keys in RTL (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.removeAttribute('dir')
-	})
-
 	for (const dir of ['ltr', 'rtl'] as const) {
 		/** The physical key that steps forward in the reading order. */
 		const forward = dir === 'ltr' ? '{ArrowRight}' : '{ArrowLeft}'
@@ -29,7 +26,7 @@ describe('horizontal arrow keys in RTL (real browser)', () => {
 
 		describe(dir, () => {
 			it('moves to the next tab with the forward arrow', async () => {
-				document.documentElement.dir = dir
+				holdDir(dir)
 
 				renderUI(
 					<Tabs value="a" onValueChange={() => {}}>
@@ -57,7 +54,7 @@ describe('horizontal arrow keys in RTL (real browser)', () => {
 			})
 
 			it('opens a tree branch with the forward arrow and closes it with the back arrow', async () => {
-				document.documentElement.dir = dir
+				holdDir(dir)
 
 				renderUI(
 					<Tree aria-label="Files">
@@ -81,7 +78,7 @@ describe('horizontal arrow keys in RTL (real browser)', () => {
 			})
 
 			it('steps to the next day with the forward arrow', async () => {
-				document.documentElement.dir = dir
+				holdDir(dir)
 
 				renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 

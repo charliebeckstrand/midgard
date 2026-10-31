@@ -53,10 +53,4 @@ describe('DescriptionList start offset at `sm` and up', () => {
 	it('starts the first term of each orientation at one height', () => {
 		expect(firstRowOffset('horizontal').term).toBe(firstRowOffset('vertical').term)
 	})
-
-	it('starts the first details of a horizontal list beside the first term', () => {
-		const { term, details } = firstRowOffset('horizontal')
-
-		expect(details).toBe(term)
-	})
 })

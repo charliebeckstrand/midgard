@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { loadGridReorderKit } from '../../modules/grid/grid-region'
 import { renderUI, screen } from '../helpers'
+import { gridHeader } from '../helpers/grid-cells'
 import { drag } from './helpers/drag'
 
 // The grid loads its drag and drop module as it mounts. The load before the
@@ -43,14 +44,6 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 		{ id: 2, a: 'a2', b: 'b2' },
 	]
 
-	function header(id: string): HTMLElement {
-		const cell = document.querySelector(`th[data-grid-col="${id}"]`)
-
-		if (!cell) throw new Error(`no th for column ${id}`)
-
-		return cell as HTMLElement
-	}
-
 	/** Press `from` and drift 60px right: well past the sensor's 3px activation distance. */
 	function pressAndDrift(from: HTMLElement) {
 		const box = from.getBoundingClientRect()
@@ -72,7 +65,7 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 
 		const held = await pressAndDrift(trigger)
 
-		expect(header('a')).not.toHaveAttribute('data-dragging')
+		expect(gridHeader(document, 'a')).not.toHaveAttribute('data-dragging')
 
 		await held.release()
 	})
@@ -84,7 +77,7 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 			<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder={{ handle: false }} />,
 		)
 
-		const cell = header('a')
+		const cell = gridHeader(document, 'a')
 
 		const held = await pressAndDrift(cell)
 

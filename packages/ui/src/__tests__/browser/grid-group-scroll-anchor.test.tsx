@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import {
 	frames,
@@ -50,10 +50,6 @@ describe('grid grouped body under native scroll anchoring (real browser)', () =>
 		{ id: 'team', title: 'Team', cell: (row) => row.team, value: (row) => row.team },
 	]
 
-	async function settle(count = 3) {
-		for (let i = 0; i < count; i++) await frames()
-	}
-
 	type Mode = 'client' | 'manual'
 
 	function Harness({ mode, resizable }: { mode: Mode; resizable: boolean }) {
@@ -86,7 +82,7 @@ describe('grid grouped body under native scroll anchoring (real browser)', () =>
 	}
 
 	/** Renders the grid, and returns its scroller and the queries of its rows. */
-	async function renderGrid(mode: Mode, resizable: boolean) {
+	const renderGrid = vi.defineHelper(async (mode: Mode, resizable: boolean) => {
 		const view = renderUI(<Harness mode={mode} resizable={resizable} />)
 
 		const scroll = getSlot(view.container, 'grid-scroll')
@@ -121,7 +117,7 @@ describe('grid grouped body under native scroll anchoring (real browser)', () =>
 		}
 
 		return { scroll, toggle, header, leaf, leaves }
-	}
+	})
 
 	for (const mode of ['client', 'manual'] as const) {
 		for (const resizable of [true, false]) {
@@ -131,7 +127,7 @@ describe('grid grouped body under native scroll anchoring (real browser)', () =>
 				for (let i = 0; i < 4; i++) {
 					scroll.scrollTop = scroll.scrollHeight
 
-					await settle(1)
+					await frames()
 				}
 
 				const [team] = nonEmpty(teams.toReversed(), 'group')
@@ -145,7 +141,7 @@ describe('grid grouped body under native scroll anchoring (real browser)', () =>
 					for (const row of leaves(team)) expect(row()?.getBoundingClientRect().height ?? 0).toBe(0)
 				})
 
-				await settle()
+				await frames(3)
 
 				expect(scroll.scrollTop).toBeLessThan(beforeCollapse)
 
@@ -164,7 +160,7 @@ describe('grid grouped body under native scroll anchoring (real browser)', () =>
 				for (const at of [1000, scroll.scrollHeight]) {
 					scroll.scrollTop = at
 
-					await settle(4)
+					await frames(4)
 
 					const top = scroll.getBoundingClientRect().top
 

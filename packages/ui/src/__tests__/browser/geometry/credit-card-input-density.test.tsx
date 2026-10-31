@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { CreditCardInput } from '../../../components/credit-card-input'
 import { DensityProvider } from '../../../providers/density'
 import { getSlot, present, renderUI } from '../../helpers'
@@ -19,7 +19,7 @@ const EXPECTED = {
 	loose: { text: 18, brand: 18 },
 } as const
 
-function measure(node: ReactElement) {
+const measure = vi.defineHelper((node: ReactElement) => {
 	const { container } = renderUI(node)
 
 	const input = present(container.querySelector('input'), 'the input')
@@ -32,7 +32,7 @@ function measure(node: ReactElement) {
 		text: Number.parseFloat(getComputedStyle(input).fontSize),
 		brand: Number.parseFloat(getComputedStyle(suffix).fontSize),
 	}
-}
+})
 
 describe('CreditCardInput density', () => {
 	it.each(['compact', 'snug', 'loose'] as const)(

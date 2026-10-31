@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
-import { waitForNoTween } from '../helpers/motion-frame'
+import { sampleMotionFrames, waitForNoTween } from '../helpers/motion-frame'
+import { budget } from '../helpers/wall-clock'
 
 /** The scale of the computed `transform` of `element`. `none` is a scale of 1. */
 function readScale(element: Element) {
@@ -11,25 +12,24 @@ function readScale(element: Element) {
 	return transform === 'none' ? 1 : new DOMMatrixReadOnly(transform).a
 }
 
-/** The scale of `element` at each frame until it leaves the document. */
-function sampleUntilGone(element: Element) {
-	return new Promise<number[]>((resolve) => {
-		const samples: number[] = []
+/**
+ * The scale of `element` in each frame of the Motion frame loop, from the
+ * close that `during` sends until the element leaves the document.
+ */
+async function sampleUntilGone(element: Element, during: () => void) {
+	const samples: number[] = []
 
-		const tick = () => {
-			if (!element.isConnected) {
-				resolve(samples)
+	await sampleMotionFrames(
+		() => {
+			if (element.isConnected) samples.push(readScale(element))
 
-				return
-			}
+			return element.isConnected
+		},
+		(connected) => !connected,
+		{ during: async () => during(), deadline: budget(3000) },
+	)
 
-			samples.push(readScale(element))
-
-			requestAnimationFrame(tick)
-		}
-
-		tick()
-	})
+	return samples
 }
 
 /**
@@ -67,11 +67,7 @@ describe('the Tooltip exit (real engine, real Motion)', () => {
 
 		expect(readScale(panel)).toBe(1)
 
-		const samples = sampleUntilGone(panel)
-
-		fireEvent.keyDown(trigger, { key: 'Escape' })
-
-		const scales = await samples
+		const scales = await sampleUntilGone(panel, () => fireEvent.keyDown(trigger, { key: 'Escape' }))
 
 		expect(scales.length).toBeGreaterThan(1)
 

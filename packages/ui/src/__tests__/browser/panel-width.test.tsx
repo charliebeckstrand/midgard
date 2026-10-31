@@ -86,87 +86,62 @@ async function press(role: 'button' | 'tab', name: string, settled: () => void) 
 }
 
 describe('panel width in a host that fits its content (real browser)', () => {
-	it.each<TabsOrientation>(['horizontal', 'vertical'])(
-		'keeps one width across a switch of a %s tab group',
-		async (orientation) => {
-			renderUI(
-				<Fit>
-					<SectionTabs orientation={orientation} />
-				</Fit>,
-			)
+	/** The panel that swaps in has settled when it alone is in the contents. */
+	const oneTabPanel = () =>
+		expect(screen.getByTestId('contents').querySelectorAll(':scope > *')).toHaveLength(1)
 
-			const host = screen.getByTestId('host')
+	const longVisible = () => expect(screen.getByText(LONG)).toBeVisible()
 
-			const before = host.getBoundingClientRect().width
-
-			const contents = screen.getByTestId('contents')
-
-			await press('tab', 'long', () =>
-				expect(contents.querySelectorAll(':scope > *')).toHaveLength(1),
-			)
-
-			expect(host.getBoundingClientRect().width).toBe(before)
-		},
-	)
-
-	it('keeps one width across a switch of nav panels', async () => {
-		renderUI(
-			<Fit>
-				<Nav aria-label="Sections" defaultValue="short">
-					<NavList>
-						<NavItem value="short">short</NavItem>
-						<NavItem value="long">long</NavItem>
-					</NavList>
-					<NavContents data-testid="contents">
-						<NavContent value="short">{SHORT}</NavContent>
-						<NavContent value="long">{LONG}</NavContent>
-					</NavContents>
-				</Nav>
-			</Fit>,
-		)
-
-		const host = screen.getByTestId('host')
-
-		const before = host.getBoundingClientRect().width
-
-		const contents = screen.getByTestId('contents')
-
-		await press('button', 'long', () => expect(contents.textContent).toBe(LONG))
-
-		expect(host.getBoundingClientRect().width).toBe(before)
-	})
-
-	it('keeps one width while a collapse opens', async () => {
-		renderUI(
-			<Fit>
-				<Collapse animate={false}>
-					<CollapseTrigger>Details</CollapseTrigger>
-					<CollapsePanel>{LONG}</CollapsePanel>
-				</Collapse>
-			</Fit>,
-		)
+	it.for<[string, ReactNode, 'button' | 'tab', string, () => void]>([
+		[
+			'keeps one width across a switch of a horizontal tab group',
+			<SectionTabs key="tabs" orientation="horizontal" />,
+			'tab',
+			'long',
+			oneTabPanel,
+		],
+		[
+			'keeps one width across a switch of a vertical tab group',
+			<SectionTabs key="tabs" orientation="vertical" />,
+			'tab',
+			'long',
+			oneTabPanel,
+		],
+		[
+			'keeps one width across a switch of nav panels',
+			<Nav key="nav" aria-label="Sections" defaultValue="short">
+				<NavList>
+					<NavItem value="short">short</NavItem>
+					<NavItem value="long">long</NavItem>
+				</NavList>
+				<NavContents data-testid="contents">
+					<NavContent value="short">{SHORT}</NavContent>
+					<NavContent value="long">{LONG}</NavContent>
+				</NavContents>
+			</Nav>,
+			'button',
+			'long',
+			() => expect(screen.getByTestId('contents').textContent).toBe(LONG),
+		],
+		[
+			'keeps one width while a collapse opens',
+			<Collapse key="collapse" animate={false}>
+				<CollapseTrigger>Details</CollapseTrigger>
+				<CollapsePanel>{LONG}</CollapsePanel>
+			</Collapse>,
+			'button',
+			'Details',
+			longVisible,
+		],
+		['keeps one width from step to step', <TwoSteps key="steps" />, 'button', 'next', longVisible],
+	])('%s', async ([, ui, role, control, settled]) => {
+		renderUI(<Fit>{ui}</Fit>)
 
 		const host = screen.getByTestId('host')
 
 		const before = host.getBoundingClientRect().width
 
-		await press('button', 'Details', () => expect(screen.getByText(LONG)).toBeVisible())
-
-		expect(host.getBoundingClientRect().width).toBe(before)
-	})
-
-	it('keeps one width from step to step', async () => {
-		renderUI(
-			<Fit>
-				<TwoSteps />
-			</Fit>,
-		)
-
-		const host = screen.getByTestId('host')
-
-		const before = host.getBoundingClientRect().width
-
-		await press('button', 'next', () => expect(screen.getByText(LONG)).toBeVisible())
+		await press(role, control, settled)
 
 		expect(host.getBoundingClientRect().width).toBe(before)
 	})

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Alert } from '../../../components/alert'
 import { Banner } from '../../../components/banner'
 import { DensityProvider } from '../../../providers/density'
@@ -25,7 +25,7 @@ function getMiddle(box: DOMRect): number {
 
 describe('Alert icon and close button', () => {
 	it('sizes the leading icon and the title by the density step', () => {
-		const measure = (density: 'compact' | 'snug' | 'loose') => {
+		const measure = vi.defineHelper((density: 'compact' | 'snug' | 'loose') => {
 			const { container } = renderUI(
 				<DensityProvider density={density}>
 					<Alert severity="info" title="Scheduled maintenance" />
@@ -39,7 +39,7 @@ describe('Alert icon and close button', () => {
 			expect(getMiddle(icon)).toBeNear(getMiddle(title.getBoundingClientRect()), HALF_PIXEL)
 
 			return { icon: icon.width, title: Number.parseFloat(getComputedStyle(title).fontSize) }
-		}
+		})
 
 		const compact = measure('compact')
 

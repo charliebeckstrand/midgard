@@ -4,23 +4,13 @@ import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/com
 import { DatePicker } from '../../../components/date-picker'
 import { FileUploadDrop } from '../../../components/file-upload'
 import { bySlot, getSlot, present, renderUI, screen, waitFor } from '../../helpers'
-import { pause } from '../helpers/wall-clock'
+import { tooltipAfterHover } from '../helpers/tooltip'
 
 /** The value span of the date picker, which the tooltip trigger stamps. */
 const VALUE = '[data-slot="datepicker-button"] [data-slot="tooltip-trigger"]'
 
 /** A placeholder that no narrow control can show whole. */
 const LONG_PLACEHOLDER = 'choose one of the many stages of the order'
-
-/**
- * Waits past the 250 ms hover delay of the tooltip, with no pointer leave to
- * cancel it. Returns the open tooltip, or `null`.
- */
-async function tooltipAfterHover(): Promise<HTMLElement | null> {
-	await pause(400)
-
-	return screen.queryByRole('tooltip')
-}
 
 /**
  * The truncation tooltips of the value controls that `select-truncate-tooltip`

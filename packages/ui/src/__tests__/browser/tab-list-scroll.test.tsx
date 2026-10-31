@@ -132,37 +132,27 @@ function selectWithoutFocus(orientation: TabsOrientation) {
 }
 
 describe('TabList mount scroll (real browser)', () => {
-	it('paints a horizontal list with the current tab in view', () => {
-		const painted = mountOnClient('horizontal')
+	it.for(['horizontal', 'vertical'] as const)(
+		'paints a %s list with the current tab in view',
+		(orientation) => {
+			const painted = mountOnClient(orientation)
 
-		expect(painted.scroll).toBeGreaterThan(0)
+			expect(painted.scroll).toBeGreaterThan(0)
 
-		expect(painted.visible).toBe(true)
-	})
-
-	it('paints a vertical list with the current tab in view', () => {
-		const painted = mountOnClient('vertical')
-
-		expect(painted.scroll).toBeGreaterThan(0)
-
-		expect(painted.visible).toBe(true)
-	})
+			expect(painted.visible).toBe(true)
+		},
+	)
 })
 
 describe('TabList selection scroll (real browser)', () => {
-	it('paints a horizontal list with a tab that becomes current in view', () => {
-		const painted = selectWithoutFocus('horizontal')
+	it.for(['horizontal', 'vertical'] as const)(
+		'paints a %s list with a tab that becomes current in view',
+		(orientation) => {
+			const painted = selectWithoutFocus(orientation)
 
-		expect(painted.scroll).toBeGreaterThan(0)
+			expect(painted.scroll).toBeGreaterThan(0)
 
-		expect(painted.visible).toBe(true)
-	})
-
-	it('paints a vertical list with a tab that becomes current in view', () => {
-		const painted = selectWithoutFocus('vertical')
-
-		expect(painted.scroll).toBeGreaterThan(0)
-
-		expect(painted.visible).toBe(true)
-	})
+			expect(painted.visible).toBe(true)
+		},
+	)
 })

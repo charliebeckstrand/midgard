@@ -1,9 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { MapGeofence, MapPlat } from '../../../modules/map'
-import { allBySlot, getSlot, renderUI, waitFor } from '../../helpers'
+import { allBySlot, getSlot } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
-import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
+import { renderZones } from '../helpers/map-zones'
 
 /**
  * The legend under the map is a centered wrap row, as its TSDoc and its arrow keys say.
@@ -15,20 +14,11 @@ import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 describe('map legend row (real browser)', () => {
 	beforeAll(() => page.viewport(390, 844))
 
-	function zones(names: string[]) {
-		return renderUI(
-			<MapPlat aria-label="Zones" geography={FIXTURE_GEOJSON} width={358}>
-				{names.map((name, index) => (
-					<MapGeofence key={name} label={name} at={[8 + index * 3, 5]} radius={300_000} />
-				))}
-			</MapPlat>,
-		)
-	}
+	/** The zones `names` on a map 358px wide. */
+	const zones = (names: string[]) => renderZones(names, { width: 358 })
 
 	it('puts short entries on one line', async () => {
-		const { container } = zones(['North', 'South', 'East'])
-
-		await waitFor(() => expect(allBySlot(container, 'map-legend-item')).toHaveLength(3))
+		const { container } = await zones(['North', 'South', 'East'])
 
 		const tops = (allBySlot(container, 'map-legend-item') as HTMLElement[]).map(
 			(entry) => entry.getBoundingClientRect().top,
@@ -38,12 +28,10 @@ describe('map legend row (real browser)', () => {
 	})
 
 	it('keeps a long entry inside the row', async () => {
-		const { container } = zones([
+		const { container } = await zones([
 			'Dallas–Fort Worth metroplex catchment and surrounding counties',
 			'Reno',
 		])
-
-		await waitFor(() => expect(allBySlot(container, 'map-legend-item')).toHaveLength(2))
 
 		const row = getSlot(container, 'map-legend').getBoundingClientRect()
 

@@ -13,6 +13,37 @@ import { PIXEL } from '../../helpers/geometry/tolerance'
 const label = () => bySlot(document.body, 'pdf-viewer-highlight-label')
 
 /**
+ * The panel of the name, once the engine gives it a size. The panel carries the position, and
+ * the span inside it carries the name.
+ *
+ * @returns The panel.
+ */
+async function labelPanel(): Promise<HTMLElement> {
+	const panel = present(
+		label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
+		'the name panel',
+	)
+
+	await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(0))
+
+	return panel
+}
+
+/**
+ * A point inside both boxes: the part of `box` that the name covers.
+ *
+ * @param name - The box of the name panel.
+ * @param box - The box of the region under the name.
+ * @returns The center of the overlap.
+ */
+function coveredPoint(name: DOMRect, box: DOMRect): { x: number; y: number } {
+	return {
+		x: (Math.max(name.left, box.left) + Math.min(name.right, box.right)) / 2,
+		y: (Math.max(name.top, box.top) + Math.min(name.bottom, box.bottom)) / 2,
+	}
+}
+
+/**
  * The selected region's name, against real layout and the real floating engine.
  *
  * Everything about where this label lands is invisible to the jsdom suite, which mocks
@@ -64,10 +95,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 		await waitFor(() => expect(label()).toBeInTheDocument())
 
-		// The panel is what carries the position; the span inside it is what carries the name.
-		const panel = present(label()?.closest('[data-slot="tooltip-content"]'), 'the label panel')
-
-		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(0))
+		const panel = await labelPanel()
 
 		const name = panel.getBoundingClientRect()
 
@@ -93,12 +121,6 @@ describe('pdf viewer highlight label (real browser)', () => {
 	})
 
 	/*
-	 * The region keeps the focus a press or a roving key put on it. The label anchors to that
-	 * same element, so the one thing it must not do is replace it: an earlier shape of this
-	 * wrapped the active region in a `<Tooltip>`, which changed the element at that position
-	 * and remounted it mid-selection.
-	 */
-	/*
 	 * A press that lands on the name and on nothing else presses nothing. A press on the page
 	 * puts the selection down, and the name is not the page: answering a press on it by throwing
 	 * the selection away would be the viewer reading "this one" as "not this one".
@@ -112,12 +134,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 		await waitFor(() => expect(label()).toBeInTheDocument())
 
-		const panel = present(
-			label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
-			'the name panel',
-		)
-
-		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(0))
+		const panel = await labelPanel()
 
 		const name = panel.getBoundingClientRect()
 
@@ -134,6 +151,12 @@ describe('pdf viewer highlight label (real browser)', () => {
 		expect(region).toHaveAttribute('aria-current', 'true')
 	})
 
+	/*
+	 * The region keeps the focus a press or a roving key put on it. The label anchors to that
+	 * same element, so the one thing it must not do is replace it: an earlier shape of this
+	 * wrapped the active region in a `<Tooltip>`, which changed the element at that position
+	 * and remounted it mid-selection.
+	 */
 	it('leaves the region it names focused and in place', async () => {
 		setup()
 
@@ -196,12 +219,7 @@ describe('a name that stands over another region (real browser)', () => {
 
 		await waitFor(() => expect(label()).toBeInTheDocument())
 
-		const panel = present(
-			label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
-			'the name panel',
-		)
-
-		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(0))
+		const panel = await labelPanel()
 
 		const name = panel.getBoundingClientRect()
 
@@ -215,11 +233,7 @@ describe('a name that stands over another region (real browser)', () => {
 		return {
 			above,
 			panel,
-			// A point inside both, which is what "the part of the box behind the name" means.
-			covered: {
-				x: (Math.max(name.left, box.left) + Math.min(name.right, box.right)) / 2,
-				y: (Math.max(name.top, box.top) + Math.min(name.bottom, box.bottom)) / 2,
-			},
+			covered: coveredPoint(name, box),
 		}
 	}
 
@@ -250,20 +264,9 @@ describe('a name that stands over another region (real browser)', () => {
 
 		const above = await screen.findByLabelText('Above')
 
-		const panel = present(
-			label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
-			'the name panel',
-		)
+		const panel = await labelPanel()
 
-		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(0))
-
-		const name = panel.getBoundingClientRect()
-
-		const box = above.getBoundingClientRect()
-
-		const x = (Math.max(name.left, box.left) + Math.min(name.right, box.right)) / 2
-
-		const y = (Math.max(name.top, box.top) + Math.min(name.bottom, box.bottom)) / 2
+		const { x, y } = coveredPoint(panel.getBoundingClientRect(), above.getBoundingClientRect())
 
 		fireEvent.mouseOver(above, { clientX: x, clientY: y })
 
@@ -276,10 +279,7 @@ describe('a name that stands over another region (real browser)', () => {
 
 		await waitFor(() => expect(screen.getByLabelText('Far')).toHaveAttribute('aria-current'))
 
-		const moved = present(
-			label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
-			'the name panel',
-		)
+		const moved = await labelPanel()
 
 		await waitFor(() => expect(getComputedStyle(moved).opacity).toBe('1'))
 	})
@@ -406,10 +406,7 @@ describe('the name of a hovered region (real browser)', () => {
 
 		await waitFor(() => expect(label()).toHaveTextContent('Invoice number'))
 
-		const panel = present(
-			label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
-			'the preview panel',
-		)
+		const panel = await labelPanel()
 
 		// The engine hides a panel against a detached node. Against the mounted node, the panel
 		// shows, and it stands above that node.

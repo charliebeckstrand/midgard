@@ -49,7 +49,7 @@ describe('grid fill handle place (real browser)', () => {
 	 * Expects the handle on the bottom end corner of the padding box of the cell,
 	 * where an absolute child of the cell sits.
 	 */
-	const expectOnCorner = (target: HTMLElement, rtl = false) => {
+	const expectOnCorner = vi.defineHelper((target: HTMLElement, rtl = false) => {
 		const box = target.getBoundingClientRect()
 
 		const left = box.left + target.clientLeft
@@ -63,7 +63,7 @@ describe('grid fill handle place (real browser)', () => {
 		expect(rtl ? rect.left : rect.right).toBeNear(end, HALF_PIXEL)
 
 		expect(rect.bottom).toBeNear(bottom, HALF_PIXEL)
-	}
+	})
 
 	const sizing = (a: number) => ({ value: { name: 160, a, b: 200, c: 200 } })
 

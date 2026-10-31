@@ -4,11 +4,16 @@
  * Long enough for a `ResizeObserver` to deliver: observer callbacks land at the
  * end of a frame, so anything that takes a baseline or settles a measurement
  * from a first delivery has not done it yet in the task that rendered.
+ *
+ * @param count - The number of times to wait the two frames. A chain of
+ * observer passes needs more than one.
  */
-export function frames(): Promise<void> {
-	return new Promise((resolve) => {
-		requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-	})
+export async function frames(count = 1): Promise<void> {
+	for (let i = 0; i < count; i++) {
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+		})
+	}
 }
 
 /**

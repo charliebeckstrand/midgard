@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { ColorPicker } from '../../../components/color'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
@@ -16,14 +16,8 @@ const values = Array.from({ length: 30 }, (_, index) => `Item ${index + 1}`)
 describe('a picker panel in a short viewport (real floating engine)', () => {
 	beforeAll(() => page.viewport(740, 360))
 
-	async function settle() {
-		await frames()
-
-		await frames()
-	}
-
 	/** The box of the element that the scroll ancestors leave visible. */
-	function expectOnScreen(element: Element) {
+	const expectOnScreen = vi.defineHelper((element: Element) => {
 		let { top, bottom } = element.getBoundingClientRect()
 
 		for (
@@ -43,13 +37,13 @@ describe('a picker panel in a short viewport (real floating engine)', () => {
 		expect(top).toBeGreaterThanOrEqual(0)
 
 		expect(bottom).toBeLessThanOrEqual(window.innerHeight)
-	}
+	})
 
 	/**
 	 * Scrolls each scroll region in the panel to its end, then checks that the
 	 * last element of the panel is on screen. Thus all the content stays reachable.
 	 */
-	async function expectEndReachable(panel: Element) {
+	const expectEndReachable = vi.defineHelper(async (panel: Element) => {
 		const scrollers = [panel, ...panel.querySelectorAll('*')].filter(
 			(node) =>
 				node.scrollHeight > node.clientHeight && getComputedStyle(node).overflowY !== 'visible',
@@ -64,7 +58,7 @@ describe('a picker panel in a short viewport (real floating engine)', () => {
 		const all = panel.querySelectorAll('*')
 
 		expectOnScreen(all[all.length - 1] ?? panel)
-	}
+	})
 
 	function Centered({ children }: { children: React.ReactNode }) {
 		return <div style={{ paddingTop: 150, paddingLeft: 200, width: 300 }}>{children}</div>
@@ -87,7 +81,7 @@ describe('a picker panel in a short viewport (real floating engine)', () => {
 
 		const panel = await screen.findByRole('listbox')
 
-		await settle()
+		await frames(2)
 
 		expectOnScreen(panel)
 
@@ -111,7 +105,7 @@ describe('a picker panel in a short viewport (real floating engine)', () => {
 
 		const listbox = await screen.findByRole('listbox')
 
-		await settle()
+		await frames(2)
 
 		expectOnScreen(listbox)
 
@@ -131,7 +125,7 @@ describe('a picker panel in a short viewport (real floating engine)', () => {
 
 		const panel = getSlot(document.body, 'datepicker-content')
 
-		await settle()
+		await frames(2)
 
 		expectOnScreen(panel)
 
@@ -149,7 +143,7 @@ describe('a picker panel in a short viewport (real floating engine)', () => {
 
 		const panel = await waitFor(() => getSlot(document.body, 'color-picker-content'))
 
-		await settle()
+		await frames(2)
 
 		expectOnScreen(panel)
 

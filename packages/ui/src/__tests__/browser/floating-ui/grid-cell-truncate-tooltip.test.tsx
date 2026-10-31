@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 import { settledRect } from '../helpers/sample'
 import { textOverflow } from '../helpers/text-overflow'
+import { tooltipAfterHover } from '../helpers/tooltip'
 import { pause } from '../helpers/wall-clock'
 
 /**
@@ -29,7 +30,8 @@ describe('grid cell truncation tooltip (real browser)', () => {
 	const narrow = { value: { name: 80 } }
 
 	/**
-	 * Asserts that no cell can open a tooltip, and that none is open.
+	 * Waits past the hover delay, and then asserts that no cell can open a
+	 * tooltip, and that none is open.
 	 *
 	 * The reveal wrap mounts only where the component decides to reveal
 	 * (`grid-cell-content.tsx`), so no cell-scoped trigger says that no tooltip
@@ -37,11 +39,13 @@ describe('grid cell truncation tooltip (real browser)', () => {
 	 * reads the same whether the decision was right or the machinery is dead. The
 	 * header keeps its own trigger, hence the `td` scope.
 	 */
-	function expectNoCellTooltip(container: HTMLElement) {
+	const expectNoCellTooltip = vi.defineHelper(async (container: HTMLElement) => {
+		const tooltip = await tooltipAfterHover()
+
 		expect(container.querySelectorAll('td [data-slot="tooltip-trigger"]')).toHaveLength(0)
 
-		expect(screen.queryByRole('tooltip')).toBeNull()
-	}
+		expect(tooltip).toBeNull()
+	})
 
 	it('shows a tooltip with the full content when the cell is truncated', async () => {
 		renderUI(
@@ -88,9 +92,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		// The tooltip would open at the 250ms hover delay if enabled; wait past it
 		// (no pointer-leave to cancel) and assert none surfaced.
-		await pause(400)
-
-		expectNoCellTooltip(container)
+		await expectNoCellTooltip(container)
 	})
 
 	it('shows no tooltip when the content fits the column (precise detection)', async () => {
@@ -108,9 +110,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		// A short value in a wide column does not overflow; no tooltip should open
 		// even after the hover delay (guards against a sub-pixel false positive).
-		await pause(400)
-
-		expectNoCellTooltip(container)
+		await expectNoCellTooltip(container)
 	})
 
 	it('stops showing the tooltip after the column widens past its content', async () => {
@@ -148,9 +148,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		// the unremounted span) has cleared truncation and no tooltip surfaces.
 		await userEvent.hover(screen.getByText(longName))
 
-		await pause(400)
-
-		expect(screen.queryByRole('tooltip')).toBeNull()
+		expect(await tooltipAfterHover()).toBeNull()
 	})
 
 	it('does not truncate or tooltip when truncate is false', async () => {
@@ -167,9 +165,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		await userEvent.hover(screen.getByText(longName))
 
-		await pause(400)
-
-		expectNoCellTooltip(container)
+		await expectNoCellTooltip(container)
 	})
 
 	it('mounts no floating-ui portal while every cell tooltip is closed', async () => {

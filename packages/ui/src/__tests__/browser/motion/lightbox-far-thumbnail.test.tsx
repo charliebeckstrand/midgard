@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
 import { present, renderUI } from '../../helpers'
-import { sampleMotionFrames, waitForNoTween } from '../helpers/motion-frame'
+import { fieldPhotos, Gallery, holdTweens } from '../helpers/lightbox'
+import { waitForNoTween } from '../helpers/motion-frame'
 
 /**
  * A `Lightbox` with `thumbnails`, and a press on a thumbnail that is not next to
@@ -15,16 +15,7 @@ import { sampleMotionFrames, waitForNoTween } from '../helpers/motion-frame'
  * and runs no tween.
  */
 
-const colors = ['teal', 'tomato', 'gold', 'navy', 'plum']
-
-const photos: LightboxPhoto[] = colors.map((color) => ({
-	src: `data:image/svg+xml;utf8,${encodeURIComponent(
-		`<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1000"><rect width="1500" height="1000" fill="${color}"/></svg>`,
-	)}`,
-	alt: `${color} field`,
-	width: 1500,
-	height: 1000,
-}))
+const photos = fieldPhotos(['teal', 'tomato', 'gold', 'navy', 'plum'])
 
 const slot = (offset: number) => document.querySelector<HTMLElement>(`[data-offset="${offset}"]`)
 
@@ -64,41 +55,19 @@ const travel = () => new DOMMatrix(getComputedStyle(track()).transform).m41
 /**
  * Presses the thumbnail of the photo at `index`, and holds the slide of the
  * track at `progress` of its length, in the frame that starts it. A held
- * slide from before the press is not the new slide. See
- * `lightbox-reopen.test.tsx` for why the sampler starts before the press.
+ * slide from before the press is not the new slide. See {@link holdTweens}
+ * for why the sampler starts before the press.
  */
-async function pressAndHold(index: number, progress: number, before: readonly Animation[] = []) {
-	return sampleMotionFrames(
-		() =>
-			track()
-				.getAnimations()
-				.filter((tween) => !before.includes(tween)),
-		(found) => {
-			if (found.length === 0) return false
-
-			for (const tween of found) {
-				tween.pause()
-
-				tween.currentTime = progress * Number(tween.effect?.getComputedTiming().duration)
-			}
-
-			return true
-		},
-		{ during: () => userEvent.click(thumbnail(index)) },
-	)
+function pressAndHold(index: number, progress: number, before: readonly Animation[] = []) {
+	return holdTweens(() => track().getAnimations(), progress, {
+		during: () => userEvent.click(thumbnail(index)),
+		exclude: before,
+	})
 }
 
 /** Opens the viewer on the photo at `index`, and waits for the photo to land. */
 async function open(index: number) {
-	renderUI(
-		<Lightbox photos={photos} thumbnails>
-			<div className="flex flex-wrap gap-2">
-				{photos.map((photo, place) => (
-					<LightboxTrigger key={photo.alt} index={place} className="size-16" />
-				))}
-			</div>
-		</Lightbox>,
-	)
+	renderUI(<Gallery photos={photos} thumbnails />)
 
 	await userEvent.click(
 		present(document.querySelectorAll('[data-slot="lightbox-trigger"]')[index], 'trigger'),

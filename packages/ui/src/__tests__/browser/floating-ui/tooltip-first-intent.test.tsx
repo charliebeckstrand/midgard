@@ -1,4 +1,5 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest'
+import type { ComponentProps } from 'react'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { tooltipBody } from '../../../components/tooltip/tooltip-body-loader'
@@ -24,17 +25,60 @@ afterAll(async () => {
 })
 
 /** Waits until the tooltip text is present. @internal */
-async function expectOpen() {
+const expectOpen = vi.defineHelper(async () => {
 	await waitFor(() => expect(screen.getByText('Tip')).toBeInTheDocument())
-}
+})
 
 /** Waits for the load, the replay, and two frames, then expects no tooltip text. @internal */
-async function expectClosed() {
+const expectClosed = vi.defineHelper(async () => {
 	await waitFor(() => expect(tooltipBody.read()).not.toBeNull())
 
 	await pause(50)
 
 	expect(screen.queryByText('Tip')).not.toBeInTheDocument()
+})
+
+/** The props of the tooltip that a case can set. */
+type TipProps = Pick<ComponentProps<typeof Tooltip>, 'delay' | 'trigger' | 'onOpenChange'>
+
+/** A tooltip with the text `Tip` on a `Toggle` button. */
+function Tip(props: TipProps) {
+	return (
+		<Tooltip {...props}>
+			<TooltipTrigger>
+				<button type="button">Toggle</button>
+			</TooltipTrigger>
+			<TooltipContent>Tip</TooltipContent>
+		</Tooltip>
+	)
+}
+
+/**
+ * Renders a {@link Tip}.
+ *
+ * @param props - The props of the tooltip.
+ * @param options - `outside` adds a paragraph with the slot `outside` after the tooltip.
+ * `disabled` puts the tooltip in a disabled fieldset.
+ * @returns The render result.
+ */
+function renderTip(
+	props: TipProps = {},
+	{ outside = false, disabled = false }: { outside?: boolean; disabled?: boolean } = {},
+) {
+	const tip = disabled ? (
+		<fieldset disabled>
+			<Tip {...props} />
+		</fieldset>
+	) : (
+		<Tip {...props} />
+	)
+
+	return renderUI(
+		<>
+			{tip}
+			{outside && <p data-slot="outside">Elsewhere</p>}
+		</>,
+	)
 }
 
 describe('Tooltip first intent before the state loads (real browser)', () => {
@@ -45,19 +89,12 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 		// that sees the text, so the render and the poll do not add to it.
 		let opened = Number.NaN
 
-		const { container } = renderUI(
-			<Tooltip
-				delay={delay}
-				onOpenChange={(open) => {
-					if (open) opened = performance.now()
-				}}
-			>
-				<TooltipTrigger>
-					<button type="button">Toggle</button>
-				</TooltipTrigger>
-				<TooltipContent>Tip</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderTip({
+			delay,
+			onOpenChange: (open) => {
+				if (open) opened = performance.now()
+			},
+		})
 
 		const trigger = getSlot(container, 'tooltip-trigger')
 
@@ -100,14 +137,7 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 	})
 
 	it('opens a hover at once when the load ends after the delay', async () => {
-		const { container } = renderUI(
-			<Tooltip delay={50}>
-				<TooltipTrigger>
-					<button type="button">Toggle</button>
-				</TooltipTrigger>
-				<TooltipContent>Tip</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderTip({ delay: 50 })
 
 		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
 
@@ -119,17 +149,7 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 	})
 
 	it('does not open a hover that left the trigger before the load', async () => {
-		const { container } = renderUI(
-			<>
-				<Tooltip delay={0}>
-					<TooltipTrigger>
-						<button type="button">Toggle</button>
-					</TooltipTrigger>
-					<TooltipContent>Tip</TooltipContent>
-				</Tooltip>
-				<p data-slot="outside">Elsewhere</p>
-			</>,
-		)
+		const { container } = renderTip({ delay: 0 }, { outside: true })
 
 		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
 
@@ -141,14 +161,7 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 	})
 
 	it('opens a keyboard focus at once when the state loads', async () => {
-		renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button">Toggle</button>
-				</TooltipTrigger>
-				<TooltipContent>Tip</TooltipContent>
-			</Tooltip>,
-		)
+		renderTip()
 
 		await userEvent.keyboard('{Tab}')
 
@@ -158,14 +171,7 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 	})
 
 	it('keeps a keyboard focus shut that Escape dismissed before the load', async () => {
-		renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button">Toggle</button>
-				</TooltipTrigger>
-				<TooltipContent>Tip</TooltipContent>
-			</Tooltip>,
-		)
+		renderTip()
 
 		await userEvent.keyboard('{Tab}')
 
@@ -177,14 +183,7 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 	})
 
 	it('opens a click tooltip on a click, and keeps it shut after a second click', async () => {
-		const { container } = renderUI(
-			<Tooltip trigger="click">
-				<TooltipTrigger>
-					<button type="button">Toggle</button>
-				</TooltipTrigger>
-				<TooltipContent>Tip</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderTip({ trigger: 'click' })
 
 		const trigger = getSlot(container, 'tooltip-trigger')
 
@@ -202,14 +201,7 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 	})
 
 	it('opens a click tooltip that a click before the load opened', async () => {
-		const { container } = renderUI(
-			<Tooltip trigger="click">
-				<TooltipTrigger>
-					<button type="button">Toggle</button>
-				</TooltipTrigger>
-				<TooltipContent>Tip</TooltipContent>
-			</Tooltip>,
-		)
+		const { container } = renderTip({ trigger: 'click' })
 
 		await userEvent.click(getSlot(container, 'tooltip-trigger'))
 
@@ -219,16 +211,7 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 	})
 
 	it('keeps a disabled trigger shut after a hover before the load', async () => {
-		const { container } = renderUI(
-			<fieldset disabled>
-				<Tooltip delay={0}>
-					<TooltipTrigger>
-						<button type="button">Toggle</button>
-					</TooltipTrigger>
-					<TooltipContent>Tip</TooltipContent>
-				</Tooltip>
-			</fieldset>,
-		)
+		const { container } = renderTip({ delay: 0 }, { disabled: true })
 
 		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
 
@@ -238,17 +221,7 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 	})
 
 	it('does not open a hover tooltip for a mouse click focus before the load', async () => {
-		const { container } = renderUI(
-			<>
-				<Tooltip delay={0}>
-					<TooltipTrigger>
-						<button type="button">Toggle</button>
-					</TooltipTrigger>
-					<TooltipContent>Tip</TooltipContent>
-				</Tooltip>
-				<p data-slot="outside">Elsewhere</p>
-			</>,
-		)
+		const { container } = renderTip({ delay: 0 }, { outside: true })
 
 		const trigger = getSlot(container, 'tooltip-trigger')
 

@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { loadGridReorderKit } from '../../modules/grid/grid-region'
 import { fireEvent, renderUI, screen, waitFor } from '../helpers'
+import { gridCell, gridHeader } from '../helpers/grid-cells'
 
 // The grid loads its drag and drop module as it mounts. The load before the
 // cases gives each case the state of a page that already loaded the module,
@@ -32,24 +33,16 @@ describe('grid column reorder: keyboard lift indicator (real browser)', () => {
 		{ id: 2, a: 'a2', b: 'b2' },
 	]
 
-	function cellFor(tag: 'th' | 'td', id: string): HTMLElement {
-		const cell = document.querySelector(`${tag}[data-grid-col="${id}"]`)
-
-		if (!cell) throw new Error(`no ${tag} for column ${id}`)
-
-		return cell as HTMLElement
-	}
-
 	it('mutes the held column header and body when a drag starts from the keyboard', async () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder />)
 
 		const grip = screen.getByRole('button', { name: 'Reorder A' })
 
-		const headerA = cellFor('th', 'a')
+		const headerA = gridHeader(document, 'a')
 
-		const bodyA = cellFor('td', 'a')
+		const bodyA = gridCell(document, 'a')
 
-		const bodyB = cellFor('td', 'b')
+		const bodyB = gridCell(document, 'b')
 
 		// At rest the header is muted (table header base) but the body is the bright
 		// default, so the two differ: the baseline the drag collapses.

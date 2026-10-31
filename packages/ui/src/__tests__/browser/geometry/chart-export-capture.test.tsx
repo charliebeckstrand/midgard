@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { beforeAll, describe, expect, it, onTestFinished } from 'vitest'
+import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { type ChartCapture, prepareCapture } from '../../../modules/chart/engine/chart-export'
@@ -31,7 +31,7 @@ const SERIES = [
 type Placement = 'top' | 'bottom' | 'left' | 'right'
 
 /** Renders a titled two-series line chart with its legend at `legend`, and waits for the data table. */
-async function renderChart(legend: Placement, dir: 'ltr' | 'rtl' = 'ltr') {
+const renderChart = vi.defineHelper(async (legend: Placement, dir: 'ltr' | 'rtl' = 'ltr') => {
 	const { container } = renderUI(
 		<div dir={dir} style={{ width: 640 }}>
 			<LineChart
@@ -52,7 +52,7 @@ async function renderChart(legend: Placement, dir: 'ltr' | 'rtl' = 'ltr') {
 	await waitFor(() => expect(drawing(container).getBoundingClientRect().width).toBeGreaterThan(0))
 
 	return getSlot(container, 'chart')
-}
+})
 
 /** The drawing SVG of the chart under `scope`. */
 function drawing(scope: ParentNode): SVGSVGElement {
@@ -268,7 +268,7 @@ describe('chart image capture (real browser)', () => {
 
 describe('chart image ground (real browser)', () => {
 	/** Renders a small line chart inside `surface`, and returns its root. */
-	async function chartOn(surface: CSSProperties, inner?: CSSProperties) {
+	const chartOn = vi.defineHelper(async (surface: CSSProperties, inner?: CSSProperties) => {
 		const { container } = renderUI(
 			<div style={{ width: 480, ...surface }}>
 				<div style={inner}>
@@ -285,7 +285,7 @@ describe('chart image ground (real browser)', () => {
 		await waitFor(() => expect(drawing(container).getBoundingClientRect().width).toBeGreaterThan(0))
 
 		return getSlot(container, 'chart')
-	}
+	})
 
 	it('grounds the bitmap on the surface under the chart', async () => {
 		// A dark surface. Before, a JPEG always drew on white, where the light

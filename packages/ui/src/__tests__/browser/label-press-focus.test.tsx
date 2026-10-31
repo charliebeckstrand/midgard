@@ -1,9 +1,10 @@
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { RangeSlider } from '../../components/slider'
 import { allBySlot, renderUI } from '../helpers'
+import { press } from './helpers/drag'
 
 /**
  * A press on a Field Label keeps the focus on a control that has it, and the `click` focuses a
@@ -13,12 +14,6 @@ import { allBySlot, renderUI } from '../helpers'
  * default action of the platform. A dispatched event does not cause it, and jsdom does not model it.
  */
 describe('a press on a Field Label (real browser)', () => {
-	const press = async (selector: string) => {
-		onTestFinished(() => commands.releasePointer())
-
-		await commands.pressPointer(selector)
-	}
-
 	const renderInput = () => {
 		const view = renderUI(
 			<>

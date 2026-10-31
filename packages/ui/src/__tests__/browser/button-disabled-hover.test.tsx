@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
 import { Button } from '../../components/button'
 import { present, renderUI } from '../helpers'
+import { acrossHover } from './helpers/across-hover'
 
 /**
  * A disabled control must not answer the pointer, however its disabledness is spelled.
@@ -30,13 +30,7 @@ describe('a disabled button under the pointer (real browser)', () => {
 			</Button>,
 		)
 
-		const button = present(container.querySelector('button'), 'button')
-
-		const before = getComputedStyle(button).backgroundColor
-
-		await userEvent.hover(button)
-
-		return { before, after: getComputedStyle(button).backgroundColor }
+		return acrossHover(present(container.querySelector('button'), 'button'), 'backgroundColor')
 	}
 
 	/** The `aria-disabled` pattern: focusable, so its tooltip can still open. */

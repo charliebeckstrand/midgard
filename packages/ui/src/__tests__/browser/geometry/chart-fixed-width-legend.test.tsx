@@ -1,4 +1,5 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import type { ReactElement } from 'react'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { HeatmapChart } from '../../../modules/chart/heatmap-chart'
 import { LineChart } from '../../../modules/chart/line-chart'
@@ -17,7 +18,7 @@ import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 beforeAll(() => page.viewport(960, 700))
 
 /** Checks that the legend sits beside the plot and that the drawing fits the plot box. */
-async function expectDrawingInPlot(plot: HTMLElement, legend: HTMLElement) {
+const expectDrawingInPlot = vi.defineHelper(async (plot: HTMLElement, legend: HTMLElement) => {
 	const svg = plot.querySelector('svg')
 
 	if (!svg) throw new Error('no plot SVG')
@@ -34,88 +35,90 @@ async function expectDrawingInPlot(plot: HTMLElement, legend: HTMLElement) {
 	)
 
 	expect(Number(svg.getAttribute('width'))).toBeLessThanOrEqual(Math.ceil(plotRect.width))
-}
+})
 
 describe('fixed-width chart with a side legend (real browser)', () => {
-	it('line: draws the plot inside the box that the legend leaves', async () => {
-		const { container } = renderUI(
-			<LineChart
-				aria-label="Revenue and costs by quarter"
-				data={[
-					{ quarter: 'Q1', revenue: 40, costs: 24 },
-					{ quarter: 'Q2', revenue: 80, costs: 31 },
-					{ quarter: 'Q3', revenue: 65, costs: 28 },
-				]}
-				series={[
-					{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
-					{ xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
-				]}
-				width={400}
-				legend="right"
-			/>,
-		)
+	it.for<{ name: string; element: ReactElement; legendSlot: string }>([
+		{
+			name: 'line: draws the plot inside the box that the legend leaves',
+			element: (
+				<LineChart
+					aria-label="Revenue and costs by quarter"
+					data={[
+						{ quarter: 'Q1', revenue: 40, costs: 24 },
+						{ quarter: 'Q2', revenue: 80, costs: 31 },
+						{ quarter: 'Q3', revenue: 65, costs: 28 },
+					]}
+					series={[
+						{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+						{ xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
+					]}
+					width={400}
+					legend="right"
+				/>
+			),
+			legendSlot: 'chart-legend',
+		},
+		{
+			name: 'pie: draws the pie inside the box that the legend leaves',
+			element: (
+				<PieChart
+					aria-label="Traffic by source"
+					data={[
+						{ source: 'Search', visits: 60 },
+						{ source: 'Direct', visits: 25 },
+						{ source: 'Referral', visits: 15 },
+					]}
+					series={[{ xKey: 'source', yKey: 'visits' }]}
+					width={400}
+					legend="right"
+				/>
+			),
+			legendSlot: 'chart-legend',
+		},
+		{
+			name: 'scatter: draws the plot inside the box that the legend leaves',
+			element: (
+				<ScatterChart
+					aria-label="Dwell against distance"
+					data={[
+						{ distance: 12, dwell: 34, wait: 20 },
+						{ distance: 20, dwell: 40, wait: 26 },
+						{ distance: 28, dwell: 31, wait: 18 },
+					]}
+					series={[
+						{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
+						{ xKey: 'distance', yKey: 'wait', yName: 'Wait' },
+					]}
+					width={400}
+					legend="right"
+				/>
+			),
+			legendSlot: 'chart-legend',
+		},
+		{
+			name: 'heatmap: draws the grid inside the box that the rail leaves',
+			element: (
+				<HeatmapChart
+					aria-label="Commits"
+					data={[
+						{ day: 'Mon', hour: '9', commits: 1 },
+						{ day: 'Mon', hour: '10', commits: 9 },
+						{ day: 'Tue', hour: '9', commits: 5 },
+						{ day: 'Tue', hour: '10', commits: 3 },
+					]}
+					series={[
+						{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#fff', '#000'] },
+					]}
+					width={480}
+					legend="right"
+				/>
+			),
+			legendSlot: 'heatmap-legend-box',
+		},
+	])('$name', async ({ element, legendSlot }) => {
+		const { container } = renderUI(element)
 
-		await expectDrawingInPlot(getSlot(container, 'chart-plot'), getSlot(container, 'chart-legend'))
-	})
-
-	it('pie: draws the pie inside the box that the legend leaves', async () => {
-		const { container } = renderUI(
-			<PieChart
-				aria-label="Traffic by source"
-				data={[
-					{ source: 'Search', visits: 60 },
-					{ source: 'Direct', visits: 25 },
-					{ source: 'Referral', visits: 15 },
-				]}
-				series={[{ xKey: 'source', yKey: 'visits' }]}
-				width={400}
-				legend="right"
-			/>,
-		)
-
-		await expectDrawingInPlot(getSlot(container, 'chart-plot'), getSlot(container, 'chart-legend'))
-	})
-
-	it('scatter: draws the plot inside the box that the legend leaves', async () => {
-		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Dwell against distance"
-				data={[
-					{ distance: 12, dwell: 34, wait: 20 },
-					{ distance: 20, dwell: 40, wait: 26 },
-					{ distance: 28, dwell: 31, wait: 18 },
-				]}
-				series={[
-					{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
-					{ xKey: 'distance', yKey: 'wait', yName: 'Wait' },
-				]}
-				width={400}
-				legend="right"
-			/>,
-		)
-
-		await expectDrawingInPlot(getSlot(container, 'chart-plot'), getSlot(container, 'chart-legend'))
-	})
-
-	it('heatmap: draws the grid inside the box that the rail leaves', async () => {
-		const { container } = renderUI(
-			<HeatmapChart
-				aria-label="Commits"
-				data={[
-					{ day: 'Mon', hour: '9', commits: 1 },
-					{ day: 'Mon', hour: '10', commits: 9 },
-					{ day: 'Tue', hour: '9', commits: 5 },
-					{ day: 'Tue', hour: '10', commits: 3 },
-				]}
-				series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#fff', '#000'] }]}
-				width={480}
-				legend="right"
-			/>,
-		)
-
-		await expectDrawingInPlot(
-			getSlot(container, 'chart-plot'),
-			getSlot(container, 'heatmap-legend-box'),
-		)
+		await expectDrawingInPlot(getSlot(container, 'chart-plot'), getSlot(container, legendSlot))
 	})
 })

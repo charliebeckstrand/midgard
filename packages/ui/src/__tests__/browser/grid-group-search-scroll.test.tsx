@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import {
 	act,
@@ -61,12 +61,8 @@ describe('grid grouped virtualized body after a search clears (real browser)', (
 		)
 	}
 
-	async function settle(count: number) {
-		for (let i = 0; i < count; i++) await frames()
-	}
-
 	/** Renders the grid, and returns its scroller and the first row below the head. */
-	async function renderGrid() {
+	const renderGrid = vi.defineHelper(async () => {
 		const view = renderUI(<Harness />)
 
 		const scroll = getSlot(view.container, 'grid-scroll')
@@ -89,7 +85,7 @@ describe('grid grouped virtualized body after a search clears (real browser)', (
 		}
 
 		return { scroll, body, firstInView }
-	}
+	})
 
 	it('shows the top of the grid when a search clears at the top of its results', async () => {
 		const { scroll, body, firstInView } = await renderGrid()
@@ -98,7 +94,7 @@ describe('grid grouped virtualized body after a search clears (real browser)', (
 
 		await waitFor(() => expect(body.textContent).not.toContain('Acme'))
 
-		await settle(5)
+		await frames(5)
 
 		expect(scroll.scrollTop).toBe(0)
 
@@ -106,7 +102,7 @@ describe('grid grouped virtualized body after a search clears (real browser)', (
 
 		await waitFor(() => expect(body.textContent).toContain('Acme'))
 
-		await settle(10)
+		await frames(10)
 
 		expect(scroll.scrollTop).toBe(0)
 

@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ShinyText } from '../../components/shiny-text'
 import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { bySlot, renderUI } from '../helpers'
+import { holdRootClass } from './helpers/root-state'
 
 /**
  * Real-browser check of the ShinyText sweep. A CSS animation of
@@ -9,10 +10,6 @@ import { bySlot, renderUI } from '../helpers'
  * when the text is in the viewport.
  */
 describe('ShinyText sweep (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.classList.remove(ROOT_REDUCED_MOTION_CLASS)
-	})
-
 	function readSweep(container: HTMLElement) {
 		const text = bySlot(container, 'shiny-text')
 
@@ -32,7 +29,7 @@ describe('ShinyText sweep (real browser)', () => {
 	// The browser of the suite asks for no reduction, so the Motion setting of
 	// the root reduces motion here.
 	it('runs no sweep under reduced motion', async () => {
-		document.documentElement.classList.add(ROOT_REDUCED_MOTION_CLASS)
+		holdRootClass(ROOT_REDUCED_MOTION_CLASS)
 
 		const { container } = renderUI(<ShinyText>Shine</ShinyText>)
 

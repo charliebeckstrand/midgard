@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../components/lightbox'
 import { frames, present, renderUI, screen } from '../helpers'
+import { press } from './helpers/drag'
 import { waitForNoTween } from './helpers/motion-frame'
 
 /**
@@ -65,7 +66,7 @@ async function settle() {
 }
 
 /** Opens the viewer at the first photo, and waits for the photo to land. */
-async function open() {
+const open = vi.defineHelper(async () => {
 	renderUI(
 		<Lightbox photos={photos}>
 			{photos.map((photo, index) => (
@@ -79,7 +80,23 @@ async function open() {
 	await expect.poll(() => document.querySelector('[data-slot="lightbox-stage"]')).not.toBeNull()
 
 	await settle()
-}
+})
+
+/**
+ * Checks that the viewer stepped to the second photo and came to rest: no photo is off its rest,
+ * the stage is not raised, and the controls show in full.
+ */
+const expectSteppedAtRest = vi.defineHelper(() => {
+	expect(center()).toHaveAttribute('alt', 'Red barn')
+
+	expect(screen.getByText('2 / 3')).toBeVisible()
+
+	expect(photosOffRest()).toEqual([])
+
+	expect(stage()).not.toHaveAttribute('data-raised')
+
+	expect(controlsOpacity()).toBe(1)
+})
 
 /**
  * Sends a pointer event to the stage at `(dx, dy)` from its center. Each event carries its own
@@ -118,14 +135,12 @@ function arrowRight() {
 }
 
 describe('Lightbox press lifecycle (real browser)', () => {
-	afterEach(() => commands.releasePointer())
-
 	it('ends a press that the stage did not see lift, such as a release over the step pill', async () => {
 		await open()
 
 		const rest = { photo: center().style.transform, track: track().style.transform }
 
-		await commands.pressPointer('[data-slot="lightbox-stage"]')
+		await press('[data-slot="lightbox-stage"]')
 
 		// The release goes to the Next button, which is not in the stage.
 		await commands.releasePointer('[aria-label="Next photo"]')
@@ -153,7 +168,7 @@ describe('Lightbox press lifecycle (real browser)', () => {
 
 		const at = (dx: number) => ({ position: { x: box.width / 2 + dx, y: box.height / 2 } })
 
-		await commands.pressPointer('[data-slot="lightbox-stage"]')
+		await press('[data-slot="lightbox-stage"]')
 
 		await userEvent.hover(stage(), at(-50))
 
@@ -231,15 +246,7 @@ describe('Lightbox press lifecycle (real browser)', () => {
 
 		await settle()
 
-		expect(center()).toHaveAttribute('alt', 'Red barn')
-
-		expect(screen.getByText('2 / 3')).toBeVisible()
-
-		expect(photosOffRest()).toEqual([])
-
-		expect(stage()).not.toHaveAttribute('data-raised')
-
-		expect(controlsOpacity()).toBe(1)
+		expectSteppedAtRest()
 	})
 
 	it('steps during the restore of a swipe to close that did not close', async () => {
@@ -256,14 +263,6 @@ describe('Lightbox press lifecycle (real browser)', () => {
 
 		await settle()
 
-		expect(center()).toHaveAttribute('alt', 'Red barn')
-
-		expect(screen.getByText('2 / 3')).toBeVisible()
-
-		expect(photosOffRest()).toEqual([])
-
-		expect(stage()).not.toHaveAttribute('data-raised')
-
-		expect(controlsOpacity()).toBe(1)
+		expectSteppedAtRest()
 	})
 })

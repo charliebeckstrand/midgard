@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { bySlot, present, renderUI, screen, waitFor } from '../../helpers'
+import { bySlot, renderUI, screen, waitFor } from '../../helpers'
+import { gridCell } from '../../helpers/grid-cells'
 
 /**
  * A grid edit session's Escape against this library's own `Listbox` (real
@@ -34,9 +35,7 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 			/>,
 		)
 
-		await userEvent.dblClick(
-			present(view.container.querySelector('td[data-grid-col="done"]'), 'td[data-grid-col="done"]'),
-		)
+		await userEvent.dblClick(gridCell(view.container, 'done'))
 
 		// The entry opens the panel.
 		await screen.findByRole('option', { name: 'Yes' })

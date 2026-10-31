@@ -2,7 +2,14 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { CodeBlock, type CodeBlockProps, primeCodeBlock } from '../../components/code'
 import { PdfViewer } from '../../components/pdf-viewer'
-import { Table, TableBody, TableCaption, TableCell, TableRow } from '../../components/table'
+import {
+	Table,
+	TableBody,
+	TableCaption,
+	TableCell,
+	type TableProps,
+	TableRow,
+} from '../../components/table'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { frames, present, renderUI, screen, waitFor } from '../helpers'
 
@@ -112,10 +119,23 @@ describe('useScrollRegion on a box that does not scroll', () => {
 })
 
 describe('Table scroll container', () => {
-	function Wide({ width }: { width: number }) {
+	/**
+	 * A table with one 600px cell in a box of `width`. A `caption` adds a TableCaption with that
+	 * text and id.
+	 */
+	function Wide({
+		width = 300,
+		caption,
+		tableProps,
+	}: {
+		width?: number
+		caption?: { text: string; id?: string }
+		tableProps?: TableProps['tableProps']
+	}) {
 		return (
 			<div style={{ width }}>
-				<Table tableProps={{ 'aria-label': 'Activity' }}>
+				<Table tableProps={tableProps}>
+					{caption && <TableCaption id={caption.id}>{caption.text}</TableCaption>}
 					<TableBody>
 						<TableRow>
 							<TableCell>
@@ -136,7 +156,7 @@ describe('Table scroll container', () => {
 	}
 
 	it('is a named tab stop while the table overflows', async () => {
-		renderUI(<Wide width={300} />)
+		renderUI(<Wide tableProps={{ 'aria-label': 'Activity' }} />)
 
 		await waitFor(() => expect(container().getAttribute('tabindex')).toBe('0'))
 
@@ -146,7 +166,7 @@ describe('Table scroll container', () => {
 	})
 
 	it('adds no tab stop while the table fits', async () => {
-		renderUI(<Wide width={900} />)
+		renderUI(<Wide width={900} tableProps={{ 'aria-label': 'Activity' }} />)
 
 		await frames()
 
@@ -156,25 +176,12 @@ describe('Table scroll container', () => {
 	})
 
 	it.each([
-		['the id', { id: 'activity-caption' }, 'aria-labelledby', 'activity-caption'],
-		['the text', {}, 'aria-label', 'Activity'],
+		['the id', 'activity-caption', 'aria-labelledby', 'activity-caption'],
+		['the text', undefined, 'aria-label', 'Activity'],
 	])(
 		'takes the name of a TableCaption through %s while the table overflows',
-		async (_, captionProps, attribute, value) => {
-			renderUI(
-				<div style={{ width: 300 }}>
-					<Table>
-						<TableCaption {...captionProps}>Activity</TableCaption>
-						<TableBody>
-							<TableRow>
-								<TableCell>
-									<div style={{ width: 600 }}>wide cell</div>
-								</TableCell>
-							</TableRow>
-						</TableBody>
-					</Table>
-				</div>,
-			)
+		async (_, id, attribute, value) => {
+			renderUI(<Wide caption={{ text: 'Activity', id }} />)
 
 			await waitFor(() => expect(container().getAttribute('role')).toBe('region'))
 
@@ -184,18 +191,10 @@ describe('Table scroll container', () => {
 
 	it('takes the aria-label of tableProps before the id of a TableCaption', async () => {
 		renderUI(
-			<div style={{ width: 300 }}>
-				<Table tableProps={{ 'aria-label': 'Orders' }}>
-					<TableCaption id="orders-caption">Q3 report</TableCaption>
-					<TableBody>
-						<TableRow>
-							<TableCell>
-								<div style={{ width: 600 }}>wide cell</div>
-							</TableCell>
-						</TableRow>
-					</TableBody>
-				</Table>
-			</div>,
+			<Wide
+				caption={{ text: 'Q3 report', id: 'orders-caption' }}
+				tableProps={{ 'aria-label': 'Orders' }}
+			/>,
 		)
 
 		await waitFor(() => expect(container().getAttribute('role')).toBe('region'))

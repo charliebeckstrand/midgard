@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
 import { fireEvent, getSlot, renderUI } from '../helpers'
+import { holdDir } from './helpers/root-state'
 
 /**
  * In a right-to-left group the first panel is on the right. A move of the
@@ -13,12 +14,8 @@ import { fireEvent, getSlot, renderUI } from '../helpers'
  * `direction`, which jsdom does not resolve from a `dir` attribute.
  */
 describe('Resizable in RTL (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.removeAttribute('dir')
-	})
-
 	function renderGroup(dir: 'ltr' | 'rtl') {
-		document.documentElement.dir = dir
+		holdDir(dir)
 
 		const onSizesChange = vi.fn()
 

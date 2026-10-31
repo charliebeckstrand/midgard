@@ -1,8 +1,9 @@
 import { Activity, StrictMode } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { FruitCombobox } from '../helpers/fruit-combobox'
 
 /**
  * The Combobox panel mounts its portal node only while the panel is open.
@@ -25,28 +26,15 @@ import { renderUI, screen, waitFor } from '../../helpers'
  */
 const portalNodes = () => document.body.querySelectorAll('[data-floating-ui-portal]').length
 
-function Fruit() {
-	return (
-		<Combobox<string> displayValue={(value) => value} placeholder="Search">
-			<ComboboxOption value="apple">
-				<ComboboxLabel>Apple</ComboboxLabel>
-			</ComboboxOption>
-			<ComboboxOption value="apricot">
-				<ComboboxLabel>Apricot</ComboboxLabel>
-			</ComboboxOption>
-		</Combobox>
-	)
-}
-
 function Parked({ hidden }: { hidden: boolean }) {
 	return (
 		<Activity mode={hidden ? 'hidden' : 'visible'}>
-			<Fruit />
+			<FruitCombobox />
 		</Activity>
 	)
 }
 
-async function openAndClose() {
+const openAndClose = vi.defineHelper(async () => {
 	await userEvent.click(screen.getByRole('combobox'))
 
 	await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument())
@@ -56,15 +44,15 @@ async function openAndClose() {
 	await userEvent.keyboard('{Escape}')
 
 	await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
-}
+})
 
 describe('Combobox portal node (real browser)', () => {
 	it('mounts no portal node for closed comboboxes', () => {
 		renderUI(
 			<>
-				<Fruit />
-				<Fruit />
-				<Fruit />
+				<FruitCombobox />
+				<FruitCombobox />
+				<FruitCombobox />
 			</>,
 		)
 
@@ -74,7 +62,7 @@ describe('Combobox portal node (real browser)', () => {
 	it('keeps no portal node after an unmount under StrictMode', async () => {
 		const { unmount } = renderUI(
 			<StrictMode>
-				<Fruit />
+				<FruitCombobox />
 			</StrictMode>,
 		)
 
@@ -108,7 +96,7 @@ describe('Combobox portal node (real browser)', () => {
 	})
 
 	it('seats the highlight on the selected option when ArrowDown reopens the menu', async () => {
-		renderUI(<Fruit />)
+		renderUI(<FruitCombobox />)
 
 		const input = screen.getByRole('combobox')
 

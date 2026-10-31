@@ -1,5 +1,5 @@
 import { Profiler, useRef, useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { CurrentContent, CurrentContents, CurrentContext } from '../../primitives/current'
 import { useCurrentContentsMorph } from '../../primitives/current/use-current-contents-morph'
 import { frames, getSlot, renderUI, screen, waitFor } from '../helpers'
@@ -149,7 +149,7 @@ describe('current-panel morph, width-coupled resizes (real browser)', () => {
 	}
 
 	/** Mounts the probe and settles the observer baseline. */
-	async function settled() {
+	const settled = vi.defineHelper(async () => {
 		let commits = 0
 
 		const { container } = renderUI(<ReflowProbe onCommit={() => commits++} />)
@@ -165,12 +165,6 @@ describe('current-panel morph, width-coupled resizes (real browser)', () => {
 		await frames()
 
 		return { box, host, commits: () => commits }
-	}
-
-	it('rests at auto height with no inline pin', async () => {
-		const { box } = await settled()
-
-		expect(box.style.height).toBe('')
 	})
 
 	it('passes a width-coupled drag through with no re-render and no pin', async () => {

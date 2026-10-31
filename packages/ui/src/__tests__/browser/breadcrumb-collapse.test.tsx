@@ -9,7 +9,7 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
-import { act, attach, present } from '../helpers'
+import { act, attach, frames, present } from '../helpers'
 
 const CRUMBS = ['Places', 'United States of America', 'Oregon']
 
@@ -41,11 +41,6 @@ function drawn(container: HTMLElement) {
 		container.querySelectorAll<HTMLElement>('[data-slot=breadcrumb-label]'),
 		(label) => (label.clientWidth === 0 ? '…' : label.textContent),
 	)
-}
-
-/** Waits for two frames, so a `ResizeObserver` report and its layout have run. */
-function frames() {
-	return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
 }
 
 /** The style sheet of the pre-paint step in the head, if any. */

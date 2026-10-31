@@ -6,7 +6,7 @@ import { Listbox } from '../../../components/listbox'
 import { ListboxOption } from '../../../components/listbox/listbox-option'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
 import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
-import { getCenter } from '../../helpers/geometry/box'
+import { EXIT_MOTION_CASES, expectExiting, focusedElement, gone } from '../helpers/exit'
 
 /**
  * The panels of Listbox and Combobox do not use `FloatingSurface`. Each renders
@@ -20,41 +20,14 @@ import { getCenter } from '../../helpers/geometry/box'
  * The closes go through `fireEvent`, which commits in the same task, so the
  * checks run inside the exit.
  */
-const motionCases = [
-	{ reduced: false, name: 'the full exit' },
-	{ reduced: true, name: 'the reduced exit' },
-]
-
 const panelSelector = '[data-slot="popover-panel"]'
-
-const focused = () => present(document.activeElement, 'the focused element')
-
-/** Whether a press at the center of `element` lands on it or inside it. */
-function hits(element: Element) {
-	const at = getCenter(element)
-
-	return element.contains(document.elementFromPoint(at.x, at.y))
-}
-
-/** Asserts that `panel` is still on screen, and that it takes no input. */
-function expectExiting(panel: HTMLElement) {
-	expect(panel).toBeInTheDocument()
-
-	expect(panel.closest('[inert]')).not.toBeNull()
-
-	expect(panel).not.toContainElement(focused())
-
-	for (const option of panel.querySelectorAll('[role="option"]')) expect(hits(option)).toBe(false)
-}
-
-const gone = (panel: HTMLElement) => waitFor(() => expect(panel).not.toBeInTheDocument())
 
 function Motion({ reduced, children }: { reduced: boolean; children: ReactNode }) {
 	return <ReducedMotionContext value={reduced}>{children}</ReducedMotionContext>
 }
 
 describe('Listbox panel exit (real engine, real Motion)', () => {
-	it.each(motionCases)('is inert and holds no focus under $name', async ({ reduced }) => {
+	it.each(EXIT_MOTION_CASES)('is inert and holds no focus under $name', async ({ reduced }) => {
 		renderUI(
 			<Motion reduced={reduced}>
 				<Listbox aria-label="Fruit" value="b" displayValue={(value: string) => value}>
@@ -71,11 +44,11 @@ describe('Listbox panel exit (real engine, real Motion)', () => {
 			present(document.querySelector<HTMLElement>(panelSelector), 'the panel'),
 		)
 
-		await waitFor(() => expect(panel).toContainElement(focused()))
+		await waitFor(() => expect(panel).toContainElement(focusedElement()))
 
-		fireEvent.keyDown(focused(), { key: 'Escape' })
+		fireEvent.keyDown(focusedElement(), { key: 'Escape' })
 
-		expectExiting(panel)
+		expectExiting(panel, { options: true })
 
 		await gone(panel)
 	})
@@ -83,7 +56,7 @@ describe('Listbox panel exit (real engine, real Motion)', () => {
 	// A reopen inside the exit reuses the panel that is still mounted, so no mount
 	// moves the focus into it. The focus must still leave the trigger, or the
 	// arrow keys of the open panel reach nothing.
-	it.each(motionCases)('takes the focus on a reopen under $name', async ({ reduced }) => {
+	it.each(EXIT_MOTION_CASES)('takes the focus on a reopen under $name', async ({ reduced }) => {
 		renderUI(
 			<Motion reduced={reduced}>
 				<Listbox aria-label="Fruit" value="b" displayValue={(value: string) => value}>
@@ -102,25 +75,25 @@ describe('Listbox panel exit (real engine, real Motion)', () => {
 			present(document.querySelector<HTMLElement>(panelSelector), 'the panel'),
 		)
 
-		await waitFor(() => expect(panel).toContainElement(focused()))
+		await waitFor(() => expect(panel).toContainElement(focusedElement()))
 
-		fireEvent.keyDown(focused(), { key: 'Escape' })
+		fireEvent.keyDown(focusedElement(), { key: 'Escape' })
 
-		expectExiting(panel)
+		expectExiting(panel, { options: true })
 
 		fireEvent.click(trigger)
 
 		// The same panel opens again, and the focus goes to the selected option.
 		expect(document.querySelector(panelSelector)).toBe(panel)
 
-		await waitFor(() => expect(focused()).toHaveAttribute('aria-selected', 'true'))
+		await waitFor(() => expect(focusedElement()).toHaveAttribute('aria-selected', 'true'))
 
-		expect(panel).toContainElement(focused())
+		expect(panel).toContainElement(focusedElement())
 	})
 })
 
 describe('Combobox panel exit (real engine, real Motion)', () => {
-	it.each(motionCases)('is inert under $name', async ({ reduced }) => {
+	it.each(EXIT_MOTION_CASES)('is inert under $name', async ({ reduced }) => {
 		renderUI(
 			<Motion reduced={reduced}>
 				<Combobox<string> displayValue={(value) => value} placeholder="Search">
@@ -144,7 +117,7 @@ describe('Combobox panel exit (real engine, real Motion)', () => {
 
 		fireEvent.keyDown(input, { key: 'Escape' })
 
-		expectExiting(panel)
+		expectExiting(panel, { options: true })
 
 		await gone(panel)
 	})

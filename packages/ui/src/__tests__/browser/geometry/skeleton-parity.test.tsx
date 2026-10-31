@@ -1,6 +1,6 @@
 import { File, Inbox, Settings, Star } from 'lucide-react'
 import type { ReactElement } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Accordion,
 	AccordionItem,
@@ -250,6 +250,25 @@ describe('skeleton parity (real browser)', () => {
 			(size) => <ProgressGauge aria-label="Upload" size={size} />,
 			(size) => <ProgressGaugeSkeleton size={size} />,
 		],
+		[
+			'Avatar',
+			'avatar',
+			(size) => <Avatar size={size} initials="WC" alt="Wade Cooper" />,
+			(size) => <AvatarSkeleton size={size} />,
+		],
+		[
+			'Sparkline',
+			'sparkline',
+			(size) => <Sparkline data={[3, 5, 4, 8]} size={size} aria-label="Trend" />,
+			(size) => <SparklineSkeleton size={size} />,
+		],
+		[
+			'Calendar',
+			'calendar',
+			// A month that spans six weeks, the tallest month a calendar draws.
+			(size) => <Calendar size={size} defaultValue={new Date(2026, 4, 15)} />,
+			(size) => <CalendarSkeleton size={size} />,
+		],
 	]
 
 	describe.each(pairs)('%sSkeleton', (_, slot, real, skeleton) => {
@@ -397,33 +416,10 @@ describe('skeleton parity (real browser)', () => {
 		expect(skeleton.height).toBeNear(short.height, PIXEL)
 	})
 
-	it.each(densitySteps)('TextareaSkeleton has the box of a %s textarea', (size) => {
-		const real = box(
-			renderUI(
-				<Box density={size}>
-					<Textarea aria-label="Notes" rows={3} />
-				</Box>,
-			).container.querySelector('textarea'),
-			'textarea',
-		)
-
-		const skeleton = renderUI(
-			<Box density={size}>
-				<TextareaSkeleton rows={3} />
-			</Box>,
-		).container.querySelector('[data-slot="placeholder"]')
-
-		expect(box(skeleton, 'skeleton')).toStrictEqual(real)
-
-		expect(getComputedStyle(present(skeleton, 'skeleton')).borderRadius).toBe(
-			getComputedStyle(present(document.querySelector('textarea'), 'textarea')).borderRadius,
-		)
-	})
-
-	it.each(densitySteps.flatMap((size) => [1, 2].map((rows) => [size, rows] as const)))(
-		'TextareaSkeleton has the height of a %s textarea at %i rows',
-		(size, rows) => {
-			const real = box(
+	it.for(densitySteps.flatMap((size) => [1, 2, 3].map((rows) => [size, rows] as const)))(
+		'TextareaSkeleton has the box and the radius of a %s textarea at %i rows',
+		([size, rows]) => {
+			const textarea = present(
 				renderUI(
 					<Box density={size}>
 						<Textarea aria-label="Notes" rows={rows} />
@@ -438,7 +434,11 @@ describe('skeleton parity (real browser)', () => {
 				</Box>,
 			).container.querySelector('[data-slot="placeholder"]')
 
-			expect(box(skeleton, 'skeleton')).toStrictEqual(real)
+			expect(box(skeleton, 'skeleton')).toStrictEqual(box(textarea, 'textarea'))
+
+			expect(getComputedStyle(present(skeleton, 'skeleton')).borderRadius).toBe(
+				getComputedStyle(textarea).borderRadius,
+			)
 		},
 	)
 
@@ -780,14 +780,6 @@ describe('skeleton parity (real browser)', () => {
 
 	const height = (el: Element | null | undefined, what: string) => box(el, what).height
 
-	it.each(densitySteps)('AvatarSkeleton has the box of a %s avatar', (size) => {
-		const { container } = renderUI(<Avatar size={size} initials="WC" alt="Wade Cooper" />)
-
-		expect(placeholder(renderUI(<AvatarSkeleton size={size} />).container)).toStrictEqual(
-			box(container.querySelector('[data-slot="avatar"]'), 'avatar'),
-		)
-	})
-
 	it.each(['xs', 'sm', 'md', 'lg'] as const)(
 		'BadgeSkeleton has the height of a %s badge',
 		(size) => {
@@ -804,14 +796,6 @@ describe('skeleton parity (real browser)', () => {
 
 		expect(placeholder(renderUI(<ControlSkeleton size={size} />).container).height).toBe(
 			height(container.querySelector('[data-slot="control-frame"]'), 'control'),
-		)
-	})
-
-	it.each(densitySteps)('SparklineSkeleton has the box of a %s sparkline', (size) => {
-		const { container } = renderUI(<Sparkline data={[3, 5, 4, 8]} size={size} aria-label="Trend" />)
-
-		expect(placeholder(renderUI(<SparklineSkeleton size={size} />).container)).toStrictEqual(
-			box(container.querySelector('[data-slot="sparkline"]'), 'sparkline'),
 		)
 	})
 
@@ -949,15 +933,6 @@ describe('skeleton parity (real browser)', () => {
 		},
 	)
 
-	it.each(densitySteps)('CalendarSkeleton has the box of a %s calendar', (size) => {
-		// A month that spans six weeks, the tallest month a calendar draws.
-		const { container } = renderUI(<Calendar size={size} defaultValue={new Date(2026, 4, 15)} />)
-
-		expect(placeholder(renderUI(<CalendarSkeleton size={size} />).container)).toStrictEqual(
-			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
-		)
-	})
-
 	// The calendar and the skeleton with no size both take the xs scope, so each row of the
 	// skeleton must give the height of the calendar at xs.
 	it('CalendarSkeleton with no size has the box of a calendar in an xs scope', () => {
@@ -1014,18 +989,21 @@ describe('skeleton parity (real browser)', () => {
 	// A chart sizes its box from its width after it measures, so the test waits until the chart
 	// settles at the box of its skeleton. Density does not change the height of a chart, so each
 	// case runs in a density scope too.
-	const settlesAt = async (chart: ReactElement, skeleton: ReactElement, width: number) => {
-		const frame = (child: ReactElement) =>
-			renderUI(<div style={{ width }}>{child}</div>).container.firstElementChild?.firstElementChild
+	const settlesAt = vi.defineHelper(
+		async (chart: ReactElement, skeleton: ReactElement, width: number) => {
+			const frame = (child: ReactElement) =>
+				renderUI(<div style={{ width }}>{child}</div>).container.firstElementChild
+					?.firstElementChild
 
-		const reserved = box(frame(skeleton), 'skeleton')
+			const reserved = box(frame(skeleton), 'skeleton')
 
-		const real = frame(chart)
+			const real = frame(chart)
 
-		expect(reserved.width).toBe(width)
+			expect(reserved.width).toBe(width)
 
-		await expect.poll(() => box(real, 'chart').height).toBeNear(reserved.height, PIXEL)
-	}
+			await expect.poll(() => box(real, 'chart').height).toBeNear(reserved.height, PIXEL)
+		},
+	)
 
 	const sales = [
 		{ quarter: 'Q1', revenue: 40, costs: 24 },

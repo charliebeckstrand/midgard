@@ -26,9 +26,7 @@ describe('a Popover with a side placement on a phone (real floating engine)', ()
 			</div>,
 		)
 
-		await frames()
-
-		await frames()
+		await frames(2)
 
 		const panel = screen.getByRole('dialog').getBoundingClientRect()
 
@@ -57,9 +55,7 @@ describe('a Popover with a side placement on a phone (real floating engine)', ()
 			</div>,
 		)
 
-		await frames()
-
-		await frames()
+		await frames(2)
 
 		const panel = screen.getByRole('dialog').getBoundingClientRect()
 

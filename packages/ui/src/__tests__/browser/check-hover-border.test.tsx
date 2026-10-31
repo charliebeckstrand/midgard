@@ -1,10 +1,11 @@
 import type { ReactElement } from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { describe, expect, it } from 'vitest'
 import { Checkbox, CheckboxField } from '../../components/checkbox'
 import { Label } from '../../components/fieldset'
 import { Radio, RadioField } from '../../components/radio'
 import { bySlot, present, renderUI } from '../helpers'
+import { acrossHover } from './helpers/across-hover'
+import { holdRootClass } from './helpers/root-state'
 
 /**
  * A checked Checkbox or Radio keeps its accent border under the pointer, in both modes.
@@ -19,10 +20,6 @@ import { bySlot, present, renderUI } from '../helpers'
  * no stylesheet.
  */
 describe('the border of a check control under the pointer (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.classList.remove('dark')
-	})
-
 	/** Each control sits in its toggle field with a Label, so a case can hover the box or the label. */
 	const fields = {
 		'a checked Checkbox': () => (
@@ -63,17 +60,17 @@ describe('the border of a check control under the pointer (real browser)', () =>
 	type Target = 'box' | 'label'
 
 	async function borderBeforeAndAfterHover(field: Field, target: Target, dark: boolean) {
-		if (dark) document.documentElement.classList.add('dark')
+		if (dark) holdRootClass('dark')
 
 		const { container } = renderUI(fields[field]())
 
 		const box = present(bySlot(container, 'control'), 'check box')
 
-		const before = getComputedStyle(box).borderTopColor
-
-		await userEvent.hover(target === 'box' ? box : present(bySlot(container, 'label'), 'label'))
-
-		return { before, after: getComputedStyle(box).borderTopColor }
+		return acrossHover(
+			box,
+			'borderTopColor',
+			target === 'box' ? box : present(bySlot(container, 'label'), 'label'),
+		)
 	}
 
 	describe.each([
@@ -99,7 +96,7 @@ describe('the border of a check control under the pointer (real browser)', () =>
 		 * before the effect runs. The case clears the property to stand for that markup.
 		 */
 		it('an indeterminate Checkbox with no indeterminate property keeps its border on a hover', async () => {
-			if (dark) document.documentElement.classList.add('dark')
+			if (dark) holdRootClass('dark')
 
 			const { container } = renderUI(fields['an indeterminate Checkbox']())
 
@@ -107,13 +104,12 @@ describe('the border of a check control under the pointer (real browser)', () =>
 
 			input.indeterminate = false
 
-			const box = present(bySlot(container, 'control'), 'check box')
+			const { before, after } = await acrossHover(
+				present(bySlot(container, 'control'), 'check box'),
+				'borderTopColor',
+			)
 
-			const before = getComputedStyle(box).borderTopColor
-
-			await userEvent.hover(box)
-
-			expect(getComputedStyle(box).borderTopColor).toBe(before)
+			expect(after).toBe(before)
 		})
 
 		/**

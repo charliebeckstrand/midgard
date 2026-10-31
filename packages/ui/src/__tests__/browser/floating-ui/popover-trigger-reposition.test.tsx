@@ -41,9 +41,7 @@ describe('a Popover reposition (real floating engine)', () => {
 			</div>,
 		)
 
-		await frames()
-
-		await frames()
+		await frames(2)
 
 		const panel = screen.getByRole('dialog')
 
@@ -54,9 +52,7 @@ describe('a Popover reposition (real floating engine)', () => {
 		// A wider panel under a centered `bottom` placement moves its left edge.
 		screen.getByTestId('body').style.width = '300px'
 
-		await frames()
-
-		await frames()
+		await frames(2)
 
 		expect(panel.getBoundingClientRect().left).toBeLessThan(left)
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -9,6 +9,7 @@ import { Calendar } from '../../../components/calendar'
 import { Pagination, PaginationNext, PaginationPrevious } from '../../../components/pagination'
 import { Tree, TreeItem } from '../../../components/tree'
 import { getSlot, present, renderUI, screen } from '../../helpers'
+import { holdDir } from '../helpers/root-state'
 
 /**
  * A directional icon points the way its control goes, in both directions.
@@ -22,10 +23,6 @@ import { getSlot, present, renderUI, screen } from '../../helpers'
  * column, and reads where its arrow points. Rides the real browser because jsdom loads no stylesheet.
  */
 describe('directional icons in RTL (real browser)', () => {
-	afterEach(() => {
-		document.documentElement.removeAttribute('dir')
-	})
-
 	/**
 	 * Where a glyph points on screen, as a unit vector (y down). `glyph` is the direction the
 	 * unstyled glyph points: 1 for a right chevron, -1 for a left one.
@@ -51,9 +48,9 @@ describe('directional icons in RTL (real browser)', () => {
 		const end = dir === 'ltr' ? 1 : -1
 
 		describe(dir, () => {
-			it('points the breadcrumb separator to the inline end', () => {
-				document.documentElement.dir = dir
+			beforeEach(() => holdDir(dir))
 
+			it('points the breadcrumb separator to the inline end', () => {
 				const { container } = renderUI(
 					<Breadcrumb>
 						<BreadcrumbList>
@@ -70,8 +67,6 @@ describe('directional icons in RTL (real browser)', () => {
 			})
 
 			it('points next to the inline end and previous to the inline start', () => {
-				document.documentElement.dir = dir
-
 				renderUI(
 					<Pagination>
 						<PaginationPrevious href="/1" />
@@ -89,8 +84,6 @@ describe('directional icons in RTL (real browser)', () => {
 			})
 
 			it('points the calendar month steps the same way', () => {
-				document.documentElement.dir = dir
-
 				renderUI(<Calendar />)
 
 				const next = svg(screen.getByRole('button', { name: 'Next month' }), 'next month icon')
@@ -106,8 +99,6 @@ describe('directional icons in RTL (real browser)', () => {
 			})
 
 			it('points a closed branch to the inline end and an open one down', () => {
-				document.documentElement.dir = dir
-
 				renderUI(
 					<Tree aria-label="Files">
 						<TreeItem label="open" defaultOpen>

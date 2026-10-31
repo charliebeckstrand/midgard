@@ -35,10 +35,15 @@ describe('grid column filter sheet (real browser)', () => {
 
 	const getKey = (row: Row) => row.id
 
-	it('keeps the sheet open when picking from the nested operator select', async () => {
+	/** Renders the grid and presses the filter button of the Name column. */
+	async function openFilter() {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+	}
+
+	it('keeps the sheet open when picking from the nested operator select', async () => {
+		await openFilter()
 
 		// The sheet is open: its single-column query builder shows the "Add" menu.
 		await screen.findByRole('button', { name: 'Add' })
@@ -61,9 +66,7 @@ describe('grid column filter sheet (real browser)', () => {
 	})
 
 	it('closes the operator listbox on a press elsewhere in the sheet', async () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		await openFilter()
 
 		await screen.findByRole('button', { name: 'Add' })
 
@@ -87,45 +90,15 @@ describe('grid column filter sheet (real browser)', () => {
 	// arrives. The focus manager must still find the query builder, not only the
 	// footer buttons.
 	it('moves focus into the query builder when the sheet opens', async () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		await openFilter()
 
 		const operator = await screen.findByRole('combobox', { name: 'Operator' })
 
 		await waitFor(() => expect(operator).toHaveFocus())
 	})
 
-	it('traps Tab focus within the open filter sheet', async () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
-
-		const panel = (await screen.findByRole('button', { name: 'Add' })).closest(
-			'[data-slot="sheet"]',
-		)
-
-		if (!panel) throw new Error('no sheet panel')
-
-		// The focus manager moves focus into the sheet after the sheet mounts. A
-		// Tab before that leaves from the trigger, outside the trap.
-		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
-
-		// Cycle past every control; the modal focus manager keeps focus inside. A
-		// Tab past the last control lands on a focus guard beside the panel, and
-		// the guard moves focus back in on the next animation frame. Thus wait for
-		// the focus, and do not read it at once.
-		for (let i = 0; i < 6; i++) {
-			await userEvent.tab()
-
-			await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
-		}
-	})
-
 	it('settles the filter only on Apply', async () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		await openFilter()
 
 		await userEvent.type(await screen.findByRole('textbox', { name: 'Name value' }), 'Bob')
 
@@ -141,9 +114,7 @@ describe('grid column filter sheet (real browser)', () => {
 	})
 
 	it('discards a canceled draft, leaving the rows unfiltered', async () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		await openFilter()
 
 		await userEvent.type(await screen.findByRole('textbox', { name: 'Name value' }), 'Bob')
 

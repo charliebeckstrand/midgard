@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { JsonTree } from '../../components/json-tree'
 import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
@@ -15,17 +15,21 @@ const DATA = { list: Array.from({ length: LEAF_COUNT }, (_, index) => `v${index}
 
 /**
  * A tree whose scroller holds about ten rows, with every branch open. Only `maxHeight` bounds
- * the scroller, unless `className` gives it a height of its own.
+ * the scroller, unless `className` gives it a height of its own. With `button`, a button with
+ * that name comes before the tree.
  */
-function mountTree(className?: string) {
+function mountTree({ className, button }: { className?: string; button?: string } = {}) {
 	renderUI(
-		<JsonTree
-			data={DATA}
-			rootKey="root"
-			defaultExpandDepth={Number.POSITIVE_INFINITY}
-			virtualize={{ maxHeight: '240px', overscan: 2 }}
-			className={className}
-		/>,
+		<>
+			{button === undefined ? null : <button type="button">{button}</button>}
+			<JsonTree
+				data={DATA}
+				rootKey="root"
+				defaultExpandDepth={Number.POSITIVE_INFINITY}
+				virtualize={{ maxHeight: '240px', overscan: 2 }}
+				className={className}
+			/>
+		</>,
 	)
 
 	return present(screen.getByRole('tree'), 'the tree')
@@ -49,7 +53,7 @@ const rowIndexAfter = (tree: HTMLElement, index: number) =>
 	rows(tree).some((row) => new RegExp(`v${index + 1}\\b`).test(row.textContent ?? ''))
 
 /** Mounts the tree, waits for the window, and focuses the root row. */
-async function mountAndFocusRoot() {
+const mountAndFocusRoot = vi.defineHelper(async () => {
 	const tree = mountTree()
 
 	await waitFor(() => expect(rows(tree).length).toBeGreaterThan(0))
@@ -61,7 +65,7 @@ async function mountAndFocusRoot() {
 	expect(focusedLabel()).toContain('root')
 
 	return tree
-}
+})
 
 describe('JsonTree under virtualize: keyboard reach past the window', () => {
 	it('End focuses the last leaf of the flat list, and Home returns to the root', async () => {
@@ -113,20 +117,8 @@ const FAR = 4000
  * Mounts a button and the tree, focuses the row of leaf 3, and scrolls the tree by `FAR`. The
  * focused row unmounts.
  */
-async function focusLeafAndScrollAway() {
-	renderUI(
-		<>
-			<button type="button">Outside</button>
-			<JsonTree
-				data={DATA}
-				rootKey="root"
-				defaultExpandDepth={Number.POSITIVE_INFINITY}
-				virtualize={{ maxHeight: '240px', overscan: 2 }}
-			/>
-		</>,
-	)
-
-	const tree = present(screen.getByRole('tree'), 'the tree')
+const focusLeafAndScrollAway = vi.defineHelper(async () => {
+	const tree = mountTree({ button: 'Outside' })
 
 	await waitFor(() => expect(leafRow(tree, 3)).toBeDefined())
 
@@ -139,7 +131,7 @@ async function focusLeafAndScrollAway() {
 	await waitFor(() => expect(leafRow(tree, 3)).toBeUndefined())
 
 	return tree
-}
+})
 
 describe('JsonTree under virtualize: a focused row that scrolls out of the window', () => {
 	it('keeps focus in the tree, and ArrowDown focuses the next row', async () => {
@@ -221,19 +213,7 @@ describe('JsonTree under virtualize: browser chords', () => {
 
 describe('JsonTree under virtualize: the Tab stop', () => {
 	it('puts the Tab stop on a row in view after a scroll past the overscan', async () => {
-		renderUI(
-			<>
-				<button type="button">Before</button>
-				<JsonTree
-					data={DATA}
-					rootKey="root"
-					defaultExpandDepth={Number.POSITIVE_INFINITY}
-					virtualize={{ maxHeight: '240px', overscan: 2 }}
-				/>
-			</>,
-		)
-
-		const tree = present(screen.getByRole('tree'), 'the tree')
+		const tree = mountTree({ button: 'Before' })
 
 		await waitFor(() => expect(rows(tree).length).toBeGreaterThan(1))
 
@@ -310,7 +290,7 @@ describe('JsonTree under virtualize: the scroller', () => {
 		['only maxHeight', undefined],
 		['a fixed height', 'h-60'],
 	])('renders rows and scrolls to the last node under %s', async (_, className) => {
-		const tree = mountTree(className)
+		const tree = mountTree({ className })
 
 		await waitFor(() => expect(rows(tree).length).toBeGreaterThan(0))
 

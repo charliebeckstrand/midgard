@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { GUTTER_MAX } from '../../../modules/chart/engine/chart-constants'
@@ -24,7 +24,7 @@ const DATA = [
 ]
 
 /** The box of the drawing, and each category label as it draws with its left edge and its anchor. */
-async function bandLabels(width: number) {
+const bandLabels = vi.defineHelper(async (width: number) => {
 	const { container } = renderUI(
 		<div style={{ width, fontFamily: '"Google Sans Flex"' }}>
 			<BarChart
@@ -58,7 +58,7 @@ async function bandLabels(width: number) {
 			anchor: Number(text.getAttribute('x')),
 		})),
 	}
-}
+})
 
 describe('horizontal band labels (real browser)', () => {
 	beforeAll(() => page.viewport(960, 700))
