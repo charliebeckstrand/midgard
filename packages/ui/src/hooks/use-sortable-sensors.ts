@@ -3,6 +3,7 @@
 import {
 	type KeyboardCoordinateGetter,
 	KeyboardSensor,
+	type KeyboardSensorOptions,
 	type KeyboardSensorProps,
 	PointerSensor,
 	type PointerSensorOptions,
@@ -12,11 +13,12 @@ import {
 	useSensors,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import { type PointerEvent as ReactPointerEvent, useMemo } from 'react'
+import { type PointerEvent as ReactPointerEvent, use, useMemo } from 'react'
+import { ReducedMotionContext } from '../primitives/reduced-motion/context'
 import { registerDismissLayer } from '../utilities/dismiss-layers'
 import { holdTextSelection } from '../utilities/hold-text-selection'
+import { matchesMediaQuery, REDUCED_MOTION_QUERY } from '../utilities/media-query'
 import { isPrimaryPress } from '../utilities/primary-press'
-import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 
 /**
  * Changes the props of a sensor so that the sensor holds the top of the
@@ -96,14 +98,30 @@ class PrimaryPointerSensor extends PointerSensor {
 }
 
 /**
+ * The options of {@link LayeredKeyboardSensor}: the options of dnd-kit, and
+ * whether the Motion setting of the app asks for reduced motion.
+ *
+ * @internal
+ */
+type LayeredKeyboardOptions = KeyboardSensorOptions & { reducedMotion: boolean }
+
+/**
  * Keyboard sensor of dnd-kit that holds the top of the dismiss stack while its
  * drag runs (see {@link layered}).
+ *
+ * dnd-kit makes the sensor when a drag starts. The sensor then reads the
+ * platform preference for reduced motion, and a keyboard move scrolls the item
+ * into view at once when the reader asks for reduced motion.
  *
  * @internal
  */
 class LayeredKeyboardSensor extends KeyboardSensor {
 	constructor(props: KeyboardSensorProps) {
-		super(layered(props))
+		const { reducedMotion, ...options } = props.options as LayeredKeyboardOptions
+
+		const still = reducedMotion || matchesMediaQuery(REDUCED_MOTION_QUERY)
+
+		super(layered({ ...props, options: { ...options, scrollBehavior: still ? 'auto' : 'smooth' } }))
 	}
 }
 
@@ -144,7 +162,12 @@ export type SortableSensorsOptions = {
  * the keyboard sensor is omitted when `keyboard` is false.
  *
  * @remarks The array keeps its identity across renders until `keyboard`,
- * `keyboardCoordinateGetter`, or the reduced-motion preference changes.
+ * `keyboardCoordinateGetter`, or the Motion setting of the app changes. The
+ * keyboard sensor reads the platform preference when its drag starts, and not
+ * in a render. The server and the hydration render take reduced motion, so a
+ * read in the render gives a new array after hydration. That array renders
+ * `DndContext` again, and each Suspense boundary under it that did not hydrate
+ * yet then hydrates at once, in one long task.
  */
 export function useSortableSensors({
 	keyboard = true,
@@ -152,12 +175,12 @@ export function useSortableSensors({
 }: SortableSensorsOptions = {}) {
 	const pointer = useSensor(PrimaryPointerSensor, POINTER_ACTIVATION)
 
-	const scrollBehavior: ScrollBehavior = usePrefersReducedMotion() ? 'auto' : 'smooth'
+	const reducedMotion = use(ReducedMotionContext)
 
 	// Memoized for the same reason as `POINTER_ACTIVATION`: a fresh literal misses the `useSensor` memo.
-	const keyboardOptions = useMemo(
-		() => ({ coordinateGetter: keyboardCoordinateGetter, scrollBehavior }),
-		[keyboardCoordinateGetter, scrollBehavior],
+	const keyboardOptions = useMemo<LayeredKeyboardOptions>(
+		() => ({ coordinateGetter: keyboardCoordinateGetter, reducedMotion }),
+		[keyboardCoordinateGetter, reducedMotion],
 	)
 
 	const keyboardSensor = useSensor(LayeredKeyboardSensor, keyboardOptions)

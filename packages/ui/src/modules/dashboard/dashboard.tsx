@@ -9,6 +9,7 @@ import {
 	type ReactElement,
 	type ReactNode,
 	type Ref,
+	type RefObject,
 	useCallback,
 	useId,
 	useLayoutEffect,
@@ -51,7 +52,7 @@ import {
 	usableDemands,
 } from './engine/dashboard-layout'
 import type { DashboardSelection } from './engine/dashboard-scope'
-import { createDashboardStore } from './engine/dashboard-store'
+import { createDashboardStore, type DashboardStore } from './engine/dashboard-store'
 import type {
 	DashboardFilterBinding,
 	DashboardGestureEndEvent,
@@ -544,19 +545,6 @@ export function Dashboard({
 
 	const editable = useSyncExternalStore(store.subscribe, readEditable, readEditable)
 
-	// A width of 0 is the server, or a container that does not render.
-	const readMeasured = () => store.getState().width > 0
-
-	const measured = useSyncExternalStore(store.subscribe, readMeasured, readMeasured)
-
-	const readProjected = () => store.getView().projected
-
-	const projected = useSyncExternalStore(store.subscribe, readProjected, readProjected)
-
-	// The first render paints the saved layout, so the mount value is `false` and the
-	// app hears only a change.
-	useReportedChange(projected, onProjectedChange)
-
 	// The store gesture owns the drag. The dnd-kit drag of a tile can outlive the
 	// gesture after an edit exit, and the tile can unmount before the drag ends.
 	const readDragging = () => store.getState().gesture?.kind === 'drag'
@@ -584,6 +572,83 @@ export function Dashboard({
 		return cancel
 	}, [editable, cancelResize, cancelDrag])
 
+	return (
+		<DashboardStoreContext value={store}>
+			<DashboardActionsContext value={actions}>
+				<DndContext {...dndContextProps}>
+					<DashboardCanvas
+						{...props}
+						store={store}
+						scope={scope}
+						firstPaint={firstPaint}
+						columns={columns}
+						gap={gap}
+						titleLevel={titleLevel}
+						canvasRef={canvasRef}
+						onProjectedChange={onProjectedChange}
+						className={className}
+					>
+						{children}
+					</DashboardCanvas>
+				</DndContext>
+			</DashboardActionsContext>
+		</DashboardStoreContext>
+	)
+}
+
+/** Props for {@link DashboardCanvas}. @internal */
+type DashboardCanvasProps = Omit<ComponentProps<'section'>, 'ref'> & {
+	store: DashboardStore
+	/** The scope of the first paint rules. */
+	scope: string
+	firstPaint: string
+	columns: number
+	gap: number
+	titleLevel: HeadingLevel
+	canvasRef: RefObject<HTMLDivElement | null>
+	onProjectedChange?: (projected: boolean) => void
+}
+
+/**
+ * The section and the canvas of a {@link Dashboard}. It reads the flags of the
+ * store that the canvas paints, so a change of a flag renders this part and not
+ * the root. Each render of the root renders `DndContext`, which gives its
+ * contexts new values. A new value makes each tile boundary that did not
+ * hydrate yet hydrate at once, in one long task. The width of the canvas and the
+ * re-pack change after hydration, so the root must not read them.
+ *
+ * @internal
+ */
+function DashboardCanvas({
+	store,
+	scope,
+	firstPaint,
+	columns,
+	gap,
+	titleLevel,
+	canvasRef,
+	onProjectedChange,
+	className,
+	children,
+	...props
+}: DashboardCanvasProps) {
+	const readEditable = () => store.getView().editable
+
+	const editable = useSyncExternalStore(store.subscribe, readEditable, readEditable)
+
+	// A width of 0 is the server, or a container that does not render.
+	const readMeasured = () => store.getState().width > 0
+
+	const measured = useSyncExternalStore(store.subscribe, readMeasured, readMeasured)
+
+	const readProjected = () => store.getView().projected
+
+	const projected = useSyncExternalStore(store.subscribe, readProjected, readProjected)
+
+	// The first render paints the saved layout, so the mount value is `false` and the
+	// app hears only a change.
+	useReportedChange(projected, onProjectedChange)
+
 	const readOrder = () => store.getView().order
 
 	const order = useSyncExternalStore(store.subscribe, readOrder, readOrder)
@@ -591,35 +656,29 @@ export function Dashboard({
 	const tiles = useMemo(() => inReadingOrder(children, order), [children, order])
 
 	return (
-		<DashboardStoreContext value={store}>
-			<DashboardActionsContext value={actions}>
-				<DndContext {...dndContextProps}>
-					<section
-						{...props}
-						data-slot="dashboard"
-						data-editing={dataAttr(editable)}
-						data-dashboard={scope}
-						// The focus lands here when a remove takes away the last tile.
-						tabIndex={-1}
-						className={cn('@container w-full', className)}
-					>
-						{firstPaint !== '' && <style>{firstPaint}</style>}
+		<section
+			{...props}
+			data-slot="dashboard"
+			data-editing={dataAttr(editable)}
+			data-dashboard={scope}
+			// The focus lands here when a remove takes away the last tile.
+			tabIndex={-1}
+			className={cn('@container w-full', className)}
+		>
+			{firstPaint !== '' && <style>{firstPaint}</style>}
 
-						<div
-							ref={canvasRef}
-							data-slot="dashboard-canvas"
-							data-measured={dataAttr(measured)}
-							style={canvasStyle(columns, gap, projected)}
-							// The column guides belong to the saved layout, and not to the re-pack.
-							className={k({ editable: editable && !projected }).base}
-						>
-							<DashboardTitleLevelContext value={titleLevel}>{tiles}</DashboardTitleLevelContext>
+			<div
+				ref={canvasRef}
+				data-slot="dashboard-canvas"
+				data-measured={dataAttr(measured)}
+				style={canvasStyle(columns, gap, projected)}
+				// The column guides belong to the saved layout, and not to the re-pack.
+				className={k({ editable: editable && !projected }).base}
+			>
+				<DashboardTitleLevelContext value={titleLevel}>{tiles}</DashboardTitleLevelContext>
 
-							<DashboardPlaceholder />
-						</div>
-					</section>
-				</DndContext>
-			</DashboardActionsContext>
-		</DashboardStoreContext>
+				<DashboardPlaceholder />
+			</div>
+		</section>
 	)
 }
