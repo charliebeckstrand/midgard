@@ -1,3 +1,4 @@
+import { renderHook } from '@testing-library/react'
 import { type ComponentProps, createRef, type ReactNode } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
@@ -6,11 +7,16 @@ import { Button } from '../../components/button'
 import { CardTitle } from '../../components/card'
 import { HoldButton } from '../../components/hold-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { TooltipContext } from '../../components/tooltip/context'
+import {
+	TooltipContext,
+	type TooltipContextValue,
+	TooltipTriggerContext,
+} from '../../components/tooltip/context'
 import { tooltipBody } from '../../components/tooltip/tooltip-body-loader'
 import { type TooltipIntent, useTooltipIntent } from '../../components/tooltip/tooltip-intent'
 import { observeReferenceDisabled } from '../../components/tooltip/tooltip-reference-disabled'
 import { useTooltipState } from '../../components/tooltip/use-tooltip-state'
+import { useTooltipTriggerValue } from '../../components/tooltip/use-tooltip-trigger-value'
 import { notifyOverlaySignal } from '../../primitives/overlay'
 import {
 	act,
@@ -24,6 +30,15 @@ import {
 	setupUser,
 	waitFor,
 } from '../helpers'
+
+/** Shares a tooltip value through both contexts, as `<Tooltip>` does. */
+function Shared({ value, children }: { value: TooltipContextValue; children: ReactNode }) {
+	return (
+		<TooltipContext value={value}>
+			<TooltipTriggerContext value={value}>{children}</TooltipTriggerContext>
+		</TooltipContext>
+	)
+}
 
 function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) {
 	return {
@@ -416,9 +431,9 @@ describe('the reopen of a re-enabled trigger', () => {
 describe('TooltipContent', () => {
 	it('renders the floating panel when the tooltip context reports open=true', () => {
 		const { container } = renderUI(
-			<TooltipContext value={makeContext({ open: true })}>
+			<Shared value={makeContext({ open: true })}>
 				<TooltipContent>Tip body</TooltipContent>
-			</TooltipContext>,
+			</Shared>,
 		)
 
 		expect(bySlot(container, 'tooltip-content')).toBeInTheDocument()
@@ -428,9 +443,9 @@ describe('TooltipContent', () => {
 
 	it('omits the floating panel when the tooltip is closed', () => {
 		const { container } = renderUI(
-			<TooltipContext value={makeContext({ open: false })}>
+			<Shared value={makeContext({ open: false })}>
 				<TooltipContent>Hidden</TooltipContent>
-			</TooltipContext>,
+			</Shared>,
 		)
 
 		expect(bySlot(container, 'tooltip-content')).not.toBeInTheDocument()
@@ -443,9 +458,9 @@ describe('TooltipContent', () => {
 		'marks the open panel with interactive=%s as pointer-events:%s',
 		(interactive, pointerEvents) => {
 			const { container } = renderUI(
-				<TooltipContext value={makeContext({ open: true, interactive })}>
+				<Shared value={makeContext({ open: true, interactive })}>
 					<TooltipContent>Tip</TooltipContent>
-				</TooltipContext>,
+				</Shared>,
 			)
 
 			expect(getSlot(container, 'tooltip-content').style.pointerEvents).toBe(pointerEvents)
@@ -454,9 +469,9 @@ describe('TooltipContent', () => {
 
 	it('makes the surface a density scope for an explicit size', () => {
 		const { container } = renderUI(
-			<TooltipContext value={makeContext({ open: true })}>
+			<Shared value={makeContext({ open: true })}>
 				<TooltipContent size="lg">Big</TooltipContent>
-			</TooltipContext>,
+			</Shared>,
 		)
 
 		const panel = getSlot(container, 'tooltip-content')
@@ -579,5 +594,33 @@ describe('observeReferenceDisabled', () => {
 		await Promise.resolve()
 
 		expect(onChange).not.toHaveBeenCalled()
+	})
+})
+
+describe('useTooltipTriggerValue', () => {
+	it('keeps its identity when only the position changes, and changes with open', () => {
+		const { result, rerender } = renderHook(
+			({ value }: { value: TooltipContextValue }) => useTooltipTriggerValue(value),
+			{ initialProps: { value: makeContext({ open: true }) } },
+		)
+
+		const first = result.current
+
+		const base = makeContext({ open: true })
+
+		// A reposition gives the shared value new styles and nothing else.
+		rerender({
+			value: { ...base, getReferenceProps: first.getReferenceProps, floatingStyles: { top: 4 } },
+		})
+
+		expect(result.current).toBe(first)
+
+		rerender({
+			value: { ...base, getReferenceProps: first.getReferenceProps, open: false },
+		})
+
+		expect(result.current).not.toBe(first)
+
+		expect(result.current.open).toBe(false)
 	})
 })

@@ -83,11 +83,11 @@ describe('useTooltipIntent', () => {
 
 		result.current.setReference(node)
 
-		expect(result.current.intended).toBe(false)
+		expect(result.current.started).toBe(false)
 
 		focus(node)
 
-		expect(result.current.intended).toBe(true)
+		expect(result.current.started).toBe(true)
 	})
 
 	it('starts the tooltip state on the first hover, also from a touch', () => {
@@ -101,6 +101,24 @@ describe('useTooltipIntent', () => {
 			node.dispatchEvent(new PointerEvent('pointerenter', { pointerType: 'touch' }))
 		})
 
-		expect(result.current.intended).toBe(true)
+		expect(result.current.started).toBe(true)
+	})
+
+	it('starts the tooltip state when `open` holds an enabled tooltip, and keeps it', () => {
+		const { result, rerender } = renderHook(
+			({ enabled, held }: { enabled: boolean; held: boolean }) =>
+				useTooltipIntent({ enabled, trigger: 'hover', held }),
+			{ initialProps: { enabled: false, held: true } },
+		)
+
+		expect(result.current.started).toBe(false)
+
+		rerender({ enabled: true, held: true })
+
+		expect(result.current.started).toBe(true)
+
+		rerender({ enabled: true, held: false })
+
+		expect(result.current.started).toBe(true)
 	})
 })
