@@ -11,5 +11,6 @@ export default defineConfig({
 		...sharedTest,
 		environment: 'node',
 		env: { TZ: 'UTC' },
+		setupFiles: ['src/__tests__/setup.ts'],
 	},
 })

@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { UIProvider } from 'ui/providers/ui'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	confirmTotp,
 	type Factors,
@@ -18,8 +18,6 @@ vi.mock('../../app/(signed-in)/account/account-api', () => ({
 
 // The QR code is a canvas, and jsdom draws no canvas.
 vi.mock('../../app/(signed-in)/account/qr-code', () => ({ QrCode: () => null }))
-
-afterEach(cleanup)
 
 /** The factors of a user with the given count of recovery codes. */
 function factors(overrides: Partial<Factors>): Factors {

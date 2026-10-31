@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
 	type ReviewEdit,
+	type ReviewList,
+	type ReviewMarker,
 	toggleList,
 	toggleMarker,
 } from '../../components/place-form-drawer/place-review'
@@ -28,43 +30,69 @@ function show({ value, start, end }: ReviewEdit): string {
 }
 
 describe('toggleMarker', () => {
-	it('wraps the selection and keeps it on the same words', () => {
-		expect(show(toggleMarker(edit('It was [good] food'), 'bold'))).toBe('It was **[good]** food')
-	})
-
-	it('removes the markers around the selection', () => {
-		expect(show(toggleMarker(edit('It was **[good]** food'), 'bold'))).toBe('It was [good] food')
-	})
-
-	it('removes the markers at the ends of the selection', () => {
-		expect(show(toggleMarker(edit('It was [_good_] food'), 'italic'))).toBe('It was [good] food')
-	})
-
-	it('leaves the spaces at the ends of the selection outside the markers', () => {
-		expect(show(toggleMarker(edit('It was[ good ]food'), 'italic'))).toBe('It was _[good]_ food')
-	})
-
-	it('puts a pair of markers at a caret, with the caret between them', () => {
-		expect(show(toggleMarker(edit('Good |'), 'bold'))).toBe('Good **|**')
+	it.for<[string, string, ReviewMarker, string]>([
+		[
+			'wraps the selection and keeps it on the same words',
+			'It was [good] food',
+			'bold',
+			'It was **[good]** food',
+		],
+		[
+			'removes the markers around the selection',
+			'It was **[good]** food',
+			'bold',
+			'It was [good] food',
+		],
+		[
+			'removes the markers at the ends of the selection',
+			'It was [_good_] food',
+			'italic',
+			'It was [good] food',
+		],
+		[
+			'leaves the spaces at the ends of the selection outside the markers',
+			'It was[ good ]food',
+			'italic',
+			'It was _[good]_ food',
+		],
+		[
+			'puts a pair of markers at a caret, with the caret between them',
+			'Good |',
+			'bold',
+			'Good **|**',
+		],
+	])('%s', ([, input, kind, output]) => {
+		expect(show(toggleMarker(edit(input), kind))).toBe(output)
 	})
 })
 
 describe('toggleList', () => {
-	it('makes the line of a caret an item, and keeps the caret on its text', () => {
-		expect(show(toggleList(edit('Noodles|'), 'bulleted'))).toBe('- Noodles|')
-	})
-
-	it('makes each selected line an item, and numbers a numbered list from 1', () => {
-		expect(show(toggleList(edit('Intro\n[Noodles\nBun]'), 'numbered'))).toBe(
+	it.for<[string, string, ReviewList, string]>([
+		[
+			'makes the line of a caret an item, and keeps the caret on its text',
+			'Noodles|',
+			'bulleted',
+			'- Noodles|',
+		],
+		[
+			'makes each selected line an item, and numbers a numbered list from 1',
+			'Intro\n[Noodles\nBun]',
+			'numbered',
 			'Intro\n[1. Noodles\n2. Bun]',
-		)
-	})
-
-	it('makes the lines text again when each one is an item of that kind', () => {
-		expect(show(toggleList(edit('[- Noodles\n- Bun]'), 'bulleted'))).toBe('[Noodles\nBun]')
-	})
-
-	it('changes a list of the other kind to this kind', () => {
-		expect(show(toggleList(edit('[- Noodles\n- Bun]'), 'numbered'))).toBe('[1. Noodles\n2. Bun]')
+		],
+		[
+			'makes the lines text again when each one is an item of that kind',
+			'[- Noodles\n- Bun]',
+			'bulleted',
+			'[Noodles\nBun]',
+		],
+		[
+			'changes a list of the other kind to this kind',
+			'[- Noodles\n- Bun]',
+			'numbered',
+			'[1. Noodles\n2. Bun]',
+		],
+	])('%s', ([, input, kind, output]) => {
+		expect(show(toggleList(edit(input), kind))).toBe(output)
 	})
 })

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BIFROST_URL } from '../env'
 import { GatewayError } from '../fetch'
 import { getSession, requireAdmin, requireSession } from '../session'
+import { stubGateway } from './helpers/stub-gateway'
 
 const cookies = vi.hoisted(() => vi.fn())
 
@@ -25,15 +26,6 @@ const session = {
 	user,
 }
 
-// Stubs the gateway: `fetch` resolves to the given status and body.
-function stubGateway(status: number, body: unknown = null) {
-	const fetch = vi.fn(async (_request: Request) => Response.json(body, { status }))
-
-	vi.stubGlobal('fetch', fetch)
-
-	return fetch
-}
-
 // Stubs the cookie store of the request with a `cookie` header, such as `a=1; b=2`.
 function cookieStore(header: string) {
 	const names = header ? header.split('; ').map((pair) => pair.split('=')[0]) : []
@@ -42,17 +34,19 @@ function cookieStore(header: string) {
 }
 
 // Next marks a redirect with the digest `NEXT_REDIRECT;<type>;<url>;<status>`.
-function redirectTarget(error: unknown): string | undefined {
-	const digest = (error as { digest?: string }).digest
+async function readRedirect(call: Promise<unknown>): Promise<string | undefined> {
+	const error = await call.catch((thrown: unknown) => thrown)
+
+	const digest = (error as { digest?: string } | undefined)?.digest
 
 	return digest?.startsWith('NEXT_REDIRECT') ? digest.split(';')[2] : undefined
 }
 
-describe('getSession', () => {
-	beforeEach(() => {
-		cookies.mockResolvedValue(cookieStore('__Host-session=abc'))
-	})
+beforeEach(() => {
+	cookies.mockResolvedValue(cookieStore('__Host-session=abc'))
+})
 
+describe('getSession', () => {
 	it('returns the session with its user', async () => {
 		const fetch = stubGateway(200, session)
 
@@ -128,10 +122,6 @@ describe('getSession', () => {
 })
 
 describe('requireSession', () => {
-	beforeEach(() => {
-		cookies.mockResolvedValue(cookieStore('__Host-session=abc'))
-	})
-
 	it('returns the session of a user', async () => {
 		stubGateway(200, session)
 
@@ -141,17 +131,11 @@ describe('requireSession', () => {
 	it('redirects to /login without a session', async () => {
 		stubGateway(401)
 
-		const error = await requireSession().catch((thrown: unknown) => thrown)
-
-		expect(redirectTarget(error)).toBe('/login')
+		expect(await readRedirect(requireSession())).toBe('/login')
 	})
 })
 
 describe('requireAdmin', () => {
-	beforeEach(() => {
-		cookies.mockResolvedValue(cookieStore('__Host-session=abc'))
-	})
-
 	it('returns the session of an admin that passed the second step', async () => {
 		const admin = { ...session, two_step: true, user: { ...user, roles: ['user', 'admin'] } }
 
@@ -163,24 +147,18 @@ describe('requireAdmin', () => {
 	it('redirects to /login without a session', async () => {
 		stubGateway(401)
 
-		const error = await requireAdmin().catch((thrown: unknown) => thrown)
-
-		expect(redirectTarget(error)).toBe('/login')
+		expect(await readRedirect(requireAdmin())).toBe('/login')
 	})
 
 	it('redirects the session of a user to /account', async () => {
 		stubGateway(200, session)
 
-		const error = await requireAdmin().catch((thrown: unknown) => thrown)
-
-		expect(redirectTarget(error)).toBe('/account')
+		expect(await readRedirect(requireAdmin())).toBe('/account')
 	})
 
 	it('redirects an admin session without the second step to /login', async () => {
 		stubGateway(200, { ...session, user: { ...user, roles: ['user', 'admin'] } })
 
-		const error = await requireAdmin().catch((thrown: unknown) => thrown)
-
-		expect(redirectTarget(error)).toBe('/login')
+		expect(await readRedirect(requireAdmin())).toBe('/login')
 	})
 })

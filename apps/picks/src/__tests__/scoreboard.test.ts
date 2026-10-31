@@ -35,8 +35,6 @@ beforeEach(() => {
 	vi.useFakeTimers()
 
 	vi.stubGlobal('fetch', async () => Response.json({}))
-
-	cacheLife.mockClear()
 })
 
 afterEach(() => {
@@ -48,23 +46,28 @@ describe('getWeekGames', () => {
 
 	const scheduled = game({ kickoff: KICKOFF })
 
-	it('holds a week in play for minutes', async () => {
-		expect(await lifeAt([game({ state: 'live' }), scheduled], kickoff)).toBe('minutes')
-	})
-
-	it('holds a week that is over for days', async () => {
-		expect(await lifeAt([game({ state: 'final' })], kickoff)).toBe('days')
-	})
-
-	it('holds a week for hours while its next kickoff is more than an hour away', async () => {
-		expect(await lifeAt([scheduled], kickoff - 61 * MINUTE)).toBe('hours')
-	})
-
-	it('holds a week for minutes once its next kickoff is within an hour', async () => {
-		expect(await lifeAt([scheduled], kickoff - 30 * MINUTE)).toBe('minutes')
-	})
-
-	it('holds a week for minutes when a kickoff passed and the feed still says scheduled', async () => {
-		expect(await lifeAt([game({ state: 'final' }), scheduled], kickoff + MINUTE)).toBe('minutes')
+	it.for<[string, Game[], number, string]>([
+		['holds a week in play for minutes', [game({ state: 'live' }), scheduled], kickoff, 'minutes'],
+		['holds a week that is over for days', [game({ state: 'final' })], kickoff, 'days'],
+		[
+			'holds a week for hours while its next kickoff is more than an hour away',
+			[scheduled],
+			kickoff - 61 * MINUTE,
+			'hours',
+		],
+		[
+			'holds a week for minutes once its next kickoff is within an hour',
+			[scheduled],
+			kickoff - 30 * MINUTE,
+			'minutes',
+		],
+		[
+			'holds a week for minutes when a kickoff passed and the feed still says scheduled',
+			[game({ state: 'final' }), scheduled],
+			kickoff + MINUTE,
+			'minutes',
+		],
+	])('%s', async ([, games, now, life]) => {
+		expect(await lifeAt(games, now)).toBe(life)
 	})
 })

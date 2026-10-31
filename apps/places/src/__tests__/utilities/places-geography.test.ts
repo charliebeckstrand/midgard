@@ -4,6 +4,7 @@ import states from 'us-atlas/states-10m.json'
 import { describe, expect, it, vi } from 'vitest'
 import type { Place } from '../../types'
 import {
+	type BoundedRegion,
 	boundRegions,
 	centeredProjection,
 	decodeRegions,
@@ -180,13 +181,16 @@ describe('nearestRegion', () => {
 		expect(nearestRegion(both, [-124.4, 44], 50)).toBe('Near')
 	})
 
+	// `boundRegions` drops such a region, so the case builds one by hand, with a
+	// box that holds the position, to reach the guard of `nearestRegion`.
 	it('skips a region carrying no geometry', () => {
-		const bare = boundRegions({
-			type: 'FeatureCollection',
-			features: [OREGON, region('Nowhere', null)],
-		})
+		const oregon = bounded[0]
 
-		expect(nearestRegion(bare, OFF_THE_COAST, 50)).toBe('Oregon')
+		if (oregon === undefined) throw new Error('The atlas bounds Oregon.')
+
+		const bare: BoundedRegion = { ...oregon, name: 'Nowhere', feature: region('Nowhere', null) }
+
+		expect(nearestRegion([bare, oregon], OFF_THE_COAST, 50)).toBe('Oregon')
 	})
 })
 

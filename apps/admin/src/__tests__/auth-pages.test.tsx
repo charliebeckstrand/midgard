@@ -1,16 +1,7 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { RegisterPage, ResetPasswordPage } from 'shared/auth'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-
-// A browser resolves a same-origin path, and the `Request` of Node takes only an absolute URL.
-vi.hoisted(() => {
-	globalThis.Request = class extends Request {
-		constructor(input: RequestInfo | URL, init?: RequestInit) {
-			super(typeof input === 'string' ? new URL(input, 'http://localhost') : input, init)
-		}
-	}
-})
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // The router of the test does not load a page, so the form stays mounted after the push.
 const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn(), replace: vi.fn() }))
@@ -26,8 +17,6 @@ beforeEach(() => {
 		vi.fn(async () => Response.json({})),
 	)
 })
-
-afterEach(cleanup)
 
 // Each row gives the page, the values to type by label, the submit button, and the next page.
 const pages: [string, () => ReactElement, Record<string, string>, string, string][] = [

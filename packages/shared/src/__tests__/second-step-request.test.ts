@@ -6,16 +6,13 @@ import {
 	setSecondStepDialog,
 } from '../auth/second-step-request'
 
-// A browser resolves a same-origin path, and the `Request` of Node takes only an absolute URL.
-vi.hoisted(() => {
-	globalThis.Request = class extends Request {
-		constructor(input: RequestInfo | URL, init?: RequestInit) {
-			super(typeof input === 'string' ? new URL(input, 'http://localhost') : input, init)
-		}
-	}
-})
-
 const factors = { enabled: true, passkeys: 1, totp: false, recovery_codes: 0 }
+
+// The routes of a session that did not pass the second step, for a user with `factors`.
+const unpassed = {
+	'/auth/session': () => Response.json({ two_step: false }),
+	'/auth/mfa': () => Response.json(factors),
+}
 
 // Stubs the gateway: each path answers with the given status and body.
 function stubGateway(routes: Record<string, () => Response>) {
@@ -78,10 +75,7 @@ describe('ensureSecondStep', () => {
 	})
 
 	it('opens the dialog one time for calls at the same time', async () => {
-		stubGateway({
-			'/auth/session': () => Response.json({ two_step: false }),
-			'/auth/mfa': () => Response.json(factors),
-		})
+		stubGateway(unpassed)
 
 		const open = vi.fn(async () => true)
 
@@ -92,16 +86,11 @@ describe('ensureSecondStep', () => {
 			true,
 		])
 
-		expect(open).toHaveBeenCalledTimes(1)
-
-		expect(open).toHaveBeenCalledWith(['passkey'])
+		expect(open).toHaveBeenCalledExactlyOnceWith(['passkey'])
 	})
 
 	it('fails without a mounted dialog', async () => {
-		stubGateway({
-			'/auth/session': () => Response.json({ two_step: false }),
-			'/auth/mfa': () => Response.json(factors),
-		})
+		stubGateway(unpassed)
 
 		await expect(ensureSecondStep()).resolves.toBe(false)
 	})
@@ -112,10 +101,9 @@ describe('fetchWithSecondStep', () => {
 		let tries = 0
 
 		const fetch = stubGateway({
+			...unpassed,
 			'/auth/passkeys': () =>
 				++tries === 1 ? stepRequired() : new Response(null, { status: 204 }),
-			'/auth/session': () => Response.json({ two_step: false }),
-			'/auth/mfa': () => Response.json(factors),
 		})
 
 		setSecondStepDialog(async () => true)
@@ -133,9 +121,8 @@ describe('fetchWithSecondStep', () => {
 
 	it('returns the first response when the user closes the dialog', async () => {
 		stubGateway({
+			...unpassed,
 			'/auth/passkeys': stepRequired,
-			'/auth/session': () => Response.json({ two_step: false }),
-			'/auth/mfa': () => Response.json(factors),
 		})
 
 		setSecondStepDialog(async () => false)

@@ -1,25 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { BIFROST_URL } from '../env'
 import { getSignInProviders } from '../sign-in-providers'
+import { stubGateway } from './helpers/stub-gateway'
 
 const cacheLife = vi.hoisted(() => vi.fn())
 
 vi.mock('next/cache', () => ({ cacheLife }))
 
-// Stubs the gateway: `fetch` resolves to the given status and body.
-function stubGateway(status: number, body: unknown = null) {
-	const fetch = vi.fn(async (_request: Request) => Response.json(body, { status }))
-
-	vi.stubGlobal('fetch', fetch)
-
-	return fetch
-}
-
 describe('getSignInProviders', () => {
-	beforeEach(() => {
-		cacheLife.mockClear()
-	})
-
 	it('returns the providers that the gateway has set up', async () => {
 		const fetch = stubGateway(200, { providers: ['github', 'google'] })
 
