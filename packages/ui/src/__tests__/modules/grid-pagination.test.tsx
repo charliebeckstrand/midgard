@@ -2,6 +2,7 @@ import { type ReactNode, startTransition, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { ContentHeightContext } from '../../primitives/content-height'
+import { noopSubscribe } from '../../utilities/noop'
 import { act, renderUI, screen, setupUser } from '../helpers'
 
 describe('Grid pagination', () => {
@@ -24,7 +25,9 @@ describe('Grid pagination', () => {
 
 	describe('in a box that can take the height of its content', () => {
 		const inHost = (available: boolean, claim: () => () => void, grid: ReactNode) => (
-			<ContentHeightContext value={{ available, claim }}>{grid}</ContentHeightContext>
+			<ContentHeightContext value={{ available: () => available, subscribe: noopSubscribe, claim }}>
+				{grid}
+			</ContentHeightContext>
 		)
 
 		it('shows pages of 10 rows in the flow and claims the height of its content', () => {
@@ -91,6 +94,53 @@ describe('Grid pagination', () => {
 			expect(screen.getByText('Row 25')).toBeInTheDocument()
 
 			expect(claim).not.toHaveBeenCalled()
+		})
+
+		it('claims when the box becomes available, and gives the claim back when it stops', () => {
+			let available = false
+
+			const listeners = new Set<() => void>()
+
+			const release = vi.fn()
+
+			const claim = vi.fn(() => release)
+
+			// The host keeps its identity, and only the read changes.
+			const host = {
+				available: () => available,
+				subscribe: (onChange: () => void) => {
+					listeners.add(onChange)
+
+					return () => listeners.delete(onChange)
+				},
+				claim,
+			}
+
+			const toggle = (next: boolean) => {
+				available = next
+
+				for (const listener of listeners) listener()
+			}
+
+			renderUI(
+				<ContentHeightContext value={host}>
+					<Grid columns={columns} rows={many} getKey={getKey} maxHeight="fill" />
+				</ContentHeightContext>,
+			)
+
+			expect(claim).not.toHaveBeenCalled()
+
+			act(() => toggle(true))
+
+			expect(claim).toHaveBeenCalledTimes(1)
+
+			expect(screen.queryByText('Row 11')).not.toBeInTheDocument()
+
+			act(() => toggle(false))
+
+			expect(release).toHaveBeenCalledTimes(1)
+
+			expect(screen.getByText('Row 25')).toBeInTheDocument()
 		})
 	})
 

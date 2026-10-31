@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import type { ContentHeightHost } from '../../primitives/content-height'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
-import { useDashboardActions } from './context'
+import { useDashboardActions, useDashboardStoreContext } from './context'
 import { DashboardTileCard } from './dashboard-tile-card'
 import { DashboardTileEdges } from './dashboard-tile-edges'
 import {
@@ -315,9 +315,13 @@ export function DashboardTile(props: DashboardTileProps) {
 		}
 	}, [])
 
+	const store = useDashboardStoreContext()
+
+	// A read of the store, so the host keeps its identity when the re-pack comes
+	// and goes. Only a widget that reads it renders again.
 	const host = useMemo<ContentHeightHost>(
-		() => ({ available: projected, claim }),
-		[projected, claim],
+		() => ({ available: () => store.getView().projected, subscribe: store.subscribe, claim }),
+		[store, claim],
 	)
 
 	const drag = useDashboardTileDrag(id, cell, movable)

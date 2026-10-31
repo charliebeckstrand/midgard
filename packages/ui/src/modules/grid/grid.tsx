@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useLayoutEffect } from 'react'
-import { useContentHeightHost } from '../../primitives/content-height'
+import { useContentHeightAvailable, useContentHeightHost } from '../../primitives/content-height'
 import { GridData } from './grid-data'
 import type { GridDataProps } from './grid-data-types'
 import type { GridPagination } from './types'
@@ -88,12 +88,14 @@ const FLOW_PAGINATION: GridPagination = { defaultValue: { pageIndex: 0, pageSize
 function GridImpl<T>({ pagination, maxHeight, ...props }: GridProps<T>) {
 	const host = useContentHeightHost()
 
+	const available = useContentHeightAvailable(host)
+
 	// A grid that fills a box which can grow shows pages in the flow instead.
 	// A window of rows needs its scroll region, so a virtual or an infinite grid keeps it.
 	const flow =
 		pagination === undefined &&
 		maxHeight === 'fill' &&
-		host?.available === true &&
+		available &&
 		!props.virtualize &&
 		props.infiniteScroll === undefined
 

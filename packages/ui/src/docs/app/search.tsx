@@ -2,7 +2,7 @@ import { Search } from 'lucide-react'
 import { type ReactNode, use, useMemo, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import { createContext } from 'ui/core'
-import { useIntentLoad } from 'ui/hooks'
+import { useIdleLoad, useIntentLoad } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Kbd } from 'ui/kbd'
 import { defineMessages, IntlMessage } from 'ui/primitives/intl'
@@ -22,8 +22,6 @@ const loadPalette = () => import('./search-palette.tsx')
 type SearchState = {
 	open: boolean
 	setOpen: (open: boolean) => void
-	/** The palette module, once it loads. */
-	palette: Awaited<ReturnType<typeof loadPalette>> | undefined
 	/**
 	 * Opens the palette, after its module loads. `onPick` runs after a pick in
 	 * this open, such as the close of the mobile sidebar that holds the button.
@@ -52,7 +50,7 @@ const messages = defineMessages({
 export function DocsSearch({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false)
 
-	const { module: palette, request: load, preload } = useIntentLoad(loadPalette)
+	const { request: load, preload } = useIntentLoad(loadPalette)
 
 	const onPickRef = useRef<(() => void) | undefined>(undefined)
 
@@ -68,9 +66,12 @@ export function DocsSearch({ children }: { children: ReactNode }) {
 
 	const pick = useStableEvent(() => onPickRef.current?.())
 
+	// The value does not hold the palette module, so the load in idle time does
+	// not change it. A new value reaches each Suspense boundary of the page that
+	// did not hydrate yet, and React then hydrates each one at once.
 	const state = useMemo(
-		() => ({ open, setOpen, palette, request, preload, pick }),
-		[open, palette, request, preload, pick],
+		() => ({ open, setOpen, request, preload, pick }),
+		[open, request, preload, pick],
 	)
 
 	return <SearchContext value={state}>{children}</SearchContext>
@@ -109,7 +110,9 @@ export function SearchButton() {
  * mounted while the mobile sidebar is closed, so the key opens it.
  */
 export function SearchPaletteHost() {
-	const { open, setOpen, palette, pick } = useSearch()
+	const { open, setOpen, pick } = useSearch()
+
+	const palette = useIdleLoad(loadPalette)
 
 	if (!palette) return null
 
