@@ -41,12 +41,7 @@ describe('sidebar layout width (real browser)', () => {
 
 			await frames()
 
-			const rail = present(
-				inline.container.firstElementChild?.querySelector<HTMLElement>(
-					':scope > :not([aria-hidden])',
-				),
-				'rail',
-			)
+			const rail = getSlot(inline.container, 'sidebar-panel')
 
 			const railWidth = rail.getBoundingClientRect().width
 

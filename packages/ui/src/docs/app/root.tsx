@@ -25,10 +25,24 @@ import { useDocumentLocale } from './document-locale.ts'
 import { LOCALES } from './language.ts'
 import { PageError } from './page-error.tsx'
 import { NavigateContext, RouterLink } from './router-link.tsx'
-import { ScrollRestorationScript, useNavigationScroll } from './scroll-restoration.tsx'
+import {
+	FirstPaintLink,
+	ScrollRestorationScript,
+	useNavigationScroll,
+} from './scroll-restoration.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
+
+/**
+ * The page of the matched route. A path that only starts with the path of a
+ * page, such as `/button/foo`, matches the not-found route, so it has no page.
+ */
+function usePage() {
+	const matches = useMatches()
+
+	return pages.find((link) => matches.some((match) => match.id === link.path))
+}
 
 /**
  * The document of each page. `UIDocument` holds `AppearanceProvider`, so each
@@ -38,6 +52,8 @@ import { StaleBuildScript } from './stale-build.tsx'
  * language of the locale that the page renders in.
  */
 export function Layout({ children }: { children: ReactNode }) {
+	const tabs = (usePage()?.tabs.length ?? 0) > 0
+
 	return (
 		<UIDocument
 			lang={useDocumentLocale()}
@@ -48,7 +64,7 @@ export function Layout({ children }: { children: ReactNode }) {
 					<meta charSet="UTF-8" />
 					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 					<StaleBuildScript />
-					<ScrollRestorationScript />
+					<FirstPaintLink tabs={tabs} />
 					<DirectionScript />
 					<EventsScript />
 					<Meta />
@@ -57,6 +73,7 @@ export function Layout({ children }: { children: ReactNode }) {
 			}
 		>
 			{children}
+			<ScrollRestorationScript />
 			<Scripts />
 		</UIDocument>
 	)
@@ -148,13 +165,9 @@ function Shell() {
 
 	const { sidebar, setSidebar } = useAppearance()
 
-	const matches = useMatches()
-
 	const intl = useIntl()
 
-	// The page of the matched route. A path that only starts with the path of a
-	// page, such as `/button/foo`, matches the not-found route, so it has no page.
-	const page = pages.find((link) => matches.some((match) => match.id === link.path))
+	const page = usePage()
 
 	// The root path lists the pages, and has no title of its own.
 	const title = page?.name ?? (pathname === '/' ? undefined : intl.formatMessage(messages.notFound))

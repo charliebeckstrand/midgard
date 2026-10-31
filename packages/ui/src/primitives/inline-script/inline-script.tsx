@@ -8,23 +8,17 @@ export type InlineScriptProps = {
 	 */
 	source: string
 	/**
-	 * `module` runs the script when the parser has read the whole document, in
-	 * place of where the parser meets it.
+	 * The `id` of the script element. A `<link rel="expect" href="#id"
+	 * blocking="render">` in the `<head>` that names it holds the first paint
+	 * until the parser has run the script.
 	 */
-	type?: 'module'
-	/**
-	 * `render` holds the first paint until the script has run. It applies only
-	 * to a script in the `<head>`.
-	 */
-	blocking?: 'render'
+	id?: string
 }
 
 /**
- * A `<script>` element that runs before React hydrates. This is the one place
- * in the package that writes a script with inline source. A classic script
- * runs where the parser meets it. A module script in the `<head>` with
- * `blocking="render"` runs when the parser has read the whole document, and
- * before the first paint.
+ * A `<script>` element that runs where the parser meets it, before React
+ * hydrates. This is the one place in the package that writes a script with
+ * inline source.
  *
  * The source is the text child of the element. The server renderer of React
  * writes the text of a script as it is, and it escapes only `<script` and
@@ -40,9 +34,9 @@ export type InlineScriptProps = {
  *
  * @internal
  */
-export function InlineScript({ source, type, blocking }: InlineScriptProps) {
+export function InlineScript({ source, id }: InlineScriptProps) {
 	return (
-		<script type={type} blocking={blocking} suppressHydrationWarning>
+		<script id={id} suppressHydrationWarning>
 			{source}
 		</script>
 	)
