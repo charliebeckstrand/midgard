@@ -41,6 +41,7 @@ import { spokenRowNumber } from './engine/grid-row/shell'
 import { GridEditInputs } from './grid-edit-inputs'
 import type { GridColumn } from './types'
 import { useGridEditGrow } from './use-grid-edit-grow'
+import { useGridEditPick } from './use-grid-edit-pick'
 
 /**
  * Props for the mounted editor: the cell plus the session's staging and exit
@@ -407,38 +408,11 @@ export function GridCellEditor<T>({
 		unstageDraft(rowKey, column.id)
 	}
 
-	// Whether a Tab press is on its way to the key surface of the grid, while a
-	// cell-scoped session holds this cell. Tab in an open listbox panel picks
-	// the active option, and then commits the cell and moves along the row
-	// (see `useGridEditKeys`). The panel is in a portal, so the document sees
-	// its keys: first in the capture phase, and last in the bubble phase.
-	const tabbingRef = useRef(false)
-
 	// Whether a cell-scoped session holds this cell. The session shows settle
 	// controls on that one cell alone (see `settleControls`).
 	const holds = settle !== 'none'
 
-	useEffect(() => {
-		if (!holds) return
-
-		const press = (event: KeyboardEvent) => {
-			tabbingRef.current = event.key === 'Tab'
-		}
-
-		const done = () => {
-			tabbingRef.current = false
-		}
-
-		document.addEventListener('keydown', press, true)
-
-		document.addEventListener('keydown', done)
-
-		return () => {
-			document.removeEventListener('keydown', press, true)
-
-			document.removeEventListener('keydown', done)
-		}
-	}, [holds])
+	const commitPick = useGridEditPick(hostRef, holds)
 
 	// Stages a final value, such as a pick, and commits the cell where a
 	// cell-scoped session holds it, as F2 does. Under row scope the row
@@ -447,20 +421,7 @@ export function GridCellEditor<T>({
 	const commit = (next: unknown) => {
 		if (next !== undefined) update(next)
 
-		// The Tab that made the pick commits the cell and moves on by itself.
-		if (!holds || dataKey === null || tabbingRef.current) return
-
-		// A pick in the panel of a listbox leaves focus in the panel, outside the
-		// grid, and the panel closes with the cell. The pick gives focus to the
-		// control that opened the panel first. Thus the exit finds focus in the
-		// grid and puts it back on the tab stop.
-		const host = hostRef.current
-
-		const opener = host?.querySelector<HTMLElement>('[aria-expanded="true"]')
-
-		if (opener && !host?.contains(document.activeElement)) opener.focus()
-
-		endSession(dataKey, 'save')
+		if (holds && dataKey !== null) commitPick(() => endSession(dataKey, 'save'))
 	}
 
 	// Names the cell for every control in it, so the editor and the settle pair
