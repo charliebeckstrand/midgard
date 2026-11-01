@@ -27,7 +27,7 @@ import {
 } from '../../modules/map/engine/map-zoom/transform'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 import { FLOAT } from '../helpers/geometry/tolerance'
-import { flatProjector } from '../helpers/map-flat'
+import { englishRadius, flatProjector } from '../helpers/map-flat'
 
 /**
  * Two zoom steps and an inverse compose three scales, so the focused point can
@@ -387,13 +387,13 @@ describe('clusterPoints under a zoom', () => {
 	]
 
 	it('draws a close pair as one summary at rest', () => {
-		expect(clusterPoints(pair, flatProjector, GAP)).toHaveLength(1)
+		expect(clusterPoints(pair, flatProjector, GAP, englishRadius)).toHaveLength(1)
 	})
 
 	it('separates it once the zoom spreads the dots past the merge distance', () => {
 		// At k=2 one device pixel spans half a frame unit, so the reach halves and
 		// the pair (unmoved in frame units) no longer meets it.
-		expect(clusterPoints(pair, flatProjector, GAP, 0.5)).toHaveLength(2)
+		expect(clusterPoints(pair, flatProjector, GAP, englishRadius, 0.5)).toHaveLength(2)
 	})
 
 	it('merges further out, where the same pixels cover more ground', () => {
@@ -402,15 +402,15 @@ describe('clusterPoints under a zoom', () => {
 			[REACH * 1.5, 0],
 		]
 
-		expect(clusterPoints(apart, flatProjector, GAP)).toHaveLength(2)
+		expect(clusterPoints(apart, flatProjector, GAP, englishRadius)).toHaveLength(2)
 
-		expect(clusterPoints(apart, flatProjector, GAP, 2)).toHaveLength(1)
+		expect(clusterPoints(apart, flatProjector, GAP, englishRadius, 2)).toHaveLength(1)
 	})
 
 	it('leaves an opted-out set alone at every scale', () => {
-		expect(clusterPoints(pair, flatProjector, null, 0.5)).toHaveLength(2)
+		expect(clusterPoints(pair, flatProjector, null, englishRadius, 0.5)).toHaveLength(2)
 
-		expect(clusterPoints(pair, flatProjector, null, 4)).toHaveLength(2)
+		expect(clusterPoints(pair, flatProjector, null, englishRadius, 4)).toHaveLength(2)
 	})
 })
 

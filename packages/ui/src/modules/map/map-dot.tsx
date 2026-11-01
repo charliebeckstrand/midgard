@@ -339,7 +339,9 @@ export function dotHitProps({
 		'data-slot': slot,
 		cx: at.x,
 		cy: at.y,
-		r: POINT_HIT_RADIUS * scale,
+		// A summary that grows to hold a long count can paint past the coarse
+		// reach, and its target is then the dot itself (`markTargets` floors it there).
+		r: Math.max(target, POINT_HIT_RADIUS) * scale,
 		fill: 'transparent',
 		// Independent of the radius above: the clip takes the straight cuts a neighbor's bisector
 		// makes, the radius takes the circle. A fine pointer narrowing inside a clipped target composes
