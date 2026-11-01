@@ -68,7 +68,11 @@ export const k = defineKata({
 	slots: {
 		// The scroll container. While the table overflows, the edge with more
 		// columns behind it fades, and the container is a tab stop with an inset ring.
-		scroll: { scrolls: { true: [...rail], false: '' } },
+		// The container is `relative`, so it is the containing block of each
+		// absolute box in a cell, such as the `sr-only` label of an actions
+		// header. Without it, such a box is not clipped by the scroll, and it
+		// widens the box around the table past its edge.
+		scroll: { scrolls: { true: ['relative', ...rail], false: '' } },
 		// Color only. A `border.color.subtle` sat here with no border *width*, so it
 		// painted nothing: the shipped header carries no rule. Restoring one is a
 		// visual change, not a cleanup: it needs a width and a design call.
