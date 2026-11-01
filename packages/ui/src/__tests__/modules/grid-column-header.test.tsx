@@ -2,13 +2,12 @@ import type { DraggableSyntheticListeners } from '@dnd-kit/core'
 import { fireEvent } from '@testing-library/react'
 import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
-import { GridSettleContext } from '../../modules/grid/context'
+import { GridGroupByContext, GridSettleContext } from '../../modules/grid/context'
 import { createSettleStore } from '../../modules/grid/engine/grid-sizing/settle'
 import {
 	type GridColumnSortable,
 	GridReorderableColumnHeaderView,
 } from '../../modules/grid/grid-column-header'
-import { GridGroupByContext } from '../../modules/grid/grid-group-by-button'
 import { renderUI, screen } from '../helpers'
 
 /** A title that portals a button to the body, as a sheet that the header opens does. */

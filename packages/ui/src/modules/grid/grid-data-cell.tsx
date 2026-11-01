@@ -4,6 +4,7 @@ import { type ComponentProps, type CSSProperties, memo, type ReactNode, use } fr
 import { TableCell } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { GridReorderContext } from './context'
 import { isFrozen } from './engine/grid-pin/overrides'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
@@ -15,7 +16,6 @@ import {
 import { cellRovingAttrs } from './engine/grid-row/shell'
 import { fitCellProps } from './engine/grid-sizing/fit-styles'
 import { cellBody } from './grid-cell-content'
-import { GridReorderContext } from './grid-reorder'
 import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridDataCell}. @internal */

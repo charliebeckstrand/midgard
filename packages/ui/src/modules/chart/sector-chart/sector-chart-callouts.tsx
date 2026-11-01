@@ -27,7 +27,8 @@ import { isSparkBox } from '../engine/chart-tier'
 import { useChartSeriesEmphasis } from '../engine/context'
 import type { ChartTextWidth } from '../engine/use-chart-text-width'
 import { sliceShares } from './sector-chart-frame'
-import { labelDelay, sliceGroupClass, useSliceReflowed } from './sector-chart-marks'
+import { labelDelay, sliceGroupClass } from './sector-chart-marks'
+import { useSliceReflowed } from './use-sector-chart-slice-reflowed'
 
 /** A placed callout with its resolved label text. @internal */
 type CalloutLabel = PieCallout & { text: string }

@@ -13,7 +13,8 @@ import { detailItemKey } from './engine/grid-items/items'
 import { gridMessages } from './engine/grid-messages'
 import { rowName } from './engine/grid-row/cell'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
-import { GridNavCell, useGridNavStopProps } from './grid-nav-cell'
+import { GridNavCell } from './grid-nav-cell'
+import { useGridNavStopProps } from './use-grid-nav-stop-props'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /** Props for {@link GridExpandToggle}. @internal */

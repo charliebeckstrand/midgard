@@ -18,6 +18,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
 import type { QueryGroup } from '../query'
+import { GridReorderKitContext } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
@@ -31,8 +32,8 @@ import { GridColumnHeaderLabel, GridPinnedHeaderLabel } from './grid-column-head
 import { GridColumnResizeHandle } from './grid-column-resize-handle'
 import type { PinColumn } from './grid-context-menu-utilities'
 import { GridGroupByButton } from './grid-group-by-button'
-import { GridReorderKitContext, useColumnReorderShift } from './grid-reorder'
 import type { GridColumn } from './types'
+import { useColumnReorderShift } from './use-grid-column-reorder-shift'
 import type { GridColumnFilter, GridColumnPinning } from './use-grid-table'
 
 /**

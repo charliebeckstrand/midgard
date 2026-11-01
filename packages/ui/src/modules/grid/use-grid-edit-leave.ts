@@ -4,8 +4,8 @@ import { type FocusEvent as ReactFocusEvent, type RefObject, useCallback, useRef
 import { type PendingLeave, readLeave } from './engine/grid-edit-leave'
 import type { SessionRow } from './engine/grid-edit-transition'
 import { inGrid } from './engine/grid-editing-utilities'
+import type { CommitOn } from './use-grid-commit-on'
 import type { GridSessionTarget } from './use-grid-edit-keys'
-import type { CommitOn } from './use-grid-editing-warnings'
 
 /**
  * Owns the commit on leave of a grid-owned session, layered onto the grid

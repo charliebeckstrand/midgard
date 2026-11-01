@@ -100,15 +100,14 @@ import type {
 	GridPaginationState,
 	GridSearch,
 } from './types'
-import {
-	useFacetSource,
-	useFilterModeMismatchWarning,
-	useGridClientView,
-	useGridRowModel,
-	useGroupTree,
-} from './use-grid-client-view'
-import { useColumnResizeLifecycle, useGridColumnSizing } from './use-grid-column-sizing'
+import { useGridClientView } from './use-grid-client-view'
+import { useColumnResizeLifecycle } from './use-grid-column-resize-lifecycle'
+import { useGridColumnSizing } from './use-grid-column-sizing'
+import { useFacetSource } from './use-grid-facet-source'
+import { useFilterModeMismatchWarning } from './use-grid-filter-mode-mismatch-warning'
+import { useGroupTree } from './use-grid-group-tree'
 import { useGridPinningView } from './use-grid-pinning-view'
+import { useGridRowModel } from './use-grid-row-model'
 
 export type {
 	GridColumnFacets,

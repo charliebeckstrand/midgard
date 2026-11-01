@@ -24,6 +24,7 @@ import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
+import type { GridEditingSession, GridSettleControls as SettleControls } from './context'
 import { useGridCellEditing } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import {
@@ -38,10 +39,6 @@ import {
 import { gridMessages } from './engine/grid-messages'
 import { spokenRowNumber } from './engine/grid-row/shell'
 import { GridEditInputs } from './grid-edit-inputs'
-import type {
-	GridEditingSession,
-	GridSettleControls as SettleControls,
-} from './grid-editing-context'
 import type { GridColumn } from './types'
 import { useGridEditGrow } from './use-grid-edit-grow'
 

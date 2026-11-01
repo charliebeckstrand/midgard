@@ -20,7 +20,8 @@ import { chartMessages } from '../chart-messages'
 import { ChartSwatch } from '../chart-pattern-defs'
 import { useChartActions } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
-import { type LegendEmphasis, LegendSwitch, useLegendEmphasis } from './legend-switch'
+import { LegendSwitch } from './legend-switch'
+import { type LegendEmphasis, useLegendEmphasis } from './use-legend-emphasis'
 
 /** Entries per page once a side panel's switches would clip vertically. @internal */
 const PAGE_SIZE = 5

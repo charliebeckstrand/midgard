@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { GridSortState } from '../../modules/grid'
-import { useServerSortSettle } from '../../modules/grid/grid-sort-state'
+import { useServerSortSettle } from '../../modules/grid/use-grid-server-sort-settle'
 
 const rows = [{ id: 1 }, { id: 2 }]
 

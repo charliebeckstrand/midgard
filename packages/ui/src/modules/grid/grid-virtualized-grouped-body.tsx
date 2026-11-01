@@ -9,7 +9,7 @@ import {
 	groupRowKeys,
 } from './engine/grid-items/items'
 import { type GridWindowRowProps, itemAriaRowIndex } from './engine/grid-row/shell'
-import { groupedCursorRows, useGridCursorOrder } from './grid-cursor-order'
+import { groupedCursorRows } from './grid-cursor-order'
 import type { GridGroupBy } from './grid-data-types'
 import { GridGroupLeafRow, leafRowProps } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
@@ -17,6 +17,7 @@ import type { GridRowsProps } from './grid-row'
 import type { GridRowGroupPresentation } from './grid-row-group-types'
 import { GridTotalRow } from './grid-total-row'
 import { GridWindowBody } from './grid-window-body'
+import { useGridCursorOrder } from './use-grid-cursor-order'
 import {
 	type GridItemWindowOptions,
 	type GridWindowView,

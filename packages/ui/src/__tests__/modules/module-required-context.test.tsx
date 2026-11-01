@@ -1,9 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import { useFormFiltersName } from '../../modules/form/form-filters/context'
-import { useGridHighlight, useGridResizing, useGridSettle } from '../../modules/grid/context'
-import { useGridNewRowSession } from '../../modules/grid/grid-editing-context'
-import { useGridGroupByButton } from '../../modules/grid/grid-group-by-button'
-import { useGridNavContext } from '../../modules/grid/use-grid-navigation'
+import {
+	useGridGroupByButton,
+	useGridHighlight,
+	useGridNavContext,
+	useGridNewRowSession,
+	useGridResizing,
+	useGridSettle,
+} from '../../modules/grid/context'
 import { useMapPointed, useMapZoomView } from '../../modules/map/context'
 import { renderUI } from '../helpers'
 

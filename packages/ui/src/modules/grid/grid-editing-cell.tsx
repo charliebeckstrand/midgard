@@ -3,12 +3,9 @@
 import { type ReactNode, useCallback, useSyncExternalStore } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { type GridSettleControls as SettleControls, useGridEditingSession } from './context'
 import { isCellEditing, isColumnEditable } from './engine/grid-editing-utilities'
 import { GridCellEditor } from './grid-cell-editor'
-import {
-	type GridSettleControls as SettleControls,
-	useGridEditingSession,
-} from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import { searchedContent } from './grid-highlight-utilities'
 import { GridNavCell } from './grid-nav-cell'

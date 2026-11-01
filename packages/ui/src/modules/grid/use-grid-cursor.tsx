@@ -14,6 +14,7 @@ import { announce } from '../../core'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { GridEditingSessionContext, type GridNavStore, GridNewRowContext } from './context'
 import { describeRange } from './engine/grid-announcements'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { columnLabel } from './engine/grid-column/label'
@@ -48,17 +49,15 @@ import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { GridEditSource } from './grid-data-types'
 import { GridEditOverlay } from './grid-edit-overlay'
-import { GridEditingSessionContext, GridNewRowContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { useGridCursorColumns } from './use-grid-cursor-columns'
-import type { GridIndexRefs } from './use-grid-data-cursor'
 import { useGridEditing } from './use-grid-editing'
 import { useGridFillDrag } from './use-grid-fill-drag'
 import { useGridFillHandle } from './use-grid-fill-handle'
+import type { GridIndexRefs } from './use-grid-index'
 import {
 	type Coord,
-	type GridNavStore,
 	type GridNavTableProps,
 	type GridNewRowPosition,
 	type GridReconcile,

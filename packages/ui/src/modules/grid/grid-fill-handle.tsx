@@ -4,9 +4,9 @@ import { useLayoutEffect, useRef, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { useGridNavContext } from './context'
 import { GRID_ROLE } from './engine/grid-constants'
 import type { GridFillHandle as GridFillHandleStore } from './use-grid-fill-handle'
-import { useGridNavContext } from './use-grid-navigation'
 
 /**
  * The fill handle of a grid that can fill, on the bottom end corner of the

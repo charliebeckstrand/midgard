@@ -15,15 +15,15 @@ import { ChartLegend } from '../engine/chart-legend/legend'
 import { resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { seriesDataKey } from '../engine/chart-motion'
-import { useChartTexture } from '../engine/chart-pattern-defs'
 import { selectedIndices, seriesValues } from '../engine/chart-series'
 import { headerLineCount } from '../engine/chart-tier'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import { useChartFullscreen } from '../engine/context'
 import type { ChartBaseProps, ChartItemClick, PieChartSeries } from '../engine/types'
 import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
-import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import { useChartTextWidth } from '../engine/use-chart-text-width'
+import { useChartTexture } from '../engine/use-chart-texture'
+import { useChartSeriesToggle } from '../engine/use-chart-toggle'
 import {
 	buildCallouts,
 	CALLOUT_FRAME,
