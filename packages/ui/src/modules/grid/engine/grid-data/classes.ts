@@ -2,6 +2,7 @@ import { cn } from '../../../../core'
 import type { ScaleStep } from '../../../../core/density'
 import { k } from '../../../../recipes/kata/grid'
 import type { scale } from '../../../../recipes/kata/table'
+import type { BoxOutline } from '../../../../structure/box'
 
 /**
  * The density step of the table under {@link GridDataProps.condensed}. The
@@ -31,8 +32,8 @@ export function condensedTableClass(condensed: boolean, base: string): string {
 }
 
 /**
- * The `outline` variant's cell borders (see `k.outline`), or `''` when not
- * outlined. The grid draws its own outline in `border-collapse: separate` mode,
+ * The `outline` variant's cell borders (see `k.outline`) in the chosen weight,
+ * or `''` when not outlined. `true` selects the default weight, as on Card. The grid draws its own outline in `border-collapse: separate` mode,
  * every rule riding its own cell. It does not forward `outline` to `<Table>`,
  * whose collapse-mode borders weld to the table grid. Those borders scroll out
  * from under the sticky header and frozen columns: a seam above the header, a
@@ -41,8 +42,12 @@ export function condensedTableClass(condensed: boolean, base: string): string {
  *
  * @internal
  */
-export function outlineTableClass(outline: boolean | undefined): string {
-	return outline ? cn(k.outline.table, k.outline.cell, k.outline.top, k.outline.start) : ''
+export function outlineTableClass(outline: BoxOutline | undefined): string {
+	if (!outline) return ''
+
+	const color = k.outline.color[outline === true ? 'default' : outline]
+
+	return cn(k.outline.table, k.outline.cell, color, k.outline.top, k.outline.start)
 }
 
 /**
@@ -56,7 +61,7 @@ export function outlineTableClass(outline: boolean | undefined): string {
  */
 export function stripedForOutline(
 	striped: boolean | 'odd' | 'even' | undefined,
-	outline: boolean | undefined,
+	outline: BoxOutline | undefined,
 ): boolean | 'odd' | 'even' | undefined {
 	return outline && striped === true ? 'odd' : striped
 }

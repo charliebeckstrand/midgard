@@ -11,11 +11,12 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'
-import { dan, iro, ji, omote } from '../kiso'
+import { dan, iro, ji, omote, sen } from '../kiso'
 
 const { text } = iro
 const { size } = ji
 const { rail } = omote
+const { gridline } = sen
 
 // Cell padding for each step.
 const padding = [dan.space.cell.x, dan.space.cell.y]
@@ -32,20 +33,10 @@ const padding = [dan.space.cell.x, dan.space.cell.y]
  * washes at the 5% `hannou.tint` value, an interactive variant that
  * out-cascades the non-interactive 2.5% `striped` wash on the hovered row.
  *
- * Tailwind scans whole class literals. These rows can't be interpolated
- * from the unprefixed values they mirror (`sen.border.subtle`, with its
- * `contrast-more` step),
- * or from each other (the `odd`/`even` `striped` parity below). Keep them in
- * step by hand.
+ * Tailwind scans whole class literals. The `odd` and `even` `striped` rows
+ * therefore cannot be built from each other. Keep them in step by hand.
  */
 const projection = {
-	outline: [
-		'[&>*>tr>:is(td,th)]:border',
-		'[&>*>tr>:is(td,th)]:border-zinc-950/5',
-		'dark:[&>*>tr>:is(td,th)]:border-white/5',
-		'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
-		'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
-	],
 	striped: {
 		odd: [
 			'[&>tbody>tr:nth-child(odd)]:bg-zinc-950/2.5',
@@ -59,9 +50,19 @@ const projection = {
 	hover: ['[&>tbody>tr]:hover:bg-zinc-950/5', 'dark:[&>tbody>tr]:hover:bg-white/5'],
 } as const
 
+// The all-sides rule of each cell under `outline`. The color comes from
+// `sen.gridline`, in the weights of `sen.outline` on Card and Box.
+const rule = '[&>*>tr>:is(td,th)]:border'
+
 export const k = defineKata({
 	base: 'w-full text-start text-base',
-	outline: { true: projection.outline, false: '' },
+	// `true` selects the default weight, and a name selects another weight.
+	outline: {
+		true: [rule, ...gridline.default],
+		false: '',
+		subtle: [rule, ...gridline.subtle],
+		strong: [rule, ...gridline.strong],
+	},
 	stripe: projection.striped,
 	hover: { true: projection.hover, false: '' },
 	slots: {

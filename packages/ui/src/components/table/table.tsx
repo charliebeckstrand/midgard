@@ -2,6 +2,7 @@ import { Children, type ComponentProps, type ReactNode } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { k, type scale } from '../../recipes/kata/table'
+import type { BoxOutline } from '../../structure/box'
 import { isElementOfType } from '../../utilities/children'
 import { TableCaption, type TableCaptionProps } from './table-caption'
 import { TableScroll } from './table-scroll'
@@ -19,8 +20,13 @@ export type TableVariants = {
 	 * @defaultValue false
 	 */
 	bleed?: boolean
-	/** Draws hairline borders around every cell. @defaultValue false */
-	outline?: boolean
+	/**
+	 * Draws hairline borders around every cell. `true` uses the default weight.
+	 * Pass `'subtle'` or `'strong'` to pick a different weight. The weights are
+	 * those of the Card outline.
+	 * @defaultValue false
+	 */
+	outline?: BoxOutline
 	/**
 	 * Zebra-stripes the body rows. `true` shades even rows (equivalent to
 	 * `'even'`); pass `'odd'` to shade odd rows instead.

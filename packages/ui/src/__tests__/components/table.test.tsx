@@ -200,6 +200,23 @@ describe('Table variants', () => {
 			plain.querySelector('tbody td')?.className,
 		)
 	})
+
+	// The weights are those of the Card outline: `true` is the default weight.
+	it.each([
+		['the default weight for `true`', true, 'border-zinc-950/10'],
+		['the subtle weight', 'subtle', 'border-zinc-950/5'],
+		['the strong weight', 'strong', 'border-zinc-950/15'],
+	] as const)('projects %s onto the cells', (_, outline, color) => {
+		const { container } = renderUI(<Table outline={outline}>{body}</Table>)
+
+		expect(container.querySelector('table')).toHaveClass(`[&>*>tr>:is(td,th)]:${color}`)
+	})
+
+	it('draws no cell borders when outline is false', () => {
+		const { container } = renderUI(<Table outline={false}>{body}</Table>)
+
+		expect(container.querySelector('table')?.className).not.toContain('[&>*>tr>:is(td,th)]:border')
+	})
 })
 
 describe('Table density resolution', () => {

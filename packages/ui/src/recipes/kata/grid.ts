@@ -15,7 +15,7 @@ const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { backdrop, popover } = omote
-const { focus, ring } = sen
+const { focus, gridline, ring } = sen
 const { instant, spring } = ugoki
 
 /**
@@ -267,8 +267,8 @@ export const k = {
 	// behind on the scrolling table, so a 1px seam opens above the header and a
 	// frozen column's leading rule shifts as the border collapses in and out at the
 	// scroll edges. Separate borders stay on the cell, so the sticky/frozen frame
-	// holds. The grid applies this in place of `kata/table`'s collapse-mode
-	// `projection.outline`, which it stops forwarding to `<Table>` when outlined.
+	// holds. The grid applies this in place of the collapse-mode `outline` of
+	// `kata/table`, which it stops forwarding to `<Table>` when outlined.
 	//
 	// `border-spacing-0` keeps the cells flush. To avoid doubling every interior
 	// line, each cell draws only its inline-end and bottom rule; the two open outer
@@ -276,22 +276,17 @@ export const k = {
 	// and an inline-start rule on each row's first cell (riding a frozen leading
 	// column). The sides are logical, so a right-to-left grid mirrors them. All cast
 	// from the `<table>` onto its descendants (like the table's own outline), so
-	// cells read no context and render in RSC. Full literals for Tailwind's scanner;
-	// keep the subtle tint in step with `kata/table`'s `projection.outline`.
+	// cells read no context and render in RSC. The rule color of each weight is
+	// `sen.gridline`, which `kata/table` reads too.
 	outline: {
 		// Border model: separate, flush cells.
 		table: ['border-separate', 'border-spacing-0'],
-		// Interior gridlines plus the inline-end/bottom outer edges: every cell. The
-		// tint is an all-sides `border-color`; only the sided widths below render it,
-		// so the top/inline-start rules inherit the same color without repeating it.
-		cell: [
-			'[&>*>tr>:is(td,th)]:border-e',
-			'[&>*>tr>:is(td,th)]:border-b',
-			'[&>*>tr>:is(td,th)]:border-zinc-950/5',
-			'dark:[&>*>tr>:is(td,th)]:border-white/5',
-			'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
-			'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
-		],
+		// Interior gridlines plus the inline-end/bottom outer edges: every cell.
+		cell: ['[&>*>tr>:is(td,th)]:border-e', '[&>*>tr>:is(td,th)]:border-b'],
+		// The rule color of each `outline` weight. Each is an all-sides
+		// `border-color`; only the sided widths render it, so the top/inline-start
+		// rules take the same color without repeating it.
+		color: gridline,
 		// Top outer edge: the first header row, riding the sticky header.
 		top: ['[&>thead>tr:first-child>th]:border-t'],
 		// Inline-start outer edge: each row's first cell, riding a frozen leading
