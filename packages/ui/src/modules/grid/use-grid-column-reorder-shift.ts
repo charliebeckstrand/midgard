@@ -3,37 +3,9 @@
 import { type AnimationPlaybackControls, animate } from 'motion'
 import type { RefObject } from 'react'
 import { useLayoutEffect } from 'react'
-import { createContext } from '../../core'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/grid'
 import { columnShiftVar } from './engine/grid-reorder-compute'
-import type { GridReorderKit } from './grid-reorder-region'
-
-/**
- * The id of the column being drag-reordered, or `null` when idle. Provided by
- * the grid around the sortable region and read by each reordering body cell so
- * only the dragged column's cells carry the `data-dragging` lift. The value
- * changes just at drag start and end. The per-frame translate rides a CSS
- * variable instead (see {@link columnShiftStyle}), so a drag re-renders the body
- * cells twice, not on every pointer move.
- *
- * @internal
- */
-export const [GridReorderContext] = createContext<string | null>('GridReorder', {
-	default: null,
-})
-
-/**
- * The drag and drop parts of the grid, from the module that loads when the grid
- * takes a reorder (see {@link GridReorderKit}). It is `null` until the module
- * is loaded. The headers, the body, and the rows then render their static
- * forms, which have the same layout as the draggable forms.
- *
- * @internal
- */
-export const [GridReorderKitContext] = createContext<GridReorderKit | null>('GridReorderKit', {
-	default: null,
-})
 
 /**
  * Drives a reordering column's shift onto the CSS variable {@link columnShiftStyle}

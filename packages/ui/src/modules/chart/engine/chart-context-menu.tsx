@@ -27,9 +27,8 @@ import { useIntl } from '../../../primitives/intl/use-intl'
 import { copyText, downloadCsv } from '../../../utilities/export-output'
 import { ChartDataDialog } from './chart-data-dialog'
 import { type ChartImageType, chartFileName, rasterizeImage, readoutToCsv } from './chart-export'
-import { ChartMenuContext } from './chart-menu-button'
 import { chartMenuName, chartMessages } from './chart-messages'
-import { ChartFullscreenContext, useChartFullscreen } from './context'
+import { ChartFullscreenContext, ChartMenuContext, useChartFullscreen } from './context'
 import type { ChartReadoutSource } from './types'
 
 /**

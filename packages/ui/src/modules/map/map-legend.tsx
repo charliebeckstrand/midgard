@@ -7,11 +7,11 @@ import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/map'
+import { LegendSwitch } from '../chart/engine/chart-legend/legend-switch'
 import {
 	type LegendEmphasis,
-	LegendSwitch,
 	useLegendEmphasis,
-} from '../chart/engine/chart-legend/legend-switch'
+} from '../chart/engine/chart-legend/use-legend-emphasis'
 import { readoutSwatchShapes } from '../chart/engine/chart-readout-card'
 import type { MapLegendItem } from './engine/map-legend/items'
 import { mapMessages } from './map-messages'

@@ -33,7 +33,8 @@ import type { ChartMarkRef } from '../engine/context'
 import type { ChartBaseProps, ScatterChartSeries } from '../engine/types'
 import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
-import { useChartSeriesToggle, useLaidOutHidden } from '../engine/use-chart-series-toggle'
+import { useLaidOutHidden } from '../engine/use-chart-laid-out-hidden'
+import { useChartSeriesToggle } from '../engine/use-chart-toggle'
 import { ScatterChartChrome } from './scatter-chart-chrome'
 import {
 	scatterFormats,

@@ -28,6 +28,7 @@ import { seriesGroupClass } from '../engine/chart-series'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import { useChartActions, useChartHoverStore, useChartSeriesEmphasis } from '../engine/context'
 import { toFrame } from '../engine/use-chart-pointer'
+import { useSliceReflowed } from './use-sector-chart-slice-reflowed'
 
 /** One placed segment label: its slice and resolved text. @internal */
 export type SectorSegmentLabel = {
@@ -70,20 +71,6 @@ export function sweepDelay(mid: number): number {
  */
 export function sliceLayout(slices: PieSlice[]): string {
 	return slices.map((slice) => `${slice.index}:${slice.share}`).join(' ')
-}
-
-/**
- * Whether a legend toggle has changed the {@link sliceLayout} since mount.
- * After that, a label fades in when the {@link SLICE_MORPH} ends, not when the
- * sweep uncovers its slice. @internal
- */
-export function useSliceReflowed(layout: string): boolean {
-	const [held, setHeld] = useState({ layout, reflowed: false })
-
-	// A set during render replaces this render at once.
-	if (held.layout !== layout) setHeld({ layout, reflowed: true })
-
-	return held.reflowed || held.layout !== layout
 }
 
 /**

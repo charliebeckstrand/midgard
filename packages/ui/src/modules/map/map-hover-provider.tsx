@@ -10,7 +10,6 @@ import {
 	useState,
 } from 'react'
 import { useHoverAcrossScroll } from '../../hooks'
-import { createEmitter } from '../../utilities'
 import { samePoint } from '../chart/engine/context'
 import {
 	type MapHoverActions,
@@ -18,10 +17,10 @@ import {
 	type MapHoverState,
 	MapHoverStateContext,
 	MapPointedMarkContext,
-	type MapPointedStore,
 } from './context'
 import { targetAt } from './engine/map-hover/anchor'
-import { type MapHoverTarget, sameMark, sameTarget } from './engine/map-hover/target'
+import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
+import { createPointedStore } from './map-pointed-store'
 import { useMapRegionPreload } from './use-map-region-preload'
 
 /** Props for {@link MapHoverProvider}. @internal */
@@ -52,36 +51,6 @@ type MapHoverProviderProps = {
 
 /** The readout at rest. @internal */
 const NO_HOVER: MapHoverState = { target: null, point: null }
-
-/** A {@link MapPointedStore} and its writer. @internal */
-function createPointedStore(): MapPointedStore & {
-	publish: (next: MapHoverTarget | null, emphasis: string | null) => void
-} {
-	let pointed: MapHoverTarget | null = null
-
-	let focus: string | null = null
-
-	const { subscribe, emit } = createEmitter()
-
-	return {
-		get: () => pointed,
-		emphasis: () => focus,
-		subscribe,
-		publish: (next, emphasis) => {
-			// Pinned at mark granularity: a move to another stop of the same mark
-			// keeps the held target, so it publishes nothing.
-			const mark = sameMark(pointed, next) ? pointed : next
-
-			if (mark === pointed && emphasis === focus) return
-
-			pointed = mark
-
-			focus = emphasis
-
-			emit()
-		},
-	}
-}
 
 /**
  * Owns the pointer readout and hands it down split three ways:

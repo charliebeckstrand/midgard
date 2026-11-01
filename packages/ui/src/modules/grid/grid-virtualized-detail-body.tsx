@@ -3,10 +3,11 @@
 import { Fragment, type ReactNode, type TransitionEvent, useMemo, useRef } from 'react'
 import { detailOpen, detailWindowItems, type GridDetailWindowItem } from './engine/grid-items/items'
 import { itemAriaRowIndex } from './engine/grid-row/shell'
-import { detailCursorRows, useGridCursorOrder } from './grid-cursor-order'
+import { detailCursorRows } from './grid-cursor-order'
 import { GridDetailRow } from './grid-detail-row'
 import { type GridRowsProps, renderRow } from './grid-row'
 import { GridWindowBody } from './grid-window-body'
+import { useGridCursorOrder } from './use-grid-cursor-order'
 import {
 	type GridItemWindowOptions,
 	NO_WINDOW_RECORD,

@@ -45,7 +45,6 @@ import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legen
 import { legendAside, legendBands, type ResolvedLegend, resolveLegend } from './chart-legend/schema'
 import { REFERENCE_FALL, seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
-import { type ChartTexture, useChartTexture } from './chart-pattern-defs'
 import { referenceLegendItems, ruleKeys } from './chart-reference'
 import type { BandScale, LinearScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices } from './chart-series'
@@ -53,12 +52,10 @@ import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
 import { parseInstant } from './chart-time'
 import type { CartesianChartProps, ChartReadoutSource, ChartSeries } from './types'
 import { useChartFrameSizing } from './use-chart-frame-sizing'
-import {
-	useChartReferenceToggle,
-	useChartSeriesToggle,
-	useLaidOutHidden,
-} from './use-chart-series-toggle'
+import { useLaidOutHidden } from './use-chart-laid-out-hidden'
 import { useChartTextWidth } from './use-chart-text-width'
+import { type ChartTexture, useChartTexture } from './use-chart-texture'
+import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-toggle'
 
 /**
  * The props of a cartesian entry component that the hook reads. An entry gives

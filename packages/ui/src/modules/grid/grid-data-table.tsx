@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/table'
-import { GridHighlightContext } from './context'
+import { GridHighlightContext, GridNavContext } from './context'
 import {
 	condensedTableClass,
 	outlineTableClass,
@@ -24,7 +24,7 @@ import { GridScrollRegion } from './grid-region'
 import { GridGrandTotalBody } from './grid-total-row'
 import type { GridColumn } from './types'
 import type { useGridCursor } from './use-grid-cursor'
-import { GridNavContext, type GridNewRowPosition } from './use-grid-navigation'
+import type { GridNewRowPosition } from './use-grid-navigation'
 import type { useGridRoving } from './use-grid-roving'
 import type { GridColumnPinning } from './use-grid-table'
 

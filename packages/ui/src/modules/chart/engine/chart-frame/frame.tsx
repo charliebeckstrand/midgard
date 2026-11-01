@@ -21,6 +21,7 @@ import { holdTextSelection } from '../../../../utilities/hold-text-selection'
 import type { ChartContextMenuConfig } from '../chart-context-menu'
 import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
+import { createChartHoverStore } from '../chart-hover-store'
 import { legendBandRow } from '../chart-legend/band'
 import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
 import { ChartMenuButton } from '../chart-menu-button'
@@ -42,7 +43,6 @@ import {
 	ChartSeriesEmphasisContext,
 	ChartTierContext,
 	chartMarkEmphasis,
-	createChartHoverStore,
 	sameMark,
 } from '../context'
 import type { ChartReadoutSource } from '../types'

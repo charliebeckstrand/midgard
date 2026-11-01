@@ -1,10 +1,10 @@
 import { createElement } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
+import { GridNavContext, type GridNavStore } from '../../modules/grid/context'
 import { measureColumns } from '../../modules/grid/engine/grid-sizing/measure'
 import { GridAggregateCells } from '../../modules/grid/grid-aggregate-cells'
 import { GridTotalRow } from '../../modules/grid/grid-total-row'
-import { GridNavContext, type GridNavStore } from '../../modules/grid/use-grid-navigation'
 import { present, renderUI } from '../helpers'
 
 type Row = { id: number }

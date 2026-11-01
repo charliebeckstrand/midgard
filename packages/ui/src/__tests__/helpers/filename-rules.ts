@@ -76,7 +76,27 @@ function classifyName(file: string, folderName: string, stems: string[]): string
 	return matchesStem ? null : `filename must be prefixed with \`${stems.join('-` or `')}-\``
 }
 
-function checkSymbolMatch(folderPath: string, file: string): string | null {
+/**
+ * The words of a hook file that the hook name must hold, in PascalCase: the
+ * stem after `use-<unit>-`. The folder already names the unit, so
+ * `use-grid-active-cell.ts` can export `useActiveCell` (CONVENTIONS.md §3.4).
+ * A file named `use-<unit>.ts` keeps the unit as its stem.
+ */
+function hookStem(file: string, stems: string[]): string {
+	const base = stem(file).slice(4)
+
+	const unit = stems.find((s) => base.startsWith(`${s}-`))
+
+	const words = unit ? base.slice(unit.length + 1) : base
+
+	return words
+		.split('-')
+		.filter(Boolean)
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join('')
+}
+
+function checkSymbolMatch(folderPath: string, file: string, stems: string[]): string | null {
 	if (isUtilityFile(file)) return null
 
 	// `.ts` files that are not hooks are utility/data modules without a single
@@ -92,8 +112,11 @@ function checkSymbolMatch(folderPath: string, file: string): string | null {
 
 	// A hook can add words before or after the stem of its file:
 	// `use-query-value.ts` can export `useDeferredQueryValue`, and
-	// `use-content-height.ts` can export `useContentHeightAvailable`.
-	const name = isHook ? `use\\w*${expected.slice(3)}\\w*` : expected
+	// `use-content-height.ts` can export `useContentHeightAvailable`. The stem
+	// leaves out the unit that the folder names.
+	const hook = isHook ? hookStem(file, stems) : ''
+
+	const name = isHook ? `use\\w*${hook}\\w*` : expected
 
 	// Match `export function Foo`, `export const Foo`, `export class Foo`,
 	// `export async function Foo`, or `export { ..., Foo, ... }`.
@@ -104,7 +127,7 @@ function checkSymbolMatch(folderPath: string, file: string): string | null {
 
 	return pattern.test(content)
 		? null
-		: `expected an exported \`${isHook ? `use…${expected.slice(3)}…` : expected}\` matching the filename`
+		: `expected an exported \`${isHook ? `use…${hook}…` : expected}\` matching the filename`
 }
 
 export function listLeafFolders(root: string): string[] {
@@ -157,7 +180,7 @@ export function checkFolder(folderPath: string, folderName: string, pathBase: st
 			continue
 		}
 
-		const symbolReason = checkSymbolMatch(folderPath, file)
+		const symbolReason = checkSymbolMatch(folderPath, file, stems)
 
 		if (symbolReason) violations.push({ path, reason: symbolReason })
 	}

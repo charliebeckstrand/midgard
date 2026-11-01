@@ -1,8 +1,8 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
+import type { ContextMenuEntry } from '../../../components/context-menu'
 import { createContext } from '../../../core'
-import { createEmitter } from '../../../utilities'
 import type { ChartTier } from './chart-tier'
 
 /** The pointer's position in the frame's coordinate space. @internal */
@@ -56,33 +56,6 @@ export type ChartHoverStore = {
  */
 export function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
 	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
-}
-
-/**
- * A new {@link ChartHoverStore}, at rest.
- *
- * @remarks A write that changes nothing calls no listener, so the repeated
- * clears of a scroll cost no render.
- * @internal
- */
-export function createChartHoverStore(): ChartHoverStore {
-	let state: ChartHoverState = { index: null, point: null, onData: false }
-
-	const { subscribe, emit } = createEmitter()
-
-	return {
-		get: () => state,
-		set: (index, point, onData = true) => {
-			if (state.index === index && state.onData === onData && samePoint(state.point, point)) {
-				return
-			}
-
-			state = { index, point, onData }
-
-			emit()
-		},
-		subscribe,
-	}
 }
 
 export const [ChartHoverContext, useChartHoverStore] = createContext<ChartHoverStore>('ChartHover')
@@ -301,3 +274,19 @@ export const [ChartFullscreenContext, useChartFullscreen] = createContext<boolea
  * @internal
  */
 export const [ChartTierContext, useChartTier] = createContext<ChartTier>('ChartTier')
+
+/**
+ * The chart menu, which {@link ChartContextMenu} publishes: its `entries`,
+ * whether {@link ChartMenuButton} shows (`button`), and whether its menu caps
+ * its height as the right-click menu does (`capped`). It is `null` where the
+ * chart has no menu: under `contextMenu={false}`, in the fullscreen copy, or
+ * outside a chart. The map of a choropleth lets a touch hold open the menu
+ * only where it is not `null`.
+ *
+ * @internal
+ */
+export const [ChartMenuContext, useChartMenu] = createContext<{
+	entries: ContextMenuEntry[]
+	button: boolean
+	capped?: boolean
+} | null>('ChartMenu', { default: null })

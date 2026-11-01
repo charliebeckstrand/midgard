@@ -9,6 +9,7 @@ import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Stack } from '../../structure/stack'
 import { Form, FormSubmit } from '../form'
+import type { GridEditingSession } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import {
 	COMMIT_REFUSED,
@@ -21,7 +22,6 @@ import { gridMessages } from './engine/grid-messages'
 import { rowName } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
 import { GridEditInputs } from './grid-edit-inputs'
-import type { GridEditingSession } from './grid-editing-context'
 import { GridOverlayDensity } from './grid-region'
 import type { GridColumn } from './types'
 

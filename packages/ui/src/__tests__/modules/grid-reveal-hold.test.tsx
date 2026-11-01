@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
+import { GridNavContext, type GridNavStore } from '../../modules/grid/context'
 import { GridTotalRow } from '../../modules/grid/grid-total-row'
-import { GridNavContext, type GridNavStore } from '../../modules/grid/use-grid-navigation'
 import { useGridRevealHold } from '../../modules/grid/use-grid-reveal-hold'
 import { present, renderUI } from '../helpers'
 

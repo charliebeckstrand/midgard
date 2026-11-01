@@ -28,7 +28,7 @@ See [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md).
 
 3.3 One directory per unit: `<name>.tsx`, `<name>-<part>.tsx` (sub-components), `use-<name>-<hook>.ts` (hooks), `context.ts`, `slots.ts`, `types.ts`, `variants.ts`, and `index.ts` (the barrel, re-exports only). [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md) §3 shows the full layout. `component-filename-boundary.test.ts` and `module-filename-boundary.test.ts` gate the names in `ui`.
 
-3.4 Named exports only. Each file's PascalCase / `useCamelCase` export matches its filename. A hook can add words before or after the stem of its file: `use-query-value.ts` can export `useDeferredQueryValue`. Biome's `noDefaultExport` pins the first rule outside the Next.js route files and the tool config files, whose loaders read a default export.
+3.4 Named exports only. Each file's PascalCase / `useCamelCase` export matches its filename. A hook can add words before or after the stem of its file: `use-query-value.ts` can export `useDeferredQueryValue`. The stem leaves out the unit that the folder names, so `use-grid-active-cell.ts` in `modules/grid` can export `useActiveCell`. Biome's `noDefaultExport` pins the first rule outside the Next.js route files and the tool config files, whose loaders read a default export.
 
 3.5 The barrel is the public surface. External consumers (apps, other packages) import the directory, never its internal files (§9).
 

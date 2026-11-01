@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { useChartSeriesToggle } from '../../modules/chart/engine/use-chart-series-toggle'
+import { useChartSeriesToggle } from '../../modules/chart/engine/use-chart-toggle'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
@@ -26,9 +26,8 @@ vi.mock('../../utilities', async (importActual) => {
 	return { ...actual, rangeKeys: vi.fn(actual.rangeKeys) }
 })
 
-vi.mock('../../modules/chart/engine/use-chart-series-toggle', async (importActual) => {
-	const actual =
-		await importActual<typeof import('../../modules/chart/engine/use-chart-series-toggle')>()
+vi.mock('../../modules/chart/engine/use-chart-toggle', async (importActual) => {
+	const actual = await importActual<typeof import('../../modules/chart/engine/use-chart-toggle')>()
 
 	return { ...actual, useChartSeriesToggle: vi.fn(actual.useChartSeriesToggle) }
 })

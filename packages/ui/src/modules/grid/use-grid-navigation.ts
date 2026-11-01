@@ -11,7 +11,6 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { createContext } from '../../core'
 import { useIdScope } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -24,6 +23,7 @@ import {
 } from '../../utilities'
 import { closestFloatingPortal } from '../../utilities/floating-portal-registry'
 import { createPressOwner, isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
+import type { GridNavStore } from './context'
 import { NAV_PAGE_STEP } from './engine/grid-constants'
 import {
 	type GridRangeCells,
@@ -35,7 +35,6 @@ import {
 } from './engine/grid-range/range'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
 import type { GridCursorRow } from './grid-cursor-order'
-import type { GridFillHandle } from './use-grid-fill-handle'
 import { useGridRangeDrag } from './use-grid-range-drag'
 
 /**
@@ -107,44 +106,6 @@ function clampRow(row: number, count: number, slot: GridNewRowPosition): number 
 	return fromPosition(clamp(toPosition(row, count, slot), 0, span - 1), count, slot)
 }
 
-/**
- * External-store interface over the read-only cursor, built in
- * {@link useGridNavigation}: each cell subscribes to whether it is the active
- * cell without re-rendering on every cursor move.
- *
- * @internal
- */
-export type GridNavStore = {
-	/** Whether the cursor runs, so the rows of the grid carry its cell ids and seats. */
-	enabled: boolean
-	subscribe: (listener: () => void) => () => void
-	/** Whether the cell at `(row, col)` is currently the active cursor cell. */
-	isActive: (row: number, col: number) => boolean
-	/** Whether the cell at `(row, col)` is in the cell range (see {@link GridDataProps.range}). */
-	isInRange: (row: number, col: number) => boolean
-	/** The fill handle that the active cell holds, or `null` when the grid shows no handle. */
-	fillHandle: GridFillHandle | null
-	/** Whether the cursor sits on the one-stop row with this item key. */
-	isStopActive: (key: string) => boolean
-	/** The element id of the one cell of a one-stop row, matched by `aria-activedescendant`. */
-	stopId: (key: string) => string
-	/** Seats the cursor on the one-stop row with this item key, as a click on it does. */
-	seatStop: (key: string) => void
-	/**
-	 * Whether the active cell has a change of the cursor to scroll into view.
-	 * The first call after each change returns `true`, and each later call
-	 * `false`. A row that a scroll brings back into a window mounts its active
-	 * cell again, and that cell does not move the scroll a second time.
-	 */
-	claimReveal: () => boolean
-	/**
-	 * Hands the cursor the order of a body that renders more than data rows, or
-	 * `null` for a body of data rows only. A body calls it from a layout effect
-	 * each time its order changes (see {@link GridCursorRow}).
-	 */
-	publish: (order: readonly GridCursorRow[] | null) => void
-}
-
 /** Inert store for a non-navigable grid, so the hook can return a stable shape unconditionally. @internal */
 const INERT_STORE: GridNavStore = {
 	enabled: false,
@@ -158,12 +119,6 @@ const INERT_STORE: GridNavStore = {
 	claimReveal: () => false,
 	publish: () => {},
 }
-
-/**
- * Provides the read-only cursor store to the cell markers under a `navigable`
- * grid. @internal
- */
-export const [GridNavContext, useGridNavContext] = createContext<GridNavStore>('GridNav')
 
 /**
  * The cursor props merged onto a `navigable` grid's `<table>`: the single tab

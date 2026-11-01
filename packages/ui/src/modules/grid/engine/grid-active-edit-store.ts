@@ -1,5 +1,5 @@
 import { createEmitter } from '../../../utilities'
-import type { GridActiveEditStore } from '../grid-editing-context'
+import type { GridActiveEditStore } from '../context'
 import { EMPTY_SET } from './grid-constants'
 import { type GridActiveEdit, sameCell } from './grid-editing-utilities'
 

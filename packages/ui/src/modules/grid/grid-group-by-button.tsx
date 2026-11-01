@@ -4,17 +4,13 @@ import { Group, Ungroup } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { cn, createContext, dataAttr } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
+import { useGridGroupByButton } from './context'
 import { columnLabel } from './engine/grid-column/label'
-import type { GridGroupByContextValue } from './engine/grid-group/resolve'
 import { gridMessages } from './engine/grid-messages'
 import type { GridColumn } from './types'
-
-/** Carries the group-by wiring from `GridData` to the header buttons. @internal */
-export const [GridGroupByContext, useGridGroupByButton] =
-	createContext<GridGroupByContextValue | null>('GridGroupByButton')
 
 /**
  * A groupable column's header button: press it to group the rows by the column,

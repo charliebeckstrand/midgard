@@ -3,7 +3,7 @@
  * out of the grid, means to a `commitOn` policy.
  */
 
-import type { CommitOn } from '../use-grid-editing-warnings'
+import type { CommitOn } from '../use-grid-commit-on'
 import { inGrid } from './grid-editing-utilities'
 
 /**

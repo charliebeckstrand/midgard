@@ -10,26 +10,11 @@ import {
 } from '../../../components/context-menu'
 import { Icon } from '../../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../../components/menu'
-import { cn, createContext, dataAttr } from '../../../core'
+import { cn, dataAttr } from '../../../core'
 import { useHeaderActions } from '../../../primitives/header-actions'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { chartMenuName, chartMessages } from './chart-messages'
-
-/**
- * The chart menu, which {@link ChartContextMenu} publishes: its `entries`,
- * whether {@link ChartMenuButton} shows (`button`), and whether its menu caps
- * its height as the right-click menu does (`capped`). It is `null` where the
- * chart has no menu: under `contextMenu={false}`, in the fullscreen copy, or
- * outside a chart. The map of a choropleth lets a touch hold open the menu
- * only where it is not `null`.
- *
- * @internal
- */
-export const [ChartMenuContext, useChartMenu] = createContext<{
-	entries: ContextMenuEntry[]
-	button: boolean
-	capped?: boolean
-} | null>('ChartMenu', { default: null })
+import { useChartMenu } from './context'
 
 /** Props for {@link ChartMenuButton}. @internal */
 export type ChartMenuButtonProps = {

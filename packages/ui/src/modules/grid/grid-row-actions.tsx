@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useSyncExternalStore } from 'react'
 import { noop, noopSubscribe } from '../../utilities'
-import { useGridEditingSessionOrNull } from './grid-editing-context'
+import { useGridEditingSessionOrNull } from './context'
 import type { GridRowActionsContext } from './grid-editing-types'
 
 /**

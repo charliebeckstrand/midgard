@@ -12,12 +12,12 @@ import {
 	type SortableListOptions,
 	useSortableList,
 } from '../../hooks/use-sortable-list'
+import { GridReorderContext, GridReorderKitContext } from './context'
 import { restrictToFirstScrollableAncestor } from './engine/grid-reorder-compute'
 import {
 	type GridReorderableColumnHeaderProps,
 	GridReorderableColumnHeaderView,
 } from './grid-column-header'
-import { GridReorderContext, GridReorderKitContext } from './grid-reorder'
 import { GridRowImpl, type GridRowProps } from './grid-row'
 import type { GridRowSortable } from './grid-row-special-cell'
 import type { GridColumn } from './types'
