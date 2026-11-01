@@ -5,9 +5,10 @@ import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Button } from 'ui/button'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
+import { useIntl } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
-import type { Located } from '../../types'
+import type { FormatNumber, Located } from '../../types'
 import type { PlacePanelStep } from '../../utilities/places-url'
 import { groupName } from '../../utilities/places-view'
 import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
@@ -26,6 +27,7 @@ export function drawerList<T extends Located>(
 	group: readonly T[],
 	regionPlaces: readonly T[],
 	widened: boolean,
+	format: FormatNumber,
 ): { list: readonly T[]; group: string | null } {
 	const region = regionPlaces.length > 0 ? regionPlaces : group
 
@@ -35,7 +37,7 @@ export function drawerList<T extends Located>(
 
 	const isPart = region.length !== group.length || group.some((item) => !ids.has(item.id))
 
-	return isPart ? { list: group, group: groupName(group) } : { list: region, group: null }
+	return isPart ? { list: group, group: groupName(group, format) } : { list: region, group: null }
 }
 
 /**
@@ -216,6 +218,8 @@ export function SummaryDrawer<T extends Located>({
 	details,
 	list,
 }: SummaryDrawerProps<T>) {
+	const intl = useIntl()
+
 	// The last group the drawer was given, and its step. The panel stays mounted
 	// while it closes so the slide out plays, and a closing panel is handed an
 	// empty group and the start step, so the body reads the last open ones rather
@@ -238,8 +242,8 @@ export function SummaryDrawer<T extends Located>({
 	// The list under the trail, and the group's own step over it where there is
 	// one. See `drawerList` for which list that is.
 	const { list: listed, group } = useMemo(
-		() => drawerList(held, regionItems, heldStep.widened),
-		[held, regionItems, heldStep.widened],
+		() => drawerList(held, regionItems, heldStep.widened, intl.formatNumber),
+		[held, regionItems, heldStep.widened, intl.formatNumber],
 	)
 
 	const shown = useMemo(() => narrow(listed), [listed, narrow])

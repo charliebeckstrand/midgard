@@ -1,5 +1,5 @@
 import type { MapFeatureCollection } from 'ui/modules/map'
-import type { Located, VisitScope } from '../types'
+import type { FormatNumber, Located, VisitScope } from '../types'
 import { regionName } from './places-geography'
 
 /**
@@ -380,13 +380,14 @@ export function groupTrail(
  * the reader already has for a cluster of places in one town. A group that spans
  * cities, or holds a place with no city, gets the count instead: a technical
  * term such as "cluster" names how the map drew the dots, and not where they are.
+ * The count is in the locale of `format`.
  */
-export function groupName(group: readonly Located[]): string {
+export function groupName(group: readonly Located[], format: FormatNumber): string {
 	const cities = new Set(group.map((place) => place.city))
 
 	const [only] = cities
 
-	return cities.size === 1 && only ? only : `${group.length} nearby`
+	return cities.size === 1 && only ? only : `${format(group.length)} nearby`
 }
 
 /**

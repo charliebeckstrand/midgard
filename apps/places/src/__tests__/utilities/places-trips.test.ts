@@ -105,22 +105,40 @@ describe('isTrip', () => {
 	})
 })
 
+// The counts take the formatter of the reader's locale, so a count reads with
+// the grouping of that locale.
+const english = new Intl.NumberFormat('en-US').format
+
+const german = new Intl.NumberFormat('de-DE').format
+
 describe('recordCount', () => {
 	it('names the kinds that it has', () => {
-		expect(recordCount(3, 0)).toBe('3 places')
+		expect(recordCount(3, 0, english)).toBe('3 places')
 
-		expect(recordCount(0, 1)).toBe('1 trip')
+		expect(recordCount(0, 1, english)).toBe('1 trip')
 
-		expect(recordCount(2, 1)).toBe('2 places and 1 trip')
+		expect(recordCount(2, 1, english)).toBe('2 places and 1 trip')
 
-		expect(recordCount(1, 2)).toBe('1 place and 2 trips')
+		expect(recordCount(1, 2, english)).toBe('1 place and 2 trips')
+	})
+
+	it('formats each count in the locale', () => {
+		expect(recordCount(1200, 1500, english)).toBe('1,200 places and 1,500 trips')
+
+		expect(recordCount(0, 1500, german)).toBe('1.500 trips')
 	})
 })
 
 describe('placeCount', () => {
 	it('names one place and several places', () => {
-		expect(placeCount(1)).toBe('1 place')
+		expect(placeCount(1, english)).toBe('1 place')
 
-		expect(placeCount(3)).toBe('3 places')
+		expect(placeCount(3, english)).toBe('3 places')
+	})
+
+	it('formats the count in the locale', () => {
+		expect(placeCount(1200, english)).toBe('1,200 places')
+
+		expect(placeCount(1200, german)).toBe('1.200 places')
 	})
 })

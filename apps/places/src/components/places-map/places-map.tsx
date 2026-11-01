@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { cn } from 'ui/core'
 import {
 	type MapCategory,
@@ -10,8 +10,9 @@ import {
 	MapPoints,
 	type MapProjection,
 } from 'ui/modules/map'
+import { useIntl } from 'ui/primitives/intl'
 import { RECORD_KIND_META } from '../../constants'
-import type { Place, Trip } from '../../types'
+import type { FormatNumber, Place, Trip } from '../../types'
 import type { PlaceVisitFilter } from '../../utilities/places-filter'
 import { centeredProjection, regionFrame, regionName } from '../../utilities/places-geography'
 import { drawnRecords, isTrip } from '../../utilities/places-trips'
@@ -52,15 +53,14 @@ const SUMMARY_NAMES = 3
  * The readout of a summary: the names of the records it stands for, up to
  * {@link SUMMARY_NAMES}, then how many more. A summary can hold places and
  * trips together, and its names say what it holds where a count of one kind
- * would not. Module-scope because `MapPoints` keys its readout rows on this
- * identity.
+ * would not. The count of the rest is in the locale of `format`.
  */
-function summaryNames(_count: number, _span: number, labels: string[]): string {
+function summaryNames(labels: readonly string[], format: FormatNumber): string {
 	const named = labels.slice(0, SUMMARY_NAMES).join(', ')
 
 	const more = labels.length - SUMMARY_NAMES
 
-	return more > 0 ? `${named} and ${more} more` : named
+	return more > 0 ? `${named} and ${format(more)} more` : named
 }
 
 /** The id of the one mark that draws every record. */
@@ -131,6 +131,14 @@ export function PlacesMap({
 	selected,
 	onSelect,
 }: PlacesMapProps) {
+	const intl = useIntl()
+
+	// Held, because `MapPoints` keys its readout rows on this identity.
+	const clusterDetail = useCallback(
+		(_count: number, _span: number, labels: string[]) => summaryNames(labels, intl.formatNumber),
+		[intl.formatNumber],
+	)
+
 	// The one region the view is cut to, or `null` for the whole atlas.
 	const cut = viewRegion(view)
 
@@ -332,9 +340,9 @@ export function PlacesMap({
 					label={trips.length > 0 ? 'Places and trips' : RECORD_KIND_META.places.label}
 					shape={RECORD_KIND_META.trips.shape}
 					color={RECORD_KIND_META.places.color}
-					detail={String(records.length)}
+					detail={intl.formatNumber(records.length)}
 					points={stops}
-					clusterDetail={summaryNames}
+					clusterDetail={clusterDetail}
 					onClick={(_id, _index, merged) => {
 						const picked = merged.flatMap((index) => records[index] ?? [])
 

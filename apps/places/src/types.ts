@@ -98,3 +98,9 @@ export type PlaceCategoryMeta = {
 	label: string
 	color: PlaceColor
 }
+
+/**
+ * Writes a number in the locale of the reader, such as `1,200` in English and
+ * `1.200` in German. A component gives `formatNumber` of `useIntl`.
+ */
+export type FormatNumber = (value: number) => string
