@@ -57,7 +57,7 @@ describe('a floating panel wider than the viewport (real floating engine)', () =
 		expectInside(screen.getByRole('menu'))
 	})
 
-	it('keeps a submenu inside the space on its side', async () => {
+	it('keeps a submenu inside the margin', async () => {
 		renderUI(
 			<Menu placement="bottom-start" defaultOpen>
 				<MenuTrigger>
@@ -79,6 +79,37 @@ describe('a floating panel wider than the viewport (real floating engine)', () =
 		await frames(2)
 
 		expectInside(screen.getByRole('menu', { name: /More/ }))
+	})
+
+	// The menu stands in the middle of the viewport, so the space on each side of
+	// it is narrower than the minimum width of a panel. The submenu then covers a
+	// part of the menu, and the page does not scroll to the side.
+	it('keeps a submenu on the screen when neither side has room for it', async () => {
+		renderUI(
+			<div style={{ paddingLeft: 111 }}>
+				<Menu placement="bottom-start" defaultOpen>
+					<MenuTrigger>
+						<Button>Open</Button>
+					</MenuTrigger>
+
+					<MenuContent>
+						<MenuSub label="Export">
+							<MenuItem>CSV</MenuItem>
+						</MenuSub>
+					</MenuContent>
+				</Menu>
+			</div>,
+		)
+
+		await frames(2)
+
+		await userEvent.click(screen.getByRole('menuitem', { name: /Export/ }))
+
+		await frames(2)
+
+		expectInside(screen.getByRole('menu', { name: /Export/ }))
+
+		expect(document.documentElement.scrollWidth).toBe(width)
 	})
 
 	it('keeps a Popover inside the margin', async () => {

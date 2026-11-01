@@ -68,9 +68,15 @@ export function opensSubmenu(event: KeyboardEvent, row: Element): boolean {
  * `autoPlacement` measures both edges every reposition. A menu opened near the
  * right edge of the viewport therefore opens leftward from the start, instead
  * of being clipped. Restricted to the horizontal sides, because a submenu above
- * or below its parent would cover the menu it came from. Top-aligned with the row it
- * hangs off, with `shift` nudging it back into view when it runs past the
- * bottom. A panel wider than its side caps its width to that side. A panel
+ * or below its parent would cover the menu it came from. Top-aligned with the
+ * row it hangs off, with `shift` nudging it back into view when it runs past
+ * the bottom.
+ *
+ * A panel wider than the space on both sides, as on a phone, goes on the side
+ * with more space, and `shift` moves it back across the edge of the viewport.
+ * It then covers a part of the menu it came from, as a native menu does. If it
+ * went past the edge, the page would scroll to the side while it was open.
+ * The cap of the width is thus the viewport, not the space on the side. A panel
  * taller than the viewport shrinks to fit it, and scrolls.
  *
  * @internal
@@ -78,7 +84,7 @@ export function opensSubmenu(event: KeyboardEvent, row: Element): boolean {
 const SUBMENU_MIDDLEWARE: Middleware[] = [
 	offset(4),
 	autoPlacement({ allowedPlacements: ['right-start', 'left-start'] }),
-	shift({ padding: 8 }),
+	shift({ padding: 8, crossAxis: true }),
 	fitMiddleware({ fitHeight: snapMenuHeight }),
 ]
 
@@ -127,7 +133,8 @@ export type MenuSubProps = {
  *
  * The panel takes whichever side of the row has room
  * ({@link SUBMENU_MIDDLEWARE}), so it opens leftward near the viewport's right
- * edge rather than being clipped. The arrows follow the reading direction and
+ * edge rather than being clipped. Where neither side has room for it, as on a
+ * phone, it covers a part of the menu and stays on the screen. The arrows follow the reading direction and
  * not that side: the forward arrow opens the panel, and the back arrow closes
  * it, whatever side it opened on. The APG pattern names those keys, and a
  * screen reader user cannot see the side. Open state is the enclosing level's, not this row's
