@@ -37,7 +37,7 @@ export type PlacesIndexProps = {
 	 */
 	regionByPlace: ReadonlyMap<string, string>
 	/**
-	 * Which state holds each place, by the place's id — or absent, for no state
+	 * Which state holds each place, by the place's id, or absent for no state
 	 * column at all.
 	 *
 	 * The column exists because the region above names the region of the atlas the
@@ -80,7 +80,7 @@ export function PlacesIndex({
 }: PlacesIndexProps) {
 	// Every column declares `value`, because that is what the grid's quick search
 	// reads and what it sorts by. A column with only a `cell` renders but cannot
-	// be found — which for the name, the region, and the category is the whole
+	// be found, which for the name, the region, and the category is the whole
 	// point of the panel.
 	const columns = useMemo<GridColumn<Place>[]>(
 		() => [

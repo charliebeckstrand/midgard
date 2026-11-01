@@ -84,7 +84,7 @@ export type PlaceLocationHandle = PlaceLocation & {
  * so opening a place used to re-cluster a map that had not changed.
  *
  * Keyed on what the reader answered and not on the fields it read, so nothing
- * outside the codec has to know which fields those are — and two addresses that
+ * outside the codec has to know which fields those are, and two addresses that
  * parse alike hold one value between them. The reader runs every render, which
  * is a handful of `getAll` calls; what it hands back is what holds.
  *
@@ -112,7 +112,7 @@ function useSlice<T>(params: URLSearchParams, read: (params: URLSearchParams) =>
  *
  * The address is the one source: every panel reads it, and each of the setters
  * writes it. Held in `useState` these were lost on reload, absent from a shared
- * link, and unreachable by the Back button — while both breadcrumb trails
+ * link, and unreachable by the Back button, while both breadcrumb trails
  * rendered as links that went nowhere.
  */
 export function usePlaceLocation(): PlaceLocationHandle {
@@ -179,7 +179,7 @@ export function usePlaceLocation(): PlaceLocationHandle {
 
 	const setView = useCallback(
 		// The open panel is left behind by design: a place picked in one region is
-		// not what the reader is looking at once they have gone somewhere else — so
+		// not what the reader is looking at once they have gone somewhere else, so
 		// pointing the map is opening it on nothing.
 		(view: PlaceView) => openAt(view, NOTHING_SELECTED),
 		[openAt],

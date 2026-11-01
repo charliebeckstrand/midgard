@@ -15,16 +15,16 @@ import type { PlaceView } from './places-view'
  *
  * The keys are short and readable, because a reader sees them:
  *
- * - `country`, `state` — where the map is pointed.
- * - `category` — repeated, one per picked category.
- * - `paint` — which regions carry the visited fill.
- * - `when` — repeated, one `YYYY-MM-DD..YYYY-MM-DD` span per committed range.
- * - `show` — repeated, one per kind of record the map draws, while it draws
+ * - `country`, `state`: where the map is pointed.
+ * - `category`: repeated, one per picked category.
+ * - `show`: repeated, one per kind of record the map draws, while it draws
  *   one kind alone.
- * - `place`, `trip` — repeated, one per record the open panel stands for.
- * - `open` — the record of the panel's list that the reader went into.
- * - `list` — `all` while the panel lists every record of its region.
- * - `add` — `place` or `trip` while the form for a new one is open.
+ * - `paint`: which regions carry the visited fill.
+ * - `when`: repeated, one `YYYY-MM-DD..YYYY-MM-DD` span per committed range.
+ * - `place`, `trip`: repeated, one per record the open panel stands for.
+ * - `open`: the record of the panel's list that the reader went into.
+ * - `list`: `all` while the panel lists every record of its region.
+ * - `add`: `place` or `trip` while the form for a new one is open.
  */
 export type PlaceLocation = {
 	/**
@@ -95,7 +95,7 @@ const WIDENED = 'all'
  * What a stated world writes in place of a country name.
  *
  * The world needs a mark of its own, because the alternative is an address that
- * says nothing — and an address that says nothing is one the opening rule
+ * says nothing, and an address that says nothing is one the opening rule
  * answers, so a reader who walked out to the world would be sent back by their
  * own reload. It reads as a word rather than sitting empty, which is what the
  * region picker over the map calls the same thing.
@@ -244,7 +244,7 @@ function writeSelected(params: URLSearchParams, selected: PlaceSelection, step: 
  * Writes a location as an address, in the key order above.
  *
  * A field the location does not hold is left out entirely, so the address stays
- * as short as what the reader has actually done — and an unstated view writes no
+ * as short as what the reader has actually done, and an unstated view writes no
  * `country` at all, which is what {@link PlaceLocation.view} reads back as
  * "the opening rule still has the say".
  */

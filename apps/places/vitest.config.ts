@@ -9,7 +9,7 @@ import { sharedTest } from '../../vitest.shared.mts'
  * which region holds a place, the filter the bar applies, and the two backends
  * of the stores: the atomic files of `next dev` and the SQL of the database,
  * which runs on PGlite in the process. None of it touches a DOM, so none of it
- * needs one — the components compose `ui`, which carries its own suite.
+ * needs one: the components compose `ui`, which carries its own suite.
  *
  * The zone is pinned because a visit is a local-time day, and `toDay` and
  * `fromDay` read the machine's own clock. Unpinned, a test that writes

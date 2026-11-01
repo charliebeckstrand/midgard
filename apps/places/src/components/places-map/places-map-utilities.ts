@@ -4,7 +4,7 @@ import type { MapRecord } from '../../types'
 import { isTrip } from '../../utilities/places-trips'
 
 /**
- * The points the mark draws, in the order the records were given — which is the
+ * The points the mark draws, in the order the records were given. That is the
  * order a click reports back, so an index always names the caller's own record.
  *
  * Each point carries its own name, so the tooltip, the hidden table, and the

@@ -192,7 +192,7 @@ type VisitMark = { scope: VisitScope; region: string; visited: boolean }
  * failure puts back the set from before the press.
  *
  * The route answers with both scopes, so the cache then takes what the store
- * settled on rather than a copy patched here — which is what makes the first
+ * settled on rather than a copy patched here, which is what makes the first
  * write of a seeded file land whole.
  */
 export function setVisitMutation(client: QueryClient) {
@@ -235,7 +235,7 @@ export function useSetVisit() {
  *
  * No refetch behind it: the route answers with the stored record, so the cache
  * already holds what a re-read would return. The refetch would also land a new
- * array identity, and every derived value hangs off that one — the state
+ * array identity, and every derived value hangs off that one: the state
  * grouping walks `geoContains` over 56 features per place, and the map
  * re-clusters and re-projects every dot behind it.
  */

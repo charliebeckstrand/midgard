@@ -6,7 +6,7 @@ import type { Located } from '../types'
 /**
  * A region and the box that holds it: `[[west, south], [east, north]]`.
  *
- * A region is whatever the drawn atlas divides into — a state of the United
+ * A region is whatever the drawn atlas divides into: a state of the United
  * States, or a country of the world. Nothing below reads the grain, so one set
  * of functions serves both atlases.
  */
@@ -20,8 +20,8 @@ export type BoundedRegion = {
  * Whether a position falls inside a region's box, which is the cheap half of the
  * question.
  *
- * A box that crosses the antimeridian comes back wrapped — `geoBounds` reports
- * Alaska as west 172.46, east -129.98 — so the longitude test has to read the
+ * A box that crosses the antimeridian comes back wrapped (`geoBounds` reports
+ * Alaska as west 172.46, east -129.98), so the longitude test has to read the
  * two sides as an outside rather than an inside. Compared as a plain range it
  * rejected every point in the region, and Alaska fell through to the geocoder's
  * own name for want of a box test that could hold it.
@@ -42,7 +42,7 @@ function withinBounds(
 /** Kilometers along a degree of latitude, which is the scale the local frame below measures in. */
 const KM_PER_DEGREE = 111.195
 
-/** Degrees of latitude in a kilometer, for padding a box by a distance. Longitude is narrower away from the equator, so this over-pads rather than under-pads — the box only decides who is worth measuring. */
+/** Degrees of latitude in a kilometer, for padding a box by a distance. Longitude is narrower away from the equator, so this over-pads rather than under-pads: the box only decides who is worth measuring. */
 const DEGREES_PER_KM = 1 / KM_PER_DEGREE
 
 /** A longitude difference read the short way round, so a pair either side of the antimeridian is two degrees apart rather than 358. */
@@ -55,7 +55,7 @@ function longitudeDelta(from: number, to: number): number {
  *
  * Measured on a plane tangent at the position, with longitude scaled by its
  * cosine. The tolerances this serves are tens of kilometers, where that frame
- * and the sphere agree to well under a percent — and unlike a distance to the
+ * and the sphere agree to well under a percent, and unlike a distance to the
  * ring's vertices, it holds however far apart a generalized atlas spaces them.
  * A coastline drawn at 110m runs hundreds of kilometers between vertices, so a
  * harbor off the middle of one edge reads as far from both of its ends and no
@@ -129,10 +129,10 @@ function rings(geometry: NonNullable<MapFeature['geometry']>): [number, number][
  * It exists because an atlas is a drawing and not a survey. `world-atlas` at
  * 110m generalizes a coastline into a line that runs inland of the harbors,
  * piers and beach towns a travel log is full of, so `geoContains` answers `false`
- * for a place plainly inside the country — Newport, Oregon sits 3.1 km outside
+ * for a place plainly inside the country: Newport, Oregon sits 3.1 km outside
  * the United States as that atlas draws it.
  *
- * Distance is measured to the region's edges, not to its vertices — see
+ * Distance is measured to the region's edges, not to its vertices. See
  * {@link edgeKm} for why that matters on an atlas this coarse.
  *
  * It is the caller's tolerance because it belongs to the atlas, not to this
@@ -206,8 +206,8 @@ export function topologyNames(topology: MapTopology, key: string): string[] {
 /**
  * Decodes one object's regions out of a TopoJSON topology.
  *
- * `key` names the object to draw — `states` for us-atlas, `countries` for
- * world-atlas — and the first object stands in where the atlas names it
+ * `key` names the object to draw (`states` for us-atlas, `countries` for
+ * world-atlas), and the first object stands in where the atlas names it
  * something else.
  *
  * Decoded here rather than handed to the map whole, because the drill reads one
@@ -271,7 +271,7 @@ export function regionFrame(
  * Split from the grouping because it depends on the atlas alone, and an atlas
  * never changes for the life of the tab. Over the 56 states and their 14,456
  * coordinate pairs it is most of a grouping pass at any realistic number of
- * places — so it is resolved once and handed in rather than
+ * places, so it is resolved once and handed in rather than
  * rebuilt every time a place is added.
  */
 export function boundRegions(regions: MapFeatureCollection | null): BoundedRegion[] {
@@ -302,7 +302,7 @@ export type GroupOptions = {
  * Four answers, in the order they are trusted.
  *
  * `known` is settled before this pass ran and beats the geometry, because it was
- * read off a finer atlas than the one drawn here — a place a 10m atlas put in a
+ * read off a finer atlas than the one drawn here: a place a 10m atlas put in a
  * state is in that country whatever a 110m outline of it says. It is also the
  * cheap answer: a place it names pays no bounds test and no ring walk at all.
  * Measured over 200 places inside the United States, it takes nearly all of the
@@ -313,7 +313,7 @@ export type GroupOptions = {
  * same shape the drill opens.
  *
  * `snapKm` then rescues what the drawing missed rather than what the geocoder
- * knows — see {@link nearestRegion}, and note that the tolerance belongs to the
+ * knows. See {@link nearestRegion}, and note that the tolerance belongs to the
  * atlas: a states atlas must not be given one, because outside its regions lies
  * Mexico and a border city snaps across it.
  *
@@ -323,14 +323,14 @@ export type GroupOptions = {
  * on the map. `known` and the snap are not checked that way: one is a name this
  * app chose and the other is a name the atlas itself gave.
  *
- * A place that none of the four answers — mid-ocean, or off the atlas — belongs
+ * A place that none of the four answers (mid-ocean, or off the atlas) belongs
  * to no region and opens no drill. It still draws on the map, because a dot is a
  * position and not a membership.
  *
  * Each region's box is tested before its outline, so a place only pays the
  * polygon pass for the handful of regions whose box it falls in. `geoContains`
- * walks every ring of the region it is asked about — the states atlas is 14,456
- * coordinate pairs — and a place outside every region paid all of it before
+ * walks every ring of the region it is asked about (the states atlas is 14,456
+ * coordinate pairs), and a place outside every region paid all of it before
  * reaching the fallback. Measured over 200 places, the boxes take nearly all of
  * that work out of the same grouping. The boxes come from {@link boundRegions}.
  *

@@ -3,7 +3,7 @@ import type { PlaceCategory, PlaceCategoryMeta, PlaceColor, RecordKind } from '.
 /**
  * The categories, in the order the filter lists them and the map assigns their
  * colors. Each carries its own slot, so a category keeps its color whatever
- * else is on the map — a legend that renumbered itself as places were added
+ * else is on the map: a legend that renumbered itself as places were added
  * would make yesterday's screenshot lie.
  */
 export const CATEGORIES: readonly PlaceCategoryMeta[] = [

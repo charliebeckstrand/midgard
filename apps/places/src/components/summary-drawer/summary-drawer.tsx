@@ -15,8 +15,8 @@ import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
 /**
  * The list the drawer shows, and the name of the group's own step over it.
  *
- * A picked group of two or more that is a part of its region — a summary dot
- * that merged some of the region's records — is a step of its own under the
+ * A picked group of two or more that is a part of its region (a summary dot
+ * that merged some of the region's records) is a step of its own under the
  * region, so the drawer lists what the reader picked, and the region crumb is
  * one step back to the rest. Every other pick lists the region, and has no
  * group step. A record the map placed in no region has no region list, so the
@@ -125,7 +125,7 @@ export type SummaryDrawerProps<T extends Located> = {
 	 */
 	items: readonly T[]
 	/**
-	 * The regions the picked dot stands in, from the drawn one down — empty where
+	 * The regions the picked dot stands in, from the drawn one down, empty where
 	 * none holds it. The last step is what the list under it is.
 	 *
 	 * A trail rather than one name, because a summary dot on the world map often
@@ -134,7 +134,7 @@ export type SummaryDrawerProps<T extends Located> = {
 	 * it standing on.
 	 */
 	trail: readonly string[]
-	/** Every record in the trail's last region — the list its crumb leads back to. */
+	/** Every record in the trail's last region: the list its crumb leads back to. */
 	regionItems: readonly T[]
 	/**
 	 * The step of the trail that the panel shows. The caller holds it, so that the
@@ -191,7 +191,7 @@ export type SummaryFrame<T extends Located> = Pick<
  * the reader's hand.
  *
  * A summary dot opens as the list of the records it merged, under a step named
- * for them — their shared city, or a count — beneath the region they stand in.
+ * for them (their shared city, or a count) beneath the region they stand in.
  * The region crumb widens the list to every record in the region. A summary
  * that merged the whole region opens as the region's list, with no step of its
  * own. A lone dot opens straight into its record.
@@ -218,7 +218,7 @@ export function SummaryDrawer<T extends Located>({
 }: SummaryDrawerProps<T>) {
 	// The last group the drawer was given, and its step. The panel stays mounted
 	// while it closes so the slide out plays, and a closing panel is handed an
-	// empty group and the start step — so the body reads the last open ones rather
+	// empty group and the start step, so the body reads the last open ones rather
 	// than the current ones, or it would blank or flip back to the list halfway
 	// through its own exit.
 	const [last, setLast] = useState({ items, step })
@@ -275,7 +275,7 @@ export function SummaryDrawer<T extends Located>({
 				glass
 				// Grown to what each step holds, because this panel is navigated: the
 				// crumb walks between the region's list and one record, and the two are
-				// not the same size. A fixed height fits one of them — a list of twelve
+				// not the same size. A fixed height fits one of them: a list of twelve
 				// scrolls inside a box built for one record, and a record sits in a box
 				// built for the list with half of it empty under the review.
 				//
@@ -283,7 +283,7 @@ export function SummaryDrawer<T extends Located>({
 				// moving because its contents changed reads as the panel collapsing under
 				// the reader's hand, and the same move at the speed of the crumb reads as
 				// the panel following it. A region with records enough covers the map, which
-				// is the honest answer for a step with that much to show — the crumb above
+				// is the honest answer for a step with that much to show. The crumb above
 				// is how the reader gets back to it.
 				height="fit"
 				aria-label={title}
@@ -292,7 +292,7 @@ export function SummaryDrawer<T extends Located>({
 				<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
 					{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge
-				    instead of truncating — the crumbs cannot shrink below a parent that
+				    instead of truncating: the crumbs cannot shrink below a parent that
 				    will not. `flex-1` gives the trail the panel's full width, which is the room
 				    its fit measures. */}
 					<Stack gap="sm" className="flex-1 min-w-0">

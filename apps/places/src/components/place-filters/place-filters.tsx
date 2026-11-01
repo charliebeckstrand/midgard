@@ -100,18 +100,18 @@ function ShowField() {
  * The bar over the map: which region to project, then which places to draw on it.
  *
  * The region picker is navigation and not a filter, so it sits beside the filter
- * bar rather than inside it — it does not narrow the places, it decides the
+ * bar rather than inside it: it does not narrow the places, it decides the
  * geography. It lists the regions it is given: on the world map, the countries
  * that hold a place, because the palette reaches the rest. It and the
  * breadcrumb read the same view, so clearing either is the way back.
  *
- * It also names itself for what it lists — countries on the world map, states
- * inside the United States — because the same control means a different grain at
+ * It also names itself for what it lists (countries on the world map, states
+ * inside the United States), because the same control means a different grain at
  * each level and a fixed label would be wrong at one of them.
  *
  * Every filter goes through `FormFiltersField`'s render function rather than its
  * element form. The element form binds `value={fieldValue ?? null}`, and neither
- * a multi-select Listbox nor the relative DatePicker takes a `null` — each holds
+ * a multi-select Listbox nor the relative DatePicker takes a `null`: each holds
  * an array. The render function hands the slot and its setter over untouched.
  * Each field names the type of its slot, so the render function needs no cast.
  */
@@ -127,7 +127,7 @@ export function PlaceFilters({
 	return (
 		// One row at every width, scrolling sideways where it does not fit. The map
 		// under this bar is the whole screen, so a column of five controls would take
-		// the thing the bar exists to filter — and on the narrow screen where that
+		// the thing the bar exists to filter, and on the narrow screen where that
 		// column would appear, the map has the least room to spare.
 		<FormFilters<PlaceFilterValue>
 			aria-label="Filter places"
@@ -138,16 +138,16 @@ export function PlaceFilters({
 			<FormFiltersBar>
 				{/* The bar's own padding rides the field row rather than a wrapper
 				    around it. Outside the row, a padded band is not the scroll
-				    container. A wheel over the strip above or below the controls —
-				    most of what the pointer can land on — would reach nothing.
+				    container. A wheel over the strip above or below the controls
+				    (most of what the pointer can land on) would reach nothing.
 
 				    While Clear follows the row, the row has no right padding. Clear
 				    holds the inset at the right edge, and the gap of the bar holds
 				    the space between the two. With the padding too, the last field
 				    stood four gaps away from Clear. */}
 				<FormFiltersRow className="px-6 py-3 not-last:pr-0">
-					{/* Navigation rather than a filter — it projects one region instead of
-					    narrowing the places — but it rides the same rail: two scroll
+					{/* Navigation rather than a filter (it projects one region instead of
+					    narrowing the places), but it rides the same rail: two scroll
 					    containers side by side is one the reader's wheel finds and one it
 					    does not. */}
 					<Listbox<string>
@@ -202,7 +202,7 @@ export function PlaceFilters({
 							<CategoryPicker
 								value={categories ?? []}
 								// An absent field is what `FormFilters` reads as unset, and an empty
-								// pick means the reader stopped filtering — so the two meet here.
+								// pick means the reader stopped filtering, so the two meet here.
 								onValueChange={(next) => setCategories(next.length === 0 ? undefined : next)}
 							/>
 						)}
@@ -217,7 +217,7 @@ export function PlaceFilters({
 								relative={{ chips: false }}
 								// The bar clears itself. A Clear inside the popover would undo one
 								// field from inside a panel the reader opened to pick with, next to
-								// a Clear on the bar that undoes every field — two controls of the
+								// a Clear on the bar that undoes every field: two controls of the
 								// same name, one step apart, with different reach.
 								footer={{ clear: false }}
 								aria-label="Visited when"

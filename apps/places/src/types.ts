@@ -66,7 +66,7 @@ export type RecordKind = (typeof RECORD_KINDS)[number]
  *
  * The map draws from the chart module's slots and Badge from the extended `iro`
  * palette. The two overlap on everything but `orange`, so a category picks from
- * the overlap rather than either side forking its palette — which is the one
+ * the overlap rather than either side forking its palette, which is the one
  * thing the CVD-validated set must never do.
  */
 export type PlaceColor = 'blue' | 'violet' | 'green' | 'rose' | 'amber' | 'sky' | 'red' | 'zinc'
@@ -81,7 +81,7 @@ export type PlaceColor = 'blue' | 'violet' | 'green' | 'rose' | 'amber' | 'sky' 
  * is a state of the United States and Georgia is a country.
  *
  * Declared as a tuple so the runtime guard at the route and the type below have
- * one source — a scope added here reaches both, where two hand-written lists
+ * one source: a scope added here reaches both, where two hand-written lists
  * would leave the route rejecting what the type admits.
  */
 export const VISIT_SCOPES = ['states', 'countries'] as const

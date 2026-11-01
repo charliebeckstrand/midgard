@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import {
 	type CommentKind,
@@ -11,7 +11,7 @@ import {
 	SyntaxKind,
 } from 'typescript/unstable/ast'
 import type { TypeScriptServer } from './ts-server'
-import { srcDir, srcRelative, uiRoot, walkSource } from './walk-source'
+import { srcDir, srcRelative, uiRoot, walkSource, workspaceRoot } from './walk-source'
 
 /**
  * The controlled-language scan, once run by hand, as a reusable reader. It
@@ -416,6 +416,42 @@ export function scanUnshipped(server: TypeScriptServer): Break[] {
 			(item) => item.rule === 'aside',
 		),
 	)
+
+	return breaks.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)
+}
+
+/**
+ * The apps and the packages other than ui, relative to the repository root.
+ * Their readers read the same prose, so the aside rule holds there too.
+ */
+const WORKSPACE_ROOTS = ['apps', 'packages/auth', 'packages/shared']
+
+/**
+ * Every cadence rule 5 break outside ui: in the comments of each source file
+ * and in each Markdown file of {@link WORKSPACE_ROOTS}, the test trees and the
+ * configs included. The other rules are not gated there. Paths are relative to
+ * the repository root.
+ *
+ * @param server - The TypeScript server that parses the files, in one project.
+ */
+export function scanWorkspace(server: TypeScriptServer): Break[] {
+	const files = WORKSPACE_ROOTS.flatMap((root) =>
+		packageFiles(
+			join(workspaceRoot, root),
+			(file) => SOURCE_FILE.test(file) || file.endsWith('.md'),
+		),
+	)
+
+	const key = (file: string) => relative(workspaceRoot, file).split(sep).join('/')
+
+	const breaks = [
+		...[...server.parse(files.filter((file) => SOURCE_FILE.test(file)))].flatMap(([file, source]) =>
+			fileBreaks(key(file), source),
+		),
+		...files
+			.filter((file) => file.endsWith('.md'))
+			.flatMap((file) => markdownBreaks(key(file), readFileSync(file, 'utf8'))),
+	].filter((item) => item.rule === 'aside')
 
 	return breaks.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)
 }

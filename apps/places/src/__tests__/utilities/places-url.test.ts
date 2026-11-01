@@ -227,7 +227,7 @@ describe('writeLocation', () => {
 
 describe('a location round trip', () => {
 	// The address is the state, so what a reader lands on has to be what they
-	// left — a round trip that loses a field loses their place.
+	// left: a round trip that loses a field loses their place.
 	it('survives every field at once', () => {
 		const location: PlaceLocation = {
 			view: { country: UNITED_STATES, state: 'Oregon' },

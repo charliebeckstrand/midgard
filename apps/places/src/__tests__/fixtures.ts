@@ -6,7 +6,7 @@ import type { Photo, Place, Trip, Visit } from '../types'
  * Shared because the defaults are the thing that drifts. Written out per file,
  * the same fixture carried a different `rating` and a different `address` in
  * each, so a test that read a field it had not named got a different answer
- * depending on which file it lived in — and a field added to {@link Place} broke
+ * depending on which file it lived in, and a field added to {@link Place} broke
  * every copy separately.
  */
 export function place(id: string, fields: Partial<Place> = {}): Place {
@@ -31,7 +31,7 @@ export function placeOn(id: string, visitedAt: string, fields: Partial<Place> = 
 	})
 }
 
-/** The same, placed at a position — which is what the geometry cases vary. */
+/** The same, placed at a position, which is what the geometry cases vary. */
 export function placeAt(id: string, at: [number, number], fields: Partial<Place> = {}): Place {
 	return place(id, { longitude: at[0], latitude: at[1], ...fields })
 }

@@ -126,7 +126,7 @@ export function NearbyDrawer({
 	...frame
 }: NearbyDrawerProps) {
 	// Which categories the places are narrowed to; empty is unfiltered. Held here
-	// rather than lifted, because it narrows this panel's list and nothing else —
+	// rather than lifted, because it narrows this panel's list and nothing else:
 	// the bar over the map already narrows the map. Held here rather than in the
 	// list, because the list unmounts while a record is open, and the reader comes
 	// back to the list they narrowed.
@@ -142,8 +142,8 @@ export function NearbyDrawer({
 	// would throw a reader out of the row they had opened.
 	const groupKey = frame.items.map((record) => record.id).join('|')
 
-	// Returns the list's own pickers to their start. Keyed on the pick alone — the
-	// reset belongs to a new pick, not to every re-read — and skipped while
+	// Returns the list's own pickers to their start. Keyed on the pick alone (the
+	// reset belongs to a new pick, not to every re-read) and skipped while
 	// closing, or the list would change under its own exit.
 	useEffect(() => {
 		if (groupKey === '') return

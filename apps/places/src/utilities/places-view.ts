@@ -8,7 +8,7 @@ import { regionName } from './places-geography'
  *
  * The atlas's name and not the geocoder's. Natural Earth writes "United States
  * of America" where a geocoder commonly writes "United States", and this
- * constant is only ever compared against a name the atlas gave — never against
+ * constant is only ever compared against a name the atlas gave, never against
  * a name a place carries. Nothing here reads {@link Located.country}.
  */
 export const UNITED_STATES = 'United States of America'
@@ -17,9 +17,9 @@ export const UNITED_STATES = 'United States of America'
  * Regions no map here draws.
  *
  * Antarctica alone, and for how it looks rather than for what it is. Every world
- * projection stretches the pole into a band across the foot of the frame — a
+ * projection stretches the pole into a band across the foot of the frame (a
  * flat smear that reads as a drawing fault, and worse under Mercator than under
- * most — and it takes a tenth of the frame's height to say nothing a reader of
+ * most), and it takes a tenth of the frame's height to say nothing a reader of
  * this app is looking for.
  *
  * A place recorded there still draws, because a dot is a position and not a
@@ -56,7 +56,7 @@ export function drawnRegions(regions: MapFeatureCollection | null): MapFeatureCo
  *
  * It is a fact about `world-atlas` at 110m and not a preference. That drawing
  * runs a coastline inland of the harbors and beach towns a travel log is full
- * of — Newport, Oregon falls 3.1 km outside the United States as it is drawn —
+ * of (Newport, Oregon falls 3.1 km outside the United States as it is drawn),
  * and 50 km covers that generalization with room to spare. Whatever lies outside
  * every country of a world atlas is water, so the nearest coast is the right
  * answer and a generous tolerance costs nothing.
@@ -87,7 +87,7 @@ export type PlaceView = {
 
 /**
  * Which atlas a view draws. It is the visit scope: an atlas divides the world
- * one way, and a region is marked visited under the atlas that named it — so
+ * one way, and a region is marked visited under the atlas that named it, so
  * `viewMark`'s scope crosses into the store without a conversion.
  */
 export type PlaceAtlas = VisitScope
@@ -95,14 +95,14 @@ export type PlaceAtlas = VisitScope
 /** The whole world, which is where a collection that reaches outside one country opens. */
 export const WORLD: PlaceView = { country: null, state: null }
 
-/** The United States, whole — the view this app opened on before it drew anywhere else. */
+/** The United States, whole: the view this app opened on before it drew anywhere else. */
 export const UNITED_STATES_VIEW: PlaceView = { country: UNITED_STATES, state: null }
 
 /**
  * The atlas a view draws.
  *
  * Inside the United States the map draws states, at every other level countries
- * — including inside one country, which is the countries atlas cut to one shape.
+ * (including inside one country, which is the countries atlas cut to one shape).
  */
 export function viewAtlas(view: PlaceView): PlaceAtlas {
 	return view.country === UNITED_STATES ? 'states' : 'countries'
@@ -121,7 +121,7 @@ export function viewRegion(view: PlaceView): string | null {
  * The regions holding these places, named once each and sorted.
  *
  * Read off the places rather than the atlas, so a filter built from it never
- * offers a region that would empty the list it filters — the drawn atlas has
+ * offers a region that would empty the list it filters: the drawn atlas has
  * fifty-odd regions and a reader's places sit in a handful.
  *
  * @param regionByPlace Which region holds each place, by the place's id.
@@ -170,7 +170,7 @@ export function pickerRegions(holding: readonly string[], cut: string | null): s
  * a region holding none of these places would open on an empty table.
  *
  * @param region The region the view is cut to, or `null` for the whole atlas.
- * @param regions The regions on offer — see {@link regionsHolding}.
+ * @param regions The regions on offer. See {@link regionsHolding}.
  */
 export function openingRegion(region: string | null | undefined, regions: readonly string[]) {
 	return region != null && regions.includes(region) ? region : null
@@ -181,7 +181,7 @@ export function openingRegion(region: string | null | undefined, regions: readon
  * coastal place sits a little outside the generalized outline that plainly holds
  * it. Handed to `groupByRegion`, whose fallback this is.
  *
- * The countries atlas has a better answer than any name — see
+ * The countries atlas has a better answer than any name. See
  * {@link knownCountry}, which the app hands the countries grouping instead.
  */
 export function getState(place: Located): string | undefined {
@@ -192,7 +192,7 @@ export function getState(place: Located): string | undefined {
  * A grouping inverted: which region holds each place, by the place's id.
  *
  * The grouping answers "what is in this region" and three readers ask the
- * opposite — which region a picked place stands in, which places another atlas
+ * opposite: which region a picked place stands in, which places another atlas
  * already settled, and what a row's region column says. Each walked the grouping
  * its own way; one inversion answers all three in one pass.
  */
@@ -215,7 +215,7 @@ export function buildRegions(
  *
  * The order is the one the whole app trusts. A 10m atlas that holds a point
  * beats a name a geocoder returned, and the name is what carries the question
- * past the atlas's edge — the states are drawn for one country, and outside it
+ * past the atlas's edge. The states are drawn for one country, and outside it
  * the subdivision the geocoder named is the nearest thing to a state there is.
  *
  * Unchecked, unlike the same fallback inside `groupByRegion`, which tests
@@ -240,7 +240,7 @@ export function getCountry(place: Located): string | undefined {
 
 /**
  * What the states atlas already settled, for the countries grouping to trust
- * ahead of its own geometry — `groupByRegion`'s `known`.
+ * ahead of its own geometry: `groupByRegion`'s `known`.
  *
  * A place the states atlas can put in a state is in the United States, whatever
  * the geocoder called its country. That matters because the world is drawn at
@@ -252,7 +252,7 @@ export function getCountry(place: Located): string | undefined {
  *
  * So the two atlases answer together, and the finer one answers first. The app
  * already groups against the states for its own reasons, and {@link buildRegions}
- * of that grouping is the answer — which also makes this the cheap path, since a
+ * of that grouping is the answer, which also makes this the cheap path, since a
  * place it names skips the world's bounds test and ring walk entirely.
  */
 export function knownCountry(
@@ -290,7 +290,7 @@ export function viewKey(view: PlaceView): string {
  *
  * It is not {@link viewRegion}. Inside the United States the frame draws every
  * state and is cut to none of them, so the region is `null` while the frame
- * plainly names a country — and a map that called that view "the world" would
+ * plainly names a country, and a map that called that view "the world" would
  * report the one thing the reader can see it is not.
  */
 export function viewFrame(view: PlaceView): string | null {
@@ -298,7 +298,7 @@ export function viewFrame(view: PlaceView): string | null {
 }
 
 /**
- * The region a view stands at, and the scope it is marked under — or `null` at
+ * The region a view stands at, and the scope it is marked under, or `null` at
  * the world, which is not a region and has nothing to designate.
  *
  * It is not {@link viewRegion} either, and the United States is again why. Its
@@ -326,7 +326,7 @@ export type PlaceCrumb = {
  * where the reader is; every one before it is a way back.
  *
  * The root is called "Places" rather than "World", because it is the page as
- * well as the level — the whole map is every place there is.
+ * well as the level: the whole map is every place there is.
  */
 export function viewCrumbs(view: PlaceView): PlaceCrumb[] {
 	const crumbs: PlaceCrumb[] = [{ label: 'Places', view: WORLD }]
@@ -341,7 +341,7 @@ export function viewCrumbs(view: PlaceView): PlaceCrumb[] {
 }
 
 /**
- * The regions a picked group stands in, from the drawn one down — what the open
+ * The regions a picked group stands in, from the drawn one down: what the open
  * panel names itself with.
  *
  * A dot on the world map is a country's worth of places, and a summary dot there
@@ -350,8 +350,8 @@ export function viewCrumbs(view: PlaceView): PlaceCrumb[] {
  * see it stands on. Where the group agrees on a state, the trail says so and the
  * panel lists that state rather than the country.
  *
- * Where it does not agree — a summary spanning two states, or a country this app
- * draws no states for — the trail stops at the drawn region, because a step it
+ * Where it does not agree (a summary spanning two states, or a country this app
+ * draws no states for), the trail stops at the drawn region, because a step it
  * cannot name is a step that would list the wrong places.
  *
  * The last step is always the one the panel lists. Nothing is repeated from the
@@ -394,7 +394,7 @@ export function groupName(group: readonly Located[]): string {
  * in, or the world, which shows every place there is.
  *
  * The world rather than the place's own country, because a country is only
- * reachable by the name its atlas gives it and a place carries the geocoder's —
+ * reachable by the name its atlas gives it and a place carries the geocoder's:
  * "United States" against "United States of America". A view built from the
  * wrong string frames nothing; the world frames everything, and the reader is
  * one click from the country either way.
@@ -422,7 +422,7 @@ export function viewUp(view: PlaceView): PlaceView | null {
  *
  * The question is asked of the geometry and never of a country name. A place
  * the states atlas can put in a state is a place in the United States, whatever
- * the geocoder called its country — so a collection the states atlas accounts
+ * the geocoder called its country, so a collection the states atlas accounts
  * for whole opens where this app always opened, and one it cannot opens on the
  * world.
  *

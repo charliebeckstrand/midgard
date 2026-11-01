@@ -55,7 +55,7 @@ export type IndexSheetProps<T extends Located> = {
  * Every record of one kind as a row, over the map.
  *
  * The map answers "what is near here" and cannot answer "where was that place
- * called Clearwater" — a reader with a hundred places had to remember which dot
+ * called Clearwater". A reader with a hundred places had to remember which dot
  * was which, and a place whose region they had forgotten was not findable at
  * all. This panel is the other index into the same set.
  *
@@ -63,8 +63,8 @@ export type IndexSheetProps<T extends Located> = {
  * surfaces never disagree about what is in play. Its own search finds within
  * that, which is why the bar keeps no search of its own.
  *
- * A row opens the record exactly as its dot does — the same drawer, over the
- * same map — and takes the map to it, because a reader who picks a record they
+ * A row opens the record exactly as its dot does (the same drawer, over the
+ * same map) and takes the map to it, because a reader who picks a record they
  * cannot see on the frame they are on has asked to go there.
  */
 export function IndexSheet<T extends Located>({
@@ -88,7 +88,7 @@ export function IndexSheet<T extends Located>({
 
 	// Seeded on the open and only then. Keyed on a render-time comparison rather
 	// than an effect, so the first frame carries the pick instead of showing every
-	// region for one paint — and so a re-render while the panel is up (a record
+	// region for one paint, and so a re-render while the panel is up (a record
 	// added, the bar narrowed) never takes back a pick the reader made.
 	if (open !== wasOpen) {
 		setWasOpen(open)
@@ -130,8 +130,7 @@ export function IndexSheet<T extends Located>({
 				</Flex>
 
 				{/* `min-h-0` so the body is the box the grid fills rather than one that
-			    grows with its rows; the panel's own height then bounds the table.
-			    The footer under it, with the Close button, holds the bottom inset. */}
+			    grows with its rows; the panel's own height then bounds the table. */}
 				<SheetBody className="min-h-0">
 					{/* `maxHeight="fill"` rather than a measured one: the grid takes the box it is
 				    given and flexes its scroll region to the remainder, so the rows
@@ -146,7 +145,7 @@ export function IndexSheet<T extends Located>({
 						rows={rows}
 						// The second filter, on the grid's own row across from its search: the
 						// two do the same job, where under the panel's title this one read as
-						// being about the panel. Only where there is a choice to make — with
+						// being about the panel. Only where there is a choice to make: with
 						// every row in one region it would narrow to what is already shown.
 						//
 						// "All regions" rather than the bar's "All states", because this panel
