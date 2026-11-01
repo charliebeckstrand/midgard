@@ -601,10 +601,14 @@ export type GridEditableConfig = {
 	 * the user made. Add the record to
 	 * your data, and feed it back through the grid's `rows`.
 	 *
-	 * Each {@link GridColumn.validate} of a cell with a value reads the value
-	 * and `values` as the row. A refusal blocks the add, and the error shows on
-	 * the cell. A synchronous return accepts the add. The row then clears, and
-	 * focus goes to its first editable cell.
+	 * Each {@link GridColumn.validate} checks its cell before the add starts. It
+	 * checks a cell with a value, and a cell of a {@link GridColumn.required}
+	 * column with no value. It reads the value and `values` as the row. A
+	 * refusal blocks the add, so `onRowAdd` does not fire and the row does not
+	 * go pending. The error shows on the cell, and focus goes to the first
+	 * refused cell in display order, with no scroll. A synchronous return
+	 * accepts the add. The row then clears, and focus goes to its first
+	 * editable cell.
 	 *
 	 * Return a promise to add asynchronously. The row is then pending until the
 	 * promise settles, and a second add waits for it.
@@ -615,9 +619,10 @@ export type GridEditableConfig = {
 	 * - Reject to refuse each cell with a value. A non-empty `message` of the
 	 *   reason is the error.
 	 *
-	 * A refusal refuses the whole add. The values come back with the errors,
-	 * and focus does not move. An accepted async add moves focus to the first
-	 * editable cell only when focus is still in the grid. The grid announces
+	 * A refusal refuses the whole add. The values come back with the errors.
+	 * Focus goes to the first refused cell in display order, and an accepted
+	 * async add moves focus to the first editable cell. Each of these moves
+	 * occurs only when focus is still in the grid. The grid announces
 	 * "Row added", or the refusal, politely.
 	 *
 	 * @remarks This is a sibling of {@link GridEditableConfig.onCommit}, not

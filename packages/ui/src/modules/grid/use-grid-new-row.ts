@@ -34,7 +34,14 @@ import {
 	type SinkOutcome,
 	trackSink,
 } from './engine/grid-editing-utilities'
-import { findSlotColumn, type NewRowFlight, restoreRefused } from './engine/grid-new-row'
+import {
+	findSlotColumn,
+	firstRefused,
+	type NewRowFlight,
+	refuseNewRow,
+	restoreRefused,
+	stageEmptyRefusals,
+} from './engine/grid-new-row'
 import type { GridEditSource } from './grid-data-types'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
@@ -127,9 +134,6 @@ export function useGridNewRow<T>({
 
 	// Raised to mount the slot's editors again, so each reads the store.
 	const [generation, remount] = useReducer((count: number) => count + 1, 0)
-
-	// Raised by a blocked add, so the slot renders and each editor checks again.
-	const [checks, check] = useReducer((count: number) => count + 1, 0)
 
 	const [inFlight, setInFlight] = useState(false)
 
@@ -231,8 +235,9 @@ export function useGridNewRow<T>({
 	)
 
 	// Settles an async add. An accepted add clears the slot. A refused one
-	// stages its values again, with the errors, and focus does not move. A
-	// refusal names a cell of the slot by its column, so its row is ignored.
+	// stages its values again, with the errors. Focus goes to the first refused
+	// cell when focus is still in the grid. A refusal names a cell of the slot
+	// by its column, so its row is ignored.
 	const settle = useCallback(
 		(flight: NewRowFlight, outcome: SinkOutcome) => {
 			if (flightRef.current !== flight) return
@@ -258,35 +263,44 @@ export function useGridNewRow<T>({
 
 			restoreRefused(drafts, flight, refused)
 
+			if (inGrid(document.activeElement, tableRef.current))
+				focusRef.current = firstRefused(dataColumnsRef.current, refused)
+
 			remount()
 
 			announce(describeRowAdd(intl, refused.size))
 		},
-		[drafts, editableColumn, accept, tableRef, intl],
+		[drafts, editableColumn, accept, tableRef, dataColumnsRef, intl],
 	)
 
-	// Adds the row. An add with no value does nothing. A `validate` refusal
-	// blocks it, and the slot renders so the editors show the error, also one
-	// that reads another cell. A second add waits
-	// while one is in flight. It reads the newest position and `onRowAdd`.
+	// Adds the row. An add with no value does nothing. The checks run before
+	// the add starts, so a row that `validate` refuses never goes pending. A
+	// refusal blocks the add: the editors mount again with the errors, also an
+	// error that reads another cell, or that a required cell with no value
+	// carries. Focus goes to the first refused cell, with no scroll. A second
+	// add waits while one is in flight. It reads the newest position and
+	// `onRowAdd`.
 	const addRow = useStableEvent(() => {
 		if (position === null || flightRef.current !== null) return
 
-		const { values, cells } = collectNewRow(
-			drafts.readRow(NEW_ROW_KEY),
-			editSourceRef.current.columns,
-		)
+		const row = drafts.readRow(NEW_ROW_KEY)
+
+		const { columns } = editSourceRef.current
+
+		const { values, cells } = collectNewRow(row, columns)
 
 		if (cells.length === 0) return
 
-		const invalid = cells.filter(
-			({ column, draft }) => column.validate?.(draft.value, values as T) != null,
-		).length
+		const refused = refuseNewRow(row, columns, values)
 
-		if (invalid > 0) {
-			check()
+		if (refused.size > 0) {
+			stageEmptyRefusals(drafts, refused, new Set(cells.map(({ column }) => column.id)))
 
-			announce(describeRowAdd(intl, invalid))
+			focusRef.current = firstRefused(dataColumnsRef.current, refused)
+
+			remount()
+
+			announce(describeRowAdd(intl, refused.size))
 
 			return
 		}
@@ -401,7 +415,6 @@ export function useGridNewRow<T>({
 				: {
 						position,
 						generation,
-						checks,
 						inFlight,
 						stageDraft: drafts.stage,
 						unstageDraft: drafts.unstage,
@@ -412,18 +425,7 @@ export function useGridNewRow<T>({
 						cellId,
 						seat: seatNewRow,
 					},
-		[
-			position,
-			generation,
-			checks,
-			inFlight,
-			drafts,
-			claimFocus,
-			addRow,
-			editorKind,
-			cellId,
-			seatNewRow,
-		],
+		[position, generation, inFlight, drafts, claimFocus, addRow, editorKind, cellId, seatNewRow],
 	)
 
 	return { session, keys, enter, editorKind }

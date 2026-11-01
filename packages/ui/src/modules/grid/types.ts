@@ -194,6 +194,8 @@ export type GridColumn<T> = {
 	 * grid: each editor carries `aria-required`, so assistive tech announces the
 	 * obligation (WCAG 1.3.1 / 3.3.2). This is the programmatic cue only: enforcing
 	 * a non-empty value remains the consumer's, through {@link GridColumn.validate}.
+	 * In the row of {@link GridEditableConfig.newRow}, an add also gives
+	 * `validate` a required cell with no value, so `validate` can block the add.
 	 * No effect on a non-editable or `readOnly` column.
 	 * @defaultValue false
 	 */

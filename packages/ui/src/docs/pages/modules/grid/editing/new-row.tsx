@@ -2,12 +2,12 @@ import { UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
-import { Grid, type GridCellRefusal, type GridEditableConfig } from 'ui/grid'
+import { Grid, type GridCellRefusal, type GridColumn, type GridEditableConfig } from 'ui/grid'
 import { Icon } from 'ui/icon'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { isRole } from '../../../../data/people.ts'
 import { PointerHint } from '../../../../kit/pointer-hint.tsx'
-import { applyChanges, EditHelp, initialPeople, personColumns } from './people.tsx'
+import { applyChanges, EditHelp, initialPeople, type Person, personColumns } from './people.tsx'
 
 const positions = ['top', 'bottom'] as const
 
@@ -41,11 +41,27 @@ function toAddConfig(choice: AddControl): GridEditableConfig['newRowAdd'] {
 	}
 }
 
-// The check of the mock server: a new person has a name.
-function refuseNewPerson(values: Record<string, unknown>): GridCellRefusal[] {
-	const name = String(values.name ?? '').trim()
+// A person needs a name. The grid checks it before the add starts, so a row
+// with no name never goes to the server.
+const columns: GridColumn<Person>[] = personColumns.map((column) =>
+	column.id === 'name'
+		? {
+				...column,
+				required: true,
+				validate: (value) => (String(value ?? '').trim() === '' ? 'Enter a name.' : null),
+			}
+		: column,
+)
 
-	return name === '' ? [{ rowKey: 'new', columnId: 'name', error: 'Enter a name.' }] : []
+// The check of the mock server: no two people have the same email.
+function refuseNewPerson(values: Record<string, unknown>, people: Person[]): GridCellRefusal[] {
+	const email = String(values.email ?? '').trim()
+
+	const taken = email !== '' && people.some((person) => person.email === email)
+
+	return taken
+		? [{ rowKey: 'new', columnId: 'email', error: 'Enter a different email. This one is taken.' }]
+		: []
 }
 
 export default function NewRow() {
@@ -60,7 +76,7 @@ export default function NewRow() {
 	const onRowAdd = async (values: Record<string, unknown>) => {
 		await new Promise((resolve) => setTimeout(resolve, 800))
 
-		const refused = refuseNewPerson(values)
+		const refused = refuseNewPerson(values, people)
 
 		if (refused.length > 0) return refused
 
@@ -119,7 +135,7 @@ export default function NewRow() {
 				</EditHelp>
 			</Flex>
 			<Grid
-				columns={personColumns}
+				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}
 				maxHeight="320px"

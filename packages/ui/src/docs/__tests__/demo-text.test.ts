@@ -176,6 +176,13 @@ describe('findDemoText', () => {
 		])
 	})
 
+	it('finds the message of a validate that is one check', () => {
+		const code =
+			"const name = { id: 'name', validate: (value) => (value === '' ? 'Enter a name.' : null) }"
+
+		expect(texts(code)).toEqual(['Enter a name.'])
+	})
+
 	it('finds each string that a check with a block body returns or pushes, and no other', () => {
 		const code = `export default () => (
 			<Form
@@ -295,6 +302,7 @@ describe('the demos', () => {
 		['modules/grid/virtualization/server-infinite-scroll.tsx', 'No more results'],
 		['modules/grid/editing/async-commit.tsx', 'Enter a different name.'],
 		['modules/grid/editing/new-row.tsx', 'Enter a name.'],
+		['modules/grid/editing/new-row.tsx', 'Enter a different email. This one is taken.'],
 		['primitives/skeleton/skeleton-variants.tsx', 'Chart (pie)'],
 		['modules/form/server-errors.tsx', 'Enter a different username. This one is taken.'],
 		['modules/form/success-and-failure.tsx', 'The server is busy. Try again in a minute.'],

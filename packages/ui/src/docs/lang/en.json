@@ -2655,6 +2655,10 @@
 		"defaultMessage": "https://",
 		"description": "Text of a demo in the docs as placeholder, in components/input/clearable.tsx."
 	},
+	"docs.demo.66e0a15b3006": {
+		"defaultMessage": "Enter a different email. This one is taken.",
+		"description": "Text of a demo in the docs as error, in modules/grid/editing/new-row.tsx."
+	},
 	"docs.demo.66f411b8d84f": {
 		"defaultMessage": "Reject a promise",
 		"description": "Text of a demo in the docs, in modules/events/report-a-bug.tsx."
