@@ -18,7 +18,7 @@ import type { GridEditingSession, GridNewRowSession, GridSettleControls } from '
 import { createActiveEditStore } from './engine/grid-active-edit-store'
 import { EMPTY_SET } from './engine/grid-constants'
 import type { GridFillCell, GridPasteCell } from './engine/grid-edit-commit'
-import { firstEditorCell } from './engine/grid-edit-focus'
+import { columnInUse, firstEditorCell } from './engine/grid-edit-focus'
 import type { GridHistoryStep } from './engine/grid-edit-history'
 import {
 	type CellRequest,
@@ -210,6 +210,7 @@ export function useGridEditing<T>({
 	moveTo,
 	seatNewRow,
 	rowStep,
+	readCursor,
 }: {
 	enabled: boolean
 	config: GridEditableConfig | undefined
@@ -233,6 +234,8 @@ export function useGridEditing<T>({
 	seatNewRow: (col: number) => void
 	/** The data row a number of rows away, over the rows that the cursor shows. */
 	rowStep: GridRowStep
+	/** The active cell of the cursor, in data row indexes, or `null` for none. Read at event time. */
+	readCursor: () => Coord | null
 }): GridEditingApi {
 	// Grid-owned session lifecycle (enter on double-click / cursor Enter, exit on
 	// an editor's Enter/Escape); the default 'manual' mode leaves it entirely to
@@ -848,13 +851,27 @@ export function useGridEditing<T>({
 	// Opens a row in the form. The row opens whole, with no active cell, so the
 	// field of each column stages into an open cell, and a discard drops them
 	// all. A cell-scoped session leaves its cell first: a cell on another row
-	// commits, and a cell on this row widens to the row. Focus returns to the
-	// control that opened the form, or to the cell of the cursor.
+	// commits, and a cell on this row widens to the row. Focus goes into the
+	// field of `columnId`. With no column, it goes into the field of the cell in
+	// use on the row: the cell that the session holds, else the cell of the
+	// cursor. Focus returns to the control that opened the form, or to the cell
+	// of the cursor.
 	const expandRow = useCallback(
 		(rowKey: string | number, columnId?: string | number) => {
 			const columns = dataColumnsRef.current
 
-			const named = columns.find((column) => column.id === columnId)
+			const active = activeEditRef.current
+
+			const target =
+				columnId ??
+				columnInUse(rowKey, {
+					held: active,
+					cursor: readCursor(),
+					rowKeys: rowKeysRef.current,
+					columns,
+				})
+
+			const named = columns.find((column) => column.id === target)
 
 			const cell =
 				named && isColumnEditable(named)
@@ -862,8 +879,6 @@ export function useGridEditing<T>({
 					: firstEditorCell(rowKey, columns)
 
 			if (!cell) return
-
-			const active = activeEditRef.current
 
 			if (active !== null && active.rowKey !== rowKey) exitSession(active.rowKey, 'save', false)
 			else if (active !== null) writeActiveCell(null)
@@ -891,6 +906,8 @@ export function useGridEditing<T>({
 			originsRef,
 			pendingFocusRef,
 			placeOrigin,
+			readCursor,
+			rowKeysRef,
 			setEditableRows,
 			writeActiveCell,
 		],

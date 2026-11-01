@@ -24,10 +24,10 @@ const columns: GridColumn<Row>[] = [
 ]
 
 /**
- * The form of an expanded row gives focus back as it closes, on the real
- * floating engine: to the control that opened it, or to the grid with the
- * cursor on the cell where Shift+Enter opened it. The jsdom mock of the focus
- * manager returns no focus.
+ * The form of an expanded row puts focus in the field of the cell in use on
+ * the row, and gives focus back as it closes, on the real floating engine: to
+ * the control that opened it, or to the grid with the cursor on the cell where
+ * Shift+Enter opened it. The jsdom mock of the focus manager returns no focus.
  */
 describe('grid row form focus (real floating engine)', () => {
 	it('returns the focus to the expand control on Cancel', async () => {
@@ -53,6 +53,71 @@ describe('grid row form focus (real floating engine)', () => {
 		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
 		await waitFor(() => expect(control).toHaveFocus())
+	})
+
+	it('opens the form on the field of the cell that a double click opened', async () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', scope: 'cell', onCommit: () => {} }}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		await userEvent.dblClick(within(grid).getByRole('gridcell', { name: 'Second' }))
+
+		await waitFor(() => expect(within(grid).getByRole('textbox')).toHaveFocus())
+
+		await userEvent.click(screen.getByRole('button', { name: 'expand-2' }))
+
+		const sheet = await screen.findByRole('dialog')
+
+		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Note' })).toHaveFocus())
+	})
+
+	it('opens the form on the field of the cursor cell', async () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', onCommit: () => {} }}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		await userEvent.click(within(grid).getByRole('gridcell', { name: 'Second' }))
+
+		await userEvent.click(screen.getByRole('button', { name: 'expand-2' }))
+
+		const sheet = await screen.findByRole('dialog')
+
+		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Note' })).toHaveFocus())
+	})
+
+	it('opens the form on the first field when the cursor is on another row', async () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', onCommit: () => {} }}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		await userEvent.click(within(grid).getByRole('gridcell', { name: 'First' }))
+
+		await userEvent.click(screen.getByRole('button', { name: 'expand-2' }))
+
+		const sheet = await screen.findByRole('dialog')
+
+		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Name' })).toHaveFocus())
 	})
 
 	it('returns the focus to the cursor cell after Shift+Enter and Escape', async () => {

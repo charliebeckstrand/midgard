@@ -144,7 +144,10 @@ export type GridRowActionsContext = {
 	 * {@link GridEditableConfig.overlay}, and on a wider screen it is a `Sheet`
 	 * from the side. Save commits the changed fields as one batch through
 	 * `onCommit`, and Cancel, Escape, and a press outside the form drop them.
-	 * Focus returns to the control that called it. Under `session: 'managed'`,
+	 * Focus goes into the field of the cell in use on the row: the cell that a
+	 * cell-scoped session holds, else the cursor cell. With neither on the
+	 * row, focus goes into the first field. Focus returns to the control that
+	 * called it. Under `session: 'managed'`,
 	 * Shift+Enter on the cursor opens the form of the cursor row, with focus in
 	 * the field of the cursor column. A row with no editable column stays
 	 * closed.
