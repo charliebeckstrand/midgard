@@ -622,6 +622,9 @@ importers:
       shiki:
         specifier: ^4.5.0
         version: 4.5.0
+      tabbable:
+        specifier: ^6.4.0
+        version: 6.4.0
       tailwind-merge:
         specifier: ^3.7.0
         version: 3.7.0

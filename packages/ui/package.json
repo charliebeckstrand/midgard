@@ -158,6 +158,7 @@
 		"motion": "^14.0.0",
 		"pdfjs-dist": "^6.4.299",
 		"shiki": "^4.5.0",
+		"tabbable": "^6.4.0",
 		"tailwind-merge": "^3.7.0",
 		"tinykeys": "^4.0.0",
 		"topojson-client": "catalog:"

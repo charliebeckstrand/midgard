@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Card } from '../../components/card'
 import { Overlay } from '../../primitives/overlay'
-import { attach, fireEvent, present, renderUI, screen } from '../helpers'
+import { attach, fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
 /** The backdrop of the open overlay. */
 const backdrop = () => present(document.querySelector('[data-slot="overlay-backdrop"]'), 'backdrop')
@@ -230,9 +230,8 @@ describe('Overlay', () => {
 		expect(backdrop().className).toBe('custom-backdrop')
 	})
 
-	// The mock focus manager moves the focus only to `initialFocus`, so each
-	// case gives it a target inside the overlay.
-	it('moves focus to initialFocus when modal', () => {
+	// The overlay moves the focus in after the commit, so the case waits for it.
+	it('moves focus to initialFocus when modal', async () => {
 		const outside = attach(document.createElement('button'))
 
 		outside.focus()
@@ -247,7 +246,7 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		expect(document.activeElement).toBe(inside.current)
+		await waitFor(() => expect(document.activeElement).toBe(inside.current))
 	})
 
 	it('does not steal focus when modal=false', () => {

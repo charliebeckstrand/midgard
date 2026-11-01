@@ -1359,14 +1359,14 @@ describe('CommandPalette open/close transitions', () => {
 		expect(reopenedInput.value).toBe('')
 	})
 
-	it('focuses the input on open', () => {
+	it('focuses the input on open', async () => {
 		renderUI(
 			<CommandPalette open onOpenChange={() => {}}>
 				<CommandPaletteItem>Run</CommandPaletteItem>
 			</CommandPalette>,
 		)
 
-		expect(document.activeElement).toBe(screen.getByRole('combobox'))
+		await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('combobox')))
 	})
 })
 
