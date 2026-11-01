@@ -377,12 +377,14 @@ function GridEditOverlayField<T>({ session, rowKey, row, column }: GridEditOverl
 	const hostRef = useRef<HTMLDivElement>(null)
 
 	// The cell that an entry named takes focus. Each later run drops nothing.
+	// The focus does not scroll: on iOS, a scroll moves the page under the
+	// overlay (`useOverlayInitialFocus`).
 	useEffect(() => {
 		if (!claimFocus(rowKey, column.id)) return
 
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
-		editor?.focus()
+		editor?.focus({ preventScroll: true })
 	})
 
 	const update = (next: unknown) => {

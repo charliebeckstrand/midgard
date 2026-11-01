@@ -25,6 +25,7 @@ import { chromeRegions } from '../chrome'
 import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
+import { useOverlayInitialFocus } from './use-overlay-initial-focus'
 
 /**
  * Props for {@link Overlay}: the `open` / `onOpenChange` pair, the `modal` and
@@ -199,6 +200,10 @@ export function Overlay({
 
 	useScrollLock(present && !scoped && modal)
 
+	// A modal overlay moves the focus in itself, without a scroll of the page.
+	// The focus manager thus takes no initial focus.
+	useOverlayInitialFocus(modal ? floating : null, open, initialFocus)
+
 	// A modal press outside the panel lands on the backdrop. With no paint, the
 	// backdrop stays for that press alone.
 	const catchesPress = modal && dismissOnBackdrop
@@ -316,13 +321,7 @@ export function Overlay({
 
 	return (
 		<Portal open={open} container={container} ssr onExitComplete={() => setPresent(false)}>
-			<OverlayFocus
-				modal={modal}
-				regions={regions}
-				context={context}
-				initialFocus={initialFocus}
-				returnFocusTo={returnFocusTo}
-			>
+			<OverlayFocus modal={modal} regions={regions} context={context} returnFocusTo={returnFocusTo}>
 				{panel}
 			</OverlayFocus>
 		</Portal>
@@ -333,10 +332,10 @@ export function Overlay({
 const noRegions = (): HTMLElement[] => []
 
 /**
- * Wraps the overlay panel in a modal `FloatingFocusManager`, which traps focus,
- * moves it in on open, and restores it on close. A non-modal surface renders
- * bare: no trap, no initial-focus steal, no focus return. Focus stays where it
- * is.
+ * Wraps the overlay panel in a modal `FloatingFocusManager`, which traps focus
+ * and restores it on close. `useOverlayInitialFocus` moves the focus in on
+ * open. A non-modal surface renders bare: no trap, no initial-focus steal, no
+ * focus return. Focus stays where it is.
  *
  * @internal
  */
@@ -344,7 +343,6 @@ function OverlayFocus({
 	modal,
 	regions,
 	context,
-	initialFocus,
 	returnFocusTo,
 	children,
 }: {
@@ -352,7 +350,6 @@ function OverlayFocus({
 	/** The regions that the trap exempts: `chromeRegions`, or none. */
 	regions: () => HTMLElement[]
 	context: FloatingRootContext
-	initialFocus: RefObject<HTMLElement | null> | undefined
 	returnFocusTo: RefObject<HTMLElement | null> | undefined
 	children: ReactElement
 }) {
@@ -377,7 +374,7 @@ function OverlayFocus({
 		<FloatingFocusManager
 			context={context}
 			modal
-			initialFocus={initialFocus}
+			initialFocus={-1}
 			returnFocus={returnFocusTo ?? true}
 			guards={chrome.length === 0}
 			outsideElementsInert={chrome.length > 0}

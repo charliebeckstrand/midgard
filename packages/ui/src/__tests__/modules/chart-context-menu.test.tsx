@@ -11,7 +11,7 @@ import {
 import { readoutToCsv } from '../../modules/chart/engine/chart-export'
 import { HeaderActions, HeaderActionsSlot } from '../../primitives/header-actions'
 import { LocaleProvider } from '../../providers/locale'
-import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen, waitFor } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 type Row = { quarter: string; revenue: number }
@@ -214,7 +214,7 @@ describe('Chart context menu', () => {
 		expect(onFullscreenChange).toHaveBeenCalledTimes(2)
 	})
 
-	it('seats initial focus on Close so the fullscreen dialog opens with a tab stop', () => {
+	it('seats initial focus on Close so the fullscreen dialog opens with a tab stop', async () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by quarter"
@@ -226,7 +226,7 @@ describe('Chart context menu', () => {
 
 		openFullscreen(container)
 
-		expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus())
 	})
 
 	it('opens the fullscreen dialog from the Fullscreen action, and closes it on Escape', () => {

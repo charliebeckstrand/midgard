@@ -12,6 +12,7 @@ import {
 	renderUI,
 	screen,
 	setupUser,
+	waitFor,
 } from '../helpers'
 
 describe('Drawer', () => {
@@ -51,7 +52,7 @@ describe('Drawer', () => {
 		expect(screen.getByRole('dialog')).toHaveAccessibleName('Filters')
 	})
 
-	it('moves initial focus to the initialFocus element on open', () => {
+	it('moves initial focus to the initialFocus element on open', async () => {
 		const ref = createRef<HTMLInputElement>()
 
 		renderUI(
@@ -63,7 +64,7 @@ describe('Drawer', () => {
 			</Drawer>,
 		)
 
-		expect(screen.getByLabelText('Composer')).toHaveFocus()
+		await waitFor(() => expect(screen.getByLabelText('Composer')).toHaveFocus())
 	})
 })
 
