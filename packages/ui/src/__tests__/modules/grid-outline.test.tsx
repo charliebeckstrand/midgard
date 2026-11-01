@@ -61,6 +61,21 @@ describe('Grid outline', () => {
 		expect(screen.getByRole('table')).not.toHaveClass('[&>*>tr>:is(td,th)]:border')
 	})
 
+	// The weights are those of the Card outline: `true` is the default weight.
+	it.each([
+		['the default weight for `true`', true, 'border-zinc-950/10'],
+		['the subtle weight', 'subtle', 'border-zinc-950/5'],
+		['the strong weight', 'strong', 'border-zinc-950/15'],
+	] as const)('colors the rules in %s', (_, outline, color) => {
+		renderUI(<Grid outline={outline} columns={columns} rows={rows} getKey={getKey} />)
+
+		const table = screen.getByRole('table')
+
+		expect(table).toHaveClass(`[&>*>tr>:is(td,th)]:${color}`)
+
+		expect(table).toHaveClass('border-separate')
+	})
+
 	it('omits the outline borders on a plain grid', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
@@ -75,6 +90,7 @@ describe('Grid outline', () => {
 	// explicit parity wins, and with no outline `striped` keeps the even default.
 	it.each([
 		['defaults a bare `striped` to odd parity when outlined', true, true, 'odd', 'even'],
+		['defaults a bare `striped` to odd parity under a named weight', 'subtle', true, 'odd', 'even'],
 		['lets an explicit striped parity override the outline default', true, 'even', 'even', 'odd'],
 		['keeps the even default for a bare `striped` on a plain grid', false, true, 'even', 'odd'],
 	] as const)('%s', (_, outline, striped, on, off) => {
