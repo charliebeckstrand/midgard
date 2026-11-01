@@ -148,7 +148,8 @@ export function collectHeaders(container: HTMLElement): Map<string, HTMLElement>
  * measurement pass. The headers also hold the `data-grid-fit` header of each non-data
  * column (see {@link collectHeaders}). An aggregate cell (`data-grid-aggregate`) joins
  * the cells of its column, but it is not a cell of a data row, so `cells` does not
- * count it.
+ * count it. A cell of the new-row slot (`data-grid-new-col`) joins its column too,
+ * because its editor is content of the column. It is not a data row either.
  *
  * @internal
  */
@@ -174,15 +175,22 @@ function collectCells(container: HTMLElement): {
 		getOrCompute(bodies, id, () => []).push(td)
 	}
 
+	for (const td of container.querySelectorAll<HTMLElement>(`td[data-grid-new-col]${OWN_CELL}`)) {
+		const id = td.getAttribute('data-grid-new-col')
+
+		if (id != null) getOrCompute(bodies, id, () => []).push(td)
+	}
+
 	return { headers, bodies, cells }
 }
 
 /**
  * A body leaf deferred to the batched `max-content` read (see
  * {@link resolvePendingLeaves}): a leaf whose contents include element children
- * (a Badge, an icon row, a composed cell), or the widest text leaf of a column.
- * `chrome` is its cell's padding and border (the cell border box minus the
- * leaf's), captured while the leaf still fills the cell.
+ * (a Badge, an icon row, a composed cell), the widest text leaf of a column, or
+ * the slot of an open editor. `chrome` is its cell's padding and border (the
+ * cell border box minus the leaf's), captured while the leaf still fills the
+ * cell.
  *
  * @internal
  */
@@ -237,8 +245,10 @@ function laysOutElements(leaf: HTMLElement): boolean {
  * does not read true in place. An atomic shrink-to-fit box (a Badge's
  * `fit-content`) genuinely narrows into a tight cell. Its in-place rect
  * therefore reports the shrunk width, not the natural one. Those leaves defer
- * to {@link resolvePendingLeaves} too. A cell with no leaf (the editable grid's
- * mounted editor, or empty content) falls back to its own `scrollWidth`.
+ * to {@link resolvePendingLeaves} too. So does the slot of an open editor
+ * (`k.edit.slot`): its `max-content` width shows its value in full, with the
+ * frame and the icons of the editor. A cell with no leaf and no editor (empty
+ * content) falls back to its own `scrollWidth`.
  *
  * @internal
  */
@@ -266,13 +276,15 @@ function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 		// One recipe class caps each leaf of a column, so the first leaf gives the cap.
 		cap ??= leafCap(leaf)
 
-		const chrome = td.getBoundingClientRect().width - leaf.getBoundingClientRect().width
+		const deferred = deferredLeaf(td, leaf)
 
-		if (laysOutElements(leaf)) {
-			pending.push({ leaf, chrome })
+		if (deferred) {
+			pending.push(deferred)
 
 			continue
 		}
+
+		const chrome = td.getBoundingClientRect().width - leaf.getBoundingClientRect().width
 
 		const width = intrinsicWidth(leaf)
 
@@ -291,6 +303,24 @@ function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 		cap: cap ?? Number.POSITIVE_INFINITY,
 		pending,
 	}
+}
+
+/**
+ * The box of a body leaf that does not read true in place, with the chrome of
+ * its cell, or `null` for a text leaf. An open editor reads from its slot,
+ * which fills the leaf (see `k.edit.slot`). A leaf that holds element children
+ * that lay out reads itself (see {@link laysOutElements}).
+ *
+ * @internal
+ */
+function deferredLeaf(td: HTMLElement, leaf: HTMLElement): PendingLeaf | null {
+	const editor = leaf.querySelector<HTMLElement>('[data-slot="grid-edit-slot"]')
+
+	if (!editor && !laysOutElements(leaf)) return null
+
+	const box = editor ?? leaf
+
+	return { leaf: box, chrome: td.getBoundingClientRect().width - box.getBoundingClientRect().width }
 }
 
 /**

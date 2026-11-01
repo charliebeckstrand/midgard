@@ -683,7 +683,10 @@ export const k = {
 		// width, and its content does not widen it.
 		kept: {
 			head: 'in-data-grid-fit-layout:**:data-grid-header:contain-inline-size',
-			cell: 'in-data-grid-fit-layout:**:data-grid-content:contain-inline-size',
+			cell: [
+				'in-data-grid-fit-layout:**:data-grid-content:contain-inline-size',
+				'in-data-grid-fit-layout:**:data-[slot=grid-edit-slot]:contain-inline-size',
+			],
 		},
 		// On the content span of a body cell: the content asks for 480px at most,
 		// or for the `maxWidth` of its column (`--grid-cap`). The span still fills
@@ -923,10 +926,11 @@ export const k = {
 		],
 		// Host for a cell's editor. Its one grid area stacks the editor over the
 		// display content (`rest`), so the cell keeps the height that it has at
-		// rest. The track has no least width, so neither layer widens the column.
-		// It is the containing block of a grown editor (`grown`), so the scroll
+		// rest. The least width of the track is the least width of the editor
+		// (`slot`). The display content clips, so it adds no least width. The
+		// host is the containing block of a grown editor (`grown`), so the scroll
 		// area of the grid clips the editor and scrolls it with the cell.
-		host: ['relative', 'grid grid-cols-[minmax(0,1fr)]', 'w-full'],
+		host: ['relative', 'grid grid-cols-[minmax(auto,1fr)]', 'w-full'],
 		// The display content of the cell, under the editor. It holds the height
 		// of the cell and shows nothing.
 		rest: ['col-start-1 row-start-1', 'invisible truncate'],
@@ -938,11 +942,24 @@ export const k = {
 		// slot starts at its top edge, so its first line shows. A text area
 		// shows one line in the cell, so the row keeps its height. It shows
 		// each line when it grows (`grown`).
+		//
+		// In the automatic table layout, the editor is content of its column.
+		// Its least width is the width that shows its value in full, with its
+		// frame and icons, so the browser sizes the column to the editor on the
+		// server too. A text field takes the width of its value
+		// (`field-sizing: content`), not the width of 20 characters. A browser
+		// without that property gives the field its default width. When the grid
+		// holds the least widths (`k.fit.held`), or the column keeps a `width`
+		// (`k.fit.kept`), the slot contains its inline size. A new value then
+		// does not widen the column, and the editor does not overflow the cell.
 		slot: [
 			'col-start-1 row-start-1',
 			flex.col,
 			'justify-center-safe',
 			'min-w-0',
+			'in-data-grid-fit-layout:min-w-max',
+			'in-data-grid-fit-held:contain-inline-size',
+			'[&_input]:field-sizing-content',
 			'[&_textarea]:max-h-lh [&_textarea]:overflow-hidden',
 		],
 		// The slot while its focused text editor grows past the cell
