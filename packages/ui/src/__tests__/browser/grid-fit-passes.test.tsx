@@ -129,7 +129,7 @@ describe('grid fit passes (real browser)', () => {
 		expect(passes).toBeGreaterThan(0)
 	})
 
-	it('reads a navigable text cell in place, with no max-content write', async () => {
+	it('reads a navigable text cell in place, and widens only the widest leaf of a column', async () => {
 		const styleWrites: MutationRecord[] = []
 
 		const observer = new MutationObserver((records) => styleWrites.push(...records))
@@ -147,12 +147,18 @@ describe('grid fit passes (real browser)', () => {
 		observer.disconnect()
 
 		// The cursor's hidden locator span sits in each leaf. It lays out no box, so the
-		// leaf still reads as text, and the fit never widens it to `max-content`.
-		const leafWrites = styleWrites.filter(
-			(record) =>
-				record.target instanceof HTMLElement && record.target.hasAttribute('data-grid-content'),
+		// leaf still reads as text in place. The fit widens to `max-content` only the
+		// widest text leaf of each column, for the exact width of its text.
+		const widened = new Set(
+			styleWrites.flatMap(({ target }) =>
+				target instanceof HTMLElement && target.hasAttribute('data-grid-content') ? [target] : [],
+			),
 		)
 
-		expect(leafWrites).toEqual([])
+		expect(widened.size).toBeLessThanOrEqual(columns.length)
+
+		expect([...widened].map((leaf) => leaf.textContent)).toContain(
+			'A considerably longer role title',
+		)
 	})
 })
