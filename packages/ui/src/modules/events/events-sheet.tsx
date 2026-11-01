@@ -12,7 +12,7 @@ import {
 	SheetPanel,
 	SheetTitle,
 } from '../../components/sheet'
-import { useSidebarLayoutPlacement } from '../../layouts/sidebar/sidebar'
+import { useSidebarLayoutPlacement } from '../../layouts/sidebar/context'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'

@@ -6,7 +6,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import type { ButtonProps } from '../button'
 import { Icon } from '../icon'
 import { paginationMessages } from './pagination-messages'
-import { PaginationNavButton, type PaginationNavProps } from './pagination-utilities'
+import { PaginationNavButton, type PaginationNavProps } from './pagination-nav-button'
 
 /** Props for {@link PaginationNext}: the {@link ButtonProps}, with `plain` as the default `variant`. */
 export type PaginationNextProps = PaginationNavProps<'children' | 'aria-label'> & {

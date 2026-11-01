@@ -1,10 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import {
-	useControllable,
-	useControllableFlag,
-	useControlledLatch,
-} from '../../hooks/use-controllable'
+import { useControllable, useControllableFlag } from '../../hooks/use-controllable'
+import { useControlledLatch } from '../../hooks/use-controlled-latch'
 
 describe('useControllable', () => {
 	it('uses defaultValue for initial uncontrolled state', () => {

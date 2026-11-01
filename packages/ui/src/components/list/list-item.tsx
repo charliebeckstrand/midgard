@@ -3,7 +3,7 @@
 import type { ComponentProps, ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useAriaIds } from '../../hooks/use-aria-ids'
-import { useKeyedValue } from '../../hooks/use-keyed-store'
+import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/list'
 import { type ListItemContextValue, useListContext, useListItemContext } from './context'

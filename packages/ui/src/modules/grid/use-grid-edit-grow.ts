@@ -3,7 +3,7 @@
 import { type Middleware, offset, shift, size } from '@floating-ui/react'
 import { useComposedRefs } from 'motion/react'
 import { type CSSProperties, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useFloatingPanel } from '../../hooks/use-floating-ui'
+import { useFloatingPanel } from '../../hooks/use-floating-panel'
 
 /** The widest that a grown editor gets, in rem. @internal */
 const GROW_MAX_REM = 28

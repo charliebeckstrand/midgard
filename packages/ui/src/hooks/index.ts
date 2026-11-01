@@ -47,17 +47,15 @@ export {
 	type FloatingDisclosureResult,
 	useFloatingDisclosure,
 } from './use-floating-disclosure'
+export type { FloatingRole } from './use-floating-dismissal'
 export {
 	type FloatingHeightSnap,
 	type FloatingPanelOptions,
 	type FloatingPanelResult,
 	type FloatingPlacement,
-	type FloatingRole,
-	type FloatingUIOptions,
-	type FloatingUIResult,
 	useFloatingPanel,
-	useFloatingUI,
-} from './use-floating-ui'
+} from './use-floating-panel'
+export { type FloatingUIOptions, type FloatingUIResult, useFloatingUI } from './use-floating-ui'
 export { type FormattedInputOptions, useFormattedInput } from './use-formatted-input'
 export { useHasHover } from './use-has-hover'
 export { useHoverAcrossScroll } from './use-hover-across-scroll'

@@ -11,7 +11,7 @@ import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/tabs'
 import { Button } from '../button'
 import { useTabsContext } from './context'
-import { useTabSelectScroll } from './use-tab-list-scroll'
+import { useTabSelectScroll } from './use-tab-select-scroll'
 
 /** Props for {@link Tab}. Selects via `value` (uncontrolled, against the Tabs root) or `current` (controlled); forwards the remaining `<button>` surface. */
 export type TabProps = {

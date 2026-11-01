@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useAnimationFrame } from '../../hooks/use-timeout'
+import { useAnimationFrame } from '../../hooks/use-animation-frame'
 
 describe('useAnimationFrame', () => {
 	beforeEach(() => {

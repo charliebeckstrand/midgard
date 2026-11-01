@@ -3,7 +3,7 @@
 import { Check } from 'lucide-react'
 import { type ComponentProps, memo, use, useCallback, useId } from 'react'
 import { ariaAttr, cn, composeEventHandlers, createContext, dataAttr } from '../../core'
-import { useKeyedValue } from '../../hooks/use-keyed-store'
+import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { k } from '../../recipes/kata/option'
 import { capitalizeFirst, type KeyedStore } from '../../utilities'
 

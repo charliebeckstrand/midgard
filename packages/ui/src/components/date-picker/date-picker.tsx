@@ -11,7 +11,7 @@ import { Calendar } from '../calendar'
 import { DateInput, type DateInputFormat } from '../date-input'
 import { DateInputResetContext, useDateInputResets } from '../date-input/context'
 import { DatePickerCalendarButton } from './date-picker-calendar-button'
-import { DatePickerContent, useDatePickerSheet } from './date-picker-content'
+import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { datePickerMessages } from './date-picker-messages'
 import { DatePickerRange } from './date-picker-range'
@@ -22,6 +22,7 @@ import type {
 } from './date-picker-relative-utilities'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerInputTab } from './use-date-picker-input-tab'
+import { useDatePickerSheet } from './use-date-picker-sheet'
 import { useDatePickerState } from './use-date-picker-state'
 
 /** Single-date arm of {@link DatePickerProps} (`range` and `relative` absent or `false`). */

@@ -1,7 +1,7 @@
 'use client'
 
 import { use } from 'react'
-import { useKeyedValue } from '../../hooks/use-keyed-store'
+import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { CurrentContext, CurrentStoreContext } from './context'
 
 /**

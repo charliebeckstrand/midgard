@@ -2,8 +2,8 @@
 
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { type RefObject, useEffect, useMemo, useRef, useState } from 'react'
+import { useAnimationFrame } from '../../hooks/use-animation-frame'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useAnimationFrame } from '../../hooks/use-timeout'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { kanbanAnnouncements } from './engine/kanban-announcements'

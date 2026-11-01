@@ -2,7 +2,8 @@
 
 import { type ReactNode, use } from 'react'
 import { createContext } from '../../core'
-import { useIdlePreload, useLazyModule } from '../../hooks/use-lazy-module'
+import { useIdlePreload } from '../../hooks/use-idle-preload'
+import { useLazyModule } from '../../hooks/use-lazy-module'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { useToastViewport } from './context'
 import type { ToastProps } from './toast'

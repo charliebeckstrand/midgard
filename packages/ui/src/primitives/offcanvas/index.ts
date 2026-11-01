@@ -1,1 +1,1 @@
-export { OffcanvasContext } from './offcanvas'
+export { OffcanvasContext } from './context'

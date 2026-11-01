@@ -13,7 +13,7 @@ import {
 import { cn, dataAttr } from '../../core'
 import { useSortableItem } from '../../hooks'
 import { useDevWarning } from '../../hooks/use-dev-warning'
-import { useKeyedValue } from '../../hooks/use-keyed-store'
+import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanCardContext, useKanbanColumnContext, useKanbanContext } from './context'
 import { KanbanCardSurface } from './kanban-card-surface'

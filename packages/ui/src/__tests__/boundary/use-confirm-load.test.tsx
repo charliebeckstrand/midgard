@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { type ConfirmFunction, useConfirm } from '../../components/confirm/use-confirm'
+import type { ConfirmFunction } from '../../components/confirm/context'
+import { useConfirm } from '../../components/confirm/use-confirm'
 import { UIProvider } from '../../providers/ui'
 import { act, renderUI } from '../helpers'
 

@@ -1,4 +1,4 @@
-import { type JsonValueType, k } from '../../recipes/kata/json-tree'
+import type { JsonValueType } from '../../recipes/kata/json-tree'
 import type { JsonValue } from './types'
 
 /**
@@ -331,51 +331,4 @@ export function flattenTree({
 	walk(data, rootKey, encodePathSegment(rootKey ?? '$'), 0, { setSize: 1, posInSet: 1 })
 
 	return rows
-}
-
-/**
- * Renders a node's key prefix (a numeric array index or a quoted object key) followed by the `:` separator; nothing for the root (`keyName == null`).
- * An object key is a JSON string literal, so a quote or a newline in the key shows as an escape.
- *
- * @internal
- */
-export function NodeKey({ keyName }: { keyName?: string | number }) {
-	if (keyName == null) return null
-
-	if (typeof keyName === 'number') {
-		return (
-			<>
-				<span className={k().index}>{keyName}</span>
-				<span className={k().punctuation}>:</span>
-			</>
-		)
-	}
-
-	return (
-		<>
-			<span className={k({ type: 'key' }).value} translate="no">
-				{JSON.stringify(keyName)}
-			</span>
-			<span className={k().punctuation}>:</span>
-		</>
-	)
-}
-
-/**
- * Renders a scalar {@link JsonValue} in its type color, quoting strings and printing `null` literally.
- * A string shows as a JSON string literal, so a quote or a newline in it shows as an escape.
- *
- * @internal
- */
-export function PrimitiveValue({ value }: { value: JsonValue }) {
-	const type = valueType(value)
-
-	const display = type === 'string' ? JSON.stringify(value) : String(value)
-
-	// A key and a value are JSON, which a translation keeps as it is.
-	return (
-		<span className={k({ type }).value} translate="no">
-			{display}
-		</span>
-	)
 }

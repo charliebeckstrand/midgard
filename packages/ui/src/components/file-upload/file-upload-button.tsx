@@ -10,8 +10,9 @@ import { lockedProps } from '../button/button-constants'
 import { Icon } from '../icon'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { fileUploadMessages } from './file-upload-messages'
-import { type FileUploadButtonProps, splitProps, useFileUploadState } from './file-upload-state'
 import { triggerLabel } from './file-upload-utilities'
+import type { FileUploadButtonProps } from './types'
+import { splitProps, useFileUploadState } from './use-file-upload-state'
 
 /**
  * File picker rendered as a button over a hidden `<input type="file">`.

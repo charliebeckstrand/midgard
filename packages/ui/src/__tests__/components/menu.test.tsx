@@ -19,8 +19,8 @@ import {
 	MenuCappedContext,
 	MenuStateContext,
 } from '../../components/menu/context'
+import { MenuPointerLevel } from '../../components/menu/menu-pointer-level'
 import { MenuViewport } from '../../components/menu/menu-viewport'
-import { MenuPointerLevel } from '../../components/menu/use-menu-pointer'
 import {
 	bySlot,
 	fireEvent,

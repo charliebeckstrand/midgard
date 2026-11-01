@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, vi } from 'vitest'
-import { useTooltipIntent } from '../../components/tooltip/tooltip-intent'
+import { useTooltipIntent } from '../../components/tooltip/use-tooltip-intent'
 import { attach } from '../helpers'
 import { it } from '../helpers/fake-clock'
 

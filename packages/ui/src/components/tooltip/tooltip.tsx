@@ -6,7 +6,7 @@ import { useLazyModule } from '../../hooks/use-lazy-module'
 import { noop, noopSubscribe } from '../../utilities/noop'
 import { TooltipContext, type TooltipContextValue, TooltipTriggerContext } from './context'
 import { tooltipBody } from './tooltip-body-loader'
-import { isTooltipOpen, useTooltipIntent } from './tooltip-intent'
+import { isTooltipOpen, useTooltipIntent } from './use-tooltip-intent'
 import type { TooltipState } from './use-tooltip-state'
 import { useTooltipTriggerValue } from './use-tooltip-trigger-value'
 

@@ -18,7 +18,7 @@ import { ariaAttr, cn, dataAttr } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
-import { fitMiddleware } from '../../hooks/use-floating-ui'
+import { fitMiddleware } from '../../hooks/use-floating-panel'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { FloatingSurface } from '../../primitives/floating-surface'
@@ -27,17 +27,13 @@ import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { Icon } from '../icon'
-import { useMenuState } from './context'
+import { useMenuOpenSub, useMenuPointer, useMenuState } from './context'
+import { MenuPointerLevel } from './menu-pointer-level'
 import { MenuViewport } from './menu-viewport'
 import { snapMenuHeight } from './menu-viewport-utilities'
 import { MenuLabel } from './slots'
-import {
-	MenuPointerLevel,
-	useMenuOpenSub,
-	useMenuPointer,
-	useMenuRowPointer,
-} from './use-menu-pointer'
 import { MENUITEM_SELECTOR } from './use-menu-root'
+import { useMenuRowPointer } from './use-menu-row-pointer'
 
 /** The slots of a menu panel. */
 const panel = k()

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { type AnimationFrame, useAnimationFrame } from './use-timeout'
+import { type AnimationFrame, useAnimationFrame } from './use-animation-frame'
 
 /**
  * Polls the visual viewport until its height stabilizes after the keyboard

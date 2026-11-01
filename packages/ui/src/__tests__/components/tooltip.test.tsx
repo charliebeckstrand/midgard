@@ -13,8 +13,8 @@ import {
 	TooltipTriggerContext,
 } from '../../components/tooltip/context'
 import { tooltipBody } from '../../components/tooltip/tooltip-body-loader'
-import { type TooltipIntent, useTooltipIntent } from '../../components/tooltip/tooltip-intent'
 import { observeReferenceDisabled } from '../../components/tooltip/tooltip-reference-disabled'
+import { type TooltipIntent, useTooltipIntent } from '../../components/tooltip/use-tooltip-intent'
 import { useTooltipState } from '../../components/tooltip/use-tooltip-state'
 import { useTooltipTriggerValue } from '../../components/tooltip/use-tooltip-trigger-value'
 import { notifyOverlaySignal } from '../../primitives/overlay'

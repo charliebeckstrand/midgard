@@ -15,8 +15,9 @@ import { InputFrame } from '../input/input-frame'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { fileUploadMessages } from './file-upload-messages'
-import { type FileUploadInputProps, splitProps, useFileUploadState } from './file-upload-state'
 import { formatFileNames, selectionSummary } from './file-upload-utilities'
+import type { FileUploadInputProps } from './types'
+import { splitProps, useFileUploadState } from './use-file-upload-state'
 
 /**
  * File picker rendered as a field-shaped button over a hidden

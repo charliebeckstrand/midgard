@@ -1,2 +1,3 @@
 export { Confirm, type ConfirmProps } from './confirm'
-export { type ConfirmFunction, type ConfirmOptions, useConfirm } from './use-confirm'
+export type { ConfirmFunction, ConfirmOptions } from './context'
+export { useConfirm } from './use-confirm'

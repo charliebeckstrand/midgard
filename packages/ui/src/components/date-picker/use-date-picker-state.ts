@@ -11,11 +11,8 @@ import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import { formatDateValue } from '../date-input/date-input-utilities'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
 import { clampDate, formatDate, startOfDay, stepDate } from './date-picker-utilities'
-import {
-	type FooterButton,
-	useDatePickerGridEntry,
-	useDatePickerKeyboard,
-} from './use-date-picker-keyboard'
+import { useDatePickerGridEntry } from './use-date-picker-grid-entry'
+import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
 /**
  * Single-date state for {@link DatePicker}: Form/Control binding, popover

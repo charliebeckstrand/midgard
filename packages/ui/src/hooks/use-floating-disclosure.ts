@@ -17,12 +17,8 @@ import {
 } from 'react'
 import { notifyOverlaySignal } from '../primitives/overlay/overlay-signal'
 import { useControllableFlag } from './use-controllable'
-import {
-	type FloatingPanelOptions,
-	type FloatingRole,
-	useFloatingDismissal,
-	useFloatingPanel,
-} from './use-floating-ui'
+import { type FloatingRole, useFloatingDismissal } from './use-floating-dismissal'
+import { type FloatingPanelOptions, useFloatingPanel } from './use-floating-panel'
 
 type FloatingDisclosureGate = (
 	next: boolean,

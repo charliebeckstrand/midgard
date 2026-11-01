@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, use, useEffect, useMemo } from 'react'
-import { ConfirmHost } from '../../components/confirm/use-confirm'
+import { ConfirmHost } from '../../components/confirm/confirm-host'
 import type { ToastProps, ToastProviderProps } from '../../components/toast'
 import { ToastHost } from '../../components/toast/toast-host'
 // LinkContext / PortalContext / PathnameContext live in the primitives layer:

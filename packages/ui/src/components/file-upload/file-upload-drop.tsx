@@ -23,8 +23,9 @@ import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { fileUploadMessages } from './file-upload-messages'
-import { type FileUploadDropProps, splitProps, useFileUploadState } from './file-upload-state'
 import { formatFileNames, selectionSummary, triggerLabel } from './file-upload-utilities'
+import type { FileUploadDropProps } from './types'
+import { splitProps, useFileUploadState } from './use-file-upload-state'
 
 /**
  * The empty dropzone's icon and prompt, or the caller's `children` in its place.

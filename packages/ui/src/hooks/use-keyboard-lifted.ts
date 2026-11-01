@@ -4,7 +4,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { announce } from '../core'
 import { reorderMessages } from '../primitives/intl/intl-reorder'
 import { useIntl } from '../primitives/intl/use-intl'
-import { useAnimationFrame } from './use-timeout'
+import { useAnimationFrame } from './use-animation-frame'
 
 /**
  * Lifted-item state for keyboard reordering. Space toggles an item's "lifted"

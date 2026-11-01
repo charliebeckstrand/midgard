@@ -11,9 +11,8 @@ import {
 	TriggerChild,
 	triggerChild,
 } from '../../primitives/trigger-child/trigger-child'
-import { useMenuActions, useMenuState } from './context'
+import { useMenuActions, useMenuPointer, useMenuState } from './context'
 import { opensSubmenu } from './menu-sub'
-import { useMenuPointer } from './use-menu-pointer'
 
 /**
  * The key handlers of the trigger run after the handlers of the consumer, also
