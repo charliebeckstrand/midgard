@@ -1,7 +1,8 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type FocusEvent, type RefCallback, useRef } from 'react'
+import { type FocusEvent, type RefCallback, useRef, useState } from 'react'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { type ScrollWithinOptions, scrollNodeWithin } from '../../hooks/use-scroll-within'
 import type { TabsOrientation } from './context'
 import { FLOW_SCROLL, TAB_SELECTOR } from './tabs-constants'
@@ -19,7 +20,8 @@ function revealCurrentTab(scroller: HTMLDivElement | null, options: ScrollWithin
 /**
  * Ref callbacks of the viewport, one for each axis, so each keeps one identity.
  * React attaches a ref in the commit, before the browser paints, so a list that
- * mounts on the client paints with the current tab in view.
+ * mounts on the client paints with the current tab in view. A list that
+ * hydrates does not use them.
  */
 const REVEAL_CURRENT_TAB: Record<TabsOrientation, RefCallback<HTMLDivElement>> = {
 	horizontal: (scroller) => revealCurrentTab(scroller, FLOW_SCROLL.horizontal),
@@ -27,12 +29,14 @@ const REVEAL_CURRENT_TAB: Record<TabsOrientation, RefCallback<HTMLDivElement>> =
 }
 
 /**
- * Keeps the active tab visible inside the scroll viewport. When the viewport
- * attaches, it brings the current tab into view, so a deep-linked or
- * overflowed selection survives page load and a client navigation. A list that
- * mounts on the client paints with the tab in view. A server-rendered list
- * paints before hydration, so its tab scrolls at hydration, unless the app
- * scrolls it before the first paint. The returned `onFocus` handler goes on
+ * Keeps the active tab visible inside the scroll viewport. When a list mounts
+ * on the client, the viewport brings the current tab into view as it attaches,
+ * so the list paints with the tab in view after a client navigation. A
+ * server-rendered list paints before hydration, and the hydration does not
+ * scroll it: a scroll then would move a row that the reader already sees. The
+ * current tab is the initial scroll target of the viewport instead (the `tab`
+ * slot of the kata), so where the browser supports `scroll-initial-target`,
+ * the server paint has the tab in view. The returned `onFocus` handler goes on
  * the tab list in the viewport. It does the same for whichever tab takes
  * focus, so roving never strands focus off-screen. A tab that becomes current
  * without focus, as on the Back button of the browser, scrolls through
@@ -46,9 +50,15 @@ const REVEAL_CURRENT_TAB: Record<TabsOrientation, RefCallback<HTMLDivElement>> =
 export function useTabListScroll(orientation: TabsOrientation, enabled: boolean) {
 	const scrollRef = useRef<HTMLDivElement>(null)
 
+	const hydrated = useHydrated()
+
+	// `false` in the hydration render, so a list that hydrates keeps the scroll
+	// of its server paint. The state keeps the value of the mount.
+	const [mountedOnClient] = useState(hydrated)
+
 	const setScroller: RefCallback<HTMLDivElement> = useComposedRefs(
 		scrollRef,
-		REVEAL_CURRENT_TAB[orientation],
+		mountedOnClient ? REVEAL_CURRENT_TAB[orientation] : undefined,
 	)
 
 	const options = FLOW_SCROLL[orientation]

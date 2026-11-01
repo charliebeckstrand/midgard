@@ -4,6 +4,7 @@ import { describe, expect, it, onTestFinished } from 'vitest'
 
 import { Tab, TabList, Tabs, type TabsOrientation } from '../../components/tabs'
 import { act, attach, present } from '../helpers'
+import { hydrate, serverMarkup } from '../helpers/hydrate'
 
 const TABS = Array.from({ length: 12 }, (_, index) => `Section ${index}`)
 
@@ -96,6 +97,40 @@ function mountOnClient(orientation: TabsOrientation) {
 	return painted
 }
 
+/** The scroll of the tab list in `container` on the flow axis, and whether the current tab is in view. */
+function readScroll(container: Element, orientation: TabsOrientation) {
+	const scroller = present(
+		container.querySelector('[data-slot="tab-list-scroll"]'),
+		'tab list scroller',
+	)
+
+	const tab = present(container.querySelector('[data-slot="tab"][data-current]'), 'current tab')
+
+	return {
+		scroll: orientation === 'horizontal' ? scroller.scrollLeft : scroller.scrollTop,
+		visible: inView(tab, scroller),
+	}
+}
+
+/**
+ * Puts the server markup of the tabs on the page, as a prerendered page paints
+ * it, then hydrates it. Returns the state of the paint before the hydration,
+ * and the state after it.
+ */
+function hydrateServerMarkup(orientation: TabsOrientation) {
+	const element = <LongTabs orientation={orientation} />
+
+	const container = attach(serverMarkup(element))
+
+	const painted = readScroll(container, orientation)
+
+	const { onRecoverableError } = hydrate(container, element)
+
+	expect(onRecoverableError).not.toHaveBeenCalled()
+
+	return { painted, hydrated: readScroll(container, orientation) }
+}
+
 /**
  * Mounts the tabs on the client with the first tab current, then makes the far
  * tab current without a move of focus, as the Back button of the browser does.
@@ -140,6 +175,19 @@ describe('TabList mount scroll (real browser)', () => {
 			expect(painted.scroll).toBeGreaterThan(0)
 
 			expect(painted.visible).toBe(true)
+		},
+	)
+})
+
+describe('TabList hydration scroll (real browser)', () => {
+	// The server markup paints before the hydration. A scroll at the hydration
+	// moves the row that the reader already sees, as iOS Safari showed.
+	it.for(['horizontal', 'vertical'] as const)(
+		'keeps the scroll of the server paint of a %s list',
+		(orientation) => {
+			const { painted, hydrated } = hydrateServerMarkup(orientation)
+
+			expect(hydrated).toEqual(painted)
 		},
 	)
 })

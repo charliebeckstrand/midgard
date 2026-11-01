@@ -146,6 +146,10 @@ export const k = defineKata(
 					ji.ramp,
 					...narabi.item,
 					dan.gap.item,
+					// The current tab is the initial scroll target of the viewport. The first
+					// layout brings it into view, so the server markup paints with the tab in
+					// view, and the hydration does not scroll (`useTabListScroll`).
+					'data-current:[scroll-initial-target:nearest]',
 				],
 				orientation: {
 					horizontal: [
