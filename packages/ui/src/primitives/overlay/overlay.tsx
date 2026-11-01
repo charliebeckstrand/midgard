@@ -26,6 +26,7 @@ import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
+import { useOverlayViewportFit } from './use-overlay-viewport-fit'
 
 /**
  * Props for {@link Overlay}: the `open` / `onOpenChange` pair, the `modal` and
@@ -213,6 +214,9 @@ export function Overlay({
 
 	const backdropRef = useRef<HTMLDivElement>(null)
 
+	// A box fixed to the viewport keeps clear of the on-screen keyboard.
+	useOverlayViewportFit(floating, backdropRef, present && !scoped)
+
 	useEffect(() => {
 		if (!open) return
 
@@ -281,7 +285,17 @@ export function Overlay({
 
 				if (event.target !== backdropRef.current) pressedRef.current = false
 			}}
-			className={cn(slots.base, !modal && 'pointer-events-none', className)}
+			// On iOS, the on-screen keyboard makes the visual viewport smaller than the
+			// page, and a touch pans the page under a modal overlay. The body lock does
+			// not stop this pan. `touch-none` stops it. A scroll container in the panel
+			// still scrolls, because the touch action of each element up to its scroll
+			// container sets the gesture.
+			className={cn(
+				slots.base,
+				!modal && 'pointer-events-none',
+				modal && !scoped && 'touch-none',
+				className,
+			)}
 		>
 			{(backdrop || catchesPress) && (
 				<m.div
