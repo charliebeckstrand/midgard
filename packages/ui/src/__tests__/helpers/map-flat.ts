@@ -1,3 +1,4 @@
+import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 
 /**
@@ -32,4 +33,18 @@ export function squareRing(side: number, shift = 0): LngLat[] {
 		[shift + side, side],
 		[shift + side, 0],
 	]
+}
+
+/** The count label as `MapDotCount` writes it with no `LocaleProvider`: English. */
+const englishCount = new Intl.NumberFormat('en-US').format
+
+/**
+ * The radius a group of `count` dots draws at under the English label: what
+ * `MapPoints` hands the merge pass with no `LocaleProvider`.
+ *
+ * @param count - How many dots the group holds.
+ * @returns The radius, in device pixels.
+ */
+export function englishRadius(count: number): number {
+	return clusterRadius(count, englishCount)
 }

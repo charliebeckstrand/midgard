@@ -185,7 +185,8 @@ export const POINT_CLUSTER_GAP = 3
  * A summary dot's radius by how many stops it holds: the size grade. A lone dot
  * keeps {@link POINT_RADIUS}; each step is one grade up, so the mark carries the
  * magnitude and the count inside it carries the number. Read ascending: the last
- * step the count reaches wins. @internal
+ * step the count reaches wins. A count label too wide for its grade grows the dot
+ * past it (`clusterRadius`). @internal
  */
 export const CLUSTER_RADIUS_STEPS = [
 	{ from: 2, radius: 9 },
@@ -193,6 +194,26 @@ export const CLUSTER_RADIUS_STEPS = [
 	{ from: 10, radius: 13 },
 	{ from: 25, radius: 15 },
 ] as const
+
+/**
+ * The width, in device pixels, a summary's count label takes for each character.
+ * The count draws in `text-xs` semibold with tabular figures, so every digit
+ * takes one advance, and that advance is this figure in the ui font: 8.2px,
+ * measured. A group separator (`,` in English, `.` in Spanish) takes about half
+ * of it. Counting each character at the full advance therefore overstates a
+ * grouped label by a few pixels and never understates one. A fallback font
+ * draws narrower figures, so the label fits before the ui font loads too.
+ * `clusterRadius` reads it. @internal
+ */
+export const CLUSTER_COUNT_CHAR_WIDTH = 8.2
+
+/**
+ * The clear space, in device pixels, a summary keeps between each end of its
+ * count label and its own edge. Two pixels keeps every three-digit count inside
+ * the top grade of {@link CLUSTER_RADIUS_STEPS}, so a summary grows past its grade
+ * only from four characters up. @internal
+ */
+export const CLUSTER_COUNT_INSET = 2
 
 /** Mean Earth radius in meters: turns a summary's spherical spread into a distance. @internal */
 export const EARTH_RADIUS_METERS = 6371008.8

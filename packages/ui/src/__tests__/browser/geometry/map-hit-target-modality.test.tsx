@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { MapGeofence, MapPlat, MapPoint, MapPoints } from '../../../modules/map'
-import { clusterRadius } from '../../../modules/map/engine/map-cluster/radius'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../../modules/map/engine/map-constants'
 import { allBySlot, getSlot, renderUI } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { englishRadius } from '../../helpers/map-flat'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 import { zoomToCeiling } from '../helpers/map-zoom'
 
@@ -133,7 +133,7 @@ describe('dot hit target by pointer modality', () => {
 		// not the sliver the yard could spare: a summary took that whole finger target
 		// while one figure served every dot, and a target inside the summary would
 		// leave the mark a reader can see a dead rim.
-		expect(measureRadius(summary)).toBeNear(clusterRadius(2), HALF_PIXEL)
+		expect(measureRadius(summary)).toBeNear(englishRadius(2), HALF_PIXEL)
 	})
 
 	it('holds that target inside the coarse reach through every scale the view takes', () => {

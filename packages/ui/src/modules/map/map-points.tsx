@@ -15,6 +15,7 @@ import {
 	type MapPointCluster,
 } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
+import { POINT_RADIUS } from './engine/map-constants'
 import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
@@ -73,6 +74,8 @@ type MapPointsDotsProps = {
 	groups: MapPointCluster[]
 	/** One stable React key per drawn group. */
 	keys: string[]
+	/** Each drawn group's radius, in device pixels. */
+	radii: number[]
 	/** What each dot's fine-pointer target can reach, in device pixels. */
 	targets: number[]
 	/** Each drawn group's own stroke class, where a lone dot carries a color of its own. */
@@ -106,6 +109,7 @@ type MapPointsDotsProps = {
 const MapPointsDots = memo(function MapPointsDots({
 	groups,
 	keys,
+	radii,
 	targets,
 	paints,
 	countInk,
@@ -148,7 +152,9 @@ const MapPointsDots = memo(function MapPointsDots({
 
 				const count = group.members.length
 
-				const radius = clusterRadius(count)
+				// `?? POINT_RADIUS` for the indexed read alone: `radii` is built from the
+				// same `groups` this maps.
+				const radius = radii[index] ?? POINT_RADIUS
 
 				// One timing for the pair: the count fades in with the dot it sits in.
 				const pop = pointPop(index)
@@ -364,9 +370,28 @@ export function MapPoints({
 
 	const positions = useMemo(() => points.map((point) => point.at), [points])
 
+	// How wide a group of each count draws. A summary holds its count label, which
+	// the locale writes, so the size reads the same formatter the label does.
+	//
+	// Held per count for the locale: the merge pass asks for every group it builds,
+	// on every zoom notch, and most of those groups share a few small counts. A
+	// format per ask doubled the cost of the pass on a set of 5,000 dots.
+	const getRadius = useMemo(() => {
+		const radii = new Map<number, number>()
+
+		return (count: number) =>
+			getOrCompute(radii, count, (held) => clusterRadius(held, intl.formatNumber))
+	}, [intl])
+
 	const groups = useMemo(
-		() => clusterPoints(positions, project, gap, unitsPerPixel),
-		[positions, project, gap, unitsPerPixel],
+		() => clusterPoints(positions, project, gap, getRadius, unitsPerPixel),
+		[positions, project, gap, getRadius, unitsPerPixel],
+	)
+
+	// Each drawn group's radius, read by the dots, their targets, and the halo.
+	const radii = useMemo(
+		() => groups.map((group) => getRadius(group.members.length)),
+		[groups, getRadius],
 	)
 
 	// Each drawn group's shape: a lone dot's own, the one that a summary's members
@@ -502,11 +527,11 @@ export function MapPoints({
 	const targets = useMemo(
 		() =>
 			markTargets(
-				groups.map((group) => ({ at: group.at, radius: clusterRadius(group.members.length) })),
+				groups.map((group, index) => ({ at: group.at, radius: radii[index] ?? POINT_RADIUS })),
 				unitsPerPixel,
 				spare,
 			),
-		[groups, spare, unitsPerPixel],
+		[groups, radii, spare, unitsPerPixel],
 	)
 
 	// Held across re-renders: rebuilding them would allocate one string per dot
@@ -545,7 +570,7 @@ export function MapPoints({
 				<MapDotHalo
 					slot="map-points-selected"
 					at={picked.at}
-					radius={clusterRadius(picked.members.length)}
+					radius={(selected === null ? undefined : radii[selected]) ?? POINT_RADIUS}
 					shape={selected === null ? shape : (shapes[selected] ?? shape)}
 					scale={unitsPerPixel}
 				/>
@@ -555,6 +580,7 @@ export function MapPoints({
 				<MapPointsDots
 					groups={groups}
 					keys={keys}
+					radii={radii}
 					targets={targets}
 					paints={paints}
 					countInk={countInk}
