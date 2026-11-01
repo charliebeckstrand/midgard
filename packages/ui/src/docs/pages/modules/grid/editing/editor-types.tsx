@@ -94,7 +94,7 @@ export default function EditorTypes() {
 					<CellListbox
 						value={String(context.value ?? '')}
 						options={statusOptions}
-						onValueUpdate={context.onValueUpdate}
+						commit={context.commit}
 						ariaLabel={context.ariaLabel}
 						entered={context.entered}
 					/>

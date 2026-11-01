@@ -68,20 +68,21 @@ export function EditHelp({ label, children }: { label: string; children: ReactNo
 }
 
 /**
- * An editor for the `editCell` slot of a column: a listbox of options. It
- * stages the selected option, and the save of the row commits it. An entry on
- * the cell opens the options.
+ * An editor for the `editCell` slot of a column: a listbox of options. A pick
+ * goes to `commit`. Under cell scope, that commits the cell, as in a
+ * spreadsheet. Under row scope, it stages the option, and the save of the row
+ * commits it. An entry on the cell opens the options.
  */
 export function CellListbox({
 	value,
 	options,
-	onValueUpdate,
+	commit,
 	ariaLabel,
 	entered,
 }: {
 	value: string
 	options: { label: string; value: string }[]
-	onValueUpdate: GridEditCellContext<unknown>['onValueUpdate']
+	commit: GridEditCellContext<unknown>['commit']
 	ariaLabel: string
 	entered: boolean
 }) {
@@ -90,7 +91,7 @@ export function CellListbox({
 			aria-label={ariaLabel}
 			defaultOpen={entered}
 			value={value || null}
-			onValueChange={(next) => onValueUpdate(next ?? '')}
+			onValueChange={(next) => commit(next ?? '')}
 			displayValue={(key) => options.find((option) => option.value === key)?.label ?? key}
 		>
 			{options.map((option) => (
@@ -130,7 +131,7 @@ export const personColumns: GridColumn<Person>[] = [
 			<CellListbox
 				value={String(context.value ?? '')}
 				options={roleOptions}
-				onValueUpdate={context.onValueUpdate}
+				commit={context.commit}
 				ariaLabel={context.ariaLabel}
 				entered={context.entered}
 			/>

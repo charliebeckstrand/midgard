@@ -412,15 +412,17 @@ function GridEditOverlayField<T>({ session, rowKey, row, column }: GridEditOverl
 
 	const errorId = useId()
 
+	// Save commits the overlay, so a final value only stages.
+	const commit = (next: unknown) => {
+		if (next !== undefined) update(next)
+	}
+
 	const body = column.editCell ? (
 		column.editCell({
 			row,
 			value: draft,
 			onValueUpdate: update,
-			// Save commits the overlay, so a slot's commit only stages.
-			commit: (next) => {
-				if (next !== undefined) update(next)
-			},
+			commit,
 			cancel,
 			ariaLabel: label,
 			required: column.required ?? false,
@@ -431,6 +433,7 @@ function GridEditOverlayField<T>({ session, rowKey, row, column }: GridEditOverl
 			kind={inferEditorKind(seed)}
 			draft={draft}
 			onValueUpdate={update}
+			commit={commit}
 			cancel={cancel}
 			ariaLabel={label}
 			error={error}
