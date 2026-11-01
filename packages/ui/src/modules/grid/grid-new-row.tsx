@@ -23,6 +23,7 @@ import {
 } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import { fromInteractiveContent } from './engine/grid-row/cell'
+import { fitCellProps } from './engine/grid-sizing/fit-styles'
 import { stickyHeadInset } from './engine/grid-sticky-insets'
 import { GridAddRowButton } from './grid-add-row-button'
 import { GridCellEditor } from './grid-cell-editor'
@@ -125,9 +126,15 @@ function GridNewRowCell<T>({
 
 	// The editor stays mounted through an add, so the row keeps its fields and
 	// its height. While the add is in flight, the host is inert, and the editor
-	// pulses as a pending data cell does.
+	// pulses as a pending data cell does. The host is the content leaf of the
+	// cell (`data-grid-content`), so the column autosizer reads the editor, and
+	// the editor asks for no more than a body leaf does (`k.fit.cap`).
 	const content = editable ? (
-		<span inert={pending} className={cn(k.edit.host, pending && k.edit.pending)}>
+		<span
+			inert={pending}
+			data-grid-content
+			className={cn(k.edit.host, k.fit.cap, pending && k.edit.pending)}
+		>
 			<GridCellEditor<T>
 				key={session.generation}
 				rowIndex={NEW_ROW_INDEX}
@@ -351,6 +358,9 @@ export function GridNewRow<T>({
 							/>
 						)
 
+					// The width rules of the fit layout, as on a body cell (see `fitCellProps`).
+					const fit = fitCellProps(column)
+
 					return (
 						<GridNewRowCell<T>
 							key={column.id}
@@ -360,8 +370,8 @@ export function GridNewRow<T>({
 							ariaColIndex={ariaColIndex}
 							draftRow={draftRow}
 							readDraftRow={readDraftRow}
-							className={className}
-							style={pinned.style}
+							className={cn(className, fit.className)}
+							style={fit.style ? { ...pinned.style, ...fit.style } : pinned.style}
 							pin={pinned.pin}
 						/>
 					)

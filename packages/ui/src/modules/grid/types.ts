@@ -149,6 +149,14 @@ export type GridColumn<T> = {
 	 * control needs no width of its own. To keep the width of the content, give
 	 * the control `self-start`.
 	 *
+	 * While the browser sizes the columns, an open editor is content of its
+	 * column, as the editor of the new-row slot is. The column is then at least
+	 * as wide as the editor needs to show its value or its placeholder in full,
+	 * with its frame and icons. A text field takes the width of its value
+	 * (`field-sizing: content`). A browser without that property gives the field
+	 * its default width. The grid reads the editors at load, as it reads the
+	 * other cells. A new value moves no column.
+	 *
 	 * For long text, render a `Textarea` with `rows={1}` and `autoResize`. In
 	 * the cell it shows one line, so the row keeps its height. With focus, it
 	 * grows past the cell, as a text input does, when its text has more than
