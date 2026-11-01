@@ -13,11 +13,13 @@ let sharedRange: Range | null = null
 
 /**
  * The intrinsic content width of an element's text: the width it wants before
- * any truncation clip. It is read sub-pixel from a `Range` over its contents, so
- * it is the width that the browser lays out. `scrollWidth` is the integer
- * fallback where `Range` geometry is unavailable (jsdom). The marked leaves
- * (`data-grid-content`) carry no padding or border, so this is their content-box
- * width.
+ * any truncation clip. It is read sub-pixel from a `Range` over its contents,
+ * with no write to the layout. WebKit rounds the width of laid-out text up to
+ * its layout unit, so the layout width can be more by a fraction of a pixel
+ * (see {@link scanBodyCells}). `scrollWidth` is the integer fallback where
+ * `Range` geometry is unavailable (jsdom). The marked leaves
+ * (`data-grid-content`) carry no padding or border, so this is their
+ * content-box width.
  *
  * @internal
  */
@@ -176,11 +178,11 @@ function collectCells(container: HTMLElement): {
 }
 
 /**
- * A body leaf whose contents include element children (a Badge, an icon row, a
- * composed cell), deferred to the batched `max-content` read (see
- * {@link resolvePendingLeaves}). `chrome` is its cell's padding and border (the
- * cell border box minus the leaf's), captured while the leaf still fills the
- * cell.
+ * A body leaf deferred to the batched `max-content` read (see
+ * {@link resolvePendingLeaves}): a leaf whose contents include element children
+ * (a Badge, an icon row, a composed cell), or the widest text leaf of a column.
+ * `chrome` is its cell's padding and border (the cell border box minus the
+ * leaf's), captured while the leaf still fills the cell.
  *
  * @internal
  */
@@ -188,8 +190,8 @@ type PendingLeaf = { leaf: HTMLElement; chrome: number }
 
 /**
  * One column's body scan: the widest content need resolved against the current
- * layout (text-only and leafless cells). It also holds the element-bearing
- * leaves awaiting the batched `max-content` read, which folds into `widest`.
+ * layout (text-only and leafless cells). It also holds the leaves awaiting the
+ * batched `max-content` read, which folds into `widest` and `least`.
  *
  * `least` is the widest need of the leaves alone, as the automatic table layout
  * reads it: not rounded, and with each leaf inside its `max-width` (`cap`). It
@@ -220,26 +222,37 @@ function laysOutElements(leaf: HTMLElement): boolean {
  * box minus the leaf's box is therefore the cell chrome (padding + border). The
  * leaf's content width added back gives the width the cell wants.
  *
- * A text-only leaf resolves here. Clipped or not, `nowrap` text lays out at its
- * full width under the overflow, so its intrinsic width (see
- * {@link intrinsicWidth}) reads true in place. A leaf holding element children
- * that lay out (see {@link laysOutElements}) does not. An atomic shrink-to-fit
- * box (a Badge's `fit-content`) genuinely narrows into a tight cell. Its
- * in-place rect therefore reports the shrunk width, not the natural one. Those
- * leaves defer to {@link resolvePendingLeaves}. A cell with no leaf (the
- * editable grid's mounted editor, or empty content) falls back to its own
- * `scrollWidth`.
+ * A text-only leaf reads in place. Clipped or not, `nowrap` text lays out at
+ * its full width under the overflow, so its intrinsic width (see
+ * {@link intrinsicWidth}) is known without a write. That width is not exact:
+ * WebKit rounds the width of laid-out text up to its layout unit, so the column
+ * can be wider than the text by a fraction of a pixel. A least width from the
+ * text width alone then truncates the text. The leaves of the widest need and
+ * of the widest capped need therefore also defer to the exact read of
+ * {@link resolvePendingLeaves}. The rounding only goes up, and the chrome is in
+ * layout units too. Thus the leaf with the widest text need also has the widest
+ * laid-out need, and one or two reads for each column make the widths exact.
+ *
+ * A leaf holding element children that lay out (see {@link laysOutElements})
+ * does not read true in place. An atomic shrink-to-fit box (a Badge's
+ * `fit-content`) genuinely narrows into a tight cell. Its in-place rect
+ * therefore reports the shrunk width, not the natural one. Those leaves defer
+ * to {@link resolvePendingLeaves} too. A cell with no leaf (the editable grid's
+ * mounted editor, or empty content) falls back to its own `scrollWidth`.
  *
  * @internal
  */
 function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 	let widest = 0
 
-	let least = 0
-
 	let cap: number | undefined
 
 	const pending: PendingLeaf[] = []
+
+	// The text leaves of the widest need and of the widest capped need.
+	let widestText: TextNeed | undefined
+
+	let leastText: TextNeed | undefined
 
 	for (const td of cells) {
 		const leaf = td.querySelector<HTMLElement>('[data-grid-content]')
@@ -257,16 +270,44 @@ function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 
 		if (laysOutElements(leaf)) {
 			pending.push({ leaf, chrome })
-		} else {
-			const width = intrinsicWidth(leaf)
 
-			widest = Math.max(widest, chrome + width)
-
-			least = Math.max(least, chrome + Math.min(width, cap))
+			continue
 		}
+
+		const width = intrinsicWidth(leaf)
+
+		widestText = wider(widestText, { leaf, chrome, need: chrome + width })
+
+		leastText = wider(leastText, { leaf, chrome, need: chrome + Math.min(width, cap) })
 	}
 
-	return { widest, least, cap: cap ?? Number.POSITIVE_INFINITY, pending }
+	if (widestText) pending.push(widestText)
+
+	if (leastText && leastText.leaf !== widestText?.leaf) pending.push(leastText)
+
+	return {
+		widest: Math.max(widest, widestText?.need ?? 0),
+		least: leastText?.need ?? 0,
+		cap: cap ?? Number.POSITIVE_INFINITY,
+		pending,
+	}
+}
+
+/**
+ * A text leaf and the width (px) that its cell needs, as its `Range` reads it.
+ *
+ * @internal
+ */
+type TextNeed = PendingLeaf & { need: number }
+
+/**
+ * The text leaf of the wider need: `next`, when its need is more than the need
+ * of `best`.
+ *
+ * @internal
+ */
+function wider(best: TextNeed | undefined, next: TextNeed): TextNeed {
+	return best && best.need >= next.need ? best : next
 }
 
 /**
@@ -282,15 +323,18 @@ function leafCap(leaf: HTMLElement): number {
 }
 
 /**
- * Resolves the deferred element-bearing leaves (see {@link scanBodyCells}) by
- * briefly laying each out at `width: max-content`. Every leaf widens in one
- * write pass, every rect is read in one pass (a single forced layout), then the
- * inline widths revert. All of it is synchronous inside the measurement, so
- * nothing paints mid-flight and the truncation observers see no net change.
+ * Resolves the deferred leaves (see {@link scanBodyCells}) by briefly laying
+ * each out at `width: max-content`, free of its `min-width` and `max-width`
+ * (see `k.fit.cap`). Every leaf widens in one write pass, every rect is read
+ * in one pass (a single forced layout), then the inline styles revert. All of
+ * it is synchronous inside the measurement, so nothing paints mid-flight and
+ * the truncation observers see no net change. The rect of a widened leaf is
+ * the width that the layout gives its content, in the units of the layout.
  * Widening frees a shrink-to-fit child to its natural width, which the clipped
- * in-place rect can't report, and folds each leaf's `chrome + width` into its
- * column's `widest`. `scrollWidth` stands in where rect geometry is unavailable
- * (jsdom), matching {@link intrinsicWidth}.
+ * in-place rect can't report. It folds each leaf's `chrome + width` into its
+ * column's `widest`, and the same width inside the cap into `least`.
+ * `scrollWidth` stands in where rect geometry is unavailable (jsdom), matching
+ * {@link intrinsicWidth}.
  *
  * @internal
  */
@@ -299,14 +343,22 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 
 	if (pending.length === 0) return
 
-	const prior = pending.map(({ leaf }) => [leaf.style.width, leaf.style.contain] as const)
+	const prior = pending.map(({ leaf }) => {
+		const { width, minWidth, maxWidth, contain } = leaf.style
 
-	// A held leaf contains its inline size (see `k.fit.held`), and a contained box has
-	// no `max-content` width of its own.
+		return { width, minWidth, maxWidth, contain }
+	})
+
+	// The read clears both bounds of the leaf: it fills a wider column (`min-w-full`)
+	// and stops at its cap. A held leaf contains its inline size (see `k.fit.held`),
+	// and a contained box has no `max-content` width of its own.
 	for (const { leaf } of pending) {
-		leaf.style.width = 'max-content'
-
-		leaf.style.contain = 'none'
+		Object.assign(leaf.style, {
+			width: 'max-content',
+			minWidth: '0',
+			maxWidth: 'none',
+			contain: 'none',
+		})
 	}
 
 	for (const scan of scans) {
@@ -320,9 +372,7 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 	}
 
 	for (const [index, { leaf }] of pending.entries()) {
-		leaf.style.width = prior[index]?.[0] ?? ''
-
-		leaf.style.contain = prior[index]?.[1] ?? ''
+		Object.assign(leaf.style, prior[index])
 	}
 }
 
@@ -521,9 +571,8 @@ export type ColumnMeasurement = {
  * The reads do not depend on the current column widths (see
  * {@link headerWidth} and {@link scanBodyCells}). A pass after a resize therefore
  * reads the same facts, and no feedback loop occurs. Every read against the
- * current layout lands first. An element-bearing leaf, whose shrink-to-fit
- * content clips with the cell, then gets one batched widen-read-revert (see
- * {@link resolvePendingLeaves}).
+ * current layout lands first. The deferred leaves (see {@link scanBodyCells})
+ * then get one batched widen-read-revert (see {@link resolvePendingLeaves}).
  *
  * @internal
  */
@@ -577,8 +626,9 @@ export function measureColumns<T>({
 
 	const fits = fitWidths(columns, container, headers, slotGap)
 
-	// Pass two: widen the element-bearing leaves to `max-content` and read the
-	// widths the clipped layout could not show (a Badge shrunk into a narrow cell).
+	// Pass two: widen the deferred leaves to `max-content` and read the widths that
+	// the layout gives their content (a Badge shrunk into a narrow cell, the exact
+	// width of the widest text).
 	resolvePendingLeaves([...scans.values()])
 
 	const widest = new Map<string, number>()
