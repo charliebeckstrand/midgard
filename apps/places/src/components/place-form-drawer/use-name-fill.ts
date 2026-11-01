@@ -16,8 +16,8 @@ import { useFormActions } from 'ui/form'
 export function useNameFill(): (match: AddressSuggestion | null) => void {
 	const actions = useFormActions()
 
-	// The last name this hook wrote. It is what parts a name the reader typed —
-	// which a second pick must leave alone — from one an earlier pick wrote, which
+	// The last name this hook wrote. It is what parts a name the reader typed
+	// (which a second pick must leave alone) from one an earlier pick wrote, which
 	// a second pick must replace. It cannot be derived from the selection: a clear
 	// drops the match and leaves the name behind.
 	const filled = useRef<string | null>(null)

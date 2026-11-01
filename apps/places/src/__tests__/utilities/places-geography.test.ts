@@ -80,7 +80,7 @@ describe('decodeRegions', () => {
 	})
 
 	// The key names the object to draw, and the first stands in where an atlas
-	// names it something else — so a wrong key answers rather than nothing.
+	// names it something else, so a wrong key answers rather than nothing.
 	it('falls back to the first object where the key names none', () => {
 		const decoded = decodeRegions(states as unknown as MapTopology, 'provinces')
 
@@ -152,7 +152,7 @@ describe('nearestRegion', () => {
 	const bounded = boundRegions(ATLAS)
 
 	// Oregon's box runs to -124, so a point at -124.3 sits ~24 km off its western
-	// edge — which is the shape of the miss a generalized coastline produces.
+	// edge. That is the shape of the miss a generalized coastline produces.
 	const OFF_THE_COAST: [number, number] = [-124.3, 44]
 
 	it('rescues a position just outside a region', () => {
@@ -250,8 +250,8 @@ describe('groupByRegion', () => {
 		expect(groupByRegion(bounded, [abroad], (held) => held.country).get('Oregon')).toHaveLength(1)
 	})
 
-	// A box that crosses the antimeridian comes back wrapped — west 170, east
-	// -175 — so the longitude test has to read the two sides as an outside. Read
+	// A box that crosses the antimeridian comes back wrapped (west 170, east
+	// -175), so the longitude test has to read the two sides as an outside. Read
 	// as a plain range it rejects every point in the region.
 	it('holds a place on either side of the antimeridian', () => {
 		const grouped = group([placeAt('east', [178, 52]), placeAt('west', [-178, 52])])
@@ -271,7 +271,7 @@ describe('groupByRegion', () => {
 		expect(groupByRegion(bounded, [off], getState, { snapKm: 50 }).get('Oregon')).toHaveLength(1)
 	})
 
-	// Omitted, nothing is rescued — which is what an atlas fine enough to contain
+	// Omitted, nothing is rescued, which is what an atlas fine enough to contain
 	// its own coastline wants, and what keeps a border city out of its neighbor.
 	it('rescues nothing without a tolerance', () => {
 		const off = placeAt('pier', [-124.3, 44])

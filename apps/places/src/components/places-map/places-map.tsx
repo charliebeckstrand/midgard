@@ -32,7 +32,7 @@ const PAINT_LABEL: Record<PlaceVisitFilter, string> = {
 
 /**
  * The region categories: one per name the paint can carry. Both are declared
- * because the category list is fixed at the mark and the rows pick from it — the
+ * because the category list is fixed at the mark and the rows pick from it: the
  * filter decides which name the rows carry, not which names exist.
  *
  * Green for been, red for not, which is the one pairing a reader brings to the
@@ -76,7 +76,7 @@ const NO_ROWS: { region: string; visited: string }[] = []
 export type PlacesMapProps = {
 	/** The atlas the view draws, decoded. */
 	regions: MapFeatureCollection
-	/** The places to draw — already filtered, so the map draws what the bar admits. */
+	/** The places to draw, already filtered, so the map draws what the bar admits. */
 	places: readonly Place[]
 	/** Where the map is pointed, which decides the frame and the projection. */
 	view: PlaceView
@@ -142,7 +142,7 @@ export function PlacesMap({
 
 	// The geography to draw: the whole atlas, or the one region a drill opened.
 	// Memoized on the cut, because the map keys its decode, its fit, and its paths
-	// on the geography's identity — a fresh collection each render would refit the
+	// on the geography's identity: a fresh collection each render would refit the
 	// map on every pointer move.
 	const geography = useMemo(() => regionFrame(regions, cut), [regions, cut])
 
@@ -157,8 +157,8 @@ export function PlacesMap({
 	// Equal Earth holds area true by widening the high latitudes, and it charges
 	// that where this map spends most of its time: Greenland comes out 2.67 times
 	// wider than tall, and Canada and Russia smear into a band across the top of
-	// the frame. Area is not what a map of places you have been is for — the dots
-	// are the reading, and the land is where they sit — so the trade is worth
+	// the frame. Area is not what a map of places you have been is for (the dots
+	// are the reading, and the land is where they sit), so the trade is worth
 	// undoing. Mercator holds shape instead, which is the thing a reader checks a
 	// coastline against, and it is the projection every slippy map has taught them
 	// to expect. It fits this frame better too: 1.55 to Equal Earth's 2.28, on a
@@ -188,14 +188,14 @@ export function PlacesMap({
 	//
 	// Which regions those are is the bar's to say, not the places'. A region is
 	// visited because the reader marked it, so a state they drove through paints
-	// and a country holding a place they have only planned does not — and with the
+	// and a country holding a place they have only planned does not. With the
 	// filter cleared none of them paint, which is the map with the question turned
 	// off rather than answered. The dots are drawn either way.
 	//
 	// A drill keeps the same rule rather than lighting whatever it opened, so the
 	// fill a region carries on the whole atlas is the fill it carries a level in.
 	//
-	// What a drilled region loses is the pointer, not the paint — see
+	// What a drilled region loses is the pointer, not the paint. See
 	// `regionPointer` below for why the two are separated here.
 	const rows = useMemo(() => {
 		if (visitedRegions === undefined) return NO_ROWS
@@ -250,7 +250,7 @@ export function PlacesMap({
 			className={cn(
 				FRAME_INSET,
 				// Nothing on this map recedes. The plat's emphasis reads a region and the
-				// dots on it as separate marks, so pointing one dimmed the other — and
+				// dots on it as separate marks, so pointing one dimmed the other, and
 				// crossing between them cross-faded the two, which is the flicker a
 				// reader sees moving from a region onto a place standing on it. A region
 				// and its places are one thing here, so both stay forward and the
@@ -262,7 +262,7 @@ export function PlacesMap({
 				// `opacity`, which would take the seams between regions with it.
 				//
 				// Selected by the fill class, because the module gives a region path no
-				// category anchor on purpose — a county atlas would pay attribute-rule
+				// category anchor on purpose: a county atlas would pay attribute-rule
 				// matching on every one of thousands of paths for it. The two hues here
 				// are the ones `COVERED_CATEGORIES` names, written out because Tailwind
 				// generates only what it finds literally.
@@ -277,7 +277,7 @@ export function PlacesMap({
 				aspectRatio={false}
 				className="size-full"
 				// Identity only. The label default already reads `properties.name`,
-				// which is what `regionName` returns; identity does not — it is id-first,
+				// which is what `regionName` returns; identity does not. It is id-first,
 				// so a state would answer as "41" where every row here says "Oregon".
 				regionId={regionName}
 				data={rows}
@@ -285,15 +285,15 @@ export function PlacesMap({
 				categoryKey="visited"
 				// The neutral slot, not a categorical one. A covered region is a
 				// backdrop that says "there is something here to open", and any of the
-				// eight data hues would read as a sixth category — worse, the first of
+				// eight data hues would read as a sixth category. Worse, the first of
 				// them is the Food dots' own blue, which a blue region swallowed.
 				categories={COVERED_CATEGORIES}
 				// One mark and one region category, so a legend would draw two rows
 				// that each name a paint rather than telling two things apart.
 				legend={false}
 				// `modifier: false` is the rare form, and this is the case it is for:
-				// the map is the screen. The page behind it does not scroll — the
-				// layout gives the map the leftover height and nothing overflows — so
+				// the map is the screen. The page behind it does not scroll (the
+				// layout gives the map the leftover height and nothing overflows), so
 				// there is no scroll for a plain wheel to swallow, and arming the wheel
 				// outright costs the reader nothing. Under the default, every zoom on a
 				// full-screen map would need a held shift key for a page that cannot
@@ -301,7 +301,7 @@ export function PlacesMap({
 				//
 				// It earns more than it looks. The dots merge by pixel distance, so the
 				// summaries a world frame draws separate into their own places as the
-				// view closes on them — which is the same question the summary drawer
+				// view closes on them. That is the same question the summary drawer
 				// answers, asked on the map instead.
 				zoom={{ modifier: false }}
 				// The map is navigated, not read: a region with no places still opens
@@ -311,14 +311,14 @@ export function PlacesMap({
 				// Inside a drill the layer answers nothing: there is one region on
 				// screen and the reader just picked it, so it has nothing left to say,
 				// and a readout under every dot they reach for is in the way. The drill
-				// is stated here alone — the prop withdraws the readout, the pick, and
+				// is stated here alone: the prop withdraws the readout, the pick, and
 				// the pointer cursor together.
 				regionPointer={cut === null}
 				selectedOverlay={selectedOverlay}
 				// Every region opens, whether or not it holds places: an empty one is a
 				// place to look, and a reader who has just added somewhere new should not
 				// have to find out from a dead click that the map disagreed. The paint
-				// still says which regions hold places — it reports, and no longer gates.
+				// still says which regions hold places: it reports, and no longer gates.
 				onRegionClick={onDrill}
 				// The same regions that a click drills into. Inside a drill the layer
 				// answers nothing, so nothing preloads there either.

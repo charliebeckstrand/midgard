@@ -174,8 +174,8 @@ function trailItems<T extends Located>(
  * Which region holds each record of one kind, against the geometry the map
  * draws, in both atlases, and each grouping inverted.
  *
- * The states grouping answers the opening question — a collection the states
- * atlas accounts for whole is a collection inside the United States — and it is
+ * The states grouping answers the opening question (a collection the states
+ * atlas accounts for whole is a collection inside the United States), and it is
  * the grouping the app uses whenever the view draws states. Its inverse is what
  * the countries grouping trusts ahead of its own geometry, what the open
  * panel's trail names a group by, and what the index reads to say where a row
@@ -183,7 +183,7 @@ function trailItems<T extends Located>(
  *
  * Each grouping reads the unfiltered records on purpose: the regions a reader
  * can drill are the regions that hold records, not the regions holding records
- * the bar currently admits — otherwise a drill would open and close as they
+ * the bar currently admits. Otherwise a drill would open and close as they
  * narrowed it.
  *
  * Its own slot per atlas, so the drawn one is a pick between two settled
@@ -222,7 +222,7 @@ type Groupings<T extends Located> = ReturnType<typeof useGroupings<T>>
 
 /**
  * The grouping of the drawn atlas, and its inverse. The inverse gives the
- * region the open drawer stands in — the list its first crumb leads back to,
+ * region the open drawer stands in: the list its first crumb leads back to,
  * which for a lone dot is the only list there is.
  *
  * Read out of the drawn grouping's own inverse, so the crumb names the region
@@ -250,7 +250,7 @@ function drawnGrouping<T extends Located>(groupings: Groupings<T>, atlas: PlaceA
  *
  * A summary dot on the world map often merges one town's worth of records, so
  * where the whole group shares a state the trail says so and the list is that
- * state's — the country it drew in is the coarser answer to a question the
+ * state's. The country it drew in is the coarser answer to a question the
  * reader can see the answer to. The last step's records are empty where
  * nothing holds the group, which the panel reads as "stand the picked group in
  * for a list".
@@ -516,13 +516,13 @@ function PlacesHeader({
 				    width, which is the room its fit measures.
 
 				    The toggle goes inside the trail, because it acts on the region the last
-				    crumb names — not on the app, which is what the cluster on the far side
+				    crumb names, not on the app, which is what the cluster on the far side
 				    holds. Inside, it shares the trail's row, so the crumbs give way and the
 				    button never does. */}
 			<div className="flex-1 min-w-0">
 				<PlaceTrail className="text-xl/8" steps={steps}>
 					{/* The visited toggle. It is a button rather than a checkbox, because
-					    the reader does not check a place as visited — they mark it as such.
+					    the reader does not check a place as visited: they mark it as such.
 					    The button's own state is the visited state, so the reader sees what
 					    they are about to do and the action is a single click rather than a
 					    check and a submit.
@@ -678,8 +678,8 @@ function PlacesError({ error }: { error: Error | null }) {
  * The app: a map filling the screen, a header over it, and the drawers that
  * dock from the bottom.
  *
- * It owns every piece of state the panels share — the filter, the view, and
- * which record is open — because each of them is read by more than one child
+ * It owns every piece of state the panels share (the filter, the view, and
+ * which record is open), because each of them is read by more than one child
  * and none of them belongs to a single panel. `user` is the signed-in user, for
  * the menu. `places`, `trips`, and `visits` are the records and the visited set
  * that the page read on the server. With them, the filter bar, the squares, and
@@ -743,14 +743,14 @@ export function PlacesApp({
 
 	// Which index is up. Its own state rather than a mode of the drawers: it docks
 	// from the side and they dock from the bottom, so a reader can have a record
-	// open and its list open at once — which is what opening one from the other
+	// open and its list open at once, which is what opening one from the other
 	// leaves them with.
 	const [listing, setListing] = useState<RecordKind | null>(null)
 
 	const confirm = useConfirm()
 
-	// A delete is the one action here the reader cannot undo — the store keeps
-	// no history — so it is the one that asks first. It names the record, because
+	// A delete is the one action here the reader cannot undo (the store keeps
+	// no history), so it is the one that asks first. It names the record, because
 	// a reader who opened a summary has several in front of them.
 	const remove = useCallback(
 		async (deletion: Deletion) => {
@@ -839,7 +839,7 @@ export function PlacesApp({
 
 	// What the Visited button acts on. It is not the cut: inside the United States
 	// the frame draws every state and is cut to none of them, so the country would
-	// be the one region on the map a reader could never mark — they cross into it
+	// be the one region on the map a reader could never mark: they cross into it
 	// and it stops being somewhere they are. Its scope is its own, because that
 	// country is marked among countries while the atlas under it draws states.
 	//
@@ -849,7 +849,7 @@ export function PlacesApp({
 
 	const marked = mark !== null && visits[mark.scope].includes(mark.region)
 
-	// The visited regions of the drawn atlas, as a set — the shape the map and the
+	// The visited regions of the drawn atlas, as a set: the shape the map and the
 	// toggle both ask it in. The two scopes are held apart in the store because
 	// Georgia is a state and Georgia is a country.
 	const visited = useMemo(() => new Set(visits[atlas]), [visits, atlas])
@@ -884,7 +884,7 @@ export function PlacesApp({
 
 	const hasTrips = trips.length > 0
 
-	// What the bar admits, then what the view holds — in that order, because the
+	// What the bar admits, then what the view holds, in that order, because the
 	// view is a frame over the filtered set and not a filter of its own.
 	const filtered = useMemo(
 		() => (showsKind(filter, 'places', hasTrips) ? filterPlaces(places, filter) : NO_PLACES),
@@ -964,7 +964,7 @@ export function PlacesApp({
 
 	// Opens one record on the view that certainly shows it, in one step: the view
 	// and the selection are both the address, so writing them apart would leave a
-	// history entry standing on a map the reader never saw — and the second write
+	// history entry standing on a map the reader never saw, and the second write
 	// would drop the first.
 	const openPlace = useCallback(
 		(place: Place) => openAt(viewFor(groupings.states, place), only('places', place)),
@@ -1167,7 +1167,7 @@ export function PlacesApp({
 			{located.length > 0 ? (
 				// No padding on this wrapper: the rail carries its own, so the whole
 				// padded band sits inside the scroll container and a wheel anywhere over
-				// it scrolls — the strip above and below the controls included.
+				// it scrolls, including the strip above and below the controls.
 				<div className="shrink-0 border-b border-zinc-950/10 dark:border-white/10">
 					<PlaceFilters
 						value={filter}

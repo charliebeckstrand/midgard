@@ -68,8 +68,8 @@ function targetKey(target: PlaceFormTarget): string {
 }
 
 /**
- * The {@link FormDrawer} that writes a place — a new one, or an edit of one on
- * record — or one visit to a place on record.
+ * The {@link FormDrawer} that writes a place (a new one, or an edit of one on
+ * record) or one visit to a place on record.
  *
  * One form for all of them, because each produces the same record: only what
  * the fields start as, which fields show, and what the panel calls itself
@@ -79,7 +79,7 @@ function targetKey(target: PlaceFormTarget): string {
  * two would have to be kept in step by hand.
  *
  * The search field resolves a business name to its address and position, so a
- * place reaches the map without the reader ever typing coordinates — see
+ * place reaches the map without the reader ever typing coordinates. See
  * {@link PlaceSearchField} for what one pick fills in. For a place that the
  * search does not find, the reader types the address, and a submit finds the
  * position from it. Where the geocoder does not find the address either, the

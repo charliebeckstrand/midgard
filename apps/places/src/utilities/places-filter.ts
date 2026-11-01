@@ -43,7 +43,7 @@ export function hasActiveFilter(filter: PlaceFilterValue): boolean {
 	)
 }
 
-/** The `YYYY-MM-DD` day a Date falls on, read in local time — the same clock a visit was recorded against. */
+/** The `YYYY-MM-DD` day a Date falls on, read in local time: the same clock a visit was recorded against. */
 export function toDay(date: Date): string {
 	const year = date.getFullYear()
 
@@ -82,13 +82,13 @@ function withinAny(day: string, ranges: readonly DatePickerRelativeValue[]): boo
  * The places a filter admits, in the order they were given.
  *
  * Each field narrows on its own and an absent one narrows nothing, so an empty
- * bar answers with everything. An empty category list is the reader having
- * turned every category off, which admits nothing — distinct from the absent
- * field, which admits all.
+ * bar answers with everything. An empty category list admits nothing, but no
+ * caller gives one: the filter bar and `readLocation` both turn an empty pick
+ * into the absent field.
  *
  * There is no country field. The map projects one country now, so narrowing to
  * a country and opening it were two controls a step apart that answered nearly
- * the same question — and the picker is the one that also takes the reader
+ * the same question, and the picker is the one that also takes the reader
  * there.
  */
 export function filterPlaces(places: readonly Place[], filter: PlaceFilterValue): Place[] {

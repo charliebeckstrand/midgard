@@ -10,13 +10,14 @@ import {
 	RULE_DOCUMENTS,
 	scanPackage,
 	scanUnshipped,
+	scanWorkspace,
 } from '../helpers/controlled-language'
 import { startTypeScript } from '../helpers/ts-server'
 import { uiRoot, workspaceRoot } from '../helpers/walk-source'
 
 // STE.md is the project's controlled language, and CLAUDE.md §2.5 applies it to
 // every authored statement. This test reads the breaks of the rules that a
-// reader can count, in eight shapes:
+// reader can count, in nine shapes:
 //
 //   1. Rule 10 in the comments is pinned at zero. The rule admits no judgment
 //      ("must" states a requirement and "can" states a possibility) so any site
@@ -37,6 +38,9 @@ import { uiRoot, workspaceRoot } from '../helpers/walk-source'
 //   8. Cadence rule 5 in the comments outside the shipped tree (the test and
 //      benchmark trees, the scripts, and the root configs) is pinned at zero.
 //      The other rules are not gated there.
+//   9. Cadence rule 5 outside ui (the comments and the Markdown of the apps,
+//      of auth, and of shared) is pinned at zero. The other rules are not gated
+//      there.
 //
 // Rule 4 is deliberately absent, and the reason is worth keeping. Its two
 // halves behave differently. The descriptive half is conditional (the rule
@@ -129,6 +133,17 @@ describe('controlled-language boundary', () => {
 		expect(
 			violations,
 			`em-dash aside in a comment. Put the aside in its own sentence or in parentheses, or use a colon or a comma (STE.md cadence rule 5):\n${violations.join('\n')}`,
+		).toEqual([])
+	})
+
+	it('no comment or Markdown file outside ui sets an aside between em-dashes (STE.md cadence rule 5)', () => {
+		const violations = scanWorkspace(server).map(
+			(item) => `${item.file}:${item.line}: ${item.text}`,
+		)
+
+		expect(
+			violations,
+			`em-dash aside outside ui. Put the aside in its own sentence or in parentheses, or use a colon or a comma (STE.md cadence rule 5):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 

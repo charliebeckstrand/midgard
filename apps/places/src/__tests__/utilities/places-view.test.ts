@@ -156,7 +156,7 @@ describe('viewCrumbs', () => {
 	})
 
 	// Every crumb but the last is a way back, so each must carry the view it
-	// returns to — the country crumb inside a state goes to that country whole.
+	// returns to: the country crumb inside a state goes to that country whole.
 	it('carries the view each step goes back to', () => {
 		const crumbs = viewCrumbs(OREGON)
 
@@ -190,7 +190,7 @@ describe('buildRegions', () => {
 describe('stateLabel', () => {
 	// The drawn geometry beats the name, which is the order the whole app trusts:
 	// a 10m atlas that holds the point knows better than a geocoder that wrote
-	// "OR" — or wrote nothing at all.
+	// "OR", or wrote nothing at all.
 	it('prefers the state the geometry settled', () => {
 		const held = place('lighthouse', { state: 'OR' })
 
@@ -199,7 +199,7 @@ describe('stateLabel', () => {
 
 	// What carries the column past the atlas's edge: the states are drawn for one
 	// country, and outside it the geocoder's subdivision is the only answer there
-	// is. Unchecked on purpose — it is a name to print, never a region to open.
+	// is. Unchecked on purpose: it is a name to print, never a region to open.
 	it('falls back to the name the geocoder gave', () => {
 		expect(stateLabel(new Map(), place('louvre', { state: 'Ile-de-France' }))).toBe('Ile-de-France')
 	})
@@ -318,13 +318,13 @@ describe('regionsHolding', () => {
 			['c', 'Texas'],
 		])
 
-		// A filter built from this offers Idaho and Texas — not Texas twice, and not
+		// A filter built from this offers Idaho and Texas: not Texas twice, and not
 		// the fifty-odd the atlas draws.
 		expect(regionsHolding(rows, held)).toEqual(['Idaho', 'Texas'])
 	})
 
 	it('passes over a place no region holds', () => {
-		// An unplaced place is not a region, so it contributes no option — the
+		// An unplaced place is not a region, so it contributes no option. The
 		// filter would otherwise carry a blank one that narrowed to nothing.
 		expect(regionsHolding(rows, new Map([['a', 'Idaho']]))).toEqual(['Idaho'])
 	})

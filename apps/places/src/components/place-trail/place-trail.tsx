@@ -20,7 +20,7 @@ export type PlaceTrailStep = {
 export type PlaceTrailProps = {
 	/** The trail, outermost first. The last step is where the reader is. */
 	steps: readonly PlaceTrailStep[]
-	/** The type scale the trail reads at, which is the caller's — a page title is not a panel's. */
+	/** The type scale the trail reads at, which is the caller's: a page title is not a panel's. */
 	className?: string
 	/** What shares the trail's line, after the last crumb. The crumbs give way before it does. */
 	children?: ReactNode
@@ -30,8 +30,8 @@ export type PlaceTrailProps = {
  * A breadcrumb trail that gives way from the left.
  *
  * It collapses rather than wraps. A trail is one line of orientation over a map
- * that owns the screen, and a wrapped one grows the header downward — taking the
- * thing it describes to say where the reader is, and moving every control beside
+ * that owns the screen, and a wrapped one grows the header downward. It takes the
+ * thing it describes to say where the reader is, and moves every control beside
  * it in the process. The fit is the one of a collapsing `Breadcrumb`: the steps
  * above the title give way whole to a mark, leftmost first, and the title clips
  * last.

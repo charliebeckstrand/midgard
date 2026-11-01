@@ -9,7 +9,7 @@ import { CategoryOptions } from './category-options'
 /** Props for {@link CategoryPicker}. */
 export type CategoryPickerProps = {
 	/**
-	 * The picked categories. An empty array is every category admitted, not none —
+	 * The picked categories. An empty array is every category admitted, not none:
 	 * see {@link CategoryPicker} for why the two are the same answer here.
 	 */
 	value: readonly PlaceCategory[]
@@ -21,7 +21,7 @@ export type CategoryPickerProps = {
 }
 
 /**
- * The category picker, wherever categories are narrowed — the bar over the map,
+ * The category picker, wherever categories are narrowed: the bar over the map,
  * and the list inside a drawer.
  *
  * Each option carries its category's color, which is the only key the map has:

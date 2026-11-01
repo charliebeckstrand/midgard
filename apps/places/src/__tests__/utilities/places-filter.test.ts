@@ -35,7 +35,7 @@ describe('hasActiveFilter', () => {
 	})
 
 	// `Filters` leaves a cleared slot present and `undefined`, so the count of keys
-	// is not the answer — an emptied field must read as cleared.
+	// is not the answer: an emptied field must read as cleared.
 	it('reads a cleared field as narrowing nothing', () => {
 		expect(hasActiveFilter({ categories: undefined })).toBe(false)
 

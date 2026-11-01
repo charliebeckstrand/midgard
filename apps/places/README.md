@@ -23,14 +23,14 @@ The components compose `ui`, which carries its own suite.
 
 ## The map
 
-Three levels: the world, one country, and — inside the United States alone —
+Three levels: the world, one country, and (inside the United States alone)
 one state. `src/utilities/places-view.ts` holds that model, and every other
 question about the map is asked of it: which atlas to draw, which region the
 frame is cut to, and what the breadcrumb trail says.
 
 The world draws under Mercator, one country or one state under a mercator
 centered on itself, and the United States whole under the composite that is only
-that country. Mercator is not the honest choice about area — it is the honest
+that country. Mercator is not the honest choice about area. It is the honest
 choice about shape, which is what a reader checks a coastline against, and area
 is not what a map of places you have been is for.
 
@@ -59,7 +59,7 @@ a place then waited on those reads. Next patches the two History calls, so
 `useSearchParams` gets the new address and the server gets no request.
 
 A drill and an opened place are steps the reader can walk back out of, so each
-takes a history entry. Narrowing the bar does not — otherwise leaving the page
+takes a history entry. Narrowing the bar does not. Otherwise leaving the page
 would cost one Back press per category picked.
 
 An empty `country` is the world stated outright, which is what parts it from an

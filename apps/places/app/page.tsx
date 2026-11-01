@@ -6,22 +6,24 @@ import { flags } from '@/flags'
 import { mimir } from '@/server/mimir'
 
 /**
- * The page reads the session, the places, and the visits before it renders. The
- * route blocks, because the app must know the places and the visits on the
- * first frame, as the comment of the page tells.
+ * The page reads the session, the places, the trips, and (while
+ * `flags.visitedRegions` is on) the visits before it renders. The route blocks,
+ * because the app must know them on the first frame, as the comment of the page
+ * tells.
  */
 export const instant = false
 
 /**
- * The one page. Every surface below it is interactive — the map, the filter bar,
- * the drawers — and every fetch runs through TanStack Query, so the page exists
+ * The one page. Every surface below it is interactive (the map, the filter bar,
+ * the drawers), and every fetch runs through TanStack Query, so the page exists
  * to mount the client tree.
  *
  * `requireSession` checks the session on the gateway, and sends a guest to
  * `/login`. The page hands the user to the menu of the app.
  *
- * The page also reads the visited set of the user, the same set that
- * `/api/visits` gives, and hands it to the app as the first value of that query.
+ * While `flags.visitedRegions` is on, the page also reads the visited set of the
+ * user, the same set that `/api/visits` gives, and hands it to the app as the
+ * first value of that query.
  * The Visited toggle in the header shows a state that the reader looks for, so
  * it must paint its true state on the first frame. A placeholder there would
  * only hold a shape where the server already knows the answer. The set is small:

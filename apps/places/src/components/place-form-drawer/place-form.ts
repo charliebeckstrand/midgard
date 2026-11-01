@@ -49,8 +49,8 @@ export function newPhoto(file: File): PhotoEntry {
 
 /**
  * What the place form holds while it is being filled, which is not what the store
- * takes. The form works in the shapes its controls emit — a suggestion
- * object, a `Date` — and `toPlaceDraft` turns those into the record.
+ * takes. The form works in the shapes its controls emit (a suggestion
+ * object, a `Date`), and `toPlaceDraft` turns those into the record.
  *
  * A field the reader can clear is optional, because that is what the store
  * actually holds. `null` is the contract a control's `value` prop and its
@@ -78,7 +78,7 @@ export type PlaceValues = LocationValues & {
  * Per-field validators, in the shape `Form` takes, for a reader with `trips`.
  * The location fields take {@link locationValidators}.
  *
- * An empty field reads the same way whichever it is — the reader is scanning a
+ * An empty field reads the same way whichever it is. The reader is scanning a
  * column of messages, and one phrasing per field makes them compare the wording
  * instead of the field names. A field that is filled but wrong says what is
  * wrong with it, which is the only thing `required` cannot express.
