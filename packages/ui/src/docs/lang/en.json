@@ -6593,11 +6593,11 @@
 	},
 	"docs.prop.outline.strong": {
 		"defaultMessage": "Strong",
-		"description": "An option of the Outline field of a playground in the docs. It sets the prop outline to 'strong' on Box, Card."
+		"description": "An option of the Outline field of a playground in the docs. It sets the prop outline to 'strong' on Box, Card, Grid, PivotTable, Table."
 	},
 	"docs.prop.outline.subtle": {
 		"defaultMessage": "Subtle",
-		"description": "An option of the Outline field of a playground in the docs. It sets the prop outline to 'subtle' on Box, Card."
+		"description": "An option of the Outline field of a playground in the docs. It sets the prop outline to 'subtle' on Box, Card, Grid, PivotTable, Table."
 	},
 	"docs.prop.p": {
 		"defaultMessage": "P",
