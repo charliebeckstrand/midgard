@@ -23,6 +23,13 @@ import { gridMessages } from './engine/grid-messages'
 export type GridEditInputProps = {
 	draft: unknown
 	onValueUpdate: (next: unknown) => void
+	/**
+	 * Stage a final value, such as the pick of a choice editor. Where a
+	 * cell-scoped session holds the cell, this also commits it, as F2 does.
+	 * Everywhere else it only stages, as {@link GridEditInputProps.onValueUpdate}
+	 * does.
+	 */
+	commit: (next: unknown) => void
 	/** Revert this cell to the row's current value (Escape). */
 	cancel: () => void
 	ariaLabel: string
@@ -143,7 +150,10 @@ const BOOLEAN_OPTIONS = [
  * text/number editor, or the consumer's save affordance. Under `scope: 'cell'`
  * there is no sibling, because the session mounts this editor alone. Tab is
  * then the keyboard commit (WCAG 2.1.1). Tab past the last control of the
- * cell commits the cell and moves the session to the next cell. An entry on
+ * cell commits the cell and moves the session to the next cell. A pick is a
+ * commit too, as in a spreadsheet: where a cell-scoped session holds the
+ * cell, a pick commits it and the cursor stays on the cell. Under row scope a
+ * pick only stages, because the row commits as one. An entry on
  * the cell opens the panel, which saves the user a press. Tab in the open
  * panel closes it, and then acts as Tab on the trigger. Escape works
  * as in the other editors. A grid-owned session takes it on the grid table's
@@ -154,7 +164,7 @@ const BOOLEAN_OPTIONS = [
  */
 function GridBooleanEditInput({
 	draft,
-	onValueUpdate,
+	commit,
 	cancel,
 	ariaLabel,
 	error,
@@ -185,7 +195,7 @@ function GridBooleanEditInput({
 				className={k.edit.input}
 				value={value}
 				defaultOpen={entered}
-				onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
+				onValueChange={(next) => commit(next === null ? undefined : next === 'true')}
 				onKeyDown={editorKeys({ cancel, managed })}
 				displayValue={(option) => {
 					const label = BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label

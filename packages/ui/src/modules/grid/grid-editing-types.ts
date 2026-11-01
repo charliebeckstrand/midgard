@@ -75,11 +75,15 @@ export type GridEditCellContext<T> = {
 	/** Stage the next value without committing: call on each keystroke or selection change. */
 	onValueUpdate: (next: unknown) => void
 	/**
-	 * Stage `next` (when given) and, when the grid owns the edit session
-	 * ({@link GridEditableConfig.session} `'managed'`), end that session. That
-	 * is the same one-batch commit, removing the row from the editable set. Under the
-	 * default consumer-owned session it only stages: the row's save flushes the
-	 * staged values, so there is no per-cell close.
+	 * Stage `next` (when given) as the final value of the cell, such as the
+	 * pick of a listbox. Where a cell-scoped session holds the cell
+	 * ({@link GridEditableConfig.scope} `'cell'`), this also commits the cell
+	 * and ends the session, as F2 does, so a pick commits as in a spreadsheet.
+	 * The cursor stays on the cell. Everywhere else it only stages, as
+	 * `onValueUpdate` does. Under row scope, and under the default
+	 * consumer-owned session, the row commits as one, so there is no per-cell
+	 * close. The overlay of a phone and the new-row slot also only stage: Save
+	 * and the add commit them.
 	 */
 	commit: (next?: unknown) => void
 	/** Revert the cell to the row's current value. The editor stays open. */

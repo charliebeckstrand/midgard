@@ -5,12 +5,13 @@ import { bySlot, renderUI, screen, waitFor } from '../../helpers'
 import { gridCell } from '../../helpers/grid-cells'
 
 /**
- * Why the inline listbox editor has no Enter-to-commit, recorded as a test
- * rather than a comment: Enter on the closed trigger is how the listbox opens,
- * so there is no spare Enter for a session to commit with. The grid table's key
- * surface leaves Enter on a button to that button for this reason. Tab is the
- * keyboard commit this editor has instead, because the surface claims it to
- * commit and move (WCAG 2.1.1).
+ * Why the inline listbox editor has no Enter-to-commit on its closed trigger,
+ * recorded as a test rather than a comment: Enter on the closed trigger is how
+ * the listbox opens, so there is no spare Enter for a session to commit with.
+ * The grid table's key surface leaves Enter on a button to that button for
+ * this reason. Tab is the keyboard commit this editor has instead, because the
+ * surface claims it to commit and move (WCAG 2.1.1). A pick in the open panel
+ * commits too, under cell scope.
  */
 describe('listbox editor and Enter (real floating engine)', () => {
 	type Row = { id: number; done: boolean }
@@ -70,23 +71,18 @@ describe('listbox editor and Enter (real floating engine)', () => {
 
 		await userEvent.dblClick(gridCell(view.container, 'done'))
 
-		const trigger = await screen.findByRole('combobox')
+		// The entry opens the panel, with the active option on the value.
+		await screen.findByRole('option', { name: 'Yes' })
 
-		// The entry opens the panel.
-		await userEvent.click(await screen.findByRole('option', { name: 'Yes' }))
+		// Tab on an active option picks it. The column is the row's only
+		// editable one, so Tab has nowhere to move and commits in place. The
+		// settle pair sits outside the tab order, so Tab cannot land on it
+		// instead.
+		await userEvent.keyboard('{ArrowUp}{Tab}')
 
-		await waitFor(() => expect(screen.queryByRole('option', { name: 'Yes' })).toBeNull())
+		await waitFor(() => expect(bySlot(view.container, 'grid-edit-boolean-input')).toBeNull())
 
-		trigger.focus()
-
-		// The column is the row's only editable one, so Tab has nowhere to move and
-		// commits in place. The settle pair sits outside the tab order, so Tab
-		// cannot land on it instead.
-		await userEvent.keyboard('{Tab}')
-
-		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'done', value: true }])
-
-		expect(bySlot(view.container, 'grid-edit-boolean-input')).toBeNull()
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 1, columnId: 'done', value: true }])
 
 		expect(screen.getByRole('grid')).toHaveFocus()
 	})

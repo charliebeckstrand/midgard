@@ -9,7 +9,8 @@ import { bySlot, present, renderUI, screen, waitFor } from '../../helpers'
  * the user does not press again to see the choices. An entry is Enter, F2, a
  * double-click, or Tab from the cell before. The other editors of a row that
  * row scope opens stay closed. An `editCell` slot reads the entry from
- * `entered`.
+ * `entered`. A pick commits the cell that a cell-scoped session holds, as in
+ * a spreadsheet, and only stages under row scope.
  */
 describe('grid choice editor on entry (real floating engine)', () => {
 	type Row = { id: number; name: string; done: boolean }
@@ -54,21 +55,107 @@ describe('grid choice editor on entry (real floating engine)', () => {
 		// pair hides while the panel is open.
 		expect(screen.queryByRole('button', { name: 'Save Done, row 2' })).toBeNull()
 
-		// A pick closes the panel and gives focus back to the trigger. The cell
-		// stays open until the user commits it.
+		// A pick commits the cell, as in a spreadsheet. The editor closes, the
+		// cursor stays on the cell, and focus goes back to the grid.
 		await userEvent.click(screen.getByRole('option', { name: 'Yes' }))
+
+		await waitFor(() => expect(bySlot(container, 'grid-edit-boolean-input')).toBeNull())
+
+		expect(panel()).toBeNull()
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 1, columnId: 'done', value: true }])
+
+		const grid = screen.getByRole('grid')
+
+		await waitFor(() => expect(grid).toHaveFocus())
+
+		expect(grid).toHaveAttribute('aria-activedescendant', getCell(container, 'done').id)
+	})
+
+	it('commits a pick made with the keyboard', async () => {
+		const onCommit = vi.fn()
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', scope: 'cell', onCommit }}
+			/>,
+		)
+
+		await userEvent.click(getCell(container, 'done'))
+
+		await userEvent.keyboard('{Enter}')
+
+		await screen.findByRole('listbox')
+
+		await userEvent.keyboard('{ArrowUp}{Enter}')
+
+		await waitFor(() => expect(bySlot(container, 'grid-edit-boolean-input')).toBeNull())
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 1, columnId: 'done', value: true }])
+
+		await waitFor(() => expect(screen.getByRole('grid')).toHaveFocus())
+	})
+
+	it('commits a pick that Tab makes once, and Tab moves on along the row', async () => {
+		const onCommit = vi.fn()
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', scope: 'cell', onCommit }}
+			/>,
+		)
+
+		await userEvent.dblClick(getCell(container, 'done'))
+
+		await screen.findByRole('listbox')
+
+		// Tab picks the active option, commits the cell, and moves the session
+		// along the row, which wraps to the name cell.
+		await userEvent.keyboard('{ArrowUp}{Tab}')
+
+		await waitFor(() =>
+			expect(getCell(container, 'name').contains(document.activeElement)).toBe(true),
+		)
+
+		expect(bySlot(container, 'grid-edit-input')).not.toBeNull()
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 1, columnId: 'done', value: true }])
+	})
+
+	it('only stages a pick under row scope, where the row commits as one', async () => {
+		const onCommit = vi.fn()
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', onCommit }}
+			/>,
+		)
+
+		await userEvent.dblClick(getCell(container, 'done'))
+
+		await userEvent.click(await screen.findByRole('option', { name: 'Yes' }))
 
 		await waitFor(() => expect(panel()).toBeNull())
 
-		const trigger = screen.getByRole('combobox')
+		// The row stays open, with the pick staged, and focus back on the trigger.
+		await waitFor(() => expect(screen.getByRole('combobox')).toHaveFocus())
 
-		await waitFor(() => expect(trigger).toHaveFocus())
+		expect(bySlot(container, 'grid-edit-input')).not.toBeNull()
 
-		await screen.findByRole('button', { name: 'Save Done, row 2' })
+		expect(onCommit).not.toHaveBeenCalled()
 
-		await userEvent.keyboard('{Tab}')
+		await userEvent.keyboard('{F2}')
 
-		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'done', value: true }])
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 1, columnId: 'done', value: true }])
 	})
 
 	it('opens the panel on Enter and on F2 from the cursor', async () => {
@@ -236,5 +323,80 @@ describe('grid choice editor on entry (real floating engine)', () => {
 		expect(seen.get('status')).toBe(true)
 
 		expect(seen.get('name')).toBe(false)
+	})
+
+	describe('an editCell slot that commits its pick', () => {
+		const slotColumns: GridColumn<Row>[] = [
+			columns[0] as GridColumn<Row>,
+			{
+				id: 'status',
+				title: 'Status',
+				field: 'done',
+				cell: (row) => (row.done ? 'Done' : 'Open'),
+				editCell: (context) => (
+					<Listbox<string>
+						aria-label={context.ariaLabel}
+						defaultOpen={context.entered}
+						value={context.value ? 'done' : 'open'}
+						onValueChange={(next) => context.commit(next === 'done')}
+					>
+						<ListboxOption value="open">
+							<ListboxLabel>Open</ListboxLabel>
+						</ListboxOption>
+						<ListboxOption value="done">
+							<ListboxLabel>Done</ListboxLabel>
+						</ListboxOption>
+					</Listbox>
+				),
+			},
+		]
+
+		it('commits the cell under cell scope', async () => {
+			const onCommit = vi.fn()
+
+			const { container } = renderUI(
+				<Grid
+					columns={slotColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					editable={{ session: 'managed', scope: 'cell', onCommit }}
+				/>,
+			)
+
+			await userEvent.dblClick(getCell(container, 'status'))
+
+			await userEvent.click(await screen.findByRole('option', { name: 'Done' }))
+
+			await waitFor(() => expect(screen.queryByRole('combobox')).toBeNull())
+
+			expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+				{ rowKey: 1, columnId: 'status', value: true },
+			])
+		})
+
+		it('only stages under row scope', async () => {
+			const onCommit = vi.fn()
+
+			const { container } = renderUI(
+				<Grid
+					columns={slotColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					editable={{ session: 'managed', onCommit }}
+				/>,
+			)
+
+			await userEvent.dblClick(getCell(container, 'status'))
+
+			await userEvent.click(await screen.findByRole('option', { name: 'Done' }))
+
+			await waitFor(() => expect(panel()).toBeNull())
+
+			expect(screen.getByRole('combobox')).toBeInTheDocument()
+
+			expect(bySlot(container, 'grid-edit-input')).not.toBeNull()
+
+			expect(onCommit).not.toHaveBeenCalled()
+		})
 	})
 })

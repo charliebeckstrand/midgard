@@ -10,7 +10,8 @@ import { gridCell } from '../../helpers/grid-cells'
  * moves into them reaches the table through the React tree, so the session
  * holds. An unrelated portal on the same page is not the editor's, and focus
  * that moves into it commits. The jsdom suite renders the portal inline, so
- * only this project can prove the difference.
+ * only this project can prove the difference. The grid is row-scoped, where a
+ * pick only stages. Under cell scope a pick commits the cell by itself.
  */
 describe('grid commit on leave vs the listbox editor (real floating engine)', () => {
 	type Row = { id: number; done: boolean }
@@ -30,7 +31,7 @@ describe('grid commit on leave vs the listbox editor (real floating engine)', ()
 					columns={columns}
 					rows={rows}
 					getKey={(row) => row.id}
-					editable={{ session: 'managed', scope: 'cell', commitOn: 'leaveEditor', onCommit }}
+					editable={{ session: 'managed', commitOn: 'leaveEditor', onCommit }}
 				/>
 				<div data-floating-ui-portal="">
 					<button type="button">Unrelated</button>

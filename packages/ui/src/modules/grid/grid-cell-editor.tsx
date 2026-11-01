@@ -407,6 +407,62 @@ export function GridCellEditor<T>({
 		unstageDraft(rowKey, column.id)
 	}
 
+	// Whether a Tab press is on its way to the key surface of the grid, while a
+	// cell-scoped session holds this cell. Tab in an open listbox panel picks
+	// the active option, and then commits the cell and moves along the row
+	// (see `useGridEditKeys`). The panel is in a portal, so the document sees
+	// its keys: first in the capture phase, and last in the bubble phase.
+	const tabbingRef = useRef(false)
+
+	// Whether a cell-scoped session holds this cell. The session shows settle
+	// controls on that one cell alone (see `settleControls`).
+	const holds = settle !== 'none'
+
+	useEffect(() => {
+		if (!holds) return
+
+		const press = (event: KeyboardEvent) => {
+			tabbingRef.current = event.key === 'Tab'
+		}
+
+		const done = () => {
+			tabbingRef.current = false
+		}
+
+		document.addEventListener('keydown', press, true)
+
+		document.addEventListener('keydown', done)
+
+		return () => {
+			document.removeEventListener('keydown', press, true)
+
+			document.removeEventListener('keydown', done)
+		}
+	}, [holds])
+
+	// Stages a final value, such as a pick, and commits the cell where a
+	// cell-scoped session holds it, as F2 does. Under row scope the row
+	// commits as one, so a final value of one cell only stages. So does a cell
+	// of the new-row slot, which adds only on an explicit add.
+	const commit = (next: unknown) => {
+		if (next !== undefined) update(next)
+
+		// The Tab that made the pick commits the cell and moves on by itself.
+		if (!holds || dataKey === null || tabbingRef.current) return
+
+		// A pick in the panel of a listbox leaves focus in the panel, outside the
+		// grid, and the panel closes with the cell. The pick gives focus to the
+		// control that opened the panel first. Thus the exit finds focus in the
+		// grid and puts it back on the tab stop.
+		const host = hostRef.current
+
+		const opener = host?.querySelector<HTMLElement>('[aria-expanded="true"]')
+
+		if (opener && !host?.contains(document.activeElement)) opener.focus()
+
+		endSession(dataKey, 'save')
+	}
+
 	// Names the cell for every control in it, so the editor and the settle pair
 	// read as one thing to a screen reader rather than unrelated widgets.
 	// `columnLabel` is the module's one column-naming rule, and it degrades to the
@@ -439,18 +495,10 @@ export function GridCellEditor<T>({
 			row,
 			value: draft,
 			onValueUpdate: update,
-			// A slot can stage a final value in one call (e.g. a select's pick); the
-			// row's save flushes the staged values, so there is no per-cell close.
-			// Under a grid-owned session the slot's commit also saves the row. The
-			// session keys need no wiring here: Enter and Escape reach the session
-			// through the grid table's key surface, as from every other editor.
-			commit: (next) => {
-				if (next !== undefined) update(next)
-
-				// The new-row slot adds only on an explicit add, so a slot's
-				// commit there only stages.
-				if (managed && dataKey !== null) endSession(dataKey, 'save')
-			},
+			// The session keys need no wiring here: Enter and Escape reach the
+			// session through the grid table's key surface, as from every other
+			// editor.
+			commit,
 			cancel,
 			ariaLabel,
 			required: column.required ?? false,
@@ -461,6 +509,7 @@ export function GridCellEditor<T>({
 			kind={kind ?? inferEditorKind(seed)}
 			draft={draft}
 			onValueUpdate={update}
+			commit={commit}
 			cancel={cancel}
 			ariaLabel={ariaLabel}
 			error={error}
