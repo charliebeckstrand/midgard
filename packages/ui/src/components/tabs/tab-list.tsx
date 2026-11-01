@@ -67,8 +67,9 @@ export type TabListProps = AccessibleName &
  * single Tab stop itself comes from each `<Tab>`'s roving `tabIndex`. The
  * underline variant sits in an overflow viewport, so an over-long tab row
  * scrolls in place rather than widening the page, and the edge with more tabs
- * behind it fades. The active tab is scrolled into view before the first paint,
- * when the selection changes, and as focus roves. A consumer `ref` reaches the
+ * behind it fades. The row paints at its start, on the server and on the
+ * client, and a mount does not scroll it. The active tab scrolls into view when
+ * the selection changes and as focus roves. A consumer `ref` reaches the
  * `role="tablist"` element.
  */
 export function TabList({
@@ -99,7 +100,7 @@ export function TabList({
 
 	// The segment variant is a fixed pill control; only the underline list
 	// scrolls, so the viewport (and its scroll-into-view) is gated off for it.
-	const { setScroller, onFocus: handleFocus } = useTabListScroll(orientation, !isSegment)
+	const { scrollRef, onFocus: handleFocus } = useTabListScroll(orientation, !isSegment)
 
 	const list = (
 		<div
@@ -131,7 +132,7 @@ export function TabList({
 				list
 			) : (
 				<div
-					ref={setScroller}
+					ref={scrollRef}
 					data-slot="tab-list-scroll"
 					data-scroll-region
 					className={slots.scroll}

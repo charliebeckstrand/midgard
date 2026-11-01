@@ -4,6 +4,7 @@ import { describe, expect, it, onTestFinished } from 'vitest'
 
 import { Tab, TabList, Tabs, type TabsOrientation } from '../../components/tabs'
 import { act, attach, present } from '../helpers'
+import { hydrate, serverMarkup } from '../helpers/hydrate'
 
 const TABS = Array.from({ length: 12 }, (_, index) => `Section ${index}`)
 
@@ -72,8 +73,8 @@ function mountOnClient(orientation: TabsOrientation) {
 
 	let root: Root | undefined
 
-	// The layout effect overwrites this. A tab list that never paints fails both checks.
-	const painted = { scroll: 0, visible: false }
+	// The layout effect overwrites this. A tab list that never paints fails the check.
+	const painted = { scroll: -1, visible: true }
 
 	act(() => {
 		root = createRoot(container)
@@ -94,6 +95,40 @@ function mountOnClient(orientation: TabsOrientation) {
 	onTestFinished(() => act(() => root?.unmount()))
 
 	return painted
+}
+
+/** The scroll of the tab list in `container` on the flow axis, and whether the current tab is in view. */
+function readScroll(container: Element, orientation: TabsOrientation) {
+	const scroller = present(
+		container.querySelector('[data-slot="tab-list-scroll"]'),
+		'tab list scroller',
+	)
+
+	const tab = present(container.querySelector('[data-slot="tab"][data-current]'), 'current tab')
+
+	return {
+		scroll: orientation === 'horizontal' ? scroller.scrollLeft : scroller.scrollTop,
+		visible: inView(tab, scroller),
+	}
+}
+
+/**
+ * Puts the server markup of the tabs on the page, as a prerendered page paints
+ * it, then hydrates it. Returns the state of the paint before the hydration,
+ * and the state after it.
+ */
+function hydrateServerMarkup(orientation: TabsOrientation) {
+	const element = <LongTabs orientation={orientation} />
+
+	const container = attach(serverMarkup(element))
+
+	const painted = readScroll(container, orientation)
+
+	const { onRecoverableError } = hydrate(container, element)
+
+	expect(onRecoverableError).not.toHaveBeenCalled()
+
+	return { painted, hydrated: readScroll(container, orientation) }
 }
 
 /**
@@ -132,14 +167,24 @@ function selectWithoutFocus(orientation: TabsOrientation) {
 }
 
 describe('TabList mount scroll (real browser)', () => {
+	// The server cannot scroll the row, so a client mount does not scroll it
+	// either. The first paint and the hydrated page then agree.
+	it.for(['horizontal', 'vertical'] as const)('paints a %s list at its start', (orientation) => {
+		const painted = mountOnClient(orientation)
+
+		expect(painted).toEqual({ scroll: 0, visible: false })
+	})
+})
+
+describe('TabList hydration scroll (real browser)', () => {
+	// The server markup paints before the hydration. A scroll at the hydration
+	// moves the row that the reader already sees, as iOS Safari showed.
 	it.for(['horizontal', 'vertical'] as const)(
-		'paints a %s list with the current tab in view',
+		'keeps the scroll of the server paint of a %s list',
 		(orientation) => {
-			const painted = mountOnClient(orientation)
+			const { painted, hydrated } = hydrateServerMarkup(orientation)
 
-			expect(painted.scroll).toBeGreaterThan(0)
-
-			expect(painted.visible).toBe(true)
+			expect(hydrated).toEqual(painted)
 		},
 	)
 })

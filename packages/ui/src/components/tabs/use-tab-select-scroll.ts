@@ -10,7 +10,7 @@ import { FLOW_SCROLL, TAB_LIST_SCROLL_SELECTOR } from './tabs-constants'
  * paint. Thus a selection that does not move focus, such as a controlled
  * `value` that the Back button of the browser sets, keeps the current tab in
  * view. The scroll occurs once on each change from not current to current. The
- * mount does not count: the ref callback of the viewport scrolls then. A
+ * mount does not count, so the first paint keeps the row at its start. A
  * StrictMode replay of the effect sees no change, so it does not scroll.
  *
  * @param current - Whether the tab is current.

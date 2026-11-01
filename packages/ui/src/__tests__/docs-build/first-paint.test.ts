@@ -6,10 +6,15 @@ import { launchChromium } from './helpers/chromium'
 // The first paint of the docs has the current item of the sidebar in view. The
 // current row is the initial scroll target of the sidebar (`SidebarItem`), so
 // in Chromium the paint of the server markup, with the bundled module scripts
-// blocked, shows the same scroll as the page after hydration.
+// blocked, shows the same scroll as the page after hydration. The tab row
+// paints at its start, and the hydration does not scroll it
+// (`useTabListScroll`).
 
 /** A page near the top of the sidebar, one in the middle, and one at the end. */
 const PAGES = ['/badge', '/modules/grid', '/structure/stack']
+
+/** Tabs in the middle and at the end of a tab row that overflows on a phone. */
+const TABS = ['/modules/grid/editing', '/modules/grid/virtualization']
 
 /**
  * The module scripts of the build. The script of the latin face of the font
@@ -86,6 +91,33 @@ describe.concurrent('the sidebar of the docs build', () => {
 		const { painted, hydrated } = await readBoth<SidebarState>(context, path, 1280, READ_SIDEBAR)
 
 		expect(painted.inView).toBe(true)
+
+		expect(hydrated).toEqual(painted)
+	})
+})
+
+/** The scroll of the tab row, whether it overflows, and the scroll of the window. */
+type TabRowState = { scrollLeft: number; overflows: boolean; pageY: number }
+
+/** Reads the {@link TabRowState} of the page. */
+const READ_TAB_ROW = `(() => {
+	const scroller = document.querySelector('[data-slot="tab-list-scroll"]')
+	return {
+		scrollLeft: scroller.scrollLeft,
+		overflows: scroller.scrollWidth > scroller.clientWidth,
+		pageY: window.scrollY,
+	}
+})()`
+
+describe.concurrent('the tab row of the docs build', () => {
+	it.for(TABS)('%s paints its final scroll before hydration', async (path, context) => {
+		const { expect } = context
+
+		// The width of a phone, where the row overflows.
+		const { painted, hydrated } = await readBoth<TabRowState>(context, path, 390, READ_TAB_ROW)
+
+		// The row overflows and paints at its start, and the page does not scroll.
+		expect(painted).toEqual({ scrollLeft: 0, overflows: true, pageY: 0 })
 
 		expect(hydrated).toEqual(painted)
 	})
