@@ -2,7 +2,7 @@
 // The idle work reads `window.requestIdleCallback`.
 import { Marked } from 'marked'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { MARKDOWN_CACHE_SIZE } from '../../components/markdown/markdown.tsx'
+import { MARKDOWN_CACHE_SIZE } from '../../components/markdown/markdown-lex.ts'
 import { primeApi } from '../kit/api-entry.tsx'
 import { runInSlices } from '../kit/idle.ts'
 import type { BarrelApi } from '../plugin/api.ts'

@@ -1,6 +1,6 @@
 import { prerender } from 'react-dom/static'
 import { type EntryContext, ServerRouter } from 'react-router'
-import { DocumentLocale } from './document-locale.ts'
+import { DocumentLocale } from './context.ts'
 import { requestLocale } from './language.ts'
 
 // The build renders each page once, to a static file. `prerender` waits for

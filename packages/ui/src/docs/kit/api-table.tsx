@@ -9,8 +9,9 @@ import { Text } from 'ui/text'
 import { createLazyModule } from '../../utilities/lazy-module.ts'
 import type { BarrelApi } from '../plugin/api.ts'
 import { API, componentOfHash, toApiId } from './anchors.ts'
-import { useLoadThenOpen } from './load-then-open.ts'
-import { type PendingAnchor, PendingAnchorContext, scrollToPending } from './pending-anchor.ts'
+import { PendingAnchorContext } from './context.ts'
+import { type PendingAnchor, scrollToPending } from './pending-anchor.ts'
+import { useLoadThenOpen } from './use-load-then-open.ts'
 
 const apiReferenceMessage = defineMessage({
 	id: 'docs.api.reference',

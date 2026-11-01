@@ -3,7 +3,7 @@ import { useFail } from '../../hooks/use-fail.ts'
 import { useLazyModule } from '../../hooks/use-lazy-module.ts'
 import type { LazyModule } from '../../utilities/lazy-module.ts'
 import { noop } from '../../utilities/noop.ts'
-import { useIdle } from './idle.ts'
+import { useIdle } from './use-idle.ts'
 
 /**
  * Holds the open state of a panel whose content is in a chunk of its own, such

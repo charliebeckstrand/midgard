@@ -1,7 +1,7 @@
 import { DateTime } from 'ui/date-time'
 import { TimeAgo } from 'ui/time-ago'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
-import { MINUTE, useNow } from './now.ts'
+import { MINUTE, useNow } from './use-now.ts'
 
 export default function WithAbsoluteTime() {
 	const now = useNow()

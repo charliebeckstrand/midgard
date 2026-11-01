@@ -1,6 +1,6 @@
 import { useIntl } from 'ui/primitives/intl'
 import { TimeAgo } from 'ui/time-ago'
-import { SECOND, useNow } from './now.ts'
+import { SECOND, useNow } from './use-now.ts'
 
 export default function CustomFormat() {
 	const intl = useIntl()

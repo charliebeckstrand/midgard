@@ -14,7 +14,9 @@ import {
 // primitive. Its main file and its part files hold components. A hook that it
 // exports is in a `use-*` file. A context and the hooks that read it are in
 // `context.ts`. Thus a sibling can import a hook without the components next
-// to it. The flat `hooks/` tree holds one `use-*` file for each stem.
+// to it. The flat `hooks/` tree holds one `use-*` file for each stem. The
+// docs app keeps the same rules, so the gate reads `docs/` too. There, the
+// folder of a file is its unit.
 //
 //   1. A file that exports a hook is a `use-*` file or a `context` file.
 //   2. Each hook that a `use-*` file exports has the stem of the file in its
@@ -26,7 +28,16 @@ import {
 //      has a barrel. It imports the barrel or a leaf file. A unit with no
 //      barrel has no other entry, so its main file is open.
 
-const TREES = ['components', 'hooks', 'layouts', 'modules', 'primitives', 'providers', 'structure']
+const TREES = [
+	'components',
+	'docs',
+	'hooks',
+	'layouts',
+	'modules',
+	'primitives',
+	'providers',
+	'structure',
+]
 
 const HOOK_FILE = /^(?:use-[a-z0-9-]+|context)\.tsx?$/
 

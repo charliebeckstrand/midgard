@@ -1,6 +1,6 @@
 import { Stack } from 'ui/stack'
 import { TimeAgo } from 'ui/time-ago'
-import { DAY, HOUR, MINUTE, useNow } from './now.ts'
+import { DAY, HOUR, MINUTE, useNow } from './use-now.ts'
 
 export default function Past() {
 	const now = useNow()

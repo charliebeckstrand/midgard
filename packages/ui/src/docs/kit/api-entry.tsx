@@ -9,13 +9,14 @@ import { defineMessage, defineMessages, IntlMessage, useIntl } from 'ui/primitiv
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
-import { MARKDOWN_CACHE_SIZE } from '../../components/markdown/markdown.tsx'
+import { MARKDOWN_CACHE_SIZE } from '../../components/markdown/markdown-lex.ts'
 import { k } from '../../recipes/kata/json-tree.ts'
 import type { BarrelApi, ComponentApi, PropApi } from '../plugin/api.ts'
 import { toApiId } from './anchors.ts'
+import { usePendingAnchor } from './context.ts'
 import { runInSlices } from './idle.ts'
 import { formatLiteral } from './names.ts'
-import { scrollToPending, usePendingAnchor } from './pending-anchor.ts'
+import { scrollToPending } from './pending-anchor.ts'
 
 const messages = defineMessages({
 	props: {

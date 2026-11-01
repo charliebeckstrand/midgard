@@ -1,16 +1,11 @@
 import { type MouseEvent, useState } from 'react'
-import { type NavigateFunction, PrefetchPageLinks } from 'react-router'
-import { composeEventHandlers, createContext } from 'ui/core'
+import { PrefetchPageLinks } from 'react-router'
+import { composeEventHandlers } from 'ui/core'
 import { useTimeout } from 'ui/hooks'
 import type { LinkProps } from 'ui/primitives/link'
 import { hasBrowserModifier } from '../../utilities/modifier-keys.ts'
 import { isPrimaryPress } from '../../utilities/primary-press.ts'
-
-/**
- * The `navigate` of the shell. The function of the root route does not change,
- * so a link that reads it does not render again on a navigation.
- */
-export const [NavigateContext, useShellNavigate] = createContext<NavigateFunction>('Navigate')
+import { useShellNavigate } from './context.ts'
 
 /**
  * The time in ms that the reader points at a link or focuses it before the
