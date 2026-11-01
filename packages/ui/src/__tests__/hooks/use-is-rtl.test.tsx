@@ -11,7 +11,7 @@ import { attach } from '../helpers'
  */
 
 /** A `span` in a `div` that carries `dir`. */
-function buildInDir(dir: string) {
+function makeInDir(dir: string) {
 	const host = attach(document.createElement('div'))
 
 	host.setAttribute('dir', dir)
@@ -23,15 +23,15 @@ describe('useIsRtl', () => {
 	it('reads the nearest dir attribute, with no style read', () => {
 		const style = vi.spyOn(window, 'getComputedStyle')
 
-		expect(renderHook(() => useIsRtl(buildInDir('rtl'))).result.current).toBe(true)
+		expect(renderHook(() => useIsRtl(makeInDir('rtl'))).result.current).toBe(true)
 
-		expect(renderHook(() => useIsRtl(buildInDir('LTR'))).result.current).toBe(false)
+		expect(renderHook(() => useIsRtl(makeInDir('LTR'))).result.current).toBe(false)
 
 		expect(style).not.toHaveBeenCalled()
 	})
 
 	it('skips a dir attribute with no valid value', () => {
-		const inner = buildInDir('rtl').appendChild(document.createElement('b'))
+		const inner = makeInDir('rtl').appendChild(document.createElement('b'))
 
 		inner.setAttribute('dir', 'sideways')
 
@@ -41,7 +41,7 @@ describe('useIsRtl', () => {
 	it('reads the computed style for dir="auto", which the text decides', () => {
 		const style = vi.spyOn(window, 'getComputedStyle')
 
-		renderHook(() => useIsRtl(buildInDir('auto')))
+		renderHook(() => useIsRtl(makeInDir('auto')))
 
 		expect(style).toHaveBeenCalled()
 	})

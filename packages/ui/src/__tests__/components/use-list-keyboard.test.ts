@@ -8,7 +8,7 @@ const containerRef = { current: document.body }
 
 type Item = { id: string }
 
-function buildItems(ids: string[]): Item[] {
+function makeItems(ids: string[]): Item[] {
 	return ids.map((id) => ({ id }))
 }
 
@@ -36,7 +36,7 @@ function setup(
 	const { result } = renderHook(() =>
 		useListKeyboard({
 			containerRef,
-			items: buildItems(options.ids ?? ['a', 'b', 'c']),
+			items: makeItems(options.ids ?? ['a', 'b', 'c']),
 			getKey: (i) => i.id,
 			orientation: options.orientation ?? 'vertical',
 			onReorder: options.onReorder,
@@ -151,7 +151,7 @@ describe('useListKeyboard', () => {
 
 			expect(move.preventDefault).toHaveBeenCalled()
 
-			expect(onReorder).toHaveBeenCalledExactlyOnceWith(buildItems(['b', 'a', 'c']))
+			expect(onReorder).toHaveBeenCalledExactlyOnceWith(makeItems(['b', 'a', 'c']))
 		})
 
 		it('ArrowUp moves the lifted item backward', () => {

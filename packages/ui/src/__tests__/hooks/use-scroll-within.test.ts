@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { scrollNodeWithin, useScrollWithin } from '../../hooks/use-scroll-within'
 import { attach, mockDomGeometry } from '../helpers'
 
-function buildScrollable() {
+function makeScrollable() {
 	const scroller = document.createElement('div')
 
 	const node = document.createElement('div')
@@ -26,7 +26,7 @@ function buildScrollable() {
  * clips whichever axes `clip` names. Without the clip guard the walk would continue past
  * the wrapper and scroll the outer container to reveal the node.
  */
-function buildClippedTree(clip: { overflowX: string; overflowY: string }) {
+function makeClippedTree(clip: { overflowX: string; overflowY: string }) {
 	const outer = document.createElement('div')
 
 	const wrapper = document.createElement('div')
@@ -146,7 +146,7 @@ describe('useScrollWithin', () => {
 		])('%s', (_name, nodeY, options, expected) => {
 			stubScrollable()
 
-			const { scroller, node } = buildScrollable()
+			const { scroller, node } = makeScrollable()
 
 			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
 
@@ -163,7 +163,7 @@ describe('useScrollWithin', () => {
 		it('subtracts the scroller top border from the offset', () => {
 			stubScrollable()
 
-			const { scroller, node } = buildScrollable()
+			const { scroller, node } = makeScrollable()
 
 			// Border-box rect top vs padding-box scroll metrics: clientTop is the
 			// top border width and must come off the offset.
@@ -183,7 +183,7 @@ describe('useScrollWithin', () => {
 		it('skips an ancestor with a scroll style that does not actually overflow', () => {
 			stubScrollable()
 
-			const { scroller, node } = buildScrollable()
+			const { scroller, node } = makeScrollable()
 
 			// Content fits the client box: not a real scroller, so scrollTo no-ops.
 			mockDomGeometry(scroller, { scrollHeight: 100 })
@@ -200,7 +200,7 @@ describe('useScrollWithin', () => {
 		})
 
 		it('stops at a clipping ancestor instead of scrolling an outer container', () => {
-			const { outer, node } = buildClippedTree({ overflowX: 'visible', overflowY: 'hidden' })
+			const { outer, node } = makeClippedTree({ overflowX: 'visible', overflowY: 'hidden' })
 
 			// Node sits below the outer viewport; a reveal would otherwise scroll it.
 			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 200, height: 20 })
@@ -216,7 +216,7 @@ describe('useScrollWithin', () => {
 
 describe('useScrollWithin inline axis', () => {
 	/** A scroller that overflows on both axes, with the metrics jsdom reports as 0. */
-	function buildBothAxes() {
+	function makeBothAxes() {
 		vi.spyOn(window, 'getComputedStyle').mockReturnValue({
 			overflowX: 'auto',
 			overflowY: 'auto',
@@ -285,7 +285,7 @@ describe('useScrollWithin inline axis', () => {
 			expected: null,
 		},
 	])('$name', ({ at, options, expected }) => {
-		const { scroller, node } = buildBothAxes()
+		const { scroller, node } = makeBothAxes()
 
 		node.getBoundingClientRect = () => DOMRect.fromRect({ ...at, width: 20, height: 20 })
 
@@ -298,7 +298,7 @@ describe('useScrollWithin inline axis', () => {
 	})
 
 	it('subtracts the scroller left border from the inline offset', () => {
-		const { scroller, node } = buildBothAxes()
+		const { scroller, node } = makeBothAxes()
 
 		Object.defineProperty(scroller, 'clientLeft', { configurable: true, value: 5 })
 
@@ -312,7 +312,7 @@ describe('useScrollWithin inline axis', () => {
 	})
 
 	it('accepts an ancestor that overflows only horizontally when inline is requested', () => {
-		const { scroller, node } = buildBothAxes()
+		const { scroller, node } = makeBothAxes()
 
 		// Vertically it now fits; horizontally it still does not.
 		mockDomGeometry(scroller, { scrollHeight: 100 })
@@ -331,7 +331,7 @@ describe('useScrollWithin inline axis', () => {
 	})
 
 	it('stops at an ancestor that clips the requested inline axis', () => {
-		const { outer, node } = buildClippedTree({ overflowX: 'hidden', overflowY: 'visible' })
+		const { outer, node } = makeClippedTree({ overflowX: 'hidden', overflowY: 'visible' })
 
 		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 200, y: 10, width: 20, height: 20 })
 
@@ -349,7 +349,7 @@ describe('useScrollWithin inline axis', () => {
  */
 describe('scrollNodeWithin', () => {
 	/** A horizontal strip that spans x 0 to 100, scrolled to `scrollLeft`, with one 40-wide node. */
-	function buildStrip(scrollLeft: number) {
+	function makeStrip(scrollLeft: number) {
 		const scroller = document.createElement('div')
 
 		const node = document.createElement('div')
@@ -380,7 +380,7 @@ describe('scrollNodeWithin', () => {
 		['is a no-op when the node is flush with the leading edge', 0, 0, null],
 		['is a no-op when the node is flush with the trailing edge', 0, 60, null],
 	])('%s', (_name, scrollLeft, nodeX, expected) => {
-		const { scroller, node } = buildStrip(scrollLeft)
+		const { scroller, node } = makeStrip(scrollLeft)
 
 		// The node is taller than the strip. The block axis was not asked for, so it stays.
 		node.getBoundingClientRect = () => DOMRect.fromRect({ x: nodeX, y: 30, width: 40, height: 40 })
@@ -395,7 +395,7 @@ describe('scrollNodeWithin', () => {
 	it('scrolls the scroller it is given, with no ancestor walk', () => {
 		// The walk of scrollWithin skips this strip because it fits vertically. The caller
 		// names it, so it scrolls.
-		const { scroller, node } = buildStrip(0)
+		const { scroller, node } = makeStrip(0)
 
 		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 30, width: 40, height: 10 })
 

@@ -13,7 +13,7 @@ export type Pin = [id: string, width: number]
  * The module reads no DOM, so the `geometry` project and the jsdom suites can
  * both import it.
  */
-export function buildLayout(left: Pin[], right: Pin[] = [], measured: FrozenOffsets | null = null) {
+export function makeLayout(left: Pin[], right: Pin[] = [], measured: FrozenOffsets | null = null) {
 	return frozenLayout(
 		{ left: left.map(([id]) => id), right: right.map(([id]) => id) },
 		new Map([...left, ...right]),

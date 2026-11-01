@@ -231,14 +231,14 @@ describe('useDatePickerState', () => {
 	})
 
 	describe('keyboard delegation', () => {
-		const fakeKey = (key: string, shift = false) =>
+		const makeKey = (key: string, shift = false) =>
 			makeKeyEvent<HTMLElement>(key, { shiftKey: shift })
 
 		it('opens the calendar when ArrowDown is pressed on a closed trigger', () => {
 			const { result } = renderHook(() => useDatePickerState({}))
 
 			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
+				result.current.onTriggerKeyDown(makeKey('ArrowDown'))
 			})
 
 			expect(result.current.open).toBe(true)
@@ -248,7 +248,7 @@ describe('useDatePickerState', () => {
 			const { result } = renderHook(() => useDatePickerState({ disabled: true }))
 
 			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
+				result.current.onTriggerKeyDown(makeKey('ArrowDown'))
 			})
 
 			expect(result.current.open).toBe(false)
@@ -258,11 +258,11 @@ describe('useDatePickerState', () => {
 			const { result } = renderHook(() => useDatePickerState({}))
 
 			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
+				result.current.onTriggerKeyDown(makeKey('ArrowDown'))
 			})
 
 			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('Escape'))
+				result.current.onTriggerKeyDown(makeKey('Escape'))
 			})
 
 			expect(result.current.open).toBe(false)
@@ -272,7 +272,7 @@ describe('useDatePickerState', () => {
 		it('steps from a focused day button on an arrow', () => {
 			const result = openOnJan15()
 
-			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
+			act(() => result.current.onTriggerKeyDown(makeKey('ArrowRight')))
 
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan15 })
 
@@ -285,7 +285,7 @@ describe('useDatePickerState', () => {
 		it('steps a month from a focused day button on PageDown', () => {
 			const result = openOnJan15()
 
-			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
+			act(() => result.current.onTriggerKeyDown(makeKey('ArrowRight')))
 
 			act(() => result.current.onTriggerKeyDown(keyFromDay('PageDown', '2025-01-20')))
 
@@ -299,7 +299,7 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.onOpenChange(true))
 
-			act(() => result.current.onTriggerKeyDown(fakeKey('ArrowRight')))
+			act(() => result.current.onTriggerKeyDown(makeKey('ArrowRight')))
 
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan1 })
 
@@ -320,14 +320,14 @@ describe('useDatePickerState', () => {
 			)
 
 			// Open and trigger a grid materialization to expose the initial active date.
-			const fakeKey = (k: string) => makeKeyEvent<HTMLElement>(k)
+			const makeKey = (k: string) => makeKeyEvent<HTMLElement>(k)
 
 			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
+				result.current.onTriggerKeyDown(makeKey('ArrowDown'))
 			})
 
 			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('ArrowRight'))
+				result.current.onTriggerKeyDown(makeKey('ArrowRight'))
 			})
 
 			const active = result.current.calendar.active
