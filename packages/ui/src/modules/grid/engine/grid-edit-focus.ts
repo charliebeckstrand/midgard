@@ -67,6 +67,35 @@ export function firstEditorCell(
 }
 
 /**
+ * The column of the cell in use on `rowKey`: the cell that a cell-scoped
+ * session holds, else the active cell of the cursor, or `undefined` when
+ * neither is on the row. The form of a row opens on it. @internal
+ */
+export function columnInUse(
+	rowKey: string | number,
+	{
+		held,
+		cursor,
+		rowKeys,
+		columns,
+	}: {
+		/** The cell that a cell-scoped session holds, or `null` for none. */
+		held: GridActiveEdit | null
+		/** The active cell of the cursor, in data row indexes, or `null` for none. */
+		cursor: { row: number; col: number } | null
+		rowKeys: readonly (string | number)[]
+		/** Visible data columns in display order. */
+		columns: readonly { id: string | number }[]
+	},
+): string | number | undefined {
+	if (held?.rowKey === rowKey) return held.columnId
+
+	if (cursor === null || rowKeys[cursor.row] !== rowKey) return undefined
+
+	return columns[cursor.col]?.id
+}
+
+/**
  * The place of a press or a focus on `target`, read for `table`. Content in a
  * cell, such as a pencil, gives that cell, because the content can be gone when
  * the row closes. The tab stop gives the table, and an element outside the grid
