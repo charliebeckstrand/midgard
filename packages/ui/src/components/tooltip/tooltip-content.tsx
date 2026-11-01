@@ -2,7 +2,8 @@
 
 import type { ReactNode } from 'react'
 import type { ScaleStep } from '../../core/density'
-import { useIdlePreload, useLazyModule } from '../../hooks/use-lazy-module'
+import { useIdlePreload } from '../../hooks/use-idle-preload'
+import { useLazyModule } from '../../hooks/use-lazy-module'
 import type { scale } from '../../recipes/kata/tooltip'
 import { useTooltipTriggerContext } from './context'
 import { tooltipBody } from './tooltip-body-loader'

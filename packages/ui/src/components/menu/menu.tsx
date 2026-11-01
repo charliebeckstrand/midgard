@@ -6,7 +6,7 @@ import type { ScaleStep } from '../../core/density'
 import type { FloatingPlacement } from '../../hooks'
 import type { scale } from '../../recipes/kata/menu'
 import { MenuActionsContext, MenuCappedContext, MenuStateContext } from './context'
-import { MenuPointerLevel } from './use-menu-pointer'
+import { MenuPointerLevel } from './menu-pointer-level'
 import { useMenuRoot } from './use-menu-root'
 import { useMenuTouchHold } from './use-menu-touch-hold'
 

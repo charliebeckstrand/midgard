@@ -11,9 +11,10 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useAnimationFrame } from '../../hooks/use-animation-frame'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { useReportedChange } from '../../hooks/use-reported-change'
-import { useAnimationFrame, useTimeout } from '../../hooks/use-timeout'
+import { useTimeout } from '../../hooks/use-timeout'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { useMapHoverActions } from './context'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'

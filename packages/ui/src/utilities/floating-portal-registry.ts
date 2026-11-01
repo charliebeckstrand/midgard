@@ -3,7 +3,7 @@
  * outside-press tests ask of it.
  *
  * @remarks
- * Its own module rather than part of `use-floating-ui`, so that `useDismissable`
+ * Its own module rather than part of `use-floating-dismissal`, so that `useDismissable`
  * can ask the question. That hook is a generic outside-press boundary with no
  * floating panel of its own. It therefore pulls no `@floating-ui/react` into
  * every Dialog, Sheet, and Drawer that only ever wanted a dismiss handler.

@@ -13,7 +13,7 @@ import {
 	handleMenuItemKeyDown,
 	handleMenuLinkKeyDown,
 } from './menu-item-utilities'
-import { useMenuRowPointer } from './use-menu-pointer'
+import { useMenuRowPointer } from './use-menu-row-pointer'
 
 type MenuItemBaseProps = {
 	/**

@@ -3,7 +3,7 @@
 import { type ComponentProps, type ReactNode, useCallback, useMemo } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
-import { useKeyedValue } from '../../hooks/use-keyed-store'
+import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { useMountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/accordion'
 import { AccordionItemContext, useAccordion } from './context'

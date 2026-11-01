@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useControlledLatch } from './use-controlled-latch'
 
 /** Argument to {@link useControllable}'s setter: a next value, `null`/`undefined` to clear, or a functional updater over the previous value. */
 export type SetValue<T> = T | null | undefined | ((prev: T | undefined) => T | null | undefined)
@@ -24,23 +25,6 @@ export type ControllableOptions<T> = {
 // The mark for "no set in this batch". A set value can be `undefined`, so the
 // mark must be a value that no set can give.
 const NONE: unique symbol = Symbol('none')
-
-/**
- * Whether a controllable binding is controlled. The first `value` that is not
- * `undefined` takes control for the mount, and a later `undefined` does not
- * give it back. {@link useControllable} reads its binding through this hook, so
- * a caller that must know whether that binding is controlled can read the same
- * answer. Adjusted during render.
- *
- * @internal
- */
-export function useControlledLatch(value: unknown): boolean {
-	const [latched, setLatched] = useState(value !== undefined)
-
-	if (value !== undefined && !latched) setLatched(true)
-
-	return latched || value !== undefined
-}
 
 /**
  * Manages controlled / uncontrolled value state with a unified setter.

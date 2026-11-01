@@ -25,8 +25,8 @@ import { subscribeOverlaySignal } from '../../primitives/overlay'
 import { noop } from '../../utilities/noop'
 import type { TooltipContextValue } from './context'
 import type { TooltipProps } from './tooltip'
-import { isTooltipOpen, reopensOnEnable, type TooltipIntent } from './tooltip-intent'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
+import { isTooltipOpen, reopensOnEnable, type TooltipIntent } from './use-tooltip-intent'
 
 /** Options for {@link useTooltipState}. @internal */
 export type TooltipStateOptions = {

@@ -3,11 +3,12 @@
 import { useIntl } from '../../primitives/intl/use-intl'
 import { CalendarRange } from '../calendar'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
-import { DatePickerContent, useDatePickerSheet } from './date-picker-content'
+import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { datePickerMessages } from './date-picker-messages'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerRangeState } from './use-date-picker-range-state'
+import { useDatePickerSheet } from './use-date-picker-sheet'
 
 /**
  * Range variant of {@link DatePicker}: a `CalendarRange` in the popover with a

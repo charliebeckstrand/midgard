@@ -6,7 +6,8 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
 import { branchToggleKey } from '../tree/tree-keyboard'
-import { type FlatSetPosition, NodeKey } from './json-tree-utilities'
+import { JsonTreeNodeKey } from './json-tree-node-key'
+import type { FlatSetPosition } from './json-tree-utilities'
 
 /** The summary of a branch, such as "3 items". */
 const itemsMessage = defineMessage<{ count: number }>({
@@ -85,7 +86,7 @@ export function JsonTreeBranchHeader({
 
 	const content = (
 		<span id={contentId} className={k({ highlighted }).content}>
-			<NodeKey keyName={keyName} />
+			<JsonTreeNodeKey keyName={keyName} />
 			<span className={k().punctuation}>{openBracket}</span>
 			{!open && (
 				<>

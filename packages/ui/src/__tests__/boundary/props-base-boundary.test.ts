@@ -69,7 +69,7 @@ const ELEMENT_ATTRS_ALLOWED = new Map([
 		'components/file-upload/file-upload-drop.tsx',
 		'types the rest of the split props with the base of the zone, which renders a `<div>` or a `<button>`',
 	],
-	['components/file-upload/file-upload-state.ts', 'renders a `<div>` or a `<button>`'],
+	['components/file-upload/types.ts', 'renders a `<div>` or a `<button>`'],
 ])
 
 /**

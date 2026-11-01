@@ -3,9 +3,8 @@
 import { FloatingPortal } from '@floating-ui/react'
 import { usePortalContainer } from '../../primitives/portal'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { usePdfViewerContext } from './context'
+import { usePdfViewerContext, usePdfViewerMagnifierContext } from './context'
 import { hasRaster } from './pdf-viewer-document-cache'
-import { usePdfViewerMagnifierContext } from './pdf-viewer-magnifier-context'
 import { PdfViewerPageImage } from './pdf-viewer-page-image'
 import { lensOffset } from './use-pdf-viewer-magnifier'
 

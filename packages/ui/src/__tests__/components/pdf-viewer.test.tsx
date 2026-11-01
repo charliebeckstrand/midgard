@@ -7,11 +7,11 @@ import {
 	type PdfViewerPage,
 	type PdfViewerProps,
 } from '../../components/pdf-viewer'
+import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/context'
 import {
 	ensureDocumentLoad,
 	resetDocumentCache,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
-import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-viewer-highlights-context'
 import { PdfViewerHighlightsProvider } from '../../components/pdf-viewer/pdf-viewer-highlights-provider'
 import { PdfViewerPageImage } from '../../components/pdf-viewer/pdf-viewer-page-image'
 import { PdfViewerThumbnailList } from '../../components/pdf-viewer/pdf-viewer-thumbnail-list'

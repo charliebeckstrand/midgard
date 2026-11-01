@@ -34,7 +34,7 @@ import {
 } from 'react'
 import type { DensityStep } from '../../core/density'
 import { useControllable } from '../../hooks'
-import { useControlledLatch } from '../../hooks/use-controllable'
+import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { useLocale } from '../../providers/locale'

@@ -13,12 +13,13 @@ import { Icon } from '../icon'
 // Sibling variant reused for the custom range's Start/End fields; safe despite the
 // import cycle since both are hoisted function declarations used only at render.
 import { DatePicker, type DatePickerBaseProps, type DatePickerRelativeProps } from './date-picker'
-import { DatePickerContent, useDatePickerSheet } from './date-picker-content'
+import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { datePickerMessages } from './date-picker-messages'
 import { relativeListRows } from './date-picker-relative-utilities'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerRelativeState } from './use-date-picker-relative-state'
+import { useDatePickerSheet } from './use-date-picker-sheet'
 
 /**
  * Relative variant of {@link DatePicker}: a multi-select list of relative-range

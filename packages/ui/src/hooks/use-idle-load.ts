@@ -3,7 +3,8 @@
 import { getOrCompute } from '../utilities/get-or-compute'
 import { createLazyModule, type LazyModule } from '../utilities/lazy-module'
 import { noop } from '../utilities/noop'
-import { useIdlePreload, useLazyModule } from './use-lazy-module'
+import { useIdlePreload } from './use-idle-preload'
+import { useLazyModule } from './use-lazy-module'
 
 /** The {@link LazyModule} of each loader, so the mounts of a loader share one load. */
 const modules = new WeakMap<() => Promise<unknown>, LazyModule<unknown>>()

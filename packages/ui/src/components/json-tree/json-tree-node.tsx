@@ -3,7 +3,7 @@
 import { AnimatePresence } from 'motion/react'
 import { memo, useId, useMemo, useState } from 'react'
 import { dataAttr } from '../../core'
-import { useKeyedValue } from '../../hooks/use-keyed-store'
+import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/json-tree'

@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { PdfViewerHighlightsContext } from './pdf-viewer-highlights-context'
+import { PdfViewerHighlightsContext } from './context'
 import {
 	type PdfViewerHighlightsOptions,
 	usePdfViewerHighlights,

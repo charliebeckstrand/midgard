@@ -69,7 +69,7 @@ const LOCALE_SOURCE = 'utilities/resolve-locale.ts'
 const ALLOWED = new Map([
 	['hooks/use-drag-cursor.ts DOM text', 'The text of a `<style>` node is a CSS rule.'],
 	[
-		'components/json-tree/json-tree-utilities.tsx number with no locale',
+		'components/json-tree/json-tree-node-key.tsx number with no locale',
 		'A JSON tree shows its data in JSON notation, so an array index stays as JSON writes it.',
 	],
 ])

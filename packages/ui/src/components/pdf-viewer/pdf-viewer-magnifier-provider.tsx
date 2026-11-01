@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { PdfViewerMagnifierContext } from './pdf-viewer-magnifier-context'
+import { PdfViewerMagnifierContext } from './context'
 import { type ResolvedMagnifier, usePdfViewerMagnifier } from './use-pdf-viewer-magnifier'
 
 /** Props for {@link PdfViewerMagnifierProvider}: the resolved settings, plus the subtree it scopes. @internal */

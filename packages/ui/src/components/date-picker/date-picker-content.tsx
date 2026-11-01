@@ -10,7 +10,6 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import type { ScaleStep } from '../../core/density'
-import { useMediaQuery } from '../../hooks'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -18,22 +17,9 @@ import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
-import { PHONE_QUERY } from '../../utilities'
 import { Drawer, DrawerBody, DrawerClose, DrawerHeader, DrawerPanel, DrawerTitle } from '../drawer'
 import { datePickerMessages } from './date-picker-messages'
 import { RECLAIM_KEYS } from './use-date-picker-keyboard'
-
-/**
- * Whether the panel of a {@link DatePicker} opens as a bottom sheet: the
- * `sheet` prop is on, and the viewport is a phone ({@link PHONE_QUERY}).
- *
- * @internal
- */
-export function useDatePickerSheet(sheet = true): boolean {
-	const phone = useMediaQuery(PHONE_QUERY)
-
-	return sheet && phone
-}
 
 /**
  * The part of the state of a {@link DatePicker} variant that {@link DatePickerContent}

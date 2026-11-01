@@ -11,11 +11,8 @@ import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
 import { clampDate, formatRange, stepDate } from './date-picker-utilities'
-import {
-	type FooterButton,
-	useDatePickerGridEntry,
-	useDatePickerKeyboard,
-} from './use-date-picker-keyboard'
+import { useDatePickerGridEntry } from './use-date-picker-grid-entry'
+import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
 /**
  * Range state for {@link DatePicker}: a two-tap start/end selection held in a
