@@ -862,11 +862,12 @@ export function useGridCursor<T>({
 								session={session}
 								columns={columns}
 								source={editSource}
+								clearCursor={nav.clear}
 							/>
 						</GridEditingSessionContext>
 					)
 				: (children: ReactNode) => children,
-		[editingEnabled, session, newRowSession, columns, editSource],
+		[editingEnabled, session, newRowSession, columns, editSource, nav.clear],
 	)
 
 	return {

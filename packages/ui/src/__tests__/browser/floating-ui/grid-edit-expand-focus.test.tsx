@@ -157,6 +157,41 @@ describe('grid row form focus (real floating engine)', () => {
 		document.removeEventListener('focusin', takeFocus)
 	})
 
+	it('drops the cursor as the form opens, and leaves no active cell as it closes', async () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', onCommit: () => {} }}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		await userEvent.click(within(grid).getByRole('gridcell', { name: 'Second' }))
+
+		expect(grid.getAttribute('aria-activedescendant')).not.toBeNull()
+
+		const control = screen.getByRole('button', { name: 'expand-2' })
+
+		await userEvent.click(control)
+
+		await screen.findByRole('dialog')
+
+		await waitFor(() => expect(grid.getAttribute('aria-activedescendant')).toBeNull())
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+		await waitFor(() => expect(control).toHaveFocus())
+
+		expect(grid.getAttribute('aria-activedescendant')).toBeNull()
+
+		expect(grid.querySelector('[role="gridcell"][data-active]')).toBeNull()
+	})
+
 	it('returns the focus to the cursor cell after Shift+Enter and Escape', async () => {
 		renderUI(
 			<Grid
