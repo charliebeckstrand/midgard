@@ -120,6 +120,43 @@ describe('grid row form focus (real floating engine)', () => {
 		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Name' })).toHaveFocus())
 	})
 
+	it('focuses the field of the cell again when a press takes the focus as the form opens', async () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', onCommit: () => {} }}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		await userEvent.click(within(grid).getByRole('gridcell', { name: 'Second' }))
+
+		// On iOS, the mouse events of the tap that opens the form come after the
+		// field takes the focus, and the press takes the focus out to the body.
+		const takeFocus = (event: FocusEvent) => {
+			if (!(event.target instanceof HTMLElement) || !event.target.closest('[role="dialog"]')) {
+				return
+			}
+
+			document.removeEventListener('focusin', takeFocus)
+
+			queueMicrotask(() => (document.activeElement as HTMLElement | null)?.blur())
+		}
+
+		document.addEventListener('focusin', takeFocus)
+
+		await userEvent.click(screen.getByRole('button', { name: 'expand-2' }))
+
+		const sheet = await screen.findByRole('dialog')
+
+		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Note' })).toHaveFocus())
+
+		document.removeEventListener('focusin', takeFocus)
+	})
+
 	it('returns the focus to the cursor cell after Shift+Enter and Escape', async () => {
 		renderUI(
 			<Grid

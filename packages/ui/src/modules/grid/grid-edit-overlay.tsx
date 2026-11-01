@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
+import { type RefObject, useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { Button } from '../../components/button'
 import { Drawer, DrawerBody, DrawerFooter, DrawerPanel, DrawerTitle } from '../../components/drawer'
 import { Field, Label, Message } from '../../components/fieldset'
@@ -144,6 +144,12 @@ export function GridEditOverlay<T>({
 	// that had the focus before, in this grid or another.
 	const returnRef = useRef<HTMLElement | null>(null)
 
+	// The editor of the field that an entry named, which the overlay focuses as
+	// it opens. The overlay also focuses it again when a press takes the focus
+	// back out before the next frame, as the mouse events of a tap on iOS do.
+	// Without it, the overlay focuses its first field.
+	const initialFocusRef = useRef<HTMLElement | null>(null)
+
 	const snapshot = useSyncExternalStore(
 		store.subscribe,
 		() => readTarget(store, shows),
@@ -190,6 +196,8 @@ export function GridEditOverlay<T>({
 		if (open) wasOpenRef.current = true
 		else if (wasOpenRef.current) {
 			wasOpenRef.current = false
+
+			initialFocusRef.current = null
 
 			collapseRow()
 		}
@@ -278,6 +286,7 @@ export function GridEditOverlay<T>({
 							rowKey={shown.rowKey}
 							row={row}
 							column={column}
+							focusRef={initialFocusRef}
 						/>
 					))}
 				</Stack>
@@ -304,6 +313,7 @@ export function GridEditOverlay<T>({
 					<DrawerPanel
 						height="fit"
 						aria-label={title}
+						initialFocus={initialFocusRef}
 						returnFocusTo={returnRef}
 						onOpenComplete={() => setLanded(true)}
 					>
@@ -314,6 +324,7 @@ export function GridEditOverlay<T>({
 				<Sheet open={open} onOpenChange={onOpenChange}>
 					<SheetPanel
 						aria-label={title}
+						initialFocus={initialFocusRef}
 						returnFocusTo={returnRef}
 						onOpenComplete={() => setLanded(true)}
 					>
@@ -336,6 +347,8 @@ type GridEditOverlayFieldProps<T> = {
 	rowKey: string | number
 	row: T
 	column: GridColumn<T>
+	/** Takes the editor of the field as an entry names it, for the initial focus of the overlay. */
+	focusRef: RefObject<HTMLElement | null>
 }
 
 /**
@@ -347,7 +360,13 @@ type GridEditOverlayFieldProps<T> = {
  *
  * @internal
  */
-function GridEditOverlayField<T>({ session, rowKey, row, column }: GridEditOverlayFieldProps<T>) {
+function GridEditOverlayField<T>({
+	session,
+	rowKey,
+	row,
+	column,
+	focusRef,
+}: GridEditOverlayFieldProps<T>) {
 	const intl = useIntl()
 
 	const { stageDraft, unstageDraft, readDraft, entrySeed, claimFocus } = session
@@ -376,15 +395,19 @@ function GridEditOverlayField<T>({ session, rowKey, row, column }: GridEditOverl
 
 	const hostRef = useRef<HTMLDivElement>(null)
 
-	// The cell that an entry named takes focus. Each later run drops nothing.
-	// The focus does not scroll: on iOS, a scroll moves the page under the
-	// overlay (`useOverlayInitialFocus`).
+	// The cell that an entry named takes focus, and is the initial focus of
+	// the overlay. Each later run drops nothing. The focus does not scroll: on
+	// iOS, a scroll moves the page under the overlay (`useOverlayInitialFocus`).
 	useEffect(() => {
 		if (!claimFocus(rowKey, column.id)) return
 
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
-		editor?.focus({ preventScroll: true })
+		if (!editor) return
+
+		focusRef.current = editor
+
+		editor.focus({ preventScroll: true })
 	})
 
 	const update = (next: unknown) => {
