@@ -1,6 +1,7 @@
 import { readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { exportedHooks, hookStem } from '../helpers/hook-files'
 import {
 	isSourceFile,
 	srcDir,
@@ -41,29 +42,9 @@ const TREES = [
 
 const HOOK_FILE = /^(?:use-[a-z0-9-]+|context)\.tsx?$/
 
-// `export function useX`, `export const useX`, and `export const [XContext, useX]`.
-const DECLARED_HOOK = /^export\s+(?:function|const)\s+(use[A-Z]\w*|\[[^\]]*\])/gm
-
-// `export { useX }` with no `from`: a local binding that the file exports.
-const LISTED_HOOK = /^export\s+\{([^}]*)\}(?!\s*from)/gm
-
 // A relative import of `<tree>/<name>/<name>`, at any depth.
 const MAIN_IMPORT =
 	/from\s+['"](?:\.\.\/)+(components|layouts|modules|primitives|providers|structure)\/([a-z][a-z0-9-]*)\/\2(?:\.tsx?)?['"]/g
-
-function exportedHooks(source: string): string[] {
-	const hooks: string[] = []
-
-	for (const match of source.matchAll(DECLARED_HOOK)) hooks.push(...hookNames(match[1] ?? ''))
-
-	for (const match of source.matchAll(LISTED_HOOK)) hooks.push(...hookNames(match[1] ?? ''))
-
-	return hooks
-}
-
-function hookNames(text: string): string[] {
-	return text.match(/\buse[A-Z]\w*/g) ?? []
-}
 
 /**
  * The unit that the folder of a file names, or `null` in a folder that names
@@ -81,24 +62,6 @@ function findUnit(file: string): string | null {
 	if (tree === 'modules' && sub === 'engine') return parts.length === 3 ? (name ?? null) : null
 
 	return parts.at(-1) ?? null
-}
-
-/**
- * The stem of a `use-*` file in lowercase with no hyphens, less the unit:
- * `use-grid-active-cell.ts` in `modules/grid` gives `activecell`.
- */
-function hookStem(file: string): string {
-	const base = basename(file)
-		.replace(/^use-/, '')
-		.replace(/\.tsx?$/, '')
-
-	const unit = findUnit(file)
-
-	const units = unit === null ? [] : [unit, unit.replace(/s$/, '')]
-
-	const prefix = units.find((name) => base.startsWith(`${name}-`))
-
-	return (prefix ? base.slice(prefix.length + 1) : base).replaceAll('-', '')
 }
 
 function unitsWithBarrel(tree: string): Set<string> {
@@ -149,7 +112,7 @@ describe('hook file boundary', () => {
 		eachSource((file, content) => {
 			if (!basename(file).startsWith('use-')) return
 
-			const stem = hookStem(file)
+			const stem = hookStem(file, findUnit(file))
 
 			for (const hook of exportedHooks(stripSourceComments(content))) {
 				if (!hook.slice(3).toLowerCase().includes(stem))
