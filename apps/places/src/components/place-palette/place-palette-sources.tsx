@@ -2,7 +2,7 @@ import { Globe, Luggage, MapIcon, MapPin, MapPinCheck, MapPinned, Plus } from 'l
 import { Icon } from 'ui/icon'
 import { Swatch } from 'ui/swatch'
 import { CATEGORY_BY_VALUE, categoryLabel, RECORD_KIND_META } from '../../constants'
-import type { MapRecord, Place, Trip } from '../../types'
+import type { FormatNumber, MapRecord, Place, Trip } from '../../types'
 import type { PaletteCommand, PaletteSource } from '../../utilities/places-palette'
 import { isTrip, placeCount, sortTrips } from '../../utilities/places-trips'
 import { type PlaceView, UNITED_STATES } from '../../utilities/places-view'
@@ -19,12 +19,16 @@ import {
 const RECENT_RECORDS = 5
 
 /** The text after a region name: its kind, and how many places it holds. */
-function regionDescription(kind: string, records: readonly MapRecord[] = []): string {
+function regionDescription(
+	kind: string,
+	format: FormatNumber,
+	records: readonly MapRecord[] = [],
+): string {
 	const count = records.filter((record) => !isTrip(record)).length
 
 	if (count === 0) return kind
 
-	return `${kind} · ${placeCount(count)}`
+	return `${kind} · ${placeCount(count, format)}`
 }
 
 /** Where a record is, as its row shows it: the city and the state or the country. */
@@ -119,6 +123,8 @@ export type RegionSourceInput = {
 	stateRecords: ReadonlyMap<string, readonly MapRecord[]>
 	goTo: (view: PlaceView) => void
 	preload: (view: PlaceView) => void
+	/** Writes the count of places of each row in the locale of the reader. */
+	formatNumber: FormatNumber
 }
 
 /**
@@ -135,6 +141,7 @@ export function regionSource({
 	stateRecords,
 	goTo,
 	preload,
+	formatNumber,
 }: RegionSourceInput): PaletteSource {
 	const region = (
 		id: string,
@@ -156,7 +163,7 @@ export function regionSource({
 			region(
 				`country:${name}`,
 				name,
-				regionDescription('Country', countryRecords.get(name)),
+				regionDescription('Country', formatNumber, countryRecords.get(name)),
 				<Icon icon={<Globe />} />,
 				{ country: name, state: null },
 			),
@@ -165,7 +172,7 @@ export function regionSource({
 			region(
 				`state:${name}`,
 				name,
-				regionDescription('US state', stateRecords.get(name)),
+				regionDescription('US state', formatNumber, stateRecords.get(name)),
 				<Icon icon={<MapIcon />} />,
 				{ country: UNITED_STATES, state: name },
 			),

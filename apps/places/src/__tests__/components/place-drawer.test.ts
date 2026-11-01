@@ -15,7 +15,7 @@ const region: readonly Place[] = [a, b, c]
 
 /** What the panel shows for a picked group on one step. */
 function shows(group: readonly Place[], step: PlacePanelStep) {
-	const { list, group: name } = drawerList(group, region, step.widened)
+	const { list, group: name } = drawerList(group, region, step.widened, String)
 
 	return { list, name, place: drawerItem(group, list, step) }
 }

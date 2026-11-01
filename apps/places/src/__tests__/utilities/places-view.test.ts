@@ -380,20 +380,30 @@ describe('viewKey', () => {
 })
 
 describe('groupName', () => {
+	const english = new Intl.NumberFormat('en-US').format
+
 	it('names the group by the city that every place shares', () => {
 		const portland = { city: 'Portland' }
 
-		expect(groupName([place('a', portland), place('b', portland)])).toBe('Portland')
+		expect(groupName([place('a', portland), place('b', portland)], english)).toBe('Portland')
 	})
 
 	it('counts the group where the places span cities', () => {
-		expect(groupName([place('a', { city: 'Portland' }), place('b', { city: 'Beaverton' })])).toBe(
-			'2 nearby',
-		)
+		expect(
+			groupName([place('a', { city: 'Portland' }), place('b', { city: 'Beaverton' })], english),
+		).toBe('2 nearby')
 	})
 
 	// A place with no city is not proof that the group shares one.
 	it('counts the group where a place has no city', () => {
-		expect(groupName([place('a', { city: 'Portland' }), place('b')])).toBe('2 nearby')
+		expect(groupName([place('a', { city: 'Portland' }), place('b')], english)).toBe('2 nearby')
+	})
+
+	it('formats the count in the locale', () => {
+		const group = Array.from({ length: 1200 }, (_, index) => place(`p${index}`))
+
+		expect(groupName(group, english)).toBe('1,200 nearby')
+
+		expect(groupName(group, new Intl.NumberFormat('de-DE').format)).toBe('1.200 nearby')
 	})
 })

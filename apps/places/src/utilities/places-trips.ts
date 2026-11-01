@@ -1,4 +1,4 @@
-import type { MapRecord, Place, Trip, Visit } from '../types'
+import type { FormatNumber, MapRecord, Place, Trip, Visit } from '../types'
 
 /**
  * The places of every trip, by the trip's id. A place is on a trip when one of
@@ -92,21 +92,22 @@ export function drawnRecords(
 	return { records, drawnAt }
 }
 
-/** A number of places, such as `1 place` or `3 places`. */
-export function placeCount(count: number): string {
-	return `${count} ${count === 1 ? 'place' : 'places'}`
+/** A number of places, such as `1 place` or `1,200 places`, with the count in the locale of `format`. */
+export function placeCount(count: number, format: FormatNumber): string {
+	return `${format(count)} ${count === 1 ? 'place' : 'places'}`
 }
 
 /**
  * A number of places and of trips, such as `3 places`, `1 trip`, or
- * `2 places and 1 trip`. A kind with none is left out.
+ * `2 places and 1 trip`, with each count in the locale of `format`. A kind with
+ * none is left out.
  */
-export function recordCount(places: number, trips: number): string {
-	const tripPart = `${trips} ${trips === 1 ? 'trip' : 'trips'}`
+export function recordCount(places: number, trips: number, format: FormatNumber): string {
+	const tripPart = `${format(trips)} ${trips === 1 ? 'trip' : 'trips'}`
 
-	if (trips === 0) return placeCount(places)
+	if (trips === 0) return placeCount(places, format)
 
-	return places === 0 ? tripPart : `${placeCount(places)} and ${tripPart}`
+	return places === 0 ? tripPart : `${placeCount(places, format)} and ${tripPart}`
 }
 
 /** Whether a stored day falls on one of the days of a trip. */

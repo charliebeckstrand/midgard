@@ -10,6 +10,7 @@ import { type ConfirmOptions, useConfirm } from 'ui/confirm'
 import { DateTime } from 'ui/date-time'
 import { EventsButton, EventsSwitch } from 'ui/events'
 import { useIdleLoad } from 'ui/hooks'
+import { useIntl } from 'ui/primitives/intl'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
@@ -749,6 +750,8 @@ export function PlacesApp({
 
 	const confirm = useConfirm()
 
+	const intl = useIntl()
+
 	// A delete is the one action here the reader cannot undo (the store keeps
 	// no history), so it is the one that asks first. It names the record, because
 	// a reader who opened a summary has several in front of them.
@@ -1014,8 +1017,9 @@ export function PlacesApp({
 				stateRecords: groupings.byState,
 				goTo: setView,
 				preload: preloadView,
+				formatNumber: intl.formatNumber,
 			}),
-		[groupings.byCountry, groupings.byState, setView, preloadView],
+		[groupings.byCountry, groupings.byState, setView, preloadView, intl.formatNumber],
 	)
 
 	const hasPlaces = places.length > 0

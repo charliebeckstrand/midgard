@@ -4,6 +4,7 @@ import { CalendarDays, MapPin } from 'lucide-react'
 import { Divider } from 'ui/divider'
 import { Heading } from 'ui/heading'
 import { List } from 'ui/list'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import type { Place, Trip } from '../../types'
@@ -71,6 +72,8 @@ export function TripList({
 	placesByTrip: ReadonlyMap<string, readonly Place[]>
 	onOpen: (id: string) => void
 }) {
+	const intl = useIntl()
+
 	return (
 		<List items={[...shown]} sortable={false} virtual getKey={(trip) => trip.id}>
 			{(trip) => (
@@ -83,7 +86,7 @@ export function TripList({
 							</Text>
 
 							<Text as="span" tone="muted">
-								{placeCount(placesByTrip.get(trip.id)?.length ?? 0)}
+								{placeCount(placesByTrip.get(trip.id)?.length ?? 0, intl.formatNumber)}
 							</Text>
 						</>
 					}

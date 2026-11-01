@@ -141,6 +141,7 @@ describe('regionSource', () => {
 		stateRecords: new Map([['Georgia', [place('c')]]]),
 		goTo,
 		preload,
+		formatNumber: String,
 	})
 
 	it('lists a country and a state of the same name apart, with their counts of places', () => {

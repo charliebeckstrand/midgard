@@ -2,8 +2,9 @@
 
 import { type ReactNode, useCallback, useEffect, useState } from 'react'
 import { Heading } from 'ui/heading'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/structure/stack'
-import type { MapRecord, Place, PlaceCategory } from '../../types'
+import type { FormatNumber, MapRecord, Place, PlaceCategory } from '../../types'
 import { isTrip, recordCount, sortTrips } from '../../utilities/places-trips'
 import { type PlaceOrder, sortPlaces } from '../../utilities/places-visits'
 import {
@@ -43,11 +44,11 @@ function getPlaces(records: readonly MapRecord[]): Place[] {
 	return records.filter((record): record is Place => !isTrip(record))
 }
 
-/** The count that names a list with no region. Module-scope, because the trail is keyed on it. */
-function countRecords(shown: readonly MapRecord[]): string {
+/** The count that names a list with no region, in the locale of `format`. */
+function countRecords(shown: readonly MapRecord[], format: FormatNumber): string {
 	const tripCount = shown.filter(isTrip).length
 
-	return recordCount(shown.length - tripCount, tripCount)
+	return recordCount(shown.length - tripCount, tripCount, format)
 }
 
 /** One kind of a list, under its heading where the list holds both kinds. */
@@ -125,6 +126,14 @@ export function NearbyDrawer({
 	onOpenPlace,
 	...frame
 }: NearbyDrawerProps) {
+	const intl = useIntl()
+
+	// Held, because the trail is keyed on it.
+	const count = useCallback(
+		(shown: readonly MapRecord[]) => countRecords(shown, intl.formatNumber),
+		[intl.formatNumber],
+	)
+
 	// Which categories the places are narrowed to; empty is unfiltered. Held here
 	// rather than lifted, because it narrows this panel's list and nothing else:
 	// the bar over the map already narrows the map. Held here rather than in the
@@ -175,7 +184,7 @@ export function NearbyDrawer({
 		<SummaryDrawer<MapRecord>
 			{...frame}
 			narrow={narrow}
-			count={countRecords}
+			count={count}
 			menu={(record) => (
 				<PlaceMenu
 					items={

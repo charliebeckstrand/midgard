@@ -6,11 +6,13 @@ import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
+import { useIntl } from 'ui/primitives/intl'
+import type { FormatNumber } from '../../types'
 import type { UserMenuProps } from './user-menu'
 
-/** The words of a list item, with its count where there is one. */
-function counted(label: string, count: number | undefined): string {
-	return count === undefined ? label : `${label} (${count})`
+/** The words of a list item, with its count in the locale of `format` where there is one. */
+function counted(label: string, count: number | undefined, format: FormatNumber): string {
+	return count === undefined ? label : `${label} (${format(count)})`
 }
 
 /** Props for {@link UserMenuPanel}: the menu, and where the focus goes when it opens. */
@@ -43,6 +45,8 @@ export function UserMenuPanel({
 	onListTrips,
 	focus,
 }: UserMenuPanelProps) {
+	const intl = useIntl()
+
 	const trigger = useRef<HTMLButtonElement>(null)
 
 	// The trigger replaces the button of `UserMenu`, so the focus that the
@@ -69,7 +73,7 @@ export function UserMenuPanel({
 				{onList === undefined ? null : (
 					<MenuItem onAction={onList}>
 						<Icon icon={<MapPinned />} />
-						<MenuLabel>{counted('My places', count)}</MenuLabel>
+						<MenuLabel>{counted('My places', count, intl.formatNumber)}</MenuLabel>
 					</MenuItem>
 				)}
 
@@ -83,7 +87,7 @@ export function UserMenuPanel({
 				{onListTrips === undefined ? null : (
 					<MenuItem onAction={onListTrips}>
 						<Icon icon={<Luggage />} />
-						<MenuLabel>{counted('My trips', tripCount)}</MenuLabel>
+						<MenuLabel>{counted('My trips', tripCount, intl.formatNumber)}</MenuLabel>
 					</MenuItem>
 				)}
 
