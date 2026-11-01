@@ -96,6 +96,8 @@ type GridEditOverlayProps<T> = {
 	columns: GridColumn<T>[]
 	/** The grid's own rows, which the overlay finds the open row in. */
 	source: GridEditSource<T>
+	/** Unseats the cursor of the grid, as the overlay opens. */
+	clearCursor: () => void
 }
 
 /**
@@ -124,6 +126,7 @@ export function GridEditOverlay<T>({
 	session,
 	columns,
 	source,
+	clearCursor,
 }: GridEditOverlayProps<T>) {
 	const intl = useIntl()
 
@@ -191,6 +194,13 @@ export function GridEditOverlay<T>({
 	// as the overlay closes, and not before it opens: a controlled `rows` opens
 	// the row a render after the expand.
 	const wasOpenRef = useRef(false)
+
+	// The overlay holds the edit, so the grid shows no active cell under it. As
+	// the overlay closes, focus returns to the control that opened it with no
+	// cell left active, or to the edited cell with the cursor on it.
+	useEffect(() => {
+		if (open) clearCursor()
+	}, [open, clearCursor])
 
 	useEffect(() => {
 		if (open) wasOpenRef.current = true

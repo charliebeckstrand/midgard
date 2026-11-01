@@ -614,6 +614,8 @@ export function useGridNavigation({
 	store: GridNavStore
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
+	/** Unseats the cursor and ends the cell range, as the second Escape does. */
+	clear: () => void
 	/** The data row a number of rows away, over the data rows that the cursor shows. */
 	rowStep: GridRowStep
 	/** The count of rows between two data rows, over the data rows that the cursor shows. */
@@ -835,6 +837,12 @@ export function useGridNavigation({
 		},
 		[toCursorRow, moveToCursor],
 	)
+
+	const clear = useCallback(() => {
+		setActive(null)
+
+		setAnchor(null)
+	}, [])
 
 	// Extends the range to a data cell, as Shift with a click or a drag does. The
 	// pointer is on the cell, so the cell is in the window.
@@ -1348,6 +1356,7 @@ export function useGridNavigation({
 		store: enabled ? store : INERT_STORE,
 		cellId,
 		moveTo,
+		clear,
 		rowStep,
 		rowDistance,
 		reconcile,
