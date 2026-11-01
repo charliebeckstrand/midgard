@@ -934,8 +934,17 @@ export const k = {
 		// editor to the width of the slot, also through the `display: contents`
 		// wrapper of a listbox or a date picker. Thus a consumer's `editCell`
 		// control fills the cell with no width of its own. The slot centers the
-		// editor in the height of the cell.
-		slot: ['col-start-1 row-start-1', flex.col, 'justify-center', 'min-w-0'],
+		// editor in the height of the cell. An editor that is taller than the
+		// slot starts at its top edge, so its first line shows. A text area
+		// shows one line in the cell, so the row keeps its height. It shows
+		// each line when it grows (`grown`).
+		slot: [
+			'col-start-1 row-start-1',
+			flex.col,
+			'justify-center-safe',
+			'min-w-0',
+			'[&_textarea]:max-h-lh [&_textarea]:overflow-hidden',
+		],
 		// The slot while its focused text editor grows past the cell
 		// (`useGridEditGrow`). It floats over the cell from its start edge, above
 		// the body cells, the pinned cells (`z-[1]`), and the sticky new-row slot
@@ -943,8 +952,12 @@ export const k = {
 		// the cell, so the text stays where it was, and the opaque fill of the
 		// grid, so the cells under it do not show. It draws the ring of the cell
 		// with focus, or the red ring of a refused value, which the host carries.
+		// A text area shows each line. One that is taller than the space in the
+		// scroll area scrolls in the slot.
 		grown: [
 			'z-[4]',
+			'overflow-y-auto',
+			'[&_textarea]:max-h-none [&_textarea]:overflow-auto',
 			dan.space.cell.base,
 			hostSurface,
 			...ring.line[2].inset,

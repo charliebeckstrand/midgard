@@ -1205,7 +1205,7 @@
 	},
 	"docs.demo.11a6767d5674": {
 		"defaultMessage": "Done",
-		"description": "Text of a demo in the docs as label, title, in components/list/horizontal.tsx, modules/dashboard/build-and-save.tsx, modules/dashboard/query.tsx and 1 more."
+		"description": "Text of a demo in the docs as description, label, title, in components/list/horizontal.tsx, modules/dashboard/build-and-save.tsx, modules/dashboard/query.tsx and 1 more."
 	},
 	"docs.demo.11a8bfc000fc": {
 		"defaultMessage": "Upload progress",
@@ -3301,7 +3301,7 @@
 	},
 	"docs.demo.8a7525b1492f": {
 		"defaultMessage": "Notes",
-		"description": "Text of a demo in the docs, in components/textarea/max-height.tsx."
+		"description": "Text of a demo in the docs as title, in components/textarea/max-height.tsx, modules/grid/editing/editor-types.tsx."
 	},
 	"docs.demo.8a7e7f1bc563": {
 		"defaultMessage": "Search people",
@@ -4171,6 +4171,10 @@
 		"defaultMessage": "Documents",
 		"description": "Text of a demo in the docs as label, in components/tree/playground.tsx."
 	},
+	"docs.demo.b51e09cdaf34": {
+		"defaultMessage": "Users land on the home page after sign-in instead of the page they asked for.",
+		"description": "Text of a demo in the docs as description, in modules/grid/editing/editor-types.tsx."
+	},
 	"docs.demo.b5428af01643": {
 		"defaultMessage": "Close it, or let it time out.",
 		"description": "Text of a demo in the docs as description, in components/toast/dismiss-reason.tsx."
@@ -4614,6 +4618,10 @@
 	"docs.demo.cdd369976f8e": {
 		"defaultMessage": "Dwell time by stop distance and weight",
 		"description": "Text of a demo in the docs as aria-label, in modules/chart/bubble/animated.tsx, modules/chart/bubble/size-encoding.tsx."
+	},
+	"docs.demo.cdeccd44bdbd": {
+		"defaultMessage": "Follow the system setting.\nAdd a toggle in the account menu.",
+		"description": "Text of a demo in the docs as description, in modules/grid/editing/editor-types.tsx."
 	},
 	"docs.demo.ce5ed1e69589": {
 		"defaultMessage": "Health check failed",

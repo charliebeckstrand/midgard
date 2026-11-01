@@ -122,6 +122,8 @@ const floatingUIMock = {
 	// measure and nowhere to place against.
 	autoPlacement: () => ({}),
 	flip: () => ({}),
+	// The middleware that would read the scroll ancestors never runs.
+	getOverflowAncestors: () => [],
 	hide: () => ({}),
 	offset: () => ({}),
 	shift: () => ({}),

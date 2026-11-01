@@ -148,6 +148,14 @@ export type GridColumn<T> = {
 	 * @remarks The grid stretches the control to the width of the cell, so the
 	 * control needs no width of its own. To keep the width of the content, give
 	 * the control `self-start`.
+	 *
+	 * For long text, render a `Textarea` with `rows={1}` and `autoResize`. In
+	 * the cell it shows one line, so the row keeps its height. With focus, it
+	 * grows past the cell, as a text input does, when its text has more than
+	 * one line or a line is wider than the cell. It grows down, or up from a
+	 * row near the bottom of the scroll area, and a long line wraps at 28rem.
+	 * Enter in it starts a new line. Under a grid-owned session, Tab and F2
+	 * commit.
 	 */
 	editCell?: GridEditCell<T>
 	/**
