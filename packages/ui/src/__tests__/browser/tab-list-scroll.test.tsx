@@ -73,8 +73,8 @@ function mountOnClient(orientation: TabsOrientation) {
 
 	let root: Root | undefined
 
-	// The layout effect overwrites this. A tab list that never paints fails both checks.
-	const painted = { scroll: 0, visible: false }
+	// The layout effect overwrites this. A tab list that never paints fails the check.
+	const painted = { scroll: -1, visible: true }
 
 	act(() => {
 		root = createRoot(container)
@@ -167,16 +167,13 @@ function selectWithoutFocus(orientation: TabsOrientation) {
 }
 
 describe('TabList mount scroll (real browser)', () => {
-	it.for(['horizontal', 'vertical'] as const)(
-		'paints a %s list with the current tab in view',
-		(orientation) => {
-			const painted = mountOnClient(orientation)
+	// The server cannot scroll the row, so a client mount does not scroll it
+	// either. The first paint and the hydrated page then agree.
+	it.for(['horizontal', 'vertical'] as const)('paints a %s list at its start', (orientation) => {
+		const painted = mountOnClient(orientation)
 
-			expect(painted.scroll).toBeGreaterThan(0)
-
-			expect(painted.visible).toBe(true)
-		},
-	)
+		expect(painted).toEqual({ scroll: 0, visible: false })
+	})
 })
 
 describe('TabList hydration scroll (real browser)', () => {
