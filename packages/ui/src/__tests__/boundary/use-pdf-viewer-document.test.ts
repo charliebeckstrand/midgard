@@ -224,7 +224,7 @@ describe('usePdfViewerDocument · parked and restored', () => {
  *
  * Only the members that the open reads: the pages, their sizes, and the labels.
  */
-function fakeDocument(numPages: number, labels: string[] | null) {
+function makeDocument(numPages: number, labels: string[] | null) {
 	const page = {
 		getViewport: ({ scale }: { scale: number }) => ({ width: 612 * scale, height: 792 * scale }),
 	}
@@ -257,20 +257,20 @@ async function openLabels(src: string, count: number) {
 
 describe('usePdfViewerDocument · page labels', () => {
 	it("labels each page with the document's own page label", async () => {
-		getDocumentMock.mockReturnValue(fakeDocument(3, ['iv', 'v', 'A-1']))
+		getDocumentMock.mockReturnValue(makeDocument(3, ['iv', 'v', 'A-1']))
 
 		expect(await openLabels('/labelled.pdf', 3)).toEqual(['Page iv', 'Page v', 'Page A-1'])
 	})
 
 	it('labels each page with its number when the document has no page labels', async () => {
-		getDocumentMock.mockReturnValue(fakeDocument(2, null))
+		getDocumentMock.mockReturnValue(makeDocument(2, null))
 
 		expect(await openLabels('/plain.pdf', 2)).toEqual(['Page 1', 'Page 2'])
 	})
 
 	// A label range with no style and no prefix gives an empty label (ISO 32000-1, 12.4.2).
 	it('labels a page with its number when its page label is empty', async () => {
-		getDocumentMock.mockReturnValue(fakeDocument(2, ['', 'ii']))
+		getDocumentMock.mockReturnValue(makeDocument(2, ['', 'ii']))
 
 		expect(await openLabels('/partly-labelled.pdf', 2)).toEqual(['Page 1', 'Page ii'])
 	})

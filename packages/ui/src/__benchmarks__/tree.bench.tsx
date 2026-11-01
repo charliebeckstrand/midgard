@@ -11,7 +11,7 @@ import { compareBenches } from './compare'
 import { mountBench, mountBenches } from './harness'
 
 /** A balanced tree of `branching^depth` items, every branch open or every branch closed. */
-function buildTreeNodes(depth: number, branching: number, open: boolean): ReactNode {
+function makeTreeNodes(depth: number, branching: number, open: boolean): ReactNode {
 	if (depth === 0) return null
 
 	const nodes: ReactNode[] = []
@@ -19,7 +19,7 @@ function buildTreeNodes(depth: number, branching: number, open: boolean): ReactN
 	for (let index = 0; index < branching; index++) {
 		nodes.push(
 			<TreeItem key={`d${depth}-i${index}`} label={`Node ${depth}.${index}`} defaultOpen={open}>
-				{buildTreeNodes(depth - 1, branching, open)}
+				{makeTreeNodes(depth - 1, branching, open)}
 			</TreeItem>,
 		)
 	}
@@ -27,18 +27,18 @@ function buildTreeNodes(depth: number, branching: number, open: boolean): ReactN
 	return <>{nodes}</>
 }
 
-// Built at collection time: `buildTreeNodes` allocates one element per node, so
+// Built at collection time: `makeTreeNodes` allocates one element per node, so
 // leaving it in the timed factory would charge the mount for constructing the
 // tree it renders. That distortion is worst exactly where the measurement
 // matters most: the collapsed rung renders only the top level, so the build
 // was four fifths of its number.
 const OPEN = [
-	{ depth: 3, nodes: '100', tree: buildTreeNodes(3, 5, true) },
-	{ depth: 4, nodes: '~1k', tree: buildTreeNodes(4, 5, true) },
-	{ depth: 5, nodes: '~5k', tree: buildTreeNodes(5, 5, true) },
+	{ depth: 3, nodes: '100', tree: makeTreeNodes(3, 5, true) },
+	{ depth: 4, nodes: '~1k', tree: makeTreeNodes(4, 5, true) },
+	{ depth: 5, nodes: '~5k', tree: makeTreeNodes(5, 5, true) },
 ]
 
-const collapsed = buildTreeNodes(5, 5, false)
+const collapsed = makeTreeNodes(5, 5, false)
 
 compareBenches('Tree · render (all open)', (bench) => {
 	mountBenches(

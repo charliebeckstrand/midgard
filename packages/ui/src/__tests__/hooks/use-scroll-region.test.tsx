@@ -26,7 +26,7 @@ function attachMeasured(ref: (node: HTMLElement) => unknown, node: HTMLElement) 
 }
 
 /** A node whose written geometry overflows on the x axis. */
-function buildOverflowing() {
+function makeOverflowing() {
 	const node = document.createElement('div')
 
 	node.style.overflowX = 'auto'
@@ -57,7 +57,7 @@ describe('useScrollRegion', () => {
 	it('keeps a tabindex that the node already carries', () => {
 		const { result } = renderHook(() => useScrollRegion({ label: 'Orders' }))
 
-		const node = buildOverflowing()
+		const node = makeOverflowing()
 
 		node.setAttribute('tabindex', '-1')
 
@@ -71,7 +71,7 @@ describe('useScrollRegion', () => {
 	it('prefers labelledBy over label', () => {
 		const { result } = renderHook(() => useScrollRegion({ label: 'Orders', labelledBy: 'title' }))
 
-		const node = buildOverflowing()
+		const node = makeOverflowing()
 
 		attachMeasured(result.current, node)
 
@@ -83,7 +83,7 @@ describe('useScrollRegion', () => {
 	it('removes its attributes on detach', () => {
 		const { result } = renderHook(() => useScrollRegion({ label: 'Orders' }))
 
-		const node = buildOverflowing()
+		const node = makeOverflowing()
 
 		const cleanup = attachMeasured(result.current, node)
 
