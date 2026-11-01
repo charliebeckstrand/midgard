@@ -4,8 +4,7 @@ import { DatePicker } from 'ui/date-picker'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Input } from 'ui/input'
 import type { Place, TripDraft, TripStop } from '../../types'
-import { FormDrawer, useHeldTarget } from './form-drawer'
-import { usePhotoUploads } from './photo-keys'
+import { FormDrawer } from './form-drawer'
 import { PlacePhotosField } from './place-photos-field'
 import {
 	type TripFormTarget,
@@ -17,6 +16,8 @@ import {
 } from './trip-form'
 import { TripLocationField } from './trip-location-field'
 import { TripStopsField } from './trip-stops-field'
+import { useHeldTarget } from './use-held-target'
+import { usePhotoUploads } from './use-photo-uploads'
 
 /** Props for {@link TripFormDrawer}. */
 export type TripFormDrawerProps = {
