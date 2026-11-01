@@ -18,21 +18,16 @@ import { act, getSlot, renderUI } from '../helpers'
 
 const KEYBOARD = 300
 
-/** Makes the visual viewport `KEYBOARD` pixels shorter than the window, as the keyboard does. Returns the spy on its height. */
-function raiseKeyboard() {
-	const viewport = window.visualViewport
-
-	if (!viewport) throw new Error('no visualViewport')
-
-	const height = vi
-		.spyOn(VisualViewport.prototype, 'height', 'get')
-		.mockReturnValue(window.innerHeight - KEYBOARD)
+/**
+ * Sets the height of the visual viewport and sends its `resize`. A height
+ * `KEYBOARD` pixels under the window is the keyboard up.
+ */
+function setViewportHeight(height: number) {
+	vi.spyOn(VisualViewport.prototype, 'height', 'get').mockReturnValue(height)
 
 	act(() => {
-		viewport.dispatchEvent(new Event('resize'))
+		window.visualViewport?.dispatchEvent(new Event('resize'))
 	})
-
-	return height
 }
 
 function renderDrawer() {
@@ -56,7 +51,7 @@ describe('overlay with the on-screen keyboard', () => {
 
 		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
 
-		raiseKeyboard()
+		setViewportHeight(window.innerHeight - KEYBOARD)
 
 		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight - KEYBOARD, 0)
 	})
@@ -64,7 +59,7 @@ describe('overlay with the on-screen keyboard', () => {
 	it('keeps the backdrop over the full viewport, under the keyboard too', () => {
 		renderDrawer()
 
-		raiseKeyboard()
+		setViewportHeight(window.innerHeight - KEYBOARD)
 
 		const backdrop = getSlot(document.body, 'overlay-backdrop').getBoundingClientRect()
 
@@ -76,34 +71,25 @@ describe('overlay with the on-screen keyboard', () => {
 	it('gives the full viewport back when the keyboard goes down', () => {
 		const panel = renderDrawer()
 
-		const height = raiseKeyboard()
+		setViewportHeight(window.innerHeight - KEYBOARD)
 
-		height.mockReturnValue(window.innerHeight)
-
-		act(() => {
-			window.visualViewport?.dispatchEvent(new Event('resize'))
-		})
+		setViewportHeight(window.innerHeight)
 
 		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
 	})
 
-	it('stops a touch pan of the page under a modal overlay', () => {
+	// A modal overlay stops a touch pan of the page under it. A non-modal one
+	// leaves the touch actions of the page.
+	it.each([
+		{ modal: true, touchAction: 'none' },
+		{ modal: false, touchAction: 'auto' },
+	])('sets touch-action $touchAction on an overlay with modal $modal', ({ modal, touchAction }) => {
 		renderUI(
-			<Overlay open onOpenChange={() => {}}>
+			<Overlay open modal={modal} onOpenChange={() => {}}>
 				<span>content</span>
 			</Overlay>,
 		)
 
-		expect(getComputedStyle(getSlot(document.body, 'overlay')).touchAction).toBe('none')
-	})
-
-	it('leaves the touch actions of a non-modal overlay', () => {
-		renderUI(
-			<Overlay open modal={false} onOpenChange={() => {}}>
-				<span>content</span>
-			</Overlay>,
-		)
-
-		expect(getComputedStyle(getSlot(document.body, 'overlay')).touchAction).toBe('auto')
+		expect(getComputedStyle(getSlot(document.body, 'overlay')).touchAction).toBe(touchAction)
 	})
 })

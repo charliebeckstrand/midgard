@@ -32,36 +32,42 @@ export function useOverlayViewportFit(
 
 		if (!active || !node || !viewport) return
 
-		const fit = () => {
-			// A pinch zoom moves no edge of the box.
-			const zoomed = Math.abs(viewport.scale - 1) > 0.01
+		// The edges of the last write. A write that changes nothing is skipped.
+		let edges = { top: 0, bottom: 0 }
 
-			const top = zoomed ? 0 : Math.max(0, viewport.offsetTop)
+		// Sets the edges of the box, and moves the backdrop out past the box by
+		// the same amounts.
+		const apply = (top: number, bottom: number) => {
+			if (top === edges.top && bottom === edges.bottom) return
 
-			const bottom = zoomed
-				? 0
-				: Math.max(0, window.innerHeight - viewport.offsetTop - viewport.height)
+			edges = { top, bottom }
 
 			setEdges(node, top, bottom)
 
-			// The backdrop goes out past the box by the same amounts.
 			if (backdropRef.current) setEdges(backdropRef.current, -top, -bottom)
+		}
+
+		const fit = () => {
+			// A pinch zoom moves no edge of the box.
+			if (Math.abs(viewport.scale - 1) > 0.01) return apply(0, 0)
+
+			const { offsetTop, height } = viewport
+
+			apply(Math.max(0, offsetTop), Math.max(0, window.innerHeight - offsetTop - height))
 		}
 
 		fit()
 
-		viewport.addEventListener('resize', fit)
+		const listeners = new AbortController()
 
-		viewport.addEventListener('scroll', fit)
+		viewport.addEventListener('resize', fit, { signal: listeners.signal })
+
+		viewport.addEventListener('scroll', fit, { signal: listeners.signal })
 
 		return () => {
-			viewport.removeEventListener('resize', fit)
+			listeners.abort()
 
-			viewport.removeEventListener('scroll', fit)
-
-			setEdges(node, 0, 0)
-
-			if (backdropRef.current) setEdges(backdropRef.current, 0, 0)
+			apply(0, 0)
 		}
 	}, [node, backdropRef, active])
 }
