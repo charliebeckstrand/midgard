@@ -498,6 +498,9 @@ export function useGridCursor<T>({
 		nav.moveTo({ row: NEW_ROW_INDEX, col })
 	})
 
+	// The cursor's cell at event time, which the form of a row opens on.
+	const readCursor = useStableEvent(() => nav.active)
+
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,
 		config: editable,
@@ -510,6 +513,7 @@ export function useGridCursor<T>({
 		moveTo: nav.moveTo,
 		seatNewRow,
 		rowStep: nav.rowStep,
+		readCursor,
 	})
 
 	const {

@@ -38,7 +38,6 @@ import { clamp } from '../../../../utilities'
 import { POINT_HIT_RADIUS } from '../map-constants'
 import type { MapPoint2D } from '../types'
 import { bucket, squared, toCellKey, walkNear } from './grid'
-import { MAX_CLUSTER_RADIUS } from './radius'
 
 /**
  * One drawn dot the pass measures: where it draws in frame units, and the radius
@@ -143,7 +142,10 @@ function scanned(marks: readonly MapDotMark[], unitsPerPixel: number): number[] 
 function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): number[] {
 	// One cell per widest possible reach, so a mark this one could swallow can only
 	// sit in the nine cells around it: the bound `group.ts` runs its own passes on.
-	const reach = (POINT_HIT_RADIUS + MAX_CLUSTER_RADIUS) * unitsPerPixel
+	// The widest mark in the set sets it, since a summary grows with its count.
+	const widest = marks.reduce((most, mark) => Math.max(most, mark.radius), 0)
+
+	const reach = (POINT_HIT_RADIUS + widest) * unitsPerPixel
 
 	const cells = new Map<number, number[]>()
 
@@ -185,7 +187,8 @@ function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): number[] 
  * nothing. The answer is therefore their minimum, clamped between what the dot
  * paints and the reach a finger takes. A target narrower than its own dot would
  * leave the dot a dead rim. One wider than the finger target is reach no pointer
- * asked for.
+ * asked for. A summary wide enough to hold a long count can paint past the
+ * finger target, and then the floor wins: the target is the dot.
  *
  * This is the one place {@link POINT_HIT_RADIUS} means the cap. Every producer
  * below it spells "I claim nothing" as the identity of the minimum instead. A
@@ -230,6 +233,6 @@ export function markTargets(
 		// summary's grade puts the floor highest.
 		if (near <= radius) return radius
 
-		return clamp(Math.min(near, spare(at)), radius, POINT_HIT_RADIUS)
+		return clamp(Math.min(near, spare(at)), radius, Math.max(radius, POINT_HIT_RADIUS))
 	})
 }

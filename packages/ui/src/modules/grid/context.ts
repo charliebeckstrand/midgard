@@ -249,8 +249,9 @@ export type GridEditingSession = {
 	editRow: (rowKey: string | number) => void
 	/**
 	 * Opens a row in the form: one field for each editable column, with Cancel
-	 * and Save. Focus goes into the field of `columnId`, or of the first
-	 * editable column. It is what {@link GridRowActionsContext.expand} hands
+	 * and Save. Focus goes into the field of `columnId`. With no `columnId`, it
+	 * goes into the field of the cell that the session holds on the row, else
+	 * of the cursor cell on the row, else of the first editable column. It is what {@link GridRowActionsContext.expand} hands
 	 * the consumer, and what Shift+Enter on the cursor does.
 	 */
 	expandRow: (rowKey: string | number, columnId?: string | number) => void

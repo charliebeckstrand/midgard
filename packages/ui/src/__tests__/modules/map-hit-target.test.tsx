@@ -8,7 +8,6 @@ import {
 	MapPoint,
 	MapPoints,
 } from '../../modules/map'
-import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
 import {
 	AREA_SPARE_FRACTION,
 	POINT_HIT_RADIUS,
@@ -17,6 +16,7 @@ import {
 } from '../../modules/map/engine/map-constants'
 import { k } from '../../recipes/kata/map'
 import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
+import { englishRadius } from '../helpers/map-flat'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 import { overlayPlat } from '../helpers/map-plat'
 
@@ -253,7 +253,7 @@ describe('dot hit targets', () => {
 		// would leave the dot a dead rim, so the zone is what gives way, since a dot
 		// no one can point at reports nothing at all. The grade the summary draws at
 		// rather than one figure for every dot: `clusterRadius` is what the mark passes.
-		expect(budget(targets[0] ?? null, 'summary hit target')).toBe(clusterRadius(2))
+		expect(budget(targets[0] ?? null, 'summary hit target')).toBe(englishRadius(2))
 	})
 
 	it('keeps the hit target a transparent fill, so it answers where the dot does not paint', () => {

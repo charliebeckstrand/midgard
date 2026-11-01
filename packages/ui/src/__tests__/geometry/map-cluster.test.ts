@@ -7,10 +7,16 @@ import {
 } from '../../modules/map/engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from '../../modules/map/engine/map-cluster/geo'
 import { clusterPoints, groupsByMember } from '../../modules/map/engine/map-cluster/group'
-import { clusterRadius, MAX_CLUSTER_RADIUS } from '../../modules/map/engine/map-cluster/radius'
-import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/engine/map-constants'
+import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
+import {
+	CLUSTER_COUNT_CHAR_WIDTH,
+	CLUSTER_COUNT_INSET,
+	CLUSTER_RADIUS_STEPS,
+	POINT_HIT_RADIUS,
+	POINT_RADIUS,
+} from '../../modules/map/engine/map-constants'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
-import { flatProjector } from '../helpers/map-flat'
+import { englishRadius, flatProjector } from '../helpers/map-flat'
 
 /**
  * A spherical mean uses trigonometry, so the longitude of a cluster anchor
@@ -28,14 +34,20 @@ const GAP = 9
 /** Two dots merge under their own widths plus the gap. */
 const DOT_REACH = POINT_RADIUS * 2 + GAP
 
+/** The radius of the top grade: what a summary of three digits draws at. */
+const TOP_GRADE = CLUSTER_RADIUS_STEPS.at(-1)?.radius ?? POINT_RADIUS
+
+/** The count label in Spanish, which groups from five digits and with a period. */
+const spanishCount = new Intl.NumberFormat('es-ES').format
+
 /** Ten dots in a row from `at`, enough of them to grade the mark up. */
 const bunch = (at: number): LngLat[] =>
 	Array.from({ length: 10 }, (_, step): LngLat => [at + step, 0])
 
 /** Every drawn mark, with the radius it paints. */
 const buildMarks = (positions: LngLat[], gap: number | null) =>
-	clusterPoints(positions, flatProjector, gap).flatMap((group) =>
-		group.at === null ? [] : [{ at: group.at, radius: clusterRadius(group.members.length) }],
+	clusterPoints(positions, flatProjector, gap, englishRadius).flatMap((group) =>
+		group.at === null ? [] : [{ at: group.at, radius: englishRadius(group.members.length) }],
 	)
 
 describe('clusterPoints', () => {
@@ -49,6 +61,7 @@ describe('clusterPoints', () => {
 			],
 			flatProjector,
 			GAP,
+			englishRadius,
 		)
 
 		expect(groups.map((group) => group.members)).toEqual([[0, 1, 2], [3]])
@@ -67,6 +80,7 @@ describe('clusterPoints', () => {
 			],
 			flatProjector,
 			GAP,
+			englishRadius,
 		)
 
 		expect(groups.map((group) => group.members)).toEqual([[0, 1], [2]])
@@ -81,6 +95,7 @@ describe('clusterPoints', () => {
 			],
 			flatProjector,
 			GAP,
+			englishRadius,
 		)
 
 		expect(group?.at).toEqual({ x: 4, y: 4 })
@@ -95,7 +110,7 @@ describe('clusterPoints', () => {
 			[2, 0],
 		]
 
-		const groups = clusterPoints(positions, flatProjector, null)
+		const groups = clusterPoints(positions, flatProjector, null, englishRadius)
 
 		expect(groups.map((group) => group.members)).toEqual([[0], [1], [2]])
 	})
@@ -112,6 +127,7 @@ describe('clusterPoints', () => {
 			],
 			clipped,
 			GAP,
+			englishRadius,
 		)
 
 		expect(groups.map((group) => group.members)).toEqual([[0, 2], [1]])
@@ -123,15 +139,34 @@ describe('clusterPoints', () => {
 		// Two bunches the broad phase keeps apart (their first members stand well
 		// past a dot's reach) until ten stops each grade the marks up to where they
 		// draw over the space between them.
-		const reach = clusterRadius(10) * 2 + GAP
+		const reach = englishRadius(10) * 2 + GAP
 
-		expect(clusterPoints([...bunch(0), ...bunch(reach - 1)], flatProjector, GAP)).toHaveLength(1)
+		expect(
+			clusterPoints([...bunch(0), ...bunch(reach - 1)], flatProjector, GAP, englishRadius),
+		).toHaveLength(1)
 	})
 
 	it('leaves the summaries that stand clear of one another alone', () => {
-		const reach = clusterRadius(10) * 2 + GAP
+		const reach = englishRadius(10) * 2 + GAP
 
-		expect(clusterPoints([...bunch(0), ...bunch(reach + 1)], flatProjector, GAP)).toHaveLength(2)
+		expect(
+			clusterPoints([...bunch(0), ...bunch(reach + 1)], flatProjector, GAP, englishRadius),
+		).toHaveLength(2)
+	})
+
+	it('merges two summaries whose counts grow them into one another', () => {
+		// 1,200 stops each, packed onto one spot, with the two spots far enough apart
+		// that summaries at the top grade would stand clear, but close enough that
+		// the summaries the labels grow overlap.
+		const pile = (x: number): LngLat[] => Array.from({ length: 1_200 }, (): LngLat => [x, 0])
+
+		const apart = TOP_GRADE * 2 + GAP + 1
+
+		expect(englishRadius(1_200) * 2 + GAP).toBeGreaterThan(apart)
+
+		const groups = clusterPoints([...pile(0), ...pile(apart)], flatProjector, GAP, englishRadius)
+
+		expect(groups.map((group) => group.members.length)).toEqual([2_400])
 	})
 
 	it('leaves no two marks drawing over one another, however the merging chains', () => {
@@ -194,18 +229,50 @@ describe('clusterSpan', () => {
 })
 
 describe('clusterRadius', () => {
-	it('grades the mark by how many stops it stands for', () => {
-		expect(clusterRadius(1)).toBe(POINT_RADIUS)
+	/** Half the label at the estimated width, plus the inset on its end. */
+	const labelRadius = (label: string) =>
+		(label.length * CLUSTER_COUNT_CHAR_WIDTH) / 2 + CLUSTER_COUNT_INSET
 
-		const grades = [2, 5, 10, 25].map(clusterRadius)
+	it('grades the mark by how many stops it stands for', () => {
+		expect(englishRadius(1)).toBe(POINT_RADIUS)
+
+		const grades = [2, 5, 10, 25].map(englishRadius)
 
 		expect(grades).toEqual([...grades].sort((a, b) => a - b))
 
 		expect(new Set(grades).size).toBe(grades.length)
 	})
 
-	it('holds the top grade past the last step', () => {
-		expect(clusterRadius(4_000)).toBe(clusterRadius(25))
+	it('holds the top grade through every count of three digits', () => {
+		expect(englishRadius(999)).toBe(TOP_GRADE)
+	})
+
+	it('grows a summary past the top grade to hold a longer count', () => {
+		// `1,200` is five characters: wider than the top grade holds.
+		expect(englishRadius(1_200)).toBe(labelRadius('1,200'))
+
+		expect(englishRadius(1_200)).toBeGreaterThan(TOP_GRADE)
+
+		expect(englishRadius(12_000)).toBe(labelRadius('12,000'))
+	})
+
+	it('sizes the summary to the label the locale writes', () => {
+		// Spanish writes no separator under five digits, and a period from five up.
+		expect(clusterRadius(1_200, spanishCount)).toBe(labelRadius('1200'))
+
+		expect(clusterRadius(12_000, spanishCount)).toBe(labelRadius('12.000'))
+
+		expect(clusterRadius(1_200, spanishCount)).toBeLessThan(englishRadius(1_200))
+	})
+
+	it('never shrinks as the count rises', () => {
+		const counts = [1, 2, 9, 99, 999, 1_000, 9_999, 10_000, 99_999, 1_000_000]
+
+		for (const format of [String, spanishCount]) {
+			const radii = counts.map((count) => clusterRadius(count, format))
+
+			expect(radii).toEqual([...radii].sort((a, b) => a - b))
+		}
 	})
 })
 
@@ -219,6 +286,7 @@ describe('groupsByMember', () => {
 		],
 		flatProjector,
 		GAP,
+		englishRadius,
 	)
 
 	it('reads back which drawn mark holds each dot, and holds none it never had', () => {
@@ -261,12 +329,12 @@ describe('neighborRoom', () => {
 	})
 
 	it('measures the neighbor’s own width, so a summary reaches further than a dot', () => {
-		const summary: MapDotMark = { at: { x: 30, y: 0 }, radius: MAX_CLUSTER_RADIUS }
+		const summary: MapDotMark = { at: { x: 30, y: 0 }, radius: TOP_GRADE }
 
 		// 30px apart: the summary's face reaches inside the dot's target, while the
 		// dot's own face stays clear of the summary's. Each answers for what it
 		// would swallow, not for what would swallow it.
-		expect(neighborRoom([dot(0), summary])).toEqual([30 - MAX_CLUSTER_RADIUS, Infinity])
+		expect(neighborRoom([dot(0), summary])).toEqual([30 - TOP_GRADE, Infinity])
 	})
 
 	it('holds every reach in device pixels through a zoom', () => {
@@ -346,9 +414,21 @@ describe('markTargets', () => {
 	it('floors the target at the radius the dot draws', () => {
 		// A zone smaller than the mark on it would leave the dot a dead rim, so the
 		// zone gives way: a dot no one can point at reports nothing at all.
-		const summary: MapDotMark = { at: { x: 0, y: 0 }, radius: MAX_CLUSTER_RADIUS }
+		const summary: MapDotMark = { at: { x: 0, y: 0 }, radius: TOP_GRADE }
 
-		expect(markTargets([summary], 1, spares(2))).toEqual([MAX_CLUSTER_RADIUS])
+		expect(markTargets([summary], 1, spares(2))).toEqual([TOP_GRADE])
+	})
+
+	it('takes the whole of a summary wider than the finger target', () => {
+		// A count of seven characters grows the dot past the 22px cap, and a target
+		// held at the cap would leave the dot a dead rim.
+		const wide = englishRadius(120_000)
+
+		expect(wide).toBeGreaterThan(POINT_HIT_RADIUS)
+
+		const summary: MapDotMark = { at: { x: 0, y: 0 }, radius: wide }
+
+		expect(markTargets([summary], 1, open)).toEqual([wide])
 	})
 
 	it('floors the target at the dot without asking the zone, where a neighbor already did', () => {

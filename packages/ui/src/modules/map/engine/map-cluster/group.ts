@@ -5,7 +5,7 @@
  * Three neighbors carry the parts this one does not:
  *
  * - `grid.ts`: the spatial index both passes bucket into.
- * - `radius.ts`: the size a summary draws at.
+ * - `radius.ts`: the size a summary draws at, which the caller hands in.
  * - `geo.ts`: what a group reads out on the ground.
  *
  * One rule decides the output: no two marks draw within `gap` of one another
@@ -20,7 +20,7 @@
 import { POINT_CLUSTER_GAP, POINT_RADIUS } from '../map-constants'
 import type { LngLat, MapPoint2D } from '../types'
 import { bucket, squared, toCellKey, walkNear } from './grid'
-import { clusterRadius, MAX_CLUSTER_RADIUS } from './radius'
+import type { MapClusterRadius } from './radius'
 
 /**
  * One drawn group: the dots it stands for, and where it draws. A group of one is
@@ -100,6 +100,23 @@ type MapClusterMark = {
 }
 
 /**
+ * What the overlap rule measures by, in frame units where it is a length. Built
+ * once per pass by {@link clusterPoints}, so each round reads the same figures.
+ *
+ * @internal
+ */
+type MapMergeRule = {
+	/** The clear space two marks keep between their edges. */
+	gap: number
+	/** Frame units per device pixel; a mark's radius converts through it. */
+	unitsPerPixel: number
+	/** The device-pixel radius a group of a count draws at. */
+	getRadius: MapClusterRadius
+	/** The widest a pair of marks can reach: the cell size of the index. */
+	reach: number
+}
+
+/**
  * Groups the dots a frame draws too close together to tell apart.
  *
  * `gap` is the clear space two marks keep between their edges, in device
@@ -114,6 +131,11 @@ type MapClusterMark = {
  * once on the way in, and every comparison below reads frame units alone. A
  * zoom that spreads the dots apart on screen therefore separates them here on
  * the same beat.
+ *
+ * `getRadius` is how wide a group of each count draws, in device pixels: the
+ * drawn mark's own `clusterRadius`, bound to the count label it holds. The rule
+ * measures each mark at the size it draws, so a summary that grows to hold a
+ * wide count also takes the room it grows into.
  *
  * Grouping runs on the projected frame rather than on lon/lat, because overlap
  * is a property of the drawn picture. The same round summarizes in a small
@@ -131,6 +153,7 @@ export function clusterPoints(
 	positions: readonly LngLat[],
 	project: (position: LngLat) => MapPoint2D | null,
 	gap: number | null,
+	getRadius: MapClusterRadius,
 	unitsPerPixel = 1,
 ): MapPointCluster[] {
 	if (gap === null) {
@@ -142,7 +165,16 @@ export function clusterPoints(
 	// mark's radius to match.
 	const seeds = seedGroups(positions, project, (POINT_RADIUS * 2 + gap) * unitsPerPixel)
 
-	return consolidate(seeds, gap * unitsPerPixel, unitsPerPixel).map(summarize)
+	// No group holds more than every dot, and the radius never falls as the count
+	// rises, so no pair of marks reaches past twice the radius of the whole set.
+	const widest = getRadius(positions.length)
+
+	return consolidate(seeds, {
+		gap: gap * unitsPerPixel,
+		unitsPerPixel,
+		getRadius,
+		reach: (widest * 2 + gap) * unitsPerPixel,
+	}).map(summarize)
 }
 
 /**
@@ -212,17 +244,13 @@ function seedGroups(
  *
  * @internal
  */
-function consolidate(
-	groups: MapClusterSeed[],
-	gap: number,
-	unitsPerPixel: number,
-): MapClusterSeed[] {
+function consolidate(groups: MapClusterSeed[], rule: MapMergeRule): MapClusterSeed[] {
 	let held = groups
 
 	let merging = true
 
 	while (merging) {
-		const next = mergeRound(held, gap, unitsPerPixel)
+		const next = mergeRound(held, rule)
 
 		merging = next.length < held.length
 
@@ -233,11 +261,7 @@ function consolidate(
 }
 
 /** One pass of {@link consolidate}: every group folded into the first mark it draws over. @internal */
-function mergeRound(
-	groups: MapClusterSeed[],
-	gap: number,
-	unitsPerPixel: number,
-): MapClusterSeed[] {
+function mergeRound(groups: MapClusterSeed[], rule: MapMergeRule): MapClusterSeed[] {
 	const next: MapClusterSeed[] = []
 
 	// Marks index-aligned with `next`, so a pair test reads two field loads
@@ -249,12 +273,12 @@ function mergeRound(
 	// One cell per widest possible reach, so a mark this one could draw over can
 	// only sit in the nine cells around it: the bound the broad phase runs on,
 	// held here against the marks rather than the dots.
-	const reach = MAX_CLUSTER_RADIUS * 2 * unitsPerPixel + gap
+	const { reach } = rule
 
 	for (const group of groups) {
-		const mark = buildMark(group, unitsPerPixel)
+		const mark = buildMark(group, rule)
 
-		const host = mark === null ? -1 : hostFor(cells, marks, mark, gap, reach)
+		const host = mark === null ? -1 : hostFor(cells, marks, mark, rule.gap, reach)
 
 		if (host === -1) {
 			if (mark !== null) bucket(cells, toCellKey(mark.at, reach)).push(next.length)
@@ -270,7 +294,7 @@ function mergeRound(
 
 		next[host] = merged
 
-		const grown = buildMark(merged, unitsPerPixel)
+		const grown = buildMark(merged, rule)
 
 		marks[host] = grown
 
@@ -360,15 +384,17 @@ function nearestSeed(
 
 /**
  * A group's drawn mark, or `null` where the projection has no image for it. The
- * size grade is a device-pixel radius, so it converts to frame units here: the
- * one place a mark's width enters the pass.
+ * radius is a device-pixel measure, so it converts to frame units here: the one
+ * place a mark's width enters the pass.
  *
  * @internal
  */
-function buildMark(group: MapClusterSeed, unitsPerPixel: number): MapClusterMark | null {
+function buildMark(group: MapClusterSeed, rule: MapMergeRule): MapClusterMark | null {
 	const at = center(group)
 
-	return at === null ? null : { at, radius: clusterRadius(group.members.length) * unitsPerPixel }
+	return at === null
+		? null
+		: { at, radius: rule.getRadius(group.members.length) * rule.unitsPerPixel }
 }
 
 /**
