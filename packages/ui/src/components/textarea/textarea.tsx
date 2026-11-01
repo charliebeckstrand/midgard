@@ -21,7 +21,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	 * The surface of the control: `default` fills it, `outline` draws a border
 	 * with no fill, and `bare` draws neither ({@link ControlVariant}). When the
 	 * prop is unset, the textarea takes the variant of the enclosing Control.
-	 * Without one, it takes the glass surface in a GlassProvider.
+	 * Without one, it takes the glass surface in a GlassProvider. A `bare`
+	 * field has no inset, so a field of one row is one line of text.
 	 * @defaultValue 'default'
 	 */
 	variant?: ControlVariant

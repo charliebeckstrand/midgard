@@ -4,6 +4,7 @@ import { CurrencyInput } from 'ui/currency-input'
 import { DatePicker } from 'ui/date-picker'
 import { Grid, type GridColumn, type GridEditCellContext } from 'ui/grid'
 import { useIntl } from 'ui/primitives/intl'
+import { Textarea } from 'ui/textarea'
 import { CellListbox } from './people.tsx'
 
 type Task = {
@@ -13,6 +14,7 @@ type Task = {
 	due: Date
 	done: boolean
 	budget: number
+	description: string
 }
 
 const tasks: Task[] = [
@@ -23,6 +25,7 @@ const tasks: Task[] = [
 		due: new Date(2026, 0, 15),
 		done: false,
 		budget: 1200,
+		description: 'Users land on the home page after sign-in instead of the page they asked for.',
 	},
 	{
 		id: 2,
@@ -31,6 +34,7 @@ const tasks: Task[] = [
 		due: new Date(2026, 2, 1),
 		done: false,
 		budget: 800,
+		description: 'Follow the system setting.\nAdd a toggle in the account menu.',
 	},
 	{
 		id: 3,
@@ -39,12 +43,14 @@ const tasks: Task[] = [
 		due: new Date(2026, 1, 10),
 		done: true,
 		budget: 500,
+		description: 'Done',
 	},
 ]
 
 // Each row stays in edit mode, so each editor shows at once, and no row saves.
 // Title gets a text editor and Done a yes or no listbox, from the type of the
-// value. Status, Due, and Budget get an editor through the `editCell` slot.
+// value. Status, Due, Budget, and Notes get an editor through the `editCell`
+// slot.
 // `overlay: false` keeps the editors in the cells on a phone too.
 const editing = new Set<string | number>(tasks.map((task) => task.id))
 
@@ -63,6 +69,21 @@ function CellDate({ value, onValueUpdate, ariaLabel }: GridEditCellContext<unkno
 			aria-label={ariaLabel}
 			value={value instanceof Date ? value : undefined}
 			onValueChange={(date) => onValueUpdate(date ?? undefined)}
+		/>
+	)
+}
+
+// A text editor for long text: a Textarea of one row that fits its height to
+// its text. In the cell it shows one line. With focus, it grows past the cell,
+// down and toward the end, as the text needs.
+function CellNotes({ value, onValueUpdate, ariaLabel }: GridEditCellContext<unknown>) {
+	return (
+		<Textarea
+			aria-label={ariaLabel}
+			rows={1}
+			autoResize
+			value={typeof value === 'string' ? value : ''}
+			onChange={(event) => onValueUpdate(event.target.value)}
 		/>
 	)
 }
@@ -113,6 +134,14 @@ export default function EditorTypes() {
 				field: 'budget',
 				cell: (row) => intl.formatNumber(row.budget, { style: 'currency', currency: 'USD' }),
 				editCell: CellCurrency,
+			},
+			{
+				id: 'notes',
+				title: 'Notes',
+				field: 'description',
+				cell: (row) => row.description,
+				width: '180px',
+				editCell: CellNotes,
 			},
 			{
 				id: 'done',

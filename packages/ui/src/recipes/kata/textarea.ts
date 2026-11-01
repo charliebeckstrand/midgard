@@ -17,7 +17,18 @@ export const k = defineKata(
 		actions: { true: [...border.default, 'flex-col items-stretch'], false: [] },
 		slots: {
 			field: {
-				base: ['block', textarea.floor],
+				base: 'block',
+				/**
+				 * The floor gives a field of one row the height of a framed Input.
+				 * A `bare` field has no inset, as a `bare` Input has none, so it
+				 * takes no floor, and a row is one line of text.
+				 */
+				variant: {
+					default: textarea.floor,
+					outline: textarea.floor,
+					glass: textarea.floor,
+					bare: [],
+				},
 				/**
 				 * Where the primary pointer is coarse, the grip slot replaces the native
 				 * grip. Safari on iOS and iPadOS draws no native grip.
