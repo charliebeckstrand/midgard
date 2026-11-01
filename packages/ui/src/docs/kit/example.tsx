@@ -11,8 +11,8 @@ import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { createLazyModule, type LazyModule } from '../../utilities/lazy-module.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
-import { useLoadThenOpen } from './load-then-open.ts'
 import { exampleTitle } from './names.ts'
+import { useLoadThenOpen } from './use-load-then-open.ts'
 
 const messages = defineMessages({
 	showCode: {

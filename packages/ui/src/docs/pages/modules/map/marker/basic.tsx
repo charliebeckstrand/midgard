@@ -1,7 +1,8 @@
 import { MapMarker, MapPlat } from 'ui/map'
 import { useIntl } from 'ui/primitives/intl'
 import { miles, states } from '../data.ts'
-import { lineHaul, useRoute } from '../routes.ts'
+import { lineHaul } from '../routes.ts'
+import { useRoute } from '../use-route.ts'
 
 export default function Basic() {
 	const intl = useIntl()

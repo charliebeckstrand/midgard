@@ -4,7 +4,7 @@ import { HydratedRouter } from 'react-router/dom'
 import { eventsRootOptions, startEvents } from 'ui/events'
 import { routerEvents } from '../debug/router.ts'
 import { DOCS_SOURCES } from '../debug/sources.ts'
-import { DocumentLocale } from './document-locale.ts'
+import { DocumentLocale } from './context.ts'
 import { readDocumentLocale } from './language.ts'
 import { endStaleBuildWatch, watchFailedLoads, watchStaleBuild } from './stale-build.tsx'
 

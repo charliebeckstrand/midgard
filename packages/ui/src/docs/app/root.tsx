@@ -16,19 +16,19 @@ import { UIDocument, UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
-import { useIdle } from '../kit/idle.ts'
+import { useIdle } from '../kit/use-idle.ts'
 import appCss from './app.css?url'
 import { appMessages } from './app-messages.ts'
 import { catalogs } from './catalogs.ts'
+import { NavigateContext, useDocumentLocale } from './context.ts'
 import { DirectionListbox } from './direction.tsx'
-import { useDocumentLocale } from './document-locale.ts'
 import { LOCALES } from './language.ts'
 import { PageError } from './page-error.tsx'
-import { NavigateContext, RouterLink } from './router-link.tsx'
-import { useNavigationScroll } from './scroll-restoration.tsx'
+import { RouterLink } from './router-link.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
+import { useNavigationScroll } from './use-navigation-scroll.ts'
 
 /**
  * The document of each page. `UIDocument` holds `AppearanceProvider`, so each
@@ -120,7 +120,7 @@ const pageTitleMessage = defineMessage<{ page: string }>({
  * The shell of the docs: the sidebar, the header with the name of the page, and the page.
  *
  * The shell renders in the locale of the HTML of the page
- * (`document-locale.ts`), on the server and in the hydration render, so the
+ * (`DocumentLocale` in `context.ts`), on the server and in the hydration render, so the
  * two renders agree. After hydration, the shell takes the locale that the
  * reader chooses in the settings. The server sends the HTML of that locale, so
  * the two are the same at the first paint. The provider holds the whole shell,

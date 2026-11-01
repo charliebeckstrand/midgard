@@ -1,3 +1,4 @@
+import type { NavigateFunction } from 'react-router'
 import { createContext } from 'ui/core'
 import { LOCALES } from './language.ts'
 
@@ -9,3 +10,9 @@ import { LOCALES } from './language.ts'
 export const [DocumentLocale, useDocumentLocale] = createContext<string>('DocumentLocale', {
 	default: LOCALES[0],
 })
+
+/**
+ * The `navigate` of the shell. The function of the root route does not change,
+ * so a link that reads it does not render again on a navigation.
+ */
+export const [NavigateContext, useShellNavigate] = createContext<NavigateFunction>('Navigate')

@@ -2,7 +2,7 @@ import { Grid, type GridCellClickContext } from 'ui/grid'
 import { JsonTree } from 'ui/json-tree'
 import { Stack } from 'ui/stack'
 import { columns, type Person, people } from '../data.tsx'
-import { useClickInspector } from './click-inspector.ts'
+import { useClickInspector } from './use-click-inspector.ts'
 
 type PickedCell = Omit<GridCellClickContext<Person>, 'value'> & { value: string }
 

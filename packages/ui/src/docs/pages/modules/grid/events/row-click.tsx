@@ -5,7 +5,7 @@ import { Icon } from 'ui/icon'
 import { JsonTree } from 'ui/json-tree'
 import { Stack } from 'ui/stack'
 import { columns, type Person, people } from '../data.tsx'
-import { useClickInspector } from './click-inspector.ts'
+import { useClickInspector } from './use-click-inspector.ts'
 
 const actionColumns: GridColumn<Person>[] = [
 	...columns,

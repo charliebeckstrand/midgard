@@ -2,7 +2,7 @@ import { Code } from 'ui/code'
 import { Flex } from 'ui/flex'
 import { Stack } from 'ui/stack'
 import { TimeAgo } from 'ui/time-ago'
-import { MINUTE, useNow } from './now.ts'
+import { MINUTE, useNow } from './use-now.ts'
 
 const locales = ['fr-FR', 'it-IT', 'en-US']
 

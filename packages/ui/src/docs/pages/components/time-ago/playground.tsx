@@ -1,5 +1,5 @@
 import { TimeAgo, type TimeAgoProps } from 'ui/time-ago'
-import { SECOND, useNow } from './now.ts'
+import { SECOND, useNow } from './use-now.ts'
 
 export default function TimeAgoPlayground(props: TimeAgoProps) {
 	const now = useNow()

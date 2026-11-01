@@ -1,41 +1,16 @@
-import { useEffect } from 'react'
-import { cancelIdle, requestIdle } from '../../utilities/idle.ts'
+import { requestIdle } from '../../utilities/idle.ts'
 
 /**
  * The delay of the fallback in a browser with no `requestIdleCallback`, such as
  * Safari. The docs work starts at once there, with no deadline.
  */
-const FALLBACK_DELAY_MS = 1
+export const FALLBACK_DELAY_MS = 1
 
 /**
  * The time in ms that an idle period must still hold for {@link runInSlices}
  * to run its step again in that period.
  */
 const SLICE_MARGIN_MS = 2
-
-/**
- * Runs `task` once in idle time after the mount, so a later step that needs
- * its result does not wait.
- *
- * @param task - The work, such as the load of a module. It must keep its
- *   identity, or it runs again after each render that changes it. The signal
- *   aborts when the component unmounts or the task changes.
- */
-export function useIdle(task: (signal: AbortSignal) => unknown): void {
-	useEffect(() => {
-		const controller = new AbortController()
-
-		const handle = requestIdle(() => {
-			task(controller.signal)
-		}, FALLBACK_DELAY_MS)
-
-		return () => {
-			cancelIdle(handle)
-
-			controller.abort()
-		}
-	}, [task])
-}
 
 /**
  * Runs `step` in idle time until it returns `false` or `signal` aborts. Each
