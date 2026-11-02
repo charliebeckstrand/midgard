@@ -3,11 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
 import { cellText } from '../../modules/grid/engine/grid-export/accessor'
 import { rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
-import {
-	downloadExcel,
-	rowsToXlsx,
-	rowsToXlsxInSteps,
-} from '../../modules/grid/engine/grid-export/excel'
+import { downloadExcel, rowsToXlsxInSteps } from '../../modules/grid/engine/grid-export/excel'
 import { rowsToHtmlTable } from '../../modules/grid/engine/grid-export/html-table'
 import { printRows, rowsToPrintHtml } from '../../modules/grid/engine/grid-export/print'
 import { captureAppended } from '../helpers/capture-appended'
@@ -59,9 +55,9 @@ describe('rowsToHtmlTable', () => {
 	})
 })
 
-describe('rowsToXlsx', () => {
-	it('zips the OOXML parts a workbook needs', () => {
-		const parts = Object.keys(unzipSync(rowsToXlsx(columns, rows)))
+describe('rowsToXlsxInSteps, the workbook', () => {
+	it('zips the OOXML parts a workbook needs', async () => {
+		const parts = Object.keys(unzipSync(await rowsToXlsxInSteps(columns, rows)))
 
 		expect(parts).toEqual(
 			expect.arrayContaining([
@@ -74,8 +70,8 @@ describe('rowsToXlsx', () => {
 		)
 	})
 
-	it('emits a header row of labels and one escaped inline-string row per datum', () => {
-		const sheet = sheetXml(rowsToXlsx(columns, rows))
+	it('emits a header row of labels and one escaped inline-string row per datum', async () => {
+		const sheet = sheetXml(await rowsToXlsxInSteps(columns, rows))
 
 		expect(sheet).toContain(
 			'<row r="1"><c r="A1" t="inlineStr"><is><t xml:space="preserve">Name</t></is></c>',
@@ -87,7 +83,7 @@ describe('rowsToXlsx', () => {
 		expect(sheet).toContain('<t xml:space="preserve">Bob &amp; Co</t>')
 	})
 
-	it('encodes the characters that XML forbids, so the sheet stays valid XML', () => {
+	it('encodes the characters that XML forbids, so the sheet stays valid XML', async () => {
 		type Item = { id: number; label: string }
 
 		const itemColumns: GridColumn<Item>[] = [
@@ -97,7 +93,7 @@ describe('rowsToXlsx', () => {
 		const labels = ['a\u0001b', '_x0041_', 'lone \uD800 half', 'pair \u{1F600}', 'tab\tkept']
 
 		const sheet = sheetXml(
-			rowsToXlsx(
+			await rowsToXlsxInSteps(
 				itemColumns,
 				labels.map((label, id) => ({ id, label })),
 			),
@@ -119,14 +115,14 @@ describe('rowsToXlsx', () => {
 		expect(sheet).toContain('<t xml:space="preserve">tab\tkept</t>')
 	})
 
-	it('serializes finite numbers as native numeric cells', () => {
+	it('serializes finite numbers as native numeric cells', async () => {
 		type Item = { id: number; count: number }
 
 		const itemColumns: GridColumn<Item>[] = [
 			{ id: 'count', title: 'Count', cell: (row) => row.count, value: (row) => row.count },
 		]
 
-		const sheet = sheetXml(rowsToXlsx(itemColumns, [{ id: 1, count: 42 }]))
+		const sheet = sheetXml(await rowsToXlsxInSteps(itemColumns, [{ id: 1, count: 42 }]))
 
 		expect(sheet).toContain('<c r="A2"><v>42</v></c>')
 	})
@@ -146,12 +142,6 @@ describe('rowsToXlsxInSteps', () => {
 		await rowsToXlsxInSteps(columns, many)
 
 		expect(post).toHaveBeenCalled()
-	})
-
-	it('writes the same worksheet as rowsToXlsx', async () => {
-		expect(sheetXml(await rowsToXlsxInSteps(columns, many))).toBe(
-			sheetXml(rowsToXlsx(columns, many)),
-		)
 	})
 
 	it('writes every row, in order', async () => {
@@ -198,7 +188,7 @@ describe('cellText', () => {
 		expect(cellText(undefined)).toBe('')
 	})
 
-	it('gives the same text to CSV, HTML, and XLSX', () => {
+	it('gives the same text to CSV, HTML, and XLSX', async () => {
 		const items = [
 			{ id: 1, when: date },
 			{ id: 2, when: { a: 1 } },
@@ -210,7 +200,7 @@ describe('cellText', () => {
 			'<td>2026-09-29T14:30:00.000Z</td></tr><tr><td>{"a":1}</td>',
 		)
 
-		const sheet = sheetXml(rowsToXlsx(itemColumns, items))
+		const sheet = sheetXml(await rowsToXlsxInSteps(itemColumns, items))
 
 		expect(sheet).toContain('<t xml:space="preserve">2026-09-29T14:30:00.000Z</t>')
 
@@ -222,7 +212,7 @@ describe('downloadExcel', () => {
 	it('wraps the workbook in an xlsx-typed blob and clicks an object-URL anchor', async () => {
 		const download = captureDownload()
 
-		downloadExcel('grid.xlsx', rowsToXlsx(columns, rows))
+		downloadExcel('grid.xlsx', await rowsToXlsxInSteps(columns, rows))
 
 		expect(download.createObjectURL).toHaveBeenCalledTimes(1)
 
@@ -242,7 +232,7 @@ describe('downloadExcel', () => {
 	})
 })
 
-describe('rowsToPrintHtml', () => {
+describe('rowsToPrintHtml', async () => {
 	it('wraps the HTML table in a printable document', () => {
 		const html = rowsToPrintHtml(columns, rows)
 

@@ -195,32 +195,17 @@ function* writeXlsx<T>(
 }
 
 /**
- * Serializes rows to a real `.xlsx` workbook, a zip of minimal OOXML parts.
- * One worksheet holds a header row of column labels and one row per datum.
- * Numbers become native numeric cells, everything else inline strings. The
- * columns and cell values come from the same export accessors CSV and print
- * read, so every export type emits identical data. Replaces the module's
- * former Excel-flavored HTML `.xls`, which opened with a format warning and
- * carried no cell types.
+ * Serializes rows to a real `.xlsx` workbook, a zip of minimal OOXML parts,
+ * over many tasks. One worksheet holds a header row of column labels and one
+ * row per datum. Numbers become native numeric cells, everything else inline
+ * strings. The columns and cell values come from the same export accessors
+ * that CSV and print read, so every export type emits identical data.
+ *
+ * Between two steps of the writer, it gives the main thread back to the
+ * browser, so a large grid does not freeze the page while it compresses. It
+ * does not use a worker, because a strict `worker-src` policy can block one.
  *
  * @typeParam T - Shape of a single row.
- */
-export function rowsToXlsx<T>(columns: GridColumn<T>[], rows: readonly T[]): Uint8Array {
-	const writer = writeXlsx(columns, rows)
-
-	for (;;) {
-		const step = writer.next()
-
-		if (step.done) return step.value
-	}
-}
-
-/**
- * The workbook of {@link rowsToXlsx}, written over many tasks. Between two
- * steps of the writer, it gives the main thread back to the browser, so a
- * large grid does not freeze the page while it compresses. It does not use a
- * worker, because a strict `worker-src` policy can block one.
- *
  * @internal
  */
 export async function rowsToXlsxInSteps<T>(
@@ -260,7 +245,8 @@ function nextTask(): Promise<void> {
  * Triggers a client-side download of a real `.xlsx` workbook.
  *
  * @param filename - Suggested download name (e.g. `grid.xlsx`).
- * @param workbook - The zipped workbook bytes, as produced by {@link rowsToXlsx}.
+ * @param workbook - The zipped workbook bytes, as produced by {@link rowsToXlsxInSteps}.
+ * @internal
  */
 export function downloadExcel(filename: string, workbook: Uint8Array): void {
 	downloadBlob(
