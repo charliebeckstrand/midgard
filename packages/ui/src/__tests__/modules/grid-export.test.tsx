@@ -992,6 +992,34 @@ describe('Grid export under grouping', () => {
 		expect(text).toContain('Dave,Designer')
 	})
 
+	it.each([
+		[
+			['Designer', 'Developer'],
+			['Bob', 'Dave', 'Alice', 'Carol'],
+		],
+		[
+			['Developer', 'Designer'],
+			['Alice', 'Carol', 'Bob', 'Dave'],
+		],
+	])('exports the groups in the order of the row manager, %j', async (order, names) => {
+		const text = await exportCsv(
+			<Grid
+				exportable={{ types: ['csv'], toolbar: true }}
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'role', rowGroups: order.map((key) => ({ key })) }}
+			/>,
+		)
+
+		const exported = text
+			.split(/\r?\n/)
+			.slice(1)
+			.map((line) => line.split(',')[0])
+
+		expect(exported).toEqual(names)
+	})
+
 	it('honors an active selection under grouping', async () => {
 		// Group-header ids never appear in the mirrored selection state, so the
 		// selection read as empty and silently fell back to the full set.

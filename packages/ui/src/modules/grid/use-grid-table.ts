@@ -41,7 +41,9 @@ import { useLocale } from '../../providers/locale'
 import { isDataColumn, sameElements } from '../../utilities'
 import type { GridSortState } from './context'
 import { compileColumnFilters } from './engine/grid-filter/filter'
+import { applyRowKeyOrder } from './engine/grid-group/row-manager'
 import type { GridGroup, GridLeaf, GroupExpansion } from './engine/grid-group/tree'
+import { getGroupKey } from './engine/grid-items/items'
 import { isManualPagination } from './engine/grid-pagination-utilities'
 import type { GridFitMode } from './engine/grid-sizing/fit-layout'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
@@ -243,9 +245,10 @@ type GridTableResult<T> = {
 	 * Reads the rows an export takes, in display order: the full filtered and
 	 * sorted set (all pages). When the selection holds a row of that set, only
 	 * the selected rows export. Both are the leaves only, so a group header never
-	 * exports (see `viewLeaves`).
+	 * exports (see `viewLeaves`). `groupOrder` is the group order of the row
+	 * manager, as the body applies it. With none, the groups keep the order of the engine.
 	 */
-	rowsForExport: () => T[]
+	rowsForExport: (groupOrder?: (string | number)[] | null) => T[]
 	/** How many selected rows the filtered set does not hold (see `hiddenSelectionCount`). */
 	hiddenSelected: number
 }
@@ -1012,7 +1015,15 @@ export function useGridTable<T>({
 	)
 
 	const rowsForExport = useCallback(
-		() => viewLeaves({ rows, getKey, groups: closed, manualGroupRow, clientView, selection }),
+		(groupOrder?: (string | number)[] | null) =>
+			viewLeaves({
+				rows,
+				getKey,
+				groups: closed && applyRowKeyOrder(closed, groupOrder ?? undefined, getGroupKey),
+				manualGroupRow,
+				clientView,
+				selection,
+			}),
 		[manualGroupRow, selection, rows, getKey, closed, clientView],
 	)
 
