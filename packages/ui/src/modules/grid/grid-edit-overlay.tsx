@@ -281,7 +281,9 @@ export function GridEditOverlay<T>({
 	const only = shown.columnId === null ? undefined : fields[0]
 
 	const title = intl.formatMessage(gridMessages.editCell, {
-		cell: only ? columnLabel(only) : name,
+		cell: only
+			? intl.formatMessage(gridMessages.cellOfRow, { column: columnLabel(only), row: name })
+			: name,
 	})
 
 	const { Title, Body, Footer } = PARTS[kind]

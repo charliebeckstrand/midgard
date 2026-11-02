@@ -103,6 +103,7 @@ type GridValues = {
 	saveCell: { cell: string }
 	discardCell: { cell: string }
 	cellInRow: { column: string; row: number }
+	cellOfRow: { column: string; row: string }
 	cellInNewRow: { column: string }
 	editCell: { cell: string }
 	yes: Record<never, never>
@@ -648,6 +649,12 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		id: 'ui.grid.cellInRow',
 		defaultMessage: '{column}, row {row, number}',
 		description: 'The name of a cell of a grid by its column and its row number.',
+	},
+	cellOfRow: {
+		id: 'ui.grid.cellOfRow',
+		defaultMessage: '{column}, {row}',
+		description:
+			'The name of a cell of a grid by its column and the name of its row, such as "Status, Wade Cooper".',
 	},
 	cellInNewRow: {
 		id: 'ui.grid.cellInNewRow',

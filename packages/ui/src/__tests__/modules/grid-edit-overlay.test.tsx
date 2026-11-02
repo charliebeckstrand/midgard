@@ -336,6 +336,14 @@ describe('Grid editing on a phone, with a save that the consumer declines', () =
 		expect(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' })).toBeEnabled()
 	})
 
+	it('names the drawer of one cell by its column and its row', async () => {
+		const { editRow1 } = renderCellGrid(() => true)
+
+		await editRow1()
+
+		expect(screen.getByRole('dialog', { name: 'Edit Name, row 1' })).toBeInTheDocument()
+	})
+
 	it('closes the overlay when a controlled cell ends the session', async () => {
 		const { user, editRow1 } = renderCellGrid(() => true)
 
