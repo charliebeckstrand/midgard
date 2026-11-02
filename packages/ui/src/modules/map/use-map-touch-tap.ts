@@ -1,6 +1,6 @@
 'use client'
 
-import { type PointerEvent, useRef } from 'react'
+import { useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { type TouchTap, useTouchTap } from '../../hooks/use-touch-tap'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
@@ -25,7 +25,8 @@ type Tap = { x: number; y: number; at: number }
  * touch pick and a click carry the same identity.
  *
  * {@link useTouchTap} finds each tap and cancels the click of a touch. A
- * press with a second finger on the plot is a pinch, and it is not a tap.
+ * press that a second finger joins is a pinch, and {@link useTouchTap} does not
+ * report it as a tap.
  *
  * Spread the handlers on the plot element. A tap off that element picks nothing.
  *
@@ -36,12 +37,6 @@ type Tap = { x: number; y: number; at: number }
  * @internal
  */
 export function useMapTouchTap(activate: (target: MapHoverTarget) => void): TouchTap {
-	// The touch pointers on the plot now.
-	const contacts = useRef(new Set<number>())
-
-	// Whether a second finger came down since the plot was last clear of touches.
-	const pinched = useRef(false)
-
 	// The element that the handlers are on, from the last press.
 	const plot = useRef<Element | null>(null)
 
@@ -54,12 +49,6 @@ export function useMapTouchTap(activate: (target: MapHoverTarget) => void): Touc
 		const prev = prevTap.current
 
 		const at = performance.now()
-
-		if (pinched.current) {
-			prevTap.current = null
-
-			return
-		}
 
 		const double =
 			prev !== null &&
@@ -86,40 +75,18 @@ export function useMapTouchTap(activate: (target: MapHoverTarget) => void): Touc
 		if (target !== null) pick(target)
 	})
 
-	function release(event: PointerEvent<Element>) {
-		contacts.current.delete(event.pointerId)
-
-		if (contacts.current.size === 0) pinched.current = false
-	}
-
 	return {
 		...touch,
 		onPointerDown: (event) => {
 			plot.current = event.currentTarget
 
-			if (event.pointerType === 'touch') {
-				// A held touch starts a text selection on iOS, so hold it off the page.
-				holdTextSelection(event)
-
-				contacts.current.add(event.pointerId)
-
-				if (contacts.current.size > 1) pinched.current = true
-			}
+			// A held touch starts a text selection on iOS, so hold it off the page.
+			if (event.pointerType === 'touch') holdTextSelection(event)
 
 			touch.onPointerDown(event)
 		},
-		onPointerUp: (event) => {
-			// The tap reports before the release, so a lift that ends a pinch is not a tap.
-			touch.onPointerUp(event)
-
-			release(event)
-		},
 		onPointerCancel: () => {
 			touch.onPointerCancel()
-
-			contacts.current.clear()
-
-			pinched.current = false
 
 			prevTap.current = null
 		},
