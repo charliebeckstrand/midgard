@@ -412,24 +412,17 @@ function useResizeView<T>(args: {
 		[resizable, leaves, widths, floors, resizing, fit, least, customized, actions],
 	)
 
-	// The widths as text, so a render that resolves the same widths keeps the
-	// same map. A column with no settle width is `null` in the text.
-	const settleKey = JSON.stringify(
-		visibleColumns.map((col) => [
-			String(col.id),
-			resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : null,
-		]),
-	)
-
+	// The settle width of each column. The store calls the listeners of a column
+	// only when its width changes.
 	const settleWidths = useMemo(
 		() =>
 			new Map(
-				(JSON.parse(settleKey) as [string, number | null][]).map(([id, width]) => [
-					id,
-					width ?? undefined,
+				visibleColumns.map((col) => [
+					String(col.id),
+					resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : undefined,
 				]),
 			),
-		[settleKey],
+		[visibleColumns, resize, resizing],
 	)
 
 	const [settle] = useState(createSettleStore)
