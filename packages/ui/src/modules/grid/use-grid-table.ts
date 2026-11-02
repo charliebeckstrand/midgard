@@ -159,7 +159,7 @@ type GridTableParams<T> = {
 	columnSizing?: GridColumnSizing
 	globalFilter?: GridSearch
 	columnFilters?: GridColumnFilters
-	/** Grid wrapper element; measured to auto-size resizable columns to fill its width. */
+	/** Grid wrapper element, which holds the rendered cells that the autosizer measures. */
 	containerRef?: RefObject<HTMLElement | null>
 	/** Table density; threaded to the autosizer, whose measurements scale with it. */
 	density?: DensityStep
@@ -895,8 +895,9 @@ export function useGridTable<T>({
 	// on each render.
 	const rowsSignature = useMemo(() => hashKeys(rowKeys), [rowKeys])
 
-	// Size resizable columns to their content and fill the container, unless widths
-	// are controlled. The hook also backs the header menu's width actions.
+	// Size resizable columns to their content: the browser lays them out, and the
+	// hook reads the widths, unless widths are controlled. The hook also backs the
+	// header menu's width actions.
 	const {
 		autoSizeColumn,
 		autoSizeAll,

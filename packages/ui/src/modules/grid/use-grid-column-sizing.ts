@@ -14,7 +14,6 @@ import type { DensityStep } from '../../core/density'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { isDataColumn } from '../../utilities'
 import { rewatchResize } from '../../utilities/rewatch-resize'
-import { DEFAULT_COLUMN_SIZE } from './engine/grid-constants'
 import { type GridFitMode, headerCells } from './engine/grid-sizing/fit-layout'
 import { isContentSized, measureColumns } from './engine/grid-sizing/measure'
 import {
@@ -54,8 +53,9 @@ type GridColumnSizingOptions<T> = {
 	/** Density of the rendered table; a change re-measures (padding and icons scale with it). */
 	density: DensityStep | undefined
 	/**
-	 * Size the columns to their own content rather than to the container. Nothing
-	 * the pass produces is then measured from the box it is about to size.
+	 * Size the columns to their own content rather than to the container: the
+	 * automatic table layout takes the `'content'` fit mode, not `'fill'` (see
+	 * `GridFitMode`).
 	 * @see {@link GridDataProps.width}
 	 */
 	fitContent: boolean
@@ -338,10 +338,9 @@ export function useGridColumnSizing<T>({
 
 		return {
 			columns,
-			getSize: (id) => table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE,
 			measure: (scan) => measureColumns({ columns, container, scan }),
 		}
-	}, [containerRef, columns, table, structSignature, sizer])
+	}, [containerRef, columns, structSignature, sizer])
 
 	// Writes what the sizer returns. The widths of the content-sized columns go to
 	// their own state. A copy of the layout writes the rest flagged, off the

@@ -87,7 +87,6 @@ function makeGrid(args: {
 
 	const env = (): ColumnSizerEnv<Row> => ({
 		columns: grid.columns,
-		getSize: (id) => grid.state[id] ?? 150,
 		measure,
 	})
 

@@ -182,8 +182,8 @@ export function groupedWindowItems<T>(
 /**
  * Pushes the leaves and the total of an expanded group, each at the next
  * position. This path and {@link pushClosingRows} walk the leaves in a loop and
- * not through {@link eachGroupRow}. A callback for each row made the item list
- * of a large grouped window about 2.7 times slower. @internal
+ * not through {@link eachGroupRow}, because a callback for each row makes the
+ * item list of a large grouped window slower. @internal
  */
 function pushOpenRows<T>(
 	items: GridGroupedWindowItem<T>[],

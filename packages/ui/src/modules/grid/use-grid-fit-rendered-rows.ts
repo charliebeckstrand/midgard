@@ -11,7 +11,7 @@ import { useLayoutEffect } from 'react'
  * are in place (see `useVirtualWindow`). A grid whose rows arrive after mount
  * therefore fits against an empty body first. The fit runs from a layout
  * effect, before the window paints, so the first frame of the rows carries
- * content widths, not the floor-only fit. A new count of rendered rows runs it
+ * the widths of their content, not the widths of the headers alone. A new count of rendered rows runs it
  * again. A window with no rows has nothing to measure, so it does not run.
  *
  * @param renderedCount - The count of rows that the window renders.
