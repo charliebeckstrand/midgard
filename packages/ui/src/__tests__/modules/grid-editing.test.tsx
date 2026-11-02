@@ -1,6 +1,7 @@
 import { createRef, type ReactNode, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
+import { Input } from '../../components/input'
 import {
 	Grid,
 	type GridCellChange,
@@ -363,6 +364,37 @@ describe('Grid per-row editing', () => {
 		expect(alert.id).toBeTruthy()
 
 		expect(input).toHaveAttribute('aria-describedby', alert.id)
+	})
+
+	it('marks a control-aware editCell slot invalid while its validate refuses', () => {
+		const view = renderGrid([
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				validate: (value) => (String(value).length > 0 ? null : 'Required'),
+				editCell: ({ value, onValueUpdate, ariaLabel }) => (
+					<Input
+						aria-label={ariaLabel}
+						value={String(value ?? '')}
+						onChange={(event) => onValueUpdate(event.target.value)}
+					/>
+				),
+			},
+		])
+
+		view.editRow1()
+
+		const input = view.getByRole('textbox', { name: /Edit Name/ })
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		fireEvent.change(input, { target: { value: '' } })
+
+		expect(view.container.querySelector('[role="alert"]')).toHaveTextContent('Required')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
 	it('links the yes/no editor to its validation error for assistive tech', () => {
@@ -5227,6 +5259,36 @@ describe('Grid new row', () => {
 			const view = renderNewRow({}, {}, cols)
 
 			view.type('name', 'Big')
+
+			view.type('count', '9')
+
+			expect(view.slotCell('count')).toHaveTextContent('Too many')
+		})
+
+		it('reads a cell with no field by its column id, as the add does', () => {
+			const tagged: GridColumn<SessionRow>[] = [
+				{
+					...(sessionColumns[1] as GridColumn<SessionRow>),
+					validate: (value, row) =>
+						(row as Record<string, unknown>).tag === 'x' && Number(value) > 5 ? 'Too many' : null,
+				},
+				{
+					id: 'tag',
+					title: 'Tag',
+					cell: () => '',
+					editCell: ({ value, onValueUpdate, ariaLabel }) => (
+						<input
+							aria-label={ariaLabel}
+							value={String(value ?? '')}
+							onChange={(event) => onValueUpdate(event.target.value)}
+						/>
+					),
+				},
+			]
+
+			const view = renderNewRow({}, {}, tagged)
+
+			view.type('tag', 'x')
 
 			view.type('count', '9')
 

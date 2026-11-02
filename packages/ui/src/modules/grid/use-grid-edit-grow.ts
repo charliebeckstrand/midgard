@@ -11,7 +11,15 @@ import {
 	size,
 } from '@floating-ui/react'
 import { useComposedRefs } from 'motion/react'
-import { type CSSProperties, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	type CSSProperties,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { useFloatingPanel } from '../../hooks/use-floating-panel'
 
 /** The widest that a grown editor gets, in rem. @internal */
@@ -116,7 +124,8 @@ function measureGrow(slot: HTMLElement, cell: HTMLElement): number | null {
  * How the focused editor in `slot` grows past `cell` (see {@link measureGrow}).
  * It is `null` while the editor fits, while no field in the slot that can
  * grow has focus, or while either element is `null`. It follows each
- * keystroke, so the editor grows as the user types.
+ * keystroke, so the editor grows as the user types, and each value that a
+ * render writes, such as the revert of Escape.
  *
  * @internal
  */
@@ -127,18 +136,46 @@ function useGrow(slot: HTMLElement | null, cell: HTMLElement | null): number | n
 	// growth as it is sets nothing, so the host does not render again.
 	const growRef = useRef<number | null>(null)
 
-	useEffect(() => {
+	const set = useCallback((next: number | null) => {
+		if (next === growRef.current) return
+
+		growRef.current = next
+
+		setGrow(next)
+	}, [])
+
+	// The field and the value of the last measure.
+	const measuredRef = useRef<{ field: Element | null; value: string | undefined } | null>(null)
+
+	const measure = useCallback(() => {
 		if (!slot || !cell) return
 
-		const set = (next: number | null) => {
-			if (next === growRef.current) return
+		const field = growingField(slot)
 
-			growRef.current = next
+		measuredRef.current = { field, value: field?.value }
 
-			setGrow(next)
-		}
+		set(measureGrow(slot, cell))
+	}, [slot, cell, set])
 
-		const measure = () => set(measureGrow(slot, cell))
+	// A value that React writes, such as the revert of Escape, fires no `input`
+	// event, so a render of the host that changed the value measures again. A
+	// render that left the value as it is measures nothing. The growth itself
+	// renders the host, and a field that does not widen with the slot then
+	// measures a new growth on each render.
+	useLayoutEffect(() => {
+		if (!slot || !cell) return
+
+		const field = growingField(slot)
+
+		const last = measuredRef.current
+
+		if (last && last.field === field && last.value === field?.value) return
+
+		measure()
+	})
+
+	useEffect(() => {
+		if (!slot || !cell) return
 
 		// A focus move out of the slot ends the growth. A move to another control
 		// in the slot measures again on its `focusin`.
@@ -165,7 +202,7 @@ function useGrow(slot: HTMLElement | null, cell: HTMLElement | null): number | n
 
 			slot.removeEventListener('focusout', leave)
 		}
-	}, [slot, cell])
+	}, [slot, cell, set, measure])
 
 	return grow
 }

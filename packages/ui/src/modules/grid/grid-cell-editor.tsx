@@ -472,7 +472,8 @@ export function GridCellEditor<T>({
 	const error = invalid ?? refused ?? null
 
 	// Links the editor to its message (aria-describedby) so the error reaches AT,
-	// not just sighted users (WCAG 1.3.1 / 3.3.1).
+	// not just sighted users (WCAG 1.3.1 / 3.3.1). An `editCell` slot gets no
+	// id, but the host Control marks a control-aware slot invalid.
 	const errorId = useId()
 
 	const body = column.editCell ? (
@@ -666,7 +667,9 @@ function GridEditHost({
 				style={growStyle}
 				className={cn(k.edit.slot, grown && k.edit.grown)}
 			>
-				<Control variant="bare">{children}</Control>
+				<Control variant="bare" severity={error === null ? undefined : 'error'}>
+					{children}
+				</Control>
 			</span>
 
 			{(settle !== 'none' || message) && (

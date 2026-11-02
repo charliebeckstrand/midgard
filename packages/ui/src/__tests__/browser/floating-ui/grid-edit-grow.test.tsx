@@ -168,6 +168,30 @@ describe('grid editor grow (real floating engine)', () => {
 		)
 	})
 
+	it('goes back into the cell as Escape reverts a long value', async () => {
+		const { container } = renderGrid({ editable: { rows: new Set([1]), onCommit: () => {} } })
+
+		const email = gridCell(container, 'email')
+
+		const input = present<HTMLInputElement>(email.querySelector('input'), 'the email editor')
+
+		await userEvent.click(input)
+
+		await userEvent.keyboard(`{End}${LONG}`)
+
+		const slot = getSlot(email)
+
+		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(input.value).toBe('p1@ex.co'))
+
+		expect(document.activeElement).toBe(input)
+
+		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(false))
+	})
+
 	it('moves toward the start at the end edge of the scroll area', async () => {
 		const { container } = renderGrid({}, { width: 600 })
 

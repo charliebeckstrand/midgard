@@ -179,6 +179,7 @@
 	"ui.grid.blocked": "{step, select, undo {No se puede deshacer mientras una celda tiene una edición} other {No se puede rehacer mientras una celda tiene una edición}}",
 	"ui.grid.cellInNewRow": "{column}, fila nueva",
 	"ui.grid.cellInRow": "{column}, fila {row, number}",
+	"ui.grid.cellOfRow": "{column}, {row}",
 	"ui.grid.cellMenu": "Menú de la celda",
 	"ui.grid.cellOutcome": "{column}: {outcome, select, updated {actualizado} undone {deshecho} redone {rehecho} pasted {pegado} filled {rellenado} other {sin guardar}}",
 	"ui.grid.cellsOutcome": "{count, plural, one {# celda {outcome, select, updated {actualizada} undone {deshecha} redone {rehecha} pasted {pegada} filled {rellenada} other {sin guardar}}} other {# celdas {outcome, select, updated {actualizadas} undone {deshechas} redone {rehechas} pasted {pegadas} filled {rellenadas} other {sin guardar}}}}",

@@ -235,8 +235,11 @@ export function GridEditOverlay<T>({
 
 		// A column that refuses a value blocks the save. The drafts are read
 		// now, because a field stages its value without a render of the overlay.
+		// A cleared field stages `undefined` or `null`, which is the value to check.
 		const blocked = fields.some((column) => {
-			const value = readDraft(rowKey, column.id)?.value ?? fieldValue(row, column)
+			const draft = readDraft(rowKey, column.id)
+
+			const value = draft === undefined ? fieldValue(row, column) : draft.value
 
 			return column.validate?.(value, row) != null
 		})
@@ -278,7 +281,9 @@ export function GridEditOverlay<T>({
 	const only = shown.columnId === null ? undefined : fields[0]
 
 	const title = intl.formatMessage(gridMessages.editCell, {
-		cell: only ? columnLabel(only) : name,
+		cell: only
+			? intl.formatMessage(gridMessages.cellOfRow, { column: columnLabel(only), row: name })
+			: name,
 	})
 
 	const { Title, Body, Footer } = PARTS[kind]
