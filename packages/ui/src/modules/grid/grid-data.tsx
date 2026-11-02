@@ -768,6 +768,7 @@ export function GridData<T>({
 							loading={loading}
 							rowCount={dataRowCount}
 							pageScoped={footerScope === 'page'}
+							errorShown={showingError}
 							failed={hasErrorSlot(infiniteScroll?.error)}
 						/>
 
