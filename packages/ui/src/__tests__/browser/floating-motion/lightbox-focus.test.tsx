@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 import { present, renderUI, screen, waitFor } from '../../helpers'
 import { fieldPhotos, Gallery, liveCount, viewerTweens } from '../helpers/lightbox'
@@ -8,9 +8,10 @@ import { pause } from '../helpers/wall-clock'
 /**
  * When the viewer closes, the photo lands in the thumbnail of the photo on the
  * stage, and the focus goes to that thumbnail, not to the thumbnail that
- * opened the viewer. The focus moves when the photo lands. The focus manager
- * of the overlay then unmounts, and it does not move the focus back to the
- * thumbnail that opened the viewer.
+ * opened the viewer. The focus manager of the overlay moves the focus when the
+ * overlay unmounts. Until then, the overlay hides the page with `aria-hidden`,
+ * and a focus in a hidden subtree makes Chromium report an error, so the focus
+ * must not go to the thumbnail before the page is visible again.
  *
  * A mouse press on the stage, such as a drag of the photo, keeps the focus in
  * the viewer, so the arrow keys still step after it.
@@ -34,6 +35,19 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 		'moves the focus to the thumbnail that the photo lands in, after $name',
 		async ({ reduced }) => {
 			renderUI(<Gallery photos={photos} reduced={reduced} />)
+
+			// Each element that takes the focus in a subtree that the overlay hides.
+			const hidden: Element[] = []
+
+			const onFocusIn = (event: FocusEvent) => {
+				const target = event.target as Element
+
+				if (target.closest('[aria-hidden="true"], [inert]')) hidden.push(target)
+			}
+
+			document.addEventListener('focusin', onFocusIn)
+
+			onTestFinished(() => document.removeEventListener('focusin', onFocusIn))
 
 			await userEvent.click(thumbnail(0))
 
@@ -59,6 +73,8 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 			await expect.poll(viewer).toBeNull()
 
 			expect(document.activeElement).toBe(thumbnail(2))
+
+			expect(hidden).toEqual([])
 		},
 	)
 
