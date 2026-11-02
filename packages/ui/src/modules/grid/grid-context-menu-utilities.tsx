@@ -223,20 +223,14 @@ export type GridGroupByMenu = {
 /**
  * The table-wide column manager as a menu row, or nothing when no manager is
  * reachable: the same withhold-when-empty shape the column's own concerns take.
+ * The row takes the label of the manager, as the toolbar and the band menu do.
  *
  * @internal
  */
-function manageColumnsItems(intl: IntlShape, chooseColumns: (() => void) | null): GridMenuItem[] {
+function manageColumnsItems(label: ReactNode, chooseColumns: (() => void) | null): GridMenuItem[] {
 	if (!chooseColumns) return []
 
-	return [
-		{
-			key: 'choose-columns',
-			label: intl.formatMessage(gridMessages.manageColumns),
-			icon: <Columns3 />,
-			onAction: chooseColumns,
-		},
-	]
+	return [{ key: 'choose-columns', label, icon: <Columns3 />, onAction: chooseColumns }]
 }
 
 /**
@@ -273,6 +267,8 @@ type ColumnMenuDefaultArgs<T> = {
 	/** Gives the widths back to the automatic fit, or `null` when the grid is not resizable. */
 	resetColumnWidths: (() => void) | null
 	chooseColumns: (() => void) | null
+	/** The label of the "Manage columns" item: the `label` of the column manager, else the message. */
+	manageLabel: ReactNode
 	exportActions: GridExportAction[]
 	/** The column's filter affordance, or `null` when the grid has no column filters. */
 	filter: ColumnMenuFilter | null
@@ -418,6 +414,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 		autoSizeColumn,
 		resetColumnWidths,
 		chooseColumns,
+		manageLabel,
 		exportActions,
 		filter,
 		rtl,
@@ -429,7 +426,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 	// those: under the `'menu'` affordance it is the only route to the column's
 	// filter, the header having no funnel to click.
 	return [
-		...manageColumnsItems(intl, chooseColumns),
+		...manageColumnsItems(manageLabel, chooseColumns),
 		...filterMenuItems(intl, column, filter),
 		...submenuItems({
 			key: 'sort',

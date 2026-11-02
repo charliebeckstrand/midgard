@@ -85,6 +85,8 @@ export type GridContextMenuProps<T> = {
 	resetColumnWidths: (() => void) | null
 	/** Opens the column-manager dialog ("Manage columns"), or `null` when none is reachable. */
 	chooseColumns: (() => void) | null
+	/** The label of the "Manage columns" item: the `label` of the column manager, else the message. */
+	manageLabel: ReactNode
 	/** One action per configured export type; empty when export is off. Shared by the column menu, the cell menu, and the toolbar dropdown. */
 	exportActions: GridExportAction[]
 	/** The fill of the cell range, for the cell menu's Fill items, or `undefined` while the grid cannot fill. */
@@ -135,6 +137,7 @@ export function GridContextMenu<T>({
 	autoSizeColumn,
 	resetColumnWidths,
 	chooseColumns,
+	manageLabel,
 	exportActions,
 	fill,
 	rowGroupMenu,
@@ -210,6 +213,7 @@ export function GridContextMenu<T>({
 				autoSizeColumn,
 				resetColumnWidths,
 				chooseColumns,
+				manageLabel,
 				exportActions,
 				filter,
 				rtl,
@@ -254,6 +258,7 @@ export function GridContextMenu<T>({
 			autoSizeColumn,
 			resetColumnWidths,
 			chooseColumns,
+			manageLabel,
 			exportActions,
 			columnFilter,
 			intl,
