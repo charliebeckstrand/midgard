@@ -144,16 +144,38 @@ function useGrow(slot: HTMLElement | null, cell: HTMLElement | null): number | n
 		setGrow(next)
 	}, [])
 
+	// The field and the value of the last measure.
+	const measuredRef = useRef<{ field: Element | null; value: string | undefined } | null>(null)
+
+	const measure = useCallback(() => {
+		if (!slot || !cell) return
+
+		const field = growingField(slot)
+
+		measuredRef.current = { field, value: field?.value }
+
+		set(measureGrow(slot, cell))
+	}, [slot, cell, set])
+
 	// A value that React writes, such as the revert of Escape, fires no `input`
-	// event, so each render of the host measures again.
+	// event, so a render of the host that changed the value measures again. A
+	// render that left the value as it is measures nothing. The growth itself
+	// renders the host, and a field that does not widen with the slot then
+	// measures a new growth on each render.
 	useLayoutEffect(() => {
-		if (slot && cell) set(measureGrow(slot, cell))
+		if (!slot || !cell) return
+
+		const field = growingField(slot)
+
+		const last = measuredRef.current
+
+		if (last && last.field === field && last.value === field?.value) return
+
+		measure()
 	})
 
 	useEffect(() => {
 		if (!slot || !cell) return
-
-		const measure = () => set(measureGrow(slot, cell))
 
 		// A focus move out of the slot ends the growth. A move to another control
 		// in the slot measures again on its `focusin`.
@@ -180,7 +202,7 @@ function useGrow(slot: HTMLElement | null, cell: HTMLElement | null): number | n
 
 			slot.removeEventListener('focusout', leave)
 		}
-	}, [slot, cell, set])
+	}, [slot, cell, set, measure])
 
 	return grow
 }
