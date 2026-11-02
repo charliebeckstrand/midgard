@@ -11,7 +11,15 @@ import {
 	size,
 } from '@floating-ui/react'
 import { useComposedRefs } from 'motion/react'
-import { type CSSProperties, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	type CSSProperties,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { useFloatingPanel } from '../../hooks/use-floating-panel'
 
 /** The widest that a grown editor gets, in rem. @internal */
@@ -116,7 +124,8 @@ function measureGrow(slot: HTMLElement, cell: HTMLElement): number | null {
  * How the focused editor in `slot` grows past `cell` (see {@link measureGrow}).
  * It is `null` while the editor fits, while no field in the slot that can
  * grow has focus, or while either element is `null`. It follows each
- * keystroke, so the editor grows as the user types.
+ * keystroke, so the editor grows as the user types, and each value that a
+ * render writes, such as the revert of Escape.
  *
  * @internal
  */
@@ -127,16 +136,22 @@ function useGrow(slot: HTMLElement | null, cell: HTMLElement | null): number | n
 	// growth as it is sets nothing, so the host does not render again.
 	const growRef = useRef<number | null>(null)
 
+	const set = useCallback((next: number | null) => {
+		if (next === growRef.current) return
+
+		growRef.current = next
+
+		setGrow(next)
+	}, [])
+
+	// A value that React writes, such as the revert of Escape, fires no `input`
+	// event, so each render of the host measures again.
+	useLayoutEffect(() => {
+		if (slot && cell) set(measureGrow(slot, cell))
+	})
+
 	useEffect(() => {
 		if (!slot || !cell) return
-
-		const set = (next: number | null) => {
-			if (next === growRef.current) return
-
-			growRef.current = next
-
-			setGrow(next)
-		}
 
 		const measure = () => set(measureGrow(slot, cell))
 
@@ -165,7 +180,7 @@ function useGrow(slot: HTMLElement | null, cell: HTMLElement | null): number | n
 
 			slot.removeEventListener('focusout', leave)
 		}
-	}, [slot, cell])
+	}, [slot, cell, set])
 
 	return grow
 }
