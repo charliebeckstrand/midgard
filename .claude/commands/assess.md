@@ -12,8 +12,9 @@ Read one area of the code and propose a few small fixes, each with its proof. Th
 | Term | Meaning |
 | --- | --- |
 | Area | The files that the reader names in `$ARGUMENTS`. |
-| Unit | One component, module, or hook, with all of its source files. |
-| Source file | A file in the area that is not a test, a benchmark, or a fixture. |
+| Unit | One component, module, or hook, as [`bug-audit.md`](bug-audit.md) §1 defines it: its folder, its recipe files, and its docs page folder. |
+| Source file | A file in the area that is not a test, a benchmark, or a fixture. The files of a docs page folder are source files. |
+| Reach | Where a defect runs. `shipped`: a consumer root of [`bug-audit.md`](bug-audit.md) §3.4 other than the tests runs the trigger. `test-only`: only a test runs it. `none`: nothing runs it. For another package, the consumer roots are the apps and the packages that import it. |
 | Pass | One read of 20 source files or fewer. A small area is one pass, and §2 cuts a large area into passes. |
 | Focus | An optional limit on the defects that the command looks for, such as `keyboard`, `edge cases`, or `naming`. |
 | Proposal | A defect that meets each condition of §4.1. |
@@ -27,7 +28,7 @@ Read one area of the code and propose a few small fixes, each with its proof. Th
 
 2.2 Find the path of a unit name with a search. When no path matches the area, ask the reader one question. Do not ask a question for another reason.
 
-2.3 List the source files of the area, with their line counts (`wc -l`).
+2.3 List the source files of the area, with their line counts (`wc -l`). When the area is a unit or the folder of one unit, list the whole unit (§1).
 
 2.4 When the area holds 20 source files or fewer, it is one pass. Do the pass yourself with §3 to §5, and start no agent.
 
@@ -47,15 +48,17 @@ Read one area of the code and propose a few small fixes, each with its proof. Th
 
 3.1 Read each source file of the pass, with its TSDoc.
 
-3.2 Read the tests of each source file. Find them with a search for the file name or the unit name in the test tree of the package, such as `packages/ui/src/__tests__`.
+3.2 Find the tests of each source file with a search for the file name or the unit name in the test tree of the package, such as `packages/ui/src/__tests__`. Read the test names of each test file. Read in full only the test blocks that cover a defect that you judge.
 
-3.3 For a unit of `packages/ui`, read its docs page under `packages/ui/src/docs/pages`. The page shows the unit as a consumer uses it, and a defect in the page is a defect in the area.
+3.3 Read the docs page folder of a unit as its source files. The page shows the unit as a consumer uses it, and a defect in the page is a defect in the area.
 
 3.4 The reader can name items that they declined before. Do not propose a declined item again, and do not list it as a suspect.
 
 3.5 Read a file outside the pass only to confirm one fact, such as the type of a prop or the result of a shared hook.
 
 3.6 Do not read an audit record, a plan, or an earlier report of this command. They hold earlier judgments, not facts about the code.
+
+3.7 Project memory can put an earlier finding into your context without a request. Do not use a recalled finding as proof. Prove each proposal from the code at the current commit.
 
 ## 4. Judge
 
@@ -66,7 +69,7 @@ Read one area of the code and propose a few small fixes, each with its proof. Th
 - A small change inside the area repairs it. A refactor or a new abstraction is not a small change.
 - The defect is inside the focus, when the reader gives a focus.
 
-4.2 A preference with no written rule is not a proposal and not a suspect. Drop it.
+4.2 A preference with no written rule is not a proposal and not a suspect. Drop it. The polish list of [`bug-verifier.md`](../agents/bug-verifier.md) §6.3 is a written rule, and dead surface is on it.
 
 4.3 Give each proposal the first kind in this table that applies to it:
 
@@ -74,17 +77,21 @@ Read one area of the code and propose a few small fixes, each with its proof. Th
 | --- | --- |
 | `bug` | A user meets a wrong result: on the screen, with a keyboard or a pointer, through assistive technology, or in the data. |
 | `correctness` | The code breaks a written contract, but no user meets a wrong result. |
-| `polish` | The code strays from the scale, from a section of `CONVENTIONS.md`, or from a rule of `STE.md`. |
+| `polish` | The code strays from the scale, from a section of `CONVENTIONS.md`, from a rule of `STE.md`, or from the polish list of `bug-verifier.md` §6.3. |
 
-4.4 Give each proposal its proof: `read` when the code alone proves it, `test` when a test that you ran shows it, or `browser` when you saw it in a browser.
+4.4 A defect with reach `test-only` or `none` is `correctness` at most; `bug` needs reach `shipped`. Find the reach with one search of the consumer roots for each defect.
 
-4.5 You can run a scoped test or a browser check to prove a `bug`. Remove each scratch file before you report.
+4.5 Give each proposal its proof: `read` when the code alone proves it, `test` when a test that you ran shows it, or `browser` when you saw it in a browser.
 
-4.6 Rank the proposals. Put each `bug` first, then each `correctness`, then each `polish`. In one kind, put first the defect that more users meet.
+4.6 You can run a scoped test or a browser check to prove a `bug`. Remove each scratch file before you report.
 
-4.7 Propose five defects or fewer for each pass. When more than five meet §4.1, propose the five that rank highest, and list each other one under "Also proved".
+4.7 For a browser check of a `packages/ui` unit, run `pnpm dev` in `packages/ui`. The docs app serves at `http://localhost:3456`. A component page has the path `/{folder}`, such as `/accordion`, and another page has its folder path, such as `/modules/grid`.
 
-4.8 When no defect meets §4.1, say so. Never invent a proposal to fill the list.
+4.8 Rank the proposals. Put each `bug` first, then each `correctness`, then each `polish`. In one kind, order by reach (`shipped`, then `test-only`, then `none`), and then put first the defect that more users meet.
+
+4.9 Propose five defects or fewer for each pass. When more than five meet §4.1, propose the five that rank highest, and list each other one under "Also proved".
+
+4.10 When no defect meets §4.1, say so. Never invent a proposal to fill the list.
 
 ## 5. Report
 
@@ -99,6 +106,7 @@ Code: `{path}:{line}` `{text of the line}`
 Rule: {source of the rule}: "{text of the rule}"
 Effect: {the wrong result that the user meets, or the contract and what the code does}
 Fix: {the smallest change}
+Reach: {shipped, test-only, or none}
 Proof: {read, test, or browser}
 ```
 
