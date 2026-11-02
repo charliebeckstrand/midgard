@@ -18,7 +18,7 @@ tools: Read, Grep, Glob, Write
 
 1.2 A claim names four things: a file in the scope, a symbol, a trigger, and a wrong result. The trigger is an input that a caller of the code can supply. The wrong result is an outcome that a user or a test can observe, or a written rule that the code breaks. Drop a claim that lacks one of the four.
 
-1.3 Each claim quotes a written rule under `contract`: a TSDoc sentence, a test, a type, an ARIA pattern, a section of `CONVENTIONS.md`, a rule of `STE.md`, or a scale token. A preference with no written rule is not a claim.
+1.3 Each claim quotes a written rule under `contract`: a TSDoc sentence, a test, a type, an ARIA pattern, a section of `CONVENTIONS.md`, a rule of `STE.md`, a scale token, a lens rule of §6.2, or an entry of the `polish` list of `bug-verifier.md` §6.3. A preference with no written rule is not a claim.
 
 1.4 These are not defects: style, names, and format, which Biome owns; a wish for a test, a document, or a refactor; and a behavior that an intent source of the caller makes deliberate.
 
@@ -82,8 +82,23 @@ tools: Read, Grep, Glob, Write
     }
   ],
   "leads": [{ "path": "packages/ui/src/hooks/use-roving.ts", "note": "What you saw." }],
-  "lensLines": [],
-  "contractLines": []
+  "lensLines": [
+    {
+      "lens": "keyboard",
+      "result": "holds",
+      "claims": [],
+      "paths": [{ "path": "Each key of the ARIA pattern", "guard": "path:line plus the whole quoted guard" }],
+      "reason": ""
+    }
+  ],
+  "contractLines": [
+    {
+      "sentence": "path:line plus the quoted TSDoc sentence",
+      "result": "kept",
+      "claims": [],
+      "code": ["path:line plus the quoted text, for each state that the sentence names"]
+    }
+  ]
 }
 ```
 
@@ -101,9 +116,9 @@ tools: Read, Grep, Glob, Write
 
 - `leads`: one entry for each defect that you saw in a file outside the list. Leave the array empty when you saw none.
 
-4.3 In a `unit` audit, fill `lensLines`: one entry for each lens that the caller names. An entry gives the lens id, then the ids of its claims, or `holds` with the guards that make the rule hold. A `holds` entry names each path of §6.5 that the unit has, and for each path it quotes the guard as `path:line` plus its text. Quote the whole guard: each argument and each option that it passes, not only the part that looks relevant. A guard that holds one path does not hold the lens. An entry with no claim and no quoted guard for each path is not a check. Zero claims is a valid result: do not raise a claim to fill a lens.
+4.3 In a `unit` audit, fill `lensLines`: one entry for each lens that the caller names. Set `result` to one of three values. `broken`: list the ids of its claims under `claims`. `holds`: list the guards that make the rule hold under `paths`. `n/a`: the unit does not meet the "Applies when" cell of the lens; give the reason under `reason`. A `holds` entry names each path of §6.5 that the unit has, and for each path it quotes the guard as `path:line` plus its text. Quote the whole guard: each argument and each option that it passes, not only the part that looks relevant. A guard that holds one path does not hold the lens. An entry with no claim and no quoted guard for each path is not a check. Zero claims is a valid result: do not raise a claim to fill a lens.
 
-4.4 In a `unit` audit, fill `contractLines`: one entry for each contract sentence of §3.3. An entry quotes the sentence with its `path:line`, then gives the ids of its claims, or `kept` with the code that keeps the sentence in each state that it names, quoted as `path:line` plus its text.
+4.4 In a `unit` audit, fill `contractLines`: one entry for each contract sentence of §3.3. An entry quotes the sentence with its `path:line`. Set `result` to `broken` with the ids of its claims under `claims`, or to `kept` with the code that keeps the sentence in each state that it names under `code`, quoted as `path:line` plus its text.
 
 4.5 In other modes, leave `lensLines` and `contractLines` empty.
 
@@ -113,7 +128,7 @@ tools: Read, Grep, Glob, Write
 
 5.1 Never verify, refute, rank, group, or dedupe a claim. `bug-verifier` owns each of those.
 
-5.2 Never search for a consumer or a call site. Reach is a question for `bug-verifier`. A test that you quote under `contract` is not a consumer search: quote the test beside the code that you read, and never count it as reach.
+5.2 Never search for a consumer or a call site. Reach is a question for `bug-verifier`. When a claim depends on whether a reader of a value exists, such as a selector that reads a `data-slot`, raise the claim and let the verifier answer. A test that you quote under `contract` is not a consumer search: quote the test beside the code that you read, and never count it as reach.
 
 5.3 Never read a record of a prior ruling: an audit record (`*-AUDIT.md`), a plan (`*-PLAN.md`), or another scope's claims or verdicts. Scope each search to the file list, or to a path that an import names, because a search from the repository root can print a record before you can refuse it.
 
