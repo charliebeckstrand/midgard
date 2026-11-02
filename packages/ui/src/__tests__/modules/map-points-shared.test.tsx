@@ -166,18 +166,25 @@ describe('two point sets on one place', () => {
 		expect(allBySlot(container, 'map-points')[1]?.getAttribute('class')).toContain('opacity-25')
 	})
 
-	it('halo the shared summary for a pick of the set that does not draw it', () => {
-		const { container } = renderUI(
-			overlayPlat(bothSets(), { selectedOverlay: { id: 'depots', index: 0 } }),
-		)
+	it.each([
+		['the set that draws it', 'stops'],
+		['the set that does not draw it', 'depots'],
+	])('halo the shared summary behind it for a pick of %s', (_, id) => {
+		const { container } = renderUI(overlayPlat(bothSets(), { selectedOverlay: { id, index: 0 } }))
 
-		const halo = allBySlot(container, 'map-points-selected')
+		expect(allBySlot(container, 'map-points-selected')).toHaveLength(1)
 
-		expect(halo).toHaveLength(1)
+		const halo = getSlot(container, 'map-points-selected')
 
 		// The halo takes the shape of the summary, a circle, and not the square of
 		// the depots.
-		expect(halo[0]?.getAttribute('stroke-linecap')).toBe('round')
+		expect(halo.getAttribute('stroke-linecap')).toBe('round')
+
+		// The halo draws behind the summary, so the disc, the ring, and the count
+		// read through it.
+		const order = halo.compareDocumentPosition(getSlot(container, 'map-points-shared'))
+
+		expect(order & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 	})
 })
 

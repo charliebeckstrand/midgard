@@ -27,8 +27,10 @@ export function ownStop(index: number): number | null {
 }
 
 /**
- * Which of a mark's drawn stops a pick names, `null` where the pick names
- * another mark or a stop this one does not draw.
+ * Which of a mark's drawn stops a pick names. `null` where the pick names
+ * another mark, or an index the mark has no stop for. A stop of a shared summary
+ * that another set draws still counts, because the pick names the part of this
+ * set that the summary holds.
  *
  * The caller's index is optional and reads as the mark's first stop, which is
  * the whole of a singular mark. That default lives here rather than at either

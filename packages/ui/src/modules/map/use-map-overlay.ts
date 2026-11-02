@@ -252,9 +252,12 @@ export type MapOverlay = {
 	/** The dim class for the mark's group, under the shared emphasis. */
 	dim: string
 	/**
-	 * Which of the mark's drawn stops the plat holds selected, `null` when the
-	 * pick names another mark, or a stop this one does not draw. A singular mark
-	 * reads it as a flag; a plural one haloes the dot it names.
+	 * Which of the mark's drawn stops the plat holds selected. `null` where the
+	 * pick names another mark, or an index the mark has no stop for. A stop of a
+	 * shared summary that another set draws still counts, because the pick names
+	 * the part of this set that the summary holds. A singular mark reads it as a
+	 * flag; a plural one haloes the dot it names, and the set that draws a shared
+	 * summary haloes the summary.
 	 */
 	selected: number | null
 	/** Clears the hover as the pointer leaves the mark's group. */
@@ -351,8 +354,9 @@ export function useMapOverlay({
 	// only the first overlay with something better than its own id to pass.
 	//
 	// The toggle resolves plat-side instead, where the same expansion serves the
-	// four readers that index `hidden` by mark id and hold no group of their own
-	// (the keyboard stops, the dot pool, the zone budgets, the tooltip). The mark
+	// readers that index `hidden` by mark id and hold no group of their own (the
+	// keyboard stops, the dot pool, the cluster pass, the zone budgets, the
+	// tooltip). The mark
 	// could ask `hidden.has(groupId)` here and be symmetric; it would save none of
 	// them the expansion, so the mark reads the expanded set like every other.
 	const groupId = group === undefined ? id : groupLegendId(group)
