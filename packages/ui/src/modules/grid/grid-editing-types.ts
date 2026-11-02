@@ -190,8 +190,9 @@ export type GridNewRowAdd = {
  */
 export type GridNewRowAddContext = {
 	/**
-	 * Adds the row, as Enter in the row does. An add with no value does
-	 * nothing, and a second add waits while one is in flight.
+	 * Adds the row, as Enter in the row does. An add with no value adds
+	 * nothing, but the checks of {@link GridEditableConfig.onRowAdd} still
+	 * run. A second add waits while one is in flight.
 	 */
 	add: () => void
 	/**
@@ -601,14 +602,15 @@ export type GridEditableConfig = {
 	 * the user made. Add the record to
 	 * your data, and feed it back through the grid's `rows`.
 	 *
-	 * Each {@link GridColumn.validate} checks its cell before the add starts. It
-	 * checks a cell with a value, and a cell of a {@link GridColumn.required}
-	 * column with no value. It reads the value and `values` as the row. A
-	 * refusal blocks the add, so `onRowAdd` does not fire and the row does not
-	 * go pending. The error shows on the cell, and focus goes to the first
-	 * refused cell in display order, with no scroll. A synchronous return
-	 * accepts the add. The row then clears, and focus goes to its first
-	 * editable cell.
+	 * Each {@link GridColumn.validate} checks its cell before the add starts,
+	 * also in a row with no value. It checks a cell with a value, and a cell of
+	 * a {@link GridColumn.required} column with no value. It reads the value
+	 * and `values` as the row. A refusal blocks the add, so `onRowAdd` does
+	 * not fire and the row does not go pending. The error shows on the cell,
+	 * and focus goes to the first refused cell in display order. The page does
+	 * not scroll, and the grid scrolls on its own to show the cell. A
+	 * synchronous return accepts the add. The row then clears, and focus goes
+	 * to its first editable cell.
 	 *
 	 * Return a promise to add asynchronously. The row is then pending until the
 	 * promise settles, and a second add waits for it.

@@ -273,8 +273,9 @@ export function useGridNewRow<T>({
 		[drafts, editableColumn, accept, tableRef, dataColumnsRef, intl],
 	)
 
-	// Adds the row. An add with no value does nothing. The checks run before
-	// the add starts, so a row that `validate` refuses never goes pending. A
+	// Adds the row. The checks run before the add starts, so a row that
+	// `validate` refuses never goes pending. A row with no value that passes
+	// the checks adds nothing. A
 	// refusal blocks the add: the editors mount again with the errors, also an
 	// error that reads another cell, or that a required cell with no value
 	// carries. Focus goes to the first refused cell, with no scroll. A second
@@ -289,8 +290,8 @@ export function useGridNewRow<T>({
 
 		const { values, cells } = collectNewRow(row, columns)
 
-		if (cells.length === 0) return
-
+		// The checks run on an empty row too, so a required cell shows why the
+		// row adds nothing.
 		const refused = refuseNewRow(row, columns, values)
 
 		if (refused.size > 0) {
@@ -304,6 +305,8 @@ export function useGridNewRow<T>({
 
 			return
 		}
+
+		if (cells.length === 0) return
 
 		const result = config?.onRowAdd?.(values)
 

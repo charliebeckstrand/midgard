@@ -38,6 +38,7 @@ import {
 } from './engine/grid-editing-utilities'
 import { gridMessages } from './engine/grid-messages'
 import { spokenRowNumber } from './engine/grid-row/shell'
+import { clearStickyChrome, obscuringInsets } from './engine/grid-sticky-insets'
 import { GridEditInputs } from './grid-edit-inputs'
 import type { GridColumn } from './types'
 import { useGridEditGrow } from './use-grid-edit-grow'
@@ -407,8 +408,20 @@ export function GridCellEditor<T>({
 
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
-		// The new-row slot stays in view, so a claim there does not scroll the page.
-		editor?.focus(newRow ? { preventScroll: true } : undefined)
+		if (!newRow) {
+			editor?.focus()
+
+			return
+		}
+
+		// The new-row slot stays in view, so a claim there does not scroll the
+		// page. The grid scrolls on its own to show the cell, clear of the
+		// sticky Add cell and of a pinned column, as the cursor does.
+		editor?.focus({ preventScroll: true })
+
+		const cell = hostRef.current?.closest('td')
+
+		if (cell) clearStickyChrome(cell, obscuringInsets(cell))
 	})
 
 	const cancel = () => {

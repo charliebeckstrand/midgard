@@ -5163,6 +5163,20 @@ describe('Grid new row', () => {
 			expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol', count: 3 })
 		})
 
+		it('checks an empty row, and focuses the empty required cell', async () => {
+			const view = renderNewRow({}, {}, cols)
+
+			fireEvent.click(view.getByRole('button', { name: 'Add row' }))
+
+			expect(view.onRowAdd).not.toHaveBeenCalled()
+
+			expect(view.slotCell('name')).toHaveTextContent('Enter a name')
+
+			expect(view.slotEditor('name')).toHaveFocus()
+
+			await expectAnnouncement('Row not added, 1 cell refused')
+		})
+
 		it('focuses the first refused cell in display order', () => {
 			const view = renderNewRow({}, {}, cols)
 

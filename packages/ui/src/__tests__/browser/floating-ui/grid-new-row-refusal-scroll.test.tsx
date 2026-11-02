@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridCellRefusal, type GridColumn } from '../../../modules/grid'
-import { deferred, frames, renderUI, screen, waitFor } from '../../helpers'
+import { deferred, frames, present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * A refusal in the new-row slot keeps the page where it is, on the real
@@ -44,14 +44,21 @@ describe('grid new row refusal scroll (real browser)', () => {
 	/**
 	 * Renders the grid below a tall space, and scrolls the page to the grid.
 	 *
+	 * @param onRowAdd - The sink of the new row.
+	 * @param width - The width of the box that holds the grid.
+	 * @param gridColumns - The columns of the grid.
 	 * @returns The page scroll after the scroll to the grid.
 	 */
-	async function renderGrid(onRowAdd: (values: Record<string, unknown>) => unknown) {
+	async function renderGrid(
+		onRowAdd: (values: Record<string, unknown>) => unknown,
+		width = 600,
+		gridColumns = columns,
+	) {
 		renderUI(
-			<div style={{ width: 600, marginInline: 'auto' }}>
+			<div style={{ width, marginInline: 'auto' }}>
 				<div style={{ height: SPACE }} />
 				<Grid
-					columns={columns}
+					columns={gridColumns}
 					rows={rows}
 					getKey={(row) => row.id}
 					editable={{
@@ -93,6 +100,59 @@ describe('grid new row refusal scroll (real browser)', () => {
 		expect(name).toHaveFocus()
 
 		expect(screen.getByRole('alert')).toHaveTextContent('Enter a name')
+
+		expect(window.scrollY).toBe(top)
+	})
+
+	it.each([
+		['an empty row', ''],
+		['a row with a value', 'carol@example.com'],
+	])('checks %s, and scrolls the grid, not the page, to the refused cell', async (_, email) => {
+		const onRowAdd = vi.fn()
+
+		// The two wide columns do not fit the box, so the grid scrolls sideways.
+		const wide = columns.map((column) => ({ ...column, width: '260px' }))
+
+		const top = await renderGrid(onRowAdd, 320, wide)
+
+		// The nearest ancestor of the table that scrolls sideways.
+		let scroller = present(document.querySelector<HTMLElement>('table'), 'the table')
+
+		while (scroller.scrollWidth <= scroller.clientWidth || scroller.tagName === 'TABLE')
+			scroller = present(scroller.parentElement, 'a sideways scroll area')
+
+		if (email) {
+			await userEvent.click(screen.getByRole('textbox', { name: 'Edit Email, new row' }))
+
+			await userEvent.keyboard(email)
+		}
+
+		scroller.scrollLeft = scroller.scrollWidth
+
+		await frames()
+
+		expect(scroller.scrollLeft).toBeGreaterThan(0)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Add row' }))
+
+		await frames()
+
+		expect(onRowAdd).not.toHaveBeenCalled()
+
+		const name = screen.getByRole('textbox', { name: 'Edit Name, new row' })
+
+		expect(name).toHaveFocus()
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Enter a name')
+
+		// The cell of the field is in the scroll area, clear of its start edge.
+		const box = scroller.getBoundingClientRect()
+
+		const cell = present(name.closest('td'), 'the name cell').getBoundingClientRect()
+
+		expect(cell.left).toBeGreaterThanOrEqual(box.left - 1)
+
+		expect(cell.right).toBeLessThanOrEqual(box.right + 1)
 
 		expect(window.scrollY).toBe(top)
 	})
