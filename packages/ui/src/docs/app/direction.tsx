@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Field, Label } from 'ui/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { defineMessages, type MessageDescriptor, useIntl } from 'ui/primitives/intl'
@@ -61,11 +60,10 @@ function setDirection(choice: Direction): void {
 /**
  * The picker of the direction in the settings. The settings render on the
  * client only, so the picker reads the choice from the root element at once.
- * Thus the picker shows the choice again when the settings open again.
+ * Thus the picker shows the choice again when the settings open again. The
+ * Listbox holds the choice while the settings are open.
  */
 export function DirectionListbox() {
-	const [choice, setChoice] = useState(readChoice)
-
 	const intl = useIntl()
 
 	const labelFor = (value: Direction): string => {
@@ -78,15 +76,11 @@ export function DirectionListbox() {
 		<Field>
 			<Label>{intl.formatMessage(messages.label)}</Label>
 			<Listbox<Direction>
-				value={choice}
+				defaultValue={readChoice()}
 				displayValue={labelFor}
 				placement="bottom-start"
 				onValueChange={(next) => {
-					if (!next) return
-
-					setDirection(next)
-
-					setChoice(next)
+					if (next) setDirection(next)
 				}}
 			>
 				{DIRECTIONS.map((option) => (
