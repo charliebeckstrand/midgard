@@ -40,7 +40,7 @@ Read one area of the code and propose a few small fixes, each with its proof. Th
 
 2.8 Tell each agent to follow §3 to §5 of this file. Give it the pass number, its file list, the focus, and the declined items (§3.4).
 
-2.9 Compare the list of files read (§5.6) in each report with the file list of the pass. Run the pass again when a file is not in the report.
+2.9 Compare the list of files read (§5.7) in each report with the file list of the pass. Run the pass again when a file is not in the report.
 
 2.10 Merge the reports of the passes with §6.
 
@@ -65,37 +65,52 @@ Read one area of the code and propose a few small fixes, each with its proof. Th
 4.1 A defect is a proposal only when it meets each of these conditions:
 
 - You can quote the code that holds the defect, as `path:line` and the text of that line.
-- You can quote the written rule that the code breaks. For `packages/ui`, the rule comes from an intent source of [`bug-audit.md`](bug-audit.md) §3.4, from a section of [`CONVENTIONS.md`](../../CONVENTIONS.md), or from a rule of [`STE.md`](../../STE.md). For another package, the rule is a TSDoc sentence, a test, a type, an ARIA pattern, or a section of a document of that package.
+- You can quote the written rule that the code breaks. For `packages/ui`, the rule comes from an intent source of [`bug-audit.md`](bug-audit.md) §3.4, from a section of [`CONVENTIONS.md`](../../CONVENTIONS.md), or from a rule of [`STE.md`](../../STE.md). For another package, the rule is a TSDoc sentence, a test, a type, an ARIA pattern, or a section of a document of that package. A `design` proposal meets §4.3 instead.
 - A small change inside the area repairs it. A refactor or a new abstraction is not a small change.
 - The defect is inside the focus, when the reader gives a focus.
 
-4.2 A preference with no written rule is not a proposal and not a suspect. Drop it. The polish list of [`bug-verifier.md`](../agents/bug-verifier.md) §6.3 is a written rule, and dead surface is on it.
+4.2 A preference with no written rule is not a proposal and not a suspect. Drop it. A pattern that meets §4.3 is not a preference. The polish list of [`bug-verifier.md`](../agents/bug-verifier.md) §6.3 is a written rule, and dead surface is on it.
 
-4.3 Give each proposal the first kind in this table that applies to it:
+4.3 A `design` proposal replaces working code with a clearly better pattern, and the current pattern is its defect. Its rule is [`CLAUDE.md`](../../CLAUDE.md) §1.5. Show each of these:
+
+- The cost of the current pattern, such as an effect, a listener, a ref, a state, or a wrapper that the change removes.
+- The replacement and its prior art: a platform feature, a React or library API, or the same pattern elsewhere in the repository.
+- A test or a browser check that shows that the behavior does not change.
+
+4.4 A better pattern that needs a refactor is not a proposal. Write it under "Larger patterns", with its cost and its gain.
+
+4.5 Give each proposal the first kind in this table that applies to it:
 
 | Kind | Meaning |
 | --- | --- |
 | `bug` | A user meets a wrong result: on the screen, with a keyboard or a pointer, through assistive technology, or in the data. |
 | `correctness` | The code breaks a written contract, but no user meets a wrong result. |
+| `design` | The code works and breaks no rule, but a clearly better pattern does the same work (§4.3). |
 | `polish` | The code strays from the scale, from a section of `CONVENTIONS.md`, from a rule of `STE.md`, or from the polish list of `bug-verifier.md` §6.3. |
 
-4.4 A defect with reach `test-only` or `none` is `correctness` at most; `bug` needs reach `shipped`. Find the reach with one search of the consumer roots for each defect.
+4.6 A defect with reach `test-only` or `none` is `correctness` at most; `bug` needs reach `shipped`. Find the reach with one search of the consumer roots for each defect.
 
-4.5 Give each proposal its proof: `read` when the code alone proves it, `test` when a test that you ran shows it, or `browser` when you saw it in a browser.
+4.7 Give each proposal its proof: `read` when the code alone proves it, `test` when a test that you ran shows it, or `browser` when you saw it in a browser.
 
-4.6 You can run a scoped test or a browser check to prove a `bug`. Remove each scratch file before you report.
+4.8 You can run a scoped test or a browser check to prove a `bug` or a `design` proposal. Remove each scratch file before you report.
 
-4.7 For a browser check of a `packages/ui` unit, run `pnpm dev` in `packages/ui`. The docs app serves at `http://localhost:3456`. A component page has the path `/{folder}`, such as `/accordion`, and another page has its folder path, such as `/modules/grid`.
+4.9 For a browser check of a `packages/ui` unit, run `pnpm dev` in `packages/ui`. The docs app serves at `http://localhost:3456`. A component page has the path `/{folder}`, such as `/accordion`, and another page has its folder path, such as `/modules/grid`.
 
-4.8 Rank the proposals. Put each `bug` first, then each `correctness`, then each `polish`. In one kind, order by reach (`shipped`, then `test-only`, then `none`), and then put first the defect that more users meet.
+4.10 Before you rank the proposals, challenge both sides ([`CLAUDE.md`](../../CLAUDE.md) §1.5):
 
-4.9 Propose five defects or fewer for each pass. When more than five meet §4.1, propose the five that rank highest, and list each other one under "Also proved".
+1. For each proposal, make the strongest case for the current code: a comment, a test, a ruling, an edge case, or the cost of the fix. When that case wins, move the proposal to "Kept".
+2. For each source file with no proposal, ask whether a clearly better pattern does the same work. Propose it when it meets §4.3.
+3. State each proposal that survives as a fact. Do not write "consider" or "could".
 
-4.10 When no defect meets §4.1, say so. Never invent a proposal to fill the list.
+4.11 Rank the proposals. Put each `bug` first, then each `correctness`, then each `design`, then each `polish`. In one kind, order by reach (`shipped`, then `test-only`, then `none`), and then put first the defect that more users meet.
+
+4.12 Propose five defects or fewer for each pass. When more than five meet §4.1, propose the five that rank highest, and list each other one under "Also proved".
+
+4.13 When no defect meets §4.1, say so. Never invent a proposal to fill the list.
 
 ## 5. Report
 
-5.1 Write the report of a pass in this order: the proposals, "Also proved", "Suspects", "Leads", and "Files read".
+5.1 Write the report of a pass in this order: the proposals, "Also proved", "Kept", "Larger patterns", "Suspects", "Leads", and "Files read".
 
 5.2 Write each proposal in this form:
 
@@ -104,27 +119,30 @@ Read one area of the code and propose a few small fixes, each with its proof. Th
 
 Code: `{path}:{line}` `{text of the line}`
 Rule: {source of the rule}: "{text of the rule}"
-Effect: {the wrong result that the user meets, or the contract and what the code does}
+Effect: {the wrong result that the user meets, the contract and what the code does, or the cost of the current pattern}
 Fix: {the smallest change}
+Against: {the strongest case for the current code, and why the proposal wins}
 Reach: {shipped, test-only, or none}
 Proof: {read, test, or browser}
 ```
 
 5.3 Write each line of "Also proved" as the kind, the `path:line`, and the defect.
 
-5.4 Write each suspect in one line: the possible defect, its `path:line`, and the fact that proves or refutes it.
+5.4 Write each line of "Kept" as the `path:line`, the change, and the reason that the current code wins.
 
-5.5 Write each lead in one line: the `path:line` and the defect.
+5.5 Write each suspect in one line: the possible defect, its `path:line`, and the fact that proves or refutes it.
 
-5.6 List each file that you read under "Files read".
+5.6 Write each lead in one line: the `path:line` and the defect.
 
-5.7 Change no file in the repository.
+5.7 List each file that you read under "Files read".
+
+5.8 Change no file in the repository.
 
 ## 6. Merge
 
 6.1 This section applies only to an area of more than one pass. Give the reader one merged report in the form of §5.
 
-6.2 Number the proposals across the passes by kind: `B1` and up for each `bug`, `C1` and up for each `correctness`, and `P1` and up for each `polish`.
+6.2 Number the proposals across the passes by kind: `B1` and up for each `bug`, `C1` and up for each `correctness`, `D1` and up for each `design`, and `P1` and up for each `polish`.
 
 6.3 Join two proposals that quote the same line, or that share a cause, into one proposal.
 

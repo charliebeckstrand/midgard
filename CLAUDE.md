@@ -10,6 +10,8 @@
 
 1.4 Fix the cause of a bug in each place that it reaches, with one rule and the simplest change. Do not hide a symptom with a heuristic, a special case, or a lint suppression. A timing fix is deterministic: never reorder work to win a race.
 
+1.5 In an audit, an assessment, or a review, challenge each proposed change and the code that it replaces. A change must be clearly better, not only different. Code is not correct because it exists. State each change that survives with confidence; when the code survives, say why. Never propose a change to fill a report, and never keep code only because it works.
+
 ## 2. Voice
 
 2.1 Write short, technical prose; assume domain fluency. Cut filler and repetition, not the grammar words that STE keeps.
