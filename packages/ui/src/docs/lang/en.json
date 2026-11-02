@@ -4155,10 +4155,6 @@
 		"defaultMessage": "Tasks",
 		"description": "Text of a demo in the docs as aria-label, in components/list/sortable.tsx, components/list/with-descriptions.tsx."
 	},
-	"docs.demo.b3ba33b99a6c": {
-		"defaultMessage": "Click the button at the end of a row, or press Shift+Enter on a cell, to edit the row in a form.",
-		"description": "Text of a demo in the docs as mouseText, in modules/grid/editing/row-form.tsx."
-	},
 	"docs.demo.b3c90e46a8b5": {
 		"defaultMessage": "Save drafts automatically",
 		"description": "Text of a demo in the docs, in components/switch/controlled.tsx."
@@ -4882,6 +4878,10 @@
 	"docs.demo.dc7501edfa95": {
 		"defaultMessage": "Where do deleted files go?",
 		"description": "Text of a demo in the docs as title, in components/drawer/fit-content.tsx."
+	},
+	"docs.demo.dc7687fbf23d": {
+		"defaultMessage": "Click the button of a row, or press Shift+Enter on a cell, to edit the row in a form.",
+		"description": "Text of a demo in the docs as mouseText, in modules/grid/editing/row-form.tsx."
 	},
 	"docs.demo.dc937b598926": {
 		"defaultMessage": "None",
