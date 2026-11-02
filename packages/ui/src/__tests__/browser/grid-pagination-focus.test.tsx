@@ -76,6 +76,20 @@ describe('grid pagination focus (real browser)', () => {
 		)
 	})
 
+	it('moves focus to Next when Previous disables in a narrow footer', async () => {
+		const user = renderPager(360)
+
+		await user.click(screen.getByRole('button', { name: 'Next page' }))
+
+		await user.click(screen.getByRole('button', { name: 'Previous page' }))
+
+		// The hidden numbered pages hold enabled buttons too. Focus must go to the
+		// control that the reader can see.
+		await waitFor(() =>
+			expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Next page' })),
+		)
+	})
+
 	/**
 	 * Where focus sits and whether the current-page marker exists, as one value.
 	 * `nav.querySelector('[aria-current="page"]')?.focus()` in `GridPagination` is
