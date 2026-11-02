@@ -665,7 +665,9 @@ export type GridFooter = {
 	 * (`'3 of 12 rows selected'`) while a selection is active; silent when nothing
 	 * is selected. Takes the leading slot from {@link GridFooter.rowTotal} while
 	 * active: its `of` denominator keeps the visible context the total would show.
-	 * Needs a selection column to be meaningful.
+	 * When the denominator is one page of a server set whose total the grid does
+	 * not know, the count says so: `'3 of 25 rows selected on this page'`. Needs a
+	 * selection column to be meaningful.
 	 * @defaultValue false
 	 */
 	selectedTotal?: boolean

@@ -767,6 +767,7 @@ export function GridData<T>({
 						<GridBusyStatus
 							loading={loading}
 							rowCount={dataRowCount}
+							pageScoped={footerScope === 'page'}
 							failed={hasErrorSlot(infiniteScroll?.error)}
 						/>
 

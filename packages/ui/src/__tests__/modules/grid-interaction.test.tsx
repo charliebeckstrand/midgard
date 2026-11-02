@@ -521,6 +521,24 @@ describe('Grid busy live region', () => {
 		expect(screen.getByText('No results')).toBeInTheDocument()
 	})
 
+	it('scopes the count to the page when server pagination gives no row count', async ({
+		clock,
+	}) => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				pagination={{ manual: true, pageCount: 40, value: { pageIndex: 0, pageSize: 2 } }}
+			/>,
+		)
+
+		await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+
+		// The server gives only a page count, so the two rows are one page, not the set.
+		expect(bySlot(document.body, 'grid-busy-status')).toHaveTextContent(/^2 rows on this page$/)
+	})
+
 	// The trailing row shows the error of a failed load-more, and the region
 	// says that the load failed, so a reader who does not see the row hears it.
 	it('announces a failed infinite-scroll load, then the next count', async ({ clock }) => {

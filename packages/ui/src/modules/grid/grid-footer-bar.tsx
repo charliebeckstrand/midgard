@@ -61,13 +61,20 @@ function rowTotalLabel(
  * replaces the row total (see {@link GridFooterBar}). A selection outlives the
  * filter, so when it holds rows the view does not show, the label names them
  * (`'5 rows selected, 2 not shown'`) rather than reading more rows than the view
- * holds. Only rendered while a selection is active, so `selected` is always at
- * least one.
+ * holds. A denominator of one page says so (`'3 of 25 rows selected on this
+ * page'`), as {@link rowTotalLabel} does. Only rendered while a selection is
+ * active, so `selected` is always at least one.
  *
  * @internal
  */
-function selectedLabel(intl: IntlShape, { rows, selected, hidden }: GridFooterStats): string {
+function selectedLabel(
+	intl: IntlShape,
+	{ rows, selected, hidden }: GridFooterStats,
+	scope: GridFooterScope,
+): string {
 	if (hidden > 0) return intl.formatMessage(gridMessages.selectedHidden, { selected, hidden })
+
+	if (scope === 'page') return intl.formatMessage(gridMessages.selectedOnPage, { selected, rows })
 
 	return intl.formatMessage(gridMessages.selectedOf, { selected, rows })
 }
@@ -103,7 +110,7 @@ export function GridFooterBar({ config, stats, scope }: GridFooterProps) {
 	// One leading status, chosen by precedence: an active selection replaces the
 	// row-count total in place, its `of` denominator keeping the visible context.
 	const status = showSelected
-		? selectedLabel(intl, stats)
+		? selectedLabel(intl, stats, scope)
 		: showRowTotal
 			? rowTotalLabel(intl, stats, scope)
 			: null

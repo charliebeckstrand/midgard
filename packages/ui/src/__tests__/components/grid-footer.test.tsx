@@ -166,6 +166,24 @@ describe('Grid footer', () => {
 		expect(bySlot(container, 'grid-footer-status')).toHaveTextContent('3 rows on this page')
 	})
 
+	it('scopes the selected count to the page when server pagination gives no row count', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={selectColumns}
+				rows={rows}
+				getKey={getKey}
+				selection={{ defaultValue: new Set([1]) }}
+				pagination={{ manual: true, pageCount: 40, value: { pageIndex: 0, pageSize: 3 } }}
+				footer={{ selectedTotal: true }}
+			/>,
+		)
+
+		// The denominator is one page, so the label says so.
+		expect(bySlot(container, 'grid-footer')).toHaveTextContent(
+			/^1 of 3 rows selected on this page$/,
+		)
+	})
+
 	it('keeps the bare row total when server pagination gives a row count', () => {
 		const { container } = renderUI(
 			<Grid
