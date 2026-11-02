@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Grid,
 	type GridCellChange,
+	type GridCellRef,
 	type GridCellRefusal,
 	type GridColumn,
 	type GridEditableConfig,
@@ -245,5 +247,101 @@ describe('Grid row form (expand)', () => {
 		await user.click(screen.getByRole('button', { name: 'expand-1' }))
 
 		expect(screen.queryByRole('dialog')).toBeNull()
+	})
+})
+
+/**
+ * A cell-scoped grid whose active cell is controlled: the harness applies each
+ * cell the grid asks for. Each row has a pencil, then an expand button. Focus
+ * returns to the first control of the cell, so the pencil comes first.
+ */
+function renderControlledCell(controlled: boolean) {
+	const user = setupUser()
+
+	const onCommit = vi.fn<(changes: GridCellChange[]) => void>()
+
+	const withPencil: GridColumn<Row>[] = [
+		...dataColumns,
+		{
+			id: 'actions',
+			actions: (row, { expand, edit }) => (
+				<span>
+					<button type="button" onClick={edit}>{`edit-${row.id}`}</button>
+					<button type="button" onClick={expand}>{`expand-${row.id}`}</button>
+				</span>
+			),
+		},
+	]
+
+	function Harness() {
+		const [cell, setCell] = useState<GridCellRef | null>(null)
+
+		const binding = controlled ? { cell, onCellChange: setCell } : {}
+
+		return (
+			<Grid
+				columns={withPencil}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', scope: 'cell', onCommit, ...binding }}
+			/>
+		)
+	}
+
+	const view = renderUI(<Harness />)
+
+	const table = present(view.container.querySelector('table'), 'table')
+
+	return { ...view, user, onCommit, table }
+}
+
+describe.each([
+	['uncontrolled', false],
+	['controlled', true],
+] as const)('Grid cell-scoped session with an %s cell', (_, controlled) => {
+	it('widens the held cell into the form of its own row, and commits on Save', async () => {
+		const { user, onCommit, table } = renderControlledCell(controlled)
+
+		fireEvent.doubleClick(within(table).getByRole('gridcell', { name: 'Alice' }))
+
+		const input = await waitFor(() =>
+			present<HTMLInputElement>(bySlot(table, 'grid-edit-input'), 'the edit input'),
+		)
+
+		await user.type(input, 'a')
+
+		await user.click(screen.getByRole('button', { name: 'expand-1' }))
+
+		expect(within(form()).getByRole('textbox', { name: 'Name' })).toHaveValue('Alicea')
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		await user.click(within(form()).getByRole('button', { name: 'Save' }))
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			expect.objectContaining({ rowKey: 1, columnId: 'name', value: 'Alicea' }),
+		])
+
+		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+	})
+
+	it('returns focus to the pencil as Escape ends the session it opened', async () => {
+		const { user, table } = renderControlledCell(controlled)
+
+		const pencil = screen.getByRole('button', { name: 'edit-2' })
+
+		await user.click(pencil)
+
+		const input = await waitFor(() =>
+			present<HTMLInputElement>(bySlot(table, 'grid-edit-input'), 'the edit input'),
+		)
+
+		await waitFor(() => expect(input).toHaveFocus())
+
+		await user.keyboard('{Escape}')
+
+		await waitFor(() => expect(bySlot(table, 'grid-edit-input')).toBeNull())
+
+		expect(pencil).toHaveFocus()
 	})
 })

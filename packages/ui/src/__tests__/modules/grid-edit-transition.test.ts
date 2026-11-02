@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import {
+	askedExitRow,
 	crossRowEntry,
 	initialSessionRow,
 	moveSessionRow,
@@ -197,12 +198,40 @@ describe('planTransition', () => {
 		expect(rowsAfter(new Set([1]), plan)).toEqual([new Set()])
 	})
 
+	it('keeps the held row open on a null that the grid asked for as a widen', () => {
+		const request = {
+			to: null,
+			endRows: new Set<number>(),
+			discard: null,
+			blur: false,
+			widen: true,
+		}
+
+		const plan = planTransition({ ...base, raw: null, request })
+
+		expect(plan).toMatchObject({ next: null, asked: true, endRows: new Set(), writesRows: false })
+
+		expect(rowsAfter(new Set([1]), plan)).toEqual([])
+	})
+
+	it('names the row of an asked exit that returns focus, and no row for a move', () => {
+		const exit = { to: null, endRows: new Set([1]), discard: null, blur: true, widen: false }
+
+		expect(askedExitRow(planTransition({ ...base, raw: null, request: exit }), true)).toBe(1)
+
+		const move = { ...exit, to: at(2), endRows: new Set<number>() }
+
+		expect(askedExitRow(planTransition({ ...base, raw: at(2), request: move }), true)).toBe(
+			undefined,
+		)
+	})
+
 	it('reads a cell that is not editable as null', () => {
 		expect(planTransition({ ...base, raw: at(2, 'note') }).next).toBeNull()
 	})
 
 	it('takes the exit rows and the discard of a request that the grid asked for', () => {
-		const request = { to: at(3), endRows: new Set([1]), discard: at(1), blur: true }
+		const request = { to: at(3), endRows: new Set([1]), discard: at(1), blur: true, widen: false }
 
 		const plan = planTransition({ ...base, raw: at(3), request })
 
