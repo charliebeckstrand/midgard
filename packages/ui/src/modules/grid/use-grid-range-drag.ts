@@ -6,6 +6,7 @@ import { clamp } from '../../utilities'
 import type { PressOwner } from '../../utilities/primary-press'
 import { GRID_ROLE } from './engine/grid-constants'
 import { edgeScrollStep, RANGE_EDGE } from './engine/grid-range/range'
+import { stickyEdgeInsets } from './engine/grid-sticky-insets'
 import type { Coord } from './use-grid-navigation'
 
 /**
@@ -67,7 +68,9 @@ export function useGridRangeDrag({
 		}
 
 		// One frame of the scroll at an edge. The point clamps into the region, so
-		// the drag reaches the cells at its edge while the pointer is past it.
+		// the drag reaches the cells at its edge while the pointer is past it. A
+		// sticky header or new-row slot lies over an edge, so the point clamps
+		// past it, onto the data rows under it.
 		const tick = () => {
 			frame = 0
 
@@ -83,9 +86,15 @@ export function useGridRangeDrag({
 
 			region.scrollBy(step.x, step.y)
 
+			const chrome = stickyEdgeInsets(grid)
+
 			extendAt(
 				clamp(point.x, rect.left + RANGE_EDGE, rect.right - RANGE_EDGE),
-				clamp(point.y, rect.top + RANGE_EDGE, rect.bottom - RANGE_EDGE),
+				clamp(
+					point.y,
+					rect.top + Math.max(RANGE_EDGE, chrome.top + 1),
+					rect.bottom - Math.max(RANGE_EDGE, chrome.bottom + 1),
+				),
 			)
 
 			frame = requestAnimationFrame(tick)
