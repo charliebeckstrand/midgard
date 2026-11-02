@@ -625,7 +625,11 @@ export type GridFooterStats = {
 	 * server-side filtering, where the pre-filter total isn't known to the grid).
 	 */
 	total: number
-	/** Currently selected row count; `0` without a selection column. */
+	/**
+	 * The size of the selection: the keys that the selection binding holds,
+	 * with or without a selection column. Counts the selected rows that the view
+	 * does not show too (see {@link GridFooterStats.hidden}).
+	 */
 	selected: number
 	/**
 	 * The selected rows that the view does not show: the rows that a search or a
@@ -723,7 +727,25 @@ export type GridEditSource<T> = Pick<
  *
  * @internal
  */
-export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
+export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'> & {
+	/**
+	 * Zebra-stripes the body rows. `true` shades even rows, and `'odd'` shades
+	 * odd rows instead. With {@link TableVariants.outline}, `true` shades odd
+	 * rows, to pair with the rules of the cells. `'odd'` and `'even'` keep their
+	 * parity.
+	 * @defaultValue false
+	 */
+	striped?: TableVariants['striped']
+	/**
+	 * Washes the body row under the pointer with the hover tint. A grid with a
+	 * row or cell click handler ({@link GridDataProps.onRowClick},
+	 * {@link GridDataProps.onCellClick}, or a double-click one) shows the wash
+	 * with no `hover`, so its rows read as actionable. No row shows the wash
+	 * while a column drag-resize is in progress.
+	 * @defaultValue false
+	 */
+	hover?: boolean
+
 	/**
 	 * The density step of the cell padding and the metrics of the grid: resize
 	 * handles, column autosize, and the row-height estimate of the virtualizer.
@@ -1137,7 +1159,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * `aria-activedescendant`, and ringed on screen.
 	 * Enter/Space activates the active cell's {@link GridDataProps.onCellClick}
 	 * and the active row's {@link GridDataProps.onRowClick}, in that order;
-	 * clicking a cell seats the cursor there.
+	 * clicking a cell seats the cursor there. With a selection column, Space
+	 * toggles the selection of the active row and activates nothing, and only
+	 * Enter activates.
 	 *
 	 * A client-grouped grid is a `treegrid`. Each group header row carries
 	 * `aria-level` 1 and `aria-expanded`, and each leaf and total carries
