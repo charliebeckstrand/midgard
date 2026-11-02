@@ -575,7 +575,7 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.3.0)
       '@floating-ui/react':
-        specifier: ^0.27.20
+        specifier: 0.27.20
         version: 0.27.20(patch_hash=7bd33aaf7f770afcaadb2f5e7a7d6986aa6a648cb5f32b43f540e4c9762c6443)(react-dom@19.3.0)(react@19.3.0)
       '@formatjs/intl':
         specifier: ^6.1.3
@@ -663,7 +663,7 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2(@percy/cli@1.32.11)(playwright-core@1.64.1)(supports-color@7.2.0)
       '@react-router/dev':
-        specifier: ^8.4.0
+        specifier: 8.4.0
         version: 8.4.0(babel-plugin-macros@3.1.0)(react-router@8.4.0)(supports-color@7.2.0)(typescript@7.0.2)(vite@8.3.2)
       '@rolldown/plugin-babel':
         specifier: ^0.2.4
@@ -771,7 +771,7 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0(react@19.3.0)
       react-router:
-        specifier: ^8.4.0
+        specifier: 8.4.0
         version: 8.4.0(patch_hash=c0567c84fc3ea7f5d88633fceb8a6774caa93c814ad973f42f9d909f3ae1cfc1)(react-dom@19.3.0)(react@19.3.0)
       subset-font:
         specifier: ^2.9.0
