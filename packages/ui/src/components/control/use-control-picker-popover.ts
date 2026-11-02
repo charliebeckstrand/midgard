@@ -1,6 +1,5 @@
 'use client'
 
-import type { OpenChangeReason } from '@floating-ui/react'
 import { type RefObject, useCallback, useId, useRef } from 'react'
 import { type FloatingPlacement, useControllableFlag, useFloatingUI } from '../../hooks'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
@@ -106,19 +105,11 @@ export function useControlPickerPopover({
 	// The panel takes this id, and the trigger names it in `aria-controls`.
 	const dialogId = useId()
 
-	const { onOpenChange: engineOpenChange } = context
-
-	// The public open-change entry routes through the floating-ui context. Then a
-	// close reason from the caller gets to the focus return in `useFloatingPanel`.
-	//
-	// The dependency is the handler, not the context that holds it. The engine
-	// makes a new `context` at each reposition, but `onOpenChange` keeps one
-	// identity for the mount (see `useFloatingOutsidePress`).
-	const onOpenChange = useCallback(
-		(nextOpen: boolean, event?: Event, reason?: OpenChangeReason) =>
-			engineOpenChange(nextOpen, event, reason),
-		[engineOpenChange],
-	)
+	// The public open-change entry is the handler of the floating-ui context, so
+	// a close reason from the caller gets to the focus return in
+	// `useFloatingPanel`. The engine makes a new `context` at each reposition,
+	// but `onOpenChange` keeps one identity for the mount.
+	const { onOpenChange } = context
 
 	// Captures the trigger in `triggerRef`. The trigger is the default
 	// `returnFocusTo`, because `FloatingFocusManager` runs with
