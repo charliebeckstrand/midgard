@@ -180,6 +180,58 @@ describe('Grid footer', () => {
 		expect(bySlot(container, 'grid-footer')).toHaveTextContent(/^120 rows$/)
 	})
 
+	it('says the rows are loaded while infinite scroll holds a window of an unknown set', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				maxHeight="300px"
+				infiniteScroll={{ onLoadMore: () => {}, hasMore: true }}
+				footer={{ rowTotal: true }}
+			/>,
+		)
+
+		// More rows remain and the grid does not know how many, so the three rows
+		// are the loaded window, not the whole set.
+		expect(bySlot(container, 'grid-footer')).toHaveTextContent(/^3 rows loaded$/)
+
+		expect(bySlot(container, 'grid-footer-status')).toHaveTextContent('3 rows loaded')
+	})
+
+	it('keeps the bare row total once infinite scroll has loaded the whole set', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				maxHeight="300px"
+				infiniteScroll={{ onLoadMore: () => {}, hasMore: false }}
+				footer={{ rowTotal: true }}
+			/>,
+		)
+
+		expect(bySlot(container, 'grid-footer')).toHaveTextContent(/^3 rows$/)
+	})
+
+	it('counts the rows that a search shows under infinite scroll, not the totalRows', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				search={{ defaultValue: 'Ada' }}
+				maxHeight="300px"
+				infiniteScroll={{ onLoadMore: () => {}, totalRows: 500 }}
+				footer={{ rowTotal: true }}
+			/>,
+		)
+
+		// The search narrows the loaded rows to one. The server total does not
+		// count what the search shows.
+		expect(bySlot(container, 'grid-footer')).toHaveTextContent(/^1 of 3 rows visible$/)
+	})
+
 	it('renders the custom content slot with live counts', () => {
 		const { container } = renderUI(
 			<Grid

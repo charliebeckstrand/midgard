@@ -124,6 +124,7 @@ type GridValues = {
 	rowsVisible: { rows: number; total: number }
 	rowCount: { rows: number }
 	rowsOnPage: { rows: number }
+	rowsLoaded: { rows: number }
 	selectedHidden: { selected: number; hidden: number }
 	selectedOf: { selected: number; rows: number }
 	rowsResult: { count: number }
@@ -760,6 +761,12 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		defaultMessage: '{rows, plural, one {# row} other {# rows}} on this page',
 		description:
 			'The row count in the footer of a grid that shows one page of a server set whose total it does not know.',
+	},
+	rowsLoaded: {
+		id: 'ui.grid.rowsLoaded',
+		defaultMessage: '{rows, plural, one {# row} other {# rows}} loaded',
+		description:
+			'The row count in the footer of a grid that has loaded part of a set whose total it does not know.',
 	},
 	selectedHidden: {
 		id: 'ui.grid.selectedHidden',

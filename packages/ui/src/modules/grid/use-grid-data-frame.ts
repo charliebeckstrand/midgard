@@ -16,6 +16,7 @@ import {
 	placeNewRow,
 	type ResolvedInfiniteScroll,
 	resolveAriaRowCount,
+	resolveFooterScope,
 	resolveFooterStats,
 	resolveHover,
 	resolveResizeLayout,
@@ -270,9 +271,9 @@ export function useGridDataFrame<T>({
 		infiniteScroll,
 	})
 
-	// Server pagination with a page count but no row count gives no total, so
-	// `dataRowCount` is only the page. The footer then counts the page and says so.
-	const footerPageScoped = pagination != null && pagination.rowCount == null
+	// What the footer count counts: the whole set, one page, or a loaded window
+	// (see `resolveFooterScope`). The footer says so for a page or a window.
+	const footerScope = resolveFooterScope(pagination, infiniteScroll)
 
 	// Grid semantics (role="grid" + global indices) and the select-all label,
 	// derived together from the rendered-window mode; see `resolveSemantics`.
@@ -362,7 +363,7 @@ export function useGridDataFrame<T>({
 		ariaRowCount,
 		dataRowCount,
 		footerStats,
-		footerPageScoped,
+		footerScope,
 		semantics,
 		rowIndexOffset,
 		rowHover,

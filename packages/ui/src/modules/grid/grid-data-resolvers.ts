@@ -311,8 +311,10 @@ export function resolveAriaRowCount(
  * is narrowing the set. Under server-side filtering the core model is one page.
  * It then collapses to the filtered count, and the footer shows a bare total
  * rather than a misleading "N of pageSize". An infinite-scroll `totalRows`
- * supersedes the filtered extent: the footer then reports the real (server) set
- * rather than the loaded window. @internal
+ * supersedes the filtered extent only while no client filter narrows the loaded
+ * rows: the footer then reports the real (server) set rather than the loaded
+ * window. A narrowed set counts the rows that the filter shows, because the
+ * server total does not count them. @internal
  */
 export function resolveFooterStats(args: {
 	footer: GridFooter | undefined
@@ -328,7 +330,10 @@ export function resolveFooterStats(args: {
 }): GridFooterStats | null {
 	if (!args.footer) return null
 
-	const rows = args.infiniteScroll?.totalRows ?? args.filteredCount
+	const totalRows = args.infiniteScroll?.totalRows ?? null
+
+	const rows =
+		totalRows != null && args.filteredCount === args.sourceCount ? totalRows : args.filteredCount
 
 	return {
 		rows,
@@ -336,6 +341,31 @@ export function resolveFooterStats(args: {
 		selected: args.selected,
 		hidden: args.hidden,
 	}
+}
+
+/**
+ * What the row count of the footer counts: `'all'` for the whole set, `'page'`
+ * for one page of a server set whose total the grid does not know, and
+ * `'loaded'` for the rows that infinite scroll has loaded while more remain and
+ * the grid does not know the total. @internal
+ */
+export type GridFooterScope = 'all' | 'page' | 'loaded'
+
+/**
+ * The {@link GridFooterScope} of the footer row count. Server pagination with a
+ * page count but no row count gives no total, so the count is only the page.
+ * Infinite scroll with more rows to load and no `totalRows` holds only a window
+ * of the set. @internal
+ */
+export function resolveFooterScope(
+	pagination: GridPaginationView | null,
+	infiniteScroll: Pick<ResolvedInfiniteScroll, 'hasMore' | 'totalRows'> | null,
+): GridFooterScope {
+	if (pagination != null && pagination.rowCount == null) return 'page'
+
+	if (infiniteScroll?.hasMore && infiniteScroll.totalRows == null) return 'loaded'
+
+	return 'all'
 }
 
 /** Resolved grid-semantics for the rendered window: the role/index gate, the global row offset, and the select-all label. @internal */
