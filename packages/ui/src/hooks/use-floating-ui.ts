@@ -38,7 +38,7 @@ export type FloatingUIOptions = FloatingPanelOptions & {
  * inside a nested floating-ui portal counts as inside, mirroring
  * floating-ui's own node-tree handling.
  *
- * @returns `useFloatingPanel`'s `{ refs, floatingStyles, context, placement }` plus
+ * @returns `useFloatingPanel`'s `{ refs, floatingStyles, context, placement, isPositioned }` plus
  * `getReferenceProps` / `getFloatingProps` prop-getters that fold in the
  * dismiss + role interactions; spread them on the reference and floating
  * elements respectively.
@@ -47,7 +47,7 @@ export function useFloatingUI({
 	role: roleProp = 'listbox',
 	...rest
 }: FloatingUIOptions): FloatingUIResult {
-	const { refs, floatingStyles, context, placement } = useFloatingPanel(rest)
+	const { refs, floatingStyles, context, placement, isPositioned } = useFloatingPanel(rest)
 
 	const { dismiss, role } = useFloatingDismissal(context, refs, {
 		open: rest.open,
@@ -57,5 +57,13 @@ export function useFloatingUI({
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
-	return { refs, floatingStyles, context, placement, getReferenceProps, getFloatingProps }
+	return {
+		refs,
+		floatingStyles,
+		context,
+		placement,
+		isPositioned,
+		getReferenceProps,
+		getFloatingProps,
+	}
 }

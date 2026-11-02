@@ -5113,6 +5113,92 @@ describe('Grid new row', () => {
 		await expectAnnouncement('Row not added, 1 cell refused')
 	})
 
+	describe('a required cell with no value', () => {
+		// The name is required, and the count may not pass 5.
+		const cols: GridColumn<SessionRow>[] = [
+			{
+				...(sessionColumns[0] as GridColumn<SessionRow>),
+				required: true,
+				validate: (value) => (String(value ?? '').trim() === '' ? 'Enter a name' : null),
+			},
+			{
+				...(sessionColumns[1] as GridColumn<SessionRow>),
+				validate: (value) => (Number(value) > 5 ? 'Too many' : null),
+			},
+		]
+
+		it('blocks the add before it starts, and focuses the empty cell', async () => {
+			const onRowAdd = vi.fn(() => new Promise<undefined>(() => {}))
+
+			const view = renderNewRow({ onRowAdd }, {}, cols)
+
+			view.type('count', '3')
+
+			const add = view.getByRole('button', { name: 'Add row' })
+
+			add.focus()
+
+			fireEvent.click(add)
+
+			expect(onRowAdd).not.toHaveBeenCalled()
+
+			// The row never goes pending.
+			expect(view.slot()).not.toHaveAttribute('aria-busy')
+
+			expect(view.slotCell('name')).toHaveTextContent('Enter a name')
+
+			expect(view.slotEditor('name')).toHaveFocus()
+
+			expect(view.slotEditor('count').value).toBe('3')
+
+			await expectAnnouncement('Row not added, 1 cell refused')
+
+			// An edit clears the error, and the next add goes through.
+			view.type('name', 'Carol')
+
+			expect(view.slotCell('name')).not.toHaveTextContent('Enter a name')
+
+			view.press('name', 'Enter')
+
+			expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol', count: 3 })
+		})
+
+		it('focuses the first refused cell in display order', () => {
+			const view = renderNewRow({}, {}, cols)
+
+			view.type('count', '9')
+
+			view.slotEditor('count').focus()
+
+			view.press('count', 'Enter')
+
+			expect(view.onRowAdd).not.toHaveBeenCalled()
+
+			expect(view.slotCell('name')).toHaveTextContent('Enter a name')
+
+			expect(view.slotCell('count')).toHaveTextContent('Too many')
+
+			expect(view.slotEditor('name')).toHaveFocus()
+		})
+
+		it('gives validate no empty cell of a column that is not required', () => {
+			const validate = vi.fn(() => 'Refused')
+
+			const view = renderNewRow({}, {}, [
+				sessionColumns[0] as GridColumn<SessionRow>,
+				{ ...(sessionColumns[1] as GridColumn<SessionRow>), validate },
+			])
+
+			view.type('name', 'Carol')
+
+			view.press('name', 'Enter')
+
+			expect(validate).not.toHaveBeenCalled()
+
+			expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol' })
+		})
+	})
+
 	describe('a validate that reads another cell', () => {
 		// The count may not pass 5 while the name is Big.
 		const cols: GridColumn<SessionRow>[] = [
@@ -5274,6 +5360,26 @@ describe('Grid new row', () => {
 			view.press('name', 'Enter')
 
 			expect(view.onRowAdd).toHaveBeenLastCalledWith({ name: 'Carol', count: 4 })
+		})
+
+		it('focuses the first refused cell when focus is still in the grid', async () => {
+			const view = renderAsync()
+
+			view.type('name', 'Carol')
+
+			view.type('count', '4')
+
+			view.slotEditor('name').focus()
+
+			view.press('name', 'Enter')
+
+			expect(view.grid()).toHaveFocus()
+
+			await view.resolve([{ rowKey: 'new', columnId: 'count', error: 'Too many' }])
+
+			expect(view.slotCell('count')).toHaveTextContent('Too many')
+
+			expect(view.slotEditor('count')).toHaveFocus()
 		})
 
 		it('refuses each drafted cell on a rejection, with its message', async () => {

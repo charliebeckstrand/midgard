@@ -39,6 +39,12 @@ export type FloatingPanelResult = {
 	context: FloatingRootContext
 	/** The placement after the middleware ran: the side that `flip` selected, and the alignment. */
 	placement: Placement
+	/**
+	 * Whether floating-ui placed the open panel. Until then the panel is at the
+	 * origin of its containing block. It goes back to `false` when the panel
+	 * closes.
+	 */
+	isPositioned: boolean
 }
 
 /**
@@ -287,10 +293,10 @@ export type FloatingPanelOptions = {
  * clientPoint, etc.) against the returned `context`. For the common
  * dismiss+role pattern, prefer `useFloatingUI`.
  *
- * @returns `{ refs, floatingStyles, context, placement }`: floating-ui's
- * reference / floating refs, the positioning styles for the floating element,
- * the shared `FloatingRootContext` interaction hooks attach to, and the
- * placement after `flip`.
+ * @returns `{ refs, floatingStyles, context, placement, isPositioned }`:
+ * floating-ui's reference / floating refs, the positioning styles for the
+ * floating element, the shared `FloatingRootContext` interaction hooks attach
+ * to, the placement after `flip`, and whether floating-ui placed the open panel.
  */
 export function useFloatingPanel({
 	placement,
@@ -360,6 +366,7 @@ export function useFloatingPanel({
 		context,
 		middlewareData,
 		placement: resolvedPlacement,
+		isPositioned,
 	} = useFloating({
 		placement: side ? `${side}-start` : (placement as Placement),
 		open,
@@ -429,5 +436,5 @@ export function useFloatingPanel({
 		prevOpenRef.current = open
 	}, [open, returnFocusTo])
 
-	return { refs, floatingStyles, context, placement: resolvedPlacement }
+	return { refs, floatingStyles, context, placement: resolvedPlacement, isPositioned }
 }

@@ -32,7 +32,8 @@ import type { Parser } from './examples.ts'
 // The message of a check and the summary of a selection are text too, though
 // their names are not text names: the value of `error` and of `summarize`, and
 // the message that each check of `validate` or each value of `fieldErrors`
-// gives. A check with a block body gives each string of a `return` and each
+// gives. A `validate` that is a function, such as that of a Grid column, is one
+// check. A check with a block body gives each string of a `return` and each
 // string that it pushes on a list.
 //
 // A template with values is text in the same places when each value is a
@@ -323,8 +324,15 @@ function findCheckStrings(node: ESTree.Node): ESTree.Node[] {
 	return strings
 }
 
-/** The strings of the value of each field of a check map, such as `validate`. */
+/**
+ * The strings of the value of each field of a check map, such as `validate`.
+ * A function in place of the map is one check, such as the `validate` of a
+ * Grid column.
+ */
 function findMapStrings(node: ESTree.Node): ESTree.Node[] {
+	if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression')
+		return findCheckStrings(node)
+
 	if (node.type !== 'ObjectExpression') return []
 
 	return node.properties.flatMap((property) =>

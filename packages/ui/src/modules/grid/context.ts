@@ -357,17 +357,12 @@ export type GridNewRowSession = {
 	/** Where the slot sits, at the top or the bottom of the body. */
 	position: 'top' | 'bottom'
 	/**
-	 * A counter that the editors of the slot are keyed by. An add, an Escape,
-	 * and a typed entry raise it, so each editor mounts again and reads the
-	 * draft store.
+	 * A counter that the editors of the slot are keyed by. An add, a blocked
+	 * add, an Escape, and a typed entry raise it, so each editor mounts again
+	 * and reads the draft store. After a blocked add, each editor checks
+	 * `validate` with the current row and shows why the add stopped.
 	 */
 	generation: number
-	/**
-	 * A counter that a blocked add raises. The slot renders again, so each
-	 * editor checks `validate` with the current row and shows why the add
-	 * stopped.
-	 */
-	checks: number
 	/** Whether an add that `onRowAdd` returned as a promise is in flight. */
 	inFlight: boolean
 	/** The draft store of the session, which the slot writes under its reserved key. */

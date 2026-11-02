@@ -19,7 +19,7 @@ import {
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
 import { Icon } from '../../components/icon'
-import { cn, dataAttr } from '../../core'
+import { cn, createContext, dataAttr } from '../../core'
 import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -106,39 +106,48 @@ export function keepFocus(event: MouseEvent<HTMLButtonElement>) {
 }
 
 /**
- * Scrolls the error message of an editor into view as it mounts. A ref callback
- * for the message of {@link GridCellEditor}, so the scroll runs in the commit,
- * before the browser paints.
- *
- * @remarks The message floats below the cell, or above it when the viewport has
- * no space below. A message that is taller than either space can still go past
- * the edge of the viewport. The message mounts when an error shows and the cell
- * no longer clips its content. It stays while the error stays, so the scroll
- * runs once for each error. `nearest` does nothing when the message fits, so
- * the view does not move (WCAG 1.4.10).
- * @internal
+ * Whether Floating UI has placed the column below the cell
+ * ({@link GridEditBelow}). Floating UI places the column after it mounts. Until
+ * then the column is at the origin of the page. @internal
  */
-function revealMessage(node: HTMLSpanElement | null) {
-	node?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-}
+const [GridEditPlacedContext, useGridEditPlaced] = createContext<boolean>('GridEditPlaced')
 
 /**
  * The error message of {@link GridCellEditor}, below the cell. It mounts only
- * once the cell stops clipping its content, so the scroll of
- * {@link revealMessage} measures the layout that shows.
+ * once the cell stops clipping its content. It scrolls into view once Floating
+ * UI places the column that holds it, before the browser paints.
  *
- * @remarks An editor that opens with an error mounts before its cell lets the
- * content overflow (see `GridCellEditingContext`). A scroll in that commit
- * reveals only the clipped part of the message, and the message then shows
- * past the edge of the scroll container. @internal
+ * @remarks The message floats below the cell, or above it when the viewport has
+ * no space below. A message that is taller than either space can still go past
+ * the edge of the viewport. It stays while the error stays, so the scroll runs
+ * once for each error. `nearest` does nothing when the message fits, so the
+ * view does not move (WCAG 1.4.10).
+ *
+ * The column mounts with the message where the cell shows no settle controls,
+ * as in the new-row slot. Until Floating UI places it, the column is at the
+ * origin of the page. A scroll at that point moves the page to the top, so the
+ * scroll waits for the placement.
+ *
+ * An editor that opens with an error mounts before its cell lets the content
+ * overflow (see `GridCellEditingContext`). A scroll in that commit reveals only
+ * the clipped part of the message, and the message then shows past the edge
+ * of the scroll container. @internal
  */
 function GridEditMessage({ id, children }: { id: string; children: ReactNode }) {
 	const cell = useGridCellEditing()
 
+	const placed = useGridEditPlaced()
+
+	const [node, setNode] = useState<HTMLSpanElement | null>(null)
+
+	useLayoutEffect(() => {
+		if (placed) node?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+	}, [placed, node])
+
 	if (cell && !cell.editing) return null
 
 	return (
-		<span ref={revealMessage} id={id} role="alert" className={cn(k.edit.error.base)}>
+		<span ref={setNode} id={id} role="alert" className={cn(k.edit.error.base)}>
 			{children}
 		</span>
 	)
@@ -217,7 +226,8 @@ function GridSettleControls({
  *
  * @remarks The new-row slot mounts it too, under {@link NEW_ROW_KEY}. There
  * its label names the new row, and `validate` reads a cell only once it holds
- * a value, so an empty row shows no error.
+ * a value, so an empty row shows no error. After a blocked add, a required cell
+ * with no value shows its error as a refusal, until the next edit.
  *
  * @internal
  */
@@ -397,7 +407,8 @@ export function GridCellEditor<T>({
 
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
-		editor?.focus()
+		// The new-row slot stays in view, so a claim there does not scroll the page.
+		editor?.focus(newRow ? { preventScroll: true } : undefined)
 	})
 
 	const cancel = () => {
@@ -511,7 +522,7 @@ export function GridCellEditor<T>({
 function GridEditBelow({ anchor, children }: { anchor: HTMLElement | null; children: ReactNode }) {
 	const open = anchor !== null
 
-	const { refs, floatingStyles, placement } = useFloatingPanel({
+	const { refs, floatingStyles, placement, isPositioned } = useFloatingPanel({
 		placement: 'bottom-end',
 		open,
 		reference: anchor,
@@ -530,7 +541,7 @@ function GridEditBelow({ anchor, children }: { anchor: HTMLElement | null; child
 			data-side={placement.split('-')[0]}
 			className={cn(k.edit.below)}
 		>
-			{children}
+			<GridEditPlacedContext value={isPositioned}>{children}</GridEditPlacedContext>
 		</FloatingSurface>
 	)
 }
