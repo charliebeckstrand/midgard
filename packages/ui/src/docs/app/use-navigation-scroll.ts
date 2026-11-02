@@ -9,8 +9,8 @@ import { useLocation } from 'react-router'
  * navigation gives a new location. The ids of the docs are ASCII, so the hash
  * is the id.
  *
- * The sidebar and the row of tabs keep their current item in view on their
- * own (`SidebarItem`, `useTabListScroll`).
+ * The sidebar keeps its current item in view on its own (`SidebarItem`).
+ * The row of tabs paints at its start (`useTabListScroll`).
  *
  * @param page - The path of the page, the same for each of its tabs.
  */

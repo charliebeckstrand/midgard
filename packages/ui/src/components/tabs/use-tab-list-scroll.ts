@@ -1,43 +1,20 @@
 'use client'
 
-import { useComposedRefs } from 'motion/react'
-import { type FocusEvent, type RefCallback, useRef } from 'react'
-import { type ScrollWithinOptions, scrollNodeWithin } from '../../hooks/use-scroll-within'
+import { type FocusEvent, useRef } from 'react'
+import { scrollNodeWithin } from '../../hooks/use-scroll-within'
 import type { TabsOrientation } from './context'
 import { FLOW_SCROLL, TAB_SELECTOR } from './tabs-constants'
 
-/** Matches the current (selected) tab; `Tab` stamps `data-current` on the active trigger. */
-const CURRENT_TAB_SELECTOR = '[data-slot="tab"][data-current]'
-
-/** Scrolls the current tab into view in `scroller`, if a tab is current. React gives `null` on detach. */
-function revealCurrentTab(scroller: HTMLDivElement | null, options: ScrollWithinOptions) {
-	const tab = scroller?.querySelector<HTMLElement>(CURRENT_TAB_SELECTOR)
-
-	if (scroller && tab) scrollNodeWithin(scroller, tab, options)
-}
-
 /**
- * Ref callbacks of the viewport, one for each axis, so each keeps one identity.
- * React attaches a ref in the commit, before the browser paints, so a list that
- * mounts on the client paints with the current tab in view.
- */
-const REVEAL_CURRENT_TAB: Record<TabsOrientation, RefCallback<HTMLDivElement>> = {
-	horizontal: (scroller) => revealCurrentTab(scroller, FLOW_SCROLL.horizontal),
-	vertical: (scroller) => revealCurrentTab(scroller, FLOW_SCROLL.vertical),
-}
-
-/**
- * Keeps the active tab visible inside the scroll viewport. When the viewport
- * attaches, it brings the current tab into view, so a deep-linked or
- * overflowed selection survives page load and a client navigation. A list that
- * mounts on the client paints with the tab in view. A server-rendered list
- * paints before hydration, so its tab scrolls at hydration, unless the app
- * scrolls it before the first paint. The returned `onFocus` handler goes on
- * the tab list in the viewport. It does the same for whichever tab takes
- * focus, so roving never strands focus off-screen. A tab that becomes current
- * without focus, as on the Back button of the browser, scrolls through
- * {@link useTabSelectScroll}. Each scopes the scroll to the viewport, never an
- * outer container or the page.
+ * Keeps a focused tab visible inside the scroll viewport. The returned
+ * `onFocus` handler goes on the tab list in the viewport. It scrolls whichever
+ * tab takes focus into view, so roving never strands focus off-screen. A tab
+ * that becomes current without focus, as on the Back button of the browser,
+ * scrolls through {@link useTabSelectScroll}. Each scopes the scroll to the
+ * viewport, never an outer container or the page.
+ *
+ * A mount does not scroll. The server and the client paint the row at its
+ * start, so the first paint and the hydrated page agree.
  *
  * @param orientation - List flow axis; selects the scroll axis.
  * @param enabled - Off for the segment variant, which renders no viewport.
@@ -45,11 +22,6 @@ const REVEAL_CURRENT_TAB: Record<TabsOrientation, RefCallback<HTMLDivElement>> =
  */
 export function useTabListScroll(orientation: TabsOrientation, enabled: boolean) {
 	const scrollRef = useRef<HTMLDivElement>(null)
-
-	const setScroller: RefCallback<HTMLDivElement> = useComposedRefs(
-		scrollRef,
-		REVEAL_CURRENT_TAB[orientation],
-	)
 
 	const options = FLOW_SCROLL[orientation]
 
@@ -69,5 +41,5 @@ export function useTabListScroll(orientation: TabsOrientation, enabled: boolean)
 		if (tab && scroller.contains(tab)) scrollNodeWithin(scroller, tab, options)
 	}
 
-	return { setScroller, onFocus }
+	return { scrollRef, onFocus }
 }
