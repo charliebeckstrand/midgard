@@ -59,6 +59,10 @@ type GridGroupLeafRowProps<T> = {
 	toggleRow: (key: string | number) => void
 	selectable: boolean
 	rowLabel?: string
+	/** Whether the row shows its loading state, from {@link GridRowsProps.rowLoading}. @defaultValue false */
+	loading?: boolean
+	/** The class of the row, from {@link GridRowsProps.rowClassName}. */
+	className?: string
 	onRowClick?: GridRowClick<T>
 	onCellClick?: GridCellClick<T>
 	onRowDoubleClick?: GridRowClick<T>
@@ -266,6 +270,8 @@ function GridGroupLeafRowImpl<T>({
 	toggleRow,
 	selectable,
 	rowLabel,
+	loading = false,
+	className,
 	onRowClick,
 	onCellClick,
 	onRowDoubleClick,
@@ -324,8 +330,11 @@ function GridGroupLeafRowImpl<T>({
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
 				tabIndex={staticStop ? 0 : undefined}
+				// As on a flat row (see `GridRow`).
 				className={cn(
+					loading && k.row.loading,
 					rowClickableClass({ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick }),
+					className,
 				)}
 			>
 				{columns.map((col, index) => {
@@ -389,6 +398,8 @@ export function leafRowProps<T>(
 		toggleRow: props.toggleRow,
 		selectable: props.selectable,
 		rowLabel: props.rowLabel?.(leaf.row),
+		loading: props.rowLoading?.(leaf.row) ?? false,
+		className: props.rowClassName?.(leaf.row),
 		onRowClick: props.onRowClick,
 		onCellClick: props.onCellClick,
 		onRowDoubleClick: props.onRowDoubleClick,
