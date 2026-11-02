@@ -8,6 +8,8 @@
 
 1.3 Flag irreversible actions; perform only on instruction.
 
+1.4 Fix the cause of a bug in each place that it reaches, with one rule and the simplest change. Do not hide a symptom with a heuristic, a special case, or a lint suppression. A timing fix is deterministic: never reorder work to win a race.
+
 ## 2. Voice
 
 2.1 Write short, technical prose; assume domain fluency. Cut filler and repetition, not the grammar words that STE keeps.
@@ -34,7 +36,7 @@
 
 3.6 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
 
-3.7 Use the Playwright tools to examine a UI change in a real browser before you report it as done.
+3.7 Use the Playwright tools to examine a UI change in a real browser before you report it as done. Before a refactor merges, run `pnpm test:browser` and compare the interactions of the docs app with main.
 
 3.8 A deployment comes only from `deploy.yml`. Never create, change, or delete an App Platform app by hand.
 
@@ -49,6 +51,8 @@
 4.3 A wide diff can push the pre-push gate past a two-minute timeout. Run `git push` with a ten-minute timeout, and never bypass hooks to beat one.
 
 4.4 Never rewrite the history of a pushed branch that another author uses: no rebase, no amend, and no force-push. Merge the base branch in.
+
+4.5 Add each new MCP server to `.mcp.json` in its own pull request.
 
 ---
 
