@@ -236,7 +236,6 @@ export function useResizablePanel({
 	onResizeStart,
 	onResizeEnd,
 }: PanelResize) {
-	const dragRef = useRef<DragState | null>(null)
 	const cleanupRef = useRef<(() => void) | null>(null)
 
 	// The pointer that drives the drag, on whichever handle it pressed.
@@ -337,7 +336,7 @@ export function useResizablePanel({
 
 		const startPos = orientation === 'horizontal' ? event.clientX : event.clientY
 
-		dragRef.current = {
+		const drag: DragState = {
 			handleIndex,
 			startPos,
 			startSizes: [...sizes],
@@ -372,10 +371,6 @@ export function useResizablePanel({
 		}
 
 		const onMove = (event: PointerEvent) => {
-			const drag = dragRef.current
-
-			if (!drag) return
-
 			const { orientation: currentOrientation, constraints } = readLayout()
 
 			// A coordinate on the new axis does not agree with a start and a length
@@ -402,8 +397,6 @@ export function useResizablePanel({
 		}
 
 		const onUp = () => {
-			dragRef.current = null
-
 			setDragging(null)
 
 			// Flush the final position synchronously so the last move isn't dropped
