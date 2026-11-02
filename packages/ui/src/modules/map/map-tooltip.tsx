@@ -276,8 +276,8 @@ export function MapTooltip(props: MapTooltipProps) {
 	const open = card !== null && point !== null
 
 	// `track="point"`: a pure-hover readout repositions on every pointer move, so
-	// it skips autoUpdate's per-open observer wiring. That is ~1.5x cheaper
-	// across the open/reposition/teardown cycle (`tooltip-track.bench`). Safe
+	// it skips autoUpdate's per-open observer wiring. That drops the observer
+	// setup and teardown of each open (`tooltip-track.bench.tsx`). Safe
 	// here because the map tooltip has no click-pinned mode that would need
 	// autoUpdate across a scroll.
 	return (
