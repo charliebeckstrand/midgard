@@ -35,8 +35,8 @@ export function stickyHeadInset(table: HTMLTableElement): number {
 /**
  * The insets that the grid's own sticky chrome would lay over a cell scrolled to
  * the viewport edge. The top inset is the height that the sticky header covers
- * (see {@link stickyHeadInset}). The side insets are the pinned columns' widths,
- * measured from the first header row's sticky cells.
+ * (see {@link stickyHeadInset}). The side insets reach the far edge of the
+ * pinned columns, measured from the first header row's sticky cells.
  * The new-row slot of an editable grid sticks too. Its height adds to the top
  * or the bottom inset of each other cell (see {@link slotInsets}). The width
  * of its Add cell adds to the side inset of the other cells of the slot. Applied as
@@ -78,10 +78,13 @@ export function obscuringInsets(cell: HTMLElement): {
 }
 
 /**
- * Adds the width of `element` to the side inset that it covers, when it
- * sticks to a side edge. A pinned cell overlays one physical side. Its offset
- * is a logical inset, but the computed `left` or `right` is physical. The top
- * edge comes from `stickyHeadInset`, which reads each header row.
+ * Grows the side inset that `element` covers to its far edge, when it sticks
+ * to a side edge. A pinned cell overlays one physical side, from its offset to
+ * its offset plus its width. The offset counts each sticky cell ahead of it,
+ * and also the Add column of the new-row slot, which does not stick in the
+ * header row. Its offset is a logical inset, but the computed `left` or
+ * `right` is physical. The top edge comes from `stickyHeadInset`, which reads
+ * each header row.
  * @internal
  */
 function addSideInset(sides: { left: number; right: number }, element: Element): void {
@@ -91,8 +94,11 @@ function addSideInset(sides: { left: number; right: number }, element: Element):
 
 	const width = element.getBoundingClientRect().width
 
-	if (style.left !== 'auto') sides.left += width
-	else if (style.right !== 'auto') sides.right += width
+	if (style.left !== 'auto') {
+		sides.left = Math.max(sides.left, Number.parseFloat(style.left) + width)
+	} else if (style.right !== 'auto') {
+		sides.right = Math.max(sides.right, Number.parseFloat(style.right) + width)
+	}
 }
 
 /**

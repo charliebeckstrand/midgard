@@ -102,6 +102,42 @@ describe('grid column sizing rules (real browser)', () => {
 		expect(await settledValue(() => widths(container).join())).toBe(held.join())
 	})
 
+	it('keeps a seeded narrow width when another column auto-sizes', async () => {
+		type Stock = { id: number; name: string; quantity: number }
+
+		const onValueChange = vi.fn<(sizing: GridColumnSizingState) => void>()
+
+		const { container } = renderUI(
+			frame(
+				600,
+				<Grid
+					resizable
+					columns={[
+						{ id: 'name', title: 'Name', cell: (row: Stock) => row.name },
+						{ id: 'quantity', title: 'Quantity', cell: (row: Stock) => row.quantity, width: 64 },
+					]}
+					rows={[{ id: 1, name: 'Bolts', quantity: 3 }]}
+					getKey={(row) => row.id}
+					columnSizing={{ onValueChange }}
+				/>,
+			),
+		)
+
+		await waitFor(() => expect(width(container, 'name')).toBeGreaterThan(60))
+
+		const seeded = await settledValue(() => width(container, 'quantity'))
+
+		menuAction(container, 'name', 'Auto-size this column')
+
+		await frames()
+
+		expect(await settledValue(() => width(container, 'quantity'))).toBe(seeded)
+
+		for (const [sizing] of onValueChange.mock.calls) {
+			if (sizing.quantity !== undefined) expect(Math.round(sizing.quantity)).toBe(seeded)
+		}
+	})
+
 	it('gives each column the width "Auto-size this column" gives it', async () => {
 		const all = await mount()
 

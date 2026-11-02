@@ -2,6 +2,7 @@
 
 import type { ColumnPinningState } from '@tanstack/react-table'
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { rewatchResize } from '../../utilities/rewatch-resize'
 import { pinSide } from './engine/grid-pin/layout'
 import {
 	type FrozenCell,
@@ -123,13 +124,26 @@ export function useGridPinnedOffsets<T>({
 		// that land in the frame of the tick then grew the scroll region of the table
 		// in the same delivery. Its observer watches it above the header cells, so the
 		// browser fired "ResizeObserver loop completed with undelivered notifications".
+		//
+		// The table mounts again inside the dnd context of a reorder, so each tick
+		// also moves the observation to the cells that it scans (see `rewatchResize`).
+		let watched: readonly HTMLElement[] = scan.map(({ cell }) => cell)
+
 		const observer = new ResizeObserver(() => {
-			const next = publish(cells())
+			const rescan = cells()
+
+			watched = rewatchResize(
+				observer,
+				watched,
+				rescan.map(({ cell }) => cell),
+			)
+
+			const next = publish(rescan)
 
 			if (next) write(next)
 		})
 
-		for (const { cell } of scan) observer.observe(cell)
+		for (const cell of watched) observer.observe(cell)
 
 		return () => observer.disconnect()
 	}, [enabled, publish, cells, write])

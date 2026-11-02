@@ -430,6 +430,42 @@ describe('grid new row (real browser)', () => {
 		)
 	})
 
+	it('keeps a body cell clear of a right-pinned column that sticks beside the Add column', async () => {
+		const { scroll } = renderGrid(
+			{ newRow: 'bottom' },
+			{
+				columns: [
+					{ ...(columns[0] as GridColumn<Row>), width: 300 },
+					// Narrow enough to show between the edge and the pinned column.
+					{ ...(columns[1] as GridColumn<Row>), width: 120 },
+					{ id: 'tag', title: 'Tag', cell: () => 'tag', width: 120, pinned: 'right' },
+				],
+			},
+		)
+
+		const pinned = () =>
+			present(
+				scroll.querySelector<HTMLElement>('tbody tr[data-row-index="0"] td[data-grid-col="tag"]'),
+				'the pinned cell of row 1',
+			)
+
+		await firstWindow(scroll)
+
+		await waitFor(() => expect(getComputedStyle(pinned()).position).toBe('sticky'))
+
+		screen.getByRole('grid').focus()
+
+		await userEvent.keyboard('{Home}{ArrowRight}')
+
+		await waitFor(() => expect(activeCell()).toHaveAttribute('data-grid-col', 'count'))
+
+		await waitFor(() =>
+			expect(activeCell().getBoundingClientRect().right).toBeLessThanOrEqual(
+				pinned().getBoundingClientRect().left + 1,
+			),
+		)
+	})
+
 	it('keeps the editors in place, and out of reach, while an async add is in flight', async () => {
 		const flight = deferred()
 

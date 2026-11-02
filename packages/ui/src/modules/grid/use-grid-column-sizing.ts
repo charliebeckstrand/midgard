@@ -13,6 +13,7 @@ import { flushSync } from 'react-dom'
 import type { DensityStep } from '../../core/density'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { isDataColumn } from '../../utilities'
+import { rewatchResize } from '../../utilities/rewatch-resize'
 import { DEFAULT_COLUMN_SIZE } from './engine/grid-constants'
 import { type GridFitMode, headerCells } from './engine/grid-sizing/fit-layout'
 import { isContentSized, measureColumns } from './engine/grid-sizing/measure'
@@ -623,9 +624,17 @@ export function useGridColumnSizing<T>({
 
 		if (!automatic || !container || typeof ResizeObserver === 'undefined') return
 
-		const observer = new ResizeObserver(() => onLayout())
+		// The table mounts again inside the dnd context of a reorder, so each tick
+		// moves the observation to the header cells that it finds (see `rewatchResize`).
+		let watched: readonly HTMLElement[] = [...headerCells(container, columns).values()]
 
-		for (const th of headerCells(container, columns).values()) observer.observe(th)
+		const observer = new ResizeObserver(() => {
+			watched = rewatchResize(observer, watched, [...headerCells(container, columns).values()])
+
+			onLayout()
+		})
+
+		for (const th of watched) observer.observe(th)
 
 		return () => observer.disconnect()
 	}, [automatic, containerRef, columns, onLayout])

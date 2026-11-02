@@ -52,6 +52,26 @@ describe('clampSizingToFloors', () => {
 		expect(sizing).toEqual({ name: 30 })
 	})
 
+	it('leaves a width that the update does not change', () => {
+		// A seeded width of 64 under a floor of 100 holds while another column changes.
+		const prev = { quantity: 64, name: 120 }
+
+		const floors = new Map([
+			['quantity', 100],
+			['name', 90],
+		])
+
+		expect(clampSizingToFloors({ quantity: 64, name: 60 }, floors, prev)).toEqual({
+			quantity: 64,
+			name: 90,
+		})
+
+		expect(clampSizingToFloors({ quantity: 50, name: 120 }, floors, prev)).toEqual({
+			quantity: 100,
+			name: 120,
+		})
+	})
+
 	it('is a no-op for an empty sizing or empty floors', () => {
 		expect(clampSizingToFloors({}, new Map([['name', 90]]))).toEqual({})
 

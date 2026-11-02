@@ -226,8 +226,8 @@ export function resizeOptions<T>(args: {
 }
 
 /**
- * Raises each width in a column-sizing update to its measured floor, so a
- * drag-resize can't pull a column below the width its header needs. A
+ * Raises each width that a column-sizing update changes to its measured floor,
+ * so a drag-resize can't pull a column below the width its header needs. A
  * single-word header stays whole (it never truncates), and a multi-word one
  * keeps its affordance icons. The engine's resize handler writes the dragged
  * width clamped only at zero (the `minSize` floor is applied later, at read
@@ -237,15 +237,19 @@ export function resizeOptions<T>(args: {
  *
  * `floors` carries only the columns the autosizer has measured. A column without
  * an entry (none recorded yet, or width-controlled) is left to the engine's own
- * `minSize`. Returns the input object unchanged when nothing sits below its
- * floor. The autosizer's no-op ticks therefore don't churn a fresh object
- * through the controlled state, and re-render the grid for nothing.
+ * `minSize`. A width that is the same as in `prev` stays as it is: a seeded
+ * `width` under the floor keeps its width while another column changes, and
+ * the autosizer measures the floors again at that change. Returns the input
+ * object unchanged when nothing sits below its floor. The autosizer's no-op
+ * ticks therefore don't churn a fresh object through the controlled state, and
+ * re-render the grid for nothing.
  *
  * @internal
  */
 export function clampSizingToFloors(
 	sizing: ColumnSizingState,
 	floors: ReadonlyMap<string, number>,
+	prev?: ColumnSizingState,
 ): ColumnSizingState {
 	let result = sizing
 
@@ -253,6 +257,8 @@ export function clampSizingToFloors(
 		const floor = floors.get(id)
 
 		const width = sizing[id]
+
+		if (width === prev?.[id]) continue
 
 		if (floor != null && width != null && width < floor) {
 			if (result === sizing) result = { ...sizing }

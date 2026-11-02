@@ -645,7 +645,7 @@ export function useGridTable<T>({
 	const onColumnSizingChange = useCallback<OnChangeFn<ColumnSizingState>>(
 		(updater) =>
 			setColumnSizingState((prev) =>
-				clampSizingToFloors(functionalUpdate(updater, prev ?? EMPTY_SIZING), columnFloors),
+				clampSizingToFloors(functionalUpdate(updater, prev ?? EMPTY_SIZING), columnFloors, prev),
 			),
 		[setColumnSizingState, columnFloors],
 	)
