@@ -52,17 +52,12 @@ describe('map side-legend container query (real browser)', () => {
 	})
 
 	it('gives each stacked entry the width of the widest', async () => {
-		const { container } = await renderZones(['Pacific', 'Mountain', 'East'], {
-			legend: 'right',
-			frame: { width: 300 },
-		})
+		const { container } = await zones(300)
 
 		const widths = allBySlot(container, 'map-legend-item').map(
 			(entry) => entry.getBoundingClientRect().width,
 		)
 
-		// A tap in the space after a short name otherwise touched no entry, and iOS
-		// moved it to the entry above.
 		expect(widths).toHaveLength(3)
 
 		for (const width of widths) expect(width).toBeNear(Math.max(...widths), HALF_PIXEL)
