@@ -13,7 +13,7 @@ You are the caller. The two bug agents read and judge: `bug-sweeper` raises clai
 | --- | --- |
 | Area | The files that the reader names in `$ARGUMENTS`. |
 | Scope | A part of the area that one sweeper reads in full. It has an id (`B01`, `B02`, and so on) and an explicit file list with a line count for each file. |
-| Unit | One component, module, or hook, with all of its source files. |
+| Unit | One component, module, or hook of `packages/ui`: the source files in its folder, each recipe file named for it under `packages/ui/src/recipes` (such as `kata/accordion.ts` and `kiso/kokkaku/accordion.ts`), and its docs page folder `packages/ui/src/docs/pages/<tier>/<unit>`. |
 | Claim | A defect that a sweeper names: a file, a symbol, a trigger, and a wrong result. |
 | Evidence | The part of a claim that holds the line numbers, the trace, the suspected severity, and the fix idea. The verifier never sees it in a blind pass. |
 | Lead | A defect that an agent saw in a file outside its scope, or did not judge. A lead is not a finding. |
@@ -25,12 +25,12 @@ You are the caller. The two bug agents read and judge: `bug-sweeper` raises clai
 
 ## 2. Modes
 
-Take the mode from `$ARGUMENTS`. When `$ARGUMENTS` names no mode, the mode is `area`.
+Take the mode from `$ARGUMENTS`. When `$ARGUMENTS` names no mode, the mode is `unit` when the area is one unit (its name or its folder), and `area` in each other case.
 
 | Mode | Input | Scopes | Lenses | Floor |
 | --- | --- | --- | --- | --- |
 | `area` | A directory or a file set. | About 5,000 lines each, grouped by theme. | The sweeper uses the lens table of `bug-sweeper.md` §6 as a checklist. It writes no lens lines. | None. |
-| `unit` | One unit, or a family of units that share a mechanism. | The full file list of one unit. | The caller names each lens that applies to the unit (`bug-sweeper.md` §6.3). The sweeper writes one lens line for each lens, and one contract line for each contract sentence. | `medium` (`bug-verifier.md` §6.2). |
+| `unit` | One unit, or a family of units that share a mechanism. | The full file list of one unit (§1). | The caller names each lens that applies to the unit (`bug-sweeper.md` §6.3). The sweeper writes one lens line for each lens, and one contract line for each contract sentence. | `medium` (`bug-verifier.md` §6.2). |
 | `class` | One defect class over a wide area: a lens id from `bug-sweeper.md` §6.2, or a rule that the reader writes. | Candidate sites from a search, cut to about 5,000 lines each. | The one lens of the class. | None. |
 
 ## 3. Plan
@@ -39,7 +39,7 @@ Do every step of this section before the first agent runs.
 
 3.1 When the area is vague, ask the reader one question.
 
-3.2 List each source file of the area with its line count (`wc -l`). Leave out the tests, the benchmarks, and the demo tree (`packages/ui/src/docs/pages`), because the verifier reads the demos as a consumer root. When the area is the demo tree, keep it.
+3.2 List each source file of the area with its line count (`wc -l`). Leave out the tests and the benchmarks. In an `area` or `class` audit, also leave out the demo tree (`packages/ui/src/docs/pages`), because the verifier reads the demos as a consumer root; keep it when the area is the demo tree. In a `unit` audit, keep the docs page folder of the unit (§1). It stays a consumer root for each other unit.
 
 3.3 Cut the list into scopes by the mode (§2). Each file goes in exactly one scope, and the scope lists sum to the whole list of §3.2. Check both with code.
 
@@ -47,15 +47,43 @@ Do every step of this section before the first agent runs.
 
 - Intent sources: `CONVENTIONS.md` §3, §4, §5, §7, §10.7, §10.8, §11.3, and §12.1; `packages/ui/REFERENCE.md` §2; the ARIA Authoring Practices pattern of each role; and the TSDoc, the comments, and the tests of the code.
 
-- Consumer roots: `apps/admin`, `apps/places`, `apps/picks`, `packages/ui/src/docs/pages`, `packages/ui/src/modules`, `packages/ui/src/layouts`, and the shipped defaults of each component. A shipped default is the props and the wiring that a component applies when a consumer passes none. `packages/ui/src/__tests__` is a weaker root: it shows that a shape can be built, not that it ships.
+- Consumer roots: `apps/admin`, `apps/places`, `apps/picks`, `packages/ui/src/docs` (the pages, the kit, and the app), `packages/ui/src/modules`, `packages/ui/src/layouts`, and the shipped defaults of each component. A shipped default is the props and the wiring that a component applies when a consumer passes none. `packages/ui/src/__tests__` and `packages/ui/src/docs/fixtures` are test roots: they show that a shape can be built, not that it ships.
 
 For another package, write the two lists yourself, and put them in the record.
 
-3.5 Build the digest once. It holds the open rows, the ruled-out entries, and the surfaced entries of each open record that covers the area, and each ruling of the reader that makes a behavior deliberate. In a `unit` audit, it also holds each finding of the unit that the reader declined before. When no prior art exists, the digest is the word `none`.
+3.5 Build the digest once. It holds:
+
+- The open rows, the ruled-out entries, and the surfaced entries of each open record that covers the area.
+
+- Each ruling of the reader that makes a behavior deliberate, which you can quote: a settled question, a pull request, or a decision of the reader that you have in writing.
+
+- In a `unit` audit, each finding of the unit that the reader declined before.
+
+An earlier report of `/assess` is not prior art: no blind pass judged it. When no prior art exists, the digest is the word `none`.
+
+The records live on unmerged branches, and old branches keep stale copies. This lists each open record once, with the newest branch that holds it. It skips a record that `main` held and then deleted, and a record with no `◯ OPEN` row:
+
+```sh
+git fetch -q origin '+refs/heads/*:refs/remotes/origin/*'
+for b in $(git branch -r --format='%(refname:short)'); do
+  for f in $(git ls-tree -r --name-only "$b" -- packages/ui/docs/audits | grep 'AUDIT\.md$'); do
+    [ -n "$(git log -1 --diff-filter=D --format=%h origin/main -- "$f")" ] && continue
+    git show "$b:$f" | grep -q '| ◯ OPEN' && echo "$(git log -1 --format=%cI "$b" -- "$f") $f $b"
+  done
+done | sort -r | awk '!seen[$2]++'
+```
+
+Read a record with `git show <branch>:<path>`. A record covers the area when one of its rows names a file of the area.
 
 3.6 Make a work folder in the scratchpad, such as `$WORK`. Each agent writes its return there as JSON, at a path that you give. A script, not a hand copy, moves the data between the passes.
 
-3.7 Give the reader the cost plan: the count of scopes, the count of agent calls in each pass (§4 to §5), and the total. The agents run on Opus. To cut the cost, one verifier call can judge two scopes. Wait for the reader to approve the plan.
+3.7 Give the reader the cost plan: the count of scopes, the count of agent calls in each pass (§4 to §5), and an estimate of the tokens. The agents run on Opus. For scale, the 2026-11-02 Accordion unit audit (one scope of 877 lines) used about 600k tokens: the sweep 260k, the judge call 150k, the overturn 110k, and the merge 80k. Under §5.4 and §5.5, that audit now runs no overturn call and no merge call. To cut the cost, one verifier call can judge two scopes. Wait for the reader to approve the plan.
+
+3.8 Run each agent as its agent type: `bug-sweeper` or `bug-verifier`. When the Agent tool does not list the type, run a `general-purpose` agent on the `opus` model, and start its prompt with this text. Then give the inputs.
+
+```text
+Read .claude/agents/<type>.md and follow it as your instructions for this task. Use only the tools that its frontmatter names.
+```
 
 ## 4. Sweep
 
@@ -69,7 +97,7 @@ For another package, write the two lists yourself, and put them in the record.
 
 - The output path, such as `$WORK/sweep-B01.json`.
 
-Give it no digest, no record, and no claim or sheet from another scope.
+Give it no digest, no record, no `/assess` report, and no claim or sheet from another scope.
 
 4.2 Run at most 20 agents at a time, and queue the rest.
 
@@ -99,9 +127,9 @@ When it prints a claim, move the line reference of that claim into its evidence,
 
 5.3 Give each `UNLOCATED` claim to a new judge call, alone, with its evidence attached. Write in the record that the claim was not judged blind.
 
-5.4 Run the overturn call (`bug-verifier.md` §3.4) on each confirmed finding at `high` or `medium`, with its sweep evidence attached. In a `unit` audit, include each confirmed finding. When the findings are more than about 40, split the call by scope.
+5.4 Run the overturn call (`bug-verifier.md` §3.4) on each confirmed finding at `high` or `medium`, with its sweep evidence attached. When no finding is at `high` or `medium`, run no overturn call. A `low` finding is not worth the cost of an overturn. When the findings are more than about 40, split the call by scope.
 
-5.5 Run one merge call (`bug-verifier.md` §3.5) over all the sheets, after the overturn.
+5.5 When the audit has two or more scopes, run one merge call (`bug-verifier.md` §3.5) over all the sheets, after the overturn. When it has one scope, run no merge call. Renumber the ids with code instead: `B01-G1` to `M1`, `B01-S1` to `S1`, and `B01-Q1` to `Q1`.
 
 ## 6. Record
 
@@ -120,6 +148,8 @@ When it prints a claim, move the line reference of that claim into its evidence,
 - `## Findings`: the counts by severity, by reach, and by kind, the legend of the `Status` cell, and a table with the columns `Row`, `File`, `Symbol`, `Verdict`, `Severity`, `Reach`, `Kind`, `Group`, and `Status`. The row id is the claim id.
 
 - `## Mechanisms`: one entry for each row, with the parts `File`, `Mechanism`, `Trigger`, `Documented intent`, `Reach`, `Severity`, and `Prior art`. Quote each cited line as `path:line` plus its text, because the line numbers drift as the steps merge. The entry is the specification of the fix.
+
+- `## Lens and contract lines`: in a `unit` audit only. One table with the columns `Lens`, `Result`, and `Guards or claims`, from the `lensLines` of the sweep. One table with the columns `Contract`, `Result`, and `Code or claims`, from its `contractLines`.
 
 - `## Root-cause groups`: each group id, its cause in one sentence, and its members.
 

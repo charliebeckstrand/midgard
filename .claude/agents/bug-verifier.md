@@ -25,13 +25,13 @@ tools: Read, Grep, Glob, Write
 | Kind | Inputs | Task |
 | --- | --- | --- |
 | `judge` | The stripped claims of one or two scopes, the scope ids, the file lists, the intent sources, the consumer roots, the digest, and the output path. | Rule on each claim blind (§3). |
-| `overturn` | The confirmed findings at `high` and `medium`, or each confirmed finding in a `unit` audit, with the sweep evidence attached. The intent sources, the consumer roots, the digest, and the output path. | Try to prove each finding deliberate or unreachable (§3.4). |
-| `merge` | Each sheet of the audit, after the overturn, and the output path. | Join the groups across the scopes, and order the steps (§3.5). |
+| `overturn` | The confirmed findings at `high` and `medium`, with the sweep evidence attached. The intent sources, the consumer roots, the digest, and the output path. | Try to prove each finding deliberate or unreachable (§3.4). |
+| `merge` | Each sheet of an audit of two or more scopes, after the overturn, and the output path. | Join the groups across the scopes, and order the steps (§3.5). |
 | `settle` | The answers of the reader, word for word, the questions that they settle, the steps that the questions gate, and the output path. | Derive again each step that an answer changes (§3.6). |
 
 2.2 A stripped claim has the fields `id`, `file`, `symbol`, `trigger`, `wrongResult`, `contract`, and `lens`. In a judge call, refuse a claim that carries an `evidence` field or a line reference such as `path:42`, and name it in the return: the strip must run first. A line count in a file list is not a line reference.
 
-2.3 Answer reach against the consumer roots that the caller names, and no others. A root list from the wrong package gives a confident wrong answer. A shipped default is a root: it is the props and the wiring that a component applies when a consumer passes none, and it makes a trigger reachable with no consumer at all.
+2.3 Answer reach against the consumer roots that the caller names, and no others. A root list from the wrong package gives a confident wrong answer. A shipped default is a root: it is the props and the wiring that a component applies when a consumer passes none, and it makes a trigger reachable with no consumer at all. A root that the caller names as a test root gives reach `test-only`, never `shipped`.
 
 2.4 The digest holds the earlier rulings on the area: open rows, ruled-out entries, surfaced entries, and the rulings of the reader. When the digest is `none`, or no digest arrives, set `priorArt` to `NONE` and say that the digest was empty or missing. Never widen the read to find prior art.
 
@@ -71,11 +71,11 @@ tools: Read, Grep, Glob, Write
 
 - The source of the owning package: a vendored copy of the module.
 
-Quote the entry that applies beside the citation, or state that none applies. Cite the code that the build resolves, not the code that the package name implies.
+pnpm does not put a dependency in the root `node_modules`. Read it through the link in the owning package, such as `packages/ui/node_modules/motion`, which points into `node_modules/.pnpm/<name>@<version>.../node_modules/<name>`. A package that is missing from the root `node_modules` is not missing from the build. Quote the entry that applies beside the citation, or state that none applies. Cite the code that the build resolves, not the code that the package name implies.
 
-3.4 Overturn call: read the conventions, the TSDoc, the surface docs, the digest, and the tests. Try to prove each finding deliberate or unreachable. Rule `REFUTED` only when a source shows that the behavior is intended, or when the trigger cannot reach the wrong result. A known defect is not deliberate: when a comment, a test, a pending-fix list, or an open record names the defect as one to fix, keep the verdict, quote the source under `priorArt`, and set `known` to `true`. You can lower a severity; give the reason. Return each finding with `KEPT`, `REFUTED`, or `LOWERED`.
+3.4 Overturn call: read the conventions, the TSDoc, the surface docs, the digest, and the tests. Try to prove each finding deliberate or unreachable. Rule `REFUTED` only when a source shows that the behavior is intended, or when the trigger cannot reach the wrong result. A known defect is not deliberate: when a comment, a test, a pending-fix list, or an open record names the defect as one to fix, keep the verdict, quote the source under `priorArt`, and set `known` to `true`. You can lower a severity. Return each finding with its `overturn` field: `KEPT`, `REFUTED`, or `LOWERED`, and the reason.
 
-3.5 Merge call: merge the groups whose quoted mechanisms share a file and a symbol. Order the steps across all the sheets, and compute the file set of each step again. Number the merged groups `M1`, `M2`, and so on, the steps `S1`, `S2`, and so on, and the questions `Q1`, `Q2`, and so on. Change no verdict, no severity, no reach, and no kind.
+3.5 Merge call: merge two groups when they have the same root cause, so that one change fixes both. A shared file and symbol is a reason to compare two groups, not a reason to merge them. Order the steps across all the sheets, and compute the file set of each step again. Number the merged groups `M1`, `M2`, and so on, the steps `S1`, `S2`, and so on, and the questions `Q1`, `Q2`, and so on. Change no verdict, no severity, no reach, and no kind.
 
 3.6 Settle call: derive again only the steps that an answer changes. Do not open a settled question again.
 
@@ -107,6 +107,7 @@ Quote the entry that applies beside the citation, or state that none applies. Ci
       "group": "B01-G1",
       "priorArt": "NONE, with the terms that you searched.",
       "known": false,
+      "overturn": null,
       "dependency": "The resolution entry beside each node_modules citation, or none."
     }
   ],
@@ -141,7 +142,13 @@ Quote the entry that applies beside the citation, or state that none applies. Ci
 
 - `verdict`: `CONFIRMED`, `NARROWED`, `RESTATED`, `REFUTED`, or `UNLOCATED`. `NARROWED` is a claim whose mechanism holds but whose wrong result the trigger reaches only in part: confirm the part that you trace, and put the part that you do not in `ruledOut` with its quoted guard. `UNLOCATED` is a claim whose symbol you cannot find; the caller gives it to a new call with its evidence.
 
-- `reach.class`: `shipped` when a consumer root other than the tests runs the trigger, `test-only` when only `packages/ui/src/__tests__` or another test runs it, and `none` when no site runs it. Set `sites` to an empty array when the class is `none`.
+- `severity` and `kind`: `null` when the verdict is `REFUTED` or `UNLOCATED`. Each other verdict takes both.
+
+- `reach.class`: `shipped` when a consumer root other than a test root runs the trigger, `test-only` when only a test root or another test runs it, and `none` when no site runs it. Set `sites` to an empty array when the class is `none`.
+
+- `overturn`: `null` in a judge call. An overturn call sets it to `{ "result": "KEPT", "reason": "One sentence." }`, with the result `KEPT`, `REFUTED`, or `LOWERED`.
+
+- `files` of a step: the files of the step under the recommended answer of its gate question. When another answer changes the file set, the `axes` of the question name the files of that answer.
 
 - `id` of a group, a step, or a question: the scope id, then `G`, `S`, or `Q` and a number, such as `B01-G1`. The merge call numbers them again across the audit.
 
@@ -181,7 +188,9 @@ Quote the entry that applies beside the citation, or state that none applies. Ci
 
 - `correctness`: the code breaks its contract, and the user sees no wrong result. Examples are a wrong ARIA attribute, a type that admits a value the code rejects, a TSDoc sentence that the code does not keep, and an extra render.
 
-- `polish`: the behavior is correct, but the code strays from the scale or the conventions. Examples are a size or a gap outside the scale, a motion that does not match its family, a text that breaks [`STE.md`](../../STE.md), and dead surface.
+- `polish`: the behavior is correct, but the code strays from the scale or the conventions. Examples are a size or a gap outside the scale, a motion that does not match its family, a text that breaks [`STE.md`](../../STE.md), and dead surface: a public export that nothing in the consumer roots or the area imports.
+
+A finding with reach `test-only` or `none` is `correctness` at most; `bug` needs reach `shipped`.
 
 6.4 Fix the `bug` findings first, then the `correctness` findings, then the `polish` findings.
 
