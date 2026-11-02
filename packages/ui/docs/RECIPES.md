@@ -25,7 +25,7 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | `narabi` 並び | Sibling arrangement: field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, stacked item text, truncation, and flex primitives. `fit` caps a floating panel. |
 | `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, and the `fade` mask. |
 | `hannou` 反応 | Interaction feedback: `disabled`, `busy`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes. |
-| `sen` 線 | Borders, rings, dividers, focus indicators, and forced-colors safety nets. |
+| `sen` 線 | Borders, rings, dividers, focus indicators, table gridlines, the resize grip, and forced-colors safety nets. |
 | `shaku` 尺 | Dimension scales per surface (`icon`, `panel`, `mark`). `icon` holds the forms of the icon scale (`icon.base`, `icon.slot`). |
 | `ugoki` 動き | Motion: tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
 | `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
@@ -42,7 +42,7 @@ A group holds slots, axes, and defaults in the shape of a unit. A unit kata that
 | Group | Units |
 |---|---|
 | `control` | `textarea` |
-| `input` (extends `control`) | `input`, `number-input`, the `input` unit of `file-upload` |
+| `input` (extends `control`) | `input`, the `input` unit of `file-upload`. NumberInput renders an `Input`, so it gets the group through it. |
 | `trigger` (extends `control`) | The `list` and `picker` groups |
 | `list` (extends `trigger`) | `listbox`, `combobox` |
 | `picker` (extends `trigger`) | `date-picker`, `color-picker` |

@@ -41,7 +41,7 @@ A unit cannot remove a class of its group, so the shared structure stays shared.
 | Group | Slots and axes | Units |
 |---|---|---|
 | `control` (`control/`) | `base` (the frame), with the `variant` axis for the surface; `field`, `prefix`, `suffix` | `textarea`, and the groups below |
-| `input` (`control/`) | Extends `control`: the `affixed` axis, and the touch gap of two controls in an affix | `input`, `number-input`, the `input` unit of `file-upload` |
+| `input` (`control/`) | Extends `control`: the `affixed` axis, and the touch gap of two controls in an affix | `input`, the `input` unit of `file-upload`. NumberInput renders an `Input`, so it gets the group through it. |
 | `trigger` (`control/`) | Extends `control`: each affix is a press target | The `list` and `picker` groups |
 | `list` (`control/`) | Extends `trigger`: the `options` slot, and the `portal` extra | `listbox`, `combobox` |
 | `picker` (`control/`) | Extends `trigger`: the `root` and `content` extras | `date-picker`, `color-picker` |

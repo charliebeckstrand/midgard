@@ -8,6 +8,8 @@
 
 1.3 Flag irreversible actions; perform only on instruction.
 
+1.4 Fix the cause of a bug in each place that it reaches, with one rule and the simplest change. Do not hide a symptom with a heuristic, a special case, or a lint suppression. A timing fix is deterministic: never reorder work to win a race.
+
 ## 2. Voice
 
 2.1 Write short, technical prose; assume domain fluency. Cut filler and repetition, not the grammar words that STE keeps.
@@ -26,7 +28,7 @@
 
 3.2 For research across many files or subsystems, delegate to subagents, one task each. Read a small, known set of files directly.
 
-3.3 Prove it works; flag anything unverified. Before you report a change as done, run `pnpm check` from the root. It is the pre-push gate: Biome, `check-types`, `test:changed`, and Knip. While you edit, run scoped Vitest (`test:related`). Lefthook runs Biome on staged files before a commit, and `pnpm check` before a push. CI runs the full gate and gates merges.
+3.3 Prove it works; flag anything unverified. Before you report a change as done, run `pnpm check` from the root. It is the pre-push gate: Biome, `check-types`, `test:changed`, `test:workspace`, and Knip. While you edit, run scoped Vitest (`test:related`). Lefthook runs Biome on staged files before a commit, and `pnpm check` before a push. CI runs the full gate and gates merges.
 
 3.4 When you change a public `ui` export, update its TSDoc. Update the related surface index in `packages/ui/docs` in the same commit ([CONVENTIONS.md](CONVENTIONS.md) §12).
 
@@ -34,7 +36,7 @@
 
 3.6 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
 
-3.7 Use the Playwright tools to examine a UI change in a real browser before you report it as done.
+3.7 Use the Playwright tools to examine a UI change in a real browser before you report it as done. Before a refactor merges, run `pnpm test:browser` and compare the interactions of the docs app with main.
 
 3.8 A deployment comes only from `deploy.yml`. Never create, change, or delete an App Platform app by hand.
 
@@ -49,6 +51,8 @@
 4.3 A wide diff can push the pre-push gate past a two-minute timeout. Run `git push` with a ten-minute timeout, and never bypass hooks to beat one.
 
 4.4 Never rewrite the history of a pushed branch that another author uses: no rebase, no amend, and no force-push. Merge the base branch in.
+
+4.5 Add each new MCP server to `.mcp.json` in its own pull request.
 
 ---
 

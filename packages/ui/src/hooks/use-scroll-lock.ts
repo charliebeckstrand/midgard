@@ -67,6 +67,12 @@ function releaseLock() {
  * in a layout effect, before the browser paints the commit that opens the
  * overlay, and released on cleanup or when `active` goes false. It does
  * nothing during SSR.
+ *
+ * An overlay must not scroll the page, so the release puts back no scroll
+ * position. Stop a scroll where it starts, as the overlay does when it focuses
+ * a field with `preventScroll`. The lock does not pin the body with
+ * `position: fixed`, because iOS keeps a touch scroll off a body with
+ * `overflow: hidden`.
  */
 export function useScrollLock(active: boolean): void {
 	useLayoutEffect(() => {
