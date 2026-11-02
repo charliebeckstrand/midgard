@@ -31,6 +31,7 @@ import { type MapHoverTarget, mapMarkDimmed } from './engine/map-hover/target'
 import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
+import { pickedStop } from './engine/map-overlay/selection'
 import { type LngLat, type MapPoint2D, type MapPointShape, POINT_SWATCH } from './engine/types'
 import { dotHitProps, MapDot, MapDotCount, MapDotRing } from './map-dot'
 import { MapDotHalo } from './map-halo'
@@ -281,6 +282,10 @@ type MapPointsSharedProps = {
  * same way. The keyboard reaches it as one stop, which reads and picks every
  * part.
  *
+ * A pick of any part haloes the summary here, behind its group, and the set of
+ * that part draws no halo of its own. A set that does not draw the summary draws
+ * after it, so its own halo would cover the disc, the ring, and the count.
+ *
  * @internal
  */
 function MapPointsShared({
@@ -294,7 +299,7 @@ function MapPointsShared({
 	hit,
 	onPointerLeave,
 }: MapPointsSharedProps) {
-	const { colors, report } = useMapPlat()
+	const { colors, report, selectedOverlay } = useMapPlat()
 
 	const dimmed = useMapPointed((pointed, emphasis) => sharedDimmed(summary, pointed, emphasis))
 
@@ -325,53 +330,68 @@ function MapPointsShared({
 		onContextMenu: menus ? () => report(named, 'menu') : undefined,
 	}
 
+	// A pick of any part haloes the summary. Each part resolves the pick as its own
+	// set does, and a stop of the set holds the dots of the part.
+	const picked = summary.parts.some(
+		(part) =>
+			pickedStop(selectedOverlay, part.id, (member) =>
+				part.members.includes(member) ? part.stop : null,
+			) !== null,
+	)
+
 	// One timing for the set: the ring and the count fade in with the disc.
 	const pop = pointPop(index)
 
 	return (
-		<g
-			data-slot="map-points-shared"
-			className={cn(...k.group(dimmed))}
-			onPointerLeave={onPointerLeave}
-		>
-			<MapDot
-				slot="map-points-cluster"
-				at={at}
-				radius={radius}
-				scale={unitsPerPixel}
-				className={cn(...k.shared.disc)}
-				animate={pops}
-				transition={pop}
-			/>
+		<>
+			{picked && (
+				<MapDotHalo slot="map-points-selected" at={at} radius={radius} scale={unitsPerPixel} />
+			)}
 
-			<MapDotRing
-				at={at}
-				radius={radius}
-				arcs={arcs}
-				scale={unitsPerPixel}
-				animate={pops}
-				transition={pop}
-			/>
+			<g
+				data-slot="map-points-shared"
+				className={cn(...k.group(dimmed))}
+				onPointerLeave={onPointerLeave}
+			>
+				<MapDot
+					slot="map-points-cluster"
+					at={at}
+					radius={radius}
+					scale={unitsPerPixel}
+					className={cn(...k.shared.disc)}
+					animate={pops}
+					transition={pop}
+				/>
 
-			<MapDotCount
-				at={at}
-				count={summary.count}
-				className={cn('text-xs font-semibold tabular-nums', ...k.shared.count)}
-				scale={unitsPerPixel}
-				animate={pops}
-				transition={pop}
-			/>
+				<MapDotRing
+					at={at}
+					radius={radius}
+					arcs={arcs}
+					scale={unitsPerPixel}
+					animate={pops}
+					transition={pop}
+				/>
 
-			<circle
-				{...dotHitProps({
-					slot: 'map-points-hit',
-					at,
-					hit: reach,
-					scale: unitsPerPixel,
-					target,
-				})}
-			/>
-		</g>
+				<MapDotCount
+					at={at}
+					count={summary.count}
+					className={cn('text-xs font-semibold tabular-nums', ...k.shared.count)}
+					scale={unitsPerPixel}
+					animate={pops}
+					transition={pop}
+				/>
+
+				<circle
+					{...dotHitProps({
+						slot: 'map-points-hit',
+						at,
+						hit: reach,
+						scale: unitsPerPixel,
+						target,
+					})}
+				/>
+			</g>
+		</>
 	)
 }
 
@@ -758,7 +778,7 @@ export function MapPoints({
 
 	// The picked dot itself, off that same grouping: a pick that merged into a
 	// summary haloes the summary, and separates onto its own dot as the frame
-	// widens around it.
+	// widens around it. A shared summary draws its own halo (`MapPointsShared`).
 	const picked = selected === null ? null : groups[selected]
 
 	// How far each dot's target reaches: the whole of it where the dot stands
@@ -816,7 +836,7 @@ export function MapPoints({
 
 	return (
 		<>
-			{picked?.at != null && (
+			{picked?.at != null && picked.shared === undefined && (
 				<MapDotHalo
 					slot="map-points-selected"
 					at={picked.at}

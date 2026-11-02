@@ -40,7 +40,7 @@ type MapDotHitSpec = {
 	 * `undefined` only because `markTargets` answers index for index, and a caller
 	 * reads that array under `noUncheckedIndexedAccess`. The whole target is what an
 	 * index off the end would have meant anyway. The default therefore lands here,
-	 * rather than at each of the four places a mark unpacks the answer.
+	 * rather than at each place where a mark unpacks the answer.
 	 */
 	target: number | undefined
 	/**
@@ -264,7 +264,10 @@ type MapDotCountProps = {
 	at: MapPoint2D
 	/** How many stops the dot stands for. */
 	count: number
-	/** The label ink: the slot's `label`, the one place text sits on a mark's own color. */
+	/**
+	 * The ink of the count: the slot's `label` on a summary of one set, or the
+	 * surface text ink (`k.shared.count`) on a shared summary.
+	 */
 	className: string
 	/** Frame units per device pixel; the count counter-scales by it to hold its size. */
 	scale: number

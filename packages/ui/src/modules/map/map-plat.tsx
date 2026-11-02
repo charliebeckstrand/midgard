@@ -844,12 +844,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	// What the legend has switched off, as the MARKS it silences: the switchboard's
 	// own set, plus every member of a group toggled off through its merged entry.
-	// Expanded once here rather than resolved by each reader, because five of them
-	// ask this question (the region layer, the tooltip, the keyboard stops, the dot
-	// pool, and every mark's own `hidden`, which the zone budgets read through) and
-	// each would otherwise have to know that an entry id can stand for several
-	// marks. The legend is handed the switchboard's own set instead, since an entry
-	// is what it draws.
+	// Expanded once here rather than resolved by each reader, because several
+	// readers ask this question (the region layer, the tooltip, the keyboard stops,
+	// the dot pool, the cluster pass, and every mark's own `hidden`, which the zone
+	// budgets read through) and each would otherwise have to know that an entry id
+	// can stand for several marks. The legend is handed the switchboard's own set
+	// instead, since an entry is what it draws.
 	//
 	// A map with no group hands `switched` straight back rather than a copy of it,
 	// for its identity and not the allocation: `regionActive` is the one reader that

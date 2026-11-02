@@ -38,7 +38,7 @@ type MapAnchoredEntry = Pick<MapOverlayEntry, 'id' | 'stopsAt' | 'getIndex'>
  * so Home and End read as the geography's own ends and the marks drawn over it
  * follow.
  *
- * Three things keep a stop out, and each is a place the map draws nothing:
+ * Four things keep a stop out. At each, the mark draws nothing of its own:
  *
  * - a region whose geometry carries no centroid
  * - a mark the projection has no image for (the US composite drops points
@@ -48,8 +48,7 @@ type MapAnchoredEntry = Pick<MapOverlayEntry, 'id' | 'stopsAt' | 'getIndex'>
  * - a stop at `null`: a part of a shared summary that another set draws, which
  *   the stop of that set stands for
  *
- * A
- * toggled-off region is not one of them (it still paints, in the neutral
+ * A toggled-off region is not one of them (it still paints, in the neutral
  * fill), so the geography stays whole under the cursor.
  *
  * @internal
