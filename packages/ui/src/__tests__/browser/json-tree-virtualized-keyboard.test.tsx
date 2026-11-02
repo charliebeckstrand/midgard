@@ -177,6 +177,26 @@ describe('JsonTree under virtualize: a focused row that scrolls out of the windo
 
 		expect(document.activeElement).toBe(outside)
 	})
+
+	it('leaves focus on the body when focus left the tree before the row scrolls away', async () => {
+		const tree = mountTree({ button: 'Outside' })
+
+		await waitFor(() => expect(leafRow(tree, 3)).toBeDefined())
+
+		const row = present(leafRow(tree, 3), 'the row of leaf 3')
+
+		row.focus()
+
+		row.blur()
+
+		expect(document.activeElement).toBe(document.body)
+
+		tree.scrollTop = FAR
+
+		await waitFor(() => expect(leafRow(tree, 3)).toBeUndefined())
+
+		expect(document.activeElement).toBe(document.body)
+	})
 })
 
 // A chord such as Alt+ArrowLeft (history back) is for the browser. The keys go as dispatched
