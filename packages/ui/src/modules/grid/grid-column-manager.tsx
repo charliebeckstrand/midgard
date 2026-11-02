@@ -1,22 +1,13 @@
 'use client'
 
 import { ArrowLeftToLine, ArrowRightToLine, EllipsisVertical, Pin } from 'lucide-react'
-import {
-	type ReactNode,
-	type RefObject,
-	useCallback,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { List, ListItem } from '../../components/list'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { SearchInput } from '../../components/search-input'
-import { createContext } from '../../core'
-import { isRtl } from '../../hooks/a11y/logical-arrow'
+import { useDirectionScope } from '../../primitives/direction'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useDeferredQueryValue } from '../../primitives/query/use-query-value'
@@ -36,23 +27,11 @@ import { isColumnShown, useGridColumnVisibility } from './use-grid-column-visibi
 
 /**
  * Whether the manager serves a right-to-left grid. The pin labels and the edge
- * arrows read it, so they name the physical edge. @internal
+ * arrows read it, so they name the physical edge. The dialog of the grid gives
+ * the direction of the grid as its direction scope. @internal
  */
-const [ManagerRtlContext, useManagerRtl] = createContext<boolean>('GridColumnManagerRtl')
-
-/**
- * The direction of the manager: its own computed direction, read from its root
- * once it mounts. In the dialog of a grid, the portal of the dialog writes the
- * direction of the grid, so the root inherits it. @internal
- */
-function useManagerDirection(root: RefObject<HTMLElement | null>): boolean {
-	const [rtl, setRtl] = useState(false)
-
-	useLayoutEffect(() => {
-		if (root.current) setRtl(isRtl(root.current))
-	}, [root])
-
-	return rtl
+function useManagerRtl(): boolean {
+	return useDirectionScope() === 'rtl'
 }
 
 /**
@@ -510,82 +489,76 @@ export function GridColumnManager({
 	// scan answers for all of them (and, under the group editor, its zone tree).
 	const noMatches = !!needle && !columns.some(matches)
 
-	const rootRef = useRef<HTMLDivElement>(null)
-
-	const rtl = useManagerDirection(rootRef)
-
 	const intl = useIntl()
 
 	const filterPlaceholder = intl.formatMessage(gridMessages.filterColumns)
 
 	return (
-		<ManagerRtlContext value={rtl}>
-			<div ref={rootRef} data-slot="grid-column-manager" className={k().base}>
-				{filterable && (
-					<SearchInput
-						value={query}
-						onValueChange={setQuery}
-						placeholder={filterPlaceholder}
-						aria-label={filterPlaceholder}
-					/>
-				)}
-				{noMatches ? (
-					<GridColumnManagerNoResults />
-				) : (
-					<>
-						{leftColumns.length > 0 && (
-							<GridColumnManagerFrozenGroup
-								items={leftColumns}
-								getKey={getKey}
-								onPinChange={onPinChange}
-							/>
-						)}
-						{groups && onGroupsChange ? (
-							// The group editor owns the orderable region: columns move between
-							// group zones and the ungrouped pool, keeping their membership.
-							<GridGroupManager
-								groups={groups}
-								onGroupsChange={onGroupsChange}
-								columns={orderableColumns}
-								matches={matches}
-								hidden={hidden}
-								onToggle={toggle}
-								order={order}
-								onOrderChange={setOrder}
-								reorderable={reorderable}
-							/>
-						) : visibleOrderable.length === 0 && orderableColumns.length > 0 ? (
-							// Only the scrolling region emptied: a frozen row still matches, so the
-							// status stands in for the list rather than for the whole editor.
-							<GridColumnManagerNoResults />
-						) : (
-							<GridColumnManagerOrderableList
-								items={visibleOrderable}
-								getKey={getKey}
-								hidden={hidden}
-								onToggle={toggle}
-								onPinChange={onPinChange}
-								reorderable={reorderable}
-								onReorder={handleReorder}
-							/>
-						)}
-						{rightColumns.length > 0 && (
-							<GridColumnManagerFrozenGroup
-								items={rightColumns}
-								getKey={getKey}
-								onPinChange={onPinChange}
-							/>
-						)}
-					</>
-				)}
-				{onSavePreset && (
-					<div className={k().footer}>
-						<Button type="button" variant="soft" size="sm" onClick={handleSavePreset}>
-							{intl.formatMessage(gridMessages.savePreset)}
-						</Button>
-					</div>
-				)}
-			</div>
-		</ManagerRtlContext>
+		<div data-slot="grid-column-manager" className={k().base}>
+			{filterable && (
+				<SearchInput
+					value={query}
+					onValueChange={setQuery}
+					placeholder={filterPlaceholder}
+					aria-label={filterPlaceholder}
+				/>
+			)}
+			{noMatches ? (
+				<GridColumnManagerNoResults />
+			) : (
+				<>
+					{leftColumns.length > 0 && (
+						<GridColumnManagerFrozenGroup
+							items={leftColumns}
+							getKey={getKey}
+							onPinChange={onPinChange}
+						/>
+					)}
+					{groups && onGroupsChange ? (
+						// The group editor owns the orderable region: columns move between
+						// group zones and the ungrouped pool, keeping their membership.
+						<GridGroupManager
+							groups={groups}
+							onGroupsChange={onGroupsChange}
+							columns={orderableColumns}
+							matches={matches}
+							hidden={hidden}
+							onToggle={toggle}
+							order={order}
+							onOrderChange={setOrder}
+							reorderable={reorderable}
+						/>
+					) : visibleOrderable.length === 0 && orderableColumns.length > 0 ? (
+						// Only the scrolling region emptied: a frozen row still matches, so the
+						// status stands in for the list rather than for the whole editor.
+						<GridColumnManagerNoResults />
+					) : (
+						<GridColumnManagerOrderableList
+							items={visibleOrderable}
+							getKey={getKey}
+							hidden={hidden}
+							onToggle={toggle}
+							onPinChange={onPinChange}
+							reorderable={reorderable}
+							onReorder={handleReorder}
+						/>
+					)}
+					{rightColumns.length > 0 && (
+						<GridColumnManagerFrozenGroup
+							items={rightColumns}
+							getKey={getKey}
+							onPinChange={onPinChange}
+						/>
+					)}
+				</>
+			)}
+			{onSavePreset && (
+				<div className={k().footer}>
+					<Button type="button" variant="soft" size="sm" onClick={handleSavePreset}>
+						{intl.formatMessage(gridMessages.savePreset)}
+					</Button>
+				</div>
+			)}
+		</div>
 	)
 }
