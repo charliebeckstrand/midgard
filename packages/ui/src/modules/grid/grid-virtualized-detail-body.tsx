@@ -134,8 +134,9 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 				rowKeys,
 				expansion: { expanded, rowExpandable: rowExpandable ?? NEVER_EXPANDABLE },
 				motions,
+				indexed: expansion?.indexed ?? true,
 			}),
-		[rows, rowKeys, expanded, rowExpandable, motions],
+		[rows, rowKeys, expanded, rowExpandable, motions, expansion?.indexed],
 	)
 
 	const { bodyRef, closingEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =

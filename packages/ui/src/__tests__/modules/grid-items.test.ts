@@ -155,7 +155,7 @@ describe('detailWindowItems', () => {
 	const expansion = { expanded: new Set<string | number>([2]), rowExpandable: () => true }
 
 	it('follows each open row with its panel, under prefixed keys', () => {
-		const items = detailWindowItems({ rows, rowKeys, expansion, motions: new Map() })
+		const items = detailWindowItems({ rows, rowKeys, expansion, motions: new Map(), indexed: true })
 
 		expect(items.map((item) => item.key)).toEqual(['row:1', 'row:2', 'detail:2', 'row:3'])
 
@@ -170,6 +170,7 @@ describe('detailWindowItems', () => {
 			rowKeys,
 			expansion,
 			motions: new Map([[3, { phase: 'closing', size: 80 }]]),
+			indexed: true,
 		})
 
 		expect(items.at(-1)).toMatchObject({
@@ -187,9 +188,22 @@ describe('detailWindowItems', () => {
 			rowKeys,
 			expansion: { ...expansion, rowExpandable: () => false },
 			motions: new Map(),
+			indexed: true,
 		})
 
 		expect(items.map((item) => item.kind)).toEqual(['row', 'row', 'row'])
+	})
+
+	it('gives an open panel no place when the panels are not indexed', () => {
+		const items = detailWindowItems({
+			rows,
+			rowKeys,
+			expansion,
+			motions: new Map(),
+			indexed: false,
+		})
+
+		expect(items.map((item) => item.position)).toEqual([0, 1, -1, 2])
 	})
 })
 

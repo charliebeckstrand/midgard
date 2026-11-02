@@ -388,7 +388,8 @@ function renderWindowed<T>(props: GridBodyProps<T>, rowWindow: GridRowWindow): R
 
 /**
  * The 0-based place of each row among the rows that assistive tech sees. An
- * open detail panel takes the place after its row, as in the windowed body.
+ * open detail panel takes the place after its row, as in the windowed body,
+ * while the panels take a place (see `GridDetailExpansion.indexed`).
  *
  * @internal
  */
@@ -404,7 +405,8 @@ function rowPlaces<T>(
 	for (const [index, row] of rows.entries()) {
 		places.push(next)
 
-		next += expansion && detailOpen(row, rowKeys[index] as string | number, expansion) ? 2 : 1
+		next +=
+			expansion?.indexed && detailOpen(row, rowKeys[index] as string | number, expansion) ? 2 : 1
 	}
 
 	return places

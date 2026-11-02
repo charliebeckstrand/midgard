@@ -229,4 +229,30 @@ describe('Grid master-detail', () => {
 
 		expect(screen.getByText('Devon').closest('tr')).toHaveAttribute('aria-rowindex', '5')
 	})
+
+	it('gives an open panel no row index under pagination, so the index of each page stays its own', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				expandable={{ render: detail }}
+				pagination={{ defaultValue: { pageIndex: 0, pageSize: 2 } }}
+			/>,
+		)
+
+		const table = container.querySelector('table')
+
+		await user.click(screen.getByRole('button', { name: 'Expand details for row 1' }))
+
+		// The count is the rows of every page, and a page holds no panel.
+		expect(table).toHaveAttribute('aria-rowcount', '4')
+
+		expect(detailRow(container, 1)).not.toHaveAttribute('aria-rowindex')
+
+		// The second row of the first page, and not the first row of the second page.
+		expect(screen.getByText('Arlene').closest('tr')).toHaveAttribute('aria-rowindex', '3')
+	})
 })

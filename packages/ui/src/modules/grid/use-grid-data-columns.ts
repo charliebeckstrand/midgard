@@ -175,6 +175,7 @@ export function useGridDataColumns<T>({
 		useGridExpansion<T>(expandableConfig),
 		groupingMode.active,
 		detailIdScope,
+		paginationConfig != null,
 	)
 
 	// Manual grouping stands the cursor down, and editing with it, because the
