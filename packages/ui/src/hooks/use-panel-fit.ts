@@ -1,7 +1,7 @@
 'use client'
 
 import type { AnimationPlaybackControls, ValueAnimationTransition } from 'motion'
-import { type RefCallback, useCallback, useEffect, useRef, useState } from 'react'
+import { type RefCallback, useEffect, useRef, useState } from 'react'
 import { type BorderBox, measureBox } from '../utilities'
 import { travelHeight } from './travel-height'
 import { dockExtent, type PanelCeiling } from './use-panel-resize'
@@ -80,10 +80,8 @@ export function usePanelFit({
 	// The panel as state rather than a ref, for the reason the gesture holds it
 	// that way: it is portaled and mounts on a later commit than the one that
 	// opens the drawer, so an effect keyed on anything else runs with nothing to
-	// observe.
+	// observe. The setter is the ref callback.
 	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
-
-	const ref = useCallback((node: HTMLDivElement | null) => setPanel(node), [])
 
 	// Imperative motion runs outside any `MotionConfig`, so the preference is read
 	// here rather than inherited (WCAG 2.3.3). The panel still resizes; it just
@@ -182,5 +180,5 @@ export function usePanelFit({
 		}
 	}, [panel, enabled, dragged, getCeiling, transition, reduced])
 
-	return ref
+	return setPanel
 }

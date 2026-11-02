@@ -3,7 +3,6 @@
 import {
 	type KeyboardEvent as ReactKeyboardEvent,
 	type PointerEvent as ReactPointerEvent,
-	useCallback,
 	useEffect,
 	useRef,
 	useState,
@@ -257,10 +256,8 @@ export function usePanelResize({
 	// can wait for. It is portaled and mounts on a later commit than the one that
 	// opens the panel, so an effect keyed on `open` alone runs while there is
 	// still nothing to measure, which is how the splitter came to report a panel
-	// covering none of the screen.
+	// covering none of the screen. The setter is the ref callback.
 	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
-
-	const ref = useCallback((node: HTMLDivElement | null) => setPanel(node), [])
 
 	// The live gesture. A ref because a drag writes on every move and none of
 	// that is a render.
@@ -509,6 +506,6 @@ export function usePanelResize({
 		resizing: gesture !== null,
 		size,
 		atCeiling,
-		ref,
+		ref: setPanel,
 	}
 }
