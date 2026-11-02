@@ -83,6 +83,7 @@ export default function BulkEdit() {
 				columns={columns}
 				rows={rates}
 				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
 				selection={{
 					value: selection,
 					onValueChange: setSelection,

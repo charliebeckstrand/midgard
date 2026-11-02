@@ -19,6 +19,7 @@ export default function PinnedSelection() {
 			columns={selectColumns}
 			rows={employees}
 			getKey={(row) => row.id}
+			rowLabel={(row) => row.name}
 			selection={{ value: selection, onValueChange: setSelection }}
 		/>
 	)

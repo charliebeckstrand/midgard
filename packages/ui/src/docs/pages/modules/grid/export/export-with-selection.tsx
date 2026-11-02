@@ -17,6 +17,7 @@ export default function ExportWithSelection() {
 			columns={selectColumns}
 			rows={people}
 			getKey={(row) => row.id}
+			rowLabel={(row) => row.name}
 			selection={{ value: selection, onValueChange: setSelection }}
 		/>
 	)

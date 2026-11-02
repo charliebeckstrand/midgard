@@ -19,6 +19,7 @@ export default function SelectionSummary() {
 			columns={selectColumns}
 			rows={people}
 			getKey={(row) => row.id}
+			rowLabel={(row) => row.name}
 			search={{ value: search, onValueChange: setSearch }}
 			selection={{ value: selection, onValueChange: setSelection }}
 			footer={{ rowTotal: true, selectedTotal: true }}

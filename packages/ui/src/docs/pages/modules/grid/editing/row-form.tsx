@@ -31,7 +31,7 @@ export default function RowForm() {
 		<>
 			<EditHelp label="Editing help">
 				<PointerHint
-					mouseText="Click the button at the end of a row, or press Shift+Enter on a cell, to edit the row in a form."
+					mouseText="Click the button of a row, or press Shift+Enter on a cell, to edit the row in a form."
 					touchText="Tap the button at the end of a row to edit the row in a form."
 				/>
 			</EditHelp>
@@ -39,6 +39,7 @@ export default function RowForm() {
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
 				editable={{
 					session: 'managed',
 					scope: 'cell',
