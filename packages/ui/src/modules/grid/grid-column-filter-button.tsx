@@ -37,7 +37,10 @@ const GridColumnFilterSheet = lazy(() =>
 )
 
 /** The subset of a column the filter sheet reads. @internal */
-type FilterColumn = Pick<GridColumn<unknown>, 'id' | 'title' | 'filterType' | 'filterOptions'>
+type FilterColumn = Pick<
+	GridColumn<unknown>,
+	'id' | 'title' | 'filterType' | 'filterOptions' | 'sortable'
+>
 
 /**
  * The single query field a column's filter sheet edits. A `select` field's
@@ -237,10 +240,13 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 
 	// In the `'menu'` affordance the resting funnel is dropped: the filter lives in
 	// the column's right-click menu, so the header keeps its full width. `'header'`
-	// always shows it. Read only where no filter is applied: an active filter turns
-	// the trigger into the edit/clear menu below either way, and the sheet renders
-	// regardless, so the menu can open it under both affordances.
-	const showRestingFunnel = filter.affordance !== 'menu'
+	// always shows it. A column with no sort button keeps it under `'menu'` too:
+	// its header then has no focus stop, so the keyboard cannot open the menu, and
+	// the funnel is the one keyboard path to the filter. Read only where no filter
+	// is applied: an active filter turns the trigger into the edit/clear menu below
+	// either way, and the sheet renders regardless, so the menu can open it under
+	// both affordances.
+	const showRestingFunnel = filter.affordance !== 'menu' || !column.sortable
 
 	// Apply and Clear swap the resting funnel for the menu trigger, or back. The
 	// sheet and the menu return focus to the trigger that opened them, which is

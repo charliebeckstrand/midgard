@@ -720,6 +720,19 @@ describe('Grid per-column filters', () => {
 			expect(screen.queryByRole('button', { name: 'Filter Name' })).toBeNull()
 		})
 
+		it('keeps the funnel of a column with no sort button, the one keyboard path to its filter', () => {
+			renderUI(
+				<Grid
+					columns={[{ ...(columns[0] as GridColumn<Row>), sortable: false }, ...columns.slice(1)]}
+					rows={rows}
+					getKey={getKey}
+					columnFilters={{ affordance: 'menu' }}
+				/>,
+			)
+
+			expect(screen.getByRole('button', { name: 'Filter Name' })).toBeInTheDocument()
+		})
+
 		it("keeps the funnel under the default 'header' affordance", () => {
 			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} columnFilters={{}} />)
 
