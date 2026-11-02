@@ -18,7 +18,7 @@ import type { GridFillHandle } from './use-grid-fill-handle'
 
 export type { GridSortState }
 
-/** Table-wide state shared with the head: the select-all flags and toggle, sort, pinning, and the sticky-header flag. */
+/** Table-wide state shared with the head: the select-all flags and toggle, sort, pinning, and the sticky-header flag. @internal */
 export type GridContextValue = {
 	toggleAll: () => void
 	allSelected: boolean
@@ -46,6 +46,7 @@ export type GridContextValue = {
  *
  * @returns The current {@link GridContextValue}.
  * @throws If called outside a `<Grid>`.
+ * @internal
  */
 export const [GridContext, useGrid] = createContext<GridContextValue>('Grid')
 
@@ -56,6 +57,8 @@ export const [GridContext, useGrid] = createContext<GridContextValue>('Grid')
  *
  * @remarks A store and not a value, so a resize does not render the rows. The
  * store keeps one identity for the life of the grid.
+ *
+ * @internal
  */
 export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore>('GridSettle')
 
@@ -69,6 +72,8 @@ export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore>
  * to the table-wide {@link GridContextValue}. Only a surface that calls it
  * renders again when a drag starts or ends. A body cell calls it only while it
  * shows a reveal.
+ *
+ * @internal
  */
 export function useGridResizing(): boolean {
 	const settle = useGridSettle()
@@ -85,6 +90,8 @@ export function useGridResizing(): boolean {
  *
  * @remarks A dedicated context, like {@link GridSettleContext}, so the marking
  * subscribes to the query alone rather than the table-wide {@link GridContextValue}.
+ *
+ * @internal
  */
 export const [GridHighlightContext, useGridHighlight] = createContext<string | null>(
 	'GridHighlight',

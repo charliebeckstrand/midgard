@@ -28,8 +28,6 @@ type GridSizingMode = 'auto' | 'manual'
 export type ColumnSizerEnv<T> = {
 	/** Visible columns in render order. */
 	columns: readonly GridColumn<T>[]
-	/** The engine's current width (px) of a column. */
-	getSize: (id: string) => number
 	/** Reads the DOM facts for the columns in `scan` (see {@link measureColumns}). */
 	measure: (scan: ReadonlySet<string>) => ColumnMeasurement
 }
@@ -132,8 +130,8 @@ export function isAutoSized<T>(
  * `minWidth` and `maxWidth`. `body` is the widest body cell, or the header with
  * its title in full when that is wider (see `ColumnMeasurement.titles`). A
  * `capped` read holds a width-less column at {@link DEFAULT_CONTENT_MAX}, so
- * that one long cell cannot take the whole table in the automatic fit. A
- * `maxWidth` is the cap when the column sets one.
+ * that one long cell cannot take the whole table when the fixed layout sizes a
+ * column that no hold reaches. A `maxWidth` is the cap when the column sets one.
  *
  * @internal
  */

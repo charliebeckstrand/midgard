@@ -19,8 +19,9 @@ type GridPinnedOffsetsOptions<T> = {
 	frozen: boolean
 	/**
 	 * Whether the engine's size model sets the rendered column widths: a resizable
-	 * grid, which lays out fixed from a `<colgroup>` of those sizes. Its own offset
-	 * sums are then already exact, so the measurement stands down.
+	 * grid outside a fit pass, which lays out fixed from a `<colgroup>` of those
+	 * sizes. Its own offset sums are then already exact, so the measurement stands
+	 * down. A fit pass lays out `auto` (see `GridColumnResize.fit`), so it measures.
 	 */
 	engineSized: boolean
 	/** The engine's pin state, which names the columns frozen to each edge. */
@@ -43,10 +44,10 @@ type GridPinnedOffsetsOptions<T> = {
  * A frozen column sticks at the summed width of the frozen columns ahead of it.
  * The engine can supply that sum only while it also sets the widths. It does
  * that through the fixed-layout `<colgroup>` of a resizable grid, and not at all
- * under the auto layout of a non-resizable one. There each column takes its
- * content's width. Summing the engine's sizes there spreads the frozen columns
- * apart by the difference, and the scrolling columns show through the gaps. This
- * reads the rendered widths instead.
+ * under the auto layout of a non-resizable grid or of a fit pass. There each
+ * column takes its content's width. Summing the engine's sizes there spreads
+ * the frozen columns apart by the difference, and the scrolling columns show
+ * through the gaps. This reads the rendered widths instead.
  *
  * Measures before paint on mount, and again whenever a frozen header cell
  * changes width. A container resize, new content, a density change, or web

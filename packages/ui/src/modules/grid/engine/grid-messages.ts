@@ -792,7 +792,8 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 	rowsResult: {
 		id: 'ui.grid.rowsResult',
 		defaultMessage: '{count, plural, =0 {No results} one {# row} other {# rows}}',
-		description: 'Spoken when the rows of a grid finish loading. The count is the number of rows.',
+		description:
+			'Spoken when the rows of a grid finish loading, and again when a filter, a search, or a page change gives a new row count. The count is the number of rows.',
 	},
 	rowsResultOnPage: {
 		id: 'ui.grid.rowsResultOnPage',

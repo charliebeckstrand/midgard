@@ -112,10 +112,13 @@ export type GridEditingApi = {
 	 * The session's commit on leave, layered onto the grid `<table>`'s focus
 	 * handlers by {@link useGridCursor}. `blur` reads each focus move out of an
 	 * editor, or out of the grid, against `commitOn`. When the move leaves what
-	 * that policy watches, it commits the session. `focus` tells a surface that
-	 * the grid renders from an unrelated element, through the React tree.
-	 * `undefined` unless the grid owns the session and `commitOn` is not
-	 * `'explicit'`.
+	 * that policy watches, it commits the session. A move into a floating
+	 * surface of an editor, to the settle controls, or into the row form does
+	 * not leave, and nor does a window blur (see
+	 * {@link GridEditableConfig.commitOn}). `focus` tells a surface that the grid
+	 * renders from an unrelated element, through the React tree. `undefined`
+	 * unless the grid owns the session, `commitOn` is not `'explicit'`, and no
+	 * phone overlay edits the session.
 	 */
 	sessionLeave:
 		| {

@@ -46,13 +46,7 @@ describe('GridColumnManager', () => {
 	it('toggles a column visibility when its checkbox is clicked', async () => {
 		const onHiddenChange = vi.fn()
 
-		renderUI(
-			<GridColumnManager
-				columns={columns}
-				defaultHidden={new Set()}
-				onHiddenChange={onHiddenChange}
-			/>,
-		)
+		renderUI(<GridColumnManager columns={columns} onHiddenChange={onHiddenChange} />)
 
 		const user = setupUser()
 
@@ -180,12 +174,7 @@ describe('GridColumnManager', () => {
 		const onHiddenChange = vi.fn()
 
 		renderUI(
-			<GridColumnManager
-				columns={columns}
-				reorderable={false}
-				defaultHidden={new Set()}
-				onHiddenChange={onHiddenChange}
-			/>,
+			<GridColumnManager columns={columns} reorderable={false} onHiddenChange={onHiddenChange} />,
 		)
 
 		const user = setupUser()
@@ -232,7 +221,7 @@ describe('GridColumnManager', () => {
 		renderUI(
 			<GridColumnManager
 				columns={columns}
-				defaultHidden={new Set(['role'])}
+				hidden={new Set(['role'])}
 				onSavePreset={onSavePreset}
 			/>,
 		)
@@ -245,14 +234,6 @@ describe('GridColumnManager', () => {
 			order: ['name', 'email', 'role'],
 			hidden: ['role'],
 		})
-	})
-
-	it('honors a custom savePresetLabel', () => {
-		renderUI(
-			<GridColumnManager columns={columns} onSavePreset={() => {}} savePresetLabel="Pin layout" />,
-		)
-
-		expect(screen.getByRole('button', { name: 'Pin layout' })).toBeInTheDocument()
 	})
 
 	it('renders pinned and orderable columns in separate groups', () => {
@@ -301,7 +282,7 @@ describe('GridColumnManager', () => {
 					{ id: 'email', title: 'Email', hideable: false },
 					{ id: 'role', title: 'Role' },
 				]}
-				defaultHidden={new Set(['email', 'role'])}
+				hidden={new Set(['email', 'role'])}
 			/>,
 		)
 
@@ -330,12 +311,6 @@ describe('GridColumnManager', () => {
 		expect(labels()).toEqual(['Name', 'Role', 'Email'])
 	})
 
-	it('falls back to defaultOrder when no controlled order is provided', () => {
-		renderUI(<GridColumnManager columns={columns} defaultOrder={['name', 'role', 'email']} />)
-
-		expect(labels()).toEqual(['Name', 'Role', 'Email'])
-	})
-
 	it('falls back to a generated label when a pinned column title is non-string', () => {
 		renderUI(
 			<GridColumnManager columns={[{ id: 'name', title: <span>Name</span>, pinned: 'left' }]} />,
@@ -351,7 +326,7 @@ describe('GridColumnManager', () => {
 		renderUI(
 			<GridColumnManager
 				columns={columns}
-				defaultHidden={new Set(['email'])}
+				hidden={new Set(['email'])}
 				onHiddenChange={onHiddenChange}
 			/>,
 		)
@@ -499,12 +474,6 @@ describe('GridColumnManager filtering', () => {
 		expect(allBySlot(container, 'list-item')).toHaveLength(3)
 	})
 
-	it('honors a custom filterPlaceholder', () => {
-		renderUI(<GridColumnManager columns={columns} filterPlaceholder="Find a column" />)
-
-		expect(screen.getByRole('searchbox', { name: 'Find a column' })).toBeInTheDocument()
-	})
-
 	it('narrows every group to the columns matching the query', async () => {
 		const user = setupUser()
 
@@ -590,13 +559,7 @@ describe('GridColumnManager filtering', () => {
 
 		const user = setupUser()
 
-		renderUI(
-			<GridColumnManager
-				columns={columns}
-				defaultHidden={new Set()}
-				onHiddenChange={onHiddenChange}
-			/>,
-		)
+		renderUI(<GridColumnManager columns={columns} onHiddenChange={onHiddenChange} />)
 
 		await user.type(field(), 'ema')
 

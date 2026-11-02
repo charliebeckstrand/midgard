@@ -13,9 +13,9 @@ import type { PaletteColor } from '../../core/recipe'
  *
  * @remarks The `color` accepts any {@link PaletteColor}: the standard palette
  * (`zinc` / `red` / `amber` / `green` / `blue`), plus the extended set (`rose` /
- * `violet` / `sky`). It renders the group's rail, its header aggregation, and
- * its total footer in that hue. It matches the {@link Badge} surface, so the manager's
- * color presets read the same there.
+ * `violet` / `sky`). It tints the rail of the group, on its header, its rows,
+ * and its total row. The aggregates keep their own color. It matches the
+ * {@link Badge} surface, so the manager's color presets read the same there.
  */
 export type GridRowGroup = {
 	/**
@@ -24,9 +24,8 @@ export type GridRowGroup = {
 	 */
 	key: string | number
 	/**
-	 * Rail / aggregation / total color from the {@link PaletteColor} palette
-	 * (standard + extended). Omit for the group's default neutral rail and untinted
-	 * aggregates.
+	 * The rail color of the group, from the {@link PaletteColor} palette
+	 * (standard + extended). Omit for the default neutral rail.
 	 */
 	color?: PaletteColor
 }
@@ -58,6 +57,8 @@ export type GridRowGroups =
  *
  * @remarks {@link Grid} makes this list from its grouped rows and puts it in
  * the display order of the {@link GridRowGroup} overlay.
+ *
+ * @internal
  */
 export type GridRowManagerGroup = {
 	/** The identity of the group: the shared value of the grouping column. {@link GridRowManagerProps.onRecolor} and {@link GridRowManagerProps.onReorderGroups} receive it. */

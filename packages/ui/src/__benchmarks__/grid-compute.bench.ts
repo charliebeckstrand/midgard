@@ -9,7 +9,7 @@ import { makeEscapeHeavyRows, type Shipment, shipmentColumns, shipments } from '
 
 // Pure grid compute that runs on the render hot path (pin overlay) or on an
 // export, benched in a node env with no DOM. The column widths come from the
-// browser (`readFitLayout`), so they have no pure compute to bench. Import each
+// automatic table layout of the browser, so they have no pure compute to bench. Import each
 // utility by path; the grid barrel does not re-export them.
 
 const CSV_COLUMNS = shipmentColumns()

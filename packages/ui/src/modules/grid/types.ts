@@ -328,7 +328,7 @@ export type GridColumn<T> = {
 	hideable?: boolean
 }
 
-/** A column as the {@link GridColumnManager} sees it: id, display `title`, and the pin/lock/hideable flags. */
+/** A column as the {@link GridColumnManager} sees it: id, display `title`, and the pin/lock/hideable flags. @internal */
 export type GridColumnManagerItem = {
 	id: string | number
 	title: ReactNode
@@ -673,8 +673,10 @@ export type GridColumnMenuContext<T> = {
  *
  * - Manage columns, when the column manager is reachable.
  * - Filter, under the `'menu'` filter affordance.
- * - The Sort menu (Sort ascending / Sort descending, less the direction the
- *   column already holds, plus Clear sort once the column is sorted).
+ * - The Sort menu (Sort ascending / Sort descending, plus Clear sort once the
+ *   column is sorted). A direction is left out only when the grid sorts by
+ *   this column alone in that direction. Under a sort by more than one column,
+ *   both directions stay, because each collapses the sort onto this column.
  * - The Pin menu (Pin left / Pin right / Unpin).
  * - Group by …, when groupable.
  * - The Auto-size menu (this column, all columns, then Reset column widths),
