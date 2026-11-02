@@ -386,8 +386,9 @@ export function pinChoiceIcon(target: PinMenuChoice['target'], rtl = false): Rea
  * concerns:
  *
  * - Filter, under the `'menu'` affordance.
- * - Sort (the directions the column doesn't already hold, with "Clear sort"
- *   once it is the sorted one).
+ * - Sort (both directions, less the one that the grid already sorts by when
+ *   it sorts by this column alone, with "Clear sort" once the column is
+ *   sorted).
  * - Pin (Pin left / Pin right / Unpin).
  * - The group-by toggle, a single action so it stays a plain row.
  * - Auto-size (this column, all columns, then Reset column widths).

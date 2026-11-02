@@ -111,7 +111,7 @@ export type GridRowsProps<T> = {
 	pinning: GridColumnPinning | null
 	/** Under grid semantics (virtualization, pagination, or the navigable cursor), rows carry global `aria-rowindex`. */
 	gridSemantics: boolean
-	/** Global row-index base added to each rendered row's index: the page offset, plus one when a band row shows. */
+	/** Global row-index base added to each rendered row's index: the page offset, plus one when a band row shows, plus one for a new-row slot at the top. */
 	rowIndexOffset: number
 	/**
 	 * Master-detail wiring, or `null` when the grid isn't expandable: the
@@ -279,10 +279,11 @@ export type GridRowProps<T> = {
 	cellActivate?: GridCellRovingActivate<T>
 	/**
 	 * 1-based position in the full row set (header = 1, or 2 below a band row).
-	 * Set under grid semantics: virtualization, pagination, or the navigable
-	 * cursor. Assistive
-	 * tech then reports position in the full set, not the rendered slice.
-	 * Omitted for a plain, whole-set table.
+	 * A new-row slot at the top of the body takes the place after the header, so
+	 * the first data row comes one place later. Set under grid semantics:
+	 * virtualization, pagination, or the navigable cursor. Assistive tech then
+	 * reports position in the full set, not the rendered slice. Omitted for a
+	 * plain, whole-set table.
 	 */
 	rowIndex?: number
 	/**
