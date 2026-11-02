@@ -1,7 +1,7 @@
 import { useLayoutEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { act, fireEvent, renderUI, screen } from '../helpers'
+import { act, fireEvent, renderUI, screen, within } from '../helpers'
 
 /**
  * The navigable cursor over a body that renders more than data rows. A group
@@ -459,6 +459,33 @@ describe('Grid cursor over master-detail rows', () => {
 		press(grid, 'ArrowDown')
 
 		expect(activeCell(grid)).toHaveTextContent('East')
+	})
+
+	it('leaves a press on a cell of a nested grid to that grid', () => {
+		renderUI(
+			<Grid
+				columns={detailColumns}
+				rows={sales}
+				getKey={getKey}
+				navigable
+				expandable={{
+					defaultValue: new Set([1]),
+					render: () => <Grid columns={columns} rows={sales} getKey={getKey} navigable />,
+				}}
+			/>,
+		)
+
+		const [outer, inner] = screen.getAllByRole('grid') as [HTMLElement, HTMLElement]
+
+		const east = within(inner).getAllByRole('gridcell', { name: 'East' })[0] as HTMLElement
+
+		fireEvent.mouseDown(east)
+
+		expect(inner).toHaveFocus()
+
+		expect(activeCell(inner)).toBe(east)
+
+		expect(outer).not.toHaveAttribute('aria-activedescendant')
 	})
 
 	it('moves focus into a panel on Enter and back to the grid on Escape', () => {

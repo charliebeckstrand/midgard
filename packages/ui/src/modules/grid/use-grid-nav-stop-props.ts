@@ -10,8 +10,9 @@ import { fromInteractiveContent } from './engine/grid-row/cell'
  * or a detail panel. They are the element id that `aria-activedescendant`
  * names, the `gridcell` role, and a press that seats the cursor on the row.
  * A press on focusable content in the cell stands down, as on a data cell.
- * The header's toggle and a control in a panel are such content. The props
- * are empty while the cursor is off.
+ * The header's toggle and a control in a panel are such content, and so is a
+ * grid nested in a panel, which seats its own cursor. The props are empty
+ * while the cursor is off.
  *
  * @internal
  */
@@ -24,12 +25,18 @@ export function useGridNavStopProps(key: string): ComponentProps<'td'> {
 		id: store.stopId(key),
 		role: 'gridcell',
 		onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
-			const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
+			const target = event.target instanceof Node ? event.target : null
 
-			if (!inCell || fromInteractiveContent(event.target)) return
+			if (!target || !event.currentTarget.contains(target) || fromInteractiveContent(target)) return
+
+			const grid = event.currentTarget.closest<HTMLElement>(GRID_ROLE)
+
+			const element = target instanceof Element ? target : target.parentElement
+
+			if (element?.closest(GRID_ROLE) !== grid) return
 
 			// As on a data cell, the pressed cell is in view, so the focus does not scroll.
-			event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
+			grid?.focus({ preventScroll: true })
 
 			store.seatStop(key)
 		},
