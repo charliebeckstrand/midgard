@@ -1,19 +1,16 @@
 import { useState } from 'react'
-import { Grid, type GridColumn, type GridSortState } from 'ui/grid'
+import { Grid, type GridSortState } from 'ui/grid'
 import { useTimeout } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
-import { roles } from '../../../../data/people.ts'
+import { personStatuses, roles } from '../../../../data/people.ts'
 import { columns, type Person, people } from '../data.tsx'
 
-const sortableColumns: GridColumn<Person>[] = columns.map((column) =>
-	column.id === 'status' ? column : { ...column, sortable: true },
-)
-
-// The text of each sortable column, as its cell shows it.
+// The text of each column, as its cell shows it. Every column sorts.
 const sortText: Record<string, (row: Person) => string> = {
 	name: (row) => row.name,
 	email: (row) => row.email,
 	role: (row) => roles[row.role],
+	status: (row) => personStatuses[row.status],
 }
 
 // The work of the server: it sorts the rows by each column of the sort, in
@@ -54,7 +51,7 @@ export default function ServerSideSorting() {
 
 	return (
 		<Grid
-			columns={sortableColumns}
+			columns={columns}
 			rows={rows}
 			getKey={(row) => row.id}
 			sort={{ value: sort, onValueChange, manual: true }}

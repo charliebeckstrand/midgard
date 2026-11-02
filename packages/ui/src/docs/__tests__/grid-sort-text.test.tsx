@@ -133,4 +133,25 @@ describe('the sort of a grid demo on the Spanish page', { timeout: COPY_TIMEOUT 
 
 		expect(names).not.toEqual(collated(names, locale))
 	})
+
+	it('sorts the server rows by the shown status', async () => {
+		const { container } = await renderDemo('sorting/server-side-sorting.tsx', locale)
+
+		const status = 3
+
+		const before = columnText(container, status)
+
+		expect(before).not.toEqual(collated(before, locale))
+
+		pressHeader(container, status)
+
+		await waitFor(
+			() => {
+				const statuses = columnText(container, status)
+
+				expect(statuses).toEqual(collated(statuses, locale))
+			},
+			{ timeout: 5000 },
+		)
+	})
 })
