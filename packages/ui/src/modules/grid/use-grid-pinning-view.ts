@@ -30,9 +30,9 @@ import { useGridPinnedOffsets } from './use-grid-pinned-offsets'
  * @remarks
  * A frozen column sticks at the summed width of the frozen columns ahead of it.
  * Those widths are the rendered ones only under the fixed-layout colgroup that
- * a resizable grid lays out from them. A non-resizable grid lays out `auto` and
- * sizes each column to its content, so there the offsets are measured from the
- * rendered header instead. Without that, a stack of frozen columns spreads apart
+ * a resizable grid lays out from them outside a fit pass. A non-resizable grid,
+ * and a fit pass, lay out `auto` and size each column to its content, so there
+ * the offsets are measured from the rendered header instead. Without that, a stack of frozen columns spreads apart
  * by the difference, and the scrolling columns show through the gaps.
  *
  * The view holds its reference while each frozen column keeps its edge and

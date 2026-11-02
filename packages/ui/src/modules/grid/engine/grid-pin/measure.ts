@@ -4,8 +4,9 @@ import type { PinSide } from './overrides'
 
 /**
  * Sticky offsets (px) for the frozen columns, keyed by stringified column id.
- * The `left` holds each left-frozen column's distance from the left edge, and
- * `right` each right-frozen column's distance from the right one. Measured from the
+ * The `left` holds each column's distance from the inline start, and `right`
+ * each column's distance from the inline end. The sides are logical, as a
+ * {@link PinSide} is. Measured from the
  * rendered header (see {@link frozenOffsets}) for the grids whose column widths
  * the engine's size model does not set.
  *

@@ -5,7 +5,9 @@ import type { PinSide } from './overrides'
 /**
  * A column's frozen edge in the engine's pin state, or `undefined` when it
  * scrolls. The engine names its sections `start` and `end`. The `start`
- * section comes first in the column order, which is the left edge of the grid.
+ * section comes first in the column order, which is the inline start of the
+ * grid. A pin side is logical, so `'left'` names that start, and a right-to-left
+ * grid shows it at the right edge (see `physicalSide`).
  *
  * @internal
  */
@@ -67,10 +69,10 @@ function summedWidth(ids: readonly string[], widths: ReadonlyMap<string, number>
  * A frozen column sticks at the summed width of the frozen columns between it
  * and its edge. `measured` carries the offsets read from the rendered header,
  * and wins where it has an entry. The summed `widths` are the rendered widths
- * only under the fixed layout that a resizable grid sets from them. An
- * auto-layout grid sizes each column to its content, so its frozen columns are
- * measured instead (see {@link FrozenOffsets}). `null` (the resizable case, and
- * every render before the first measurement) leaves the sums.
+ * only under the fixed layout that a resizable grid sets from them outside a
+ * fit pass. An auto-layout grid sizes each column to its content, so its frozen
+ * columns are measured instead (see {@link FrozenOffsets}). `null` (the fixed
+ * layout, and every render before the first measurement) leaves the sums.
  *
  * @param sections - The ids of the visible columns frozen to each edge, in edge order.
  * @param widths - Each column's width (px), by id.
