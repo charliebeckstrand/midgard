@@ -221,6 +221,19 @@ describe('AccordionTrigger', () => {
 })
 
 describe('AccordionPanel', () => {
+	it('takes the data-slot of a wrapper, because the library selects no panel anchor', () => {
+		const { container } = renderUI(
+			<Accordion defaultValue="a">
+				<AccordionItem value="a">
+					<AccordionTrigger>Toggle</AccordionTrigger>
+					<AccordionPanel data-slot="faq-answer">Panel A</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		expect(bySlot(container, 'faq-answer')).toHaveTextContent('Panel A')
+	})
+
 	it('renders panel content when open', () => {
 		renderUI(oneItem({ defaultValue: 'a' }))
 
@@ -494,6 +507,49 @@ describe('Accordion keyboard navigation', () => {
 		await user.keyboard('{ArrowUp}')
 
 		expect(trigger('First')).toHaveFocus()
+	})
+
+	it('moves the arrow keys to and from a custom header built from useAccordionItem', async () => {
+		const user = setupUser()
+
+		function CustomHeader() {
+			const { toggle, triggerProps } = useAccordionItem()
+
+			return (
+				<h3>
+					<button type="button" {...triggerProps} onClick={toggle}>
+						Custom
+					</button>
+				</h3>
+			)
+		}
+
+		renderUI(
+			<Accordion>
+				<AccordionItem value="a">
+					<AccordionTrigger>First</AccordionTrigger>
+					<AccordionPanel>A</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="b">
+					<CustomHeader />
+					<AccordionPanel>B</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="c">
+					<AccordionTrigger>Third</AccordionTrigger>
+					<AccordionPanel>C</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		act(() => trigger('First').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(trigger('Custom')).toHaveFocus()
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(trigger('Third')).toHaveFocus()
 	})
 
 	it('keeps every enabled header in the Tab sequence', async () => {

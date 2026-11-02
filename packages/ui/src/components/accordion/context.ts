@@ -37,11 +37,18 @@ type AccordionItemContextValue = {
 	toggle: () => void
 	disabled: boolean
 	/**
-	 * The ARIA props of the header button: its `id` and `aria-expanded`. The
+	 * The props of the header button: its `id` and `aria-expanded`. The
 	 * `aria-controls` names the panel only while the panel is in the DOM. The
-	 * `aria-disabled` marks an open section that a toggle cannot close.
+	 * `aria-disabled` marks an open section that a toggle cannot close. The
+	 * `data-slot` and `onKeyDown` put the button in the arrow keys of the
+	 * accordion. A custom header that sets its own `onKeyDown` composes this
+	 * handler.
 	 */
-	triggerProps: AriaProps & { id: string }
+	triggerProps: AriaProps & {
+		id: string
+		'data-slot': 'accordion-trigger'
+		onKeyDown: (event: KeyboardEvent) => void
+	}
 	panelProps: A11yDisclosure['panelProps']
 }
 
@@ -51,7 +58,9 @@ type AccordionItemContextValue = {
  *
  * @remarks
  * Call it inside `<AccordionItem>`; it throws outside one. `<AccordionTrigger>`
- * and `<AccordionPanel>` use it. Use it to make a custom trigger or panel.
+ * and `<AccordionPanel>` use it. Use it to make a custom trigger or panel. A
+ * custom trigger that spreads `triggerProps` takes part in the arrow keys of the
+ * accordion, as an `<AccordionTrigger>` does.
  */
 export const [AccordionItemContext, useAccordionItem] =
 	createContext<AccordionItemContextValue>('AccordionItem')
