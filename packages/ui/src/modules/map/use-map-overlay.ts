@@ -142,9 +142,10 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 *
 		 * Hold its identity until the stops move. A new identity tells the keyboard
 		 * cursor to resolve its stops again, so a thunk made inline does that on
-		 * each render.
+		 * each render. A stop at `null` takes no place under the cursor (see
+		 * {@link MapOverlayEntry.stopsAt}).
 		 */
-		stops: () => LngLat[]
+		stops: () => (LngLat | null)[]
 		/**
 		 * The dots the mark draws, in lon/lat, for the plat's dot pool (see
 		 * {@link MapOverlayEntry.dotsAt}). Passed by the dot-drawing marks alone. A

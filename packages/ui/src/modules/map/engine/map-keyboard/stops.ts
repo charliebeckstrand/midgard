@@ -45,6 +45,8 @@ type MapAnchoredEntry = Pick<MapOverlayEntry, 'id' | 'stopsAt' | 'getIndex'>
  *   outside its insets)
  * - a mark the legend has toggled off, which unmounts its shapes while its
  *   registration stands
+ * - a stop at `null`: a part of a shared summary that another set draws, which
+ *   the stop of that set stands for
  *
  * A
  * toggled-off region is not one of them (it still paints, in the neutral
@@ -61,7 +63,7 @@ export function mapStops(
 	const stops: MapStop[] = []
 
 	for (const [index, at] of centroids.entries()) {
-		const point = at === null ? null : project(at)
+		const point = placeStop(at, project)
 
 		if (point !== null) stops.push({ target: { kind: 'region', index }, at: point })
 	}
@@ -70,16 +72,25 @@ export function mapStops(
 		if (hidden.has(entry.id)) continue
 
 		// A mark holds one stop, or one per dot where it is plural, and the stop
-		// keeps its own ordinal even when an earlier one drops off the projection,
-		// so the index the cursor reports always names the caller's own point.
+		// keeps its own ordinal even when an earlier one drops off the projection
+		// or stands at `null`, so the index the cursor reports always names the
+		// caller's own point.
 		for (const [stop, at] of entry.stopsAt().entries()) {
-			const point = project(at)
+			const point = placeStop(at, project)
 
 			if (point !== null) stops.push({ target: entryTarget(entry, stop), at: point })
 		}
 	}
 
 	return stops
+}
+
+/** Where a stop draws, or `null` where it has no position or the projection drops it. @internal */
+function placeStop(
+	at: LngLat | null,
+	project: (position: LngLat) => MapPoint2D | null,
+): MapPoint2D | null {
+	return at === null ? null : project(at)
 }
 
 /**
@@ -89,7 +100,7 @@ export function mapStops(
  *
  * @internal
  */
-function entryTarget(entry: MapAnchoredEntry, stop: number): MapHoverTarget {
+export function entryTarget(entry: MapAnchoredEntry, stop: number): MapHoverTarget {
 	const reported = entry.getIndex?.(stop)
 
 	return reported === undefined

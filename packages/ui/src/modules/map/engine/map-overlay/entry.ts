@@ -88,9 +88,10 @@ export type MapOverlayEntry = {
 	 * Required, like the sibling `getStop`. One hook registers every mark on the
 	 * map, and it always passes this. An optional field only bought the reader
 	 * a fallback for a mark that cannot exist. A mark with no geometry yet
-	 * answers with the empty list.
+	 * answers with the empty list. A stop at `null` keeps its index and takes no
+	 * place under the cursor: a part of a shared summary that another set draws.
 	 */
-	stopsAt: () => LngLat[]
+	stopsAt: () => (LngLat | null)[]
 	/**
 	 * The dots the mark draws, in lon/lat, which the plat's dot pool holds. A point's dots are its
 	 * stops. A `MapMarker` draws two pins but has one stop, the middle of its leg. Absent on the
