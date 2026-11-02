@@ -1103,7 +1103,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * panel. Under an explicit
 	 * {@link GridProps.virtualize}, the body windows each row and each open panel,
 	 * and each measures its own height. Sorting, filtering, search, selection,
-	 * pagination, resizing, and pinning still apply.
+	 * pagination, resizing, and pinning still apply. An open panel is a row of
+	 * its own for assistive tech, after its data row. Under pagination it carries
+	 * no `aria-rowindex`, so the row indexes of each page stay in step with the
+	 * row count.
 	 *
 	 * @see {@link GridExpandable}
 	 */

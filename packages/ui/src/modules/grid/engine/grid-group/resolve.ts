@@ -32,6 +32,12 @@ export type GridDetailExpansion<T> = {
 	render: (row: T) => ReactNode
 	/** The DOM id of a row's detail panel, which the expander's `aria-controls` names. */
 	panelId: (rowKey: string | number) => string
+	/**
+	 * Whether an open panel takes a place among the rows that assistive tech
+	 * sees, after its row. Under pagination it takes none, because the row index
+	 * of a page counts the rows of the pages before it, and those hold no panel.
+	 */
+	indexed: boolean
 }
 
 /** The group-header model {@link GridHead} renders from: the resolved spans and the collapse controls. @internal */
@@ -276,7 +282,8 @@ export function resolveGroupingGates<E>(args: {
  * That is whether it's active, plus the body wiring the flat rows read. The
  * wiring is the expanded set, the per-row predicate, the toggle, and the detail
  * renderer. Grouping renders its own body, so expansion stands down under it.
- * `idScope` is the grid's own id, the prefix of each panel id. The result is
+ * `idScope` is the grid's own id, the prefix of each panel id. Under
+ * pagination an open panel takes no row index (see `GridDetailExpansion.indexed`). The result is
  * `null` when inactive. Kept off {@link GridData}'s complexity
  * budget.
  *
@@ -286,6 +293,7 @@ export function resolveDetailExpansion<T>(
 	expansion: GridExpansionResult<T>,
 	groupingActive: boolean,
 	idScope: string,
+	paginated: boolean,
 ): { active: boolean; body: GridDetailExpansion<T> | null } {
 	const active = expansion.active && !groupingActive
 
@@ -299,6 +307,7 @@ export function resolveDetailExpansion<T>(
 			toggle: expansion.toggle,
 			render: expansion.render,
 			panelId: (rowKey) => detailPanelId(idScope, rowKey),
+			indexed: !paginated,
 		},
 	}
 }

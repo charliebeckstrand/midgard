@@ -1,7 +1,15 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	type RefObject,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { dataAttr } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
@@ -421,21 +429,6 @@ export function GridData<T>({
 
 	const { toggleRow, toggleAll, allSelected, someSelected } = selectionActions
 
-	// Resolve the `exportable` prop into one action per configured export type,
-	// each reading the selected rows when a selection is active, else the full
-	// filtered + sorted set (all pages). The selected subset keeps the displayed
-	// order. A selection that holds no row of that set exports every row. Both are
-	// taken over the leaves, so a group header never exports. An `exportRows`
-	// source overrides both, supplying the rows that the grid does not hold under
-	// server pagination. Split by surface: the toolbar's "Export" dropdown and
-	// both context menus each take the set their own switch opens.
-	const exportActions = useGridExport<T>({
-		exportable,
-		columns: visibleColumns,
-		rows: rowsForExport,
-		exportRows,
-	})
-
 	// Lift the column-manager dialog's open state, resolve the (default-on)
 	// context menus, and derive the header-menu actions; see `useGridMenuActions`.
 	const {
@@ -481,6 +474,26 @@ export function GridData<T>({
 		toggleGroup: toggleClientGroup,
 		contextMenuActive: resolvedContextMenu != null,
 		setGroupExpanded,
+	})
+
+	// Resolve the `exportable` prop into one action per configured export type,
+	// each reading the selected rows when a selection is active, else the full
+	// filtered + sorted set (all pages). The selected subset keeps the displayed
+	// order. A selection that holds no row of that set exports every row. Both are
+	// taken over the leaves, so a group header never exports. An `exportRows`
+	// source overrides both, supplying the rows that the grid does not hold under
+	// server pagination. Split by surface: the toolbar's "Export" dropdown and
+	// both context menus each take the set their own switch opens. The groups
+	// export in the order of the row manager, as the body shows them.
+	const groupOrder = rowManager.presentation?.groupOrder ?? null
+
+	const exportedRows = useCallback(() => rowsForExport(groupOrder), [rowsForExport, groupOrder])
+
+	const exportActions = useGridExport<T>({
+		exportable,
+		columns: visibleColumns,
+		rows: exportedRows,
+		exportRows,
 	})
 
 	// The direction of the grid, read from its wrapper. The dialogs portal out of

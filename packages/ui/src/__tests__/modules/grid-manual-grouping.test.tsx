@@ -131,6 +131,22 @@ describe('Grid manual (server-side) row grouping', () => {
 		expect(onValueChange).toHaveBeenCalledWith(null)
 	})
 
+	it('groups by a key that names no groupable column, since the backend groups', () => {
+		renderUI(
+			<Grid
+				columns={columns.map((column) => ({ ...column, groupable: false }))}
+				rows={[westHeader, ...westChildren]}
+				getKey={getKey}
+				groupBy={{ manual: true, value: 'territory', groupRow }}
+			/>,
+		)
+
+		// The header row is a group header, and its collapsed group hides its children.
+		expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument()
+
+		expect(leafRow('Wade')).toHaveAttribute('aria-hidden', 'true')
+	})
+
 	it('renders backend headers with counts and aggregates, hiding a collapsed group’s children', () => {
 		renderUI(
 			<Grid

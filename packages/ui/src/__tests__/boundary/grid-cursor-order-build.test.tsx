@@ -69,6 +69,32 @@ describe('Grid cursor order builds', () => {
 		expect(builds.grouped).toBe(0)
 	})
 
+	it('builds no grouped order again under a group order of the row manager', () => {
+		// The overlay covers every group, so its order applies.
+		const rowGroups = [{ key: 'B' }, { key: 'A' }]
+
+		const view = (hover: boolean) => (
+			<Grid
+				navigable
+				hover={hover}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				groupBy={{ value: 'team', rowGroups }}
+			/>
+		)
+
+		const { rerender } = renderUI(view(false))
+
+		expect(builds.grouped).toBeGreaterThan(0)
+
+		builds.grouped = 0
+
+		rerender(view(true))
+
+		expect(builds.grouped).toBe(0)
+	})
+
 	it('builds no detail order again when the rows and the expansion hold', () => {
 		const expandable = { render: (row: Row) => <p>{row.name}</p> }
 

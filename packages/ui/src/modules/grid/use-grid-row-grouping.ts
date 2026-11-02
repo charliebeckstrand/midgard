@@ -44,9 +44,11 @@ type GridRowGroupingResult<T> = {
  *   `defaultExpanded`, with its lazy-load-aware toggle
  * - the header-label override
  *
- * A binding whose `value` names a column that isn't a groupable data column (or
- * is missing) resolves to `null`. A stray id therefore leaves the grid
- * ungrouped, rather than grouping every row under one empty header.
+ * Under client grouping, a binding whose `value` names a column that isn't a
+ * groupable data column (or is missing) resolves to `null`. A stray id
+ * therefore leaves the grid ungrouped, rather than grouping every row under one
+ * empty header. Manual grouping reads no column value, so its `value` stands
+ * whatever column it names.
  *
  * @param config - The `groupBy` binding, or `undefined` when the grid isn't grouped.
  * @param isGroupable - Whether a column id is a present, groupable data column.
@@ -62,7 +64,9 @@ export function useGridRowGrouping<T>(
 		onValueChange: (next) => config?.onValueChange?.(next ?? null),
 	})
 
-	const resolved = grouping != null && isGroupable(grouping) ? grouping : null
+	// Manual grouping reads no column value: the backend groups, so any key stands.
+	const resolved =
+		grouping != null && (config?.manual === true || isGroupable(grouping)) ? grouping : null
 
 	const [expanded, setExpanded] = useState<GroupExpansion>(
 		config?.defaultExpanded === false ? ALL_GROUPS_CLOSED : ALL_GROUPS_OPEN,

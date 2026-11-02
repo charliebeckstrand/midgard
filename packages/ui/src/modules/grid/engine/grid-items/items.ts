@@ -310,6 +310,8 @@ export function detailOpen<T>(row: T, key: string | number, expansion: DetailWir
  * an item, except while `motions` marks it as closing.
  *
  * @param args.motions - The motion of each detail panel, by row key.
+ * @param args.indexed - Whether an open panel takes a place. Without one, its
+ *   position is `-1`, and it carries no row index.
  * @internal
  */
 export function detailWindowItems<T>(args: {
@@ -317,6 +319,7 @@ export function detailWindowItems<T>(args: {
 	rowKeys: (string | number)[]
 	expansion: DetailWiring<T>
 	motions: ReadonlyMap<string | number, GridRowMotion>
+	indexed: boolean
 }): GridDetailWindowItem[] {
 	const items: GridDetailWindowItem[] = []
 
@@ -336,7 +339,7 @@ export function detailWindowItems<T>(args: {
 				kind: 'detail',
 				key: reactKey,
 				reactKey,
-				position: position++,
+				position: args.indexed ? position++ : -1,
 				phase: 'open',
 				dataIndex,
 			})

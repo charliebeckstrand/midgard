@@ -5,7 +5,7 @@ import type { QueryGroup } from '../../../query/engine/types'
 import type { GridColumn, GridColumnFilterState } from '../../types'
 import { type ColumnTests, type RowTest, uniqueValues } from '../grid-filter/filter'
 import { compileSearch } from '../grid-search/search'
-import { naturalCollator } from '../grid-sort/utilities'
+import { compareSmart, naturalCollator } from '../grid-sort/utilities'
 import type { EngineTable } from './features'
 
 /**
@@ -137,8 +137,8 @@ const NO_FACETS: GridColumnFacets = { values: [], span: undefined }
 /**
  * The facets of a column from the distinct values of its cells. The facets
  * hold each value that is not blank as text, and the span of the numbers.
- * The text sorts by {@link naturalCollator}, as the string sort of the grid
- * does, so "2" comes before "10".
+ * The text sorts by {@link compareSmart}, as the column sort of the grid does,
+ * so "2" comes before "10", and "-10" and "$900" sort by their numbers.
  *
  * @param locale - The locale that the values collate in.
  * @internal
@@ -148,8 +148,10 @@ export function toColumnFacets(values: Iterable<unknown>, locale?: string): Grid
 
 	const texts = all.filter((value) => value != null && value !== '').map((value) => String(value))
 
+	const collator = naturalCollator(locale)
+
 	return {
-		values: [...new Set(texts)].sort(naturalCollator(locale).compare),
+		values: [...new Set(texts)].sort((a, b) => compareSmart(a, b, collator)),
 		span: facetSpan(all),
 	}
 }

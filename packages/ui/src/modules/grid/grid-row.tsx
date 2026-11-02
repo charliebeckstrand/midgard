@@ -213,8 +213,11 @@ export function renderRow<T>(
 				colSpan={props.visibleColumns.length}
 				expanded={expanded}
 				// An open panel is the row after its data row. A closed one is hidden
-				// from assistive tech, so it takes no place.
-				aria-rowindex={expanded && rowIndex !== undefined ? rowIndex + 1 : undefined}
+				// from assistive tech, so it takes no place. Under pagination a panel
+				// takes none either (see `GridDetailExpansion.indexed`).
+				aria-rowindex={
+					expanded && props.expansion.indexed && rowIndex !== undefined ? rowIndex + 1 : undefined
+				}
 			/>
 		</Fragment>
 	)

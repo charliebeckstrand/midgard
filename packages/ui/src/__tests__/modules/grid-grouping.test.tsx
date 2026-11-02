@@ -56,6 +56,25 @@ describe('Grid row grouping', () => {
 
 	// The visible label is in the name, with the count (WCAG 2.5.3), and
 	// `aria-expanded` gives the state.
+	it('applies rowClassName and rowLoading to a leaf row, as to a flat row', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'role' }}
+				rowClassName={(row) => (row.name === 'Wade' ? 'flagged' : undefined)}
+				rowLoading={(row) => row.name === 'Tom'}
+			/>,
+		)
+
+		expect(leafRow('Wade')).toHaveClass('flagged')
+
+		expect(leafRow('Tom')).toHaveClass('motion-safe:animate-pulse', 'motion-reduce:opacity-50')
+
+		expect(leafRow('Arlene')).not.toHaveClass('flagged', 'motion-safe:animate-pulse')
+	})
+
 	it('names the group toggle by its visible label, count included', () => {
 		renderUI(
 			<Grid
