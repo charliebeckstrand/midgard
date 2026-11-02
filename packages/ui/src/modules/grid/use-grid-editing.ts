@@ -505,11 +505,12 @@ export function useGridEditing<T>({
 				endRows: new Set(),
 				discard: null,
 				blur: false,
+				widen: false,
 			}
 
 			request.to = next
 
-			// An exit reseats focus, as `endSession` does at event time uncontrolled.
+			// An exit returns focus, as `endSession` does at event time uncontrolled.
 			// A commit on leave does not, because focus already went elsewhere.
 			if (exit) request.endRows.add(exit.rowKey)
 
@@ -848,6 +849,29 @@ export function useGridEditing<T>({
 		[dataColumnsRef, enterEdit, placeOrigin],
 	)
 
+	// A cell-scoped session leaves its cell as the form of `rowKey` opens. A cell
+	// on another row commits, and a cell on this row widens to the row. A
+	// controlled binding applies the `null` later, so the request marks it as a
+	// widen, and the transition keeps the row open for the form.
+	const leaveHeldCell = useCallback(
+		(rowKey: string | number) => {
+			const active = activeEditRef.current
+
+			if (active === null) return
+
+			if (active.rowKey !== rowKey) {
+				exitSession(active.rowKey, 'save', false)
+
+				return
+			}
+
+			writeActiveCell(null)
+
+			if (requestRef.current) requestRef.current.widen = true
+		},
+		[exitSession, writeActiveCell],
+	)
+
 	// Opens a row in the form. The row opens whole, with no active cell, so the
 	// field of each column stages into an open cell, and a discard drops them
 	// all. A cell-scoped session leaves its cell first: a cell on another row
@@ -880,8 +904,7 @@ export function useGridEditing<T>({
 
 			if (!cell) return
 
-			if (active !== null && active.rowKey !== rowKey) exitSession(active.rowKey, 'save', false)
-			else if (active !== null) writeActiveCell(null)
+			leaveHeldCell(rowKey)
 
 			activeEditStore.setExpanded(rowKey)
 
@@ -902,14 +925,13 @@ export function useGridEditing<T>({
 			activeEditStore,
 			bump,
 			dataColumnsRef,
-			exitSession,
+			leaveHeldCell,
 			originsRef,
 			pendingFocusRef,
 			placeOrigin,
 			readCursor,
 			rowKeysRef,
 			setEditableRows,
-			writeActiveCell,
 		],
 	)
 

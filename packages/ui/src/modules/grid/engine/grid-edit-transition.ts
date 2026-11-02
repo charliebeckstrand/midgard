@@ -78,13 +78,15 @@ export type CrossRowEntry = {
  * consumer to apply it. `endRows` holds the rows that an exit on the way
  * closes, and `discard` the cell whose draft an Escape drops. `blur` marks a
  * key move that reseats focus before the cell it leaves commits, as the
- * uncontrolled path does at event time. @internal
+ * uncontrolled path does at event time. `widen` marks a `null` that widens
+ * the held cell to its row for the form, so the row stays open. @internal
  */
 export type CellRequest = {
 	to: GridActiveEdit | null
 	endRows: Set<string | number>
 	discard: GridActiveEdit | null
 	blur: boolean
+	widen: boolean
 }
 
 /** The row a grid-owned session holds, and whether the session put it in the set. @internal */
@@ -219,7 +221,9 @@ export function planTransition<T>(args: {
 
 	const endRows = new Set(asked ? request.endRows : [])
 
-	if (next === null && from.cell !== null && rows.has(from.cell.rowKey))
+	const widens = asked && request.widen
+
+	if (next === null && !widens && from.cell !== null && rows.has(from.cell.rowKey))
 		endRows.add(from.cell.rowKey)
 
 	const held =
@@ -241,6 +245,18 @@ export function planTransition<T>(args: {
 		writesRows: endRows.size > 0 || leaving !== null || opens,
 		discard: asked ? request.discard : null,
 	}
+}
+
+/**
+ * The row that an exit the grid asked for closes, or `undefined` when the plan
+ * is no such exit. Focus returns to the origin of that row. @internal
+ */
+export function askedExitRow(plan: TransitionPlan, blur: boolean): string | number | undefined {
+	if (!plan.asked || !blur || plan.next !== null) return undefined
+
+	const [row] = plan.endRows
+
+	return row
 }
 
 /**

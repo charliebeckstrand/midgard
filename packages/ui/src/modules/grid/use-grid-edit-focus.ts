@@ -8,7 +8,7 @@ import {
 	returnElement,
 	returnFlagged,
 } from './engine/grid-edit-focus'
-import type { TransitionPlan } from './engine/grid-edit-transition'
+import { askedExitRow, type TransitionPlan } from './engine/grid-edit-transition'
 import {
 	EDITOR_FOCUSABLE,
 	findCoord,
@@ -251,13 +251,28 @@ export function useGridEditFocus<T>({
 		[focusTarget, tableRef],
 	)
 
+	// The element that focus returns to for an exit that the grid asked of a
+	// controlled binding, when focus is in the grid, or `null`.
+	const exitTarget = useCallback(
+		(plan: TransitionPlan, blur: boolean) => {
+			const row = askedExitRow(plan, blur)
+
+			if (row === undefined || !inGrid(document.activeElement, tableRef.current)) return null
+
+			return focusTarget(row)
+		},
+		[focusTarget, tableRef],
+	)
+
 	// Moves focus for one transition of a controlled binding. A value set from
 	// outside replaces the intents of any entry, and focus follows it into the
 	// grid only when focus is already there (WCAG 3.2.1). Focus in a grid nested
 	// in a detail row is not in this grid (see `inGrid`). The leaving editor
 	// blurs while it is still mounted, so a value it stages on blur reaches the
 	// draft before the sweep commits the cell. A move the grid asked for blurs
-	// where the uncontrolled path does: on a key move or an exit.
+	// where the uncontrolled path does: on a key move or an exit. An exit that
+	// the grid asked for returns focus as `returnFocus` does, to the origin of
+	// the row that it closes, before the row and its origin leave the set.
 	const settleFocus = useCallback(
 		(plan: TransitionPlan, blur: boolean) => {
 			const focused = inGrid(document.activeElement, tableRef.current)
@@ -268,9 +283,12 @@ export function useGridEditFocus<T>({
 				if (plan.next && focused) pendingFocusRef.current = plan.next
 			}
 
-			if (plan.asked ? blur : focused) reseat()
+			const target = exitTarget(plan, blur)
+
+			if (target) returnFlagged(reseatingRef, target)
+			else if (plan.asked ? blur : focused) reseat()
 		},
-		[dropIntents, reseat, tableRef],
+		[dropIntents, exitTarget, reseat, tableRef],
 	)
 
 	// Moves focus into the open editor of a cell. The editor claims the entry's
