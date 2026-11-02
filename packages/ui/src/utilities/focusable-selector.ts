@@ -13,14 +13,13 @@ export const FOCUSABLE_SELECTOR =
  * The elements of `root` in the tab order, in document order.
  *
  * @remarks
- * {@link FOCUSABLE_SELECTOR} is the first filter. The walk then drops a control
- * with `tabindex="-1"`, a hidden input, and a control that `:disabled` matches.
- * The last case includes a control that an ancestor `<fieldset disabled>`
- * disables, which the browser also skips.
+ * {@link FOCUSABLE_SELECTOR} is the first filter. The filter then drops a
+ * control with `tabindex="-1"`, a hidden input, and a control that `:disabled`
+ * matches. The last case includes a control that an ancestor
+ * `<fieldset disabled>` disables, which the browser also skips.
  *
- * The walk matches each element in turn. The result of `querySelectorAll` with a
- * selector list is not in document order in jsdom, and a caller reads the first
- * or the last element.
+ * `querySelectorAll` gives the elements in document order, also for a selector
+ * list, and a caller reads the first or the last element.
  *
  * @param root - The subtree to walk, or `null` for none.
  * @returns The tabbable elements of `root`, not `root` itself.
@@ -29,9 +28,8 @@ export const FOCUSABLE_SELECTOR =
 export function getTabbableElements(root: Element | null): HTMLElement[] {
 	if (!root) return []
 
-	return Array.from(root.querySelectorAll<HTMLElement>('*')).filter(
+	return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
 		(element) =>
-			element.matches(FOCUSABLE_SELECTOR) &&
 			!element.matches(':disabled') &&
 			element.tabIndex >= 0 &&
 			!(element instanceof HTMLInputElement && element.type === 'hidden'),

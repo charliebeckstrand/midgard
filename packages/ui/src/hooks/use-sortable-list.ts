@@ -32,6 +32,7 @@ import { useDragCursor } from './use-drag-cursor'
 import { useIsRtl } from './use-is-rtl'
 import { useSortableSensors } from './use-sortable-sensors'
 import { useStableEvent } from './use-stable-event'
+import { useStableValue } from './use-stable-value'
 
 /**
  * dnd-kit modifier that holds a drag on the x-axis. It zeroes the vertical part
@@ -183,11 +184,7 @@ export function useSortableList<T>({
 	// The previous array while the keys do not change. `SortableContext` keys its
 	// own memo on this array, so a new array re-renders each sortable item. A
 	// caller with an inline `getKey` or derived `items` would give one each render.
-	const keys = items.map(getKey)
-
-	const [itemIds, setItemIds] = useState(keys)
-
-	if (!sameElements(itemIds, keys)) setItemIds(keys)
+	const itemIds = useStableValue(items.map(getKey), sameElements)
 
 	const rtl = useIsRtl()
 

@@ -100,7 +100,7 @@ export function TabList({
 
 	// The segment variant is a fixed pill control; only the underline list
 	// scrolls, so the viewport (and its scroll-into-view) is gated off for it.
-	const { scrollRef, onFocus: handleFocus } = useTabListScroll(orientation, !isSegment)
+	const handleFocus = useTabListScroll(orientation, !isSegment)
 
 	const list = (
 		<div
@@ -131,12 +131,7 @@ export function TabList({
 			{isSegment ? (
 				list
 			) : (
-				<div
-					ref={scrollRef}
-					data-slot="tab-list-scroll"
-					data-scroll-region
-					className={slots.scroll}
-				>
+				<div data-slot="tab-list-scroll" data-scroll-region className={slots.scroll}>
 					{list}
 				</div>
 			)}
