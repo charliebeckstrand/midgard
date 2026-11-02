@@ -5,6 +5,7 @@ import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { gridMessages } from './engine/grid-messages'
+import type { GridFooterScope } from './grid-data-resolvers'
 import type { GridFooter as GridFooterConfig, GridFooterStats } from './grid-data-types'
 
 /** Props for {@link GridFooterBar}. @internal */
@@ -14,10 +15,11 @@ type GridFooterProps = {
 	/** Live row counts, or `null` when there is no configured footer to feed. */
 	stats: GridFooterStats | null
 	/**
-	 * Whether `stats.rows` counts only the current page, because server
-	 * pagination gives a page count but no row count.
+	 * What `stats.rows` counts: the whole set, only the current page (server
+	 * pagination gives a page count but no row count), or only the loaded rows
+	 * (infinite scroll has more to load and no `totalRows`).
 	 */
-	pageScoped: boolean
+	scope: GridFooterScope
 }
 
 /**
@@ -25,7 +27,9 @@ type GridFooterProps = {
  * visible'` when a client-side filter narrows the source, or a bare `'47 rows'`
  * otherwise. Pluralized against the count it names. When the grid does not know
  * the server total, the label counts the page and says so (`'25 rows on this
- * page'`), so it does not state one page as the whole set.
+ * page'`), so it does not state one page as the whole set. In the same way, an
+ * infinite-scroll grid that holds only a window of the set counts the loaded
+ * rows and says so (`'50 rows loaded'`).
  *
  * `null` for an empty set. The body already says there are no rows, in the row
  * standing where they would be. A count restating it is a second voice adding
@@ -37,13 +41,15 @@ type GridFooterProps = {
 function rowTotalLabel(
 	intl: IntlShape,
 	{ rows, total }: GridFooterStats,
-	pageScoped: boolean,
+	scope: GridFooterScope,
 ): string | null {
 	if (rows === 0) return null
 
-	if (pageScoped) return intl.formatMessage(gridMessages.rowsOnPage, { rows })
+	if (scope === 'page') return intl.formatMessage(gridMessages.rowsOnPage, { rows })
 
 	if (total > rows) return intl.formatMessage(gridMessages.rowsVisible, { rows, total })
+
+	if (scope === 'loaded') return intl.formatMessage(gridMessages.rowsLoaded, { rows })
 
 	return intl.formatMessage(gridMessages.rowCount, { rows })
 }
@@ -55,13 +61,20 @@ function rowTotalLabel(
  * replaces the row total (see {@link GridFooterBar}). A selection outlives the
  * filter, so when it holds rows the view does not show, the label names them
  * (`'5 rows selected, 2 not shown'`) rather than reading more rows than the view
- * holds. Only rendered while a selection is active, so `selected` is always at
- * least one.
+ * holds. A denominator of one page says so (`'3 of 25 rows selected on this
+ * page'`), as {@link rowTotalLabel} does. Only rendered while a selection is
+ * active, so `selected` is always at least one.
  *
  * @internal
  */
-function selectedLabel(intl: IntlShape, { rows, selected, hidden }: GridFooterStats): string {
+function selectedLabel(
+	intl: IntlShape,
+	{ rows, selected, hidden }: GridFooterStats,
+	scope: GridFooterScope,
+): string {
 	if (hidden > 0) return intl.formatMessage(gridMessages.selectedHidden, { selected, hidden })
+
+	if (scope === 'page') return intl.formatMessage(gridMessages.selectedOnPage, { selected, rows })
 
 	return intl.formatMessage(gridMessages.selectedOf, { selected, rows })
 }
@@ -85,7 +98,7 @@ function selectedLabel(intl: IntlShape, { rows, selected, hidden }: GridFooterSt
  *
  * @internal
  */
-export function GridFooterBar({ config, stats, pageScoped }: GridFooterProps) {
+export function GridFooterBar({ config, stats, scope }: GridFooterProps) {
 	const intl = useIntl()
 
 	if (!config || !stats) return null
@@ -97,9 +110,9 @@ export function GridFooterBar({ config, stats, pageScoped }: GridFooterProps) {
 	// One leading status, chosen by precedence: an active selection replaces the
 	// row-count total in place, its `of` denominator keeping the visible context.
 	const status = showSelected
-		? selectedLabel(intl, stats)
+		? selectedLabel(intl, stats, scope)
 		: showRowTotal
-			? rowTotalLabel(intl, stats, pageScoped)
+			? rowTotalLabel(intl, stats, scope)
 			: null
 
 	const content = config.content?.(stats)

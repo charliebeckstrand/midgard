@@ -174,12 +174,16 @@ export function GridPagination({ pagination, label, labelledBy }: GridPagination
 
 		// The current-page marker takes focus when it shows. Below `@2xl` the
 		// numbered pages hide, so the enabled Previous or Next control takes it.
+		// The query names those two controls, because the hidden pages also hold
+		// enabled buttons, and a hidden button cannot take focus.
 		const pages = pagesRef.current
 
 		const target =
 			pages && getComputedStyle(pages).display !== 'none'
 				? pages.querySelector<HTMLElement>('[aria-current="page"]')
-				: nav.querySelector<HTMLElement>('button:not(:disabled)')
+				: nav.querySelector<HTMLElement>(
+						'[data-slot="pagination-previous"]:not(:disabled), [data-slot="pagination-next"]:not(:disabled)',
+					)
 
 		target?.focus()
 	}, [pageIndex])

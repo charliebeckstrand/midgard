@@ -521,6 +521,44 @@ describe('Grid busy live region', () => {
 		expect(screen.getByText('No results')).toBeInTheDocument()
 	})
 
+	it('scopes the count to the page when server pagination gives no row count', async ({
+		clock,
+	}) => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				pagination={{ manual: true, pageCount: 40, value: { pageIndex: 0, pageSize: 2 } }}
+			/>,
+		)
+
+		await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+
+		// The server gives only a page count, so the two rows are one page, not the set.
+		expect(bySlot(document.body, 'grid-busy-status')).toHaveTextContent(/^2 rows on this page$/)
+	})
+
+	it('says no row count while the grid shows its error', async ({ clock }) => {
+		const busy = () => bySlot(document.body, 'grid-busy-status')
+
+		const view = renderUI(<Grid columns={columns} rows={[]} getKey={getKey} error />)
+
+		await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+
+		// The body shows the error, so "No results" would contradict it. The error
+		// alert speaks, so the region does not say it again.
+		expect(screen.getByRole('alert')).toHaveTextContent("Couldn't load data")
+
+		expect(busy()).toBeEmptyDOMElement()
+
+		view.rerender(<Grid columns={columns} rows={rows} getKey={getKey} error />)
+
+		await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+
+		expect(busy()).toBeEmptyDOMElement()
+	})
+
 	// The trailing row shows the error of a failed load-more, and the region
 	// says that the load failed, so a reader who does not see the row hears it.
 	it('announces a failed infinite-scroll load, then the next count', async ({ clock }) => {

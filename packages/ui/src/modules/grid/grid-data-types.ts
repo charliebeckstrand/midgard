@@ -93,7 +93,9 @@ export type GridInfiniteScroll = {
 	 * Total rows in the full (server) set, when the backend reports it. Derives
 	 * `hasMore`, unless it is explicitly set. Makes `aria-rowcount` determinate
 	 * instead of the indeterminate `-1`, and reports the real set through the
-	 * {@link GridFooter.rowTotal | footer} rather than the loaded extent.
+	 * {@link GridFooter.rowTotal | footer} rather than the loaded extent. While a
+	 * client search or filter narrows the loaded rows, the footer counts the rows
+	 * that it shows, not this total.
 	 */
 	totalRows?: number
 	/**
@@ -647,7 +649,9 @@ export type GridFooter = {
 	 * client-side search or filter narrows the set. Counts the full filtered extent
 	 * across all pages, not just the rendered window. When server-side pagination
 	 * gives a `pageCount` but no `rowCount`, the total is not known, so the count
-	 * names the current page: `'25 rows on this page'`. An active
+	 * names the current page: `'25 rows on this page'`. In the same way, while
+	 * {@link GridInfiniteScroll} has more rows to load and no `totalRows`, the
+	 * count names the loaded rows: `'50 rows loaded'`. An active
 	 * {@link GridFooter.selectedTotal} replaces this count in place rather than
 	 * sitting beside it.
 	 *
@@ -661,7 +665,9 @@ export type GridFooter = {
 	 * (`'3 of 12 rows selected'`) while a selection is active; silent when nothing
 	 * is selected. Takes the leading slot from {@link GridFooter.rowTotal} while
 	 * active: its `of` denominator keeps the visible context the total would show.
-	 * Needs a selection column to be meaningful.
+	 * When the denominator is one page of a server set whose total the grid does
+	 * not know, the count says so: `'3 of 25 rows selected on this page'`. Needs a
+	 * selection column to be meaningful.
 	 * @defaultValue false
 	 */
 	selectedTotal?: boolean

@@ -1135,6 +1135,10 @@
 		"defaultMessage": "{count, plural, one {Row not added, # cell refused} other {Row not added, # cells refused}}",
 		"description": "Spoken when the grid does not add a new row. The count is the number of refused cells."
 	},
+	"ui.grid.rowsLoaded": {
+		"defaultMessage": "{rows, plural, one {# row} other {# rows}} loaded",
+		"description": "The row count in the footer of a grid that has loaded part of a set whose total it does not know."
+	},
 	"ui.grid.rowsOnPage": {
 		"defaultMessage": "{rows, plural, one {# row} other {# rows}} on this page",
 		"description": "The row count in the footer of a grid that shows one page of a server set whose total it does not know."
@@ -1146,6 +1150,10 @@
 	"ui.grid.rowsResult": {
 		"defaultMessage": "{count, plural, =0 {No results} one {# row} other {# rows}}",
 		"description": "Spoken when the rows of a grid finish loading. The count is the number of rows."
+	},
+	"ui.grid.rowsResultOnPage": {
+		"defaultMessage": "{count, plural, =0 {No results} one {# row on this page} other {# rows on this page}}",
+		"description": "Spoken when the rows of a grid that shows one page of a server set settle. The count is the number of rows on the page."
 	},
 	"ui.grid.rowsSelected": {
 		"defaultMessage": "{count, plural, one {# row selected} other {# rows selected}}",
@@ -1186,6 +1194,10 @@
 	"ui.grid.selectedOf": {
 		"defaultMessage": "{selected, number} of {rows, plural, one {# row} other {# rows}} selected",
 		"description": "The selection count in the footer of a grid."
+	},
+	"ui.grid.selectedOnPage": {
+		"defaultMessage": "{selected, number} of {rows, plural, one {# row} other {# rows}} selected on this page",
+		"description": "The selection count in the footer of a grid that shows one page of a server set whose total it does not know."
 	},
 	"ui.grid.selectionCleared": {
 		"defaultMessage": "Selection cleared",

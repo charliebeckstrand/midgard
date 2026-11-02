@@ -124,9 +124,12 @@ type GridValues = {
 	rowsVisible: { rows: number; total: number }
 	rowCount: { rows: number }
 	rowsOnPage: { rows: number }
+	rowsLoaded: { rows: number }
 	selectedHidden: { selected: number; hidden: number }
 	selectedOf: { selected: number; rows: number }
+	selectedOnPage: { selected: number; rows: number }
 	rowsResult: { count: number }
+	rowsResultOnPage: { count: number }
 	total: Record<never, never>
 	exporting: Record<never, never>
 	tableTools: Record<never, never>
@@ -761,6 +764,12 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		description:
 			'The row count in the footer of a grid that shows one page of a server set whose total it does not know.',
 	},
+	rowsLoaded: {
+		id: 'ui.grid.rowsLoaded',
+		defaultMessage: '{rows, plural, one {# row} other {# rows}} loaded',
+		description:
+			'The row count in the footer of a grid that has loaded part of a set whose total it does not know.',
+	},
 	selectedHidden: {
 		id: 'ui.grid.selectedHidden',
 		defaultMessage:
@@ -773,10 +782,24 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		defaultMessage: '{selected, number} of {rows, plural, one {# row} other {# rows}} selected',
 		description: 'The selection count in the footer of a grid.',
 	},
+	selectedOnPage: {
+		id: 'ui.grid.selectedOnPage',
+		defaultMessage:
+			'{selected, number} of {rows, plural, one {# row} other {# rows}} selected on this page',
+		description:
+			'The selection count in the footer of a grid that shows one page of a server set whose total it does not know.',
+	},
 	rowsResult: {
 		id: 'ui.grid.rowsResult',
 		defaultMessage: '{count, plural, =0 {No results} one {# row} other {# rows}}',
 		description: 'Spoken when the rows of a grid finish loading. The count is the number of rows.',
+	},
+	rowsResultOnPage: {
+		id: 'ui.grid.rowsResultOnPage',
+		defaultMessage:
+			'{count, plural, =0 {No results} one {# row on this page} other {# rows on this page}}',
+		description:
+			'Spoken when the rows of a grid that shows one page of a server set settle. The count is the number of rows on the page.',
 	},
 	total: {
 		id: 'ui.grid.total',
