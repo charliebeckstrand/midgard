@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useEffect, useState } from 'react'
+import { type ReactNode, useCallback, useState } from 'react'
 import { Heading } from 'ui/heading'
 import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/structure/stack'
@@ -151,16 +151,23 @@ export function NearbyDrawer({
 	// would throw a reader out of the row they had opened.
 	const groupKey = frame.items.map((record) => record.id).join('|')
 
+	// The group the pickers were last returned to their start for.
+	const [pickedKey, setPickedKey] = useState(groupKey)
+
 	// Returns the list's own pickers to their start. Keyed on the pick alone (the
 	// reset belongs to a new pick, not to every re-read) and skipped while
-	// closing, or the list would change under its own exit.
-	useEffect(() => {
-		if (groupKey === '') return
+	// closing, or the list would change under its own exit. A render-time
+	// comparison rather than an effect, so the first frame of a new group never
+	// carries the last group's filter.
+	if (groupKey !== pickedKey) {
+		setPickedKey(groupKey)
 
-		setCategories([])
+		if (groupKey !== '') {
+			setCategories([])
 
-		setOrder('name')
-	}, [groupKey])
+			setOrder('name')
+		}
+	}
 
 	// What the list narrows to: the places that the category picker lets through,
 	// in the picked order, then the trips, newest first. No category admits every
