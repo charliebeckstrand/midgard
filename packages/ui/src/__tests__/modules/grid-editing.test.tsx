@@ -1,6 +1,7 @@
 import { createRef, type ReactNode, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
+import { Input } from '../../components/input'
 import {
 	Grid,
 	type GridCellChange,
@@ -363,6 +364,37 @@ describe('Grid per-row editing', () => {
 		expect(alert.id).toBeTruthy()
 
 		expect(input).toHaveAttribute('aria-describedby', alert.id)
+	})
+
+	it('marks a control-aware editCell slot invalid while its validate refuses', () => {
+		const view = renderGrid([
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				validate: (value) => (String(value).length > 0 ? null : 'Required'),
+				editCell: ({ value, onValueUpdate, ariaLabel }) => (
+					<Input
+						aria-label={ariaLabel}
+						value={String(value ?? '')}
+						onChange={(event) => onValueUpdate(event.target.value)}
+					/>
+				),
+			},
+		])
+
+		view.editRow1()
+
+		const input = view.getByRole('textbox', { name: /Edit Name/ })
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		fireEvent.change(input, { target: { value: '' } })
+
+		expect(view.container.querySelector('[role="alert"]')).toHaveTextContent('Required')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
 	it('links the yes/no editor to its validation error for assistive tech', () => {
