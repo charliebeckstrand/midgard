@@ -40,7 +40,8 @@ type PickerPopoverOptions = {
  * as on the trigger. Then a screen reader finds two controls for one dialog.
  *
  * @returns The {@link useFloatingUI} result, plus `open`, `openPicker`,
- * `closePicker`, `onOpenChange`, `triggerRef`, `setReference`, and `dialogId`.
+ * `closePicker`, `onOpenChange`, `triggerRef`, `returnFocusRef` (the element
+ * that gets focus when the dialog closes), `setReference`, and `dialogId`.
  * @internal
  */
 export function useControlPickerPopover({
@@ -86,6 +87,8 @@ export function useControlPickerPopover({
 
 	const triggerRef = useRef<HTMLElement | null>(null)
 
+	const returnFocusRef = returnFocusTo ?? triggerRef
+
 	const floating = useFloatingUI({
 		placement,
 		open,
@@ -95,7 +98,7 @@ export function useControlPickerPopover({
 		// space and scrolls, as a menu does.
 		fitHeight: true,
 		role: null,
-		returnFocusTo: returnFocusTo ?? triggerRef,
+		returnFocusTo: returnFocusRef,
 	})
 
 	const { context, refs } = floating
@@ -130,6 +133,7 @@ export function useControlPickerPopover({
 		closePicker,
 		onOpenChange,
 		triggerRef,
+		returnFocusRef,
 		setReference,
 		dialogId,
 	}

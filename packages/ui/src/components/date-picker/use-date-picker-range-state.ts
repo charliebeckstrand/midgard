@@ -108,6 +108,7 @@ export function useDatePickerRangeState({
 		refs,
 		setReference,
 		dialogId,
+		returnFocusRef,
 		floatingStyles,
 		getReferenceProps,
 		getFloatingProps,
@@ -194,6 +195,7 @@ export function useDatePickerRangeState({
 	return {
 		...field,
 		dialogId,
+		returnFocusRef,
 		hasValue: value != null,
 		onClear: handleClear,
 		displayValue: value ? formatRange(value[0], value[1], ambient.locale, ambient.dateFormat) : '',

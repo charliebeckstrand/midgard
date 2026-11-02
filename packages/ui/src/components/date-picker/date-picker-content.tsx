@@ -36,6 +36,13 @@ export type DatePickerContentState = {
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
 	/**
+	 * The element that gets focus when the panel closes: the field in `input`
+	 * mode, else the trigger. The sheet returns the focus to it. Without it, the
+	 * focus manager of the sheet returns the focus to the last element that it
+	 * recorded, which can be an unrelated control.
+	 */
+	returnFocusRef?: RefObject<HTMLElement | null>
+	/**
 	 * Fires when the popover has finished its exit. The sheet does not report
 	 * it. Each variant also resets its draft on the next open.
 	 */
@@ -127,8 +134,16 @@ export function DatePickerContent({
 	footer,
 	children,
 }: DatePickerContentProps) {
-	const { dialogId, open, setFloating, floatingStyles, getFloatingProps, context, onExitComplete } =
-		state
+	const {
+		dialogId,
+		open,
+		setFloating,
+		floatingStyles,
+		getFloatingProps,
+		context,
+		returnFocusRef,
+		onExitComplete,
+	} = state
 
 	const intl = useIntl()
 
@@ -190,6 +205,7 @@ export function DatePickerContent({
 					size={size}
 					tabIndex={-1}
 					initialFocus={dialogRef}
+					returnFocusTo={returnFocusRef}
 					className={cn(k.content.sheet.panel)}
 					onKeyDown={handleDialogKeyDown}
 					onMouseDown={(event) => event.preventDefault()}
