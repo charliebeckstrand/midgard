@@ -34,4 +34,15 @@ describe('toColumnFacets', () => {
 	it('orders the values as the grid sorts them, with numbers in numeric order', () => {
 		expect(toColumnFacets(['10', '2', 1, 'b', 'a']).values).toEqual(['1', '2', '10', 'a', 'b'])
 	})
+
+	it('orders negatives and money by their numbers, as the column sort does', () => {
+		expect(toColumnFacets([10, '$900', -5, '$1,000', 3, -10]).values).toEqual([
+			'-10',
+			'-5',
+			'3',
+			'10',
+			'$900',
+			'$1,000',
+		])
+	})
 })
