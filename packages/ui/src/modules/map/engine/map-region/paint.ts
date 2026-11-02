@@ -1,6 +1,6 @@
 /**
- * The region layer's paint table (what color, class, and wash timing each
- * category resolves to) and the input shape every layer draws it through. A
+ * The region layer's paint table (what color and class each category resolves
+ * to) and the input shape every layer draws it through. A
  * county atlas shares a handful of paints across thousands of regions, so this
  * runs per category and the layers read it per region. Both the base tree and
  * the lit copies above it read this one resolution. The two can therefore never
@@ -10,66 +10,19 @@
  * React-free, so the paint rules are testable without mounting a layer.
  */
 
-import type { CSSProperties } from 'react'
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/map'
 import { contrastRatio } from '../../../../utilities/contrast'
-import { REGION_FADE, REGION_STAGGER, REGION_STAGGER_MAX } from '../map-motion'
 import { categoryLegendId, type MapCategoryMeta, paintColor, paintFill } from './category'
 
-/** The color wash's transition classes under `animate`; static maps color without one. */
-const WASH = 'transition-colors ease-out motion-reduce:transition-none'
-
-const WASH_DURATION = `${REGION_FADE.duration * 1000}ms`
-
-// The wash's per-region timing, shared where the stagger caps: beyond the cap
-// every region carries the same delay, so one frozen object serves them all,
-// and the memoized Region sees a stable style identity instead of a fresh
-// object per render.
-const CAPPED_WASH_STYLE: CSSProperties = {
-	transitionDuration: WASH_DURATION,
-	transitionDelay: `${REGION_STAGGER_MAX * 1000}ms`,
-}
-
-const STAGGERED_WASH_STYLES: CSSProperties[] = Array.from(
-	{ length: Math.ceil(REGION_STAGGER_MAX / REGION_STAGGER) },
-	(_, index) => ({
-		transitionDuration: WASH_DURATION,
-		transitionDelay: `${index * REGION_STAGGER * 1000}ms`,
-	}),
-)
-
-// The wash past the reveal: the fade alone, with no delay. Every region shares
-// it, so a settled layer holds one style identity across the whole tree, and
-// the memoized Region compares the same reference it did before the stagger
-// retired.
-const SETTLED_WASH_STYLE: CSSProperties = { transitionDuration: WASH_DURATION }
-
 /**
- * Which wash timing the region layer is on. The stagger belongs to the mount
- * reveal alone. It washes the geography on region by region. Once that has
- * played out, a legend toggle must repaint at once. Left standing it delays
- * every later fill change by the region's own reveal delay, up to the cap. On an
- * atlas of any size, that cap is where nearly every region sits.
- *
- * @internal
+ * The color wash's transition classes under `animate`; static maps color without
+ * one. The duration step is `REGION_FADE`'s, so a legend toggle's hold
+ * (`useMapToggle`) waits the time the wash takes. Every region washes at once,
+ * so the reveal and a later toggle play on the same tempo, and no region carries
+ * a timing of its own.
  */
-export type MapWash = 'none' | 'reveal' | 'settled'
-
-/**
- * The wash timing for a region. While the reveal runs it is the region's own
- * staggered delay below the cap, or the shared capped style past it. It is the
- * bare fade once that has settled, and nothing at all on a static map.
- *
- * @internal
- */
-export function washStyle(index: number, wash: MapWash): CSSProperties | undefined {
-	if (wash === 'none') return undefined
-
-	if (wash === 'settled') return SETTLED_WASH_STYLE
-
-	return STAGGERED_WASH_STYLES[index] ?? CAPPED_WASH_STYLE
-}
+const WASH = 'transition-colors duration-400 ease-out motion-reduce:transition-none'
 
 /** One category's resolved region paint, shared by every region in the category. @internal */
 type RegionPaint = {

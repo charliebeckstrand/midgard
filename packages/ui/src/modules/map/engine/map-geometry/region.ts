@@ -13,7 +13,7 @@
 
 import { type GeoProjection, geoCentroid, geoPath } from 'd3-geo'
 import { REGION_PATH_DIGITS } from '../map-constants'
-import type { LngLat, MapFeature } from '../types'
+import type { LngLat, MapFeature, MapPoint2D } from '../types'
 
 /**
  * Each region's SVG path under the fitted projection, index-aligned with the
@@ -51,5 +51,47 @@ export function regionCentroids(features: MapFeature[]): (LngLat | null)[] {
 		// NaN; drop it rather than let the cursor step onto a point that projects
 		// nowhere.
 		return Number.isFinite(lon) && Number.isFinite(lat) ? [lon, lat] : null
+	})
+}
+
+/**
+ * Each region's position along an `animate="sweep"` reveal, from `0` for the
+ * centroid furthest right in the frame (east) to `1` for the one furthest left
+ * (west), index-aligned with the centroids; `null` where a region has no
+ * centroid. It reads the drawn frame rather than the longitude. A composite
+ * projection moves Alaska and Hawaii into insets, and an atlas can hold a
+ * territory across the antimeridian, so a longitude order would not be the
+ * order the reader sees.
+ *
+ * @param centroids - Each region's centroid ({@link regionCentroids}).
+ * @param project - The frame projector, `null` for a point it does not draw.
+ * @internal
+ */
+export function regionSweep(
+	centroids: readonly (LngLat | null)[],
+	project: (position: LngLat) => MapPoint2D | null,
+): (number | null)[] {
+	const xs = centroids.map((centroid) =>
+		centroid === null ? null : (project(centroid)?.x ?? null),
+	)
+
+	let east = Number.NEGATIVE_INFINITY
+
+	let west = Number.POSITIVE_INFINITY
+
+	for (const x of xs) {
+		if (x === null) continue
+
+		east = Math.max(east, x)
+
+		west = Math.min(west, x)
+	}
+
+	const span = east - west
+
+	return xs.map((x) => {
+		if (x === null) return null
+
+		return span > 0 ? (east - x) / span : 0
 	})
 }

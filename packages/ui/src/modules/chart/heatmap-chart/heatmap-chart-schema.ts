@@ -127,16 +127,17 @@ export type HeatmapChartProps<T = never> = AccessibleName &
 		onCellClick?: (cell: { x: string; y: string }, at: [row: number, col: number]) => void
 		/**
 		 * Washes the colors in on mount. The grid paints the neutral no-data fill at
-		 * once, and then the color of each cell washes in, column by column from the
-		 * left. It is the reveal of the choropleth, which washes its regions in the
-		 * same way. Past the reveal, a change to the data crossfades each cell to its
-		 * new color, so a re-query (say a dashboard filter change) transitions
-		 * rather than snapping. A resize plays nothing. A reduced-motion preference
-		 * shows each color at once. Off by default: a static heatmap stays a
-		 * plain-SVG tree with no transition.
+		 * once, and then the color of every cell washes in. `'sweep'` washes the
+		 * cells in column by column, from the first column to the last. It is the
+		 * reveal of the choropleth, which washes its regions in the same way. Past
+		 * the reveal, a change to the data crossfades each cell to its new color at
+		 * once, so a re-query (say a dashboard filter change) transitions rather
+		 * than snapping. A resize plays nothing. A reduced-motion preference shows
+		 * each color at once. Off by default: a static heatmap stays a plain-SVG
+		 * tree with no transition.
 		 * @defaultValue false
 		 */
-		animate?: boolean
+		animate?: boolean | 'sweep'
 		/**
 		 * The cell that reads as selected, by the two band labels that
 		 * `onCellClick` reports. Pair the two to hold a selection, for example the

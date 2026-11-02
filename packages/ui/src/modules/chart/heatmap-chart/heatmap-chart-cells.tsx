@@ -1,12 +1,12 @@
 'use client'
 
-import { type CSSProperties, startTransition, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { cn } from '../../../core'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { k } from '../../../recipes/kata/chart'
 import { CELL_RING_WIDTH, cellRing, type HeatmapCell } from '../engine/chart-geometry/heatmap'
-import { CELL_WASH, CELL_WASH_SETTLE, cellWashDelay } from '../engine/chart-motion'
 import { seriesGroupClass } from '../engine/chart-series'
+import { useChartSweep } from '../engine/use-chart-sweep'
 import { useHeatmapFocus, useHoveredCell } from './context'
 
 /** The neutral fill for a cell with no datum, one step off the surface. @internal */
@@ -23,34 +23,27 @@ export const NO_DATA_TEXT = 'text-zinc-200 dark:text-zinc-700'
 
 /**
  * The color transition of a cell under `animate`: the fill, and the opacity of
- * the legend probe's dim. `motion-reduce` drops it, so a reader who asked for
- * reduced motion sees each color at once. @internal
+ * the legend probe's dim. The reveal and a later data change crossfade every
+ * cell at once, in the tempo of the map's region wash, because the two
+ * sequential-color charts fill in the same way. `motion-reduce` drops it, so a
+ * reader who asked for reduced motion sees each color at once. @internal
  */
-const WASH_CLASS = 'transition-[fill,opacity] ease-out motion-reduce:transition-none'
-
-/** The wash time, as a CSS duration. @internal */
-const WASH_DURATION = `${CELL_WASH.duration * 1000}ms`
-
-/** The wash past the reveal: the crossfade alone, with no delay. @internal */
-const SETTLED_WASH: CSSProperties = { transitionDuration: WASH_DURATION }
+const WASH_CLASS = 'transition-[fill,opacity] duration-400 ease-out motion-reduce:transition-none'
 
 /**
  * Where the color wash of an animated heatmap stands. A static heatmap is
  * `'none'`: its cells take their colors at once, with no transition. An
  * animated one is `'hold'` before its first commit, so the cells paint the
- * neutral. It is `'reveal'` while the colors wash in from the left, and
- * `'settled'` once the wash has played out.
+ * neutral, and `'wash'` after it, so the colors crossfade in.
  *
  * @internal
  */
-type CellWash = 'none' | 'hold' | 'reveal' | 'settled'
+type CellWash = 'none' | 'hold' | 'wash'
 
 /**
  * The wash of the grid under `animate`. The first commit flips the cells from
- * the neutral to their colors, and the CSS transition washes them in. The column
- * stagger is the reveal's alone. It retires when the reveal ends, so a later
- * data change crossfades every cell at once and is not held by its column delay.
- * Each flip is one way: a resize never plays the wash again.
+ * the neutral to their colors, and the CSS transition washes them in. The flip
+ * is one way: a resize never plays the wash again.
  *
  * @remarks The server cannot read the reduced-motion preference, so it renders
  * the colors at rest, as the marks of the other charts do. A grid that mounts at
@@ -69,52 +62,25 @@ function useCellWash(animate: boolean, count: number): CellWash {
 		if (animate && count > 0) setRevealed(true)
 	}, [animate, count])
 
-	const [settled, setSettled] = useState(revealed)
-
-	useEffect(() => {
-		if (!animate || !revealed) return
-
-		const timer = setTimeout(() => startTransition(() => setSettled(true)), CELL_WASH_SETTLE * 1000)
-
-		return () => clearTimeout(timer)
-	}, [animate, revealed])
-
 	if (!animate) return 'none'
 
-	if (!revealed) return 'hold'
-
-	return settled ? 'settled' : 'reveal'
-}
-
-/**
- * The transition style of each column under `wash`, or `null` on a static
- * heatmap. One object serves every cell of a column, so a render of the grid
- * makes no style per cell. @internal
- */
-function useWashStyles(wash: CellWash, cols: number): CSSProperties[] | null {
-	return useMemo(() => {
-		if (wash === 'none') return null
-
-		if (wash !== 'reveal') return Array.from({ length: cols }, () => SETTLED_WASH)
-
-		return Array.from({ length: cols }, (_, col) => ({
-			transitionDuration: WASH_DURATION,
-			transitionDelay: `${cellWashDelay(col, cols) * 1000}ms`,
-		}))
-	}, [wash, cols])
+	return revealed ? 'wash' : 'hold'
 }
 
 /** Props for {@link HeatmapChartCells}: the resolved cells, their fills, and their bins. @internal */
 type HeatmapChartCellsProps = {
 	cells: HeatmapCell[]
-	/** The number of columns of the grid, which the wash staggers across. */
+	/** The number of columns of the grid, which a sweep crosses. */
 	cols: number
 	/** The fill per cell, index-aligned; `null` paints the no-data neutral. */
 	fills: (string | null)[]
 	/** The bin per cell, index-aligned; `null` for a no-data cell. Dims against the legend probe. */
 	cellBins: (number | null)[]
-	/** Wash the colors in on mount, and crossfade a data change (see {@link useCellWash}). */
-	animate: boolean
+	/**
+	 * Wash the colors in on mount, and crossfade a data change (see
+	 * {@link useCellWash}). `'sweep'` delays the reveal of each column by its place.
+	 */
+	animate: boolean | 'sweep'
 }
 
 /**
@@ -124,8 +90,8 @@ type HeatmapChartCellsProps = {
  * {@link HeatmapProbedRings} rings the cells inside it.
  *
  * @remarks Under `animate` the grid paints the neutral at once, and the colors
- * wash in column by column, as the choropleth's color washes in region by
- * region. The wash is a CSS color transition on a plain `<rect>`, so the grid
+ * wash in, as the choropleth's color washes in, column by column under
+ * `'sweep'`. The wash is a CSS color transition on a plain `<rect>`, so the grid
  * carries no motion runtime.
  * @internal
  */
@@ -138,9 +104,15 @@ export function HeatmapChartCells({
 }: HeatmapChartCellsProps) {
 	const { bin: focus } = useHeatmapFocus()
 
-	const wash = useCellWash(animate, cells.length)
+	const wash = useCellWash(animate !== false, cells.length)
 
-	const styles = useWashStyles(wash, cols)
+	// Each cell's place along the sweep is its column.
+	const columns = useCallback(
+		() => cells.map((cell) => (cols > 1 ? cell.col / (cols - 1) : 0)),
+		[cells, cols],
+	)
+
+	const delay = useChartSweep(animate === 'sweep' ? columns : null, wash === 'wash')
 
 	return (
 		<g data-slot="heatmap-cells">
@@ -160,10 +132,10 @@ export function HeatmapChartCells({
 						rx={cell.radius}
 						className={cn(
 							seriesGroupClass(dimmed),
-							styles && WASH_CLASS,
+							wash !== 'none' && WASH_CLASS,
 							fill == null && NO_DATA_FILL,
 						)}
-						style={styles?.[cell.col]}
+						style={delay(index)}
 						{...(fill == null ? {} : { fill })}
 					/>
 				)

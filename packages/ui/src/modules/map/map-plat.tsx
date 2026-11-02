@@ -32,6 +32,7 @@ import {
 import { createDotPool } from './engine/map-cluster/pool'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
+import { regionSweep } from './engine/map-geometry/region'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { createStopMoves, mapStops } from './engine/map-keyboard/stops'
 import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
@@ -290,15 +291,20 @@ type MapPlatBaseProps = AccessibleName &
 		regionPointer?: boolean
 		/**
 		 * Animates the map in on mount. The neutral geography paints at once, then
-		 * category color washes in region by region. Routes draw themselves, and
+		 * category color washes in. Routes draw themselves, and
 		 * points pop once their route lands. The geography itself never fades, so the
 		 * map is legible immediately and only the data animates on. Honors
 		 * `prefers-reduced-motion` through the `ReducedMotion` primitive and the
 		 * color wash's `motion-reduce` fallback. Off by default: a static map
 		 * stays a plain-SVG tree with no motion runtime work.
+		 *
+		 * `true` washes every region in at once. `'sweep'` washes the regions in
+		 * from east to west, by where each centroid draws, so the color crosses the
+		 * map as one wave. The sweep is the reveal's alone: a later
+		 * legend toggle washes at once.
 		 * @defaultValue false
 		 */
-		animate?: boolean
+		animate?: boolean | 'sweep'
 		/**
 		 * Receives the root `<div>` of the map, the frame that holds the legend, the
 		 * plot, and the data table.
@@ -731,7 +737,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		zoom: zoomInput,
 		onViewChange,
 		regionPointer,
-		animate = false,
+		animate: animation = false,
 		onRegionClick,
 		onRegionContextMenu,
 		onRegionPreload,
@@ -770,6 +776,19 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		graticule: graticuleStep(graticule),
 		sphere,
 	})
+
+	const animate = animation !== false
+
+	// The sweep order, handed over as a thunk: the centroid pass behind it walks
+	// every ring in the atlas, so it runs when the reveal starts rather than on
+	// the first paint. The keyboard cursor shares the cached centroids.
+	const sweep = useMemo(
+		() =>
+			animation === 'sweep'
+				? () => regionSweep(cachedRegionCentroids(shape.features), shape.project)
+				: null,
+		[animation, shape.features, shape.project],
+	)
 
 	// Region identity, resolved off the geography alone: a property of the
 	// geometry, not of the data. Both the readout (which joins rows on it) and a
@@ -1361,6 +1380,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							hidden={hidden}
 							emphasis={emphasis}
 							animate={animate}
+							sweep={sweep}
 							onRegionClick={regions.click}
 							onRegionContextMenu={regions.contextMenu}
 							selected={selected}

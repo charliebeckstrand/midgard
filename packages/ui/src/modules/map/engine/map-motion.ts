@@ -10,20 +10,11 @@ import { k } from '../../../recipes/kata/map'
 
 const { duration, ease, mark } = k.motion
 
-/** Region fade-in on the mount reveal. @internal */
-export const REGION_FADE = { duration: duration[400], ease: ease.out } as const
-
-/** Delay step between adjacent regions, so the geography washes in. @internal */
-export const REGION_STAGGER = 0.01
-
-/** Ceiling on the region stagger: a many-region atlas must not draw out the reveal. @internal */
-export const REGION_STAGGER_MAX = 0.3
-
 /**
- * How long the mount reveal takes end to end: the slowest region's delay, plus
- * the fade it then runs. What the stagger retires after (`MapWash`). @internal
+ * The region color wash, on the mount reveal and on a legend toggle. The region
+ * layer's transition classes name the same duration step. @internal
  */
-export const REGION_WASH_SETTLE = REGION_STAGGER_MAX + REGION_FADE.duration
+export const REGION_FADE = { duration: duration[400], ease: ease.out } as const
 
 /**
  * Stroke reveal (`pathLength` 0 → 1), matching the chart's line draw: a route's
