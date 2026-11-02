@@ -158,6 +158,7 @@ export default function EditorTypes() {
 			columns={columns}
 			rows={tasks}
 			getKey={(row) => row.id}
+			rowLabel={(row) => row.title}
 			editable={{ rows: editing, overlay: false, onCommit: () => {} }}
 		/>
 	)

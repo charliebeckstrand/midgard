@@ -138,6 +138,7 @@ export default function NewRow() {
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
 				maxHeight="320px"
 				header={{ position: 'sticky' }}
 				editable={{

@@ -16,6 +16,7 @@ export default function BatchActions() {
 				columns={selectColumns}
 				rows={rows}
 				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
 				selection={{
 					batchActions: ({ selection, setSelection }) => (
 						<HoldButton

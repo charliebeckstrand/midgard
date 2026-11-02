@@ -67,6 +67,7 @@ export default function CellScopeAndSpreadsheetKeys() {
 				columns={personColumns}
 				rows={people}
 				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
 				editable={{
 					session: 'managed',
 					scope: 'cell',

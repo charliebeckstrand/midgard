@@ -60,6 +60,7 @@ export default function Editable() {
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
 				editable={{
 					session: 'managed',
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),

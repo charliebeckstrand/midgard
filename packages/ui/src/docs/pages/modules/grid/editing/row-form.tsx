@@ -39,6 +39,7 @@ export default function RowForm() {
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
 				editable={{
 					session: 'managed',
 					scope: 'cell',
