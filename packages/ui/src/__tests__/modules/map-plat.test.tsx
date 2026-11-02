@@ -1,11 +1,7 @@
 import { describe, expect, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
-import {
-	REGION_FADE,
-	REGION_STAGGER,
-	REGION_WASH_SETTLE,
-} from '../../modules/map/engine/map-motion'
+import { REGION_FADE } from '../../modules/map/engine/map-motion'
 import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
@@ -148,27 +144,16 @@ describe('MapPlat', () => {
 		expect(alpha?.getAttribute('class')).toContain('fill-blue-600')
 	})
 
-	it('retires the reveal stagger, so a later toggle repaints without waiting one out', async ({
-		clock,
-	}) => {
+	it('washes every region in at once, on the fade the legend hold waits out', () => {
 		const { container } = renderUI(categoricalPlat({ animate: true }))
 
-		const region = () => allRegions(container)[2]?.getAttribute('style') ?? ''
+		for (const region of allRegions(container)) {
+			// One tempo for the whole layer, held by class: no region carries a
+			// delay of its own, so a later legend toggle repaints on the same beat.
+			expect(region.getAttribute('class')).toContain(`duration-${REGION_FADE.duration * 1000}`)
 
-		// The reveal washes the geography on region by region, so each region
-		// holds its own delay while it runs.
-		expect(region()).toContain(`transition-delay: ${REGION_STAGGER * 2 * 1000}ms`)
-
-		await clock.advance(REGION_WASH_SETTLE * 1000)
-
-		// Past the reveal the stagger is gone. Left standing it delays every later
-		// fill change, and on an atlas of any size nearly every region sits at the
-		// cap, so a legend toggle would pay that beat before its color so much as
-		// began to move.
-		expect(region()).not.toContain('transition-delay')
-
-		// The fade itself stands; only the delay retires.
-		expect(region()).toContain(`transition-duration: ${REGION_FADE.duration * 1000}ms`)
+			expect(region.getAttribute('style')).toBeNull()
+		}
 	})
 
 	it('colors matched regions by category slot and leaves the rest neutral', () => {
@@ -451,7 +436,7 @@ describe('MapPlat', () => {
 
 		const [east] = allBySlot(container, 'map-legend-item')
 
-		await clock.advance(REGION_WASH_SETTLE * 1000)
+		await clock.advance(REGION_FADE.duration * 1000)
 
 		// The click that toggles an entry is also what puts the pointer on it, so
 		// the emphasis is live across both halves of the round trip.

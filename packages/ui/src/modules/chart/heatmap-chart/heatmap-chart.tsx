@@ -239,13 +239,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 					</>
 				)}
 
-				<HeatmapChartCells
-					cells={cells}
-					cols={cols}
-					fills={fills}
-					cellBins={cellBins}
-					animate={animate}
-				/>
+				<HeatmapChartCells cells={cells} fills={fills} cellBins={cellBins} animate={animate} />
 
 				<HeatmapProbedRings cells={cells} cellBins={cellBins} />
 

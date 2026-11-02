@@ -1,11 +1,9 @@
 'use client'
 
 import {
-	type CSSProperties,
 	memo,
 	type PointerEvent,
 	type ReactNode,
-	startTransition,
 	useCallback,
 	useEffect,
 	useMemo,
@@ -22,15 +20,8 @@ import {
 } from './context'
 import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './engine/map-constants'
 import { regionIndexAt } from './engine/map-hover/anchor'
-import { REGION_WASH_SETTLE } from './engine/map-motion'
 import type { MapCategoryMeta } from './engine/map-region/category'
-import {
-	type MapRegionLayer,
-	type MapWash,
-	paintAt,
-	resolveRegionPaints,
-	washStyle,
-} from './engine/map-region/paint'
+import { type MapRegionLayer, paintAt, resolveRegionPaints } from './engine/map-region/paint'
 import { type MapTransform, transformAttribute } from './engine/map-zoom/transform'
 import { MapRegionsLit } from './map-regions-lit'
 
@@ -151,8 +142,6 @@ type RegionProps = {
 	className: string
 	/** The `fill` attribute color for a numeric bin, `undefined` for a class fill. */
 	fillColor: string | undefined
-	/** The wash's transition timing under `animate`; `undefined` on static maps. */
-	style: CSSProperties | undefined
 	/** `undefined` on a map with nothing to read out, which answers no pointer. */
 	onTrack: ((event: PointerEvent<SVGPathElement>) => void) | undefined
 }
@@ -164,21 +153,11 @@ type RegionProps = {
  *
  * Memoized on its resolved primitives. A legend toggle or the reveal flip
  * re-renders the categories whose paint changed, and every other region holds
- * its last render. The wash styles are shared objects, so a region outside the
- * change compares equal on its timing too. That holds until the stagger
- * retires, the one flip that re-keys every region's style and so re-renders the
- * whole layer.
+ * its last render.
  *
  * @internal
  */
-const Region = memo(function Region({
-	d,
-	index,
-	className,
-	fillColor,
-	style,
-	onTrack,
-}: RegionProps) {
+const Region = memo(function Region({ d, index, className, fillColor, onTrack }: RegionProps) {
 	return (
 		<path
 			// The region's DOM anchor: the hover provider's scroll-settle resolve,
@@ -198,7 +177,6 @@ const Region = memo(function Region({
 			// No width of its own: the seam is inherited from `MapRegionsGroup`, which
 			// states why.
 			className={className}
-			style={style}
 			onPointerEnter={onTrack}
 			onPointerMove={onTrack}
 		/>
@@ -217,14 +195,14 @@ function drawnRegions(paths: (string | null)[]): { index: number; d: string }[] 
 }
 
 /** Props for {@link MapRegionsBase}: the layer's own inputs, none of the shared emphasis. @internal */
-type MapRegionsBaseProps = MapRegionLayer & { wash: MapWash; interactive: boolean }
+type MapRegionsBaseProps = MapRegionLayer & { interactive: boolean }
 
 /**
  * Every region path, painted by category. Deliberately blind to the shared
  * emphasis. The pointed mark and the legend focus recede this layer from
  * outside ({@link MapRegions}). On a county atlas the three-thousand-path tree
  * therefore never re-renders while the pointer travels, or a legend chip is
- * held. Only a toggle, the reveal's flips, or new geometry re-maps it. The paint
+ * held. Only a toggle, the reveal's flip, or new geometry re-maps it. The paint
  * table arrives resolved from the parent, so the memo compares one stable reference
  * where it once compared the four inputs behind it.
  *
@@ -234,7 +212,6 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	paths,
 	regionCategory,
 	paints,
-	wash,
 	interactive,
 }: MapRegionsBaseProps) {
 	const { set } = useMapHoverActions()
@@ -272,7 +249,6 @@ const MapRegionsBase = memo(function MapRegionsBase({
 						index={index}
 						className={paint.className}
 						fillColor={paint.fillColor}
-						style={washStyle(index, wash)}
 						onTrack={handleTrack}
 					/>
 				)
@@ -300,14 +276,12 @@ const MapRegionsBase = memo(function MapRegionsBase({
  * color, and whatever dim it carries, reading through.
  *
  * @remarks Under `animate` the geography paints solid at once, and only the
- * category color washes in. Each region's fill crossfades from the neutral
- * backdrop to its slot color, with a capped per-index stagger. It is a CSS
- * color transition on a plain `<path>`, not a motion fade. The geometry itself
- * therefore never fades, a many-region atlas never draws out the reveal, and the
- * region layer carries no motion runtime. `motion-reduce` drops the transition.
- * The stagger is the reveal's alone, and retires with it ({@link MapWash}). A
- * later legend toggle therefore crossfades on the same tempo, without a reveal
- * delay in front of it.
+ * category color washes in. Every region's fill crossfades from the neutral
+ * backdrop to its slot color at once. It is a CSS color transition on a plain
+ * `<path>`, not a motion fade. The geometry itself therefore never fades, a
+ * many-region atlas never draws out the reveal, and the region layer carries no
+ * motion runtime. `motion-reduce` drops the transition. A later legend toggle
+ * crossfades on the same tempo.
  *
  * Memoized so it repaints only when its own geometry, category, or legend
  * state changes. An overlay child registering its legend entry re-renders the
@@ -347,38 +321,6 @@ export const MapRegions = memo(function MapRegions({
 	useEffect(() => {
 		if (animate && paths.length > 0) setRevealed(true)
 	}, [animate, paths.length])
-
-	// Whether the reveal has washed through, so its per-region stagger can retire
-	// ({@link MapWash} carries why it must). The delay has to outlive the flip that
-	// starts the wash (a transition reads its timing from the style it lands in,
-	// so dropping the stagger in the same commit would drop the stagger itself), so
-	// the clock runs from the flip. A one-way flag beside the reveal it retires, so
-	// a resize never re-arms it, and the effect reads neither flag it writes.
-	//
-	// Retiring re-keys every region's wash style, so it costs one pass over the
-	// layer (committed as a transition, the priority the plot's own refit rides,
-	// since nothing waits on it: the reveal it ends has already played, and until
-	// the pass lands the regions hold a delay that only a fill change would
-	// read). It runs for a reduced-motion reader too, where the stagger it
-	// retires was already inert (`motion-reduce` drops the transition the delay
-	// belongs to). The legend's own hold is different: it withholds a visible
-	// dim, and so has to read the preference.
-	const [settled, setSettled] = useState(!animate)
-
-	useEffect(() => {
-		if (!animate || !revealed) return
-
-		const timer = setTimeout(
-			() => startTransition(() => setSettled(true)),
-			REGION_WASH_SETTLE * 1000,
-		)
-
-		return () => clearTimeout(timer)
-	}, [animate, revealed])
-
-	const animatedWash: MapWash = settled ? 'settled' : 'reveal'
-
-	const wash: MapWash = animate ? animatedWash : 'none'
 
 	const clickable = onRegionClick !== undefined
 
@@ -425,7 +367,6 @@ export const MapRegions = memo(function MapRegions({
 					paths={paths}
 					regionCategory={regionCategory}
 					paints={paints}
-					wash={wash}
 					interactive={interactive}
 				/>
 			</g>

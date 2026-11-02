@@ -290,7 +290,7 @@ type MapPlatBaseProps = AccessibleName &
 		regionPointer?: boolean
 		/**
 		 * Animates the map in on mount. The neutral geography paints at once, then
-		 * category color washes in region by region. Routes draw themselves, and
+		 * category color washes in. Routes draw themselves, and
 		 * points pop once their route lands. The geography itself never fades, so the
 		 * map is legible immediately and only the data animates on. Honors
 		 * `prefers-reduced-motion` through the `ReducedMotion` primitive and the

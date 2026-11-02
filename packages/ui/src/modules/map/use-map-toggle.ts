@@ -40,9 +40,7 @@ export type MapToggle = {
  * The wait is the region wash's, because the region layer is the only thing an
  * emphasis paints a copy over. An overlay's marks unmount when hidden, so a
  * toggled-on overlay has nothing dimmed underneath to cover. It rides the same
- * wait only because one legend drives both. Held for the fade alone, not
- * the reveal's fade-plus-stagger, since the stagger retires with the reveal that
- * owns it ({@link MapWash}).
+ * wait only because one legend drives both.
  *
  * It is skipped where there is no wash to protect: a static map, and a
  * reduced-motion reader. That reader's `motion-reduce` fallback drops the

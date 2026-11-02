@@ -1,7 +1,6 @@
 import { describe, expect, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
-import { CELL_WASH_SETTLE } from '../../modules/chart/engine/chart-motion'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
 import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import {
@@ -734,12 +733,10 @@ describe('HeatmapChart cell rings', () => {
 })
 
 describe('HeatmapChart animate', () => {
-	/** The transition delay of each cell, in order, or `null` for a cell with no transition. */
-	const delays = (container: HTMLElement) =>
-		cellRects(container).map((rect) =>
-			rect.getAttribute('class')?.includes('transition-[fill,opacity]')
-				? (rect as SVGElement).style.transitionDelay
-				: null,
+	/** Whether each cell, in order, carries the wash transition. */
+	const washed = (container: HTMLElement) =>
+		cellRects(container).map(
+			(rect) => rect.getAttribute('class')?.includes('transition-[fill,opacity]') ?? false,
 		)
 
 	it('takes no transition on a static heatmap', () => {
@@ -747,38 +744,22 @@ describe('HeatmapChart animate', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
 		)
 
-		expect(delays(container)).toEqual([null, null, null, null])
+		expect(washed(container)).toEqual([false, false, false, false])
 	})
 
-	it('washes the colors in column by column, then crossfades a data change at once', async ({
-		clock,
-	}) => {
-		const chart = (rows: Row[]) => (
-			<HeatmapChart aria-label="Commits" data={rows} series={SERIES} width={400} animate />
+	it('washes the colors into every cell at once', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} animate />,
 		)
 
-		const { container, rerender } = renderUI(chart(ROWS))
+		expect(washed(container)).toEqual([true, true, true, true])
 
-		// Row-major: Mon 9, Mon 10, Tue 9, Tue 10. The second column waits a step.
-		const reveal = delays(container)
-
-		expect(reveal[0]).toBe('0ms')
-
-		expect(reveal[1]).not.toBe('0ms')
-
-		expect(reveal[2]).toBe(reveal[0])
-
-		expect(reveal[3]).toBe(reveal[1])
-
-		// The cells carry their colors, and the CSS transition washes them in.
+		// The cells carry their colors, and the CSS transition washes them in. No
+		// cell carries a delay of its own, so a later data change crossfades on
+		// the same beat.
 		expect(cellRects(container)[0]).toHaveAttribute('fill')
 
-		await clock.advance(CELL_WASH_SETTLE * 1000)
-
-		// The stagger retires with the reveal, so a data change waits for no column.
-		rerender(chart([{ day: 'Mon', hour: '9', commits: 9 }, ...ROWS.slice(1)]))
-
-		expect(delays(container)).toEqual(['', '', '', ''])
+		for (const rect of cellRects(container)) expect(rect.getAttribute('style')).toBeNull()
 	})
 
 	it('plays no wash under reduced motion', () => {
@@ -788,7 +769,9 @@ describe('HeatmapChart animate', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} animate />,
 		)
 
-		expect(delays(container)).toEqual(['', '', '', ''])
+		// The grid mounts at rest. The transition stands for a later data change,
+		// and `motion-reduce` drops it for this reader.
+		expect(cellRects(container)[0]).toHaveAttribute('fill')
 	})
 })
 
