@@ -15,6 +15,7 @@ import { cn } from '../../core'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useStableValue } from '../../hooks/use-stable-value'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -32,15 +33,15 @@ import {
 } from './context'
 import { createDotPool } from './engine/map-cluster/pool'
 import { clusterRadius } from './engine/map-cluster/radius'
-import { createClusterStore } from './engine/map-cluster/sets'
+import { createClusterStore, sameClusterEntries } from './engine/map-cluster/sets'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import { regionSweep } from './engine/map-geometry/region'
-import type { MapHoverTarget } from './engine/map-hover/target'
+import type { MapHoverTarget, MapOverlayTarget } from './engine/map-hover/target'
 import { createStopMoves, mapStops } from './engine/map-keyboard/stops'
 import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
 import { planLegend } from './engine/map-legend/plan'
-import { targetStop } from './engine/map-overlay/selection'
+import { targetParts, targetStop } from './engine/map-overlay/selection'
 import { overlaySlotColors } from './engine/map-overlay/slots'
 import { regionGroupId } from './engine/map-region/category'
 import type { MapCategoricalData, MapNoData, MapNumericData } from './engine/map-region/data'
@@ -1105,17 +1106,43 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	const intl = useIntl()
 
-	// The shared pass of the point sets. A summary holds its count label, which
-	// the locale writes, so the radius of a group reads the formatter that the
-	// label reads. Held per count, as each set holds it (`map-points.tsx`).
-	const clusters = useMemo(() => {
+	// The radius of a group of each count. A summary holds its count label, which
+	// the locale writes, so the radius reads the formatter that the label reads.
+	//
+	// Held per count for the locale: the pass asks for every group it builds, on
+	// every zoom notch, and most of those groups share a few small counts. A format
+	// per ask doubled the cost of the pass on a set of 5,000 dots.
+	const getRadius = useMemo(() => {
 		const radii = new Map<number, number>()
 
-		const getRadius = (count: number) =>
+		return (count: number) =>
 			getOrCompute(radii, count, (held) => clusterRadius(held, intl.formatNumber))
+	}, [intl])
 
-		return createClusterStore(entries, hidden, shape.project, getRadius)
-	}, [entries, hidden, shape.project, intl])
+	// The ledger as the shared pass reads it. A regroup changes the stop rows of a
+	// set, and so the ledger, but not what the pass reads. The pass therefore holds
+	// its grouping through a regroup and does not group again at the same scale.
+	const clusterEntries = useStableValue(entries, sameClusterEntries)
+
+	// The shared pass of the point sets.
+	const clusters = useMemo(
+		() => createClusterStore(clusterEntries, hidden, shape.project, getRadius),
+		[clusterEntries, hidden, shape.project, getRadius],
+	)
+
+	// The one dispatch of a pick and a right-click on an overlay target: each part
+	// that the target names (`targetParts`), through the reporter of its own set.
+	// A pick on a shared summary from any input therefore reaches every part. A
+	// stable event, so the value below holds through a change of the ledger.
+	const report = useStableEvent((target: MapOverlayTarget, kind: 'activate' | 'menu') => {
+		const entry = entries.find(({ id }) => id === target.id)
+
+		if (entry === undefined) return
+
+		for (const part of targetParts(target, entry)) {
+			entries.find(({ id }) => id === part.id)?.[kind]?.(part.stop)
+		}
+	})
 
 	// The moves of the marks, which the cursor reads to resolve its stops again.
 	// One store for the life of the plat, so the value below holds through a move.
@@ -1131,6 +1158,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			spare,
 			pool,
 			clusters,
+			report,
 			moves,
 			animate,
 			selectedOverlay: markSelection,
@@ -1144,6 +1172,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			spare,
 			pool,
 			clusters,
+			report,
 			moves,
 			animate,
 			markSelection,
@@ -1216,29 +1245,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// Picks the mark the cursor sits on: a region through the caller's own
 	// reporter, an overlay through the activation it registered, so the plat
 	// dispatches a keyboard pick without knowing what kind of mark it landed on.
-	// A part of a shared summary picks every part of the summary, each through
-	// its own set, as a click on the summary does (`map-points.tsx`).
 	const activateTarget = useCallback(
 		(target: MapHoverTarget) => {
-			if (target.kind === 'region') {
-				pickRegion?.(target.index)
-
-				return
-			}
-
-			const entry = entries.find(({ id }) => id === target.id)
-
-			if (entry === undefined) return
-
-			const stop = targetStop(target, entry.getStop)
-
-			const parts = entry.stopRows?.[stop]?.parts ?? [{ id: entry.id, stop }]
-
-			for (const part of parts) {
-				entries.find(({ id }) => id === part.id)?.activate?.(part.stop)
-			}
+			if (target.kind === 'region') pickRegion?.(target.index)
+			else report(target, 'activate')
 		},
-		[pickRegion, entries],
+		[pickRegion, report],
 	)
 
 	// The target of the stop that holds what a target held. A zoom regroups the

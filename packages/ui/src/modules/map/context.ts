@@ -5,7 +5,7 @@ import { createContext } from '../../core'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { MapDotPool } from './engine/map-cluster/pool'
 import type { MapClusterStore } from './engine/map-cluster/sets'
-import type { MapHoverTarget } from './engine/map-hover/target'
+import type { MapHoverTarget, MapOverlayTarget } from './engine/map-hover/target'
 import type { MapStopMoves } from './engine/map-keyboard/stops'
 import type { MapOverlayEntry } from './engine/map-overlay/entry'
 import type { LngLat, MapOverlaySelection, MapPoint2D } from './engine/types'
@@ -238,6 +238,13 @@ export type MapPlatContextValue = {
 	 * reads it, and holds the grouping of that scale.
 	 */
 	clusters: MapClusterStore
+	/**
+	 * Reports a pick (`activate`) or a right-click (`menu`) on an overlay target to
+	 * each part that the target names (`targetParts`), through the reporter of its
+	 * own set. A shared summary reports its click through it, so a pick from any
+	 * input reaches every part of the summary by one rule. A stable function.
+	 */
+	report: (target: MapOverlayTarget, kind: 'activate' | 'menu') => void
 	/**
 	 * The moves of the marks, for the keyboard cursor. A mark calls `move` when
 	 * its stops change, and the cursor resolves its stop list again. One store for

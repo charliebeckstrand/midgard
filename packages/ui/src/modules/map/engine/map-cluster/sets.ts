@@ -9,7 +9,7 @@
  * Frame arithmetic and a listener set, React-free, like the rest of the engine.
  */
 
-import { createEmitter } from '../../../../utilities'
+import { createEmitter, once } from '../../../../utilities'
 import { groupLegendId } from '../map-legend/items'
 import type { MapOverlayEntry } from '../map-overlay/entry'
 import type { LngLat, MapPoint2D } from '../types'
@@ -44,10 +44,10 @@ export type MapSharedPart = {
 	stop: number
 	/** The dots of the set that the part holds, as indices into the positions of the set. */
 	members: number[]
-	/** The pick of the set, where the set answers one. */
-	activate?: (stop: number) => void
-	/** The right-click reporter of the set, where the set answers one. */
-	menu?: (stop: number) => void
+	/** Whether the set answers a pick. */
+	pickable: boolean
+	/** Whether the set answers a right-click. */
+	menuable: boolean
 }
 
 /**
@@ -103,8 +103,8 @@ export type MapClusterSet = {
 	id: string
 	input: MapClusterInput
 	legend?: string
-	activate?: (stop: number) => void
-	menu?: (stop: number) => void
+	pickable?: boolean
+	menuable?: boolean
 }
 
 /**
@@ -185,8 +185,8 @@ export function groupSets(
 					legend: set.legend ?? set.id,
 					stop: 0,
 					members,
-					activate: set.activate,
-					menu: set.menu,
+					pickable: set.pickable ?? false,
+					menuable: set.menuable ?? false,
 				}
 			}),
 			count: group.members.length,
@@ -254,25 +254,14 @@ function ordered(groups: MapSetCluster[], id: string): MapSetCluster[] {
 	return groups
 }
 
-/** A thunk that computes its value on the first call and holds it. @internal */
-function once<T>(compute: () => T): () => T {
-	let held: { value: T } | null = null
-
-	return () => {
-		if (held === null) held = { value: compute() }
-
-		return held.value
-	}
-}
-
 /**
  * The shared pass of a plat, as a store that a set reads through
  * `useSyncExternalStore`.
  *
  * @remarks
- * The plat makes a new store each time its ledger, its toggles, or its fit
- * change. A set whose dots move changes none of these, because its dots sit
- * behind a stable getter. The set therefore calls {@link MapClusterStore.restake}
+ * The plat makes a new store each time what the pass reads of its ledger
+ * ({@link sameClusterEntries}), its toggles, or its fit change. A set whose dots
+ * move changes none of these, because its dots sit behind a stable getter. The set therefore calls {@link MapClusterStore.restake}
  * when its dots change, as it does for the dot pool (`pool.ts`).
  *
  * @internal
@@ -289,6 +278,8 @@ export type MapClusterStore = {
 	subscribe: (listener: () => void) => () => void
 	/** Gathers the input of the set that `id` names again, after its dots changed. */
 	restake: (id: string) => void
+	/** The radius of a group of each count, in device pixels, that the pass reads. */
+	getRadius: MapClusterRadius
 }
 
 /**
@@ -345,30 +336,17 @@ export function createClusterStore(
 
 			const next = entry === undefined ? undefined : entrySet(entry, hidden)
 
-			const index = held.findIndex((set) => set.id === id)
+			if (next?.input === held.find((set) => set.id === id)?.input) return
 
-			if (next?.input === held[index]?.input) return
-
-			// The set keeps its place in the order of the ledger, so the set that draws
-			// a shared summary does not change when its dots move.
-			const sets = held.filter((set) => set.id !== id)
-
-			if (next !== undefined) {
-				const at = entries.findIndex((candidate) => candidate.id === id)
-
-				const before = sets.findIndex(
-					(set) => entries.findIndex((candidate) => candidate.id === set.id) > at,
-				)
-
-				sets.splice(before === -1 ? sets.length : before, 0, next)
-			}
-
-			held = sets
+			// The next read gathers every set again, in the order of the ledger, so the
+			// set that draws a shared summary does not change when its dots move.
+			held = null
 
 			grouping = bind()
 
 			changed.emit()
 		},
+		getRadius,
 	}
 }
 
@@ -390,7 +368,40 @@ function entrySet(entry: MapOverlayEntry, hidden: ReadonlySet<string>): MapClust
 		id: entry.id,
 		input,
 		legend: entry.group === undefined ? entry.id : groupLegendId(entry.group),
-		activate: entry.activate,
-		menu: entry.menu,
+		pickable: entry.activate !== undefined,
+		menuable: entry.menu !== undefined,
 	}
+}
+
+/**
+ * Whether two ledgers put the same sets in the pass, so the plat can keep its
+ * store. The pass reads the id, the input getter, the group, and whether a set
+ * answers a pick and a right-click of each entry that clusters. A change of the
+ * stop rows of a set, which a regroup makes, is not one of these.
+ *
+ * @internal
+ */
+export function sameClusterEntries(
+	prev: readonly MapOverlayEntry[],
+	next: readonly MapOverlayEntry[],
+): boolean {
+	const before = prev.filter((entry) => entry.clusterAt !== undefined)
+
+	const after = next.filter((entry) => entry.clusterAt !== undefined)
+
+	return (
+		before.length === after.length &&
+		before.every((entry, index) => {
+			const other = after[index]
+
+			return (
+				other !== undefined &&
+				entry.id === other.id &&
+				entry.clusterAt === other.clusterAt &&
+				entry.group === other.group &&
+				entry.activate === other.activate &&
+				entry.menu === other.menu
+			)
+		})
+	)
 }

@@ -8,7 +8,7 @@ import {
 import { clusterAnchor, clusterSpan } from '../../modules/map/engine/map-cluster/geo'
 import { clusterPoints, groupsByMember } from '../../modules/map/engine/map-cluster/group'
 import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
-import { groupSets } from '../../modules/map/engine/map-cluster/sets'
+import { groupSets, sameClusterEntries } from '../../modules/map/engine/map-cluster/sets'
 import {
 	CLUSTER_COUNT_CHAR_WIDTH,
 	CLUSTER_COUNT_INSET,
@@ -16,6 +16,7 @@ import {
 	POINT_HIT_RADIUS,
 	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
+import type { MapOverlayEntry } from '../../modules/map/engine/map-overlay/entry'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 import { englishRadius, flatProjector } from '../helpers/map-flat'
 
@@ -585,5 +586,44 @@ describe('groupSets', () => {
 		)
 
 		expect(grouping.room()).toEqual([25 - POINT_RADIUS, 25 - POINT_RADIUS])
+	})
+})
+
+describe('sameClusterEntries', () => {
+	const clusterAt = () => ({ positions: [], gap: 4 })
+
+	const set: MapOverlayEntry = {
+		id: 'stops',
+		label: 'Stops',
+		kind: 'point',
+		swatch: 'dot',
+		stopsAt: () => [],
+		getStop: (index) => index,
+		clusterAt,
+	}
+
+	const route: MapOverlayEntry = {
+		id: 'leg',
+		label: 'Leg',
+		kind: 'route',
+		swatch: 'line',
+		stopsAt: () => [],
+		getStop: () => 0,
+	}
+
+	it('holds through a change that the pass does not read', () => {
+		// A regroup gives the set new stop rows, and a route that does not cluster
+		// joins the ledger.
+		expect(sameClusterEntries([set], [{ ...set, stopRows: [{ label: 'Stops' }] }, route])).toBe(
+			true,
+		)
+	})
+
+	it('changes with a set that the pass reads', () => {
+		expect(sameClusterEntries([set], [set, { ...set, id: 'depots' }])).toBe(false)
+
+		expect(sameClusterEntries([set], [{ ...set, group: 'fleet' }])).toBe(false)
+
+		expect(sameClusterEntries([set], [{ ...set, activate: () => {} }])).toBe(false)
 	})
 })

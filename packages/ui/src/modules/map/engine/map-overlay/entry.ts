@@ -126,8 +126,8 @@ export type MapOverlayEntry = {
 	/**
 	 * Reports a right-click on one of the mark's stops, as a click on the stop
 	 * reports a pick. Stable like {@link activate}, and registered only where the
-	 * mark answers a right-click. A shared summary (`sets.ts`) reports a
-	 * right-click to each of its parts through it.
+	 * mark answers a right-click. The plat reports a right-click on a shared
+	 * summary to each of its parts through it (`targetParts`).
 	 */
 	menu?: (stop: number) => void
 	/**

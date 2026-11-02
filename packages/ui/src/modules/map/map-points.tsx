@@ -20,7 +20,6 @@ import { useMapPlat, useMapPointed, useMapZoomScale } from './context'
 import { markTargets } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
 import { clusterGap, groupsByMember } from './engine/map-cluster/group'
-import { clusterRadius } from './engine/map-cluster/radius'
 import {
 	groupSets,
 	type MapClusterInput,
@@ -28,7 +27,7 @@ import {
 	type MapSharedCluster,
 } from './engine/map-cluster/sets'
 import { POINT_RADIUS } from './engine/map-constants'
-import { mapMarkDimmed } from './engine/map-hover/target'
+import { type MapHoverTarget, mapMarkDimmed } from './engine/map-hover/target'
 import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
@@ -240,7 +239,7 @@ function MapPointsReveal({ animate, drawn, children }: MapPointsRevealProps) {
 /** Whether every set of a shared summary reads dimmed, so the summary dims. @internal */
 function sharedDimmed(
 	summary: MapSharedCluster,
-	pointed: Parameters<typeof mapMarkDimmed>[0],
+	pointed: MapHoverTarget | null,
 	emphasis: string | null,
 ): boolean {
 	return summary.parts.every((part) =>
@@ -294,7 +293,7 @@ function MapPointsShared({
 	hit,
 	onPointerLeave,
 }: MapPointsSharedProps) {
-	const { colors } = useMapPlat()
+	const { colors, report } = useMapPlat()
 
 	const dimmed = useMapPointed((pointed, emphasis) => sharedDimmed(summary, pointed, emphasis))
 
@@ -308,27 +307,21 @@ function MapPointsShared({
 		}
 	})
 
-	const picks = summary.parts.some((part) => part.activate !== undefined)
+	const picks = summary.parts.some((part) => part.pickable)
 
-	const menus = summary.parts.some((part) => part.menu !== undefined)
+	const menus = summary.parts.some((part) => part.menuable)
 
-	// The plat dispatches a keyboard or touch pick on a part to every part the same
-	// way (`map-plat.tsx`), so each input picks the whole summary.
+	// The plat reports a click to every part, as it reports a keyboard or touch
+	// pick (`map-plat.tsx`), so each input picks the whole summary.
 	const own = hit(index)
+
+	const named = { kind: 'entry', id: own['data-entry-id'], stop: index } as const
 
 	const reach = {
 		...own,
 		className: picks ? k.clickable : undefined,
-		onClick: picks
-			? () => {
-					for (const part of summary.parts) part.activate?.(part.stop)
-				}
-			: undefined,
-		onContextMenu: menus
-			? () => {
-					for (const part of summary.parts) part.menu?.(part.stop)
-				}
-			: undefined,
+		onClick: picks ? () => report(named, 'activate') : undefined,
+		onContextMenu: menus ? () => report(named, 'menu') : undefined,
 	}
 
 	// One timing for the set: the ring and the count fade in with the disc.
@@ -578,19 +571,6 @@ export function MapPoints({
 	// the set in the pass, and every set on the plat groups again.
 	const input = useMemo<MapClusterInput>(() => ({ positions, gap }), [positions, gap])
 
-	// How wide a group of each count draws. A summary holds its count label, which
-	// the locale writes, so the size reads the same formatter the label does.
-	//
-	// Held per count for the locale: the merge pass asks for every group it builds,
-	// on every zoom notch, and most of those groups share a few small counts. A
-	// format per ask doubled the cost of the pass on a set of 5,000 dots.
-	const getRadius = useMemo(() => {
-		const radii = new Map<number, number>()
-
-		return (count: number) =>
-			getOrCompute(radii, count, (held) => clusterRadius(held, intl.formatNumber))
-	}, [intl])
-
 	const pass = useSyncExternalStore(clusters.subscribe, clusters.grouping, clusters.grouping)
 
 	// The groups of this set come from the shared pass of the plat, so the sets
@@ -604,8 +584,8 @@ export function MapPoints({
 
 		if (shared.sets.get(id)?.input === input) return shared
 
-		return groupSets([{ id, input }], project, getRadius, unitsPerPixel)
-	}, [pass, unitsPerPixel, id, input, project, getRadius])
+		return groupSets([{ id, input }], project, clusters.getRadius, unitsPerPixel)
+	}, [pass, unitsPerPixel, id, input, project, clusters.getRadius])
 
 	const groups = grouping.sets.get(id)?.groups ?? NO_GROUPS
 
@@ -695,9 +675,7 @@ export function MapPoints({
 			groups.map(({ members, shared: summary }, index) => {
 				const row = groupRow(members, ownShapes[index] ?? shape)
 
-				return summary === undefined
-					? row
-					: { ...row, parts: summary.parts.map((part) => ({ id: part.id, stop: part.stop })) }
+				return summary === undefined ? row : { ...row, parts: summary.parts }
 			}),
 		[groups, ownShapes, shape, groupRow],
 	)

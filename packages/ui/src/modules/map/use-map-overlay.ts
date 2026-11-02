@@ -434,10 +434,6 @@ export function useMapOverlay({
 		pool.restake(id)
 	}, [pool, id, dots])
 
-	// A move changes no entry of the ledger either, so the keyboard cursor holds the
-	// stops it resolved last. The mark tells it off the identity of `stops`, as it
-	// restakes the pool off `dots`. A layout effect, so that the cursor reads the
-	// new stops before the move paints.
 	// A move changes no entry of the ledger, so the shared pass holds the dots it
 	// gathered last. The set restakes its dots in the pass off the identity of
 	// `cluster`, as it restakes the pool off `dots`.
@@ -451,6 +447,10 @@ export function useMapOverlay({
 		clusters.restake(id)
 	}, [clusters, id, cluster])
 
+	// A move changes no entry of the ledger either, so the keyboard cursor holds the
+	// stops it resolved last. The mark tells it off the identity of `stops`, as it
+	// restakes the pool off `dots`. A layout effect, so that the cursor reads the
+	// new stops before the move paints.
 	const placed = useRef(stops)
 
 	useLayoutEffect(() => {

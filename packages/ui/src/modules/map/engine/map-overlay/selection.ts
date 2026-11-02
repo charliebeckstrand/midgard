@@ -9,9 +9,9 @@
  * without mounting a map.
  */
 
-import type { MapHoverTarget } from '../map-hover/target'
+import type { MapOverlayTarget } from '../map-hover/target'
 import type { MapOverlaySelection } from '../types'
-import type { MapOverlayEntry } from './entry'
+import type { MapOverlayEntry, MapStopPart } from './entry'
 import { markRowKey } from './readout'
 
 /**
@@ -55,10 +55,30 @@ export function pickedStop(
  * @internal
  */
 export function targetStop(
-	target: Extract<MapHoverTarget, { kind: 'entry' }>,
+	target: MapOverlayTarget,
 	getStop: (index: number) => number | null,
 ): number {
 	return target.reported === undefined ? target.stop : (getStop(target.reported) ?? target.stop)
+}
+
+/**
+ * The parts that an overlay target names: each part of the shared summary that
+ * its stop is a part of, in the order of the ledger, else its own stop alone.
+ * The one rule by which a pick, a right-click, and the readout reach every set of
+ * a shared summary, whatever input made them.
+ *
+ * @param target - The overlay target.
+ * @param entry - The registered entry of the mark that the target names.
+ * @returns The parts, each as the id of a set and a stop of that set.
+ * @internal
+ */
+export function targetParts(
+	target: MapOverlayTarget,
+	entry: Pick<MapOverlayEntry, 'getStop' | 'stopRows'>,
+): readonly MapStopPart[] {
+	const stop = targetStop(target, entry.getStop)
+
+	return entry.stopRows?.[stop]?.parts ?? [{ id: target.id, stop }]
 }
 
 /**

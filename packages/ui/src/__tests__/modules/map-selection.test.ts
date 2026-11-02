@@ -5,6 +5,7 @@ import {
 	ownStop,
 	pickedStop,
 	selectedMarkRow,
+	targetParts,
 	targetStop,
 } from '../../modules/map/engine/map-overlay/selection'
 
@@ -82,5 +83,24 @@ describe('selectedMarkRow', () => {
 
 		// A pick outliving the mark it was made against.
 		expect(selectedMarkRow([ROUTE], { id: 'fleet' })).toBeNull()
+	})
+})
+
+describe('targetParts', () => {
+	it('names the stop of the target alone where the stop shares no summary', () => {
+		expect(targetParts({ kind: 'entry', id: 'fleet', stop: 0, reported: 2 }, FLEET)).toEqual([
+			{ id: 'fleet', stop: 1 },
+		])
+	})
+
+	it('names every part of the shared summary that holds the stop', () => {
+		const parts = [
+			{ id: 'fleet', stop: 1 },
+			{ id: 'depots', stop: 0 },
+		]
+
+		const shared = { ...FLEET, stopRows: [{ label: 'Stops' }, { label: 'Yard', parts }] }
+
+		expect(targetParts({ kind: 'entry', id: 'fleet', stop: 1 }, shared)).toBe(parts)
 	})
 })

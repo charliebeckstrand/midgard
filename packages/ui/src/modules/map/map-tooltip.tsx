@@ -11,7 +11,7 @@ import type { MapHoverTarget } from './engine/map-hover/target'
 import { seriesSwatchClass } from './engine/map-legend/items'
 import type { MapOverlayEntry, MapStopRow } from './engine/map-overlay/entry'
 import { type MapNumberFormat, markReadout } from './engine/map-overlay/readout'
-import { targetStop } from './engine/map-overlay/selection'
+import { targetParts, targetStop } from './engine/map-overlay/selection'
 import {
 	categoryLegendId,
 	type MapCategoryMeta,
@@ -128,14 +128,9 @@ function resolveCard(
 
 	const entry = target.kind === 'entry' ? props.entries.get(target.id) : undefined
 
-	const parts =
-		target.kind === 'entry' && entry !== undefined
-			? entry.stopRows?.[targetStop(target, entry.getStop)]?.parts
-			: undefined
+	if (target.kind === 'region' || entry === undefined) return [{ key: 'target', content }]
 
-	if (parts === undefined) return [{ key: 'target', content }]
-
-	return parts.flatMap((part) => {
+	return targetParts(target, entry).flatMap((part) => {
 		const owner = props.hidden.has(part.id) ? undefined : props.entries.get(part.id)
 
 		return owner === undefined
