@@ -287,27 +287,8 @@ export function usePdfViewer({
 	onHighlightsVisibleChange,
 	onMagnifierChange,
 }: PdfViewerOptions): PdfViewerResult {
-	/*
-	 * The chrome the reader owns reports itself: the highlight overlay here, the loupe below.
-	 *
-	 * Through `useEffectEvent`, which is how this package raises an optional consumer callback
-	 * out of a state change. `use-copy-button-state.ts` does the same for `onCopiedChange`. It
-	 * always sees the latest render's props, and its own identity never changes. A consumer
-	 * passing an inline arrow therefore cannot destabilize the setters below, nor the context
-	 * value every region on the page reads.
-	 *
-	 * They are events rather than a controlled binding on purpose. The reader owns these
-	 * switches, and nothing outside the viewer can turn the highlights back on under them. A
-	 * consumer still needs to hear about it. What it draws *beside* the viewer can be claiming
-	 * a region is there to point at.
-	 */
-	const notifyHighlightsVisible = useEffectEvent((visible: boolean) => {
-		onHighlightsVisibleChange?.(visible)
-	})
-
-	// The document lifecycle reports the same way, for the same reason: the load
-	// settles outside any call site this hook runs, so the report watches the
-	// committed snapshot instead.
+	// The document lifecycle settles outside each call site that this hook runs, so the report
+	// watches the committed snapshot. An effect raises it, through `useEffectEvent`.
 	const notifyLoad = useEffectEvent((pageCount: number) => {
 		onLoad?.(pageCount)
 	})
@@ -374,19 +355,30 @@ export function usePdfViewer({
 	const magnifierChoice = currentMagnifierChoice(magnifierOffered, magnifierChoiceState)
 
 	/*
+	 * The chrome that the reader owns reports itself: the highlight overlay and the loupe. Each
+	 * setter is a `useStableEvent`, so it reads the props of the newest render and keeps one
+	 * identity. A consumer that passes an inline arrow thus does not change the setters, nor the
+	 * context value that each region on the page reads.
+	 *
+	 * They are events rather than a controlled binding on purpose. The reader owns these
+	 * switches, and nothing outside the viewer can turn the highlights back on under them. A
+	 * consumer still needs to hear about it. What it draws *beside* the viewer can be claiming
+	 * a region is there to point at.
+	 */
+
+	/*
 	 * One report for the whole of what the reader owns, rather than one per switch.
 	 *
-	 * Through `useEffectEvent` for the reason the highlight notifier above uses it, and for a
-	 * second one. It reads `magnifierOn` and `magnifierChoice` off the latest render. The two
-	 * setters below can therefore close over neither, and keep the stable identities the
-	 * context memo needs. `next` is spread last. The setter that raises this knows its own new
-	 * value, while the render this reads from still holds the old one.
+	 * Only the two stable setters below call it, so it reads `magnifierOn` and
+	 * `magnifierChoice` of the newest render through them. `next` is spread last. The setter
+	 * that raises this knows its own new value, while the render this reads from still holds
+	 * the old one.
 	 */
-	const notifyMagnifier = useEffectEvent((next: Partial<PdfViewerMagnifierState>) => {
+	const notifyMagnifier = (next: Partial<PdfViewerMagnifierState>) => {
 		if (!magnifierChoice) return
 
 		onMagnifierChange?.({ enabled: magnifierOn, ...magnifierChoice, ...next })
-	})
+	}
 
 	const setMagnifierOn = useStableEvent((on: boolean) => {
 		setMagnifierOnState(on)
@@ -535,7 +527,7 @@ export function usePdfViewer({
 	const setHighlightsVisible = useStableEvent((visible: boolean) => {
 		setHighlightsVisibleState(visible)
 
-		notifyHighlightsVisible(visible)
+		onHighlightsVisibleChange?.(visible)
 	})
 
 	const [root, setRoot] = useState<HTMLElement | null>(null)
