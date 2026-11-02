@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { type ReactNode, useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { Button } from 'ui/button'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
@@ -231,13 +231,10 @@ export function SummaryDrawer<T extends Located>({
 
 	const { items: held, step: heldStep } = open ? { items, step } : last
 
-	// Keeps the group and the step that a close will need. Guarded on the close,
-	// which is what hands over the empty group the hold exists to survive.
-	useEffect(() => {
-		if (items.length === 0) return
-
-		setLast({ items, step })
-	}, [items, step])
+	// Keeps the group and the step that a close will need, during render rather
+	// than in an effect. Guarded on the close, which is what hands over the empty
+	// group the hold exists to survive.
+	if (open && (last.items !== items || last.step !== step)) setLast({ items, step })
 
 	// The list under the trail, and the group's own step over it where there is
 	// one. See `drawerList` for which list that is.
