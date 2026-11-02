@@ -232,12 +232,10 @@ export function JsonTree({
 	// takes the two moves. A branch row opens and closes itself first and
 	// cancels the event. The windowed variant moves
 	// over its flat rows, because the target row can be outside the window.
-	const handleKeyDown = useStableEvent((event: KeyboardEvent<HTMLDivElement>) => {
-		const container = ref.current
-
+	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		const item = event.target
 
-		if (event.defaultPrevented || !container || !(item instanceof HTMLElement)) return
+		if (event.defaultPrevented || !(item instanceof HTMLElement)) return
 
 		const move = jsonTreeMoveForKey(event, item)
 
@@ -249,8 +247,8 @@ export function JsonTree({
 
 		event.preventDefault()
 
-		treeMoveTarget(container, item, move)?.focus()
-	})
+		treeMoveTarget(event.currentTarget, item, move)?.focus()
+	}
 
 	// One identity until an input of the tree changes. A new value would render
 	// each node, because each node reads the context.

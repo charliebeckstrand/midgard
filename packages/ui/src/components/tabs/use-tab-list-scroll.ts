@@ -1,9 +1,9 @@
 'use client'
 
-import { type FocusEvent, useRef } from 'react'
+import type { FocusEvent } from 'react'
 import { scrollNodeWithin } from '../../hooks/use-scroll-within'
 import type { TabsOrientation } from './context'
-import { FLOW_SCROLL, TAB_SELECTOR } from './tabs-constants'
+import { FLOW_SCROLL, TAB_LIST_SCROLL_SELECTOR, TAB_SELECTOR } from './tabs-constants'
 
 /**
  * Keeps a focused tab visible inside the scroll viewport. The returned
@@ -18,15 +18,14 @@ import { FLOW_SCROLL, TAB_SELECTOR } from './tabs-constants'
  *
  * @param orientation - List flow axis; selects the scroll axis.
  * @param enabled - Off for the segment variant, which renders no viewport.
- * @returns The ref of the viewport, and the focus handler of the tab list.
+ * @returns The focus handler of the tab list.
  */
 export function useTabListScroll(orientation: TabsOrientation, enabled: boolean) {
-	const scrollRef = useRef<HTMLDivElement>(null)
-
 	const options = FLOW_SCROLL[orientation]
 
-	const onFocus = (event: FocusEvent<HTMLDivElement>) => {
-		const scroller = scrollRef.current
+	return (event: FocusEvent<HTMLDivElement>) => {
+		// The viewport is the parent of the tab list, as `useTabSelectScroll` finds it.
+		const scroller = event.currentTarget.closest<HTMLElement>(TAB_LIST_SCROLL_SELECTOR)
 
 		if (!scroller || !enabled) return
 
@@ -40,6 +39,4 @@ export function useTabListScroll(orientation: TabsOrientation, enabled: boolean)
 		// scrolls only for a tab in the viewport.
 		if (tab && scroller.contains(tab)) scrollNodeWithin(scroller, tab, options)
 	}
-
-	return { scrollRef, onFocus }
 }

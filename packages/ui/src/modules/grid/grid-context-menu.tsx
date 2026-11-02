@@ -149,8 +149,6 @@ export function GridContextMenu<T>({
 	// the whole config a dependency of each resolver.
 	const { column: columnMenu, cell: cellMenu, capped } = config
 
-	const [open, setOpen] = useState(false)
-
 	const intl = useIntl()
 
 	const [items, setItems] = useState<GridMenuItem[]>([])
@@ -343,8 +341,6 @@ export function GridContextMenu<T>({
 	// cursor (kept seated by the grid's blur guard) or the roving row picks up
 	// where it left off.
 	const handleOpenChange = useCallback((next: boolean) => {
-		setOpen(next)
-
 		if (!next && returnFocus.current) {
 			returnFocus.current.focus()
 
@@ -353,7 +349,7 @@ export function GridContextMenu<T>({
 	}, [])
 
 	return (
-		<Menu open={open} onOpenChange={handleOpenChange} capped={capped}>
+		<Menu onOpenChange={handleOpenChange} capped={capped}>
 			<GridContextMenuSurface
 				resolveItems={resolveItems}
 				resolveGroupItems={resolveGroupItems}
