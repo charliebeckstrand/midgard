@@ -31,7 +31,7 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
 | `kokkaku` 骨格 | The skeleton form of each unit: the dimensions of its placeholders, with no chrome, variant, or color. |
 | `zu` 図 | Data-viz substrate: the categorical series `palette`, the chrome and readout `ink`, and the reveal `motion`. |
-| `sou` 層 | App-level stacking order: the ordered rung ladder (`overlay` / `chrome` / `cover` / `float` / `lens` / `toast`) every portaled surface lands on. |
+| `sou` 層 | App-level stacking order: the ordered rung ladder (`overlay` / `float` / `lens` / `toast`) every portaled surface lands on. |
 | `tsunagi` 繋ぎ | Group-join class fragments, keyed on the DOM position of each child of the group. |
 | `kara` 空 | Virtualized emptiness: selectors that read `data-empty` on a `VirtualOptions` wrapper. |
 

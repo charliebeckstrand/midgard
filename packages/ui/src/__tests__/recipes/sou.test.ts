@@ -16,7 +16,7 @@ import { sou } from '../../recipes/kiso/sou'
  */
 describe('sou', () => {
 	/** In ladder order, bottom to top. The names are the contract; the numbers are an artifact. */
-	const LADDER = ['overlay', 'chrome', 'cover', 'float', 'lens', 'toast'] as const
+	const LADDER = ['overlay', 'float', 'lens', 'toast'] as const
 
 	const rung = vi.defineHelper((name: (typeof LADDER)[number]): number => {
 		const value = sou[name]

@@ -85,10 +85,11 @@ const sheetBody = [flex.col, 'h-full', sidebarWidth]
 
 // Portaled to the body, so it escapes the layout's stacking context and needs a
 // ladder rung rather than a local `z-30` like the hot zone above
-// (`floating.peek`). It is the sidebar's own furniture, which is the `chrome`
-// rung's other inhabitant. It starts at the far edge of the floating sheet at
-// each step.
-const buffer = [sou.chrome, 'fixed top-0 bottom-0 w-10', dan.size.sidebar.edge]
+// (`floating.peek`). It is furniture of the floating sheet, so it takes the
+// rung of the sheet. The sheet is not modal, and its box takes no press, so a
+// press beside the panel gets to the buffer. It starts at the far edge of the
+// floating sheet at each step.
+const buffer = [sou.overlay, 'fixed top-0 bottom-0 w-10', dan.size.sidebar.edge]
 
 // The content flows in the page. Do not give the content or this wrapper an
 // overflow. That box then becomes the scroller of the sticky header, and the

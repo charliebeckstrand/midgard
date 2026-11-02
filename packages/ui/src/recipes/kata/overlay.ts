@@ -1,8 +1,8 @@
 /**
  * Overlay kata: the unit of the Overlay primitive. The root slot `base` is the
- * box of the overlay. The `cover` axis picks its rung of the stacking order,
- * and the `scoped` axis picks the viewport or a container as its box. The
- * `backdrop` slot is the default scrim.
+ * box of the overlay, on the `overlay` rung of the stacking order. The
+ * `scoped` axis picks the viewport or a container as its box. The `backdrop`
+ * slot is the default scrim.
  */
 import { defineKata } from '../../core/recipe'
 import { omote, sou, ugoki } from '../kiso'
@@ -12,12 +12,7 @@ const { overlay } = ugoki
 
 export const k = defineKata(
 	{
-		/**
-		 * `false` seals the page for a transaction. `Chrome`, floats, and toasts
-		 * all sit above (see the `sou` ladder). `true` is the rung of an overlay
-		 * that covers the `Chrome` regions too.
-		 */
-		cover: { true: sou.cover, false: sou.overlay },
+		base: sou.overlay,
 		scoped: {
 			/**
 			 * The box of an overlay scoped to a container: the full container.
@@ -35,7 +30,7 @@ export const k = defineKata(
 			false: 'fixed inset-0',
 		},
 		slots: { backdrop: ['absolute inset-0', backdrop.base] },
-		defaults: { cover: false, scoped: false },
+		defaults: { scoped: false },
 	},
 	{ motion: overlay },
 )

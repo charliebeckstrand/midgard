@@ -21,7 +21,6 @@ import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
 import { registerOverlayLayer } from '../../utilities/overlay-layers'
-import { chromeRegions } from '../chrome'
 import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
@@ -59,6 +58,12 @@ export type OverlayProps = {
 	 * must establish a positioning context (e.g. `position: relative`). The overlay
 	 * clips its content to the box of the container, so the focus that moves into a
 	 * sliding panel does not scroll the container.
+	 *
+	 * A modal overlay seals the box that it covers. With a container, it seals
+	 * only the container. The rest of the page stays in the focus order, in the
+	 * accessibility tree, and clickable. A work surface under persistent app
+	 * chrome, such as a maximized drawer under a tab strip, thus keeps the chrome
+	 * reachable. Give it a container that is the box under the chrome.
 	 *
 	 * @defaultValue `document.body` with full-viewport `fixed` positioning.
 	 */
@@ -101,15 +106,6 @@ export type OverlayProps = {
 	 * @defaultValue modal
 	 */
 	backdrop?: boolean
-	/**
-	 * Cover the `Chrome` regions too. A modal overlay then paints above them, and
-	 * its trap holds the focus away from them, as on a page that declares no
-	 * chrome. Use it for a full-screen surface that the chrome would hide, such
-	 * as the stage of a `Lightbox`.
-	 *
-	 * @defaultValue false
-	 */
-	coverChrome?: boolean
 } & Omit<ComponentProps<'div'>, 'children'>
 
 /**
@@ -129,8 +125,8 @@ export type OverlayProps = {
  * `document.body`. A `container` scopes the overlay to that element
  * (`absolute`, no scroll lock). For transient pointer-driven surfaces,
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
- * `backdrop` is set). Any `Chrome` region stays reachable through the
- * trap without modality being given up, unless `coverChrome` is set. Fires the overlay signal on open so
+ * `backdrop` is set). A modal overlay seals the box that it covers: the page
+ * for an overlay fixed to the viewport, or the `container`. Fires the overlay signal on open so
  * non-modal floats (tooltips) dismiss. A modal overlay, or one with a backdrop,
  * also hides each float that is anchored under it until its exit completes,
  * such as a tooltip that a caller holds open. A float anchored in the overlay
@@ -155,7 +151,6 @@ export function Overlay({
 	returnFocusTo,
 	modal = true,
 	backdrop = modal,
-	coverChrome = false,
 	className,
 	ref,
 	...props
@@ -226,8 +221,6 @@ export function Overlay({
 		notifyOverlaySignal()
 	}, [open])
 
-	const regions = coverChrome ? noRegions : chromeRegions
-
 	// An overlay that dims or seals its box covers the floats anchored in that
 	// box. They hide until the exit completes and the node unmounts, so a float
 	// does not paint over the panel while the panel leaves. A non-modal overlay
@@ -237,8 +230,8 @@ export function Overlay({
 	useLayoutEffect(() => {
 		if (!floating || !covering) return
 
-		return registerOverlayLayer({ node: floating, scope: container ?? null, exempt: regions })
-	}, [floating, covering, container, regions])
+		return registerOverlayLayer({ node: floating, scope: container ?? null })
+	}, [floating, covering, container])
 
 	const inert = props.inert === true
 
@@ -271,7 +264,7 @@ export function Overlay({
 		if (active instanceof HTMLElement && node.contains(active)) active.blur()
 	}, [open, inert])
 
-	const slots = k({ cover: coverChrome, scoped })
+	const slots = k({ scoped })
 
 	const panel = (
 		<div
@@ -335,15 +328,38 @@ export function Overlay({
 
 	return (
 		<Portal open={open} container={container} ssr onExitComplete={() => setPresent(false)}>
-			<OverlayFocus modal={modal} regions={regions} context={context} returnFocusTo={returnFocusTo}>
+			<OverlayFocus
+				modal={modal}
+				container={container}
+				context={context}
+				returnFocusTo={returnFocusTo}
+			>
 				{panel}
 			</OverlayFocus>
 		</Portal>
 	)
 }
 
-// The regions of an overlay that covers the chrome: none, so its trap stays strict.
-const noRegions = (): HTMLElement[] => []
+/**
+ * The elements of the page outside `box`: the siblings of `box` and of each of
+ * its ancestors, up to `<body>`. A trap that counts them as part of the surface
+ * seals only the content of `box`.
+ *
+ * @internal
+ */
+function outside(box: Element): Element[] {
+	const elements: Element[] = []
+
+	const body = box.ownerDocument.body
+
+	for (let node = box; node !== body && node.parentElement; node = node.parentElement) {
+		for (const sibling of node.parentElement.children) {
+			if (sibling !== node) elements.push(sibling)
+		}
+	}
+
+	return elements
+}
 
 /**
  * Wraps the overlay panel in a modal `FloatingFocusManager`, which traps focus
@@ -355,44 +371,47 @@ const noRegions = (): HTMLElement[] => []
  */
 function OverlayFocus({
 	modal,
-	regions,
+	container,
 	context,
 	returnFocusTo,
 	children,
 }: {
 	modal: boolean
-	/** The regions that the trap exempts: `chromeRegions`, or none. */
-	regions: () => HTMLElement[]
+	/** The box that the overlay covers, or none for the viewport. */
+	container: HTMLElement | null | undefined
 	context: FloatingRootContext
 	returnFocusTo: RefObject<HTMLElement | null> | undefined
 	children: ReactElement
 }) {
 	if (!modal) return children
 
-	// Two halves enforce the trap, and a registered region has to relax both. The
-	// focus guards bounce a Tab that reaches the panel's edge back inside, so
-	// `guards={false}` retires them, and `outsideElementsInert` then marks sealed
-	// content `inert` rather than `aria-hidden`, which is what holds the tab order
-	// off the sealed page once no guard is left to do it. `getInsideElements` hands
-	// the registered regions through as part of the surface, exempting them.
+	// An overlay fixed to the viewport seals the whole page. The focus guards
+	// bounce a Tab at the edge of the panel back inside, and the page is
+	// `aria-hidden`.
 	//
-	// Read at render rather than hoisted: with nothing registered the trap stays
-	// strict, which is the whole behavior on a page that declares no chrome, and
-	// on an overlay that covers the chrome.
-	const chrome = regions()
+	// An overlay in a container seals only the container. `getInsideElements`
+	// gives the page outside the container to the trap as part of the surface,
+	// so the trap does not mark it. Two halves of the trap then change. The
+	// focus guards must not bounce a Tab back inside, so `guards={false}` removes
+	// them. `outsideElementsInert` marks the covered content `inert`, not
+	// `aria-hidden`. Thus the tab order skips that content with no guard, and a
+	// press does not get to it. The tab order runs in DOM order out of the
+	// panel, through the page, and back.
+	//
+	// `guards={false}` alone already forces the `inert` marking in 0.27. The
+	// prop `outsideElementsInert` states the intent, because no version
+	// promises to keep that side effect.
+	const scoped = container != null
 
-	// `guards={false}` alone already forces the `inert` marking in 0.27, so this
-	// states the intent through the prop that documents it rather than resting on
-	// the other one's side effect, which no version promises to keep.
 	return (
 		<FloatingFocusManager
 			context={context}
 			modal
 			initialFocus={-1}
 			returnFocus={returnFocusTo ?? true}
-			guards={chrome.length === 0}
-			outsideElementsInert={chrome.length > 0}
-			getInsideElements={regions}
+			guards={!scoped}
+			outsideElementsInert={scoped}
+			getInsideElements={scoped ? () => outside(container) : undefined}
 		>
 			{children}
 		</FloatingFocusManager>
