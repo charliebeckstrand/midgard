@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { Grid, type GridColumn, type GridProps } from '../../modules/grid'
 import { present, renderUI, screen, waitFor } from '../helpers'
 
 /** The selector of the cell of a column in the row with a key. */
@@ -53,9 +53,12 @@ describe('grid range pointer and clipboard (real browser)', () => {
 
 	const getKey = (row: Row) => row.id
 
-	const renderGrid = vi.defineHelper(async () => {
+	const renderGrid = vi.defineHelper(async (props: Partial<GridProps<Row>> = {}) => {
 		renderUI(
 			<>
+				<p data-testid="above" style={{ height: '120px', margin: 0 }}>
+					Above
+				</p>
 				<div style={{ width: '320px' }}>
 					<Grid
 						navigable
@@ -65,6 +68,7 @@ describe('grid range pointer and clipboard (real browser)', () => {
 						columns={columns}
 						rows={rows}
 						getKey={getKey}
+						{...props}
 					/>
 				</div>
 				<p data-testid="below" style={{ height: '120px', margin: 0 }}>
@@ -143,6 +147,56 @@ describe('grid range pointer and clipboard (real browser)', () => {
 		region.scrollTop = 0
 
 		await waitFor(() => expect(cell(1, 'name')).toHaveAttribute('data-in-range'))
+	})
+
+	it('grows the range past a sticky new-row slot at the bottom edge', async () => {
+		await renderGrid({
+			editable: { session: 'managed', newRow: 'bottom', onRowAdd: () => {}, onCommit: () => {} },
+		})
+
+		const region = present(
+			document.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		onTestFinished(() => commands.releasePointer())
+
+		await commands.pressPointer(cellSelector(1, 'name'))
+
+		await userEvent.hover(screen.getByTestId('below'))
+
+		await waitFor(() => expect(region.scrollTop).toBeGreaterThan(300))
+
+		await commands.releasePointer()
+
+		// The rows that the pointer crossed scrolled out of the window. The range
+		// grew with the scroll, so the rows in view are in it.
+		expect(marked()).toBeGreaterThan(1)
+	})
+
+	it('grows the range past a sticky header at the top edge', async () => {
+		await renderGrid({ header: { position: 'sticky' } })
+
+		const region = present(
+			document.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		region.scrollTop = 600
+
+		await waitFor(() => expect(document.querySelector(cellSelector(20, 'name'))).not.toBeNull())
+
+		onTestFinished(() => commands.releasePointer())
+
+		await commands.pressPointer(cellSelector(20, 'name'))
+
+		await userEvent.hover(screen.getByTestId('above'))
+
+		await waitFor(() => expect(region.scrollTop).toBeLessThan(300))
+
+		await commands.releasePointer()
+
+		expect(marked()).toBeGreaterThan(1)
 	})
 
 	it('copies the range through the native copy event on the focused grid', async () => {
