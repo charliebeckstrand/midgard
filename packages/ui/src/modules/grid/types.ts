@@ -531,7 +531,8 @@ export type GridColumnFilters = {
 	 * @remarks Filtering mode is table-wide: the column filters and the search
 	 * ({@link GridSearch.manual}) share one engine model, so set both the same. If
 	 * they disagree the grid runs manual for both (a dev warning fires) and the
-	 * client-side surface won't filter.
+	 * client-side surface won't filter. With no filterable column, this flag has
+	 * no effect, and the search keeps its own mode.
 	 * @defaultValue false
 	 */
 	manual?: boolean

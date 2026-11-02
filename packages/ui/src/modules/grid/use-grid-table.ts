@@ -705,7 +705,9 @@ export function useGridTable<T>({
 		globalConfigured,
 		hasColumnFilters,
 		globalManual: globalFilterConfig?.manual,
-		columnManual: columnFiltersConfig?.manual,
+		// With no filterable column, the column filters have no rows to govern, so
+		// their `manual` flag must not turn the client search off.
+		columnManual: hasColumnFilters ? columnFiltersConfig?.manual : undefined,
 		globalFiltersRows: globalFilterConfig?.mode !== 'highlight',
 	})
 

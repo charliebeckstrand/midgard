@@ -123,6 +123,26 @@ describe('Grid per-column filters', () => {
 		expect(warn).not.toHaveBeenCalled()
 	})
 
+	it('keeps a client search when columnFilters is manual but no column filters', () => {
+		const plain = columns.map((col) => ({ ...col, filterable: false }))
+
+		renderUI(
+			<Grid
+				columns={plain}
+				rows={rows}
+				getKey={getKey}
+				search={{ defaultValue: 'Bob' }}
+				columnFilters={{ manual: true }}
+			/>,
+		)
+
+		// No column filters, so the manual flag of the column filters has nothing to
+		// govern. The client search filters the rows.
+		expect(screen.queryByText('Alice')).toBeNull()
+
+		expect(screen.getByText('Bob')).toBeInTheDocument()
+	})
+
 	it('renders a filter button only for filterable columns', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
