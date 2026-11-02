@@ -38,7 +38,8 @@ function getPinnedProps<T>(place: GridStaticHeaderPlace<T>, className: string) {
 
 /**
  * Header cell for the selection column: the select-all checkbox, shown only
- * when the grid has rows. It sticks and freezes like any header.
+ * when the grid has rows. With no checkbox, it carries a screen-reader label,
+ * so the column still names itself. It sticks and freezes like any header.
  *
  * @internal
  */
@@ -54,15 +55,19 @@ function GridSelectHeaderCell<T>({
 }) {
 	const { allSelected, someSelected, toggleAll } = useGrid()
 
+	const intl = useIntl()
+
 	return (
 		<TableHeader {...getPinnedProps(place, k.cell.select)}>
-			{showCheckbox && (
+			{showCheckbox ? (
 				<Checkbox
 					checked={allSelected}
 					indeterminate={someSelected && !allSelected}
 					onChange={toggleAll}
 					aria-label={label}
 				/>
+			) : (
+				<span className="sr-only">{intl.formatMessage(gridMessages.selectionColumn)}</span>
 			)}
 		</TableHeader>
 	)

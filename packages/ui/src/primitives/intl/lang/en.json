@@ -1191,6 +1191,10 @@
 		"defaultMessage": "Selection cleared",
 		"description": "Spoken when no row of the grid is selected any more."
 	},
+	"ui.grid.selectionColumn": {
+		"defaultMessage": "Selection",
+		"description": "The hidden name of the header of the column of row checkboxes, while the grid has no row and the header shows no checkbox."
+	},
 	"ui.grid.showColumn": {
 		"defaultMessage": "Show {column}",
 		"description": "The name of the checkbox that shows or hides a column of a grid."

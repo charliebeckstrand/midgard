@@ -422,6 +422,9 @@ describe('Grid', () => {
 			renderUI(<Grid columns={selectColumns} rows={[]} getKey={getKey} />)
 
 			expect(screen.queryByRole('checkbox', { name: 'Select all rows' })).not.toBeInTheDocument()
+
+			// The header still names its column, so no column header is empty.
+			expect(screen.getByRole('columnheader', { name: 'Selection' })).toBeInTheDocument()
 		})
 
 		it('renders an active select-all checkbox header that toggles every row', async () => {

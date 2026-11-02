@@ -297,6 +297,7 @@
 	"ui.grid.selectedHidden": "{selected, plural, one {# fila seleccionada} other {# filas seleccionadas}}, {hidden, number} sin mostrar",
 	"ui.grid.selectedOf": "{selected, number} de {rows, plural, one {# fila seleccionada} other {# filas seleccionadas}}",
 	"ui.grid.selectionCleared": "Selección borrada",
+	"ui.grid.selectionColumn": "Selección",
 	"ui.grid.showColumn": "Mostrar {column}",
 	"ui.grid.showed": "Se mostró la columna {column}",
 	"ui.grid.skippedOnly": "{count, plural, one {# celda omitida} other {# celdas omitidas}}",
