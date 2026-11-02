@@ -307,7 +307,8 @@ function renderManualSegment<T>(
  * The client-grouped body: each group's header row, its leaf rows, and its
  * total row. Under `virtualize` it windows those rows as one item list (see
  * {@link GridVirtualizedGroupedBody}). Without a window every leaf stays
- * mounted and animates open and closed with its group. Split out of
+ * mounted and animates open and closed with its group. `groups` is in the
+ * group order of the row manager, which {@link GridBody} applies. Split out of
  * {@link GridBody} for its complexity budget.
  *
  * @internal
@@ -320,14 +321,6 @@ function renderGrouped<T>(
 ): ReactElement {
 	const { visibleColumns, groupRenderHeader, rowGroupPresentation } = props
 
-	// Apply the manual group order while the overlay covers every group.
-	// Otherwise the engine's group order stands.
-	const ordered = applyRowKeyOrder(
-		groups,
-		rowGroupPresentation?.groupOrder ?? undefined,
-		getGroupKey,
-	)
-
 	// The per-group total is meaningful only once a column aggregates; the gate
 	// is body-wide, so resolve it once here rather than per group in renderGroup.
 	const totaled = groupTotaled(props.groupTotalRow, visibleColumns)
@@ -336,7 +329,7 @@ function renderGrouped<T>(
 		return (
 			<GridVirtualizedGroupedBody<T>
 				rowsProps={props}
-				groups={ordered}
+				groups={groups}
 				toggleGroup={props.toggleGroup}
 				columnId={groupColumnId}
 				renderHeader={groupRenderHeader}
@@ -353,8 +346,8 @@ function renderGrouped<T>(
 
 	return (
 		<TableBody>
-			<GridGroupedCursorOrder groups={ordered} totaled={totaled} toggle={props.toggleGroup} />
-			{ordered.map((group) => {
+			<GridGroupedCursorOrder groups={groups} totaled={totaled} toggle={props.toggleGroup} />
+			{groups.map((group) => {
 				const node = renderGroup(group, {
 					props,
 					columnId: groupColumnId,
@@ -448,6 +441,16 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// `LocaleProvider`, as the flat sort does.
 	const { locale } = useLocale()
 
+	// Apply the manual group order while the overlay covers every group.
+	// Otherwise the engine's group order stands. One list for each change of the
+	// groups or the order, so a render that keeps both builds no new cursor order.
+	const groupOrder = props.rowGroupPresentation?.groupOrder
+
+	const orderedGroups = useMemo(
+		() => groups && applyRowKeyOrder(groups, groupOrder ?? undefined, getGroupKey),
+		[groups, groupOrder],
+	)
+
 	if (loading) return <GridLoadingBody columns={visibleColumns} pinning={pinning} />
 
 	// An error state pre-empts the empty slot: a failed fetch has no rows, but the
@@ -502,8 +505,8 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 	// Grouping renders its own body (see `renderGrouped`). It stands down
 	// pagination (see `GridData`), so this precedes the flat virtualized branch.
-	if (groups && groupColumnId != null) {
-		return renderGrouped(props, groups, groupColumnId, virtualize)
+	if (orderedGroups && groupColumnId != null) {
+		return renderGrouped(props, orderedGroups, groupColumnId, virtualize)
 	}
 
 	// The windowed body paints a first window before its scroller measures, which
