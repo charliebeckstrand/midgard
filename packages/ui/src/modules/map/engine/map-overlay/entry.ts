@@ -7,6 +7,7 @@
  */
 
 import type { MapSeriesColor } from '../../../../recipes/kata/map'
+import type { MapClusterInput } from '../map-cluster/sets'
 import type { LngLat, MapPoint2D, MapSwatchShape } from '../types'
 
 /** The overlay kinds that register legend entries. @internal */
@@ -25,6 +26,24 @@ export type MapStopRow = {
 	swatch?: MapSwatchShape
 	/** The color of the stop, where its dot has a color of its own. */
 	color?: MapSeriesColor
+	/**
+	 * Every part of the shared summary that the stop is a part of, in the order of
+	 * the ledger, the stop itself included. Absent where the summary holds the dots
+	 * of one set. The tooltip reads each part, because one drawn summary is one
+	 * readout to the pointer.
+	 */
+	parts?: readonly MapStopPart[]
+}
+
+/**
+ * One part of a shared summary, by the mark that holds it and the stop of that
+ * mark.
+ *
+ * @internal
+ */
+export type MapStopPart = {
+	id: string
+	stop: number
 }
 
 /**
@@ -80,6 +99,13 @@ export type MapOverlayEntry = {
 	 */
 	dotsAt?: () => LngLat[]
 	/**
+	 * The dots that the mark puts in the shared pass of the plat (`sets.ts`), and
+	 * the gap that it asks for. Registered by a {@link MapPoints} that clusters,
+	 * and absent on every other mark. Stable like {@link stopsAt}: the mark
+	 * restakes its dots in the pass when they move.
+	 */
+	clusterAt?: () => MapClusterInput
+	/**
 	 * What each of this mark's stops reads out, where that differs from the mark's
 	 * own `label` and `detail`. That is a plural mark's dots, each naming its own
 	 * stop. Absent on every singular mark, whose one stop reads the mark.
@@ -97,6 +123,13 @@ export type MapOverlayEntry = {
 	 * question the plat's tab-stop gate asks.
 	 */
 	activate?: (stop: number) => void
+	/**
+	 * Reports a right-click on one of the mark's stops, as a click on the stop
+	 * reports a pick. Stable like {@link activate}, and registered only where the
+	 * mark answers a right-click. The plat reports a right-click on a shared
+	 * summary to each of its parts through it (`targetParts`).
+	 */
+	menu?: (stop: number) => void
 	/**
 	 * The reach, in device pixels, a dot at this frame position can take before it
 	 * starts eating ground this mark needs to stay pointable. It is `Infinity`

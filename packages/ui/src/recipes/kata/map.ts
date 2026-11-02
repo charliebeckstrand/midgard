@@ -81,6 +81,18 @@ export const k = {
 	selected: SELECTED,
 	/** Shared data-viz palette from `zu`: the same slots, order, and validation as `kata/chart`. */
 	series: palette.series,
+	/**
+	 * A shared summary: a summary that holds the dots of more than one set. A ring
+	 * of the colors of its sets carries the mark, so the disc inside the ring and
+	 * the count on it take the inks of the surface. No one set color then names a
+	 * mark that belongs to several sets.
+	 */
+	shared: {
+		/** The disc inside the ring: the surface color, the region seam's ink. */
+		disc: mode('stroke-white', 'dark:stroke-zinc-900'),
+		/** The count on the disc: the text ink of the surface. */
+		count: mode('fill-zinc-900', 'dark:fill-white'),
+	},
 	/** The map's own region tokens beside the shared data-viz palette. */
 	region: {
 		/** A region with no matching datum, and a toggled-off category's fallback. */

@@ -529,6 +529,50 @@ export function squareDotStroke(at: MapPoint2D, width: number): { d: string; str
 }
 
 /**
+ * The arcs of a ring split into shares, one SVG path for each share. The ring
+ * centers on `at`, at `radius` frame units, and the first share starts at the
+ * top. The shares go clockwise, each one as long as its part of the whole.
+ *
+ * A share that is the whole ring has no arc of its own, because an arc that
+ * starts and ends at one point draws nothing. It is two half arcs instead.
+ *
+ * @param at - The center of the ring, in frame units.
+ * @param radius - The radius of the ring, in frame units.
+ * @param shares - The size of each share, as a count. Only the ratios count.
+ * @returns One `d` for each share, in the order of `shares`.
+ * @internal
+ */
+export function ringArcs(at: MapPoint2D, radius: number, shares: readonly number[]): string[] {
+	const total = shares.reduce((sum, share) => sum + share, 0)
+
+	const point = (turn: number) => {
+		const angle = turn * 2 * Math.PI - Math.PI / 2
+
+		return `${round(at.x + radius * Math.cos(angle))},${round(at.y + radius * Math.sin(angle))}`
+	}
+
+	const arc = (end: number, large: boolean) =>
+		`A${round(radius)},${round(radius)} 0 ${large ? 1 : 0} 1 ${point(end)}`
+
+	let start = 0
+
+	return shares.map((share) => {
+		const turn = total === 0 ? 0 : share / total
+
+		const end = start + turn
+
+		const d =
+			turn >= 1
+				? `M${point(start)}${arc(start + 0.5, false)}${arc(start + 1, false)}`
+				: `M${point(start)}${arc(end, turn > 0.5)}`
+
+		start = end
+
+		return d
+	})
+}
+
+/**
  * Two-decimal rounding keeping the attribute strings this module writes compact.
  *
  * Exported for the same reason `squared` sits with the grid. The `d` builders here and the `points`

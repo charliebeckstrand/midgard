@@ -182,6 +182,14 @@ export const POINT_HIT_RADIUS_FINE = 5.5
 export const POINT_CLUSTER_GAP = 3
 
 /**
+ * The width, in device pixels, of the ring around a shared summary: a summary
+ * that holds the dots of more than one set. The ring is split into one arc for
+ * each set, in the color of that set. It sits inside the edge of the summary, so
+ * the summary takes the room that the grouping measured for it. @internal
+ */
+export const SHARED_RING_WIDTH = 3
+
+/**
  * A summary dot's radius by how many stops it holds: the size grade. A lone dot
  * keeps {@link POINT_RADIUS}; each step is one grade up, so the mark carries the
  * magnitude and the count inside it carries the number. Read ascending: the last

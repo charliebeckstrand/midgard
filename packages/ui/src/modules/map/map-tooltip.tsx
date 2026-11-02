@@ -11,7 +11,7 @@ import type { MapHoverTarget } from './engine/map-hover/target'
 import { seriesSwatchClass } from './engine/map-legend/items'
 import type { MapOverlayEntry, MapStopRow } from './engine/map-overlay/entry'
 import { type MapNumberFormat, markReadout } from './engine/map-overlay/readout'
-import { targetStop } from './engine/map-overlay/selection'
+import { targetParts, targetStop } from './engine/map-overlay/selection'
 import {
 	categoryLegendId,
 	type MapCategoryMeta,
@@ -88,6 +88,62 @@ function stopSwatch(
 	}
 }
 
+/**
+ * What one stop of an entry shows. It is the one readout rule, shared with the
+ * table: the pointer and a screen reader must never disagree about the same dot.
+ *
+ * @internal
+ */
+function stopContent(
+	entry: MapTooltipEntry,
+	stop: number,
+	formatNumber: MapNumberFormat,
+): MapTooltipContent {
+	const readout = markReadout(entry, stop, formatNumber)
+
+	return {
+		title: readout.name,
+		row: readout.detail ? { ...stopSwatch(entry, stop), text: readout.detail } : undefined,
+	}
+}
+
+/**
+ * What the tooltip shows for a hover target: one block for each part of the
+ * drawn mark under it, each keyed. A stop of a shared summary shows every part of
+ * the summary, in the order of the ledger, because the pointer reaches the
+ * summary as one dot. Every other target shows one block, its own. A part that
+ * the legend toggled off shows nothing. `null` where the tooltip stays away.
+ *
+ * @internal
+ */
+function resolveCard(
+	target: MapHoverTarget,
+	props: MapTooltipProps,
+): { key: string; content: MapTooltipContent }[] | null {
+	// The target's own block, which also answers whether the tooltip shows at all:
+	// a region with no value, and a mark that the legend toggled off, show nothing.
+	const content = resolve(target, props)
+
+	if (content === null) return null
+
+	const entry = target.kind === 'entry' ? props.entries.get(target.id) : undefined
+
+	if (target.kind === 'region' || entry === undefined) return [{ key: 'target', content }]
+
+	return targetParts(target, entry).flatMap((part) => {
+		const owner = props.hidden.has(part.id) ? undefined : props.entries.get(part.id)
+
+		return owner === undefined
+			? []
+			: [
+					{
+						key: `${part.id}:${part.stop}`,
+						content: stopContent(owner, part.stop, props.formatNumber),
+					},
+				]
+	})
+}
+
 /** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */
 function resolve(
 	target: MapHoverTarget,
@@ -109,16 +165,7 @@ function resolve(
 
 		if (entry === undefined) return null
 
-		// The one readout rule, shared with the table: the pointer and a screen
-		// reader must never disagree about the same dot.
-		const stop = targetStop(target, entry.getStop)
-
-		const readout = markReadout(entry, stop, formatNumber)
-
-		return {
-			title: readout.name,
-			row: readout.detail ? { ...stopSwatch(entry, stop), text: readout.detail } : undefined,
-		}
+		return stopContent(entry, targetStop(target, entry.getStop), formatNumber)
 	}
 
 	const category = regionCategory[target.index]
@@ -209,9 +256,9 @@ export function nameMapTarget(
 export function MapTooltip(props: MapTooltipProps) {
 	const { target, point } = useMapHoverState()
 
-	const content = target === null ? null : resolve(target, props)
+	const card = target === null ? null : resolveCard(target, props)
 
-	const open = content !== null && point !== null
+	const open = card !== null && point !== null
 
 	// `track="point"`: a pure-hover readout repositions on every pointer move, so
 	// it skips autoUpdate's per-open observer wiring. That is ~1.5x cheaper
@@ -220,21 +267,26 @@ export function MapTooltip(props: MapTooltipProps) {
 	// autoUpdate across a scroll.
 	return (
 		<TooltipPointer open={open} point={point} track="point" size="sm">
-			{content && (
-				<ChartReadoutCard title={content.title}>
-					{content.row && (
-						<ChartReadoutRow
-							swatch={
-								<ReadoutSwatch
-									shape={content.row.swatch}
-									className={content.row.swatchClass}
-									color={content.row.swatchColor}
+			{card && (
+				// One column, so the block of each part of a shared summary stands apart.
+				<div className="flex flex-col gap-2">
+					{card.map(({ key, content }) => (
+						<ChartReadoutCard key={key} title={content.title}>
+							{content.row && (
+								<ChartReadoutRow
+									swatch={
+										<ReadoutSwatch
+											shape={content.row.swatch}
+											className={content.row.swatchClass}
+											color={content.row.swatchColor}
+										/>
+									}
+									value={content.row.text}
 								/>
-							}
-							value={content.row.text}
-						/>
-					)}
-				</ChartReadoutCard>
+							)}
+						</ChartReadoutCard>
+					))}
+				</div>
 			)}
 		</TooltipPointer>
 	)

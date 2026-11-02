@@ -33,6 +33,9 @@ export type MapHoverTarget =
 			reported?: number
 	  }
 
+/** A hover target on an overlay mark. @internal */
+export type MapOverlayTarget = Extract<MapHoverTarget, { kind: 'entry' }>
+
 /**
  * Whether two hover targets name the same stop and hold the same reported
  * index, so a redundant write can bail. @internal

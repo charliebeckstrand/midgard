@@ -18,17 +18,19 @@
  * they meet, so every dot-shaped mark reads one rule rather than assembling its
  * own.
  *
- * The crowding half reads one mark's own drawn dots (a `MapPoints`'s groups, a
- * `MapMarker`'s pair of pins) rather than every dot on the map. Pooling them
- * would have to happen in the plat, and the plat cannot see the zoom scale every
- * reach here is measured in. `MapZoomScaleContext` sits below it, around the
- * plot alone. A wheel notch therefore re-renders the marks without re-rendering
- * the plat, its legend, and the region layer. So two separate marks drawn within
- * a target's reach of one another each keep the full RADIUS here. That is the
- * bound this pass accepts. `ground.ts` answers instead by dividing what the two
- * overlap, rather than by shrinking either. It can pool across marks where this
- * cannot, because it measures in frame units and a frame position is scale-free
- * where a reach is not. `MapPoint` reads it today; the plural marks do not yet.
+ * The crowding half reads the drawn dots that one pass hands in. A `MapMarker`
+ * hands in its pair of pins. The point sets of a plat hand in the marks of their
+ * shared pass (`sets.ts`), which holds every set that clusters, so a dot gives
+ * way to the dots of the other sets too. Any other pair of separate marks drawn
+ * within a target's reach of one another each keep the full RADIUS here. The
+ * plat cannot pool them, because it cannot see the zoom scale every reach here
+ * is measured in. `MapZoomScaleContext` sits below it, around the plot alone. A
+ * wheel notch therefore re-renders the marks without re-rendering the plat, its
+ * legend, and the region layer. That is the bound this pass accepts. `ground.ts`
+ * answers instead by dividing what the two overlap, rather than by shrinking
+ * either. It can pool across marks where this cannot, because it measures in
+ * frame units and a frame position is scale-free where a reach is not.
+ * `MapPoint` reads it.
  *
  * Frame arithmetic over the same grid the clustering passes bucket into
  * (`grid.ts`), and React-free like the rest of the engine.
@@ -207,6 +209,10 @@ function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): number[] 
  * @param spare - How much reach the drawn zones and the region layer leave a mark
  * at a position. It is the plat's own resolver over its ledger, which answers the
  * legend as it toggles. It is already bound to the scale by `useMapOverlay`.
+ * @param beside - How much reach the neighbors leave each dot, index for index
+ * with `marks`. Omitted, it is {@link neighborRoom} over `marks`. The point sets
+ * of a plat pass the room of the shared pass (`sets.ts`), so a dot gives way to
+ * the dots of the other sets as well as to its own.
  * @returns The target radius for each dot, in device pixels.
  *
  * @internal
@@ -215,9 +221,8 @@ export function markTargets(
 	marks: readonly MapDotMark[],
 	unitsPerPixel: number,
 	spare: (at: MapPoint2D) => number,
+	beside: readonly number[] = neighborRoom(marks, unitsPerPixel),
 ): number[] {
-	const beside = neighborRoom(marks, unitsPerPixel)
-
 	return marks.map(({ at, radius }, index) => {
 		// It draws nothing and stands nowhere, so no zone, no region, and no
 		// neighbor can be asked about it.

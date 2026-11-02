@@ -15,6 +15,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverActions, useMapPlat, useMapPointed, useMapZoomScale } from './context'
+import type { MapClusterInput } from './engine/map-cluster/sets'
 import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
 import { groupLegendId } from './engine/map-legend/items'
@@ -155,6 +156,15 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 */
 		dots?: () => LngLat[]
 		/**
+		 * The dots that the mark puts in the shared pass of the plat, and its gap
+		 * (see {@link MapOverlayEntry.clusterAt}). Passed by a {@link MapPoints}
+		 * that clusters, and absent on every other mark.
+		 *
+		 * Hold its identity until the dots or the gap change. A new identity
+		 * restakes the mark in the pass, so every set groups again.
+		 */
+		cluster?: MapClusterInput
+		/**
 		 * How much reach this mark leaves a dot standing on it (see
 		 * {@link MapOverlayEntry.spare}). Passed by the area-shaped marks alone, and
 		 * read live like {@link stops}, so a redrawn zone never re-registers.
@@ -276,8 +286,22 @@ function sameStopRows(prev: MapStopRow[] | undefined, next: MapStopRow[] | undef
 				(row.label ?? '') === (prev[index]?.label ?? '') &&
 				(row.detail ?? '') === (prev[index]?.detail ?? '') &&
 				row.swatch === prev[index]?.swatch &&
-				row.color === prev[index]?.color,
+				row.color === prev[index]?.color &&
+				sameParts(row.parts, prev[index]?.parts),
 		)
+	)
+}
+
+/** Whether two lists of the parts of a shared summary name the same stops, in order. @internal */
+function sameParts(
+	prev: MapStopRow['parts'] | undefined,
+	next: MapStopRow['parts'] | undefined,
+): boolean {
+	if (prev === undefined || next === undefined) return prev === next
+
+	return (
+		prev.length === next.length &&
+		next.every((part, index) => part.id === prev[index]?.id && part.stop === prev[index]?.stop)
 	)
 }
 
@@ -310,6 +334,7 @@ export function useMapOverlay({
 	swatch,
 	stops,
 	dots,
+	cluster,
 	spare: ownSpare,
 	stopRows,
 	getStop,
@@ -331,8 +356,19 @@ export function useMapOverlay({
 	// them the expansion, so the mark reads the expanded set like every other.
 	const groupId = group === undefined ? id : groupLegendId(group)
 
-	const { project, register, colors, order, hidden, spare, pool, moves, animate, selectedOverlay } =
-		useMapPlat()
+	const {
+		project,
+		register,
+		colors,
+		order,
+		hidden,
+		spare,
+		pool,
+		clusters,
+		moves,
+		animate,
+		selectedOverlay,
+	} = useMapPlat()
 
 	const { set, get } = useMapHoverActions()
 
@@ -363,18 +399,27 @@ export function useMapOverlay({
 	// table resolves its picked row once per `entries` or pick. By the time any of
 	// those runs again, this effect has written the committed values. The restake
 	// below also reads `dotsAt`, so it must stay after this effect.
-	const live = useRef({ stops, dots, resolveStop, getIndex, ownSpare })
+	const live = useRef({ stops, dots, cluster, resolveStop, getIndex, ownSpare })
 
 	useLayoutEffect(() => {
-		live.current = { stops, dots, resolveStop, getIndex, ownSpare }
-	}, [stops, dots, resolveStop, getIndex, ownSpare])
+		live.current = { stops, dots, cluster, resolveStop, getIndex, ownSpare }
+	}, [stops, dots, cluster, resolveStop, getIndex, ownSpare])
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
 	const dotsAt = useCallback(() => live.current.dots?.() ?? [], [])
 
+	// The fallback is the input of a set with its grouping off, which the pass
+	// leaves out. It cannot fire in fact, because only a set that clusters
+	// registers this getter.
+	const clusterAt = useCallback(() => live.current.cluster ?? { positions: [], gap: null }, [])
+
 	// Registered by the dot-drawing marks alone, a fact fixed per mark kind.
 	const ownDots = dots === undefined ? undefined : dotsAt
+
+	// Registered by a set that clusters alone. A set that turns its grouping on
+	// or off registers again, because the pass must learn of it.
+	const ownCluster = cluster === undefined ? undefined : clusterAt
 
 	// A move changes no entry of the ledger, so it cannot reach the pool through the plat. The mark
 	// restakes its own dots instead, off the identity of `dots`. A layout effect, so that the dots
@@ -388,6 +433,19 @@ export function useMapOverlay({
 
 		pool.restake(id)
 	}, [pool, id, dots])
+
+	// A move changes no entry of the ledger, so the shared pass holds the dots it
+	// gathered last. The set restakes its dots in the pass off the identity of
+	// `cluster`, as it restakes the pool off `dots`.
+	const grouped = useRef(cluster)
+
+	useLayoutEffect(() => {
+		if (grouped.current === cluster) return
+
+		grouped.current = cluster
+
+		clusters.restake(id)
+	}, [clusters, id, cluster])
 
 	// A move changes no entry of the ledger either, so the keyboard cursor holds the
 	// stops it resolved last. The mark tells it off the identity of `stops`, as it
@@ -443,6 +501,14 @@ export function useMapOverlay({
 
 	const activate = pickable ? pick : undefined
 
+	// The right-click reporter, on the terms of `pick`: a stable event, registered
+	// only where the mark answers a right-click.
+	const menu = useStableEvent((stop: number) => onContextMenu?.(id, stop))
+
+	const menuable = onContextMenu !== undefined
+
+	const ownMenu = menuable ? menu : undefined
+
 	// Registered only where the mark holds ground, on the same terms as `activate`:
 	// its presence is what the plat's resolver asks of an entry, so a dot never
 	// measures itself against a mark that holds no face. The wrapper rides the ref,
@@ -473,8 +539,10 @@ export function useMapOverlay({
 				detail,
 				stopsAt,
 				dotsAt: ownDots,
+				clusterAt: ownCluster,
 				stopRows: heldRows,
 				activate,
+				menu: ownMenu,
 				spare: budget,
 				getStop: stopAt,
 				getIndex: ownIndex,
@@ -490,8 +558,10 @@ export function useMapOverlay({
 			detail,
 			stopsAt,
 			ownDots,
+			ownCluster,
 			heldRows,
 			activate,
+			ownMenu,
 			budget,
 			stopAt,
 			ownIndex,
@@ -538,11 +608,7 @@ export function useMapOverlay({
 
 	// Bubbles, and never prevents default: a wrapping menu still opens, and this
 	// only names which mark it opened over.
-	const menuMark = useStableEvent((event: MouseEvent<SVGElement>) =>
-		onContextMenu?.(id, stopFrom(event)),
-	)
-
-	const menuable = onContextMenu !== undefined
+	const menuMark = useCallback((event: MouseEvent<SVGElement>) => menu(stopFrom(event)), [menu])
 
 	// One handler set per mark, not one per hit shape: each reads its own stop
 	// back off the element it fired on, through the same anchor the scroll-settle

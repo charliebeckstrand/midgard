@@ -4,7 +4,8 @@ import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { MapDotPool } from './engine/map-cluster/pool'
-import type { MapHoverTarget } from './engine/map-hover/target'
+import type { MapClusterStore } from './engine/map-cluster/sets'
+import type { MapHoverTarget, MapOverlayTarget } from './engine/map-hover/target'
 import type { MapStopMoves } from './engine/map-keyboard/stops'
 import type { MapOverlayEntry } from './engine/map-overlay/entry'
 import type { LngLat, MapOverlaySelection, MapPoint2D } from './engine/types'
@@ -227,6 +228,23 @@ export type MapPlatContextValue = {
 	 * waypoints and a zone's ring never contest ground they paint nothing on.
 	 */
 	pool: MapDotPool
+	/**
+	 * The shared pass of every {@link MapPoints} that clusters (`sets.ts`). Each set
+	 * reads its own groups from one pass over all of them, so two sets never draw
+	 * over one another, and a summary can hold the dots of more than one set.
+	 *
+	 * A store, for the reason {@link pool} is one. The pass reads the zoom scale,
+	 * which the plat cannot see, so the snapshot takes the scale from the set that
+	 * reads it, and holds the grouping of that scale.
+	 */
+	clusters: MapClusterStore
+	/**
+	 * Reports a pick (`activate`) or a right-click (`menu`) on an overlay target to
+	 * each part that the target names (`targetParts`), through the reporter of its
+	 * own set. A shared summary reports its click through it, so a pick from any
+	 * input reaches every part of the summary by one rule. A stable function.
+	 */
+	report: (target: MapOverlayTarget, kind: 'activate' | 'menu') => void
 	/**
 	 * The moves of the marks, for the keyboard cursor. A mark calls `move` when
 	 * its stops change, and the cursor resolves its stop list again. One store for

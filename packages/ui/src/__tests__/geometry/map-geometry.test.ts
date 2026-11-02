@@ -14,6 +14,7 @@ import {
 	projectArea,
 	projectPoint,
 	ringAnchor,
+	ringArcs,
 	ringsNear,
 	ringsPath,
 	SQUARE_DOT_CORNER,
@@ -509,6 +510,24 @@ describe('dotPath', () => {
 	it('draws a zero-length segment at the rounded position', () => {
 		// The round linecap paints the dot; two decimals match linePath's rounding.
 		expect(dotPath({ x: 12.3456, y: 7.891 })).toBe('M12.35,7.89l0,0')
+	})
+})
+
+describe('ringArcs', () => {
+	it('splits the ring by the shares, clockwise from the top', () => {
+		// A quarter and three quarters: the first arc runs from the top to the right,
+		// and the second, the long way round, from the right back to the top.
+		expect(ringArcs({ x: 0, y: 0 }, 10, [1, 3])).toEqual([
+			'M0,-10A10,10 0 0 1 10,0',
+			'M10,0A10,10 0 1 1 0,-10',
+		])
+	})
+
+	it('draws a share that is the whole ring as two half arcs', () => {
+		expect(ringArcs({ x: 0, y: 0 }, 10, [4, 0])).toEqual([
+			'M0,-10A10,10 0 0 1 0,10A10,10 0 0 1 0,-10',
+			'M0,-10A10,10 0 0 1 0,-10',
+		])
 	})
 })
 

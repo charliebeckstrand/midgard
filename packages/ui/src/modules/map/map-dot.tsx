@@ -9,8 +9,8 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/map'
 import { groundPoints, type MapGround } from './engine/map-cluster/ground'
-import { POINT_HIT_RADIUS } from './engine/map-constants'
-import { dotPath, squareDotStroke } from './engine/map-geometry/mark'
+import { POINT_HIT_RADIUS, SHARED_RING_WIDTH } from './engine/map-constants'
+import { dotPath, ringArcs, squareDotStroke } from './engine/map-geometry/mark'
 import { transformAttribute } from './engine/map-zoom/transform'
 import type { MapPoint2D, MapPointShape } from './engine/types'
 import type { MapOverlayHit } from './use-map-overlay'
@@ -187,6 +187,75 @@ function MapDotPop({
 			transition={still ? k.motion.instant : transition}
 		/>
 	)
+}
+
+/** One arc of a {@link MapDotRing}: the set that it stands for. @internal */
+type MapDotRingArc = {
+	/** The id of the set, which keys the arc. */
+	id: string
+	/** How many of the dots of the summary the set holds. */
+	count: number
+	/** The stroke paint class of the set. */
+	paint: string
+}
+
+/** Props for {@link MapDotRing}. @internal */
+type MapDotRingProps = {
+	/** The summary's projected frame position; the ring centers on it. */
+	at: MapPoint2D
+	/** The summary's radius in device pixels. The ring sits inside its edge. */
+	radius: number
+	/** One arc for each set that the summary holds, in the order of the parts. */
+	arcs: readonly MapDotRingArc[]
+	/** Frame units per device pixel under the plat's zoom; the ring converts through it. */
+	scale: number
+	animate: boolean
+	/** The fade-in timing under `animate`, shared with the summary that the ring sits on. */
+	transition: { duration: number; delay?: number }
+}
+
+/**
+ * The ring of a shared summary: one arc for each set that the summary holds, in
+ * the color of that set and as long as its share of the dots. The ring starts at
+ * the top and goes clockwise, in the order of the parts. It sits inside the
+ * edge of the summary, so the summary keeps the width that the grouping measured.
+ *
+ * @remarks Like {@link MapDotCount}, it is never a pointer target. The hit
+ * circle of the summary draws over it.
+ *
+ * @internal
+ */
+export function MapDotRing({ at, radius, arcs, scale, animate, transition }: MapDotRingProps) {
+	const [fades] = useState(animate)
+
+	const paths = ringArcs(
+		at,
+		(radius - SHARED_RING_WIDTH / 2) * scale,
+		arcs.map((arc) => arc.count),
+	)
+
+	return arcs.map((arc, index) => {
+		const shared = {
+			'data-slot': 'map-points-share',
+			d: paths[index],
+			fill: 'none',
+			strokeWidth: SHARED_RING_WIDTH * scale,
+			pointerEvents: 'none' as const,
+			className: arc.paint,
+		}
+
+		return fades ? (
+			<m.path
+				key={arc.id}
+				{...shared}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={transition}
+			/>
+		) : (
+			<path key={arc.id} {...shared} />
+		)
+	})
 }
 
 /** Props for {@link MapDotCount}. @internal */
