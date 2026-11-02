@@ -2,6 +2,7 @@
 
 import {
 	type ComponentProps,
+	type FocusEvent,
 	type KeyboardEvent,
 	type KeyboardEventHandler,
 	type RefCallback,
@@ -12,8 +13,9 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useVirtualWindow } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
 import { focusDropped } from '../../utilities/focus-dropped'
@@ -324,38 +326,24 @@ export function JsonTreeVirtualized({
 	// and focus then parks on the container until the row mounts again.
 	const focusedIndexRef = useRef<number | null>(null)
 
-	useEffect(() => {
-		const container = ref.current
+	// The focus handlers write the index ref, so each is a stable event and not a
+	// closure that render passes to a function.
+	const recordFocus = useStableEvent((event: FocusEvent<HTMLDivElement>) => {
+		const index = focusedRowIndex(event.currentTarget)
 
-		if (!container) return
+		if (index !== null) focusedIndexRef.current = index
+	})
 
-		const onFocusIn = () => {
-			const index = focusedRowIndex(container)
+	// A row that unmounts also loses focus. Only focus that leaves the tree clears the index.
+	const clearFocus = useStableEvent((event: FocusEvent<HTMLDivElement>) => {
+		const { currentTarget, relatedTarget, target } = event
 
-			if (index !== null) focusedIndexRef.current = index
-		}
+		if (currentTarget.contains(relatedTarget)) return
 
-		// A row that unmounts also loses focus. Only focus that leaves the tree clears the index.
-		const onFocusOut = (event: FocusEvent) => {
-			const { relatedTarget, target } = event
-
-			if (relatedTarget instanceof Node && container.contains(relatedTarget)) return
-
-			queueMicrotask(() => {
-				if (target instanceof Node && target.isConnected) focusedIndexRef.current = null
-			})
-		}
-
-		container.addEventListener('focusin', onFocusIn)
-
-		container.addEventListener('focusout', onFocusOut)
-
-		return () => {
-			container.removeEventListener('focusin', onFocusIn)
-
-			container.removeEventListener('focusout', onFocusOut)
-		}
-	}, [ref])
+		queueMicrotask(() => {
+			if (target.isConnected) focusedIndexRef.current = null
+		})
+	})
 
 	// The flat list of the last commit.
 	const committedNodesRef = useRef(flatNodes)
@@ -439,6 +427,8 @@ export function JsonTreeVirtualized({
 			// Focus parks here while the focused row is outside the window.
 			tabIndex={-1}
 			onKeyDown={handleKeyDown}
+			onFocus={composeEventHandlers(rootProps.onFocus, recordFocus)}
+			onBlur={composeEventHandlers(rootProps.onBlur, clearFocus)}
 		>
 			{topSpacer > 0 && (
 				<div

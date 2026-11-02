@@ -137,29 +137,6 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 	// toast closes, focus goes back to it.
 	const returnFocusRef = useRef<HTMLElement | null>(null)
 
-	// The viewport mounts after hydration, so the effect keys on it. The
-	// `relatedTarget` of a focus that comes from outside the viewport is the
-	// element to return to. A focus from the body, as from F8, has no
-	// `relatedTarget` and clears the target, so a close never goes to an element
-	// that did not have focus.
-	useEffect(() => {
-		const viewport = viewportRef.current
-
-		if (!hydrated || !viewport) return
-
-		const onFocusIn = (event: FocusEvent) => {
-			const from = event.relatedTarget
-
-			if (from instanceof Node && viewport.contains(from)) return
-
-			returnFocusRef.current = from instanceof HTMLElement ? from : null
-		}
-
-		viewport.addEventListener('focusin', onFocusIn)
-
-		return () => viewport.removeEventListener('focusin', onFocusIn)
-	}, [hydrated])
-
 	const hasToasts = toasts.length > 0
 
 	const intl = useIntl()
@@ -198,6 +175,21 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 				aria-label={hasToasts ? intl.formatMessage(messages.notifications) : undefined}
 				dir={dir ?? undefined}
 				className={stack.base}
+				// The `relatedTarget` of a focus that comes from outside the viewport is
+				// the element to return to. A focus from the body, as from F8, has no
+				// `relatedTarget` and clears the target, so a close never goes to an
+				// element that did not have focus. A focus in a portal of a toast, as in
+				// a menu of its actions, comes up the React tree but is not in the
+				// viewport, so it records nothing.
+				onFocus={(event) => {
+					const viewport = event.currentTarget
+
+					const from = event.relatedTarget
+
+					if (!viewport.contains(event.target) || viewport.contains(from)) return
+
+					returnFocusRef.current = from instanceof HTMLElement ? from : null
+				}}
 			>
 				{/* A list, so AT gives the count of the toasts and the position of each. */}
 				<ol className={cn(stack.scroll, !isTop && 'flex-col-reverse')}>
