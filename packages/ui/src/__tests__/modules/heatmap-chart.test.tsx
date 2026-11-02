@@ -2,6 +2,7 @@ import { describe, expect, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
+import { SWEEP_SETTLE } from '../../modules/chart/engine/use-chart-sweep'
 import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import {
 	act,
@@ -760,6 +761,29 @@ describe('HeatmapChart animate', () => {
 		expect(cellRects(container)[0]).toHaveAttribute('fill')
 
 		for (const rect of cellRects(container)) expect(rect.getAttribute('style')).toBeNull()
+	})
+
+	it('sweeps the reveal column by column, then crossfades a data change at once', async ({
+		clock,
+	}) => {
+		const chart = (rows: Row[]) => (
+			<HeatmapChart aria-label="Commits" data={rows} series={SERIES} width={400} animate="sweep" />
+		)
+
+		const { container, rerender } = renderUI(chart(ROWS))
+
+		const delays = () =>
+			cellRects(container).map((rect) => (rect as SVGElement).style.transitionDelay)
+
+		// Row-major: Mon 9, Mon 10, Tue 9, Tue 10. The second column washes last.
+		expect(delays()).toEqual(['0ms', '300ms', '0ms', '300ms'])
+
+		await clock.advance(SWEEP_SETTLE * 1000)
+
+		// The sweep retires with the reveal, so a data change waits for no column.
+		rerender(chart([{ day: 'Mon', hour: '9', commits: 9 }, ...ROWS.slice(1)]))
+
+		expect(delays()).toEqual(['', '', '', ''])
 	})
 
 	it('plays no wash under reduced motion', () => {

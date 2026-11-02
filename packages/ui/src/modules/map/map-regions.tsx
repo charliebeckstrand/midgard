@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type CSSProperties,
 	memo,
 	type PointerEvent,
 	type ReactNode,
@@ -12,6 +13,7 @@ import {
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { useChartSpot } from '../chart/engine/use-chart-spot'
+import { useChartSweep, type WashDelay } from '../chart/engine/use-chart-sweep'
 import {
 	MapZoomScaleContext,
 	useMapHoverActions,
@@ -70,6 +72,11 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	/** The emphasized legend id; regions outside its category recede. */
 	emphasis: string | null
 	animate: boolean
+	/**
+	 * Each region's position along an `animate="sweep"` reveal, from `0` (east)
+	 * to `1` (west), or `null` for no sweep. See {@link useChartSweep}.
+	 */
+	sweep: (() => readonly (number | null)[]) | null
 	/**
 	 * Reports the region under a click, resolved by {@link regionIndexAt}
 	 * delegation on the layer group. The memoized per-region paths therefore take
@@ -142,6 +149,8 @@ type RegionProps = {
 	className: string
 	/** The `fill` attribute color for a numeric bin, `undefined` for a class fill. */
 	fillColor: string | undefined
+	/** The sweep delay of the wash, `undefined` where the region washes at once. */
+	style: CSSProperties | undefined
 	/** `undefined` on a map with nothing to read out, which answers no pointer. */
 	onTrack: ((event: PointerEvent<SVGPathElement>) => void) | undefined
 }
@@ -153,11 +162,19 @@ type RegionProps = {
  *
  * Memoized on its resolved primitives. A legend toggle or the reveal flip
  * re-renders the categories whose paint changed, and every other region holds
- * its last render.
+ * its last render. The sweep delays are shared objects, so a region outside
+ * the change compares equal on its style too, until the sweep retires.
  *
  * @internal
  */
-const Region = memo(function Region({ d, index, className, fillColor, onTrack }: RegionProps) {
+const Region = memo(function Region({
+	d,
+	index,
+	className,
+	fillColor,
+	style,
+	onTrack,
+}: RegionProps) {
 	return (
 		<path
 			// The region's DOM anchor: the hover provider's scroll-settle resolve,
@@ -177,6 +194,7 @@ const Region = memo(function Region({ d, index, className, fillColor, onTrack }:
 			// No width of its own: the seam is inherited from `MapRegionsGroup`, which
 			// states why.
 			className={className}
+			style={style}
 			onPointerEnter={onTrack}
 			onPointerMove={onTrack}
 		/>
@@ -195,16 +213,17 @@ function drawnRegions(paths: (string | null)[]): { index: number; d: string }[] 
 }
 
 /** Props for {@link MapRegionsBase}: the layer's own inputs, none of the shared emphasis. @internal */
-type MapRegionsBaseProps = MapRegionLayer & { interactive: boolean }
+type MapRegionsBaseProps = MapRegionLayer & { delay: WashDelay; interactive: boolean }
 
 /**
  * Every region path, painted by category. Deliberately blind to the shared
  * emphasis. The pointed mark and the legend focus recede this layer from
  * outside ({@link MapRegions}). On a county atlas the three-thousand-path tree
  * therefore never re-renders while the pointer travels, or a legend chip is
- * held. Only a toggle, the reveal's flip, or new geometry re-maps it. The paint
- * table arrives resolved from the parent, so the memo compares one stable reference
- * where it once compared the four inputs behind it.
+ * held. Only a toggle, the reveal's flip, the end of a sweep, or new geometry
+ * re-maps it. The paint table arrives resolved from the parent, so the memo
+ * compares one stable reference where it once compared the four inputs behind
+ * it.
  *
  * @internal
  */
@@ -212,6 +231,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	paths,
 	regionCategory,
 	paints,
+	delay,
 	interactive,
 }: MapRegionsBaseProps) {
 	const { set } = useMapHoverActions()
@@ -249,6 +269,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 						index={index}
 						className={paint.className}
 						fillColor={paint.fillColor}
+						style={delay(index)}
 						onTrack={handleTrack}
 					/>
 				)
@@ -281,7 +302,8 @@ const MapRegionsBase = memo(function MapRegionsBase({
  * `<path>`, not a motion fade. The geometry itself therefore never fades, a
  * many-region atlas never draws out the reveal, and the region layer carries no
  * motion runtime. `motion-reduce` drops the transition. A later legend toggle
- * crossfades on the same tempo.
+ * crossfades on the same tempo. Under `animate="sweep"` the reveal alone washes
+ * across the map from east to west ({@link useChartSweep}).
  *
  * Memoized so it repaints only when its own geometry, category, or legend
  * state changes. An overlay child registering its legend entry re-renders the
@@ -300,6 +322,7 @@ export const MapRegions = memo(function MapRegions({
 	hidden,
 	emphasis,
 	animate,
+	sweep,
 	onRegionClick,
 	onRegionContextMenu,
 	selected,
@@ -321,6 +344,8 @@ export const MapRegions = memo(function MapRegions({
 	useEffect(() => {
 		if (animate && paths.length > 0) setRevealed(true)
 	}, [animate, paths.length])
+
+	const delay = useChartSweep(sweep, revealed)
 
 	const clickable = onRegionClick !== undefined
 
@@ -367,6 +392,7 @@ export const MapRegions = memo(function MapRegions({
 					paths={paths}
 					regionCategory={regionCategory}
 					paints={paints}
+					delay={delay}
 					interactive={interactive}
 				/>
 			</g>

@@ -1,4 +1,5 @@
 import { describe, expect, vi } from 'vitest'
+import { SWEEP_SETTLE } from '../../modules/chart/engine/use-chart-sweep'
 import { MapPlat } from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import { REGION_FADE } from '../../modules/map/engine/map-motion'
@@ -142,6 +143,24 @@ describe('MapPlat', () => {
 
 		// The category color resolves once the reveal flag flips post-mount.
 		expect(alpha?.getAttribute('class')).toContain('fill-blue-600')
+	})
+
+	it('sweeps the reveal from east to west, then washes a later toggle at once', async ({
+		clock,
+	}) => {
+		const { container } = renderUI(categoricalPlat({ animate: 'sweep' }))
+
+		const delays = () => allRegions(container).map((region) => region.style.transitionDelay)
+
+		// Alpha is the most western region and Gamma the most eastern, so the
+		// wave starts at Gamma and ends at Alpha.
+		expect(delays()).toEqual(['300ms', '160ms', '0ms'])
+
+		await clock.advance(SWEEP_SETTLE * 1000)
+
+		// The delays belong to the reveal. Left in place, they would hold back each
+		// later legend toggle by the place of the region.
+		expect(delays()).toEqual(['', '', ''])
 	})
 
 	it('washes every region in at once, on the fade the legend hold waits out', () => {

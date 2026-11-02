@@ -175,10 +175,11 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	onHiddenChange?: (hidden: ReadonlySet<string>) => void
 	/**
 	 * Animates the scale in on mount: the neutral geography paints at once, then
-	 * the color washes in region by region.
+	 * the color washes in. `'sweep'` washes the regions in from east to west.
+	 * See {@link MapPlatProps.animate}.
 	 * @defaultValue false
 	 */
-	animate?: boolean
+	animate?: boolean | 'sweep'
 	/**
 	 * Names the right-click menu's fullscreen dialog and seeds the download
 	 * filenames. The choropleth draws no header, so it is not painted on the map.

@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { cn } from '../../../core'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { k } from '../../../recipes/kata/chart'
 import { CELL_RING_WIDTH, cellRing, type HeatmapCell } from '../engine/chart-geometry/heatmap'
 import { seriesGroupClass } from '../engine/chart-series'
+import { useChartSweep } from '../engine/use-chart-sweep'
 import { useHeatmapFocus, useHoveredCell } from './context'
 
 /** The neutral fill for a cell with no datum, one step off the surface. @internal */
@@ -69,12 +70,17 @@ function useCellWash(animate: boolean, count: number): CellWash {
 /** Props for {@link HeatmapChartCells}: the resolved cells, their fills, and their bins. @internal */
 type HeatmapChartCellsProps = {
 	cells: HeatmapCell[]
+	/** The number of columns of the grid, which a sweep crosses. */
+	cols: number
 	/** The fill per cell, index-aligned; `null` paints the no-data neutral. */
 	fills: (string | null)[]
 	/** The bin per cell, index-aligned; `null` for a no-data cell. Dims against the legend probe. */
 	cellBins: (number | null)[]
-	/** Wash the colors in on mount, and crossfade a data change (see {@link useCellWash}). */
-	animate: boolean
+	/**
+	 * Wash the colors in on mount, and crossfade a data change (see
+	 * {@link useCellWash}). `'sweep'` delays the reveal of each column by its place.
+	 */
+	animate: boolean | 'sweep'
 }
 
 /**
@@ -84,14 +90,29 @@ type HeatmapChartCellsProps = {
  * {@link HeatmapProbedRings} rings the cells inside it.
  *
  * @remarks Under `animate` the grid paints the neutral at once, and the colors
- * wash in, as the choropleth's color washes in. The wash is a CSS color transition on a plain `<rect>`, so the grid
+ * wash in, as the choropleth's color washes in, column by column under
+ * `'sweep'`. The wash is a CSS color transition on a plain `<rect>`, so the grid
  * carries no motion runtime.
  * @internal
  */
-export function HeatmapChartCells({ cells, fills, cellBins, animate }: HeatmapChartCellsProps) {
+export function HeatmapChartCells({
+	cells,
+	cols,
+	fills,
+	cellBins,
+	animate,
+}: HeatmapChartCellsProps) {
 	const { bin: focus } = useHeatmapFocus()
 
-	const wash = useCellWash(animate, cells.length)
+	const wash = useCellWash(animate !== false, cells.length)
+
+	// Each cell's place along the sweep is its column.
+	const columns = useCallback(
+		() => cells.map((cell) => (cols > 1 ? cell.col / (cols - 1) : 0)),
+		[cells, cols],
+	)
+
+	const delay = useChartSweep(animate === 'sweep' ? columns : null, wash === 'wash')
 
 	return (
 		<g data-slot="heatmap-cells">
@@ -114,6 +135,7 @@ export function HeatmapChartCells({ cells, fills, cellBins, animate }: HeatmapCh
 							wash !== 'none' && WASH_CLASS,
 							fill == null && NO_DATA_FILL,
 						)}
+						style={delay(index)}
 						{...(fill == null ? {} : { fill })}
 					/>
 				)
