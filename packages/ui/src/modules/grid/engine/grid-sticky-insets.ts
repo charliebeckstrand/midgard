@@ -155,7 +155,10 @@ function clearsSides(cell: HTMLElement): boolean {
 
 /**
  * Scrolls the grid's own scroll container so the cell clears the sticky chrome
- * at each edge. It runs after the cell's `scrollIntoView`. Chromium's
+ * at each edge. That is the scroll region of a grid with a cap or a sticky
+ * header, or else the horizontal scroll container of its table. It runs after
+ * the cell's `scrollIntoView`, and the new-row slot runs it in place of one,
+ * so the page does not scroll. Chromium's
  * `nearest` alignment does not scroll a cell that is inside the container, on
  * either axis. It therefore ignores the `scroll-margin` of a cell under the
  * sticky header or under a pinned column. A cell of a nested grid with no
@@ -172,7 +175,9 @@ export function clearStickyChrome(
 ): void {
 	const table = cell.closest('table')
 
-	const scroller = table?.closest<HTMLElement>('[data-slot="grid-scroll"]')
+	// The scroll region of the grid, or else the scroll container of the table,
+	// which is the parent of the `<table>`.
+	const scroller = table?.closest<HTMLElement>('[data-slot="grid-scroll"]') ?? table?.parentElement
 
 	if (!scroller || scroller.querySelector('table') !== table) return
 
