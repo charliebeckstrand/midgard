@@ -3,7 +3,12 @@ import { items } from './items.ts'
 
 export default function Multiple() {
 	return (
-		<Accordion type="multiple" variant="outline" defaultValue={['returns', 'support']}>
+		<Accordion
+			type="multiple"
+			variant="outline"
+			region={false}
+			defaultValue={['returns', 'support']}
+		>
 			{items.map((item) => (
 				<AccordionItem key={item.value} value={item.value}>
 					<AccordionTrigger>{item.title}</AccordionTrigger>

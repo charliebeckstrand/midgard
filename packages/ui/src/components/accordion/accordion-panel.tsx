@@ -21,8 +21,8 @@ export type AccordionPanelProps = Omit<
 }
 
 /**
- * Collapsible region revealed by its {@link AccordionTrigger}. Animates
- * height/opacity via `AnimatePresence`, honoring reduced-motion.
+ * Collapsible region revealed by its {@link AccordionTrigger}. Animates its
+ * height and its opacity, and honors reduced motion.
  *
  * @remarks
  * Carries `role="region"`, named by its header button, unless the accordion
@@ -35,8 +35,10 @@ export type AccordionPanelProps = Omit<
  * a section opens. The panel text wraps at that width. Content that cannot wrap,
  * such as a wide table, needs a width on the accordion.
  *
- * The panel clips its content only while its height moves. At rest, a focus
- * ring or a shadow at the edge of the content shows in full.
+ * The panel clips its content only while its height moves. At rest, the panel
+ * clips nothing. The `separated` item and the `outline` root clip at their
+ * rounded border. A ring or a shadow that goes past the body padding is cut
+ * there.
  *
  * Under the accordion's default `mount="active"` the panel is mounted only while
  * open, so reopening resets its state. `always` and `lazy` instead hold it in
@@ -69,9 +71,10 @@ export function AccordionPanel({ className, children, ...props }: AccordionPanel
 	// win.
 	const panel = (motionProps: object) => (
 		<m.div
-			{...props}
-			// The item reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
+			// No selector of the library reads this anchor, so it comes before the
+			// spread, and a wrapper can replace it (CONVENTIONS.md §3.9).
 			data-slot="accordion-panel"
+			{...props}
 			{...a11yProps}
 			{...motionProps}
 			data-open={dataAttr(open)}

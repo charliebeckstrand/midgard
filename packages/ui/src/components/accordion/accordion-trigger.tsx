@@ -25,8 +25,9 @@ export type AccordionTriggerProps = Omit<ComponentProps<'button'>, 'disabled'> &
 /**
  * Header button that toggles its {@link AccordionItem}. Wraps itself in an
  * `h{level}` element and renders a rotating chevron indicator, per the WAI-ARIA
- * accordion pattern. Is a Tab stop, and takes part in the parent's arrow-key
- * navigation. The button stamps `data-open` and `data-disabled` as its item does.
+ * accordion pattern. While its item is enabled, the button is a Tab stop and
+ * takes part in the parent's arrow-key navigation. The button stamps
+ * `data-open` and `data-disabled` as its item does.
  *
  * @see {@link Accordion}
  * @see {@link AccordionPanel}
@@ -49,11 +50,11 @@ export function AccordionTrigger({
 	return (
 		<Heading data-slot="accordion-heading" className="m-0">
 			<button
-				// Consumer props spread first; the type, the data-slot, the ARIA wiring of
-				// the item, and its disabled state below take precedence.
+				// Consumer props spread first; the type, the wiring of the item (its
+				// data-slot anchor and its ARIA props), and its disabled state below take
+				// precedence.
 				{...props}
 				type="button"
-				data-slot="accordion-trigger"
 				{...triggerProps}
 				data-open={dataAttr(open)}
 				data-disabled={dataAttr(disabled)}

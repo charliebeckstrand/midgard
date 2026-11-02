@@ -38,7 +38,14 @@ export function AccordionItem({
 	children,
 	...props
 }: AccordionItemProps) {
-	const { variant, mount, collapsible, openStore, toggle: toggleValue } = useAccordion()
+	const {
+		variant,
+		mount,
+		collapsible,
+		openStore,
+		toggle: toggleValue,
+		onTriggerKeyDown,
+	} = useAccordion()
 
 	// The item reads its own value, so a toggle renders only the items that open
 	// or close.
@@ -57,14 +64,18 @@ export function AccordionItem({
 	// it. A reference needs its target id in the DOM: an open panel is there, and
 	// a closed panel only under `mount="always"` after hydration, because the
 	// server markup does not hold it. An open section that a toggle cannot close
-	// is `aria-disabled`, per the WAI-ARIA accordion pattern.
+	// is `aria-disabled`, per the WAI-ARIA accordion pattern. The anchor and the
+	// key handler put a custom header in the arrow keys of the root, as they put
+	// an `AccordionTrigger` there.
 	const triggerProps = useMemo(
 		() => ({
 			...disclosure.triggerProps,
 			'aria-controls': open || everyPanel ? disclosure.triggerProps['aria-controls'] : undefined,
 			'aria-disabled': ariaAttr(open && !collapsible),
+			'data-slot': 'accordion-trigger' as const,
+			onKeyDown: onTriggerKeyDown,
 		}),
-		[disclosure.triggerProps, open, everyPanel, collapsible],
+		[disclosure.triggerProps, open, everyPanel, collapsible, onTriggerKeyDown],
 	)
 
 	const { panelProps } = disclosure
