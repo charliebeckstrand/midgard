@@ -48,8 +48,10 @@ export const k = defineKata(
 		slots: {
 			// The positioned wrapper of a floating panel. The floating layer writes its
 			// max-height when the panel is taller than the space on its side of the
-			// trigger. The column lets the panel shrink into that cap.
-			surface: fit.wrapper,
+			// trigger. The column lets the panel shrink into that cap. The floating
+			// layer also writes a max-width. The min-width of the panel wins over it,
+			// so the wrapper is never narrower than the panel in it.
+			surface: [fit.wrapper, 'min-w-48'],
 			// A floating panel. `relative` puts the panel back in flow (the popover base
 			// is `absolute`), so the wrapper shrink-wraps to it. The column and `min-h-0`
 			// pass the cap of the wrapper on to the viewport, which scrolls.

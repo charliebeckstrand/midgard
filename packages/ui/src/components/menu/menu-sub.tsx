@@ -63,6 +63,19 @@ export function opensSubmenu(event: KeyboardEvent, row: Element): boolean {
 }
 
 /**
+ * Moves the panel back across the edge of the viewport, after the width is
+ * set. It is a second `shift` under its own name: `size` reads the data of the
+ * middleware named `shift`, and would then cap the width at the viewport, not
+ * at the space on the side.
+ *
+ * @internal
+ */
+const SHIFT_ACROSS: Middleware = {
+	...shift({ mainAxis: false, crossAxis: true, padding: 8 }),
+	name: 'shiftAcross',
+}
+
+/**
  * Positions the panel beside its parent row on whichever side has the most
  * room, rather than committing to one and flipping only once it overflows.
  * `autoPlacement` measures both edges every reposition. A menu opened near the
@@ -70,22 +83,25 @@ export function opensSubmenu(event: KeyboardEvent, row: Element): boolean {
  * of being clipped. Restricted to the horizontal sides, because a submenu above
  * or below its parent would cover the menu it came from. Top-aligned with the
  * row it hangs off, with `shift` nudging it back into view when it runs past
- * the bottom.
+ * the bottom. A panel taller than the viewport shrinks to fit it, and scrolls.
  *
- * A panel wider than the space on both sides, as on a phone, goes on the side
- * with more space, and `shift` moves it back across the edge of the viewport.
- * It then covers a part of the menu it came from, as a native menu does. If it
- * went past the edge, the page would scroll to the side while it was open.
- * The cap of the width is thus the viewport, not the space on the side. A panel
- * taller than the viewport shrinks to fit it, and scrolls.
+ * The width cap is the space on the side, so a panel with long rows wraps them
+ * and does not cover its parent row. The wrapper has the min-width of the
+ * panel, and in CSS a min-width wins over a max-width, so the cap does not go
+ * below it. A panel that is wider than the space on both sides, as on a
+ * phone, goes on the side with more space, and {@link SHIFT_ACROSS} moves it
+ * back into the viewport. It then covers a part of the menu it came from, as a
+ * native menu does. If it went past the edge, the page would scroll to the side
+ * while it was open.
  *
  * @internal
  */
 const SUBMENU_MIDDLEWARE: Middleware[] = [
 	offset(4),
 	autoPlacement({ allowedPlacements: ['right-start', 'left-start'] }),
-	shift({ padding: 8, crossAxis: true }),
+	shift({ padding: 8 }),
 	fitMiddleware({ fitHeight: snapMenuHeight }),
+	SHIFT_ACROSS,
 ]
 
 /** Props for {@link MenuSub}. */

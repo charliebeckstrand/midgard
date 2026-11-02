@@ -74,11 +74,21 @@ describe('a floating panel wider than the viewport (real floating engine)', () =
 
 		await frames(2)
 
-		await userEvent.click(screen.getByRole('menuitem', { name: /More/ }))
+		const row = screen.getByRole('menuitem', { name: /More/ })
+
+		await userEvent.click(row)
 
 		await frames(2)
 
-		expectInside(screen.getByRole('menu', { name: /More/ }))
+		const submenu = screen.getByRole('menu', { name: /More/ })
+
+		expectInside(submenu)
+
+		// The long rows wrap inside the space on the side of the row, so the
+		// panel does not cover the row that opened it.
+		expect(submenu.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+			row.getBoundingClientRect().right,
+		)
 	})
 
 	// The menu stands in the middle of the viewport, so the space on each side of
