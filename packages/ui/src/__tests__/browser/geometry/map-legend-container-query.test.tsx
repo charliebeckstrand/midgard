@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { getSlot, present } from '../../helpers'
+import { allBySlot, getSlot, present } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { renderZones } from '../helpers/map-zones'
 
@@ -49,6 +49,18 @@ describe('map side-legend container query (real browser)', () => {
 		expect(plot.width).toBeNear(300, HALF_PIXEL)
 
 		expect(legend.top).toBeGreaterThanOrEqual(plot.bottom)
+	})
+
+	it('gives each stacked entry the width of the widest', async () => {
+		const { container } = await zones(300)
+
+		const widths = allBySlot(container, 'map-legend-item').map(
+			(entry) => entry.getBoundingClientRect().width,
+		)
+
+		expect(widths).toHaveLength(3)
+
+		for (const width of widths) expect(width).toBeNear(Math.max(...widths), HALF_PIXEL)
 	})
 
 	it('holds the frame at its minimum width in a container narrower than it', async () => {
