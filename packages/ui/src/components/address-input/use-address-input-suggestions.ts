@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useEffectEvent, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
 import type { AddressProvider, AddressSuggestion } from './types'
 
 type AddressSuggestionsOptions = {
@@ -26,8 +26,6 @@ export function useAddressInputSuggestions({
 
 	const [ready, setReady] = useState(false)
 
-	const abortRef = useRef<AbortController | null>(null)
-
 	// Read from the debounce timer, so a new provider identity never restarts the fetch effect.
 	const fetchSuggestions = useEffectEvent(provider)
 
@@ -52,8 +50,6 @@ export function useAddressInputSuggestions({
 		// provider (Photon answers HTTP 400 for a blank `q`). The provider still
 		// gets the query as typed: normalizing it is the provider's concern.
 		if (query.trim().length < minQueryLength) {
-			abortRef.current?.abort()
-
 			setSuggestions([])
 
 			setLoading(false)
@@ -74,13 +70,11 @@ export function useAddressInputSuggestions({
 		// Unreachable at the default `minQueryLength`, which returns above.
 		const delay = query.length === 0 ? 0 : debounceMs
 
+		// One request for each run. The cleanup of the run aborts it, and React
+		// runs that cleanup before the next run.
+		const controller = new AbortController()
+
 		const timeout = setTimeout(() => {
-			abortRef.current?.abort()
-
-			const controller = new AbortController()
-
-			abortRef.current = controller
-
 			// Started inside a promise, so a provider that throws synchronously
 			// takes the same path as one that rejects: `loading` clears and
 			// `onError` fires, where a bare call would throw out of this timer.
@@ -116,7 +110,7 @@ export function useAddressInputSuggestions({
 		return () => {
 			clearTimeout(timeout)
 
-			abortRef.current?.abort()
+			controller.abort()
 		}
 	}, [query, enabled, debounceMs, minQueryLength])
 

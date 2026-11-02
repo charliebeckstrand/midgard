@@ -3,7 +3,6 @@
 import { type PointerEvent, type TouchEvent, useRef } from 'react'
 import { isPrimaryPress } from '../utilities/primary-press'
 import { useStableEvent } from './use-stable-event'
-import { useTimeout } from './use-timeout'
 
 /** Time, in ms, in which a touch press must lift to be a tap. @internal */
 export const TOUCH_TAP_WINDOW = 300
@@ -36,8 +35,11 @@ export type TouchTap = {
 	fromTouch: () => boolean
 }
 
-/** The press that can be a tap: its pointer, the viewport point where it landed, and whether it is still a tap. */
-type Press = { id: number; x: number; y: number; tap: boolean }
+/**
+ * The press that can be a tap: its pointer, the viewport point where it landed,
+ * the time stamp of the press, and whether it is still a tap.
+ */
+type Press = { id: number; x: number; y: number; at: number; tap: boolean }
 
 /**
  * Finds a tap in the pointer events of a touch, and reports it from the lift.
@@ -79,14 +81,9 @@ export function useTouchTap(onTap: (clientX: number, clientY: number) => void): 
 
 	const tap = useStableEvent(onTap)
 
-	// Ends the tap window of a press: past it, the press is not a tap.
-	const tapWindow = useTimeout()
-
 	return {
 		onPointerDown: (event) => {
 			touched.current = event.pointerType === 'touch'
-
-			tapWindow.clear()
 
 			if (!touched.current) {
 				press.current = null
@@ -101,13 +98,13 @@ export function useTouchTap(onTap: (clientX: number, clientY: number) => void): 
 				return
 			}
 
-			const current = { id: event.pointerId, x: event.clientX, y: event.clientY, tap: true }
-
-			press.current = current
-
-			tapWindow.set(() => {
-				current.tap = false
-			}, TOUCH_TAP_WINDOW)
+			press.current = {
+				id: event.pointerId,
+				x: event.clientX,
+				y: event.clientY,
+				at: event.timeStamp,
+				tap: true,
+			}
 		},
 		onPointerMove: (event) => {
 			const current = press.current
@@ -126,16 +123,15 @@ export function useTouchTap(onTap: (clientX: number, clientY: number) => void): 
 
 			press.current = null
 
-			tapWindow.clear()
-
 			if (current === null || event.pointerType !== 'touch' || !current.tap) return
+
+			// A lift at or past the tap window ends a hold, not a tap.
+			if (event.timeStamp - current.at >= TOUCH_TAP_WINDOW) return
 
 			tap(event.clientX, event.clientY)
 		},
 		onPointerCancel: () => {
 			press.current = null
-
-			tapWindow.clear()
 		},
 		onTouchEnd: (event) => {
 			// The browser makes no click from a touch end that is canceled. A touch
