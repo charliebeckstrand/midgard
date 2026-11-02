@@ -89,6 +89,7 @@ export function useDatePickerState({
 		refs,
 		setReference,
 		dialogId,
+		returnFocusRef,
 		floatingStyles,
 		getReferenceProps,
 		getFloatingProps,
@@ -204,6 +205,7 @@ export function useDatePickerState({
 	return {
 		...field,
 		dialogId,
+		returnFocusRef,
 		value,
 		setValue,
 		setTouched,
