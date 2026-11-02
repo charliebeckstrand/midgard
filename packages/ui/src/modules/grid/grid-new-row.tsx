@@ -14,7 +14,12 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { type GridNewRowSession, useGridNewRowSession } from './context'
-import { isColumnEditable, NEW_ROW_KEY } from './engine/grid-editing-utilities'
+import {
+	collectNewRow,
+	type GridDraft,
+	isColumnEditable,
+	NEW_ROW_KEY,
+} from './engine/grid-editing-utilities'
 import { gridMessages } from './engine/grid-messages'
 import {
 	isNewRowAddColumn,
@@ -299,16 +304,21 @@ export function GridNewRow<T>({
 
 	if (!session) return null
 
-	// The row that a column's `editCell` slot and `validate` read: the field of
-	// each editable column, with the value that the user entered. An editor
-	// reads it again as it renders, so `validate` sees the newest value of each
-	// other cell.
-	const readDraftRow = () =>
-		Object.fromEntries(
-			dataColumns
-				.filter((column) => column.field != null)
-				.map((column) => [column.field, session.readDraft(NEW_ROW_KEY, column.id)?.value]),
-		) as T
+	// The row that a column's `editCell` slot and `validate` read. It is the
+	// row that the add checks (see `collectNewRow`), so an editor shows the
+	// error that the add would give. An editor reads it again as it renders,
+	// so `validate` sees the newest value of each other cell.
+	const readDraftRow = () => {
+		const drafts = new Map<string | number, GridDraft>()
+
+		for (const column of dataColumns) {
+			const draft = session.readDraft(NEW_ROW_KEY, column.id)
+
+			if (draft) drafts.set(column.id, draft)
+		}
+
+		return collectNewRow(drafts, dataColumns).values as T
+	}
 
 	const draftRow = readDraftRow()
 

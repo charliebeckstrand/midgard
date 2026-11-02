@@ -5233,6 +5233,36 @@ describe('Grid new row', () => {
 			expect(view.slotCell('count')).toHaveTextContent('Too many')
 		})
 
+		it('reads a cell with no field by its column id, as the add does', () => {
+			const tagged: GridColumn<SessionRow>[] = [
+				{
+					...(sessionColumns[1] as GridColumn<SessionRow>),
+					validate: (value, row) =>
+						(row as Record<string, unknown>).tag === 'x' && Number(value) > 5 ? 'Too many' : null,
+				},
+				{
+					id: 'tag',
+					title: 'Tag',
+					cell: () => '',
+					editCell: ({ value, onValueUpdate, ariaLabel }) => (
+						<input
+							aria-label={ariaLabel}
+							value={String(value ?? '')}
+							onChange={(event) => onValueUpdate(event.target.value)}
+						/>
+					),
+				},
+			]
+
+			const view = renderNewRow({}, {}, tagged)
+
+			view.type('tag', 'x')
+
+			view.type('count', '9')
+
+			expect(view.slotCell('count')).toHaveTextContent('Too many')
+		})
+
 		it('shows the error of a blocked add on the cell that refuses it', async () => {
 			const view = renderNewRow({}, {}, cols)
 
