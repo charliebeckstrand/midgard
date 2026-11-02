@@ -7,6 +7,24 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/
 import { cn } from '../../../../core'
 import { useTruncation } from '../../../../hooks/use-truncation'
 
+/**
+ * The row gap of a box that stacks or wraps {@link LegendSwitch} entries, on a
+ * coarse pointer. Put it on the box that lays out the entries.
+ *
+ * @remarks
+ * A switch is a `sm` button, 32 px high, and the entries touch, so one row
+ * comes 32 px after the row above it. That is less than the 44 pt that a
+ * finger needs, and iOS sent a tap on one entry to the entry above or below
+ * it. On a coarse pointer, a 12 px gap makes the rows 44 px apart. The touch
+ * gap of the box (`TouchTarget`) is the same 12 px, so the hit area of each
+ * entry goes half of the gap past each edge. Thus the hit areas are 44 px high
+ * and touch, with no space between them. A fine pointer keeps the rows that
+ * touch.
+ * @internal
+ */
+export const LEGEND_TOUCH_ROWS =
+	'pointer-coarse:gap-y-3 pointer-coarse:[--touch-target-gap-y:--spacing(3)]'
+
 /** Props for {@link LegendSwitch}. @internal */
 export type LegendSwitchProps = {
 	/** The `data-slot` of the switch, which the roving and the emphasis select. */

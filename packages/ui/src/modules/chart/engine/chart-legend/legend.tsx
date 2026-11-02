@@ -20,7 +20,7 @@ import { chartMessages } from '../chart-messages'
 import { ChartSwatch } from '../chart-pattern-defs'
 import { useChartActions } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
-import { LegendSwitch } from './legend-switch'
+import { LEGEND_TOUCH_ROWS, LegendSwitch } from './legend-switch'
 import { type LegendEmphasis, useLegendEmphasis } from './use-legend-emphasis'
 
 /** Entries per page once a side panel's switches would clip vertically. @internal */
@@ -898,7 +898,10 @@ export function ChartLegend({
 							data-slot="chart-legend-overflow"
 							// The popover is outside the legend, so it caps the hit areas of
 							// its entries at its own gap (`TouchTarget`).
-							className="flex max-h-64 max-w-xs flex-col items-stretch gap-0.5 overflow-y-auto overscroll-contain [--touch-target-gap-y:--spacing(0.5)]"
+							className={cn(
+								'flex max-h-64 max-w-xs flex-col items-stretch gap-0.5 overflow-y-auto overscroll-contain [--touch-target-gap-y:--spacing(0.5)]',
+								LEGEND_TOUCH_ROWS,
+							)}
 						>
 							{overflowItems.map((item) => (
 								<ChartLegendOverflowSwitch
@@ -952,8 +955,11 @@ export function ChartLegend({
 					? 'flex flex-col items-center justify-center @sm:w-[min(16rem,40cqw)] @sm:shrink-0'
 					: 'flex flex-wrap items-center justify-center',
 				// The entries touch on both axes, so each hit area keeps to its entry
-				// (`TouchTarget`), and two adjacent entries do not overlap.
+				// (`TouchTarget`), and two adjacent entries do not overlap. A coarse
+				// pointer adds a gap between the rows (`LEGEND_TOUCH_ROWS`) of the wrap
+				// row here, and of the panel on its column of entries.
 				'[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]',
+				!panel && LEGEND_TOUCH_ROWS,
 			)}
 		>
 			{panel ? (
@@ -962,7 +968,7 @@ export function ChartLegend({
 				// entry stretches to the block's width to share one swatch edge.
 				<div
 					data-slot="chart-legend-items"
-					className="flex w-fit min-w-0 max-w-full flex-col items-start"
+					className={cn('flex w-fit min-w-0 max-w-full flex-col items-start', LEGEND_TOUCH_ROWS)}
 				>
 					{legendBody}
 				</div>

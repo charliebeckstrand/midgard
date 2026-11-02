@@ -7,7 +7,7 @@ import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/map'
-import { LegendSwitch } from '../chart/engine/chart-legend/legend-switch'
+import { LEGEND_TOUCH_ROWS, LegendSwitch } from '../chart/engine/chart-legend/legend-switch'
 import {
 	type LegendEmphasis,
 	useLegendEmphasis,
@@ -57,10 +57,13 @@ const MapLegendEntry = memo(function MapLegendEntry({
 			label={item.label}
 			labelSlot="map-legend-label"
 			labelClassName="flex-1"
-			// The panel's entries stretch to the rail so the readouts share one right
-			// edge rather than each entry centering its own content; the row under the
-			// map keeps every entry its own width.
-			className={cn(k.legend.entry, panel && '@lg:w-full @lg:justify-start')}
+			// The entries of the panel stretch to the column. The readouts thus share
+			// one right edge, and each entry does not center its own content. When the
+			// panel stacks under the map, a narrow entry also covers the width of the
+			// widest one. A tap in the space after a short name otherwise touched no
+			// entry, and iOS moved it to the entry above. The row under the map keeps
+			// each entry at its own width.
+			className={cn(k.legend.entry, panel && 'w-full justify-start')}
 			keys={
 				// One key per distinct mark shape the entry stands for. That is a lone
 				// swatch for a category or an ungrouped mark. It is a square beside a dot
@@ -181,8 +184,10 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 				panel &&
 					'mx-auto grid w-fit max-w-full justify-items-start @lg:mx-0 @lg:w-full @lg:grid-cols-1',
 				// The entries touch on both axes, so each hit area keeps to its entry
-				// (`TouchTarget`), and two adjacent entries do not overlap.
+				// (`TouchTarget`), and two adjacent entries do not overlap. A coarse
+				// pointer adds a gap between the rows (`LEGEND_TOUCH_ROWS`).
 				'[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]',
+				LEGEND_TOUCH_ROWS,
 			)}
 		>
 			{items.map((item) => (
