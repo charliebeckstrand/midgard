@@ -148,16 +148,21 @@ describe('useDatePickerRelativeState', () => {
 			expect(result.current.footer.footerButtons).toEqual([])
 		})
 
-		it('returns to the list with an empty draft after the exit animation', () => {
+		it('reopens to the list with an empty draft, and holds the draft while it closes', () => {
 			const { result } = renderHook(() => useDatePickerRelativeState({ relative: true }))
+
+			act(() => result.current.onOpenChange(true))
 
 			act(() => result.current.enterCustom())
 
 			act(() => result.current.custom.onStartChange(Jan1))
 
+			act(() => result.current.onOpenChange(false))
+
+			// The content stays as it was through the exit, so it does not jump.
 			expect(result.current.mode).toBe('custom')
 
-			act(() => result.current.onExitComplete())
+			act(() => result.current.onOpenChange(true))
 
 			expect(result.current.mode).toBe('list')
 

@@ -287,14 +287,6 @@ export function useDatePickerRelativeState({
 
 	const backToList = useCallback(() => setMode('list'), [])
 
-	// Deferred to the exit animation so the popover always reopens to the list
-	// with a clean draft.
-	const onExitComplete = useCallback(() => {
-		setDraft({})
-
-		setMode('list')
-	}, [])
-
 	// --- Keyboard ---
 
 	// Trigger (closed): ArrowUp/Down opens, mirroring the dialog/combobox
@@ -378,7 +370,6 @@ export function useDatePickerRelativeState({
 		onOpenChange,
 		onTriggerKeyDown,
 		onContentKeyDown,
-		onExitComplete,
 		setReference,
 		setFloating: refs.setFloating,
 		floatingStyles,
