@@ -408,17 +408,16 @@ export function GridCellEditor<T>({
 
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
-		if (!newRow) {
-			editor?.focus()
+		// The focus scrolls the field into view only where it is out of view.
+		// Do not use `preventScroll`: on iOS it also stops the scroll that
+		// keeps the field above the on-screen keyboard.
+		editor?.focus()
 
-			return
-		}
+		if (!newRow) return
 
-		// The new-row slot stays in view, so a claim there does not scroll the
-		// page. The grid scrolls on its own to show the cell, clear of the
-		// sticky Add cell and of a pinned column, as the cursor does.
-		editor?.focus({ preventScroll: true })
-
+		// The browser scroll can leave a cell of the new-row slot under the
+		// sticky Add cell or a pinned column, so the grid clears it as the
+		// cursor does.
 		const cell = hostRef.current?.closest('td')
 
 		if (cell) clearStickyChrome(cell, obscuringInsets(cell))

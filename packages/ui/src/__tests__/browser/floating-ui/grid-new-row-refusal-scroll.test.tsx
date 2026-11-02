@@ -8,7 +8,10 @@ import { deferred, frames, present, renderUI, screen, waitFor } from '../../help
  * floating engine. The error message floats below the cell. Floating UI places
  * the message after it mounts, and until then the message is at the origin of
  * the page. A scroll of the message into view at that point moved the page to
- * the top. Focus goes to the first refused cell, also with no scroll.
+ * the top. Focus goes to the first refused cell. The page does not move for a
+ * cell in view, and scrolls to a cell out of view. On iOS a focus with
+ * `preventScroll` also stopped the scroll that keeps the field above the
+ * on-screen keyboard.
  */
 beforeAll(() => page.viewport(1280, 800))
 
@@ -196,5 +199,43 @@ describe('grid new row refusal scroll (real browser)', () => {
 		expect(screen.getByRole('alert')).toHaveTextContent('Email taken')
 
 		expect(window.scrollY).toBe(top)
+	})
+
+	it('scrolls the page to a refused cell that is out of view', async () => {
+		const flight = deferred<GridCellRefusal[]>()
+
+		await renderGrid(() => flight.promise)
+
+		await userEvent.click(screen.getByRole('textbox', { name: 'Edit Name, new row' }))
+
+		await userEvent.keyboard('Carol')
+
+		await userEvent.click(screen.getByRole('textbox', { name: 'Edit Email, new row' }))
+
+		await userEvent.keyboard('alice@example.com{Enter}')
+
+		// The field goes out of view while the add is in flight, as it does
+		// under the iOS keyboard.
+		window.scrollTo(0, 0)
+
+		await frames()
+
+		expect(window.scrollY).toBe(0)
+
+		flight.resolve([{ rowKey: 'new', columnId: 'email', error: 'Email taken' }])
+
+		await waitFor(() =>
+			expect(screen.getByRole('textbox', { name: 'Edit Email, new row' })).toHaveFocus(),
+		)
+
+		await frames()
+
+		const field = screen
+			.getByRole('textbox', { name: 'Edit Email, new row' })
+			.getBoundingClientRect()
+
+		expect(field.top).toBeGreaterThanOrEqual(0)
+
+		expect(field.bottom).toBeLessThanOrEqual(window.innerHeight)
 	})
 })
