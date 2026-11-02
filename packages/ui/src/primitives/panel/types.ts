@@ -69,11 +69,9 @@ export type PanelOverlayProps = {
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
 	 * The element that gets the focus when the panel closes. Give it when the
-	 * focus belongs elsewhere. Also give it when the element that opened the
-	 * panel can be gone at the close.
-	 * @defaultValue the element that opened the panel: the element of the last
-	 * press or focus as it opened. A tap on a button in Safari does not focus
-	 * the button, so a press counts too.
+	 * focus belongs elsewhere. Also give it when the element that had the focus
+	 * as the panel opened can be gone at the close.
+	 * @defaultValue the element that had the focus as the panel opened.
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
 }

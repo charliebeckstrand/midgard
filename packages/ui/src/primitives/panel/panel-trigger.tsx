@@ -1,7 +1,7 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import type { ComponentProps, MouseEventHandler, ReactNode, Ref } from 'react'
+import type { ComponentProps, MouseEvent, MouseEventHandler, ReactNode, Ref } from 'react'
 import { composeEventHandlers } from '../../core'
 import {
 	disclosureProps,
@@ -43,7 +43,14 @@ export type PanelTriggerProps = ComponentProps<'button'> & {
 export function PanelTrigger({ children, ref, onClick, ...props }: PanelTriggerProps) {
 	const { open, setOpen, panelId } = usePanelState()
 
-	const handleClick = () => setOpen(true)
+	// A click in Safari does not focus a button. The trigger takes the focus
+	// itself, as in the other browsers, so the panel gives the focus back to the
+	// trigger when it closes, not to a field that had the focus before.
+	const handleClick = (event: MouseEvent<HTMLElement>) => {
+		event.currentTarget.focus()
+
+		setOpen(true)
+	}
 
 	const child = triggerChild(children)
 

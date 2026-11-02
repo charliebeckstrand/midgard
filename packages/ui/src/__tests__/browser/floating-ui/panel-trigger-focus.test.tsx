@@ -4,7 +4,6 @@ import {
 	type ReactNode,
 	type RefObject,
 	useRef,
-	useState,
 } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
@@ -192,84 +191,5 @@ describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Tr
 
 			expect(screen.getByRole('button', { name: 'Elsewhere' })).toHaveFocus()
 		})
-	})
-})
-
-/**
- * A controlled Dialog with no trigger part takes the focus back to the element
- * that opened it: the button of the press, or the field of the key.
- */
-describe('controlled Dialog opener (real focus manager)', () => {
-	function Controlled() {
-		const [open, setOpen] = useState(false)
-
-		return (
-			<>
-				<input
-					aria-label="Due"
-					onKeyDown={(event) => {
-						if (event.key !== 'Enter') return
-
-						// The key press of Enter would click the button that takes the focus in
-						// the panel.
-						event.preventDefault()
-
-						setOpen(true)
-					}}
-				/>
-				<Button
-					type="button"
-					onMouseDown={(event) => event.preventDefault()}
-					onClick={() => setOpen(true)}
-				>
-					Show
-				</Button>
-				<Dialog open={open} onOpenChange={setOpen}>
-					<DialogPanel aria-label="Panel" footer={null}>
-						<DialogClose>
-							<Button type="button">Done</Button>
-						</DialogClose>
-					</DialogPanel>
-				</Dialog>
-			</>
-		)
-	}
-
-	const close = vi.defineHelper(async () => {
-		const panel = await screen.findByRole('dialog', { name: 'Panel' })
-
-		await waitFor(() => expect(panel).toContainElement(document.activeElement as HTMLElement))
-
-		await userEvent.click(screen.getByRole('button', { name: 'Done' }))
-
-		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-	})
-
-	it('gives focus to the button that a tap did not focus', async () => {
-		renderUI(<Controlled />)
-
-		screen.getByRole('textbox', { name: 'Due' }).focus()
-
-		const button = screen.getByRole('button', { name: 'Show' })
-
-		await userEvent.click(button)
-
-		await close()
-
-		await waitFor(() => expect(button).toHaveFocus())
-	})
-
-	it('gives focus to the field when a key in it opened the Dialog', async () => {
-		renderUI(<Controlled />)
-
-		const field = screen.getByRole('textbox', { name: 'Due' })
-
-		await userEvent.click(field)
-
-		await userEvent.keyboard('{Enter}')
-
-		await close()
-
-		await waitFor(() => expect(field).toHaveFocus())
 	})
 })
