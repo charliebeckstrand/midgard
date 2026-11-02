@@ -56,11 +56,24 @@ const FAMILIES: Family[] = [
  * in the browser suite.
  */
 describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Trigger, Close }) => {
-	function Tree({ returnFocusTo }: { returnFocusTo?: RefObject<HTMLElement | null> }) {
+	function Tree({
+		returnFocusTo,
+		safari,
+	}: {
+		returnFocusTo?: RefObject<HTMLElement | null>
+		safari?: boolean
+	}) {
 		return (
 			<Root>
 				<Trigger>
-					<Button type="button">Open</Button>
+					<Button
+						type="button"
+						// A tap in Safari does not focus a button. A `mousedown` that
+						// prevents its default keeps the focus off the button in the same way.
+						onMouseDown={safari ? (event) => event.preventDefault() : undefined}
+					>
+						Open
+					</Button>
 				</Trigger>
 				<Panel aria-label="Panel" footer={null} returnFocusTo={returnFocusTo}>
 					<Close>
@@ -123,6 +136,36 @@ describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Tr
 		await userEvent.click(screen.getByRole('button', { name: 'Done' }))
 
 		await expectClosed(trigger)
+	})
+
+	// The focus stays on the field as the panel opens, so the field is the
+	// element that had the focus. The trigger opened the panel, and it takes
+	// the focus back.
+	it('gives focus back to a trigger that a tap did not focus', async () => {
+		renderUI(
+			<>
+				<input aria-label="Due" />
+				<Tree safari />
+			</>,
+		)
+
+		const field = screen.getByRole('textbox', { name: 'Due' })
+
+		field.focus()
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		await userEvent.click(trigger)
+
+		const panel = await screen.findByRole('dialog', { name: 'Panel' })
+
+		await waitFor(() => expect(panel).toContainElement(document.activeElement as HTMLElement))
+
+		await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+
+		await expectClosed(trigger)
+
+		expect(field).not.toHaveFocus()
 	})
 
 	it('gives focus to returnFocusTo after Escape', async () => {
