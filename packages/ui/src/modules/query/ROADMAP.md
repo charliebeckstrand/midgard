@@ -16,7 +16,7 @@ The serialization adapters have landed. [`engine/query-serialize.ts`](engine/que
 
 One structural guard, `isQueryNode` and `isQueryGroup` in [`engine/query-node.ts`](engine/query-node.ts), now serves the parse, the dashboard spec parse, and the grid's column filter. Before this, the dashboard had a private full guard and the grid checked only `type === 'group'`.
 
-A blank rule now drops out of the fold. Before, `evaluateQuery` and `formatQuerySql` read a rule with no constraint as TRUE, so `A OR (blank)` matched every row while the summary showed `A`. Now the fold drops such a rule, or a group of such rules, with its combinator. The evaluator and the summary give the same reading.
+A blank rule now drops out of the fold. Before, `evaluateQuery` and `formatQuerySql` read a rule with no constraint as TRUE, so `A OR (blank)` matched every row while the summary showed `A`. Now the fold drops such a rule, or a group of such rules, with its combinator. The evaluator and the summary give the same reading. #2148 later removed `formatQuerySql`.
 
 A rule with an unknown operator now reads as inactive. Before, `isQueryActive` resolved the operator from the field set. So a rule with an operator that the evaluator does not know read as active. The summary and the chips showed it, but the rows did not change. A value-less operator that the field did not offer read as inactive, but the evaluator applied it. Now one judgment, `imposesConstraint` in `engine/query-evaluate.ts`, decides for all four readers. A rule is active when the evaluator has a matcher for its operator, and the operator reads no value or its value is filled. The judgment reads no field set, so `isQueryActive` takes only the group.
 
