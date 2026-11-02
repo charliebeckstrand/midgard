@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { type DensityStep, readRootDensity } from '../../core/density'
-import { createEmitter } from '../../utilities/emitter'
+import { createListenerRegistry } from '../../utilities/listener-registry'
 
 /**
  * Reads the step on the root element: the scope of the app. It returns `md`
@@ -10,38 +10,24 @@ function getSnapshot(): DensityStep {
 	return readRootDensity(document.documentElement)
 }
 
-const rootChange = createEmitter()
-
-/** The one observer of the root element, while any reader listens. */
-let observer: MutationObserver | null = null
-
-let readers = 0
-
 /**
- * Calls `listener` when the step on the root element changes. Each reader
- * shares one observer of the root.
+ * One `MutationObserver` on the root element for every reader. It watches the
+ * `class` attribute, which holds the step. The registry has one key.
  */
+const registry = createListenerRegistry<Element, MutationRecord[]>({
+	source: () => document.documentElement,
+	attach: (root, _key, listener) => {
+		const observer = new MutationObserver(listener)
+
+		observer.observe(root, { attributes: true, attributeFilter: ['class'] })
+
+		return () => observer.disconnect()
+	},
+})
+
+/** Calls `listener` when the class of the root element changes. */
 function subscribe(listener: () => void) {
-	const unsubscribe = rootChange.subscribe(listener)
-
-	if (readers++ === 0) {
-		observer = new MutationObserver(rootChange.emit)
-
-		observer.observe(document.documentElement, {
-			attributes: true,
-			attributeFilter: ['class'],
-		})
-	}
-
-	return () => {
-		unsubscribe()
-
-		if (--readers === 0) {
-			observer?.disconnect()
-
-			observer = null
-		}
-	}
+	return registry.subscribe('class', listener)
 }
 
 /** The server has no root element to read, so it renders the `md` step. */

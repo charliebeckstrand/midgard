@@ -20,9 +20,9 @@ import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
  * when its last subscriber unsubscribes, and cleanup unmounts every subscriber.
  * The three below are the ones with a mechanism rather than a suspicion. The
  * counter in `use-scroll-lock` and the holds in `use-drag-cursor` balance on unmount,
- * the `document-listener` registries drop themselves like the media-query ones,
- * and the time-ago ticker's `visibilityBound` flag and the PDF viewer's
- * `sharedWorker` are both bound once and idempotent. Measure one before adding
+ * the `document-listener` registries and the time-ago ticker drop themselves
+ * like the media-query ones, and the PDF viewer's `sharedWorker` is bound once
+ * and idempotent. Measure one before adding
  * it here.
  */
 export function installSingletonResets(): void {
