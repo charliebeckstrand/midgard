@@ -21,6 +21,7 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useLocale } from '../../providers/locale'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
+import { getOrCompute } from '../../utilities'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import type { ChartItemClick } from '../chart/engine/types'
 import {
@@ -30,6 +31,8 @@ import {
 	useMapZoomView,
 } from './context'
 import { createDotPool } from './engine/map-cluster/pool'
+import { clusterRadius } from './engine/map-cluster/radius'
+import { createClusterStore } from './engine/map-cluster/sets'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import { regionSweep } from './engine/map-geometry/region'
@@ -1100,6 +1103,20 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[entries, hidden, shape.project],
 	)
 
+	const intl = useIntl()
+
+	// The shared pass of the point sets. A summary holds its count label, which
+	// the locale writes, so the radius of a group reads the formatter that the
+	// label reads. Held per count, as each set holds it (`map-points.tsx`).
+	const clusters = useMemo(() => {
+		const radii = new Map<number, number>()
+
+		const getRadius = (count: number) =>
+			getOrCompute(radii, count, (held) => clusterRadius(held, intl.formatNumber))
+
+		return createClusterStore(entries, hidden, shape.project, getRadius)
+	}, [entries, hidden, shape.project, intl])
+
 	// The moves of the marks, which the cursor reads to resolve its stops again.
 	// One store for the life of the plat, so the value below holds through a move.
 	const [moves] = useState(createStopMoves)
@@ -1113,11 +1130,24 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			hidden,
 			spare,
 			pool,
+			clusters,
 			moves,
 			animate,
 			selectedOverlay: markSelection,
 		}),
-		[shape.project, register, colors, order, hidden, spare, pool, moves, animate, markSelection],
+		[
+			shape.project,
+			register,
+			colors,
+			order,
+			hidden,
+			spare,
+			pool,
+			clusters,
+			moves,
+			animate,
+			markSelection,
+		],
 	)
 
 	const tooltipEntries = useMemo(
@@ -1186,6 +1216,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// Picks the mark the cursor sits on: a region through the caller's own
 	// reporter, an overlay through the activation it registered, so the plat
 	// dispatches a keyboard pick without knowing what kind of mark it landed on.
+	// A part of a shared summary picks every part of the summary, each through
+	// its own set, as a click on the summary does (`map-points.tsx`).
 	const activateTarget = useCallback(
 		(target: MapHoverTarget) => {
 			if (target.kind === 'region') {
@@ -1196,7 +1228,15 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 			const entry = entries.find(({ id }) => id === target.id)
 
-			entry?.activate?.(targetStop(target, entry.getStop))
+			if (entry === undefined) return
+
+			const stop = targetStop(target, entry.getStop)
+
+			const parts = entry.stopRows?.[stop]?.parts ?? [{ id: entry.id, stop }]
+
+			for (const part of parts) {
+				entries.find(({ id }) => id === part.id)?.activate?.(part.stop)
+			}
 		},
 		[pickRegion, entries],
 	)
@@ -1237,8 +1277,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// pointed emphasis reads that target, so a scroll must clear and re-read it
 	// whenever this is true, and not only while the tooltip shows it.
 	const hover = regions.tracked || entries.length > 0
-
-	const intl = useIntl()
 
 	// What the tooltip reads, held once: the tooltip shows it, and the keyboard
 	// cursor speaks the same text for the stop it moves onto.

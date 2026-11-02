@@ -1,26 +1,39 @@
 'use client'
 
-import { Fragment, memo, startTransition, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+	Fragment,
+	memo,
+	type ReactNode,
+	startTransition,
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useState,
+	useSyncExternalStore,
+} from 'react'
 import { cn } from '../../core'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { getOrCompute, rangeKeys } from '../../utilities'
-import { useMapPlat, useMapZoomScale } from './context'
+import { useMapPlat, useMapPointed, useMapZoomScale } from './context'
 import { markTargets } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
-import {
-	clusterGap,
-	clusterPoints,
-	groupsByMember,
-	type MapPointCluster,
-} from './engine/map-cluster/group'
+import { clusterGap, groupsByMember } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
+import {
+	groupSets,
+	type MapClusterInput,
+	type MapSetCluster,
+	type MapSharedCluster,
+} from './engine/map-cluster/sets'
 import { POINT_RADIUS } from './engine/map-constants'
+import { mapMarkDimmed } from './engine/map-hover/target'
 import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
-import { type LngLat, type MapPointShape, POINT_SWATCH } from './engine/types'
-import { dotHitProps, MapDot, MapDotCount } from './map-dot'
+import { type LngLat, type MapPoint2D, type MapPointShape, POINT_SWATCH } from './engine/types'
+import { dotHitProps, MapDot, MapDotCount, MapDotRing } from './map-dot'
 import { MapDotHalo } from './map-halo'
 import { type MapOverlay, type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -71,7 +84,7 @@ export type MapPointDatum = {
 
 /** Props for {@link MapPointsDots}: everything the drawn dots read, none of the emphasis. @internal */
 type MapPointsDotsProps = {
-	groups: MapPointCluster[]
+	groups: MapSetCluster[]
 	/** One stable React key per drawn group. */
 	keys: string[]
 	/** Each drawn group's radius, in device pixels. */
@@ -84,7 +97,8 @@ type MapPointsDotsProps = {
 	countInk: string
 	/** The shape of each drawn group. */
 	shapes: MapPointShape[]
-	animate: boolean
+	/** Whether the dots pop in: the reveal of the mark still runs (see {@link MapPointsReveal}). */
+	pops: boolean
 	/** Frame units per device pixel, which the hit radii and the counts divide by. */
 	unitsPerPixel: number
 	/** The mark's hit plumbing, per drawn group. */
@@ -114,41 +128,18 @@ const MapPointsDots = memo(function MapPointsDots({
 	paints,
 	countInk,
 	shapes,
-	animate,
+	pops,
 	unitsPerPixel,
 	hit,
 }: MapPointsDotsProps) {
-	// Whether the mount reveal still runs. The pop and its stagger belong to the
-	// reveal alone. A zoom that splits a summary adds dots at the end of the set,
-	// and under the reveal's timing each one waited out the stagger of its index
-	// before it popped. After the reveal, a dot that a regroup adds draws at once,
-	// as a dot that a regroup resizes already does (`MapDot`). The clock runs from
-	// the first commit that draws a dot, since a set can mount empty and fill
-	// later. A one-way flag: a hidden mark unmounts this layer, so a toggle that
-	// shows the mark again reveals it again.
-	const [revealing, setRevealing] = useState(animate)
-
-	const drawn = groups.length > 0
-
-	useEffect(() => {
-		if (!animate || !drawn) return
-
-		const timer = setTimeout(
-			() => startTransition(() => setRevealing(false)),
-			POINT_REVEAL_SETTLE * 1000,
-		)
-
-		return () => clearTimeout(timer)
-	}, [animate, drawn])
-
-	const pops = animate && revealing
-
 	return (
 		<>
 			{groups.map((group, index) => {
 				const position = group.at
 
-				if (position === null) return null
+				// A shared summary draws outside this layer (`MapPointsShared`), because
+				// it answers the emphasis of each of its sets, not of this set alone.
+				if (position === null || group.shared !== undefined) return null
 
 				const count = group.members.length
 
@@ -206,6 +197,198 @@ const MapPointsDots = memo(function MapPointsDots({
 	)
 })
 
+/** Props for {@link MapPointsReveal}. @internal */
+type MapPointsRevealProps = {
+	animate: boolean
+	/** Whether the mark draws a dot now. */
+	drawn: boolean
+	/** Draws the layers of the mark, told whether the dots pop in. */
+	children: (pops: boolean) => ReactNode
+}
+
+/**
+ * Holds the mount reveal of a {@link MapPoints}. The pop and its stagger belong
+ * to the reveal alone. A zoom that splits a summary adds dots at the end of the
+ * set, and under the reveal's timing each one waited out the stagger of its
+ * index before it popped. After the reveal, a dot that a regroup adds draws at
+ * once, as a dot that a regroup resizes already does (`MapDot`).
+ *
+ * The clock runs from the first commit that draws a dot, since a set can mount
+ * empty and fill later. A one-way flag: a hidden mark unmounts this component,
+ * so a toggle that shows the mark again reveals it again. A component of its own,
+ * so that the dots and the shared summaries of the mark read one clock.
+ *
+ * @internal
+ */
+function MapPointsReveal({ animate, drawn, children }: MapPointsRevealProps) {
+	const [revealing, setRevealing] = useState(animate)
+
+	useEffect(() => {
+		if (!animate || !drawn) return
+
+		const timer = setTimeout(
+			() => startTransition(() => setRevealing(false)),
+			POINT_REVEAL_SETTLE * 1000,
+		)
+
+		return () => clearTimeout(timer)
+	}, [animate, drawn])
+
+	return children(animate && revealing)
+}
+
+/** Whether every set of a shared summary reads dimmed, so the summary dims. @internal */
+function sharedDimmed(
+	summary: MapSharedCluster,
+	pointed: Parameters<typeof mapMarkDimmed>[0],
+	emphasis: string | null,
+): boolean {
+	return summary.parts.every((part) =>
+		mapMarkDimmed(pointed, { kind: 'entry', id: part.id, stop: 0 }, emphasis, part.legend),
+	)
+}
+
+/** Props for {@link MapPointsShared}. @internal */
+type MapPointsSharedProps = {
+	summary: MapSharedCluster
+	/** The index of the summary in the groups of the set that draws it, which is its stop. */
+	index: number
+	/** Where the summary draws, in frame units. */
+	at: MapPoint2D
+	/** The radius of the summary, in device pixels. */
+	radius: number
+	/** What a fine pointer's target can reach, in device pixels (see `dotHitProps`). */
+	target: number | undefined
+	pops: boolean
+	unitsPerPixel: number
+	/** The hit plumbing of the set that draws the summary. */
+	hit: MapOverlay['hit']
+	onPointerLeave: () => void
+}
+
+/**
+ * One shared summary: a summary that holds the dots of more than one set. The
+ * first of its sets draws it, as a disc in the surface color with the count on
+ * it and a ring split into the colors of its sets ({@link MapDotRing}). It is a
+ * circle whatever the shapes of its dots, because the ring is its key.
+ *
+ * It sits in a group of its own, which dims only where every one of its sets
+ * dims. Pointing a set, or its legend row, therefore keeps the summary that holds
+ * its dots lit.
+ *
+ * The pointer reaches it through one hit circle, the circle of the set that
+ * draws it, so the readout shows each part (`MapTooltip`). A click picks each
+ * part through the pick of its own set, and a right-click reports each part the
+ * same way. The keyboard reaches each part as a stop of its own set.
+ *
+ * @internal
+ */
+function MapPointsShared({
+	summary,
+	index,
+	at,
+	radius,
+	target,
+	pops,
+	unitsPerPixel,
+	hit,
+	onPointerLeave,
+}: MapPointsSharedProps) {
+	const { colors } = useMapPlat()
+
+	const dimmed = useMapPointed((pointed, emphasis) => sharedDimmed(summary, pointed, emphasis))
+
+	const arcs = summary.parts.map((part) => {
+		const color = colors.get(part.id)
+
+		return {
+			id: part.id,
+			count: part.members.length,
+			paint: color === undefined ? '' : cn(...k.series[color].stroke),
+		}
+	})
+
+	const picks = summary.parts.some((part) => part.activate !== undefined)
+
+	const menus = summary.parts.some((part) => part.menu !== undefined)
+
+	// The plat dispatches a keyboard or touch pick on a part to every part the same
+	// way (`map-plat.tsx`), so each input picks the whole summary.
+	const own = hit(index)
+
+	const reach = {
+		...own,
+		className: picks ? k.clickable : undefined,
+		onClick: picks
+			? () => {
+					for (const part of summary.parts) part.activate?.(part.stop)
+				}
+			: undefined,
+		onContextMenu: menus
+			? () => {
+					for (const part of summary.parts) part.menu?.(part.stop)
+				}
+			: undefined,
+	}
+
+	// One timing for the set: the ring and the count fade in with the disc.
+	const pop = pointPop(index)
+
+	return (
+		<g
+			data-slot="map-points-shared"
+			className={cn(...k.group(dimmed))}
+			onPointerLeave={onPointerLeave}
+		>
+			<MapDot
+				slot="map-points-cluster"
+				at={at}
+				radius={radius}
+				scale={unitsPerPixel}
+				className={cn(...k.shared.disc)}
+				animate={pops}
+				transition={pop}
+			/>
+
+			<MapDotRing
+				at={at}
+				radius={radius}
+				arcs={arcs}
+				scale={unitsPerPixel}
+				animate={pops}
+				transition={pop}
+			/>
+
+			<MapDotCount
+				at={at}
+				count={summary.count}
+				className={cn('text-xs font-semibold tabular-nums', ...k.shared.count)}
+				scale={unitsPerPixel}
+				animate={pops}
+				transition={pop}
+			/>
+
+			<circle
+				{...dotHitProps({
+					slot: 'map-points-hit',
+					at,
+					hit: reach,
+					scale: unitsPerPixel,
+					target,
+				})}
+			/>
+		</g>
+	)
+}
+
+/** The groups of a set with no grouping yet. @internal */
+const NO_GROUPS: MapSetCluster[] = []
+
+/** Whether a set draws a shared summary: the first of its sets does. @internal */
+function leads(summary: MapSharedCluster, id: string): boolean {
+	return summary.parts[0]?.id === id
+}
+
 /**
  * What a pick on a dot reports: the mark's `id`, the picked point's index in
  * {@link MapPointsProps.points}, and every index the dot stands for.
@@ -226,10 +409,10 @@ export type MapPointsPick = (id: string, index: number, merged: readonly number[
  * and held while the grouping lives. The cache is outside the component,
  * because the React Compiler rejects a closure that writes a render value.
  */
-const stopsByGrouping = new WeakMap<readonly MapPointCluster[], ReadonlyMap<number, number>>()
+const stopsByGrouping = new WeakMap<readonly MapSetCluster[], ReadonlyMap<number, number>>()
 
 /** Gives the drawn dot that point `index` landed in, or `null`. @internal */
-function stopIndex(groups: readonly MapPointCluster[], index: number): number | null {
+function stopIndex(groups: readonly MapSetCluster[], index: number): number | null {
 	return getOrCompute(stopsByGrouping, groups, groupsByMember).get(index) ?? null
 }
 
@@ -253,7 +436,19 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * stop, one table row, one pick. The picture, the readout, and the cursor can
 	 * therefore never disagree about what is on the map.
 	 *
-	 * `false` draws every dot, however they stack.
+	 * Every set on the plat that clusters groups in one pass, so two sets never
+	 * draw over one another. A pair of marks of two sets keeps the larger of their
+	 * two gaps. A summary that holds the dots of more than one set is a shared
+	 * summary. It draws as a disc in the surface color, with the count on it and a
+	 * ring split into the colors of its sets, each arc as long as its share. Each
+	 * set keeps the part of the summary that holds its own dots: a keyboard stop,
+	 * a table row, and a pick of that set, read out as that set reads a summary of
+	 * its own. The pointer reaches the summary as one dot, so the tooltip shows
+	 * every part. A pick of the summary, from any input, reports each part to the
+	 * `onClick` of its own set. A set that the legend toggles off leaves the pass.
+	 *
+	 * `false` draws every dot, however they stack, and leaves the set out of the
+	 * shared pass.
 	 * @defaultValue true
 	 */
 	cluster?: boolean | number
@@ -262,7 +457,9 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * `square` set beside a `circle` set lets the two read as different kinds of
 	 * stop by shape as well as by color. A point's own
 	 * {@link MapPointDatum.shape} overrides it for that point, and for a summary
-	 * whose members all share it.
+	 * whose members all share it. A shared summary (see {@link cluster}) is a
+	 * circle whatever its shapes, because its ring is its key. Its readout keys
+	 * each part to the shape of that part.
 	 * @defaultValue 'circle'
 	 */
 	shape?: MapPointShape
@@ -306,7 +503,8 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  *
  * Dots the frame draws on top of one another summarize into a single graded
  * mark carrying their count. They separate back into themselves as the frame
- * widens on them (see {@link MapPointsProps.cluster}).
+ * widens on them (see {@link MapPointsProps.cluster}). The dots of two sets on
+ * one place summarize into one shared summary, which keeps the part of each set.
  *
  * Each dot keeps its own readout and its own pick. Hovering one raises the
  * tooltip with that dot's name and detail. The detail never falls back to the
@@ -347,13 +545,13 @@ export function MapPoints({
 	clusterDetail,
 	onClick,
 	onContextMenu,
-	...shared
+	...overlay
 }: MapPointsProps) {
 	// The projector, read here rather than off the registration below: the stops
 	// and the readouts this mark registers are the summarized ones, and a summary
 	// is a fact about the projected frame, so the grouping has to resolve before
 	// the mark registers, not after.
-	const { project } = useMapPlat()
+	const { project, clusters } = useMapPlat()
 
 	const intl = useIntl()
 
@@ -366,9 +564,19 @@ export function MapPoints({
 	// closed on them.
 	const unitsPerPixel = useMapZoomScale()
 
+	// The mark's id, settled here rather than in `useMapOverlay` for the same
+	// reason: the shared pass keys each set by its id.
+	const generated = useId()
+
+	const id = overlay.id ?? generated
+
 	const gap = clusterGap(cluster)
 
 	const positions = useMemo(() => points.map((point) => point.at), [points])
+
+	// What this set puts in the shared pass. Held, because a new identity restakes
+	// the set in the pass, and every set on the plat groups again.
+	const input = useMemo<MapClusterInput>(() => ({ positions, gap }), [positions, gap])
 
 	// How wide a group of each count draws. A summary holds its count label, which
 	// the locale writes, so the size reads the same formatter the label does.
@@ -383,20 +591,35 @@ export function MapPoints({
 			getOrCompute(radii, count, (held) => clusterRadius(held, intl.formatNumber))
 	}, [intl])
 
-	const groups = useMemo(
-		() => clusterPoints(positions, project, gap, getRadius, unitsPerPixel),
-		[positions, project, gap, getRadius, unitsPerPixel],
-	)
+	const pass = useSyncExternalStore(clusters.subscribe, clusters.grouping, clusters.grouping)
 
-	// Each drawn group's radius, read by the dots, their targets, and the halo.
+	// The groups of this set come from the shared pass of the plat, so the sets
+	// group as one and never draw over one another. The set groups alone instead
+	// where the pass does not hold the dots this render draws: before the mark
+	// registers, with its grouping off, and on the render of a move, before the
+	// set restakes its new dots in the pass. A move restakes in a layout effect,
+	// so the reader never sees that render.
+	const grouping = useMemo(() => {
+		const shared = pass(unitsPerPixel)
+
+		if (shared.sets.get(id)?.input === input) return shared
+
+		return groupSets([{ id, input }], project, getRadius, unitsPerPixel)
+	}, [pass, unitsPerPixel, id, input, project, getRadius])
+
+	const groups = grouping.sets.get(id)?.groups ?? NO_GROUPS
+
+	// Each drawn group's radius, read by the dots, their targets, and the halo: a
+	// shared summary's is the radius of every dot that it holds.
 	const radii = useMemo(
-		() => groups.map((group) => getRadius(group.members.length)),
-		[groups, getRadius],
+		() => groups.map((group) => grouping.marks[group.mark]?.radius ?? POINT_RADIUS),
+		[groups, grouping],
 	)
 
-	// Each drawn group's shape: a lone dot's own, the one that a summary's members
-	// share, else the mark's. Held for the same reason as `paints` below.
-	const shapes = useMemo(
+	// Each group's own shape: a lone dot's own, the one that a summary's members
+	// share, else the mark's. The readout keys its swatch to it. Held for the same
+	// reason as `paints` below.
+	const ownShapes = useMemo(
 		() =>
 			groups.map(({ members }) => {
 				const [first, ...rest] = members.map((member) => points[member]?.shape ?? shape)
@@ -406,54 +629,77 @@ export function MapPoints({
 		[groups, points, shape],
 	)
 
+	// Each group's drawn shape: its own, but a circle for a shared summary, whose
+	// ring is its key.
+	const shapes = useMemo(
+		() =>
+			groups.map(
+				(group, index): MapPointShape =>
+					group.shared === undefined ? (ownShapes[index] ?? shape) : 'circle',
+			),
+		[groups, ownShapes, shape],
+	)
+
+	// What one group of this set reads out, from its own dots alone.
+	const groupRow = useCallback(
+		(members: readonly number[], own: MapPointShape): MapStopRow => {
+			const count = members.length
+
+			const first = members[0]
+
+			const lone = first === undefined ? undefined : points[first]
+
+			const swatch = own === shape ? undefined : POINT_SWATCH[own]
+
+			// Numbered by the caller's own index, never the group's: a click on this
+			// dot reports that index, and a readout counting in another space would
+			// name a row the caller cannot find, and would renumber itself as the
+			// frame regrouped around it.
+			if (count === 1 && first !== undefined && lone !== undefined) {
+				return {
+					label: lone.label ?? stopName(overlay.label, first, intl.formatNumber),
+					detail: lone.detail,
+					swatch,
+					color: lone.color,
+				}
+			}
+
+			// The spread costs a spherical pass per group, so only a caller that
+			// reads it pays for it.
+			if (clusterDetail === undefined) {
+				return { label: overlay.label, swatch, detail: intl.formatNumber(count) }
+			}
+
+			const span = clusterSpan(members, positions)
+
+			// Resolved through the same fallback a lone dot's own readout takes, so a stop
+			// is named identically whether or not it ended up merged.
+			const labels = members.map(
+				(member) => points[member]?.label ?? stopName(overlay.label, member, intl.formatNumber),
+			)
+
+			return { label: overlay.label, swatch, detail: clusterDetail(count, span, labels) }
+		},
+		[points, positions, shape, overlay.label, clusterDetail, intl],
+	)
+
 	// A lone dot reads out as itself, so an ungrouped set reads exactly as the
 	// points the caller passed. A summary reads as the mark, since it stands for
 	// the whole group and no one of its stops names it. A row keys its swatch to
 	// its own dot where the dot does not take the shape or the color of the mark,
-	// so the tooltip shows the dot under the pointer.
+	// so the tooltip shows the dot under the pointer. A part of a shared summary
+	// reads as its own dots do, and names every part of the summary, so the
+	// tooltip shows them all.
 	const rows = useMemo<MapStopRow[]>(
 		() =>
-			groups.map(({ members }, index) => {
-				const count = members.length
+			groups.map(({ members, shared: summary }, index) => {
+				const row = groupRow(members, ownShapes[index] ?? shape)
 
-				const first = members[0]
-
-				const lone = first === undefined ? undefined : points[first]
-
-				const own = shapes[index] ?? shape
-
-				const swatch = own === shape ? undefined : POINT_SWATCH[own]
-
-				// Numbered by the caller's own index, never the group's: a click on this
-				// dot reports that index, and a readout counting in another space would
-				// name a row the caller cannot find, and would renumber itself as the
-				// frame regrouped around it.
-				if (count === 1 && first !== undefined && lone !== undefined) {
-					return {
-						label: lone.label ?? stopName(shared.label, first, intl.formatNumber),
-						detail: lone.detail,
-						swatch,
-						color: lone.color,
-					}
-				}
-
-				// The spread costs a spherical pass per group, so only a caller that
-				// reads it pays for it.
-				if (clusterDetail === undefined) {
-					return { label: shared.label, swatch, detail: intl.formatNumber(count) }
-				}
-
-				const span = clusterSpan(members, positions)
-
-				// Resolved through the same fallback a lone dot's own readout takes, so a stop
-				// is named identically whether or not it ended up merged.
-				const labels = members.map(
-					(member) => points[member]?.label ?? stopName(shared.label, member, intl.formatNumber),
-				)
-
-				return { label: shared.label, swatch, detail: clusterDetail(count, span, labels) }
+				return summary === undefined
+					? row
+					: { ...row, parts: summary.parts.map((part) => ({ id: part.id, stop: part.stop })) }
 			}),
-		[groups, points, positions, shapes, shape, shared.label, clusterDetail, intl],
+		[groups, ownShapes, shape, groupRow],
 	)
 
 	// Which drawn dot each point landed in, built on the first read and held from
@@ -471,7 +717,8 @@ export function MapPoints({
 	// groups. A summary hands back the first stop it holds, so a pick names a row
 	// the caller owns rather than a grouping it never asked for, and the whole
 	// group beside it, because a summary is one dot to the reader and every stop
-	// under it is what they just pointed at.
+	// under it is what they just pointed at. A part of a shared summary hands back
+	// the stops of this set alone.
 	const report = (handler: MapPointsPick | undefined) => {
 		if (handler === undefined) return undefined
 
@@ -487,17 +734,33 @@ export function MapPoints({
 	// A thunk, so the O(N) build (and the spherical centroid behind every
 	// summary's anchor) lands on the one keypress that reads it. Held on the
 	// grouping, because a new identity tells the plat's pool that the dots moved.
+	// Each part of a shared summary stands at the anchor of the whole summary, so
+	// the cursor steps through the parts at one place.
 	const stops = useCallback(
-		() => groups.map((group) => clusterAnchor(group.members, positions)),
+		() => groups.map((group) => group.shared?.anchor() ?? clusterAnchor(group.members, positions)),
 		[groups, positions],
 	)
 
+	// The dots this mark draws, for the plat's dot pool: every group but the shared
+	// summaries that another set draws.
+	const dots = useCallback(
+		() =>
+			groups.flatMap((group) => {
+				if (group.shared === undefined) return [clusterAnchor(group.members, positions)]
+
+				return leads(group.shared, id) ? [group.shared.anchor()] : []
+			}),
+		[groups, positions, id],
+	)
+
 	const { slot, hidden, spare, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
-		...shared,
+		...overlay,
+		id,
 		kind: 'point',
 		swatch: POINT_SWATCH[shape],
 		stops,
-		dots: stops,
+		dots,
+		cluster: gap === null ? undefined : input,
 		stopRows: rows,
 		// The inverse of `report` above: a pick names the caller's own point, and
 		// this reads back which drawn dot holds it, so the halo and the picked row
@@ -516,7 +779,9 @@ export function MapPoints({
 
 	// How far each dot's target reaches: the whole of it where the dot stands
 	// clear, and less where something else wants the same ground.
-	// `map-cluster/crowd.ts` holds the list of claimants.
+	// `map-cluster/crowd.ts` holds the list of claimants. The neighbors are the
+	// marks of the shared pass, so a dot gives way to the dots of the other sets
+	// as well as to its own.
 	//
 	// Memoized on the grouping and the plat's zone resolver, neither of which a
 	// pointer crossing moves, where this mark re-renders on every crossing of
@@ -524,15 +789,16 @@ export function MapPoints({
 	// the zoom on the beat the grouping does: the pair a zoom has just parted sits
 	// ~15px apart, well inside a 44px target, and stays precise until the view
 	// carries them clear of one another.
-	const targets = useMemo(
-		() =>
-			markTargets(
-				groups.map((group, index) => ({ at: group.at, radius: radii[index] ?? POINT_RADIUS })),
-				unitsPerPixel,
-				spare,
-			),
-		[groups, radii, spare, unitsPerPixel],
-	)
+	const targets = useMemo(() => {
+		const room = grouping.room()
+
+		return markTargets(
+			groups.map((group, index) => ({ at: group.at, radius: radii[index] ?? POINT_RADIUS })),
+			unitsPerPixel,
+			spare,
+			groups.map((group) => room[group.mark] ?? Number.POSITIVE_INFINITY),
+		)
+	}, [groups, grouping, radii, spare, unitsPerPixel])
 
 	// Held across re-renders: rebuilding them would allocate one string per dot
 	// every time, which is the cost this mark exists to remove.
@@ -576,20 +842,43 @@ export function MapPoints({
 				/>
 			)}
 
-			<g data-slot="map-points" className={dim} onPointerLeave={onPointerLeave}>
-				<MapPointsDots
-					groups={groups}
-					keys={keys}
-					radii={radii}
-					targets={targets}
-					paints={paints}
-					countInk={countInk}
-					shapes={shapes}
-					animate={animate}
-					unitsPerPixel={unitsPerPixel}
-					hit={hit}
-				/>
-			</g>
+			<MapPointsReveal animate={animate} drawn={groups.length > 0}>
+				{(pops) => (
+					<>
+						<g data-slot="map-points" className={dim} onPointerLeave={onPointerLeave}>
+							<MapPointsDots
+								groups={groups}
+								keys={keys}
+								radii={radii}
+								targets={targets}
+								paints={paints}
+								countInk={countInk}
+								shapes={shapes}
+								pops={pops}
+								unitsPerPixel={unitsPerPixel}
+								hit={hit}
+							/>
+						</g>
+
+						{groups.map((group, index) =>
+							group.shared !== undefined && group.at !== null && leads(group.shared, id) ? (
+								<MapPointsShared
+									key={keys[index]}
+									summary={group.shared}
+									index={index}
+									at={group.at}
+									radius={radii[index] ?? POINT_RADIUS}
+									target={targets[index]}
+									pops={pops}
+									unitsPerPixel={unitsPerPixel}
+									hit={hit}
+									onPointerLeave={onPointerLeave}
+								/>
+							) : null,
+						)}
+					</>
+				)}
+			</MapPointsReveal>
 		</>
 	)
 }

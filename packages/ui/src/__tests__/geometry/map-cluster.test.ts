@@ -8,6 +8,7 @@ import {
 import { clusterAnchor, clusterSpan } from '../../modules/map/engine/map-cluster/geo'
 import { clusterPoints, groupsByMember } from '../../modules/map/engine/map-cluster/group'
 import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
+import { groupSets } from '../../modules/map/engine/map-cluster/sets'
 import {
 	CLUSTER_COUNT_CHAR_WIDTH,
 	CLUSTER_COUNT_INSET,
@@ -453,5 +454,136 @@ describe('markTargets', () => {
 		expect(markTargets([{ at: null, radius: POINT_RADIUS }], 1, spares(2))).toEqual([
 			POINT_HIT_RADIUS,
 		])
+	})
+})
+
+describe('clusterPoints with a gap for each dot', () => {
+	it('groups as one gap does where every dot asks for the same gap', () => {
+		const positions: LngLat[] = [[0, 0], [10, 0], [20, 0], [400, 0], ...bunch(600)]
+
+		expect(
+			clusterPoints(
+				positions,
+				flatProjector,
+				positions.map(() => GAP),
+				englishRadius,
+			),
+		).toEqual(clusterPoints(positions, flatProjector, GAP, englishRadius))
+	})
+
+	it('keeps the larger gap of a pair', () => {
+		// The dots stand 14px apart: clear of each other under a gap of 1, and inside
+		// a gap of 9. One dot that asks for 9 merges the pair.
+		const pair: LngLat[] = [
+			[0, 0],
+			[14, 0],
+		]
+
+		expect(clusterPoints(pair, flatProjector, [1, 1], englishRadius)).toHaveLength(2)
+
+		expect(clusterPoints(pair, flatProjector, [1, GAP], englishRadius)).toHaveLength(1)
+
+		expect(clusterPoints(pair, flatProjector, [GAP, 1], englishRadius)).toHaveLength(1)
+	})
+})
+
+describe('groupSets', () => {
+	const set = (id: string, positions: LngLat[], gap: number | null = GAP) => ({
+		id,
+		input: { positions, gap },
+	})
+
+	it('groups one set alone as clusterPoints does', () => {
+		const positions: LngLat[] = [[0, 0], [10, 0], [400, 0], ...bunch(600)]
+
+		const grouping = groupSets([set('a', positions)], flatProjector, englishRadius, 1)
+
+		const groups = grouping.sets.get('a')?.groups ?? []
+
+		expect(groups.map(({ members, at }) => ({ members, at }))).toEqual(
+			clusterPoints(positions, flatProjector, GAP, englishRadius),
+		)
+
+		expect(groups.every((group) => group.shared === undefined)).toBe(true)
+	})
+
+	it('shares a summary between two sets on one place, with a part for each', () => {
+		const grouping = groupSets(
+			[
+				set('stops', [
+					[2, 0],
+					[400, 0],
+					[4, 0],
+				]),
+				set('depots', [[0, 0]]),
+			],
+			flatProjector,
+			englishRadius,
+			1,
+		)
+
+		const stops = grouping.sets.get('stops')?.groups ?? []
+
+		const depots = grouping.sets.get('depots')?.groups ?? []
+
+		// The stops keep their own order, by their first dots.
+		expect(stops.map((group) => group.members)).toEqual([[0, 2], [1]])
+
+		expect(depots.map((group) => group.members)).toEqual([[0]])
+
+		const summary = stops[0]?.shared
+
+		expect(summary).toBeDefined()
+
+		// One summary, one drawn mark: both parts point at it.
+		expect(depots[0]?.shared).toBe(summary)
+
+		expect(depots[0]?.mark).toBe(stops[0]?.mark)
+
+		expect(grouping.marks).toHaveLength(2)
+
+		expect(summary?.count).toBe(3)
+
+		expect(summary?.parts.map(({ id, stop, members }) => ({ id, stop, members }))).toEqual([
+			{ id: 'stops', stop: 0, members: [0, 2] },
+			{ id: 'depots', stop: 0, members: [0] },
+		])
+
+		// The summary draws at the mean of all its dots, and its anchor is their center.
+		expect(stops[0]?.at).toEqual({ x: 2, y: 0 })
+
+		expect(summary?.anchor()[0]).toBeNear(2, LONGITUDE_TOLERANCE)
+	})
+
+	it('gives the part of each set the stop it holds in that set', () => {
+		const grouping = groupSets(
+			[
+				set('a', [
+					[400, 0],
+					[0, 0],
+				]),
+				set('b', [[2, 0]]),
+			],
+			flatProjector,
+			englishRadius,
+			1,
+		)
+
+		// The shared summary is the second group of `a`, by its first dot.
+		expect(grouping.sets.get('a')?.groups[1]?.shared?.parts[0]?.stop).toBe(1)
+
+		expect(grouping.sets.get('a')?.groups[1]?.shared?.parts[1]?.stop).toBe(0)
+	})
+
+	it('measures each drawn mark against the marks of every set', () => {
+		// Two lone dots of two sets, 25px apart: clear of a merge, inside a target.
+		const grouping = groupSets(
+			[set('a', [[0, 0]]), set('b', [[25, 0]])],
+			flatProjector,
+			englishRadius,
+			1,
+		)
+
+		expect(grouping.room()).toEqual([25 - POINT_RADIUS, 25 - POINT_RADIUS])
 	})
 })
