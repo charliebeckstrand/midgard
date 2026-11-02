@@ -151,6 +151,32 @@ describe('Grid editing on a phone', () => {
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 	})
 
+	it('blocks Save while a validate refuses a cleared number, and keeps the field', async () => {
+		const { user, onCommit, editRow1 } = renderPhoneGrid({}, [
+			columns[0] as GridColumn<Row>,
+			{
+				...(columns[1] as GridColumn<Row>),
+				validate: (value) => (value == null ? 'Enter a count.' : null),
+			},
+		])
+
+		await editRow1()
+
+		const sheet = screen.getByRole('dialog')
+
+		const count = within(sheet).getByRole('spinbutton', { name: 'Count' })
+
+		await user.clear(count)
+
+		await user.click(within(sheet).getByRole('button', { name: 'Save' }))
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		expect(within(sheet).getByText('Enter a count.')).toBeInTheDocument()
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+	})
+
 	it('holds the drawer open while an async commit settles, and shows a refusal', async () => {
 		const commit = deferred<GridCellRefusal[]>()
 
