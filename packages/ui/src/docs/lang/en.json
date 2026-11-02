@@ -563,6 +563,18 @@
 		"defaultMessage": "Page 2",
 		"description": "A word of the demo data in the docs: the word for \"second\" in the domain \"statement-page\", in components/pdf-viewer/statement.ts."
 	},
+	"docs.data.task-status.done": {
+		"defaultMessage": "Done",
+		"description": "A word of the demo data in the docs: the word for \"done\" in the domain \"task-status\", in data/tasks.ts."
+	},
+	"docs.data.task-status.inProgress": {
+		"defaultMessage": "In progress",
+		"description": "A word of the demo data in the docs: the word for \"inProgress\" in the domain \"task-status\", in data/tasks.ts."
+	},
+	"docs.data.task-status.todo": {
+		"defaultMessage": "To do",
+		"description": "A word of the demo data in the docs: the word for \"todo\" in the domain \"task-status\", in data/tasks.ts."
+	},
 	"docs.data.team.analytics": {
 		"defaultMessage": "Analytics",
 		"description": "A word of the demo data in the docs: the word for \"analytics\" in the domain \"team\", in data/people.ts."
@@ -1107,6 +1119,10 @@
 		"defaultMessage": "Vanaheim",
 		"description": "Text of a demo in the docs as label, in components/sidebar/sections-divider-and-spacer.tsx."
 	},
+	"docs.demo.09555815237e": {
+		"defaultMessage": "Move each package to its latest minor version.",
+		"description": "Text of a demo in the docs as description, in data/tasks.ts."
+	},
 	"docs.demo.096b73624b09": {
 		"defaultMessage": "Saving",
 		"description": "Text of a demo in the docs, in components/loading/dots/inside-a-button.tsx."
@@ -1189,7 +1205,7 @@
 	},
 	"docs.demo.100ec1bc78a4": {
 		"defaultMessage": "To do",
-		"description": "Text of a demo in the docs as label, in modules/grid/editing/editor-types.tsx, structure/flex/equal.tsx."
+		"description": "Text of a demo in the docs, in structure/flex/equal.tsx."
 	},
 	"docs.demo.10c6bb4ee793": {
 		"defaultMessage": "Waco",
@@ -1209,7 +1225,7 @@
 	},
 	"docs.demo.11a6767d5674": {
 		"defaultMessage": "Done",
-		"description": "Text of a demo in the docs as description, label, title, in components/list/horizontal.tsx, modules/dashboard/build-and-save.tsx, modules/dashboard/query.tsx and 1 more."
+		"description": "Text of a demo in the docs as label, title, in components/list/horizontal.tsx, modules/dashboard/build-and-save.tsx, modules/dashboard/query.tsx and 1 more."
 	},
 	"docs.demo.11a8bfc000fc": {
 		"defaultMessage": "Upload progress",
@@ -1959,6 +1975,10 @@
 		"defaultMessage": "January 2026",
 		"description": "Text of a demo in the docs, in components/timeline/playground.tsx."
 	},
+	"docs.demo.3bfcbf4f5645": {
+		"defaultMessage": "Give each endpoint an example request.",
+		"description": "Text of a demo in the docs as description, in data/tasks.ts."
+	},
 	"docs.demo.3c719afbe12d": {
 		"defaultMessage": "TL",
 		"description": "Text of a demo in the docs as label, in components/switch/three-positions.tsx."
@@ -2097,7 +2117,7 @@
 	},
 	"docs.demo.4709bd3cfc9f": {
 		"defaultMessage": "Write API docs",
-		"description": "Text of a demo in the docs as title, in modules/grid/editing/editor-types.tsx, modules/grid/filters/date-number-and-boolean-filters.tsx."
+		"description": "Text of a demo in the docs as title, in data/tasks.ts."
 	},
 	"docs.demo.4783eaba186b": {
 		"defaultMessage": "Wade Cooper created this project on June 18.",
@@ -2489,7 +2509,7 @@
 	},
 	"docs.demo.5c82fec78fe8": {
 		"defaultMessage": "Fix login redirect",
-		"description": "Text of a demo in the docs as title, in modules/grid/editing/editor-types.tsx, modules/grid/filters/date-number-and-boolean-filters.tsx."
+		"description": "Text of a demo in the docs as title, in data/tasks.ts."
 	},
 	"docs.demo.5ccb8caacdc5": {
 		"defaultMessage": "Draft saved",
@@ -3517,7 +3537,7 @@
 	},
 	"docs.demo.92d422bcf4c3": {
 		"defaultMessage": "Upgrade dependencies",
-		"description": "Text of a demo in the docs as title, in modules/grid/filters/date-number-and-boolean-filters.tsx."
+		"description": "Text of a demo in the docs as title, in data/tasks.ts."
 	},
 	"docs.demo.92f3619ccbb5": {
 		"defaultMessage": "Stat delta",
@@ -4173,7 +4193,7 @@
 	},
 	"docs.demo.b51e09cdaf34": {
 		"defaultMessage": "Users land on the home page after sign-in instead of the page they asked for.",
-		"description": "Text of a demo in the docs as description, in modules/grid/editing/editor-types.tsx."
+		"description": "Text of a demo in the docs as description, in data/tasks.ts."
 	},
 	"docs.demo.b5428af01643": {
 		"defaultMessage": "Close it, or let it time out.",
@@ -4413,7 +4433,7 @@
 	},
 	"docs.demo.c1f88e9d6c41": {
 		"defaultMessage": "In progress",
-		"description": "Text of a demo in the docs as label, in components/list/horizontal.tsx, modules/grid/editing/editor-types.tsx, structure/flex/equal.tsx."
+		"description": "Text of a demo in the docs as label, in components/list/horizontal.tsx, structure/flex/equal.tsx."
 	},
 	"docs.demo.c21ead0614e7": {
 		"defaultMessage": "Closed",
@@ -4621,7 +4641,7 @@
 	},
 	"docs.demo.cdeccd44bdbd": {
 		"defaultMessage": "Follow the system setting.\nAdd a toggle in the account menu.",
-		"description": "Text of a demo in the docs as description, in modules/grid/editing/editor-types.tsx."
+		"description": "Text of a demo in the docs as description, in data/tasks.ts."
 	},
 	"docs.demo.ce5ed1e69589": {
 		"defaultMessage": "Health check failed",
@@ -4985,7 +5005,7 @@
 	},
 	"docs.demo.e35ca189c399": {
 		"defaultMessage": "Add dark mode",
-		"description": "Text of a demo in the docs as title, in modules/grid/editing/editor-types.tsx, modules/grid/filters/date-number-and-boolean-filters.tsx."
+		"description": "Text of a demo in the docs as title, in data/tasks.ts."
 	},
 	"docs.demo.e3b89e9d33f8": {
 		"defaultMessage": "Username",

@@ -1,21 +1,18 @@
 import { Badge } from 'ui/badge'
 import { Grid, type GridColumn } from 'ui/grid'
+import { type Task, tasks } from '../../../../data/tasks.ts'
 import { DayText } from '../data.tsx'
 
-type Ticket = { id: number; title: string; due: Date; estimate: number; resolved: boolean }
+// The tasks, with a yes or no field for the boolean filter.
+type Ticket = Pick<Task, 'id' | 'title' | 'due' | 'estimate'> & { resolved: boolean }
 
-const tickets: Ticket[] = [
-	{ id: 1, title: 'Fix login redirect', due: new Date(2026, 0, 15), estimate: 3, resolved: true },
-	{ id: 2, title: 'Add dark mode', due: new Date(2026, 2, 1), estimate: 8, resolved: false },
-	{
-		id: 3,
-		title: 'Upgrade dependencies',
-		due: new Date(2026, 1, 10),
-		estimate: 13,
-		resolved: false,
-	},
-	{ id: 4, title: 'Write API docs', due: new Date(2026, 3, 20), estimate: 5, resolved: true },
-]
+const tickets: Ticket[] = tasks.map(({ id, title, due, estimate, status }) => ({
+	id,
+	title,
+	due,
+	estimate,
+	resolved: status === 'done',
+}))
 
 // The ISO text of a day, in the form that the date filter compares.
 function isoDay(date: Date): string {

@@ -5,47 +5,14 @@ import { DatePicker } from 'ui/date-picker'
 import { Grid, type GridColumn, type GridEditCellContext } from 'ui/grid'
 import { useIntl } from 'ui/primitives/intl'
 import { Textarea } from 'ui/textarea'
+import { type Task, taskStatuses, tasks } from '../../../../data/tasks.ts'
 import { CellListbox } from './people.tsx'
 
-type Task = {
-	id: number
-	title: string
-	status: string
-	due: Date
-	done: boolean
-	budget: number
-	description: string
-}
+// The tasks with a yes or no field, so the Done column gets the editor of a
+// boolean.
+type EditedTask = Task & { done: boolean }
 
-const tasks: Task[] = [
-	{
-		id: 1,
-		title: 'Fix login redirect',
-		status: 'in-progress',
-		due: new Date(2026, 0, 15),
-		done: false,
-		budget: 1200,
-		description: 'Users land on the home page after sign-in instead of the page they asked for.',
-	},
-	{
-		id: 2,
-		title: 'Add dark mode',
-		status: 'todo',
-		due: new Date(2026, 2, 1),
-		done: false,
-		budget: 800,
-		description: 'Follow the system setting.\nAdd a toggle in the account menu.',
-	},
-	{
-		id: 3,
-		title: 'Write API docs',
-		status: 'done',
-		due: new Date(2026, 1, 10),
-		done: true,
-		budget: 500,
-		description: 'Done',
-	},
-]
+const rows: EditedTask[] = tasks.map((task) => ({ ...task, done: task.status === 'done' }))
 
 // Each row stays in edit mode, so each editor shows at once, and no row saves.
 // Title gets a text editor and Done a yes or no listbox, from the type of the
@@ -54,11 +21,7 @@ const tasks: Task[] = [
 // `overlay: false` keeps the editors in the cells on a phone too.
 const editing = new Set<string | number>(tasks.map((task) => task.id))
 
-const statusOptions = [
-	{ label: 'To do', value: 'todo' },
-	{ label: 'In progress', value: 'in-progress' },
-	{ label: 'Done', value: 'done' },
-]
+const statusOptions = Object.entries(taskStatuses).map(([value, label]) => ({ label, value }))
 
 // A date editor: a typed DatePicker that stages a date.
 function CellDate({ value, onValueUpdate, ariaLabel }: GridEditCellContext<unknown>) {
@@ -103,14 +66,13 @@ export default function EditorTypes() {
 	const intl = useIntl()
 
 	const columns = useMemo(
-		(): GridColumn<Task>[] => [
+		(): GridColumn<EditedTask>[] => [
 			{ id: 'title', title: 'Title', field: 'title', cell: (row) => row.title, width: '200px' },
 			{
 				id: 'status',
 				title: 'Status',
 				field: 'status',
-				cell: (row) =>
-					statusOptions.find((option) => option.value === row.status)?.label ?? row.status,
+				cell: (row) => taskStatuses[row.status],
 				editCell: (context) => (
 					<CellListbox
 						value={String(context.value ?? '')}
@@ -156,7 +118,7 @@ export default function EditorTypes() {
 	return (
 		<Grid
 			columns={columns}
-			rows={tasks}
+			rows={rows}
 			getKey={(row) => row.id}
 			rowLabel={(row) => row.title}
 			editable={{ rows: editing, overlay: false, onCommit: () => {} }}
