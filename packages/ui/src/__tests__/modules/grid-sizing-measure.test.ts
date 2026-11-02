@@ -33,7 +33,12 @@ describe('measureColumns', () => {
 	})
 
 	it('reads every intrinsic width through one Range, and releases it after each pass', () => {
+		// The unit project runs with `isolate: false`, so a test file before this
+		// one can have made the shared Range already. The case counts the Ranges
+		// that the reads use, not the calls of `createRange`.
 		const create = vi.spyOn(document, 'createRange')
+
+		const select = vi.spyOn(Range.prototype, 'selectNodeContents')
 
 		const container = table(20)
 
@@ -42,11 +47,17 @@ describe('measureColumns', () => {
 		measureColumns({ columns, container, scan: new Set(['a']) })
 
 		// 42 reads (a title and 20 cells, twice) share the one lazy Range.
-		expect(create).toHaveBeenCalledTimes(1)
+		expect(select).toHaveBeenCalledTimes(42)
+
+		const used = new Set<Range>(select.mock.contexts as Range[])
+
+		expect(used.size).toBe(1)
+
+		expect(create.mock.calls.length).toBeLessThanOrEqual(1)
 
 		// The pass collapses the Range to the document start, so it holds no node
 		// of the grid after it.
-		const range = create.mock.results[0]?.value as Range | undefined
+		const [range] = used
 
 		expect(range?.collapsed).toBe(true)
 
