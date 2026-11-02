@@ -1,6 +1,6 @@
 # Bug audit: Accordion, 2026-11-02
 
-Mode `unit`. Area: the Accordion unit of `packages/ui` at `main` `2cc51f4e2`. One scope, 10 files, 877 lines, 7 claims. 3 findings stay open, each `low` with reach `none`; 4 claims were refuted. No finding reaches the `medium` floor.
+Mode `unit`. Area: the Accordion unit of `packages/ui` at `main` `2cc51f4e2`. One scope, 10 files, 877 lines, 7 claims. 3 findings, each `low` with reach `none`, all resolved by #3199; 4 claims were refuted. No finding reaches the `medium` floor.
 
 This audit was a trial run of the rewritten `/bug-audit` command. The friction it found in the command text is in the thread, not here.
 
@@ -43,9 +43,9 @@ Status: `◯ OPEN`; `✅ RESOLVED (#NNN)` after the fix merges; `✖ DROPPED` wi
 
 | Row | File | Symbol | Verdict | Severity | Reach | Kind | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B01-C01 | `components/accordion/context.ts` | `useAccordionItem` | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| B01-C05 | `recipes/kata/accordion.ts` | `k` | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| B01-C06 | `components/accordion/accordion-panel.tsx` | `AccordionPanel` | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
+| B01-C01 | `components/accordion/context.ts` | `useAccordionItem` | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3199](https://github.com/charliebeckstrand/midgard/pull/3199)) |
+| B01-C05 | `recipes/kata/accordion.ts` | `k` | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3199](https://github.com/charliebeckstrand/midgard/pull/3199)) |
+| B01-C06 | `components/accordion/accordion-panel.tsx` | `AccordionPanel` | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3199](https://github.com/charliebeckstrand/midgard/pull/3199)) |
 
 ## Mechanisms
 
