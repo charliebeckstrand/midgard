@@ -18,9 +18,10 @@ import { categoryLegendId, type MapCategoryMeta, paintColor, paintFill } from '.
 /**
  * The color wash's transition classes under `animate`; static maps color without
  * one. The duration step is `REGION_FADE`'s, so a legend toggle's hold
- * (`useMapToggle`) waits the time the wash takes. Every region washes at once,
- * so the reveal and a later toggle play on the same tempo, and no region carries
- * a timing of its own.
+ * (`useMapToggle`) waits the time the wash takes. Under `animate={true}` every
+ * region washes at once, so the reveal and a later toggle play on the same tempo,
+ * and no region carries a timing of its own. Under `animate="sweep"` the reveal
+ * alone delays each region, and a later toggle washes at once.
  */
 const WASH = 'transition-colors duration-400 ease-out motion-reduce:transition-none'
 

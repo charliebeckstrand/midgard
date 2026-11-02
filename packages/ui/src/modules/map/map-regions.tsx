@@ -335,10 +335,9 @@ export const MapRegions = memo(function MapRegions({
 	// The color reveal: static maps color at once; an animated map holds the
 	// neutral backdrop for the first beat, then flips to the category fills so
 	// the CSS color transition washes them in over the already-painted
-	// geography. Gated on the paths landing, not mere mount: a lazily fetched
-	// atlas mounts the region layer empty first, so keying off paths keeps the
-	// wash for the beat the regions appear. A one-way flag: it never resets, so
-	// a resize never replays the wash.
+	// geography. The plat mounts the layer only once a fitted geography lands, and
+	// the `paths` guard holds the flip if the layer ever mounts with nothing to
+	// draw. A one-way flag: it never resets, so a resize never replays the wash.
 	const [revealed, setRevealed] = useState(!animate)
 
 	useEffect(() => {

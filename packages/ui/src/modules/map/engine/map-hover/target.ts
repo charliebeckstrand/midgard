@@ -7,9 +7,10 @@
  */
 
 /**
- * What the pointer is on: a region by feature index, or an overlay (route /
- * point / marker) by its registered legend id. The map's hover targets are
- * heterogeneous, where a chart's are one category axis.
+ * What the pointer is on: a region by feature index, or an overlay mark by its
+ * registered mark id (`MapOverlayEntry.id`), which is not its legend id where the
+ * mark has a `group`. The map's hover targets are heterogeneous, where a chart's
+ * are one category axis.
  *
  * @internal
  */
