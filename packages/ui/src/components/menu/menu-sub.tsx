@@ -30,7 +30,7 @@ import { Icon } from '../icon'
 import { useMenuOpenSub, useMenuPointer, useMenuState } from './context'
 import { MenuPointerLevel } from './menu-pointer-level'
 import { MenuViewport } from './menu-viewport'
-import { menuPanelMinWidth, snapMenuHeight } from './menu-viewport-utilities'
+import { snapMenuHeight } from './menu-viewport-utilities'
 import { MenuLabel } from './slots'
 import { MENUITEM_SELECTOR } from './use-menu-root'
 import { useMenuRowPointer } from './use-menu-row-pointer'
@@ -86,8 +86,9 @@ const SHIFT_ACROSS: Middleware = {
  * the bottom. A panel taller than the viewport shrinks to fit it, and scrolls.
  *
  * The width cap is the space on the side, so a panel with long rows wraps them
- * and does not cover its parent row. The cap does not go below the min-width
- * of the panel. A panel that is wider than the space on both sides, as on a
+ * and does not cover its parent row. The wrapper has the min-width of the
+ * panel, and in CSS a min-width wins over a max-width, so the cap does not go
+ * below it. A panel that is wider than the space on both sides, as on a
  * phone, goes on the side with more space, and {@link SHIFT_ACROSS} moves it
  * back into the viewport. It then covers a part of the menu it came from, as a
  * native menu does. If it went past the edge, the page would scroll to the side
@@ -99,7 +100,7 @@ const SUBMENU_MIDDLEWARE: Middleware[] = [
 	offset(4),
 	autoPlacement({ allowedPlacements: ['right-start', 'left-start'] }),
 	shift({ padding: 8 }),
-	fitMiddleware({ fitHeight: snapMenuHeight, widthFloor: menuPanelMinWidth }),
+	fitMiddleware({ fitHeight: snapMenuHeight }),
 	SHIFT_ACROSS,
 ]
 

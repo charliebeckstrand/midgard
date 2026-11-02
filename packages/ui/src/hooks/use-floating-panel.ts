@@ -125,8 +125,6 @@ type FitOptions = {
 	matchReferenceWidth?: boolean
 	/** Cap the max-height of the floating element, and lower the cap with a snap function. */
 	fitHeight?: boolean | FloatingHeightSnap
-	/** Read the smallest width that the floating element can have. The width cap does not go below it. */
-	widthFloor?: (floating: HTMLElement) => number
 }
 
 /**
@@ -139,11 +137,6 @@ type FitOptions = {
  * the available width is the viewport width. On a left or a right side, it is
  * the space on that side. The panel must let its content shrink with the
  * wrapper.
- *
- * With `widthFloor`, the max-width does not go below the width that the
- * function reads, or below the viewport width less the two margins. A panel
- * that cannot be narrower than its side is then wider than the space on that
- * side, and a later middleware must move it back into the viewport.
  *
  * With `matchReferenceWidth`, the min-width is the reference width.
  *
@@ -163,7 +156,6 @@ type FitOptions = {
 export function fitMiddleware({
 	matchReferenceWidth = false,
 	fitHeight = false,
-	widthFloor,
 }: FitOptions = {}): Middleware {
 	const snap = typeof fitHeight === 'function' ? fitHeight : undefined
 
@@ -172,15 +164,7 @@ export function fitMiddleware({
 		apply({ availableWidth, availableHeight, rects, elements }) {
 			const { style } = elements.floating
 
-			let width = availableWidth
-
-			if (widthFloor) {
-				const viewport = elements.floating.ownerDocument.documentElement.clientWidth - 16
-
-				width = Math.max(width, Math.min(widthFloor(elements.floating), viewport))
-			}
-
-			style.maxWidth = `${Math.max(0, width)}px`
+			style.maxWidth = `${Math.max(0, availableWidth)}px`
 
 			if (matchReferenceWidth) style.minWidth = `${rects.reference.width}px`
 

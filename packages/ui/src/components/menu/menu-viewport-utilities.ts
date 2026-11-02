@@ -41,18 +41,3 @@ export const snapMenuHeight: FloatingHeightSnap = (available, floating) => {
 
 	return cut > 0 ? available - (limit - cut) : available
 }
-
-/**
- * Reads the min-width of the menu panel in a floating wrapper. A submenu caps
- * its width at the space on its side, but not below this width, because the
- * panel does not shrink below it.
- *
- * @internal
- */
-export function menuPanelMinWidth(floating: HTMLElement): number {
-	const panel = floating.querySelector('[role="menu"]')
-
-	if (!panel) return 0
-
-	return Number.parseFloat(getComputedStyle(panel).minWidth) || 0
-}
