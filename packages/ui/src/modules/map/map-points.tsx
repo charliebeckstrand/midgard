@@ -278,7 +278,8 @@ type MapPointsSharedProps = {
  * The pointer reaches it through one hit circle, the circle of the set that
  * draws it, so the readout shows each part (`MapTooltip`). A click picks each
  * part through the pick of its own set, and a right-click reports each part the
- * same way. The keyboard reaches each part as a stop of its own set.
+ * same way. The keyboard reaches it as one stop, which reads and picks every
+ * part.
  *
  * @internal
  */
@@ -434,11 +435,11 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * two gaps. A summary that holds the dots of more than one set is a shared
 	 * summary. It draws as a disc in the surface color, with the count on it and a
 	 * ring split into the colors of its sets, each arc as long as its share. Each
-	 * set keeps the part of the summary that holds its own dots: a keyboard stop,
-	 * a table row, and a pick of that set, read out as that set reads a summary of
-	 * its own. The pointer reaches the summary as one dot, so the tooltip shows
-	 * every part. A pick of the summary, from any input, reports each part to the
-	 * `onClick` of its own set. A set that the legend toggles off leaves the pass.
+	 * set keeps the part of the summary that holds its own dots as a table row and
+	 * a pick of that set, read out as that set reads a summary of its own. The
+	 * pointer and the keyboard reach the summary as one mark, so the tooltip and
+	 * the announcement read every part. A pick of the summary, from any input,
+	 * reports each part to the `onClick` of its own set. A set that the legend toggles off leaves the pass.
 	 *
 	 * `false` draws every dot, however they stack, and leaves the set out of the
 	 * shared pass.
@@ -712,11 +713,16 @@ export function MapPoints({
 	// A thunk, so the O(N) build (and the spherical centroid behind every
 	// summary's anchor) lands on the one keypress that reads it. Held on the
 	// grouping, because a new identity tells the plat's pool that the dots moved.
-	// Each part of a shared summary stands at the anchor of the whole summary, so
-	// the cursor steps through the parts at one place.
+	// A shared summary is one stop, the stop of the set that draws it. The parts of
+	// the other sets stand at `null`, and the plat reads every part from that stop.
 	const stops = useCallback(
-		() => groups.map((group) => group.shared?.anchor() ?? clusterAnchor(group.members, positions)),
-		[groups, positions],
+		() =>
+			groups.map((group) => {
+				if (group.shared === undefined) return clusterAnchor(group.members, positions)
+
+				return leads(group.shared, id) ? group.shared.anchor() : null
+			}),
+		[groups, positions, id],
 	)
 
 	// The dots this mark draws, for the plat's dot pool: every group but the shared

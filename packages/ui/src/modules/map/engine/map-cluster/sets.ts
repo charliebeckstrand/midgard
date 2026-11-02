@@ -3,8 +3,9 @@
  * clusters puts its dots in this pass, so two sets never draw over one another.
  * A summary that holds the dots of two sets is a shared summary. The first of
  * its sets in the ledger draws it, and each set keeps the part that holds its own
- * dots. That part is a stop, a table row, and a pick of that set, as a summary of
- * one set is.
+ * dots. That part is a table row and a pick of that set, as a summary of one set
+ * is. The keyboard cursor stands on the summary once, at the stop of the set that
+ * draws it.
  *
  * Frame arithmetic and a listener set, React-free, like the rest of the engine.
  */
@@ -62,8 +63,7 @@ export type MapSharedCluster = {
 	count: number
 	/**
 	 * Where the keyboard cursor stands on the summary, in lon/lat: the center of
-	 * all its dots. Each part reads this one value, so the parts stand at one
-	 * position and the cursor steps through them in order.
+	 * all its dots.
 	 */
 	anchor: () => LngLat
 }

@@ -88,6 +88,24 @@ describe('mapStops', () => {
 		expect(dropped[0]?.target).toEqual({ kind: 'region', index: 0 })
 	})
 
+	it('leaves out a stop at null and keeps the ordinals after it', () => {
+		// A part of a shared summary that another set draws: the stop of that set
+		// stands for it, and the dots after it still report their own index.
+		const stops = mapStops(
+			[],
+			[
+				{
+					id: 'depots',
+					stopsAt: () => [null, [5, 5]],
+				},
+			],
+			NONE,
+			project,
+		)
+
+		expect(stops.map((stop) => stop.target)).toEqual([{ kind: 'entry', id: 'depots', stop: 1 }])
+	})
+
 	it('leaves out an overlay that has registered no stop yet', () => {
 		// A mark whose geometry has not landed answers with the empty list, which is
 		// the one way that state is spelled now `stopsAt` is required of every entry.

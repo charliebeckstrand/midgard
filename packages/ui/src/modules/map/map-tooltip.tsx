@@ -201,22 +201,28 @@ function resolve(
 /**
  * The readout for `target` as one line of text, for the announcement of a
  * keyboard cursor step. It reads what {@link MapTooltip} shows: the title, then
- * the row text. Returns `null` where the tooltip stays away.
+ * the row text, for each block. Returns `null` where the tooltip stays away.
  *
  * @internal
  */
 export function describeMapTarget(target: MapHoverTarget, props: MapTooltipProps): string | null {
-	const content = resolve(target, props)
+	const card = resolveCard(target, props)
 
-	if (content === null) return null
+	if (card === null) return null
 
-	return [content.title, content.row?.text].filter(Boolean).join(', ') || null
+	return (
+		card
+			.map(({ content }) => [content.title, content.row?.text].filter(Boolean).join(', '))
+			.filter(Boolean)
+			.join('; ') || null
+	)
 }
 
 /**
  * The name of `target` alone, for the announcement of a keyboard cursor step on
  * a map that shows no readout. A region reads its display name, and an overlay
- * stop reads the name that {@link markReadout} gives it. Returns `null` for a
+ * stop reads the name that {@link markReadout} gives it, for each part of a
+ * shared summary (`targetParts`). Returns `null` for a
  * target with no name, or an overlay that its legend toggled off.
  *
  * @internal
@@ -234,9 +240,18 @@ export function nameMapTarget(
 
 	const entry = hidden.has(target.id) ? undefined : entries.get(target.id)
 
-	return entry === undefined
-		? null
-		: markReadout(entry, targetStop(target, entry.getStop), formatNumber).name || null
+	if (entry === undefined) return null
+
+	return (
+		targetParts(target, entry)
+			.flatMap((part) => {
+				const owner = hidden.has(part.id) ? undefined : entries.get(part.id)
+
+				return owner === undefined ? [] : [markReadout(owner, part.stop, formatNumber).name]
+			})
+			.filter(Boolean)
+			.join('; ') || null
+	)
 }
 
 /**

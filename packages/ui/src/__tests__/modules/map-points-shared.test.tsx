@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPoints } from '../../modules/map'
-import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, liveRegion, renderUI, waitFor } from '../helpers'
 import { renderNavigable } from '../helpers/map-navigable'
 import { overlayPlat } from '../helpers/map-plat'
 
@@ -111,23 +111,28 @@ describe('two point sets on one place', () => {
 		expect(onDepots).toHaveBeenCalledExactlyOnceWith('depots', 0, [0])
 	})
 
-	it('give the keyboard a stop for each part at one place, and pick every part from either', () => {
+	it('give the keyboard one stop that reads and picks every part', async () => {
 		const onStops = vi.fn()
 
 		const onDepots = vi.fn()
 
-		const { plot, container } = renderNavigable(overlayPlat(bothSets({ onStops, onDepots })))
+		const { plot } = renderNavigable(overlayPlat(bothSets({ onStops, onDepots })))
 
-		// End lands on the last stop: the depots' part of the summary.
-		fireEvent.keyDown(plot, { key: 'End' })
+		// Home lands on the first stop: the shared summary, which the stops draw.
+		fireEvent.keyDown(plot, { key: 'Home' })
 
-		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Depot')
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Stops, 2; Depot, Origin'))
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
+		expect(onStops).toHaveBeenCalledExactlyOnceWith('stops', 0, [0, 1])
+
 		expect(onDepots).toHaveBeenCalledExactlyOnceWith('depots', 0, [0])
 
-		expect(onStops).toHaveBeenCalledExactlyOnceWith('stops', 0, [0, 1])
+		// The depots add no stop of their own: End lands on the far stop.
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toContain('Far stop'))
 	})
 
 	it('give the hidden table the part of each set as a row of that set', () => {

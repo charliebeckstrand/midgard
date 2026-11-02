@@ -38,10 +38,10 @@ import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import { regionSweep } from './engine/map-geometry/region'
 import type { MapHoverTarget, MapOverlayTarget } from './engine/map-hover/target'
-import { createStopMoves, mapStops } from './engine/map-keyboard/stops'
+import { createStopMoves, entryTarget, mapStops } from './engine/map-keyboard/stops'
 import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
 import { planLegend } from './engine/map-legend/plan'
-import { targetParts, targetStop } from './engine/map-overlay/selection'
+import { targetParts } from './engine/map-overlay/selection'
 import { overlaySlotColors } from './engine/map-overlay/slots'
 import { regionGroupId } from './engine/map-region/category'
 import type { MapCategoricalData, MapNoData, MapNumericData } from './engine/map-region/data'
@@ -1255,16 +1255,24 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	// The target of the stop that holds what a target held. A zoom regroups the
 	// dots of a `MapPoints`, so the cursor holds the point it stands on, not the
-	// index of its dot, and reads the dot that holds that point here.
+	// index of its dot, and reads the dot that holds that point here. A point in a
+	// shared summary reads the stop of the set that draws it, the one stop of the
+	// summary.
 	const relocateTarget = useCallback(
 		(target: MapHoverTarget): MapHoverTarget => {
 			if (target.kind === 'region' || target.reported === undefined) return target
 
 			const entry = entries.find(({ id }) => id === target.id)
 
-			const stop = entry === undefined ? target.stop : targetStop(target, entry.getStop)
+			const lead = entry === undefined ? undefined : targetParts(target, entry)[0]
 
-			return stop === target.stop ? target : { ...target, stop }
+			if (lead === undefined || (lead.id === target.id && lead.stop === target.stop)) return target
+
+			if (lead.id === target.id) return { ...target, stop: lead.stop }
+
+			const owner = entries.find(({ id }) => id === lead.id)
+
+			return owner === undefined ? target : entryTarget(owner, lead.stop)
 		},
 		[entries],
 	)
