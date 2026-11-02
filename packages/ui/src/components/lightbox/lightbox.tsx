@@ -140,9 +140,7 @@ export type LightboxProps = {
  * corners become square as it rises. The return rounds them again. Under
  * reduced motion, or when the thumbnail is not on the screen, the photo fades
  * in and out on the stage. The viewer renders in the `Overlay` primitive,
- * which traps the focus and locks the scroll of the page. The viewer covers the
- * `Chrome` regions of the app too, and the focus does not go to them while it
- * is open.
+ * which traps the focus and locks the scroll of the page.
  */
 export function Lightbox({
 	photos,
@@ -245,7 +243,6 @@ export function Lightbox({
 				}}
 				backdrop={false}
 				dismissOnBackdrop={false}
-				coverChrome
 				returnFocusTo={returnRef}
 			>
 				{position >= 0 && (

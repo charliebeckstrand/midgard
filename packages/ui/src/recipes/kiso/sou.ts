@@ -9,25 +9,18 @@
  * concern and stays inline; only a layer that ranks against *other surfaces*
  * belongs here.
  *
- * The order is the point, so read the rungs as a ladder rather than as six
+ * The order is the point, so read the rungs as a ladder rather than as
  * independent values:
  *
- * `overlay` seals the page for a transaction: Dialog, Sheet, Drawer.
- *
- * `chrome` is application furniture a sealing overlay must not cover: a
- * `Chrome` region, and the companion furniture such regions need,
- * like the sidebar's pointer buffer. It clears `overlay`, or the scrim would
- * paint over the very control the region keeps reachable.
- *
- * `cover` is a sealing overlay that also covers the chrome, such as the stage
- * of a lightbox. Chrome furniture has no use over a full-screen photo, and it
- * hides the controls of the stage. Such an overlay keeps the focus away from
- * the chrome too. A float raised from inside it still clears it.
+ * `overlay` is a surface that covers the page or a container: Dialog, Sheet,
+ * Drawer, the stage of a Lightbox, and the furniture of such a surface, such as
+ * the pointer buffer of the floating sidebar. A modal overlay seals the box
+ * that it covers. App chrome that must stay reachable stays out of that box,
+ * so it needs no rung.
  *
  * `float` is every transient anchored surface: tooltip, popover, menu,
  * select, combobox, listbox, date and color picker. It clears the overlay
- * and chrome rungs alike, because a float is routinely raised *from inside* a
- * panel or a chrome region. A tooltip that renders under the panel it describes
+ * rung, because a float is routinely raised *from inside* a panel. A tooltip that renders under the panel it describes
  * is worse than no tooltip. A float whose anchor is under an open overlay
  * would then paint over that overlay, so `useFloatingPanel` hides it while the
  * overlay is open (`utilities/overlay-layers`).
@@ -49,8 +42,6 @@
 
 export const sou = {
 	overlay: 'z-99',
-	chrome: 'z-100',
-	cover: 'z-101',
 	float: 'z-102',
 	lens: 'z-103',
 	toast: 'z-104',

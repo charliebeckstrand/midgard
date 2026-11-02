@@ -24,8 +24,6 @@ export type OverlayLayer = {
 	node: Element
 	/** The container that the overlay covers, or `null` for the viewport. */
 	scope: Element | null
-	/** The regions that the overlay does not cover, such as the `Chrome` regions. */
-	exempt: () => Element[]
 }
 
 /** The open layers, from the lowest to the highest. */
@@ -65,9 +63,7 @@ export function subscribeOverlayLayers(listener: () => void): () => void {
 
 /** Whether `layer` covers `element`, which is not in the layer. */
 function covers(layer: OverlayLayer, element: Element): boolean {
-	if (layer.scope && !layer.scope.contains(element)) return false
-
-	return !layer.exempt().some((region) => region.contains(element))
+	return !layer.scope || layer.scope.contains(element)
 }
 
 /**
