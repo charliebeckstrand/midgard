@@ -42,7 +42,7 @@ import { clearStickyChrome, obscuringInsets } from './engine/grid-sticky-insets'
 import { GridEditInputs } from './grid-edit-inputs'
 import type { GridColumn } from './types'
 import { useGridEditGrow } from './use-grid-edit-grow'
-import { useGridEditPick } from './use-grid-edit-pick'
+import { type GridEditPickKeys, useGridEditPick } from './use-grid-edit-pick'
 
 /**
  * Props for the mounted editor: the cell plus the session's staging and exit
@@ -436,7 +436,7 @@ export function GridCellEditor<T>({
 	// controls on that one cell alone (see `settleControls`).
 	const holds = settle !== 'none'
 
-	const commitPick = useGridEditPick(hostRef, holds)
+	const { pick: commitPick, keys: pickKeys } = useGridEditPick(hostRef)
 
 	// Stages a final value, such as a pick, and commits the cell where a
 	// cell-scoped session holds it, as F2 does. Under row scope the row
@@ -510,6 +510,7 @@ export function GridCellEditor<T>({
 	return (
 		<GridEditHost
 			hostRef={hostRef}
+			keys={pickKeys}
 			newRow={newRow}
 			rest={rest}
 			error={error}
@@ -600,6 +601,7 @@ function useExpanded(slot: HTMLElement | null): boolean {
  */
 function GridEditHost({
 	hostRef,
+	keys,
 	newRow,
 	rest,
 	error,
@@ -610,6 +612,7 @@ function GridEditHost({
 	children,
 }: {
 	hostRef: RefObject<HTMLSpanElement | null>
+	keys: GridEditPickKeys
 	newRow: boolean
 	rest: ReactNode
 	error: string | null
@@ -639,7 +642,7 @@ function GridEditHost({
 
 	if (newRow) {
 		return (
-			<span ref={ref} className={cn(k.edit.host, error && k.edit.error.ring)}>
+			<span ref={ref} {...keys} className={cn(k.edit.host, error && k.edit.error.ring)}>
 				<span data-slot="grid-edit-slot" className={cn(k.edit.slot)}>
 					{children}
 				</span>
@@ -652,6 +655,7 @@ function GridEditHost({
 	return (
 		<span
 			ref={ref}
+			{...keys}
 			data-slot="grid-edit-host"
 			data-invalid={dataAttr(error !== null)}
 			className={cn(k.edit.host)}
