@@ -242,6 +242,27 @@ describe('useGridColumns', () => {
 		expect(result.current.columnVisibility).toEqual({ age: false })
 	})
 
+	it('anchors a collapsed group at a hideable=false member that the hidden set names', () => {
+		const cols: GridColumn<Row>[] = [
+			{ id: 'a', title: 'A', hideable: false },
+			{ id: 'b', title: 'B' },
+			{ id: 'c', title: 'C' },
+		]
+
+		const { result } = renderHook(() =>
+			useGridColumns<Row>({
+				columns: cols,
+				columnManagerConfig: { defaultHidden: new Set(['a']) },
+				groups: [{ id: 'g', columns: ['a', 'b', 'c'], collapsible: true }],
+				setGroups: vi.fn(),
+				collapsed: new Set(['g']),
+			}),
+		)
+
+		// `a` shows, so it is the anchor, and the collapse hides each other member.
+		expect(result.current.columnVisibility).toEqual({ b: false, c: false })
+	})
+
 	it('excludes selectable and actions columns from managerItems', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
