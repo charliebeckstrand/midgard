@@ -4,7 +4,7 @@ import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { Card } from '../../components/card'
 import { Menu } from '../../components/menu'
-import { cn, dataAttr } from '../../core'
+import { dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { restrictToVerticalAxis, useSortableList } from '../../hooks/use-sortable-list'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -21,7 +21,7 @@ import { useGridZoneSortable } from './use-grid-zone-sortable'
 /** Locks the group drag to the y-axis and bounds it to the list, so a zone can't be dragged off either end. @internal */
 const GROUP_DRAG_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 
-/** Props for {@link GridRowManager}. */
+/** Props for {@link GridRowManager}. @internal */
 export type GridRowManagerProps = {
 	/** The row groups in display order, one entry per group. */
 	groups: GridRowManagerGroup[]
@@ -29,13 +29,6 @@ export type GridRowManagerProps = {
 	onRecolor: (key: string | number, color: PaletteColor | undefined) => void
 	/** Commits the next group order (by key) after a group drag. */
 	onReorderGroups: (orderedKeys: (string | number)[]) => void
-	/**
-	 * Palette presets for the color Menu. The default is the full standard and
-	 * extended palette.
-	 * @defaultValue {@link DEFAULT_COLOR_OPTIONS}
-	 */
-	colorOptions?: PaletteColor[]
-	className?: string
 }
 
 /**
@@ -47,17 +40,16 @@ export type GridRowManagerProps = {
  * edit commits through the handlers, which write the {@link GridGroupBy.rowGroups}
  * overlay.
  *
+ * The color Menu offers the full standard and extended palette
+ * ({@link DEFAULT_COLOR_OPTIONS}).
+ *
  * @remarks Client component. {@link Grid} renders this inside its own dialog,
- * reached from the group-header "Manage rows" context-menu item; use it directly
- * to host the editor elsewhere.
+ * reached from the group-header "Manage rows" context-menu item. No barrel
+ * exports it, so a consumer reaches it only through the grid.
+ *
+ * @internal
  */
-export function GridRowManager({
-	groups,
-	onRecolor,
-	onReorderGroups,
-	colorOptions = DEFAULT_COLOR_OPTIONS,
-	className,
-}: GridRowManagerProps) {
+export function GridRowManager({ groups, onRecolor, onReorderGroups }: GridRowManagerProps) {
 	const intl = useIntl()
 
 	const { itemIds, strategy, dndContextProps } = useSortableList({
@@ -71,19 +63,14 @@ export function GridRowManager({
 	})
 
 	return (
-		<div data-slot="grid-row-manager" className={cn(k().base, className)}>
+		<div data-slot="grid-row-manager" className={k().base}>
 			<DndContext {...dndContextProps} modifiers={GROUP_DRAG_MODIFIERS}>
 				<SortableContext items={itemIds} strategy={strategy}>
 					{/* A list, so assistive tech reads the count of the zones and the
 					    position of each. The DndContext nodes stay outside it. */}
 					<ul className={k().list}>
 						{groups.map((group) => (
-							<GridRowManagerZone
-								key={group.key}
-								group={group}
-								onRecolor={onRecolor}
-								colorOptions={colorOptions}
-							/>
+							<GridRowManagerZone key={group.key} group={group} onRecolor={onRecolor} />
 						))}
 					</ul>
 				</SortableContext>
@@ -96,7 +83,6 @@ export function GridRowManager({
 type GridRowManagerZoneProps = {
 	group: GridRowManagerGroup
 	onRecolor: (key: string | number, color: PaletteColor | undefined) => void
-	colorOptions: PaletteColor[]
 }
 
 /**
@@ -106,7 +92,7 @@ type GridRowManagerZoneProps = {
  *
  * @internal
  */
-function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZoneProps) {
+function GridRowManagerZone({ group, onRecolor }: GridRowManagerZoneProps) {
 	const intl = useIntl()
 
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
@@ -134,7 +120,7 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 					<GridManagerColorMenu
 						label={label}
 						color={group.color}
-						colorOptions={colorOptions}
+						colorOptions={DEFAULT_COLOR_OPTIONS}
 						onRecolor={(next) => onRecolor(group.key, next)}
 					/>
 				</div>

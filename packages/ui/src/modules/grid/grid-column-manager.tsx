@@ -15,7 +15,7 @@ import { Icon } from '../../components/icon'
 import { List, ListItem } from '../../components/list'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { SearchInput } from '../../components/search-input'
-import { cn, createContext } from '../../core'
+import { createContext } from '../../core'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -68,22 +68,7 @@ function GridColumnManagerNoResults() {
 	return <output className={k().empty}>{useIntl().formatMessage(intlMessages.noResults)}</output>
 }
 
-/**
- * The filter placeholder and the save-preset label of the manager: the props,
- * else the defaults in the language of the reader.
- *
- * @internal
- */
-function useManagerLabels(filterPlaceholder: string | undefined, savePresetLabel: ReactNode) {
-	const intl = useIntl()
-
-	return {
-		filterPlaceholder: filterPlaceholder ?? intl.formatMessage(gridMessages.filterColumns),
-		savePresetLabel: savePresetLabel ?? intl.formatMessage(gridMessages.savePreset),
-	}
-}
-
-/** Props for {@link GridColumnManager}. */
+/** Props for {@link GridColumnManager}. @internal */
 export type GridColumnManagerProps = {
 	/** The columns that the manager lists, in declaration order. */
 	columns: GridColumnManagerItem[]
@@ -102,23 +87,12 @@ export type GridColumnManagerProps = {
 	filterable?: boolean
 
 	/**
-	 * Placeholder on the filter field, which doubles as its accessible name.
-	 * @defaultValue `'Filter columns'`, in the language of the reader.
-	 */
-	filterPlaceholder?: string
-
-	/**
 	 * The controlled order of the columns, as a list of column ids. The ids of
 	 * columns that the list does not hold append at the end, in declaration
-	 * order.
+	 * order. With no `order`, the manager holds the order itself, in declaration
+	 * order at first.
 	 */
 	order?: (string | number)[]
-
-	/**
-	 * The initial order of the columns when `order` is not controlled.
-	 * @defaultValue The declaration order of `columns`.
-	 */
-	defaultOrder?: (string | number)[]
 
 	/** Fires when the order changes, with the next order. The order holds every column id. */
 	onOrderChange?: (order: (string | number)[]) => void
@@ -134,14 +108,8 @@ export type GridColumnManagerProps = {
 	 */
 	reorderable?: boolean
 
-	/** The controlled set of the ids of the hidden columns. */
+	/** The controlled set of the ids of the hidden columns. With no `hidden`, the manager holds the set itself, empty at first. */
 	hidden?: Set<string | number>
-
-	/**
-	 * The initial set of hidden column ids when `hidden` is not controlled.
-	 * @defaultValue An empty set.
-	 */
-	defaultHidden?: Set<string | number>
 
 	/** Fires when a visibility toggle changes the hidden columns, with the next set of their ids. */
 	onHiddenChange?: (hidden: Set<string | number>) => void
@@ -172,13 +140,6 @@ export type GridColumnManagerProps = {
 	 * also shows the button.
 	 */
 	onSavePreset?: (preset: GridPreferences) => void
-	/**
-	 * Label on the save-preset button.
-	 * @defaultValue `'Save as preset'`, in the language of the reader.
-	 */
-	savePresetLabel?: ReactNode
-
-	className?: string
 }
 
 /** Props for {@link GridColumnPinControl}. @internal */
@@ -422,9 +383,9 @@ function GridColumnManagerOrderableList({
  * and hidden ids as a {@link GridPreferences} snapshot. Order and hidden set are
  * each controllable.
  *
- * The pin labels and the edge arrows name the physical edge. Inside a
- * {@link Grid}, the manager takes the direction of the grid. Standalone, it
- * reads its own computed direction once it mounts.
+ * The pin labels and the edge arrows name the physical edge. The manager reads
+ * its own computed direction once it mounts, which is the direction of the
+ * grid.
  *
  * A filter field heads the editor unless {@link GridColumnManagerProps.filterable}
  * turns it off, narrowing every group to the columns whose label matches the
@@ -432,34 +393,29 @@ function GridColumnManagerOrderableList({
  * they would unfiltered.
  *
  * @remarks Client component. {@link Grid} renders this inside its own
- * dialog when `columnManager` is configured; use this directly to host the
- * editor elsewhere (e.g. a settings panel).
+ * dialog when `columnManager` is configured. No barrel exports it, so a
+ * consumer reaches it only through the grid.
+ *
+ * @internal
  */
 export function GridColumnManager({
 	columns,
 	filterable = true,
-	filterPlaceholder: filterPlaceholderProp,
 	order: orderProp,
-	defaultOrder,
 	onOrderChange,
 	reorderable = true,
 	hidden: hiddenProp,
-	defaultHidden,
 	onHiddenChange,
 	onPinChange,
 	groups,
 	onGroupsChange,
 	onSavePreset,
-	savePresetLabel: savePresetLabelProp,
-	className,
 }: GridColumnManagerProps) {
 	const { order, setOrder, hidden, setHidden, byId } = useGridColumnVisibility({
 		columns,
 		order: orderProp,
-		defaultOrder,
 		onOrderChange,
 		hidden: hiddenProp,
-		defaultHidden,
 		onHiddenChange,
 	})
 
@@ -558,14 +514,13 @@ export function GridColumnManager({
 
 	const rtl = useManagerDirection(rootRef)
 
-	const { filterPlaceholder, savePresetLabel } = useManagerLabels(
-		filterPlaceholderProp,
-		savePresetLabelProp,
-	)
+	const intl = useIntl()
+
+	const filterPlaceholder = intl.formatMessage(gridMessages.filterColumns)
 
 	return (
 		<ManagerRtlContext value={rtl}>
-			<div ref={rootRef} data-slot="grid-column-manager" className={cn(k().base, className)}>
+			<div ref={rootRef} data-slot="grid-column-manager" className={k().base}>
 				{filterable && (
 					<SearchInput
 						value={query}
@@ -626,7 +581,7 @@ export function GridColumnManager({
 				{onSavePreset && (
 					<div className={k().footer}>
 						<Button type="button" variant="soft" size="sm" onClick={handleSavePreset}>
-							{savePresetLabel}
+							{intl.formatMessage(gridMessages.savePreset)}
 						</Button>
 					</div>
 				)}
