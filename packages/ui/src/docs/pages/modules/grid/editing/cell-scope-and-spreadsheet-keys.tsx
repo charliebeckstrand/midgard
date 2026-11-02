@@ -17,14 +17,14 @@ const commitOnOptions: { value: CommitOn; label: string }[] = [
 // The cell that the session edits, by its column and the person of its row. A sort
 // moves the rows, so the place of a row does not name it.
 function CellStatus({ cell, people }: { cell: GridCellRef | null; people: Person[] }) {
-	if (!cell) return 'Not editing'
+	if (!cell) return 'Empty'
 
 	const column =
 		personColumns.find((candidate) => candidate.id === cell.columnId)?.title ?? cell.columnId
 
 	const name = people.find((person) => person.id === cell.rowKey)?.name ?? String(cell.rowKey)
 
-	return `Editing: ${column}, ${name}`
+	return `Value: ${column}, ${name}`
 }
 
 export default function CellScopeAndSpreadsheetKeys() {

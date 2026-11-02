@@ -1155,6 +1155,10 @@
 		"defaultMessage": "Try 'aquarium' or 'lighthouse'",
 		"description": "Text of a demo in the docs as placeholder, in components/address-input/business-search.tsx."
 	},
+	"docs.demo.0dbadf11c356": {
+		"defaultMessage": "Value: {column}, {name}",
+		"description": "Text of a demo in the docs, in modules/grid/editing/cell-scope-and-spreadsheet-keys.tsx. The arguments {column} and {name} are values from the code."
+	},
 	"docs.demo.0e47f09a748f": {
 		"defaultMessage": "Zoom in",
 		"description": "Text of a demo in the docs, in components/menu/keep-open.tsx."
@@ -1270,10 +1274,6 @@
 	"docs.demo.14b6fc7de913": {
 		"defaultMessage": "1 reviewer",
 		"description": "Text of a demo in the docs as summarize, in components/combobox/custom-summary.tsx."
-	},
-	"docs.demo.14ec2a11b1f7": {
-		"defaultMessage": "Editing: {column}, {name}",
-		"description": "Text of a demo in the docs, in modules/grid/editing/cell-scope-and-spreadsheet-keys.tsx. The arguments {column} and {name} are values from the code."
 	},
 	"docs.demo.14f34284b054": {
 		"defaultMessage": "Slider",
@@ -3835,10 +3835,6 @@
 		"defaultMessage": "Tidy",
 		"description": "Text of a demo in the docs, in modules/dashboard/build-and-save.tsx."
 	},
-	"docs.demo.a2afd570cf7d": {
-		"defaultMessage": "Not editing",
-		"description": "Text of a demo in the docs, in modules/grid/editing/cell-scope-and-spreadsheet-keys.tsx."
-	},
 	"docs.demo.a2d285b35287": {
 		"defaultMessage": "Decline",
 		"description": "Text of a demo in the docs, in components/dialog/long-content.tsx."
@@ -4493,7 +4489,7 @@
 	},
 	"docs.demo.c6c094bc0054": {
 		"defaultMessage": "Empty",
-		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 16 more."
+		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 17 more."
 	},
 	"docs.demo.c71eb1e3f64d": {
 		"defaultMessage": "\n# Release notes\n\nVersion 2.4 adds **search in attachments**. Run `app update` to get it, or\nread the _full list_ of [changes](https://example.com).\n\n## Changes\n\n- Search finds the text in attachments\n- Shared folders show who changed each file\n  - The list shows the last ten changes\n- The dark theme follows the setting of your system\n\n'>' Back up your files before you update.\n\n```ts\nexport function isLatest(version: string) '{'\n\treturn version === ''2.4''\n'}'\n```\n",
