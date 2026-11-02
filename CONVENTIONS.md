@@ -85,6 +85,10 @@ An arrow key on a physical axis, such as a slider track or a map cursor, stays p
 
 The disclosure sweep in `sweeps/capabilities.test.tsx` opens each `disclosure` subject of the corpus and reads the two attributes. `disclosure-state-boundary.test.ts` finds each barreled component whose props take `open`, `defaultOpen`, or `onOpenChange`. It fails when the corpus has no subject for such a component and the test does not exempt it with a reason.
 
+3.12 A unit has one API. Do not add a prop or a key that lets a consumer go around it. An example is a `parts` key on a recipe in place of the `slots` of a unit. Do not add a new primitive that replaces a pattern that works. Extend the pattern ([CLAUDE.md](CLAUDE.md) §1.1).
+
+3.13 The first paint is the final layout. Hydration does not move, resize, or scroll what the server markup painted. Use CSS first: a container query, an initial scroll target (`scroll-initial-target`), or a size from the markup. When the layout depends on a value that the server cannot know, use a script before the paint through `InlineScript` (§3.10). Such a value is a setting that the reader stored or the room of a row. `AppearanceScript`, `EventsScript`, and the fit script of Breadcrumb are examples. A script does not move or scroll content after the paint. A value that depends on the day or the clock of the reader shows a skeleton until hydration (§3.7).
+
 ## 4. TypeScript
 
 4.1 In place of `any`, use `unknown` with narrowing, generics, or a precise type. Type external responses at the fetch boundary. Biome's `noExplicitAny` gates the first rule as an error.
@@ -312,6 +316,8 @@ A resolution changes the status of the row and cites the pull request, and nothi
 Do not mark a step done in the plan. Do not add the result of a step. Edit the plan only when the decision changes. Before you delete a plan, move each fact of it that is still true to a document that lasts. Such a document is [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md), a surface index, a module `ROADMAP.md`, or TSDoc.
 
 12.6 A comment gives the reason for the code. It does not record a measured time, such as the time that a build, a test, or a render took. A measured time changes with the machine and with later code, so a comment that keeps it becomes wrong. Write the reason in words that stay true, such as "most of the time of the suite". Put the measurement in the commit message or the pull request, which keep its date. The rule does not apply to a fixed value. Examples are a configured timeout or delay, the 50 ms limit of a long task, and the length of a frame at 60 Hz. A benchmark records its findings in a dated section of [`packages/ui/src/__benchmarks__/browser/README.md`](packages/ui/src/__benchmarks__/browser/README.md), and the file names that section.
+
+12.7 A Markdown file uses standard syntax: CommonMark and GitHub tables. It has no raw HTML, no alerts such as `> [!NOTE]`, and no footnotes.
 
 ## 13. Docs site
 
