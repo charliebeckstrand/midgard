@@ -328,7 +328,7 @@ export type GridColumn<T> = {
 	hideable?: boolean
 }
 
-/** A column as the {@link GridColumnManager} sees it: id, display `title`, and the pin/lock/hideable flags. */
+/** A column as the {@link GridColumnManager} sees it: id, display `title`, and the pin/lock/hideable flags. @internal */
 export type GridColumnManagerItem = {
 	id: string | number
 	title: ReactNode
