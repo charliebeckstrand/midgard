@@ -538,9 +538,11 @@ export type GridColumnFilters = {
 	/**
 	 * How each filterable column surfaces its filter. `'header'` (default) shows the
 	 * funnel button in every filterable column header. `'menu'` drops the resting
-	 * funnel, so it never takes header width. It offers the filter from the
-	 * column's right-click menu instead. The funnel returns only once a filter is
-	 * applied, as the edit/clear affordance.
+	 * funnel of a sortable column, so it takes no header width. It offers the
+	 * filter from the column's right-click menu instead, which the keyboard opens
+	 * from the sort button. A `sortable: false` column has no such focus stop, so
+	 * it keeps its funnel. The funnel of a sortable column returns only once a
+	 * filter is applied, as the edit/clear affordance.
 	 * @defaultValue 'header'
 	 */
 	affordance?: 'header' | 'menu'

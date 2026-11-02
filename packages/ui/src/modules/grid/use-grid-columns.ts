@@ -142,14 +142,17 @@ export function useGridColumns<T>({
 	// the manager's user-hidden set so collapsing a group doesn't uncheck them.
 	// A collapsed group keeps its first member that shows as the anchor of its
 	// band: a member that the reader hid, or that is pinned away from the band,
-	// cannot be the anchor.
-	const collapsedHidden = useMemo<ReadonlySet<string | number>>(
-		() =>
-			groups && collapsed
-				? collapsedHiddenIds(groups, collapsed, (id) => isOrderable(id) && !hiddenColumns.has(id))
-				: EMPTY_SET,
-		[groups, collapsed, hiddenColumns, isOrderable],
-	)
+	// cannot be the anchor. A `hideable: false` member shows when the hidden set
+	// names it, so it can be the anchor.
+	const collapsedHidden = useMemo<ReadonlySet<string | number>>(() => {
+		if (!groups || !collapsed) return EMPTY_SET
+
+		return collapsedHiddenIds(groups, collapsed, (id) => {
+			const column = columnById.get(id)
+
+			return column !== undefined && isOrderable(id) && isColumnShown(column, hiddenColumns)
+		})
+	}, [groups, collapsed, hiddenColumns, isOrderable, columnById])
 
 	// A `hideable: false` column always shows, so the hidden set cannot hide it.
 	// The check stays out of `isOrderable`, so the collapse of a group does not change.

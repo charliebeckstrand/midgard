@@ -97,6 +97,7 @@ type GridValues = {
 	reorderRows: Record<never, never>
 	actionsColumn: Record<never, never>
 	detailsColumn: Record<never, never>
+	selectionColumn: Record<never, never>
 	selectAll: Record<never, never>
 	selectAllOnPage: Record<never, never>
 	dataGrid: Record<never, never>
@@ -616,6 +617,12 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		defaultMessage: 'Details',
 		description:
 			'The hidden name of the header of the column of the buttons that open the detail panel of each row, when the column has no title.',
+	},
+	selectionColumn: {
+		id: 'ui.grid.selectionColumn',
+		defaultMessage: 'Selection',
+		description:
+			'The hidden name of the header of the column of row checkboxes, while the grid has no row and the header shows no checkbox.',
 	},
 	selectAll: {
 		id: 'ui.grid.selectAll',

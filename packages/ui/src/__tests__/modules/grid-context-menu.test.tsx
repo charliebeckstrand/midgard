@@ -499,6 +499,24 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
 	})
 
+	it('names the item with the label of the column manager, as the toolbar does', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnManager={{ label: 'Choose fields' }}
+				contextMenu={{ column: true }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Choose fields' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Manage columns' })).not.toBeInTheDocument()
+	})
+
 	it('omits "Manage columns" when the column manager is off', () => {
 		renderUI(
 			<Grid
