@@ -73,13 +73,13 @@ None. Each finding is independent. Merge note: One scope, so no group crosses a 
 
 - Axes: (a) Yes: triggerProps also carry data-slot="accordion-trigger" and onKeyDown, so a spread joins roving; an additive change to a public hook return, with a TSDoc and COMPONENTS.md update. (b) No: the TSDoc and COMPONENTS.md say that a custom trigger is a Tab stop only, and the code does not change.
 - Recommended: (a), because the TSDoc offers the hook for a custom trigger and the APG accordion pattern expects each header in the arrow-key set, and the change extends wiring that triggerProps already carry.
-- Answer: open.
+- Answer (Charlie, 2026-11-02): "Proceed as recommended with the rest." Settled on (a). No settle call: the step states each answer.
 
 **Q2** (was B01-Q2; gates S3). Does the panel promise of an unclipped ring or shadow at rest cover the item and root clip of the separated and outline variants?
 
 - Axes: (a) No: narrow the AccordionPanel TSDoc to the panel clip and name the item/root clip; no visual change. (b) Yes: drop overflow-hidden from the separated item and the outline root, which changes how full-bleed content meets the rounded border.
 - Recommended: (a), because no consumer root puts edge content in a panel and the default body padding already keeps a ring clear, so a TSDoc fix closes the gap with no visual risk.
-- Answer: open.
+- Answer (Charlie, 2026-11-02): "Proceed as recommended with the rest." Settled on (a). No settle call: the step states each answer.
 
 ## Ruled out
 
