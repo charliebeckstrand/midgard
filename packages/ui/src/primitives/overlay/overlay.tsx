@@ -26,6 +26,7 @@ import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
+import { useOverlayOpener } from './use-overlay-opener'
 import { useOverlayViewportFit } from './use-overlay-viewport-fit'
 
 /**
@@ -71,10 +72,12 @@ export type OverlayProps = {
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
 	 * Element to receive the focus when a modal overlay closes. Give it when
-	 * the focus belongs elsewhere. Also give it when the element that had the
-	 * focus as the overlay opened can be gone at the close.
+	 * the focus belongs elsewhere. Also give it when the element that opened
+	 * the overlay can be gone at the close.
 	 *
-	 * @defaultValue the element that had the focus as the overlay opened.
+	 * @defaultValue the element that opened the overlay: the element of the
+	 * last press or focus as it opened. A tap on a button in Safari does not
+	 * focus the button, so a press counts too.
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
 	/**
@@ -204,6 +207,10 @@ export function Overlay({
 	// A modal overlay moves the focus in itself, without a scroll of the page.
 	// The focus manager thus takes no initial focus.
 	useOverlayInitialFocus(modal ? floating : null, open, initialFocus)
+
+	// With no `returnFocusTo`, the focus goes back to the element that opened
+	// the overlay.
+	const returnRef = useOverlayOpener(open, returnFocusTo)
 
 	// A modal press outside the panel lands on the backdrop. With no paint, the
 	// backdrop stays for that press alone.
@@ -335,7 +342,7 @@ export function Overlay({
 
 	return (
 		<Portal open={open} container={container} ssr onExitComplete={() => setPresent(false)}>
-			<OverlayFocus modal={modal} regions={regions} context={context} returnFocusTo={returnFocusTo}>
+			<OverlayFocus modal={modal} regions={regions} context={context} returnFocusTo={returnRef}>
 				{panel}
 			</OverlayFocus>
 		</Portal>
