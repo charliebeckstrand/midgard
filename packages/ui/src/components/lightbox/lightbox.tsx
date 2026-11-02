@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -201,6 +201,15 @@ export function Lightbox({
 
 	const images = useRef(new Map<number, HTMLImageElement>())
 
+	// The thumbnail that the photo lands in. The focus manager of the overlay
+	// gives it the focus when the overlay unmounts, after the page is visible to
+	// assistive technology again. A thumbnail of an earlier open does not count.
+	const returnRef = useRef<HTMLElement | null>(null)
+
+	useLayoutEffect(() => {
+		if (open) returnRef.current = null
+	}, [open])
+
 	const context: LightboxContextValue = {
 		photos,
 		shown,
@@ -237,6 +246,7 @@ export function Lightbox({
 				backdrop={false}
 				dismissOnBackdrop={false}
 				coverChrome
+				returnFocusTo={returnRef}
 			>
 				{position >= 0 && (
 					<LightboxStage
@@ -246,11 +256,10 @@ export function Lightbox({
 							setIndex(next === null ? null : (viewable[next]?.index ?? null))
 						}
 						onReturn={() => {
-							// The focus goes to the thumbnail that the photo lands in. The
-							// focus manager of the overlay unmounts after this, and it does
-							// not move a focus that is outside the overlay.
+							// The overlay hides the page until it unmounts, so the focus
+							// cannot go to the thumbnail now.
 							if (shown !== null) {
-								images.current.get(shown)?.closest('button')?.focus({ preventScroll: true })
+								returnRef.current = images.current.get(shown)?.closest('button') ?? null
 							}
 
 							setShown(null)
