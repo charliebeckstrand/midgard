@@ -280,8 +280,9 @@ export type GridEditableConfig = {
 	 * - F2 commits and leaves the cursor on the cell.
 	 * - Escape abandons the session's staged edits.
 	 *
-	 * Beside the keys, a move to another cell and the settle pair commit. By
-	 * default nothing else does. {@link GridEditableConfig.commitOn} also
+	 * Beside the keys, a move to another cell and the settle pair commit. Under
+	 * `scope: 'cell'`, a pick in a choice editor (a listbox or a date picker)
+	 * also commits the cell, as F2 does. By default nothing else does. {@link GridEditableConfig.commitOn} also
 	 * commits the session when focus leaves its editors or the grid.
 	 *
 	 * @remarks The keys live on the grid's own key surface, so an `editCell` slot
@@ -335,7 +336,8 @@ export type GridEditableConfig = {
 	 * because focus that leaves the grid also leaves the editor.
 	 *
 	 * - `'explicit'`, the default, commits only on Enter, Tab, F2, a move to
-	 *   another cell, the settle pair, or your own `rows` or `cell` write.
+	 *   another cell, the settle pair, a pick in a choice editor under
+	 *   `scope: 'cell'`, or your own `rows` or `cell` write.
 	 * - `'leaveGrid'` also commits the session when focus leaves the grid, by
 	 *   pointer or by keyboard. Focus in a grid nested in a detail row is
 	 *   outside this grid.
@@ -508,8 +510,12 @@ export type GridEditableConfig = {
 	// biome-ignore lint/suspicious/noConfusingVoidType: `void` lets an `async` function with no `return` pass as the sink; `undefined` would refuse its `Promise<void>`.
 	onCommit: (changes: GridCellChange[]) => void | Promise<void | GridCellRefusal[]>
 	/**
-	 * Fires with the cells that {@link GridColumn.validate} refused, one batch per
-	 * row, beside the {@link GridEditableConfig.onCommit} batch of the same flush.
+	 * Fires with the cells that the grid refused. A session save reports the
+	 * cells that {@link GridColumn.validate} refused, one batch per row, beside
+	 * the {@link GridEditableConfig.onCommit} batch of the same flush. A paste or
+	 * a fill reports all its rows in one call: the cells that `validate` refused,
+	 * and each pasted text that does not fit its cell, with the text as the value.
+	 * {@link GridColumn.parse} (or the default coercion) decides the fit.
 	 *
 	 * A refused cell leaves the staging map with every other closed cell, so the
 	 * value the user typed is gone and nothing says so. `onCommit` cannot report
@@ -518,9 +524,8 @@ export type GridEditableConfig = {
 	 * explain the refusal. Cells dropped for other reasons stay out: an unchanged
 	 * cell is no refusal, and a column that stopped being editable refused nothing.
 	 *
-	 * @remarks Only a `validate` refusal calls this. A refusal from an async
-	 * `onCommit` does not, because the grid keeps that value as a staged edit
-	 * and shows the error itself.
+	 * @remarks A refusal from an async `onCommit` does not call this, because
+	 * the grid keeps that value as a staged edit and shows the error itself.
 	 */
 	onReject?: (refused: GridCellChange[]) => void
 	/**
