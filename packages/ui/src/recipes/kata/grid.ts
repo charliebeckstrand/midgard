@@ -319,9 +319,17 @@ export const k = {
 	cell: {
 		// Utility columns sized to their content: the selection checkbox, the
 		// row-actions cluster, and the master-detail expander. `w-px` shrinks each
-		// to its content against the auto-width data columns.
-		select: fitCell,
+		// to its content against the auto-width data columns. The selection cell
+		// is also the containing block and the hover group of the hit area of its
+		// checkbox.
+		select: `${fitCell} relative group/field`,
 		actions: 'w-px whitespace-nowrap',
+		// The hit area of the selection checkbox (see `GridSelectCheckbox`): a label
+		// of the checkbox that fills the cell. The hover of the label shows on the
+		// box, as the hover of the label of a checkbox field does. Cells do not
+		// overlap, so the hit areas of two checkboxes do not overlap, and a hit
+		// area does not go into a header or a data cell.
+		hit: ['absolute inset-0', ...cursor, 'touch-manipulation'],
 		expander: fitCell,
 		// The box around the content of a utility cell. It is `max-content` wide at any
 		// column width, so the autosizer reads the content width from it and sizes the

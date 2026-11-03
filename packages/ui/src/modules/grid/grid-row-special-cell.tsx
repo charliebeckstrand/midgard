@@ -2,7 +2,7 @@
 
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import { GripVertical } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import { type ChangeEventHandler, type CSSProperties, type ReactNode, useId } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
@@ -73,6 +73,40 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 	)
 }
 
+/** Props for {@link GridSelectCheckbox}. @internal */
+type GridSelectCheckboxProps = {
+	checked: boolean
+	/** Shows the partial state of the select-all checkbox. */
+	indeterminate?: boolean
+	onChange: ChangeEventHandler<HTMLInputElement>
+	/** The accessible name of the checkbox. */
+	label: string
+}
+
+/**
+ * The selection checkbox of a row or of the header. A second label of the
+ * checkbox fills the cell (`k.cell.hit`), so a press anywhere in the cell
+ * toggles the checkbox. The cell is the containing block of the label, and
+ * the cells of a table do not overlap. Thus the hit area is larger than the
+ * box, but it does not overlap the hit area of a different checkbox or the
+ * content of a different cell. The label holds the name of the checkbox as
+ * hidden text.
+ *
+ * @internal
+ */
+export function GridSelectCheckbox({ label, ...props }: GridSelectCheckboxProps) {
+	const id = useId()
+
+	return (
+		<>
+			<label htmlFor={id} data-slot="label" className={cn(k.cell.hit)}>
+				<span className="sr-only">{label}</span>
+			</label>
+			<Checkbox id={id} {...props} />
+		</>
+	)
+}
+
 /**
  * The box around the content of a special cell. It is `max-content` wide, and
  * `data-grid-fit` names its column, so the autosizer sizes the column to its
@@ -132,10 +166,10 @@ export function GridRowSpecialCell<T>({
 	if (col.selectable) {
 		return (
 			<GridFitBox col={col}>
-				<Checkbox
+				<GridSelectCheckbox
 					checked={selected}
 					onChange={() => toggleRow(rowKey)}
-					aria-label={intl.formatMessage(gridMessages.selectRow, {
+					label={intl.formatMessage(gridMessages.selectRow, {
 						row: rowName(intl, rowLabel, rowKey),
 					})}
 				/>
