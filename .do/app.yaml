@@ -7,6 +7,13 @@
 name: midgard
 region: nyc
 
+# The edge of App Platform changes each email address in an HTML response to
+# "[email protected]" and adds a script that puts the address back. The first
+# paint then shows the stand-in text and not the address, such as in the Grid
+# demos of the docs and the user lists of admin. The setting applies to all the
+# domains of the app.
+disable_email_obfuscation: true
+
 alerts:
   - rule: DEPLOYMENT_FAILED
   - rule: DOMAIN_FAILED
