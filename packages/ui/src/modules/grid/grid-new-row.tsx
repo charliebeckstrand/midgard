@@ -15,6 +15,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities/is-data-column'
 import { type GridNewRowSession, useGridNewRowSession } from './context'
+import { GRID_ROLE } from './engine/grid-constants'
 import {
 	collectNewRow,
 	type GridDraft,
@@ -120,10 +121,16 @@ function GridNewRowCell<T>({
 }) {
 	const editable = isColumnEditable(column)
 
+	// A press seats the cursor as a press on a data cell does (see
+	// `seatingCellProps`). The editor takes the focus of a press on it, so only
+	// a press on the rest of the cell pulls focus onto the grid. The pressed
+	// cell is in view, so the focus does not scroll.
 	const seat = (event: MouseEvent<HTMLTableCellElement>) => {
-		const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
+		if (!(event.target instanceof Node && event.currentTarget.contains(event.target))) return
 
-		if (!inCell || fromInteractiveContent(event.target)) return
+		if (!fromInteractiveContent(event.target)) {
+			event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
+		}
 
 		session.seat(col)
 	}

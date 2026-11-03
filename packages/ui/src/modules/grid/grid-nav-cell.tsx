@@ -140,9 +140,10 @@ export function GridNavCell({
  * The cursor-seating `cellProps` shared by the navigable and editable column
  * projections: a stable per-cell id, `role="gridcell"`, and a click-to-seat
  * `onMouseDown`. That handler moves the cursor to this cell, and pulls focus onto
- * the grid container. It stands down where the click landed on focusable cell
- * content: links, buttons, an editor. It also stands down for a press in a
- * portal that the cell renders. Merged over the consumer's own `cellProps` and any `extra`
+ * the grid container. A press on focusable cell content (a link, a button, an
+ * editor) moves the cursor too, but the content keeps the focus and the default
+ * of the press. A press in a portal that the cell renders does nothing. Merged
+ * over the consumer's own `cellProps` and any `extra`
  * attributes the caller layers on (the editable projection adds `aria-readonly`).
  * A column's own `onMouseDown` runs first, and its `preventDefault()` does not
  * stop the seat, because the cursor is a roving model (CONVENTIONS.md §3.9).
@@ -181,23 +182,26 @@ export function seatingCellProps<T>(args: {
 			(event: MouseEvent<HTMLTableCellElement>) => {
 				// A press in a portal that the cell renders, such as an editor's open
 				// listbox, reaches the cell through the React tree. It is not a press
-				// on the cell, so it must not pull focus onto the grid.
-				const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
+				// on the cell, so it must not seat the cursor or pull focus onto the grid.
+				if (!(event.target instanceof Node && event.currentTarget.contains(event.target))) return
 
-				// The pressed cell is in view, and the cursor reveals it. A focus that
-				// scrolls would reveal the whole table, and WebKit then scrolls the
-				// page under the finger between the two taps of a double tap.
-				if (inCell && !fromInteractiveContent(event.target)) {
+				// A press on focusable content, such as the trigger of a Listbox
+				// editor, seats the cursor as a press on the cell does. The content
+				// takes the focus, so the grid does not pull it.
+				if (!fromInteractiveContent(event.target)) {
 					// The second press of a double click opens an editable cell. The
 					// browser selects a word on that press, and the selection shows
 					// until the editor replaces the text. Thus the handler prevents
 					// the default of that press.
 					if (touch && event.detail > 1) event.preventDefault()
 
+					// The pressed cell is in view, and the cursor reveals it. A focus that
+					// scrolls would reveal the whole table, and WebKit then scrolls the
+					// page under the finger between the two taps of a double tap.
 					event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
-
-					seat({ row: rowIndex, col: colIndex }, event)
 				}
+
+				seat({ row: rowIndex, col: colIndex }, event)
 			},
 			{ checkForDefaultPrevented: false },
 		),
