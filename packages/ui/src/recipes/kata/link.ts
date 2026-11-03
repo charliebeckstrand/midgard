@@ -1,9 +1,14 @@
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { iro } from '../kiso'
+import { iro, kasane, sen } from '../kiso'
 
 const { palette } = iro
+const { rounded } = kasane
+const { focus } = sen
 
 export const k = defineKata({
+	// The ring of the library on keyboard focus, in place of the outline of the
+	// browser. The radius rounds the ring, as on a Breadcrumb link.
+	base: [rounded.sm, focus.ring],
 	color: {
 		zinc: palette.bare.zinc,
 		red: palette.bare.red,
