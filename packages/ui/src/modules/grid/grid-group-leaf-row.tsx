@@ -13,6 +13,7 @@ import type { GridLeaf } from './engine/grid-group/tree'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import {
+	cellMarkerAt,
 	cellPropsAt,
 	type GridCellClick,
 	type GridCellRovingActivate,
@@ -108,22 +109,28 @@ function leafCellInner<T>(args: {
 	const { col, row, rowIndex, rowKey, selected, toggleRow, rowLabel, truncate } = args
 
 	// The Add column of the new-row slot is empty in a leaf row.
-	if (isNewRowAddColumn(col.id)) return null
+	if (isNewRowAddColumn(col.id)) return cellMarkerAt(col, rowIndex)
 
 	// Row reorder stands down under grouping, so the leaf gives no sortable and
 	// its grip is inert.
 	if (col.dragHandle || col.selectable || col.actions) {
 		return (
-			<GridRowSpecialCell
-				col={col}
-				row={row}
-				rowKey={rowKey}
-				selected={selected}
-				toggleRow={toggleRow}
-				rowLabel={rowLabel}
-			/>
+			<>
+				<GridRowSpecialCell
+					col={col}
+					row={row}
+					rowKey={rowKey}
+					selected={selected}
+					toggleRow={toggleRow}
+					rowLabel={rowLabel}
+				/>
+				{cellMarkerAt(col, rowIndex)}
+			</>
 		)
 	}
+
+	// A leaf row gives the expander column no toggle, so its cell holds only the marker.
+	if (!isDataColumn(col)) return cellMarkerAt(col, rowIndex)
 
 	// The column renders the cell as a flat row does.
 	return cellBody(col, row, rowIndex, truncate)

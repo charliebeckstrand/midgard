@@ -147,6 +147,8 @@ describe('measureColumns', () => {
 			isStopActive: () => false,
 			stopId: (key) => key,
 			seatStop: () => {},
+			cellId: () => '',
+			seatHeader: () => {},
 			claimReveal: () => false,
 			publish: () => {},
 		}

@@ -179,6 +179,12 @@ const NO_TOOLTIP: CellTooltip = { kind: 'none' }
 export type GridIndexedColumn<T> = GridColumn<T> & {
 	cellAt?: (row: T, rowIndex: number) => ReactNode
 	cellPropsAt?: (row: T, rowIndex: number) => Omit<ComponentProps<'td'>, 'children'>
+	/**
+	 * The active-cell marker of a cell whose content the grid renders itself:
+	 * the selection, actions, drag handle, and expander columns. The cell
+	 * renders it after its content. A data cell takes its marker from `cellAt`.
+	 */
+	markerAt?: (rowIndex: number) => ReactNode
 }
 
 /**
@@ -189,7 +195,9 @@ export type GridIndexedColumn<T> = GridColumn<T> & {
  * @internal
  */
 export function cellRowIndex<T>(col: GridIndexedColumn<T>, rowIndex: number): number {
-	return col.cellAt !== undefined || col.cellPropsAt !== undefined ? rowIndex : -1
+	return col.cellAt !== undefined || col.cellPropsAt !== undefined || col.markerAt !== undefined
+		? rowIndex
+		: -1
 }
 
 /** The content of a column's cell in the row at `rowIndex` of the view, or `null` with no `cell`. @internal */
@@ -197,6 +205,11 @@ export function cellContentAt<T>(col: GridIndexedColumn<T>, row: T, rowIndex: nu
 	if (col.cellAt) return col.cellAt(row, rowIndex) ?? null
 
 	return col.cell ? (col.cell(row) ?? null) : null
+}
+
+/** The active-cell marker of a non-data cell in the row at `rowIndex` of the view, or `null` with none. @internal */
+export function cellMarkerAt<T>(col: GridIndexedColumn<T>, rowIndex: number): ReactNode {
+	return col.markerAt ? col.markerAt(rowIndex) : null
 }
 
 /** The `cellProps` of a column's cell in the row at `rowIndex` of the view. @internal */

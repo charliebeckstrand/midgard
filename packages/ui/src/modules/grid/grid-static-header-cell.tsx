@@ -11,6 +11,7 @@ import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridSelectCheckbox } from './grid-row-special-cell'
 import type { GridColumn } from './types'
+import type { GridHeaderCursor } from './use-grid-header-cursor'
 
 /** The place of a static header cell: its column, index, and frozen edge. @internal */
 type GridStaticHeaderPlace<T> = {
@@ -18,19 +19,27 @@ type GridStaticHeaderPlace<T> = {
 	ariaColIndex: number | undefined
 	stickyHeader: boolean
 	pinning: GridColumnPinning | null
+	/** The cursor parts of the cell, or `null` while the grid has no cursor (see {@link useGridHeaderCursor}). */
+	cursor: GridHeaderCursor | null
 }
 
 /**
- * The `<th>` props of a static header cell that can freeze: the column index,
- * the class of the cell with the sticky and pinned classes, the pinned inset,
- * and the pin side. @internal
+ * The `<th>` props of a static header cell that can freeze: the cursor props,
+ * the column index, the class of the cell with the sticky and pinned classes,
+ * the pinned inset, and the pin side. @internal
  */
 function getPinnedProps<T>(place: GridStaticHeaderPlace<T>, className: string) {
 	const pinned = pinnedHeaderProps(place.pinning, place.column, place.column.width || undefined)
 
 	return {
+		...place.cursor?.props,
 		'aria-colindex': place.ariaColIndex,
-		className: cn(className, place.stickyHeader && k.sticky.head, pinned.className),
+		className: cn(
+			className,
+			place.stickyHeader && k.sticky.head,
+			pinned.className,
+			place.cursor?.props.className,
+		),
 		style: pinned.style,
 		'data-grid-pin': pinned.pin,
 	}
@@ -69,6 +78,7 @@ function GridSelectHeaderCell<T>({
 			) : (
 				<span className="sr-only">{intl.formatMessage(gridMessages.selectionColumn)}</span>
 			)}
+			{place.cursor?.marker}
 		</TableHeader>
 	)
 }
@@ -80,24 +90,13 @@ function GridSelectHeaderCell<T>({
  *
  * @internal
  */
-function GridDragHandleHeaderCell<T>({
-	column,
-	ariaColIndex,
-	stickyHeader,
-	pinning,
-}: {
-	column: GridColumn<T>
-	ariaColIndex: number | undefined
-	stickyHeader: boolean
-	pinning: GridColumnPinning | null
-}) {
+function GridDragHandleHeaderCell<T>(place: GridStaticHeaderPlace<T>) {
 	const intl = useIntl()
 
 	return (
-		<TableHeader
-			{...getPinnedProps({ column, ariaColIndex, stickyHeader, pinning }, k.row.reorder.cell)}
-		>
+		<TableHeader {...getPinnedProps(place, k.row.reorder.cell)}>
 			<span className="sr-only">{intl.formatMessage(gridMessages.reorderRows)}</span>
+			{place.cursor?.marker}
 		</TableHeader>
 	)
 }
@@ -114,20 +113,19 @@ function GridNewRowAddHeaderCell<T>({
 	column,
 	ariaColIndex,
 	stickyHeader,
-}: {
-	column: GridColumn<T>
-	ariaColIndex: number | undefined
-	stickyHeader: boolean
-}) {
+	cursor,
+}: GridStaticHeaderPlace<T>) {
 	const intl = useIntl()
 
 	return (
 		<TableHeader
+			{...cursor?.props}
 			aria-colindex={ariaColIndex}
-			className={cn(k.cell.actions, stickyHeader && k.sticky.head)}
+			className={cn(k.cell.actions, stickyHeader && k.sticky.head, cursor?.props.className)}
 			style={{ width: column.width }}
 		>
 			<span className="sr-only">{intl.formatMessage(gridMessages.addRow)}</span>
+			{cursor?.marker}
 		</TableHeader>
 	)
 }
@@ -162,11 +160,5 @@ export function GridStaticHeaderCell<T>({
 
 	if (column.dragHandle) return <GridDragHandleHeaderCell {...place} />
 
-	return (
-		<GridNewRowAddHeaderCell
-			column={column}
-			ariaColIndex={place.ariaColIndex}
-			stickyHeader={place.stickyHeader}
-		/>
-	)
+	return <GridNewRowAddHeaderCell {...place} />
 }

@@ -418,8 +418,9 @@ describe('grid new row (real browser)', () => {
 
 		screen.getByRole('grid').focus()
 
-		// The last cell of the cursor order is the last editor of the row.
-		await userEvent.keyboard('{Control>}{End}{/Control}')
+		// The last cell of the cursor order is the Add cell. The cell before it is
+		// the last editor of the row.
+		await userEvent.keyboard('{Control>}{End}{/Control}{ArrowLeft}')
 
 		await waitFor(() => expect(activeCell().closest('[data-slot="grid-new-row"]')).not.toBeNull())
 

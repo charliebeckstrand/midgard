@@ -208,7 +208,7 @@ export function useGridEditing<T>({
 	editSource,
 	editSourceRef,
 	rowKeysRef,
-	dataColumnsRef,
+	cursorColumnsRef,
 	tableRef,
 	cellId,
 	moveTo,
@@ -226,8 +226,8 @@ export function useGridEditing<T>({
 	/** The grid's own rows and columns, which the commit path resolves against. */
 	editSourceRef: RefObject<GridEditSource<T>>
 	rowKeysRef: RefObject<(string | number)[]>
-	/** Visible data columns in display order. */
-	dataColumnsRef: RefObject<GridColumn<T>[]>
+	/** The columns of the cursor: the visible columns, in display order. */
+	cursorColumnsRef: RefObject<GridColumn<T>[]>
 	/** The grid `<table>`, the tab stop that a session exit reseats focus on. */
 	tableRef: RefObject<HTMLTableElement | null>
 	/** The cursor's per-cell id deriver; locates the entered cell's editor to focus it. */
@@ -451,7 +451,7 @@ export function useGridEditing<T>({
 		activeEditRef,
 		tableRef,
 		rowKeysRef,
-		dataColumnsRef,
+		cursorColumnsRef,
 		cellId,
 		moveTo,
 	})
@@ -463,7 +463,7 @@ export function useGridEditing<T>({
 		drafts,
 		editSource,
 		editSourceRef,
-		dataColumnsRef,
+		cursorColumnsRef,
 		tableRef,
 		reseat,
 		cellId,
@@ -786,7 +786,7 @@ export function useGridEditing<T>({
 		controlled,
 		tableRef,
 		rowKeysRef,
-		dataColumnsRef,
+		cursorColumnsRef,
 		editableRowsRef,
 		activeEditRef,
 		sessionRowRef,
@@ -842,7 +842,7 @@ export function useGridEditing<T>({
 	// cell. A row with no editable column has nothing to open.
 	const editRow = useCallback(
 		(rowKey: string | number) => {
-			const cell = firstEditorCell(rowKey, dataColumnsRef.current)
+			const cell = firstEditorCell(rowKey, cursorColumnsRef.current)
 
 			if (!cell) return
 
@@ -850,7 +850,7 @@ export function useGridEditing<T>({
 
 			placeOrigin(rowKey)
 		},
-		[dataColumnsRef, enterEdit, placeOrigin],
+		[cursorColumnsRef, enterEdit, placeOrigin],
 	)
 
 	// A cell-scoped session leaves its cell as the form of `rowKey` opens. A cell
@@ -886,7 +886,7 @@ export function useGridEditing<T>({
 	// of the cursor.
 	const expandRow = useCallback(
 		(rowKey: string | number, columnId?: string | number) => {
-			const columns = dataColumnsRef.current
+			const columns = cursorColumnsRef.current
 
 			const active = activeEditRef.current
 
@@ -928,7 +928,7 @@ export function useGridEditing<T>({
 		[
 			activeEditStore,
 			bump,
-			dataColumnsRef,
+			cursorColumnsRef,
 			leaveHeldCell,
 			originsRef,
 			pendingFocusRef,
@@ -955,7 +955,7 @@ export function useGridEditing<T>({
 		drafts,
 		editSourceRef,
 		rowKeysRef,
-		dataColumnsRef,
+		cursorColumnsRef,
 		moveTo,
 		history,
 		hasCommit,

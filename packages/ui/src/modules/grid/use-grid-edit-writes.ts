@@ -51,7 +51,7 @@ export function useGridEditWrites<T>({
 	drafts,
 	editSourceRef,
 	rowKeysRef,
-	dataColumnsRef,
+	cursorColumnsRef,
 	moveTo,
 	history,
 	hasCommit,
@@ -62,8 +62,8 @@ export function useGridEditWrites<T>({
 	drafts: GridDraftStore
 	editSourceRef: RefObject<GridEditSource<T>>
 	rowKeysRef: RefObject<(string | number)[]>
-	/** Visible data columns in display order. */
-	dataColumnsRef: RefObject<GridColumn<T>[]>
+	/** The columns of the cursor: the visible columns, in display order. */
+	cursorColumnsRef: RefObject<GridColumn<T>[]>
 	moveTo: (coord: Coord) => void
 	history: GridEditHistory
 	/** Whether the config has an `onCommit` sink. */
@@ -183,11 +183,11 @@ export function useGridEditWrites<T>({
 		(cell: GridHistoryCell | undefined) => {
 			if (!cell) return
 
-			const coord = findCoord(rowKeysRef.current, dataColumnsRef.current, cell)
+			const coord = findCoord(rowKeysRef.current, cursorColumnsRef.current, cell)
 
 			if (coord.row !== -1 && coord.col !== -1) moveTo(coord)
 		},
-		[rowKeysRef, dataColumnsRef, moveTo],
+		[rowKeysRef, cursorColumnsRef, moveTo],
 	)
 
 	// Takes one step through the history, and returns whether it wrote a cell.

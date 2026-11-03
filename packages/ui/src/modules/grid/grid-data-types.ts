@@ -1161,16 +1161,33 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	rowReorder?: GridRowReorder<T>
 
 	/**
-	 * Adds a keyboard cell cursor over the data cells. The grid becomes a single
-	 * tab stop (`role="grid"`) whose active cell moves with the arrow keys. Home/End
-	 * reach the row edges, Ctrl/Cmd+Home/End the grid corners, and PageUp/PageDown
-	 * the page steps. The cursor is tracked for assistive tech through
+	 * Adds a keyboard cell cursor. The grid becomes one tab stop
+	 * (`role="grid"`), and its active cell moves with the arrow keys. The cursor
+	 * reaches each cell: the header row, the data cells, and the cells of the
+	 * selection, actions, drag-handle, and expander columns. ArrowUp from the
+	 * first row moves to the header row. Home/End reach the row edges,
+	 * Ctrl/Cmd+Home/End the corners of the body, and PageUp/PageDown the page
+	 * steps. The cursor is tracked for assistive tech through
 	 * `aria-activedescendant`, and ringed on screen.
-	 * Enter/Space activates the active cell's {@link GridDataProps.onCellClick}
-	 * and the active row's {@link GridDataProps.onRowClick}, in that order;
-	 * clicking a cell seats the cursor there. With a selection column, Space
-	 * toggles the selection of the active row and activates nothing, and only
-	 * Enter activates.
+	 *
+	 * The controls in the cells, such as links, buttons, and the selection
+	 * checkbox, leave the tab order, so Tab and Shift+Tab leave the grid in one
+	 * press. Enter or F2 on a cell that holds controls moves focus to its first
+	 * control. Tab then moves through the controls of that cell, and from the
+	 * last one out of the grid. Escape gives focus back to the grid, and the
+	 * cursor stays on the cell. Focus that goes to a control by other means, such
+	 * as a press, moves the cursor to its cell. On a header cell, Enter sorts the
+	 * column, and F2 moves focus to the controls of the header, such as the sort
+	 * button and the resize handle.
+	 *
+	 * Space on a data cell, and Enter on a data cell with no controls, activate
+	 * the active cell's {@link GridDataProps.onCellClick} and the active row's
+	 * {@link GridDataProps.onRowClick}, in that order; clicking a cell seats the
+	 * cursor there. With a selection column, Space toggles the selection of the
+	 * active row and activates nothing, and only Enter activates.
+	 *
+	 * Only one ring shows at a time. While a control in the active cell has
+	 * focus, its own focus ring shows, and the ring of the cell does not.
 	 *
 	 * A client-grouped grid is a `treegrid`. Each group header row carries
 	 * `aria-level` 1 and `aria-expanded`, and each leaf and total carries
@@ -1186,9 +1203,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * the row.
 	 *
 	 * Off by default, so a static table keeps the browser/screen-reader's native
-	 * table navigation; opt in for a spreadsheet-style read-only grid. Focusable
-	 * cell content (links, buttons, the selection checkbox) stays independently
-	 * tabbable: the cursor is additive, not a focus trap.
+	 * table navigation; opt in for a spreadsheet-style read-only grid.
 	 * @defaultValue false
 	 */
 	navigable?: boolean
@@ -1232,8 +1247,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * cannot edit, a cell of a column with no `field`, and a cell that holds a
 	 * draft. The live region counts the written and the skipped cells.
 	 *
-	 * The range covers data cells only. A group header, a group total, a detail
-	 * panel, and the new-row slot inside it are not cells of the range. A sort,
+	 * The range covers the body cells of the cursor. A cell of a column with no
+	 * value, such as the selection or actions column, copies as an empty field.
+	 * The header row, a group header, a group total, a detail panel, and the
+	 * new-row slot are not cells of the range. A sort,
 	 * a filter, a page change, a change of the groups, or a change of the column
 	 * order or visibility ends the range. The live region gives the size and the
 	 * corners of the range once it stops changing. The cells take no

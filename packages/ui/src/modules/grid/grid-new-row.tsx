@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type ComponentProps,
 	type CSSProperties,
 	type MouseEvent,
 	type ReactNode,
@@ -15,6 +16,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities/is-data-column'
 import { type GridNewRowSession, useGridNewRowSession } from './context'
+import { GRID_CELL_PROPS } from './engine/grid-cell-controls'
 import { GRID_ROLE } from './engine/grid-constants'
 import {
 	collectNewRow,
@@ -88,6 +90,35 @@ type GridNewRowProps<T> = {
 }
 
 /**
+ * The cursor props of a cell of the new-row slot: the cell id, the role, and a
+ * press that seats the cursor, as on a data cell (see `seatingCellProps`). A
+ * control in the cell takes the focus of a press on it, so only a press on the
+ * rest of the cell pulls focus onto the grid. The pressed cell is in view, so
+ * the focus does not scroll.
+ *
+ * @internal
+ */
+function slotCellProps(
+	session: GridNewRowSession,
+	col: number,
+): Pick<ComponentProps<'td'>, 'id' | 'role' | 'onMouseDown'> {
+	return {
+		id: session.cellId(NEW_ROW_INDEX, col),
+		role: 'gridcell',
+		...GRID_CELL_PROPS,
+		onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
+			if (!(event.target instanceof Node && event.currentTarget.contains(event.target))) return
+
+			if (!fromInteractiveContent(event.target)) {
+				event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
+			}
+
+			session.seat(col)
+		},
+	}
+}
+
+/**
  * One cell of the new-row slot. It carries the cursor's cell id and ring, and
  * a press on it seats the cursor, as a data cell does. An editable column
  * mounts its editor at all times. While an add is in flight, each editor
@@ -108,7 +139,7 @@ function GridNewRowCell<T>({
 }: {
 	session: GridNewRowSession
 	column: GridColumn<T>
-	/** The cursor's column index, among the visible data columns. */
+	/** The cursor's column index, among the visible columns. */
 	col: number
 	ariaColIndex: number | undefined
 	draftRow: T
@@ -120,20 +151,6 @@ function GridNewRowCell<T>({
 	pin: string | undefined
 }) {
 	const editable = isColumnEditable(column)
-
-	// A press seats the cursor as a press on a data cell does (see
-	// `seatingCellProps`). The editor takes the focus of a press on it, so only
-	// a press on the rest of the cell pulls focus onto the grid. The pressed
-	// cell is in view, so the focus does not scroll.
-	const seat = (event: MouseEvent<HTMLTableCellElement>) => {
-		if (!(event.target instanceof Node && event.currentTarget.contains(event.target))) return
-
-		if (!fromInteractiveContent(event.target)) {
-			event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
-		}
-
-		session.seat(col)
-	}
 
 	const pending = editable && session.inFlight
 
@@ -174,8 +191,7 @@ function GridNewRowCell<T>({
 
 	return (
 		<TableCell
-			id={session.cellId(NEW_ROW_INDEX, col)}
-			role="gridcell"
+			{...slotCellProps(session, col)}
 			data-grid-new-col={String(column.id)}
 			aria-colindex={ariaColIndex}
 			aria-readonly={ariaAttr(!editable)}
@@ -183,7 +199,6 @@ function GridNewRowCell<T>({
 			className={className}
 			style={style}
 			data-grid-pin={pin}
-			onMouseDown={seat}
 		>
 			<GridNavCell row={NEW_ROW_INDEX} col={col}>
 				{content}
@@ -205,19 +220,23 @@ function GridNewRowCell<T>({
  *
  * @remarks The cell carries `data-grid-new-col`, so the slot's key handler
  * takes the keys of its control. Escape and F2 then leave the slot, and do
- * not reach the session of the data rows. The cell is not a stop of the
- * keyboard cursor. Tab reaches its control after the last editor.
+ * not reach the session of the data rows. The cell is a cell of the keyboard
+ * cursor, as the other cells of the slot are. Enter or F2 on it moves focus to
+ * its control.
  *
  * @internal
  */
 function GridNewRowAddCell({
 	session,
+	col,
 	render,
 	onMeasure,
 	ariaColIndex,
 	className,
 }: {
 	session: GridNewRowSession
+	/** The cursor's column index, among the visible columns. */
+	col: number
 	render: ((context: GridNewRowAddContext) => ReactNode) | undefined
 	/** Takes the width that the cell needs, or is `undefined` under a fixed width. */
 	onMeasure: ((width: number) => void) | undefined
@@ -256,11 +275,12 @@ function GridNewRowAddCell({
 
 	return (
 		<TableCell
+			{...slotCellProps(session, col)}
 			ref={cellRef}
 			data-grid-new-col={NEW_ROW_ADD_COLUMN_ID}
 			aria-colindex={ariaColIndex}
 			aria-busy={ariaAttr(pending)}
-			className={cn(className, k.row.new.cell.add)}
+			className={cn(className, k.row.new.cell.add, k.nav.cell)}
 		>
 			<span
 				ref={controlRef}
@@ -273,6 +293,7 @@ function GridNewRowAddCell({
 					<GridAddRowButton addRow={session.addRow} />
 				)}
 			</span>
+			<GridNavCell row={NEW_ROW_INDEX} col={col} fills={false} />
 		</TableCell>
 	)
 }
@@ -358,6 +379,7 @@ export function GridNewRow<T>({
 							<GridNewRowAddCell
 								key={column.id}
 								session={session}
+								col={index}
 								render={add?.render}
 								onMeasure={add?.width === undefined ? onMeasureAdd : undefined}
 								ariaColIndex={ariaColIndex}
@@ -365,15 +387,20 @@ export function GridNewRow<T>({
 							/>
 						)
 
+					// The slot has no row to select, drag, expand, or act on, so a cell of
+					// another non-data column is empty. It is still a cell of the cursor.
 					if (!isDataColumn(column))
 						return (
 							<TableCell
+								{...slotCellProps(session, index)}
 								key={column.id}
 								aria-colindex={ariaColIndex}
-								className={className}
+								className={cn(className, k.nav.cell)}
 								style={pinned.style}
 								data-grid-pin={pinned.pin}
-							/>
+							>
+								<GridNavCell row={NEW_ROW_INDEX} col={index} fills={false} />
+							</TableCell>
 						)
 
 					// The width rules of the fit layout, as on a body cell (see `fitCellProps`).
@@ -384,7 +411,7 @@ export function GridNewRow<T>({
 							key={column.id}
 							session={session}
 							column={column}
-							col={dataColumns.indexOf(column)}
+							col={index}
 							ariaColIndex={ariaColIndex}
 							draftRow={draftRow}
 							readDraftRow={readDraftRow}

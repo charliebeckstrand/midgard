@@ -79,11 +79,15 @@ export function useGridDataView<T>({
 }) {
 	const intl = useIntl()
 
-	// Cursor index space: rendered rows and the visible *data* columns. It skips the
-	// non-data columns (selection, actions, drag handle, expander). Synced into the
-	// refs below, after the engine resolves order and visibility, so the cell ids,
-	// `aria-activedescendant`, and click-to-focus track the displayed grid even as it
-	// sorts, filters, or paginates.
+	// Cursor index space: rendered rows and every visible column. The non-data
+	// columns (selection, actions, drag handle, expander) are cells of the cursor
+	// too, so the keyboard reaches their controls. Synced into the refs below,
+	// after the engine resolves order and visibility, so the cell ids,
+	// `aria-activedescendant`, and click-to-focus track the displayed grid even as
+	// it sorts, filters, or paginates.
+	const cursorColumns = visibleColumns
+
+	// The roving cells of a grid with no cursor are its data cells.
 	const dataColumns = useMemo(() => visibleColumns.filter(isDataColumn), [visibleColumns])
 
 	// Roving-tabindex keyboard navigation over the clickable rows (row mode) or
@@ -111,11 +115,11 @@ export function useGridDataView<T>({
 	)
 
 	const colIndexMap = useMemo(
-		() => new Map(dataColumns.map((col, index) => [col.id, index] as const)),
-		[dataColumns],
+		() => new Map(cursorColumns.map((col, index) => [col.id, index] as const)),
+		[cursorColumns],
 	)
 
-	const dataColumnIds = useMemo(() => dataColumns.map((col) => col.id), [dataColumns])
+	const cursorColumnIds = useMemo(() => cursorColumns.map((col) => col.id), [cursorColumns])
 
 	// A sort, a filter, a page, or a column change moves the cells. The cursor
 	// follows its cell by the row key and the column id, and clamps to the new
@@ -124,8 +128,8 @@ export function useGridDataView<T>({
 	// keys moves nothing. The new-row slot counts as a row of the cursor's order,
 	// so a change to it clamps too. The call is inert for a grid with no cursor.
 	useLayoutEffect(() => {
-		reconcile(rowKeys, dataColumnIds, cursorNewRow)
-	}, [reconcile, rowKeys, dataColumnIds, cursorNewRow])
+		reconcile(rowKeys, cursorColumnIds, cursorNewRow)
+	}, [reconcile, rowKeys, cursorColumnIds, cursorNewRow])
 
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0
@@ -165,7 +169,7 @@ export function useGridDataView<T>({
 		rowIndexMap,
 		colIndexMap,
 		rowKeys,
-		dataColumns,
+		cursorColumns,
 		selectable: hasSelectionColumn,
 		toggleRow,
 	})

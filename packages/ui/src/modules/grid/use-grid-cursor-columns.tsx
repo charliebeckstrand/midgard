@@ -19,7 +19,7 @@ import type { Coord } from './use-grid-navigation'
 import type { GridTouchEntry } from './use-grid-touch-entry'
 
 /**
- * Projects the data columns of a grid with a cursor into cursor columns. Each
+ * Projects the columns of a grid with a cursor into cursor columns. Each
  * gains a stable per-cell id, matched by the grid's `aria-activedescendant`,
  * `role="gridcell"`, and a click-to-seat `onMouseDown`.
  *
@@ -33,8 +33,10 @@ import type { GridTouchEntry } from './use-grid-touch-entry'
  * body with no place to give reads it from `rowIndexMapRef`. The column index
  * and the row key resolve at render time, so the columns stay referentially
  * stable across cursor moves and edits, and the memoized rows hold. The
- * non-data columns (selection, actions, drag handle, expander), and a grid with
- * no cursor (`enabled` false), pass through untouched.
+ * non-data columns (selection, actions, drag handle, expander) gain the id,
+ * the role, and the seat, and a marker (`markerAt`) that their cell renders
+ * after the content that the grid gives it. A grid with no cursor (`enabled`
+ * false) passes its columns through untouched.
  *
  * The closures read the refs inline. A helper that took them would read a ref
  * during render, and the compiler would skip the hook.
@@ -81,7 +83,25 @@ export function useGridCursorColumns<T>({
 		const getColumnIndex = (id: string | number) => colIndexMapRef.current.get(id) ?? -1
 
 		return columns.map((col): GridIndexedColumn<T> => {
-			if (!isDataColumn(col)) return col
+			// A non-data cell is a cell of the cursor too, so the keyboard reaches its
+			// controls. The grid renders its content, so the cell takes the marker
+			// after that content. It holds no fill handle, because it has no value.
+			if (!isDataColumn(col)) {
+				const cellPropsAt = (row: T, rowIndex: number): ComponentProps<'td'> => {
+					const props = seatingCellProps({ col, row, rowIndex, colIndexMapRef, cellId, seat })
+
+					return { ...props, className: cn(k.nav.cell, props.className) }
+				}
+
+				return {
+					...col,
+					cellPropsAt,
+					cellProps: (row: T) => cellPropsAt(row, getRowIndex(row)),
+					markerAt: (rowIndex: number) => (
+						<GridNavCell row={rowIndex} col={getColumnIndex(col.id)} fills={false} />
+					),
+				}
+			}
 
 			const renderCell = col.cell
 

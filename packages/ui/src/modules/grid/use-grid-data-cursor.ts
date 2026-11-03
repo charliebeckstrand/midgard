@@ -9,6 +9,7 @@ import {
 	useState,
 } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { resolveNewRow } from './engine/grid-new-row'
 import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import {
 	bridgeCellActivate,
@@ -159,6 +160,23 @@ export function useGridDataCursor<T>({
 		[handleCellClick, refs],
 	)
 
+	// The new-row slot's Add control has a column of its own after the others
+	// (see `withNewRowAddColumn`). It joins after the column order and visibility
+	// state, so no saved state names it. It follows the configured slot, not the
+	// loading state, so the column set stays stable. Its width is the one the Add
+	// cell measures for its control, unless `newRowAdd.width` fixes it. The
+	// column joins before the cursor, so its cells are cells of the cursor as the
+	// cells of the other columns are.
+	const [measuredAddWidth, setMeasuredAddWidth] = useState<number | null>(null)
+
+	const addWidth = resolveNewRowAddWidth(
+		resolveNewRow(editable, editable?.session === 'managed') !== null,
+		editable?.newRowAdd,
+		measuredAddWidth,
+	)
+
+	const withAdd = useMemo(() => withNewRowAddColumn(columns, addWidth), [columns, addWidth])
+
 	// The cursor + editing layer: the augmented columns, the `<table>` cursor
 	// props, the cursor store, and the row-editing-context wrapper. Inert for a
 	// static grid.
@@ -166,7 +184,7 @@ export function useGridDataCursor<T>({
 		navigable,
 		range: range ?? false,
 		editable,
-		columns,
+		columns: withAdd,
 		onRowActivate,
 		onCellActivate,
 		onActiveCellChange,
@@ -195,24 +213,6 @@ export function useGridDataCursor<T>({
 		[cursor.editOnCellDoubleClick, handleCellDoubleClick],
 	)
 
-	// The new-row slot's Add control has a column of its own after the others
-	// (see `withNewRowAddColumn`). It joins after the column order and visibility
-	// state, so no saved state names it. It follows the configured slot, not the
-	// loading state, so the column set stays stable. Its width is the one the Add
-	// cell measures for its control, unless `newRowAdd.width` fixes it.
-	const [measuredAddWidth, setMeasuredAddWidth] = useState<number | null>(null)
-
-	const addWidth = resolveNewRowAddWidth(
-		cursor.newRow !== null,
-		editable?.newRowAdd,
-		measuredAddWidth,
-	)
-
-	const engineColumns = useMemo(
-		() => withNewRowAddColumn(cursor.columns, addWidth),
-		[cursor.columns, addWidth],
-	)
-
 	return {
 		cursor,
 		handleRowClick,
@@ -220,7 +220,7 @@ export function useGridDataCursor<T>({
 		handleRowDoubleClick,
 		cellDoubleClick,
 		cellActivate,
-		engineColumns,
+		engineColumns: cursor.columns,
 		setMeasuredAddWidth,
 	}
 }

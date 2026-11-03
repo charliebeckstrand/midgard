@@ -8,7 +8,6 @@ import {
 	isColumnEditable,
 	NEW_ROW_KEY,
 } from './grid-editing-utilities'
-import { NEW_ROW_ADD_COLUMN_ID } from './grid-new-row-column'
 
 /**
  * Where the new-row slot shows, or `null` when the config cannot show it. The
@@ -26,9 +25,9 @@ export function resolveNewRow(
 }
 
 /**
- * The data column whose cursor cell a key from a cell of the slot leaves on,
- * from the cell's `data-grid-new-col`. The Add column is not a stop of the
- * cursor. A key from its control therefore leaves on the last data column.
+ * The column whose cursor cell a key from a cell of the slot leaves on, from
+ * the cell's `data-grid-new-col`. The Add column is a column of the cursor, so
+ * a key from its control leaves on its own cell.
  *
  * @internal
  */
@@ -36,8 +35,6 @@ export function findSlotColumn(
 	attr: string | null,
 	columns: readonly { id: string | number }[],
 ): string | number | undefined {
-	if (attr === NEW_ROW_ADD_COLUMN_ID) return columns.at(-1)?.id
-
 	return columns.find((column) => String(column.id) === attr)?.id
 }
 

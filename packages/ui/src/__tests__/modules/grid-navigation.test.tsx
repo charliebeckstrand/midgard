@@ -164,12 +164,23 @@ describe('Grid navigable cursor', () => {
 
 		fireEvent.mouseDown(cells[NAME] as HTMLElement)
 
-		// Up/Left from the top-left corner stay put.
+		// Left from the first column stays put.
+		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cells[NAME]?.id)
+
+		// Up from the first row reaches the header row, and stops there.
+		fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
 		fireEvent.keyDown(grid, { key: 'ArrowUp' })
 
 		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[NAME]?.id)
+		const header = screen.getAllByRole('columnheader')[0] as HTMLElement
+
+		expect(grid).toHaveAttribute('aria-activedescendant', header.id)
+
+		expect(header).toHaveAttribute('data-active')
 	})
 
 	it('jumps to row edges with Home/End and grid corners with Ctrl', () => {
@@ -417,6 +428,10 @@ describe('Grid cursor selection', () => {
 		expect(onRowClick).not.toHaveBeenCalled()
 
 		expect(screen.getByRole('checkbox', { name: 'Select row 2' })).toBeChecked()
+
+		// Enter on the selection cell moves focus to its checkbox, so the row
+		// activates from a data cell.
+		fireEvent.keyDown(grid, { key: 'ArrowRight' })
 
 		fireEvent.keyDown(grid, { key: 'Enter' })
 

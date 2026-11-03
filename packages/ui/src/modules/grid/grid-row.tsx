@@ -12,6 +12,8 @@ import { detailOpen } from './engine/grid-items/items'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import {
+	cellMarkerAt,
+	cellPropsAt,
 	cellRowIndex,
 	type GridCellClick,
 	type GridCellRovingActivate,
@@ -456,12 +458,16 @@ export function GridRowImpl<T>({
 				if (specialClass) {
 					const pinned = pinnedCellProps(pinning, col)
 
+					// The cursor's id, role, and seat, when the grid has a cursor.
+					const cursorProps = cellPropsAt(col, row, dataRowIndex)
+
 					return (
 						<TableCell
+							{...cursorProps}
 							key={col.id}
 							aria-colindex={ariaColIndex}
-							className={cn(specialClass, pinned.className)}
-							style={pinned.style}
+							className={cn(specialClass, pinned.className, cursorProps?.className)}
+							style={{ ...cursorProps?.style, ...pinned.style }}
 							data-grid-pin={pinned.pin}
 						>
 							{col.expander ? (
@@ -488,6 +494,7 @@ export function GridRowImpl<T>({
 									sortable={sortable}
 								/>
 							)}
+							{cellMarkerAt(col, dataRowIndex)}
 						</TableCell>
 					)
 				}
@@ -495,8 +502,17 @@ export function GridRowImpl<T>({
 				// The Add column of the new-row slot is empty in a data row, so its
 				// cell reads no editing session.
 				if (isNewRowAddColumn(col.id)) {
+					const cursorProps = cellPropsAt(col, row, dataRowIndex)
+
 					return (
-						<TableCell key={col.id} aria-colindex={ariaColIndex} className={cn(k.cell.actions)} />
+						<TableCell
+							{...cursorProps}
+							key={col.id}
+							aria-colindex={ariaColIndex}
+							className={cn(k.cell.actions, cursorProps?.className)}
+						>
+							{cellMarkerAt(col, dataRowIndex)}
+						</TableCell>
 					)
 				}
 

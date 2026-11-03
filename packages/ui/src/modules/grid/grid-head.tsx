@@ -20,6 +20,7 @@ import {
 import { GridGroupHead } from './grid-group-head'
 import { GridStaticHeaderCell, isStaticHeaderColumn } from './grid-static-header-cell'
 import type { GridColumn } from './types'
+import { useGridHeaderCursor } from './use-grid-header-cursor'
 import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
 
 /** Props for {@link GridHead}. @internal */
@@ -225,6 +226,10 @@ function GridHeaderCell<T>({
 }: GridHeaderCellProps<T>) {
 	const { sort, toggleSort, pinColumn, stickyHeader } = useGrid()
 
+	// The header row is the first row of the keyboard cursor, whose columns are
+	// the visible columns in display order.
+	const cursor = useGridHeaderCursor(columnIndex)
+
 	if (isStaticHeaderColumn(column)) {
 		return (
 			<GridStaticHeaderCell
@@ -232,6 +237,7 @@ function GridHeaderCell<T>({
 				ariaColIndex={ariaColIndex}
 				stickyHeader={stickyHeader}
 				pinning={pinning}
+				cursor={cursor}
 				showCheckbox={hasRows}
 				label={selectAllLabel}
 			/>
@@ -245,6 +251,7 @@ function GridHeaderCell<T>({
 		hiddenName: untitledHeaderName(column),
 		ariaColIndex,
 		columnIndex,
+		cursor,
 		sorted,
 		direction,
 		sortPriority,

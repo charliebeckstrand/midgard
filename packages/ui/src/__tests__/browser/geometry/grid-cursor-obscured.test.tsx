@@ -115,7 +115,13 @@ describe('grid cursor focus not obscured (real browser)', () => {
 		// the pinned column, which sticks on two axes.
 		await press(['ArrowRight', ...Array(4).fill('ArrowDown')])
 
-		await press(Array(8).fill('ArrowUp'))
+		// ArrowUp from the first row moves to the header row, so the steps stop on
+		// the first row.
+		await press(Array(5).fill('ArrowUp'))
+
+		expect(grid.querySelector('[data-active]')?.closest('tr')).toBe(
+			grid.querySelector('tbody > tr'),
+		)
 	})
 
 	// A group band never covers a pinned column. The band row puts a sticky
