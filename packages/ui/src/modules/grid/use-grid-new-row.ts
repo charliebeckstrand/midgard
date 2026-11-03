@@ -77,7 +77,7 @@ export function useGridNewRow<T>({
 	drafts,
 	editSource,
 	editSourceRef,
-	dataColumnsRef,
+	cursorColumnsRef,
 	tableRef,
 	reseat,
 	cellId,
@@ -96,8 +96,8 @@ export function useGridNewRow<T>({
 	editSource: GridEditSource<T>
 	/** The grid's own rows and columns, which the add and its refusals read at event time. */
 	editSourceRef: RefObject<GridEditSource<T>>
-	/** Visible data columns in display order. */
-	dataColumnsRef: RefObject<GridColumn<T>[]>
+	/** The columns of the cursor: the visible columns, in display order. */
+	cursorColumnsRef: RefObject<GridColumn<T>[]>
 	/** The grid `<table>`, the tab stop. */
 	tableRef: RefObject<HTMLTableElement | null>
 	/** Reseats focus on the tab stop, marked as the grid's own move. */
@@ -154,8 +154,8 @@ export function useGridNewRow<T>({
 
 	// The first editable column in display order, where an accepted add puts focus.
 	const firstEditable = useCallback(
-		() => dataColumnsRef.current.find((column) => isColumnEditable(column))?.id ?? null,
-		[dataColumnsRef],
+		() => cursorColumnsRef.current.find((column) => isColumnEditable(column))?.id ?? null,
+		[cursorColumnsRef],
 	)
 
 	// Whether a column of the slot is open to an edit. A refusal can name only such a column.
@@ -189,11 +189,11 @@ export function useGridNewRow<T>({
 	// Moves the keyboard cursor onto a cell of the slot.
 	const seatCursor = useCallback(
 		(columnId: string | number) => {
-			const col = dataColumnsRef.current.findIndex((column) => column.id === columnId)
+			const col = cursorColumnsRef.current.findIndex((column) => column.id === columnId)
 
 			moveTo({ row: NEW_ROW_INDEX, col: Math.max(col, 0) })
 		},
-		[dataColumnsRef, moveTo],
+		[cursorColumnsRef, moveTo],
 	)
 
 	// The mounted editor of a cell of the slot, in this grid.
@@ -264,13 +264,13 @@ export function useGridNewRow<T>({
 			restoreRefused(drafts, flight, refused)
 
 			if (inGrid(document.activeElement, tableRef.current))
-				focusRef.current = firstRefused(dataColumnsRef.current, refused)
+				focusRef.current = firstRefused(cursorColumnsRef.current, refused)
 
 			remount()
 
 			announce(describeRowAdd(intl, refused.size))
 		},
-		[drafts, editableColumn, accept, tableRef, dataColumnsRef, intl],
+		[drafts, editableColumn, accept, tableRef, cursorColumnsRef, intl],
 	)
 
 	// Adds the row. The checks run before the add starts, so a row that
@@ -297,7 +297,7 @@ export function useGridNewRow<T>({
 		if (refused.size > 0) {
 			stageEmptyRefusals(drafts, refused, new Set(cells.map(({ column }) => column.id)))
 
-			focusRef.current = firstRefused(dataColumnsRef.current, refused)
+			focusRef.current = firstRefused(cursorColumnsRef.current, refused)
 
 			remount()
 
@@ -337,7 +337,7 @@ export function useGridNewRow<T>({
 		(columnId: string | number, seed?: string | number) => {
 			if (flightRef.current !== null) return
 
-			const column = findColumn(dataColumnsRef.current, columnId)
+			const column = findColumn(cursorColumnsRef.current, columnId)
 
 			if (!column || !isColumnEditable(column)) return
 
@@ -357,7 +357,7 @@ export function useGridNewRow<T>({
 
 			remount()
 		},
-		[drafts, dataColumnsRef, findEditor],
+		[drafts, cursorColumnsRef, findEditor],
 	)
 
 	// F2 puts focus back on the tab stop, with the cursor on the cell. Escape
@@ -391,7 +391,7 @@ export function useGridNewRow<T>({
 
 			const columnId = findSlotColumn(
 				cell.getAttribute('data-grid-new-col'),
-				dataColumnsRef.current,
+				cursorColumnsRef.current,
 			)
 
 			if (columnId === undefined) return true
@@ -408,7 +408,7 @@ export function useGridNewRow<T>({
 
 			return true
 		},
-		[dataColumnsRef, leave, addRow],
+		[cursorColumnsRef, leave, addRow],
 	)
 
 	const session = useMemo<GridNewRowSession | null>(

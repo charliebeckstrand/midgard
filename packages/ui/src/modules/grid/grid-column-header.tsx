@@ -37,6 +37,7 @@ import type { PinColumn } from './grid-context-menu-utilities'
 import { GridGroupByButton } from './grid-group-by-button'
 import type { GridColumn } from './types'
 import { useColumnReorderShift } from './use-grid-column-reorder-shift'
+import type { GridHeaderCursor } from './use-grid-header-cursor'
 
 /**
  * The handle-less header's drag activators, deaf to a press on a child that opens
@@ -115,6 +116,8 @@ export type GridColumnHeaderProps = {
 	ariaColIndex: number | undefined
 	/** 0-based visible column index; a reorderable header writes its drag shift to the CSS variable keyed by it. */
 	columnIndex: number
+	/** The cursor parts of the cell, or `null` while the grid has no cursor (see {@link useGridHeaderCursor}). */
+	cursor: GridHeaderCursor | null
 	sorted: boolean
 	direction: 'asc' | 'desc' | undefined
 	/** 1-based sort priority shown as a badge under a multi-column sort; `undefined` otherwise. */
@@ -223,6 +226,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 	column,
 	hiddenName,
 	ariaColIndex,
+	cursor,
 	sorted,
 	direction,
 	sortPriority,
@@ -273,6 +277,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 
 	return (
 		<TableHeader
+			{...cursor?.props}
 			aria-colindex={ariaColIndex}
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-resizable={dataAttr(canResize)}
@@ -283,6 +288,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 				canResize && !stickyHeader && k.resize.cell,
 				fit.className,
 				pinned.className,
+				cursor?.props.className,
 			)}
 			style={{ ...fit.style, ...pinned.style }}
 			data-grid-pin={pinned.pin}
@@ -298,6 +304,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 				{headerAffordances({ column, interactive, filter, filterQuery })}
 			</span>
 			{headerResizeHandle({ column, size, resizeActions, minWidth, maxWidth, resizing }, canResize)}
+			{cursor?.marker}
 		</TableHeader>
 	)
 })
@@ -373,6 +380,7 @@ export function GridReorderableColumnHeaderView({
 	column,
 	ariaColIndex,
 	columnIndex,
+	cursor,
 	sorted,
 	direction,
 	sortPriority,
@@ -443,6 +451,7 @@ export function GridReorderableColumnHeaderView({
 
 	return (
 		<TableHeader
+			{...cursor?.props}
 			ref={setHeaderNodeRef}
 			aria-colindex={ariaColIndex}
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
@@ -460,6 +469,7 @@ export function GridReorderableColumnHeaderView({
 				canResize && !stickyHeader && k.resize.cell,
 				fit.className,
 				column.headerClassName,
+				cursor?.props.className,
 			)}
 			// Read the shift from the same CSS variable the body cells use (written
 			// just below), not dnd-kit's transform inline: one variable resolving in
@@ -495,6 +505,7 @@ export function GridReorderableColumnHeaderView({
 				{headerAffordances({ column, interactive, filter, filterQuery })}
 			</span>
 			{headerResizeHandle({ column, size, resizeActions, minWidth, maxWidth, resizing }, canResize)}
+			{cursor?.marker}
 		</TableHeader>
 	)
 }

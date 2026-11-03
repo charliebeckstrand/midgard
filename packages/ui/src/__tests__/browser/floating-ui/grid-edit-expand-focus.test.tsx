@@ -78,7 +78,9 @@ describe('grid row form focus (real floating engine)', () => {
 		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Note' })).toHaveFocus())
 	})
 
-	it('opens the form on the field of the cursor cell', async () => {
+	// The expand control is in a cell of the cursor, so a press on it moves the
+	// cursor to that cell. The cell has no field, so the form opens on the first.
+	it('opens the form on the first field when its control takes the cursor', async () => {
 		renderUI(
 			<Grid
 				columns={columns}
@@ -96,7 +98,7 @@ describe('grid row form focus (real floating engine)', () => {
 
 		const sheet = await screen.findByRole('dialog')
 
-		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Note' })).toHaveFocus())
+		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Name' })).toHaveFocus())
 	})
 
 	it('opens the form on the first field when the cursor is on another row', async () => {
@@ -120,7 +122,7 @@ describe('grid row form focus (real floating engine)', () => {
 		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Name' })).toHaveFocus())
 	})
 
-	it('focuses the field of the cell again when a press takes the focus as the form opens', async () => {
+	it('focuses the field again when a press takes the focus as the form opens', async () => {
 		renderUI(
 			<Grid
 				columns={columns}
@@ -152,12 +154,12 @@ describe('grid row form focus (real floating engine)', () => {
 
 		const sheet = await screen.findByRole('dialog')
 
-		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Note' })).toHaveFocus())
+		await waitFor(() => expect(within(sheet).getByRole('textbox', { name: 'Name' })).toHaveFocus())
 
 		document.removeEventListener('focusin', takeFocus)
 	})
 
-	it('drops the cursor as the form opens, and leaves no active cell as it closes', async () => {
+	it('drops the cursor as the form opens, and seats it on the control as it closes', async () => {
 		renderUI(
 			<Grid
 				columns={columns}
@@ -187,9 +189,13 @@ describe('grid row form focus (real floating engine)', () => {
 
 		await waitFor(() => expect(control).toHaveFocus())
 
-		expect(grid.getAttribute('aria-activedescendant')).toBeNull()
+		// The cursor follows focus to the cell of the control. The cell it left
+		// keeps no ring.
+		expect(grid.getAttribute('aria-activedescendant')).toBe(control.closest('td')?.id)
 
-		expect(grid.querySelector('[role="gridcell"][data-active]')).toBeNull()
+		expect(within(grid).getByRole('gridcell', { name: 'Second' })).not.toHaveAttribute(
+			'data-active',
+		)
 	})
 
 	it('returns the focus to the cursor cell after Shift+Enter and Escape', async () => {

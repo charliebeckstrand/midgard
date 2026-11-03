@@ -46,7 +46,7 @@ export function useGridEditKeys<T>({
 	controlled,
 	tableRef,
 	rowKeysRef,
-	dataColumnsRef,
+	cursorColumnsRef,
 	editableRowsRef,
 	activeEditRef,
 	sessionRowRef,
@@ -65,8 +65,8 @@ export function useGridEditKeys<T>({
 	/** The grid `<table>`, whose own rows and cells the session reads. */
 	tableRef: RefObject<HTMLTableElement | null>
 	rowKeysRef: RefObject<(string | number)[]>
-	/** Visible data columns in display order. */
-	dataColumnsRef: RefObject<GridColumn<T>[]>
+	/** The columns of the cursor: the visible columns, in display order. */
+	cursorColumnsRef: RefObject<GridColumn<T>[]>
 	editableRowsRef: RefObject<Set<string | number>>
 	activeEditRef: RefObject<GridActiveEdit | null>
 	/** The row the grid-owned session holds. */
@@ -112,7 +112,7 @@ export function useGridEditKeys<T>({
 				'data-grid-col',
 			)
 
-			const col = dataColumnsRef.current.find((candidate) => String(candidate.id) === colAttr)
+			const col = cursorColumnsRef.current.find((candidate) => String(candidate.id) === colAttr)
 
 			const open =
 				col !== undefined &&
@@ -126,7 +126,7 @@ export function useGridEditKeys<T>({
 
 			return { rowKey, columnId: open ? col.id : null }
 		},
-		[rowKeysRef, dataColumnsRef, tableRef, sessionRowRef, editableRowsRef, activeEditRef],
+		[rowKeysRef, cursorColumnsRef, tableRef, sessionRowRef, editableRowsRef, activeEditRef],
 	)
 
 	// Enter commits the session and moves the cursor down one row, the next data
@@ -139,7 +139,7 @@ export function useGridEditKeys<T>({
 		(rowKey: string | number, columnId: string | number) => {
 			const rowKeys = rowKeysRef.current
 
-			const { row, col } = findCoord(rowKeys, dataColumnsRef.current, { rowKey, columnId })
+			const { row, col } = findCoord(rowKeys, cursorColumnsRef.current, { rowKey, columnId })
 
 			endSession(rowKey, 'save')
 
@@ -157,20 +157,20 @@ export function useGridEditKeys<T>({
 
 			if (cellScoped) enterEdit(next, columnId)
 		},
-		[cellScoped, endSession, enterEdit, moveTo, rowStep, rowKeysRef, dataColumnsRef],
+		[cellScoped, endSession, enterEdit, moveTo, rowStep, rowKeysRef, cursorColumnsRef],
 	)
 
 	// F2 commits the session and leaves the cursor on the cell, with focus back on
 	// the tab stop. It toggles edit off, as F2 on the tab stop toggles it on.
 	const commitHere = useCallback(
 		(rowKey: string | number, columnId: string | number) => {
-			const coord = findCoord(rowKeysRef.current, dataColumnsRef.current, { rowKey, columnId })
+			const coord = findCoord(rowKeysRef.current, cursorColumnsRef.current, { rowKey, columnId })
 
 			endSession(rowKey, 'save')
 
 			moveTo(coord)
 		},
-		[endSession, moveTo, rowKeysRef, dataColumnsRef],
+		[endSession, moveTo, rowKeysRef, cursorColumnsRef],
 	)
 
 	// Tab and Shift+Tab move along the row's editable columns, and wrap at the
@@ -180,7 +180,7 @@ export function useGridEditKeys<T>({
 	// has nowhere to go, so the key commits there, as F2 does.
 	const commitAlong = useCallback(
 		(rowKey: string | number, columnId: string | number, step: 1 | -1) => {
-			const columns = dataColumnsRef.current
+			const columns = cursorColumnsRef.current
 
 			const { row, col } = findCoord(rowKeysRef.current, columns, { rowKey, columnId })
 
@@ -228,7 +228,7 @@ export function useGridEditKeys<T>({
 			enterEdit,
 			moveTo,
 			rowKeysRef,
-			dataColumnsRef,
+			cursorColumnsRef,
 			requestRef,
 			reseat,
 		],

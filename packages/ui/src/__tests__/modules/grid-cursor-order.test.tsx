@@ -439,6 +439,11 @@ describe('Grid cursor over master-detail rows', () => {
 
 		act(() => grid.focus())
 
+		// The cursor seats on the expander cell, the first cell of the row.
+		expect(activeCell(grid)).toHaveProperty('cellIndex', 0)
+
+		press(grid, 'ArrowRight')
+
 		expect(activeCell(grid)).toHaveTextContent('West')
 
 		press(grid, 'ArrowDown')
@@ -485,7 +490,8 @@ describe('Grid cursor over master-detail rows', () => {
 
 		expect(activeCell(inner)).toBe(east)
 
-		expect(outer).not.toHaveAttribute('aria-activedescendant')
+		// The outer cursor follows focus to the panel that holds the nested grid.
+		expect(activeCell(outer)?.closest('tr')).toHaveAttribute('data-detail-row', '1')
 	})
 
 	it('moves focus into a panel on Enter and back to the grid on Escape', () => {

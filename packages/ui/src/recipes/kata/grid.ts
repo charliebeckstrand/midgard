@@ -849,17 +849,21 @@ export const k = {
 		// own focus outline so the active-cell ring is the sole, precise indicator.
 		table: 'outline-0',
 		// Active-cell cursor ring for a `navigable` read-only grid, driven by the
-		// `data-active` the cell marker toggles onto the owning `role="gridcell"`
-		// <td>. Inset so the scroll container can't clip it. It takes the color of
+		// `data-active` the cell marker toggles onto the owning cell of the cursor.
+		// Inset so the scroll container can't clip it. It takes the color of
 		// `focus.ring` (`blue-600` in both modes), so the active cell and the
-		// focus ring of a header or a control read as one indicator.
+		// focus ring of a header or a control read as one indicator. While a
+		// control in the cell holds focus, the control's own focus ring marks the
+		// place, so the cell shows none: one ring at a time. An open editor draws
+		// no ring of its own, and the cell rings it instead (`k.edit.cell`).
 		cell: [
-			'data-active:ring-2',
+			'data-active:not-focus-within:ring-2',
 			'data-active:ring-inset',
-			'data-active:ring-blue-600',
+			'data-active:not-focus-within:ring-blue-600',
 			// Forced colors remove the ring, which is a box-shadow. This inset outline
 			// replaces it there, as in `focus.inset`.
-			'forced-colors:data-active:outline-solid forced-colors:data-active:outline-2',
+			'forced-colors:data-active:not-focus-within:outline-solid',
+			'forced-colors:data-active:not-focus-within:outline-2',
 			'forced-colors:data-active:-outline-offset-2 forced-colors:data-active:outline-[Highlight]',
 			// A cell of the cursor's range (`range`) takes a tint and a hairline
 			// outline. The outline, not the tint, holds the 3:1 contrast of the state

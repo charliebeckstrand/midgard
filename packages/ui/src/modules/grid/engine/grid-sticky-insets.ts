@@ -106,7 +106,8 @@ function addSideInset(sides: { left: number; right: number }, element: Element):
  * of the scroll container. The element is part of the grid, outside the new-row slot.
  * The top is the sticky header (see {@link stickyHeadInset}) plus a top slot, and
  * the bottom is a bottom slot (see {@link slotInsets}). The cursor clears the
- * active cell of it, and the windowed body pads its alignment by it.
+ * active cell of it, and the windowed body pads its alignment by it. A cell of
+ * the header takes none.
  *
  * @param stickyHead - Whether to read the header. A caller that knows the header
  * does not stick passes `false`, and skips the computed-style reads.
@@ -117,6 +118,10 @@ export function stickyEdgeInsets(
 	stickyHead = true,
 ): { top: number; bottom: number } {
 	const table = element.closest('table')
+
+	// The header is the chrome at the top edge, so it lays nothing over a cell
+	// of its own.
+	if (table?.tHead?.contains(element)) return { top: 0, bottom: 0 }
 
 	const head = table && stickyHead ? stickyHeadInset(table) : 0
 

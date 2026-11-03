@@ -9,7 +9,6 @@ import {
 	useState,
 } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import {
 	bridgeCellActivate,
 	bridgeRowActivate,
@@ -159,6 +158,10 @@ export function useGridDataCursor<T>({
 		[handleCellClick, refs],
 	)
 
+	// The width that the Add cell of the new-row slot measures for its control
+	// (see `useGridCursor`).
+	const [measuredAddWidth, setMeasuredAddWidth] = useState<number | null>(null)
+
 	// The cursor + editing layer: the augmented columns, the `<table>` cursor
 	// props, the cursor store, and the row-editing-context wrapper. Inert for a
 	// static grid.
@@ -177,6 +180,7 @@ export function useGridDataCursor<T>({
 		tableRef,
 		refs,
 		editSource: source,
+		measuredAddWidth,
 	})
 
 	// The grid's commands on its `ref` (see `GridHandle`).
@@ -195,24 +199,6 @@ export function useGridDataCursor<T>({
 		[cursor.editOnCellDoubleClick, handleCellDoubleClick],
 	)
 
-	// The new-row slot's Add control has a column of its own after the others
-	// (see `withNewRowAddColumn`). It joins after the column order and visibility
-	// state, so no saved state names it. It follows the configured slot, not the
-	// loading state, so the column set stays stable. Its width is the one the Add
-	// cell measures for its control, unless `newRowAdd.width` fixes it.
-	const [measuredAddWidth, setMeasuredAddWidth] = useState<number | null>(null)
-
-	const addWidth = resolveNewRowAddWidth(
-		cursor.newRow !== null,
-		editable?.newRowAdd,
-		measuredAddWidth,
-	)
-
-	const engineColumns = useMemo(
-		() => withNewRowAddColumn(cursor.columns, addWidth),
-		[cursor.columns, addWidth],
-	)
-
 	return {
 		cursor,
 		handleRowClick,
@@ -220,7 +206,7 @@ export function useGridDataCursor<T>({
 		handleRowDoubleClick,
 		cellDoubleClick,
 		cellActivate,
-		engineColumns,
+		engineColumns: cursor.columns,
 		setMeasuredAddWidth,
 	}
 }

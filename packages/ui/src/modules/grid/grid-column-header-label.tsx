@@ -121,6 +121,8 @@ export function GridColumnHeaderLabel({
 				control={(title) => (
 					<Button
 						type="button"
+						// Enter on the header cell presses it (see `SORT_CONTROL`).
+						data-grid-sort=""
 						className={cn(k.sort.button)}
 						// A Shift-click folds this column into the existing sort (multi-column);
 						// a plain click collapses the sort to just this column.

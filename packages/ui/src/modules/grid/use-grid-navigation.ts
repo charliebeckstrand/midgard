@@ -17,11 +17,12 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp } from '../../utilities/clamp'
 import { createEmitter } from '../../utilities/emitter'
 import { closestFloatingPortal } from '../../utilities/floating-portal-registry'
-import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { noopSubscribe } from '../../utilities/noop'
 import { createPressOwner, isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
 import { sameElements } from '../../utilities/same-elements'
 import type { GridNavStore } from './context'
+import { focusFirstControl, ownerCell, SORT_CONTROL } from './engine/grid-cell-controls'
 import { NAV_PAGE_STEP } from './engine/grid-constants'
 import {
 	type GridRangeCells,
@@ -67,42 +68,70 @@ export type Coord = { row: number; col: number }
  */
 export const NEW_ROW_INDEX = -2
 
+/**
+ * The cursor row of the header row. It comes before every other row of the
+ * cursor's order. Like {@link NEW_ROW_INDEX}, it is not a data row, and it is
+ * not `-1`. @internal
+ */
+export const HEADER_ROW_INDEX = -3
+
 /** Where the new-row slot sits in the cursor's order, or `null` for no slot. @internal */
 export type GridNewRowPosition = 'top' | 'bottom' | null
 
 /**
- * The place of a cursor row in the cursor's order. The order is the data rows,
- * with the new-row slot first or last. A data row below zero reads as the
- * first data row. @internal
+ * The count of the body rows of the cursor's order: the data rows, and the
+ * new-row slot when there is one. The header row is not a body row. @internal
+ */
+function bodySpan(count: number, slot: GridNewRowPosition): number {
+	return count + (slot === null ? 0 : 1)
+}
+
+/**
+ * The place of a cursor row in the cursor's order. The order is the header
+ * row, then the data rows, with the new-row slot first or last among them. A
+ * data row below zero reads as the first data row. @internal
  */
 function toPosition(row: number, count: number, slot: GridNewRowPosition): number {
-	if (row === NEW_ROW_INDEX) return slot === 'top' ? 0 : count
+	if (row === HEADER_ROW_INDEX) return 0
+
+	if (row === NEW_ROW_INDEX) return slot === 'top' ? 1 : count + 1
 
 	const data = Math.max(row, 0)
 
-	return slot === 'top' ? data + 1 : data
+	return slot === 'top' ? data + 2 : data + 1
 }
 
 /** The cursor row at a place in the cursor's order (see {@link toPosition}). @internal */
 function fromPosition(position: number, count: number, slot: GridNewRowPosition): number {
-	if (slot === 'top') return position === 0 ? NEW_ROW_INDEX : position - 1
+	if (position <= 0) return HEADER_ROW_INDEX
 
-	if (slot === 'bottom' && position === count) return NEW_ROW_INDEX
+	const body = position - 1
 
-	return position
+	if (slot === 'top') return body === 0 ? NEW_ROW_INDEX : body - 1
+
+	if (slot === 'bottom' && body === count) return NEW_ROW_INDEX
+
+	return body
+}
+
+/** Whether a cursor row is a row of the grid's chrome, the header row or the new-row slot, and holds no data. @internal */
+function chromeRow(row: number): boolean {
+	return row === HEADER_ROW_INDEX || row === NEW_ROW_INDEX
 }
 
 /**
- * The cursor row nearest to `row` that exists: the row itself, or the row at
- * the edge of the cursor's order. It is `null` when the order is empty.
- * @internal
+ * The cursor row nearest to `row` that exists. The header row stays where it
+ * is. A body row clamps into the body: the row itself, or the row at the edge
+ * of the body. It is `null` for a body row when the body is empty. @internal
  */
 function clampRow(row: number, count: number, slot: GridNewRowPosition): number | null {
-	const span = count + (slot === null ? 0 : 1)
+	if (row === HEADER_ROW_INDEX) return row
+
+	const span = bodySpan(count, slot)
 
 	if (span === 0) return null
 
-	return fromPosition(clamp(toPosition(row, count, slot), 0, span - 1), count, slot)
+	return fromPosition(clamp(toPosition(row, count, slot), 1, span), count, slot)
 }
 
 /** Inert store for a non-navigable grid, so the hook can return a stable shape unconditionally. @internal */
@@ -115,6 +144,8 @@ const INERT_STORE: GridNavStore = {
 	isStopActive: () => false,
 	stopId: (key) => key,
 	seatStop: () => {},
+	cellId: () => '',
+	seatHeader: () => {},
 	claimReveal: () => false,
 	publish: () => {},
 }
@@ -211,8 +242,11 @@ function browserOwnsKey(event: KeyboardEvent): boolean {
 /**
  * The cursor coord a movement key moves to from `base`, or `null` when the key
  * does not move the cursor. The move runs over places in the cursor's order
- * (see {@link toPosition}), so the new-row slot is one row of it, first or
- * last. The result is clamped to the rows that exist. @internal
+ * (see {@link toPosition}), so the header row and the new-row slot are rows of
+ * it. The result is clamped to the rows that exist. Only ArrowUp from the
+ * first body row reaches the header row. Every other key keeps to the body,
+ * or to the header row when the move starts there or the body is empty.
+ * @internal
  */
 function keyTarget(
 	key: string,
@@ -223,26 +257,24 @@ function keyTarget(
 ): Coord | null {
 	const { count, slot, colCount } = order
 
-	const span = count + (slot === null ? 0 : 1)
+	const body = bodySpan(count, slot)
 
-	const target = navTarget(
-		key,
-		{ row: toPosition(base.row, count, slot), col: base.col },
-		span,
-		colCount,
-		toGrid,
-		pageStep,
-	)
+	const from = toPosition(base.row, count, slot)
+
+	const target = navTarget(key, { row: from, col: base.col }, body + 1, colCount, toGrid, pageStep)
 
 	if (!target) return null
 
-	return { row: fromPosition(clamp(target.row, 0, span - 1), count, slot), col: target.col }
+	const floor = key === 'ArrowUp' || from === 0 || body === 0 ? 0 : 1
+
+	return { row: fromPosition(clamp(target.row, floor, body), count, slot), col: target.col }
 }
 
 /**
  * The cell a focus into the grid seats the cursor on. That is the first cell
- * of the cursor's order, or the last one for a focus from after the grid. It
- * is `null` when the grid has no cell. @internal
+ * of the body, or the last one for a focus from after the grid. With an empty
+ * body, it is a cell of the header row. It is `null` when the grid has no
+ * column. @internal
  */
 function seedCoord(
 	fromAfter: boolean,
@@ -250,13 +282,15 @@ function seedCoord(
 ): Coord | null {
 	const { count, slot, colCount } = order
 
-	const span = count + (slot === null ? 0 : 1)
+	const body = bodySpan(count, slot)
 
-	if (span === 0 || colCount === 0) return null
+	if (colCount === 0) return null
 
-	return fromAfter
-		? { row: fromPosition(span - 1, count, slot), col: colCount - 1 }
-		: { row: fromPosition(0, count, slot), col: 0 }
+	const col = fromAfter ? colCount - 1 : 0
+
+	if (body === 0) return { row: HEADER_ROW_INDEX, col }
+
+	return { row: fromPosition(fromAfter ? body : 1, count, slot), col }
 }
 
 /**
@@ -330,16 +364,16 @@ type CursorView = {
 
 /** The data row index of a cursor row in `view`, or -1 for a row that holds no data. @internal */
 function dataRowIn(view: CursorView, row: number): number {
-	if (!view.order || row === NEW_ROW_INDEX) return row
+	if (!view.order || chromeRow(row)) return row
 
 	const entry = view.order[row]
 
 	return entry?.kind === 'data' ? (view.rowIndexMap.get(entry.row) ?? -1) : -1
 }
 
-/** The one-stop entry at a cursor row in `order`, or `undefined` for a data row or the new-row slot. @internal */
+/** The one-stop entry at a cursor row in `order`, or `undefined` for a data row, the header row, or the new-row slot. @internal */
 function stopIn(order: readonly GridCursorRow[] | null, row: number): GridCursorRow | undefined {
-	const entry = row === NEW_ROW_INDEX ? undefined : order?.[row]
+	const entry = chromeRow(row) ? undefined : order?.[row]
 
 	return entry && entry.kind !== 'data' ? entry : undefined
 }
@@ -355,7 +389,7 @@ function reseat(
 	order: readonly GridCursorRow[] | null,
 	seated: { key: string; parent: string | undefined } | null,
 ): Coord | null {
-	if (prev === null || prev.row === NEW_ROW_INDEX) return prev
+	if (prev === null || chromeRow(prev.row)) return prev
 
 	if (order === null) return null
 
@@ -405,20 +439,26 @@ function stopAction(key: string, entry: GridCursorRow): StopAction | null {
 	return cellKey ? 'swallow' : null
 }
 
+/** Whether a key moves focus into a cell: Enter or F2, with no modifier. */
+function isEntryKey(event: KeyboardEvent<HTMLTableElement>): boolean {
+	if (event.key !== 'Enter' && event.key !== 'F2') return false
+
+	return !event.shiftKey && !hasBrowserModifier(event)
+}
+
 /**
  * Gives focus back to the grid on an Escape from a control in one of its
- * detail panels. An Escape that the control took stays with it. @internal
+ * cells, a detail panel included. The cursor stays on that cell. An Escape
+ * that the control took stays with it. @internal
  */
-function escapeFromPanel(event: KeyboardEvent<HTMLTableElement>): void {
+function escapeFromCell(event: KeyboardEvent<HTMLTableElement>): void {
 	if (event.key !== 'Escape' || event.defaultPrevented) return
 
-	const panel = event.target instanceof Element ? event.target.closest('[data-detail-row]') : null
-
-	if (panel?.closest('table') !== event.currentTarget) return
+	if (!(event.target instanceof Element) || !ownerCell(event.target, event.currentTarget)) return
 
 	event.preventDefault()
 
-	event.currentTarget.focus()
+	event.currentTarget.focus({ preventScroll: true })
 }
 
 /**
@@ -456,8 +496,7 @@ type CursorLayout = { rows: readonly unknown[]; cols: readonly unknown[] }
  * nearest cell. @internal
  */
 function followCell(from: Coord, seen: CursorLayout, next: CursorLayout, byRow: boolean): Coord {
-	const row =
-		byRow && from.row !== NEW_ROW_INDEX ? followIndex(from.row, seen.rows, next.rows) : from.row
+	const row = byRow && !chromeRow(from.row) ? followIndex(from.row, seen.rows, next.rows) : from.row
 
 	const col = followIndex(from.col, seen.cols, next.cols)
 
@@ -488,6 +527,17 @@ function clampCoord(
 
 /** The row and the column at the end of a data cell's element id (see `cellId`). @internal */
 const CELL_ID_TAIL = /cell-(\d+)-(\d+)$/
+
+/**
+ * The row and the column at the end of the element id of any cell of the
+ * cursor, the header row and the new-row slot included (see `cellId`). @internal
+ */
+const ANY_CELL_ID_TAIL = /cell-(-?\d+)-(\d+)$/
+
+/** Whether two places of the cursor are the same cell. */
+function sameCoord(a: Coord | null, b: Coord): boolean {
+	return a?.row === b.row && a.col === b.col
+}
 
 /**
  * The active cell of the cursor as an external store. The cells subscribe to
@@ -580,6 +630,7 @@ export function useGridNavigation({
 	scrollContainerRef,
 	newRowRef,
 	rowIndexMapRef,
+	editsAt,
 	range = false,
 }: {
 	enabled: boolean
@@ -606,6 +657,12 @@ export function useGridNavigation({
 	newRowRef: RefObject<GridNewRowPosition>
 	/** Live row → data index map; turns a data row of a published order into a data index. */
 	rowIndexMapRef: RefObject<Map<unknown, number>>
+	/**
+	 * Whether Enter and F2 on the cell at a data row and a column open its
+	 * editor. Such a cell keeps the keys for the editing layer, and the keys do
+	 * not move focus to its controls. Read at key time, so it must be stable.
+	 */
+	editsAt: (row: number, col: number) => boolean
 	/** Whether the cursor holds a cell range (see {@link GridDataProps.range}). */
 	range?: boolean
 }): {
@@ -715,7 +772,7 @@ export function useGridNavigation({
 
 	/** The cursor row of a data row index, or -1 for a data row the order does not show. */
 	const toCursorRow = useCallback((row: number): number => {
-		if (!orderRef.current || row === NEW_ROW_INDEX) return row
+		if (!orderRef.current || chromeRow(row)) return row
 
 		return orderIndexRef.current.cursorByRow.get(row) ?? -1
 	}, [])
@@ -773,11 +830,11 @@ export function useGridNavigation({
 
 	// The anchor that a move with the range on keeps: the one held, else the
 	// cell the cursor leaves. A range starts only at a data cell, so a one-stop
-	// row or the new-row slot sets none.
+	// row, the header row, or the new-row slot sets none.
 	const holdAnchor = useCallback(() => {
 		const from = readActive()
 
-		const seed = from && from.row !== NEW_ROW_INDEX && toDataRow(from.row) !== -1 ? from : null
+		const seed = from && !chromeRow(from.row) && toDataRow(from.row) !== -1 ? from : null
 
 		setAnchor((held) => held ?? seed)
 	}, [readActive, toDataRow])
@@ -788,7 +845,7 @@ export function useGridNavigation({
 
 		const to = readActive()
 
-		if (!from || !to || to.row === NEW_ROW_INDEX) return null
+		if (!from || !to || chromeRow(to.row)) return null
 
 		return { from, to }
 	}, [activeCursor, readActive])
@@ -796,9 +853,10 @@ export function useGridNavigation({
 	// Moves the cursor to a place in its order. A one-stop row keeps the column
 	// the cursor came from, so a later step onto a data row lands in it again.
 	// A move that extends the range keeps its anchor, and any other move ends
-	// the range. With the range off, no move extends. A move to a cell that the
-	// reader points at (`shown`) needs no scroll of the window. A scroll there
-	// would fight the scroll of a drag at an edge.
+	// the range. With the range off, no move extends. A move that extends the
+	// range does not enter the header row, which holds no cell of a range. A
+	// move to a cell that the reader points at (`shown`) needs no scroll of the
+	// window. A scroll there would fight the scroll of a drag at an edge.
 	const moveToCursor = useCallback(
 		(coord: Coord, extend = false, shown = false) => {
 			const colCount = colCountRef.current
@@ -807,15 +865,20 @@ export function useGridNavigation({
 
 			if (row === null || colCount === 0) return
 
-			if (extend && range) holdAnchor()
+			const extending = extend && range
+
+			if (extending && row === HEADER_ROW_INDEX) return
+
+			if (extending) holdAnchor()
 			else setAnchor(null)
 
 			const col = clamp(coord.col, 0, colCount - 1)
 
 			// Bring the target row into the virtualized window so its cell mounts
 			// before `aria-activedescendant` points at it; a no-op when unwindowed.
-			// The new-row slot sits outside the window, and is always mounted.
-			if (row !== NEW_ROW_INDEX && !shown) {
+			// The header row and the new-row slot sit outside the window, and are
+			// always mounted.
+			if (!chromeRow(row) && !shown) {
 				scrollRowIntoViewRef.current?.(row, orderRef.current?.[row]?.key)
 			}
 
@@ -858,18 +921,24 @@ export function useGridNavigation({
 		[toCursorRow, moveToCursor, range],
 	)
 
-	const parseCellCoord = useCallback(
-		(id: string): Coord | null => {
-			const match = CELL_ID_TAIL.exec(id)
+	// The coordinates at the end of an element id that `tail` matches, when this
+	// grid gave the id. A nested grid gives ids of the same shape.
+	const readCellCoord = useCallback(
+		(id: string, tail: RegExp): Coord | null => {
+			const match = tail.exec(id)
 
 			if (!match) return null
 
 			const coord = { row: Number(match[1]), col: Number(match[2]) }
 
-			// The id must be one that this grid gave, not one of a nested grid.
 			return cellId(coord.row, coord.col) === id ? coord : null
 		},
 		[cellId],
+	)
+
+	const parseCellCoord = useCallback(
+		(id: string): Coord | null => readCellCoord(id, CELL_ID_TAIL),
+		[readCellCoord],
 	)
 
 	const [press] = useState(createPressOwner)
@@ -968,7 +1037,7 @@ export function useGridNavigation({
 	// too: a reseat that clamps to the same place keeps the coord, but the row
 	// at that place is another one.
 	useLayoutEffect(() => {
-		const entry = active && active.row !== NEW_ROW_INDEX ? view.order?.[active.row] : undefined
+		const entry = active && !chromeRow(active.row) ? view.order?.[active.row] : undefined
 
 		activeKeyRef.current = entry
 			? { key: entry.key, parent: entry.kind === 'group' ? undefined : entry.parent }
@@ -981,6 +1050,15 @@ export function useGridNavigation({
 		const row = orderRef.current?.findIndex((entry) => entry.key === key) ?? -1
 
 		if (row !== -1) moveToCursor({ row, col: readActive()?.col ?? 0 })
+	})
+
+	// A press on a header cell seats the cursor there. The header is always in
+	// view, so the move scrolls nothing. While a drag holds the press owner, a
+	// press does not seat the cursor.
+	const seatHeader = useStableEvent((col: number) => {
+		if (press.held()) return
+
+		moveToCursor({ row: HEADER_ROW_INDEX, col }, false, true)
 	})
 
 	const publish = useStableEvent((order: readonly GridCursorRow[] | null) => {
@@ -1024,6 +1102,8 @@ export function useGridNavigation({
 		},
 		stopId,
 		seatStop,
+		cellId,
+		seatHeader,
 		claimReveal: activeCursor.claimReveal,
 		publish,
 	}))
@@ -1139,21 +1219,55 @@ export function useGridNavigation({
 
 			if (action === 'toggle' && entry.kind === 'group') entry.toggle()
 			else if (action === 'descend') moveToCursor({ row: base.row + 1, col: base.col })
-			else if (action === 'enter') {
-				const cell = document.getElementById(stopId(entry.key))
-
-				cell?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus()
-			}
+			else if (action === 'enter') focusFirstControl(document.getElementById(stopId(entry.key)))
 
 			return true
 		},
 		[moveToCursor, stopAt, stopId],
 	)
 
-	// Enter and Space act on the active cell, and Escape unseats the cursor.
+	// Enter and F2 move focus into the active cell, to its first control. Escape
+	// from a control gives focus back to the grid (see `escapeFromCell`). On a
+	// header cell, Enter presses its sort control instead, when the column
+	// sorts. A cell that opens an editor keeps both keys for the editing layer,
+	// and a cell with no control keeps Enter for its activation. Returns whether
+	// it took the key.
+	const onEntryKey = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>, active: Coord): boolean => {
+			if (!isEntryKey(event)) return false
+
+			const row = toDataRow(active.row)
+
+			const header = active.row === HEADER_ROW_INDEX
+
+			if (!header && editsAt(row, active.col)) return false
+
+			const cell = document.getElementById(cellId(row, active.col))
+
+			const sort =
+				header && event.key === 'Enter' ? cell?.querySelector<HTMLElement>(SORT_CONTROL) : null
+
+			sort?.click()
+
+			const took = sort ? true : focusFirstControl(cell)
+
+			if (took) event.preventDefault()
+
+			return took
+		},
+		[toDataRow, cellId, editsAt],
+	)
+
+	// The keys of the active cell. Enter and F2 first move focus into the cell
+	// (see `onEntryKey`). Else Enter and Space act on the cell, and Escape
+	// unseats the cursor. A header cell has no row to act on.
 	const onCellKey = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, base: Coord) => {
-			if (event.key === 'Enter' || event.key === ' ') {
+			if (onEntryKey(event, base)) return
+
+			const cellKey = event.key === 'Enter' || event.key === ' '
+
+			if (cellKey && base.row !== HEADER_ROW_INDEX) {
 				activateOrSelectRow(event, { row: toDataRow(base.row), col: base.col })
 			} else if (event.key === 'Escape' && readActive()) {
 				event.preventDefault()
@@ -1163,7 +1277,7 @@ export function useGridNavigation({
 				else setActive(null)
 			}
 		},
-		[activateOrSelectRow, toDataRow, readActive, activeCursor],
+		[onEntryKey, activateOrSelectRow, toDataRow, readActive, activeCursor],
 	)
 
 	const onKeyDown = useCallback(
@@ -1171,9 +1285,9 @@ export function useGridNavigation({
 			// Only keys landing on the `<table>` tab stop drive the cursor; a keystroke
 			// bubbling up from a focusable descendant (an inline editor, a link) belongs
 			// to that control: hijacking it freezes the caret and jumps the cursor.
-			// One exception: Escape from a control in one of this grid's detail panels.
+			// One exception: Escape from a control in one of this grid's cells.
 			if (event.target !== event.currentTarget) {
-				escapeFromPanel(event)
+				escapeFromCell(event)
 
 				return
 			}
@@ -1251,16 +1365,49 @@ export function useGridNavigation({
 		pressedRef.current = true
 	}, [])
 
+	// The cursor follows focus into a control of one of the grid's cells, so it
+	// is always on the cell that holds focus. Escape from the control then gives
+	// focus back to that cell. The control is in view, so the move scrolls nothing.
+	const followFocus = useCallback(
+		(target: EventTarget, table: HTMLTableElement) => {
+			const cell = target instanceof Element ? ownerCell(target, table) : null
+
+			if (!cell) return
+
+			const stop = orderRef.current?.find((entry) => stopId(entry.key) === cell.id)
+
+			const current = readActive()
+
+			if (stop) {
+				if (stopAt(current?.row ?? -1)?.key !== stop.key) seatStop(stop.key)
+
+				return
+			}
+
+			const coord = readCellCoord(cell.id, ANY_CELL_ID_TAIL)
+
+			const next = coord ? { row: toCursorRow(coord.row), col: coord.col } : null
+
+			if (next && next.row !== -1 && !sameCoord(current, next)) moveToCursor(next, false, true)
+		},
+		[stopId, stopAt, seatStop, readCellCoord, toCursorRow, readActive, moveToCursor],
+	)
+
 	const onFocus = useCallback(
 		(event: FocusEvent<HTMLTableElement>) => {
 			const pressed = pressedRef.current
 
 			pressedRef.current = false
 
-			// Seed only when the table itself takes focus (not a focusable descendant)
-			// from the keyboard, and the cursor is unseated. The first arrow key seeds
-			// the cursor after a press.
-			if (event.target !== event.currentTarget || pressed || readActive()) return
+			if (event.target !== event.currentTarget) {
+				followFocus(event.target, event.currentTarget)
+
+				return
+			}
+
+			// Seed only when the table itself takes focus from the keyboard, and the
+			// cursor is unseated. The first arrow key seeds the cursor after a press.
+			if (pressed || readActive()) return
 
 			const from = event.relatedTarget
 
@@ -1287,7 +1434,7 @@ export function useGridNavigation({
 			// `aria-activedescendant` names a cell that is mounted.
 			if (seed) moveToCursor(seed)
 		},
-		[count, colCountRef, newRowRef, readActive, moveToCursor],
+		[count, colCountRef, newRowRef, readActive, moveToCursor, followFocus],
 	)
 
 	const onBlur = useCallback((event: FocusEvent<HTMLTableElement>) => {
@@ -1341,9 +1488,10 @@ export function useGridNavigation({
 
 	const activeDescendant = activeStop ? stopId(activeStop.key) : activeCellId
 
-	// The public cursor speaks data row indexes. On a one-stop row it names no cell.
+	// The public cursor speaks data row indexes. On a one-stop row or the header row it
+	// names no cell.
 	const publicActive = useMemo<Coord | null>(() => {
-		if (!active || activeStop) return null
+		if (!active || activeStop || active.row === HEADER_ROW_INDEX) return null
 
 		const row = dataRowIn(view, active.row)
 

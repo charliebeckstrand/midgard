@@ -4817,6 +4817,46 @@ describe('Grid new row', () => {
 	const precedes = (a: Node, b: Node) =>
 		(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
 
+	it('opens the whole slot to Tab while focus is in it, and closes it after', () => {
+		const view = renderNewRow()
+
+		const add = view.getByRole('button', { name: 'Add row' })
+
+		expect(view.slotEditor('name')).toHaveAttribute('tabindex', '-1')
+
+		expect(add).toHaveAttribute('tabindex', '-1')
+
+		moveFocus(view.slotEditor('name'))
+
+		expect(view.slotEditor('name')).not.toHaveAttribute('tabindex', '-1')
+
+		expect(add).not.toHaveAttribute('tabindex', '-1')
+
+		moveFocus(view.getByRole('button', { name: 'outside' }))
+
+		expect(add).toHaveAttribute('tabindex', '-1')
+	})
+
+	it('makes the Add column a column of the cursor in the data rows', () => {
+		const view = renderNewRow()
+
+		const grid = view.grid()
+
+		fireEvent.mouseDown(view.dataRows()[0]?.firstElementChild as HTMLElement)
+
+		fireEvent.keyDown(grid, { key: 'End' })
+
+		const cell = grid.querySelector<HTMLElement>(
+			`[id="${grid.getAttribute('aria-activedescendant')}"]`,
+		)
+
+		expect(cell?.closest('tr')).toBe(view.dataRows()[0])
+
+		expect(cell).toHaveAttribute('data-active')
+
+		expect(cell).toBe(view.dataRows()[0]?.lastElementChild)
+	})
+
 	it('renders the slot after the data rows at the bottom', () => {
 		const view = renderNewRow({ newRow: 'bottom' })
 
@@ -5004,7 +5044,10 @@ describe('Grid new row', () => {
 
 				expect(cells).toHaveLength(3)
 
-				expect(cells[2]).toBeEmptyDOMElement()
+				// The cell shows nothing. It holds only the hidden marker of the cursor.
+				expect(cells[2]).toHaveTextContent('')
+
+				expect(cells[2]?.querySelector(':not([hidden])')).toBeNull()
 			}
 		})
 
@@ -5113,8 +5156,11 @@ describe('Grid new row', () => {
 
 			expect(view.slotEditor('name').value).toBe('')
 
-			// The cursor sits on the last data column of the slot, next to the control.
-			expect(view.grid()).toHaveAttribute('aria-activedescendant', view.slotCell('count').id)
+			// The cursor sits on the cell of the control: the Add column is a column of the cursor.
+			expect(view.grid()).toHaveAttribute(
+				'aria-activedescendant',
+				add.closest('td')?.getAttribute('id') ?? '',
+			)
 		})
 
 		it('keeps the column out of export and out of a saved preset', async () => {
@@ -5219,7 +5265,7 @@ describe('Grid new row', () => {
 
 			const add = view.getByRole('button', { name: 'Add row' })
 
-			add.focus()
+			act(() => add.focus())
 
 			fireEvent.click(add)
 
@@ -5265,7 +5311,7 @@ describe('Grid new row', () => {
 
 			view.type('count', '9')
 
-			view.slotEditor('count').focus()
+			act(() => view.slotEditor('count').focus())
 
 			view.press('count', 'Enter')
 
@@ -5417,7 +5463,7 @@ describe('Grid new row', () => {
 
 			const editor = view.slotEditor('name')
 
-			editor.focus()
+			act(() => editor.focus())
 
 			view.press('name', 'Enter')
 
@@ -5496,7 +5542,7 @@ describe('Grid new row', () => {
 
 			view.type('count', '4')
 
-			view.slotEditor('name').focus()
+			act(() => view.slotEditor('name').focus())
 
 			view.press('name', 'Enter')
 
@@ -5531,7 +5577,7 @@ describe('Grid new row', () => {
 
 		view.type('name', 'Carol')
 
-		view.slotEditor('name').focus()
+		act(() => view.slotEditor('name').focus())
 
 		view.press('name', 'Escape')
 

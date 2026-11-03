@@ -136,6 +136,10 @@ export type GridNavStore = {
 	stopId: (key: string) => string
 	/** Seats the cursor on the one-stop row with this item key, as a click on it does. */
 	seatStop: (key: string) => void
+	/** The element id of the cell at `(row, col)`, matched by `aria-activedescendant`. */
+	cellId: (row: number, col: number) => string
+	/** Seats the cursor on the header cell of a column, by its cursor column index, as a press on it does. */
+	seatHeader: (col: number) => void
 	/**
 	 * Whether the active cell has a change of the cursor to scroll into view.
 	 * The first call after each change returns `true`, and each later call

@@ -2,6 +2,7 @@
 
 import type { ComponentProps, MouseEvent } from 'react'
 import { useGridNavContext } from './context'
+import { GRID_CELL_PROPS } from './engine/grid-cell-controls'
 import { GRID_ROLE } from './engine/grid-constants'
 import { fromInteractiveContent } from './engine/grid-row/cell'
 
@@ -24,6 +25,7 @@ export function useGridNavStopProps(key: string): ComponentProps<'td'> {
 	return {
 		id: store.stopId(key),
 		role: 'gridcell',
+		...GRID_CELL_PROPS,
 		onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
 			const target = event.target instanceof Node ? event.target : null
 

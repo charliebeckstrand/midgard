@@ -284,7 +284,10 @@ describe('Grid context menus', () => {
 			/>,
 		)
 
+		// The cursor seats on the selection cell, and moves on to a data cell.
 		fireEvent.keyDown(screen.getByRole('grid'), { key: 'ArrowDown' })
+
+		fireEvent.keyDown(screen.getByRole('grid'), { key: 'ArrowRight' })
 
 		fireEvent.contextMenu(screen.getAllByRole('button', { name: 'Edit' })[0] as HTMLElement)
 

@@ -80,6 +80,8 @@ it('mounts an entering group total closed, and opens it after a flush', () => {
 		isStopActive: () => false,
 		stopId: (key) => key,
 		seatStop: () => {},
+		cellId: () => '',
+		seatHeader: () => {},
 		claimReveal: () => false,
 		publish: () => {},
 	}

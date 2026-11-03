@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useGridNavContext } from './context'
+import { GRID_CELL, GRID_CELL_PROPS } from './engine/grid-cell-controls'
 import { GRID_ROLE } from './engine/grid-constants'
 import { fromInteractiveContent } from './engine/grid-row/cell'
 import { clearStickyChrome, obscuringInsets, setScrollMargin } from './engine/grid-sticky-insets'
@@ -22,9 +23,10 @@ import type { GridTouchEntry } from './use-grid-touch-entry'
 
 /**
  * Active-cell flag for one navigable cell. Subscribes to the cursor store, and
- * toggles `data-active` on its owning `role="gridcell"` `<td>` when this cell
- * becomes (or stops being) the active one. The `<td>`'s `cellProps` are
- * non-reactive, so the memoized row holds across cursor moves. The styling
+ * toggles `data-active` on its owning cell of the cursor (a `<td>`, or a
+ * header `<th>`) when this cell becomes (or stops being) the active one. The
+ * cell's `cellProps` are non-reactive, so the memoized row holds across cursor
+ * moves. The styling
  * therefore rides this imperative attribute instead. A cell in the range of
  * the cursor carries `data-in-range` in the same way. The active cell also
  * scrolls into view, clear of the grid's sticky header and pinned columns.
@@ -38,12 +40,19 @@ export function GridNavCell({
 	row = -1,
 	col = -1,
 	stop,
+	fills = true,
 	children,
 }: {
 	row?: number
 	col?: number
 	/** The item key of a one-stop row, whose one cell this marks in place of `row`/`col`. */
 	stop?: string
+	/**
+	 * Whether the cell holds the fill handle while it is active. A cell with no
+	 * value, such as a header cell or an actions cell, holds none.
+	 * @defaultValue true
+	 */
+	fills?: boolean
 	children?: ReactNode
 }) {
 	const store = useGridNavContext()
@@ -66,11 +75,11 @@ export function GridNavCell({
 		() => false,
 	)
 
-	const fillHandle = stop === undefined && active ? store.fillHandle : null
+	const fillHandle = stop === undefined && fills && active ? store.fillHandle : null
 
 	// The active cell holds the fill handle, which one overlay shows on it.
 	useLayoutEffect(() => {
-		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
+		const cell = ref.current?.closest<HTMLElement>(GRID_CELL)
 
 		if (!cell || !fillHandle) return
 
@@ -84,7 +93,7 @@ export function GridNavCell({
 
 	// Its own effect, so a change of the range does not scroll the active cell.
 	useLayoutEffect(() => {
-		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
+		const cell = ref.current?.closest<HTMLElement>(GRID_CELL)
 
 		if (!cell) return
 
@@ -96,7 +105,7 @@ export function GridNavCell({
 	}, [inRange])
 
 	useLayoutEffect(() => {
-		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
+		const cell = ref.current?.closest<HTMLElement>(GRID_CELL)
 
 		if (!cell) return
 
@@ -177,6 +186,7 @@ export function seatingCellProps<T>(args: {
 		...extra,
 		id: cellId(rowIndex, colIndex),
 		role: 'gridcell',
+		...GRID_CELL_PROPS,
 		onMouseDown: composeEventHandlers(
 			columnProps?.onMouseDown,
 			(event: MouseEvent<HTMLTableCellElement>) => {
@@ -207,6 +217,28 @@ export function seatingCellProps<T>(args: {
 		),
 		...(touch ? touchEntryProps(touch, { row: rowIndex, col: colIndex }, columnProps) : undefined),
 	}
+}
+
+/**
+ * Takes a press on a cell of the cursor. A press in a portal that the cell
+ * renders, such as the open panel of a listbox, reaches the cell through the
+ * React tree, but it is not a press on the cell: the result is then `false`.
+ * Otherwise a press that is not on focusable content in the cell pulls focus
+ * onto the grid, and the result is `true`. The pressed cell is in view, so the
+ * focus does not scroll.
+ *
+ * @internal
+ */
+export function focusGridOnPress(event: MouseEvent<HTMLTableCellElement>): boolean {
+	const target = event.target
+
+	if (!(target instanceof Node && event.currentTarget.contains(target))) return false
+
+	if (!fromInteractiveContent(target)) {
+		event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
+	}
+
+	return true
 }
 
 /**

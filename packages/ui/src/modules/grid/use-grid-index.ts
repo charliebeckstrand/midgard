@@ -19,7 +19,8 @@ export type GridIndexRefs<T> = {
 	rowIndexMapRef: RefObject<Map<T, number>>
 	colIndexMapRef: RefObject<Map<string | number, number>>
 	rowKeysRef: RefObject<(string | number)[]>
-	dataColumnsRef: RefObject<GridColumn<T>[]>
+	/** The columns of the cursor: the visible columns, in display order. */
+	cursorColumnsRef: RefObject<GridColumn<T>[]>
 	/**
 	 * The grid's own inputs, ahead of the narrowing to the rendered window. The
 	 * commit path of an edit needs a row that the window stopped rendering.
@@ -39,7 +40,7 @@ export type GridIndexValues<T> = {
 	rowIndexMap: Map<T, number>
 	colIndexMap: Map<string | number, number>
 	rowKeys: (string | number)[]
-	dataColumns: GridColumn<T>[]
+	cursorColumns: GridColumn<T>[]
 	selectable: boolean
 	toggleRow: (key: string | number) => void
 }
@@ -61,7 +62,7 @@ export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T>
 
 	const rowKeysRef = useRef<(string | number)[]>([])
 
-	const dataColumnsRef = useRef<GridColumn<T>[]>([])
+	const cursorColumnsRef = useRef<GridColumn<T>[]>([])
 
 	const editSourceRef = useRef(source)
 
@@ -77,7 +78,7 @@ export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T>
 		rowIndexMapRef,
 		colIndexMapRef,
 		rowKeysRef,
-		dataColumnsRef,
+		cursorColumnsRef,
 		editSourceRef,
 		selectableRef,
 		toggleRowRef,
@@ -119,7 +120,7 @@ export function useGridRowIndexOffsetSync(
 export function useGridIndexSync<T>(refs: GridIndexRefs<T>, values: GridIndexValues<T>): void {
 	refs.rowsRef.current = values.rows
 
-	refs.colCountRef.current = values.dataColumns.length
+	refs.colCountRef.current = values.cursorColumns.length
 
 	refs.rowIndexMapRef.current = values.rowIndexMap
 
@@ -127,7 +128,7 @@ export function useGridIndexSync<T>(refs: GridIndexRefs<T>, values: GridIndexVal
 
 	refs.rowKeysRef.current = values.rowKeys
 
-	refs.dataColumnsRef.current = values.dataColumns
+	refs.cursorColumnsRef.current = values.cursorColumns
 
 	refs.selectableRef.current = values.selectable
 

@@ -38,7 +38,7 @@ export function useGridEditFocus<T>({
 	activeEditRef,
 	tableRef,
 	rowKeysRef,
-	dataColumnsRef,
+	cursorColumnsRef,
 	cellId,
 	moveTo,
 }: {
@@ -53,8 +53,8 @@ export function useGridEditFocus<T>({
 	/** The grid `<table>`, the tab stop that a session exit reseats focus on. */
 	tableRef: RefObject<HTMLTableElement | null>
 	rowKeysRef: RefObject<(string | number)[]>
-	/** Visible data columns in display order. */
-	dataColumnsRef: RefObject<GridColumn<T>[]>
+	/** The columns of the cursor: the visible columns, in display order. */
+	cursorColumnsRef: RefObject<GridColumn<T>[]>
 	/** The cursor's per-cell id deriver; locates a cell's editor to focus it. */
 	cellId: (row: number, col: number) => string
 	/** The cursor's clamped move. */
@@ -230,13 +230,13 @@ export function useGridEditFocus<T>({
 
 			const cell = active?.rowKey === rowKey ? active : origin.cell
 
-			const coord = findCoord(rowKeysRef.current, dataColumnsRef.current, cell)
+			const coord = findCoord(rowKeysRef.current, cursorColumnsRef.current, cell)
 
 			if (coord.row >= 0 && coord.col >= 0) moveTo(coord)
 
 			return table
 		},
-		[activeEditRef, dataColumnsRef, moveTo, rowKeysRef, tableRef],
+		[activeEditRef, cursorColumnsRef, moveTo, rowKeysRef, tableRef],
 	)
 
 	// Returns focus as the session on `rowKey` ends, when focus is in the grid.
@@ -295,7 +295,7 @@ export function useGridEditFocus<T>({
 	// intents as it takes the focus, so an intent that no editor took drops here.
 	const focusOpenEditor = useCallback(
 		(rowKey: string | number, columnId: string | number) => {
-			const { row, col } = findCoord(rowKeysRef.current, dataColumnsRef.current, {
+			const { row, col } = findCoord(rowKeysRef.current, cursorColumnsRef.current, {
 				rowKey,
 				columnId,
 			})
@@ -308,7 +308,7 @@ export function useGridEditFocus<T>({
 
 			dropIntents()
 		},
-		[cellId, dataColumnsRef, dropIntents, rowKeysRef],
+		[cellId, cursorColumnsRef, dropIntents, rowKeysRef],
 	)
 
 	return {

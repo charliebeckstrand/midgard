@@ -32,6 +32,7 @@ import {
 import { cellText } from './engine/grid-export/accessor'
 import { gridMessages } from './engine/grid-messages'
 import { resolveNewRow } from './engine/grid-new-row'
+import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import {
 	fillPlan,
 	type GridFillDirection,
@@ -65,6 +66,7 @@ import {
 	NEW_ROW_INDEX,
 	useGridNavigation,
 } from './use-grid-navigation'
+import { useGridTabStops } from './use-grid-tab-stops'
 import { useGridTouchEntry } from './use-grid-touch-entry'
 
 /** Whether a press carries no modifier and no input method. @internal */
@@ -230,6 +232,7 @@ export function useGridCursor<T>({
 	tableRef,
 	refs,
 	editSource,
+	measuredAddWidth,
 }: {
 	navigable: boolean
 	/** Whether the cursor holds a cell range (see {@link GridDataProps.range}). */
@@ -258,6 +261,8 @@ export function useGridCursor<T>({
 	 * The editing layer reads it during render, and the ref at event time.
 	 */
 	editSource: GridEditSource<T>
+	/** The width (px) that the Add cell of the new-row slot last measured, or `null` before a measure. */
+	measuredAddWidth: number | null
 }): {
 	/** Whether the grid carries a keyboard cursor (`navigable` or editable). */
 	cursorEnabled: boolean
@@ -299,6 +304,21 @@ export function useGridCursor<T>({
 	// reads where it sits at event time.
 	const newRowPosition = resolveNewRow(editable, managed)
 
+	// The Add control of the slot has a column of its own after the others (see
+	// `withNewRowAddColumn`). It joins after the column order and visibility
+	// state, so no saved state names it. It follows the configured slot, not the
+	// loading state, so the column set stays stable. Its width is the one that the
+	// Add cell measures for its control, unless `newRowAdd.width` fixes it. The
+	// column joins before the cursor columns, so its cells are cells of the
+	// cursor, as the cells of the other columns are.
+	const addWidth = resolveNewRowAddWidth(
+		newRowPosition !== null,
+		editable?.newRowAdd,
+		measuredAddWidth,
+	)
+
+	const withAdd = useMemo(() => withNewRowAddColumn(columns, addWidth), [columns, addWidth])
+
 	const newRowRef = useRef<GridNewRowPosition>(newRowPosition)
 
 	// Synced before the layout effects of the hooks below, which clamp the
@@ -313,7 +333,7 @@ export function useGridCursor<T>({
 		rowIndexMapRef,
 		colIndexMapRef,
 		rowKeysRef,
-		dataColumnsRef,
+		cursorColumnsRef,
 		editSourceRef,
 		rowIndexOffsetRef,
 	} = refs
@@ -337,6 +357,14 @@ export function useGridCursor<T>({
 			}
 		: onCellActivate
 
+	// Under a grid-owned session, Enter and F2 on an editable cell open its
+	// editor, so the cursor leaves both keys to the editing layer there.
+	const editsAt = useStableEvent((_row: number, col: number) => {
+		const column = cursorColumnsRef.current[col]
+
+		return managed && column !== undefined && isColumnEditable(column)
+	})
+
 	const nav = useGridNavigation({
 		enabled: cursorEnabled,
 		rowsRef,
@@ -349,8 +377,12 @@ export function useGridCursor<T>({
 		scrollContainerRef,
 		newRowRef,
 		rowIndexMapRef: rowIndexMapRef as RefObject<Map<unknown, number>>,
+		editsAt,
 		range: cursorEnabled && range,
 	})
+
+	// The controls in the cells leave the tab order, so the grid is one tab stop.
+	useGridTabStops(tableRef, cursorEnabled)
 
 	const { readRange, toCursorRow, rangeAnchor } = nav
 
@@ -374,7 +406,7 @@ export function useGridCursor<T>({
 
 		event.clipboardData.setData(
 			'text/plain',
-			toTsv(rangeText(cells, rowsRef.current, dataColumnsRef.current)),
+			toTsv(rangeText(cells, rowsRef.current, cursorColumnsRef.current)),
 		)
 	})
 
@@ -384,7 +416,7 @@ export function useGridCursor<T>({
 
 		if (!cells) return
 
-		const columns = dataColumnsRef.current
+		const columns = cursorColumnsRef.current
 
 		// The `aria-rowindex` of the row: its place in the cursor's order counts the
 		// group headers, totals, and detail panels above it. A windowed body can
@@ -475,7 +507,7 @@ export function useGridCursor<T>({
 			return
 		}
 
-		const cell = resolveCellAt({ rowsRef, rowKeysRef, dataColumnsRef }, coord.row, coord.col)
+		const cell = resolveCellAt({ rowsRef, rowKeysRef, cursorColumnsRef }, coord.row, coord.col)
 
 		const reported = reportedCellRef.current
 
@@ -504,7 +536,7 @@ export function useGridCursor<T>({
 		editSource,
 		editSourceRef,
 		rowKeysRef,
-		dataColumnsRef,
+		cursorColumnsRef,
 		tableRef,
 		cellId: nav.cellId,
 		moveTo: nav.moveTo,
@@ -523,13 +555,13 @@ export function useGridCursor<T>({
 	// the cell's editor once that mounts.
 	const enterEditAtCell = useCallback(
 		(rowKey: string | number, columnId: string | number, seed?: string | number) => {
-			const col = dataColumnsRef.current.find((candidate) => candidate.id === columnId)
+			const col = cursorColumnsRef.current.find((candidate) => candidate.id === columnId)
 
 			if (!col || !isColumnEditable(col)) return
 
 			enterEdit(rowKey, columnId, seed)
 		},
-		[enterEdit, dataColumnsRef],
+		[enterEdit, cursorColumnsRef],
 	)
 
 	// The keyboard entry starts from cursor indices, so it resolves them to the
@@ -537,10 +569,10 @@ export function useGridCursor<T>({
 	// The new-row slot has no row key, so its cells open through the slot.
 	const enterEditAt = useCallback(
 		(rowIndex: number, colIndex: number, seed?: string | number) => {
-			const col = dataColumnsRef.current[colIndex]
+			const col = cursorColumnsRef.current[colIndex]
 
 			if (col && rowIndex === NEW_ROW_INDEX) {
-				enterNewRow(col.id, seed)
+				if (isColumnEditable(col)) enterNewRow(col.id, seed)
 
 				return
 			}
@@ -551,7 +583,7 @@ export function useGridCursor<T>({
 
 			enterEditAtCell(rowKey, col.id, seed)
 		},
-		[enterEditAtCell, enterNewRow, rowKeysRef, dataColumnsRef],
+		[enterEditAtCell, enterNewRow, rowKeysRef, cursorColumnsRef],
 	)
 
 	// Shift+Enter on the cursor opens the form of the row, with focus in the
@@ -560,13 +592,35 @@ export function useGridCursor<T>({
 		(rowIndex: number, colIndex: number) => {
 			const rowKey = rowKeysRef.current[rowIndex]
 
-			const col = dataColumnsRef.current[colIndex]
+			const col = cursorColumnsRef.current[colIndex]
 
 			if (rowIndex === NEW_ROW_INDEX || rowKey === undefined || !col) return
 
 			editing.session.expandRow(rowKey, col.id)
 		},
-		[editing.session, rowKeysRef, dataColumnsRef],
+		[editing.session, rowKeysRef, cursorColumnsRef],
+	)
+
+	// The seed of a keyboard entry into the editable cell at `active`: a value
+	// in place of the value of the cell, `undefined` to open the cell with its
+	// own value, or `null` for a key that opens nothing.
+	const entrySeed = useStableEvent(
+		(event: KeyboardEvent<HTMLTableElement>, active: Coord, column: GridColumn<T>) => {
+			const press = readKeyPress(event)
+
+			// The new-row slot is no data row, so the cursor's Enter activates
+			// nothing there. Enter opens its cell, as F2 does.
+			const slot = active.row === NEW_ROW_INDEX
+
+			const seed =
+				event.key === 'F2' || (slot && event.key === 'Enter')
+					? undefined
+					: slot
+						? slotSeed(press, column, editing.newRow.editorKind)
+						: typedSeed(press, column, rowsRef.current[active.row])
+
+			return seed === undefined && !isPlainKey(press) ? null : seed
+		},
 	)
 
 	// The keyboard entries beside the cursor's Enter, on the tab stop alone: F2
@@ -578,22 +632,15 @@ export function useGridCursor<T>({
 
 		if (event.target !== event.currentTarget || event.defaultPrevented || !active) return
 
-		const press = readKeyPress(event)
+		const column = cursorColumnsRef.current[active.col]
 
-		// The new-row slot is no data row, so the cursor's Enter activates
-		// nothing there. Enter opens its cell, as F2 does.
-		const slot = active.row === NEW_ROW_INDEX
+		// A cell that cannot edit, such as an actions cell, leaves the keys to the
+		// cursor, whose Enter and F2 move focus to the controls of the cell.
+		if (!column || !isColumnEditable(column)) return
 
-		const column = dataColumnsRef.current[active.col]
+		const seed = entrySeed(event, active, column)
 
-		const seed =
-			event.key === 'F2' || (slot && event.key === 'Enter')
-				? undefined
-				: slot
-					? slotSeed(press, column, editing.newRow.editorKind)
-					: typedSeed(press, column, rowsRef.current[active.row])
-
-		if (seed === null || (seed === undefined && !isPlainKey(press))) return
+		if (seed === null) return
 
 		event.preventDefault()
 
@@ -619,7 +666,7 @@ export function useGridCursor<T>({
 	const cursorColumns = useGridCursorColumns<T>({
 		enabled: cursorEnabled,
 		editing: editingEnabled,
-		columns,
+		columns: withAdd,
 		rowIndexMapRef,
 		colIndexMapRef,
 		rowKeysRef,
@@ -647,7 +694,9 @@ export function useGridCursor<T>({
 
 		const block = parseTsv(event.clipboardData.getData('text/plain'))
 
-		pasteCells(pasteTargets(block, cells, rowKeysRef.current, dataColumnsRef.current, nav.rowStep))
+		pasteCells(
+			pasteTargets(block, cells, rowKeysRef.current, cursorColumnsRef.current, nav.rowStep),
+		)
 	})
 
 	const { fillCells } = editing
@@ -663,7 +712,7 @@ export function useGridCursor<T>({
 
 			const keys = rowKeysRef.current
 
-			const columns = dataColumnsRef.current
+			const columns = cursorColumnsRef.current
 
 			const targets = fillPlan(
 				source,

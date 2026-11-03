@@ -1,4 +1,5 @@
 import type { KeyboardEvent, RefObject } from 'react'
+import { isDataColumn } from '../../../../utilities/is-data-column'
 import type { GridColumn } from '../../types'
 import {
 	cellContext,
@@ -61,7 +62,7 @@ export function bridgeCellActivate<T>(
 	refs: {
 		rowsRef: RefObject<readonly T[]>
 		rowKeysRef: RefObject<(string | number)[]>
-		dataColumnsRef: RefObject<GridColumn<T>[]>
+		cursorColumnsRef: RefObject<GridColumn<T>[]>
 	},
 ): GridCellActivate | undefined {
 	if (!handleCellClick) return undefined
@@ -88,7 +89,7 @@ export function resolveCellAt<T>(
 	refs: {
 		rowsRef: RefObject<readonly T[]>
 		rowKeysRef: RefObject<(string | number)[]>
-		dataColumnsRef: RefObject<GridColumn<T>[]>
+		cursorColumnsRef: RefObject<GridColumn<T>[]>
 	},
 	rowIndex: number,
 	colIndex: number,
@@ -97,9 +98,11 @@ export function resolveCellAt<T>(
 
 	const rowKey = refs.rowKeysRef.current[rowIndex]
 
-	const col = refs.dataColumnsRef.current[colIndex]
+	const col = refs.cursorColumnsRef.current[colIndex]
 
-	if (row === undefined || rowKey === undefined || !col) return null
+	// A cell of a column that holds no row content, such as the selection or
+	// the actions column, names no cell, as a press on it names none.
+	if (row === undefined || rowKey === undefined || !col || !isDataColumn(col)) return null
 
 	return cellContext(col, row, rowKey)
 }

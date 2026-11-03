@@ -13,6 +13,7 @@ import type { GridLeaf } from './engine/grid-group/tree'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import {
+	cellMarkerAt,
 	cellPropsAt,
 	type GridCellClick,
 	type GridCellRovingActivate,
@@ -244,6 +245,8 @@ function GridGroupLeafCell<T>({
 					</div>
 				</div>
 			</div>
+			{/* The active-cell marker of a non-data cell. A data cell renders its own. */}
+			{cellMarkerAt(col, rowIndex)}
 		</td>
 	)
 }
