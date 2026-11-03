@@ -439,10 +439,12 @@ export function GridCellEditor<T>({
 
 	const { pick: commitPick, keys: pickKeys } = useGridEditPick(hostRef)
 
-	// Stages a final value, such as a pick, and commits the cell where a
-	// cell-scoped session holds it, as F2 does. Under row scope the row
-	// commits as one, so a final value of one cell only stages. So does a cell
-	// of the new-row slot, which adds only on an explicit add.
+	// Stages a final value when one is given, and commits the cell where a
+	// cell-scoped session holds it, as F2 does. A choice editor calls it with
+	// no value as its panel closes, so a close with no pick ends the edit with
+	// no change. Under row scope the row commits as one, so a final value of
+	// one cell only stages. So does a cell of the new-row slot, which adds only
+	// on an explicit add.
 	const commit = (next: unknown) => {
 		if (next !== undefined) update(next)
 
