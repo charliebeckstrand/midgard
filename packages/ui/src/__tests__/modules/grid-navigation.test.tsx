@@ -320,29 +320,35 @@ describe('Grid navigable cursor', () => {
 		expect(order).toEqual(['cell', 'row'])
 	})
 
-	it('defers a click on focusable cell content to that content', () => {
-		const onRowClick = vi.fn()
+	// A press on focusable content seats the cursor on its cell, as a press on
+	// the rest of the cell does. The content keeps the focus and the default of
+	// the press, with the range on or off.
+	it.each([{ range: false }, { range: true }])(
+		'seats the cursor on a press on focusable cell content, and leaves the press to the content (range: $range)',
+		({ range }) => {
+			const withButton: GridColumn<Row>[] = [
+				{ id: 'name', title: 'Name', cell: (row) => row.name },
+				{
+					id: 'action',
+					title: 'Action',
+					cell: (row) => <button type="button">Edit {row.name}</button>,
+				},
+			]
 
-		const withButton: GridColumn<Row>[] = [
-			{ id: 'name', title: 'Name', cell: (row) => row.name },
-			{
-				id: 'action',
-				title: 'Action',
-				cell: (row) => <button type="button">Edit {row.name}</button>,
-			},
-		]
+			renderUI(<Grid columns={withButton} rows={rows} getKey={getKey} navigable range={range} />)
 
-		renderUI(
-			<Grid columns={withButton} rows={rows} getKey={getKey} navigable onRowClick={onRowClick} />,
-		)
+			const grid = screen.getByRole('grid')
 
-		const grid = screen.getByRole('grid')
+			const button = screen.getByRole('button', { name: 'Edit Alice' })
 
-		// Pressing the in-cell button must not seat the cursor away from it.
-		fireEvent.mouseDown(screen.getByRole('button', { name: 'Edit Alice' }))
+			// `fireEvent` returns false for an event whose default was prevented.
+			expect(fireEvent.mouseDown(button)).toBe(true)
 
-		expect(grid).not.toHaveAttribute('aria-activedescendant')
-	})
+			expect(grid).toHaveAttribute('aria-activedescendant', button.closest('td')?.id)
+
+			expect(grid).not.toHaveFocus()
+		},
+	)
 
 	it('re-clamps the cursor when the data shrinks so the active cell never dangles', () => {
 		const { rerender } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)

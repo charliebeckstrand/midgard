@@ -389,9 +389,9 @@ export type GridNewRowSession = {
 	cellId: (row: number, col: number) => string
 	/**
 	 * Seats the keyboard cursor on a column of the slot, for a press on a cell
-	 * of the slot. It has the guards of a press on a data cell: the focus does
-	 * not scroll, and a press while a drag holds the pointer does not seat the
-	 * cursor.
+	 * of the slot. It has the guard of a press on a data cell: a press while a
+	 * drag holds the pointer does not seat the cursor. It does not move the
+	 * focus.
 	 */
 	seat: (col: number) => void
 }

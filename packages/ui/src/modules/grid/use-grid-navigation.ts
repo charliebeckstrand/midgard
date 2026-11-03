@@ -32,6 +32,7 @@ import {
 	rangeRect,
 } from './engine/grid-range/range'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
+import { fromInteractiveContent } from './engine/grid-row/cell'
 import type { GridCursorRow } from './grid-cursor-order'
 import { useGridRangeDrag } from './use-grid-range-drag'
 
@@ -627,7 +628,9 @@ export function useGridNavigation({
 	reconcile: GridReconcile
 	/**
 	 * Seats the cursor on a pressed data cell. With the range on, Shift extends
-	 * the range to the cell, and a press without it can start a drag.
+	 * the range to the cell, and a press without it can start a drag. A press
+	 * on focusable content in the cell, such as an editor, only seats the
+	 * cursor, and keeps its default.
 	 */
 	seat: (coord: Coord, event: MouseEvent<HTMLElement>) => void
 	/**
@@ -898,8 +901,6 @@ export function useGridNavigation({
 		[toCursorRow, range],
 	)
 
-	// A press on a data cell. Without the range, it only seats the cursor. With
-	// it, the grid owns the press, so the browser starts no text selection.
 	// Whether the cell at a data row and a column is inside the range.
 	const inRangeAt = useCallback(
 		(row: number, col: number) => {
@@ -916,6 +917,8 @@ export function useGridNavigation({
 		[readCorners],
 	)
 
+	// A press on a data cell. Without the range, it only seats the cursor. With
+	// it, the grid owns the press, so the browser starts no text selection.
 	const seat = useCallback(
 		(coord: Coord, event: MouseEvent<HTMLElement>) => {
 			if (press.held()) return
@@ -929,6 +932,15 @@ export function useGridNavigation({
 			// A press of another button, such as the one that opens the context
 			// menu, keeps a range that holds the cell, so the menu can act on it.
 			if (!isPrimaryPress(event) && inRangeAt(coord.row, coord.col)) return
+
+			// Focusable content, such as an editor, owns its press: the press
+			// focuses it, and places the caret. Thus the press only seats the
+			// cursor, and starts no range.
+			if (fromInteractiveContent(event.target)) {
+				moveTo(coord)
+
+				return
+			}
 
 			event.preventDefault()
 

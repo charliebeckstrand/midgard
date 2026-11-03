@@ -262,6 +262,31 @@ describe('Grid per-row editing', () => {
 		expect(view.onCommit).not.toHaveBeenCalled()
 	})
 
+	// A press on an editor seats the cursor on its cell, as a press on the rest
+	// of the cell, such as the chevron of a listbox, does. The editor keeps the
+	// focus of the press.
+	it('seats the cursor on the cell of a pressed editor', () => {
+		const view = renderGrid()
+
+		view.editRow1()
+
+		const grid = view.getByRole('grid')
+
+		const listbox = getSlot(getSlot(view.container, 'grid-edit-boolean-input'), 'listbox-button')
+
+		expect(fireEvent.mouseDown(listbox)).toBe(true)
+
+		expect(grid).toHaveAttribute('aria-activedescendant', listbox.closest('td')?.id)
+
+		const input = getSlot(view.container, 'grid-edit-input')
+
+		expect(fireEvent.mouseDown(input)).toBe(true)
+
+		expect(grid).toHaveAttribute('aria-activedescendant', input.closest('td')?.id)
+
+		expect(grid).not.toHaveFocus()
+	})
+
 	it('uses a column editCell slot instead of the inferred editor', () => {
 		const slotColumns: GridColumn<SessionRow>[] = [
 			{
@@ -5671,6 +5696,18 @@ describe('Grid new row', () => {
 			expect(onGrid).toEqual([[{ preventScroll: true }]])
 
 			expect(active(view)).toBe(view.slotCell('name').id)
+		})
+
+		// A press on an editor of the slot seats the cursor as a press on the rest
+		// of the cell does. The editor takes the focus, so the table does not.
+		it('seats the cursor on a press of a slot editor, and leaves the focus to the editor', () => {
+			const view = renderNewRow({ newRow: 'bottom' })
+
+			expect(fireEvent.mouseDown(view.slotEditor('count'))).toBe(true)
+
+			expect(active(view)).toBe(view.slotCell('count').id)
+
+			expect(view.grid()).not.toHaveFocus()
 		})
 
 		// While a pen drags the range, the tap of a palm sends a primary press
