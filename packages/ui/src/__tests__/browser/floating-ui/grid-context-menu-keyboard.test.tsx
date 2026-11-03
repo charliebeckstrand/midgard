@@ -60,14 +60,29 @@ describe('grid context menu keyboard access (real browser)', () => {
 		expect(grid).toHaveAttribute('aria-activedescendant', active)
 	})
 
-	// Row roving focuses the row. The menu opens at its first data cell, and a
-	// close puts focus back on the row, so the arrow keys pick up from it.
+	// Row roving focuses the row. It runs under manual grouping, which stands the
+	// cursor down. The menu opens at the first data cell of the row, and a close
+	// puts focus back on the row, so the arrow keys pick up from it.
 	it('opens from a focused roving row and returns focus to the row on close', async () => {
+		type Grouped = Row & { group?: { key: string; count: number } }
+
+		const grouped: Grouped[] = [
+			{ id: 0, name: 'All', role: '', group: { key: 'all', count: rows.length } },
+			...rows,
+		]
+
 		renderUI(
 			<Grid
 				columns={columns}
-				rows={rows}
+				rows={grouped}
 				getKey={getKey}
+				groupBy={{
+					manual: true,
+					value: 'role',
+					groupRow: (row) =>
+						row.group ? { key: row.group.key, value: row.name, count: row.group.count } : null,
+					expanded: new Set(['all']),
+				}}
 				onRowClick={() => {}}
 				contextMenu={{ cell: true }}
 			/>,
