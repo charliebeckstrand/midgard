@@ -14,7 +14,8 @@ export type LinkProps = Omit<PrimitiveLinkProps, 'color'> & LinkVariants
  * @remarks
  * `underline` draws the underline at rest, not only on hover. With the default
  * `color: current`, the link has the color of the text around it, so give a link
- * in running text `underline` or a `color`.
+ * in running text `underline` or a `color`. On keyboard focus, the link shows the
+ * focus ring of the library, not the outline of the browser.
  */
 export function Link({ href, color, underline, className, target, rel, ...props }: LinkProps) {
 	const { component: LinkComponent } = useLink()

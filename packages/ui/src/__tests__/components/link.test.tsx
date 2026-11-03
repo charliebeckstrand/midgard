@@ -18,6 +18,16 @@ describe('Link', () => {
 		expect(link).toHaveAttribute('data-slot', 'link')
 	})
 
+	it('shows the focus ring of the library on keyboard focus', () => {
+		renderUI(<Link href="/about">About</Link>)
+
+		expect(screen.getByText('About')).toHaveClass(
+			'focus-visible:outline-2',
+			'focus-visible:outline-offset-2',
+			'focus-visible:outline-blue-600',
+		)
+	})
+
 	it('defaults a safe rel when opening a new tab', () => {
 		renderUI(
 			<Link href="/x" target="_blank">
