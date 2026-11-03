@@ -1,4 +1,4 @@
-import type { GridPagination } from '../types'
+import type { GridPagination, GridPaginationState } from '../types'
 /**
  * A window entry: a 1-based page number, or a gap for an elided range. The
  * `'start-gap'` elides the pages before the window, and the `'end-gap'` the
@@ -118,4 +118,19 @@ export function pageOffset(pageIndex: number, pageSize: number): number {
  */
 export function shownPageIndex(pageIndex: number, pageCount: number): number {
 	return pageCount > 0 ? Math.min(pageIndex, pageCount - 1) : pageIndex
+}
+
+/**
+ * The page state after a change of the page size: the page that holds the
+ * first row of the page before. An unbounded page holds every row, so a change
+ * to or from it starts at the first page. The size is at least 1.
+ *
+ * @internal
+ */
+export function resizePage(prev: GridPaginationState, size: number): GridPaginationState {
+	const pageSize = Math.max(1, size)
+
+	const firstRow = prev.pageSize === Infinity ? 0 : prev.pageSize * prev.pageIndex
+
+	return { pageIndex: pageSize === Infinity ? 0 : Math.floor(firstRow / pageSize), pageSize }
 }

@@ -1,6 +1,7 @@
 import {
 	type ColumnDef,
 	columnFacetingFeature,
+	columnFilteringFeature,
 	columnGroupingFeature,
 	constructTable,
 	createFacetedRowModel,
@@ -11,9 +12,11 @@ import {
 	createSortedRowModel,
 	type FilterFn,
 	filterFn_includesString,
+	globalFilteringFeature,
 	type PaginationState,
 	type Row,
 	type RowData,
+	rowPaginationFeature,
 	rowSortingFeature,
 	type SortFn,
 	type SortingState,
@@ -27,8 +30,12 @@ import type {
 	GridPagination,
 	GridSortState,
 } from '../../modules/grid'
+import { columnAccessor } from '../../modules/grid/engine/grid-column/accessor'
 import type { GridGroup, GridLeaf } from '../../modules/grid/engine/grid-group/tree'
-import { isManualPagination } from '../../modules/grid/engine/grid-pagination-utilities'
+import {
+	isManualPagination,
+	manualTotals,
+} from '../../modules/grid/engine/grid-pagination-utilities'
 import {
 	compareSortKeys,
 	naturalCollator,
@@ -36,11 +43,9 @@ import {
 	toSortKey,
 } from '../../modules/grid/engine/grid-sort/utilities'
 import { type EngineData, gridFeatures } from '../../modules/grid/engine/grid-table/features'
-import {
-	filterOptions,
-	paginationOptions,
-	toColumnDef,
-} from '../../modules/grid/engine/grid-table/options'
+import { toColumnDef } from '../../modules/grid/engine/grid-table/options'
+import { evaluateQuery } from '../../modules/query/engine/query-evaluate'
+import { isQueryGroup } from '../../modules/query/engine/query-node'
 import { getOrCompute } from '../../utilities/get-or-compute'
 import { isDataColumn } from '../../utilities/is-data-column'
 
@@ -52,6 +57,9 @@ import { isDataColumn } from '../../utilities/is-data-column'
  */
 const referenceFeatures = tableFeatures({
 	...gridFeatures,
+	columnFilteringFeature,
+	globalFilteringFeature,
+	rowPaginationFeature,
 	columnFacetingFeature,
 	columnGroupingFeature,
 	rowSortingFeature,
@@ -121,8 +129,19 @@ const smartSort: SortFn<ReferenceFeatures, RowData> = (rowA, rowB, columnId) => 
 }
 
 /**
+ * The column filter of the reference table: the query tree of the column,
+ * evaluated against the cell. A value that is not a query filters no row, and
+ * an empty tree removes itself, as in the grid (see `isVacantFilter`).
+ */
+const queryFilter: FilterFn<ReferenceFeatures, RowData> = (row, columnId, filterValue) =>
+	!isQueryGroup(filterValue) || evaluateQuery(filterValue, () => row.getValue(columnId))
+
+queryFilter.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
+
+/**
  * The column definition of the reference table: the definition that the grid
- * gives the engine, with the sort and group options of the column added.
+ * gives the engine, with the filter, sort, and group options of the column
+ * added.
  */
 function referenceColumnDef<T>(column: GridColumn<T>): ColumnDef<ReferenceFeatures, EngineData<T>> {
 	const { sortFn } = column
@@ -133,8 +152,16 @@ function referenceColumnDef<T>(column: GridColumn<T>): ColumnDef<ReferenceFeatur
 
 	const engineSort = isDataColumn(column) ? dataSort : undefined
 
+	const accessorFn = isDataColumn(column) ? columnAccessor(column) : column.value
+
 	return {
 		...(toColumnDef(column) as ColumnDef<ReferenceFeatures, EngineData<T>>),
+		...(accessorFn ? { accessorFn } : {}),
+		enableColumnFilter: Boolean(column.filterable && column.value),
+		enableGlobalFilter: Boolean(column.value),
+		...(column.filterable && column.value
+			? { filterFn: queryFilter as FilterFn<ReferenceFeatures, EngineData<T>> }
+			: {}),
 		enableSorting: Boolean(column.sortable),
 		// Only a data column groups.
 		enableGrouping: isDataColumn(column),
@@ -195,11 +222,7 @@ export function engineTable<T>(
 			...(page ? { pagination: page.state } : {}),
 			...(grouping !== undefined ? { grouping: [grouping] } : {}),
 		},
-		...(filterOptions<T>({
-			configured: filtered,
-			onGlobalFilterChange: () => {},
-			onColumnFiltersChange: () => {},
-		}) as object),
+		...(filtered ? { onGlobalFilterChange: () => {}, onColumnFiltersChange: () => {} } : {}),
 		globalFilterFn: transforms.highlight
 			? (passThrough as FilterFn<ReferenceFeatures, EngineData<T>>)
 			: 'includesString',
@@ -207,12 +230,12 @@ export function engineTable<T>(
 		// The reference table sorts with the engine. It keeps a multi-column sort.
 		...(sort !== undefined ? { onSortingChange: () => {}, enableMultiSort: true } : {}),
 		manualSorting: sort === undefined,
-		...(paginationOptions<T>({
-			paginated: page !== undefined,
-			manual: page !== undefined && isManualPagination(page.config),
-			config: page?.config,
-			onPaginationChange: () => {},
-		}) as object),
+		...(page
+			? {
+					onPaginationChange: () => {},
+					...(isManualPagination(page.config) ? manualTotals(page.config) : {}),
+				}
+			: {}),
 		manualPagination: manualPage,
 		...(grouping !== undefined ? { onGroupingChange: () => {} } : {}),
 		manualGrouping: grouping === undefined,

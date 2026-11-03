@@ -71,7 +71,7 @@ function pageStatus(
  * Footer for a paginated {@link Grid}, laid out as one row of three zones: an
  * optional page-size picker at the start, the page navigation in the center,
  * and a row-range status at the end. All three are driven by the
- * {@link GridPaginationView} the grid's TanStack Table engine resolves. The
+ * {@link GridPaginationView} that the grid resolves. The
  * footer width, not the viewport, sets the layout. Below `@2xl` the numbered
  * pages hide, and a footer with no picker moves Previous/Next to the start.
  * Numbered pages render only when the total page count is known; an unbounded

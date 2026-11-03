@@ -5,14 +5,15 @@ import type { GridPagination } from '../../types'
 import {
 	manualTotals,
 	pageOffset,
+	resizePage,
 	resolvePageCount,
 	shownPageIndex,
 } from '../grid-pagination-utilities'
-import type { EngineTable } from './features'
 
 /**
  * Resolved pagination view model the footer renders from: page coordinate,
- * derived totals and bounds, and the navigation setters that drive the engine.
+ * derived totals and bounds, and the navigation setters that write the page
+ * state of the grid.
  *
  * @internal
  */
@@ -31,12 +32,11 @@ export type GridPaginationView = {
 	canNext: boolean
 	pageSizeOptions: number[] | undefined
 	/**
-	 * Moves to a page, by absolute index or by an updater the engine applies to the
-	 * live index, held to the last page as the view shows it. Two navigations that
-	 * land on one render compose under an updater; an absolute index computed from
-	 * the rendered page resolves both to the same page. The result stays inside a
-	 * known page count. The engine bounds it only against an explicit `pageCount`,
-	 * which client mode never sets, so the view clamps it.
+	 * Moves to a page, by absolute index or by an updater over the live index,
+	 * held to the last page as the view shows it. Two navigations that land on
+	 * one render compose under an updater; an absolute index computed from the
+	 * rendered page resolves both to the same page. The result stays at 0 or
+	 * more, and inside a known page count.
 	 */
 	setPageIndex: (index: SetStateAction<number>) => void
 	setPageSize: (size: number) => void
@@ -46,16 +46,16 @@ export type GridPaginationView = {
  * Builds the {@link GridPaginationView} the footer renders from.
  *
  * @remarks
- * The view counts the pages itself, as the engine counts them (see
- * `resolvePageCount`), so a render reads no engine row model. The engine handle
- * serves only the actions, which run after the render.
+ * The view counts the pages itself, as TanStack Table counts them (see
+ * `resolvePageCount`). The actions write the page state of the grid with an
+ * updater, so two navigations in one frame compose.
  *
  * @param args.rows - The count of the rows before pagination: the rows after
  *   the client filters.
  * @internal
  */
-export function buildPaginationView<T>(args: {
-	table: EngineTable<T>
+export function buildPaginationView(args: {
+	write: (update: (prev: PaginationState) => PaginationState) => void
 	pagination: PaginationState
 	manual: boolean
 	config: GridPagination
@@ -66,14 +66,14 @@ export function buildPaginationView<T>(args: {
 
 	const onPage = args.pageRowCount
 
-	// A server grid supplies its totals. They reach the engine only in manual mode.
+	// A server grid supplies its totals. They count only in manual mode.
 	const pageCount = resolvePageCount({
 		...(args.manual ? manualTotals(args.config) : {}),
 		rows: args.rows,
 		pageSize,
 	})
 
-	const { table } = args
+	const { write } = args
 
 	return {
 		pageIndex,
@@ -87,16 +87,15 @@ export function buildPaginationView<T>(args: {
 		canNext: pageCount === -1 || (pageCount !== 0 && pageIndex < pageCount - 1),
 		pageSizeOptions: args.config.pageSizeOptions,
 		// An updater steps from the shown page, not from a stored page past the last
-		// one. `-1` (unknown) leaves the top open. The engine still clamps the floor
-		// at 0.
+		// one. `-1` (unknown) leaves the top open.
 		setPageIndex: (index) =>
-			table.setPageIndex((prev) => {
-				const next = functionalUpdate(index, shownPageIndex(prev, pageCount))
+			write((prev) => {
+				const next = functionalUpdate(index, shownPageIndex(prev.pageIndex, pageCount))
 
 				const last = pageCount - 1
 
-				return last >= 0 ? clamp(next, 0, last) : next
+				return { ...prev, pageIndex: last >= 0 ? clamp(next, 0, last) : Math.max(0, next) }
 			}),
-		setPageSize: (size) => table.setPageSize(size),
+		setPageSize: (size) => write((prev) => resizePage(prev, size)),
 	}
 }

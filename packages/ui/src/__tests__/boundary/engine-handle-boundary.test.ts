@@ -70,7 +70,6 @@ const ORIGIN: Receiver = {
 const RECEIVERS: Receiver[] = [
 	ORIGIN,
 	{ file: 'modules/grid/use-grid-table.ts', fn: 'useResizeView', binding: 'table', kind: 'render' },
-	{ file: 'modules/grid/use-grid-table.ts', fn: 'useFilterView', binding: 'table', kind: 'render' },
 	{
 		file: 'modules/grid/use-grid-column-sizing.ts',
 		fn: 'useGridColumnSizing',
@@ -80,18 +79,6 @@ const RECEIVERS: Receiver[] = [
 	{
 		file: 'modules/grid/engine/grid-table/resize-view.ts',
 		fn: 'columnResizeActions',
-		binding: 'table',
-		kind: 'render',
-	},
-	{
-		file: 'modules/grid/engine/grid-table/filter-view.ts',
-		fn: 'columnFilterActions',
-		binding: 'table',
-		kind: 'render',
-	},
-	{
-		file: 'modules/grid/engine/grid-table/pagination-view.ts',
-		fn: 'buildPaginationView',
 		binding: 'table',
 		kind: 'render',
 	},

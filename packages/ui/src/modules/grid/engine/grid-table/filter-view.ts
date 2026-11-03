@@ -6,7 +6,6 @@ import type { GridColumn, GridColumnFilterState } from '../../types'
 import { type ColumnTests, type RowTest, uniqueValues } from '../grid-filter/filter'
 import { compileSearch } from '../grid-search/search'
 import { compareSmart, naturalCollator } from '../grid-sort/utilities'
-import type { EngineTable } from './features'
 
 /**
  * The faceted values of a column: the values its cells hold in the rows that the
@@ -34,8 +33,8 @@ export type GridColumnFacets = {
  *
  * @remarks A value with actions. The applied queries, the affordance, and the
  * open-request are a snapshot, and the grid gives a new object each time one
- * of them changes. The actions read or write the engine, so the render code
- * calls them only from an event or an effect.
+ * of them changes. The actions write the filter state of the grid or collect
+ * the facets, so the render code calls them only from an event or an effect.
  *
  * @internal
  */
@@ -75,7 +74,7 @@ export type GridColumnFilter = {
 	requestOpen: (id: string | number | null) => void
 }
 
-/** The actions of {@link GridColumnFilter} that reach the engine. @internal */
+/** The actions of {@link GridColumnFilter}. @internal */
 export type GridColumnFilterActions = Pick<GridColumnFilter, 'setQuery' | 'clear' | 'facets'>
 
 /** Global-filter view the search input renders from. @internal */
@@ -156,10 +155,54 @@ export function toColumnFacets(values: Iterable<unknown>, locale?: string): Grid
 	}
 }
 
+/** The ids of the columns that filter: each declares `filterable` and a `value`. @internal */
+export function filterableIds<T>(columns: readonly GridColumn<T>[]): Set<string> {
+	return new Set(columns.filter((col) => col.filterable && col.value).map((col) => String(col.id)))
+}
+
+/**
+ * Whether a filter entry filters no row, so the filter state drops it: an
+ * absent value, a value that is not a query, or a query with no rule.
+ *
+ * @internal
+ */
+export function isVacantFilter(value: unknown): boolean {
+	return !isQueryGroup(value) || value.children.length === 0
+}
+
+/**
+ * The filter state after one column takes `query`. The entry of the column is
+ * replaced in place, or appended. Each entry of a filterable column that filters
+ * no row is dropped (see {@link isVacantFilter}).
+ *
+ * @param filterable - The ids of the columns that filter. An entry of another
+ *   column stays, as a controlled binding gave it.
+ * @internal
+ */
+export function withColumnQuery(
+	prev: readonly GridColumnFilterState[],
+	id: string,
+	query: QueryGroup | undefined,
+	filterable: ReadonlySet<string>,
+): GridColumnFilterState[] {
+	const others = prev.filter((filter) => filter.id !== id)
+
+	const next =
+		query === undefined
+			? others
+			: prev.some((filter) => filter.id === id)
+				? prev.map((filter) => (filter.id === id ? { id, value: query } : filter))
+				: [...prev, { id, value: query }]
+
+	return next.filter((filter) => !(filterable.has(filter.id) && isVacantFilter(filter.value)))
+}
+
 /**
  * The actions of {@link GridColumnFilter}. The filter actions write the
- * engine when they run.
+ * filter state of the grid when they run.
  *
+ * @param write - Writes the filter state of the grid with an updater.
+ * @param filterable - The ids of the columns that filter.
  * @param manual - Whether the consumer filters. A manual grid holds only the
  *   server page, so its columns have no facets.
  * @param facetValues - The distinct cell values that the facets of a column
@@ -167,17 +210,16 @@ export function toColumnFacets(values: Iterable<unknown>, locale?: string): Grid
  * @param locale - The locale that the facet values collate in.
  * @internal
  */
-export function columnFilterActions<T>(
-	table: EngineTable<T>,
+export function columnFilterActions(
+	write: (update: (prev: GridColumnFilterState[]) => GridColumnFilterState[]) => void,
+	filterable: ReadonlySet<string>,
 	manual: boolean,
 	facetValues: (id: string) => Iterable<unknown>,
 	locale?: string,
 ): GridColumnFilterActions {
 	return {
-		setQuery: (id, query) => table.getColumn(String(id))?.setFilterValue(query),
-		// Replace the whole applied set with an empty one; it flows through the
-		// engine's `onColumnFiltersChange` like any other filter edit.
-		clear: () => table.setColumnFilters([]),
+		setQuery: (id, query) => write((prev) => withColumnQuery(prev, String(id), query, filterable)),
+		clear: () => write(() => []),
 		facets: (id) => {
 			if (manual) return NO_FACETS
 
@@ -246,9 +288,7 @@ export function buildColumnFilters<T>(args: {
 	openColumn: string | number | null
 	requestOpen: (id: string | number | null) => void
 }): GridColumnFilter {
-	const filterable = new Set(
-		args.columns.filter((col) => col.filterable && col.value).map((col) => String(col.id)),
-	)
+	const filterable = filterableIds(args.columns)
 
 	// A controlled binding can carry any value, so each entry is checked as a
 	// query. An entry on a column that cannot filter filters no row, so it

@@ -373,6 +373,25 @@ describe('Grid pagination', () => {
 			expect(onValueChange).toHaveBeenLastCalledWith({ pageIndex, pageSize: 5 })
 		})
 
+		it('reports no change for a press of the page that shows', async () => {
+			const user = setupUser()
+
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={many}
+					getKey={getKey}
+					pagination={{ value: { pageIndex: 0, pageSize: 5 }, onValueChange }}
+				/>,
+			)
+
+			await user.click(screen.getByRole('button', { name: '1' }))
+
+			expect(onValueChange).not.toHaveBeenCalled()
+		})
+
 		it('restores focus when the consumer commits the page in a transition', async () => {
 			const user = setupUser()
 

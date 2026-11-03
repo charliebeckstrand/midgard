@@ -12,7 +12,6 @@
 // code calls it only from an event or an effect.
 
 import {
-	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
 	type ColumnVisibilityState,
@@ -20,6 +19,7 @@ import {
 	functionalUpdate,
 	type OnChangeFn,
 	type PaginationState,
+	stateSlicesEqual,
 	useTable,
 } from '@tanstack/react-table'
 import {
@@ -60,14 +60,13 @@ import {
 import {
 	buildColumnFilters,
 	columnFilterActions,
+	filterableIds,
 	type GridColumnFilter,
 	type GridGlobalFilterView,
 } from './engine/grid-table/filter-view'
 import {
 	buildState,
 	clampSizingToFloors,
-	filterOptions,
-	paginationOptions,
 	resizeOptions,
 	toColumnDefs,
 	toGridColumns,
@@ -111,6 +110,20 @@ import { useFilterModeMismatchWarning } from './use-grid-filter-mode-mismatch-wa
 import { useGroupTree } from './use-grid-group-tree'
 import { useGridPinningView } from './use-grid-pinning-view'
 import { useGridRowModel } from './use-grid-row-model'
+
+/** The rows of the engine: none, as it holds column state only. @internal */
+const NO_ENGINE_ROWS: never[] = []
+
+/**
+ * The previous state when the next state is equal to it, else the next state.
+ * An equal write therefore reports no change through `onValueChange`. The
+ * compare is the one that TanStack Table applies to its own state writes.
+ *
+ * @internal
+ */
+function keepSame<S>(prev: S | undefined, next: S): S | undefined {
+	return stateSlicesEqual(prev, next) ? prev : next
+}
 
 /** Parameters for {@link useGridTable}. @internal */
 type GridTableParams<T> = {
@@ -175,10 +188,9 @@ type GridTableResult<T> = {
 	/** Rows to render: the leaves of the groups, else the client view, else the supplied `rows`. */
 	renderRows: readonly T[]
 	/**
-	 * Per-row keys parallel to {@link renderRows}. Each is the value `getKey`
-	 * yields at the row's engine (original-data) index, the index `getRowId` saw.
-	 * Its stringified form therefore matches the id that `getRowId` gives,
-	 * while the raw `string | number` value still backs selection identity.
+	 * Per-row keys parallel to {@link renderRows}. Each is the value that `getKey`
+	 * gives at the index of the row in `rows`. The raw `string | number` value
+	 * backs selection identity, and its string form is the id of the row leaf.
 	 */
 	rowKeys: (string | number)[]
 	/**
@@ -434,7 +446,7 @@ function useResizeView<T>(args: {
  * @internal
  */
 function useFilterView<T>(args: {
-	table: EngineTable<T>
+	write: (update: (prev: GridColumnFilterState[]) => GridColumnFilterState[]) => void
 	enabled: boolean
 	/** Whether the consumer filters, so the columns have no facets. */
 	manual: boolean
@@ -444,7 +456,7 @@ function useFilterView<T>(args: {
 	/** The facet values of each column (see {@link useFacetSource}). */
 	facetValues: (id: string) => Iterable<unknown>
 }): GridColumnFilter | null {
-	const { table, enabled, manual, columns, applied, facetValues } = args
+	const { write, enabled, manual, columns, applied, facetValues } = args
 
 	const affordance = args.affordance ?? 'header'
 
@@ -457,8 +469,8 @@ function useFilterView<T>(args: {
 	const { locale } = useLocale()
 
 	const actions = useMemo(
-		() => columnFilterActions(table, manual, facetValues, locale),
-		[table, manual, facetValues, locale],
+		() => columnFilterActions(write, filterableIds(columns), manual, facetValues, locale),
+		[write, columns, manual, facetValues, locale],
 	)
 
 	return useMemo(
@@ -479,17 +491,17 @@ function useFilterView<T>(args: {
 
 /**
  * Builds the {@link https://tanstack.com/table | TanStack Table} instance that
- * powers a {@link Grid}, and the row views of the grid. It adapts the grid's
- * `GridColumn[]` to TanStack `ColumnDef[]` (mapping `value` to an accessor) and
- * `getKey` to `getRowId`.
+ * holds the column state of a {@link Grid}, and the row views of the grid. It
+ * adapts the grid's `GridColumn[]` to TanStack `ColumnDef[]`.
  *
- * @remarks The engine holds the column state (order, visibility, sizing,
- * pinning) and the state of the row transforms, and the actions that write
- * them. It builds no row model. The grid filters, sorts, groups, and pages its
- * rows itself (see {@link useGridClientView} and `orderGroups`). Each transform is
- * opt-in, and pagination and filtering each run server-side (`manual`, the
- * consumer transforms `rows`) or client-side. A plain grid renders straight
- * from `rows`. `autoResetPageIndex` is off: the page is consumer-controlled.
+ * @remarks The engine holds the column state (order, visibility, pinning,
+ * sizing, and the drag of a resize). It resolves the visible columns, and it
+ * runs the pointer gesture of a resize. It takes no rows. The grid holds the
+ * state of the row transforms (the search, the column filters, and the page),
+ * and it filters, sorts, groups, and pages its rows itself (see
+ * {@link useGridClientView} and `orderGroups`). Each transform is opt-in, and
+ * pagination and filtering each run server-side (`manual`, the consumer
+ * transforms `rows`) or client-side. A plain grid renders straight from `rows`.
  *
  * This hook is the engine boundary (see the note at the top of this module).
  * The grid owns every piece of table state, and the engine calculates from it.
@@ -551,11 +563,11 @@ export function useGridTable<T>({
 
 	const resolvedPagination = paginationState ?? DEFAULT_PAGINATION_STATE
 
-	// Bridge TanStack's `Updater<T>` onto each controllable setter so the table's
-	// own imperative methods flow out through the public `onValueChange`.
-	const onPaginationChange = useCallback<OnChangeFn<PaginationState>>(
-		(updater) =>
-			setPaginationState((prev) => functionalUpdate(updater, prev ?? DEFAULT_PAGINATION_STATE)),
+	// The footer writes the page through an updater over the resolved page. A
+	// write that gives an equal page keeps the page, so it reports no change.
+	const writePagination = useCallback(
+		(update: (prev: PaginationState) => PaginationState) =>
+			setPaginationState((prev) => keepSame(prev, update(prev ?? DEFAULT_PAGINATION_STATE))),
 		[setPaginationState],
 	)
 
@@ -648,9 +660,9 @@ export function useGridTable<T>({
 
 	const resolvedGlobalFilter = globalFilterState ?? ''
 
-	const onGlobalFilterChange = useCallback<OnChangeFn<string>>(
-		(updater) => {
-			setGlobalFilterState((prev) => functionalUpdate(updater, prev ?? ''))
+	const setGlobalFilter = useCallback(
+		(value: string) => {
+			setGlobalFilterState(value)
 
 			resetPage()
 		},
@@ -659,9 +671,7 @@ export function useGridTable<T>({
 
 	const hasColumnFilters = columns.some((col) => col.filterable && col.value)
 
-	// Keyed on the public row type rather than TanStack's, whose `value` is
-	// `unknown`. The grid's filter function evaluates a query tree, so the public
-	// binding says so, and the narrower row is assignable to the engine's.
+	// Each entry holds the query tree of a column, which the client view evaluates.
 	const [columnFiltersState, setColumnFiltersState] = useControllable<GridColumnFilterState[]>({
 		value: columnFiltersConfig?.value,
 		defaultValue: columnFiltersConfig?.defaultValue ?? EMPTY_COLUMN_FILTERS,
@@ -670,17 +680,9 @@ export function useGridTable<T>({
 
 	const resolvedColumnFilters = columnFiltersState ?? EMPTY_COLUMN_FILTERS
 
-	// The one narrowing in the binding, and the only place it is needed. TanStack
-	// types a filter's value `unknown`; every value this grid writes is the query
-	// tree its own filter function evaluates, which is what the public
-	// `GridColumnFilterState` says. The engine's updater cannot carry that, so the
-	// assertion sits here rather than widening the public type back to `unknown`.
-	const onColumnFiltersChange = useCallback<OnChangeFn<ColumnFiltersState>>(
-		(updater) => {
-			setColumnFiltersState(
-				(prev) =>
-					functionalUpdate(updater, prev ?? EMPTY_COLUMN_FILTERS) as GridColumnFilterState[],
-			)
+	const writeColumnFilters = useCallback(
+		(update: (prev: GridColumnFilterState[]) => GridColumnFilterState[]) => {
+			setColumnFiltersState((prev) => keepSame(prev, update(prev ?? EMPTY_COLUMN_FILTERS)))
 
 			resetPage()
 		},
@@ -721,11 +723,9 @@ export function useGridTable<T>({
 	// from it append in definition order). Visibility defaults to all-visible.
 	const engineColumnOrder = useMemo<ColumnOrderState>(() => columnOrder.map(String), [columnOrder])
 
-	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
-
-	// The column filters that reach the engine. A grid with no filterable column
-	// gives the engine no filter state, so its filters apply to no row. This block
-	// comes before the engine options. The React Compiler reads a plain call after
+	// The column filters that the client view applies. A grid with no filterable
+	// column applies none, so its filter state hides no row. This block comes
+	// before the engine options. The React Compiler reads a plain call after
 	// a memo as a possible change to the inputs of the memo, so it would skip this
 	// hook if the block came later (see `react-compiler-skips.test.ts`).
 	const appliedColumnFilters = hasColumnFilters ? resolvedColumnFilters : EMPTY_COLUMN_FILTERS
@@ -752,57 +752,29 @@ export function useGridTable<T>({
 	const options = useMemo<EngineOptions<T>>(
 		() => ({
 			features: gridFeatures,
-			data: rows as EngineData<T>[],
+			// The engine holds column state only, so it takes no rows.
+			data: NO_ENGINE_ROWS as EngineData<T>[],
 			columns: columnDefs,
-			getRowId,
-			// The page coordinate, widths, and query are owned by controllable bindings.
-			autoResetPageIndex: false,
 			state: buildState({
-				paginated,
-				pagination: resolvedPagination,
 				resizable,
 				sizing: resolvedSizing,
 				sizingInfo: columnSizingInfo,
-				globalFiltered: globalConfigured,
-				globalFilter: resolvedGlobalFilter,
-				columnFiltered: hasColumnFilters,
-				columnFilters: resolvedColumnFilters,
 				columnPinning,
 				columnOrder: engineColumnOrder,
 				columnVisibility,
 			}),
-			...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
 			...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
-			...filterOptions<T>({
-				configured: filterMode.configured,
-				onGlobalFilterChange: globalConfigured ? onGlobalFilterChange : undefined,
-				onColumnFiltersChange: hasColumnFilters ? onColumnFiltersChange : undefined,
-			}),
 		}),
 		[
-			rows,
 			columnDefs,
-			getRowId,
-			paginated,
-			resolvedPagination,
 			resizable,
 			resolvedSizing,
 			columnSizingInfo,
-			globalConfigured,
-			resolvedGlobalFilter,
-			hasColumnFilters,
-			resolvedColumnFilters,
 			columnPinning,
 			engineColumnOrder,
 			columnVisibility,
-			manual,
-			paginationConfig,
-			onPaginationChange,
 			onColumnSizingChange,
 			onColumnSizingInfoChange,
-			filterMode.configured,
-			onGlobalFilterChange,
-			onColumnFiltersChange,
 		],
 	)
 
@@ -872,7 +844,7 @@ export function useGridTable<T>({
 	// each render is correct, and the footer is cheap.
 	const pagination = paginationConfig
 		? buildPaginationView({
-				table: engine,
+				write: writePagination,
 				pagination: shownPagination,
 				manual,
 				config: paginationConfig,
@@ -956,17 +928,17 @@ export function useGridTable<T>({
 			globalConfigured
 				? {
 						value: resolvedGlobalFilter,
-						setValue: (value: string) => engine.setGlobalFilter(value),
+						setValue: setGlobalFilter,
 						placeholder: globalFilterConfig?.placeholder,
 					}
 				: null,
-		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, engine],
+		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, setGlobalFilter],
 	)
 
 	const facetValues = useFacetSource({ rows, columns, columnTests, query: searchQuery })
 
 	const filters = useFilterView({
-		table: engine,
+		write: writeColumnFilters,
 		enabled: hasColumnFilters,
 		manual: filterMode.manual,
 		columns,
