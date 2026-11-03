@@ -12,6 +12,8 @@ import { gridCell } from '../../helpers/grid-cells'
  * jsdom suite cannot assert this: its `@floating-ui/react` mock renders
  * `FloatingPortal` inline and stamps no `data-floating-ui-portal`, so the guard
  * reads as missing there and the session looks like it dies on the first press.
+ * Under cell scope the close of the panel commits the cell, so the edit ends
+ * there with the value unchanged.
  */
 describe('grid edit session Escape vs an open listbox (real floating engine)', () => {
 	type Row = { id: number; name: string; done: boolean }
@@ -23,7 +25,7 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 		{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
 	]
 
-	it('closes the open panel and keeps the session alive', async () => {
+	it('closes the open panel and keeps a row-scoped session alive', async () => {
 		const onCommit = vi.fn()
 
 		const view = renderUI(
@@ -31,7 +33,7 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 				columns={columns}
 				rows={rows}
 				getKey={(row) => row.id}
-				editable={{ session: 'managed', scope: 'cell', onCommit }}
+				editable={{ session: 'managed', onCommit }}
 			/>,
 		)
 
@@ -51,6 +53,39 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 		await waitFor(() => expect(screen.queryByRole('option', { name: 'Yes' })).toBeNull())
 
 		expect(bySlot(view.container, 'grid-edit-boolean-input')).not.toBeNull()
+
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
+	it('closes the open panel and ends a cell-scoped edit with no change', async () => {
+		const onCommit = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', scope: 'cell', onCommit }}
+			/>,
+		)
+
+		await userEvent.dblClick(gridCell(view.container, 'done'))
+
+		await screen.findByRole('option', { name: 'Yes' })
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(bySlot(view.container, 'grid-edit-boolean-input')).toBeNull())
+
+		expect(screen.queryByRole('option', { name: 'Yes' })).toBeNull()
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		const grid = screen.getByRole('grid')
+
+		await waitFor(() => expect(grid).toHaveFocus())
+
+		expect(grid).toHaveAttribute('aria-activedescendant', gridCell(view.container, 'done').id)
 	})
 
 	it('closes the open panel first under a consumer-owned session, then reverts the cell', async () => {

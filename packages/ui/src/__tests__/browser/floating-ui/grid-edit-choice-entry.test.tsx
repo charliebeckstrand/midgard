@@ -9,8 +9,9 @@ import { bySlot, present, renderUI, screen, waitFor } from '../../helpers'
  * the user does not press again to see the choices. An entry is Enter, F2, a
  * double-click, or Tab from the cell before. The other editors of a row that
  * row scope opens stay closed. An `editCell` slot reads the entry from
- * `entered`. A pick commits the cell that a cell-scoped session holds, as in
- * a spreadsheet, and only stages under row scope.
+ * `entered`. A pick stages, and the close of the panel commits the cell that
+ * a cell-scoped session holds, as in a spreadsheet. A close with no pick ends
+ * the edit with the value unchanged. Under row scope, the close only stages.
  */
 describe('grid choice editor on entry (real floating engine)', () => {
 	type Row = { id: number; name: string; done: boolean }
@@ -70,6 +71,65 @@ describe('grid choice editor on entry (real floating engine)', () => {
 		await waitFor(() => expect(grid).toHaveFocus())
 
 		expect(grid).toHaveAttribute('aria-activedescendant', getCell(container, 'done').id)
+	})
+
+	it('ends the edit with no change on a press outside the panel', async () => {
+		const onCommit = vi.fn()
+
+		const { container } = renderUI(
+			<>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					editable={{ session: 'managed', scope: 'cell', onCommit }}
+				/>
+				<p>Outside</p>
+			</>,
+		)
+
+		await userEvent.dblClick(getCell(container, 'done'))
+
+		await screen.findByRole('listbox')
+
+		await userEvent.click(screen.getByText('Outside'))
+
+		// The editor closes with its panel, so no settle pair stays below the cell.
+		await waitFor(() => expect(bySlot(container, 'grid-edit-boolean-input')).toBeNull())
+
+		expect(panel()).toBeNull()
+
+		expect(screen.queryByRole('button', { name: 'Save Done, row 2' })).toBeNull()
+
+		expect(screen.queryByRole('button', { name: 'Discard Done, row 2' })).toBeNull()
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		expect(getCell(container, 'done')).toHaveTextContent('No')
+	})
+
+	it('ends the edit on a pick of the value that the cell shows', async () => {
+		const onCommit = vi.fn()
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', scope: 'cell', onCommit }}
+			/>,
+		)
+
+		await userEvent.dblClick(getCell(container, 'done'))
+
+		// The listbox reports no change for its own value, but the close commits.
+		await userEvent.click(await screen.findByRole('option', { name: 'No' }))
+
+		await waitFor(() => expect(bySlot(container, 'grid-edit-boolean-input')).toBeNull())
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		await waitFor(() => expect(screen.getByRole('grid')).toHaveFocus())
 	})
 
 	it('commits a pick made with the keyboard', async () => {
@@ -174,16 +234,14 @@ describe('grid choice editor on entry (real floating engine)', () => {
 
 		await screen.findByRole('listbox')
 
-		// The first Escape closes the panel, and the second ends the session.
-		await userEvent.keyboard('{Escape}')
-
-		await waitFor(() => expect(panel()).toBeNull())
-
-		expect(bySlot(container, 'grid-edit-boolean-input')).not.toBeNull()
-
+		// Escape closes the panel, and the close ends the edit.
 		await userEvent.keyboard('{Escape}')
 
 		await waitFor(() => expect(bySlot(container, 'grid-edit-boolean-input')).toBeNull())
+
+		expect(panel()).toBeNull()
+
+		await waitFor(() => expect(screen.getByRole('grid')).toHaveFocus())
 
 		await userEvent.keyboard('{F2}')
 
@@ -325,7 +383,7 @@ describe('grid choice editor on entry (real floating engine)', () => {
 		expect(seen.get('name')).toBe(false)
 	})
 
-	describe('an editCell slot that commits its pick', () => {
+	describe('an editCell slot that commits as its panel closes', () => {
 		const slotColumns: GridColumn<Row>[] = [
 			columns[0] as GridColumn<Row>,
 			{
@@ -338,7 +396,10 @@ describe('grid choice editor on entry (real floating engine)', () => {
 						aria-label={context.ariaLabel}
 						defaultOpen={context.entered}
 						value={context.value ? 'done' : 'open'}
-						onValueChange={(next) => context.commit(next === 'done')}
+						onValueChange={(next) => context.onValueUpdate(next === 'done')}
+						onOpenChange={(open) => {
+							if (!open) context.commit()
+						}}
 					>
 						<ListboxOption value="open">
 							<ListboxLabel>Open</ListboxLabel>
@@ -372,6 +433,29 @@ describe('grid choice editor on entry (real floating engine)', () => {
 			expect(onCommit).toHaveBeenCalledExactlyOnceWith([
 				{ rowKey: 1, columnId: 'status', value: true },
 			])
+		})
+
+		it('ends the edit with no change on a close with no pick under cell scope', async () => {
+			const onCommit = vi.fn()
+
+			const { container } = renderUI(
+				<Grid
+					columns={slotColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					editable={{ session: 'managed', scope: 'cell', onCommit }}
+				/>,
+			)
+
+			await userEvent.dblClick(getCell(container, 'status'))
+
+			await screen.findByRole('option', { name: 'Done' })
+
+			await userEvent.keyboard('{Escape}')
+
+			await waitFor(() => expect(screen.queryByRole('combobox')).toBeNull())
+
+			expect(onCommit).not.toHaveBeenCalled()
 		})
 
 		it('only stages under row scope', async () => {

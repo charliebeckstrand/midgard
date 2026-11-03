@@ -24,10 +24,10 @@ export type GridEditInputProps = {
 	draft: unknown
 	onValueUpdate: (next: unknown) => void
 	/**
-	 * Stage a final value, such as the pick of a choice editor. Where a
+	 * Stage a final value when one is given, and settle the cell. Where a
 	 * cell-scoped session holds the cell, this also commits it, as F2 does.
 	 * Everywhere else it only stages, as {@link GridEditInputProps.onValueUpdate}
-	 * does.
+	 * does. A choice editor calls it with no value as its panel closes.
 	 */
 	commit: (next: unknown) => void
 	/** Revert this cell to the row's current value (Escape). */
@@ -150,20 +150,23 @@ const BOOLEAN_OPTIONS = [
  * text/number editor, or the consumer's save affordance. Under `scope: 'cell'`
  * there is no sibling, because the session mounts this editor alone. Tab is
  * then the keyboard commit (WCAG 2.1.1). Tab past the last control of the
- * cell commits the cell and moves the session to the next cell. A pick is a
- * commit too, as in a spreadsheet: where a cell-scoped session holds the
- * cell, a pick commits it and the cursor stays on the cell. Under row scope a
- * pick only stages, because the row commits as one. An entry on
- * the cell opens the panel, which saves the user a press. Tab in the open
- * panel closes it, and then acts as Tab on the trigger. Escape works
- * as in the other editors. A grid-owned session takes it on the grid table's
- * key surface. Under a consumer-owned session, Escape on the closed trigger
- * reverts the cell. While the panel is open, its first Escape closes the
- * panel.
+ * cell commits the cell and moves the session to the next cell.
+ *
+ * A pick stages the value, and the close of the panel commits the cell, as in
+ * a spreadsheet: where a cell-scoped session holds the cell, the cell commits
+ * and the cursor stays on the cell. A close with no pick, such as a press
+ * outside the panel or Escape, commits the value that the cell shows, so the
+ * edit ends with no change. Under row scope the close only stages, because
+ * the row commits as one. An entry on the cell opens the panel, which saves
+ * the user a press. Tab in the open panel closes it, and then acts as Tab on
+ * the trigger. Escape on the closed trigger works as in the other editors. A
+ * grid-owned session takes it on the grid table's key surface. Under a
+ * consumer-owned session, it reverts the cell.
  * @internal
  */
 function GridBooleanEditInput({
 	draft,
+	onValueUpdate,
 	commit,
 	cancel,
 	ariaLabel,
@@ -195,7 +198,12 @@ function GridBooleanEditInput({
 				className={k.edit.input}
 				value={value}
 				defaultOpen={entered}
-				onValueChange={(next) => commit(next === null ? undefined : next === 'true')}
+				onValueChange={(next) => {
+					if (next !== null) onValueUpdate(next === 'true')
+				}}
+				onOpenChange={(open) => {
+					if (!open) commit(undefined)
+				}}
 				onKeyDown={editorKeys({ cancel, managed })}
 				displayValue={(option) => {
 					const label = BOOLEAN_OPTIONS.find((candidate) => candidate.value === option)?.label

@@ -10,8 +10,9 @@ import { gridCell } from '../../helpers/grid-cells'
  * the listbox opens, so there is no spare Enter for a session to commit with.
  * The grid table's key surface leaves Enter on a button to that button for
  * this reason. Tab is the keyboard commit this editor has instead, because the
- * surface claims it to commit and move (WCAG 2.1.1). A pick in the open panel
- * commits too, under cell scope.
+ * surface claims it to commit and move (WCAG 2.1.1). Under cell scope, the
+ * close of the panel commits too, so the trigger is closed only under row
+ * scope.
  */
 describe('listbox editor and Enter (real floating engine)', () => {
 	type Row = { id: number; done: boolean }
@@ -30,14 +31,14 @@ describe('listbox editor and Enter (real floating engine)', () => {
 				columns={columns}
 				rows={rows}
 				getKey={(row) => row.id}
-				editable={{ session: 'managed', scope: 'cell', onCommit }}
+				editable={{ session: 'managed', onCommit }}
 			/>,
 		)
 
 		await userEvent.dblClick(gridCell(view.container, 'done'))
 
 		// The entry opens the panel. Escape closes it, and leaves focus on the
-		// trigger.
+		// trigger, because under row scope the row commits as one.
 		await screen.findByRole('option', { name: 'Yes' })
 
 		await userEvent.keyboard('{Escape}')
