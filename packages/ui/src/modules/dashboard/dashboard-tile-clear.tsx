@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react'
 import { Button } from '../../components/button'
-import { IntlMessage } from '../../primitives/intl/intl-message'
+import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useDashboardActions } from './context'

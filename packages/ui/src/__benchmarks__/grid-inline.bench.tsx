@@ -7,7 +7,8 @@
  * virtualizes (that needs `maxHeight`), so every row mounts.
  */
 
-import { Grid, type GridColumn } from '../modules/grid'
+import { Grid } from '../modules/grid'
+import type { GridColumn } from '../modules/grid/types'
 import { compareBenches } from './compare'
 import { makeInlineColumns, type Shipment, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, rerenderBench } from './harness'

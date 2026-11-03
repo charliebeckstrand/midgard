@@ -1,7 +1,7 @@
 import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/checkbox'
 import { k } from '../../recipes/kata/checkbox'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link CheckboxSkeleton}: the placeholder `size` of the checkbox and an optional `className`. */
 export type CheckboxSkeletonProps = SkeletonProps<ScaleStep<typeof scale>>

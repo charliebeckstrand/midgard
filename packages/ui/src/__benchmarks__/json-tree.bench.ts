@@ -1,12 +1,12 @@
 // @vitest-environment node
 
-import type { JsonValue } from '../components/json-tree'
 import {
 	buildSearchIndex,
 	collectPaths,
 	filterEntries,
 	getEntries,
 } from '../components/json-tree/json-tree-utilities'
+import type { JsonValue } from '../components/json-tree/types'
 import { compareBenches } from './compare'
 import { JSON_HIT, JSON_MISS, JSON_TREES, makeJsonTree } from './fixtures'
 

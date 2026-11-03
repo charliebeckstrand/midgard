@@ -3,7 +3,7 @@
 import type { DateDuration } from '@internationalized/date'
 import { useCallback, useMemo, useReducer, useRef } from 'react'
 
-import { useLocale } from '../../providers/locale'
+import { useLocale } from '../../providers/locale/context'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { orderDates } from '../calendar/calendar-utilities'
 import { useControlPickerField } from '../control/use-control-picker-field'

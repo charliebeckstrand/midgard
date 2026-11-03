@@ -3,8 +3,13 @@
 import { useInView } from 'motion/react'
 import { type ReactNode, Suspense, useRef } from 'react'
 import { useHydrated } from '../../hooks/use-hydrated'
-import { ContentHeightContext, type ContentHeightHost } from '../../primitives/content-height'
-import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
+import {
+	ContentHeightContext,
+	type ContentHeightHost,
+} from '../../primitives/content-height/context'
+import type { Mount } from '../../primitives/mount'
+import { MountHold } from '../../primitives/mount'
+import { useMountHold } from '../../primitives/mount/use-mount'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardTileContext } from './context'
 import { DashboardTileBoundary } from './dashboard-tile-boundary'

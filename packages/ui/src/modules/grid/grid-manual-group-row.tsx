@@ -8,12 +8,12 @@ import { rangeKeys } from '../../utilities/range-keys'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
 import { MANUAL_GROUP_PLACEHOLDER_ROWS } from './engine/grid-constants'
 import { pinnedSpanProps } from './engine/grid-pin/styles'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupDisclosure } from './grid-group-disclosure'
 import { GridSkeletonCells } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
-import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridManualGroupRow}. @internal */
 type GridManualGroupRowProps<T> = {

@@ -11,13 +11,13 @@ import type { GridGroup } from './engine/grid-group/tree'
 import { groupItemKey } from './engine/grid-items/items'
 import { pinnedSpanProps } from './engine/grid-pin/styles'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy } from './grid-data-types'
 import { GridGroupDisclosure } from './grid-group-disclosure'
 import { GridNavCell } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import { useGridNavStopProps } from './use-grid-nav-stop-props'
-import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridGroupRow}. @internal */
 type GridGroupRowProps<T> = {

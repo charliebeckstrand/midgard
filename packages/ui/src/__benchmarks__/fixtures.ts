@@ -5,8 +5,8 @@
  * and run-to-run variance reflects the code under test, not the data.
  */
 
-import type { ChatMessageData } from '../modules/chat'
-import type { GridColumn } from '../modules/grid'
+import type { ChatMessageData } from '../modules/chat/engine/types'
+import type { GridColumn } from '../modules/grid/types'
 import type { QueryField, QueryGroup, QueryNode } from '../modules/query/engine/types'
 
 /** The shared LCG behind every generator here and in `browser/fixtures.ts`. */

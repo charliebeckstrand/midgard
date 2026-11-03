@@ -12,7 +12,8 @@
  */
 
 import { act } from '@testing-library/react'
-import { Grid, type GridColumn } from '../modules/grid'
+import { Grid } from '../modules/grid'
+import type { GridColumn } from '../modules/grid/types'
 import { compareBenches } from './compare'
 import { type Shipment, shipmentColumns, shipmentKey, shipments } from './fixtures'
 import { modelLayout, mountBenches, persistentTree } from './harness'

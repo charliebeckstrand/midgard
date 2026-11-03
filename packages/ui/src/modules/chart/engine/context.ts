@@ -1,7 +1,7 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
-import type { ContextMenuEntry } from '../../../components/context-menu'
+import type { ContextMenuEntry } from '../../../components/context-menu/types'
 import { createContext } from '../../../core/create-context'
 import type { ChartTier } from './chart-tier'
 

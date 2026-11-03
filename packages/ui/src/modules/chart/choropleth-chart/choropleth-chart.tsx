@@ -4,22 +4,21 @@ import { useComposedRefs } from 'motion/react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../../core/cn'
-import { useLocale } from '../../../providers/locale'
+import { useLocale } from '../../../providers/locale/context'
 import { k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types/accessible-name'
 import { readoutFormat } from '../../../utilities/format-number'
 import { once } from '../../../utilities/once'
 import { parseNumeric } from '../../../utilities/parse-numeric'
-import {
-	type MapAspectRatio,
-	type MapFeature,
-	type MapGeography,
-	type MapLegendInput,
-	MapPlat,
-	type MapPlatProps,
-	type MapProjection,
-} from '../../map'
+import { MapPlat, type MapPlatProps } from '../../map'
+import type { MapLegendInput } from '../../map/engine/map-legend/plan'
 import { numericRegionData } from '../../map/engine/map-region/data'
+import type {
+	MapAspectRatio,
+	MapFeature,
+	MapGeography,
+	MapProjection,
+} from '../../map/engine/types'
 import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import { ChartMenuButton } from '../engine/chart-menu-button'

@@ -22,6 +22,9 @@ import { pageOffset } from './engine/grid-pagination-utilities'
 import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
 import type { GridFitMode } from './engine/grid-sizing/fit-layout'
 import { fitKeptWidth } from './engine/grid-sizing/sizer'
+import type { GridColumnFilter, GridGlobalFilterView } from './engine/grid-table/filter-view'
+import type { GridPaginationView } from './engine/grid-table/pagination-view'
+import type { GridColumnResize } from './engine/grid-table/resize-view'
 import type {
 	GridFooter,
 	GridFooterStats,
@@ -30,12 +33,6 @@ import type {
 } from './grid-data-types'
 import type { GridColumn, GridColumnFilters, GridSearch } from './types'
 import type { GridNavTableProps, GridNewRowPosition } from './use-grid-navigation'
-import type {
-	GridColumnFilter,
-	GridColumnResize,
-	GridGlobalFilterView,
-	GridPaginationView,
-} from './use-grid-table'
 
 /**
  * Defaults each data column's {@link GridColumn.sortable} to `true` when it

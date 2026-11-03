@@ -31,6 +31,7 @@ import { pinnedCellProps } from './engine/grid-pin/styles'
 import { fromInteractiveContent } from './engine/grid-row/cell'
 import { fitCellProps } from './engine/grid-sizing/fit-styles'
 import { stickyHeadInset } from './engine/grid-sticky-insets'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridAddRowButton } from './grid-add-row-button'
 import { GridCellEditor } from './grid-cell-editor'
 import type { GridNewRowAdd, GridNewRowAddContext } from './grid-editing-types'
@@ -38,7 +39,6 @@ import { GridNavCell } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import { NEW_ROW_INDEX } from './use-grid-navigation'
 import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
-import type { GridColumnPinning } from './use-grid-table'
 
 /** A session call that the new-row slot never makes, because the slot is in no session. @internal */
 function inert(): undefined {

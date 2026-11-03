@@ -13,7 +13,8 @@
  * does again when the group renders.
  */
 
-import { QueryBuilder, type QueryField, type QueryGroup, type QueryRule } from '../../modules/query'
+import { QueryBuilder } from '../../modules/query'
+import type { QueryField, QueryGroup, QueryRule } from '../../modules/query/engine/types'
 import { compareBenches } from '../compare'
 import { benches, type Prepared, reactHost, WINDOW } from './harness'
 

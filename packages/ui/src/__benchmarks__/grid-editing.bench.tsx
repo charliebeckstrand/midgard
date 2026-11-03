@@ -12,7 +12,9 @@
 
 import { act, fireEvent } from '@testing-library/react'
 import { useState } from 'react'
-import { Grid, type GridCellRef, type GridColumn, type GridEditableConfig } from '../modules/grid'
+import { Grid } from '../modules/grid'
+import type { GridCellRef, GridEditableConfig } from '../modules/grid/grid-editing-types'
+import type { GridColumn } from '../modules/grid/types'
 import { noop } from '../utilities/noop'
 import { compareBenches } from './compare'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from './fixtures'

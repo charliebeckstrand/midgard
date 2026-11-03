@@ -8,8 +8,8 @@ import {
 	hasAggregation,
 } from '../../modules/grid/engine/grid-aggregate'
 import { pinnedSpanProps } from '../../modules/grid/engine/grid-pin/styles'
+import type { GridColumnPinning } from '../../modules/grid/engine/grid-table/pinning-view'
 import type { GridColumn } from '../../modules/grid/types'
-import type { GridColumnPinning } from '../../modules/grid/use-grid-table'
 import { renderUI, screen, setupUser } from '../helpers'
 
 type Sale = { id: number; region: string; units: number; revenue: number; margin: number }

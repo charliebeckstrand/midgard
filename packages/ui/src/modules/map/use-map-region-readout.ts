@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useLocale } from '../../providers/locale'
+import { useLocale } from '../../providers/locale/context'
 import {
 	type MapCategoryMeta,
 	regionCategoryIndexes,

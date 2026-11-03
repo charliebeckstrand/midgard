@@ -1,6 +1,7 @@
 export { CATALOG_LOCALES } from '../../primitives/intl/intl-language'
+export type { FormatSpec } from '../../utilities/format'
 export { type LocaleConfig, useLocale } from './context'
 export { LocaleProvider, type LocaleProviderProps } from './locale'
 export { LOCALE_COOKIE, type RequestLocaleInput, resolveRequestLocale } from './locale-choice'
 export { useDateFormat } from './use-date-format'
-export { type FormatSpec, useFormat } from './use-format'
+export { useFormat } from './use-format'

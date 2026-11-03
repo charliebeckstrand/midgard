@@ -1,7 +1,7 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
-import { useDirectionScope } from '../primitives/direction'
+import { useDirectionScope } from '../primitives/direction/context'
 import { createListenerRegistry } from '../utilities/listener-registry'
 import { isRtl } from './a11y/logical-arrow'
 

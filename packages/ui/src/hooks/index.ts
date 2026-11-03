@@ -1,3 +1,4 @@
+export type { Responsive } from '../utilities/responsive'
 export {
 	type A11yAnnouncementsOptions,
 	useA11yAnnouncements,
@@ -37,7 +38,6 @@ export {
 	useControllable,
 	useControllableFlag,
 } from './use-controllable'
-
 export { type DeferredToggleOptions, useDeferredToggle } from './use-deferred-toggle'
 export { type DismissableOptions, useDismissable } from './use-dismissable'
 export { type DragCursor, useDragCursor } from './use-drag-cursor'
@@ -82,7 +82,7 @@ export {
 } from './use-plot-frame'
 export { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 export { useResizeObserver } from './use-resize-observer'
-export { type Responsive, useResponsiveValue } from './use-responsive-value'
+export { useResponsiveValue } from './use-responsive-value'
 export { useScrollLock } from './use-scroll-lock'
 export { type ScrollRegionOptions, useScrollRegion } from './use-scroll-region'
 export { type ScrollWithinOptions, useScrollWithin } from './use-scroll-within'

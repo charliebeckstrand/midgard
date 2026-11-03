@@ -1,7 +1,7 @@
 import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/button'
 import { type ButtonVariants, k } from '../../recipes/kata/button'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link ButtonSkeleton}; the size-stepped skeleton surface. */
 export type ButtonSkeletonProps = SkeletonProps<NonNullable<ButtonVariants['size']>>

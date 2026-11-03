@@ -15,8 +15,12 @@ import {
 	LinkContext,
 	type LinkContextValue,
 	useLink,
-} from '../../primitives/link'
-import { type PortalContainer, PortalContext, usePortalContext } from '../../primitives/portal'
+} from '../../primitives/link/context'
+import {
+	type PortalContainer,
+	PortalContext,
+	usePortalContext,
+} from '../../primitives/portal/context'
 import { prefetchMotionFeatures } from '../../primitives/reduced-motion/reduced-motion-features'
 
 /** Props for {@link UIProvider}: the optional framework `link` component, default `portalContainer`, current `pathname`, and `toast` setup, plus `children`. */

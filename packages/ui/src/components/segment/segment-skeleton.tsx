@@ -1,6 +1,6 @@
 import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/tabs'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link SegmentSkeleton}: an optional `size` step. */
 export type SegmentSkeletonProps = SkeletonProps<ScaleStep<typeof scale>>

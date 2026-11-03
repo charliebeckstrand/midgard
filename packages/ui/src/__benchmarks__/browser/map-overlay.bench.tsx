@@ -25,10 +25,7 @@
  * started churning where the mount could not.
  */
 
-import { MapGeofence } from '../../modules/map/map-geofence'
-import { MapPlat } from '../../modules/map/map-plat'
-import { MapPoint } from '../../modules/map/map-point'
-import { MapPoints } from '../../modules/map/map-points'
+import { MapGeofence, MapPlat, MapPoint, MapPoints } from '../../modules/map'
 import { compareBenches } from '../compare'
 import { HEIGHT, reactSubject, type Subject, WIDTH } from './charts'
 import { benches, host, mountBenches, type Prepared, settle, WINDOW } from './harness'

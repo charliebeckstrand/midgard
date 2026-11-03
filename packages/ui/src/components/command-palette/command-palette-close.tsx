@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { usePanelCloseContext } from '../../primitives/panel'
+import { usePanelCloseContext } from '../../primitives/panel/context'
 import { Button, type ButtonProps } from '../button'
 
 /**

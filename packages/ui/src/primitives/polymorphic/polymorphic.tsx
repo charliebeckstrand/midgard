@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps, ElementType } from 'react'
-import { type LinkProps, useLink } from '../link'
+import { type LinkProps, useLink } from '../link/context'
 import { PolymorphicStatic } from './polymorphic-static'
 import type { PolymorphicRenderProps } from './types'
 

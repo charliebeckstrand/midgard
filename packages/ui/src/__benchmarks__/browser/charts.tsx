@@ -9,12 +9,8 @@
 import type { ReactElement } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { BarChart } from '../../modules/chart/bar-chart'
+import { BarChart, HeatmapChart, LineChart, PieChart, ScatterChart } from '../../modules/chart'
 import type { ChartSeries, ScatterChartSeries } from '../../modules/chart/engine/types'
-import { HeatmapChart } from '../../modules/chart/heatmap-chart'
-import { LineChart } from '../../modules/chart/line-chart'
-import { PieChart } from '../../modules/chart/pie-chart'
-import { ScatterChart } from '../../modules/chart/scatter-chart'
 import type { PointData, PointRow, TrendData, TrendRow } from './fixtures'
 
 export const WIDTH = 800

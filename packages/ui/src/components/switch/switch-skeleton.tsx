@@ -1,7 +1,7 @@
 import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/switch'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link SwitchSkeleton}: the placeholder `size` matching the switch's size scale. */
 export type SwitchSkeletonProps = SkeletonProps<NonNullable<SwitchVariants['size']>>

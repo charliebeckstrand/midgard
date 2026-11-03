@@ -17,8 +17,8 @@ import { columnLabel } from './engine/grid-column/label'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
 import { gridMessages } from './engine/grid-messages'
 import { pinnedCellAttribute, pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import type { GridColumnGroup, GridGroupSpan } from './grid-group-types'
-import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridGroupHead}. @internal */
 type GridGroupHeadProps = {

@@ -3,7 +3,7 @@
 import { type ReactNode, useCallback, useId, useMemo, useState } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core/cn'
-import type { ContentHeightHost } from '../../primitives/content-height'
+import type { ContentHeightHost } from '../../primitives/content-height/context'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions, useDashboardStoreContext } from './context'

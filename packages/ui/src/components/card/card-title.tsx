@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
-import { k, type scale } from '../../recipes/kata/heading'
-import { Heading, type HeadingLevel } from '../heading'
+import { type HeadingLevel, k, type scale } from '../../recipes/kata/heading'
+import { Heading } from '../heading'
 
 /** Props for {@link CardTitle}: the density `size` step, heading `level`, and the underlying `<h3>` attributes. */
 export type CardTitleProps = {

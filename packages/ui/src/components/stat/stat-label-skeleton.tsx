@@ -1,5 +1,5 @@
 import { k } from '../../recipes/kata/stat'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link StatLabelSkeleton}: an optional `className`. */
 export type StatLabelSkeletonProps = SkeletonProps

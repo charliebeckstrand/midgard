@@ -1,7 +1,7 @@
 'use client'
 
 import { FloatingPortal } from '@floating-ui/react'
-import { usePortalContainer } from '../../primitives/portal'
+import { usePortalContainer } from '../../primitives/portal/context'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext, usePdfViewerMagnifierContext } from './context'
 import { hasRaster } from './pdf-viewer-document-cache'

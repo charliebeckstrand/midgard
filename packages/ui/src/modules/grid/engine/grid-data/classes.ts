@@ -2,7 +2,7 @@ import { cn } from '../../../../core/cn'
 import type { ScaleStep } from '../../../../core/density/scale'
 import { k } from '../../../../recipes/kata/grid'
 import type { scale } from '../../../../recipes/kata/table'
-import type { BoxOutline } from '../../../../structure/box'
+import type { BoxOutline } from '../../../../structure/box/variants'
 
 /**
  * The density step of the table under {@link GridDataProps.condensed}. The

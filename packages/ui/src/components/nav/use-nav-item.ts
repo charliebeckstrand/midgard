@@ -10,11 +10,11 @@ import {
 } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useScrollWithin } from '../../hooks/use-scroll-within'
-import { useActiveIndicator } from '../../primitives/active-indicator'
+import { useActiveIndicator } from '../../primitives/active-indicator/use-active-indicator'
 import type { PathMatch } from '../../primitives/current/context'
 import { useCurrentItem } from '../../primitives/current/use-current'
 import { useCurrentPathMatch } from '../../primitives/current/use-current-path'
-import { OffcanvasContext } from '../../primitives/offcanvas'
+import { OffcanvasContext } from '../../primitives/offcanvas/context'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 

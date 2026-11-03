@@ -2,8 +2,8 @@
 
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
+import type { HeadingLevel } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/timeline'
-import type { HeadingLevel } from '../heading'
 import { useTimeline } from './context'
 
 /**

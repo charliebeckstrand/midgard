@@ -16,7 +16,7 @@ import {
 } from '../../components/dialog'
 import { Icon } from '../../components/icon'
 import { HeaderActions } from '../../primitives/header-actions'
-import { IntlMessage } from '../../primitives/intl/intl-message'
+import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/dashboard'

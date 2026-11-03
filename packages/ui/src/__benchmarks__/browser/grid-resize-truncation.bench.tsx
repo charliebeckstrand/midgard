@@ -20,7 +20,8 @@
  */
 
 import { createRoot } from 'react-dom/client'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { Grid } from '../../modules/grid'
+import type { GridColumn } from '../../modules/grid/types'
 import { compareBenches } from '../compare'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
 import { painted } from './grids'

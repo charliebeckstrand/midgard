@@ -10,8 +10,7 @@
  * timed region.
  */
 
-import { MapPlat } from '../../modules/map/map-plat'
-import { MapPoints } from '../../modules/map/map-points'
+import { MapPlat, MapPoints } from '../../modules/map'
 import { compareBenches } from '../compare'
 import { HEIGHT, reactSubject, type Subject, WIDTH } from './charts'
 import { benches, prepareSweep, SWEEP, WINDOW } from './harness'

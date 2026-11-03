@@ -1,7 +1,7 @@
 import type { ComponentProps, ReactNode } from 'react'
-import type { ContextMenuEntry } from '../../components/context-menu'
+import type { ContextMenuEntry } from '../../components/context-menu/types'
 import type { Aggregation } from '../../utilities/aggregate'
-import type { QueryField, QueryFieldType, QueryGroup } from '../query'
+import type { QueryField, QueryFieldType, QueryGroup } from '../query/engine/types'
 import type { GridExportAction } from './engine/grid-export/types'
 import type { GridEditCell, GridRowActionsContext } from './grid-editing-types'
 

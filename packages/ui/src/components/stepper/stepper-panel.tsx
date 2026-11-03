@@ -2,7 +2,8 @@
 
 import type { ComponentProps } from 'react'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
-import { MountHold, useMountHold } from '../../primitives/mount'
+import { MountHold } from '../../primitives/mount'
+import { useMountHold } from '../../primitives/mount/use-mount'
 import { useStepper } from './context'
 
 /** Props for {@link StepperPanel}: the step `value` it belongs to, plus `<div>` attributes. */

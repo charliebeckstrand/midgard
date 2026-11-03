@@ -7,7 +7,7 @@
 
 import type { PaginationState } from '@tanstack/react-table'
 import { useMemo } from 'react'
-import { useLocale } from '../../providers/locale'
+import { useLocale } from '../../providers/locale/context'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { type ColumnTests, filterRowIndices, type RowTest } from './engine/grid-filter/filter'

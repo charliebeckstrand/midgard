@@ -10,7 +10,8 @@ import {
 	useState,
 } from 'react'
 import { ContextMenuList } from '../../components/context-menu'
-import { Menu, MenuContent, useMenuActions } from '../../components/menu'
+import { Menu, MenuContent } from '../../components/menu'
+import { useMenuActions } from '../../components/menu/context'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { copyText } from '../../utilities/export-output'
@@ -31,6 +32,7 @@ import {
 import { gridMessages } from './engine/grid-messages'
 import { frozenSide, normalizeFreeze } from './engine/grid-pin/overrides'
 import type { GridRangeFill } from './engine/grid-range/fill'
+import type { GridColumnFilter } from './engine/grid-table/filter-view'
 import {
 	cellMenuDefaults,
 	columnMenuDefaults,
@@ -46,7 +48,6 @@ import type {
 	GridContextMenu as GridContextMenuConfig,
 	GridMenuItem,
 } from './types'
-import type { GridColumnFilter } from './use-grid-table'
 
 /** Props for {@link GridContextMenu}. @internal */
 export type GridContextMenuProps<T> = {

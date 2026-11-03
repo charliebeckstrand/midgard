@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
-import { IntlMessage } from '../../primitives/intl/intl-message'
+import { IntlMessage } from '../../primitives/intl'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
 import { StatusDot, type StatusDotProps } from '../status'
 import { statusMessages } from '../status/status-messages'

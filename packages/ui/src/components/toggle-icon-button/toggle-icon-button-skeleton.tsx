@@ -1,8 +1,7 @@
 import type { ScaleStep } from '../../core/density/scale'
-import type { scale } from '../../recipes/kata/button'
+import type { ButtonVariants, scale } from '../../recipes/kata/button'
 import { k } from '../../recipes/kata/toggle-icon-button'
-import type { ButtonVariants } from '../button'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link ToggleIconButtonSkeleton}; `size` matches the resolved button hit area. */
 export type ToggleIconButtonSkeletonProps = SkeletonProps<NonNullable<ButtonVariants['size']>>

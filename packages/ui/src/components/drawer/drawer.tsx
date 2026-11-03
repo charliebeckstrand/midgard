@@ -9,12 +9,8 @@ import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
 import { Density } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
-import {
-	type PanelOverlayProps,
-	PanelProviders,
-	PanelRoot,
-	type PanelRootProps,
-} from '../../primitives/panel'
+import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives/panel'
+import type { PanelOverlayProps } from '../../primitives/panel/types'
 import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'

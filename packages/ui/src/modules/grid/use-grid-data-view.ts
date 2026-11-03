@@ -7,6 +7,7 @@ import { isDataColumn } from '../../utilities/is-data-column'
 import type { GridSortState } from './context'
 import { describeSelection, describeSort } from './engine/grid-announcements'
 import { hasErrorSlot } from './engine/grid-data/guards'
+import type { GridColumnFilter, GridGlobalFilterView } from './engine/grid-table/filter-view'
 import { resolveActionable } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
 import type { GridColumn } from './types'
@@ -14,7 +15,6 @@ import { type GridIndexRefs, useGridIndexSync } from './use-grid-index'
 import type { GridNewRowPosition, GridReconcile } from './use-grid-navigation'
 import { useGridRoving } from './use-grid-roving'
 import { useGridSelectionActions, type useGridSelectionState } from './use-grid-selection'
-import type { GridColumnFilter, GridGlobalFilterView } from './use-grid-table'
 
 /**
  * The view phase of {@link GridData}. It reads what the engine resolved. It

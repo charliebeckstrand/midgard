@@ -23,11 +23,11 @@ import {
 	rowShellProps,
 	specialCellClass,
 } from './engine/grid-row/shell'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridDataCell } from './grid-data-cell'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
 import { GridFitBox, type GridRowSortable, GridRowSpecialCell } from './grid-row-special-cell'
 import type { GridColumn } from './types'
-import type { GridColumnPinning } from './use-grid-table'
 
 /**
  * Per-row wiring shared by the plain and virtualized bodies: the row/key/column

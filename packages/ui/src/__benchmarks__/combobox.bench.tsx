@@ -7,8 +7,7 @@
  * alone, which is the path that re-renders each option row.
  */
 
-import { Combobox } from '../components/combobox/combobox'
-import { ComboboxLabel, ComboboxOption } from '../components/combobox/combobox-option'
+import { Combobox, ComboboxLabel, ComboboxOption } from '../components/combobox'
 import { useComboboxDeferredQuery } from '../components/combobox/use-combobox-query'
 import { VirtualOptions } from '../primitives/virtual-options'
 import { compareBenches } from './compare'

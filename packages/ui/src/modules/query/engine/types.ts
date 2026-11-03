@@ -1,4 +1,4 @@
-import type { JsonValue } from '../../../components/json-tree'
+import type { JsonValue } from '../../../components/json-tree/types'
 
 /** Boolean operator joining sibling nodes in a query group. */
 export type QueryCombinator = 'and' | 'or'

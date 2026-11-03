@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
-import { useMountsEveryPanel } from '../../primitives/mount'
+import { useMountsEveryPanel } from '../../primitives/mount/use-mount'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
 

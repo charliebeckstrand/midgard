@@ -1,4 +1,4 @@
-import type { JsonValue } from '../../../components/json-tree'
+import type { JsonValue } from '../../../components/json-tree/types'
 import { createGroup, createRule, MAX_DEPTH } from './query-node'
 import { getOperators } from './query-operators'
 import type { QueryCombinator, QueryField, QueryGroup, QueryNode, QueryRule } from './types'

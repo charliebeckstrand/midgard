@@ -4,8 +4,9 @@ import { type RefObject, useEffect, useEffectEvent, useLayoutEffect, useRef } fr
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
+import type { AlertVariants } from '../../recipes/kata/alert'
 import { k } from '../../recipes/kata/toast'
-import { Alert, type AlertVariants } from '../alert'
+import { Alert } from '../alert'
 import type { ToastData, ToastSeverity } from './types'
 
 /** Fade-out for a user dismissal; the height collapse is left to the neighbors' layout spring. @internal */

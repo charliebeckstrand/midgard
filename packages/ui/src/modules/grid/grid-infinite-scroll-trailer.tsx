@@ -4,10 +4,10 @@ import type { ReactElement } from 'react'
 import { TableCell } from '../../components/table'
 import { Text } from '../../components/text'
 import { hasErrorSlot } from './engine/grid-data/guards'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { GridSkeletonCells } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
-import type { GridColumnPinning } from './use-grid-table'
 
 /**
  * The single trailing row below the loaded rows for the infinite-scroll terminal

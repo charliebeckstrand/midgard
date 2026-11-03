@@ -6,7 +6,9 @@
  * there is reconciliation, not mount.
  */
 
-import { Grid, type GridColumn, type GridSortState } from '../modules/grid'
+import { Grid } from '../modules/grid'
+import type { GridSortState } from '../modules/grid/engine/grid-sort/state'
+import type { GridColumn } from '../modules/grid/types'
 import { compareBenches } from './compare'
 import { type Shipment, shipmentColumns, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, rerenderBench } from './harness'

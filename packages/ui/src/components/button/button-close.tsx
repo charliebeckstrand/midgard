@@ -1,5 +1,5 @@
 import type { MouseEventHandler } from 'react'
-import { IntlMessage } from '../../primitives/intl/intl-message'
+import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { PanelClose, type PanelCloseProps } from '../../primitives/panel'
 import { Button } from './button'

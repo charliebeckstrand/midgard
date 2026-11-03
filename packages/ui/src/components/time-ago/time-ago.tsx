@@ -2,7 +2,7 @@
 
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
-import { useLocale } from '../../providers/locale'
+import { useLocale } from '../../providers/locale/context'
 import { k } from '../../recipes/kata/time-ago'
 import { Placeholder } from '../placeholder'
 import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'

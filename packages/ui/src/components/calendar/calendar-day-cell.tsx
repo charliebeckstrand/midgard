@@ -2,9 +2,10 @@
 
 import { memo, useCallback } from 'react'
 import { cn } from '../../core/cn'
+import type { ButtonVariants } from '../../recipes/kata/button'
 import { k } from '../../recipes/kata/calendar'
 import { formatInteger } from '../../utilities/format-number'
-import { Button, type ButtonVariants } from '../button'
+import { Button } from '../button'
 import { dayKey, formatDayName } from './calendar-utilities'
 
 type DayCellProps = {

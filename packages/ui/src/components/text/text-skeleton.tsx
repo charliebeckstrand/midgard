@@ -1,5 +1,5 @@
 import { k, type TextVariants } from '../../recipes/kata/text'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link TextSkeleton}: the `size` of the text it stands in for, plus `className`. */
 export type TextSkeletonProps = SkeletonProps<NonNullable<TextVariants['size']>>

@@ -16,8 +16,8 @@ import {
 } from './engine/grid-row/cell'
 import { cellRovingAttrs } from './engine/grid-row/shell'
 import { fitCellProps } from './engine/grid-sizing/fit-styles'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { cellBody } from './grid-cell-content'
-import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridDataCell}. @internal */
 type GridDataCellProps<T> = {
