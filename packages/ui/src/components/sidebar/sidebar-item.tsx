@@ -1,6 +1,6 @@
 'use client'
 
-import type { Ref } from 'react'
+import { type Ref, useState } from 'react'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
@@ -41,9 +41,11 @@ export type SidebarItemProps = NavItemProps & {
  * place (preserving the accessible name) and echoed into a hover tooltip. The
  * tooltip holds only the `SidebarLabel` children, or all the children when the
  * row has no label. The tooltip repeats the name, so it does not describe the
- * button. An `aria-describedby` that you give stays. The current row is the
- * initial scroll target of its scroller (`scroll-initial-target`): where the
- * browser supports it, the first layout puts the row at the top of the view.
+ * button. An `aria-describedby` that you give stays. The row that is current
+ * at its mount is the initial scroll target of its scroller
+ * (`scroll-initial-target`): where the browser supports it, the first layout
+ * puts the row at the top of the view. A row that becomes current later is not
+ * a target, so a selection does not move the scroll.
  */
 export function SidebarItem({
 	icon,
@@ -65,6 +67,13 @@ export function SidebarItem({
 		indicator: { ref: indicatorRef, tapHandlers },
 		handleClick,
 	} = useNavItem({ current, href: props.href, match, preventClose, onClick })
+
+	// The row is the initial scroll target only while it stays current from its
+	// mount. When the current row changes, no row is a target, so a browser that
+	// applies a new target again does not scroll the sidebar on a selection.
+	const [initialTarget, setInitialTarget] = useState(isCurrent)
+
+	if (initialTarget && !isCurrent) setInitialTarget(false)
 
 	// Inside a SidebarList the wrapper is an <li>; standalone it is a <div>. The
 	// wrapper holds the affix slots, which can hold flow content.
@@ -96,6 +105,7 @@ export function SidebarItem({
 			// form, leaves it live.
 			lockable={false}
 			data-current={dataAttr(isCurrent)}
+			data-initial-target={dataAttr(initialTarget)}
 			className={cn(
 				slots.button,
 				// In the mini rail this Button is the tooltip trigger; restore the nav

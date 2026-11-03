@@ -181,6 +181,36 @@ describe('Sidebar', () => {
 		// A button switches a view in the page, so it is not the current page.
 		expect(button).toHaveAttribute('aria-current', 'true')
 	})
+
+	it('makes only the row that is current at its mount the initial scroll target', () => {
+		const items = (current: string) => (
+			<Sidebar>
+				{['Home', 'Settings', 'Help'].map((name) => (
+					<SidebarItem key={name} current={name === current}>
+						{name}
+					</SidebarItem>
+				))}
+			</Sidebar>
+		)
+
+		const { container, rerender } = renderUI(items('Settings'))
+
+		const targets = () =>
+			allBySlot(container, 'sidebar-item-inner').map((b) => b.hasAttribute('data-initial-target'))
+
+		expect(targets()).toEqual([false, true, false])
+
+		// A selection is not a mount, so no row is a target, and a browser that
+		// applies a new target again does not scroll the sidebar.
+		rerender(items('Help'))
+
+		expect(targets()).toEqual([false, false, false])
+
+		// The row that was current at its mount does not take the target again.
+		rerender(items('Settings'))
+
+		expect(targets()).toEqual([false, false, false])
+	})
 })
 
 describe('Sidebar mini', () => {
