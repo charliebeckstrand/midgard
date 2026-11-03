@@ -850,12 +850,13 @@ export const k = {
 		table: 'outline-0',
 		// Active-cell cursor ring for a `navigable` read-only grid, driven by the
 		// `data-active` the cell marker toggles onto the owning `role="gridcell"`
-		// <td>. Inset so the scroll container can't clip it; accent blue, matching
-		// the editable grid's active cell.
+		// <td>. Inset so the scroll container can't clip it. It takes the color of
+		// `focus.ring` (`blue-600` in both modes), so the active cell and the
+		// focus ring of a header or a control read as one indicator.
 		cell: [
 			'data-active:ring-2',
 			'data-active:ring-inset',
-			...mode('data-active:ring-blue-600', 'dark:data-active:ring-blue-500'),
+			'data-active:ring-blue-600',
 			// Forced colors remove the ring, which is a box-shadow. This inset outline
 			// replaces it there, as in `focus.inset`.
 			'forced-colors:data-active:outline-solid forced-colors:data-active:outline-2',
@@ -863,12 +864,12 @@ export const k = {
 			// A cell of the cursor's range (`range`) takes a tint and a hairline
 			// outline. The outline, not the tint, holds the 3:1 contrast of the state
 			// (WCAG 1.4.11). It is an outline, so it does not stack with the ring.
+			// The dark tint is half strength: on a full `blue-950`, the `blue-600`
+			// ring and outline fall below 3:1.
 			'data-in-range:outline-1',
 			'data-in-range:-outline-offset-1',
-			...mode(
-				'data-in-range:bg-blue-50 data-in-range:outline-blue-600',
-				'dark:data-in-range:bg-blue-950 dark:data-in-range:outline-blue-500',
-			),
+			'data-in-range:outline-blue-600',
+			...mode('data-in-range:bg-blue-50', 'dark:data-in-range:bg-blue-950/50'),
 		],
 		// These keys style the fill handle overlay on the active cell.
 		fill: {
@@ -890,7 +891,8 @@ export const k = {
 			handle: [
 				'pointer-events-auto absolute bottom-0 end-0 size-2 cursor-crosshair border',
 				'before:absolute before:-inset-1.5',
-				...mode('border-white bg-blue-600', 'dark:border-zinc-900 dark:bg-blue-500'),
+				'bg-blue-600',
+				...mode('border-white', 'dark:border-zinc-900'),
 			],
 		},
 	},
@@ -913,10 +915,7 @@ export const k = {
 				'dark:has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-700',
 			),
 			'has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-2',
-			...mode(
-				'has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-blue-600',
-				'dark:has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-blue-500',
-			),
+			'has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-blue-600',
 			'has-[[data-slot=grid-edit-host][data-invalid]]:ring-2',
 			...mode(
 				'has-[[data-slot=grid-edit-host][data-invalid]]:ring-red-600',
@@ -988,7 +987,7 @@ export const k = {
 			dan.space.cell.base,
 			hostSurface,
 			...ring.line[2].inset,
-			...mode('ring-blue-600', 'dark:ring-blue-500'),
+			'ring-blue-600',
 			...mode('in-data-invalid:ring-red-600', 'dark:in-data-invalid:ring-red-500'),
 			'forced-colors:outline-[Highlight]',
 		],
