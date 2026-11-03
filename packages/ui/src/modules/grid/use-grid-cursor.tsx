@@ -582,6 +582,28 @@ export function useGridCursor<T>({
 		[editing.session, rowKeysRef, cursorColumnsRef],
 	)
 
+	// The seed of a keyboard entry into the editable cell at `active`: a value
+	// in place of the value of the cell, `undefined` to open the cell with its
+	// own value, or `null` for a key that opens nothing.
+	const entrySeed = useStableEvent(
+		(event: KeyboardEvent<HTMLTableElement>, active: Coord, column: GridColumn<T>) => {
+			const press = readKeyPress(event)
+
+			// The new-row slot is no data row, so the cursor's Enter activates
+			// nothing there. Enter opens its cell, as F2 does.
+			const slot = active.row === NEW_ROW_INDEX
+
+			const seed =
+				event.key === 'F2' || (slot && event.key === 'Enter')
+					? undefined
+					: slot
+						? slotSeed(press, column, editing.newRow.editorKind)
+						: typedSeed(press, column, rowsRef.current[active.row])
+
+			return seed === undefined && !isPlainKey(press) ? null : seed
+		},
+	)
+
 	// The keyboard entries beside the cursor's Enter, on the tab stop alone: F2
 	// opens the active cell, and a printable key opens it with that character in
 	// place of its value (see `typedSeed`). A press from inside the grid belongs
@@ -605,28 +627,6 @@ export function useGridCursor<T>({
 
 		enterEditAt(active.row, active.col, seed)
 	})
-
-	// The seed of a keyboard entry into the editable cell at `active`: a value
-	// in place of the value of the cell, `undefined` to open the cell with its
-	// own value, or `null` for a key that opens nothing.
-	const entrySeed = useStableEvent(
-		(event: KeyboardEvent<HTMLTableElement>, active: Coord, column: GridColumn<T>) => {
-			const press = readKeyPress(event)
-
-			// The new-row slot is no data row, so the cursor's Enter activates
-			// nothing there. Enter opens its cell, as F2 does.
-			const slot = active.row === NEW_ROW_INDEX
-
-			const seed =
-				event.key === 'F2' || (slot && event.key === 'Enter')
-					? undefined
-					: slot
-						? slotSeed(press, column, editing.newRow.editorKind)
-						: typedSeed(press, column, rowsRef.current[active.row])
-
-			return seed === undefined && !isPlainKey(press) ? null : seed
-		},
-	)
 
 	// The pointer entry, fired through the grid's built-in cell double-click event
 	// (so the interactive-content guard and data-cell resolution apply). The event
