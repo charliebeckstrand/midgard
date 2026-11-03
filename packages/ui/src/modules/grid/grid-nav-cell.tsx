@@ -147,7 +147,8 @@ export function GridNavCell({
  * A column's own `onMouseDown` runs first, and its `preventDefault()` does not
  * stop the seat, because the cursor is a roving model (CONVENTIONS.md §3.9).
  * With `touch`, the cell also gives its press, lift, and touch end to the
- * touch entry of the editing layer (see {@link touchEntryProps}).
+ * touch entry of the editing layer (see {@link touchEntryProps}). Such a cell
+ * opens on a double click, so its second press selects no text.
  *
  * @internal
  */
@@ -187,6 +188,12 @@ export function seatingCellProps<T>(args: {
 				// scrolls would reveal the whole table, and WebKit then scrolls the
 				// page under the finger between the two taps of a double tap.
 				if (inCell && !fromInteractiveContent(event.target)) {
+					// The second press of a double click opens an editable cell. The
+					// browser selects a word on that press, and the selection shows
+					// until the editor replaces the text. Thus the handler prevents
+					// the default of that press.
+					if (touch && event.detail > 1) event.preventDefault()
+
 					event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
 
 					seat({ row: rowIndex, col: colIndex }, event)
