@@ -8,6 +8,7 @@ import { dataAttr } from '../../core/data-attr'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
+import { TouchTarget } from '../../primitives/touch-target'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
@@ -36,7 +37,9 @@ export type SwitchProps = SwitchVariants & {
  * validation. The track takes the step of the nearest density scope, and an
  * explicit `size` opens a scope on the label. An explicit `checked` prop wins over the bound field, and
  * `onChange` fires in either mode. `className`, `style`, and `hidden` go to the
- * visible track, and the other native attributes go to the input.
+ * visible track, and the other native attributes go to the input. The hit area
+ * floors at the minimums of `TouchTarget`, 24 px on a fine pointer and 44 px on
+ * a coarse pointer, and the track keeps its size.
  */
 export function Switch({
 	className,
@@ -128,28 +131,30 @@ export function Switch({
 			style={style}
 			className={cn(k({ color }).base, className)}
 		>
-			<input
-				// Consumer props spread first; the switch role, the synced
-				// aria-checked, the read-only state, the controlled wiring, and
-				// data-slot below take precedence.
-				{...props}
-				type="checkbox"
-				role="switch"
-				data-slot="switch"
-				ref={setRef}
-				id={scope.id}
-				name={name}
-				disabled={resolvedDisabled}
-				required={resolvedRequired}
-				{...(controlled ? { checked: on } : { defaultChecked: defaultChecked ?? false })}
-				aria-checked={on}
-				aria-readonly={ariaAttr(resolvedReadOnly)}
-				onChange={handleChange}
-				aria-describedby={describedBy}
-				{...validation}
-				className={k().input}
-			/>
-			<span data-slot="switch-thumb" aria-hidden="true" className={k().thumb} />
+			<TouchTarget>
+				<input
+					// Consumer props spread first; the switch role, the synced
+					// aria-checked, the read-only state, the controlled wiring, and
+					// data-slot below take precedence.
+					{...props}
+					type="checkbox"
+					role="switch"
+					data-slot="switch"
+					ref={setRef}
+					id={scope.id}
+					name={name}
+					disabled={resolvedDisabled}
+					required={resolvedRequired}
+					{...(controlled ? { checked: on } : { defaultChecked: defaultChecked ?? false })}
+					aria-checked={on}
+					aria-readonly={ariaAttr(resolvedReadOnly)}
+					onChange={handleChange}
+					aria-describedby={describedBy}
+					{...validation}
+					className={k().input}
+				/>
+				<span data-slot="switch-thumb" aria-hidden="true" className={k().thumb} />
+			</TouchTarget>
 		</label>
 	)
 }

@@ -321,8 +321,10 @@ export const k = {
 		// row-actions cluster, and the master-detail expander. `w-px` shrinks each
 		// to its content against the auto-width data columns. The selection cell
 		// is also the containing block and the hover group of the hit area of its
-		// checkbox.
-		select: `${fitCell} relative group/field`,
+		// checkbox. That hit area fills the cell, so the cell sets the touch gaps to
+		// zero, and the hit area of the checkbox (`TouchTarget`) keeps to the box. A
+		// floor on the box would go into the next row.
+		select: `${fitCell} relative group/field [--touch-target-gap-x:0px] [--touch-target-gap-y:0px]`,
 		actions: 'w-px whitespace-nowrap',
 		// The hit area of the selection checkbox (see `GridSelectCheckbox`): a label
 		// of the checkbox that fills the cell. The hover of the label shows on the

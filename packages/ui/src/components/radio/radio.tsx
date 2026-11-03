@@ -3,6 +3,7 @@
 import type { ChangeEventHandler, ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
+import { TouchTarget } from '../../primitives/touch-target'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
@@ -29,7 +30,9 @@ export type RadioProps = RadioVariants & {
  * does not adopt the id or the description of a `<Field>` or `<Control>` that
  * holds the group. Wrap it in a {@link RadioField} to give it an id. The
  * circle takes the step of the nearest density scope, and an explicit `size`
- * opens a scope on the label.
+ * opens a scope on the label. The hit area floors at the minimums of
+ * `TouchTarget`, 24 px on a fine pointer and 44 px on a coarse pointer, and the
+ * box keeps its size.
  *
  * @remarks Unlike {@link Checkbox} and {@link Switch}, this binds no Form
  * field. It has no internal checked state, and stays a native input controlled
@@ -148,24 +151,26 @@ export function Radio({
 			data-disabled={dataAttr(resolvedDisabled)}
 			className={cn(slots.base, className)}
 		>
-			<input
-				// Consumer props spread first; `type`, the native grouping `name`,
-				// the read-only guard, the validation attributes, and data-slot
-				// below take precedence. Radio carries no §7.2 value binding (see
-				// the remarks above).
-				{...props}
-				type="radio"
-				data-slot="radio"
-				ref={ref}
-				id={resolvedId}
-				disabled={resolvedDisabled}
-				required={resolvedRequired}
-				onChange={handleChange}
-				aria-describedby={resolvedDescribedBy}
-				{...validation}
-				className={slots.input}
-			/>
-			<span data-slot="radio-indicator" aria-hidden="true" className={slots.indicator} />
+			<TouchTarget>
+				<input
+					// Consumer props spread first; `type`, the native grouping `name`,
+					// the read-only guard, the validation attributes, and data-slot
+					// below take precedence. Radio carries no §7.2 value binding (see
+					// the remarks above).
+					{...props}
+					type="radio"
+					data-slot="radio"
+					ref={ref}
+					id={resolvedId}
+					disabled={resolvedDisabled}
+					required={resolvedRequired}
+					onChange={handleChange}
+					aria-describedby={resolvedDescribedBy}
+					{...validation}
+					className={slots.input}
+				/>
+				<span data-slot="radio-indicator" aria-hidden="true" className={slots.indicator} />
+			</TouchTarget>
 		</label>
 	)
 }

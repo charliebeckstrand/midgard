@@ -2,19 +2,24 @@ import { X } from 'lucide-react'
 import type { ReactElement } from 'react'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { Button } from '../../../components/button'
+import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/checkbox'
 import { ColorPanel } from '../../../components/color'
 import { DatePicker } from '../../../components/date-picker'
+import { Label } from '../../../components/fieldset'
 import { Group } from '../../../components/group'
 import { Icon } from '../../../components/icon'
 import { Nav, NavItem, NavList } from '../../../components/nav'
 import { NumberInput } from '../../../components/number-input'
+import { Radio, RadioField, RadioGroup } from '../../../components/radio'
 import { Sidebar, SidebarItem, SidebarLabel } from '../../../components/sidebar'
+import { Switch, SwitchField } from '../../../components/switch'
 import { TagInput } from '../../../components/tag-input'
 import { Toolbar, ToolbarGroup } from '../../../components/toolbar'
 import { densitySteps } from '../../../core/density'
 import { ChatPrompt } from '../../../modules/chat'
 import { Dashboard, DashboardTile } from '../../../modules/dashboard'
 import { Grid, type GridColumn } from '../../../modules/grid'
+import { ToggleGroup } from '../../../primitives/toggle'
 import { Box } from '../../../structure/box'
 import { baseline, rows } from '../../a11y/cases'
 import { present, renderUI } from '../../helpers'
@@ -131,6 +136,67 @@ const packed: readonly { name: string; element: ReactElement }[] = [
 						defaultCell: { rowKey: 1, columnId: 'name' },
 						onCommit: noop,
 					}}
+				/>
+			</Box>
+		),
+	})),
+	...densitySteps.map((size) => ({
+		name: `checkbox group, ${size}`,
+		element: (
+			<Box density={size}>
+				<CheckboxGroup aria-label="Options">
+					{['One', 'Two', 'Three'].map((name) => (
+						<CheckboxField key={name}>
+							<Checkbox />
+							<Label>{name}</Label>
+						</CheckboxField>
+					))}
+				</CheckboxGroup>
+			</Box>
+		),
+	})),
+	...densitySteps.map((size) => ({
+		name: `radio group, ${size}`,
+		element: (
+			<Box density={size}>
+				<RadioGroup aria-label="Plan" defaultValue="one">
+					{['one', 'two', 'three'].map((value) => (
+						<RadioField key={value}>
+							<Radio value={value} />
+							<Label>{value}</Label>
+						</RadioField>
+					))}
+				</RadioGroup>
+			</Box>
+		),
+	})),
+	...densitySteps.map((size) => ({
+		name: `switch group, ${size}`,
+		element: (
+			<Box density={size}>
+				<ToggleGroup>
+					{['One', 'Two', 'Three'].map((name) => (
+						<SwitchField key={name}>
+							<Switch />
+							<Label>{name}</Label>
+						</SwitchField>
+					))}
+				</ToggleGroup>
+			</Box>
+		),
+	})),
+	// The grid has no `xs` step, so the `xs` case puts the grid in an `xs` scope.
+	...(['xs', 'sm', 'md'] as const).map((step) => ({
+		name: `grid with row selection, ${step}`,
+		element: (
+			<Box density={step}>
+				<Grid
+					aria-label="People"
+					columns={[{ id: 'select', selectable: true }, ...columns]}
+					rows={people.slice(0, 4)}
+					getKey={(row) => row.id}
+					rowLabel={(row) => row.name}
+					selection={{ defaultValue: new Set() }}
 				/>
 			</Box>
 		),
