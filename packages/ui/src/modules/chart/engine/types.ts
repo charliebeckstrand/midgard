@@ -11,7 +11,7 @@
  * tooltip and data table, and not part of the public schema.
  */
 
-import type { AccessibleName } from '../../../types'
+import type { AccessibleName } from '../../../types/accessible-name'
 import type { CartesianAxes, ChartValueAxisId } from './chart-axes/schema'
 import type { ChartSeriesColor } from './chart-color/palette'
 import type { ChartContextMenuConfig } from './chart-context-menu'

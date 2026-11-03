@@ -5,7 +5,7 @@ import type {
 } from '@tanstack/react-table'
 import { getDefaultColumnSizingColumnDef } from '@tanstack/react-table/static-functions'
 import { isRtl } from '../../../../hooks/a11y/logical-arrow'
-import { clamp } from '../../../../utilities'
+import { clamp } from '../../../../utilities/clamp'
 import { finiteOrUndefined } from '../../../../utilities/parse-numeric'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import type { GridFitMode } from '../grid-sizing/fit-layout'

@@ -23,7 +23,7 @@
  */
 
 import { geoContains } from 'd3-geo'
-import { getOrCompute } from '../../../../utilities'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
 import { bucket, cellKey } from '../map-cluster/grid'
 import type { LngLat, MapFeature } from '../types'
 

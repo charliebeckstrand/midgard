@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 
 /** Props for {@link Spacer}: an optional `className` plus `<div>` attributes (children excluded). */
 export type SpacerProps = {} & Omit<ComponentProps<'div'>, 'children'>

@@ -1,8 +1,9 @@
 'use client'
 
 import { type ReactNode, useCallback, useRef, useSyncExternalStore } from 'react'
-import { createContext } from '../../core'
-import { noopSubscribe, sameElements } from '../../utilities'
+import { createContext } from '../../core/create-context'
+import { noopSubscribe } from '../../utilities/noop'
+import { sameElements } from '../../utilities/same-elements'
 import type { FormFieldTargets } from './form-field-targets'
 
 /** Snapshot of a form's reactive state: field values, per-field errors/touched/dirty maps, and the derived `dirty`/`valid`/`submitting` flags. */

@@ -2,7 +2,8 @@
 
 import { X } from 'lucide-react'
 import { useId, useMemo, useRef } from 'react'
-import { useA11yRoving, useScrollWithin } from '../../hooks'
+import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import { useScrollWithin } from '../../hooks/use-scroll-within'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/pdf-viewer'

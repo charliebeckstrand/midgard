@@ -1,5 +1,6 @@
 import type { KeyboardEvent, ReactNode, Ref, RefObject } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { CalendarToolbar } from './calendar-toolbar'

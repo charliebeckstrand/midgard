@@ -2,7 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ChangeEvent, type Ref, useEffect, useState } from 'react'
-import { composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormField } from '../../primitives/form/context'
 import type { PasswordInputProps } from '../password-input'

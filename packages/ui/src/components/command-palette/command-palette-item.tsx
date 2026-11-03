@@ -1,7 +1,8 @@
 'use client'
 
 import { type MouseEvent, type ReactNode, useId } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useLink } from '../../primitives/link'
 import { inertLinkProps } from '../../primitives/link/link-inert'
 import { resolveLinkRel } from '../../primitives/link/link-rel'

@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useSyncExternalStore } from 'react'
-import { type KeyedStore, noopSubscribe } from '../utilities'
+import type { KeyedStore } from '../utilities/keyed-store'
+import { noopSubscribe } from '../utilities/noop'
 
 /**
  * Reads the value of one key from a {@link KeyedStore}.

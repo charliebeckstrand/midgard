@@ -1,8 +1,9 @@
 'use client'
 
 import type { Ref } from 'react'
-import { cn, dataAttr } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import type { ScaleStep } from '../../core/density/scale'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'

@@ -11,7 +11,7 @@ import {
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
 import { summarizeQuery } from '../../modules/query/engine/query-summary'
 import type { QueryField, QueryRule } from '../../modules/query/engine/types'
-import { parseNumeric } from '../../utilities'
+import { parseNumeric } from '../../utilities/parse-numeric'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'
 
 describe('matchQueryRule', () => {

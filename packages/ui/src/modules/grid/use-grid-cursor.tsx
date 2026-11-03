@@ -10,7 +10,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { announce } from '../../core'
+import { announce } from '../../core/announcer'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'

@@ -1,8 +1,8 @@
 'use client'
 
 import type { CSSProperties, KeyboardEvent, RefObject } from 'react'
-import { createContext } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { createContext } from '../../core/create-context'
+import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/menu'
 
 type MenuStateValue = {

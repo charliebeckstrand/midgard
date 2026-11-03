@@ -5,7 +5,7 @@ import {
 	type FrameSizing,
 	type PlotFrameRef,
 	usePlotFrame,
-} from '../../../hooks'
+} from '../../../hooks/use-plot-frame'
 import type { ChartOrientation } from './chart-orientation'
 import { type ChartChrome, type ChartPolicy, chartFramePolicy } from './chart-tier'
 

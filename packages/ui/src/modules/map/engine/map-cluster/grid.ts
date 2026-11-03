@@ -9,7 +9,7 @@
  * merge round files slot indices. Neither pass can pay for the other's shape.
  */
 
-import { getOrCompute } from '../../../../utilities'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
 import type { MapPoint2D } from '../types'
 
 /**

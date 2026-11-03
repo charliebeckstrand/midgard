@@ -1,6 +1,6 @@
 import { Card } from '../../components/card'
 import { Placeholder } from '../../components/placeholder'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/kanban'
 
 /** Props for {@link KanbanCardSkeleton}: `className` only. */

@@ -1,8 +1,8 @@
 'use client'
 
 import { type RefObject, useCallback, useEffect, useRef } from 'react'
-import { useResizeObserver } from '../../hooks'
-import { measureContentBox } from '../../utilities'
+import { useResizeObserver } from '../../hooks/use-resize-observer'
+import { measureContentBox } from '../../utilities/measure-box'
 import {
 	configureStroke,
 	copyDrawing,

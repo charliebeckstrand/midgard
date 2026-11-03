@@ -18,7 +18,8 @@ import {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
+import { useFloatingDisclosure } from '../../hooks/use-floating-disclosure'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { subscribeOverlaySignal } from '../../primitives/overlay'

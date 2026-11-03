@@ -2,7 +2,8 @@
 
 import type { RefObject, SyntheticEvent } from 'react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
-import { type OffcanvasLayout, useOffcanvas, usePrefersReducedMotion } from '../../hooks'
+import { type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { adaptive, mapResponsive, type Responsive } from '../../utilities/responsive'
 import { resolveDownloadName } from './pdf-viewer-utilities'

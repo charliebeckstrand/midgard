@@ -1,9 +1,9 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import { useControllable } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import { useReportedChange } from '../../hooks/use-reported-change'
-import { toggleItem } from '../../utilities'
+import { toggleItem } from '../../utilities/toggle-item'
 import { buildGroupSpans, groupByColumn } from './engine/grid-group/compute'
 import type { GridGroupHeader, GridGroupResult } from './engine/grid-group/resolve'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'

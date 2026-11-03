@@ -11,7 +11,10 @@ import {
 	useId,
 	useRef,
 } from 'react'
-import { cn, composeEventHandlers, dataAttr, invalidAttrs } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
+import { invalidAttrs } from '../../core/invalid-attrs'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTruncation } from '../../hooks/use-truncation'
 import { IntlMessage } from '../../primitives/intl/intl-message'

@@ -2,7 +2,8 @@
 
 import { Fragment, memo, type ReactElement, use } from 'react'
 import { TableCell, TableRow } from '../../components/table'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/grid'
 import { GridReorderKitContext } from './context'

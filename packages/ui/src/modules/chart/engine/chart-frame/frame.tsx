@@ -12,11 +12,12 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { announce, cn } from '../../../../core'
-import type { FrameReserve } from '../../../../hooks'
+import { announce } from '../../../../core/announcer'
+import { cn } from '../../../../core/cn'
+import type { FrameReserve } from '../../../../hooks/use-plot-frame'
 import type { PlotTabStopProps } from '../../../../hooks/use-plot-tab-stop'
 import { k } from '../../../../recipes/kata/chart'
-import type { AccessibleName } from '../../../../types'
+import type { AccessibleName } from '../../../../types/accessible-name'
 import { holdTextSelection } from '../../../../utilities/hold-text-selection'
 import type { ChartContextMenuConfig } from '../chart-context-menu'
 import { ChartContextMenu } from '../chart-context-menu'

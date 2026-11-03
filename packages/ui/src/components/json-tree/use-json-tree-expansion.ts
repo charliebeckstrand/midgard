@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { useControllable } from '../../hooks'
-import { toggleItem } from '../../utilities'
+import { useControllable } from '../../hooks/use-controllable'
+import { toggleItem } from '../../utilities/toggle-item'
 
 /**
  * The union of `expanded` and `paths`.

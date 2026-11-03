@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useEffect, useEffectEvent, useId, useState } from 'react'
-import { useAriaIds } from '../../hooks'
+import { useAriaIds } from '../../hooks/use-aria-ids'
 import { Message } from '../fieldset'
 import { useControl } from './context'
 

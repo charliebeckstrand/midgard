@@ -1,5 +1,5 @@
 import { memo, useDeferredValue } from 'react'
-import { rangeKeys } from '../../../utilities'
+import { rangeKeys } from '../../../utilities/range-keys'
 import type { ChartReadoutSource } from './types'
 
 /** Props for {@link ChartTable}. @internal */

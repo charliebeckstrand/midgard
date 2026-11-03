@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import * as core from '../../core'
+import * as announcer from '../../core/announcer'
 import {
 	type A11yAnnouncementsOptions,
 	useA11yAnnouncements,
@@ -28,7 +28,7 @@ describe('useA11yAnnouncements', () => {
 	let announce: ReturnType<typeof vi.spyOn>
 
 	beforeEach(() => {
-		announce = vi.spyOn(core, 'announce')
+		announce = vi.spyOn(announcer, 'announce')
 	})
 
 	it('stays silent on the initial message', () => {

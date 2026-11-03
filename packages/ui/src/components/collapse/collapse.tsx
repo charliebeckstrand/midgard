@@ -1,7 +1,8 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useCallback, useMemo } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'

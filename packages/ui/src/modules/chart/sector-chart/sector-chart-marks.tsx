@@ -2,8 +2,8 @@
 
 import { animate } from 'motion'
 import { type MouseEvent, type PointerEvent, useEffect, useId, useRef, useState } from 'react'
-import { cn } from '../../../core'
-import { useHoverAcrossScroll } from '../../../hooks'
+import { cn } from '../../../core/cn'
+import { useHoverAcrossScroll } from '../../../hooks/use-hover-across-scroll'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { useTouchTap } from '../../../hooks/use-touch-tap'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'

@@ -2,11 +2,11 @@
 
 import { AnimatePresence } from 'motion/react'
 import { memo, useMemo } from 'react'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
-import { rangeKeys } from '../../../utilities'
+import { rangeKeys } from '../../../utilities/range-keys'
 import { type ChartPaint, fillClass, rawColor } from '../engine/chart-color/paint'
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../engine/chart-constants'
 import { type ScatterMark, scatterDiscLayers } from '../engine/chart-geometry/scatter'

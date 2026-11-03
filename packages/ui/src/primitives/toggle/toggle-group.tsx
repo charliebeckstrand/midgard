@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/toggle'
 
 /** Props for {@link ToggleGroup}: `role` plus the standard `div` attributes. */

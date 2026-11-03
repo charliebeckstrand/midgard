@@ -2,7 +2,8 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type KeyboardEvent, type MouseEvent, type Ref, useRef } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'

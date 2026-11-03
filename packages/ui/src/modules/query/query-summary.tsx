@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentProps, Fragment } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/query-summary'
 import { type QuerySummaryToken, spacedBefore, summarizeQuery } from './engine/query-summary'

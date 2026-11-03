@@ -5,8 +5,8 @@
  * isolation. {@link useChartFrameSizing} measures the box through it.
  */
 
-import type { FrameSizing } from '../../../../hooks'
-import { parseAspectRatio } from '../../../../utilities'
+import type { FrameSizing } from '../../../../hooks/use-plot-frame'
+import { parseAspectRatio } from '../../../../utilities/aspect-ratio'
 
 /**
  * A chart's aspect ratio: a `width / height` number, a `"16/9"` string, or

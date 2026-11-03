@@ -1,5 +1,5 @@
 import type { ElementType } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k, type TextVariants } from '../../recipes/kata/text'
 

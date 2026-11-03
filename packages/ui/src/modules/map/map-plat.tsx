@@ -11,7 +11,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -21,8 +21,8 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useLocale } from '../../providers/locale'
 import type { MapSeriesColor } from '../../recipes/kata/map'
-import type { AccessibleName } from '../../types'
-import { getOrCompute } from '../../utilities'
+import type { AccessibleName } from '../../types/accessible-name'
+import { getOrCompute } from '../../utilities/get-or-compute'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import type { ChartItemClick } from '../chart/engine/types'
 import {

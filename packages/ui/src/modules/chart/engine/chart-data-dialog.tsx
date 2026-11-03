@@ -20,7 +20,7 @@ import {
 } from '../../../components/table'
 import { intlMessages } from '../../../primitives/intl/intl-messages'
 import { useIntl } from '../../../primitives/intl/use-intl'
-import { rangeKeys } from '../../../utilities'
+import { rangeKeys } from '../../../utilities/range-keys'
 import { chartMessages } from './chart-messages'
 import type { ChartReadoutSource } from './types'
 

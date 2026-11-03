@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { k } from '../../recipes/kata/description-list'
-import { rangeKeys } from '../../utilities'
+import { rangeKeys } from '../../utilities/range-keys'
 import { Placeholder } from '../placeholder'
 import { DESCRIPTION_LIST_ORIENTATION, type DescriptionListVariants } from './description-list'
 

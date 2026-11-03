@@ -1,9 +1,9 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/splitter'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 
 /** Props for {@link Splitter}. @internal */
 export type SplitterProps = Omit<

@@ -2,7 +2,7 @@
 
 import { type DragControls, Reorder, useDragControls } from 'motion/react'
 import { type KeyboardEvent, type PointerEvent, type ReactNode, useState } from 'react'
-import { dataAttr } from '../../../core'
+import { dataAttr } from '../../../core/data-attr'
 import { reorderMessages } from '../../../primitives/intl/intl-reorder'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { SortableGrip } from '../../../primitives/sortable-grip/sortable-grip'

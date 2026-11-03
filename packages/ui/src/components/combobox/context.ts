@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { OptionSelectionContext } from '../../primitives/option'
 
 /**

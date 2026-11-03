@@ -2,10 +2,15 @@
 
 import { Check } from 'lucide-react'
 import { type ComponentProps, memo, use, useCallback, useId } from 'react'
-import { ariaAttr, cn, composeEventHandlers, createContext, dataAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { createContext } from '../../core/create-context'
+import { dataAttr } from '../../core/data-attr'
 import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { k } from '../../recipes/kata/option'
-import { capitalizeFirst, type KeyedStore } from '../../utilities'
+import { capitalizeFirst } from '../../utilities/capitalize-first'
+import type { KeyedStore } from '../../utilities/keyed-store'
 
 /**
  * Props for {@link Option}: selection state (`selected`, `disabled`), the

@@ -5,7 +5,7 @@
  * move, so no lookup scans the board.
  */
 
-import { sameElements } from '../../../utilities'
+import { sameElements } from '../../../utilities/same-elements'
 
 /** Minimum a {@link Kanban} column must satisfy: a stable `id` and an `items` array; extend it with column metadata. */
 export type KanbanColumnBase<T> = { id: string; items: T[] }

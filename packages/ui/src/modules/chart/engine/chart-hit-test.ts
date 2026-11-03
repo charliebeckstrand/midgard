@@ -10,7 +10,7 @@
  * hover index (and any crosshair riding it) keeps tracking the whole plot.
  */
 
-import { clamp } from '../../../utilities'
+import { clamp } from '../../../utilities/clamp'
 import type { BarMark } from './chart-geometry/bar'
 import type { LinePoint } from './chart-geometry/line'
 import type { ChartOrientation } from './chart-orientation'

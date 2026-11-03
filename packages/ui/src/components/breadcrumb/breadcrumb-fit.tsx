@@ -11,11 +11,11 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { InlineScript } from '../../primitives/inline-script/inline-script'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { observeResizeBeforePaint } from '../../utilities'
+import { observeResizeBeforePaint } from '../../utilities/observe-resize-before-paint'
 import { breadcrumbFit, breadcrumbFitRule } from './breadcrumb-fit-rule'
 import { breadcrumbMessages } from './breadcrumb-messages'
 

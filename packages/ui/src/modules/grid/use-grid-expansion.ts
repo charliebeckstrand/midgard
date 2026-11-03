@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useControllable } from '../../hooks'
-import { toggleItem } from '../../utilities'
+import { useControllable } from '../../hooks/use-controllable'
+import { toggleItem } from '../../utilities/toggle-item'
 import type { GridExpansionResult } from './engine/grid-group/resolve'
 import type { GridExpandable } from './grid-data-types'
 

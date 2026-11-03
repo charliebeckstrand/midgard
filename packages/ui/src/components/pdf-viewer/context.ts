@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { PdfViewerResult } from './use-pdf-viewer'
 import type { PdfViewerHighlightsResult } from './use-pdf-viewer-highlights'
 import type { PdfViewerMagnifierResult } from './use-pdf-viewer-magnifier'

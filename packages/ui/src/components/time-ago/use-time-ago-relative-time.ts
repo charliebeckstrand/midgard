@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { clamp, getOrCompute } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
+import { getOrCompute } from '../../utilities/get-or-compute'
 import {
 	DAY,
 	HOUR,

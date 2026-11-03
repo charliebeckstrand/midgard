@@ -1,9 +1,9 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { Mount } from '../../primitives/mount'
 import type { k } from '../../recipes/kata/stepper'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 
 /** Layout axis of a {@link Stepper}'s step row: `horizontal` or `vertical`. */
 export type StepperOrientation = Orientation

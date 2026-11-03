@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import * as core from '../../core'
+import * as announcer from '../../core/announcer'
 import { useKeyboardLifted } from '../../hooks/use-keyboard-lifted'
 
 describe('useKeyboardLifted', () => {
@@ -51,7 +51,7 @@ describe('useKeyboardLifted', () => {
 	})
 
 	it('lifts and drops through toggleLift and announces each', () => {
-		const announce = vi.spyOn(core, 'announce').mockImplementation(() => {})
+		const announce = vi.spyOn(announcer, 'announce').mockImplementation(() => {})
 
 		const { result } = renderHook(() => useKeyboardLifted(vi.fn(), true))
 
@@ -70,7 +70,7 @@ describe('useKeyboardLifted', () => {
 	})
 
 	it('reads a lift before its commit', () => {
-		vi.spyOn(core, 'announce').mockImplementation(() => {})
+		vi.spyOn(announcer, 'announce').mockImplementation(() => {})
 
 		const { result } = renderHook(() => useKeyboardLifted(vi.fn(), true))
 

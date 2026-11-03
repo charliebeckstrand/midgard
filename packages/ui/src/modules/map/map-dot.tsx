@@ -3,7 +3,7 @@
 import { useMotionValue, useTransform } from 'motion/react'
 import type { CSSProperties, SVGProps } from 'react'
 import { memo, useState } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'

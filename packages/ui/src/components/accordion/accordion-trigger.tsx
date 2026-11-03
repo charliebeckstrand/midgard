@@ -2,7 +2,9 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { ComponentProps } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/accordion'
 import type { HeadingLevel } from '../heading'
 import { Icon } from '../icon'

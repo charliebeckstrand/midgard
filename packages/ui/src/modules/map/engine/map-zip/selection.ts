@@ -24,7 +24,7 @@
  * through.
  */
 
-import { digitsOnly } from '../../../../utilities'
+import { digitsOnly } from '../../../../utilities/digits-only'
 
 /** How many digits a ZIP code holds; a ZCTA identity is exactly this wide. @internal */
 const ZIP_LENGTH = 5

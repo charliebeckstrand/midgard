@@ -7,10 +7,11 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { dataAttr } from '../core'
-import { clamp, pct } from '../utilities'
+import { dataAttr } from '../core/data-attr'
+import { clamp } from '../utilities/clamp'
 import { holdTextSelection } from '../utilities/hold-text-selection'
 import { hasBrowserModifier } from '../utilities/modifier-keys'
+import { pct } from '../utilities/pct'
 import { isPrimaryPress } from '../utilities/primary-press'
 import { type DragCursor, useDragCursor } from './use-drag-cursor'
 

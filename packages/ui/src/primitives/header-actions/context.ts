@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /**
  * The store of the element in the header row of a box. {@link HeaderActionsSlot}

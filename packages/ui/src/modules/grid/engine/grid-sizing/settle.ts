@@ -1,4 +1,5 @@
-import { createEmitter, createKeyedStore } from '../../../../utilities'
+import { createEmitter } from '../../../../utilities/emitter'
+import { createKeyedStore } from '../../../../utilities/keyed-store'
 
 /**
  * The settled width of each column, as a store that a cell subscribes to for

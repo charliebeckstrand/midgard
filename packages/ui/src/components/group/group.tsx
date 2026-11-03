@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import type { GroupOrientation } from '../../recipes'
 import type { scale } from '../../recipes/kata/button'
 import { k } from '../../recipes/kata/group'

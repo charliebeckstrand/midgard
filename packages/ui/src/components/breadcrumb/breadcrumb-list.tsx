@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { createSlot } from '../../core'
+import { createSlot } from '../../core/create-slot'
 import { k } from '../../recipes/kata/breadcrumb'
 
 /** Props for {@link BreadcrumbList}; the underlying `<ol>` attributes. */

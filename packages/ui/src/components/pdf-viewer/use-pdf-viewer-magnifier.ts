@@ -10,7 +10,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { useFloatingPanel } from '../../hooks'
+import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
 import { useTouchHold } from '../../hooks/use-touch-hold'

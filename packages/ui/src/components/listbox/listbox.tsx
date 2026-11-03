@@ -12,9 +12,11 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import type { ScaleStep } from '../../core/density'
-import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
+import type { ScaleStep } from '../../core/density/scale'
 import { isTypeaheadKey } from '../../hooks/a11y/use-typeahead'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
+import { useFloatingUI } from '../../hooks/use-floating-ui'
+import { useSelectableValueChange } from '../../hooks/use-selectable-value-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessages } from '../../primitives/intl/intl-messages'

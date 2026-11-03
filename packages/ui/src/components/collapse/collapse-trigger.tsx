@@ -1,7 +1,9 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { useMountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'

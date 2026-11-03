@@ -32,13 +32,14 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import type { DensityStep } from '../../core/density'
-import { useControllable } from '../../hooks'
+import type { DensityStep } from '../../core/density/steps'
+import { useControllable } from '../../hooks/use-controllable'
 import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { useLocale } from '../../providers/locale'
-import { isDataColumn, sameElements } from '../../utilities'
+import { isDataColumn } from '../../utilities/is-data-column'
+import { sameElements } from '../../utilities/same-elements'
 import type { GridSortState } from './context'
 import { compileColumnFilters } from './engine/grid-filter/filter'
 import { applyRowKeyOrder } from './engine/grid-group/row-manager'

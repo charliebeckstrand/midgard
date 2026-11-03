@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentProps, useCallback, useEffect, useState } from 'react'
-import { dataAttr } from '../../core'
+import { dataAttr } from '../../core/data-attr'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/current'
 import { MountHold, useMountHold } from '../mount'

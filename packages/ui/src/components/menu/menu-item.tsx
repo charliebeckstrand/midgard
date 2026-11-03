@@ -1,7 +1,10 @@
 'use client'
 
 import { type KeyboardEvent, type MouseEvent, type ReactNode, useId } from 'react'
-import { ariaAttr, cn, composeEventHandlers, dataAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { useLink } from '../../primitives/link'
 import { inertLinkProps } from '../../primitives/link/link-inert'
 import { resolveLinkRel } from '../../primitives/link/link-rel'

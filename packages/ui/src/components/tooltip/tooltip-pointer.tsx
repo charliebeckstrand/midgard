@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { ScaleStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/tooltip'
 import { TooltipContext } from './context'
 import { TooltipBody } from './tooltip-body'

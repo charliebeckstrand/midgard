@@ -5,8 +5,8 @@
  * component renders.
  */
 
-import { clamp } from '../../utilities'
 import { reduceNumbers } from '../../utilities/aggregate'
+import { clamp } from '../../utilities/clamp'
 
 /** A resolved point in the sparkline's coordinate box. @internal */
 type SparklinePoint = { x: number; y: number }

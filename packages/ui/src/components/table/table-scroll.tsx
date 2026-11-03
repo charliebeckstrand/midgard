@@ -2,9 +2,9 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
-import { type ScrollRegionOptions, useScrollRegion } from '../../hooks'
+import { cn } from '../../core/cn'
+import type { DensityStep } from '../../core/density/steps'
+import { type ScrollRegionOptions, useScrollRegion } from '../../hooks/use-scroll-region'
 import { k } from '../../recipes/kata/table'
 import { Box } from '../../structure/box'
 import { useTableScrolls } from './context'

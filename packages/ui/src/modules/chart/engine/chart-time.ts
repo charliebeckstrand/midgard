@@ -14,7 +14,7 @@
  */
 
 import { CalendarDateTime, DateFormatter, startOfWeek } from '@internationalized/date'
-import { resolveLocale } from '../../../utilities'
+import { resolveLocale } from '../../../utilities/resolve-locale'
 import { DAY, HOUR, MINUTE, MONTH, SECOND, WEEK, YEAR } from '../../../utilities/time-units'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { GUTTER_GAP, TICK_CHAR_WIDTH } from './chart-constants'

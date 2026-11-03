@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useStableValue } from '../../../hooks/use-stable-value'
-import { once } from '../../../utilities'
+import { once } from '../../../utilities/once'
 import { rawColor, textClass } from '../engine/chart-color/paint'
 import { scatterReadoutValues } from '../engine/chart-geometry/scatter'
 import type { ChartReadout, ScatterChartSeries } from '../engine/types'

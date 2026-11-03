@@ -1,5 +1,5 @@
 import type { KeyboardEvent, MouseEvent } from 'react'
-import { composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 
 /**
  * Composed click activation for a menu item: runs the consumer's `onClick`

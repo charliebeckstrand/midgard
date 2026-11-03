@@ -1,9 +1,9 @@
 'use client'
 
 import type { ComponentProps, ReactElement } from 'react'
-import { composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useControllableFlag } from '../../hooks/use-controllable'
-import type { AccessibleName } from '../../types'
+import type { AccessibleName } from '../../types/accessible-name'
 import { Button, type ButtonVariants } from '../button'
 import { Icon } from '../icon'
 import { ToggleIconButtonIcons } from './toggle-icon-button-icons'

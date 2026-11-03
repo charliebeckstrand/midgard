@@ -1,6 +1,7 @@
 'use client'
 
-import { createContext, type Severity } from '../../core'
+import { createContext } from '../../core/create-context'
+import type { Severity } from '../../core/validation-attrs'
 
 /**
  * The surface that a Control's fields share: `default` (filled), `outline` (a

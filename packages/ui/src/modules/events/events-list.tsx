@@ -6,7 +6,7 @@ import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/colla
 import { Icon } from '../../components/icon'
 import { JsonTree } from '../../components/json-tree'
 import { List, ListItem } from '../../components/list'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'

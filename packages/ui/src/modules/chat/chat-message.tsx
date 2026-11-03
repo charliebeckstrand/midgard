@@ -1,6 +1,6 @@
 import { type ComponentProps, memo, type ReactNode } from 'react'
 import { Markdown } from '../../components/markdown'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { IntlMessage } from '../../primitives/intl/intl-message'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'

@@ -1,6 +1,6 @@
 'use client'
 
-import type { DensityStep } from '../../core/density'
+import type { DensityStep } from '../../core/density/steps'
 import { useDensityScope } from './context'
 import { useDensityRoot } from './use-density-root'
 

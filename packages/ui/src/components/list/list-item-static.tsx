@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { noop } from '../../utilities'
+import { noop } from '../../utilities/noop'
 import { ListItemContext } from './context'
 
 type ListItemStaticProps = {

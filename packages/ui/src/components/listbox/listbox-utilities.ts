@@ -1,7 +1,7 @@
 import { createElement, Fragment, type ReactNode } from 'react'
 import { selectedMessage } from '../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../primitives/intl/types'
-import { capitalizeFirst } from '../../utilities'
+import { capitalizeFirst } from '../../utilities/capitalize-first'
 
 /**
  * The label of the trigger. With `capitalize`, each selected value that is a

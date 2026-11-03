@@ -9,7 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { announce } from '../../core'
+import { announce } from '../../core/announcer'
 import { useDevWarning } from '../../hooks/use-dev-warning'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useStableEvent } from '../../hooks/use-stable-event'

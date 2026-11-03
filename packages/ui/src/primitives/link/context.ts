@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps, ComponentType } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /** Props passed to the registered link component: a required `href` plus the standard anchor attributes. */
 export type LinkProps = {

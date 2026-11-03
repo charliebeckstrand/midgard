@@ -4,7 +4,7 @@ import { BarChart } from '../../modules/chart/bar-chart'
 import { ChartHeader } from '../../modules/chart/engine/chart-header'
 import { LineChart } from '../../modules/chart/line-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
-import { rangeKeys } from '../../utilities'
+import { rangeKeys } from '../../utilities/range-keys'
 import { act, renderUI } from '../helpers'
 
 /**
@@ -16,8 +16,8 @@ import { act, renderUI } from '../helpers'
  * each of its renders, so the header count reads the frame renders. The counts
  * need module mocks, so this suite sits in `boundary/`.
  */
-vi.mock('../../utilities', async (importActual) => {
-	const actual = await importActual<typeof import('../../utilities')>()
+vi.mock('../../utilities/range-keys', async (importActual) => {
+	const actual = await importActual<typeof import('../../utilities/range-keys')>()
 
 	return { ...actual, rangeKeys: vi.fn(actual.rangeKeys) }
 })

@@ -1,4 +1,4 @@
-import type { InnerStep } from '../../core/density'
+import type { InnerStep } from '../../core/density/steps'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
 

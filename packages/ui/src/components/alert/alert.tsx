@@ -10,9 +10,9 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
-import { useControllableFlag } from '../../hooks'
+import { cn } from '../../core/cn'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type AlertVariants, k } from '../../recipes/kata/alert'

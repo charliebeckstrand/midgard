@@ -1,4 +1,4 @@
-import { getOrCompute } from '../../../../utilities'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
 import { computeSortOrder, naturalCollator, type SmartSortField } from '../grid-sort/utilities'
 import { type GridGroup, toRowLeaf } from './tree'
 

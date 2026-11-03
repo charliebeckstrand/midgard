@@ -1,7 +1,7 @@
 'use client'
 
 import { useLayoutEffect, useState } from 'react'
-import { createKeyedStore, type KeyedStore } from '../utilities'
+import { createKeyedStore, type KeyedStore } from '../utilities/keyed-store'
 
 /**
  * A {@link KeyedStore} that follows a snapshot of the render.

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /**
  * App-wide `Intl` formatting defaults. Format-aware components (currency,

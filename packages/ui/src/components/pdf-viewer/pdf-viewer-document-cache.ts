@@ -1,6 +1,6 @@
 'use client'
 
-import { clamp } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
 import type { PdfViewerPage, PdfViewerSlot } from './types'
 
 /**

@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k, type StatusDotVariants } from '../../recipes/kata/status'
 import { Swatch } from '../swatch'
 

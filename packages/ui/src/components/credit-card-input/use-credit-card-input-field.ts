@@ -1,7 +1,7 @@
 'use client'
 
 import type { FocusEventHandler, Ref } from 'react'
-import { composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { isDecimalDigit } from '../../utilities/caret'
 import { useControlLabelRef } from '../control/use-control-label-ref'
 import { useMaskInput } from '../mask-input/use-mask-input'

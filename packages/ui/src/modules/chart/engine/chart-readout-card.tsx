@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { Swatch, type SwatchProps } from '../../../components/swatch'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { k } from '../../../recipes/kata/chart'
 
 /** The shape of a mark, as a readout names it. @internal */

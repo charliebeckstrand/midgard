@@ -1,4 +1,4 @@
-import { rootDensityClasses } from '../../core/density'
+import { rootDensityClasses } from '../../core/density/steps'
 import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
 import { InlineScript } from '../../primitives/inline-script/inline-script'

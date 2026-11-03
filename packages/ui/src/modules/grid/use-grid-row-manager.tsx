@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { PaletteColor } from '../../core/recipe'
-import { useControllable } from '../../hooks'
+import type { PaletteColor } from '../../core/recipe/colors'
+import { useControllable } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { groupValueLabel } from './engine/grid-column/label'

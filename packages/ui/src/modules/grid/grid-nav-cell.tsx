@@ -11,7 +11,7 @@ import {
 	useRef,
 	useSyncExternalStore,
 } from 'react'
-import { composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useGridNavContext } from './context'
 import { GRID_ROLE } from './engine/grid-constants'
 import { fromInteractiveContent } from './engine/grid-row/cell'

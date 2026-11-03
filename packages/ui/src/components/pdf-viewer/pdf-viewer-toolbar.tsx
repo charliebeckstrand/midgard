@@ -2,7 +2,7 @@
 
 import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'lucide-react'
 
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'

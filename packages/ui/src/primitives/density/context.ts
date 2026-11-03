@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext } from '../../core'
-import type { DensityStep } from '../../core/density'
+import { createContext } from '../../core/create-context'
+import type { DensityStep } from '../../core/density/steps'
 
 /**
  * The density context: the step of the nearest density scope under the root,

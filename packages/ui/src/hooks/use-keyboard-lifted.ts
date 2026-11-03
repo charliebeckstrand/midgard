@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
-import { announce } from '../core'
+import { announce } from '../core/announcer'
 import { reorderMessages } from '../primitives/intl/intl-reorder'
 import { useIntl } from '../primitives/intl/use-intl'
 import { useAnimationFrame } from './use-animation-frame'

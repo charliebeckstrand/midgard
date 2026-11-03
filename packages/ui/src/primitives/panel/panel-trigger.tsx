@@ -2,7 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, MouseEvent, MouseEventHandler, ReactNode, Ref } from 'react'
-import { composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import {
 	disclosureProps,
 	mergeTriggerProps,

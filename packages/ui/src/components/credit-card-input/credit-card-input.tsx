@@ -3,7 +3,7 @@
 import { CreditCard } from 'lucide-react'
 import { useMemo } from 'react'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { digitsOnly } from '../../utilities'
+import { digitsOnly } from '../../utilities/digits-only'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { useInputAffixText } from '../input/use-input-affix-text'

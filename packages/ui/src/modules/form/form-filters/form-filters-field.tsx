@@ -9,7 +9,7 @@ import {
 	type ReactNode,
 } from 'react'
 import { Description, Field, Label, Message } from '../../../components/fieldset'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { useFormFilters, useFormFiltersAxis } from './context'
 
 /** Fieldset decoration types passed through untouched rather than given the slot name. @internal */

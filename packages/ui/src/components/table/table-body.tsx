@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { createSlot } from '../../core'
+import { createSlot } from '../../core/create-slot'
 
 /** Props for {@link TableBody}: native `<tbody>` attributes. */
 export type TableBodyProps = ComponentProps<'tbody'>

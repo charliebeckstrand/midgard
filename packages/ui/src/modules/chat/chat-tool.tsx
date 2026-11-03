@@ -3,7 +3,7 @@
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
 import { Markdown } from '../../components/markdown'
 import { StatusDot, type StatusDotProps } from '../../components/status'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'

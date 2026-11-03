@@ -35,7 +35,7 @@ import {
 	type QueryGroup,
 	QuerySummary,
 } from '../../../modules/query'
-import { noop } from '../../../utilities'
+import { noop } from '../../../utilities/noop'
 import { FixtureCase, FixtureGroup, FixtureSheet } from '../fixture'
 
 type Person = {

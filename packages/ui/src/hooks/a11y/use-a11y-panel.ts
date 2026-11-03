@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import type { AriaProps } from '../../types'
+import type { AriaProps } from '../../types/aria-props'
 import { type A11yRelation, useA11yScope } from './use-a11y-scope'
 
 const PANEL_SLOTS = {

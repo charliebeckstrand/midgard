@@ -12,7 +12,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { dataAttr } from '../../core'
+import { dataAttr } from '../../core/data-attr'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { scrollNodeWithin } from '../../hooks/use-scroll-within'
 import { defineMessage } from '../../primitives/intl/intl-messages'

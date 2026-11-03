@@ -1,4 +1,5 @@
-import { getOrCompute, toggleItem } from '../../../../utilities'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
+import { toggleItem } from '../../../../utilities/toggle-item'
 
 /**
  * One row of the source data, as a value the grouped bodies render from.

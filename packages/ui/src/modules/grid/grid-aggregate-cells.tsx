@@ -1,7 +1,7 @@
 'use client'
 
 import { TableCell } from '../../components/table'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/grid'
 import { renderAggregate } from './engine/grid-aggregate'

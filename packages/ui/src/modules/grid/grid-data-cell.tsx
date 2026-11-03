@@ -2,7 +2,8 @@
 
 import { type ComponentProps, type CSSProperties, memo, type ReactNode, use } from 'react'
 import { TableCell } from '../../components/table'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/grid'
 import { GridReorderContext } from './context'
 import { isFrozen } from './engine/grid-pin/overrides'

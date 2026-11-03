@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /**
  * The state that the enclosing {@link RadioGroup} gives to each {@link Radio}.

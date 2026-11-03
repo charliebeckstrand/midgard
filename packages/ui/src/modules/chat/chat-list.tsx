@@ -2,8 +2,9 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useRef } from 'react'
-import { cn, composeEventHandlers } from '../../core'
-import { useA11yRoving } from '../../hooks'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { ChatListContext } from './context'
 

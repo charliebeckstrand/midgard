@@ -9,15 +9,8 @@ export {
 export { createContext } from './create-context'
 export { createSlot } from './create-slot'
 export { dataAttr } from './data-attr'
-export {
-	type DensityStep,
-	defineScale,
-	densitySteps,
-	type InnerStep,
-	rampValue,
-	type Scale,
-	type ScaleStep,
-} from './density'
+export { defineScale, rampValue, type Scale, type ScaleStep } from './density/scale'
+export { type DensityStep, densitySteps, type InnerStep } from './density/steps'
 export { downloadBlob } from './download-blob'
 export { invalidAttrs } from './invalid-attrs'
 export { querySlot } from './query-slot'

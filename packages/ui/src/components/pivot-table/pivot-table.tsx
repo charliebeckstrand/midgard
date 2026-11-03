@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale'
-import { fractionFormat } from '../../utilities'
+import { fractionFormat } from '../../utilities/format-number'
 import {
 	Table,
 	TableBody,

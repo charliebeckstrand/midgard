@@ -1,4 +1,4 @@
-import type { ScaleStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/button'
 import { k } from '../../recipes/kata/toggle-icon-button'
 import type { ButtonVariants } from '../button'

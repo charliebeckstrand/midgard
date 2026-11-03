@@ -2,8 +2,10 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, use, useRef } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
-import { useA11yRoving } from '../../hooks'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
+import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'

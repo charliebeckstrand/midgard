@@ -1,4 +1,5 @@
-import { digitsOnly, getOrCompute } from '../../utilities'
+import { digitsOnly } from '../../utilities/digits-only'
+import { getOrCompute } from '../../utilities/get-or-compute'
 
 export function escapeRegExp(text: string) {
 	return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

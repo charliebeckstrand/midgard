@@ -1,12 +1,12 @@
 'use client'
 
 import { type RefObject, useMemo } from 'react'
-import { cn } from '../../../core'
-import type { FrameReserve, PlotFrameRef } from '../../../hooks'
+import { cn } from '../../../core/cn'
+import type { FrameReserve, PlotFrameRef } from '../../../hooks/use-plot-frame'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
-import { once } from '../../../utilities'
+import { once } from '../../../utilities/once'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { type ChartValueAxisId, resolveAxes } from './chart-axes/schema'
 import {

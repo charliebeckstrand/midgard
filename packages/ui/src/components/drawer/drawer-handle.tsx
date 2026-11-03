@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import type { PanelResize } from '../../hooks/use-panel-resize'
 import { PanelHandle } from '../../primitives/panel/panel-handle'
 import { k } from '../../recipes/kata/drawer'

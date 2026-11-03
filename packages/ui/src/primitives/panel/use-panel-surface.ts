@@ -2,7 +2,9 @@
 
 import type { HTMLMotionProps } from 'motion/react'
 import type { MouseEventHandler } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { type A11yPanelRole, useA11yPanel } from '../../hooks/a11y/use-a11y-panel'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'

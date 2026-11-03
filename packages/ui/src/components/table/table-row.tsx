@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { createSlot } from '../../core'
+import { createSlot } from '../../core/create-slot'
 
 /** Props for {@link TableRow}: native `<tr>` attributes, including a `ref` to the row. */
 export type TableRowProps = ComponentProps<'tr'>

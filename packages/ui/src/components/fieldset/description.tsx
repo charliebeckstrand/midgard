@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentProps, useEffect } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 

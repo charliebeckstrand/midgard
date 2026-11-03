@@ -1,5 +1,5 @@
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, Ref } from 'react'
-import { dataAttr } from '../../../../core'
+import { dataAttr } from '../../../../core/data-attr'
 import { k } from '../../../../recipes/kata/grid'
 import { hasBrowserModifier } from '../../../../utilities/modifier-keys'
 import type { GridColumn } from '../../types'

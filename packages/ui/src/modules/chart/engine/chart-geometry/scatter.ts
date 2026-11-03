@@ -10,7 +10,7 @@
  * isolation.
  */
 
-import { parseNumeric } from '../../../../utilities'
+import { parseNumeric } from '../../../../utilities/parse-numeric'
 import type { ChartAxisTick } from '../chart-axes/axis'
 import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RING_WIDTH } from '../chart-constants'
 import { coord } from '../chart-coords'

@@ -1,11 +1,12 @@
 'use client'
 
-import { cn } from '../../../core'
-import type { FrameStep } from '../../../hooks'
+import { cn } from '../../../core/cn'
+import type { FrameStep } from '../../../hooks/use-plot-frame'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
-import { getOrCompute, sameElements } from '../../../utilities'
+import { getOrCompute } from '../../../utilities/get-or-compute'
+import { sameElements } from '../../../utilities/same-elements'
 import { MARK_GAP } from '../engine/chart-constants'
 import {
 	CALLOUT_COLUMN,

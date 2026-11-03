@@ -4,7 +4,8 @@
  * serialize / equality helpers the state hook leans on. Free of React.
  */
 
-import { clamp, wrap } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
+import { wrap } from '../../utilities/keyboard-navigation'
 import type { ColorFormat, Hsva, Rgba } from './types'
 
 /**

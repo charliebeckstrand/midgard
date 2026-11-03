@@ -1,5 +1,7 @@
-import { getOrCompute, isComposing, wrap } from '../../../utilities'
 import { getTabbableElements } from '../../../utilities/focusable-selector'
+import { getOrCompute } from '../../../utilities/get-or-compute'
+import { isComposing } from '../../../utilities/is-composing'
+import { wrap } from '../../../utilities/keyboard-navigation'
 import type { GridCellRef } from '../grid-editing-types'
 import { GRID_ROLE } from './grid-constants'
 

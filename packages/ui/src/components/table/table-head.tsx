@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { createSlot } from '../../core'
+import { createSlot } from '../../core/create-slot'
 import { k } from '../../recipes/kata/table'
 
 /** Props for {@link TableHead}: native `<thead>` attributes. */

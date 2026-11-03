@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { DensityStep } from '../../core/density/steps'
 import { useHeadless } from '../../providers/headless/context'
 import { PolymorphicStatic } from '../polymorphic'
 

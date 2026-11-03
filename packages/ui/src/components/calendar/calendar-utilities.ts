@@ -9,7 +9,7 @@ import {
 	toCalendar,
 } from '@internationalized/date'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
-import { getOrCompute } from '../../utilities'
+import { getOrCompute } from '../../utilities/get-or-compute'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 
 /**

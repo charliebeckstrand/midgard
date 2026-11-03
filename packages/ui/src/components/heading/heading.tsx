@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { type HeadingLevel, k, type scale } from '../../recipes/kata/heading'
 

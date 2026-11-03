@@ -10,7 +10,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { dataAttr } from '../../core'
+import { dataAttr } from '../../core/data-attr'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useDensityStep } from '../../primitives/density'

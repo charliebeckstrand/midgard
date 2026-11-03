@@ -1,4 +1,4 @@
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 
 /** The attribute that marks a separator at the start or the end of a wrapped row. @internal */
 export const ROW_EDGE_ATTRIBUTE = 'data-row-edge'

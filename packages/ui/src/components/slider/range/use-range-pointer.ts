@@ -4,7 +4,7 @@ import { type PointerEvent, type RefObject, useCallback, useRef, useState } from
 import { isRtl } from '../../../hooks/a11y/logical-arrow'
 import { useDragCursorHold } from '../../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../../hooks/use-stable-event'
-import { clamp } from '../../../utilities'
+import { clamp } from '../../../utilities/clamp'
 import { holdTextSelection } from '../../../utilities/hold-text-selection'
 import { createPressOwner } from '../../../utilities/primary-press'
 import { crossesOtherThumb, snapValue } from './range-utilities'

@@ -1,9 +1,9 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
-import type { FloatingPlacement } from '../../hooks'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import type { scale } from '../../recipes/kata/menu'
 import { MenuActionsContext, MenuCappedContext, MenuStateContext } from './context'
 import { MenuPointerLevel } from './menu-pointer-level'

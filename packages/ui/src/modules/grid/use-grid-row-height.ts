@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefCallback, useCallback, useState } from 'react'
-import type { DensityStep } from '../../core/density'
+import type { DensityStep } from '../../core/density/steps'
 
 /**
  * The rows that give the height: a data row, or a placeholder row of the

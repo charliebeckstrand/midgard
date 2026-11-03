@@ -1,4 +1,4 @@
-import { createEmitter } from '../../utilities'
+import { createEmitter } from '../../utilities/emitter'
 import type { MapPointedStore } from './context'
 import { type MapHoverTarget, sameMark } from './engine/map-hover/target'
 

@@ -1,8 +1,8 @@
 import { Placeholder } from '../../../components/placeholder'
-import { cn } from '../../../core'
-import type { ScaleStep } from '../../../core/density'
+import { cn } from '../../../core/cn'
+import type { ScaleStep } from '../../../core/density/scale'
 import { k, type scale } from '../../../recipes/kata/chart'
-import { parseAspectRatio } from '../../../utilities'
+import { parseAspectRatio } from '../../../utilities/aspect-ratio'
 import type { ChartAspectRatio } from './chart-frame/sizing'
 
 /** Props for {@link ChartSkeleton}: the ratio or the sector form of the chart, and `className`. */

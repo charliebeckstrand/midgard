@@ -4,7 +4,7 @@ import { useChartSeriesToggle } from '../../modules/chart/engine/use-chart-toggl
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
-import { rangeKeys } from '../../utilities'
+import { rangeKeys } from '../../utilities/range-keys'
 import { act, allBySlot, fireEvent, renderUI } from '../helpers'
 
 /**
@@ -20,8 +20,8 @@ import { act, allBySlot, fireEvent, renderUI } from '../helpers'
  * `chart-table-render.test.tsx` does. The counts need module mocks, so this
  * suite sits in `boundary/`.
  */
-vi.mock('../../utilities', async (importActual) => {
-	const actual = await importActual<typeof import('../../utilities')>()
+vi.mock('../../utilities/range-keys', async (importActual) => {
+	const actual = await importActual<typeof import('../../utilities/range-keys')>()
 
 	return { ...actual, rangeKeys: vi.fn(actual.rangeKeys) }
 })

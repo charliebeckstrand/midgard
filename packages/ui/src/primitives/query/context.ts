@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /** Query state a type-ahead root shares with its descendants. */
 export type QueryContextValue = {

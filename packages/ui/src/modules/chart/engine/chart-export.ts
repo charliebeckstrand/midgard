@@ -5,7 +5,7 @@
  * `document` only when called.
  */
 
-import { clamp } from '../../../utilities'
+import { clamp } from '../../../utilities/clamp'
 import { csvField } from '../../../utilities/export-output'
 import type { ChartReadout } from './types'
 

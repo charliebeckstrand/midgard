@@ -1,7 +1,7 @@
 'use client'
 
-import type { ScaleStep } from '../../core/density'
-import type { FloatingPlacement } from '../../hooks'
+import type { ScaleStep } from '../../core/density/scale'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import type { scale } from '../../recipes/kata/color-picker'
 import { type ColorPanel, ColorPanelView } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'

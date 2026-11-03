@@ -10,7 +10,7 @@
  * React-free, so the paint rules are testable without mounting a layer.
  */
 
-import { cn } from '../../../../core'
+import { cn } from '../../../../core/cn'
 import { k } from '../../../../recipes/kata/map'
 import { contrastRatio } from '../../../../utilities/contrast'
 import { categoryLegendId, type MapCategoryMeta, paintColor, paintFill } from './category'

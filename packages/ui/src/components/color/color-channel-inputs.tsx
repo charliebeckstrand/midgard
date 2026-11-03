@@ -1,11 +1,11 @@
 'use client'
 
 import type { ChangeEvent } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
-import { clamp } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
 import { ControlContext, useControl } from '../control/context'
 import { Input } from '../input'
 import { colorMessages } from './color-messages'

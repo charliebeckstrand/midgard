@@ -8,11 +8,11 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { useDragCursor } from '../../hooks'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
+import { useDragCursor } from '../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import type { Orientation } from '../../types'
-import { clamp } from '../../utilities'
+import type { Orientation } from '../../types/orientation'
+import { clamp } from '../../utilities/clamp'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { createPressOwner } from '../../utilities/primary-press'
 import type { PanelConfig } from './types'

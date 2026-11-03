@@ -1,9 +1,11 @@
 'use client'
 
 import { type KeyboardEvent, useRef } from 'react'
-import { announce, cn, dataAttr } from '../../core'
-import { useDragCursor } from '../../hooks'
+import { announce } from '../../core/announcer'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { useDragCursor } from '../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
 import { useTouchTap } from '../../hooks/use-touch-tap'

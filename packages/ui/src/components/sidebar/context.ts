@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /**
  * True when items render inside a `SidebarList`. Each `SidebarItem` renders as

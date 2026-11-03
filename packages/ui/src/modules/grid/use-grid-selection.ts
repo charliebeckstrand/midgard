@@ -1,9 +1,9 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { type SetValue, useControllable } from '../../hooks'
+import { type SetValue, useControllable } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { toggleItem } from '../../utilities'
+import { toggleItem } from '../../utilities/toggle-item'
 import type { GridSelection } from './grid-data-types'
 
 /** Stable empty selection default; read-only, replaced wholesale on change. @internal */

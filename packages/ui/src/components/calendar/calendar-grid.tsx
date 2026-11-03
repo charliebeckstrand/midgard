@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEventHandler, memo, type RefObject } from 'react'
-import { ariaAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
 import { k } from '../../recipes/kata/calendar'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 import { CalendarDayCell } from './calendar-day-cell'

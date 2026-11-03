@@ -1,7 +1,7 @@
 'use client'
 
 import type { Ref } from 'react'
-import { dataAttr } from '../../core'
+import { dataAttr } from '../../core/data-attr'
 import { JsonTreeBranchClose } from './json-tree-branch-close'
 import { JsonTreeBranchHeader } from './json-tree-branch-header'
 import { INDENT_REM } from './json-tree-constants'

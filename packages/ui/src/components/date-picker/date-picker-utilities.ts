@@ -6,7 +6,7 @@ import {
 	type DateDuration,
 	DateFormatter,
 } from '@internationalized/date'
-import { resolveLocale } from '../../utilities'
+import { resolveLocale } from '../../utilities/resolve-locale'
 import { clampDay, fromCalendarDate, stepDay, toCalendarDate } from '../calendar/calendar-utilities'
 
 /**

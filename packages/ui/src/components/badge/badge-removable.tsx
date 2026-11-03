@@ -2,7 +2,7 @@
 
 import { X } from 'lucide-react'
 import type { AriaRole, KeyboardEvent, MouseEventHandler, ReactNode, Ref } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'

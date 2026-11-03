@@ -2,8 +2,9 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode } from 'react'
-import { cn, dataAttr } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import type { ScaleStep } from '../../core/density/scale'
 import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
 import { Density } from '../../primitives/density'

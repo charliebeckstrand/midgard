@@ -1,9 +1,9 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useMemo } from 'react'
-import { useA11yAnnouncements } from '../../hooks'
+import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn } from '../../utilities/is-data-column'
 import type { GridSortState } from './context'
 import { describeSelection, describeSort } from './engine/grid-announcements'
 import { hasErrorSlot } from './engine/grid-data/guards'

@@ -1,7 +1,8 @@
 'use client'
 
 import { Children, type ComponentProps, type ReactNode, useMemo } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useMountsEveryPanel } from '../../primitives/mount'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useControllable } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import type { GridSortState } from './context'
 import { EMPTY_SORT, nextSort } from './engine/grid-sort/state'
 import type { GridSort } from './grid-data-types'

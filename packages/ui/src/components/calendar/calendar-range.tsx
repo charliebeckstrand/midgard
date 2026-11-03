@@ -1,10 +1,10 @@
 'use client'
 
 import { type Ref, type RefObject, useCallback } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/calendar'
-import { getOrCompute } from '../../utilities'
+import { getOrCompute } from '../../utilities/get-or-compute'
 import {
 	Calendar,
 	type CalendarActive,

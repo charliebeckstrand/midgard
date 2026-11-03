@@ -1,9 +1,10 @@
 'use client'
 
 import type { FocusEvent, ReactElement } from 'react'
-import { cn, composeEventHandlers } from '../../core'
-import type { ScaleStep } from '../../core/density'
-import type { FloatingPlacement } from '../../hooks'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import type { ScaleStep } from '../../core/density/scale'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FOCUSABLE_SELECTOR } from '../../utilities'
+import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
 
 /**
  * Whether `node` holds a descendant in the tab order, re-measured as the

@@ -5,7 +5,7 @@
  * so the plan and the component that draws it read one definition.
  */
 
-import { cn } from '../../../../core'
+import { cn } from '../../../../core/cn'
 import { k, type MapSeriesColor } from '../../../../recipes/kata/map'
 import type { MapOverlayEntry } from '../map-overlay/entry'
 import {

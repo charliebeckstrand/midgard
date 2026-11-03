@@ -2,7 +2,8 @@
 
 import { domMax, LazyMotion, Reorder } from 'motion/react'
 import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
-import { dataAttr, querySlot } from '../../../core'
+import { dataAttr } from '../../../core/data-attr'
+import { querySlot } from '../../../core/query-slot'
 import { useKeyboardReorder } from '../../../hooks/use-keyboard-reorder'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { useReorderDrag } from '../../../hooks/use-reorder-drag'

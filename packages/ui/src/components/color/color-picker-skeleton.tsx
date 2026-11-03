@@ -1,5 +1,5 @@
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/color-picker'
 import { k } from '../../recipes/kata/color-picker'
 import { Placeholder } from '../placeholder'

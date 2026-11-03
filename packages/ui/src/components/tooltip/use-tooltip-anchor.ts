@@ -3,7 +3,7 @@
 import type { Placement } from '@floating-ui/react'
 import { useInteractions } from '@floating-ui/react'
 import { useMemo } from 'react'
-import { useFloatingPanel } from '../../hooks'
+import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import type { TooltipContextValue } from './context'
 
 /** Options for {@link useTooltipAnchor}. @internal */

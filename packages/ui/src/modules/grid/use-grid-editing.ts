@@ -11,7 +11,8 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { useControllable, useMediaQuery } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
+import { useMediaQuery } from '../../hooks/use-media-query'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { PHONE_QUERY } from '../../utilities/media-query'
 import type { GridEditingSession, GridNewRowSession, GridSettleControls } from './context'

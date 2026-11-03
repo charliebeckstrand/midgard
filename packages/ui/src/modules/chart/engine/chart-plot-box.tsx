@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { AspectRatio } from '../../../components/aspect-ratio'
-import type { FrameReserve } from '../../../hooks'
+import type { FrameReserve } from '../../../hooks/use-plot-frame'
 
 /** Props for {@link ChartPlotBox}. @internal */
 type ChartPlotBoxProps = {

@@ -2,8 +2,8 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type ReactNode, useMemo, useRef } from 'react'
-import { cn } from '../../core'
-import { useA11yRoving } from '../../hooks'
+import { cn } from '../../core/cn'
+import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { Mount } from '../../primitives/mount'
 import { type AccordionVariants, k } from '../../recipes/kata/accordion'

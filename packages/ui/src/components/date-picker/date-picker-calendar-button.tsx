@@ -1,7 +1,7 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { dataAttr } from '../../core'
+import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { Icon } from '../icon'

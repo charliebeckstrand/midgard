@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 import { renderUI, waitFor } from '../helpers'
 
 /**

@@ -9,7 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { useHoverAcrossScroll } from '../../hooks'
+import { useHoverAcrossScroll } from '../../hooks/use-hover-across-scroll'
 import { samePoint } from '../chart/engine/context'
 import {
 	type MapHoverActions,

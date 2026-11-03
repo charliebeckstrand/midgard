@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { type CodeVariants, k } from '../../recipes/kata/code'
 

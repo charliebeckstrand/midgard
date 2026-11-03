@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { k } from '../../../recipes/kata/chart'
 import { CELL_RING_WIDTH, cellRing, type HeatmapCell } from '../engine/chart-geometry/heatmap'

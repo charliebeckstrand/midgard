@@ -1,4 +1,4 @@
-import { clamp } from '../../../utilities'
+import { clamp } from '../../../utilities/clamp'
 import type { ThumbIndex } from './types'
 
 /**

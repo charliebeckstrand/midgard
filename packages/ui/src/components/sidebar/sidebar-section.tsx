@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { createSlot } from '../../core'
+import { createSlot } from '../../core/create-slot'
 import { k } from '../../recipes/kata/sidebar'
 
 /** Props for {@link SidebarSection} (`<div>` attributes). */

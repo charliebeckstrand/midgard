@@ -1,7 +1,7 @@
 'use client'
 
 import { createElement, isValidElement, type ReactNode, useLayoutEffect, useMemo } from 'react'
-import { dataAttr } from '../../core'
+import { dataAttr } from '../../core/data-attr'
 import { useMountHold } from '../../primitives/mount'
 import { MountPresence } from '../../primitives/mount/mount-presence'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'

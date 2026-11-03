@@ -2,8 +2,8 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useMemo } from 'react'
-import { cn } from '../../core'
-import { useScrollRegion } from '../../hooks'
+import { cn } from '../../core/cn'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { k } from '../../recipes/kata/timeline'
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineContext } from './context'

@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useState } from 'react'
-import { useA11yLiveRegion } from '../../hooks'
+import { useA11yLiveRegion } from '../../hooks/a11y/use-a11y-live-region'
 import { useFormContext } from '../../primitives/form/context'
 import { Stack } from '../../structure/stack'
 import { Text } from '../text'

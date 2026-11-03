@@ -17,8 +17,8 @@ import { act, allBySlot, fireEvent, renderUI } from '../helpers'
 /** Takes each share that a percent formatter formats. */
 const shareFormats = vi.hoisted(() => vi.fn<(share: number) => void>())
 
-vi.mock('../../utilities', async (importActual) => {
-	const actual = await importActual<typeof import('../../utilities')>()
+vi.mock('../../utilities/format-number', async (importActual) => {
+	const actual = await importActual<typeof import('../../utilities/format-number')>()
 
 	return {
 		...actual,

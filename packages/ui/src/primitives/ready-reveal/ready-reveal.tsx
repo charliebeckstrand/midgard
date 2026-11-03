@@ -9,10 +9,10 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { k } from '../../recipes/kata/ready-reveal'
-import { FOCUSABLE_SELECTOR } from '../../utilities'
+import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
 import { ReducedMotion } from '../reduced-motion'
 import * as m from '../reduced-motion/reduced-motion-elements'
 

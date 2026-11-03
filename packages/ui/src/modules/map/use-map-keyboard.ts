@@ -9,7 +9,7 @@ import {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-import { announce } from '../../core'
+import { announce } from '../../core/announcer'
 import { type PlotTabStopProps, usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { IntlShape } from '../../primitives/intl/types'

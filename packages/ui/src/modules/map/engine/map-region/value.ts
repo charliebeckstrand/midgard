@@ -9,7 +9,9 @@
  * the heatmap share one scale.
  */
 
-import { fractionFormat, parseNumeric, resolveBinScale, valueExtent } from '../../../../utilities'
+import { resolveBinScale, valueExtent } from '../../../../utilities/color-scale'
+import { fractionFormat } from '../../../../utilities/format-number'
+import { parseNumeric } from '../../../../utilities/parse-numeric'
 import type { DataKey } from '../types'
 import type { MapCategoryMeta } from './category'
 

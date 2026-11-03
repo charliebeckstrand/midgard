@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k, type StatDeltaVariants } from '../../recipes/kata/stat'
 
 /** Props for {@link StatDelta}: the `trend` variant plus `<div>` attributes. */

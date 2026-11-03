@@ -1,5 +1,5 @@
 import type { ComponentProps, CSSProperties } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { type ChartColorSlot, k as chart } from '../../recipes/kata/chart'
 import { k, type SwatchVariants } from '../../recipes/kata/swatch'
 

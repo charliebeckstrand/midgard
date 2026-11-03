@@ -11,7 +11,8 @@ import {
 	useRef,
 } from 'react'
 import { TableHeader } from '../../components/table'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import type { MessageDescriptor } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'

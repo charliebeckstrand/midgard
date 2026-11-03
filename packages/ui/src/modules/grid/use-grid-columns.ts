@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn } from '../../utilities/is-data-column'
 import { EMPTY_SET } from './engine/grid-constants'
 import {
 	collapsedHiddenIds,

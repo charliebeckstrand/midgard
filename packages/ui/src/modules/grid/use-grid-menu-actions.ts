@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import { useControllableFlag } from '../../hooks'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { GridSortState } from './context'
 import { gridMessages } from './engine/grid-messages'

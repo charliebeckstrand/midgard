@@ -8,7 +8,8 @@
  * A drag preview therefore wakes only the tiles that it moves.
  */
 
-import { createEmitter, sameElements } from '../../../utilities'
+import { createEmitter } from '../../../utilities/emitter'
+import { sameElements } from '../../../utilities/same-elements'
 import type { QueryGroup } from '../../query/engine/types'
 import { type DashboardDragKind, type DashboardDragTravel, dragTravel } from './dashboard-drag'
 import {

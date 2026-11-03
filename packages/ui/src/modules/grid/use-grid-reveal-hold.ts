@@ -3,7 +3,7 @@
 import { type TransitionEvent, useLayoutEffect, useState } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { type MountHoldState, useMountHold } from '../../primitives/mount'
-import { forceStyleFlush } from '../../utilities'
+import { forceStyleFlush } from '../../utilities/force-style-flush'
 
 /** The reveal's animated property; a `transitionend` for anything else is not the collapse landing. @internal */
 export const REVEAL_PROPERTY = 'grid-template-rows'

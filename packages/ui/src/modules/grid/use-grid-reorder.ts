@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from 'react'
 import type { SortableListOptions } from '../../hooks/use-sortable-list'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn } from '../../utilities/is-data-column'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
 import { isFrozen } from './engine/grid-pin/overrides'

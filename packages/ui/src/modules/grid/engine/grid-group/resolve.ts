@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { isDataColumn } from '../../../../utilities'
+import { isDataColumn } from '../../../../utilities/is-data-column'
 import type { GridGroupHeaderRow, GridVirtualize } from '../../grid-data-types'
 import type { GridColumnGroup, GridGroupSpan } from '../../grid-group-types'
 import type { GridColumn, GridPagination } from '../../types'

@@ -2,10 +2,14 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, CSSProperties } from 'react'
-import { ariaAttr, cn, composeEventHandlers, invalidAttrs } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { invalidAttrs } from '../../core/invalid-attrs'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
-import { clamp, pct } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
+import { pct } from '../../utilities/pct'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
 

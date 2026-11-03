@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react'
 import type { ContextMenuEntry } from '../../../components/context-menu'
-import { createContext } from '../../../core'
+import { createContext } from '../../../core/create-context'
 import type { ChartTier } from './chart-tier'
 
 /** The pointer's position in the frame's coordinate space. @internal */

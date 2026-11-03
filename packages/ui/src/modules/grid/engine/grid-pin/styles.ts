@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { cn } from '../../../../core'
+import { cn } from '../../../../core/cn'
 import { k } from '../../../../recipes/kata/grid'
 import type { GridColumnPinning } from '../grid-table/pinning-view'
 

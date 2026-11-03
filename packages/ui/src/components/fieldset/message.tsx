@@ -1,11 +1,12 @@
 'use client'
 
 import { type HTMLAttributes, type ReactNode, useEffect } from 'react'
-import { cn, type Severity } from '../../core'
+import { cn } from '../../core/cn'
+import type { Severity } from '../../core/validation-attrs'
 import { useFormField } from '../../primitives/form/context'
 import { hasIssues } from '../../primitives/form/form-issues'
 import { k } from '../../recipes/kata/fieldset'
-import { keyByOccurrence } from '../../utilities'
+import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { useControl } from '../control/context'
 import { useControlTarget } from '../control/use-control-target'
 

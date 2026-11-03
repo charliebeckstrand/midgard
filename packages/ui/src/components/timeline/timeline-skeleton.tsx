@@ -1,6 +1,6 @@
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/timeline'
-import { rangeKeys } from '../../utilities'
+import { rangeKeys } from '../../utilities/range-keys'
 import { Placeholder } from '../placeholder'
 import type { TimelineOrientation } from './context'
 

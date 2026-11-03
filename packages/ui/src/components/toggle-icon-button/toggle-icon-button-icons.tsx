@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/toggle-icon-button'
 import { Icon } from '../icon'
 

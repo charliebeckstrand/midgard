@@ -1,9 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
-import type { Color } from '../../core/recipe'
-import { useControllable, useScrollWithin } from '../../hooks'
+import type { Color } from '../../core/recipe/colors'
+import { useControllable } from '../../hooks/use-controllable'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useScrollWithin } from '../../hooks/use-scroll-within'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { toFractionRect } from './pdf-viewer-highlight-geometry'
 import type {

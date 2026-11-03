@@ -1,6 +1,6 @@
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { type AccordionVariants, k } from '../../recipes/kata/accordion'
-import { rangeKeys } from '../../utilities'
+import { rangeKeys } from '../../utilities/range-keys'
 import { Placeholder } from '../placeholder'
 
 /** Props for {@link AccordionSkeleton}: the item count and the `variant` of the accordion. */

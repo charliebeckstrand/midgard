@@ -5,7 +5,7 @@ import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Calendar } from '../../components/calendar'
 import { CurrencyInput } from '../../components/currency-input'
 import { LocaleProvider } from '../../providers/locale'
-import { resolveLocale } from '../../utilities'
+import { resolveLocale } from '../../utilities/resolve-locale'
 import { attach, screen } from '../helpers'
 import { hydrate } from '../helpers/hydrate'
 

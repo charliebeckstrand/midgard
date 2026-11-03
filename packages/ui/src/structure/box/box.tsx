@@ -1,5 +1,5 @@
-import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { DensityStep } from '../../core/density/steps'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/box'
 import type { BoxBg, BoxOutline, BoxRadius, ResponsiveBoxPadding } from './variants'

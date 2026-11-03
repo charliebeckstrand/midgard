@@ -1,10 +1,11 @@
 'use client'
 
 import { type KeyboardEvent, useRef } from 'react'
-import { ariaAttr, cn } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
-import { clamp } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { colorMessages } from './color-messages'
 import { useColorPanelContext } from './context'

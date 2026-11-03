@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
 

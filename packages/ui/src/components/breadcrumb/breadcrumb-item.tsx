@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/breadcrumb'
 
 /** Props for {@link BreadcrumbItem}: the underlying `<li>` attributes. */

@@ -1,7 +1,7 @@
 'use client'
 
-import { type ValidationAttrs, validationAttrs } from '../../core'
-import { useAriaIds } from '../../hooks'
+import { type ValidationAttrs, validationAttrs } from '../../core/validation-attrs'
+import { useAriaIds } from '../../hooks/use-aria-ids'
 import { useDevWarning } from '../../hooks/use-dev-warning'
 import { useControl, useControlLock } from './context'
 import { useControlTarget } from './use-control-target'

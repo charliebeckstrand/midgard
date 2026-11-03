@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import { type KeyboardEvent, useId } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { defineMessage } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/json-tree'

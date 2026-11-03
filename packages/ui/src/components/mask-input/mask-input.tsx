@@ -1,6 +1,6 @@
 'use client'
 
-import { composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { Input, type InputProps } from '../input'
 import type { MaskInputFormat, MaskInputPreset } from './mask-input-utilities'
 import { useMaskInput } from './use-mask-input'

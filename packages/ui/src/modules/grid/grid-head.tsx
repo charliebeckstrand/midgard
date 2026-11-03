@@ -2,9 +2,9 @@
 
 import { useRef } from 'react'
 import { TableHead, TableRow } from '../../components/table'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn } from '../../utilities/is-data-column'
 import { useGrid } from './context'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
 import { isFrozen, isLocked } from './engine/grid-pin/overrides'

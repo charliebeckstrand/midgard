@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { useTruncation } from '../../../hooks/use-truncation'
 import { Box } from '../../../structure/box'
 

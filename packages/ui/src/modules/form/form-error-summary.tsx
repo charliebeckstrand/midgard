@@ -10,7 +10,7 @@ import {
 	useState,
 } from 'react'
 import { Alert } from '../../components/alert'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import {
 	useFormErrors,
 	useFormFailures,
@@ -20,7 +20,7 @@ import {
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k as linkK } from '../../recipes/kata/link'
-import { FOCUSABLE_SELECTOR } from '../../utilities'
+import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
 import { summarizeErrors } from './engine/form-error-summary'
 
 /** Props for {@link FormErrorSummary}: the `title` of the summary, atop the native attributes of its `<div>`. */

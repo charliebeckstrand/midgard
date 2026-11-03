@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/placeholder'
 
 /** Props for {@link Placeholder}: native `<div>` attributes, including `data-*` keys, plus the element to render. */

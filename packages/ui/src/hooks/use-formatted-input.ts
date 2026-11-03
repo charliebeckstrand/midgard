@@ -1,7 +1,7 @@
 'use client'
 
 import type { ChangeEvent, Ref } from 'react'
-import { countMeaningful, cursorForCount } from '../utilities'
+import { countMeaningful, cursorForCount } from '../utilities/caret'
 import { usePendingCaret } from './use-pending-caret'
 
 /** Options for {@link useFormattedInput}: the `format` pass, the meaningful-character test the caret rides, and the ref to compose. */

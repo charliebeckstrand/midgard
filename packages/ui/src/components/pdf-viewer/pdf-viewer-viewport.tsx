@@ -1,7 +1,8 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { useA11yLiveRegion, useScrollRegion } from '../../hooks'
+import { useA11yLiveRegion } from '../../hooks/a11y/use-a11y-live-region'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext, usePdfViewerMagnifierContext } from './context'

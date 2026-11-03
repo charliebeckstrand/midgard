@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useStepper } from './context'
 
 /** Props for {@link StepperSeparator}: `className` plus `<li>` attributes, `ref` included. */

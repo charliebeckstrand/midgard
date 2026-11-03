@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { useControllable } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import { createGroup, createRule } from './engine/query-node'
 import { addChild, mapNode, moveChild, removeChild } from './engine/query-tree'
 import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './engine/types'

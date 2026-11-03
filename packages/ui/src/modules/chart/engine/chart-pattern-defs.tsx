@@ -2,7 +2,7 @@
 
 import { type CSSProperties, type ReactNode, useId } from 'react'
 import { Swatch } from '../../../components/swatch'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 
 /** The pattern tile edge, in `viewBox` units: the hatch repeats every `TILE`. @internal */

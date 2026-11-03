@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useTimeout } from '../../hooks/use-timeout'
-import { toggleItem } from '../../utilities'
+import { toggleItem } from '../../utilities/toggle-item'
 import { REGION_FADE } from './engine/map-motion'
 
 /** The legend's switchboard state, keyed by legend id. @internal */

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createEmitter } from '../../utilities'
+import { createEmitter } from '../../utilities/emitter'
 import type { HeaderActionsStore } from './context'
 
 /** Creates an empty {@link HeaderActionsStore}. @internal */

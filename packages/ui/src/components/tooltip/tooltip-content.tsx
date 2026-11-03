@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { ScaleStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density/scale'
 import { useIdlePreload } from '../../hooks/use-idle-preload'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import type { scale } from '../../recipes/kata/tooltip'

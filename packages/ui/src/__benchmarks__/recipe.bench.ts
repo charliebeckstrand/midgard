@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import { cn } from '../core/cn'
-import { defineRecipe } from '../core/recipe'
+import { defineRecipe } from '../core/recipe/engine/recipe'
 import { twMerge } from '../core/tw-merge'
 import { k as button } from '../recipes/kata/button'
 import { compareBenches } from './compare'

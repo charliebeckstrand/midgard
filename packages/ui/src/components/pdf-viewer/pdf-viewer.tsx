@@ -2,7 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import type { Responsive } from '../../utilities/responsive'

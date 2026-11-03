@@ -2,7 +2,8 @@
 
 import { Check, Clipboard } from 'lucide-react'
 import type { ComponentProps, ReactElement } from 'react'
-import { composeEventHandlers, dataAttr } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button, type ButtonVariants } from '../button'
 import { ToggleIconButtonIcons } from '../toggle-icon-button/toggle-icon-button-icons'

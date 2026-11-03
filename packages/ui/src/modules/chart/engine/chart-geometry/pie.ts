@@ -4,7 +4,7 @@
  * styling, so the angle math is unit-testable in isolation.
  */
 
-import { clamp } from '../../../../utilities'
+import { clamp } from '../../../../utilities/clamp'
 import { coord } from '../chart-coords'
 import type { TextWidth } from '../chart-text-width'
 

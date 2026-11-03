@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, PieChart } from '../../modules/chart'
 import { LineChart } from '../../modules/chart/line-chart'
-import { rangeKeys } from '../../utilities'
+import { rangeKeys } from '../../utilities/range-keys'
 import { act, fireEvent, getSlot, renderUI } from '../helpers'
 
 /**
@@ -17,8 +17,8 @@ import { act, fireEvent, getSlot, renderUI } from '../helpers'
  * render asks for the `category` prefix. The count needs a module mock, so this
  * suite sits in `boundary/`.
  */
-vi.mock('../../utilities', async (importActual) => {
-	const actual = await importActual<typeof import('../../utilities')>()
+vi.mock('../../utilities/range-keys', async (importActual) => {
+	const actual = await importActual<typeof import('../../utilities/range-keys')>()
 
 	return { ...actual, rangeKeys: vi.fn(actual.rangeKeys) }
 })

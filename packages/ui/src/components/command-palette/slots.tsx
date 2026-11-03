@@ -1,8 +1,10 @@
 'use client'
 
 import { type ComponentProps, useEffect, useMemo } from 'react'
-import { cn, createContext, createSlot } from '../../core'
-import { type A11yRelation, useA11yScope } from '../../hooks'
+import { cn } from '../../core/cn'
+import { createContext } from '../../core/create-context'
+import { createSlot } from '../../core/create-slot'
+import { type A11yRelation, useA11yScope } from '../../hooks/a11y/use-a11y-scope'
 import { k } from '../../recipes/kata/command-palette'
 import { Kbd, type KbdProps } from '../kbd'
 

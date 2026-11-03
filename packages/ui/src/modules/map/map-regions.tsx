@@ -10,7 +10,7 @@ import {
 	useMemo,
 	useState,
 } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import { useChartSpot } from '../chart/engine/use-chart-spot'
 import { useChartSweep, type WashDelay } from '../chart/engine/use-chart-sweep'

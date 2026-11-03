@@ -6,7 +6,7 @@ import {
 	DescriptionTerm,
 } from '../../../components/description-list'
 import { DensityProvider } from '../../../providers/density'
-import type { Orientation } from '../../../types'
+import type { Orientation } from '../../../types/orientation'
 import { getSlot, renderUI } from '../../helpers'
 
 /**

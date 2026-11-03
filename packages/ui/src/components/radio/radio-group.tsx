@@ -1,9 +1,9 @@
 'use client'
 
 import { type ComponentProps, useMemo } from 'react'
-import { ariaAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
 import { ToggleGroup } from '../../primitives/toggle'
-import type { AccessibleName } from '../../types'
+import type { AccessibleName } from '../../types/accessible-name'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { RadioGroupContext } from './context'

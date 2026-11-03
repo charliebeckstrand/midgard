@@ -1,5 +1,6 @@
 import type { RefObject } from 'react'
-import { accessibleName, querySlot } from '../../core'
+import { accessibleName } from '../../core/accessible-name'
+import { querySlot } from '../../core/query-slot'
 import type { KanbanNames } from './engine/kanban-announcements'
 
 /**

@@ -36,7 +36,7 @@
  * (`grid.ts`), and React-free like the rest of the engine.
  */
 
-import { clamp } from '../../../../utilities'
+import { clamp } from '../../../../utilities/clamp'
 import { POINT_HIT_RADIUS } from '../map-constants'
 import type { MapPoint2D } from '../types'
 import { bucket, squared, toCellKey, walkNear } from './grid'

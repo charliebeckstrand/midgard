@@ -234,6 +234,8 @@ From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus
 
 9.2 A file holds what its name says. A `types.ts` file and each file in `src/types` export types only. A constant goes to a constants file, such as `map-constants.ts`, or beside the one component that reads it. A function goes to a helper file. `types-file-boundary.test.ts` gates the rule.
 
+9.3 Import a name from the file that declares it. The shared folders are `core`, `hooks`, `types`, and `utilities`. Each file in them is its own home, so no file in `ui` imports their barrels. The `core` and `hooks` barrels are the package exports `ui/core` and `ui/hooks`, for the apps. `types` and `utilities` have no barrel. `recipes/` keeps the rules of its README. `import-home-boundary.test.ts` gates the rule.
+
 ## 10. Testing
 
 10.1 Test locations:

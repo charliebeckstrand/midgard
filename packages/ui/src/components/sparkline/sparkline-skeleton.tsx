@@ -1,4 +1,4 @@
-import type { ScaleStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/sparkline'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 

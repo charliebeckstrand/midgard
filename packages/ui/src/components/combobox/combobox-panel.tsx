@@ -2,8 +2,10 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { CSSProperties, ReactNode, Ref } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import type { ScaleStep } from '../../core/density/scale'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { PopoverPanel } from '../../primitives/popover'

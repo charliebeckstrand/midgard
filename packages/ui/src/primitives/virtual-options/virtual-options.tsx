@@ -10,10 +10,10 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { dataAttr } from '../../core'
-import { useVirtualWindow } from '../../hooks'
+import { dataAttr } from '../../core/data-attr'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useVirtualWindow } from '../../hooks/use-virtual-window'
 import { getScroller } from '../../utilities/get-scroller'
 import { VirtualItemSourceContext } from './context'
 

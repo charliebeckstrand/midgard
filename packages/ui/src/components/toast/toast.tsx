@@ -3,7 +3,7 @@
 import { AnimatePresence } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useResponsiveValue } from '../../hooks/use-responsive-value'

@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react'
-import { cn, createSlot } from '../../core'
+import { cn } from '../../core/cn'
+import { createSlot } from '../../core/create-slot'
 import { k } from '../../recipes/kata/menu'
 import { Kbd, type KbdProps } from '../kbd'
 

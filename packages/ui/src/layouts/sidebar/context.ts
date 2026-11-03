@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, use } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { OffcanvasLayout } from '../../hooks/use-offcanvas'
 import type { Responsive } from '../../utilities/responsive'
 import type { StickyBars } from './use-sticky-bars'

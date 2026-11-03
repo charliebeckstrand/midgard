@@ -1,9 +1,9 @@
 'use client'
 
 import { type ComponentProps, useLayoutEffect, useRef, useState } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useLocale } from '../../providers/locale'
-import { integerFormat } from '../../utilities'
+import { integerFormat } from '../../utilities/format-number'
 import { useOdometerAnimatedValue } from './use-odometer-animated-value'
 
 /** Props for {@link Odometer}: the target `value`, tween `duration`, and a display `format`, plus native `<span>` attributes. */

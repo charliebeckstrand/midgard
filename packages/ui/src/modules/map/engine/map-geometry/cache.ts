@@ -36,7 +36,8 @@
  */
 
 import type { GeoProjection } from 'd3-geo'
-import { getOrCompute, sameElements } from '../../../../utilities'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
+import { sameElements } from '../../../../utilities/same-elements'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { MapTransform } from '../map-zoom/transform'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'

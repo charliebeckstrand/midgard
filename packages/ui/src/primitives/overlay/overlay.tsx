@@ -16,7 +16,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'

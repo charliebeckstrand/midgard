@@ -11,10 +11,11 @@
 
 import { createElement, type ReactNode } from 'react'
 import type { TableElementProps } from '../../components/table'
-import { cn, composeEventHandlers } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import type { IntlShape } from '../../primitives/intl/types'
 import { k } from '../../recipes/kata/grid'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn } from '../../utilities/is-data-column'
 import { DEFAULT_OVERSCAN } from './engine/grid-constants'
 import { gridMessages } from './engine/grid-messages'
 import { pageOffset } from './engine/grid-pagination-utilities'

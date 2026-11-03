@@ -1,4 +1,4 @@
-import { createEmitter } from '../../utilities'
+import { createEmitter } from '../../utilities/emitter'
 
 /**
  * The control ids of the fields of one form, by field name. A control that

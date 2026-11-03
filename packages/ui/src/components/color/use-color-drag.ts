@@ -8,7 +8,7 @@ import {
 	useState,
 } from 'react'
 import { type DragCursor, useDragCursorHold } from '../../hooks/use-drag-cursor'
-import { clamp } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { createPressOwner } from '../../utilities/primary-press'
 

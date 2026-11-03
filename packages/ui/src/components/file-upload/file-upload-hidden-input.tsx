@@ -1,7 +1,7 @@
 'use client'
 
 import type { ChangeEventHandler, Ref } from 'react'
-import { invalidAttrs } from '../../core'
+import { invalidAttrs } from '../../core/invalid-attrs'
 import { lockedProps } from '../button/button-constants'
 import type { ControlContextValue } from '../control/context'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'

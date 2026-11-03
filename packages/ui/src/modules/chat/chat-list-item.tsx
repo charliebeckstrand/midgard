@@ -1,7 +1,9 @@
 'use client'
 
 import type { HTMLAttributes, ReactNode } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/chat-list-item'
 import { useInChatList } from './context'

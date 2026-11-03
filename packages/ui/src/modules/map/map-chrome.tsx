@@ -23,7 +23,7 @@
  */
 
 import { memo, useId } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import { useMapZoomScale } from './context'
 import { CHROME_STROKE_WIDTH } from './engine/map-constants'

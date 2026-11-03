@@ -2,7 +2,8 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type KeyboardEvent, type Ref, useId, useRef } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import {

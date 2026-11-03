@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, use } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import { PortalScopeContext, usePortalScope } from '../../primitives/portal/context'
 import type { ButtonVariants } from '../../recipes/kata/button'
 

@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import { ToggleGroup } from '../../primitives/toggle'
-import type { AccessibleName } from '../../types'
+import type { AccessibleName } from '../../types/accessible-name'
 
 /**
  * Props for {@link CheckboxGroup}. Requires an accessible name (`aria-label` or

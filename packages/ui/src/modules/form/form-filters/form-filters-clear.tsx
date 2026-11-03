@@ -2,7 +2,7 @@
 
 import { isValidElement, type MouseEvent, type MouseEventHandler, type ReactNode } from 'react'
 import { Button, type ButtonVariants } from '../../../components/button'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { cloneWithAction } from '../../../primitives/trigger-child/trigger-child'
 import { k } from '../../../recipes/kata/form-filters'
 import { getTabbableElements } from '../../../utilities/focusable-selector'

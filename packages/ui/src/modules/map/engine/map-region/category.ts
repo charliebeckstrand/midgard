@@ -10,7 +10,7 @@
  * and the table therefore read either mode unchanged.
  */
 
-import { cn } from '../../../../core'
+import { cn } from '../../../../core/cn'
 import { k } from '../../../../recipes/kata/map'
 import { paletteSlot } from '../../../chart/engine/chart-color/palette'
 import type { DataKey, MapCategory } from '../types'

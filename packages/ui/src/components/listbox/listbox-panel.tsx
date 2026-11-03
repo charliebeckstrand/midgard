@@ -9,8 +9,8 @@ import {
 	useEffect,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
 import type { scale } from '../../recipes/kata/listbox'

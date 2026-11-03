@@ -2,7 +2,7 @@
 
 import type { RefObject } from 'react'
 import type { TableElementProps } from '../../components/table'
-import { useA11yRoving } from '../../hooks'
+import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 
 /**
  * Which set of elements the grid roves keyboard focus over, resolved from the

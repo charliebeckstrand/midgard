@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { type LinkProps as PrimitiveLinkProps, useLink } from '../../primitives/link'
 import { resolveLinkRel } from '../../primitives/link/link-rel'
 import { k, type LinkVariants } from '../../recipes/kata/link'

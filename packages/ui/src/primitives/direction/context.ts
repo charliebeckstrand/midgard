@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /** A text direction: left to right, or right to left. */
 export type TextDirection = 'ltr' | 'rtl'

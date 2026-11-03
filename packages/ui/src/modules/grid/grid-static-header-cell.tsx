@@ -2,7 +2,7 @@
 
 import { Checkbox } from '../../components/checkbox'
 import { TableHeader } from '../../components/table'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { useGrid } from './context'

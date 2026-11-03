@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { type DividerVariants, k } from '../../recipes/kata/divider'
 
 /** Props for {@link Divider}: `orientation`/`soft` variants plus native `<hr>` attributes. */

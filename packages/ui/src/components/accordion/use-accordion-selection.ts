@@ -1,9 +1,10 @@
 'use client'
 
 import { useCallback, useMemo, useRef } from 'react'
-import { useControllable } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
-import { type KeyedStore, toggleListItem } from '../../utilities'
+import type { KeyedStore } from '../../utilities/keyed-store'
+import { toggleListItem } from '../../utilities/toggle-item'
 
 /**
  * The open set of a single accordion that can close to none.

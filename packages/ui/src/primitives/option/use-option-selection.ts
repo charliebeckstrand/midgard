@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
-import type { KeyedStore } from '../../utilities'
+import type { KeyedStore } from '../../utilities/keyed-store'
 
 /** Reads the membership of one selection: a set in `multiple` mode, else an identity check. */
 function selectionReader(multiple: boolean) {

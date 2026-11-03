@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/description-list'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 import { adaptive, type Responsive } from '../../utilities/responsive'
 
 /** The default `orientation` of {@link DescriptionList}: vertical on a compact viewport, horizontal from medium. */

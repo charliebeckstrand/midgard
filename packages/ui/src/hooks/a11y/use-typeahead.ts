@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useCallback, useMemo, useRef } from 'react'
-import { accessibleName } from '../../core'
+import { accessibleName } from '../../core/accessible-name'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { type Timeout, useTimeout } from '../use-timeout'
 

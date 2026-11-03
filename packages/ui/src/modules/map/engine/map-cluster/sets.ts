@@ -10,7 +10,8 @@
  * Frame arithmetic and a listener set, React-free, like the rest of the engine.
  */
 
-import { createEmitter, once } from '../../../../utilities'
+import { createEmitter } from '../../../../utilities/emitter'
+import { once } from '../../../../utilities/once'
 import { groupLegendId } from '../map-legend/items'
 import type { MapOverlayEntry } from '../map-overlay/entry'
 import type { LngLat, MapPoint2D } from '../types'

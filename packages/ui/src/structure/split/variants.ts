@@ -1,4 +1,4 @@
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 import type { Responsive } from '../../utilities/responsive'
 import type { ResponsiveAlign, ResponsiveGap } from '../flex/variants'
 

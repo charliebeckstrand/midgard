@@ -1,11 +1,13 @@
 'use client'
 
 import { type ComponentProps, type Ref, useCallback } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { defineMessage, defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/signature-pad'
-import { clamp } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
 import { Button } from '../button'
 import { type SignaturePadHandle, useSignaturePadState } from './use-signature-pad-state'
 

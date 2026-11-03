@@ -13,7 +13,7 @@ import {
 	useState,
 } from 'react'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { resolveFormat } from '../../utilities'
+import { resolveFormat } from '../../utilities/format'
 import { calendarMessages } from './calendar-messages'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'

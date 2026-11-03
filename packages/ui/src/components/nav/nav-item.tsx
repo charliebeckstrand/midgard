@@ -1,7 +1,8 @@
 'use client'
 
 import type { Ref } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'

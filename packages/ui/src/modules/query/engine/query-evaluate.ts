@@ -1,4 +1,4 @@
-import { parseNumeric } from '../../../utilities'
+import { parseNumeric } from '../../../utilities/parse-numeric'
 import type { QueryGroup, QueryNode } from './types'
 
 /**

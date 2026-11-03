@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { PaletteColor } from '../../core/recipe'
+import type { PaletteColor } from '../../core/recipe/colors'
 
 /**
  * One row group's presentation overlay for a {@link Grid} grouped by a column

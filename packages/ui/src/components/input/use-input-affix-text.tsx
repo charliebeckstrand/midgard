@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useId } from 'react'
-import { useAriaIds } from '../../hooks'
+import { useAriaIds } from '../../hooks/use-aria-ids'
 
 /**
  * The text that a field puts in one affix slot to tell about its value, such
