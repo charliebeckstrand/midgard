@@ -86,22 +86,24 @@ describe('Grid row click', () => {
 		expect(onRowClick).not.toHaveBeenCalled()
 	})
 
-	it('makes a clickable row keyboard-focusable and activates on Enter', async () => {
+	it('reaches a clickable row with the cursor and activates it on Enter', async () => {
 		const user = setupUser()
 
 		const onRowClick = vi.fn()
 
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={onRowClick} />)
 
-		const row = screen.getByText('Alice').closest('tr')
+		// The grid is the tab stop, and the cursor moves to the row.
+		await user.tab()
 
-		expect(row).toHaveAttribute('tabindex', '0')
+		expect(screen.getByRole('grid')).toHaveFocus()
 
-		row?.focus()
+		expect(screen.getByText('Alice').closest('tr')).not.toHaveAttribute('tabindex')
 
-		await user.keyboard('{Enter}')
+		// Focus seats the cursor on the first row, and ArrowDown moves it to the next.
+		await user.keyboard('{ArrowDown}{Enter}')
 
-		expect(onRowClick).toHaveBeenCalledTimes(1)
+		expect(onRowClick).toHaveBeenCalledExactlyOnceWith(rows[1], expect.anything())
 	})
 
 	it('leaves rows inert without a handler', () => {

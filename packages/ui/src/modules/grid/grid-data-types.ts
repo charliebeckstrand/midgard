@@ -293,8 +293,10 @@ export type GridGroupBy<T = unknown> = {
 	 * Single-level, like client grouping; the aggregate total rows
 	 * ({@link GridDataProps.groupTotalRow} / {@link GridDataProps.grandTotalRow})
 	 * stand down, since the backend owns the figures. The keyboard cursor and
-	 * {@link GridDataProps.editable} stand down too. Sorting the grouped column
-	 * reorders the group blocks client-side, by group value, and each header's
+	 * {@link GridDataProps.editable} stand down too. A grid with a click
+	 * handler roves its rows or data cells instead (see
+	 * {@link GridDataProps.navigable}). Sorting the grouped column reorders
+	 * the group blocks client-side, by group value, and each header's
 	 * children move with it. Sorting any other column stays manual, emitted
 	 * through the `sort` binding for the backend to honor.
 	 * @defaultValue false
@@ -1202,6 +1204,13 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * mirror in the same way. Home and End still reach the start and the end of
 	 * the row.
 	 *
+	 * A grid with a click handler ({@link GridDataProps.onRowClick},
+	 * {@link GridDataProps.onCellClick}, or their double-click counterparts)
+	 * carries the cursor too, so Enter or Space fires the handler. Manual
+	 * grouping ({@link GridGroupBy.manual}) stands the cursor down. A clickable
+	 * grid there roves its rows or data cells instead, and Tab from the roved
+	 * item moves through the controls of its row.
+	 *
 	 * Off by default, so a static table keeps the browser/screen-reader's native
 	 * table navigation; opt in for a spreadsheet-style read-only grid.
 	 * @defaultValue false
@@ -1256,9 +1265,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * corners of the range once it stops changing. The cells take no
 	 * `aria-selected`, which the rows keep for {@link GridDataProps.selection}.
 	 *
-	 * Needs the keyboard cursor: {@link GridDataProps.navigable} or
-	 * {@link GridDataProps.editable}. With the range on, a press on a cell starts
-	 * no text selection.
+	 * Needs the keyboard cursor: {@link GridDataProps.navigable},
+	 * {@link GridDataProps.editable}, or a click handler. With the range on, a
+	 * press on a cell starts no text selection.
 	 * @defaultValue false
 	 */
 	range?: boolean
@@ -1272,9 +1281,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * alone, so a consumer that mirrors the cursor elsewhere could read it only
 	 * through `aria-activedescendant`. The payload is the same
 	 * {@link GridCellClickContext} the click delivers, so both channels name a
-	 * cell the same way. Needs {@link GridDataProps.navigable} or
-	 * {@link GridDataProps.editable}; a grid with neither has no cursor and stays
-	 * silent. Mounting reports nothing.
+	 * cell the same way. Needs the keyboard cursor:
+	 * {@link GridDataProps.navigable}, {@link GridDataProps.editable}, or a click
+	 * handler. A grid with none of them has no cursor and stays silent. Mounting
+	 * reports nothing.
 	 */
 	onActiveCellChange?: (cell: GridCellClickContext<T> | null) => void
 
@@ -1312,12 +1322,13 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * working. Place primary actions in an interactive cell rather than relying
 	 * on the row click alone for the clearest screen-reader semantics.
 	 *
-	 * @remarks A row handler makes the rows a roving-tabindex group. The grid is
-	 * one Tab stop, Up/Down move focus between rows, and Enter or Space activates
-	 * the focused row. A {@link GridDataProps.onCellClick | cell handler} takes
-	 * precedence, and the cells rove instead. The navigable cursor and the
-	 * virtualized body stand row roving down, and the virtualized body keeps a
-	 * per-row Tab stop instead.
+	 * @remarks A row handler turns the keyboard cursor on (see
+	 * {@link GridDataProps.navigable}). The grid is one Tab stop, and Enter or
+	 * Space on a cell of the row fires the handler. Under manual grouping, which
+	 * stands the cursor down, the rows rove instead: Up/Down move focus between
+	 * rows, and Enter or Space activates the focused row. A
+	 * {@link GridDataProps.onCellClick | cell handler} takes precedence there,
+	 * and the cells rove.
 	 */
 	onRowClick?: GridRowClick<T>
 
@@ -1331,13 +1342,12 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * interactive-content guard of `onRowClick` applies, and a click on a
 	 * non-data cell (selection, actions, drag handle, expander) is ignored.
 	 *
-	 * @remarks A cell handler makes the data cells a roving-tabindex group. The
-	 * grid is one Tab stop, and the arrow keys move focus between cells, up, down,
-	 * left, and right. Enter or Space activates the focused cell, which is the
-	 * keyboard peer of the pointer click. Stands down under
-	 * {@link GridDataProps.navigable}, whose cursor owns the keyboard (its Enter
-	 * fires this too), and under {@link GridDataProps.virtualize}, whose rows
-	 * unmount on scroll.
+	 * @remarks A cell handler turns the keyboard cursor on (see
+	 * {@link GridDataProps.navigable}). The grid is one Tab stop, and Enter or
+	 * Space on the active data cell fires the handler, which is the keyboard
+	 * peer of the pointer click. Under manual grouping, which stands the cursor
+	 * down, the data cells rove instead: the arrow keys move focus between cells,
+	 * and Enter or Space activates the focused cell.
 	 */
 	onCellClick?: GridCellClick<T>
 
@@ -1348,8 +1358,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * also fires the single-click handlers twice first; keep the two actions
 	 * compatible. The interactive-content guard of `onRowClick` applies.
 	 *
-	 * @remarks With no single-click handler, Enter or Space on the focused
-	 * roving row or cell fires this, so the action has a keyboard route.
+	 * @remarks A double-click handler turns the keyboard cursor on too (see
+	 * {@link GridDataProps.navigable}). With no single-click handler, Enter or
+	 * Space on the active cell, or on the focused roving row or cell, fires this,
+	 * so the action has a keyboard route.
 	 */
 	onRowDoubleClick?: GridRowClick<T>
 
@@ -1359,9 +1371,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * counterpart of {@link GridDataProps.onRowDoubleClick}, fired ahead of it on
 	 * the same double-click.
 	 *
-	 * @remarks With no single-click handler, Enter or Space on the focused
-	 * roving cell fires this, then {@link GridDataProps.onRowDoubleClick}, so
-	 * the action has a keyboard route.
+	 * @remarks A double-click handler turns the keyboard cursor on too (see
+	 * {@link GridDataProps.navigable}). With no single-click handler, Enter or
+	 * Space on the active data cell, or on the focused roving cell, fires this,
+	 * then {@link GridDataProps.onRowDoubleClick}, so the action has a keyboard
+	 * route.
 	 */
 	onCellDoubleClick?: GridCellClick<T>
 

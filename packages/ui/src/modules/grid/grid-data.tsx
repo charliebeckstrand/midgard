@@ -25,7 +25,12 @@ import { manualGroupPredicate } from './engine/grid-group/resolve'
 import { resolveReorder } from './engine/grid-reorder-compute'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridDataDialogs } from './grid-data-dialogs'
-import { manualNarrowed, resolveHighlightQuery, rowReorderPermitted } from './grid-data-resolvers'
+import {
+	manualNarrowed,
+	resolveCursorRequest,
+	resolveHighlightQuery,
+	rowReorderPermitted,
+} from './grid-data-resolvers'
 import { GridDataTable } from './grid-data-table'
 import type { GridDataProps, GridEditSource } from './grid-data-types'
 import { GridExportOverlay } from './grid-export-overlay'
@@ -222,7 +227,13 @@ export function GridData<T>({
 		onCollapsedChange,
 		groupBy: groupByConfig,
 		expandable: expandableConfig,
-		navigable,
+		// A click handler turns the cursor on, so Enter or Space fires it.
+		navigable: resolveCursorRequest(navigable, {
+			onRowClick,
+			onCellClick,
+			onRowDoubleClick,
+			onCellDoubleClick,
+		}),
 		editable,
 		virtualize,
 		infiniteScroll: infiniteScrollConfig,
@@ -419,7 +430,6 @@ export function GridData<T>({
 		cursorEnabled: cursor.cursorEnabled,
 		cursorNewRow: cursor.newRow,
 		reconcile: cursor.reconcile,
-		virtualized: gated.virtualize,
 		onRowClick,
 		onCellClick,
 		onRowDoubleClick,

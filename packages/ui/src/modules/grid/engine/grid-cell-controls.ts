@@ -12,6 +12,13 @@ export const GRID_CELL_ATTR = 'data-grid-cell'
 /** Selector for a cell of the keyboard cursor (see {@link GRID_CELL_ATTR}). @internal */
 export const GRID_CELL = `[${GRID_CELL_ATTR}]`
 
+/**
+ * Selector for a data row of the grid. A grid that roves over its rows or
+ * cells, in place of the keyboard cursor, opens one row at a time to Tab (see
+ * {@link pinControls}). @internal
+ */
+export const GRID_ROW = 'tr[data-grid-row]'
+
 /** The props that mark a cell of the keyboard cursor (see {@link GRID_CELL_ATTR}). @internal */
 export const GRID_CELL_PROPS = { [GRID_CELL_ATTR]: '' }
 
@@ -32,16 +39,24 @@ const pinned = new WeakMap<HTMLElement, string | null>()
 const CANDIDATES = `${FOCUSABLE_SELECTOR},[tabindex="-1"]`
 
 /**
- * The cell of `table`'s cursor that holds `element`, or `null`. A cell of a
- * grid nested in a detail panel of `table` belongs to that grid, so a control
- * in it has no cell of `table`.
+ * The part of `table` that `unit` selects and that holds `element`, or
+ * `null`. A part of a grid nested in a detail panel of `table` belongs to that
+ * grid, so a control in it has no part of `table`.
+ */
+function ownerUnit(element: Element, table: Element, unit: string): HTMLElement | null {
+	const owner = element.closest<HTMLElement>(unit)
+
+	return owner?.closest('table') === table ? owner : null
+}
+
+/**
+ * The cell of `table`'s cursor that holds `element`, or `null` (see
+ * {@link ownerUnit}).
  *
  * @internal
  */
 export function ownerCell(element: Element, table: Element): HTMLElement | null {
-	const cell = element.closest<HTMLElement>(GRID_CELL)
-
-	return cell?.closest('table') === table ? cell : null
+	return ownerUnit(element, table, GRID_CELL)
 }
 
 /** Whether an element can take focus from the keyboard, or could before the grid took it out of the tab order. */
@@ -101,27 +116,31 @@ function unpin(element: HTMLElement): void {
 }
 
 /**
- * Keeps the grid one tab stop. Each control in a cell of `table`'s cursor
- * leaves the tab order, except in `entered`: the cell, or the row of the
- * new-row slot, that holds focus. Tab then moves through the controls of
- * `entered` alone, and from its last control out of the grid. Shift+Tab from
- * its first control reaches the grid's own tab stop, which comes before every
- * cell. A control that is in no cell of the cursor, such as one in the empty
- * state, keeps its place in the tab order. A control of a nested grid is left
- * to that grid.
+ * Keeps the grid one tab stop. Each control in a part of `table` that `unit`
+ * selects leaves the tab order, except in `entered`: the part, or the row of
+ * the new-row slot, that holds focus. The part is a cell of the cursor
+ * ({@link GRID_CELL}), or a data row of a roving grid ({@link GRID_ROW}). Tab
+ * then moves through the controls of `entered` alone, and from its last
+ * control out of the grid. Shift+Tab from its first control reaches the
+ * grid's own tab stop. A control that is in no such part, such as one in the
+ * empty state, keeps its place in the tab order. A control of a nested grid is
+ * left to that grid.
  *
  * Only the attributes that differ change, so a call that changes nothing
  * writes nothing.
  *
  * @internal
  */
-export function pinControls(table: HTMLTableElement, entered: Element | null): void {
+export function pinControls(table: HTMLTableElement, entered: Element | null, unit: string): void {
 	for (const element of table.querySelectorAll<HTMLElement>(CANDIDATES)) {
-		const cell = element.closest(GRID_CELL)
+		// The roving hook owns the `tabindex` of a roving item.
+		if (element.hasAttribute('data-roving')) continue
 
-		if (cell && cell.closest('table') !== table) continue
+		const part = element.closest(unit)
 
-		if (!cell || entered?.contains(cell)) unpin(element)
+		if (part && part.closest('table') !== table) continue
+
+		if (!part || entered?.contains(part)) unpin(element)
 		else pin(element)
 	}
 }
@@ -132,24 +151,24 @@ export function pinControls(table: HTMLTableElement, entered: Element | null): v
  *
  * @internal
  */
-export function unpinControls(table: HTMLTableElement): void {
+export function unpinControls(table: HTMLTableElement, unit: string): void {
 	for (const element of table.querySelectorAll<HTMLElement>('[tabindex="-1"]')) {
-		const cell = element.closest(GRID_CELL)
+		const part = element.closest(unit)
 
-		if (!cell || cell.closest('table') === table) unpin(element)
+		if (!part || part.closest('table') === table) unpin(element)
 	}
 }
 
 /**
- * The part of `table` that focus on `target` opens to Tab: the cell of the
- * cursor that holds it, or the whole row of the new-row slot. The slot is one
- * row of fields, so Tab moves through its controls in order, as through a
- * form. It is `null` for a target in no cell of the cursor.
+ * The part of `table` that focus on `target` opens to Tab: the part that
+ * `unit` selects and that holds it (see {@link pinControls}), or the whole row
+ * of the new-row slot. The slot is one row of fields, so Tab moves through its
+ * controls in order, as through a form. It is `null` for a target in no part.
  *
  * @internal
  */
-export function entryScope(target: Element, table: HTMLTableElement): Element | null {
-	const cell = ownerCell(target, table)
+export function entryScope(target: Element, table: HTMLTableElement, unit: string): Element | null {
+	const part = ownerUnit(target, table, unit)
 
-	return cell?.closest('tr[data-slot="grid-new-row"]') ?? cell
+	return part?.closest('tr[data-slot="grid-new-row"]') ?? part
 }
