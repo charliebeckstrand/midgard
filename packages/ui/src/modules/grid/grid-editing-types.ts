@@ -332,7 +332,7 @@ export type GridEditableConfig = {
 	 * Under {@link GridEditableConfig.commitOn} `'leaveEditor'` the held cell
 	 * shows discard alone, because a move away saves. Under that setting, focus
 	 * that leaves the held cell commits it. Under row scope, focus that leaves
-	 * the open editors of the row commits the row. Row scope shows
+	 * the open row, its editors and its actions, commits the row. Row scope shows
 	 * none: its settle control is the consumer's own row action, at the
 	 * granularity that matches. The session's cell is a binding of its own,
 	 * {@link GridEditableConfig.cell}, beside `rows`. The settle pair is grid
@@ -353,8 +353,9 @@ export type GridEditableConfig = {
 	 *   outside this grid.
 	 * - `'leaveEditor'` also commits the session when focus leaves its editors,
 	 *   for a place inside or outside the grid. Under `scope: 'cell'` that is
-	 *   the held cell. Under `scope: 'row'` it is the open editors of the row,
-	 *   so Tab between them does not commit.
+	 *   the held cell. Under `scope: 'row'` it is the open row: its editors and
+	 *   its actions, such as save and discard. A move between them does not
+	 *   commit, so a discard action still discards.
 	 *
 	 * A commit on leave is the commit of Enter. It ends the session, and a cell
 	 * that {@link GridColumn.validate} refuses goes to

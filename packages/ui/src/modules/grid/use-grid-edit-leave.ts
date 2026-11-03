@@ -7,6 +7,11 @@ import { inGrid } from './engine/grid-editing-utilities'
 import type { CommitOn } from './use-grid-commit-on'
 import type { GridSessionTarget } from './use-grid-edit-keys'
 
+/** Whether `node` is in a row of the table `grid`, not of a grid nested in it. */
+function inOwnRow(node: Element, grid: HTMLElement): boolean {
+	return node.closest('tr[data-row-index]')?.closest('table') === grid
+}
+
 /**
  * Owns the commit on leave of a grid-owned session, layered onto the grid
  * `<table>`'s focus handlers. `blur` reads each focus move out of an editor,
@@ -18,6 +23,7 @@ import type { GridSessionTarget } from './use-grid-edit-keys'
  */
 export function useGridEditLeave({
 	commitOn,
+	cellScoped,
 	reseatingRef,
 	editableRowsRef,
 	sessionRowRef,
@@ -25,6 +31,8 @@ export function useGridEditLeave({
 	exitSession,
 }: {
 	commitOn: CommitOn
+	/** Whether the session holds one cell, not the whole row. */
+	cellScoped: boolean
 	/** Set while the grid moves focus itself. */
 	reseatingRef: RefObject<boolean>
 	editableRowsRef: RefObject<Set<string | number>>
@@ -70,9 +78,10 @@ export function useGridEditLeave({
 	// Commits the session when focus leaves what `commitOn` watches (see
 	// `readLeave`). The commit is the commit of Enter, without the cursor move
 	// and without the focus reseat: focus stays where the user sent it. The
-	// grid's own reseat is not a leave. Under `'leaveEditor'`, the editors of the
-	// row are the open editors of the committed row, which is only the held
-	// cell under cell scope. The settle controls sit in that cell.
+	// grid's own reseat is not a leave. Under `'leaveEditor'` and cell scope,
+	// the watched part is the held cell, where the settle controls sit. Under
+	// row scope it is the whole open row: a row of fields (see `entryScope`), so
+	// a move from an editor to an action of the row, such as discard, stays.
 	//
 	// A move to an element outside the table's DOM waits for its `focusin`. The
 	// browser fires `focusin` in the same task, after this `focusout`. React
@@ -96,7 +105,10 @@ export function useGridEditLeave({
 			const inEditors = (node: Element) => {
 				const hit = inGrid(node, grid) ? sessionTarget(node) : null
 
-				return hit !== null && hit.rowKey === rowKey && hit.columnId !== null
+				if (hit === null || hit.rowKey !== rowKey) return false
+
+				// A target outside the rows names the held row too, so the row must hold it.
+				return cellScoped ? hit.columnId !== null : inOwnRow(node, grid)
 			}
 
 			const next = event.relatedTarget instanceof Element ? event.relatedTarget : null
@@ -113,7 +125,7 @@ export function useGridEditLeave({
 
 			document.addEventListener('focusin', () => settleLeave(pending), { once: true })
 		},
-		[commitOn, reseatingRef, leaveRow, sessionTarget, exitSession, settleLeave],
+		[commitOn, cellScoped, reseatingRef, leaveRow, sessionTarget, exitSession, settleLeave],
 	)
 
 	// Marks a pending leave as owned when its focus event reaches the table

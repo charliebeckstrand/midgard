@@ -30,10 +30,10 @@ export type GridSessionTarget = { rowKey: string | number; columnId: string | nu
 /**
  * Owns the keys of a grid-owned session, layered onto the grid `<table>`'s key
  * handler. Escape abandons the session. From an open editor, Enter commits and
- * moves down, and F2 commits and stays. Tab and Shift+Tab move to the next
- * control in the same cell when there is one, else along the row's editable
- * cells. Under cell scope the cell left behind commits. Under row scope Tab
- * does not commit, and the row commits when it closes (see
+ * moves down, and F2 commits and stays. Under cell scope, Tab and Shift+Tab
+ * move to the next control in the same cell when there is one, else along the
+ * row's editable cells, and the cell left behind commits. Under row scope Tab
+ * stays with the browser, and the row commits when it closes (see
  * `GridEditableConfig.scope`). Every editor therefore inherits the keys
  * without wiring of its own.
  *

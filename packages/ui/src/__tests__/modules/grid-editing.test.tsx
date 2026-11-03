@@ -3362,6 +3362,55 @@ describe('Grid commitOn', () => {
 		])
 	})
 
+	// A row action that discards the open row.
+	const withActions: GridColumn<SessionRow>[] = [
+		...sessionColumns,
+		{
+			id: 'actions',
+			actions: (_row, { editing, discard }) =>
+				editing ? (
+					<button type="button" onClick={discard}>
+						Discard
+					</button>
+				) : null,
+		},
+	]
+
+	it("keeps a row session while focus moves to the row's actions under 'leaveEditor'", () => {
+		const view = renderCommitOn({ scope: 'row', commitOn: 'leaveEditor' }, withActions)
+
+		editName(view)
+
+		const discard = view.getByRole('button', { name: 'Discard' })
+
+		// The open row is a row of fields, so its actions are inside what the
+		// policy watches, and Discard can still discard.
+		moveFocus(discard)
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		// A move out of the row commits it.
+		moveFocus(view.button('outside'))
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith(alicia)
+	})
+
+	it("discards from the row's actions under 'leaveEditor'", () => {
+		const view = renderCommitOn({ scope: 'row', commitOn: 'leaveEditor' }, withActions)
+
+		editName(view)
+
+		const discard = view.getByRole('button', { name: 'Discard' })
+
+		moveFocus(discard)
+
+		fireEvent.click(discard)
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		expect(editorsIn(view.container)).toEqual([])
+	})
+
 	it("commits once on a Tab move under 'leaveEditor', as under the default", () => {
 		const onCellChange = vi.fn()
 
