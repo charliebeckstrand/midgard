@@ -5,13 +5,15 @@ import type { GridPagination } from '../../types'
 import {
 	manualTotals,
 	pageOffset,
+	resizePage,
 	resolvePageCount,
 	shownPageIndex,
 } from '../grid-pagination-utilities'
 
 /**
  * Resolved pagination view model the footer renders from: page coordinate,
- * derived totals and bounds, and the navigation setters that drive the engine.
+ * derived totals and bounds, and the navigation setters that write the page
+ * state of the grid.
  *
  * @internal
  */
@@ -30,12 +32,11 @@ export type GridPaginationView = {
 	canNext: boolean
 	pageSizeOptions: number[] | undefined
 	/**
-	 * Moves to a page, by absolute index or by an updater the engine applies to the
-	 * live index, held to the last page as the view shows it. Two navigations that
-	 * land on one render compose under an updater; an absolute index computed from
-	 * the rendered page resolves both to the same page. The result stays inside a
-	 * known page count. The engine bounds it only against an explicit `pageCount`,
-	 * which client mode never sets, so the view clamps it.
+	 * Moves to a page, by absolute index or by an updater over the live index,
+	 * held to the last page as the view shows it. Two navigations that land on
+	 * one render compose under an updater; an absolute index computed from the
+	 * rendered page resolves both to the same page. The result stays at 0 or
+	 * more, and inside a known page count.
 	 */
 	setPageIndex: (index: SetStateAction<number>) => void
 	setPageSize: (size: number) => void
@@ -65,7 +66,7 @@ export function buildPaginationView(args: {
 
 	const onPage = args.pageRowCount
 
-	// A server grid supplies its totals. They reach the engine only in manual mode.
+	// A server grid supplies its totals. They count only in manual mode.
 	const pageCount = resolvePageCount({
 		...(args.manual ? manualTotals(args.config) : {}),
 		rows: args.rows,
@@ -95,11 +96,6 @@ export function buildPaginationView(args: {
 
 				return { ...prev, pageIndex: last >= 0 ? clamp(next, 0, last) : Math.max(0, next) }
 			}),
-		// The page that holds the first row of the page shown before.
-		setPageSize: (size) =>
-			write((prev) => ({
-				pageIndex: Math.floor(pageOffset(prev.pageIndex, prev.pageSize) / Math.max(1, size)),
-				pageSize: Math.max(1, size),
-			})),
+		setPageSize: (size) => write((prev) => resizePage(prev, size)),
 	}
 }

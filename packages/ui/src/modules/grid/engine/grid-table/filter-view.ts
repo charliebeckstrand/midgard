@@ -33,8 +33,8 @@ export type GridColumnFacets = {
  *
  * @remarks A value with actions. The applied queries, the affordance, and the
  * open-request are a snapshot, and the grid gives a new object each time one
- * of them changes. The actions read or write the engine, so the render code
- * calls them only from an event or an effect.
+ * of them changes. The actions write the filter state of the grid or collect
+ * the facets, so the render code calls them only from an event or an effect.
  *
  * @internal
  */
@@ -74,7 +74,7 @@ export type GridColumnFilter = {
 	requestOpen: (id: string | number | null) => void
 }
 
-/** The actions of {@link GridColumnFilter} that reach the engine. @internal */
+/** The actions of {@link GridColumnFilter}. @internal */
 export type GridColumnFilterActions = Pick<GridColumnFilter, 'setQuery' | 'clear' | 'facets'>
 
 /** Global-filter view the search input renders from. @internal */
@@ -219,7 +219,7 @@ export function columnFilterActions(
 ): GridColumnFilterActions {
 	return {
 		setQuery: (id, query) => write((prev) => withColumnQuery(prev, String(id), query, filterable)),
-		clear: () => write((prev) => (prev.length === 0 ? prev : [])),
+		clear: () => write(() => []),
 		facets: (id) => {
 			if (manual) return NO_FACETS
 

@@ -19,6 +19,7 @@ import {
 	functionalUpdate,
 	type OnChangeFn,
 	type PaginationState,
+	stateSlicesEqual,
 	useTable,
 } from '@tanstack/react-table'
 import {
@@ -113,6 +114,17 @@ import { useGridRowModel } from './use-grid-row-model'
 /** The rows of the engine: none, as it holds column state only. @internal */
 const NO_ENGINE_ROWS: never[] = []
 
+/**
+ * The previous state when the next state is equal to it, else the next state.
+ * An equal write therefore reports no change through `onValueChange`. The
+ * compare is the one that TanStack Table applies to its own state writes.
+ *
+ * @internal
+ */
+function keepSame<S>(prev: S | undefined, next: S): S | undefined {
+	return stateSlicesEqual(prev, next) ? prev : next
+}
+
 /** Parameters for {@link useGridTable}. @internal */
 type GridTableParams<T> = {
 	rows: readonly T[]
@@ -176,10 +188,9 @@ type GridTableResult<T> = {
 	/** Rows to render: the leaves of the groups, else the client view, else the supplied `rows`. */
 	renderRows: readonly T[]
 	/**
-	 * Per-row keys parallel to {@link renderRows}. Each is the value `getKey`
-	 * yields at the row's engine (original-data) index, the index `getRowId` saw.
-	 * Its stringified form therefore matches the id that `getRowId` gives,
-	 * while the raw `string | number` value still backs selection identity.
+	 * Per-row keys parallel to {@link renderRows}. Each is the value that `getKey`
+	 * gives at the index of the row in `rows`. The raw `string | number` value
+	 * backs selection identity, and its string form is the id of the row leaf.
 	 */
 	rowKeys: (string | number)[]
 	/**
@@ -480,17 +491,17 @@ function useFilterView<T>(args: {
 
 /**
  * Builds the {@link https://tanstack.com/table | TanStack Table} instance that
- * powers a {@link Grid}, and the row views of the grid. It adapts the grid's
- * `GridColumn[]` to TanStack `ColumnDef[]` (mapping `value` to an accessor) and
- * `getKey` to `getRowId`.
+ * holds the column state of a {@link Grid}, and the row views of the grid. It
+ * adapts the grid's `GridColumn[]` to TanStack `ColumnDef[]`.
  *
- * @remarks The engine holds the column state (order, visibility, sizing,
- * pinning) and the state of the row transforms, and the actions that write
- * them. It builds no row model. The grid filters, sorts, groups, and pages its
- * rows itself (see {@link useGridClientView} and `orderGroups`). Each transform is
- * opt-in, and pagination and filtering each run server-side (`manual`, the
- * consumer transforms `rows`) or client-side. A plain grid renders straight
- * from `rows`. `autoResetPageIndex` is off: the page is consumer-controlled.
+ * @remarks The engine holds the column state (order, visibility, pinning,
+ * sizing, and the drag of a resize). It resolves the visible columns, and it
+ * runs the pointer gesture of a resize. It takes no rows. The grid holds the
+ * state of the row transforms (the search, the column filters, and the page),
+ * and it filters, sorts, groups, and pages its rows itself (see
+ * {@link useGridClientView} and `orderGroups`). Each transform is opt-in, and
+ * pagination and filtering each run server-side (`manual`, the consumer
+ * transforms `rows`) or client-side. A plain grid renders straight from `rows`.
  *
  * This hook is the engine boundary (see the note at the top of this module).
  * The grid owns every piece of table state, and the engine calculates from it.
@@ -552,10 +563,11 @@ export function useGridTable<T>({
 
 	const resolvedPagination = paginationState ?? DEFAULT_PAGINATION_STATE
 
-	// The footer writes the page through an updater over the resolved page.
+	// The footer writes the page through an updater over the resolved page. A
+	// write that gives an equal page keeps the page, so it reports no change.
 	const writePagination = useCallback(
 		(update: (prev: PaginationState) => PaginationState) =>
-			setPaginationState((prev) => update(prev ?? DEFAULT_PAGINATION_STATE)),
+			setPaginationState((prev) => keepSame(prev, update(prev ?? DEFAULT_PAGINATION_STATE))),
 		[setPaginationState],
 	)
 
@@ -659,9 +671,7 @@ export function useGridTable<T>({
 
 	const hasColumnFilters = columns.some((col) => col.filterable && col.value)
 
-	// Keyed on the public row type rather than TanStack's, whose `value` is
-	// `unknown`. The grid's filter function evaluates a query tree, so the public
-	// binding says so, and the narrower row is assignable to the engine's.
+	// Each entry holds the query tree of a column, which the client view evaluates.
 	const [columnFiltersState, setColumnFiltersState] = useControllable<GridColumnFilterState[]>({
 		value: columnFiltersConfig?.value,
 		defaultValue: columnFiltersConfig?.defaultValue ?? EMPTY_COLUMN_FILTERS,
@@ -672,7 +682,7 @@ export function useGridTable<T>({
 
 	const writeColumnFilters = useCallback(
 		(update: (prev: GridColumnFilterState[]) => GridColumnFilterState[]) => {
-			setColumnFiltersState((prev) => update(prev ?? EMPTY_COLUMN_FILTERS))
+			setColumnFiltersState((prev) => keepSame(prev, update(prev ?? EMPTY_COLUMN_FILTERS)))
 
 			resetPage()
 		},
@@ -713,9 +723,9 @@ export function useGridTable<T>({
 	// from it append in definition order). Visibility defaults to all-visible.
 	const engineColumnOrder = useMemo<ColumnOrderState>(() => columnOrder.map(String), [columnOrder])
 
-	// The column filters that reach the engine. A grid with no filterable column
-	// gives the engine no filter state, so its filters apply to no row. This block
-	// comes before the engine options. The React Compiler reads a plain call after
+	// The column filters that the client view applies. A grid with no filterable
+	// column applies none, so its filter state hides no row. This block comes
+	// before the engine options. The React Compiler reads a plain call after
 	// a memo as a possible change to the inputs of the memo, so it would skip this
 	// hook if the block came later (see `react-compiler-skips.test.ts`).
 	const appliedColumnFilters = hasColumnFilters ? resolvedColumnFilters : EMPTY_COLUMN_FILTERS
