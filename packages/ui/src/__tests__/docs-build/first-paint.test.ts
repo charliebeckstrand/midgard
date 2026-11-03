@@ -96,7 +96,7 @@ describe.concurrent('the sidebar of the docs build', () => {
 	})
 })
 
-/** The scroll of the tab row, whether it overflows, and the scroll of the window. */
+/** The scroll of the tab row, whether it overflows, and the scroll of the page. */
 type TabRowState = { scrollLeft: number; overflows: boolean; pageY: number }
 
 /** Reads the {@link TabRowState} of the page. */
@@ -105,7 +105,8 @@ const READ_TAB_ROW = `(() => {
 	return {
 		scrollLeft: scroller.scrollLeft,
 		overflows: scroller.scrollWidth > scroller.clientWidth,
-		pageY: window.scrollY,
+		// The page scrolls in the box around the layout (\`SCROLLER\` in \`root.tsx\`).
+		pageY: document.querySelector('[data-slot="sidebar-layout"]').parentElement.scrollTop,
 	}
 })()`
 
@@ -118,6 +119,32 @@ describe.concurrent('the tab row of the docs build', () => {
 
 		// The row overflows and paints at its start, and the page does not scroll.
 		expect(painted).toEqual({ scrollLeft: 0, overflows: true, pageY: 0 })
+
+		expect(hydrated).toEqual(painted)
+	})
+})
+
+/** The height of the document and of the viewport. */
+type DocumentState = { height: number; viewport: number }
+
+/** Reads the {@link DocumentState} of the page. */
+const READ_DOCUMENT = `(() => ({
+	height: document.documentElement.scrollHeight,
+	viewport: window.innerHeight,
+}))()`
+
+// Chrome on iOS collapses its toolbars only on a document that is taller than
+// the screen. On a load of such a document, it draws the old page under the
+// toolbar for a frame. The page scrolls in a box, so the document is never
+// taller than the viewport, from the first paint on.
+describe.concurrent('the document of the docs build', () => {
+	it.for(TABS)('%s is as tall as the viewport', async (path, context) => {
+		const { expect } = context
+
+		// The width of a phone. The page is much taller than the viewport.
+		const { painted, hydrated } = await readBoth<DocumentState>(context, path, 390, READ_DOCUMENT)
+
+		expect(painted.height).toBe(painted.viewport)
 
 		expect(hydrated).toEqual(painted)
 	})

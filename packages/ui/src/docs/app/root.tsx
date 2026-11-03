@@ -93,6 +93,14 @@ const ACTIONS = (
 // The pinned panel of the events. It takes no props, for the same reason.
 const ASIDE = <EventsAside />
 
+// The box that scrolls the docs. It has the height of the viewport, so the
+// document is never taller than the screen. Chrome on iOS collapses its
+// toolbars only on a page that is taller than the screen, and on a load of
+// such a page it draws the old page under the toolbar for a frame. The
+// toolbars of a phone thus stay at their full size while the box scrolls. The
+// box is a size container, so the layout fills the box (`SidebarLayout`).
+const SCROLLER = 'h-dvh overflow-y-auto @container-size'
+
 const messages = defineMessages({
 	notFound: {
 		id: 'docs.app.notFound',
@@ -164,7 +172,7 @@ function Shell() {
 	// The path of the page, the same for each of its tabs.
 	const path = page?.path ?? pathname
 
-	useNavigationScroll(path)
+	const scroller = useNavigationScroll(path)
 
 	// The root element has the language of the HTML at the first paint
 	// (`Layout`). When the reader changes the language, it takes the new one,
@@ -180,34 +188,36 @@ function Shell() {
 			<title>{title ? intl.formatMessage(pageTitleMessage, { page: title }) : docs}</title>
 			<Stylesheet />
 			<DocsSearch>
-				<SidebarLayout
-					stickyHeader
-					actions={ACTIONS}
-					sidebar={<DocsSidebar pages={pages} />}
-					aside={ASIDE}
-				>
-					<SidebarLayoutHeader>
-						<Flex align="center" gap="md">
-							<Button
-								variant="bare"
-								className="hidden lg:inline-flex"
-								aria-label={intl.formatMessage(messages.toggleSidebar)}
-								onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
-							>
-								{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
-								<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
-								<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
-							</Button>
-							<Heading>{title ?? docs}</Heading>
-						</Flex>
-					</SidebarLayoutHeader>
-					<SearchPaletteHost />
-					<SidebarLayoutBody>
-						<Stack gap="xl">
-							<Outlet />
-						</Stack>
-					</SidebarLayoutBody>
-				</SidebarLayout>
+				<div ref={scroller} className={SCROLLER}>
+					<SidebarLayout
+						stickyHeader
+						actions={ACTIONS}
+						sidebar={<DocsSidebar pages={pages} />}
+						aside={ASIDE}
+					>
+						<SidebarLayoutHeader>
+							<Flex align="center" gap="md">
+								<Button
+									variant="bare"
+									className="hidden lg:inline-flex"
+									aria-label={intl.formatMessage(messages.toggleSidebar)}
+									onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
+								>
+									{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
+									<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
+									<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
+								</Button>
+								<Heading>{title ?? docs}</Heading>
+							</Flex>
+						</SidebarLayoutHeader>
+						<SearchPaletteHost />
+						<SidebarLayoutBody>
+							<Stack gap="xl">
+								<Outlet />
+							</Stack>
+						</SidebarLayoutBody>
+					</SidebarLayout>
+				</div>
 			</DocsSearch>
 		</UIProvider>
 	)
