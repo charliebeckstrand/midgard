@@ -26,7 +26,7 @@ const rows: Row[] = Array.from({ length: 30 }, (_, index) => ({
 }))
 
 /** The text that the tests type: wider than each cell, narrower than 28rem. */
-const LONG = '.with-a-much-longer-domain'
+const LONG = '.with-a-much-much-longer-domain'
 
 const columns = (extra: Partial<Record<keyof Row, Partial<GridColumn<Row>>>> = {}) =>
 	(['name', 'email', 'role'] as const).map(
@@ -134,6 +134,54 @@ describe('grid editor grow (real floating engine)', () => {
 			rowHeight,
 			PIXEL,
 		)
+	})
+
+	it('keeps the widest value of a column that fits its content in the cell', async () => {
+		// The browser sizes each column to its widest value, so that editor has no
+		// space to spare.
+		const { container } = renderGrid({
+			width: 'fit',
+			columns: columns().map(({ width: _, ...column }) => column),
+			rows: [
+				{ id: 1, name: 'Ann', email: 'a@ex.co', role: 'Developer' },
+				{ id: 2, name: 'Bo', email: 'arlene.mccoy@example.com', role: 'Designer' },
+			],
+		})
+
+		const cell = gridCell(container, 'email', 1)
+
+		await userEvent.dblClick(cell)
+
+		const input = await waitFor(() =>
+			present<HTMLInputElement>(cell.querySelector('input'), 'the edit input'),
+		)
+
+		await waitFor(() => expect(document.activeElement).toBe(input))
+
+		const slot = getSlot(cell)
+
+		const save = page.getByRole('button', { name: /^Save / }).element()
+
+		const settleRight = save.getBoundingClientRect().right
+
+		// The value fits, so the editor does not grow, and the settle pair stays
+		// where it is as focus leaves.
+		expect(slot.hasAttribute('data-grown')).toBe(false)
+
+		expect(input.scrollWidth).toBeLessThanOrEqual(input.clientWidth)
+
+		input.blur()
+
+		expect(save.getBoundingClientRect().right).toBeNear(settleRight, PIXEL)
+
+		// A value that is wider than the cell grows the editor.
+		input.focus()
+
+		await userEvent.keyboard('{End}x')
+
+		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+
+		expect(input.scrollWidth).toBeLessThanOrEqual(input.clientWidth)
 	})
 
 	it('caps the width at 28rem', async () => {
