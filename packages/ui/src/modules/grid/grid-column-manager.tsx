@@ -1,7 +1,7 @@
 'use client'
 
-import { ArrowLeftToLine, ArrowRightToLine, EllipsisVertical, Pin } from 'lucide-react'
-import { type ReactNode, useCallback, useMemo, useState } from 'react'
+import { EllipsisVertical, Lock, Pin } from 'lucide-react'
+import { type ReactElement, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { List, ListItem } from '../../components/list'
@@ -15,7 +15,7 @@ import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities/toggle-item'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
-import { effectivePinSide, physicalSide, pinMenuChoices } from './engine/grid-pin/overrides'
+import { effectivePinSide, pinMenuChoices } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
 import { type PinColumn, pinChoiceIcon } from './grid-context-menu-utilities'
 import type { GridPreferences } from './grid-data-types'
@@ -26,7 +26,7 @@ import type { GridColumnManagerItem } from './types'
 import { isColumnShown, useGridColumnVisibility } from './use-grid-column-visibility'
 
 /**
- * Whether the manager serves a right-to-left grid. The pin labels and the edge
+ * Whether the manager serves a right-to-left grid. The pin labels and their
  * arrows read it, so they name the physical edge. The dialog of the grid gives
  * the direction of the grid as its direction scope. @internal
  */
@@ -96,8 +96,8 @@ export type GridColumnManagerProps = {
 	/**
 	 * Pins a column to an edge, or unpins it with `false`. Its presence turns each
 	 * column's pin indicator into an interactive control. A menu offers Pin left /
-	 * Pin right / Unpin on the scrolling and pinned columns, and a static edge
-	 * arrow on {@link GridColumnManagerItem.locked} ones. Omit it for a read-only
+	 * Pin right / Unpin on the scrolling and pinned columns, and a static lock
+	 * shows on {@link GridColumnManagerItem.locked} ones. Omit it for a read-only
 	 * view where frozen columns still list in their groups but can't be moved.
 	 */
 	onPinChange?: PinColumn
@@ -179,7 +179,7 @@ function GridColumnPinControl({
  * Leading slot for a frozen row, aligned to where a scrolling row's drag grip
  * sits:
  *
- * - A locked column gets a static edge arrow (its freeze is immutable).
+ * - A locked column gets a static lock (its freeze is immutable).
  * - A pinned column gets the interactive {@link GridColumnPinControl}.
  * - Where no `onPinChange` handler is supplied, a non-interactive pin
  *   indicator.
@@ -187,7 +187,7 @@ function GridColumnPinControl({
  * @internal
  */
 function frozenLeading(item: GridColumnManagerItem, onPinChange: PinColumn | undefined): ReactNode {
-	if (item.locked) return <GridColumnLockedEdge side={item.locked} />
+	if (item.locked) return <GridColumnStaticLead icon={<Lock />} />
 
 	if (onPinChange) {
 		return (
@@ -201,28 +201,19 @@ function frozenLeading(item: GridColumnManagerItem, onPinChange: PinColumn | und
 		)
 	}
 
-	return (
-		<span className={k().lead}>
-			<span aria-hidden="true" className={k().icon}>
-				<Icon icon={<Pin />} />
-			</span>
-		</span>
-	)
+	return <GridColumnStaticLead icon={<Pin />} />
 }
 
 /**
- * The static edge arrow of a locked column. It points to the physical edge,
- * so a right-to-left grid swaps it. @internal
+ * The static glyph that leads a frozen row with no pin control. The checkbox
+ * label names the state, so the glyph is hidden from assistive technology.
+ * @internal
  */
-function GridColumnLockedEdge({ side }: { side: 'left' | 'right' }) {
-	const rtl = useManagerRtl()
-
+function GridColumnStaticLead({ icon }: { icon: ReactElement }) {
 	return (
 		<span className={k().lead}>
 			<span aria-hidden="true" className={k().icon}>
-				<Icon
-					icon={physicalSide(side, rtl) === 'right' ? <ArrowRightToLine /> : <ArrowLeftToLine />}
-				/>
+				<Icon icon={icon} />
 			</span>
 		</span>
 	)
@@ -238,7 +229,7 @@ type GridColumnManagerFrozenGroupProps = {
 /**
  * One fixed group of frozen columns: the prepended left group or the appended
  * right group. Each row is checked and disabled (a frozen column always shows
- * and can't be hidden or reordered), led by its pin control or edge arrow.
+ * and can't be hidden or reordered), led by its pin control or its lock.
  *
  * @internal
  */
@@ -355,14 +346,14 @@ function GridColumnManagerOrderableList({
  * columns list in two fixed groups around it (left-pinned prepended,
  * right-pinned appended), each checked and disabled. With `onPinChange`, every
  * column's pin indicator becomes an interactive control. It offers Pin left /
- * Pin right / Unpin on the scrolling and pinned columns, and a static edge
- * arrow on {@link GridColumnManagerItem.locked} ones. Columns with
+ * Pin right / Unpin on the scrolling and pinned columns, and a static lock
+ * shows on {@link GridColumnManagerItem.locked} ones. Columns with
  * `hideable: false` show but cannot be unchecked, also when the hidden set
  * names them. With `onSavePreset`, a footer button captures the current order
  * and hidden ids as a {@link GridPreferences} snapshot. Order and hidden set are
  * each controllable.
  *
- * The pin labels and the edge arrows name the physical edge. The manager reads
+ * The pin labels and their arrows name the physical edge. The manager reads
  * its own computed direction once it mounts, which is the direction of the
  * grid.
  *

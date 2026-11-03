@@ -16,8 +16,8 @@ export const k = defineKata({
 		// Interactive pin control: the per-row menu trigger that pins left/right or
 		// unpins. Muted at rest, tinting on hover/focus like the header's pin button.
 		pin: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
-		// Static, non-interactive glyph: the edge arrow on a locked row (an immutable
-		// freeze; ArrowLeftToLine / ArrowRightToLine), or the pin indicator on a frozen
+		// Static, non-interactive glyph: the lock on a locked row (an immutable
+		// freeze), or the pin indicator on a frozen
 		// row when the manager has no pin handler. Muted, matching the resting tint of
 		// the interactive control.
 		icon: [flex.inline, 'shrink-0', text.muted],
