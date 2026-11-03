@@ -952,6 +952,31 @@ describe("Grid double-click-to-edit (session: 'managed')", () => {
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
 	})
 
+	// The browser selects a word on the second press of a double click. The
+	// editor replaces the text after the press, so the selection must not start.
+	it('keeps the default of only the second press of a double click on an editable cell', () => {
+		const { cell } = renderSessionGrid({
+			cols: [
+				{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+				{
+					id: 'count',
+					title: 'Count',
+					field: 'count',
+					cell: (row) => String(row.count),
+					readOnly: true,
+				},
+			],
+		})
+
+		// `fireEvent` returns false for an event whose default was prevented.
+		expect(fireEvent.mouseDown(cell('name'), { detail: 1 })).toBe(true)
+
+		expect(fireEvent.mouseDown(cell('name'), { detail: 2 })).toBe(false)
+
+		// A cell that does not open keeps its text selection.
+		expect(fireEvent.mouseDown(cell('count'), { detail: 2 })).toBe(true)
+	})
+
 	it('saves the row as one batch on Enter and returns focus to the grid', () => {
 		const { container, cell, onCommit, getByRole } = renderSessionGrid()
 
