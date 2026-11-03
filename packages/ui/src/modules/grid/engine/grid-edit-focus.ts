@@ -10,10 +10,6 @@ import {
 	isColumnEditable,
 } from './grid-editing-utilities'
 
-/** The tabbable content of a cell. @internal */
-const TABBABLE =
-	'button:not(:disabled), [href], input:not(:disabled), [tabindex]:not([tabindex="-1"])'
-
 /**
  * Reseats focus on the grid's single tab stop, `grid`, when focus sits in this
  * grid. Called before a grid-owned session exit unmounts the focused editor, so
@@ -124,14 +120,19 @@ export function returnFlagged(flag: { current: boolean }, target: HTMLElement): 
 }
 
 /**
- * The element that focus returns to for an element origin, or `null` when it
- * is gone. A cell gives its first tabbable element, such as its pencil, or the
- * tab stop `table` when it has none. @internal
+ * The element that focus returns to for an element origin. It is the element
+ * itself when it is outside the cells of the grid. A cell gives the tab stop
+ * `table`, because focus on a control of a cell enters that cell, and the
+ * cursor must stay free to move. The cursor goes onto the cell instead (see
+ * `useGridEditFocus`). An element that is gone gives the tab stop too, so
+ * focus does not fall to the page as the editor unmounts.
+ *
+ * @internal
  */
 export function returnElement(element: Element, table: HTMLElement | null): HTMLElement | null {
-	if (!element.isConnected || !(element instanceof HTMLElement)) return null
+	if (element.isConnected && element instanceof HTMLElement && element.tagName !== 'TD') {
+		return element
+	}
 
-	if (element.tagName !== 'TD') return element
-
-	return element.querySelector<HTMLElement>(TABBABLE) ?? table
+	return table
 }

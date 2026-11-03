@@ -26,7 +26,9 @@ import type { Coord } from './use-grid-navigation'
  * It reseats focus on the tab stop as the grid ends a session, and marks that
  * move as the grid's own for the commit on leave. It also records where focus
  * returns as the session on each open row ends: the cell that the session
- * entered, or the place of the last press or focus as the row opened.
+ * entered, or the place of the last press or focus as the row opened. Focus
+ * returns to a cell as the tab stop with the cursor on that cell, never to a
+ * control in the cell, so the arrows move the cursor at once.
  *
  * @typeParam T - Shape of a single row.
  * @internal
@@ -204,18 +206,37 @@ export function useGridEditFocus<T>({
 	}, [editableRows])
 
 	// Records the place of the last press or focus as the origin of `rowKey`, in
-	// place of the cell that an entry records. A control that opens its row,
-	// such as a pencil, then takes focus back as the session on the row ends.
+	// place of the cell that an entry records. As the session on the row ends,
+	// the cursor goes back to the cell of a control that opened it, such as a
+	// pencil, and focus goes back to the tab stop.
 	const placeOrigin = useCallback((rowKey: string | number) => {
 		const element = lastPlaceRef.current
 
 		if (element) originsRef.current.set(rowKey, { element })
 	}, [])
 
+	// The place of the cursor that holds `cell`, a cell of this grid's data
+	// rows, or `null` when the cursor has no cell with its id.
+	const cellCoord = useCallback(
+		(cell: Element): Coord | null => {
+			const index = cell.closest('tr')?.getAttribute('data-row-index')
+
+			if (index == null) return null
+
+			const row = Number(index)
+
+			const col = cursorColumnsRef.current.findIndex((_, at) => cellId(row, at) === cell.id)
+
+			return col === -1 ? null : { row, col }
+		},
+		[cellId, cursorColumnsRef],
+	)
+
 	// The element that focus returns to as the session on `rowKey` ends, or
 	// `null` for none. A cell origin moves the cursor onto the cell that the
 	// session edited, and gives the tab stop. An element origin gives what
-	// `returnElement` gives.
+	// `returnElement` gives. When that origin is a cell, such as the cell of a
+	// pencil, the cursor moves onto it, so the ring and the focus agree.
 	const focusTarget = useCallback(
 		(rowKey: string | number): HTMLElement | null => {
 			const origin = originsRef.current.get(rowKey)
@@ -224,7 +245,13 @@ export function useGridEditFocus<T>({
 
 			const table = tableRef.current
 
-			if ('element' in origin) return returnElement(origin.element, table)
+			if ('element' in origin) {
+				const coord = origin.element.isConnected ? cellCoord(origin.element) : null
+
+				if (coord) moveTo(coord)
+
+				return returnElement(origin.element, table)
+			}
 
 			const active = activeEditRef.current
 
@@ -236,7 +263,7 @@ export function useGridEditFocus<T>({
 
 			return table
 		},
-		[activeEditRef, cursorColumnsRef, moveTo, rowKeysRef, tableRef],
+		[activeEditRef, cellCoord, cursorColumnsRef, moveTo, rowKeysRef, tableRef],
 	)
 
 	// Returns focus as the session on `rowKey` ends, when focus is in the grid.

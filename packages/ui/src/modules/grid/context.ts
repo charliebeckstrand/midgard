@@ -331,10 +331,11 @@ export type GridEditingSession = {
 	 */
 	showOverlay: (rowKey: string | number | null) => void
 	/**
-	 * The element that focus returns to as the session on a row ends: the tab
-	 * stop, with the cursor on the cell that the session edited, or the cell or
-	 * element that had the focus as the row opened. It is `null` when that
-	 * element is gone. The overlay reads it as it closes.
+	 * The element that focus returns to as the session on a row ends. It is the
+	 * tab stop, with the cursor on the cell that the session edited or on the
+	 * cell that had the focus as the row opened, such as the cell of a pencil.
+	 * For an element outside the cells that had the focus, it is that element.
+	 * It is `null` when no origin is recorded. The overlay reads it as it closes.
 	 */
 	focusTarget: (rowKey: string | number) => HTMLElement | null
 }
