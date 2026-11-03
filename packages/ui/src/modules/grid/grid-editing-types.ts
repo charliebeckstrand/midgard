@@ -278,11 +278,15 @@ export type GridEditableConfig = {
 	 *
 	 * - Enter commits and moves the cursor down one row. Under `scope: 'cell'` it
 	 *   enters the cell below. On the last row the cursor stays.
-	 * - Tab and Shift+Tab move to the next control in the same cell when there
-	 *   is one, as in an `editCell` slot with several controls. Tab from the
-	 *   last control, or Shift+Tab from the first, moves along the row's
-	 *   editable cells, and wraps at the edges. Under `scope: 'cell'` the cell
-	 *   left behind commits. Under `'row'` the row commits when it closes.
+	 * - Under `scope: 'cell'`, Tab and Shift+Tab move to the next control in
+	 *   the same cell when there is one, as in an `editCell` slot with several
+	 *   controls. Tab from the last control, or Shift+Tab from the first, moves
+	 *   along the row's editable cells, and wraps at the edges. The cell left
+	 *   behind commits.
+	 * - Under `'row'`, Tab and Shift+Tab stay with the browser. The open row is
+	 *   a row of fields, so Tab moves through its editors and then its actions,
+	 *   such as save and discard, as through a form. The row commits when it
+	 *   closes.
 	 * - F2 commits and leaves the cursor on the cell.
 	 * - Escape abandons the session's staged edits.
 	 *
@@ -328,7 +332,7 @@ export type GridEditableConfig = {
 	 * Under {@link GridEditableConfig.commitOn} `'leaveEditor'` the held cell
 	 * shows discard alone, because a move away saves. Under that setting, focus
 	 * that leaves the held cell commits it. Under row scope, focus that leaves
-	 * the open editors of the row commits the row. Row scope shows
+	 * the open row, its editors and its actions, commits the row. Row scope shows
 	 * none: its settle control is the consumer's own row action, at the
 	 * granularity that matches. The session's cell is a binding of its own,
 	 * {@link GridEditableConfig.cell}, beside `rows`. The settle pair is grid
@@ -349,8 +353,9 @@ export type GridEditableConfig = {
 	 *   outside this grid.
 	 * - `'leaveEditor'` also commits the session when focus leaves its editors,
 	 *   for a place inside or outside the grid. Under `scope: 'cell'` that is
-	 *   the held cell. Under `scope: 'row'` it is the open editors of the row,
-	 *   so Tab between them does not commit.
+	 *   the held cell. Under `scope: 'row'` it is the open row: its editors and
+	 *   its actions, such as save and discard. A move between them does not
+	 *   commit, so a discard action still discards.
 	 *
 	 * A commit on leave is the commit of Enter. It ends the session, and a cell
 	 * that {@link GridColumn.validate} refuses goes to

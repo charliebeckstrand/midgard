@@ -90,11 +90,16 @@ export type SessionMove = 'down' | 'next' | 'previous' | 'here'
  * which enter a cell. A key with Ctrl, Cmd, or Alt is the editor's shortcut.
  * Enter on an element that acts on it natively stays with that element. Tab
  * that has a next control in the same cell stays with the browser (see
- * {@link tabStaysInCell}).
+ * {@link tabStaysInCell}). So does each Tab outside `cellScoped`: the open row
+ * is a row of fields (see `entryScope`), so Tab moves through its editors and
+ * then its actions, as through a form.
  *
  * @internal
  */
-export function editorMove(event: ReactKeyboardEvent<HTMLTableElement>): SessionMove | null {
+export function editorMove(
+	event: ReactKeyboardEvent<HTMLTableElement>,
+	cellScoped: boolean,
+): SessionMove | null {
 	const target = pressOrigin(event) ?? (event.target as Element)
 
 	if (target === event.currentTarget || hasBrowserModifier(event)) return null
@@ -102,7 +107,7 @@ export function editorMove(event: ReactKeyboardEvent<HTMLTableElement>): Session
 	// Tab moves between the controls of one cell first. Only Tab past the last
 	// control, or Shift+Tab past the first, commits and moves.
 	if (event.key === 'Tab') {
-		if (tabStaysInCell(target, event.shiftKey)) return null
+		if (!cellScoped || tabStaysInCell(target, event.shiftKey)) return null
 
 		return event.shiftKey ? 'previous' : 'next'
 	}

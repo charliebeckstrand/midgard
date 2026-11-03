@@ -791,7 +791,6 @@ export function useGridEditing<T>({
 		activeEditRef,
 		sessionRowRef,
 		requestRef,
-		cellId,
 		moveTo,
 		rowStep,
 		reseat,
@@ -803,6 +802,7 @@ export function useGridEditing<T>({
 
 	const sessionLeave = useGridEditLeave({
 		commitOn,
+		cellScoped,
 		reseatingRef,
 		editableRowsRef,
 		sessionRowRef,
