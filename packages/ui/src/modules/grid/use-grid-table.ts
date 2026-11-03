@@ -12,7 +12,6 @@
 // code calls it only from an event or an effect.
 
 import {
-	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
 	type ColumnVisibilityState,
@@ -60,14 +59,13 @@ import {
 import {
 	buildColumnFilters,
 	columnFilterActions,
+	filterableIds,
 	type GridColumnFilter,
 	type GridGlobalFilterView,
 } from './engine/grid-table/filter-view'
 import {
 	buildState,
 	clampSizingToFloors,
-	filterOptions,
-	paginationOptions,
 	resizeOptions,
 	toColumnDefs,
 	toGridColumns,
@@ -434,7 +432,7 @@ function useResizeView<T>(args: {
  * @internal
  */
 function useFilterView<T>(args: {
-	table: EngineTable<T>
+	write: (update: (prev: GridColumnFilterState[]) => GridColumnFilterState[]) => void
 	enabled: boolean
 	/** Whether the consumer filters, so the columns have no facets. */
 	manual: boolean
@@ -444,7 +442,7 @@ function useFilterView<T>(args: {
 	/** The facet values of each column (see {@link useFacetSource}). */
 	facetValues: (id: string) => Iterable<unknown>
 }): GridColumnFilter | null {
-	const { table, enabled, manual, columns, applied, facetValues } = args
+	const { write, enabled, manual, columns, applied, facetValues } = args
 
 	const affordance = args.affordance ?? 'header'
 
@@ -457,8 +455,8 @@ function useFilterView<T>(args: {
 	const { locale } = useLocale()
 
 	const actions = useMemo(
-		() => columnFilterActions(table, manual, facetValues, locale),
-		[table, manual, facetValues, locale],
+		() => columnFilterActions(write, filterableIds(columns), manual, facetValues, locale),
+		[write, columns, manual, facetValues, locale],
 	)
 
 	return useMemo(
@@ -551,11 +549,10 @@ export function useGridTable<T>({
 
 	const resolvedPagination = paginationState ?? DEFAULT_PAGINATION_STATE
 
-	// Bridge TanStack's `Updater<T>` onto each controllable setter so the table's
-	// own imperative methods flow out through the public `onValueChange`.
-	const onPaginationChange = useCallback<OnChangeFn<PaginationState>>(
-		(updater) =>
-			setPaginationState((prev) => functionalUpdate(updater, prev ?? DEFAULT_PAGINATION_STATE)),
+	// The footer writes the page through an updater over the resolved page.
+	const writePagination = useCallback(
+		(update: (prev: PaginationState) => PaginationState) =>
+			setPaginationState((prev) => update(prev ?? DEFAULT_PAGINATION_STATE)),
 		[setPaginationState],
 	)
 
@@ -648,9 +645,9 @@ export function useGridTable<T>({
 
 	const resolvedGlobalFilter = globalFilterState ?? ''
 
-	const onGlobalFilterChange = useCallback<OnChangeFn<string>>(
-		(updater) => {
-			setGlobalFilterState((prev) => functionalUpdate(updater, prev ?? ''))
+	const setGlobalFilter = useCallback(
+		(value: string) => {
+			setGlobalFilterState(value)
 
 			resetPage()
 		},
@@ -670,17 +667,9 @@ export function useGridTable<T>({
 
 	const resolvedColumnFilters = columnFiltersState ?? EMPTY_COLUMN_FILTERS
 
-	// The one narrowing in the binding, and the only place it is needed. TanStack
-	// types a filter's value `unknown`; every value this grid writes is the query
-	// tree its own filter function evaluates, which is what the public
-	// `GridColumnFilterState` says. The engine's updater cannot carry that, so the
-	// assertion sits here rather than widening the public type back to `unknown`.
-	const onColumnFiltersChange = useCallback<OnChangeFn<ColumnFiltersState>>(
-		(updater) => {
-			setColumnFiltersState(
-				(prev) =>
-					functionalUpdate(updater, prev ?? EMPTY_COLUMN_FILTERS) as GridColumnFilterState[],
-			)
+	const writeColumnFilters = useCallback(
+		(update: (prev: GridColumnFilterState[]) => GridColumnFilterState[]) => {
+			setColumnFiltersState((prev) => update(prev ?? EMPTY_COLUMN_FILTERS))
 
 			resetPage()
 		},
@@ -755,54 +744,28 @@ export function useGridTable<T>({
 			data: rows as EngineData<T>[],
 			columns: columnDefs,
 			getRowId,
-			// The page coordinate, widths, and query are owned by controllable bindings.
-			autoResetPageIndex: false,
 			state: buildState({
-				paginated,
-				pagination: resolvedPagination,
 				resizable,
 				sizing: resolvedSizing,
 				sizingInfo: columnSizingInfo,
-				globalFiltered: globalConfigured,
-				globalFilter: resolvedGlobalFilter,
-				columnFiltered: hasColumnFilters,
-				columnFilters: resolvedColumnFilters,
 				columnPinning,
 				columnOrder: engineColumnOrder,
 				columnVisibility,
 			}),
-			...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
 			...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
-			...filterOptions<T>({
-				configured: filterMode.configured,
-				onGlobalFilterChange: globalConfigured ? onGlobalFilterChange : undefined,
-				onColumnFiltersChange: hasColumnFilters ? onColumnFiltersChange : undefined,
-			}),
 		}),
 		[
 			rows,
 			columnDefs,
 			getRowId,
-			paginated,
-			resolvedPagination,
 			resizable,
 			resolvedSizing,
 			columnSizingInfo,
-			globalConfigured,
-			resolvedGlobalFilter,
-			hasColumnFilters,
-			resolvedColumnFilters,
 			columnPinning,
 			engineColumnOrder,
 			columnVisibility,
-			manual,
-			paginationConfig,
-			onPaginationChange,
 			onColumnSizingChange,
 			onColumnSizingInfoChange,
-			filterMode.configured,
-			onGlobalFilterChange,
-			onColumnFiltersChange,
 		],
 	)
 
@@ -872,7 +835,7 @@ export function useGridTable<T>({
 	// each render is correct, and the footer is cheap.
 	const pagination = paginationConfig
 		? buildPaginationView({
-				table: engine,
+				write: writePagination,
 				pagination: shownPagination,
 				manual,
 				config: paginationConfig,
@@ -956,17 +919,17 @@ export function useGridTable<T>({
 			globalConfigured
 				? {
 						value: resolvedGlobalFilter,
-						setValue: (value: string) => engine.setGlobalFilter(value),
+						setValue: setGlobalFilter,
 						placeholder: globalFilterConfig?.placeholder,
 					}
 				: null,
-		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, engine],
+		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, setGlobalFilter],
 	)
 
 	const facetValues = useFacetSource({ rows, columns, columnTests, query: searchQuery })
 
 	const filters = useFilterView({
-		table: engine,
+		write: writeColumnFilters,
 		enabled: hasColumnFilters,
 		manual: filterMode.manual,
 		columns,

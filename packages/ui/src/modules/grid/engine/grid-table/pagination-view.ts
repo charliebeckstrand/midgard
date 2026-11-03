@@ -8,7 +8,6 @@ import {
 	resolvePageCount,
 	shownPageIndex,
 } from '../grid-pagination-utilities'
-import type { EngineTable } from './features'
 
 /**
  * Resolved pagination view model the footer renders from: page coordinate,
@@ -46,16 +45,16 @@ export type GridPaginationView = {
  * Builds the {@link GridPaginationView} the footer renders from.
  *
  * @remarks
- * The view counts the pages itself, as the engine counts them (see
- * `resolvePageCount`), so a render reads no engine row model. The engine handle
- * serves only the actions, which run after the render.
+ * The view counts the pages itself, as TanStack Table counts them (see
+ * `resolvePageCount`). The actions write the page state of the grid with an
+ * updater, so two navigations in one frame compose.
  *
  * @param args.rows - The count of the rows before pagination: the rows after
  *   the client filters.
  * @internal
  */
-export function buildPaginationView<T>(args: {
-	table: EngineTable<T>
+export function buildPaginationView(args: {
+	write: (update: (prev: PaginationState) => PaginationState) => void
 	pagination: PaginationState
 	manual: boolean
 	config: GridPagination
@@ -73,7 +72,7 @@ export function buildPaginationView<T>(args: {
 		pageSize,
 	})
 
-	const { table } = args
+	const { write } = args
 
 	return {
 		pageIndex,
@@ -87,16 +86,20 @@ export function buildPaginationView<T>(args: {
 		canNext: pageCount === -1 || (pageCount !== 0 && pageIndex < pageCount - 1),
 		pageSizeOptions: args.config.pageSizeOptions,
 		// An updater steps from the shown page, not from a stored page past the last
-		// one. `-1` (unknown) leaves the top open. The engine still clamps the floor
-		// at 0.
+		// one. `-1` (unknown) leaves the top open.
 		setPageIndex: (index) =>
-			table.setPageIndex((prev) => {
-				const next = functionalUpdate(index, shownPageIndex(prev, pageCount))
+			write((prev) => {
+				const next = functionalUpdate(index, shownPageIndex(prev.pageIndex, pageCount))
 
 				const last = pageCount - 1
 
-				return last >= 0 ? clamp(next, 0, last) : next
+				return { ...prev, pageIndex: last >= 0 ? clamp(next, 0, last) : Math.max(0, next) }
 			}),
-		setPageSize: (size) => table.setPageSize(size),
+		// The page that holds the first row of the page shown before.
+		setPageSize: (size) =>
+			write((prev) => ({
+				pageIndex: Math.floor(pageOffset(prev.pageIndex, prev.pageSize) / Math.max(1, size)),
+				pageSize: Math.max(1, size),
+			})),
 	}
 }

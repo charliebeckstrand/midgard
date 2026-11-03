@@ -1,78 +1,22 @@
 import type {
-	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnPinningState,
 	ColumnSizingState,
 	ColumnVisibilityState,
 	columnResizingState,
-	FilterFn,
 	OnChangeFn,
-	PaginationState,
-	Row,
-	RowData,
 } from '@tanstack/react-table'
 import { isDataColumn } from '../../../../utilities/is-data-column'
-import { evaluateQuery } from '../../../query/engine/query-evaluate'
-import { isQueryGroup } from '../../../query/engine/query-node'
-import type { GridColumn, GridPagination } from '../../types'
-import { columnAccessor } from '../grid-column/accessor'
+import type { GridColumn } from '../../types'
 import {
 	DRAG_HANDLE_COLUMN_SIZE,
 	EXPANDER_COLUMN_SIZE,
 	SELECT_COLUMN_SIZE,
 } from '../grid-constants'
 import { isNewRowAddColumn, NEW_ROW_ADD_COLUMN_SIZE } from '../grid-new-row-column'
-import { manualTotals } from '../grid-pagination-utilities'
 import { columnMinWidth } from '../grid-sizing/measure'
-import type {
-	EngineColumn,
-	EngineColumnDef,
-	EngineData,
-	EngineOptions,
-	GridFeatures,
-} from './features'
+import type { EngineColumn, EngineColumnDef, EngineOptions } from './features'
 import { parsePxWidth } from './resize-view'
-
-/**
- * Column filter: evaluates the column's query tree against the row, reading the
- * cell through the column accessor. A non-query value imposes no filter, and an
- * empty tree auto-removes, so a half-built rule never hides rows.
- *
- * @internal
- */
-const queryFilter: FilterFn<GridFeatures, RowData> = (
-	row: Row<GridFeatures, RowData>,
-	columnId,
-	filterValue,
-) => !isQueryGroup(filterValue) || evaluateQuery(filterValue, () => row.getValue(columnId))
-
-queryFilter.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
-
-/**
- * Resolves a column's engine behaviors from its declaration:
- *
- * - The filter value `accessorFn` (an explicit `value`, else the row field
- *   named by a data column's id).
- * - The query `filterFn` (a filterable column with a value).
- *
- * Each is `undefined` when the column opts out, so {@link toColumnDef} spreads
- * only what applies. The filter is row-shape agnostic, cast to the column's row
- * type.
- *
- * @internal
- */
-function deriveColumnBehavior<T>(col: GridColumn<T>) {
-	const { value } = col
-
-	// Data columns read through the shared accessor (value or id field); a
-	// non-data column has no default accessor, only its explicit `value`.
-	const accessorFn = isDataColumn(col) ? columnAccessor(col) : value
-
-	const filterFn: FilterFn<GridFeatures, EngineData<T>> | undefined =
-		col.filterable && value ? (queryFilter as FilterFn<GridFeatures, EngineData<T>>) : undefined
-
-	return { accessorFn, filterFn }
-}
 
 /**
  * The seed width of a non-data column whose content the design system fixes: a checkbox, a
@@ -115,8 +59,8 @@ function resolveMinSize<T>(col: GridColumn<T>): { minSize?: number } {
 }
 
 /**
- * Maps a grid column to its engine `ColumnDef`: identity, the capability gates,
- * the resolved behaviors (see {@link deriveColumnBehavior}), and sizing bounds.
+ * Maps a grid column to its engine `ColumnDef`: identity, whether it resizes,
+ * and its sizing bounds.
  *
  * @internal
  */
@@ -127,18 +71,10 @@ export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 	// sizes them to content via `w-px`.)
 	const size = parsePxWidth(col.width) ?? affordanceColumnSize(col)
 
-	const { accessorFn, filterFn } = deriveColumnBehavior(col)
-
 	return {
 		id: String(col.id),
 		// Only data columns resize; non-data columns (selection, actions, drag handle, expander) hold their width.
 		enableResizing: isDataColumn(col),
-		enableColumnFilter: Boolean(col.filterable && col.value),
-		// Quick search stays scoped to columns that declare `value`.
-		enableGlobalFilter: Boolean(col.value),
-		// The accessor feeds the filters without changing how the cell renders.
-		...(accessorFn ? { accessorFn } : {}),
-		...(filterFn ? { filterFn } : {}),
 		...(size != null ? { size } : {}),
 		...resolveMinSize(col),
 		...(col.maxWidth != null ? { maxSize: col.maxWidth } : {}),
@@ -166,47 +102,6 @@ export function toGridColumns<T>(leaves: readonly EngineColumn<T>[]): GridColumn
 	return leaves.flatMap(
 		(leaf) => (leaf.columnDef.meta?.gridColumn as GridColumn<T> | undefined) ?? [],
 	)
-}
-
-/**
- * Pagination slice of the table options. The grid slices its own pages (see
- * `useGridClientView`), so the engine only holds the page state. A server grid
- * gives the engine its totals, which bound `setPageIndex`.
- *
- * @internal
- */
-export function paginationOptions<T>(args: {
-	paginated: boolean
-	manual: boolean
-	config: GridPagination | undefined
-	onPaginationChange: OnChangeFn<PaginationState>
-}): Partial<EngineOptions<T>> {
-	if (!args.paginated) return {}
-
-	return {
-		onPaginationChange: args.onPaginationChange,
-		...(args.manual ? manualTotals(args.config) : {}),
-	}
-}
-
-/**
- * Filter slice of the table options. The grid filters its own rows (see
- * `useGridClientView`), so the engine only holds the filter state and writes it
- * through these handlers.
- *
- * @internal
- */
-export function filterOptions<T>(args: {
-	configured: boolean
-	onGlobalFilterChange?: OnChangeFn<string>
-	onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>
-}): Partial<EngineOptions<T>> {
-	if (!args.configured) return {}
-
-	return {
-		...(args.onGlobalFilterChange ? { onGlobalFilterChange: args.onGlobalFilterChange } : {}),
-		...(args.onColumnFiltersChange ? { onColumnFiltersChange: args.onColumnFiltersChange } : {}),
-	}
 }
 
 /** Column-resize slice of the table options, or `{}` when resizing is off. @internal */
@@ -271,8 +166,8 @@ export function clampSizingToFloors(
 }
 
 /**
- * The controlled state slices passed to the engine: each active feature's slice
- * is optional, but the grid always owns column order, visibility, and pinning.
+ * The controlled state slices passed to the engine: the sizing slices are
+ * optional, but the grid always owns column order, visibility, and pinning.
  * The pinning slice is empty when no column is pinned. If the slice is absent,
  * the engine keeps the last pinning that it got, and an unpinned column stays
  * at its pinned edge.
@@ -280,11 +175,8 @@ export function clampSizingToFloors(
  * @internal
  */
 type GridControlledState = {
-	pagination?: PaginationState
 	columnSizing?: ColumnSizingState
 	columnResizing?: columnResizingState
-	globalFilter?: string
-	columnFilters?: ColumnFiltersState
 	columnPinning: ColumnPinningState
 	columnOrder: ColumnOrderState
 	columnVisibility: ColumnVisibilityState
@@ -292,15 +184,9 @@ type GridControlledState = {
 
 /** The controlled state slices the active features own. @internal */
 export function buildState(args: {
-	paginated: boolean
-	pagination: PaginationState
 	resizable: boolean
 	sizing: ColumnSizingState
 	sizingInfo: columnResizingState
-	globalFiltered: boolean
-	globalFilter: string
-	columnFiltered: boolean
-	columnFilters: ColumnFiltersState
 	columnPinning: ColumnPinningState
 	columnOrder: ColumnOrderState
 	columnVisibility: ColumnVisibilityState
@@ -311,17 +197,11 @@ export function buildState(args: {
 		columnVisibility: args.columnVisibility,
 	}
 
-	if (args.paginated) state.pagination = args.pagination
-
 	if (args.resizable) {
 		state.columnSizing = args.sizing
 
 		state.columnResizing = args.sizingInfo
 	}
-
-	if (args.globalFiltered) state.globalFilter = args.globalFilter
-
-	if (args.columnFiltered) state.columnFilters = args.columnFilters
 
 	return state
 }
