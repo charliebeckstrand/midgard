@@ -112,6 +112,81 @@ const autoAlignMiddleware: Middleware = {
 const hideMiddleware = hide({ strategy: 'referenceHidden' })
 
 /**
+ * Keeps a panel on its reference while both are mounted: `autoUpdate` of
+ * floating-ui, with a resize observer that pauses for the rest of each
+ * delivery.
+ *
+ * @remarks `autoUpdate` places the panel again when the reference or the panel
+ * resizes. It places the panel in the delivery of its observer, and a `size`
+ * middleware then writes a size on the panel. The space that the panel has can
+ * change in the same frame before the delivery, for example when a scroll
+ * moves the reference. The write then resizes the panel again in the delivery
+ * that reported its size. An observer that already got that delivery still
+ * watches the panel: the observer of the panel, and the observer of a panel
+ * that anchors to it. The browser then fires "ResizeObserver loop completed
+ * with undelivered notifications" on `window`.
+ *
+ * Thus the observer of each panel stops after a delivery, and observes again in
+ * the next frame, before the delivery of that frame, as
+ * `observeResizeBeforePaint` does. A write in the rest of the delivery then
+ * reaches no observer that already got the delivery. The new observation
+ * reports the size that it finds, so no resize is lost. A report of the size
+ * that the last delivery gave places nothing, so the observation does not
+ * start again in each frame.
+ *
+ * The reference of a point, such as a context menu, observes the element that
+ * holds the point.
+ *
+ * @internal
+ */
+function trackPanel(reference: ReferenceType, floating: HTMLElement, update: () => void) {
+	const stop = autoUpdate(reference, floating, update, { elementResize: false })
+
+	const anchor = reference instanceof Element ? reference : reference.contextElement
+
+	const targets = anchor ? [anchor, floating] : [floating]
+
+	// The size of each target at its last delivery.
+	const sizes = new Map<Element, string>()
+
+	let frame = 0
+
+	const observe = () => {
+		for (const target of targets) observer.observe(target)
+	}
+
+	const observer = new ResizeObserver((entries) => {
+		let resized = false
+
+		for (const { target, contentRect } of entries) {
+			const size = `${contentRect.width}x${contentRect.height}`
+
+			if (sizes.get(target) !== size) resized = true
+
+			sizes.set(target, size)
+		}
+
+		if (!resized) return
+
+		observer.disconnect()
+
+		update()
+
+		frame = requestAnimationFrame(observe)
+	})
+
+	observe()
+
+	return () => {
+		stop()
+
+		cancelAnimationFrame(frame)
+
+		observer.disconnect()
+	}
+}
+
+/**
  * Lowers the height that is available to a floating panel to a height that
  * suits its content. It gets the available height and the floating element,
  * and returns the max-height to write. A larger value has no effect. A menu
@@ -240,7 +315,9 @@ export type FloatingPanelOptions = {
 	/**
 	 * Reposition strategy while mounted. `'auto'` wires `autoUpdate`
 	 * (ResizeObserver plus ancestor scroll/resize listeners), the right default
-	 * for a DOM-anchored panel whose reference moves independently. `'point'`
+	 * for a DOM-anchored panel whose reference moves independently. Its observer
+	 * stops for the rest of each delivery, so the size that the middleware writes
+	 * causes no "ResizeObserver loop" error. `'point'`
 	 * drops `whileElementsMounted`. A pointer-anchored surface reseats its
 	 * virtual reference on every coordinate change, which already triggers a
 	 * reposition. The observer wiring is therefore redundant per-open cost.
@@ -378,7 +455,7 @@ export function useFloatingPanel({
 		...(reference !== undefined ? { elements: { reference } } : {}),
 		// A point-anchored surface (`track: 'point'`) repositions itself on every
 		// coordinate change, so it skips the observer-based `autoUpdate` wiring.
-		whileElementsMounted: track === 'point' ? undefined : autoUpdate,
+		whileElementsMounted: track === 'point' ? undefined : trackPanel,
 		middleware: resolvedMiddleware,
 	})
 
