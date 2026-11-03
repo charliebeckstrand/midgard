@@ -43,7 +43,6 @@ export function useGridDataView<T>({
 	cursorEnabled,
 	cursorNewRow,
 	reconcile,
-	virtualized,
 	onRowClick,
 	onCellClick,
 	onRowDoubleClick,
@@ -74,7 +73,6 @@ export function useGridDataView<T>({
 	cursorNewRow: GridNewRowPosition
 	/** Follows the cursor into the rendered layout, clamps it, and ends a cell range that moved. */
 	reconcile: GridReconcile
-	virtualized: boolean
 	tableRef: RefObject<HTMLTableElement | null>
 }) {
 	const intl = useIntl()
@@ -91,13 +89,10 @@ export function useGridDataView<T>({
 	const dataColumns = useMemo(() => visibleColumns.filter(isDataColumn), [visibleColumns])
 
 	// Roving-tabindex keyboard navigation over the clickable rows (row mode) or
-	// data cells (cell mode), for a grid that carries click handlers but not the
-	// navigable cursor. Stands down under the cursor (which owns the keyboard) and
-	// under virtualization (whose rows unmount on scroll). The virtualized body
-	// keeps its legacy per-row static Tab stop instead (`rowStaticStop`).
+	// data cells (cell mode), for a grid that carries click handlers but no
+	// cursor: only under manual grouping, which stands the cursor down.
 	const roving = useGridRoving({
-		navigable: cursorEnabled,
-		virtualized,
+		cursor: cursorEnabled,
 		onRowClick: onRowClick != null,
 		onRowDoubleClick: onRowDoubleClick != null,
 		onCellClick: onCellClick != null,

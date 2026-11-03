@@ -1,12 +1,16 @@
-import { renderHook } from '@testing-library/react'
-import { createRef } from 'react'
+import { act, type ComponentProps, createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
-import { useGridRoving } from '../../modules/grid/use-grid-roving'
 import { fireEvent, renderUI, screen } from '../helpers'
 
-type Row = { id: number; name: string; role: string }
+type Row = {
+	id: number | string
+	name: string
+	role: string
+	/** Present on a group header row of the manual grouping. */
+	group?: { key: string; count: number }
+}
 
 const columns: GridColumn<Row>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name },
@@ -27,180 +31,65 @@ const bodyRows = (table: HTMLElement) =>
 const rovingCells = (table: HTMLElement) =>
 	Array.from(table.querySelectorAll<HTMLElement>('td[data-roving]'))
 
-describe('Grid row roving', () => {
-	it('seats a single Tab stop across the clickable rows', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={vi.fn()} />)
+/**
+ * The rows of a manual grouping: one group header with all three rows below
+ * it. Manual grouping stands the cursor down, so a click handler roves there.
+ */
+const manualRows: Row[] = [
+	{ id: 'g:all', name: 'All', role: '', group: { key: 'all', count: rows.length } },
+	...rows,
+]
 
-		// Exactly one resting stop (the first row); the rest are -1.
-		expect(bodyRows(screen.getByRole('table')).map((row) => row.tabIndex)).toEqual([0, -1, -1])
-	})
+const groupRow = (row: Row) =>
+	row.group ? { key: row.group.key, value: row.name, count: row.group.count } : null
 
-	it('moves focus with ArrowDown / ArrowUp, carrying the resting stop', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={vi.fn()} />)
+/** A grid that roves: the click handlers of `props` under manual grouping. */
+function renderRoving(props: Partial<ComponentProps<typeof Grid<Row>>>) {
+	return renderUI(
+		<Grid
+			columns={columns}
+			rows={manualRows}
+			getKey={getKey}
+			groupBy={{ manual: true, value: 'role', groupRow, expanded: new Set(['all']) }}
+			{...props}
+		/>,
+	)
+}
 
-		const table = screen.getByRole('table')
+describe('Grid click handlers', () => {
+	it.each(['onRowClick', 'onCellClick', 'onRowDoubleClick', 'onCellDoubleClick'])(
+		'turn the cursor on for %s: the grid is one tab stop',
+		(handler) => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} {...{ [handler]: vi.fn() }} />)
 
-		const rowEls = bodyRows(table)
+			const grid = screen.getByRole('grid')
 
-		rowEls[0]?.focus()
+			expect(grid).toHaveAttribute('tabindex', '0')
 
-		fireEvent.keyDown(table, { key: 'ArrowDown' })
-
-		expect(document.activeElement).toBe(rowEls[1])
-
-		// The roving hook carries the resting `tabIndex=0` to the focused row.
-		expect(rowEls.map((row) => row.tabIndex)).toEqual([-1, 0, -1])
-
-		fireEvent.keyDown(table, { key: 'ArrowUp' })
-
-		expect(document.activeElement).toBe(rowEls[0])
-	})
-
-	it('jumps to the last / first row with End / Home', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={vi.fn()} />)
-
-		const table = screen.getByRole('table')
-
-		const rowEls = bodyRows(table)
-
-		rowEls[0]?.focus()
-
-		fireEvent.keyDown(table, { key: 'End' })
-
-		expect(document.activeElement).toBe(rowEls[2])
-
-		fireEvent.keyDown(table, { key: 'Home' })
-
-		expect(document.activeElement).toBe(rowEls[0])
-	})
-
-	it('rings a clickable row with an inset focus ring (clip-safe)', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={vi.fn()} />)
-
-		// `focus.inset` (ring-inset), not the outset `focus.ring` the scroll wrapper clips.
-		expect(screen.getByText('Alice').closest('tr')?.className).toContain('ring-inset')
-	})
-
-	it('activates the focused row on Enter in a double-click-only grid', () => {
-		const onRowDoubleClick = vi.fn()
-
-		renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} onRowDoubleClick={onRowDoubleClick} />,
-		)
-
-		const rowEls = bodyRows(screen.getByRole('table'))
-
-		rowEls[1]?.focus()
-
-		fireEvent.keyDown(rowEls[1] as HTMLElement, { key: 'Enter' })
-
-		expect(onRowDoubleClick).toHaveBeenCalledOnce()
-
-		expect(onRowDoubleClick.mock.calls[0]?.[0]).toBe(rows[1])
-	})
-
-	it('leaves a Ctrl, Meta, or Alt chord on a roving row to the browser', () => {
-		const onRowClick = vi.fn()
-
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={onRowClick} />)
-
-		const row = bodyRows(screen.getByRole('table'))[0] as HTMLElement
-
-		row.focus()
-
-		for (const modifier of ['ctrlKey', 'metaKey', 'altKey']) {
-			expect(fireEvent.keyDown(row, { key: ' ', [modifier]: true })).toBe(true)
-		}
-
-		expect(onRowClick).not.toHaveBeenCalled()
-	})
-
-	it('marks a row data-clickable for any click or double-click handler', () => {
-		for (const handler of ['onRowClick', 'onCellClick', 'onRowDoubleClick', 'onCellDoubleClick']) {
-			const { unmount } = renderUI(
-				<Grid columns={columns} rows={rows} getKey={getKey} {...{ [handler]: vi.fn() }} />,
-			)
-
-			const rowEls = bodyRows(screen.getByRole('table'))
-
-			expect(rowEls.every((row) => row.hasAttribute('data-clickable'))).toBe(true)
-
-			unmount()
-		}
-	})
-
-	it('does not rove a grid with no click handler', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		const rowEls = bodyRows(screen.getByRole('table'))
-
-		expect(rowEls).toHaveLength(3)
-
-		expect(rowEls.every((row) => !row.hasAttribute('data-roving'))).toBe(true)
-
-		expect(rowEls.every((row) => row.tabIndex === -1)).toBe(true)
-	})
-})
-
-describe('Grid static row stop under virtualization', () => {
-	const roving = (handlers: { onRowClick: boolean; onRowDoubleClick: boolean }) =>
-		renderHook(() =>
-			useGridRoving({
-				navigable: false,
-				virtualized: true,
-				onCellClick: false,
-				onCellDoubleClick: false,
-				tableRef: createRef<HTMLTableElement>(),
-				dataColCount: 2,
-				...handlers,
-			}),
-		).result.current
-
-	it.for([
-		// Enter or Space on the row fires the double-click, so Tab must reach the row.
-		['only a double-click handler', false, true, true],
-		['a click handler', true, false, true],
-		['no row handler', false, false, false],
-	] as const)(
-		'sets the Tab stop of a row with %s',
-		([_name, onRowClick, onRowDoubleClick, stop]) => {
-			expect(roving({ onRowClick, onRowDoubleClick }).rowStaticStop).toBe(stop)
+			expect(grid.querySelectorAll('tbody [tabindex], [data-roving]')).toHaveLength(0)
 		},
 	)
-})
 
-describe('Grid cell roving', () => {
-	it('makes the data cells a single-tab-stop 2D roving group', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onCellClick={vi.fn()} />)
+	it('turns the cursor on for a virtualized grid', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				virtualize
+				maxHeight="200px"
+				onRowClick={vi.fn()}
+			/>,
+		)
 
-		const cells = rovingCells(screen.getByRole('table'))
+		expect(screen.getByRole('grid')).toHaveAttribute('tabindex', '0')
 
-		// 3 rows x 2 data columns; exactly one resting stop.
-		expect(cells).toHaveLength(6)
-
-		expect(cells.filter((c) => c.tabIndex === 0)).toHaveLength(1)
+		expect(
+			bodyRows(screen.getByRole('grid')).filter((row) => row.hasAttribute('tabindex')),
+		).toEqual([])
 	})
 
-	it('steps a column with Left/Right and a row with Up/Down', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onCellClick={vi.fn()} />)
-
-		const table = screen.getByRole('table')
-
-		const cells = rovingCells(table)
-
-		cells[0]?.focus()
-
-		fireEvent.keyDown(table, { key: 'ArrowRight' })
-
-		expect(document.activeElement).toBe(cells[1])
-
-		fireEvent.keyDown(table, { key: 'ArrowDown' })
-
-		// cols = 2, so Down from index 1 lands on index 3.
-		expect(document.activeElement).toBe(cells[3])
-	})
-
-	it('activates the focused cell on Enter — cell click then row click', () => {
+	it('fires the cell click then the row click on Enter', () => {
 		const order: string[] = []
 
 		const onCellClick = vi.fn((_cell: GridCellClickContext<Row>) => {
@@ -221,55 +110,16 @@ describe('Grid cell roving', () => {
 			/>,
 		)
 
-		const cells = rovingCells(screen.getByRole('table'))
+		const grid = screen.getByRole('grid')
 
-		// Third row's Role cell (row-major index 5: rows 0..2 x cols name,role).
-		cells[5]?.focus()
+		// Bob's Role cell.
+		fireEvent.mouseDown(screen.getAllByRole('gridcell', { name: 'User' })[0] as HTMLElement)
 
-		fireEvent.keyDown(cells[5] as HTMLElement, { key: 'Enter' })
+		fireEvent.keyDown(grid, { key: 'Enter' })
 
-		expect(onCellClick.mock.calls[0]?.[0]).toMatchObject({
-			columnId: 'role',
-			rowKey: 3,
-			value: 'User',
-		})
+		expect(onCellClick.mock.calls[0]?.[0]).toMatchObject({ columnId: 'role', rowKey: 2 })
 
 		expect(order).toEqual(['cell', 'row'])
-	})
-
-	it('takes precedence over row roving when both handlers are set', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				onCellClick={vi.fn()}
-				onRowClick={vi.fn()}
-			/>,
-		)
-
-		const table = screen.getByRole('table')
-
-		// Cell mode: the cells are the roving items, the rows are not.
-		expect(rovingCells(table).length).toBe(6)
-
-		const rowEls = bodyRows(table)
-
-		expect(rowEls).toHaveLength(3)
-
-		expect(rowEls.every((row) => !row.hasAttribute('data-roving'))).toBe(true)
-	})
-
-	it('rings a rovable cell with an inset focus ring', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onCellClick={vi.fn()} />)
-
-		expect(screen.getByText('Alice').closest('td')?.className).toContain('ring-inset')
-	})
-
-	it('makes cells rovable for a double-click-only grid', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onCellDoubleClick={vi.fn()} />)
-
-		expect(rovingCells(screen.getByRole('table'))).toHaveLength(6)
 	})
 
 	it('fires the double-click pair on Enter in a double-click-only grid', () => {
@@ -293,13 +143,13 @@ describe('Grid cell roving', () => {
 			/>,
 		)
 
-		const cells = rovingCells(screen.getByRole('table'))
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Bob' }))
 
-		cells[1]?.focus()
+		fireEvent.keyDown(screen.getByRole('grid'), { key: 'Enter' })
 
-		fireEvent.keyDown(cells[1] as HTMLElement, { key: 'Enter' })
+		expect(onCellDoubleClick.mock.calls[0]?.[0]).toMatchObject({ columnId: 'name', rowKey: 2 })
 
-		expect(onCellDoubleClick.mock.calls[0]?.[0]).toMatchObject({ columnId: 'role', rowKey: 1 })
+		expect(onRowDoubleClick.mock.calls[0]?.[0]).toBe(rows[1])
 
 		expect(order).toEqual(['cell', 'row'])
 	})
@@ -319,75 +169,44 @@ describe('Grid cell roving', () => {
 			/>,
 		)
 
-		const cells = rovingCells(screen.getByRole('table'))
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Alice' }))
 
-		cells[0]?.focus()
-
-		fireEvent.keyDown(cells[0] as HTMLElement, { key: 'Enter' })
+		fireEvent.keyDown(screen.getByRole('grid'), { key: 'Enter' })
 
 		expect(onCellClick).toHaveBeenCalledOnce()
 
 		expect(onCellDoubleClick).not.toHaveBeenCalled()
 	})
 
-	it('leaves a Ctrl, Meta, or Alt chord on a roving cell to the browser', () => {
-		const onCellClick = vi.fn()
+	it('marks a row data-clickable for any click or double-click handler', () => {
+		for (const handler of ['onRowClick', 'onCellClick', 'onRowDoubleClick', 'onCellDoubleClick']) {
+			const { unmount } = renderUI(
+				<Grid columns={columns} rows={rows} getKey={getKey} {...{ [handler]: vi.fn() }} />,
+			)
 
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onCellClick={onCellClick} />)
+			const rowEls = bodyRows(screen.getByRole('grid'))
 
-		const cell = rovingCells(screen.getByRole('table'))[0] as HTMLElement
+			expect(rowEls.every((row) => row.hasAttribute('data-clickable'))).toBe(true)
 
-		cell.focus()
-
-		for (const modifier of ['ctrlKey', 'metaKey', 'altKey']) {
-			expect(fireEvent.keyDown(cell, { key: 'Enter', [modifier]: true })).toBe(true)
+			unmount()
 		}
-
-		expect(onCellClick).not.toHaveBeenCalled()
 	})
 
-	it('stands down under the navigable cursor (which owns the keyboard)', () => {
-		renderUI(<Grid navigable columns={columns} rows={rows} getKey={getKey} onCellClick={vi.fn()} />)
+	it('leaves a grid with no click handler a plain table', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		// The cursor is the single tab stop; no cell marks itself a roving item.
-		expect(rovingCells(screen.getByRole('grid'))).toHaveLength(0)
-	})
-})
+		const rowEls = bodyRows(screen.getByRole('table'))
 
-describe('Grid grouped-body roving', () => {
-	it('roves the data cells of a grouped grid', () => {
-		const onCellClick = vi.fn()
+		expect(rowEls).toHaveLength(3)
 
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				groupBy={{ value: 'role' }}
-				onCellClick={onCellClick}
-			/>,
-		)
+		expect(rowEls.every((row) => !row.hasAttribute('data-roving'))).toBe(true)
 
-		const table = screen.getByRole('table')
-
-		// Only the expanded leaves' data cells are roving items.
-		const cells = rovingCells(table)
-
-		expect(cells.length).toBeGreaterThan(0)
-
-		expect(cells.filter((c) => c.tabIndex === 0)).toHaveLength(1)
-
-		cells[0]?.focus()
-
-		fireEvent.keyDown(cells[0] as HTMLElement, { key: 'Enter' })
-
-		expect(onCellClick).toHaveBeenCalledTimes(1)
+		expect(rowEls.every((row) => row.tabIndex === -1)).toBe(true)
 	})
 
-	it('keeps a clickable leaf out of the Tab order under the navigable cursor', () => {
+	it('keeps a clickable leaf of a client grouping out of the Tab order', () => {
 		const { container } = renderUI(
 			<Grid
-				navigable
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
@@ -407,11 +226,268 @@ describe('Grid grouped-body roving', () => {
 	})
 })
 
-describe("Grid cell roving with a column's own key handler", () => {
+describe('Grid row roving under manual grouping', () => {
+	it('seats a single Tab stop across the clickable rows', () => {
+		renderRoving({ onRowClick: vi.fn() })
+
+		// Exactly one resting stop (the first row); the rest are -1.
+		expect(bodyRows(screen.getByRole('table')).map((row) => row.tabIndex)).toEqual([0, -1, -1])
+	})
+
+	it('moves focus with ArrowDown / ArrowUp, carrying the resting stop', () => {
+		renderRoving({ onRowClick: vi.fn() })
+
+		const table = screen.getByRole('table')
+
+		const rowEls = bodyRows(table)
+
+		rowEls[0]?.focus()
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(rowEls[1])
+
+		// The roving hook carries the resting `tabIndex=0` to the focused row.
+		expect(rowEls.map((row) => row.tabIndex)).toEqual([-1, 0, -1])
+
+		fireEvent.keyDown(table, { key: 'ArrowUp' })
+
+		expect(document.activeElement).toBe(rowEls[0])
+	})
+
+	it('jumps to the last / first row with End / Home', () => {
+		renderRoving({ onRowClick: vi.fn() })
+
+		const table = screen.getByRole('table')
+
+		const rowEls = bodyRows(table)
+
+		rowEls[0]?.focus()
+
+		fireEvent.keyDown(table, { key: 'End' })
+
+		expect(document.activeElement).toBe(rowEls[2])
+
+		fireEvent.keyDown(table, { key: 'Home' })
+
+		expect(document.activeElement).toBe(rowEls[0])
+	})
+
+	it('rings a clickable row with an inset focus ring (clip-safe)', () => {
+		renderRoving({ onRowClick: vi.fn() })
+
+		// `focus.inset` (ring-inset), not the outset `focus.ring` the scroll wrapper clips.
+		expect(screen.getByText('Alice').closest('tr')?.className).toContain('ring-inset')
+	})
+
+	it('activates the focused row on Enter in a double-click-only grid', () => {
+		const onRowDoubleClick = vi.fn()
+
+		renderRoving({ onRowDoubleClick })
+
+		const rowEls = bodyRows(screen.getByRole('table'))
+
+		rowEls[1]?.focus()
+
+		fireEvent.keyDown(rowEls[1] as HTMLElement, { key: 'Enter' })
+
+		expect(onRowDoubleClick).toHaveBeenCalledOnce()
+
+		expect(onRowDoubleClick.mock.calls[0]?.[0]).toBe(rows[1])
+	})
+
+	it('leaves a Ctrl, Meta, or Alt chord on a roving row to the browser', () => {
+		const onRowClick = vi.fn()
+
+		renderRoving({ onRowClick })
+
+		const row = bodyRows(screen.getByRole('table'))[0] as HTMLElement
+
+		row.focus()
+
+		for (const modifier of ['ctrlKey', 'metaKey', 'altKey']) {
+			expect(fireEvent.keyDown(row, { key: ' ', [modifier]: true })).toBe(true)
+		}
+
+		expect(onRowClick).not.toHaveBeenCalled()
+	})
+})
+
+describe('Grid tab stops under roving', () => {
+	const withButton: GridColumn<Row>[] = [
+		...columns,
+		{ id: 'actions', actions: (row) => <Button>Edit {row.name}</Button> },
+	]
+
+	it('takes the controls of the rows out of the tab order', () => {
+		renderRoving({ columns: withButton, onRowClick: vi.fn() })
+
+		expect(screen.getByRole('button', { name: 'Edit Alice' })).toHaveAttribute('tabindex', '-1')
+	})
+
 	it.each([
-		['a flat row', {}],
-		['a group leaf', { groupBy: { value: 'role' } }],
-	] as const)('runs the handler of cellProps in %s, and lets it keep the key', (_name, props) => {
+		['the roved row', 'onRowClick', (text: string) => screen.getByText(text).closest('tr')],
+		['a roved cell', 'onCellClick', (text: string) => screen.getByText(text).closest('td')],
+	] as const)('opens the row of %s to Tab', (_name, handler, item) => {
+		renderRoving({ columns: withButton, [handler]: vi.fn() })
+
+		act(() => item('Alice')?.focus())
+
+		fireEvent.keyDown(screen.getByRole('table'), { key: 'ArrowDown' })
+
+		expect(item('Bob')).toHaveFocus()
+
+		expect(screen.getByRole('button', { name: 'Edit Bob' })).not.toHaveAttribute('tabindex')
+
+		expect(screen.getByRole('button', { name: 'Edit Alice' })).toHaveAttribute('tabindex', '-1')
+
+		// The roving hook keeps its own Tab stop on the item.
+		expect(item('Bob')).toHaveAttribute('tabindex', '0')
+	})
+})
+
+describe('Grid cell roving under manual grouping', () => {
+	it('makes the data cells a single-tab-stop 2D roving group', () => {
+		renderRoving({ onCellClick: vi.fn() })
+
+		const cells = rovingCells(screen.getByRole('table'))
+
+		// 3 rows x 2 data columns; exactly one resting stop.
+		expect(cells).toHaveLength(6)
+
+		expect(cells.filter((c) => c.tabIndex === 0)).toHaveLength(1)
+	})
+
+	it('steps a column with Left/Right and a row with Up/Down', () => {
+		renderRoving({ onCellClick: vi.fn() })
+
+		const table = screen.getByRole('table')
+
+		const cells = rovingCells(table)
+
+		cells[0]?.focus()
+
+		fireEvent.keyDown(table, { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(cells[1])
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		// cols = 2, so Down from index 1 lands on index 3.
+		expect(document.activeElement).toBe(cells[3])
+	})
+
+	it('activates the focused cell on Enter: cell click then row click', () => {
+		const order: string[] = []
+
+		const onCellClick = vi.fn((_cell: GridCellClickContext<Row>) => {
+			order.push('cell')
+		})
+
+		const onRowClick = vi.fn((_row: Row) => {
+			order.push('row')
+		})
+
+		renderRoving({ onCellClick, onRowClick })
+
+		const cells = rovingCells(screen.getByRole('table'))
+
+		// Third row's Role cell (row-major index 5: rows 0..2 x cols name,role).
+		cells[5]?.focus()
+
+		fireEvent.keyDown(cells[5] as HTMLElement, { key: 'Enter' })
+
+		expect(onCellClick.mock.calls[0]?.[0]).toMatchObject({
+			columnId: 'role',
+			rowKey: 3,
+			value: 'User',
+		})
+
+		expect(order).toEqual(['cell', 'row'])
+	})
+
+	it('takes precedence over row roving when both handlers are set', () => {
+		renderRoving({ onCellClick: vi.fn(), onRowClick: vi.fn() })
+
+		const table = screen.getByRole('table')
+
+		// Cell mode: the cells are the roving items, the rows are not.
+		expect(rovingCells(table).length).toBe(6)
+
+		const rowEls = bodyRows(table)
+
+		expect(rowEls).toHaveLength(3)
+
+		expect(rowEls.every((row) => !row.hasAttribute('data-roving'))).toBe(true)
+	})
+
+	it('rings a rovable cell with an inset focus ring', () => {
+		renderRoving({ onCellClick: vi.fn() })
+
+		expect(screen.getByText('Alice').closest('td')?.className).toContain('ring-inset')
+	})
+
+	it('fires the double-click pair on Enter in a double-click-only grid', () => {
+		const order: string[] = []
+
+		const onCellDoubleClick = vi.fn((_cell: GridCellClickContext<Row>) => {
+			order.push('cell')
+		})
+
+		const onRowDoubleClick = vi.fn((_row: Row) => {
+			order.push('row')
+		})
+
+		renderRoving({ onCellDoubleClick, onRowDoubleClick })
+
+		const cells = rovingCells(screen.getByRole('table'))
+
+		expect(cells).toHaveLength(6)
+
+		cells[1]?.focus()
+
+		fireEvent.keyDown(cells[1] as HTMLElement, { key: 'Enter' })
+
+		expect(onCellDoubleClick.mock.calls[0]?.[0]).toMatchObject({ columnId: 'role', rowKey: 1 })
+
+		expect(order).toEqual(['cell', 'row'])
+	})
+
+	it('keeps Enter on the click handler when the grid also has a double-click handler', () => {
+		const onCellClick = vi.fn()
+
+		const onCellDoubleClick = vi.fn()
+
+		renderRoving({ onCellClick, onCellDoubleClick })
+
+		const cells = rovingCells(screen.getByRole('table'))
+
+		cells[0]?.focus()
+
+		fireEvent.keyDown(cells[0] as HTMLElement, { key: 'Enter' })
+
+		expect(onCellClick).toHaveBeenCalledOnce()
+
+		expect(onCellDoubleClick).not.toHaveBeenCalled()
+	})
+
+	it('leaves a Ctrl, Meta, or Alt chord on a roving cell to the browser', () => {
+		const onCellClick = vi.fn()
+
+		renderRoving({ onCellClick })
+
+		const cell = rovingCells(screen.getByRole('table'))[0] as HTMLElement
+
+		cell.focus()
+
+		for (const modifier of ['ctrlKey', 'metaKey', 'altKey']) {
+			expect(fireEvent.keyDown(cell, { key: 'Enter', [modifier]: true })).toBe(true)
+		}
+
+		expect(onCellClick).not.toHaveBeenCalled()
+	})
+
+	it("runs the handler of a column's cellProps, and lets it keep the key", () => {
 		const onKeyDown = vi.fn((event: { key: string; preventDefault: () => void }) => {
 			if (event.key === ' ') event.preventDefault()
 		})
@@ -423,9 +499,7 @@ describe("Grid cell roving with a column's own key handler", () => {
 			columns[1] as GridColumn<Row>,
 		]
 
-		const { container } = renderUI(
-			<Grid columns={keyed} rows={rows} getKey={getKey} onCellClick={onCellClick} {...props} />,
-		)
+		const { container } = renderRoving({ columns: keyed, onCellClick })
 
 		const cell = container.querySelector<HTMLElement>('td[data-roving][data-grid-col="name"]')
 
@@ -442,30 +516,43 @@ describe("Grid cell roving with a column's own key handler", () => {
 
 		expect(onCellClick).toHaveBeenCalledTimes(1)
 	})
+
+	it('does not activate the cell when Enter lands on inner interactive content', () => {
+		const onCellClick = vi.fn()
+
+		renderRoving({
+			columns: [
+				columns[0] as GridColumn<Row>,
+				{ id: 'action', title: 'Action', cell: (row) => <Button>Edit {row.name}</Button> },
+			],
+			onCellClick,
+		})
+
+		const button = screen.getByRole('button', { name: 'Edit Alice' })
+
+		fireEvent.keyDown(button, { key: 'Enter' })
+
+		expect(onCellClick).not.toHaveBeenCalled()
+	})
 })
 
 describe("Grid table props beside the grid's own keyboard", () => {
 	it.each([
-		['row roving', { onRowClick: vi.fn() }],
-		['the navigable cursor', { navigable: true }],
-	] as const)("keeps the caller's ref and runs the caller's handlers under %s", (_name, props) => {
+		['row roving', true],
+		['the cursor', false],
+	] as const)("keeps the caller's ref and runs the caller's handlers under %s", (_name, roving) => {
 		const ref = createRef<HTMLTableElement>()
 
 		const onKeyDown = vi.fn()
 
 		const onFocus = vi.fn()
 
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				tableProps={{ ref, onKeyDown, onFocus }}
-				{...props}
-			/>,
-		)
+		const props = { tableProps: { ref, onKeyDown, onFocus }, onRowClick: vi.fn() }
 
-		const table = screen.getByRole('navigable' in props ? 'grid' : 'table')
+		if (roving) renderRoving(props)
+		else renderUI(<Grid columns={columns} rows={rows} getKey={getKey} {...props} />)
+
+		const table = screen.getByRole(roving ? 'table' : 'grid')
 
 		expect(ref.current).toBe(table)
 
@@ -476,106 +563,5 @@ describe("Grid table props beside the grid's own keyboard", () => {
 		expect(onFocus).toHaveBeenCalledTimes(1)
 
 		expect(onKeyDown).toHaveBeenCalledTimes(1)
-	})
-})
-
-describe('Grid roving interactive-content deference', () => {
-	const withButton: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', cell: (row) => row.name },
-		{ id: 'action', title: 'Action', cell: (row) => <Button>Edit {row.name}</Button> },
-	]
-
-	it('does not activate the cell when Enter lands on inner interactive content', () => {
-		const onCellClick = vi.fn()
-
-		renderUI(<Grid columns={withButton} rows={rows} getKey={getKey} onCellClick={onCellClick} />)
-
-		const button = screen.getByRole('button', { name: 'Edit Alice' })
-
-		fireEvent.keyDown(button, { key: 'Enter' })
-
-		expect(onCellClick).not.toHaveBeenCalled()
-	})
-})
-
-describe('Grid roving beside a nested grid in a detail panel', () => {
-	type Task = { id: number; title: string }
-
-	const makeTasks = (row: Row): Task[] =>
-		['A', 'B', 'C'].map((letter, i) => ({ id: i + 1, title: `${row.name} task ${letter}` }))
-
-	const taskColumns: GridColumn<Task>[] = [{ id: 'title', title: 'Title', cell: (t) => t.title }]
-
-	const masterColumns: GridColumn<Row>[] = [{ id: 'expand', expander: true }, ...columns]
-
-	const OPEN = new Set([1])
-
-	const CLOSED = new Set<number>()
-
-	const renderNested = (handler: 'onRowClick' | 'onCellClick', open: Set<number>) =>
-		renderUI(
-			<Grid
-				columns={masterColumns}
-				rows={rows}
-				getKey={getKey}
-				{...{ [handler]: vi.fn() }}
-				expandable={{
-					render: (row) => (
-						<Grid
-							columns={taskColumns}
-							rows={makeTasks(row)}
-							getKey={(t) => t.id}
-							{...{ [handler]: vi.fn() }}
-						/>
-					),
-					defaultValue: open,
-				}}
-			/>,
-		)
-
-	const getRow = (text: string) => screen.getByText(text).closest('tr') as HTMLElement
-
-	const getCell = (text: string) => screen.getByText(text).closest('td') as HTMLElement
-
-	it('seats the Tab stop of the outer grid on its own first row past an open panel', () => {
-		renderNested('onRowClick', OPEN)
-
-		expect(getRow('Alice')).toHaveAttribute('tabindex', '0')
-	})
-
-	it.each([
-		['an open panel', OPEN],
-		['a closed panel', CLOSED],
-	])('moves ArrowDown from an outer row to the next outer row past %s', (_name, open) => {
-		renderNested('onRowClick', open)
-
-		getRow('Alice').focus()
-
-		fireEvent.keyDown(getRow('Alice'), { key: 'ArrowDown' })
-
-		expect(document.activeElement).toBe(getRow('Bob'))
-	})
-
-	it.each([
-		['an open panel', OPEN],
-		['a closed panel', CLOSED],
-	])('moves ArrowDown from an outer cell to the cell below it past %s', (_name, open) => {
-		renderNested('onCellClick', open)
-
-		getCell('Alice').focus()
-
-		fireEvent.keyDown(getCell('Alice'), { key: 'ArrowDown' })
-
-		expect(document.activeElement).toBe(getCell('Bob'))
-	})
-
-	it('moves ArrowDown in the nested grid by one row only', () => {
-		renderNested('onRowClick', OPEN)
-
-		getRow('Alice task A').focus()
-
-		fireEvent.keyDown(getRow('Alice task A'), { key: 'ArrowDown' })
-
-		expect(document.activeElement).toBe(getRow('Alice task B'))
 	})
 })

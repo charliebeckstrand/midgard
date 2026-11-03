@@ -419,17 +419,38 @@ export function resolveSemantics(
  */
 export function resolveHover<T>(
 	hover: boolean | undefined,
-	handlers: {
-		onRowClick: GridRowClick<T> | undefined
-		onCellClick: GridCellClick<T> | undefined
-		onRowDoubleClick: GridRowClick<T> | undefined
-		onCellDoubleClick: GridCellClick<T> | undefined
-	},
+	handlers: GridClickHandlers<T>,
 	resizing: boolean,
 ): boolean {
-	const clickable = Object.values(handlers).some((handler) => handler != null)
+	return (hover === true || isClickable(handlers)) && !resizing
+}
 
-	return (hover === true || clickable) && !resizing
+/** The row- and cell-level click handlers of a grid. @internal */
+type GridClickHandlers<T> = {
+	onRowClick: GridRowClick<T> | undefined
+	onCellClick: GridCellClick<T> | undefined
+	onRowDoubleClick: GridRowClick<T> | undefined
+	onCellDoubleClick: GridCellClick<T> | undefined
+}
+
+/** Whether the grid is clickable: any of its click `handlers` is set. */
+function isClickable<T>(handlers: GridClickHandlers<T>): boolean {
+	return Object.values(handlers).some((handler) => handler != null)
+}
+
+/**
+ * Whether the grid asks for the keyboard cursor, before the grouping gates:
+ * `navigable`, or a clickable grid, whose Enter or Space then fires the click
+ * `handlers` (see `GridDataProps.navigable`). Split out of {@link GridData}
+ * for its complexity budget.
+ *
+ * @internal
+ */
+export function resolveCursorRequest<T>(
+	navigable: boolean,
+	handlers: GridClickHandlers<T>,
+): boolean {
+	return navigable || isClickable(handlers)
 }
 
 /**

@@ -103,7 +103,6 @@ type GridDataTableProps<T> = {
 		| 'gridSemantics'
 		| 'rowIndexOffset'
 		| 'rowRoving'
-		| 'rowStaticStop'
 		| 'cellRoving'
 	>
 	/** The new-row slot: where it renders, its Add control, and the measure of that control. */
@@ -222,7 +221,6 @@ export function GridDataTable<T>({
 					gridSemantics={semantics.enabled}
 					rowIndexOffset={semantics.rowIndexOffset}
 					rowRoving={roving.rovingRows}
-					rowStaticStop={roving.rowStaticStop}
 					cellRoving={roving.rovingCells}
 				/>
 

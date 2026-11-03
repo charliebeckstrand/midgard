@@ -14,9 +14,13 @@ import { entryScope, GRID_CELL_ATTR, pinControls, unpinControls } from './engine
  * listbox, because the surface gives focus back to that control. The open part
  * then stays as it is.
  */
-function scopeFor(target: EventTarget | null, table: HTMLTableElement): Element | null | undefined {
+function scopeFor(
+	target: EventTarget | null,
+	table: HTMLTableElement,
+	unit: string,
+): Element | null | undefined {
 	if (target instanceof Element && table.contains(target)) {
-		return target === table ? null : entryScope(target, table)
+		return target === table ? null : entryScope(target, table, unit)
 	}
 
 	const portal = closestFloatingPortal(target)
@@ -25,31 +29,34 @@ function scopeFor(target: EventTarget | null, table: HTMLTableElement): Element 
 }
 
 /**
- * Keeps a grid with a keyboard cursor one tab stop: its `<table>`. The
- * controls in the cells of the cursor leave the tab order (see
- * {@link pinControls}), so Tab and Shift+Tab leave the grid in one press. The
- * cursor reaches each cell, and Enter or F2 moves focus to the controls of the
- * active cell (see `useGridNavigation`).
+ * Keeps a grid one tab stop. The controls in each part of the grid that
+ * `unit` selects leave the tab order (see {@link pinControls}), so Tab and
+ * Shift+Tab leave the grid in one press. The part is a cell of the keyboard
+ * cursor (`GRID_CELL`), whose tab stop is the `<table>`. The cursor
+ * reaches each cell, and Enter or F2 moves focus to the controls of the active
+ * cell (see `useGridNavigation`). Else the part is a data row of a roving grid
+ * (`GRID_ROW`), whose tab stop is the roved row or cell (see
+ * `useGridRoving`). `null` turns the walk off.
  *
- * The cell that holds focus keeps its controls in the tab order, so Tab moves
+ * The part that holds focus keeps its controls in the tab order, so Tab moves
  * through them, and from the last one out of the grid. Focus in a floating
  * surface that a control of the grid opened, such as the panel of a listbox,
- * keeps that cell open to Tab, because the surface gives focus back to it.
- * Any other move of focus out of the grid closes the cell.
+ * keeps that part open to Tab, because the surface gives focus back to it.
+ * Any other move of focus out of the grid closes the part.
  *
- * The walk runs again when the cells or their controls change, as rows mount
+ * The walk runs again when the parts or their controls change, as rows mount
  * or a control swaps for another.
  *
  * @internal
  */
 export function useGridTabStops(
 	tableRef: RefObject<HTMLTableElement | null>,
-	enabled: boolean,
+	unit: string | null,
 ): void {
 	useEffect(() => {
 		const table = tableRef.current
 
-		if (!enabled || !table) return
+		if (unit === null || !table) return
 
 		// The part of the grid that is open to Tab: the cell that holds focus, or
 		// the row of the new-row slot. `null` while the grid's own tab stop, or
@@ -59,7 +66,7 @@ export function useGridTabStops(
 		// The walk writes only the attributes that differ, and it drops the records
 		// of its own writes, so they start no second walk.
 		const normalize = (watcher: MutationObserver) => {
-			pinControls(table, entered)
+			pinControls(table, entered, unit)
 
 			watcher.takeRecords()
 		}
@@ -67,7 +74,7 @@ export function useGridTabStops(
 		const observer = new MutationObserver((_records, self) => normalize(self))
 
 		const follow = (target: EventTarget | null) => {
-			const next = scopeFor(target, table)
+			const next = scopeFor(target, table, unit)
 
 			if (next === undefined || next === entered) return
 
@@ -107,7 +114,7 @@ export function useGridTabStops(
 
 			table.removeEventListener('focusout', onFocusOut)
 
-			unpinControls(table)
+			unpinControls(table, unit)
 		}
-	}, [tableRef, enabled])
+	}, [tableRef, unit])
 }

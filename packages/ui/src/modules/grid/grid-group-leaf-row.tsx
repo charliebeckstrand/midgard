@@ -71,8 +71,6 @@ type GridGroupLeafRowProps<T> = {
 	onCellDoubleClick?: GridCellClick<T>
 	/** Whether the leaf row is a roving-tabindex item (row-mode keyboard nav). @defaultValue false */
 	rowRoving?: boolean
-	/** Whether a clickable leaf is a static Tab stop (see {@link GridRowsProps.rowStaticStop}). @defaultValue false */
-	rowStaticStop?: boolean
 	/** Whether the leaf's data cells are roving-tabindex items (cell-mode keyboard nav). @defaultValue false */
 	cellRoving?: boolean
 	/** Stable focused-cell activation for cell roving (see {@link GridRowsProps.cellActivate}). */
@@ -281,7 +279,6 @@ function GridGroupLeafRowImpl<T>({
 	onRowDoubleClick,
 	onCellDoubleClick,
 	rowRoving = false,
-	rowStaticStop = false,
 	cellRoving = false,
 	cellActivate,
 	truncate,
@@ -300,9 +297,6 @@ function GridGroupLeafRowImpl<T>({
 	// leaves stop riding the visible commit. A windowed leaf that enters mounts
 	// at the closed track and opens over the transition.
 	const reveal = useGridRevealHold(expanded, enter)
-
-	// A leaf is a Tab stop by the rule of the flat row, and only while it shows.
-	const staticStop = rowStaticStop && expanded
 
 	return (
 		<MountHold hold={reveal.hold} name="grid-group-leaf-row">
@@ -333,7 +327,6 @@ function GridGroupLeafRowImpl<T>({
 				data-row-index={rowIndex}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
-				tabIndex={staticStop ? 0 : undefined}
 				// As on a flat row (see `GridRow`).
 				className={cn(
 					loading && k.row.loading,
@@ -409,7 +402,6 @@ export function leafRowProps<T>(
 		onRowDoubleClick: props.onRowDoubleClick,
 		onCellDoubleClick: props.onCellDoubleClick,
 		rowRoving: props.rowRoving,
-		rowStaticStop: props.rowStaticStop,
 		cellRoving: props.cellRoving,
 		cellActivate: props.cellActivate,
 		truncate: props.truncate,

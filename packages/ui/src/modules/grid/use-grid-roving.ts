@@ -3,6 +3,8 @@
 import type { RefObject } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import { GRID_ROW } from './engine/grid-cell-controls'
+import { useGridTabStops } from './use-grid-tab-stops'
 
 /**
  * Which set of elements the grid roves keyboard focus over, resolved from the
@@ -13,8 +15,7 @@ import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
  *   - `cell`  the data cells are the roving items: the same single-tab-stop
  *             model, but two-dimensional (Up/Down/Left/Right) since a cell click
  *             addresses a cell.
- *   - `none`  no row roving: the grid carries the {@link GridDataProps.navigable}
- *             cursor, is virtualized (rows unmount on scroll), or has no click
+ *   - `none`  no roving: the grid carries the keyboard cursor, or has no click
  *             handler at all.
  *
  * @internal
@@ -39,18 +40,21 @@ const ROW_ITEM_SELECTOR = ':scope > tbody > tr[data-grid-row][data-roving]:not([
 const CELL_ITEM_SELECTOR = ':scope > tbody > tr[data-grid-row]:not([inert]) > td[data-roving]'
 
 /**
- * Resolves and wires the grid's roving-tabindex keyboard navigation over its
- * rows or data cells. A clickable grid (any row- or cell-level click handler)
- * that doesn't carry the {@link GridDataProps.navigable} cursor becomes a single
- * Tab stop. Its active row/cell moves with the arrow keys. Cell handlers rove
- * the data cells (two-dimensional, addressed by `dataColCount`), else row
- * handlers rove the rows. Layers `useA11yRoving` (focus mode, single-tab-stop
- * ownership) over the grid `<table>`; the rows/cells mark themselves
- * `data-roving`, and the hook owns their `tabIndex`.
+ * Resolves and wires the roving-tabindex keyboard navigation of a clickable
+ * grid that has no keyboard cursor. A click handler turns the cursor on, so
+ * this runs only where the cursor stands down: under manual grouping (see
+ * `resolveGroupingGates`). Manual grouping never windows its rows, so each
+ * roving item stays mounted.
  *
- * Stands down (`mode: 'none'`) under the navigable cursor, which owns the
- * keyboard itself. It also stands down under virtualization, whose rows unmount
- * as the window scrolls, so a roved focus could land on an unmounted row.
+ * The grid is one Tab stop: the roved row or cell. Its active item moves with
+ * the arrow keys. Cell handlers rove the data cells (two-dimensional, addressed
+ * by `dataColCount`), else row handlers rove the rows. Layers `useA11yRoving`
+ * (focus mode, single-tab-stop ownership) over the grid `<table>`. The rows or
+ * cells mark themselves `data-roving`, and the hook owns their `tabIndex`.
+ *
+ * The controls in the data rows leave the tab order, except in the row that
+ * holds focus (see `useGridTabStops`). Tab from the roved item thus moves
+ * through the controls of its row, and from the last one out of the grid.
  *
  * @returns The resolved {@link GridRovingMode} and the `onKeyDown` to attach to
  * the `<table>`, undefined when inactive. It reads items from `tableRef` on
@@ -58,8 +62,7 @@ const CELL_ITEM_SELECTOR = ':scope > tbody > tr[data-grid-row]:not([inert]) > td
  * @internal
  */
 export function useGridRoving({
-	navigable,
-	virtualized,
+	cursor,
 	onRowClick,
 	onRowDoubleClick,
 	onCellClick,
@@ -67,17 +70,11 @@ export function useGridRoving({
 	tableRef,
 	dataColCount,
 }: {
-	/** Whether the navigable cell cursor is active; it owns the keyboard, so roving stands down. */
-	navigable: boolean
-	/** Whether the body is virtualized; its rows unmount on scroll, so roving stands down. */
-	virtualized: boolean
-	/** Whether `onRowClick` is set; single-click activation and the virtualized body's legacy static Tab stop. */
+	/** Whether the keyboard cursor is on; it owns the keyboard, so roving stands down. */
+	cursor: boolean
+	/** Whether `onRowClick` is set. */
 	onRowClick: boolean
-	/**
-	 * Whether `onRowDoubleClick` is set. It also earns the virtualized body's
-	 * legacy static Tab stop, because Enter or Space on the row fires it when no
-	 * `onRowClick` is set.
-	 */
+	/** Whether `onRowDoubleClick` is set; Enter or Space on the row fires it when no `onRowClick` is set. */
 	onRowDoubleClick: boolean
 	/** Whether `onCellClick` is set; cell handlers take precedence over row handlers. */
 	onCellClick: boolean
@@ -92,8 +89,6 @@ export function useGridRoving({
 	rovingRows: boolean
 	/** Whether the data cells are roving items (cell mode). */
 	rovingCells: boolean
-	/** Whether each clickable row is the virtualized body's legacy static Tab stop (roving stands down there). */
-	rowStaticStop: boolean
 	/**
 	 * The arrow-key handler to merge onto the `<table>`, or `undefined` when
 	 * roving is inactive. The table carries `tableRef` through the grid's
@@ -105,8 +100,13 @@ export function useGridRoving({
 
 	const hasCellClick = onCellClick || onCellDoubleClick
 
-	const mode: GridRovingMode =
-		navigable || virtualized ? 'none' : hasCellClick ? 'cell' : hasRowClick ? 'row' : 'none'
+	const mode: GridRovingMode = cursor
+		? 'none'
+		: hasCellClick
+			? 'cell'
+			: hasRowClick
+				? 'row'
+				: 'none'
 
 	const cellMode = mode === 'cell'
 
@@ -122,13 +122,12 @@ export function useGridRoving({
 		manageTabIndex: mode !== 'none',
 	})
 
+	// The controls in the data rows leave the tab order, so the grid is one tab stop.
+	useGridTabStops(tableRef, mode === 'none' ? null : GRID_ROW)
+
 	return {
 		rovingRows: mode === 'row',
 		rovingCells: cellMode,
-		// The legacy per-row Tab stop the virtualized body keeps, where roving
-		// stands down but a clickable row must stay reachable by Tab. A row handler
-		// earns it, because the row fires its click, else its double-click, on Enter.
-		rowStaticStop: hasRowClick && virtualized && !navigable,
 		tableProps: mode === 'none' ? undefined : { onKeyDown: rovingKeyDown },
 	}
 }

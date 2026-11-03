@@ -61,22 +61,17 @@ export type GridRowsProps<T> = {
 	/** Stable data-cell double-click handler, fired ahead of {@link GridRowsProps.onRowDoubleClick}. */
 	onCellDoubleClick?: GridCellClick<T>
 	/**
-	 * Whether the rows are roving-tabindex items (row-mode keyboard navigation):
-	 * each marks itself `data-roving` and lets the grid's roving hook own its
-	 * `tabIndex`. @defaultValue false
+	 * Whether the leaves of a manually grouped grid are roving-tabindex items
+	 * (row-mode keyboard navigation): each marks itself `data-roving` and lets
+	 * the grid's roving hook own its `tabIndex`. A flat row never roves,
+	 * because a click handler turns the cursor on. @defaultValue false
 	 */
 	rowRoving?: boolean
 	/**
-	 * Whether each clickable row is a static Tab stop (`tabIndex=0`): the legacy
-	 * per-row model kept for the virtualized body, where roving stands down.
-	 * @defaultValue false
-	 */
-	rowStaticStop?: boolean
-	/**
-	 * Whether the data cells are roving-tabindex items (cell-mode keyboard
-	 * navigation): each marks itself `data-roving`, takes the focus ring, and
-	 * activates on Enter / Space through {@link GridRowsProps.cellActivate}.
-	 * @defaultValue false
+	 * Whether the data cells of the leaves of a manually grouped grid are
+	 * roving-tabindex items (cell-mode keyboard navigation): each marks itself
+	 * `data-roving`, takes the focus ring, and activates on Enter / Space
+	 * through {@link GridRowsProps.cellActivate}. @defaultValue false
 	 */
 	cellRoving?: boolean
 	/** Stable focused-cell activation for cell roving: the cell click then the row click, matching a pointer click. */
@@ -167,10 +162,6 @@ export function renderRow<T>(
 		onCellClick: props.onCellClick,
 		onRowDoubleClick: props.onRowDoubleClick,
 		onCellDoubleClick: props.onCellDoubleClick,
-		rowRoving: props.rowRoving,
-		rowStaticStop: props.rowStaticStop,
-		cellRoving: props.cellRoving,
-		cellActivate: props.cellActivate,
 		selected: props.selection.has(key),
 		toggleRow: props.toggleRow,
 		selectable: props.selectable,
@@ -275,14 +266,6 @@ export type GridRowProps<T> = {
 	onRowDoubleClick?: GridRowClick<T>
 	/** Invoked when one of the row's data cells is double-clicked, ahead of {@link GridRowProps.onRowDoubleClick}. */
 	onCellDoubleClick?: GridCellClick<T>
-	/** Whether the row is a roving-tabindex item (row-mode keyboard nav); the grid's roving hook owns its `tabIndex`. @defaultValue false */
-	rowRoving?: boolean
-	/** Whether the row is a static Tab stop (`tabIndex=0`), the legacy per-row model kept for the virtualized body. @defaultValue false */
-	rowStaticStop?: boolean
-	/** Whether the row's data cells are roving-tabindex items (cell-mode keyboard nav). @defaultValue false */
-	cellRoving?: boolean
-	/** Stable focused-cell activation for cell roving (see {@link GridRowsProps.cellActivate}). */
-	cellActivate?: GridCellRovingActivate<T>
 	/**
 	 * 1-based position in the full row set (header = 1, or 2 below a band row).
 	 * A new-row slot at the top of the body takes the place after the header, so
@@ -368,10 +351,6 @@ export function GridRowImpl<T>({
 	onCellClick,
 	onRowDoubleClick,
 	onCellDoubleClick,
-	rowRoving = false,
-	rowStaticStop = false,
-	cellRoving = false,
-	cellActivate,
 	rowIndex,
 	dataRowIndex,
 	pinning,
@@ -425,7 +404,9 @@ export function GridRowImpl<T>({
 				rowKey,
 				selected,
 				selectable,
-				rowRoving,
+				// A flat row never roves: a click handler turns the cursor on, and
+				// only manual grouping, whose leaves are group rows, stands it down.
+				rowRoving: false,
 				onRowClick,
 				onCellClick,
 				onRowDoubleClick,
@@ -433,11 +414,6 @@ export function GridRowImpl<T>({
 			})}
 			data-row-index={dataRowIndex}
 			aria-rowindex={rowIndex}
-			// Focusability: a row-roving row omits `tabIndex` so the roving hook can
-			// own it (one row at `0`, the rest `-1`); the virtualized body keeps the
-			// legacy static per-row stop; cell roving and the navigable cursor leave
-			// the row unfocusable (the cells / the table hold focus).
-			tabIndex={!rowRoving && rowStaticStop ? 0 : undefined}
 			// A clickable row carries the pointer cursor and a keyboard focus ring (see
 			// `k.row.clickable`); its hover wash is the shared `<Table hover>` variant
 			// that `GridData` enables for any row- or cell-level click handler.
@@ -522,14 +498,11 @@ export function GridRowImpl<T>({
 						col={col}
 						row={row}
 						rowIndex={cellRowIndex(col, dataRowIndex)}
-						rowKey={rowKey}
 						ariaColIndex={ariaColIndex}
 						columnIndex={index}
 						reorderable={reorderable}
 						truncate={truncate}
 						pinning={pinning}
-						cellRoving={cellRoving}
-						cellActivate={cellActivate}
 					/>
 				)
 			})}

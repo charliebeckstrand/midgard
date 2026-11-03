@@ -51,7 +51,8 @@ const FLOW_PAGINATION: GridPagination = { defaultValue: { pageIndex: 0, pageSize
  * are controllable. Selecting rows surfaces a batch-action {@link Toolbar}, and
  * a column manager dialog reorders and hides columns. The `reorder` adds header
  * drag handles, and `navigable` adds a keyboard cell cursor (`role="grid"` with
- * an `aria-activedescendant` active cell). The `range` lets that cursor hold a
+ * an `aria-activedescendant` active cell). A row or cell click handler adds
+ * the cursor too. The `range` lets that cursor hold a
  * rectangular cell range, which copies as TSV and, in an editable grid, takes a
  * paste or a fill. The `size` sets the density step of the cell padding, and
  * `condensed` steps the whole grid down a notch. That covers padding, cell font,

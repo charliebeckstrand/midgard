@@ -9,12 +9,7 @@ import { GridReorderContext } from './context'
 import { isFrozen } from './engine/grid-pin/overrides'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
-import {
-	cellPropsAt,
-	type GridCellRovingActivate,
-	type GridIndexedColumn,
-} from './engine/grid-row/cell'
-import { cellRovingAttrs } from './engine/grid-row/shell'
+import { cellPropsAt, type GridIndexedColumn } from './engine/grid-row/cell'
 import { fitCellProps } from './engine/grid-sizing/fit-styles'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { cellBody } from './grid-cell-content'
@@ -28,18 +23,12 @@ type GridDataCellProps<T> = {
 	 * its seat, so a sort or an insert above renders the moved cells again.
 	 */
 	rowIndex: number
-	/** The owning row's key, carried so cell roving can build the {@link GridCellClickContext}. */
-	rowKey: string | number
 	ariaColIndex: number | undefined
 	/** 0-based visible column index, matching the header's, so a reorder drag keys the body shift the same way. */
 	columnIndex: number
 	reorderable: boolean
 	truncate: boolean
 	pinning: GridColumnPinning | null
-	/** Whether the cell is a roving-tabindex item (cell-mode keyboard nav): the focus ring, and Enter / Space activation. @defaultValue false */
-	cellRoving?: boolean
-	/** Stable focused-cell activation for cell roving (see {@link GridRowsProps.cellActivate}). */
-	cellActivate?: GridCellRovingActivate<T>
 }
 
 /**
@@ -55,29 +44,13 @@ function GridDataCellImpl<T>({
 	col,
 	row,
 	rowIndex,
-	rowKey,
 	ariaColIndex,
 	columnIndex,
 	reorderable,
 	truncate,
 	pinning,
-	cellRoving = false,
-	cellActivate,
 }: GridDataCellProps<T>) {
 	const cellProps = cellPropsAt(col, row, rowIndex)
-
-	// Cell-mode roving: the focus ring plus the marker/activation attributes,
-	// applied to whichever `<td>` this cell renders (reorder-aware or plain).
-	const roving = cellRovingAttrs({
-		cellRoving,
-		cellActivate,
-		col,
-		row,
-		rowKey,
-		keyDown: cellProps?.onKeyDown,
-	})
-
-	const rovingClass = cellRoving ? k.cell.rovable : undefined
 
 	const content = cellBody(col, row, rowIndex, truncate)
 
@@ -90,9 +63,9 @@ function GridDataCellImpl<T>({
 				id={col.id}
 				columnIndex={columnIndex}
 				ariaColIndex={ariaColIndex}
-				className={cn(rovingClass, fit.className, col.className)}
+				className={cn(fit.className, col.className)}
 				fitStyle={fit.style}
-				cellProps={roving ? { ...cellProps, ...roving } : cellProps}
+				cellProps={cellProps}
 			>
 				{content}
 			</GridReorderableCell>
@@ -107,9 +80,8 @@ function GridDataCellImpl<T>({
 		<TableCell
 			aria-colindex={ariaColIndex}
 			{...cellProps}
-			{...roving}
 			data-grid-col={col.id}
-			className={cn(rovingClass, fit.className, pinned.className, cellProps?.className)}
+			className={cn(fit.className, pinned.className, cellProps?.className)}
 			style={{ ...fit.style, ...cellProps?.style, ...pinned.style }}
 			data-grid-pin={pinned.pin}
 		>

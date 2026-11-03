@@ -16,6 +16,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { GridEditingSessionContext, type GridNavStore, GridNewRowContext } from './context'
 import { describeRange } from './engine/grid-announcements'
+import { GRID_CELL } from './engine/grid-cell-controls'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { columnLabel } from './engine/grid-column/label'
 import { GRID_RANGE_ANNOUNCE_MS } from './engine/grid-constants'
@@ -382,7 +383,7 @@ export function useGridCursor<T>({
 	})
 
 	// The controls in the cells leave the tab order, so the grid is one tab stop.
-	useGridTabStops(tableRef, cursorEnabled)
+	useGridTabStops(tableRef, cursorEnabled ? GRID_CELL : null)
 
 	const { readRange, toCursorRow, rangeAnchor } = nav
 
