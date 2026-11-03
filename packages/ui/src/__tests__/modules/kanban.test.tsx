@@ -258,6 +258,32 @@ describe('KanbanCard', () => {
 		expect(card).not.toHaveAttribute('data-readonly')
 	})
 
+	it('dims the column body as one box, not each card, when the board is disabled', () => {
+		const { container, rerender } = renderUI(
+			<OneCard disabled>
+				<KanbanCardHandle />
+				One
+			</OneCard>,
+		)
+
+		const body = bySlot(container, 'kanban-column-body')
+
+		expect(body).toHaveAttribute('data-disabled')
+
+		expect(body).toHaveClass('data-disabled:opacity-50')
+
+		expect(bySlot(container, 'kanban-card')).not.toHaveClass('data-disabled:opacity-50')
+
+		rerender(
+			<OneCard>
+				<KanbanCardHandle />
+				One
+			</OneCard>,
+		)
+
+		expect(bySlot(container, 'kanban-column-body')).not.toHaveAttribute('data-disabled')
+	})
+
 	it('marks cards interactive, and puts the drag role on the handle, not on the card', () => {
 		const { container } = renderUI(<Board onValueChange={() => {}} />)
 
