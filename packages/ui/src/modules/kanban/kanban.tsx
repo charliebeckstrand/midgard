@@ -50,8 +50,9 @@ const cancelEveryDrop = () => true
  * by pointer drag (with a drag overlay) or keyboard lift, and emits the next
  * `columns` array through `onReorder`. With no `onReorder`, the board is
  * read-only: each card takes `data-readonly`, and the handles render nothing.
- * With `onReorder` and `disabled`, the board is disabled: each card takes
- * `data-disabled`, and each handle shows a muted grip. Shares drag/keyboard state
+ * With `onReorder` and `disabled`, the board is disabled: each card and each
+ * column body take `data-disabled`, each body dims, and each handle shows a
+ * muted grip. Shares drag/keyboard state
  * with descendant {@link KanbanColumn} and {@link KanbanCard} via context.
  * Compose the column header/body slots within. A pointer drags a card, and the
  * keyboard lifts a card, only from its {@link KanbanCardHandle}.

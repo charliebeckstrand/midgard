@@ -3,9 +3,11 @@
 import { Children, type HTMLAttributes, type ReactNode } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { k } from '../../recipes/kata/kanban'
 import { isElementOfType } from '../../utilities/children'
+import { useKanbanContext } from './context'
 import { KanbanCardSkeleton } from './kanban-card-skeleton'
 
 /**
@@ -27,6 +29,7 @@ export type KanbanColumnBodyProps = HTMLAttributes<HTMLElement> & {
  * shows it. A {@link KanbanCardSkeleton} is an `aria-hidden` item, so
  * a body that holds only skeletons hides the list as a whole: AT then finds no
  * list with no items. While the cards overflow the body, the body is a tab stop.
+ * On a disabled board, the body takes `data-disabled` and dims as one box.
  */
 export function KanbanColumnBody({ empty, children, className, ...props }: KanbanColumnBodyProps) {
 	// Count what React renders, not the slots. A `false` card slot renders
@@ -41,6 +44,8 @@ export function KanbanColumnBody({ empty, children, className, ...props }: Kanba
 
 	const scrollRegionRef = useScrollRegion()
 
+	const { disabled } = useKanbanContext()
+
 	if (hasChildren) {
 		return (
 			<ul
@@ -48,6 +53,7 @@ export function KanbanColumnBody({ empty, children, className, ...props }: Kanba
 				ref={loading ? undefined : scrollRegionRef}
 				data-slot="kanban-column-body"
 				aria-hidden={ariaAttr(loading)}
+				data-disabled={dataAttr(disabled)}
 				{...props}
 				className={cn(k().column.body, className)}
 			>
@@ -60,6 +66,7 @@ export function KanbanColumnBody({ empty, children, className, ...props }: Kanba
 		<div
 			ref={scrollRegionRef}
 			data-slot="kanban-column-body"
+			data-disabled={dataAttr(disabled)}
 			{...props}
 			className={cn(k().column.body, className)}
 		>
