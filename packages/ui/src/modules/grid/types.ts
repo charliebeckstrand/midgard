@@ -343,7 +343,7 @@ export type GridColumnManagerItem = {
 	/**
 	 * The edge the column is locked to, or `undefined` when it isn't locked. A
 	 * locked column is frozen like {@link GridColumnManagerItem.pinned}. The manager
-	 * shows a non-interactive edge arrow for it instead of a pin control, so the
+	 * shows a non-interactive lock for it instead of a pin control, so the
 	 * user can't release it.
 	 */
 	locked?: 'left' | 'right'

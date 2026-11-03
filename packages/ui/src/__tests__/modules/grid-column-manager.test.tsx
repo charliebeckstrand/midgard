@@ -409,7 +409,7 @@ describe('GridColumnManager pinning', () => {
 		expect(screen.getByRole('button', { name: 'Pin Email' })).toBeInTheDocument()
 	})
 
-	it('marks a locked column with a directional edge arrow by side', () => {
+	it('marks a locked column on either edge with a lock', () => {
 		const cols: GridColumnManagerItem[] = [
 			{ id: 'name', title: 'Name', locked: 'left' },
 			{ id: 'email', title: 'Email' },
@@ -418,11 +418,12 @@ describe('GridColumnManager pinning', () => {
 
 		const { container } = renderUI(<GridColumnManager columns={cols} onPinChange={() => {}} />)
 
-		// Both locked rows lead with a directional edge arrow (not a lock glyph),
-		// prepended to the row: left → ArrowLeftToLine, right → ArrowRightToLine.
-		expect(container.querySelector('.lucide-arrow-left-to-line')).not.toBeNull()
+		// Both locked rows lead with a lock, not the edge arrows of the pin menu.
+		expect(container.querySelectorAll('.lucide-lock')).toHaveLength(2)
 
-		expect(container.querySelector('.lucide-arrow-right-to-line')).not.toBeNull()
+		expect(container.querySelector('.lucide-arrow-left-to-line')).toBeNull()
+
+		expect(container.querySelector('.lucide-arrow-right-to-line')).toBeNull()
 	})
 
 	it('appends a right-locked column to the list', () => {
