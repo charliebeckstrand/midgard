@@ -9,15 +9,15 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useSlots } from '../../providers/headless/use-slots'
 import type { scale } from '../../recipes/kata/input'
 import { type InputVariants, k } from '../../recipes/kata/input'
-import { clearNativeInput } from '../../utilities'
+import { clearNativeInput } from '../../utilities/clear-native-input'
 import type { ControlVariant } from '../control/context'
 import { InputClearButton } from './input-clear-button'
 import { InputFrame, isAffixPresent } from './input-frame'

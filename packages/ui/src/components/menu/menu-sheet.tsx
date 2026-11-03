@@ -1,8 +1,10 @@
 'use client'
 
 import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
-import { accessibleName, cn, dataAttr } from '../../core'
-import { useA11yRoving } from '../../hooks'
+import { accessibleName } from '../../core/accessible-name'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { k } from '../../recipes/kata/menu'
 import {
 	Drawer,

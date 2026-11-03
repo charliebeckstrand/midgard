@@ -1,4 +1,6 @@
-import { clamp, getOrCompute, isDataColumn } from '../../../../utilities'
+import { clamp } from '../../../../utilities/clamp'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
+import { isDataColumn } from '../../../../utilities/is-data-column'
 import type { GridColumn } from '../../types'
 import { DEFAULT_MIN_COLUMN_SIZE, HEADER_TRUNCATE_ALLOWANCE } from '../grid-constants'
 import { parsePxWidth } from '../grid-table/resize-view'

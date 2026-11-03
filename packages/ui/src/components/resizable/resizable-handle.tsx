@@ -1,7 +1,9 @@
 'use client'
 
 import { type ComponentProps, type KeyboardEvent, useCallback } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'

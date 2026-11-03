@@ -19,14 +19,18 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import type { HeadingLevel } from '../../components/heading'
-import { cn, dataAttr } from '../../core'
-import { useControllable, useDragCursor, useEscapeLayer, useResizeObserver } from '../../hooks'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import { useControllable } from '../../hooks/use-controllable'
+import { useDragCursor } from '../../hooks/use-drag-cursor'
+import { useEscapeLayer } from '../../hooks/use-escape-layer'
 import { useReportedChange } from '../../hooks/use-reported-change'
+import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/dashboard'
-import type { AccessibleName } from '../../types'
-import { noop } from '../../utilities'
+import type { AccessibleName } from '../../types/accessible-name'
 import { flattenFragments, isElementOfType } from '../../utilities/children'
+import { noop } from '../../utilities/noop'
 import type { QueryGroup } from '../query/engine/types'
 import {
 	type DashboardActions,

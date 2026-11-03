@@ -2,8 +2,9 @@
 
 import { type ComponentProps, memo, type ReactNode } from 'react'
 import { TableBody, TableHeader, TableRow } from '../../components/table'
-import { cn, dataAttr } from '../../core'
-import type { PaletteColor } from '../../core/recipe'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import type { PaletteColor } from '../../core/recipe/colors'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold } from '../../primitives/mount'
 import { useLocale } from '../../providers/locale'

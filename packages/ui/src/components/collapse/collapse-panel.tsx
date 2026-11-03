@@ -1,7 +1,8 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { MountHold, useMountHold } from '../../primitives/mount'

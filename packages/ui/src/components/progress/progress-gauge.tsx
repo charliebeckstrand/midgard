@@ -2,14 +2,15 @@
 
 import { useMotionValue, useTransform } from 'motion/react'
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
-import type { AccessibleName } from '../../types'
-import { clamp, pct } from '../../utilities'
+import type { AccessibleName } from '../../types/accessible-name'
+import { clamp } from '../../utilities/clamp'
+import { pct } from '../../utilities/pct'
 import { GAUGE_STROKE_WIDTH, GAUGE_VIEW_BOX } from './progress-gauge-constants'
 
 type ProgressColor = keyof typeof k.color

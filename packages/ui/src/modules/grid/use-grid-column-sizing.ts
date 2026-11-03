@@ -10,9 +10,9 @@ import {
 	useState,
 } from 'react'
 import { flushSync } from 'react-dom'
-import type { DensityStep } from '../../core/density'
+import type { DensityStep } from '../../core/density/steps'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn } from '../../utilities/is-data-column'
 import { rewatchResize } from '../../utilities/rewatch-resize'
 import { type GridFitMode, headerCells } from './engine/grid-sizing/fit-layout'
 import { isContentSized, measureColumns } from './engine/grid-sizing/measure'

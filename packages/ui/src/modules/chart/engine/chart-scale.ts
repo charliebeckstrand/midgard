@@ -5,7 +5,7 @@
  * as the `viewBox` the charts render.
  */
 
-import { clamp } from '../../../utilities'
+import { clamp } from '../../../utilities/clamp'
 import { finiteOrUndefined } from '../../../utilities/parse-numeric'
 
 /**

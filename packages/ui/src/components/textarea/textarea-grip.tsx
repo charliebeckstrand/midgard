@@ -3,7 +3,7 @@
 import { type PointerEvent, type RefObject, useEffect, useRef, useState } from 'react'
 import { holdDragCursor } from '../../hooks/use-drag-cursor'
 import { Shell } from '../../providers/headless/shell'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { createPressOwner } from '../../utilities/primary-press'
 

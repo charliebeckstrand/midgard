@@ -2,7 +2,7 @@
 
 import { Check } from 'lucide-react'
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { useStepper, useStepperStep } from './context'
 

@@ -7,9 +7,9 @@ import {
 	type RefObject,
 	useMemo,
 } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn } from '../../utilities/is-data-column'
 import { isColumnEditable } from './engine/grid-editing-utilities'
 import type { GridIndexedColumn } from './engine/grid-row/cell'
 import { GridEditingCell } from './grid-editing-cell'

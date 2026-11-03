@@ -5,7 +5,7 @@ import type {
 	ReactNode,
 } from 'react'
 import type { IntlShape } from '../../../../primitives/intl/types'
-import { isDataColumn } from '../../../../utilities'
+import { isDataColumn } from '../../../../utilities/is-data-column'
 import type { GridColumn } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
 import { gridMessages } from '../grid-messages'

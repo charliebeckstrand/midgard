@@ -1,14 +1,14 @@
 'use client'
 
 import { type ComponentProps, useMemo } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k, type scale } from '../../recipes/kata/sparkline'
-import type { AccessibleName } from '../../types'
-import { clamp } from '../../utilities'
+import type { AccessibleName } from '../../types/accessible-name'
+import { clamp } from '../../utilities/clamp'
 import { SPARKLINE_METRICS } from './sparkline-constants'
 import { type SparklineGeometry, sparklineGeometry } from './sparkline-geometry'
 

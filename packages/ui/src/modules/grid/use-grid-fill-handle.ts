@@ -1,7 +1,7 @@
 'use client'
 
 import { type MouseEvent, useMemo } from 'react'
-import { createEmitter } from '../../utilities'
+import { createEmitter } from '../../utilities/emitter'
 
 /**
  * The fill handle of a grid that can fill. The active cell holds it, and one

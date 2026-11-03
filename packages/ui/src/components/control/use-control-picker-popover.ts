@@ -1,8 +1,10 @@
 'use client'
 
 import { type RefObject, useCallback, useId, useRef } from 'react'
-import { type FloatingPlacement, useControllableFlag, useFloatingUI } from '../../hooks'
+import { useControllableFlag } from '../../hooks/use-controllable'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
+import { useFloatingUI } from '../../hooks/use-floating-ui'
 
 type PickerPopoverOptions = {
 	placement: FloatingPlacement

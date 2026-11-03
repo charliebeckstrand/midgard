@@ -2,9 +2,9 @@
 
 import { type ComponentProps, useCallback, useMemo } from 'react'
 import { Fieldset } from '../../../components/fieldset'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { k } from '../../../recipes/kata/query-builder'
-import type { Orientation } from '../../../types'
+import type { Orientation } from '../../../types/orientation'
 import { adaptive, type Responsive } from '../../../utilities/responsive'
 import type { QueryField, QueryGroup } from '../engine/types'
 import type { QueryBuilderStateValue } from './context'

@@ -1,4 +1,4 @@
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { Alert, type AlertProps } from '../alert'
 
 /** Props for {@link Banner}; the full {@link AlertProps} surface plus `sticky`. */

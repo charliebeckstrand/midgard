@@ -22,7 +22,7 @@
  * Frame arithmetic with no React in it, like its two siblings.
  */
 
-import { getOrCompute } from '../../../../utilities'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
 import { AREA_SPARE_FRACTION, POINT_HIT_RADIUS, POINT_RADIUS } from '../map-constants'
 import { cachedRegionIndex, type MapBounds, regionsMeeting } from '../map-geometry/locate'
 import {

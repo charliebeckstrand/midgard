@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { Color } from '../../core/recipe'
+import type { Color } from '../../core/recipe/colors'
 
 /**
  * A page of a `src` document, as the viewer holds it: a {@link PdfViewerPage}, and the bitmap

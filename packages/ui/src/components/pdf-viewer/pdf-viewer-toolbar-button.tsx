@@ -1,7 +1,8 @@
 'use client'
 
 import { Children, type ComponentProps, type ReactElement } from 'react'
-import { ariaAttr, dataAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { dataAttr } from '../../core/data-attr'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'

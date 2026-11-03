@@ -1,6 +1,6 @@
 import { functionalUpdate, type PaginationState } from '@tanstack/react-table'
 import type { SetStateAction } from 'react'
-import { clamp } from '../../../../utilities'
+import { clamp } from '../../../../utilities/clamp'
 import type { GridPagination } from '../../types'
 import {
 	manualTotals,

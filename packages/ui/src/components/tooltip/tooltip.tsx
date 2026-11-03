@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react'
-import type { FloatingPlacement } from '../../hooks'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { noop, noopSubscribe } from '../../utilities/noop'
 import { TooltipContext, type TooltipContextValue, TooltipTriggerContext } from './context'

@@ -1,4 +1,4 @@
-import { createEmitter } from '../../../utilities'
+import { createEmitter } from '../../../utilities/emitter'
 import type { GridActiveEditStore } from '../context'
 import { EMPTY_SET } from './grid-constants'
 import { type GridActiveEdit, sameCell } from './grid-editing-utilities'

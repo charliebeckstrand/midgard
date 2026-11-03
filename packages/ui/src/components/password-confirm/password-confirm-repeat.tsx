@@ -1,8 +1,8 @@
 'use client'
 
 import type { ChangeEvent } from 'react'
-import { dataAttr } from '../../core'
-import { useAriaIds } from '../../hooks'
+import { dataAttr } from '../../core/data-attr'
+import { useAriaIds } from '../../hooks/use-aria-ids'
 import { PasswordInput, type PasswordInputProps } from '../password-input'
 import { usePasswordConfirm } from './context'
 import { usePasswordConfirmField } from './use-password-confirm-field'

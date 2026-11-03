@@ -2,7 +2,9 @@
 
 import type { MouseEvent } from 'react'
 import { Button, type ButtonProps } from '../../components/button'
-import { ariaAttr, composeEventHandlers, dataAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { useFormStatus } from '../../primitives/form/context'
 
 /** Props for {@link FormReset}: the props of a `Button`, with no `href` and no `type`. */

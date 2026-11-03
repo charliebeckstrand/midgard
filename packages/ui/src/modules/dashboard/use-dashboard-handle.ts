@@ -1,7 +1,7 @@
 'use client'
 
 import { type Ref, useImperativeHandle } from 'react'
-import { announce } from '../../core'
+import { announce } from '../../core/announcer'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { DashboardCommit } from './dashboard-gesture'
 import { describeTidy } from './engine/dashboard-announcements'

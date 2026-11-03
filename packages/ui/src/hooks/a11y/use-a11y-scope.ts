@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { AriaProps } from '../../types'
+import type { AriaProps } from '../../types/aria-props'
 import { joinAriaIds } from '../use-aria-ids'
 import { useIdScope } from '../use-id-scope'
 

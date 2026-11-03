@@ -1,7 +1,7 @@
 'use client'
 
 import { use, useSyncExternalStore } from 'react'
-import { noopSubscribe } from '../../utilities'
+import { noopSubscribe } from '../../utilities/noop'
 import { HeaderActionsContext } from './context'
 
 const none = () => null

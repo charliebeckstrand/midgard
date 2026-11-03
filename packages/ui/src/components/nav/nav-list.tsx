@@ -1,10 +1,10 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/nav'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 import { useNavBar } from './context'
 
 /** Props for {@link NavList}: an optional `orientation` plus native `<ul>` attributes. */

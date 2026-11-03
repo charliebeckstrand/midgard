@@ -1,8 +1,8 @@
 import { Placeholder } from '../../components/placeholder'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k as kMessage } from '../../recipes/kata/chat-message'
 import { k } from '../../recipes/kata/chat-transcript'
-import { rangeKeys } from '../../utilities'
+import { rangeKeys } from '../../utilities/range-keys'
 
 /** Props for {@link ChatTranscriptSkeleton}: the message count. */
 export type ChatTranscriptSkeletonProps = {

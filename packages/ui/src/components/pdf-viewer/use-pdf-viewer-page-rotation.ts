@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { wrap } from '../../utilities'
+import { wrap } from '../../utilities/keyboard-navigation'
 
 /**
  * Whether a rotation swaps the page's width and height in layout: true at 90° and 270°.

@@ -2,8 +2,8 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type RefCallback, useEffect, useRef } from 'react'
-import { useScrollRegion } from '../../hooks'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 
 /**
  * The scroll of the tag row of a TagInput while the row stays on one line.

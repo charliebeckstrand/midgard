@@ -2,7 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useEffect, useState } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { CurrentContent, CurrentContents } from '../../primitives/current'
 import { STILL_CONTENTS, useCurrentContents } from '../../primitives/current/context'

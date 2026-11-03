@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { parseNumeric } from '../../utilities'
-import { finiteOrUndefined } from '../../utilities/parse-numeric'
+import { finiteOrUndefined, parseNumeric } from '../../utilities/parse-numeric'
 
 describe('parseNumeric', () => {
 	it('parses plain numbers, comma grouping, currency, percent, and accounting negatives', () => {

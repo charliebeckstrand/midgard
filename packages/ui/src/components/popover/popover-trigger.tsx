@@ -2,7 +2,8 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type Ref, type SyntheticEvent, useCallback } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import {
 	disclosureProps,

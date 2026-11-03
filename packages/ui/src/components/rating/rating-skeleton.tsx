@@ -1,4 +1,4 @@
-import type { ScaleStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/rating'
 import { k } from '../../recipes/kata/rating'
 import { renderRowSkeleton } from '../placeholder/placeholder-skeleton'

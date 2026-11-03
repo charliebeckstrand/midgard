@@ -1,6 +1,6 @@
 'use client'
 
-import type { AccessibleName } from '../../../types'
+import type { AccessibleName } from '../../../types/accessible-name'
 import { barProjection } from '../engine/chart-cartesian/series'
 import { MARK_GAP } from '../engine/chart-constants'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'

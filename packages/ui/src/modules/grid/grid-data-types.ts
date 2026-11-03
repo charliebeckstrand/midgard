@@ -1,6 +1,6 @@
 import type { ReactNode, Ref } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
-import type { ScaleStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density/scale'
 import type { IntlShape } from '../../primitives/intl/types'
 import type { scale } from '../../recipes/kata/table'
 import type { GridSortState } from './context'

@@ -2,7 +2,8 @@
 
 import { Upload } from 'lucide-react'
 import { useId, useRef } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { cn } from '../../core/cn'
+import { invalidAttrs } from '../../core/invalid-attrs'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useGlass } from '../../providers/glass/context'
 import { useSlots } from '../../providers/headless/use-slots'

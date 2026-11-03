@@ -1,8 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { DensityStep } from '../../core/density/steps'
 import { ControlFrame } from '../../primitives/control'
 import { Shell } from '../../providers/headless/shell'
 

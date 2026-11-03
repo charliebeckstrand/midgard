@@ -11,11 +11,14 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import type { ScaleStep } from '../../core/density'
-import { type FloatingPlacement, useFloatingDisclosure, useMediaQuery } from '../../hooks'
+import type { ScaleStep } from '../../core/density/scale'
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import { useFloatingDisclosure } from '../../hooks/use-floating-disclosure'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
+import { useMediaQuery } from '../../hooks/use-media-query'
 import type { scale } from '../../recipes/kata/menu'
-import { isNativeContextMenuRequest, PHONE_QUERY } from '../../utilities'
+import { PHONE_QUERY } from '../../utilities/media-query'
+import { isNativeContextMenuRequest } from '../../utilities/native-context-menu'
 import { snapMenuHeight } from './menu-viewport-utilities'
 
 /** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */

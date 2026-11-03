@@ -17,7 +17,7 @@
  * therefore holds at every view, rather than closing up as the mark grows.
  */
 
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import { MARK_SELECTED_HALO } from './engine/map-constants'
 import type { MapPoint2D, MapPointShape } from './engine/types'

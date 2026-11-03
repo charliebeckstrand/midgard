@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/time-ago'
 import { Placeholder } from '../placeholder'

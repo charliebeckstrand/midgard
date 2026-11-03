@@ -1,4 +1,4 @@
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k, type StatValueVariants } from '../../recipes/kata/stat'
 import { StatDeltaSkeleton } from './stat-delta-skeleton'
 import { StatDescriptionSkeleton } from './stat-description-skeleton'

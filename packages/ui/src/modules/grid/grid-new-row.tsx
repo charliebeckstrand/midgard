@@ -9,10 +9,11 @@ import {
 	useRef,
 } from 'react'
 import { TableCell } from '../../components/table'
-import { ariaAttr, cn } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn } from '../../utilities/is-data-column'
 import { type GridNewRowSession, useGridNewRowSession } from './context'
 import {
 	collectNewRow,

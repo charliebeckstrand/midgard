@@ -2,7 +2,7 @@
 
 import type { ComponentProps, Ref } from 'react'
 import { Children } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { Density } from '../../primitives/density'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'

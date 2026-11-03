@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { k } from '../../../recipes/kata/chart'
 import type { ResolvedCrosshair } from './chart-crosshair'
 import { bandCoord, type ChartOrientation, type PlotRect } from './chart-orientation'

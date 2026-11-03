@@ -1,6 +1,6 @@
 'use client'
 
-import type { AccessibleName } from '../../../types'
+import type { AccessibleName } from '../../../types/accessible-name'
 import type { BubbleChartSeries } from '../engine/types'
 import { ScatterChart, type ScatterChartProps } from '../scatter-chart'
 

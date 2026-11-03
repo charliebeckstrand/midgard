@@ -10,8 +10,10 @@
  */
 
 import type { ReactNode } from 'react'
-import { formatFraction, getOrCompute, parseNumeric } from '../../../utilities'
 import { reduceNumbers } from '../../../utilities/aggregate'
+import { formatFraction } from '../../../utilities/format-number'
+import { getOrCompute } from '../../../utilities/get-or-compute'
+import { parseNumeric } from '../../../utilities/parse-numeric'
 import type { GridColumn } from '../types'
 import { columnAccessor } from './grid-column/accessor'
 import type { GridColumnPinning } from './grid-table/pinning-view'

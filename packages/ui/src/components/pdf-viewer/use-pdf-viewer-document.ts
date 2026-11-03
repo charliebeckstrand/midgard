@@ -3,7 +3,7 @@
 import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { preload } from 'react-dom'
-import { clamp } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
 import { noop } from '../../utilities/noop'
 import { PdfBinaryData } from './pdf-viewer-binary-data'
 import {

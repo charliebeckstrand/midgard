@@ -1,6 +1,6 @@
 'use client'
 
-import { useA11yHasTabbable } from '../../hooks'
+import { useA11yHasTabbable } from '../../hooks/a11y/use-a11y-has-tabbable'
 
 /**
  * Tab order for a tabpanel: `0` when the panel has no focusable descendant

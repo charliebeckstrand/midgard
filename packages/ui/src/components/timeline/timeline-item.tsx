@@ -1,7 +1,8 @@
 'use client'
 
 import { type ComponentProps, useMemo } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/timeline'
 import { TimelineContext, type TimelineVariant, useTimeline } from './context'
 import { TimelineMarker, type TimelineMarkerConfig } from './timeline-marker'

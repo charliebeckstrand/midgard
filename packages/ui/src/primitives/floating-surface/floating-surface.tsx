@@ -13,8 +13,9 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { cn, dataAttr } from '../../core'
-import type { DensityStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import type { DensityStep } from '../../core/density/steps'
 import { k } from '../../recipes/kata/popover'
 import { Density } from '../density'
 import { Portal } from '../portal'

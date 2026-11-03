@@ -1,8 +1,8 @@
 import type { ClassValue } from 'clsx'
 import { createElement, Fragment, type ReactElement } from 'react'
-import { cn } from '../../core'
-import type { DensityStep } from '../../core/density'
-import { rangeKeys } from '../../utilities'
+import { cn } from '../../core/cn'
+import type { DensityStep } from '../../core/density/steps'
+import { rangeKeys } from '../../utilities/range-keys'
 import { Placeholder } from './placeholder'
 
 // Call sites pin `S` to the `size` type of their component, so the `size` prop

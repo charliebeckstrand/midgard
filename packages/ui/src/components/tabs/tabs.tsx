@@ -1,8 +1,8 @@
 'use client'
 
 import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { CurrentStoreContext } from '../../primitives/current/context'
 import { useCurrentStore } from '../../primitives/current/use-current-store'

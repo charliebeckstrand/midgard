@@ -1,6 +1,6 @@
-import type { ScaleStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/tabs'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 import { renderRowSkeleton } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link TabListSkeleton}. */

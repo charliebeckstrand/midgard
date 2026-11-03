@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { announce } from '../../core'
+import { announce } from '../../core/announcer'
 
 /** Options for {@link useA11yAnnouncements}. */
 export type A11yAnnouncementsOptions = {

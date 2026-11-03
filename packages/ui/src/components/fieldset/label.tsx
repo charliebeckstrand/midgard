@@ -1,9 +1,10 @@
 'use client'
 
 import { type ComponentProps, type MouseEvent, useEffect } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { k } from '../../recipes/kata/fieldset'
-import { FOCUSABLE_SELECTOR } from '../../utilities'
+import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
 import { useControl } from '../control/context'
 
 /**

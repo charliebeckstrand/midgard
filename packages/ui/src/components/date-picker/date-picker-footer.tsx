@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/calendar'

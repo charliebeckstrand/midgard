@@ -1,7 +1,8 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/fieldset'
 import { ControlContext, type ControlSeverity } from '../control/context'

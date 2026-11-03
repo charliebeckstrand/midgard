@@ -6,7 +6,7 @@ import {
 	type OptionSelectionContext,
 } from '../../primitives/option/option'
 import { useOptionSelection } from '../../primitives/option/use-option-selection'
-import { createKeyedStore } from '../../utilities'
+import { createKeyedStore } from '../../utilities/keyed-store'
 import { bySlot, fireEvent, noop, renderUI, screen } from '../helpers'
 
 describe('Option', () => {

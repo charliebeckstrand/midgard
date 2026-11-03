@@ -1,7 +1,7 @@
 'use client'
 
 import type { Dispatch, SetStateAction } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { Hsva } from './types'
 
 export type ColorPanelContextValue = {

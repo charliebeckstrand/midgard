@@ -1,7 +1,7 @@
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/calendar'
-import { rangeKeys } from '../../utilities'
+import { rangeKeys } from '../../utilities/range-keys'
 import { Placeholder, type SkeletonProps } from '../placeholder'
 
 /** Props for {@link CalendarSkeleton}; the size-stepped skeleton surface. */

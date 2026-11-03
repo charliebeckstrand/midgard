@@ -1,10 +1,11 @@
 'use client'
 
 import { type RefObject, useCallback } from 'react'
-import { accessibleName, querySlot } from '../../core'
+import { accessibleName } from '../../core/accessible-name'
+import { querySlot } from '../../core/query-slot'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useKeyboardReorder } from '../../hooks/use-keyboard-reorder'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 
 /** Accessible name of a list item, for announcements. @internal */
 export const listItemName = (container: ParentNode | null, id: string) =>

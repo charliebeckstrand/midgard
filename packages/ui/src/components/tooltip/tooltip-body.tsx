@@ -2,8 +2,8 @@
 
 import type { FloatingFocusManagerProps } from '@floating-ui/react'
 import { useLayoutEffect, useState } from 'react'
-import { cn } from '../../core'
-import { useA11yHasTabbable } from '../../hooks'
+import { cn } from '../../core/cn'
+import { useA11yHasTabbable } from '../../hooks/a11y/use-a11y-has-tabbable'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'

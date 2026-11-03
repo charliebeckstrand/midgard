@@ -1,7 +1,7 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type {
 	EditorKind,
 	GridActiveEdit,

@@ -5,7 +5,7 @@
  * math is unit-testable in isolation.
  */
 
-import { compactTickFormat, readoutFormat, tickFormat } from '../../../../utilities'
+import { compactTickFormat, readoutFormat, tickFormat } from '../../../../utilities/format-number'
 import type { CartesianAxes, ChartValueAxisId } from '../chart-axes/schema'
 import type { CartesianLayout, ChartValueAxisInput } from '../chart-layout'
 import type { ChartReferenceLine } from '../chart-reference'

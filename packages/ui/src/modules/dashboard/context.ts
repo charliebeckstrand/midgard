@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { HeadingLevel } from '../../components/heading'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { QueryGroup } from '../query/engine/types'
 import type { DashboardTileRank } from './engine/dashboard-layout'
 import type { DashboardSelection } from './engine/dashboard-scope'

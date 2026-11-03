@@ -2,8 +2,9 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode, Ref } from 'react'
-import { cn, dataAttr } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/control'
 import { ControlFrame } from '../control'
 import { PolymorphicStatic } from '../polymorphic'

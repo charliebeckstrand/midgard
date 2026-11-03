@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useEffect, useMemo } from 'react'
-import { writeRootDensity } from '../../core/density'
+import { writeRootDensity } from '../../core/density/steps'
 import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'

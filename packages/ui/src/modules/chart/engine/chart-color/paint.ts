@@ -18,7 +18,7 @@
  * lives in `utilities/color-scale`. Both would speak the same Paint value.
  */
 
-import { cn } from '../../../../core'
+import { cn } from '../../../../core/cn'
 import { type ChartColorSlot, k } from '../../../../recipes/kata/chart'
 
 /** The mark classes for one palette slot: `stroke` / `fill` / `text` / `label`. @internal */

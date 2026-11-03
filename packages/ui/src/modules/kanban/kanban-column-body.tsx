@@ -1,8 +1,9 @@
 'use client'
 
 import { Children, type HTMLAttributes, type ReactNode } from 'react'
-import { ariaAttr, cn } from '../../core'
-import { useScrollRegion } from '../../hooks'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { k } from '../../recipes/kata/kanban'
 import { isElementOfType } from '../../utilities/children'
 import { KanbanCardSkeleton } from './kanban-card-skeleton'

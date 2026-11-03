@@ -1,4 +1,5 @@
-import { clamp, isDataColumn } from '../../../../utilities'
+import { clamp } from '../../../../utilities/clamp'
+import { isDataColumn } from '../../../../utilities/is-data-column'
 import type { GridColumn } from '../../types'
 import { DEFAULT_CONTENT_MAX } from '../grid-constants'
 import { sameNumberMap } from '../grid-table/equality'

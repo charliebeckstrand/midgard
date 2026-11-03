@@ -8,12 +8,12 @@ import type {
 	KeyboardCoordinateGetter,
 } from '@dnd-kit/core'
 import { type RefObject, useCallback, useId, useMemo, useRef } from 'react'
-import { useSortableSensors } from '../../hooks'
+import { useSortableSensors } from '../../hooks/use-sortable-sensors'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { clamp } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { type DashboardCommit, endGesture, measureGesture, startGesture } from './dashboard-gesture'
 import {

@@ -2,7 +2,7 @@
 
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'

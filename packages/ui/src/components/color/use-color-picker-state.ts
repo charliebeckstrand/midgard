@@ -1,6 +1,6 @@
 'use client'
 
-import type { FloatingPlacement } from '../../hooks'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { ColorFormat, Hsva } from './types'

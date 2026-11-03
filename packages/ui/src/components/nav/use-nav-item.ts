@@ -8,8 +8,8 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { composeEventHandlers } from '../../core'
-import { useScrollWithin } from '../../hooks'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { useScrollWithin } from '../../hooks/use-scroll-within'
 import { useActiveIndicator } from '../../primitives/active-indicator'
 import type { PathMatch } from '../../primitives/current/context'
 import { useCurrentItem } from '../../primitives/current/use-current'

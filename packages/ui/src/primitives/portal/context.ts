@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /**
  * A DOM node to teleport portaled UI into, or `null` to defer to each

@@ -1,7 +1,9 @@
 'use client'
 
 import type { ComponentProps, Ref } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/lightbox'
 import { Placeholder } from '../placeholder'
 import { useLightboxContext } from './context'

@@ -1,7 +1,7 @@
 'use client'
 
 import type { PanelResize } from '../../hooks/use-panel-resize'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 import { defineMessages } from '../intl/intl-messages'
 import { useIntl } from '../intl/use-intl'
 import { Splitter } from '../splitter/splitter'

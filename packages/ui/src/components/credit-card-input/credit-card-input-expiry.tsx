@@ -1,7 +1,7 @@
 'use client'
 
 import { type ChangeEvent, type ReactNode, useState } from 'react'
-import { composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { formatDatePattern } from '../../primitives/intl/intl-date-pattern'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useControlTypedVerdict } from '../control/use-control-typed-verdict'

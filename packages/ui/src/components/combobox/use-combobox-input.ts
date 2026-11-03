@@ -12,7 +12,7 @@ import {
 	type UIEvent,
 	useCallback,
 } from 'react'
-import { isComposing } from '../../utilities'
+import { isComposing } from '../../utilities/is-composing'
 import { enterKeepsSelection, selectSoleOption } from './combobox-utilities'
 
 type ComboboxInputParams<T> = {

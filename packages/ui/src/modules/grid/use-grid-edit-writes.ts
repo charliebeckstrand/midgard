@@ -6,7 +6,7 @@ import {
 	useCallback,
 	useMemo,
 } from 'react'
-import { announce } from '../../core'
+import { announce } from '../../core/announcer'
 import { useIntl } from '../../primitives/intl/use-intl'
 import {
 	describeHistoryMiss,

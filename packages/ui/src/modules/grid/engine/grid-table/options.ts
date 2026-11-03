@@ -11,7 +11,7 @@ import type {
 	Row,
 	RowData,
 } from '@tanstack/react-table'
-import { isDataColumn } from '../../../../utilities'
+import { isDataColumn } from '../../../../utilities/is-data-column'
 import { evaluateQuery } from '../../../query/engine/query-evaluate'
 import { isQueryGroup } from '../../../query/engine/query-node'
 import type { GridColumn, GridPagination } from '../../types'

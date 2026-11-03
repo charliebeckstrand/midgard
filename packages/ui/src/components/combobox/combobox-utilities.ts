@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react'
 import { selectedMessage } from '../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../primitives/intl/types'
-import { isScrollbarPress } from '../../utilities'
+import { isScrollbarPress } from '../../utilities/scrollbar-press'
 import { OPTION_SELECTOR } from './combobox-constants'
 
 /**

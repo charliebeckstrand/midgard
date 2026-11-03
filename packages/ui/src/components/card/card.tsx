@@ -1,5 +1,5 @@
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../../structure/box'
 

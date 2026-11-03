@@ -11,18 +11,16 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { useIdScope } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { useIdScope } from '../../hooks/use-id-scope'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import {
-	clamp,
-	createEmitter,
-	FOCUSABLE_SELECTOR,
-	noopSubscribe,
-	sameElements,
-} from '../../utilities'
+import { clamp } from '../../utilities/clamp'
+import { createEmitter } from '../../utilities/emitter'
 import { closestFloatingPortal } from '../../utilities/floating-portal-registry'
+import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
+import { noopSubscribe } from '../../utilities/noop'
 import { createPressOwner, isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
+import { sameElements } from '../../utilities/same-elements'
 import type { GridNavStore } from './context'
 import { NAV_PAGE_STEP } from './engine/grid-constants'
 import {

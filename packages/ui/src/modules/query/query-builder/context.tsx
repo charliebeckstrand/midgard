@@ -1,8 +1,8 @@
 'use client'
 
 import { type ReactNode, useCallback } from 'react'
-import { createContext } from '../../../core'
-import type { Orientation } from '../../../types'
+import { createContext } from '../../../core/create-context'
+import type { Orientation } from '../../../types/orientation'
 import type { Responsive } from '../../../utilities/responsive'
 import type { QueryField } from '../engine/types'
 import type { QueryTreeActions } from '../use-query-tree'

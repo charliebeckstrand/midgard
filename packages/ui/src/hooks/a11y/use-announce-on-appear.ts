@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
-import { announce } from '../../core'
+import { announce } from '../../core/announcer'
 
 /** Options for {@link useAnnounceOnAppear}. @internal */
 export type AnnounceOnAppearOptions = {

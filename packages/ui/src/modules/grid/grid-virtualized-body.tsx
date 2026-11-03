@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useEffect, useRef } from 'react'
-import { useVirtualWindow } from '../../hooks'
+import { useVirtualWindow } from '../../hooks/use-virtual-window'
 import { FIRST_WINDOW_RECT } from './engine/grid-constants'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'

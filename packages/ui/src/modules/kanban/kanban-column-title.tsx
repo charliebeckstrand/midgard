@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { CardTitle, type CardTitleProps } from '../../components/card'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/kanban'
 import { useKanbanColumnContext } from './context'
 

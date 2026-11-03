@@ -1,4 +1,4 @@
-import { getOrCompute } from '../../../../utilities'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
 import type { GridColumn } from '../../types'
 import { filterRowIndices, type RowTest } from '../grid-filter/filter'
 

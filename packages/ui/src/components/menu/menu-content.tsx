@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useId, useLayoutEffect, useState } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
 import { useResolvedSurface } from '../../providers/glass/context'

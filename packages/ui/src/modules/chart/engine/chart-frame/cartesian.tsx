@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode } from 'react'
-import type { AccessibleName } from '../../../../types'
+import type { AccessibleName } from '../../../../types/accessible-name'
 import { ChartCartesianAxes } from '../chart-axes/cartesian'
 import type { ChartValueAxisId } from '../chart-axes/schema'
 import {

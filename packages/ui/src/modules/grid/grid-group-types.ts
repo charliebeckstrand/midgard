@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode } from 'react'
-import type { PaletteColor } from '../../core/recipe'
+import type { PaletteColor } from '../../core/recipe/colors'
 
 /**
  * One column group of a {@link Grid}: a labeled, colored band drawn above a

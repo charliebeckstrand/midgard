@@ -1,6 +1,6 @@
 'use client'
 
-import { toggleListItem } from '../utilities'
+import { toggleListItem } from '../utilities/toggle-item'
 import { useFrozenOnClose } from './use-frozen-on-close'
 import { useStableEvent } from './use-stable-event'
 

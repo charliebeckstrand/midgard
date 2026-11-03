@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useSyncExternalStore } from 'react'
-import { noopSubscribe } from '../../utilities'
+import { noopSubscribe } from '../../utilities/noop'
 import { readChoice, restoreChoiceCookie, subscribeChoices } from '../appearance/appearance-storage'
 import { localeChoice, resolveLocaleChoice, SYSTEM_LOCALE, subscribeLocale } from './locale-choice'
 

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { Placeholder } from '../../components/placeholder'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import { type MapOutline, mapOutline } from './engine/map-outline'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'

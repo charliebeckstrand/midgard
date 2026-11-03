@@ -10,11 +10,12 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { useA11yAnnouncements, useA11yRoving } from '../../hooks'
+import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
+import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { isScrollbarPress } from '../../utilities'
 import { isPrimaryPress } from '../../utilities/primary-press'
+import { isScrollbarPress } from '../../utilities/scrollbar-press'
 import { usePdfViewerContext, usePdfViewerHighlightsContext } from './context'
 import { PdfViewerHighlightLabel } from './pdf-viewer-highlight-label'
 import { pdfViewerMessages } from './pdf-viewer-messages'

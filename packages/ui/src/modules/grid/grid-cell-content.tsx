@@ -2,7 +2,7 @@
 
 import { type ReactNode, useMemo, useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
 import { GridCellEditingContext, useGridResizing, useGridSettle } from './context'
 import type { CellTooltip } from './engine/grid-row/cell'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/map'
 import { useMapPlat, useMapZoomScale } from './context'

@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { PortalDragOverlay } from '../../primitives/portal/portal-drag-overlay'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanCardSurface } from './kanban-card-surface'

@@ -1,7 +1,7 @@
 'use client'
 
 import type { ChangeEvent, ChangeEventHandler } from 'react'
-import { composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useFormField } from './context'
 import { hasIssues } from './form-issues'
 

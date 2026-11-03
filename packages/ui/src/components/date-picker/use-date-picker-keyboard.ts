@@ -1,8 +1,7 @@
 import type { DateDuration } from '@internationalized/date'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
-import { wrap } from '../../utilities'
-import { isArrowKey } from '../../utilities/keyboard-navigation'
+import { isArrowKey, wrap } from '../../utilities/keyboard-navigation'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { DAY_KEY_SELECTOR, dayOfKey, gridStep, sameDay } from '../calendar/calendar-utilities'
 

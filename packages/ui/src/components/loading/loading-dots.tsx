@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { IntlMessage } from '../../primitives/intl/intl-message'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { k, type LoadingDotsVariants } from '../../recipes/kata/loading'

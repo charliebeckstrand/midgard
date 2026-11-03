@@ -15,14 +15,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import type { ScaleStep } from '../../core/density'
-import {
-	type FloatingPlacement,
-	useA11yRoving,
-	useFloatingUI,
-	useScrollWithin,
-	useSelectableValueChange,
-} from '../../hooks'
+import type { ScaleStep } from '../../core/density/scale'
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
@@ -33,10 +26,15 @@ import {
 	seedVirtualTopMatch,
 	setVirtualActive,
 	setVirtualActiveIndexed,
+	useA11yRoving,
 	type VirtualItemSource,
 	virtualTopMatchIndex,
 } from '../../hooks/a11y/use-a11y-roving'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
+import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
+import { useScrollWithin } from '../../hooks/use-scroll-within'
+import { useSelectableValueChange } from '../../hooks/use-selectable-value-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessages } from '../../primitives/intl/intl-messages'

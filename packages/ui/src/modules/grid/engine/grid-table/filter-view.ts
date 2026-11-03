@@ -1,4 +1,4 @@
-import { parseNumeric } from '../../../../utilities'
+import { parseNumeric } from '../../../../utilities/parse-numeric'
 import { isQueryActive } from '../../../query/engine/query-active'
 import { isQueryGroup } from '../../../query/engine/query-node'
 import type { QueryGroup } from '../../../query/engine/types'

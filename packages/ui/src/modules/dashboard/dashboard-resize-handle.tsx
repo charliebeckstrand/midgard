@@ -2,7 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type KeyboardEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
-import { dataAttr } from '../../core'
+import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/dashboard'

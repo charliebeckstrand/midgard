@@ -1,7 +1,8 @@
 'use client'
 
 import type { ChangeEventHandler, ComponentProps } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'

@@ -2,7 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode, Ref } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
 import {
 	mergeTriggerProps,

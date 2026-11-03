@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useEffect } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k as heading } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/panel'
 import { usePanelA11y } from './context'

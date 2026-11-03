@@ -8,7 +8,7 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { announce } from '../../core'
+import { announce } from '../../core/announcer'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { createActiveEditStore } from './engine/grid-active-edit-store'

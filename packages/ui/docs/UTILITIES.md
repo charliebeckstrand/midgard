@@ -1,6 +1,6 @@
 # Utilities
 
-> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package: numeric clamping and formatting, locale coalescing, and WCAG color-contrast maths. They also cover caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`. The barrel exports only the helpers that a caller imports through it. A caller imports each other helper from its own file, such as `from '../../utilities/contrast'`.
+> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package: numeric clamping and formatting, locale coalescing, and WCAG color-contrast maths. They also cover caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package, not as `ui/utilities`. The folder has no barrel: a caller imports each helper from the file that declares it, such as `from '../../utilities/contrast'` (CONVENTIONS §9.3).
 
 ## Numeric
 
@@ -15,7 +15,7 @@
 | `capitalizeFirst` | Returns `value` with its first letter uppercased and the rest unchanged. |
 | `parseNumeric` | Parses a data cell to a number, or `null`. It is the one numeric rule for data cells, so a blank gives `null`, not `0`. |
 | `finiteOrUndefined` | `value` when it is a finite number, else `undefined`. Import it from `utilities/parse-numeric`. |
-| `SECOND` … `YEAR` | Time units in milliseconds. `MONTH` and `YEAR` are approximations, for choosing a unit or a step only. Import them from `utilities/time-units`. |
+| `SECOND`, `MINUTE`, `HOUR`, `DAY`, `WEEK`, `MONTH`, `YEAR` | Time units in milliseconds. `MONTH` and `YEAR` are approximations, for choosing a unit or a step only. Import them from `utilities/time-units`. |
 | `MAX_TIMEOUT` | The longest delay that the platform timer holds, 2³¹−1 ms. Import it from `utilities/time-units`. |
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
@@ -33,6 +33,24 @@
 | Export | Summary |
 |---|---|
 | `resolveLocale` | Coalesces an optional BCP 47 tag to a concrete one, with the runtime locale as the fallback. |
+
+## Responsive
+
+The values and helpers of a `Responsive<T>` prop (CONVENTIONS §5.9). Import them from `utilities/responsive`.
+
+| Export | Summary |
+|---|---|
+| `BREAKPOINTS` | The breakpoints in ascending order, from `initial` to `2xl`. |
+| `BREAKPOINT_WIDTHS` | The minimum width of each breakpoint in `rem`, as Tailwind writes it. A JS reader of the viewport uses it in place of a pixel literal. |
+| `SIZE_CLASSES` | The one table that ties a size class (`compact`, `medium`, `expanded`) to the breakpoint where it starts. |
+| `adaptive` | Turns a value for each size class into a per-breakpoint map. A component default that changes with the viewport uses it. |
+| `resolveResponsive` | Calls a resolver once for each breakpoint that a value names, in ascending order, and returns the classes. |
+| `atBreakpoint` | Puts the prefix of a breakpoint on each class of a list. |
+| `valueAt` | The value of a responsive prop at a breakpoint. |
+| `withInitial` | A copy of a per-breakpoint map that names `initial`, so CSS and JS agree below the first breakpoint. |
+| `mapResponsive` | Maps each value of a responsive prop through a function, and keeps the breakpoint of each. |
+| `resolveVariant` | The classes of a responsive variant axis of a recipe, with the prefix of each breakpoint. |
+| `Breakpoint`, `MinBreakpoint`, `Responsive`, `SizeClass`, `SizeClassMap`, `Adaptive` *(types)* | The shapes of the values above. |
 
 ## Color & accessibility
 

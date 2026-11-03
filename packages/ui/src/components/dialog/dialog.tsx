@@ -1,8 +1,8 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '../../core'
-import { useResponsiveValue } from '../../hooks'
+import { cn } from '../../core/cn'
+import { useResponsiveValue } from '../../hooks/use-responsive-value'
 import { Overlay } from '../../primitives/overlay'
 import {
 	type PanelOverlayProps,

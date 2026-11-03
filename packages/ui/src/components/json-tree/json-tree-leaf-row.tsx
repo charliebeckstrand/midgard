@@ -1,4 +1,4 @@
-import { dataAttr } from '../../core'
+import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeNodeKey } from './json-tree-node-key'
 import { JsonTreePrimitiveValue } from './json-tree-primitive-value'

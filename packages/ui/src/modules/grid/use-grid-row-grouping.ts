@@ -1,9 +1,9 @@
 'use client'
 
 import { type Dispatch, type SetStateAction, useState } from 'react'
-import { useControllable } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { toggleItem } from '../../utilities'
+import { toggleItem } from '../../utilities/toggle-item'
 import { ALL_GROUPS_CLOSED, ALL_GROUPS_OPEN, type GroupExpansion } from './engine/grid-group/tree'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 

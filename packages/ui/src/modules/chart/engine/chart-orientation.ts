@@ -22,7 +22,7 @@
  * isolation. The pure geometry cores and the React parts read it alike.
  */
 
-import type { Orientation } from '../../../types'
+import type { Orientation } from '../../../types/orientation'
 
 /**
  * Which screen axis a cartesian chart's value axis runs along: `'vertical'`

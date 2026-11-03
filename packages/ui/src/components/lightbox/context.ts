@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { LightboxLoad, LightboxPhoto } from './types'
 
 /** The state that a {@link Lightbox} root gives to its triggers and its viewer. @internal */

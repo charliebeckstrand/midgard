@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import { spotClass } from '../chart/engine/chart-series'
 import { useMapZoomScale } from './context'

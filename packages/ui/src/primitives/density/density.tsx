@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { DensityStep } from '../../core/density'
+import type { DensityStep } from '../../core/density/steps'
 import { DensityContext } from './context'
 
 /** Props for {@link Density}: the `step` of the scope and its `children`. */

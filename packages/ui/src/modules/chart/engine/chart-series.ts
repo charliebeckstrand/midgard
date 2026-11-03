@@ -4,9 +4,9 @@
  * `chart-color` namespace.
  */
 
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
-import { parseNumeric } from '../../../utilities'
+import { parseNumeric } from '../../../utilities/parse-numeric'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { rawColor, textClass } from './chart-color/paint'
 import type { ChartSeriesPaint } from './chart-color/palette'

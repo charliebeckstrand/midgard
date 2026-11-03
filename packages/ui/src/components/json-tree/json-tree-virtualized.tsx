@@ -13,12 +13,13 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { cn, composeEventHandlers } from '../../core'
-import { useVirtualWindow } from '../../hooks'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useVirtualWindow } from '../../hooks/use-virtual-window'
 import { k } from '../../recipes/kata/json-tree'
-import { nextIndexForKey } from '../../utilities'
 import { focusDropped } from '../../utilities/focus-dropped'
+import { nextIndexForKey } from '../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT, TREE_ITEM_SELECTOR } from './json-tree-constants'
 import {

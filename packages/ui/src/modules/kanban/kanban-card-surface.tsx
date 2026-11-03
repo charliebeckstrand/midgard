@@ -2,7 +2,7 @@
 
 import type { ComponentProps } from 'react'
 import { Card } from '../../components/card'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/kanban'
 import { partitionByType } from '../../utilities/children'
 import { KanbanCardHandle } from './kanban-card-handle'

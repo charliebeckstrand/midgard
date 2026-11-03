@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import type { MapLegendItem } from './engine/map-legend/items'
 import { MapLegend } from './map-legend'

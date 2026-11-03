@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { type DensityStep, readRootDensity } from '../../core/density'
+import { type DensityStep, readRootDensity } from '../../core/density/steps'
 import { createListenerRegistry } from '../../utilities/listener-registry'
 
 /**

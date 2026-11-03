@@ -1,6 +1,6 @@
 'use client'
 
-import { createEmitter } from '../../utilities'
+import { createEmitter } from '../../utilities/emitter'
 
 const signal = createEmitter()
 

@@ -2,9 +2,9 @@
 
 import type { DragControls } from 'motion/react'
 import type { KeyboardEvent } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { ListVariant } from '../../recipes/kata/list'
-import type { KeyedStore } from '../../utilities'
+import type { KeyedStore } from '../../utilities/keyed-store'
 import type { ListReorderParts } from './list-reorder'
 
 /** List-wide state shared with items: variant, interactivity/disabled flags, the keyboard-lift store, item count, the sortable flag, and item event handlers. */

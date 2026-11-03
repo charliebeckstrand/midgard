@@ -1,4 +1,4 @@
-import { printInHiddenFrame } from '../../utilities'
+import { printInHiddenFrame } from '../../utilities/print-frame'
 
 /**
  * Triggers a download of the PDF at `src` via a transient anchor click.

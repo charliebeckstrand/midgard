@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { A11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import type { Mount } from '../../primitives/mount'
 

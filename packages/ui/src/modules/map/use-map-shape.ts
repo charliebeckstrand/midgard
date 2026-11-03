@@ -2,7 +2,7 @@
 
 import type { GeoProjection } from 'd3-geo'
 import { type RefObject, useMemo } from 'react'
-import { type FrameReserve, usePlotFrame } from '../../hooks'
+import { type FrameReserve, usePlotFrame } from '../../hooks/use-plot-frame'
 import {
 	cachedCanonicalPaths,
 	cachedChromePaths,

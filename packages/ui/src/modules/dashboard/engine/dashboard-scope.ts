@@ -8,7 +8,7 @@
  * chart therefore does not filter itself down to the bar that the user clicked.
  */
 
-import { toggleListItem } from '../../../utilities'
+import { toggleListItem } from '../../../utilities/toggle-item'
 import { isQueryActive } from '../../query/engine/query-active'
 import { asText, evaluateQuery } from '../../query/engine/query-evaluate'
 import type { QueryGroup, QueryNode, QueryRule } from '../../query/engine/types'

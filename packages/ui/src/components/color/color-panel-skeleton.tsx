@@ -1,8 +1,8 @@
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/color-panel'
 import { k } from '../../recipes/kata/color-panel'
-import { rangeKeys } from '../../utilities'
+import { rangeKeys } from '../../utilities/range-keys'
 import { Placeholder } from '../placeholder'
 import { DEFAULT_SWATCHES } from './color-constants'
 

@@ -2,7 +2,7 @@
 
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
-import type { PaletteColor } from '../../core/recipe'
+import type { PaletteColor } from '../../core/recipe/colors'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'

@@ -2,8 +2,8 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { Table, type TableElementProps } from '../../components/table'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/table'
 import { GridHighlightContext, GridNavContext } from './context'

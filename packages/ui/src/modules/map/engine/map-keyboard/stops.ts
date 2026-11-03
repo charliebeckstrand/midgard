@@ -5,7 +5,7 @@
  * overlays the way the pointer does.
  */
 
-import { createEmitter } from '../../../../utilities'
+import { createEmitter } from '../../../../utilities/emitter'
 import type { MapHoverTarget } from '../map-hover/target'
 import type { MapOverlayEntry } from '../map-overlay/entry'
 import type { LngLat, MapPoint2D } from '../types'

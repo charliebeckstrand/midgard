@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useControllable } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import {
 	type CrossRowEntry,
 	readControlledCell,

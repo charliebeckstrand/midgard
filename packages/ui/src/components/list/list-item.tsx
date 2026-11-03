@@ -1,7 +1,8 @@
 'use client'
 
 import type { ComponentProps, ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useAriaIds } from '../../hooks/use-aria-ids'
 import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'

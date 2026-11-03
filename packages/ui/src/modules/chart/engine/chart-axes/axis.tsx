@@ -1,4 +1,4 @@
-import { cn } from '../../../../core'
+import { cn } from '../../../../core/cn'
 import { k } from '../../../../recipes/kata/chart'
 import { GUTTER_GAP } from '../chart-constants'
 import type { ChartAxisTitlePlacement } from '../chart-layout'

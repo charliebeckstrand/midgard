@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../../components/toolbar'
 import { type DensityStep, densitySteps } from '../../../core/density'
-import type { Orientation } from '../../../types'
+import type { Orientation } from '../../../types/orientation'
 import { frames, getSlot, renderUI } from '../../helpers'
 import { LAYOUT_UNIT } from '../../helpers/geometry/tolerance'
 import { holdRoot } from '../helpers/root-state'

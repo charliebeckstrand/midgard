@@ -1,4 +1,4 @@
-import type { FloatingHeightSnap } from '../../hooks'
+import type { FloatingHeightSnap } from '../../hooks/use-floating-panel'
 
 /**
  * Lowers the height of a floating menu panel that does not fit, so that the

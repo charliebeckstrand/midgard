@@ -1,5 +1,5 @@
-import { createEmitter } from '../../utilities'
 import { readCookie, writeCookie } from '../../utilities/cookie'
+import { createEmitter } from '../../utilities/emitter'
 import { type DensityLevel, densityLevels } from '../density/context'
 import {
 	type MotionMode,

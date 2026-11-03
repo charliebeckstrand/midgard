@@ -10,9 +10,9 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/resizable'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 import { ResizableContext, ResizableIndexContext } from './context'
 import { ResizableHandle } from './resizable-handle'
 import { DEFAULT_PANEL_SIZE, ResizablePanel, type ResizablePanelProps } from './resizable-panel'

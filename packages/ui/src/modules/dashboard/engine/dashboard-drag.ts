@@ -18,7 +18,7 @@
  * list ({@link stackPreview}).
  */
 
-import { clamp } from '../../../utilities'
+import { clamp } from '../../../utilities/clamp'
 import { moveItem } from '../../../utilities/move-item'
 import {
 	bottom,

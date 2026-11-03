@@ -1,7 +1,7 @@
 'use client'
 
 import { LoadingSpinner } from '../../components/loading'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { gridMessages } from './engine/grid-messages'

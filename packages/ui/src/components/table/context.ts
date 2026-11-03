@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /**
  * Whether a {@link Table} scrolls its own columns. A Grid with a sticky header

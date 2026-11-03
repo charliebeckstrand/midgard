@@ -1,25 +1,25 @@
 'use client'
 
 import { type RefObject, useCallback, useMemo } from 'react'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import {
 	type FrameReserve,
 	type FrameSizing,
 	type PlotFrameRef,
 	usePlotFrame,
-} from '../../../hooks'
+} from '../../../hooks/use-plot-frame'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
+import { clamp } from '../../../utilities/clamp'
 import {
 	type BinScale,
 	type ColorBin,
-	clamp,
-	once,
-	readoutFormat,
 	resolveBinScale,
 	valueExtent,
-} from '../../../utilities'
+} from '../../../utilities/color-scale'
+import { readoutFormat } from '../../../utilities/format-number'
+import { once } from '../../../utilities/once'
 import type { ChartAxisTick } from '../engine/chart-axes/axis'
 import {
 	BAND_LABEL_HEIGHT,

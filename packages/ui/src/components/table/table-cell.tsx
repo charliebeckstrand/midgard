@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { createSlot } from '../../core'
+import { createSlot } from '../../core/create-slot'
 import { k } from '../../recipes/kata/table'
 
 /** Props for {@link TableCell}: native `<td>` attributes, including a `ref` to the cell. */

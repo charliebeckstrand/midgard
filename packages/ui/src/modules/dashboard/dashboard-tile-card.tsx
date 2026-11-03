@@ -3,7 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import { memo, type ReactNode, type RefObject } from 'react'
 import { Card } from '../../components/card'
-import { dataAttr } from '../../core'
+import { dataAttr } from '../../core/data-attr'
 import type { ContentHeightHost } from '../../primitives/content-height'
 import { HeaderActions, HeaderActionsSlot } from '../../primitives/header-actions'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'

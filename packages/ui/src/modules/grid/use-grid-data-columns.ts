@@ -1,9 +1,9 @@
 'use client'
 
 import { type RefObject, useCallback, useEffect, useId, useMemo } from 'react'
-import { announce } from '../../core'
-import { useControllable } from '../../hooks'
+import { announce } from '../../core/announcer'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
+import { useControllable } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { describeColumnVisibility, describePin } from './engine/grid-announcements'

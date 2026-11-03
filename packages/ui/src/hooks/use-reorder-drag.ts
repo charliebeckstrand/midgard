@@ -2,7 +2,7 @@
 
 import type { DragControls } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { announce } from '../core'
+import { announce } from '../core/announcer'
 import {
 	droppedText,
 	pickedUpText,
@@ -10,7 +10,7 @@ import {
 	returnedText,
 } from '../primitives/intl/intl-reorder'
 import { useIntl } from '../primitives/intl/use-intl'
-import { sameElements } from '../utilities'
+import { sameElements } from '../utilities/same-elements'
 import { useDragCursorHold } from './use-drag-cursor'
 
 /**

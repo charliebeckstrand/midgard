@@ -1,8 +1,8 @@
 'use client'
 
 import type { RefObject } from 'react'
-import { createContext } from '../../core'
-import type { KeyedStore } from '../../utilities'
+import { createContext } from '../../core/create-context'
+import type { KeyedStore } from '../../utilities/keyed-store'
 import type { JsonTreeCollapsible, SearchIndex } from './json-tree-utilities'
 
 type JsonTreeContextValue = {

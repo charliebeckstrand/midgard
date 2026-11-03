@@ -2,7 +2,8 @@
 
 import { LayoutGroup, type MotionStyle } from 'motion/react'
 import { type ComponentProps, type ReactNode, useId } from 'react'
-import { cn, createContext } from '../../core'
+import { cn } from '../../core/cn'
+import { createContext } from '../../core/create-context'
 import { k } from '../../recipes/kata/active-indicator'
 import { ReducedMotion } from '../reduced-motion'
 import * as m from '../reduced-motion/reduced-motion-elements'

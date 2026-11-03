@@ -2,7 +2,7 @@
 
 import { type Placement, useClientPoint, useInteractions } from '@floating-ui/react'
 import { type RefObject, useLayoutEffect, useMemo } from 'react'
-import { useFloatingPanel } from '../../hooks'
+import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import type { TooltipContextValue } from './context'
 
 /** Options for {@link useTooltipPointer}. @internal */

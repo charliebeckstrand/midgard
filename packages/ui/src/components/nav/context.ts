@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /**
  * Flags descendants that a {@link NavBar} encloses them; `useNavBar` reads it so

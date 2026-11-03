@@ -9,7 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { announce } from '../../core'
+import { announce } from '../../core/announcer'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useIntl } from '../../primitives/intl/use-intl'

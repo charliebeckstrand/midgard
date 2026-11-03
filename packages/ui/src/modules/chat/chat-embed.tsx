@@ -3,7 +3,7 @@
 import { useInView } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { Placeholder } from '../../components/placeholder'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'

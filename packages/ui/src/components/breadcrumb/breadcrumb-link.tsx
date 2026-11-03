@@ -1,4 +1,4 @@
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/breadcrumb'
 

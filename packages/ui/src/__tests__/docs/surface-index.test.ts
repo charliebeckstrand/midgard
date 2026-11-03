@@ -1,10 +1,18 @@
 // @vitest-environment node
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { isExportDeclaration, isNamedExports } from 'typescript/unstable/ast'
+import {
+	isClassDeclaration,
+	isExportDeclaration,
+	isFunctionDeclaration,
+	isNamedExports,
+	isVariableStatement,
+	type Statement,
+	SyntaxKind,
+} from 'typescript/unstable/ast'
 import { afterAll, describe, expect, it } from 'vitest'
 import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
-import { srcDir, uiRoot } from '../helpers/walk-source'
+import { isSourceFile, srcDir, uiRoot, walkSource } from '../helpers/walk-source'
 
 const DOCS = join(uiRoot, 'docs')
 
@@ -43,6 +51,58 @@ function barrelValueExports(server: TypeScriptServer, relPath: string): string[]
 	})
 }
 
+/**
+ * The names of the values that the files of a folder declare and export, such
+ * as `clamp` from `export function clamp(…)`. A folder with no barrel, such as
+ * `utilities`, has no export list of its own: each importer reads the file
+ * (CONVENTIONS §9.3). A value whose doc comment holds `@internal` is left out.
+ */
+function folderValueExports(server: TypeScriptServer, relPath: string): string[] {
+	const files: string[] = []
+
+	walkSource(join(srcDir, relPath), (file) => {
+		if (isSourceFile(file)) files.push(file)
+	})
+
+	return [...server.parse(files).values()].flatMap((source) =>
+		source.statements.flatMap((statement) => {
+			if (!isExported(statement)) return []
+
+			const leading = source.text.slice(statement.pos, statement.getStart(source))
+
+			if (leading.includes('@internal')) return []
+
+			return declaredNames(statement)
+		}),
+	)
+}
+
+function isExported(statement: Statement): boolean {
+	if (
+		!isVariableStatement(statement) &&
+		!isFunctionDeclaration(statement) &&
+		!isClassDeclaration(statement)
+	) {
+		return false
+	}
+
+	return (
+		statement.modifiers?.some((modifier) => modifier.kind === SyntaxKind.ExportKeyword) ?? false
+	)
+}
+
+function declaredNames(statement: Statement): string[] {
+	if (isVariableStatement(statement)) {
+		return statement.declarationList.declarations.map((declaration) => declaration.name.getText())
+	}
+
+	if ((isFunctionDeclaration(statement) || isClassDeclaration(statement)) && statement.name) {
+		return [statement.name.text]
+	}
+
+	return []
+}
+
 function subdirectories(relPath: string): string[] {
 	return readdirSync(join(srcDir, relPath), { withFileTypes: true })
 		.filter((entry) => entry.isDirectory())
@@ -64,7 +124,6 @@ describe('surface index ⇄ source sync (CONVENTIONS §12.2)', () => {
 	it.each([
 		['CORE.md', 'core/index.ts'],
 		['HOOKS.md', 'hooks/index.ts'],
-		['UTILITIES.md', 'utilities/index.ts'],
 		['LAYOUTS.md', 'layouts/index.ts'],
 	])('%s documents every value export of %s', (mdFile, barrel) => {
 		const exports = barrelValueExports(server, barrel)
@@ -77,6 +136,18 @@ describe('surface index ⇄ source sync (CONVENTIONS §12.2)', () => {
 		const undocumented = exports.filter((name) => !documented.has(name))
 
 		expect(undocumented, `value exports missing from ${mdFile}`).toEqual([])
+	})
+
+	it('UTILITIES.md documents every value export of utilities', () => {
+		const exports = folderValueExports(server, 'utilities')
+
+		expect(exports.length, 'no value exports parsed from utilities').toBeGreaterThan(0)
+
+		const documented = documentedTokens('UTILITIES.md')
+
+		const undocumented = exports.filter((name) => !documented.has(name))
+
+		expect(undocumented, 'value exports missing from UTILITIES.md').toEqual([])
 	})
 
 	it.each([

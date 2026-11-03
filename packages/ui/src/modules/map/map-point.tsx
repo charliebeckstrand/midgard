@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useId, useMemo } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import { markTargets } from './engine/map-cluster/crowd'
 import { ownGround } from './engine/map-cluster/ground'

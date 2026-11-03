@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
-import type { VariantProps } from '../../core/recipe'
+import { cn } from '../../core/cn'
+import type { VariantProps } from '../../core/recipe/engine/types'
 import { k } from '../../recipes/kata/aspect-ratio'
 
 /**

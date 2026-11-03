@@ -29,7 +29,7 @@
  * Layer: kiso · Concern: group joins
  */
 
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 
 /** Axis a joined group runs along. */
 export type GroupOrientation = Orientation

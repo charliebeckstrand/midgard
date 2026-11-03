@@ -11,7 +11,7 @@ import { ComboboxContext } from '../../components/combobox/context'
 import { useComboboxQuery } from '../../components/combobox/use-combobox-query'
 import { DeferredQueryContext, QueryContext } from '../../primitives/query'
 import { LocaleProvider } from '../../providers/locale'
-import { createKeyedStore } from '../../utilities'
+import { createKeyedStore } from '../../utilities/keyed-store'
 import { fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 const NAMES = ['Texas LTL', 'Georgia TL']

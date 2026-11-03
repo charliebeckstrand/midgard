@@ -1,4 +1,6 @@
-import { getOrCompute, parseNumeric, resolveLocale } from '../../../../utilities'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
+import { parseNumeric } from '../../../../utilities/parse-numeric'
+import { resolveLocale } from '../../../../utilities/resolve-locale'
 
 /**
  * Smart client-sort comparators for {@link Grid}. The default column sort runs

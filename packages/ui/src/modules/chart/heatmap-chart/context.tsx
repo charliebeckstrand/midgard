@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react'
-import { createContext } from '../../../core'
+import { createContext } from '../../../core/create-context'
 import { useChartHoverStore } from '../engine/context'
 
 /** The class the range legend is probing, or `null` at rest: the cells outside it dim. @internal */

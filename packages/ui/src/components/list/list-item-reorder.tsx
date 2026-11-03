@@ -2,7 +2,7 @@
 
 import { type DragControls, useDragControls } from 'motion/react'
 import { type ReactNode, useMemo, useState } from 'react'
-import { noop } from '../../utilities'
+import { noop } from '../../utilities/noop'
 import { ListItemContext } from './context'
 
 type ListItemReorderProps = {

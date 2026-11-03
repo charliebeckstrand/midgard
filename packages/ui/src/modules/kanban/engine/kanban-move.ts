@@ -10,7 +10,7 @@
  * or one column across the board.
  */
 
-import { moveItem } from '../../../utilities'
+import { moveItem } from '../../../utilities/move-item'
 import {
 	type KanbanBoard,
 	type KanbanColumnBase,

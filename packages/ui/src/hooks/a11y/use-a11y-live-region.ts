@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 
 /** Announcement urgency. */
 export type A11yLiveLevel = 'polite' | 'assertive'

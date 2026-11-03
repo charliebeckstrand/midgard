@@ -9,7 +9,7 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { useVirtualWindow } from '../../hooks'
+import { useVirtualWindow } from '../../hooks/use-virtual-window'
 import { FIRST_WINDOW_RECT } from './engine/grid-constants'
 import { windowItemEstimate } from './engine/grid-items/items'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'

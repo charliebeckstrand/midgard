@@ -1,7 +1,7 @@
 'use client'
 
 import { Children, cloneElement, isValidElement, type ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
 import { useGridHighlight } from './context'
 

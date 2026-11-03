@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import type { AriaProps } from '../../types'
+import type { AriaProps } from '../../types/aria-props'
 import { useIdScope } from '../use-id-scope'
 
 /** Options for {@link useA11yDisclosure}. */

@@ -1,7 +1,9 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useCallback, useMemo } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { useMountsEveryPanel } from '../../primitives/mount'

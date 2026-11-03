@@ -1,9 +1,9 @@
 'use client'
 
 import { memo, useCallback } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/calendar'
-import { formatInteger } from '../../utilities'
+import { formatInteger } from '../../utilities/format-number'
 import { Button, type ButtonVariants } from '../button'
 import { dayKey, formatDayName } from './calendar-utilities'
 

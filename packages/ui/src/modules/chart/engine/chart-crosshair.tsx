@@ -1,8 +1,8 @@
 'use client'
 
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { k } from '../../../recipes/kata/chart'
-import { clamp } from '../../../utilities'
+import { clamp } from '../../../utilities/clamp'
 import {
 	bandCoord,
 	bandExtent,

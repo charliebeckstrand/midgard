@@ -12,7 +12,7 @@ import {
 	sortRowsSmart,
 	toSortKey,
 } from '../modules/grid/engine/grid-sort/utilities'
-import { parseNumeric } from '../utilities'
+import { parseNumeric } from '../utilities/parse-numeric'
 import { compareBenches } from './compare'
 import { type Shipment, shipmentKey, shipments } from './fixtures'
 

@@ -9,13 +9,13 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
-import { useA11yRoving } from '../../hooks'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
+import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import type { Mount } from '../../primitives/mount'
 import { k, type scale } from '../../recipes/kata/tree'
 import { Box } from '../../structure/box'
-import type { AccessibleName } from '../../types'
+import type { AccessibleName } from '../../types/accessible-name'
 import { TreeContext } from './context'
 import { ITEM_SELECTOR, ROVING_ITEM_SELECTOR } from './tree-constants'
 import { stampTreePositions } from './tree-item-children'

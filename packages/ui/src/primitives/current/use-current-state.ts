@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useControllable } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import type { CurrentContextValue } from './context'
 
 /**

@@ -12,10 +12,11 @@ import {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { getOrCompute, rangeKeys } from '../../utilities'
+import { getOrCompute } from '../../utilities/get-or-compute'
+import { rangeKeys } from '../../utilities/range-keys'
 import { useMapPlat, useMapPointed, useMapZoomScale } from './context'
 import { markTargets } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'

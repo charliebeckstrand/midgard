@@ -1,7 +1,7 @@
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/nav'
-import type { Orientation } from '../../types'
-import { rangeKeys } from '../../utilities'
+import type { Orientation } from '../../types/orientation'
+import { rangeKeys } from '../../utilities/range-keys'
 import { Placeholder } from '../placeholder'
 
 /** Props for {@link NavSkeleton}: the row count and the `orientation` of the list. */

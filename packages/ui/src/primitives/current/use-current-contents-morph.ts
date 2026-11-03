@@ -5,7 +5,7 @@ import { type RefObject, useEffect } from 'react'
 import { travelHeight } from '../../hooks/travel-height'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/current'
-import { type BorderBox, measureBox } from '../../utilities'
+import { type BorderBox, measureBox } from '../../utilities/measure-box'
 import type { CurrentAnimation } from './context'
 
 /** The tallest tracked panel: the container's morph target. */

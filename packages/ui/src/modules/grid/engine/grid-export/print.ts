@@ -1,4 +1,4 @@
-import { printInHiddenFrame } from '../../../../utilities'
+import { printInHiddenFrame } from '../../../../utilities/print-frame'
 import type { GridColumn } from '../../types'
 import { rowsToHtmlTable } from './html-table'
 

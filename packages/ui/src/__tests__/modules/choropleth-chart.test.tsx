@@ -6,7 +6,7 @@ import {
 } from '../../modules/chart'
 import { binEmphasisId } from '../../modules/map'
 import { LocaleProvider } from '../../providers/locale'
-import { formatFraction } from '../../utilities'
+import { formatFraction } from '../../utilities/format-number'
 import {
 	allBySlot,
 	allRegions,

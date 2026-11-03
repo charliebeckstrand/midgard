@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /**
  * Context tuple for the headless flag: `[HeadlessContext, useHeadless]`.

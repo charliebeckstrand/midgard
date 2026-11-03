@@ -2,8 +2,9 @@
 
 import { useClick, useInteractions } from '@floating-ui/react'
 import { type ComponentProps, type ReactNode, useId, useMemo, useState } from 'react'
-import { cn } from '../../core'
-import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
+import { cn } from '../../core/cn'
+import { useFloatingDisclosure } from '../../hooks/use-floating-disclosure'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { PopoverContext, PopoverPositionContext } from './context'
 
 /**

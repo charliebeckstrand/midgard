@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { createSlot } from '../../core'
+import { createSlot } from '../../core/create-slot'
 import { k } from '../../recipes/kata/fieldset'
 
 /** Props for {@link Legend}: the native `<legend>` attributes plus `className`. */

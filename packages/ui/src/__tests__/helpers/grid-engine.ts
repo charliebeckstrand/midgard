@@ -41,7 +41,8 @@ import {
 	paginationOptions,
 	toColumnDef,
 } from '../../modules/grid/engine/grid-table/options'
-import { getOrCompute, isDataColumn } from '../../utilities'
+import { getOrCompute } from '../../utilities/get-or-compute'
+import { isDataColumn } from '../../utilities/is-data-column'
 
 /**
  * The features of the reference table: the features of the grid, with the

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
 

@@ -2,8 +2,10 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ChangeEvent, ComponentProps } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
-import { useControllableFlag } from '../../hooks'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'

@@ -1,4 +1,4 @@
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/json-tree'
 
 type JsonTreeBranchCloseProps = {

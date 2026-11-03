@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { type KbdVariants, k } from '../../recipes/kata/kbd'
 
 /** Props for {@link Kbd}: an optional `size` atop native `<kbd>` attributes. */

@@ -2,7 +2,7 @@
 
 import type { FloatingRootContext } from '@floating-ui/react'
 import type { CSSProperties } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 /**
  * The value shared through {@link TooltipContext}: the floating handles a

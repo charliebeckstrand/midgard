@@ -1,6 +1,6 @@
 import cardValidator from 'card-validator'
-import { digitsOnly } from '../../utilities'
 import { isDecimalDigit } from '../../utilities/caret'
+import { digitsOnly } from '../../utilities/digits-only'
 import type { CreditCardBrand, CreditCardBrandInfo } from './types'
 
 const { cvv, expirationDate } = cardValidator

@@ -10,7 +10,7 @@ import {
 	useRef,
 	useSyncExternalStore,
 } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'

@@ -7,7 +7,7 @@
  * draw.
  */
 
-import { clamp } from '../../../../utilities'
+import { clamp } from '../../../../utilities/clamp'
 import { MAP_ZOOM_FIT } from '../map-constants'
 import type { MapPoint2D } from '../types'
 

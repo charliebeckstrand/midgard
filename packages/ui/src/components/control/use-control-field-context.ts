@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useA11yControl } from '../../hooks'
+import { useA11yControl } from '../../hooks/a11y/use-a11y-control'
 import {
 	type ControlContextValue,
 	type ControlSeverity,

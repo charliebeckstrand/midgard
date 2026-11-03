@@ -1,7 +1,7 @@
 'use client'
 
-import { useMediaQuery } from '../../hooks'
-import { PHONE_QUERY } from '../../utilities'
+import { useMediaQuery } from '../../hooks/use-media-query'
+import { PHONE_QUERY } from '../../utilities/media-query'
 
 /**
  * Whether the panel of a {@link DatePicker} opens as a bottom sheet: the

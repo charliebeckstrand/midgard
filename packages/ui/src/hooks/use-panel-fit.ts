@@ -2,7 +2,7 @@
 
 import type { AnimationPlaybackControls, ValueAnimationTransition } from 'motion'
 import { type RefCallback, useEffect, useRef, useState } from 'react'
-import { type BorderBox, measureBox } from '../utilities'
+import { type BorderBox, measureBox } from '../utilities/measure-box'
 import { travelHeight } from './travel-height'
 import { dockExtent, type PanelCeiling } from './use-panel-resize'
 import { usePrefersReducedMotion } from './use-prefers-reduced-motion'

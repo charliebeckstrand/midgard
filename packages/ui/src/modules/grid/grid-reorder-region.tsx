@@ -4,7 +4,7 @@ import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { type ComponentProps, type ReactNode, useId } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import { useSortableItem } from '../../hooks/use-sortable-item'
 import {
 	restrictToHorizontalAxis,

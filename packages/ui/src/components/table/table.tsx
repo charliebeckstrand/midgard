@@ -1,6 +1,6 @@
 import { Children, type ComponentProps, type ReactNode } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/table'
 import type { BoxOutline } from '../../structure/box'
 import { isElementOfType } from '../../utilities/children'

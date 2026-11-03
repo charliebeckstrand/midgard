@@ -2,7 +2,9 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useRef } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'

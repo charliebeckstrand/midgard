@@ -1,4 +1,4 @@
-import type { Orientation } from '../types'
+import type { Orientation } from '../types/orientation'
 
 /**
  * Navigation mode for {@link nextIndexForKey}: 2D grid when `cols` is set, else

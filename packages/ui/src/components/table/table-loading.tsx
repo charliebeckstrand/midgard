@@ -1,4 +1,4 @@
-import { rangeKeys } from '../../utilities'
+import { rangeKeys } from '../../utilities/range-keys'
 import { TextSkeleton } from '../text'
 import { TableBody } from './table-body'
 import { TableCell } from './table-cell'

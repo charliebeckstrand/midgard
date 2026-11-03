@@ -3,7 +3,9 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useReportedChange } from '../../../hooks/use-reported-change'
 import { useStableValue } from '../../../hooks/use-stable-value'
-import { keyByOccurrence, sameElements, toggleItem } from '../../../utilities'
+import { keyByOccurrence } from '../../../utilities/key-by-occurrence'
+import { sameElements } from '../../../utilities/same-elements'
+import { toggleItem } from '../../../utilities/toggle-item'
 
 /**
  * The state of a legend switchboard: the series or the reference rules toggled

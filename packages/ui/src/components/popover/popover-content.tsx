@@ -2,9 +2,10 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type ReactNode, useLayoutEffect, useState } from 'react'
-import { cn, dataAttr } from '../../core'
-import type { ScaleStep } from '../../core/density'
-import { useA11yAutoFocus } from '../../hooks'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import type { ScaleStep } from '../../core/density/scale'
+import { useA11yAutoFocus } from '../../hooks/a11y/use-a11y-auto-focus'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'

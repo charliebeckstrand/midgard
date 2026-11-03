@@ -2,7 +2,7 @@ import { type ReactNode, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { List } from '../../components/list'
 import { ListItem } from '../../components/list/list-item'
-import { useSortableItem } from '../../hooks'
+import { useSortableItem } from '../../hooks/use-sortable-item'
 import {
 	Kanban,
 	KanbanCard,
@@ -34,8 +34,8 @@ vi.mock('../../components/list/list-item', async (importActual) => {
 	return { ...actual, ListItem: vi.fn(actual.ListItem) }
 })
 
-vi.mock('../../hooks', async (importActual) => {
-	const actual = await importActual<typeof import('../../hooks')>()
+vi.mock('../../hooks/use-sortable-item', async (importActual) => {
+	const actual = await importActual<typeof import('../../hooks/use-sortable-item')>()
 
 	return { ...actual, useSortableItem: vi.fn(actual.useSortableItem) }
 })

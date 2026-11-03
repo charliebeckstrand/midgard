@@ -14,11 +14,13 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
-import { useFloatingUI } from '../../hooks'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useDeferredFloatingReference } from '../../hooks/use-deferred-floating-reference'
 import { fitMiddleware } from '../../hooks/use-floating-panel'
+import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { FloatingSurface } from '../../primitives/floating-surface'

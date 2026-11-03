@@ -2,7 +2,8 @@
 
 import { X } from 'lucide-react'
 import { type ComponentProps, use } from 'react'
-import { cn, createSlot } from '../../core'
+import { cn } from '../../core/cn'
+import { createSlot } from '../../core/create-slot'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { OffcanvasContext } from '../../primitives/offcanvas'

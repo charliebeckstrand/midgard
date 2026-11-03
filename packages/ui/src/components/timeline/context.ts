@@ -1,8 +1,8 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { TimelineVariants } from '../../recipes/kata/timeline'
-import type { Orientation } from '../../types'
+import type { Orientation } from '../../types/orientation'
 
 type TimelineOrientation = Orientation
 type TimelineVariant = NonNullable<TimelineVariants['variant']>

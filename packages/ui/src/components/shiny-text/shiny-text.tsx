@@ -2,7 +2,7 @@
 
 import { useComposedRefs, useInView } from 'motion/react'
 import { type ComponentProps, useRef } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 
 /** Props for {@link ShinyText}; tunes the sweep animation and gradient colors atop a `<span>`. */
 export type ShinyTextProps = {

@@ -1,4 +1,4 @@
-import type { ScaleStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/slider'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { createSkeleton, type SkeletonProps } from '../placeholder'

@@ -1,11 +1,12 @@
 'use client'
 
 import { type Ref, type RefObject, useEffect, useRef, useState } from 'react'
-import { ariaAttr, dataAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { rangeKeys } from '../../utilities'
 import { getScroller } from '../../utilities/get-scroller'
+import { rangeKeys } from '../../utilities/range-keys'
 import { pdfViewerMessages } from './pdf-viewer-messages'
 
 /** One entry in the thumbnail rail. @internal */

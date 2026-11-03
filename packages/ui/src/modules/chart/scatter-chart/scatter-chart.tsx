@@ -1,7 +1,7 @@
 'use client'
 
 import { useLocale } from '../../../providers/locale'
-import type { AccessibleName } from '../../../types'
+import type { AccessibleName } from '../../../types/accessible-name'
 import { resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
 import { SCATTER_HIT_SLACK, TICK_TARGET } from '../engine/chart-constants'
 import type { Crosshair, ResolvedCrosshair } from '../engine/chart-crosshair'

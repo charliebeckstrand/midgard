@@ -2,7 +2,7 @@
 
 import { domMax, frame, LazyMotion, Reorder, useComposedRefs } from 'motion/react'
 import { type ComponentProps, type ReactNode, type RefObject, useRef } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import { k } from '../../recipes/kata/list'
 import type { ListItemContextValue } from './context'
 

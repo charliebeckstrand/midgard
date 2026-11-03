@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -10,8 +10,9 @@ import {
 	type ProgressBarFillVariants,
 	type ProgressTrackVariants,
 } from '../../recipes/kata/progress'
-import type { AccessibleName } from '../../types'
-import { clamp, pct } from '../../utilities'
+import type { AccessibleName } from '../../types/accessible-name'
+import { clamp } from '../../utilities/clamp'
+import { pct } from '../../utilities/pct'
 
 type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
 

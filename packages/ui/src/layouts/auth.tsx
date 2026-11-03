@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../core'
+import { cn } from '../core/cn'
 import { Landmark } from '../primitives/landmark'
 
 /** Props for {@link AuthLayout}: the card or cards to center. The `<main>` takes the rest. */

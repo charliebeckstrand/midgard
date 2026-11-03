@@ -2,9 +2,10 @@
 
 import { type ComponentProps, type CSSProperties, useEffect, useRef, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
-import { announce, cn } from '../../core'
-import { useScrollRegion } from '../../hooks'
+import { announce } from '../../core/announcer'
+import { cn } from '../../core/cn'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'

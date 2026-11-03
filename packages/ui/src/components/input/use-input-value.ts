@@ -1,7 +1,7 @@
 'use client'
 
 import type { ChangeEventHandler, ComponentProps, FocusEventHandler } from 'react'
-import { composeEventHandlers } from '../../core'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useFormField } from '../../primitives/form/context'
 import { hasIssues } from '../../primitives/form/form-issues'
 

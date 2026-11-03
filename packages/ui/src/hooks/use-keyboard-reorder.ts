@@ -1,11 +1,12 @@
 'use client'
 
 import type { KeyboardEvent } from 'react'
-import { announce } from '../core'
+import { announce } from '../core/announcer'
 import { movedText, reorderSubject } from '../primitives/intl/intl-reorder'
 import { useIntl } from '../primitives/intl/use-intl'
-import { clamp, moveItem } from '../utilities'
+import { clamp } from '../utilities/clamp'
 import { hasBrowserModifier } from '../utilities/modifier-keys'
+import { moveItem } from '../utilities/move-item'
 import { useKeyboardLifted } from './use-keyboard-lifted'
 import { useStableEvent } from './use-stable-event'
 

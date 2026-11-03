@@ -2,7 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, use, useCallback } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { HeaderActionsContext } from './context'
 
 /**

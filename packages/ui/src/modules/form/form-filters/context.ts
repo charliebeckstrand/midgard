@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext } from '../../../core'
-import type { ScrollRegionOptions } from '../../../hooks'
+import { createContext } from '../../../core/create-context'
+import type { ScrollRegionOptions } from '../../../hooks/use-scroll-region'
 import type { ResponsiveAlign, ResponsiveDirection } from '../../../structure/flex/variants'
 import { formFiltersAxis } from '../engine/form-filters-axis'
 import type { FormFiltersLayout } from '../engine/types'

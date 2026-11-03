@@ -5,7 +5,7 @@
  * its box without pulling `d3-geo` in behind it.
  */
 
-import type { FrameSizing } from '../../../../hooks'
+import type { FrameSizing } from '../../../../hooks/use-plot-frame'
 import { parseAspectRatio } from '../../../../utilities/aspect-ratio'
 import { ALBERS_USA_ASPECT, DEFAULT_MAP_ASPECT } from '../map-constants'
 import type { MapAspectRatio, MapProjection } from '../types'

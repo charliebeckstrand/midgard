@@ -1,5 +1,5 @@
-import { cn } from '../../../core'
-import type { FrameSizing, FrameStep } from '../../../hooks'
+import { cn } from '../../../core/cn'
+import type { FrameSizing, FrameStep } from '../../../hooks/use-plot-frame'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { type ChartAspectRatio, chartFrameSizing, frameFills } from '../engine/chart-frame/sizing'

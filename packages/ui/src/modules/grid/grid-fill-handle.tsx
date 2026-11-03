@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
 import { useGridNavContext } from './context'
 import { GRID_ROLE } from './engine/grid-constants'

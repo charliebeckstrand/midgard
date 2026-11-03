@@ -6,7 +6,7 @@
  */
 
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
-import { keyByOccurrence } from '../../../utilities'
+import { keyByOccurrence } from '../../../utilities/key-by-occurrence'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { type ChartColor, rawColor, resolvePaint, textClass } from './chart-color/paint'
 import type { ChartLegendReference } from './chart-legend/legend'

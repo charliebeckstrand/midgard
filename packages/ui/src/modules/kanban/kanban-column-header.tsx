@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/kanban'
 
 /** Props for {@link KanbanColumnHeader}. The `<div>` of the header row takes the rest. */

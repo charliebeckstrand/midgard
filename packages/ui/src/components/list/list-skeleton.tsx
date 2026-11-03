@@ -1,7 +1,7 @@
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k, type ListVariant } from '../../recipes/kata/list'
-import type { Orientation } from '../../types'
-import { rangeKeys } from '../../utilities'
+import type { Orientation } from '../../types/orientation'
+import { rangeKeys } from '../../utilities/range-keys'
 import { Placeholder } from '../placeholder'
 
 /** Props for {@link ListSkeleton}: the row count, the explicit props of the list, and the description line. */

@@ -1,8 +1,11 @@
 'use client'
 
 import type { FocusEventHandler, KeyboardEventHandler, ReactNode, Ref } from 'react'
-import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
-import { useTruncation } from '../../hooks'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import type { ValidationAttrs } from '../../core/validation-attrs'
+import { useTruncation } from '../../hooks/use-truncation'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/listbox'
 import { Button } from '../button'

@@ -1,9 +1,10 @@
 'use client'
 
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
-import { announce, querySlot } from '../../core'
-import { useKeyboardLifted } from '../../hooks'
+import { announce } from '../../core/announcer'
+import { querySlot } from '../../core/query-slot'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { useKeyboardLifted } from '../../hooks/use-keyboard-lifted'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'

@@ -2,7 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import type { Mount } from '../mount'
 import { ReducedMotion } from '../reduced-motion'

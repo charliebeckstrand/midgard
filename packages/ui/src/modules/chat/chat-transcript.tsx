@@ -2,8 +2,10 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useCallback, useLayoutEffect, useRef } from 'react'
-import { cn } from '../../core'
-import { useA11yAnnouncements, usePrefersReducedMotion, useVirtualWindow } from '../../hooks'
+import { cn } from '../../core/cn'
+import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useVirtualWindow } from '../../hooks/use-virtual-window'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-transcript'
 import { ChatMessage } from './chat-message'

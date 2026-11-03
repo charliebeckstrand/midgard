@@ -2,7 +2,7 @@
 
 import type { FloatingRootContext } from '@floating-ui/react'
 import type { CSSProperties, RefObject } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 
 type PopoverContextValue = {
 	open: boolean

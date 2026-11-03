@@ -2,8 +2,8 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type ReactNode, useRef } from 'react'
-import { cn } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { ControlFrame } from '../../primitives/control'
 import { Shell } from '../../providers/headless/shell'
 import { useSlots } from '../../providers/headless/use-slots'

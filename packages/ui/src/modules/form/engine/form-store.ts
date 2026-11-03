@@ -1,5 +1,5 @@
 import type { FormStateValue, FormStore } from '../../../primitives/form/context'
-import { createEmitter } from '../../../utilities'
+import { createEmitter } from '../../../utilities/emitter'
 
 /**
  * Makes the store for one form, and the function that publishes a committed

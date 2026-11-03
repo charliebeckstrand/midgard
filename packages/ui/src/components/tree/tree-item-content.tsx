@@ -8,7 +8,9 @@ import {
 	type ReactNode,
 	useId,
 } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
 import { useTreeContext, useTreePosition } from './context'

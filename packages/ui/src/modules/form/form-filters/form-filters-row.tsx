@@ -1,8 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn } from '../../../core'
-import { useScrollRegion } from '../../../hooks'
+import { cn } from '../../../core/cn'
+import { useScrollRegion } from '../../../hooks/use-scroll-region'
 import { intlMessages } from '../../../primitives/intl/intl-messages'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/form-filters'

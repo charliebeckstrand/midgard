@@ -13,7 +13,7 @@ import {
 	MenuSeparator,
 	MenuTrigger,
 } from '../../components/menu'
-import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
+import { colors, extendedColors, type PaletteColor } from '../../core/recipe/colors'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'
 

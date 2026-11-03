@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useControllable } from '../../hooks'
-import { clamp } from '../../utilities'
+import { useControllable } from '../../hooks/use-controllable'
+import { clamp } from '../../utilities/clamp'
 
 /** Inputs to {@link usePdfViewerPagination}. @internal */
 type PdfPaginationOptions = {

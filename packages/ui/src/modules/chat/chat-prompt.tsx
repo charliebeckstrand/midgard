@@ -9,10 +9,11 @@ import { Control } from '../../components/control'
 import { useFileUploadHandlers } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
-import { ariaAttr, dataAttr } from '../../core'
+import { ariaAttr } from '../../core/aria-attr'
+import { dataAttr } from '../../core/data-attr'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { isComposing } from '../../utilities'
+import { isComposing } from '../../utilities/is-composing'
 import { canSubmitDraft } from './engine/chat-draft'
 
 const messages = defineMessages({

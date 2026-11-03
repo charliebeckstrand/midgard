@@ -1,7 +1,7 @@
 'use client'
 
 import type { RefObject } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 
 /**

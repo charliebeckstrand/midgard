@@ -1,6 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/breadcrumb'
 import { Icon } from '../icon'
 

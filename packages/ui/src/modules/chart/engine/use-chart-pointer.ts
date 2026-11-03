@@ -9,7 +9,7 @@ import {
 	useEffect,
 	useRef,
 } from 'react'
-import { useHoverAcrossScroll } from '../../../hooks'
+import { useHoverAcrossScroll } from '../../../hooks/use-hover-across-scroll'
 import { useTouchTap } from '../../../hooks/use-touch-tap'
 import type { PlotRect } from './chart-orientation'
 import type { ChartTooltipTrigger } from './chart-tooltip'

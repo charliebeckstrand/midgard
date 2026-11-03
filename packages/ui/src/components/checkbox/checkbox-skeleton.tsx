@@ -1,4 +1,4 @@
-import type { ScaleStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/checkbox'
 import { k } from '../../recipes/kata/checkbox'
 import { createSkeleton, type SkeletonProps } from '../placeholder'

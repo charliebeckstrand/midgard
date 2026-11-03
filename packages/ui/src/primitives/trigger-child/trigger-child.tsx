@@ -8,7 +8,9 @@ import {
 	type Ref,
 	type SyntheticEvent,
 } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 
 /**
  * A single element child that a trigger clones. Its own `ref` (React 19 ref as

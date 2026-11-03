@@ -1,4 +1,4 @@
-import { createEmitter } from '../../../utilities'
+import { createEmitter } from '../../../utilities/emitter'
 import { type ChartHoverState, type ChartHoverStore, samePoint } from './context'
 
 /**

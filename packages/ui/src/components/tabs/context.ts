@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext } from '../../core'
-import type { Orientation } from '../../types'
+import { createContext } from '../../core/create-context'
+import type { Orientation } from '../../types/orientation'
 
 /** Visual treatment of a tab group: underlined `tab` triggers or a segmented control. */
 export type TabsVariant = 'tab' | 'segment'

@@ -2,8 +2,9 @@
 
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { TableScrollsContext } from '../../components/table/context'
-import { cn, createContext } from '../../core'
-import type { DensityStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import { createContext } from '../../core/create-context'
+import type { DensityStep } from '../../core/density/steps'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import type { SortableListOptions } from '../../hooks/use-sortable-list'
 import { Density } from '../../primitives/density'

@@ -1,5 +1,5 @@
 import type { ComponentProps, ElementType, ReactNode, Ref } from 'react'
-import type { DensityStep } from '../../core/density'
+import type { DensityStep } from '../../core/density/steps'
 import type { LinkProps } from '../link'
 
 /**

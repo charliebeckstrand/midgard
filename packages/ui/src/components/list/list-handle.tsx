@@ -2,7 +2,9 @@
 
 import { GripVertical } from 'lucide-react'
 import type { ComponentProps, PointerEvent } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/list'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'

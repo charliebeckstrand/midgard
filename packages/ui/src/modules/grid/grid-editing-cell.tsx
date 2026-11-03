@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useCallback, useSyncExternalStore } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
 import { type GridSettleControls as SettleControls, useGridEditingSession } from './context'
 import { isCellEditing, isColumnEditable } from './engine/grid-editing-utilities'

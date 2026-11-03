@@ -1,8 +1,11 @@
 'use client'
 
 import type { RefCallback } from 'react'
-import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import type { ScaleStep } from '../../core/density/scale'
+import type { ValidationAttrs } from '../../core/validation-attrs'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/color-picker'

@@ -14,13 +14,15 @@ import {
 	type UIEventHandler,
 	useLayoutEffect,
 } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
-import { useTruncation } from '../../hooks'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import { useTruncation } from '../../hooks/use-truncation'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
-import { capitalizeFirst } from '../../utilities'
+import { capitalizeFirst } from '../../utilities/capitalize-first'
 import { useControlSurface } from '../control/use-control-surface'
 import { Input } from '../input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'

@@ -1,5 +1,5 @@
 import { type ComponentProps, memo } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/markdown'
 import { lex } from './markdown-lex'
 import { type MarkdownHeadingOffset, MarkdownRenderer } from './markdown-renderer'

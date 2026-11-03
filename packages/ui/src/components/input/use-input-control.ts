@@ -1,7 +1,7 @@
 'use client'
 
 import type { ChangeEventHandler, ComponentProps, FocusEventHandler } from 'react'
-import { invalidAttrs } from '../../core'
+import { invalidAttrs } from '../../core/invalid-attrs'
 import { useGlass } from '../../providers/glass/context'
 import { type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'

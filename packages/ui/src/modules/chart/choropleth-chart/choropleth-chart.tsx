@@ -3,11 +3,13 @@
 import { useComposedRefs } from 'motion/react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { cn } from '../../../core'
+import { cn } from '../../../core/cn'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
-import type { AccessibleName } from '../../../types'
-import { once, parseNumeric, readoutFormat } from '../../../utilities'
+import type { AccessibleName } from '../../../types/accessible-name'
+import { readoutFormat } from '../../../utilities/format-number'
+import { once } from '../../../utilities/once'
+import { parseNumeric } from '../../../utilities/parse-numeric'
 import {
 	type MapAspectRatio,
 	type MapFeature,

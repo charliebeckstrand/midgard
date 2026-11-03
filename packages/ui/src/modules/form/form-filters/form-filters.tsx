@@ -2,14 +2,14 @@
 
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { ControlLockContext, ControlTargetsContext } from '../../../components/control/context'
-import { cn } from '../../../core'
-import { useA11yAnnouncements } from '../../../hooks'
+import { cn } from '../../../core/cn'
+import { useA11yAnnouncements } from '../../../hooks/a11y/use-a11y-announcements'
 import { useControllable } from '../../../hooks/use-controllable'
 import { type FormActions, FormProvider } from '../../../primitives/form/context'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/form-filters'
-import type { AccessibleName } from '../../../types'
-import { noop } from '../../../utilities'
+import type { AccessibleName } from '../../../types/accessible-name'
+import { noop } from '../../../utilities/noop'
 import {
 	countActiveFilters,
 	filtersFormState,

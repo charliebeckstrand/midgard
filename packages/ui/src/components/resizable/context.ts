@@ -1,8 +1,8 @@
 'use client'
 
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { createContext } from '../../core'
-import type { Orientation } from '../../types'
+import { createContext } from '../../core/create-context'
+import type { Orientation } from '../../types/orientation'
 import type { PanelConfig } from './types'
 
 type ResizableContextType = {

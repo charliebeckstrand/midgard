@@ -1,5 +1,6 @@
 import type { CSSProperties, SyntheticEvent } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 
 type Props = Record<string, unknown>
 

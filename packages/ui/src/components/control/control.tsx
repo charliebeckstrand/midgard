@@ -1,8 +1,9 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn, dataAttr } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
+import type { ScaleStep } from '../../core/density/scale'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { scale } from '../../recipes/kata/control'
 import { k } from '../../recipes/kata/fieldset'

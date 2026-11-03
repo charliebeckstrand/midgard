@@ -1,7 +1,8 @@
 'use client'
 
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
-import { measureContentBox, observeResizeBeforePaint } from '../../utilities'
+import { measureContentBox } from '../../utilities/measure-box'
+import { observeResizeBeforePaint } from '../../utilities/observe-resize-before-paint'
 
 type ViewportSize = { width: number; height: number }
 

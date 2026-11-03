@@ -2,7 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
 import { Overlay } from '../../primitives/overlay'

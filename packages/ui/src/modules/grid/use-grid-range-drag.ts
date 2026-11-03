@@ -2,7 +2,7 @@
 
 import { type MouseEvent, type RefObject, useEffect, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { clamp } from '../../utilities'
+import { clamp } from '../../utilities/clamp'
 import type { PressOwner } from '../../utilities/primary-press'
 import { GRID_ROLE } from './engine/grid-constants'
 import { edgeScrollStep, RANGE_EDGE } from './engine/grid-range/range'

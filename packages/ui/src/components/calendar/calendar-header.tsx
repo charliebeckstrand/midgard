@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEventHandler, memo, type RefObject } from 'react'
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/calendar'
 import { calendarMessages } from './calendar-messages'

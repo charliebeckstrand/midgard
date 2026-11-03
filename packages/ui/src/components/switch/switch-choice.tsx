@@ -1,8 +1,11 @@
 'use client'
 
 import type { ComponentProps, MouseEvent, ReactNode } from 'react'
-import { ariaAttr, cn, composeEventHandlers, dataAttr } from '../../core'
-import type { ScaleStep } from '../../core/density'
+import { ariaAttr } from '../../core/aria-attr'
+import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
+import type { ScaleStep } from '../../core/density/scale'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'

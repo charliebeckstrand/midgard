@@ -1,7 +1,7 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../core/create-context'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { MapDotPool } from './engine/map-cluster/pool'
 import type { MapClusterStore } from './engine/map-cluster/sets'

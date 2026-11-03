@@ -1,5 +1,5 @@
 import type { ComponentProps, HTMLAttributes, ReactNode } from 'react'
-import type { ScaleStep } from '../../core/density'
+import type { ScaleStep } from '../../core/density/scale'
 import type { scale as buttonScale } from '../../recipes/kata/button'
 import type { scale as controlScale } from '../../recipes/kata/control'
 import type { Button } from '../button'

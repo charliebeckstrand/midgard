@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '../../core'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/timeline'

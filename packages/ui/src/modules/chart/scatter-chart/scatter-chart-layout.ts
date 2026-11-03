@@ -5,7 +5,7 @@
  * unit-testable in isolation.
  */
 
-import { compactTickFormat, readoutFormat, tickFormat } from '../../../utilities'
+import { compactTickFormat, readoutFormat, tickFormat } from '../../../utilities/format-number'
 import type { ChartAxisTick } from '../engine/chart-axes/axis'
 import type { ScatterAxes } from '../engine/chart-axes/schema'
 import { toLegendItem } from '../engine/chart-cartesian/series'

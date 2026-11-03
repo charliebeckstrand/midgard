@@ -13,8 +13,10 @@
  * value-domain or crosshair switches.
  */
 
-import type { AccessibleName } from '../../../types'
-import { getOrCompute, parseNumeric, sameElements } from '../../../utilities'
+import type { AccessibleName } from '../../../types/accessible-name'
+import { getOrCompute } from '../../../utilities/get-or-compute'
+import { parseNumeric } from '../../../utilities/parse-numeric'
+import { sameElements } from '../../../utilities/same-elements'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
 import type { ChartBaseProps, DataKey } from '../engine/types'

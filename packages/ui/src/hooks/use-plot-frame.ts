@@ -11,7 +11,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { observeResizeBeforePaint } from '../utilities'
+import { observeResizeBeforePaint } from '../utilities/observe-resize-before-paint'
 
 /**
  * Frame sizing and measurement for the plot-bearing modules (chart, map). A
