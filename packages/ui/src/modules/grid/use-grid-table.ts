@@ -110,6 +110,9 @@ import { useGroupTree } from './use-grid-group-tree'
 import { useGridPinningView } from './use-grid-pinning-view'
 import { useGridRowModel } from './use-grid-row-model'
 
+/** The rows of the engine: none, as it holds column state only. @internal */
+const NO_ENGINE_ROWS: never[] = []
+
 /** Parameters for {@link useGridTable}. @internal */
 type GridTableParams<T> = {
 	rows: readonly T[]
@@ -710,8 +713,6 @@ export function useGridTable<T>({
 	// from it append in definition order). Visibility defaults to all-visible.
 	const engineColumnOrder = useMemo<ColumnOrderState>(() => columnOrder.map(String), [columnOrder])
 
-	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
-
 	// The column filters that reach the engine. A grid with no filterable column
 	// gives the engine no filter state, so its filters apply to no row. This block
 	// comes before the engine options. The React Compiler reads a plain call after
@@ -741,9 +742,9 @@ export function useGridTable<T>({
 	const options = useMemo<EngineOptions<T>>(
 		() => ({
 			features: gridFeatures,
-			data: rows as EngineData<T>[],
+			// The engine holds column state only, so it takes no rows.
+			data: NO_ENGINE_ROWS as EngineData<T>[],
 			columns: columnDefs,
-			getRowId,
 			state: buildState({
 				resizable,
 				sizing: resolvedSizing,
@@ -755,9 +756,7 @@ export function useGridTable<T>({
 			...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
 		}),
 		[
-			rows,
 			columnDefs,
-			getRowId,
 			resizable,
 			resolvedSizing,
 			columnSizingInfo,
