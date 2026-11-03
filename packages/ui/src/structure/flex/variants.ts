@@ -1,6 +1,6 @@
 import type { Ma } from '../../recipes'
 import type { FlexAlign, FlexDirection, FlexJustify } from '../../recipes/kata/flex'
-import type { Responsive } from '../../types'
+import type { Responsive } from '../../utilities/responsive'
 
 export type { FlexAlign, FlexDirection, FlexJustify }
 

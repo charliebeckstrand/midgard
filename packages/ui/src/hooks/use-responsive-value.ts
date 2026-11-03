@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
+import { matchesMediaQuery, subscribeMediaQuery } from '../utilities/media-query'
 import {
 	BREAKPOINT_WIDTHS,
 	BREAKPOINTS,
@@ -8,8 +9,7 @@ import {
 	type MinBreakpoint,
 	type Responsive,
 	valueAt,
-} from '../types/responsive'
-import { matchesMediaQuery, subscribeMediaQuery } from '../utilities/media-query'
+} from '../utilities/responsive'
 
 /*
  * Re-exported here, not only from `types`, because it is this hook's parameter type. The

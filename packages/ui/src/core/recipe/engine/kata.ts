@@ -31,7 +31,7 @@ import {
 	type Breakpoint,
 	type Responsive,
 	valueAt,
-} from '../../../types/responsive'
+} from '../../../utilities/responsive'
 import { twMerge } from '../../tw-merge'
 import { axisKey, defineRecipe, RESERVED } from './recipe'
 import type { CompoundRule, ComputedProps, RecipeConfig, ResolvedConfig } from './types'

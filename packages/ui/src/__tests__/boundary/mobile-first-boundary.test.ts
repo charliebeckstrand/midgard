@@ -24,7 +24,7 @@ import {
 //
 // A default of `ui` that changes with the viewport names size classes through
 // `adaptive`, and never a breakpoint, so that `SIZE_CLASSES` in
-// `types/responsive.ts` is the one table that ties a layout to a width. The
+// `utilities/responsive.ts` is the one table that ties a layout to a width. The
 // docs site shows the consumer API, so the rule does not apply to it.
 
 /** A viewport `max-*:` variant: a named breakpoint, or an arbitrary width. */

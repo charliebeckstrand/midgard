@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, it } from 'vitest'
-import { adaptive } from '../../types/responsive'
+import { adaptive } from '../../utilities/responsive'
 
 describe('adaptive', () => {
 	it('keeps each literal in the type, so a reader of the type sees the map', () => {

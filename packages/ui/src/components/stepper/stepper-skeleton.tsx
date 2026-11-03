@@ -1,8 +1,8 @@
 import { Fragment } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/stepper'
-import type { Responsive } from '../../types'
 import { rangeKeys } from '../../utilities'
+import type { Responsive } from '../../utilities/responsive'
 import { Placeholder } from '../placeholder'
 import type { StepperOrientation } from './context'
 

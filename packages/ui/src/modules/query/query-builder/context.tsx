@@ -2,7 +2,8 @@
 
 import { type ReactNode, useCallback } from 'react'
 import { createContext } from '../../../core'
-import type { Orientation, Responsive } from '../../../types'
+import type { Orientation } from '../../../types'
+import type { Responsive } from '../../../utilities/responsive'
 import type { QueryField } from '../engine/types'
 import type { QueryTreeActions } from '../use-query-tree'
 

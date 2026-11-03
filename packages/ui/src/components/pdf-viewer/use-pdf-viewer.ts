@@ -4,7 +4,7 @@ import type { RefObject, SyntheticEvent } from 'react'
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { type OffcanvasLayout, useOffcanvas, usePrefersReducedMotion } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { adaptive, mapResponsive, type Responsive } from '../../types'
+import { adaptive, mapResponsive, type Responsive } from '../../utilities/responsive'
 import { resolveDownloadName } from './pdf-viewer-utilities'
 import type {
 	PdfViewerFit,

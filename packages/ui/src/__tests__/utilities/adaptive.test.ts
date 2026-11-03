@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { adaptive, SIZE_CLASSES, valueAt, withInitial } from '../../types/responsive'
+import { adaptive, SIZE_CLASSES, valueAt, withInitial } from '../../utilities/responsive'
 
 describe('adaptive', () => {
 	it('keys each size class by the breakpoint where it starts', () => {

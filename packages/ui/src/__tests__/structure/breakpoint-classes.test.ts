@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { describe, expect, it } from 'vitest'
-import { atBreakpoint } from '../../types/responsive'
+import { atBreakpoint } from '../../utilities/responsive'
 
 // `responsive-variants.test.ts` makes sure that each prefixed class of a unit
 // has CSS from `ui/tailwind.css`.

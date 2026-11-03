@@ -4,8 +4,8 @@ import { __unstable__loadDesignSystem, compile } from '@tailwindcss/node'
 import clsx, { type ClassValue } from 'clsx'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { twMerge } from '../../core/tw-merge'
-import { BREAKPOINT_WIDTHS, type MinBreakpoint, resolveVariant } from '../../types/responsive'
 import { noop } from '../../utilities/noop'
+import { BREAKPOINT_WIDTHS, type MinBreakpoint, resolveVariant } from '../../utilities/responsive'
 import { uiRoot } from '../helpers/walk-source'
 
 // A responsive variant axis of a component gives the classes of one value at

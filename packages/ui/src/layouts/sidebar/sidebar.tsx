@@ -32,7 +32,7 @@ import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/app
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
-import type { Responsive } from '../../types'
+import type { Responsive } from '../../utilities/responsive'
 import { SidebarLayoutContext } from './context'
 import { useStickyBars } from './use-sticky-bars'
 
