@@ -1,6 +1,5 @@
 'use client'
 
-import { Checkbox } from '../../components/checkbox'
 import { TableHeader } from '../../components/table'
 import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -10,6 +9,7 @@ import { gridMessages } from './engine/grid-messages'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
+import { GridSelectCheckbox } from './grid-row-special-cell'
 import type { GridColumn } from './types'
 
 /** The place of a static header cell: its column, index, and frozen edge. @internal */
@@ -60,11 +60,11 @@ function GridSelectHeaderCell<T>({
 	return (
 		<TableHeader {...getPinnedProps(place, k.cell.select)}>
 			{showCheckbox ? (
-				<Checkbox
+				<GridSelectCheckbox
 					checked={allSelected}
 					indeterminate={someSelected && !allSelected}
 					onChange={toggleAll}
-					aria-label={label}
+					label={label}
 				/>
 			) : (
 				<span className="sr-only">{intl.formatMessage(gridMessages.selectionColumn)}</span>
