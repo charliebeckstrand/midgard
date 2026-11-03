@@ -220,6 +220,28 @@ export function seatingCellProps<T>(args: {
 }
 
 /**
+ * Takes a press on a cell of the cursor. A press in a portal that the cell
+ * renders, such as the open panel of a listbox, reaches the cell through the
+ * React tree, but it is not a press on the cell: the result is then `false`.
+ * Otherwise a press that is not on focusable content in the cell pulls focus
+ * onto the grid, and the result is `true`. The pressed cell is in view, so the
+ * focus does not scroll.
+ *
+ * @internal
+ */
+export function focusGridOnPress(event: MouseEvent<HTMLTableCellElement>): boolean {
+	const target = event.target
+
+	if (!(target instanceof Node && event.currentTarget.contains(target))) return false
+
+	if (!fromInteractiveContent(target)) {
+		event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
+	}
+
+	return true
+}
+
+/**
  * The touch handlers of one editable cell, merged over the handlers of the
  * column's `cellProps`. The column's handler runs first. Its `preventDefault()`
  * on the press or the lift stops the open, because a tap that opens a cell is

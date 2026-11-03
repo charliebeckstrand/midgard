@@ -17,7 +17,6 @@ import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities/is-data-column'
 import { type GridNewRowSession, useGridNewRowSession } from './context'
 import { GRID_CELL_PROPS } from './engine/grid-cell-controls'
-import { GRID_ROLE } from './engine/grid-constants'
 import {
 	collectNewRow,
 	type GridDraft,
@@ -31,14 +30,13 @@ import {
 	NEW_ROW_ADD_COLUMN_ID,
 } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
-import { fromInteractiveContent } from './engine/grid-row/cell'
 import { fitCellProps } from './engine/grid-sizing/fit-styles'
 import { stickyHeadInset } from './engine/grid-sticky-insets'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridAddRowButton } from './grid-add-row-button'
 import { GridCellEditor } from './grid-cell-editor'
 import type { GridNewRowAdd, GridNewRowAddContext } from './grid-editing-types'
-import { GridNavCell } from './grid-nav-cell'
+import { focusGridOnPress, GridNavCell } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import { NEW_ROW_INDEX } from './use-grid-navigation'
 import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
@@ -91,10 +89,7 @@ type GridNewRowProps<T> = {
 
 /**
  * The cursor props of a cell of the new-row slot: the cell id, the role, and a
- * press that seats the cursor, as on a data cell (see `seatingCellProps`). A
- * control in the cell takes the focus of a press on it, so only a press on the
- * rest of the cell pulls focus onto the grid. The pressed cell is in view, so
- * the focus does not scroll.
+ * press that seats the cursor, as on a data cell (see `focusGridOnPress`).
  *
  * @internal
  */
@@ -107,13 +102,7 @@ function slotCellProps(
 		role: 'gridcell',
 		...GRID_CELL_PROPS,
 		onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
-			if (!(event.target instanceof Node && event.currentTarget.contains(event.target))) return
-
-			if (!fromInteractiveContent(event.target)) {
-				event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
-			}
-
-			session.seat(col)
+			if (focusGridOnPress(event)) session.seat(col)
 		},
 	}
 }

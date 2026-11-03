@@ -660,10 +660,9 @@ export function useGridNavigation({
 	/**
 	 * Whether Enter and F2 on the cell at a data row and a column open its
 	 * editor. Such a cell keeps the keys for the editing layer, and the keys do
-	 * not move focus to its controls. Read at key time. Leave unset for a grid
-	 * that edits no cell.
+	 * not move focus to its controls. Read at key time, so it must be stable.
 	 */
-	editsAt?: (row: number, col: number) => boolean
+	editsAt: (row: number, col: number) => boolean
 	/** Whether the cursor holds a cell range (see {@link GridDataProps.range}). */
 	range?: boolean
 }): {
@@ -1227,8 +1226,6 @@ export function useGridNavigation({
 		[moveToCursor, stopAt, stopId],
 	)
 
-	const editsAtCell = useStableEvent((row: number, col: number) => editsAt?.(row, col) ?? false)
-
 	// Enter and F2 move focus into the active cell, to its first control. Escape
 	// from a control gives focus back to the grid (see `escapeFromCell`). On a
 	// header cell, Enter presses its sort control instead, when the column
@@ -1243,7 +1240,7 @@ export function useGridNavigation({
 
 			const header = active.row === HEADER_ROW_INDEX
 
-			if (!header && editsAtCell(row, active.col)) return false
+			if (!header && editsAt(row, active.col)) return false
 
 			const cell = document.getElementById(cellId(row, active.col))
 
@@ -1258,7 +1255,7 @@ export function useGridNavigation({
 
 			return took
 		},
-		[toDataRow, cellId, editsAtCell],
+		[toDataRow, cellId, editsAt],
 	)
 
 	// The keys of the active cell. Enter and F2 first move focus into the cell

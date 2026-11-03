@@ -56,7 +56,15 @@ export function useGridTabStops(
 		// nothing in the grid, holds focus.
 		let entered: Element | null = null
 
-		const normalize = () => pinControls(table, entered)
+		// The walk writes only the attributes that differ, and it drops the records
+		// of its own writes, so they start no second walk.
+		const normalize = (watcher: MutationObserver) => {
+			pinControls(table, entered)
+
+			watcher.takeRecords()
+		}
+
+		const observer = new MutationObserver((_records, self) => normalize(self))
 
 		const follow = (target: EventTarget | null) => {
 			const next = scopeFor(target, table)
@@ -65,7 +73,7 @@ export function useGridTabStops(
 
 			entered = next
 
-			normalize()
+			normalize(observer)
 		}
 
 		const onFocusIn = (event: FocusEvent) => follow(event.target)
@@ -81,8 +89,6 @@ export function useGridTabStops(
 
 		table.addEventListener('focusout', onFocusOut)
 
-		const observer = new MutationObserver(normalize)
-
 		observer.observe(table, {
 			subtree: true,
 			childList: true,
@@ -92,7 +98,7 @@ export function useGridTabStops(
 
 		follow(document.activeElement)
 
-		normalize()
+		normalize(observer)
 
 		return () => {
 			observer.disconnect()

@@ -5,9 +5,7 @@ import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
 import { useGridNavContext } from './context'
 import { GRID_CELL_PROPS } from './engine/grid-cell-controls'
-import { GRID_ROLE } from './engine/grid-constants'
-import { fromInteractiveContent } from './engine/grid-row/cell'
-import { GridNavCell } from './grid-nav-cell'
+import { focusGridOnPress, GridNavCell } from './grid-nav-cell'
 import { HEADER_ROW_INDEX } from './use-grid-navigation'
 
 /**
@@ -27,9 +25,7 @@ export type GridHeaderCursor = {
  * is the first row of the cursor (see `HEADER_ROW_INDEX`).
  *
  * A press on the cell seats the cursor there, as a press on a body cell does
- * (see `seatingCellProps`). A control in the cell, such as the sort button,
- * takes the focus of a press on it, so only a press on the rest of the cell
- * pulls focus onto the grid. The value keeps its identity while the column
+ * (see `focusGridOnPress`). The value keeps its identity while the column
  * keeps its place, so a memoized header holds.
  *
  * @internal
@@ -46,16 +42,7 @@ export function useGridHeaderCursor(col: number): GridHeaderCursor | null {
 				id: store.cellId(HEADER_ROW_INDEX, col),
 				className: cn(k.nav.cell),
 				onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
-					const target = event.target
-
-					if (!(target instanceof Node) || !event.currentTarget.contains(target)) return
-
-					// The header is in view, so the focus does not scroll.
-					if (!fromInteractiveContent(target)) {
-						event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus({ preventScroll: true })
-					}
-
-					store.seatHeader(col)
+					if (focusGridOnPress(event)) store.seatHeader(col)
 				},
 			},
 			marker: <GridNavCell row={HEADER_ROW_INDEX} col={col} fills={false} />,

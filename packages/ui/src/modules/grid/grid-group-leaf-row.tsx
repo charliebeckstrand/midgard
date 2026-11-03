@@ -109,28 +109,22 @@ function leafCellInner<T>(args: {
 	const { col, row, rowIndex, rowKey, selected, toggleRow, rowLabel, truncate } = args
 
 	// The Add column of the new-row slot is empty in a leaf row.
-	if (isNewRowAddColumn(col.id)) return cellMarkerAt(col, rowIndex)
+	if (isNewRowAddColumn(col.id)) return null
 
 	// Row reorder stands down under grouping, so the leaf gives no sortable and
 	// its grip is inert.
 	if (col.dragHandle || col.selectable || col.actions) {
 		return (
-			<>
-				<GridRowSpecialCell
-					col={col}
-					row={row}
-					rowKey={rowKey}
-					selected={selected}
-					toggleRow={toggleRow}
-					rowLabel={rowLabel}
-				/>
-				{cellMarkerAt(col, rowIndex)}
-			</>
+			<GridRowSpecialCell
+				col={col}
+				row={row}
+				rowKey={rowKey}
+				selected={selected}
+				toggleRow={toggleRow}
+				rowLabel={rowLabel}
+			/>
 		)
 	}
-
-	// A leaf row gives the expander column no toggle, so its cell holds only the marker.
-	if (!isDataColumn(col)) return cellMarkerAt(col, rowIndex)
 
 	// The column renders the cell as a flat row does.
 	return cellBody(col, row, rowIndex, truncate)
@@ -251,6 +245,8 @@ function GridGroupLeafCell<T>({
 					</div>
 				</div>
 			</div>
+			{/* The active-cell marker of a non-data cell. A data cell renders its own. */}
+			{cellMarkerAt(col, rowIndex)}
 		</td>
 	)
 }

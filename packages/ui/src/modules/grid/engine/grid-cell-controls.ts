@@ -58,10 +58,8 @@ function isControl(element: HTMLElement): boolean {
  * the first one when it takes focus, as the header of a column that drags
  * by its whole cell does. A control of a grid nested in the cell belongs to
  * that grid, so it is not one of them. The nested grid's own tab stop is one.
- *
- * @internal
  */
-export function cellControls(cell: HTMLElement): HTMLElement[] {
+function cellControls(cell: HTMLElement): HTMLElement[] {
 	return [cell, ...cell.querySelectorAll<HTMLElement>(CANDIDATES)].filter(
 		(element) => element.closest(GRID_CELL) === cell && isControl(element),
 	)

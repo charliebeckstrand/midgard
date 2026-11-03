@@ -32,6 +32,7 @@ import {
 import { cellText } from './engine/grid-export/accessor'
 import { gridMessages } from './engine/grid-messages'
 import { resolveNewRow } from './engine/grid-new-row'
+import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import {
 	fillPlan,
 	type GridFillDirection,
@@ -231,6 +232,7 @@ export function useGridCursor<T>({
 	tableRef,
 	refs,
 	editSource,
+	measuredAddWidth,
 }: {
 	navigable: boolean
 	/** Whether the cursor holds a cell range (see {@link GridDataProps.range}). */
@@ -259,6 +261,8 @@ export function useGridCursor<T>({
 	 * The editing layer reads it during render, and the ref at event time.
 	 */
 	editSource: GridEditSource<T>
+	/** The width (px) that the Add cell of the new-row slot last measured, or `null` before a measure. */
+	measuredAddWidth: number | null
 }): {
 	/** Whether the grid carries a keyboard cursor (`navigable` or editable). */
 	cursorEnabled: boolean
@@ -299,6 +303,21 @@ export function useGridCursor<T>({
 	// The new-row slot is a row of the cursor's order, first or last. The cursor
 	// reads where it sits at event time.
 	const newRowPosition = resolveNewRow(editable, managed)
+
+	// The Add control of the slot has a column of its own after the others (see
+	// `withNewRowAddColumn`). It joins after the column order and visibility
+	// state, so no saved state names it. It follows the configured slot, not the
+	// loading state, so the column set stays stable. Its width is the one that the
+	// Add cell measures for its control, unless `newRowAdd.width` fixes it. The
+	// column joins before the cursor columns, so its cells are cells of the
+	// cursor, as the cells of the other columns are.
+	const addWidth = resolveNewRowAddWidth(
+		newRowPosition !== null,
+		editable?.newRowAdd,
+		measuredAddWidth,
+	)
+
+	const withAdd = useMemo(() => withNewRowAddColumn(columns, addWidth), [columns, addWidth])
 
 	const newRowRef = useRef<GridNewRowPosition>(newRowPosition)
 
@@ -343,7 +362,7 @@ export function useGridCursor<T>({
 	const editsAt = useStableEvent((_row: number, col: number) => {
 		const column = cursorColumnsRef.current[col]
 
-		return column !== undefined && isColumnEditable(column)
+		return managed && column !== undefined && isColumnEditable(column)
 	})
 
 	const nav = useGridNavigation({
@@ -358,7 +377,7 @@ export function useGridCursor<T>({
 		scrollContainerRef,
 		newRowRef,
 		rowIndexMapRef: rowIndexMapRef as RefObject<Map<unknown, number>>,
-		editsAt: managed ? editsAt : undefined,
+		editsAt,
 		range: cursorEnabled && range,
 	})
 
@@ -647,7 +666,7 @@ export function useGridCursor<T>({
 	const cursorColumns = useGridCursorColumns<T>({
 		enabled: cursorEnabled,
 		editing: editingEnabled,
-		columns,
+		columns: withAdd,
 		rowIndexMapRef,
 		colIndexMapRef,
 		rowKeysRef,
