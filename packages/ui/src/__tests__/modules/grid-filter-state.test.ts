@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { withColumnQuery } from '../../modules/grid/engine/grid-table/filter-view'
 import type { GridColumnFilterState } from '../../modules/grid/types'
