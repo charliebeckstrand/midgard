@@ -21,6 +21,7 @@ import {
 	useState,
 } from 'react'
 import { useFloatingPanel } from '../../hooks/use-floating-panel'
+import { cellChrome } from './engine/grid-sizing/measure'
 
 /** The widest that a grown editor gets, in rem. @internal */
 const GROW_MAX_REM = 28
@@ -52,15 +53,15 @@ function textWidth(field: HTMLInputElement | HTMLTextAreaElement, text: string):
 	return Math.max(...text.split('\n').map((line) => context.measureText(line).width))
 }
 
-/** The width of the content box of `element`, in px. @internal */
+/**
+ * The width of the content box of `element`, in px. It reads the box
+ * unrounded, as the grid sizes a column, so a value that the column fits
+ * exactly reads as fitting.
+ *
+ * @internal
+ */
 function contentWidth(element: HTMLElement): number {
-	const style = getComputedStyle(element)
-
-	return (
-		element.clientWidth -
-		Number.parseFloat(style.paddingInlineStart) -
-		Number.parseFloat(style.paddingInlineEnd)
-	)
+	return element.getBoundingClientRect().width - cellChrome(element)
 }
 
 /** The input types whose value is a line of text that can be wider than the cell. @internal */
@@ -80,11 +81,13 @@ function growingField(slot: HTMLElement): HTMLInputElement | HTMLTextAreaElement
 /**
  * How the editor in `slot` grows past the content box of `cell`: the width
  * that it needs past the cell, in px, or `null` when the editor fits. Only a
- * text input or a text area that has focus grows. The parts of the editor
- * beside the field, such as the steppers of a number input, keep their width,
- * so they count as they are. One em of space after the text keeps the next
- * character in view, so the text does not scroll and then jump back as the
- * editor grows.
+ * text input or a text area that has focus grows, and only when its text is
+ * wider than the cell. A value that fits stays in the cell, so the editor and
+ * the controls below it do not move as focus comes and goes. The parts of the
+ * editor beside the field, such as the steppers of a number input, keep their
+ * width, so they count as they are. A grown editor adds one em of space after
+ * the text, which keeps the next character in view, so the text does not
+ * scroll and then jump back as the editor grows.
  *
  * A text area also grows when its text has more than one line, with a width
  * of 0 past the cell when each line fits. In the cell it shows one line. When
@@ -109,15 +112,15 @@ function measureGrow(slot: HTMLElement, cell: HTMLElement): number | null {
 	// field, so the difference stays the same.
 	const beside = contentWidth(slot) - contentWidth(field)
 
-	const fontSize = Number.parseFloat(getComputedStyle(field).fontSize)
-
-	const needed = textWidth(field, field.value) + fontSize + beside
-
-	const grow = Math.max(0, Math.ceil(needed - room))
+	const needed = textWidth(field, field.value) + beside
 
 	const lines = field instanceof HTMLTextAreaElement && field.value.includes('\n')
 
-	return grow > 0 || lines ? grow : null
+	if (needed <= room) return lines ? 0 : null
+
+	const fontSize = Number.parseFloat(getComputedStyle(field).fontSize)
+
+	return Math.ceil(needed + fontSize - room)
 }
 
 /**
