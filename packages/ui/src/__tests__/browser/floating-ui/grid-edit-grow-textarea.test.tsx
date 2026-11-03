@@ -2,9 +2,10 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Textarea } from '../../../components/textarea'
 import { Grid, type GridColumn, type GridProps } from '../../../modules/grid'
-import { present, renderUI, waitFor } from '../../helpers'
+import { frames, present, renderUI, waitFor } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 import { gridCell } from '../../helpers/grid-cells'
+import { inFrame, resizeObserverLoopErrors } from '../helpers/resize-observer-loop'
 
 /**
  * A text area in an `editCell` slot, on the real floating engine. In the cell
@@ -237,5 +238,84 @@ describe('grid text area editor grow (real floating engine)', () => {
 		// The text is taller than the space under the head, so it scrolls in the
 		// editor, and the caret line shows.
 		expect(slot.scrollHeight).toBeGreaterThan(slot.clientHeight)
+	})
+})
+
+/**
+ * A new line that lands in the frame of a scroll. The scroll moves the cell,
+ * so the space that the editor has changes before the observer tick. The tick
+ * of the new line then places the editor, and `size` writes the new greatest
+ * height. That write resizes the editor in the same delivery, and an observer
+ * that got its delivery still watched it. The browser then fired
+ * "ResizeObserver loop completed with undelivered notifications" on `window`.
+ * In CI, a scroll of the text into view and the reposition of the editor
+ * landed in one frame, and the last row case above failed on this error.
+ *
+ * The case writes the line and scrolls in an animation frame callback. The
+ * frame then lays out and delivers its notifications, and no task runs between.
+ */
+describe('grid text area editor grow in the frame of a scroll (real floating engine)', () => {
+	const many: Row[] = Array.from({ length: 12 }, (_, index) => ({
+		id: index + 1,
+		name: `Row ${index + 1}`,
+		notes: 'Short',
+	}))
+
+	/**
+	 * Writes `value` as a keystroke does: the text, then an `input` event. The
+	 * range write goes past the value tracker of React, so React reads the new
+	 * text as a change.
+	 */
+	const write = (field: HTMLTextAreaElement, value: string) => {
+		field.setRangeText(value, 0, field.value.length, 'end')
+
+		field.dispatchEvent(new Event('input', { bubbles: true }))
+	}
+
+	it('grows with no ResizeObserver loop error', async () => {
+		const errors = resizeObserverLoopErrors()
+
+		const { container } = renderGrid({
+			rows: many,
+			maxHeight: '240px',
+			header: { position: 'sticky' },
+		})
+
+		const cell = gridCell(container, 'notes', 1)
+
+		const textarea = await openNotes(cell)
+
+		const slot = getSlot(cell)
+
+		const scroller = present(
+			container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+			'the scroll area',
+		)
+
+		// The editor grows down until the greatest height stops it.
+		const text = 'Short\n2\n3\n4\n5'
+
+		write(textarea, text)
+
+		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+
+		await frames(2)
+
+		const cap = Number.parseFloat(slot.style.maxHeight)
+
+		expect(slot.getBoundingClientRect().height).toBeLessThan(cap)
+
+		await inFrame(() => {
+			write(textarea, `${text}\n6\n7`)
+
+			scroller.scrollTop = 30
+		})
+
+		await frames(2)
+
+		// The scroll gave the editor more space below the cell.
+		expect(Number.parseFloat(slot.style.maxHeight)).toBeGreaterThan(cap)
+
+		expect(errors).toEqual([])
 	})
 })
