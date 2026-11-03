@@ -13,7 +13,7 @@ import { k } from '../recipes/kata/offcanvas'
 import { Box } from '../structure/box'
 import { Flex } from '../structure/flex'
 import { Stack } from '../structure/stack'
-import { mapResponsive, type Responsive } from '../types'
+import { mapResponsive, type Responsive } from '../utilities/responsive'
 import { StackedLayout } from './stacked'
 
 /** The filters and the content stack in the drawer layout, and sit side by side inline. */

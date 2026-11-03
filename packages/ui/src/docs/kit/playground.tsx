@@ -16,7 +16,7 @@ import {
 } from 'ui/primitives/intl'
 import { type DensityStep, stepDown } from '../../core/density/steps.ts'
 import { omote } from '../../recipes/kiso/index.ts'
-import { SIZE_CLASSES } from '../../types/responsive.ts'
+import { SIZE_CLASSES } from '../../utilities/responsive.ts'
 import type { BarrelApi, Literal } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, getMeta } from './example.tsx'

@@ -1,5 +1,5 @@
 import type { ResponsiveAlign, ResponsiveDirection } from '../../../structure/flex/variants'
-import { adaptive } from '../../../types'
+import { adaptive } from '../../../utilities/responsive'
 import type { FormFiltersLayout } from './types'
 
 /** The regions of a bar stack on a compact viewport, and share a row from medium. */

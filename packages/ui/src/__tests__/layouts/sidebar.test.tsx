@@ -8,7 +8,7 @@ import {
 import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
 import { LocaleProvider } from '../../providers/locale'
 import { dan } from '../../recipes/kiso/dan'
-import { adaptive, BREAKPOINT_WIDTHS } from '../../types/responsive'
+import { adaptive, BREAKPOINT_WIDTHS } from '../../utilities/responsive'
 import {
 	act,
 	bySlot,

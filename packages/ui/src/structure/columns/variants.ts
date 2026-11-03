@@ -1,4 +1,4 @@
-import type { Responsive } from '../../types'
+import type { Responsive } from '../../utilities/responsive'
 import type { ResponsiveAlign, ResponsiveGap } from '../flex/variants'
 
 /** The count of equal tracks in a row of {@link Columns}. */

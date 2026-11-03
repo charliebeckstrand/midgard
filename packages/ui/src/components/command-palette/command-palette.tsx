@@ -14,8 +14,8 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { k } from '../../recipes/kata/command-palette'
-import { adaptive } from '../../types'
 import { isComposing } from '../../utilities/is-composing'
+import { adaptive } from '../../utilities/responsive'
 import { keepInputFocus } from '../combobox/combobox-utilities'
 import {
 	Dialog,

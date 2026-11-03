@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useResponsiveValue } from '../../hooks/use-responsive-value'
-import { BREAKPOINT_WIDTHS } from '../../types/responsive'
+import { BREAKPOINT_WIDTHS } from '../../utilities/responsive'
 import { stubMatchMedia } from '../helpers'
 
 const viewportAt = (width: string) => (query: string) => {

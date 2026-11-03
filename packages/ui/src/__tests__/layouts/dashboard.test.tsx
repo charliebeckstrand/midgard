@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { DashboardLayout } from '../../layouts/dashboard'
 import { LocaleProvider } from '../../providers/locale'
-import { adaptive } from '../../types/responsive'
+import { adaptive } from '../../utilities/responsive'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('DashboardLayout', () => {

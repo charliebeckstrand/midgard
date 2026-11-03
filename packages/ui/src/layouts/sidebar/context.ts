@@ -3,7 +3,7 @@
 import { type ReactNode, use } from 'react'
 import { createContext } from '../../core'
 import type { OffcanvasLayout } from '../../hooks/use-offcanvas'
-import type { Responsive } from '../../types'
+import type { Responsive } from '../../utilities/responsive'
 import type { StickyBars } from './use-sticky-bars'
 
 export const [SidebarLayoutContext] = createContext<{

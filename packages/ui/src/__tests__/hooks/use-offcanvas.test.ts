@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
-import { adaptive, BREAKPOINT_WIDTHS } from '../../types/responsive'
+import { adaptive, BREAKPOINT_WIDTHS } from '../../utilities/responsive'
 import { stubMatchMedia } from '../helpers'
 
 describe('useOffcanvas', () => {

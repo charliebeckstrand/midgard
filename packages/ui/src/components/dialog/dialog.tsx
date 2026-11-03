@@ -14,7 +14,7 @@ import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
-import { adaptive, type Responsive, withInitial } from '../../types'
+import { adaptive, type Responsive, withInitial } from '../../utilities/responsive'
 import { DialogClose, DialogDefaultFooter } from './slots'
 
 /** Where a {@link DialogPanel} sits: docked to the `bottom` edge, or floating at the `center` or the `top`. */

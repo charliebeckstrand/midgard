@@ -1,4 +1,4 @@
-import { mapResponsive } from '../../types/responsive'
+import { mapResponsive } from '../../utilities/responsive'
 import type { FlexAlign, FlexDirection, ResponsiveAlign, ResponsiveDirection } from './variants'
 
 /**

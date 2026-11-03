@@ -1,4 +1,4 @@
-import { BREAKPOINT_WIDTHS } from '../types/responsive'
+import { BREAKPOINT_WIDTHS } from '../utilities/responsive'
 import { createListenerRegistry } from './listener-registry'
 
 /** The media query that matches when the reader asks the platform for reduced motion. @internal */

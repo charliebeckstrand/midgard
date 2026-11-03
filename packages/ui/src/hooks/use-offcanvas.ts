@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import { adaptive, type Responsive, withInitial } from '../types/responsive'
+import { adaptive, type Responsive, withInitial } from '../utilities/responsive'
 import { useReportedChange } from './use-reported-change'
 import { useResponsiveValue } from './use-responsive-value'
 

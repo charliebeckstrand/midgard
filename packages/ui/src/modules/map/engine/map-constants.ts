@@ -1,6 +1,8 @@
+import type { MapPointShape, MapSwatchShape } from './types'
+
 /**
- * Metric constants for the map module: an import-free leaf the geometry and
- * projection modules read. Mark specs match the chart module's
+ * Metric constants for the map module: a leaf with no runtime import, which
+ * the geometry and projection modules read. Mark specs match the chart module's
  * (`chart-constants.ts`) wherever the two draw the same thing: point radii, ring
  * widths, hit tolerances. A dashboard mixing charts and maps therefore reads as
  * one family. The motion timings live in `map-motion.ts`.
@@ -343,3 +345,9 @@ export const CHROME_STROKE_WIDTH = 1
  * the swap only sharpens strokes, never reshapes the geography. @internal
  */
 export const MAP_CANONICAL_WIDTH = 1000
+
+/** The swatch of a point mark in each shape. @internal */
+export const POINT_SWATCH = {
+	circle: 'dot',
+	square: 'rect',
+} as const satisfies Record<MapPointShape, MapSwatchShape>

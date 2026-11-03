@@ -25,7 +25,7 @@ import { PdfViewerZoomControls } from '../../components/pdf-viewer/pdf-viewer-zo
 import type { PdfViewerSlot } from '../../components/pdf-viewer/types'
 import { Toolbar } from '../../components/toolbar'
 import { LocaleProvider } from '../../providers/locale'
-import { BREAKPOINT_WIDTHS } from '../../types/responsive'
+import { BREAKPOINT_WIDTHS } from '../../utilities/responsive'
 import {
 	act,
 	allBySlot,

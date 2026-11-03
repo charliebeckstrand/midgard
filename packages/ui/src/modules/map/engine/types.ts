@@ -60,12 +60,6 @@ export type MapSwatchShape = 'rect' | 'line' | 'dot'
  */
 export type MapPointShape = 'circle' | 'square'
 
-/** The swatch of a point mark in each shape. @internal */
-export const POINT_SWATCH = {
-	circle: 'dot',
-	square: 'rect',
-} as const satisfies Record<MapPointShape, MapSwatchShape>
-
 /**
  * The identity fields a shape carries before it is decoded. A TopoJSON geometry
  * object and a GeoJSON feature both hold an `id` and `properties`. That is what

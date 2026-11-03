@@ -10,8 +10,8 @@ import type {
 	Type,
 } from 'typescript/unstable/sync'
 import { densitySteps, isDensityStep } from '../../core/density/steps.ts'
-import { BREAKPOINTS, type Breakpoint } from '../../types/responsive.ts'
 import { finiteOrUndefined } from '../../utilities/parse-numeric.ts'
+import { BREAKPOINTS, type Breakpoint } from '../../utilities/responsive.ts'
 
 // The API data of the docs comes from the TypeScript 7 API, which is
 // `typescript/unstable/sync`. Its name says that a minor release can change

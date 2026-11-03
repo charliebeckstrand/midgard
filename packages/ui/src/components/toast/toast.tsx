@@ -13,13 +13,22 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/toast'
-import { mapResponsive, type Responsive, withInitial } from '../../types'
 import { subscribeDocumentEvent } from '../../utilities/document-listener'
 import { getTabbableElements } from '../../utilities/focusable-selector'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
+import { adaptive, mapResponsive, type Responsive, withInitial } from '../../utilities/responsive'
 import { useToastViewport } from './context'
 import { ToastAlert } from './toast-alert'
-import { TOAST_POSITION, type ToastPosition } from './types'
+import type { ToastPosition } from './types'
+
+/**
+ * The default `position` of a `Toast`: the full bottom edge on a compact viewport,
+ * and the bottom right corner from it.
+ */
+export const TOAST_POSITION = adaptive({
+	compact: 'bottom',
+	medium: 'bottom-right',
+}) satisfies Responsive<ToastPosition>
 
 const messages = defineMessages({
 	notifications: {

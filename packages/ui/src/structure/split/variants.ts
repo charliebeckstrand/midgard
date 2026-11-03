@@ -1,4 +1,5 @@
-import type { Orientation, Responsive } from '../../types'
+import type { Orientation } from '../../types'
+import type { Responsive } from '../../utilities/responsive'
 import type { ResponsiveAlign, ResponsiveGap } from '../flex/variants'
 
 /** First-pane-to-second-pane size ratio: the first pane's share of the two `fr` tracks. */

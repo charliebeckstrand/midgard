@@ -27,19 +27,13 @@ import {
 	type MapSetCluster,
 	type MapSharedCluster,
 } from './engine/map-cluster/sets'
-import { POINT_RADIUS } from './engine/map-constants'
+import { POINT_RADIUS, POINT_SWATCH } from './engine/map-constants'
 import { type MapHoverTarget, mapMarkDimmed } from './engine/map-hover/target'
 import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
 import { pickedStop } from './engine/map-overlay/selection'
-import {
-	type LngLat,
-	type MapOverlaySelection,
-	type MapPoint2D,
-	type MapPointShape,
-	POINT_SWATCH,
-} from './engine/types'
+import type { LngLat, MapOverlaySelection, MapPoint2D, MapPointShape } from './engine/types'
 import { dotHitProps, MapDot, MapDotCount, MapDotRing } from './map-dot'
 import { MapDotHalo } from './map-halo'
 import { type MapOverlay, type MapOverlayProps, useMapOverlay } from './use-map-overlay'
