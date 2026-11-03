@@ -513,18 +513,20 @@ describe('GridColumnManager filtering', () => {
 		expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
 	})
 
-	it('stands the status in for the scrolling list alone when only a frozen row matches', async () => {
+	it('lists a matching frozen row alone, with no status, when no scrolling row matches', async () => {
 		const user = setupUser()
 
 		const { container } = renderUI(<GridColumnManager columns={columns} />)
 
-		// 'nam' matches the left-pinned Name and nothing that scrolls, so the frozen
-		// group still lists while the orderable region has nothing to show.
+		// 'nam' matches the left-pinned Name and nothing that scrolls. A row matches,
+		// so the editor shows no no-results status.
 		await user.type(field(), 'nam')
 
 		expect(screen.getByRole('checkbox', { name: /Name \(pinned\)/ })).toBeInTheDocument()
 
-		expect(screen.getByText('No results')).toBeInTheDocument()
+		expect(screen.queryByText('No results')).not.toBeInTheDocument()
+
+		expect(screen.queryByRole('status')).not.toBeInTheDocument()
 
 		expect(allBySlot(container, 'list-item')).toHaveLength(1)
 	})

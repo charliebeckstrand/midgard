@@ -35,11 +35,10 @@ function useManagerRtl(): boolean {
 }
 
 /**
- * Status line standing in for a list the filter narrowed to nothing. That is
- * the whole editor, or just its scrolling region while a frozen row still
- * matches. An `output` (implicit `role="status"`) so the emptied result is
- * announced, the same idiom the {@link Combobox} and {@link CommandPalette}
- * panels use.
+ * Status line standing in for the whole editor when the filter matches no
+ * column in any group. An `output` (implicit `role="status"`) so the emptied
+ * result is announced, the same idiom the {@link Combobox} and
+ * {@link CommandPalette} panels use.
  *
  * @internal
  */
@@ -528,20 +527,20 @@ export function GridColumnManager({
 							onOrderChange={setOrder}
 							reorderable={reorderable}
 						/>
-					) : visibleOrderable.length === 0 && orderableColumns.length > 0 ? (
-						// Only the scrolling region emptied: a frozen row still matches, so the
-						// status stands in for the list rather than for the whole editor.
-						<GridColumnManagerNoResults />
 					) : (
-						<GridColumnManagerOrderableList
-							items={visibleOrderable}
-							getKey={getKey}
-							hidden={hidden}
-							onToggle={toggle}
-							onPinChange={onPinChange}
-							reorderable={reorderable}
-							onReorder={handleReorder}
-						/>
+						// A frozen row can match while no scrolling row does. The editor then
+						// lists the frozen row alone: the status is for no match at all.
+						visibleOrderable.length > 0 && (
+							<GridColumnManagerOrderableList
+								items={visibleOrderable}
+								getKey={getKey}
+								hidden={hidden}
+								onToggle={toggle}
+								onPinChange={onPinChange}
+								reorderable={reorderable}
+								onReorder={handleReorder}
+							/>
+						)
 					)}
 					{rightColumns.length > 0 && (
 						<GridColumnManagerFrozenGroup
