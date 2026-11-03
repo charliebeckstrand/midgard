@@ -1176,11 +1176,13 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * checkbox, leave the tab order, so Tab and Shift+Tab leave the grid in one
 	 * press. Enter or F2 on a cell that holds controls moves focus to its first
 	 * control. Tab then moves through the controls of that cell, and from the
-	 * last one out of the grid. Escape gives focus back to the grid, and the
-	 * cursor stays on the cell. Focus that goes to a control by other means, such
-	 * as a press, moves the cursor to its cell. On a header cell, Enter sorts the
-	 * column, and F2 moves focus to the controls of the header, such as the sort
-	 * button and the resize handle.
+	 * last one out of the grid. A row of fields opens to Tab as a whole: the
+	 * new-row slot, and a row with an open editor. Tab moves through its
+	 * editors and then its actions, as through a form. Escape gives focus back
+	 * to the grid, and the cursor stays on the cell. Focus that goes to a
+	 * control by other means, such as a press, moves the cursor to its cell. On
+	 * a header cell, Enter sorts the column, and F2 moves focus to the controls
+	 * of the header, such as the sort button and the resize handle.
 	 *
 	 * Space on a data cell, and Enter on a data cell with no controls, activate
 	 * the active cell's {@link GridDataProps.onCellClick} and the active row's

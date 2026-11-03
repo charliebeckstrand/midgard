@@ -1,7 +1,7 @@
 import { act } from 'react'
-import { describe, expect, it } from 'vitest'
-import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { describe, expect, it, vi } from 'vitest'
+import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
+import { fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 type Row = { id: number; name: string }
 
@@ -167,5 +167,82 @@ describe('Grid tab stops', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(screen.getByRole('button', { name: 'Edit Alice' })).not.toHaveAttribute('tabindex')
+	})
+
+	describe('a row with open editors', () => {
+		type Person = { id: number; name: string; email: string }
+
+		const people: Person[] = [
+			{ id: 1, name: 'Alice', email: 'alice@example.com' },
+			{ id: 2, name: 'Bob', email: 'bob@example.com' },
+		]
+
+		const editColumns: GridColumn<Person>[] = [
+			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+			{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
+			{
+				id: 'actions',
+				actions: (row, { editing, save, discard }) =>
+					editing ? (
+						<>
+							<button type="button" onClick={save}>
+								Save
+							</button>
+							<button type="button" onClick={discard}>
+								Discard
+							</button>
+						</>
+					) : (
+						<button type="button">Edit {row.name}</button>
+					),
+			},
+		]
+
+		it.each([
+			['a grid-owned session', { session: 'managed' }],
+			['a row the consumer opens', { rows: new Set([1]) }],
+		] satisfies [string, Partial<GridEditableConfig>][])(
+			'opens to Tab as a form under %s: editors, then actions',
+			async (_name, editable) => {
+				const user = setupUser()
+
+				const onCommit = vi.fn()
+
+				renderUI(
+					<>
+						<Grid
+							columns={editColumns}
+							rows={people}
+							getKey={(row) => row.id}
+							editable={{ onCommit, ...editable }}
+						/>
+						<button type="button">After</button>
+					</>,
+				)
+
+				if ('session' in editable) fireEvent.doubleClick(screen.getByText('Alice'))
+
+				const [name, email] = screen.getAllByRole('textbox')
+
+				act(() => name?.focus())
+
+				await user.tab()
+
+				expect(email).toHaveFocus()
+
+				await user.tab()
+
+				expect(screen.getByRole('button', { name: 'Save' })).toHaveFocus()
+
+				await user.tab()
+
+				expect(screen.getByRole('button', { name: 'Discard' })).toHaveFocus()
+
+				// The other rows stay closed, so Tab leaves the grid.
+				await user.tab()
+
+				expect(screen.getByRole('button', { name: 'After' })).toHaveFocus()
+			},
+		)
 	})
 })

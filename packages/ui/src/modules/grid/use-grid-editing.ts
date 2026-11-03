@@ -791,7 +791,6 @@ export function useGridEditing<T>({
 		activeEditRef,
 		sessionRowRef,
 		requestRef,
-		cellId,
 		moveTo,
 		rowStep,
 		reseat,

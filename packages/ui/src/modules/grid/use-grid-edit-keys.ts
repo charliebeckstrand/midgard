@@ -10,7 +10,6 @@ import {
 } from './engine/grid-edit-keys'
 import type { CellRequest, SessionRow } from './engine/grid-edit-transition'
 import {
-	EDITOR_FOCUSABLE,
 	findCoord,
 	type GridActiveEdit,
 	isCellEditing,
@@ -51,7 +50,6 @@ export function useGridEditKeys<T>({
 	activeEditRef,
 	sessionRowRef,
 	requestRef,
-	cellId,
 	moveTo,
 	rowStep,
 	reseat,
@@ -73,7 +71,6 @@ export function useGridEditKeys<T>({
 	sessionRowRef: RefObject<SessionRow | null>
 	/** The move that a controlled binding has yet to apply. */
 	requestRef: RefObject<CellRequest | null>
-	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
 	/** The data row a number of rows away, over the rows that the cursor shows. */
 	rowStep: GridRowStep
@@ -173,11 +170,10 @@ export function useGridEditKeys<T>({
 		[endSession, moveTo, rowKeysRef, cursorColumnsRef],
 	)
 
-	// Tab and Shift+Tab move along the row's editable columns, and wrap at the
-	// edges. Under cell scope the move re-points the session, so the cell it
-	// leaves commits. Under row scope every editor of the row is open, so focus
-	// moves and the row commits when it closes. A row with one editable column
-	// has nowhere to go, so the key commits there, as F2 does.
+	// Under cell scope, Tab and Shift+Tab move along the row's editable columns,
+	// and wrap at the edges. The move re-points the session, so the cell it
+	// leaves commits. A row with one editable column has nowhere to go, so the
+	// key commits there, as F2 does.
 	const commitAlong = useCallback(
 		(rowKey: string | number, columnId: string | number, step: 1 | -1) => {
 			const columns = cursorColumnsRef.current
@@ -199,16 +195,6 @@ export function useGridEditKeys<T>({
 
 			moveTo({ row, col: next })
 
-			if (!cellScoped) {
-				const editor = document
-					.getElementById(cellId(row, next))
-					?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
-
-				editor?.focus()
-
-				return
-			}
-
 			// Blur the editor while it is still mounted, so a value it stages on blur
 			// reaches the draft before the sweep commits the cell. A controlled
 			// binding can decline the move, so the request marks the blur, and the
@@ -220,9 +206,7 @@ export function useGridEditKeys<T>({
 			if (requestRef.current) requestRef.current.blur = true
 		},
 		[
-			cellScoped,
 			controlled,
-			cellId,
 			commitHere,
 			isPending,
 			enterEdit,
@@ -256,7 +240,7 @@ export function useGridEditKeys<T>({
 
 			const target = pressOrigin(event) ?? (event.target as Element)
 
-			const move = event.key === 'Escape' ? 'abandon' : editorMove(event)
+			const move = event.key === 'Escape' ? 'abandon' : editorMove(event, cellScoped)
 
 			const session = move === null ? null : sessionTarget(target)
 
@@ -276,7 +260,7 @@ export function useGridEditKeys<T>({
 
 			runMove(move, session.rowKey, session.columnId)
 		},
-		[endSession, sessionTarget, runMove, newRowKeys],
+		[cellScoped, endSession, sessionTarget, runMove, newRowKeys],
 	)
 
 	return { sessionKeys, sessionTarget }

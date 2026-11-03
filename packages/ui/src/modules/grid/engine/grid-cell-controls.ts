@@ -160,15 +160,31 @@ export function unpinControls(table: HTMLTableElement, unit: string): void {
 }
 
 /**
+ * Whether `row` is a row of fields: the new-row slot, or a row that holds an
+ * open editor. An editor of a grid nested in a cell of `row` does not count.
+ */
+function isFieldRow(row: Element): boolean {
+	if (row.matches('[data-slot="grid-new-row"]')) return true
+
+	return Array.from(row.querySelectorAll('[data-slot="grid-edit-host"]')).some(
+		(host) => host.closest('tr') === row,
+	)
+}
+
+/**
  * The part of `table` that focus on `target` opens to Tab: the part that
  * `unit` selects and that holds it (see {@link pinControls}), or the whole row
- * of the new-row slot. The slot is one row of fields, so Tab moves through its
- * controls in order, as through a form. It is `null` for a target in no part.
+ * when that row is a row of fields. The new-row slot is one, and so is a row
+ * with an open editor. Tab then moves through the controls of the row in
+ * order, as through a form: its editors, then its actions, such as save and
+ * discard. It is `null` for a target in no part.
  *
  * @internal
  */
 export function entryScope(target: Element, table: HTMLTableElement, unit: string): Element | null {
 	const part = ownerUnit(target, table, unit)
 
-	return part?.closest('tr[data-slot="grid-new-row"]') ?? part
+	const row = part?.closest('tr')
+
+	return row && isFieldRow(row) ? row : part
 }

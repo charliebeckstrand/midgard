@@ -278,11 +278,15 @@ export type GridEditableConfig = {
 	 *
 	 * - Enter commits and moves the cursor down one row. Under `scope: 'cell'` it
 	 *   enters the cell below. On the last row the cursor stays.
-	 * - Tab and Shift+Tab move to the next control in the same cell when there
-	 *   is one, as in an `editCell` slot with several controls. Tab from the
-	 *   last control, or Shift+Tab from the first, moves along the row's
-	 *   editable cells, and wraps at the edges. Under `scope: 'cell'` the cell
-	 *   left behind commits. Under `'row'` the row commits when it closes.
+	 * - Under `scope: 'cell'`, Tab and Shift+Tab move to the next control in
+	 *   the same cell when there is one, as in an `editCell` slot with several
+	 *   controls. Tab from the last control, or Shift+Tab from the first, moves
+	 *   along the row's editable cells, and wraps at the edges. The cell left
+	 *   behind commits.
+	 * - Under `'row'`, Tab and Shift+Tab stay with the browser. The open row is
+	 *   a row of fields, so Tab moves through its editors and then its actions,
+	 *   such as save and discard, as through a form. The row commits when it
+	 *   closes.
 	 * - F2 commits and leaves the cursor on the cell.
 	 * - Escape abandons the session's staged edits.
 	 *

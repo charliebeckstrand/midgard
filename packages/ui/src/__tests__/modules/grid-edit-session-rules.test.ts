@@ -143,17 +143,29 @@ describe('the key rules of an edit session', () => {
 
 		const input = at(host, 'input')
 
-		expect(editorMove(keyOn(table, input, 'Enter'))).toBe('down')
+		expect(editorMove(keyOn(table, input, 'Enter'), true)).toBe('down')
 
-		expect(editorMove(keyOn(table, input, 'F2'))).toBe('here')
+		expect(editorMove(keyOn(table, input, 'F2'), true)).toBe('here')
 
-		expect(editorMove(keyOn(table, input, 'Tab', { shiftKey: true }))).toBe('previous')
+		expect(editorMove(keyOn(table, input, 'Tab', { shiftKey: true }), true)).toBe('previous')
 
-		expect(editorMove(keyOn(table, table, 'Enter'))).toBeNull()
+		expect(editorMove(keyOn(table, table, 'Enter'), true)).toBeNull()
 
-		expect(editorMove(keyOn(table, input, 'Enter', { ctrlKey: true }))).toBeNull()
+		expect(editorMove(keyOn(table, input, 'Enter', { ctrlKey: true }), true)).toBeNull()
 
-		expect(editorMove(keyOn(table, input, 'a'))).toBeNull()
+		expect(editorMove(keyOn(table, input, 'a'), true)).toBeNull()
+	})
+
+	it('leaves Tab to the browser outside cell scope, where the open row is a row of fields', () => {
+		const host = mount(GRID)
+
+		const table = at<HTMLTableElement>(host, 'table')
+
+		const input = at(host, 'input')
+
+		expect(editorMove(keyOn(table, input, 'Tab'), false)).toBeNull()
+
+		expect(editorMove(keyOn(table, input, 'Enter'), false)).toBe('down')
 	})
 
 	it('leaves Enter to an element that acts on it natively', () => {
@@ -161,7 +173,7 @@ describe('the key rules of an edit session', () => {
 
 		const table = at<HTMLTableElement>(host, 'table')
 
-		expect(editorMove(keyOn(table, at(host, 'button'), 'Enter'))).toBeNull()
+		expect(editorMove(keyOn(table, at(host, 'button'), 'Enter'), true)).toBeNull()
 	})
 
 	it('gives a consumed press, and a press from an open surface, to that surface', () => {

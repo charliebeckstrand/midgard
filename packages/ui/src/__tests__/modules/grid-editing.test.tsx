@@ -1918,13 +1918,20 @@ describe('Grid commit-and-move keys', () => {
 				expect(fireEvent.keyDown(last, { key: 'Tab', shiftKey: true })).toBe(true)
 
 				expect(view.onCommit).not.toHaveBeenCalled()
-
-				// Tab from the last control commits and moves to the next editable cell.
-				expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false)
-
-				expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
 			},
 		)
+
+		it('commits on Tab from the last control and moves to the next cell', () => {
+			const view = renderSessionGrid({ editable: { scope: 'cell' }, cols: slotColumns })
+
+			fireEvent.doubleClick(view.cell('name'))
+
+			const last = getSlot<HTMLInputElement>(view.container, 'slot-last')
+
+			expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false)
+
+			expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
+		})
 
 		it('commits on Shift+Tab from the first control and moves to the previous cell', () => {
 			const view = renderSessionGrid({ editable: { scope: 'cell' }, cols: slotColumns })
@@ -1995,7 +2002,9 @@ describe('Grid commit-and-move keys', () => {
 		expect(view.getByRole('grid')).toHaveFocus()
 	})
 
-	it('moves focus on Tab under row scope without committing the row', () => {
+	it('leaves Tab to the browser under row scope, and does not commit the row', async () => {
+		const user = setupUser()
+
 		const view = renderKeysGrid({ scope: 'row' })
 
 		fireEvent.doubleClick(view.cell('name'))
@@ -2004,10 +2013,12 @@ describe('Grid commit-and-move keys', () => {
 
 		fireEvent.change(input, { target: { value: 'Alicia' } })
 
-		fireEvent.keyDown(input, { key: 'Tab' })
+		expect(fireEvent.keyDown(input, { key: 'Tab' })).toBe(true)
 
-		// Every editor of the row is open, so Tab walks them and the row commits
-		// when it closes, as one batch.
+		await user.tab()
+
+		// The open row is one row of fields, so Tab walks its editors as through a
+		// form, and the row commits when it closes, as one batch.
 		expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
 
 		expect(view.onCommit).not.toHaveBeenCalled()
@@ -3326,12 +3337,14 @@ describe('Grid commitOn', () => {
 		})
 	}
 
-	it("keeps a row session while Tab moves between the row's editors under 'leaveEditor'", () => {
+	it("keeps a row session while Tab moves between the row's editors under 'leaveEditor'", async () => {
+		const user = setupUser()
+
 		const view = renderCommitOn({ scope: 'row', commitOn: 'leaveEditor' })
 
-		const input = editName(view)
+		editName(view)
 
-		fireEvent.keyDown(input, { key: 'Tab' })
+		await user.tab()
 
 		const number = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
 
