@@ -7,6 +7,7 @@ import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
+import { TouchTarget } from '../../primitives/touch-target'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
@@ -36,7 +37,9 @@ export type CheckboxProps = CheckboxVariants & {
  * `checked` prop wins over the bound field; `onChange` fires in either mode.
  * `defaultChecked` reaches the element only while the checkbox is uncontrolled,
  * so a bound checkbox ignores it (§7.2). `className`, `style`, and `hidden` go
- * to the visible box, and the other native attributes go to the input.
+ * to the visible box, and the other native attributes go to the input. The hit
+ * area floors at the minimums of `TouchTarget`, 24 px on a fine pointer and 44
+ * px on a coarse pointer, and the box keeps its size.
  */
 export function Checkbox({
 	className,
@@ -134,28 +137,35 @@ export function Checkbox({
 			style={style}
 			className={cn(slots.base, className)}
 		>
-			<input
-				// Consumer props spread first; the resolved §7.2 binding, the
-				// read-only state, the validation attributes, data-slot, and the
-				// state that the kata reads take precedence.
-				{...props}
-				type="checkbox"
-				data-slot="checkbox"
-				data-indeterminate={dataAttr(indeterminate)}
-				ref={setRef}
-				id={scope.id}
-				name={name}
-				disabled={resolvedDisabled}
-				required={resolvedRequired}
-				checked={resolvedChecked}
-				defaultChecked={resolvedChecked === undefined ? defaultChecked : undefined}
-				onChange={handleChange}
-				aria-readonly={ariaAttr(resolvedReadOnly)}
-				aria-describedby={resolvedDescribedBy}
-				{...validation}
-				className={slots.input}
-			/>
-			<Mark data-slot="checkbox-check" aria-hidden="true" className={slots.mark} strokeWidth={2} />
+			<TouchTarget>
+				<input
+					// Consumer props spread first; the resolved §7.2 binding, the
+					// read-only state, the validation attributes, data-slot, and the
+					// state that the kata reads take precedence.
+					{...props}
+					type="checkbox"
+					data-slot="checkbox"
+					data-indeterminate={dataAttr(indeterminate)}
+					ref={setRef}
+					id={scope.id}
+					name={name}
+					disabled={resolvedDisabled}
+					required={resolvedRequired}
+					checked={resolvedChecked}
+					defaultChecked={resolvedChecked === undefined ? defaultChecked : undefined}
+					onChange={handleChange}
+					aria-readonly={ariaAttr(resolvedReadOnly)}
+					aria-describedby={resolvedDescribedBy}
+					{...validation}
+					className={slots.input}
+				/>
+				<Mark
+					data-slot="checkbox-check"
+					aria-hidden="true"
+					className={slots.mark}
+					strokeWidth={2}
+				/>
+			</TouchTarget>
 		</label>
 	)
 }
