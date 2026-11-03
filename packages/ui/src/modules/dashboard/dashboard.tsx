@@ -18,7 +18,6 @@ import {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-import type { HeadingLevel } from '../../components/heading'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useControllable } from '../../hooks/use-controllable'
@@ -28,6 +27,7 @@ import { useReportedChange } from '../../hooks/use-reported-change'
 import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/dashboard'
+import type { HeadingLevel } from '../../recipes/kata/heading'
 import type { AccessibleName } from '../../types/accessible-name'
 import { flattenFragments, isElementOfType } from '../../utilities/children'
 import { noop } from '../../utilities/noop'

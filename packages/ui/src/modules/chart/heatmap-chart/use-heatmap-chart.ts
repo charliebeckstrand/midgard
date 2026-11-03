@@ -9,7 +9,7 @@ import {
 	usePlotFrame,
 } from '../../../hooks/use-plot-frame'
 import { useStableValue } from '../../../hooks/use-stable-value'
-import { useLocale } from '../../../providers/locale'
+import { useLocale } from '../../../providers/locale/context'
 import { k } from '../../../recipes/kata/chart'
 import { clamp } from '../../../utilities/clamp'
 import {

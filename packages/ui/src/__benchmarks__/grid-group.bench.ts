@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import type { GridColumn } from '../modules/grid'
 import {
 	aggregateColumn,
 	formatAggregate,
@@ -16,6 +15,7 @@ import {
 } from '../modules/grid/engine/grid-group/compute'
 import { cellValue } from '../modules/grid/engine/grid-row/cell'
 import type { GridColumnGroup } from '../modules/grid/grid-group-types'
+import type { GridColumn } from '../modules/grid/types'
 import { compareBenches } from './compare'
 import { SHIPMENT_FIELDS, type Shipment, shipments } from './fixtures'
 

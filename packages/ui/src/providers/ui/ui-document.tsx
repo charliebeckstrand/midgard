@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
-import { AppearanceProvider } from '../appearance/appearance'
-import { AppearanceScript } from '../appearance/appearance-script'
+import { AppearanceProvider, AppearanceScript } from '../appearance'
 
 /** Props for {@link UIDocument}: the document attributes, more `head` content, and `children`. */
 export type UIDocumentProps = {

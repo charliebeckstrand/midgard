@@ -9,8 +9,8 @@ import { rangeKeys } from '../../utilities/range-keys'
 import { GRID_LOADING_ROWS } from './engine/grid-constants'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import type { GridColumn } from './types'
-import type { GridColumnPinning } from './use-grid-table'
 
 /** Keys for the loading body's fixed-length placeholder run; hoisted, the count being a constant. @internal */
 const LOADING_ROW_KEYS = rangeKeys(GRID_LOADING_ROWS, 'grid-loading')

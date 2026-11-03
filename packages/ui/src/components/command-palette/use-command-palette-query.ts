@@ -1,6 +1,6 @@
 'use client'
 
-import { useDeferredQuery, useQuery } from '../../primitives/query'
+import { useDeferredQuery, useQuery } from '../../primitives/query/context'
 
 /**
  * Live and deferred query of the enclosing `CommandPalette`. Filter items

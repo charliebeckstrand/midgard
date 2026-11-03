@@ -1,4 +1,5 @@
-import { Flex, type FlexProps, type ResponsiveAlign } from '../flex'
+import { Flex, type FlexProps } from '../flex'
+import type { ResponsiveAlign } from '../flex/variants'
 
 /** Props for {@link Stack}: {@link FlexProps} without `direction`, which Stack fixes to `col`. */
 export type StackProps = Omit<FlexProps, 'direction' | 'align'> & {

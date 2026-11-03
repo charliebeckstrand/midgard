@@ -3,8 +3,9 @@
 import type { ComponentProps, ReactElement } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useControllableFlag } from '../../hooks/use-controllable'
+import type { ButtonVariants } from '../../recipes/kata/button'
 import type { AccessibleName } from '../../types/accessible-name'
-import { Button, type ButtonVariants } from '../button'
+import { Button } from '../button'
 import { Icon } from '../icon'
 import { ToggleIconButtonIcons } from './toggle-icon-button-icons'
 

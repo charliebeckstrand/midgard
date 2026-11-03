@@ -6,8 +6,8 @@
  * and the `albers-usa` projection. The rows join to the regions by FIPS id.
  */
 
+import { MapPlat } from '../../modules/map'
 import type { MapCategory } from '../../modules/map/engine/types'
-import { MapPlat } from '../../modules/map/map-plat'
 import { HEIGHT, reactSubject, type Subject, WIDTH } from './charts'
 import {
 	type MapAtlas,

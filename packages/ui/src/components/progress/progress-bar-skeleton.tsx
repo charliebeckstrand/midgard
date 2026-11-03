@@ -1,5 +1,5 @@
 import { k, type ProgressTrackVariants } from '../../recipes/kata/progress'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link ProgressBarSkeleton}: an optional `size` matching the track scale. */
 export type ProgressBarSkeletonProps = SkeletonProps<NonNullable<ProgressTrackVariants['size']>>

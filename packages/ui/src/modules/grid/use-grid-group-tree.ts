@@ -1,6 +1,6 @@
 'use client'
 import { type Dispatch, type SetStateAction, useCallback, useMemo } from 'react'
-import { useLocale } from '../../providers/locale'
+import { useLocale } from '../../providers/locale/context'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { groupMembers, orderGroups } from './engine/grid-group/client'

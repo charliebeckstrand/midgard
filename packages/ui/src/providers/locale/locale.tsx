@@ -1,7 +1,8 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { Direction, type TextDirection } from '../../primitives/direction'
+import { Direction } from '../../primitives/direction'
+import type { TextDirection } from '../../primitives/direction/context'
 import { IntlProvider } from '../../primitives/intl/intl-provider'
 import type { IntlCatalogs } from '../../primitives/intl/types'
 import { writeChoice } from '../appearance/appearance-storage'

@@ -1,5 +1,5 @@
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link AvatarSkeleton}; `size` matches the avatar it stands in for. */
 export type AvatarSkeletonProps = SkeletonProps<NonNullable<AvatarVariants['size']>>

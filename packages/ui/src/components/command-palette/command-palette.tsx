@@ -11,9 +11,11 @@ import { useControllableFlag } from '../../hooks/use-controllable'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
+import { DeferredQueryContext, QueryContext } from '../../primitives/query/context'
+import { useQueryValue } from '../../primitives/query/use-query-value'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { k } from '../../recipes/kata/command-palette'
+import type { DialogPanelVariants } from '../../recipes/kata/dialog'
 import { isComposing } from '../../utilities/is-composing'
 import { adaptive } from '../../utilities/responsive'
 import { keepInputFocus } from '../combobox/combobox-utilities'
@@ -23,7 +25,6 @@ import {
 	DialogFooter,
 	DialogPanel,
 	type DialogPanelProps,
-	type DialogPanelVariants,
 	type DialogProps,
 } from '../dialog'
 import { Icon } from '../icon'

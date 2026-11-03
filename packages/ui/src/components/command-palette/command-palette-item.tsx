@@ -3,10 +3,10 @@
 import { type MouseEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
-import { useLink } from '../../primitives/link'
+import { useLink } from '../../primitives/link/context'
 import { inertLinkProps } from '../../primitives/link/link-inert'
 import { resolveLinkRel } from '../../primitives/link/link-rel'
-import { usePanelCloseContext } from '../../primitives/panel'
+import { usePanelCloseContext } from '../../primitives/panel/context'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/command-palette'
 

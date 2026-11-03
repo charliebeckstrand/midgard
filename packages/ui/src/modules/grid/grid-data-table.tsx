@@ -14,6 +14,7 @@ import {
 	stripedForOutline,
 } from './engine/grid-data/classes'
 import type { GridFitMode } from './engine/grid-sizing/fit-layout'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridBody } from './grid-body'
 import { resolveNewRowIndex, resolveTableProps, slotAt } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
@@ -26,7 +27,6 @@ import type { GridColumn } from './types'
 import type { useGridCursor } from './use-grid-cursor'
 import type { GridNewRowPosition } from './use-grid-navigation'
 import type { useGridRoving } from './use-grid-roving'
-import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridBody}, as {@link GridDataTable} takes them. @internal */
 type GridBodyProps<T> = ComponentProps<typeof GridBody<T>>

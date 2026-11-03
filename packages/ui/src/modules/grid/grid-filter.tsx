@@ -8,7 +8,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { isComposing } from '../../utilities/is-composing'
 import { GRID_SEARCH_DEBOUNCE_MS } from './engine/grid-constants'
 import { gridMessages } from './engine/grid-messages'
-import type { GridGlobalFilterView } from './use-grid-table'
+import type { GridGlobalFilterView } from './engine/grid-table/filter-view'
 
 /** Props for {@link GridFilter}. @internal */
 type GridFilterProps = {

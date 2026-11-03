@@ -1,7 +1,8 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { Direction, type TextDirection } from '../../primitives/direction'
+import { Direction } from '../../primitives/direction'
+import type { TextDirection } from '../../primitives/direction/context'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'
 import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'

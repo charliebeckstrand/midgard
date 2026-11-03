@@ -9,8 +9,8 @@ import { useGrid } from './context'
 import { gridMessages } from './engine/grid-messages'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import type { GridColumn } from './types'
-import type { GridColumnPinning } from './use-grid-table'
 
 /** The place of a static header cell: its column, index, and frozen edge. @internal */
 type GridStaticHeaderPlace<T> = {

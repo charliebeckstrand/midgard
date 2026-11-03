@@ -11,12 +11,6 @@ import {
 	valueAt,
 } from '../utilities/responsive'
 
-/*
- * Re-exported here, not only from `types`, because it is this hook's parameter type. The
- * types barrel is not one of the package's entry points.
- */
-export type { Responsive }
-
 const query = (bp: MinBreakpoint) => `(min-width: ${BREAKPOINT_WIDTHS[bp]})`
 
 /** The breakpoints that `value` names, largest first, without the unprefixed base. */

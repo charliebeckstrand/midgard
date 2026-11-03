@@ -5,7 +5,9 @@
  * `mapNode`, the shape a controlled consumer's change handler produces.
  */
 
-import { mapNode, QueryBuilder, type QueryGroup } from '../modules/query'
+import { QueryBuilder } from '../modules/query'
+import { mapNode } from '../modules/query/engine/query-tree'
+import type { QueryGroup } from '../modules/query/engine/types'
 import { compareBenches } from './compare'
 import { collectRuleIds, makeQueryTree, QUERY_FIELDS } from './fixtures'
 import { mountBenches, rerenderBench } from './harness'

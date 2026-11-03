@@ -12,13 +12,10 @@
 
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import {
-	Grid,
-	type GridColumn,
-	type GridColumnFilterState,
-	type GridSortState,
-} from '../../modules/grid'
-import type { QueryGroup } from '../../modules/query'
+import { Grid } from '../../modules/grid'
+import type { GridSortState } from '../../modules/grid/engine/grid-sort/state'
+import type { GridColumn, GridColumnFilterState } from '../../modules/grid/types'
+import type { QueryGroup } from '../../modules/query/engine/types'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey } from '../fixtures'
 
 export const GRID_WIDTH = 960

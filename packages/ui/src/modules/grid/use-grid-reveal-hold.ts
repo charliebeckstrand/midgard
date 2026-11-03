@@ -2,7 +2,7 @@
 
 import { type TransitionEvent, useLayoutEffect, useState } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
-import { type MountHoldState, useMountHold } from '../../primitives/mount'
+import { type MountHoldState, useMountHold } from '../../primitives/mount/use-mount'
 import { forceStyleFlush } from '../../utilities/force-style-flush'
 
 /** The reveal's animated property; a `transitionend` for anything else is not the collapse landing. @internal */

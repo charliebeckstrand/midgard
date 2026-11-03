@@ -12,7 +12,7 @@ import type { ReactElement } from 'react'
 import counties from 'us-atlas/counties-10m.json'
 import states from 'us-atlas/states-10m.json'
 import type { Bench } from 'vitest'
-import { type MapGeography, MapPlat, type MapTopology } from '../modules/map'
+import { MapPlat } from '../modules/map'
 import {
 	cachedCanonicalPaths,
 	computeStaticMapGeometry,
@@ -20,6 +20,7 @@ import {
 } from '../modules/map/engine/map-geometry/cache'
 import { geographyFeatures } from '../modules/map/engine/map-geometry/topology'
 import { defaultRegionId } from '../modules/map/engine/map-region/identity'
+import type { MapGeography, MapTopology } from '../modules/map/engine/types'
 import { compareBenches } from './compare'
 import { mountBench, persistentTree } from './harness'
 

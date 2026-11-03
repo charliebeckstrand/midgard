@@ -9,7 +9,7 @@ import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { OffcanvasContext } from '../../primitives/offcanvas'
+import { OffcanvasContext } from '../../primitives/offcanvas/context'
 import { k } from '../../recipes/kata/sidebar'
 import { SidebarMiniContext } from './context'
 

@@ -1,9 +1,10 @@
 'use client'
 
 import { isValidElement, type MouseEvent, type MouseEventHandler, type ReactNode } from 'react'
-import { Button, type ButtonVariants } from '../../../components/button'
+import { Button } from '../../../components/button'
 import { cn } from '../../../core/cn'
 import { cloneWithAction } from '../../../primitives/trigger-child/trigger-child'
+import type { ButtonVariants } from '../../../recipes/kata/button'
 import { k } from '../../../recipes/kata/form-filters'
 import { getTabbableElements } from '../../../utilities/focusable-selector'
 import { useFormFilters, useFormFiltersAxis } from './context'

@@ -26,12 +26,12 @@ import {
 	rowShellProps,
 } from './engine/grid-row/shell'
 import { fitCellProps } from './engine/grid-sizing/fit-styles'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { cellBody } from './grid-cell-content'
 import type { GridRowsProps } from './grid-row'
 import { GridRowSpecialCell } from './grid-row-special-cell'
 import type { GridColumn } from './types'
 import { useGridRevealHold } from './use-grid-reveal-hold'
-import type { GridColumnPinning } from './use-grid-table'
 
 /**
  * A leaf cell's `<td>` class by column kind: the kata class of the selection or

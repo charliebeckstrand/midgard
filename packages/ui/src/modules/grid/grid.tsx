@@ -1,7 +1,8 @@
 'use client'
 
 import { memo, useLayoutEffect } from 'react'
-import { useContentHeightAvailable, useContentHeightHost } from '../../primitives/content-height'
+import { useContentHeightHost } from '../../primitives/content-height/context'
+import { useContentHeightAvailable } from '../../primitives/content-height/use-content-height'
 import { GridData } from './grid-data'
 import type { GridDataProps } from './grid-data-types'
 import type { GridPagination } from './types'

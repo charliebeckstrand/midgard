@@ -9,6 +9,9 @@ import { useGrid } from './context'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
 import { isFrozen, isLocked } from './engine/grid-pin/overrides'
 import { columnSort } from './engine/grid-sort/state'
+import type { GridColumnFilter } from './engine/grid-table/filter-view'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
+import type { GridColumnResize } from './engine/grid-table/resize-view'
 import {
 	GridColumnHeader,
 	GridReorderableColumnHeader,
@@ -18,7 +21,6 @@ import { GridGroupHead } from './grid-group-head'
 import { GridStaticHeaderCell, isStaticHeaderColumn } from './grid-static-header-cell'
 import type { GridColumn } from './types'
 import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
-import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
 
 /** Props for {@link GridHead}. @internal */
 type GridHeadProps<T> = {

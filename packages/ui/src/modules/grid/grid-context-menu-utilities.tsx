@@ -25,7 +25,7 @@ import {
 	Ungroup,
 } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
-import { mergeContextMenuItems } from '../../components/context-menu'
+import { mergeContextMenuItems } from '../../components/context-menu/context-menu-merge'
 import type { PaletteColor } from '../../core/recipe/colors'
 import type { IntlShape } from '../../primitives/intl/types'
 import { isDataColumn } from '../../utilities/is-data-column'

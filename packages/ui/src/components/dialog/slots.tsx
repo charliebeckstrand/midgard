@@ -1,15 +1,17 @@
 import {
 	createPanel,
-	type PanelBodyProps,
 	type PanelCloseProps,
-	type PanelContentProps,
-	type PanelDescriptionProps,
-	type PanelFooterProps,
-	type PanelHeaderProps,
-	type PanelTitleProps,
 	PanelTrigger,
 	type PanelTriggerProps,
 } from '../../primitives/panel'
+import type {
+	PanelBodyProps,
+	PanelContentProps,
+	PanelDescriptionProps,
+	PanelFooterProps,
+	PanelHeaderProps,
+	PanelTitleProps,
+} from '../../primitives/panel/types'
 import { createPanelClose } from '../button/button-close'
 
 const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = createPanel('dialog')

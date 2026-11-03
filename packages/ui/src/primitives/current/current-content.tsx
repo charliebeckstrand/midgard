@@ -4,7 +4,8 @@ import { type ComponentProps, useCallback, useEffect, useState } from 'react'
 import { dataAttr } from '../../core/data-attr'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/current'
-import { MountHold, useMountHold } from '../mount'
+import { MountHold } from '../mount'
+import { useMountHold } from '../mount/use-mount'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import {
 	type CurrentDirection,

@@ -1,7 +1,7 @@
 import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/slider'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link SliderSkeleton}, including the `size` step to match the real control. */
 export type SliderSkeletonProps = SkeletonProps<NonNullable<SliderVariants['size']>>

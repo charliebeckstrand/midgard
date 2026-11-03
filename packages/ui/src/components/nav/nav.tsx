@@ -1,8 +1,8 @@
 'use client'
 
 import { type ComponentProps, useMemo } from 'react'
-import { CurrentContext, useCurrentState } from '../../primitives/current'
-import { CurrentStoreContext } from '../../primitives/current/context'
+import { CurrentContext, CurrentStoreContext } from '../../primitives/current/context'
+import { useCurrentState } from '../../primitives/current/use-current-state'
 import { useCurrentStore } from '../../primitives/current/use-current-store'
 import { partitionByType } from '../../utilities/children'
 import { NavContents } from './nav-content'

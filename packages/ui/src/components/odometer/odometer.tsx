@@ -2,7 +2,7 @@
 
 import { type ComponentProps, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core/cn'
-import { useLocale } from '../../providers/locale'
+import { useLocale } from '../../providers/locale/context'
 import { integerFormat } from '../../utilities/format-number'
 import { useOdometerAnimatedValue } from './use-odometer-animated-value'
 

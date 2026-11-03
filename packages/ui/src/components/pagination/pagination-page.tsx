@@ -1,7 +1,8 @@
 'use client'
 
 import { cn } from '../../core/cn'
-import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
+import { ActiveIndicator } from '../../primitives/active-indicator'
+import { useActiveIndicator } from '../../primitives/active-indicator/use-active-indicator'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k, type PageButtonVariants } from '../../recipes/kata/pagination'
 

@@ -3,16 +3,13 @@
 import { EllipsisVertical, Table2 } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../../components/button'
-import {
-	type ContextMenuEntry,
-	type ContextMenuItem,
-	ContextMenuList,
-} from '../../../components/context-menu'
+import { ContextMenuList } from '../../../components/context-menu'
+import type { ContextMenuEntry, ContextMenuItem } from '../../../components/context-menu/types'
 import { Icon } from '../../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../../components/menu'
 import { cn } from '../../../core/cn'
 import { dataAttr } from '../../../core/data-attr'
-import { useHeaderActions } from '../../../primitives/header-actions'
+import { useHeaderActions } from '../../../primitives/header-actions/use-header-actions'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { chartMenuName, chartMessages } from './chart-messages'
 import { useChartMenu } from './context'

@@ -4,9 +4,10 @@ import { type ReactNode, useCallback, useEffect } from 'react'
 import { cn } from '../../core/cn'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { usePanelA11y } from '../../primitives/panel'
+import { usePanelA11y } from '../../primitives/panel/context'
+import type { ButtonVariants } from '../../recipes/kata/button'
 import { k as panel } from '../../recipes/kata/panel'
-import { Button, type ButtonVariants } from '../button'
+import { Button } from '../button'
 import {
 	Dialog,
 	DialogDescription,

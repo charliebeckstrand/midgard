@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import type { HeadingLevel } from '../../components/heading'
 import { createContext } from '../../core/create-context'
+import type { HeadingLevel } from '../../recipes/kata/heading'
 import type { QueryGroup } from '../query/engine/types'
 import type { DashboardTileRank } from './engine/dashboard-layout'
 import type { DashboardSelection } from './engine/dashboard-scope'

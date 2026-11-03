@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { IntlMessage } from '../../primitives/intl/intl-message'
+import { IntlMessage } from '../../primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { k } from '../../recipes/kata/table'
 import { Alert } from '../alert'

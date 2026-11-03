@@ -13,12 +13,9 @@ import {
 	useState,
 } from 'react'
 import { Button } from '../../../components/button'
-import {
-	ContextMenu,
-	type ContextMenuConfig,
-	type ContextMenuItem,
-	resolveContextMenuEntries,
-} from '../../../components/context-menu'
+import { ContextMenu } from '../../../components/context-menu'
+import { resolveContextMenuEntries } from '../../../components/context-menu/context-menu-merge'
+import type { ContextMenuConfig, ContextMenuItem } from '../../../components/context-menu/types'
 import { Dialog, DialogClose, DialogFooter, DialogPanel } from '../../../components/dialog'
 import { downloadBlob } from '../../../core/download-blob'
 import { useStableEvent } from '../../../hooks/use-stable-event'

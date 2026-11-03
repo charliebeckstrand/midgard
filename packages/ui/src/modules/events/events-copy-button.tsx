@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '../../components/button'
-import { useCopyButtonState } from '../../components/copy-button'
+import { useCopyButtonState } from '../../components/copy-button/use-copy-button-state'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { eventsMessages } from './events-messages'
 

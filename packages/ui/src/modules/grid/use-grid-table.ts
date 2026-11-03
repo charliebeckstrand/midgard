@@ -37,7 +37,7 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
-import { useLocale } from '../../providers/locale'
+import { useLocale } from '../../providers/locale/context'
 import { isDataColumn } from '../../utilities/is-data-column'
 import { sameElements } from '../../utilities/same-elements'
 import type { GridSortState } from './context'
@@ -111,15 +111,6 @@ import { useFilterModeMismatchWarning } from './use-grid-filter-mode-mismatch-wa
 import { useGroupTree } from './use-grid-group-tree'
 import { useGridPinningView } from './use-grid-pinning-view'
 import { useGridRowModel } from './use-grid-row-model'
-
-export type {
-	GridColumnFacets,
-	GridColumnFilter,
-	GridGlobalFilterView,
-} from './engine/grid-table/filter-view'
-export type { GridPaginationView } from './engine/grid-table/pagination-view'
-export type { GridColumnPinning } from './engine/grid-table/pinning-view'
-export type { GridColumnResize } from './engine/grid-table/resize-view'
 
 /** Parameters for {@link useGridTable}. @internal */
 type GridTableParams<T> = {

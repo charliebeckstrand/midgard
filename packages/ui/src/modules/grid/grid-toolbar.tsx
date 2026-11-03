@@ -18,11 +18,11 @@ import { k } from '../../recipes/kata/grid'
 import { getTabbableElements } from '../../utilities/focusable-selector'
 import type { GridExportAction } from './engine/grid-export/types'
 import { gridMessages } from './engine/grid-messages'
+import type { GridColumnFilter, GridGlobalFilterView } from './engine/grid-table/filter-view'
 import { preloadDataDialogs } from './grid-data-dialogs'
 import type { GridSelection } from './grid-data-types'
 import { GridFilter } from './grid-filter'
 import type { GridToolbarButton } from './types'
-import type { GridColumnFilter, GridGlobalFilterView } from './use-grid-table'
 
 /** Props for {@link GridToolbar}. @internal */
 type GridToolbarProps = {

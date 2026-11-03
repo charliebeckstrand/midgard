@@ -12,6 +12,9 @@ import {
 } from './engine/grid-group/resolve'
 import type { GridGroup } from './engine/grid-group/tree'
 import { bodyRowCount } from './engine/grid-items/items'
+import type { GridPaginationView } from './engine/grid-table/pagination-view'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
+import type { GridColumnResize } from './engine/grid-table/resize-view'
 import {
 	placeNewRow,
 	type ResolvedInfiniteScroll,
@@ -27,7 +30,6 @@ import type { GridRowsProps } from './grid-row'
 import { resolveGrandTotal } from './grid-total-row'
 import type { GridColumn } from './types'
 import type { useGridRowGrouping } from './use-grid-row-grouping'
-import type { GridColumnPinning, GridColumnResize, GridPaginationView } from './use-grid-table'
 
 /** The result of {@link useGridRowGrouping}. @internal */
 type RowGrouping<T> = ReturnType<typeof useGridRowGrouping<T>>

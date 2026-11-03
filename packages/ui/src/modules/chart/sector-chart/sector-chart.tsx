@@ -3,7 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import { type ReactNode, useMemo } from 'react'
 import { useStableValue } from '../../../hooks/use-stable-value'
-import { useLocale } from '../../../providers/locale'
+import { useLocale } from '../../../providers/locale/context'
 import { k } from '../../../recipes/kata/chart'
 import { percentFormat, readoutFormat } from '../../../utilities/format-number'
 import { once } from '../../../utilities/once'

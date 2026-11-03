@@ -1,6 +1,6 @@
 import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/sparkline'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link SparklineSkeleton}: an optional `size` matching the chart scale. */
 export type SparklineSkeletonProps = SkeletonProps<ScaleStep<typeof scale>>

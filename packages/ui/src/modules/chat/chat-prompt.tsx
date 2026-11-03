@@ -6,7 +6,7 @@ import { type KeyboardEvent, type ReactNode, type Ref, useCallback, useRef } fro
 import { BadgeRemovable } from '../../components/badge/badge-removable'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
-import { useFileUploadHandlers } from '../../components/file-upload'
+import { useFileUploadHandlers } from '../../components/file-upload/use-file-upload-handlers'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
 import { ariaAttr } from '../../core/aria-attr'

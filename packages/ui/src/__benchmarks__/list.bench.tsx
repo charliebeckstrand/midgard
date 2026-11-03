@@ -5,8 +5,7 @@
  * sensors sit above.
  */
 
-import { List } from '../components/list'
-import { ListItem } from '../components/list/list-item'
+import { List, ListItem } from '../components/list'
 import { noop } from '../utilities/noop'
 import { compareBenches } from './compare'
 import { makeListItems } from './fixtures'

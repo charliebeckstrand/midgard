@@ -17,7 +17,7 @@ import { k } from '../../recipes/kata/grid'
 import { focusDropped } from '../../utilities/focus-dropped'
 import { gridMessages } from './engine/grid-messages'
 import { getVisiblePages } from './engine/grid-pagination-utilities'
-import type { GridPaginationView } from './use-grid-table'
+import type { GridPaginationView } from './engine/grid-table/pagination-view'
 
 /** Props for {@link GridPagination}. @internal */
 type GridPaginationProps = {

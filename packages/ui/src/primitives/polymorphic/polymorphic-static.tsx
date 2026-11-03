@@ -1,6 +1,6 @@
 import type { ComponentProps, ElementType, ReactElement, Ref } from 'react'
 import { Density } from '../density'
-import type { LinkProps } from '../link'
+import type { LinkProps } from '../link/context'
 import { resolveLinkRel } from '../link/link-rel'
 import { mergeRenderProps } from './polymorphic-render-props'
 import type { PolymorphicRenderProps } from './types'

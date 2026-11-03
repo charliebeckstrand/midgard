@@ -4,8 +4,6 @@ import { useMemo } from 'react'
 import { type FormatSpec, resolveFormat } from '../../utilities/format'
 import { useLocale } from './context'
 
-export type { FormatSpec } from '../../utilities/format'
-
 /**
  * Resolves a {@link FormatSpec} to a memoized `(value) => string` formatter,
  * folding in the ambient `<LocaleProvider>` locale, currency, and number-format

@@ -18,12 +18,14 @@ import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
-import { createGroup, createRule, isQueryActive, type QueryField, type QueryGroup } from '../query'
+import { isQueryActive } from '../query/engine/query-active'
+import { createGroup, createRule } from '../query/engine/query-node'
+import type { QueryField, QueryGroup } from '../query/engine/types'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
+import type { GridColumnFacets, GridColumnFilter } from './engine/grid-table/filter-view'
 import { GridOverlayDensity } from './grid-region'
 import type { GridColumn } from './types'
-import type { GridColumnFacets, GridColumnFilter } from './use-grid-table'
 
 /**
  * The filter sheet, loaded on the first open. It carries the query builder, the

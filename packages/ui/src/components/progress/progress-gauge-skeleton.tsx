@@ -1,5 +1,5 @@
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link ProgressGaugeSkeleton}: an optional `size` matching the gauge scale. */
 export type ProgressGaugeSkeletonProps = SkeletonProps<NonNullable<ProgressGaugeVariants['size']>>

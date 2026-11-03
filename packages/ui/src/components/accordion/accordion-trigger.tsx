@@ -6,7 +6,7 @@ import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/accordion'
-import type { HeadingLevel } from '../heading'
+import type { HeadingLevel } from '../../recipes/kata/heading'
 import { Icon } from '../icon'
 import { useAccordion, useAccordionItem } from './context'
 

@@ -1,9 +1,9 @@
 // @vitest-environment node
 
-import type { GridColumn } from '../modules/grid'
 import { rowsToCsv } from '../modules/grid/engine/grid-export/csv'
 import { rowsToHtmlTable } from '../modules/grid/engine/grid-export/html-table'
 import { applyPinOverrides, type PinOverrides } from '../modules/grid/engine/grid-pin/overrides'
+import type { GridColumn } from '../modules/grid/types'
 import { compareBenches } from './compare'
 import { makeEscapeHeavyRows, type Shipment, shipmentColumns, shipments } from './fixtures'
 

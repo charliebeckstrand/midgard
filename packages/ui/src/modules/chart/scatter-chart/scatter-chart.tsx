@@ -1,6 +1,6 @@
 'use client'
 
-import { useLocale } from '../../../providers/locale'
+import { useLocale } from '../../../providers/locale/context'
 import type { AccessibleName } from '../../../types/accessible-name'
 import { resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
 import { SCATTER_HIT_SLACK, TICK_TARGET } from '../engine/chart-constants'

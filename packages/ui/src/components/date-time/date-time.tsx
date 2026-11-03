@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { useDateFormat } from '../../providers/locale'
+import { useDateFormat } from '../../providers/locale/use-date-format'
 
 /** Props for {@link DateTime}: the `value` to show and its `format`, over the `<time>` surface. */
 export type DateTimeProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children'> & {

@@ -2,13 +2,13 @@
 
 import { TableCell } from '../../components/table'
 import { cn } from '../../core/cn'
-import { useLocale } from '../../providers/locale'
+import { useLocale } from '../../providers/locale/context'
 import { k } from '../../recipes/kata/grid'
 import { renderAggregate } from './engine/grid-aggregate'
 import { NO_ROWS } from './engine/grid-constants'
 import { pinnedCellProps } from './engine/grid-pin/styles'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import type { GridColumn } from './types'
-import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridAggregateCells}. @internal */
 type GridAggregateCellsProps<T> = {

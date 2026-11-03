@@ -2,9 +2,9 @@
 
 import type { ReactNode, RefObject, TransitionEventHandler } from 'react'
 import { TableBody } from '../../components/table'
+import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridSkeletonRows } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
-import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridWindowBody}. @internal */
 type GridWindowBodyProps<T> = {

@@ -5,11 +5,11 @@ import { useControllableFlag } from '../../hooks/use-controllable'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { GridSortState } from './context'
 import { gridMessages } from './engine/grid-messages'
+import type { GridColumnResize } from './engine/grid-table/resize-view'
 import { resolveToolSurfaces, SURFACES_OFF } from './engine/grid-tools'
 import type { GridWidthAction } from './grid-auto-size-confirm-dialog'
 import type { GridColumnManagerConfig } from './grid-data-types'
 import type { GridContextMenu as GridContextMenuConfig } from './types'
-import type { GridColumnResize } from './use-grid-table'
 
 /** Context menus are on by default (both header and cell); `contextMenu={false}` disables them. @internal */
 const DEFAULT_CONTEXT_MENU = { column: true, cell: true } as const

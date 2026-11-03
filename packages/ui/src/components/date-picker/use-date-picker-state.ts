@@ -4,7 +4,7 @@ import type { DateDuration } from '@internationalized/date'
 import { useComposedRefs } from 'motion/react'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 
-import { useLocale } from '../../providers/locale'
+import { useLocale } from '../../providers/locale/context'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'

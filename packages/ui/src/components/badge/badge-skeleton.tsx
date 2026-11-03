@@ -1,5 +1,5 @@
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-skeleton'
 
 /** Props for {@link BadgeSkeleton}; `size` matches the badge it stands in for. */
 export type BadgeSkeletonProps = SkeletonProps<NonNullable<BadgeVariants['size']>>
