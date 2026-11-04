@@ -1,6 +1,6 @@
 import { ClipboardPaste, Copy, Scissors, Trash } from 'lucide-react'
 import { Icon } from 'ui/icon'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuShortcut } from 'ui/menu'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuShortcut } from 'ui/menu'
 import { Text } from 'ui/text'
 import { PointerHint } from '../../../kit/pointer-hint.tsx'
 
@@ -29,7 +29,6 @@ export default function RightClick() {
 					<MenuLabel>Paste</MenuLabel>
 					<MenuShortcut>⌘V</MenuShortcut>
 				</MenuItem>
-				<MenuSeparator />
 				<MenuItem>
 					<Icon icon={<Trash />} />
 					<MenuLabel>Delete</MenuLabel>

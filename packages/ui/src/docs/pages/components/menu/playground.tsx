@@ -1,15 +1,7 @@
 import { ChevronDown } from 'lucide-react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
-import {
-	Menu,
-	MenuContent,
-	MenuItem,
-	MenuLabel,
-	type MenuProps,
-	MenuSeparator,
-	MenuTrigger,
-} from 'ui/menu'
+import { Menu, MenuContent, MenuItem, MenuLabel, type MenuProps, MenuTrigger } from 'ui/menu'
 
 export default function MenuPlayground(props: MenuProps) {
 	return (
@@ -29,7 +21,6 @@ export default function MenuPlayground(props: MenuProps) {
 				<MenuItem>
 					<MenuLabel>Archive</MenuLabel>
 				</MenuItem>
-				<MenuSeparator />
 				<MenuItem>
 					<MenuLabel>Delete</MenuLabel>
 				</MenuItem>
