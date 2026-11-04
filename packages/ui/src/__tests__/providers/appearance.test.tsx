@@ -17,6 +17,7 @@ import {
 import { type AppearanceChoice, parseChoice } from '../../providers/appearance/appearance-storage'
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { LocaleProvider, useLocale } from '../../providers/locale'
+import { writeCookie } from '../../utilities/cookie'
 import {
 	act,
 	bySlot,
@@ -62,7 +63,7 @@ function MotionProbe() {
 afterEach(() => {
 	cleanup()
 
-	document.documentElement.classList.remove('dark', 'reduced-motion', 'sidebar-offcanvas')
+	document.documentElement.classList.remove('dark', 'light', 'reduced-motion', 'sidebar-offcanvas')
 
 	writeRootDensity(document.documentElement, 'md')
 })
@@ -141,7 +142,10 @@ describe('AppearanceProvider', () => {
 
 		signal.throwIfAborted()
 
+		// Another tab writes the key and the cookie of the choice.
 		localStorage.setItem('theme', 'light')
+
+		writeCookie('theme', 'light', 60)
 
 		act(() => {
 			window.dispatchEvent(new StorageEvent('storage', { key: 'theme' }))
