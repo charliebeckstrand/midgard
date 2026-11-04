@@ -1,7 +1,7 @@
 import { act, within as inside, renderHook } from '@testing-library/react'
 import { createRef, Profiler, useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
 import { ColorPanelView } from '../../components/color/color-panel'
 import {
@@ -34,16 +34,6 @@ import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 import { hydrate } from '../helpers/hydrate'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
-
-/**
- * Runs each inline script of the server markup in `container`, as the parser
- * does before the first paint. A script set through `innerHTML` does not run.
- */
-function runPrePaint(container: Element) {
-	for (const script of container.querySelectorAll('script')) {
-		new Function(script.textContent ?? '')()
-	}
-}
 
 /** Stubs a platform `EyeDropper` whose picker never settles. */
 function stubEyeDropper() {
@@ -489,69 +479,34 @@ describe('ColorPanel', () => {
 			expect(commits).toEqual([true])
 		})
 
-		// The server cannot read the API, so it draws the button and the pre-paint
-		// step after it. Where the API exists, the step adds no style, hydration
-		// keeps the button, and the render after it removes the step.
-		it('hydrates the server button, and keeps it where the API exists', () => {
+		// The server cannot read the API, so it draws the button enabled, and the
+		// hydration render agrees. The button keeps its place in each browser:
+		// where the API exists it stays enabled, else the render after hydration
+		// disables it.
+		it.each([
+			['exists', true],
+			['does not exist', false],
+		])('hydrates the server button, which keeps its place where the API %s', (_, api) => {
 			const element = <ColorPanel defaultValue="#3b82f6" />
 
 			const markup = renderToString(element)
 
 			expect(markup).toContain('color-eyedropper')
 
-			stubEyeDropper()
+			if (api) stubEyeDropper()
 
 			const container = attach(document.createElement('div'))
 
 			container.innerHTML = markup
 
-			runPrePaint(container)
-
-			expect(document.head.querySelector('style[data-color-eyedropper]')).toBeNull()
-
 			const { onRecoverableError } = hydrate(container, element)
 
 			expect(onRecoverableError).not.toHaveBeenCalled()
 
-			expect(getSlot(container, 'color-eyedropper')).toBeInTheDocument()
+			const button = getSlot(container, 'color-eyedropper')
 
-			expect(container.querySelector('script')).toBeNull()
-		})
-
-		// Where the API does not exist, the step hides the button before the
-		// first paint, one style for the page. The render after hydration
-		// removes the button.
-		it('hides the server button before the paint where the API does not exist', () => {
-			const element = (
-				<>
-					<ColorPanel defaultValue="#3b82f6" />
-					<ColorPanel defaultValue="#ef4444" />
-				</>
-			)
-
-			const container = attach(document.createElement('div'))
-
-			container.innerHTML = renderToString(element)
-
-			onTestFinished(() => {
-				for (const style of document.head.querySelectorAll('style[data-color-eyedropper]')) {
-					style.remove()
-				}
-			})
-
-			runPrePaint(container)
-
-			expect(document.head.querySelectorAll('style[data-color-eyedropper]')).toHaveLength(1)
-
-			for (const button of getAllSlots(container, 'color-eyedropper')) {
-				expect(getComputedStyle(button).display).toBe('none')
-			}
-
-			const { onRecoverableError } = hydrate(container, element)
-
-			expect(onRecoverableError).not.toHaveBeenCalled()
-
-			expect(bySlot(container, 'color-eyedropper')).toBeNull()
+			if (api) expect(button).toBeEnabled()
+			else expect(button).toBeDisabled()
 		})
 	})
 
