@@ -169,6 +169,7 @@ export type DatePickerBaseProps = {
 	 * picker that must stay next to its trigger. The Start and End fields of a
 	 * `relative` custom range take the same value.
 	 * @defaultValue true
+	 * @media phone
 	 */
 	sheet?: boolean
 	/**

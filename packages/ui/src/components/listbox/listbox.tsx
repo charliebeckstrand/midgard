@@ -112,6 +112,7 @@ type ListboxBaseProps = {
 	 * press does not open it, as with any hover tooltip. A label that is not a
 	 * string shows no tooltip.
 	 * @defaultValue false
+	 * @media hover
 	 */
 	truncateTooltip?: boolean
 	/**

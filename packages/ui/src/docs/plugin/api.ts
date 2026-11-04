@@ -27,6 +27,16 @@ export type BreakpointValues = { readonly [B in Breakpoint]?: Literal }
 /** The value of a default: a literal, or a value for each breakpoint. */
 export type DefaultValue = Literal | BreakpointValues
 
+/**
+ * A kind of device on which a prop has an effect, from the `@media` tag of the
+ * prop. A `phone` is a device with no hover and a viewport narrower than the
+ * `sm` breakpoint, as `PHONE_QUERY` gives it. A `hover` device is a device
+ * whose primary pointer hovers, such as a mouse.
+ */
+export type Media = 'phone' | 'hover'
+
+const MEDIA: readonly Media[] = ['phone', 'hover']
+
 /** One prop of a component, as the API table and the playground read it. */
 export type PropApi = {
 	name: string
@@ -64,6 +74,12 @@ export type PropApi = {
 	minimum?: number
 	/** The value of the `@maximum` tag. See `minimum`. */
 	maximum?: number
+	/**
+	 * The value of the `@media` tag: the one kind of device on which the prop
+	 * has an effect. The playground shows the field of the prop only on that
+	 * kind of device.
+	 */
+	media?: Media
 	/** Markdown. */
 	description?: string
 	/** The text of the `@deprecated` tag, which can be empty. */
@@ -406,6 +422,7 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 			...(code && { default: code }),
 			...(value !== undefined && { defaultValue: value }),
 			...readRange(symbol.name, tags),
+			...readMedia(symbol.name, tags),
 			...(description && { description }),
 			...(deprecated !== undefined && { deprecated }),
 		}
@@ -801,6 +818,21 @@ function parseBound(prop: string, tag: string, text: string | undefined): number
 	}
 
 	return value
+}
+
+/** The `@media` tag of a prop, when the prop has it. */
+function readMedia(prop: string, tags: ReadonlyMap<string, string>): Pick<PropApi, 'media'> {
+	const text = tags.get('media')?.trim()
+
+	if (text === undefined) return {}
+
+	const media = MEDIA.find((value) => value === text)
+
+	if (!media) {
+		throw new Error(`docs: the @media of the prop ${prop} is not one of ${MEDIA.join(', ')}`)
+	}
+
+	return { media }
 }
 
 /** The value of a literal type, or `undefined` for another type. */

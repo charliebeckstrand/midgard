@@ -162,4 +162,42 @@ describe('Playground', () => {
 			expect(panel.textContent).toContain('return <Thing label={"Say \\"hi\\""} max={50} />'),
 		)
 	})
+
+	it('hides the field of a prop with a `@media` tag on other devices', () => {
+		const api: BarrelApi = {
+			Thing: {
+				name: 'Thing',
+				props: [
+					{
+						name: 'hover',
+						type: 'boolean',
+						values: [false, true],
+						default: 'false',
+						media: 'hover',
+					},
+					{
+						name: 'sheet',
+						type: 'boolean',
+						values: [false, true],
+						default: 'true',
+						media: 'phone',
+					},
+					{ name: 'striped', type: 'boolean', values: [false, true], default: 'false' },
+				],
+				events: [],
+			},
+		}
+
+		render(<Playground of={ThingPlayground} api={api} />)
+
+		// jsdom matches no media query, so the test reads the class of each field.
+		const field = (name: string) =>
+			screen.getByRole('combobox', { name }).closest('[data-slot=listbox]')?.className
+
+		expect(field('Sheet')).toContain('sm:hidden [@media(hover:hover)]:hidden')
+
+		expect(field('Hover')).toContain('[@media(hover:none)]:hidden')
+
+		expect(field('Striped')).not.toContain('hidden')
+	})
 })

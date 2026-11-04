@@ -1,5 +1,5 @@
 import { type DensityStep, isDensityStep } from '../../core/density/steps.ts'
-import type { DefaultValue, Literal, PropApi } from '../plugin/api.ts'
+import type { DefaultValue, Literal, Media, PropApi } from '../plugin/api.ts'
 
 // The fields of a playground, from the API data of its component. The
 // playground renders them (`playground.tsx`), and `pnpm intl` reads them for
@@ -18,6 +18,8 @@ export type ChoiceField = {
 	values: readonly Value[]
 	default?: Value
 	required?: true
+	/** The one kind of device on which the prop has an effect, from its `@media` tag. */
+	media?: Media
 }
 
 /** A field that takes any text or any number. */
@@ -31,6 +33,8 @@ export type FreeField = {
 	min?: number
 	/** The highest value of a number field, from the `@maximum` tag of the prop. */
 	max?: number
+	/** See {@link ChoiceField.media}. */
+	media?: Media
 }
 
 /** The props that get a free field, with the value that each field starts at. */
@@ -107,7 +111,8 @@ function buildFreeField(prop: PropApi, free: Free): FreeField | undefined {
  * that `given` gives values. The default of a field is the value that the
  * component renders when the prop is omitted. A density step with no tag
  * takes the step of the scope, which is `step`. A prop of another type can
- * get a free field ({@link buildFreeField}).
+ * get a free field ({@link buildFreeField}). A field keeps the `media` of its
+ * prop.
  */
 export function buildFields(
 	props: readonly PropApi[],
@@ -123,13 +128,11 @@ export function buildFields(
 
 		const values = given[name] ?? prop.values
 
-		if (!values) {
-			const field = buildFreeField(prop, free)
+		const field = values ? buildChoiceField(prop, values, step) : buildFreeField(prop, free)
 
-			return field ? [field] : []
-		}
+		if (!field) return []
 
-		return [buildChoiceField(prop, values, step)]
+		return [prop.media ? { ...field, media: prop.media } : field]
 	})
 }
 

@@ -68,6 +68,7 @@ export type MenuProps = {
 	 * next to its trigger. A context menu and a static menu never open as a
 	 * sheet.
 	 * @defaultValue true
+	 * @media phone
 	 */
 	sheet?: boolean
 	/**

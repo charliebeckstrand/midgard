@@ -751,6 +751,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * with no `hover`, so its rows read as actionable. No row shows the wash
 	 * while a column drag-resize is in progress.
 	 * @defaultValue false
+	 * @media hover
 	 */
 	hover?: boolean
 

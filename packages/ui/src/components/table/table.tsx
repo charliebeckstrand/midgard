@@ -39,6 +39,7 @@ export type TableVariants = {
 	 * variant, so it out-cascades the {@link TableVariants.striped} shade on the
 	 * hovered row. Header rows are untouched.
 	 * @defaultValue false
+	 * @media hover
 	 */
 	hover?: boolean
 }
