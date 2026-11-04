@@ -1,7 +1,8 @@
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kokkaku, narabi, sen } from '../kiso'
+import { dan, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { text } = iro
+const { rounded } = kasane
 const { size, weight } = ji
 const { flex } = narabi
 const { focus } = sen
@@ -59,10 +60,53 @@ export const k = defineKata({
 		assistant: 'items-start',
 		system: 'items-center',
 	},
+	// A hover toolbar is placed against the message, so the message is its
+	// containing block. The named group lets the toolbar show while the pointer
+	// is anywhere over the message, or while focus is in it.
+	actionsDisplay: {
+		rail: '',
+		hover: 'group/chat-message relative',
+	},
 	slots: {
 		bubble,
 		timestamp: [size.xs, 'mt-1', ...text.muted],
-		actions: ['mt-1', flex.row, 'gap-0.5'],
+		/**
+		 * The actions of the message. A `rail` is a row below the bubble. A `hover`
+		 * toolbar floats over the outer top corner of the bubble: the corner on the
+		 * side of the speaker, so a toolbar wider than the bubble grows into the
+		 * transcript and not off its edge. It rises by its own height less
+		 * `--spacing(2.5)`, so it overlaps the padding of the bubble and not its text.
+		 */
+		actions: {
+			base: [flex.row, 'gap-0.5'],
+			actionsDisplay: {
+				rail: 'mt-1',
+				hover: [
+					'absolute z-10 bottom-[calc(100%-(--spacing(2.5)))] w-fit p-1',
+					rounded.lg,
+					omote.popover,
+					// Hidden, but in the Tab order: focus on a control shows the toolbar,
+					// as the pointer does. The toolbar takes no press while it is hidden,
+					// so it does not cover the message above it.
+					'pointer-events-none opacity-0',
+					'group-hover/chat-message:pointer-events-auto group-hover/chat-message:opacity-100',
+					'group-focus-within/chat-message:pointer-events-auto group-focus-within/chat-message:opacity-100',
+					// A menu that a control of the toolbar opens portals out of the
+					// message, so neither hover nor focus can hold the toolbar while it is
+					// open. The expanded trigger holds it.
+					'has-aria-expanded:pointer-events-auto has-aria-expanded:opacity-100',
+					// A device with no hover cannot show the toolbar, so there it is the
+					// rail: a row below the bubble that always shows.
+					'[@media(hover:none)]:static [@media(hover:none)]:mt-1',
+					'[@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100',
+				],
+			},
+			compound: [
+				{ actionsDisplay: 'hover', sender: 'user', class: 'end-2' },
+				{ actionsDisplay: 'hover', sender: 'assistant', class: 'start-2' },
+				{ actionsDisplay: 'hover', sender: 'system', class: 'inset-x-0 mx-auto' },
+			],
+		},
 		// A bubble of parts stacks one block per part, and each block collapses
 		// its own outer margins, so the gap between two of them is this slot's.
 		// It matches the markdown kata's `my-3` paragraph rhythm, so prose split
@@ -121,14 +165,17 @@ export const k = defineKata({
 			},
 		},
 	},
-	defaults: { sender: 'assistant', streaming: false },
+	defaults: { sender: 'assistant', streaming: false, actionsDisplay: 'rail' },
 })
 
 /**
  * Recipe variant props for {@link ChatMessage}: the styling axes its kata exposes (`sender`), for consumers composing custom slots.
- * The `streaming` axis of the bubble is a prop of the message, with its own description.
+ * The `streaming` axis of the bubble and the `actionsDisplay` axis of the actions are props of the message, with their own descriptions.
  */
-export type ChatMessageVariants = Omit<VariantProps<typeof k>, 'sender' | 'streaming'> & {
+export type ChatMessageVariants = Omit<
+	VariantProps<typeof k>,
+	'sender' | 'streaming' | 'actionsDisplay'
+> & {
 	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
 	sender?: VariantProps<typeof k>['sender']
 }

@@ -1,10 +1,12 @@
 import { type ComponentProps, memo, type ReactNode } from 'react'
+import type { ContextMenuEntry } from '../../components/context-menu/types'
 import { Markdown } from '../../components/markdown'
 import { cn } from '../../core/cn'
 import { IntlMessage } from '../../primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 import { ChatEmbed } from './chat-embed'
+import { ChatMessageMenu } from './chat-message-menu'
 import { ChatTool, MESSAGE_HEADING_OFFSET } from './chat-tool'
 import type { ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
@@ -65,16 +67,30 @@ function ChatMessageBlock({ part, className }: { part: ChatPart; className?: str
 
 /**
  * Props for {@link ChatMessage}. The root `<div>` takes the rest. The message
- * gives `children` a type of its own.
+ * gives `children` and `contextMenu` types of their own.
  */
 export type ChatMessageProps = ChatMessageVariants &
-	Omit<ComponentProps<'div'>, 'children'> & {
+	Omit<ComponentProps<'div'>, 'children' | 'contextMenu'> & {
 		/** Wall-clock label shown below the bubble. */
 		timestamp?: ReactNode
 		/** Pulses the bubble content and shows the progress cursor, while a response streams in. @defaultValue false */
 		streaming?: boolean
-		/** Action rail below the bubble (copy, retry, edit, …). */
+		/** Controls that act on the message, such as copy, retry, and edit. `actionsDisplay` sets where they show. */
 		actions?: ReactNode
+		/**
+		 * Where `actions` show. `'rail'` is a row below the bubble. `'hover'` is a
+		 * toolbar over the top corner of the bubble that shows while the pointer is
+		 * over the message or focus is in it. A device with no hover shows the
+		 * toolbar as the rail.
+		 * @defaultValue 'rail'
+		 */
+		actionsDisplay?: 'rail' | 'hover'
+		/**
+		 * Entries of a menu that a right-click or a touch long press on the bubble
+		 * opens: an item, a separator, or a submenu ({@link ContextMenuEntry}).
+		 * Without entries, the bubble keeps the native menu of the browser.
+		 */
+		contextMenu?: ContextMenuEntry[]
 		/**
 		 * Message content, rendered as GitHub-flavored Markdown: prose, or the blocks
 		 * it is built from.
@@ -85,7 +101,8 @@ export type ChatMessageProps = ChatMessageVariants &
 /**
  * Conversational message bubble sided and colored by `sender`: `user`,
  * `assistant`, or `system`, defaulting to `assistant`. It takes an optional
- * `timestamp`, `actions` rail, and a `streaming` pulse over its content.
+ * `timestamp`, `actions` as a rail or a hover toolbar, a `contextMenu`, and a
+ * `streaming` pulse over its content.
  *
  * @remarks
  * Side and color alone convey the speaker visually, so a visually hidden author
@@ -113,6 +130,14 @@ export type ChatMessageProps = ChatMessageVariants &
  * The pulse rides each drawn {@link Markdown}, so a streaming reply that has
  * already landed a chart pulses its prose and leaves the chart steady.
  *
+ * A `'hover'` toolbar floats above the message by most of its own height. A
+ * host that clips its overflow, such as a scroll container, keeps that space
+ * free above its first message. The toolbar stays in the Tab order while it is
+ * hidden, so a keyboard reader reaches each action, and focus shows it. The
+ * context menu of `contextMenu` is a pointer shortcut: a keyboard reader
+ * opens it only from a focused control in the bubble. Give the same actions in
+ * `actions` too, so that each reader reaches them.
+ *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering, and re-lexing their Markdown. Only the streaming bubble's
  * `children` actually changes from chunk to chunk.
@@ -122,13 +147,34 @@ export const ChatMessage = memo(function ChatMessage({
 	timestamp,
 	streaming,
 	actions,
+	actionsDisplay,
+	contextMenu,
 	className,
 	children,
 	...props
 }: ChatMessageProps) {
 	const resolvedSender = sender ?? 'assistant'
 
-	const slots = k({ sender, streaming })
+	const slots = k({ sender, streaming, actionsDisplay })
+
+	const bubble = (
+		<div data-slot="chat-message-bubble" className={slots.bubble}>
+			<span data-slot="chat-message-author" className="sr-only">
+				<IntlMessage message={AUTHOR[resolvedSender]} />:{' '}
+			</span>
+			{typeof children === 'string' ? (
+				<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{children}</Markdown>
+			) : (
+				children.map((part, index) => (
+					<ChatMessageBlock
+						key={part.id}
+						part={part}
+						className={index === 0 ? undefined : slots.part}
+					/>
+				))
+			)}
+		</div>
+	)
 
 	return (
 		<div
@@ -137,29 +183,22 @@ export const ChatMessage = memo(function ChatMessage({
 			data-sender={resolvedSender}
 			className={cn(slots.base, className)}
 		>
-			<div data-slot="chat-message-bubble" className={slots.bubble}>
-				<span data-slot="chat-message-author" className="sr-only">
-					<IntlMessage message={AUTHOR[resolvedSender]} />:{' '}
-				</span>
-				{typeof children === 'string' ? (
-					<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{children}</Markdown>
-				) : (
-					children.map((part, index) => (
-						<ChatMessageBlock
-							key={part.id}
-							part={part}
-							className={index === 0 ? undefined : slots.part}
-						/>
-					))
-				)}
-			</div>
+			{contextMenu === undefined ? (
+				bubble
+			) : (
+				<ChatMessageMenu entries={contextMenu}>{bubble}</ChatMessageMenu>
+			)}
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={slots.timestamp}>
 					{timestamp}
 				</div>
 			)}
 			{actions !== undefined && (
-				<div data-slot="chat-message-actions" className={slots.actions}>
+				<div
+					data-slot="chat-message-actions"
+					data-display={actionsDisplay ?? 'rail'}
+					className={slots.actions}
+				>
 					{actions}
 				</div>
 			)}
