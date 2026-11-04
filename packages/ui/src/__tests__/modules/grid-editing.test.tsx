@@ -6726,7 +6726,8 @@ describe('Grid row actions edit', () => {
 		expect(document.activeElement).toBe(view.getByRole('textbox', { name: 'Edit Name, row 3' }))
 	})
 
-	it('returns focus to the control as the row saves', () => {
+	// Focus on a control of a cell enters the cell, so the arrows would stop.
+	it('returns focus to the grid with the cursor on the cell of the control as the row saves', () => {
 		const view = renderPencil()
 
 		const pencil = view.press('Edit Bob')
@@ -6739,7 +6740,36 @@ describe('Grid row actions edit', () => {
 
 		expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bobby' }])
 
-		expect(document.activeElement).toBe(pencil)
+		const grid = view.getByRole('grid')
+
+		expect(document.activeElement).toBe(grid)
+
+		expect(pencil.closest('td')).toHaveAttribute('data-active')
+
+		fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
+		expect(grid.querySelector('[data-active]')?.closest('tr')).toHaveAttribute(
+			'data-row-index',
+			'0',
+		)
+	})
+
+	it('moves the cursor and focus down together as Enter saves the row', () => {
+		const view = renderPencil()
+
+		view.press('Edit Alice')
+
+		const grid = view.getByRole('grid')
+
+		fireEvent.keyDown(view.getByRole('textbox', { name: 'Edit Name, row 2' }), { key: 'Enter' })
+
+		expect(document.activeElement).toBe(grid)
+
+		const active = grid.querySelector('[data-active]')
+
+		expect(active?.closest('tr')).toHaveAttribute('data-row-index', '1')
+
+		expect(active).toHaveAttribute('data-grid-col', 'name')
 	})
 
 	it('keeps a row with no editable column closed', () => {

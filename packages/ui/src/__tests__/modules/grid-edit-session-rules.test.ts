@@ -72,22 +72,22 @@ describe('the focus rules of an edit session', () => {
 		expect(interactionPlace(table, at(host, '#outside'))).toBe(at(host, '#outside'))
 	})
 
-	it('returns focus to the first tabbable content of a cell, else to the table, and to nothing once the element is gone', () => {
+	it('returns focus to the table for a cell or for an element that is gone, and to an element outside the cells', () => {
 		const host = mount(GRID)
 
 		const table = at(host, 'table')
 
 		const cell = at(host, 'td[data-grid-col="done"]')
 
-		expect(returnElement(cell, table)).toBe(at(host, 'button'))
-
-		at(host, 'button').remove()
+		const outside = at(host, '#outside')
 
 		expect(returnElement(cell, table)).toBe(table)
 
-		cell.remove()
+		expect(returnElement(outside, table)).toBe(outside)
 
-		expect(returnElement(cell, table)).toBeNull()
+		outside.remove()
+
+		expect(returnElement(outside, table)).toBe(table)
 	})
 
 	it('sets the flag only while the grid moves focus, and clears it when the move throws', () => {

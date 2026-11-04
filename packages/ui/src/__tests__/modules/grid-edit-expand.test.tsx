@@ -325,7 +325,7 @@ describe.each([
 		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 	})
 
-	it('returns focus to the pencil as Escape ends the session it opened', async () => {
+	it('returns focus to the grid on the cell of the pencil as Escape ends the session it opened', async () => {
 		const { user, table } = renderControlledCell(controlled)
 
 		const pencil = screen.getByRole('button', { name: 'edit-2' })
@@ -342,6 +342,8 @@ describe.each([
 
 		await waitFor(() => expect(bySlot(table, 'grid-edit-input')).toBeNull())
 
-		expect(pencil).toHaveFocus()
+		expect(table).toHaveFocus()
+
+		expect(pencil.closest('td')).toHaveAttribute('data-active')
 	})
 })

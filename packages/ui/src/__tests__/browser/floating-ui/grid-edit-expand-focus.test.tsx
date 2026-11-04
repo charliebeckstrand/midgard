@@ -26,11 +26,12 @@ const columns: GridColumn<Row>[] = [
 /**
  * The form of an expanded row puts focus in the field of the cell in use on
  * the row, and gives focus back as it closes, on the real floating engine: to
- * the control that opened it, or to the grid with the cursor on the cell where
- * Shift+Enter opened it. The jsdom mock of the focus manager returns no focus.
+ * the grid, with the cursor on the cell of the control that opened it, or on
+ * the cell where Shift+Enter opened it. The jsdom mock of the focus manager
+ * returns no focus.
  */
 describe('grid row form focus (real floating engine)', () => {
-	it('returns the focus to the expand control on Cancel', async () => {
+	it('returns the focus to the grid on the cell of the expand control on Cancel', async () => {
 		renderUI(
 			<Grid
 				columns={columns}
@@ -52,7 +53,11 @@ describe('grid row form focus (real floating engine)', () => {
 
 		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
-		await waitFor(() => expect(control).toHaveFocus())
+		const grid = screen.getByRole('grid')
+
+		await waitFor(() => expect(grid).toHaveFocus())
+
+		expect(grid.getAttribute('aria-activedescendant')).toBe(control.closest('td')?.id)
 	})
 
 	it('opens the form on the field of the cell that a double click opened', async () => {
@@ -187,10 +192,10 @@ describe('grid row form focus (real floating engine)', () => {
 
 		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
-		await waitFor(() => expect(control).toHaveFocus())
+		await waitFor(() => expect(grid).toHaveFocus())
 
-		// The cursor follows focus to the cell of the control. The cell it left
-		// keeps no ring.
+		// The cursor goes to the cell of the control, and focus to the grid. The
+		// cell it left keeps no ring.
 		expect(grid.getAttribute('aria-activedescendant')).toBe(control.closest('td')?.id)
 
 		expect(within(grid).getByRole('gridcell', { name: 'Second' })).not.toHaveAttribute(

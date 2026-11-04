@@ -65,7 +65,8 @@ function cancel() {
 
 /**
  * On a phone a row edits in a drawer. When the drawer closes, the focus goes back
- * to the cell that was edited, or to the control that opened the row. It never
+ * to the grid, with the cursor on the cell that was edited, or on the cell of
+ * the control that opened the row. It never
  * goes to an element that had the focus before, such as a cell of another grid.
  * A focus there scrolls the page to that grid.
  *
@@ -76,7 +77,7 @@ describe('grid edit overlay return focus (real floating engine)', () => {
 		stubMatchMedia((query) => query.startsWith('(hover: none)'))
 	})
 
-	it('returns the focus to the pencil, not to a grid that had the focus before', async () => {
+	it('returns the focus to the cell of the pencil, not to a grid that had the focus before', async () => {
 		const [first, second] = renderPhones()
 
 		await userEvent.click(within(second).getByRole('gridcell', { name: 'Alice' }))
@@ -93,12 +94,14 @@ describe('grid edit overlay return focus (real floating engine)', () => {
 
 		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
-		await waitFor(() => expect(pencil).toHaveFocus())
+		await waitFor(() => expect(first).toHaveFocus())
+
+		expect(pencil.closest('td')).toHaveAttribute('data-active')
 	})
 
 	// Safari does not focus a button on a tap, so the table keeps the focus of
 	// the earlier press while the pencil opens its row.
-	it('returns the focus to the pencil when the press did not focus it', async () => {
+	it('returns the focus to the cell of the pencil when the press did not focus it', async () => {
 		const [first] = renderPhones()
 
 		await userEvent.click(within(first).getByRole('gridcell', { name: 'Alice' }))
@@ -121,7 +124,9 @@ describe('grid edit overlay return focus (real floating engine)', () => {
 
 		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
-		await waitFor(() => expect(pencil).toHaveFocus())
+		await waitFor(() => expect(first).toHaveFocus())
+
+		expect(pencil.closest('td')).toHaveAttribute('data-active')
 	})
 
 	it('returns the focus to the edited cell after a double click', async () => {
