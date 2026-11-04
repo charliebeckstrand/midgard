@@ -7,13 +7,13 @@ import { Icon } from 'ui/icon'
 import { MenuItem, MenuLabel, MenuSeparator } from 'ui/menu'
 import { useIntl } from 'ui/primitives/intl'
 import { sendVerificationEmail, signOut } from './account'
-import { authMessages } from './auth-messages'
+import { menuMessages } from './menu-messages'
 
 /** Where sending a verification link stands, and the label it shows. */
 const verifyLabels = {
-	idle: authMessages.verifyMenu,
-	sent: authMessages.verifyMenuSent,
-	failed: authMessages.verifyMenuFailed,
+	idle: menuMessages.verifyMenu,
+	sent: menuMessages.verifyMenuSent,
+	failed: menuMessages.verifyMenuFailed,
 } as const
 
 /**
@@ -62,7 +62,7 @@ export function SignOutMenuItem() {
 	return (
 		<MenuItem onAction={signOut}>
 			<Icon icon={<LogOut />} />
-			<MenuLabel>{intl.formatMessage(authMessages.signOut)}</MenuLabel>
+			<MenuLabel>{intl.formatMessage(menuMessages.signOut)}</MenuLabel>
 		</MenuItem>
 	)
 }
