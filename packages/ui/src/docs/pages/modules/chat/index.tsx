@@ -11,7 +11,7 @@ export default function ChatPage() {
 	return (
 		<>
 			<PageTabs tabs={TABS}>
-				<Playground of={ChatPlayground} api={api} omit={['hoverActions']} />
+				<Playground of={ChatPlayground} api={api} omit={['trigger']} />
 				<Example of={Timestamped} />
 				<Example of={WithActions} />
 				<Example of={WithContextMenu} />

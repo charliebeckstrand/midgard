@@ -46,14 +46,12 @@ export default function WithActions() {
 		<Stack gap="xl" className="pt-6">
 			<ChatMessage
 				sender="assistant"
-				hoverActions
 				actions={<MessageActions text="Heading out now. ETA 3:00 PM." own={false} />}
 			>
 				Heading out now. ETA 3:00 PM.
 			</ChatMessage>
 			<ChatMessage
 				sender="user"
-				hoverActions
 				actions={<MessageActions text="Got it. The door code is 4421." own />}
 			>
 				Got it. The door code is 4421.

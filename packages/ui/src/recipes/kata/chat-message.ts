@@ -63,25 +63,25 @@ export const k = defineKata({
 	// A hover toolbar is placed against the message, so the message is its
 	// containing block. The named group lets the toolbar show while the pointer
 	// is anywhere over the message, or while focus is in it.
-	hoverActions: {
-		true: 'group/chat-message relative',
-		false: '',
+	trigger: {
+		hover: 'group/chat-message relative',
+		static: '',
 	},
 	slots: {
 		bubble,
 		timestamp: [size.xs, 'mt-1', ...text.muted],
 		/**
-		 * The actions of the message: a row below the bubble, or with `hoverActions`
-		 * a toolbar that floats over the outer top corner of the bubble: the corner on the
+		 * The actions of the message: a toolbar that floats over the outer top corner of the bubble: the corner on the
 		 * side of the speaker, so a toolbar wider than the bubble grows into the
 		 * transcript and not off its edge. It rises by its own height less
 		 * `--spacing(2.5)`, so it overlaps the padding of the bubble and not its text.
+		 * A `static` trigger is a row below the bubble.
 		 */
 		actions: {
 			base: [flex.row, 'gap-0.5'],
-			hoverActions: {
-				false: 'mt-1',
-				true: [
+			trigger: {
+				static: 'mt-1',
+				hover: [
 					'absolute z-10 bottom-[calc(100%-(--spacing(2.5)))] w-fit p-1',
 					rounded.lg,
 					omote.popover,
@@ -105,9 +105,9 @@ export const k = defineKata({
 				],
 			},
 			compound: [
-				{ hoverActions: true, sender: 'user', class: 'end-2' },
-				{ hoverActions: true, sender: 'assistant', class: 'start-2' },
-				{ hoverActions: true, sender: 'system', class: 'inset-x-0 mx-auto' },
+				{ trigger: 'hover', sender: 'user', class: 'end-2' },
+				{ trigger: 'hover', sender: 'assistant', class: 'start-2' },
+				{ trigger: 'hover', sender: 'system', class: 'inset-x-0 mx-auto' },
 			],
 		},
 		// A bubble of parts stacks one block per part, and each block collapses
@@ -168,16 +168,16 @@ export const k = defineKata({
 			},
 		},
 	},
-	defaults: { sender: 'assistant', streaming: false, hoverActions: false },
+	defaults: { sender: 'assistant', streaming: false, trigger: 'hover' },
 })
 
 /**
  * Recipe variant props for {@link ChatMessage}: the styling axes its kata exposes (`sender`), for consumers composing custom slots.
- * The `streaming` axis of the bubble and the `hoverActions` axis of the actions are props of the message, with their own descriptions.
+ * The `streaming` axis of the bubble and the `trigger` axis of the actions are props of the message, with their own descriptions.
  */
 export type ChatMessageVariants = Omit<
 	VariantProps<typeof k>,
-	'sender' | 'streaming' | 'hoverActions'
+	'sender' | 'streaming' | 'trigger'
 > & {
 	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
 	sender?: VariantProps<typeof k>['sender']

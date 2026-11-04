@@ -75,15 +75,16 @@ export type ChatMessageProps = ChatMessageVariants &
 		timestamp?: ReactNode
 		/** Pulses the bubble content and shows the progress cursor, while a response streams in. @defaultValue false */
 		streaming?: boolean
-		/** Controls that act on the message, such as copy, retry, and edit. They show as a row below the bubble, or as a toolbar with `hoverActions`. */
+		/** Controls that act on the message, such as copy, retry, and edit. `trigger` sets when they show. */
 		actions?: ReactNode
 		/**
-		 * Shows `actions` as a toolbar over the top corner of the bubble while the
-		 * pointer is over the message or focus is in it. A device with no hover
-		 * shows them as the row below the bubble.
-		 * @defaultValue false
+		 * When `actions` show. `'hover'` is a toolbar over the top corner of the
+		 * bubble that shows while the pointer is over the message or focus is in it.
+		 * A device with no hover shows it as a row below the bubble. `'static'` is
+		 * that row on every device.
+		 * @defaultValue 'hover'
 		 */
-		hoverActions?: boolean
+		trigger?: 'hover' | 'static'
 		/**
 		 * Entries of a menu that a right-click or a touch long press on the bubble
 		 * opens: an item, a separator, or a submenu ({@link ContextMenuEntry}).
@@ -129,7 +130,7 @@ export type ChatMessageProps = ChatMessageVariants &
  * The pulse rides each drawn {@link Markdown}, so a streaming reply that has
  * already landed a chart pulses its prose and leaves the chart steady.
  *
- * A `hoverActions` toolbar floats above the message by most of its own height. A
+ * A `'hover'` toolbar floats above the message by most of its own height. A
  * host that clips its overflow, such as a scroll container, keeps that space
  * free above its first message. The toolbar stays in the Tab order while it is
  * hidden, so a keyboard reader reaches each action, and focus shows it. The
@@ -146,7 +147,7 @@ export const ChatMessage = memo(function ChatMessage({
 	timestamp,
 	streaming,
 	actions,
-	hoverActions,
+	trigger,
 	contextMenu,
 	className,
 	children,
@@ -154,7 +155,7 @@ export const ChatMessage = memo(function ChatMessage({
 }: ChatMessageProps) {
 	const resolvedSender = sender ?? 'assistant'
 
-	const slots = k({ sender, streaming, hoverActions })
+	const slots = k({ sender, streaming, trigger })
 
 	const bubble = (
 		<div data-slot="chat-message-bubble" className={slots.bubble}>

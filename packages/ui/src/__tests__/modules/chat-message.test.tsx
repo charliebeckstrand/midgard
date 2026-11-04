@@ -79,9 +79,11 @@ describe('ChatMessage', () => {
 		expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument()
 	})
 
-	it('shows the actions as a rail below the bubble by default', () => {
+	it('shows static actions as a row below the bubble', () => {
 		const { container } = renderUI(
-			<ChatMessage actions={<button type="button">Copy</button>}>content</ChatMessage>,
+			<ChatMessage trigger="static" actions={<button type="button">Copy</button>}>
+				content
+			</ChatMessage>,
 		)
 
 		const actions = bySlot(container, 'chat-message-actions')
@@ -96,7 +98,7 @@ describe('ChatMessage', () => {
 		['assistant', 'start-2'],
 	] as const)('floats hover actions over the outer top corner of a %s bubble', (sender, side) => {
 		const { container } = renderUI(
-			<ChatMessage sender={sender} hoverActions actions={<button type="button">Copy</button>}>
+			<ChatMessage sender={sender} actions={<button type="button">Copy</button>}>
 				content
 			</ChatMessage>,
 		)
@@ -118,11 +120,7 @@ describe('ChatMessage', () => {
 	})
 
 	it('keeps hidden hover actions in the Tab order', () => {
-		renderUI(
-			<ChatMessage hoverActions actions={<button type="button">Copy</button>}>
-				content
-			</ChatMessage>,
-		)
+		renderUI(<ChatMessage actions={<button type="button">Copy</button>}>content</ChatMessage>)
 
 		const copy = screen.getByRole('button', { name: 'Copy' })
 
