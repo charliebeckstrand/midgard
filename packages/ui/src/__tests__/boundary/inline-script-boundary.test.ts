@@ -29,7 +29,9 @@ import {
 //      the primitive (CONVENTIONS §3.13). A component that the server cannot
 //      measure draws a placeholder, and does not get a script. The docs site
 //      writes the settings on the root element from the server, so it renders
-//      no pre-paint script.
+//      no pre-paint script. Its one script is the recovery of a stale build,
+//      which is not for the paint: it must listen before a module file can
+//      fail, and a script file loads too late for that.
 //
 // The first two scans read the shipped tree. The docs site is not shipped, so
 // it is not in them. The third scan reads the docs site too.
@@ -42,6 +44,9 @@ const CALLERS = new Set([
 	'providers/appearance/appearance-script.tsx',
 	'modules/events/events-script.tsx',
 ])
+
+/** The one file of the docs site that renders the primitive: the recovery of a stale build. */
+const DOCS_RECOVERY = 'docs/app/stale-build.tsx'
 
 /** The pre-paint components, which the docs site does not render. */
 const PRE_PAINT = /\b(?:InlineScript|AppearanceScript|EventsScript|UIDocument)\b/
@@ -123,7 +128,7 @@ describe('inline-script boundary', () => {
 
 	it('keeps the docs site free of pre-paint scripts', () => {
 		const violations = [...docsFiles()]
-			.filter(([, code]) => PRE_PAINT.test(code))
+			.filter(([key, code]) => key !== DOCS_RECOVERY && PRE_PAINT.test(code))
 			.map(([key]) => key)
 
 		expect(

@@ -14,6 +14,7 @@
 // replaces the kept copy. Thus the recovery fetches the module files of the
 // page again with that mode before the page reloads.
 
+import { InlineScript } from '../../primitives/inline-script/inline-script.tsx'
 import { noop } from '../../utilities/noop.ts'
 
 declare global {
@@ -34,28 +35,26 @@ const GUARD = 10_000
 /** The elements of the module files of the page: the module scripts, and the module preloads that the HTML and the later loads add. */
 const MODULES = 'script[type=module][src],link[rel=modulepreload]'
 
-// The head script (`stale-build-head.js`). Until the client entry runs, a
-// script or a module preload that fails, or a promise that rejects with no
-// handler, reloads the page one time. The import of the entry is a promise of
-// the module script. A failed load is an `error` event on its element, which
-// does not bubble, so the listener captures it on the window. The error of a
-// script that runs has the window as its target, so it does not match. The
-// first failure ends the watch. The script fetches each module file of the
-// page again (as `refetchModules` does), and it reloads when the fetches end
-// or after a time limit. The fetches also occur when the guard stops the
-// reload, so the next reload of the reader gets good copies.
-//
-// The page loads the script as a file, and not as inline source. The script
-// is not `async` or `defer`, so it runs where the parser meets it, before the
-// module scripts and the module preloads of the head can fail. The bundler
-// gives the file a hash in its name, so the browser keeps it in its cache.
+/** The longest time, in ms, that the head script waits for the new fetches before it reloads. */
+const REFETCH_LIMIT = 5000
 
-/** The path of the head script. The server render and the client render use the path, not the full URL, so the two agree. */
-const HEAD_SCRIPT_PATH = new URL('./stale-build-head.js', import.meta.url).pathname
+// The head script. Until the client entry runs, a script or a module preload
+// that fails, or a promise that rejects with no handler, reloads the page one
+// time. The import of the entry is a promise of the module script. A failed
+// load is an `error` event on its element, which does not bubble, so the
+// listener captures it on the window. The error of a script that runs has the
+// window as its target, so it does not match. The first failure ends the
+// watch. The script fetches each module file of the page again (as
+// `refetchModules` does), and it reloads when the fetches end or after
+// `REFETCH_LIMIT` ms. The fetches also occur when the guard stops the reload,
+// so the next reload of the reader gets good copies.
+const SCRIPT = `(function(){var w=window;function f(e){var t=e.target;if(e.type==='error'&&!(t&&(t.tagName==='SCRIPT'||t.tagName==='LINK'&&t.rel==='modulepreload')))return;s();var g=false,n=0;try{g=Date.now()-Number(sessionStorage.getItem(${JSON.stringify(RELOADED)}))>=${GUARD};if(g)sessionStorage.setItem(${JSON.stringify(RELOADED)},String(Date.now()))}catch(x){g=false}function r(){if(g&&!n++)location.reload()}setTimeout(r,${REFETCH_LIMIT});Promise.all([].map.call(document.querySelectorAll(${JSON.stringify(MODULES)}),function(l){return fetch(l.src||l.href,{cache:'reload'}).catch(function(){})})).then(r)}
+function s(){w.removeEventListener('error',f,true);w.removeEventListener('unhandledrejection',f);delete w.__staleBuild}
+w.addEventListener('error',f,true);w.addEventListener('unhandledrejection',f);w.__staleBuild=s})()`
 
 /** The head script that reloads a page whose scripts fail before the client entry runs. Render it in the `<head>`, before the scripts. */
 export function StaleBuildScript() {
-	return <script src={HEAD_SCRIPT_PATH} />
+	return <InlineScript source={SCRIPT} />
 }
 
 /**

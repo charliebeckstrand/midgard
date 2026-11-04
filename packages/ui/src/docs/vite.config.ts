@@ -35,13 +35,7 @@ export default defineConfig({
 			'../components/code/code-shiki-worker.ts',
 		],
 	},
-	// The head script of the stale build (`app/stale-build.tsx`) loads as a
-	// file. Vite puts a small asset inline as a `data:` URL, so that file keeps
-	// its own URL.
-	build: {
-		target: 'esnext',
-		assetsInlineLimit: (file) => (file.endsWith('/stale-build-head.js') ? false : undefined),
-	},
+	build: { target: 'esnext' },
 	// The client build puts React and the router in one chunk, the shell with
 	// each module that it imports in one more chunk, and the kit with each
 	// module that it imports in a third. The shell chunk also holds the
