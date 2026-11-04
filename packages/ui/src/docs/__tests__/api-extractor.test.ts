@@ -5,7 +5,7 @@ import { it } from './extractor.ts'
 
 // The API data that the docs plugin makes for some components whose props
 // have a union, an inherited tag, a default that is a sentence, an
-// `@internal` tag, a `Responsive<T>` type, or a range.
+// `@internal` tag, a `Responsive<T>` type, a range, or a kind of device.
 
 const BARRELS = [
 	'components/card',
@@ -155,5 +155,17 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		})
 
 		expect(findProp(api, 'Sparkline', 'width')).not.toHaveProperty('minimum')
+	})
+
+	it('gives the kind of device of a prop from its @media tag', async ({ extractor }) => {
+		const api = await load(extractor)
+
+		expect(findProp(api, 'Menu', 'sheet')).toMatchObject({ media: 'phone' })
+
+		expect(findProp(api, 'DatePicker', 'sheet')).toMatchObject({ media: 'phone' })
+
+		expect(findProp(api, 'Table', 'hover')).toMatchObject({ media: 'hover' })
+
+		expect(findProp(api, 'Table', 'striped')).not.toHaveProperty('media')
 	})
 })

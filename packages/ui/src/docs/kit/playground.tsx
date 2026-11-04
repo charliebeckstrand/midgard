@@ -17,7 +17,7 @@ import {
 import { type DensityStep, stepDown } from '../../core/density/steps.ts'
 import { omote } from '../../recipes/kiso/index.ts'
 import { SIZE_CLASSES } from '../../utilities/responsive.ts'
-import type { BarrelApi, Literal } from '../plugin/api.ts'
+import type { BarrelApi, Literal, Media } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
 import { ExampleFrame, getMeta } from './example.tsx'
 import { buildFields, type ChoiceField, type Field, type FreeField, type Value } from './fields.ts'
@@ -100,6 +100,21 @@ function Rail({ label, children }: { label: string; children: ReactNode }) {
 			{children}
 		</Flex>
 	)
+}
+
+// The classes that hide a field on each device where its prop has no effect
+// (`@media`). They are the media queries of `utilities/media-query.ts` in CSS,
+// so the server markup is correct at the first paint. A phone field hides
+// where `PHONE_QUERY` does not match: on a device with hover, or from the `sm`
+// breakpoint up. A hover field hides where `NO_HOVER_QUERY` matches.
+const MEDIA_CLASSES: { readonly [M in Media]: string } = {
+	phone: 'sm:hidden [@media(hover:hover)]:hidden',
+	hover: '[@media(hover:none)]:hidden',
+}
+
+/** The class that hides `field` where its prop has no effect, or `undefined` for a field of each device. */
+function getMediaClass({ media }: Field): string | undefined {
+	return media && MEDIA_CLASSES[media]
 }
 
 // The size class that starts at each breakpoint, such as `medium` at `sm`.
@@ -266,7 +281,7 @@ function FreePicker({
 				placeholder={placeholder}
 				min={field.min}
 				max={field.max}
-				className="w-20 shrink-0"
+				className={cn('w-20 shrink-0', getMediaClass(field))}
 				value={typeof value === 'number' ? value : null}
 				onValueChange={(next) => onValueChange(next ?? undefined)}
 			/>
@@ -278,7 +293,7 @@ function FreePicker({
 			aria-label={label}
 			prefix={<FieldLabel label={label} />}
 			placeholder={placeholder}
-			className="w-56 shrink-0"
+			className={cn('w-56 shrink-0', getMediaClass(field))}
 			value={typeof value === 'string' ? value : ''}
 			onChange={(event) =>
 				onValueChange(event.target.value === '' ? undefined : event.target.value)
@@ -335,6 +350,7 @@ function FieldPicker({
 			}}
 			prefix={<FieldLabel label={name} />}
 			placement="bottom-auto"
+			className={getMediaClass(field)}
 			onValueChange={(key) => {
 				if (key) onValueChange(field.values.find((option) => JSON.stringify(option) === key))
 			}}
@@ -364,7 +380,9 @@ function FieldPicker({
  * A number prop with a number as its default, such as `max`, gets a number
  * field, and `free` names more props that get a text or a number field. The
  * fields drive this one instance. "Show code" shows the file with the values
- * that are not the defaults as attributes.
+ * that are not the defaults as attributes. The field of a prop with a
+ * `@media` tag shows only on the kind of device that the tag names, because
+ * the prop has no effect on other devices.
  *
  * `pnpm intl` reads the fields of each `<Playground>` from the source, for the
  * catalog entries of their labels and their options (`plugin/fields.ts`). So
