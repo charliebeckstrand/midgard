@@ -108,6 +108,18 @@ beforeAll(() => loadListReorder())
 // `setup/grid-modules.ts` does for the jsdom suite.
 beforeAll(() => loadGridDataDialogs())
 
+// An editable grid renders from a chunk of its own, and suspends until the chunk
+// is loaded. The load before each file gives each case the state of a page that
+// already loaded it, so an editable grid renders in its first pass. The import
+// waits for this hook, as the import of the tooltip loader below does. A static
+// import here would load the grid before the module mocks of the instance, and
+// the grid would then hold the real modules.
+beforeAll(async () => {
+	const { loadGridEditing } = await import('../../../modules/grid/grid-data')
+
+	await loadGridEditing()
+})
+
 // A tooltip loads the module of its panel after it mounts. The first load in a
 // page also transforms the module, and a slow runner can take more than two
 // frames for it. A case that reads an open panel can then read before the panel

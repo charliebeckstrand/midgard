@@ -1,26 +1,15 @@
 'use client'
 
-import {
-	type Ref,
-	type RefObject,
-	useImperativeHandle,
-	useLayoutEffect,
-	useMemo,
-	useState,
-} from 'react'
+import { type RefObject, useLayoutEffect, useMemo } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import {
 	bridgeCellActivate,
 	bridgeRowActivate,
 	buildRovingCellActivate,
-	composeCellDoubleClick,
 	keyboardActivation,
 } from './engine/grid-row/bridges'
-import type { GridDataProps, GridEditSource, GridHandle } from './grid-data-types'
-import type { GridColumn } from './types'
-import { useGridCursor } from './use-grid-cursor'
+import type { GridDataProps, GridEditSource } from './grid-data-types'
 import type { GridIndexRefs } from './use-grid-index'
-import type { GridScrollRowIntoView } from './use-grid-navigation'
 
 /**
  * Writes the edit source into its ref, in a layout effect. The editing layer
@@ -62,53 +51,27 @@ function useStableHandler<A extends unknown[]>(
 }
 
 /**
- * The cursor phase of {@link GridData}. It holds the stable click handlers and
- * their activation bridges, and the keyboard cursor with its editing layer. It
- * also holds the grid's imperative handle and the column of the new-row Add
- * control.
+ * The inputs of the cursor phase of {@link GridData} that come from the
+ * consumer's click handlers: the stable handlers and their activation bridges.
+ * It also writes the edit source into its ref, ahead of the cursor. The
+ * read-only cursor and the editing cursor take the same activation.
  *
  * @internal
  */
-export function useGridDataCursor<T>({
+export function useGridDataActivation<T>({
 	refs,
-	navigable,
-	range,
-	editable,
-	columns,
 	source,
-	onActiveCellChange,
 	onRowClick,
 	onCellClick,
 	onRowDoubleClick,
 	onCellDoubleClick,
-	scrollRowIntoViewRef,
-	scrollRef,
-	tableRef,
-	ref,
 }: Pick<
 	GridDataProps<T>,
-	| 'editable'
-	| 'range'
-	| 'onActiveCellChange'
-	| 'onRowClick'
-	| 'onCellClick'
-	| 'onRowDoubleClick'
-	| 'onCellDoubleClick'
+	'onRowClick' | 'onCellClick' | 'onRowDoubleClick' | 'onCellDoubleClick'
 > & {
 	refs: GridIndexRefs<T>
-	/** Whether the keyboard cursor is on, after the grouping gates. */
-	navigable: boolean
-	/** The columns with the pin state applied. */
-	columns: GridColumn<T>[]
 	/** The grid's own inputs, for the commit path of an edit. */
 	source: GridEditSource<T>
-	/** Set by the virtualized body while it is mounted, else `null`. */
-	scrollRowIntoViewRef: RefObject<GridScrollRowIntoView | null>
-	/** The scroll container of a sticky or virtualized grid. */
-	scrollRef: RefObject<HTMLDivElement | null>
-	/** The grid `<table>`, the roving container and the cursor's tab stop. */
-	tableRef: RefObject<HTMLTableElement | null>
-	ref: Ref<GridHandle> | undefined
 }) {
 	// The editing layer's commit path resolves a staged draft against the grid's
 	// own inputs, not against the index refs: those narrow to what the window
@@ -162,55 +125,14 @@ export function useGridDataCursor<T>({
 		[activation, refs],
 	)
 
-	// The width that the Add cell of the new-row slot measures for its control
-	// (see `useGridCursor`).
-	const [measuredAddWidth, setMeasuredAddWidth] = useState<number | null>(null)
-
-	// The cursor + editing layer: the augmented columns, the `<table>` cursor
-	// props, the cursor store, and the row-editing-context wrapper. Inert for a
-	// static grid.
-	const cursor = useGridCursor<T>({
-		navigable,
-		range: range ?? false,
-		editable,
-		columns,
-		onRowActivate,
-		onCellActivate,
-		onActiveCellChange,
-		selectableRef: refs.selectableRef,
-		toggleActiveRow,
-		scrollRowIntoViewRef,
-		scrollContainerRef: scrollRef,
-		tableRef,
-		refs,
-		editSource: source,
-		measuredAddWidth,
-	})
-
-	// The grid's commands on its `ref` (see `GridHandle`).
-	const { stepHistory } = cursor
-
-	useImperativeHandle(
-		ref,
-		() => ({ undo: () => stepHistory('undo'), redo: () => stepHistory('redo') }),
-		[stepHistory],
-	)
-
-	// Double-click-to-edit (under `editable.session: 'managed'`) rides the
-	// built-in cell double-click event, ahead of the consumer's handler.
-	const cellDoubleClick = useMemo(
-		() => composeCellDoubleClick(cursor.editOnCellDoubleClick, handleCellDoubleClick),
-		[cursor.editOnCellDoubleClick, handleCellDoubleClick],
-	)
-
 	return {
-		cursor,
+		toggleActiveRow,
 		handleRowClick,
 		handleCellClick,
 		handleRowDoubleClick,
-		cellDoubleClick,
+		handleCellDoubleClick,
+		onRowActivate,
+		onCellActivate,
 		cellActivate,
-		engineColumns: cursor.columns,
-		setMeasuredAddWidth,
 	}
 }

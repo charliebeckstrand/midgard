@@ -12,7 +12,7 @@ import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities/is-data-column'
 import { isColumnEditable } from './engine/grid-editing-utilities'
 import type { GridIndexedColumn } from './engine/grid-row/cell'
-import { GridEditingCell } from './grid-editing-cell'
+import type { GridEditingCell } from './grid-editing-cell'
 import { GridNavCell, seatingCellProps } from './grid-nav-cell'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
@@ -24,10 +24,11 @@ import type { GridTouchEntry } from './use-grid-touch-entry'
  * `role="gridcell"`, and a click-to-seat `onMouseDown`.
  *
  * The content of a cell is the active-cell marker around the column's own
- * content. Under `editing`, an editable column renders through
- * {@link GridEditingCell} instead: the column's display value, or its editor
- * when the session has the cell open. A column that cannot edit says so with
- * `aria-readonly`, and renders as a navigable cell does.
+ * content. With an `EditingCell`, an editable column renders through it
+ * instead: the column's display value, or its editor when the session has the
+ * cell open. Only the editing cursor gives it ({@link GridEditingCell}), so a
+ * grid that cannot edit does not load the editors. A column that cannot edit
+ * says so with `aria-readonly`, and renders as a navigable cell does.
  *
  * A flat row gives each cell its place in the view (`cellAt`, `cellPropsAt`); a
  * body with no place to give reads it from `rowIndexMapRef`. The column index
@@ -46,7 +47,7 @@ import type { GridTouchEntry } from './use-grid-touch-entry'
  */
 export function useGridCursorColumns<T>({
 	enabled,
-	editing,
+	EditingCell,
 	columns,
 	rowIndexMapRef,
 	colIndexMapRef,
@@ -57,8 +58,8 @@ export function useGridCursorColumns<T>({
 }: {
 	/** Whether the grid carries a cursor. */
 	enabled: boolean
-	/** Whether the grid is editable, which mounts the editors. */
-	editing: boolean
+	/** The cell of an editable column in an editable grid, or `undefined` for a grid that cannot edit. */
+	EditingCell: typeof GridEditingCell | undefined
 	columns: GridColumn<T>[]
 	/** Live row → display-index map; resolves a cell's cursor row. */
 	rowIndexMapRef: RefObject<Map<T, number>>
@@ -105,17 +106,21 @@ export function useGridCursorColumns<T>({
 
 			const renderCell = col.cell
 
-			const editable = editing && isColumnEditable(col)
+			// The editing cell of this column, or `undefined` for a column that cannot
+			// edit or a grid that cannot edit.
+			const EditCell = isColumnEditable(col) ? EditingCell : undefined
+
+			const editable = EditCell !== undefined
 
 			// Under editing, a cell that cannot enter edit mode says so, whether
 			// `readOnly` locks it or it has no field and no slot (WCAG 4.1.2).
-			const extra = editing ? { 'aria-readonly': !editable || undefined } : undefined
+			const extra = EditingCell ? { 'aria-readonly': !editable || undefined } : undefined
 
 			// A cell that cannot edit holds no draft and no editor, so it renders as
 			// a navigable cell does, and the edit store does not reach it.
-			const cellAt = editable
+			const cellAt = EditCell
 				? (row: T, rowIndex: number): ReactNode => (
-						<GridEditingCell
+						<EditCell
 							rowIndex={rowIndex}
 							colIndex={getColumnIndex(col.id)}
 							rowKey={rowKeysRef.current[rowIndex] ?? rowIndex}
@@ -151,5 +156,15 @@ export function useGridCursorColumns<T>({
 				cell: (row: T) => cellAt(row, getRowIndex(row)),
 			}
 		})
-	}, [enabled, editing, columns, rowIndexMapRef, colIndexMapRef, rowKeysRef, cellId, seat, touch])
+	}, [
+		enabled,
+		EditingCell,
+		columns,
+		rowIndexMapRef,
+		colIndexMapRef,
+		rowKeysRef,
+		cellId,
+		seat,
+		touch,
+	])
 }

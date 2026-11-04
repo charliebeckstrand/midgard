@@ -459,8 +459,8 @@ describe('density after backdrop', () => {
 // paint. Only the files below may read it. Each uses the value only for work
 // after mount, or for a context that a client descendant reads after mount.
 //
-//   - GridData: the virtualizer estimate, the autosizer refit key, and the
-//     step of the overlays that the grid opens.
+//   - The setup of GridData: the virtualizer estimate, the autosizer refit
+//     key, and the step of the overlays that the grid opens.
 //   - The docs playground: the step of the page, to mark the option of a
 //     `size` field that the omitted prop renders. The docs app only.
 //   - The density primitive and its barrel: `useDensityStep` itself.
@@ -469,7 +469,7 @@ describe('density after backdrop', () => {
 
 const STEP_READERS = [
 	'docs/kit/playground.tsx',
-	'modules/grid/grid-data.tsx',
+	'modules/grid/use-grid-data-setup.ts',
 	'primitives/density/index.ts',
 	'primitives/density/use-density-step.ts',
 ]

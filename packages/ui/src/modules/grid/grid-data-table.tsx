@@ -20,11 +20,10 @@ import { resolveNewRowIndex, resolveTableProps, slotAt } from './grid-data-resol
 import type { GridDataProps } from './grid-data-types'
 import { GridFillHandle } from './grid-fill-handle'
 import { GridHead } from './grid-head'
-import { GridNewRow } from './grid-new-row'
 import { GridScrollRegion } from './grid-region'
 import { GridGrandTotalBody } from './grid-total-row'
 import type { GridColumn } from './types'
-import type { useGridCursor } from './use-grid-cursor'
+import type { GridCursor, GridNewRowSlotProps } from './use-grid-cursor'
 import type { GridNewRowPosition } from './use-grid-navigation'
 import type { useGridRoving } from './use-grid-roving'
 
@@ -47,10 +46,10 @@ type GridDataTableProps<T> = {
 	showingError: boolean
 	/** Whether the body has rows to show. */
 	hasRows: boolean
-	/** The cursor store, its `<table>` props, and the wrapper for the editing contexts. */
+	/** The cursor store, its `<table>` props, the wrapper for the editing contexts, and the new-row slot. */
 	cursor: Pick<
-		ReturnType<typeof useGridCursor<T>>,
-		'navStore' | 'navTableProps' | 'cursorEnabled' | 'wrap'
+		GridCursor<T>,
+		'navStore' | 'navTableProps' | 'cursorEnabled' | 'wrap' | 'renderNewRow'
 	>
 	/** Row and cell roving. The cursor stands it down. */
 	roving: ReturnType<typeof useGridRoving>
@@ -105,11 +104,10 @@ type GridDataTableProps<T> = {
 		| 'rowRoving'
 		| 'cellRoving'
 	>
-	/** The new-row slot: where it renders, its Add control, and the measure of that control. */
+	/** The new-row slot: where it renders, and its Add control. */
 	newRow: {
 		place: GridNewRowPosition
-		add: ComponentProps<typeof GridNewRow<T>>['add']
-		onMeasureAdd: (width: number) => void
+		add: GridNewRowSlotProps<T>['add']
 	}
 	grandTotal: { active: boolean; rows: readonly T[] }
 	/** The scroll container for a sticky header or a window. */
@@ -149,22 +147,19 @@ export function GridDataTable<T>({
 	// `GridNewRow`). At the top it takes the first index after the header rows,
 	// and the data rows shift down one. At the bottom it takes the last index
 	// before a grand-total row, which an indeterminate count cannot name.
-	const newRowSlot = (
-		<GridNewRow<T>
-			columns={columns}
-			pinning={pinning}
-			ariaRowIndex={resolveNewRowIndex({
-				position: newRow.place,
-				gridSemantics: semantics.enabled,
-				hasRows,
-				groupRowOffset: semantics.groupRowOffset,
-				ariaRowCount: semantics.ariaRowCount,
-				grandTotal: grandTotal.active,
-			})}
-			add={newRow.add}
-			onMeasureAdd={newRow.onMeasureAdd}
-		/>
-	)
+	const newRowSlot = cursor.renderNewRow({
+		columns,
+		pinning,
+		ariaRowIndex: resolveNewRowIndex({
+			position: newRow.place,
+			gridSemantics: semantics.enabled,
+			hasRows,
+			groupRowOffset: semantics.groupRowOffset,
+			ariaRowCount: semantics.ariaRowCount,
+			grandTotal: grandTotal.active,
+		}),
+		add: newRow.add,
+	})
 
 	// The cursor store is always provided (inert when not navigable/editable); only
 	// a cursor grid's cells subscribe, so the wrapper costs nothing otherwise.
