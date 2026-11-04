@@ -479,16 +479,21 @@ describe('ColorPanel', () => {
 			expect(commits).toEqual([true])
 		})
 
-		// The server cannot read the API, so the hydration render agrees with the
-		// server output, and the render after it adds the button.
-		it('hydrates the server output, and adds the eyedropper after', () => {
+		// The server cannot read the API, so it draws the button enabled, and the
+		// hydration render agrees. The button keeps its place in each browser:
+		// where the API exists it stays enabled, else the render after hydration
+		// disables it.
+		it.each([
+			['exists', true],
+			['does not exist', false],
+		])('hydrates the server button, which keeps its place where the API %s', (_, api) => {
 			const element = <ColorPanel defaultValue="#3b82f6" />
 
 			const markup = renderToString(element)
 
-			expect(markup).not.toContain('color-eyedropper')
+			expect(markup).toContain('color-eyedropper')
 
-			stubEyeDropper()
+			if (api) stubEyeDropper()
 
 			const container = attach(document.createElement('div'))
 
@@ -498,7 +503,10 @@ describe('ColorPanel', () => {
 
 			expect(onRecoverableError).not.toHaveBeenCalled()
 
-			expect(getSlot(container, 'color-eyedropper')).toBeInTheDocument()
+			const button = getSlot(container, 'color-eyedropper')
+
+			if (api) expect(button).toBeEnabled()
+			else expect(button).toBeDisabled()
 		})
 	})
 

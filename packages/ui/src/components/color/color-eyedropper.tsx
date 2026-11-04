@@ -18,15 +18,17 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
 }
 
 /**
- * Samples a color from anywhere on screen via the `EyeDropper` API. Renders
- * nothing where the API is unavailable.
+ * Samples a color from anywhere on screen via the `EyeDropper` API. The button
+ * is disabled where the API is unavailable.
  *
  * @remarks
  * The server cannot read `window.EyeDropper`, so the server and the hydration
- * render draw no button ({@link useHydrated}). The button joins in the render
- * after hydration. A render that does not hydrate draws it in its first
- * commit. A dismissed picker rejects with `AbortError`, and the button ignores
- * it.
+ * render draw the button enabled ({@link useHydrated}). Thus the button holds
+ * its place in the first paint, and the row of the panel does not move at
+ * hydration in any browser. Where the API does not exist, the render after
+ * hydration disables the button. A render that does not hydrate reads the API
+ * in its first commit. A dismissed picker rejects with `AbortError`, and the
+ * button ignores it.
  *
  * @internal
  */
@@ -35,11 +37,14 @@ export function ColorEyedropper({ className }: { className?: string }) {
 
 	const { setHsva } = useColorPanelContext()
 
-	const EyeDropper = useHydrated() ? getEyeDropper() : undefined
-
-	if (!EyeDropper) return null
+	// Until hydration, the API is unknown, and the button stays enabled.
+	const supported = !useHydrated() || getEyeDropper() !== undefined
 
 	const handlePick = async () => {
+		const EyeDropper = getEyeDropper()
+
+		if (!EyeDropper) return
+
 		try {
 			const { sRGBHex } = await new EyeDropper().open()
 
@@ -57,6 +62,7 @@ export function ColorEyedropper({ className }: { className?: string }) {
 			variant="bare"
 			data-slot="color-eyedropper"
 			aria-label={intl.formatMessage(colorMessages.eyedropper)}
+			disabled={!supported}
 			onClick={handlePick}
 			className={className}
 		>
