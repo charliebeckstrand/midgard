@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, use } from 'react'
+import { Suspense, use, useState } from 'react'
 import { createLazyModule } from '../../utilities/lazy-module'
 import type { GridDataProps } from './grid-data-types'
 import { useGridCursor } from './use-grid-cursor'
@@ -75,13 +75,31 @@ function GridDataReadOnly<T>(props: GridDataProps<T>) {
 }
 
 /**
- * Renders the editable grid from the editing layer, and suspends until the
- * layer is loaded. A loaded layer renders in the first pass (see
- * {@link LazyModule.load}).
+ * Renders the editable grid from the editing layer. A grid that mounts after
+ * the load renders it in the first pass. A grid that mounts before the load
+ * suspends in {@link GridDataEditableSuspense} until the layer is there.
+ *
+ * @remarks The load state is read one time, as the grid mounts. Thus a render
+ * after the load keeps the same tree, and the editable grid does not mount
+ * again. A loaded layer calls no `use`, so the render does not wait on a promise.
  *
  * @internal
  */
 function GridDataEditableLoader<T>(props: GridDataProps<T>) {
+	const [kit] = useState(editingKit.read)
+
+	if (kit) return <kit.GridDataEditable<T> {...props} />
+
+	return <GridDataEditableSuspense<T> {...props} />
+}
+
+/**
+ * The editable grid of a grid that mounted before the load of the editing
+ * layer. It suspends until the load resolves.
+ *
+ * @internal
+ */
+function GridDataEditableSuspense<T>(props: GridDataProps<T>) {
 	const kit = use(editingKit.load())
 
 	return <kit.GridDataEditable<T> {...props} />

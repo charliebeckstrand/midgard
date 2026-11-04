@@ -17,7 +17,7 @@ const HOME = 'utilities/modifier-keys.ts'
 
 /** Files that keep a hand-written chain, each with the reason. */
 const KEPT: Record<string, string> = {
-	'modules/grid/use-grid-cursor.tsx':
+	'modules/grid/use-grid-edit-cursor.tsx':
 		'`isPlainPress` also reads `composing`, and the grid key tests read one `press` record',
 }
 

@@ -150,7 +150,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `PressOwner` *(type)* | The `claim`, `held`, `owns`, and `release` calls that `createPressOwner` returns. |
 | `holdTextSelection` | Turns off text selection on the whole page while a touch holds a surface, so iOS does not select text next to it. Import it from `utilities/hold-text-selection`. |
 | `TEXT_SELECTION_RELEASE_DELAY` | The time in ms that text selection stays off after the last held touch ends. |
-| `createLazyModule` | A `LazyModule` from a dynamic import: one shared load, which `use` reads at once after it resolves, a read for `useSyncExternalStore`, and an idle start. Import it from `utilities/lazy-module`. |
+| `createLazyModule` | A `LazyModule` from a dynamic import: one shared load, a read for `useSyncExternalStore`, and an idle start. Import it from `utilities/lazy-module`. |
 | `LazyModule` *(type)* | The `load`, `read`, `subscribe`, and `idle` calls that `createLazyModule` returns. |
 | `printInHiddenFrame` | Prints a document through a hidden iframe, and reclaims the frame after the print or on a failure. |
 | `requestIdle` | Calls a callback in idle time. A browser with no `requestIdleCallback`, such as Safari, calls it after a fallback delay, with no deadline. Import it from `utilities/idle`. |
