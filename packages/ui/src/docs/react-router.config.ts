@@ -1,6 +1,6 @@
 import path from 'node:path'
 import type { Config } from '@react-router/dev/config'
-import { LOCALES } from './app/language.ts'
+import { LOCALES, localeFile } from './app/language.ts'
 import { prerenderLocales } from './plugin/locale-pages.ts'
 import { inlineCriticalCss } from './plugin/styles.ts'
 
@@ -27,7 +27,9 @@ const config: Config = {
 
 		const stylesheet = path.join(import.meta.dirname, 'app', 'app.css')
 
-		await inlineCriticalCss(clientDir, stylesheet)
+		await inlineCriticalCss(clientDir, stylesheet, (page) =>
+			LOCALES.slice(1).map((locale) => localeFile(page, locale)),
+		)
 	},
 }
 

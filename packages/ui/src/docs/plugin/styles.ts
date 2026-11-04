@@ -165,27 +165,51 @@ export type CriticalCssData = {
 }
 
 /**
- * Writes the critical CSS of `page`, a path of an HTML file relative to
- * `clientDir`, into the head of its HTML. Each worker of
+ * Writes the critical CSS of `pages` into the head of each HTML file. Each page
+ * is a path of an HTML file relative to `clientDir`, and the pages are the
+ * copies of one page in each locale ({@link inlineCriticalCss}). Each worker of
  * {@link inlineCriticalCss} runs this function (`styles-worker.ts`).
  */
 export async function inlinePage(
 	{ clientDir, stylesheet, source, fontFaces, inline }: CriticalCssData,
-	page: string,
+	pages: readonly string[],
 ): Promise<void> {
-	const file = path.join(clientDir, page)
+	const files = pages.map((page) => {
+		const file = path.join(clientDir, page)
 
-	const html = readFileSync(file, 'utf8')
+		return { file, html: readFileSync(file, 'utf8') }
+	})
 
-	const compiled = await compilePage(source, path.dirname(stylesheet), inline, scanClasses(html))
+	const classes = files.flatMap(({ html }) => scanClasses(html))
+
+	const compiled = await compilePage(source, path.dirname(stylesheet), inline, classes)
 
 	const css = fontFaces + compiled.replace(FONT_FACE, '')
 
-	if (css.includes('</')) throw new Error(`docs: ${page}: the CSS can close its <style>`)
+	if (css.includes('</')) throw new Error(`docs: ${pages[0]}: the CSS can close its <style>`)
 
 	const style = `<style data-precedence="default" data-href="critical">${css}</style>`
 
-	writeFileSync(file, html.replace('</head>', `${style}</head>`))
+	for (const { file, html } of files) {
+		writeFileSync(file, html.replace('</head>', `${style}</head>`))
+	}
+}
+
+/**
+ * The HTML files in `clientDir` in groups: each page with its copies in the
+ * other locales, as `copies` gives them.
+ */
+function pageGroups(clientDir: string, copies: (page: string) => string[]): string[][] {
+	const files = new Set(globSync('**/*.html', { cwd: clientDir }))
+
+	const groups = [...files].map((file): [string, ...string[]] => [
+		file,
+		...copies(file).filter((copy) => files.has(copy)),
+	])
+
+	const grouped = new Set(groups.flatMap(([, ...others]) => others))
+
+	return groups.filter(([file]) => !grouped.has(file))
 }
 
 /**
@@ -211,13 +235,22 @@ export async function inlinePage(
  * A pool with one thread for each core writes the pages
  * (`styles-worker.ts`). On the main thread, the step was the longest part of
  * the build.
+ *
+ * `copies` gives the paths of the copies of a page in the other locales. The
+ * copies of a page show the same structure, so they get one compile, for the
+ * classes of all the copies. A copy gets a rule only when the classes of
+ * another copy need it.
  */
-export async function inlineCriticalCss(clientDir: string, stylesheet: string): Promise<void> {
+export async function inlineCriticalCss(
+	clientDir: string,
+	stylesheet: string,
+	copies: (page: string) => string[],
+): Promise<void> {
 	const fontFaces = builtStylesheet(clientDir, stylesheet).match(FONT_FACE)?.join('') ?? ''
 
 	const threads = availableParallelism()
 
-	const pool = new Piscina<string, void>({
+	const pool = new Piscina<readonly string[], void>({
 		filename: new URL('./styles-worker.ts', import.meta.url).href,
 		name: 'run',
 		workerData: {
@@ -232,7 +265,7 @@ export async function inlineCriticalCss(clientDir: string, stylesheet: string): 
 	})
 
 	try {
-		await Promise.all(globSync('**/*.html', { cwd: clientDir }).map((page) => pool.run(page)))
+		await Promise.all(pageGroups(clientDir, copies).map((pages) => pool.run(pages)))
 	} finally {
 		await pool.destroy()
 	}

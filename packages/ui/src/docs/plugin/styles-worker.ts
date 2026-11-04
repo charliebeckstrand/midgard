@@ -5,7 +5,7 @@ import { type CriticalCssData, inlinePage } from './styles.ts'
 // file with the types removed, so the file and each file that it imports
 // must use only the TypeScript syntax that Node can remove.
 
-/** Writes the critical CSS of `page`. */
-export function run(page: string): Promise<void> {
-	return inlinePage(workerData as CriticalCssData, page)
+/** Writes the critical CSS of `pages`, the copies of one page in each locale. */
+export function run(pages: readonly string[]): Promise<void> {
+	return inlinePage(workerData as CriticalCssData, pages)
 }
