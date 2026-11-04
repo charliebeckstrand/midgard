@@ -41,6 +41,9 @@ const PAGES = `${VIRTUAL}pages`
 
 const SEARCH = `${VIRTUAL}search`
 
+/** The ms with no edit, after an edit, before the search loads again (`staleSearch`). */
+const SEARCH_RELOAD_DELAY = 2000
+
 // The module of `localize`, which a page or a tab module imports (`copies.ts`).
 const LOCALIZE = path.resolve(import.meta.dirname, '..', 'kit', 'localize.tsx')
 
@@ -160,6 +163,9 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 	// barrel that a page shows, so an edit to either makes them stale.
 	let search: Promise<SearchEntry[]> | undefined
 
+	// The timer of the next load of the search in each environment ({@link staleSearch}).
+	const searchReloads = new Map<string, ReturnType<typeof setTimeout>>()
+
 	// The routes that the server started with ({@link formatRoutes}).
 	let routes = ''
 
@@ -232,21 +238,33 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 	}
 
 	/**
-	 * The module of the search, when an edit to `file` makes it stale. An edit
-	 * to a page or to a source of `ui` can change the entries.
+	 * Loads the search in `environment` again, when an edit to `file` makes it
+	 * stale. An edit to a page or to a source of `ui` can change the entries.
+	 *
+	 * The entries read the API data of each barrel, so a new copy waits for each
+	 * barrel. The module is thus not part of the update of the edit, which would
+	 * wait for it too. It loads again in an update of its own, after the update
+	 * of the edit, when no edit came for {@link SEARCH_RELOAD_DELAY} ms. A run of
+	 * edits thus does not wait for the entries.
 	 */
-	function staleSearch(graph: EnvironmentModuleGraph, file: string): EnvironmentModuleNode[] {
+	function staleSearch(environment: DevEnvironment, file: string): void {
 		const isPage = file.startsWith(pages)
 
 		const isSource = isUiSource(file)
 
-		if (!isPage && !isSource) return []
+		if (!isPage && !isSource) return
 
 		search = undefined
 
-		const module = graph.getModuleById(virtualId(SEARCH))
+		const module = environment.moduleGraph.getModuleById(virtualId(SEARCH))
 
-		return module ? [module] : []
+		if (!module) return
+
+		clearTimeout(searchReloads.get(environment.name))
+
+		const reload = setTimeout(() => void environment.reloadModule(module), SEARCH_RELOAD_DELAY)
+
+		searchReloads.set(environment.name, reload)
 	}
 
 	return {
@@ -367,7 +385,7 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 				)
 			}
 
-			stale = [...stale, ...staleSearch(graph, file)]
+			staleSearch(this.environment, file)
 
 			for (const module of stale) graph.invalidateModule(module)
 
