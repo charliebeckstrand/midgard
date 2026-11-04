@@ -1,9 +1,9 @@
 import { defineMessage, defineMessages, type TypedMessageDescriptor } from 'ui/primitives/intl'
 
 /**
- * The messages of the auth pages, the second step, and the user menu items, in
- * the language of the reader. A message of the gateway, such as the reason for
- * a failed sign-in, stays as the gateway words it, and these are the fallbacks.
+ * The messages of the auth pages and the second step, in the language of the
+ * reader. A message of the gateway, such as the reason for a failed sign-in,
+ * stays as the gateway words it, and these are the fallbacks.
  *
  * @internal
  */
@@ -27,11 +27,6 @@ export const authMessages = defineMessages({
 		id: 'shared.auth.signIn',
 		defaultMessage: 'Sign in',
 		description: 'The button that signs in, and the link to the sign-in page.',
-	},
-	signOut: {
-		id: 'shared.auth.signOut',
-		defaultMessage: 'Sign out',
-		description: 'The menu item and the button that end the session.',
 	},
 	continue: {
 		id: 'shared.auth.continue',
@@ -278,21 +273,6 @@ export const authMessages = defineMessages({
 		id: 'shared.auth.useAuthenticator',
 		defaultMessage: 'Use your authenticator app',
 		description: 'The button that switches the second step to an authenticator code.',
-	},
-	verifyMenu: {
-		id: 'shared.auth.verifyMenu',
-		defaultMessage: 'Verify your email',
-		description: 'The user menu item that sends a link to verify the email.',
-	},
-	verifyMenuSent: {
-		id: 'shared.auth.verifyMenuSent',
-		defaultMessage: 'Link sent, check your email',
-		description: 'The user menu item after it sent the link to verify the email.',
-	},
-	verifyMenuFailed: {
-		id: 'shared.auth.verifyMenuFailed',
-		defaultMessage: 'Link not sent, try again later',
-		description: 'The user menu item after the link to verify the email did not send.',
 	},
 })
 

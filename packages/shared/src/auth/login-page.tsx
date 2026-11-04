@@ -24,6 +24,7 @@ import { authMessages, continueWithMessage } from './auth-messages'
 import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
 import { chain, email, required } from './form-validators'
+import { menuMessages } from './menu-messages'
 import type { SecondFactorMethod } from './second-step-request'
 import { useLeaving } from './use-leaving'
 import { useServerError } from './use-server-error'
@@ -239,7 +240,7 @@ export function LoginPage({
 						// A full page load, so that no state of the second step stays.
 						onExpired={() => window.location.assign('/login?expired=true')}
 						onCancel={signOut}
-						cancelLabel={intl.formatMessage(authMessages.signOut)}
+						cancelLabel={intl.formatMessage(menuMessages.signOut)}
 						startPasskey
 					/>
 				</Stack>
