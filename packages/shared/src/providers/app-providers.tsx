@@ -18,10 +18,11 @@ type AppProvidersProps = {
 	 */
 	queries?: DefaultOptions['queries']
 	/**
-	 * The time zone of the server render and the hydration render of a date. The
-	 * render after hydration uses the zone of the reader.
+	 * The time zone of each date that does not set its own. The server and the
+	 * client then give the same text. With no zone, a date is in the zone of the
+	 * reader and shows a skeleton until hydration.
 	 *
-	 * @defaultValue `'UTC'`
+	 * @defaultValue The zone of the reader.
 	 */
 	timeZone?: LocaleConfig['timeZone']
 	/** The default format of a `DateTime` with no `format` of its own. */

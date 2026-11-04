@@ -25,12 +25,13 @@ export type LocaleConfig = {
 	/** Default options for `Intl.DateTimeFormat`-based components. */
 	dateFormat?: Intl.DateTimeFormatOptions
 	/**
-	 * IANA time zone (e.g. `'UTC'`, `'America/New_York'`) of the server render
-	 * and the hydration render of a date. The server does not know the zone of
-	 * the reader, so both renders use this zone. The render after hydration uses
-	 * the zone of the reader. `useDateFormat` and `DateTime` read it.
+	 * IANA time zone (e.g. `'UTC'`, `'America/New_York'`) of each date whose
+	 * format sets no zone. The server render and the client render then give the
+	 * same text. With no zone, a date is in the zone of the reader, which the
+	 * server does not know, so it shows a skeleton until hydration.
+	 * `useDateFormat` and `DateTime` read it.
 	 *
-	 * @defaultValue `'UTC'` in `useDateFormat`.
+	 * @defaultValue The zone of the reader.
 	 */
 	timeZone?: string
 }
