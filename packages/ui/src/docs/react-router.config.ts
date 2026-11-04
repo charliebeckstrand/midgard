@@ -14,8 +14,12 @@ const config: Config = {
 	buildDirectory: 'dist',
 	ssr: false,
 	// Each path with no params. The not-found route has none of its own: the
-	// host gives the SPA fallback document for any other path.
-	prerender: ({ getStaticPaths }) => getStaticPaths(),
+	// host gives the SPA fallback document for any other path. The dev server
+	// does not prerender: it sends the SPA document, and the browser renders
+	// the page. Thus the first page loads faster, but a hydration mismatch
+	// shows only in a build.
+	prerender:
+		process.env.NODE_ENV === 'production' ? ({ getStaticPaths }) => getStaticPaths() : false,
 	buildEnd: async ({ reactRouterConfig }) => {
 		const clientDir = path.join(reactRouterConfig.buildDirectory, 'client')
 
