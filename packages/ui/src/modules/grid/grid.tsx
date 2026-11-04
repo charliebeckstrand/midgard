@@ -68,6 +68,13 @@ const FLOW_PAGINATION: GridPagination = { defaultValue: { pageIndex: 0, pageSize
  * session ({@link GridEditableConfig.session}) can narrow to one cell instead
  * through {@link GridEditableConfig.scope}.
  *
+ * The editing layer (the editors, the new-row slot, and the row form) is in a
+ * chunk of its own, and only an editable grid loads it. On the server and in
+ * hydration, an editable grid waits for the chunk, so the server markup stays.
+ * An editable grid that mounts on the client before the chunk is loaded renders
+ * read-only until the chunk is there. A change of `editable` from set to unset,
+ * or back, mounts the grid again.
+ *
  * Renders:
  *
  * - a loading skeleton (`aria-busy` with a polite status);

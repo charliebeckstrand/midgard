@@ -1,17 +1,19 @@
+import { loadGridEditing } from '../../modules/grid/grid-data'
 import { loadGridDataDialogs } from '../../modules/grid/grid-data-dialogs'
 import { loadGridReorderKit } from '../../modules/grid/grid-region'
 
-// The grid loads its dialogs on the first open, and its drag and drop module as
-// a grid that takes a reorder mounts. The `unit` project shares one module
-// registry across the files of a worker, and `sequence.shuffle` decides which
-// case is the first to need a module. The load before each file gives each case
-// the state of a page that already loaded them, so a case that reads an open
-// dialog or drags at once does not depend on the order. This file runs after
-// `module-mocks.ts`, so the grid loads against the mocks. The `integration`
-// project mocks modules per file, so it runs no such load.
+// The grid loads its dialogs on the first open, its drag and drop module as a
+// grid that takes a reorder mounts, and its editing layer as an editable grid
+// mounts. The `unit` project shares one module registry across the files of a
+// worker, and `sequence.shuffle` decides which case is the first to need a
+// module. The load before each file gives each case the state of a page that
+// already loaded them, so a case that reads an open dialog, drags, or edits at
+// once does not depend on the order. This file runs after `module-mocks.ts`, so
+// the grid loads against the mocks. The `integration` project mocks modules per
+// file, so it runs no such load.
 //
 // The load is a top-level await, not a `beforeAll`. It is an import, as the
 // static imports above are, and an import has no time limit. On a cold module
 // cache, the compiled run (`vitest.compiler.config.ts`) transforms the grid for
 // the first file of each worker, and that took more than the hook limit.
-await Promise.all([loadGridDataDialogs(), loadGridReorderKit()])
+await Promise.all([loadGridDataDialogs(), loadGridReorderKit(), loadGridEditing()])

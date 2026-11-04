@@ -4,6 +4,7 @@ import { toHaveNoViolations } from 'jest-axe'
 import { afterEach, beforeAll, beforeEach, expect, inject } from 'vitest'
 import { commands } from 'vitest/browser'
 import { loadListReorder } from '../../../components/list/use-list-reorder'
+import { loadGridEditing } from '../../../modules/grid/grid-data'
 import { loadGridDataDialogs } from '../../../modules/grid/grid-data-dialogs'
 import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
@@ -107,6 +108,11 @@ beforeAll(() => loadListReorder())
 // gives each case the state of a page that already loaded them, as
 // `setup/grid-modules.ts` does for the jsdom suite.
 beforeAll(() => loadGridDataDialogs())
+
+// An editable grid renders from a chunk of its own, and suspends until the chunk
+// is loaded. The load before each file gives each case the state of a page that
+// already loaded it, so an editable grid renders in its first pass.
+beforeAll(() => loadGridEditing())
 
 // A tooltip loads the module of its panel after it mounts. The first load in a
 // page also transforms the module, and a slow runner can take more than two

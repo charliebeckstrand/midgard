@@ -9,7 +9,11 @@ import { noop } from './noop'
  * @internal
  */
 export type LazyModule<M> = {
-	/** Starts the load, or gets the load in flight or resolved. */
+	/**
+	 * Starts the load, or gets the load in flight or resolved. Once the load
+	 * resolves, the promise carries `status` and `value`, which React's `use`
+	 * reads. Thus `use(lazy.load())` suspends only while the load is in flight.
+	 */
 	load: () => Promise<M>
 	/** The loaded module, or `null` until the load resolves. */
 	read: () => M | null
@@ -49,6 +53,10 @@ export function createLazyModule<M>(importer: () => Promise<M>): LazyModule<M> {
 		pending ??= importer().then(
 			(value) => {
 				module = value
+
+				// `use` reads a settled promise from these two fields, so a render
+				// after the load does not suspend.
+				Object.assign(pending as Promise<M>, { status: 'fulfilled', value })
 
 				loaded.emit()
 

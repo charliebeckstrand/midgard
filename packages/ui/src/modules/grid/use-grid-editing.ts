@@ -58,7 +58,7 @@ import { useGridEditingWarnings } from './use-grid-editing-warnings'
 import type { Coord, GridNewRowPosition } from './use-grid-navigation'
 import { useGridNewRow } from './use-grid-new-row'
 
-/** The editing layer's surface, consumed by {@link useGridCursor}. @internal */
+/** The editing layer's surface, consumed by {@link useGridEditCursor}. @internal */
 export type GridEditingApi = {
 	session: GridEditingSession
 	/**
@@ -77,7 +77,7 @@ export type GridEditingApi = {
 	enterEdit: (rowKey: string | number, columnId: string | number, seed?: string | number) => void
 	/**
 	 * The session's keys, layered onto the grid `<table>`'s key handler by
-	 * {@link useGridCursor}. Escape abandons the session. From an open editor,
+	 * {@link useGridEditCursor}. Escape abandons the session. From an open editor,
 	 * Enter commits and moves down, and F2 commits and stays. Tab and Shift+Tab
 	 * move between the controls of one cell first, and past the last control
 	 * they commit and move along the row. Every editor (inferred input, listbox,
@@ -87,7 +87,7 @@ export type GridEditingApi = {
 	sessionKeys: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
 	/**
 	 * The undo and redo keys, layered onto the grid `<table>`'s key handler by
-	 * {@link useGridCursor} under either session. They act on the tab stop only,
+	 * {@link useGridEditCursor} under either session. They act on the tab stop only,
 	 * so an open editor keeps its own text undo. `undefined` unless
 	 * {@link GridEditableConfig.history} is on.
 	 */
@@ -100,18 +100,18 @@ export type GridEditingApi = {
 	stepHistory: (step: GridHistoryStep) => boolean
 	/**
 	 * Writes the text of a paste into its cells, as one save, for the paste
-	 * handler of {@link useGridCursor}. Present under
+	 * handler of {@link useGridEditCursor}. Present under
 	 * `editable.session: 'managed'` only.
 	 */
 	pasteCells: ((cells: readonly GridPasteCell[]) => void) | undefined
 	/**
 	 * Writes the values of a fill into their cells, as one save, for the fill
-	 * of {@link useGridCursor}. Present under `editable.session: 'managed'` only.
+	 * of {@link useGridEditCursor}. Present under `editable.session: 'managed'` only.
 	 */
 	fillCells: ((cells: readonly GridFillCell[]) => void) | undefined
 	/**
 	 * The session's commit on leave, layered onto the grid `<table>`'s focus
-	 * handlers by {@link useGridCursor}. `blur` reads each focus move out of an
+	 * handlers by {@link useGridEditCursor}. `blur` reads each focus move out of an
 	 * editor, or out of the grid, against `commitOn`. When the move leaves what
 	 * that policy watches, it commits the session. A move into a floating
 	 * surface of an editor, to the settle controls, or into the row form does
