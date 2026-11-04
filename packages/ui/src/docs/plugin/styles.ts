@@ -167,8 +167,7 @@ export type CriticalCssData = {
 /**
  * Writes the critical CSS of `pages` into the head of each HTML file. Each page
  * is a path of an HTML file relative to `clientDir`, and the pages are the
- * copies of one page in each locale ({@link inlineCriticalCss}). The CSS is
- * compiled one time, for the classes of all the copies. Each worker of
+ * copies of one page in each locale ({@link inlineCriticalCss}). Each worker of
  * {@link inlineCriticalCss} runs this function (`styles-worker.ts`).
  */
 export async function inlinePage(
@@ -181,7 +180,7 @@ export async function inlinePage(
 		return { file, html: readFileSync(file, 'utf8') }
 	})
 
-	const classes = [...new Set(files.flatMap(({ html }) => scanClasses(html)))]
+	const classes = files.flatMap(({ html }) => scanClasses(html))
 
 	const compiled = await compilePage(source, path.dirname(stylesheet), inline, classes)
 
