@@ -6,7 +6,8 @@ import { levelToStep } from '../density/context'
 import { DARK_SCHEME, DENSITY, MOTION, SIDEBAR, THEME } from './appearance-storage'
 
 // Resolves the stored choices as `AppearanceProvider` does. Theme: 'dark' is
-// dark, 'light' is light, and any other value follows the OS. Density: a stored
+// dark, 'light' is light and adds the `light` class, and any other value
+// follows the OS. Density: a stored
 // level gives its step, and any other value gives the step of the default. A
 // step other than `md` adds its class to the root, and `md` adds no mark.
 // Motion: 'reduced' adds the reduced-motion class, and any other value adds no
@@ -15,7 +16,7 @@ import { DARK_SCHEME, DENSITY, MOTION, SIDEBAR, THEME } from './appearance-stora
 // Storage access can throw, and then the script uses the defaults. The
 // own-property check keeps a stored `__proto__` or `toString` from reading the
 // prototype. The docs site renders this component too.
-const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null,m=null,b=null;try{t=localStorage.getItem(${JSON.stringify(THEME.key)});d=localStorage.getItem(${JSON.stringify(DENSITY.key)});m=localStorage.getItem(${JSON.stringify(MOTION.key)});b=localStorage.getItem(${JSON.stringify(SIDEBAR.key)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)},c=${JSON.stringify(rootDensityClasses)},h=Object.prototype.hasOwnProperty,v=h.call(s,d)?s[d]:s[${JSON.stringify(DENSITY.fallback)}];if(h.call(c,v))r.classList.add(c[v]);if(m==='reduced')r.classList.add(${JSON.stringify(ROOT_REDUCED_MOTION_CLASS)});if(b==='offcanvas')r.classList.add(${JSON.stringify(ROOT_OFFCANVAS_SIDEBAR_CLASS)})})()`
+const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null,m=null,b=null;try{t=localStorage.getItem(${JSON.stringify(THEME.key)});d=localStorage.getItem(${JSON.stringify(DENSITY.key)});m=localStorage.getItem(${JSON.stringify(MOTION.key)});b=localStorage.getItem(${JSON.stringify(SIDEBAR.key)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');if(t==='light')r.classList.add('light');var s=${JSON.stringify(levelToStep)},c=${JSON.stringify(rootDensityClasses)},h=Object.prototype.hasOwnProperty,v=h.call(s,d)?s[d]:s[${JSON.stringify(DENSITY.fallback)}];if(h.call(c,v))r.classList.add(c[v]);if(m==='reduced')r.classList.add(${JSON.stringify(ROOT_REDUCED_MOTION_CLASS)});if(b==='offcanvas')r.classList.add(${JSON.stringify(ROOT_OFFCANVAS_SIDEBAR_CLASS)})})()`
 
 /**
  * Inline script that applies the stored theme, density, motion, and sidebar to
@@ -28,6 +29,11 @@ const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null,m=null,
  * hydration, and a stored density, motion, or sidebar applies after hydration.
  * Put `suppressHydrationWarning` on `<html>`, because the script changes its
  * attributes before React hydrates.
+ *
+ * It is the pre-paint step of an app whose server cannot read the choices,
+ * such as a Next.js app whose root layout is static (CONVENTIONS §3.13). A
+ * server that renders each request can write the classes of the cookies of
+ * the choices on `<html>` in its place, as the docs server does.
  *
  * It has no `'use client'` and reads no context, so a server layout can render
  * it. `UIDocument` renders it with `AppearanceProvider` and the attribute, so

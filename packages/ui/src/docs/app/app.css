@@ -11,7 +11,21 @@
 @source not '../__tests__';
 @source not '../fixtures';
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* The `dark` variant follows the `.dark` class on the root element, which
+   `AppearanceProvider` sets. Before hydration, the docs server writes `.dark`
+   or `.light` on the root for a theme that the reader chose. With neither
+   class, the variant follows the OS, so the theme `system` paints at once. */
+@custom-variant dark {
+	&:where(.dark, .dark *) {
+		@slot;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		&:where(:root:not(.light), :root:not(.light) *) {
+			@slot;
+		}
+	}
+}
 
 /* An element whose children are all phrasing content, the content that HTML
    lets sit in a line of text, such as a button, a badge, or an icon. The

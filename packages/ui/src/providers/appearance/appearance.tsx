@@ -52,7 +52,10 @@ export type AppearanceProviderProps = {
  * `@custom-variant dark (&:where(.dark, .dark *))`. On a server-rendered page,
  * render {@link AppearanceScript} in the document head, so the stored theme,
  * density, motion, and sidebar apply before the first paint. `UIDocument` renders the
- * script and this provider together.
+ * script and this provider together. Each choice has a copy in a cookie, so a
+ * server that renders each request can write the classes on the root in place
+ * of the script. A light theme then adds the `light` class, which a `dark`
+ * variant that follows the OS with no class reads.
  *
  * It renders the script of the latin face of the font before its children
  * ({@link FontScript}), so latin text paints in the font from the first paint.
@@ -86,8 +89,14 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 
 		const apply = (dark: boolean) => root.classList.toggle('dark', dark)
 
+		// A `dark` variant that follows the OS with no class (as in the docs)
+		// reads `.light` as a light theme that the reader chose.
+		const applyLight = (light: boolean) => root.classList.toggle('light', light)
+
 		const sync = () => {
 			const stored = readChoice(THEME)
+
+			applyLight(stored === 'light')
 
 			unsubscribeScheme?.()
 

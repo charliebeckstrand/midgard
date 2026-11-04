@@ -13,7 +13,8 @@ import {
 /**
  * One stored appearance choice: its `localStorage` key, the values it can
  * hold, the value with no stored choice, and an optional cookie.
- * {@link AppearanceScript} reads the same keys before hydration.
+ * {@link AppearanceScript} reads the same keys before hydration, and a server
+ * that renders per request reads the cookies ({@link appearanceRootClasses}).
  *
  * @internal
  */
@@ -40,6 +41,7 @@ export const THEME: AppearanceChoice<ThemeMode> = {
 	key: 'theme',
 	values: themeModes.map((option) => option.value),
 	fallback: 'system',
+	cookie: 'theme',
 }
 
 /**
@@ -51,6 +53,7 @@ export const DENSITY: AppearanceChoice<DensityLevel> = {
 	key: 'density',
 	values: densityLevels.map((level) => level.value),
 	fallback: 'snug',
+	cookie: 'density',
 }
 
 /**
@@ -62,6 +65,7 @@ export const MOTION: AppearanceChoice<MotionMode> = {
 	key: 'motion',
 	values: motionModes.map((option) => option.value),
 	fallback: 'system',
+	cookie: 'motion',
 }
 
 /**
@@ -73,6 +77,7 @@ export const SIDEBAR: AppearanceChoice<SidebarMode> = {
 	key: 'sidebar',
 	values: sidebarModes.map((option) => option.value),
 	fallback: 'locked',
+	cookie: 'sidebar',
 }
 
 /**

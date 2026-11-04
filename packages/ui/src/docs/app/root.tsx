@@ -4,15 +4,15 @@ import { type ReactNode, useEffect } from 'react'
 import { Links, Meta, Outlet, Scripts, useLocation, useMatches, useNavigate } from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
-import { EventsAside, EventsButton, EventsScript, EventsSwitch } from 'ui/events'
+import { EventsAside, EventsButton, EventsSwitch } from 'ui/events'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
 import { defineMessage, defineMessages, useIntl } from 'ui/primitives/intl'
-import { AppearanceSettings, useAppearance } from 'ui/providers/appearance'
+import { AppearanceProvider, AppearanceSettings, useAppearance } from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
-import { UIDocument, UIProvider } from 'ui/providers/ui'
+import { UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
@@ -31,32 +31,34 @@ import { StaleBuildScript } from './stale-build.tsx'
 import { useNavigationScroll } from './use-navigation-scroll.ts'
 
 /**
- * The document of each page. `UIDocument` holds `AppearanceProvider`, so each
+ * The document of each page. `AppearanceProvider` holds the body, so each
  * prerendered file has the script of the latin face before its content. The
  * fallback for a path with no page renders no route, so a provider in a route
  * would leave that file with no latin face. The root element has the
  * language of the locale that the page renders in.
+ *
+ * The docs render no pre-paint script, so the document is not `UIDocument`.
+ * The docs server writes the stored settings of the reader on the root element
+ * of each page (`rootMarks` in `scripts/docs-server.ts`), and the provider keeps
+ * them after hydration. The root has `suppressHydrationWarning` for those marks.
  */
 export function Layout({ children }: { children: ReactNode }) {
 	return (
-		<UIDocument
-			lang={useDocumentLocale()}
-			className="antialiased"
-			bodyClassName="bg-white text-zinc-950 lg:bg-zinc-100 dark:bg-zinc-950 dark:text-white"
-			head={
-				<>
-					<meta charSet="UTF-8" />
-					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-					<StaleBuildScript />
-					<EventsScript />
-					<Meta />
-					<Links />
-				</>
-			}
-		>
-			{children}
-			<Scripts />
-		</UIDocument>
+		<html lang={useDocumentLocale()} className="antialiased" suppressHydrationWarning>
+			<head>
+				<meta charSet="UTF-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+				<StaleBuildScript />
+				<Meta />
+				<Links />
+			</head>
+			<body className="bg-white text-zinc-950 lg:bg-zinc-100 dark:bg-zinc-950 dark:text-white">
+				<AppearanceProvider>
+					{children}
+					<Scripts />
+				</AppearanceProvider>
+			</body>
+		</html>
 	)
 }
 

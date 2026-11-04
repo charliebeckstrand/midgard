@@ -1,19 +1,31 @@
+import { readCookie, writeCookie } from '../../../utilities/cookie'
 import { createEmitter } from '../../../utilities/emitter'
 import { noop } from '../../../utilities/noop'
 import { CAPTURE_KEY, getStorage, readStorage, writeStorage } from './events-storage'
 import type { EventSource } from './types'
 
 // The settings of the events: whether they run, and whether the panel is
-// pinned. They are in `localStorage`, so they stay for the next visit. The
-// pre-paint script of `EventsScript` copies them to attributes of the root
-// element, so CSS shows the header button and the pinned panel in the first
-// paint. This module loads no part of the recorder until the events run.
+// pinned. They are in `localStorage`, so they stay for the next visit, with a
+// copy in a cookie for a server. Before the first paint, the pre-paint script
+// of `EventsScript`, or a server that renders per request, copies them to
+// attributes of the root element, so CSS shows the header button and the
+// pinned panel in the first paint. This module loads no part of the recorder
+// until the events run.
 
-/** The `localStorage` key of the setting that runs the events. */
-const ON_KEY = 'events:on'
+/**
+ * A setting: its `localStorage` key, and the cookie that holds a copy of it,
+ * so a server that renders per request can read it ({@link eventsRootAttributes}).
+ */
+type Setting = { key: string; cookie: string }
 
-/** The `localStorage` key of the pinned panel. */
-const PINNED_KEY = 'events:pinned'
+/** The setting that runs the events. */
+const ON: Setting = { key: 'events:on', cookie: 'events-on' }
+
+/** The setting of the pinned panel. */
+const PINNED: Setting = { key: 'events:pinned', cookie: 'events-pinned' }
+
+/** The life of the cookie of a setting: one year, in seconds. */
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 /** The attribute of the root element while the events run. CSS shows the header button by it. */
 export const ON_ATTRIBUTE = 'data-events'
@@ -56,7 +68,7 @@ export function getEventsOptions(): StartEventsOptions {
 
 /** Whether the setting runs the events. */
 export function isEventsOn(): boolean {
-	return readLocal(ON_KEY) === '1'
+	return readLocal(ON)
 }
 
 /**
@@ -69,6 +81,12 @@ export function isEventsOn(): boolean {
  */
 export function startEvents(next: StartEventsOptions = {}): Promise<void> {
 	options = next
+
+	// A setting from before the cookies, or one whose cookie expired, reaches
+	// the server again.
+	writeMirror(ON, isEventsOn())
+
+	writeMirror(PINNED, isEventsPinned())
 
 	if (!isEventsOn()) return Promise.resolve()
 
@@ -84,7 +102,7 @@ export function startEvents(next: StartEventsOptions = {}): Promise<void> {
  * Off drops the events and the kept copy.
  */
 export function setEventsOn(on: boolean): void {
-	writeLocal(ON_KEY, on)
+	writeLocal(ON, on)
 
 	syncAttributes()
 
@@ -98,12 +116,12 @@ export const subscribeEventsOn = onChanges.subscribe
 
 /** Whether the panel is pinned. @internal */
 export function isEventsPinned(): boolean {
-	return readLocal(PINNED_KEY) === '1'
+	return readLocal(PINNED)
 }
 
 /** Pins or unpins the panel, and tells the listeners. @internal */
 export function setEventsPinned(pinned: boolean): void {
-	writeLocal(PINNED_KEY, pinned)
+	writeLocal(PINNED, pinned)
 
 	syncAttributes()
 
@@ -154,15 +172,39 @@ function syncAttributes(): void {
  * The pre-paint script: it copies the settings to the attributes of the root
  * element, and marks a capture that runs in this tab.
  */
-export const SCRIPT = `(function(){try{var l=localStorage,r=document.documentElement;if(l.getItem(${JSON.stringify(ON_KEY)})!=='1')return;r.setAttribute(${JSON.stringify(ON_ATTRIBUTE)},'');if(l.getItem(${JSON.stringify(PINNED_KEY)})==='1')r.setAttribute(${JSON.stringify(PINNED_ATTRIBUTE)},'');if(sessionStorage.getItem(${JSON.stringify(CAPTURE_KEY)})!==null)r.setAttribute(${JSON.stringify(CAPTURE_ATTRIBUTE)},'')}catch(e){}})()`
+export const SCRIPT = `(function(){try{var l=localStorage,r=document.documentElement;if(l.getItem(${JSON.stringify(ON.key)})!=='1')return;r.setAttribute(${JSON.stringify(ON_ATTRIBUTE)},'');if(l.getItem(${JSON.stringify(PINNED.key)})==='1')r.setAttribute(${JSON.stringify(PINNED_ATTRIBUTE)},'');if(sessionStorage.getItem(${JSON.stringify(CAPTURE_KEY)})!==null)r.setAttribute(${JSON.stringify(CAPTURE_ATTRIBUTE)},'')}catch(e){}})()`
 
 /** The `localStorage` of the page. The settings are off where the storage throws, such as with site data off. */
 const local = () => getStorage(() => localStorage)
 
-function readLocal(key: string): string | null {
-	return readStorage(local(), key)
+function readLocal({ key }: Setting): boolean {
+	return readStorage(local(), key) === '1'
 }
 
-function writeLocal(key: string, on: boolean): void {
-	writeStorage(local(), key, on ? '1' : null)
+/** Writes the cookie of `setting` from `on`. */
+function writeMirror({ cookie }: Setting, on: boolean): void {
+	writeCookie(cookie, on ? '1' : '0', COOKIE_MAX_AGE)
+}
+
+function writeLocal(setting: Setting, on: boolean): void {
+	writeStorage(local(), setting.key, on ? '1' : null)
+
+	writeMirror(setting, on)
+}
+
+/**
+ * The attributes of the root element for the settings in `cookies`, the
+ * `Cookie` header of a request. A server that renders per request writes them
+ * on `<html>`, so CSS shows the header button and the pinned panel in the
+ * first paint with no script. A capture runs in one tab, so the server cannot
+ * know it, and its attribute comes at hydration.
+ *
+ * @internal
+ */
+export function eventsRootAttributes(cookies: string): string[] {
+	if (readCookie(ON.cookie, cookies) !== '1') return []
+
+	return readCookie(PINNED.cookie, cookies) === '1'
+		? [ON_ATTRIBUTE, PINNED_ATTRIBUTE]
+		: [ON_ATTRIBUTE]
 }

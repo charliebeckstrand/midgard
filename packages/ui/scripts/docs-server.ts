@@ -14,6 +14,11 @@
  * `Accept-Language` header. Thus `/stepper` gets `stepper/index.es.html` for a
  * Spanish reader, at the same path.
  *
+ * An HTML file also takes the stored settings of the reader on its root
+ * element: the theme, the density, the motion, and the sidebar of the
+ * appearance, and the events. The cookies of the request hold them
+ * ({@link rootMarks}). Thus the first paint shows the settings with no script.
+ *
  * ```sh
  * pnpm --filter ui docs:preview   # http://localhost:3456
  * ```
@@ -37,6 +42,8 @@ import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { brotliCompress, constants, gzip } from 'node:zlib'
 import { localeFile, requestLocale } from '../src/docs/app/language.ts'
+import { eventsRootAttributes } from '../src/modules/events/engine/events-setting.ts'
+import { appearanceRootClasses } from '../src/providers/appearance/appearance-root.ts'
 import { getOrCompute } from '../src/utilities/get-or-compute.ts'
 
 const brotli = promisify(brotliCompress)
@@ -126,24 +133,83 @@ export function pickEncoding(file: string, header: string | undefined): Encoding
 	return ENCODINGS.find((coding) => (weights.get(coding) ?? weights.get('*') ?? 0) > 0)
 }
 
-/** The compressed bodies, by coding, file, and the time and size of the file. */
-const bodies = new Map<string, Promise<Buffer>>()
+/**
+ * The marks that the stored settings of the reader put on the root element of
+ * a page: its classes and its attributes. `cookies` is the `Cookie` header of
+ * the request. The app keeps the same marks after hydration.
+ */
+export type RootMarks = { classes: readonly string[]; attributes: readonly string[] }
+
+/** The marks of the root element for the cookies of a request. */
+export function rootMarks(cookies = ''): RootMarks {
+	return { classes: appearanceRootClasses(cookies), attributes: eventsRootAttributes(cookies) }
+}
+
+/** A key that names `marks`: empty with no marks. */
+function marksKey({ classes, attributes }: RootMarks): string {
+	return [...classes, ...attributes].join('+')
+}
+
+/** The `class` attribute in the attributes of a tag, and its value. */
+const CLASS_ATTRIBUTE = /\sclass="([^"]*)"/
 
 /**
- * The body of `file` in `encoding`, or as it is on the disk with no coding.
- * The server compresses a file one time, as a CDN keeps the compressed file.
- * The key holds the time and the size of the file, so a new build at the same
- * path gets new bodies. A compression that fails is not kept.
+ * The HTML of a page with `marks` on its root element. The classes go after
+ * the classes of the build, and each attribute has no value.
  */
-export async function readBody(file: string, encoding?: Encoding): Promise<Buffer> {
-	if (encoding === undefined) return readFile(file)
+export function markRoot(html: string, { classes, attributes }: RootMarks): string {
+	if (classes.length === 0 && attributes.length === 0) return html
+
+	const added = attributes.map((name) => ` ${name}=""`).join('')
+
+	return html.replace(/<html\b([^>]*)>/, (_, attrs: string) => {
+		if (classes.length === 0) return `<html${attrs}${added}>`
+
+		const own = CLASS_ATTRIBUTE.exec(attrs)
+
+		const merged = ` class="${[own?.[1], ...classes].filter(Boolean).join(' ')}"`
+
+		const rest = own ? attrs.replace(CLASS_ATTRIBUTE, '') : attrs
+
+		return `<html${rest}${merged}${added}>`
+	})
+}
+
+/** The compressed bodies, by coding, file, the time and size of the file, and the marks of the root. */
+const bodies = new Map<string, Promise<Buffer>>()
+
+/** The content of `file`, with `marks` on the root element of an HTML file. */
+async function readContent(file: string, marks: RootMarks): Promise<Buffer> {
+	const data = await readFile(file)
+
+	return file.endsWith('.html') && marksKey(marks) !== ''
+		? Buffer.from(markRoot(data.toString('utf8'), marks))
+		: data
+}
+
+/** No marks on the root element. */
+const NO_MARKS: RootMarks = { classes: [], attributes: [] }
+
+/**
+ * The body of `file` in `encoding`, or as it is on the disk with no coding,
+ * with `marks` on the root element of an HTML file ({@link markRoot}). The
+ * server compresses a file one time for each set of marks, as a CDN keeps the
+ * compressed file. The key holds the time and the size of the file, so a new
+ * build at the same path gets new bodies. A compression that fails is not kept.
+ */
+export async function readBody(
+	file: string,
+	encoding?: Encoding,
+	marks: RootMarks = NO_MARKS,
+): Promise<Buffer> {
+	if (encoding === undefined) return readContent(file, marks)
 
 	const { mtimeMs, size } = await stat(file)
 
-	const key = `${encoding}:${file}:${mtimeMs}:${size}`
+	const key = `${encoding}:${file}:${mtimeMs}:${size}:${file.endsWith('.html') ? marksKey(marks) : ''}`
 
 	const body = getOrCompute(bodies, key, () =>
-		readFile(file).then((data) =>
+		readContent(file, marks).then((data) =>
 			encoding === 'br'
 				? brotli(data, { params: { [constants.BROTLI_PARAM_QUALITY]: 9 } })
 				: gzipAsync(data, { level: 9 }),
@@ -255,12 +321,18 @@ function cacheHeaders(file: string): Record<string, string> {
 
 /**
  * The validator of `file`: a weak entity tag from the size and the time of the
- * file. Each body of the file, in each coding, is the same content, so one weak
- * tag covers all of them. A new build writes the file again, which changes the
- * tag.
+ * file, and the key of the marks on the root of an HTML file. Each body of the
+ * file, in each coding, is the same content, so one weak tag covers all of
+ * them. A new build writes the file again, which changes the tag. A change of
+ * the settings of the reader changes the marks, and thus the tag.
  */
-export function entityTag({ size, mtimeMs }: { size: number; mtimeMs: number }): string {
-	return `W/"${size.toString(16)}-${Math.trunc(mtimeMs).toString(16)}"`
+export function entityTag(
+	{ size, mtimeMs }: { size: number; mtimeMs: number },
+	marks: RootMarks = NO_MARKS,
+): string {
+	const key = marksKey(marks)
+
+	return `W/"${size.toString(16)}-${Math.trunc(mtimeMs).toString(16)}${key ? `-${key}` : ''}"`
 }
 
 /**
@@ -290,6 +362,8 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 
 	const file = await resolveFile(CLIENT_DIR, request.url ?? '/', locale)
 
+	const marks = file?.endsWith('.html') ? rootMarks(request.headers.cookie) : NO_MARKS
+
 	if (file === undefined) {
 		response.writeHead(400).end()
 
@@ -312,7 +386,7 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 	// A file that the client has a current copy of gets 304 and no body, so a
 	// reload of a page does not download the page again. The not-found page
 	// has no validator.
-	const etag = missing ? undefined : entityTag(stats)
+	const etag = missing ? undefined : entityTag(stats, marks)
 
 	if (etag !== undefined && isFresh(request.headers['if-none-match'], etag)) {
 		response.writeHead(304, { etag, ...cacheHeaders(file) }).end()
@@ -322,7 +396,7 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 
 	const encoding = pickEncoding(file, request.headers['accept-encoding'])
 
-	const body = await readBody(file, encoding).catch(() => undefined)
+	const body = await readBody(file, encoding, marks).catch(() => undefined)
 
 	if (body === undefined) {
 		response.writeHead(500).end()

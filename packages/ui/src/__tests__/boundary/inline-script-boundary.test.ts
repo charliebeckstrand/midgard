@@ -16,7 +16,7 @@ import {
 // review of that one file and its callers finds each script that the package
 // writes.
 //
-// Two rules keep the one place:
+// Three rules keep the one place:
 //
 //   1. No file but the home renders a `<script>` element with inline source.
 //      A `<script>` with a `src` attribute, such as the one of `FontScript`,
@@ -25,11 +25,26 @@ import {
 //   2. No file builds a script with `createElement('script')`. A script that
 //      the DOM API adds runs, and it goes around the primitive.
 //
-// The scan reads the shipped tree. The docs site is not shipped, so it is not
-// in the scan.
+//   3. Only the pre-paint scripts of the stored settings of the reader render
+//      the primitive (CONVENTIONS §3.13). A component that the server cannot
+//      measure draws a placeholder, and does not get a script. The docs site
+//      writes the settings on the root element from the server, so it renders
+//      no pre-paint script.
+//
+// The first two scans read the shipped tree. The docs site is not shipped, so
+// it is not in them. The third scan reads the docs site too.
 
 /** The one file that writes a script with inline source. */
 const HOME = 'primitives/inline-script/inline-script.tsx'
+
+/** The files that render the primitive: the pre-paint scripts of the stored settings of the reader. */
+const CALLERS = new Set([
+	'providers/appearance/appearance-script.tsx',
+	'modules/events/events-script.tsx',
+])
+
+/** The pre-paint components, which the docs site does not render. */
+const PRE_PAINT = /\b(?:InlineScript|AppearanceScript|EventsScript|UIDocument)\b/
 
 /** A `<script>` element with no `src` attribute. */
 const INLINE_SCRIPT_ELEMENT = /<script\b(?![^>]*\bsrc=)[^>]*>/
@@ -51,6 +66,17 @@ function shippedFiles(): Map<string, string> {
 		},
 		docsSites,
 	)
+
+	return files
+}
+
+/** Each source file of the docs site, keyed relative to `src/`, with its code and no comments. */
+function docsFiles(): Map<string, string> {
+	const files = new Map<string, string>()
+
+	walkSource(`${srcDir}/docs`, (path, source) => {
+		if (isSourceFile(path)) files.set(srcRelative(path), stripSourceComments(source))
+	})
 
 	return files
 }
@@ -81,6 +107,28 @@ describe('inline-script boundary', () => {
 		expect(
 			violations,
 			`files that build a script with createElement (render \`InlineScript\` instead):\n  ${violations.join('\n  ')}`,
+		).toEqual([])
+	})
+
+	it('renders InlineScript only in the pre-paint scripts of the stored settings', () => {
+		const violations = [...files]
+			.filter(([key, code]) => key !== HOME && !CALLERS.has(key) && /\bInlineScript\b/.test(code))
+			.map(([key]) => key)
+
+		expect(
+			violations,
+			`files that render InlineScript (draw a placeholder, CONVENTIONS §3.13):\n  ${violations.join('\n  ')}`,
+		).toEqual([])
+	})
+
+	it('keeps the docs site free of pre-paint scripts', () => {
+		const violations = [...docsFiles()]
+			.filter(([, code]) => PRE_PAINT.test(code))
+			.map(([key]) => key)
+
+		expect(
+			violations,
+			`docs files that render a pre-paint script (the docs server writes the settings, CONVENTIONS §3.13):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })
