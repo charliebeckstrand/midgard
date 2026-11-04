@@ -75,16 +75,15 @@ export type ChatMessageProps = ChatMessageVariants &
 		timestamp?: ReactNode
 		/** Pulses the bubble content and shows the progress cursor, while a response streams in. @defaultValue false */
 		streaming?: boolean
-		/** Controls that act on the message, such as copy, retry, and edit. `actionsDisplay` sets where they show. */
+		/** Controls that act on the message, such as copy, retry, and edit. They show as a row below the bubble, or as a toolbar with `hoverActions`. */
 		actions?: ReactNode
 		/**
-		 * Where `actions` show. `'rail'` is a row below the bubble. `'hover'` is a
-		 * toolbar over the top corner of the bubble that shows while the pointer is
-		 * over the message or focus is in it. A device with no hover shows the
-		 * toolbar as the rail.
-		 * @defaultValue 'rail'
+		 * Shows `actions` as a toolbar over the top corner of the bubble while the
+		 * pointer is over the message or focus is in it. A device with no hover
+		 * shows them as the row below the bubble.
+		 * @defaultValue false
 		 */
-		actionsDisplay?: 'rail' | 'hover'
+		hoverActions?: boolean
 		/**
 		 * Entries of a menu that a right-click or a touch long press on the bubble
 		 * opens: an item, a separator, or a submenu ({@link ContextMenuEntry}).
@@ -101,7 +100,7 @@ export type ChatMessageProps = ChatMessageVariants &
 /**
  * Conversational message bubble sided and colored by `sender`: `user`,
  * `assistant`, or `system`, defaulting to `assistant`. It takes an optional
- * `timestamp`, `actions` as a rail or a hover toolbar, a `contextMenu`, and a
+ * `timestamp`, `actions` as a row or a hover toolbar, a `contextMenu`, and a
  * `streaming` pulse over its content.
  *
  * @remarks
@@ -130,7 +129,7 @@ export type ChatMessageProps = ChatMessageVariants &
  * The pulse rides each drawn {@link Markdown}, so a streaming reply that has
  * already landed a chart pulses its prose and leaves the chart steady.
  *
- * A `'hover'` toolbar floats above the message by most of its own height. A
+ * A `hoverActions` toolbar floats above the message by most of its own height. A
  * host that clips its overflow, such as a scroll container, keeps that space
  * free above its first message. The toolbar stays in the Tab order while it is
  * hidden, so a keyboard reader reaches each action, and focus shows it. The
@@ -147,7 +146,7 @@ export const ChatMessage = memo(function ChatMessage({
 	timestamp,
 	streaming,
 	actions,
-	actionsDisplay,
+	hoverActions,
 	contextMenu,
 	className,
 	children,
@@ -155,7 +154,7 @@ export const ChatMessage = memo(function ChatMessage({
 }: ChatMessageProps) {
 	const resolvedSender = sender ?? 'assistant'
 
-	const slots = k({ sender, streaming, actionsDisplay })
+	const slots = k({ sender, streaming, hoverActions })
 
 	const bubble = (
 		<div data-slot="chat-message-bubble" className={slots.bubble}>
@@ -194,11 +193,7 @@ export const ChatMessage = memo(function ChatMessage({
 				</div>
 			)}
 			{actions !== undefined && (
-				<div
-					data-slot="chat-message-actions"
-					data-display={actionsDisplay ?? 'rail'}
-					className={slots.actions}
-				>
+				<div data-slot="chat-message-actions" className={slots.actions}>
 					{actions}
 				</div>
 			)}

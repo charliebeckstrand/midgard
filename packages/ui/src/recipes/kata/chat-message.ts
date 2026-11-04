@@ -63,25 +63,25 @@ export const k = defineKata({
 	// A hover toolbar is placed against the message, so the message is its
 	// containing block. The named group lets the toolbar show while the pointer
 	// is anywhere over the message, or while focus is in it.
-	actionsDisplay: {
-		rail: '',
-		hover: 'group/chat-message relative',
+	hoverActions: {
+		true: 'group/chat-message relative',
+		false: '',
 	},
 	slots: {
 		bubble,
 		timestamp: [size.xs, 'mt-1', ...text.muted],
 		/**
-		 * The actions of the message. A `rail` is a row below the bubble. A `hover`
-		 * toolbar floats over the outer top corner of the bubble: the corner on the
+		 * The actions of the message: a row below the bubble, or with `hoverActions`
+		 * a toolbar that floats over the outer top corner of the bubble: the corner on the
 		 * side of the speaker, so a toolbar wider than the bubble grows into the
 		 * transcript and not off its edge. It rises by its own height less
 		 * `--spacing(2.5)`, so it overlaps the padding of the bubble and not its text.
 		 */
 		actions: {
 			base: [flex.row, 'gap-0.5'],
-			actionsDisplay: {
-				rail: 'mt-1',
-				hover: [
+			hoverActions: {
+				false: 'mt-1',
+				true: [
 					'absolute z-10 bottom-[calc(100%-(--spacing(2.5)))] w-fit p-1',
 					rounded.lg,
 					omote.popover,
@@ -96,15 +96,18 @@ export const k = defineKata({
 					// open. The expanded trigger holds it.
 					'has-aria-expanded:pointer-events-auto has-aria-expanded:opacity-100',
 					// A device with no hover cannot show the toolbar, so there it is the
-					// rail: a row below the bubble that always shows.
+					// row below the bubble that always shows, with no surface of its own.
 					'[@media(hover:none)]:static [@media(hover:none)]:mt-1',
 					'[@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100',
+					'[@media(hover:none)]:p-0 [@media(hover:none)]:backdrop-blur-none',
+					'[@media(hover:none)]:bg-transparent [@media(hover:none)]:ring-0',
+					'[@media(hover:none)]:forced-colors:outline-none',
 				],
 			},
 			compound: [
-				{ actionsDisplay: 'hover', sender: 'user', class: 'end-2' },
-				{ actionsDisplay: 'hover', sender: 'assistant', class: 'start-2' },
-				{ actionsDisplay: 'hover', sender: 'system', class: 'inset-x-0 mx-auto' },
+				{ hoverActions: true, sender: 'user', class: 'end-2' },
+				{ hoverActions: true, sender: 'assistant', class: 'start-2' },
+				{ hoverActions: true, sender: 'system', class: 'inset-x-0 mx-auto' },
 			],
 		},
 		// A bubble of parts stacks one block per part, and each block collapses
@@ -165,16 +168,16 @@ export const k = defineKata({
 			},
 		},
 	},
-	defaults: { sender: 'assistant', streaming: false, actionsDisplay: 'rail' },
+	defaults: { sender: 'assistant', streaming: false, hoverActions: false },
 })
 
 /**
  * Recipe variant props for {@link ChatMessage}: the styling axes its kata exposes (`sender`), for consumers composing custom slots.
- * The `streaming` axis of the bubble and the `actionsDisplay` axis of the actions are props of the message, with their own descriptions.
+ * The `streaming` axis of the bubble and the `hoverActions` axis of the actions are props of the message, with their own descriptions.
  */
 export type ChatMessageVariants = Omit<
 	VariantProps<typeof k>,
-	'sender' | 'streaming' | 'actionsDisplay'
+	'sender' | 'streaming' | 'hoverActions'
 > & {
 	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
 	sender?: VariantProps<typeof k>['sender']

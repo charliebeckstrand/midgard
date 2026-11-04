@@ -13,7 +13,6 @@ function entries(text: string): ContextMenuEntry[] {
 			onAction: () => void navigator.clipboard?.writeText(text),
 		},
 		{ key: 'edit', label: 'Edit', icon: <Pencil /> },
-		{ separator: true },
 		{ key: 'delete', label: 'Delete', icon: <Trash2 /> },
 	]
 }

@@ -86,7 +86,7 @@ describe('ChatMessage', () => {
 
 		const actions = bySlot(container, 'chat-message-actions')
 
-		expect(actions).toHaveAttribute('data-display', 'rail')
+		expect(actions).toHaveClass('mt-1')
 
 		expect(actions?.className).not.toContain('absolute')
 	})
@@ -96,31 +96,30 @@ describe('ChatMessage', () => {
 		['assistant', 'start-2'],
 	] as const)('floats hover actions over the outer top corner of a %s bubble', (sender, side) => {
 		const { container } = renderUI(
-			<ChatMessage
-				sender={sender}
-				actionsDisplay="hover"
-				actions={<button type="button">Copy</button>}
-			>
+			<ChatMessage sender={sender} hoverActions actions={<button type="button">Copy</button>}>
 				content
 			</ChatMessage>,
 		)
 
 		const actions = bySlot(container, 'chat-message-actions')
 
-		expect(actions).toHaveAttribute('data-display', 'hover')
-
 		expect(actions).toHaveClass('absolute', 'opacity-0', side)
 
 		// The message is the containing block and the group that shows the toolbar.
 		expect(bySlot(container, 'chat-message')).toHaveClass('relative', 'group/chat-message')
 
-		// A device with no hover shows the toolbar as the rail.
-		expect(actions).toHaveClass('[@media(hover:none)]:static', '[@media(hover:none)]:opacity-100')
+		// A device with no hover shows the toolbar as a plain row below the bubble.
+		expect(actions).toHaveClass(
+			'[@media(hover:none)]:static',
+			'[@media(hover:none)]:opacity-100',
+			'[@media(hover:none)]:bg-transparent',
+			'[@media(hover:none)]:ring-0',
+		)
 	})
 
 	it('keeps hidden hover actions in the Tab order', () => {
 		renderUI(
-			<ChatMessage actionsDisplay="hover" actions={<button type="button">Copy</button>}>
+			<ChatMessage hoverActions actions={<button type="button">Copy</button>}>
 				content
 			</ChatMessage>,
 		)
