@@ -7,12 +7,23 @@ import { Grid, type GridColumn } from '../../modules/grid'
 // `setup/grid-modules.ts`), so this suite needs a cold module registry. It sits
 // in `boundary/`, which the `integration` project runs on forks.
 //
-// The mock gives the real module and counts each load of it.
+// The mock gives the real module, counts each load of it, and holds the load
+// until the case releases it.
 
-const loads = vi.hoisted(() => ({ count: 0 }))
+const loads = vi.hoisted(() => {
+	let release = () => {}
+
+	const gate = new Promise<void>((resolve) => {
+		release = resolve
+	})
+
+	return { count: 0, gate, release: () => release() }
+})
 
 vi.mock('../../modules/grid/grid-data-editable', async (importOriginal) => {
 	loads.count++
+
+	await loads.gate
 
 	return importOriginal()
 })
@@ -54,6 +65,8 @@ describe('the editing layer of the grid', () => {
 		expect(screen.queryByRole('grid')).toBeNull()
 
 		// Then the editable grid mounts, with the cursor of an editable grid.
+		loads.release()
+
 		expect(await screen.findByRole('grid', {}, { timeout: 4_000 })).toBeTruthy()
 
 		expect(loads.count).toBe(1)
