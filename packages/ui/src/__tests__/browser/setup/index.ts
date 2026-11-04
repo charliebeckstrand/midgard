@@ -4,7 +4,6 @@ import { toHaveNoViolations } from 'jest-axe'
 import { afterEach, beforeAll, beforeEach, expect, inject } from 'vitest'
 import { commands } from 'vitest/browser'
 import { loadListReorder } from '../../../components/list/use-list-reorder'
-import { loadGridEditing } from '../../../modules/grid/grid-data'
 import { loadGridDataDialogs } from '../../../modules/grid/grid-data-dialogs'
 import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
@@ -111,8 +110,15 @@ beforeAll(() => loadGridDataDialogs())
 
 // An editable grid renders from a chunk of its own, and suspends until the chunk
 // is loaded. The load before each file gives each case the state of a page that
-// already loaded it, so an editable grid renders in its first pass.
-beforeAll(() => loadGridEditing())
+// already loaded it, so an editable grid renders in its first pass. The import
+// waits for this hook, as the import of the tooltip loader below does. A static
+// import here would load the grid before the module mocks of the instance, and
+// the grid would then hold the real modules.
+beforeAll(async () => {
+	const { loadGridEditing } = await import('../../../modules/grid/grid-data')
+
+	await loadGridEditing()
+})
 
 // A tooltip loads the module of its panel after it mounts. The first load in a
 // page also transforms the module, and a slow runner can take more than two
