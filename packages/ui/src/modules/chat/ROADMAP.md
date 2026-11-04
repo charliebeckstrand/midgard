@@ -201,7 +201,7 @@ In priority order, after the increments. Each entry names the gap, the shape of 
 
 - **Conversation search.** `ChatList` takes rows and offers no filter, so a sidebar of two hundred conversations is a scroll. The plain-text projection from increment 3 is the index, and the query module is the filter. It lands as a prop on the list rather than a new component.
 
-- **Reply feedback.** An agent product cannot improve without a signal, and the transcript has nowhere to put one. `ChatMessage` already takes an `actions` rail, so the shape is a small standard pair over it, plus a callback carrying the message id and the verdict. Cheap, and it stays a slot rather than a policy.
+- **Reply feedback.** An agent product cannot improve without a signal, and the transcript has nowhere to put one. `ChatMessage` already takes `actions`, as a rail or a hover toolbar, so the shape is a small standard pair over it, plus a callback carrying the message id and the verdict. Cheap, and it stays a slot rather than a policy.
 
 - **Export a conversation.** A reader who wants a record has copy-and-paste. Grid already holds an export path in `grid-export`, so the shape is the same one over the plain-text projection, and an embedded grid can export itself. It lands after the content model and needs nothing else.
 

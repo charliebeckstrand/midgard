@@ -34,6 +34,7 @@
 	"ui.chat.attach": "Adjuntar archivos",
 	"ui.chat.done": "Hecho",
 	"ui.chat.failed": "Con error",
+	"ui.chat.messageActions": "Acciones del mensaje",
 	"ui.chat.missing": "Este chat no puede mostrar un bloque de tipo “{name}”.",
 	"ui.chat.placeholder": "Pregunta lo que quieras",
 	"ui.chat.prompt": "Mensaje",

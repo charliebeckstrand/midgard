@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
 import { LocaleProvider } from '../../providers/locale'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 // The streaming look the bubble projects onto its Markdown child, and the
 // standing dim that replaces the pulse under `prefers-reduced-motion`.
@@ -77,6 +77,91 @@ describe('ChatMessage', () => {
 		expect(actions).toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument()
+	})
+
+	it('shows static actions as a row below the bubble', () => {
+		const { container } = renderUI(
+			<ChatMessage trigger="static" actions={<button type="button">Copy</button>}>
+				content
+			</ChatMessage>,
+		)
+
+		const actions = bySlot(container, 'chat-message-actions')
+
+		expect(actions).toHaveClass('mt-1')
+
+		expect(actions?.className).not.toContain('absolute')
+	})
+
+	it.each([
+		['user', 'end-2'],
+		['assistant', 'start-2'],
+	] as const)('floats hover actions over the outer top corner of a %s bubble', (sender, side) => {
+		const { container } = renderUI(
+			<ChatMessage sender={sender} actions={<button type="button">Copy</button>}>
+				content
+			</ChatMessage>,
+		)
+
+		const actions = bySlot(container, 'chat-message-actions')
+
+		expect(actions).toHaveClass('absolute', 'opacity-0', side)
+
+		// The message is the containing block and the group that shows the toolbar.
+		expect(bySlot(container, 'chat-message')).toHaveClass('relative', 'group/chat-message')
+
+		// A device with no hover shows the toolbar as a plain row below the bubble.
+		expect(actions).toHaveClass(
+			'[@media(hover:none)]:static',
+			'[@media(hover:none)]:opacity-100',
+			'[@media(hover:none)]:bg-transparent',
+			'[@media(hover:none)]:ring-0',
+		)
+	})
+
+	it('keeps hidden hover actions in the Tab order', () => {
+		renderUI(<ChatMessage actions={<button type="button">Copy</button>}>content</ChatMessage>)
+
+		const copy = screen.getByRole('button', { name: 'Copy' })
+
+		copy.focus()
+
+		expect(copy).toHaveFocus()
+	})
+
+	it('opens the context menu on a right-click on the bubble', () => {
+		const onAction = vi.fn()
+
+		const { container } = renderUI(
+			<ChatMessage contextMenu={[{ key: 'copy', label: 'Copy', onAction }]}>content</ChatMessage>,
+		)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		const bubble = bySlot(container, 'chat-message-bubble')
+
+		if (!bubble) throw new Error('no bubble')
+
+		fireEvent.contextMenu(bubble)
+
+		expect(screen.getByRole('menu', { name: 'Message actions' })).toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Copy' }))
+
+		expect(onAction).toHaveBeenCalledOnce()
+	})
+
+	it('keeps the native menu of a bubble with no context menu', () => {
+		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
+
+		const bubble = bySlot(container, 'chat-message-bubble')
+
+		if (!bubble) throw new Error('no bubble')
+
+		// fireEvent returns false when a handler cancels the event.
+		expect(fireEvent.contextMenu(bubble)).toBe(true)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 
 	it('renders settled content as Markdown', () => {

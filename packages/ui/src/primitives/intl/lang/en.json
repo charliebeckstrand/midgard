@@ -139,6 +139,10 @@
 		"defaultMessage": "Failed",
 		"description": "The status of a step of the assistant that ended with an error."
 	},
+	"ui.chat.messageActions": {
+		"defaultMessage": "Message actions",
+		"description": "The name of the menu that opens on a right-click or a long press on a chat message. It holds the actions of that message."
+	},
 	"ui.chat.missing": {
 		"defaultMessage": "This chat cannot show a “{name}” block.",
 		"description": "Shown in place of a block of a chat reply that the app cannot draw. The name is the name of the block."
