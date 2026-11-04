@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { UIDocument } from 'ui/providers/ui'
 
 import './globals.css'
 import { Providers } from './providers'
@@ -12,13 +11,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		// The map fills the screen, so the page never scrolls: the body is the
+		// The server writes the stored settings of the reader on `<html>`
+		// (`rootMarks`), so its classes differ from the markup of React. The
+		// map fills the screen, so the page never scrolls: the body is the
 		// frame every panel docks against.
-		<UIDocument
-			className="h-full"
-			bodyClassName="h-full overflow-hidden bg-white dark:bg-zinc-900 antialiased"
-		>
-			<Providers>{children}</Providers>
-		</UIDocument>
+		<html lang="en" className="h-full" suppressHydrationWarning>
+			<body className="h-full overflow-hidden bg-white dark:bg-zinc-900 antialiased">
+				<Providers>{children}</Providers>
+			</body>
+		</html>
 	)
 }

@@ -10,14 +10,12 @@ import { UIProvider } from 'ui/providers/ui'
 
 ## `ui/providers/ui`: app-root integration
 
-The integration points an app mounts once at its root: `UIDocument` in the root layout, and `UIProvider` in the client providers.
+The integration point that an app mounts once in its client providers, and the server functions that write the stored settings on the root element.
 
 | Export | Summary |
 |---|---|
 | `UIProvider` | App-root integration point: the framework link, the default portal container, and the current `pathname`. It mounts the hosts of `useConfirm` and `useToast`. Put `LocaleProvider` above it. |
 | `UIProviderProps` *(type)* | Props for `UIProvider`. |
-| `UIDocument` | The `<html>`, `<head>`, and `<body>` of an app, with `AppearanceProvider` in place. A server layout can render it. |
-| `UIDocumentProps` *(type)* | Props for `UIDocument`: `lang`, the classes of `<html>` and `<body>`, and more `head` content. |
 | `rootMarks` | Server only. The classes and the attributes of the root element for the stored settings of the reader in a `Cookie` header. |
 | `markRoot` | Server only. Writes `RootMarks` on the opening tag of the root element of an HTML string. |
 | `hasRootTag` | Server only. Whether an HTML string holds the whole opening tag of the root element. A server that streams a page marks it after this is true. |
@@ -29,7 +27,7 @@ The integration points an app mounts once at its root: `UIDocument` in the root 
 
 ## `ui/providers/appearance`
 
-An app mounts `AppearanceProvider` once at its root. The stylesheet of the app must key its `dark` variant on the `.dark` class.
+An app mounts `AppearanceProvider` once, in `<body>` above all text. The server writes the stored settings on `<html>` (`rootMarks`), so `<html>` has `suppressHydrationWarning`. The stylesheet of the app must key its `dark` variant on the `.dark` class.
 
 | Export | Summary |
 |---|---|
