@@ -27,15 +27,15 @@ export type BreakpointValues = { readonly [B in Breakpoint]?: Literal }
 /** The value of a default: a literal, or a value for each breakpoint. */
 export type DefaultValue = Literal | BreakpointValues
 
+const MEDIA = ['phone', 'hover'] as const
+
 /**
  * A kind of device on which a prop has an effect, from the `@media` tag of the
  * prop. A `phone` is a device with no hover and a viewport narrower than the
  * `sm` breakpoint, as `PHONE_QUERY` gives it. A `hover` device is a device
  * whose primary pointer hovers, such as a mouse.
  */
-export type Media = 'phone' | 'hover'
-
-const MEDIA: readonly Media[] = ['phone', 'hover']
+export type Media = (typeof MEDIA)[number]
 
 /** One prop of a component, as the API table and the playground read it. */
 export type PropApi = {
