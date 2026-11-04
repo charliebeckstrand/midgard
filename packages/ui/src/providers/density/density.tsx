@@ -26,7 +26,7 @@ export type DensityProviderProps = {
  * components that need the step as a JS value, such as Grid, read it too.
  *
  * @remarks
- * The root element is the scope of the app. `AppearanceScript` and
+ * The root element is the scope of the app. The server and
  * `AppearanceProvider` write the stored step there, so an app needs no
  * provider. Use one for a region that differs from the app.
  */

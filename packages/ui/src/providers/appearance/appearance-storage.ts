@@ -13,8 +13,8 @@ import {
 /**
  * One stored appearance choice: its `localStorage` key, the values it can
  * hold, the value with no stored choice, and an optional cookie.
- * {@link AppearanceScript} reads the same keys before hydration, and a server
- * that renders per request reads the cookies ({@link appearanceRootClasses}).
+ * A server reads the cookies and writes the classes on the root element
+ * ({@link appearanceRootClasses}).
  *
  * @internal
  */

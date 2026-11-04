@@ -14,7 +14,6 @@
 // replaces the kept copy. Thus the recovery fetches the module files of the
 // page again with that mode before the page reloads.
 
-import { InlineScript } from '../../primitives/inline-script/inline-script.tsx'
 import { noop } from '../../utilities/noop.ts'
 
 declare global {
@@ -52,9 +51,19 @@ const SCRIPT = `(function(){var w=window;function f(e){var t=e.target;if(e.type=
 function s(){w.removeEventListener('error',f,true);w.removeEventListener('unhandledrejection',f);delete w.__staleBuild}
 w.addEventListener('error',f,true);w.addEventListener('unhandledrejection',f);w.__staleBuild=s})()`
 
-/** The head script that reloads a page whose scripts fail before the client entry runs. Render it in the `<head>`, before the scripts. */
+/**
+ * The head script that reloads a page whose scripts fail before the client
+ * entry runs. Render it in the `<head>`, before the scripts.
+ *
+ * It is the one inline script of the docs, and it is not a paint script
+ * (CONVENTIONS §3.13). It must listen before the first module load, and React
+ * puts the module preloads above each other element of the head, so a script
+ * file loads too late. The server renderer of React escapes `<script` and
+ * `</script` in the text, so the source cannot close the element. The source
+ * is built from constants, and hydration keeps the text of the server.
+ */
 export function StaleBuildScript() {
-	return <InlineScript source={SCRIPT} />
+	return <script suppressHydrationWarning>{SCRIPT}</script>
 }
 
 /**

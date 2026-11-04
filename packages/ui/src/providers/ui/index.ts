@@ -1,5 +1,6 @@
 export type { PathMatch } from '../../primitives/current/context'
 export { useLink } from '../../primitives/link'
 export { type PortalContainer, usePortalContainer } from '../../primitives/portal'
+export { hasRootTag, markRoot, type RootMarks, rootMarks } from './root-marks'
 export { UIProvider, type UIProviderProps } from './ui'
 export { UIDocument, type UIDocumentProps } from './ui-document'

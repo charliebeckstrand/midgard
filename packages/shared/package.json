@@ -38,6 +38,7 @@
 		"./globals.css": "./src/globals.css"
 	},
 	"scripts": {
+		"build": "tsup",
 		"check-types": "tsc --noEmit",
 		"intl": "tsx scripts/intl.ts",
 		"openapi": "openapi-typescript https://raw.githubusercontent.com/charliebeckstrand/asgard/main/services/mimir/openapi.json -o src/mimir/openapi.d.ts && biome format --write src/mimir/openapi.d.ts",
@@ -70,6 +71,7 @@
 		"openapi-typescript": "^7.13.0",
 		"react": "catalog:",
 		"react-dom": "catalog:",
+		"tsup": "catalog:",
 		"tsx": "catalog:",
 		"typescript": "catalog:typescript6",
 		"vitest": "catalog:"

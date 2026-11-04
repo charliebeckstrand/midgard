@@ -42,8 +42,7 @@ import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { brotliCompress, constants, gzip } from 'node:zlib'
 import { localeFile, requestLocale } from '../src/docs/app/language.ts'
-import { eventsRootAttributes } from '../src/modules/events/engine/events-setting.ts'
-import { appearanceRootClasses } from '../src/providers/appearance/appearance-root.ts'
+import { markRoot, type RootMarks, rootMarks } from '../src/providers/ui/root-marks.ts'
 import { getOrCompute } from '../src/utilities/get-or-compute.ts'
 
 const brotli = promisify(brotliCompress)
@@ -133,46 +132,9 @@ export function pickEncoding(file: string, header: string | undefined): Encoding
 	return ENCODINGS.find((coding) => (weights.get(coding) ?? weights.get('*') ?? 0) > 0)
 }
 
-/**
- * The marks that the stored settings of the reader put on the root element of
- * a page: its classes and its attributes. `cookies` is the `Cookie` header of
- * the request. The app keeps the same marks after hydration.
- */
-export type RootMarks = { classes: readonly string[]; attributes: readonly string[] }
-
-/** The marks of the root element for the cookies of a request. */
-export function rootMarks(cookies = ''): RootMarks {
-	return { classes: appearanceRootClasses(cookies), attributes: eventsRootAttributes(cookies) }
-}
-
 /** A key that names `marks`: empty with no marks. */
 function marksKey({ classes, attributes }: RootMarks): string {
 	return [...classes, ...attributes].join('+')
-}
-
-/** The `class` attribute in the attributes of a tag, and its value. */
-const CLASS_ATTRIBUTE = /\sclass="([^"]*)"/
-
-/**
- * The HTML of a page with `marks` on its root element. The classes go after
- * the classes of the build, and each attribute has no value.
- */
-export function markRoot(html: string, { classes, attributes }: RootMarks): string {
-	if (classes.length === 0 && attributes.length === 0) return html
-
-	const added = attributes.map((name) => ` ${name}=""`).join('')
-
-	return html.replace(/<html\b([^>]*)>/, (_, attrs: string) => {
-		if (classes.length === 0) return `<html${attrs}${added}>`
-
-		const own = CLASS_ATTRIBUTE.exec(attrs)
-
-		const merged = ` class="${[own?.[1], ...classes].filter(Boolean).join(' ')}"`
-
-		const rest = own ? attrs.replace(CLASS_ATTRIBUTE, '') : attrs
-
-		return `<html${rest}${merged}${added}>`
-	})
 }
 
 /** The compressed bodies, by coding, file, the time and size of the file, and the marks of the root. */
@@ -188,7 +150,7 @@ async function readContent(file: string, marks: RootMarks): Promise<Buffer> {
 }
 
 /** No marks on the root element. */
-const NO_MARKS: RootMarks = { classes: [], attributes: [] }
+const NO_MARKS = rootMarks()
 
 /**
  * The body of `file` in `encoding`, or as it is on the disk with no coding,

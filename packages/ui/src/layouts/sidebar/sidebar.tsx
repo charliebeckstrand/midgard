@@ -117,8 +117,8 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  *
  * The Sidebar setting of `AppearanceProvider` selects the inline sidebar:
  * `'locked'` shows the inline panel, and `'offcanvas'` shows the floating sheet.
- * The selection is a class on the root element, which `AppearanceScript` writes
- * before the first paint, so the first paint shows the correct sidebar. ⌘B
+ * The selection is a class on the root element, which the server writes from a
+ * cookie, so the first paint shows the correct sidebar. ⌘B
  * (Ctrl+B on other platforms) toggles the setting. A held chord toggles it one
  * time, and a press in a form field does not toggle it.
  *

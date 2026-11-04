@@ -369,6 +369,7 @@
 				"packages/auth/**",
 				"packages/shared/**",
 				"!packages/auth/src/env.ts",
+				"!packages/shared/src/server/env.ts",
 				"!apps/places/src/server/env.ts"
 			],
 			"linter": {

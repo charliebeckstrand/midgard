@@ -59,7 +59,10 @@ ENV PORT=3000
 COPY --from=build --chown=node:node /app/apps/${APP}/.next/standalone ./
 COPY --from=build --chown=node:node /app/apps/${APP}/.next/static ./apps/${APP}/.next/static
 COPY --from=build --chown=node:node /app/apps/${APP}/public ./apps/${APP}/public
+# The server of `shared` runs Next beside `server.js`, and writes the stored
+# settings of the reader on the root element of each page (`packages/shared`).
+COPY --from=build --chown=node:node /app/packages/shared/dist/serve-next.js ./apps/${APP}/serve-next.js
 USER node
 WORKDIR /app/apps/${APP}
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["node", "serve-next.js"]

@@ -1,16 +1,15 @@
 import { readCookie, writeCookie } from '../../../utilities/cookie'
 import { createEmitter } from '../../../utilities/emitter'
 import { noop } from '../../../utilities/noop'
-import { CAPTURE_KEY, getStorage, readStorage, writeStorage } from './events-storage'
+import { getStorage, readStorage, writeStorage } from './events-storage'
 import type { EventSource } from './types'
 
 // The settings of the events: whether they run, and whether the panel is
 // pinned. They are in `localStorage`, so they stay for the next visit, with a
-// copy in a cookie for a server. Before the first paint, the pre-paint script
-// of `EventsScript`, or a server that renders per request, copies them to
-// attributes of the root element, so CSS shows the header button and the
-// pinned panel in the first paint. This module loads no part of the recorder
-// until the events run.
+// copy in a cookie for a server. The server writes them as attributes of the
+// root element ({@link eventsRootAttributes}), so CSS shows the header button
+// and the pinned panel in the first paint. This module loads no part of the
+// recorder until the events run.
 
 /**
  * A setting: its `localStorage` key, and the cookie that holds a copy of it,
@@ -167,12 +166,6 @@ function syncAttributes(): void {
 
 	root.toggleAttribute(PINNED_ATTRIBUTE, on && isEventsPinned())
 }
-
-/**
- * The pre-paint script: it copies the settings to the attributes of the root
- * element, and marks a capture that runs in this tab.
- */
-export const SCRIPT = `(function(){try{var l=localStorage,r=document.documentElement;if(l.getItem(${JSON.stringify(ON.key)})!=='1')return;r.setAttribute(${JSON.stringify(ON_ATTRIBUTE)},'');if(l.getItem(${JSON.stringify(PINNED.key)})==='1')r.setAttribute(${JSON.stringify(PINNED_ATTRIBUTE)},'');if(sessionStorage.getItem(${JSON.stringify(CAPTURE_KEY)})!==null)r.setAttribute(${JSON.stringify(CAPTURE_ATTRIBUTE)},'')}catch(e){}})()`
 
 /** The `localStorage` of the page. The settings are off where the storage throws, such as with site data off. */
 const local = () => getStorage(() => localStorage)
