@@ -7,7 +7,7 @@ const PARTS = { weekday: 'short', hour: 'numeric', minute: '2-digit' } as const
 
 /**
  * A kickoff time in the time zone of the reader. The server and the hydration
- * render give the time in the zone of the league, with its name.
+ * render show a skeleton line, because the server does not know that zone.
  */
 export function KickoffTime({ kickoff, className }: { kickoff: string; className?: string }) {
 	return <DateTime value={kickoff} format={PARTS} className={className} />

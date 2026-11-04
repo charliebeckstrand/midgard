@@ -59,7 +59,10 @@ export function toDay(date: Date): string {
  * parses as a UTC midnight, so the format reads it in UTC. The day is then
  * the same in each zone and in each render.
  */
-export const DAY_FORMAT: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeZone: 'UTC' }
+export const DAY_FORMAT = {
+	dateStyle: 'medium',
+	timeZone: 'UTC',
+} as const satisfies Intl.DateTimeFormatOptions
 
 /** Reads a stored `YYYY-MM-DD` day back as a local midnight. */
 export function fromDay(day: string): Date {

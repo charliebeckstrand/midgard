@@ -1,7 +1,7 @@
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { DateTime } from '../../components/date-time'
 import { LocaleProvider } from '../../providers/locale'
-import { resolveDateOptions } from '../../providers/locale/use-date-format'
 import { renderUI, screen } from '../helpers'
 import { hydrateServerRender } from '../helpers/hydrate'
 
@@ -10,55 +10,19 @@ const KICKOFF = '2026-10-04T17:00:00Z'
 
 const KICKOFF_FORMAT = { weekday: 'short', hour: 'numeric', minute: '2-digit' } as const
 
-describe('resolveDateOptions', () => {
-	it('formats in the provider zone with its name before hydration', () => {
-		expect(resolveDateOptions({ hour: 'numeric' }, false, 'America/New_York')).toEqual({
-			hour: 'numeric',
-			timeZone: 'America/New_York',
-			timeZoneName: 'short',
-		})
-	})
-
-	it('adds no zone name to a date with no time', () => {
-		expect(resolveDateOptions({ month: 'short' }, false)).toEqual({
-			month: 'short',
-			timeZone: 'UTC',
-		})
-	})
-
-	it('adds no zone name to a style format, because Intl does not mix the two', () => {
-		const options = resolveDateOptions({ dateStyle: 'medium', timeStyle: 'short' }, false)
-
-		expect(options.timeZoneName).toBeUndefined()
-
-		expect(() => new Intl.DateTimeFormat('en-US', options)).not.toThrow()
-	})
-
-	it('keeps the options after hydration, so the zone of the reader applies', () => {
-		expect(resolveDateOptions({ hour: 'numeric' }, true, 'America/New_York')).toEqual({
-			hour: 'numeric',
-		})
-	})
-
-	it('keeps a set zone in each render', () => {
-		expect(resolveDateOptions({ day: 'numeric', timeZone: 'UTC' }, false, 'Asia/Tokyo')).toEqual({
-			day: 'numeric',
-			timeZone: 'UTC',
-		})
-	})
-})
-
 describe('DateTime', () => {
-	it('renders the provider zone on the server, hydrates with no mismatch, then shows the zone of the reader', () => {
+	it('renders a skeleton line on the server in the zone of the reader, then the date after hydration', () => {
 		const element = (
-			<LocaleProvider locale="en-US" timeZone="America/New_York">
+			<LocaleProvider locale="en-US">
 				<DateTime value={KICKOFF} format={KICKOFF_FORMAT} />
 			</LocaleProvider>
 		)
 
 		const { html, container, onRecoverableError, consoleError } = hydrateServerRender(element)
 
-		expect(html).toContain('Sun, 1:00 PM EDT')
+		expect(html).toContain('data-slot="placeholder"')
+
+		expect(html).not.toContain('PM')
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
@@ -71,12 +35,30 @@ describe('DateTime', () => {
 		expect(time).toHaveAttribute('datetime', '2026-10-04T17:00:00.000Z')
 	})
 
-	it('keeps a set zone after hydration', () => {
+	it('gives the same text on the server and after hydration in the zone of the provider', () => {
 		const element = (
 			<LocaleProvider locale="en-US" timeZone="America/New_York">
+				<DateTime value={KICKOFF} format={KICKOFF_FORMAT} />
+			</LocaleProvider>
+		)
+
+		const { html, container, onRecoverableError } = hydrateServerRender(element)
+
+		expect(html).toMatch(/Sun,? 1:00 PM/)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(container.querySelector('time')).toHaveTextContent(/^Sun,? 1:00 PM$/)
+	})
+
+	it('keeps the zone of the format over the zone of the provider', () => {
+		const element = (
+			<LocaleProvider locale="en-US" timeZone="Asia/Tokyo">
 				<DateTime value="2026-10-04T00:00:00Z" format={{ dateStyle: 'medium', timeZone: 'UTC' }} />
 			</LocaleProvider>
 		)
+
+		expect(renderToString(element)).toContain('Oct 4, 2026')
 
 		const { container, onRecoverableError } = hydrateServerRender(element)
 

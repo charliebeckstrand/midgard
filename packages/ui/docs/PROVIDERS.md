@@ -93,7 +93,7 @@ To add a language, add its translation to each folder of catalogs, and name the 
 | `resolveRequestLocale` | Resolves the locale of a request on the server from the locale cookie and the `Accept-Language` header, as the provider resolves it in the browser. |
 | `RequestLocaleInput` *(type)* | The request values that `resolveRequestLocale` reads: the cookie, the header, and the `locales`. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
-| `useDateFormat` | Resolves `Intl.DateTimeFormat` options to a memoized formatter in the locale of the provider. To render a date, use `DateTime` from `ui/date-time`. |
+| `useDateFormat` | Resolves `Intl.DateTimeFormat` options to a memoized formatter in the locale of the provider. With no zone in the options or the provider, it gives `undefined` until hydration. To render a date, use `DateTime` from `ui/date-time`. |
 | `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |
 
 ---
