@@ -8,8 +8,10 @@ import {
 	entityTag,
 	isFallback,
 	isFresh,
+	markRoot,
 	pickEncoding,
 	readBody,
+	rootMarks,
 } from '../../../scripts/docs-server.ts'
 
 // The server of the docs compresses each text file of the build, as a CDN
@@ -70,6 +72,66 @@ describe('entityTag', () => {
 		expect(entityTag({ size: 314_307, mtimeMs: 1_793_416_000_123.456 })).not.toBe(tag)
 
 		expect(entityTag({ size: 314_306, mtimeMs: 1_793_416_000_124 })).not.toBe(tag)
+
+		// A copy with other settings of the reader is not current.
+		expect(
+			entityTag({ size: 314_306, mtimeMs: 1_793_416_000_123.456 }, rootMarks('theme=dark')),
+		).not.toBe(tag)
+	})
+})
+
+describe('rootMarks', () => {
+	it('reads the stored settings of the reader from the cookies of the request', () => {
+		expect(rootMarks()).toEqual({ classes: [], attributes: [] })
+
+		expect(
+			rootMarks('locale=es; theme=system; density=snug; motion=system; sidebar=locked'),
+		).toEqual({
+			classes: [],
+			attributes: [],
+		})
+
+		expect(
+			rootMarks(
+				'theme=dark; density=compact; motion=reduced; sidebar=offcanvas; events-on=1; events-pinned=1',
+			),
+		).toEqual({
+			classes: ['dark', 'density-root-sm', 'reduced-motion', 'sidebar-offcanvas'],
+			attributes: ['data-events', 'data-events-pinned'],
+		})
+
+		// A light theme on a dark OS needs its own class, and a pin with the events
+		// off shows no panel.
+		expect(rootMarks('theme=light; density=loose; events-on=0; events-pinned=1')).toEqual({
+			classes: ['light', 'density-root-lg'],
+			attributes: [],
+		})
+
+		// A value that is not one of the values of a setting reads as the default.
+		expect(rootMarks('theme=%3Cscript%3E; density=__proto__')).toEqual({
+			classes: [],
+			attributes: [],
+		})
+	})
+})
+
+describe('markRoot', () => {
+	const html = '<!DOCTYPE html><html lang="en" class="antialiased"><head></head></html>'
+
+	it('adds the classes after the classes of the build, and the attributes after them', () => {
+		expect(
+			markRoot(html, { classes: ['dark', 'reduced-motion'], attributes: ['data-events'] }),
+		).toBe(
+			'<!DOCTYPE html><html lang="en" class="antialiased dark reduced-motion" data-events=""><head></head></html>',
+		)
+	})
+
+	it('adds a class attribute to a root that has none, and leaves a page with no marks as it is', () => {
+		expect(markRoot('<html lang="es">', { classes: ['light'], attributes: [] })).toBe(
+			'<html lang="es" class="light">',
+		)
+
+		expect(markRoot(html, { classes: [], attributes: [] })).toBe(html)
 	})
 })
 

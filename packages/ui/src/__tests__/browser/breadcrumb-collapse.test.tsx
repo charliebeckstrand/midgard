@@ -43,54 +43,32 @@ function drawn(container: HTMLElement) {
 	)
 }
 
-/** The style sheet of the pre-paint step in the head, if any. */
-function fitStyle() {
-	return document.head.querySelector('style[data-breadcrumb-fit]')
-}
-
-/**
- * Puts the server markup of a narrow trail into `parent` and runs its pre-paint
- * step, as a browser does while it parses the page.
- */
-function parseServerMarkup(parent: HTMLElement) {
-	parent.innerHTML = renderToString(trail(260))
-
-	onTestFinished(() => fitStyle()?.remove())
-
-	// A script set through `innerHTML` does not run. A copy in its place does, and
-	// it finds the `<nav>` just before it as the parser would.
-	const inert = present(parent.querySelector('script'), 'script')
-
-	const script = document.createElement('script')
-
-	script.textContent = inert.textContent
-
-	inert.replaceWith(script)
+/** The `<nav>` of the trail in `container`. */
+function nav(container: HTMLElement) {
+	return present(container.querySelector<HTMLElement>('[data-slot=breadcrumb]'), 'nav')
 }
 
 describe('a collapsing breadcrumb (real browser)', () => {
-	it('settles the server markup before the first paint, and hydrates it unchanged', async ({
+	it('keeps the row of the server markup invisible, and shows the fit at hydration', async ({
 		signal,
 	}) => {
 		const container = attach(document.createElement('div'))
 
-		parseServerMarkup(container)
+		container.innerHTML = renderToString(trail(260))
 
-		// The style sheet is in the head before any frame. In WebKit, a new style
-		// sheet inside the first frame removes the effect of the scroll-driven
-		// animations in that paint.
-		const style = present(fitStyle(), 'style')
-
+		// The server cannot know the room of the row. The row keeps its size, and
+		// no crumb paints.
 		await frames()
 
 		signal.throwIfAborted()
 
-		expect(drawn(container)).toEqual(['…', '…', 'Oregon'])
+		expect(getComputedStyle(nav(container)).visibility).toBe('hidden')
 
-		// The frame set the answer on the same style, and added no style sheet.
-		expect(fitStyle()).toBe(style)
+		const height = nav(container).getBoundingClientRect().height
 
-		expect(style.getAttribute('data-collapsed')).toBe('2')
+		expect(height).toBeGreaterThan(0)
+
+		expect(container.querySelector('script')).toBeNull()
 
 		const error = vi.spyOn(console, 'error')
 
@@ -104,44 +82,13 @@ describe('a collapsing breadcrumb (real browser)', () => {
 
 		expect(error).not.toHaveBeenCalled()
 
-		// React's own rule holds the fit, and the rule of the pre-paint step is gone.
+		// The layout effect of the hydration measures the fit before the frame
+		// that shows the trail. The row does not change its size.
 		expect(drawn(container)).toEqual(['…', '…', 'Oregon'])
 
-		expect(fitStyle()).toBeNull()
+		expect(getComputedStyle(nav(container)).visibility).toBe('visible')
 
-		expect(container.querySelector('script')).toBeNull()
-	})
-
-	it('settles a streamed trail when React reveals it, with the style sheet from the parse', async ({
-		signal,
-	}) => {
-		const container = attach(document.createElement('div'))
-
-		// A Suspense boundary streams its content in a hidden segment.
-		const segment = attach(document.createElement('div'))
-
-		segment.hidden = true
-
-		parseServerMarkup(segment)
-
-		const style = present(fitStyle(), 'style')
-
-		await frames()
-
-		signal.throwIfAborted()
-
-		expect(style.hasAttribute('data-collapsed')).toBe(false)
-
-		// React moves the content of the segment into the page.
-		container.append(...segment.childNodes)
-
-		await frames()
-
-		signal.throwIfAborted()
-
-		expect(drawn(container)).toEqual(['…', '…', 'Oregon'])
-
-		expect(fitStyle()).toBe(style)
+		expect(nav(container).getBoundingClientRect().height).toBe(height)
 	})
 
 	it('gives way from the left as the row narrows, and comes back as it grows', async () => {

@@ -12,10 +12,6 @@
  * The last crumb is the current page. It never gives way, and it clips at the
  * end of the row after every crumb above it has gone to its mark.
  *
- * @remarks
- * The function refers to nothing outside its own body, because the pre-paint
- * script of `Breadcrumb` carries its source text. Keep it so.
- *
  * @param nav - The `<nav>` of the trail, whose width is the room.
  * @returns The number of leading crumbs that show their mark.
  * @internal
@@ -81,23 +77,18 @@ export function breadcrumbFit(nav: HTMLElement): number {
  * trail marked `data-collapse={id}`, and closes their labels.
  *
  * @remarks
- * The function refers to nothing outside its own body, because the pre-paint
- * script of `Breadcrumb` carries its source text. Keep it so. The rule is not a
- * design: the classes of `BreadcrumbLink` hold the look, and the rule only
- * switches which of the two boxes of a crumb has width.
+ * The rule is not a design: the classes of `BreadcrumbLink` hold the look, and
+ * the rule only switches which of the two boxes of a crumb has width.
  *
  * @param id - The value of the trail's `data-collapse` attribute.
  * @param collapsed - The number of leading crumbs that show their mark.
- * @param when - A selector that must match an ancestor of the trail for the
- * rule to apply, with a space after it. The pre-paint step writes one rule for
- * each answer, and each rule applies only while the answer is its own.
  * @returns The rule, or an empty string when no crumb gives way.
  * @internal
  */
-export function breadcrumbFitRule(id: string, collapsed: number, when = ''): string {
+export function breadcrumbFitRule(id: string, collapsed: number): string {
 	if (collapsed < 1) return ''
 
-	const crumbs = `${when}[data-collapse="${id}"] [data-slot=breadcrumb-item]:nth-child(-n+${collapsed} of [data-slot=breadcrumb-item])`
+	const crumbs = `[data-collapse="${id}"] [data-slot=breadcrumb-item]:nth-child(-n+${collapsed} of [data-slot=breadcrumb-item])`
 
 	return `${crumbs} [data-slot=breadcrumb-label]{max-width:0}${crumbs} [data-slot=breadcrumb-mark]{max-width:none}`
 }
