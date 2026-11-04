@@ -177,10 +177,6 @@ const NO_BASE_EXEMPT = new Map<string, string>([
 		'it has no root: it puts a hidden hit area before its children, inside the host',
 	],
 	[
-		'providers/ui/ui-document.tsx → UIDocumentProps',
-		'it renders the whole document, `<html>` with its `<head>` and `<body>`, so no one element owns its props',
-	],
-	[
 		'providers/glass/glass.tsx → GlassProviderProps',
 		'a provider writes a `display: contents` span only to carry its state to the DOM (CONVENTIONS §3.8)',
 	],
