@@ -1,6 +1,6 @@
 # shared
 
-Cross-app auth UI, the error and 404 pages, the types of the Mimir API, and the global stylesheet.
+Cross-app auth UI, the error and 404 pages, the types of the Mimir API, the global stylesheet, and the server of the app images.
 
 ## 0. Prerequisites
 
@@ -8,7 +8,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 ## 1. Exports
 
-The apps compile this package from its source, as they do `ui`, so it has no build step.
+The apps compile this package from its source, as they do `ui`. The one build step is the server of the app images (§2).
 
 | Path | Purpose |
 |---|---|
@@ -18,21 +18,26 @@ The apps compile this package from its source, as they do `ui`, so it has no bui
 | `shared/mimir` | The `paths` and `components` types of the Mimir API, in asgard, from `src/mimir/openapi.d.ts`. The places and the picks apps type their Mimir clients from it. `createMimirClient` makes the client in the browser, and `unwrap` from `shared/auth` reads its result. |
 | `shared/queries` | `seed` marks the read of a server page with the time of the read, and `seededQuery` puts that read into a client query. The query keeps the entry only while its page is open, so a revisit shows the newer read of the server and does not fetch again. |
 | `shared/pages` | `ErrorPage` and `NotFoundPage`, which the `app/error.tsx` and `app/not-found.tsx` of each app re-export as their default exports, and `notFoundMetadata`, which `app/not-found.tsx` re-exports as its `metadata`. |
-| `shared/globals.css` | Global stylesheet: `ui/tailwind.css`, which gives the font (except its latin face) and `--font-sans`, the root styles, and a `dark` variant that follows the `.dark` class. `AppearanceProvider` from `ui/providers/appearance` sets that class, and it adds the latin face. |
+| `shared/globals.css` | Global stylesheet: `ui/tailwind.css`, which gives the font (except its latin face) and `--font-sans`, the root styles, and a `dark` variant that follows the `.dark` class, else the OS while the root has no `.light` class. `AppearanceProvider` from `ui/providers/appearance` sets the classes, and it adds the latin face. |
 
 `shared/globals.css` names `shared` and `ui` as Tailwind sources, so an app that imports it gets the classes of both. The app names only its own sources.
 
-## 2. Commands
+## 2. The server of the app images
+
+`src/server/serve-next.ts` runs a Next app in its image, in place of the `server.js` of the standalone output. It writes the stored settings of the reader on `<html>` of each HTML page (`markHtml`), from the cookies of the request, so the first paint shows the theme, the density, the motion, the sidebar, and the events with no script (CONVENTIONS §3.13). An HTML page is then private to the reader: `Cache-Control: private, no-cache`, `Vary: Cookie`, and no `ETag`. The server compresses each response with gzip, after the marks. `pnpm --filter shared build` writes the bundle to `dist/serve-next.js`, and the `Dockerfile` runs it beside the `server.js` of the app. `next dev` has no such layer, so there the settings apply at hydration.
+
+## 3. Commands
 
 | Goal | Command |
 |---|---|
 | Test | `pnpm --filter shared test` |
+| Build the server of the app images | `pnpm --filter shared build` |
 | Generate the Mimir types | `pnpm --filter shared openapi` |
 | Write the English message catalog, `src/locale/lang/en.json` | `pnpm --filter shared intl` |
 | Lint | `pnpm --filter shared lint` |
 | Format | `pnpm --filter shared format` |
 
-## 3. Consumers
+## 4. Consumers
 
 All three apps use the auth UI, the providers, the stylesheet, and the error and 404 pages. [`apps/places`](../../apps/places/README.md) and [`apps/picks`](../../apps/picks/README.md) use the Mimir types. This package depends on [`ui`](../ui/README.md).
 

@@ -27,7 +27,7 @@ const getServerSnapshot = () => false
  * pins it, and its Unpin returns the view to `EventsButton`.
  *
  * The box renders on the server too, and CSS shows it by the attributes that
- * `EventsScript` writes before the first paint. The page then paints at its
+ * the server writes on the root element. The page then paints at its
  * final width, and the content of the panel loads after hydration. The
  * sources skip the events in the panel, so the store does not record its own
  * rows, and the panel does not pause the store.

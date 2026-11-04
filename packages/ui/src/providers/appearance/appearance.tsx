@@ -49,13 +49,12 @@ export type AppearanceProviderProps = {
  * the root element, so a region cannot hold an appearance of its own.
  *
  * The app's stylesheet must key its `dark` variant on the class, for example
- * `@custom-variant dark (&:where(.dark, .dark *))`. On a server-rendered page,
- * render {@link AppearanceScript} in the document head, so the stored theme,
- * density, motion, and sidebar apply before the first paint. `UIDocument` renders the
- * script and this provider together. Each choice has a copy in a cookie, so a
- * server that renders each request can write the classes on the root in place
- * of the script. A light theme then adds the `light` class, which a `dark`
- * variant that follows the OS with no class reads.
+ * `@custom-variant dark (&:where(.dark, .dark *))`. Each choice has a copy in
+ * a cookie, so the server writes the classes of the stored theme, density,
+ * motion, and sidebar on the root before the first paint (`rootMarks` in
+ * `ui/providers/ui`). With no cookie, the choices apply at hydration. A light
+ * theme adds the `light` class, so a `dark` variant can follow the OS while
+ * the root has no theme class.
  *
  * It renders the script of the latin face of the font before its children
  * ({@link FontScript}), so latin text paints in the font from the first paint.
@@ -82,7 +81,7 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 		// The classes on the root are side effects, not rendered state, so the
 		// store drives them directly. The effect does not read `theme`,
 		// `density`, `motion`, or `sidebar`: during hydration they hold the defaults, and a
-		// value from a default would undo what `AppearanceScript` set.
+		// value from a default would undo what the server set.
 		let unsubscribeScheme: (() => void) | undefined
 
 		const root = document.documentElement

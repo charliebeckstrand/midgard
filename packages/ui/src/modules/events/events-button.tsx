@@ -19,8 +19,8 @@ const sheet = createLazyModule(() => import('./events-sheet'))
 
 /**
  * The header button of the events. The server renders it, and CSS shows it
- * while the events run, by the attribute that `EventsScript` writes before
- * the first paint. Where the enclosing `SidebarLayout` is inline, it hides
+ * while the events run, by the attribute that the server writes on the root
+ * element. Where the enclosing `SidebarLayout` is inline, it hides
  * while the panel is pinned, as the panel shows there. A dot
  * shows while the store holds a report, and the icon is red while a capture
  * runs. A hover or a focus loads the sheet before the press, and a press

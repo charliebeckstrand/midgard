@@ -16,8 +16,12 @@ The integration points an app mounts once at its root: `UIDocument` in the root 
 |---|---|
 | `UIProvider` | App-root integration point: the framework link, the default portal container, and the current `pathname`. It mounts the hosts of `useConfirm` and `useToast`. Put `LocaleProvider` above it. |
 | `UIProviderProps` *(type)* | Props for `UIProvider`. |
-| `UIDocument` | The `<html>`, `<head>`, and `<body>` of an app, with `AppearanceScript` and `AppearanceProvider` in place. A server layout can render it. |
+| `UIDocument` | The `<html>`, `<head>`, and `<body>` of an app, with `AppearanceProvider` in place. A server layout can render it. |
 | `UIDocumentProps` *(type)* | Props for `UIDocument`: `lang`, the classes of `<html>` and `<body>`, and more `head` content. |
+| `rootMarks` | Server only. The classes and the attributes of the root element for the stored settings of the reader in a `Cookie` header. |
+| `markRoot` | Server only. Writes `RootMarks` on the opening tag of the root element of an HTML string. |
+| `hasRootTag` | Server only. Whether an HTML string holds the whole opening tag of the root element. A server that streams a page marks it after this is true. |
+| `RootMarks` *(type)* | The classes and the attributes that `rootMarks` gives. |
 | `PathMatch` *(type)* | How an item `href` matches the `pathname`: `exact`, or `prefix` to also match each path under the `href`. |
 | `useLink` | Reads the app-registered framework link component from `<UIProvider>`. |
 | `usePortalContainer` | Resolves a portal's container: explicit per-call value, then ambient `<UIProvider>` value, then `null`. |
@@ -33,7 +37,6 @@ An app mounts `AppearanceProvider` once at its root. The stylesheet of the app m
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
 | `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, and sidebar pickers. ⌘B or Ctrl+B toggles the sidebar. Under a `LocaleProvider` with `locales`, it adds the Language picker. `children` adds more fields. |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
-| `AppearanceScript` | Inline head script that applies the stored preferences before the first paint. `UIDocument` renders it. |
 | `useAppearance` | Reads the theme, the density, the motion, the sidebar, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |

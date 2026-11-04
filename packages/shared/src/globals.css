@@ -8,8 +8,18 @@
 @source not '../../ui/src/__benchmarks__';
 @source not '../../ui/src/docs';
 
-/* The `dark` variant follows the `.dark` class on the root element. `AppearanceProvider` from `ui` sets the class. */
-@custom-variant dark (&:where(.dark, .dark *));
+/* The `dark` variant follows the `.dark` class on the root element, which `AppearanceProvider` from `ui` sets. Before hydration, the server of the app writes `.dark` or `.light` on the root for a theme that the reader chose (`src/server`). With neither class, the variant follows the OS, so the theme `system` paints at once. */
+@custom-variant dark {
+	&:where(.dark, .dark *) {
+		@slot;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		&:where(:root:not(.light), :root:not(.light) *) {
+			@slot;
+		}
+	}
+}
 
 /* No full height on the root. A layout sets its own height to the small viewport. On iOS a full-height root takes the large viewport, which is taller while the browser bars show. The page then scrolls the navbar out of view. */
 :root {

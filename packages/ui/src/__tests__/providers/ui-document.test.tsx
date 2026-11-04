@@ -34,7 +34,7 @@ describe('UIDocument', () => {
 		expect(doc.body.querySelector('main')).not.toBeNull()
 	})
 
-	it('puts the head content before the appearance script', () => {
+	it('renders the head content and no inline script', () => {
 		const doc = parse(
 			renderToString(
 				<UIDocument head={<meta name="viewport" content="width=device-width" />}>
@@ -43,13 +43,11 @@ describe('UIDocument', () => {
 			),
 		)
 
-		const [first, ...rest] = Array.from(doc.head.children)
+		expect(doc.head.firstElementChild?.getAttribute('name')).toBe('viewport')
 
-		const script = rest.find((element) => element.tagName === 'SCRIPT')
+		const inline = Array.from(doc.querySelectorAll('script')).filter((script) => !script.src)
 
-		expect(first?.getAttribute('name')).toBe('viewport')
-
-		expect(script?.textContent).toContain('localStorage')
+		expect(inline).toEqual([])
 	})
 
 	it('gives the body the appearance provider and its font script', () => {

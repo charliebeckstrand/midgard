@@ -23,5 +23,4 @@ export type {
 } from './engine/types'
 export { EventsAside } from './events-aside'
 export { EventsButton } from './events-button'
-export { EventsScript } from './events-script'
 export { EventsSwitch } from './events-switch'

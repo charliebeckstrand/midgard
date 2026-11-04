@@ -73,7 +73,7 @@ const mountMarkup = (element: ReactElement) => {
 }
 
 /**
- * The root element is the scope of the app: `AppearanceScript` writes the stored step on
+ * The root element is the scope of the app: the server writes the stored step on
  * `<html>` before the first paint. Each scope under it wins over it.
  */
 describe('the root scope (real browser)', () => {
@@ -226,7 +226,7 @@ describe('a control slot in an xl scope (real browser)', () => {
 
 /**
  * A control reads no density context, so its server markup is the same at each step. The root
- * scope that `AppearanceScript` writes before the first paint then gives the stored step to the
+ * scope that the server writes before the first paint then gives the stored step to the
  * markup with no hydration.
  */
 describe('controls at the first paint (real browser)', () => {

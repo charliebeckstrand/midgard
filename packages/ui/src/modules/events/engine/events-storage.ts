@@ -2,7 +2,7 @@ import { noop } from '../../../utilities/noop'
 import type { EventStorage } from './types'
 
 // The storage of the events: the guarded reads and writes, and the key of
-// the capture, which the store writes and the pre-paint script reads.
+// the capture, which the store writes and reads.
 
 /** The `sessionStorage` key of the capture that runs. */
 export const CAPTURE_KEY = 'events:capture'

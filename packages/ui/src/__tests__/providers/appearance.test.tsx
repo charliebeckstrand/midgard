@@ -1,19 +1,13 @@
 import { cleanup } from '@testing-library/react'
 import { MotionConfigContext } from 'motion/react'
 import { type ReactElement, use } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { SidebarLayout } from '../../layouts/sidebar/sidebar'
 import { useDensityStep } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import {
-	AppearanceProvider,
-	AppearanceScript,
-	AppearanceSettings,
-	useAppearance,
-} from '../../providers/appearance'
+import { AppearanceProvider, AppearanceSettings, useAppearance } from '../../providers/appearance'
 import { type AppearanceChoice, parseChoice } from '../../providers/appearance/appearance-storage'
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { LocaleProvider, useLocale } from '../../providers/locale'
@@ -396,76 +390,6 @@ describe('AppearanceSettings', () => {
 function LocaleOutput() {
 	return <output data-testid="locale">{useLocale().locale}</output>
 }
-
-describe('AppearanceScript', () => {
-	// The script renders on the server. React warns for a `<script>` that the
-	// client renders, because the browser does not run it.
-	function runScript() {
-		const markup = new DOMParser().parseFromString(
-			renderToStaticMarkup(<AppearanceScript />),
-			'text/html',
-		)
-
-		// Runs the constant script of the component, as the browser does.
-		new Function(markup.querySelector('script')?.textContent ?? '')()
-	}
-
-	it('writes the step of the stored density on the root element', () => {
-		localStorage.setItem('density', 'compact')
-
-		runScript()
-
-		expect(readRootDensity(document.documentElement)).toBe('sm')
-	})
-
-	it('writes the snug step for a missing or unknown density', () => {
-		runScript()
-
-		expect(readRootDensity(document.documentElement)).toBe('md')
-
-		localStorage.setItem('density', '__proto__')
-
-		runScript()
-
-		expect(readRootDensity(document.documentElement)).toBe('md')
-	})
-
-	it('applies the stored dark theme', () => {
-		localStorage.setItem('theme', 'dark')
-
-		runScript()
-
-		expect(document.documentElement).toHaveClass('dark')
-	})
-
-	it('marks the root for the stored reduced motion only', () => {
-		localStorage.setItem('motion', 'system')
-
-		runScript()
-
-		expect(document.documentElement).not.toHaveClass('reduced-motion')
-
-		localStorage.setItem('motion', 'reduced')
-
-		runScript()
-
-		expect(document.documentElement).toHaveClass('reduced-motion')
-	})
-
-	it('marks the root for the stored offcanvas sidebar only', () => {
-		localStorage.setItem('sidebar', 'locked')
-
-		runScript()
-
-		expect(document.documentElement).not.toHaveClass('sidebar-offcanvas')
-
-		localStorage.setItem('sidebar', 'offcanvas')
-
-		runScript()
-
-		expect(document.documentElement).toHaveClass('sidebar-offcanvas')
-	})
-})
 
 /** A stored choice with a cookie, as a choice that a server reads declares it. */
 const MIRRORED: AppearanceChoice<'a' | 'b'> = {

@@ -1,5 +1,5 @@
-// No 'use client': the server half of the appearance (`AppearanceScript` and
-// the stored choices it reads) takes these lists as plain values.
+// No 'use client': the server half of the appearance (the stored choices and
+// `appearanceRootClasses`) takes these lists as plain values.
 
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'

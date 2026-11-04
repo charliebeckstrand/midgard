@@ -40,7 +40,7 @@ function getServerSnapshot(): DensityStep {
  * again when it changes.
  *
  * @remarks
- * `AppearanceScript` writes the stored step on the root before the first
+ * The server writes the stored step on the root before the first
  * paint, so each stepped `density-*` class is correct at once. A JS value
  * cannot be correct on the server, which has no root element to read. The
  * server and the hydration render thus take `md`,
