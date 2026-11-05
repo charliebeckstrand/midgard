@@ -2,8 +2,9 @@ import type { DatePickerRelativeValue } from 'ui/date-picker'
 import { flags } from '../flags'
 import { isCategory, isDay } from '../schemas/place'
 import { RECORD_KINDS, type RecordKind } from '../types'
+import { atlasNames } from './places-atlas'
 import { fromDay, type PlaceFilterValue, toDay } from './places-filter'
-import type { PlaceView } from './places-view'
+import { type PlaceView, UNITED_STATES } from './places-view'
 
 /**
  * The reader's place in the app, as the address bar carries it.
@@ -153,9 +154,22 @@ export function readView(params: URLSearchParams): PlaceView | null {
 	// field, which is the mark this app wrote before it had a word for it.
 	const country = text(params, 'country')
 
+	if (country === undefined || country === EVERYWHERE) return { country: null, state: null }
+
+	// A name that the atlas does not draw is dropped, as an absent `country` is,
+	// so the opening rule states the view again. A map of a country that the
+	// atlas does not hold has no region to click. Only the United States has
+	// states, and only a state that the atlas draws is kept.
+	if (!atlasNames('countries').includes(country)) return null
+
+	const state = text(params, 'state')
+
 	return {
-		country: country === EVERYWHERE ? null : (country ?? null),
-		state: text(params, 'state') ?? null,
+		country,
+		state:
+			country === UNITED_STATES && state !== undefined && atlasNames('states').includes(state)
+				? state
+				: null,
 	}
 }
 
