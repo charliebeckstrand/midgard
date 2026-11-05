@@ -39,6 +39,7 @@
 	"ui.chat.newest": "Ir al mensaje más reciente",
 	"ui.chat.placeholder": "Pregunta lo que quieras",
 	"ui.chat.prompt": "Mensaje",
+	"ui.chat.replyFailed": "La respuesta falló.",
 	"ui.chat.replying": "El asistente está respondiendo",
 	"ui.chat.running": "En curso",
 	"ui.chat.send": "Enviar mensaje",

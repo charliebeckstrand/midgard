@@ -1,6 +1,7 @@
 import { type ComponentProps, memo, type ReactNode } from 'react'
 import type { ContextMenuEntry } from '../../components/context-menu/types'
 import { Markdown } from '../../components/markdown'
+import { StatusDot } from '../../components/status'
 import { cn } from '../../core/cn'
 import { IntlMessage } from '../../primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages'
@@ -8,6 +9,7 @@ import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 import { ChatEmbed } from './chat-embed'
 import { ChatMessageMenu } from './chat-message-menu'
 import { ChatTool, MESSAGE_HEADING_OFFSET } from './chat-tool'
+import { replyFailed } from './engine/chat-announcements'
 import type { ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
 
@@ -75,6 +77,12 @@ export type ChatMessageProps = ChatMessageVariants &
 		timestamp?: ReactNode
 		/** Pulses the bubble content and shows the progress cursor, while a response streams in. @defaultValue false */
 		streaming?: boolean
+		/**
+		 * Marks a reply that failed. The bubble keeps its content and ends with a
+		 * line that says that the reply failed.
+		 * @defaultValue false
+		 */
+		failed?: boolean
 		/** Controls that act on the message, such as copy, retry, and edit. `trigger` sets when they show. */
 		actions?: ReactNode
 		/**
@@ -127,6 +135,9 @@ export type ChatMessageProps = ChatMessageVariants &
  * prose therefore allocates nothing per render and lexes once, as it did before
  * parts existed.
  *
+ * A `failed` reply ends with a line that says so, after what it landed. The
+ * line inherits the foreground of the bubble, and a red dot marks it.
+ *
  * The pulse rides each drawn {@link Markdown}, so a streaming reply that has
  * already landed a chart pulses its prose and leaves the chart steady.
  *
@@ -146,6 +157,7 @@ export const ChatMessage = memo(function ChatMessage({
 	sender,
 	timestamp,
 	streaming,
+	failed,
 	actions,
 	trigger,
 	contextMenu,
@@ -172,6 +184,15 @@ export const ChatMessage = memo(function ChatMessage({
 						className={index === 0 ? undefined : slots.part}
 					/>
 				))
+			)}
+			{failed && (
+				<p
+					data-slot="chat-message-failure"
+					className={cn(slots.failure, children.length > 0 && slots.part)}
+				>
+					<StatusDot size="sm" status="error" />
+					<IntlMessage message={replyFailed} />
+				</p>
 			)}
 		</div>
 	)

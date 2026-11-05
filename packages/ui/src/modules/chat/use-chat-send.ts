@@ -11,6 +11,7 @@ import {
 	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
+	failReply,
 	failReplyTools,
 	lastUserMessage,
 	openReply,
@@ -71,8 +72,10 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * already holds replaces that block whole. That is how a tool call that turns
  * from running to done reports itself.
  *
- * Throwing (or rejecting) rolls back the empty assistant placeholder and triggers
- * {@link ChatSendOptions.onError}. `signal` aborts when {@link ChatSend.stop}
+ * Throwing (or rejecting) marks the reply `failed` and triggers
+ * {@link ChatSendOptions.onError}. The reply keeps what it already landed, and
+ * a reply that had not opened yet is added empty, so the transcript says that
+ * the send failed. `signal` aborts when {@link ChatSend.stop}
  * is called; forward it to the underlying request (e.g. `fetch(url, { signal })`)
  * so the transport stops producing, not just the hook consuming: a transport
  * that ignores it still has its chunks dropped, but keeps running underneath.
@@ -117,7 +120,7 @@ export type ChatSendOptions = {
 	 * failure skips it.
 	 */
 	onSent?: (content: string) => void
-	/** Called when the transport throws or the stream fails. */
+	/** Called when the transport throws or the stream fails, after the reply is marked `failed`. */
 	onError?: (error: unknown) => void
 }
 
@@ -131,8 +134,8 @@ export type ChatSend = {
 	send: (content: string) => Promise<void>
 	/**
 	 * Regenerates the reply to the last user message. Drops it and anything after
-	 * it: an existing assistant reply, or nothing if the prior send errored. Then
-	 * streams a fresh one for the same content. No-ops with no user
+	 * it: an existing assistant reply, also a failed one. Then streams a fresh
+	 * one for the same content. No-ops with no user
 	 * message in the transcript, or while a send is already in flight.
 	 */
 	retry: () => Promise<void>
@@ -245,7 +248,7 @@ async function streamReply(
 
 		steps.sent()
 	} catch (error) {
-		// A stop-induced rejection isn't a failure: no rollback, no onError.
+		// A stop-induced rejection isn't a failure: no failed reply, no onError.
 		if (signal.aborted) return
 
 		steps.fail(error)
@@ -264,9 +267,9 @@ async function streamReply(
  * blocks by id. {@link ChatSend.retry} and {@link ChatSend.edit} share that
  * same streaming path, re-pointed at the last user message's content, or an
  * edited one. They first trim the transcript back to (and, for `edit`,
- * including) that message. Across all three, a transport failure drops the
- * still-empty placeholder (keyed by id, so concurrent or prior empty bubbles
- * are untouched). It keeps the user message, and fires `onError`.
+ * including) that message. Across all three, a transport failure marks the
+ * reply `failed` (keyed by id, so other bubbles are untouched). It keeps the
+ * user message and what the reply landed, and fires `onError`.
  * {@link ChatSend.stop} aborts whichever of the three is in flight, and does
  * not treat the stop as an error. The bubble keeps its last-folded chunk, and a
  * step still running becomes `failed`. The transport is supplied by
@@ -311,7 +314,7 @@ export function useChatSend({
 				fold: (chunk) => setMessages((prev) => applyReplyChunk(prev, replyId, chunk)),
 				sent: () => onSent?.(text),
 				fail: (error) => {
-					setMessages((prev) => dropEmptyReply(prev, replyId))
+					setMessages((prev) => failReply(prev, replyId))
 
 					onError?.(error)
 				},
@@ -321,7 +324,8 @@ export function useChatSend({
 					// A step still marked running would otherwise draw a spinner nothing
 					// ever stops, the defect that kept a per-part status out of the design
 					// until the shell could settle one. A reply that is still empty goes
-					// too, so a stop before the first chunk leaves no empty bubble.
+					// too, so a stop before the first chunk leaves no empty bubble. A failed
+					// reply stays, because it says that the send failed.
 					setMessages((prev) => dropEmptyReply(failReplyTools(prev, replyId), replyId))
 
 					controllerRef.current = null

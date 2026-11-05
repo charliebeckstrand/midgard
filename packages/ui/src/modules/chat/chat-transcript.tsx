@@ -125,6 +125,7 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 		<ChatMessage
 			sender={message.sender}
 			streaming={streaming}
+			failed={message.failed}
 			timestamp={message.timestamp}
 			actions={actions?.(message)}
 			trigger={trigger}

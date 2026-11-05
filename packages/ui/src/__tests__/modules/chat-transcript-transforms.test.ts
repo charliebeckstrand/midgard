@@ -6,6 +6,7 @@ import {
 	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
+	failReply,
 	failReplyTools,
 	lastUserMessage,
 	openReply,
@@ -168,7 +169,37 @@ describe('failReplyTools', () => {
 	})
 })
 
+describe('failReply', () => {
+	it('marks the reply the id names failed, and keeps what it landed', () => {
+		expect(failReply([user('u1', 'hi'), assistant('r1', 'partial')], 'r1')).toEqual([
+			user('u1', 'hi'),
+			{ ...assistant('r1', 'partial'), failed: true },
+		])
+	})
+
+	it('adds an empty failed reply when the reply never opened', () => {
+		expect(failReply([user('u1', 'hi')], 'r1')).toEqual([
+			user('u1', 'hi'),
+			{ ...assistant('r1', ''), failed: true },
+		])
+	})
+
+	it('leaves every other message alone', () => {
+		const earlier = assistant('r0', 'done')
+
+		const [first] = failReply([earlier, user('u1', 'hi'), assistant('r1', '')], 'r1')
+
+		expect(first).toBe(earlier)
+	})
+})
+
 describe('dropEmptyReply', () => {
+	it('keeps an empty reply that failed, because it says that the send failed', () => {
+		const messages = [user('u1', 'hi'), { ...assistant('r1', ''), failed: true }]
+
+		expect(dropEmptyReply(messages, 'r1')).toEqual(messages)
+	})
+
 	it('drops the reply the id names while it is empty', () => {
 		expect(dropEmptyReply([user('u1', 'hi'), assistant('r1', '')], 'r1')).toEqual([
 			user('u1', 'hi'),

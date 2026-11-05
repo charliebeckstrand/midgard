@@ -110,6 +110,10 @@ export const k = defineKata({
 				{ trigger: 'hover', sender: 'system', class: 'inset-x-0 mx-auto' },
 			],
 		},
+		// The line of a failed reply. It inherits the foreground of the bubble, as
+		// the step line does, and the red dot beside it marks the failure. The gap
+		// above it is the `part` gap when the reply landed content first.
+		failure: [flex.row, `items-center ${dan.gap.scale.sm}`, size.sm],
 		// A bubble of parts stacks one block per part, and each block collapses
 		// its own outer margins, so the gap between two of them is this slot's.
 		// It matches the markdown kata's `my-3` paragraph rhythm, so prose split

@@ -66,12 +66,14 @@ export function applyReplyChunk(
 }
 
 /**
- * The transcript without the reply `id` names, while that reply is still empty.
- * A failed send drops its own placeholder this way, and keeps the user's message
- * and any partial reply.
+ * The transcript without the reply `id` names, while that reply is still empty
+ * and did not fail. A stop before the first chunk drops its own placeholder
+ * this way, and keeps the user's message and any partial reply.
  *
  * @remarks The rule reads the id rather than the empty content, so an empty
  * bubble another send opened stays. An id that opened no reply drops nothing.
+ * A failed reply stays, empty or not, because it tells the reader that the
+ * send failed ({@link failReply}).
  *
  * Empty is read from the content's structure, and never from its plain-text
  * projection. A reply that holds a block with no text of its own projects to an
@@ -80,7 +82,26 @@ export function applyReplyChunk(
  * @internal
  */
 export function dropEmptyReply(messages: ChatMessageData[], id: string): ChatMessageData[] {
-	return messages.filter((message) => !(message.id === id && isEmptyContent(message.content)))
+	return messages.filter(
+		(message) => !(message.id === id && !message.failed && isEmptyContent(message.content)),
+	)
+}
+
+/**
+ * The transcript with the reply `id` names marked `failed`. It keeps what the
+ * reply already landed. A send that failed before its reply opened has no
+ * reply yet, so the rule adds an empty assistant reply under `id` at the end.
+ * The reader thus always sees that the send failed, and `retry` drops the
+ * failed reply as it drops any reply to the last user message.
+ *
+ * @internal
+ */
+export function failReply(messages: ChatMessageData[], id: string): ChatMessageData[] {
+	if (!messages.some((message) => message.id === id)) {
+		return [...messages, { id, sender: 'assistant', content: '', failed: true }]
+	}
+
+	return messages.map((message) => (message.id === id ? { ...message, failed: true } : message))
 }
 
 /**

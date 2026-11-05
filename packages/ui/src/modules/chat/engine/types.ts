@@ -29,4 +29,10 @@ export type ChatMessageData = {
 	 */
 	content: string | ChatPart[]
 	timestamp?: string
+	/**
+	 * Marks an assistant reply whose send failed. The bubble keeps what the
+	 * reply landed and says that the reply failed. `useChatSend` sets it when the
+	 * transport throws, and `retry` replaces the reply.
+	 */
+	failed?: boolean
 }

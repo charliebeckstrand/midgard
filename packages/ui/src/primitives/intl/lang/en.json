@@ -159,6 +159,10 @@
 		"defaultMessage": "Message",
 		"description": "The name of the field where the reader writes a chat message."
 	},
+	"ui.chat.replyFailed": {
+		"defaultMessage": "The reply failed.",
+		"description": "Shown and spoken at the end of a reply of the assistant when the reply could not be completed."
+	},
 	"ui.chat.replying": {
 		"defaultMessage": "Assistant is replying",
 		"description": "Spoken while a reply of the assistant arrives in a chat."
