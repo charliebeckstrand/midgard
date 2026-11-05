@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
-import { useLocation } from 'react-router'
+import { NavigationType, useLocation, useNavigationType } from 'react-router'
+import { focusAnchor } from '../kit/pending-anchor.ts'
 
 /**
  * Scrolls the box of the docs (`SCROLLER` in `root.tsx`). A load of a page,
@@ -9,6 +10,12 @@ import { useLocation } from 'react-router'
  * hash, because each navigation gives a new location. The ids of the docs are
  * ASCII, so the hash is the id.
  *
+ * A link or a pick in the search to a hash also moves the focus to its element
+ * ({@link focusAnchor}), so the next Tab starts there. The palette gives the
+ * focus back to its opener, and without this move, the next Tab scrolls the
+ * box back to the opener. A load and a move through the history keep the
+ * focus.
+ *
  * The sidebar keeps its current item in view on its own (`SidebarItem`).
  * The row of tabs paints at its start (`useTabListScroll`).
  *
@@ -17,6 +24,8 @@ import { useLocation } from 'react-router'
  */
 export function useNavigationScroll(page: string) {
 	const location = useLocation()
+
+	const navigationType = useNavigationType()
 
 	const scroller = useRef<HTMLDivElement>(null)
 
@@ -40,9 +49,12 @@ export function useNavigationScroll(page: string) {
 
 		const target = location.hash && document.getElementById(location.hash.slice(1))
 
-		if (target) target.scrollIntoView()
-		else if (newPage) scroller.current?.scrollTo(0, 0)
-	}, [location, page])
+		if (target) {
+			target.scrollIntoView()
+
+			if (navigationType !== NavigationType.Pop) focusAnchor(target)
+		} else if (newPage) scroller.current?.scrollTo(0, 0)
+	}, [location, navigationType, page])
 
 	return scroller
 }
