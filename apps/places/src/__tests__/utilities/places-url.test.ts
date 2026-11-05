@@ -68,6 +68,25 @@ describe('readLocation', () => {
 		})
 	})
 
+	// A map of a name that the atlas does not draw has no region to click, so
+	// the address states no view, and the opening rule states one again.
+	it('drops a country that the atlas does not draw', () => {
+		expect(read('country=Narnia').view).toBeNull()
+
+		expect(read('country=Narnia&state=Oregon').view).toBeNull()
+	})
+
+	it('drops a state outside the United States', () => {
+		expect(read('country=Japan&state=Oregon').view).toEqual({ country: 'Japan', state: null })
+	})
+
+	it('drops a state that the atlas does not draw', () => {
+		expect(read(`country=${encodeURIComponent(UNITED_STATES)}&state=Narnia`).view).toEqual({
+			country: UNITED_STATES,
+			state: null,
+		})
+	})
+
 	it('reads every picked category, and drops one it does not know', () => {
 		expect(read('category=food&category=nature&category=lunar').filter.categories).toEqual([
 			'food',
