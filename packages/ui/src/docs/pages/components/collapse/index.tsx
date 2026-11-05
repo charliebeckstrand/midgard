@@ -8,7 +8,7 @@ import CollapsePlayground from './playground.tsx'
 export default function CollapsePage() {
 	return (
 		<>
-			<Playground of={CollapsePlayground} api={api} omit={['open', 'defaultOpen', 'mount']} />
+			<Playground of={CollapsePlayground} api={api} omit={['open', 'mount']} />
 			<Example of={DefaultOpen} />
 			<Example of={CompoundApi} />
 			<Example of={Controlled} />

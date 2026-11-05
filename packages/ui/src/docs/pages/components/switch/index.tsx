@@ -9,7 +9,7 @@ import WithDescription from './with-description.tsx'
 export default function SwitchPage() {
 	return (
 		<>
-			<Playground of={SwitchPlayground} api={api} omit={['defaultChecked']} />
+			<Playground of={SwitchPlayground} api={api} />
 			<Example of={WithDescription} />
 			<Example of={Controlled} />
 			<Example of={Disabled} />

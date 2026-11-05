@@ -15,11 +15,7 @@ import WithDescriptions from './with-descriptions.tsx'
 export default function MenuPage() {
 	return (
 		<>
-			<Playground
-				of={MenuPlayground}
-				api={api}
-				omit={['open', 'defaultOpen', 'placement', 'capped']}
-			/>
+			<Playground of={MenuPlayground} api={api} omit={['open', 'placement', 'capped']} />
 			<Example of={IconsAndShortcuts} />
 			<Example of={Sections} />
 			<Example of={WithDescriptions} />

@@ -7,7 +7,7 @@ import WithForm from './with-form.tsx'
 export default function PopoverPage() {
 	return (
 		<>
-			<Playground of={PopoverPlayground} api={api} omit={['open', 'defaultOpen']} />
+			<Playground of={PopoverPlayground} api={api} omit={['open']} />
 			<Example of={WithForm} />
 			<Example of={Glass} />
 			<ApiTable api={api} />

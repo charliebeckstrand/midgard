@@ -8,7 +8,12 @@ import WithActions from './with-actions.tsx'
 export default function ContextMenuPage() {
 	return (
 		<>
-			<Playground of={ContextMenuPlayground} api={api} omit={['capped']} />
+			<Playground
+				of={ContextMenuPlayground}
+				api={api}
+				omit={['capped']}
+				values={{ defaultItems: [false, true] }}
+			/>
 			<Example of={WithActions} />
 			<Example of={Submenus} />
 			<Example of={Glass} />

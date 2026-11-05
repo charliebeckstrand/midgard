@@ -12,7 +12,7 @@ import TypedInput from './typed-input.tsx'
 export default function DatePickerPage() {
 	return (
 		<>
-			<Playground of={DatePickerPlayground} api={api} omit={['open', 'defaultOpen', 'truncate']} />
+			<Playground of={DatePickerPlayground} api={api} omit={['open', 'truncate']} />
 			<Example of={Controlled} />
 			<Example of={TypedInput} />
 			<Example of={RelativeRanges} />
