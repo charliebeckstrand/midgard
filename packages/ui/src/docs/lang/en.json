@@ -2095,6 +2095,10 @@
 		"defaultMessage": "Details",
 		"description": "Text of a demo in the docs, in providers/glass/overlays.tsx."
 	},
+	"docs.demo.45a232b3c4ec": {
+		"defaultMessage": "Count late stops",
+		"description": "Text of a demo in the docs as label, in modules/chat/conversation/reply.ts."
+	},
 	"docs.demo.45b41c8d5ff4": {
 		"defaultMessage": "Shipping & delivery",
 		"description": "Text of a demo in the docs as title, in components/accordion/items.ts."
@@ -3011,6 +3015,10 @@
 		"defaultMessage": "Single sign-on and audit logs",
 		"description": "Text of a demo in the docs as description, in components/select/with-descriptions.tsx."
 	},
+	"docs.demo.79f29b4ad01b": {
+		"defaultMessage": "Ask about the routes, the stops, or the depots of this week.",
+		"description": "Text of a demo in the docs as content, in modules/chat/conversation/conversation.tsx."
+	},
 	"docs.demo.7a457ced2989": {
 		"defaultMessage": "Write the release notes",
 		"description": "Text of a demo in the docs as label, in components/list/sortable.tsx, components/list/with-descriptions.tsx."
@@ -3549,7 +3557,7 @@
 	},
 	"docs.demo.942087cc2d41": {
 		"defaultMessage": "Retry",
-		"description": "Text of a demo in the docs as aria-label, in modules/chat/with-actions.tsx."
+		"description": "Text of a demo in the docs as aria-label, in modules/chat/conversation/conversation.tsx, modules/chat/with-actions.tsx."
 	},
 	"docs.demo.946884c0bab5": {
 		"defaultMessage": "Select a brand color, or enter a hex value.",
@@ -4211,6 +4219,10 @@
 		"defaultMessage": "Live",
 		"description": "Text of a demo in the docs, in modules/dashboard/query.tsx."
 	},
+	"docs.demo.b66921688cd1": {
+		"defaultMessage": "Late stops rose from **4** to **14** across the week. Most of the rise sits on the north routes.",
+		"description": "Text of a demo in the docs as text, in modules/chat/conversation/reply.ts."
+	},
 	"docs.demo.b67ede0a3f4a": {
 		"defaultMessage": "Return country",
 		"description": "Text of a demo in the docs, in components/select/validation.tsx."
@@ -4746,6 +4758,10 @@
 	"docs.demo.d5d0a30b517e": {
 		"defaultMessage": "Calendar",
 		"description": "Text of a demo in the docs as label, in components/segment/playground.tsx, primitives/skeleton/skeleton-variants.tsx."
+	},
+	"docs.demo.d624dd1c0a44": {
+		"defaultMessage": "Seven days, north and south routes",
+		"description": "Text of a demo in the docs as summary, in modules/chat/conversation/reply.ts."
 	},
 	"docs.demo.d65cfeb1b8eb": {
 		"defaultMessage": "Select the events that send you an email.",
@@ -7459,6 +7475,10 @@
 		"defaultMessage": "Combo",
 		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
 	},
+	"docs.tab.conversation": {
+		"defaultMessage": "Conversation",
+		"description": "The name of a tab on the Chat page of the docs. The tab shows one part of the page."
+	},
 	"docs.tab.county": {
 		"defaultMessage": "County",
 		"description": "The name of a tab on the Map page of the docs. The tab shows one part of the page."
@@ -7870,6 +7890,10 @@
 	"docs.title.controlled-values": {
 		"defaultMessage": "Controlled values",
 		"description": "The title of an example on a page of the docs. It comes from the file name controlled-values.tsx."
+	},
+	"docs.title.conversation": {
+		"defaultMessage": "Conversation",
+		"description": "The title of an example on a page of the docs. It comes from the file name conversation.tsx."
 	},
 	"docs.title.coordinates": {
 		"defaultMessage": "Coordinates",
