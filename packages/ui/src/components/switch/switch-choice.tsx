@@ -55,7 +55,8 @@ export type SwitchChoiceProps<T extends string = string> = Pick<SwitchVariants, 
 	/**
 	 * Keeps the position. A click, a Space press, or an arrow key does not move
 	 * the thumb, and `onValueChange` does not fire. The group sets
-	 * `aria-readonly`. When omitted, it takes the value of an enclosing
+	 * `aria-readonly`. Each radio and each option text set `data-readonly`, so
+	 * they show the default cursor. When omitted, it takes the value of an enclosing
 	 * `<Control>` or `<Field>`.
 	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
@@ -186,6 +187,7 @@ export function SwitchChoice<T extends string = string>({
 					value={option ?? ''}
 					checked={selected === option}
 					disabled={resolvedDisabled}
+					data-readonly={dataAttr(resolvedReadOnly)}
 					aria-label={label}
 					{...validation}
 					className={k().input}
@@ -204,6 +206,7 @@ export function SwitchChoice<T extends string = string>({
 				data-slot="switch-choice-label"
 				data-checked={dataAttr(position === at)}
 				data-disabled={dataAttr(resolvedDisabled)}
+				data-readonly={dataAttr(resolvedReadOnly)}
 				className={k().choice.label}
 			>
 				{option.label}

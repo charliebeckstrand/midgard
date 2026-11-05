@@ -15,7 +15,8 @@ export type RadioProps = RadioVariants & {
 	 * Keeps the radio as it is. A click, a Space press, or an arrow key does not
 	 * check it, and `onChange` does not fire. The radio keeps the focus, and it
 	 * submits its value when it is checked. It does not set `aria-readonly`,
-	 * because ARIA defines it on the group. When omitted, it takes the value of
+	 * because ARIA defines it on the group. It sets `data-readonly` on the
+	 * input, so the radio and its label show the default cursor. When omitted, it takes the value of
 	 * an enclosing `<Control>` or `<Field>`. A radio in a read-only
 	 * {@link RadioGroup} is read-only too.
 	 * @defaultValue `false`, or the state of the enclosing Control, or `true` in a read-only RadioGroup.
@@ -165,6 +166,7 @@ export function Radio({
 					disabled={resolvedDisabled}
 					required={resolvedRequired}
 					onChange={handleChange}
+					data-readonly={dataAttr(readOnlyRadio)}
 					aria-describedby={resolvedDescribedBy}
 					{...validation}
 					className={slots.input}
