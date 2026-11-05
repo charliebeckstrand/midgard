@@ -203,8 +203,8 @@ type VisitMark = { scope: VisitScope; region: string; visited: boolean }
  */
 export function setVisitMutation(client: QueryClient) {
 	return mutationOptions({
-		mutationKey: placesKeys.visits,
 		scope: { id: 'visits' },
+		mutationKey: placesKeys.visits,
 		mutationFn: ({ scope, region, visited }: VisitMark) => setVisit(scope, region, visited),
 		onMutate: async ({ scope, region, visited }: VisitMark) => {
 			// A refetch that lands after the mark would overwrite it.
