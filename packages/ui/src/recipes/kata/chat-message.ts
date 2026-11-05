@@ -26,7 +26,7 @@ const bubble = {
 	sender: {
 		user: ['bg-blue-600 text-white', 'rounded-ee-md'],
 		assistant: [
-			...mode('bg-zinc-200 text-zinc-950', 'dark:bg-white/10 dark:text-white'),
+			...mode('bg-zinc-100 text-zinc-950', 'dark:bg-white/10 dark:text-white'),
 			'rounded-es-md',
 		],
 		system: [...text.muted, 'bg-transparent px-0'],
@@ -126,13 +126,14 @@ export const k = defineKata({
 				// it reports a gap rather than an error the reader can act on, but quiet
 				// by slant, never by color. `text.muted` is `onSurface.zinc`, which
 				// clears AA against the page and the card and says nothing about a tinted
-				// bubble: it lands at 3.8:1 on the assistant fill and worse on the user
+				// bubble: it lands at 4.4:1 on the assistant fill and worse on the user
 				// bubble's blue. This inherits the bubble's foreground instead, the same
 				// bargain the markdown kata takes, so the line reads on all four bubbles.
 				fallback: [size.md, 'italic'],
 				// The shape that holds the space of a held-back embed, as wide as the bubble.
-				// The skeleton tone of a placeholder is the assistant fill, so the shape rides
-				// `currentColor` at a low alpha, as the `tool` box does, and shows on each bubble.
+				// The skeleton tone of a placeholder is one step from the assistant fill and
+				// is hard to see on the user bubble's blue, so the shape rides `currentColor` at
+				// a low alpha, as the `tool` box does, and shows on each bubble.
 				placeholder: [kokkaku.chat.embed, 'bg-current/15 dark:bg-current/15'],
 			},
 		},
@@ -158,7 +159,7 @@ export const k = defineKata({
 				// The color reset is load-bearing. The collapse kata paints its trigger
 				// `text.muted` with a `fg.hover`, which is right on the page and wrong in
 				// here for the third time in this file: zinc-500 on the assistant bubble's
-				// fill is 3.8:1. These classes land after the collapse kata's, so the head
+				// fill is 4.4:1. These classes land after the collapse kata's, so the head
 				// goes back to inheriting the bubble: hover included, or the pointer would
 				// walk it into a fixed neutral on the user bubble's blue.
 				trigger: ['cursor-pointer rounded-lg', 'text-inherit hover:text-inherit', focus.inset],
