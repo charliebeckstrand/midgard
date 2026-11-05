@@ -1138,6 +1138,7 @@ export function PlacesApp({
 
 			<LazyPanel open={summary.items.length > 0} loaded={panelsLoaded}>
 				<NearbyDrawer
+					picked={summaryIds}
 					items={summary.items}
 					trail={summary.trail}
 					regionItems={summary.regionItems}
