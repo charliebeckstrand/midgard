@@ -1315,6 +1315,10 @@
 		"defaultMessage": "Next photo",
 		"description": "The name of the button that shows the photo after."
 	},
+	"ui.lightbox.original": {
+		"defaultMessage": "Open the original photo",
+		"description": "The name of the link that opens the photo at full size in a new tab."
+	},
 	"ui.lightbox.photos": {
 		"defaultMessage": "Photos",
 		"description": "The name of the photo viewer."

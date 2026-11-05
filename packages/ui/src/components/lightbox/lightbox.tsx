@@ -26,6 +26,11 @@ const messages = defineMessages({
 		defaultMessage: 'Next photo',
 		description: 'The name of the button that shows the photo after.',
 	},
+	original: {
+		id: 'ui.lightbox.original',
+		defaultMessage: 'Open the original photo',
+		description: 'The name of the link that opens the photo at full size in a new tab.',
+	},
 })
 
 /** Props for {@link Lightbox}: the photos, the open photo, and the names of the viewer and its controls. */
@@ -92,6 +97,8 @@ export type LightboxProps = {
 	previousLabel?: string
 	/** The accessible name of the button that shows the photo after. @defaultValue `'Next photo'`, in the language of the reader. */
 	nextLabel?: string
+	/** The accessible name of the link that opens the `original` of a photo. @defaultValue `'Open the original photo'`, in the language of the reader. */
+	originalLabel?: string
 	/** The thumbnails (`LightboxTrigger`), in any layout. */
 	children: ReactNode
 }
@@ -156,6 +163,7 @@ export function Lightbox({
 	closeLabel,
 	previousLabel,
 	nextLabel,
+	originalLabel,
 	children,
 }: LightboxProps) {
 	const intl = useIntl()
@@ -273,6 +281,7 @@ export function Lightbox({
 							close: closeLabel ?? intl.formatMessage(intlMessages.close),
 							previous: previousLabel ?? intl.formatMessage(messages.previous),
 							next: nextLabel ?? intl.formatMessage(messages.next),
+							original: originalLabel ?? intl.formatMessage(messages.original),
 						}}
 					/>
 				)}

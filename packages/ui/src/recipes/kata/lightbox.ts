@@ -131,7 +131,7 @@ export const k = defineKata(
 					 * The close button with `closable`: one gap above the photo, at its end. A
 					 * step moves it to the next photo, with the slide (see `bar`).
 					 */
-					true: ['absolute end-(--lightbox-end) bottom-(--lightbox-edge)', stepTransition],
+					true: ['absolute end-(--lightbox-side) bottom-(--lightbox-edge)', stepTransition],
 					/**
 					 * The close button with no `closable`: in the top corner at the end of the
 					 * line, and clear until it has the keyboard focus.
@@ -139,6 +139,11 @@ export const k = defineKata(
 					false: 'absolute end-4 top-4 not-focus-visible:opacity-0',
 				},
 			},
+			/**
+			 * The link to the original of the photo: one gap above the photo, at its
+			 * start. A step moves it to the next photo, with the slide (see `bar`).
+			 */
+			original: ['absolute start-(--lightbox-side) bottom-(--lightbox-edge)', stepTransition],
 			/**
 			 * The row of the step controls, one gap below the photo. A step moves it to
 			 * the next photo with the slide, and the move starts with the slide.

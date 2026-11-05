@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ExternalLink, X } from 'lucide-react'
 import { PresenceContext, useComposedRefs, usePresence } from 'motion/react'
 import {
 	type CSSProperties,
@@ -49,6 +49,7 @@ export type LightboxLabels = {
 	close: string
 	previous: string
 	next: string
+	original: string
 }
 
 /** Props for {@link LightboxStage}. @internal */
@@ -124,7 +125,8 @@ function zoomByKey(key: string, zoom: LightboxZoom, stage: HTMLElement | null): 
  * own height, the height of the slot, and the width of the slot at its ratio.
  * The layer of the controls is a size container with the space of a slot, so
  * `cqw` and `cqh` give the box of the slot. The edge is one gap past the photo,
- * from the center of the layer, and the end is the end of the photo.
+ * from the center of the layer, and the side is the space beside the photo on
+ * each side of the line.
  */
 function controlsFrame(photo: LightboxViewPhoto): CSSProperties {
 	const ratio = `${photo.height} / ${photo.width}`
@@ -133,7 +135,7 @@ function controlsFrame(photo: LightboxViewPhoto): CSSProperties {
 
 	return {
 		'--lightbox-edge': `calc(50% + ${height} / 2 + var(--spacing) * 4)`,
-		'--lightbox-end': `calc(50% - ${height} / (${ratio}) / 2)`,
+		'--lightbox-side': `calc(50% - ${height} / (${ratio}) / 2)`,
 	} as CSSProperties
 }
 
@@ -360,8 +362,12 @@ export function LightboxStage({
 
 	const bar = controls && count > 1
 
+	// One photo with an original shows the link above each photo that has one,
+	// so the room above stays the same through each step.
+	const linked = photos.some((photo) => photo.original !== undefined)
+
 	// A tall photo leaves room above and below it for the controls that show.
-	const slots = k({ chrome: closable || bar, blurred: blur, closable })
+	const slots = k({ chrome: closable || bar || linked, blurred: blur, closable })
 
 	// The place of the photo that the controls show. The photos follow `index`,
 	// the photo in the center slot, which changes when a slide lands. Each
@@ -506,6 +512,18 @@ export function LightboxStage({
 					>
 						<Icon icon={<X />} />
 					</Button>
+					{aimed?.original && (
+						<Button
+							lockable={false}
+							href={aimed.original}
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label={labels.original}
+							className={slots.original}
+						>
+							<Icon icon={<ExternalLink />} />
+						</Button>
+					)}
 					{bar && (
 						<div className={slots.bar}>
 							{thumbnails ? (

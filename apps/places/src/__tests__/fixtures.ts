@@ -53,9 +53,13 @@ export function trip(id: string, fields: Partial<Trip> = {}): Trip {
 	}
 }
 
-/** One stored photo: its key, and an address made from the key. */
+/** One stored photo: its key, and the addresses of its view and its original, made from the key. */
 export function photo(key: string): Photo {
-	return { key, url: `https://photos.example.com/${key}` }
+	return {
+		key,
+		url: `https://photos.example.com/${key}/view`,
+		originalUrl: `https://photos.example.com/${key}`,
+	}
 }
 
 /** One stored visit on the fixture day, with `photos`. */

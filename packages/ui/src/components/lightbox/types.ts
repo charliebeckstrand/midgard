@@ -1,7 +1,18 @@
 /** One photo of a {@link Lightbox}. */
 export type LightboxPhoto = {
-	/** The URL of the photo at full size, which the viewer shows. */
+	/**
+	 * The URL of the photo that the viewer shows. Give a copy no larger than the
+	 * screen needs, such as 2048 px on the long side. The browser decodes a
+	 * large photo again each time that it paints it, so a large photo makes the
+	 * page and the viewer drop frames.
+	 */
 	src: string
+	/**
+	 * The URL of the photo at full size, when `src` is a smaller copy. The
+	 * viewer then shows a link, one gap above the photo at its start, that opens
+	 * the photo at full size in a new tab.
+	 */
+	original?: string
 	/** The text alternative of the photo. The thumbnail and the viewer both use it. */
 	alt: string
 	/**
