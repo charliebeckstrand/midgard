@@ -33,7 +33,7 @@ function setup(visits: Visits) {
 
 	const read = () => client.getQueryData<Visits>(placesKeys.visits)
 
-	return { observer, read }
+	return { observer, read, client }
 }
 
 describe('setVisitMutation', () => {
@@ -81,5 +81,71 @@ describe('setVisitMutation', () => {
 		await done.catch(() => undefined)
 
 		expect(read()).toEqual({ states: [], countries: ['Japan'] })
+	})
+
+	// Two presses in a row. The answer to the first holds only the first mark,
+	// and the second mark is still in flight.
+	it('keeps a later mark when the answer to an earlier mark lands', async () => {
+		const first = pending()
+
+		const second = pending()
+
+		vi.mocked(setVisit).mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+
+		const { observer, read, client } = setup({ states: [], countries: [] })
+
+		const oregon = observer.mutate({ scope: 'states', region: 'Oregon', visited: true })
+
+		const utah = new MutationObserver(client, setVisitMutation(client)).mutate({
+			scope: 'states',
+			region: 'Utah',
+			visited: true,
+		})
+
+		await vi.waitFor(() => expect(read()?.states).toEqual(['Oregon', 'Utah']))
+
+		first.resolve({ states: ['Oregon'], countries: [] })
+
+		await oregon
+
+		expect(read()?.states).toEqual(['Oregon', 'Utah'])
+
+		second.resolve({ states: ['Oregon', 'Utah'], countries: [] })
+
+		await utah
+
+		expect(read()?.states).toEqual(['Oregon', 'Utah'])
+	})
+
+	it('keeps a later mark when an earlier mark fails', async () => {
+		const first = pending()
+
+		const second = pending()
+
+		vi.mocked(setVisit).mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+
+		const { observer, read, client } = setup({ states: [], countries: [] })
+
+		const oregon = observer.mutate({ scope: 'states', region: 'Oregon', visited: true })
+
+		const utah = new MutationObserver(client, setVisitMutation(client)).mutate({
+			scope: 'states',
+			region: 'Utah',
+			visited: true,
+		})
+
+		await vi.waitFor(() => expect(read()?.states).toEqual(['Oregon', 'Utah']))
+
+		first.reject(new Error('offline'))
+
+		await oregon.catch(() => undefined)
+
+		expect(read()?.states).toEqual(['Utah'])
+
+		second.resolve({ states: ['Utah'], countries: [] })
+
+		await utah
+
+		expect(read()?.states).toEqual(['Utah'])
 	})
 })

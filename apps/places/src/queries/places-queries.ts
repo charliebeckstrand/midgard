@@ -194,9 +194,17 @@ type VisitMark = { scope: VisitScope; region: string; visited: boolean }
  * The route answers with both scopes, so the cache then takes what the store
  * settled on rather than a copy patched here, which is what makes the first
  * write of a seeded file land whole.
+ *
+ * The marks share one scope, so their requests run one at a time, in the
+ * order of the presses. Only the answer to the last mark in flight goes into
+ * the cache: an earlier answer does not hold the later marks. A failure puts
+ * back only its own region, on the cache as it is then, so it does not undo a
+ * later mark.
  */
 export function setVisitMutation(client: QueryClient) {
 	return mutationOptions({
+		scope: { id: 'visits' },
+		mutationKey: placesKeys.visits,
 		mutationFn: ({ scope, region, visited }: VisitMark) => setVisit(scope, region, visited),
 		onMutate: async ({ scope, region, visited }: VisitMark) => {
 			// A refetch that lands after the mark would overwrite it.
@@ -215,11 +223,23 @@ export function setVisitMutation(client: QueryClient) {
 
 			return { before }
 		},
-		onError: (_error, _mark, context) => {
-			if (context?.before !== undefined) client.setQueryData(placesKeys.visits, context.before)
+		onError: (_error, { scope, region }, context) => {
+			const now = client.getQueryData<Visits>(placesKeys.visits)
+
+			if (context?.before === undefined || now === undefined) return
+
+			const others = now[scope].filter((held) => held !== region)
+
+			client.setQueryData<Visits>(placesKeys.visits, {
+				...now,
+				[scope]: context.before[scope].includes(region) ? [...others, region] : others,
+			})
 		},
 		onSuccess: (visits) => {
-			client.setQueryData<Visits>(placesKeys.visits, visits)
+			// This mark is still in flight, so 1 is this mark alone.
+			if (client.isMutating({ mutationKey: placesKeys.visits }) === 1) {
+				client.setQueryData<Visits>(placesKeys.visits, visits)
+			}
 		},
 	})
 }
@@ -254,7 +274,8 @@ export function useAddPlace() {
 
 /**
  * Replaces a place from the form, and writes the stored record straight into the cached list,
- * so the map and the open panel show the edit before the refetch lands.
+ * so the map and the open panel show the edit when the drawer closes. No refetch follows, for
+ * the reason that {@link useAddPlace} gives.
  */
 export function useSavePlace() {
 	const client = useQueryClient()
