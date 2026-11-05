@@ -82,9 +82,13 @@ export function applyReplyChunk(
  * @internal
  */
 export function dropEmptyReply(messages: ChatMessageData[], id: string): ChatMessageData[] {
-	return messages.filter(
+	const kept = messages.filter(
 		(message) => !(message.id === id && !message.failed && isEmptyContent(message.content)),
 	)
+
+	// The settle runs on every exit of a send, so a list that drops nothing keeps
+	// its identity.
+	return kept.length === messages.length ? messages : kept
 }
 
 /**
@@ -141,13 +145,15 @@ export function failReplyTools(messages: ChatMessageData[], id: string): ChatMes
  * Whether a message names itself. An empty id is no id: a rule that matched on
  * `''` would name every message that carries none.
  *
- * `seedMessages` and `duplicateMessageIds` both read this. The rule that
- * assigns an id and the rule that reports a collision therefore cannot disagree
- * about what an id is.
+ * `seedMessages`, `duplicateMessageIds`, and the row key of the transcript all
+ * read this. The rule that assigns an id, the rule that reports a collision,
+ * and the key therefore cannot disagree about what an id is.
  *
  * @internal
  */
-function hasMessageId(message: ChatMessageData): message is ChatMessageData & { id: string } {
+export function hasMessageId(
+	message: ChatMessageData,
+): message is ChatMessageData & { id: string } {
 	return Boolean(message.id)
 }
 

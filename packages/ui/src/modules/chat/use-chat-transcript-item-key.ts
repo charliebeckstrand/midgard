@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react'
 import { useStableValue } from '../../hooks/use-stable-value'
+import { hasMessageId } from './engine/chat-transcript'
 import type { ChatMessageData } from './engine/types'
 
 /** Whether two message lists hold the same ids in the same order. @internal */
@@ -11,7 +12,8 @@ function sameIds(prev: readonly ChatMessageData[], next: readonly ChatMessageDat
 
 /**
  * Returns the key getter that the transcript window reads: the message `id`,
- * or the index for a message with no id.
+ * or the index for a message with no id. An empty id is no id, as the engine
+ * reads it.
  *
  * @remarks
  * The getter keeps its identity while the ids stay the same. A streamed chunk
@@ -31,5 +33,12 @@ export function useChatTranscriptItemKey(
 	// from it.
 	const held = useStableValue(messages, sameIds)
 
-	return useCallback((index: number) => held[index]?.id ?? index, [held])
+	return useCallback(
+		(index: number) => {
+			const message = held[index]
+
+			return message && hasMessageId(message) ? message.id : index
+		},
+		[held],
+	)
 }

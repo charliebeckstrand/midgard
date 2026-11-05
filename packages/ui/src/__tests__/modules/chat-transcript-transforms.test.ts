@@ -232,6 +232,14 @@ describe('dropEmptyReply', () => {
 
 		expect(dropEmptyReply(messages, 'r1')).toEqual(messages)
 	})
+
+	// The settle runs on every exit of a send, so a list that drops nothing keeps
+	// its identity and costs no re-render.
+	it('returns the transcript by reference when it drops nothing', () => {
+		const messages = [user('u1', 'hi'), assistant('r1', 'Late stops rose')]
+
+		expect(dropEmptyReply(messages, 'r1')).toBe(messages)
+	})
 })
 
 describe('lastUserMessage', () => {

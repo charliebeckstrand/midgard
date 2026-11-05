@@ -81,4 +81,15 @@ describe('useChatTranscriptItemKey', () => {
 
 		expect(result.current(0)).toBe(0)
 	})
+
+	// The engine reads an empty id as no id, so the key does too. Otherwise two
+	// messages with `id: ''` share a React key.
+	it('keys a message with an empty id by its index', () => {
+		const { result } = mount([
+			{ id: '', sender: 'user', content: 'Where are the late stops?' },
+			{ id: '', sender: 'assistant', content: 'On the north route.' },
+		])
+
+		expect([result.current(0), result.current(1)]).toEqual([0, 1])
+	})
 })
