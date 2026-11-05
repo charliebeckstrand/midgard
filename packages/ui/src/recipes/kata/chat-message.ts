@@ -5,7 +5,7 @@ const { text } = iro
 const { rounded } = kasane
 const { size, weight } = ji
 const { flex } = narabi
-const { focus } = sen
+const { focus, forced } = sen
 
 const bubble = {
 	base: [
@@ -23,11 +23,14 @@ const bubble = {
 		// otherwise grow to the full word.
 		'whitespace-pre-wrap wrap-anywhere',
 	],
+	// Forced colors replace the fill, so a filled bubble keeps its edge as an
+	// outline. The system line has no fill to lose.
 	sender: {
-		user: ['bg-blue-600 text-white', 'rounded-ee-md'],
+		user: ['bg-blue-600 text-white', 'rounded-ee-md', forced.outline],
 		assistant: [
 			...mode('bg-zinc-100 text-zinc-950', 'dark:bg-white/10 dark:text-white'),
 			'rounded-es-md',
+			forced.outline,
 		],
 		system: [...text.muted, 'bg-transparent px-0'],
 	},
