@@ -71,16 +71,19 @@ function sortFlip(rows: Shipment[]) {
 
 /**
  * Mounts the grid and closes it over a quick filter that it applies and
- * clears. The clear settles on the row count that the toolbar shows. A grouped
- * window that grows back keeps its scroll offset, so the first row of the
- * first group can sit out of view.
+ * clears. The clear settles on the first row of the first group, which the
+ * filter removes.
  */
 function filterCycle(rows: Shipment[]) {
-	const count = `${rows.length} rows`
+	const first = firstOfGroup(rows).asc
 
 	const survivor = rows.find((row) => row.carrier === 'Globex')?.id
 
 	if (!survivor) throw new Error('grid group bench found no row carried by Globex')
+
+	// A first group of Globex would show its first row through the filter, and the
+	// clear would then settle at once and measure nothing.
+	if (rows[0]?.carrier === 'Globex') throw new Error('grid group bench starts with Globex')
 
 	return prepareGrids(
 		rows,
@@ -91,7 +94,7 @@ function filterCycle(rows: Shipment[]) {
 
 			grid.search('')
 
-			await painted(box, [count])
+			await painted(box, [first])
 		},
 		GROUPED,
 	)

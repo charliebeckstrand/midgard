@@ -117,3 +117,12 @@ if (typeof window !== 'undefined') {
 		Element.prototype.scrollIntoView = vi.fn()
 	}
 }
+
+// An editable grid renders from a chunk of its own. Until the chunk is loaded,
+// the grid shows the read-only grid, and then it mounts again as an editable
+// grid. The load before each file gives each bench the grid of a page that
+// already loaded the chunk, as `__tests__/setup/grid-modules.ts` does for the
+// tests. The import comes after the stubs above, so the grid loads against them.
+const { loadGridEditing } = await import('../modules/grid/grid-data')
+
+await loadGridEditing()
