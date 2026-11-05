@@ -4019,6 +4019,10 @@
 		"defaultMessage": "You have unsaved changes that will be lost.",
 		"description": "Text of a demo in the docs as description, in components/confirm/playground.tsx."
 	},
+	"docs.demo.ab837ff0673a": {
+		"defaultMessage": "{formatNumber} counties",
+		"description": "Text of a demo in the docs as summary, in modules/chat/steps/every-state.tsx. The argument {formatNumber} is a value from the code."
+	},
 	"docs.demo.abc7e9892806": {
 		"defaultMessage": "Files",
 		"description": "Text of a demo in the docs as aria-label, title, in components/command-palette/commands.tsx, components/tree/playground.tsx."
@@ -4686,10 +4690,6 @@
 	"docs.demo.d1180f8109bc": {
 		"defaultMessage": "Atlanta depot",
 		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
-	},
-	"docs.demo.d15fcf0c129c": {
-		"defaultMessage": "3,108 counties",
-		"description": "Text of a demo in the docs as summary, in modules/chat/steps/every-state.tsx."
 	},
 	"docs.demo.d175d09d870d": {
 		"defaultMessage": "Got it. The door code is 4421.",
