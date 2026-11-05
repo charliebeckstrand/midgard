@@ -22,6 +22,11 @@ import { TripDetails, TripList } from '../trip-summary'
 /** Props for {@link NearbyDrawer}. See {@link SummaryFrame} for the frame. */
 export type NearbyDrawerProps = SummaryFrame<MapRecord> & {
 	/**
+	 * The ids of the records that the reader picked on the map. A new pick
+	 * returns the pickers of the list to their start.
+	 */
+	picked: readonly string[]
+	/**
 	 * What the menus of an open place and of its visits do. The panels and the
 	 * confirmations are the caller's.
 	 */
@@ -124,6 +129,7 @@ export function NearbyDrawer({
 	tripLink,
 	placesByTrip,
 	onOpenPlace,
+	picked,
 	...frame
 }: NearbyDrawerProps) {
 	const intl = useIntl()
@@ -145,11 +151,12 @@ export function NearbyDrawer({
 	// pick, the same as the categories.
 	const [order, setOrder] = useState<PlaceOrder>('name')
 
-	// Which records the group stands for, as one string. It is what a new pick
+	// Which records the reader picked, as one string. It is what a new pick
 	// changes and what a re-read of the same pick does not: an edit or a refetch
-	// hands back an equal group in a new array, and resetting on that identity
-	// would throw a reader out of the row they had opened.
-	const groupKey = frame.items.map((record) => record.id).join('|')
+	// hands back an equal group in a new array, and a delete in the drawer hands
+	// back a smaller group. A reset on either would throw a reader out of the
+	// list that they narrowed.
+	const groupKey = picked.join('|')
 
 	// The group the pickers were last returned to their start for.
 	const [pickedKey, setPickedKey] = useState(groupKey)
