@@ -3,6 +3,7 @@ import type { MapFeature, MapFeatureCollection, MapTopology } from 'ui/modules/m
 import states from 'us-atlas/states-10m.json'
 import { describe, expect, it, vi } from 'vitest'
 import type { Place } from '../../types'
+import { atlasBounded } from '../../utilities/places-atlas'
 import {
 	type BoundedRegion,
 	boundRegions,
@@ -14,7 +15,7 @@ import {
 	regionName,
 	topologyNames,
 } from '../../utilities/places-geography'
-import { getState } from '../../utilities/places-view'
+import { COUNTRY_SNAP_KM, getState } from '../../utilities/places-view'
 import { placeAt } from '../fixtures'
 
 /**
@@ -169,6 +170,23 @@ describe('nearestRegion', () => {
 
 	it('answers with nothing before the atlas lands', () => {
 		expect(nearestRegion([], OFF_THE_COAST, 50)).toBeNull()
+	})
+
+	// At 60°N a kilometer spans twice the degrees of longitude that it spans at
+	// the equator. A box padded in degrees of latitude reached only half of the
+	// tolerance to the east and the west.
+	it('rescues a position off the side of a region at a high latitude', () => {
+		const north = boundRegions({
+			type: 'FeatureCollection',
+			features: [region('North', box(10, 60, 11, 61))],
+		})
+
+		// 0.6° of longitude at 60.5°N is about 33 km.
+		expect(nearestRegion(north, [9.4, 60.5], 50)).toBe('North')
+	})
+
+	it('rescues a position off the coast of Bergen as Norway', () => {
+		expect(nearestRegion(atlasBounded('countries'), [4.49, 60.33], COUNTRY_SNAP_KM)).toBe('Norway')
 	})
 
 	it('takes the nearer of two regions', () => {

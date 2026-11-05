@@ -48,7 +48,9 @@ export function PlaceTrail({ steps, className, children }: PlaceTrailProps) {
 					const picks = step.onPick !== undefined
 
 					return (
-						<Fragment key={step.label}>
+						// By position, because two crumbs can share a label, such as New York
+						// in New York. The trail grows and shrinks only at its tail.
+						<Fragment key={index}>
 							{index > 0 ? <BreadcrumbSeparator /> : null}
 
 							<BreadcrumbItem>
