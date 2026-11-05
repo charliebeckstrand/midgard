@@ -6,8 +6,9 @@ import { ShortcutHint } from '../kit/shortcut-hint.tsx'
 import KeyboardShortcut from '../pages/components/command-palette/keyboard-shortcut.tsx'
 
 // The key of an example is in the HTML of the build, so it is in the first
-// paint. The build cannot know the platform, so it writes ⌘, and the client
-// corrects it after the hydration.
+// paint. The build cannot know the platform, so it writes the two texts and
+// shows ⌘. The client shows Ctrl+ after the hydration on other platforms. The
+// markup keeps the two texts, so the key keeps its size (CONVENTIONS §3.13).
 
 const hint = (
 	<kbd>
@@ -15,14 +16,28 @@ const hint = (
 	</kbd>
 )
 
+/** The text that the key shows: jsdom has no style sheet, so it reads the `invisible` class. */
+const shown = (container: Element) =>
+	[...container.querySelectorAll('kbd span span')]
+		.filter((text) => !text.classList.contains('invisible'))
+		.map((text) => text.textContent)
+		.join('')
+
 describe('ShortcutHint', () => {
 	it('is in the HTML of the build, and stays on Apple platforms', () => {
-		expect(hydrateOnPlatform(hint, 'MacIntel')).toEqual({ before: '⌘J', after: '⌘J' })
+		expect(hydrateOnPlatform(hint, 'MacIntel', shown)).toEqual({ before: '⌘J', after: '⌘J' })
 	})
 
-	it('changes to Ctrl+ after the hydration on other platforms', () => {
-		expect(hydrateOnPlatform(hint, 'Win32')).toEqual({ before: '⌘J', after: 'Ctrl+J' })
+	it('shows Ctrl+ after the hydration on other platforms', () => {
+		expect(hydrateOnPlatform(hint, 'Win32', shown)).toEqual({ before: '⌘J', after: 'Ctrl+J' })
 	})
+
+	it.each(['MacIntel', 'Win32'])(
+		'keeps the two texts in the markup through the hydration on %s',
+		(platform) => {
+			expect(hydrateOnPlatform(hint, platform)).toEqual({ before: '⌘JCtrl+J', after: '⌘JCtrl+J' })
+		},
+	)
 })
 
 describe('the Keyboard shortcut example of the command palette', () => {
