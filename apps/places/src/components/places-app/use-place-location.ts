@@ -12,6 +12,7 @@ import {
 	type PlaceSelection,
 	readAdding,
 	readFilter,
+	readLocation,
 	readSelected,
 	readStep,
 	readView,
@@ -107,6 +108,17 @@ function useSlice<T>(params: URLSearchParams, read: (params: URLSearchParams) =>
 	return value
 }
 
+/** The address of `location` with the parts of `next` over it, at `pathname`. */
+function buildHref(
+	pathname: string,
+	location: PlaceLocation,
+	next: Partial<PlaceLocation>,
+): string {
+	const query = writeLocation({ ...location, ...next }).toString()
+
+	return query === '' ? pathname : `${pathname}?${query}`
+}
+
 /**
  * The reader's place in the app, held in the address bar rather than in state.
  *
@@ -138,33 +150,34 @@ export function usePlaceLocation(): PlaceLocationHandle {
 	)
 
 	// Takes the parts that move and composes them over the parts that do not, so
-	// each setter below states its own change and nothing else.
+	// each setter below states its own change and nothing else. It reads the
+	// address of the render, because `toHref` runs during the render, also on the
+	// server.
 	const compose = useCallback(
-		(next: Partial<PlaceLocation>) => {
-			const query = writeLocation({ ...location, ...next }).toString()
-
-			return query === '' ? pathname : `${pathname}?${query}`
-		},
+		(next: Partial<PlaceLocation>) => buildHref(pathname, location, next),
 		[location, pathname],
 	)
 
-	const write = useCallback(
-		(next: Partial<PlaceLocation>, entry: PlaceStep) => {
-			const href = compose(next)
+	// Reads the address when it writes and not from the render, so the setters
+	// keep their identity across writes. A new setter on each write made a new
+	// palette source of each region command, a new trail, and new closures for
+	// each panel that stays mounted while closed.
+	const write = useCallback((next: Partial<PlaceLocation>, entry: PlaceStep) => {
+		const { pathname: path, search } = window.location
 
-			// The History API, not the router. The page reads the session and the
-			// places on the server, and a router step runs the page again: each
-			// open and each close of a place then waited on three gateway reads
-			// before the drawer moved. The query is client state that the page
-			// does not read, so the server has nothing new to send. Next patches
-			// these two calls, so `useSearchParams` gets the new address, and Back
-			// and Forward restore it from the router cache. The page does not
-			// scroll, so no scroll step is necessary.
-			if (entry === 'walk') window.history.pushState(null, '', href)
-			else window.history.replaceState(null, '', href)
-		},
-		[compose],
-	)
+		const href = buildHref(path, readLocation(new URLSearchParams(search)), next)
+
+		// The History API, not the router. The page reads the session and the
+		// places on the server, and a router step runs the page again: each
+		// open and each close of a place then waited on three gateway reads
+		// before the drawer moved. The query is client state that the page
+		// does not read, so the server has nothing new to send. Next patches
+		// these two calls, so `useSearchParams` gets the new address, and Back
+		// and Forward restore it from the router cache. The page does not
+		// scroll, so no scroll step is necessary.
+		if (entry === 'walk') window.history.pushState(null, '', href)
+		else window.history.replaceState(null, '', href)
+	}, [])
 
 	const openAt = useCallback(
 		(view: PlaceView, selected: PlaceSelection) =>

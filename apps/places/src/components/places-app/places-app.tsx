@@ -130,9 +130,19 @@ const REGION_LABEL = {
 	countries: 'All countries',
 }
 
+/** The lists of {@link inRegion}, by `byRegion`, then by `filtered`, then by `cut`. */
+const inRegionLists = new WeakMap<
+	ReadonlyMap<string, readonly Located[]>,
+	WeakMap<readonly Located[], Map<string, Located[]>>
+>()
+
 /**
  * The records of `filtered` that `byRegion` puts in `cut`, or all of them when
  * `cut` is `null`.
+ *
+ * Kept for the module, so the hidden map of a view and the map of the same view
+ * get one array. The map clusters its points again for a new array, and a new
+ * array on the click that shows a preloaded map was that work again.
  */
 function inRegion<T extends Located>(
 	filtered: T[],
@@ -141,9 +151,61 @@ function inRegion<T extends Located>(
 ): T[] {
 	if (cut === null) return filtered
 
+	let byList = inRegionLists.get(byRegion)
+
+	if (byList === undefined) {
+		byList = new WeakMap()
+
+		inRegionLists.set(byRegion, byList)
+	}
+
+	let byCut = byList.get(filtered)
+
+	if (byCut === undefined) {
+		byCut = new Map()
+
+		byList.set(filtered, byCut)
+	}
+
+	const held = byCut.get(cut)
+
+	// The list holds records of `filtered`, which are each a `T`.
+	if (held !== undefined) return held as T[]
+
 	const ids = new Set(byRegion.get(cut)?.map((record) => record.id) ?? [])
 
-	return filtered.filter((record) => ids.has(record.id))
+	const list = filtered.filter((record) => ids.has(record.id))
+
+	byCut.set(cut, list)
+
+	return list
+}
+
+/** The sets of {@link visitedIn}, by `visits`, then by atlas. */
+const visitedSets = new WeakMap<Visits, Map<PlaceAtlas, ReadonlySet<string>>>()
+
+/**
+ * The visited regions of `atlas`, as a set. Kept for the module, for the reason
+ * that {@link inRegion} gives.
+ */
+function visitedIn(visits: Visits, atlas: PlaceAtlas): ReadonlySet<string> {
+	let byAtlas = visitedSets.get(visits)
+
+	if (byAtlas === undefined) {
+		byAtlas = new Map()
+
+		visitedSets.set(visits, byAtlas)
+	}
+
+	let set = byAtlas.get(atlas)
+
+	if (set === undefined) {
+		set = new Set(visits[atlas])
+
+		byAtlas.set(atlas, set)
+	}
+
+	return set
 }
 
 /**
@@ -316,7 +378,7 @@ function mapForView<Regions>(
 		regions: sources.atlases(atlas),
 		places: inRegion(sources.places, byRegion, cut),
 		trips: inRegion(sources.trips, byRegion, cut),
-		visited: new Set(sources.visits[atlas]),
+		visited: visitedIn(sources.visits, atlas),
 	}
 }
 
@@ -855,7 +917,7 @@ export function PlacesApp({
 	// The visited regions of the drawn atlas, as a set: the shape the map and the
 	// toggle both ask it in. The two scopes are held apart in the store because
 	// Georgia is a state and Georgia is a country.
-	const visited = useMemo(() => new Set(visits[atlas]), [visits, atlas])
+	const visited = visitedIn(visits, atlas)
 
 	// Every region the drawn atlas holds, for the picker inside the United States.
 	// Read off the geography rather than the records, so a state holding nothing is
