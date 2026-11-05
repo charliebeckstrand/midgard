@@ -23,9 +23,15 @@ export type SearchEntry = {
 // The module of a page or a tab imports the API data of a barrel by this id.
 const API_IMPORT = /['"]virtual:docs\/api\/([\w/-]+)['"]/g
 
-/** The barrels whose API data the page or the tab in `folder` shows. */
+/**
+ * The barrels whose API data the page or the tab in `folder` shows. A module
+ * that renders no `<ApiTable` shows no API reference, although it can import
+ * the API data for a Playground.
+ */
 async function readBarrels(folder: string): Promise<string[]> {
 	const code = await readFile(path.join(folder, 'index.tsx'), 'utf8')
+
+	if (!code.includes('<ApiTable')) return []
 
 	return [...code.matchAll(API_IMPORT)].flatMap(([, barrel]) => (barrel ? [barrel] : []))
 }
