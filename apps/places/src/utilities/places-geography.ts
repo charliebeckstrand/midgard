@@ -29,21 +29,27 @@ export type BoundedRegion = {
 function withinBounds(
 	bounds: BoundedRegion['bounds'],
 	[lon, lat]: [number, number],
-	pad = 0,
+	latPad = 0,
+	lonPad = latPad,
 ): boolean {
 	const [[west, south], [east, north]] = bounds
 
 	const withinLon =
-		west <= east ? lon >= west - pad && lon <= east + pad : lon >= west - pad || lon <= east + pad
+		west <= east
+			? lon >= west - lonPad && lon <= east + lonPad
+			: lon >= west - lonPad || lon <= east + lonPad
 
-	return withinLon && lat >= south - pad && lat <= north + pad
+	return withinLon && lat >= south - latPad && lat <= north + latPad
 }
 
 /** Kilometers along a degree of latitude, which is the scale the local frame below measures in. */
 const KM_PER_DEGREE = 111.195
 
-/** Degrees of latitude in a kilometer, for padding a box by a distance. Longitude is narrower away from the equator, so this over-pads rather than under-pads: the box only decides who is worth measuring. */
+/** Degrees of latitude in a kilometer, for padding a box by a distance. A degree of longitude is shorter away from the equator, so a kilometer spans more of them: see {@link nearestRegion}. */
 const DEGREES_PER_KM = 1 / KM_PER_DEGREE
+
+/** The latitude, in degrees, that the longitude pad of a box is measured at, at most. Near a pole the cosine goes to 0, and the pad would go round the world. */
+const MAX_PAD_LATITUDE = 85
 
 /** A longitude difference read the short way round, so a pair either side of the antimeridian is two degrees apart rather than 358. */
 function longitudeDelta(from: number, to: number): number {
@@ -150,7 +156,14 @@ export function nearestRegion(
 	at: [number, number],
 	withinKm: number,
 ): string | null {
-	const pad = withinKm * DEGREES_PER_KM
+	const latPad = withinKm * DEGREES_PER_KM
+
+	// At latitude φ a kilometer spans 1 / cos φ more degrees of longitude than of
+	// latitude. Padded by `latPad` alone, the box at 60°N reached only half of
+	// `withinKm` to the east and the west.
+	const latitude = Math.min(Math.abs(at[1]), MAX_PAD_LATITUDE) * (Math.PI / 180)
+
+	const lonPad = latPad / Math.cos(latitude)
 
 	let nearest: string | null = null
 
@@ -159,7 +172,7 @@ export function nearestRegion(
 	for (const region of bounded) {
 		if (region.feature.geometry === null) continue
 
-		if (!withinBounds(region.bounds, at, pad)) continue
+		if (!withinBounds(region.bounds, at, latPad, lonPad)) continue
 
 		for (const ring of rings(region.feature.geometry)) {
 			const km = ringKm(at, ring)
