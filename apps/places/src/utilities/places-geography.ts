@@ -29,8 +29,8 @@ export type BoundedRegion = {
 function withinBounds(
 	bounds: BoundedRegion['bounds'],
 	[lon, lat]: [number, number],
-	pad = 0,
-	lonPad = pad,
+	latPad = 0,
+	lonPad = latPad,
 ): boolean {
 	const [[west, south], [east, north]] = bounds
 
@@ -39,7 +39,7 @@ function withinBounds(
 			? lon >= west - lonPad && lon <= east + lonPad
 			: lon >= west - lonPad || lon <= east + lonPad
 
-	return withinLon && lat >= south - pad && lat <= north + pad
+	return withinLon && lat >= south - latPad && lat <= north + latPad
 }
 
 /** Kilometers along a degree of latitude, which is the scale the local frame below measures in. */
@@ -156,14 +156,14 @@ export function nearestRegion(
 	at: [number, number],
 	withinKm: number,
 ): string | null {
-	const pad = withinKm * DEGREES_PER_KM
+	const latPad = withinKm * DEGREES_PER_KM
 
 	// At latitude φ a kilometer spans 1 / cos φ more degrees of longitude than of
-	// latitude. Padded by `pad` alone, the box at 60°N reached only half of
+	// latitude. Padded by `latPad` alone, the box at 60°N reached only half of
 	// `withinKm` to the east and the west.
 	const latitude = Math.min(Math.abs(at[1]), MAX_PAD_LATITUDE) * (Math.PI / 180)
 
-	const lonPad = pad / Math.cos(latitude)
+	const lonPad = latPad / Math.cos(latitude)
 
 	let nearest: string | null = null
 
@@ -172,7 +172,7 @@ export function nearestRegion(
 	for (const region of bounded) {
 		if (region.feature.geometry === null) continue
 
-		if (!withinBounds(region.bounds, at, pad, lonPad)) continue
+		if (!withinBounds(region.bounds, at, latPad, lonPad)) continue
 
 		for (const ring of rings(region.feature.geometry)) {
 			const km = ringKm(at, ring)
