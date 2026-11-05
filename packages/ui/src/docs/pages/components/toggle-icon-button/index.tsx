@@ -7,7 +7,7 @@ import ThemeToggle from './theme-toggle.tsx'
 export default function ToggleIconButtonPage() {
 	return (
 		<>
-			<Playground of={ToggleIconButtonPlayground} api={api} omit={['pressed', 'defaultPressed']} />
+			<Playground of={ToggleIconButtonPlayground} api={api} omit={['pressed']} />
 			<Example of={ThemeToggle} />
 			<Example of={MuteToggle} />
 			<ApiTable api={api} />

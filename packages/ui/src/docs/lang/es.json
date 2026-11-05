@@ -1574,7 +1574,6 @@
 	"docs.prop.count": "Cantidad",
 	"docs.prop.debounceMs": "Retardo (ms)",
 	"docs.prop.defaultItems": "Elementos iniciales",
-	"docs.prop.defaultOpen": "Abierto al inicio",
 	"docs.prop.delay": "Retardo",
 	"docs.prop.density": "Densidad",
 	"docs.prop.density.compact": "Compacta",

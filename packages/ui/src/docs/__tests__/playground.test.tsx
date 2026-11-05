@@ -14,6 +14,7 @@ type ThingProps = {
 	label?: string
 	max?: number
 	defaultCount?: number
+	defaultOpen?: boolean
 	page?: number
 	orientation?: 'horizontal' | 'vertical' | { initial?: string; sm?: string }
 }
@@ -36,6 +37,13 @@ const API: BarrelApi = {
 		name: 'Thing',
 		props: [
 			{ name: 'defaultCount', type: 'number', default: '3', defaultValue: 3 },
+			{
+				name: 'defaultOpen',
+				type: 'boolean',
+				values: [false, true],
+				default: 'false',
+				defaultValue: false,
+			},
 			{ name: 'label', type: 'string', default: "'Thing'", defaultValue: 'Thing' },
 			{ name: 'max', type: 'number', default: '100', defaultValue: 100 },
 			{
@@ -91,6 +99,22 @@ describe('Playground', () => {
 		fireEvent.change(max, { target: { value: '50' } })
 
 		expect(instanceProps()).toEqual({ max: 50 })
+	})
+
+	it('gives a start state a field only when `values` or `free` names it', () => {
+		const { unmount } = render(<Playground of={ThingPlayground} api={API} />)
+
+		expect(screen.queryByRole('combobox', { name: 'Default open' })).toBeNull()
+
+		unmount()
+
+		render(<Playground of={ThingPlayground} api={API} values={{ defaultOpen: [false, true] }} />)
+
+		fireEvent.click(screen.getByRole('combobox', { name: 'Default open' }))
+
+		fireEvent.click(screen.getByRole('option', { name: 'On' }))
+
+		expect(instanceProps()).toEqual({ defaultOpen: true })
 	})
 
 	it('gives a field to each prop that `free` names, at the value that it gives', () => {

@@ -66,8 +66,7 @@ function getRange({ minimum, maximum }: PropApi): Pick<FreeField, 'min' | 'max'>
  * or `duration`, so it gets a number field. A number field holds its value
  * between the `@minimum` and the `@maximum` tags of the prop. A prop that
  * `free` names gets a text field or a number field by its type, and starts at
- * the value that `free` gives. A prop whose name starts with `default` sets the first state
- * of the component, so it gets a field only when `free` names it.
+ * the value that `free` gives.
  */
 function buildFreeField(prop: PropApi, free: Free): FreeField | undefined {
 	const { name, type, defaultValue } = prop
@@ -97,7 +96,7 @@ function buildFreeField(prop: PropApi, free: Free): FreeField | undefined {
 		}
 	}
 
-	if (type !== 'number' || name.startsWith('default')) return undefined
+	if (type !== 'number') return undefined
 
 	const fallback = resolveFreeDefault('number', defaultValue)
 
@@ -112,7 +111,8 @@ function buildFreeField(prop: PropApi, free: Free): FreeField | undefined {
  * component renders when the prop is omitted. A density step with no tag
  * takes the step of the scope, which is `step`. A prop of another type can
  * get a free field ({@link buildFreeField}). A field keeps the `media` of its
- * prop.
+ * prop. A prop whose name starts with `default` sets the first state of the
+ * component, so it gets a field only when `given` or `free` names it.
  */
 export function buildFields(
 	props: readonly PropApi[],
@@ -125,6 +125,10 @@ export function buildFields(
 		const { name, deprecated } = prop
 
 		if (deprecated !== undefined || omit.includes(name)) return []
+
+		if (name.startsWith('default') && !Object.hasOwn(given, name) && !Object.hasOwn(free, name)) {
+			return []
+		}
 
 		const values = given[name] ?? prop.values
 
