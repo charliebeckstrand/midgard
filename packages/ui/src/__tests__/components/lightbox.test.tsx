@@ -61,6 +61,24 @@ function layOut(stage: HTMLElement) {
 	return photo
 }
 
+/**
+ * Opens the viewer under reduced motion on a track `width` px wide, and gives
+ * the stage and the track. jsdom has no layout.
+ */
+function openOnTrack(width: number, props: Partial<Parameters<typeof Gallery>[0]> = {}) {
+	stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+	renderUI(<Gallery defaultIndex={0} {...props} />)
+
+	const stage = getSlot(document.body, 'lightbox-stage')
+
+	const track = present(stage.firstElementChild, 'track') as HTMLElement
+
+	mockDomGeometry(track, { clientWidth: width })
+
+	return { stage, track }
+}
+
 /** A slow press on the stage. Each event gives its own time, in ms. */
 function press(
 	stage: HTMLElement,
@@ -1076,21 +1094,8 @@ describe('Lightbox', () => {
 	describe('flick speed', () => {
 		// React reads a `timeStamp` of 0 as no time, so each press starts at 1s.
 
-		/** Opens the viewer at the first photo on a track 1000px wide. */
-		function openWide() {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-			renderUI(<Gallery defaultIndex={0} />)
-
-			const stage = getSlot(document.body, 'lightbox-stage')
-
-			Object.defineProperty(stage.firstElementChild, 'clientWidth', { value: 1000 })
-
-			return stage
-		}
-
 		it('steps on a fast flick that lifts at once', () => {
-			const stage = openWide()
+			const { stage } = openOnTrack(1000)
 
 			press(stage, 'pointerDown', 600, 100, 1000)
 
@@ -1104,7 +1109,7 @@ describe('Lightbox', () => {
 		})
 
 		it('does not step on a fast drag that holds still before the lift', () => {
-			const stage = openWide()
+			const { stage } = openOnTrack(1000)
 
 			press(stage, 'pointerDown', 600, 100, 1000)
 
@@ -1119,7 +1124,7 @@ describe('Lightbox', () => {
 		})
 
 		it('does not read the jitter of one fast move at the end of a slow drag as a flick', () => {
-			const stage = openWide()
+			const { stage } = openOnTrack(1000)
 
 			press(stage, 'pointerDown', 600, 100, 1000)
 
@@ -1133,6 +1138,112 @@ describe('Lightbox', () => {
 			press(stage, 'pointerUp', 499, 100, 2002)
 
 			expect(screen.getByText('1 / 3')).toBeInTheDocument()
+		})
+	})
+
+	describe('swipe on the pill', () => {
+		// React reads a `timeStamp` of 0 as no time, so each press starts at 1s.
+
+		/** Opens the viewer at the photo `index` on a track 400px wide, and gives the pill and the track. */
+		function openAt(index: number, props: Partial<Parameters<typeof Gallery>[0]> = {}) {
+			const { track } = openOnTrack(400, { defaultIndex: index, ...props })
+
+			const pill = present(screen.getByText(`${index + 1} / 3`).parentElement, 'pill')
+
+			return { pill, track }
+		}
+
+		it('moves the photos with the finger, and steps at the lift past a fifth of the track', () => {
+			const { pill, track } = openAt(0)
+
+			press(pill, 'pointerDown', 200, 700, 1000)
+
+			press(pill, 'pointerMove', 160, 700, 2000)
+
+			expect(track.style.transform).toBe('translateX(-40px)')
+
+			press(pill, 'pointerMove', 100, 700, 3000)
+
+			press(pill, 'pointerUp', 100, 700, 4000)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+
+			expect(track.style.transform).toBe('none')
+		})
+
+		it('starts a swipe on a step button', () => {
+			const { pill } = openAt(1)
+
+			const previous = screen.getByRole('button', { name: 'Previous photo' })
+
+			press(previous, 'pointerDown', 150, 700, 1000)
+
+			press(pill, 'pointerMove', 250, 700, 2000)
+
+			press(pill, 'pointerUp', 250, 700, 3000)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
+		})
+
+		it('slides back on a short, slow swipe', () => {
+			const { pill, track } = openAt(0)
+
+			press(pill, 'pointerDown', 200, 700, 1000)
+
+			press(pill, 'pointerMove', 160, 700, 2000)
+
+			press(pill, 'pointerUp', 160, 700, 3000)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
+
+			expect(track.style.transform).toBe('none')
+		})
+
+		it('does not close or raise the stage on a swipe up or down', () => {
+			const { pill } = openAt(1)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			press(pill, 'pointerDown', 200, 700, 1000)
+
+			press(pill, 'pointerMove', 200, 500, 1050)
+
+			expect(stage).not.toHaveAttribute('data-raised')
+
+			press(pill, 'pointerUp', 200, 400, 1060)
+
+			expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+		})
+
+		it('steps in the reading order of a right-to-left stage', () => {
+			const { pill } = openAt(0)
+
+			// jsdom computes no inherited direction, so the stage states its own.
+			screen.getByRole('dialog').style.direction = 'rtl'
+
+			press(pill, 'pointerDown', 200, 700, 1000)
+
+			press(pill, 'pointerMove', 300, 700, 2000)
+
+			press(pill, 'pointerUp', 300, 700, 3000)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+		})
+
+		it('does not move the photos with `swipeControls={false}`', () => {
+			const { pill, track } = openAt(0, { swipeControls: false })
+
+			press(pill, 'pointerDown', 200, 700, 1000)
+
+			press(pill, 'pointerMove', 100, 700, 2000)
+
+			press(pill, 'pointerUp', 100, 700, 3000)
+
+			expect(track.style.transform).toBe('')
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
 		})
 	})
 

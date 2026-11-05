@@ -4,11 +4,13 @@ import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../components/
 import { frames, present, renderUI, screen } from '../helpers'
 import { press } from './helpers/drag'
 import { waitForNoTween } from './helpers/motion-frame'
+import { pause } from './helpers/wall-clock'
 
 /**
  * The life of a press on the stage of a `Lightbox`. A press ends when its pointer has no button
  * down, when the stage loses the capture of its pointer, and on a cancel for its own pointer. A
- * step first ends the live press, and the restore of a swipe to close that did not close.
+ * step first ends the live press, and the restore of a swipe to close that did not close. A
+ * swipe on the step pill moves the track as a swipe on the stage does.
  *
  * Rides the real browser because the track reads the real layout, Motion runs real tweens, and
  * the first case needs a release that the browser sends to a control, not to the stage.
@@ -128,6 +130,25 @@ function fire(
 	stage().dispatchEvent(event)
 }
 
+/**
+ * Moves the held mouse to `dx` px along the line from the center of the Next button. The point is
+ * from the box of the stage, under the controls, so the move does not wait for the stage to be
+ * the top element there.
+ */
+async function hoverFromNext(dx: number) {
+	const button = screen.getByRole('button', { name: 'Next photo' }).getBoundingClientRect()
+
+	const box = stage().getBoundingClientRect()
+
+	await userEvent.hover(stage(), {
+		force: true,
+		position: {
+			x: button.left + button.width / 2 + dx - box.left,
+			y: button.top + button.height / 2 - box.top,
+		},
+	})
+}
+
 function arrowRight() {
 	present(document.querySelector('[data-slot="lightbox"]'), 'viewer').dispatchEvent(
 		new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
@@ -208,6 +229,56 @@ describe('Lightbox press lifecycle (real browser)', () => {
 		fire('pointerup', -120, 0, 1500)
 
 		await settle()
+	})
+
+	it('moves the track with a swipe that starts on a step button, and steps at the lift', async () => {
+		await open()
+
+		await press('[aria-label="Next photo"]')
+
+		await hoverFromNext(-10)
+
+		// The capture that the swipe sets takes effect at the next move.
+		await hoverFromNext(-60)
+
+		expect(track().style.transform).toMatch(/^translateX\(-/)
+
+		await hoverFromNext(-300)
+
+		await commands.releasePointer()
+
+		await settle()
+
+		expectSteppedAtRest()
+	})
+
+	it('does not click a step button that a swipe starts and ends on', async () => {
+		await open()
+
+		await press('[aria-label="Next photo"]')
+
+		// A mouse has no implicit capture, so the swipe starts over the button.
+		await hoverFromNext(5)
+
+		await hoverFromNext(10)
+
+		await hoverFromNext(120)
+
+		await hoverFromNext(0)
+
+		// A still mouse is not a flick at the lift.
+		await pause(100)
+
+		// The swipe captured the pointer, so the click goes to the pill, and not to the button.
+		await commands.releasePointer('[aria-label="Next photo"]')
+
+		await settle()
+
+		expect(center()).toHaveAttribute('alt', 'Teal field')
+
+		expect(screen.getByText('1 / 3')).toBeVisible()
+
+		expect(['', 'none']).toContain(track().style.transform)
 	})
 
 	it('ends a swipe along the line when an arrow key steps', async () => {

@@ -7131,6 +7131,10 @@
 		"defaultMessage": "Stroke width",
 		"description": "The label of a field of a playground in the docs. The field sets the prop strokeWidth of ProgressGauge, SignaturePad, Sparkline."
 	},
+	"docs.prop.swipeControls": {
+		"defaultMessage": "Swipe controls",
+		"description": "The label of a field of a playground in the docs. The field sets the prop swipeControls of Lightbox."
+	},
 	"docs.prop.tagColor": {
 		"defaultMessage": "Tag color",
 		"description": "The label of a field of a playground in the docs. The field sets the prop tagColor of TagInput."

@@ -1782,6 +1782,7 @@
 	"docs.prop.striped.even": "Pares",
 	"docs.prop.striped.odd": "Impares",
 	"docs.prop.strokeWidth": "Grosor del trazo",
+	"docs.prop.swipeControls": "Deslizar en los controles",
 	"docs.prop.tagColor": "Color de la etiqueta",
 	"docs.prop.tagColor.amber": "Ámbar",
 	"docs.prop.tagColor.blue": "Azul",

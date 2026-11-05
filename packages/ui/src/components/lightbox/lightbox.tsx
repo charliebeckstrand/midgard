@@ -75,6 +75,15 @@ export type LightboxProps = {
 	 */
 	controls?: boolean
 	/**
+	 * Lets a swipe along the pill of `controls` step, as a swipe on the photo
+	 * does. The photos follow the finger, so the reader sees the photo that the
+	 * swipe goes to before the lift. A press on a step button that does not
+	 * travel stays a press of the button. It has no effect with `thumbnails`,
+	 * because the row of thumbnails scrolls.
+	 * @defaultValue true
+	 */
+	swipeControls?: boolean
+	/**
 	 * Shows a row of thumbnails of the photos in place of the pill of `controls`.
 	 * The thumbnail of the photo that the viewer shows is solid, and the others
 	 * are dim. A press on a thumbnail slides its photo in from its side, as a
@@ -110,11 +119,12 @@ export type LightboxProps = {
  * photo goes back into the thumbnail of the photo on the stage.
  *
  * With more than one photo, the viewer steps through them. The previous and
- * next buttons, `ArrowLeft` and `ArrowRight`, and a swipe on the stage step in
- * the reading order. With `thumbnails`, a row of thumbnails takes the place of
- * the step buttons, and a press on a thumbnail shows its photo. Escape, the
- * close button, and a press on the stage outside the photo close the viewer,
- * and the focus goes back to the thumbnail. With `dismissOnBackdrop` set to
+ * next buttons, `ArrowLeft` and `ArrowRight`, and a swipe on the stage or on
+ * the pill of the buttons step in the reading order. With `thumbnails`, a row
+ * of thumbnails takes the place of the step buttons, and a press on a
+ * thumbnail shows its photo. Escape, the close button, and a press on the
+ * stage outside the photo close the viewer, and the focus goes back to the
+ * thumbnail. With `dismissOnBackdrop` set to
  * `false`, a press outside the photo does not close the viewer, and the close
  * button always shows.
  *
@@ -157,6 +167,7 @@ export function Lightbox({
 	closable = false,
 	dismissOnBackdrop = true,
 	controls = true,
+	swipeControls = true,
 	thumbnails = false,
 	blur = true,
 	'aria-label': ariaLabel,
@@ -274,6 +285,7 @@ export function Lightbox({
 						closable={closable || !dismissOnBackdrop}
 						dismissOnBackdrop={dismissOnBackdrop}
 						controls={controls}
+						swipeControls={swipeControls}
 						thumbnails={thumbnails}
 						blur={blur}
 						labels={{
