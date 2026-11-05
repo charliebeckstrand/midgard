@@ -98,7 +98,12 @@ const ASIDE = <EventsAside />
 // such a page it draws the old page under the toolbar for a frame. The
 // toolbars of a phone thus stay at their full size while the box scrolls. The
 // box is a size container, so the layout fills the box (`SidebarLayout`).
-const SCROLLER = 'h-dvh overflow-y-auto @container-size'
+//
+// In print, the box has the height of its content and does not scroll, so each
+// page of the docs prints whole. The box is not a size container in print: a
+// size container gets no height from its content.
+const SCROLLER =
+	'h-dvh overflow-y-auto @container-size print:h-auto print:overflow-visible print:@container-normal'
 
 const messages = defineMessages({
 	notFound: {
