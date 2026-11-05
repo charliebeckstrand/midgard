@@ -205,6 +205,7 @@ function Shell() {
 									variant="bare"
 									className="hidden lg:inline-flex"
 									aria-label={intl.formatMessage(messages.toggleSidebar)}
+									aria-expanded={sidebar === 'locked'}
 									onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
 								>
 									{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
