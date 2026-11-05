@@ -91,6 +91,7 @@ export type ChatMessageProps = ChatMessageVariants &
 		 * A device with no hover shows it as a row below the bubble. `'static'` is
 		 * that row on every device.
 		 * @defaultValue 'hover'
+		 * @media hover
 		 */
 		trigger?: 'hover' | 'static'
 		/**

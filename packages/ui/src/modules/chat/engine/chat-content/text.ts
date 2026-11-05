@@ -61,6 +61,8 @@ export function chatPartsText(parts: ChatPart[]): string {
  * named function keeps the two readers from drifting apart.
  *
  * @param content - The message content: a plain string, or a part list.
+ *
+ * @internal
  */
 export function chatContentText(content: string | ChatPart[]): string {
 	return typeof content === 'string' ? content : chatPartsText(content)
