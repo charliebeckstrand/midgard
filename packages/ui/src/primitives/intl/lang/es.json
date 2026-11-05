@@ -36,6 +36,7 @@
 	"ui.chat.failed": "Con error",
 	"ui.chat.messageActions": "Acciones del mensaje",
 	"ui.chat.missing": "Este chat no puede mostrar un bloque de tipo “{name}”.",
+	"ui.chat.newest": "Ir al mensaje más reciente",
 	"ui.chat.placeholder": "Pregunta lo que quieras",
 	"ui.chat.prompt": "Mensaje",
 	"ui.chat.replying": "El asistente está respondiendo",

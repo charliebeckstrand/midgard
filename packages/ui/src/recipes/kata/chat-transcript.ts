@@ -1,9 +1,10 @@
 import { defineKata } from '../../core/recipe'
-import { kokkaku, omote, sen } from '../kiso'
+import { kasane, kokkaku, omote, sen } from '../kiso'
 
+const { rounded } = kasane
 const { focus } = sen
 
-// A scrolling transcript (`overflow-y-auto`) is keyboard-focusable, so browsers
+// A transcript that overflows is a tab stop (`useScrollRegion`), so browsers
 // paint the UA focus outline. `focus.inset` suppresses it and draws the
 // library's inset blue ring; an outset ring would be clipped by the scroll.
 export const k = defineKata(
@@ -20,6 +21,12 @@ export const k = defineKata(
 			// so this keeps room for it. A device with no hover shows the actions as
 			// a row below the bubble, so there the first row sits flush again.
 			first: 'pt-8 [@media(hover:none)]:pt-0',
+			// The holder of the button that goes to the newest message. It sticks to
+			// the bottom edge of the scroll and has no height, so it moves no row and
+			// the end that the window measures stays the end of the rows. The button
+			// rises out of it.
+			newest: 'sticky bottom-3 flex h-0 items-end justify-center',
+			newestButton: [rounded.full, omote.popover, 'shadow-md'],
 		},
 	},
 	{

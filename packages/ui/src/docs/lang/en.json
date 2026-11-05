@@ -2781,7 +2781,7 @@
 	},
 	"docs.demo.6dd5aa83396a": {
 		"defaultMessage": "How are late stops trending this week?",
-		"description": "Text of a demo in the docs as content, in modules/chat/embeds/registered-renderer.tsx."
+		"description": "Text of a demo in the docs as content, text, in modules/chat/conversation/conversation.tsx, modules/chat/embeds/registered-renderer.tsx."
 	},
 	"docs.demo.6e16eb32baba": {
 		"defaultMessage": "New row help",

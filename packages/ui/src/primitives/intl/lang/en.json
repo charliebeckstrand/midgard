@@ -147,6 +147,10 @@
 		"defaultMessage": "This chat cannot show a “{name}” block.",
 		"description": "Shown in place of a block of a chat reply that the app cannot draw. The name is the name of the block."
 	},
+	"ui.chat.newest": {
+		"defaultMessage": "Go to the newest message",
+		"description": "The name of the button that scrolls a chat back down to its newest message. It shows when the reader has scrolled up."
+	},
 	"ui.chat.placeholder": {
 		"defaultMessage": "Ask anything",
 		"description": "The hint text of the empty field where the reader writes a chat message."
