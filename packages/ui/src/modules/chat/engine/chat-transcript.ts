@@ -16,7 +16,7 @@ import { applyChunk, failRunningTools } from './chat-stream'
 import type { ChatMessageData } from './types'
 
 /** The index of the last user message, or `-1` when the transcript holds none. */
-function lastUserIndex(messages: ChatMessageData[]): number {
+function findLastUserIndex(messages: ChatMessageData[]): number {
 	return messages.findLastIndex((message) => message.sender === 'user')
 }
 
@@ -209,7 +209,7 @@ export function duplicateMessageIds(messages: ChatMessageData[]): string[] {
  *
  * @internal
  */
-export function lastUserMessage(messages: ChatMessageData[]): ChatMessageData | undefined {
+export function findLastUserMessage(messages: ChatMessageData[]): ChatMessageData | undefined {
 	return messages.findLast((message) => message.sender === 'user')
 }
 
@@ -221,7 +221,7 @@ export function lastUserMessage(messages: ChatMessageData[]): ChatMessageData | 
  * @internal
  */
 export function truncateToLastUserMessage(messages: ChatMessageData[]): ChatMessageData[] {
-	const index = lastUserIndex(messages)
+	const index = findLastUserIndex(messages)
 
 	return index === -1 ? messages : messages.slice(0, index + 1)
 }
@@ -232,7 +232,10 @@ export function truncateToLastUserMessage(messages: ChatMessageData[]): ChatMess
  *
  * @internal
  */
-export function userMessage(messages: ChatMessageData[], id: string): ChatMessageData | undefined {
+export function findUserMessage(
+	messages: ChatMessageData[],
+	id: string,
+): ChatMessageData | undefined {
 	return messages.find((message) => message.id === id && message.sender === 'user')
 }
 

@@ -13,12 +13,12 @@ import {
 	duplicateMessageIds,
 	failReply,
 	failReplyTools,
-	lastUserMessage,
+	findLastUserMessage,
+	findUserMessage,
 	openReply,
 	seedMessages,
 	truncateToEditedMessage,
 	truncateToLastUserMessage,
-	userMessage,
 } from './engine/chat-transcript'
 import type { ChatMessageData } from './engine/types'
 
@@ -367,7 +367,7 @@ export function useChatSend({
 	const retry = useCallback(async () => {
 		if (controllerRef.current) return
 
-		const lastUser = lastUserMessage(messages)
+		const lastUser = findLastUserMessage(messages)
 
 		if (!lastUser) return
 
@@ -384,7 +384,7 @@ export function useChatSend({
 
 			if (!text) return
 
-			if (!userMessage(messages, id)) return
+			if (!findUserMessage(messages, id)) return
 
 			setMessages((prev) => truncateToEditedMessage(prev, id, text))
 

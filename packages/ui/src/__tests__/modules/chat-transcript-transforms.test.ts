@@ -8,12 +8,12 @@ import {
 	duplicateMessageIds,
 	failReply,
 	failReplyTools,
-	lastUserMessage,
+	findLastUserMessage,
+	findUserMessage,
 	openReply,
 	seedMessages,
 	truncateToEditedMessage,
 	truncateToLastUserMessage,
-	userMessage,
 } from '../../modules/chat/engine/chat-transcript'
 import type { ChatMessageData } from '../../modules/chat/engine/types'
 
@@ -242,7 +242,7 @@ describe('dropEmptyReply', () => {
 	})
 })
 
-describe('lastUserMessage', () => {
+describe('findLastUserMessage', () => {
 	it('reads the last user message, past a later reply', () => {
 		const messages = [
 			user('u1', 'hi'),
@@ -251,11 +251,11 @@ describe('lastUserMessage', () => {
 			assistant('r2', 'x'),
 		]
 
-		expect(lastUserMessage(messages)).toEqual(user('u2', 'again'))
+		expect(findLastUserMessage(messages)).toEqual(user('u2', 'again'))
 	})
 
 	it('is undefined when the transcript holds no user message', () => {
-		expect(lastUserMessage([assistant('r1', 'unprompted')])).toBeUndefined()
+		expect(findLastUserMessage([assistant('r1', 'unprompted')])).toBeUndefined()
 	})
 })
 
@@ -294,19 +294,19 @@ describe('truncateToLastUserMessage', () => {
 	})
 })
 
-describe('userMessage', () => {
+describe('findUserMessage', () => {
 	it('reads the user message the id names', () => {
 		const messages = [user('u1', 'hi'), assistant('r1', 'first')]
 
-		expect(userMessage(messages, 'u1')).toEqual(user('u1', 'hi'))
+		expect(findUserMessage(messages, 'u1')).toEqual(user('u1', 'hi'))
 	})
 
 	it('is undefined for a reply’s id, so only a user message is editable', () => {
-		expect(userMessage([user('u1', 'hi'), assistant('r1', 'first')], 'r1')).toBeUndefined()
+		expect(findUserMessage([user('u1', 'hi'), assistant('r1', 'first')], 'r1')).toBeUndefined()
 	})
 
 	it('is undefined for an id the transcript does not hold', () => {
-		expect(userMessage([user('u1', 'hi')], 'absent')).toBeUndefined()
+		expect(findUserMessage([user('u1', 'hi')], 'absent')).toBeUndefined()
 	})
 })
 
