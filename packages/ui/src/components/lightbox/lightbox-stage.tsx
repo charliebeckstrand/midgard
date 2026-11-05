@@ -71,6 +71,8 @@ export type LightboxStageProps = {
 	controls: boolean
 	/** Whether the controls show a row of thumbnails in place of the pill. */
 	thumbnails: boolean
+	/** Whether a swipe on the pill moves the photos, as a swipe on the stage does. */
+	swipeControls: boolean
 	/** Whether the page behind the scrim is blurred. */
 	blur: boolean
 }
@@ -183,7 +185,8 @@ function slotsAround(
  *
  * A press on the stage outside the photo closes the viewer, unless
  * `dismissOnBackdrop` is `false`. `ArrowLeft` and `ArrowRight` step through
- * the photos in the reading order, and so does a swipe. The keys also zoom the
+ * the photos in the reading order, and so does a swipe on the stage or on the
+ * pill of the step buttons. The keys also zoom the
  * photo (see `zoomByKey`), and while the photo is zoomed, the arrow keys pan it
  * and do not step.
  *
@@ -199,6 +202,7 @@ export function LightboxStage({
 	dismissOnBackdrop,
 	controls,
 	thumbnails,
+	swipeControls,
 	blur,
 }: LightboxStageProps) {
 	const { thumbnail } = useLightboxContext()
@@ -367,7 +371,12 @@ export function LightboxStage({
 	const linked = photos.some((photo) => photo.original !== undefined)
 
 	// A tall photo leaves room above and below it for the controls that show.
-	const slots = k({ chrome: closable || bar || linked, blurred: blur, closable })
+	const slots = k({
+		chrome: closable || bar || linked,
+		blurred: blur,
+		closable,
+		swipe: swipeControls,
+	})
 
 	// The place of the photo that the controls show. The photos follow `index`,
 	// the photo in the center slot, which changes when a slide lands. Each
@@ -549,7 +558,10 @@ export function LightboxStage({
 									))}
 								</div>
 							) : (
-								<div className={slots.pill}>
+								<div
+									className={slots.pill}
+									{...(swipeControls ? track.controlHandlers : undefined)}
+								>
 									<Button
 										lockable={false}
 										type="button"

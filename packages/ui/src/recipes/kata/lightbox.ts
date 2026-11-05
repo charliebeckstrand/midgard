@@ -153,10 +153,17 @@ export const k = defineKata(
 			 * The pill that holds the previous button, the count, and the next button.
 			 * It does not follow the color scheme, and the buttons take its text color.
 			 */
-			pill: [
-				'flex items-center rounded-full bg-zinc-800/80 p-1 text-zinc-100 ring-white/10',
-				...ring.line[1].outset,
-			],
+			pill: {
+				base: [
+					'flex items-center rounded-full bg-zinc-800/80 p-1 text-zinc-100 ring-white/10',
+					...ring.line[1].outset,
+				],
+				/**
+				 * A pill that a swipe moves the photos from. It takes each touch, so the
+				 * browser does not pan the page.
+				 */
+				swipe: { true: 'touch-none select-none', false: '' },
+			},
 			/**
 			 * The row of thumbnails that `thumbnails` shows in place of the pill. It has
 			 * the height of the pill. It is a rail, so it scrolls along the line when the

@@ -89,14 +89,23 @@ export type LightboxTrack = {
 	/** The zoom of the photo in the center. */
 	zoom: LightboxZoom
 	/** The pointer handlers of the stage. */
-	handlers: {
-		onPointerDown: (event: PointerEvent<HTMLElement>) => void
-		onPointerMove: (event: PointerEvent<HTMLElement>) => void
-		onPointerUp: (event: PointerEvent<HTMLElement>) => void
-		onPointerCancel: (event: PointerEvent<HTMLElement>) => void
-		onLostPointerCapture: (event: PointerEvent<HTMLElement>) => void
-		onClick: (event: MouseEvent<HTMLElement>) => void
-	}
+	handlers: LightboxPointerHandlers & { onClick: (event: MouseEvent<HTMLElement>) => void }
+	/**
+	 * The pointer handlers of a control that a swipe along the line moves the
+	 * track from, such as the pill of the step buttons. A press on the control
+	 * takes the track only when it travels past the slop, so a press that does
+	 * not travel stays the press of the control.
+	 */
+	controlHandlers: LightboxPointerHandlers
+}
+
+/** The pointer handlers of a surface that a swipe starts on. @internal */
+export type LightboxPointerHandlers = {
+	onPointerDown: (event: PointerEvent<HTMLElement>) => void
+	onPointerMove: (event: PointerEvent<HTMLElement>) => void
+	onPointerUp: (event: PointerEvent<HTMLElement>) => void
+	onPointerCancel: (event: PointerEvent<HTMLElement>) => void
+	onLostPointerCapture: (event: PointerEvent<HTMLElement>) => void
 }
 
 /** A press on the stage, from the first contact to the lift. */
@@ -129,6 +138,42 @@ type Press = {
 	frame: { transform: string; opacity: number }
 	/** The recent points of the press, for the speed at the lift. */
 	samples: LightboxSample[]
+	/**
+	 * Whether the press started on a control. It only swipes along the line, and
+	 * it takes the track only when it travels past the slop.
+	 */
+	along: boolean
+}
+
+/** A press that `event` starts, with the travel `base` that the track paints. */
+function createPress(event: PointerEvent, base: number, along: boolean): Press {
+	const point = { x: event.clientX, y: event.clientY }
+
+	return {
+		id: event.pointerId,
+		type: event.pointerType,
+		...point,
+		base,
+		mode: 'wait',
+		points: new Map([[event.pointerId, point]]),
+		pinch: null,
+		rtl: false,
+		stage: null,
+		photo: null,
+		size: { width: 0, height: 0 },
+		frame: { transform: RESTING_TRANSFORM, opacity: 1 },
+		samples: [{ ...point, time: event.timeStamp }],
+		along,
+	}
+}
+
+/**
+ * Whether a press holds the track. A press on a control that has not traveled
+ * past the slop does not, so its lift or its cancel leaves the track as it is,
+ * and a press of a step button stays the press of the button.
+ */
+function holdsTrack(press: Press): boolean {
+	return !press.along || press.mode !== 'wait'
 }
 
 /** The slot of a photo by its place from the center: `-1`, `0`, or `1`. */
@@ -156,7 +201,8 @@ function travelTo(track: HTMLElement, offset: number): number {
  * or down, or `'wait'` while it stays inside the slop. A press on a zoomed
  * photo is a `'pan'` in any direction. With one photo, there is no photo to
  * swipe to, so a press in any direction is `'dismiss'`. A press that catches
- * the track between two photos is a `'swipe'`.
+ * the track between two photos is a `'swipe'`, and so is a press on a control
+ * in any direction.
  */
 function resolveIntent(
 	press: Press,
@@ -169,6 +215,8 @@ function resolveIntent(
 	const dy = Math.abs(event.clientY - press.y)
 
 	if (Math.max(dx, dy) < SWIPE_SLOP) return 'wait'
+
+	if (press.along) return 'swipe'
 
 	if (zoomed) return 'pan'
 
@@ -533,6 +581,8 @@ export function useLightboxTrack(
 
 		cursor.end()
 
+		if (!holdsTrack(current)) return
+
 		if (current.mode === 'pan' || current.mode === 'pinch') zoom.release()
 		else if (current.mode === 'dismiss') restore(current)
 		else settle()
@@ -551,6 +601,17 @@ export function useLightboxTrack(
 		if (current.mode === 'wait') return false
 
 		if (current.mode === 'pan') zoom.hold()
+
+		// A press on a control takes the track now. It catches a slide where it
+		// is, as a press on the stage does when it starts, and a step takes a
+		// zoomed photo back to rest.
+		if (current.along) {
+			interrupt()
+
+			zoom.reset()
+
+			current.base = travel.current
+		}
 
 		current.rtl = isRtl(track)
 
@@ -758,6 +819,77 @@ export function useLightboxTrack(
 		cursor.end()
 	}
 
+	// A move of the pointer of the live press.
+	const move = (event: PointerEvent<HTMLElement>) => {
+		const current = press.current
+
+		const track = trackRef.current
+
+		if (!current || !track || !current.points.has(event.pointerId)) return
+
+		// The surface did not get the lift, such as a release over a control.
+		if (event.buttons === 0) {
+			abandon()
+
+			return
+		}
+
+		current.points.set(event.pointerId, { x: event.clientX, y: event.clientY })
+
+		if (current.mode === 'pinch') {
+			const [a, b] = current.points.values()
+
+			if (current.pinch && a && b) zoom.pinch(current.pinch, [a, b])
+
+			return
+		}
+
+		const dx = event.clientX - current.x
+
+		const dy = event.clientY - current.y
+
+		if (current.mode === 'wait' && !begin(current, track, event)) return
+
+		recordSample(current.samples, { x: event.clientX, y: event.clientY, time: event.timeStamp })
+
+		drag(current, track, dx, dy)
+	}
+
+	// The lift of a pointer.
+	const lift = (event: PointerEvent<HTMLElement>) => {
+		const current = press.current
+
+		const track = trackRef.current
+
+		// The lift of a finger that the press does not hold, such as a press on a control.
+		if (current && !current.points.has(event.pointerId)) return
+
+		if (current?.mode === 'pinch') {
+			unpinch(current, event.pointerId)
+
+			return
+		}
+
+		press.current = null
+
+		cursor.end()
+
+		if (!current || !track || !holdsTrack(current)) return
+
+		drop(current, track, event)
+	}
+
+	const lose = (event: PointerEvent<HTMLElement>) => {
+		// The capture of a touch moves from the element under the finger to the
+		// surface when the press travels. That loss is not the end of the press.
+		if (event.target !== event.currentTarget) return
+
+		abandonFor(event.pointerId)
+	}
+
+	// A cancel from a finger that the press ignores leaves the press live.
+	const cancel = (event: PointerEvent<HTMLElement>) => abandonFor(event.pointerId)
+
 	return {
 		step,
 		go,
@@ -769,10 +901,12 @@ export function useLightboxTrack(
 				const held = press.current
 
 				// While a press holds, a press of another pointer starts nothing. A second
-				// finger joins a touch as a pinch. While a pen or a mouse presses, the touch
-				// of a palm is a primary press too, and it takes nothing.
+				// finger joins a touch on the stage as a pinch. While a pen or a mouse
+				// presses, the touch of a palm is a primary press too, and it takes nothing.
 				if (held && event.pointerId !== held.id) {
-					if (event.pointerType === 'touch' && held.type === 'touch') pinch(held, event)
+					if (event.pointerType === 'touch' && held.type === 'touch' && !held.along) {
+						pinch(held, event)
+					}
 
 					return
 				}
@@ -793,93 +927,38 @@ export function useLightboxTrack(
 				// during a restore catches the photo at rest.
 				if (!interrupt()) return
 
-				press.current = {
-					id: event.pointerId,
-					type: event.pointerType,
-					x: event.clientX,
-					y: event.clientY,
-					base: travel.current,
-					mode: 'wait',
-					points: new Map([[event.pointerId, { x: event.clientX, y: event.clientY }]]),
-					pinch: null,
-					rtl: false,
-					stage: null,
-					photo: null,
-					size: { width: 0, height: 0 },
-					frame: { transform: RESTING_TRANSFORM, opacity: 1 },
-					samples: [{ x: event.clientX, y: event.clientY, time: event.timeStamp }],
-				}
+				press.current = createPress(event, travel.current, false)
 			},
-			onPointerMove: (event) => {
-				const current = press.current
-
-				const track = trackRef.current
-
-				if (!current || !track || !current.points.has(event.pointerId)) return
-
-				// The stage did not get the lift, such as a release over a control.
-				if (event.buttons === 0) {
-					abandon()
-
-					return
-				}
-
-				current.points.set(event.pointerId, { x: event.clientX, y: event.clientY })
-
-				if (current.mode === 'pinch') {
-					const [a, b] = current.points.values()
-
-					if (current.pinch && a && b) zoom.pinch(current.pinch, [a, b])
-
-					return
-				}
-
-				const dx = event.clientX - current.x
-
-				const dy = event.clientY - current.y
-
-				if (current.mode === 'wait' && !begin(current, track, event)) return
-
-				recordSample(current.samples, { x: event.clientX, y: event.clientY, time: event.timeStamp })
-
-				drag(current, track, dx, dy)
-			},
-			onPointerUp: (event) => {
-				const current = press.current
-
-				const track = trackRef.current
-
-				// The lift of a finger that is not on the stage, such as a press on a control.
-				if (current && !current.points.has(event.pointerId)) return
-
-				if (current?.mode === 'pinch') {
-					unpinch(current, event.pointerId)
-
-					return
-				}
-
-				press.current = null
-
-				cursor.end()
-
-				if (!current || !track) return
-
-				drop(current, track, event)
-			},
-			// A cancel from a finger that the press ignores leaves the press live.
-			onPointerCancel: (event) => abandonFor(event.pointerId),
-			onLostPointerCapture: (event) => {
-				// The capture of a touch moves from the element under the finger to the
-				// stage when the press travels. That loss is not the end of the press.
-				if (event.target !== event.currentTarget) return
-
-				abandonFor(event.pointerId)
-			},
+			// A mouse has no implicit capture, so the moves of a press on a control
+			// can come to the stage before the swipe captures the pointer.
+			onPointerMove: move,
+			onPointerUp: lift,
+			onPointerCancel: cancel,
+			onLostPointerCapture: lose,
 			onClick: (event) => {
 				// The click that ends a swipe is not a tap.
 				if (swipedRef.current) swipedRef.current = false
 				else onTap(event)
 			},
+		},
+		controlHandlers: {
+			// The press does not take the track yet, so a slide runs on under a press
+			// of a step button, and the click of the button steps from there.
+			onPointerDown: (event) => {
+				if (press.current || !isPrimaryPress(event)) return
+
+				holdTextSelection(event)
+
+				press.current = createPress(event, travel.current, true)
+			},
+			// A press on the stage can move over a control before the swipe captures
+			// the pointer. It stays the press of the stage.
+			onPointerMove: (event) => {
+				if (press.current?.along) move(event)
+			},
+			onPointerUp: lift,
+			onPointerCancel: cancel,
+			onLostPointerCapture: lose,
 		},
 	}
 }

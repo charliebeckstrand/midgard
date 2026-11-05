@@ -1136,6 +1136,119 @@ describe('Lightbox', () => {
 		})
 	})
 
+	describe('swipe on the pill', () => {
+		// React reads a `timeStamp` of 0 as no time, so each press starts at 1s.
+		beforeEach(() => {
+			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+		})
+
+		/** Opens the viewer at the photo `index` on a track 400px wide, and gives the pill and the track. */
+		function openAt(index: number, props: Partial<Parameters<typeof Lightbox>[0]> = {}) {
+			renderUI(<Gallery defaultIndex={index} {...props} />)
+
+			const track = present(getSlot(document.body, 'lightbox-stage').firstElementChild, 'track')
+
+			Object.defineProperty(track, 'clientWidth', { value: 400 })
+
+			const pill = present(screen.getByText(`${index + 1} / 3`).parentElement, 'pill')
+
+			return { pill, track: track as HTMLElement }
+		}
+
+		it('moves the photos with the finger, and steps at the lift past a fifth of the track', () => {
+			const { pill, track } = openAt(0)
+
+			press(pill, 'pointerDown', 200, 700, 1000)
+
+			press(pill, 'pointerMove', 160, 700, 2000)
+
+			expect(track.style.transform).toBe('translateX(-40px)')
+
+			press(pill, 'pointerMove', 100, 700, 3000)
+
+			press(pill, 'pointerUp', 100, 700, 4000)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+
+			expect(track.style.transform).toBe('none')
+		})
+
+		it('starts a swipe on a step button', () => {
+			const { pill } = openAt(1)
+
+			const previous = screen.getByRole('button', { name: 'Previous photo' })
+
+			press(previous, 'pointerDown', 150, 700, 1000)
+
+			press(pill, 'pointerMove', 250, 700, 2000)
+
+			press(pill, 'pointerUp', 250, 700, 3000)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
+		})
+
+		it('slides back on a short, slow swipe', () => {
+			const { pill, track } = openAt(0)
+
+			press(pill, 'pointerDown', 200, 700, 1000)
+
+			press(pill, 'pointerMove', 160, 700, 2000)
+
+			press(pill, 'pointerUp', 160, 700, 3000)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
+
+			expect(track.style.transform).toBe('none')
+		})
+
+		it('does not close or raise the stage on a swipe up or down', () => {
+			const { pill } = openAt(1)
+
+			const stage = getSlot(document.body, 'lightbox-stage')
+
+			press(pill, 'pointerDown', 200, 700, 1000)
+
+			press(pill, 'pointerMove', 200, 500, 1050)
+
+			expect(stage).not.toHaveAttribute('data-raised')
+
+			press(pill, 'pointerUp', 200, 400, 1060)
+
+			expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+		})
+
+		it('steps in the reading order of a right-to-left stage', () => {
+			const { pill } = openAt(0)
+
+			// jsdom computes no inherited direction, so the stage states its own.
+			screen.getByRole('dialog').style.direction = 'rtl'
+
+			press(pill, 'pointerDown', 200, 700, 1000)
+
+			press(pill, 'pointerMove', 300, 700, 2000)
+
+			press(pill, 'pointerUp', 300, 700, 3000)
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Snow on a ridge')
+		})
+
+		it('does not move the photos with `swipeControls={false}`', () => {
+			const { pill, track } = openAt(0, { swipeControls: false })
+
+			press(pill, 'pointerDown', 200, 700, 1000)
+
+			press(pill, 'pointerMove', 100, 700, 2000)
+
+			press(pill, 'pointerUp', 100, 700, 3000)
+
+			expect(track.style.transform).toBe('')
+
+			expect(centerPhoto()).toHaveAttribute('alt', 'Harbor at dawn')
+		})
+	})
+
 	describe('changes to the photos while open', () => {
 		beforeEach(() => {
 			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
