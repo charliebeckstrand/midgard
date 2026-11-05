@@ -2,6 +2,7 @@
 
 import { useInView } from 'motion/react'
 import { type ReactNode, Suspense, useRef } from 'react'
+import { dataAttr } from '../../core/data-attr'
 import { useHydrated } from '../../hooks/use-hydrated'
 import {
 	ContentHeightContext,
@@ -123,7 +124,7 @@ function HeldDashboardTileContent({
 		<div
 			ref={ref}
 			data-slot="dashboard-tile-content"
-			data-deferred={hold.present ? undefined : ''}
+			data-deferred={dataAttr(!hold.present)}
 			inert={inert}
 			className={k().content}
 		>

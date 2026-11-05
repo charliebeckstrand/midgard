@@ -9,7 +9,8 @@ language js
 // The plugin cannot read types, so it matches only the shapes that are
 // boolean by syntax. For an ARIA state that is boolean by the spec, it
 // matches `x || undefined`. For any ARIA or data attribute, it matches
-// `x ? true : undefined` and `x ? '' : undefined`. It also matches the same
+// `x ? true : undefined` and `x ? '' : undefined`, and the inverted forms
+// `x ? undefined : true` and `x ? undefined : ''`. It also matches the same
 // state in a spread, `{...(x ? { 'data-open': true } : {})}`. A string
 // attribute such as `aria-label={alt || undefined}` passes.
 //
@@ -29,7 +30,14 @@ or {
 			},
 			and {
 				$name <: r"(?:aria|data)-[\w-]+",
-				$value <: or { `$_ ? true : undefined`, `$_ ? '' : undefined`, `$_ ? "" : undefined` }
+				$value <: or {
+					`$_ ? true : undefined`,
+					`$_ ? '' : undefined`,
+					`$_ ? "" : undefined`,
+					`$_ ? undefined : true`,
+					`$_ ? undefined : ''`,
+					`$_ ? undefined : ""`
+				}
 			}
 		},
 		register_diagnostic(

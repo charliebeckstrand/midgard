@@ -1,6 +1,7 @@
 'use client'
 
 import type { ComponentProps, Ref } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
@@ -71,7 +72,7 @@ export function LightboxTrigger({
 				pulse={false}
 				role={photo.alt ? 'img' : undefined}
 				aria-label={photo.alt || undefined}
-				aria-hidden={photo.alt ? undefined : true}
+				aria-hidden={ariaAttr(!photo.alt)}
 				className={cn(k().trigger.base, className)}
 			/>
 		)

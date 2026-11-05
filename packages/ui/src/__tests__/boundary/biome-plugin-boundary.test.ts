@@ -168,6 +168,9 @@ export const g = <div {...(open ? { 'aria-busy': true } : {})} /> // flag
 export const h = <div {...(open ? { 'data-open': '' } : {})} /> // flag
 export const i = <div {...(open ? { title: alt } : {})} />
 export const j = <div {...(open ? { 'data-state': 'open' } : {})} />
+export const k = <div data-deferred={open ? undefined : ''} /> // flag
+export const l = <div aria-hidden={open ? undefined : true} /> // flag
+export const m = <div data-state={open ? undefined : 'closed'} />
 `,
 		},
 	],

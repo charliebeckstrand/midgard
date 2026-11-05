@@ -12,6 +12,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { scrollNodeWithin } from '../../hooks/use-scroll-within'
@@ -474,7 +475,7 @@ export function LightboxStage({
 							<div
 								key={photo.index}
 								data-offset={offset}
-								aria-hidden={offset === 0 ? undefined : true}
+								aria-hidden={ariaAttr(offset !== 0)}
 								inert={offset !== 0}
 								className={slots.slot}
 								// One slot width and one gap for each place from the center.

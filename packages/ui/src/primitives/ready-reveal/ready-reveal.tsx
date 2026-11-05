@@ -9,6 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { k } from '../../recipes/kata/ready-reveal'
@@ -207,7 +208,7 @@ export function ReadyReveal({
 			<div
 				data-slot="ready-reveal"
 				{...props}
-				aria-busy={ready ? undefined : true}
+				aria-busy={ariaAttr(!ready)}
 				className={cn('relative grid', className)}
 				// The grid holds both layers in one cell, so it comes after the
 				// consumer style.

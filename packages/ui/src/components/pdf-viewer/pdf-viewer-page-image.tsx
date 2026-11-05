@@ -1,6 +1,7 @@
 'use client'
 
 import { type CSSProperties, type SyntheticEvent, useCallback } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import type { PdfViewerSlot } from './types'
 
 /** Props for {@link PdfViewerPageImage}. @internal */
@@ -85,7 +86,7 @@ function PdfViewerBitmap({
 			data-slot="pdf-viewer-page-image"
 			role={alt ? 'img' : undefined}
 			aria-label={alt || undefined}
-			aria-hidden={alt ? undefined : true}
+			aria-hidden={ariaAttr(!alt)}
 			className={className}
 			style={style}
 		/>

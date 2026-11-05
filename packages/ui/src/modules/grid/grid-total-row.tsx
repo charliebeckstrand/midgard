@@ -2,6 +2,7 @@
 
 import { type ComponentProps, memo, type ReactNode } from 'react'
 import { TableBody, TableHeader, TableRow } from '../../components/table'
+import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { PaletteColor } from '../../core/recipe/colors'
@@ -329,7 +330,7 @@ function GridGroupTotalRow<T>({
 			<TableRow
 				{...windowRow}
 				data-total-row="group"
-				aria-hidden={expanded ? undefined : true}
+				aria-hidden={ariaAttr(!expanded)}
 				aria-level={tree ? 2 : undefined}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
