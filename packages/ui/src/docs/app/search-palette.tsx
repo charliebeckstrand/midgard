@@ -215,10 +215,18 @@ function Results({ onPick }: { onPick: () => void }) {
 							onAction={onPick}
 							{...meta}
 						>
+							{/*
+							 * A name from the code, such as <Grid />, keeps its order on a
+							 * right-to-left page in its own bdi. The description slot is a
+							 * flex box, so one bdi holds all of the description and keeps
+							 * the space before "·".
+							 */}
 							<CommandPaletteText>
-								<CommandPaletteLabel>{option.label}</CommandPaletteLabel>
+								<CommandPaletteLabel>
+									<bdi>{option.label}</bdi>
+								</CommandPaletteLabel>
 								<CommandPaletteDescription>
-									{`${intl.formatMessage(KIND_LABELS[option.kind])} · ${option.place}`}
+									<bdi>{`${intl.formatMessage(KIND_LABELS[option.kind])} · ${option.place}`}</bdi>
 								</CommandPaletteDescription>
 							</CommandPaletteText>
 						</CommandPaletteItem>
