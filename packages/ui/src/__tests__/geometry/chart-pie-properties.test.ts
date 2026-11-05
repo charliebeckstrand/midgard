@@ -5,7 +5,6 @@ import {
 	CALLOUT_CHAR_WIDTH,
 	CALLOUT_LEADER,
 	CALLOUT_LINE,
-	pieCalloutCenter,
 	pieCalloutFit,
 	pieCallouts,
 	pieCentroidRadius,
@@ -261,29 +260,32 @@ describe('pieCalloutFit · properties', () => {
 	/** The band that the chart reserves above and below the leader circle. */
 	const BAND = CALLOUT_LEADER + CALLOUT_LINE
 
-	test.prop([
-		fc.array(fc.integer({ min: 1, max: 1000 }), { minLength: 2, maxLength: 16 }),
-		fc.array(fc.integer({ min: 1, max: 24 }), { minLength: 16, maxLength: 16 }),
-		fc.integer({ min: 200, max: 1000 }),
-		fc.integer({ min: 30, max: 150 }).map((percent) => percent / 100),
-	])(
+	// The example is a pie that the frame height caps far under its fit. At the
+	// cap, the declump moves the label at the foot up to where the leader circle
+	// is wide, and the two sides need more than the frame width.
+	test.prop(
+		[
+			fc.array(fc.integer({ min: 1, max: 1000 }), { minLength: 2, maxLength: 16 }),
+			fc.array(fc.integer({ min: 1, max: 24 }), { minLength: 16, maxLength: 16 }),
+			fc.integer({ min: 200, max: 1000 }),
+			fc.integer({ min: 30, max: 150 }).map((percent) => percent / 100),
+		],
+		{ examples: [[[1, 1, 1, 9, 3], [1, 1, 1, 10, 17, ...Array<number>(11).fill(1)], 269, 0.3]] },
+	)(
 		'lands each callout inside the frame width at the fit radius or less',
 		(values, lengths, frameWidth, stretch) => {
 			const texts = values.map((_, index) => 'x'.repeat(lengths[index] as number))
 
-			const fit = pieCalloutFit({ values, texts, textWidth, frameWidth })
+			const options = { values, texts, textWidth, frameWidth }
 
 			// A frame height under the content fit caps the drawn radius, as the chart does.
-			const height = Math.round(2 * fit.radius * stretch + 2 * BAND)
+			const height = Math.round(2 * pieCalloutFit(options).radius * stretch + 2 * BAND)
 
-			const radius = Math.min(fit.radius, height / 2 - BAND)
+			const { radius, cx } = pieCalloutFit({ ...options, maxRadius: height / 2 - BAND })
 
 			fc.pre(radius > 0)
 
 			const cy = height / 2
-
-			// The chart centers a capped pie in the room that its callouts leave.
-			const cx = pieCalloutCenter({ values, texts, textWidth, frameWidth }, radius)
 
 			const slices = pieSlices(values, { cx, cy, radius })
 

@@ -121,13 +121,16 @@ export const input = defineGroup({
 /**
  * A press target in an affix of a picker trigger. The slot fills the height of
  * the frame, so the whole column of the affix takes a press and shows the
- * pointer cursor. The disabled field is a sibling of the affix, not a
- * descendant, so the cursor reads the enclosing frame.
+ * pointer cursor. The disabled or read-only field is a sibling of the affix,
+ * not a descendant, so the cursor reads the enclosing frame. The read-only rule
+ * sits in `:where()` (`in-[…]`), as in `hannou.cursor`, so the disabled rule
+ * replaces it.
  */
 const press = [
 	'self-stretch',
 	...cursor,
 	'group-has-[:disabled,[data-disabled]]/control:cursor-not-allowed',
+	'in-[[data-slot=control-frame]:has([aria-readonly=true],[data-readonly],[readonly])]:cursor-default',
 ]
 
 /** A control that opens a floating panel. Its affixes are press targets. */

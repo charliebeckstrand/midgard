@@ -6,7 +6,6 @@ import {
 	CALLOUT_LEADER,
 	CALLOUT_NUB,
 	type PieSlice,
-	pieCalloutCenter,
 	pieCalloutFit,
 	pieCallouts,
 	pieCentroidRadius,
@@ -402,9 +401,15 @@ describe('pieCalloutFit', () => {
 
 		const fit = pieCalloutFit({ values, texts, textWidth: calloutWidth, frameWidth })
 
-		const radius = fit.radius * 0.6
+		const { radius, cx } = pieCalloutFit({
+			values,
+			texts,
+			textWidth: calloutWidth,
+			frameWidth,
+			maxRadius: fit.radius * 0.6,
+		})
 
-		const cx = pieCalloutCenter({ values, texts, textWidth: calloutWidth, frameWidth }, radius)
+		expect(radius).toBe(fit.radius * 0.6)
 
 		const cy = 200
 

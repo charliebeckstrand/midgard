@@ -126,22 +126,17 @@ export function FormDrawer<V extends Record<string, unknown>>({
 					key={`${String(open)}:${formKey}`}
 					defaultValues={defaultValues}
 					validate={validate}
-					onSubmit={async (values): Promise<SubmitResult<V> | undefined> => {
+					onSubmit={(values) => {
 						setFailure(null)
 
-						try {
-							const result = await onSubmit(values)
-
-							if (result !== undefined) return result
-						} catch (error) {
-							setFailure(failureMessage(error))
-
-							return undefined
-						}
-
-						onOpenChange(false)
-
-						return undefined
+						return onSubmit(values)
+					}}
+					// Only a submit that nothing superseded settles. A submit that ends after
+					// the reader closed this form and opened another one does not close the
+					// new form or show its message there.
+					onSettled={(outcome) => {
+						if (!outcome.ok) setFailure(failureMessage(outcome.error))
+						else if (open) onOpenChange(false)
 					}}
 				>
 					<DrawerBody>

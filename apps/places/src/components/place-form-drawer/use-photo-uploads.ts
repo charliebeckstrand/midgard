@@ -27,8 +27,15 @@ export function usePhotoUploads(): PhotoUploads {
 
 	const uploaded = useRef(new WeakMap<File, string>())
 
+	// The number of the newest call. Only the newest call writes `progress`, so
+	// an earlier save whose uploads end late does not clear the entries of a
+	// later save.
+	const latest = useRef(0)
+
 	const upload = useCallback((photos: readonly PhotoEntry[]) => {
 		const held = uploaded.current
+
+		const call = ++latest.current
 
 		setProgress(
 			new Map(photos.filter(isNewPhoto).map((entry) => [entry.key, held.has(entry.file) ? 1 : 0])),
@@ -36,10 +43,15 @@ export function usePhotoUploads(): PhotoUploads {
 
 		return photoKeys(
 			photos,
-			(key, share) =>
-				setProgress((shares) => (shares.has(key) ? new Map(shares).set(key, share) : shares)),
+			(key, share) => {
+				if (latest.current !== call) return
+
+				setProgress((shares) => (shares.has(key) ? new Map(shares).set(key, share) : shares))
+			},
 			held,
-		).finally(() => setProgress(new Map()))
+		).finally(() => {
+			if (latest.current === call) setProgress(new Map())
+		})
 	}, [])
 
 	return { progress, upload }

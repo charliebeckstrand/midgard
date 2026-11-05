@@ -69,11 +69,177 @@ function isPlayground(file: string): boolean {
 	return toCodeKey(file) === PLAYGROUND
 }
 
+/** A range of the source, from `start` to `end`. */
+type Range = { start: number; end: number }
+
 type Example = {
 	/** The name of the default export. */
 	name: string
-	/** The `{...props}` spread of a playground. `start` is the start of the white space before it. */
-	spread?: { start: number; end: number; separator: string; component: string }
+	/**
+	 * The `{...props}` spread of a playground. `start` is the start of the white
+	 * space before it. `cuts` is the code that "Show code" leaves out, from
+	 * {@link findCuts}.
+	 */
+	spread?: Range & { separator: string; component: string; cuts: readonly Range[] }
+}
+
+/** An identifier in the source: its name and its start. */
+type Name = { name: string; start: number }
+
+/** A declaration at the top of a module that a cut can remove. */
+type Declaration = {
+	name: string
+	node: Range
+	statement:
+		| ESTree.ImportDeclaration
+		| ESTree.TSTypeAliasDeclaration
+		| ESTree.TSInterfaceDeclaration
+}
+
+function isWithin(start: number, ranges: readonly Range[]): boolean {
+	return ranges.some((range) => start >= range.start && start < range.end)
+}
+
+/** The total length of each of `cuts` that ends at `index` or before it. */
+function cutLength(cuts: readonly Range[], index: number): number {
+	return cuts.reduce((total, cut) => (cut.end <= index ? total + cut.end - cut.start : total), 0)
+}
+
+/** `source` with no `cuts`. The cuts do not overlap. */
+function removeCuts(source: string, cuts: readonly Range[]): string {
+	return cuts
+		.toSorted((a, b) => b.start - a.start)
+		.reduce((code, cut) => code.slice(0, cut.start) + code.slice(cut.end), source)
+}
+
+/**
+ * The range of a statement with its line break. When a blank line is before
+ * and after the statement, the range includes the blank line after it, so
+ * one blank line stays.
+ */
+function toLineCut(code: string, { start, end }: Range): Range {
+	const next = code[end] === '\n' ? end + 1 : end
+
+	const isBlankBefore = start === 0 || code.slice(start - 2, start) === '\n\n'
+
+	return { start, end: isBlankBefore && code[next] === '\n' ? next + 1 : next }
+}
+
+/**
+ * The declarations at the top of `program` that a cut can remove: each named
+ * import, each type alias, and each interface.
+ */
+function readDeclarations(program: ESTree.Program): Declaration[] {
+	return program.body.flatMap((statement): Declaration[] => {
+		if (statement.type === 'ImportDeclaration') {
+			return statement.specifiers.flatMap((specifier) =>
+				specifier.type === 'ImportSpecifier'
+					? [{ name: specifier.local.name, node: specifier, statement }]
+					: [],
+			)
+		}
+
+		if (
+			statement.type === 'TSTypeAliasDeclaration' ||
+			statement.type === 'TSInterfaceDeclaration'
+		) {
+			return [{ name: statement.id.name, node: statement, statement }]
+		}
+
+		return []
+	})
+}
+
+/**
+ * The ranges that remove the `removed` declarations. A statement whose named
+ * imports all go and that has no other import goes with its line. A named
+ * import goes with the comma before it, or with the comma after it when each
+ * named import before it goes too.
+ */
+function toDeclarationCuts(code: string, removed: ReadonlySet<Declaration>): Range[] {
+	const statements = new Set([...removed].map(({ statement }) => statement))
+
+	return [...statements].flatMap((statement): Range[] => {
+		if (statement.type !== 'ImportDeclaration') return [toLineCut(code, statement)]
+
+		const specifiers = statement.specifiers
+
+		const nodes = new Set([...removed].map(({ node }) => node))
+
+		const isRemoved = (node: Range) => nodes.has(node)
+
+		const kept = specifiers.filter((specifier) => !isRemoved(specifier))
+
+		const last = kept.at(-1)
+
+		if (!last) return [toLineCut(code, statement)]
+
+		// Only a default import stays, so the braces go with the named imports.
+		if (last.type !== 'ImportSpecifier') {
+			return [{ start: last.end, end: code.indexOf('}', last.end) + 1 }]
+		}
+
+		return specifiers.flatMap((specifier, index): Range[] => {
+			if (!isRemoved(specifier)) return []
+
+			const before = specifiers.slice(0, index)
+
+			const previous = before.at(-1)
+
+			const next = specifiers[index + 1]
+
+			if (previous && before.some((node) => !isRemoved(node))) {
+				return [{ start: previous.end, end: specifier.end }]
+			}
+
+			return [{ start: specifier.start, end: next ? next.start : specifier.end }]
+		})
+	})
+}
+
+/**
+ * The code that "Show code" leaves out of a playground, because the
+ * attributes take the place of the spread: the spread, and the code that only
+ * the spread uses. When no other code reads the props parameter, the
+ * parameter goes with its type. Then each named import, type alias, and
+ * interface goes when only the code that goes names it, such as the type
+ * import of the props. `names` is each identifier of `program`.
+ */
+function findCuts(
+	program: ESTree.Program,
+	code: string,
+	param: ESTree.BindingIdentifier,
+	spread: Range,
+	names: readonly Name[],
+): Range[] {
+	const isRead = names.some(
+		({ name, start }) => name === param.name && !isWithin(start, [param, spread]),
+	)
+
+	if (isRead) return [spread]
+
+	const declarations = readDeclarations(program)
+
+	const removed = new Set<Declaration>()
+
+	const isUnused = (declaration: Declaration) => {
+		if (removed.has(declaration)) return false
+
+		const cut = [spread, param, ...[...removed].map(({ node }) => node)]
+
+		const uses = names.filter(
+			({ name, start }) => name === declaration.name && !isWithin(start, [declaration.node]),
+		)
+
+		return uses.length > 0 && uses.every(({ start }) => isWithin(start, cut))
+	}
+
+	// A type alias that goes can be the only user of another declaration.
+	for (let next = declarations.find(isUnused); next; next = declarations.find(isUnused)) {
+		removed.add(next)
+	}
+
+	return [spread, { start: param.start, end: param.end }, ...toDeclarationCuts(code, removed)]
 }
 
 /**
@@ -104,9 +270,17 @@ export function readExample(
 
 	const [props] = declaration.params
 
-	const spreads: NonNullable<Example['spread']>[] = []
+	const spreads: Omit<NonNullable<Example['spread']>, 'cuts'>[] = []
+
+	const names: Name[] = []
 
 	new Visitor({
+		Identifier({ name, start }) {
+			names.push({ name, start })
+		},
+		JSXIdentifier({ name, start }) {
+			names.push({ name, start })
+		},
 		JSXOpeningElement(element) {
 			for (const attribute of element.attributes) {
 				if (
@@ -130,13 +304,13 @@ export function readExample(
 
 	const [spread] = spreads
 
-	if (spreads.length !== 1 || !spread) {
+	if (spreads.length !== 1 || !spread || props?.type !== 'Identifier') {
 		throw new Error(
 			`${file}: a playground spreads its props parameter onto one element exactly once ({...props}), and this one spreads it ${spreads.length} times`,
 		)
 	}
 
-	return { name, spread }
+	return { name, spread: { ...spread, cuts: findCuts(program, code, props, spread, names) } }
 }
 
 /**
@@ -172,7 +346,8 @@ export function attachMeta(
 
 /**
  * Reads the code of the example at `file`. The source of a playground has no
- * `{...props}` spread, and `spread` gives the place of it. The markup is the
+ * `{...props}` spread and no code that only the spread uses ({@link findCuts}),
+ * and `spread` gives the place of the spread. The markup is the
  * highlight of the code with no props, so a playground at its defaults shows
  * its code highlighted at once too. It gives nothing for a module that is not
  * an example.
@@ -191,12 +366,17 @@ async function readCode(
 
 	const { spread } = example
 
-	const code = spread ? source.slice(0, spread.start) + source.slice(spread.end) : source
+	const code = spread ? removeCuts(source, spread.cuts) : source
 
 	return {
 		code,
 		highlight: await highlight(trimBlankLines(code), DEFAULT_LANG, DEFAULT_THEME),
-		...(spread && { spread: { index: spread.start, separator: spread.separator } }),
+		...(spread && {
+			spread: {
+				index: spread.start - cutLength(spread.cuts, spread.start),
+				separator: spread.separator,
+			},
+		}),
 	}
 }
 

@@ -15,7 +15,8 @@ export type RadioProps = RadioVariants & {
 	 * Keeps the radio as it is. A click, a Space press, or an arrow key does not
 	 * check it, and `onChange` does not fire. The radio keeps the focus, and it
 	 * submits its value when it is checked. It does not set `aria-readonly`,
-	 * because ARIA defines it on the group. When omitted, it takes the value of
+	 * because ARIA defines it on the group. It sets `data-readonly` on the
+	 * input, so the radio and its label show the default cursor. When omitted, it takes the value of
 	 * an enclosing `<Control>` or `<Field>`. A radio in a read-only
 	 * {@link RadioGroup} is read-only too.
 	 * @defaultValue `false`, or the state of the enclosing Control, or `true` in a read-only RadioGroup.
@@ -60,8 +61,6 @@ export function Radio({
 }: RadioProps) {
 	const group = useRadioGroup()
 
-	const groupReadOnly = group.readOnly
-
 	// A bare radio of a group in a `<Field>` sees the Control of the Field. The
 	// id and the description of that Control are for the group, so the radio
 	// keeps only its own. Two radios with the Field id would share one id. It
@@ -83,7 +82,8 @@ export function Radio({
 		id: groupField ? undefined : id,
 		disabled,
 		required,
-		readOnly,
+		// A read-only group makes each radio read-only, whatever the radio sets.
+		readOnly: group.readOnly || readOnly,
 		'aria-describedby': ariaDescribedBy,
 	})
 
@@ -111,12 +111,10 @@ export function Radio({
 	// shows the cancel. The wrapper attaches only while the radio is read-only or
 	// has a handler. React then keeps its warning for a `checked` radio with no
 	// `onChange`.
-	const readOnlyRadio = resolvedReadOnly || groupReadOnly
-
 	const handleChange: ChangeEventHandler<HTMLInputElement> | undefined =
-		readOnlyRadio || onChange
+		resolvedReadOnly || onChange
 			? (event) => {
-					if (readOnlyRadio || event.nativeEvent.defaultPrevented) {
+					if (resolvedReadOnly || event.nativeEvent.defaultPrevented) {
 						const input = event.currentTarget
 
 						input.checked = false
@@ -165,6 +163,7 @@ export function Radio({
 					disabled={resolvedDisabled}
 					required={resolvedRequired}
 					onChange={handleChange}
+					data-readonly={dataAttr(resolvedReadOnly)}
 					aria-describedby={resolvedDescribedBy}
 					{...validation}
 					className={slots.input}
