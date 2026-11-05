@@ -161,6 +161,17 @@ describe('ApiTable', () => {
 	// It loads once here, so each case waits on its own work only.
 	beforeAll(() => import('../kit/api-entry.tsx'))
 
+	// On a right-to-left page with no `dir`, the name shows as `</ Thing>`.
+	it('keeps the name in the trigger left to right', () => {
+		renderTable(THING)
+
+		const name = screen.getByRole('button', { name: '<Thing />' }).querySelector('[translate="no"]')
+
+		expect(name?.textContent).toBe('<Thing />')
+
+		expect(name?.getAttribute('dir')).toBe('ltr')
+	})
+
 	it('opens an entry with its props in it', async () => {
 		renderTable(THING)
 

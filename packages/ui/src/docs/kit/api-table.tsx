@@ -144,7 +144,11 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 					{components.map((component) => (
 						<AccordionItem key={component.name} value={component.name}>
 							<AccordionTrigger className="font-mono">
-								<span id={toApiId(component.name)} translate="no">{`<${component.name} />`}</span>
+								<span
+									id={toApiId(component.name)}
+									translate="no"
+									dir="ltr"
+								>{`<${component.name} />`}</span>
 							</AccordionTrigger>
 							<AccordionPanel>{entry && <entry.ApiEntry component={component} />}</AccordionPanel>
 						</AccordionItem>

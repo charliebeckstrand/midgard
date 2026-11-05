@@ -91,11 +91,13 @@ function withNode(text: string, node: ReactNode): ReactNode {
 }
 
 /**
- * The language of the TSDoc of ui, which stays English in each language of
- * the docs (CONVENTIONS.md §13.10). The `lang` of the text tells a screen
- * reader to read it with an English voice.
+ * The language and the direction of the TSDoc of ui, which stays English in
+ * each language of the docs (CONVENTIONS.md §13.10). The `lang` of the text
+ * tells a screen reader to read it with an English voice. The `dir` keeps the
+ * text left to right on a right-to-left page, so the period of a sentence
+ * stays at its end.
  */
-const TSDOC_LANG = 'en'
+const TSDOC = { lang: 'en', dir: 'ltr' } as const
 
 const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
 
@@ -120,7 +122,8 @@ const KINDS: readonly [RegExp, string | readonly string[]][] = [
 /**
  * What a prop takes: a chip for each literal of a union, or one chip for its
  * type, and the default. A responsive prop shows its type, which tells that it
- * takes a value for each breakpoint.
+ * takes a value for each breakpoint. Each chip is left-to-right code, as in ui
+ * `Code`, so `(value: T) => ReactNode` keeps its order on a right-to-left page.
  */
 function PropFacts({ prop }: { prop: PropApi }) {
 	const intl = useIntl()
@@ -140,17 +143,23 @@ function PropFacts({ prop }: { prop: PropApi }) {
 		<Flex align="baseline" gap="lg" wrap className="text-sm">
 			<Flex as="span" align="baseline" gap="sm" wrap>
 				{options?.map((option) => (
-					<code key={String(option)} className={OPTION}>
+					<code key={String(option)} dir="ltr" className={OPTION}>
 						{formatLiteral(option)}
 					</code>
 				))}
-				{type && <code className={TYPE}>{type}</code>}
+				{type && (
+					<code dir="ltr" className={TYPE}>
+						{type}
+					</code>
+				)}
 			</Flex>
 			{fallback && (
 				<span className="text-zinc-500 dark:text-zinc-400">
 					{withNode(
 						intl.formatMessage(defaultMessage, { value: SLOT }),
-						<code className={cn('font-mono', kind)}>{fallback}</code>,
+						<code dir="ltr" className={cn('font-mono', kind)}>
+							{fallback}
+						</code>,
 					)}
 				</span>
 			)}
@@ -199,14 +208,14 @@ function PropRow({ component, prop }: { component: string; prop: PropApi }) {
 						</TooltipTrigger>
 						{prop.deprecated && (
 							<TooltipContent>
-								<span lang={TSDOC_LANG}>{prop.deprecated}</span>
+								<span {...TSDOC}>{prop.deprecated}</span>
 							</TooltipContent>
 						)}
 					</Tooltip>
 				)}
 			</Flex>
 			<PropFacts prop={prop} />
-			{prop.description && <Markdown lang={TSDOC_LANG}>{prop.description}</Markdown>}
+			{prop.description && <Markdown {...TSDOC}>{prop.description}</Markdown>}
 		</Stack>
 	)
 }
@@ -257,7 +266,7 @@ function ElementsNote({ elements }: { elements: readonly string[] }) {
 				tags.map((tag, index) => (
 					<span key={tag}>
 						{index > 0 && ', '}
-						<code>{`<${tag}>`}</code>
+						<code dir="ltr">{`<${tag}>`}</code>
 					</span>
 				)),
 			)}
@@ -269,7 +278,7 @@ function ElementsNote({ elements }: { elements: readonly string[] }) {
 export function ApiEntry({ component }: { component: ComponentApi }) {
 	return (
 		<Stack gap="lg">
-			{component.description && <Markdown lang={TSDOC_LANG}>{component.description}</Markdown>}
+			{component.description && <Markdown {...TSDOC}>{component.description}</Markdown>}
 			{component.props.length + component.events.length > 0 ? (
 				<Stack gap="xl">
 					<PropSection

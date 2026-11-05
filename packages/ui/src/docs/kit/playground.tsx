@@ -336,8 +336,15 @@ function FieldPicker({
 		})),
 	]
 
+	// A code value is left-to-right text, as in ui `Code`.
 	const show = (option: (typeof options)[number]) =>
-		option.code ? <span translate="no">{option.label}</span> : option.label
+		option.code ? (
+			<span translate="no" dir="ltr">
+				{option.label}
+			</span>
+		) : (
+			option.label
+		)
 
 	return (
 		<Listbox<string>

@@ -187,6 +187,40 @@ describe('Playground', () => {
 		)
 	})
 
+	// A value with no word, such as `16/9`, is code. On a right-to-left page
+	// with no `dir`, it shows as `9/16`.
+	it('keeps a value with no word left to right, in the field and in its options', () => {
+		const api: BarrelApi = {
+			Thing: {
+				name: 'Thing',
+				props: [
+					{
+						name: 'ratio',
+						type: 'string',
+						values: ['16/9', '4/3'],
+						default: "'16/9'",
+						defaultValue: '16/9',
+					},
+				],
+				events: [],
+			},
+		}
+
+		render(<Playground of={ThingPlayground} api={api} />)
+
+		const field = screen.getByRole('combobox', { name: 'Ratio' })
+
+		fireEvent.click(field)
+
+		const values = [field, ...screen.getAllByRole('option')].map((element) =>
+			element.querySelector('[translate="no"]'),
+		)
+
+		expect(values.map((value) => value?.textContent)).toEqual(['16/9', '16/9', '4/3'])
+
+		for (const value of values) expect(value?.getAttribute('dir')).toBe('ltr')
+	})
+
 	it('hides the field of a prop with a `@media` tag on other devices', () => {
 		const api: BarrelApi = {
 			Thing: {
