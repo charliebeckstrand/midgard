@@ -81,6 +81,11 @@ export function DaySpan({ from, to }: { from: string; to: string }) {
  * Photos in squares of 96 pixels. A press on a square raises its photo into a
  * `Lightbox`, which steps through the photos of the set.
  *
+ * The squares and the viewer show the view of each photo, a copy that Mimir
+ * makes at most 2048 px on its long side. A large original makes the browser
+ * decode the photo again on each paint, and the page drops frames. The viewer
+ * has a link that opens the original in a new tab.
+ *
  * The size of a photo is not known before it loads. The `Lightbox` reads the
  * size from the thumbnail, and a placeholder pulses in the square until then.
  * A photo that does not load leaves a still placeholder, and the viewer steps
@@ -96,7 +101,7 @@ export function DaySpan({ from, to }: { from: string; to: string }) {
 export function SummaryPhotos({ photos, alt }: { photos: readonly Photo[]; alt: string }) {
 	return (
 		<Lightbox
-			photos={photos.map((photo) => ({ src: photo.url, alt }))}
+			photos={photos.map((photo) => ({ src: photo.url, original: photo.originalUrl, alt }))}
 			aria-label={`Photos of ${alt}`}
 		>
 			<Flex gap="sm" wrap>

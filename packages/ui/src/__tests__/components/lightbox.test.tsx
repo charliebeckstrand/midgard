@@ -465,6 +465,46 @@ describe('Lightbox', () => {
 		}
 	})
 
+	it('links the original of a photo that has one, in a new tab', async () => {
+		const linked = photos.map((photo, index) =>
+			index === 1 ? photo : { ...photo, original: `/full${photo.src}` },
+		)
+
+		renderUI(
+			<Lightbox photos={linked} defaultIndex={0}>
+				{linked.map((photo, index) => (
+					<LightboxTrigger key={photo.src} index={index} />
+				))}
+			</Lightbox>,
+		)
+
+		const link = screen.getByRole('link', { name: 'Open the original photo' })
+
+		expect(link).toHaveAttribute('href', '/full/a.jpg')
+
+		expect(link).toHaveAttribute('target', '_blank')
+
+		expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+
+		fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
+
+		await waitFor(() => expect(screen.queryByRole('link')).toBeNull())
+	})
+
+	it('takes the name of the link to the original', () => {
+		renderUI(
+			<Lightbox
+				photos={[{ ...photos[0], original: '/full/a.jpg' } as LightboxPhoto]}
+				defaultIndex={0}
+				originalLabel="Ouvrir l'original"
+			>
+				<LightboxTrigger index={0} />
+			</Lightbox>,
+		)
+
+		expect(screen.getByRole('link', { name: "Ouvrir l'original" })).toBeInTheDocument()
+	})
+
 	it('keeps a close button for the keyboard with no `closable`, and closes on Escape', async () => {
 		const onIndexChange = vi.fn()
 

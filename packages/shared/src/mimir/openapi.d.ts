@@ -221,7 +221,7 @@ export interface paths {
 						'application/json': components['schemas']['Error']
 					}
 				}
-				/** @description Already keeping 1000 places */
+				/** @description Already keeping 1000 places, or a photo is no longer available (`photo-missing`) */
 				409: {
 					headers: {
 						[name: string]: unknown
@@ -304,6 +304,15 @@ export interface paths {
 				}
 				/** @description No place with that id */
 				404: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description A photo is no longer available (`photo-missing`) */
+				409: {
 					headers: {
 						[name: string]: unknown
 					}
@@ -594,7 +603,7 @@ export interface paths {
 						'application/json': components['schemas']['Error']
 					}
 				}
-				/** @description Already keeping 1000 trips, or as many places or visits as allowed */
+				/** @description Already keeping 1000 trips, or as many places or visits as allowed, or a photo is no longer available (`photo-missing`) */
 				409: {
 					headers: {
 						[name: string]: unknown
@@ -684,7 +693,7 @@ export interface paths {
 						'application/json': components['schemas']['Error']
 					}
 				}
-				/** @description The new days would leave out one of its visits (`trip-days-exclude-visits`) */
+				/** @description The new days would leave out one of its visits (`trip-days-exclude-visits`), or a photo is no longer available (`photo-missing`) */
 				409: {
 					headers: {
 						[name: string]: unknown
@@ -764,7 +773,7 @@ export interface paths {
 		put?: never
 		/**
 		 * Start a photo upload
-		 * @description Answers with a key and a URL to PUT the photo to. Once uploaded, a visit or trip draft sends the key. A photo no visit or trip keeps is deleted with the account.
+		 * @description Answers with a key and a URL to PUT the photo to. Once uploaded, a visit or trip draft sends the key, and the save keeps the photo under a new key it answers with. An upload no save keeps within a day is deleted.
 		 */
 		post: {
 			parameters: {
@@ -1074,8 +1083,10 @@ export interface components {
 		}
 		Photo: {
 			key: string
-			/** @description Reads the photo for at least 45 minutes */
+			/** @description Reads the photo at most 2048 px on its long side, for at least 45 minutes */
 			url: string
+			/** @description Reads the photo as it was uploaded, for at least 45 minutes */
+			originalUrl: string
 		}
 		Location: {
 			/** @description The address on one line */
