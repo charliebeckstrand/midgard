@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { renderUI, waitFor } from '../../helpers'
 import { sampleMotionFrames } from '../helpers/motion-frame'
+import { sampleUntil } from '../helpers/sample'
 import { budget } from '../helpers/wall-clock'
 
 /**
@@ -176,31 +177,55 @@ describe('CurrentContents switch (real Motion)', () => {
 
 		if (!box) throw new Error('the tab contents did not render')
 
-		const lefts: number[] = []
+		tab.click()
 
-		await sampleMotionFrames(
-			() => {
-				const panel = getPanel('b')
-
-				const moving = panel !== null && getComputedStyle(panel).transform !== 'none'
-
-				if (moving) lefts.push(panel.getBoundingClientRect().left)
-
-				return panel !== null && !moving
-			},
-			(rest) => rest,
-			{ during: async () => tab.click(), deadline: budget(5000) },
+		// The slide is an animation of the browser. The case seeks it through its
+		// whole curve, so the offsets do not depend on when each frame falls.
+		const slide = await sampleUntil(
+			() =>
+				getPanel('b')
+					?.getAnimations()
+					.find((animation) =>
+						(animation.effect as KeyframeEffect | null)
+							?.getKeyframes()
+							.some((keyframe) => 'transform' in keyframe),
+					),
+			(animation) => animation !== undefined,
+			{ deadline: budget(5000) },
 		)
+
+		const panel = getPanel('b')
+
+		if (!slide || !panel) throw new Error('the incoming panel did not slide')
+
+		slide.pause()
+
+		const end = Number(slide.effect?.getComputedTiming().endTime)
 
 		const rest = box.getBoundingClientRect().left
 
-		const first = lefts.findIndex((left) => Math.abs(left - rest) < 0.01)
+		const offsets: number[] = []
 
-		// The frames after the first frame at rest.
-		const landed = first === -1 ? [] : lefts.slice(first)
+		for (let time = 0; time <= end; time += 0.5) {
+			slide.currentTime = time
+
+			offsets.push(panel.getBoundingClientRect().left - rest)
+		}
+
+		slide.finish()
+
+		// The panel comes from the trailing side, and the spring takes it a little
+		// past its rest. The offset is at rest once as it passes, so the landing
+		// starts at the first offset at rest after the pass.
+		const past = offsets.findIndex((offset) => offset < -0.1)
+
+		const first = offsets.findIndex((offset, index) => index > past && Math.abs(offset) < 0.01)
+
+		// The offsets after the first offset at rest.
+		const landed = first === -1 ? [] : offsets.slice(first)
 
 		// Before the fix, the spring curve went to the rest at the top of its
 		// overshoot and then went back past it, about 0.4% of the slide.
-		expect(landed.filter((left) => Math.abs(left - rest) > 0.1)).toEqual([])
+		expect(landed.filter((offset) => Math.abs(offset) > 0.1)).toEqual([])
 	})
 })
