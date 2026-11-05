@@ -94,7 +94,7 @@ Read one area of the code and propose a few small fixes, each with its proof. Th
 
 4.8 You can run a scoped test or a browser check to prove a `bug` or a `design` proposal. Remove each scratch file before you report.
 
-4.9 For a browser check of a `packages/ui` unit, run `pnpm dev` in `packages/ui`. The docs app serves at `http://localhost:3456`. A component page has the path `/{folder}`, such as `/accordion`, and another page has its folder path, such as `/modules/grid`.
+4.9 For a browser check of a `packages/ui` unit, run `pnpm dev` in `packages/ui`. The docs app serves at `http://localhost:3456`. A component page has the path `/{folder}`, such as `/accordion`, and another page has its folder path, such as `/modules/grid`. The dev server does not prerender: the browser renders each page, so the dev server shows no server HTML. To check the first paint or the hydration of a page, build the docs with `pnpm docs:build`, and serve the build with `pnpm docs:preview` at the same address.
 
 4.10 Before you rank the proposals, challenge both sides ([`CLAUDE.md`](../../CLAUDE.md) §1.5):
 
