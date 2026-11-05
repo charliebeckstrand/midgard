@@ -53,10 +53,23 @@ describe('dashboard tile glide (real Motion)', () => {
 
 		await frame()
 
-		// The first frame paints the tile at its old cell, on the glide layer.
-		expect(tile.getBoundingClientRect().left).toBeLessThan((rest + target) / 2)
+		// When Motion resolves the keyframes in less than 40 ms, it dates the start
+		// of the glide back to the commit. A slow first frame thus paints the tile
+		// part of the way along its path. The case seeks the glide to its start,
+		// and the tile is at its old cell there, on the glide layer.
+		const [glide] = tile.getAnimations()
+
+		if (!glide) throw new Error('expected a glide on the tile')
+
+		glide.pause()
+
+		glide.currentTime = 0
+
+		expect(tile.getBoundingClientRect().left).toBeCloseTo(rest, 0)
 
 		expect(getComputedStyle(tile).zIndex).toBe('20')
+
+		glide.play()
 
 		await sampleUntil(
 			() => tile.style.transform,
