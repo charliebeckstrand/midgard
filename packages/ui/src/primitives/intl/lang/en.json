@@ -131,6 +131,10 @@
 		"defaultMessage": "Add attachment",
 		"description": "The name of the button that opens a file picker to attach files to a chat message."
 	},
+	"ui.chat.badReply": {
+		"defaultMessage": "Bad reply",
+		"description": "The name of the button that rates a reply of the assistant as bad."
+	},
 	"ui.chat.done": {
 		"defaultMessage": "Done",
 		"description": "The status of a step of the assistant that ended well."
@@ -138,6 +142,10 @@
 	"ui.chat.failed": {
 		"defaultMessage": "Failed",
 		"description": "The status of a step of the assistant that ended with an error."
+	},
+	"ui.chat.goodReply": {
+		"defaultMessage": "Good reply",
+		"description": "The name of the button that rates a reply of the assistant as good."
 	},
 	"ui.chat.messageActions": {
 		"defaultMessage": "Message actions",

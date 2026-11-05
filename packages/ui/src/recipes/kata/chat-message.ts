@@ -110,6 +110,9 @@ export const k = defineKata({
 				{ trigger: 'hover', sender: 'system', class: 'inset-x-0 mx-auto' },
 			],
 		},
+		// The rating pair of `ChatFeedback`: one control of the actions, so its two
+		// buttons sit as close as the other actions do.
+		feedback: [flex.row, 'gap-0.5'],
 		// The line of a failed reply. It inherits the foreground of the bubble, as
 		// the step line does, and the red dot beside it marks the failure. The gap
 		// above it is the `part` gap when the reply landed content first.

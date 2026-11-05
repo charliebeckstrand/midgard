@@ -1,11 +1,13 @@
 import { RotateCcw } from 'lucide-react'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	ChatEmbedProvider,
+	ChatFeedback,
 	type ChatMessageData,
 	ChatPrompt,
 	ChatTranscript,
+	type ChatVerdict,
 	useChatDraft,
 	useChatSend,
 } from 'ui/chat'
@@ -44,10 +46,21 @@ export default function Conversation() {
 
 	const { retry } = chat
 
+	// An app sends each rating with the id of its message.
+	const [ratings, setRatings] = useState<Record<string, ChatVerdict | null>>({})
+
 	const actions = useCallback(
 		(message: ChatMessageData) => (
 			<>
 				<CopyButton size="sm" text={() => messageText(message)} />
+				{message.sender === 'assistant' && message.id !== 'welcome' && (
+					<ChatFeedback
+						value={ratings[message.id ?? ''] ?? null}
+						onValueChange={(value) =>
+							setRatings((prev) => ({ ...prev, [message.id ?? '']: value }))
+						}
+					/>
+				)}
 				{message.id === retryable && (
 					<Button variant="bare" size="sm" aria-label="Retry" onClick={() => void retry()}>
 						<Icon icon={<RotateCcw />} />
@@ -55,7 +68,7 @@ export default function Conversation() {
 				)}
 			</>
 		),
-		[retryable, retry],
+		[retryable, retry, ratings],
 	)
 
 	return (
