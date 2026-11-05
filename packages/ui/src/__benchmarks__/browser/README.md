@@ -1,6 +1,6 @@
 # Browser benchmarks
 
-> **The chart, grid, and map modules of `ui`, and its menu, popover, icon, tooltip, and PDF-viewer components, its query builder, and its events module, measured in real Chromium.** `pnpm bench:browser` runs the suite. The suite runs no other library, so a change reads against the earlier builds of each module. The jsdom benches one directory up localize a regression, and this suite sizes it.
+> **The chart, grid, and map modules of `ui`, and its menu, popover, icon, tooltip, and PDF-viewer components, its query builder, its events module, and the patterns in which an app such as Places uses them, measured in real Chromium.** `pnpm bench:browser` runs the suite. The suite runs no other library, so a change reads against the earlier builds of each module. The jsdom benches one directory up localize a regression, and this suite sizes it.
 
 ## Why a browser suite
 
@@ -883,3 +883,48 @@ The first page paints only when the whole document settles, because the viewport
 
 8. **Render the page again when it shows larger** ([`pdf-viewer-document-cache.ts`](../../components/pdf-viewer/pdf-viewer-document-cache.ts)). The viewer gives the queue the width at which it shows its page. When the page shows wider than its slot, the queue renders it again at a larger scale, after the slot raster of the page and before its neighbors. So the first paint does not wait for it. The scale goes up in steps of a quarter, so a resize renders again only at a step. A sharp raster holds at most 8 MiP, which is 32 MiB. The new `zoom 2` row opens one page at a zoom of 2: the first page paints in about 39 ms, and the sharp raster, 1,606 pixels wide against 918, lands by about 78 ms. At a zoom of 1 the page fits its slot, and the other rows render nothing more.
 
+
+## Consumer patterns
+
+Four files price the patterns in which the Places app uses `ui`. A module bench holds its own props still, but an app hands down new props on each render of a parent. These files measure what the module pays for that, so a consumer can see the cost of each choice.
+
+### Methodology
+
+- [`form-drawer.bench.tsx`](form-drawer.bench.tsx): the open of a `Drawer` that holds the place form: four inputs, an `AddressInput`, a multiple `Listbox`, a `DatePicker`, a `Rating`, a `Textarea`, and a `FileUploadInput`, in one `Form`. The form takes a new key on each open, so each open mounts the field set. The untimed hook of each sample closes the drawer.
+
+- [`command-palette.bench.tsx`](command-palette.bench.tsx): an open `CommandPalette` over four groups and more than 750 commands, with at most eight results for each group. One scenario types a keystroke, and one renders the parent again with new command objects. Each scenario runs with plain rows, and with each row of two groups in a closed `Menu`, as the Places app gives them.
+
+- [`map-points-identity.bench.tsx`](map-points-identity.bench.tsx): a render of the parent of a live map with 200 dots in one `MapPoints`. The rows hand down the same array, a new array of the same dots, and a new array of new dots.
+
+- [`grid-columns-identity.bench.tsx`](grid-columns-identity.bench.tsx): a render of the parent of a live `Grid` over 500 rows and 8 columns. The rows hand down the same columns, a new array of the same columns, and new column objects.
+
+Each file commits through the root under `flushSync`, as a click handler of a consumer does, and waits for no frame inside a sample.
+
+### Findings (2026-11-05, this container)
+
+Mean ms for each sample. The compiled column runs `pnpm bench:browser:compiler`.
+
+| Scenario | Row | Plain | Compiled |
+| --- | --- | ---: | ---: |
+| drawer · open of a form drawer | empty panel (the floor) | 0.37 | 0.32 |
+| | field set | 8.38 | 8.56 |
+| command palette · one keystroke | plain rows | 0.95 | 0.96 |
+| | rows in menus | 1.93 | 1.85 |
+| command palette · parent render, new commands | plain rows | 0.71 | 0.54 |
+| | rows in menus | 1.21 | 1.02 |
+| map points · parent render · 200 dots | same array (the floor) | 0.09 | 0.05 |
+| | new array, same dots | 2.18 | 3.17 |
+| | new array, new dots | 2.15 | 2.31 |
+| grid · parent render · 500 rows × 8 cols | same array (the floor) | 0.35 | 0.15 |
+| | new array, same columns | 1.42 | 1.11 |
+| | new column objects | 2.74 | 2.72 |
+
+**A new `points` array costs a live map 25 times the render of its shell.** `MapPoints` keys its pipeline on the identity of `points`, so a new array of the same dots does all of the work again. A consumer that filters its records on each render must hold the result, for example in a cache keyed on the input array.
+
+**New column objects cost a live grid 8 times the render with the same columns.** A new array of the same columns costs 4 times. A consumer must hold its columns, and must not rebuild them when only the handlers of a row change identity.
+
+**A closed `Menu` around each palette row doubles the cost of a keystroke.** Each row pays the shell of its menu, although the menu has no panel until it opens. The 30 rows of the scenario pay about 1 ms together. This is the fan-out of the closed menu that [Menus](#menus) measures, in a list that changes on each keystroke.
+
+**The field set of the place form costs about 8 ms to mount on each open.** The close costs nothing more: the exit of the drawer holds the panel that it was given, so a new key or new props on the close do not reach the fields. A probe in the same container showed this. A close that changed the key of the form and the text of the title kept the same input node and the old title until the panel left.
+
+**The cost of one field in a long scenario is not yet credible.** A ladder that mounted each field of the place form alone gave figures that changed with the position of the row. `Rating` cost 1.3 to 1.7 ms early in a group and 4.8 to 8.5 ms as the sixth or seventh bench, while the floor of the group stayed the same. An idle gap before each row did not change this. The heap kept 1.1 KB or less for each mount, so the probe found no leak. Until the cause is known, the suite holds no per-field ladder.
