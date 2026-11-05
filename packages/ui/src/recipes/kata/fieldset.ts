@@ -26,7 +26,10 @@ export const k = defineKata({
 			),
 		],
 		// A `<label>` takes the press and passes it to its control, so it has the pointer and does not
-		// select its text. A `<span>` caption takes no press, so it has neither.
+		// select its text. A `<span>` caption takes no press, so it has neither. The label of a
+		// read-only control shows the default cursor, because the press changes nothing. The control
+		// is a sibling of the label, so the rule reads the Field. It sits in `:where()` (`in-[…]`), as
+		// in `hannou.cursor`, so the disabled rule replaces it.
 		label: {
 			base: ['flex w-fit', text.default, ji.ramp, ...disabled],
 			as: {
@@ -34,6 +37,7 @@ export const k = defineKata({
 					'select-none',
 					...cursor,
 					'[:is([data-slot=field],[data-slot=control])[data-disabled]_&]:cursor-not-allowed',
+					'in-[[data-slot=field]:has([aria-readonly=true],[data-readonly],[readonly])]:cursor-default',
 				],
 				span: [],
 			},

@@ -1,6 +1,7 @@
 /**
- * Hannou cursor: pointer feedback that tracks disabled state. Disabled
- * variants override `cursor-pointer` on the element or its descendants;
+ * Hannou cursor: pointer feedback that tracks the disabled and the read-only
+ * states. Disabled variants override `cursor-pointer` on the element or its
+ * descendants;
  * parent overrides like `has-disabled:**:cursor-not-allowed` apply for
  * sibling-label patterns. Each rule reads both spellings of disabled: the
  * native `:disabled` and `data-disabled`. One `has-[…]` holds the two in a
@@ -8,12 +9,22 @@
  * `has-[…]`, as `has-[:disabled,[data-disabled]]`. The bare
  * `has-[data-disabled]` selects an element named `data-disabled`.
  *
+ * A read-only control keeps the focus, but a press does not change it. Thus it
+ * shows the default cursor, not the pointer. The rule reads the three spellings
+ * of read-only on the element or a descendant: `aria-readonly="true"`,
+ * `data-readonly`, and the native `readonly`. It does not read `:read-only`,
+ * because each checkbox and each button matches that pseudo-class. The rule
+ * sits in `:where()`, so it has the weight of one class. It thus replaces
+ * `cursor-pointer`, which comes before it, and a disabled rule replaces it. A
+ * control that is disabled and read-only shows `not-allowed`.
+ *
  * Layer: kiso · Concern: pointer feedback
  */
 
 export const cursor = [
 	'cursor-pointer',
 	'disabled:cursor-not-allowed data-disabled:cursor-not-allowed has-[:disabled,[data-disabled]]:cursor-not-allowed',
+	'[&:where([aria-readonly=true],[data-readonly],[readonly],:has([aria-readonly=true],[data-readonly],[readonly]))]:cursor-default',
 ]
 
 /**
