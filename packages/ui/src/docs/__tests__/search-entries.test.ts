@@ -80,6 +80,18 @@ describe('searchEntries', () => {
 		expect(sorting.every((entry) => entry.context === 'Grid › Sorting')).toBe(true)
 	})
 
+	it('gives the API reference only at a route that renders its table', async () => {
+		const all = await entries()
+
+		const api = (route: string) =>
+			all.filter((entry) => entry.href.startsWith(`${route}#api-`)).map((entry) => entry.href)
+
+		// The Gauge tab imports the API data of its page only for its Playground.
+		expect(api('/progress')).toContain('/progress#api-Stubprogress-size')
+
+		expect(api('/progress/gauge')).toEqual([])
+	})
+
 	it('leaves out a module with no default export, such as shared data', async () => {
 		const all = await entries()
 
