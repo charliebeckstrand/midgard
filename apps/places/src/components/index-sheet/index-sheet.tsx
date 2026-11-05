@@ -84,7 +84,8 @@ export function IndexSheet<T extends Located>({
 
 	const regions = useMemo(() => regionsHolding(items, regionByItem), [items, regionByItem])
 
-	const [wasOpen, setWasOpen] = useState(open)
+	// Starts closed, so a sheet that mounts open seeds its pick as an open does.
+	const [wasOpen, setWasOpen] = useState(false)
 
 	// Seeded on the open and only then. Keyed on a render-time comparison rather
 	// than an effect, so the first frame carries the pick instead of showing every
@@ -99,9 +100,15 @@ export function IndexSheet<T extends Located>({
 	// Narrowed before the grid sees it, so the grid's own search, sort and count
 	// are all of the same set the reader is looking at. The grid reads its rows
 	// and never changes them, so the whole list goes in as it is.
+	//
+	// A pick that no row holds any more, after a delete or an edit, is no pick.
+	// If not, the table stays empty, and with one region left, the picker that
+	// clears it is gone.
+	const pick = picked !== null && regions.includes(picked) ? picked : null
+
 	const rows = useMemo(
-		() => (picked === null ? items : items.filter((item) => regionByItem.get(item.id) === picked)),
-		[items, picked, regionByItem],
+		() => (pick === null ? items : items.filter((item) => regionByItem.get(item.id) === pick)),
+		[items, pick, regionByItem],
 	)
 
 	return (
@@ -162,7 +169,7 @@ export function IndexSheet<T extends Located>({
 									prefix={<Icon icon={<MapIcon />} />}
 									className="w-full @lg:w-52"
 									displayValue={(name) => name}
-									value={picked}
+									value={pick}
 									onValueChange={setPicked}
 								>
 									{regions.map((name) => (

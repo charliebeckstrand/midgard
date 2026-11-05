@@ -244,8 +244,12 @@ export function PlaceFilters({
 				    padding of the row. The bar lines up its regions on their bottom
 				    edges, and the bottom edge of the row is its padding, not its
 				    controls. Without the same inset, Clear sits lower than the
-				    controls. */}
-				{hasActiveFilter(value) && (
+				    controls.
+
+				    The Show field is hidden without trips, so its value alone does not
+				    show Clear: a Clear that undoes only a hidden field reads as a
+				    control that does not work. */}
+				{hasActiveFilter(hasTrips ? value : { ...value, show: undefined }) && (
 					// The weight is this app's own: the bar sits over a map that redraws
 					// under it, so the one control that undoes the lot has to be findable
 					// at a glance. The shared default stays neutral for every other bar.

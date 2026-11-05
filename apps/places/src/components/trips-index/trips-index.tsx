@@ -79,7 +79,9 @@ export function TripsIndex({
 							<span>{places.length}</span>
 
 							{places.length === 0 ? null : (
-								<Tooltip>
+								// On a click, as the Visits column of My places, because a hover
+								// tooltip does not open on a tap.
+								<Tooltip trigger="click">
 									<TooltipTrigger>
 										<Button
 											type="button"
