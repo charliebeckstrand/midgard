@@ -99,8 +99,8 @@ export type LightboxTrack = {
 	controlHandlers: LightboxPointerHandlers
 }
 
-/** The pointer handlers of a surface that a swipe starts on. @internal */
-export type LightboxPointerHandlers = {
+/** The pointer handlers of a surface that a swipe starts on. */
+type LightboxPointerHandlers = {
 	onPointerDown: (event: PointerEvent<HTMLElement>) => void
 	onPointerMove: (event: PointerEvent<HTMLElement>) => void
 	onPointerUp: (event: PointerEvent<HTMLElement>) => void
@@ -645,7 +645,8 @@ export function useLightboxTrack(
 	const pinch = (current: Press, event: PointerEvent<HTMLElement>) => {
 		const first = current.points.get(current.id)
 
-		if (!first || current.pinch || current.base !== 0) return
+		// A press on a control only swipes.
+		if (!first || current.pinch || current.base !== 0 || current.along) return
 
 		if (current.mode !== 'wait' && current.mode !== 'pan') return
 
@@ -904,9 +905,7 @@ export function useLightboxTrack(
 				// finger joins a touch on the stage as a pinch. While a pen or a mouse
 				// presses, the touch of a palm is a primary press too, and it takes nothing.
 				if (held && event.pointerId !== held.id) {
-					if (event.pointerType === 'touch' && held.type === 'touch' && !held.along) {
-						pinch(held, event)
-					}
+					if (event.pointerType === 'touch' && held.type === 'touch') pinch(held, event)
 
 					return
 				}

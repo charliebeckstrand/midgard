@@ -120,10 +120,11 @@ export type LightboxProps = {
  *
  * With more than one photo, the viewer steps through them. The previous and
  * next buttons, `ArrowLeft` and `ArrowRight`, and a swipe on the stage or on
- * the pill of the buttons step in the reading order. With `thumbnails`, a row of thumbnails takes the place of
- * the step buttons, and a press on a thumbnail shows its photo. Escape, the
- * close button, and a press on the stage outside the photo close the viewer,
- * and the focus goes back to the thumbnail. With `dismissOnBackdrop` set to
+ * the pill of the buttons step in the reading order. With `thumbnails`, a row
+ * of thumbnails takes the place of the step buttons, and a press on a
+ * thumbnail shows its photo. Escape, the close button, and a press on the
+ * stage outside the photo close the viewer, and the focus goes back to the
+ * thumbnail. With `dismissOnBackdrop` set to
  * `false`, a press outside the photo does not close the viewer, and the close
  * button always shows.
  *

@@ -61,6 +61,24 @@ function layOut(stage: HTMLElement) {
 	return photo
 }
 
+/**
+ * Opens the viewer under reduced motion on a track `width` px wide, and gives
+ * the stage and the track. jsdom has no layout.
+ */
+function openOnTrack(width: number, props: Partial<Parameters<typeof Gallery>[0]> = {}) {
+	stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+
+	renderUI(<Gallery defaultIndex={0} {...props} />)
+
+	const stage = getSlot(document.body, 'lightbox-stage')
+
+	const track = present(stage.firstElementChild, 'track') as HTMLElement
+
+	mockDomGeometry(track, { clientWidth: width })
+
+	return { stage, track }
+}
+
 /** A slow press on the stage. Each event gives its own time, in ms. */
 function press(
 	stage: HTMLElement,
@@ -1076,21 +1094,8 @@ describe('Lightbox', () => {
 	describe('flick speed', () => {
 		// React reads a `timeStamp` of 0 as no time, so each press starts at 1s.
 
-		/** Opens the viewer at the first photo on a track 1000px wide. */
-		function openWide() {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-			renderUI(<Gallery defaultIndex={0} />)
-
-			const stage = getSlot(document.body, 'lightbox-stage')
-
-			Object.defineProperty(stage.firstElementChild, 'clientWidth', { value: 1000 })
-
-			return stage
-		}
-
 		it('steps on a fast flick that lifts at once', () => {
-			const stage = openWide()
+			const { stage } = openOnTrack(1000)
 
 			press(stage, 'pointerDown', 600, 100, 1000)
 
@@ -1104,7 +1109,7 @@ describe('Lightbox', () => {
 		})
 
 		it('does not step on a fast drag that holds still before the lift', () => {
-			const stage = openWide()
+			const { stage } = openOnTrack(1000)
 
 			press(stage, 'pointerDown', 600, 100, 1000)
 
@@ -1119,7 +1124,7 @@ describe('Lightbox', () => {
 		})
 
 		it('does not read the jitter of one fast move at the end of a slow drag as a flick', () => {
-			const stage = openWide()
+			const { stage } = openOnTrack(1000)
 
 			press(stage, 'pointerDown', 600, 100, 1000)
 
@@ -1138,21 +1143,14 @@ describe('Lightbox', () => {
 
 	describe('swipe on the pill', () => {
 		// React reads a `timeStamp` of 0 as no time, so each press starts at 1s.
-		beforeEach(() => {
-			stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-		})
 
 		/** Opens the viewer at the photo `index` on a track 400px wide, and gives the pill and the track. */
-		function openAt(index: number, props: Partial<Parameters<typeof Lightbox>[0]> = {}) {
-			renderUI(<Gallery defaultIndex={index} {...props} />)
-
-			const track = present(getSlot(document.body, 'lightbox-stage').firstElementChild, 'track')
-
-			Object.defineProperty(track, 'clientWidth', { value: 400 })
+		function openAt(index: number, props: Partial<Parameters<typeof Gallery>[0]> = {}) {
+			const { track } = openOnTrack(400, { defaultIndex: index, ...props })
 
 			const pill = present(screen.getByText(`${index + 1} / 3`).parentElement, 'pill')
 
-			return { pill, track: track as HTMLElement }
+			return { pill, track }
 		}
 
 		it('moves the photos with the finger, and steps at the lift past a fifth of the track', () => {

@@ -186,9 +186,8 @@ function slotsAround(
  * A press on the stage outside the photo closes the viewer, unless
  * `dismissOnBackdrop` is `false`. `ArrowLeft` and `ArrowRight` step through
  * the photos in the reading order, and so does a swipe on the stage or on the
- * pill of the step buttons. The keys also zoom the
- * photo (see `zoomByKey`), and while the photo is zoomed, the arrow keys pan it
- * and do not step.
+ * pill of the step buttons. The keys also zoom the photo (see `zoomByKey`), and
+ * while the photo is zoomed, the arrow keys pan it and do not step.
  *
  * @internal
  */
