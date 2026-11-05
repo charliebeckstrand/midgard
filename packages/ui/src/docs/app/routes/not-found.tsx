@@ -25,7 +25,7 @@ export default function NotFound() {
 				<IntlMessage message={messages.body} />
 			</Text>
 			<Text>
-				<Link href="/">
+				<Link href="/" underline>
 					<IntlMessage message={messages.home} />
 				</Link>
 			</Text>
