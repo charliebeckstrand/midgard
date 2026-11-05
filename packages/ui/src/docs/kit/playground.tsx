@@ -26,6 +26,9 @@ import { formatLiteral, propLabel, valueLabel } from './names.ts'
 
 type Values = { readonly [prop: string]: Value | undefined }
 
+/** The props of the instance, from {@link buildProps}. */
+type Props = { readonly [prop: string]: Value }
+
 // The key of the option of a field whose omitted state is no value. The key of
 // a value is its JSON, which never is a bare word.
 const UNSET = 'unset'
@@ -220,19 +223,15 @@ function attribute(name: string, value: Value): string {
 }
 
 /**
- * The code of a playground: its file, with an attribute for each value that
- * is not the default in the place of the spread.
+ * The code of a playground: its file, with an attribute for each of `props`
+ * in the place of the spread.
  */
-function printCode({ code, spread }: ExampleCode, fields: readonly Field[], values: Values) {
+function printCode({ code, spread }: ExampleCode, props: Props) {
 	if (!spread) return code
 
-	const attributes = fields.flatMap(({ name, default: fallback }) => {
-		const value = values[name]
-
-		return value === undefined || value === fallback
-			? []
-			: [spread.separator + attribute(name, value)]
-	})
+	const attributes = Object.entries(props).map(
+		([name, value]) => spread.separator + attribute(name, value),
+	)
 
 	return code.slice(0, spread.index) + attributes.join('') + code.slice(spread.index)
 }
@@ -241,11 +240,13 @@ function printCode({ code, spread }: ExampleCode, fields: readonly Field[], valu
  * The props of the instance: each value that is not the default, so the
  * instance renders the code that "Show code" shows.
  */
-function buildProps(fields: readonly Field[], values: Values): Values {
+function buildProps(fields: readonly Field[], values: Values): Props {
 	return Object.fromEntries(
-		fields.flatMap(({ name, default: fallback }) =>
-			values[name] === undefined || values[name] === fallback ? [] : [[name, values[name]]],
-		),
+		fields.flatMap(({ name, default: fallback }) => {
+			const value = values[name]
+
+			return value === undefined || value === fallback ? [] : [[name, value] as const]
+		}),
 	)
 }
 
@@ -439,7 +440,7 @@ export function Playground<P extends object>({
 
 	// The fields give each prop from the API data of the component, so the
 	// values are props of it.
-	const Instance = of as ComponentType<Values>
+	const Instance = of as ComponentType<Props>
 
 	const component = meta.component === undefined ? undefined : api[meta.component]
 
@@ -455,12 +456,14 @@ export function Playground<P extends object>({
 
 	const values = resolveValues(fields, picked)
 
+	const props = buildProps(fields, values)
+
 	const intl = useIntl()
 
 	return (
 		<ExampleFrame
 			meta={meta}
-			print={(code) => printCode(code, fields, values)}
+			print={(code) => printCode(code, props)}
 			surface={surface}
 			ratio={ratio}
 			actions={
@@ -489,7 +492,7 @@ export function Playground<P extends object>({
 				</Rail>
 			}
 		>
-			<Instance {...buildProps(fields, values)} />
+			<Instance {...props} />
 		</ExampleFrame>
 	)
 }
