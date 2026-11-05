@@ -96,7 +96,9 @@ export function toggleList(edit: ReviewEdit, kind: ReviewList): ReviewEdit {
 
 	const from = value.lastIndexOf('\n', start - 1) + 1
 
-	const next = value.indexOf('\n', end)
+	// A selection that ends just after a line break holds no character of the
+	// next line, so the next line stays as it is.
+	const next = value.indexOf('\n', end > start && value.charAt(end - 1) === '\n' ? end - 1 : end)
 
 	const to = next === -1 ? value.length : next
 
