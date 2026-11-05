@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { useCallback } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import type { ChatMessageData } from '../../modules/chat'
 import { ChatTranscript, ChatTranscriptSkeleton } from '../../modules/chat'
 import {
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
+	fireEvent,
 	getSlot,
 	liveRegion,
 	present,
@@ -64,6 +66,123 @@ describe('ChatTranscript', () => {
 		expect(pulsing).toHaveLength(1)
 
 		expect(present(pulsing[0], 'streaming bubble')).toHaveTextContent('Hello!')
+	})
+
+	describe('the row callbacks', () => {
+		it('gives each message the actions that the callback returns for it', () => {
+			const { container } = renderUI(
+				<ChatTranscript
+					messages={messages}
+					actions={(message) =>
+						message.sender === 'assistant' ? <button type="button">Retry</button> : undefined
+					}
+				/>,
+			)
+
+			const rows = allBySlot(container, 'chat-message')
+
+			expect(bySlot(present(rows[0], 'user row'), 'chat-message-actions')).toBeNull()
+
+			expect(getSlot(present(rows[1], 'assistant row'), 'chat-message-actions')).toContainElement(
+				screen.getByRole('button', { name: 'Retry' }),
+			)
+		})
+
+		it('passes the trigger to each message', () => {
+			const { container } = renderUI(
+				<ChatTranscript
+					messages={messages}
+					trigger="static"
+					actions={() => <button type="button">Copy</button>}
+				/>,
+			)
+
+			for (const actions of allBySlot(container, 'chat-message-actions')) {
+				expect(actions.className).toContain('mt-1')
+
+				expect(actions.className).not.toContain('absolute')
+			}
+		})
+
+		it('opens the context menu that the callback returns for a message', () => {
+			const onAction = vi.fn()
+
+			const { container } = renderUI(
+				<ChatTranscript
+					messages={messages}
+					contextMenu={(message) =>
+						message.sender === 'user' ? [{ key: 'edit', label: 'Edit', onAction }] : undefined
+					}
+				/>,
+			)
+
+			const [own, reply] = allBySlot(container, 'chat-message-bubble')
+
+			// A message with no entries keeps the native menu of the browser.
+			expect(fireEvent.contextMenu(present(reply, 'reply bubble'))).toBe(true)
+
+			fireEvent.contextMenu(present(own, 'own bubble'))
+
+			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
+
+			expect(onAction).toHaveBeenCalledOnce()
+		})
+
+		it('keeps room above the first row only for a hover toolbar', () => {
+			const actions = () => <button type="button">Copy</button>
+
+			const first = (container: HTMLElement) =>
+				present(allBySlot(container, 'chat-transcript-row')[0], 'first row').className
+
+			const hover = renderUI(<ChatTranscript messages={messages} actions={actions} />)
+
+			expect(first(hover.container)).toContain('pt-8')
+
+			hover.unmount()
+
+			const fixed = renderUI(
+				<ChatTranscript messages={messages} actions={actions} trigger="static" />,
+			)
+
+			expect(first(fixed.container)).toBe('')
+
+			fixed.unmount()
+
+			const bare = renderUI(<ChatTranscript messages={messages} />)
+
+			expect(first(bare.container)).toBe('')
+		})
+
+		it('does not render a settled row again when a chunk lands', () => {
+			const calls: string[] = []
+
+			function Chat({ reply }: { reply: string }) {
+				const actions = useCallback((message: ChatMessageData) => {
+					calls.push(message.id ?? '')
+
+					return undefined
+				}, [])
+
+				return (
+					<ChatTranscript
+						messages={[
+							messages[0] as ChatMessageData,
+							{ id: '2', sender: 'assistant', content: reply },
+						]}
+						streaming
+						actions={actions}
+					/>
+				)
+			}
+
+			const { rerender } = renderUI(<Chat reply="Hel" />)
+
+			calls.length = 0
+
+			rerender(<Chat reply="Hello" />)
+
+			expect(calls).toEqual(['2'])
+		})
 	})
 
 	describe('the reply a reader cannot see', () => {

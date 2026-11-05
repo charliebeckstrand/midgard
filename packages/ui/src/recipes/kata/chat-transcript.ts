@@ -15,6 +15,11 @@ export const k = defineKata(
 			// The gap is each row's own top padding instead. Every row after the first
 			// carries it, because the first sits flush.
 			row: 'pt-6',
+			// The first row when the rows have a hover toolbar. The toolbar rises
+			// above its message, and the scroll clips what sits above the first row,
+			// so this keeps room for it. A device with no hover shows the actions as
+			// a row below the bubble, so there the first row sits flush again.
+			first: 'pt-8 [@media(hover:none)]:pt-0',
 		},
 	},
 	{
