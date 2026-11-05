@@ -18,7 +18,6 @@ import {
 	type PieCallout,
 	type PieCalloutFit,
 	type PieSlice,
-	pieCalloutCenter,
 	pieCalloutFit,
 	pieCallouts,
 } from '../engine/chart-geometry/pie'
@@ -71,8 +70,8 @@ export type CalloutParts = {
 	shown: CalloutPart[]
 }
 
-/** A callout pie fitted to a frame width. @internal */
-type CalloutFitAt = (frameWidth: number) => PieCalloutFit
+/** A callout pie fitted to a frame width, at a radius of at most `maxRadius`. @internal */
+type CalloutFitAt = (frameWidth: number, maxRadius: number) => PieCalloutFit
 
 /**
  * The callouts of the visible slices in one render: the texts as they draw,
@@ -87,8 +86,6 @@ export type CalloutSpec = {
 	textWidth: TextWidth
 	/** The fit of the visible slices. */
 	fit: CalloutFitAt
-	/** The center x of the visible slices at a radius below their fit. */
-	center: (frameWidth: number, radius: number) => number
 }
 
 /** One callout's parts: the slice name, and its percent share after a space. @internal */
@@ -169,17 +166,15 @@ export function resolveCallouts(
 
 	const textWidth: TextWidth = (text) => widths.get(text) ?? 0
 
-	const fits = new Map<number, PieCalloutFit>()
+	const fits = new Map<string, PieCalloutFit>()
 
 	return {
 		shown,
 		textWidth,
-		fit: (frameWidth) =>
-			getOrCompute(fits, frameWidth, () =>
-				pieCalloutFit({ values: sliceValues, texts: shown, textWidth, frameWidth }),
+		fit: (frameWidth, maxRadius) =>
+			getOrCompute(fits, `${frameWidth} ${maxRadius}`, () =>
+				pieCalloutFit({ values: sliceValues, texts: shown, textWidth, frameWidth, maxRadius }),
 			),
-		center: (frameWidth, radius) =>
-			pieCalloutCenter({ values: sliceValues, texts: shown, textWidth, frameWidth }, radius),
 	}
 }
 
@@ -213,10 +208,10 @@ export function calloutsShown(show: boolean, frameWidth: number, frameHeight: nu
 
 /**
  * The pie's resolved radius and center: the tight, asymmetric callout fit, at
- * most `maxRadius`. The frame height sets that cap. Under the cap, the pie
- * centers between the room that its callouts leave on each side. Without
- * callouts, it is centered at the plain gap, the way every chart frame
- * defaults to.
+ * most `maxRadius`. The frame height sets that cap. Under the cap, the radius
+ * still fits the frame width, and the pie centers between the room that its
+ * callouts leave on each side. Without callouts, it is centered at the plain
+ * gap, the way every chart frame defaults to.
  *
  * @internal
  */
@@ -230,13 +225,7 @@ export function resolveFit(
 		return { radius: Math.min(frameWidth / 2 - MARK_GAP * 2, maxRadius), cx: frameWidth / 2 }
 	}
 
-	const fit = spec.fit(frameWidth)
-
-	if (fit.radius <= maxRadius) return fit
-
-	const radius = Math.max(0, maxRadius)
-
-	return { radius, cx: spec.center(frameWidth, radius) }
+	return spec.fit(frameWidth, maxRadius)
 }
 
 /** Places the callouts around the pie, each with the text of its visible slice. @internal */

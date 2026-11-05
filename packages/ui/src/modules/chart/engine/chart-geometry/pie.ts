@@ -712,13 +712,18 @@ export function pieCallouts(
 
 /** A solved pie fit: the radius every callout clears the frame at, and the center-x that clears it. @internal */
 export type PieCalloutFit = {
-	/** The largest radius whose callouts, each hugging its own slice's angle, still land inside `frameWidth`. */
+	/**
+	 * The largest radius, at most `maxRadius`, whose callouts, each hugging its
+	 * own slice's angle, still land inside `frameWidth`.
+	 */
 	radius: number
 	/**
-	 * The pie's center x. It is shifted off `frameWidth / 2` so the outermost
-	 * callout on each side lands flush against it. The two sides' demands rarely
-	 * match, so a centered pie leaves one side short of the edge. With fewer than
-	 * two slices there is nothing to balance, and this stays `frameWidth / 2`.
+	 * The pie's center x. It splits the room that the callouts leave between the
+	 * two sides, so the pie and its callouts sit centered in the frame. At the
+	 * uncapped fit no room is left, and the outermost callout on each side lands
+	 * flush against the frame. The two sides' demands rarely match, so this is
+	 * rarely `frameWidth / 2`. With fewer than two slices there is nothing to
+	 * balance, and this stays `frameWidth / 2`.
 	 */
 	cx: number
 }
@@ -733,6 +738,11 @@ export type PieCalloutFitOptions = {
 	textWidth: TextWidth
 	/** The frame's available width. */
 	frameWidth: number
+	/**
+	 * The largest radius that the frame height lets the pie draw at.
+	 * @defaultValue no cap
+	 */
+	maxRadius?: number
 }
 
 /** How far a callout's elbow pulls off center, `1` at 3/9 o'clock and `0` at 12/6: the sign matches {@link pieCallouts}' own `elbow.x >= cx` side test. @internal */
@@ -833,49 +843,29 @@ function sideReach(side: FitCallout[], radius: number, pushed: Float64Array): nu
 }
 
 /**
- * The center x of a callout pie drawn at `radius`, below its
- * {@link pieCalloutFit fit radius}. A frame height can cap the radius, and the
- * two sides then leave room. The center splits that room equally, so the pie
- * and its callouts sit centered in the frame. With fewer than two slices it is
- * `frameWidth / 2`.
- *
- * @internal
- */
-export function pieCalloutCenter(
-	{ values, texts, textWidth, frameWidth }: PieCalloutFitOptions,
-	radius: number,
-): number {
-	const angles = sliceAngles(values)
-
-	if (angles.length < 2) return frameWidth / 2
-
-	const right = fitSide(angles, texts, textWidth, 1)
-
-	const left = fitSide(angles, texts, textWidth, -1)
-
-	const pushed = new Float64Array(Math.max(right.length, left.length))
-
-	const leftReach = sideReach(left, radius, pushed)
-
-	return leftReach + (frameWidth - leftReach - sideReach(right, radius, pushed)) / 2
-}
-
-/**
- * The largest radius and the center-x under which every callout lands exactly
- * inside `frameWidth`. Each callout hugs its own slice's angle, the way
- * {@link pieCallouts} places it. This is the tight inverse of that placement.
- * The frame therefore reserves only the room the real outermost label on
- * each side needs. A flat margin, sized as if every label sat at 3 o'clock,
- * reserves more.
+ * The largest radius, at most `maxRadius`, and the center-x under which every
+ * callout lands inside `frameWidth`. Each callout hugs its own slice's angle,
+ * the way {@link pieCallouts} places it. This is the tight inverse of that
+ * placement. The frame therefore reserves only the room the real outermost
+ * label on each side needs. A flat margin, sized as if every label sat at
+ * 3 o'clock, reserves more.
  *
  * @remarks A callout that does not move reaches its slice's horizontal pull
  * times `radius + leader`, plus its nub, gap, and text. Near the top or the
- * foot, the nub reaches past the circle over the height of the label instead. A callout that
- * the declump moves reaches the half-width of the leader circle at its height
- * instead ({@link sideReach}). The pair of side reaches crossing `frameWidth`
- * narrows to one radius by bisection. Each step keeps a radius that fits. Below
- * two slices there is nothing to balance between two sides. Then `cx` stays
- * centered, and the margin falls back to the flat case for the one label.
+ * foot, the nub reaches past the circle over the height of the label instead.
+ * A callout that the declump moves reaches the half-width of the leader circle
+ * at its height instead ({@link sideReach}).
+ *
+ * The pair of side reaches does not always grow with the radius. The declump
+ * keeps a fixed line between labels, so a run of labels overflows a small
+ * circle further and can move a label up to where the circle is wide. A radius
+ * below one that fits can therefore fail to fit. So the fit tests `maxRadius`
+ * first, and else narrows to one radius under it by bisection. Each step keeps
+ * a radius that fits. A pie that the frame height caps thus takes a radius
+ * that fits too, never only the cap.
+ *
+ * Below two slices there is nothing to balance between two sides. Then `cx`
+ * stays centered, and the margin falls back to the flat case for the one label.
  * @internal
  */
 export function pieCalloutFit({
@@ -883,15 +873,18 @@ export function pieCalloutFit({
 	texts,
 	textWidth,
 	frameWidth,
+	maxRadius = Number.POSITIVE_INFINITY,
 }: PieCalloutFitOptions): PieCalloutFit {
 	const angles = sliceAngles(values)
 
-	const widest = texts.reduce((max, text) => Math.max(max, textWidth(text)), 0)
+	const cap = clamp(maxRadius, 0, frameWidth)
 
 	if (angles.length < 2) {
+		const widest = texts.reduce((max, text) => Math.max(max, textWidth(text)), 0)
+
 		const radius = frameWidth / 2 - CALLOUT_LEADER - CALLOUT_NUB - CALLOUT_GAP - widest
 
-		return { radius: Math.max(0, radius), cx: frameWidth / 2 }
+		return { radius: clamp(radius, 0, cap), cx: frameWidth / 2 }
 	}
 
 	// Each side's callouts and a scratch for their heights, made once for the
@@ -905,16 +898,22 @@ export function pieCalloutFit({
 
 	const pushed = new Float64Array(Math.max(right.length, left.length))
 
+	const room = (radius: number) =>
+		frameWidth - sideReach(right, radius, pushed) - sideReach(left, radius, pushed)
+
 	let lo = 0
 
-	let hi = frameWidth
+	if (room(cap) >= 0) lo = cap
+	else {
+		let hi = cap
 
-	for (let i = 0; i < 40; i++) {
-		const mid = (lo + hi) / 2
+		for (let i = 0; i < 40; i++) {
+			const mid = (lo + hi) / 2
 
-		if (sideReach(right, mid, pushed) + sideReach(left, mid, pushed) > frameWidth) hi = mid
-		else lo = mid
+			if (room(mid) < 0) hi = mid
+			else lo = mid
+		}
 	}
 
-	return { radius: lo, cx: sideReach(left, lo, pushed) }
+	return { radius: lo, cx: sideReach(left, lo, pushed) + room(lo) / 2 }
 }
