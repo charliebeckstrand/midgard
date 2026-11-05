@@ -1,7 +1,8 @@
 import { type PointerEvent, type RefObject, useEffect, useRef, useState } from 'react'
-import { dataAttr } from 'ui/core'
+import { cn, dataAttr } from 'ui/core'
 import { useTimeout } from 'ui/hooks'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor.ts'
+import { sen } from '../../recipes/kiso/index.ts'
 import { clamp } from '../../utilities/clamp.ts'
 import { createPressOwner } from '../../utilities/primary-press.ts'
 import type { PageLink } from '../plugin/pages.ts'
@@ -249,7 +250,10 @@ export function LetterRail({
 					data-visible={dataAttr(bubble && index !== -1)}
 					// The center of the band of the active letter.
 					style={{ top: `${((Math.max(index, 0) + 0.5) / letters.length) * 100}%` }}
-					className="pointer-events-none absolute end-full me-8 grid size-12 -translate-y-1/2 scale-75 place-items-center rounded-full bg-zinc-900 font-semibold text-white text-xl opacity-0 shadow-lg transition-[opacity,scale] duration-150 ease-out data-visible:scale-100 data-visible:opacity-100 motion-reduce:transition-none dark:bg-white dark:text-zinc-900"
+					className={cn(
+						'pointer-events-none absolute end-full me-8 grid size-12 -translate-y-1/2 scale-75 place-items-center rounded-full bg-zinc-900 font-semibold text-white text-xl opacity-0 shadow-lg transition-[opacity,scale] duration-150 ease-out data-visible:scale-100 data-visible:opacity-100 motion-reduce:transition-none dark:bg-white dark:text-zinc-900',
+						sen.forced.outline,
+					)}
 				>
 					{active}
 				</span>

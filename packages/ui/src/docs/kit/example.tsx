@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
+import { cn } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Link } from 'ui/link'
@@ -8,6 +9,7 @@ import { defineMessages, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
+import { sen } from '../../recipes/kiso/index.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { createLazyModule, type LazyModule } from '../../utilities/lazy-module.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
@@ -200,7 +202,10 @@ export function ExampleFrame({
 					{/* The bar has an odd width, so it centers on the 1px border at whole pixels. */}
 					<div
 						data-slot="example-resize-grip"
-						className="pointer-events-auto absolute inset-x-0 top-[calc(50%-1.5rem)] hidden h-12 touch-none after:absolute after:inset-y-2 after:start-[calc(50%-3px)] after:w-[5px] after:rounded-full after:bg-zinc-400 after:content-[''] pointer-coarse:block dark:after:bg-zinc-600"
+						className={cn(
+							"pointer-events-auto absolute inset-x-0 top-[calc(50%-1.5rem)] hidden h-12 touch-none after:absolute after:inset-y-2 after:start-[calc(50%-3px)] after:w-[5px] after:content-[''] pointer-coarse:block",
+							sen.grip,
+						)}
 					/>
 				</div>
 				<div className="overflow-auto rounded-lg border border-zinc-200 peer-hover:border-zinc-400 peer-data-dragging:border-zinc-400 dark:border-zinc-800 dark:peer-hover:border-zinc-600 dark:peer-data-dragging:border-zinc-600">
