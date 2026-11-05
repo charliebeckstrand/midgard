@@ -223,6 +223,40 @@ describe('ApiTable', () => {
 		expect(await screen.findByRole('region', { name: '<Thing />' })).not.toBeNull()
 	})
 
+	// A pick in the search gives the focus back to the opener of the palette.
+	// The prop is not on the page until its entry opens, so the table moves the
+	// focus when it scrolls to the prop.
+	it('focuses the link of the prop after a navigation, and not after a load', async () => {
+		const router = createMemoryRouter([{ path: '/thing', element: <ApiTable api={THING} /> }], {
+			initialEntries: ['/thing', '/thing#api-Thing-size'],
+			initialIndex: 1,
+		})
+
+		onTestFinished(() => router.dispose())
+
+		render(<RouterProvider router={router} />)
+
+		await screen.findByRole('region', { name: '<Thing />' })
+
+		await waitFor(() => expect(document.getElementById('api-Thing-size')).not.toBeNull())
+
+		expect(document.activeElement).toBe(document.body)
+
+		const trigger = screen.getByRole('button', { name: '<Thing />' })
+
+		fireEvent.click(trigger)
+
+		await waitFor(() => expect(screen.queryByRole('region', { name: '<Thing />' })).toBeNull())
+
+		trigger.focus()
+
+		await act(() => router.navigate('/thing#api-Thing-size', { replace: true }))
+
+		const link = await screen.findByRole('link', { name: 'size' })
+
+		await waitFor(() => expect(document.activeElement).toBe(link))
+	})
+
 	it('keeps each entry closed when the hash names no entry of the barrel', async () => {
 		renderTable(THING, '/thing#api-Other-size')
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
-import { useLocation } from 'react-router'
+import { NavigationType, useLocation, useNavigationType } from 'react-router'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Heading } from 'ui/heading'
 import { Link } from 'ui/link'
@@ -42,7 +42,8 @@ const entryModule = createLazyModule(() => import('./api-entry.tsx'))
  *
  * Each entry and each prop has an id ({@link toApiId}). When the hash of the
  * location names a closed entry, or a prop in it, the entry opens and the page
- * scrolls to the element of the hash. The browser scrolls to an element that
+ * scrolls to the element of the hash. After a link or a pick in the search,
+ * the focus also goes to the element. The browser scrolls to an element that
  * is on the page already, so an open entry does nothing.
  */
 export function ApiTable({ api }: { api: BarrelApi }) {
@@ -83,6 +84,8 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 
 	const location = useLocation()
 
+	const navigationType = useNavigationType()
+
 	const intl = useIntl()
 
 	// A page in another language tells the reader that the TSDoc is English.
@@ -99,7 +102,10 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 	const reveal = useEffectEvent((component: string, id: string) => {
 		if (open.includes(component)) return
 
-		pending.current = { id, component, opened: false }
+		// A link or a pick in the search moves the focus to the anchor, as
+		// `useNavigationScroll` does for an anchor on the page. A load and a move
+		// through the history keep the focus.
+		pending.current = { id, component, opened: false, focus: navigationType !== NavigationType.Pop }
 
 		change((prev) => (prev.includes(component) ? prev : [...prev, component]))
 	})
