@@ -47,10 +47,13 @@ function optionId(prefix: string, source: number, command: number): string {
 /**
  * The rows of a command menu, each of which closes the palette before it acts.
  * A row opens a panel or a confirmation, which the open palette would cover.
+ * The rows of a submenu, such as the days of Edit visit, close it too.
  */
-function closingEntries(entries: ContextMenuEntry[], close: () => void): ContextMenuEntry[] {
-	return entries.map((entry) =>
-		'onAction' in entry
+export function closingEntries(entries: ContextMenuEntry[], close: () => void): ContextMenuEntry[] {
+	return entries.map((entry) => {
+		if ('items' in entry) return { ...entry, items: closingEntries(entry.items, close) }
+
+		return 'onAction' in entry
 			? {
 					...entry,
 					onAction: () => {
@@ -59,8 +62,8 @@ function closingEntries(entries: ContextMenuEntry[], close: () => void): Context
 						entry.onAction?.()
 					},
 				}
-			: entry,
-	)
+			: entry
+	})
 }
 
 /** The groups that match the query. Only this part renders again on a keystroke. */

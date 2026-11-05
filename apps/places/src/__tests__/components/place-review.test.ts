@@ -81,6 +81,12 @@ describe('toggleList', () => {
 			'Intro\n[1. Noodles\n2. Bun]',
 		],
 		[
+			'leaves the next line of a selection that ends after a line break',
+			'[Noodles\n]Bun',
+			'bulleted',
+			'[- Noodles]\nBun',
+		],
+		[
 			'makes the lines text again when each one is an item of that kind',
 			'[- Noodles\n- Bun]',
 			'bulleted',
