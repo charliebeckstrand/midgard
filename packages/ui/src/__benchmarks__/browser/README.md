@@ -131,7 +131,7 @@ Each scenario drives the deterministic shipment rows (`shipments` in [`../fixtur
 
 - [`grid-facets.bench.tsx`](grid-facets.bench.tsx): a mount, then the first open of a `select` filter on the carrier column, which lists the carriers of the rows, at 10k / 100k. A reopen on the same data reads a cached list, so the scenario times the first open.
 
-- [`grid-group.bench.tsx`](grid-group.bench.tsx): client grouping by carrier, with every group open, at 10k / 100k. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a quick filter applied and cleared. The clear settles on the row count of the toolbar, because a grouped window that grows back keeps its scroll offset.
+- [`grid-group.bench.tsx`](grid-group.bench.tsx): client grouping by carrier, with every group open, at 10k / 100k. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a quick filter applied and cleared. The clear settles on the first row of the first group, which the filter removes.
 
 - [`grid-resize-drag.bench.tsx`](grid-resize-drag.bench.tsx): a drag on the resize handle of the origin column: a press, ten moves of 8px, and a release, at 10k rows with a window. Each move gets one frame from a fake frame clock (`withFrameClock` in [`harness.ts`](harness.ts)), and a read of the header rect after each frame forces layout. Three rows run: `truncate`, `truncate={false}`, and `truncate` with no layout read.
 

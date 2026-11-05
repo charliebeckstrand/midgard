@@ -115,9 +115,11 @@ compareBenches('Grid · master-detail · virtualize (modeled 600px viewport)', (
 
 	for (const { label, rows } of CASES) {
 		// Each iteration toggles the first panel, so the runs alternate an open and
-		// a close.
+		// a close. A windowed body mounts a panel only while it is open, so a closed
+		// expander has no `aria-controls`. Thus the selector finds the expander by
+		// `aria-expanded`.
 		persistentTree(bench, masterDetail(rows), (container) =>
-			toggleIn(container, 'button[aria-controls^="grid-detail-"]'),
+			toggleIn(container, 'button[aria-expanded]'),
 		).bench(`toggle ${label}`, (toggle) => act(() => toggle.click()))
 	}
 })
