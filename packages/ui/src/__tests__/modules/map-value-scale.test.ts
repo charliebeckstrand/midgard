@@ -87,6 +87,18 @@ describe('resolveValueBins', () => {
 
 		expect(empty.domain).toBeNull()
 	})
+
+	it('resolves the bins of a pinned domain before any row carries a value', () => {
+		const pinned = resolveValueBins([{ id: 'a', v: Number.NaN }], 'v', {
+			colorRange: ['#000000', '#ffffff'],
+			domain: [0, 100],
+			format: round,
+		})
+
+		expect(pinned.domain).toEqual([0, 100])
+
+		expect(pinned.metas).toHaveLength(2)
+	})
 })
 
 describe('resolveValueBins — quantile binning', () => {

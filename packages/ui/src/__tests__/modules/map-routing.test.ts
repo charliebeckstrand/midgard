@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
+import { thrownFailure } from '../../modules/map/engine/map-routing/failure'
 import { fetchOsrmRoute } from '../../modules/map/engine/map-routing/osrm'
 import { requestSignal } from '../../modules/map/engine/map-routing/request'
+import { refusedFailure } from '../../modules/map/engine/map-routing/result'
 import type { LngLat } from '../../modules/map/engine/types'
 
 const WAYPOINTS: LngLat[] = [
@@ -49,9 +51,25 @@ function stubUnparseableBody() {
 	)
 }
 
-/** A request that throws rather than answering: an abort, a timeout, or a dead network. */
+/** A request that throws rather than answering: a dead network. */
 function stubThrownRequest(error: unknown) {
 	vi.stubGlobal('fetch', vi.fn().mockRejectedValue(error))
+}
+
+/**
+ * A request that stays open until its signal fires, and then rejects with that
+ * signal's reason, as `fetch` does.
+ */
+function stubPendingRequest() {
+	vi.stubGlobal(
+		'fetch',
+		vi.fn(
+			(_url: string, init: RequestInit) =>
+				new Promise((_resolve, reject) => {
+					init.signal?.addEventListener('abort', () => reject(init.signal?.reason), { once: true })
+				}),
+		),
+	)
 }
 
 describe('fetchOsrmRoute', () => {
@@ -128,26 +146,45 @@ describe('fetchOsrmRoute', () => {
 		},
 	)
 
-	// Both arrive as a rejected fetch and only the reason's name separates them:
-	// a timeout can clear on another request, while the caller ended its own.
-	it.for([
-		{
-			name: 'a timeout',
-			error: new DOMException('The operation timed out', 'TimeoutError'),
-			options: { timeoutMs: 5000 },
-			failure: { kind: 'timeout', retryable: true },
-		},
-		{
-			name: 'an abort',
-			error: new DOMException('The operation was aborted', 'AbortError'),
-			options: {},
-			failure: { kind: 'aborted', retryable: false },
-		},
-	])('tells a timeout from the caller`s own abort: $name', async ({ error, options, failure }) => {
-		stubThrownRequest(error)
+	// Both arrive as a rejected fetch, and only the signal that fired separates
+	// them: a timeout can clear on another request, while the caller ended its own.
+	it('fails as a timeout where the timeout it set fires', async () => {
+		stubPendingRequest()
 
-		expect(await fetchOsrmRoute(WAYPOINTS, options)).toEqual({ ok: false, failure })
+		expect(await fetchOsrmRoute(WAYPOINTS, { timeoutMs: 1 })).toEqual({
+			ok: false,
+			failure: { kind: 'timeout', retryable: true },
+		})
 	})
+
+	// A caller can abort with any reason, and `fetch` rejects with that reason, so
+	// a reason that is no `AbortError` must still read as the caller's own abort.
+	it.for([
+		{ name: 'the default reason', reason: undefined },
+		{ name: 'a string reason', reason: 'superseded' },
+		{ name: 'an Error reason', reason: new Error('superseded') },
+	])('fails as aborted where the caller ends its own request: $name', async ({ reason }) => {
+		stubPendingRequest()
+
+		const caller = new AbortController()
+
+		const answer = fetchOsrmRoute(WAYPOINTS, { signal: caller.signal, timeoutMs: 5000 })
+
+		caller.abort(reason)
+
+		expect(await answer).toEqual({ ok: false, failure: { kind: 'aborted', retryable: false } })
+	})
+
+	// `AbortSignal.timeout` throws on these, and the throw would reject the call
+	// rather than answer it.
+	it.for([Number.POSITIVE_INFINITY, Number.NaN, -1])(
+		'answers rather than rejects where the timeout is no finite count: %s',
+		async (timeoutMs) => {
+			stubFetch({ ok: true, json: PAYLOAD })
+
+			expect((await fetchOsrmRoute(WAYPOINTS, { timeoutMs })).ok).toBe(true)
+		},
+	)
 
 	it('reads any other thrown request as a dead network', async () => {
 		stubThrownRequest(new TypeError('Failed to fetch'))
@@ -173,8 +210,48 @@ describe('fetchOsrmRoute', () => {
 		})
 	})
 
-	// OSRM refuses a pair it cannot join under a 200, in its own code and with
-	// no `routes` at all: the dead end a retry can never clear.
+	// osrm-backend refuses a pair it cannot join under a 400, with its own code in
+	// the body and no `routes` at all: the dead end a retry can never clear.
+	it.for([
+		{
+			name: 'no road joins the pair',
+			json: { code: 'NoRoute', message: 'Impossible route between points' },
+			failure: { kind: 'no-route', retryable: false, code: 'NoRoute' },
+		},
+		{
+			name: 'a point off the network',
+			json: { code: 'NoSegment', message: 'Could not find a matching segment for any coordinate.' },
+			failure: { kind: 'no-route', retryable: false, code: 'NoSegment' },
+		},
+		// A request the service will not read: the status is the evidence.
+		{
+			name: 'an invalid request',
+			json: { code: 'InvalidValue', message: 'Invalid coordinate value.' },
+			failure: { kind: 'http', status: 400, retryable: false },
+		},
+	])('reads the refusal in the body of a 400: $name', async ({ json, failure }) => {
+		stubFetch({ ok: false, status: 400, json })
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({ ok: false, failure })
+	})
+
+	it('keeps the status where the body of a refused response does not parse', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({
+				ok: false,
+				status: 400,
+				json: () => Promise.reject(new SyntaxError('Unexpected end of JSON input')),
+			}),
+		)
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'http', status: 400, retryable: false },
+		})
+	})
+
+	// A body under a 200 can still name a refusal in its own code.
 	it.for([
 		{
 			name: 'a refusal code',
@@ -188,7 +265,7 @@ describe('fetchOsrmRoute', () => {
 			failure: { kind: 'no-route', retryable: false },
 		},
 	])(
-		'reads the service`s own refusal as no-route, carrying its code: $name',
+		'reads the service`s own refusal under a 200 as no-route: $name',
 		async ({ json, failure }) => {
 			stubFetch({ ok: true, json })
 
@@ -239,7 +316,7 @@ describe('requestSignal', () => {
 
 		const caller = new AbortController()
 
-		const signal = requestSignal(caller.signal, 5000)
+		const { signal } = requestSignal(caller.signal, 5000)
 
 		expect(signal?.aborted).toBe(false)
 
@@ -250,7 +327,6 @@ describe('requestSignal', () => {
 	})
 
 	it('passes on the reason of the signal that fired', async () => {
-		// `thrownFailure` reads the reason's name to tell a timeout from an abort.
 		const caller = new AbortController()
 
 		const reason = new DOMException('The operation was aborted', 'AbortError')
@@ -259,21 +335,70 @@ describe('requestSignal', () => {
 
 		caller.abort(reason)
 
-		expect(aborted?.reason).toBe(reason)
+		expect(aborted.signal?.reason).toBe(reason)
+
+		expect(aborted.timeout?.aborted).toBe(false)
 
 		const timed = requestSignal(new AbortController().signal, 1)
 
-		await new Promise((resolve) => timed?.addEventListener('abort', resolve, { once: true }))
+		await new Promise((resolve) => timed.signal?.addEventListener('abort', resolve, { once: true }))
 
-		expect((timed?.reason as DOMException | undefined)?.name).toBe('TimeoutError')
+		expect((timed.signal?.reason as DOMException | undefined)?.name).toBe('TimeoutError')
+
+		expect(timed.timeout?.aborted).toBe(true)
 	})
 
 	it('is aborted at once when the caller`s signal already is', () => {
 		const reason = new DOMException('The operation was aborted', 'AbortError')
 
-		const signal = requestSignal(AbortSignal.abort(reason), 5000)
+		const { signal } = requestSignal(AbortSignal.abort(reason), 5000)
 
 		expect(signal?.aborted).toBe(true)
 		expect(signal?.reason).toBe(reason)
+	})
+
+	it.for([Number.POSITIVE_INFINITY, Number.NaN, -1])(
+		'sets no limit where the timeout is no finite count of zero or more: %s',
+		(timeoutMs) => {
+			const caller = new AbortController()
+
+			expect(requestSignal(caller.signal, timeoutMs)).toEqual({
+				signal: caller.signal,
+				timeout: undefined,
+			})
+		},
+	)
+})
+
+describe('thrownFailure', () => {
+	// The thrown value is the caller's own reason, which can be anything, so only
+	// the signal says which of the two ended the request.
+	it.for([
+		{ name: 'a string reason', reason: 'superseded' },
+		{ name: 'an Error reason', reason: new Error('superseded') },
+	])('reads an abort by the signal, not by the reason: $name', ({ reason }) => {
+		const caller = new AbortController()
+
+		const { signal, timeout } = requestSignal(caller.signal, 5000)
+
+		caller.abort(reason)
+
+		expect(thrownFailure('network', signal, timeout)).toEqual({ kind: 'aborted', retryable: false })
+	})
+
+	it('takes the fallback where no signal fired', () => {
+		const { signal, timeout } = requestSignal(new AbortController().signal, 5000)
+
+		expect(thrownFailure('payload', signal, timeout)).toEqual({ kind: 'payload', retryable: false })
+	})
+})
+
+describe('refusedFailure', () => {
+	it.for([
+		{ name: 'no body', body: undefined },
+		{ name: 'a body with no code', body: { message: 'Bad Request' } },
+		{ name: 'a code that is not a string', body: { code: 404 } },
+	])('keeps the status where the body names no refusal: $name', ({ body }) => {
+		expect(refusedFailure(400, body)).toEqual({ kind: 'http', status: 400, retryable: false })
 	})
 })

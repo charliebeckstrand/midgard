@@ -121,6 +121,16 @@ describe('parseZipSelection', () => {
 		])
 	})
 
+	it('reads both orders of a range whose ends share a low bound as one span', () => {
+		// `6` and `600` both start at `60000`, so the order of the ends decides
+		// nothing: the range holds every code either end names.
+		const span = [{ kind: 'range', from: '60000', to: '69999' }]
+
+		expect(parseZipSelection('6-600').include).toEqual(span)
+
+		expect(parseZipSelection('600-6').include).toEqual(span)
+	})
+
 	it('separates on commas, semicolons, and space, and closes up a spaced hyphen', () => {
 		expect(parseZipSelection('606; 610  60620 - 60630').include).toEqual([
 			{ kind: 'prefix', prefix: '606' },
@@ -331,6 +341,14 @@ describe('defaultZipId', () => {
 		expect(defaultZipId({ properties: { ZCTA5CE20: '60601' } })).toBe('60601')
 
 		expect(defaultZipId({ properties: { ZCTA5CE10: '60602' } })).toBe('60602')
+	})
+
+	it('keeps the leading zero of a code stored as a number', () => {
+		// `01001` is Agawam, Massachusetts; as a number it is `1001`, which no
+		// territory term matches.
+		expect(defaultZipId({ id: 1001 })).toBe('01001')
+
+		expect(defaultZipId({ properties: { ZCTA5CE20: 1001 } })).toBe('01001')
 	})
 
 	it('names nothing where the shape carries no code', () => {
