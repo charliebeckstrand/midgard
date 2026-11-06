@@ -148,4 +148,5 @@ export const geometry = {
 	'space.button.bare': padBare,
 	'space.control.y': padY,
 	'space.tree.indent': treeIndent,
+	'space.query.grip': (step) => 1 + 10 + boxHeight(step) / 2 - 12,
 } as const satisfies Record<string, (step: DensityStep) => number>

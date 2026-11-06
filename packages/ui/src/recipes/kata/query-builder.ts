@@ -69,14 +69,19 @@ export const k = defineKata(
 			actions: [flex.row, dan.gap.scale.sm],
 			/**
 			 * A node of a builder that reorders. A held node sits over its neighbors on
-			 * an opaque surface, so the nodes it passes do not show through it.
+			 * an opaque surface, so the nodes it passes do not show through it. The `!`
+			 * beats the inline `z-index` that Motion's `Reorder.Item` writes. Forced
+			 * colors remove the shadow and repaint the surface, so an outline shows the
+			 * held node.
 			 */
 			sortable: {
 				base: [
 					'flex items-start gap-1.5',
-					'data-dragging:relative data-dragging:z-10',
+					'data-dragging:relative data-dragging:z-10!',
 					'data-dragging:rounded-lg data-dragging:shadow-lg',
 					...mode('data-dragging:bg-white', 'dark:data-dragging:bg-zinc-900'),
+					'forced-colors:data-dragging:outline-solid forced-colors:data-dragging:outline-2',
+					'forced-colors:data-dragging:outline-offset-2 forced-colors:data-dragging:outline-[Highlight]',
 				],
 				slots: {
 					/**
@@ -85,23 +90,28 @@ export const k = defineKata(
 					 */
 					list: 'group/sortable contents',
 					/**
-					 * The grip centers on the first control line of a rule: the rule's border
-					 * and `p-2.5`, then half a control. Beside a group, it sits at the same
-					 * height.
+					 * The grip centers on the first control line of a rule at each density
+					 * step (`dan.space.query.grip`). Beside a group, it sits at the same
+					 * height. The grip holds the focus of a held node, so it takes the lift
+					 * accent in the shape of its own focus ring.
 					 */
-					handle: [
-						'mt-4.5 flex size-6 shrink-0 items-center justify-center',
-						rounded.md,
-						...grab.default,
-						...text.muted,
-						...mode(
-							'hover:not-disabled:bg-zinc-100 hover:not-disabled:text-zinc-700',
-							'dark:hover:not-disabled:bg-zinc-800 dark:hover:not-disabled:text-zinc-300',
-						),
-						...focus.ring,
-						...disabled,
-						'disabled:cursor-not-allowed',
-					],
+					handle: {
+						base: [
+							dan.space.query.grip,
+							'flex size-6 shrink-0 items-center justify-center',
+							rounded.md,
+							...grab.default,
+							...text.muted,
+							...mode(
+								'hover:not-disabled:bg-zinc-100 hover:not-disabled:text-zinc-700',
+								'dark:hover:not-disabled:bg-zinc-800 dark:hover:not-disabled:text-zinc-300',
+							),
+							...focus.ring,
+							...disabled,
+							'disabled:cursor-not-allowed',
+						],
+						held: { true: focus.lifted.outline, false: '' },
+					},
 					node: 'min-w-0 flex-1',
 					/**
 					 * The AND/OR between two nodes aligns with the nodes, past the grip and the
@@ -114,7 +124,7 @@ export const k = defineKata(
 				},
 			},
 		},
-		defaults: { nested: false },
+		defaults: { nested: false, held: false },
 	},
 	{
 		/** The move of a node under reduced motion: the node lands at once. */

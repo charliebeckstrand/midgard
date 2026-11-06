@@ -428,4 +428,63 @@ describe('List pointer reorder (real browser)', () => {
 
 		await userEvent.keyboard('{Escape}')
 	})
+
+	// Motion writes an inline z-index on each `Reorder.Item`, `unset` while x and
+	// y are 0. A keyboard move is a layout animation with x and y at 0, so the
+	// inline value took the raise off the lifted row. A row that moves up comes
+	// first in the DOM, so the row that it passed painted over it.
+	it('keeps the lifted row over the row that it passes during a keyboard move', async () => {
+		function Rows() {
+			const [order, setOrder] = useState(items)
+
+			return (
+				<List items={order} getKey={(item) => item.id} onReorder={setOrder}>
+					{(item) => <ListItem>{item.label}</ListItem>}
+				</List>
+			)
+		}
+
+		const { container } = renderUI(<Rows />)
+
+		const list = getSlot(container, 'list')
+
+		const [, second] = allBySlot(list, 'list-item')
+
+		if (!second) throw new Error('expected rows')
+
+		second.focus()
+
+		await expect.poll(() => document.activeElement).toBe(second)
+
+		await userEvent.keyboard(' ')
+
+		await expect.poll(() => second.hasAttribute('data-lifted')).toBe(true)
+
+		expect(getComputedStyle(second).zIndex).toBe('10')
+
+		await userEvent.keyboard('{ArrowUp}')
+
+		await expect.poll(() => allBySlot(list, 'list-item')[0]).toBe(second)
+
+		// Each frame of the move: the point at the center of the lifted row hits the lifted row.
+		let moving = 0
+
+		while (getComputedStyle(second).transform !== 'none') {
+			moving += 1
+
+			expect(getComputedStyle(second).zIndex).toBe('10')
+
+			const box = second.getBoundingClientRect()
+
+			const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+
+			expect(second.contains(top)).toBe(true)
+
+			await frames()
+		}
+
+		expect(moving).toBeGreaterThan(0)
+
+		await userEvent.keyboard('{Escape}')
+	})
 })

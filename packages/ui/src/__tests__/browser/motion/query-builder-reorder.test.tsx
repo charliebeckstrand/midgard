@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import {
 	createGroup,
 	QueryBuilder,
@@ -253,5 +254,50 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 		expect(ids(value.children)).toEqual(['g', 'b', 'c'])
 
 		expect(ids((value.children[0] as QueryGroup).children)).toEqual(['y', 'x'])
+	})
+
+	// Motion writes an inline z-index on each `Reorder.Item`, 1 while x or y is
+	// not 0 and `unset` at rest. A keyboard move is a layout animation with x and
+	// y at 0, so the inline value took the raise off the held node, and the
+	// neighbor that it passed painted over it.
+	it('keeps the held node over the node that it passes during a keyboard move', async () => {
+		const { container } = renderUI(<Harness initial={flat} onValueChange={() => {}} />)
+
+		const held = sortable(container, 'b')
+
+		if (!held) throw new Error('expected nodes')
+
+		grip('Name contains b').focus()
+
+		await userEvent.keyboard(' ')
+
+		await expect.poll(() => held.hasAttribute('data-dragging')).toBe(true)
+
+		expect(getComputedStyle(held).zIndex).toBe('10')
+
+		await userEvent.keyboard('{ArrowUp}')
+
+		await expect.poll(() => rootOrder(container)).toEqual(['b', 'a', 'c'])
+
+		// Each frame of the move: the point at the center of the held node hits the held node.
+		let moving = 0
+
+		while (getComputedStyle(held).transform !== 'none') {
+			moving += 1
+
+			expect(getComputedStyle(held).zIndex).toBe('10')
+
+			const box = held.getBoundingClientRect()
+
+			const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+
+			expect(held.contains(top)).toBe(true)
+
+			await frames()
+		}
+
+		expect(moving).toBeGreaterThan(0)
+
+		await userEvent.keyboard('{Escape}')
 	})
 })

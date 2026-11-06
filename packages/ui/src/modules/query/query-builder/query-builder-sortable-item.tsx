@@ -113,7 +113,7 @@ export function QueryBuilderSortableItem({
 					label={intl.formatMessage(reorderMessages.reorderHandle, { item: label })}
 					size="sm"
 					disabled={disabled}
-					className={slots.sortable.handle}
+					className={k({ held }).sortable.handle}
 				/>
 			)}
 			<div className={slots.sortable.node}>{children}</div>

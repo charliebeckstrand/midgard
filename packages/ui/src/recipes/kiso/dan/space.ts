@@ -203,6 +203,14 @@ export const space = {
 		 */
 		overlap: 'density-set-[-0.5,-0.5,-1,-1,-1]/[--ui-avatar-overlap] space-x-(--ui-avatar-overlap)',
 	},
+	query: {
+		/**
+		 * The top margin of the grip of a query node that reorders: the 1 px border
+		 * and the 10 px padding of a rule, then half a control, less half the 24 px
+		 * grip. Thus the grip centers on the first control line of the rule.
+		 */
+		grip: 'density-mt-[3,3.75,4.5,5.25,6]',
+	},
 	dashboard: {
 		/**
 		 * The negative inline margin of a bare icon button in a dashboard tile
