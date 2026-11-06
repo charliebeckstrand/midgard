@@ -9,6 +9,8 @@ import {
 } from '../../../modules/query'
 import { DensityProvider } from '../../../providers/density'
 import { present, renderUI } from '../../helpers'
+import { getCenter } from '../../helpers/geometry/box'
+import { LAYOUT_UNIT } from '../../helpers/geometry/tolerance'
 
 /**
  * QueryChips and the AND/OR segment of QueryBuilder take the step of the
@@ -179,6 +181,29 @@ describe('Query density', () => {
 		'sizes the AND/OR segment at the step of a %s provider',
 		(density) => {
 			expect(measureSegment(density)).toEqual(EXPECTED.segment[density])
+		},
+	)
+	// The grip kept one top margin, so it centered on the first control line of
+	// a rule only at `md`. The control height steps with density.
+	it.each(['xs', 'sm', 'md', 'lg', 'xl'] as const)(
+		'centers the reorder grip on the first control line of a rule at %s',
+		(step) => {
+			const { container } = renderUI(
+				<div data-density={step}>
+					<QueryBuilder fields={fields} defaultValue={query()} reorder />
+				</div>,
+			)
+
+			const node = present(container.querySelector('[data-slot="query-sortable"]'), 'a node')
+
+			const grip = present(node.querySelector('[data-slot="query-reorder-handle"]'), 'the grip')
+
+			const control = present(
+				node.querySelector('[data-slot="query-rule"] [data-slot="control-frame"]'),
+				'the first control',
+			)
+
+			expect(getCenter(grip).y).toBeNear(getCenter(control).y, LAYOUT_UNIT)
 		},
 	)
 })

@@ -101,8 +101,11 @@ export const focus = {
 		],
 	},
 	lifted: {
-		/** The raise itself, for whichever box is picked up. */
-		raise: ['z-10', 'shadow-md'],
+		/**
+		 * The raise itself, for whichever box is picked up. The `!` beats the inline
+		 * `z-index` that Motion's `Reorder.Item` writes on a row of a List.
+		 */
+		raise: ['z-10!', 'shadow-md'],
 		/** Violet accent for a lifted host whose indicator is an inset ring. */
 		ring: 'focus-visible:ring-violet-600',
 		/** Violet accent for a lifted host whose indicator is an outset outline. */

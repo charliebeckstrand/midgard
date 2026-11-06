@@ -34,6 +34,7 @@ import { Tree, TreeItem } from '../../components/tree'
 import { HeatmapChart } from '../../modules/chart'
 import { ChatList, ChatListItem } from '../../modules/chat'
 import { Grid, type GridColumn } from '../../modules/grid'
+import { createGroup, QueryBuilder, type QueryRule } from '../../modules/query'
 import { bySlot, frames, present, renderUI, waitFor } from '../helpers'
 import { emulateForcedColors, systemColor } from './helpers/forced-colors'
 
@@ -503,6 +504,39 @@ describe('controls show their state under forced colors (real browser)', () => {
 			expect(indicatorOutline(container)).not.toBe(rest)
 		})
 	}
+
+	// The shadow and the surface show a held node. Forced colors remove the
+	// shadow and repaint the surface, so a keyboard lift showed no change.
+	it('query builder: a node that the keyboard lifts draws an outline', async () => {
+		const rule = (id: string): QueryRule => ({
+			id,
+			type: 'rule',
+			combinator: 'and',
+			field: 'name',
+			operator: 'contains',
+			value: id,
+		})
+		const { container } = renderUI(
+			<QueryBuilder
+				fields={[{ name: 'name', label: 'Name', type: 'text' }]}
+				defaultValue={createGroup('and', [rule('a'), rule('b')])}
+				reorder
+			/>,
+		)
+		await frames()
+		const node = present(
+			container.querySelector<HTMLElement>('[data-slot=query-sortable][data-node-id=a]'),
+			'node',
+		)
+		expect(getComputedStyle(node).outlineStyle).toBe('none')
+		present(bySlot(node, 'query-reorder-handle'), 'grip').focus()
+		await userEvent.keyboard(' ')
+		await expect.poll(() => node.hasAttribute('data-dragging')).toBe(true)
+		const style = getComputedStyle(node)
+		expect(style.outlineStyle).toBe('solid')
+		expect(style.outlineWidth).toBe('2px')
+		await userEvent.keyboard('{Escape}')
+	})
 
 	it('slider: 10 and 90 paint differently', async () => {
 		const low = await pixels(<Slider aria-label="Volume" value={10} />)

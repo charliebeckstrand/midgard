@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import {
 	createGroup,
 	QueryBuilder,
@@ -89,6 +90,42 @@ describe('QueryBuilder reorder (real browser)', () => {
 		expect(screen.getByText('Dropped Name contains a, position 2 of 3.')).toBeInTheDocument()
 
 		expect(onValueChange).toHaveBeenCalledTimes(1)
+	})
+
+	// Kanban, Dashboard, and List turn the focus indicator violet while lifted.
+	// The query grip kept the blue focus ring.
+	it('shows the lift accent on the focused grip', async () => {
+		renderUI(<Harness onValueChange={() => {}} />)
+
+		const grip = screen.getByRole('button', { name: 'Reorder Name contains a' })
+
+		// A Tab gives the grip `:focus-visible`, as a keyboard user has it.
+		await userEvent.keyboard('{Tab}')
+
+		expect(document.activeElement).toBe(grip)
+
+		const resting = getComputedStyle(grip).outlineColor
+
+		await userEvent.keyboard(' ')
+
+		await expect.poll(() => grip.hasAttribute('data-dragging')).toBe(true)
+
+		// The accent is the color of a probe with the lift outline class.
+		const probe = document.createElement('div')
+
+		probe.className = 'outline-violet-600'
+
+		document.body.append(probe)
+
+		const accent = getComputedStyle(probe).outlineColor
+
+		probe.remove()
+
+		expect(accent).not.toBe(resting)
+
+		await expect.poll(() => getComputedStyle(grip).outlineColor).toBe(accent)
+
+		await userEvent.keyboard('{Escape}')
 	})
 
 	it('drops a keyboard lift with Escape', async () => {
