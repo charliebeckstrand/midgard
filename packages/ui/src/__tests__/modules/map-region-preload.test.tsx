@@ -126,6 +126,32 @@ describe('MapPlat onRegionPreload', () => {
 		expect(preload).toHaveBeenCalledOnce()
 	})
 
+	it('holds the latch across a re-render that churns the regionId identity', async ({ clock }) => {
+		const preload = vi.fn()
+
+		// The inline accessor a consumer writes: the geography stands, so the
+		// region the reader warmed stays warmed.
+		const { container, rerender } = renderUI(
+			categoricalPlat({ onRegionPreload: preload, regionId: (feature) => String(feature.id) }),
+		)
+
+		point(allRegions(container)[0] as Element)
+
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
+
+		leave(container)
+
+		rerender(
+			categoricalPlat({ onRegionPreload: preload, regionId: (feature) => String(feature.id) }),
+		)
+
+		point(allRegions(container)[0] as Element)
+
+		await clock.advance(MAP_PRELOAD_DWELL_MS)
+
+		expect(preload.mock.calls).toEqual([['A', 0]])
+	})
+
 	it('re-arms every region when the geography changes', async ({ clock }) => {
 		const preload = vi.fn()
 
