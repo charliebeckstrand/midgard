@@ -515,12 +515,22 @@ describe('dotPath', () => {
 
 describe('ringArcs', () => {
 	it('splits the ring by the shares, clockwise from the top', () => {
-		// A quarter and three quarters: the first arc runs from the top to the right,
-		// and the second, the long way round, from the right back to the top.
+		// A quarter and three quarters: the first arc runs from the top to the right.
+		// The second is longer than half the ring, so it goes from the right back
+		// to the top as two arcs of half its length.
 		expect(ringArcs({ x: 0, y: 0 }, 10, [1, 3])).toEqual([
 			'M0,-10A10,10 0 0 1 10,0',
-			'M10,0A10,10 0 1 1 0,-10',
+			'M10,0A10,10 0 0 1 -7.07,7.07A10,10 0 0 1 0,-10',
 		])
+	})
+
+	it('draws a share that is nearly the whole ring as two arcs', () => {
+		// At a radius of 27, a share of 30000 to 1 ends 0.006 units from where it
+		// starts, under the two-decimal grid. One arc would then start and end at
+		// one point, and SVG drops an arc like that.
+		const [large] = ringArcs({ x: 0, y: 0 }, 27, [30000, 1])
+
+		expect(large).toBe('M0,-27A27,27 0 0 1 0,27A27,27 0 0 1 -0.01,-27')
 	})
 
 	it('draws a share that is the whole ring as two half arcs', () => {

@@ -1,6 +1,9 @@
 // @vitest-environment node
+import counties from 'us-atlas/counties-10m.json'
 import { describe, expect, it } from 'vitest'
+import type { MapTopology } from '../../modules/map'
 import { buildRegionIndex, regionAt } from '../../modules/map/engine/map-geometry/locate'
+import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
 import { defaultRegionGroup } from '../../modules/map/engine/map-region/identity'
 import { defaultZipId, zipArea } from '../../modules/map/engine/map-zip/dissolve'
@@ -393,6 +396,43 @@ describe('regionAt', () => {
 		expect(regionAt(buildRegionIndex(wide), wide, [-150, 60])).toBe(0)
 
 		expect(regionAt(buildRegionIndex(wide), wide, [-150, 20])).toBe(-1)
+	})
+
+	it('finds a position under the poleward bulge of a long edge', () => {
+		// `geoContains` joins two vertices along a great circle, which arcs
+		// poleward of both. The edge from [-102, 40] to [-94, 40] peaks near
+		// 40.07 degrees, so [-98, 40.05] lies inside the shape and north of
+		// every vertex.
+		const long = rewindFeatures([
+			{
+				type: 'Feature',
+				id: '08000',
+				geometry: {
+					type: 'Polygon',
+					coordinates: [
+						[
+							[-102, 36],
+							[-94, 36],
+							[-94, 40],
+							[-102, 40],
+							[-102, 36],
+						],
+					],
+				},
+			},
+		])
+
+		expect(regionAt(buildRegionIndex(long), long, [-98, 40.05])).toBe(0)
+	})
+
+	it('finds Kane County at a position on its northern edge', () => {
+		const regions = rewindFeatures(
+			geographyFeatures(counties as unknown as MapTopology, 'counties'),
+		)
+
+		const found = regionAt(buildRegionIndex(regions), regions, [-88.46581, 42.153993])
+
+		expect(regions[found]?.id).toBe('17089')
 	})
 })
 

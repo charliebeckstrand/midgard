@@ -1,8 +1,9 @@
 // @vitest-environment node
-import { type GeoProjection, geoMercator } from 'd3-geo'
+import { type GeoProjection, geoAlbersUsa, geoMercator } from 'd3-geo'
 import states from 'us-atlas/states-10m.json'
 import { describe, expect, it } from 'vitest'
 import type { MapFeature, MapTopology } from '../../modules/map'
+import { ALBERS_USA_ASPECT } from '../../modules/map/engine/map-constants'
 import {
 	affineBasis,
 	areaOnly,
@@ -170,6 +171,14 @@ describe('projectAtlas + emitRegionPaths', () => {
 		expect(probed?.canonical.height).toBe(canonical.height)
 
 		expect(probed?.canonical.aspect).toBe(canonical.aspect)
+	})
+
+	it('measures the aspect the albers-usa frame reserves before its atlas loads', () => {
+		// The reserve and the loaded frame must be one ratio, so the frame keeps
+		// its height when the atlas swaps in.
+		expect(probeCanonicalFit(stateFeatures, 'albers-usa')?.canonical.aspect).toBe(ALBERS_USA_ASPECT)
+
+		expect(canonical.aspect).toBe(ALBERS_USA_ASPECT)
 	})
 
 	it('emits the canonical paths byte for byte from the folded walk', () => {
@@ -350,6 +359,46 @@ describe('projectAtlas + emitRegionPaths', () => {
 		const refit = geoMercator().scale(400).translate([50, 50])
 
 		expect(emitRegionPaths(atlas, refit)).toEqual(regionPaths([parts], refit))
+	})
+
+	it('finds its witness past a leading feature that does not project', () => {
+		// `albers-usa` drops a position outside its insets, so a feature over
+		// Europe offers no witness. The one over Kansas still does.
+		const europe = feature({
+			type: 'Polygon',
+			coordinates: [
+				[
+					[10, 50],
+					[10, 52],
+					[12, 52],
+					[12, 50],
+					[10, 50],
+				],
+			],
+		})
+
+		const kansas = feature({
+			type: 'Polygon',
+			coordinates: [
+				[
+					[-100, 38],
+					[-100, 39],
+					[-98, 39],
+					[-98, 38],
+					[-100, 38],
+				],
+			],
+		})
+
+		const projection = geoAlbersUsa().scale(1000).translate([480, 250])
+
+		const atlas = projected([europe, kansas], projection)
+
+		expect(atlas.witness?.position).toEqual([-100, 38])
+
+		const refit = geoAlbersUsa().scale(2000).translate([100, 50])
+
+		expect(emitRegionPaths(atlas, refit)).toEqual(regionPaths([europe, kansas], refit))
 	})
 
 	it('declines to emit where no witness can test the fit', () => {

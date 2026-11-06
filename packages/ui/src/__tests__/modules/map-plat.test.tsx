@@ -1,7 +1,7 @@
 import { describe, expect, vi } from 'vitest'
 import { SWEEP_SETTLE } from '../../modules/chart/engine/use-chart-sweep'
 import { MapPlat, MapRoute } from '../../modules/map'
-import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
+import { ALBERS_USA_ASPECT, REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import { REGION_FADE } from '../../modules/map/engine/map-motion'
 import { LocaleProvider } from '../../providers/locale'
 import {
@@ -125,7 +125,7 @@ describe('MapPlat', () => {
 
 		const box = bySlot(container, 'map-plot')?.querySelector('[data-slot="aspect-ratio"]')
 
-		expect(box).toHaveStyle({ aspectRatio: '1.709' })
+		expect(box).toHaveStyle({ aspectRatio: String(ALBERS_USA_ASPECT) })
 	})
 
 	it('washes color in over solid geography under animate, never fading the paths', () => {

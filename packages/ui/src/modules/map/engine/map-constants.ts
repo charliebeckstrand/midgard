@@ -305,12 +305,14 @@ export const DEFAULT_MAP_ASPECT = 16 / 9
  * The aspect ratio the whole United States spans under `albers-usa`: the
  * lower-48 with the Alaska and Hawaii insets, fit to width. It is measured from
  * the us-atlas geography, and shared by any full-US atlas: states, counties,
- * nation. The `albers-usa` projection is definitionally the US, so a plat
- * drawing it reserves this ratio before its geography loads. The loaded map fits
- * the same shape, so a lazily fetched atlas swaps in without shifting the
- * frame's height. @internal
+ * nation. The canonical frame of that geography is {@link MAP_CANONICAL_WIDTH}
+ * (1000) units wide and 585 units high on the region path grid. The
+ * `albers-usa` projection is definitionally the US, so a plat drawing it
+ * reserves this ratio before its geography loads. The loaded map fits the same
+ * shape, so a lazily fetched atlas swaps in without shifting the frame's
+ * height. @internal
  */
-export const ALBERS_USA_ASPECT = 1.709
+export const ALBERS_USA_ASPECT = 1000 / 585
 
 /**
  * The graticule's degree step when it is turned on without one. It is d3-geo's
