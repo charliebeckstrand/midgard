@@ -1,14 +1,15 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useId, useMemo } from 'react'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import { markTargets } from './engine/map-cluster/crowd'
-import { PIN_RADIUS, ROUTE_STROKE_WIDTH } from './engine/map-constants'
+import { ownGround } from './engine/map-cluster/ground'
+import { PIN_RADIUS, POINT_HIT_RADIUS, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './engine/map-motion'
-import type { LngLat } from './engine/types'
-import { dotHitProps, MapDot } from './map-dot'
+import type { LngLat, MapPoint2D } from './engine/types'
+import { dotHitProps, MapDot, MapDotClip } from './map-dot'
 import { MapDotHalo, MapHalo } from './map-halo'
 import { lineHitProps, MapLine } from './map-line'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -36,6 +37,11 @@ export type MapMarkerProps = MapOverlayProps & {
  * keyboard cursor picks the marker with Enter or Space. The plat's
  * `selectedOverlay` haloes both pins and the leg between them, for as long as it
  * names this mark.
+ *
+ * Another mark's dot can stand close enough that a pin's target would overlap it.
+ * The pin's circle is then clipped to the ground nearer to the pin, as a
+ * {@link MapPoint}'s is. The contested middle divides once, along the line midway
+ * between the two, and does not go to whichever mark drew last.
  *
  * @remarks Renders only inside {@link MapPlat}. Pins and connector are stated in
  * device pixels, so a zoom widens the ground under them and never the marks
@@ -81,6 +87,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		dim,
 		selected,
 		onPointerLeave,
+		neighbors,
 		hit,
 	} = useMapOverlay({
 		...shared,
@@ -123,6 +130,27 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 			),
 		[from, to, unitsPerPixel, spare],
 	)
+
+	// Sanitized, because `useId` spells its output with characters a fragment reference cannot carry.
+	const clipId = useId().replace(/[^\w-]/g, '')
+
+	// The ground each pin keeps against the other marks' dots, as `MapPoint` reads its own, and the
+	// id of the clip that bounds it. `undefined` where no neighbor is close enough to want any. The
+	// two pins of this mark are not each other's neighbors here, since `markTargets` above already
+	// divides a short leg. Memoized above the guard, for the reason `MapPoint` gives.
+	const [startClip, endClip] = useMemo(() => {
+		const others = neighbors()
+
+		const reach = POINT_HIT_RADIUS * unitsPerPixel
+
+		const clip = (pin: MapPoint2D | null, id: string) => {
+			const ground = pin === null ? null : ownGround(pin, others, reach)
+
+			return ground === null ? undefined : { id, ground }
+		}
+
+		return [clip(from, `${clipId}-start-hit`), clip(to, `${clipId}-end-hit`)] as const
+	}, [from, to, neighbors, unitsPerPixel, clipId])
 
 	if (slot === undefined || hidden || (d === '' && from === null && to === null)) return null
 
@@ -217,6 +245,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 							hit: hit(),
 							scale: unitsPerPixel,
 							target: startTarget,
+							clip: startClip?.id,
 						})}
 					/>
 				)}
@@ -229,9 +258,14 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 							hit: hit(),
 							scale: unitsPerPixel,
 							target: endTarget,
+							clip: endClip?.id,
 						})}
 					/>
 				)}
+
+				{startClip && <MapDotClip {...startClip} />}
+
+				{endClip && <MapDotClip {...endClip} />}
 			</g>
 		</>
 	)

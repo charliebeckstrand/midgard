@@ -29,6 +29,7 @@ import {
 	type MapSharedCluster,
 } from './engine/map-cluster/sets'
 import { POINT_RADIUS, POINT_SWATCH } from './engine/map-constants'
+import { dotReach } from './engine/map-geometry/mark'
 import { type MapHoverTarget, mapMarkDimmed } from './engine/map-hover/target'
 import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
@@ -808,12 +809,16 @@ export function MapPoints({
 		const room = grouping.room()
 
 		return markTargets(
-			groups.map((group, index) => ({ at: group.at, radius: radii[index] ?? POINT_RADIUS })),
+			// What each dot paints out to, so the floor of a square covers its corners.
+			groups.map((group, index) => ({
+				at: group.at,
+				radius: dotReach(radii[index] ?? POINT_RADIUS, shapes[index]),
+			})),
 			unitsPerPixel,
 			spare,
 			groups.map((group) => room[group.mark] ?? Number.POSITIVE_INFINITY),
 		)
-	}, [groups, grouping, radii, spare, unitsPerPixel])
+	}, [groups, grouping, radii, shapes, spare, unitsPerPixel])
 
 	// Held across re-renders: rebuilding them would allocate one string per dot
 	// every time, which is the cost this mark exists to remove.

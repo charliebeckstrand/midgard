@@ -30,7 +30,8 @@
  * answers instead by dividing what the two overlap, rather than by shrinking
  * either. It can pool across marks where this cannot, because it measures in
  * frame units and a frame position is scale-free where a reach is not.
- * `MapPoint` reads it.
+ * `MapPoint` and `MapMarker` read it. `MapPoints` does not yet, because one
+ * clip for each dot of a set is a cost that the ROADMAP holds open.
  *
  * Frame arithmetic over the same grid the clustering passes bucket into
  * (`grid.ts`), and React-free like the rest of the engine.

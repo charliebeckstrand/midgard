@@ -3,6 +3,7 @@
 import type { Transition } from 'motion/react'
 import { useMotionValue, useTransform } from 'motion/react'
 import type { SVGProps } from 'react'
+import { useEffect } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/map'
@@ -124,6 +125,13 @@ function MapLineDraw({
 	const drawn = useMotionValue(still ? 1 : 0)
 
 	const opacity = useTransform(drawn, (share) => (share > 0 ? 1 : 0))
+
+	// Reduced motion that turns on mid-draw changes the transition alone. The target stays
+	// `pathLength: 1`, so motion starts no new animation, and the tween in flight runs on. The jump
+	// stops that tween and puts the line at its drawn end.
+	useEffect(() => {
+		if (still) drawn.jump(1)
+	}, [still, drawn])
 
 	return (
 		<m.path

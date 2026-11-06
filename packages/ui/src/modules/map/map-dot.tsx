@@ -127,11 +127,15 @@ export function MapDot({
 	const full =
 		shape === 'square' ? squareDotStroke(at, width) : { d: dotPath(at), strokeWidth: width }
 
+	// Off the pointer, as every other drawn shape in the module is (`MapDotRing`, `MapDotCount`, the
+	// halo): the hit circle is this mark's sole target. The path carries no `data-entry-id`, so
+	// where it was the topmost shape it read nothing and hid the ground under it.
 	const shared = {
 		'data-slot': slot,
 		fill: 'none',
 		strokeLinecap: shape === 'square' ? ('square' as const) : ('round' as const),
 		strokeLinejoin: 'round' as const,
+		pointerEvents: 'none' as const,
 		className,
 	}
 
@@ -158,7 +162,10 @@ function MapDotPop({
 	full,
 	transition,
 }: {
-	shared: Pick<SVGProps<SVGPathElement>, 'fill' | 'strokeLinecap' | 'strokeLinejoin' | 'className'>
+	shared: Pick<
+		SVGProps<SVGPathElement>,
+		'fill' | 'strokeLinecap' | 'strokeLinejoin' | 'pointerEvents' | 'className'
+	>
 	at: MapPoint2D
 	shape: MapPointShape
 	width: number
@@ -228,6 +235,9 @@ type MapDotRingProps = {
 export function MapDotRing({ at, radius, arcs, scale, animate, transition }: MapDotRingProps) {
 	const [fades] = useState(animate)
 
+	// The summary under it mounts whole under reduced motion, so the ring does too.
+	const still = usePrefersReducedMotion()
+
 	const paths = ringArcs(
 		at,
 		(radius - SHARED_RING_WIDTH / 2) * scale,
@@ -250,7 +260,7 @@ export function MapDotRing({ at, radius, arcs, scale, animate, transition }: Map
 				{...shared}
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
-				transition={transition}
+				transition={still ? k.motion.instant : transition}
 			/>
 		) : (
 			<path key={arc.id} {...shared} />
@@ -324,6 +334,9 @@ export function MapDotCount({
 	// Read at mount, as the dot under it reads its own (see `MapDot`).
 	const [fades] = useState(animate)
 
+	// The dot under it mounts whole under reduced motion, so the count does too.
+	const still = usePrefersReducedMotion()
+
 	const text = intl.formatNumber(count)
 
 	const shared = {
@@ -338,7 +351,12 @@ export function MapDotCount({
 	if (!fades) return <text {...shared}>{text}</text>
 
 	return (
-		<m.text {...shared} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={transition}>
+		<m.text
+			{...shared}
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={still ? k.motion.instant : transition}
+		>
 			{text}
 		</m.text>
 	)
