@@ -610,6 +610,52 @@ function bridgeRegionIdentity(
 }
 
 /**
+ * The preload reporter, by feature index, wrapped in the latch a warmed region
+ * keeps: the pointer crosses back over a region as freely as it first arrived,
+ * and the second crossing has nothing left to warm. `undefined` when nothing
+ * asked to be told of intent.
+ *
+ * The reporter keeps one identity, and it reads `report`, `regionIds`, and
+ * `features` when the dwell fires. An inline `onRegionPreload` or `regionId` is
+ * a fresh identity every render, and to re-key the latch on either would warm a
+ * region the reader already warmed. It reports through
+ * {@link bridgeRegionIdentity}, so a preload, a click, and a menu resolve the
+ * identity of a region one way.
+ *
+ * The latch holds the features it belongs to, so it belongs to the geography: a
+ * new `geography` re-arms every region, and nothing else does. It is checked at
+ * the event, not built in a memo. A set that a memo builds with no input from
+ * the geography is a constant to the React Compiler, which then never re-arms it.
+ *
+ * @internal
+ */
+function useRegionPreload(
+	report: ((id: string, index: number) => void) | undefined,
+	regionIds: string[],
+	features: MapFeature[],
+): ((index: number) => void) | undefined {
+	const latch = useRef<{ features: MapFeature[]; warmed: Set<number> } | null>(null)
+
+	const preload = useStableEvent((index: number) => {
+		let current = latch.current
+
+		if (current?.features !== features) {
+			current = { features, warmed: new Set() }
+
+			latch.current = current
+		}
+
+		if (current.warmed.has(index)) return
+
+		current.warmed.add(index)
+
+		bridgeRegionIdentity(report, regionIds)?.(index)
+	})
+
+	return report === undefined ? undefined : preload
+}
+
+/**
  * The overlay pick, held on its primitives rather than on the prop's identity.
  * A consumer writing the pair inline hands a fresh object every render, and
  * this value rides the plat context. A churning identity would therefore
@@ -885,40 +931,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[onRegionContextMenu, regionIds],
 	)
 
-	// The preload reporter, bridged to the public identity through the same
-	// helper as the reporters above, so all three resolve a region's name one way.
-	// It reads the reporter and the ids when the dwell fires, not when the latch
-	// below is built: an inline `onRegionPreload` or `regionId` is a fresh
-	// identity every render, and to re-key the latch on either would warm a region
-	// the reader already warmed.
-	const reportPreload = useStableEvent((index: number) =>
-		bridgeRegionIdentity(onRegionPreload, regionIds)?.(index),
-	)
-
-	// Whether anything asked to be told of intent, as the boolean the latch and the
-	// tracking gate both key on rather than the churning handler behind it.
+	// Whether anything asked to be told of intent, as the boolean the tracking
+	// gate keys on rather than the churning handler behind it.
 	const preloads = onRegionPreload !== undefined
 
-	// The reporter, wrapped in the latch a warmed region keeps: the pointer
-	// crosses back over a region as freely as it first arrived, and the second
-	// crossing has nothing left to warm. The latch holds the features themselves,
-	// so it belongs to the geography: a new `geography` re-arms every region, and
-	// nothing else does.
-	const preloadRegion = useMemo(() => {
-		if (!preloads) return undefined
-
-		const warmed = new Set<MapFeature>()
-
-		return (index: number) => {
-			const feature = shape.features[index]
-
-			if (feature === undefined || warmed.has(feature)) return
-
-			warmed.add(feature)
-
-			reportPreload(index)
-		}
-	}, [preloads, shape.features, reportPreload])
+	const preloadRegion = useRegionPreload(onRegionPreload, regionIds, shape.features)
 
 	// The selection resolved to the index the layers draw by, against the same
 	// ids a click reports, so the pick a consumer echoes back always rings the
