@@ -35,12 +35,27 @@
  *                 stop on its content area when that content is activatable.
  *                 Tailwind extracts whole class names, so the accent cannot be
  *                 interpolated into a shape. Stating both here is what keeps
- *                 one edit enough to change it everywhere.
+ *                 one edit enough to change it everywhere. Forced colors
+ *                 remove the shadow and force the accent, so under forced
+ *                 colors a lift draws a 4 px outline, twice the width of a
+ *                 focus outline.
  *
  * Layer: kiso · Concern: focus indicators
  */
 
 import { forced } from './forced'
+
+/**
+ * The forced-colors mark of a lift: a 4 px `Highlight` outline inside the box.
+ * Forced colors remove the shadow of the raise and force the violet accent to
+ * the focus color, so without the mark a lifted host looks the same as a
+ * focused host. The outline is twice the width of a focus outline. It stays
+ * inside the box, so a list that clips its rows does not cut it.
+ */
+const liftMark = [
+	'forced-colors:outline-solid forced-colors:outline-4',
+	'forced-colors:-outline-offset-4 forced-colors:outline-[Highlight]',
+]
 
 export const focus = {
 	ring: [
@@ -105,9 +120,22 @@ export const focus = {
 		 * The raise itself, for whichever box is picked up. The `!` beats the inline
 		 * `z-index` that Motion's `Reorder.Item` writes on a row of a List.
 		 */
-		raise: ['z-10!', 'shadow-md'],
-		/** Violet accent for a lifted host whose indicator is an inset ring. */
-		ring: 'focus-visible:ring-violet-600',
+		raise: ['z-10!', 'shadow-md', ...liftMark],
+		/**
+		 * The forced-colors mark of a lift alone, for a lifted box that keeps a raise
+		 * of its own, such as the card of a Dashboard tile.
+		 */
+		mark: liftMark,
+		/**
+		 * Violet accent for a lifted host whose indicator is an inset ring. When the
+		 * raised box holds the focus itself, its focus fallback (`forced.ring.inset`)
+		 * is behind the `focus-visible` gate, so it overrides the mark. Thus the
+		 * accent also gives that fallback the width and the offset of the mark.
+		 */
+		ring: [
+			'focus-visible:ring-violet-600',
+			'forced-colors:focus-visible:outline-4 forced-colors:focus-visible:-outline-offset-4',
+		],
 		/** Violet accent for a lifted host whose indicator is an outset outline. */
 		outline: 'focus-visible:outline-violet-600',
 	},

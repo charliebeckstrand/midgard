@@ -82,7 +82,7 @@ export const k = defineKata(
 					bare: '',
 				},
 				lifted: {
-					true: [...focus.lifted.raise, focus.lifted.ring],
+					true: [...focus.lifted.raise, ...focus.lifted.ring],
 					false: '',
 				},
 				// Whether the row acts on activation. The wash a row takes depends on the fill

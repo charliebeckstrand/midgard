@@ -62,7 +62,8 @@ const tile = {
 /**
  * The card of a tile: a column of the header row and the content box. A movable
  * card in edit mode shows a dashed outline. The grip is its drag surface, so the
- * card keeps touch scrolling.
+ * card keeps touch scrolling. A dragged card takes a shadow, and under forced
+ * colors the solid outline of a lift.
  */
 const card = {
 	base: ['relative flex size-full min-h-0 flex-col'],
@@ -70,7 +71,7 @@ const card = {
 		true: ['select-none', 'outline-dashed', ...mode('outline-zinc-300', 'dark:outline-zinc-700')],
 		false: '',
 	},
-	dragging: { true: 'shadow-xl', false: '' },
+	dragging: { true: ['shadow-xl', ...sen.focus.lifted.mark], false: '' },
 }
 
 /**

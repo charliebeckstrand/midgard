@@ -12,6 +12,7 @@ import { DatePicker } from '../../components/date-picker'
 import { HoldButton } from '../../components/hold-button'
 import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
+import { List, ListItem } from '../../components/list'
 import { NavItem, NavList } from '../../components/nav'
 import { PasswordStrength } from '../../components/password-strength'
 import { ProgressBar } from '../../components/progress'
@@ -34,7 +35,15 @@ import { Timeline, TimelineItem, TimelineTitle } from '../../components/timeline
 import { Tree, TreeItem } from '../../components/tree'
 import { HeatmapChart } from '../../modules/chart'
 import { ChatList, ChatListItem } from '../../modules/chat'
+import { Dashboard, DashboardTile } from '../../modules/dashboard'
 import { Grid, type GridColumn } from '../../modules/grid'
+import {
+	Kanban,
+	KanbanCard,
+	KanbanCardHandle,
+	KanbanColumn,
+	KanbanColumnBody,
+} from '../../modules/kanban'
 import { createGroup, QueryBuilder, type QueryRule } from '../../modules/query'
 import { bySlot, frames, present, renderUI, waitFor } from '../helpers'
 import { emulateForcedColors, systemColor } from './helpers/forced-colors'
@@ -539,6 +548,116 @@ describe('controls show their state under forced colors (real browser)', () => {
 		expect(style.outlineStyle).toBe('solid')
 		expect(style.outlineWidth).toBe('2px')
 		await userEvent.keyboard('{Escape}')
+	})
+
+	// A lift shows with a shadow and a violet focus accent. Forced colors remove
+	// the shadow and force the accent to `Highlight`, so a lifted row, card, or
+	// tile looked the same as a focused one. A lift draws a 4 px outline, twice
+	// the width of a focus outline.
+	describe('a keyboard lift draws a 4 px outline', () => {
+		const outline = (node: HTMLElement) => {
+			const style = getComputedStyle(node)
+			return `${style.outlineStyle} ${style.outlineWidth}`
+		}
+
+		const rows = [
+			{ id: 'a', label: 'Alpha' },
+			{ id: 'b', label: 'Bravo' },
+		]
+
+		it('list: a row that holds the focus', async () => {
+			const { container } = renderUI(
+				<List items={rows} getKey={(item) => item.id} onReorder={() => {}}>
+					{(item) => <ListItem>{item.label}</ListItem>}
+				</List>,
+			)
+			const row = present(container.querySelector<HTMLElement>('[data-slot=list-item]'), 'row')
+			await userEvent.tab()
+			expect(document.activeElement).toBe(row)
+			expect(outline(row)).toBe('solid 2px')
+			await userEvent.keyboard(' ')
+			await expect.poll(() => row.hasAttribute('data-lifted')).toBe(true)
+			expect(outline(row)).toBe('solid 4px')
+			await userEvent.keyboard('{Escape}')
+		})
+
+		it('list: a row whose content holds the focus', async () => {
+			const { container } = renderUI(
+				<List items={rows} getKey={(item) => item.id} onReorder={() => {}}>
+					{(item) => <ListItem onClick={() => {}}>{item.label}</ListItem>}
+				</List>,
+			)
+			const row = present(container.querySelector<HTMLElement>('[data-slot=list-item]'), 'row')
+			await userEvent.tab()
+			expect(row.contains(document.activeElement)).toBe(true)
+			expect(getComputedStyle(row).outlineStyle).toBe('none')
+			await userEvent.keyboard(' ')
+			await expect.poll(() => row.hasAttribute('data-lifted')).toBe(true)
+			expect(outline(row)).toBe('solid 4px')
+			await userEvent.keyboard('{Escape}')
+		})
+
+		it('kanban: a card', async () => {
+			const { container } = renderUI(
+				<Kanban
+					columns={[{ id: 'todo', items: rows }]}
+					getKey={(item: (typeof rows)[number]) => item.id}
+					onReorder={() => {}}
+					aria-label="Board"
+				>
+					<KanbanColumn value="todo" aria-label="Todo">
+						<KanbanColumnBody>
+							{rows.map((item) => (
+								<KanbanCard key={item.id} value={item.id}>
+									<KanbanCardHandle />
+									<span>{item.label}</span>
+								</KanbanCard>
+							))}
+						</KanbanColumnBody>
+					</KanbanColumn>
+				</Kanban>,
+			)
+			const card = present(container.querySelector<HTMLElement>('[data-slot=kanban-card]'), 'card')
+			const before = outline(card)
+			present(bySlot(card, 'kanban-card-handle'), 'handle').focus()
+			await userEvent.keyboard(' ')
+			await expect.poll(() => card.hasAttribute('data-lifted')).toBe(true)
+			expect(before).not.toBe('solid 4px')
+			expect(outline(card)).toBe('solid 4px')
+			await userEvent.keyboard('{Escape}')
+		})
+
+		it('dashboard: a tile', async () => {
+			const { container } = renderUI(
+				<div style={{ width: 800 }}>
+					<Dashboard
+						aria-label="Sales"
+						editing
+						layout={{
+							defaultValue: [
+								{ id: 'a', x: 0, y: 0, w: 12, h: 8 },
+								{ id: 'b', x: 12, y: 0, w: 12, h: 8 },
+							],
+						}}
+					>
+						<DashboardTile id="a" title="Revenue" />
+						<DashboardTile id="b" title="Orders" />
+					</Dashboard>
+				</div>,
+			)
+			await frames()
+			const grip = present(
+				container.querySelector<HTMLElement>('[data-slot=dashboard-handle]'),
+				'grip',
+			)
+			const card = present(grip.closest<HTMLElement>('[data-slot=card]'), 'card')
+			expect(outline(card)).not.toBe('solid 4px')
+			grip.focus()
+			await userEvent.keyboard(' ')
+			await expect.poll(() => card.hasAttribute('data-dragging')).toBe(true)
+			expect(outline(card)).toBe('solid 4px')
+			await userEvent.keyboard('{Escape}')
+		})
 	})
 
 	it('slider: 10 and 90 paint differently', async () => {
