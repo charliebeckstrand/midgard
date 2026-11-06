@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Dialog, DialogPanel } from '../../components/dialog'
-import { type LngLat, MapPlat, MapPoint, MapRoute } from '../../modules/map'
+import { type LngLat, MapGeofence, MapPlat, MapPoint, MapRoute } from '../../modules/map'
 import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
@@ -680,6 +680,30 @@ describe('MapPlat keyboard over marks that move', () => {
 		fireEvent.keyDown(plot, { key: 'ArrowLeft' })
 
 		expect(readout(container)).toBe('Leg')
+	})
+})
+
+describe('MapPlat keyboard over marks that draw nothing', () => {
+	it('stops nowhere on a one-stop route or a zero-radius zone', () => {
+		const { container, plot } = renderNavigable(
+			overlayPlat(
+				<>
+					<MapPoint id="pea" label="Pea" at={[15, 5]} />
+
+					<MapRoute id="leg" label="Leg" stops={[[2, 5]]} />
+
+					<MapGeofence id="void" label="Void" at={[28, 5]} radius={0} />
+				</>,
+			),
+		)
+
+		// Neither mark draws a line or a ring, so the point is the one stop. Each key
+		// that would step onto the route or the zone holds the cursor on the point.
+		for (const key of ['Home', 'ArrowLeft', 'ArrowRight', 'End']) {
+			fireEvent.keyDown(plot, { key })
+
+			expect(readout(container)).toBe('Pea')
+		}
 	})
 })
 

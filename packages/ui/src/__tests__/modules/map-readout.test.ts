@@ -1,16 +1,27 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import type { MapOverlayKind } from '../../modules/map/engine/map-overlay/entry'
 import { markReadout, markRows } from '../../modules/map/engine/map-overlay/readout'
 
+/** The name of each mark kind, as the English catalog writes it. */
+const nameKind = (kind: MapOverlayKind) => KIND_NAMES[kind]
+
+const KIND_NAMES: Record<MapOverlayKind, string> = {
+	route: 'Route',
+	point: 'Point',
+	marker: 'Marker',
+	geofence: 'Geofence',
+}
+
 /** A singular mark: one stop, no rows of its own. */
-const ROUTE = { id: 'leg', label: 'Leg', detail: '312 mi', kind: 'route' }
+const ROUTE = { id: 'leg', label: 'Leg', detail: '312 mi', kind: 'route' } as const
 
 /** A plural mark: a named dot with a count, a named dot without, and an unnamed one. */
 const FLEET = {
 	id: 'fleet',
 	label: 'Stops',
 	detail: '10 stops',
-	kind: 'point',
+	kind: 'point' as const,
 	stopRows: [{ label: 'Depot', detail: '12 pallets' }, { label: 'Yard' }, {}],
 }
 
@@ -60,15 +71,21 @@ describe('markReadout', () => {
 
 describe('markRows', () => {
 	it('gives a singular mark one row', () => {
-		expect(markRows(ROUTE, String)).toEqual([{ key: 'leg:0', name: 'Leg', detail: '312 mi' }])
+		expect(markRows(ROUTE, String, nameKind)).toEqual([
+			{ key: 'leg:0', name: 'Leg', detail: '312 mi' },
+		])
 	})
 
 	it('keys each row by the mark and the stop, so no caller keys by an index', () => {
-		expect(markRows(FLEET, String).map((row) => row.key)).toEqual(['fleet:0', 'fleet:1', 'fleet:2'])
+		expect(markRows(FLEET, String, nameKind).map((row) => row.key)).toEqual([
+			'fleet:0',
+			'fleet:1',
+			'fleet:2',
+		])
 	})
 
 	it('gives a plural mark a row per dot, agreeing with the tooltip', () => {
-		const rows = markRows(FLEET, String)
+		const rows = markRows(FLEET, String, nameKind)
 
 		expect(rows).toHaveLength(3)
 
@@ -79,17 +96,17 @@ describe('markRows', () => {
 		}
 	})
 
-	it('falls back to the mark kind so the value column is never empty', () => {
-		expect(markRows(FLEET, String)[1]?.detail).toBe('point')
+	it('falls back to the name of the mark kind so the value column is never empty', () => {
+		expect(markRows(FLEET, String, nameKind)[1]?.detail).toBe('Point')
 
-		expect(markRows({ id: 'leg', label: 'Leg', kind: 'route' }, String)).toEqual([
-			{ key: 'leg:0', name: 'Leg', detail: 'route' },
+		expect(markRows({ id: 'leg', label: 'Leg', kind: 'route' }, String, nameKind)).toEqual([
+			{ key: 'leg:0', name: 'Leg', detail: 'Route' },
 		])
 	})
 
-	it('treats an empty set as the mark itself', () => {
-		expect(markRows({ id: 'fleet', label: 'Stops', kind: 'point', stopRows: [] }, String)).toEqual([
-			{ key: 'fleet:0', name: 'Stops', detail: 'point' },
-		])
+	it('gives an empty set no row', () => {
+		expect(
+			markRows({ id: 'fleet', label: 'Stops', kind: 'point', stopRows: [] }, String, nameKind),
+		).toEqual([])
 	})
 })

@@ -192,25 +192,29 @@ export function clusterPoints(
 }
 
 /**
- * The reach of the broad phase for a pair of dots, in frame units: their two
- * widths and the larger of their two gaps.
+ * The reach of the broad phase from a seed, in frame units: half the reach of a
+ * pair, which is the widths of two dots and the larger of their two gaps.
+ *
+ * Half, so that any two dots inside it stand strictly inside the reach of a
+ * pair. A chain through one seed therefore never joins two dots that the rule
+ * keeps apart.
  *
  * @internal
  */
-function dotReach(gap: number, unitsPerPixel: number): number {
-	return (POINT_RADIUS * 2 + gap) * unitsPerPixel
+function seedReach(gap: number, unitsPerPixel: number): number {
+	return ((POINT_RADIUS * 2 + gap) * unitsPerPixel) / 2
 }
 
 /**
- * The broad phase: dots within reach of a group's first member join it, and
- * every other dot starts its own. The reach of a pair is the widths of two dots
- * and the larger of the gaps of the dot and the group.
+ * The broad phase: dots strictly within reach of a group's first member join it,
+ * and every other dot starts its own. The reach is half the reach of a pair (see
+ * {@link seedReach}), with the larger of the gaps of the dot and the group.
  *
  * Measuring from a fixed first member, rather than from the group's moving
  * mean, is what makes the `grid.ts` lookup exact. A mean that drifted as
  * members landed could leave a group in a different cell from the one its own
  * lookup keys name. It also merges strictly less than the overlap rule does,
- * since two dots inside `reach` are two marks inside their own. This pass can
+ * since any two members stand strictly inside the reach of a pair. This pass can
  * only take work off {@link consolidate}, never decide against it.
  *
  * @internal
@@ -227,7 +231,7 @@ function seedGroups(
 	// Seeds filed into the shared grid (`grid.ts`), at one cell per widest reach.
 	const cells = new Map<number, MapSeededCluster[]>()
 
-	const cell = dotReach(widestGap, unitsPerPixel)
+	const cell = seedReach(widestGap, unitsPerPixel)
 
 	for (const [index, position] of positions.entries()) {
 		const at = project(position)
@@ -243,7 +247,7 @@ function seedGroups(
 		}
 
 		const nearest = nearestSeed(cells, at, cell, (group) =>
-			dotReach(Math.max(gap, group.gap), unitsPerPixel),
+			seedReach(Math.max(gap, group.gap), unitsPerPixel),
 		)
 
 		if (nearest !== null) {
@@ -384,9 +388,10 @@ function hostFor(
 }
 
 /**
- * The nearest group whose first member lies within the reach of `at`, or `null`
- * where the dot stands alone. `cell` is the cell size of the index, the widest
- * reach of any pair, and `getReach` gives the reach of the dot to one group.
+ * The nearest group whose first member lies strictly within the reach of `at`,
+ * or `null` where the dot stands alone. `cell` is the cell size of the index,
+ * the widest reach from a seed, and `getReach` gives the reach of the dot to one
+ * group. The test is strict, as the rule's own test is ({@link marksOverlap}).
  * Distance is compared squared, so the scan takes no square root, and a tie
  * keeps the earlier group. The grouping then reads the same on every pass over
  * the same input.
@@ -408,7 +413,7 @@ function nearestSeed(
 
 		const reach = getReach(group)
 
-		if (spread > reach * reach || spread >= best) return false
+		if (spread >= reach * reach || spread >= best) return false
 
 		best = spread
 

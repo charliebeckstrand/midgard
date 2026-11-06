@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from 'react'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
+import { useMapPlat } from './context'
 import { ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { ROUTE_DRAW } from './engine/map-motion'
@@ -57,21 +58,31 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 		[path, stops],
 	)
 
-	const anchor = useCallback(() => lineAnchor(points), [points])
-
-	const { slot, hidden, project, unitsPerPixel, animate, dim, selected, onPointerLeave, hit } =
-		useMapOverlay({
-			...shared,
-			kind: 'route',
-			swatch: 'line',
-			stops: anchor,
-		})
+	// The projector, read here rather than off the registration below: the stop
+	// this route registers depends on whether its path draws, so the path has to
+	// resolve before the registration does.
+	const { project } = useMapPlat()
 
 	// Memoized so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project and re-stringify the whole polyline;
 	// `project` identity holds until the measured refit, and `path` / `stops`
 	// are the caller's stable refs.
 	const d = useMemo(() => linePath(points, project), [points, project])
+
+	// A route that draws no line (one stop, or fewer than two that project) takes
+	// no stop, so the cursor only stands where the map draws. Keyed on whether it
+	// draws rather than on the path, so a refit keeps the identity.
+	const drawn = d !== ''
+
+	const anchor = useCallback(() => (drawn ? lineAnchor(points) : []), [drawn, points])
+
+	const { slot, hidden, unitsPerPixel, animate, dim, selected, onPointerLeave, hit } =
+		useMapOverlay({
+			...shared,
+			kind: 'route',
+			swatch: 'line',
+			stops: anchor,
+		})
 
 	if (slot === undefined || hidden || d === '') return null
 

@@ -335,6 +335,25 @@ describe('MapPoints', () => {
 		expect(allBySlot(container, 'map-legend-item')).toHaveLength(1)
 	})
 
+	it('gives an empty set no row in the data table', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<>
+					<MapPoint label="Depot" at={[15, 5]} />
+
+					<MapPoints id="fleet" label="Stops" points={[]} />
+				</>,
+			),
+		)
+
+		const text = [...container.querySelectorAll('table tbody tr')].map((row) => row.textContent)
+
+		// The table lists the point, so the set has a table to be listed in.
+		expect(text.some((row) => row?.includes('Depot'))).toBe(true)
+
+		expect(text.some((row) => row?.includes('Stops'))).toBe(false)
+	})
+
 	it('summarizes the dots the frame draws on top of one another', () => {
 		const { container } = renderUI(
 			overlayPlat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />),

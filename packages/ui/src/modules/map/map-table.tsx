@@ -3,15 +3,16 @@ import { ariaAttr } from '../../core/aria-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { rangeKeys } from '../../utilities/range-keys'
 import { READOUT_GAP } from '../chart/engine/chart-series'
-import type { MapOverlayEntry } from './engine/map-overlay/entry'
+import type { MapOverlayEntry, MapOverlayKind } from './engine/map-overlay/entry'
 import { markRows } from './engine/map-overlay/readout'
 import { selectedMarkRow } from './engine/map-overlay/selection'
 import type { MapCategoryMeta } from './engine/map-region/category'
 import type { MapOverlaySelection } from './engine/types'
+import { mapMessages } from './map-messages'
 
 /** Props for {@link MapTable}. @internal */
 export type MapTableProps = {
-	/** The value column's header: the `categoryKey` field name, or a generic fallback. */
+	/** The value column's header: the display name of the colored field (`colorName`), else the localized "Detail". */
 	header: string
 	/** Region display names by feature index. */
 	regionNames: string[]
@@ -126,10 +127,11 @@ export const MapTable = memo(function MapTable({
 	// move one attribute.
 	const intl = useIntl()
 
-	const rows = useMemo(
-		() => entries.flatMap((entry) => markRows(entry, intl.formatNumber)),
-		[entries, intl],
-	)
+	const rows = useMemo(() => {
+		const nameKind = (kind: MapOverlayKind) => intl.formatMessage(mapMessages[kind])
+
+		return entries.flatMap((entry) => markRows(entry, intl.formatNumber, nameKind))
+	}, [entries, intl])
 
 	const pickedRow = useMemo(
 		() => selectedMarkRow(entries, selectedOverlay),

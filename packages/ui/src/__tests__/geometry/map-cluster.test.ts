@@ -1,5 +1,7 @@
 // @vitest-environment node
+import states from 'us-atlas/states-10m.json'
 import { describe, expect, it } from 'vitest'
+import type { MapTopology } from '../../modules/map'
 import {
 	type MapDotMark,
 	markTargets,
@@ -13,18 +15,17 @@ import {
 	CLUSTER_COUNT_CHAR_WIDTH,
 	CLUSTER_COUNT_INSET,
 	CLUSTER_RADIUS_STEPS,
+	POINT_CLUSTER_GAP,
 	POINT_HIT_RADIUS,
 	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
+import { projectPoint } from '../../modules/map/engine/map-geometry/mark'
+import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
+import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
 import type { MapOverlayEntry } from '../../modules/map/engine/map-overlay/entry'
+import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 import { englishRadius, flatProjector } from '../helpers/map-flat'
-
-/**
- * A spherical mean uses trigonometry, so the longitude of a cluster anchor
- * carries noise below this bound in degrees.
- */
-const LONGITUDE_TOLERANCE = 5e-7
 
 /** The projection has no image past this meridian: the insets a US composite drops. */
 const clipped = (position: LngLat): MapPoint2D | null =>
@@ -69,16 +70,34 @@ describe('clusterPoints', () => {
 		expect(groups.map((group) => group.members)).toEqual([[0, 1, 2], [3]])
 	})
 
-	it('measures each dot from the first member of a group, never from a moving mean', () => {
-		// A chain of dots one reach apart. Measured from the mean the broad phase
-		// would creep along the chain; measured from the first member the third dot
-		// is two reaches out and starts its own, and stays its own, because the
-		// marks that result still stand clear of one another.
+	it('keeps a chain of dots one reach apart as separate marks', () => {
+		// Two dots exactly one reach apart touch at the gap and do not overlap, so
+		// the rule keeps them apart. The broad phase must not merge them either.
 		const groups = clusterPoints(
 			[
 				[0, 0],
 				[DOT_REACH, 0],
 				[DOT_REACH * 2, 0],
+			],
+			flatProjector,
+			GAP,
+			englishRadius,
+		)
+
+		expect(groups.map((group) => group.members)).toEqual([[0], [1], [2]])
+	})
+
+	it('merges no chain through one seed that the rule would split', () => {
+		// The middle dot comes first, and each outer dot stands just inside one
+		// reach of it. The outer dots stand two reaches apart. The rule merges the
+		// middle dot with one of them, and the grown mark stands clear of the other.
+		const near = DOT_REACH - 0.1
+
+		const groups = clusterPoints(
+			[
+				[0, 0],
+				[-near, 0],
+				[near, 0],
 			],
 			flatProjector,
 			GAP,
@@ -197,13 +216,47 @@ describe('clusterPoints', () => {
 })
 
 describe('clusterAnchor', () => {
-	it('centers a group on its members', () => {
-		const pair: LngLat[] = [
+	it('anchors a group at the member nearest its spherical centroid', () => {
+		const row: LngLat[] = [
 			[0, 0],
 			[1, 0],
+			[3, 0],
 		]
 
-		expect(clusterAnchor([0, 1], pair)[0]).toBeNear(0.5, LONGITUDE_TOLERANCE)
+		expect(clusterAnchor([0, 1, 2], row)).toEqual([1, 0])
+	})
+
+	it('anchors a summary across the albers-usa insets where the composite draws', () => {
+		// Ten records on Maui and ten in Presidio, Texas: the Hawaii inset sits
+		// beside West Texas in the frame, so the two summaries merge at a phone
+		// width. Their spherical centroid lies in the Pacific off Mexico, which the
+		// composite does not draw. A group anchored there has no keyboard stop and
+		// leaves the dot pool.
+		const features = rewindFeatures(geographyFeatures(states as unknown as MapTopology))
+
+		const projection = fitProjection('albers-usa', features, 320, 188)
+
+		const project = (at: LngLat) => projectPoint(projection, at)
+
+		const near = (lon: number, lat: number): LngLat[] =>
+			Array.from({ length: 10 }, (_, step): LngLat => [lon + step * 0.01, lat])
+
+		const positions = [...near(-156.47, 20.89), ...near(-104.37, 29.56)]
+
+		const grouping = groupSets(
+			[{ id: 'records', input: { positions, gap: POINT_CLUSTER_GAP } }],
+			project,
+			englishRadius,
+			1,
+		)
+
+		const groups = grouping.sets.get('records')?.groups ?? []
+
+		expect(groups.map(({ members }) => members.length)).toEqual([20])
+
+		const [group] = groups
+
+		expect(project(clusterAnchor(group?.members ?? [], positions))).not.toBeNull()
 	})
 
 	it('leaves a lone dot its own position', () => {
@@ -212,14 +265,14 @@ describe('clusterAnchor', () => {
 })
 
 describe('clusterSpan', () => {
-	it('measures the diameter about the anchor', () => {
+	it('measures the diameter about the centroid', () => {
 		const pair: LngLat[] = [
 			[0, 0],
 			[1, 0],
 		]
 
 		// A degree of longitude at the equator is ~111 km, and the span is the
-		// diameter about the anchor, so the pair spans the degree between them.
+		// diameter about the centroid, so the pair spans the degree between them.
 		expect(clusterSpan([0, 1], pair)).toBeGreaterThan(111_000)
 
 		expect(clusterSpan([0, 1], pair)).toBeLessThan(111_400)
@@ -550,10 +603,11 @@ describe('groupSets', () => {
 			{ id: 'depots', stop: 0, members: [0] },
 		])
 
-		// The summary draws at the mean of all its dots, and its anchor is their center.
+		// The summary draws at the mean of all its dots, and its anchor is the dot
+		// nearest their center.
 		expect(stops[0]?.at).toEqual({ x: 2, y: 0 })
 
-		expect(summary?.anchor()[0]).toBeNear(2, LONGITUDE_TOLERANCE)
+		expect(summary?.anchor()).toEqual([2, 0])
 	})
 
 	it('gives the part of each set the stop it holds in that set', () => {
