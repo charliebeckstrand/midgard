@@ -1,14 +1,20 @@
 /**
- * HoldButton kata: the motion of the fill that grows over the button while a
- * press holds. The button takes the button kata, and the fill keeps its classes
- * inline.
+ * HoldButton kata: the fill that grows over the button while a press holds, and
+ * its motion. The button takes the button kata.
  */
 
-import { ugoki } from '../kiso'
+import { sen, ugoki } from '../kiso'
 
 const { duration, ease, instant } = ugoki
+const { forced } = sen
 
 export const k = {
+	// The fill shows the progress of a hold with only its background. Forced
+	// colors remove that background, so the fill paints the `Highlight` of a mark.
+	fill: [
+		'pointer-events-none absolute inset-0 origin-left rtl:origin-right bg-current/20',
+		forced.mark,
+	],
 	// Motion transition configs, applied imperatively (`animate()` in
 	// `use-hold-button-gesture.ts`), never passed to `cn`.
 	motion: {

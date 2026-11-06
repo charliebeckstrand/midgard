@@ -5,6 +5,7 @@ import { type KeyboardEvent, type MouseEvent, type Ref, useRef } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { k } from '../../recipes/kata/hold-button'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { Button, type ButtonProps } from '../button'
@@ -192,7 +193,7 @@ export function HoldButton({
 				// An inline transform, not a `scale-x-0` class: Tailwind sets `scale`,
 				// which the `transform` that Motion writes does not replace.
 				style={{ transform: 'scaleX(0)' }}
-				className="pointer-events-none absolute inset-0 origin-left rtl:origin-right bg-current/20"
+				className={cn(k.fill)}
 			/>
 			<span className="relative inline-flex items-center gap-[inherit]">{children}</span>
 		</Button>

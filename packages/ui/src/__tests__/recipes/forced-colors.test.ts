@@ -8,6 +8,7 @@ import { k as dashboard } from '../../recipes/kata/dashboard'
 import { k as events } from '../../recipes/kata/events'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as gridGroup } from '../../recipes/kata/grid-group'
+import { k as holdButton } from '../../recipes/kata/hold-button'
 import { k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as kanban } from '../../recipes/kata/kanban'
 import { k as menu } from '../../recipes/kata/menu'
@@ -57,6 +58,7 @@ describe('edges and state marks under forced colors', () => {
 		['the start rule of a frozen Grid group', grid.pinned.border.start],
 		['the rule of a Grid column group', gridGroup().rule],
 		['the rule of a Grid column group with a color', gridGroup({ color: 'red' }).rule],
+		['the fill of a HoldButton', holdButton.fill],
 		['a JsonTree search match', jsonTree({ highlighted: true }).content],
 		...(['weak', 'fair', 'good', 'strong'] as const).map((level): [string, unknown] => [
 			`the ${level} password-strength segment`,
