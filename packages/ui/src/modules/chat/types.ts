@@ -39,9 +39,9 @@ export type ChatEmbedRegistry = {
 	 * policy holds it back as it holds any other.
 	 *
 	 * `always` mounts every renderer up front and live, for a caller who would
-	 * rather pay that than reserve space for one. It takes no viewport observer. `active` unmounts a renderer that scrolls
-	 * away, trading a remount (and whatever state the view held) for the
-	 * memory of a long transcript.
+	 * rather pay that than reserve space for one. It takes no viewport observer.
+	 * `active` unmounts a renderer that scrolls away. That costs a remount and
+	 * the state of the view, and it saves the memory of a long transcript.
 	 *
 	 * Where nothing can observe the viewport, every policy mounts eagerly. The
 	 * gate is an optimization, and the safe answer when the environment cannot

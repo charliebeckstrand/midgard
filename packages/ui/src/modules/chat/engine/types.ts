@@ -3,11 +3,6 @@ import type { ChatPart } from './chat-content/types'
 /**
  * A single message in a chat: the data a `ChatMessage` draws, as a transcript
  * holds it.
- *
- * The name says message, because that is what the type is. It held `content`
- * until this rename, which put three names on one axis. Those were the message,
- * its `content` field, and the `chat-content/` directory that types the field.
- * A reader was left to work out which one a sentence meant.
  */
 export type ChatMessageData = {
 	/**

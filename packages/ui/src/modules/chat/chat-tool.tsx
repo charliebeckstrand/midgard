@@ -77,9 +77,8 @@ export type ChatToolProps = {
  *
  * The step takes no color of its own beyond the status dot's. It sits in a
  * bubble whose fill differs by speaker. A muted foreground that clears AA
- * against the page does not clear it against the assistant's fill. That is the
- * defect the embed fallback shipped with. Its rule rides `currentColor` instead, so it
- * holds on every bubble.
+ * against the page does not clear it against the fill of the assistant. The
+ * rule of the step rides `currentColor` instead, so it holds on every bubble.
  *
  * @internal
  */
@@ -88,16 +87,18 @@ export function ChatTool({ part, className }: ChatToolProps) {
 
 	const { status, label, pulse } = STATUS[part.status]
 
+	const slots = k().tool
+
 	// How it ended, what ran, and the line saying what it did: the same content
 	// whether it heads a plain line or a disclosure trigger.
 	const head = (
 		<>
 			<StatusDot size="sm" status={status} pulse={pulse} label={intl.formatMessage(label)} />
-			<span data-slot="chat-tool-label" className={k().tool.label}>
+			<span data-slot="chat-tool-label" className={slots.label}>
 				{part.label}
 			</span>
 			{part.summary !== undefined && (
-				<span data-slot="chat-tool-summary" className={k().tool.summary}>
+				<span data-slot="chat-tool-summary" className={slots.summary}>
 					{part.summary}
 				</span>
 			)}
@@ -105,14 +106,14 @@ export function ChatTool({ part, className }: ChatToolProps) {
 	)
 
 	return (
-		<div data-slot="chat-tool" data-status={part.status} className={cn(k().tool.base, className)}>
+		<div data-slot="chat-tool" data-status={part.status} className={cn(slots.base, className)}>
 			{part.detail === undefined ? (
-				<div className={k().tool.head}>{head}</div>
+				<div className={slots.head}>{head}</div>
 			) : (
 				<Collapse mount="lazy">
-					<CollapseTrigger className={cn(k().tool.head, k().tool.trigger)}>{head}</CollapseTrigger>
+					<CollapseTrigger className={cn(slots.head, slots.trigger)}>{head}</CollapseTrigger>
 					<CollapsePanel>
-						<div data-slot="chat-tool-detail" className={k().tool.details}>
+						<div data-slot="chat-tool-detail" className={slots.details}>
 							<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{part.detail}</Markdown>
 						</div>
 					</CollapsePanel>

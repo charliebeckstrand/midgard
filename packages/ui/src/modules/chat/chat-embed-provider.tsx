@@ -18,8 +18,8 @@ export type ChatEmbedProviderProps = ChatEmbedRegistry & {
  * This is the seam that keeps a chart, a grid, and a map out of the chat. The
  * module imports none of them. A message names a renderer, and the app that
  * wants one wires it here. A chat with no embed therefore pays for none of the
- * three heaviest modules in the package. It is the discipline the map module holds
- * when it takes its atlas as a prop and ships no geometry.
+ * three heaviest modules in the package. The map module holds the same
+ * discipline when it takes its atlas as a prop and ships no geometry.
  *
  * A name no renderer claims draws a stated fallback rather than nothing:
  * the module's own line, or the `fallback` set here. A reader is told the block

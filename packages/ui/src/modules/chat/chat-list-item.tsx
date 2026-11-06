@@ -28,29 +28,35 @@ export type ChatListItemProps = Omit<HTMLAttributes<HTMLElement>, 'title' | 'onS
 	 * region is a button.
 	 */
 	onSelect?: () => void
-	/** Trailing controls (e.g. a delete button), kept as a sibling of the select button so it never nests interactives. */
+	/**
+	 * Trailing controls, such as a delete button. They are a sibling of the
+	 * select button, so no control nests inside another.
+	 */
 	actions?: ReactNode
 }
 
 /**
  * A single conversation row for a chat list or sidebar: a `title` over an
- * optional `preview`, and
- * trailing `actions`.
+ * optional `preview`, and trailing `actions`.
  *
  * @remarks
- * The title/preview region is a `<button>` invoking `onSelect` when
- * provided, otherwise a static `<span>`. Either one carries `aria-current`. The button's hit area stretches across
- * the whole row via a pointer-capturing `::after`, so clicking the surrounding
- * chrome (row padding, the gap) also selects. `actions` render beside it rather
- * than within it, and sit above the overlay to stay clickable. A control like a
- * delete button therefore never nests inside the select button
- * (nested-interactive markup).
- * The open conversation (`current`) gets `aria-current` and an {@link ActiveIndicator}
- * that morphs between rows as selection moves, mirroring `SidebarItem`. It resolves
- * its `layoutId` from the nearest `ActiveIndicatorScope`. {@link ChatList} opens one,
- * so its rows morph against each other rather than any indicator outside the list.
- * Inside a {@link ChatList} the row is an `<li>` and joins the list's roving-tabindex
- * keyboard model; standalone it is a `<div>`.
+ * The title and preview region is a `<button>` that calls `onSelect` when it is
+ * provided, otherwise a static `<span>`. Either one carries `aria-current`. The
+ * hit area of the button stretches across the whole row through a
+ * pointer-capturing `::after`. A click on the padding or the gap of the row
+ * thus also selects. `actions` render beside the button, not in it, and sit above
+ * the overlay to stay clickable. A control such as a delete button therefore
+ * never nests inside the select button (nested-interactive markup).
+ *
+ * The open conversation (`current`) gets `aria-current` and an
+ * {@link ActiveIndicator} that morphs between rows as the selection moves, as
+ * `SidebarItem` does. The indicator resolves its `layoutId` from the nearest
+ * `ActiveIndicatorScope`. {@link ChatList} opens one, so its rows morph against
+ * each other and not against an indicator outside the list.
+ *
+ * Inside a {@link ChatList}, the row is an `<li>` and joins the roving-tabindex
+ * keyboard model of the list. Standalone, it is a `<div>`.
+ *
  * `actions` render in a slot scope, one step below the nearest density scope:
  * `sm` at `md`. A passed-in `Button` therefore needs no explicit `size` to
  * match.
@@ -69,10 +75,12 @@ export function ChatListItem({
 
 	const Wrapper = inList ? 'li' : 'div'
 
+	const slots = k({ overlay: onSelect !== undefined })
+
 	const body = (
 		<>
-			<span className={k().title}>{title}</span>
-			{preview !== undefined && <span className={k().preview}>{preview}</span>}
+			<span className={slots.title}>{title}</span>
+			{preview !== undefined && <span className={slots.preview}>{preview}</span>}
 		</>
 	)
 
@@ -82,7 +90,7 @@ export function ChatListItem({
 			// The keyboard navigation of ChatList selects the anchor, so it comes after the spread.
 			data-slot="chat-list-item"
 			data-current={dataAttr(current)}
-			className={cn(k().base, className)}
+			className={cn(slots.base, className)}
 		>
 			{onSelect ? (
 				<button
@@ -90,7 +98,7 @@ export function ChatListItem({
 					data-slot="chat-list-item-select"
 					aria-current={ariaAttr(current)}
 					onClick={onSelect}
-					className={k({ overlay: true }).select}
+					className={slots.select}
 				>
 					{body}
 				</button>
@@ -98,19 +106,19 @@ export function ChatListItem({
 				<span
 					data-slot="chat-list-item-select"
 					aria-current={ariaAttr(current)}
-					className={k().select}
+					className={slots.select}
 				>
 					{body}
 				</span>
 			)}
 
 			{actions !== undefined && (
-				<div data-slot="chat-list-item-actions" data-density="slot" className={k().actions}>
+				<div data-slot="chat-list-item-actions" data-density="slot" className={slots.actions}>
 					{actions}
 				</div>
 			)}
 
-			{current && <ActiveIndicator className={k().indicator} />}
+			{current && <ActiveIndicator className={slots.indicator} />}
 		</Wrapper>
 	)
 }

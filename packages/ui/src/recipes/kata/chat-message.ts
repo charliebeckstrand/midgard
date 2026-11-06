@@ -45,11 +45,11 @@ const bubble = {
 	//
 	// The pulse rides the content, so the bubble projects it onto the Markdown
 	// child rather than the component applying it: the axis then carries the
-	// whole streaming look. Written out because Tailwind
-	// scans source for whole class names and never sees an assembled one; the
-	// gate is `ugoki.css.pulse`'s. For the reduced-motion reader a standing dim
-	// stands in, never both, since the pulse already troughs to that opacity:
-	// the pointer affordance alone would leave a keyboard reader nothing.
+	// whole streaming look. The classes are written out, because Tailwind scans
+	// the source for whole class names and never sees an assembled one. The gate
+	// is the one of `ugoki.css.pulse`. For the reduced-motion reader a standing
+	// dim stands in, never both, since the pulse already troughs to that opacity.
+	// The pointer affordance alone would leave a keyboard reader nothing.
 	streaming: {
 		true: [
 			'cursor-progress',
@@ -78,11 +78,12 @@ export const k = defineKata({
 		bubble,
 		timestamp: [size.xs, 'mt-1', ...text.muted],
 		/**
-		 * The actions of the message: a toolbar that floats over the outer top corner of the bubble: the corner on the
-		 * side of the speaker, so a toolbar wider than the bubble grows into the
-		 * transcript and not off its edge. It rises by its own height less
-		 * `--spacing(2.5)`, so it overlaps the padding of the bubble and not its text.
-		 * A `static` trigger is a row below the bubble.
+		 * The actions of the message: a toolbar that floats over the outer top
+		 * corner of the bubble. That is the corner on the side of the speaker. A
+		 * toolbar wider than the bubble thus grows into the transcript and not off
+		 * its edge. It rises by its own height less `--spacing(2.5)`, so it overlaps the
+		 * padding of the bubble and not its text. A `static` trigger is a row below
+		 * the bubble.
 		 */
 		actions: {
 			base: controls,
@@ -143,10 +144,11 @@ export const k = defineKata({
 				// bubble's blue. This inherits the bubble's foreground instead, the same
 				// bargain the markdown kata takes, so the line reads on all four bubbles.
 				fallback: [size.md, 'italic'],
-				// The shape that holds the space of a held-back embed, as wide as the bubble.
-				// The skeleton tone of a placeholder is one step from the assistant fill and
-				// is hard to see on the user bubble's blue, so the shape rides `currentColor` at
-				// a low alpha, as the `tool` box does, and shows on each bubble.
+				// The shape that holds the space of a held-back embed, as wide as the
+				// bubble. The skeleton tone of a placeholder is one step from the
+				// assistant fill and is hard to see on the blue of the user bubble. So
+				// the shape rides `currentColor` at a low alpha, as the `tool` box does,
+				// and shows on each bubble.
 				placeholder: [kokkaku.chat.embed, 'bg-current/15 dark:bg-current/15'],
 			},
 		},
@@ -156,9 +158,8 @@ export const k = defineKata({
 		 *
 		 * Nothing here sets a foreground color. The bubble's fill differs by
 		 * speaker, and a neutral that clears AA against one does not clear it
-		 * against another. That is the defect the embed fallback shipped with. The
-		 * rule rides `currentColor` at a low alpha, and the summary de-emphasizes by
-		 * weight and truncation instead.
+		 * against another. The rule rides `currentColor` at a low alpha, and the
+		 * summary de-emphasizes by weight and truncation instead.
 		 */
 		tool: {
 			base: ['rounded-xl border border-current/20 px-3 py-2'],
@@ -171,10 +172,10 @@ export const k = defineKata({
 				//
 				// The color reset is load-bearing. The collapse kata paints its trigger
 				// `text.muted` with a `fg.hover`, which is right on the page and wrong in
-				// here for the third time in this file: zinc-500 on the assistant bubble's
-				// fill is 4.4:1. These classes land after the collapse kata's, so the head
-				// goes back to inheriting the bubble: hover included, or the pointer would
-				// walk it into a fixed neutral on the user bubble's blue.
+				// a bubble: zinc-500 on the assistant fill is 4.4:1. These classes land
+				// after the classes of the collapse kata, so the head inherits the
+				// bubble again. That includes hover, or the pointer would walk it into a
+				// fixed neutral on the blue of the user bubble.
 				trigger: ['cursor-pointer rounded-lg', 'text-inherit hover:text-inherit', focus.inset],
 				label: [weight.semibold],
 				summary: ['min-w-0 flex-1 truncate', weight.normal],
@@ -186,8 +187,10 @@ export const k = defineKata({
 })
 
 /**
- * Recipe variant props for {@link ChatMessage}: the styling axes its kata exposes (`sender`), for consumers composing custom slots.
- * The `streaming` axis of the bubble and the `trigger` axis of the actions are props of the message, with their own descriptions.
+ * Recipe variant props for {@link ChatMessage}: the styling axes its kata
+ * exposes (`sender`), for consumers composing custom slots. The `streaming`
+ * axis of the bubble and the `trigger` axis of the actions are props of the
+ * message, with their own descriptions.
  */
 export type ChatMessageVariants = Omit<
 	VariantProps<typeof k>,

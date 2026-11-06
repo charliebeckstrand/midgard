@@ -61,9 +61,9 @@ function setRunningText(parts: ChatPart[], text: string): ChatPart[] {
  *
  * A `Map` keyed by id is the whole rule: it holds insertion order. A `set` on a
  * key it already holds writes in place, and a `set` on a new one appends. Every
- * clause above falls out of that, including the block named twice. So does one
- * the old two-structure form did not state: a reply holding two blocks under
- * one id folds to one. That is the right end for an address.
+ * clause above falls out of that, including the block named twice. So does a
+ * reply that holds two blocks under one id: it folds to one. That is the right
+ * end for an address.
  *
  * @internal
  */
@@ -80,8 +80,7 @@ function mergeParts(parts: ChatPart[], arriving: ChatPart[]): ChatPart[] {
  *
  * A string chunk is cumulative prose (the whole reply so far), so it replaces
  * the running text and nothing else. A reply that is still a string stays one.
- * That is what keeps a transcript of prose allocating no part list. It renders
- * exactly as it did before a reply could hold blocks.
+ * That is what keeps a transcript of prose allocating no part list.
  *
  * A part-list chunk carries the blocks that changed, and it merges by id, so a
  * chart that arrives after two paragraphs discards neither of them.

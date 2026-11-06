@@ -39,11 +39,12 @@ export const k = defineKata({
 			// `relative` here would make it that pseudo-element's containing block
 			// instead, shrinking the overlay down to the button's own `flex-1` box.
 			base: [flex.col, 'min-w-0 flex-1', 'text-start', 'outline-none', 'z-10', ...cursor],
-			// `overlay` stretches the select button's hit area over the whole `relative` row via a
-			// pointer-capturing `::after` (the inverse of the overlay in `kasane.layers`,
-			// which adds `pointer-events-none` to *stop* this). The button only spans `flex-1`, so
-			// without this the padding, gap, and actions chrome wouldn't select. Applied
-			// to the `<button>` branch only: a static `<span>` has nothing to trigger.
+			// `overlay` stretches the hit area of the select button over the whole
+			// `relative` row through a pointer-capturing `::after`. It is the inverse
+			// of the overlay in `kasane.layers`, which adds `pointer-events-none` to
+			// *stop* this. The button only spans `flex-1`, so without this a press on
+			// the padding, the gap, or the actions chrome would not select. Only the
+			// `<button>` branch takes it: a static `<span>` has nothing to trigger.
 			overlay: {
 				true: 'after:absolute after:inset-0',
 				false: '',
