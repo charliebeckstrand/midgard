@@ -159,12 +159,16 @@ export const k = defineKata({
 		 * Nothing here sets a foreground color. The bubble's fill differs by
 		 * speaker, and a neutral that clears AA against one does not clear it
 		 * against another. The rule rides `currentColor` at a low alpha, and the
-		 * summary de-emphasizes by weight and truncation instead.
+		 * summary de-emphasizes by weight instead.
 		 */
 		tool: {
 			base: ['rounded-xl border border-current/20 px-3 py-2'],
 			slots: {
-				head: [flex.row, `w-full items-center ${dan.gap.scale.sm} text-start`, size.sm],
+				// The head wraps. A summary that does not fit beside the label goes to a
+				// line of its own and shows in full. The summary says what the step did,
+				// such as the filter that it applied. A reader cannot check a filter that
+				// the head cuts off, and on a phone the cut kept only the first words.
+				head: [flex.row, `w-full flex-wrap items-center ${dan.gap.scale.sm} text-start`, size.sm],
 				// A disclosure head is a button: give it the pointer and the package's own
 				// focus ring rather than the UA outline. `inset` and not `ring`, because the
 				// step is a bordered box: the case `sen.focus`'s own doc names for it, and
@@ -178,7 +182,7 @@ export const k = defineKata({
 				// fixed neutral on the blue of the user bubble.
 				trigger: ['cursor-pointer rounded-lg', 'text-inherit hover:text-inherit', focus.inset],
 				label: [weight.semibold],
-				summary: ['min-w-0 flex-1 truncate', weight.normal],
+				summary: ['min-w-0', weight.normal],
 				details: ['mt-2', size.sm],
 			},
 		},

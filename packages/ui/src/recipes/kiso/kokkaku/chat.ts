@@ -17,7 +17,7 @@
  */
 
 export const chat = {
-	root: 'min-h-0 flex-1 grow overflow-hidden',
+	root: 'min-h-0 flex-1 overflow-hidden',
 	bubble: [
 		'flex flex-col',
 		'w-fit max-w-[min(100%,max(85%,--spacing(48)))]',
