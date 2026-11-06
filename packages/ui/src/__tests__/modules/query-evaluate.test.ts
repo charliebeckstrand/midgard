@@ -25,6 +25,10 @@ describe('matchQueryRule', () => {
 		expect(matchQueryRule('equals', 'Alice', 'Alice')).toBe(true)
 
 		expect(matchQueryRule('notEquals', 'Alice', 'Bob')).toBe(true)
+
+		expect(matchQueryRule('equals', 'Lee', 'lee')).toBe(true)
+
+		expect(matchQueryRule('notEquals', 'Lee', 'lee')).toBe(false)
 	})
 
 	it('matches numeric operators', () => {
