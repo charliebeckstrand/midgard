@@ -43,8 +43,9 @@ const stepFor = (key: string) => (key === 'ArrowDown' ? 1 : key === 'ArrowUp' ? 
  *
  * @remarks
  * Only the grip starts a pointer drag. The nodes move in a draft order as the
- * pointer passes them, and the drop commits the move once. Escape cancels the
- * drag and puts the nodes back. With the keyboard, Space on a grip picks the
+ * pointer passes them, and the drop commits the move once. Escape, a
+ * `pointercancel`, and a builder that turns disabled cancel the drag and put
+ * the nodes back. With the keyboard, Space on a grip picks the
  * node up, each arrow key moves it one position, and Space, Enter, or Escape
  * drops it. Each step is announced by the summary text of the node and its
  * position in the group.
@@ -101,6 +102,7 @@ export function QueryBuilderSortable({ group, separator, node }: QueryBuilderSor
 		name,
 		// A pointer drag drops a keyboard lift.
 		onStart: useCallback(() => setLiftedId(null), [setLiftedId]),
+		enabled: !disabled,
 	})
 
 	const describedBy = useId()

@@ -1,7 +1,7 @@
 'use client'
 
 import type { DragControls } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { announce } from '../core/announcer'
 import {
 	droppedText,
@@ -15,7 +15,7 @@ import { useDragCursorHold } from './use-drag-cursor'
 
 /**
  * Options for {@link useReorderDrag}: the keys, the drop report, the names for
- * the announcements, and the start callback.
+ * the announcements, the start callback, and whether the surface takes a drag.
  *
  * @internal
  */
@@ -28,9 +28,15 @@ export type ReorderDragOptions = {
 	name: (id: string) => string
 	/** Called when a pointer drag starts, so a keyboard lift can drop. */
 	onStart: () => void
+	/**
+	 * Whether the surface takes a drag. When it turns false during a live drag,
+	 * the drag ends as canceled before paint. A disabled surface removes only
+	 * the start of the next drag, and the live Motion session runs on to the drop.
+	 */
+	enabled: boolean
 }
 
-/** The live drag: the dragged id, its controls, and whether Escape canceled it. */
+/** The live drag: the dragged id, its controls, and whether a cancel ended it. */
 type Drag = { id: string; controls: DragControls; canceled: boolean }
 
 /** The place of an item in an order, for an announcement. */
@@ -43,16 +49,17 @@ const getSlot = (order: readonly string[], id: string): ReorderSlot => ({
  * The pointer drag of one Motion `Reorder.Group`. During a drag, Motion moves
  * the items in a draft order as the pointer passes them. The hook reports the
  * draft through `onReorder` once, on the drop, and only when the order changed.
- * Escape cancels the drag and puts the items back. The hook holds the drag
- * cursor and announces the pick-up, the drop, and the cancel. The keyboard lift
- * is `useKeyboardReorder`.
+ * Escape, a `pointercancel`, and a surface that turns disabled cancel the drag
+ * and put the items back. The hook holds the drag cursor and announces the
+ * pick-up, the drop, and the cancel. The keyboard lift is `useKeyboardReorder`.
  *
  * @returns `order` (the draft during a drag, else `ids`), `sorting` (whether a
  * drag is live), `setDraft` for the `onReorder` of `Reorder.Group`, and
- * `onDragStart` / `onDragEnd` for each item.
+ * `onDragStart` / `onDragEnd` for each item. `onDragEnd` takes the end event of
+ * Motion.
  * @internal
  */
-export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOptions) {
+export function useReorderDrag({ ids, onReorder, name, onStart, enabled }: ReorderDragOptions) {
 	const intl = useIntl()
 
 	const [draft, setDraftState] = useState<string[] | null>(null)
@@ -70,16 +77,10 @@ export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOpt
 		setDraftState(next)
 	}, [])
 
-	// Escape stops the drag. The stop runs the drop of the item, which reads
-	// `canceled` and reports nothing.
-	const onKeyDown = useCallback(
-		(event: KeyboardEvent) => {
-			const live = drag.current
-
-			if (event.key !== 'Escape' || live === null) return
-
-			event.preventDefault()
-
+	// A cancel puts the items back and stops the drag. The stop runs the drop of
+	// the item, which reads `canceled` and reports nothing.
+	const cancel = useCallback(
+		(live: Drag) => {
 			live.canceled = true
 
 			setDraft(ids)
@@ -88,6 +89,29 @@ export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOpt
 		},
 		[ids, setDraft],
 	)
+
+	const onKeyDown = useCallback(
+		(event: KeyboardEvent) => {
+			const live = drag.current
+
+			if (event.key !== 'Escape' || live === null) return
+
+			event.preventDefault()
+
+			cancel(live)
+		},
+		[cancel],
+	)
+
+	// A layout effect, so the frame that shows the disabled surface shows the
+	// items back in their places.
+	useLayoutEffect(() => {
+		const live = drag.current
+
+		if (enabled || live === null || live.canceled) return
+
+		cancel(live)
+	}, [enabled, cancel])
 
 	const listen = useRef<((event: KeyboardEvent) => void) | null>(null)
 
@@ -120,33 +144,38 @@ export function useReorderDrag({ ids, onReorder, name, onStart }: ReorderDragOpt
 		[ids, onStart, setDraft, cursor, unlisten, onKeyDown, name, intl],
 	)
 
-	const onDragEnd = useCallback(() => {
-		const live = drag.current
+	const onDragEnd = useCallback(
+		(event: Event) => {
+			const live = drag.current
 
-		const order = draftRef.current ?? ids
+			const order = draftRef.current ?? ids
 
-		drag.current = null
+			drag.current = null
 
-		setDraft(null)
+			setDraft(null)
 
-		cursor.end()
+			cursor.end()
 
-		unlisten()
+			unlisten()
 
-		if (live === null) return
+			if (live === null) return
 
-		if (live.canceled) {
-			announce(returnedText(intl, name(live.id), getSlot(ids, live.id)), { assertive: true })
+			// Motion ends the drag on a `pointercancel` through the handler of a
+			// `pointerup`. The browser ended the gesture, so the user dropped nothing.
+			if (live.canceled || event.type === 'pointercancel') {
+				announce(returnedText(intl, name(live.id), getSlot(ids, live.id)), { assertive: true })
 
-			return
-		}
+				return
+			}
 
-		announce(droppedText(intl, name(live.id), getSlot(order, live.id)), { assertive: true })
+			announce(droppedText(intl, name(live.id), getSlot(order, live.id)), { assertive: true })
 
-		if (onReorder === undefined || sameElements(order, ids)) return
+			if (onReorder === undefined || sameElements(order, ids)) return
 
-		onReorder(order, live.id)
-	}, [ids, onReorder, setDraft, cursor, unlisten, name, intl])
+			onReorder(order, live.id)
+		},
+		[ids, onReorder, setDraft, cursor, unlisten, name, intl],
+	)
 
 	return { order: draft ?? ids, sorting: draft !== null, setDraft, onDragStart, onDragEnd }
 }

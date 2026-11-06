@@ -13,8 +13,8 @@ type ListItemReorderProps = {
 	instant: boolean
 	/** Called when a pointer drag of this row starts. */
 	onDragStart: (id: string, controls: DragControls) => void
-	/** Called when a pointer drag of this row ends. */
-	onDragEnd: () => void
+	/** Called with the end event of Motion when a pointer drag of this row ends. */
+	onDragEnd: (event: Event) => void
 	children: ReactNode
 }
 
@@ -49,9 +49,9 @@ export function ListItemReorder({
 					setDragging(true)
 					onDragStart(id, controls)
 				},
-				onDragEnd: () => {
+				onDragEnd: (event: Event) => {
 					setDragging(false)
-					onDragEnd()
+					onDragEnd(event)
 				},
 			},
 		}),

@@ -1,6 +1,6 @@
 'use client'
 
-import { type DragControls, Reorder, useDragControls } from 'motion/react'
+import { type DragControls, type InertiaOptions, Reorder, useDragControls } from 'motion/react'
 import { type KeyboardEvent, type PointerEvent, type ReactNode, useState } from 'react'
 import { dataAttr } from '../../../core/data-attr'
 import { reorderMessages } from '../../../primitives/intl/intl-reorder'
@@ -34,8 +34,8 @@ type QueryBuilderSortableItemProps = {
 	onBlur: () => void
 	/** Called when a pointer drag of this node starts. */
 	onDragStart: (id: string, controls: DragControls) => void
-	/** Called when a pointer drag of this node ends. */
-	onDragEnd: () => void
+	/** Called with the end event of Motion when a pointer drag of this node ends. */
+	onDragEnd: (event: Event) => void
 	children: ReactNode
 }
 
@@ -70,6 +70,15 @@ export function QueryBuilderSortableItem({
 	// A pointer drag and a keyboard lift both hold the node.
 	const held = dragging || lifted
 
+	// Motion gives the end event, so the drag can tell a drop from a
+	// `pointercancel`. The callback of the sortable is not a DOM handler of the
+	// item, so it composes no consumer handler.
+	const endDrag = (event: Event) => {
+		setDragging(false)
+
+		onDragEnd(event)
+	}
+
 	return (
 		<Reorder.Item
 			as="div"
@@ -77,14 +86,17 @@ export function QueryBuilderSortableItem({
 			dragListener={false}
 			dragControls={controls}
 			transition={instant ? k.instant : undefined}
+			// The release from the pointer to the slot is an animation of the drag,
+			// which the transition of the item does not reach. Motion spreads
+			// `dragTransition` into the transition of the release, where a `duration`
+			// of 0 lands the node at once. The type of the prop names only the
+			// inertia options.
+			dragTransition={instant ? (k.instant as InertiaOptions) : undefined}
 			onDragStart={() => {
 				setDragging(true)
 				onDragStart(id, controls)
 			}}
-			onDragEnd={() => {
-				setDragging(false)
-				onDragEnd()
-			}}
+			onDragEnd={endDrag}
 			data-slot="query-sortable"
 			data-node-id={id}
 			data-dragging={dataAttr(held)}

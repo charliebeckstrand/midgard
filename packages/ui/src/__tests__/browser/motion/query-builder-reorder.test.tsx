@@ -9,7 +9,8 @@ import {
 	type QueryNode,
 	type QueryRule,
 } from '../../../modules/query'
-import { allBySlot, frames, getSlot, renderUI, screen } from '../../helpers'
+import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
+import { allBySlot, fireEvent, frames, getSlot, renderUI, screen } from '../../helpers'
 import { drag } from '../helpers/drag'
 
 /**
@@ -42,23 +43,27 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 	function Harness({
 		initial,
 		onValueChange,
+		reduced = false,
 	}: {
 		initial: () => QueryGroup
 		onValueChange: (value: QueryGroup) => void
+		reduced?: boolean
 	}) {
 		const [query, setQuery] = useState(initial)
 
 		return (
-			<QueryBuilder
-				fields={fields}
-				value={query}
-				onValueChange={(next) => {
-					onValueChange(next)
+			<ReducedMotionContext value={reduced}>
+				<QueryBuilder
+					fields={fields}
+					value={query}
+					onValueChange={(next) => {
+						onValueChange(next)
 
-					setQuery(next)
-				}}
-				reorder
-			/>
+						setQuery(next)
+					}}
+					reorder
+				/>
+			</ReducedMotionContext>
 		)
 	}
 
@@ -191,6 +196,53 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 		await expect
 			.poll(() => screen.queryByText('Returned Name contains a to position 1 of 3.'))
 			.toBeInTheDocument()
+	})
+
+	// Motion routes a pointercancel to the handler of a pointerup. The browser
+	// ended the gesture, such as on a system interruption on a touch device, so
+	// the user dropped nothing.
+	it('puts the nodes back and commits nothing when a pointercancel ends the drag', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<Harness initial={flat} onValueChange={onValueChange} />)
+
+		const held = await dragPast(container, 'Name contains a', 'b')
+
+		await expect.poll(() => rootOrder(container)).toEqual(['b', 'a', 'c'])
+
+		fireEvent.pointerCancel(grip('Name contains a'), { isPrimary: true })
+
+		await expect.poll(() => rootOrder(container)).toEqual(['a', 'b', 'c'])
+
+		await expect
+			.poll(() => screen.queryByText('Returned Name contains a to position 1 of 3.'))
+			.toBeInTheDocument()
+
+		await held.release()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	// The release animation of a drag goes from the pointer to the slot outside
+	// the transition of the item, so the item states its own `dragTransition`.
+	it('puts the dropped node in its slot at once under reduced motion', async () => {
+		const { container } = renderUI(<Harness initial={flat} onValueChange={() => {}} reduced />)
+
+		const first = sortable(container, 'a')
+
+		if (!first) throw new Error('expected nodes')
+
+		const held = await dragPast(container, 'Name contains a', 'b')
+
+		await expect.poll(() => rootOrder(container)).toEqual(['b', 'a', 'c'])
+
+		expect(getComputedStyle(first).transform).not.toBe('none')
+
+		await held.release()
+
+		await frames()
+
+		expect(getComputedStyle(first).transform).toBe('none')
 	})
 
 	// The open risk of the move: a nested group is a `Reorder.Group` of its own
