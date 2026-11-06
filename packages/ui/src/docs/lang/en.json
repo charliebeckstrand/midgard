@@ -987,10 +987,6 @@
 		"defaultMessage": "Last result:",
 		"description": "Text of a demo in the docs, in components/confirm/ask-with-a-hook.tsx, components/confirm/cancel-or-close.tsx."
 	},
-	"docs.demo.00cc7d9b5e8b": {
-		"defaultMessage": "Houston",
-		"description": "Text of a demo in the docs as label, in modules/map/geofence/polygon.tsx, modules/map/point/data.ts."
-	},
 	"docs.demo.00d60e31a4e6": {
 		"defaultMessage": "Run",
 		"description": "Text of a demo in the docs, in components/kbd/inside-a-button.tsx."
@@ -1206,10 +1202,6 @@
 	"docs.demo.100ec1bc78a4": {
 		"defaultMessage": "To do",
 		"description": "Text of a demo in the docs, in structure/flex/equal.tsx."
-	},
-	"docs.demo.10c6bb4ee793": {
-		"defaultMessage": "Waco",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.10caee1b621b": {
 		"defaultMessage": "Revenue and costs",
@@ -1463,6 +1455,10 @@
 		"defaultMessage": "Animation",
 		"description": "Text of a demo in the docs as aria-label, in components/tabs/animation.tsx."
 	},
+	"docs.demo.1dd8352a96f7": {
+		"defaultMessage": "{city} depot",
+		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts. The argument {city} is a value from the code."
+	},
 	"docs.demo.1e0d6eb355cf": {
 		"defaultMessage": "Your trial ends in 3 days",
 		"description": "Text of a demo in the docs as title, in components/alert/index.tsx."
@@ -1570,10 +1566,6 @@
 	"docs.demo.23a23b301b51": {
 		"defaultMessage": "Rate per mile",
 		"description": "Text of a demo in the docs, in components/currency-input/custom-precision.tsx."
-	},
-	"docs.demo.23f2e4e9b975": {
-		"defaultMessage": "Chicago depot",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.23f3c45f16e2": {
 		"defaultMessage": "Button.tsx",
@@ -2275,10 +2267,6 @@
 		"defaultMessage": "Set password",
 		"description": "Text of a demo in the docs, in components/password-confirm/in-a-form.tsx."
 	},
-	"docs.demo.4eb1b68df132": {
-		"defaultMessage": "Dallas",
-		"description": "Text of a demo in the docs as label, in modules/map/geofence/polygon.tsx."
-	},
 	"docs.demo.4eeb669862ae": {
 		"defaultMessage": "License plate",
 		"description": "Text of a demo in the docs, in components/mask-input/controlled.tsx."
@@ -2322,10 +2310,6 @@
 	"docs.demo.513740128f95": {
 		"defaultMessage": "GB29 NWBK 6016 1331 9268 19",
 		"description": "Text of a demo in the docs as placeholder, in components/mask-input/custom-format.tsx."
-	},
-	"docs.demo.518db6c298ca": {
-		"defaultMessage": "Fort Worth",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.5260f6b2fa9f": {
 		"defaultMessage": "Delete row",
@@ -2463,10 +2447,6 @@
 		"defaultMessage": "Team",
 		"description": "Text of a demo in the docs as label, title, in components/select/with-descriptions.tsx, components/sidebar/playground.tsx, components/sidebar/with-header-and-footer.tsx and 2 more."
 	},
-	"docs.demo.59987f8f2140": {
-		"defaultMessage": "Riverside",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
-	},
 	"docs.demo.59bd67212147": {
 		"defaultMessage": "Hourly rate",
 		"description": "Text of a demo in the docs as title, in modules/grid/editing/bulk-edit.tsx."
@@ -2474,10 +2454,6 @@
 	"docs.demo.5a3a74374d60": {
 		"defaultMessage": "Total charges",
 		"description": "Text of a demo in the docs as label, in components/pdf-viewer/statement.ts."
-	},
-	"docs.demo.5aa34886f7f3": {
-		"defaultMessage": "San Francisco",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.5ac265f396a2": {
 		"defaultMessage": "Confirm password",
@@ -2562,10 +2538,6 @@
 	"docs.demo.5f770a8de37b": {
 		"defaultMessage": "Project details",
 		"description": "Text of a demo in the docs, in providers/glass/overlays.tsx."
-	},
-	"docs.demo.604d18b838ea": {
-		"defaultMessage": "Marietta",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.611fdddb5884": {
 		"defaultMessage": "Revenue change by month",
@@ -2663,6 +2635,10 @@
 		"defaultMessage": "Preferences",
 		"description": "Text of a demo in the docs, in components/command-palette/custom-footer.tsx."
 	},
+	"docs.demo.66a477f9f0a0": {
+		"defaultMessage": "Double-tap a state to show its counties.",
+		"description": "Text of a demo in the docs as touchText, in modules/map/county/drill-into-counties.tsx."
+	},
 	"docs.demo.66c9ab177708": {
 		"defaultMessage": "Maximum",
 		"description": "Text of a demo in the docs as labels, in components/slider/range.tsx."
@@ -2719,10 +2695,6 @@
 		"defaultMessage": "Select a template and add tiles. Then select Edit layout to drag them by their grips and resize them by their edges.",
 		"description": "Text of a demo in the docs as touchText, in modules/dashboard/build-and-save.tsx."
 	},
-	"docs.demo.68d3d1d02a00": {
-		"defaultMessage": "Fresno",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
-	},
 	"docs.demo.69493e6f1a69": {
 		"defaultMessage": "Hex",
 		"description": "Text of a demo in the docs as label, in components/swatch/color.tsx."
@@ -2762,10 +2734,6 @@
 	"docs.demo.6c44751e6268": {
 		"defaultMessage": "Connection lost",
 		"description": "Text of a demo in the docs as title, in components/toast/persist.tsx."
-	},
-	"docs.demo.6c55806376ab": {
-		"defaultMessage": "Plano",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.6c582b62e0e5": {
 		"defaultMessage": "Fast",
@@ -3131,17 +3099,9 @@
 		"defaultMessage": "Design completed",
 		"description": "Text of a demo in the docs, in components/timeline/playground.tsx."
 	},
-	"docs.demo.7eb34d408e32": {
-		"defaultMessage": "Rockford",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
-	},
 	"docs.demo.7ec0261b8e8a": {
 		"defaultMessage": "Upgrade",
 		"description": "Text of a demo in the docs, in components/alert/with-actions.tsx, structure/box/playground.tsx."
-	},
-	"docs.demo.7eca3153bc09": {
-		"defaultMessage": "Sacramento",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.7f3d477b50b7": {
 		"defaultMessage": "Generating your report",
@@ -3186,10 +3146,6 @@
 	"docs.demo.81d27ef6d503": {
 		"defaultMessage": "Weight",
 		"description": "Text of a demo in the docs as sizeName, title, yName, in modules/chart/bubble/animated.tsx, modules/chart/bubble/size-encoding.tsx, modules/chart/line/dashed-line.tsx and 1 more."
-	},
-	"docs.demo.82254025d1b9": {
-		"defaultMessage": "Anaheim",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.822716406658": {
 		"defaultMessage": "Signature preview",
@@ -3266,10 +3222,6 @@
 	"docs.demo.866a5a57287a": {
 		"defaultMessage": "Add up to five keywords.",
 		"description": "Text of a demo in the docs, in components/tag-input/max-tags.tsx."
-	},
-	"docs.demo.869297c26816": {
-		"defaultMessage": "Denton",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.875c9038f597": {
 		"defaultMessage": "Toggle icon button",
@@ -3518,10 +3470,6 @@
 	"docs.demo.91d631e150a3": {
 		"defaultMessage": "Move to folder",
 		"description": "Text of a demo in the docs, in components/sidebar/with-actions.tsx."
-	},
-	"docs.demo.91e8e2942d61": {
-		"defaultMessage": "Los Angeles depot",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.920abb1b74ba": {
 		"defaultMessage": "Send me product news",
@@ -3847,10 +3795,6 @@
 		"defaultMessage": "Components",
 		"description": "Text of a demo in the docs, in components/breadcrumb/playground.tsx."
 	},
-	"docs.demo.a161e03bf85e": {
-		"defaultMessage": "Austin",
-		"description": "Text of a demo in the docs as label, in modules/map/geofence/polygon.tsx, modules/map/point/data.ts."
-	},
 	"docs.demo.a192df697ecd": {
 		"defaultMessage": "Each sale, with its region and product",
 		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
@@ -3881,7 +3825,7 @@
 	},
 	"docs.demo.a3b50c476732": {
 		"defaultMessage": "State",
-		"description": "Text of a demo in the docs as aria-label, in modules/map/point/clustering.tsx, modules/map/select-a-state.tsx."
+		"description": "Text of a demo in the docs as aria-label, colorName, in modules/map/county/drill-into-counties.tsx, modules/map/point/clustering.tsx, modules/map/select-a-state.tsx."
 	},
 	"docs.demo.a3e586be3eff": {
 		"defaultMessage": "Expand all",
@@ -4054,10 +3998,6 @@
 	"docs.demo.ad1916bc2536": {
 		"defaultMessage": "Team plan, renews on July 1",
 		"description": "Text of a demo in the docs, in components/nav/with-content.tsx."
-	},
-	"docs.demo.ad1b0082ffaa": {
-		"defaultMessage": "Dallas depot",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.ad462b860276": {
 		"defaultMessage": "Nothing here yet. Add a tile to begin.",
@@ -4259,10 +4199,6 @@
 		"defaultMessage": "Invoices",
 		"description": "Text of a demo in the docs as label, in components/tabs/preload.tsx."
 	},
-	"docs.demo.b8041bfd29e7": {
-		"defaultMessage": "Naperville",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
-	},
 	"docs.demo.b82967544826": {
 		"defaultMessage": "To the right",
 		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx."
@@ -4305,7 +4241,7 @@
 	},
 	"docs.demo.b9fe1464783e": {
 		"defaultMessage": "Time zone",
-		"description": "Text of a demo in the docs as colorName, in modules/map/playground.tsx, modules/map/select-a-state.tsx."
+		"description": "Text of a demo in the docs as colorName, in modules/map/county/drill-into-counties.tsx, modules/map/playground.tsx, modules/map/select-a-state.tsx."
 	},
 	"docs.demo.ba1947aaebf7": {
 		"defaultMessage": "Notify teams",
@@ -4342,6 +4278,10 @@
 	"docs.demo.bb954d61fd85": {
 		"defaultMessage": "Add a number.",
 		"description": "Text of a demo in the docs as validate, in modules/form/validation.tsx."
+	},
+	"docs.demo.bbcd2d0444c9": {
+		"defaultMessage": "Click a state to show its counties.",
+		"description": "Text of a demo in the docs as mouseText, in modules/map/county/drill-into-counties.tsx."
 	},
 	"docs.demo.bc7b631a689b": {
 		"defaultMessage": "Zoom out",
@@ -4531,10 +4471,6 @@
 		"defaultMessage": "\n# Release notes\n\nVersion 2.4 adds **search in attachments**. Run `app update` to get it, or\nread the _full list_ of [changes](https://example.com).\n\n## Changes\n\n- Search finds the text in attachments\n- Shared folders show who changed each file\n  - The list shows the last ten changes\n- The dark theme follows the setting of your system\n\n'>' Back up your files before you update.\n\n```ts\nexport function isLatest(version: string) '{'\n\treturn version === ''2.4''\n'}'\n```\n",
 		"description": "Text of a demo in the docs, in components/markdown/playground.tsx."
 	},
-	"docs.demo.c7302978fb09": {
-		"defaultMessage": "Long Beach",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
-	},
 	"docs.demo.c7c641427c0d": {
 		"defaultMessage": "People, server pages",
 		"description": "Text of a demo in the docs as aria-label, in modules/grid/pagination/server-pagination.tsx."
@@ -4615,10 +4551,6 @@
 		"defaultMessage": "About the address",
 		"description": "Text of a demo in the docs as aria-label, in components/fieldset/label-with-hint.tsx."
 	},
-	"docs.demo.cad5f8bba9a7": {
-		"defaultMessage": "Macon",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
-	},
 	"docs.demo.cb702378f315": {
 		"defaultMessage": "Errors",
 		"description": "Text of a demo in the docs as label, in modules/grid/sparkline/in-cell-sparklines.tsx."
@@ -4686,10 +4618,6 @@
 	"docs.demo.d1170c4935b0": {
 		"defaultMessage": "{length} stops",
 		"description": "Text of a demo in the docs as detail, in modules/map/point/clustering.tsx, modules/map/point/zoomable.tsx. The argument {length} is a value from the code."
-	},
-	"docs.demo.d1180f8109bc": {
-		"defaultMessage": "Atlanta depot",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.d175d09d870d": {
 		"defaultMessage": "Got it. The door code is 4421.",
@@ -4790,10 +4718,6 @@
 	"docs.demo.d6eafe823591": {
 		"defaultMessage": "Download",
 		"description": "Text of a demo in the docs as label, in components/context-menu/glass.tsx, components/context-menu/playground.tsx, components/menu/with-descriptions.tsx and 1 more."
-	},
-	"docs.demo.d6f11805e14b": {
-		"defaultMessage": "San Diego",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.d71f2e312d16": {
 		"defaultMessage": "Mia Chen closed three tasks this week.",
@@ -5027,10 +4951,6 @@
 		"defaultMessage": "Last six months",
 		"description": "Text of a demo in the docs as subtitle, in modules/chart/title-and-subtitle.tsx."
 	},
-	"docs.demo.e30cf5214afc": {
-		"defaultMessage": "San Antonio",
-		"description": "Text of a demo in the docs as label, in modules/map/geofence/polygon.tsx, modules/map/point/data.ts."
-	},
 	"docs.demo.e35ca189c399": {
 		"defaultMessage": "Add dark mode",
 		"description": "Text of a demo in the docs as title, in data/tasks.ts."
@@ -5042,10 +4962,6 @@
 	"docs.demo.e46149b6aef0": {
 		"defaultMessage": "75 Linden Avenue",
 		"description": "Text of a demo in the docs as label, in components/address-input/places.ts."
-	},
-	"docs.demo.e46159911def": {
-		"defaultMessage": "Joliet",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.e4bb9f1ece9a": {
 		"defaultMessage": "Start",
@@ -5315,10 +5231,6 @@
 		"defaultMessage": "Media library",
 		"description": "Text of a demo in the docs as aria-label, in components/tree/rich-content.tsx."
 	},
-	"docs.demo.f1cb587545a0": {
-		"defaultMessage": "Arlington",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
-	},
 	"docs.demo.f212d75da6c0": {
 		"defaultMessage": "Send your questions about these terms to legal@example.com. You get an answer within five business days.",
 		"description": "Text of a demo in the docs as text, in components/dialog/long-content.tsx."
@@ -5326,10 +5238,6 @@
 	"docs.demo.f3380f7b44bd": {
 		"defaultMessage": "Paste",
 		"description": "Text of a demo in the docs, in components/group/item-count.tsx, components/group/playground.tsx, components/menu/right-click.tsx."
-	},
-	"docs.demo.f38ed02476de": {
-		"defaultMessage": "El Paso",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.f3dce2762403": {
 		"defaultMessage": "Mastercard",
@@ -5391,10 +5299,6 @@
 		"defaultMessage": "Invite by email",
 		"description": "Text of a demo in the docs, in components/menu/submenus.tsx."
 	},
-	"docs.demo.f7906b794aed": {
-		"defaultMessage": "Savannah",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
-	},
 	"docs.demo.f7e0b8036cbe": {
 		"defaultMessage": "Revenue by product",
 		"description": "Text of a demo in the docs as aria-label, title, in modules/dashboard/build-and-save.tsx, modules/dashboard/widgets.tsx."
@@ -5438,10 +5342,6 @@
 	"docs.demo.f92e7414c873": {
 		"defaultMessage": "budget.xlsx",
 		"description": "Text of a demo in the docs as label, in components/tree/playground.tsx."
-	},
-	"docs.demo.f93f27a29754": {
-		"defaultMessage": "Springfield",
-		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts."
 	},
 	"docs.demo.f9bfa3dc7c8f": {
 		"defaultMessage": "Discard changes",

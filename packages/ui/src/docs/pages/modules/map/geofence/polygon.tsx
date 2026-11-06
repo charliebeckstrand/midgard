@@ -1,11 +1,12 @@
 import { type LngLat, MapGeofence, MapPlat, MapPoints } from 'ui/map'
+import { cities } from '../../../../data/places.ts'
 import { stateFrame } from '../data.ts'
 
 const metros: { at: LngLat; label: string; loads: number }[] = [
-	{ at: [-96.8, 32.78], label: 'Dallas', loads: 18 },
-	{ at: [-95.37, 29.76], label: 'Houston', loads: 22 },
-	{ at: [-98.49, 29.42], label: 'San Antonio', loads: 9 },
-	{ at: [-97.74, 30.27], label: 'Austin', loads: 12 },
+	{ at: [-96.8, 32.78], label: cities.dallas, loads: 18 },
+	{ at: [-95.37, 29.76], label: cities.houston, loads: 22 },
+	{ at: [-98.49, 29.42], label: cities.sanAntonio, loads: 9 },
+	{ at: [-97.74, 30.27], label: cities.austin, loads: 12 },
 ]
 
 // Each metro with its readout.

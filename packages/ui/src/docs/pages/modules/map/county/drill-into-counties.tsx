@@ -5,8 +5,10 @@ import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { MapPlat } from 'ui/map'
 import { Stack } from 'ui/stack'
+import { Text } from 'ui/text'
 import { useFail } from '../../../../../hooks/use-fail.ts'
 import { stateLabel } from '../../../../data/us-states.ts'
+import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { stateFrame, stateName, states, timezones, zoneCategories } from '../data.ts'
 import { type CountiesByState, loadCounties } from './data.ts'
 
@@ -71,7 +73,14 @@ export default function DrillIntoCounties() {
 						All states
 					</Button>
 				</Flex>
-			) : null}
+			) : (
+				<Text>
+					<PointerHint
+						mouseText="Click a state to show its counties."
+						touchText="Double-tap a state to show its counties."
+					/>
+				</Text>
+			)}
 			{drilled !== null ? (
 				<MapPlat
 					ref={mapRef}
@@ -81,6 +90,7 @@ export default function DrillIntoCounties() {
 					data={rows}
 					regionKey="id"
 					categoryKey="state"
+					colorName="State"
 					onRegionClick={(id) => setCounty((prev) => (prev === id ? null : id))}
 					selectedRegion={county}
 				/>
@@ -93,6 +103,7 @@ export default function DrillIntoCounties() {
 					data={timezones}
 					regionKey="state"
 					categoryKey="zone"
+					colorName="Time zone"
 					categories={zoneCategories}
 					regionId={stateName}
 					regionLabel={stateLabel}
