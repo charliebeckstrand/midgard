@@ -6,14 +6,17 @@ import {
 	type ComponentProps,
 	memo,
 	type ReactNode,
+	type UIEvent,
 	useCallback,
 	useLayoutEffect,
 	useRef,
+	useState,
 } from 'react'
 import { Button } from '../../components/button'
 import type { ContextMenuEntry } from '../../components/context-menu/types'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
@@ -60,6 +63,13 @@ const OVERSCAN = 4
  * @internal
  */
 const UNMEASURED_ROWS = 20
+
+/**
+ * How near the end, in pixels, the transcript counts as at its end. It is the
+ * default `scrollEndThreshold` of virtual-core, so the pin and the end anchor of
+ * the window agree. @internal
+ */
+const END_THRESHOLD = 1
 
 /**
  * Props for {@link ChatTranscript}. The scroll `<div>` takes the rest. The
@@ -153,22 +163,25 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * The window keys each row by its message `id`. A chunk keeps the ids, so the
  * window keeps each row position and does not rebuild them.
  *
- * The pin goes through the window, not through `scrollTop`. The total height
- * moves as rows measure, so a pin written against `scrollHeight` drifts. The
- * transcript opens at its newest row with no animation. The virtualizer then
- * anchors to the end: a row that grows keeps the end in view, and a new row
- * smooth-scrolls into view. Both happen only while the reader sits at the end,
- * so a reader who scrolled up to read is not pulled down. The reader's own
- * message is the exception. A new `user` row at the end pins the transcript to
- * it, wherever the reader had scrolled, because the reader sent it. Mount this
- * fresh per conversation (e.g. `key`ed on its id), so a switch does not start
- * from the old scroll position.
+ * The transcript scrolls only on the block axis. It opens at its newest row with
+ * no animation, and it is then pinned to the end. While it is pinned, a new row
+ * smooth-scrolls into view, and a row that grows keeps the end in view. A
+ * scroll toward the start that leaves the end releases the pin, so a reader who
+ * scrolled up to read is not pulled down. A scroll back to the end pins it
+ * again. The pin is the intent of the reader, not the scroll position: a reply
+ * that opens while the glide to the last message still runs is followed too.
+ * The reader's own message pins the transcript, wherever the reader had
+ * scrolled, because the reader sent it.
  *
- * A reader who scrolled up gets a button at the bottom edge that goes to the
- * newest message, so a reply that grows below the view does not go unseen. The
- * button shows exactly while an appended row would not pull the transcript
- * along. The follow and the pin do not show it. After the press, the focus
- * goes to the transcript, which is a tab stop while it overflows.
+ * The scroll goes through the window, not through `scrollTop`. The total height
+ * moves as rows measure, so a scroll written against `scrollHeight` drifts.
+ * Mount the transcript fresh per conversation (e.g. `key`ed on its id), so a
+ * switch does not start from the old scroll position.
+ *
+ * While the pin is released, a button at the bottom edge goes to the newest
+ * message, so a reply that grows below the view does not go unseen. The press
+ * pins the transcript again. After the press, the focus goes to the
+ * transcript, which is a tab stop while it overflows.
  *
  * `actions` and `contextMenu` give each row the controls and the menu of a
  * {@link ChatMessage}. The transcript calls them only for the rows that it
@@ -215,6 +228,7 @@ export function ChatTranscript({
 	contextMenu,
 	className,
 	ref,
+	onScroll,
 	...props
 }: ChatTranscriptProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -236,16 +250,36 @@ export function ChatTranscript({
 	// The follow glides, and jumps when the reader asks for reduced motion.
 	const follow: ScrollBehavior = usePrefersReducedMotion() ? 'auto' : 'smooth'
 
-	const { virtualItems, topSpacer, bottomSpacer, away, scrollToIndex, measureRef } =
-		useVirtualWindow({
-			count,
-			getScrollElement,
-			estimateSize: ESTIMATED_ROW_HEIGHT,
-			overscan: OVERSCAN,
-			getItemKey,
-			anchorTo: 'end',
-			followOnAppend: follow,
-		})
+	// The end anchor keeps a pinned transcript at its end while a row grows. The
+	// append rule below follows a new row.
+	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex, measureRef } = useVirtualWindow({
+		count,
+		getScrollElement,
+		estimateSize: ESTIMATED_ROW_HEIGHT,
+		overscan: OVERSCAN,
+		getItemKey,
+		anchorTo: 'end',
+	})
+
+	// Whether the transcript follows its end. Only the reader releases it, so a
+	// glide to the end does not release it on the way.
+	const [pinned, setPinned] = useState(true)
+
+	const lastScrollTop = useRef(0)
+
+	// A glide to the end and a row that grows only move toward the end, and a
+	// row above that measures smaller keeps the end where it was. So a scroll
+	// that moves toward the start and leaves the end is the reader's.
+	const trackPin = (event: UIEvent<HTMLDivElement>) => {
+		const element = event.currentTarget
+
+		const { scrollTop } = element
+
+		if (element.scrollHeight - element.clientHeight - scrollTop <= END_THRESHOLD) setPinned(true)
+		else if (scrollTop < lastScrollTop.current) setPinned(false)
+
+		lastScrollTop.current = scrollTop
+	}
 
 	// The end anchor has no mount arm, so the first window that holds rows jumps
 	// to the newest one. It runs before paint, so the transcript never shows its top.
@@ -257,6 +291,10 @@ export function ChatTranscript({
 		opened.current = true
 
 		scrollToIndex(count - 1, { align: 'end' })
+
+		// The browser reports this jump at the next frame. A scroll of the reader
+		// before then is measured from here, not from the top.
+		lastScrollTop.current = containerRef.current?.scrollTop ?? 0
 	})
 
 	// The newest row as the last commit held it. A row appended at the end
@@ -265,8 +303,9 @@ export function ChatTranscript({
 
 	const newest = useRef({ count, key: newestKey })
 
-	// The follow acts only at the end, so the reader's own message pins here.
-	// The reader sent it, so they expect to see it, wherever they had scrolled.
+	// A pinned transcript follows each new row. The reader's own message pins it
+	// as well: the reader sent it, so they expect to see it, wherever they had
+	// scrolled.
 	useLayoutEffect(() => {
 		const before = newest.current
 
@@ -280,10 +319,12 @@ export function ChatTranscript({
 
 		while (start > 0 && getItemKey(start - 1) !== before.key) start--
 
-		if (!messages.slice(start).some((message) => message.sender === 'user')) return
+		const sent = messages.slice(start).some((message) => message.sender === 'user')
 
-		// The behavior of the virtualizer's own follow, so a reader already at the
-		// end glides with it and does not jump.
+		if (!pinned && !sent) return
+
+		setPinned(true)
+
 		scrollToIndex(count - 1, { align: 'end', behavior: follow })
 	})
 
@@ -301,6 +342,8 @@ export function ChatTranscript({
 	// The button leaves as the glide starts, so the focus goes to the transcript
 	// and does not fall to the body.
 	const goToNewest = () => {
+		setPinned(true)
+
 		scrollToIndex(count - 1, { align: 'end', behavior: follow })
 
 		containerRef.current?.focus({ preventScroll: true })
@@ -319,6 +362,7 @@ export function ChatTranscript({
 			data-slot="chat-transcript"
 			{...props}
 			ref={setContainer}
+			onScroll={composeEventHandlers(onScroll, trackPin)}
 			role="log"
 			aria-live="off"
 			className={cn(slots.base, className)}
@@ -360,7 +404,7 @@ export function ChatTranscript({
 					)}
 				</div>
 			)}
-			{away && (
+			{!pinned && (
 				<div data-slot="chat-transcript-newest" className={slots.newest}>
 					<Button
 						type="button"
