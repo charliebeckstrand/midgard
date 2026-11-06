@@ -18,6 +18,9 @@ type MockContext = {
 	// Both stay null here (nothing mounts a real floating element) which is
 	// what consumers reading `context.elements.floating` expect off the browser.
 	elements?: { reference: Element | null; floating: HTMLElement | null }
+	// The real context keeps the event of the last open in `dataRef`. The mock
+	// passes no event to `onOpenChange`, so the record stays empty.
+	dataRef?: RefObject<{ openEvent?: Event }>
 }
 
 type MockProps = Record<string, unknown>
@@ -164,6 +167,7 @@ const floatingUIMock = {
 		open: options?.open,
 		onOpenChange: options?.onOpenChange,
 		elements: { reference: null, floating: null },
+		dataRef: useRef({}),
 	}),
 	useFloating: (options: MockContext) => ({
 		refs: {
@@ -179,6 +183,7 @@ const floatingUIMock = {
 			open: options?.open,
 			onOpenChange: options?.onOpenChange,
 			elements: { reference: null, floating: null },
+			dataRef: useRef({}),
 		} as MockContext,
 		x: 0,
 		y: 0,

@@ -270,6 +270,33 @@ describe('MenuTrigger', () => {
 
 		expect(trigger).toHaveAttribute('aria-expanded', 'true')
 	})
+
+	// ArrowDown opens a closed menu, as Enter and Space do. The browser suite
+	// proves that each of the three keys seats the first row
+	// (`menu-trigger-focus.test.tsx`), because the jsdom mock records no open event.
+	it('opens on ArrowDown and cancels its page scroll', () => {
+		const trigger = closedMenu()
+
+		trigger.focus()
+
+		expect(fireEvent.keyDown(trigger, { key: 'ArrowDown' })).toBe(false)
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('keeps the menu closed on an ArrowDown that a consumer cancels', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger onKeyDown={(event) => event.preventDefault()}>Open</MenuTrigger>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+	})
 })
 
 describe('MenuContent', () => {
@@ -603,6 +630,7 @@ describe('MenuContent', () => {
 							close: noop,
 							dismissToTab,
 							rovingKeyDown,
+							openedByKey: () => false,
 							static: false,
 							triggerRef,
 							setReference: noop,
@@ -628,7 +656,8 @@ describe('MenuContent', () => {
 				const { trigger, rovingKeyDown, dismissToTab } = harness(false)
 
 				// The default action stays: Enter and Space click the trigger, which opens the menu.
-				expect(fireEvent.keyDown(trigger, { key })).toBe(true)
+				// ArrowDown clicks the trigger itself, so it cancels its page scroll.
+				expect(fireEvent.keyDown(trigger, { key })).toBe(key !== 'ArrowDown')
 
 				expect(rovingKeyDown).not.toHaveBeenCalled()
 

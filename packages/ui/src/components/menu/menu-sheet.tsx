@@ -1,10 +1,10 @@
 'use client'
 
-import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useId, useLayoutEffect, useRef, useState } from 'react'
 import { accessibleName } from '../../core/accessible-name'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
-import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import { queryItems, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { k } from '../../recipes/kata/menu'
 import {
 	Drawer,
@@ -53,9 +53,10 @@ function triggerName(trigger: HTMLElement | null): string | undefined {
  *
  * @remarks
  * The sheet is a modal dialog, so focus goes into it and the rows rove by real
- * focus, as in a context menu. The panel takes the focus on open, not the first
- * row, so a tap does not show a focused row. Focus goes back to the trigger on
- * close.
+ * focus, as in a context menu. A press of the pointer opens the sheet with the
+ * focus on the panel, not on the first row, so a tap does not show a focused
+ * row. A key opens the sheet with the focus on the first row, as in the
+ * popover. Focus goes back to the trigger on close.
  *
  * The heading names the sheet and the menu in it. It is the `title` of
  * {@link MenuContent}, or the name of the trigger, which is read when the sheet
@@ -76,9 +77,28 @@ export function MenuSheet({
 	children,
 }: MenuSheetProps) {
 	const { open, menuId, size } = useMenuState()
-	const { setOpen, triggerRef } = useMenuActions()
+	const { setOpen, triggerRef, openedByKey } = useMenuActions()
 
 	const panelRef = useRef<HTMLDivElement>(null)
+
+	// The element that takes the focus as the sheet opens: the first row after
+	// a key, else the panel. The panel can attach a commit after the open, so
+	// the ref of the panel chooses it, when the panel attaches and again on each
+	// open while the panel stays mounted. The drawer reads it after the commit.
+	const initialFocusRef = useRef<HTMLElement>(null)
+
+	const setPanel = useCallback(
+		(node: HTMLDivElement | null) => {
+			panelRef.current = node
+
+			if (!node || !open) return
+
+			const first = openedByKey() ? queryItems(node, MENUITEM_SELECTOR)[0] : undefined
+
+			initialFocusRef.current = first ?? node
+		},
+		[open, openedByKey],
+	)
 
 	const titleId = useId()
 
@@ -113,7 +133,7 @@ export function MenuSheet({
 			<DrawerPanel
 				size={size}
 				glass={glass}
-				initialFocus={panelRef}
+				initialFocus={initialFocusRef}
 				aria-label={heading === undefined || typeof heading === 'string' ? heading : undefined}
 			>
 				{heading === undefined ? null : (
@@ -128,7 +148,7 @@ export function MenuSheet({
 
 				<DrawerBody className={k.sheet.body}>
 					<div
-						ref={panelRef}
+						ref={setPanel}
 						id={menuId}
 						role="menu"
 						aria-label={ariaLabel}
