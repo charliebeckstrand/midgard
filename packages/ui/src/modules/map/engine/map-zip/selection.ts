@@ -27,7 +27,7 @@
 import { digitsOnly } from '../../../../utilities/digits-only'
 
 /** How many digits a ZIP code holds; a ZCTA identity is exactly this wide. @internal */
-const ZIP_LENGTH = 5
+export const ZIP_LENGTH = 5
 
 /**
  * An inclusive span, stated at any width: `60601-60640` between two codes, and
@@ -118,6 +118,17 @@ function highest(term: string): string {
 	return term.padEnd(ZIP_LENGTH, '9')
 }
 
+/** Whether `first` is the low end of a range against `second`: by low bound, then by high bound. @internal */
+function endsInOrder(first: string, second: string): boolean {
+	const firstLow = lowest(first)
+
+	const secondLow = lowest(second)
+
+	if (firstLow !== secondLow) return firstLow < secondLow
+
+	return highest(first) <= highest(second)
+}
+
 /** Reads one term, or `null` where it names no rule. @internal */
 function readRule(term: string): MapZipRule | null {
 	// A ZIP+4 names one delivery segment inside a code, and no atlas draws below
@@ -136,8 +147,10 @@ function readRule(term: string): MapZipRule | null {
 		// Reversed ends still name the span the reader meant, so they are ordered
 		// rather than refused: `60640-60601` and `60601-60640` are one territory.
 		// Ordered on the low bounds, so the widening below can never invert a span
-		// stated across two widths.
-		const [low, high] = lowest(first) <= lowest(second) ? [first, second] : [second, first]
+		// stated across two widths. Ends with one low bound are ordered on the high
+		// bounds, so the wider end is the high one: `6-600` and `600-6` both read
+		// `60000` to `69999`.
+		const [low, high] = endsInOrder(first, second) ? [first, second] : [second, first]
 
 		return { kind: 'range', from: lowest(low), to: highest(high) }
 	}

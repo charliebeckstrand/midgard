@@ -4,29 +4,46 @@
  * holds the send that turns a response into an answer.
  */
 
-import { httpFailure, thrownFailure } from './failure'
-import { type MapRouteAnswer, type OsrmPayload, routeAnswer } from './result'
+import { thrownFailure } from './failure'
+import { type MapRouteAnswer, type OsrmPayload, refusedFailure, routeAnswer } from './result'
 
 /** The travel profile a routing request asks for. @internal */
 export type MapRouteProfile = 'driving' | 'walking' | 'cycling'
 
 /**
+ * The signal a request rides, with the timeout inside it kept apart. A thrown
+ * request reads which of the two ended it from these, since the thrown value
+ * cannot say.
+ *
+ * @internal
+ */
+export type RequestSignal = {
+	/** What `fetch` takes: the caller's signal, the timeout, or both combined. */
+	signal: AbortSignal | undefined
+	/** The timeout the client set, where it set one. */
+	timeout: AbortSignal | undefined
+}
+
+/**
  * The signal to hand `fetch`: the caller's, a fresh timeout, or both combined
- * through {@link anySignal}. `AbortSignal.timeout(undefined)` throws, so a
- * timeout signal is built only when `timeoutMs` is given. A fired timeout
- * rejects the fetch, which {@link routeFetch} reads back as its own failure kind.
+ * through {@link anySignal}. `AbortSignal.timeout` throws on a value that is not
+ * a finite count of zero or more, so a timeout signal is built only for such a
+ * `timeoutMs`; any other value sets no limit. A fired timeout rejects the
+ * fetch, which {@link routeFetch} reads back as its own failure kind.
  *
  * @internal
  */
 export function requestSignal(
 	signal: AbortSignal | undefined,
 	timeoutMs: number | undefined,
-): AbortSignal | undefined {
-	if (timeoutMs === undefined) return signal
+): RequestSignal {
+	if (timeoutMs === undefined || !Number.isFinite(timeoutMs) || timeoutMs < 0) {
+		return { signal, timeout: undefined }
+	}
 
 	const timeout = AbortSignal.timeout(timeoutMs)
 
-	return signal === undefined ? timeout : anySignal([signal, timeout])
+	return { signal: signal === undefined ? timeout : anySignal([signal, timeout]), timeout }
 }
 
 /**
@@ -58,34 +75,45 @@ function anySignal(signals: readonly AbortSignal[]): AbortSignal {
 /**
  * Send one routing request and read what comes back. It tells apart the three
  * ways a request fails before its payload: a request that never answered, a
- * status the service refused with, and a body that does not parse. The client
- * keeps only the url its service takes.
+ * status the service refused with, and a body that does not parse. A refused
+ * response can still carry the service's own refusal in its body (OSRM answers
+ * `'NoRoute'` and `'NoSegment'` under a 400), so its body is read too. The
+ * client keeps only the url its service takes.
  *
  * @param url - The service endpoint, with whatever the request rides in its path.
- * @param init - The method, headers, body, and signal for this service.
+ * @param request - The signal to send with, and the timeout inside it.
  * @returns The routed leg, or the failure that stopped it.
  *
  * @internal
  */
-export async function routeFetch(url: string, init: RequestInit): Promise<MapRouteAnswer> {
+export async function routeFetch(
+	url: string,
+	{ signal, timeout }: RequestSignal,
+): Promise<MapRouteAnswer> {
 	let response: Response
 
 	try {
-		response = await fetch(url, init)
-	} catch (error) {
-		return { ok: false, failure: thrownFailure(error, 'network') }
+		response = await fetch(url, { signal })
+	} catch {
+		return { ok: false, failure: thrownFailure('network', signal, timeout) }
 	}
 
-	if (!response.ok) return { ok: false, failure: httpFailure(response.status) }
+	if (!response.ok) {
+		// A body that does not arrive or does not parse leaves the status as the
+		// only evidence of the refusal.
+		const body: unknown = await response.json().catch(() => undefined)
+
+		return { ok: false, failure: refusedFailure(response.status, body) }
+	}
 
 	let payload: OsrmPayload
 
 	try {
 		payload = (await response.json()) as OsrmPayload
-	} catch (error) {
-		// A body can abort mid-read as well as fail to parse, so the thrown reason
-		// decides here too; only what names neither reads as an unusable payload.
-		return { ok: false, failure: thrownFailure(error, 'payload') }
+	} catch {
+		// A body can abort mid-read as well as fail to parse, so the signal decides
+		// here too; only what neither signal ended reads as an unusable payload.
+		return { ok: false, failure: thrownFailure('payload', signal, timeout) }
 	}
 
 	return routeAnswer(payload)

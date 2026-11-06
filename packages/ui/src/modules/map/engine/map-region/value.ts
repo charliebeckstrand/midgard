@@ -59,8 +59,10 @@ export type ValueScaleOptions = {
  * resolved domain (for the range legend's extent), plus an `assign` that maps a
  * raw value to its bin. The `assign` is equal-interval or quantile per
  * `binning`. {@link regionValueJoin} therefore colors regions through the same
- * scale the legend describes. Empty (with a `null` domain and a no-op `assign`) when no row
- * carries a finite value.
+ * scale the legend describes. Empty (with a `null` domain and a no-op `assign`)
+ * when no row carries a finite value and no `domain` pins the linear scale. A
+ * pinned domain resolves its bins with no data, as {@link valueExtent} states,
+ * so the legend holds its final layout before the rows arrive.
  *
  * @internal
  */

@@ -3,7 +3,7 @@
  */
 
 import type { LngLat } from '../types'
-import { type MapRouteFailure, noRouteFailure, routeFailure } from './failure'
+import { httpFailure, type MapRouteFailure, noRouteFailure, routeFailure } from './failure'
 
 /**
  * A routed leg: the street-following geometry to draw (a {@link MapRoute}
@@ -47,12 +47,41 @@ export type OsrmPayload = {
 }
 
 /**
- * Why a payload that carries no leg carries none. A service that cannot join a
- * pair refuses in its own code under a 200. OSRM answers `'NoRoute'` with no
- * `routes` at all. A code that is not `'Ok'` is therefore the service's own
- * answer, and reads as a refusal carrying that code. An empty `routes` array says the same
- * thing without naming it. A body with neither is not a routing answer, whatever
- * else it parsed as.
+ * The codes OSRM refuses a pair it cannot join with: `'NoRoute'` where no road
+ * joins the waypoints, and `'NoSegment'` where a waypoint lies off the network.
+ * Its other codes under a 400 (`'InvalidValue'`, `'TooBig'`, and the rest) name
+ * a request it will not read, which the status already says.
+ *
+ * @internal
+ */
+const REFUSAL_CODES: ReadonlySet<string> = new Set(['NoRoute', 'NoSegment'])
+
+/**
+ * The failure a refused response carries. OSRM answers a pair it cannot join
+ * under a 400, with its own code in the body. A body naming one of
+ * {@link REFUSAL_CODES} therefore reads as that refusal. Any other body, or no
+ * body, leaves the status as the evidence.
+ *
+ * @param status - The status the service refused with.
+ * @param body - The parsed body, or `undefined` where it did not parse.
+ *
+ * @internal
+ */
+export function refusedFailure(status: number, body: unknown): MapRouteFailure {
+	const code = typeof body === 'object' && body !== null && 'code' in body ? body.code : undefined
+
+	return typeof code === 'string' && REFUSAL_CODES.has(code)
+		? noRouteFailure(code)
+		: httpFailure(status)
+}
+
+/**
+ * Why a payload that carries no leg carries none. OSRM refuses a pair it cannot
+ * join under a 400 (see {@link refusedFailure}), so this reads a body under a
+ * 200. A code there that is not `'Ok'` is still the service's own answer, and
+ * reads as a refusal carrying that code. An empty `routes` array says the same
+ * thing without naming it. A body with neither is not a routing answer,
+ * whatever else it parsed as.
  *
  * @internal
  */

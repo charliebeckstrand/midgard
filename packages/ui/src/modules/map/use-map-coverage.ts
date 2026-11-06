@@ -91,7 +91,10 @@ export type MapCoverage = {
 	area: MapPolygons
 	/** The codes the territory matched, in the atlas's own order. */
 	codes: string[]
-	/** The groups the territory reached: the state ids `geography` was cut to. */
+	/**
+	 * The groups the territory reached: the state ids `geography` was cut to.
+	 * The list keeps its identity while the states do not change.
+	 */
 	groups: string[]
 	/** The stated terms that read as no rule, for a field to mark. */
 	invalid: string[]
@@ -206,7 +209,7 @@ export function useMapCoverage({
 
 	return {
 		geography,
-		groups: placed.groups,
+		groups,
 		area: area.polygons,
 		codes: area.codes,
 		dissolved: area.dissolved,

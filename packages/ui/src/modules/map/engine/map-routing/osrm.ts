@@ -39,7 +39,9 @@ export type FetchOsrmRouteOptions = {
 	/**
 	 * Abort the request after this many milliseconds, combined with `signal`. A
 	 * timed-out request fails as `'timeout'`, apart from the `'aborted'` a
-	 * caller's own signal ends it with. Omitted, only `signal` bounds it.
+	 * caller's own signal ends it with, whatever reason that signal carries.
+	 * Omitted, or a value that is not a finite count of zero or more, only
+	 * `signal` bounds it.
 	 */
 	timeoutMs?: number
 	signal?: AbortSignal
@@ -80,5 +82,5 @@ export async function fetchOsrmRoute(
 
 	const url = `${baseUrl}/route/v1/${profile}/${coordinates}?overview=${overview}&geometries=geojson`
 
-	return routeFetch(url, { signal: requestSignal(signal, timeoutMs) })
+	return routeFetch(url, requestSignal(signal, timeoutMs))
 }

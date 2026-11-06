@@ -159,6 +159,19 @@ describe('useMapCoverage', () => {
 		expect(result.current.geography).toBe(first)
 	})
 
+	it('holds the groups across a keystroke that does not change the states', () => {
+		const { result, rerender } = renderHook(
+			({ coverage }: { coverage: string }) => useMapCoverage({ coverage, zips, regions: counties }),
+			{ initialProps: { coverage: '60601' } },
+		)
+
+		const first = result.current.groups
+
+		rerender({ coverage: '606' })
+
+		expect(result.current.groups).toBe(first)
+	})
+
 	it('rebuilds the frame when the states actually change', () => {
 		const { result, rerender } = renderHook(
 			({ coverage }: { coverage: string }) => useMapCoverage({ coverage, zips, regions: counties }),

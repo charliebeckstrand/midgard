@@ -22,6 +22,7 @@ import { feature, merge } from 'topojson-client'
 import { featureRings } from '../map-geometry/mark'
 import { decodedFeatures, topologyObject } from '../map-geometry/topology'
 import type { MapFeature, MapGeography, MapPolygons, MapShape, MapTopology } from '../types'
+import { ZIP_LENGTH } from './selection'
 
 /**
  * The property names a ZCTA source names its code in, in the order they are
@@ -44,14 +45,26 @@ const ZIP_PROPERTY_NAMES = [
 ]
 
 /**
+ * A code as its five-digit string. A number has lost its leading zeros, since
+ * `01001` and `1001` are one number, so it is padded back: a code is always
+ * five digits wide. A string is read as written.
+ *
+ * @internal
+ */
+function zipText(value: string | number): string {
+	return typeof value === 'number' ? String(value).padStart(ZIP_LENGTH, '0') : value
+}
+
+/**
  * The default ZIP identity: the shape's own `id`, else the first of the known
  * code properties it carries. A Census ZCTA file satisfies this as-is, in either
- * vintage; anything else takes the `zipId` override.
+ * vintage; anything else takes the `zipId` override. A numeric code keeps its
+ * leading zeros, so `1001` reads as `01001`.
  *
  * @internal
  */
 export function defaultZipId(shape: MapShape): string {
-	if (shape.id != null) return String(shape.id)
+	if (shape.id != null) return zipText(shape.id)
 
 	const { properties } = shape
 
@@ -60,7 +73,7 @@ export function defaultZipId(shape: MapShape): string {
 	for (const name of ZIP_PROPERTY_NAMES) {
 		const value = properties[name]
 
-		if (typeof value === 'string' || typeof value === 'number') return String(value)
+		if (typeof value === 'string' || typeof value === 'number') return zipText(value)
 	}
 
 	return ''

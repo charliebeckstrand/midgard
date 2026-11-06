@@ -93,29 +93,30 @@ export function noRouteFailure(code?: string): MapRouteFailure {
 		: { kind: 'no-route', retryable: false, code }
 }
 
-/** The `name` a thrown value carries, or `''` where it carries none. @internal */
-function errorName(error: unknown): string {
-	return typeof error === 'object' && error !== null && 'name' in error ? String(error.name) : ''
-}
-
 /**
- * The failure a thrown request carries. A signal names itself in the reason it
- * aborts with. `AbortSignal.timeout` throws a `TimeoutError`, and a caller's
- * own controller an `AbortError`. The combined signal passes on the reason of
- * whichever of the two fired. The timeout the client set and the abort the
- * caller asked for therefore stay apart. Anything else takes `fallback`: a
- * request that
- * threw reached no answer, while a body that threw is one this reader cannot
- * take.
+ * The failure a thrown request carries, read from the signal that ended it and
+ * not from the thrown value. A caller can abort its own controller with any
+ * reason, and `fetch` rejects with that reason, so the name of the thrown value
+ * cannot tell a canceled request from a dead network. Where the timeout the
+ * client set has fired, the request timed out. Where the request's signal has
+ * fired otherwise, the caller ended it. Anything else takes `fallback`: a
+ * request that threw reached no answer, while a body that threw is one this
+ * reader cannot take.
+ *
+ * @param fallback - The kind of a throw that no signal caused.
+ * @param signal - The signal the request rode: the caller's own, the timeout, or both combined.
+ * @param timeout - The timeout the client set, where it set one.
  *
  * @internal
  */
-export function thrownFailure(error: unknown, fallback: 'network' | 'payload'): MapRouteFailure {
-	const name = errorName(error)
+export function thrownFailure(
+	fallback: 'network' | 'payload',
+	signal: AbortSignal | undefined,
+	timeout: AbortSignal | undefined,
+): MapRouteFailure {
+	if (timeout?.aborted) return routeFailure('timeout')
 
-	if (name === 'TimeoutError') return routeFailure('timeout')
-
-	if (name === 'AbortError') return routeFailure('aborted')
+	if (signal?.aborted) return routeFailure('aborted')
 
 	return routeFailure(fallback)
 }
