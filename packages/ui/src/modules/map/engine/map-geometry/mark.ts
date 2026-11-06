@@ -35,9 +35,14 @@ import type { LngLat, MapFeature, MapPoint2D, MapPointShape, MapPolygons } from 
 
 /**
  * {@link projectPoint} run backwards: a frame position to the lon/lat it draws
- * from, or `null` where the fit has none. That is an unfitted projection, a
- * point the composite drops between its insets, or one a projection cannot
- * invert at all.
+ * from, or `null` where the fit has none. That is an unfitted projection, or
+ * one that cannot invert the position at all.
+ *
+ * `albers-usa` inverts every position. `d3-geo`'s `geoAlbersUsa` sends a
+ * position outside the Alaska and Hawaii insets through the lower-48 conic,
+ * so a position between the insets comes back as a lon/lat and not as `null`.
+ * A caller that must know detects that jump itself (`pieceInverse` in
+ * `map-region/spare`).
  *
  * @internal
  */
@@ -553,8 +558,9 @@ export function dotReach(radius: number, shape: MapPointShape = 'circle'): numbe
  * centers on `at`, at `radius` frame units, and the first share starts at the
  * top. The shares go clockwise, each one as long as its part of the whole.
  *
- * A share that is the whole ring has no arc of its own, because an arc that
- * starts and ends at one point draws nothing. It is two half arcs instead.
+ * A share longer than half the ring is two arcs of half its length. An arc that
+ * starts and ends at one point draws nothing, and the rounded ends of a whole
+ * ring, or of a share near it, meet.
  *
  * @param at - The center of the ring, in frame units.
  * @param radius - The radius of the ring, in frame units.
@@ -571,8 +577,8 @@ export function ringArcs(at: MapPoint2D, radius: number, shares: readonly number
 		return `${round(at.x + radius * Math.cos(angle))},${round(at.y + radius * Math.sin(angle))}`
 	}
 
-	const arc = (end: number, large: boolean) =>
-		`A${round(radius)},${round(radius)} 0 ${large ? 1 : 0} 1 ${point(end)}`
+	// No arc is longer than half the ring, so the large-arc flag is always 0.
+	const arc = (end: number) => `A${round(radius)},${round(radius)} 0 0 1 ${point(end)}`
 
 	let start = 0
 
@@ -582,9 +588,9 @@ export function ringArcs(at: MapPoint2D, radius: number, shares: readonly number
 		const end = start + turn
 
 		const d =
-			turn >= 1
-				? `M${point(start)}${arc(start + 0.5, false)}${arc(start + 1, false)}`
-				: `M${point(start)}${arc(end, turn > 0.5)}`
+			turn > 0.5
+				? `M${point(start)}${arc(start + turn / 2)}${arc(end)}`
+				: `M${point(start)}${arc(end)}`
 
 		start = end
 

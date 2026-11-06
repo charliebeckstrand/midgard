@@ -134,47 +134,46 @@ export function affineBasis(
 }
 
 /**
- * The first ring position any feature offers, which is a lon/lat of the drawn
- * geography and so a position every fit of that geography places.
+ * A feature's first ring position, which is a lon/lat of the drawn geography and
+ * so a position every fit of that geography places. `undefined` for a feature
+ * that draws no area.
  */
-function firstPosition(features: MapFeature[]): LngLat | null {
-	for (const { geometry } of features) {
-		if (geometry === null) continue
+function firstPosition({ geometry }: MapFeature): LngLat | undefined {
+	if (geometry === null) return undefined
 
-		const rings =
-			geometry.type === 'Polygon'
-				? geometry.coordinates
-				: geometry.type === 'MultiPolygon'
-					? geometry.coordinates[0]
-					: undefined
+	const rings =
+		geometry.type === 'Polygon'
+			? geometry.coordinates
+			: geometry.type === 'MultiPolygon'
+				? geometry.coordinates[0]
+				: undefined
 
-		const position = rings?.[0]?.[0]
-
-		if (position !== undefined) return position as LngLat
-	}
-
-	return null
+	return rings?.[0]?.[0] as LngLat | undefined
 }
 
 /**
- * The witness for a buffer: a position of the geography, and where the
- * projection that drew the buffer put it. `null` where nothing projects: an
- * empty geography, or one that falls entirely outside the projection's own
- * frame.
+ * The witness for a buffer: the first feature position that the projection
+ * which drew the buffer places, and where it put it. A leading feature outside
+ * the projection's own frame (a country under the `albers-usa` insets) offers
+ * none, so the walk goes on to the next. `null` where nothing projects: an empty
+ * geography, or one that falls entirely outside the projection's own frame.
  */
 function buildWitness(
 	features: MapFeature[],
 	projection: GeoProjection,
 ): MapProjectedAtlas['witness'] {
-	const position = firstPosition(features)
+	for (const shape of features) {
+		const position = firstPosition(shape)
 
-	if (position === null) return null
+		if (position === undefined) continue
 
-	const at = projection(position)
+		const at = projection(position)
 
-	if (at === null || !Number.isFinite(at[0]) || !Number.isFinite(at[1])) return null
+		if (at !== null && Number.isFinite(at[0]) && Number.isFinite(at[1]))
+			return { position, x: at[0], y: at[1] }
+	}
 
-	return { position, x: at[0], y: at[1] }
+	return null
 }
 
 /**
@@ -361,8 +360,11 @@ function bufferBounds(points: Float64Array): [number, number, number, number] {
  * bounds, and keeps only the scale and translate it derives. The buffer then
  * streamed it again to record where every point landed. But bounds are a scan of
  * those same points, so the walk that fills the buffer can measure the frame on
- * its way. The two passes then cost about as much as the buffer alone did. The
- * frame comes out to the same bit.
+ * its way. The two passes then cost about as much as the buffer alone did. On a
+ * quantized atlas, whose vertices already sit inside the finer tolerance of
+ * {@link PROBE_REFINEMENT}, the frame comes out to the same bit. A geography
+ * with long edges that d3 resamples measures a slightly different frame,
+ * because the walk here resamples them more finely than `fitProjectionWidth`.
  *
  * The buffer is therefore drawn at probe scale and read at every fit above it,
  * which is what {@link PROBE_REFINEMENT} is for. The header's note on what parts

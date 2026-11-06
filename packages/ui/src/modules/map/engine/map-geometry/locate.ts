@@ -99,9 +99,32 @@ function walk(node: unknown, box: MapBounds): void {
 }
 
 /**
+ * How far poleward a great-circle edge can reach inside a box: the latitude
+ * `edge` moves to. `geoContains` joins two vertices along a great circle, and
+ * that arc bulges poleward of both. An edge that spans at most `width` degrees
+ * of longitude, between vertices no farther poleward than `edge`, peaks at or
+ * under `atan(tan(edge) / cos(width / 2))`. An edge on the equator side of 0
+ * cannot bulge past its vertices, and an edge 180 degrees wide or more can
+ * reach the pole.
+ *
+ * @internal
+ */
+function poleward(edge: number, width: number): number {
+	if (edge <= 0 || edge >= 90) return edge
+
+	if (width >= 180) return 90
+
+	const radians = Math.PI / 180
+
+	return Math.atan(Math.tan(edge * radians) / Math.cos((width / 2) * radians)) / radians
+}
+
+/**
  * The conservative box around a feature's coordinates, or `null` where it has
  * none. A plain min/max walk, so it costs a fraction of what the spherical
- * measurements over the same coordinates cost.
+ * measurements over the same coordinates cost. The walk stops at the vertices,
+ * so the north and south edges then move poleward by the most that a
+ * great-circle edge of the box's width can bulge ({@link poleward}).
  *
  * @internal
  */
@@ -121,7 +144,15 @@ export function featureBounds(shape: MapFeature): MapBounds | null {
 
 	walk(geometry.coordinates, box)
 
-	return Number.isFinite(box.west) && Number.isFinite(box.south) ? box : null
+	if (!Number.isFinite(box.west) || !Number.isFinite(box.south)) return null
+
+	const width = box.east - box.west
+
+	box.north = poleward(box.north, width)
+
+	box.south = -poleward(-box.south, width)
+
+	return box
 }
 
 /** The grid column a longitude falls in. @internal */

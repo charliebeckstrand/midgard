@@ -22,7 +22,7 @@ export type MapSkeletonProps = {
 	 * its ratio before its atlas loads. `'albers-usa'` is the United States, and
 	 * an atlas-less plat on the default `aspectRatio: 'auto'` reserves exactly
 	 * that. Without it the skeleton reserved 16/9 in front of a plat reserving
-	 * 1.709. That is an ~18px jump at 800px wide, in the swap this component
+	 * about 1.709. That is an ~18px jump at 800px wide, in the swap this component
 	 * exists to prevent.
 	 *
 	 * An explicit {@link aspectRatio} still wins: it is the narrower statement, and a

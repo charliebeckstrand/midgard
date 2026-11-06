@@ -36,7 +36,8 @@ export const PROBE_SCALE = 150
  * translate centers the span in the frame, and the vertical one lifts the
  * geography's top edge onto y 0. Fits `projection` in place and reports the
  * height the frame comes to. It returns `null` where the bounds collapse on
- * either axis: no geography, or a lone point.
+ * either axis: no geography, a lone point, or a height that rounds to 0 on the
+ * grid below.
  *
  * The height is on the grid of the region paths ({@link REGION_PATH_DIGITS}).
  * It goes into the markup as the `viewBox` and the `aspect-ratio`, and the
@@ -62,15 +63,18 @@ export function fitWidthFromProbeBounds(
 ): number | null {
 	const spanX = x1 - x0
 
-	const spanY = y1 - y0
-
-	if (spanX <= 0 || spanY <= 0) return null
+	if (spanX <= 0) return null
 
 	const k = width / spanX
 
+	const height = Math.round((y1 - y0) * k * REGION_PATH_ROUNDING) / REGION_PATH_ROUNDING
+
+	// One test for a span of zero and for a span that rounds to zero on the grid.
+	if (height <= 0) return null
+
 	projection.scale(PROBE_SCALE * k).translate([(width - k * (x1 + x0)) / 2, -k * y0])
 
-	return Math.round(spanY * k * REGION_PATH_ROUNDING) / REGION_PATH_ROUNDING
+	return height
 }
 
 /**
@@ -126,7 +130,8 @@ export function fitProjection(
 /**
  * Fits `projection` so the geography spans `width` exactly, aligned to the
  * frame's top-left, and reports the height that frame comes to. `null` where
- * the bounds collapse on either axis: no geography, or a lone point.
+ * the bounds collapse on either axis: no geography, a lone point, or a height
+ * that rounds to 0 ({@link fitWidthFromProbeBounds}).
  *
  * d3's `fitWidth` runs one probe pass to measure the geography and then keeps
  * only the scale and translate it derives. A caller that needs the frame as

@@ -12,7 +12,11 @@ import {
 	scaleCanonicalFit,
 } from '../../modules/map/engine/map-projection/fit'
 import { frameToClient } from '../../modules/map/engine/map-projection/frame'
-import { fitProjection, resolveProjection } from '../../modules/map/engine/map-projection/resolve'
+import {
+	fitProjection,
+	fitWidthFromProbeBounds,
+	resolveProjection,
+} from '../../modules/map/engine/map-projection/resolve'
 import type { MapFeature } from '../../modules/map/engine/types'
 import { FLOAT } from '../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
@@ -296,6 +300,20 @@ describe('canonicalFit · the reserved aspect', () => {
 			expect(Number(height?.toFixed(REGION_PATH_DIGITS))).toBe(height)
 		},
 	)
+})
+
+describe('fitWidthFromProbeBounds', () => {
+	it('reports no height where the span rounds to zero on the path grid', () => {
+		// A span of 0.0001 probe units fits to 0.0007 frame units at width 1000,
+		// under the grid's 0.1. A height of 0 would reserve an infinite aspect.
+		expect(fitWidthFromProbeBounds(geoMercator(), 0, 0, 150, 0.0001, 1000)).toBeNull()
+	})
+
+	it('reports no height where the span collapses', () => {
+		expect(fitWidthFromProbeBounds(geoMercator(), 0, 0, 150, 0, 1000)).toBeNull()
+
+		expect(fitWidthFromProbeBounds(geoMercator(), 0, 0, 0, 150, 1000)).toBeNull()
+	})
 })
 
 describe('projectionFallbackAspect', () => {
