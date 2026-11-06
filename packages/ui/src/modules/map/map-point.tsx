@@ -94,8 +94,7 @@ export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 		dots: stops,
 	})
 
-	// Sanitized, because `useId` spells its output with characters a fragment reference cannot carry.
-	const clipId = `${useId().replace(/[^\w-]/g, '')}-hit`
+	const clipId = `${useId()}-hit`
 
 	/*
 	 * Keyed on the ordinates rather than on `at`, and memoized rather than called inline, because

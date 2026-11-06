@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { QueryGroup } from './engine/types'
 
@@ -10,8 +10,7 @@ type QueryRemovalFocus<E extends HTMLElement> = {
 	register: (key: string, el: E | null) => void
 	/**
 	 * Moves focus to the first live target of `keys` once the node `id` leaves
-	 * the tree. Each call makes a new removal, so a second removal runs the
-	 * effect again.
+	 * the tree. A second call replaces a removal that still waits.
 	 */
 	focusFirst: (id: string, keys: string[]) => void
 }
@@ -53,21 +52,20 @@ export function useQueryRemovalFocus<E extends HTMLElement>(
 		else targets.current.delete(key)
 	}, [])
 
-	// The removal stays set after the move. A clear would add a render that
-	// remounts the control that just took focus. The settled removal tells the
-	// effect that a later tree has no focus to move.
-	const [pending, setPending] = useState<PendingRemoval | null>(null)
-
-	const settled = useRef<PendingRemoval | null>(null)
+	// A ref and not a state: the removal draws nothing. The tree that drops the
+	// node renders, and its effect moves focus and clears the removal.
+	const pending = useRef<PendingRemoval | null>(null)
 
 	const exhausted = useStableEvent(() => onExhausted?.())
 
 	useEffect(() => {
-		if (!pending || pending === settled.current || holdsNode(tree, pending.id)) return
+		const removal = pending.current
 
-		settled.current = pending
+		if (removal === null || holdsNode(tree, removal.id)) return
 
-		for (const key of pending.keys) {
+		pending.current = null
+
+		for (const key of removal.keys) {
 			const el = targets.current.get(key)
 
 			if (el?.isConnected && !el.matches(':disabled')) {
@@ -78,9 +76,11 @@ export function useQueryRemovalFocus<E extends HTMLElement>(
 		}
 
 		exhausted()
-	}, [pending, tree, exhausted])
+	}, [tree, exhausted])
 
-	const focusFirst = useCallback((id: string, keys: string[]) => setPending({ id, keys }), [])
+	const focusFirst = useCallback((id: string, keys: string[]) => {
+		pending.current = { id, keys }
+	}, [])
 
 	return { register, focusFirst }
 }

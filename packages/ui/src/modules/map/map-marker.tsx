@@ -131,8 +131,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		[from, to, unitsPerPixel, spare],
 	)
 
-	// Sanitized, because `useId` spells its output with characters a fragment reference cannot carry.
-	const clipId = useId().replace(/[^\w-]/g, '')
+	const clipId = useId()
 
 	// The ground each pin keeps against the other marks' dots, as `MapPoint` reads its own, and the
 	// id of the clip that bounds it. `undefined` where no neighbor is close enough to want any. The
