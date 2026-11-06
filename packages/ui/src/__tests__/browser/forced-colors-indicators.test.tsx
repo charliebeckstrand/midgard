@@ -9,6 +9,7 @@ import { ColorPanel, ColorPicker } from '../../components/color'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
+import { HoldButton } from '../../components/hold-button'
 import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NavItem, NavList } from '../../components/nav'
@@ -41,10 +42,11 @@ import { emulateForcedColors, systemColor } from './helpers/forced-colors'
 /**
  * Under forced colors, each control still shows its state. The two renders of
  * one control in two states must paint different pixels. The progress fill,
- * the tabs indicator, the active indicator, and the slider tracks and thumbs
- * draw state only with a background or a shadow, which forced colors remove.
+ * the hold fill, the tabs indicator, the active indicator, and the slider
+ * tracks and thumbs draw state only with a background or a shadow, which forced
+ * colors remove.
  */
-async function pixels(ui: ReactElement): Promise<string> {
+async function pixels(ui: ReactElement, prepare?: (host: HTMLElement) => void): Promise<string> {
 	const { container, unmount } = renderUI(<div style={{ padding: 8, width: 240 }}>{ui}</div>)
 	await frames()
 	const host = present(container.firstElementChild as HTMLElement | null, 'host')
@@ -53,6 +55,7 @@ async function pixels(ui: ReactElement): Promise<string> {
 	const bar = host.querySelector('[data-slot=progress-bar]')
 	const fill = bar?.firstElementChild as HTMLElement | null | undefined
 	if (bar && fill) fill.style.width = `${bar.getAttribute('aria-valuenow')}%`
+	prepare?.(host)
 	await frames()
 	const image = new Image()
 	image.src = `data:image/png;base64,${await page.screenshot({ element: host, save: false })}`
@@ -556,6 +559,21 @@ describe('controls show their state under forced colors (real browser)', () => {
 		const valid = await pixels(<Control>{ui}</Control>)
 		const invalid = await pixels(<Control severity="error">{ui}</Control>)
 		expect(invalid).not.toBe(valid)
+	})
+
+	// The browser suite mocks `motion/react`, so a hold moves no fill. Write the
+	// scale of the fill half way through a hold.
+	it('hold button: a hold half way through paints differently from rest', async () => {
+		const ui = <HoldButton onHoldComplete={() => {}}>Delete</HoldButton>
+		const rest = await pixels(ui)
+		const held = await pixels(ui, (host) => {
+			const fill = present(
+				host.querySelector<HTMLElement>('[data-slot=hold-button] > [style*=scaleX]'),
+				'fill',
+			)
+			fill.style.transform = 'scaleX(0.5)'
+		})
+		expect(held).not.toBe(rest)
 	})
 
 	it('range slider: 10 to 40 and 60 to 90 paint differently', async () => {
