@@ -78,7 +78,7 @@ Status: `◯ OPEN`, `✅ RESOLVED (#NNN)`, or `✖ DROPPED` with the reason of t
 | [C04](#c04) | `modules/query/query-builder/query-builder-sortable.tsx` | QueryBuilderSortable | CONFIRMED | medium | shipped | bug | M1 | ◯ OPEN |
 | [C10](#c10) | `recipes/kata/query-builder.ts` | k (sortable slot) | CONFIRMED | medium | shipped | bug | independent | ✅ RESOLVED ([#3305](https://github.com/charliebeckstrand/midgard/pull/3305)) |
 | [C17](#c17) | `modules/query/engine/query-evaluate.ts` | matchers (equals, notEquals) | CONFIRMED | medium | shipped | bug | independent | ✅ RESOLVED ([#3303](https://github.com/charliebeckstrand/midgard/pull/3303)) |
-| [C02](#c02) | `modules/query/query-chips.tsx` | QueryChips | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
+| [C02](#c02) | `modules/query/query-chips.tsx` | QueryChips | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3306](https://github.com/charliebeckstrand/midgard/pull/3306)) |
 | [C05](#c05) | `modules/query/use-query-removal-focus.ts` | useQueryRemovalFocus | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3304](https://github.com/charliebeckstrand/midgard/pull/3304)) |
 | [C06](#c06) | `modules/query/query-builder/query-builder-sortable.tsx` | QueryBuilderSortable | CONFIRMED | low | none | correctness | M1 | ◯ OPEN |
 | [C07](#c07) | `modules/query/query-builder/query-builder-group.tsx` | QueryBuilderGroup | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
