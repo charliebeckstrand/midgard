@@ -6,14 +6,15 @@
  *   as its region's complement and floods the frame.
  * - The degenerate rings every source carries, which no winding saves.
  *
- * They were once one question, both read off a ring's spherical area. They are
- * not any more. {@link planarSide} settles the winding of 99.25% of rings on the
- * plane, and never measures the sphere. The drop stays on the exact measure,
- * whatever the plane reports. What now couples them is
- * {@link DEGENERATE_SAFETY_FACTOR}: a ring the plane cannot tell from
- * degenerate is handed to the measure that can. The pass runs once per atlas on
- * the cached decode stage (`cache.ts`). Across the features of `counties-10m`,
- * it costs a small fraction of the spherical pass.
+ * The two jobs do not read one measure. {@link planarSide} settles the winding
+ * of 99.25% of rings on the plane, and never measures the sphere. The drop
+ * stays on the exact spherical measure, whatever the plane reports. What
+ * couples them is {@link DEGENERATE_SAFETY_FACTOR}: a ring the plane cannot
+ * tell from degenerate goes to the measure that can.
+ *
+ * The pass runs once per atlas on the cached decode stage (`cache.ts`). Across
+ * the features of `counties-10m`, it costs a small fraction of the spherical
+ * pass.
  */
 
 import { geoArea } from 'd3-geo'
@@ -99,12 +100,14 @@ const DEGENERATE_SAFETY_FACTOR = 100
  * §3.1.6 forbids such a ring, but that is not what makes this safe, because real
  * atlases ship them anyway. Across every file `us-atlas` and `world-atlas`
  * publish, 141 of the 22,285 rings cross themselves, five of them in
- * `counties-10m`. What makes it safe is that the sign only turns over when two
- * oppositely wound lobes are comparable in area. A coastline that nicks itself
- * is a spur against a landmass. Every one of those 141 agrees with the spherical
- * measure. That is a measurement over the atlases a consumer is likely to draw,
- * not a proof. It is therefore the reason to keep the byte-for-byte comparison
- * in reach, rather than to stop checking.
+ * `counties-10m`.
+ *
+ * What makes it safe is that the sign only turns over when two oppositely wound
+ * lobes are comparable in area. A coastline that nicks itself is a spur against
+ * a landmass. Every one of those 141 agrees with the spherical measure. That is
+ * a measurement over the atlases a consumer is likely to draw, not a proof. It
+ * is therefore the reason to keep the byte-for-byte comparison in reach, rather
+ * than to stop checking.
  *
  * @internal
  */
@@ -307,10 +310,11 @@ function rewindFeature(feature: MapFeature): MapFeature {
  * The drop is not inert, which is why a TopoJSON atlas is not a case this pass
  * can be skipped for. Quantization collapses a sliver to a ring of no area, and
  * a decoded atlas arrives carrying them. `counties-10m` yields 15 polygons and 7
- * holes to drop, and `states-10m` and `countries-110m` a polygon each. Almost
- * all of those sit inside a multipolygon that keeps its other parts, so the
- * visible effect is small. One `counties-10m` feature is left with nothing to
- * draw. The 89 others that draw no path are territories `albers-usa` places
+ * holes to drop, and `states-10m` and `countries-110m` a polygon each.
+ *
+ * Almost all of those sit inside a multipolygon that keeps its other parts, so
+ * the visible effect is small. One `counties-10m` feature is left with nothing
+ * to draw. The 89 others that draw no path are territories `albers-usa` places
  * nowhere. The drop earns the pass on the holes rather than on the count.
  * {@link DEGENERATE_AREA_EPSILON} states why a ring of no area cannot be wound
  * either way. A hole flipped on that reading punches out the region it

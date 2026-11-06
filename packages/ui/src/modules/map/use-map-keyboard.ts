@@ -78,8 +78,8 @@ function stopResolver(resolveStops: () => MapStop[]): (version: number) => MapRe
 }
 
 /**
- * The handlers a map spreads onto its plot region: the shared tab stop, and a
- * focus handler so that the stop stays while the region holds focus.
+ * The handlers a map spreads onto its plot region. They are the shared tab stop,
+ * and a focus handler that keeps the stop while the region holds focus.
  *
  * @internal
  */
@@ -99,9 +99,9 @@ export type MapKeyboardOptions = {
 	 * overlay marks at theirs), resolved on demand. A closure, not an array. The
 	 * `geoCentroid` pass behind the region half measures every ring in the atlas
 	 * (on counties, a large fraction of the cost of the mount). It must never run
-	 * on the mount or the resize path for a cursor most maps never carry. This is
-	 * called on the first navigation key and not again until a refit, a resize,
-	 * or an overlay registration replaces it, or a mark moves (see `moves`).
+	 * on the mount or the resize path for a cursor most maps never carry. The
+	 * first navigation key calls it. It runs again only when a refit, a resize, or
+	 * an overlay registration replaces it, or when a mark moves (see `moves`).
 	 */
 	resolveStops: () => MapStop[]
 	/**
@@ -124,7 +124,7 @@ export type MapKeyboardOptions = {
 	/**
 	 * The target of the stop that holds what `target` holds now. A zoom regroups
 	 * the dots of a `MapPoints`, so a target there holds the point it stands on
-	 * (`reported`), and this gives the dot that holds that point. Any other
+	 * (`reported`). This gives the dot that holds that point. Any other
 	 * target comes back as it is.
 	 */
 	relocate: (target: MapHoverTarget) => MapHoverTarget
@@ -138,9 +138,9 @@ export type MapKeyboardOptions = {
 	/**
 	 * The view the zoom layer draws through, or `null` on a map that does not
 	 * zoom. The cursor reads it to anchor its readout where the map draws the
-	 * stop, and drives it two ways. `+`, `-`, and `0` step and reset the scale. A
-	 * step onto a stop the zoom put off-frame, or a scale step that carries the
-	 * cursor's stop off the frame, pans the view to it.
+	 * stop, and drives it two ways. `+`, `-`, and `0` step and reset the scale.
+	 * Also, the view pans to the cursor's stop when a step puts that stop
+	 * off-frame.
 	 */
 	zoom: MapZoomCursor | null
 }
@@ -151,23 +151,27 @@ export type MapKeyboardOptions = {
  * keyboard the way they answer the pointer. It is the chart module's model
  * (`use-chart-keyboard`), over a geography's own axes.
  *
- * Focus alone only rings the region: a click focuses it too, and to seize the
- * readout from the pointer would jar. The first arrow enters at the first stop.
- * From there each arrow steps to the nearest stop bearing that way. Regions and
+ * Focus alone only rings the region: a click focuses it too, and a readout taken
+ * from the pointer would jar. The first arrow enters at the first stop. From
+ * there each arrow steps to the nearest stop bearing that way. Regions and
  * overlay marks stand in one field, as the pointer crosses them. Home and End
- * jump to the ends of the list. Enter or Space picks the stop under the cursor,
- * and Escape leaves through the shared {@link usePlotTabStop} exit. That exit
- * claims the press only when it clears a live readout, so an overlay around the
- * map closes on the first Escape. Each step onto a stop speaks its readout
- * through the shared polite live region.
+ * jump to the ends of the list.
+ *
+ * Enter or Space picks the stop under the cursor, and Escape leaves through the
+ * shared {@link usePlotTabStop} exit. That exit claims the press only when it
+ * clears a live readout, so an overlay around the map closes on the first
+ * Escape. Each step onto a stop speaks its readout through the shared polite
+ * live region.
  *
  * A zooming map answers three more keys on that one stop. `+` and `-` step the
  * scale about the frame's center, and `0` returns to the fit. A step speaks the
  * new scale through the same live region ({@link describeZoom}), and the return
- * speaks `Zoom reset`. The cursor takes the view with it: a step onto a stop the
- * zoom put off-frame pans the map to show it, and so does a `+` or `-` step
- * that carries the cursor's stop off the frame. Navigation therefore never
- * points a reader at something the plot does not draw.
+ * speaks `Zoom reset`. The cursor takes the view with it. A step onto a stop that
+ * the zoom put off-frame pans the map to show it. So does a `+` or `-` step that
+ * carries the cursor's stop off the frame.
+ *
+ * Navigation therefore never points a reader at something the plot does not
+ * draw.
  *
  * No drawn mark is focusable. The plot is a `role="img"` leaf over an
  * `aria-hidden` SVG. A focusable path would therefore be unreachable to
@@ -183,8 +187,8 @@ export type MapKeyboardOptions = {
  *
  * Returns `null` (no tab stop) when the cursor has no output, leaving the
  * region the plain `role="img"` it was. A region that holds focus keeps its tab
- * stop until the blur, so a geography that goes empty or a pick that goes away
- * does not drop focus to the body. The keys do nothing in that time.
+ * stop until the blur. Thus a geography that goes empty, or a pick that goes
+ * away, does not drop focus to the body. The keys do nothing in that time.
  *
  * @internal
  */

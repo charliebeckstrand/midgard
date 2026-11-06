@@ -83,12 +83,13 @@ function drawn(d: string | null): string | null {
  * three clip boxes where it has none. Under `albers-usa` those are the
  * lower-48 box and the two inset boxes, in that order. It serves twice.
  * Stroked, it is the sphere outline a whole-world map closes its frame with.
- * Unstroked, it bounds the graticule. The composite streams the lines through
- * all three of its sub-projections, so each inset fills with fragments at its
- * own angle. A clip to this path under the even-odd rule leaves the main map
- * ruled and every inset clear. There the inset boxes read as holes in the outer
- * one. One path, so the bound and the outline can never disagree about where
- * the projection draws.
+ * Unstroked, it bounds the graticule.
+ *
+ * The composite streams the lines through all three of its sub-projections, so
+ * each inset fills with fragments at its own angle. A clip to this path under
+ * the even-odd rule leaves the main map ruled and every inset clear. There the
+ * inset boxes read as holes in the outer one. One path, so the bound and the
+ * outline can never disagree about where the projection draws.
  *
  * Both parts ride one `geoPath`, whose one decimal is the region paths'. Chrome
  * draws in the same frame units, where a second decimal serializes detail no

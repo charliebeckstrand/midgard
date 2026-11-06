@@ -22,7 +22,7 @@ function answerFor(start: LngLat, end: LngLat): Promise<MapRouteAnswer> {
 /**
  * The road between two places, from the OSRM demo server, or `null` while it
  * loads or when the server gives no road. An example mounts its line only
- * when the road is in, so no straight line shows first, and the line then
+ * when the road is in. Thus no straight line shows first, and the line then
  * draws itself in under `animate`.
  *
  * @remarks

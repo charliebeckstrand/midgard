@@ -94,8 +94,8 @@ function placeStop(
 
 /**
  * The target of one stop of a mark. A mark whose stops regroup gives the index
- * that it reports for the stop, so the target holds the point and not only the
- * position of its stop.
+ * that it reports for the stop. Thus the target holds the point, and not only
+ * the position of its stop.
  *
  * @internal
  */

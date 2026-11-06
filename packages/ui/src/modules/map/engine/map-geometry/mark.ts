@@ -39,8 +39,8 @@ import type { LngLat, MapFeature, MapPoint2D, MapPointShape, MapPolygons } from 
  * one that cannot invert the position at all.
  *
  * `albers-usa` inverts every position. `d3-geo`'s `geoAlbersUsa` sends a
- * position outside the Alaska and Hawaii insets through the lower-48 conic,
- * so a position between the insets comes back as a lon/lat and not as `null`.
+ * position outside the Alaska and Hawaii insets through the lower-48 conic.
+ * Thus a position between the insets comes back as a lon/lat and not as `null`.
  * A caller that must know detects that jump itself (`pieceInverse` in
  * `map-region/spare`).
  *
@@ -392,11 +392,11 @@ export function ringsPath(rings: readonly MapAreaRing[]): string {
  * width. The cause is the shape this reads, not the winding. {@link projectArea}
  * flattens the polygons to one ring list, because {@link ringsPath} needs no more
  * than that. Which ring opened a polygon is therefore gone before this measures.
- * Keeping that grouping is what a band would need: the outer ring's area less
- * its holes', over the whole boundary. It costs the flat list every other
- * reader here wants. The reading errs generous, so the dot keeps more of its
- * target rather than less. A zone of that shape is rare enough to leave the
- * grouping unbuilt.
+ *
+ * A band needs that grouping: the outer ring's area less its holes', over the
+ * whole boundary. The grouping costs the flat list that every other reader here
+ * wants. The reading errs generous, so the dot keeps more of its target rather
+ * than less. A zone of that shape is rare enough to leave the grouping unbuilt.
  *
  * @param rings - The projected rings, from {@link projectArea}.
  * @returns The inscribed reach in frame units, `0` for an area with no extent.
@@ -559,8 +559,8 @@ export function dotReach(radius: number, shape: MapPointShape = 'circle'): numbe
  * top. The shares go clockwise, each one as long as its part of the whole.
  *
  * A share longer than half the ring is two arcs of half its length. An arc that
- * starts and ends at one point draws nothing, and the rounded ends of a whole
- * ring, or of a share near it, meet.
+ * starts and ends at one point draws nothing. The rounded ends of a whole ring,
+ * or of a share near it, meet.
  *
  * @param at - The center of the ring, in frame units.
  * @param radius - The radius of the ring, in frame units.

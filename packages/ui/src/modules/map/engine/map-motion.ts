@@ -42,7 +42,7 @@ export const POINT_REVEAL_SETTLE = POINT_STAGGER_MAX + POINT_POP.duration
  * A dot's pop, delayed by its ordinal so a set of them reveals in sequence, and
  * capped so a long set does not trail. Built per call rather than held in a
  * table. The cap admits only a handful of distinct delays. Yet `POINT_POP` is
- * frozen, and the spread is one small object on the mount path alone.
+ * a constant, and the spread is one small object on the mount path alone.
  *
  * @internal
  */

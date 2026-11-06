@@ -130,13 +130,12 @@ type MapMergeRule = {
  * and `1 / k` under the zoom layer's transform. That transform scales the drawn
  * frame without refitting the projection. The gap and the marks' own radii are
  * both pixel measures, as every mark spec in the module is. This converts them
- * once on the way in, and every comparison below reads frame units alone. A
- * zoom that spreads the dots apart on screen therefore separates them here on
- * the same beat.
+ * once on the way in, and every comparison below reads frame units alone. Thus
+ * a zoom that spreads the dots apart on screen separates them here at once.
  *
  * `getRadius` is how wide a group of each count draws, in device pixels: the
  * drawn mark's own `clusterRadius`, bound to the count label it holds. The rule
- * measures each mark at the size it draws, so a summary that grows to hold a
+ * measures each mark at the size it draws. Thus a summary that grows to hold a
  * wide count also takes the room it grows into.
  *
  * Grouping runs on the projected frame rather than on lon/lat, because overlap
@@ -193,7 +192,8 @@ export function clusterPoints(
 
 /**
  * The reach of the broad phase from a seed, in frame units: half the reach of a
- * pair, which is the widths of two dots and the larger of their two gaps.
+ * pair. The reach of a pair is the widths of two dots and the larger of their
+ * two gaps.
  *
  * Half, so that any two dots inside it stand strictly inside the reach of a
  * pair. A chain through one seed therefore never joins two dots that the rule
@@ -428,7 +428,8 @@ function nearestSeed(
 /**
  * A group's drawn mark, or `null` where the projection has no image for it. The
  * radius and the gap are device-pixel measures, so they convert to frame units
- * here: the one place a mark's width and its gap enter the pass.
+ * here. This is the one place where the width of a mark and its gap enter the
+ * pass.
  *
  * @internal
  */

@@ -105,8 +105,8 @@ export function MapRegionsLit({
  * on a shared border. Each outline takes the ink that parts from its own
  * region's fill (the paint's `outline`).
  *
- * Its own component for the reason {@link MapRegionSelected} gives: the width is
- * not the inherited hairline, so it reads the zoom scale, and only this group
+ * Its own component for the reason {@link MapRegionSelected} gives. The width is
+ * not the inherited hairline, so it reads the zoom scale. Thus only this group
  * re-renders on a zoom notch.
  *
  * @internal

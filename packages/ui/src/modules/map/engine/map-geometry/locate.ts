@@ -122,8 +122,8 @@ function poleward(edge: number, width: number): number {
 /**
  * The conservative box around a feature's coordinates, or `null` where it has
  * none. A plain min/max walk, so it costs a fraction of what the spherical
- * measurements over the same coordinates cost. The walk stops at the vertices,
- * so the north and south edges then move poleward by the most that a
+ * measurements over the same coordinates cost. The walk stops at the vertices.
+ * Thus the north and south edges then move poleward by the most that a
  * great-circle edge of the box's width can bulge ({@link poleward}).
  *
  * @internal

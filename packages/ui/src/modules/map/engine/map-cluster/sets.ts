@@ -114,7 +114,7 @@ export type MapClusterSet = {
  * The pass is `clusterPoints` over the dots of all the sets, with the gap of
  * each dot from its set. A group that holds the dots of one set is an ordinary
  * group of that set. A group that holds the dots of more than one set is a
- * shared summary, and each of its sets gets the part that holds its own dots.
+ * shared summary. Each of its sets gets the part that holds its own dots.
  *
  * The groups of each set are in the order of their first dots, as the groups
  * of one set alone are. One set alone therefore groups as `clusterPoints` groups
@@ -213,8 +213,8 @@ export function groupSets(
 
 /**
  * The dots of one joint group, split by the set that owns each one. The joint
- * indices are ascending and the sets are laid out in order, so the parts come
- * out in the order of the sets, each with its own indices ascending.
+ * indices are ascending, and the sets are laid out in order. Thus the parts come
+ * out in the order of the sets, and the indices of each part are ascending.
  *
  * @internal
  */
@@ -352,9 +352,9 @@ export function createClusterStore(
 }
 
 /**
- * The set that one entry puts in the pass, or `undefined` where it puts none:
- * an entry that the legend hides, an entry with no `clusterAt`, and a set with its
- * grouping off.
+ * The set that one entry puts in the pass, or `undefined` where it puts none.
+ * An entry that the legend hides puts none, and so do an entry with no
+ * `clusterAt` and a set with its grouping off.
  *
  * @internal
  */

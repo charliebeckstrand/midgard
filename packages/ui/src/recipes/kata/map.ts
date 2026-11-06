@@ -88,8 +88,8 @@ export const k = {
 	series: palette.series,
 	/**
 	 * A shared summary: a summary that holds the dots of more than one set. A ring
-	 * of the colors of its sets carries the mark, so the disc inside the ring and
-	 * the count on it take the inks of the surface. No one set color then names a
+	 * of the colors of its sets carries the mark. Thus the disc inside the ring
+	 * and the count on it take the inks of the surface. No one set color then names a
 	 * mark that belongs to several sets.
 	 */
 	shared: {
@@ -156,8 +156,8 @@ export const k = {
 		emphasized: {
 			/**
 			 * On a numeric bin's fill, the outline takes the pole that contrasts
-			 * with that fill, in both modes: `dark` on a light fill, `light` on a
-			 * dark fill. The fill, not the surface, is what the outline must part
+			 * with that fill, in both modes. That is `dark` on a light fill, and
+			 * `light` on a dark fill. The fill, not the surface, is what the outline must part
 			 * from.
 			 */
 			dark: 'stroke-zinc-900',
@@ -189,8 +189,7 @@ export const k = {
 	 * emphasized mark holds. On a wrapper (an overlay's, or the whole region
 	 * layer's recede group), so motion's inline opacity composes. A county atlas
 	 * also fades as one transition, never one per path. Thousands of simultaneous
-	 * opacity transitions priced a legend focus at hundreds of milliseconds of
-	 * per-frame compositing.
+	 * opacity transitions made a legend focus miss frames.
 	 */
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
 	/** Keyboard focus ring: the shared accent outline, on the navigable plot region. */

@@ -61,8 +61,8 @@ type MapDotProps = {
 	radius: number
 	/**
 	 * The shape of the dot. A `square` is a box with rounded corners, the shape
-	 * of the square `Swatch`, as wide as the circle, so both shapes take the
-	 * same box.
+	 * of the square `Swatch`. It is as wide as the circle, so both shapes take
+	 * the same box.
 	 * @defaultValue 'circle'
 	 */
 	shape?: MapPointShape | undefined
@@ -222,8 +222,9 @@ type MapDotRingProps = {
 }
 
 /**
- * The ring of a shared summary: one arc for each set that the summary holds, in
- * the color of that set and as long as its share of the dots. The ring starts at
+ * The ring of a shared summary: one arc for each set that the summary holds.
+ * Each arc has the color of its set and is as long as its share of the dots.
+ * The ring starts at
  * the top and goes clockwise, in the order of the parts. It sits inside the
  * edge of the summary, so the summary keeps the width that the grouping measured.
  *
@@ -313,11 +314,13 @@ function countPlacement(at: MapPoint2D, scale: number) {
  *
  * @remarks It is never a pointer target. The mark's own hit circle draws over it
  * and carries the readout. A label that answered the pointer would report no
- * mark at all. It is never selectable either, which `pointerEvents` alone does
- * not settle. A drag across the plot still takes the text. On a map that pans,
- * the reader then ends a pan holding a highlighted number instead of a moved
- * map. There is nothing to copy out of it. It counts the marks under one dot,
- * and that count is a fact about the current frame rather than about the data.
+ * mark at all.
+ *
+ * It is never selectable either, which `pointerEvents` alone does not settle. A
+ * drag across the plot still takes the text. On a map that pans, the reader then
+ * ends a pan with a highlighted number instead of a moved map. There is nothing
+ * to copy out of it. It counts the marks under one dot, and that count is a fact
+ * about the current frame rather than about the data.
  *
  * @internal
  */
@@ -365,36 +368,40 @@ export function MapDotCount({
 /**
  * Every attribute of the invisible circle that answers the pointer over a
  * dot-shaped mark: a point, a marker pin, one dot of a set. One rule for all of
- * them. The `r` attribute carries WCAG 2.5.5's 44px, and a mouse gives back the
- * reach that something else needs, through `k.hit.fine`. A drawn zone under the
- * dot needs it. That is what lets a `MapGeofence` drawn tight around a
- * `MapPoint` still answer, and keeps a depot off the middle of its own
- * catchment. A neighboring dot inside the reach needs it too. Without it the
- * target over one mark would take the readout of the mark beside it. A region
- * layer that answers the pointer needs it too, because a full target over the
- * shape puts a hole in it.
+ * them. The `r` attribute carries WCAG 2.5.5's 44px. Through `k.hit.fine`, a
+ * mouse gives back the reach that something else needs.
+ *
+ * A drawn zone under the dot needs that reach. Thus a `MapGeofence` drawn tight
+ * around a `MapPoint` still answers, and a depot stays off the middle of its
+ * own catchment. A neighboring dot inside the reach needs it too, or the target
+ * over one mark takes the readout of the mark beside it. A region layer that
+ * answers the pointer needs it too, because a full target over the shape puts a
+ * hole in it.
  *
  * Where none of the three holds, there is nothing under the dot to yield to, and
  * it keeps the full target on every pointer. That is a lone point on open
  * geography, or a depot whose catchment the legend has just put away. Precision
  * costs a mouse user reach, so the dot only pays it where the pixels have
- * somewhere to go. `markTargets` weighs the three claims and hands the answer in
- * as {@link MapDotHitSpec.target}, because each is a fact about the mark's own
+ * somewhere to go.
+ *
+ * `markTargets` weighs the three claims and hands the answer in as
+ * {@link MapDotHitSpec.target}, because each is a fact about the mark's own
  * neighborhood. The rule about what to do with it stays here, in the one
  * comparison below.
  *
  * A props factory rather than a component, because a `MapPoints` draws one of
- * these per dot. A component's own fiber for each of 200 dots added a
- * measurable part to every re-render of the set. The set re-renders on each
- * pointed-mark crossing, each legend emphasis, and each refit. The rule stays
- * in one place either way; only the fiber goes.
+ * these per dot. A fiber for each of 200 dots adds a measurable part to every
+ * re-render of the set. The set re-renders on each pointed-mark crossing, each
+ * legend emphasis, and each refit. The rule stays in one place either way; only
+ * the fiber goes.
  *
  * Both reaches are pixel measures, and the shape draws in frame units. `scale`
  * (what one device pixel spans under the plat's zoom) therefore divides both
  * here. The coarse one rides the `r` attribute. The fine one rides a custom
  * property the class reads (`k.hit.radius`), because only CSS can answer the
  * modality. A CSS length on an SVG shape is a user unit like any other.
- * Resolving both here is what keeps a target from ballooning with the view. The
+ *
+ * The resolution of both here keeps a target from ballooning with the view. The
  * rule has one home, and a mark added later gets it by construction.
  *
  * That property rides each shape rather than the zoom layer over them all, where
@@ -462,16 +469,17 @@ type MapDotClipProps = {
  * coordinates the dot draws in.
  *
  * Memoized, because the mark that draws it re-renders on every pointer crossing of every mark on
- * the map. Neither its id nor its ground moves. `groundPoints` therefore walked the ring and built
- * its string per crossing, for a `<polygon>` whose `points` had not changed.
+ * the map. Neither its id nor its ground moves. Without the memo, `groundPoints` walks the ring and
+ * builds its string per crossing, for a `<polygon>` whose `points` did not change.
  *
- * Wrapped in `<defs>`, as every other clip in the map and chart modules is (`MapChrome`'s frame
- * clip, `ChartLine`'s wipe). A `<clipPath>` never renders wherever it sits, so this is convention
- * rather than correctness. But it is the convention. One clip declared differently from the others
- * is a thing the next reader has to stop and check. Per instance rather than pooled into one
- * document-level `<defs>`, which is also what those two do. The element belongs beside the mark
- * whose target it bounds. A shared pool would need an id registry to keep it in step with the dots
- * coming and going as the clustering rebuilds.
+ * Wrapped in `<defs>`, as every other clip in the map and chart modules is. Examples are the frame
+ * clip of `MapChrome` and the wipe of `ChartLine`. A `<clipPath>` never renders wherever it sits,
+ * so this is convention rather than correctness. But it is the convention, and one clip declared
+ * differently from the others is a thing the next reader has to stop and check.
+ *
+ * Per instance rather than pooled into one document-level `<defs>`, which is also what those two
+ * do. The element belongs beside the mark whose target it bounds. A shared pool needs an id
+ * registry to keep it in step with the dots that come and go as the clustering rebuilds.
  *
  * @internal
  */

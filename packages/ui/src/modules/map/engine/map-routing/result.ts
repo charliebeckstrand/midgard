@@ -47,8 +47,9 @@ export type OsrmPayload = {
 }
 
 /**
- * The codes OSRM refuses a pair it cannot join with: `'NoRoute'` where no road
- * joins the waypoints, and `'NoSegment'` where a waypoint lies off the network.
+ * The codes OSRM refuses a pair it cannot join with. `'NoRoute'` is where no
+ * road joins the waypoints, and `'NoSegment'` is where a waypoint lies off the
+ * network.
  * Its other codes under a 400 (`'InvalidValue'`, `'TooBig'`, and the rest) name
  * a request it will not read, which the status already says.
  *

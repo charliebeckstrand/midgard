@@ -212,8 +212,8 @@ type MapPointsRevealProps = {
 /**
  * Holds the mount reveal of a {@link MapPoints}. The pop and its stagger belong
  * to the reveal alone. A zoom that splits a summary adds dots at the end of the
- * set, and under the reveal's timing each one waited out the stagger of its
- * index before it popped. After the reveal, a dot that a regroup adds draws at
+ * set. Under the reveal's timing, each of them waits out the stagger of its
+ * index before it pops. After the reveal, a dot that a regroup adds draws at
  * once, as a dot that a regroup resizes already does (`MapDot`).
  *
  * The clock runs from the first commit that draws a dot, since a set can mount
@@ -272,7 +272,7 @@ type MapPointsSharedProps = {
 /**
  * One shared summary: a summary that holds the dots of more than one set. The
  * first of its sets draws it, as a disc in the surface color with the count on
- * it and a ring split into the colors of its sets ({@link MapDotRing}). It is a
+ * it. A ring around it splits into the colors of its sets ({@link MapDotRing}). It is a
  * circle whatever the shapes of its dots, because the ring is its key.
  *
  * It sits in a group of its own, which dims only where every one of its sets
@@ -462,14 +462,17 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 *
 	 * Every set on the plat that clusters groups in one pass, so two sets never
 	 * draw over one another. A pair of marks of two sets keeps the larger of their
-	 * two gaps. A summary that holds the dots of more than one set is a shared
-	 * summary. It draws as a disc in the surface color, with the count on it and a
-	 * ring split into the colors of its sets, each arc as long as its share. Each
-	 * set keeps the part of the summary that holds its own dots as a table row and
-	 * a pick of that set, read out as that set reads a summary of its own. The
-	 * pointer and the keyboard reach the summary as one mark, so the tooltip and
-	 * the announcement read every part. A pick of the summary, from any input,
-	 * reports each part to the `onClick` of its own set. A set that the legend toggles off leaves the pass.
+	 * two gaps. A set that the legend toggles off leaves the pass.
+	 *
+	 * A summary that holds the dots of more than one set is a shared summary. It
+	 * draws as a disc in the surface color, with the count on it. A ring around
+	 * it splits into the colors of its sets, each arc as long as its share. Each
+	 * set keeps its part of the summary as a table row and a pick of that set. The
+	 * part reads out as that set reads a summary of its own.
+	 *
+	 * The pointer and the keyboard reach the summary as one mark, so the tooltip
+	 * and the announcement read every part. A pick of the summary, from any
+	 * input, reports each part to the `onClick` of its own set.
 	 *
 	 * `false` draws every dot, however they stack, and leaves the set out of the
 	 * shared pass.

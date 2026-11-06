@@ -3,23 +3,20 @@
  * rule. `map-cluster/crowd.ts` holds the neighbor part and the list of
  * claimants, `map-geofence.ts` the zone part, and `markTargets` joins them.
  *
- * The zone half learned the rule first. A figure that suits one shape blankets
- * a smaller one. A zone therefore publishes its own inscribed room, and a dot
- * takes a share of it ({@link AREA_SPARE_FRACTION}). Regions are the same
- * question asked of shapes three orders of magnitude apart in area. That is why
- * the one figure this replaced could only be safe at the small end. It was the
- * dot's own paint, held against every region on every map. A state with room to
- * spare therefore took the same bite as one with none. A dot over open water
- * paid as much as either.
+ * A figure that suits one shape blankets a smaller one. A zone therefore
+ * publishes its own inscribed room, and a dot takes a share of it
+ * ({@link AREA_SPARE_FRACTION}). Regions ask the same question of shapes three
+ * orders of magnitude apart in area. One figure for every region is safe only
+ * at the small end. A state with room to spare then takes the same bite as one
+ * with none. A dot over open water pays as much as either.
  *
- * The claim used to be resolved map-wide because no dot could ask what region it
- * stood on. The module resolves a region off a pointed DOM element, not off a
- * coordinate. It can ask now. `map-geometry/locate.ts` already indexes an atlas
- * by bounding box for the coverage frame, and the fit inverts. A frame position
- * therefore becomes a lon/lat, and the grid takes the candidates down to a
- * handful.
+ * Thus each dot asks what region it stands on. The module resolves a region off
+ * a pointed DOM element, not off a coordinate. `map-geometry/locate.ts` already
+ * indexes an atlas by bounding box for the coverage frame, and the fit inverts.
+ * A frame position therefore becomes a lon/lat, and the grid takes the
+ * candidates down to a handful.
  *
- * Frame arithmetic with no React in it, like its two siblings.
+ * Frame arithmetic with no React in it, like the rest of the engine.
  */
 
 import { getOrCompute } from '../../../../utilities/get-or-compute'
@@ -238,9 +235,9 @@ function pieceCorner(
  * conversion from pixels to degrees is the projection's own and varies with
  * latitude. An inset composite changes it outright.
  *
- * Each corner clamps to the dot's own inset box before it inverts. A corner past
- * an inset edge otherwise inverts through another piece of the composite, and
- * the box lies to one side of the dot and can miss the region it stands on.
+ * Each corner clamps to the dot's own inset box before it inverts. Otherwise a
+ * corner past an inset edge inverts through another piece of the composite. The
+ * box then lies to one side of the dot and can miss the region it stands on.
  *
  * `null` where the dot itself does not invert, which reads as no claim. The
  * alternative is a box grown to the whole sphere, and a dot the projection has

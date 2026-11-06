@@ -128,21 +128,25 @@ export const AREA_SPARE_FRACTION = 0.5
  * ({@link POINT_RADIUS} exactly, an 11px target). A mouse aims at one pixel, so it
  * needs no part of the reach a finger takes. That reach is what makes a dot
  * swallow the marks around it. A `MapGeofence` drawn small around a `MapPoint`
- * sits entirely inside the coarse circle. A depot at a catchment's center
- * claimed the middle of its own zone at 24px as well. Nothing takes a target
- * under this. A target inside its own dot would leave the mark a reader can see
- * a dead rim. The zone therefore gives way where the two cannot both fit.
+ * sits entirely inside the coarse circle. At 24px, a depot at the center of a
+ * catchment also claims the middle of its own zone.
+ *
+ * Nothing takes a target under this. A target inside its own dot leaves the
+ * mark that a reader can see a dead rim. The zone therefore gives way where the
+ * two cannot both fit.
  *
  * Under WCAG 2.5.8's 24px minimum on purpose. A mark carries three other ways to
  * its datum: its legend row, the keyboard cursor's stop, and its `MapTable` row.
  * The dot is therefore never the only route to it. What the dot gives its pixels
  * back to has no such second route. A zone under it answers the pointer or
- * nothing does. A neighboring dot swallowed by the reach reports another
- * mark's readout in place of its own. A dot clear of every claimant keeps the
- * full {@link POINT_HIT_RADIUS} instead, since precision a reader gains nothing
- * from is only reach taken from them. `markTargets` weighs the claims, and
- * `dotHitProps` states what it does with the answer. `map-cluster/crowd.ts`
- * holds the list of claimants; do not restate it here.
+ * nothing does, and a neighboring dot under the reach reports the readout of
+ * another mark.
+ *
+ * A dot clear of every claimant keeps the full {@link POINT_HIT_RADIUS} instead.
+ * Precision that a reader gains nothing from is only reach taken from them.
+ * `markTargets` weighs the claims, and `dotHitProps` states what it does with
+ * the answer. `map-cluster/crowd.ts` holds the list of claimants; do not
+ * restate it here.
  *
  * Applied through `kata/map`'s `hit.fine` class rather than the `r` attribute,
  * since only CSS can answer the modality. The attribute carries the coarse
@@ -175,11 +179,12 @@ export const POINT_HIT_RADIUS_FINE = 5.5
  * fixed {@link MAP_CANONICAL_WIDTH}-wide viewBox. The reach therefore reads as a
  * fraction of the frame's width there, and the grouping loosens in a box
  * narrower than that. The measurement lands in a layout effect, before the
- * first paint, so no reader sees it. The zoom layer's transform parts them for
- * as long as it holds, and the grouping answers it. The whole reach takes one
- * multiply by the units-per-pixel scale the plat publishes
- * (`MapZoomScaleContext`). That is why the marks' own radii sit inside that
- * reach rather than beside it. @internal
+ * first paint, so no reader sees it.
+ *
+ * The zoom layer's transform parts the two units for as long as it holds, and
+ * the grouping answers it. The whole reach takes one multiply by the
+ * units-per-pixel scale the plat publishes (`MapZoomScaleContext`). That is why
+ * the marks' own radii sit inside that reach rather than beside it. @internal
  */
 export const POINT_CLUSTER_GAP = 3
 
@@ -208,11 +213,12 @@ export const CLUSTER_RADIUS_STEPS = [
 /**
  * The width, in device pixels, a summary's count label takes for each character.
  * The count draws in `text-xs` semibold with tabular figures, so every digit
- * takes one advance, and that advance is this figure in the ui font: 8.2px,
- * measured. A group separator (`,` in English, `.` in Spanish) takes about half
- * of it. Counting each character at the full advance therefore overstates a
- * grouped label by a few pixels and never understates one. A fallback font
- * draws narrower figures, so the label fits before the ui font loads too.
+ * takes one advance. In the ui font, that advance measures 8.2px.
+ *
+ * A group separator (`,` in English, `.` in Spanish) takes about half of it.
+ * Each character counted at the full advance therefore overstates a grouped
+ * label by a few pixels and never understates one. A fallback font draws
+ * narrower figures, so the label fits before the ui font loads too.
  * `clusterRadius` reads it. @internal
  */
 export const CLUSTER_COUNT_CHAR_WIDTH = 8.2
@@ -338,13 +344,14 @@ export const CHROME_STROKE_WIDTH = 1
 
 /**
  * The width, in frame units, the projection fits to for the canonical
- * (measurement-free) draw. Fitting once to a fixed frame yields two things. One
- * is the geography's aspect ratio. The other is a projection the neutral
- * geography paints from on the first commit, before the container is measured.
- * The map therefore appears without waiting a mount → measure → refit round
- * trip. The measured refit later
- * replaces it for constant-pixel marks. The two share this frame's aspect, so
- * the swap only sharpens strokes, never reshapes the geography. @internal
+ * (measurement-free) draw. One fit to a fixed frame yields two things. One is
+ * the geography's aspect ratio. The other is a projection the neutral geography
+ * paints from on the first commit, before the container is measured. The map
+ * therefore appears without waiting a mount → measure → refit round trip.
+ *
+ * The measured refit later replaces it for constant-pixel marks. The two share
+ * this frame's aspect, so the swap only sharpens strokes, never reshapes the
+ * geography. @internal
  */
 export const MAP_CANONICAL_WIDTH = 1000
 

@@ -113,10 +113,13 @@ export function MapFrame({
 				    when the legend moves between a side and a band. A drill-down that
 				    drops a side legend then keeps the plot mounted, and a plot that holds
 				    focus keeps it.
+
 				    The panel and plot sit side by side once the map's own box reaches
 				    `@lg` (32rem). That leaves the plot at least 19rem beside the 12rem
 				    rail. Below it they stack with the panel always under the map, so a
-				    left panel reverses the row instead of moving in the DOM. The stack
+				    left panel reverses the row instead of moving in the DOM.
+
+				    The stack
 				    stretches its children, because the plot reserves its height from
 				    its own width and a centered plot has no width to reserve from. The
 				    side is physical, so a left panel stays left in a right-to-left page.

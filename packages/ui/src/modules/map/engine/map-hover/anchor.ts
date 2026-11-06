@@ -1,8 +1,8 @@
 /**
  * Reading a hover target back off the DOM. The drawn marks carry their identity
- * in data attributes, and two paths resolve it. Those are the layers' own
- * delegated handlers, and the hover provider's scroll-settle lookup. Both read
- * it here, rather than each parsing the attributes for itself.
+ * in data attributes. Each reader of that identity, such as the delegated
+ * handlers of a layer or the scroll-settle lookup of the hover provider, reads
+ * it here. Thus no reader parses the attributes for itself.
  *
  * Framework-free like the rest of the engine: these take an `Element` and
  * return data, so they are testable against a bare DOM.
@@ -59,7 +59,7 @@ export function markAnchorAt(
 /**
  * The mark under a DOM node: a region, else an overlay mark, else `null`. The
  * hover provider's scroll-settle resolve and the touch double tap both read the
- * target here, so the two can't disagree about what is under a point.
+ * target here. Thus the two cannot disagree about what is under a point.
  *
  * @internal
  */

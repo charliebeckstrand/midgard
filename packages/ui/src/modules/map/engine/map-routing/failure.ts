@@ -41,10 +41,11 @@ export type MapRouteFailure =
  * under two stops name no leg, and no request leaves. `'aborted'` and
  * `'timeout'` are the two ways a signal ends one. They stay apart because a
  * caller that canceled its own request learned nothing about the service.
+ *
  * `'network'` is a request that never reached an answer. `'http'` is a status
  * the service refused with, and `'payload'` a body that is not a routing
- * answer.
- * `'no-route'` is the service's own answer that no leg joins the waypoints.
+ * answer. `'no-route'` is the service's own answer that no leg joins the
+ * waypoints.
  */
 export type MapRouteFailureKind = MapRouteFailure['kind']
 
@@ -96,8 +97,8 @@ export function noRouteFailure(code?: string): MapRouteFailure {
 /**
  * The failure a thrown request carries, read from the signal that ended it and
  * not from the thrown value. A caller can abort its own controller with any
- * reason, and `fetch` rejects with that reason, so the name of the thrown value
- * cannot tell a canceled request from a dead network. Where the timeout the
+ * reason, and `fetch` rejects with that reason. Thus the name of the thrown
+ * value cannot tell a canceled request from a dead network. Where the timeout the
  * client set has fired, the request timed out. Where the request's signal has
  * fired otherwise, the caller ended it. Anything else takes `fallback`: a
  * request that threw reached no answer, while a body that threw is one this

@@ -36,9 +36,9 @@ export type MapDotPool = {
  * A new {@link MapDotPool} over the entries of a ledger.
  *
  * The first read gathers the whole pool, and the pool holds that gather. The gather invokes each
- * entry's `dotsAt`. `MapPoints` registers that as a thunk, so that the O(N) build and the
- * spherical centroid behind each summary's anchor land on the one reader that wants them. A plat
- * with no dot-shaped mark therefore never gathers. M marks share one gather, and each drops only its
+ * entry's `dotsAt`. `MapPoints` registers that as a thunk. Thus the O(N) build, and the spherical
+ * centroid behind the anchor of each summary, land on the one reader that wants them. A plat with
+ * no dot-shaped mark therefore never gathers. M marks share one gather, and each drops only its
  * own dots from it.
  *
  * A restake before the first read does nothing, because no reader holds a gather yet. After it, a

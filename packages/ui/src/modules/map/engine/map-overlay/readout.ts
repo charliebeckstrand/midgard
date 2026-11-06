@@ -57,17 +57,17 @@ export function markReadout(
 /**
  * What an unnamed stop is called: the mark's label and the stop's one-based position.
  *
- * The FORMAT only: deliberately not the index, because the two callers count in different spaces and
- * both are right to. This file numbers by position in `stopRows`. `MapPoints` numbers by the caller's
- * own point index, since a click reports that index. A readout counting in another space would name
- * a row the caller cannot find. So the thing that must not diverge is the spelling, and it is the
- * spelling that lives here.
+ * The format only, not the index, because the callers count in different spaces and each is right
+ * to. This file numbers by position in `stopRows`. `MapPoints` numbers by the caller's own point
+ * index, since a click reports that index. A readout that counts in another space names a row that
+ * the caller cannot find. So the thing that must not diverge is the spelling, and the spelling
+ * lives here.
  *
- * Here for the reason stated at the top of this file. The tooltip and the visually-hidden table are
- * two renderings of one readout, and a merged dot's `clusterDetail` labels are a third. Three copies
- * of the format is three ways for them to name the same dot differently.
+ * Here for the reason stated at the top of this file. The tooltip, the visually-hidden table, and
+ * the `clusterDetail` labels of a merged dot all render one readout. Each copy of the format is one
+ * more way for them to name the same dot differently.
  *
- * The position goes through `formatNumber`, the number format of the reader's locale, so a stop
+ * The position goes through `formatNumber`, the number format of the reader's locale. Thus a stop
  * reads its number as every other number on the map does.
  *
  * @internal
@@ -106,7 +106,7 @@ export function markRowKey(id: string, stop: number): string {
  * it has no row.
  *
  * A mark with no detail anywhere falls back to the name of its kind ("Route",
- * "Point") in the language of the reader, so the value column is never empty.
+ * "Point") in the language of the reader. Thus the value column is never empty.
  * Each row carries its own {@link markRowKey}. The caller then needs no index of
  * its own to key by, and a selection names the row it marks by the same key.
  * The tooltip needs no key, so only this half of the pair asks for the mark's id.

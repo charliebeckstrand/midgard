@@ -26,38 +26,40 @@ export type MapPointProps = MapOverlayProps & {
 }
 
 /**
- * A solid circle or square marker at one coordinate: a warehouse, a stop, a geocoded
- * address. It is filled in its slot color, and registered in the plat's legend
- * as its own toggleable, focusable entry. Hovering raises the tooltip with the
- * point's name and detail, and isolates the dot. Every other mark recedes, as
- * under its legend entry's focus, and an invisible hit circle keeps the dot
- * aimable. With `onClick` set, that circle answers a click, and the keyboard
- * cursor picks the point with Enter or Space. The plat's `selectedOverlay`
- * haloes the dot for as long as it names this mark.
+ * A solid circle or square dot at one coordinate, such as a warehouse, a stop,
+ * or a geocoded address. It fills in its slot color, and the plat's legend
+ * registers it as its own toggleable, focusable entry. A hover raises the
+ * tooltip with the point's name and detail. It also isolates the dot: every
+ * other mark recedes, as under the focus of its legend entry.
  *
- * Another mark's dot can stand close enough that the two targets would overlap. The circle is
- * then clipped to the ground nearer to this dot than to that one. It therefore keeps its whole
- * finger-sized reach outward. The contested middle divides once, evenly, along the line midway
- * between them. Before this, both kept the whole circle and the overlap answered for whichever drew
- * last, taking the other dot's tooltip with it.
+ * An invisible hit circle keeps the dot aimable. With `onClick` set, the hit
+ * circle answers a click, and the keyboard cursor picks the point with Enter or
+ * Space. The plat's `selectedOverlay` haloes the dot while it names this mark.
  *
- * That circle is a finger-sized target, and for a mouse it narrows to what the
- * ground under it can spare. Two things can want that ground. A {@link MapGeofence}
- * the map is drawing takes half the room that zone holds. The zone therefore keeps a
- * band of its own face pointable, and a zone wide enough to spare the whole target
- * gives the whole target. Toggle the zone off in the legend and the point has its
- * ground to itself again. A region layer that answers the pointer takes a share of
- * its own room on the same terms. The dot is the topmost thing at its own pixels.
- * A full target over such a shape puts a 44px hole in it. A dot near the middle of
- * a small region can make that region unpickable altogether. Answering is
- * wider than clicking. A readout, a preload, or a right-click menu each earn it, and
- * a region with room to spare gives the whole target back.
+ * The dot of another mark can stand so close that the two targets overlap. The
+ * hit circle then clips to the ground nearer to this dot than to that one. Thus
+ * each target keeps its whole reach outward, and the line midway between the
+ * dots divides the contested middle evenly. Without the clip, the dot that draws
+ * last takes the whole overlap and the tooltip of the other dot.
  *
- * Both narrowings are for a MOUSE only, on a device with no coarse pointer. A
- * device with a touchscreen keeps the whole 44px target (WCAG 2.5.5) for every
+ * For a mouse, the hit circle narrows to what the ground under it can spare.
+ * Two things can want that ground. A {@link MapGeofence} that the map draws
+ * takes half the room of its zone, so the zone keeps a band of its own face
+ * pointable. A zone wide enough to spare the whole target gives the whole
+ * target, and a zone toggled off in the legend gives the ground back.
+ *
+ * A region layer that answers the pointer takes a share of its own room on the
+ * same terms. The dot is the topmost thing at its own pixels, so a full target
+ * over such a shape puts a 44px hole in it. A dot near the middle of a small
+ * region can make that region unpickable. A region answers the pointer when a
+ * readout, a preload, or a right-click menu reads it, not only on a click. A
+ * region with room to spare gives the whole target back.
+ *
+ * Both narrowings are for a mouse only, on a device with no coarse pointer. A
+ * device with a touchscreen keeps the whole 44px target (WCAG 2.5.5) for each
  * pointer, because CSS cannot tell which pointer a press comes from. A finger
- * cannot aim at 11px, and the shapes it is competing with are large enough to
- * reach somewhere else.
+ * cannot aim at 11px, and the shapes that compete with it are large enough to
+ * reach elsewhere.
  *
  * @remarks Renders only inside {@link MapPlat}, and renders nothing when the
  * projection has no image for its position (the US composite drops points

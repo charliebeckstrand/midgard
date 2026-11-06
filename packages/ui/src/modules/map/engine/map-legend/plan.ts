@@ -142,10 +142,12 @@ type MapLegendPlan = {
  * keeps its own can-show and placement rules. The range bar (numeric mode,
  * `'range'` or the object form) resolves placement, orientation, and visibility
  * through the shared {@link resolveRangeLegend}. That bar sheds at the spark
- * tier. A side bar stands beside the map from the map frame's `@lg`, and lies
- * flat under the map below it, the way the frame stacks a side switchboard.
- * CSS draws that change, so the server and the first paint draw the final
- * layout. The choropleth's bar therefore behaves as the heatmap's does, at the
+ * tier.
+ *
+ * A side bar stands beside the map from the map frame's `@lg`. Below it, the bar
+ * lies flat under the map, the way the frame stacks a side switchboard. CSS
+ * draws that change, so the server and the first paint draw the final layout.
+ * The choropleth's bar therefore behaves as the heatmap's does, at the
  * breakpoint of its own frame.
  *
  * @internal
