@@ -278,6 +278,40 @@ describe('MapPlat keyboard navigation', () => {
 		expect(liveRegion()?.textContent ?? '').toBe('')
 	})
 
+	it('speaks the name of a stop with no readout where Enter picks it', async () => {
+		const { container, plot } = renderNavigable(categoricalPlat({ onRegionClick: vi.fn() }))
+
+		// Gamma matches no row, but Enter picks it, so the reader hears what it picks.
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Gamma'))
+
+		// A category the legend holds off reads nothing, and it is a pick as well.
+		fireEvent.click(allBySlot(container, 'map-legend-item')[0] as Element)
+
+		fireEvent.keyDown(plot, { key: 'Home' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Alpha'))
+	})
+
+	it('speaks the name of each region on a zoom map whose regions answer a preload', async () => {
+		// No rows, no pick, and no `nameRegions`: the preload makes each region a
+		// stop, so each stop must still say where the cursor is.
+		const { plot } = renderNavigable(
+			<MapPlat
+				aria-label="Regions"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				zoom
+				onRegionPreload={vi.fn()}
+			/>,
+		)
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await waitFor(() => expect(liveRegion()?.textContent).toBe('Alpha'))
+	})
+
 	it('takes no tab stop when the cursor would have nothing to output', () => {
 		const { container } = renderUI(categoricalPlat({ tooltip: false }))
 

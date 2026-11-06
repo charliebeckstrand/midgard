@@ -2,6 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import {
+	Children,
 	type ComponentProps,
 	type ReactNode,
 	type Ref,
@@ -181,7 +182,9 @@ type MapPlatBaseProps = AccessibleName &
 		 * matches and no mark draws on has nothing to name, so it takes no tab stop
 		 * whatever this prop says. A pick or a zoom still earns one, because each is
 		 * an output of its own. On that stop, with the readout off, each arrow key
-		 * speaks the name of the stop alone. An unmatched region raises no tooltip
+		 * speaks the name of the stop alone. With the readout on, a region stop that
+		 * reads nothing speaks its name when the map has {@link onRegionClick},
+		 * because Enter picks that region. An unmatched region raises no tooltip
 		 * and takes no emphasis. Its table row shows the gap mark as its value.
 		 */
 		tooltip?: boolean
@@ -803,9 +806,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[shape.features, regionId],
 	)
 
-	// A region pick earns the cursor a stop on a map with no readout, and on that
-	// stop each arrow key speaks the name of the region it moves onto. So a pick
-	// asks for the names, though the tooltip stays away.
+	// Each handler that makes the region layer answer (a pick, a preload, a
+	// context menu) makes each region a cursor stop on a map with no readout, and
+	// on that stop each arrow key speaks the name of the region it moves onto. So
+	// each of them asks for the names, though the tooltip stays away.
 	//
 	// The props go in whole: the region-data union's branches are exclusive only
 	// while the object holds together, so an object rebuilt from the bindings
@@ -823,7 +827,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		props,
 		regionIds,
 		regionLabel,
-		nameRegions || onRegionClick !== undefined,
+		nameRegions ||
+			onRegionClick !== undefined ||
+			onRegionPreload !== undefined ||
+			onRegionContextMenu !== undefined,
 	)
 
 	const {
@@ -878,35 +885,40 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[onRegionContextMenu, regionIds],
 	)
 
-	// The preload reporter, read when the dwell fires rather than when the latch
-	// below is built: a consumer's inline `onRegionPreload` is a fresh identity
-	// every render, and re-keying the latch on it would warm a region the reader
-	// already warmed.
-	const reportPreload = useStableEvent((id: string, index: number) => onRegionPreload?.(id, index))
+	// The preload reporter, bridged to the public identity through the same
+	// helper as the reporters above, so all three resolve a region's name one way.
+	// It reads the reporter and the ids when the dwell fires, not when the latch
+	// below is built: an inline `onRegionPreload` or `regionId` is a fresh
+	// identity every render, and to re-key the latch on either would warm a region
+	// the reader already warmed.
+	const reportPreload = useStableEvent((index: number) =>
+		bridgeRegionIdentity(onRegionPreload, regionIds)?.(index),
+	)
 
 	// Whether anything asked to be told of intent, as the boolean the latch and the
 	// tracking gate both key on rather than the churning handler behind it.
 	const preloads = onRegionPreload !== undefined
 
-	// Bridged to the public identity through the same helper as the reporters
-	// above, so all three resolve a region's name one way, wrapped in the latch a
-	// warmed region keeps: the pointer crosses back over a region as freely as it
-	// first arrived, and the second crossing has nothing left to warm. The latch
-	// belongs to the geography, which is what a feature index means anything
-	// against.
+	// The reporter, wrapped in the latch a warmed region keeps: the pointer
+	// crosses back over a region as freely as it first arrived, and the second
+	// crossing has nothing left to warm. The latch holds the features themselves,
+	// so it belongs to the geography: a new `geography` re-arms every region, and
+	// nothing else does.
 	const preloadRegion = useMemo(() => {
 		if (!preloads) return undefined
 
-		const warmed = new Set<number>()
+		const warmed = new Set<MapFeature>()
 
-		return bridgeRegionIdentity((id, index) => {
-			if (warmed.has(index)) return
+		return (index: number) => {
+			const feature = shape.features[index]
 
-			warmed.add(index)
+			if (feature === undefined || warmed.has(feature)) return
 
-			reportPreload(id, index)
-		}, regionIds)
-	}, [preloads, regionIds, reportPreload])
+			warmed.add(feature)
+
+			reportPreload(index)
+		}
+	}, [preloads, shape.features, reportPreload])
 
 	// The selection resolved to the index the layers draw by, against the same
 	// ids a click reports, so the pick a consumer echoes back always rings the
@@ -1278,10 +1290,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[entries],
 	)
 
-	// Whether anything at all can read out: a matched region, or a registered
-	// overlay. The table takes this wider reading: a mark's own row is an output
-	// a map with no rows still has.
-	const hasReadout = regionsRead || entries.length > 0 || nameRegions
+	// Whether anything at all can read out: a matched region, a registered
+	// overlay, or a selected region. The table takes this wider reading: a mark's
+	// own row is an output a map with no rows still has, and the row of a selected
+	// region is where the selection reads as the current one.
+	const hasReadout = regionsRead || entries.length > 0 || nameRegions || selected !== null
 
 	// Whether the tooltip and the cursor can read anything out. A region counts
 	// only while its layer answers, because `regionPointer={false}` takes the
@@ -1324,12 +1337,26 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		],
 	)
 
+	// Whether a region stop answers Enter, as the boolean the cursor's speech
+	// keys on rather than the churning handler behind it.
+	const picksRegions = regions.click !== undefined
+
 	// Without the readout the cursor still speaks the name of its stop, so a
 	// picker or a zooming map with `tooltip={false}` does not rove in silence.
+	// With it, a region that reads nothing (no row, or a category the legend
+	// holds off) still speaks its name where Enter picks it: the reader must hear
+	// what a pick would report.
 	const describeTarget = useCallback(
-		(target: MapHoverTarget) =>
-			readable ? describeMapTarget(target, tooltipProps) : nameMapTarget(target, tooltipProps),
-		[readable, tooltipProps],
+		(target: MapHoverTarget) => {
+			if (!readable) return nameMapTarget(target, tooltipProps)
+
+			const readout = describeMapTarget(target, tooltipProps)
+
+			return readout === null && target.kind === 'region' && picksRegions
+				? nameMapTarget(target, tooltipProps)
+				: readout
+		},
+		[readable, picksRegions, tooltipProps],
 	)
 
 	// The cursor earns a tab stop from either of its two outputs. Gating on the
@@ -1380,7 +1407,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		{
 			categoryCount: categoryMetas.length,
 			entryCount: entries.length,
-			hasOverlayChildren: children != null,
+			hasOverlayChildren: Children.toArray(children).length > 0,
 		},
 		{
 			colorRange,

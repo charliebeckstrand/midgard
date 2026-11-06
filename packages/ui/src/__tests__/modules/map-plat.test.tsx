@@ -240,6 +240,22 @@ describe('MapPlat', () => {
 		expect(bySlot(off.container, 'map-legend-box')).toBeNull()
 	})
 
+	it('reserves no legend box for children that render nothing', () => {
+		// `{shown && <MapPoint />}` and a map over an empty array are no children at
+		// all, so no overlay can register and the box would stay empty.
+		for (const children of [false, []]) {
+			const { container, unmount } = renderUI(
+				<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400}>
+					{children}
+				</MapPlat>,
+			)
+
+			expect(bySlot(container, 'map-legend-box')).toBeNull()
+
+			unmount()
+		}
+	})
+
 	it('reserves a fixed-width column for the side panel placements', () => {
 		const { container } = renderUI(categoricalPlat({ legend: 'left' }))
 
@@ -1308,6 +1324,26 @@ describe('MapPlat selected region', () => {
 		expect(tableRows(container)).toEqual([
 			['Alpha', null],
 			['Beta', null],
+			['Gamma', null],
+		])
+	})
+
+	it('reads the selected region as current on a picker with no rows', () => {
+		// No data, so no readout of its own: the selection alone mounts the table,
+		// or the pick would be in the ring and nowhere a screen reader can find it.
+		const { container } = renderUI(
+			<MapPlat
+				aria-label="Pick a region"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				onRegionClick={vi.fn()}
+				selectedRegion="B"
+			/>,
+		)
+
+		expect(tableRows(container)).toEqual([
+			['Alpha', null],
+			['Beta', 'true'],
 			['Gamma', null],
 		])
 	})
