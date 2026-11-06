@@ -8,7 +8,7 @@ export default function Builder() {
 	const [query, setQuery] = useState<QueryGroup>(seed)
 
 	// The summary reads the same tree as the builder. It hides when no rule
-	// puts a constraint on the rows. The values are strings, so the tree is JSON.
+	// puts a constraint on the rows. Each value is a JSON value, so the tree is JSON.
 	return (
 		<Stack gap="md">
 			<QueryBuilder fields={fields} value={query} onValueChange={setQuery} />

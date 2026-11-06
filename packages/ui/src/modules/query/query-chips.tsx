@@ -183,7 +183,7 @@ function focusLadder(tokens: QuerySummaryToken[], id: string): string[] {
  * step below the chips. At `md` the chips are `sm` Badges.
  *
  * The row does not compose `Toolbar`, because `Toolbar` writes its own
- * `data-slot` after the spread and takes no ref.
+ * `data-slot` after the spread.
  */
 export function QueryChips({
 	fields,
@@ -323,7 +323,10 @@ export function QueryChips({
 			// unless the consumer makes it one.
 			tabIndex={props.tabIndex ?? (empty ? -1 : undefined)}
 			className={cn(k().base, className)}
-			onKeyDown={composeEventHandlers(onKeyDownProp, onKeyDown)}
+			// Roving takes no gate: the consumer's handler runs first, then roving.
+			onKeyDown={composeEventHandlers(onKeyDownProp, onKeyDown, {
+				checkForDefaultPrevented: false,
+			})}
 		>
 			{empty ? <span className={k().empty}>{emptyLabel}</span> : body}
 			{/* The full sentence keeps the brackets for assistive technology, which

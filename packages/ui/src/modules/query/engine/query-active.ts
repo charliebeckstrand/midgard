@@ -10,8 +10,7 @@ import type { QueryGroup } from './types'
  * scalar bounds. For each other operator, it is a string, a number, or a
  * boolean. For `gt`, `gte`, `lt`, `lte`, and `between`, the value or each set
  * bound must also convert to a finite number. A tree of only blank rules reads
- * as inactive. A freshly seeded or fully cleared builder leaves such a tree
- * behind. A filter affordance can therefore reflect a real constraint, rather
+ * as inactive. A fully cleared builder leaves such a tree behind. A filter affordance can therefore reflect a real constraint, rather
  * than the mere presence of a rule.
  *
  * @remarks The judgment is the evaluator's, so it reads no field set. A rule

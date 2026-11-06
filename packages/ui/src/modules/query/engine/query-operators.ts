@@ -147,7 +147,7 @@ const defaultOperators = {
 /** Each built-in operator, in the order of the default sets: text, number, date, select, and boolean. */
 const builtInOperators: QueryOperator[] = Object.values(defaultOperators).flat()
 
-/** Resolves the operators available for a field: its explicit `operators`, else the defaults for its type. */
+/** Resolves the operators available for a field: its explicit `operators`, else the defaults for its type. @internal */
 export function getOperators(field: QueryField): QueryOperator[] {
 	return field.operators ?? defaultOperators[field.type] ?? []
 }

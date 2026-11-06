@@ -7,6 +7,11 @@ export type QueryCombinator = 'and' | 'or'
 export type QueryRule = {
 	id: string
 	type: 'rule'
+	/**
+	 * How the rule joins its preceding sibling.
+	 *
+	 * @defaultValue 'and'
+	 */
 	combinator?: QueryCombinator
 	field: string
 	operator: string
@@ -21,6 +26,11 @@ export type QueryRule = {
 export type QueryGroup = {
 	id: string
 	type: 'group'
+	/**
+	 * How the group joins its preceding sibling.
+	 *
+	 * @defaultValue 'and'
+	 */
 	combinator?: QueryCombinator
 	children: QueryNode[]
 }

@@ -3,6 +3,8 @@ import type { QueryGroup } from '../engine/types'
 /**
  * A place focus can be sent: a node's own control (`node`, e.g. its remove
  * button) or a group's "add rule" control (`add`).
+ *
+ * @internal
  */
 export type FocusTarget = { kind: 'node'; id: string } | { kind: 'add'; groupId: string }
 
@@ -18,6 +20,8 @@ export type FocusTarget = { kind: 'node'; id: string } | { kind: 'add'; groupId:
  * sibling, then the enclosing group's add control. The add control of each
  * ancestor group follows, nearest first, on the way to the root. Empty when
  * `id` isn't found.
+ *
+ * @internal
  */
 export function findFocusTarget(tree: QueryGroup, id: string): FocusTarget[] {
 	const index = tree.children.findIndex((child) => child.id === id)
@@ -53,6 +57,8 @@ export function findFocusTarget(tree: QueryGroup, id: string): FocusTarget[] {
 /**
  * Stable string keys under which focusable controls register themselves,
  * matching a `FocusTarget` to a live element without touching the DOM.
+ *
+ * @internal
  */
 export const focusKeys = {
 	node: (id: string) => `node:${id}`,

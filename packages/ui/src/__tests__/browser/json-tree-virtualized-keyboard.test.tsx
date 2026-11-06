@@ -133,6 +133,32 @@ const focusLeafAndScrollAway = vi.defineHelper(async () => {
 	return tree
 })
 
+describe('JsonTree under virtualize: a consumer onKeyDown', () => {
+	// Roving is the keyboard model of the tree, so a consumer handler that cancels
+	// the key does not switch it off (CONVENTIONS §3.9).
+	it('roves when the handler cancels the arrow key', async () => {
+		renderUI(
+			<JsonTree
+				data={DATA}
+				rootKey="root"
+				defaultExpandDepth={Number.POSITIVE_INFINITY}
+				virtualize={{ maxHeight: '240px', overscan: 2 }}
+				onKeyDown={(event) => event.preventDefault()}
+			/>,
+		)
+
+		const tree = present(screen.getByRole('tree'), 'the tree')
+
+		await waitFor(() => expect(rows(tree).length).toBeGreaterThan(2))
+
+		present(rows(tree)[0], 'the root row').focus()
+
+		await userEvent.keyboard('{ArrowDown}')
+
+		await waitFor(() => expect(focusedLabel()).toContain('list'))
+	})
+})
+
 describe('JsonTree under virtualize: a focused row that scrolls out of the window', () => {
 	it('keeps focus in the tree, and ArrowDown focuses the next row', async () => {
 		const tree = await focusLeafAndScrollAway()

@@ -19,6 +19,8 @@ type QueryBuilderTreeResult = {
  * management. It wraps `remove` so removing a node moves focus to a surviving
  * neighbor (WCAG 2.4.3) rather than dropping to `<body>`. It also exposes the
  * `register` callback controls use to enroll their focusable elements.
+ *
+ * @internal
  */
 export function useQueryBuilderTree(options: QueryTreeOptions): QueryBuilderTreeResult {
 	const { root, actions } = useQueryTree(options)
