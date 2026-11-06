@@ -459,7 +459,7 @@ Does a case-insensitive equals reach each string rule value, or must the TSDoc i
 
 - Axes: (a) Lowercase both sides in holdsValue: the evaluator reads no field set (query-evaluate.ts:186-187), so select options and dashboard selections also match regardless of case; dates are digits and do not change. (b) Keep exact equals and change the matchers TSDoc and the test name to exclude equals and notEquals: files packages/ui/src/modules/query/engine/query-evaluate.ts and the test.
 - Recommended: (a), because the test at query-evaluate.test.ts:18 names equals as a case-insensitive text operator and the text column filter is the shipped user of it.
-- Answer: open.
+- Answer: Proceed as recommended (Charlie, 2026-11-06 08:10Z, "All six PRs, as recommended").
 
 ### Q3
 
@@ -467,7 +467,7 @@ Should QueryBuilder seed one rule when requireRule meets an empty tree, or is th
 
 - Axes: Seed in the component: an uncontrolled seed, and an onValueChange on mount for a controlled empty tree; files packages/ui/src/modules/query/query-builder/query-builder.tsx and packages/ui/src/modules/query/use-query-tree.ts. Consumer duty: no behavior change; the requireRule TSDoc states that it keeps an existing rule; files packages/ui/src/modules/query/query-builder/query-builder.tsx.
 - Recommended: Consumer duty, because the one shipped consumer seeds its draft and a seed on mount would send a controlled consumer a change that it did not ask for.
-- Answer: open.
+- Answer: Proceed as recommended (Charlie, 2026-11-06 08:10Z, "All six PRs, as recommended").
 
 ## Ruled out
 
