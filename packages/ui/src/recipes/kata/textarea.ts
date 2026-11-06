@@ -65,7 +65,7 @@ export const k = defineKata(
 				},
 			},
 			/**
-			 * Right-justified actions row beneath the textarea. Its gap also caps the
+			 * The actions row beneath the textarea, at the inline end. Its gap also caps the
 			 * hit areas of the actions (`TouchTarget`), so they do not overlap.
 			 */
 			actions: [

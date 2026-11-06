@@ -90,6 +90,22 @@ describe('useChatSend', () => {
 		expect(result.current.messages[1]?.id).not.toBe('server-1')
 	})
 
+	// A row action lists `retry` or `edit` as a dependency, so a new identity on
+	// each streamed chunk would render every row of the transcript again.
+	it('keeps one identity for retry and edit while a reply streams', async () => {
+		const { result } = renderHook(() => useChatSend({ transport: makeStream('Late', ' stops') }))
+
+		const { retry, edit } = result.current
+
+		await act(() => result.current.send('Where are the late stops?'))
+
+		expect(result.current.messages).toHaveLength(2)
+
+		expect(result.current.retry).toBe(retry)
+
+		expect(result.current.edit).toBe(edit)
+	})
+
 	it('warns once when two seed messages share an id, and leaves the transcript as it got it', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
@@ -212,10 +228,10 @@ describe('useChatSend', () => {
 		expect(result.current.messages).toHaveLength(0)
 	})
 
-	it('rolls back the empty assistant placeholder and keeps the user message on failure', async () => {
+	it('keeps the user message and marks the empty reply failed on failure', async () => {
 		const onError = vi.fn()
 
-		// Fails before the first chunk, to exercise the rollback path.
+		// Fails before the first chunk, so the reply holds nothing.
 		const transport: ChatTransport = () => failingStream('boom')
 
 		const { result } = renderHook(() => useChatSend({ transport, onError }))
@@ -226,11 +242,31 @@ describe('useChatSend', () => {
 
 		expect(onError).toHaveBeenCalled()
 
-		expect(result.current.messages).toHaveLength(1)
+		expect(result.current.messages).toHaveLength(2)
 
 		expect(result.current.messages[0]).toMatchObject({ sender: 'user', content: 'hi' })
 
+		expect(result.current.messages[1]).toMatchObject({
+			sender: 'assistant',
+			content: '',
+			failed: true,
+		})
+
 		expect(result.current.streaming).toBe(false)
+	})
+
+	it('adds a failed reply when the transport throws before its stream opens', async () => {
+		const transport: ChatTransport = () => Promise.reject(new Error('offline'))
+
+		const { result } = renderHook(() => useChatSend({ transport, onError: () => {} }))
+
+		await act(async () => {
+			await result.current.send('hi')
+		})
+
+		expect(result.current.messages).toHaveLength(2)
+
+		expect(result.current.messages[1]).toMatchObject({ sender: 'assistant', failed: true })
 	})
 
 	it('retry regenerates the reply to the last user message, dropping the previous reply', async () => {
@@ -263,7 +299,7 @@ describe('useChatSend', () => {
 		})
 	})
 
-	it('retry resends after a failed send, with no prior assistant reply to drop', async () => {
+	it('retry replaces the failed reply of a failed send', async () => {
 		let call = 0
 
 		const transport: ChatTransport = (content, signal) => {
@@ -281,7 +317,7 @@ describe('useChatSend', () => {
 			await result.current.send('hi')
 		})
 
-		expect(result.current.messages).toHaveLength(1)
+		expect(result.current.messages[1]).toMatchObject({ failed: true })
 
 		await act(async () => {
 			await result.current.retry()
@@ -290,6 +326,8 @@ describe('useChatSend', () => {
 		expect(result.current.messages).toHaveLength(2)
 
 		expect(result.current.messages[1]).toMatchObject({ sender: 'assistant', content: 'recovered' })
+
+		expect(result.current.messages[1]?.failed).toBeUndefined()
 	})
 
 	it('retry no-ops with no user message in the transcript', async () => {
@@ -715,7 +753,7 @@ describe('useChatSend over a stream of parts', () => {
 		])
 	})
 
-	it('rolls a failed send back when the reply arrived as no block at all', async () => {
+	it('marks a failed send failed when the reply arrived as no block at all', async () => {
 		const { result } = renderHook(() =>
 			useChatSend({ transport: streamThenFail([]), onError: () => {} }),
 		)
@@ -724,9 +762,9 @@ describe('useChatSend over a stream of parts', () => {
 			await result.current.send('hi')
 		})
 
-		expect(result.current.messages).toHaveLength(1)
+		expect(result.current.messages).toHaveLength(2)
 
-		expect(result.current.messages[0]).toMatchObject({ sender: 'user' })
+		expect(result.current.messages[1]).toMatchObject({ sender: 'assistant', failed: true })
 	})
 
 	it('keeps a reply that arrived as a block when the send then fails', async () => {

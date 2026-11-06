@@ -5,7 +5,11 @@ const { text } = iro
 const { rounded } = kasane
 const { size, weight } = ji
 const { flex } = narabi
-const { focus } = sen
+const { focus, forced } = sen
+
+// A row of controls: the actions of a message, and the rating pair of
+// `ChatFeedback` in them, which sits as close as the other actions do.
+const controls = [flex.row, 'gap-0.5']
 
 const bubble = {
 	base: [
@@ -23,11 +27,14 @@ const bubble = {
 		// otherwise grow to the full word.
 		'whitespace-pre-wrap wrap-anywhere',
 	],
+	// Forced colors replace the fill, so a filled bubble keeps its edge as an
+	// outline. The system line has no fill to lose.
 	sender: {
-		user: ['bg-blue-600 text-white', 'rounded-ee-md'],
+		user: ['bg-blue-600 text-white', 'rounded-ee-md', forced.outline],
 		assistant: [
 			...mode('bg-zinc-100 text-zinc-950', 'dark:bg-white/10 dark:text-white'),
 			'rounded-es-md',
+			forced.outline,
 		],
 		system: [...text.muted, 'bg-transparent px-0'],
 	},
@@ -78,7 +85,7 @@ export const k = defineKata({
 		 * A `static` trigger is a row below the bubble.
 		 */
 		actions: {
-			base: [flex.row, 'gap-0.5'],
+			base: controls,
 			trigger: {
 				static: 'mt-1',
 				hover: [
@@ -110,6 +117,12 @@ export const k = defineKata({
 				{ trigger: 'hover', sender: 'system', class: 'inset-x-0 mx-auto' },
 			],
 		},
+		// The rating pair of `ChatFeedback`: one control of the actions.
+		feedback: controls,
+		// The line of a failed reply. It inherits the foreground of the bubble, as
+		// the step line does, and the red dot beside it marks the failure. The gap
+		// above it is the `part` gap when the reply landed content first.
+		failure: [flex.row, `items-center ${dan.gap.scale.sm}`, size.sm],
 		// A bubble of parts stacks one block per part, and each block collapses
 		// its own outer margins, so the gap between two of them is this slot's.
 		// It matches the markdown kata's `my-3` paragraph rhythm, so prose split

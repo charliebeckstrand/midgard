@@ -103,8 +103,16 @@ describe('describeTranscript', () => {
 		expect(describeTranscript(intlEn, [], false)).toBe('')
 	})
 
-	it('says nothing when a failed send rolled its reply back', () => {
-		expect(describeTranscript(intlEn, [user('hi')], false)).toBe('')
+	it('says that a failed reply failed, after what it landed', () => {
+		const failed = (content: string): ChatMessageData => ({ ...assistant(content), failed: true })
+
+		expect(describeTranscript(intlEn, [user('hi'), failed('')], false)).toBe('The reply failed.')
+
+		expect(describeTranscript(intlEn, [user('hi'), failed('Late stops rose')], false)).toBe(
+			'Late stops rose\n\nThe reply failed.',
+		)
+
+		expect(describeTranscript(intlEs, [user('hi'), failed('')], false)).toBe('La respuesta falló.')
 	})
 })
 

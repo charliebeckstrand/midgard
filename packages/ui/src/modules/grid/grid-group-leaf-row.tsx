@@ -1,6 +1,7 @@
 'use client'
 
 import { type ComponentProps, memo, type ReactNode } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { PaletteColor } from '../../core/recipe/colors'
@@ -322,7 +323,7 @@ function GridGroupLeafRowImpl<T>({
 				// of the tab order and the accessibility tree too (WCAG 1.3.1 / 2.4.3).
 				// These cover the collapse from its first frame; the hold above covers
 				// its cost from the last one, once the reveal has finished shrinking.
-				aria-hidden={expanded ? undefined : true}
+				aria-hidden={ariaAttr(!expanded)}
 				aria-level={tree ? level : undefined}
 				data-row-index={rowIndex}
 				inert={!expanded}

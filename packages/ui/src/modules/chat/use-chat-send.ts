@@ -1,6 +1,7 @@
 'use client'
 
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { noop } from '../../utilities/noop'
 import { randomId } from '../../utilities/random-id'
 import { chatContentText } from './engine/chat-content/text'
@@ -11,13 +12,14 @@ import {
 	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
+	failReply,
 	failReplyTools,
-	lastUserMessage,
+	findLastUserMessage,
+	findUserMessage,
 	openReply,
 	seedMessages,
 	truncateToEditedMessage,
 	truncateToLastUserMessage,
-	userMessage,
 } from './engine/chat-transcript'
 import type { ChatMessageData } from './engine/types'
 
@@ -71,8 +73,10 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * already holds replaces that block whole. That is how a tool call that turns
  * from running to done reports itself.
  *
- * Throwing (or rejecting) rolls back the empty assistant placeholder and triggers
- * {@link ChatSendOptions.onError}. `signal` aborts when {@link ChatSend.stop}
+ * Throwing (or rejecting) marks the reply `failed` and triggers
+ * {@link ChatSendOptions.onError}. The reply keeps what it already landed, and
+ * a reply that had not opened yet is added empty, so the transcript says that
+ * the send failed. `signal` aborts when {@link ChatSend.stop}
  * is called; forward it to the underlying request (e.g. `fetch(url, { signal })`)
  * so the transport stops producing, not just the hook consuming: a transport
  * that ignores it still has its chunks dropped, but keeps running underneath.
@@ -117,7 +121,7 @@ export type ChatSendOptions = {
 	 * failure skips it.
 	 */
 	onSent?: (content: string) => void
-	/** Called when the transport throws or the stream fails. */
+	/** Called when the transport throws or the stream fails, after the reply is marked `failed`. */
 	onError?: (error: unknown) => void
 }
 
@@ -131,16 +135,18 @@ export type ChatSend = {
 	send: (content: string) => Promise<void>
 	/**
 	 * Regenerates the reply to the last user message. Drops it and anything after
-	 * it: an existing assistant reply, or nothing if the prior send errored. Then
-	 * streams a fresh one for the same content. No-ops with no user
-	 * message in the transcript, or while a send is already in flight.
+	 * it: an existing assistant reply, also a failed one. Then streams a fresh
+	 * one for the same content. No-ops with no user
+	 * message in the transcript, or while a send is already in flight. It keeps
+	 * one identity for the mount. Do not call it during render.
 	 */
 	retry: () => Promise<void>
 	/**
 	 * Replaces a prior user message's content and regenerates from there,
 	 * discarding everything after it (its old reply and any later turns). No-ops
 	 * if `id` doesn't match a user message, `content` trims empty, or a send is
-	 * already in flight.
+	 * already in flight. It keeps one identity for the mount. Do not call it
+	 * during render.
 	 */
 	edit: (id: string, content: string) => Promise<void>
 	/**
@@ -245,7 +251,7 @@ async function streamReply(
 
 		steps.sent()
 	} catch (error) {
-		// A stop-induced rejection isn't a failure: no rollback, no onError.
+		// A stop-induced rejection isn't a failure: no failed reply, no onError.
 		if (signal.aborted) return
 
 		steps.fail(error)
@@ -264,9 +270,9 @@ async function streamReply(
  * blocks by id. {@link ChatSend.retry} and {@link ChatSend.edit} share that
  * same streaming path, re-pointed at the last user message's content, or an
  * edited one. They first trim the transcript back to (and, for `edit`,
- * including) that message. Across all three, a transport failure drops the
- * still-empty placeholder (keyed by id, so concurrent or prior empty bubbles
- * are untouched). It keeps the user message, and fires `onError`.
+ * including) that message. Across all three, a transport failure marks the
+ * reply `failed` (keyed by id, so other bubbles are untouched). It keeps the
+ * user message and what the reply landed, and fires `onError`.
  * {@link ChatSend.stop} aborts whichever of the three is in flight, and does
  * not treat the stop as an error. The bubble keeps its last-folded chunk, and a
  * step still running becomes `failed`. The transport is supplied by
@@ -311,7 +317,7 @@ export function useChatSend({
 				fold: (chunk) => setMessages((prev) => applyReplyChunk(prev, replyId, chunk)),
 				sent: () => onSent?.(text),
 				fail: (error) => {
-					setMessages((prev) => dropEmptyReply(prev, replyId))
+					setMessages((prev) => failReply(prev, replyId))
 
 					onError?.(error)
 				},
@@ -321,7 +327,8 @@ export function useChatSend({
 					// A step still marked running would otherwise draw a spinner nothing
 					// ever stops, the defect that kept a per-part status out of the design
 					// until the shell could settle one. A reply that is still empty goes
-					// too, so a stop before the first chunk leaves no empty bubble.
+					// too, so a stop before the first chunk leaves no empty bubble. A failed
+					// reply stays, because it says that the send failed.
 					setMessages((prev) => dropEmptyReply(failReplyTools(prev, replyId), replyId))
 
 					controllerRef.current = null
@@ -360,34 +367,33 @@ export function useChatSend({
 		[runTransport],
 	)
 
-	const retry = useCallback(async () => {
+	// Both read the messages of the last commit, but keep one identity, so a row
+	// action that lists them does not change on each streamed chunk.
+	const retry = useStableEvent(async () => {
 		if (controllerRef.current) return
 
-		const lastUser = lastUserMessage(messages)
+		const lastUser = findLastUserMessage(messages)
 
 		if (!lastUser) return
 
 		setMessages((prev) => truncateToLastUserMessage(prev))
 
 		await runTransport(chatContentText(lastUser.content))
-	}, [messages, runTransport])
+	})
 
-	const edit = useCallback(
-		async (id: string, content: string) => {
-			if (controllerRef.current) return
+	const edit = useStableEvent(async (id: string, content: string) => {
+		if (controllerRef.current) return
 
-			const text = draftContent(content)
+		const text = draftContent(content)
 
-			if (!text) return
+		if (!text) return
 
-			if (!userMessage(messages, id)) return
+		if (!findUserMessage(messages, id)) return
 
-			setMessages((prev) => truncateToEditedMessage(prev, id, text))
+		setMessages((prev) => truncateToEditedMessage(prev, id, text))
 
-			await runTransport(text)
-		},
-		[messages, runTransport],
-	)
+		await runTransport(text)
+	})
 
 	return { messages, streaming, send, retry, edit, stop, setMessages }
 }

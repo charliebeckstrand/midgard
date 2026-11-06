@@ -4,7 +4,7 @@
 
 ## Status
 
-The surface is real and the core is now under it. Six components and three hooks cover a whole agent conversation: a transcript that auto-scrolls to the newest reply, a Markdown bubble that pulses while a reply arrives, a composer with attachments and a send-to-stop toggle, a roving-tabindex conversation list, and a provider that registers embed renderers. The a11y work is done to the package's standard: a visually hidden author label on each bubble, an accessible name the composer cannot lose, and a row model that never nests one interactive control inside another. `useChatSend` takes the transport as a parameter, so the module assumes no endpoint and no wire format.
+The surface is real and the core is now under it. The components and the hooks cover a whole agent conversation: a transcript that auto-scrolls to the newest reply and gives each row its actions, a Markdown bubble that pulses while a reply arrives and says when a reply failed, a pair of buttons that rate a reply, a composer with attachments and a send-to-stop toggle, a roving-tabindex conversation list, and a provider that registers embed renderers. The a11y work is done to the package's standard: a visually hidden author label on each bubble, an accessible name the composer cannot lose, and a row model that never nests one interactive control inside another. `useChatSend` takes the transport as a parameter, so the module assumes no endpoint and no wire format.
 
 The engine landed with increment 1. `engine/` holds the vocabulary, the trim-and-guard rule, and eight transcript transforms. The caller supplies every id that a transform writes or looks up. The module is on the `PURE_ENGINES` list in [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts). [`use-chat-send.ts`](use-chat-send.ts) is the React shell over those transforms: state, the `AbortController`, and the effect ordering. The submit guard that used to be written twice is one rule in [`chat-draft.ts`](engine/chat-draft.ts), which both the composer and the draft hook read.
 
@@ -200,8 +200,6 @@ In priority order, after the increments. Each entry names the gap, the shape of 
 - **Attachment previews through the embed seam.** The composer surfaces attachments as chips and nothing renders what they hold. A CSV preview is a grid and an image preview is an image, so this must reuse the registry from increment 4 rather than open a second path to the same three modules. It lands as a `file` part with a preview resolved by media type.
 
 - **Conversation search.** `ChatList` takes rows and offers no filter, so a sidebar of two hundred conversations is a scroll. The plain-text projection from increment 3 is the index, and the query module is the filter. It lands as a prop on the list rather than a new component.
-
-- **Reply feedback.** An agent product cannot improve without a signal, and the transcript has nowhere to put one. `ChatMessage` already takes `actions`, as a rail or a hover toolbar, so the shape is a small standard pair over it, plus a callback carrying the message id and the verdict. Cheap, and it stays a slot rather than a policy.
 
 - **Export a conversation.** A reader who wants a record has copy-and-paste. Grid already holds an export path in `grid-export`, so the shape is the same one over the plain-text projection, and an embedded grid can export itself. It lands after the content model and needs nothing else.
 

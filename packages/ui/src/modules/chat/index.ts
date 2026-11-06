@@ -1,5 +1,6 @@
 export type { ChatMessageVariants } from '../../recipes/kata/chat-message'
 export { ChatEmbedProvider, type ChatEmbedProviderProps } from './chat-embed-provider'
+export { ChatFeedback, type ChatFeedbackProps, type ChatVerdict } from './chat-feedback'
 export { ChatList, type ChatListProps } from './chat-list'
 export { ChatListItem, type ChatListItemProps } from './chat-list-item'
 export { ChatMessage, type ChatMessageProps } from './chat-message'
@@ -9,6 +10,7 @@ export {
 	ChatTranscriptSkeleton,
 	type ChatTranscriptSkeletonProps,
 } from './chat-transcript-skeleton'
+export { chatContentText } from './engine/chat-content/text'
 export type {
 	ChatEmbedPart,
 	ChatPart,

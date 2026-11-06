@@ -43,6 +43,35 @@ describe('ChatMessage', () => {
 		expect(el).toHaveAttribute('data-sender', 'user')
 	})
 
+	it('ends a failed reply with a line that says so, after its content', () => {
+		const { container } = renderUI(<ChatMessage failed>Late stops rose</ChatMessage>)
+
+		const bubble = bySlot(container, 'chat-message-bubble')
+
+		const failure = bySlot(container, 'chat-message-failure')
+
+		expect(failure).toHaveTextContent('The reply failed.')
+
+		expect(bubble?.lastElementChild).toBe(failure)
+
+		// The gap of a part sits above it, because the reply landed content first.
+		expect(failure?.className).toContain('mt-3')
+
+		expect(screen.getByText('Late stops rose')).toBeInTheDocument()
+	})
+
+	it('shows only the failure line for a failed reply that landed nothing', () => {
+		const { container } = renderUI(<ChatMessage failed>{[]}</ChatMessage>)
+
+		expect(bySlot(container, 'chat-message-failure')?.className).not.toContain('mt-3')
+	})
+
+	it('draws no failure line for a settled reply', () => {
+		const { container } = renderUI(<ChatMessage>Late stops rose</ChatMessage>)
+
+		expect(bySlot(container, 'chat-message-failure')).toBeNull()
+	})
+
 	it('renders the timestamp slot when provided', () => {
 		const { container } = renderUI(<ChatMessage timestamp="11:12 AM">content</ChatMessage>)
 

@@ -131,6 +131,10 @@
 		"defaultMessage": "Add attachment",
 		"description": "The name of the button that opens a file picker to attach files to a chat message."
 	},
+	"ui.chat.badReply": {
+		"defaultMessage": "Bad reply",
+		"description": "The name of the button that rates a reply of the assistant as bad."
+	},
 	"ui.chat.done": {
 		"defaultMessage": "Done",
 		"description": "The status of a step of the assistant that ended well."
@@ -138,6 +142,10 @@
 	"ui.chat.failed": {
 		"defaultMessage": "Failed",
 		"description": "The status of a step of the assistant that ended with an error."
+	},
+	"ui.chat.goodReply": {
+		"defaultMessage": "Good reply",
+		"description": "The name of the button that rates a reply of the assistant as good."
 	},
 	"ui.chat.messageActions": {
 		"defaultMessage": "Message actions",
@@ -147,6 +155,10 @@
 		"defaultMessage": "This chat cannot show a “{name}” block.",
 		"description": "Shown in place of a block of a chat reply that the app cannot draw. The name is the name of the block."
 	},
+	"ui.chat.newest": {
+		"defaultMessage": "Go to the newest message",
+		"description": "The name of the button that scrolls a chat back down to its newest message. It shows when the reader has scrolled up."
+	},
 	"ui.chat.placeholder": {
 		"defaultMessage": "Ask anything",
 		"description": "The hint text of the empty field where the reader writes a chat message."
@@ -154,6 +166,10 @@
 	"ui.chat.prompt": {
 		"defaultMessage": "Message",
 		"description": "The name of the field where the reader writes a chat message."
+	},
+	"ui.chat.replyFailed": {
+		"defaultMessage": "The reply failed.",
+		"description": "Shown and spoken at the end of a reply of the assistant when the reply could not be completed."
 	},
 	"ui.chat.replying": {
 		"defaultMessage": "Assistant is replying",

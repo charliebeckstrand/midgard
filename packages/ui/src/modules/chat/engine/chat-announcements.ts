@@ -12,7 +12,7 @@
  * Each builder takes the intl of the reader and speaks in its language.
  */
 
-import { defineMessages } from '../../../primitives/intl/intl-messages'
+import { defineMessage, defineMessages } from '../../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../../primitives/intl/types'
 import { toChatParts } from './chat-content/normalize'
 import { BLOCK_SEPARATOR, chatContentText } from './chat-content/text'
@@ -36,6 +36,19 @@ const replyMessages = defineMessages<{
 		description:
 			'Spoken after a reply of the assistant that holds views, such as charts. The count is the number of views.',
 	},
+})
+
+/**
+ * The line of a failed reply: shown at the end of its bubble, and spoken after
+ * its prose.
+ *
+ * @internal
+ */
+export const replyFailed = defineMessage({
+	id: 'ui.chat.replyFailed',
+	defaultMessage: 'The reply failed.',
+	description:
+		'Shown and spoken at the end of a reply of the assistant when the reply could not be completed.',
 })
 
 /**
@@ -76,7 +89,8 @@ export function describeReply(intl: IntlShape, content: string | ChatPart[]): st
 
 /**
  * What a reader is told about the transcript as it stands: that a reply is
- * arriving, or the last settled reply.
+ * arriving, or the last settled reply. A failed reply ends with the line that
+ * says so.
  *
  * A transcript whose last message is the reader's own says nothing. The reader
  * wrote it, so it is not news, and the reply to it has not started yet.
@@ -96,5 +110,13 @@ export function describeTranscript(
 
 	const last = messages.at(-1)
 
-	return last?.sender === 'assistant' ? describeReply(intl, last.content) : ''
+	if (last?.sender !== 'assistant') return ''
+
+	const reply = describeReply(intl, last.content)
+
+	if (!last.failed) return reply
+
+	const failure = intl.formatMessage(replyFailed)
+
+	return reply ? `${reply}${BLOCK_SEPARATOR}${failure}` : failure
 }

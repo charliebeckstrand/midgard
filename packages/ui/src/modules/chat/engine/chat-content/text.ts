@@ -54,13 +54,17 @@ export function chatPartsText(parts: ChatPart[]): string {
 }
 
 /**
- * The content as plain text, from either arm. A string is its own projection,
- * so a transcript of strings reads byte for byte as it does today.
+ * The content of a message as plain text, from either arm. A string is its own
+ * projection. A part list gives each text part, and each step as its label and
+ * summary, with a blank line between two blocks. An embed gives nothing,
+ * because its renderer holds its text.
  *
- * `retry` sends this to the transport, and the announcement speaks it. One
- * named function keeps the two readers from drifting apart.
+ * Use it for the copy action of a message. `retry` sends the same text to the
+ * transport, and the announcement speaks it, so the clipboard, the transport,
+ * and the screen reader get the same text.
  *
  * @param content - The message content: a plain string, or a part list.
+ * @returns The plain text of the content.
  */
 export function chatContentText(content: string | ChatPart[]): string {
 	return typeof content === 'string' ? content : chatPartsText(content)

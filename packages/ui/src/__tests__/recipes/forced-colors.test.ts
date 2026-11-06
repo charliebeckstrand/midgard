@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { k as accordion } from '../../recipes/kata/accordion'
 import { k as alert } from '../../recipes/kata/alert'
 import { k as chart } from '../../recipes/kata/chart'
+import { k as chatMessage } from '../../recipes/kata/chat-message'
 import { k as dashboard } from '../../recipes/kata/dashboard'
 import { k as events } from '../../recipes/kata/events'
 import { k as grid } from '../../recipes/kata/grid'
@@ -43,6 +44,8 @@ describe('edges and state marks under forced colors', () => {
 		['the flat tooltip', tooltip({ surface: 'flat' }).base],
 		['the glass tooltip', tooltip({ surface: 'glass' }).base],
 		['the open submenu row', menu.sub.trigger],
+		['the user chat bubble', chatMessage({ sender: 'user' }).bubble],
+		['the assistant chat bubble', chatMessage({ sender: 'assistant' }).bubble],
 		['the soft alert', alert({ variant: 'soft', color: 'red' }).base],
 		['the solid alert', alert({ variant: 'solid', color: 'red' }).base],
 		['the outline alert', alert({ variant: 'outline', color: 'red' }).base],

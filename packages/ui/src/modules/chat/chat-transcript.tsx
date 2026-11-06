@@ -1,18 +1,40 @@
 'use client'
 
+import { ArrowDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
-import { type ComponentProps, useCallback, useLayoutEffect, useRef } from 'react'
+import {
+	type ComponentProps,
+	memo,
+	type ReactNode,
+	useCallback,
+	useLayoutEffect,
+	useRef,
+} from 'react'
+import { Button } from '../../components/button'
+import type { ContextMenuEntry } from '../../components/context-menu/types'
+import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { useVirtualWindow } from '../../hooks/use-virtual-window'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-transcript'
-import { ChatMessage } from './chat-message'
+import { ChatMessage, type ChatMessageProps } from './chat-message'
 import { ChatRowContext } from './context'
 import { describeTranscript } from './engine/chat-announcements'
 import type { ChatMessageData } from './engine/types'
 import { useChatTranscriptItemKey } from './use-chat-transcript-item-key'
+
+const labels = defineMessages({
+	newest: {
+		id: 'ui.chat.newest',
+		defaultMessage: 'Go to the newest message',
+		description:
+			'The name of the button that scrolls a chat back down to its newest message. It shows when the reader has scrolled up.',
+	},
+})
 
 /**
  * The first guess at a row's height, in pixels: one short bubble, its
@@ -43,7 +65,7 @@ const UNMEASURED_ROWS = 20
  * Props for {@link ChatTranscript}. The scroll `<div>` takes the rest. The
  * transcript writes its rows itself, so it takes no `children`.
  */
-export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children'> & {
+export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'contextMenu'> & {
 	/**
 	 * The transcript, oldest first. Give each message an `id`: the window keys
 	 * each row and each measured height by it. A message with no id falls back
@@ -55,7 +77,64 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children'> & {
 	 * @defaultValue false
 	 */
 	streaming?: boolean
+	/**
+	 * Controls that act on one message, such as copy, retry, and edit. The
+	 * transcript calls it for each row that it renders and gives the result to
+	 * the `actions` of that {@link ChatMessage}. Return `undefined` for a message
+	 * with no actions.
+	 */
+	actions?: (message: ChatMessageData) => ReactNode
+	/**
+	 * When `actions` show, as on {@link ChatMessage}: `'hover'` is a toolbar
+	 * over the top corner of the bubble, and `'static'` is a row below it.
+	 * @defaultValue 'hover'
+	 * @media hover
+	 */
+	trigger?: ChatMessageProps['trigger']
+	/**
+	 * Entries of the menu that a right-click or a touch long press on one
+	 * message opens. The transcript calls it for each row that it renders and
+	 * gives the result to the `contextMenu` of that {@link ChatMessage}. Return
+	 * `undefined` to keep the native menu of the browser on that message.
+	 */
+	contextMenu?: (message: ChatMessageData) => ContextMenuEntry[] | undefined
 }
+
+/** Props for {@link ChatTranscriptRow}. @internal */
+type ChatTranscriptRowProps = Pick<ChatTranscriptProps, 'actions' | 'trigger' | 'contextMenu'> & {
+	message: ChatMessageData
+	streaming: boolean
+}
+
+/**
+ * The message of one row. It calls the row callbacks of the transcript, and it
+ * is memoized on its props. A chunk keeps the object of each settled message,
+ * so a settled row skips its render, also when it has actions. That holds
+ * while the callbacks keep their identity.
+ *
+ * @internal
+ */
+const ChatTranscriptRow = memo(function ChatTranscriptRow({
+	message,
+	streaming,
+	actions,
+	trigger,
+	contextMenu,
+}: ChatTranscriptRowProps) {
+	return (
+		<ChatMessage
+			sender={message.sender}
+			streaming={streaming}
+			failed={message.failed}
+			timestamp={message.timestamp}
+			actions={actions?.(message)}
+			trigger={trigger}
+			contextMenu={contextMenu?.(message)}
+		>
+			{message.content}
+		</ChatMessage>
+	)
+})
 
 /**
  * A chat transcript that renders a window over its messages, pinned to the
@@ -84,6 +163,19 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children'> & {
  * it, wherever the reader had scrolled, because the reader sent it. Mount this
  * fresh per conversation (e.g. `key`ed on its id), so a switch does not start
  * from the old scroll position.
+ *
+ * A reader who scrolled up gets a button at the bottom edge that goes to the
+ * newest message, so a reply that grows below the view does not go unseen. The
+ * button shows exactly while an appended row would not pull the transcript
+ * along. The follow and the pin do not show it. After the press, the focus
+ * goes to the transcript, which is a tab stop while it overflows.
+ *
+ * `actions` and `contextMenu` give each row the controls and the menu of a
+ * {@link ChatMessage}. The transcript calls them only for the rows that it
+ * renders. Keep their identity stable, as with `useCallback`, so a streamed
+ * chunk does not render the settled rows again. A `'hover'` toolbar floats
+ * above its message, so the first row then keeps room above it, on a device
+ * that hovers.
  *
  * The window changes what an embed's `mount` policy can promise. A row that
  * leaves the window unmounts, with the views in it. Under `lazy`, an embed the
@@ -118,14 +210,21 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children'> & {
 export function ChatTranscript({
 	messages,
 	streaming,
+	actions,
+	trigger,
+	contextMenu,
 	className,
 	ref,
 	...props
 }: ChatTranscriptProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 
+	// Safari does not focus a scroller, so the hook gives the transcript a tab
+	// stop while it overflows. With no label, the `log` role stays.
+	const scrollRegionRef = useScrollRegion()
+
 	// The window reads `containerRef`, so a consumer `ref` joins it.
-	const setContainer = useComposedRefs(containerRef, ref)
+	const setContainer = useComposedRefs(containerRef, scrollRegionRef, ref)
 
 	const count = messages.length
 
@@ -137,15 +236,16 @@ export function ChatTranscript({
 	// The follow glides, and jumps when the reader asks for reduced motion.
 	const follow: ScrollBehavior = usePrefersReducedMotion() ? 'auto' : 'smooth'
 
-	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex, measureRef } = useVirtualWindow({
-		count,
-		getScrollElement,
-		estimateSize: ESTIMATED_ROW_HEIGHT,
-		overscan: OVERSCAN,
-		getItemKey,
-		anchorTo: 'end',
-		followOnAppend: follow,
-	})
+	const { virtualItems, topSpacer, bottomSpacer, away, scrollToIndex, measureRef } =
+		useVirtualWindow({
+			count,
+			getScrollElement,
+			estimateSize: ESTIMATED_ROW_HEIGHT,
+			overscan: OVERSCAN,
+			getItemKey,
+			anchorTo: 'end',
+			followOnAppend: follow,
+		})
 
 	// The end anchor has no mount arm, so the first window that holds rows jumps
 	// to the newest one. It runs before paint, so the transcript never shows its top.
@@ -189,9 +289,22 @@ export function ChatTranscript({
 
 	const intl = useIntl()
 
+	const slots = k()
+
+	// A hover toolbar rises above its message, and the scroll clips it above the first row.
+	const roomy = actions !== undefined && trigger !== 'static'
+
 	useA11yAnnouncements(describeTranscript(intl, messages, streaming))
 
 	const measured = virtualItems.length > 0
+
+	// The button leaves as the glide starts, so the focus goes to the transcript
+	// and does not fall to the body.
+	const goToNewest = () => {
+		scrollToIndex(count - 1, { align: 'end', behavior: follow })
+
+		containerRef.current?.focus({ preventScroll: true })
+	}
 
 	// Until the window holds rows, the newest ones stand in. No spacer goes with
 	// them, because nothing has measured where they sit.
@@ -208,7 +321,7 @@ export function ChatTranscript({
 			ref={setContainer}
 			role="log"
 			aria-live="off"
-			className={cn(k().base, className)}
+			className={cn(slots.base, className)}
 		>
 			{count > 0 && (
 				<div className="mx-auto">
@@ -226,16 +339,18 @@ export function ChatTranscript({
 								ref={measureRef}
 								data-index={index}
 								data-slot="chat-transcript-row"
-								className={index > 0 ? k().row : undefined}
+								className={index > 0 ? slots.row : roomy ? slots.first : undefined}
 							>
 								<ChatRowContext value={key}>
-									<ChatMessage
-										sender={message.sender}
-										streaming={streaming && message.sender === 'assistant' && index === count - 1}
-										timestamp={message.timestamp}
-									>
-										{message.content}
-									</ChatMessage>
+									<ChatTranscriptRow
+										message={message}
+										streaming={
+											streaming === true && message.sender === 'assistant' && index === count - 1
+										}
+										actions={actions}
+										trigger={trigger}
+										contextMenu={contextMenu}
+									/>
 								</ChatRowContext>
 							</div>
 						)
@@ -243,6 +358,20 @@ export function ChatTranscript({
 					{measured && bottomSpacer > 0 && (
 						<div aria-hidden="true" style={{ height: bottomSpacer }} />
 					)}
+				</div>
+			)}
+			{away && (
+				<div data-slot="chat-transcript-newest" className={slots.newest}>
+					<Button
+						type="button"
+						variant="plain"
+						size="sm"
+						aria-label={intl.formatMessage(labels.newest)}
+						className={slots.newestButton}
+						onClick={goToNewest}
+					>
+						<Icon icon={<ArrowDown />} />
+					</Button>
 				</div>
 			)}
 		</div>

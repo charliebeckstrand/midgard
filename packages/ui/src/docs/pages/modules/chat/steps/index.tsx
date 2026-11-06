@@ -5,8 +5,8 @@ import EveryState from './every-state.tsx'
 export default function StepsTab() {
 	return (
 		<>
-			<Example of={AStepBehindTheAnswer} />
-			<Example of={EveryState} />
+			<Example of={AStepBehindTheAnswer} surface />
+			<Example of={EveryState} surface />
 		</>
 	)
 }

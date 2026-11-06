@@ -126,7 +126,7 @@ export type ChatPromptProps = {
  * While `streaming`, Enter calls `onStop` and does not submit. It
  * offers a paperclip file picker when `onAttach` is provided, and surfaces
  * `attachments` as removable chips below the field. The action row (extra `actions`, the
- * paperclip, and send/stop) sits beneath the textarea, right-justified.
+ * paperclip, and send/stop) sits beneath the textarea, at the inline end of the row.
  *
  * A send button that cannot send, such as for an empty draft, is
  * `aria-disabled` and ignores the press. It is not natively disabled, so it

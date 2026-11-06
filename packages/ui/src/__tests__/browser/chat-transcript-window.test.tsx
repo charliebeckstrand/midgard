@@ -378,6 +378,82 @@ describe('the transcript window', () => {
 	})
 })
 
+describe('the button that goes to the newest message', () => {
+	const getNewest = (container: HTMLElement) =>
+		container.querySelector<HTMLElement>('[data-slot="chat-transcript-newest"] button')
+
+	it('gives the transcript a tab stop while it overflows', async () => {
+		const { transcript } = await mountAtEnd(history(40))
+
+		expect(transcript.tabIndex).toBe(0)
+	})
+
+	it('shows only while the reader is away from the end, and takes them back', async () => {
+		const { container, transcript } = await mountAtEnd(history(200))
+
+		expect(getNewest(container)).toBeNull()
+
+		await scrollTo(transcript, transcript.scrollTop - 1_000)
+
+		await waitFor(() => expect(getNewest(container)).not.toBeNull())
+
+		const button = getNewest(container)
+
+		expect(button).toHaveAccessibleName('Go to the newest message')
+
+		button?.click()
+
+		await waitFor(() => atEnd(transcript, 'Message 199.'), { timeout: FOLLOW })
+
+		expect(getNewest(container)).toBeNull()
+
+		// The button left as the glide started, so the focus is on the transcript.
+		expect(transcript).toHaveFocus()
+	})
+
+	it('stays hidden while the transcript follows a new row', async () => {
+		const messages = history(200)
+
+		const { container, rerender } = renderUI(<Frame messages={messages} />)
+
+		const transcript = getTranscript(container)
+
+		// The follow acts only when the window knows that the reader sits at the end.
+		await landed(transcript)
+
+		let shown = false
+
+		let sampling = true
+
+		const sample = () => {
+			if (getNewest(container)) shown = true
+
+			if (sampling) requestAnimationFrame(sample)
+		}
+
+		requestAnimationFrame(sample)
+
+		onTestFinished(() => {
+			sampling = false
+		})
+
+		rerender(
+			<Frame
+				messages={[
+					...messages,
+					{ id: 'late', sender: 'assistant', content: `Late. ${filler(4).repeat(3)}` },
+				]}
+			/>,
+		)
+
+		await waitFor(() => atEnd(transcript, 'Late.'), { timeout: FOLLOW })
+
+		sampling = false
+
+		expect(shown).toBe(false)
+	})
+})
+
 describe('an embed under the window', () => {
 	const drawn: ChatEmbedRenderer = () => <div data-testid="view" style={{ height: 120 }} />
 

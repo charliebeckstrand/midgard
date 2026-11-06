@@ -6,13 +6,14 @@ import {
 	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
+	failReply,
 	failReplyTools,
-	lastUserMessage,
+	findLastUserMessage,
+	findUserMessage,
 	openReply,
 	seedMessages,
 	truncateToEditedMessage,
 	truncateToLastUserMessage,
-	userMessage,
 } from '../../modules/chat/engine/chat-transcript'
 import type { ChatMessageData } from '../../modules/chat/engine/types'
 
@@ -168,7 +169,37 @@ describe('failReplyTools', () => {
 	})
 })
 
+describe('failReply', () => {
+	it('marks the reply the id names failed, and keeps what it landed', () => {
+		expect(failReply([user('u1', 'hi'), assistant('r1', 'partial')], 'r1')).toEqual([
+			user('u1', 'hi'),
+			{ ...assistant('r1', 'partial'), failed: true },
+		])
+	})
+
+	it('adds an empty failed reply when the reply never opened', () => {
+		expect(failReply([user('u1', 'hi')], 'r1')).toEqual([
+			user('u1', 'hi'),
+			{ ...assistant('r1', ''), failed: true },
+		])
+	})
+
+	it('leaves every other message alone', () => {
+		const earlier = assistant('r0', 'done')
+
+		const [first] = failReply([earlier, user('u1', 'hi'), assistant('r1', '')], 'r1')
+
+		expect(first).toBe(earlier)
+	})
+})
+
 describe('dropEmptyReply', () => {
+	it('keeps an empty reply that failed, because it says that the send failed', () => {
+		const messages = [user('u1', 'hi'), { ...assistant('r1', ''), failed: true }]
+
+		expect(dropEmptyReply(messages, 'r1')).toEqual(messages)
+	})
+
 	it('drops the reply the id names while it is empty', () => {
 		expect(dropEmptyReply([user('u1', 'hi'), assistant('r1', '')], 'r1')).toEqual([
 			user('u1', 'hi'),
@@ -201,9 +232,17 @@ describe('dropEmptyReply', () => {
 
 		expect(dropEmptyReply(messages, 'r1')).toEqual(messages)
 	})
+
+	// The settle runs on every exit of a send, so a list that drops nothing keeps
+	// its identity and costs no re-render.
+	it('returns the transcript by reference when it drops nothing', () => {
+		const messages = [user('u1', 'hi'), assistant('r1', 'Late stops rose')]
+
+		expect(dropEmptyReply(messages, 'r1')).toBe(messages)
+	})
 })
 
-describe('lastUserMessage', () => {
+describe('findLastUserMessage', () => {
 	it('reads the last user message, past a later reply', () => {
 		const messages = [
 			user('u1', 'hi'),
@@ -212,11 +251,11 @@ describe('lastUserMessage', () => {
 			assistant('r2', 'x'),
 		]
 
-		expect(lastUserMessage(messages)).toEqual(user('u2', 'again'))
+		expect(findLastUserMessage(messages)).toEqual(user('u2', 'again'))
 	})
 
 	it('is undefined when the transcript holds no user message', () => {
-		expect(lastUserMessage([assistant('r1', 'unprompted')])).toBeUndefined()
+		expect(findLastUserMessage([assistant('r1', 'unprompted')])).toBeUndefined()
 	})
 })
 
@@ -255,19 +294,19 @@ describe('truncateToLastUserMessage', () => {
 	})
 })
 
-describe('userMessage', () => {
+describe('findUserMessage', () => {
 	it('reads the user message the id names', () => {
 		const messages = [user('u1', 'hi'), assistant('r1', 'first')]
 
-		expect(userMessage(messages, 'u1')).toEqual(user('u1', 'hi'))
+		expect(findUserMessage(messages, 'u1')).toEqual(user('u1', 'hi'))
 	})
 
 	it('is undefined for a reply’s id, so only a user message is editable', () => {
-		expect(userMessage([user('u1', 'hi'), assistant('r1', 'first')], 'r1')).toBeUndefined()
+		expect(findUserMessage([user('u1', 'hi'), assistant('r1', 'first')], 'r1')).toBeUndefined()
 	})
 
 	it('is undefined for an id the transcript does not hold', () => {
-		expect(userMessage([user('u1', 'hi')], 'absent')).toBeUndefined()
+		expect(findUserMessage([user('u1', 'hi')], 'absent')).toBeUndefined()
 	})
 })
 

@@ -392,15 +392,32 @@ function holdStartAnchor(
 
 /**
  * The state of the virtualizer that a render reads, less `isScrolling`: the
- * visible range and the version of the measured sizes. @internal
+ * visible range, the version of the measured sizes, and whether the reader
+ * is away from the end of a list that the end anchor pins. @internal
  */
-type WindowState = { start: number | null; end: number | null; sizes: number }
+type WindowState = { start: number | null; end: number | null; sizes: number; away: boolean }
 
 /**
  * The fields of the virtualizer that {@link windowState} reads. The size
  * version is private in virtual-core 3.17. @internal
  */
-type WindowFields = { itemSizeCacheVersion: number }
+type WindowFields = { itemSizeCacheVersion: number; scrollState: object | null }
+
+/**
+ * Whether the reader is away from the end of a list that the end anchor pins.
+ * It is the inverse of the rule that the follow of virtual-core reads
+ * (`isAtEnd`), so the reader is away exactly when an appended row does not
+ * pull the list along. A scroll that the virtualizer drives, such as the glide
+ * of the follow, is not away: the list then moves to a target, and the reader
+ * did not move it. Another list is never away. @internal
+ */
+function awayFromEnd(instance: Virtualizer<HTMLElement, Element>): boolean {
+	if (instance.options.anchorTo !== 'end') return false
+
+	if ((instance as unknown as WindowFields).scrollState !== null) return false
+
+	return !instance.isAtEnd()
+}
 
 /**
  * The visible range and the size version of the virtualizer, as its fields
@@ -413,12 +430,13 @@ function windowState(instance: Virtualizer<HTMLElement, Element>): WindowState {
 		start: instance.range?.startIndex ?? null,
 		end: instance.range?.endIndex ?? null,
 		sizes: (instance as unknown as WindowFields).itemSizeCacheVersion,
+		away: awayFromEnd(instance),
 	}
 }
 
 /** Whether two window states render the same window. @internal */
 function sameState(a: WindowState, b: WindowState): boolean {
-	return a.start === b.start && a.end === b.end && a.sizes === b.sizes
+	return a.start === b.start && a.end === b.end && a.sizes === b.sizes && a.away === b.away
 }
 
 /**
@@ -463,8 +481,9 @@ type WindowVirtualizerOptions = Omit<
  * from the virtualizer.
  *
  * A change renders when the visible range or a measured size differs from the
- * last commit. The rendered items, their positions, and the total size follow
- * from those and from the options, which change only in a render. A change
+ * last commit, or when the reader moves away from the end or back to it. The
+ * rendered items, their positions, and the total size follow from those and
+ * from the options, which change only in a render. A change
  * that the virtualizer marks as synchronous renders in a `flushSync`, as in
  * the library. A change from a row measurement renders plainly (see
  * {@link measuring}).
@@ -586,6 +605,13 @@ type VirtualWindow = {
 	 * the window is empty, it holds the height of every row.
 	 */
 	bottomSpacer: number
+	/**
+	 * Whether the reader has scrolled away from the end of a list that
+	 * `anchorTo: 'end'` pins, so an appended row does not pull the list along. A
+	 * scroll that the virtualizer drives, such as the follow, is not away. The
+	 * hook renders when the value changes. Another list is never away.
+	 */
+	away: boolean
 	/**
 	 * Scrolls the item at `index` into the window, mounting it if it was outside
 	 * it. `behavior: 'smooth'` glides there, and the default jumps. It reads the
@@ -837,6 +863,7 @@ export function useVirtualWindow({
 		virtualItems,
 		topSpacer,
 		bottomSpacer,
+		away: rendered.away,
 		scrollToIndex,
 		measureRef,
 	}

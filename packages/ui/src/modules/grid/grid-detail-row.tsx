@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import { memo, type ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -146,7 +147,7 @@ function GridDetailRowImpl<T>({
 			<tr
 				{...windowRow}
 				data-detail-row={String(rowKey)}
-				aria-hidden={expanded ? undefined : true}
+				aria-hidden={ariaAttr(!expanded)}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
 			>

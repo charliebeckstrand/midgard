@@ -4,6 +4,7 @@ import { useInView } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -168,7 +169,7 @@ function HeldChatEmbed({ part, className, mount, render, address, reached }: Hel
 			ref={ref}
 			data-slot="chat-embed"
 			data-embed={part.name}
-			data-deferred={hold.present ? undefined : ''}
+			data-deferred={dataAttr(!hold.present)}
 			className={cn(k().embed.base, className)}
 		>
 			{hold.present ? (
