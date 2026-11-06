@@ -14,7 +14,7 @@ import { toggleItem } from '../../utilities/toggle-item'
 import { treeMoveTarget } from '../tree/tree-keyboard'
 import { JsonTreeContext } from './context'
 import { TREE_ITEM_SELECTOR } from './json-tree-constants'
-import { jsonTreeMoveForKey } from './json-tree-keyboard'
+import { isBranchToggle, jsonTreeMoveForKey } from './json-tree-keyboard'
 import { JsonTreeNode } from './json-tree-node'
 import {
 	buildSearchIndex,
@@ -231,12 +231,12 @@ export function JsonTree({
 	// The horizontal arrows of the tree model: to the first child of an open
 	// branch, or to the parent of a closed branch or a leaf. A fixed branch row
 	// takes the two moves. A branch row opens and closes itself first and
-	// cancels the event. The windowed variant moves
+	// records the key, see `isBranchToggle`. The windowed variant moves
 	// over its flat rows, because the target row can be outside the window.
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		const item = event.target
 
-		if (event.defaultPrevented || !(item instanceof HTMLElement)) return
+		if (isBranchToggle(event) || !(item instanceof HTMLElement)) return
 
 		const move = jsonTreeMoveForKey(event, item)
 
@@ -318,7 +318,10 @@ export function JsonTree({
 				aria-label={label}
 				aria-labelledby={ariaLabelledby}
 				className={cn(k().base, className)}
-				onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown)}
+				// Roving takes no gate: the consumer's handler runs first, then roving.
+				onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
+					checkForDefaultPrevented: false,
+				})}
 			>
 				<JsonTreeNode keyName={rootKey} value={data} />
 			</div>

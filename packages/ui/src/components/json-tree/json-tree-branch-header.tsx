@@ -7,6 +7,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
 import { branchToggleKey } from '../tree/tree-keyboard'
+import { markBranchToggle } from './json-tree-keyboard'
 import { JsonTreeNodeKey } from './json-tree-node-key'
 import type { FlatSetPosition } from './json-tree-utilities'
 
@@ -81,6 +82,8 @@ export function JsonTreeBranchHeader({
 		if (!branchToggleKey(event, open)) return
 
 		event.preventDefault()
+
+		markBranchToggle(event)
 
 		onToggle()
 	}

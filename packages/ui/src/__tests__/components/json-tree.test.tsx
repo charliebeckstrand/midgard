@@ -975,6 +975,52 @@ describe('JsonTree horizontal arrows', () => {
 	})
 })
 
+describe('JsonTree: a consumer onKeyDown', () => {
+	// Roving is the keyboard model of the tree, so a consumer handler that cancels
+	// the key does not switch it off (CONVENTIONS §3.9).
+	it('roves and moves when the handler cancels the key', () => {
+		const { container } = renderUI(
+			<JsonTree
+				data={{ outer: { inner: 1 }, last: 2 }}
+				defaultExpandDepth={1}
+				onKeyDown={(event) => event.preventDefault()}
+			/>,
+		)
+
+		const key = (name: string) =>
+			fireEvent.keyDown(present(document.activeElement, 'focused row'), { key: name })
+
+		const [root, outer, last] = Array.from(
+			container.querySelectorAll<HTMLElement>('[role="treeitem"]'),
+		)
+
+		present(root, 'root row').focus()
+
+		// An open branch: ArrowRight moves to its first child.
+		key('ArrowRight')
+
+		expect(document.activeElement).toBe(outer)
+
+		// A closed branch: ArrowRight opens it, and focus stays.
+		key('ArrowRight')
+
+		expect(outer).toHaveAttribute('aria-expanded', 'true')
+
+		expect(document.activeElement).toBe(outer)
+
+		// An open branch: ArrowLeft closes it, and focus stays.
+		key('ArrowLeft')
+
+		expect(outer).toHaveAttribute('aria-expanded', 'false')
+
+		expect(document.activeElement).toBe(outer)
+
+		key('ArrowDown')
+
+		expect(document.activeElement).toBe(last)
+	})
+})
+
 describe('flatTreeMoveTarget', () => {
 	const nodes = flattenTree({
 		data: { a: { b: 1 }, c: [], d: { e: 1 } },

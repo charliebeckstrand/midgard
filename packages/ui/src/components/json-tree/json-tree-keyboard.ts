@@ -3,6 +3,30 @@ import { crossAxisDelta, nextIndexForKey } from '../../utilities/keyboard-naviga
 import { treeMoveForKey } from '../tree/tree-keyboard'
 import type { FlatNode } from './json-tree-utilities'
 
+/** The native key events that a branch row used to open or close itself. */
+const branchToggles = new WeakSet<Event>()
+
+/**
+ * Records that a branch row used `event` to open or close itself. The tree then makes
+ * no move on the key, see {@link isBranchToggle}.
+ *
+ * @internal
+ */
+export function markBranchToggle(event: KeyboardEvent<HTMLElement>): void {
+	branchToggles.add(event.nativeEvent)
+}
+
+/**
+ * Whether a branch row used `event` to open or close itself. The tree reads this record,
+ * not `defaultPrevented`, because a consumer handler can also cancel a key. A cancel by
+ * the consumer does not stop the roving (CONVENTIONS §3.9).
+ *
+ * @internal
+ */
+export function isBranchToggle(event: KeyboardEvent<HTMLElement>): boolean {
+	return branchToggles.has(event.nativeEvent)
+}
+
 /**
  * The focus move that a horizontal arrow makes from the JsonTree row `item`, see
  * {@link treeMoveForKey}. A branch row that does not collapse has `data-fixed` and
