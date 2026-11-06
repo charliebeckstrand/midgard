@@ -69,16 +69,16 @@ Status: `◯ OPEN`; `✅ RESOLVED (#NNN)` after the fix merges; `✖ DROPPED` wi
 | [B03-C04](#b03-c04) | `modules/map/engine/map-region/value.ts` | resolveValueBins | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3308](https://github.com/charliebeckstrand/midgard/pull/3308)) |
 | [B03-C09](#b03-c09) | `modules/map/engine/map-zip/selection.ts` | readRule | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3308](https://github.com/charliebeckstrand/midgard/pull/3308)) |
 | [B03-C13](#b03-c13) | `modules/map/map-regions.tsx` | Region | CONFIRMED | low | none | polish | M7 | ◯ OPEN |
-| [B04-C01](#b04-c01) | `modules/map/engine/map-geometry/locate.ts` | featureBounds / regionAt / regionsMeeting | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| [B04-C02](#b04-c02) | `modules/map/engine/map-geometry/mark.ts` | ringArcs | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| [B04-C03](#b04-c03) | `modules/map/engine/map-geometry/mark.ts` | unprojectPoint | CONFIRMED | low | shipped | correctness | independent | ◯ OPEN |
-| [B04-C04](#b04-c04) | `modules/map/engine/map-geometry/projected.ts` | buildWitness / firstPosition | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| [B04-C05](#b04-c05) | `modules/map/engine/map-geometry/projected.ts` | probeCanonicalFit | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| [B04-C06](#b04-c06) | `modules/map/engine/map-projection/resolve.ts` | fitWidthFromProbeBounds | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
+| [B04-C01](#b04-c01) | `modules/map/engine/map-geometry/locate.ts` | featureBounds / regionAt / regionsMeeting | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3321](https://github.com/charliebeckstrand/midgard/pull/3321)) |
+| [B04-C02](#b04-c02) | `modules/map/engine/map-geometry/mark.ts` | ringArcs | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3321](https://github.com/charliebeckstrand/midgard/pull/3321)) |
+| [B04-C03](#b04-c03) | `modules/map/engine/map-geometry/mark.ts` | unprojectPoint | CONFIRMED | low | shipped | correctness | independent | ✅ RESOLVED ([#3321](https://github.com/charliebeckstrand/midgard/pull/3321)) |
+| [B04-C04](#b04-c04) | `modules/map/engine/map-geometry/projected.ts` | buildWitness / firstPosition | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3321](https://github.com/charliebeckstrand/midgard/pull/3321)) |
+| [B04-C05](#b04-c05) | `modules/map/engine/map-geometry/projected.ts` | probeCanonicalFit | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3321](https://github.com/charliebeckstrand/midgard/pull/3321)) |
+| [B04-C06](#b04-c06) | `modules/map/engine/map-projection/resolve.ts` | fitWidthFromProbeBounds | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3321](https://github.com/charliebeckstrand/midgard/pull/3321)) |
 | [B04-C07](#b04-c07) | `modules/map/engine/map-routing/failure.ts` | thrownFailure | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3308](https://github.com/charliebeckstrand/midgard/pull/3308)) |
 | [B04-C08](#b04-c08) | `modules/map/engine/map-routing/request.ts` | requestSignal | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3308](https://github.com/charliebeckstrand/midgard/pull/3308)) |
 | [B04-C09](#b04-c09) | `modules/map/engine/map-routing/request.ts` | routeFetch | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3308](https://github.com/charliebeckstrand/midgard/pull/3308)) |
-| [B04-C10](#b04-c10) | `modules/map/engine/map-constants.ts` | ALBERS_USA_ASPECT | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
+| [B04-C10](#b04-c10) | `modules/map/engine/map-constants.ts` | ALBERS_USA_ASPECT | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3321](https://github.com/charliebeckstrand/midgard/pull/3321)) |
 | [B04-C11](#b04-c11) | `modules/map/engine/types.ts` | MapProjection | NARROWED | low | none | correctness | independent | ◯ OPEN |
 
 ## Mechanisms
