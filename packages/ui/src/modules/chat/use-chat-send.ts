@@ -1,6 +1,7 @@
 'use client'
 
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { noop } from '../../utilities/noop'
 import { randomId } from '../../utilities/random-id'
 import { chatContentText } from './engine/chat-content/text'
@@ -136,14 +137,16 @@ export type ChatSend = {
 	 * Regenerates the reply to the last user message. Drops it and anything after
 	 * it: an existing assistant reply, also a failed one. Then streams a fresh
 	 * one for the same content. No-ops with no user
-	 * message in the transcript, or while a send is already in flight.
+	 * message in the transcript, or while a send is already in flight. It keeps
+	 * one identity for the mount. Do not call it during render.
 	 */
 	retry: () => Promise<void>
 	/**
 	 * Replaces a prior user message's content and regenerates from there,
 	 * discarding everything after it (its old reply and any later turns). No-ops
 	 * if `id` doesn't match a user message, `content` trims empty, or a send is
-	 * already in flight.
+	 * already in flight. It keeps one identity for the mount. Do not call it
+	 * during render.
 	 */
 	edit: (id: string, content: string) => Promise<void>
 	/**
@@ -364,7 +367,9 @@ export function useChatSend({
 		[runTransport],
 	)
 
-	const retry = useCallback(async () => {
+	// Both read the messages of the last commit, but keep one identity, so a row
+	// action that lists them does not change on each streamed chunk.
+	const retry = useStableEvent(async () => {
 		if (controllerRef.current) return
 
 		const lastUser = findLastUserMessage(messages)
@@ -374,24 +379,21 @@ export function useChatSend({
 		setMessages((prev) => truncateToLastUserMessage(prev))
 
 		await runTransport(chatContentText(lastUser.content))
-	}, [messages, runTransport])
+	})
 
-	const edit = useCallback(
-		async (id: string, content: string) => {
-			if (controllerRef.current) return
+	const edit = useStableEvent(async (id: string, content: string) => {
+		if (controllerRef.current) return
 
-			const text = draftContent(content)
+		const text = draftContent(content)
 
-			if (!text) return
+		if (!text) return
 
-			if (!findUserMessage(messages, id)) return
+		if (!findUserMessage(messages, id)) return
 
-			setMessages((prev) => truncateToEditedMessage(prev, id, text))
+		setMessages((prev) => truncateToEditedMessage(prev, id, text))
 
-			await runTransport(text)
-		},
-		[messages, runTransport],
-	)
+		await runTransport(text)
+	})
 
 	return { messages, streaming, send, retry, edit, stop, setMessages }
 }

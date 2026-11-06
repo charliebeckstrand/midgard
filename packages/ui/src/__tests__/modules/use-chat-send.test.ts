@@ -90,6 +90,22 @@ describe('useChatSend', () => {
 		expect(result.current.messages[1]?.id).not.toBe('server-1')
 	})
 
+	// A row action lists `retry` or `edit` as a dependency, so a new identity on
+	// each streamed chunk would render every row of the transcript again.
+	it('keeps one identity for retry and edit while a reply streams', async () => {
+		const { result } = renderHook(() => useChatSend({ transport: makeStream('Late', ' stops') }))
+
+		const { retry, edit } = result.current
+
+		await act(() => result.current.send('Where are the late stops?'))
+
+		expect(result.current.messages).toHaveLength(2)
+
+		expect(result.current.retry).toBe(retry)
+
+		expect(result.current.edit).toBe(edit)
+	})
+
 	it('warns once when two seed messages share an id, and leaves the transcript as it got it', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
