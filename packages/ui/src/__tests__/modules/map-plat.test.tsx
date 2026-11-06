@@ -266,10 +266,10 @@ describe('MapPlat', () => {
 		// The side panel spans the reserved column beside the map from the map's own `@lg`.
 		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('@lg:w-full')
 
-		// Row placements reserve one item-row of height instead.
+		// Row placements reserve one item-row of height instead: the 32px of a `sm` LegendSwitch.
 		const row = renderUI(categoricalPlat({ legend: 'top' }))
 
-		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-4')
+		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-8')
 	})
 
 	it('stacks a side panel under the map below its own @lg width and beside it from there', () => {
