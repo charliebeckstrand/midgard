@@ -20,6 +20,7 @@ import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useVirtualWindow } from '../../hooks/use-virtual-window'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -270,7 +271,8 @@ export function ChatTranscript({
 	// A glide to the end and a row that grows only move toward the end, and a
 	// row above that measures smaller keeps the end where it was. So a scroll
 	// that moves toward the start and leaves the end is the reader's.
-	const trackPin = (event: UIEvent<HTMLDivElement>) => {
+	// A stable event, since it reads a ref and goes through `composeEventHandlers`.
+	const trackPin = useStableEvent((event: UIEvent<HTMLDivElement>) => {
 		const element = event.currentTarget
 
 		const { scrollTop } = element
@@ -279,7 +281,7 @@ export function ChatTranscript({
 		else if (scrollTop < lastScrollTop.current) setPinned(false)
 
 		lastScrollTop.current = scrollTop
-	}
+	})
 
 	// The end anchor has no mount arm, so the first window that holds rows jumps
 	// to the newest one. It runs before paint, so the transcript never shows its top.
