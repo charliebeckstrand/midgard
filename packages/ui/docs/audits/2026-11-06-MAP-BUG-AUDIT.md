@@ -38,7 +38,7 @@ Status: `◯ OPEN`; `✅ RESOLVED (#NNN)` after the fix merges; `✖ DROPPED` wi
 | Row | File | Symbol | Verdict | Severity | Reach | Kind | Group | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | [B01-C07](#b01-c07) | `modules/map/use-map-zoom.ts` | useMapZoom | CONFIRMED | medium | shipped | bug | independent | ✅ RESOLVED ([#3311](https://github.com/charliebeckstrand/midgard/pull/3311)) |
-| [B02-C11](#b02-c11) | `modules/map/map-dot.tsx` | dotHitProps | CONFIRMED | medium | shipped | bug | independent | ◯ OPEN |
+| [B02-C11](#b02-c11) | `modules/map/map-dot.tsx` | dotHitProps | CONFIRMED | medium | shipped | bug | independent | ✅ RESOLVED ([#3320](https://github.com/charliebeckstrand/midgard/pull/3320)) |
 | [B02-C14](#b02-c14) | `modules/map/use-map-keyboard.ts` | useMapKeyboard | CONFIRMED | medium | shipped | bug | independent | ✅ RESOLVED ([#3311](https://github.com/charliebeckstrand/midgard/pull/3311)) |
 | [B03-C11](#b03-c11) | `modules/map/map-legend-region.tsx` | MapLegendSlot | CONFIRMED | medium | shipped | bug | M1 | ✅ RESOLVED ([#3309](https://github.com/charliebeckstrand/midgard/pull/3309)) |
 | [B01-C01](#b01-c01) | `recipes/kata/map.ts` | k.legend | CONFIRMED | low | shipped | bug | M1 | ✅ RESOLVED ([#3309](https://github.com/charliebeckstrand/midgard/pull/3309)) |
@@ -51,16 +51,16 @@ Status: `◯ OPEN`; `✅ RESOLVED (#NNN)` after the fix merges; `✖ DROPPED` wi
 | [B01-C09](#b01-c09) | `modules/map/map-table.tsx` | MapTableProps.header | NARROWED | low | shipped | correctness | independent | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
 | [B01-C11](#b01-c11) | `modules/map/use-map-coverage.ts` | useMapCoverage | CONFIRMED | low | none | polish | M7 | ◯ OPEN |
 | [B01-C12](#b01-c12) | `recipes/kata/map.ts` | k.group | CONFIRMED | low | none | polish | M7 | ◯ OPEN |
-| [B02-C01](#b02-c01) | `modules/map/map-dot.tsx` | MapDot | CONFIRMED | low | shipped | bug | independent | ◯ OPEN |
-| [B02-C02](#b02-c02) | `modules/map/map-point.tsx` | MapPoint | CONFIRMED | low | none | correctness | M2 | ◯ OPEN |
-| [B02-C03](#b02-c03) | `modules/map/map-points.tsx` | MapPoints | CONFIRMED | low | shipped | bug | M2 | ◯ OPEN |
-| [B02-C04](#b02-c04) | `modules/map/map-marker.tsx` | MapMarker | CONFIRMED | low | none | correctness | M5 | ◯ OPEN |
+| [B02-C01](#b02-c01) | `modules/map/map-dot.tsx` | MapDot | CONFIRMED | low | shipped | bug | independent | ✅ RESOLVED ([#3320](https://github.com/charliebeckstrand/midgard/pull/3320)) |
+| [B02-C02](#b02-c02) | `modules/map/map-point.tsx` | MapPoint | CONFIRMED | low | none | correctness | M2 | ✅ RESOLVED ([#3320](https://github.com/charliebeckstrand/midgard/pull/3320)) |
+| [B02-C03](#b02-c03) | `modules/map/map-points.tsx` | MapPoints | CONFIRMED | low | shipped | bug | M2 | ✅ RESOLVED ([#3320](https://github.com/charliebeckstrand/midgard/pull/3320)) |
+| [B02-C04](#b02-c04) | `modules/map/map-marker.tsx` | MapMarker | CONFIRMED | low | none | correctness | M5 | ✅ RESOLVED ([#3320](https://github.com/charliebeckstrand/midgard/pull/3320)) |
 | [B02-C05](#b02-c05) | `modules/map/map-points.tsx` | MapPoints | CONFIRMED | low | none | correctness | M5 | ◯ OPEN |
 | [B02-C06](#b02-c06) | `modules/map/use-map-overlay.ts` | useMapOverlay | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
 | [B02-C07](#b02-c07) | `modules/map/map-route.tsx` | MapRoute | CONFIRMED | low | none | correctness | M4 | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
 | [B02-C08](#b02-c08) | `modules/map/map-geofence.tsx` | MapGeofence | CONFIRMED | low | none | correctness | M4 | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
-| [B02-C09](#b02-c09) | `modules/map/map-line.tsx` | MapLineDraw | CONFIRMED | low | shipped | bug | independent | ◯ OPEN |
-| [B02-C10](#b02-c10) | `modules/map/map-dot.tsx` | MapDotCount | CONFIRMED | low | shipped | bug | independent | ◯ OPEN |
+| [B02-C09](#b02-c09) | `modules/map/map-line.tsx` | MapLineDraw | CONFIRMED | low | shipped | bug | independent | ✅ RESOLVED ([#3320](https://github.com/charliebeckstrand/midgard/pull/3320)) |
+| [B02-C10](#b02-c10) | `modules/map/map-dot.tsx` | MapDotCount | CONFIRMED | low | shipped | bug | independent | ✅ RESOLVED ([#3320](https://github.com/charliebeckstrand/midgard/pull/3320)) |
 | [B02-C12](#b02-c12) | `modules/map/engine/map-overlay/readout.ts` | markRows | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
 | [B02-C13](#b02-c13) | `modules/map/engine/map-overlay/readout.ts` | markRows | CONFIRMED | low | shipped | correctness | independent | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
 | [B02-C15](#b02-c15) | `modules/map/use-map-keyboard.ts` | useMapKeyboard | CONFIRMED | low | none | correctness | M3 | ✅ RESOLVED ([#3311](https://github.com/charliebeckstrand/midgard/pull/3311)) |
