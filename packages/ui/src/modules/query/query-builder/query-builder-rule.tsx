@@ -1,7 +1,7 @@
 'use client'
 
 import { Trash } from 'lucide-react'
-import { memo, useCallback, useMemo } from 'react'
+import { type KeyboardEvent, memo, useCallback, useMemo } from 'react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import type { JsonValue } from '../../../components/json-tree/types'
@@ -25,6 +25,17 @@ import { QueryBuilderRuleValue } from './query-builder-rule-value'
 /** The flex direction of the parts of a rule in each orientation. @internal */
 function toDirection(orientation: Orientation) {
 	return orientation === 'vertical' ? 'col' : 'row'
+}
+
+/**
+ * Cancels an auto-repeat of Enter or Space on the remove button. A removal
+ * moves focus to the remove button of a neighbor while the key that removed
+ * the node can still be down. Each repeat of Enter then fires a native click,
+ * and a repeat of Space arms one, so each repeat would remove one more node.
+ * The Add menu trigger cancels the repeat for the same cause. @internal
+ */
+function cancelKeyRepeat(event: KeyboardEvent<HTMLButtonElement>) {
+	if (event.repeat && (event.key === 'Enter' || event.key === ' ')) event.preventDefault()
 }
 
 /** Props for {@link QueryBuilderRule}: the rule node to render. @internal */
@@ -207,6 +218,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					disabled={disabled}
 					className={slots.remove}
 					onClick={onRemove}
+					onKeyDown={cancelKeyRepeat}
 				>
 					<Icon icon={<Trash />} />
 				</Button>

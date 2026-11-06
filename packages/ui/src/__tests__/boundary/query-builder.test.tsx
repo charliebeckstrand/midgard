@@ -699,6 +699,65 @@ describe('QueryBuilder removal focus', () => {
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Add' }))
 	})
+
+	// A removal moves focus to the remove button of a neighbor while the key that
+	// removed the node can still be down. Each auto-repeat of that key must not
+	// click the button that now has focus.
+	it('cancels an auto-repeat of Enter or Space on a rule remove button', () => {
+		const tree = createGroup('and', [
+			createRule(fields[0]),
+			createGroup('and', [createRule(fields[1])]),
+		])
+
+		renderUI(<QueryBuilder fields={fields} defaultValue={tree} />)
+
+		const [ruleRemove] = removeButtons()
+
+		expect(fireEvent.keyDown(ruleRemove as HTMLElement, { key: 'Enter', repeat: true })).toBe(false)
+
+		expect(fireEvent.keyDown(ruleRemove as HTMLElement, { key: ' ', repeat: true })).toBe(false)
+
+		// A new press keeps its native click.
+		expect(fireEvent.keyDown(ruleRemove as HTMLElement, { key: 'Enter' })).toBe(true)
+
+		expect(removeButtons()).toHaveLength(2)
+	})
+
+	it('keeps focus on the remove button when the owner refuses the removal', () => {
+		const tree = createGroup('and', [createRule(fields[0]), createRule(fields[1])])
+
+		renderUI(<QueryBuilder fields={fields} value={tree} onValueChange={() => {}} />)
+
+		const [, second] = removeButtons()
+
+		second?.focus()
+
+		fireEvent.click(second as HTMLElement)
+
+		expect(removeButtons()).toHaveLength(2)
+
+		expect(document.activeElement).toBe(second)
+	})
+
+	it('moves focus once a late update removes the node', () => {
+		const [first, second] = [createRule(fields[0]), createRule(fields[1])]
+
+		const { rerender } = renderUI(
+			<QueryBuilder fields={fields} value={createGroup('and', [first, second])} />,
+		)
+
+		const [firstRemove, secondRemove] = removeButtons()
+
+		secondRemove?.focus()
+
+		fireEvent.click(secondRemove as HTMLElement)
+
+		expect(document.activeElement).toBe(secondRemove)
+
+		rerender(<QueryBuilder fields={fields} value={createGroup('and', [first])} />)
+
+		expect(document.activeElement).toBe(firstRemove)
+	})
 })
 
 // Reorder is opt-in. With `reorder`, each child of a group with two or more

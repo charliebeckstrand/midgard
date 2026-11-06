@@ -25,19 +25,19 @@ export function useQueryBuilderTree(options: QueryTreeOptions): QueryBuilderTree
 
 	// Each remove or add control registers its element by key. A removal gives
 	// the ordered candidates, and focus moves to the first live one once the
-	// removed node unmounts.
-	const { register, focusFirst } = useQueryRemovalFocus<HTMLElement>()
+	// removed node leaves the tree.
+	const { register, focusFirst } = useQueryRemovalFocus<HTMLElement>(root)
 
 	// The wrapped `remove` keeps its identity, and it reads the newest tree to
 	// find where focus lands after a node goes.
 	const remove = useStableEvent((id: string) => {
 		// Resolves focus candidates from the pre-removal tree; the effect moves
-		// focus once the node has unmounted.
+		// focus once the node has left the tree.
 		const targets = findFocusTarget(root, id)
 
 		actions.remove(id)
 
-		if (targets.length > 0) focusFirst(targets.map(getFocusKey))
+		if (targets.length > 0) focusFirst(id, targets.map(getFocusKey))
 	})
 
 	const builderActions = useMemo<QueryBuilderActions>(
