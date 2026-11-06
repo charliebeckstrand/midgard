@@ -1,46 +1,52 @@
 import { type GeoPermissibleObjects, geoBounds, geoContains } from 'd3-geo'
 import type { LngLat } from 'ui/map'
+import { cities } from '../../../../data/places.ts'
 import { stateName, states } from '../data.ts'
 
 /**
- * The delivery stops of one day, in four rounds. Each round has a group of
- * stops near its depot. When the map shows the full country, each group shows
- * as one summary. When the map shows one state, the stops of that state show
- * apart.
+ * The delivery stops of one day, in four rounds. Each round has a depot and a
+ * group of stops near it. When the map shows the full country, each depot and
+ * the stops near it merge into summaries. A stop far from its depot, such as El
+ * Paso, shows apart. When the map shows one state, more stops of that state
+ * show apart.
  */
-const stops: { at: LngLat; label: string; parcels?: number }[] = [
-	{ at: [-96.8, 32.78], label: 'Dallas depot' },
-	{ at: [-96.7, 33.02], label: 'Plano', parcels: 6 },
-	{ at: [-97.11, 32.74], label: 'Arlington', parcels: 9 },
-	{ at: [-97.33, 32.76], label: 'Fort Worth', parcels: 14 },
-	{ at: [-97.13, 33.21], label: 'Denton', parcels: 11 },
-	{ at: [-97.15, 31.55], label: 'Waco', parcels: 7 },
-	{ at: [-97.74, 30.27], label: 'Austin', parcels: 12 },
-	{ at: [-98.49, 29.42], label: 'San Antonio', parcels: 10 },
-	{ at: [-95.37, 29.76], label: 'Houston', parcels: 18 },
-	{ at: [-106.49, 31.76], label: 'El Paso', parcels: 4 },
-	{ at: [-118.24, 34.05], label: 'Los Angeles depot' },
-	{ at: [-118.19, 33.77], label: 'Long Beach', parcels: 8 },
-	{ at: [-117.91, 33.84], label: 'Anaheim', parcels: 5 },
-	{ at: [-117.38, 33.95], label: 'Riverside', parcels: 9 },
-	{ at: [-117.16, 32.72], label: 'San Diego', parcels: 13 },
-	{ at: [-119.79, 36.74], label: 'Fresno', parcels: 6 },
-	{ at: [-122.42, 37.77], label: 'San Francisco', parcels: 15 },
-	{ at: [-121.49, 38.58], label: 'Sacramento', parcels: 7 },
-	{ at: [-87.63, 41.88], label: 'Chicago depot' },
-	{ at: [-88.15, 41.79], label: 'Naperville', parcels: 5 },
-	{ at: [-88.08, 41.53], label: 'Joliet', parcels: 7 },
-	{ at: [-89.09, 42.27], label: 'Rockford', parcels: 4 },
-	{ at: [-89.65, 39.8], label: 'Springfield', parcels: 9 },
-	{ at: [-84.39, 33.75], label: 'Atlanta depot' },
-	{ at: [-84.55, 33.95], label: 'Marietta', parcels: 6 },
-	{ at: [-83.63, 32.84], label: 'Macon', parcels: 8 },
-	{ at: [-81.1, 32.08], label: 'Savannah', parcels: 11 },
+const stops: { city: string; at: LngLat; parcels?: number }[] = [
+	{ city: cities.dallas, at: [-96.8, 32.78] },
+	{ city: cities.plano, at: [-96.7, 33.02], parcels: 6 },
+	{ city: cities.arlington, at: [-97.11, 32.74], parcels: 9 },
+	{ city: cities.fortWorth, at: [-97.33, 32.76], parcels: 14 },
+	{ city: cities.denton, at: [-97.13, 33.21], parcels: 11 },
+	{ city: cities.waco, at: [-97.15, 31.55], parcels: 7 },
+	{ city: cities.austin, at: [-97.74, 30.27], parcels: 12 },
+	{ city: cities.sanAntonio, at: [-98.49, 29.42], parcels: 10 },
+	{ city: cities.houston, at: [-95.37, 29.76], parcels: 18 },
+	{ city: cities.elPaso, at: [-106.49, 31.76], parcels: 4 },
+	{ city: cities.losAngeles, at: [-118.24, 34.05] },
+	{ city: cities.longBeach, at: [-118.19, 33.77], parcels: 8 },
+	{ city: cities.anaheim, at: [-117.91, 33.84], parcels: 5 },
+	{ city: cities.riverside, at: [-117.38, 33.95], parcels: 9 },
+	{ city: cities.sanDiego, at: [-117.16, 32.72], parcels: 13 },
+	{ city: cities.fresno, at: [-119.79, 36.74], parcels: 6 },
+	{ city: cities.sanFrancisco, at: [-122.42, 37.77], parcels: 15 },
+	{ city: cities.sacramento, at: [-121.49, 38.58], parcels: 7 },
+	{ city: cities.chicago, at: [-87.63, 41.88] },
+	{ city: cities.naperville, at: [-88.15, 41.79], parcels: 5 },
+	{ city: cities.joliet, at: [-88.08, 41.53], parcels: 7 },
+	{ city: cities.rockford, at: [-89.09, 42.27], parcels: 4 },
+	{ city: cities.springfield, at: [-89.65, 39.8], parcels: 9 },
+	{ city: cities.atlanta, at: [-84.39, 33.75] },
+	{ city: cities.marietta, at: [-84.55, 33.95], parcels: 6 },
+	{ city: cities.macon, at: [-83.63, 32.84], parcels: 8 },
+	{ city: cities.savannah, at: [-81.1, 32.08], parcels: 11 },
 ]
 
-/** Each stop with its readout. A depot has no parcels, and its readout is "Origin". */
+/**
+ * Each stop with its label and its readout. A depot has no parcels, its label
+ * names it as a depot, and its readout is "Origin".
+ */
 export const deliveryStops = stops.map((stop) => ({
 	...stop,
+	label: stop.parcels === undefined ? `${stop.city} depot` : stop.city,
 	detail: stop.parcels === undefined ? 'Origin' : `${stop.parcels} parcels`,
 }))
 

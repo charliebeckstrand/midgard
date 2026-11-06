@@ -1,17 +1,24 @@
 import { MapPlat, MapPoints } from 'ui/map'
-import { states } from '../data.ts'
-import { deliveryStops } from './data.ts'
+import { stateFrame } from '../data.ts'
+import { deliveryStops, stopStates } from './data.ts'
+
+// The map fits the Georgia round alone. On the full country, each depot merges
+// with the stops near it into a summary, and a summary is a circle. Here the
+// depot stands apart from its stops, so its square shows.
+const round = deliveryStops.filter((_, index) => stopStates[index] === 'Georgia')
 
 // Two kinds of stop, told apart by shape as well as by color.
-const depots = deliveryStops.filter((stop) => stop.parcels === undefined)
+const depots = round.filter((stop) => stop.parcels === undefined)
 
-const drops = deliveryStops.filter((stop) => stop.parcels !== undefined)
+const drops = round.filter((stop) => stop.parcels !== undefined)
+
+const georgia = stateFrame('Georgia')
 
 export default function Shapes() {
 	return (
 		<MapPlat
 			aria-label="Depots and stops"
-			geography={states}
+			geography={georgia}
 			projection="albers-usa"
 			animate
 			legend="right"

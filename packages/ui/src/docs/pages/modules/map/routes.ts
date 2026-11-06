@@ -13,8 +13,8 @@ export const destinations: { abbreviation: string; at: LngLat }[] = [
 
 /** Two long-haul corridors, each between two cities. */
 export const corridors: { abbreviation: string; start: LngLat; end: LngLat }[] = [
-	{ abbreviation: 'SF→NY', start: [-122.42, 37.77], end: [-74.0, 40.71] },
-	{ abbreviation: 'LA→JAX', start: [-118.24, 34.05], end: [-81.66, 30.33] },
+	{ abbreviation: 'SF → NY', start: [-122.42, 37.77], end: [-74.0, 40.71] },
+	{ abbreviation: 'LA → JAX', start: [-118.24, 34.05], end: [-81.66, 30.33] },
 ]
 
 /** The two ends of a line haul: Los Angeles and Chicago. */
