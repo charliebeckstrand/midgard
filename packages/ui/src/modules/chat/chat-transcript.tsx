@@ -8,6 +8,7 @@ import {
 	type ReactNode,
 	type UIEvent,
 	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useRef,
 	useState,
@@ -167,9 +168,10 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * The transcript scrolls only on the block axis. It opens at its newest row with
  * no animation, and it is then pinned to the end. While it is pinned, a new row
  * smooth-scrolls into view, and a row that grows keeps the end in view. A
- * scroll toward the start that leaves the end releases the pin, so a reader who
- * scrolled up to read is not pulled down. A scroll back to the end pins it
- * again. The pin is the intent of the reader, not the scroll position: a reply
+ * scroll of the reader toward the start that leaves the end releases the pin,
+ * so a reader who scrolled up to read is not pulled down. A scroll back to the
+ * end pins it again. Another move toward the start, such as a correction of
+ * the window as rows measure, takes a pinned transcript back to its end. The pin is the intent of the reader, not the scroll position: a reply
  * that opens while the glide to the last message still runs is followed too.
  * The reader's own message pins the transcript, wherever the reader had
  * scrolled, because the reader sent it.
@@ -262,23 +264,70 @@ export function ChatTranscript({
 		anchorTo: 'end',
 	})
 
-	// Whether the transcript follows its end. Only the reader releases it, so a
-	// glide to the end does not release it on the way.
+	// Whether the transcript follows its end. Only the reader releases it.
 	const [pinned, setPinned] = useState(true)
 
 	const lastScrollTop = useRef(0)
 
-	// A glide to the end and a row that grows only move toward the end, and a
-	// row above that measures smaller keeps the end where it was. So a scroll
-	// that moves toward the start and leaves the end is the reader's.
+	// Whether the reader moved the scroll since the transcript last reached its
+	// end: a wheel, a touch drag, a key, or a press on the scrollbar. Only such a
+	// scroll releases the pin. The transcript and the browser also move the
+	// scroll toward the start: the virtualizer corrects the offset as rows
+	// measure, and the browser clamps it when the content gets shorter. On iOS,
+	// the virtualizer holds back some of its corrections, and applies them as a
+	// later jump. None of these is the reader, so none of them releases the pin,
+	// and a pinned transcript goes back to its end.
+	const reading = useRef(false)
+
+	useEffect(() => {
+		const element = containerRef.current
+
+		if (!element) return
+
+		const read = () => {
+			reading.current = true
+		}
+
+		// A trackpad sends wheel events toward the end after the scroll stops
+		// there. These events move nothing, and no scroll event clears them.
+		const wheel = (event: WheelEvent) => {
+			if (event.deltaY < 0) read()
+		}
+
+		// A press on the scroll itself, not on a row, is a press on the scrollbar.
+		const press = (event: PointerEvent) => {
+			if (event.target === element) read()
+		}
+
+		element.addEventListener('wheel', wheel, { passive: true })
+		element.addEventListener('touchmove', read, { passive: true })
+		element.addEventListener('keydown', read)
+		element.addEventListener('pointerdown', press)
+
+		return () => {
+			element.removeEventListener('wheel', wheel)
+			element.removeEventListener('touchmove', read)
+			element.removeEventListener('keydown', read)
+			element.removeEventListener('pointerdown', press)
+		}
+	}, [])
+
 	// A stable event, since it reads a ref and goes through `composeEventHandlers`.
 	const trackPin = useStableEvent((event: UIEvent<HTMLDivElement>) => {
 		const element = event.currentTarget
 
 		const { scrollTop } = element
 
-		if (element.scrollHeight - element.clientHeight - scrollTop <= END_THRESHOLD) setPinned(true)
-		else if (scrollTop < lastScrollTop.current) setPinned(false)
+		if (element.scrollHeight - element.clientHeight - scrollTop <= END_THRESHOLD) {
+			setPinned(true)
+
+			reading.current = false
+		} else if (scrollTop < lastScrollTop.current) {
+			// A move that is not the reader's leaves a pinned transcript short of its
+			// end, so it goes back there.
+			if (reading.current) setPinned(false)
+			else if (pinned) scrollToIndex(count - 1, { align: 'end' })
+		}
 
 		lastScrollTop.current = scrollTop
 	})
