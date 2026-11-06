@@ -76,14 +76,14 @@ Status: `◯ OPEN`, `✅ RESOLVED (#NNN)`, or `✖ DROPPED` with the reason of t
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | [C01](#c01) | `modules/query/query-builder/query-builder-rule.tsx` | QueryBuilderRule | CONFIRMED | high | shipped | bug | independent | ✅ RESOLVED ([#3304](https://github.com/charliebeckstrand/midgard/pull/3304)) |
 | [C04](#c04) | `modules/query/query-builder/query-builder-sortable.tsx` | QueryBuilderSortable | CONFIRMED | medium | shipped | bug | M1 | ◯ OPEN |
-| [C10](#c10) | `recipes/kata/query-builder.ts` | k (sortable slot) | CONFIRMED | medium | shipped | bug | independent | ◯ OPEN |
+| [C10](#c10) | `recipes/kata/query-builder.ts` | k (sortable slot) | CONFIRMED | medium | shipped | bug | independent | ✅ RESOLVED ([#3305](https://github.com/charliebeckstrand/midgard/pull/3305)) |
 | [C17](#c17) | `modules/query/engine/query-evaluate.ts` | matchers (equals, notEquals) | CONFIRMED | medium | shipped | bug | independent | ✅ RESOLVED ([#3303](https://github.com/charliebeckstrand/midgard/pull/3303)) |
 | [C02](#c02) | `modules/query/query-chips.tsx` | QueryChips | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
 | [C05](#c05) | `modules/query/use-query-removal-focus.ts` | useQueryRemovalFocus | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3304](https://github.com/charliebeckstrand/midgard/pull/3304)) |
 | [C06](#c06) | `modules/query/query-builder/query-builder-sortable.tsx` | QueryBuilderSortable | CONFIRMED | low | none | correctness | M1 | ◯ OPEN |
 | [C07](#c07) | `modules/query/query-builder/query-builder-group.tsx` | QueryBuilderGroup | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
 | [C09](#c09) | `modules/query/query-builder/query-builder-sortable-item.tsx` | QueryBuilderSortableItem | CONFIRMED | low | shipped | bug | independent | ◯ OPEN |
-| [C12](#c12) | `recipes/kata/query-builder.ts` | k (sortable.handle, sortable.separator) | NARROWED | low | shipped | correctness | independent | ◯ OPEN |
+| [C12](#c12) | `recipes/kata/query-builder.ts` | k (sortable.handle, sortable.separator) | NARROWED | low | shipped | correctness | independent | ✅ RESOLVED ([#3305](https://github.com/charliebeckstrand/midgard/pull/3305)) |
 | [C14](#c14) | `modules/query/query-builder/query-builder.tsx` | QueryBuilder | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
 | [C19](#c19) | `modules/query/query-builder/query-builder-rule.tsx` | QueryBuilderRule | CONFIRMED | low | shipped | correctness | independent | ◯ OPEN |
 
@@ -491,6 +491,6 @@ Should QueryBuilder seed one rule when requireRule meets an empty tree, or is th
 - `packages/ui/src/hooks/use-reorder-drag.ts` (verifier): A value change during a live pointer drag is not merged into the draft; the drop moves the node to an index read from the stale draft (query-builder-sortable.tsx:100 move(id, next.indexOf(id))), so a node can land one place off when the group gained a child before it. No root writes the value during a drag.
 - `packages/ui/src/components/number-input/number-input.tsx` (verifier): Enter in a NumberInput inside a Form submits the raw value with no clamp, because the clamp runs only on blur (number-input.tsx:168-181). Adjacent to C15 and Q1.
 - `packages/ui/src/recipes/kiso/sen/focus.ts` (overturn): The shared lift entries (:105 raise: ['z-10', 'shadow-md'], :109 outline: 'focus-visible:outline-violet-600') paint a keyboard lift only with a shadow and an outline color, which forced colors remove or replace. List, Kanban, and Dashboard take them, so their lifted state may also look the same as focus under forced colors. Not judged; adjacent to C10.
-- `packages/ui/src/recipes/kata/query-builder.ts` (caller, from `/assess`): Motion `Reorder.Item` writes an inline `z-index` (`unset` while x and y are 0), which voids `data-dragging:z-10`; a keyboard move paints the held node under its neighbor. `recipes/kata/list.ts` has the same cause.
+- `packages/ui/src/recipes/kata/query-builder.ts` (caller, from `/assess`): Motion `Reorder.Item` writes an inline `z-index` (`unset` while x and y are 0), which voids `data-dragging:z-10`; a keyboard move paints the held node under its neighbor. `recipes/kata/list.ts` has the same cause. Fixed by [#3305](https://github.com/charliebeckstrand/midgard/pull/3305).
 - `packages/ui/src/components/menu` (caller, from `/assess`): Enter on a trigger opens the menu with no active item, and a second Enter closes it.
 - `packages/ui/src/components/json-tree/json-tree.tsx` (fix session, #3306): the recursive (default) JsonTree root `handleKeyDown` returns on `event.defaultPrevented` itself, because a branch row cancels its toggle arrow before the key bubbles, so a consumer `preventDefault` still switches off roving (same rule as C02, another cause). The windowed JsonTree got the option.
