@@ -1,9 +1,9 @@
-import type { ReactElement } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { type ReactElement, useState } from 'react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
-import { frames, renderUI, screen, waitFor } from '../../helpers'
+import { frames, renderUI, screen, stubMatchMedia, waitFor } from '../../helpers'
 
 /**
  * Renders `element`, focuses its trigger, and opens the menu with a click.
@@ -173,5 +173,206 @@ describe('MenuTrigger arrow-key roving (real floating engine)', () => {
 			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 			expect(trigger).not.toHaveAttribute('aria-activedescendant')
 		})
+	})
+})
+
+/**
+ * A key opens a dropdown on its first row, as the menu button pattern of the
+ * APG tells: Enter, Space, and ArrowDown. A disabled row is not a stop. A press
+ * of the pointer opens the menu with no active row. The jsdom mock records no
+ * open event, so only this suite shows the cursor.
+ */
+describe('MenuTrigger key open (real floating engine)', () => {
+	function rows(onEdit = () => {}) {
+		return (
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<Button>Open</Button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem disabled>Archive</MenuItem>
+					<MenuItem onAction={onEdit}>Edit</MenuItem>
+					<MenuItem>Duplicate</MenuItem>
+				</MenuContent>
+			</Menu>
+		)
+	}
+
+	/** Renders {@link rows}, and focuses the trigger. @returns The trigger. */
+	function renderRows(onEdit?: () => void): HTMLElement {
+		renderUI(rows(onEdit))
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		trigger.focus()
+
+		return trigger
+	}
+
+	it.each(['{Enter}', '[Space]', '{ArrowDown}'])(
+		'opens on the first row on %s, with focus on the trigger',
+		async (key) => {
+			const trigger = renderRows()
+
+			await userEvent.keyboard(key)
+
+			const edit = await screen.findByRole('menuitem', { name: 'Edit' })
+
+			await waitFor(() => expect(trigger).toHaveAttribute('aria-activedescendant', edit.id))
+
+			expect(edit).toHaveAttribute('data-active')
+
+			expect(trigger).toHaveFocus()
+		},
+	)
+
+	it('runs the first row on a second Enter', async () => {
+		const onEdit = vi.fn()
+
+		renderRows(onEdit)
+
+		await userEvent.keyboard('{Enter}')
+
+		await waitFor(() =>
+			expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveAttribute('data-active'),
+		)
+
+		await userEvent.keyboard('{Enter}')
+
+		await waitFor(() => {
+			expect(onEdit).toHaveBeenCalledTimes(1)
+
+			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+		})
+	})
+
+	it('moves to the next row on an ArrowDown after a key open', async () => {
+		const trigger = renderRows()
+
+		await userEvent.keyboard('{Enter}')
+
+		await waitFor(() =>
+			expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveAttribute('data-active'),
+		)
+
+		await userEvent.keyboard('{ArrowDown}')
+
+		const duplicate = screen.getByRole('menuitem', { name: 'Duplicate' })
+
+		await waitFor(() => expect(trigger).toHaveAttribute('aria-activedescendant', duplicate.id))
+	})
+
+	it('opens with no active row on a click', async () => {
+		const trigger = renderRows()
+
+		await userEvent.click(trigger)
+
+		await screen.findByRole('menu')
+
+		await frames()
+
+		expect(trigger).not.toHaveAttribute('aria-activedescendant')
+
+		for (const row of screen.getAllByRole('menuitem'))
+			expect(row).not.toHaveAttribute('data-active')
+	})
+
+	// A row closes the menu with no event, so the record of the key open must
+	// not outlive the close. Else an open by the `open` prop reads it as a key.
+	it('opens with no active row from the open prop after a key open', async () => {
+		function Controlled() {
+			const [open, setOpen] = useState(false)
+
+			return (
+				<>
+					<Menu placement="bottom-start" open={open} onOpenChange={setOpen}>
+						<MenuTrigger>
+							<Button>Open</Button>
+						</MenuTrigger>
+						<MenuContent>
+							<MenuItem>Edit</MenuItem>
+						</MenuContent>
+					</Menu>
+					<button type="button" onClick={() => setOpen(true)}>
+						Show
+					</button>
+				</>
+			)
+		}
+
+		renderUI(<Controlled />)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		trigger.focus()
+
+		await userEvent.keyboard('{Enter}')
+
+		await waitFor(() => expect(trigger).toHaveAttribute('aria-activedescendant'))
+
+		await userEvent.keyboard('{Enter}')
+
+		await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
+
+		await userEvent.click(screen.getByRole('button', { name: 'Show' }))
+
+		await screen.findByRole('menu')
+
+		await frames()
+
+		expect(trigger).not.toHaveAttribute('aria-activedescendant')
+	})
+})
+
+/**
+ * On a phone the dropdown opens as a sheet, and the rows rove by real focus. A
+ * key opens the sheet with the focus on the first row. A tap opens it with the
+ * focus on the panel, so no row shows focus.
+ */
+describe('MenuSheet key open (real browser)', () => {
+	// A phone: no hover and a narrow viewport.
+	beforeEach(() => {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+	})
+
+	function renderSheet(): HTMLElement {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<Button>Open</Button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem disabled>Archive</MenuItem>
+					<MenuItem>Edit</MenuItem>
+					<MenuItem>Duplicate</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		trigger.focus()
+
+		return trigger
+	}
+
+	it.each(['{Enter}', '[Space]', '{ArrowDown}'])('focuses the first row on %s', async (key) => {
+		renderSheet()
+
+		await userEvent.keyboard(key)
+
+		await screen.findByRole('dialog', { name: 'Open' })
+
+		await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus())
+	})
+
+	it('focuses the panel on a tap', async () => {
+		const trigger = renderSheet()
+
+		await userEvent.click(trigger)
+
+		await screen.findByRole('dialog', { name: 'Open' })
+
+		await waitFor(() => expect(screen.getByRole('menu')).toHaveFocus())
 	})
 })

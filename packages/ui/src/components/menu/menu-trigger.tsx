@@ -23,6 +23,26 @@ import { opensSubmenu } from './menu-sub'
 const activation = { checkForDefaultPrevented: false }
 
 /**
+ * Opens a closed menu on ArrowDown, as Enter and Space do (the menu button
+ * pattern of the APG). The key clicks the trigger, so it goes through the same
+ * toggle and the same guards as a press, such as the canceled click of a
+ * loading button. The click has no pointer behind it, so the menu opens on its
+ * first row. A consumer that cancels the key keeps the menu closed, as a
+ * canceled Enter does.
+ *
+ * @internal
+ */
+function openOnArrowDown(event: KeyboardEvent) {
+	if (event.key !== 'ArrowDown' || event.defaultPrevented) return
+
+	if (!(event.currentTarget instanceof HTMLElement)) return
+
+	event.preventDefault()
+
+	event.currentTarget.click()
+}
+
+/**
  * Props for {@link MenuTrigger}. The `<button>` of the trigger takes the rest.
  * With a single element child, the clone of the child takes the rest instead.
  */
@@ -44,6 +64,10 @@ export type MenuTriggerProps = ComponentProps<'button'>
  * The trigger writes `data-slot="menu-trigger"` only on a host element child,
  * such as a `<button>`, that has no `data-slot` of its own. A component child,
  * such as a `<Button>`, keeps the anchor that it writes for itself.
+ *
+ * Enter, Space, or ArrowDown opens the menu on its first row, and the next
+ * Enter runs that row. A press of the pointer opens the menu with no active
+ * row.
  *
  * The trigger keeps focus while the menu is open. Tab off it therefore closes
  * the menu, and lets focus proceed to the next tabbable in one keystroke.
@@ -100,10 +124,10 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 	// Tab closes without `preventDefault`, letting the browser carry focus onward;
 	// `dismissToTab` marks the close `'focus-out'` so focus is not yanked back.
 	//
-	// A closed menu gets none of this. The panel stays mounted for its exit
-	// animation, and the row that ran keeps `data-active`, so the roving handler
-	// still finds the rows. An Enter in that time would run the row again and
-	// cancel the click that opens the menu.
+	// A closed menu gets none of this, but ArrowDown opens it. The panel stays
+	// mounted for its exit animation, and the row that ran keeps `data-active`,
+	// so the roving handler still finds the rows. An Enter in that time would
+	// run the row again and cancel the click that opens the menu.
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent) => {
 		if (event.key === 'Enter' || event.key === ' ') {
 			// Swallow every auto-repeat's native click; only a fresh press arms and
@@ -116,7 +140,11 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 			}
 		}
 
-		if (!open) return
+		if (!open) {
+			openOnArrowDown(event)
+
+			return
+		}
 
 		// A submenu hovered open under this dropdown owns the arrows while it is
 		// up, the same as in a right-click menu. The difference is that focus rests

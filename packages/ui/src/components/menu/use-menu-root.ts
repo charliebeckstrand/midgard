@@ -7,12 +7,18 @@ import {
 	useCallback,
 	useEffect,
 	useId,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
 } from 'react'
 import type { ScaleStep } from '../../core/density/scale'
-import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import {
+	clearVirtualActive,
+	queryItems,
+	setVirtualActive,
+	useA11yRoving,
+} from '../../hooks/a11y/use-a11y-roving'
 import { useFloatingDisclosure } from '../../hooks/use-floating-disclosure'
 import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useMediaQuery } from '../../hooks/use-media-query'
@@ -77,6 +83,19 @@ function cursorAnchor(element: Element | null, clientX: number, clientY: number)
 			return { width: 0, height: 0, x, y, top: y, right: x, bottom: y, left: x }
 		},
 	}
+}
+
+/**
+ * Whether a key opened a menu. Floating UI records the event of each open. A
+ * key gives a keydown or a keyup, or the click with no pointer behind it
+ * (`detail` 0) that a button fires for Enter and Space. A press of the pointer
+ * gives a click with a `detail` of 1 or more. An open with no event, such as a
+ * controlled `open`, is not a key open.
+ *
+ * @internal
+ */
+function isKeyOpen(event: Event | undefined): boolean {
+	return event instanceof KeyboardEvent || (event instanceof MouseEvent && event.detail === 0)
 }
 
 /**
@@ -195,8 +214,9 @@ export function useMenuRoot({
 	// backs `MenuActionsContext`. Depending on the whole object would therefore
 	// re-identify that context on each `autoUpdate` tick and re-render every
 	// `MenuItem` under it. The handler itself holds one identity for the mount
-	// (see {@link useFloatingOutsidePress}), so naming it alone is safe.
-	const { onOpenChange: changeOpen } = context
+	// (see {@link useFloatingOutsidePress}), and so does `dataRef`, so naming
+	// those two alone is safe.
+	const { onOpenChange: changeOpen, dataRef } = context
 
 	const dismissToTab = useCallback(
 		(event: Event) => changeOpen(false, event, 'focus-out'),
@@ -221,19 +241,47 @@ export function useMenuRoot({
 
 	// Clear the trigger's `aria-activedescendant` once closed: the panel (and the
 	// ids it pointed at) unmounts after its exit animation, so the attribute would
-	// otherwise dangle, and the next open must start with no active row (the first
-	// arrow picks the first item).
+	// otherwise dangle. The next open seats its own cursor: the first row after a
+	// key, else none (the first arrow then picks the first row).
 	//
 	// A context menu has no trigger. `openAt` lends `triggerRef` the element that
 	// held focus at a keyboard open, and the focus restore of the disclosure reads
 	// it in an earlier effect. Release it here, and do not touch its own
 	// `aria-activedescendant`: the grid keeps its cursor in that attribute.
+	//
+	// The effect also drops the record of the event that opened the menu. A
+	// row and the Close button of a sheet close the menu through `close`, which
+	// does not go through Floating UI, so the record stays otherwise. A later
+	// open with no event, such as a controlled `open`, then reads it as a key.
 	useEffect(() => {
 		if (open) return
 
+		dataRef.current.openEvent = undefined
+
 		if (isContextMenu) triggerRef.current = null
 		else clearVirtualActive(triggerRef)
-	}, [open, isContextMenu, triggerRef])
+	}, [open, isContextMenu, triggerRef, dataRef])
+
+	// A key opens a dropdown on its first row, as the menu button pattern of the
+	// APG tells. The trigger keeps the focus, so the cursor goes on the row, and
+	// the next Enter runs it. A press of the pointer opens the menu with no
+	// active row. The sheet moves real focus, so it seats its own first row
+	// ({@link MenuSheet}).
+	//
+	// The panel can mount in a later commit than the open, so the effect waits
+	// for the floating element. Floating UI keeps it as state, and the node
+	// keeps one identity while it is mounted.
+	const openedByKey = useCallback(() => isKeyOpen(dataRef.current.openEvent), [dataRef])
+
+	const floating = context.elements.floating
+
+	useLayoutEffect(() => {
+		if (!open || !isDropdown || isSheet || !openedByKey()) return
+
+		setVirtualActive(queryItems(floating, MENUITEM_SELECTOR), 0, triggerRef, {
+			ariaSelected: false,
+		})
+	}, [open, isDropdown, isSheet, openedByKey, floating, triggerRef])
 
 	// Toggling the menu is floating-ui's, not the trigger's: `useClick` supplies
 	// the keyboard activation a cloned non-button child never gets from the
@@ -330,6 +378,7 @@ export function useMenuRoot({
 			close,
 			dismissToTab,
 			rovingKeyDown,
+			openedByKey,
 			static: isStatic,
 			triggerRef,
 			setReference: refs.setReference,
@@ -341,6 +390,7 @@ export function useMenuRoot({
 			close,
 			dismissToTab,
 			rovingKeyDown,
+			openedByKey,
 			isStatic,
 			triggerRef,
 			refs.setReference,

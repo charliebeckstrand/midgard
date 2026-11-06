@@ -48,6 +48,11 @@ type MenuActionsValue = {
 	 * {@link MenuTrigger} calls it only while the menu is open.
 	 */
 	rovingKeyDown: (event: KeyboardEvent) => void
+	/**
+	 * Whether a key opened the menu that is open now. A dropdown then opens on
+	 * its first row. {@link MenuSheet} reads it to choose its first focus.
+	 */
+	openedByKey: () => boolean
 	static: boolean
 	triggerRef: RefObject<HTMLElement | null>
 	setReference: (node: HTMLElement | null) => void
