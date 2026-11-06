@@ -200,12 +200,17 @@ export const k = {
 	 *   for it clips, revealing itself on hover.
 	 *
 	 * The plot's width therefore never depends on what has registered.
+	 *
+	 * The item-row is 32 px, the height of a `sm` button. An entry is a
+	 * `LegendSwitch`, and its explicit `size="sm"` makes it its own density
+	 * scope. Thus the reserve is a plain height and not a density ramp, and it
+	 * matches the entry at each density.
 	 */
 	legend: {
 		/** The gap of the swatch and the label of a legend entry. */
 		entry: dan.gap.scale.sm,
-		row: 'min-h-4',
-		panel: ['min-h-4', 'shrink-0', '@lg:w-48'],
+		row: 'min-h-8',
+		panel: ['min-h-8', 'shrink-0', '@lg:w-48'],
 	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,

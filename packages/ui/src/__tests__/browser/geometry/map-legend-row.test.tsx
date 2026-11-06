@@ -1,7 +1,9 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { allBySlot, getSlot } from '../../helpers'
+import { MapPlat } from '../../../modules/map'
+import { allBySlot, getSlot, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 import { renderZones } from '../helpers/map-zones'
 
 /**
@@ -41,6 +43,37 @@ describe('map legend row (real browser)', () => {
 			expect(rect.left).toBeGreaterThanOrEqual(row.left - 1)
 
 			expect(rect.right).toBeLessThanOrEqual(row.right + 1)
+		}
+	})
+
+	it('reserves the height of one entry before the first entry registers', async () => {
+		// The side placements stack under the map below its own `@lg` width, so at
+		// 358px every placement lays its box under or over the plot as a row.
+		for (const legend of ['bottom', 'top', 'right', 'left'] as const) {
+			// A child that never registers stands in for overlays whose entries land
+			// after hydration: the box that the server paints.
+			const pending = renderUI(
+				<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={358} legend={legend}>
+					<circle r={1} />
+				</MapPlat>,
+			)
+
+			const reserved = getSlot(pending.container, 'map-legend-box').getBoundingClientRect().height
+
+			pending.unmount()
+
+			const { container } = await renderZones(['North'], { legend, width: 358 })
+
+			const entry = getSlot(container, 'map-legend-item').getBoundingClientRect().height
+
+			expect(entry).toBeGreaterThan(0)
+
+			expect(reserved).toBeNear(entry, HALF_PIXEL)
+
+			expect(getSlot(container, 'map-legend-box').getBoundingClientRect().height).toBeNear(
+				reserved,
+				HALF_PIXEL,
+			)
 		}
 	})
 })
