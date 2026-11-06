@@ -9,7 +9,7 @@
  * without mounting either surface.
  */
 
-import type { MapStopRow } from './entry'
+import type { MapOverlayKind, MapStopRow } from './entry'
 
 /** Writes a number in the number format of the reader's locale, such as `intl.formatNumber`. @internal */
 export type MapNumberFormat = (value: number) => string
@@ -102,29 +102,35 @@ export function markRowKey(id: string, stop: number): string {
 /**
  * Every row a mark contributes to the data table: one for a singular mark, one
  * per dot for a plural one. A reader therefore gets the per-dot readout the
- * pointer gets from the tooltip.
+ * pointer gets from the tooltip. A plural mark with no dots draws nothing, so
+ * it has no row.
  *
- * A mark with no detail anywhere falls back to its kind (`route`, `point`), so
- * the value column is never empty. Each row carries its own {@link markRowKey}.
- * The caller then needs no index of its own to key by, and a selection names the
- * row it marks by the same key. The tooltip needs no key, so only this half of
- * the pair asks for the mark's id.
+ * A mark with no detail anywhere falls back to the name of its kind ("Route",
+ * "Point") in the language of the reader, so the value column is never empty.
+ * Each row carries its own {@link markRowKey}. The caller then needs no index of
+ * its own to key by, and a selection names the row it marks by the same key.
+ * The tooltip needs no key, so only this half of the pair asks for the mark's id.
  *
+ * @param mark - The mark, with its id and its kind.
+ * @param formatNumber - The number format of the locale.
+ * @param nameKind - The name of a mark kind in the language of the reader.
+ * @returns The rows, in stop order.
  * @internal
  */
 export function markRows(
-	mark: MapReadableMark & { id: string; kind: string },
+	mark: MapReadableMark & { id: string; kind: MapOverlayKind },
 	formatNumber: MapNumberFormat,
+	nameKind: (kind: MapOverlayKind) => string,
 ): MapMarkRow[] {
-	const count = mark.stopRows?.length ?? 0
+	const count = mark.stopRows === undefined ? 1 : mark.stopRows.length
 
-	return Array.from({ length: Math.max(count, 1) }, (_, stop) => {
+	return Array.from({ length: count }, (_, stop) => {
 		const readout = markReadout(mark, stop, formatNumber)
 
 		return {
 			key: markRowKey(mark.id, stop),
 			name: readout.name,
-			detail: readout.detail ?? mark.kind,
+			detail: readout.detail ?? nameKind(mark.kind),
 		}
 	})
 }

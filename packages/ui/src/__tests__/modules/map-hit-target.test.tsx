@@ -132,6 +132,58 @@ describe('dot hit targets', () => {
 		expect(room).toBeLessThan(POINT_HIT_RADIUS)
 	})
 
+	it('measures the target again when a resize changes the zone under it', () => {
+		const plat = (width: number) => (
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={width}>
+				<MapGeofence label="Catchment" at={[15, 5]} radius={50_000} />
+
+				<MapPoint label="Depot" at={[15, 5]} />
+			</MapPlat>
+		)
+
+		const fresh = renderUI(plat(800))
+
+		const expected = budget(bySlot(fresh.container, 'map-point-hit'), 'fresh target')
+
+		fresh.unmount()
+
+		const { container, rerender } = renderUI(plat(400))
+
+		const narrow = budget(bySlot(container, 'map-point-hit'), 'narrow target')
+
+		rerender(plat(800))
+
+		// The refit changes the zone's rings and its budget, but no entry of the
+		// ledger. The dot must read the new budget, not the one the 400px frame left.
+		const target = bySlot(container, 'map-point-hit')
+
+		expect(budget(target, 'resized target')).not.toBe(narrow)
+
+		expect(budget(target, 'resized target')).toBe(expected)
+	})
+
+	it('measures the target again when a zone changes its radius in place', () => {
+		const plat = (radius: number) => catchment(<MapPoint label="Depot" at={[15, 5]} />, radius)
+
+		const fresh = renderUI(plat(50_000))
+
+		const expected = budget(bySlot(fresh.container, 'map-point-hit'), 'fresh target')
+
+		fresh.unmount()
+
+		const { container, rerender } = renderUI(plat(300_000))
+
+		const wide = budget(bySlot(container, 'map-point-hit'), 'wide target')
+
+		rerender(plat(50_000))
+
+		const target = bySlot(container, 'map-point-hit')
+
+		expect(budget(target, 'shrunk target')).not.toBe(wide)
+
+		expect(budget(target, 'shrunk target')).toBe(expected)
+	})
+
 	it('budgets every corner of a zone drawn through its own marks alike', () => {
 		// The reading this replaced asked whether a dot stood inside the zone, and a
 		// zone strung between the marks it holds puts every one of them on its

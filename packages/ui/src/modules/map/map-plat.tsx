@@ -44,6 +44,7 @@ import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-leg
 import { planLegend } from './engine/map-legend/plan'
 import { targetParts } from './engine/map-overlay/selection'
 import { overlaySlotColors } from './engine/map-overlay/slots'
+import { createSpareStore } from './engine/map-overlay/spare'
 import { regionGroupId } from './engine/map-region/category'
 import type { MapCategoricalData, MapNoData, MapNumericData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
@@ -1085,11 +1086,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// claim any of them allows, since a dot standing over two shapes has to satisfy
 	// both. The region layer claims first, then each visible zone. Rebuilt as the
 	// ledger, the legend's toggles, or the fit change: the resolvers themselves are
-	// stable, so a zone redrawn in place keeps this identity and the dots reading it
-	// hold through a pointer crossing rather than re-measuring.
+	// stable, so the dots that read it hold through a pointer crossing rather than
+	// measure again. A zone redrawn in place tells them through the store below.
 	// A loop rather than a `reduce` closure: every dot on the map calls this, and
 	// the callback would be a fresh allocation per call rather than per rebuild.
-	const spare = useCallback(
+	const resolveSpare = useCallback(
 		(at: MapPoint2D, unitsPerPixel: number) => {
 			// A region layer that answers the pointer is the third claimant on this ground, and it
 			// claims first (see `regionPointerState` for what counts as answering).
@@ -1118,6 +1119,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		},
 		[entries, hidden, regionRoom],
 	)
+
+	// The resolver as a store. A zone whose budget changes in place changes none of the deps above,
+	// so the zone regrounds the store, and the dots measure their targets again.
+	const spare = useMemo(() => createSpareStore(resolveSpare), [resolveSpare])
 
 	// Every visible dot-drawing mark's stops, projected. This is the pool a dot
 	// divides its target's ground against, and the seam that lifts `crowd.ts`'s

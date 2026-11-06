@@ -8,6 +8,7 @@ import type { MapClusterStore } from './engine/map-cluster/sets'
 import type { MapHoverTarget, MapOverlayTarget } from './engine/map-hover/target'
 import type { MapStopMoves } from './engine/map-keyboard/stops'
 import type { MapOverlayEntry } from './engine/map-overlay/entry'
+import type { MapSpareStore } from './engine/map-overlay/spare'
 import type { LngLat, MapOverlaySelection, MapPoint2D } from './engine/types'
 import type { MapZoom } from './use-map-zoom'
 
@@ -179,8 +180,8 @@ export type MapPlatContextValue = {
 	/** Legend ids toggled off; a hidden overlay unmounts its marks. */
 	hidden: ReadonlySet<string>
 	/**
-	 * How much reach the drawn zones leave a mark at a frame position, in device
-	 * pixels. It is the tightest budget any registered zone the legend still shows
+	 * The resolver of how much reach the drawn zones leave a mark at a frame
+	 * position, in device pixels. It is the tightest budget any registered zone the legend still shows
 	 * will allow. A dot standing over two of them has to satisfy both.
 	 * `Infinity` where nothing claims that ground, which `markTargets` caps. This
 	 * layer states the claim and never the size a target settles at. A dot reads it
@@ -201,11 +202,15 @@ export type MapPlatContextValue = {
 	 *
 	 * Resolved here rather than by each dot, because the question is about the
 	 * plat's whole ledger and the answer changes with the legend. It reads the
-	 * geometry the zones' last render left. A zone whose ground changes without a
-	 * refit therefore moves the targets under it on the next render of the marks.
-	 * See {@link MapOverlayEntry.spare} for why the resolver is stable.
+	 * budget that each zone committed last. See {@link MapOverlayEntry.spare} for
+	 * why that read is stable.
+	 *
+	 * A store rather than a resolver in the value, for the reason {@link pool} is
+	 * one. A zone whose ground changes in place or after a refit changes nothing
+	 * the value holds. The zone therefore regrounds the store after it commits its
+	 * new budget, and each dot measures its target again before the change paints.
 	 */
-	spare: (at: MapPoint2D, unitsPerPixel: number) => number
+	spare: MapSpareStore
 	/**
 	 * Every visible dot-drawing mark's dots, in frame units. A dot measures its pointer target's ground
 	 * against them, so two marks standing on top of one another divide it instead of overlapping.

@@ -9,7 +9,7 @@ import { GEOFENCE_FILL_OPACITY, GEOFENCE_STROKE_WIDTH } from './engine/map-const
 import { circleRing, zoneBudget, zoneSpare } from './engine/map-geofence'
 import { areaAnchor, projectArea, ringsPath } from './engine/map-geometry/mark'
 import { GEOFENCE_WASH, ROUTE_DRAW } from './engine/map-motion'
-import type { LngLat, MapPolygons } from './engine/types'
+import type { LngLat, MapPoint2D, MapPolygons } from './engine/types'
 import { MapHalo } from './map-halo'
 import { lineHitProps, MapLine } from './map-line'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -177,25 +177,35 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	// dot, on the beat a wheel notch rebuilds them.
 	const budget = useMemo(() => zoneBudget(rings, unitsPerPixel), [rings, unitsPerPixel])
 
+	// A zone that draws no ring (a radius at or below zero, or fewer than three
+	// points that project) takes no stop, so the cursor only stands where the map
+	// draws. Keyed on whether it draws rather than on the path, so a refit keeps
+	// the identity.
+	const drawn = d !== ''
+
 	// A circle knows its own center, so it never pays a centroid pass to find
 	// one; drawn rings resolve their middle from the vertices. Keyed on the
 	// ordinates, so an inline `at` keeps the identity until the zone moves.
-	const anchor = useCallback(
-		(): LngLat[] => (lon === undefined || lat === undefined ? areaAnchor(polygons) : [[lon, lat]]),
-		[lon, lat, polygons],
-	)
+	const anchor = useCallback((): LngLat[] => {
+		if (!drawn) return []
+
+		return lon === undefined || lat === undefined ? areaAnchor(polygons) : [[lon, lat]]
+	}, [drawn, lon, lat, polygons])
+
+	// A dot standing on this zone takes a share of the room the zone has, so the
+	// zone stays pointable under it, and takes the whole finger target back the
+	// moment the legend puts this zone away. A share rather than a yes-or-no,
+	// because a zone drawn through its own marks puts them on its boundary,
+	// where inside-or-out has no answer and a ray cast reads the winding. Held on
+	// the budget, so a resize or a new radius tells the dots to measure again.
+	const spare = useCallback((position: MapPoint2D) => zoneSpare(budget, position), [budget])
 
 	const { slot, hidden, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'geofence',
 		swatch: 'rect',
 		stops: anchor,
-		// A dot standing on this zone takes a share of the room the zone has, so the
-		// zone stays pointable under it, and takes the whole finger target back the
-		// moment the legend puts this zone away. A share rather than a yes-or-no,
-		// because a zone drawn through its own marks puts them on its boundary,
-		// where inside-or-out has no answer and a ray cast reads the winding.
-		spare: (position) => zoneSpare(budget, position),
+		spare,
 	})
 
 	if (slot === undefined || hidden || d === '') return null

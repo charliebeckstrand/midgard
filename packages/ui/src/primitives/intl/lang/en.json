@@ -1355,6 +1355,22 @@
 		"defaultMessage": "Detail",
 		"description": "The header of the value column of the data table of a map, when the map gives no name for the colored field."
 	},
+	"ui.map.kind.geofence": {
+		"defaultMessage": "Geofence",
+		"description": "The value cell of the data table of a map for a zone drawn over the map that the map gives no detail for."
+	},
+	"ui.map.kind.marker": {
+		"defaultMessage": "Marker",
+		"description": "The value cell of the data table of a map for a pair of pins, a start and an end, that the map gives no detail for."
+	},
+	"ui.map.kind.point": {
+		"defaultMessage": "Point",
+		"description": "The value cell of the data table of a map for a point that the map gives no detail for."
+	},
+	"ui.map.kind.route": {
+		"defaultMessage": "Route",
+		"description": "The value cell of the data table of a map for a route that the map gives no detail for."
+	},
 	"ui.map.legend": {
 		"defaultMessage": "Legend",
 		"description": "The name of the legend of a map, which names the categories by their colors."

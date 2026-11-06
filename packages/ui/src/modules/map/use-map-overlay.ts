@@ -169,6 +169,10 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 * How much reach this mark leaves a dot standing on it (see
 		 * {@link MapOverlayEntry.spare}). Passed by the area-shaped marks alone, and
 		 * read live like {@link stops}, so a redrawn zone never re-registers.
+		 *
+		 * Hold its identity until the budget changes. A new identity tells the dots
+		 * to measure their targets again, so a resolver made inline does that on
+		 * each render.
 		 */
 		spare?: (at: MapPoint2D) => number
 		/**
@@ -399,11 +403,11 @@ export function useMapOverlay({
 	// throws when it runs during render.
 	//
 	// Synced in a layout effect rather than in render. Every render-time reader
-	// runs off the ledger, and the ledger changes only after a commit: the plat
-	// gathers the dot pool once per `entries`, `hidden`, or projection, and the
+	// runs off the ledger or off a store that a mark tells after this sync: the
+	// plat gathers the dot pool once per `entries`, `hidden`, or projection, and the
 	// table resolves its picked row once per `entries` or pick. By the time any of
-	// those runs again, this effect has written the committed values. The restake
-	// below also reads `dotsAt`, so it must stay after this effect.
+	// those runs again, this effect has written the committed values. The restakes
+	// and the reground below read these values, so they must stay after this effect.
 	const live = useRef({ stops, dots, cluster, resolveStop, getIndex, ownSpare })
 
 	useLayoutEffect(() => {
@@ -466,7 +470,23 @@ export function useMapOverlay({
 		moves.move()
 	}, [moves, stops])
 
+	// A zone's budget changes no entry of the ledger either, so the dots under it
+	// hold the targets they measured last. The zone regrounds the plat's resolver
+	// off the identity of its own, after the sync above has written it. A layout
+	// effect, so that the dots measure again before the change paints.
+	const budgeted = useRef(ownSpare)
+
+	useLayoutEffect(() => {
+		if (budgeted.current === ownSpare) return
+
+		budgeted.current = ownSpare
+
+		spare.reground()
+	}, [spare, ownSpare])
+
 	const neighbors = useSyncExternalStore(pool.subscribe, pool.neighbors, pool.neighbors)
+
+	const resolveSpare = useSyncExternalStore(spare.subscribe, spare.spare, spare.spare)
 
 	const getNeighbors = useCallback(() => neighbors(id), [neighbors, id])
 
@@ -483,8 +503,8 @@ export function useMapOverlay({
 	// that already holds the scale (see `MapPlatContextValue.spare` for why the
 	// plat cannot bind it itself).
 	const spareHere = useCallback(
-		(at: MapPoint2D) => spare(at, unitsPerPixel),
-		[spare, unitsPerPixel],
+		(at: MapPoint2D) => resolveSpare(at, unitsPerPixel),
+		[resolveSpare, unitsPerPixel],
 	)
 
 	const stopAt = useCallback((index: number) => live.current.resolveStop(index), [])
