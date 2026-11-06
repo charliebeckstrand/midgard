@@ -181,6 +181,49 @@ describe('QueryBuilder', () => {
 		expect(screen.getByRole('button', { name: 'Remove rule' })).toBeDisabled()
 	})
 
+	// The native fieldset disables each part, but a part stamps its own
+	// `data-disabled` and `disabled` only from its prop (CONVENTIONS §3.11).
+	it('marks each part of each rule disabled when QueryBuilder is disabled', () => {
+		const kinds: QueryField[] = [
+			...fields,
+			{ name: 'status', label: 'Status', type: 'select', options: [{ value: 'a', label: 'A' }] },
+			{ name: 'start', label: 'Start', type: 'date' },
+		]
+
+		const age = kinds[1] as QueryField
+
+		const tree = createGroup('and', [
+			...kinds.map((field) => createRule(field)),
+			{ ...createRule(age), operator: 'between', value: ['', ''] },
+		])
+
+		const { container } = renderUI(<QueryBuilder fields={kinds} value={tree} disabled />)
+
+		const triggers = container.querySelectorAll(
+			'[data-slot="listbox-button"], [data-slot="datepicker-button"]',
+		)
+
+		// A field and an operator Select for each rule, the status value Select,
+		// and the start DatePicker.
+		expect(triggers).toHaveLength(2 * 5 + 2)
+
+		for (const trigger of triggers) expect(trigger).toHaveAttribute('data-disabled')
+
+		const inputs = container.querySelectorAll('input:not([type="hidden"])')
+
+		// The name text, the age number, and the two bounds of the age range.
+		expect(inputs.length).toBeGreaterThanOrEqual(4)
+
+		for (const input of inputs) expect(input).toHaveAttribute('disabled')
+
+		const tabs = screen.getAllByRole('tab')
+
+		// An AND and an OR tab before each child after the first.
+		expect(tabs).toHaveLength(2 * 4)
+
+		for (const tab of tabs) expect(tab).toHaveAttribute('disabled')
+	})
+
 	// Field- and operator-selector interaction tests are omitted pending a rewrite
 	// that drives selectors through a unit-level seam instead of the floating-ui mock.
 

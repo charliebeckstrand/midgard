@@ -28,6 +28,8 @@ export type QueryBuilderRuleValueProps = {
 	 * @defaultValue false
 	 */
 	range?: boolean
+	/** Disables each input of the value. @defaultValue false */
+	disabled?: boolean
 	className?: string
 }
 
@@ -96,6 +98,7 @@ function RangeValue({
 	field,
 	value,
 	onValueChange,
+	disabled,
 	className,
 }: Omit<QueryBuilderRuleValueProps, 'range'>) {
 	const [lo, hi] = toTuple(value)
@@ -118,6 +121,7 @@ function RangeValue({
 				aria-label={intl.formatMessage(queryBuilderMessages.fieldMin, { field: field.label })}
 				min={limits.lo.min}
 				max={limits.lo.max}
+				disabled={disabled}
 				className="w-full"
 				onValueChange={(next) => onValueChange([next ?? '', hi])}
 			/>
@@ -132,6 +136,7 @@ function RangeValue({
 				aria-label={intl.formatMessage(queryBuilderMessages.fieldMax, { field: field.label })}
 				min={limits.hi.min}
 				max={limits.hi.max}
+				disabled={disabled}
 				className="w-full"
 				onValueChange={(next) => onValueChange([lo, next ?? ''])}
 			/>
@@ -155,6 +160,7 @@ export function QueryBuilderRuleValue({
 	value,
 	onValueChange,
 	range,
+	disabled,
 	className,
 }: QueryBuilderRuleValueProps) {
 	const intl = useIntl()
@@ -165,7 +171,13 @@ export function QueryBuilderRuleValue({
 
 	if (range) {
 		return (
-			<RangeValue field={field} value={value} onValueChange={onValueChange} className={className} />
+			<RangeValue
+				field={field}
+				value={value}
+				onValueChange={onValueChange}
+				disabled={disabled}
+				className={className}
+			/>
 		)
 	}
 
@@ -179,6 +191,7 @@ export function QueryBuilderRuleValue({
 				onValueChange={(next: string | null) => onValueChange(next ?? '')}
 				placeholder={placeholder}
 				aria-label={label}
+				disabled={disabled}
 				className={className}
 			>
 				{field.options?.map((option) => (
@@ -196,6 +209,7 @@ export function QueryBuilderRuleValue({
 				value={value === '' || value == null ? null : Number(value)}
 				placeholder={placeholder}
 				aria-label={label}
+				disabled={disabled}
 				className={className}
 				onValueChange={(next) => onValueChange(next ?? '')}
 			/>
@@ -210,6 +224,7 @@ export function QueryBuilderRuleValue({
 				value={date}
 				placeholder={placeholder}
 				aria-label={label}
+				disabled={disabled}
 				className={className}
 				onValueChange={(next) => onValueChange(next ? toIsoDate(next) : '')}
 			/>
@@ -222,6 +237,7 @@ export function QueryBuilderRuleValue({
 			value={(value as string | undefined) ?? ''}
 			placeholder={placeholder}
 			aria-label={label}
+			disabled={disabled}
 			className={className}
 			onChange={(event) => onValueChange(event.target.value)}
 		/>

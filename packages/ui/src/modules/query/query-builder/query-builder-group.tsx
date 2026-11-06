@@ -65,6 +65,8 @@ const QueryBuilderSeparator = memo(function QueryBuilderSeparator({
 	id,
 	combinator,
 }: QueryBuilderSeparatorProps) {
+	const { disabled } = useQueryBuilderState()
+
 	const { updateCombinator } = useQueryBuilderActions()
 
 	const intl = useIntl()
@@ -76,8 +78,12 @@ const QueryBuilderSeparator = memo(function QueryBuilderSeparator({
 				onValueChange={(next) => next && updateCombinator(id, next as QueryCombinator)}
 			>
 				<SegmentControl aria-label={intl.formatMessage(queryBuilderMessages.combinator)}>
-					<SegmentItem value="and">{intl.formatMessage(queryMessages.and)}</SegmentItem>
-					<SegmentItem value="or">{intl.formatMessage(queryMessages.or)}</SegmentItem>
+					<SegmentItem value="and" disabled={disabled}>
+						{intl.formatMessage(queryMessages.and)}
+					</SegmentItem>
+					<SegmentItem value="or" disabled={disabled}>
+						{intl.formatMessage(queryMessages.or)}
+					</SegmentItem>
 				</SegmentControl>
 			</Segment>
 		</div>
@@ -178,12 +184,12 @@ function QueryBuilderGroupImpl({
 						</Button>
 					</MenuTrigger>
 					<MenuContent>
-						<MenuItem onAction={() => addRule(group.id)}>
+						<MenuItem disabled={disabled} onAction={() => addRule(group.id)}>
 							<Icon icon={<Plus />} />
 							{intl.formatMessage(queryBuilderMessages.addRule)}
 						</MenuItem>
 						{allowGroups && (
-							<MenuItem onAction={() => addGroup(group.id)}>
+							<MenuItem disabled={disabled} onAction={() => addGroup(group.id)}>
 								<Icon icon={<CopyPlus />} />
 								{intl.formatMessage(queryBuilderMessages.addGroup)}
 							</MenuItem>
