@@ -62,10 +62,10 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * different things. Each yielded *string* is the full reply's prose so far (not
  * a delta), so it replaces the bubble's running text rather than extends it.
  * This mirrors SSE transports that emit the running text. A transport that
- * yields only strings behaves exactly as it did before parts existed. Each
- * yielded *part list* carries the blocks that changed, and it merges into the
+ * yields only strings never gives the reply a part list. Each yielded *part
+ * list* carries the blocks that changed, and it merges into the
  * reply by part id. A chart yielded after two paragraphs therefore joins them
- * instead of replacing them. A later string chunk keeps writing the prose
+ * and does not replace them. A later string chunk keeps writing the prose
  * without touching the chart. Yield once for a non-streaming reply.
  *
  * Name every part. A merge reads a part's id and never its position, because an
@@ -74,12 +74,14 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * from running to done reports itself.
  *
  * Throwing (or rejecting) marks the reply `failed` and triggers
- * {@link ChatSendOptions.onError}. The reply keeps what it already landed, and
- * a reply that had not opened yet is added empty, so the transcript says that
- * the send failed. `signal` aborts when {@link ChatSend.stop}
- * is called; forward it to the underlying request (e.g. `fetch(url, { signal })`)
- * so the transport stops producing, not just the hook consuming: a transport
- * that ignores it still has its chunks dropped, but keeps running underneath.
+ * {@link ChatSendOptions.onError}. The reply keeps what it already landed. A
+ * reply that had not opened yet is added empty, so the transcript says that the
+ * send failed.
+ *
+ * `signal` aborts when {@link ChatSend.stop} is called. Forward it to the
+ * underlying request (e.g. `fetch(url, { signal })`), so the transport stops
+ * producing, not just the hook consuming. A transport that ignores it still
+ * has its chunks dropped, but keeps running underneath.
  *
  * @param content - The trimmed user message being sent.
  * @param signal - Aborts when the send is stopped.
@@ -136,9 +138,9 @@ export type ChatSend = {
 	/**
 	 * Regenerates the reply to the last user message. Drops it and anything after
 	 * it: an existing assistant reply, also a failed one. Then streams a fresh
-	 * one for the same content. No-ops with no user
-	 * message in the transcript, or while a send is already in flight. It keeps
-	 * one identity for the mount. Do not call it during render.
+	 * one for the same content. No-ops with no user message in the transcript,
+	 * or while a send is already in flight. It keeps one identity for the mount.
+	 * Do not call it during render.
 	 */
 	retry: () => Promise<void>
 	/**
@@ -207,10 +209,11 @@ function untilStopped<T>(
  * The function is at module scope, because the React Compiler cannot compile a
  * `finally` clause in a hook.
  *
- * @remarks Each wait races the stop. So a stop ends the send at once: before
- * the transport gives its stream, and between two chunks. The stop then calls
- * the `return` of the iterator, so the cleanup of a transport (such as the
- * release of a reader) runs when the stream next yields. The call is not
+ * @remarks
+ * Each wait races the stop. So a stop ends the send at once: before the
+ * transport gives its stream, and between two chunks. The stop then calls the
+ * `return` of the iterator. The cleanup of a transport, such as the release of
+ * a reader, thus runs when the stream next yields. The call is not
  * awaited, because a transport that does not read the signal can wait for a
  * long time.
  *
@@ -275,9 +278,9 @@ async function streamReply(
  * user message and what the reply landed, and fires `onError`.
  * {@link ChatSend.stop} aborts whichever of the three is in flight, and does
  * not treat the stop as an error. The bubble keeps its last-folded chunk, and a
- * step still running becomes `failed`. The transport is supplied by
- * the caller, keeping this hook free of any framework, endpoint, or wire-format
- * assumptions.
+ * step still running becomes `failed`. The caller supplies the transport, so
+ * this hook makes no assumption about a framework, an endpoint, or a wire
+ * format.
  *
  * @param options - See {@link ChatSendOptions}.
  * @returns See {@link ChatSend}.
@@ -322,13 +325,12 @@ export function useChatSend({
 					onError?.(error)
 				},
 				settle: () => {
-					// Every exit lands here (the last chunk, a stop, a throw), which is
-					// what keeps a `tool` block from outliving the stream that opened it.
-					// A step still marked running would otherwise draw a spinner nothing
-					// ever stops, the defect that kept a per-part status out of the design
-					// until the shell could settle one. A reply that is still empty goes
-					// too, so a stop before the first chunk leaves no empty bubble. A failed
-					// reply stays, because it says that the send failed.
+					// Every exit lands here: the last chunk, a stop, or a throw. So no
+					// `tool` block outlives the stream that opened it. A step still marked
+					// running would otherwise draw a spinner that nothing stops. A reply
+					// that is still empty goes too, so a stop before the first chunk
+					// leaves no empty bubble. A failed reply stays, because it says that
+					// the send failed.
 					setMessages((prev) => dropEmptyReply(failReplyTools(prev, replyId), replyId))
 
 					controllerRef.current = null

@@ -102,7 +102,10 @@ export type ChatPromptProps = {
 	 * index of that attachment. The textarea then takes the focus (WCAG 2.4.3).
 	 */
 	onRemoveAttachment?: (index: number) => void
-	/** Model picker, slash-command trigger, etc. rendered at the start of the action row, before the paperclip and send controls. */
+	/**
+	 * Extra controls, such as a model picker or a slash-command trigger. They
+	 * render at the start of the action row, before the paperclip and send.
+	 */
 	actions?: ReactNode
 	className?: string
 	/** Ref to the underlying textarea (e.g. to focus the composer imperatively). */
@@ -123,10 +126,11 @@ export type ChatPromptProps = {
  * Auto-resizing chat composer built on Textarea and wrapped in a `<Control>` so
  * the textarea carries an inherent, stable id. Submits on Enter (Shift+Enter for
  * newlines), and toggles its send button to a stop control while `streaming`.
- * While `streaming`, Enter calls `onStop` and does not submit. It
- * offers a paperclip file picker when `onAttach` is provided, and surfaces
- * `attachments` as removable chips below the field. The action row (extra `actions`, the
- * paperclip, and send/stop) sits beneath the textarea, at the inline end of the row.
+ * While `streaming`, Enter calls `onStop` and does not submit. It offers a
+ * paperclip file picker when `onAttach` is provided, and surfaces
+ * `attachments` as removable chips below the field. The action row (extra
+ * `actions`, the paperclip, and send or stop) sits below the textarea, at the
+ * inline end of the row.
  *
  * A send button that cannot send, such as for an empty draft, is
  * `aria-disabled` and ignores the press. It is not natively disabled, so it
@@ -203,8 +207,8 @@ export function ChatPrompt({
 							<>
 								{/* Sibling of the button, not nested inside it: a focusable
 								    `<input>` inside an interactive control produces
-								    nested-interactive markup. The Button is the one control:
-								    the input is `hidden`, so browse mode does not read a
+								    nested-interactive markup. The Button is the one control.
+								    The input is `hidden`, so browse mode does not read a
 								    second "Add attachment", and `click()` still opens the picker. */}
 								<input
 									ref={inputRef}

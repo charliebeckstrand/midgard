@@ -7,9 +7,9 @@ import type { ChatPart } from './types'
  * no random source. A message that holds a string holds one block, so one name
  * is enough, and no two messages share a part list.
  *
- * The fixed name also makes a cumulative snapshot unambiguous. Increment 5
- * replaces the text this name points to. A string chunk that arrives after a
- * chart can therefore neither delete that chart nor open a second running text.
+ * The fixed name also makes a cumulative snapshot unambiguous. A string chunk
+ * replaces only the text under this name. It therefore cannot delete a chart
+ * that arrived before it, and it cannot open a second running text.
  *
  * @internal
  */
@@ -44,12 +44,12 @@ function isEmptyPart(part: ChatPart): boolean {
 		case 'text':
 			return part.text === ''
 		// An embed holds something the moment it names a renderer. It draws no
-		// prose, so the projection reads it as nothing; the rollback must not, or a
-		// reply that arrived as a chart alone would be discarded as an empty one.
+		// prose, so the projection reads it as nothing. The drop of an empty reply
+		// must not, or a reply that arrived as a chart alone would be discarded.
 		case 'embed':
 			return false
 		// A step holds something the moment it names what ran, which it always
-		// does. A reply that opened with a running query and then failed is not an
+		// does. A reply that opened with a running query and then stopped is not an
 		// empty reply: it is a reply that shows the query it was running.
 		case 'tool':
 			return false
@@ -57,8 +57,8 @@ function isEmptyPart(part: ChatPart): boolean {
 }
 
 /**
- * Whether the content holds nothing yet. `dropEmptyReply` reads this to roll a
- * failed send back.
+ * Whether the content holds nothing yet. `dropEmptyReply` reads this to drop a
+ * reply that a send left empty.
  *
  * The rule reads the structure, and never the plain-text projection. The
  * projection drops a part that projects to nothing, so a reply that holds only

@@ -22,11 +22,12 @@ export type ChatTranscriptSkeletonProps = {
  * holds two. Keyed off the message count, so it does not use the size-driven
  * `createSkeleton` factory.
  *
- * @remarks Static leaf: renders in React Server Components. Each bubble has
- * the width cap, the padding, the radius, and the side of a real bubble, and
- * each message after the first has the gap of a real transcript row. A
- * transcript holds content of no fixed length, so only one bubble of each
- * side has the box of a real bubble of the same line count. The root is
+ * @remarks
+ * Static leaf: renders in React Server Components. Each bubble has the width
+ * cap, the padding, the radius, and the side of a real bubble. Each message
+ * after the first has the gap of a real transcript row. A transcript holds
+ * content of no fixed length. Thus only one bubble of each side has the box of
+ * a real bubble of the same line count. The root is
  * `aria-hidden`, so assistive technology does not find empty messages. It
  * clips in place of a scroll, so it does not take keyboard focus.
  * @see {@link ChatTranscript}
@@ -34,13 +35,15 @@ export type ChatTranscriptSkeletonProps = {
 export function ChatTranscriptSkeleton({ messages = 4, className }: ChatTranscriptSkeletonProps) {
 	const messageKeys = rangeKeys(messages, 'message')
 
+	const { row } = k()
+
 	return (
 		<div aria-hidden="true" className={cn(k.skeleton.root, className)}>
 			{messageKeys.map((messageKey, index) => {
 				const sender = index % 2 === 0 ? 'user' : 'assistant'
 
 				return (
-					<div key={messageKey} className={index > 0 ? k().row : undefined}>
+					<div key={messageKey} className={index > 0 ? row : undefined}>
 						<div className={kMessage({ sender }).base}>
 							<div className={cn(k.skeleton.bubble, k.skeleton.tail[sender])}>
 								{k.skeleton.lines[sender].map((width) => (

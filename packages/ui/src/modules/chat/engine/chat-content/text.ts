@@ -1,6 +1,11 @@
 import type { ChatPart } from './types'
 
-/** Markdown separates two blocks with a blank line, and so does a projection of two parts. @internal */
+/**
+ * Markdown separates two blocks with a blank line, and so does a projection of
+ * two parts.
+ *
+ * @internal
+ */
 export const BLOCK_SEPARATOR = '\n\n'
 
 /**
@@ -30,10 +35,10 @@ function partText(part: ChatPart): string {
 }
 
 /**
- * A part list as one plain-text string. The roadmap names three readers of a
- * message in this form: copy, conversation search, and the screen-reader
- * announcement. The projection is therefore one named function, and not a
- * `map` and a `join` at each of the three call sites.
+ * A part list as one plain-text string. Three readers take a message in this
+ * form: copy, conversation search, and the screen-reader announcement. The
+ * projection is therefore one named function, and not a `map` and a `join` at
+ * each of the three call sites.
  *
  * Each part projects to its own text, and a blank line joins the results.
  * Markdown puts the same blank line between two blocks. A part that projects to
@@ -60,8 +65,8 @@ export function chatPartsText(parts: ChatPart[]): string {
  * because its renderer holds its text.
  *
  * Use it for the copy action of a message. `retry` sends the same text to the
- * transport, and the announcement speaks it, so the clipboard, the transport,
- * and the screen reader get the same text.
+ * transport, and the announcement speaks it. Thus the clipboard, the
+ * transport, and the screen reader get the same text.
  *
  * @param content - The message content: a plain string, or a part list.
  * @returns The plain text of the content.

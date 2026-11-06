@@ -167,14 +167,16 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  *
  * The transcript scrolls only on the block axis. It opens at its newest row with
  * no animation, and it is then pinned to the end. While it is pinned, a new row
- * smooth-scrolls into view, and a row that grows keeps the end in view. A
- * scroll of the reader toward the start that leaves the end releases the pin,
- * so a reader who scrolled up to read is not pulled down. A scroll back to the
- * end pins it again. Another move toward the start, such as a correction of
- * the window as rows measure, takes a pinned transcript back to its end. The pin is the intent of the reader, not the scroll position: a reply
- * that opens while the glide to the last message still runs is followed too.
- * The reader's own message pins the transcript, wherever the reader had
- * scrolled, because the reader sent it.
+ * smooth-scrolls into view, and a row that grows keeps the end in view. The pin
+ * is the intent of the reader, not the scroll position. Thus the transcript
+ * also follows a reply that opens while the glide to the last message runs.
+ *
+ * Only a scroll of the reader toward the start releases the pin. A reader who
+ * scrolled up to read is thus not pulled down. A scroll back to the end pins
+ * the transcript again. Another move toward the start, such as a correction of
+ * the window as rows measure, takes a pinned transcript back to its end. The
+ * reader's own message pins the transcript, wherever the reader had scrolled,
+ * because the reader sent it.
  *
  * The scroll goes through the window, not through `scrollTop`. The total height
  * moves as rows measure, so a scroll written against `scrollHeight` drifts.
@@ -182,7 +184,7 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * switch does not start from the old scroll position.
  *
  * While the pin is released, a button at the bottom edge goes to the newest
- * message, so a reply that grows below the view does not go unseen. The press
+ * message. Thus a reply that grows below the view does not go unseen. The press
  * pins the transcript again. After the press, the focus goes to the
  * transcript, which is a tab stop while it overflows.
  *
@@ -203,9 +205,8 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * things through the shared live region (WCAG 4.1.3). Those are that a reply
  * started, and the reply once it settles. Never a chunk. A reply rewrites itself
  * many times a second, and a region that read every rewrite would be worse than
- * silence.
- * An embedded view is counted rather than read, because a chart ships its own
- * hidden data table and the readout belongs there.
+ * silence. An embedded view is counted rather than read, because a chart ships
+ * its own hidden data table and the readout belongs there.
  *
  * The transcript is a `log`, and its `aria-live` is deliberately `off`. The role
  * says what the region is, so a reader can find it and knows entries arrive in
@@ -263,6 +264,9 @@ export function ChatTranscript({
 		getItemKey,
 		anchorTo: 'end',
 	})
+
+	// Every scroll of the transcript goes to the end of its newest row.
+	const goToEnd = (behavior?: typeof follow) => scrollToIndex(count - 1, { align: 'end', behavior })
 
 	// Whether the transcript follows its end. Only the reader releases it.
 	const [pinned, setPinned] = useState(true)
@@ -326,7 +330,7 @@ export function ChatTranscript({
 			// A move that is not the reader's leaves a pinned transcript short of its
 			// end, so it goes back there.
 			if (reading.current) setPinned(false)
-			else if (pinned) scrollToIndex(count - 1, { align: 'end' })
+			else if (pinned) goToEnd()
 		}
 
 		lastScrollTop.current = scrollTop
@@ -341,7 +345,7 @@ export function ChatTranscript({
 
 		opened.current = true
 
-		scrollToIndex(count - 1, { align: 'end' })
+		goToEnd()
 
 		// The browser reports this jump at the next frame. A scroll of the reader
 		// before then is measured from here, not from the top.
@@ -376,7 +380,7 @@ export function ChatTranscript({
 
 		setPinned(true)
 
-		scrollToIndex(count - 1, { align: 'end', behavior: follow })
+		goToEnd(follow)
 	})
 
 	const intl = useIntl()
@@ -395,7 +399,7 @@ export function ChatTranscript({
 	const goToNewest = () => {
 		setPinned(true)
 
-		scrollToIndex(count - 1, { align: 'end', behavior: follow })
+		goToEnd(follow)
 
 		containerRef.current?.focus({ preventScroll: true })
 	}

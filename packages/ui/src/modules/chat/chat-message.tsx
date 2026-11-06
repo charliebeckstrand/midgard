@@ -120,21 +120,22 @@ export type ChatMessageProps = ChatMessageVariants &
  *
  * Content renders as GitHub-flavored Markdown ({@link Markdown}, complete with
  * syntax-highlighted code fences). The app does not write the message, so each
- * heading in it renders one level down: a `#` heading is an `<h2>`, and the
- * message adds no `<h1>` to the page. {@link Markdown} sets no color of its own,
- * so the prose inherits the bubble's foreground for free. It is white on the
- * user bubble's blue fill, the default tone on the assistant bubble, and muted
- * on the system bubble. That holds in both light and dark mode. While `streaming`, the bubble
- * takes the progress cursor and projects a pulse onto that prose, settling to a
- * steady bubble the moment streaming ends. The kata holds the whole look.
+ * heading in it renders one level down. A `#` heading is an `<h2>`, and the
+ * message adds no `<h1>` to the page.
+ *
+ * {@link Markdown} sets no color of its own, so the prose inherits the
+ * foreground of the bubble. It is white on the blue fill of the user bubble,
+ * the default tone on the assistant bubble, and muted on the system bubble.
+ * That holds in light and dark mode. While `streaming`, the bubble takes the progress cursor
+ * and projects a pulse onto that prose. The bubble is steady again when the
+ * stream ends. The kata holds the whole look.
  *
  * A part list draws one block per part, each keyed by the part's own id. A text
  * block is its own {@link Markdown}. An `embed` block is the renderer that
  * {@link ChatEmbedProvider} registered under its name. A `tool` block is a step
- * line that {@link ChatTool} draws. The string arm still
- * draws exactly one {@link Markdown} over the string itself. A transcript of
- * prose therefore allocates nothing per render and lexes once, as it did before
- * parts existed.
+ * line that {@link ChatTool} draws. The string arm draws exactly one
+ * {@link Markdown} over the string itself. A transcript of prose therefore
+ * allocates nothing per render and lexes once.
  *
  * A `failed` reply ends with a line that says so, after what it landed. The
  * line inherits the foreground of the bubble, and a red dot marks it.

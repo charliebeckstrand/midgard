@@ -48,7 +48,7 @@ export type ChatFeedbackProps = Omit<
 /**
  * A pair of toggle buttons that rate a reply: good and bad. Put it in the
  * `actions` of a {@link ChatMessage}, or return it from the `actions` of a
- * {@link ChatTranscript}, and send the rating with the id of the message.
+ * {@link ChatTranscript}. Send the rating with the id of the message.
  *
  * @remarks
  * One rating at a time: a press on one button releases the other, and a press

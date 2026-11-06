@@ -43,7 +43,7 @@ const messages = defineMessages<{ missing: { name: string } }>({
 	},
 })
 
-// The line of the fallback, in the language of the reader.
+/** The line of the fallback, in the language of the reader. @internal */
 function ChatEmbedMissing({ name }: { name: string }) {
 	const intl = useIntl()
 
@@ -72,14 +72,16 @@ export type ChatEmbedProps = {
  *
  * Under `lazy`, the block defers once. When it first comes into view, the
  * provider records its address. The module's stated fallback does not defer
- * under any policy, because it is one line of text. A windowed transcript unmounts the row when it
- * leaves the window. When the row returns, the block draws at once rather than
- * through its reserved height again.
+ * under any policy, because it is one line of text. A windowed transcript
+ * unmounts the row when it leaves the window. When the row returns, the block
+ * draws at once rather than through its reserved height again.
  *
  * @internal
  */
 export function ChatEmbed({ part, className }: ChatEmbedProps) {
 	const { renderers, fallback, mount = 'lazy', reached } = useChatEmbeds()
+
+	const slots = k().embed
 
 	const row = useChatRowKey()
 
@@ -102,7 +104,7 @@ export function ChatEmbed({ part, className }: ChatEmbedProps) {
 	// placeholder would only collapse to the line and move the transcript.
 	if (mount === 'always' || render === statedFallback) {
 		return (
-			<div data-slot="chat-embed" data-embed={part.name} className={cn(k().embed.base, className)}>
+			<div data-slot="chat-embed" data-embed={part.name} className={cn(slots.base, className)}>
 				{render(part)}
 			</div>
 		)
@@ -159,6 +161,8 @@ function HeldChatEmbed({ part, className, mount, render, address, reached }: Hel
 
 	const hold = useMountHold(hydrated && (inView || returning), mount)
 
+	const slots = k().embed
+
 	// Written after the commit, so a render that React discards records nothing.
 	useEffect(() => {
 		if (inView && address !== undefined) reached?.add(address)
@@ -170,17 +174,17 @@ function HeldChatEmbed({ part, className, mount, render, address, reached }: Hel
 			data-slot="chat-embed"
 			data-embed={part.name}
 			data-deferred={dataAttr(!hold.present)}
-			className={cn(k().embed.base, className)}
+			className={cn(slots.base, className)}
 		>
 			{hold.present ? (
 				<MountHold hold={hold}>{render(part)}</MountHold>
 			) : (
 				// The placeholder holds the space while the renderer is held back, so the
-				// transcript's height does not jump as a reader scrolls into one. A caller
-				// that knows the view's height says so on the part; this default is what
-				// a chart runs to.
+				// height of the transcript does not jump as a reader scrolls into one. A
+				// caller that knows the height of the view says so on the part. The
+				// default is the height of a chart.
 				<Placeholder
-					className={k().embed.placeholder}
+					className={slots.placeholder}
 					style={{ height: part.height ?? DEFERRED_HEIGHT }}
 				/>
 			)}

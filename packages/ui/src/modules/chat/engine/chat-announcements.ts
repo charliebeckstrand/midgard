@@ -4,8 +4,8 @@
  * region when it changes. Kept pure and separate from the component so the
  * wording is unit-testable without rendering, as the grid's already is.
  *
- * The rule the whole increment rests on: say that a reply started, and say the
- * reply once it has settled. Never say a chunk. A reply rewrites itself many
+ * The rule: say that a reply started, and say the reply once it has settled.
+ * Never say a chunk. A reply rewrites itself many
  * times a second, and a region that read every rewrite would be worse than
  * silence.
  *

@@ -70,7 +70,8 @@ export function applyReplyChunk(
  * and did not fail. A stop before the first chunk drops its own placeholder
  * this way, and keeps the user's message and any partial reply.
  *
- * @remarks The rule reads the id rather than the empty content, so an empty
+ * @remarks
+ * The rule reads the id rather than the empty content, so an empty
  * bubble another send opened stays. An id that opened no reply drops nothing.
  * A failed reply stays, empty or not, because it tells the reader that the
  * send failed ({@link failReply}).
@@ -114,12 +115,11 @@ export function failReply(messages: ChatMessageData[], id: string): ChatMessageD
  * both change nothing. Both return the transcript by reference, so the settle
  * costs a re-render only where it settled something.
  *
- * This is what lets a `tool` block carry a `running` status at all. The chat
- * roadmap refuted a per-part completeness flag on the grounds that nothing in
- * the shell settles one. A stopped or failed reply would strand a part as
- * forever unfinished, and draw a spinner that never stops. `useChatSend` runs
- * this rule in its `finally`, which every exit takes: the last chunk, a stop,
- * or a throw. No step therefore outlives the stream that opened it.
+ * This is what lets a `tool` block carry a `running` status at all. Without
+ * it, a stopped or failed reply would strand a part as forever unfinished, and
+ * draw a spinner that never stops. `useChatSend` runs this rule in its
+ * `finally`, which every exit takes: the last chunk, a stop, or a throw. No
+ * step therefore outlives the stream that opened it.
  *
  * The settle itself is [`failRunningTools`](chat-stream.ts), beside the fold a
  * chunk takes. This rule only finds the reply, as `applyReplyChunk` above it

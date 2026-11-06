@@ -1,7 +1,6 @@
 /**
  * What a chat message holds: a `string` of prose, or a part list. A part list
- * holds prose beside embedded views and tool steps. Later increments add
- * attachments and citations (see the module ROADMAP §Backlog).
+ * holds prose beside embedded views and tool steps.
  */
 
 /**
@@ -54,13 +53,14 @@ export type ChatEmbedPart = {
 	 */
 	data: unknown
 	/**
-	 * How tall the view will be, in pixels, for the placeholder that holds its
-	 * space while its renderer is held back under the `lazy` mount policy.
+	 * The height of the view, in pixels. The placeholder holds that space while
+	 * the `lazy` mount policy holds the renderer back.
 	 *
 	 * Only the caller knows this: the module has not drawn the view yet, and
-	 * asking the renderer would mean mounting the thing being deferred. Absent
-	 * takes the module's default, which a view of another height makes the
-	 * transcript settle by that difference the first time a reader reaches it.
+	 * asking the renderer would mean mounting the thing being deferred. With no
+	 * height, the placeholder takes the default of the module. A view of another
+	 * height then moves the transcript by the difference when a reader first
+	 * reaches it.
 	 */
 	height?: number
 }
