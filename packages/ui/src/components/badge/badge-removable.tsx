@@ -64,6 +64,9 @@ export type BadgeRemovableProps = {
  * The remove button is the one Tab stop of the chip. It removes the chip on a
  * click, Enter, Space, Delete, or Backspace. Delete and Backspace prevent the
  * default action of the key, so the key does nothing more after the removal.
+ * The button cancels an auto-repeat of each of these keys. So a key held down
+ * removes one chip, also when the removal moves focus to the remove button of
+ * the next chip.
  * The `outline` variant has the page surface as its fill, so the muted glyph
  * of the `bare` button stays above the 3:1 contrast floor for non-text. A
  * `label` truncates to the width of the chip, and the chip is no wider than
@@ -85,7 +88,18 @@ export function BadgeRemovable({
 	const intl = useIntl()
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-		if (event.key !== 'Delete' && event.key !== 'Backspace') return
+		const removes = event.key === 'Delete' || event.key === 'Backspace'
+
+		// A repeat of Enter fires a native click, and a repeat of Space arms one.
+		// The removal can move focus here while the key is still down, so each
+		// repeat is canceled.
+		if (event.repeat && (removes || event.key === 'Enter' || event.key === ' ')) {
+			event.preventDefault()
+
+			return
+		}
+
+		if (!removes) return
 
 		event.preventDefault()
 

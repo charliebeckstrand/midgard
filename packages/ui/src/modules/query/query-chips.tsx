@@ -222,14 +222,14 @@ export function QueryChips({
 	})
 
 	// Each remove button registers here by rule id. A removal gives its focus
-	// ladder, and focus moves after the chip unmounts. With no chip left, the
-	// row takes focus with its empty text.
-	const { register, focusFirst } = useQueryRemovalFocus<HTMLButtonElement>(() =>
+	// ladder, and focus moves after the rule leaves the tree. With no chip left,
+	// the row takes focus with its empty text.
+	const { register, focusFirst } = useQueryRemovalFocus<HTMLButtonElement>(root, () =>
 		rowRef.current?.focus(),
 	)
 
 	const remove = (token: QuerySummaryRuleToken) => {
-		focusFirst(focusLadder(tokens, token.id))
+		focusFirst(token.id, focusLadder(tokens, token.id))
 
 		actions.remove(token.id)
 

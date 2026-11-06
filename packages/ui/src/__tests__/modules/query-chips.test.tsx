@@ -103,6 +103,37 @@ describe('QueryChips', () => {
 		expect(screen.queryAllByRole('button', { name: /^Remove/ })).toHaveLength(0)
 	})
 
+	// A removal moves focus to the previous chip while the key can still be
+	// down. Each auto-repeat of that key must not remove the chip that now has
+	// focus.
+	it('ignores an auto-repeat of a held key at a remove button', () => {
+		renderUI(<QueryChips fields={fields} defaultValue={tree(statusRule(), ageRule(30))} />)
+
+		for (const key of ['Delete', 'Backspace', 'Enter', ' ']) {
+			expect(fireEvent.keyDown(removeButton('Age > 30'), { key, repeat: true })).toBe(false)
+		}
+
+		expect(screen.getAllByRole('button', { name: /^Remove/ })).toHaveLength(2)
+	})
+
+	it('keeps focus on the remove button when the owner refuses the removal', () => {
+		renderUI(
+			<QueryChips
+				fields={fields}
+				value={tree(statusRule(), ageRule(30))}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		const age = removeButton('Age > 30')
+
+		age.focus()
+
+		fireEvent.click(age)
+
+		expect(document.activeElement).toBe(age)
+	})
+
 	it('moves focus to the previous chip after a removal', () => {
 		renderUI(<QueryChips fields={fields} defaultValue={tree(statusRule(), ageRule(30))} />)
 
