@@ -59,9 +59,11 @@ export type QueryBuilderProps = Omit<ComponentProps<'fieldset'>, 'children' | 'd
 	 */
 	orientation?: Responsive<Orientation>
 	/**
-	 * Keeps at least one rule in the query. A group's sole remaining rule hides its
+	 * Keeps at least one rule in a query that has one. A group's sole remaining rule hides its
 	 * remove control, so the builder can't be emptied. For always-on filters (a
-	 * column filter) that must keep a rule to edit.
+	 * column filter) that must keep a rule to edit. The prop adds no rule, so an
+	 * empty tree stays empty. Seed the first rule in `value` or `defaultValue`,
+	 * as the grid column filter does.
 	 * @defaultValue false
 	 */
 	requireRule?: boolean

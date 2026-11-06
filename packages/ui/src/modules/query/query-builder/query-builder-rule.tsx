@@ -158,6 +158,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 						onValueChange={onFieldChange}
 						placeholder={fieldLabel}
 						aria-label={fieldLabel}
+						disabled={disabled}
 						className={slots.parts.item}
 					>
 						{fields.map((entry) => (
@@ -174,6 +175,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					onValueChange={onOperatorChange}
 					placeholder={operatorName}
 					aria-label={operatorName}
+					disabled={disabled}
 					className={slots.parts.item}
 				>
 					{operators.map((operator) => (
@@ -193,6 +195,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 							value={rule.value}
 							onValueChange={onValueChange}
 							range={selectedOperator?.range}
+							disabled={disabled}
 							className="w-full"
 						/>
 					</div>
