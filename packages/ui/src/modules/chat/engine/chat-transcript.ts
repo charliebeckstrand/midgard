@@ -71,8 +71,8 @@ export function applyReplyChunk(
  * this way, and keeps the user's message and any partial reply.
  *
  * @remarks
- * The rule reads the id rather than the empty content, so an empty
- * bubble another send opened stays. An id that opened no reply drops nothing.
+ * The rule reads the id rather than the empty content, so an empty bubble
+ * another send opened stays. An id that opened no reply drops nothing.
  * A failed reply stays, empty or not, because it tells the reader that the
  * send failed ({@link failReply}).
  *

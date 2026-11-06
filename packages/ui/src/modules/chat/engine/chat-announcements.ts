@@ -5,9 +5,8 @@
  * wording is unit-testable without rendering, as the grid's already is.
  *
  * The rule: say that a reply started, and say the reply once it has settled.
- * Never say a chunk. A reply rewrites itself many
- * times a second, and a region that read every rewrite would be worse than
- * silence.
+ * Never say a chunk. A reply rewrites itself many times a second, and a region
+ * that read every rewrite would be worse than silence.
  *
  * Each builder takes the intl of the reader and speaks in its language.
  */
