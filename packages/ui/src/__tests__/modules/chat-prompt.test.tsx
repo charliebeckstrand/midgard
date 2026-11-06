@@ -426,6 +426,56 @@ describe('ChatPrompt', () => {
 		},
 	)
 
+	it('keys a chip per pick when the user picks the same file two times', async () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(noop)
+
+		function Harness() {
+			const [files, setFiles] = useState<File[]>([])
+
+			return (
+				<ChatPrompt
+					value=""
+					onValueChange={noop}
+					onSubmit={noop}
+					onAttach={(picked) => setFiles((prev) => [...prev, ...picked])}
+					attachments={files}
+					onRemoveAttachment={(index) => setFiles((prev) => prev.filter((_, i) => i !== index))}
+				/>
+			)
+		}
+
+		const { container } = renderUI(<Harness />)
+
+		const input = present<HTMLInputElement>(
+			container.querySelector('input[type="file"]'),
+			'input[type="file"]',
+		)
+
+		// Each pick gives a new File with the same name, date, and size.
+		const pick = () => new File(['x'], 'loads.csv', { type: 'text/csv', lastModified: 1 })
+
+		fireEvent.change(input, { target: { files: makeFileList([pick()]) } })
+
+		fireEvent.change(input, { target: { files: makeFileList([pick()]) } })
+
+		expect(screen.getAllByRole('listitem')).toHaveLength(2)
+
+		await setupUser().click(
+			present(
+				screen.getAllByRole('button', { name: 'Remove loads.csv' })[0],
+				'the first remove button',
+			),
+		)
+
+		expect(screen.getAllByRole('listitem')).toHaveLength(1)
+
+		const duplicate = error.mock.calls.some((call) =>
+			String(call[0]).includes('Encountered two children with the same key'),
+		)
+
+		expect(duplicate).toBe(false)
+	})
+
 	it('returns focus to the textarea after a chip removal (WCAG 2.4.3)', async () => {
 		function Harness() {
 			const [files, setFiles] = useState([FIRST, SECOND])

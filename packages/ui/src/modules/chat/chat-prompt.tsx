@@ -14,6 +14,7 @@ import { dataAttr } from '../../core/data-attr'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isComposing } from '../../utilities/is-composing'
+import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { canSubmitDraft } from './engine/chat-draft'
 
 const messages = defineMessages({
@@ -264,24 +265,35 @@ export function ChatPrompt({
 					data-slot="chat-prompt-attachments"
 					className="mt-2 flex list-none flex-wrap gap-1 [--touch-target-gap-y:--spacing(2.5)]"
 				>
-					{attachments.map((file, index) => (
-						// `flex` keeps the line box of the item off the height of the chip, and
-						// `max-w-full` holds a long name to the row, so the chip truncates it.
-						<li key={`${file.name}-${file.lastModified}-${file.size}`} className="flex max-w-full">
-							<BadgeRemovable
-								label={file.name}
-								onRemove={
-									onRemoveAttachment &&
-									(() => {
-										onRemoveAttachment(index)
+					{/* The consumer owns the list, and it can hold one file two times, such
+					    as when the user picks the same file again. The name, the date, and
+					    the size do not make a unique key, so a repeat gets its occurrence. */}
+					{keyByOccurrence(
+						attachments.map((file) => `${file.name}-${file.lastModified}-${file.size}`),
+					).map(({ key }, index) => {
+						const file = attachments[index]
 
-										// Returns focus to the textarea after chip removal (WCAG 2.4.3).
-										textareaRef.current?.focus()
-									})
-								}
-							/>
-						</li>
-					))}
+						if (file === undefined) return null
+
+						return (
+							// `flex` keeps the line box of the item off the height of the chip, and
+							// `max-w-full` holds a long name to the row, so the chip truncates it.
+							<li key={key} className="flex max-w-full">
+								<BadgeRemovable
+									label={file.name}
+									onRemove={
+										onRemoveAttachment &&
+										(() => {
+											onRemoveAttachment(index)
+
+											// Returns focus to the textarea after chip removal (WCAG 2.4.3).
+											textareaRef.current?.focus()
+										})
+									}
+								/>
+							</li>
+						)
+					})}
 				</ul>
 			)}
 		</Control>
