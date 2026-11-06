@@ -24,6 +24,7 @@ import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT, TREE_ITEM_SELECTOR } from './json-tree-constants'
 import {
 	flatTreeMoveTarget,
+	isBranchToggle,
 	jsonTreeMoveForKey,
 	parkedTarget,
 	windowTabStop,
@@ -376,7 +377,7 @@ export function JsonTreeVirtualized({
 			const container = ref.current
 
 			// A branch row that opened or closed itself has handled the key.
-			if (event.defaultPrevented) return
+			if (isBranchToggle(event)) return
 
 			// Focus parked on the container moves from the stored row. A key with Ctrl,
 			// Meta, or Alt is for the browser, so it goes to the roving handler, which
