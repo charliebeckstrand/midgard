@@ -6,6 +6,7 @@ import { k } from '../../recipes/kata/map'
 import { markTargets } from './engine/map-cluster/crowd'
 import { ownGround } from './engine/map-cluster/ground'
 import { POINT_HIT_RADIUS, POINT_RADIUS, POINT_SWATCH } from './engine/map-constants'
+import { dotReach } from './engine/map-geometry/mark'
 import { pointPop } from './engine/map-motion'
 import type { LngLat, MapPointShape } from './engine/types'
 import { dotHitProps, MapDot, MapDotClip } from './map-dot'
@@ -52,9 +53,11 @@ export type MapPointProps = MapOverlayProps & {
  * wider than clicking. A readout, a preload, or a right-click menu each earn it, and
  * a region with room to spare gives the whole target back.
  *
- * Both narrowings are for a MOUSE only. A coarse pointer keeps the whole 44px
- * target (WCAG 2.5.5). A finger cannot aim at 11px, and the shapes it is competing
- * with are large enough to reach somewhere else.
+ * Both narrowings are for a MOUSE only, on a device with no coarse pointer. A
+ * device with a touchscreen keeps the whole 44px target (WCAG 2.5.5) for every
+ * pointer, because CSS cannot tell which pointer a press comes from. A finger
+ * cannot aim at 11px, and the shapes it is competing with are large enough to
+ * reach somewhere else.
  *
  * @remarks Renders only inside {@link MapPlat}, and renders nothing when the
  * projection has no image for its position (the US composite drops points
@@ -129,13 +132,19 @@ export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 	 * The region half made it two projection inverts and a grid walk per call, which is more than a
 	 * toggled-off mark saves by skipping it. `ground` above already pays that trade the other
 	 * way round.
+	 *
+	 * The radius is what the shape paints out to, so the floor of a square covers its corners.
 	 */
 	const target = useMemo(
 		() =>
 			position === null
 				? undefined
-				: markTargets([{ at: position, radius: POINT_RADIUS }], unitsPerPixel, spare)[0],
-		[position, unitsPerPixel, spare],
+				: markTargets(
+						[{ at: position, radius: dotReach(POINT_RADIUS, shape) }],
+						unitsPerPixel,
+						spare,
+					)[0],
+		[position, shape, unitsPerPixel, spare],
 	)
 
 	if (slot === undefined || hidden || position === null) return null

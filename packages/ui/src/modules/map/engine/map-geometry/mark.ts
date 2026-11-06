@@ -31,7 +31,7 @@
  */
 
 import { type GeoProjection, geoArea, geoCentroid } from 'd3-geo'
-import type { LngLat, MapFeature, MapPoint2D, MapPolygons } from '../types'
+import type { LngLat, MapFeature, MapPoint2D, MapPointShape, MapPolygons } from '../types'
 
 /**
  * {@link projectPoint} run backwards: a frame position to the lon/lat it draws
@@ -526,6 +526,26 @@ export function squareDotStroke(at: MapPoint2D, width: number): { d: string; str
 		d: `M${left},${top}H${right}V${bottom}H${left}Z${dotPath(at)}`,
 		strokeWidth,
 	}
+}
+
+/**
+ * How far a dot of `radius` paints from its center at the widest, in the units
+ * of `radius`. A circle reaches its radius. A square reaches past the circle
+ * inside it, at its rounded corners. The straight edge of {@link squareDotStroke}
+ * stops one corner radius short of each side, and the round join adds that
+ * radius back on the diagonal.
+ *
+ * `markTargets` floors a fine target at this reach, so no part of the drawn
+ * shape is outside its own target.
+ *
+ * @internal
+ */
+export function dotReach(radius: number, shape: MapPointShape = 'circle'): number {
+	if (shape === 'circle') return radius
+
+	const corner = radius * SQUARE_DOT_CORNER * 2
+
+	return (radius - corner) * Math.SQRT2 + corner
 }
 
 /**

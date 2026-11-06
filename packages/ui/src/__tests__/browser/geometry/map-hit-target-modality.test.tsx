@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { MapGeofence, MapPlat, MapPoint, MapPoints } from '../../../modules/map'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../../modules/map/engine/map-constants'
+import { k } from '../../../recipes/kata/map'
 import { allBySlot, getSlot, renderUI } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
@@ -11,6 +12,35 @@ import { zoomToCeiling } from '../helpers/map-zoom'
 /** The drawn radius of a hit circle, which its box is twice. */
 function measureRadius(element: Element) {
 	return element.getBoundingClientRect().width / 2
+}
+
+/**
+ * The media conditions under which the stylesheet sets `r` for a class, one list
+ * for each rule that sets it. A list holds the condition of each `@media` rule
+ * around the declaration, from the outside in.
+ */
+function mediaFor(className: string) {
+	const selector = `.${CSS.escape(className)}`
+
+	const found: string[][] = []
+
+	function walk(rules: CSSRuleList, conditions: string[], matched: boolean) {
+		for (const rule of rules) {
+			const own = matched || (rule instanceof CSSStyleRule && rule.selectorText.includes(selector))
+
+			if (own && 'style' in rule && (rule.style as CSSStyleDeclaration).getPropertyValue('r')) {
+				found.push(conditions)
+			}
+
+			const inner = rule instanceof CSSMediaRule ? [...conditions, rule.conditionText] : conditions
+
+			if ('cssRules' in rule) walk(rule.cssRules as CSSRuleList, inner, own)
+		}
+	}
+
+	for (const sheet of document.styleSheets) walk(sheet.cssRules, [], false)
+
+	return found
 }
 
 /**
@@ -34,6 +64,30 @@ function measureRadius(element: Element) {
  * is for.
  */
 describe('dot hit target by pointer modality', () => {
+	it('narrows only on a device with no coarse pointer', () => {
+		// `pointer: fine` reads the primary pointer alone, so a laptop with a
+		// touchscreen matched it, and a finger double tap hit-tested the narrowed
+		// circle. This suite cannot emulate a second pointer: CDP overrides no
+		// `any-pointer`, and touch emulation does not turn off again. The case reads
+		// the conditions that the browser parsed instead.
+		const rules = mediaFor(k.hit.fine)
+
+		expect(rules).toHaveLength(1)
+
+		const [conditions = []] = rules
+
+		// The served CSS spells the negation `not all and (…)`, its media-query level 3 form.
+		expect(conditions.join(' and ')).toMatch(
+			/\(pointer: fine\).*not (all and )?\(any-pointer: coarse\)/,
+		)
+
+		// This browser drives a mouse alone, so every condition holds here, and the
+		// cases below measure the narrowed target.
+		for (const condition of conditions) {
+			expect(matchMedia(condition).matches).toBe(true)
+		}
+	})
+
 	it('resolves to the fine target while the coarse reach stays on the attribute', () => {
 		renderUI(
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>

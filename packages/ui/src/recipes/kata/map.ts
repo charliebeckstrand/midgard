@@ -53,6 +53,11 @@ export const k = {
 		 * give back. A dot standing clear of every zone and every neighbor keeps the
 		 * coarse target on both pointers.
 		 *
+		 * It narrows only where the device has no coarse pointer at all. `pointer-fine`
+		 * reads the primary pointer alone. A laptop with a touchscreen therefore matched
+		 * it, and a finger double tap hit-tested the narrowed circle
+		 * (`use-map-touch-tap`). A mouse on such a device keeps the coarse target.
+		 *
 		 * It is what lets a small area mark be pointed at. A `MapGeofence` drawn tight
 		 * around a `MapPoint` sits wholly inside a finger-sized circle. Without this
 		 * the dot claims the zone's whole face, and the two can never be told apart. The
@@ -64,7 +69,7 @@ export const k = {
 		 * the two together. It is the floor a budget can never take a target under:
 		 * the radius a dot of the default size draws at.
 		 */
-		fine: 'pointer-fine:[r:var(--map-hit-radius,5.5px)]',
+		fine: 'pointer-fine:not-any-pointer-coarse:[r:var(--map-hit-radius,5.5px)]',
 		/**
 		 * The custom property {@link k.hit.fine} reads its radius from: what the ground
 		 * under the dot can spare it. That is divided by the plat's zoom scale, so the

@@ -14,6 +14,7 @@ import {
 	POINT_HIT_RADIUS_FINE,
 	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
+import { squareDotStroke } from '../../modules/map/engine/map-geometry/mark'
 import { k } from '../../recipes/kata/map'
 import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { englishRadius } from '../helpers/map-flat'
@@ -62,7 +63,9 @@ describe('dot hit targets', () => {
 		// Tailwind scans source for whole class strings, so the radius cannot be
 		// interpolated from the constant. This is what keeps the two in step. The
 		// fallback is what a shape with no property of its own resolves to.
-		expect(k.hit.fine).toBe(`pointer-fine:[r:var(${k.hit.radius},${POINT_HIT_RADIUS_FINE}px)]`)
+		expect(k.hit.fine).toBe(
+			`pointer-fine:not-any-pointer-coarse:[r:var(${k.hit.radius},${POINT_HIT_RADIUS_FINE}px)]`,
+		)
 	})
 
 	it('holds the coarse reach, and pins the fine target to the drawn dot', () => {
@@ -308,6 +311,69 @@ describe('dot hit targets', () => {
 		expect(budget(targets[0] ?? null, 'summary hit target')).toBe(englishRadius(2))
 	})
 
+	it('floors a square dot’s target at its corners, not at the circle inside it', () => {
+		// The square's own geometry: a closed path whose round joins are the
+		// corners. A corner reaches the half side on the diagonal, plus the join.
+		const { strokeWidth } = squareDotStroke({ x: 0, y: 0 }, POINT_RADIUS * 2)
+
+		const corners = (POINT_RADIUS - strokeWidth / 2) * Math.SQRT2 + strokeWidth / 2
+
+		// A 20 km yard spares less than the dot draws, so the floor decides the size.
+		const { container } = renderUI(
+			catchment(
+				<>
+					<MapPoint label="Depot" at={[15, 5]} shape="square" />
+
+					<MapPoints
+						label="Trips"
+						shape="square"
+						points={[{ at: [15, 5] }, { at: [-60, 5] }]}
+						cluster={false}
+					/>
+				</>,
+				20_000,
+			),
+		)
+
+		expect(budget(bySlot(container, 'map-point-hit'), 'square point target')).toBeCloseTo(
+			corners,
+			5,
+		)
+
+		expect(
+			budget(allBySlot(container, 'map-points-hit')[0] ?? null, 'square dot target'),
+		).toBeCloseTo(corners, 5)
+	})
+
+	it.each([false, true])(
+		'keeps the drawn dot off the pointer, so its hit circle is the sole target (animate %s)',
+		(animate) => {
+			// A drawn dot carries no `data-entry-id`. As the topmost shape where its hit
+			// circle does not reach, it read nothing, picked nothing, and hid the zone or
+			// region under it.
+			const { container } = renderUI(
+				<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} animate={animate}>
+					<MapPoint label="Depot" at={[8, 5]} shape="square" />
+
+					<MapPoints label="Stops" points={[{ at: [12, 6] }, { at: [25, 4] }]} cluster={false} />
+
+					<MapMarker label="Haul" start={[2, 2]} end={[28, 8]} />
+				</MapPlat>,
+			)
+
+			const dots = [
+				getSlot(container, 'map-point'),
+				...allBySlot(container, 'map-points-dot'),
+				getSlot(container, 'map-marker-start'),
+				getSlot(container, 'map-marker-end'),
+			]
+
+			expect(dots).toHaveLength(5)
+
+			for (const dot of dots) expect(dot.getAttribute('pointer-events')).toBe('none')
+		},
+	)
+
 	it('keeps the hit target a transparent fill, so it answers where the dot does not paint', () => {
 		const { container } = renderUI(overlayPlat(<MapPoint label="Depot" at={[8, 5]} />))
 
@@ -472,6 +538,57 @@ describe('crowded marks divide their targets', () => {
 		expect(rings.every((points) => points !== null && points.length > 0)).toBe(true)
 
 		expect(rings[0]).not.toBe(rings[1])
+	})
+
+	it('divides a marker pin’s ground against a point beside it', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<>
+					<MapPoint label="Depot" at={[5.4, 5.2]} />
+
+					<MapMarker label="Haul" start={[5, 5]} end={[25, 5]} />
+				</>,
+			),
+		)
+
+		// The marker draws after the point, so a whole pin took the point's side of the
+		// bisector, with its readout and its pick. Each now keeps the ground nearer to it.
+		const pin = readClip(bySlot(container, 'map-marker-start-hit'))
+
+		expect(pin).not.toBeNull()
+
+		expect(pin).not.toBe(readClip(bySlot(container, 'map-point-hit')))
+
+		expect(container.querySelector(`defs > clipPath#${pin}`)).not.toBeNull()
+
+		// The far pin has no neighbor, so it draws no clip.
+		expect(readClip(bySlot(container, 'map-marker-end-hit'))).toBeNull()
+	})
+
+	it('divides the pins of two markers against each other, but not a shared hub', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<>
+					<MapMarker label="North" start={[5, 5]} end={[25, 8]} />
+
+					<MapMarker label="South" start={[5, 5]} end={[25.4, 8.2]} />
+				</>,
+			),
+		)
+
+		// Two pins at one position cannot be told apart by any geometry, so the hub
+		// stays whole. The two ends stand apart, so each keeps its own side.
+		for (const start of allBySlot(container, 'map-marker-start-hit')) {
+			expect(readClip(start)).toBeNull()
+		}
+
+		const ends = allBySlot(container, 'map-marker-end-hit').map((end) => readClip(end))
+
+		expect(ends).toHaveLength(2)
+
+		expect(ends.every((id) => id !== null)).toBe(true)
+
+		expect(ends[0]).not.toBe(ends[1])
 	})
 
 	it('keeps the full radius on the clipped target rather than shrinking it', () => {
@@ -745,7 +862,7 @@ describe('a dot over regions that answer the pointer', () => {
 	it('keeps the coarse target for a finger even over clickable regions', () => {
 		const { container } = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />))
 
-		// The `r` attribute is still the finger-sized one; only the `pointer-fine` override narrows it.
+		// The `r` attribute is still the finger-sized one; only the `k.hit.fine` override narrows it.
 		// A coarse pointer cannot aim at 11px (WCAG 2.5.5), and a region is a large shape it can reach
 		// elsewhere.
 		expect(
