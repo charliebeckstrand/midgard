@@ -48,7 +48,7 @@ Status: `◯ OPEN`; `✅ RESOLVED (#NNN)` after the fix merges; `✖ DROPPED` wi
 | [B01-C05](#b01-c05) | `modules/map/map-plat.tsx` | MapPlat | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3313](https://github.com/charliebeckstrand/midgard/pull/3313)) |
 | [B01-C06](#b01-c06) | `modules/map/map-plat.tsx` | MapPlat | CONFIRMED | low | none | correctness | M3 | ✅ RESOLVED ([#3311](https://github.com/charliebeckstrand/midgard/pull/3311)) |
 | [B01-C08](#b01-c08) | `modules/map/use-map-zoom.ts` | useMapZoom | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3311](https://github.com/charliebeckstrand/midgard/pull/3311)) |
-| [B01-C09](#b01-c09) | `modules/map/map-table.tsx` | MapTableProps.header | NARROWED | low | shipped | correctness | independent | ◯ OPEN |
+| [B01-C09](#b01-c09) | `modules/map/map-table.tsx` | MapTableProps.header | NARROWED | low | shipped | correctness | independent | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
 | [B01-C11](#b01-c11) | `modules/map/use-map-coverage.ts` | useMapCoverage | CONFIRMED | low | none | polish | M7 | ◯ OPEN |
 | [B01-C12](#b01-c12) | `recipes/kata/map.ts` | k.group | CONFIRMED | low | none | polish | M7 | ◯ OPEN |
 | [B02-C01](#b02-c01) | `modules/map/map-dot.tsx` | MapDot | CONFIRMED | low | shipped | bug | independent | ◯ OPEN |
@@ -56,16 +56,16 @@ Status: `◯ OPEN`; `✅ RESOLVED (#NNN)` after the fix merges; `✖ DROPPED` wi
 | [B02-C03](#b02-c03) | `modules/map/map-points.tsx` | MapPoints | CONFIRMED | low | shipped | bug | M2 | ◯ OPEN |
 | [B02-C04](#b02-c04) | `modules/map/map-marker.tsx` | MapMarker | CONFIRMED | low | none | correctness | M5 | ◯ OPEN |
 | [B02-C05](#b02-c05) | `modules/map/map-points.tsx` | MapPoints | CONFIRMED | low | none | correctness | M5 | ◯ OPEN |
-| [B02-C06](#b02-c06) | `modules/map/use-map-overlay.ts` | useMapOverlay | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| [B02-C07](#b02-c07) | `modules/map/map-route.tsx` | MapRoute | CONFIRMED | low | none | correctness | M4 | ◯ OPEN |
-| [B02-C08](#b02-c08) | `modules/map/map-geofence.tsx` | MapGeofence | CONFIRMED | low | none | correctness | M4 | ◯ OPEN |
+| [B02-C06](#b02-c06) | `modules/map/use-map-overlay.ts` | useMapOverlay | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
+| [B02-C07](#b02-c07) | `modules/map/map-route.tsx` | MapRoute | CONFIRMED | low | none | correctness | M4 | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
+| [B02-C08](#b02-c08) | `modules/map/map-geofence.tsx` | MapGeofence | CONFIRMED | low | none | correctness | M4 | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
 | [B02-C09](#b02-c09) | `modules/map/map-line.tsx` | MapLineDraw | CONFIRMED | low | shipped | bug | independent | ◯ OPEN |
 | [B02-C10](#b02-c10) | `modules/map/map-dot.tsx` | MapDotCount | CONFIRMED | low | shipped | bug | independent | ◯ OPEN |
-| [B02-C12](#b02-c12) | `modules/map/engine/map-overlay/readout.ts` | markRows | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| [B02-C13](#b02-c13) | `modules/map/engine/map-overlay/readout.ts` | markRows | CONFIRMED | low | shipped | correctness | independent | ◯ OPEN |
+| [B02-C12](#b02-c12) | `modules/map/engine/map-overlay/readout.ts` | markRows | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
+| [B02-C13](#b02-c13) | `modules/map/engine/map-overlay/readout.ts` | markRows | CONFIRMED | low | shipped | correctness | independent | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
 | [B02-C15](#b02-c15) | `modules/map/use-map-keyboard.ts` | useMapKeyboard | CONFIRMED | low | none | correctness | M3 | ✅ RESOLVED ([#3311](https://github.com/charliebeckstrand/midgard/pull/3311)) |
-| [B03-C01](#b03-c01) | `modules/map/engine/map-cluster/group.ts` | seedGroups | CONFIRMED | low | shipped | correctness | M6 | ◯ OPEN |
-| [B03-C02](#b03-c02) | `modules/map/engine/map-cluster/group.ts` | nearestSeed | CONFIRMED | low | test-only | correctness | M6 | ◯ OPEN |
+| [B03-C01](#b03-c01) | `modules/map/engine/map-cluster/group.ts` | seedGroups | CONFIRMED | low | shipped | correctness | M6 | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
+| [B03-C02](#b03-c02) | `modules/map/engine/map-cluster/group.ts` | nearestSeed | CONFIRMED | low | test-only | correctness | M6 | ✅ RESOLVED ([#3319](https://github.com/charliebeckstrand/midgard/pull/3319)) |
 | [B03-C04](#b03-c04) | `modules/map/engine/map-region/value.ts` | resolveValueBins | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
 | [B03-C09](#b03-c09) | `modules/map/engine/map-zip/selection.ts` | readRule | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
 | [B03-C13](#b03-c13) | `modules/map/map-regions.tsx` | Region | CONFIRMED | low | none | polish | M7 | ◯ OPEN |
