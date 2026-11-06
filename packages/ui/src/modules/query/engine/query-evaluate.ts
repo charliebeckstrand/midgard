@@ -81,14 +81,15 @@ export function isBlank(value: unknown): boolean {
  * rule value, which the number input of the builder writes, reads the cell
  * through {@link asNumber}, as the order operators do. So the cell `$1,234.50`
  * holds `1234.5`, and a blank cell holds no number. Each other rule value reads
- * the cell as text.
+ * the cell as text and ignores case, as the other text operators do. So the
+ * cell `Lee` holds `lee`.
  *
  * @internal
  */
 function holdsValue(fieldValue: unknown, ruleValue: unknown): boolean {
 	return typeof ruleValue === 'number'
 		? asNumber(fieldValue) === ruleValue
-		: asText(fieldValue) === asText(ruleValue)
+		: asText(fieldValue).toLowerCase() === asText(ruleValue).toLowerCase()
 }
 
 /**
