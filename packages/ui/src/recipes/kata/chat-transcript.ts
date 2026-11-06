@@ -7,9 +7,13 @@ const { focus } = sen
 // A transcript that overflows is a tab stop (`useScrollRegion`), so browsers
 // paint the UA focus outline. `focus.inset` suppresses it and draws the
 // library's inset blue ring; an outset ring would be clipped by the scroll.
+//
+// A transcript scrolls only on the block axis. `overflow-y-auto` alone makes
+// the inline axis `auto` too, so a part a pixel wider than the rows would let
+// the reader pan it sideways.
 export const k = defineKata(
 	{
-		base: ['flex-1 grow overflow-y-auto min-h-0', focus.inset],
+		base: ['flex-1 grow overflow-y-auto overflow-x-hidden min-h-0', focus.inset],
 		slots: {
 			// The window measures each row as a whole box. A flex `gap` sits outside
 			// every box, so no row would count it, and the spacers would drift by it.

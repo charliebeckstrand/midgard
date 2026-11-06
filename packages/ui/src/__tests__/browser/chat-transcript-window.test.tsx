@@ -376,6 +376,39 @@ describe('the transcript window', () => {
 
 		expect(hasIntermediate(offsets, start, transcript.scrollTop)).toBe(true)
 	})
+
+	// The glide to the reader's message is not at the end, so a rule that read
+	// the position would not follow the reply that opens on the way.
+	it('follows a reply that opens and grows while the glide to the sent message runs', async () => {
+		const messages = history(200)
+
+		const { rerender, transcript } = await mountAtEnd(messages)
+
+		const sent = [
+			...messages,
+			{ id: 'sent', sender: 'user' as const, content: `Sent. ${filler(4).repeat(3)}` },
+		]
+
+		rerender(<Frame messages={sent} />)
+
+		await frames(2)
+
+		for (const text of ['Reply.', `Reply. ${filler(2)}`, `Reply. ${filler(4).repeat(2)}`]) {
+			rerender(<Frame messages={[...sent, { id: 'reply', sender: 'assistant', content: text }]} />)
+
+			await frames(2)
+		}
+
+		await waitFor(() => atEnd(transcript, 'Reply.'), { timeout: FOLLOW })
+
+		expect(await settledValue(() => distanceFromEnd(transcript))).toBeLessThanOrEqual(1)
+	})
+
+	it('scrolls only on the block axis', async () => {
+		const { transcript } = await mountAtEnd(history(40))
+
+		expect(getComputedStyle(transcript).overflowX).toBe('hidden')
+	})
 })
 
 describe('the button that goes to the newest message', () => {
@@ -409,6 +442,22 @@ describe('the button that goes to the newest message', () => {
 
 		// The button left as the glide started, so the focus is on the transcript.
 		expect(transcript).toHaveFocus()
+	})
+
+	it('hides at once when the reader scrolls back to the end', async () => {
+		const { container, transcript } = await mountAtEnd(history(200))
+
+		const end = transcript.scrollTop
+
+		// A short way, so the rows in the window stay the same.
+		await scrollTo(transcript, end - 5)
+
+		await waitFor(() => expect(getNewest(container)).not.toBeNull())
+
+		await scrollTo(transcript, end)
+
+		// It hides on the scroll event that reaches the end, before the scroll ends.
+		expect(getNewest(container)).toBeNull()
 	})
 
 	it('stays hidden while the transcript follows a new row', async () => {
