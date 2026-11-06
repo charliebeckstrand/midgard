@@ -1241,6 +1241,7 @@ How does the Shapes demo (`docs/pages/modules/map/point/shapes.tsx`) show its sq
 - Axes: (a) Give the demo a frame or a zoom where the depots stand apart from their rounds: the demo file only. (b) Draw the depot's square inside a shared summary: a change to the #3223 shared-summary contract. `cluster={false}` on the depots is not an axis, because it brings back the depots that hide the stop counts, which #3223 fixed.
 - Recommended: (a), because it keeps the #3223 contract and touches the demo alone.
 - Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
+- Done: [#3310](https://github.com/charliebeckstrand/midgard/pull/3310) (the Shapes demo fits Georgia).
 
 ### Caller change to S1
 
