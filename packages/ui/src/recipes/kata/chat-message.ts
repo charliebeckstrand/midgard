@@ -7,6 +7,10 @@ const { size, weight } = ji
 const { flex } = narabi
 const { focus, forced } = sen
 
+// A row of controls: the actions of a message, and the rating pair of
+// `ChatFeedback` in them, which sits as close as the other actions do.
+const controls = [flex.row, 'gap-0.5']
+
 const bubble = {
 	base: [
 		// The cap is 85% of the message, with a floor of 12rem, and never more than
@@ -81,7 +85,7 @@ export const k = defineKata({
 		 * A `static` trigger is a row below the bubble.
 		 */
 		actions: {
-			base: [flex.row, 'gap-0.5'],
+			base: controls,
 			trigger: {
 				static: 'mt-1',
 				hover: [
@@ -113,9 +117,8 @@ export const k = defineKata({
 				{ trigger: 'hover', sender: 'system', class: 'inset-x-0 mx-auto' },
 			],
 		},
-		// The rating pair of `ChatFeedback`: one control of the actions, so its two
-		// buttons sit as close as the other actions do.
-		feedback: [flex.row, 'gap-0.5'],
+		// The rating pair of `ChatFeedback`: one control of the actions.
+		feedback: controls,
 		// The line of a failed reply. It inherits the foreground of the bubble, as
 		// the step line does, and the red dot beside it marks the failure. The gap
 		// above it is the `part` gap when the reply landed content first.

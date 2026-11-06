@@ -292,7 +292,7 @@ export function ChatTranscript({
 	const slots = k()
 
 	// A hover toolbar rises above its message, and the scroll clips it above the first row.
-	const roomy = actions !== undefined && (trigger ?? 'hover') === 'hover'
+	const roomy = actions !== undefined && trigger !== 'static'
 
 	useA11yAnnouncements(describeTranscript(intl, messages, streaming))
 
