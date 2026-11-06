@@ -42,10 +42,10 @@ Status: `◯ OPEN`; `✅ RESOLVED (#NNN)` after the fix merges; `✖ DROPPED` wi
 | [B02-C14](#b02-c14) | `modules/map/use-map-keyboard.ts` | useMapKeyboard | CONFIRMED | medium | shipped | bug | independent | ✅ RESOLVED ([#3311](https://github.com/charliebeckstrand/midgard/pull/3311)) |
 | [B03-C11](#b03-c11) | `modules/map/map-legend-region.tsx` | MapLegendSlot | CONFIRMED | medium | shipped | bug | M1 | ◯ OPEN |
 | [B01-C01](#b01-c01) | `recipes/kata/map.ts` | k.legend | CONFIRMED | low | shipped | bug | M1 | ◯ OPEN |
-| [B01-C02](#b01-c02) | `modules/map/map-plat.tsx` | MapPlat | NARROWED | low | none | correctness | independent | ◯ OPEN |
-| [B01-C03](#b01-c03) | `modules/map/map-plat.tsx` | MapPlat | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| [B01-C04](#b01-c04) | `modules/map/map-plat.tsx` | MapPlat | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| [B01-C05](#b01-c05) | `modules/map/map-plat.tsx` | MapPlat | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
+| [B01-C02](#b01-c02) | `modules/map/map-plat.tsx` | MapPlat | NARROWED | low | none | correctness | independent | ✅ RESOLVED ([#3313](https://github.com/charliebeckstrand/midgard/pull/3313)) |
+| [B01-C03](#b01-c03) | `modules/map/map-plat.tsx` | MapPlat | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3313](https://github.com/charliebeckstrand/midgard/pull/3313)) |
+| [B01-C04](#b01-c04) | `modules/map/map-plat.tsx` | MapPlat | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3313](https://github.com/charliebeckstrand/midgard/pull/3313)) |
+| [B01-C05](#b01-c05) | `modules/map/map-plat.tsx` | MapPlat | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3313](https://github.com/charliebeckstrand/midgard/pull/3313)) |
 | [B01-C06](#b01-c06) | `modules/map/map-plat.tsx` | MapPlat | CONFIRMED | low | none | correctness | M3 | ✅ RESOLVED ([#3311](https://github.com/charliebeckstrand/midgard/pull/3311)) |
 | [B01-C08](#b01-c08) | `modules/map/use-map-zoom.ts` | useMapZoom | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3311](https://github.com/charliebeckstrand/midgard/pull/3311)) |
 | [B01-C09](#b01-c09) | `modules/map/map-table.tsx` | MapTableProps.header | NARROWED | low | shipped | correctness | independent | ◯ OPEN |
