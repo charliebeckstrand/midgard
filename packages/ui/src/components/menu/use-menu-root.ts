@@ -1,6 +1,7 @@
 'use client'
 
 import { useClick, useInteractions } from '@floating-ui/react'
+import { isVirtualClick } from '@floating-ui/react/utils'
 import {
 	type KeyboardEvent,
 	type MouseEvent,
@@ -87,15 +88,17 @@ function cursorAnchor(element: Element | null, clientX: number, clientY: number)
 
 /**
  * Whether a key opened a menu. Floating UI records the event of each open. A
- * key gives a keydown or a keyup, or the click with no pointer behind it
- * (`detail` 0) that a button fires for Enter and Space. A press of the pointer
- * gives a click with a `detail` of 1 or more. An open with no event, such as a
- * controlled `open`, is not a key open.
+ * key gives a keydown or a keyup, or the click that a button fires for Enter
+ * and Space. Floating UI calls that click virtual (`isVirtualClick`): it has no
+ * pointer behind it. A screen reader press, also a TalkBack double tap, is
+ * virtual too, so it opens the menu on its first row as a key does. A press of
+ * the pointer is not virtual. An open with no event, such as a controlled
+ * `open`, is not a key open.
  *
  * @internal
  */
 function isKeyOpen(event: Event | undefined): boolean {
-	return event instanceof KeyboardEvent || (event instanceof MouseEvent && event.detail === 0)
+	return event instanceof KeyboardEvent || (event instanceof MouseEvent && isVirtualClick(event))
 }
 
 /**

@@ -277,6 +277,46 @@ describe('MenuTrigger key open (real floating engine)', () => {
 			expect(row).not.toHaveAttribute('data-active')
 	})
 
+	// TalkBack on Android sends a double tap as a click with a pointer type and
+	// the primary button down. Floating UI calls that click virtual, as a click
+	// from a key, so the menu opens on its first row.
+	it('opens on the first row from a TalkBack double tap', async () => {
+		// Chromium has `userAgentData`, and Floating UI reads its platform first.
+		vi.spyOn(
+			navigator as Navigator & { userAgentData: unknown },
+			'userAgentData',
+			'get',
+		).mockReturnValue({
+			platform: 'Android',
+		})
+
+		const trigger = renderRows()
+
+		trigger.dispatchEvent(
+			new PointerEvent('click', { bubbles: true, detail: 1, pointerType: 'touch', buttons: 1 }),
+		)
+
+		const edit = await screen.findByRole('menuitem', { name: 'Edit' })
+
+		await waitFor(() => expect(trigger).toHaveAttribute('aria-activedescendant', edit.id))
+	})
+
+	// A click with no pointer but a pointer type is not a key. Floating UI does
+	// not call it virtual, so the menu opens with no active row.
+	it('opens with no active row on a click that has a pointer type', async () => {
+		const trigger = renderRows()
+
+		trigger.dispatchEvent(
+			new PointerEvent('click', { bubbles: true, detail: 0, pointerType: 'mouse' }),
+		)
+
+		await screen.findByRole('menu')
+
+		await frames()
+
+		expect(trigger).not.toHaveAttribute('aria-activedescendant')
+	})
+
 	// A row closes the menu with no event, so the record of the key open must
 	// not outlive the close. Else an open by the `open` prop reads it as a key.
 	it('opens with no active row from the open prop after a key open', async () => {
