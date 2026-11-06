@@ -8,6 +8,7 @@ import {
 	ChatPrompt,
 	ChatTranscript,
 	type ChatVerdict,
+	chatContentText,
 	useChatDraft,
 	useChatSend,
 } from 'ui/chat'
@@ -15,7 +16,7 @@ import { CopyButton } from 'ui/copy-button'
 import { Icon } from 'ui/icon'
 import { Stack } from 'ui/stack'
 import { renderers } from '../embeds/renderers.tsx'
-import { messageText, transport } from './reply.ts'
+import { transport } from './reply.ts'
 
 // The draft that the composer opens with, so the reader can send it at once.
 const suggestion = { text: 'How are late stops trending this week?' }
@@ -52,7 +53,7 @@ export default function Conversation() {
 	const actions = useCallback(
 		(message: ChatMessageData) => (
 			<>
-				<CopyButton size="sm" text={() => messageText(message)} />
+				<CopyButton size="sm" text={() => chatContentText(message.content)} />
 				{message.sender === 'assistant' && message.id !== 'welcome' && (
 					<ChatFeedback
 						value={ratings[message.id ?? ''] ?? null}

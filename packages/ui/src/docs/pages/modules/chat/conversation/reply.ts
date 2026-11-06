@@ -1,4 +1,4 @@
-import type { ChatMessageData, ChatPart, ChatToolPart, ChatTransport } from 'ui/chat'
+import type { ChatPart, ChatToolPart, ChatTransport } from 'ui/chat'
 
 /** The steps of the scripted reply, as the transport sends them. */
 const step: ChatToolPart = {
@@ -56,11 +56,4 @@ export const transport: ChatTransport = async function* () {
 	await wait(300)
 
 	yield [trend]
-}
-
-/** The text of a message, for its copy action. */
-export function messageText(message: ChatMessageData): string {
-	if (typeof message.content === 'string') return message.content
-
-	return message.content.flatMap((part) => (part.kind === 'text' ? [part.text] : [])).join('\n\n')
 }
