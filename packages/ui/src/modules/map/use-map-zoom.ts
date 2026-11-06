@@ -52,6 +52,7 @@ type MapZoomSurface = {
 	onPointerMove: (event: PointerEvent<HTMLElement>) => void
 	onPointerUp: (event: PointerEvent<HTMLElement>) => void
 	onPointerCancel: (event: PointerEvent<HTMLElement>) => void
+	onPointerLeave: (event: PointerEvent<HTMLElement>) => void
 	onLostPointerCapture: (event: PointerEvent<HTMLElement>) => void
 	onClickCapture: (event: MouseEvent<HTMLElement>) => void
 }
@@ -345,6 +346,42 @@ export function useMapZoom({
 		return () => window.removeEventListener('scroll', onScroll, { capture: true })
 	}, [zooms])
 
+	/**
+	 * Drops every gesture under way and lets the readout go. A zoom that turns off
+	 * takes the surface's handlers and the touch listener with it. The lift of a
+	 * pointer down at that moment therefore never reaches {@link release}, and
+	 * without this the readout stays held until zoom turns on again.
+	 */
+	const endGesture = useEffectEvent(() => {
+		pinchFrame.clear()
+
+		pointers.current.clear()
+
+		press.current = null
+
+		holder.current = null
+
+		spread.current = null
+
+		midpoint.current = null
+
+		touchHeld.current = false
+
+		gestureBox.current = null
+
+		cursorHold.end()
+
+		setGesturing(false)
+
+		holdReadout(false)
+	})
+
+	useEffect(() => {
+		if (!zooms) return
+
+		return () => endGesture()
+	}, [zooms])
+
 	// The SVG mounts when the frame has an area, so the native listeners below
 	// bind on that beat. They read the frame's size off `live`, so a resize does
 	// not bind them again.
@@ -474,6 +511,24 @@ export function useMapZoom({
 		event.currentTarget.setPointerCapture(event.pointerId)
 
 		cursorHold.start()
+	}
+
+	/**
+	 * Ends the press of a pointer that leaves the surface before the surface
+	 * captured it.
+	 *
+	 * The capture comes only past the threshold (see {@link hold}). A press near
+	 * the edge, or a fast drag off it, can therefore leave the plot uncaptured,
+	 * and its `pointerup` then lands outside the plot. Without this release, the
+	 * pointer stays tracked, and the next move over the plot with no button held
+	 * pans the map. A captured pan that crosses the edge keeps its pointer.
+	 */
+	function onPointerLeave(event: PointerEvent<HTMLElement>) {
+		if (!pointers.current.has(event.pointerId)) return
+
+		if (event.currentTarget.hasPointerCapture(event.pointerId)) return
+
+		release(event)
 	}
 
 	/**
@@ -743,6 +798,7 @@ export function useMapZoom({
 			onPointerMove,
 			onPointerUp: release,
 			onPointerCancel: release,
+			onPointerLeave,
 			// The authoritative reset: it fires on release, on a browser-claimed
 			// gesture, and on the node leaving the tree mid-drag alike. The other two
 			// stand beside it because a test environment dispatches neither capture

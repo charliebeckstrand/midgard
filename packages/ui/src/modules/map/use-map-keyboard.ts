@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type FocusEvent,
 	type KeyboardEvent,
 	type RefObject,
 	useEffect,
@@ -21,7 +22,7 @@ import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
 import { isActivateKey, moveCursor } from './engine/map-keyboard/cursor'
 import type { MapStop, MapStopMoves } from './engine/map-keyboard/stops'
 import { frameToClient } from './engine/map-projection/frame'
-import { mapZoomKey, zoomKeyFactor } from './engine/map-zoom/gesture'
+import { type MapZoomKey, mapZoomKey, zoomKeyFactor } from './engine/map-zoom/gesture'
 import { applyTransform, MAP_FIT_TRANSFORM, type MapTransform } from './engine/map-zoom/transform'
 import type { MapPoint2D } from './engine/types'
 import { mapMessages, mapZoomMessage } from './map-messages'
@@ -76,9 +77,22 @@ function stopResolver(resolveStops: () => MapStop[]): (version: number) => MapRe
 	}
 }
 
+/**
+ * The handlers a map spreads onto its plot region: the shared tab stop, and a
+ * focus handler so that the stop stays while the region holds focus.
+ *
+ * @internal
+ */
+export type MapKeyboardProps = PlotTabStopProps & {
+	onFocus: (event: FocusEvent<HTMLElement>) => void
+}
+
 /** What {@link useMapKeyboard} needs from the plat to drive a cursor. @internal */
 export type MapKeyboardOptions = {
-	/** Whether the cursor has an output: a readout, a pick, or both; `false` leaves the region unfocusable. */
+	/**
+	 * Whether the cursor has an output: a readout, a pick, or both. `false` leaves
+	 * the region unfocusable once it does not hold focus.
+	 */
 	enabled: boolean
 	/**
 	 * Every place the cursor can stand (the regions at their centroids, then the
@@ -125,7 +139,8 @@ export type MapKeyboardOptions = {
 	 * The view the zoom layer draws through, or `null` on a map that does not
 	 * zoom. The cursor reads it to anchor its readout where the map draws the
 	 * stop, and drives it two ways. `+`, `-`, and `0` step and reset the scale. A
-	 * step onto a stop the zoom put off-frame pans the view to it.
+	 * step onto a stop the zoom put off-frame, or a scale step that carries the
+	 * cursor's stop off the frame, pans the view to it.
 	 */
 	zoom: MapZoomCursor | null
 }
@@ -150,8 +165,9 @@ export type MapKeyboardOptions = {
  * scale about the frame's center, and `0` returns to the fit. A step speaks the
  * new scale through the same live region ({@link describeZoom}), and the return
  * speaks `Zoom reset`. The cursor takes the view with it: a step onto a stop the
- * zoom put off-frame pans the map to show it. Navigation therefore never points
- * a reader at something the plot does not draw.
+ * zoom put off-frame pans the map to show it, and so does a `+` or `-` step
+ * that carries the cursor's stop off the frame. Navigation therefore never
+ * points a reader at something the plot does not draw.
  *
  * No drawn mark is focusable. The plot is a `role="img"` leaf over an
  * `aria-hidden` SVG. A focusable path would therefore be unreachable to
@@ -166,7 +182,9 @@ export type MapKeyboardOptions = {
  * map's new position.
  *
  * Returns `null` (no tab stop) when the cursor has no output, leaving the
- * region the plain `role="img"` it was.
+ * region the plain `role="img"` it was. A region that holds focus keeps its tab
+ * stop until the blur, so a geography that goes empty or a pick that goes away
+ * does not drop focus to the body. The keys do nothing in that time.
  *
  * @internal
  */
@@ -181,7 +199,7 @@ export function useMapKeyboard({
 	relocate,
 	describe,
 	zoom,
-}: MapKeyboardOptions): PlotTabStopProps | null {
+}: MapKeyboardOptions): MapKeyboardProps | null {
 	const { set, get: hovered } = useMapHoverActions()
 
 	const intl = useIntl()
@@ -293,7 +311,21 @@ export function useMapKeyboard({
 		if (text) announce(text)
 	}
 
-	const { leave, onBlur } = usePlotTabStop(cursor !== null, () => show(null))
+	const { leave, onBlur: exit } = usePlotTabStop(cursor !== null, () => show(null))
+
+	// Whether focus is on the region or inside it. While it is, the region keeps
+	// its tab stop with no output, and the blur takes the stop away.
+	const [focused, setFocused] = useState(false)
+
+	const onFocus = () => setFocused(true)
+
+	const onBlur = (event: FocusEvent<HTMLElement>) => {
+		exit(event)
+
+		if (!(event.relatedTarget && event.currentTarget.contains(event.relatedTarget))) {
+			setFocused(false)
+		}
+	}
 
 	// Release what the cursor held once navigation switches off (the readout
 	// unmounted, the pick removed), so no stale emphasis lingers with no way to
@@ -353,29 +385,43 @@ export function useMapKeyboard({
 		speak(move.stop)
 	}
 
+	/**
+	 * Steps or resets the scale for a zoom key. The scale change shows only on the
+	 * `aria-hidden` plot, so the key speaks the new scale. A step pans the
+	 * cursor's stop back into the frame, as a navigation key does: a step about
+	 * the center can carry it off. The pan keeps the scale, so the step's own
+	 * scale is what it speaks. The return to the fit draws every stop, and the
+	 * readout re-anchors through the effect above, which the moved transform
+	 * trips.
+	 */
+	const onZoomKey = (cursorZoom: MapZoomCursor, scale: MapZoomKey) => {
+		if (scale === 'fit') {
+			cursorZoom.fit()
+
+			announce(intl.formatMessage(mapMessages.zoomReset))
+
+			return
+		}
+
+		const stepped = cursorZoom.stepZoom(zoomKeyFactor(scale))
+
+		if (cursorStop !== null) show(cursorStop)
+
+		announce(describeZoom(intl, stepped))
+	}
+
 	const onPlainKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		// The zoom keys, read first because they claim keys the cursor does not: a
 		// reader who can only point with a keyboard still reaches every scale the
-		// wheel does, and `0` is the way back to the whole geography. The readout
-		// re-anchors through the effect above, which the moved transform trips.
-		if (zoom !== null) {
-			const scale = mapZoomKey(event.key)
+		// wheel does, and `0` is the way back to the whole geography.
+		const scale = zoom === null ? null : mapZoomKey(event.key)
 
-			if (scale !== null) {
-				event.preventDefault()
+		if (zoom !== null && scale !== null) {
+			event.preventDefault()
 
-				// The scale change shows only on the `aria-hidden` plot, so the key
-				// speaks the new scale.
-				if (scale === 'fit') {
-					zoom.fit()
+			onZoomKey(zoom, scale)
 
-					announce(intl.formatMessage(mapMessages.zoomReset))
-				} else {
-					announce(describeZoom(intl, zoom.stepZoom(zoomKeyFactor(scale))))
-				}
-
-				return
-			}
+			return
 		}
 
 		// Enter and Space pick the mark under the cursor: the click's keyboard
@@ -394,9 +440,11 @@ export function useMapKeyboard({
 		onMoveKey(event)
 	}
 
+	// A region that keeps its stop only for the focus it holds has no output, so
+	// its keys do nothing.
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-		if (!hasBrowserModifier(event)) onPlainKeyDown(event)
+		if (enabled && !hasBrowserModifier(event)) onPlainKeyDown(event)
 	}
 
-	return enabled ? { tabIndex: 0, onKeyDown, onBlur } : null
+	return enabled || focused ? { tabIndex: 0, onKeyDown, onBlur, onFocus } : null
 }
