@@ -81,11 +81,11 @@ Status: `◯ OPEN`, `✅ RESOLVED (#NNN)`, or `✖ DROPPED` with the reason of t
 | [C02](#c02) | `modules/query/query-chips.tsx` | QueryChips | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3306](https://github.com/charliebeckstrand/midgard/pull/3306)) |
 | [C05](#c05) | `modules/query/use-query-removal-focus.ts` | useQueryRemovalFocus | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3304](https://github.com/charliebeckstrand/midgard/pull/3304)) |
 | [C06](#c06) | `modules/query/query-builder/query-builder-sortable.tsx` | QueryBuilderSortable | CONFIRMED | low | none | correctness | M1 | ◯ OPEN |
-| [C07](#c07) | `modules/query/query-builder/query-builder-group.tsx` | QueryBuilderGroup | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
+| [C07](#c07) | `modules/query/query-builder/query-builder-group.tsx` | QueryBuilderGroup | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3307](https://github.com/charliebeckstrand/midgard/pull/3307)) |
 | [C09](#c09) | `modules/query/query-builder/query-builder-sortable-item.tsx` | QueryBuilderSortableItem | CONFIRMED | low | shipped | bug | independent | ◯ OPEN |
 | [C12](#c12) | `recipes/kata/query-builder.ts` | k (sortable.handle, sortable.separator) | NARROWED | low | shipped | correctness | independent | ✅ RESOLVED ([#3305](https://github.com/charliebeckstrand/midgard/pull/3305)) |
-| [C14](#c14) | `modules/query/query-builder/query-builder.tsx` | QueryBuilder | CONFIRMED | low | none | correctness | independent | ◯ OPEN |
-| [C19](#c19) | `modules/query/query-builder/query-builder-rule.tsx` | QueryBuilderRule | CONFIRMED | low | shipped | correctness | independent | ◯ OPEN |
+| [C14](#c14) | `modules/query/query-builder/query-builder.tsx` | QueryBuilder | CONFIRMED | low | none | correctness | independent | ✅ RESOLVED ([#3307](https://github.com/charliebeckstrand/midgard/pull/3307)) |
+| [C19](#c19) | `modules/query/query-builder/query-builder-rule.tsx` | QueryBuilderRule | CONFIRMED | low | shipped | correctness | independent | ✅ RESOLVED ([#3307](https://github.com/charliebeckstrand/midgard/pull/3307)) |
 
 ## Mechanisms
 
