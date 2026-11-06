@@ -1152,7 +1152,7 @@ Where should a `+` or `-` step put the cursor's stop (B02-C14)?
 
 - Axes: (a) Step about the center, then pan to keep the cursor's stop in the frame through `zoom.show`: use-map-keyboard.ts. (b) Step about the cursor's stop when one is held: use-map-keyboard.ts and use-map-zoom.ts (a focus argument on stepZoom), and the center-zoom TSDoc changes; S2 then also touches use-map-zoom.ts and joins the S1, S13 chain. (c) Clear the readout when the stop leaves the frame: use-map-keyboard.ts.
 - Recommended: (a), because it reuses the pan a navigation key already makes and keeps the documented center step.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
 
 ### Q2
 
@@ -1160,7 +1160,7 @@ How should a finger on a fine-primary device get the 44px target (B02-C11)?
 
 - Axes: (a) Narrow only where no coarse pointer exists (`any-pointer`): kata/map.ts, map-point.tsx TSDoc, map-hit-target.test.tsx; a mouse on such a device keeps the coarse target. (b) Resolve the double-tap target with the coarse reach in script: use-map-touch-tap.ts, with a nearest-mark search; mouse precision is kept, and S4 leaves the kata/map.ts chain. (c) Narrow the TSDoc to the primary pointer: map-point.tsx and kata/map.ts TSDoc only.
 - Recommended: (a), because one CSS rule keeps WCAG 2.5.5 for every touchscreen and the cost is the old coarse target for a mouse on those devices.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
 
 ### Q3
 
@@ -1168,7 +1168,7 @@ How should the plot behave when it loses its last output while it holds focus (B
 
 - Axes: (a) Keep the tab stop while the plot holds focus and drop it on blur: use-map-keyboard.ts and its test; closes both. (b) Keep the code and narrow the TSDoc: the geography TSDoc (map-plat.tsx:93-96) says a swap to null drops focus, and a caller must hold a geography through a drill, as drill-into-counties.tsx does: map-plat.tsx only, and S9 joins the map-plat.tsx chain.
 - Recommended: (a), because the geography TSDoc invites a lazy atlas and focus that falls to the body is the failure the ARIA guidance names.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
 
 ### Q4
 
@@ -1176,7 +1176,7 @@ Where should a picker with no rows put its selection for a screen reader (B01-C0
 
 - Axes: (a) Mount the data table while a region is selected (`selected !== null` in hasReadout): map-plat.tsx and a test. (b) Narrow the selectedRegion TSDoc to maps that carry a table: map-plat.tsx TSDoc only.
 - Recommended: (a), because the TSDoc states the selection must be in the accessible readout and one condition delivers it.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
 
 ### Q5
 
@@ -1184,7 +1184,7 @@ What should a mark with no detail read in its table value cell (B02-C12)?
 
 - Axes: (a) A localized kind name from four catalog messages: readout.ts, map-table.tsx, map-messages.ts, lang/en.json. (b) The gap mark (READOUT_GAP) that region rows already use: readout.ts and its TSDoc; S18 then no longer depends on S15.
 - Recommended: (a), because it keeps the documented readout of the kind and only moves its spelling into the catalog that §3.10 requires.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
 
 ### Q6
 
@@ -1192,7 +1192,7 @@ Should a zone that changes its ground in place move the dot targets under it (B0
 
 - Axes: (a) Yes: a version store that zones bump and the plat's spare keys on: map-geofence.tsx, use-map-overlay.ts, map-plat.tsx, context.ts. (b) No: correct the context.ts TSDoc to say targets move at the next refit, zoom, or legend change: context.ts only, and S19 depends on nothing.
 - Recommended: (a), because `radius` is a public prop that a caller can drive from a control, and the TSDoc already states this behavior as the contract.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
 
 ### Q7
 
@@ -1200,7 +1200,7 @@ How far should the plural-mark pool wiring go now (B02-C04, B02-C05)?
 
 - Axes: (a) Wire MapMarker now and MapPoints after the per-dot <defs> decision: map-marker.tsx, crowd.ts header; B02-C05 stays open. (b) Wire both now, with a clip only for a dot that a mark of another set crowds: adds map-points.tsx (after S5 in that file); closes both. (c) Defer both and correct the context.ts pool TSDoc: context.ts only (after S19 in that file).
 - Recommended: (a), because a marker adds two clips at most, while ROADMAP.md:51 names the per-dot <defs> cost as the decision that MapPoints must settle first.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
 
 ### Q8
 
@@ -1208,7 +1208,7 @@ How must the broad phase of clusterPoints honor its stated contract (B03-C01, B0
 
 - Axes: (a) Tighten seedGroups to half the pair reach with a strict test (group.ts and map-cluster.test.ts): the output matches the rule, and consolidate does more of the work. (b) Keep seedGroups and rewrite the group.ts header and the seedGroups TSDoc to say that it can merge a chain the rule would split (group.ts only): the shipped over-merge stays. (c) Remove seedGroups and seed consolidate with one group per dot (group.ts and map-cluster.test.ts): simplest contract, most rule rounds.
 - Recommended: (a), because it restores the one-rule output on the shipped map for the cost of a weaker prefilter, and consolidate is already grid-indexed.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
 
 ### Q9
 
@@ -1216,7 +1216,7 @@ With a pinned colorDomain and no finite value, must the choropleth resolve its b
 
 - Axes: (a) Yes: fix the resolveValueBins TSDoc (value.ts only); a pinned scale shows its legend before data arrives, as the heatmap does. (b) No: test for a finite value before valueExtent and return empty (value.ts and map-value-scale.test.ts); the legend and the range bar then appear only with data.
 - Recommended: (a), because a pinned scale that paints before the rows arrive keeps the first paint as the final layout and matches the shared valueExtent contract.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
 
 ### Q10
 
@@ -1224,7 +1224,7 @@ Which span does a range between two terms with one low code name (B03-C09)?
 
 - Axes: (a) The hull of both terms ('6-600' and '600-6' read 60000-69999). (b) The narrower span ('6-600' and '600-6' read 60000-60099). Either answer changes only the tie-break in selection.ts and its test.
 - Recommended: (a), because the hull holds every code that either end names, which is what an inclusive range between the two terms covers.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
 
 ### Q11
 
@@ -1232,7 +1232,19 @@ Does osrm-backend answer NoRoute and NoSegment with HTTP 400 and a JSON code bod
 
 - Axes: (a) Yes, or unknown: read the body of a refused response (S33 as written). (b) No, it answers under a 200: drop S33 and rule B04-C09 refuted.
 - Recommended: (a), because reading the body of a refused response costs one parse on a failure path and is harmless if the server answers under a 200; verify against the osrm-backend request handler before the step merges.
-- Answer: not settled.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
+
+### Q12
+
+How does the Shapes demo (`docs/pages/modules/map/point/shapes.tsx`) show its squares under cross-mark clustering (#3223)? Raised by the caller from the parallel `/assess` run: every depot merges into a shared summary, which is a circle by contract, so the demo draws no square. The demo is a consumer root, not a row of this record.
+
+- Axes: (a) Give the demo a frame or a zoom where the depots stand apart from their rounds: the demo file only. (b) Draw the depot's square inside a shared summary: a change to the #3223 shared-summary contract. `cluster={false}` on the depots is not an axis, because it brings back the depots that hide the stop counts, which #3223 fixed.
+- Recommended: (a), because it keeps the #3223 contract and touches the demo alone.
+- Answer (Charlie, 2026-11-06 15:32Z): "Proceed as recommended." Settled on (a).
+
+### Caller change to S1
+
+The `/assess` pass found the same defect as B01-C07 and challenged the S1 change: every pan test in `map-plat-zoom.test.tsx` fires `pointerMove` with no `buttons`, so a release on `buttons === 0` breaks the suite, and it leaves `holder` set while the pointer is away. S1 instead adds `onPointerLeave` to `MapZoomSurface`, which releases a tracked pointer that the surface did not capture; a captured pan that crosses the plot edge keeps working. The test seam stays: pointer down on the plot, pointer leave, then a move past the threshold with no pointer up; the transform must not change. Approved with the recommendation (Charlie, 2026-11-06 15:32Z: "Proceed as recommended.").
 
 ### Merge notes for the reader
 
