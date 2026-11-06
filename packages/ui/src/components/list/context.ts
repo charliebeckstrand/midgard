@@ -63,7 +63,8 @@ export type ListItemContextValue = {
 		/** Whether the row moves to its new place with no animation, for reduced motion. */
 		instant: boolean
 		onDragStart: () => void
-		onDragEnd: () => void
+		/** Takes the end event of Motion, because a `pointercancel` ends the drag with no drop. */
+		onDragEnd: (event: Event) => void
 	}
 	/** Whether this item is currently being dragged. */
 	dragging: boolean

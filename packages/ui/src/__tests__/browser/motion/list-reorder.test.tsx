@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListItem, type ListProps } from '../../../components/list'
-import { allBySlot, frames, getSlot, renderUI } from '../../helpers'
+import { allBySlot, fireEvent, frames, getSlot, renderUI } from '../../helpers'
 import { drag } from '../helpers/drag'
 
 /**
@@ -172,6 +172,31 @@ describe('List pointer reorder (real browser)', () => {
 
 		expect(onReorder).not.toHaveBeenCalled()
 	})
+
+	// Motion routes a pointercancel to the handler of a pointerup. The browser
+	// ended the gesture, so the user dropped nothing.
+	it('puts the rows back and reports nothing when a pointercancel ends the drag', async () => {
+		const onReorder = vi.fn()
+
+		const { list, first, second } = renderList({ onReorder })
+
+		const held = await dragDown(first, second)
+
+		await expect
+			.poll(() => allBySlot(list, 'list-item').map((row) => row.dataset.itemId))
+			.toEqual(['b', 'a', 'c'])
+
+		fireEvent.pointerCancel(getSlot(first, 'list-handle'), { isPrimary: true })
+
+		await expect
+			.poll(() => allBySlot(list, 'list-item').map((row) => row.dataset.itemId))
+			.toEqual(['a', 'b', 'c'])
+
+		await held.release()
+
+		expect(onReorder).not.toHaveBeenCalled()
+	})
+
 	it('marks the dragged row and its handle with data-dragging, and sets no aria-pressed', async () => {
 		const { first, second } = renderList({ href: true })
 
