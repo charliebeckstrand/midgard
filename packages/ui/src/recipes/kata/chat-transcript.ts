@@ -13,7 +13,7 @@ const { focus } = sen
 // the reader pan it sideways.
 export const k = defineKata(
 	{
-		base: ['flex-1 grow overflow-y-auto overflow-x-hidden min-h-0', focus.inset],
+		base: ['flex-1 overflow-y-auto overflow-x-hidden min-h-0', focus.inset],
 		slots: {
 			// The window measures each row as a whole box. A flex `gap` sits outside
 			// every box, so no row would count it, and the spacers would drift by it.
