@@ -44,9 +44,9 @@ export type ChatListItemProps = Omit<HTMLAttributes<HTMLElement>, 'title' | 'onS
  * provided, otherwise a static `<span>`. Either one carries `aria-current`. The
  * hit area of the button stretches across the whole row through a
  * pointer-capturing `::after`. A click on the padding or the gap of the row
- * thus also selects. `actions` render beside the button, not in it, and sit above
- * the overlay to stay clickable. A control such as a delete button therefore
- * never nests inside the select button (nested-interactive markup).
+ * thus also selects. `actions` render beside the button, not in it, and sit
+ * above the overlay to stay clickable. A control such as a delete button
+ * therefore never nests inside the select button (nested-interactive markup).
  *
  * The open conversation (`current`) gets `aria-current` and an
  * {@link ActiveIndicator} that morphs between rows as the selection moves, as

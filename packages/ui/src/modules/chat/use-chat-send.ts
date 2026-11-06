@@ -62,10 +62,11 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * different things. Each yielded *string* is the full reply's prose so far (not
  * a delta), so it replaces the bubble's running text rather than extends it.
  * This mirrors SSE transports that emit the running text. A transport that
- * yields only strings never gives the reply a part list. Each yielded *part
- * list* carries the blocks that changed, and it merges into the
- * reply by part id. A chart yielded after two paragraphs therefore joins them
- * and does not replace them. A later string chunk keeps writing the prose
+ * yields only strings never gives the reply a part list.
+ *
+ * Each yielded *part list* carries the blocks that changed, and it merges into
+ * the reply by part id. A chart yielded after two paragraphs therefore joins
+ * them and does not replace them. A later string chunk keeps writing the prose
  * without touching the chart. Yield once for a non-streaming reply.
  *
  * Name every part. A merge reads a part's id and never its position, because an
@@ -273,14 +274,16 @@ async function streamReply(
  * blocks by id. {@link ChatSend.retry} and {@link ChatSend.edit} share that
  * same streaming path, re-pointed at the last user message's content, or an
  * edited one. They first trim the transcript back to (and, for `edit`,
- * including) that message. Across all three, a transport failure marks the
- * reply `failed` (keyed by id, so other bubbles are untouched). It keeps the
- * user message and what the reply landed, and fires `onError`.
- * {@link ChatSend.stop} aborts whichever of the three is in flight, and does
- * not treat the stop as an error. The bubble keeps its last-folded chunk, and a
- * step still running becomes `failed`. The caller supplies the transport, so
- * this hook makes no assumption about a framework, an endpoint, or a wire
- * format.
+ * including) that message.
+ *
+ * Across all three, a transport failure marks the reply `failed` (keyed by id,
+ * so other bubbles are untouched). It keeps the user message and what the
+ * reply landed, and fires `onError`. {@link ChatSend.stop} aborts whichever of
+ * the three is in flight, and does not treat the stop as an error. The bubble
+ * keeps its last-folded chunk, and a step still running becomes `failed`.
+ *
+ * The caller supplies the transport, so this hook makes no assumption about a
+ * framework, an endpoint, or a wire format.
  *
  * @param options - See {@link ChatSendOptions}.
  * @returns See {@link ChatSend}.

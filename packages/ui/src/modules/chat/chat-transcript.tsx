@@ -159,11 +159,13 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  *
  * The transcript renders only the rows near the viewport, through the measured
  * path of {@link useVirtualWindow}. Two spacers stand in for the rows above and
- * below. Each row measures its real height. A bubble that wraps, a step a
- * reader opens, and an embed that draws thus move the rows below them. A
- * streamed chunk re-renders the rows in the window, not the whole transcript.
- * The window keys each row by its message `id`. A chunk keeps the ids, so the
- * window keeps each row position and does not rebuild them.
+ * below. A streamed chunk re-renders the rows in the window, not the whole
+ * transcript.
+ *
+ * Each row measures its real height. A bubble that wraps, a step a reader
+ * opens, and an embed that draws thus move the rows below them. The window keys
+ * each row by its message `id`. A chunk keeps the ids, so the window keeps each
+ * row position and does not rebuild them.
  *
  * The transcript scrolls only on the block axis. It opens at its newest row with
  * no animation, and it is then pinned to the end. While it is pinned, a new row
@@ -203,10 +205,11 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  *
  * The pulse is visual only, so a reader who cannot see it is told the same
  * things through the shared live region (WCAG 4.1.3). Those are that a reply
- * started, and the reply once it settles. Never a chunk. A reply rewrites itself
- * many times a second, and a region that read every rewrite would be worse than
- * silence. An embedded view is counted rather than read, because a chart ships
- * its own hidden data table and the readout belongs there.
+ * started, and the reply once it settles. The region never speaks a chunk. A
+ * reply rewrites itself many times a second, and a region that read every
+ * rewrite would be worse than silence. An embedded view is counted rather than
+ * read, because a chart ships its own hidden data table and the readout belongs
+ * there.
  *
  * The transcript is a `log`, and its `aria-live` is deliberately `off`. The role
  * says what the region is, so a reader can find it and knows entries arrive in
@@ -423,7 +426,7 @@ export function ChatTranscript({
 			className={cn(slots.base, className)}
 		>
 			{count > 0 && (
-				<div className="mx-auto">
+				<div>
 					{measured && topSpacer > 0 && <div aria-hidden="true" style={{ height: topSpacer }} />}
 					{indexes.map((index) => {
 						const message = messages[index]

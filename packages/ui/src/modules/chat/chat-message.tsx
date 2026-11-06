@@ -126,9 +126,9 @@ export type ChatMessageProps = ChatMessageVariants &
  * {@link Markdown} sets no color of its own, so the prose inherits the
  * foreground of the bubble. It is white on the blue fill of the user bubble,
  * the default tone on the assistant bubble, and muted on the system bubble.
- * That holds in light and dark mode. While `streaming`, the bubble takes the progress cursor
- * and projects a pulse onto that prose. The bubble is steady again when the
- * stream ends. The kata holds the whole look.
+ * That holds in light and dark mode. While `streaming`, the bubble takes the
+ * progress cursor and projects a pulse onto that prose. The bubble is steady
+ * again when the stream ends. The kata holds the whole look.
  *
  * A part list draws one block per part, each keyed by the part's own id. A text
  * block is its own {@link Markdown}. An `embed` block is the renderer that

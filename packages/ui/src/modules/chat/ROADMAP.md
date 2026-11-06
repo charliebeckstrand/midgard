@@ -1,215 +1,72 @@
 # Chat roadmap
 
-> **Goal: an agent surface for logistics dashboards, where a reply can carry a chart, a grid, or a map.** The module ships `ChatTranscript`, `ChatMessage`, `ChatPrompt`, and the `ChatList` sidebar, over three hooks and an injected transport. All ten increments have landed: it has a pure core, a settled vocabulary, a message built from parts, an embed seam that defers what it draws, a transport that streams those parts, an announcement for the reader who cannot see them, benchmarks that say where it stops holding, a reply that can show its working, and a transcript that renders only the rows near its viewport. This file records what ships today and what the module must absorb next.
+> **Goal: an agent surface for logistics dashboards, where a reply can carry a chart, a grid, or a map.** The module ships a transcript, a message bubble, a composer, and a list of conversations. Two hooks drive them over a transport that the caller supplies.
 
 ## Status
 
-The surface is real and the core is now under it. The components and the hooks cover a whole agent conversation: a transcript that auto-scrolls to the newest reply and gives each row its actions, a Markdown bubble that pulses while a reply arrives and says when a reply failed, a pair of buttons that rate a reply, a composer with attachments and a send-to-stop toggle, a roving-tabindex conversation list, and a provider that registers embed renderers. The a11y work is done to the package's standard: a visually hidden author label on each bubble, an accessible name the composer cannot lose, and a row model that never nests one interactive control inside another. `useChatSend` takes the transport as a parameter, so the module assumes no endpoint and no wire format.
+The components and the hooks cover a whole agent conversation. `ChatTranscript` renders a window over its messages and follows the newest reply. `ChatMessage` draws Markdown, pulses while a reply arrives, and says when a reply failed. `ChatFeedback` rates a reply. `ChatPrompt` is a composer with attachments and a send button that turns into a stop button. `ChatList` and `ChatListItem` give a list of conversations with a roving tab stop.
 
-The engine landed with increment 1. `engine/` holds the vocabulary, the trim-and-guard rule, and eight transcript transforms. The caller supplies every id that a transform writes or looks up. The module is on the `PURE_ENGINES` list in [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts). [`use-chat-send.ts`](use-chat-send.ts) is the React shell over those transforms: state, the `AbortController`, and the effect ordering. The submit guard that used to be written twice is one rule in [`chat-draft.ts`](engine/chat-draft.ts), which both the composer and the draft hook read.
+`useChatSend` holds the message list and streams each reply through a `ChatTransport`. `useChatDraft` holds the text of the composer. The caller supplies the transport, so the module assumes no endpoint and no wire format. A seed message keeps the id that it carries, so a persisted conversation keeps its addresses after a reload.
 
-The vocabulary is settled. Increment 2 made `user | assistant | system` the one speaker axis across the data, the component, and the recipe, so the transcript passes a message's own speaker through and maps nothing, and `system` is expressible in data. The hook reports `streaming`, as every component it feeds does. `Chat` left `ui` for the route that fetches it.
+A message holds a string or a list of parts. `ChatPart` is a closed union of three kinds: `text`, `embed`, and `tool`. Each part carries an id that is unique in its message. A string chunk of the transport replaces the prose of the reply, and a part-list chunk merges into the reply by id. A string normalizes to one text part, so a transcript of prose needs no part list.
 
-The proof has caught up. Chat is no longer the module with no benchmark: increment 7 added a pure-core bench and a jsdom render bench, on the ladder the chart and grid roadmaps set. Every rule that the increments added has a named test.
+An `embed` part names a renderer that the app registers with `ChatEmbedProvider`. The module imports no chart, no grid, and no map, so a chat with no embed pays for none of them. A name that no renderer claims draws a stated fallback. Under the default `lazy` mount policy, a renderer waits until its block is near the viewport. The provider remembers each embed that a reader reached, so an embed whose row comes back into the window draws at once.
 
-The content model is wired. `ChatMessageData.content` is `string | ChatPart[]`, `ChatPart` and `ChatTextPart` reach the barrel, and the rollback rule reads the content's structure rather than `content === ''`. Increment 3 shipped `text` alone. The union now holds three kinds: `text`, `embed`, and `tool`. An embedded chart, a tool call, a citation, and an attachment preview each add their kind in the increment that owns it, and each is now one more member of a union rather than a second meaning for a string.
+A `tool` part is a step that the assistant took: a label, a status, a summary, and a detail behind a disclosure. A step describes itself in text, so it needs no registry. The send settles each step that is still `running` when the stream ends, stops, or fails.
 
-The message type is named for what it is. `ChatContent` became `ChatMessageData` before increment 4, which closes the naming row [`CONTENT-MODEL.md`](CONTENT-MODEL.md) opened: the type is a message, and the old name put it on the same axis as its own `content` field and the `chat-content/` directory that types that field. It is a breaking rename with no alias, and it landed first so that every increment after it writes the new name once.
+The transcript is a `log` with `aria-live="off"`. The shared announcer speaks one status string: that a reply started, and then the reply after it settles. The announcement counts each embed and does not name it, because a chart ships its own data table. The a11y corpus holds a short transcript and a windowed one, in jsdom and in Chromium.
 
-The seam is open, and it streams. Increment 4 made `embed` the union's second kind and put [`ChatEmbedProvider`](chat-embed-provider.tsx) over a record of renderers by name, so a reply can carry a chart, a grid, or a map while the module imports none of the three; a name no renderer claims states itself in the bubble rather than drawing nothing. Increment 5 widened [`ChatTransport`](use-chat-send.ts) to yield a part list beside the string, so a reply builds prose and blocks together over one stream: prose keeps writing after a chart lands, and the chart is untouched by it.
-
-The reply reaches a reader who cannot see it. Increment 6 gave the transcript `role="log"` with its own `aria-live` off, and one status string through the shared announcer: a reply started, then the reply once it settles, never a chunk. An embedded view is counted rather than named, because its own readout belongs to the renderer.
-
-A reply can show its working. Increment 8 made `tool` the union's third kind: a step naming what ran, how it ended, and the one line saying what it did, opening to a detail it lexes only when a reader asks. It needs no registry, because a step describes itself in text where an embed hands a renderer an opaque payload, so a step reaches the clipboard, conversation search, and the announcement, and an embed still does not.
-
-The proof under all four is in [`chat-stream.test.ts`](../../__tests__/modules/chat-stream.test.ts), [`chat-embed.test.tsx`](../../__tests__/modules/chat-embed.test.tsx), [`chat-announcements.test.ts`](../../__tests__/modules/chat-announcements.test.ts), and [`chat-tool.test.tsx`](../../__tests__/modules/chat-tool.test.tsx). The a11y corpus holds the transcript for the first time, in both the jsdom gate and the Chromium one, and the Chromium half has now caught two contrast defects the jsdom half structurally cannot see.
-
-A view waits until a reader reaches it. Increment 9 put `ChatEmbedProvider` over the `Mount` policy the package's disclosure panels already use, so an embed's renderer mounts near the viewport and then stays: a `BarChart` on every reply of a 500-message transcript falls from 1,568 ms to 352 ms, close to the 300 ms the same transcript costs carrying no view at all.
-
-The transcript holds at 5,000 messages. Increment 7's benches put a streamed chunk at 41 ms over 5,000 messages, against a 16 ms frame. Increment 10 windows the transcript, so a chunk re-renders the rows near the viewport and not the whole list. On the machine that took both runs, a chunk over 5,000 messages now costs about 1 ms, under the 500-message cost it had before. The window keys its rows by message id, pins through the virtualizer, and remembers each embed a reader reached.
+The transcript renders only the rows near the viewport, through [`useVirtualWindow`](../../hooks/use-virtual-window.ts). Each row measures its real height, and the window keys each row by its message id. The pin to the end follows the intent of the reader, not the scroll position. [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) measures the transforms, and [`chat-render.bench.tsx`](../../__benchmarks__/chat-render.bench.tsx) measures the render. [`chat-transcript-window.test.tsx`](../../__tests__/browser/chat-transcript-window.test.tsx) holds the window and the pin in Chromium.
 
 ## Engine: the substrate
 
-Every framework-free rule the chat holds must live in `engine/`, laid out like the grid, query, and map engines. The layering invariant is theirs, verbatim: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` import, no runtime import from the module root, and no `index` barrel, because the engine is imported file-by-file. The module joins the `PURE_ENGINES` list in [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts), which is how a new engine opts in, and [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filename-boundary.test.ts) already holds the file layout the moment the directory exists.
+The framework-free rules live in [`engine/`](engine), a pure functional core:
 
-Two impurities decide the extraction's shape. `useChatSend` mints ids with `crypto.randomUUID()` at three call sites, and a timestamp is a clock read; both make a transform non-deterministic, and a non-deterministic transform cannot be tested by its output. So the engine takes the id as an argument and the shell mints it. That is what makes the rollback rule provable at all: the rule is "drop the reply this send opened, by id, and only while it is empty", and a test can only state it if it can name the id.
+- `types.ts` gives `ChatMessageData`.
+- `chat-content/` gives the part union, the normalization of a string, the rule for empty content, and the plain-text projection. Copy, the announcement, and `retry` read that projection.
+- `chat-stream.ts` folds one chunk into a reply, and settles each step that is still running.
+- `chat-transcript.ts` gives the transforms from one message list to the next, and the readers that `retry` and `edit` run before them.
+- `chat-draft.ts` gives the one rule for a draft that can send. `ChatPrompt` and `useChatDraft` both read it.
+- `chat-announcements.ts` gives each string that the announcer speaks.
 
-The engine grows by increment rather than at once. Increment 1 moves what exists into `types.ts`, `chat-draft.ts`, and `chat-transcript.ts`. `chat-content/`, `chat-stream`, `chat-branch`, and `chat-command` land with the increments that need them, and each stays one file until a second kind earns the directory. [`map-geofence.ts`](../map/engine/map-geofence.ts) already stands on that rule.
+No rule reads a clock or a random source. The shell mints each id and gives it to the rule, so a test can name the reply that one send opened. [`use-chat-send.ts`](use-chat-send.ts) is the React shell: the state, the `AbortController`, and the stream. [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds the invariant for this engine.
 
-## Increments
+## Decisions
 
-In order. Each one lands on its own and leaves the module whole.
+Each of these shapes was proposed for the content model and refuted. Do not propose one again without new evidence.
 
-### 1. Extract the engine: done
-
-Move the rules; change no behavior. `chat-transcript.ts` takes the six list transforms out of `useChatSend` (append a user message, open a reply, apply a snapshot, drop an empty reply, truncate to the last user message, and truncate to an edited one), each as `(messages, …) => messages` over an id the caller supplies. `chat-draft.ts` takes the trim-and-guard rule that `ChatPrompt` and `useChatDraft` write separately, so the composer and the draft hook can never disagree about what is sendable. `types.ts` takes the vocabulary.
-
-The hook keeps its whole signature and becomes the React shell over those transforms: state, the `AbortController`, and the effect ordering stay in `use-chat-send.ts`. The public surface must not move, which is the bar query's extraction set and met. The proof is a pure `*.test.ts` per engine file, plus the existing 8 suites green and unedited; an edited suite means the move changed behavior.
-
-### 2. One speaker vocabulary: done
-
-One breaking change, because `role` and `type` cannot move apart. `role: 'user' | 'assistant' | 'system'` is the single axis across the data, the component, and the recipe, and the hand-map at `chat-transcript.tsx:40` is gone. `system` is expressible in data, which it was not. `Chat` left `ui`: no `ui` component read it, and [`page.tsx`](../../../../../apps/admin/app/(signed-in)/(dashboard)/users/[userId]/page.tsx) casts the gateway's JSON to it directly, so camelCase in `ui` would have made that cast a lie. `sending` became `streaming` to match every component it feeds, `onSent` documents that it reports a completed send rather than the submit gesture, and `useChatList` became `useInChatList` because it reports a nesting fact rather than list state. #1976 later took `useInChatList` out of the barrel.
-
-This landed as one `feat(ui)!` commit. It landed second so that every increment after it writes the new vocabulary once instead of both.
-
-One cost was not predicted. JSX reserves `role` for the ARIA attribute, so Biome's `useValidAriaRole` reads `<ChatMessage role="assistant">` as an invalid ARIA role and fails the lint. Every other `role` in the package is a real ARIA role, so chat is the first prop to take the name for anything else.
-
-The fix is an override in [`biome.json`](../../../../../biome.json) that allows `user`, `assistant`, and `system` in the chat files alone. Biome offers two settings here, and the allowlist is the better one: it still reports a typo, where `ignoreNonDom` reports nothing. The first attempt was `ignoreNonDom` across the repo, and it was the wrong altitude. It stops the rule on every capitalized element, and nine literal ARIA roles in the package reach a DOM node through a prop typed too wide to catch them: `Button` takes `role="option"`, `role="combobox"`, and `role="tab"`, `Input` takes `role="combobox"`, `Flex` takes `role="list"`, and `ToggleGroup` takes `role="group"` and `role="radiogroup"`. Lint was their only guard, and the repo-wide relaxation dropped it.
-
-The scoped allowlist is the answer rather than a placeholder. Narrowing `ToggleGroup` and `PopoverPanel` to literal role unions is worth doing on its own (it turns a lint check into a compiler check with a better message), but it does not make `ignoreNonDom` safe, because the pass-through props on `Button`, `Input`, and `Flex` are `AriaRole` by design and cannot narrow. The override's globs are wider than today's three violating files on purpose, so that a later `role="log"` on the transcript (increment 6) needs no edit. A caller who lints with the same rule needs the same allowance.
-
-That cost was the reason to rename. The allowance did not reach app code, which got the same lint failure. The axis is now `sender` in the data, the component, and the recipe, and the override is gone. `role` on a chat element is again only the ARIA attribute.
-
-### 3. The content model: done
-
-A message became parts. `ChatPart` is a discriminated union (`text` first, then `embed`, `tool`, `file`, and `citation` as later increments add them), and a message carries `string | ChatPart[]`. The engine normalizes, so `content: string` keeps working as one text part and no caller rewrote its transcript to adopt the union. `chat-content/` owns the union, the normalization, and the plain-text projection that copy, search, and the announcement in increment 6 all read.
-
-The increment shipped `text` alone, which is what its own sentence above always said. Every kind after it is additive, so nothing here has to be torn up to add one. The one field that could not wait is `id`: a part's position is not its identity, and once parts persist, a required field is a breaking addition. `TEXT_PART_ID` names the one part a string normalizes to, and it is fixed rather than minted, because the engine reads no clock and no random source.
-
-Two rules moved with it. `dropEmptyReply` reads `isEmptyContent` rather than `content === ''`, because a reply that holds a block with no text of its own projects to an empty string and is not an empty reply. `chatContentText` is the one bridge over both arms. `retry` and the announcement share it, so the transport and the reader get the same projection.
-
-The increment was deliberately dull, and the proof holds: [`chat-transcript.tsx`](chat-transcript.tsx) changed no line, `content` reaches the bubble unnormalized so no render allocates and the memo holds for a settled bubble, and the four suites over the transcript, the transforms, the bubble, and the send hook all passed unedited.
-
-The inline citation is held for the first backlog entry, and the reason is not the content model. A citation anchored to a phrase needs a renderer that can honor a range: [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) builds only elements it controls and offers no injection slot, `marked` yields no absolute offsets for an inline token, and `safeUrl` strips a `cite:` href. The blocker is in `components/markdown`, so an anchor added here would address a range that nothing can draw.
-
-Three shapes were measured against this increment and refuted. A Markdown-encoded model, which scored highest and streamed best, is spoofable (a user message that holds the vocabulary is byte-identical to an assistant's), and its projection returns the source that [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) drops by design to the clipboard and the screen reader. An open discriminant surrenders the compiler-checked switch and buys nothing a `name` field does not. A projection parameterized by purpose dies at `retry`, whose string is the wire payload. For the whole record, see [`CONTENT-MODEL.md`](CONTENT-MODEL.md).
-
-### 4. The embed seam: done
-
-A chart, a grid, or a map reaches a message through a registry, and the chat module imports none of them. [`ChatEmbedProvider`](chat-embed-provider.tsx) takes a record of renderers keyed by an embed name, a message's `embed` part names one and carries its data, and an unregistered name renders a stated fallback rather than nothing. Context is the seam, as it is in [`use-map-legend-registry.ts`](../map/use-map-legend-registry.ts), and a record is the whole registry here: a renderer is known where the app composes, where an overlay mounts and unmounts under the plat, so this one needs no ledger and no ordering.
-
-The dependency direction is the whole point. Chat must not import chart, grid, or map, because a chat with no embed would then pay for three of the heaviest modules in the package. It is the discipline the map module already holds when it takes its atlas as a prop and ships no geometry. Cross-module engine imports are established practice where they are genuinely needed (grid reads query, and map reads chart), so the rule is not that modules stay apart; it is that a heavy dependency must be asked for.
-
-The bubble now draws one block per part, which increment 3 deferred to here. A text part is its own memoized [`Markdown`](../../components/markdown/markdown.tsx), so a settled block above a streaming one skips its re-lex per chunk, and each block is keyed by the part's own id, so increment 5's merge holds the DOM node when a part lands ahead of another. The string arm still draws exactly one `Markdown` over the string itself and allocates nothing per render. The pulse rides each `Markdown`, so a reply that has already landed a chart pulses its prose and leaves the chart steady.
-
-Two engine arms fell out of the union, and the compiler asked for both. An embed projects to an empty string, because the renderer holds its text (a chart ships its own data table), and a guess here would put a name the reader never saw into the clipboard, the search index, and the announcement. An embed is never empty, so a reply that arrived as a chart alone survives the rollback that `dropEmptyReply` runs. `isEmptyContent` already stated this rule before a second kind existed to test it.
-
-Nesting merges rather than replaces: an inner provider adds to an outer one and wins on a shared name. That is what lets `ui/modules/chat/embeds` (a second entry point holding the adapters for the three modules and nothing else) sit under an app's own provider. It stays unbuilt. [`package.json`](../../../package.json) needs no change: its `./modules/*` pattern matches across `/`, so `ui/modules/chat/embeds` resolves already. [`docs/MODULES.md`](../../../docs/MODULES.md) states one entry point per module, so that page needs a change when the entry point lands. The registry alone answers the demo, which draws a reply carrying a sparkline over a renderer the demo registers.
-
-### 5. A stream of parts: done
-
-`ChatTransport` yielded `string`, and each string was the whole reply so far. An embed that arrives part-way through a reply cannot be expressed that way, so the transport now yields a part list beside the string. The string arm keeps its exact meaning (cumulative text, replace the bubble), so every transport written before this still runs, and it is a widening rather than a break: `AsyncIterable<string>` satisfies `AsyncIterable<string | ChatPart[]>` with no edit at the call site. [`chat-stream.ts`](engine/chat-stream.ts) owns both reconciliations: a string replaces the part `TEXT_PART_ID` names, and a part list merges by id, so a chart that arrives after two paragraphs does not discard them. It is one file, not a directory, because one kind of fold lives there. [`map-geofence.ts`](../map/engine/map-geofence.ts) stands on the same rule.
-
-Merge by id, and never by index. A late citation, a tool part that turns from running to done, or any insertion moves every index after it, so a positional merge reads a different part after each change. Increment 3 put the id on every part for this. A block replaces a block whole rather than field by field, because a tool call reports the block it has become and a field-wise merge would leave what it dropped standing.
-
-Two edges the reconciliation had to name. An opened reply holds `''`, which normalizes to one empty text part, so a merge starts from no parts at all. Otherwise the first chart to land would draw under a blank block no chunk ever wrote. And a reply that is still a string stays one, so a transcript of prose allocates no part list and renders exactly as it did before a reply could hold blocks.
-
-`applyReplySnapshot` became `applyReplyChunk`. A snapshot is what the string arm yields, and the name would have lied about the other one; the transform now finds the reply and hands the fold to `applyChunk`, so what a chunk means to the content it lands in lives in one place.
-
-A per-part completeness flag was refuted, and this increment did not reintroduce one. Nothing in the shell settles such a flag: `stop` returns early with no transform, the catch path only drops the empty reply, and `finally` only clears the controller and the flag. A stopped or failed reply would strand a part as forever unfinished, which draws as a permanent skeleton.
-
-This is the increment that makes an agent reply a document rather than a message. It landed after the registry, because a part that names an unregistered embed must already have somewhere to land.
-
-### 6. The reply the reader cannot see: done
-
-The `streaming` pulse was visual only, so a screen-reader user was told nothing while a reply arrived, and a naive live region would have been worse: it would read every snapshot of a reply that rewrites itself many times a second. The rule is to announce the settled reply once, and to announce that a reply started, not each chunk of it. [`chat-announcements.ts`](engine/chat-announcements.ts) holds it as one pure builder, on the model [`grid-announcements.ts`](../grid/engine/grid-announcements.ts) set: `describeTranscript` returns one status string, the transcript narrates it through [`useA11yAnnouncements`](../../hooks/a11y/use-a11y-announcements.ts), and the announcer speaks only when that string changes. While a reply streams the string is a constant, so a hundred chunks are one announcement.
-
-The live-channel question is settled, and it settled against a second channel. The transcript takes `role="log"` with `aria-live="off"`: the role says what the region is, so a reader can find it and knows entries arrive in order, and the shared announcer stays the one thing that speaks. Leaving the log live as well is what [`CONTENT-MODEL.md`](CONTENT-MODEL.md) warned about: two channels over one reply, read once per rewrite and once settled. Package practice decided the speaking half rather than taste: `role="log"` appears nowhere else in `ui`, and every narration in it (grid's sort and selection, the calendar's month, the filter count) goes through the announcer.
-
-An embed makes this sharper rather than softer. A chart in a reply announces its own hidden data table, which every chart in the package already ships, so the readout follows the embed and the transcript states only that one arrived, as a count, never as a name, because an embed's `name` addresses a renderer and reading `stops-trend` aloud gives a reader nothing to act on.
-
-Three quieter rules fell out. A transcript ending on the reader's own message says nothing, so the gap between a send and the transport opening does not re-speak the reply above it. A transcript that mounts with its history in hand says nothing, because the announcer baselines its first status; one whose messages arrive after mount speaks the last reply, which is right, since from the reader's side a reply just landed. And a failed send that rolled its reply back says nothing, because there is no reply to speak.
-
-The corpus gained the transcript, which it had never held. That is what caught the contrast defect increment 4 shipped: the fallback line used `text.muted`, whose token contract is AA against the page and the card, and on the assistant bubble's own fill it measured 3.8:1. It now inherits the bubble's foreground and reads as an aside by slant, the same bargain the markdown kata takes. The jsdom gate could never have found it (it has no layout and no color), so the case earns its place in the Chromium gate.
-
-### 7. Measure the transcript: done
-
-Chat had no benchmark, so every claim about a long conversation was a guess. It now holds two: [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) over the pure transforms in node, and [`chat-render.bench.tsx`](../../__benchmarks__/chat-render.bench.tsx) over the React tree in jsdom, both on a 50-, 500-, and 5,000-message LCG-seeded fixture. The numbers below are jsdom on one machine: read them against each other, never as absolutes.
-
-The engine is not the problem, and one rule in it is flat where flatness is the whole claim. `applyReplyChunk` runs per streamed chunk and maps the transcript to reach one reply, so it grows with the list: 0.0007 ms at 50, 0.008 ms at 500, 0.054 ms at 5,000, and a part chunk prices the same as a string one. Even the worst of those is a rounding error against a frame. `describeTranscript` measures 0.0001 ms streaming and 0.0002 ms settled at every size, which holds increment 6's claim that a hundred chunks are one announcement: the streaming arm returns before it reads the list at all. The rest of the send path costs less than `applyReplyChunk`; the only rule that approaches visible is `duplicateMessageIds` at 0.62 ms for 5,000 messages, paid once per mount and only in development.
-
-The render is the problem, and the transcript does not hold at 5,000. Mounting costs 38 ms at 50 messages, 224 ms at 500, and 1,921 ms at 5,000. A streamed chunk costs 0.88 ms at 50, 3.4 ms at 500, and 41 ms at 5,000, and a chunk arrives many times a second, so at five thousand messages every chunk overruns a 16 ms frame by more than double. The transcript is comfortable at 500 and fails somewhere between 500 and 5,000.
-
-The memo is working, and it is what keeps the failure from being far worse. A chunk at 5,000 messages costs 41 ms against the same size's 1,921 ms mount, so the memo elides about 98% of the per-message work: five thousand Markdown re-lexes do not happen. What remains is the `.map` that rebuilds five thousand elements and React's bail-out check on each, and neither is reachable by memoizing harder. That is the measurement's real finding: the cost that stays is structural, so the fix has to be structural too.
-
-So virtualization is earned rather than assumed, and it is the next item rather than part of this one. The increment was to measure, and shipping the answer inside it would be the thing the section warns against. It lands as its own entry in the backlog, carrying the threshold these numbers set.
-
-### 8. Agent steps and tool calls: done
-
-A reply that ran a query can now show it, both because a reader trusts an answer more when the work behind it is visible and because a wrong filter is otherwise invisible. `tool` is the union's third kind, drawn as a collapsible step over the [`Collapse`](../../components/collapse) the package already ships. The leverage the entry predicted holds: `formatQuerySummary` renders a query tree to one plain line, so a step over a query writes no formatter of its own; the demo's summary is that line's shape.
-
-A step describes itself in text, where an embed names a renderer and hands it an opaque payload. That is the whole reason this kind needs no registry, and it decides the projection too: a step contributes `label: summary` to the plain text, so the clipboard, conversation search, and the announcement all get it, while an embed still contributes nothing. The detail stays out of the projection, because it is the body behind a disclosure the reader has not opened.
-
-A step with no detail draws as a line rather than a disclosure, since a control that opens onto nothing lies about having something to show. One with a detail mounts its panel lazily and then holds it, so a reply of ten steps costs no Markdown lex for the nine nobody opened.
-
-The status field is the part worth reading twice, because increment 5 refuted one. What it refuted was a per-part completeness flag with nothing to settle it: "a stopped or failed reply would strand a part as forever unfinished, which draws as a permanent skeleton." That objection is answered rather than ignored. `failRunningTools` is the settling rule. `useChatSend` runs it through `failReplyTools` in the `finally` that every exit takes: the last chunk, a stop, or a throw. No step therefore outlives the stream that opened it. `failReplyTools` returns the transcript by reference when it settles nothing, so a reply of prose pays no re-render for the guard. A stopped call reads `failed` rather than taking a third state, because the transport is what knows a call succeeded and a call the reader stopped produced no result to be asked for.
-
-The color lesson from the fallback repeated itself twice more, which is worth recording as a pattern rather than an incident. Nothing inside a bubble may set a fixed foreground: the fill differs by speaker, and `text.muted` is `onSurface.zinc`, calibrated against the page. The step sets none, and it also has to *undo* one, because [`collapse.ts`](../../recipes/kata/collapse.ts) paints its trigger `text.muted` with a `fg.hover`, which the Chromium gate caught at 3.8:1 inside the assistant bubble. The step's kata resets both to `inherit`.
-
-The kata for it is a fragment map, `k.tool.{base,head,trigger,label,summary,details}`, rather than six `tool*` slots, because the pieces only ever appear together.
-
-
-### 9. Lazy-load the embeds: done
-
-A view is the most expensive thing a reply can carry, and increment 7 measured the wrong thing to see it: `makeTranscript` generates prose, so the 41 ms chunk and the 1.9 s mount at 5,000 messages hold no embed at all. A bench that carries one says something different. A `BarChart` on every assistant reply mounts in 151 ms over 50 messages and 1,568 ms over 500, against roughly 38 ms and 300 ms for the same transcript carrying none, about 4 ms per chart, where a text bubble costs well under one.
-
-So an embed's renderer now waits until its block is near the viewport, then stays. The saving is 3.4x at 50 messages and 4.5x at 500: 1,568 ms down to 352 ms. That is close to the prose-only cost of about 300 ms, so the deferral removes nearly all of the chart; the remainder is the observer, the wrapper, and the reserved block. Those figures are the floor, taken with nothing in view; a real reader sees a handful, far nearer the floor than the ceiling.
-
-The `always` figure understated its ceiling. With nothing in view, `always` held each view hidden under `Activity`, so no effect ran and no space was reserved. `always` now mounts every view live, with no observer. A re-run on a faster machine measured the 500-message `always` row at 764 ms against 624 ms before that change, and the prose-only row at about 100 ms. The live mount costs about a fifth more.
-
-It reuses rather than invents. [`useMountHold`](../../primitives/mount/use-mount.ts) and `Hold` already carry `always` / `lazy` / `active` for the disclosure and cascade panels, and `ChatEmbedProvider` now takes the same `Mount` and passes it through: `lazy` by default, `always` for a caller who would rather pay the mount than reserve space, `active` to trade a remount for the memory of a long transcript. The viewport gate is the `useInView` of Motion.
-
-Two rules the gate had to carry. It opens only after hydration, and the jsdom setup reports each target in view, because the gate defers work that is otherwise correct, and the safe answer when the environment cannot tell is to draw. And a held-back block reserves its height, so a transcript pinned to its newest reply does not lurch as a reader scrolls up into one; only the caller can know that height, so `ChatEmbedPart.height` is an optional field over a default a chart runs to.
-
-The first rule broke hydration. The server drew each held-back embed, but the first client render could observe, so it deferred the embed, and React discarded the server markup. A held-back embed now waits for hydration before it reads the gate. The server markup therefore holds the reserved block, the same as the first client render. `always` still draws on the server.
-
-That default reserve is the honest weak point. A view of another height makes the transcript settle by the difference the first time a reader reaches it, and nothing measures a view before mounting it, which is the thing being deferred. A caller with views of one known size should say so on the part.
-
-This is the increment that makes virtualization optional for a dashboard chat rather than required. It does not replace it, and the entry below says where the line falls.
-
-
-### 10. Window the transcript: done
-
-Increment 7 put a number on the transcript: a streamed chunk at 5,000 messages cost 41 ms, and the bar was to hold the 500-message cost, about 3.4 ms, out to 5,000. The fix went into the package's one virtualizer, because the limit was there and not in the chat. `content-visibility: auto` could not change the number, because the 41 ms was React that rebuilt 5,000 elements.
-
-The transcript now renders a window through the measured path of [`useVirtualWindow`](../../hooks/use-virtual-window.ts). Each row carries its message id as its key, and each row measures its real height. A bubble that wraps, a step a reader opens, and an embed that draws all move the rows below them, and the spacers follow. A streamed chunk re-renders the rows in the window and does not map the whole list.
-
-The pin moved off `scrollTop`. Under a measured window the total height changes as rows measure, so a pin written against `scrollHeight` drifts. The transcript passes `anchorTo: 'end'` to the virtualizer, so a row that grows keeps the end in view while the transcript sits at its end. The pin itself is the intent of the reader, not the scroll position. The transcript starts pinned, and a scroll of the reader (a wheel, a touch drag, a key, or the scrollbar) toward the start that leaves the end releases the pin. A move toward the start that is not the reader's, such as a correction of the virtualizer or a clamp, takes a pinned transcript back to its end. A scroll back to the end, the reader's own message, and the button that goes to the newest message pin it again. While it is pinned, each new row calls `scrollToIndex(count - 1, { align: 'end' })`, smooth, or `'auto'` under reduced motion. A reply that opens while the glide to the sent message still runs is thus followed too, which a rule that read the position missed. The anchor has no mount arm, so the first window that holds rows calls `scrollToIndex(count - 1, { align: 'end' })` once, before paint. The transcript no longer used `useChatScroll`, and no other code used it, so the hook was removed.
-
-The embed memory moved above the window. A row that leaves the window unmounts, and the latch in `useInView` and `useMountHold` goes with it. [`ChatEmbedProvider`](chat-embed-provider.tsx) now owns a set of the embeds a reader reached, addressed by row key and part id, because a part id is unique only in its message. A returning embed draws at once. Under a window, `lazy` means "no second deferral", not "held", and the transcript documents that `always` cannot be honored.
-
-The `log` region now holds a slice. A reader who walks it finds the rows near the viewport, newest last, between two spacers hidden from assistive technology. The announcer is unaffected, because it speaks a string. The a11y corpus holds a long transcript beside the short one. Where nothing lays out (a server render, jsdom, a `display: none` panel), the window is empty, and the newest twenty messages stand in.
-
-The benches are the acceptance test. The render bench now models a 600 px viewport and 96 px rows, because a window in jsdom holds no rows. On one machine, before and after, a streamed chunk costs:
-
-| Messages | Before | After |
-|---|---|---|
-| 50 | 0.55 ms | 0.59 ms |
-| 500 | 2.37 ms | 0.74 ms |
-| 5,000 | 24.6 ms | 1.02 ms |
-
-Mount falls from 1,174 ms to about 10 ms at 5,000 messages. The proof beside the benches is [`chat-transcript-window.test.tsx`](../../__tests__/browser/chat-transcript-window.test.tsx) in Chromium: the pin on mount, a chunk that grows the last row, a smooth follow while rows measure, a reader who scrolled up, a reader who sends from above the end, and an embed that does not defer a second time.
-
+- **A model encoded in Markdown.** A user message that holds the vocabulary has the same bytes as an assistant message, so user text would draw a live embed. A part list is constructed and not parsed, so a user cannot spoof one.
+- **An open discriminant.** `{ kind: string }` and `{ kind: 'embed'; name: string }` differ only in the name of the key. The open form loses the exhaustive `switch` and gives nothing in return. The `name` field of an `embed` is the open axis.
+- **A projection for each purpose.** `retry` sends the projection to the transport, so the transport is one more reader of it. One projection serves the clipboard, the transport, and the announcer.
+- **A flag of completeness that nothing settles.** A stopped reply would keep a part that never ends. The `tool` status is safe, because the send settles each running step on every exit.
 
 ## Backlog
 
-In priority order, after the increments. Each entry names the gap, the shape of the fix, and where it lands.
+In priority order. Each entry names the gap, the shape of the fix, and where it lands.
 
-- **One selection across the chat and the dashboard.** This is the feature a logistics chat exists for, and it is the largest item here rather than a cheap one. An agent says twelve stops are late; a point on that sentence must ring those twelve stops on the map beside it. The shape is a `citation` carrying an embed name and a selector, and an adapter per module that maps the selector onto that module's own selection prop. It must read one direction first: the chat drives the dashboard, and the reverse (a picked region that writes a message) waits for a second consumer to ask.
+- **One selection across the chat and the dashboard.** An agent says that twelve stops are late, and a point on that sentence must mark those stops on the map beside it. The shape is a `citation` that carries an embed name and a selector. An adapter for each module maps the selector onto the selection prop of that module. The chat drives the dashboard first. The reverse direction waits for a second consumer to ask for it.
 
-  Two blockers sit under it, and an earlier draft of this entry claimed neither. The receiving half is not there: map's `selectedRegion` takes one id and `selectedOverlay` takes one `{ id; index? }`, and chart exposes `onCategoryClick` as an output with no selection input at all, so twelve stops cannot be handed to either. Both modules need work of their own before an adapter has anything to call. The anchor is not renderable either, per increment 3: a citation on a phrase needs a range that [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) cannot draw. Fix the renderer first, then the receivers, then write the citation against something that can honor it.
+  Two blockers sit under it. The receiving half is incomplete: a cartesian chart takes `selectedCategories`, but a map takes one `selectedRegion` and one `selectedOverlay`. And the anchor cannot render: a citation on a phrase needs a range, and [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) has no slot to draw one. Fix the renderer and the map first, then write the citation.
 
-- **Branch the transcript instead of truncating it.** `retry` and `edit` both discard: the old reply is gone, and a reader who preferred it cannot get it back. The premium form keeps the discarded turn as a sibling branch under the message that forked, with a `1 of 2` switcher on the bubble. It changes the transcript from a list to a tree, so it earns `chat-branch/` and it must land after the content model rather than beside it. Say in the doc that a branch is per-message rather than per-conversation, because the other reading is a different feature.
+- **Branch the transcript instead of truncating it.** `retry` and `edit` both discard the old reply, and a reader who preferred it cannot get it back. The shape keeps the discarded turn as a sibling branch under the message that forked, with a `1 of 2` switcher on the bubble. The transcript then changes from a list to a tree, which earns `engine/chat-branch/`. A branch is per message, not per conversation.
 
-- **Composer commands and mentions.** A dashboard agent needs a scope, and typing it in prose is the worst way to give one. The shape is a token model in `chat-command/` (a trigger character, a token span, and a resolved value), with the picker over `CommandPalette`, which already exists and already holds the keyboard model. `ChatPrompt` has an `actions` slot but no model behind it, so this is the missing half rather than a new surface. `@dataset` scopes a question; `/command` runs one.
+- **Composer commands and mentions.** A dashboard agent needs a scope, and prose is the worst way to give one. The shape is a token model in `engine/chat-command/`: a trigger character, a token span, and a resolved value. The picker sits over `CommandPalette`, which already holds the keyboard model. `ChatPrompt` has an `actions` slot but no model behind it. `@dataset` scopes a question, and `/command` runs one.
 
-- **Persistence and resume.** `Chat` is a wire shape with no adapter, so a conversation survives a reload only if the app writes that path itself. The shape is a history port beside the transport (load a page of messages, append on send) and a resume rule for a stream a reload cut, which needs the reply id to outlive the session. It lands beside `ChatTransport`, and it must stay a port rather than an implementation, for the reason the transport already is one.
+- **Persistence and resume.** The module has no history port. A conversation survives a reload only when the app stores `messages` and passes them back as `initialMessages`. The shape is a port beside the transport that loads a page of messages and appends on send. A resume also needs a durable position in a reply that a reload cut, which no part carries. The port stays a port and not an implementation, for the reason that the transport is one.
 
-  One half of the id question is settled already: `useChatSend` keeps the id a seed message carries, so a message and its parts hold the same address after a reload. What a resume still needs is a durable position in a reply the reload cut, which no part carries.
+- **Attachment previews through the embed seam.** The composer shows attachments as chips, and nothing renders what they hold. A CSV preview is a grid, and an image preview is an image, so the preview uses the registry of `ChatEmbedProvider`. It lands as a `file` part with a preview that the media type selects.
 
-- **Attachment previews through the embed seam.** The composer surfaces attachments as chips and nothing renders what they hold. A CSV preview is a grid and an image preview is an image, so this must reuse the registry from increment 4 rather than open a second path to the same three modules. It lands as a `file` part with a preview resolved by media type.
+- **Conversation search.** `ChatList` takes rows and gives no filter, so a long sidebar is a scroll. The plain-text projection is the index, and the query module is the filter. It lands as a prop on the list, not as a new component.
 
-- **Conversation search.** `ChatList` takes rows and offers no filter, so a sidebar of two hundred conversations is a scroll. The plain-text projection from increment 3 is the index, and the query module is the filter. It lands as a prop on the list rather than a new component.
-
-- **Export a conversation.** A reader who wants a record has copy-and-paste. Grid already holds an export path in `grid-export`, so the shape is the same one over the plain-text projection, and an embedded grid can export itself. It lands after the content model and needs nothing else.
+- **Export a conversation.** A reader who wants a record has only copy and paste. The grid holds an export path in `grid-export`, so the shape is the same path over the plain-text projection. An embedded grid can export itself.
 
 ## Principle
 
-Extract before extending. The module's backlog was blocked on two things (a core the rules can live in, and a message that can hold more than a string), and every premium feature below is small now that both exist and would have been impossible before. That ordering was the roadmap's only real claim, and the increments bore it out: the embed seam cost three files over a union that already carried an id, and the part stream cost one, because increment 3 had already put the id there for it.
+Extract before you extend. The pure core and the part union came first, so each later feature was one more member or one more rule.
 
-Do not ship the dependency the caller did not ask for. A chat that imports chart, grid, and map to support an embed nobody used is the failure mode this design exists to avoid, and the registry is what prevents it.
+Do not ship a dependency that the caller did not ask for. A chat that imports the chart, the grid, and the map for an embed that nobody uses is the failure that the registry prevents.
 
-Measure before rebuilding. Virtualization was the obvious answer to a long transcript for as long as this file has existed, and it stayed out of the increments until a bench said which size breaks and by how much. It went into the backlog because 41 ms against a 16 ms frame put it there, and the same benches then said the rebuild worked.
+Measure before you rebuild. The transcript got its window only after a benchmark showed the size at which a streamed chunk overran a frame.
 
 ---
 

@@ -23,13 +23,14 @@ export type ChatTranscriptSkeletonProps = {
  * `createSkeleton` factory.
  *
  * @remarks
- * Static leaf: renders in React Server Components. Each bubble has the width
- * cap, the padding, the radius, and the side of a real bubble. Each message
- * after the first has the gap of a real transcript row. A transcript holds
- * content of no fixed length. Thus only one bubble of each side has the box of
- * a real bubble of the same line count. The root is
- * `aria-hidden`, so assistive technology does not find empty messages. It
- * clips in place of a scroll, so it does not take keyboard focus.
+ * Static leaf: renders in React Server Components. The root is `aria-hidden`,
+ * so assistive technology does not find empty messages. It clips in place of a
+ * scroll, so it does not take keyboard focus.
+ *
+ * Each bubble has the width cap, the padding, the radius, and the side of a
+ * real bubble. Each message after the first has the gap of a real transcript
+ * row. A transcript holds content of no fixed length. Thus only one bubble of
+ * each side has the box of a real bubble of the same line count.
  * @see {@link ChatTranscript}
  */
 export function ChatTranscriptSkeleton({ messages = 4, className }: ChatTranscriptSkeletonProps) {
