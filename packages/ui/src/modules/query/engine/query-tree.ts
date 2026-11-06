@@ -103,6 +103,8 @@ function withCombinator(node: QueryNode, combinator: QueryCombinator | undefined
  * @param tree - The query tree, usually the root group.
  * @param id - The node to move.
  * @param toIndex - The position of the node in its group after the move.
+ *
+ * @internal
  */
 export function moveChild(tree: QueryGroup, id: string, toIndex: number): QueryGroup {
 	const { children } = tree

@@ -11,8 +11,11 @@ function nextId(): string {
 }
 
 /**
- * Creates a fresh {@link QueryRule} with a unique id, defaulting its operator to
- * the field's first and its value to the type-appropriate empty value.
+ * Creates a fresh {@link QueryRule} with a unique id. The rule takes the first
+ * operator of the field. Its value is `null` for a `boolean` field, the first
+ * option for a `select` field, and a blank string for each other field or for
+ * no field. So a new `select` or `boolean` rule puts a constraint on the rows
+ * at once, and a new rule of each other type is blank.
  *
  * @param field - Seeds the rule's field, operator, and value; omit for an empty rule.
  * @param combinator - How the rule joins its preceding sibling. @defaultValue 'and'
@@ -108,6 +111,8 @@ function isNodeAt(value: unknown, depth: number): boolean {
  *
  * @param value - The value to test.
  * @returns Whether `value` has the full structure of a {@link QueryNode}.
+ *
+ * @internal
  */
 export function isQueryNode(value: unknown): value is QueryNode {
 	return isNodeAt(value, 0)

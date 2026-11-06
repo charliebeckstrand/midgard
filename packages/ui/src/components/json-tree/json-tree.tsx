@@ -297,7 +297,10 @@ export function JsonTree({
 				matchPaths={matchPaths}
 				virtualize={virtualize}
 				maxHeight={virtualize.maxHeight}
-				onKeyDown={composeEventHandlers(onKeyDown, handleRovingKeyDown)}
+				// Roving takes no gate: the consumer's handler runs first, then roving.
+				onKeyDown={composeEventHandlers(onKeyDown, handleRovingKeyDown, {
+					checkForDefaultPrevented: false,
+				})}
 				aria-label={label}
 				aria-labelledby={ariaLabelledby}
 				className={className}

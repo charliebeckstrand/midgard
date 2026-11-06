@@ -89,7 +89,7 @@ function sheetField(column: FilterColumn, facets: GridColumnFacets | null): Quer
 	return toQueryField(column, options, column.filterType === 'number' ? facets?.span : undefined)
 }
 
-/** The query a sheet opens on with no applied query: one empty rule, `contains` for text. @internal */
+/** The query a sheet opens on with no applied query: one new rule of the field, `contains` for text. @internal */
 function seedQuery(field: QueryField): QueryGroup {
 	const rule = createRule(field)
 
@@ -179,7 +179,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	if (open && !sheetMounted) setSheetMounted(true)
 
 	// Open the sheet on the applied query, so editing always resumes from what's in
-	// effect. With no applied query it opens on one empty rule. An unapplied draft
+	// effect. With no applied query it opens on one new rule. An unapplied draft
 	// is dropped on close.
 	function openSheet() {
 		const next = takesFacets(column) ? filter.facets(column.id) : null

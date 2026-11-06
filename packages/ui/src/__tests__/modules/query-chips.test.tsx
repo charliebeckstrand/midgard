@@ -226,6 +226,26 @@ describe('QueryChips', () => {
 		expect(document.activeElement).toBe(removeButton('Age > 30'))
 	})
 
+	// Roving is the keyboard model of the row, so a consumer handler that cancels
+	// the key does not switch it off (CONVENTIONS §3.9).
+	it('roves when a consumer onKeyDown cancels the arrow key', () => {
+		renderUI(
+			<QueryChips
+				fields={fields}
+				defaultValue={tree(statusRule(), ageRule(30))}
+				onKeyDown={(event) => event.preventDefault()}
+			/>,
+		)
+
+		const first = removeButton('Status is Active')
+
+		first.focus()
+
+		fireEvent.keyDown(first, { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'AND, switch to OR' }))
+	})
+
 	it('disables each control when disabled', () => {
 		renderUI(<QueryChips fields={fields} defaultValue={tree(statusRule(), ageRule(30))} disabled />)
 

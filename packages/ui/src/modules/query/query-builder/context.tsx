@@ -7,7 +7,7 @@ import type { Responsive } from '../../../utilities/responsive'
 import type { QueryField } from '../engine/types'
 import type { QueryTreeActions } from '../use-query-tree'
 
-/** Registers (or, with `null`, unregisters) a focusable control under `key`. */
+/** Registers (or, with `null`, unregisters) a focusable control under `key`. @internal */
 export type FocusRegister = (key: string, el: HTMLElement | null) => void
 
 /** Field configuration shared down the tree: the field list, a name lookup, and the disabled flag. Stable across tree edits. @internal */
@@ -49,6 +49,8 @@ export { useQueryBuilderActions, useQueryBuilderState }
 /**
  * Callback ref that registers the element under `key` for the lifetime it's
  * mounted. Memoized on `key`; the ref identity stays stable across renders.
+ *
+ * @internal
  */
 export function useFocusableRef(key: string) {
 	const register = useQueryBuilderFocus()
@@ -56,7 +58,7 @@ export function useFocusableRef(key: string) {
 	return useCallback((el: HTMLElement | null) => register(key, el), [register, key])
 }
 
-/** Internal: the component-level provider wires the three contexts. */
+/** The component-level provider wires the three contexts. @internal */
 export function QueryBuilderProvider({
 	state,
 	actions,
