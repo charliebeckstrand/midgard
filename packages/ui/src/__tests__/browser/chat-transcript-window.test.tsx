@@ -126,8 +126,13 @@ const landed = vi.defineHelper(async (transcript: HTMLElement) => {
 	}
 })
 
-/** Scrolls the transcript to `top` and waits for the window to follow. */
+/**
+ * Scrolls the transcript to `top` as the reader does, and waits for the window
+ * to follow. The wheel event marks the scroll as the reader's.
+ */
 async function scrollTo(transcript: HTMLElement, top: number) {
+	transcript.dispatchEvent(new WheelEvent('wheel', { deltaY: top - transcript.scrollTop }))
+
 	transcript.scrollTop = top
 
 	transcript.dispatchEvent(new Event('scroll'))
@@ -402,6 +407,30 @@ describe('the transcript window', () => {
 		await waitFor(() => atEnd(transcript, 'Reply.'), { timeout: FOLLOW })
 
 		expect(await settledValue(() => distanceFromEnd(transcript))).toBeLessThanOrEqual(1)
+	})
+
+	// The virtualizer corrects the offset as rows measure, and on iOS it applies
+	// some corrections late, as a jump. Such a move is not the reader's.
+	it('keeps the pin through a move toward the start that the reader did not make', async () => {
+		const messages = history(200)
+
+		const { container, rerender } = renderUI(<Frame messages={messages} />)
+
+		const transcript = getTranscript(container)
+
+		await landed(transcript)
+
+		transcript.scrollTop -= 200
+
+		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+
+		expect(container.querySelector('[data-slot="chat-transcript-newest"]')).toBeNull()
+
+		rerender(
+			<Frame messages={[...messages, { id: 'late', sender: 'assistant', content: 'Late.' }]} />,
+		)
+
+		await waitFor(() => atEnd(transcript, 'Late.'), { timeout: FOLLOW })
 	})
 
 	it('scrolls only on the block axis', async () => {
