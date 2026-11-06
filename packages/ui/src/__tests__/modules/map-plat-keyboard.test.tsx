@@ -16,7 +16,37 @@ import {
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat, overlayPlat } from '../helpers/map-plat'
-import { allRegions } from '../helpers/map-queries'
+import { allRegions, layerScale } from '../helpers/map-queries'
+
+/**
+ * The center of a region path's box, in frame units. The fixture regions are
+ * squares, so the center is where the cursor's stop stands.
+ */
+function regionCenter(path: SVGPathElement): { x: number; y: number } {
+	const values = (path.getAttribute('d') ?? '').match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? []
+
+	const xs = values.filter((_, index) => index % 2 === 0)
+
+	const ys = values.filter((_, index) => index % 2 === 1)
+
+	return {
+		x: (Math.min(...xs) + Math.max(...xs)) / 2,
+		y: (Math.min(...ys) + Math.max(...ys)) / 2,
+	}
+}
+
+/** Where the zoom layer draws a frame point, read off its own transform attribute. */
+function drawnAt(container: HTMLElement, at: { x: number; y: number }): { x: number; y: number } {
+	const transform = bySlot(container, 'map-zoom')?.getAttribute('transform') ?? ''
+
+	const [x = 0, y = 0, k = 1] =
+		/translate\((-?[\d.]+) (-?[\d.]+)\) scale\((-?[\d.]+)\)/
+			.exec(transform)
+			?.slice(1)
+			.map(Number) ?? []
+
+	return { x: at.x * k + x, y: at.y * k + y }
+}
 
 /** The tooltip's current text, or `null` while the readout is away. */
 function readout(container: HTMLElement): string | null {
@@ -205,7 +235,7 @@ describe('MapPlat keyboard navigation', () => {
 		// `fireEvent` returns false for a press that a handler claimed with `preventDefault`.
 		expect(fireEvent.keyDown(plot, { key: 'Escape' })).toBe(true)
 
-		plot.focus()
+		act(() => plot.focus())
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -223,7 +253,7 @@ describe('MapPlat keyboard navigation', () => {
 
 		expect(readout(container)).toContain('Alpha')
 
-		plot.focus()
+		act(() => plot.focus())
 
 		expect(fireEvent.keyDown(plot, { key: 'Escape' })).toBe(false)
 
@@ -243,7 +273,7 @@ describe('MapPlat keyboard navigation', () => {
 
 		if (plot === null) throw new Error('the dialog drew no plot region')
 
-		plot.focus()
+		act(() => plot.focus())
 
 		fireEvent.keyDown(plot, { key: 'Escape' })
 
@@ -364,6 +394,36 @@ describe('MapPlat keyboard navigation', () => {
 		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom reset'))
 	})
 
+	it("pans a zoom step to keep the cursor's stop in the frame", () => {
+		const { container, plot, svg } = renderNavigable(categoricalPlat({ zoom: true }))
+
+		// Gamma is the east end of the fixture, far from the frame's center.
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		for (let step = 0; step < 3; step++) fireEvent.keyDown(plot, { key: '+' })
+
+		const gamma = allRegions(container)[2]
+
+		if (gamma === undefined) throw new Error('the plat drew no Gamma region')
+
+		const [, , width = 0, height = 0] = (svg.getAttribute('viewBox') ?? '').split(' ').map(Number)
+
+		// The region layer carries its paths on a refit scale of its own.
+		const refit = layerScale(bySlot(container, 'map-regions'))
+
+		const center = regionCenter(gamma)
+
+		const drawn = drawnAt(container, { x: center.x * refit, y: center.y * refit })
+
+		expect(drawn.x).toBeGreaterThan(0)
+
+		expect(drawn.x).toBeLessThan(width)
+
+		expect(drawn.y).toBeGreaterThan(0)
+
+		expect(drawn.y).toBeLessThan(height)
+	})
+
 	it('leaves a key chord with Ctrl, Meta, or Alt to the browser', () => {
 		const { container, plot } = renderNavigable(categoricalPlat({ zoom: true }))
 
@@ -391,7 +451,7 @@ describe('MapPlat keyboard navigation', () => {
 			<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400} zoom />,
 		)
 
-		plot.focus()
+		act(() => plot.focus())
 
 		for (const key of ['ArrowRight', 'ArrowDown', 'Home', 'End']) {
 			expect(fireEvent.keyDown(plot, { key })).toBe(false)
@@ -412,6 +472,49 @@ describe('MapPlat keyboard navigation', () => {
 		rerender(categoricalPlat())
 
 		expect(bySlot(container, 'map-plot')).toHaveAttribute('tabindex', '0')
+	})
+
+	it('keeps the focused plot while the geography is away, and drops the stop on blur', () => {
+		const { container, plot, rerender } = renderNavigable(categoricalPlat())
+
+		act(() => plot.focus())
+
+		rerender(categoricalPlat({ geography: null }))
+
+		expect(document.activeElement).toBe(plot)
+
+		expect(plot).toHaveAttribute('tabindex', '0')
+
+		rerender(categoricalPlat())
+
+		expect(document.activeElement).toBe(plot)
+
+		rerender(categoricalPlat({ geography: null }))
+
+		act(() => plot.blur())
+
+		expect(bySlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
+	})
+
+	it('keeps the focused plot when the last pick goes away', () => {
+		const onRegionClick = vi.fn()
+
+		const { plot, rerender } = renderNavigable(categoricalPlat({ tooltip: false, onRegionClick }))
+
+		act(() => plot.focus())
+
+		rerender(categoricalPlat({ tooltip: false }))
+
+		expect(document.activeElement).toBe(plot)
+
+		expect(plot).toHaveAttribute('tabindex', '0')
+
+		// With no output left, a key does nothing and leaves the page its default.
+		expect(fireEvent.keyDown(plot, { key: 'ArrowRight' })).toBe(true)
+
+		act(() => plot.blur())
+
+		expect(plot).not.toHaveAttribute('tabindex')
 	})
 
 	it('takes no tab stop on a map with nothing to read out', () => {

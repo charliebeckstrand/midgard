@@ -862,6 +862,22 @@ describe('MapPlat touch over the marks', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 	})
 
+	it('lets the readout go when zoom turns off under a pinch', () => {
+		const { container, plot, rerender } = renderZoomable(DIRECT)
+
+		pressTwo(plot)
+
+		// The zoom turns off with both fingers down, so the surface handlers leave
+		// the plot before the lifts arrive.
+		rerender(categoricalPlat({ zoom: false }))
+
+		for (const pointerId of [1, 2]) fireEvent.pointerUp(plot, { pointerId, pointerType: 'touch' })
+
+		pointMouse(present<SVGPathElement>(firstRegion(container), 'region path'))
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+	})
+
 	it('keeps a finger in the pinch after the node under it leaves the tree', () => {
 		const { container, svg } = renderZoomable()
 
@@ -1123,6 +1139,61 @@ describe('MapPlat pan', () => {
 		fireEvent.pointerUp(plot, { pointerId: 1 })
 
 		expect(plot.hasPointerCapture(1)).toBe(false)
+	})
+
+	it('ends a press that leaves the plot before it became a pan', () => {
+		const { container, plot } = renderZoomable()
+
+		// Zoomed from the keyboard, so no wheel settle holds the drawing inert.
+		fireEvent.keyDown(plot, { key: '+' })
+
+		const before = readTransform(container)
+
+		// A press 2px inside the edge. Its first move is already outside the plot,
+		// so the plot never captures it and never sees the lift.
+		fireEvent.pointerDown(plot, {
+			isPrimary: true,
+			pointerId: 1,
+			button: 0,
+			pointerType: 'mouse',
+			clientX: 398,
+			clientY: 100,
+		})
+
+		fireEvent.pointerLeave(plot, { pointerId: 1, pointerType: 'mouse', clientX: 410, clientY: 100 })
+
+		// The pointer comes back with no button held and moves past the threshold.
+		fireEvent.pointerMove(plot, { pointerId: 1, pointerType: 'mouse', clientX: 300, clientY: 60 })
+
+		expect(readTransform(container)).toBe(before)
+
+		expect(answersPointer(container)).toBe(true)
+	})
+
+	it('keeps a pan that crosses the edge of the plot', () => {
+		const { container, plot, before } = renderZoomed()
+
+		fireEvent.pointerDown(plot, {
+			isPrimary: true,
+			pointerId: 1,
+			button: 0,
+			pointerType: 'mouse',
+			clientX: 200,
+			clientY: 100,
+		})
+
+		fireEvent.pointerMove(plot, { pointerId: 1, pointerType: 'mouse', clientX: 300, clientY: 100 })
+
+		// The pan holds the pointer, so a leave is not the end of it.
+		fireEvent.pointerLeave(plot, { pointerId: 1, pointerType: 'mouse', clientX: 410, clientY: 100 })
+
+		const panned = readTransform(container)
+
+		expect(panned).not.toBe(before)
+
+		fireEvent.pointerMove(plot, { pointerId: 1, pointerType: 'mouse', clientX: 360, clientY: 100 })
+
+		expect(readTransform(container)).not.toBe(panned)
 	})
 
 	it('holds the view for a press that never travels', () => {
