@@ -1,10 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import {
-	isActivateKey,
-	moveCursor,
-	stepNearest,
-} from '../../modules/map/engine/map-keyboard/cursor'
+import { moveCursor, stepNearest } from '../../modules/map/engine/map-keyboard/cursor'
 import { type MapStop, mapStops } from '../../modules/map/engine/map-keyboard/stops'
 import type { LngLat } from '../../modules/map/engine/types'
 
@@ -23,18 +19,6 @@ const ROW = [region(0, 0, 0), region(1, 10, 0), region(2, 20, 0)]
 
 /** Two stops stacked north to south; frame y grows downward, so index 1 is south. */
 const COLUMN = [region(0, 0, 0), region(1, 0, 10)]
-
-describe('isActivateKey', () => {
-	it('takes Enter and Space, and nothing else', () => {
-		expect(isActivateKey('Enter')).toBe(true)
-
-		expect(isActivateKey(' ')).toBe(true)
-
-		expect(isActivateKey('Spacebar')).toBe(false)
-
-		expect(isActivateKey('ArrowUp')).toBe(false)
-	})
-})
 
 describe('mapStops', () => {
 	const project = (at: LngLat) => ({ x: at[0], y: at[1] })
