@@ -21,6 +21,7 @@ import {
 } from '../../modules/map/engine/map-geometry/chrome'
 import { fitProjection, invertingPiece } from '../../modules/map/engine/map-projection/resolve'
 import type { MapViewFrame } from '../../modules/map/engine/map-zoom/transform'
+import type { MapProjection } from '../../modules/map/engine/types'
 import { subpathCount } from '../helpers/geometry/svg-path'
 import { HALF_PIXEL } from '../helpers/geometry/tolerance'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
@@ -88,40 +89,28 @@ function segmentDistance(p: Point, a: Point, b: Point): number {
 	return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy)
 }
 
+/** Each segment of `lines`, as its pair of end points. */
+function segments(lines: Point[][]): [Point, Point][] {
+	return lines.flatMap((line) => line.slice(1).map((b, i): [Point, Point] => [line[i] ?? b, b]))
+}
+
 /** The distance from `p` to the nearest segment of `lines`. */
 function lineDistance(p: Point, lines: Point[][]): number {
-	let nearest = Number.POSITIVE_INFINITY
-
-	for (const line of lines) {
-		for (let i = 1; i < line.length; i++) {
-			const a = line[i - 1]
-
-			const b = line[i]
-
-			if (a !== undefined && b !== undefined) nearest = Math.min(nearest, segmentDistance(p, a, b))
-		}
-	}
-
-	return nearest
+	return Math.min(
+		Number.POSITIVE_INFINITY,
+		...segments(lines).map(([a, b]) => segmentDistance(p, a, b)),
+	)
 }
 
 /** Whether the frame's rings hold `p` under the even-odd rule that clips the graticule. */
 function insideFrame(p: Point, rings: Point[][]): boolean {
-	let inside = false
-
-	for (const ring of rings) {
-		for (let i = 1; i < ring.length; i++) {
-			const a = ring[i - 1]
-
-			const b = ring[i]
-
-			if (a !== undefined && b !== undefined && a[1] > p[1] !== b[1] > p[1]) {
-				if (p[0] < ((b[0] - a[0]) * (p[1] - a[1])) / (b[1] - a[1]) + a[0]) inside = !inside
-			}
-		}
-	}
-
-	return inside
+	return segments(rings).reduce(
+		(inside, [a, b]) =>
+			a[1] > p[1] !== b[1] > p[1] && p[0] < ((b[0] - a[0]) * (p[1] - a[1])) / (b[1] - a[1]) + a[0]
+				? !inside
+				: inside,
+		false,
+	)
 }
 
 /**
@@ -161,7 +150,7 @@ function wholeGraticule(projection: GeoProjection, step: number): string | null 
 
 /** The trimmed graticule and the frame of `projection` in `view`, at `step`. */
 function trimmed(
-	spec: Parameters<typeof invertingPiece>[0],
+	spec: MapProjection,
 	projection: GeoProjection,
 	view: MapViewFrame,
 	step = GRATICULE_STEP_DEGREES,

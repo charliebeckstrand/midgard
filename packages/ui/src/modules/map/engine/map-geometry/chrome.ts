@@ -23,7 +23,14 @@ import {
 	GRATICULE_STEP_DEGREES,
 	REGION_PATH_DIGITS,
 } from '../map-constants'
-import type { MapTransform, MapViewFrame } from '../map-zoom/transform'
+import {
+	invertTransform,
+	MAP_FIT_TRANSFORM,
+	type MapTransform,
+	type MapViewFrame,
+} from '../map-zoom/transform'
+import type { LngLat, MapPoint2D } from '../types'
+import { projectPoint, unprojectPoint } from './mark'
 
 /**
  * The chrome paths under one fit, `null` where a part is off or the projection
@@ -124,87 +131,75 @@ function graticuleBound(
 	frame: MapTransform | null,
 	step: number,
 ): GeoExtent | null {
-	const box = viewBox(path, view)
+	const box = viewBox(path, view, frame ?? MAP_FIT_TRANSFORM)
 
-	const walk = box === null ? null : edgeWalk(inverse, box, frame ?? IDENTITY)
+	if (box === null) return null
 
-	if (box === null || walk === null) return null
+	const walk = edgeWalk(inverse, box)
 
-	let [[west, south], [east, north]] = findExtent(walk)
+	if (walk === null) return null
 
-	if (crossesAntimeridian(walk)) {
-		west = -180
+	const [[west, south], [east, north]] = findExtent(walk)
 
-		east = 180
-	}
+	const northPole = holds(box, projectPoint(inverse, [0, 90]))
 
-	for (const pole of [90, -90]) {
-		if (!holds(box, inverse([0, pole]), frame ?? IDENTITY)) continue
+	const southPole = holds(box, projectPoint(inverse, [0, -90]))
 
-		west = -180
-
-		east = 180
-
-		if (pole > 0) north = 90
-		else south = -90
-	}
+	const round = northPole || southPole || crossesAntimeridian(walk)
 
 	return [
-		[lineBelow(west - BOUND_MARGIN_DEGREES, step), lineBelow(south - BOUND_MARGIN_DEGREES, step)],
-		[lineAbove(east + BOUND_MARGIN_DEGREES, step), lineAbove(north + BOUND_MARGIN_DEGREES, step)],
+		[
+			lineBelow((round ? -180 : west) - BOUND_MARGIN_DEGREES, step),
+			lineBelow((southPole ? -90 : south) - BOUND_MARGIN_DEGREES, step),
+		],
+		[
+			lineAbove((round ? 180 : east) + BOUND_MARGIN_DEGREES, step),
+			lineAbove((northPole ? 90 : north) + BOUND_MARGIN_DEGREES, step),
+		],
 	]
 }
 
-/** A box in frame units: `[x0, y0, x1, y1]`. */
-type FrameBox = readonly [x0: number, y0: number, x1: number, y1: number]
-
-/** The transform that leaves a point where it is: the view of a fit with no frame. */
-const IDENTITY: MapTransform = { x: 0, y: 0, k: 1 }
+/** A box in the units the projection draws in: `[x0, y0, x1, y1]`. */
+type ProjectedBox = readonly [x0: number, y0: number, x1: number, y1: number]
 
 /**
  * The viewBox cut to the bounds of the frame, because the graticule draws only
- * inside the frame. `null` where the cut has no area.
+ * inside the frame. `frame` carries it back into the units the projection
+ * draws in. `null` where the cut has no area.
  */
-function viewBox(path: GeoPath, view: MapViewFrame): FrameBox | null {
+function viewBox(path: GeoPath, view: MapViewFrame, frame: MapTransform): ProjectedBox | null {
 	const [[frameX0, frameY0], [frameX1, frameY1]] = path.bounds(SPHERE)
 
-	const box: FrameBox = [
-		Math.max(0, frameX0),
-		Math.max(0, frameY0),
-		Math.min(view.width, frameX1),
-		Math.min(view.height, frameY1),
-	]
+	const from = invertTransform({ x: Math.max(0, frameX0), y: Math.max(0, frameY0) }, frame)
 
-	return box[2] > box[0] && box[3] > box[1] ? box : null
+	const to = invertTransform(
+		{ x: Math.min(view.width, frameX1), y: Math.min(view.height, frameY1) },
+		frame,
+	)
+
+	return to.x > from.x && to.y > from.y ? [from.x, from.y, to.x, to.y] : null
 }
 
 /**
  * The positions that the edge of `box` reads back onto the globe, in one walk
- * round it. Each point follows its neighbor, and the walk closes on its first
- * point. `null` where the projection has no inverse, or where a point is off
- * the globe.
+ * round it. Each point follows its neighbor, and the last point leads back to
+ * the first. `null` where a point is off the globe.
  */
-function edgeWalk(
-	inverse: GeoProjection,
-	[x0, y0, x1, y1]: FrameBox,
-	frame: MapTransform,
-): [number, number][] | null {
-	const walk: [number, number][] = []
+function edgeWalk(inverse: GeoProjection, [x0, y0, x1, y1]: ProjectedBox): LngLat[] | null {
+	const walk: LngLat[] = []
 
-	const corners: [number, number][] = [
-		[x0, y0],
-		[x1, y0],
-		[x1, y1],
-		[x0, y1],
-	]
+	const edges = [
+		[x0, y0, x1, y0],
+		[x1, y0, x1, y1],
+		[x1, y1, x0, y1],
+		[x0, y1, x0, y0],
+	] as const
 
-	for (const [edge, [ax, ay]] of corners.entries()) {
-		const [bx, by] = corners[(edge + 1) % corners.length] ?? [ax, ay]
-
+	for (const [ax, ay, bx, by] of edges) {
 		for (let i = 0; i < BOUND_SAMPLES; i++) {
 			const t = i / BOUND_SAMPLES
 
-			const position = readBack(inverse, [ax + (bx - ax) * t, ay + (by - ay) * t], frame)
+			const position = readBack(inverse, { x: ax + (bx - ax) * t, y: ay + (by - ay) * t })
 
 			if (position === null) return null
 
@@ -216,28 +211,22 @@ function edgeWalk(
 }
 
 /**
- * The position on the globe that the frame point `at` shows. `null` where the
- * projection has no inverse, or where the point is off the globe. A point off
- * the globe reads back to a far place or to none.
+ * The position on the globe that the projected point `at` shows. `null` where
+ * the projection has no inverse, or where the point is off the globe. A point
+ * off the globe reads back to a far place or to none.
  */
-function readBack(
-	inverse: GeoProjection,
-	[fx, fy]: [number, number],
-	{ x, y, k }: MapTransform,
-): [number, number] | null {
-	const at: [number, number] = [(fx - x) / k, (fy - y) / k]
+function readBack(inverse: GeoProjection, at: MapPoint2D): LngLat | null {
+	const position = unprojectPoint(inverse, at)
 
-	const position = inverse.invert?.(at) ?? null
+	const back = position === null ? null : projectPoint(inverse, position)
 
-	const back = position === null ? null : inverse(position)
-
-	return back !== null && Math.hypot(back[0] - at[0], back[1] - at[1]) <= ROUND_TRIP_TOLERANCE
+	return back !== null && Math.hypot(back.x - at.x, back.y - at.y) <= ROUND_TRIP_TOLERANCE
 		? position
 		: null
 }
 
 /** The box in degrees that holds each position of `walk`. */
-function findExtent(walk: [number, number][]): GeoExtent {
+function findExtent(walk: LngLat[]): GeoExtent {
 	const lngs = walk.map(([lng]) => lng)
 
 	const lats = walk.map(([, lat]) => lat)
@@ -253,7 +242,7 @@ function findExtent(walk: [number, number][]): GeoExtent {
  * the globe apart only there, where longitude jumps from one end of its range
  * to the other. So the walk finds the crossing with no point near 180°.
  */
-function crossesAntimeridian(walk: [number, number][]): boolean {
+function crossesAntimeridian(walk: LngLat[]): boolean {
 	return walk.some(([lng], i) => {
 		const [next] = walk[(i + 1) % walk.length] ?? [lng]
 
@@ -261,19 +250,9 @@ function crossesAntimeridian(walk: [number, number][]): boolean {
 	})
 }
 
-/** Whether `box` holds the projected point `at`, carried through `frame`. */
-function holds(
-	[x0, y0, x1, y1]: FrameBox,
-	at: [number, number] | null,
-	{ x, y, k }: MapTransform,
-): boolean {
-	if (at === null) return false
-
-	const px = at[0] * k + x
-
-	const py = at[1] * k + y
-
-	return px >= x0 && px <= x1 && py >= y0 && py <= y1
+/** Whether `box` holds the projected point `at`. */
+function holds([x0, y0, x1, y1]: ProjectedBox, at: MapPoint2D | null): boolean {
+	return at !== null && at.x >= x0 && at.x <= x1 && at.y >= y0 && at.y <= y1
 }
 
 /**

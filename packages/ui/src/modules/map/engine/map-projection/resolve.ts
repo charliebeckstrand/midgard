@@ -117,6 +117,9 @@ export function resolveProjection(spec: MapProjection): GeoProjection {
  * bound reads the lower-48 piece alone. d3-geo builds that piece as a plain
  * `geoAlbers()`. The composite passes its scale and translate to it unchanged.
  *
+ * A passed `geoAlbersUsa()` instance names no spec, so it inverts through
+ * itself. Its graticule still draws each line, but the bound trims less.
+ *
  * @internal
  */
 export function invertingPiece(spec: MapProjection, fitted: GeoProjection): GeoProjection {
