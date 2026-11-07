@@ -476,6 +476,24 @@ Probed, not landed: lazy value labels (the chart's lever 7 shape: the region val
 
 Open: nothing stands beaten against the module by mean; the states hover sweep's residual median gap (~17 vs ~13, the settle frame around a committing iteration) is the last trace of the React-commit-per-crossing trade, shared with the chart suite's scatter hover.
 
+### Findings from the roadmap (2026-08-06 to 2026-08-13)
+
+The Map roadmap kept these figures in its Status section until 2026-11-07. Each entry gives the date and the pull request that measured it. Levers 8 to 10 of the optimization log above hold the other figures of the same work.
+
+- **Point sets** (2026-08-06, #1064). Two hundred dots mount in 5.0 ms as one `MapPoints`, and in 16.3 ms as one `MapPoint` each. The plural form is 3.3× faster.
+
+- **Deferred centroids** (2026-08-06, #1064). The centroid pass of the keyboard cursor takes ~30 ms across about 3,000 counties, against a mount of ~70 ms. The plat therefore defers the pass to the first arrow key.
+
+- **One props factory for dot targets** (2026-08-07, #1075). A component for each dot target cost ~1.6 µs for each fiber, across two hundred dots. That set renders at each pointed-mark crossing.
+
+- **Coverage placement** (2026-08-07, #1079). Against the 2010 Illinois ZCTA file, the box rule places 1,187 of 1,384 codes with no measurement. It takes the pass of a ten-prefix territory from 224 ms to 29 ms. The move of the rewind to the measurement takes the cut of a 393-code territory from 61 ms to under 1 ms.
+
+- **Fit from the probe pass** (2026-08-10, #1096). `fitProjectionWidth` takes the probe pass of d3 itself, which halves the fit on the `map-compute` bar. Across 3,108 counties the fit falls from 218.8 ms to 94.4 ms, and across 49 states from 25.2 ms to 13.4 ms.
+
+- **The walk and the emit** (2026-08-13, #1100). A direct walk through `d3-geo` cost 246.3 ms for each fit across 3,108 counties. Against that, the walk cost 160.4 ms, and the strings at its end cost 12.8 ms. Of the 22.4 ms emit, the affine multiply took 1.4 ms and the concatenation 0.8 ms. The format from the integer took the emit to 12.8 ms on counties, and from 4.4 ms to 2.0 ms on 49 states.
+
+- **The buffer and the probe frame** (2026-08-13, #1100). The buffer of a county atlas comes to about 1 MiB. At `PROBE_REFINEMENT`, the frame is bit-identical to the frame of the default walk (585.000128913205 both ways). Every path matches byte for byte at the canonical frame, and at 800, 317, and 3,840 wide.
+
 ## Menus
 
 This suite keeps no standings. `Menu` runs in a browser because jsdom prices two of its paths wrong.
