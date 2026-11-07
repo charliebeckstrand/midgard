@@ -74,11 +74,20 @@ export function sliceLayout(slices: PieSlice[]): string {
 }
 
 /**
- * When a label fades in: as the sweep uncovers its slice at mount, and as the
- * morph ends after a legend toggle. @internal
+ * The fade of a label of a slice, as motion props. The label fades in as the
+ * sweep uncovers its slice at mount, and as the morph ends after a legend
+ * toggle (`reflowed`). It fades out when its layout changes. With `still`, it
+ * renders at rest.
+ *
+ * @internal
  */
-export function labelDelay(reflowed: boolean, mid: number): number {
-	return reflowed ? SLICE_MORPH.duration : sweepDelay(mid)
+export function labelFade(still: boolean, reflowed: boolean, mid: number) {
+	return {
+		initial: still ? false : { opacity: 0 },
+		animate: { opacity: 1 },
+		exit: { opacity: 0, transition: SLICE_UNFADE },
+		transition: { ...SLICE_FADE, delay: reflowed ? SLICE_MORPH.duration : sweepDelay(mid) },
+	} as const
 }
 
 /** One morph in flight: the drawn slices it leaves, its target, and its progress. @internal */
@@ -216,10 +225,7 @@ export function SectorSegmentLabels({
 								// A new layout mounts the label again, so it fades in at its new place.
 								key={layout}
 								{...shared}
-								initial={still ? false : { opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0, transition: SLICE_UNFADE }}
-								transition={{ ...SLICE_FADE, delay: labelDelay(reflowed, slice.mid) }}
+								{...labelFade(still, reflowed, slice.mid)}
 							>
 								{text}
 							</m.text>
