@@ -20,17 +20,14 @@ import {
 	toError,
 	validateSubmit,
 } from './engine/form-submission'
-import type {
-	Errors,
-	FormAction,
-	FormHelpers,
-	FormSubmitHandler,
-	SubmitOutcome,
-	Validators,
-} from './engine/types'
+import type { Errors, FormAction, FormHelpers, SubmitOutcome, Validators } from './engine/types'
+import type { FormProps } from './form'
 
 /** Options for {@link useFormSubmission}. @internal */
-type FormSubmissionOptions<T extends Record<string, unknown>> = {
+type FormSubmissionOptions<T extends Record<string, unknown>> = Pick<
+	FormProps<T>,
+	'onSubmit' | 'onSettled' | 'onInvalidSubmit'
+> & {
 	store: FormStore
 	dispatch: Dispatch<FormAction<T>>
 	/** The newest validators. Only the handlers read it. */
@@ -39,9 +36,6 @@ type FormSubmissionOptions<T extends Record<string, unknown>> = {
 	setErrors: (errors: Record<string, string | string[] | undefined>) => void
 	/** Resets the store only, and leaves an in-flight submit live. */
 	resetForm: (nextDefaults?: Record<string, unknown>) => void
-	onSubmit?: FormSubmitHandler<T>
-	onSettled?: (outcome: SubmitOutcome<T>) => void
-	onInvalidSubmit?: (errors: Partial<Record<keyof T, string[]>>) => void
 }
 
 /** The submit handler, the supersede action, and the failure count of {@link useFormSubmission}. @internal */
