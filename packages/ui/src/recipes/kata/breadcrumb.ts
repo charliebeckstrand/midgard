@@ -13,7 +13,9 @@ export const k = defineKata(
 		slots: {
 			// The trail wraps, so a long one stays inside a narrow screen (WCAG 1.4.10).
 			// A collapsing trail (`data-collapse` on the `<nav>`) stays on one line
-			// instead, and only the current page can be narrower than its text.
+			// instead, and only the current page can be narrower than its text. Until the
+			// fit is measured (`data-fitting`), a trail of more than one crumb is
+			// transparent, and then it fades in.
 			list: [
 				flex.row,
 				'flex-wrap',
@@ -21,6 +23,8 @@ export const k = defineKata(
 				'wrap-break-word',
 				ji.ramp,
 				'in-data-collapse:min-w-0 in-data-collapse:flex-nowrap',
+				'in-data-collapse:motion-safe:transition-opacity',
+				'in-data-fitting:has-[[data-slot=breadcrumb-item]~[data-slot=breadcrumb-item]]:opacity-0',
 			],
 			item: [
 				flex.inline,

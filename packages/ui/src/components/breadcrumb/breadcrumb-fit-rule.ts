@@ -81,21 +81,14 @@ export function breadcrumbFit(nav: HTMLElement): number {
  * the rule only switches which of the two boxes of a crumb has width.
  *
  * @param id - The value of the trail's `data-collapse` attribute.
- * @param collapsed - The number of leading crumbs that show their mark. `null`
- * is the narrowest trail: every crumb above the current page shows its mark.
+ * @param collapsed - The number of leading crumbs that show their mark.
  * @returns The rule, or an empty string when no crumb gives way.
  * @internal
  */
-export function breadcrumbFitRule(id: string, collapsed: number | null): string {
-	if (collapsed !== null && collapsed < 1) return ''
+export function breadcrumbFitRule(id: string, collapsed: number): string {
+	if (collapsed < 1) return ''
 
-	const item = '[data-slot=breadcrumb-item]'
-
-	const crumbs = `[data-collapse="${id}"] ${item}${
-		collapsed === null
-			? `:not(:nth-last-child(1 of ${item}))`
-			: `:nth-child(-n+${collapsed} of ${item})`
-	}`
+	const crumbs = `[data-collapse="${id}"] [data-slot=breadcrumb-item]:nth-child(-n+${collapsed} of [data-slot=breadcrumb-item])`
 
 	return `${crumbs} [data-slot=breadcrumb-label]{max-width:0}${crumbs} [data-slot=breadcrumb-mark]{max-width:none}`
 }
