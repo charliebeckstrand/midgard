@@ -28,14 +28,15 @@ export type MapToggle = {
  * read as a broken map.
  *
  * @remarks Nor can an entry still arriving. Under `animate` a toggled-on entry
- * washes its color back in, and the emphasis would cover that wash the moment
- * it landed. The layer recedes and the emphasized marks redraw above it at full
+ * washes its color back in, and an emphasis covers that wash the moment it
+ * lands. The layer recedes and the emphasized marks redraw above it at full
  * strength, painted at the color the marks beneath are still traveling to. The
  * toggle that turned it on is also the click that put the pointer on its legend
- * entry, so the two always coincide. The wash would never be seen in that
- * direction. Toggling off clears the emphasis by hiding the entry, so it plays
- * in the open. So the emphasis waits out one fade, and the entry arrives
- * before the map dims around it.
+ * entry, so the two always coincide.
+ *
+ * Without a wait, the wash is never seen in that direction. A toggle off clears
+ * the emphasis by hiding the entry, so it plays in the open. So the emphasis
+ * waits out one fade, and the entry arrives before the map dims around it.
  *
  * The wait is the region wash's, because the region layer is the only thing an
  * emphasis paints a copy over. An overlay's marks unmount when hidden, so a
@@ -44,9 +45,9 @@ export type MapToggle = {
  *
  * It is skipped where there is no wash to protect: a static map, and a
  * reduced-motion reader. That reader's `motion-reduce` fallback drops the
- * transition, so the color is already there and the wait would be dead time. That preference
- * is read live rather than sampled at mount, so turning it on mid-session takes
- * effect on the next toggle.
+ * transition, so the color is already there and the wait would be dead time.
+ * That preference is read live rather than sampled at mount, so a change
+ * mid-session takes effect on the next toggle.
  *
  * @param animate - Whether the plat animates, so a toggle has a wash to wait for.
  * @param onHiddenChange - Reports each committed hidden set to the caller.

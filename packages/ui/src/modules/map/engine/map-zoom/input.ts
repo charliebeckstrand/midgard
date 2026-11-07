@@ -43,7 +43,9 @@ export type MapZoomInput =
 			 * after the fingers leave. What the key armed is swallowed to the end of
 			 * its own momentum, rather than scrolling the page the moment the key
 			 * goes. The zoom still stops with the key; only the coasting travel is
-			 * absorbed. A wheel that never runs down is never taken. A mouse notch
+			 * absorbed.
+			 *
+			 * A wheel that never runs down is never taken. A mouse notch
 			 * reports the same delta however long it turns. A reader who lets the key
 			 * go and scrolls on therefore always reaches the page.
 			 *

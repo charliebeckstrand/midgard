@@ -92,11 +92,13 @@ export type MapGeofenceProps = MapOverlayProps &
  * and a ground radius for a circle, or a ring of coordinates for a drawn
  * outline. Give it `area` for a territory of several parts, such as a ZIP-code
  * coverage area or a sales region. Any part there can enclose ground it leaves
- * out. Hovering anywhere in the zone raises the tooltip with its name and
- * detail, and isolates the zone. Every other mark recedes, as under its legend
- * entry's focus. With `onClick` set, the zone answers a click, and the keyboard
- * cursor picks it with Enter or Space. The plat's `selectedOverlay` haloes the
- * outline for as long as it names this mark.
+ * out.
+ *
+ * A hover anywhere in the zone raises the tooltip with its name and detail, and
+ * isolates the zone. Every other mark recedes, as under its legend entry's
+ * focus. With `onClick` set, the zone answers a click, and the keyboard cursor
+ * picks it with Enter or Space. The plat's `selectedOverlay` haloes the outline
+ * for as long as it names this mark.
  *
  * @remarks Renders only inside {@link MapPlat}, and draws nothing where the
  * projection keeps fewer than three of its points: the US composite drops
@@ -115,12 +117,13 @@ export type MapGeofenceProps = MapOverlayProps &
  * {@link MapPoint}, a {@link MapPoints} dot, or a {@link MapMarker} pin on a
  * drawn zone takes half the room the zone holds for a mouse. A depot therefore
  * never claims the middle of its own catchment, and a zone drawn small around a
- * mark still answers under it. It is a share of the zone's own room rather than
- * a yes-or-no. Every mark on one zone therefore points alike, however the ring
- * runs through them. A zone wide enough to spare the whole target spares
- * it. Toggling the zone off
- * in the legend hands the pixels back too: the dot is alone on its ground again,
- * and takes the full target.
+ * mark still answers under it.
+ *
+ * It is a share of the zone's own room rather than a yes-or-no. Every mark on
+ * one zone therefore points alike, however the ring runs through them. A zone
+ * wide enough to spare the whole target spares it. A zone toggled off in the
+ * legend hands the pixels back too: the dot is alone on its ground again, and
+ * takes the full target.
  *
  * The boundary is stated in device pixels, so a zoom widens the ground the zone
  * covers and never the outline. Under the plat's `animate` the outline draws

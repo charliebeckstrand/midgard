@@ -35,10 +35,11 @@ const NO_STOPS: LngLat[] = []
 /**
  * A route drawn over the geography: a round-joined polyline through its
  * stops, or along a street-following `path`. It registers in the plat's
- * legend as its own toggleable, focusable entry. Hovering the line raises
+ * legend as its own toggleable, focusable entry. A hover on the line raises
  * the tooltip with the route's name and detail, and isolates the route.
- * Every other mark recedes, as under its legend entry's focus. A wide
- * invisible hit stroke keeps the thin line aimable. With `onClick` set, that
+ * Every other mark recedes, as under its legend entry's focus.
+ *
+ * A wide invisible hit stroke keeps the thin line aimable. With `onClick` set, that
  * stroke answers a click and the keyboard cursor picks the route with Enter
  * or Space. The plat's `selectedOverlay` haloes the whole line for as long as
  * it names this mark.

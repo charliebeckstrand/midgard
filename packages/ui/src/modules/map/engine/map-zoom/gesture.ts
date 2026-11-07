@@ -74,8 +74,10 @@ export function wheelPush(deltaY: number, deltaX: number): number {
  * stream has to show it before the map keeps a tail off it. The first push
  * after the modifier goes must be strictly smaller. A mouse notch reports a
  * fixed delta whatever the hand does, so an unchanged push is a wheel still
- * being turned. Holding those would strand a reader who let the key go and kept
- * scrolling. Once a stream is running down it can plateau. The decay rounds to
+ * being turned. A hold on those strands a reader who let the key go and kept
+ * scrolling.
+ *
+ * Once a stream is running down it can plateau. The decay rounds to
  * a pixel or two long before it stops. By then it is momentum the page must not
  * be given.
  *
@@ -101,8 +103,9 @@ export type MapZoomKey = 'in' | 'out' | 'fit'
 /**
  * Reads a key to a zoom action, or `null` for every key that is not one. The
  * cursor's arrows, Home, End, Enter, and Escape all fall through untouched.
- * `+` and `-` are read through their unshifted keys too, so the gesture needs no
- * modifier on a keyboard that shifts them.
+ * `+` also reads through `=`, the same key without Shift, and `-` also reads
+ * through `_`, the same key with Shift. Thus each step works with Shift held or
+ * not.
  *
  * @internal
  */

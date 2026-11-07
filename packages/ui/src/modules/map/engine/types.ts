@@ -55,8 +55,8 @@ export type MapSwatchShape = 'rect' | 'line' | 'dot'
 /**
  * The shape of a point mark. A `circle` is the default. A `square` is a box
  * with rounded corners, the shape of its square `Swatch` key. It lets two point
- * sets on one map differ in shape as well as in color, so a reader with a color
- * vision deficiency can still tell them apart.
+ * sets on one map differ in shape as well as in color. Thus a reader with a
+ * color vision deficiency can still tell them apart.
  */
 export type MapPointShape = 'circle' | 'square'
 
@@ -154,8 +154,11 @@ export type MapNamedProjection = 'mercator' | 'albers-usa' | 'equal-earth'
 
 /**
  * How the map projects the globe onto the frame: a built-in name, or any
- * `d3-geo` projection instance as the escape hatch. Either way the projection
- * is refit to the drawn geography whenever the frame resizes.
+ * `d3-geo` projection instance as the escape hatch. A named projection is refit
+ * to the drawn geography whenever the frame resizes. A passed instance is fit to
+ * the geography one time and keeps that fit, and a frame transform carries its
+ * output onto the measured frame. Thus a point that the consumer projects
+ * through the instance lands in the units of the canonical frame.
  */
 export type MapProjection = MapNamedProjection | GeoProjection
 

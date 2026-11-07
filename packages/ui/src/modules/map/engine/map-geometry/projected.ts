@@ -13,17 +13,20 @@
  * d3 projection places a point as `scale · raw + translate` and nothing else.
  * Two fits of one projection therefore differ by a scale and a translation on
  * the frame. That is the same fact `scaleCanonicalFit` (`map-projection/fit`)
- * already derives the measured fit itself from. The claim is tested rather than
- * trusted. The buffer keeps one witness position. A fit that does not place it
- * where the affine says refuses the buffer, instead of drawing from it
- * ({@link agrees}).
+ * already derives the measured fit itself from.
+ *
+ * The claim is tested rather than trusted. The buffer keeps one witness
+ * position. A fit that does not place it where the affine says refuses the
+ * buffer, instead of drawing from it ({@link agrees}).
  *
  * The strings are the walk's own, byte for byte, wherever `d3-geo` would resample
  * the geography the same way at both fits. `geoPath` refines a curve until its
  * chord sits within a tolerance measured in frame units, so a buffer freezes the
- * vertices its own fit resolved. A larger frame would have earned more of them,
- * and a smaller one fewer. A geography whose own vertices already sit inside
- * that tolerance is refined at no fit, and so matches at every one. Every real
+ * vertices its own fit resolved. A larger frame earns more of them, and a
+ * smaller one fewer.
+ *
+ * A geography whose own vertices already sit inside that tolerance is refined
+ * at no fit, and so matches at every one. Every real
  * atlas is such a geography, being a quantized topology. `states-10m` matches
  * the direct walk from a third of its canonical width to sixteen times it, where
  * a four-vertex polygon parts from it. Both are pinned in
@@ -114,8 +117,9 @@ export function areaOnly(features: MapFeature[]): boolean {
  * A projection that carries an explicit `clipExtent` is the one refusal. The
  * extent cuts in frame units and stays where it is when the projection is
  * scaled. The geography it keeps is therefore a different piece of the map at
- * every fit. The buffer instead holds the one piece it was drawn with. The
- * built-in projections all report none. `albers-usa` carries no `clipExtent`
+ * every fit. The buffer instead holds the one piece it was drawn with.
+ *
+ * The built-in projections all report none. `albers-usa` carries no `clipExtent`
  * method at all, and `mercator` and `equal-earth` default to `null`. The
  * world-square clip `mercator` holds internally is re-derived from the scale on
  * every change. It therefore cuts the same ground at every fit, and never
@@ -192,12 +196,14 @@ const WITNESS_TOLERANCE = 1e-6
  * so any two fits of one projection differ by exactly this affine. That is what
  * `scaleCanonicalFit` (`map-projection/fit`) already derives the measured fit
  * from. But the two are stated in different files, and a projection reaching the
- * emit need not be one of the three the module mints. A `center`, a `rotate`, a
- * per-axis factor, or a `postclip` set below `clipExtent` would each break the
- * claim. Each would leave `scale` and `translate` readable and plausible. Placing
- * one known position through `fitted` and comparing costs a single projection
- * call against a pass of tens of thousands. It turns every one of those into a
- * fallback to the direct walk, rather than a wrong map.
+ * emit need not be one of the three the module mints.
+ *
+ * A `center`, a `rotate`, a per-axis factor, or a `postclip` set below
+ * `clipExtent` each breaks the claim. Each leaves `scale` and `translate`
+ * readable and plausible. A test that places one known position through
+ * `fitted` costs a single projection call against a pass of tens of thousands.
+ * It turns every one of those into a fallback to the direct walk, rather than a
+ * wrong map.
  */
 function agrees(
 	atlas: MapProjectedAtlas,
@@ -355,13 +361,14 @@ function bufferBounds(points: Float64Array): [number, number, number, number] {
  * then falls back to `canonicalFit` (`map-projection/fit`), which measures its
  * own bounds and leaves the buffer to be drawn later.
  *
- * The two passes were one walk apart and measured the same coordinates.
+ * The fit and the buffer measure the same coordinates.
  * `fitProjectionWidth` streams the geography at {@link PROBE_SCALE} to read its
- * bounds, and keeps only the scale and translate it derives. The buffer then
- * streamed it again to record where every point landed. But bounds are a scan of
- * those same points, so the walk that fills the buffer can measure the frame on
- * its way. The two passes then cost about as much as the buffer alone did. On a
- * quantized atlas, whose vertices already sit inside the finer tolerance of
+ * bounds, and keeps only the scale and translate it derives. A separate buffer
+ * pass streams it again to record where every point lands. But bounds are a
+ * scan of those same points, so the walk that fills the buffer measures the
+ * frame on its way. Thus the two cost about as much as the buffer alone.
+ *
+ * On a quantized atlas, whose vertices already sit inside the finer tolerance of
  * {@link PROBE_REFINEMENT}, the frame comes out to the same bit. A geography
  * with long edges that d3 resamples measures a slightly different frame,
  * because the walk here resamples them more finely than `fitProjectionWidth`.

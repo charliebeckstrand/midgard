@@ -5,18 +5,19 @@
  * The companion to `crowd.ts`, answering the same question (how much of this ground is mine) with a
  * shape instead of a radius. A radius is the right answer for a zone's claim. A `MapGeofence` is a
  * face, not a point, so there is no line to divide along. A dot standing on one can only give
- * reach back evenly. It is the wrong answer for a neighboring DOT. Shrinking both targets to the
- * gap costs each of them reach in every direction. That includes the three quarters of the compass
- * where nothing is competing for anything. Two dots twenty pixels apart therefore end up with
- * targets a reader has to aim at precisely. They pay that for an ambiguity that only ever existed
- * between them.
+ * reach back evenly.
  *
- * A dot's ground is instead its full target MINUS whatever lies nearer to a neighbor. The boundary
+ * A radius is the wrong answer for a neighboring dot. A shrink of both targets to the gap costs
+ * each of them reach in every direction. That includes the three quarters of the compass where
+ * nothing competes for anything. Two dots twenty pixels apart then get targets that a reader has to
+ * aim at precisely. They pay that for an ambiguity that only exists between them.
+ *
+ * A dot's ground is instead its full target minus whatever lies nearer to a neighbor. The boundary
  * between two dots is the perpendicular bisector of the segment joining them. Each therefore keeps
  * the whole of its finger target outward. The contested middle divides once, evenly, along a line a
  * reader could have drawn themselves. It is also the only division that cannot depend on draw
- * order. Before this, the overlap belonged to whichever dot happened to render last. The pin
- * underneath silently lost a crescent of its target, and its tooltip with it.
+ * order. Without it, the overlap goes to the dot that renders last, and the pin under it loses a
+ * crescent of its target and its tooltip.
  *
  * The result is a convex polygon rather than the true circle-minus-lens. The target is a `<circle>`
  * under a `clip-path`, so the arc comes from the circle and this supplies only the straight cuts.

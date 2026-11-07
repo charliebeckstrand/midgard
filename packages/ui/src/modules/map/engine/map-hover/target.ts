@@ -8,8 +8,8 @@
 
 /**
  * What the pointer is on: a region by feature index, or an overlay mark by its
- * registered mark id (`MapOverlayEntry.id`), which is not its legend id where the
- * mark has a `group`. The map's hover targets are heterogeneous, where a chart's
+ * registered mark id (`MapOverlayEntry.id`). Where the mark has a `group`, that
+ * id is not its legend id. The map's hover targets are heterogeneous, where a chart's
  * are one category axis.
  *
  * @internal

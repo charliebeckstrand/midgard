@@ -16,13 +16,12 @@ import type { DataKey } from '../types'
 import type { MapCategoryMeta } from './category'
 
 /**
- * A map's `formatValue`, or {@link fractionFormat} where it has none: digits in
- * the `<LocaleProvider>` locale with up to two fraction places, as a chart formats
- * the same data. The
- * readout and the range legend resolve it through here, rather than each
- * defaulting for itself. A map without the prop would otherwise format its
- * tooltip and table by one rule, and its bar's endpoints by another. Nothing
- * would catch the drift.
+ * A map's `formatValue`, or {@link fractionFormat} where it has none. The
+ * default writes digits in the `<LocaleProvider>` locale with up to two fraction
+ * places, as a chart formats the same data. The readout and the range legend
+ * resolve it through here, rather than each defaulting for itself. Otherwise a
+ * map without the prop formats its tooltip and table by one rule, and its bar's
+ * endpoints by another. Nothing catches the drift.
  *
  * @internal
  */

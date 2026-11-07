@@ -1,16 +1,17 @@
 /**
  * The map's cross-instance memos, over results that are pure functions of an
- * atlas and cost tens of milliseconds to rebuild.
+ * atlas and cost a large share of a mount to rebuild.
  *
  * The mount-critical pair leads: decoding the geography and fitting the
  * measurement-free canonical projection. That fit's region paths are a call
- * away for the map that paints before it is measured. Every {@link MapPlat}
- * mount pays them afresh on the render path before the geography can paint.
- * That is tens of milliseconds on a US states atlas, and more on a county one.
- * Two plats drawing one atlas (the docs' Route tab renders two; a dashboard's
- * small multiples) reuse the first mount's result. So does a remount of the
- * same map: a tab switch under `mount="active"`, or a route revisit. The
- * geography therefore paints on the first commit, without re-paying the fit.
+ * away for the map that paints before it is measured. Without the memo, each
+ * {@link MapPlat} mount pays them on the render path before the geography can
+ * paint. A county atlas pays more than a states atlas.
+ *
+ * Plats that draw one atlas, such as the small multiples of a dashboard, reuse
+ * the result of the first mount. So does a remount of the same map: a tab
+ * switch under `mount="active"`, or a route revisit. The geography therefore
+ * paints on the first commit, without a second fit.
  *
  * The rest resolve on their first read:
  *
@@ -50,9 +51,9 @@ import { rewindFeatures } from './winding'
 /**
  * The mount-critical geometry a {@link MapPlat} draws from on its first,
  * measurement-free commit: the decoded features and the canonical fit (`null`
- * with nothing to fit). The paths that fit draws are memoized beside it rather
- * than on it ({@link cachedCanonicalPaths}), because a caller such as the
- * coverage hook wants the fit and never the paths. Shared across instances, so
+ * with nothing to fit). The paths that fit draws are memoized beside it, not on
+ * it ({@link cachedCanonicalPaths}). A caller such as the coverage hook wants
+ * the fit and never the paths. Shared across instances, so
  * treat every field as read-only.
  *
  * @internal
@@ -73,11 +74,11 @@ export type StaticMapGeometry = {
 const EMPTY: StaticMapGeometry = { features: [], canonical: null, atlas: null }
 
 // Atlas → object name → its decoded, rewound features. Held apart from the pair
-// below because two readers want it and only one of them wants the fit: the
-// geometry above draws the atlas, and the coverage hook filters it to the
-// regions a territory lands in. Decoding a county topology runs to tens of
-// milliseconds, so the two must not each pay it, and a map that draws the
-// filtered result never decodes the whole atlas twice.
+// below because not every reader wants the fit. The geometry above draws the
+// atlas, and the coverage hook filters it to the regions that a territory lands
+// in. A decode of a county topology is a large share of a mount, so the readers
+// must not each pay it. Thus a map that draws the filtered result never decodes
+// the whole atlas twice.
 const decoded = new WeakMap<MapGeography, Map<string | undefined, MapFeature[]>>()
 
 /**
@@ -325,9 +326,9 @@ function projectedPaths(geometry: StaticMapGeometry, fitted: GeoProjection): (st
  * couldn't key a shared entry anyway.
  *
  * {@link emitRegionPaths} emits these from the shared buffer, which is what
- * takes a resize off the projection entirely. The slot above holds one box, so
- * a drag re-drew the whole atlas at every size it committed, at many times the
- * cost of emitting the paths.
+ * takes a resize off the projection entirely. The slot above holds one box.
+ * Without the emit, a drag redraws the whole atlas at each size that it
+ * commits, at many times the cost of an emit.
  *
  * @internal
  */

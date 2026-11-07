@@ -153,14 +153,8 @@ function MapLineDraw({
  * The band is {@link ROUTE_HIT_WIDTH} in device pixels, WCAG 2.5.8's minimum.
  * The constant explains that a line takes it in place of the 44px a dot claims.
  * It converts to frame units the way the drawn line does. A zoom therefore
- * widens the ground the mark covers, and never the target itself.
- *
- * @param slot - the `data-slot` naming this target.
- * @param d - the path it traces, which is the mark's own.
- * @param scale - frame units per device pixel, which the band converts through.
- * @param hit - the mark's pointer plumbing, spread last so its handlers win.
- * @param face - whether the mark's enclosed ground answers too, not just the
- * band around its edge.
+ * widens the ground the mark covers, and never the target itself. The `hit`
+ * props spread last, so the handlers of the mark win.
  *
  * @internal
  */

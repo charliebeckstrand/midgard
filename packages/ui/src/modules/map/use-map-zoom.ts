@@ -136,17 +136,20 @@ type MapWheelStream = {
  * Zoom and pan over the fitted geography, as a transform rather than a refit.
  * The projection places the geography once and this moves what it placed. A
  * gesture therefore costs one attribute write, where a refit would reproject
- * every region path. Every mark keeps its device-pixel size, because the
- * strokes that paint them do not scale.
+ * every region path. The transform scales the strokes too. Each mark keeps its
+ * device-pixel size because it multiplies its sizes by the `unitsPerPixel` that
+ * the plat publishes.
  *
  * Wheel, drag, and pinch drive it. The wheel rides a non-passive listener on the
  * SVG, because React registers `onWheel` passively and a passive handler cannot
- * take the gesture from the page. It takes the gesture only where the transform
- * actually moves. A scroll at the fit (or past the ceiling) therefore falls
- * through, and the page scrolls rather than trapping the reader. A drag pans
- * once it passes {@link MAP_PAN_THRESHOLD}, and the click that follows is swallowed, so
- * a pan across a clickable map never reports a pick. Two pointers pinch about
- * their own midpoint.
+ * take the gesture from the page. With no modifier, it takes the gesture only
+ * where the transform moves. A scroll at the fit (or past the ceiling) then
+ * goes to the page, so the map does not trap the reader. A wheel with the
+ * modifier key held is aimed at the map, so the map takes it in all cases.
+ *
+ * A drag pans once it passes {@link MAP_PAN_THRESHOLD}. The click that follows
+ * goes nowhere, so a pan across a clickable map never reports a pick. Two
+ * pointers pinch about their own midpoint.
  *
  * The transform is derived against the live frame on every render, not only when
  * a gesture writes it. A resize changes the pan limits, and re-constraining here
@@ -214,9 +217,9 @@ export function useMapZoom({
 		live.current = { transform, view, max }
 	}, [transform, view, max])
 
-	// Memoized because the wheel effect below depends on it; every other handler
-	// here lands on a freshly built object each render and feeds no dependency
-	// array, so memoizing those would buy nothing.
+	// Memoized because the wheel effect below depends on it. The pointer handlers
+	// land on a new object each render and feed no dependency array, so a memo
+	// on them would give nothing.
 	const commit = useCallback((next: MapTransform) => {
 		// The live view takes the write at once, not on the next render. A phone
 		// reports each finger of a pinch as its own move, and both moves can land
@@ -818,10 +821,11 @@ export function useMapZoom({
  * A modifier map holds the stream it takes until the stream itself ends, rather
  * than until the key is let go. {@link takeWheelTail} answers that.
  *
- * Split out because it is the one part of the gesture set that carries a
- * dependency array. That is why `commit` above is the hook's one memoized
- * callback. Everything it reads per event comes off `live`, so the listener
- * binds once while the frame has an area, not once per gesture or per resize.
+ * Its effect carries a dependency array, and `commit` and `holdGesture` are in
+ * it. Thus those two are memoized, and so is `settleGesture`, which
+ * `holdGesture` reads. Everything it reads per event comes off `live`. Thus the
+ * listener binds once while the frame has an area, not once per gesture or per
+ * resize.
  *
  * @internal
  */
@@ -904,12 +908,14 @@ function useWheelZoom(
  * finger scrolls past the map. Two fingers pan and pinch it. The pointer events
  * cannot carry that. Two fingers seldom land at one instant, and the first one
  * can start the page's scroll before the second lands. The browser then cancels
- * that pointer and sends no pointer event for the second. The touch events keep
- * arriving through all of it, so they carry the pinch. The handler cancels them
- * while two fingers hold the map, and the browser then neither scrolls nor zooms
- * the page under the pinch. A scroll already under way cannot be canceled, and
- * the pinch reads a fresh box for it. The listeners are native because React
- * registers the touch events passively, and a passive handler cannot cancel one.
+ * that pointer and sends no pointer event for the second.
+ *
+ * The touch events keep arriving through all of it, so they carry the pinch.
+ * The handler cancels them while two fingers hold the map, and the browser then
+ * neither scrolls nor zooms the page under the pinch. A scroll already under way
+ * cannot be canceled, and the pinch reads a fresh box for it. The listeners are
+ * native because React registers the touch events passively, and a passive
+ * handler cannot cancel one.
  *
  * Each contact's own target also gets the listeners, until the plot's last
  * contact lifts. A touch event goes to the node that the touch landed on, even
@@ -1037,8 +1043,9 @@ const TOUCH_EVENTS = ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as c
 /**
  * The contacts down on the plot after a touch event, by touch identifier, in
  * viewport coordinates. A contact is the plot's if it landed there: `held` has it
- * already, or this `touchstart` brings it. Read by identifier, not by target, so
- * a finger keeps the pinch when the dot it landed on regroups out of the tree. A
+ * already, or this `touchstart` brings it. Read by identifier, not by target.
+ * Thus a finger keeps the pinch when the dot it landed on regroups out of the
+ * tree. A
  * finger that landed off the plot is never one of its contacts.
  */
 function readContacts(event: TouchEvent, held: Map<number, MapPoint2D>): Map<number, MapPoint2D> {

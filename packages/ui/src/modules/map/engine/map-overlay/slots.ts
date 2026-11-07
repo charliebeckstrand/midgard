@@ -3,11 +3,11 @@
  * categorical order after the region categories.
  *
  * Held apart from the plat that owns the ledger, for two reasons. The answer
- * has three readers: the marks' own paint, the legend's swatches, and the
- * tooltip's. A group is also one entry rather than one mark. The rule that its
- * members share a color is the rule that makes a merged entry read as one
- * thing. It belongs beside the ledger it reads, rather than inline in the
- * assembly.
+ * has more than one reader, such as the paint of the marks, the swatches of the
+ * legend, and the swatches of the tooltip. A group is also one entry rather than
+ * one mark. The rule that its members share a color makes a merged entry read
+ * as one thing. Thus the rule belongs beside the ledger that it reads, not
+ * inline in the assembly.
  */
 
 import type { MapSeriesColor } from '../../../../recipes/kata/map'

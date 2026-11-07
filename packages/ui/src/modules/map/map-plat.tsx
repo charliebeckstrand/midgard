@@ -128,14 +128,15 @@ type MapPlatBaseProps = AccessibleName &
 		/** Frame height in px; wins over `aspectRatio` when set (a free-form fixed height). */
 		height?: number
 		/**
-		 * Height as a ratio of the width. `'auto'` takes the fitted geography's own
-		 * projected proportions. A number or `"4/3"` string fixes one, and `false`
-		 * fills the container's height. Before the box is measured, as on the
-		 * server, the map draws its canonical fit scaled to meet the box, in the
-		 * place where the measured fit draws it. With `false`, the container must
-		 * have a definite height, such as a fixed height or a grid area. A flex
-		 * item that grows in a column of auto height is not one, so put the map in
-		 * a box with `grid` there.
+		 * The ratio of the width to the height. `'auto'` takes the fitted
+		 * geography's own projected proportions. A number or `"4/3"` string fixes
+		 * one, and `false` fills the container's height. Before the box is
+		 * measured, as on the server, the map draws its canonical fit scaled to
+		 * meet the box. It draws in the place where the measured fit draws it.
+		 *
+		 * With `false`, the container must have a definite height, such as a fixed
+		 * height or a grid area. A flex item that grows in a column of auto height
+		 * is not one, so put the map in a box with `grid` there.
 		 * @defaultValue 'auto'
 		 */
 		aspectRatio?: MapAspectRatio
@@ -172,21 +173,23 @@ type MapPlatBaseProps = AccessibleName &
 		sphere?: boolean
 		/**
 		 * Shows the readout naming the pointed region or overlay. It also gates
-		 * keyboard navigation, which the readout is the whole output of. Each arrow
-		 * key that moves the cursor onto a stop speaks the readout of that stop
-		 * through a polite live region, because the tooltip is `aria-hidden`. A
-		 * pointer hover speaks nothing. A touch shows no readout. Turned off, the plot region takes no tab
-		 * stop and stays a plain `role="img"` leaf, and the data table carries the
-		 * values alone.
+		 * keyboard navigation, which the readout is the whole output of. The
+		 * tooltip is `aria-hidden`, so a polite live region speaks the readout of
+		 * each stop that an arrow key moves the cursor onto. A pointer hover speaks
+		 * nothing. A touch shows no readout. Turned off, the plot region takes no
+		 * tab stop and stays a plain `role="img"` leaf, and the data table carries
+		 * the values alone.
 		 * @defaultValue true
 		 * @remarks It asks for a readout rather than asserting one. A map no row
 		 * matches and no mark draws on has nothing to name, so it takes no tab stop
 		 * whatever this prop says. A pick or a zoom still earns one, because each is
 		 * an output of its own. On that stop, with the readout off, each arrow key
-		 * speaks the name of the stop alone. With the readout on, a region stop that
-		 * reads nothing speaks its name when the map has {@link onRegionClick},
-		 * because Enter picks that region. An unmatched region raises no tooltip
-		 * and takes no emphasis. Its table row shows the gap mark as its value.
+		 * speaks the name of the stop alone.
+		 *
+		 * With the readout on, a region stop that reads nothing speaks its name
+		 * when the map has {@link onRegionClick}, because Enter picks that region.
+		 * An unmatched region raises no tooltip and takes no emphasis. Its table
+		 * row shows the gap mark as its value.
 		 */
 		tooltip?: boolean
 		/**
@@ -218,10 +221,10 @@ type MapPlatBaseProps = AccessibleName &
 		 * about the pointer, a drag pans, and two touches pan and pinch. The plot's
 		 * own tab stop takes `+`, `-`, and `0`, so the keyboard reaches every scale
 		 * the pointer does. Each of these keys speaks the result through a polite
-		 * live region: `+` and `-` the new scale as a percent of the fit, such as
-		 * `Zoom 160%`, and `0` the text `Zoom reset`. `true` takes the default
-		 * ceiling, a number sets its own, and the object form adds `modifier`
-		 * (below).
+		 * live region. `+` and `-` speak the new scale as a percent of the fit,
+		 * such as `Zoom 160%`, and `0` speaks `Zoom reset`. `true` takes the
+		 * default ceiling, a number sets its own, and the object form adds
+		 * `modifier` (below).
 		 *
 		 * It is a transform over the fitted geography, not a refit. The projection
 		 * places the regions once and the layer moves what it placed, so a gesture
@@ -241,8 +244,10 @@ type MapPlatBaseProps = AccessibleName &
 		 * never carries the geography off the frame.
 		 *
 		 * Nothing on the map answers the pointer for the length of a gesture. A
-		 * scaling frame sweeps the geography under a stationary pointer. Without that,
-		 * a wheel would drag the readout across every region and dot it crossed. A wheel reports no end, so it is read from a gap in the notches.
+		 * scaling frame sweeps the geography under a stationary pointer. Without
+		 * that, a wheel drags the readout across every region and dot that it
+		 * crosses. A wheel reports no end, so the end is read from a gap in the
+		 * notches.
 		 *
 		 * @defaultValue false
 		 * @remarks The page keeps every wheel the reader does not aim at the map.
@@ -257,8 +262,7 @@ type MapPlatBaseProps = AccessibleName &
 		 * `{ modifier: false }` arms the wheel outright, for a map that owns its
 		 * screen. A plain wheel zooms, and the gesture goes back to the page only
 		 * where the view can no longer move. The plot claims touch, so one finger
-		 * pans.
-		 * Reach for it rarely.
+		 * pans. Reach for it rarely.
 		 */
 		zoom?: MapZoomInput
 		/**
@@ -302,15 +306,16 @@ type MapPlatBaseProps = AccessibleName &
 		 * region color washes in. Routes and zone outlines draw themselves. Points
 		 * pop in by registration order. A marker pops its start pin, draws its line,
 		 * then pops its end pin. The geography itself never fades, so the map is
-		 * legible immediately and only the data animates on. Honors
-		 * `prefers-reduced-motion` through the `ReducedMotion` primitive and the
-		 * color wash's `motion-reduce` fallback. Off by default: a static map
+		 * legible immediately and only the data animates on.
+		 *
+		 * Honors `prefers-reduced-motion` through the `ReducedMotion` primitive and
+		 * the color wash's `motion-reduce` fallback. Off by default: a static map
 		 * stays a plain-SVG tree with no motion runtime work.
 		 *
 		 * `true` washes every region in at once. `'sweep'` washes the regions in
 		 * from east to west, by where each centroid draws, so the color crosses the
-		 * map as one wave. The sweep is the reveal's alone: a later
-		 * legend toggle washes at once.
+		 * map as one wave. The sweep is the reveal's alone: a later legend toggle
+		 * washes at once.
 		 * @defaultValue false
 		 */
 		animate?: boolean | 'sweep'
@@ -612,14 +617,14 @@ function bridgeRegionIdentity(
 
 /**
  * The preload reporter, by feature index, wrapped in the latch a warmed region
- * keeps: the pointer crosses back over a region as freely as it first arrived,
+ * keeps. The pointer crosses back over a region as freely as it first arrived,
  * and the second crossing has nothing left to warm. `undefined` when nothing
  * asked to be told of intent.
  *
  * The reporter keeps one identity, and it reads `report`, `regionIds`, and
  * `features` when the dwell fires. An inline `onRegionPreload` or `regionId` is
- * a fresh identity every render, and to re-key the latch on either would warm a
- * region the reader already warmed. It reports through
+ * a fresh identity every render. A latch keyed on either warms a region again
+ * that the reader already warmed. It reports through
  * {@link bridgeRegionIdentity}, so a preload, a click, and a menu resolve the
  * identity of a region one way.
  *
@@ -691,10 +696,9 @@ type MapRegionPointerState = {
 	 * matched region reads out under the pointer, a warmed one loads on the dwell,
 	 * and a right-click can open a menu on it.
 	 *
-	 * Read as clicks alone, a map whose regions are read-only kept the full finger
-	 * target on every dot. The several county maps a coverage drill tiles take no
-	 * county pick, because a pick could only be read back onto one of them. Each of
-	 * their pins went on putting a 44px hole in the readout underneath.
+	 * Thus a map whose regions only read out still answers, and a dot over it
+	 * narrows. Read as clicks alone, each dot on such a map keeps the full
+	 * finger target. It then puts a 44px hole in the readout under it.
 	 */
 	answers: boolean
 	/** The pick the layer makes, on the pointer and on the keyboard alike. */
@@ -748,14 +752,15 @@ const NO_CENTROIDS: (LngLat | null)[] = []
  * An SVG geography map on the chart module's interaction grammar. Regions take
  * their color by category from typed rows. One merged legend dims everything
  * outside a pointed entry's group and outlines the regions in it, and a click
- * toggles that group off. Pointing
- * a region or overlay on the map isolates it behind the same recede. A
- * pointer-anchored Tooltip carries the readout. A ring marks the region the
- * consumer holds selected, and a halo marks the overlay mark. A visually-hidden
- * data table carries the values. Optional graticule and sphere chrome rules the frame beneath it all.
- * Geometry is prop-supplied TopoJSON / GeoJSON; {@link MapRoute},
- * {@link MapPoint}, {@link MapMarker}, and {@link MapGeofence} children draw
- * over the geography and register their own legend entries.
+ * toggles that group off. A pointed region or overlay on the map isolates
+ * behind the same recede. A pointer-anchored Tooltip carries the readout.
+ *
+ * A ring marks the region the consumer holds selected, and a halo marks the
+ * overlay mark. A visually-hidden data table carries the values. Optional
+ * graticule and sphere chrome rules the frame beneath it all. Geometry is
+ * prop-supplied TopoJSON / GeoJSON. {@link MapRoute}, {@link MapPoint},
+ * {@link MapMarker}, and {@link MapGeofence} children draw over the geography
+ * and register their own legend entries.
  *
  * @remarks Consumers geocode addresses to coordinates through `AddressInput`
  * (or any provider) and fetch street-following paths through
@@ -765,9 +770,10 @@ const NO_CENTROIDS: (LngLat | null)[] = []
  * parent, so its content gives it no width. Give it a parent with a definite
  * width. In a parent that sizes to its content, the map gets only the width
  * that the other content of that parent gives. The frame is never narrower than
- * 12rem (`min-w-48`). A `left` or `right` legend goes beside the plot only at a frame
- * width of 32rem (`@lg`) or more. Below that width, the legend stacks under
- * the plot.
+ * 12rem (`min-w-48`).
+ *
+ * A `left` or `right` legend goes beside the plot only at a frame width of 32rem
+ * (`@lg`) or more. Below that width, the legend stacks under the plot.
  */
 export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const {

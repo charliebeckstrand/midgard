@@ -85,7 +85,7 @@ export type ScatterChartProps<T = never> = AccessibleName &
 	Omit<ChartBaseProps<T>, 'texture' | 'aria-label' | 'aria-labelledby' | 'aspectRatio'> &
 	ScatterFrameProps & {
 		/**
-		 * Height as a ratio of the width: a `width / height` number, a `"16/9"`
+		 * The ratio of the width to the height: a `width / height` number, a `"16/9"`
 		 * string, or `false` to fall back to the frame's own height policy. An
 		 * explicit `height` wins over it. {@link ChartBaseProps.aspectRatio} gives
 		 * the full rules.

@@ -46,8 +46,8 @@ const ZIP_PROPERTY_NAMES = [
 
 /**
  * A code as its five-digit string. A number has lost its leading zeros, since
- * `01001` and `1001` are one number, so it is padded back: a code is always
- * five digits wide. A string is read as written.
+ * `01001` and `1001` are one number. Thus it is padded back, because a code is
+ * always five digits wide. A string is read as written.
  *
  * @internal
  */

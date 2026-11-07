@@ -63,11 +63,7 @@ export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCa
  *
  * @internal
  */
-export function canonicalFrame(
-	canonical: MapCanonicalFit,
-	width: number,
-	height: number,
-): MapTransform {
+function canonicalFrame(canonical: MapCanonicalFit, width: number, height: number): MapTransform {
 	const k = Math.min(width / canonical.width, height / canonical.height)
 
 	return { x: (width - canonical.width * k) / 2, y: (height - canonical.height * k) / 2, k }
@@ -77,13 +73,14 @@ export function canonicalFrame(
  * The measured-frame fit derived from a {@link canonicalFit} by arithmetic
  * alone. The named projections' output is linear in `scale` and `translate`.
  * The composite `albers-usa` derives its inset offsets and clips from them
- * proportionally. Scaling the canonical parameters by the {@link canonicalFrame}
- * therefore frames the geography the way `fitSize`
- * would. It takes no bounds pass that re-projects every coordinate, the bulk of
- * a refit's cost on every resize. It lands within `fitSize`'s
- * adaptive-resampling margin, sub-percent, from the resampling each pass runs at
- * its own scale. Under the canonical aspect it is a pure zoom of the canonical
- * paint, so a refit never reshapes the geography.
+ * proportionally. A scale of the canonical parameters by the
+ * {@link canonicalFrame} therefore frames the geography the way `fitSize` does.
+ * It takes no bounds pass that re-projects every coordinate, the bulk of a
+ * refit's cost on every resize.
+ *
+ * It lands within `fitSize`'s adaptive-resampling margin, sub-percent, from the
+ * resampling each pass runs at its own scale. Under the canonical aspect it is a
+ * pure zoom of the canonical paint, so a refit never reshapes the geography.
  *
  * @internal
  */
@@ -109,7 +106,7 @@ export function scaleCanonicalFit(
  *
  * @internal
  */
-export type MapMeasuredFit = {
+type MapMeasuredFit = {
 	projection: GeoProjection
 	frame: MapTransform | null
 }

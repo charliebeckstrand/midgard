@@ -51,16 +51,18 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	 * region, or a reporter asked to be told, and the caller has not switched the
 	 * layer off. Off, the region paths take no pointer handlers at all. The
 	 * delegated pick and menu arrive `undefined` beside it, since a switched-off
-	 * layer withdraws all three. A backdrop map would otherwise commit hover state
-	 * on every move across every one of its paths. That re-renders the provider,
-	 * and a tooltip that resolves nothing. The pointed-emphasis gate lights no
+	 * layer withdraws all three.
+	 *
+	 * Otherwise a backdrop map commits hover state on every move across every one
+	 * of its paths. That re-renders the provider, and a tooltip that resolves
+	 * nothing. The pointed-emphasis gate lights no
 	 * unmatched region, so the whole cascade ends where it began.
 	 *
 	 * Whatever feeds this must read the same on the first commit as on the next.
 	 * That is why a registered overlay never does, though it counts as a readout
-	 * for the table and the tab stop. Overlays register from an effect. Folding
-	 * them in would therefore flip this a beat after mount, fail the layer's memo,
-	 * and re-map the whole atlas a second time. A category match and a reporter
+	 * for the table and the tab stop. Overlays register from an effect. If they
+	 * fold in, this flips a beat after mount, fails the layer's memo, and re-maps
+	 * the whole atlas a second time. A category match and a reporter
 	 * prop are both settled before the first paint.
 	 *
 	 * A clickable map keeps its affordance either way: the pointer cursor and
@@ -179,17 +181,18 @@ const Region = memo(function Region({
 		<path
 			// The region's DOM anchor: the hover provider's scroll-settle resolve,
 			// the shared track handler, and the tests name the region straight off
-			// this attribute. Deliberately not a `data-slot`: the stylesheet carries
-			// `[data-slot=…]` attribute selectors for other components, so on a
-			// county atlas thousands of paths would each pay attribute-rule
-			// matching at first style resolution (a quarter of the mount) for an
-			// anchor nothing styles by. The layer keeps its `map-regions` slot.
+			// this attribute. It is not a `data-slot` on purpose. The stylesheet
+			// carries `[data-slot=…]` attribute selectors for other components. On a
+			// county atlas, each of thousands of paths then pays attribute-rule
+			// matching at the first style resolution. That is a large share of the
+			// mount, for an anchor that no style reads. The layer keeps its
+			// `map-regions` slot.
 			data-region-index={index}
 			d={d}
 			// A numeric bin's color rides the `fill` presentation attribute, not
-			// an inline style: per-element CSSOM style declarations priced ~a fifth
-			// of the choropleth mount. A value paint never carries a fill class, so
-			// nothing in the cascade sits above the attribute.
+			// an inline style. A CSSOM style declaration on each element is a large
+			// share of the choropleth mount. A value paint never carries a fill
+			// class, so nothing in the cascade sits above the attribute.
 			fill={fillColor}
 			// No width of its own: the seam is inherited from `MapRegionsGroup`, which
 			// states why.
@@ -288,11 +291,12 @@ const MapRegionsBase = memo(function MapRegionsBase({
  * The shared emphasis recedes the layer as one group. The pointed mark isolates
  * itself, else the legend's focused group holds. The emphasized marks redraw lit
  * above it ({@link MapRegionsLit}), and stay lit while a lift fades the layer
- * back up. One element fades where thousands of
- * per-path transitions once ran, and the base tree holds its render through the
- * whole interaction. The selected region rings above both and outside the
- * recede, so the standing pick outlasts every passing emphasis. A selection made
- * before the pointer arrived must not vanish under it. That ring marks the
+ * back up. One element fades in place of thousands of per-path transitions, and
+ * the base tree holds its render through the whole interaction.
+ *
+ * The selected region rings above both and outside the recede, so the standing
+ * pick outlasts every passing emphasis. A selection made before the pointer
+ * arrived must not vanish under it. That ring marks the
  * region rather than repainting it: `fill="none"` leaves the region's own
  * color, and whatever dim it carries, reading through.
  *
@@ -301,8 +305,10 @@ const MapRegionsBase = memo(function MapRegionsBase({
  * backdrop to its slot color at once. It is a CSS color transition on a plain
  * `<path>`, not a motion fade. The geometry itself therefore never fades, a
  * many-region atlas never draws out the reveal, and the region layer carries no
- * motion runtime. `motion-reduce` drops the transition. A later legend toggle
- * crossfades on the same tempo. Under `animate="sweep"` the reveal alone washes
+ * motion runtime.
+ *
+ * `motion-reduce` drops the transition. A later legend toggle crossfades on the
+ * same tempo. Under `animate="sweep"` the reveal alone washes
  * across the map from east to west ({@link useChartSweep}).
  *
  * Memoized so it repaints only when its own geometry, category, or legend
@@ -429,20 +435,23 @@ type MapRegionsGroupProps = {
  * The width lives on a group rather than on each path, because the layer draws
  * one path per region. That is thousands, on a ZIP or county atlas. A width
  * restated per path would put all of them through React on every notch of a
- * gesture. That is the work {@link MapRegions}' memoization prevents. It lives
- * on *this* group rather than on the zoom layer above it, so the constant
- * governs an unzoomed map too. That map mounts no zoom group at all. The style
+ * gesture. That is the work {@link MapRegions}' memoization prevents.
+ *
+ * It lives on *this* group rather than on the zoom layer above it, so the
+ * constant governs an unzoomed map too. That map mounts no zoom group at all. The style
  * the browser recomputes when it changes is also bounded by the layer that owns
  * the seam.
  *
- * Its own component, so that reading the scale re-renders this one fiber and not
- * the atlas under it. `children` are elements {@link MapRegions} already built,
- * so they bail. That is the discipline {@link MapRegionSelected} keeps for the
- * same reason. What the browser still does per notch is not nothing.
- * `stroke-width` inherits, so a change re-resolves style for every path beneath,
- * and re-measures each stroke's bounds. That is the cost of a hairline that
- * holds. It is under what the non-scaling stroke it replaced spent, rebuilding a
- * transformed copy of every path's geometry on the same notch.
+ * Its own component, so that a read of the scale re-renders this one fiber and
+ * not the atlas under it. `children` are elements {@link MapRegions} already
+ * built, so they bail. That is the discipline {@link MapRegionSelected} keeps
+ * for the same reason.
+ *
+ * What the browser still does per notch is not nothing. `stroke-width`
+ * inherits, so a change re-resolves style for every path beneath, and
+ * re-measures each stroke's bounds. That is the cost of a hairline that holds.
+ * It is less than a non-scaling stroke spends, because that stroke rebuilds a
+ * transformed copy of the geometry of each path on the same notch.
  *
  * @internal
  */

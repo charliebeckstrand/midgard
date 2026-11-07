@@ -36,20 +36,20 @@ export const PROBE_SCALE = 150
  * translate centers the span in the frame, and the vertical one lifts the
  * geography's top edge onto y 0. Fits `projection` in place and reports the
  * height the frame comes to. It returns `null` where the bounds collapse on
- * either axis: no geography, a lone point, or a height that rounds to 0 on the
- * grid below.
+ * either axis. That is no geography, a lone point, or a height that rounds to 0
+ * on the grid below.
  *
  * The height is on the grid of the region paths ({@link REGION_PATH_DIGITS}).
- * It goes into the markup as the `viewBox` and the `aspect-ratio`, and the
- * last bits of the bounds are not the same in each JavaScript engine. In
+ * It goes into the markup as the `viewBox` and the `aspect-ratio`. The last
+ * bits of the bounds are not the same in each JavaScript engine. In
  * Node 22, the albers-usa states height is 585.000128913205. In Chromium 141,
  * it is 585.0001289132047. A value on the grid is the same in each engine, as
  * the paths are, so the server markup hydrates without a mismatch.
  *
- * Held apart from the pass that measures those bounds because two callers
- * measure them two ways and only one rule can place the result. This one runs a
- * `geoPath` over the geography, and the projected-atlas buffer scans the points
- * it already holds.
+ * Held apart from the pass that measures those bounds, because the callers
+ * measure them in different ways and only one rule can place the result. One
+ * runs a `geoPath` over the geography, and the projected-atlas buffer scans the
+ * points it already holds.
  *
  * @internal
  */

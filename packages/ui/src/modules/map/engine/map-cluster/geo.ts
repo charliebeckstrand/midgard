@@ -35,7 +35,7 @@ function sphericalCenter(coordinates: LngLat[]): LngLat | null {
  * A member, not the centroid itself, because the anchor must be a position
  * that the projection can draw. Under `albers-usa` a group can hold the dots of
  * two insets that stand close in the frame. Their centroid then lies in ground
- * that the composite does not draw, and a summary anchored there has no keyboard
+ * that the composite does not draw. A summary anchored there has no keyboard
  * stop and leaves the dot pool. Where antipodal members cancel to no center,
  * the first member anchors the group.
  *

@@ -71,8 +71,8 @@ function nameOnly(name: string | undefined, asked: boolean | undefined): MapTool
 }
 
 /**
- * The swatch of one stop of an entry: the swatch of the entry, or the shape and
- * the color of the stop's own dot where the stop has them.
+ * The swatch of one stop of an entry. That is the swatch of the entry, or the
+ * shape and the color of the stop's own dot where the stop has them.
  *
  * @internal
  */
@@ -109,9 +109,9 @@ function stopContent(
 
 /**
  * What the tooltip shows for a hover target: one block for each part of the
- * drawn mark under it, each keyed. A stop of a shared summary shows every part of
- * the summary, in the order of the ledger, because the pointer reaches the
- * summary as one dot. Every other target shows one block, its own. A part that
+ * drawn mark under it, each keyed. The pointer reaches a shared summary as one
+ * dot. Thus a stop of a shared summary shows every part of the summary, in the
+ * order of the ledger. Every other target shows one block, its own. A part that
  * the legend toggled off shows nothing. `null` where the tooltip stays away.
  *
  * @internal

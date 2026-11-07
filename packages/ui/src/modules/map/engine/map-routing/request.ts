@@ -27,8 +27,8 @@ export type RequestSignal = {
 /**
  * The signal to hand `fetch`: the caller's, a fresh timeout, or both combined
  * through {@link anySignal}. `AbortSignal.timeout` throws on a value that is not
- * a finite count of zero or more, so a timeout signal is built only for such a
- * `timeoutMs`; any other value sets no limit. A fired timeout rejects the
+ * a finite count of zero or more. Thus a timeout signal is built only for such a
+ * `timeoutMs`, and any other value sets no limit. A fired timeout rejects the
  * fetch, which {@link routeFetch} reads back as its own failure kind.
  *
  * @internal
@@ -73,11 +73,12 @@ function anySignal(signals: readonly AbortSignal[]): AbortSignal {
 }
 
 /**
- * Send one routing request and read what comes back. It tells apart the three
- * ways a request fails before its payload: a request that never answered, a
- * status the service refused with, and a body that does not parse. A refused
- * response can still carry the service's own refusal in its body (OSRM answers
- * `'NoRoute'` and `'NoSegment'` under a 400), so its body is read too. The
+ * Send one routing request and read what comes back. It tells apart the ways
+ * that a request fails before its payload. They are a request that never
+ * answered, a status the service refused with, and a body that does not parse.
+ * A refused response can still carry the service's own refusal in its body
+ * (OSRM answers `'NoRoute'` and `'NoSegment'` under a 400). Thus its body is
+ * read too. The
  * client keeps only the url its service takes.
  *
  * @param url - The service endpoint, with whatever the request rides in its path.

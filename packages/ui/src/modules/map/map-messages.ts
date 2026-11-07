@@ -2,9 +2,8 @@ import { defineMessage, defineMessages } from '../../primitives/intl/intl-messag
 import type { TypedMessageDescriptor } from '../../primitives/intl/types'
 
 /**
- * The messages of a map: the name of its legend, the header of the value
- * column of its data table, the announcement of a zoom reset, and the name of
- * each mark kind.
+ * The messages of a map. They name the legend, head the value column of the
+ * data table, announce a zoom reset, and name each mark kind.
  *
  * @internal
  */

@@ -242,11 +242,12 @@ export type MapOverlay = {
 	 * A resolver rather than the pool itself, and bound to this mark's id. The exclusion is the one
 	 * part a mark could get wrong, and it is still not the mark's to state. Lazy because only a
 	 * dot-shaped mark reads it, and the pool invokes every other entry's `dotsAt`. `MapPoints`
-	 * registers that as a thunk, precisely so the pass lands on the one reader. Resolved eagerly
-	 * here, every mark would trigger that pass for every other mark: M² of them. It would discard
-	 * the answer in all M cases wherever no dot-shaped mark was mounted. Memoize the result at the
-	 * call site; the resolver is stable until the plat's ledger, toggles or fit change, or until a
-	 * mark's dots move.
+	 * registers that as a thunk, so the pass lands on the one reader.
+	 *
+	 * Resolved eagerly here, every mark triggers that pass for every other mark: M² of them. Where
+	 * no dot-shaped mark is mounted, each of the M marks then discards the answer. Memoize the result
+	 * at the call site. The resolver is stable until the plat's ledger, toggles or fit change, or
+	 * until a mark's dots move.
 	 */
 	neighbors: () => MapPoint2D[]
 	/** Whether the plat animates; the mark picks its motion renderers off it. */
@@ -260,7 +261,7 @@ export type MapOverlay = {
 	 * pick names another mark, or an index the mark has no stop for. A stop of a
 	 * shared summary that another set draws still counts, because the pick names
 	 * the part of this set that the summary holds. A singular mark reads it as a
-	 * flag; a plural one haloes the dot it names, and the set that draws a shared
+	 * flag. A plural mark haloes the dot it names, and the set that draws a shared
 	 * summary haloes the summary.
 	 */
 	selected: number | null

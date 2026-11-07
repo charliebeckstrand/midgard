@@ -174,9 +174,10 @@ export function useMapCoverage({
 	)
 
 	// The placement, which decodes the region atlas only once a territory has
-	// something to place. A map mounted beside an empty coverage field would
-	// otherwise decode and rewind a whole county atlas (tens of milliseconds
-	// inside the consumer's render) for a result the frame below discards.
+	// something to place. Otherwise a map beside an empty coverage field decodes
+	// and rewinds a whole county atlas in the render of the consumer. That is the
+	// same order of work as a draw of the atlas, for a result that the frame below
+	// discards.
 	const placed = useMemo(() => {
 		if (area.features.length === 0) return NO_PLACEMENT
 

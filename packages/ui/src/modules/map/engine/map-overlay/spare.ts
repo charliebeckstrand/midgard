@@ -1,7 +1,7 @@
 /**
  * The resolver of the room that the ground under a dot leaves its target, as a store. The plat
- * folds the claims of the region layer and of each visible zone into one resolver, and a
- * dot-shaped mark reads it to size its hit target.
+ * folds the claims of the region layer and of each visible zone into one resolver. A dot-shaped
+ * mark reads it to size its hit target.
  *
  * A listener set, React-free, like the rest of the engine.
  */

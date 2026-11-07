@@ -59,10 +59,10 @@ export function groupLegendId(group: string): string {
 
 /**
  * The currentColor class an overlay's swatch reads, from the slot the plat
- * assigned it. Named here because two readers key it off one mark: this module's
- * legend items, and the plat's tooltip entries. That pair is the one
- * `readoutSwatchShapes` of the chart readout already answers on the shape half, and each spelled the fallback
- * itself.
+ * assigned it. It has a name here because more than one reader keys it off one
+ * mark. Examples are the legend items of this module and the tooltip entries of
+ * the plat. Thus no reader spells the fallback itself. On the shape half,
+ * `readoutSwatchShapes` of the chart readout does the same.
  *
  * @internal
  */

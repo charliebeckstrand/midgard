@@ -216,37 +216,36 @@ export type MapPlatContextValue = {
 	 * against them, so two marks standing on top of one another divide it instead of overlapping.
 	 *
 	 * Pooled here for the same reason {@link spare} is: the question is about the plat's whole ledger
-	 * and the answer changes with the legend. `crowd.ts` used to record this as the one place its rule
-	 * was less than whole. A mark could only see its own dots, so two separate marks each kept a full
-	 * target and the overlap went to whichever drew last.
+	 * and the answer changes with the legend. A mark that sees only its own dots keeps a full target
+	 * beside another mark, and the overlap goes to the mark that draws last.
 	 *
 	 * Positions rather than a measure, which is what makes pooling possible at all. Every reach in the
 	 * crowding rule is a device-pixel one, and the plat cannot see the zoom scale.
-	 * `MapZoomScaleContext` sits below it, around the plot alone, precisely so a wheel notch re-renders
-	 * the marks and not the legend or the region layer. Frame units are scale-free,
-	 * so the plat supplies the geometry and the mark applies its own `unitsPerPixel`.
+	 * `MapZoomScaleContext` sits below it, around the plot alone, so a wheel notch re-renders the marks
+	 * and not the legend or the region layer. Frame units are scale-free, so the plat supplies the
+	 * geometry and the mark applies its own `unitsPerPixel`.
 	 *
 	 * A store rather than a resolver in the value. A mark that moves changes nothing the value holds,
 	 * so the mark restakes its own dots, and only the readers of the pool render again. The snapshot
 	 * excludes the asking mark, by id: a mark's own dots are its own business, and it holds them in
-	 * drawn form already. The pool excludes hidden marks and every mark that draws no dot, so a route's
-	 * waypoints and a zone's ring never contest ground they paint nothing on.
+	 * drawn form already. The pool also excludes hidden marks and each mark that draws no dot. Thus the
+	 * waypoints of a route and the ring of a zone never contest ground that they paint nothing on.
 	 */
 	pool: MapDotPool
 	/**
 	 * The shared pass of every {@link MapPoints} that clusters (`sets.ts`). Each set
-	 * reads its own groups from one pass over all of them, so two sets never draw
+	 * reads its own groups from one pass over all of them. Thus two sets never draw
 	 * over one another, and a summary can hold the dots of more than one set.
 	 *
 	 * A store, for the reason {@link pool} is one. The pass reads the zoom scale,
-	 * which the plat cannot see, so the snapshot takes the scale from the set that
-	 * reads it, and holds the grouping of that scale.
+	 * which the plat cannot see. Thus the snapshot takes the scale from the set
+	 * that reads it, and holds the grouping of that scale.
 	 */
 	clusters: MapClusterStore
 	/**
-	 * Reports a pick (`activate`) or a right-click (`menu`) on an overlay target to
-	 * each part that the target names (`targetParts`), through the reporter of its
-	 * own set. A shared summary reports its click through it, so a pick from any
+	 * Reports a pick (`activate`) or a right-click (`menu`) on an overlay target.
+	 * Each part that the target names (`targetParts`) gets the report through the
+	 * reporter of its own set. A shared summary reports its click through it, so a pick from any
 	 * input reaches every part of the summary by one rule. A stable function.
 	 */
 	report: (target: MapOverlayTarget, kind: 'activate' | 'menu') => void

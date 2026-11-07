@@ -20,7 +20,7 @@ type MapCursorAction = MapCompassAction | 'first' | 'last' | 'clear'
  * The key table. The arrows step by compass direction, the map's own pair of
  * axes, where a chart's arrows step its category and value axes. Home and End
  * jump to the first and last stop of the list, which the plat orders
- * geography-first, so End lands on the last overlay stop when a mark draws.
+ * geography-first. Thus End lands on the last overlay stop when a mark draws.
  * Escape clears.
  */
 const KEY_ACTIONS: Record<string, MapCursorAction> = {
@@ -130,11 +130,12 @@ export type MapCursorMove = {
 
 /**
  * Resolves a keypress to the next stop. An arrow from rest enters at the first
- * stop, rather than stepping past it. That is the way a chart's first arrow
- * enters at its first point. It holds for an arrow off a stop the list no longer
- * holds. From there each arrow moves to the nearest stop bearing that way. It
- * holds at the edge, rather than wrapping to the far side, which would read as a
- * jump. Home and End go to the ends of the list, which the plat orders
+ * stop, rather than stepping past it, as a chart's first arrow enters at its
+ * first point. So does an arrow off a stop that the list no longer holds. From
+ * there each arrow moves to the nearest stop bearing that way. It holds at the
+ * edge, because a wrap to the far side reads as a jump.
+ *
+ * Home and End go to the ends of the list, which the plat orders
  * geography-first. On an empty list, a navigation key is handled and moves
  * nothing: the key does not scroll the page, and only the clear action leaves.
  * Unhandled keys pass through untouched.

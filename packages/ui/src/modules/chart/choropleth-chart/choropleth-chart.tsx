@@ -121,7 +121,7 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	/** Frame height in px; wins over `aspectRatio` when set. */
 	height?: number
 	/**
-	 * Height as a ratio of the width. Defaults to `'16/9'`, the shared chart-tile
+	 * The ratio of the width to the height. Defaults to `'16/9'`, the shared chart-tile
 	 * ratio the cartesian and pie charts hold, rather than the map's own `'auto'`
 	 * fit. A choropleth therefore lines up with the charts it sits beside in a
 	 * dashboard row, instead of running taller and driving the row height. Pass `'auto'` to

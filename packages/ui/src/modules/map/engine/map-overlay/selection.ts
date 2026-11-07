@@ -64,8 +64,8 @@ export function targetStop(
 }
 
 /**
- * The parts that an overlay target names: each part of the shared summary that
- * its stop is a part of, in the order of the ledger, else its own stop alone.
+ * The parts that an overlay target names. They are the parts of the shared
+ * summary that holds its stop, in the order of the ledger, else its own stop.
  * The one rule by which a pick, a right-click, and the readout reach every set of
  * a shared summary, whatever input made them.
  *

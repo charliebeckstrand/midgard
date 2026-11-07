@@ -31,9 +31,11 @@ export type MapMarkerProps = MapOverlayProps & {
  * An origin and a destination pin with the route connecting them. It is the
  * map's origin → destination mark, registered in the plat's legend as one
  * toggleable, focusable entry. Both pins are solid dots in the marker's slot
- * color. Hovering any part raises the tooltip with the marker's name and
- * detail, and isolates the pair. Every other mark recedes, as under its legend
- * entry's focus. With `onClick` set, every part answers a click, and the
+ * color.
+ *
+ * A hover on any part raises the tooltip with the marker's name and detail, and
+ * isolates the pair. Every other mark recedes, as under its legend entry's
+ * focus. With `onClick` set, every part answers a click, and the
  * keyboard cursor picks the marker with Enter or Space. The plat's
  * `selectedOverlay` haloes both pins and the leg between them, for as long as it
  * names this mark.
@@ -47,8 +49,9 @@ export type MapMarkerProps = MapOverlayProps & {
  * device pixels, so a zoom widens the ground under them and never the marks
  * themselves. Under the plat's `animate` the journey plays in travel order. The
  * origin pin pops, the connector draws itself in from it, then the destination
- * pin pops as the line lands. Direction therefore reads from the reveal. A pin whose position the projection drops is
- * omitted; the connector still draws through the surviving geometry.
+ * pin pops as the line lands. Direction therefore reads from the reveal. A pin
+ * whose position the projection drops is omitted; the connector still draws
+ * through the surviving geometry.
  */
 export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// Keyed on the ordinates rather than on the tuples: an inline `start={[15, 5]}`

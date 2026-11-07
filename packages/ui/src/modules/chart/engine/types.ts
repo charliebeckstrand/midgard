@@ -215,7 +215,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/** Frame height in px; wins over `aspectRatio` when set (a free-form fixed height). */
 	height?: number
 	/**
-	 * Height as a ratio of the width: a `width / height` number, a `"16/9"`
+	 * The ratio of the width to the height: a `width / height` number, a `"16/9"`
 	 * string, or `false` to fall back to the frame's own height policy. Ignored
 	 * when an explicit `height` is given.
 	 * @remarks A stacked (top / bottom) legend folds into the ratio, so it
@@ -370,7 +370,7 @@ export type ChartBaseProps<T> = AccessibleName & {
  */
 export type CartesianFrameProps = {
 	/**
-	 * Height as a ratio of the width: a `width / height` number, a `"16/9"`
+	 * The ratio of the width to the height: a `width / height` number, a `"16/9"`
 	 * string, or `false` to fall back to the frame's own height policy. An
 	 * explicit `height` wins over it. {@link ChartBaseProps.aspectRatio} gives
 	 * the full rules.
