@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { ChatTranscript, type ChatTransport, useChatSend } from '../../modules/chat'
-import { act, renderUI, screen } from '../helpers'
+import { act, renderUI, screen, within } from '../helpers'
 
 /** A transport that numbers each reply, so each branch reads apart from the others. */
 function numbered(): ChatTransport {
@@ -66,7 +66,10 @@ describe('the branch switcher of a chat message (real browser)', () => {
 
 		await act(() => retry())
 
-		await screen.findByText('Reply 1')
+		// The live region also speaks a settled reply, so each query reads the transcript.
+		const transcript = within(screen.getByRole('log'))
+
+		await transcript.findByText('Reply 1')
 
 		const previous = screen.getByRole('button', { name: 'Previous version' })
 
@@ -74,7 +77,7 @@ describe('the branch switcher of a chat message (real browser)', () => {
 
 		await userEvent.keyboard('{Enter}')
 
-		await screen.findByText('Reply 0')
+		await transcript.findByText('Reply 0')
 
 		expect(screen.getByRole('group', { name: 'Versions' })).toHaveTextContent('1 of 2')
 
@@ -87,7 +90,7 @@ describe('the branch switcher of a chat message (real browser)', () => {
 
 		await userEvent.keyboard('{Tab}{Enter}')
 
-		await screen.findByText('Reply 1')
+		await transcript.findByText('Reply 1')
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Next version' }))
 	})
