@@ -2,23 +2,18 @@
 
 import { useCallback } from 'react'
 import { useStableValue } from '../../hooks/use-stable-value'
-import { sameElements } from '../../utilities/same-elements'
+import { sameBranches } from './engine/chat-branch/tree'
 import type { ChatBranch } from './engine/chat-branch/types'
 import { hasMessageId } from './engine/chat-transcript'
 import type { ChatMessageData } from './engine/types'
 
-/**
- * The key of the row of a message: the id of its oldest branch, else its own
- * id, else `undefined` for a message with no id. @internal
- */
-function rowKey(
-	message: ChatMessageData,
-	branches: Readonly<Record<string, ChatBranch>> | undefined,
-): string | undefined {
-	if (!hasMessageId(message)) return undefined
-
-	return branches?.[message.id]?.ids[0] || message.id
+/** Whether two message lists hold the same ids in the same order. @internal */
+function sameIds(prev: readonly ChatMessageData[], next: readonly ChatMessageData[]): boolean {
+	return prev.length === next.length && next.every((message, i) => message.id === prev[i]?.id)
 }
+
+/** The branches of a transcript with no fork. @internal */
+const NO_BRANCHES: Readonly<Record<string, ChatBranch>> = {}
 
 /**
  * Returns the key getter that the transcript window reads: the message `id`,
@@ -27,25 +22,37 @@ function rowKey(
  * branch at one place has the same row.
  *
  * @remarks
- * The getter keeps its identity while the keys stay the same. A streamed chunk
- * gives a new message list with the same ids, so the getter does not change.
- * A new identity makes the virtualizer rebuild the position of every row.
+ * The getter keeps its identity while the ids and the branches stay the same.
+ * A streamed chunk gives a new message list with the same ids, so the getter
+ * does not change. A new identity makes the virtualizer rebuild the position
+ * of every row.
  *
- * An added, removed or moved message, or a key that changes in place, gives a
- * new getter. The virtualizer then rebuilds its rows, also when the count does
- * not change. A switch to another branch keeps the key of that row, and it
- * changes the keys of the rows below it.
+ * An added, removed or moved message, an id that changes in place, or a change
+ * of the branches gives a new getter. The virtualizer then rebuilds its rows,
+ * also when the count does not change. A switch to another branch keeps the
+ * key of that row, and it changes the keys of the rows below it.
  *
  * @internal
  */
 export function useChatTranscriptItemKey(
 	messages: readonly ChatMessageData[],
-	branches?: Readonly<Record<string, ChatBranch>>,
+	branches: Readonly<Record<string, ChatBranch>> = NO_BRANCHES,
 ): (index: number) => string | number {
-	const held = useStableValue(
-		messages.map((message) => rowKey(message, branches)),
-		sameElements,
-	)
+	// The held list keeps the ids of the messages, so the getter reads only ids
+	// from it. The getter reads the branches only when the virtualizer asks for a
+	// key, and not on each chunk.
+	const held = useStableValue(messages, sameIds)
 
-	return useCallback((index: number) => held[index] ?? index, [held])
+	const heldBranches = useStableValue(branches, sameBranches)
+
+	return useCallback(
+		(index: number) => {
+			const message = held[index]
+
+			if (!message || !hasMessageId(message)) return index
+
+			return heldBranches[message.id]?.ids[0] || message.id
+		},
+		[held, heldBranches],
+	)
 }

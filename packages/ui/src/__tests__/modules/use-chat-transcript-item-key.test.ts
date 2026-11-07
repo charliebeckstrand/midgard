@@ -102,13 +102,21 @@ describe('useChatTranscriptItemKey', () => {
 
 		const { result, rerender } = mount(withReply('Second', 'r2'), branches(1, ['r1', 'r2']))
 
-		const first = result.current
-
 		expect(result.current(3)).toBe('r1')
 
 		rerender({ messages: withReply('First', 'r1'), branches: branches(0, ['r1', 'r2']) })
 
 		expect(result.current(3)).toBe('r1')
+	})
+
+	it('keeps its identity across new branches with the same content', () => {
+		const branches = () => ({ r2: { index: 1, ids: ['r1', 'r2'] } })
+
+		const { result, rerender } = mount(withReply('Second', 'r2'), branches())
+
+		const first = result.current
+
+		rerender({ messages: withReply('Second, longer', 'r2'), branches: branches() })
 
 		expect(result.current).toBe(first)
 	})

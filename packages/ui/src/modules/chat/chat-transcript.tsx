@@ -282,7 +282,8 @@ export function ChatTranscript({
 	// A streamed chunk keeps the ids, so the key getter keeps its identity.
 	const getItemKey = useChatTranscriptItemKey(messages, branches)
 
-	// A switch while a reply streams would take that reply off the shown path.
+	// The switchers are off while a reply streams, because `useChatSend` ignores a
+	// switch then. A button that looks live and does nothing would mislead.
 	const branchChange = streaming === true ? undefined : onBranchChange
 
 	const getScrollElement = useCallback(() => containerRef.current, [])

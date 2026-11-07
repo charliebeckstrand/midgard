@@ -143,6 +143,18 @@ describe('showBranch', () => {
 		// u2 is below the hidden branch, and it starts no branch.
 		expect(showBranch(tree, 'u2')).toBe(tree)
 	})
+
+	it('removes the fork when its last hidden branch shows at a place with no branch', () => {
+		const waiting = addBranch(toChatTree([user('u1'), assistant('r1')]), 1)
+
+		const tree = showBranch(waiting, 'r1')
+
+		expect(ids(tree)).toEqual(['u1', 'r1'])
+
+		expect(tree.forks).toEqual({})
+
+		expect(chatBranches(tree)).toEqual({})
+	})
 })
 
 describe('showNewestBranch', () => {

@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '../../components/button'
+import { lockedProps } from '../../components/button/button-constants'
 import { Icon } from '../../components/icon'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -75,15 +76,9 @@ export function ChatMessageBranch({
 	const step = (to: number) => {
 		const id = ids[to]
 
-		const off = id === undefined || onBranchChange === undefined
-
-		return {
-			'aria-disabled': off || undefined,
-			'data-disabled': off || undefined,
-			onClick: () => {
-				if (!off) onBranchChange(id)
-			},
-		}
+		return id === undefined || onBranchChange === undefined
+			? lockedProps
+			: { onClick: () => onBranchChange(id) }
 	}
 
 	return (

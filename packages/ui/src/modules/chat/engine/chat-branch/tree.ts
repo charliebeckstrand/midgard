@@ -47,7 +47,8 @@ function forkKey(path: readonly ChatMessageData[], index: number): string {
 function forkPlace(path: readonly ChatMessageData[], key: string): number {
 	if (key === '') return 0
 
-	const index = path.findIndex((message) => message.id === key)
+	// A retry or an edit forks near the end, so the search starts there.
+	const index = path.findLastIndex((message) => message.id === key)
 
 	return index === -1 ? -1 : index + 1
 }
@@ -60,6 +61,31 @@ function headId(branch: readonly ChatMessageData[]): string {
 /** The forks without the fork that `key` names. @internal */
 function withoutFork(forks: Readonly<Record<string, ChatFork>>, key: string) {
 	return Object.fromEntries(Object.entries(forks).filter(([name]) => name !== key))
+}
+
+/**
+ * The tree that shows `branches[target]` at `place`, the place of the fork
+ * that `key` names. The other branches hide in that fork, in their order. A
+ * fork with no hidden branch is removed. @internal
+ */
+function showAt(
+	tree: ChatTree,
+	key: string,
+	place: number,
+	branches: readonly ChatMessageData[][],
+	target: number,
+): ChatTree {
+	const before = branches.slice(0, target)
+
+	const after = branches.slice(target + 1)
+
+	return {
+		path: [...tree.path.slice(0, place), ...(branches[target] ?? [])],
+		forks:
+			before.length + after.length > 0
+				? { ...tree.forks, [key]: { before, after } }
+				: withoutFork(tree.forks, key),
+	}
 }
 
 /**
@@ -162,17 +188,9 @@ export function showBranch(tree: ChatTree, id: string): ChatTree {
 
 		const target = branches.findIndex((branch) => headId(branch) === id)
 
-		const branch = branches[target]
+		if (target === -1 || branches[target] === shown) continue
 
-		if (!branch || branch === shown) continue
-
-		return {
-			path: [...path.slice(0, place), ...branch],
-			forks: {
-				...forks,
-				[key]: { before: branches.slice(0, target), after: branches.slice(target + 1) },
-			},
-		}
+		return showAt(tree, key, place, branches, target)
 	}
 
 	return tree
@@ -194,15 +212,7 @@ export function showNewestBranch(tree: ChatTree): ChatTree {
 
 	const branches = fork ? [...fork.before, ...fork.after] : []
 
-	const newest = branches.at(-1)
+	if (branches.length === 0) return tree
 
-	if (!newest) return tree
-
-	const left = branches.slice(0, -1)
-
-	return {
-		path: [...path, ...newest],
-		forks:
-			left.length > 0 ? { ...forks, [key]: { before: left, after: [] } } : withoutFork(forks, key),
-	}
+	return showAt(tree, key, path.length, branches, branches.length - 1)
 }
