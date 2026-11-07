@@ -8,7 +8,7 @@ describe('createFormFieldTargets', () => {
 
 		targets.register('email', 'field-1')
 
-		expect(targets.getSnapshot()).toEqual({ email: 'field-1' })
+		expect(targets.getSnapshot()).toEqual({ email: { id: 'field-1' } })
 	})
 
 	it('gives a new snapshot and notifies on a change only', () => {
@@ -48,7 +48,7 @@ describe('createFormFieldTargets', () => {
 
 		unregisterFirst()
 
-		expect(targets.getSnapshot()).toEqual({ email: 'field-2' })
+		expect(targets.getSnapshot()).toEqual({ email: { id: 'field-2' } })
 	})
 
 	it('keeps an entry while another registration of the same id lives', () => {
@@ -61,7 +61,7 @@ describe('createFormFieldTargets', () => {
 
 		unregisterMessage()
 
-		expect(targets.getSnapshot()).toEqual({ email: 'field-1' })
+		expect(targets.getSnapshot()).toEqual({ email: { id: 'field-1' } })
 
 		unregisterControl()
 
@@ -77,6 +77,69 @@ describe('createFormFieldTargets', () => {
 
 		unregisterLater()
 
-		expect(targets.getSnapshot()).toEqual({ email: 'field-1' })
+		expect(targets.getSnapshot()).toEqual({ email: { id: 'field-1' } })
+	})
+
+	it('gives a field the label of its control', () => {
+		const targets = createFormFieldTargets()
+
+		targets.register('email', 'field-1')
+
+		const unregisterLabel = targets.registerLabel('field-1', 'Email')
+
+		expect(targets.getSnapshot()).toEqual({ email: { id: 'field-1', label: 'Email' } })
+
+		unregisterLabel()
+
+		expect(targets.getSnapshot()).toEqual({ email: { id: 'field-1' } })
+	})
+
+	it('keeps a label that registers before the control of its field', () => {
+		const targets = createFormFieldTargets()
+
+		targets.registerLabel('field-1', 'Email')
+
+		expect(targets.getSnapshot()).toEqual({})
+
+		targets.register('email', 'field-1')
+
+		expect(targets.getSnapshot()).toEqual({ email: { id: 'field-1', label: 'Email' } })
+	})
+
+	it('follows the label of the id that a field gives now', () => {
+		const targets = createFormFieldTargets()
+
+		targets.registerLabel('field-1', 'Email')
+
+		targets.registerLabel('field-2', 'Work email')
+
+		targets.register('email', 'field-1')
+
+		const unregisterLater = targets.register('email', 'field-2')
+
+		expect(targets.getSnapshot()).toEqual({ email: { id: 'field-2', label: 'Work email' } })
+
+		unregisterLater()
+
+		expect(targets.getSnapshot()).toEqual({ email: { id: 'field-1', label: 'Email' } })
+	})
+
+	it('notifies on a label change only', () => {
+		const targets = createFormFieldTargets()
+
+		targets.register('email', 'field-1')
+
+		const listener = vi.fn()
+
+		targets.subscribe(listener)
+
+		// A label of a control that no field registered changes no target.
+		targets.registerLabel('field-9', 'Other')
+
+		expect(listener).not.toHaveBeenCalled()
+
+		targets.registerLabel('field-1', 'Email')
+
+		expect(listener).toHaveBeenCalledOnce()
 	})
 })

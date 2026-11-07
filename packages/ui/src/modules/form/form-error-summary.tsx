@@ -32,12 +32,21 @@ export type FormErrorSummaryProps = Omit<ComponentProps<'div'>, 'title' | 'color
 	title?: ReactNode
 }
 
-const messages = defineMessages({
+const messages = defineMessages<{
+	title: Record<never, never>
+	row: { label: string; issue: string }
+}>({
 	title: {
 		id: 'ui.formErrorSummary.title',
 		defaultMessage: 'There is a problem',
 		description:
 			'The heading of the box at the top of a form that lists the fields with errors, after a failed submit.',
+	},
+	row: {
+		id: 'ui.formErrorSummary.row',
+		defaultMessage: '{label}: {issue}',
+		description:
+			'One row of the box that lists the fields with errors. {label} is the label of the field, and {issue} is its error.',
 	},
 })
 
@@ -68,7 +77,7 @@ function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
 
 /**
  * A list of the errors of the enclosing `Form`, which shows after a submit fails
- * and takes the focus. Each row links to the control of its field.
+ * and takes the focus. Each row names its field and links to its control.
  *
  * @remarks
  * A refused submit fails, and so does a handler that returns a field issue.
@@ -80,8 +89,13 @@ function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
  * A row links to the control of its field. A control that binds the field
  * registers its id, and so does a form-bound `Message`. A click moves the focus
  * to that control. A row whose field has no registered control shows the issue
- * as text. Write each issue so that it is clear without its field, such as
- * "Enter an email address".
+ * as text.
+ *
+ * A row names its field with the text of the field `Label` of the control, such
+ * as "Email: Enter an email address". The row takes only the text of the
+ * label, and no element of it. A control with no field `Label`, such
+ * as a control with only an `aria-label` or a native `<label>`, gives a row with
+ * only the issue. Thus write each issue so that it is clear without its field.
  *
  * The summary is an error `Alert`, so it announces itself. It also takes the
  * focus after each failure, so the reader starts from it. An `onInvalidSubmit`
@@ -164,21 +178,21 @@ export function FormErrorSummary({
 		>
 			<ul>
 				{items.map(({ name, issue }) => {
-					const id = targets[name]
+					const target = targets[name]
+
+					if (target === undefined) return <li key={name}>{issue}</li>
+
+					const { id, label } = target
 
 					return (
 						<li key={name}>
-							{id === undefined ? (
-								issue
-							) : (
-								<a
-									href={`#${id}`}
-									className={cn(linkK({ underline: true }).base)}
-									onClick={(event) => focusControl(event, id)}
-								>
-									{issue}
-								</a>
-							)}
+							<a
+								href={`#${id}`}
+								className={cn(linkK({ underline: true }).base)}
+								onClick={(event) => focusControl(event, id)}
+							>
+								{label === undefined ? issue : intl.formatMessage(messages.row, { label, issue })}
+							</a>
 						</li>
 					)
 				})}

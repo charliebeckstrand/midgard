@@ -671,6 +671,10 @@
 		"defaultMessage": "Submitting",
 		"description": "Spoken while a form sends its values, after the reader submits it."
 	},
+	"ui.formErrorSummary.row": {
+		"defaultMessage": "{label}: {issue}",
+		"description": "One row of the box that lists the fields with errors. {label} is the label of the field, and {issue} is its error."
+	},
 	"ui.formErrorSummary.title": {
 		"defaultMessage": "There is a problem",
 		"description": "The heading of the box at the top of a form that lists the fields with errors, after a failed submit."
