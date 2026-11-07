@@ -8,10 +8,9 @@ import { pause } from '../helpers/wall-clock'
 /**
  * When the viewer closes, the photo lands in the thumbnail of the photo on the
  * stage, and the focus goes to that thumbnail, not to the thumbnail that
- * opened the viewer. The focus manager of the overlay moves the focus when the
- * overlay unmounts. Until then, the overlay hides the page with `aria-hidden`,
- * and a focus in a hidden subtree makes Chromium report an error, so the focus
- * must not go to the thumbnail before the page is visible again.
+ * opened the viewer. The overlay moves the focus when it unmounts, after the
+ * photo lands. A focus in a hidden or inert subtree makes Chromium report an
+ * error, so no focus may go into one on the way.
  *
  * A mouse press on the stage, such as a drag of the photo, keeps the focus in
  * the viewer, so the arrow keys still step after it.
