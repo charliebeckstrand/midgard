@@ -1,5 +1,6 @@
 import { act } from '@testing-library/react'
 import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
+import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { composeEventHandlers } from '../../core'
 import { Form, useFormActions, useFormField } from '../../modules/form'
@@ -165,14 +166,18 @@ const writesOnChange = vi.defineHelper(
 /**
  * The lock sweep: while a submit of its form runs, a bound control stays
  * enabled, and its change does not write its field.
+ *
+ * The control renders in a portal, outside the `<form>` element. The form then
+ * does not own its native element, and the native lock of the form does not
+ * reach it. So the sweep holds the lock of the control itself.
  */
 const holdsWhileLocked = vi.defineHelper(
 	async ({ render, defaultValue, slot, kind }: WriteOnChangeSubject) => {
 		const pending = deferred()
 
-		const { container } = renderUI(
+		const { container, baseElement } = renderUI(
 			<Form defaultValues={{ [FIELD]: defaultValue }} onSubmit={() => pending.promise}>
-				{render({ name: FIELD, onChange: vi.fn() })}
+				{createPortal(render({ name: FIELD, onChange: vi.fn() }), document.body)}
 				<FieldProbe name={FIELD} />
 			</Form>,
 		)
@@ -183,7 +188,9 @@ const holdsWhileLocked = vi.defineHelper(
 			fireEvent.submit(getSlot(container, 'form'))
 		})
 
-		const element = getSlot(container, slot)
+		const element = getSlot(baseElement, slot)
+
+		expect(element.closest('form')).toBeNull()
 
 		expect(element).toBeEnabled()
 
