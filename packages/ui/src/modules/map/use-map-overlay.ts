@@ -15,11 +15,12 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverActions, useMapPlat, useMapPointed, useMapZoomScale } from './context'
+import type { MapGroundDot } from './engine/map-cluster/ground'
 import type { MapClusterInput } from './engine/map-cluster/sets'
 import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
 import { groupLegendId } from './engine/map-legend/items'
-import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
+import type { MapEntryDot, MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
 import { ownStop, pickedStop } from './engine/map-overlay/selection'
 import type { LngLat, MapPoint2D, MapProjector, MapSwatchShape } from './engine/types'
 
@@ -147,15 +148,16 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 */
 		stops: () => (LngLat | null)[]
 		/**
-		 * The dots the mark draws, in lon/lat, for the plat's dot pool (see
-		 * {@link MapOverlayEntry.dotsAt}). Passed by the dot-drawing marks alone. A
-		 * point passes its `stops`, and a marker passes its two pins.
+		 * The dots the mark draws, for the plat's dot pool (see
+		 * {@link MapOverlayEntry.dotsAt}): each in lon/lat, with the radius it paints
+		 * at. Passed by the dot-drawing marks alone. A point passes its one dot, and a
+		 * marker passes its two pins.
 		 *
 		 * Hold its identity until the dots move. A new identity restakes the
 		 * mark's dots in the pool, so the dots near it divide their ground again.
 		 * A thunk made inline therefore gathers the mark again on each render.
 		 */
-		dots?: () => LngLat[]
+		dots?: () => MapEntryDot[]
 		/**
 		 * The dots that the mark puts in the shared pass of the plat, and its gap
 		 * (see {@link MapOverlayEntry.clusterAt}). Passed by a {@link MapPoints}
@@ -235,7 +237,8 @@ export type MapOverlay = {
 	 */
 	unitsPerPixel: number
 	/**
-	 * Asks for every OTHER visible dot-drawing mark's dots, in frame units (see
+	 * Asks for every OTHER visible dot-drawing mark's dots, in frame units, each with the radius it
+	 * paints at (see
 	 * {@link MapPlatContextValue.pool}). A dot-shaped mark divides its pointer target's ground
 	 * against these, so two marks standing on top of one another no longer overlap.
 	 *
@@ -249,7 +252,7 @@ export type MapOverlay = {
 	 * at the call site. The resolver is stable until the plat's ledger, toggles or fit change, or
 	 * until a mark's dots move.
 	 */
-	neighbors: () => MapPoint2D[]
+	neighbors: () => MapGroundDot[]
 	/** Whether the plat animates; the mark picks its motion renderers off it. */
 	animate: boolean
 	/** Registration ordinal, so a mount reveal can stagger by it. */
