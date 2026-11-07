@@ -12,6 +12,7 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { observeResizeBeforePaint } from '../../utilities/observe-resize-before-paint'
 import { breadcrumbFit, breadcrumbFitRule } from './breadcrumb-fit-rule'
@@ -23,11 +24,12 @@ import { breadcrumbMessages } from './breadcrumb-messages'
  *
  * @remarks
  * The server cannot know the room of the row. Until the first measure, the
- * server markup and the hydration render thus draw the narrowest trail: every
- * crumb above the current page shows its mark, so the current page paints from
- * the server (CONVENTIONS §3.13). The measure runs in a layout effect, so a
- * row with more room shows its crumbs in the first frame after hydration, and
- * a client render is never painted at the wrong fit. The fit re-measures on
+ * server markup and the hydration render thus draw the row at its size with
+ * the list transparent, when the trail has more than one crumb (CONVENTIONS
+ * §3.13). A trail of one crumb has no fit, so it shows from the server. What
+ * follows the list in the `<nav>` always shows. The measure runs in a layout
+ * effect, so the list fades in at its fit (`data-fitting` until then), and a
+ * client render is never painted at the wrong fit. The fit re-measures on
  * resize, after each commit, and once after `document.fonts.ready`: a late
  * font changes what the text takes without changing the box that holds it.
  * @internal
@@ -89,7 +91,7 @@ export function BreadcrumbFit({ ref, className, children, ...props }: ComponentP
 		}
 	}, [])
 
-	const rule = breadcrumbFitRule(id, collapsed)
+	const rule = breadcrumbFitRule(id, collapsed ?? 0)
 
 	return (
 		<>
@@ -103,6 +105,7 @@ export function BreadcrumbFit({ ref, className, children, ...props }: ComponentP
 				ref={navRef}
 				data-slot="breadcrumb"
 				data-collapse={id}
+				data-fitting={dataAttr(collapsed === null)}
 			>
 				{children}
 			</nav>
