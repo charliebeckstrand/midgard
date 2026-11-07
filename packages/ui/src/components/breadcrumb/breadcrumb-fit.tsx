@@ -23,12 +23,13 @@ import { breadcrumbMessages } from './breadcrumb-messages'
  *
  * @remarks
  * The server cannot know the room of the row. Until the first measure, the
- * server markup and the hydration render thus draw the row at its size with
- * the trail invisible (CONVENTIONS §3.13). The measure runs in a layout effect,
- * so the first frame that shows the trail holds the fit, and a client render
- * is never painted at the wrong fit. The fit re-measures on resize, after each
- * commit, and once after `document.fonts.ready`: a late font changes what the
- * text takes without changing the box that holds it.
+ * server markup and the hydration render thus draw the narrowest trail: every
+ * crumb above the current page shows its mark, so the current page paints from
+ * the server (CONVENTIONS §3.13). The measure runs in a layout effect, so a
+ * row with more room shows its crumbs in the first frame after hydration, and
+ * a client render is never painted at the wrong fit. The fit re-measures on
+ * resize, after each commit, and once after `document.fonts.ready`: a late
+ * font changes what the text takes without changing the box that holds it.
  * @internal
  */
 export function BreadcrumbFit({ ref, className, children, ...props }: ComponentProps<'nav'>) {
@@ -88,7 +89,7 @@ export function BreadcrumbFit({ ref, className, children, ...props }: ComponentP
 		}
 	}, [])
 
-	const rule = breadcrumbFitRule(id, collapsed ?? 0)
+	const rule = breadcrumbFitRule(id, collapsed)
 
 	return (
 		<>
@@ -96,7 +97,7 @@ export function BreadcrumbFit({ ref, className, children, ...props }: ComponentP
 
 			<nav
 				aria-label={intl.formatMessage(breadcrumbMessages.label)}
-				className={cn('flex min-w-0 items-center', collapsed === null && 'invisible', className)}
+				className={cn('flex min-w-0 items-center', className)}
 				{...props}
 				// After the spread: the fit and its rule select on these.
 				ref={navRef}

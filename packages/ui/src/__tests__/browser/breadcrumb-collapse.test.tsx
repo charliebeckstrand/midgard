@@ -49,18 +49,20 @@ function nav(container: HTMLElement) {
 }
 
 describe('a collapsing breadcrumb (real browser)', () => {
-	it('keeps the row of the server markup invisible, and shows the fit at hydration', async ({
+	it('paints the narrowest trail from the server, and widens it to the fit at hydration', async ({
 		signal,
 	}) => {
-		const container = attach(serverMarkup(trail(260)))
+		const container = attach(serverMarkup(trail(340)))
 
-		// The server cannot know the room of the row. The row keeps its size, and
-		// no crumb paints.
+		// The server cannot know the room of the row. It paints every crumb above
+		// the current page as its mark, so the current page shows.
 		await frames()
 
 		signal.throwIfAborted()
 
-		expect(getComputedStyle(nav(container)).visibility).toBe('hidden')
+		expect(getComputedStyle(nav(container)).visibility).toBe('visible')
+
+		expect(drawn(container)).toEqual(['…', '…', 'Oregon'])
 
 		const height = nav(container).getBoundingClientRect().height
 
@@ -73,18 +75,16 @@ describe('a collapsing breadcrumb (real browser)', () => {
 		let root: Root | undefined
 
 		act(() => {
-			root = hydrateRoot(container, trail(260))
+			root = hydrateRoot(container, trail(340))
 		})
 
 		onTestFinished(() => act(() => root?.unmount()))
 
 		expect(error).not.toHaveBeenCalled()
 
-		// The layout effect of the hydration measures the fit before the frame
-		// that shows the trail. The row does not change its size.
-		expect(drawn(container)).toEqual(['…', '…', 'Oregon'])
-
-		expect(getComputedStyle(nav(container)).visibility).toBe('visible')
+		// The layout effect of the hydration measures the fit before the next
+		// frame. The row has room for one more crumb, and does not change its size.
+		expect(drawn(container)).toEqual(['…', 'United States of America', 'Oregon'])
 
 		expect(nav(container).getBoundingClientRect().height).toBe(height)
 	})
