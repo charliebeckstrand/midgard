@@ -88,7 +88,7 @@ function keepControlFocus(event: MouseEvent<HTMLLabelElement>) {
  * Inside a `Form`, the label registers its text by the id of the control that it names. A
  * `FormErrorSummary` then names the field of each error with that text.
  */
-export function Label(props: LabelProps) {
+export function Label({ ref: refProp, ...props }: LabelProps) {
 	const control = useControl()
 
 	const id = props.id ?? control?.labelId
@@ -101,7 +101,7 @@ export function Label(props: LabelProps) {
 
 	const elementRef = useRef<HTMLElement>(null)
 
-	const ref = useComposedRefs<HTMLElement>(elementRef, props.ref as Ref<HTMLElement> | undefined)
+	const ref = useComposedRefs<HTMLElement>(elementRef, refProp as Ref<HTMLElement> | undefined)
 
 	// A form names the field of each error with the text of its label, by the
 	// id of the control that the label names.
@@ -131,7 +131,7 @@ export function Label(props: LabelProps) {
 	}, [targets, target, text])
 
 	if (props.as === 'span') {
-		const { as, className, id: _, ref: __, children, ...rest } = props
+		const { as, className, id: _, children, ...rest } = props
 
 		return (
 			<span
@@ -146,7 +146,7 @@ export function Label(props: LabelProps) {
 		)
 	}
 
-	const { as, className, htmlFor, id: _, ref: __, onMouseDown, children, ...rest } = props
+	const { as, className, htmlFor, id: _, onMouseDown, children, ...rest } = props
 
 	return (
 		<label
