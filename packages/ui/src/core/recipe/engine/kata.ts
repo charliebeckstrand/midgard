@@ -33,7 +33,7 @@ import {
 	valueAt,
 } from '../../../utilities/responsive'
 import { twMerge } from '../../tw-merge'
-import { axisKey, defineRecipe, RESERVED } from './recipe'
+import { axisKey, defineRecipe, MEMO_CAP, RESERVED } from './recipe'
 import type { CompoundRule, ComputedProps, RecipeConfig, ResolvedConfig } from './types'
 
 /** The default of each prop of a unit. */
@@ -201,13 +201,6 @@ export type Kata<C> = {
 	 */
 	readonly bare: KataOutput<C>
 }
-
-/**
- * Memo entries per unit. Combinations of declared axis values stay far below
- * this. The cap only guards a caller that feeds unbounded dynamic strings into
- * a prop, and resets the memo instead of growing it.
- */
-const MEMO_CAP = 1024
 
 /** True when a prop value is a map of values by breakpoint. @internal */
 function isMap(value: unknown): value is Partial<Record<string, unknown>> {

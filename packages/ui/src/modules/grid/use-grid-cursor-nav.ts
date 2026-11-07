@@ -14,16 +14,14 @@ import { cellText } from './engine/grid-export/accessor'
 import { gridMessages } from './engine/grid-messages'
 import type { GridRangeCells } from './engine/grid-range/range'
 import { toTsv } from './engine/grid-range/tsv'
-import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
 import { resolveCellAt } from './engine/grid-row/bridges'
-import type { GridCellClickContext } from './engine/grid-row/cell'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { GridColumn } from './types'
+import type { GridCursorInput } from './use-grid-cursor'
 import type { GridIndexRefs } from './use-grid-index'
 import {
 	type Coord,
 	type GridNewRowPosition,
-	type GridScrollRowIntoView,
 	NEW_ROW_INDEX,
 	useGridNavigation,
 } from './use-grid-navigation'
@@ -96,27 +94,21 @@ export function useGridCursorNav<T>({
 	refs,
 	newRowRef,
 	editsAt,
-}: {
+}: Pick<
+	GridCursorInput<T>,
+	| 'range'
+	| 'onRowActivate'
+	| 'onCellActivate'
+	| 'onActiveCellChange'
+	| 'selectableRef'
+	| 'toggleActiveRow'
+	| 'scrollRowIntoViewRef'
+	| 'scrollContainerRef'
+	| 'tableRef'
+	| 'refs'
+> & {
 	/** Whether the grid carries a keyboard cursor (`navigable` or editable). */
 	enabled: boolean
-	/** Whether the cursor holds a cell range (see {@link GridDataProps.range}). */
-	range: boolean
-	onRowActivate: GridRowActivate | undefined
-	/** Activates the cell under the cursor on Enter, ahead of the row activation. */
-	onCellActivate: GridCellActivate | undefined
-	/** Reports the cell the cursor sits on, whatever moved it. */
-	onActiveCellChange: ((cell: GridCellClickContext<T> | null) => void) | undefined
-	/** Whether the grid has a selection column; gates the cursor's Space-to-select. */
-	selectableRef: RefObject<boolean>
-	/** Toggles the active row's selection by display index, for the cursor's Space key. */
-	toggleActiveRow: ((rowIndex: number) => void) | undefined
-	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
-	scrollRowIntoViewRef: RefObject<GridScrollRowIntoView | null>
-	/** The grid's scroll container, measured for the cursor's viewport-relative PageUp/Down step. */
-	scrollContainerRef: RefObject<HTMLElement | null>
-	/** The grid `<table>`, the cursor's tab stop. */
-	tableRef: RefObject<HTMLTableElement | null>
-	refs: GridCursorRefs<T>
 	/** Where the new-row slot shows, read at event time. */
 	newRowRef: RefObject<GridNewRowPosition>
 	/** Whether the editing layer takes Enter and F2 on a cell (see `useGridNavigation`). */

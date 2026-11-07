@@ -6,14 +6,13 @@ import { cn } from '../../core/cn'
 import { createContext } from '../../core/create-context'
 import type { DensityStep } from '../../core/density/steps'
 import { useLazyModule } from '../../hooks/use-lazy-module'
-import type { SortableListOptions } from '../../hooks/use-sortable-list'
 import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/grid'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { GridContextMenu, type GridContextMenuProps } from './grid-context-menu'
-import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
+import type { GridReorderRegionProps } from './grid-reorder-region'
+import type { GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridClampAnchor } from './use-grid-clamp-anchor'
-import type { GridRowItem } from './use-grid-row-reorder'
 
 /**
  * The drag and drop module of the grid. It carries dnd-kit, so a grid that
@@ -37,20 +36,13 @@ type GridRegionProps<T> = {
 	 * remounts the table.
 	 */
 	reorderConfigured: boolean
-	/** Whether column reorder is live now. */
-	canReorder: boolean
-	/** The options of the column sortable. */
-	columnSortable: SortableListOptions<GridColumn<T>>
-	/** Whether row reorder is live now. It stands column reorder down. */
-	rowReorderActive: boolean
-	/** The options of the row sortable. */
-	rowSortable: SortableListOptions<GridRowItem<T>>
 	/** The right-click menu config, or `undefined` with no menu. */
 	contextMenu: GridContextMenuConfig<T> | undefined
 	/** Behavioral gate for the menus; the wrapper stays mounted either way (see GridContextMenu.enabled). */
 	contextMenuEnabled: boolean
 	children: ReactNode
-} & Omit<GridContextMenuProps<T>, 'config' | 'enabled' | 'children'>
+} & Omit<GridReorderRegionProps<T>, 'children'> &
+	Omit<GridContextMenuProps<T>, 'config' | 'enabled' | 'children'>
 
 /**
  * Wraps the table region in its interaction layers: the reorder dnd context

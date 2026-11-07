@@ -1,7 +1,7 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { memo, type ReactNode, type RefObject } from 'react'
+import { memo, type ReactNode } from 'react'
 import { Card } from '../../components/card'
 import { dataAttr } from '../../core/data-attr'
 import type { ContentHeightHost } from '../../primitives/content-height/context'
@@ -14,7 +14,7 @@ import { k } from '../../recipes/kata/dashboard'
 import { keepFocusOnBoard } from './dashboard-focus'
 import { DashboardTileClear } from './dashboard-tile-clear'
 import { DashboardTileContent } from './dashboard-tile-content'
-import { DashboardTileControls } from './dashboard-tile-controls'
+import { DashboardTileControls, type DashboardTileControlsProps } from './dashboard-tile-controls'
 import { DashboardTileExpand } from './dashboard-tile-expand'
 import { DashboardTileHeader } from './dashboard-tile-header'
 import type { DashboardTileDrag } from './use-dashboard-tile-drag'
@@ -49,21 +49,15 @@ export type DashboardTileCardProps = {
 	fallback: ReactNode
 	/** Receives each error that a boundary of the tile catches. */
 	onError: (error: unknown) => void
-	/** Removes the tile. Without it, no remove control shows. */
-	onRemove?: () => void
-	/** Duplicates the tile. Without it, no duplicate control shows. */
-	onDuplicate?: () => void
 	/** Whether the expand control shows at rest. */
 	expandable: boolean
 	/** The `width / height` ratio of the tile on the board, which the expand dialog keeps. */
 	shape: number
-	/** The tile shell, which finds the tile that takes the focus after a remove. */
-	shell: RefObject<HTMLElement | null>
 	/** The box that the widget can claim the height of its content from. */
 	host: ContentHeightHost
 	/** The widget. */
 	children?: ReactNode
-}
+} & Pick<DashboardTileControlsProps, 'onRemove' | 'onDuplicate' | 'shell'>
 
 /**
  * The card of a tile: the grip, the header row, and the content box.

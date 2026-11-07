@@ -6,7 +6,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { announce } from '../../core/announcer'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { keepFocusOnBoard } from './dashboard-focus'
+import { focusGripOrBoard, keepFocusOnBoard } from './dashboard-focus'
 import { dashboardMessages } from './dashboard-messages'
 import { describeDuplicate, describeRemove } from './engine/dashboard-announcements'
 
@@ -38,11 +38,7 @@ function handOffFocus(shell: HTMLElement | null): void {
 
 	const order = [...tiles.slice(index + 1), ...tiles.slice(0, Math.max(0, index)).reverse()]
 
-	const grip = order
-		.map((tile) => tile.querySelector<HTMLElement>('[data-slot="dashboard-handle"]'))
-		.find((el) => el !== null)
-
-	;(grip ?? canvas.closest<HTMLElement>('[data-slot="dashboard"]'))?.focus()
+	focusGripOrBoard(order, canvas)
 }
 
 /**

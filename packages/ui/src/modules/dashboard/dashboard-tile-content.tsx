@@ -13,22 +13,18 @@ import { MountHold } from '../../primitives/mount'
 import { useMountHold } from '../../primitives/mount/use-mount'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardTileContext } from './context'
-import { DashboardTileBoundary } from './dashboard-tile-boundary'
+import { DashboardTileBoundary, type DashboardTileBoundaryProps } from './dashboard-tile-boundary'
 
 /** Props for {@link DashboardTileContent}. @internal */
 export type DashboardTileContentProps = {
 	/** The id of the tile, which the scope hooks read. */
 	id: string
-	/** The name of the tile, for the error text. */
-	label: string
 	/** The mount policy of the content. */
 	mount: Mount
 	/** Whether the content is inert, as in edit mode. */
 	inert: boolean
 	/** What the tile shows while the content suspends or is held back. */
 	fallback: ReactNode
-	/** Receives each error that the boundary catches. */
-	onError: (error: unknown) => void
 	/**
 	 * The box that the widget can claim the height of its content from, or
 	 * `null` where the box keeps its size, as in the expand dialog.
@@ -36,7 +32,7 @@ export type DashboardTileContentProps = {
 	host: ContentHeightHost | null
 	/** The widget. */
 	children?: ReactNode
-}
+} & Pick<DashboardTileBoundaryProps, 'label' | 'onError'>
 
 /**
  * The content box of a tile: the scope of the tile, its error boundary, and its

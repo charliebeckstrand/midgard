@@ -21,13 +21,12 @@ import {
 	pieCalloutFit,
 	pieCallouts,
 } from '../engine/chart-geometry/pie'
-import { SLICE_FADE, SLICE_UNFADE } from '../engine/chart-motion'
 import type { TextWidth } from '../engine/chart-text-width'
 import { isSparkBox } from '../engine/chart-tier'
 import { useChartSeriesEmphasis } from '../engine/context'
 import type { ChartTextWidth } from '../engine/use-chart-text-width'
 import { sliceShares } from './sector-chart-frame'
-import { labelDelay, sliceGroupClass } from './sector-chart-marks'
+import { labelFade, sliceGroupClass } from './sector-chart-marks'
 import { useSliceReflowed } from './use-sector-chart-slice-reflowed'
 
 /** A placed callout with its resolved label text. @internal */
@@ -310,10 +309,7 @@ export function SectorChartCallouts({
 							<m.g
 								// A new layout mounts the callout again, so it fades in at its new place.
 								key={layout}
-								initial={still ? false : { opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0, transition: SLICE_UNFADE }}
-								transition={{ ...SLICE_FADE, delay: labelDelay(reflowed, item.mid) }}
+								{...labelFade(still, reflowed, item.mid)}
 							>
 								{callout}
 							</m.g>
