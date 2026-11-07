@@ -46,6 +46,7 @@ import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { useGlass } from '../../providers/glass/context'
 import { k, type scale } from '../../recipes/kata/combobox'
+import type { SelectionValueProps } from '../../types/selection-value'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
@@ -256,26 +257,6 @@ type ComboboxBaseProps<T> = {
 	children: ReactNode
 }
 
-type ComboboxSingleProps<T> = {
-	/** Controlled value. `undefined` leaves the combobox uncontrolled; `null` keeps it controlled with no selection (CONVENTIONS §7.3). */
-	value?: T | null
-	defaultValue?: T
-	/** Fires when the selection changes, with the new selection, or `null` when it is cleared. */
-	onValueChange?: (value: T | null) => void
-	/**
-	 * Allows more than one selection. Set it to `true` to take an array `value`.
-	 * @defaultValue false
-	 */
-	multiple?: false
-}
-
-type ComboboxMultipleProps<T> = {
-	multiple: true
-	value?: T[]
-	defaultValue?: T[]
-	onValueChange?: (value: T[]) => void
-}
-
 /**
  * Seeds the virtual highlight to the top match via {@link seedVirtualTopMatch},
  * with this combobox's selector and `ariaSelected: false` (options own their
@@ -410,8 +391,7 @@ function warnOnMixedSource(
  *
  * @typeParam T - The option value type.
  */
-export type ComboboxProps<T> = ComboboxBaseProps<T> &
-	(ComboboxSingleProps<T> | ComboboxMultipleProps<T>)
+export type ComboboxProps<T> = ComboboxBaseProps<T> & SelectionValueProps<T>
 
 /**
  * Type-ahead select pairing a text input with a floating option panel.

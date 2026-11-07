@@ -25,6 +25,7 @@ import { hasSelection, useOptionSelection } from '../../primitives/option/use-op
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import { k, type scale } from '../../recipes/kata/listbox'
+import type { SelectionValueProps } from '../../types/selection-value'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
@@ -162,26 +163,6 @@ type ListboxBaseProps = {
 	children: ReactNode
 }
 
-type ListboxSingleProps<T> = {
-	/** Controlled value. `undefined` leaves the listbox uncontrolled; `null` keeps it controlled with no selection (CONVENTIONS §7.3). */
-	value?: T | null
-	defaultValue?: T
-	/** Fires when the selection changes, with the new selection, or `null` when it is cleared. */
-	onValueChange?: (value: T | null) => void
-	/**
-	 * Allows more than one selection. Set it to `true` to take an array `value`.
-	 * @defaultValue false
-	 */
-	multiple?: false
-}
-
-type ListboxMultipleProps<T> = {
-	multiple: true
-	value?: T[]
-	defaultValue?: T[]
-	onValueChange?: (value: T[]) => void
-}
-
 /**
  * Props for {@link Listbox}: the shared base (`name`, sizing, `clearable`,
  * `nullable`, open-state control, …) and an optional `displayValue` formatter.
@@ -196,7 +177,7 @@ export type ListboxProps<T> = ListboxBaseProps & {
 	 * written and shows no truncation tooltip.
 	 */
 	displayValue?: (value: T) => ReactNode
-} & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
+} & SelectionValueProps<T>
 
 /**
  * Select-style dropdown over arbitrary `<ListboxOption>` values: single or
