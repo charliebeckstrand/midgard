@@ -6,6 +6,7 @@ import { type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { adaptive, mapResponsive, type Responsive } from '../../utilities/responsive'
+import type { PdfViewerProps } from './pdf-viewer'
 import { resolveDownloadName } from './pdf-viewer-utilities'
 import type {
 	PdfViewerFit,
@@ -117,25 +118,27 @@ function useDocumentKey(pagesProp: PdfViewerPage[] | undefined, src: string | un
 	return (same ? held : pagesProp) ?? src
 }
 
-/** Inputs to {@link usePdfViewer}; mirrors the consumer-facing {@link PdfViewerProps} minus presentation (`className`, `aria-label`). @internal */
-type PdfViewerOptions = {
-	pages?: PdfViewerPage[]
-	src?: string
-	filename?: string
-	page?: number
-	defaultPage?: number
-	onPageChange?: (page: number) => void
-	onLoad?: (pageCount: number) => void
-	onError?: (error: Error) => void
-	defaultZoom?: number
-	zoomLevels?: number[]
-	fit?: PdfViewerFit
-	thumbnails?: Responsive<PdfViewerThumbnailLayout>
+/** Inputs to {@link usePdfViewer}: the document and behavior props of {@link PdfViewerProps}, less presentation (`className`, `aria-label`). @internal */
+type PdfViewerOptions = Pick<
+	PdfViewerProps,
+	| 'pages'
+	| 'src'
+	| 'filename'
+	| 'page'
+	| 'defaultPage'
+	| 'onPageChange'
+	| 'onLoad'
+	| 'onError'
+	| 'defaultZoom'
+	| 'zoomLevels'
+	| 'fit'
+	| 'thumbnails'
+	| 'magnifier'
+	| 'onHighlightsVisibleChange'
+	| 'onMagnifierChange'
+> & {
 	/** Whether the consumer supplied any highlight regions; gates the toolbar's visibility toggle. */
 	hasHighlights?: boolean
-	magnifier?: boolean | PdfViewerMagnifierOptions
-	onHighlightsVisibleChange?: (visible: boolean) => void
-	onMagnifierChange?: (state: PdfViewerMagnifierState) => void
 }
 
 /** The viewer's full derived state, provided through {@link PdfViewerContext} to every sub-component. @internal */

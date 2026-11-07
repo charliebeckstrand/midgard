@@ -3,7 +3,6 @@
 import { useComposedRefs } from 'motion/react'
 import {
 	type KeyboardEvent,
-	type ReactNode,
 	type Ref,
 	type RefObject,
 	useCallback,
@@ -15,7 +14,7 @@ import {
 import { useIntl } from '../../primitives/intl/use-intl'
 import { resolveFormat } from '../../utilities/format'
 import { calendarMessages } from './calendar-messages'
-import type { CalendarPickerGridCell } from './calendar-picker-grid'
+import type { CalendarPickerGridProps } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
 import { isYearInRange, MAX_YEAR, MIN_YEAR } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
@@ -38,17 +37,20 @@ type CalendarPickerOptions = {
 }
 
 /** Per-view render config for {@link CalendarPickerGrid}: toolbar labels/handlers, center label, the cell list, and whether cells render full-width. @internal */
-type CalendarPickerViewConfig = {
-	gridLabel: string
-	prevLabel: string
-	nextLabel: string
-	centerLabel: ReactNode
-	onPrev: () => void
-	onNext: () => void
-	onCenter: () => void
-	cells: CalendarPickerGridCell[]
-	cellBlock: boolean
-}
+type CalendarPickerViewConfig = Required<
+	Pick<
+		CalendarPickerGridProps,
+		| 'gridLabel'
+		| 'prevLabel'
+		| 'nextLabel'
+		| 'centerLabel'
+		| 'onPrev'
+		| 'onNext'
+		| 'onCenter'
+		| 'cells'
+		| 'cellBlock'
+	>
+>
 
 /** Return shape of {@link useCalendarPicker}. It holds the header/grid refs, their roving-focus keydown handlers, and the active view's render config. @internal */
 type CalendarPickerResult = {
