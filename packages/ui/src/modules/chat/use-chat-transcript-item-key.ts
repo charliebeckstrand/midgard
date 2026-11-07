@@ -2,43 +2,50 @@
 
 import { useCallback } from 'react'
 import { useStableValue } from '../../hooks/use-stable-value'
+import { sameElements } from '../../utilities/same-elements'
+import type { ChatBranch } from './engine/chat-branch/types'
 import { hasMessageId } from './engine/chat-transcript'
 import type { ChatMessageData } from './engine/types'
 
-/** Whether two message lists hold the same ids in the same order. @internal */
-function sameIds(prev: readonly ChatMessageData[], next: readonly ChatMessageData[]): boolean {
-	return prev.length === next.length && next.every((message, i) => message.id === prev[i]?.id)
+/**
+ * The key of the row of a message: the id of its oldest branch, else its own
+ * id, else `undefined` for a message with no id. @internal
+ */
+function rowKey(
+	message: ChatMessageData,
+	branches: Readonly<Record<string, ChatBranch>> | undefined,
+): string | undefined {
+	if (!hasMessageId(message)) return undefined
+
+	return branches?.[message.id]?.ids[0] || message.id
 }
 
 /**
  * Returns the key getter that the transcript window reads: the message `id`,
  * or the index for a message with no id. An empty id is no id, as the engine
- * reads it.
+ * reads it. A message with branches takes the id of its oldest branch, so each
+ * branch at one place has the same row.
  *
  * @remarks
- * The getter keeps its identity while the ids stay the same. A streamed chunk
+ * The getter keeps its identity while the keys stay the same. A streamed chunk
  * gives a new message list with the same ids, so the getter does not change.
  * A new identity makes the virtualizer rebuild the position of every row.
  *
- * An added, removed or moved message, or an id that changes in place, gives a
+ * An added, removed or moved message, or a key that changes in place, gives a
  * new getter. The virtualizer then rebuilds its rows, also when the count does
- * not change.
+ * not change. A switch to another branch keeps the key of that row, and it
+ * changes the keys of the rows below it.
  *
  * @internal
  */
 export function useChatTranscriptItemKey(
 	messages: readonly ChatMessageData[],
+	branches?: Readonly<Record<string, ChatBranch>>,
 ): (index: number) => string | number {
-	// The held list keeps the ids of the messages, so the getter reads only ids
-	// from it.
-	const held = useStableValue(messages, sameIds)
-
-	return useCallback(
-		(index: number) => {
-			const message = held[index]
-
-			return message && hasMessageId(message) ? message.id : index
-		},
-		[held],
+	const held = useStableValue(
+		messages.map((message) => rowKey(message, branches)),
+		sameElements,
 	)
+
+	return useCallback((index: number) => held[index] ?? index, [held])
 }

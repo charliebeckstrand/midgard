@@ -4,12 +4,18 @@
  * is the React shell above them: it holds the state, it mints the ids, and it
  * drives the transport.
  *
+ * The shell holds the transcript as a tree ({@link ChatTree}), and a list rule
+ * acts on its shown path. `retry` and `edit` add a branch through the two
+ * rules at the end, and keep the turns that they replace.
+ *
  * No rule here reads a clock or a random source, because the caller supplies
  * each id: as an argument, or through the function `seedMessages` calls. That
  * is what makes the drop rule provable: a test can name the reply that one send
  * opened.
  */
 
+import { addBranch } from './chat-branch/tree'
+import type { ChatTree } from './chat-branch/types'
 import { isEmptyContent } from './chat-content/normalize'
 import type { ChatPart } from './chat-content/types'
 import { applyChunk, failRunningTools } from './chat-stream'
@@ -96,8 +102,8 @@ export function dropEmptyReply(messages: ChatMessageData[], id: string): ChatMes
  * The transcript with the reply `id` names marked `failed`. It keeps what the
  * reply already landed. A send that failed before its reply opened has no
  * reply yet, so the rule adds an empty assistant reply under `id` at the end.
- * The reader thus always sees that the send failed, and `retry` drops the
- * failed reply as it drops any reply to the last user message.
+ * The reader thus always sees that the send failed, and `retry` hides the
+ * failed reply as a branch, as it hides any reply to the last user message.
  *
  * @internal
  */
@@ -182,7 +188,7 @@ export function seedMessages(messages: ChatMessageData[], mintId: () => string):
  * claims each. An empty list means every message names itself.
  *
  * Every rule here reads an id rather than a position, so two messages under one
- * id are edited, truncated, and rolled back together. The shell warns on this in
+ * id are edited, branched, and rolled back together. The shell warns on this in
  * development. The rule is here because it is a fact about a transcript, and a
  * pure test can state it.
  *
@@ -214,16 +220,18 @@ export function findLastUserMessage(messages: ChatMessageData[]): ChatMessageDat
 }
 
 /**
- * The transcript cut to its last user message, which it keeps: what `retry`
- * discards is that message's reply, and every turn after it. A transcript with
- * no user message stays as it is.
+ * The transcript with the reply to its last user message hidden as a branch,
+ * with every turn after it. The place after that message then shows no branch,
+ * and the reply that `retry` streams takes the newest branch there. A last
+ * user message with no reply, and a transcript with no user message, both stay
+ * as they are.
  *
  * @internal
  */
-export function truncateToLastUserMessage(messages: ChatMessageData[]): ChatMessageData[] {
-	const index = findLastUserIndex(messages)
+export function branchLastReply(tree: ChatTree): ChatTree {
+	const index = findLastUserIndex(tree.path)
 
-	return index === -1 ? messages : messages.slice(0, index + 1)
+	return index === -1 ? tree : addBranch(tree, index + 1)
 }
 
 /**
@@ -240,24 +248,21 @@ export function findUserMessage(
 }
 
 /**
- * The transcript cut to the message `id` names, with `content` in place of that
- * message's own. What `edit` discards is the reply to the old content, and every
- * turn after it. An id that names no message changes nothing.
+ * The transcript with `content` as a new user message beside the message `id`
+ * names, under the id `branchId` that the caller mints. The new message shows,
+ * and the reply that `edit` streams follows it. The old message, its reply,
+ * and every turn after it hide as a branch. An id that names no message
+ * changes nothing.
  *
  * @internal
  */
-export function truncateToEditedMessage(
-	messages: ChatMessageData[],
+export function branchEditedMessage(
+	tree: ChatTree,
 	id: string,
+	branchId: string,
 	content: string,
-): ChatMessageData[] {
-	const index = messages.findIndex((message) => message.id === id)
+): ChatTree {
+	const index = tree.path.findIndex((message) => message.id === id)
 
-	// An id no message carries reads as -1, and `messages[-1]` is undefined, so
-	// one check answers both.
-	const target = messages[index]
-
-	if (!target) return messages
-
-	return [...messages.slice(0, index), { ...target, content }]
+	return index === -1 ? tree : addBranch(tree, index, { id: branchId, sender: 'user', content })
 }

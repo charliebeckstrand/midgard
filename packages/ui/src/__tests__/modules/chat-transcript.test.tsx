@@ -185,6 +185,81 @@ describe('ChatTranscript', () => {
 		})
 	})
 
+	describe('branches', () => {
+		const replies = (reply: ChatMessageData): ChatMessageData[] => [
+			messages[0] as ChatMessageData,
+			reply,
+		]
+
+		const first: ChatMessageData = { id: 'r1', sender: 'assistant', content: 'First reply' }
+
+		const second: ChatMessageData = { id: 'r2', sender: 'assistant', content: 'Second reply' }
+
+		it('gives the switcher to the message that the branches name', () => {
+			const onBranchChange = vi.fn()
+
+			const { container } = renderUI(
+				<ChatTranscript
+					messages={replies(second)}
+					branches={{ r2: { index: 1, ids: ['r1', 'r2'] } }}
+					onBranchChange={onBranchChange}
+				/>,
+			)
+
+			expect(allBySlot(container, 'chat-message-branch')).toHaveLength(1)
+
+			fireEvent.click(screen.getByRole('button', { name: 'Previous version' }))
+
+			expect(onBranchChange).toHaveBeenCalledExactlyOnceWith('r1')
+		})
+
+		it('turns each switcher off while a reply streams', () => {
+			renderUI(
+				<ChatTranscript
+					messages={replies(second)}
+					branches={{ r2: { index: 1, ids: ['r1', 'r2'] } }}
+					onBranchChange={vi.fn()}
+					streaming
+				/>,
+			)
+
+			expect(screen.getByRole('button', { name: 'Previous version' })).toHaveAttribute(
+				'aria-disabled',
+				'true',
+			)
+		})
+
+		it('keeps the row and the focus in the switcher across a switch', () => {
+			const { rerender } = renderUI(
+				<ChatTranscript
+					messages={replies(second)}
+					branches={{ r2: { index: 1, ids: ['r1', 'r2', 'r3'] } }}
+					onBranchChange={vi.fn()}
+				/>,
+			)
+
+			const previous = screen.getByRole('button', { name: 'Previous version' })
+
+			previous.focus()
+
+			rerender(
+				<ChatTranscript
+					messages={replies(first)}
+					branches={{ r1: { index: 0, ids: ['r1', 'r2', 'r3'] } }}
+					onBranchChange={vi.fn()}
+				/>,
+			)
+
+			expect(screen.getByText('First reply')).toBeInTheDocument()
+
+			// The row of each branch takes the key of the oldest one, so React keeps
+			// the button that held the focus.
+			expect(previous).toBeInTheDocument()
+
+			expect(previous).toHaveFocus()
+		})
+	})
+
 	describe('the reply a reader cannot see', () => {
 		/** A transcript holding the reader's own message, with no reply to it yet. */
 		const sent: ChatMessageData[] = [{ id: '1', sender: 'user', content: 'Hi there' }]

@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import type { ChatMessageData } from '../../modules/chat'
+import type { ChatBranch, ChatMessageData } from '../../modules/chat'
 import { useChatTranscriptItemKey } from '../../modules/chat/use-chat-transcript-item-key'
 
 const history: ChatMessageData[] = [
@@ -14,11 +14,13 @@ const withReply = (content: string, id = 'reply'): ChatMessageData[] => [
 	{ id, sender: 'assistant', content },
 ]
 
-function mount(messages: ChatMessageData[]) {
-	return renderHook(
-		(props: { messages: ChatMessageData[] }) => useChatTranscriptItemKey(props.messages),
-		{ initialProps: { messages } },
-	)
+/** The props of the hook under test. */
+type Props = { messages: ChatMessageData[]; branches?: Record<string, ChatBranch> }
+
+function mount(messages: ChatMessageData[], branches?: Record<string, ChatBranch>) {
+	return renderHook((props: Props) => useChatTranscriptItemKey(props.messages, props.branches), {
+		initialProps: { messages, branches } as Props,
+	})
 }
 
 describe('useChatTranscriptItemKey', () => {
@@ -91,5 +93,23 @@ describe('useChatTranscriptItemKey', () => {
 		])
 
 		expect([result.current(0), result.current(1)]).toEqual([0, 1])
+	})
+
+	it('keys a message with branches by its oldest branch, so a switch keeps the row', () => {
+		const branches = (index: number, ids: string[]) => ({
+			[ids[index] as string]: { index, ids },
+		})
+
+		const { result, rerender } = mount(withReply('Second', 'r2'), branches(1, ['r1', 'r2']))
+
+		const first = result.current
+
+		expect(result.current(3)).toBe('r1')
+
+		rerender({ messages: withReply('First', 'r1'), branches: branches(0, ['r1', 'r2']) })
+
+		expect(result.current(3)).toBe('r1')
+
+		expect(result.current).toBe(first)
 	})
 })

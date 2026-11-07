@@ -10,6 +10,7 @@ export {
 	ChatTranscriptSkeleton,
 	type ChatTranscriptSkeletonProps,
 } from './chat-transcript-skeleton'
+export type { ChatBranch } from './engine/chat-branch/types'
 export { chatContentText } from './engine/chat-content/text'
 export type {
 	ChatEmbedPart,

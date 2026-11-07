@@ -162,7 +162,13 @@ describe('useChatSend', () => {
 		})
 
 		expect(transport).toHaveBeenCalledWith('edited', expect.anything())
-		expect(result.current.messages[0]).toMatchObject({ id: 'server-1', content: 'edited' })
+
+		// The edit is a new message beside the persisted one, which stays as a branch.
+		const edited = result.current.messages[0]?.id as string
+
+		expect(result.current.messages[0]).toMatchObject({ content: 'edited' })
+
+		expect(result.current.branches[edited]).toEqual({ index: 1, ids: ['server-1', edited] })
 	})
 
 	it('gives each message an id on an origin with no crypto.randomUUID', async () => {
@@ -269,7 +275,7 @@ describe('useChatSend', () => {
 		expect(result.current.messages[1]).toMatchObject({ sender: 'assistant', failed: true })
 	})
 
-	it('retry regenerates the reply to the last user message, dropping the previous reply', async () => {
+	it('retry regenerates the reply to the last user message, and keeps the old reply as a branch', async () => {
 		const transports = [makeStream('first reply'), makeStream('second reply')]
 
 		let call = 0
@@ -297,6 +303,59 @@ describe('useChatSend', () => {
 			sender: 'assistant',
 			content: 'second reply',
 		})
+
+		const [first, second] = Object.values(result.current.branches)[0]?.ids ?? []
+
+		expect(result.current.branches).toEqual({
+			[second as string]: { index: 1, ids: [first, second] },
+		})
+
+		act(() => {
+			result.current.showBranch(first as string)
+		})
+
+		expect(result.current.messages[1]).toMatchObject({ content: 'first reply' })
+
+		expect(result.current.branches[first as string]).toEqual({ index: 0, ids: [first, second] })
+	})
+
+	it('retry shows the old reply again when it stops before the first chunk', async () => {
+		const { transport, gate } = gatedStream([], ['late'])
+
+		const { result } = renderHook(() =>
+			useChatSend({
+				transport,
+				initialMessages: [
+					{ id: 'u1', sender: 'user', content: 'hi' },
+					{ id: 'r1', sender: 'assistant', content: 'first reply' },
+				],
+			}),
+		)
+
+		let retrying!: Promise<void>
+
+		act(() => {
+			retrying = result.current.retry()
+		})
+
+		// The old reply hides while the new one waits for its stream.
+		expect(result.current.messages).toEqual([expect.objectContaining({ id: 'u1' })])
+
+		await waitFor(() => expect(result.current.messages).toHaveLength(2))
+
+		act(() => {
+			result.current.stop()
+		})
+
+		gate.resolve()
+
+		await act(async () => {
+			await retrying
+		})
+
+		expect(result.current.messages.map((message) => message.id)).toEqual(['u1', 'r1'])
+
+		expect(result.current.branches).toEqual({})
 	})
 
 	it('retry replaces the failed reply of a failed send', async () => {
@@ -344,7 +403,7 @@ describe('useChatSend', () => {
 		expect(result.current.messages).toHaveLength(0)
 	})
 
-	it('edit replaces a user message and regenerates from there, dropping later turns', async () => {
+	it('edit sends new content as a branch beside the user message, and keeps the old turns', async () => {
 		const transports = [makeStream('first reply'), makeStream('second reply')]
 
 		let call = 0
@@ -372,6 +431,116 @@ describe('useChatSend', () => {
 			sender: 'assistant',
 			content: 'second reply',
 		})
+
+		const editedId = result.current.messages[0]?.id as string
+
+		expect(editedId).not.toBe(userId)
+
+		expect(result.current.branches).toEqual({ [editedId]: { index: 1, ids: [userId, editedId] } })
+
+		act(() => {
+			result.current.showBranch(userId)
+		})
+
+		expect(result.current.messages).toMatchObject([{ content: 'hi' }, { content: 'first reply' }])
+	})
+
+	it('keeps one branches object across streamed chunks', async () => {
+		const { transport, gate } = gatedStream(['Late'], ['Late stops rose'])
+
+		const { result } = renderHook(() =>
+			useChatSend({
+				transport,
+				initialMessages: [
+					{ id: 'u1', sender: 'user', content: 'hi' },
+					{ id: 'r1', sender: 'assistant', content: 'first reply' },
+				],
+			}),
+		)
+
+		let retrying!: Promise<void>
+
+		act(() => {
+			retrying = result.current.retry()
+		})
+
+		await waitFor(() => expect(result.current.messages.at(-1)?.content).toBe('Late'))
+
+		const branches = result.current.branches
+
+		gate.resolve()
+
+		await act(async () => {
+			await retrying
+		})
+
+		expect(result.current.messages.at(-1)?.content).toBe('Late stops rose')
+
+		expect(result.current.branches).toBe(branches)
+	})
+
+	it('showBranch no-ops while a send is in flight', async () => {
+		const { transport, gate } = gatedStream(['Late'], ['Late stops rose'])
+
+		const { result } = renderHook(() =>
+			useChatSend({
+				transport,
+				initialMessages: [
+					{ id: 'u1', sender: 'user', content: 'hi' },
+					{ id: 'r1', sender: 'assistant', content: 'first reply' },
+				],
+			}),
+		)
+
+		let retrying!: Promise<void>
+
+		act(() => {
+			retrying = result.current.retry()
+		})
+
+		await waitFor(() => expect(result.current.messages.at(-1)?.content).toBe('Late'))
+
+		act(() => {
+			result.current.showBranch('r1')
+		})
+
+		// The reply that streams stays on the shown path.
+		expect(result.current.messages.at(-1)?.content).toBe('Late')
+
+		gate.resolve()
+
+		await act(async () => {
+			await retrying
+		})
+	})
+
+	it('setMessages replaces the transcript and its branches, and gives each message an id', async () => {
+		const transports = [makeStream('first reply'), makeStream('second reply')]
+
+		let call = 0
+
+		const transport: ChatTransport = (content, signal) =>
+			transports[call++]?.(content, signal) ?? makeStream()(content, signal)
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		await act(async () => {
+			await result.current.send('hi')
+		})
+
+		await act(async () => {
+			await result.current.retry()
+		})
+
+		act(() => {
+			result.current.setMessages((prev) => [...prev, { sender: 'system', content: 'Saved.' }])
+		})
+
+		expect(result.current.messages).toHaveLength(3)
+
+		expect(result.current.messages[2]?.id).toEqual(expect.any(String))
+
+		expect(result.current.branches).toEqual({})
 	})
 
 	it('edit no-ops for an unknown id, a non-user message, or empty content', async () => {

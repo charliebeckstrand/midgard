@@ -8,6 +8,8 @@ The components and the hooks cover a whole agent conversation. `ChatTranscript` 
 
 `useChatSend` holds the message list and streams each reply through a `ChatTransport`. `useChatDraft` holds the text of the composer. The caller supplies the transport, so the module assumes no endpoint and no wire format. A seed message keeps the id that it carries, so a persisted conversation keeps its addresses after a reload.
 
+`retry` and `edit` add a branch and keep the old one. A retry adds a reply beside the old reply, and an edit adds a user message beside the old message. The hook holds the transcript as a tree, and `messages` is the shown path through it. `branches` gives the siblings at each place of that path, and `showBranch` shows another one. A branch is per message, not per conversation, and a branch that shows again keeps each turn below it as the reader left it. `ChatMessage` draws a switcher such as `2 of 3` below the bubble of a message with siblings.
+
 A message holds a string or a list of parts. `ChatPart` is a closed union of three kinds: `text`, `embed`, and `tool`. Each part carries an id that is unique in its message. A string chunk of the transport replaces the prose of the reply, and a part-list chunk merges into the reply by id. A string normalizes to one text part, so a transcript of prose needs no part list.
 
 An `embed` part names a renderer that the app registers with `ChatEmbedProvider`. The module imports no chart, no grid, and no map, so a chat with no embed pays for none of them. A name that no renderer claims draws a stated fallback. Under the default `lazy` mount policy, a renderer waits until its block is near the viewport. The provider remembers each embed that a reader reached, so an embed whose row comes back into the window draws at once.
@@ -26,6 +28,7 @@ The framework-free rules live in [`engine/`](engine), a pure functional core:
 - `chat-content/` gives the part union, the normalization of a string, the rule for empty content, and the plain-text projection. Copy, the announcement, and `retry` read that projection.
 - `chat-stream.ts` folds one chunk into a reply, and settles each step that is still running.
 - `chat-transcript.ts` gives the transforms from one message list to the next, and the readers that `retry` and `edit` run before them.
+- `chat-branch/` gives the tree: the shown path, the branches that hide, and the rules that hide one branch and show another. A list rule acts on the shown path, so a streamed chunk costs what it costs with no branches.
 - `chat-draft.ts` gives the one rule for a draft that can send. `ChatPrompt` and `useChatDraft` both read it.
 - `chat-announcements.ts` gives each string that the announcer speaks.
 
@@ -40,6 +43,10 @@ Each of these shapes was proposed for the content model and refuted. Do not prop
 - **A projection for each purpose.** `retry` sends the projection to the transport, so the transport is one more reader of it. One projection serves the clipboard, the transport, and the announcer.
 - **A flag of completeness that nothing settles.** A stopped reply would keep a part that never ends. The `tool` status is safe, because the send settles each running step on every exit.
 
+This shape was proposed for the branches and refuted:
+
+- **A tree of nested nodes.** Each node holds its message and the branches below it, and the shown path is a walk from the root. A chunk then copies every node above the reply, so its cost is the length of the transcript in new objects. The tree that ships keeps the shown path as a list, and the branches that hide beside it.
+
 ## Backlog
 
 In priority order. Each entry names the gap, the shape of the fix, and where it lands.
@@ -47,8 +54,6 @@ In priority order. Each entry names the gap, the shape of the fix, and where it 
 - **One selection across the chat and the dashboard.** An agent says that twelve stops are late, and a point on that sentence must mark those stops on the map beside it. The shape is a `citation` that carries an embed name and a selector. An adapter for each module maps the selector onto the selection prop of that module. The chat drives the dashboard first. The reverse direction waits for a second consumer to ask for it.
 
   Two blockers sit under it. The receiving half is incomplete: a cartesian chart takes `selectedCategories`, but a map takes one `selectedRegion` and one `selectedOverlay`. And the anchor cannot render: a citation on a phrase needs a range, and [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) has no slot to draw one. Fix the renderer and the map first, then write the citation.
-
-- **Branch the transcript instead of truncating it.** `retry` and `edit` both discard the old reply, and a reader who preferred it cannot get it back. The shape keeps the discarded turn as a sibling branch under the message that forked, with a `1 of 2` switcher on the bubble. The transcript then changes from a list to a tree, which earns `engine/chat-branch/`. A branch is per message, not per conversation.
 
 - **Composer commands and mentions.** A dashboard agent needs a scope, and prose is the worst way to give one. The shape is a token model in `engine/chat-command/`: a trigger character, a token span, and a resolved value. The picker sits over `CommandPalette`, which already holds the keyboard model. `ChatPrompt` has an `actions` slot but no model behind it. `@dataset` scopes a question, and `/command` runs one.
 
