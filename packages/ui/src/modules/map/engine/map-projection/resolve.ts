@@ -13,7 +13,7 @@ import {
 	geoMercator,
 	geoPath,
 } from 'd3-geo'
-import { REGION_PATH_DIGITS, REGION_PATH_ROUNDING } from '../map-constants'
+import { MAP_FIT_INSET, REGION_PATH_DIGITS, REGION_PATH_ROUNDING } from '../map-constants'
 import type { MapFeature, MapProjection } from '../types'
 
 /**
@@ -109,8 +109,10 @@ export function resolveProjection(spec: MapProjection): GeoProjection {
 
 /**
  * Resolves and fits a projection so the geography fills a `width` × `height`
- * frame. With no features the projection returns unfitted: there is nothing
- * to frame.
+ * frame less {@link MAP_FIT_INSET} on each side: the direct `fitExtent` that
+ * `scaleCanonicalFit` (`fit.ts`) derives by arithmetic. With no features, or no
+ * area inside the inset, the projection returns unfitted: there is nothing to
+ * frame.
  *
  * @internal
  */
@@ -122,9 +124,17 @@ export function fitProjection(
 ): GeoProjection {
 	const projection = resolveProjection(spec)
 
-	if (features.length === 0 || width <= 0 || height <= 0) return projection
+	const inset = MAP_FIT_INSET
 
-	return projection.fitSize([width, height], collection(features))
+	if (features.length === 0 || width <= inset * 2 || height <= inset * 2) return projection
+
+	return projection.fitExtent(
+		[
+			[inset, inset],
+			[width - inset, height - inset],
+		],
+		collection(features),
+	)
 }
 
 /**

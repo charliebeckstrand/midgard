@@ -223,11 +223,11 @@ describe('dot hit target by pointer modality', () => {
 
 	it('keeps both stops reachable the moment a zoom separates a summary', () => {
 		const { container } = renderUI(
-			// Two stops 0.14° apart: merged at rest in a 400px frame, and separated by
+			// Two stops 0.16° apart: merged at rest in a 400px frame, and separated by
 			// the 8× ceiling. Marks merge by a device-pixel distance, so a pair that has
 			// just parted always sits about 14px apart: however far in the view sits.
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} zoom>
-				<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [15.14, 5] }]} />
+				<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [15.16, 5] }]} />
 			</MapPlat>,
 		)
 

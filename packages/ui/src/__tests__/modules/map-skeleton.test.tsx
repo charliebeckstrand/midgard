@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MapSkeleton } from '../../modules/map'
-import { ALBERS_USA_ASPECT } from '../../modules/map/engine/map-constants'
+import { ALBERS_USA_ASPECT, MAP_FIT_INSET } from '../../modules/map/engine/map-constants'
 import { MAP_OUTLINE_DATA } from '../../modules/map/engine/map-outline-data'
 import { bySlot, renderUI } from '../helpers'
 
@@ -90,8 +90,9 @@ describe('MapSkeleton', () => {
 
 		expect(outline?.querySelector('path')?.getAttribute('d')).toBe(MAP_OUTLINE_DATA.mercator.d)
 
-		// A fill skeleton reserves no ratio; the outline takes the container itself.
-		expect(outline?.getAttribute('style')).toBeNull()
+		// A fill skeleton reserves no ratio; the outline takes the container itself,
+		// less the plat's fit inset on each side.
+		expect(outline?.getAttribute('style')).toBe(`padding: ${MAP_FIT_INSET}px;`)
 
 		// No projection has no outline to draw.
 		const none = renderUI(<MapSkeleton outline />)

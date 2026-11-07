@@ -1,7 +1,11 @@
 // @vitest-environment node
 import { geoMercator, geoPath } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
-import { ALBERS_USA_ASPECT, REGION_PATH_DIGITS } from '../../modules/map/engine/map-constants'
+import {
+	ALBERS_USA_ASPECT,
+	MAP_FIT_INSET,
+	REGION_PATH_DIGITS,
+} from '../../modules/map/engine/map-constants'
 import {
 	mapFrameSizing,
 	projectionFallbackAspect,
@@ -74,10 +78,13 @@ describe('resolveProjection', () => {
 })
 
 describe('fitProjection', () => {
-	it('fits the geography into the frame', () => {
+	it('fits the geography into the frame less the inset', () => {
 		const projection = fitProjection('mercator', FEATURES, 300, 100)
 
-		// The fixture spans lon 0–30, lat 0–10; every corner projects inside the frame.
+		const inset = MAP_FIT_INSET - 0.01
+
+		// The fixture spans lon 0–30, lat 0–10; every corner projects inside the
+		// frame, and the inset keeps each one off the edge.
 		for (const corner of [
 			[0, 0],
 			[30, 0],
@@ -90,23 +97,25 @@ describe('fitProjection', () => {
 
 			const [x, y] = point as [number, number]
 
-			expect(x).toBeGreaterThanOrEqual(-0.01)
+			expect(x).toBeGreaterThanOrEqual(inset)
 
-			expect(x).toBeLessThanOrEqual(300.01)
+			expect(x).toBeLessThanOrEqual(300 - inset)
 
-			expect(y).toBeGreaterThanOrEqual(-0.01)
+			expect(y).toBeGreaterThanOrEqual(inset)
 
-			expect(y).toBeLessThanOrEqual(100.01)
+			expect(y).toBeLessThanOrEqual(100 - inset)
 		}
 	})
 
 	it('returns an unfitted projection when there is nothing to frame', () => {
 		const unfitted = geoMercator()
 
-		// No features, and a frame with no width: neither gives a fit.
+		// No features, a frame with no width, and a frame with no room inside the
+		// inset: none gives a fit.
 		const empties = [
 			fitProjection('mercator', [], 300, 100),
 			fitProjection('mercator', FIXTURE_GEOJSON.features, 0, 100),
+			fitProjection('mercator', FIXTURE_GEOJSON.features, 300, MAP_FIT_INSET * 2),
 		]
 
 		for (const projection of empties) {
@@ -130,7 +139,7 @@ describe('scaleCanonicalFit', () => {
 		['mercator', FEATURES],
 		['equal-earth', FEATURES],
 		['albers-usa', US_FEATURES],
-	] as const)('frames the geography like a direct fitSize under %s', (spec, features) => {
+	] as const)('frames the geography like a direct fitExtent under %s', (spec, features) => {
 		const canonical = canonicalFit(spec, features)
 
 		if (canonical === null) throw new Error('nothing to fit')
@@ -140,27 +149,33 @@ describe('scaleCanonicalFit', () => {
 		for (const [width, height] of frames) {
 			const derived = scaleCanonicalFit(spec, canonical, width, height)
 
-			// The geography sits inside the frame, centered, filling one axis edge
-			// to edge: the fit contract itself.
+			if (derived === null) throw new Error('expected a fit')
+
+			// The geography sits inside the frame less the inset, centered, filling
+			// one axis from inset to inset: the fit contract itself.
 			const [[x0, y0], [x1, y1]] = geoPath(derived).bounds(
 				shape as unknown as Parameters<ReturnType<typeof geoPath>['bounds']>[0],
 			)
 
-			expect(x0).toBeGreaterThanOrEqual(-0.5)
+			const inset = MAP_FIT_INSET
 
-			expect(y0).toBeGreaterThanOrEqual(-0.5)
+			expect(x0).toBeGreaterThanOrEqual(inset - 0.5)
 
-			expect(x1).toBeLessThanOrEqual(width + 0.5)
+			expect(y0).toBeGreaterThanOrEqual(inset - 0.5)
 
-			expect(y1).toBeLessThanOrEqual(height + 0.5)
+			expect(x1).toBeLessThanOrEqual(width - inset + 0.5)
 
-			expect(Math.min(width - (x1 - x0), height - (y1 - y0))).toBeLessThan(1)
+			expect(y1).toBeLessThanOrEqual(height - inset + 0.5)
+
+			expect(Math.min(width - inset * 2 - (x1 - x0), height - inset * 2 - (y1 - y0))).toBeLessThan(
+				1,
+			)
 
 			expect(x0 + x1).toBeNear(width, HALF_FRAME_UNIT)
 
 			expect(y0 + y1).toBeNear(height, HALF_FRAME_UNIT)
 
-			// And it lands where a direct fitSize would, within the sub-percent
+			// And it lands where a direct fitExtent would, within the sub-percent
 			// margin of d3's adaptive resampling, which refines each pass's curves
 			// at the scale that pass runs at.
 			const direct = fitProjection(spec, features, width, height)
@@ -187,7 +202,7 @@ describe('scaleCanonicalFit', () => {
 })
 
 describe('measuredMapFit', () => {
-	it('derives a named-projection fit matching a direct fitSize', () => {
+	it('derives a named-projection fit matching a direct fitExtent', () => {
 		const canonical = canonicalFit('mercator', FEATURES)
 
 		if (canonical === null) throw new Error('nothing to fit')
@@ -220,6 +235,22 @@ describe('measuredMapFit', () => {
 		expect(measuredMapFit('mercator', canonical, 300, 0)).toBeNull()
 	})
 
+	it('is null where the frame has no room inside the inset', () => {
+		const canonical = canonicalFit('mercator', FEATURES)
+
+		if (canonical === null) throw new Error('nothing to fit')
+
+		// A frame of twice the inset, or less, on one axis has no area left for
+		// the geography. A fit there would scale it to nothing, or mirror it.
+		expect(measuredMapFit('mercator', canonical, 300, MAP_FIT_INSET * 2)).toBeNull()
+
+		expect(measuredMapFit('mercator', canonical, MAP_FIT_INSET * 2, 100)).toBeNull()
+
+		expect(scaleCanonicalFit('mercator', canonical, 300, MAP_FIT_INSET * 2)).toBeNull()
+
+		expect(measuredMapFit('mercator', canonical, 300, MAP_FIT_INSET * 2 + 1)).not.toBeNull()
+	})
+
 	it('keeps the canonical fit of a passed instance, and frames it per box', () => {
 		const instance = geoMercator()
 
@@ -238,14 +269,23 @@ describe('measuredMapFit', () => {
 		if (small?.frame == null || large?.frame == null) throw new Error('expected a framed fit')
 
 		// The instance belongs to the consumer, and a refit in place would give both
-		// fits one identity. Each box takes its own frame over the canonical fit.
+		// fits one identity. Each box takes its own frame over the canonical fit:
+		// the scale that meets the box less the inset on each side.
 		expect(instance.scale()).toBe(scale)
 
 		expect(instance.translate()).toEqual(translate)
 
 		expect(small.projection).toBe(canonical.projection)
 
-		expect(large.frame.k / small.frame.k).toBeNear(4, FLOAT)
+		const meet = (width: number, height: number) =>
+			Math.min(
+				(width - MAP_FIT_INSET * 2) / canonical.width,
+				(height - MAP_FIT_INSET * 2) / canonical.height,
+			)
+
+		expect(small.frame.k).toBeNear(meet(150, 50), FLOAT)
+
+		expect(large.frame.k).toBeNear(meet(600, 200), FLOAT)
 	})
 
 	it('puts a passed instance where a named projection puts the same geography', () => {
