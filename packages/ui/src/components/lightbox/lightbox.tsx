@@ -218,9 +218,9 @@ export function Lightbox({
 
 	const images = useRef(new Map<number, HTMLImageElement>())
 
-	// The thumbnail that the photo lands in. The focus manager of the overlay
-	// gives it the focus when the overlay unmounts, after the page is visible to
-	// assistive technology again. A thumbnail of an earlier open does not count.
+	// The thumbnail that the photo lands in. The overlay gives it the focus when
+	// the overlay unmounts, after the photo lands. A thumbnail of an earlier open
+	// does not count.
 	const returnRef = useRef<HTMLElement | null>(null)
 
 	useLayoutEffect(() => {
@@ -272,8 +272,8 @@ export function Lightbox({
 							setIndex(next === null ? null : (viewable[next]?.index ?? null))
 						}
 						onReturn={() => {
-							// The overlay hides the page until it unmounts, so the focus
-							// cannot go to the thumbnail now.
+							// The overlay returns the focus when it unmounts, so the focus
+							// does not go to the thumbnail now.
 							if (shown !== null) {
 								returnRef.current = images.current.get(shown)?.closest('button') ?? null
 							}

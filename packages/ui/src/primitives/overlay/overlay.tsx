@@ -5,7 +5,7 @@ import {
 	type FloatingRootContext,
 	useFloatingRootContext,
 } from '@floating-ui/react'
-import { useComposedRefs } from 'motion/react'
+import { useComposedRefs, useIsPresent } from 'motion/react'
 import {
 	type ComponentProps,
 	type ReactElement,
@@ -25,6 +25,7 @@ import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
+import { useOverlayReturnFocus } from './use-overlay-return-focus'
 import { useOverlayViewportFit } from './use-overlay-viewport-fit'
 
 /**
@@ -134,8 +135,10 @@ export type OverlayProps = {
  * backdrop, so the React ancestors of the overlay do not receive it.
  *
  * A closed overlay is `inert` for its exit animation, so it takes no press and
- * no key. The body stays locked until the exit completes. The focus goes to `<body>` when the overlay closes, and a modal
- * overlay returns it to the trigger at unmount.
+ * no key. The body stays locked until the exit completes. A modal overlay
+ * seals the page only while it is open, so the page is in the accessibility
+ * tree for the exit. The focus goes to `<body>` when the overlay closes, and a
+ * modal overlay returns it to the trigger at unmount.
  *
  * The portal carries the density scope and the direction of the place that
  * opened the overlay (see {@link Portal}), so the panel follows that place.
@@ -328,14 +331,13 @@ export function Overlay({
 
 	return (
 		<Portal open={open} container={container} ssr onExitComplete={() => setPresent(false)}>
-			<OverlayFocus
-				modal={modal}
-				container={container}
-				context={context}
-				returnFocusTo={returnFocusTo}
-			>
-				{panel}
-			</OverlayFocus>
+			{modal ? (
+				<OverlayFocus container={container} context={context} returnFocusTo={returnFocusTo}>
+					{panel}
+				</OverlayFocus>
+			) : (
+				panel
+			)}
 		</Portal>
 	)
 }
@@ -363,28 +365,25 @@ function outside(box: Element): Element[] {
 
 /**
  * Wraps the overlay panel in a modal `FloatingFocusManager`, which traps focus
- * and restores it on close. `useOverlayInitialFocus` moves the focus in on
- * open. A non-modal surface renders bare: no trap, no initial-focus steal, no
- * focus return. Focus stays where it is.
+ * and seals the page while the overlay is open. `useOverlayInitialFocus` moves
+ * the focus in on open, and `useOverlayReturnFocus` gives it back at unmount.
+ * Only a modal overlay renders it. A non-modal surface renders bare: no trap,
+ * no initial-focus steal, no focus return. Focus stays where it is.
  *
  * @internal
  */
 function OverlayFocus({
-	modal,
 	container,
 	context,
 	returnFocusTo,
 	children,
 }: {
-	modal: boolean
 	/** The box that the overlay covers, or none for the viewport. */
 	container: HTMLElement | null | undefined
 	context: FloatingRootContext
 	returnFocusTo: RefObject<HTMLElement | null> | undefined
 	children: ReactElement
 }) {
-	if (!modal) return children
-
 	// An overlay fixed to the viewport seals the whole page. The focus guards
 	// bounce a Tab at the edge of the panel back inside, and the page is
 	// `aria-hidden`.
@@ -403,12 +402,27 @@ function OverlayFocus({
 	// promises to keep that side effect.
 	const scoped = container != null
 
+	// `AnimatePresence` holds the exiting subtree at the props of its last open
+	// render, so the focus manager does not see the close. Without `disabled`,
+	// it keeps the page `aria-hidden` through the exit, while the overlay is
+	// `inert`. Assistive technology then finds no content at all. Disabled at
+	// the close, the focus manager clears its marks, and the page is back in
+	// the accessibility tree for the exit. A reopen during the exit enables
+	// it again.
+	//
+	// The focus manager returns the focus when it is disabled, which is too
+	// early (see `useOverlayReturnFocus`). Thus it gets no return focus.
+	const present = useIsPresent()
+
+	useOverlayReturnFocus(returnFocusTo)
+
 	return (
 		<FloatingFocusManager
 			context={context}
+			disabled={!present}
 			modal
 			initialFocus={-1}
-			returnFocus={returnFocusTo ?? true}
+			returnFocus={false}
 			guards={!scoped}
 			outsideElementsInert={scoped}
 			getInsideElements={scoped ? () => outside(container) : undefined}
