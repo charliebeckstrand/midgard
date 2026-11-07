@@ -20,11 +20,16 @@ export type QueryMove = {
 	/** Adds a listener for the drop, and returns the function that removes it. */
 	subscribe: (listener: () => void) => () => void
 	/**
-	 * The node that a keyboard move carries into another group. The group that
+	 * Marks the node that a keyboard move carries into the group. The group that
 	 * then holds it lifts it and focuses its grip, so the next arrow key moves it
 	 * on.
 	 */
-	carried: { current: { id: string; groupId: string } | null }
+	carry: (id: string, groupId: string) => void
+	/**
+	 * Gives the node that a keyboard move carries into the group, or `null`, and
+	 * ends the carry into that group.
+	 */
+	take: (groupId: string) => string | null
 }
 
 /**
@@ -35,6 +40,8 @@ export type QueryMove = {
  */
 export function createQueryMove(getRoot: () => QueryGroup): QueryMove {
 	let drop: QueryDrop | null = null
+
+	let carried: { id: string; groupId: string } | null = null
 
 	const listeners = new Set<() => void>()
 
@@ -55,7 +62,18 @@ export function createQueryMove(getRoot: () => QueryGroup): QueryMove {
 				listeners.delete(listener)
 			}
 		},
-		carried: { current: null },
+		carry: (id, groupId) => {
+			carried = { id, groupId }
+		},
+		take: (groupId) => {
+			if (carried?.groupId !== groupId) return null
+
+			const { id } = carried
+
+			carried = null
+
+			return id
+		},
 	}
 }
 

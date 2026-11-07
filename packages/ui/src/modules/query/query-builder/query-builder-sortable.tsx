@@ -172,7 +172,7 @@ export function QueryBuilderSortable({
 	const carry = (id: string, target: QueryGroup, index: number) => {
 		setLiftedId(null)
 
-		shared.carried.current = { id, groupId: target.id }
+		shared.carry(id, target.id)
 
 		moveInto(id, target.id, index)
 
@@ -208,17 +208,13 @@ export function QueryBuilderSortable({
 	// its grip, so the next arrow key moves it on. The carry ends at the first
 	// render of that group.
 	useLayoutEffect(() => {
-		const carried = shared.carried.current
+		const carried = shared.take(group.id)
 
-		if (carried?.groupId !== group.id) return
+		if (carried === null || !children.some((child) => child.id === carried)) return
 
-		shared.carried.current = null
+		setLiftedId(carried)
 
-		if (!children.some((child) => child.id === carried.id)) return
-
-		setLiftedId(carried.id)
-
-		focusItem(carried.id)
+		focusItem(carried)
 	}, [children, group.id, shared, setLiftedId, focusItem])
 
 	// Whether the live pointer drag is over another group. Then the nodes of
