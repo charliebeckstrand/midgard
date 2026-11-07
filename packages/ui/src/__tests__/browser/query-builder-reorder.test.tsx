@@ -170,3 +170,194 @@ describe('QueryBuilder reorder (real browser)', () => {
 		expect(grip).toHaveAccessibleDescription(/To pick up an item, press Space/)
 	})
 })
+
+/**
+ * The keyboard move of a lifted node from one group into another: the arrow
+ * toward the end of the line moves it into the group next to it, and the arrow
+ * toward the start of the line moves it out of its group. The group that then
+ * holds the node keeps it lifted and focuses its grip.
+ */
+describe('QueryBuilder keyboard move across groups (real browser)', () => {
+	const fields: QueryField[] = [{ name: 'name', label: 'Name', type: 'text' }]
+
+	const rule = (id: string, combinator: 'and' | 'or' = 'and'): QueryRule => ({
+		id,
+		type: 'rule',
+		combinator,
+		field: 'name',
+		operator: 'contains',
+		value: id,
+	})
+
+	/** The root holds the group g of x and y, then the rule a. */
+	const initial = (): QueryGroup =>
+		createGroup('and', [{ ...createGroup('or', [rule('x'), rule('y', 'or')]), id: 'g' }, rule('a')])
+
+	function Harness({
+		onValueChange,
+		requireRule = false,
+	}: {
+		onValueChange: (value: QueryGroup) => void
+		requireRule?: boolean
+	}) {
+		const [query, setQuery] = useState(initial)
+
+		return (
+			<QueryBuilder
+				fields={fields}
+				value={query}
+				onValueChange={(next) => {
+					onValueChange(next)
+
+					setQuery(next)
+				}}
+				requireRule={requireRule}
+				reorder
+			/>
+		)
+	}
+
+	const ids = (nodes: { id: string }[]) => nodes.map((node) => node.id)
+
+	const grip = (name: string) => screen.getByRole('button', { name: `Reorder ${name}` })
+
+	const lift = async (name: string) => {
+		grip(name).focus()
+
+		fireEvent.keyDown(grip(name), { key: ' ' })
+
+		await waitFor(() => expect(grip(name)).toHaveAttribute('data-dragging'))
+	}
+
+	it('moves a lifted rule into the group before it, and out again', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Harness onValueChange={onValueChange} />)
+
+		await lift('Name contains a')
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'ArrowRight' })
+
+		await waitFor(() =>
+			expect(
+				screen.getByText('Name contains a moved to position 3 of 3 in condition group.'),
+			).toBeInTheDocument(),
+		)
+
+		const into: QueryGroup = onValueChange.mock.calls[0]?.[0]
+
+		expect(ids(into.children)).toEqual(['g'])
+
+		const inner = into.children[0] as QueryGroup
+
+		expect(ids(inner.children)).toEqual(['x', 'y', 'a'])
+
+		// a takes the OR of y, the node before the end.
+		expect(inner.children[2]?.combinator).toBe('or')
+
+		// The group that holds the rule now keeps it lifted, on its focused grip.
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		expect(grip('Name contains a')).toHaveAttribute('data-dragging')
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'ArrowLeft' })
+
+		await waitFor(() =>
+			expect(
+				screen.getByText('Name contains a moved to position 2 of 2 in the query.'),
+			).toBeInTheDocument(),
+		)
+
+		expect(ids(onValueChange.mock.calls[1]?.[0].children)).toEqual(['g', 'a'])
+
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		expect(grip('Name contains a')).toHaveAttribute('data-dragging')
+
+		fireEvent.keyDown(grip('Name contains a'), { key: ' ' })
+
+		await waitFor(() => expect(grip('Name contains a')).not.toHaveAttribute('data-dragging'))
+
+		expect(onValueChange).toHaveBeenCalledTimes(2)
+	})
+
+	it('moves a lifted rule into the group after it, as its first node', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Harness onValueChange={onValueChange} />)
+
+		// Up past g first, so g is after a.
+		await lift('Name contains a')
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'ArrowUp' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
+
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'ArrowRight' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2))
+
+		const inner = onValueChange.mock.calls[1]?.[0].children[0] as QueryGroup
+
+		expect(ids(inner.children)).toEqual(['a', 'x', 'y'])
+
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'Escape' })
+	})
+
+	// In a right-to-left layout the line starts at the right, so the arrows swap.
+	it('moves into a group with the left arrow in a right-to-left layout', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<div dir="rtl">
+				<Harness onValueChange={onValueChange} />
+			</div>,
+		)
+
+		await lift('Name contains a')
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'ArrowRight' })
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'ArrowLeft' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
+
+		const value: QueryGroup = onValueChange.mock.calls[0]?.[0]
+
+		expect(ids((value.children[0] as QueryGroup).children)).toEqual(['x', 'y', 'a'])
+
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'Escape' })
+	})
+
+	it('keeps the sole rule of a group in it under requireRule', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Harness onValueChange={onValueChange} requireRule />)
+
+		await lift('Name contains x')
+
+		// Into the root: x leaves g, and y stays in it.
+		fireEvent.keyDown(grip('Name contains x'), { key: 'ArrowLeft' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
+
+		const value: QueryGroup = onValueChange.mock.calls[0]?.[0]
+
+		expect(ids(value.children)).toEqual(['g', 'x', 'a'])
+
+		// y is the sole node of g now, so it shows no grip and does not leave.
+		expect(screen.queryByRole('button', { name: 'Reorder Name contains y' })).toBeNull()
+
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains x')))
+
+		fireEvent.keyDown(grip('Name contains x'), { key: 'Escape' })
+	})
+})

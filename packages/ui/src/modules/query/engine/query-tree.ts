@@ -136,3 +136,126 @@ export function moveChild(tree: QueryGroup, id: string, toIndex: number): QueryG
 
 	return tree
 }
+
+/**
+ * The group that holds the node identified by `id`, or `undefined` when the
+ * node is the root or is not in the tree.
+ *
+ * @internal
+ */
+export function findParent(tree: QueryGroup, id: string): QueryGroup | undefined {
+	for (const child of tree.children) {
+		if (child.id === id) return tree
+
+		if (child.type !== 'group') continue
+
+		const parent = findParent(child, id)
+
+		if (parent) return parent
+	}
+
+	return undefined
+}
+
+/**
+ * The node identified by `id`: `node` itself or a node in its subtree, or
+ * `undefined`.
+ *
+ * @internal
+ */
+export function findNode(node: QueryNode, id: string): QueryNode | undefined {
+	if (node.id === id) return node
+
+	if (node.type !== 'group') return undefined
+
+	for (const child of node.children) {
+		const found = findNode(child, id)
+
+		if (found) return found
+	}
+
+	return undefined
+}
+
+/**
+ * Returns `group` with `node` at `index` among its children. The node takes
+ * the combinator of the place that it enters: the combinator of the node that
+ * it displaces, or at the end, the combinator of the node before it. A first
+ * node that the move displaces had a hidden combinator, so it takes the
+ * combinator of the node after it. With no such node, the combinator is AND.
+ * @internal
+ */
+function insertChild(group: QueryGroup, node: QueryNode, index: number): QueryGroup {
+	const { children } = group
+
+	const at = clamp(index, 0, children.length)
+
+	// A combinator that can show: the first child of a group hides its own.
+	const live = (position: number) =>
+		position > 0 ? (children[position]?.combinator ?? 'and') : 'and'
+
+	const displaced = children[at]
+
+	const joined =
+		displaced !== undefined
+			? withCombinator(node, displaced.combinator)
+			: withCombinator(node, live(at - 1))
+
+	if (at > 0 || displaced === undefined)
+		return { ...group, children: children.toSpliced(at, 0, joined) }
+
+	// The node takes the first place, so the node that held it now shows a
+	// combinator.
+	return {
+		...group,
+		children: [joined, withCombinator(displaced, live(1)), ...children.slice(1)],
+	}
+}
+
+/**
+ * Returns a new tree with the node identified by `id` moved into the group
+ * identified by `groupId`, at `toIndex` among its children. `toIndex` counts
+ * the children of the group before the move and clamps to the group. A move
+ * inside the group of the node is {@link moveChild}. Returns the same `tree`
+ * reference when a node is not found or when the group is the node or is in
+ * its subtree.
+ *
+ * @remarks The node takes the combinator of the place that it enters, and each
+ * other node keeps its combinator. So the move changes how the moved node
+ * joins its siblings, and it does not change how the other nodes join theirs.
+ * In the group that the node leaves, the next node keeps its combinator, as
+ * {@link removeChild} leaves it. In the group that the node enters, the node
+ * takes the combinator of the node that it displaces, or at the end, of the
+ * node before it. A node that the move displaces from the first place had a
+ * hidden combinator, so it takes the combinator of the node after it. With no
+ * such node, the combinator is AND.
+ *
+ * @param tree - The query tree, usually the root group.
+ * @param id - The node to move.
+ * @param groupId - The group that the node moves into.
+ * @param toIndex - The position of the node in the group after the move.
+ *
+ * @internal
+ */
+export function moveChildInto(
+	tree: QueryGroup,
+	id: string,
+	groupId: string,
+	toIndex: number,
+): QueryGroup {
+	const parent = findParent(tree, id)
+
+	if (parent === undefined) return tree
+
+	if (parent.id === groupId) return moveChild(tree, id, toIndex)
+
+	const node = parent.children.find((child) => child.id === id)
+
+	const target = findNode(tree, groupId)
+
+	if (node === undefined || target?.type !== 'group' || findNode(node, groupId)) return tree
+
+	return mapNode(removeChild(tree, id), groupId, (group) =>
+		insertChild(group as QueryGroup, node, toIndex),
+	)
+}

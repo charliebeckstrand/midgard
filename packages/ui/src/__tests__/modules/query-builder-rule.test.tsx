@@ -7,6 +7,7 @@ import {
 	QueryBuilderProvider,
 	type QueryBuilderStateValue,
 } from '../../modules/query/query-builder/context'
+import { createQueryMove } from '../../modules/query/query-builder/query-builder-move'
 import { QueryBuilderRule } from '../../modules/query/query-builder/query-builder-rule'
 import { QueryBuilderRuleValue } from '../../modules/query/query-builder/query-builder-rule-value'
 import { intlEn } from '../../primitives/intl/intl-catalog'
@@ -49,6 +50,7 @@ function makeActions(): QueryBuilderActions {
 		addGroup: vi.fn(),
 		remove: vi.fn(),
 		move: vi.fn(),
+		moveInto: vi.fn(),
 	}
 }
 
@@ -78,7 +80,12 @@ function renderRule(
 
 	function Wrapper({ children }: { children: ReactNode }) {
 		return (
-			<QueryBuilderProvider state={stateValue} actions={actions} register={() => {}}>
+			<QueryBuilderProvider
+				state={stateValue}
+				actions={actions}
+				register={() => {}}
+				move={createQueryMove(() => ({ id: 'root', type: 'group', children: [] }))}
+			>
 				{children}
 			</QueryBuilderProvider>
 		)

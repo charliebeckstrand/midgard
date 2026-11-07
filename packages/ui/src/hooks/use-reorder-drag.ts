@@ -24,6 +24,13 @@ export type ReorderDragOptions = {
 	ids: string[]
 	/** Called once, on the drop, with the next order and the key of the dragged item. */
 	onReorder?: (order: string[], id: string) => void
+	/**
+	 * Called on a drop, before `onReorder`, with the key of the dragged item.
+	 * Return true when the drop moved the item out of the list. The hook then
+	 * reports no reorder and makes no announcement, so the caller announces the
+	 * move.
+	 */
+	onDrop?: (id: string) => boolean
 	/** The accessible name of the item with the key, for the announcements. */
 	name: (id: string) => string
 	/** Called when a pointer drag starts, so a keyboard lift can drop. */
@@ -59,7 +66,14 @@ const getSlot = (order: readonly string[], id: string): ReorderSlot => ({
  * Motion.
  * @internal
  */
-export function useReorderDrag({ ids, onReorder, name, onStart, enabled }: ReorderDragOptions) {
+export function useReorderDrag({
+	ids,
+	onReorder,
+	onDrop,
+	name,
+	onStart,
+	enabled,
+}: ReorderDragOptions) {
 	const intl = useIntl()
 
 	const [draft, setDraftState] = useState<string[] | null>(null)
@@ -168,13 +182,15 @@ export function useReorderDrag({ ids, onReorder, name, onStart, enabled }: Reord
 				return
 			}
 
+			if (onDrop?.(live.id)) return
+
 			announce(droppedText(intl, name(live.id), getSlot(order, live.id)), { assertive: true })
 
 			if (onReorder === undefined || sameElements(order, ids)) return
 
 			onReorder(order, live.id)
 		},
-		[ids, onReorder, setDraft, cursor, unlisten, name, intl],
+		[ids, onReorder, onDrop, setDraft, cursor, unlisten, name, intl],
 	)
 
 	return { order: draft ?? ids, sorting: draft !== null, setDraft, onDragStart, onDragEnd }

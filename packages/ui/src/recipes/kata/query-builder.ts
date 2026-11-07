@@ -27,10 +27,24 @@ export const k = defineKata(
 	{
 		base: [flex.col, `${dan.gap.scale.md} p-3`, border.default, rounded.lg],
 		slots: {
+			/**
+			 * A nested group that a pointer drag from another group drops its node in
+			 * (`data-over`) steps its fill up one rung, so the drop target shows. Forced
+			 * colors remove the fill, so there the drop target draws an outline. The
+			 * root is the whole builder, so its drop shows only by the drop line.
+			 */
 			group: {
 				base: [flex.col, dan.gap.scale.md],
 				nested: {
-					true: ['p-3', ...mode('bg-zinc-50', 'dark:bg-zinc-900/40'), border.default, rounded.lg],
+					true: [
+						'p-3',
+						...mode('bg-zinc-50', 'dark:bg-zinc-900/40'),
+						...mode('data-over:bg-zinc-100', 'dark:data-over:bg-zinc-800/70'),
+						'forced-colors:data-over:outline-solid forced-colors:data-over:outline-2',
+						'forced-colors:data-over:-outline-offset-2 forced-colors:data-over:outline-[Highlight]',
+						border.default,
+						rounded.lg,
+					],
 					false: '',
 				},
 			},
@@ -72,11 +86,17 @@ export const k = defineKata(
 			 * an opaque surface, so the nodes it passes do not show through it. The `!`
 			 * beats the inline `z-index` that Motion's `Reorder.Item` writes. Forced
 			 * colors remove the shadow and repaint the surface, so an outline shows the
-			 * held node.
+			 * held node. A drop from another group draws a line in the gap above the
+			 * node (`data-drop="before"`) or below it (`data-drop="after"`), in the lift
+			 * accent. The line is a border, which forced colors keep.
 			 */
 			sortable: {
 				base: [
 					'flex items-start gap-1.5',
+					'data-drop:relative data-drop:before:pointer-events-none data-drop:before:absolute',
+					'data-drop:before:inset-x-0 data-drop:before:border-t-2 data-drop:before:rounded-full',
+					...mode('data-drop:before:border-violet-600', 'dark:data-drop:before:border-violet-400'),
+					'data-[drop=before]:before:-top-1.5 data-[drop=after]:before:-bottom-1.5',
 					'data-dragging:relative data-dragging:z-10!',
 					'data-dragging:rounded-lg data-dragging:shadow-lg',
 					...mode('data-dragging:bg-white', 'dark:data-dragging:bg-zinc-900'),

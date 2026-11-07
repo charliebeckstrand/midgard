@@ -1807,6 +1807,10 @@
 		"defaultMessage": "Remove rule",
 		"description": "The name of the button that removes a condition from a filter."
 	},
+	"ui.queryBuilder.topLevel": {
+		"defaultMessage": "the query",
+		"description": "The name of the top level of a filter, which holds each condition and each nested group, in a sentence such as \"Name contains a moved to position 3 of 3 in the query\"."
+	},
 	"ui.queryBuilder.value": {
 		"defaultMessage": "Value",
 		"description": "The hint text of the empty value field of a filter condition."

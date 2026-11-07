@@ -451,6 +451,7 @@
 	"ui.queryBuilder.operator": "Operador",
 	"ui.queryBuilder.removeGroup": "Quitar grupo",
 	"ui.queryBuilder.removeRule": "Quitar regla",
+	"ui.queryBuilder.topLevel": "la consulta",
 	"ui.queryBuilder.value": "Valor",
 	"ui.queryChips.changed": "Se cambió {combinator} a {next}",
 	"ui.queryChips.filters": "Filtros",

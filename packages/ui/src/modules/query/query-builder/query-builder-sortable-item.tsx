@@ -24,6 +24,8 @@ type QueryBuilderSortableItemProps = {
 	handle: boolean
 	/** Whether the keyboard holds the node. */
 	lifted: boolean
+	/** The edge of the node that the line of a drop from another group borders, if any. */
+	drop?: 'before' | 'after'
 	/** The id of the hidden reorder instructions. */
 	describedBy: string
 	/** Whether the node moves to its new place with no animation, for reduced motion. */
@@ -34,6 +36,8 @@ type QueryBuilderSortableItemProps = {
 	onBlur: () => void
 	/** Called when a pointer drag of this node starts. */
 	onDragStart: (id: string, controls: DragControls) => void
+	/** Called with the height of the pointer, in the coordinates of the viewport, as a pointer drag of this node moves. */
+	onDrag: (id: string, y: number) => void
 	/** Called with the end event of Motion when a pointer drag of this node ends. */
 	onDragEnd: (event: Event) => void
 	children: ReactNode
@@ -53,11 +57,13 @@ export function QueryBuilderSortableItem({
 	disabled,
 	handle,
 	lifted,
+	drop,
 	describedBy,
 	instant,
 	onKeyDown,
 	onBlur,
 	onDragStart,
+	onDrag,
 	onDragEnd,
 	children,
 }: QueryBuilderSortableItemProps) {
@@ -96,10 +102,12 @@ export function QueryBuilderSortableItem({
 				setDragging(true)
 				onDragStart(id, controls)
 			}}
+			onDrag={(_event, info) => onDrag(id, info.point.y - window.scrollY)}
 			onDragEnd={endDrag}
 			data-slot="query-sortable"
 			data-node-id={id}
 			data-dragging={dataAttr(held)}
+			data-drop={drop}
 			className={slots.sortable.base}
 		>
 			{handle && (

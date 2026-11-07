@@ -308,6 +308,187 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 		expect(ids((value.children[0] as QueryGroup).children)).toEqual(['y', 'x'])
 	})
 
+	/** Presses `grip` and moves the pointer straight to the height `y`, in twelve steps. */
+	const dragTo = (grip: HTMLElement, y: number) => {
+		const box = grip.getBoundingClientRect()
+
+		return dragDown(grip, y - (box.top + box.height / 2))
+	}
+
+	const box = (container: HTMLElement, id: string) => {
+		const node = sortable(container, id)
+
+		if (!node) throw new Error(`expected node ${id}`)
+
+		return node.getBoundingClientRect()
+	}
+
+	const getGroup = (container: HTMLElement, id: string) =>
+		container.querySelector<HTMLElement>(`[data-slot="query-group"][data-group-id="${id}"]`)
+
+	it('drops a rule of the root into a nested group, at the height of the pointer', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<Harness initial={nested} onValueChange={onValueChange} />)
+
+		const x = box(container, 'x')
+
+		const y = box(container, 'y')
+
+		// Between the middles of x and y: the place after x.
+		const held = await dragTo(grip('Name contains c'), (x.bottom + y.top) / 2)
+
+		const g = getGroup(container, 'g')
+
+		await expect.poll(() => g?.hasAttribute('data-over')).toBe(true)
+
+		expect(sortable(container, 'x')).toHaveAttribute('data-drop', 'after')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		await held.release()
+
+		await expect.poll(() => onValueChange.mock.calls.length).toBe(1)
+
+		const value: QueryGroup = onValueChange.mock.calls[0]?.[0]
+
+		expect(ids(value.children)).toEqual(['g', 'b'])
+
+		const inner = value.children[0] as QueryGroup
+
+		expect(ids(inner.children)).toEqual(['x', 'c', 'y'])
+
+		// c takes the combinator of y, the node that it displaces.
+		expect(inner.children.map((child) => child.combinator)).toEqual(['and', 'and', 'and'])
+
+		expect(
+			screen.getByText('Dropped Name contains c, position 2 of 3 in condition group.'),
+		).toBeInTheDocument()
+
+		await expect.poll(() => getGroup(container, 'g')?.hasAttribute('data-over')).toBe(false)
+
+		expect(container.querySelector('[data-drop]')).toBeNull()
+	})
+
+	it('drops a rule of a nested group into the root, below the group', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<Harness initial={nested} onValueChange={onValueChange} />)
+
+		const b = box(container, 'b')
+
+		const c = box(container, 'c')
+
+		// Between the middles of b and c: the place after b.
+		const held = await dragTo(grip('Name contains x'), (b.bottom + c.top) / 2)
+
+		await expect.poll(() => sortable(container, 'b')?.dataset.drop).toBe('after')
+
+		// The root is the whole builder, so only the line shows the drop.
+		expect(getGroup(container, 'g')).not.toHaveAttribute('data-over')
+
+		await held.release()
+
+		await expect.poll(() => onValueChange.mock.calls.length).toBe(1)
+
+		const value: QueryGroup = onValueChange.mock.calls[0]?.[0]
+
+		expect(ids(value.children)).toEqual(['g', 'b', 'x', 'c'])
+
+		expect(ids((value.children[0] as QueryGroup).children)).toEqual(['y'])
+
+		expect(
+			screen.getByText('Dropped Name contains x, position 3 of 4 in the query.'),
+		).toBeInTheDocument()
+	})
+
+	it('commits nothing when Escape cancels a drag over another group', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<Harness initial={nested} onValueChange={onValueChange} />)
+
+		const x = box(container, 'x')
+
+		const held = await dragTo(grip('Name contains c'), x.top + x.height / 2 + 1)
+
+		await expect.poll(() => getGroup(container, 'g')?.hasAttribute('data-over')).toBe(true)
+
+		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+
+		await expect.poll(() => getGroup(container, 'g')?.hasAttribute('data-over')).toBe(false)
+
+		await held.release()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(rootOrder(container)).toEqual(['g', 'b', 'c'])
+	})
+
+	// Over another group the nodes of the group of the dragged node hold still.
+	// Without the hold, the dragged node passed the group under the pointer in
+	// the draft, and the group moved away from the pointer.
+	it('holds the group under the pointer still while the drag is over it', async () => {
+		const { container } = renderUI(<Harness initial={nested} onValueChange={() => {}} />)
+
+		const g = box(container, 'g')
+
+		const handle = grip('Name contains c')
+
+		const start = handle.getBoundingClientRect()
+
+		const from = { x: start.left + start.width / 2, y: start.top + start.height / 2 }
+
+		// Up into the bottom of g, then up through g to its top.
+		const path = Array.from({ length: 24 }, (_, index) => ({
+			x: from.x,
+			y:
+				index < 12
+					? from.y + ((index + 1) * (g.bottom - 4 - from.y)) / 12
+					: g.bottom - 4 - ((index - 11) * (g.height - 8)) / 12,
+		}))
+
+		const held = await drag(handle, from, path)
+
+		await expect.poll(() => getGroup(container, 'g')?.hasAttribute('data-over')).toBe(true)
+
+		await frames()
+
+		expect(rootOrder(container)[0]).toBe('g')
+
+		expect(box(container, 'g').top).toBeCloseTo(g.top, 0)
+
+		await held.release()
+	})
+
+	// Over another group the draft takes no move, and Motion makes no move while
+	// its last one waits for new values. So back over its own group the draft
+	// must take new values, or the nodes stop moving for the rest of the drag.
+	it('moves the nodes again after the drag leaves another group', async () => {
+		const onValueChange = vi.fn()
+
+		const initial = (): QueryGroup =>
+			createGroup('and', [
+				rule('a'),
+				{ ...createGroup('or', [rule('x'), rule('y')]), id: 'g' },
+				rule('b', 'or'),
+			])
+
+		const { container } = renderUI(<Harness initial={initial} onValueChange={onValueChange} />)
+
+		const b = box(container, 'b')
+
+		// Down through g, and on to the bottom of b.
+		const held = await dragTo(grip('Name contains a'), b.bottom - 2)
+
+		await expect.poll(() => rootOrder(container)).toEqual(['g', 'b', 'a'])
+
+		await held.release()
+
+		await expect.poll(() => onValueChange.mock.calls.length).toBe(1)
+
+		expect(ids(onValueChange.mock.calls[0]?.[0].children)).toEqual(['g', 'b', 'a'])
+	})
+
 	// Motion writes an inline z-index on each `Reorder.Item`, 1 while x or y is
 	// not 0 and `unset` at rest. A keyboard move is a layout animation with x and
 	// y at 0, so the inline value took the raise off the held node, and the

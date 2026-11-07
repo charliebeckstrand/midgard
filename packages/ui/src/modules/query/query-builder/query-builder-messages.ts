@@ -20,6 +20,7 @@ type QueryBuilderValues = {
 	fieldValue: { field: string }
 	fieldMin: { field: string }
 	fieldMax: { field: string }
+	topLevel: Record<never, never>
 }
 
 /**
@@ -120,5 +121,11 @@ export const queryBuilderMessages: MessageSet<QueryBuilderValues> =
 			defaultMessage: '{field} maximum',
 			description:
 				'The name of the upper bound of a "between" condition of a filter. The field is the name of its field.',
+		},
+		topLevel: {
+			id: 'ui.queryBuilder.topLevel',
+			defaultMessage: 'the query',
+			description:
+				'The name of the top level of a filter, which holds each condition and each nested group, in a sentence such as "Name contains a moved to position 3 of 3 in the query".',
 		},
 	})

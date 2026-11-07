@@ -10,12 +10,18 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/me
 import { Segment, SegmentControl, SegmentItem } from '../../../components/segment'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core/cn'
+import { dataAttr } from '../../../core/data-attr'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
 import { queryMessages } from '../engine/query-messages'
 import type { QueryCombinator, QueryGroup, QueryNode } from '../engine/types'
-import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
+import {
+	useDropIndex,
+	useFocusableRef,
+	useQueryBuilderActions,
+	useQueryBuilderState,
+} from './context'
 import { focusKeys } from './query-builder-focus'
 import { queryBuilderMessages } from './query-builder-messages'
 import { QueryBuilderRule } from './query-builder-rule'
@@ -96,6 +102,8 @@ const QueryBuilderSeparator = memo(function QueryBuilderSeparator({
  * renders as a plain `<div>`; nested groups render as a labeled `<fieldset>`
  * with a hold-to-remove control. Memoized: the tree-edit helpers preserve the
  * identity of untouched subtrees, so an edit re-renders only the affected group.
+ * While a pointer drag from another group drops its node here, the group sets
+ * `data-over` and passes the place of the drop to its nodes.
  */
 function QueryBuilderGroupImpl({
 	group,
@@ -122,6 +130,9 @@ function QueryBuilderGroupImpl({
 
 	const removeRef = useFocusableRef(focusKeys.node(group.id))
 
+	// The place where a pointer drag from another group drops its node here.
+	const dropIndex = useDropIndex(group.id)
+
 	// The root renders as a plain <div>; nested groups render as <fieldset>
 	// (implicit role=group) named by aria-label, exposing nesting to AT.
 	// Tailwind preflight zeroes fieldset border/margin/padding.
@@ -146,7 +157,9 @@ function QueryBuilderGroupImpl({
 	return (
 		<Wrapper
 			data-slot="query-group"
+			data-group-id={group.id}
 			data-combinator={group.combinator}
+			data-over={dataAttr(dropIndex !== null)}
 			aria-label={root ? undefined : intl.formatMessage(queryBuilderMessages.group)}
 			className={cn(k({ nested: !root }).group, className)}
 		>
@@ -159,7 +172,13 @@ function QueryBuilderGroupImpl({
 						className="w-full"
 					/>
 				) : reorderable ? (
-					<QueryBuilderSortable group={group} separator={separator} node={node} />
+					<QueryBuilderSortable
+						group={group}
+						root={root}
+						dropIndex={dropIndex}
+						separator={separator}
+						node={node}
+					/>
 				) : (
 					group.children.map((child, index) => (
 						<div key={child.id} className={slots.group}>
