@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { groundPoints, ownGround } from '../../modules/map/engine/map-cluster/ground'
+import {
+	groundPoints,
+	type MapGroundDot,
+	ownGround,
+	setGrounds,
+} from '../../modules/map/engine/map-cluster/ground'
+import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/engine/map-constants'
 import type { MapPoint2D } from '../../modules/map/engine/types'
 import { FLOAT } from '../helpers/geometry/tolerance'
 
@@ -12,7 +18,21 @@ import { FLOAT } from '../helpers/geometry/tolerance'
  * tooltip with it.
  */
 
-const REACH = 22
+const REACH = POINT_HIT_RADIUS
+
+/** A lone dot at a frame position. */
+function lone(at: MapPoint2D, radius = POINT_RADIUS): MapGroundDot {
+	return { at, radius }
+}
+
+/** The ground of a lone dot among lone dots, at rest. */
+function readGround(at: MapPoint2D, neighbors: MapPoint2D[]) {
+	return ownGround(
+		lone(at),
+		neighbors.map((other) => lone(other)),
+		1,
+	)
+}
 
 /** Whether `point` is inside a convex ring: every edge's left side, for a counter-clockwise winding. */
 function inside(ring: MapPoint2D[], point: MapPoint2D): boolean {
@@ -40,20 +60,20 @@ describe('ownGround', () => {
 	it('leaves a lone dot unclipped', () => {
 		// The answer for almost every dot on almost every map, and the reason it is `null` rather than a
 		// ring covering everything: no polygon, no clipPath element, no id.
-		expect(ownGround({ x: 100, y: 100 }, [], REACH)).toBeNull()
+		expect(readGround({ x: 100, y: 100 }, [])).toBeNull()
 	})
 
 	it('leaves a dot unclipped when the neighbor is beyond both targets', () => {
 		// A bisector sits half the gap away, so it only reaches the target when the gap is under 2r.
-		expect(ownGround({ x: 0, y: 0 }, [{ x: 2 * REACH + 1, y: 0 }], REACH)).toBeNull()
+		expect(readGround({ x: 0, y: 0 }, [{ x: 2 * REACH + 1, y: 0 }])).toBeNull()
 	})
 
 	it('clips as soon as the targets would overlap', () => {
-		expect(ownGround({ x: 0, y: 0 }, [{ x: 2 * REACH - 1, y: 0 }], REACH)).not.toBeNull()
+		expect(readGround({ x: 0, y: 0 }, [{ x: 2 * REACH - 1, y: 0 }])).not.toBeNull()
 	})
 
 	it('cuts exactly midway between two dots', () => {
-		const ring = ownGround({ x: 0, y: 0 }, [{ x: 30, y: 0 }], REACH)
+		const ring = readGround({ x: 0, y: 0 }, [{ x: 30, y: 0 }])
 
 		expect(ring).not.toBeNull()
 
@@ -64,7 +84,7 @@ describe('ownGround', () => {
 	})
 
 	it('keeps the full outward reach on the uncontested side', () => {
-		const ring = ownGround({ x: 0, y: 0 }, [{ x: 30, y: 0 }], REACH)
+		const ring = readGround({ x: 0, y: 0 }, [{ x: 30, y: 0 }])
 
 		// The whole point of clipping rather than shrinking: away from the neighbor the target is
 		// untouched, so three quarters of the compass keeps its finger-sized reach.
@@ -80,9 +100,9 @@ describe('ownGround', () => {
 
 		const b = { x: 30, y: 0 }
 
-		const groundA = ownGround(a, [b], REACH) ?? []
+		const groundA = readGround(a, [b]) ?? []
 
-		const groundB = ownGround(b, [a], REACH) ?? []
+		const groundB = readGround(b, [a]) ?? []
 
 		// Sampled across the whole strip both targets reach: every point belongs to one dot and never to
 		// both. Before this the overlap belonged to whichever drew last.
@@ -100,7 +120,7 @@ describe('ownGround', () => {
 	})
 
 	it('cuts on the diagonal for a diagonal neighbor', () => {
-		const ring = ownGround({ x: 0, y: 0 }, [{ x: 20, y: 20 }], REACH) ?? []
+		const ring = readGround({ x: 0, y: 0 }, [{ x: 20, y: 20 }]) ?? []
 
 		// The bisector is perpendicular to the segment, so the midpoint is the boundary whatever the
 		// bearing: a rule stated once rather than per axis.
@@ -114,15 +134,11 @@ describe('ownGround', () => {
 
 	it('takes a cut from every crowding neighbor', () => {
 		const ring =
-			ownGround(
-				{ x: 0, y: 0 },
-				[
-					{ x: 24, y: 0 },
-					{ x: 0, y: 24 },
-					{ x: -24, y: 0 },
-				],
-				REACH,
-			) ?? []
+			readGround({ x: 0, y: 0 }, [
+				{ x: 24, y: 0 },
+				{ x: 0, y: 24 },
+				{ x: -24, y: 0 },
+			]) ?? []
 
 		expect(inside(ring, { x: 13, y: 0 })).toBe(false)
 
@@ -137,7 +153,7 @@ describe('ownGround', () => {
 	it('ignores a coincident neighbor rather than cutting in an arbitrary direction', () => {
 		// A zero-length segment has no bisector, and two dots at one position are not tellable apart by
 		// any geometry. An imperceptible overlap beats a cut with no defensible direction.
-		expect(ownGround({ x: 10, y: 10 }, [{ x: 10, y: 10 }], REACH)).toBeNull()
+		expect(readGround({ x: 10, y: 10 }, [{ x: 10, y: 10 }])).toBeNull()
 	})
 
 	it('never returns a degenerate ring, however crowded', () => {
@@ -146,12 +162,101 @@ describe('ownGround', () => {
 			y: Math.sin((index / 12) * Math.PI * 2) * 2,
 		}))
 
-		const ring = ownGround({ x: 0, y: 0 }, crowd, REACH)
+		const ring = readGround({ x: 0, y: 0 }, crowd)
 
 		// Twelve neighbors a pixel or two away is a pathological case a real map reaches through a
 		// zoom-out. Either a usable ring or `null`: never a two-point sliver, which would clip the
 		// target away entirely and read as a dead pin.
 		expect(ring?.length ?? Number.POSITIVE_INFINITY).toBeGreaterThanOrEqual(3)
+	})
+})
+
+describe('ownGround beside a wider face', () => {
+	it('moves the cut to the edge of a summary that midway falls inside', () => {
+		// A summary at its top grade beside a lone dot, with the grouping's small gap between the faces.
+		// Midway is 11.75 from the summary, inside its 15px face, so the cut moves out to that edge.
+		const summary = lone({ x: 0, y: 0 }, 15)
+
+		const dot = lone({ x: 23.5, y: 0 })
+
+		const summaryGround = ownGround(summary, [dot], 1) ?? []
+
+		const dotGround = ownGround(dot, [summary], 1) ?? []
+
+		expect(inside(summaryGround, { x: 14.9, y: 0 })).toBe(true)
+
+		expect(inside(summaryGround, { x: 15.1, y: 0 })).toBe(false)
+
+		// The dot takes the rest, out to the summary's edge, and keeps its own face whole.
+		expect(inside(dotGround, { x: 15.1, y: 0 })).toBe(true)
+
+		expect(inside(dotGround, { x: 14.9, y: 0 })).toBe(false)
+	})
+
+	it('cuts midway where the two faces overlap', () => {
+		// No line keeps both faces whole, so the division falls back to the even one.
+		const ring = ownGround(lone({ x: 0, y: 0 }, 15), [lone({ x: 18, y: 0 })], 1) ?? []
+
+		expect(inside(ring, { x: 8.9, y: 0 })).toBe(true)
+
+		expect(inside(ring, { x: 9.1, y: 0 })).toBe(false)
+	})
+
+	it('measures the faces and the reach in device pixels under a zoom', () => {
+		// At twice the scale, 15 frame units are 30px: the targets overlap, and the cut stays midway.
+		const ring = ownGround(lone({ x: 0, y: 0 }), [lone({ x: 15, y: 0 })], 0.5) ?? []
+
+		expect(inside(ring, { x: 7.4, y: 0 })).toBe(true)
+
+		expect(inside(ring, { x: 7.6, y: 0 })).toBe(false)
+
+		// 25 frame units are 50px, past both 22px targets.
+		expect(ownGround(lone({ x: 0, y: 0 }), [lone({ x: 25, y: 0 })], 0.5)).toBeNull()
+	})
+})
+
+describe('setGrounds', () => {
+	it('divides a set as ownGround divides each of its dots', () => {
+		// A row of dots and summaries a few pixels apart, past the size where the pass indexes them,
+		// and one mark of another set beside the row.
+		const dots = Array.from({ length: 24 }, (_, index) =>
+			index === 5 ? null : lone({ x: index * 19, y: (index % 3) * 7 }, index % 4 === 0 ? 9 : 5.5),
+		)
+
+		const others = [lone({ x: 40, y: 20 })]
+
+		const grounds = setGrounds(dots, others, 1)
+
+		for (const [index, dot] of dots.entries()) {
+			if (dot === null) {
+				expect(grounds[index]).toBeNull()
+
+				continue
+			}
+
+			const neighbors = [
+				...dots.filter((other): other is MapGroundDot => other !== null && other !== dot),
+				...others,
+			]
+
+			const alone = ownGround(dot, neighbors, 1)
+
+			const ground = grounds[index] ?? null
+
+			// The pass meets the neighbors in another order, so the rings can start at another vertex. The
+			// ground they bound is what has to agree.
+			expect(ground === null).toBe(alone === null)
+
+			if (ground === null || alone === null) continue
+
+			for (let dx = -REACH; dx <= REACH; dx += 2) {
+				for (let dy = -REACH; dy <= REACH; dy += 2) {
+					const point = { x: dot.at.x + dx + 0.5, y: dot.at.y + dy + 0.5 }
+
+					expect(inside(ground, point)).toBe(inside(alone, point))
+				}
+			}
+		}
 	})
 })
 

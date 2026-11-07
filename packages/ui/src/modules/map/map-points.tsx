@@ -20,6 +20,7 @@ import { rangeKeys } from '../../utilities/range-keys'
 import { useMapPlat, useMapPointed, useMapZoomScale } from './context'
 import { markTargets } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
+import { type MapGround, type MapGroundDot, setGrounds } from './engine/map-cluster/ground'
 import { clusterGap, groupsByMember } from './engine/map-cluster/group'
 import {
 	groupSets,
@@ -32,11 +33,11 @@ import { POINT_RADIUS, POINT_SWATCH } from './engine/map-constants'
 import { dotReach } from './engine/map-geometry/mark'
 import { type MapHoverTarget, mapMarkDimmed } from './engine/map-hover/target'
 import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
-import type { MapStopRow } from './engine/map-overlay/entry'
+import type { MapEntryDot, MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
 import { pickedStop } from './engine/map-overlay/selection'
 import type { LngLat, MapOverlaySelection, MapPoint2D, MapPointShape } from './engine/types'
-import { dotHitProps, MapDot, MapDotCount, MapDotRing } from './map-dot'
+import { dotClip, dotHitProps, MapDot, MapDotClip, MapDotCount, MapDotRing } from './map-dot'
 import { MapDotHalo } from './map-halo'
 import { type MapOverlay, type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -94,6 +95,10 @@ type MapPointsDotsProps = {
 	radii: number[]
 	/** What each dot's fine-pointer target can reach, in device pixels. */
 	targets: number[]
+	/** The ground each dot's target keeps against its neighbors, or `null` where none crowds it. */
+	grounds: (MapGround | null)[]
+	/** The prefix of each dot's clip id, which the dot's index completes. */
+	clips: string
 	/** Each drawn group's own stroke class, where a lone dot carries a color of its own. */
 	paints: string[]
 	/** The ink a summary's count is written in. */
@@ -128,6 +133,8 @@ const MapPointsDots = memo(function MapPointsDots({
 	keys,
 	radii,
 	targets,
+	grounds,
+	clips,
 	paints,
 	countInk,
 	shapes,
@@ -152,6 +159,10 @@ const MapPointsDots = memo(function MapPointsDots({
 
 				// One timing for the pair: the count fades in with the dot it sits in.
 				const pop = pointPop(index)
+
+				const ground = grounds[index] ?? null
+
+				const clip = ground === null ? undefined : `${clips}-${index}`
 
 				return (
 					// A Fragment, not a group: the wrapper would carry nothing (the dim
@@ -191,8 +202,11 @@ const MapPointsDots = memo(function MapPointsDots({
 								hit: hit(index),
 								scale: unitsPerPixel,
 								target: targets[index],
+								clip,
 							})}
 						/>
+
+						{clip !== undefined && ground !== null && dotClip(clip, ground)}
 					</Fragment>
 				)
 			})}
@@ -262,6 +276,10 @@ type MapPointsSharedProps = {
 	radius: number
 	/** What a fine pointer's target can reach, in device pixels (see `dotHitProps`). */
 	target: number | undefined
+	/** The ground the target keeps against its neighbors, or `null` where none crowds it. */
+	ground: MapGround | null
+	/** The id of the clip that bounds the target to that ground. */
+	clipId: string
 	pops: boolean
 	unitsPerPixel: number
 	/** The hit plumbing of the set that draws the summary. */
@@ -293,6 +311,8 @@ function MapPointsShared({
 	at,
 	radius,
 	target,
+	ground,
+	clipId,
 	pops,
 	unitsPerPixel,
 	hit,
@@ -373,8 +393,11 @@ function MapPointsShared({
 					hit: reach,
 					scale: unitsPerPixel,
 					target,
+					clip: ground === null ? undefined : clipId,
 				})}
 			/>
+
+			{ground !== null && <MapDotClip id={clipId} ground={ground} />}
 		</g>
 	)
 }
@@ -551,6 +574,13 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * The dots a zoom has just parted therefore stay separately aimable, and a zone
  * under a dot keeps a band of its own face. The narrowing never goes past the
  * dot it draws, and a dot standing clear of all three keeps the full target.
+ *
+ * Two dots can stand close enough that their targets overlap, in this set or
+ * in another mark. Each target then clips to the ground nearer to its own dot,
+ * along the line midway between the two. Where midway falls inside the face of
+ * a summary, the line moves to the edge of that face. Each dot therefore keeps
+ * the whole of what it paints and its reach outward, for a finger and a mouse
+ * alike, whichever dot draws last.
  *
  * @remarks Renders only inside {@link MapPlat}. Prefer this to a `MapPoint` per
  * position past a handful. `MapPoint` registers its own legend entry. Two
@@ -759,18 +789,22 @@ export function MapPoints({
 	)
 
 	// The dots this mark draws, for the plat's dot pool: every group but the shared
-	// summaries that another set draws.
+	// summaries that another set draws, each at what its shape paints out to.
 	const dots = useCallback(
 		() =>
-			groups.flatMap((group) => {
-				if (group.shared === undefined) return [clusterAnchor(group.members, positions)]
+			groups.flatMap((group, index): MapEntryDot[] => {
+				const radius = dotReach(radii[index] ?? POINT_RADIUS, shapes[index])
 
-				return leads(group.shared, id) ? [group.shared.anchor()] : []
+				if (group.shared === undefined) {
+					return [{ at: clusterAnchor(group.members, positions), radius }]
+				}
+
+				return leads(group.shared, id) ? [{ at: group.shared.anchor(), radius }] : []
 			}),
-		[groups, positions, id],
+		[groups, positions, id, radii, shapes],
 	)
 
-	const { slot, hidden, spare, animate, dim, onPointerLeave, hit } = useMapOverlay({
+	const { slot, hidden, spare, animate, dim, onPointerLeave, neighbors, hit } = useMapOverlay({
 		...overlay,
 		id,
 		kind: 'point',
@@ -823,6 +857,36 @@ export function MapPoints({
 		)
 	}, [groups, grouping, radii, shapes, spare, unitsPerPixel])
 
+	// The ground each dot's target keeps where a neighbor stands close enough to
+	// want some of it: the dots of this set, and the dots of every other mark on
+	// the plat. A finger target reaches 22px each way, so without the clip a dot
+	// between two summaries lost the gap on each side, and the edge of its own
+	// face, to the summary that drew later. `null` for almost every dot, which
+	// draws no clip.
+	//
+	// The dots that another set draws stand at `null` here: that set divides
+	// their ground, and the pool hands them in as its own.
+	//
+	// Memoized beside `targets`, and for the same reason: a pointer crossing moves
+	// none of these inputs.
+	const grounds = useMemo(
+		() =>
+			setGrounds(
+				groups.map((group, index): MapGroundDot | null => {
+					if (group.at === null) return null
+
+					if (group.shared !== undefined && !leads(group.shared, id)) return null
+
+					return { at: group.at, radius: dotReach(radii[index] ?? POINT_RADIUS, shapes[index]) }
+				}),
+				neighbors(),
+				unitsPerPixel,
+			),
+		[groups, id, radii, shapes, neighbors, unitsPerPixel],
+	)
+
+	const clips = `${useId()}-hit`
+
 	// Held across re-renders: rebuilding them would allocate one string per dot
 	// every time, which is the cost this mark exists to remove.
 	const keys = useMemo(() => rangeKeys(groups.length, 'dot'), [groups.length])
@@ -874,6 +938,8 @@ export function MapPoints({
 								keys={keys}
 								radii={radii}
 								targets={targets}
+								grounds={grounds}
+								clips={clips}
 								paints={paints}
 								countInk={countInk}
 								shapes={shapes}
@@ -892,6 +958,8 @@ export function MapPoints({
 									at={group.at}
 									radius={radii[index] ?? POINT_RADIUS}
 									target={targets[index]}
+									ground={grounds[index] ?? null}
+									clipId={`${clips}-${index}`}
 									pops={pops}
 									unitsPerPixel={unitsPerPixel}
 									hit={hit}

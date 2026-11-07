@@ -47,6 +47,18 @@ export type MapStopPart = {
 }
 
 /**
+ * One dot that a mark draws, as it registers it for the plat's dot pool: where it stands, and how
+ * far it paints from its center in device pixels. The pool projects the position, and a dot near it
+ * divides ground by both (`ground.ts`).
+ *
+ * @internal
+ */
+export type MapEntryDot = {
+	at: LngLat
+	radius: number
+}
+
+/**
  * One overlay mark's registration: what the legend draws for it, and what the
  * keyboard cursor needs to stand on it. The plat resolves slot colors across
  * the registered order, after the region categories.
@@ -93,12 +105,13 @@ export type MapOverlayEntry = {
 	 */
 	stopsAt: () => (LngLat | null)[]
 	/**
-	 * The dots the mark draws, in lon/lat, which the plat's dot pool holds. A point's dots are its
-	 * stops. A `MapMarker` draws two pins but has one stop, the middle of its leg. Absent on the
-	 * line and area marks: a route's waypoints and a zone's ring paint nothing a pointer could be
-	 * aimed at instead of. Stable like {@link stopsAt}.
+	 * The dots the mark draws, which the plat's dot pool holds: each one in lon/lat, with the radius
+	 * it paints at in device pixels. A point's dots are its stops. A `MapMarker` draws two pins but
+	 * has one stop, the middle of its leg. Absent on the line and area marks: a route's waypoints and
+	 * a zone's ring paint nothing a pointer could be aimed at instead of. Stable like
+	 * {@link stopsAt}.
 	 */
-	dotsAt?: () => LngLat[]
+	dotsAt?: () => MapEntryDot[]
 	/**
 	 * The dots that the mark puts in the shared pass of the plat (`sets.ts`), and
 	 * the gap that it asks for. Registered by a {@link MapPoints} that clusters,

@@ -440,7 +440,7 @@ export function dotHitProps({
 		// reach, and its target is then the dot itself (`markTargets` floors it there).
 		r: Math.max(target, POINT_HIT_RADIUS) * scale,
 		fill: 'transparent',
-		// Independent of the radius above: the clip takes the straight cuts a neighbor's bisector
+		// Independent of the radius above: the clip takes the straight cuts that each neighbor
 		// makes, the radius takes the circle. A fine pointer narrowing inside a clipped target composes
 		// without either knowing about the other.
 		clipPath: clip === undefined ? undefined : `url(#${clip})`,
@@ -463,14 +463,16 @@ type MapDotClipProps = {
  *
  * A `<polygon>` and not a path. The straight cuts are all this contributes, and the arc comes from
  * the `<circle>` the clip is applied to. The target therefore stays a circle wherever nothing
- * contests it, and loses only the slice on the far side of a bisector.
+ * contests it, and loses only the slice on the far side of each cut.
  *
  * `clipPathUnits` stays at the default `userSpaceOnUse`, since the ring is already in the frame
  * coordinates the dot draws in.
  *
  * Memoized, because the mark that draws it re-renders on every pointer crossing of every mark on
  * the map. Neither its id nor its ground moves. Without the memo, `groundPoints` walks the ring and
- * builds its string per crossing, for a `<polygon>` whose `points` did not change.
+ * builds its string per crossing, for a `<polygon>` whose `points` did not change. A plural mark
+ * draws its clips through {@link dotClip} instead, inside a dot layer that is itself memoized. A
+ * component for each clip there brings back the fiber for each dot that `dotHitProps` avoids.
  *
  * Wrapped in `<defs>`, as every other clip in the map and chart modules is. Examples are the frame
  * clip of `MapChrome` and the wipe of `ChartLine`. A `<clipPath>` never renders wherever it sits,
@@ -484,6 +486,16 @@ type MapDotClipProps = {
  * @internal
  */
 export const MapDotClip = memo(function MapDotClip({ id, ground }: MapDotClipProps) {
+	return dotClip(id, ground)
+})
+
+/**
+ * The elements of a {@link MapDotClip}, with no component of their own: for a mark that draws one
+ * clip for each of its dots.
+ *
+ * @internal
+ */
+export function dotClip(id: string, ground: MapGround) {
 	return (
 		<defs>
 			<clipPath id={id}>
@@ -491,4 +503,4 @@ export const MapDotClip = memo(function MapDotClip({ id, ground }: MapDotClipPro
 			</clipPath>
 		</defs>
 	)
-})
+}
