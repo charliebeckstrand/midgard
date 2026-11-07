@@ -828,13 +828,16 @@ describe('QueryBuilder reorder grips', () => {
 			/>,
 		)
 
+		// b is the sole child of its group, and it can leave the group, so it has a
+		// grip too.
 		expect(grips().map((grip) => grip.getAttribute('aria-label'))).toEqual([
 			'Reorder Name contains a',
 			'Reorder condition group',
+			'Reorder Name contains b',
 		])
 	})
 
-	it('shows no grip in a group with one child', () => {
+	it('shows no grip on the sole child of the root, which has no other group to go to', () => {
 		renderUI(
 			<QueryBuilder fields={fields} defaultValue={createGroup('and', [named('a')])} reorder />,
 		)
