@@ -1,9 +1,8 @@
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Drawer, DrawerPanel } from '../../../components/drawer'
 import { attach, bySlot, present, waitFor } from '../../helpers'
 import { frame } from '../../helpers/frames'
-import { hydrate } from '../../helpers/hydrate'
+import { hydrate, serverMarkup } from '../../helpers/hydrate'
 
 /**
  * An overlay that is open in the server render is in the server HTML, in place.
@@ -27,9 +26,7 @@ const drawer = (
 
 describe('Overlay open in the server render (real floating-ui)', () => {
 	it('moves the panel from the server HTML into the portal, with no frame that lacks it', async () => {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = renderToString(drawer)
+		const container = attach(serverMarkup(drawer))
 
 		expect(container.contains(panel())).toBe(true)
 

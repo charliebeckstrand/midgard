@@ -27,6 +27,31 @@ export const securityHeaders = [
 ]
 
 /**
+ * The Next config that each app of the repository shares. Pass it to
+ * {@link withAuth}, or spread it into a config that adds keys of its own.
+ */
+export const appConfig: NextConfig = {
+	devIndicators: false,
+	// `next build` writes a self-contained server into `.next/standalone`, with
+	// the dependencies that it traces. The Dockerfile at the repository root
+	// copies that server into the image that App Platform runs.
+	output: 'standalone',
+	// When `next dev` finds a coding agent, it writes an `AGENTS.md` and a
+	// `CLAUDE.md` into the app. The agent rules of the repository are in the
+	// root `CLAUDE.md`, so the app keeps no second copy.
+	agentRules: false,
+	// The React Compiler memoizes each component and hook of the app, and of the
+	// `ui` source it imports. `ui` runs its tests compiled (`test:compiler`), and
+	// its grid reads the table engine through one boundary (CONVENTIONS §10.7).
+	reactCompiler: true,
+	// Cache Components prerenders a static shell for each route, and Partial
+	// Prefetching sends it to a link before the click. Together they give an
+	// instant navigation to a route whose request reads sit in `<Suspense>`.
+	cacheComponents: true,
+	partialPrefetching: true,
+}
+
+/**
  * Wraps a Next config so `/auth/*` rewrites to the gateway ({@link BIFROST_URL}),
  * and `/api/*` too with `gatewayApi`, and every response carries
  * {@link securityHeaders}.

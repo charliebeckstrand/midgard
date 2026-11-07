@@ -1,9 +1,8 @@
 import type { ReactElement } from 'react'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { ChoroplethChart, HeatmapChart } from '../../../modules/chart'
 import { attach, frames, getSlot } from '../../helpers'
-import { hydrate } from '../../helpers/hydrate'
+import { hydrate, serverMarkup } from '../../helpers/hydrate'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 
 const heatmap = (
@@ -52,11 +51,9 @@ function drawnAxis(track: Element): 'horizontal' | 'vertical' {
 
 /** Parses the server markup of `chart` in a box `width` px wide, with no script run. */
 function parseServerMarkup(chart: ReactElement, width: number): HTMLElement {
-	const container = attach(document.createElement('div'))
+	const container = attach(serverMarkup(chart))
 
 	container.style.width = `${width}px`
-
-	container.innerHTML = renderToString(chart)
 
 	return container
 }

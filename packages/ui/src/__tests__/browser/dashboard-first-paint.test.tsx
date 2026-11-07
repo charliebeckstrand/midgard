@@ -1,8 +1,8 @@
 import { hydrateRoot, type Root } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
 import { act, attach, frames, getSlot } from '../helpers'
+import { serverMarkup } from '../helpers/hydrate'
 
 // The tiles of the docs playground: three stats on one row, two charts under them.
 const layout: DashboardLayoutItem[] = [
@@ -40,11 +40,9 @@ function board(fit: boolean) {
 
 /** Parses the server markup of the board in a box `width` px wide, with no script run. */
 function parseServerMarkup(width: number, fit: boolean): HTMLElement {
-	const container = attach(document.createElement('div'))
+	const container = attach(serverMarkup(board(fit)))
 
 	container.style.width = `${width}px`
-
-	container.innerHTML = renderToString(board(fit))
 
 	return container
 }

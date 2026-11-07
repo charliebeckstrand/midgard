@@ -2,7 +2,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { attach, renderUI, screen } from '../helpers'
-import { hydrate } from '../helpers/hydrate'
+import { hydrate, serverMarkup } from '../helpers/hydrate'
 
 /** Renders the hook value as text, and records each value that a render reads. */
 function Probe({ seen }: { seen?: boolean[] }) {
@@ -29,9 +29,7 @@ describe('useHydrated', () => {
 	})
 
 	it('is false in the hydration render, and true after it, with no mismatch', () => {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = renderToString(<Probe />)
+		const container = attach(serverMarkup(<Probe />))
 
 		const seen: boolean[] = []
 

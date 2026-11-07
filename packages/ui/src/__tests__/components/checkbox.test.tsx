@@ -1,5 +1,4 @@
 import { createRef, type ReactElement } from 'react'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description, Label } from '../../components/fieldset'
@@ -16,6 +15,7 @@ import {
 	setupUser,
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
+import { serverMarkup } from '../helpers/hydrate'
 
 describe('Checkbox', () => {
 	it('renders a checkbox input with data-slot="checkbox" and a check icon', () => {
@@ -90,9 +90,7 @@ describe('Checkbox server render', () => {
 	// A server render runs no layout effect, so the `indeterminate` property
 	// stays false until hydration. The markup must carry the state itself.
 	function serverInput(element: ReactElement) {
-		const host = document.createElement('div')
-
-		host.innerHTML = renderToString(element)
+		const host = serverMarkup(element)
 
 		return getSlot<HTMLInputElement>(host, 'checkbox')
 	}

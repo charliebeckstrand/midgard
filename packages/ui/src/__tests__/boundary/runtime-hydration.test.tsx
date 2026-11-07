@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { Calendar } from '../../components/calendar'
@@ -7,7 +6,7 @@ import { CurrencyInput } from '../../components/currency-input'
 import { LocaleProvider } from '../../providers/locale'
 import { resolveLocale } from '../../utilities/resolve-locale'
 import { attach, screen } from '../helpers'
-import { hydrate } from '../helpers/hydrate'
+import { hydrate, serverMarkup } from '../helpers/hydrate'
 
 /**
  * Server markup that the client hydrates in a different runtime. The server and
@@ -45,9 +44,7 @@ const CLIENT_LOCALE = 'de-DE'
  * and React logs an attribute mismatch to `consoleError`.
  */
 function hydrateAcrossRuntimes(element: () => ReactElement, toClient: () => void) {
-	const container = attach(document.createElement('div'))
-
-	container.innerHTML = renderToString(element())
+	const container = attach(serverMarkup(element()))
 
 	toClient()
 

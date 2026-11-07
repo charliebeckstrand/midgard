@@ -1,7 +1,7 @@
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Avatar } from '../../components/avatar'
 import { attach, getSlot, renderUI } from '../helpers'
+import { serverMarkup } from '../helpers/hydrate'
 
 /** A 1×1 PNG. */
 const PIXEL =
@@ -29,10 +29,8 @@ describe('the image of an avatar (real browser)', () => {
 	})
 
 	it('reads a src with a quote as one URL in server markup, and adds no declaration', () => {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = renderToString(
-			<Avatar src={'/a.png"); color: rgb(255, 0, 0); --x: url("'} initials="JD" />,
+		const container = attach(
+			serverMarkup(<Avatar src={'/a.png"); color: rgb(255, 0, 0); --x: url("'} initials="JD" />),
 		)
 
 		const avatar = getSlot(container, 'avatar')
