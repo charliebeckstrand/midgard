@@ -84,19 +84,22 @@ export const [ControlLockContext, useControlLock] = createContext<boolean>('Cont
 /**
  * A registry of the control ids of named fields, such as the registry of a
  * form. A control registers the id of its field under the name of the field.
+ * A field `Label` registers its text under the id of its control.
  *
  * @internal
  */
 export type ControlTargets = {
 	/** Registers the control id of a field, and returns the function that removes it. */
 	register: (name: string, id: string) => () => void
+	/** Registers the label text of a control by its id, and returns the function that removes it. */
+	registerLabel: (id: string, label: string) => () => void
 }
 
 /**
  * The nearest registry of control ids, or `undefined` outside one.
  *
  * @remarks A `Form` provides one, so a `FormErrorSummary` can link a field to
- * its control. A filter bar inside a `Form` provides none, so its fields do
+ * its control and name it with its label. A filter bar inside a `Form` provides none, so its fields do
  * not register with the form.
  * @internal
  */
