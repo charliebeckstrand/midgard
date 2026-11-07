@@ -12,6 +12,7 @@ import {
 	TriggerChild,
 	triggerChild,
 } from '../../primitives/trigger-child/trigger-child'
+import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { useMenuActions, useMenuPointer, useMenuState } from './context'
 import { opensSubmenu } from './menu-sub'
 
@@ -129,7 +130,7 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 	// so the roving handler still finds the rows. An Enter in that time would
 	// run the row again and cancel the click that opens the menu.
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent) => {
-		if (event.key === 'Enter' || event.key === ' ') {
+		if (isActivationKey(event.key)) {
 			// Swallow every auto-repeat's native click; only a fresh press arms and
 			// activates. This stops a held Enter from rapid-toggling and a key held on
 			// arrival (its first keydown landed elsewhere) from opening the menu.

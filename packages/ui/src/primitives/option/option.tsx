@@ -10,6 +10,7 @@ import { dataAttr } from '../../core/data-attr'
 import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { k } from '../../recipes/kata/option'
 import { capitalizeFirst } from '../../utilities/capitalize-first'
+import { isActivationKey } from '../../utilities/keyboard-navigation'
 import type { KeyedStore } from '../../utilities/keyed-store'
 
 /**
@@ -127,7 +128,7 @@ function OptionImpl({
 			onKeyDown={composeEventHandlers(
 				onKeyDown,
 				(event) => {
-					if (event.key === 'Enter' || event.key === ' ') {
+					if (isActivationKey(event.key)) {
 						event.preventDefault()
 
 						if (!disabled) onSelect()

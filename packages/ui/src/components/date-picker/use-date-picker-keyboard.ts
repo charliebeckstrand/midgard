@@ -1,7 +1,7 @@
 import type { DateDuration } from '@internationalized/date'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
-import { isArrowKey, wrap } from '../../utilities/keyboard-navigation'
+import { isActivationKey, isArrowKey, wrap } from '../../utilities/keyboard-navigation'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { DAY_KEY_SELECTOR, dayOfKey, gridStep, sameDay } from '../calendar/calendar-utilities'
 
@@ -198,7 +198,7 @@ function handleNoActiveKey(
 		return
 	}
 
-	if (event.key === 'Enter' || event.key === ' ') {
+	if (isActivationKey(event.key)) {
 		if (input) {
 			// Do not `preventDefault`: the DateInput's own Enter handler must still
 			// run to commit/blur (`composeEventHandlers` skips it once defaulted).
@@ -236,7 +236,7 @@ function handleGridKey(
 		return
 	}
 
-	if (key === 'Enter' || key === ' ') {
+	if (isActivationKey(key)) {
 		event.preventDefault()
 
 		context.handleSelect(active.date)
@@ -283,7 +283,7 @@ function handleHeaderKey(
 		return
 	}
 
-	if (key === 'Enter' || key === ' ') {
+	if (isActivationKey(key)) {
 		event.preventDefault()
 
 		if (active.index === 0) context.calendarRef.current?.prevMonth()
@@ -336,7 +336,7 @@ function handleFooterKey(
 		return
 	}
 
-	if (key === 'Enter' || key === ' ') {
+	if (isActivationKey(key)) {
 		event.preventDefault()
 
 		const kind = context.footerButtons[active.index]

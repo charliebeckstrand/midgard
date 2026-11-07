@@ -4,7 +4,7 @@ import { type KeyboardEvent, useEffect, useEffectEvent, useRef, useState } from 
 import { type PlotTabStopProps, usePlotTabStop } from '../../../hooks/use-plot-tab-stop'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { clamp } from '../../../utilities/clamp'
-import { isArrowKey, wrap } from '../../../utilities/keyboard-navigation'
+import { isActivationKey, isArrowKey, wrap } from '../../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../../utilities/modifier-keys'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
 import { type ChartHoverStore, samePoint } from './context'
@@ -300,11 +300,6 @@ function keyAction(
 		default:
 			return null
 	}
-}
-
-/** Whether a key is Enter or Space, the keys that activate the point under the cursor. @internal */
-function isActivationKey(key: string): boolean {
-	return key === 'Enter' || key === ' '
 }
 
 /** The outcome of a keypress: whether it was a navigation key, and where the cursor lands. @internal */

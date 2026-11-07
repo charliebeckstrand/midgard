@@ -12,6 +12,7 @@ import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
 import type { Orientation } from '../../../types/orientation'
+import { isActivationKey } from '../../../utilities/keyboard-navigation'
 import { mapResponsive } from '../../../utilities/responsive'
 import { describeNode } from '../engine/query-announcements'
 import { createRule } from '../engine/query-node'
@@ -35,7 +36,7 @@ function toDirection(orientation: Orientation) {
  * The Add menu trigger cancels the repeat for the same cause. @internal
  */
 function cancelKeyRepeat(event: KeyboardEvent<HTMLButtonElement>) {
-	if (event.repeat && (event.key === 'Enter' || event.key === ' ')) event.preventDefault()
+	if (event.repeat && isActivationKey(event.key)) event.preventDefault()
 }
 
 /** Props for {@link QueryBuilderRule}: the rule node to render. @internal */

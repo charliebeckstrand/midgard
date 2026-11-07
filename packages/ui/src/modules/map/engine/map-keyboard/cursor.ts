@@ -38,11 +38,6 @@ function keyAction(key: string): MapCursorAction | null {
 	return KEY_ACTIONS[key] ?? null
 }
 
-/** Whether a key activates the region under the cursor: Enter, or Space. @internal */
-export function isActivateKey(key: string): boolean {
-	return key === 'Enter' || key === ' '
-}
-
 /**
  * Whether the offset `dx`, `dy` bears in `action`'s direction. Its quadrant is
  * the 90° wedge around that compass axis. The four wedges therefore tile the

@@ -17,6 +17,7 @@ import { useGlass } from '../../providers/glass/context'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
+import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { Drawer, DrawerBody, DrawerClose, DrawerHeader, DrawerPanel, DrawerTitle } from '../drawer'
 import { datePickerMessages } from './date-picker-messages'
 import { RECLAIM_KEYS } from './use-date-picker-keyboard'
@@ -179,7 +180,7 @@ export function DatePickerContent({
 		// Activation keys on a DOM-focused control (the user Tabbed
 		// to a header/footer button) belong to that control; only
 		// the dialog itself routes them to the virtual model.
-		if ((event.key === 'Enter' || event.key === ' ') && event.target !== event.currentTarget) return
+		if (isActivationKey(event.key) && event.target !== event.currentTarget) return
 
 		// Navigation keys belong to the virtual model even when the
 		// user has Tabbed onto a control inside. Give focus back to
