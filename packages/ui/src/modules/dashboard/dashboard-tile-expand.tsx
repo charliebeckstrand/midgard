@@ -20,6 +20,7 @@ import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/dashboard'
+import { focusGripOrBoard } from './dashboard-focus'
 import { dashboardMessages } from './dashboard-messages'
 import { DashboardTileGuard } from './dashboard-tile-boundary'
 import { DashboardTileContent } from './dashboard-tile-content'
@@ -56,9 +57,7 @@ function handBackFocus(shell: HTMLElement | null): void {
 	queueMicrotask(() => {
 		if (!shell?.isConnected) return
 
-		const grip = shell.querySelector<HTMLElement>('[data-slot="dashboard-handle"]')
-
-		;(grip ?? shell.closest<HTMLElement>('[data-slot="dashboard"]'))?.focus()
+		focusGripOrBoard([shell], shell)
 	})
 }
 

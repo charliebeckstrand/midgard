@@ -1,5 +1,11 @@
 import { focusDropped } from '../../utilities/focus-dropped'
 
+/** The root of a board, which takes the focus when no grip can. @internal */
+const BOARD_SELECTOR = '[data-slot="dashboard"]'
+
+/** The drag grip of a tile. @internal */
+const GRIP_SELECTOR = '[data-slot="dashboard-handle"]'
+
 /**
  * The ref of an edit-only control of a tile: the grip, a splitter, or the
  * duplicate or remove control. When the control unmounts with the focus, for
@@ -22,7 +28,7 @@ export function keepFocusOnBoard(element: HTMLElement | null): (() => void) | un
 	return () => {
 		if (!element.contains(document.activeElement)) return
 
-		const board = element.closest<HTMLElement>('[data-slot="dashboard"]')
+		const board = element.closest<HTMLElement>(BOARD_SELECTOR)
 
 		queueMicrotask(() => {
 			if (element.isConnected || !board?.isConnected) return
@@ -32,4 +38,18 @@ export function keepFocusOnBoard(element: HTMLElement | null): (() => void) | un
 			board.focus()
 		})
 	}
+}
+
+/**
+ * Moves the focus to the grip of the first tile in `tiles` that shows one, else
+ * to the board that holds `within`. The focus therefore never falls to the page.
+ *
+ * @internal
+ */
+export function focusGripOrBoard(tiles: readonly HTMLElement[], within: HTMLElement): void {
+	const grip = tiles
+		.map((tile) => tile.querySelector<HTMLElement>(GRIP_SELECTOR))
+		.find((element) => element !== null)
+
+	;(grip ?? within.closest<HTMLElement>(BOARD_SELECTOR))?.focus()
 }
