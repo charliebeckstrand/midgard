@@ -161,7 +161,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | Export | Summary |
 |---|---|
 | `readCookie` | The value of a cookie in this page, or `undefined` with no such cookie. Import it from `utilities/cookie`. |
-| `writeCookie` | Writes a cookie for each path of the site, for a number of seconds, so a server can read it. It is `secure` on HTTPS. Import it from `utilities/cookie`. |
+| `writeCookie` | Writes a cookie for each path of the site, for a number of seconds, so a server can read it. The default life is one year, for a setting of the reader. It is `secure` on HTTPS. Import it from `utilities/cookie`. |
 
 ## Measurement
 
