@@ -12,6 +12,7 @@ import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/tree'
+import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { Icon } from '../icon'
 import { useTreeContext, useTreePosition } from './context'
 import { CHECK_SELECTOR } from './tree-constants'
@@ -107,7 +108,7 @@ export function TreeItemContent({
 			return
 		}
 
-		if (event.key === 'Enter' || event.key === ' ') {
+		if (isActivationKey(event.key)) {
 			event.preventDefault()
 
 			activate()

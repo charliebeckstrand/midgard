@@ -14,7 +14,7 @@ import { createEmitter } from '../../../../utilities/emitter'
 import { once } from '../../../../utilities/once'
 import { groupLegendId } from '../map-legend/items'
 import type { MapOverlayEntry } from '../map-overlay/entry'
-import type { LngLat, MapPoint2D } from '../types'
+import type { LngLat, MapProjector } from '../types'
 import { type MapDotMark, neighborRoom } from './crowd'
 import { clusterAnchor } from './geo'
 import { clusterPoints, type MapPointCluster } from './group'
@@ -129,7 +129,7 @@ export type MapClusterSet = {
  */
 export function groupSets(
 	sets: readonly MapClusterSet[],
-	project: (position: LngLat) => MapPoint2D | null,
+	project: MapProjector,
 	getRadius: MapClusterRadius,
 	unitsPerPixel: number,
 ): MapPointGrouping {
@@ -300,7 +300,7 @@ export type MapClusterStore = {
 export function createClusterStore(
 	entries: readonly MapOverlayEntry[],
 	hidden: ReadonlySet<string>,
-	project: (at: LngLat) => MapPoint2D | null,
+	project: MapProjector,
 	getRadius: MapClusterRadius,
 ): MapClusterStore {
 	const changed = createEmitter()

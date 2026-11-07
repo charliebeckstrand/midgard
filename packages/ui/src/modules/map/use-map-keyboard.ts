@@ -15,11 +15,12 @@ import { type PlotTabStopProps, usePlotTabStop } from '../../hooks/use-plot-tab-
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { useMapHoverActions } from './context'
 import { MAP_CURSOR_INSET, MAP_ZOOM_FIT } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
-import { isActivateKey, moveCursor } from './engine/map-keyboard/cursor'
+import { moveCursor } from './engine/map-keyboard/cursor'
 import type { MapStop, MapStopMoves } from './engine/map-keyboard/stops'
 import { frameToClient } from './engine/map-projection/frame'
 import { type MapZoomKey, mapZoomKey, zoomKeyFactor } from './engine/map-zoom/gesture'
@@ -431,7 +432,7 @@ export function useMapKeyboard({
 		// Enter and Space pick the mark under the cursor: the click's keyboard
 		// counterpart, and half the reason the map is navigable. Space would
 		// otherwise scroll the page out from under the reader.
-		if (isActivateKey(event.key)) {
+		if (isActivationKey(event.key)) {
 			if (held === null) return
 
 			event.preventDefault()

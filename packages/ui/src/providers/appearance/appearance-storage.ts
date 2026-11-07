@@ -94,10 +94,6 @@ const memory = new Map<string, string>()
 
 const choiceChange = createEmitter()
 
-// The life of the cookie of a choice: one year, in seconds. Each write of the
-// cookie starts the year again.
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
-
 // The value of `choice` in `localStorage`, or `undefined` when the value is
 // absent or is not one of the values of the choice.
 function readStored<T extends string>({ key, values }: AppearanceChoice<T>): T | undefined {
@@ -161,7 +157,7 @@ export function writeChoice<T extends string>({ key, cookie }: AppearanceChoice<
 		memory.set(key, value)
 	}
 
-	if (cookie !== undefined) writeCookie(cookie, value, COOKIE_MAX_AGE)
+	if (cookie !== undefined) writeCookie(cookie, value)
 
 	choiceChange.emit()
 }
@@ -179,7 +175,7 @@ export function restoreChoiceCookie<T extends string>(choice: AppearanceChoice<T
 
 	const stored = readStored(choice)
 
-	if (stored !== undefined) writeCookie(choice.cookie, stored, COOKIE_MAX_AGE)
+	if (stored !== undefined) writeCookie(choice.cookie, stored)
 }
 
 /**

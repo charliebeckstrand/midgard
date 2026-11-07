@@ -19,7 +19,7 @@
  */
 
 import { POINT_CLUSTER_GAP, POINT_RADIUS } from '../map-constants'
-import type { LngLat, MapPoint2D } from '../types'
+import type { LngLat, MapPoint2D, MapProjector } from '../types'
 import { bucket, squared, toCellKey, walkNear } from './grid'
 import type { MapClusterRadius } from './radius'
 
@@ -158,7 +158,7 @@ type MapMergeRule = {
  */
 export function clusterPoints(
 	positions: readonly LngLat[],
-	project: (position: LngLat) => MapPoint2D | null,
+	project: MapProjector,
 	gap: number | readonly number[] | null,
 	getRadius: MapClusterRadius,
 	unitsPerPixel = 1,
@@ -221,7 +221,7 @@ function seedReach(gap: number, unitsPerPixel: number): number {
  */
 function seedGroups(
 	positions: readonly LngLat[],
-	project: (position: LngLat) => MapPoint2D | null,
+	project: MapProjector,
 	getGap: (index: number) => number,
 	unitsPerPixel: number,
 	widestGap: number,

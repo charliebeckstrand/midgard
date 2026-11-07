@@ -8,7 +8,7 @@
 import { createEmitter } from '../../../../utilities/emitter'
 import type { MapHoverTarget } from '../map-hover/target'
 import type { MapOverlayEntry } from '../map-overlay/entry'
-import type { LngLat, MapPoint2D } from '../types'
+import type { LngLat, MapPoint2D, MapProjector } from '../types'
 
 /**
  * One place the keyboard cursor can stand, in frame coordinates: a region at its
@@ -57,7 +57,7 @@ export function mapStops(
 	centroids: (LngLat | null)[],
 	entries: readonly MapAnchoredEntry[],
 	hidden: ReadonlySet<string>,
-	project: (position: LngLat) => MapPoint2D | null,
+	project: MapProjector,
 ): MapStop[] {
 	const stops: MapStop[] = []
 
@@ -85,10 +85,7 @@ export function mapStops(
 }
 
 /** Where a stop draws, or `null` where it has no position or the projection drops it. @internal */
-function placeStop(
-	at: LngLat | null,
-	project: (position: LngLat) => MapPoint2D | null,
-): MapPoint2D | null {
+function placeStop(at: LngLat | null, project: MapProjector): MapPoint2D | null {
 	return at === null ? null : project(at)
 }
 

@@ -161,7 +161,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | Export | Summary |
 |---|---|
 | `readCookie` | The value of a cookie in this page, or `undefined` with no such cookie. Import it from `utilities/cookie`. |
-| `writeCookie` | Writes a cookie for each path of the site, for a number of seconds, so a server can read it. It is `secure` on HTTPS. Import it from `utilities/cookie`. |
+| `writeCookie` | Writes a cookie for each path of the site, for a number of seconds, so a server can read it. The default life is one year, for a setting of the reader. It is `secure` on HTTPS. Import it from `utilities/cookie`. |
 
 ## Measurement
 
@@ -185,6 +185,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `getTabbableElements` | The elements of a subtree in the tab order, in document order. It also drops a hidden input and a control that a `<fieldset disabled>` disables. Import it from `utilities/focusable-selector`. |
 | `nextIndexForKey` | Next roving index for a key press (1D or 2D grid), or `null` if unhandled; wraps at both ends. |
 | `isArrowKey` | Whether a key is one of the four arrow keys, whatever the direction of the layout. |
+| `isActivationKey` | Whether a key is Enter or Space, the keys that activate a button, an option, or the item under a cursor. |
 | `crossAxisDelta` | Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. |
 | `wrap` | Wraps an index into `[0, count)`, so a step past either end lands at the other. |
 | `NavigationConfig` *(type)* | Navigation mode for `nextIndexForKey`: 2D grid when `cols` set, else single-axis along `orientation`. |

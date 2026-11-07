@@ -23,9 +23,6 @@ const ON: Setting = { key: 'events:on', cookie: 'events-on' }
 /** The setting of the pinned panel. */
 const PINNED: Setting = { key: 'events:pinned', cookie: 'events-pinned' }
 
-/** The life of the cookie of a setting: one year, in seconds. */
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
-
 /** The attribute of the root element while the events run. CSS shows the header button by it. */
 export const ON_ATTRIBUTE = 'data-events'
 
@@ -176,7 +173,7 @@ function readLocal({ key }: Setting): boolean {
 
 /** Writes the cookie of `setting` from `on`. */
 function writeMirror({ cookie }: Setting, on: boolean): void {
-	writeCookie(cookie, on ? '1' : '0', COOKIE_MAX_AGE)
+	writeCookie(cookie, on ? '1' : '0')
 }
 
 function writeLocal(setting: Setting, on: boolean): void {
