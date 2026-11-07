@@ -233,6 +233,99 @@ describe('ChatMessage', () => {
 	})
 })
 
+describe('ChatMessage branches', () => {
+	const branch = { index: 1, ids: ['r1', 'r2', 'r3'] }
+
+	it('shows no switcher for a message with one branch', () => {
+		const { container } = renderUI(
+			<ChatMessage branch={{ index: 0, ids: ['r1'] }}>Late stops rose</ChatMessage>,
+		)
+
+		expect(bySlot(container, 'chat-message-branch')).not.toBeInTheDocument()
+	})
+
+	it('shows the position between a previous and a next button, in a named group', () => {
+		renderUI(<ChatMessage branch={branch}>Late stops rose</ChatMessage>)
+
+		const group = screen.getByRole('group', { name: 'Versions' })
+
+		expect(group).toHaveTextContent('2 of 3')
+
+		expect(screen.getByRole('button', { name: 'Previous version' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Next version' })).toBeInTheDocument()
+	})
+
+	it('gives the id of the branch on each side', () => {
+		const onBranchChange = vi.fn()
+
+		renderUI(
+			<ChatMessage branch={branch} onBranchChange={onBranchChange}>
+				Late stops rose
+			</ChatMessage>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Previous version' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Next version' }))
+
+		expect(onBranchChange.mock.calls).toEqual([['r1'], ['r3']])
+	})
+
+	it('turns off the button at each end, and keeps it in the focus order', () => {
+		const onBranchChange = vi.fn()
+
+		renderUI(
+			<ChatMessage branch={{ index: 0, ids: ['r1', 'r2'] }} onBranchChange={onBranchChange}>
+				Late stops rose
+			</ChatMessage>,
+		)
+
+		const previous = screen.getByRole('button', { name: 'Previous version' })
+
+		// Not `disabled`: a press that reaches an end keeps the focus on its button.
+		expect(previous).toHaveAttribute('aria-disabled', 'true')
+
+		expect(previous).toBeEnabled()
+
+		previous.focus()
+
+		fireEvent.click(previous)
+
+		expect(onBranchChange).not.toHaveBeenCalled()
+
+		expect(previous).toHaveFocus()
+
+		expect(screen.getByRole('button', { name: 'Next version' })).not.toHaveAttribute(
+			'aria-disabled',
+		)
+	})
+
+	it('turns off both buttons without onBranchChange', () => {
+		renderUI(<ChatMessage branch={branch}>Late stops rose</ChatMessage>)
+
+		expect(screen.getByRole('button', { name: 'Previous version' })).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		)
+
+		expect(screen.getByRole('button', { name: 'Next version' })).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		)
+	})
+
+	it('names the switcher in the language of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES">
+				<ChatMessage branch={branch}>Hola</ChatMessage>
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('group', { name: 'Versiones' })).toHaveTextContent('2 de 3')
+	})
+})
+
 describe('ChatMessage in a locale', () => {
 	it('names the author in the language of the locale', () => {
 		const { container } = renderUI(

@@ -40,6 +40,7 @@ export default function Conversation() {
 	const [question, last] = chat.messages.slice(-2)
 
 	// A retry streams the reply to the last question again, so only the reply to it offers one.
+	// The old reply stays as a branch, and the switcher below the bubble shows it again.
 	const retryable =
 		!chat.streaming && question?.sender === 'user' && last?.sender === 'assistant'
 			? last.id
@@ -75,7 +76,13 @@ export default function Conversation() {
 	return (
 		<ChatEmbedProvider renderers={renderers}>
 			<Stack gap="md" className="h-112">
-				<ChatTranscript messages={chat.messages} streaming={chat.streaming} actions={actions} />
+				<ChatTranscript
+					messages={chat.messages}
+					streaming={chat.streaming}
+					actions={actions}
+					branches={chat.branches}
+					onBranchChange={chat.showBranch}
+				/>
 				<ChatPrompt
 					value={draft.value}
 					onValueChange={draft.setValue}

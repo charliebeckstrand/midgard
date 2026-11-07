@@ -29,6 +29,7 @@ import { k } from '../../recipes/kata/chat-transcript'
 import { ChatMessage, type ChatMessageProps } from './chat-message'
 import { ChatRowContext } from './context'
 import { describeTranscript } from './engine/chat-announcements'
+import type { ChatBranch } from './engine/chat-branch/types'
 import type { ChatMessageData } from './engine/types'
 import { useChatTranscriptItemKey } from './use-chat-transcript-item-key'
 
@@ -110,12 +111,29 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 	 * `undefined` to keep the native menu of the browser on that message.
 	 */
 	contextMenu?: (message: ChatMessageData) => ContextMenuEntry[] | undefined
+	/**
+	 * The branches on the path that `messages` holds, by the id of the message
+	 * that shows, as the `branches` of `useChatSend` gives them. A message with
+	 * an entry of more than one branch shows a switcher below its bubble. Keep
+	 * the identity stable while the branches stay the same.
+	 */
+	branches?: Readonly<Record<string, ChatBranch>>
+	/**
+	 * Fires with the id of the branch that the reader picks in the switcher of a
+	 * message, as the `showBranch` of `useChatSend` takes it. Each switcher is
+	 * off while `streaming`.
+	 */
+	onBranchChange?: (id: string) => void
 }
 
 /** Props for {@link ChatTranscriptRow}. @internal */
-type ChatTranscriptRowProps = Pick<ChatTranscriptProps, 'actions' | 'trigger' | 'contextMenu'> & {
+type ChatTranscriptRowProps = Pick<
+	ChatTranscriptProps,
+	'actions' | 'trigger' | 'contextMenu' | 'onBranchChange'
+> & {
 	message: ChatMessageData
 	streaming: boolean
+	branch: ChatBranch | undefined
 }
 
 /**
@@ -132,6 +150,8 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 	actions,
 	trigger,
 	contextMenu,
+	branch,
+	onBranchChange,
 }: ChatTranscriptRowProps) {
 	return (
 		<ChatMessage
@@ -142,6 +162,8 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 			actions={actions?.(message)}
 			trigger={trigger}
 			contextMenu={contextMenu?.(message)}
+			branch={branch}
+			onBranchChange={onBranchChange}
 		>
 			{message.content}
 		</ChatMessage>
@@ -197,6 +219,12 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * above its message, so the first row then keeps room above it, on a device
  * that hovers.
  *
+ * `branches` gives a message the switcher of {@link ChatMessage}. The row of a
+ * message with branches takes the key of its oldest branch, so a switch keeps
+ * the row, and the focus in the switcher. The rows below it take the keys of
+ * the turns that the branch shows. Each switcher is off while `streaming`, so
+ * the reply that streams stays on the shown path.
+ *
  * The window changes what an embed's `mount` policy can promise. A row that
  * leaves the window unmounts, with the views in it. Under `lazy`, an embed the
  * reader reached draws at once when its row returns, because
@@ -233,6 +261,8 @@ export function ChatTranscript({
 	actions,
 	trigger,
 	contextMenu,
+	branches,
+	onBranchChange,
 	className,
 	ref,
 	onScroll,
@@ -250,7 +280,11 @@ export function ChatTranscript({
 	const count = messages.length
 
 	// A streamed chunk keeps the ids, so the key getter keeps its identity.
-	const getItemKey = useChatTranscriptItemKey(messages)
+	const getItemKey = useChatTranscriptItemKey(messages, branches)
+
+	// The switchers are off while a reply streams, because `useChatSend` ignores a
+	// switch then. A button that looks live and does nothing would mislead.
+	const branchChange = streaming === true ? undefined : onBranchChange
 
 	const getScrollElement = useCallback(() => containerRef.current, [])
 
@@ -435,6 +469,8 @@ export function ChatTranscript({
 
 						const key = getItemKey(index)
 
+						const branch = message.id ? branches?.[message.id] : undefined
+
 						return (
 							<div
 								key={key}
@@ -452,6 +488,8 @@ export function ChatTranscript({
 										actions={actions}
 										trigger={trigger}
 										contextMenu={contextMenu}
+										branch={branch}
+										onBranchChange={branch && branchChange}
 									/>
 								</ChatRowContext>
 							</div>

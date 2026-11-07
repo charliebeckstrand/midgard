@@ -159,9 +159,17 @@
 		"defaultMessage": "Go to the newest message",
 		"description": "The name of the button that scrolls a chat back down to its newest message. It shows when the reader has scrolled up."
 	},
+	"ui.chat.nextVersion": {
+		"defaultMessage": "Next version",
+		"description": "The name of the button that shows the next version of a chat message."
+	},
 	"ui.chat.placeholder": {
 		"defaultMessage": "Ask anything",
 		"description": "The hint text of the empty field where the reader writes a chat message."
+	},
+	"ui.chat.previousVersion": {
+		"defaultMessage": "Previous version",
+		"description": "The name of the button that shows the previous version of a chat message."
 	},
 	"ui.chat.prompt": {
 		"defaultMessage": "Message",
@@ -194,6 +202,14 @@
 	"ui.chat.user": {
 		"defaultMessage": "You said",
 		"description": "The hidden label before a chat message that the reader sent. A screen reader reads it before the message."
+	},
+	"ui.chat.versionPosition": {
+		"defaultMessage": "{index, number} of {count, number}",
+		"description": "The version of a chat message that shows, such as \"2 of 3\". The index counts from 1, and the count is the number of versions."
+	},
+	"ui.chat.versions": {
+		"defaultMessage": "Versions",
+		"description": "The name of the controls below a chat message that show its other versions. A retry or an edit makes a version."
 	},
 	"ui.chat.views": {
 		"defaultMessage": "{views, plural, one {# embedded view} other {# embedded views}}",

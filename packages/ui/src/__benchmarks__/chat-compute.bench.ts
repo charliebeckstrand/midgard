@@ -1,16 +1,17 @@
 // @vitest-environment node
 
 import { describeTranscript } from '../modules/chat/engine/chat-announcements'
+import { addBranch, chatBranches, toChatTree } from '../modules/chat/engine/chat-branch/tree'
 import type { ChatPart } from '../modules/chat/engine/chat-content/types'
 import {
 	appendUserMessage,
 	applyReplyChunk,
+	branchLastReply,
 	dropEmptyReply,
 	duplicateMessageIds,
 	failReplyTools,
 	openReply,
 	seedMessages,
-	truncateToLastUserMessage,
 } from '../modules/chat/engine/chat-transcript'
 import { intlEn } from '../primitives/intl/intl-catalog'
 import { compareBenches } from './compare'
@@ -22,7 +23,8 @@ import { makeTranscript } from './fixtures'
  * `chat-render.bench.tsx` times the React tree over them one rung up.
  *
  * The axis is transcript length, because every rule here rebuilds the message
- * list. A chunk arrives many times a second and each one runs `applyReplyChunk`
+ * list. A rule acts on the shown path of the tree, and leaves the hidden
+ * branches alone. A chunk arrives many times a second and each one runs `applyReplyChunk`
  * over the whole transcript, so a per-message constant is worth five thousand
  * of itself in a long conversation: that is the claim these benches price.
  *
@@ -64,6 +66,21 @@ compareBenches('chat-transcript · applyReplyChunk (per streamed chunk)', (bench
 			applyReplyChunk(messages, 'reply', CHART)
 		})
 	}
+
+	// The shell reads the branches of the tree again after each chunk. The rule
+	// finds the place of each fork on the path, and a retry puts its fork near
+	// the end, the far end of that search.
+	for (const { label, messages } of STREAMING) {
+		const forked = addBranch(toChatTree(messages), messages.length - 1, {
+			id: 'b',
+			sender: 'assistant',
+			content: '',
+		})
+
+		bench(`${label} · chatBranches (one fork)`, () => {
+			chatBranches({ ...forked, path: messages })
+		})
+	}
 })
 
 compareBenches('chat-transcript · the send path (once per send)', (bench) => {
@@ -74,8 +91,10 @@ compareBenches('chat-transcript · the send path (once per send)', (bench) => {
 	}
 
 	for (const { label, messages } of TRANSCRIPTS) {
-		bench(`${label} · truncateToLastUserMessage`, () => {
-			truncateToLastUserMessage(messages)
+		const tree = toChatTree(messages)
+
+		bench(`${label} · branchLastReply`, () => {
+			branchLastReply(tree)
 		})
 	}
 
