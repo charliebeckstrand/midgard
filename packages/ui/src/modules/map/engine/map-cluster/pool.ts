@@ -7,7 +7,7 @@
 
 import { createEmitter } from '../../../../utilities/emitter'
 import type { MapOverlayEntry } from '../map-overlay/entry'
-import type { LngLat, MapPoint2D } from '../types'
+import type { MapPoint2D, MapProjector } from '../types'
 
 /**
  * The pool of a plat, as a store that a mark reads through `useSyncExternalStore`.
@@ -54,7 +54,7 @@ export type MapDotPool = {
 export function createDotPool(
 	entries: readonly MapOverlayEntry[],
 	hidden: ReadonlySet<string>,
-	project: (at: LngLat) => MapPoint2D | null,
+	project: MapProjector,
 ): MapDotPool {
 	const changed = createEmitter()
 
@@ -115,7 +115,7 @@ export function createDotPool(
 function gatherDots(
 	entries: readonly MapOverlayEntry[],
 	hidden: ReadonlySet<string>,
-	project: (at: LngLat) => MapPoint2D | null,
+	project: MapProjector,
 ): Map<string, readonly MapPoint2D[]> {
 	const pool = new Map<string, readonly MapPoint2D[]>()
 
@@ -143,7 +143,7 @@ function gatherDots(
 function entryDots(
 	entry: MapOverlayEntry,
 	hidden: ReadonlySet<string>,
-	project: (at: LngLat) => MapPoint2D | null,
+	project: MapProjector,
 ): MapPoint2D[] | undefined {
 	if (hidden.has(entry.id) || !entry.dotsAt) return undefined
 

@@ -31,7 +31,7 @@ import {
 	projectArea,
 	ringsNear,
 } from '../map-geometry/mark'
-import type { LngLat, MapFeature, MapPoint2D } from '../types'
+import type { LngLat, MapFeature, MapInverseProjector, MapPoint2D, MapProjector } from '../types'
 
 /**
  * How much reach the region layer leaves a dot at a frame position, in device
@@ -108,7 +108,7 @@ function lonStep(difference: number): number {
  * @internal
  */
 function slopeAlong(
-	unproject: (at: MapPoint2D) => LngLat | null,
+	unproject: MapInverseProjector,
 	at: MapPoint2D,
 	origin: LngLat,
 	axis: MapPoint2D,
@@ -148,7 +148,7 @@ function slopeAlong(
  * @internal
  */
 function pieceInverse(
-	unproject: (at: MapPoint2D) => LngLat | null,
+	unproject: MapInverseProjector,
 	at: MapPoint2D,
 	origin: LngLat,
 	slope: MapSlope,
@@ -173,7 +173,7 @@ function pieceInverse(
  * @internal
  */
 function pieceFraction(
-	unproject: (at: MapPoint2D) => LngLat | null,
+	unproject: MapInverseProjector,
 	at: MapPoint2D,
 	origin: LngLat,
 	slope: MapSlope,
@@ -208,7 +208,7 @@ function pieceFraction(
  * @internal
  */
 function pieceCorner(
-	unproject: (at: MapPoint2D) => LngLat | null,
+	unproject: MapInverseProjector,
 	at: MapPoint2D,
 	origin: LngLat,
 	slope: MapSlope,
@@ -247,7 +247,7 @@ function pieceCorner(
  * @internal
  */
 function reachBounds(
-	unproject: (at: MapPoint2D) => LngLat | null,
+	unproject: MapInverseProjector,
 	at: MapPoint2D,
 	reach: number,
 ): MapBounds | null {
@@ -354,8 +354,8 @@ function regionNear(region: MeasuredRegion, at: MapPoint2D, reach: number): bool
  */
 export function regionSpare(
 	features: MapFeature[],
-	unproject: (at: MapPoint2D) => LngLat | null,
-	project: (position: LngLat) => MapPoint2D | null,
+	unproject: MapInverseProjector,
+	project: MapProjector,
 ): MapRegionSpare {
 	// Per region, the boxes to place a dot against and the room it holds: built
 	// on the first dot whose reach box meets the region's own, which is a wider

@@ -18,6 +18,24 @@ export type MapPoint2D = {
 }
 
 /**
+ * The live projection of a plat: the frame point of a position, or `null` where
+ * the projection has no image of it, such as a point outside the insets of the
+ * US composite.
+ *
+ * @internal
+ */
+export type MapProjector = (position: LngLat) => MapPoint2D | null
+
+/**
+ * The {@link MapProjector} run backwards: the position of a frame point, or
+ * `null` where the fit has no position for it, such as a gap between the insets
+ * of the US composite.
+ *
+ * @internal
+ */
+export type MapInverseProjector = (at: MapPoint2D) => LngLat | null
+
+/**
  * An area of several parts, nested polygon → ring → position, with each
  * polygon's outer ring first and its holes after. GeoJSON `MultiPolygon`
  * coordinates exactly, so a dissolved territory passes straight through.

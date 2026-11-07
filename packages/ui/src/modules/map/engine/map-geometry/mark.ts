@@ -31,7 +31,14 @@
  */
 
 import { type GeoProjection, geoArea, geoCentroid } from 'd3-geo'
-import type { LngLat, MapFeature, MapPoint2D, MapPointShape, MapPolygons } from '../types'
+import type {
+	LngLat,
+	MapFeature,
+	MapPoint2D,
+	MapPointShape,
+	MapPolygons,
+	MapProjector,
+} from '../types'
 
 /**
  * {@link projectPoint} run backwards: a frame position to the lon/lat it draws
@@ -101,10 +108,7 @@ export function projectPoint(projection: GeoProjection, position: LngLat): MapPo
  *
  * @internal
  */
-function projectRun(
-	points: LngLat[],
-	project: (position: LngLat) => MapPoint2D | null,
-): MapPoint2D[] {
+function projectRun(points: LngLat[], project: MapProjector): MapPoint2D[] {
 	return points.flatMap((point) => {
 		const at = project(point)
 
@@ -127,10 +131,7 @@ function polylineCommands(points: MapPoint2D[]): string {
  *
  * @internal
  */
-export function linePath(
-	points: LngLat[],
-	project: (position: LngLat) => MapPoint2D | null,
-): string {
+export function linePath(points: LngLat[], project: MapProjector): string {
 	const projected = projectRun(points, project)
 
 	if (projected.length < 2) return ''
@@ -334,10 +335,7 @@ function boundPoints(points: readonly MapPoint2D[]): MapFrameBox {
  *
  * @internal
  */
-export function projectArea(
-	polygons: MapPolygons,
-	project: (position: LngLat) => MapPoint2D | null,
-): MapAreaRing[] {
+export function projectArea(polygons: MapPolygons, project: MapProjector): MapAreaRing[] {
 	const rings: MapAreaRing[] = []
 
 	for (const polygon of polygons) {

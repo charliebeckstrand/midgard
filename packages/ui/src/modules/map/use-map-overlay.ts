@@ -21,7 +21,7 @@ import { mapMarkDimmed } from './engine/map-hover/target'
 import { groupLegendId } from './engine/map-legend/items'
 import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
 import { ownStop, pickedStop } from './engine/map-overlay/selection'
-import type { LngLat, MapPoint2D, MapSwatchShape } from './engine/types'
+import type { LngLat, MapPoint2D, MapProjector, MapSwatchShape } from './engine/types'
 
 /** The stop a hit shape names, read back off the element the event fired on. @internal */
 function stopFrom(event: { currentTarget: Element }): number {
@@ -225,7 +225,7 @@ export type MapOverlay = {
 	 */
 	spare: (at: MapPoint2D) => number
 	/** Projects lon/lat to frame coordinates; `null` off the projection. */
-	project: (position: LngLat) => MapPoint2D | null
+	project: MapProjector
 	/**
 	 * What one device pixel spans in frame units under the plat's zoom: `1` at
 	 * rest. Every pixel spec a mark draws multiplies by it: its stroke widths,
