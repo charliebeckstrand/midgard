@@ -2,15 +2,16 @@
  * The map's frame chrome: the graticule's meridians and parallels, and the
  * frame the projection itself draws. That frame is the globe's edge, which
  * doubles as the bound the graticule is clipped to. Both read the fitted
- * projection alone, and no atlas feature reaches them. One pass therefore draws
- * the pair, and both cost the same whatever the geography frames. The lines
- * span the globe, and the frame clips what falls outside it. Held apart from
+ * projection and the viewBox alone, and no atlas feature reaches them. One pass
+ * therefore draws the pair. The lines span the part of the globe that the
+ * viewBox shows, and the frame clips what falls outside it. Held apart from
  * `region.ts` for that reason, and memoized a layer above (`cache.ts`) like the
  * region paths, because the pass re-runs per fit.
  */
 
 import {
 	type GeoGeometryObjects,
+	type GeoPath,
 	type GeoProjection,
 	type GeoStreamWrapper,
 	geoGraticule,
@@ -22,7 +23,7 @@ import {
 	GRATICULE_STEP_DEGREES,
 	REGION_PATH_DIGITS,
 } from '../map-constants'
-import type { MapTransform } from '../map-zoom/transform'
+import type { MapTransform, MapViewFrame } from '../map-zoom/transform'
 
 /**
  * The chrome paths under one fit, `null` where a part is off or the projection
@@ -53,6 +54,32 @@ export const EMPTY_CHROME: MapChromePaths = { graticule: null, frame: null }
 /** The globe itself: the shape a projection outlines its own edge from. @internal */
 const SPHERE: GeoGeometryObjects = { type: 'Sphere' }
 
+/** A box in degrees: `[[west, south], [east, north]]`, the form `geoGraticule` takes. */
+type GeoExtent = [[number, number], [number, number]]
+
+/**
+ * The segments that the bound reads on each edge of the view. The extent of
+ * longitude and latitude over the view falls on its edges (see
+ * {@link graticuleBound}). A conic bends each edge through a degree or two.
+ * Thirty-two segments put a point near the crest of each bend.
+ */
+const BOUND_SAMPLES = 32
+
+/**
+ * How far, in degrees, the bound reaches past the extent that its points read.
+ * It covers what a bend hides between two points, which is a small fraction of
+ * this. It is also half the finest step ({@link GRATICULE_MIN_STEP_DEGREES}),
+ * so it reaches at most one line further.
+ */
+const BOUND_MARGIN_DEGREES = 0.5
+
+/**
+ * How far, in projected units, a point that the bound read back can land from
+ * the point that it was read from. A point off the globe reads back to a far
+ * place or to none. A point on it reads back within a rounding error.
+ */
+const ROUND_TRIP_TOLERANCE = 0.5
+
 /** The projection, with its output carried through `frame`. */
 function framed(projection: GeoProjection, { x, y, k }: MapTransform): GeoStreamWrapper {
 	const carry = geoTransform({
@@ -70,14 +97,252 @@ function drawn(d: string | null): string | null {
 }
 
 /**
+ * The part of the globe that the view shows, in degrees, out to the first line
+ * of `step` past each edge. `null` where the bound cannot be read, and the
+ * graticule then spans the globe as before.
+ *
+ * The view is the viewBox, cut to the bounds of the frame, because the
+ * graticule draws only inside the frame. Each point on its edges reads back
+ * onto the globe through `inverse`. Latitude has no extreme inside a region
+ * that holds no pole. Longitude has none inside a region that also crosses no
+ * antimeridian. Thus the edges hold the extent.
+ *
+ * A pole inside the view takes its latitude to that pole and its longitude
+ * round the globe. A view that crosses the antimeridian takes its longitude
+ * round the globe too ({@link crossesAntimeridian}).
+ *
+ * The bound gives up, and returns `null`, on each case it cannot read:
+ *
+ * - a projection with no inverse
+ * - a point off the globe, such as the space round the globe on a world map
+ * - a view or a frame with no area
+ */
+function graticuleBound(
+	path: GeoPath,
+	inverse: GeoProjection,
+	view: MapViewFrame,
+	frame: MapTransform | null,
+	step: number,
+): GeoExtent | null {
+	const box = viewBox(path, view)
+
+	const walk = box === null ? null : edgeWalk(inverse, box, frame ?? IDENTITY)
+
+	if (box === null || walk === null) return null
+
+	let [[west, south], [east, north]] = findExtent(walk)
+
+	if (crossesAntimeridian(walk)) {
+		west = -180
+
+		east = 180
+	}
+
+	for (const pole of [90, -90]) {
+		if (!holds(box, inverse([0, pole]), frame ?? IDENTITY)) continue
+
+		west = -180
+
+		east = 180
+
+		if (pole > 0) north = 90
+		else south = -90
+	}
+
+	return [
+		[lineBelow(west - BOUND_MARGIN_DEGREES, step), lineBelow(south - BOUND_MARGIN_DEGREES, step)],
+		[lineAbove(east + BOUND_MARGIN_DEGREES, step), lineAbove(north + BOUND_MARGIN_DEGREES, step)],
+	]
+}
+
+/** A box in frame units: `[x0, y0, x1, y1]`. */
+type FrameBox = readonly [x0: number, y0: number, x1: number, y1: number]
+
+/** The transform that leaves a point where it is: the view of a fit with no frame. */
+const IDENTITY: MapTransform = { x: 0, y: 0, k: 1 }
+
+/**
+ * The viewBox cut to the bounds of the frame, because the graticule draws only
+ * inside the frame. `null` where the cut has no area.
+ */
+function viewBox(path: GeoPath, view: MapViewFrame): FrameBox | null {
+	const [[frameX0, frameY0], [frameX1, frameY1]] = path.bounds(SPHERE)
+
+	const box: FrameBox = [
+		Math.max(0, frameX0),
+		Math.max(0, frameY0),
+		Math.min(view.width, frameX1),
+		Math.min(view.height, frameY1),
+	]
+
+	return box[2] > box[0] && box[3] > box[1] ? box : null
+}
+
+/**
+ * The positions that the edge of `box` reads back onto the globe, in one walk
+ * round it. Each point follows its neighbor, and the walk closes on its first
+ * point. `null` where the projection has no inverse, or where a point is off
+ * the globe.
+ */
+function edgeWalk(
+	inverse: GeoProjection,
+	[x0, y0, x1, y1]: FrameBox,
+	frame: MapTransform,
+): [number, number][] | null {
+	const walk: [number, number][] = []
+
+	const corners: [number, number][] = [
+		[x0, y0],
+		[x1, y0],
+		[x1, y1],
+		[x0, y1],
+	]
+
+	for (const [edge, [ax, ay]] of corners.entries()) {
+		const [bx, by] = corners[(edge + 1) % corners.length] ?? [ax, ay]
+
+		for (let i = 0; i < BOUND_SAMPLES; i++) {
+			const t = i / BOUND_SAMPLES
+
+			const position = readBack(inverse, [ax + (bx - ax) * t, ay + (by - ay) * t], frame)
+
+			if (position === null) return null
+
+			walk.push(position)
+		}
+	}
+
+	return walk
+}
+
+/**
+ * The position on the globe that the frame point `at` shows. `null` where the
+ * projection has no inverse, or where the point is off the globe. A point off
+ * the globe reads back to a far place or to none.
+ */
+function readBack(
+	inverse: GeoProjection,
+	[fx, fy]: [number, number],
+	{ x, y, k }: MapTransform,
+): [number, number] | null {
+	const at: [number, number] = [(fx - x) / k, (fy - y) / k]
+
+	const position = inverse.invert?.(at) ?? null
+
+	const back = position === null ? null : inverse(position)
+
+	return back !== null && Math.hypot(back[0] - at[0], back[1] - at[1]) <= ROUND_TRIP_TOLERANCE
+		? position
+		: null
+}
+
+/** The box in degrees that holds each position of `walk`. */
+function findExtent(walk: [number, number][]): GeoExtent {
+	const lngs = walk.map(([lng]) => lng)
+
+	const lats = walk.map(([, lat]) => lat)
+
+	return [
+		[Math.min(...lngs), Math.min(...lats)],
+		[Math.max(...lngs), Math.max(...lats)],
+	]
+}
+
+/**
+ * Whether `walk` crosses the antimeridian. Two neighbors read more than half
+ * the globe apart only there, where longitude jumps from one end of its range
+ * to the other. So the walk finds the crossing with no point near 180°.
+ */
+function crossesAntimeridian(walk: [number, number][]): boolean {
+	return walk.some(([lng], i) => {
+		const [next] = walk[(i + 1) % walk.length] ?? [lng]
+
+		return Math.abs(next - lng) > 180
+	})
+}
+
+/** Whether `box` holds the projected point `at`, carried through `frame`. */
+function holds(
+	[x0, y0, x1, y1]: FrameBox,
+	at: [number, number] | null,
+	{ x, y, k }: MapTransform,
+): boolean {
+	if (at === null) return false
+
+	const px = at[0] * k + x
+
+	const py = at[1] * k + y
+
+	return px >= x0 && px <= x1 && py >= y0 && py <= y1
+}
+
+/**
+ * The first line of `step` strictly below `degrees`. Strictly, because d3-geo
+ * draws no line on the end of an extent, and the line on the edge must still
+ * reach past the view.
+ */
+function lineBelow(degrees: number, step: number): number {
+	return (Math.ceil(degrees / step) - 1) * step
+}
+
+/** The first line of `step` strictly above `degrees`. See {@link lineBelow}. */
+function lineAbove(degrees: number, step: number): number {
+	return (Math.floor(degrees / step) + 1) * step
+}
+
+/**
+ * `extent` cut to `limit`, or `null` where the two do not meet. d3-geo swaps
+ * the corners of an inverted extent and draws lines there. So an empty cut must
+ * never reach it.
+ */
+function within(extent: GeoExtent, limit: GeoExtent): GeoExtent | null {
+	const west = Math.max(extent[0][0], limit[0][0])
+
+	const south = Math.max(extent[0][1], limit[0][1])
+
+	const east = Math.min(extent[1][0], limit[1][0])
+
+	const north = Math.min(extent[1][1], limit[1][1])
+
+	return east > west && north > south
+		? [
+				[west, south],
+				[east, north],
+			]
+		: null
+}
+
+/**
+ * The meridians and parallels at `step` degrees, cut to `bound`. d3-geo draws
+ * two sets of lines. The major lines run to the poles, and the minor lines
+ * stop at 80°. The bound cuts each set inside its own default
+ * extent, so a line the view shows ends where it ended before. Where the bound
+ * misses either set, the graticule spans the globe.
+ */
+function boundedGraticule(step: number, bound: GeoExtent | null): GeoGeometryObjects {
+	const graticule = geoGraticule().step([step, step])
+
+	const major = bound === null ? null : within(bound, graticule.extentMajor())
+
+	const minor = bound === null ? null : within(bound, graticule.extentMinor())
+
+	if (major === null || minor === null) return graticule()
+
+	return graticule.extentMajor(major).extentMinor(minor)()
+}
+
+/**
  * The chrome under one fit: the meridians and parallels at `step` degrees
  * (`null` where the graticule is off), and the frame the projection draws.
  *
  * The graticule serializes as one multi-line path rather than one per line, so a
- * world map's fifty-odd hairlines cost one element and one ink. Its lines cover
- * the globe whatever the geography frames: a regional map draws the same set
- * and clips the rest at the viewBox. The pass therefore costs what it costs on
- * a world map, which is why it is opt-in and memoized.
+ * world map's fifty-odd hairlines cost one element and one ink. Its lines span
+ * the part of the globe that `view` shows, out to the first line past each
+ * edge ({@link graticuleBound}). Each line ends past the edge of the view, so the
+ * view shows each line that it showed before. A one-state map therefore
+ * streams the few lines that cross it, not the globe's. A zoom never shows what
+ * the bound cuts, because the zoom holds the view inside the fitted frame
+ * (`map-zoom/transform`).
  *
  * The frame is the globe's edge where the projection has one, and a composite's
  * three clip boxes where it has none. Under `albers-usa` those are the
@@ -89,21 +354,25 @@ function drawn(d: string | null): string | null {
  * each inset fills with fragments at its own angle. A clip to this path under
  * the even-odd rule leaves the main map ruled and every inset clear. There the
  * inset boxes read as holes in the outer one. One path, so the bound and the
- * outline can never disagree about where the projection draws.
+ * outline can never disagree about where the projection draws. The insets keep
+ * no line, so the bound reads the view through the lower-48 piece alone
+ * (`inverse`, from `invertingPiece`).
  *
  * Both parts ride one `geoPath`, whose one decimal is the region paths'. Chrome
  * draws in the same frame units, where a second decimal serializes detail no
  * display resolves.
  *
- * `frame` is the transform of a measured fit that keeps the canonical
- * projection (`measuredMapFit`). The path then streams the projected points
- * through it.
+ * `view` is the viewBox, in frame units. `frame` is the transform of a measured
+ * fit that keeps the canonical projection (`measuredMapFit`). The path then
+ * streams the projected points through it.
  *
  * @internal
  */
 export function chromePaths(
 	projection: GeoProjection,
+	inverse: GeoProjection,
 	step: number | null,
+	view: MapViewFrame,
 	frame: MapTransform | null = null,
 ): MapChromePaths {
 	const path = geoPath(frame === null ? projection : framed(projection, frame)).digits(
@@ -111,16 +380,19 @@ export function chromePaths(
 	)
 
 	return {
-		graticule: step === null ? null : drawn(path(geoGraticule().step([step, step])())),
+		graticule:
+			step === null
+				? null
+				: drawn(path(boundedGraticule(step, graticuleBound(path, inverse, view, frame, step)))),
 		frame: drawn(path(SPHERE)),
 	}
 }
 
 /**
  * The graticule's degree step from the prop: `null` where it is off, and
- * otherwise a step floored at {@link GRATICULE_MIN_STEP_DEGREES}. The lines
- * cover the globe, so a step below a degree asks for millions of points the
- * frame then clips away.
+ * otherwise a step floored at {@link GRATICULE_MIN_STEP_DEGREES}. A world
+ * map's view spans the globe, so a step below a degree asks for millions of
+ * points there.
  *
  * @internal
  */

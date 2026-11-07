@@ -8,6 +8,7 @@
 import {
 	type GeoPermissibleObjects,
 	type GeoProjection,
+	geoAlbers,
 	geoAlbersUsa,
 	geoEqualEarth,
 	geoMercator,
@@ -105,6 +106,23 @@ export function resolveProjection(spec: MapProjection): GeoProjection {
 	if (spec === 'equal-earth') return geoEqualEarth()
 
 	return spec
+}
+
+/**
+ * The projection that reads a point of the fitted frame back onto the globe:
+ * `fitted` itself, except under `albers-usa`. The composite inverts each point
+ * through the piece whose inset box holds it. So a frame corner in the Alaska
+ * box reads as a point of Alaska, and a bound read from it spans the globe's
+ * west. The insets draw nothing that the graticule keeps (`chrome.ts`). So a
+ * bound reads the lower-48 piece alone. d3-geo builds that piece as a plain
+ * `geoAlbers()`. The composite passes its scale and translate to it unchanged.
+ *
+ * @internal
+ */
+export function invertingPiece(spec: MapProjection, fitted: GeoProjection): GeoProjection {
+	return spec === 'albers-usa'
+		? geoAlbers().scale(fitted.scale()).translate(fitted.translate())
+		: fitted
 }
 
 /**
