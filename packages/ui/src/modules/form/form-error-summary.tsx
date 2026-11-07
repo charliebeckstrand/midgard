@@ -32,7 +32,10 @@ export type FormErrorSummaryProps = Omit<ComponentProps<'div'>, 'title' | 'color
 	title?: ReactNode
 }
 
-const messages = defineMessages({
+const messages = defineMessages<{
+	title: Record<never, never>
+	row: { label: string; issue: string }
+}>({
 	title: {
 		id: 'ui.formErrorSummary.title',
 		defaultMessage: 'There is a problem',
