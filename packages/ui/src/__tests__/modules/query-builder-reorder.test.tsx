@@ -38,4 +38,27 @@ describe('QueryBuilder reorder', () => {
 
 		expect(allBySlot(container, 'query-reorder-handle')).toHaveLength(0)
 	})
+
+	// A nested group's sole node can leave the group, so it shows a grip. The
+	// root's sole node has no other group to go to, and under `requireRule` a
+	// group keeps its last node.
+	it('shows a grip on the sole node of a nested group, unless requireRule keeps it', () => {
+		const value: QueryGroup = {
+			...createGroup('and', [{ ...createGroup('and', [rule('x')]), id: 'g' }]),
+			id: 'root',
+		}
+
+		const { container, rerender } = renderUI(<QueryBuilder fields={fields} value={value} reorder />)
+
+		const handles = () =>
+			allBySlot(container, 'query-reorder-handle').map((handle) =>
+				handle.getAttribute('aria-label'),
+			)
+
+		expect(handles()).toEqual(['Reorder Title contains x'])
+
+		rerender(<QueryBuilder fields={fields} value={value} reorder requireRule />)
+
+		expect(handles()).toEqual([])
+	})
 })
