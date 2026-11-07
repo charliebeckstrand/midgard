@@ -14,7 +14,8 @@ import { useReportedChange } from '../../hooks/use-reported-change'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { fileUploadMessages } from './file-upload-messages'
-import { type FileRejection, formatFileNames, partitionFiles } from './file-upload-utilities'
+import { formatFileNames, partitionFiles } from './file-upload-utilities'
+import type { FileUploadSharedProps } from './types'
 
 /**
  * Tells if a drag carries files. The browser keeps `dataTransfer.files` empty
@@ -25,25 +26,22 @@ function carriesFiles(event: DragEvent): boolean {
 	return event.dataTransfer?.types.includes('Files') ?? false
 }
 
-type FileHandlersOptions = {
-	/** Binds the selection to an enclosing Form field. */
-	name?: string
-	/** Controlled selection; `null` is controlled and empty (CONVENTIONS §7.3). */
-	value?: File[] | null
-	/** Initial selection when uncontrolled. */
-	defaultValue?: File[]
-	/** Fires with the next selection. A clear reports `[]`. */
-	onValueChange?: (files: File[]) => void
-	disabled?: boolean
+type FileHandlersOptions = Pick<
+	FileUploadSharedProps,
+	| 'name'
+	| 'value'
+	| 'defaultValue'
+	| 'onValueChange'
+	| 'disabled'
+	| 'accept'
+	| 'maxSize'
+	| 'maxCount'
+	| 'onAccept'
+	| 'onReject'
+	| 'onDragOverChange'
+> & {
 	/** Keeps the selection: the picker does not open, and a pick, a drop, or a clear changes nothing. */
 	readOnly?: boolean
-	/** Accepted file types. The picker filters by them too, but a drop does not. */
-	accept?: string
-	maxSize?: number
-	maxCount?: number
-	onAccept?: (files: File[]) => void
-	onReject?: (rejected: FileRejection[]) => void
-	onDragOverChange?: (dragOver: boolean) => void
 }
 
 /**
