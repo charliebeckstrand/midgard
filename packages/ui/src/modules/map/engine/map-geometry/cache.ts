@@ -40,7 +40,8 @@ import type { GeoProjection } from 'd3-geo'
 import { getOrCompute } from '../../../../utilities/get-or-compute'
 import { sameElements } from '../../../../utilities/same-elements'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
-import type { MapTransform } from '../map-zoom/transform'
+import { invertingPiece } from '../map-projection/resolve'
+import type { MapTransform, MapViewFrame } from '../map-zoom/transform'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
 import { chromePaths, EMPTY_CHROME, type MapChromePaths } from './chrome'
 import { emitRegionPaths, type MapProjectedAtlas, probeCanonicalFit } from './projected'
@@ -230,7 +231,8 @@ const chrome = new WeakMap<
 
 /**
  * The state that the chrome paths read from a fit: the scale and the translate
- * of the projection, and the frame transform. @internal
+ * of the projection, and the frame transform. The viewBox also bounds the
+ * graticule, so it joins them. @internal
  */
 type ChromeFit = readonly [
 	scale: number,
@@ -239,18 +241,36 @@ type ChromeFit = readonly [
 	frameX: number,
 	frameY: number,
 	frameK: number,
+	viewWidth: number,
+	viewHeight: number,
 ]
 
-/** The {@link ChromeFit} of `fitted` under `frame`. @internal */
-function chromeFit(fitted: GeoProjection, frame: MapTransform | null): ChromeFit {
+/** The {@link ChromeFit} of `fitted` under `frame`, in `view`. @internal */
+function chromeFit(
+	fitted: GeoProjection,
+	view: MapViewFrame,
+	frame: MapTransform | null,
+): ChromeFit {
 	const [x, y] = fitted.translate()
 
-	return [fitted.scale(), x, y, frame?.x ?? 0, frame?.y ?? 0, frame?.k ?? 1]
+	return [
+		fitted.scale(),
+		x,
+		y,
+		frame?.x ?? 0,
+		frame?.y ?? 0,
+		frame?.k ?? 1,
+		view.width,
+		view.height,
+	]
 }
 
 /**
  * The chrome paths under a fit, memoized on the fitted projection by its fit
- * state and the graticule step. Chrome off yields {@link EMPTY_CHROME} without
+ * state and the graticule step. `spec` names the projection that `fitted` was
+ * resolved from, so the bound reads the frame through the right piece
+ * (`invertingPiece`). It stays out of the key, because a fitted instance comes
+ * from one spec for good. Chrome off yields {@link EMPTY_CHROME} without
  * touching the cache, so the default map pays neither the pass nor a slot.
  *
  * `sphere` only gates that early return. The frame path resolves for either
@@ -262,19 +282,21 @@ function chromeFit(fitted: GeoProjection, frame: MapTransform | null): ChromeFit
  */
 export function cachedChromePaths(
 	fitted: GeoProjection,
+	spec: MapProjection,
 	step: number | null,
 	sphere: boolean,
+	view: MapViewFrame,
 	frame: MapTransform | null = null,
 ): MapChromePaths {
 	if (step === null && !sphere) return EMPTY_CHROME
 
-	const fit = chromeFit(fitted, frame)
+	const fit = chromeFit(fitted, view, frame)
 
 	const hit = chrome.get(fitted)
 
 	if (hit !== undefined && hit.step === step && sameElements(hit.fit, fit)) return hit.paths
 
-	const paths = chromePaths(fitted, step, frame)
+	const paths = chromePaths(fitted, invertingPiece(spec, fitted), step, view, frame)
 
 	chrome.set(fitted, { fit, step, paths })
 

@@ -234,8 +234,17 @@ export function useMapShape({
 	// holds the canonical stage across instances and mounts.
 	const chrome = useMemo(
 		() =>
-			view.fit === null ? EMPTY_CHROME : cachedChromePaths(view.fit, graticule, sphere, view.frame),
-		[view, graticule, sphere],
+			view.fit === null
+				? EMPTY_CHROME
+				: cachedChromePaths(
+						view.fit,
+						projection,
+						graticule,
+						sphere,
+						{ width: view.viewWidth, height: view.viewHeight },
+						view.frame,
+					),
+		[view, projection, graticule, sphere],
 	)
 
 	const { viewWidth, viewHeight, measured, paths, regionFrame, project, unproject } = view

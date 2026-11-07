@@ -10,6 +10,7 @@ import { regionCentroids, regionPaths } from '../modules/map/engine/map-geometry
 import { geographyFeatures } from '../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../modules/map/engine/map-geometry/winding'
 import { canonicalFit, scaleCanonicalFit } from '../modules/map/engine/map-projection/fit'
+import { invertingPiece } from '../modules/map/engine/map-projection/resolve'
 import { regionCategoryIndexes, resolveCategories } from '../modules/map/engine/map-region/category'
 import { regionValueJoin, resolveValueBins } from '../modules/map/engine/map-region/value'
 import {
@@ -88,21 +89,23 @@ compareBenches('map-geometry · regionCentroids (the first arrow key)', (bench) 
 })
 
 compareBenches('map-geometry · chromePaths (opt-in graticule + sphere)', (bench) => {
-	// Both parts are off by default, and the graticule's lines cover the globe
-	// whatever the geography frames, so a one-state map pays a world map's pass
-	// and the viewBox clips the rest. That is the trim the ROADMAP's backlog
-	// names; this is the bar it would move.
+	// Both parts are off by default. The graticule's lines span the part of the
+	// globe that the viewBox shows, so under albers-usa the pass streams the
+	// lines over the lower 48 rather than the globe's. The frame alone is the
+	// floor that the bound cannot go under.
 	for (const { label, atlas } of ATLASES) {
 		const fit = canonicalFit('albers-usa', atlas.geoJson.features)
 
 		if (!fit) throw new Error('fixture yielded no fit')
 
+		const inverse = invertingPiece('albers-usa', fit.projection)
+
 		bench(`${label} · 10° graticule + frame`, () => {
-			chromePaths(fit.projection, 10)
+			chromePaths(fit.projection, inverse, 10, fit)
 		})
 
 		bench(`${label} · frame alone (graticule off)`, () => {
-			chromePaths(fit.projection, null)
+			chromePaths(fit.projection, inverse, null, fit)
 		})
 	}
 })
