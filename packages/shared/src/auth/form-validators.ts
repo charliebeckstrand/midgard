@@ -121,3 +121,24 @@ export function chain<T extends Record<string, unknown>>(...validators: Validato
 		return undefined
 	}
 }
+
+/** The fewest characters that a new password can have. The gateway takes 8 to 128. @internal */
+const PASSWORD_MIN_LENGTH = 8
+
+/**
+ * The rules of a new password and of the field that repeats it. The register
+ * form and the reset form take the same rules from here.
+ *
+ * @internal
+ * @param intl - Formats the messages in the language of the reader.
+ * @returns The validators of the `password` and `confirmPassword` fields.
+ */
+export function newPasswordRules(intl: IntlShape) {
+	return {
+		password: chain(required(intl), minLength(intl, PASSWORD_MIN_LENGTH)),
+		confirmPassword: chain(
+			required(intl),
+			matches('password', intl.formatMessage(validationMessages.passwordMismatch)),
+		),
+	}
+}
