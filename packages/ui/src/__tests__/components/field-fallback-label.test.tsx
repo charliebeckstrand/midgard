@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { AddressInput } from '../../components/address-input'
 import {
@@ -12,6 +11,7 @@ import { Field, Label } from '../../components/fieldset'
 import { FileUploadButton } from '../../components/file-upload'
 import { TagInput } from '../../components/tag-input'
 import { renderUI } from '../helpers'
+import { serverMarkup } from '../helpers/hydrate'
 
 /** The selector of a field's own input: the text input, or the file input of an upload. */
 const TEXT = 'input:not([type="hidden"])'
@@ -32,9 +32,7 @@ const fields: [string, () => ReactElement, string, string][] = [
 
 describe.each(fields)('%s default name', (_name, field, fallback, selector) => {
 	it('takes its name from a Field Label in the server render', () => {
-		const container = document.createElement('div')
-
-		container.innerHTML = renderToString(
+		const container = serverMarkup(
 			<Field>
 				<Label>Field name</Label>
 				{field()}
@@ -75,9 +73,7 @@ describe.each(fields)('%s default name', (_name, field, fallback, selector) => {
 	})
 
 	it('has the default name outside a Field in the server render', () => {
-		const container = document.createElement('div')
-
-		container.innerHTML = renderToString(field())
+		const container = serverMarkup(field())
 
 		expect(container.querySelector(selector)).toHaveAttribute('aria-label', fallback)
 	})

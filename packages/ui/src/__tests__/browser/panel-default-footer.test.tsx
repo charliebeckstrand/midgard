@@ -1,8 +1,8 @@
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerContent, DrawerFooter, DrawerPanel } from '../../components/drawer'
 import { allBySlot, attach } from '../helpers'
+import { serverMarkup } from '../helpers/hydrate'
 
 /**
  * The default footer of a panel, under the CSS that an app ships. The base style
@@ -31,9 +31,7 @@ const drawer = (withFooter: boolean) => (
 
 /** The footer rows of the server HTML of `ui`, with their computed `display`. */
 function served(withFooter: boolean) {
-	const container = attach(document.createElement('div'))
-
-	container.innerHTML = renderToString(drawer(withFooter))
+	const container = attach(serverMarkup(drawer(withFooter)))
 
 	return allBySlot(container, 'drawer-footer').map((footer) => ({
 		default: footer.dataset.panelFooter === 'default',

@@ -1,9 +1,9 @@
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Avatar, AvatarGroup, AvatarSkeleton } from '../../components/avatar'
 import { Density, useDensityStep } from '../../primitives/density'
 import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, bySlot, getSlot, renderUI, screen } from '../helpers'
+import { serverMarkup } from '../helpers/hydrate'
 import { expectInlineSkeleton } from '../helpers/inline-skeleton'
 
 describe('Avatar', () => {
@@ -39,9 +39,7 @@ describe('Avatar', () => {
 	})
 
 	it('escapes each character of src that would end the CSS string', () => {
-		const container = document.createElement('div')
-
-		container.innerHTML = renderToString(<Avatar src={'/a"b\\c.png'} />)
+		const container = serverMarkup(<Avatar src={'/a"b\\c.png'} />)
 
 		// `\22 ` is the quote and `\5c ` is the backslash.
 		expect(getSlot(container, 'avatar-image').getAttribute('style')).toBe(

@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
@@ -24,7 +23,7 @@ import {
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 import { futureYY } from '../helpers/future-yy'
-import { hydrate } from '../helpers/hydrate'
+import { hydrate, serverMarkup } from '../helpers/hydrate'
 
 describe('CreditCardInput', () => {
 	it('renders an input with type text, numeric inputMode, and a credit card icon prefix', () => {
@@ -560,9 +559,7 @@ describe.each(cardFields)('%s default name', (_name, field, fallback) => {
 			</div>
 		)
 
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = renderToString(element)
+		const container = attach(serverMarkup(element))
 
 		// The server render cannot read the label, so its markup has the default name.
 		expect(container.querySelector('input')).toHaveAttribute('aria-label', fallback)

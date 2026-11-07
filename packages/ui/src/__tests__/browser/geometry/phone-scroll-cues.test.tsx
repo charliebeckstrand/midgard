@@ -1,5 +1,4 @@
 import { type ReactElement, useState } from 'react'
-import { renderToString } from 'react-dom/server'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Label } from '../../../components/fieldset'
@@ -14,6 +13,7 @@ import {
 import { attach, frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+import { serverMarkup } from '../../helpers/hydrate'
 
 /**
  * At a phone width, a `rail` FormFilters row and a horizontal Timeline scroll
@@ -99,9 +99,7 @@ function Line({ dir, initial = TITLES.length }: { dir?: 'rtl'; initial?: number 
  * the first frame shows only what the CSS draws.
  */
 function mountServerMarkup(ui: ReactElement): HTMLElement {
-	const host = attach(document.createElement('div'))
-
-	host.innerHTML = renderToString(ui)
+	const host = attach(serverMarkup(ui))
 
 	return host
 }

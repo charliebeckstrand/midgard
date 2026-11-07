@@ -1,6 +1,5 @@
 import { Fragment } from 'react'
 import { createRoot, hydrateRoot, type Root } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	Breadcrumb,
@@ -10,6 +9,7 @@ import {
 	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
 import { act, attach, frames, present } from '../helpers'
+import { serverMarkup } from '../helpers/hydrate'
 
 const CRUMBS = ['Places', 'United States of America', 'Oregon']
 
@@ -52,9 +52,7 @@ describe('a collapsing breadcrumb (real browser)', () => {
 	it('keeps the row of the server markup invisible, and shows the fit at hydration', async ({
 		signal,
 	}) => {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = renderToString(trail(260))
+		const container = attach(serverMarkup(trail(260)))
 
 		// The server cannot know the room of the row. The row keeps its size, and
 		// no crumb paints.

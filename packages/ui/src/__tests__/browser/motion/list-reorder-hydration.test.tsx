@@ -1,8 +1,7 @@
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { List, ListItem } from '../../../components/list'
 import { attach, getSlot } from '../../helpers'
-import { hydrate } from '../../helpers/hydrate'
+import { hydrate, serverMarkup } from '../../helpers/hydrate'
 
 const items = [
 	{ id: 'a', label: 'Alpha' },
@@ -25,9 +24,7 @@ function list() {
  */
 describe('reorderable List hydration (real Motion)', () => {
 	it('hydrates the server markup with no mismatch, then mounts the Reorder group', async () => {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = renderToString(list())
+		const container = attach(serverMarkup(list()))
 
 		const serverList = getSlot(container, 'list')
 
