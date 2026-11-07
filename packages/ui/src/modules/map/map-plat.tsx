@@ -4,6 +4,7 @@ import { useComposedRefs } from 'motion/react'
 import {
 	Children,
 	type ComponentProps,
+	type CSSProperties,
 	type ReactNode,
 	type Ref,
 	useCallback,
@@ -12,7 +13,6 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../core/cn'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -35,6 +35,7 @@ import {
 import { createDotPool } from './engine/map-cluster/pool'
 import { clusterRadius } from './engine/map-cluster/radius'
 import { createClusterStore, sameClusterEntries } from './engine/map-cluster/sets'
+import { MAP_FIT_INSET } from './engine/map-constants'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import { regionSweep } from './engine/map-geometry/region'
@@ -748,6 +749,37 @@ function regionPointerState(
 /** A layer that answers nothing offers no region stops; shared so the gate allocates none. @internal */
 const NO_CENTROIDS: (LngLat | null)[] = []
 
+/** The plot SVG once the frame is measured: the whole plot box, in its measured pixels. */
+const MEASURED_SVG = { className: 'absolute inset-0 block size-full' }
+
+/**
+ * The plot SVG before the frame is measured. Its box is the plot box less
+ * {@link MAP_FIT_INSET} on each side. The canonical frame meets this box, and
+ * the measured fit meets the same box (`canonicalFrame` in
+ * `engine/map-projection/fit`), so the geography does not move when the
+ * measurement lands. The box of the SVG is the box that the frame readers
+ * (`frameToClient`) measure, so it is an inset and not a padding.
+ *
+ * The content overflows into the band of the inset, and the plot box clips it
+ * at the edge where the measured SVG clips it. The chrome and the marks
+ * therefore draw to the edge in both states. The canonical frame scales to
+ * meet the box, so a stroke keeps its width in px, as the measured frame draws
+ * it.
+ */
+const CANONICAL_SVG = {
+	className: 'absolute block overflow-visible [&_*]:[vector-effect:non-scaling-stroke]',
+	style: {
+		inset: MAP_FIT_INSET,
+		width: `calc(100% - ${MAP_FIT_INSET * 2}px)`,
+		height: `calc(100% - ${MAP_FIT_INSET * 2}px)`,
+	} satisfies CSSProperties,
+}
+
+/** The class and the style of the plot SVG in each state of the frame. @internal */
+function plotSvgProps(measured: boolean): { className: string; style?: CSSProperties } {
+	return measured ? MEASURED_SVG : CANONICAL_SVG
+}
+
 /**
  * An SVG geography map on the chart module's interaction grammar. Regions take
  * their color by category from typed rows. One merged legend dims everything
@@ -774,6 +806,13 @@ const NO_CENTROIDS: (LngLat | null)[] = []
  *
  * A `left` or `right` legend goes beside the plot only at a frame width of 32rem
  * (`@lg`) or more. Below that width, the legend stacks under the plot.
+ *
+ * The fit keeps a clear space between the geography and each edge of the plot.
+ * The space is the reach of a selected dot: its radius and its halo. A dot on
+ * the edge of the geography therefore draws whole, and so does a selected
+ * region border there. The frame clips the part of a larger summary dot that is
+ * out of that space. Under `aspectRatio="auto"`, the box takes the geography's
+ * own ratio, so on one axis the geography has a little more space than that.
  */
 export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const {
@@ -1455,6 +1494,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// the box (not the marks) owns the size. The view frame is the canonical
 	// one until the container is measured, then the measured pixels, so the
 	// geography paints on the first commit without waiting to be measured.
+	// Until the measurement, the SVG sits inside the inset of the fit
+	// (`plotSvgProps`).
 	//
 	// The SVG is out of flow, as `ChartPlotBox` requires. In flow, its `viewBox`
 	// ratio gave the box a content height. A container that sizes to its content,
@@ -1464,12 +1505,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		<svg
 			ref={svgRef}
 			aria-hidden="true"
-			className={cn(
-				'absolute inset-0 block size-full',
-				// Until the frame is measured, the canonical frame scales to meet the box.
-				// A stroke then keeps its width in px, as the measured frame draws it.
-				!shape.measured && '[&_*]:[vector-effect:non-scaling-stroke]',
-			)}
+			{...plotSvgProps(shape.measured)}
 			viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
 		>
 			<MapPlatContext value={plat}>

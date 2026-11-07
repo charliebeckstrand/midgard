@@ -91,6 +91,19 @@ export const GEOFENCE_CIRCLE_STEPS = 64
 export const POINT_RADIUS = 5.5
 
 /**
+ * The clear space, in device pixels, that the measured fit keeps between the
+ * geography and each edge of the frame. It is the reach of a selected dot: the
+ * dot's radius and its halo. A dot on an extremum of the geography, such as the
+ * westernmost stop, therefore draws whole, and so do its halo and the stroke of
+ * a selected region on that edge. A summary dot of a high grade reaches past
+ * it, and the frame clips the part of that dot that is out of the inset.
+ *
+ * It is in device pixels, so it holds at each size of the frame. In the
+ * canonical frame, the scale of the box would change it. @internal
+ */
+export const MAP_FIT_INSET = POINT_RADIUS + MARK_SELECTED_HALO
+
+/**
  * Invisible hit-circle radius over a point (and a marker pin), for a coarse
  * pointer: a 44px finger target, WCAG 2.5.5's enhanced floor. It is the same
  * figure the `TouchTarget` primitive holds for a coarse pointer.

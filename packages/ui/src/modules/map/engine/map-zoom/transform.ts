@@ -175,7 +175,13 @@ function clampScale(k: number, max: number): number {
 	return clamp(k, MAP_ZOOM_FIT, Math.max(MAP_ZOOM_FIT, max))
 }
 
-/** Three decimals, so the attribute stays short at every scale the map reaches. */
+/**
+ * Four decimals, so the attribute stays short at every scale the map reaches.
+ * The region layer carries the canonical paths on a scale under 1 (a
+ * 1000-unit frame onto a smaller box), and the marks take the exact fit. At
+ * four decimals, the two agree to 0.05 px across the canonical frame. Three
+ * decimals let them part by up to half a pixel.
+ */
 function round(value: number): number {
-	return Math.round(value * 1000) / 1000
+	return Math.round(value * 10_000) / 10_000
 }

@@ -224,7 +224,7 @@ describe('transformAttribute', () => {
 	})
 
 	it('rounds, so a gesture never writes a full float into the attribute', () => {
-		expect(transformAttribute({ x: 1 / 3, y: 0, k: 1 })).toBe('translate(0.333 0) scale(1)')
+		expect(transformAttribute({ x: 1 / 3, y: 0, k: 1 })).toBe('translate(0.3333 0) scale(1)')
 	})
 })
 

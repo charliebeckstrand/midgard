@@ -164,7 +164,7 @@ compareBenches('map-geometry · region paths (the mount’s largest pass)', (ben
 
 		const buffer = projectAtlas(features, canonical.projection)
 
-		if (!buffer) throw new Error('fixture yielded no projected atlas')
+		if (!buffer || !measured) throw new Error('fixture yielded no projected atlas')
 
 		bench(`${label} · regionPaths (the direct walk, per fit)`, () => {
 			regionPaths(features, measured)

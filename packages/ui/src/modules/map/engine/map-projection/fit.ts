@@ -7,7 +7,7 @@
  */
 
 import type { GeoProjection } from 'd3-geo'
-import { MAP_CANONICAL_WIDTH } from '../map-constants'
+import { MAP_CANONICAL_WIDTH, MAP_FIT_INSET } from '../map-constants'
 import type { MapTransform } from '../map-zoom/transform'
 import type { MapFeature, MapNamedProjection, MapProjection } from '../types'
 import { collection, fitProjectionWidth, resolveProjection } from './resolve'
@@ -56,17 +56,47 @@ export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCa
 
 /**
  * The transform that puts the canonical frame in a `width` × `height` box: the
- * scale that meets the box, and the offset that centers the remainder. This is
- * the SVG default, `preserveAspectRatio="xMidYMid meet"`, so the canonical
- * frame that the server draws and the measured frame put the geography in the
- * same place.
+ * scale that meets the box less {@link MAP_FIT_INSET} on each side, and the
+ * offset that centers the remainder. Inside the inset, this is the SVG default,
+ * `preserveAspectRatio="xMidYMid meet"`. Before the box is measured, the plat
+ * draws the canonical frame in an SVG that the inset holds off each edge of
+ * the box. The server paint and the measured frame therefore put the geography
+ * in the same place.
+ *
+ * `null` where the box less the inset has no area: there is no room for the
+ * geography.
  *
  * @internal
  */
-function canonicalFrame(canonical: MapCanonicalFit, width: number, height: number): MapTransform {
-	const k = Math.min(width / canonical.width, height / canonical.height)
+function canonicalFrame(
+	canonical: MapCanonicalFit,
+	width: number,
+	height: number,
+): MapTransform | null {
+	const k = Math.min(
+		(width - MAP_FIT_INSET * 2) / canonical.width,
+		(height - MAP_FIT_INSET * 2) / canonical.height,
+	)
+
+	if (!(k > 0)) return null
 
 	return { x: (width - canonical.width * k) / 2, y: (height - canonical.height * k) / 2, k }
+}
+
+/**
+ * The canonical projection carried onto `frame`: its scale and its translate,
+ * scaled by `k` and moved by the offset, on a fresh instance of `spec`.
+ */
+function carriedProjection(
+	spec: MapNamedProjection,
+	canonical: MapCanonicalFit,
+	{ x, y, k }: MapTransform,
+): GeoProjection {
+	const [tx, ty] = canonical.projection.translate()
+
+	return resolveProjection(spec)
+		.scale(canonical.projection.scale() * k)
+		.translate([tx * k + x, ty * k + y])
 }
 
 /**
@@ -74,13 +104,15 @@ function canonicalFrame(canonical: MapCanonicalFit, width: number, height: numbe
  * alone. The named projections' output is linear in `scale` and `translate`.
  * The composite `albers-usa` derives its inset offsets and clips from them
  * proportionally. A scale of the canonical parameters by the
- * {@link canonicalFrame} therefore frames the geography the way `fitSize` does.
+ * {@link canonicalFrame} therefore frames the geography the way `fitExtent`
+ * does over the box less {@link MAP_FIT_INSET} on each side.
  * It takes no bounds pass that re-projects every coordinate, the bulk of a
  * refit's cost on every resize.
  *
- * It lands within `fitSize`'s adaptive-resampling margin, sub-percent, from the
+ * It lands within `fitExtent`'s adaptive-resampling margin, sub-percent, from the
  * resampling each pass runs at its own scale. Under the canonical aspect it is a
  * pure zoom of the canonical paint, so a refit never reshapes the geography.
+ * `null` where the box less the inset has no area.
  *
  * @internal
  */
@@ -89,14 +121,10 @@ export function scaleCanonicalFit(
 	canonical: MapCanonicalFit,
 	width: number,
 	height: number,
-): GeoProjection {
-	const { x, y, k } = canonicalFrame(canonical, width, height)
+): GeoProjection | null {
+	const frame = canonicalFrame(canonical, width, height)
 
-	const [tx, ty] = canonical.projection.translate()
-
-	return resolveProjection(spec)
-		.scale(canonical.projection.scale() * k)
-		.translate([tx * k + x, ty * k + y])
+	return frame === null ? null : carriedProjection(spec, canonical, frame)
 }
 
 /**
@@ -113,8 +141,9 @@ type MapMeasuredFit = {
 
 /**
  * The measured-frame fit, or `null` when there is nothing to frame. That is no
- * geography, geometry whose bounds collapse (a lone point), or an unmeasured
- * frame. The canonical fit is already `null` for the first two.
+ * geography, geometry whose bounds collapse (a lone point), or a frame with no
+ * area inside {@link MAP_FIT_INSET}, such as an unmeasured frame. The canonical
+ * fit is already `null` for the first two.
  *
  * A named projection derives a new projection from the canonical one
  * ({@link scaleCanonicalFit}). A passed d3 instance belongs to the consumer, and
@@ -132,9 +161,13 @@ export function measuredMapFit(
 	width: number,
 	height: number,
 ): MapMeasuredFit | null {
-	if (canonical === null || width <= 0 || height <= 0) return null
+	if (canonical === null) return null
+
+	const frame = canonicalFrame(canonical, width, height)
+
+	if (frame === null) return null
 
 	return typeof projection === 'string'
-		? { projection: scaleCanonicalFit(projection, canonical, width, height), frame: null }
-		: { projection: canonical.projection, frame: canonicalFrame(canonical, width, height) }
+		? { projection: carriedProjection(projection, canonical, frame), frame: null }
+		: { projection: canonical.projection, frame }
 }

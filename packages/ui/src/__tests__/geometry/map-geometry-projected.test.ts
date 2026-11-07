@@ -16,7 +16,11 @@ import {
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
-import { canonicalFit, scaleCanonicalFit } from '../../modules/map/engine/map-projection/fit'
+import {
+	canonicalFit,
+	type MapCanonicalFit,
+	scaleCanonicalFit,
+} from '../../modules/map/engine/map-projection/fit'
 import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -49,6 +53,18 @@ const stateFeatures = rewindFeatures(geographyFeatures(statesTopology))
 const canonical = canonicalFit('albers-usa', stateFeatures)
 
 if (canonical === null) throw new Error('fixture atlas yielded no fit')
+
+/**
+ * The measured `albers-usa` refit of `fit` at a box, or a failure naming the
+ * box rather than a `null` that each site would then narrow away.
+ */
+function refit(fit: MapCanonicalFit, width: number, height: number): GeoProjection {
+	const measured = scaleCanonicalFit('albers-usa', fit, width, height)
+
+	if (measured === null) throw new Error(`no fit at ${width}×${height}`)
+
+	return measured
+}
 
 /** A feature carrying `geometry`, with the identity fields the drawing never reads. */
 function feature(geometry: MapFeature['geometry']): MapFeature {
@@ -88,7 +104,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 			[317, 211],
 			[16_000, 10_000],
 		] as const) {
-			const measured = scaleCanonicalFit('albers-usa', canonical, width, height)
+			const measured = refit(canonical, width, height)
 
 			expect(emitRegionPaths(atlas, measured)).toEqual(regionPaths(stateFeatures, measured))
 		}
@@ -129,14 +145,14 @@ describe('projectAtlas + emitRegionPaths', () => {
 			[400, 250],
 			[800, 500],
 		] as const) {
-			const measured = scaleCanonicalFit('albers-usa', fit, width, height)
+			const measured = refit(fit, width, height)
 
 			expect(emitRegionPaths(atlas, measured)).toEqual(regionPaths(quad, measured))
 		}
 
 		// Far above it, the walk earns vertices along an arc this still draws as
 		// the chord the canonical frame accepted.
-		const wide = scaleCanonicalFit('albers-usa', fit, 16_000, 10_000)
+		const wide = refit(fit, 16_000, 10_000)
 
 		const emitted = emitRegionPaths(atlas, wide)
 
@@ -197,7 +213,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 		)
 
 		// And through a measured refit, the fit an ordinary mount settles on.
-		const measured = scaleCanonicalFit('albers-usa', probed.canonical, 800, 450)
+		const measured = refit(probed.canonical, 800, 450)
 
 		expect(emitRegionPaths(probed.atlas, measured)).toEqual(regionPaths(stateFeatures, measured))
 	})
@@ -243,7 +259,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 	it('emits byte for byte across two direct fits of one passed projection', () => {
 		// The escape-hatch path: a consumer's own d3 instance, which `fitProjection`
 		// fits in place rather than deriving by arithmetic, so its two fits reach the
-		// emit through d3's own `fitSize` and not through `scaleCanonicalFit`. On the
+		// emit through d3's own `fitExtent` and not through `scaleCanonicalFit`. On the
 		// atlas rather than the fixture squares, whose four-vertex edges straddle a
 		// resampling threshold between the two boxes and would measure the bound
 		// above instead of this path.
@@ -453,7 +469,7 @@ describe('carriedTransform', () => {
 	const atlas = projected(stateFeatures, canonical.projection)
 
 	it('carries a canonical position onto the measured fit', () => {
-		const measured = scaleCanonicalFit('albers-usa', canonical, 800, 450)
+		const measured = refit(canonical, 800, 450)
 
 		const transform = carriedTransform(atlas, canonical.projection, measured)
 

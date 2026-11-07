@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
+import { MAP_FIT_INSET } from './engine/map-constants'
 import { type MapOutline, mapOutline } from './engine/map-outline'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import type { MapAspectRatio, MapProjection } from './engine/types'
@@ -39,11 +40,11 @@ export type MapSkeletonProps = {
 	 * Antarctica. The outline is built into the package, so it shows on the first
 	 * paint, before any atlas loads.
 	 *
-	 * The outline scales to meet the box and centers in it, as the plat fits its
-	 * geography. A plat that draws the same geography under the same projection
-	 * therefore draws it where the outline was. A plat that draws other
-	 * geography, such as one country under `'mercator'`, does not match. Leave
-	 * the outline off for it.
+	 * The outline scales to meet the box less the plat's fit inset (the reach of
+	 * a selected dot) on each side, and centers in it, as the plat fits its geography. A plat that draws the
+	 * same geography under the same projection therefore draws it where the
+	 * outline was. A plat that draws other geography, such as one country under
+	 * `'mercator'`, does not match. Leave the outline off for it.
 	 *
 	 * A projection with no outline, such as a passed d3 instance, draws the
 	 * rectangle.
@@ -101,8 +102,9 @@ export function MapSkeleton({ aspectRatio, projection, outline, className }: Map
 
 /**
  * The outline, drawn as one pulsing shape. `xMidYMid meet` scales it to meet
- * the box and centers the remainder, which is the rule the plat's measured fit
- * follows.
+ * the box less a padding of {@link MAP_FIT_INSET} on each side, and centers the
+ * remainder. That is the rule the plat's measured fit follows. The SVG is in
+ * flow, so a padding holds the inset: the border box keeps the reserved size.
  */
 function MapSkeletonOutline({
 	outline,
@@ -122,7 +124,7 @@ function MapSkeletonOutline({
 			viewBox={`0 0 ${outline.width} ${outline.height}`}
 			preserveAspectRatio="xMidYMid meet"
 			className={cn(...(aspect ? k.skeleton.outline.aspect : k.skeleton.outline.base), className)}
-			style={style}
+			style={{ ...style, padding: MAP_FIT_INSET }}
 		>
 			<path d={outline.d} />
 		</svg>

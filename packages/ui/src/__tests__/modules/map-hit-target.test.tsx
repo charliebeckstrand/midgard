@@ -15,6 +15,7 @@ import {
 	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
 import { squareDotStroke } from '../../modules/map/engine/map-geometry/mark'
+import { canonicalFit, scaleCanonicalFit } from '../../modules/map/engine/map-projection/fit'
 import { k } from '../../recipes/kata/map'
 import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { englishRadius } from '../helpers/map-flat'
@@ -261,12 +262,12 @@ describe('dot hit targets', () => {
 
 	it('holds a dot precise while a neighbor stands inside its coarse reach', () => {
 		const { container } = renderUI(
-			// Two stops 16px apart in a 400px frame, which is the middle of the window
+			// Two stops 17px apart in a 400px frame, which is the middle of the window
 			// this case needs: past the 14px merge distance, so each draws its own dot,
 			// and inside the 22px coarse reach, so each stands in the other's target.
 			// Spaced off the merge distance rather than onto it: the pair sat at
 			// 14.000000000000012px, which any change to the fit's last bit merges.
-			overlayPlat(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [16.2, 5] }]} />),
+			overlayPlat(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [16.5, 5] }]} />),
 		)
 
 		const targets = allBySlot(container, 'map-points-hit')
@@ -681,17 +682,36 @@ describe('crowded marks divide their targets', () => {
 describe('a dot over regions that answer the pointer', () => {
 	/**
 	 * A frame narrow enough that the fixture's squares are small shapes. The three
-	 * ten-degree squares span the frame, so one draws a third of it: roomy in
-	 * absolute pixels at 400, and a shape with something to lose here.
+	 * ten-degree squares span the drawn geography, so one draws a third of it:
+	 * roomy in absolute pixels at 400, and a shape with something to lose here.
 	 */
-	const TIGHT = 120
+	const TIGHT = 150
+
+	/**
+	 * How wide one of those squares draws in a frame `width` px wide. The frame
+	 * reserves the fixture's own ratio, and the fit keeps an inset off each edge,
+	 * so the geography takes less than the whole width. The fit itself says how
+	 * much less.
+	 */
+	function squareSide(width: number) {
+		const canonical = canonicalFit('mercator', FIXTURE_GEOJSON.features)
+
+		const fit =
+			canonical && scaleCanonicalFit('mercator', canonical, width, width / canonical.aspect)
+
+		const [west] = fit?.([0, 5]) ?? [Number.NaN]
+
+		const [east] = fit?.([30, 5]) ?? [Number.NaN]
+
+		return (east - west) / 3
+	}
 
 	/**
 	 * What one of those squares can spare a dot standing on it. A square of side
-	 * `s` holds `2 · area / perimeter` = `s / 2` inscribed, so a third of the frame
-	 * across is a sixth of it inscribed, and the dot takes half of that.
+	 * `s` holds `2 · area / perimeter` = `s / 2` inscribed, and the dot takes half
+	 * of that.
 	 */
-	const SQUARE_SPARE = (TIGHT / 6) * AREA_SPARE_FRACTION
+	const SQUARE_SPARE = (squareSide(TIGHT) / 2) * AREA_SPARE_FRACTION
 
 	function clickable(children: ReactNode, width = TIGHT) {
 		return (
@@ -740,10 +760,12 @@ describe('a dot over regions that answer the pointer', () => {
 		const wide = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />, TIGHT * 2))
 
 		// The whole of what a fixed figure could not do. Region areas on a real atlas run three
-		// orders of magnitude apart, so the claim has to be a share of the shape: double the frame
-		// and the same square holds twice the room, so the dot may take twice as much of it.
+		// orders of magnitude apart, so the claim has to be a share of the shape: a square that
+		// draws wider holds more room in proportion, so the dot may take more of it in the same
+		// proportion.
 		expect(budget(bySlot(wide.container, 'map-point-hit'), 'style')).toBeCloseTo(
-			budget(bySlot(tight.container, 'map-point-hit'), 'style') * 2,
+			(budget(bySlot(tight.container, 'map-point-hit'), 'style') * squareSide(TIGHT * 2)) /
+				squareSide(TIGHT),
 			0,
 		)
 	})
@@ -752,13 +774,13 @@ describe('a dot over regions that answer the pointer', () => {
 		const { container } = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />, 400))
 
 		// A dot narrows to give ground back, so a shape with ground to spare is owed nothing: at this
-		// width the square runs 130px across and a 44px target is a hole in it a reader cannot miss.
+		// width the square runs 116px across and a 44px target is a hole in it a reader cannot miss.
 		// The fixed figure this replaced charged every dot on every map alike, this one included.
 		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
 	})
 
 	it('floors at the drawn dot where the region has nothing to spare', () => {
-		const { container } = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />, 40))
+		const { container } = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />, 80))
 
 		// New Jersey's case, and every smaller state's: the mark is wider than the ground under it, so
 		// the share works out under what the dot paints and `markTargets` floors it there. The region
