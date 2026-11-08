@@ -126,3 +126,50 @@ export const zoneCategories: MapCategory[] = [
 	{ value: zones.central, color: 'green' },
 	{ value: zones.eastern, color: 'red' },
 ]
+
+/** The words of the states that two zones split, and of most of Arizona. */
+const splits = words('time-zone', {
+	pacificMountain: 'Pacific and Mountain',
+	mountainCentral: 'Mountain and Central',
+	centralEastern: 'Central and Eastern',
+	mountainNoDst: 'Mountain, mostly no daylight saving',
+})
+
+/** The states that two zones split, and Arizona, by the name of the state. */
+const splitZone: Record<string, string> = {
+	Oregon: splits.pacificMountain,
+	Idaho: splits.pacificMountain,
+	Arizona: splits.mountainNoDst,
+	'North Dakota': splits.mountainCentral,
+	'South Dakota': splits.mountainCentral,
+	Nebraska: splits.mountainCentral,
+	Kansas: splits.mountainCentral,
+	Texas: splits.mountainCentral,
+	Michigan: splits.centralEastern,
+	Indiana: splits.centralEastern,
+	Kentucky: splits.centralEastern,
+	Tennessee: splits.centralEastern,
+	Florida: splits.centralEastern,
+}
+
+/** The contiguous states, with each state that two zones split under both of its zones. */
+export const splitTimezones: StateZone[] = timezones.map((row) => ({
+	state: row.state,
+	zone: splitZone[row.state] ?? row.zone,
+}))
+
+/**
+ * The zones from west to east, with a split between each two neighbors. A
+ * split takes stripes of its two zones, and Arizona takes the soft tone of
+ * Mountain.
+ */
+export const splitZoneCategories: MapCategory[] = [
+	{ value: zones.pacific, color: 'blue' },
+	{ value: splits.pacificMountain, color: 'blue', stripes: 'orange' },
+	{ value: zones.mountain, color: 'orange' },
+	{ value: splits.mountainNoDst, color: 'orange', tone: 'soft' },
+	{ value: splits.mountainCentral, color: 'orange', stripes: 'green' },
+	{ value: zones.central, color: 'green' },
+	{ value: splits.centralEastern, color: 'green', stripes: 'red' },
+	{ value: zones.eastern, color: 'red' },
+]

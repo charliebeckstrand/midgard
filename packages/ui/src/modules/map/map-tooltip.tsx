@@ -1,11 +1,7 @@
 'use client'
 
 import { TooltipPointer } from '../../components/tooltip/tooltip-pointer'
-import {
-	ChartReadoutCard,
-	ChartReadoutRow,
-	ReadoutSwatch,
-} from '../chart/engine/chart-readout-card'
+import { ChartReadoutCard, ChartReadoutRow } from '../chart/engine/chart-readout-card'
 import { useMapHoverState } from './context'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { seriesSwatchClass } from './engine/map-legend/items'
@@ -16,9 +12,11 @@ import {
 	categoryLegendId,
 	type MapCategoryMeta,
 	paintColor,
+	paintStripes,
 	paintText,
 } from './engine/map-region/category'
 import type { MapSwatchShape } from './engine/types'
+import { MapSwatch } from './map-swatch'
 
 /** One resolved overlay entry the tooltip can read. @internal */
 export type MapTooltipEntry = {
@@ -56,11 +54,16 @@ export type MapTooltipProps = {
 /** What the tooltip shows for the current target: a title and an optional swatch row. @internal */
 type MapTooltipContent = {
 	title: string
-	/** The swatch reads a currentColor class (`swatchClass`) or an inline CSS color (`swatchColor`, numeric bins). */
+	/**
+	 * The swatch reads a currentColor class (`swatchClass`) or an inline CSS
+	 * color (`swatchColor`, numeric bins). A striped category adds the class of
+	 * its stripes (`swatchStripes`).
+	 */
 	row?: {
 		swatch: MapSwatchShape
 		swatchClass?: string
 		swatchColor?: string
+		swatchStripes?: string
 		text: string
 	}
 }
@@ -191,6 +194,7 @@ function resolve(
 			swatch: 'rect',
 			swatchClass: paintText(paint),
 			swatchColor: paintColor(paint),
+			swatchStripes: paintStripes(paint),
 			// A region's own value in numeric mode (its bin only drives the color);
 			// the category label otherwise.
 			text: regionValues[target.index] ?? meta.label,
@@ -290,10 +294,12 @@ export function MapTooltip(props: MapTooltipProps) {
 							{content.row && (
 								<ChartReadoutRow
 									swatch={
-										<ReadoutSwatch
+										<MapSwatch
 											shape={content.row.swatch}
+											size="sm"
 											className={content.row.swatchClass}
 											color={content.row.swatchColor}
+											stripes={content.row.swatchStripes}
 										/>
 									}
 									value={content.row.text}

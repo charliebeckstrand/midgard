@@ -11,26 +11,36 @@
  */
 
 import { cn } from '../../../../core/cn'
-import { k } from '../../../../recipes/kata/map'
+import { k, type MapSeriesColor } from '../../../../recipes/kata/map'
 import { paletteSlot } from '../../../chart/engine/chart-color/palette'
 import type { DataKey, MapCategory } from '../types'
 
 /**
+ * The class lists of one slot in one tone: `fill` for the region, `text` for
+ * the `<Swatch>` currentColor.
+ *
+ * @internal
+ */
+export type MapSlotInk = { fill: string[]; text: string[] }
+
+/**
  * How a resolved category or bin paints its region and legend swatch. A
  * categorical slot carries Tailwind class lists from the CVD-validated palette
- * (`fill` for the region, `text` for the `<Swatch>` currentColor). A numeric
- * choropleth bin carries a single CSS `color` value from the consumer's
- * `colorRange`. It applies as the region's `fill` attribute, or the swatch's
- * inline color.
+ * ({@link MapSlotInk}). A striped category carries the inks of its two slots: a
+ * pattern in the region layer paints the region, and the swatch lays the second
+ * ink over the first. A numeric choropleth bin carries a single CSS `color`
+ * value from the consumer's `colorRange`. It applies as the region's `fill`
+ * attribute, or the swatch's inline color.
  *
- * The three projections below it are the map's half of what `chart-color/paint`
+ * The projections below it are the map's half of what `chart-color/paint`
  * names for the union it mirrors from here. Without them every reader spelled
  * the discriminant itself, and two of them spelled it identically.
  *
  * @internal
  */
 export type MapReadoutPaint =
-	| { kind: 'class'; fill: string[]; text: string[] }
+	| ({ kind: 'class' } & MapSlotInk)
+	| { kind: 'stripes'; first: MapSlotInk; second: MapSlotInk }
 	| { kind: 'value'; color: string }
 
 /**
@@ -49,12 +59,25 @@ export function paintFill(paint: MapReadoutPaint): string[] | undefined {
 
 /**
  * The currentColor class a swatch reads a paint through, joined; `undefined`
- * for a bin, which paints through {@link paintColor} instead.
+ * for a bin, which paints through {@link paintColor} instead. A striped
+ * category answers its first color, the fill under the stripes.
  *
  * @internal
  */
 export function paintText(paint: MapReadoutPaint): string | undefined {
-	return paint.kind === 'class' ? cn(...paint.text) : undefined
+	if (paint.kind === 'class') return cn(...paint.text)
+
+	return paint.kind === 'stripes' ? cn(...paint.first.text) : undefined
+}
+
+/**
+ * The currentColor class of the stripes a swatch lays over its fill, joined;
+ * `undefined` for every paint but a striped category.
+ *
+ * @internal
+ */
+export function paintStripes(paint: MapReadoutPaint): string | undefined {
+	return paint.kind === 'stripes' ? cn(...paint.second.text) : undefined
 }
 
 /**
@@ -127,9 +150,33 @@ export function regionGroupId(
 }
 
 /**
- * Resolves the region categories: the explicit list's order, labels, and
- * color overrides win; omitted, categories derive from the rows in
- * first-appearance order. Slot colors follow the resolved order and hold
+ * The ink of one slot in one tone: the shared palette's, or the map's soft step.
+ *
+ * @internal
+ */
+function slotInk(color: MapSeriesColor, tone: MapCategory['tone']): MapSlotInk {
+	const ink = tone === 'soft' ? k.soft[color] : k.series[color]
+
+	return { fill: ink.fill, text: ink.text }
+}
+
+/**
+ * The paint of one category: one slot, or stripes of two slots, in its tone.
+ *
+ * @internal
+ */
+function categoryPaint(category: MapCategory, color: MapSeriesColor): MapReadoutPaint {
+	const first = slotInk(color, category.tone)
+
+	if (category.stripes === undefined) return { kind: 'class', ...first }
+
+	return { kind: 'stripes', first, second: slotInk(category.stripes, category.tone) }
+}
+
+/**
+ * Resolves the region categories: the explicit list's order, labels, color
+ * overrides, tones, and stripes win; omitted, categories derive from the rows
+ * in first-appearance order. Slot colors follow the resolved order and hold
  * fixed when siblings toggle.
  *
  * @internal
@@ -142,12 +189,10 @@ export function resolveCategories<T>(
 	const listed = explicit ?? deriveCategories(data, categoryKey)
 
 	return listed.map((category, index) => {
-		const color = category.color ?? paletteSlot(index)
-
 		return {
 			value: category.value,
 			label: category.label ?? category.value,
-			paint: { kind: 'class', fill: k.series[color].fill, text: k.series[color].text },
+			paint: categoryPaint(category, category.color ?? paletteSlot(index)),
 		}
 	})
 }

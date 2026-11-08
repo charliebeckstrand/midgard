@@ -87,6 +87,61 @@ export const k = {
 	/** Shared data-viz palette from `zu`: the same slots, order, and validation as `kata/chart`. */
 	series: palette.series,
 	/**
+	 * The soft tone of each slot, for a category with `tone: 'soft'`: a lighter
+	 * step of the same hue for a region and its swatch. In light mode it is the
+	 * 300 step. In dark mode it is the 800 step, so the soft tone also moves
+	 * toward the surface. `zinc` takes 400 and 600, because its 300 and 800 steps
+	 * are too near the no-data fill ({@link k.region.empty}).
+	 */
+	soft: {
+		blue: {
+			fill: mode('fill-blue-300', 'dark:fill-blue-800'),
+			text: mode('text-blue-300', 'dark:text-blue-800'),
+		},
+		orange: {
+			fill: mode('fill-orange-300', 'dark:fill-orange-800'),
+			text: mode('text-orange-300', 'dark:text-orange-800'),
+		},
+		violet: {
+			fill: mode('fill-violet-300', 'dark:fill-violet-800'),
+			text: mode('text-violet-300', 'dark:text-violet-800'),
+		},
+		green: {
+			fill: mode('fill-green-300', 'dark:fill-green-800'),
+			text: mode('text-green-300', 'dark:text-green-800'),
+		},
+		red: {
+			fill: mode('fill-red-300', 'dark:fill-red-800'),
+			text: mode('text-red-300', 'dark:text-red-800'),
+		},
+		sky: {
+			fill: mode('fill-sky-300', 'dark:fill-sky-800'),
+			text: mode('text-sky-300', 'dark:text-sky-800'),
+		},
+		amber: {
+			fill: mode('fill-amber-300', 'dark:fill-amber-800'),
+			text: mode('text-amber-300', 'dark:text-amber-800'),
+		},
+		rose: {
+			fill: mode('fill-rose-300', 'dark:fill-rose-800'),
+			text: mode('text-rose-300', 'dark:text-rose-800'),
+		},
+		zinc: {
+			fill: mode('fill-zinc-400', 'dark:fill-zinc-600'),
+			text: mode('text-zinc-400', 'dark:text-zinc-600'),
+		},
+	} satisfies Record<MapSeriesColor, { fill: string[]; text: string[] }>,
+	/**
+	 * The stripes of a category with `stripes`. On a region, a pattern in the
+	 * region layer draws them. On a swatch, this layer draws them over the
+	 * fill of the first color. The layer takes the `currentColor` class of the
+	 * second color, and the gradient paints that color in bands that match the
+	 * region. Under forced colors the gradient goes, and the swatch keeps its
+	 * one system color.
+	 */
+	stripes:
+		'pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(135deg,currentColor_0,currentColor_2px,transparent_2px,transparent_4px)] forced-colors:hidden',
+	/**
 	 * A shared summary: a summary that holds the dots of more than one set. A ring
 	 * of the colors of its sets carries the mark. Thus the disc inside the ring
 	 * and the count on it take the inks of the surface. No one set color then names a

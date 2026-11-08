@@ -12,6 +12,7 @@ import {
 	fireEvent,
 	firstRegion,
 	layerScale,
+	present,
 	renderUI,
 	shownLayer,
 	stubMatchMedia,
@@ -206,6 +207,53 @@ describe('MapPlat', () => {
 			'Western zone',
 			'East',
 		])
+	})
+
+	it('paints a soft category in the soft step and a striped one from its pattern', () => {
+		const { container } = renderUI(
+			categoricalPlat({
+				categories: [
+					{ value: 'East', color: 'blue', tone: 'soft' },
+					{ value: 'West', color: 'blue', stripes: 'red' },
+				],
+			}),
+		)
+
+		const [alpha, beta] = allRegions(container)
+
+		expect(alpha?.getAttribute('class')).toContain('fill-blue-300')
+
+		// The striped region names its pattern, and takes no fill class over it.
+		const fill = beta?.getAttribute('fill') ?? ''
+
+		expect(fill).toMatch(/^url\(#.+\)$/)
+
+		expect(beta?.getAttribute('class')).not.toContain('fill-blue-600')
+
+		const pattern = present(
+			container.querySelector(`pattern[id="${fill.slice(5, -1)}"]`),
+			'the stripe pattern',
+		)
+
+		expect([...pattern.querySelectorAll('rect')].map((rect) => rect.getAttribute('class'))).toEqual(
+			[expect.stringContaining('fill-blue-600'), expect.stringContaining('fill-red-600')],
+		)
+
+		// The legend swatch lays the second color over the first.
+		const [, striped] = allBySlot(container, 'map-legend-item')
+
+		const swatch = present(striped?.querySelector('[data-slot="swatch"]'), 'the striped swatch')
+
+		expect(swatch.getAttribute('class')).toContain('text-blue-600')
+
+		expect(bySlot(swatch, 'map-swatch-stripes')?.getAttribute('class')).toContain('text-red-600')
+
+		// The tooltip swatch shows the same stripes.
+		fireEvent.pointerEnter(beta as Element, { clientX: 200, clientY: 20 })
+
+		const tooltip = present(bySlot(container, 'tooltip-content'), 'the tooltip')
+
+		expect(bySlot(tooltip, 'map-swatch-stripes')?.getAttribute('class')).toContain('text-red-600')
 	})
 
 	it('shows the legend for two categories and drops it without data', () => {

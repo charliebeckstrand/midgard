@@ -1,7 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { cn } from '../../core/cn'
 import { paletteSlot } from '../../modules/chart/engine/chart-color/palette'
 import {
+	paintFill,
+	paintStripes,
+	paintText,
 	regionCategoryIndexes,
 	resolveCategories,
 } from '../../modules/map/engine/map-region/category'
@@ -18,6 +22,48 @@ const slotPaint = (color: MapSeriesColor) => ({
 	kind: 'class',
 	fill: k.series[color].fill,
 	text: k.series[color].text,
+})
+
+describe('a category tone and stripes', () => {
+	it('paints a soft category in the soft step of its slot', () => {
+		const [meta] = resolveCategories(FIXTURE_ROWS, 'zone', [
+			{ value: 'East', color: 'red', tone: 'soft' },
+		])
+
+		expect(meta?.paint).toEqual({ kind: 'class', fill: k.soft.red.fill, text: k.soft.red.text })
+	})
+
+	it('paints a striped category with both slots, in its tone', () => {
+		const [solid, soft] = resolveCategories(FIXTURE_ROWS, 'zone', [
+			{ value: 'East', color: 'blue', stripes: 'red' },
+			{ value: 'West', color: 'blue', stripes: 'red', tone: 'soft' },
+		])
+
+		expect(solid?.paint).toEqual({
+			kind: 'stripes',
+			first: { fill: k.series.blue.fill, text: k.series.blue.text },
+			second: { fill: k.series.red.fill, text: k.series.red.text },
+		})
+
+		expect(soft?.paint).toMatchObject({ kind: 'stripes', second: { fill: k.soft.red.fill } })
+	})
+
+	it('keys the swatch of a striped category to its first color, with the second as stripes', () => {
+		const [striped, plain] = resolveCategories(FIXTURE_ROWS, 'zone', [
+			{ value: 'East', color: 'blue', stripes: 'red' },
+			{ value: 'West', color: 'blue' },
+		])
+
+		if (!striped || !plain) throw new Error('expected two categories')
+
+		expect(paintText(striped.paint)).toBe(cn(...k.series.blue.text))
+
+		expect(paintStripes(striped.paint)).toBe(cn(...k.series.red.text))
+
+		expect(paintStripes(plain.paint)).toBeUndefined()
+
+		expect(paintFill(striped.paint)).toBeUndefined()
+	})
 })
 
 describe('paletteSlot', () => {
