@@ -13,9 +13,9 @@ import { UncalledTable } from '@/components/uncalled-table'
 import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults, latestCalls } from '@/server/results'
-import { OVERVIEW, officePath } from '@/utilities/elections-url'
+import { officePath } from '@/utilities/elections-url'
 import { isCounting, newestUpdate } from '@/utilities/results'
-import { officeItems } from '@/utilities/trail'
+import { OVERVIEW, officeItems } from '@/utilities/trail'
 
 type Params = { params: Promise<ElectionParams>; searchParams: SearchParams }
 

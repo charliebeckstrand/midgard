@@ -1,7 +1,14 @@
 import type { MapCategory } from 'ui/map'
 import type { Contest } from '../elections/registry'
 import { stateOfKey, type UsState } from '../elections/us-states'
-import type { Candidate, NationalRace, PartySeats, PartySlot, RegionRace } from '../types'
+import type {
+	Candidate,
+	CountyResult,
+	NationalRace,
+	PartySeats,
+	PartySlot,
+	RegionRace,
+} from '../types'
 import { type DrawerStep, districtName, districtOfKey } from './elections-url'
 import { type Delegation, delegation, isCalled, lead } from './race-math'
 
@@ -229,6 +236,23 @@ export function raceWinner(entry: Pick<RaceEntry, 'candidates' | 'called'>): str
 	if (side === undefined) return null
 
 	return entry.called ? side : `${side} lead`
+}
+
+/**
+ * The category of a county on the county map: the side of its leader. It takes
+ * the solid tone once the county counted all of its vote, and the soft tone
+ * while it counts. A county with no votes has no category.
+ */
+export function countyWinner(
+	county: Pick<CountyResult, 'candidates' | 'reporting'>,
+): string | null {
+	const [leader] = county.candidates
+
+	const side = leader === undefined || leader.votes === 0 ? undefined : SIDE[leader.slot]
+
+	if (side === undefined) return null
+
+	return county.reporting >= 100 ? side : `${side} lead`
 }
 
 /**

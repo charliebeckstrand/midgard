@@ -1,42 +1,42 @@
 'use client'
 
-import { lazy, Suspense, useState } from 'react'
-import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
+import { lazy, Suspense } from 'react'
 import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
-import type { GridSortState } from 'ui/grid'
 import { Placeholder } from 'ui/placeholder'
 import { useIntl } from 'ui/primitives/intl'
-import { Flex } from 'ui/structure/flex'
+import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
 import type { Race } from '../../types'
 import { isCalled, percentText } from '../../utilities/race-math'
-import type { RaceEntry } from '../../utilities/results'
-import { CollapseCaret } from '../collapse-caret'
+import { entryName, type RaceEntry } from '../../utilities/results'
 import { RaceSummary } from '../race-summary'
+
+/** The view of a race: its overview, or its counties on a map. */
+export type RaceView = 'overview' | 'counties'
 
 /** Props for {@link RaceDetail}. */
 export type RaceDetailProps = {
 	/** The race of the national results, which the Drawer has before the race loads. */
-	entry: Pick<RaceEntry, 'candidates' | 'reporting' | 'called'>
+	entry: Pick<RaceEntry, 'candidates' | 'reporting' | 'called' | 'state' | 'district' | 'contest'>
 	/** The race with its counties, or `undefined` while it loads. */
 	race: Race | undefined
 	/** Opens a county of the race, by its FIPS code. */
 	onCounty: (fips: string) => void
-	/** The county table is open. The Drawer holds it, so it stays open across a visit to a county. */
-	countiesOpen: boolean
-	onCountiesOpenChange: (open: boolean) => void
+	/** The view. The Drawer holds it, so the map stays across a visit to a county. */
+	view: RaceView
+	onViewChange: (view: RaceView) => void
 }
 
-/** The table loads when it first opens, because the Grid is a large part of the code of the page. */
-const CountyGrid = lazy(() =>
-	import('./county-grid').then((module) => ({ default: module.CountyGrid })),
+/** The map loads when it first shows, because the map module is a large part of the code. */
+const CountyMap = lazy(() =>
+	import('./county-map').then((module) => ({ default: module.CountyMap })),
 )
 
-/** The still shape of the county table while the race or the table loads. */
-const TABLE_PLACEHOLDER = (
+/** The still shape of the county map while its code loads. */
+const MAP_PLACEHOLDER = (
 	<div aria-busy="true">
-		<Placeholder className="h-64" />
+		<Placeholder className="aspect-[4/3]" />
 	</div>
 )
 
@@ -103,66 +103,50 @@ function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Rac
 }
 
 /**
- * One race in full, the body of the Drawer on a statewide race or a district:
- * the candidates with their party and votes, the facts of the race, then the
- * counties in a table. The table is in a Collapse, and a county row opens the
- * county. The candidates, the facts, and the closed table show from the
- * national results at once. The times of the facts and the rows of the table
- * show when the race loads, and still shapes hold their place until then. The
- * table also loads its code on the first open, behind the same still shape.
+ * One race in full, the body of the Drawer on a statewide race or a district.
+ * A Segment at the top switches between two views:
+ *
+ * - Overview: the candidates with their party and votes, then the facts of the
+ *   race.
+ * - By county: the counties of the race on a map, and a county opens the county.
+ *
+ * The candidates and the facts show from the national results at once. The
+ * times of the facts and the colors of the map show when the race loads.
  */
-export function RaceDetail({
-	entry,
-	race,
-	onCounty,
-	countiesOpen,
-	onCountiesOpenChange,
-}: RaceDetailProps) {
-	const [query, setQuery] = useState('')
-
-	const [sort, setSort] = useState<GridSortState[]>([{ column: 'votes', direction: 'desc' }])
-
+export function RaceDetail({ entry, race, onCounty, view, onViewChange }: RaceDetailProps) {
 	const candidates = race?.candidates ?? entry.candidates
 
 	return (
 		<Stack gap="xl">
-			<RaceSummary
-				candidates={candidates}
-				reporting={race?.reporting ?? entry.reporting}
-				called={race === undefined ? entry.called : isCalled(race.candidates)}
-				rows="all"
-				detail
-			/>
+			<Segment value={view} onValueChange={(next) => onViewChange(next as RaceView)}>
+				<SegmentControl aria-label="View">
+					<SegmentItem value="overview">Overview</SegmentItem>
+					<SegmentItem value="counties">By county</SegmentItem>
+				</SegmentControl>
+			</Segment>
 
-			<RaceFacts entry={entry} race={race} />
+			{view === 'overview' ? (
+				<>
+					<RaceSummary
+						candidates={candidates}
+						reporting={race?.reporting ?? entry.reporting}
+						called={race === undefined ? entry.called : isCalled(race.candidates)}
+						rows="all"
+						detail
+					/>
 
-			<Collapse open={countiesOpen} onOpenChange={onCountiesOpenChange}>
-				<CollapseTrigger>
-					<Flex as="span" gap="sm" className="text-base/6 font-semibold">
-						By county
-						<CollapseCaret />
-					</Flex>
-				</CollapseTrigger>
-
-				<CollapsePanel>
-					<div className="pt-4">
-						<Suspense fallback={TABLE_PLACEHOLDER}>
-							{race === undefined ? (
-								TABLE_PLACEHOLDER
-							) : (
-								<CountyGrid
-									counties={race.counties}
-									sort={sort}
-									onSortChange={setSort}
-									query={query}
-									onQueryChange={setQuery}
-									onCounty={onCounty}
-								/>
-							)}
-						</Suspense>
-					</div>
-				</CollapsePanel>
-			</Collapse>
+					<RaceFacts entry={entry} race={race} />
+				</>
+			) : (
+				<Suspense fallback={MAP_PLACEHOLDER}>
+					<CountyMap
+						label={`${entryName(entry)} ${entry.contest.label}`}
+						state={entry.state.key}
+						counties={race?.counties}
+						onCounty={onCounty}
+					/>
+				</Suspense>
+			)}
 		</Stack>
 	)
 }
