@@ -1,12 +1,11 @@
 'use client'
 
-import { Link } from 'ui/link'
-import { Flex } from 'ui/structure/flex'
+import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { Swatch } from 'ui/swatch'
 import { TimeAgo } from 'ui/time-ago'
 import type { Candidate } from '../../types'
 import { surname } from '../../utilities/race-math'
-import { entryName, officeName, type RaceEntry } from '../../utilities/results'
+import { entryName, type RaceEntry } from '../../utilities/results'
 
 /** One call of {@link LatestCalls}. */
 export type LatestCall = {
@@ -18,34 +17,36 @@ export type LatestCall = {
 	href: string
 }
 
-/** The newest calls, newest first: the winner, the race, the office under it, and how long ago. */
+/**
+ * The newest calls, newest first, as a plain List: the winner and the race,
+ * the office under it, and how long ago. Each row leads to the page of the race.
+ */
 export function LatestCalls({ calls }: { calls: readonly LatestCall[] }) {
 	if (calls.length === 0) {
 		return <p className="text-sm text-zinc-500 dark:text-zinc-400">No race called yet.</p>
 	}
 
 	return (
-		<ul>
-			{calls.map((call) => (
-				<li
-					key={call.href}
-					className="border-t border-zinc-950/5 py-2.5 text-sm/6 first:border-t-0 dark:border-white/5"
+		<List
+			variant="plain"
+			sortable={false}
+			items={[...calls]}
+			getKey={(call) => call.href}
+			aria-label="Latest calls"
+		>
+			{(call) => (
+				<ListItem
+					href={call.href}
+					prefix={<Swatch color={call.winner.slot} />}
+					suffix={<TimeAgo value={call.at} className="text-zinc-500 dark:text-zinc-400" />}
 				>
-					<Flex gap="md">
-						<Swatch color={call.winner.slot} />
+					<ListLabel>
+						{surname(call.winner.name)} wins {entryName(call.entry)}
+					</ListLabel>
 
-						<Flex direction="col" align="start" flex="1" className="min-w-0">
-							<Link href={call.href} className="font-medium hover:underline">
-								{surname(call.winner.name)} wins {entryName(call.entry)}
-							</Link>
-
-							<span className="text-zinc-500 dark:text-zinc-400">{officeName(call.entry)}</span>
-						</Flex>
-
-						<TimeAgo value={call.at} className="shrink-0 text-zinc-500 dark:text-zinc-400" />
-					</Flex>
-				</li>
-			))}
-		</ul>
+					<ListDescription>{call.entry.contest.label}</ListDescription>
+				</ListItem>
+			)}
+		</List>
 	)
 }

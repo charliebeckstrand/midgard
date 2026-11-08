@@ -33,13 +33,19 @@ import { RaceCard, RaceCardGrid } from '../race-card'
 import { DelegationSummary, RaceSummary } from '../race-summary'
 import { type DrawerView, ResultDrawer } from '../result-drawer'
 
-/** The margin ramp, from a Democratic lead of 35 points through a gray even step to a Republican lead of 35. The gray reads on a light and a dark page. */
+/**
+ * The margin ramp, from a Democratic lead of 35 points through a gray even
+ * step to a Republican lead of 35. The gray reads on a light and a dark page.
+ */
 const MARGIN_RANGE = ['#1d4ed8', '#3b82f6', '#93c5fd', '#a1a1aa', '#fca5a5', '#ef4444', '#b91c1c']
 
 /** The steps of the margin ramp fall at 5, 15, and 25 points. */
 const MARGIN_DOMAIN: [number, number] = [-35, 35]
 
-/** The seat-share ramp, from every seat Democratic through a gray even split to every seat Republican. */
+/**
+ * The seat-share ramp, from every seat Democratic through a gray even split to
+ * every seat Republican.
+ */
 const SHARE_RANGE = ['#1d4ed8', '#93c5fd', '#a1a1aa', '#fca5a5', '#b91c1c']
 
 const SHARE_DOMAIN: [number, number] = [-50, 50]

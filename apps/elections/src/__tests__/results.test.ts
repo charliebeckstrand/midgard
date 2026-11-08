@@ -8,7 +8,6 @@ import {
 	delegations,
 	delegationWinner,
 	entryName,
-	officeName,
 	raceWinner,
 	readEntries,
 	seatGroups,
@@ -36,12 +35,6 @@ describe('the races of a contest', () => {
 		const ga06 = houseEntries.find((entry) => entry.state.key === 'ga' && entry.district === '06')
 
 		expect(ga06 && entryName(ga06)).toBe('Georgia 6th District')
-
-		expect(ga06 && officeName(ga06)).toBe('House - 6th District')
-
-		const ga = senateEntries.find((entry) => entry.state.key === 'ga')
-
-		expect(ga && officeName(ga)).toBe('Georgia Senate')
 
 		expect(senateEntries.every((entry) => entry.district === null)).toBe(true)
 	})

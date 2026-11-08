@@ -65,13 +65,6 @@ export function entryName(entry: Pick<RaceEntry, 'state' | 'district'>): string 
 		: `${entry.state.name} ${districtName(entry.district)}`
 }
 
-/** The office of a race with its place: `Georgia Senate`, or `House - 6th District`. */
-export function officeName(entry: Pick<RaceEntry, 'contest' | 'state' | 'district'>): string {
-	return entry.district === null
-		? `${entry.state.name} ${entry.contest.label}`
-		: `${entry.contest.label} - ${districtName(entry.district)}`
-}
-
 /** A key of a race that is unique in an election, such as `senate:ga` or `house:ga-06`. */
 export function entryKey(entry: RaceEntry): string {
 	const region = entry.district === null ? entry.state.key : `${entry.state.key}-${entry.district}`
