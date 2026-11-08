@@ -8,13 +8,13 @@ import { Flex } from 'ui/structure/flex'
 import { percentText } from '../../utilities/race-math'
 
 /**
- * The call of a race or a delegation: a small soft green `Called` badge, or an
+ * The call of a race or a chamber: a small soft green `Called` badge, or an
  * amber `Not called` one. Green is a call, so no party color takes it.
  */
-export function CallBadge({ called }: { called: boolean }) {
+export function CallBadge({ called, label }: { called: boolean; label?: string }) {
 	return called ? (
 		<Badge variant="soft" color="green" size="sm">
-			Called
+			{label ?? 'Called'}
 		</Badge>
 	) : (
 		<Badge variant="soft" color="amber" size="sm">

@@ -92,10 +92,11 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 }
 
 /**
- * The body of each place where a race shows in the Drawer: the office cards of
- * a state, a race in full, and a county. It lists the leading candidates, each
- * with the share and a bar, then the percent reporting with the call badge.
- * The place around it adds its title and its link.
+ * The body of each place where a race shows: the national Drawer on a state,
+ * the cards of a state, the tab of a race, and the Drawer on a county. It
+ * lists the leading candidates, each with the share and a bar, then the
+ * percent reporting with the call badge. The place around it adds its title
+ * and its link.
  */
 export function RaceSummary({
 	candidates,
