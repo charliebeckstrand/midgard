@@ -3,8 +3,8 @@ import { feature, merge } from 'topojson-client'
 import nationTopology from 'us-atlas/nation-10m.json'
 import statesTopology from 'us-atlas/states-10m.json'
 import countriesTopology from 'world-atlas/countries-110m.json'
-import type { MapFeature, MapNamedProjection } from '../../modules/map'
-import type { MapOutline } from '../../modules/map/engine/map-outline'
+import type { MapFeature } from '../../modules/map'
+import type { MapOutline, MapOutlinedProjection } from '../../modules/map/engine/map-outline'
 import { canonicalFit } from '../../modules/map/engine/map-projection/fit'
 
 /**
@@ -149,7 +149,11 @@ function ringPath(ring: Point[]): string {
  * frame is that frame at {@link OUTLINE_WIDTH}, so an outline scaled to meet a
  * box lands where the plat draws the geography in the same box.
  */
-function buildOutline(spec: MapNamedProjection, features: MapFeature[], shape: object): MapOutline {
+function buildOutline(
+	spec: MapOutlinedProjection,
+	features: MapFeature[],
+	shape: object,
+): MapOutline {
 	const fit = canonicalFit(spec, features)
 
 	if (fit === null) throw new Error(`No canonical fit for ${spec}`)
@@ -207,7 +211,7 @@ function buildOutline(spec: MapNamedProjection, features: MapFeature[], shape: o
  * holds it. The test that compares the two runs this, and so does the write
  * that brings the data file up to date.
  */
-export function buildMapOutlines(): Record<MapNamedProjection, MapOutline> {
+export function buildMapOutlines(): Record<MapOutlinedProjection, MapOutline> {
 	// Every country in the atlas is a polygon or a multipolygon.
 	const land = merge(countries, worldGeometries as Parameters<typeof merge>[1])
 

@@ -2,10 +2,10 @@
 
 import { MapPlat } from 'ui/map'
 import { Stack } from 'ui/structure/stack'
+import statesAtlas from 'us-atlas/states-albers-10m.json'
 import type { Contest, Election } from '../../elections/registry'
 import { stateOfFips, stateOfKey } from '../../elections/us-states'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
-import { STATES } from '../../utilities/atlas'
 import type { Delegation } from '../../utilities/race-math'
 import {
 	delegations,
@@ -75,8 +75,9 @@ export function NationalMap({ election, contest, entries, heading, items }: Nati
 
 			<MapPlat
 				aria-label={`${election.year} ${contest.label} results by state`}
-				geography={STATES}
-				projection="albers-usa"
+				geography={statesAtlas}
+				geographyObject="states"
+				projection="identity"
 				regionKey="fips"
 				selectedRegion={step?.region.fips ?? null}
 				onRegionClick={(fips: string) => {

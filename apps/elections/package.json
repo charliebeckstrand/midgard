@@ -24,7 +24,6 @@
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"shared": "workspace:*",
-		"topojson-client": "catalog:",
 		"ui": "workspace:*",
 		"us-atlas": "catalog:"
 	},
@@ -34,7 +33,6 @@
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
-		"@types/topojson-client": "catalog:",
 		"babel-plugin-react-compiler": "catalog:",
 		"tailwindcss": "catalog:",
 		"typescript": "catalog:",
