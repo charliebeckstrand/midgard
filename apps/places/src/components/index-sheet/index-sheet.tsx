@@ -6,7 +6,7 @@ import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Grid, type GridColumn, type GridProps } from 'ui/modules/grid'
-import { Sheet, SheetBody, SheetClose, SheetPanel, SheetTitle } from 'ui/sheet'
+import { Sheet, SheetBody, SheetClose, SheetHeader, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import type { Located } from '../../types'
@@ -122,19 +122,19 @@ export function IndexSheet<T extends Located>({
 		// pad it with space.
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetPanel glass width="fit" aria-label={title}>
-				{/* The title and the close on one line, laid out here rather than through
-			    the header slot: that slot stacks a title over a description, which puts
-			    the close under the title instead of opposite it. The form drawer's
-			    header is built the same way, so the two panels answer the same corner. */}
-				<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
-					<SheetTitle className="p-0">{title}</SheetTitle>
+				{/* The title and the close on one line in the header. The form drawer's
+				    header is built the same way, so the two panels answer the same corner. */}
+				<SheetHeader>
+					<Flex justify="between" align="center" gap="md">
+						<SheetTitle>{title}</SheetTitle>
 
-					<SheetClose>
-						<Button type="button" variant="bare" aria-label="Close">
-							<Icon icon={<X />} />
-						</Button>
-					</SheetClose>
-				</Flex>
+						<SheetClose>
+							<Button type="button" variant="bare" aria-label="Close">
+								<Icon icon={<X />} />
+							</Button>
+						</SheetClose>
+					</Flex>
+				</SheetHeader>
 
 				{/* `min-h-0` so the body is the box the grid fills rather than one that
 			    grows with its rows; the panel's own height then bounds the table. */}

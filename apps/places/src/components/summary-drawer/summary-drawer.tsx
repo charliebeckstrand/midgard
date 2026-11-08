@@ -3,7 +3,7 @@
 import { X } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
 import { Button } from 'ui/button'
-import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
+import { Drawer, DrawerBody, DrawerClose, DrawerHeader, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
 import { useIntl } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
@@ -289,35 +289,36 @@ export function SummaryDrawer<T extends Located>({
 				height="fit"
 				aria-label={title}
 			>
-				{/* The panel has no inset of its own, so the row takes the inset of a drawer title. */}
-				<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
-					{/* `min-w-0` is what lets the trail inside give way. Without it this flex
+				<DrawerHeader>
+					<Flex justify="between" align="center" gap="md">
+						{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge
 				    instead of truncating: the crumbs cannot shrink below a parent that
 				    will not. `flex-1` gives the trail the panel's full width, which is the room
 				    its fit measures. */}
-					<Stack gap="sm" className="flex-1 min-w-0">
-						{/* The title is the trail, so it doubles as the way back and the panel
+						<Stack gap="sm" className="flex-1 min-w-0">
+							{/* The title is the trail, so it doubles as the way back and the panel
 					    needs no Back button of its own. `DrawerTitle` names the panel; the
 					    crumbs are what the reader reads and act on. */}
-						<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
+							<DrawerTitle className="sr-only">{title}</DrawerTitle>
 
-						<PlaceTrail className="text-base/7" steps={steps} />
-					</Stack>
+							<PlaceTrail className="text-base/7" steps={steps} />
+						</Stack>
 
-					{/* The menu of the open record sits by the close, where a row of the
+						{/* The menu of the open record sits by the close, where a row of the
 				    index sheet has its own. A list row in this panel is a way into a
 				    record, not a record, so the list has no menu. */}
-					<Flex gap="xs" align="center" className="shrink-0">
-						{item ? menu(item) : null}
+						<Flex gap="xs" align="center" className="shrink-0">
+							{item ? menu(item) : null}
 
-						<DrawerClose>
-							<Button type="button" variant="bare" aria-label="Close">
-								<Icon icon={<X />} />
-							</Button>
-						</DrawerClose>
+							<DrawerClose>
+								<Button type="button" variant="bare" aria-label="Close">
+									<Icon icon={<X />} />
+								</Button>
+							</DrawerClose>
+						</Flex>
 					</Flex>
-				</Flex>
+				</DrawerHeader>
 
 				<DrawerBody>
 					{item

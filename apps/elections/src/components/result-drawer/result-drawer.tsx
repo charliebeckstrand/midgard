@@ -10,7 +10,7 @@ import {
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
 import { Button } from 'ui/button'
-import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
+import { Drawer, DrawerBody, DrawerClose, DrawerHeader, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
 import { Container } from 'ui/structure/container'
@@ -176,49 +176,53 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 		<Drawer open={view !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
 			<DrawerPanel glass height="fit" footer={null} aria-label={title}>
 				{/* The trail and the body are children of the panel, so the body is the scroll region of the panel. */}
-				<Container size="lg" padding="lg" className="h-auto shrink-0">
-					{/* The space above the trail is the 16px slot gap that the panel puts under it.
-					    Thus the trail, the body, and the cards in the body all stand one gap apart. */}
-					<div className="max-w-[440px] pt-4">
-						<Flex align="start" justify="between" gap="lg">
-							<Stack gap="xs" flex="1" className="min-w-0">
-								<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
+				{/* The header and the body take the inline padding of the page container, so the
+				    trail and the cards line up with the page header. */}
+				<DrawerHeader className="px-0">
+					<Container size="lg" padding="lg" className="h-auto">
+						<div className="max-w-[440px]">
+							<Flex align="start" justify="between" gap="lg">
+								<Stack gap="xs" flex="1" className="min-w-0">
+									<DrawerTitle className="sr-only">{title}</DrawerTitle>
 
-								<Breadcrumb collapse>
-									<BreadcrumbList className="text-base/7">
-										{shown?.steps.map((step, index) => (
-											<Fragment key={index}>
-												{index > 0 ? <BreadcrumbSeparator /> : null}
+									<Breadcrumb collapse>
+										<BreadcrumbList className="text-base/7">
+											{shown?.steps.map((step, index) => (
+												<Fragment key={index}>
+													{index > 0 ? <BreadcrumbSeparator /> : null}
 
-												<BreadcrumbItem>
-													{step.menu === undefined ? (
-														<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
-													) : (
-														<MenuCrumb
-															crumb={step}
-															menu={step.menu}
-															current={index === shown.steps.length - 1}
-														/>
-													)}
-												</BreadcrumbItem>
-											</Fragment>
-										))}
-									</BreadcrumbList>
-								</Breadcrumb>
+													<BreadcrumbItem>
+														{step.menu === undefined ? (
+															<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
+														) : (
+															<MenuCrumb
+																crumb={step}
+																menu={step.menu}
+																current={index === shown.steps.length - 1}
+															/>
+														)}
+													</BreadcrumbItem>
+												</Fragment>
+											))}
+										</BreadcrumbList>
+									</Breadcrumb>
 
-								{shown?.subtitle === undefined ? null : (
-									<span className="text-sm text-zinc-600 dark:text-zinc-400">{shown.subtitle}</span>
-								)}
-							</Stack>
+									{shown?.subtitle === undefined ? null : (
+										<span className="text-sm text-zinc-600 dark:text-zinc-400">
+											{shown.subtitle}
+										</span>
+									)}
+								</Stack>
 
-							<DrawerClose>
-								<Button type="button" variant="bare" aria-label="Close">
-									<Icon icon={<X />} />
-								</Button>
-							</DrawerClose>
-						</Flex>
-					</div>
-				</Container>
+								<DrawerClose>
+									<Button type="button" variant="bare" aria-label="Close">
+										<Icon icon={<X />} />
+									</Button>
+								</DrawerClose>
+							</Flex>
+						</div>
+					</Container>
+				</DrawerHeader>
 
 				<DrawerBody className="px-0">
 					<Container size="lg" padding="lg" className="h-auto">

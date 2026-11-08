@@ -74,7 +74,12 @@ export {
 	 * the drawer, which holds the standard Close button.
 	 */
 	Footer as DrawerFooter,
-	/** `<div>` grouping the drawer's title and description. */
+	/**
+	 * `<div>` header of the drawer: the title and the description, or a row such as
+	 * the title with a close button. It stands one slot gap from the top edge, and the
+	 * drawer puts the same gap under it, at each density. A title or a description in
+	 * it takes no inset of its own.
+	 */
 	Header as DrawerHeader,
 	/**
 	 * Opens the panel of the enclosing {@link Drawer}. A single element child is cloned, and a

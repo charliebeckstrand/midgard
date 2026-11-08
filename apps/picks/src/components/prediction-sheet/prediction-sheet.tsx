@@ -8,7 +8,15 @@ import { useConfirm } from 'ui/confirm'
 import { cn } from 'ui/core'
 import { Form, type SubmitResult } from 'ui/form'
 import { Icon } from 'ui/icon'
-import { Sheet, SheetBody, SheetClose, SheetFooter, SheetPanel, SheetTitle } from 'ui/sheet'
+import {
+	Sheet,
+	SheetBody,
+	SheetClose,
+	SheetFooter,
+	SheetHeader,
+	SheetPanel,
+	SheetTitle,
+} from 'ui/sheet'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
@@ -250,17 +258,17 @@ export function PredictionSheet({
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetPanel glass aria-label={title}>
-				<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
-					<SheetTitle className="p-0">
-						{shown === null ? title : `${title}: ${shown.label}`}
-					</SheetTitle>
+				<SheetHeader>
+					<Flex justify="between" align="center" gap="md">
+						<SheetTitle>{shown === null ? title : `${title}: ${shown.label}`}</SheetTitle>
 
-					<SheetClose>
-						<Button type="button" variant="bare" aria-label="Close">
-							<Icon icon={<X />} />
-						</Button>
-					</SheetClose>
-				</Flex>
+						<SheetClose>
+							<Button type="button" variant="bare" aria-label="Close">
+								<Icon icon={<X />} />
+							</Button>
+						</SheetClose>
+					</Flex>
+				</SheetHeader>
 
 				{games.data === undefined ? (
 					<SheetBody>

@@ -13,6 +13,7 @@ import {
 import {
 	Drawer,
 	DrawerBody,
+	DrawerClose,
 	DrawerDescription,
 	DrawerFooter,
 	DrawerHeader,
@@ -22,6 +23,7 @@ import {
 import {
 	Sheet,
 	SheetBody,
+	SheetClose,
 	SheetDescription,
 	SheetFooter,
 	SheetHeader,
@@ -30,12 +32,15 @@ import {
 } from '../../../components/sheet'
 import { Form } from '../../../modules/form'
 import { DensityProvider } from '../../../providers/density'
+import { Flex } from '../../../structure/flex'
 import { getSlot, renderUI } from '../../helpers'
 import { settledRect } from '../helpers/sample'
 
 /**
  * The inset of a panel is the same on the four sides. It is larger than the gap
- * between two slots, and each gap between two slots is the same. The body is
+ * between two slots, and each gap between two slots is the same. The header of a
+ * drawer or a sheet is the exception at the top edge: it stands one slot gap from
+ * the edge, so the space above it and the space under it are the same. The body is
  * the part that scrolls, so the header and the footer stay in place while it
  * scrolls. The visible space must stay even then too: an inset that is padding
  * inside the scrolling body moves out of view with the content. The inset and
@@ -50,6 +55,10 @@ const LONG = Array.from({ length: 60 }, (_, index) => `Line ${index + 1}`).map((
 type Panel = {
 	name: string
 	slot: string
+	/** The space above the header: the slot gap on a drawer or a sheet, the inset on a dialog. */
+	head: 'gap' | 'inset'
+	/** A header that holds a row of the title and a close button, then a body that scrolls. */
+	row?: ReactElement
 	/** The panel with each slot, and a body that scrolls. */
 	full: ReactElement
 	/** The panel with a body that scrolls and no other slot. */
@@ -70,6 +79,20 @@ const PANELS: Panel[] = [
 	{
 		name: 'Sheet',
 		slot: 'sheet',
+		head: 'gap',
+		row: (
+			<Sheet open onOpenChange={() => {}}>
+				<SheetPanel footer={null}>
+					<SheetHeader>
+						<Flex justify="between" align="center" gap="md">
+							<SheetTitle>Settings</SheetTitle>
+							<SheetClose />
+						</Flex>
+					</SheetHeader>
+					<SheetBody>{LONG}</SheetBody>
+				</SheetPanel>
+			</Sheet>
+		),
 		full: (
 			<Sheet open onOpenChange={() => {}}>
 				<SheetPanel>
@@ -130,6 +153,7 @@ const PANELS: Panel[] = [
 	{
 		name: 'Dialog',
 		slot: 'dialog',
+		head: 'inset',
 		full: (
 			<Dialog open onOpenChange={() => {}}>
 				<DialogPanel>
@@ -190,6 +214,20 @@ const PANELS: Panel[] = [
 	{
 		name: 'Drawer',
 		slot: 'drawer',
+		head: 'gap',
+		row: (
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel footer={null}>
+					<DrawerHeader>
+						<Flex justify="between" align="center" gap="md">
+							<DrawerTitle>Settings</DrawerTitle>
+							<DrawerClose />
+						</Flex>
+					</DrawerHeader>
+					<DrawerBody>{LONG}</DrawerBody>
+				</DrawerPanel>
+			</Drawer>
+		),
 		full: (
 			<Drawer open onOpenChange={() => {}}>
 				<DrawerPanel>
@@ -300,7 +338,9 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 	beforeAll(() => page.viewport(width, height))
 
 	describe.each(DENSITIES)('at the $density density', ({ density, inset, gap }) => {
-		describe.each(PANELS)('$name', ({ slot, full, bare, formed, split, bareFormed }) => {
+		describe.each(PANELS)('$name', ({ slot, head, row, full, bare, formed, split, bareFormed }) => {
+			const above = head === 'gap' ? gap : inset
+
 			it('keeps the edge insets even and larger than the slot gap, before and after a scroll', async () => {
 				renderUI(<DensityProvider density={density}>{full}</DensityProvider>)
 
@@ -331,7 +371,7 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 				const rest = measure()
 
 				expect(rest).toEqual({
-					top: inset,
+					top: above,
 					left: inset,
 					right: inset,
 					bottom: inset,
@@ -342,6 +382,34 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 				scrollMiddle(body)
 
 				expect(measure()).toEqual(rest)
+			})
+
+			it.runIf(row !== undefined)(
+				'puts the same space above and under a header that holds a row',
+				async () => {
+					renderUI(<DensityProvider density={density}>{row}</DensityProvider>)
+
+					const panel = await settledRect(getSlot(document.body, slot))
+					const header = contentBox(getSlot(panel, `${slot}-header`))
+					const panelBox = panel.getBoundingClientRect()
+
+					expect({
+						top: header.top - panelBox.top,
+						left: header.left - panelBox.left,
+						right: panelBox.right - header.right,
+						under: visibleTop(getSlot(panel, `${slot}-body`)) - header.bottom,
+					}).toEqual({ top: gap, left: inset, right: inset, under: gap })
+				},
+			)
+
+			it('puts the same space above and under a title that is the first slot', async () => {
+				renderUI(<DensityProvider density={density}>{formed}</DensityProvider>)
+
+				const panel = await settledRect(getSlot(document.body, slot))
+
+				expect(
+					contentBox(getSlot(panel, `${slot}-title`)).top - panel.getBoundingClientRect().top,
+				).toBe(above)
 			})
 
 			it.each([
