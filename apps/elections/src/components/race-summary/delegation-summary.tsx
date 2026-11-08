@@ -10,16 +10,14 @@ import { barColor, type Delegation } from '../../utilities/race-math'
  * The seats of a state in the Drawer: in the House card of the overview of a
  * state, and over the districts on the House step. It lists the seats that
  * each party won, each with a bar of its share of the seats, then the count
- * of the seats called.
+ * of the seats called. With no seat called, only the count shows.
  */
 export function DelegationSummary({ delegation }: { delegation: Delegation }) {
 	const { parties, called, total } = delegation
 
 	return (
 		<Stack gap="lg">
-			{parties.length === 0 ? (
-				<p className="text-sm text-zinc-500 dark:text-zinc-400">No seat called yet.</p>
-			) : (
+			{parties.length === 0 ? null : (
 				<Stack gap="md" role="list">
 					{parties.map((party) => (
 						<Stack key={party.party} gap="sm" role="listitem">
