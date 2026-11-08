@@ -5,7 +5,6 @@ import {
 	districtName,
 	districtOfKey,
 	drawerHref,
-	OVERVIEW,
 	officePath,
 	readDrawerStep,
 } from '../utilities/elections-url'
@@ -47,7 +46,7 @@ describe('the step of the Drawer', () => {
 
 		expect(read('region=ga')).toEqual({
 			region: georgia,
-			office: OVERVIEW,
+			office: null,
 			district: null,
 			county: null,
 		})
@@ -72,7 +71,7 @@ describe('the step of the Drawer', () => {
 	it('drops a param that names nothing, with each param under it', () => {
 		expect(read('region=xx&office=senate')).toBeNull()
 
-		expect(read('region=ga&office=mayor&county=13121')?.office).toBe(OVERVIEW)
+		expect(read('region=ga&office=mayor&county=13121')?.office).toBeNull()
 
 		expect(read('region=ga&office=senate&district=06')?.district).toBeNull()
 
@@ -92,6 +91,11 @@ describe('the step of the Drawer', () => {
 		expect(path).toBe('/2026/us/midterms/senate')
 
 		expect(drawerHref(path, null)).toBe(path)
+
+		// The overview of a state is the state alone.
+		expect(drawerHref(path, { region: georgia, office: null, district: null, county: null })).toBe(
+			`${path}?region=ga`,
+		)
 
 		const href = drawerHref(path, {
 			region: georgia,
