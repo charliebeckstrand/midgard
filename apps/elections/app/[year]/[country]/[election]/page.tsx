@@ -14,7 +14,7 @@ import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults, latestCalls } from '@/server/results'
 import { officePath } from '@/utilities/elections-url'
-import { isCounting, newestUpdate } from '@/utilities/results'
+import { closestRaces, isCounting, newestUpdate } from '@/utilities/results'
 import { OVERVIEW, officeItems } from '@/utilities/trail'
 
 type Params = { params: Promise<ElectionParams>; searchParams: SearchParams }
@@ -38,11 +38,9 @@ export default async function OverviewPage({ params, searchParams }: Params) {
 
 	const results = await electionResults(election)
 
-	const races = officeRaces(results)
-
 	// The two reads do not depend on each other, so a cache miss waits for one upstream read, not two.
 	const [seed, calls] = await Promise.all([
-		drawerSeed(election, races, searchParams),
+		drawerSeed(election, officeRaces(results), searchParams),
 		latestCalls(results, 5),
 	])
 
@@ -71,7 +69,7 @@ export default async function OverviewPage({ params, searchParams }: Params) {
 				))}
 			</Columns>
 
-			<ClosestRaces election={election} entries={uncalled} office />
+			<ClosestRaces election={election} entries={closestRaces(uncalled, 6)} office />
 
 			<section>
 				<Stack gap="sm">
@@ -83,7 +81,7 @@ export default async function OverviewPage({ params, searchParams }: Params) {
 
 			<UncalledTable election={election} entries={uncalled} />
 
-			<ElectionDrawer election={election} results={races} seed={seed} />
+			<ElectionDrawer election={election} seed={seed} />
 		</PageBody>
 	)
 }

@@ -4,12 +4,13 @@ import { Heading } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
-import { closestRaces, entryKey, entryStep, type RaceEntry } from '../../utilities/results'
+import { entryKey, entryStep, type RaceEntry } from '../../utilities/results'
 import { RaceCard, RaceCardGrid } from '../race-card'
 
 /**
- * The closest races of a page, under a heading: the six closest of `entries`.
- * A card opens its race in the Drawer.
+ * The closest races of a page, under a heading. The page picks them on the
+ * server with `closestRaces`, so it sends only the races that show. A card
+ * opens its race in the Drawer.
  *
  * @param office - Shows the office under the name of each race, for races of many offices.
  */
@@ -30,7 +31,7 @@ export function ClosestRaces({
 				<Heading level={2}>Closest races</Heading>
 
 				<RaceCardGrid>
-					{closestRaces(entries, 6).map((entry) => (
+					{entries.map((entry) => (
 						<RaceCard
 							key={entryKey(entry)}
 							entry={entry}
