@@ -29,6 +29,22 @@ describe('Box', () => {
 		expect(ref.current).toBe(bySlot(container, 'box'))
 	})
 
+	it('stays a block when rendered as a link', () => {
+		const { container } = renderUI(<Box href="/path">Link</Box>)
+
+		expect(getSlot(container, 'box').className).toMatch(/(^|\s)block(\s|$)/)
+	})
+
+	it('takes the display of its class name over the block of a link', () => {
+		const { container } = renderUI(
+			<Box href="/path" className="flex">
+				Link
+			</Box>,
+		)
+
+		expect(getSlot(container, 'box').className).not.toMatch(/(^|\s)block(\s|$)/)
+	})
+
 	it('applies the outline=true variant', () => {
 		const { container } = renderUI(<Box outline>content</Box>)
 
