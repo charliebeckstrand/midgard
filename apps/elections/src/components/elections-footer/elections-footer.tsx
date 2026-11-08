@@ -45,11 +45,15 @@ export function ElectionsFooter({ counting, reporting, updated }: ElectionsFoote
 					)}
 
 					<span className="sm:text-end">
-						Results from{' '}
-						<a href="https://civicapi.org" className="underline underline-offset-2">
-							civicAPI
-						</a>
-						, unofficial until certified. Maps from the US Census Bureau.
+						<span className="block">
+							Results from{' '}
+							<a href="https://civicapi.org" className="underline underline-offset-2">
+								civicAPI
+							</a>
+							, unofficial until certified.
+						</span>
+
+						<span className="block">Maps from the US Census Bureau.</span>
 					</span>
 				</Flex>
 			</Container>
