@@ -67,6 +67,31 @@ describe('SeatChart', () => {
 		expect(bySlot(renderUI(chart({ majority: 100 })).container, 'chart-majority')).toBeNull()
 	})
 
+	it('labels the majority beside its tick only with majorityLabel', () => {
+		expect(bySlot(renderUI(chart()).container, 'chart-majority-label')).toBeNull()
+
+		const label = bySlot(renderUI(chart({ majorityLabel: true })).container, 'chart-majority-label')
+
+		expect(label?.textContent).toBe('51 to win')
+
+		expect(label?.getAttribute('text-anchor')).toBe('start')
+
+		expect(
+			bySlot(
+				renderUI(chart({ majorityLabel: true, majority: undefined })).container,
+				'chart-majority-label',
+			),
+		).toBeNull()
+	})
+
+	it('drops the majority label where it has no space, and keeps the tick', () => {
+		const { container } = renderUI(chart({ majorityLabel: true, width: 90, height: 45 }))
+
+		expect(bySlot(container, 'chart-majority-label')).toBeNull()
+
+		expect(bySlot(container, 'chart-majority')).not.toBeNull()
+	})
+
 	it('names each group in a key with no switches', () => {
 		const { container } = renderUI(chart({ legend: true }))
 

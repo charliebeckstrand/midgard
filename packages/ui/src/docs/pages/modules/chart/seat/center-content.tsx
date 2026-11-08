@@ -10,11 +10,10 @@ export default function CenterContent() {
 				{ seats: 18, color: 'zinc', label: 'Not called', hollow: true },
 				{ seats: 203, color: 'red', label: 'Republicans' },
 			]}
-			majority={218}
 		>
 			<Stat className="items-center">
-				<StatLabel>To win</StatLabel>
-				<StatValue>218</StatValue>
+				<StatLabel>Seats</StatLabel>
+				<StatValue>435</StatValue>
 			</Stat>
 		</SeatChart>
 	)

@@ -6,6 +6,9 @@
  * into its frame ({@link seatFit}).
  */
 
+import { clamp } from '../../../../utilities/clamp'
+import { CALLOUT_GAP, CALLOUT_LINE, CALLOUT_NUB } from './pie'
+
 /** The radius of the inner arc, as a fraction of the outer arc, when the chart has two or more rows. @internal */
 export const SEAT_INNER_RATIO = 0.4
 
@@ -218,7 +221,10 @@ export type SeatFit = {
  * Fits the hemicycle into a box of `width` by `height` with `margin` on each
  * side, centered in the box. The hemicycle spans `2 (1 + dot)` across and
  * `1 + 2 dot` down. With `tick`, the box also holds the majority tick above
- * the outer arc.
+ * the outer arc. With `label`, the top margin is at least half a
+ * {@link CALLOUT_LINE line}, so the label at the end of the tick
+ * ({@link majorityCallout}) stays in the box. The label does not change the
+ * fit when it does not draw, so the fit never depends on the text.
  *
  * @internal
  */
@@ -228,6 +234,7 @@ export function seatFit(
 	margin: number,
 	dot: number,
 	tick = false,
+	label = false,
 ): SeatFit {
 	const top = tick ? 1 + (1 + MAJORITY_GAP) * dot + MAJORITY_TICK : 1 + dot
 
@@ -235,10 +242,122 @@ export function seatFit(
 
 	const down = top + dot
 
-	const scale = Math.max(0, Math.min((width - 2 * margin) / across, (height - 2 * margin) / down))
+	const topMargin = tick && label ? Math.max(margin, CALLOUT_LINE / 2) : margin
 
-	// The box of the drawing is centered: its top at cy - top·scale, its bottom at cy + dot·scale.
-	return { scale, cx: width / 2, cy: height / 2 + ((top - dot) * scale) / 2 }
+	const scale = Math.max(
+		0,
+		Math.min((width - 2 * margin) / across, (height - margin - topMargin) / down),
+	)
+
+	// The box of the drawing is centered between the margins: its top at
+	// cy - top·scale, its bottom at cy + dot·scale.
+	return {
+		scale,
+		cx: width / 2,
+		cy: (topMargin + height - margin) / 2 + ((top - dot) * scale) / 2,
+	}
+}
+
+/** The rounding, in px, that a label edge can pass the frame by: far below a device pixel. @internal */
+const EDGE_SLACK = 1e-6
+
+/** The majority label beside the tick, in px in the frame. @internal */
+export type MajorityCallout = {
+	/** The nub: a short horizontal stroke from the outer end of the tick toward the label. */
+	nub: { x1: number; y1: number; x2: number; y2: number }
+	/** The anchor x of the label, a constant gap past the nub. */
+	x: number
+	/** The middle of the label, level with the outer end of the tick. */
+	y: number
+	/** A label right of the center reads out from its start, a label left of it from its end. */
+	anchor: 'start' | 'end'
+}
+
+/** Options for {@link majorityCallout}. @internal */
+export type MajorityCalloutOptions = {
+	/** The angle of the majority tick ({@link majorityAngle}). */
+	angle: number
+	layout: SeatLayout
+	fit: SeatFit
+	/** The size of the frame, in px. */
+	width: number
+	height: number
+	/** The gap that the label keeps from the sides of the frame and from the seats, in px. */
+	margin: number
+	/** The drawn width of the label, in px. */
+	textWidth: number
+}
+
+/**
+ * Places the majority label as a chart callout: the tick is its leader, a
+ * {@link CALLOUT_NUB nub} turns from the outer end of the tick toward the
+ * side of the tick, and the label sits a {@link CALLOUT_GAP gap} past the nub,
+ * level with the end. A label right of the center reads out from its start,
+ * a label left of it from its end, so it always reads away from the tick.
+ *
+ * The label shows only where it has the space: its box of one
+ * {@link CALLOUT_LINE line} must stay inside the frame, `margin` from each
+ * side, and `margin` clear of the outer seats. Otherwise the result is `null`,
+ * and the tick draws alone. The frame never grows for the label.
+ *
+ * @internal
+ */
+export function majorityCallout({
+	angle,
+	layout,
+	fit,
+	width,
+	height,
+	margin,
+	textWidth,
+}: MajorityCalloutOptions): MajorityCallout | null {
+	if (fit.scale <= 0 || textWidth <= 0) return null
+
+	const end = (1 + (1 + MAJORITY_GAP) * layout.dot + MAJORITY_TICK) * fit.scale
+
+	const ex = fit.cx + end * Math.cos(angle)
+
+	const ey = fit.cy - end * Math.sin(angle)
+
+	const dir = Math.cos(angle) >= 0 ? 1 : -1
+
+	const nubX = ex + dir * CALLOUT_NUB
+
+	const x = nubX + dir * CALLOUT_GAP
+
+	const left = dir > 0 ? x : x - textWidth
+
+	const right = dir > 0 ? x + textWidth : x
+
+	const top = ey - CALLOUT_LINE / 2
+
+	const bottom = ey + CALLOUT_LINE / 2
+
+	// A label at the reserved top margin sits there up to rounding, so the edges allow a hair.
+	if (
+		left < margin - EDGE_SLACK ||
+		right > width - margin + EDGE_SLACK ||
+		top < -EDGE_SLACK ||
+		bottom > height + EDGE_SLACK
+	) {
+		return null
+	}
+
+	// The point of the label box nearest the center of the arcs keeps clear of the outer seats.
+	const nearX = clamp(fit.cx, left, right)
+
+	const nearY = clamp(fit.cy, top, bottom)
+
+	const outer = (1 + layout.dot) * fit.scale
+
+	if (Math.hypot(nearX - fit.cx, nearY - fit.cy) < outer + margin) return null
+
+	return {
+		nub: { x1: ex, y1: ey, x2: nubX, y2: ey },
+		x,
+		y: ey,
+		anchor: dir > 0 ? 'start' : 'end',
+	}
 }
 
 /**

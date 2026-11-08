@@ -1,8 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { CALLOUT_LINE } from '../../modules/chart/engine/chart-geometry/pie'
 import {
 	discsPath,
 	majorityAngle,
+	majorityCallout,
 	majorityLine,
 	nearestSeat,
 	SEAT_INNER_RATIO,
@@ -15,6 +17,9 @@ import {
 
 /** A coordinate in unit space that trigonometry gives carries rounding below this bound. */
 const UNIT_TOLERANCE = 1e-9
+
+/** A coordinate in px in the frame carries the rounding of the unit space, scaled by a few hundred px. */
+const PX_TOLERANCE = 1e-6
 
 describe('seatRows', () => {
 	it('takes 4 rows for 50 seats, 5 for 100, and 10 for 435', () => {
@@ -179,6 +184,82 @@ describe('seatFit', () => {
 
 	it('scales to nothing in a box with no room', () => {
 		expect(seatFit(0, 0, 4, 0.02).scale).toBe(0)
+	})
+
+	it('keeps half a line above the tick for its label', () => {
+		const layout = seatLayout(435, 10)
+
+		const fit = seatFit(400, 200, 4, layout.dot, true, true)
+
+		const line = majorityLine(Math.PI / 2, layout)
+
+		expect(fit.cy + line.y2 * fit.scale).toBeGreaterThanOrEqual(CALLOUT_LINE / 2 - 1e-9)
+
+		expect(fit.cy + layout.dot * fit.scale).toBeLessThanOrEqual(196 + 1e-9)
+
+		// With no tick, the label has nothing to stand beside, so it reserves nothing.
+		expect(seatFit(400, 200, 4, layout.dot, false, true)).toEqual(seatFit(400, 200, 4, layout.dot))
+	})
+})
+
+describe('majorityCallout', () => {
+	const layout = seatLayout(435, 10)
+
+	function place(angle: number, width: number, height: number, textWidth = 60) {
+		const fit = seatFit(width, height, 4, layout.dot, true, true)
+
+		return {
+			fit,
+			callout: majorityCallout({ angle, layout, fit, width, height, margin: 4, textWidth }),
+		}
+	}
+
+	it('sits a nub and a gap past the outer end of the tick, level with it', () => {
+		const angle = Math.PI / 2 - 0.01
+
+		const { fit, callout } = place(angle, 400, 200)
+
+		const line = majorityLine(angle, layout)
+
+		expect(callout).not.toBeNull()
+
+		expect(callout?.nub.x1).toBeNear(fit.cx + line.x2 * fit.scale, PX_TOLERANCE)
+
+		expect(callout?.y).toBeNear(fit.cy + line.y2 * fit.scale, PX_TOLERANCE)
+
+		expect(callout?.nub.x2).toBeGreaterThan(callout?.nub.x1 ?? 0)
+
+		expect(callout?.x).toBeGreaterThan(callout?.nub.x2 ?? 0)
+
+		expect(callout?.anchor).toBe('start')
+	})
+
+	it('reads away from the center on a tick left of it', () => {
+		const { callout } = place(Math.PI / 2 + 0.2, 400, 200)
+
+		expect(callout?.anchor).toBe('end')
+
+		expect(callout?.nub.x2).toBeLessThan(callout?.nub.x1 ?? 0)
+
+		expect(callout?.x).toBeLessThan(callout?.nub.x2 ?? 0)
+	})
+
+	it('hides where the label does not fit beside the tick', () => {
+		expect(place(Math.PI / 2, 400, 200, 60).callout).not.toBeNull()
+
+		// The label runs past the side of the frame.
+		expect(place(Math.PI / 2, 400, 200, 200).callout).toBeNull()
+
+		expect(place(Math.PI / 2, 120, 200, 60).callout).toBeNull()
+
+		// The tick near the end of the hemicycle leaves the label on the seats or past the frame.
+		expect(place(0.05, 400, 200, 60).callout).toBeNull()
+	})
+
+	it('hides with no text and in a frame with no room', () => {
+		expect(place(Math.PI / 2, 400, 200, 0).callout).toBeNull()
+
+		expect(place(Math.PI / 2, 0, 0, 60).callout).toBeNull()
 	})
 })
 

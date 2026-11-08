@@ -26,6 +26,7 @@
 	"ui.chart.nextEntries": "Entradas siguientes de la leyenda",
 	"ui.chart.previousEntries": "Entradas anteriores de la leyenda",
 	"ui.chart.seats": "Escaños",
+	"ui.chart.seatsToWin": "{majority, number} para ganar",
 	"ui.chart.showMore": "Mostrar {count, number} más",
 	"ui.chart.untitledMenu": "Menú del gráfico",
 	"ui.chart.value": "Valor",
