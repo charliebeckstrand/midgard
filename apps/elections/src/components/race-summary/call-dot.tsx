@@ -30,17 +30,17 @@ export function WinnerMark() {
 }
 
 /**
- * The percent reporting of a race with its call dot set beside it, not at the
- * far end of the row, so the two read as one fact.
+ * The percent reporting of a race with its call dot before it, so the two read
+ * as one fact.
  */
 export function ReportingRow({ reporting, called }: { reporting: number; called: boolean }) {
 	const intl = useIntl()
 
 	return (
 		<Flex wrap gap="sm" className="text-sm/6 text-zinc-600 dark:text-zinc-400">
-			<span className="tabular-nums">{percentText(intl.formatNumber, reporting, 1)} reporting</span>
-
 			<CallDot called={called} />
+
+			<span className="tabular-nums">{percentText(intl.formatNumber, reporting, 1)} reporting</span>
 		</Flex>
 	)
 }
