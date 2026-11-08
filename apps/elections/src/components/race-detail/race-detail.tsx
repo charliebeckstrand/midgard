@@ -1,28 +1,26 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { Card } from 'ui/card'
+import { useState } from 'react'
 import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import { Grid, type GridColumn, type GridSortState } from 'ui/grid'
 import { Heading } from 'ui/heading'
+import { Placeholder } from 'ui/placeholder'
 import { useIntl } from 'ui/primitives/intl'
-import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
-import { useDrawerParam } from '../../hooks/use-drawer-param'
 import type { CountyResult, Race } from '../../types'
-import { COUNTY_PARAM } from '../../utilities/elections-url'
 import { isCalled, marginLabel, percentText } from '../../utilities/race-math'
+import type { RaceEntry } from '../../utilities/results'
 import { RaceSummary } from '../race-summary'
-import { ResultDrawer } from '../result-drawer'
 
-/** Props for {@link RacePage}. */
-export type RacePageProps = {
-	race: Race
-	/** The name of the state, the first step of the trail of the county Drawer. */
-	stateName: string
-	/** The race under the trail of the county Drawer, such as `Senate` or `House, 6th District`. */
-	raceLabel: string
+/** Props for {@link RaceDetail}. */
+export type RaceDetailProps = {
+	/** The race of the national results, which the Drawer has before the race loads. */
+	entry: Pick<RaceEntry, 'candidates' | 'reporting' | 'called'>
+	/** The race with its counties, or `undefined` while it loads. */
+	race: Race | undefined
+	/** Opens a county of the race, by its FIPS code. */
+	onCounty: (fips: string) => void
 }
 
 /** The time format of the polls and the call: the day and the time, in the zone of the reader. */
@@ -110,76 +108,54 @@ const COLUMNS: GridColumn<CountyResult>[] = [
 ]
 
 /**
- * The page of one race, the tab of a statewide office and the page of a
- * district: the candidates with the facts of the race beside them, then the
- * counties in a table. A county row opens the county Drawer (`?county=13121`).
+ * One race in full, the body of the Drawer on a statewide race or a district:
+ * the candidates with their party and votes, the facts of the race, then the
+ * counties in a table. A county row opens the county. The candidates show from
+ * the national results at once; the facts and the counties show when the race
+ * loads, and a still shape holds their place until then.
  */
-export function RacePage({ race, stateName, raceLabel }: RacePageProps) {
+export function RaceDetail({ entry, race, onCounty }: RaceDetailProps) {
 	const [query, setQuery] = useState('')
 
 	const [sort, setSort] = useState<GridSortState[]>([{ column: 'votes', direction: 'desc' }])
 
-	const drawer = useDrawerParam(COUNTY_PARAM)
-
-	const county = useMemo(
-		() => race.counties.find((entry) => entry.fips === drawer.value),
-		[race.counties, drawer.value],
-	)
+	const candidates = race?.candidates ?? entry.candidates
 
 	return (
-		<>
-			<Card>
-				<Flex direction={{ initial: 'col', md: 'row' }} align="start" gap="xl">
-					<Stack flex="1" className="w-full min-w-0">
-						<RaceSummary
-							candidates={race.candidates}
-							reporting={race.reporting}
-							called={isCalled(race.candidates)}
-							rows="all"
-							detail
+		<Stack gap="xl">
+			<RaceSummary
+				candidates={candidates}
+				reporting={race?.reporting ?? entry.reporting}
+				called={race === undefined ? entry.called : isCalled(race.candidates)}
+				rows="all"
+				detail
+			/>
+
+			{race === undefined ? (
+				<Stack gap="lg">
+					<Placeholder className="h-24" />
+
+					<Placeholder className="h-64" />
+				</Stack>
+			) : (
+				<>
+					<RaceFacts race={race} />
+
+					<Stack as="div" gap="lg">
+						<Heading level={3}>By county</Heading>
+
+						<Grid
+							columns={COLUMNS}
+							rows={race.counties}
+							getKey={(county) => county.fips}
+							sort={{ value: sort, onValueChange: setSort }}
+							search={{ value: query, onValueChange: setQuery, placeholder: 'Search counties' }}
+							header={{ position: 'sticky' }}
+							onRowClick={(county) => onCounty(county.fips)}
 						/>
 					</Stack>
-
-					<div className="w-full shrink-0 md:w-64">
-						<RaceFacts race={race} />
-					</div>
-				</Flex>
-			</Card>
-
-			<Stack as="div" gap="lg">
-				<Heading level={2}>By county</Heading>
-
-				<Grid
-					columns={COLUMNS}
-					rows={race.counties}
-					getKey={(entry) => entry.fips}
-					sort={{ value: sort, onValueChange: setSort }}
-					search={{ value: query, onValueChange: setQuery, placeholder: 'Search counties' }}
-					header={{ position: 'sticky' }}
-					maxHeight="440px"
-					onRowClick={(entry) => drawer.open(entry.fips)}
-				/>
-			</Stack>
-
-			<ResultDrawer
-				view={
-					county === undefined
-						? null
-						: {
-								steps: [{ label: stateName, onPick: drawer.close }, { label: county.name }],
-								subtitle: raceLabel,
-								body: (
-									<RaceSummary
-										candidates={county.candidates}
-										reporting={county.reporting}
-										called={isCalled(race.candidates)}
-										rows="all"
-									/>
-								),
-							}
-				}
-				onClose={drawer.close}
-			/>
-		</>
+				</>
+			)}
+		</Stack>
 	)
 }

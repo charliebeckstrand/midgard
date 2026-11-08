@@ -1,4 +1,4 @@
-import type { Contest, Election } from '../elections/registry'
+import { type Contest, ELECTIONS, type Election } from '../elections/registry'
 import type { Candidate, NationalRace } from '../types'
 import { type RaceEntry, readEntries } from '../utilities/results'
 import { nationalRace, race } from './races'
@@ -20,6 +20,18 @@ export async function contestResult(contest: Contest): Promise<ContestResult> {
 /** The results of every contest of an election, in the order of the registry. */
 export function electionResults(election: Election): Promise<ContestResult[]> {
 	return Promise.all(election.contests.map(contestResult))
+}
+
+/**
+ * Whether a race id is a race of an election of the registry that has results.
+ * The route of a race asks it, so the route reads no race that the app does not show.
+ */
+export async function isKnownRace(id: number): Promise<boolean> {
+	const counted = ELECTIONS.filter((election) => election.status !== 'upcoming')
+
+	const results = await Promise.all(counted.map(electionResults))
+
+	return results.flat().some((result) => result.entries.some((entry) => entry.raceId === id))
 }
 
 /** One call of a race: the race, its winner, and when civicAPI called it. */

@@ -3,26 +3,21 @@ import { LiveRefresh } from 'shared/refresh'
 import { Heading } from 'ui/heading'
 import { Columns } from 'ui/structure/columns'
 import { Stack } from 'ui/structure/stack'
+import { ClosestRaces } from '@/components/closest-races'
+import { ElectionDrawer } from '@/components/election-drawer'
 import { LatestCalls } from '@/components/latest-calls'
 import { PageBody } from '@/components/page-frame'
 import { PageTitle } from '@/components/page-title'
-import { RaceCard, RaceCardGrid } from '@/components/race-card'
 import { SeatCard } from '@/components/seat-card'
 import { UncalledTable } from '@/components/uncalled-table'
-import type { Election } from '@/elections/registry'
+import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults, latestCalls } from '@/server/results'
-import { racePath } from '@/utilities/elections-url'
-import {
-	closestRaces,
-	entryKey,
-	isCounting,
-	newestUpdate,
-	type RaceEntry,
-} from '@/utilities/results'
-import { OVERVIEW, officeItems } from '@/utilities/trail'
+import { OVERVIEW, officePath } from '@/utilities/elections-url'
+import { entryKey, isCounting, newestUpdate } from '@/utilities/results'
+import { officeItems } from '@/utilities/trail'
 
-type Params = { params: Promise<ElectionParams> }
+type Params = { params: Promise<ElectionParams>; searchParams: SearchParams }
 
 /** The page reads the results before it renders, so the first frame has them. */
 export const instant = false
@@ -33,23 +28,19 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 	return { title: `${election.year} ${election.name}` }
 }
 
-/** The page of the race of an entry: the tab of its office in its state, or its district. */
-function entryPath(election: Election, entry: RaceEntry): string {
-	return racePath(election, {
-		region: entry.state,
-		contest: entry.contest,
-		district: entry.district,
-	})
-}
-
 /**
  * The overview of an election: the balance of power of each chamber, the
- * closest races, the latest calls, and every race not called.
+ * closest races, the latest calls, and every race not called. A race opens
+ * the Drawer.
  */
-export default async function OverviewPage({ params }: Params) {
+export default async function OverviewPage({ params, searchParams }: Params) {
 	const election = await readElection(params)
 
 	const results = await electionResults(election)
+
+	const races = officeRaces(results)
+
+	const seed = await drawerSeed(election, races, searchParams)
 
 	const calls = await latestCalls(results, 5)
 
@@ -69,7 +60,7 @@ export default async function OverviewPage({ params }: Params) {
 		>
 			<LiveRefresh live={counting} />
 
-			<PageTitle heading="Balance of power" items={officeItems(election, null)} value={OVERVIEW} />
+			<PageTitle heading="Balance of power" items={officeItems(election)} value={OVERVIEW} />
 
 			<Columns columns={{ initial: 1, md: 2, lg: 3 }}>
 				{results.map((result) => (
@@ -77,45 +68,27 @@ export default async function OverviewPage({ params }: Params) {
 						key={result.contest.slug}
 						contest={result.contest}
 						parties={result.national.parties}
-						href={racePath(election, { contest: result.contest })}
+						href={officePath(election, result.contest)}
 					/>
 				))}
 			</Columns>
 
-			<section>
-				<Stack gap="lg">
-					<Heading level={2}>Closest races</Heading>
-
-					<RaceCardGrid>
-						{closestRaces(uncalled, 6).map((entry) => (
-							<RaceCard
-								key={entryKey(entry)}
-								entry={entry}
-								office
-								href={entryPath(election, entry)}
-							/>
-						))}
-					</RaceCardGrid>
-				</Stack>
-			</section>
+			<ClosestRaces election={election} entries={uncalled} office />
 
 			<section>
 				<Stack gap="sm">
 					<Heading level={2}>Latest calls</Heading>
 
-					<LatestCalls
-						calls={calls.map((call) => ({ ...call, href: entryPath(election, call.entry) }))}
-					/>
+					<LatestCalls election={election} calls={calls} />
 				</Stack>
 			</section>
 
 			<UncalledTable
-				rows={uncalled.map((entry) => ({
-					key: entryKey(entry),
-					entry,
-					href: entryPath(election, entry),
-				}))}
+				election={election}
+				rows={uncalled.map((entry) => ({ key: entryKey(entry), entry }))}
 			/>
+
+			<ElectionDrawer election={election} results={races} seed={seed} />
 		</PageBody>
 	)
 }

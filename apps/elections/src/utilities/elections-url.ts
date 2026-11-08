@@ -1,79 +1,102 @@
 import { type Contest, type Election, electionPath, findContest } from '../elections/registry'
 import { stateOfKey, type UsState } from '../elections/us-states'
 
+/** The value of the overview of a state in the Drawer, beside the slug of each office. */
+export const OVERVIEW = 'overview'
+
 /**
- * Where a page is in an election: the region of the trail and the office.
+ * The step of the Drawer of an election, which the address holds, such as
+ * `?region=ga&office=house&district=06&county=13121`.
  *
- * - No region and no office: the overview of the election.
- * - An office with no region: the national map of the office.
- * - A region with no office: the Overview tab of the state.
- * - A region and an office: the tab of the office in the state.
- * - A district too: the race of one district of the state.
+ * - A state and the overview: the race of each office in the state.
+ * - A state and a statewide office: the race in full, with its counties.
+ * - A state and the House: the delegation and its districts.
+ * - A district too: the race of the district in full, with its counties.
+ * - A county too: the race in that county.
  */
-export type RaceLocation = {
-	region: UsState | null
-	contest: Contest | null
+export type DrawerStep = {
+	region: UsState
+	/** {@link OVERVIEW}, or the slug of an office. */
+	office: string
 	/** The district of a district race: two digits such as `06`, or `al` for an at-large seat. */
 	district: string | null
+	/** The 5-digit FIPS code of a county. */
+	county: string | null
 }
 
-/** The search param that opens the Drawer on a state of a national map. */
-export const REGION_PARAM = 'region'
-
-/** The search param that opens the Drawer on a county of a state tab. */
-export const COUNTY_PARAM = 'county'
+/** The search params of the Drawer. */
+const PARAMS = ['region', 'office', 'district', 'county'] as const
 
 /** A district segment: two digits, or `al` for the at-large seat of a state. */
 const DISTRICT = /^(\d{2}|al)$/
 
+/** A 5-digit FIPS code of a county. */
+const COUNTY = /^\d{5}$/
+
 /**
- * Reads the segments of the path after the election, against the registry
- * entry. The segment that names an office is the office, the segment before it
- * is the region, and one segment after it is the district. Returns `null` for
- * a path that names no page of the election, which renders the not-found page.
+ * Reads the step of the Drawer from the search params, against the registry
+ * entry. A param that names nothing of the election is dropped with each param
+ * under it, so a bad address opens the Drawer on the nearest step that it does
+ * name, or keeps it closed.
  */
-export function parseRacePath(
+export function readDrawerStep(
 	election: Election,
-	segments: readonly string[],
-): RaceLocation | null {
-	const [first, second, third, ...rest] = segments
-
-	if (rest.length > 0) return null
-
-	if (first === undefined) return { region: null, contest: null, district: null }
-
-	const office = findContest(election, first)
-
-	if (office !== undefined) {
-		return second === undefined ? { region: null, contest: office, district: null } : null
-	}
-
-	const region = stateOfKey(first)
+	params: { get: (name: string) => string | null },
+): DrawerStep | null {
+	const region = stateOfKey(params.get('region') ?? '')
 
 	if (region === undefined) return null
 
-	if (second === undefined) return { region, contest: null, district: null }
+	const contest = findContest(election, params.get('office') ?? '')
 
-	const contest = findContest(election, second)
+	if (contest === undefined) return { region, office: OVERVIEW, district: null, county: null }
 
-	if (contest === undefined) return null
+	const district = params.get('district')
 
-	if (third === undefined) return { region, contest, district: null }
+	const county = params.get('county')
 
-	if (contest.depth !== 'district' || !DISTRICT.test(third)) return null
+	const step: DrawerStep = { region, office: contest.slug, district: null, county: null }
 
-	return { region, contest, district: third }
+	if (contest.depth === 'district') {
+		if (district === null || !DISTRICT.test(district)) return step
+
+		step.district = district
+	}
+
+	if (county !== null && COUNTY.test(county)) step.county = county
+
+	return step
 }
 
-/** The path of a location in an election, such as `/2026/us/midterms/ga/house/06`. */
-export function racePath(election: Election, location: Partial<RaceLocation>): string {
-	const segments = [
-		location.region?.key,
-		location.contest?.slug,
-		location.region ? location.district : undefined,
-	].filter((segment): segment is string => typeof segment === 'string')
+/** The search params of a step of the Drawer, or none for a closed Drawer. */
+export function drawerSearch(step: DrawerStep | null): URLSearchParams {
+	const search = new URLSearchParams()
 
-	return [electionPath(election), ...segments].join('/')
+	if (step === null) return search
+
+	const values = [step.region.key, step.office, step.district, step.county]
+
+	PARAMS.forEach((name, index) => {
+		const value = values[index]
+
+		if (value !== null && value !== undefined) search.set(name, value)
+	})
+
+	return search
+}
+
+/** The path of an office of an election, or of its overview, such as `/2026/us/midterms/senate`. */
+export function officePath(election: Election, contest: Contest | null): string {
+	const base = electionPath(election)
+
+	return contest === null ? base : `${base}/${contest.slug}`
+}
+
+/** The address of a page with its Drawer open on a step, such as `/2026/us/midterms?region=ga&office=senate`. */
+export function drawerHref(path: string, step: DrawerStep | null): string {
+	const query = drawerSearch(step).toString()
+
+	return query === '' ? path : `${path}?${query}`
 }
 
 /** The key of a district in civicAPI, such as `ga-06`. */

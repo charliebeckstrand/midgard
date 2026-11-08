@@ -2,7 +2,7 @@ import type { MapCategory } from 'ui/map'
 import type { Contest } from '../elections/registry'
 import { stateOfKey, type UsState } from '../elections/us-states'
 import type { Candidate, NationalRace, PartySeats, PartySlot, RegionRace } from '../types'
-import { districtName, districtOfKey } from './elections-url'
+import { type DrawerStep, districtName, districtOfKey } from './elections-url'
 import { type Delegation, delegation, isCalled, lead } from './race-math'
 
 /**
@@ -133,6 +133,42 @@ export function delegations(entries: readonly RaceEntry[]): Map<string, Delegati
 	}
 
 	return new Map([...byState].map(([key, districts]) => [key, delegation(districts)]))
+}
+
+/** The races of one office, as the Drawer reads them. */
+export type OfficeRaces = { contest: Contest; entries: readonly RaceEntry[] }
+
+/** The races of each office in one state, in the order of the registry. */
+export function stateRaces(results: readonly OfficeRaces[], state: UsState): OfficeRaces[] {
+	return results.map(({ contest, entries }) => ({
+		contest,
+		entries: entries.filter((entry) => entry.state.key === state.key),
+	}))
+}
+
+/**
+ * The race that a step of the Drawer shows in full: the race of a statewide
+ * office, or of a district. The overview and the delegation of a state show no
+ * one race, so they give `undefined`, as does a race that the results do not hold.
+ */
+export function stepEntry(
+	results: readonly OfficeRaces[],
+	step: DrawerStep,
+): RaceEntry | undefined {
+	const office = results.find((result) => result.contest.slug === step.office)
+
+	if (office === undefined) return undefined
+
+	if (office.contest.depth === 'district' && step.district === null) return undefined
+
+	return office.entries.find(
+		(entry) => entry.state.key === step.region.key && entry.district === step.district,
+	)
+}
+
+/** The step of the Drawer on the race of an entry: its office in its state, or its district. */
+export function entryStep(entry: RaceEntry): DrawerStep {
+	return { region: entry.state, office: entry.contest.slug, district: entry.district, county: null }
 }
 
 /** Whether votes are still counted: a race that is not fully in, or not called. */

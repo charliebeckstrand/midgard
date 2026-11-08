@@ -8,9 +8,12 @@ import {
 	delegations,
 	delegationWinner,
 	entryName,
+	entryStep,
 	raceWinner,
 	readEntries,
 	seatGroups,
+	stateRaces,
+	stepEntry,
 } from '../utilities/results'
 import { electionCrumbs, officeItems } from '../utilities/trail'
 import house from './fixtures/house.json'
@@ -46,6 +49,50 @@ describe('the races of a contest', () => {
 
 		expect(closest.map((entry) => entry.lead)).toEqual(
 			[...closest.map((entry) => entry.lead)].sort((a, b) => (a ?? 0) - (b ?? 0)),
+		)
+	})
+})
+
+describe('the race of a step of the Drawer', () => {
+	const results = [
+		{ contest: senateContest, entries: senateEntries },
+		{ contest: houseContest, entries: houseEntries },
+	]
+
+	const georgia = stateOfKey('ga')
+
+	if (georgia === undefined) throw new Error('The states have no Georgia.')
+
+	it('gives the race of a statewide office, or of a district', () => {
+		const ga06 = houseEntries.find((entry) => entry.state.key === 'ga' && entry.district === '06')
+
+		if (ga06 === undefined) throw new Error('The House has no Georgia 6th District.')
+
+		expect(stepEntry(results, entryStep(ga06))).toBe(ga06)
+
+		expect(
+			stepEntry(results, { region: georgia, office: 'senate', district: null, county: null })?.state
+				.key,
+		).toBe('ga')
+	})
+
+	it('gives no race for the overview, or the delegation of a state', () => {
+		expect(
+			stepEntry(results, { region: georgia, office: 'overview', district: null, county: null }),
+		).toBeUndefined()
+
+		expect(
+			stepEntry(results, { region: georgia, office: 'house', district: null, county: null }),
+		).toBeUndefined()
+	})
+
+	it('keeps each office in the races of a state, with only the races of the state', () => {
+		const races = stateRaces(results, georgia)
+
+		expect(races.map((office) => office.contest.slug)).toEqual(['senate', 'house'])
+
+		expect(races.every((office) => office.entries.every((entry) => entry.state === georgia))).toBe(
+			true,
 		)
 	})
 })
@@ -118,31 +165,21 @@ describe('the Winner map', () => {
 })
 
 describe('the trail and the office switch', () => {
-	it('reads the trail of a district from the list of every election down to the district', () => {
-		const georgia = stateOfKey('ga') ?? null
-
-		const crumbs = electionCrumbs(midterms, {
-			region: georgia,
-			contest: houseContest,
-			district: '06',
-		})
+	it('reads the trail of an election from the list of every election down to the election', () => {
+		const crumbs = electionCrumbs(midterms)
 
 		expect(crumbs.map((crumb) => crumb.label)).toEqual([
 			'Elections',
 			'2026',
 			'United States',
 			'Midterms',
-			'Georgia',
-			'6th District',
 		])
 
 		expect(crumbs[0]?.href).toBe('/')
 	})
 
 	it('keeps an office with no race in the state, disabled', () => {
-		const arizona = stateOfKey('az') ?? null
-
-		const items = officeItems(midterms, arizona, new Set(['house', 'governor']))
+		const items = officeItems(midterms, new Set(['house', 'governor']))
 
 		expect(items.map((item) => [item.value, item.disabled])).toEqual([
 			['overview', false],

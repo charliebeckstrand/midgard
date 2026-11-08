@@ -1,6 +1,6 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import { Fragment, type MouseEvent, type ReactNode, useState } from 'react'
 import {
 	Breadcrumb,
@@ -12,23 +12,96 @@ import {
 import { Button } from 'ui/button'
 import { Drawer, DrawerBody, DrawerClose, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
 import { Container } from 'ui/structure/container'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 
-/** One step of the trail of a {@link ResultDrawer}. */
-export type DrawerStep = {
+/** One choice of the menu of a crumb, such as an office of the office crumb. */
+export type CrumbChoice = {
 	label: string
-	/** Fires when the step is picked. Absent for the last step, which is where the reader is. */
-	onPick?: () => void
+	/** The choice names nothing in this place, so it takes no pick. */
+	disabled: boolean
+	onPick: () => void
 }
 
-/** What a {@link ResultDrawer} shows: its trail, the line under it, and its body. */
+/** One crumb of the trail of a {@link ResultDrawer}. */
+export type TrailCrumb = {
+	label: string
+	/** Fires when the crumb is picked. Absent for the last crumb, which is where the reader is. */
+	onPick?: () => void
+	/** The choices that a chevron after the crumb opens, such as the offices of a state. */
+	menu?: readonly CrumbChoice[]
+}
+
+/** What a {@link ResultDrawer} shows: its trail, an optional line under it, and its body. */
 export type DrawerView = {
-	steps: readonly DrawerStep[]
-	/** The race under the trail, such as `Senate`. */
-	subtitle: string
+	steps: readonly TrailCrumb[]
+	/** A line under the trail, such as `Special election`. */
+	subtitle?: string
 	body: ReactNode
+}
+
+/** The label of a crumb: a link back where the crumb acts, or the plain name where it does not. */
+function CrumbLink({ crumb, current }: { crumb: TrailCrumb; current: boolean }) {
+	const { onPick } = crumb
+
+	return (
+		<BreadcrumbLink
+			current={current}
+			href={onPick === undefined ? undefined : '#'}
+			className="font-semibold"
+			onClick={
+				onPick === undefined
+					? undefined
+					: (event: MouseEvent) => {
+							event.preventDefault()
+
+							onPick()
+						}
+			}
+		>
+			{crumb.label}
+		</BreadcrumbLink>
+	)
+}
+
+/** A crumb with a menu: the label, then a chevron that opens its choices, as the election crumb of the header. */
+function MenuCrumb({
+	crumb,
+	menu,
+	current,
+}: {
+	crumb: TrailCrumb
+	menu: readonly CrumbChoice[]
+	current: boolean
+}) {
+	return (
+		<span className="inline-flex min-w-0 items-center">
+			<CrumbLink crumb={crumb} current={current} />
+
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<Button
+						type="button"
+						variant="bare"
+						aria-label={`Switch from ${crumb.label}`}
+						className="shrink-0"
+					>
+						<Icon icon={<ChevronDown />} />
+					</Button>
+				</MenuTrigger>
+
+				<MenuContent>
+					{menu.map((choice) => (
+						<MenuItem key={choice.label} disabled={choice.disabled} onAction={choice.onPick}>
+							<MenuLabel>{choice.label}</MenuLabel>
+						</MenuItem>
+					))}
+				</MenuContent>
+			</Menu>
+		</span>
+	)
 }
 
 /** Props for {@link ResultDrawer}. */
@@ -41,8 +114,10 @@ export type ResultDrawerProps = {
 /**
  * The glass Drawer of a result, docked to the bottom, built as the summary
  * Drawer of Places: its title is the trail, so a crumb is the way back and the
- * panel needs no Back button, and the close sits at the end of that row. The
- * panel is as tall as its body. The content is one column on the left edge of
+ * panel needs no Back button, and the close sits at the end of that row. A
+ * crumb with a menu switches between its choices, as the office crumb does.
+ * The panel is as tall as its body, and moves between heights as the step
+ * changes. The content is one column on the left edge of
  * the page container, so it lines up with the header.
  */
 export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
@@ -59,7 +134,7 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 		<Drawer open={view !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
 			<DrawerPanel glass height="fit" footer={null} aria-label={title}>
 				<Container size="lg" padding="lg" className="h-auto">
-					<Stack className="max-w-[440px]">
+					<Stack gap="md" className="max-w-[440px]">
 						<Flex align="start" justify="between" gap="lg" className="pt-6">
 							<Stack gap="xs" flex="1" className="min-w-0">
 								<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
@@ -71,29 +146,24 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 												{index > 0 ? <BreadcrumbSeparator /> : null}
 
 												<BreadcrumbItem>
-													<BreadcrumbLink
-														current={index === shown.steps.length - 1}
-														href={step.onPick === undefined ? undefined : '#'}
-														className="font-semibold"
-														onClick={
-															step.onPick === undefined
-																? undefined
-																: (event: MouseEvent) => {
-																		event.preventDefault()
-
-																		step.onPick?.()
-																	}
-														}
-													>
-														{step.label}
-													</BreadcrumbLink>
+													{step.menu === undefined ? (
+														<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
+													) : (
+														<MenuCrumb
+															crumb={step}
+															menu={step.menu}
+															current={index === shown.steps.length - 1}
+														/>
+													)}
 												</BreadcrumbItem>
 											</Fragment>
 										))}
 									</BreadcrumbList>
 								</Breadcrumb>
 
-								<span className="text-sm text-zinc-600 dark:text-zinc-400">{shown?.subtitle}</span>
+								{shown?.subtitle === undefined ? null : (
+									<span className="text-sm text-zinc-600 dark:text-zinc-400">{shown.subtitle}</span>
+								)}
 							</Stack>
 
 							<DrawerClose>

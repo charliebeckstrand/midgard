@@ -1,7 +1,6 @@
 'use client'
 
 import { ChevronDown } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Collapse, CollapsePanel, CollapseTrigger, useCollapseContext } from 'ui/collapse'
@@ -11,11 +10,13 @@ import { useIntl } from 'ui/primitives/intl'
 import { ProgressBar } from 'ui/progress'
 import { Flex } from 'ui/structure/flex'
 import { Swatch } from 'ui/swatch'
+import type { Election } from '../../elections/registry'
+import { useDrawerStep } from '../../hooks/use-drawer-step'
 import { marginLabel, percentText } from '../../utilities/race-math'
-import { entryName, type RaceEntry } from '../../utilities/results'
+import { entryName, entryStep, type RaceEntry } from '../../utilities/results'
 
-/** One race of {@link UncalledTable}, with the page it leads to. */
-export type UncalledRow = { key: string; entry: RaceEntry; href: string }
+/** One race of {@link UncalledTable}. */
+export type UncalledRow = { key: string; entry: RaceEntry }
 
 function ReportingCell({ reporting }: { reporting: number }) {
 	const intl = useIntl()
@@ -89,10 +90,16 @@ function Caret() {
 
 /**
  * Every race not called, in a section that opens on a click: a table with
- * sortable columns, the closest lead first. A row opens the page of its race.
+ * sortable columns, the closest lead first. A row opens its race in the Drawer.
  */
-export function UncalledTable({ rows }: { rows: readonly UncalledRow[] }) {
-	const router = useRouter()
+export function UncalledTable({
+	election,
+	rows,
+}: {
+	election: Election
+	rows: readonly UncalledRow[]
+}) {
+	const { go } = useDrawerStep(election)
 
 	const [sort, setSort] = useState<GridSortState[]>([{ column: 'lead', direction: 'asc' }])
 
@@ -115,7 +122,7 @@ export function UncalledTable({ rows }: { rows: readonly UncalledRow[] }) {
 						rows={[...rows]}
 						getKey={(row) => row.key}
 						sort={{ value: sort, onValueChange: setSort }}
-						onRowClick={(row) => router.push(row.href)}
+						onRowClick={(row) => go(entryStep(row.entry))}
 					/>
 				</div>
 			</CollapsePanel>

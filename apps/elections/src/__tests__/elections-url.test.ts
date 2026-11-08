@@ -5,19 +5,28 @@ import {
 	districtKey,
 	districtName,
 	districtOfKey,
-	parseRacePath,
-	racePath,
+	drawerHref,
+	OVERVIEW,
+	officePath,
+	readDrawerStep,
 } from '../utilities/elections-url'
 
-const midterms = findElection('2026', 'us', 'midterms')
+const found = findElection('2026', 'us', 'midterms')
 
-if (midterms === undefined) throw new Error('The registry has no 2026 midterms.')
+if (found === undefined) throw new Error('The registry has no 2026 midterms.')
+
+const midterms = found
 
 const senate = findContest(midterms, 'senate')
 
-const house = findContest(midterms, 'house')
-
 const georgia = stateOfKey('ga')
+
+if (georgia === undefined) throw new Error('The states have no Georgia.')
+
+/** The step of the Drawer of a query string. */
+function read(query: string) {
+	return readDrawerStep(midterms, new URLSearchParams(query))
+}
 
 describe('the registry', () => {
 	it('gives no office a slug that is also the key of a region', () => {
@@ -33,63 +42,73 @@ describe('the registry', () => {
 	})
 })
 
-describe('parseRacePath', () => {
-	it('reads each page of an election', () => {
-		expect(parseRacePath(midterms, [])).toEqual({ region: null, contest: null, district: null })
+describe('the step of the Drawer', () => {
+	it('reads each step from the address', () => {
+		expect(read('')).toBeNull()
 
-		expect(parseRacePath(midterms, ['senate'])).toEqual({
-			region: null,
-			contest: senate,
+		expect(read('region=ga')).toEqual({
+			region: georgia,
+			office: OVERVIEW,
 			district: null,
+			county: null,
 		})
 
-		expect(parseRacePath(midterms, ['ga'])).toEqual({
+		expect(read('region=ga&office=senate&county=13121')).toEqual({
 			region: georgia,
-			contest: null,
+			office: 'senate',
 			district: null,
+			county: '13121',
 		})
 
-		expect(parseRacePath(midterms, ['ga', 'house'])).toEqual({
+		expect(read('region=ga&office=house&district=06&county=13121')).toEqual({
 			region: georgia,
-			contest: house,
-			district: null,
-		})
-
-		expect(parseRacePath(midterms, ['ga', 'house', '06'])).toEqual({
-			region: georgia,
-			contest: house,
+			office: 'house',
 			district: '06',
+			county: '13121',
 		})
 
-		expect(parseRacePath(midterms, ['ak', 'house', 'al'])?.district).toBe('al')
+		expect(read('region=ak&office=house&district=al')?.district).toBe('al')
 	})
 
-	it('names no page for a path that the election does not hold', () => {
-		for (const segments of [
-			['xx'],
-			['senate', 'ga'],
-			['ga', 'mayor'],
-			['ga', 'senate', '06'],
-			['ga', 'house', '6'],
-			['ga', 'house', '06', 'x'],
-		]) {
-			expect(parseRacePath(midterms, segments)).toBeNull()
-		}
+	it('drops a param that names nothing, with each param under it', () => {
+		expect(read('region=xx&office=senate')).toBeNull()
+
+		expect(read('region=ga&office=mayor&county=13121')?.office).toBe(OVERVIEW)
+
+		expect(read('region=ga&office=senate&district=06')?.district).toBeNull()
+
+		// A county of the House needs its district.
+		expect(read('region=ga&office=house&county=13121')?.county).toBeNull()
+
+		expect(read('region=ga&office=house&district=6')?.district).toBeNull()
+
+		expect(read('region=ga&office=senate&county=131')?.county).toBeNull()
 	})
-})
 
-describe('racePath', () => {
-	it('writes the path of a location, and the reverse of parseRacePath', () => {
-		expect(racePath(midterms, {})).toBe('/2026/us/midterms')
+	it('writes the address of a step, and the reverse of readDrawerStep', () => {
+		const path = officePath(midterms, senate ?? null)
 
-		expect(racePath(midterms, { contest: senate })).toBe('/2026/us/midterms/senate')
+		expect(officePath(midterms, null)).toBe('/2026/us/midterms')
 
-		expect(racePath(midterms, { region: georgia, contest: house, district: '06' })).toBe(
-			'/2026/us/midterms/ga/house/06',
-		)
+		expect(path).toBe('/2026/us/midterms/senate')
 
-		// A district with no region is not a page, so the path leaves it out.
-		expect(racePath(midterms, { contest: house, district: '06' })).toBe('/2026/us/midterms/house')
+		expect(drawerHref(path, null)).toBe(path)
+
+		const href = drawerHref(path, {
+			region: georgia,
+			office: 'house',
+			district: '06',
+			county: null,
+		})
+
+		expect(href).toBe('/2026/us/midterms/senate?region=ga&office=house&district=06')
+
+		expect(read(href.split('?')[1] ?? '')).toEqual({
+			region: georgia,
+			office: 'house',
+			district: '06',
+			county: null,
+		})
 	})
 })
 
