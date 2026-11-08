@@ -55,7 +55,7 @@ export default async function OfficePage({ params, searchParams }: Params) {
 	const counting = isCounting(result.entries)
 
 	return (
-		<PageBody status={{ counting, reporting: null, updated: result.national.updated }}>
+		<PageBody status={{ counting, updated: result.national.updated }}>
 			<LiveRefresh live={counting} />
 
 			<NationalMap

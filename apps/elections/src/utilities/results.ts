@@ -58,6 +58,14 @@ function readEntry(contest: Contest, region: RegionRace): RaceEntry {
 	}
 }
 
+/** One call of a race: the race, its winner, and when civicAPI called it. */
+export type RaceCall = {
+	entry: RaceEntry
+	winner: Candidate
+	/** When civicAPI called the race, or its last update where it gives no call time. */
+	at: string
+}
+
 /** The name of a race without its office: `Georgia`, or `Georgia 6th District`. */
 export function entryName(entry: Pick<RaceEntry, 'state' | 'district'>): string {
 	return entry.district === null

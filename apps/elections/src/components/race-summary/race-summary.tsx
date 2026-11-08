@@ -24,27 +24,17 @@ export type RaceSummaryProps = {
 	rows?: number | 'all'
 	/**
 	 * Shows each candidate in full: an avatar, the party, `Incumbent`, and the
-	 * votes. The tab of a race uses it, and a card does not.
+	 * votes. The Drawer on a race uses it, and a card does not.
 	 * @defaultValue false
 	 */
 	detail?: boolean
-	/** The digits of each share. @defaultValue 1 */
-	digits?: number
 }
 
 /** One candidate of a {@link RaceSummary}: the name, the share, and a bar of the share. */
-function CandidateRow({
-	candidate,
-	detail,
-	digits,
-}: {
-	candidate: Candidate
-	detail: boolean
-	digits: number
-}) {
+function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boolean }) {
 	const intl = useIntl()
 
-	const share = percentText(intl.formatNumber, candidate.percent, digits)
+	const share = percentText(intl.formatNumber, candidate.percent, 1)
 
 	return (
 		<Stack gap="sm" role="listitem">
@@ -102,11 +92,10 @@ function CandidateRow({
 }
 
 /**
- * The body of each place where a race shows: the national Drawer on a state,
- * the cards of a state, the tab of a race, and the Drawer on a county. It
- * lists the leading candidates, each with the share and a bar, then the
- * percent reporting with the call badge. The place around it adds its title
- * and its link.
+ * The body of each place where a race shows in the Drawer: the office cards of
+ * a state, a race in full, and a county. It lists the leading candidates, each
+ * with the share and a bar, then the percent reporting with the call badge.
+ * The place around it adds its title and its link.
  */
 export function RaceSummary({
 	candidates,
@@ -114,7 +103,6 @@ export function RaceSummary({
 	called,
 	rows = 2,
 	detail = false,
-	digits = 1,
 }: RaceSummaryProps) {
 	const shown = rows === 'all' ? candidates : candidates.slice(0, rows)
 
@@ -122,12 +110,7 @@ export function RaceSummary({
 		<Stack gap="lg">
 			<Stack gap="md" role="list">
 				{shown.map((candidate) => (
-					<CandidateRow
-						key={candidate.name}
-						candidate={candidate}
-						detail={detail}
-						digits={digits}
-					/>
+					<CandidateRow key={candidate.name} candidate={candidate} detail={detail} />
 				))}
 			</Stack>
 

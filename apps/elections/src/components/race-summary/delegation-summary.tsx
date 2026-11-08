@@ -8,10 +8,10 @@ import { barColor, type Delegation } from '../../utilities/race-math'
 import { CallBadge } from './call-badge'
 
 /**
- * The body of each place where the seats of a state show: the national Drawer
- * of the House, the House card of a state, and the House tab. It lists the
- * seats that each party won, each with a bar of its share of the seats, then
- * the seats called with the call badge.
+ * The seats of a state in the Drawer: on the House card of the state overview,
+ * and over the districts of the state. It lists the seats that each party won,
+ * each with a bar of its share of the seats, then the seats called with the
+ * call badge.
  */
 export function DelegationSummary({ delegation }: { delegation: Delegation }) {
 	const { parties, called, total } = delegation

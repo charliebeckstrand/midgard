@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { MapPlat } from 'ui/map'
 import { Stack } from 'ui/structure/stack'
 import type { Contest, Election } from '../../elections/registry'
@@ -61,9 +60,7 @@ function stateRows(
 export function NationalMap({ election, contest, entries, heading, items }: NationalMapProps) {
 	const districts = contest.depth === 'district'
 
-	const byState = useMemo(() => (districts ? delegations(entries) : null), [districts, entries])
-
-	const rows = useMemo(() => stateRows(entries, byState), [entries, byState])
+	const rows = stateRows(entries, districts ? delegations(entries) : null)
 
 	const { step, go } = useDrawerStep(election)
 

@@ -1,1 +1,1 @@
-export { type UncalledRow, UncalledTable } from './uncalled-table'
+export { UncalledTable } from './uncalled-table'

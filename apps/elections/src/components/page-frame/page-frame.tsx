@@ -33,7 +33,7 @@ export function PageBody({ status, children }: PageBodyProps) {
 					<Stack gap="xl">{children}</Stack>
 				</Container>
 
-				<ElectionsFooter {...(status ?? { counting: false, reporting: null, updated: null })} />
+				<ElectionsFooter {...(status ?? { counting: false, updated: null })} />
 			</div>
 		</StackedLayoutBody>
 	)

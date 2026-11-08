@@ -11,11 +11,8 @@ import { Swatch } from 'ui/swatch'
 import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
 import { marginLabel, percentText } from '../../utilities/race-math'
-import { entryName, entryStep, type RaceEntry } from '../../utilities/results'
+import { entryKey, entryName, entryStep, type RaceEntry } from '../../utilities/results'
 import { CollapseCaret } from '../collapse-caret'
-
-/** One race of {@link UncalledTable}. */
-export type UncalledRow = { key: string; entry: RaceEntry }
 
 function ReportingCell({ reporting }: { reporting: number }) {
 	const intl = useIntl()
@@ -29,24 +26,24 @@ function ReportingCell({ reporting }: { reporting: number }) {
 	)
 }
 
-const COLUMNS: GridColumn<UncalledRow>[] = [
+const COLUMNS: GridColumn<RaceEntry>[] = [
 	{
 		id: 'race',
 		title: 'Race',
-		cell: (row) => entryName(row.entry),
-		value: (row) => entryName(row.entry),
+		cell: entryName,
+		value: entryName,
 	},
 	{
 		id: 'office',
 		title: 'Office',
-		cell: (row) => row.entry.contest.label,
-		value: (row) => row.entry.contest.label,
+		cell: (entry) => entry.contest.label,
+		value: (entry) => entry.contest.label,
 	},
 	{
 		id: 'leader',
 		title: 'Leader',
-		cell: (row) => {
-			const leader = row.entry.candidates[0]
+		cell: (entry) => {
+			const leader = entry.candidates[0]
 
 			return leader === undefined ? null : (
 				<Flex as="span" gap="sm">
@@ -55,20 +52,20 @@ const COLUMNS: GridColumn<UncalledRow>[] = [
 				</Flex>
 			)
 		},
-		value: (row) => row.entry.candidates[0]?.name ?? '',
+		value: (entry) => entry.candidates[0]?.name ?? '',
 	},
 	{
 		id: 'lead',
 		title: 'Lead',
 		// The lead sorts by its number, not by its label.
-		cell: (row) => <span className="tabular-nums">{marginLabel(row.entry.candidates)}</span>,
-		value: (row) => row.entry.lead ?? Number.POSITIVE_INFINITY,
+		cell: (entry) => <span className="tabular-nums">{marginLabel(entry.candidates)}</span>,
+		value: (entry) => entry.lead ?? Number.POSITIVE_INFINITY,
 	},
 	{
 		id: 'reporting',
 		title: 'Reporting',
-		cell: (row) => <ReportingCell reporting={row.entry.reporting} />,
-		value: (row) => row.entry.reporting,
+		cell: (entry) => <ReportingCell reporting={entry.reporting} />,
+		value: (entry) => entry.reporting,
 	},
 ]
 
@@ -78,10 +75,10 @@ const COLUMNS: GridColumn<UncalledRow>[] = [
  */
 export function UncalledTable({
 	election,
-	rows,
+	entries,
 }: {
 	election: Election
-	rows: readonly UncalledRow[]
+	entries: readonly RaceEntry[]
 }) {
 	const { go } = useDrawerStep(election)
 
@@ -93,7 +90,7 @@ export function UncalledTable({
 				<Flex as="span" gap="sm" className="text-base/6 font-semibold">
 					Every race not called
 					<Badge variant="soft" color="amber">
-						{rows.length}
+						{entries.length}
 					</Badge>
 					<CollapseCaret />
 				</Flex>
@@ -103,10 +100,10 @@ export function UncalledTable({
 				<div className="pt-4">
 					<Grid
 						columns={COLUMNS}
-						rows={[...rows]}
-						getKey={(row) => row.key}
+						rows={[...entries]}
+						getKey={entryKey}
 						sort={{ value: sort, onValueChange: setSort }}
-						onRowClick={(row) => go(entryStep(row.entry))}
+						onRowClick={(entry) => go(entryStep(entry))}
 					/>
 				</div>
 			</CollapsePanel>

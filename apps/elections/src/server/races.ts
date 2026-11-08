@@ -1,16 +1,21 @@
 import { cacheLife } from 'next/cache'
 import { stateOfKey } from '../elections/us-states'
-import type { NationalRace, Race } from '../types'
+import type { Candidate, NationalRace, Race } from '../types'
+import { isCalled } from '../utilities/race-math'
 import { fetchRace } from './civic'
 import { readNationalRace, readRace } from './civic-race'
 import { atlasCountyNames } from './county-names'
 
 /**
- * Sets the cache life of a read from its count. A count that goes on, or a race
- * that has no winner, reads again each minute. A race that is fully in and
- * called holds for hours.
+ * Sets the cache life of a read from the count of its races. A count that goes
+ * on, or a race that has no winner, reads again each minute. Races that are
+ * fully in and called hold for hours.
  */
-function countLife(counting: boolean): void {
+function countLife(
+	races: readonly { reporting: number; candidates: readonly Candidate[] }[],
+): void {
+	const counting = races.some((race) => race.reporting < 100 || !isCalled(race.candidates))
+
 	cacheLife(counting ? 'minutes' : 'hours')
 }
 
@@ -27,11 +32,7 @@ export async function nationalRace(id: number): Promise<NationalRace> {
 
 	const race = readNationalRace(id, await fetchRace(id))
 
-	countLife(
-		race.regions.some(
-			(region) => region.reporting < 100 || !region.candidates.some((c) => c.winner),
-		),
-	)
+	countLife(race.regions)
 
 	return race
 }
@@ -50,7 +51,7 @@ export async function race(id: number): Promise<Race> {
 
 	const parsed = readRace(id, raw, state.fips, atlasCountyNames)
 
-	countLife(parsed.reporting < 100 || !parsed.candidates.some((candidate) => candidate.winner))
+	countLife([parsed])
 
 	return parsed
 }

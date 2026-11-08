@@ -5,18 +5,9 @@ import { Swatch } from 'ui/swatch'
 import { TimeAgo } from 'ui/time-ago'
 import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
-import type { Candidate } from '../../types'
 import { districtName } from '../../utilities/elections-url'
 import { surname } from '../../utilities/race-math'
-import { entryKey, entryStep, type RaceEntry } from '../../utilities/results'
-
-/** One call of {@link LatestCalls}. */
-export type LatestCall = {
-	entry: RaceEntry
-	winner: Candidate
-	/** When the race was called, as an ISO time. */
-	at: string
-}
+import { entryKey, entryStep, type RaceCall, type RaceEntry } from '../../utilities/results'
 
 /**
  * The race of a call with its office, under the winner: `Virginia Senate`, or
@@ -37,7 +28,7 @@ export function LatestCalls({
 	calls,
 }: {
 	election: Election
-	calls: readonly LatestCall[]
+	calls: readonly RaceCall[]
 }) {
 	const { go } = useDrawerStep(election)
 

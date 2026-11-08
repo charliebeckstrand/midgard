@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { ELECTIONS, findContest, findElection } from '../elections/registry'
 import { stateOfKey, US_STATES } from '../elections/us-states'
 import {
-	districtKey,
 	districtName,
 	districtOfKey,
 	drawerHref,
@@ -113,9 +112,7 @@ describe('the step of the Drawer', () => {
 })
 
 describe('districts', () => {
-	it('reads and writes the civicAPI key of a district', () => {
-		expect(districtKey('ga', '06')).toBe('ga-06')
-
+	it('reads the district of a civicAPI key', () => {
 		expect(districtOfKey('ga-06')).toBe('06')
 
 		expect(districtOfKey('ak-al')).toBe('al')
