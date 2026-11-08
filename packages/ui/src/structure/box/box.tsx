@@ -57,7 +57,9 @@ export type BoxProps<Omitted extends PropertyKey = never> = Omit<BoxBaseProps, O
 /**
  * Static layout primitive for padding, radius, background, and outline tokens.
  * Renders in React Server Components. Every token is explicit; an omitted token
- * applies no style. A `density` step makes the box a density scope.
+ * applies no style. A `density` step makes the box a density scope. With an
+ * `href`, the box renders a link that stays a block, so a linked surface, such
+ * as a Card, draws one frame around its content.
  */
 export function Box({
 	p,
@@ -83,7 +85,12 @@ export function Box({
 			density={density}
 			href={href}
 			render={render}
-			className={cn(k({ p, px, py, radius, bg, outline }).base, className)}
+			className={cn(
+				k({ p, px, py, radius, bg, outline }).base,
+				// A link is inline, but a box is a block.
+				href !== undefined && 'block',
+				className,
+			)}
 			{...props}
 		>
 			{children}

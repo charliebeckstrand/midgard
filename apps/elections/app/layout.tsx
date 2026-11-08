@@ -14,7 +14,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		// The server writes the stored settings of the reader on `<html>`
 		// (`rootMarks`), so its classes differ from the markup of React.
 		<html lang="en" suppressHydrationWarning>
-			<body className="min-h-dvh bg-white text-zinc-950 antialiased dark:bg-zinc-900 dark:text-white">
+			{/* `--surface-fill` names the page ground, so the sticky grid header and the
+			    chart strokes paint the same color as the page. */}
+			<body className="min-h-dvh bg-white text-zinc-950 antialiased [--surface-fill:var(--color-white)] dark:bg-zinc-900 dark:text-white dark:[--surface-fill:var(--color-zinc-900)]">
 				<Providers>{children}</Providers>
 			</body>
 		</html>

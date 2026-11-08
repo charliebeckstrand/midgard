@@ -12,7 +12,7 @@ export default function CenterContent() {
 			]}
 			majority={218}
 		>
-			<Stat>
+			<Stat className="items-center">
 				<StatLabel>To win</StatLabel>
 				<StatValue>218</StatValue>
 			</Stat>
