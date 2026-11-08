@@ -106,17 +106,18 @@ function CardFrame({
 }
 
 /**
- * A card of one close race: the race with its office, the two leaders to two
- * decimals, a head-to-head bar with a mark at 50%, and the percent reporting
- * with the call badge.
+ * A card of one close race: the race, with its office badge at the end of the
+ * row away from the names of the leaders, the two leaders to two decimals, a
+ * head-to-head bar with a mark at 50%, and the percent reporting with the call
+ * badge.
  */
 export function RaceCard({ entry, office = false, href, onPick }: RaceCardProps) {
 	const { leader, runnerUp } = leaders(entry.candidates)
 
 	return (
 		<CardFrame href={href} onPick={onPick}>
-			<Flex wrap gap="sm">
-				<span className="font-semibold">{entryName(entry)}</span>
+			<Flex justify="between" gap="sm">
+				<span className="min-w-0 font-semibold">{entryName(entry)}</span>
 
 				{office ? <Badge variant="soft">{entry.contest.label}</Badge> : null}
 			</Flex>

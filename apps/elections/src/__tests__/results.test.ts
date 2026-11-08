@@ -8,7 +8,7 @@ import {
 	delegations,
 	delegationWinner,
 	entryName,
-	majorityParty,
+	officeName,
 	raceWinner,
 	readEntries,
 	seatGroups,
@@ -37,6 +37,12 @@ describe('the races of a contest', () => {
 
 		expect(ga06 && entryName(ga06)).toBe('Georgia 6th District')
 
+		expect(ga06 && officeName(ga06)).toBe('House - 6th District')
+
+		const ga = senateEntries.find((entry) => entry.state.key === 'ga')
+
+		expect(ga && officeName(ga)).toBe('Georgia Senate')
+
 		expect(senateEntries.every((entry) => entry.district === null)).toBe(true)
 	})
 
@@ -63,14 +69,6 @@ describe('the seat chart', () => {
 			['Not called', 22],
 			['Republicans', 161],
 		])
-	})
-
-	it('names the party that holds the majority, and none short of it', () => {
-		const democrats = { party: 'Democratic', name: 'Democrats', slot: 'blue' as const, seats: 218 }
-
-		expect(majorityParty(houseContest, [democrats])?.name).toBe('Democrats')
-
-		expect(majorityParty(houseContest, [{ ...democrats, seats: 217 }])).toBeNull()
 	})
 })
 

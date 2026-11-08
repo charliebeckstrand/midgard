@@ -1,13 +1,12 @@
 'use client'
 
-import { Badge } from 'ui/badge'
 import { Link } from 'ui/link'
 import { Flex } from 'ui/structure/flex'
 import { Swatch } from 'ui/swatch'
 import { TimeAgo } from 'ui/time-ago'
 import type { Candidate } from '../../types'
 import { surname } from '../../utilities/race-math'
-import { entryName, type RaceEntry } from '../../utilities/results'
+import { entryName, officeName, type RaceEntry } from '../../utilities/results'
 
 /** One call of {@link LatestCalls}. */
 export type LatestCall = {
@@ -19,7 +18,7 @@ export type LatestCall = {
 	href: string
 }
 
-/** The newest calls, newest first: the winner, the race with its office, and how long ago. */
+/** The newest calls, newest first: the winner, the race, the office under it, and how long ago. */
 export function LatestCalls({ calls }: { calls: readonly LatestCall[] }) {
 	if (calls.length === 0) {
 		return <p className="text-sm text-zinc-500 dark:text-zinc-400">No race called yet.</p>
@@ -35,12 +34,12 @@ export function LatestCalls({ calls }: { calls: readonly LatestCall[] }) {
 					<Flex gap="md">
 						<Swatch color={call.winner.slot} />
 
-						<Flex as="span" wrap gap="sm" flex="1" className="min-w-0">
+						<Flex direction="col" align="start" flex="1" className="min-w-0">
 							<Link href={call.href} className="font-medium hover:underline">
 								{surname(call.winner.name)} wins {entryName(call.entry)}
 							</Link>
 
-							<Badge variant="soft">{call.entry.contest.label}</Badge>
+							<span className="text-zinc-500 dark:text-zinc-400">{officeName(call.entry)}</span>
 						</Flex>
 
 						<TimeAgo value={call.at} className="shrink-0 text-zinc-500 dark:text-zinc-400" />

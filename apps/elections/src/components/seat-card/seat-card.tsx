@@ -9,7 +9,7 @@ import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import type { Contest } from '../../elections/registry'
 import type { PartySeats } from '../../types'
-import { majorityParty, seatGroups } from '../../utilities/results'
+import { seatGroups } from '../../utilities/results'
 
 /** Props for {@link SeatCard}. */
 export type SeatCardProps = {
@@ -20,33 +20,14 @@ export type SeatCardProps = {
 	href: string
 }
 
-/** The words in the hole of the chart: the seats to win until a party has them, then the control. */
-function HoleText({ contest, parties }: { contest: Contest; parties: readonly PartySeats[] }) {
-	const held = parties.reduce((sum, party) => sum + party.seats, 0)
-
-	const open = Math.max(0, contest.seats - held)
-
-	const control = majorityParty(contest, parties)
-
+/** The words in the hole of the chart: the seats that a party needs to win the chamber. */
+function HoleText({ majority }: { majority: number }) {
 	// The hole is small, so its words stay short and break onto two lines.
-	const headline =
-		control !== null
-			? [control.name, 'win control']
-			: contest.majority !== undefined
-				? [String(contest.majority), 'to win']
-				: open > 0
-					? [String(open), 'not called']
-					: ['All seats', 'called']
-
 	return (
-		<div className="flex flex-col items-center pb-0.5 text-center text-xs/4">
-			<span className="font-semibold">{headline[0]}</span>
+		<div className="flex flex-col items-center pb-0.5 text-center text-xs/4 font-semibold">
+			<span>{majority}</span>
 
-			<span className="font-semibold">{headline[1]}</span>
-
-			{open > 0 && control === null && contest.majority !== undefined ? (
-				<span className="text-zinc-500 dark:text-zinc-400">{open} not called</span>
-			) : null}
+			<span>to win</span>
 		</div>
 	)
 }
@@ -65,9 +46,10 @@ function SeatCount({ party }: { party: PartySeats | undefined }) {
 }
 
 /**
- * The balance of power of one office: a hemicycle of its seats, a dashed line
- * at the majority, and the seats of the two largest sides as large counts. The
- * menu of the chart sits at the end of the title row.
+ * The balance of power of one office: a hemicycle of its seats, and the seats
+ * of the two largest sides as large counts. An office with a majority gets a
+ * dashed line at it and the seats to win in the hole. The menu of the chart
+ * sits at the end of the title row.
  */
 export function SeatCard({ contest, parties, href }: SeatCardProps) {
 	const blue = parties.find((party) => party.slot === 'blue')
@@ -98,7 +80,7 @@ export function SeatCard({ contest, parties, href }: SeatCardProps) {
 						contextMenu={{ button: true }}
 						height={220}
 					>
-						<HoleText contest={contest} parties={parties} />
+						{contest.majority === undefined ? null : <HoleText majority={contest.majority} />}
 					</SeatChart>
 
 					<Flex align="end" justify="between" gap="lg">

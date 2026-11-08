@@ -65,6 +65,13 @@ export function entryName(entry: Pick<RaceEntry, 'state' | 'district'>): string 
 		: `${entry.state.name} ${districtName(entry.district)}`
 }
 
+/** The office of a race with its place: `Georgia Senate`, or `House - 6th District`. */
+export function officeName(entry: Pick<RaceEntry, 'contest' | 'state' | 'district'>): string {
+	return entry.district === null
+		? `${entry.state.name} ${entry.contest.label}`
+		: `${entry.contest.label} - ${districtName(entry.district)}`
+}
+
 /** A key of a race that is unique in an election, such as `senate:ga` or `house:ga-06`. */
 export function entryKey(entry: RaceEntry): string {
 	const region = entry.district === null ? entry.state.key : `${entry.state.key}-${entry.district}`
@@ -118,15 +125,6 @@ export function seatGroups(contest: Contest, parties: readonly PartySeats[]): Se
 		groups.push({ label: 'Not called', seats: open, slot: 'zinc', hollow: true, order: 2 })
 
 	return groups.sort((a, b) => a.order - b.order).map(({ order: _order, ...group }) => group)
-}
-
-/** The party that holds the majority of a chamber, or `null` while no party has it. */
-export function majorityParty(contest: Contest, parties: readonly PartySeats[]): PartySeats | null {
-	const majority = contest.majority
-
-	if (majority === undefined) return null
-
-	return parties.find((party) => party.seats >= majority) ?? null
 }
 
 /** The seats of each state of a district contest, by state key. */
