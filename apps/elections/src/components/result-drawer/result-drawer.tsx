@@ -74,8 +74,8 @@ function CrumbLink({ crumb, current }: { crumb: TrailCrumb; current: boolean }) 
  * A crumb with a menu. A crumb that leads back keeps its label as the link, and
  * a chevron after it opens the menu, as the election crumb of the header. A
  * crumb that leads nowhere is one button of its label and its chevron, so a
- * press on any part of it opens the menu. The chevron is at the same place in
- * the two forms.
+ * press on any part of it opens the menu. The chevron is within a pixel of its
+ * place in the other form.
  */
 function MenuCrumb({
 	crumb,
@@ -101,19 +101,21 @@ function MenuCrumb({
 			<Menu placement="bottom-start">
 				<MenuTrigger>
 					{/* The children of a button are presentational, so the button carries the
-					    current mark. The gap is the padding of the chevron button of the other
-					    form, and the chevron takes the muted color of the trail, as there. */}
+					    current mark. The chevron takes the muted color of the trail, as in the
+					    other form. */}
 					<button
 						type="button"
 						aria-current={current ? 'page' : undefined}
-						className="group inline-flex min-w-0 max-w-full cursor-pointer items-center gap-1.25 rounded-sm text-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+						className="group inline-flex min-w-0 max-w-full cursor-pointer rounded-sm text-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
 					>
-						<CrumbLink crumb={crumb} current={current} />
+						<Flex as="span" align="center" gap="xs" className="min-w-0">
+							<CrumbLink crumb={crumb} current={current} />
 
-						<Icon
-							icon={<ChevronDown />}
-							className="text-zinc-600 group-hover:text-zinc-950 dark:text-zinc-400 dark:group-hover:text-white"
-						/>
+							<Icon
+								icon={<ChevronDown />}
+								className="text-zinc-600 group-hover:text-zinc-950 dark:text-zinc-400 dark:group-hover:text-white"
+							/>
+						</Flex>
 					</button>
 				</MenuTrigger>
 
