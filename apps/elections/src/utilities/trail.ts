@@ -1,12 +1,12 @@
 import { ELECTIONS, type Election, electionPath, findElections } from '../elections/registry'
-import type { UsState } from '../elections/us-states'
-import { districtName, type RaceLocation, racePath } from './elections-url'
+import { OVERVIEW, officePath } from './elections-url'
 
 /**
- * The trail of a page, which is its title: the year, the country, the
- * election, the state, and the district, such as
- * `2026 › United States › Midterms › Georgia › 6th District`. The office is
- * not a crumb, because the office switch under the title names it.
+ * The trail of a page, which is its title: the list of every election, the
+ * year, the country, and the election, such as
+ * `Elections › 2026 › United States › Midterms`. The office is not a crumb,
+ * because the office switch under the title names it. A state is not a crumb,
+ * because the Drawer shows it.
  */
 
 /** One election of the menu of the election crumb. */
@@ -60,30 +60,17 @@ function electionMenu(election: Election): ElectionMenuItem[] {
 	}))
 }
 
-/** The trail of a page of an election, from the list of every election down to the district. */
-export function electionCrumbs(election: Election, location: RaceLocation): Crumb[] {
+/** The trail of a page of an election, from the list of every election down to the election. */
+export function electionCrumbs(election: Election): Crumb[] {
 	const year = String(election.year)
 
-	const crumbs: Crumb[] = [
+	return [
 		...countryCrumbs(year, election.countryName).map((crumb) => ({
 			...crumb,
 			href: crumb.href ?? `/${year}/${election.country}`,
 		})),
 		{ label: election.name, href: electionPath(election), menu: electionMenu(election) },
 	]
-
-	if (location.region === null) return crumbs
-
-	crumbs.push({
-		label: location.region.name,
-		href: racePath(election, { region: location.region }),
-	})
-
-	if (location.district !== null && location.contest !== null) {
-		crumbs.push({ label: districtName(location.district) })
-	}
-
-	return crumbs
 }
 
 /** The elections of the registry in the order of the list: live ones first, then upcoming, then past. */
@@ -97,38 +84,33 @@ export function listedElections(elections: readonly Election[] = ELECTIONS): Ele
 
 /** One item of the office switch: the overview or an office. */
 export type OfficeItem = {
-	/** The value of the item: `overview`, or the slug of an office. */
+	/** The value of the item: {@link OVERVIEW}, or the slug of an office. */
 	value: string
 	label: string
+	/** The page of the item. */
 	href: string
-	/** The office has no race in the state, so the item takes no click. */
+	/** The office has no race in the state, so the item takes no pick. */
 	disabled: boolean
 }
 
-/** The value of the overview in the office switch. */
-export const OVERVIEW = 'overview'
-
 /**
- * The items of the office switch of a page: the overview, then each office.
- * On a state page, an office with no race in the state stays in the row,
- * disabled, so the row keeps its shape from state to state.
+ * The items of the office switch: the overview, then each office. The page
+ * switch leads to the page of each, and the switch of the Drawer moves the
+ * Drawer. In the Drawer, an office with no race in the state stays in the list,
+ * disabled, so the list keeps its shape from state to state.
  *
  * @param election - The election of the page.
- * @param region - The state of a state page, or `null` on a national page.
- * @param offices - The slugs of the offices with a race in the state. Unused on a national page.
+ * @param offices - The slugs of the offices with a race in the state of the
+ * Drawer. Omit it for the switch of a page, where each office has races.
  */
-export function officeItems(
-	election: Election,
-	region: UsState | null,
-	offices: ReadonlySet<string> = new Set(),
-): OfficeItem[] {
+export function officeItems(election: Election, offices?: ReadonlySet<string>): OfficeItem[] {
 	return [
-		{ value: OVERVIEW, label: 'Overview', href: racePath(election, { region }), disabled: false },
+		{ value: OVERVIEW, label: 'Overview', href: officePath(election, null), disabled: false },
 		...election.contests.map((contest) => ({
 			value: contest.slug,
 			label: contest.label,
-			href: racePath(election, { region, contest }),
-			disabled: region !== null && !offices.has(contest.slug),
+			href: officePath(election, contest),
+			disabled: offices !== undefined && !offices.has(contest.slug),
 		})),
 	]
 }

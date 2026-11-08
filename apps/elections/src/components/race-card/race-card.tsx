@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react'
 import { Card } from 'ui/card'
-import { Link } from 'ui/link'
 import { useIntl } from 'ui/primitives/intl'
 import { ProgressBar } from 'ui/progress'
 import { Columns } from 'ui/structure/columns'
@@ -19,13 +18,14 @@ export type RaceCardProps = {
 	entry: RaceEntry
 	/** Shows the office under the name, for a list of races of many offices. */
 	office?: boolean
-	/** Where the card leads. */
-	href?: string
-	/** Fires when the card is picked, for a card that opens a Drawer in place of a link. */
+	/** Fires when the card is picked. It opens the race in the Drawer. */
 	onPick?: () => void
 }
 
-/** One leader of a head-to-head, with the share to two decimals. */
+/**
+ * One leader of a head-to-head, with the share to two decimals. The winner mark
+ * follows the name, as in the race summary.
+ */
 function LeaderRow({ candidate }: { candidate: Candidate }) {
 	const intl = useIntl()
 
@@ -33,9 +33,11 @@ function LeaderRow({ candidate }: { candidate: Candidate }) {
 		<Flex gap="sm" className="text-sm/6">
 			<Swatch color={candidate.slot} />
 
-			<span className="min-w-0 flex-1 truncate">{candidate.name}</span>
+			<Flex gap="sm" flex="1" className="min-w-0">
+				<span className="truncate">{candidate.name}</span>
 
-			{candidate.winner ? <WinnerMark /> : null}
+				{candidate.winner ? <WinnerMark /> : null}
+			</Flex>
 
 			<span className="font-semibold tabular-nums">
 				{percentText(intl.formatNumber, candidate.percent, 2)}
@@ -66,12 +68,8 @@ function HeadToHead({ leader, runnerUp }: { leader: Candidate; runnerUp: Candida
 	)
 }
 
-/** The frame of a card: a link, a button, or a plain card. */
-function CardFrame({
-	href,
-	onPick,
-	children,
-}: Omit<RaceCardProps, 'entry'> & { children: ReactNode }) {
+/** The frame of a card: a button, or a plain card. */
+function CardFrame({ onPick, children }: Omit<RaceCardProps, 'entry'> & { children: ReactNode }) {
 	const frame =
 		'h-full text-start transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-blue-500'
 
@@ -80,14 +78,6 @@ function CardFrame({
 			{children}
 		</Stack>
 	)
-
-	if (href !== undefined) {
-		return (
-			<Card href={href} render={<Link href={href} />} className={frame}>
-				{body}
-			</Card>
-		)
-	}
 
 	if (onPick !== undefined) {
 		return (
@@ -109,11 +99,11 @@ function CardFrame({
  * leaders to two decimals, a head-to-head bar with a mark at 50%, and the
  * percent reporting with the call badge.
  */
-export function RaceCard({ entry, office = false, href, onPick }: RaceCardProps) {
+export function RaceCard({ entry, office = false, onPick }: RaceCardProps) {
 	const { leader, runnerUp } = leaders(entry.candidates)
 
 	return (
-		<CardFrame href={href} onPick={onPick}>
+		<CardFrame onPick={onPick}>
 			<div>
 				<div className="font-semibold">{entryName(entry)}</div>
 

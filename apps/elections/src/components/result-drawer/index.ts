@@ -1,6 +1,7 @@
 export {
-	type DrawerStep,
+	type CrumbChoice,
 	type DrawerView,
 	ResultDrawer,
 	type ResultDrawerProps,
+	type TrailCrumb,
 } from './result-drawer'

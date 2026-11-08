@@ -59,13 +59,16 @@ function CandidateRow({
 					<Swatch color={candidate.slot} />
 				)}
 
-				<Flex wrap gap="sm" flex="1" className="min-w-0">
-					<span className="truncate font-medium">{candidate.name}</span>
+				{/* The party always sits under the name, so each row has the same shape. */}
+				<Stack gap="xs" flex="1" className="min-w-0">
+					<Flex gap="sm">
+						<span className="truncate font-medium">{candidate.name}</span>
 
-					{candidate.winner ? <WinnerMark /> : null}
+						{candidate.winner ? <WinnerMark /> : null}
+					</Flex>
 
 					{detail ? (
-						<>
+						<Flex wrap gap="sm">
 							<Badge variant="soft" color={barColor(candidate.slot)}>
 								{candidate.party}
 							</Badge>
@@ -73,9 +76,9 @@ function CandidateRow({
 							{candidate.incumbent ? (
 								<span className="text-sm text-zinc-500 dark:text-zinc-400">Incumbent</span>
 							) : null}
-						</>
+						</Flex>
 					) : null}
-				</Flex>
+				</Stack>
 
 				<Flex align="baseline" gap="md" className="shrink-0 tabular-nums">
 					{detail ? (
