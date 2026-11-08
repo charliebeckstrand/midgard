@@ -55,10 +55,11 @@ contest (`chamber` or `executive`), never the name of an office.
 | `/2026/us` | The elections of a country in a year |
 | `/2026/us/midterms` | The overview: the balance of power, the closest races, and the latest calls |
 | `/2026/us/midterms/senate` | The national map of an office |
-| `/2026/us/midterms/ga` | The Overview tab of a state |
-| `/2026/us/midterms/ga/senate` | The tab of an office in a state, with its counties |
-| `/2026/us/midterms/ga/house/06` | The race of one district |
 
-`?region=ga` on a national map opens the Drawer on a state, and `?county=13121`
-on a race opens it on a county. `src/utilities/elections-url.ts` reads and
-writes the paths, and `src/hooks/use-drawer-param.ts` the params.
+The Drawer shows a state, its offices, its districts, and its counties over
+each page of an election. Its step is in the search params:
+`?region=ga` opens the overview of a state, `&office=senate` its race,
+`&district=06` a district of the House, and `&county=13121` a county.
+
+`src/utilities/elections-url.ts` reads and writes the paths and the params, and
+`src/hooks/use-drawer-step.ts` moves the Drawer.
