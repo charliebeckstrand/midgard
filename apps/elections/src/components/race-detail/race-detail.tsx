@@ -1,18 +1,17 @@
 'use client'
 
-import { useQueryClient } from '@tanstack/react-query'
-import { Activity, lazy, Suspense, useEffect } from 'react'
+import { Activity, lazy, Suspense } from 'react'
 import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import { Placeholder } from 'ui/placeholder'
 import { useIntl } from 'ui/primitives/intl'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
-import { countyShapesQuery } from '../../queries/county-queries'
 import type { Race } from '../../types'
 import { isCalled, percentText } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
 import { RaceSummary } from '../race-summary'
+import { loadCountyMap } from './load-county-map'
 
 /** The view of a race: its overview, or its counties on a map. */
 export type RaceView = 'overview' | 'counties'
@@ -30,30 +29,8 @@ export type RaceDetailProps = {
 	onViewChange: (view: RaceView) => void
 }
 
-/** The chunk of the county map. The map module is a large part of the code, so no page loads it. */
-const loadCountyMap = () => import('./county-map')
-
 /** The county map, from its chunk. */
 const CountyMap = lazy(() => loadCountyMap().then((module) => ({ default: module.CountyMap })))
-
-/**
- * Loads the county map of a state in the background while the Drawer shows the
- * state: the chunk of the map and the county shapes of the state. A race of the
- * state then draws its map with no wait for the network.
- *
- * @param state - The lowercase postal code of the state, or `null` for a closed Drawer.
- */
-export function usePreloadCountyMap(state: string | null) {
-	const queryClient = useQueryClient()
-
-	useEffect(() => {
-		if (state === null) return
-
-		void loadCountyMap()
-
-		void queryClient.prefetchQuery(countyShapesQuery(state))
-	}, [queryClient, state])
-}
 
 /** The still shape of the county map while its code loads. */
 const MAP_PLACEHOLDER = (
