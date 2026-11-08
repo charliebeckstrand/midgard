@@ -31,26 +31,6 @@ export function lead(candidates: readonly Candidate[]): number | null {
 	return leader.percent - runnerUp.percent
 }
 
-/**
- * The lead as a signed value for a map of two parties: negative for a
- * Democratic lead and positive for a Republican one. `null` where the race is
- * unopposed or another party leads, because a scale from blue to red has no
- * place for it.
- */
-export function signedMargin(candidates: readonly Candidate[]): number | null {
-	const points = lead(candidates)
-
-	const slot = candidates[0]?.slot
-
-	if (points === null) return null
-
-	if (slot === 'blue') return -points
-
-	if (slot === 'red') return points
-
-	return null
-}
-
 /** The letter of a party in a margin, such as `D` for Democratic. */
 export function partyLetter(party: string): string {
 	return party.charAt(0).toUpperCase()
@@ -68,27 +48,6 @@ export function marginLabel(candidates: readonly Candidate[], digits = 1): strin
 	if (points === null || leader === undefined) return 'Unopposed'
 
 	return `${partyLetter(leader.party)}+${points.toFixed(digits)}`
-}
-
-/**
- * A signed margin of a two-party map as text, to one decimal at most:
- * `D+12.4`, `R+8`, or `Even`. The ends of the range bar read `D+35` and `R+35`.
- */
-export function signedLabel(value: number): string {
-	const points = Math.round(Math.abs(value) * 10) / 10
-
-	if (points === 0) return 'Even'
-
-	return `${value < 0 ? 'D' : 'R'}+${points}`
-}
-
-/** A signed seat share of a two-party map as text: `-50` reads `All D`, `10` reads `60% R`. */
-export function shareLabel(value: number): string {
-	if (value === 0) return 'Even'
-
-	if (Math.abs(value) >= 50) return `All ${value < 0 ? 'D' : 'R'}`
-
-	return `${Math.round(50 + Math.abs(value))}% ${value < 0 ? 'D' : 'R'}`
 }
 
 /** The seats of a delegation that each party won, and the seats not called yet. */
@@ -124,19 +83,6 @@ export function delegation(districts: readonly (readonly Candidate[])[]): Delega
 		called: parties.reduce((sum, party) => sum + party.seats, 0),
 		total: districts.length,
 	}
-}
-
-/**
- * The seat share of a delegation as a signed value for a map of two parties:
- * `-50` when the Democrats won every called seat, `50` when the Republicans
- * did, and `0` for an even split. `null` with no called seat.
- */
-export function signedShare(state: Delegation): number | null {
-	if (state.called === 0) return null
-
-	const seats = (party: string) => state.parties.find((entry) => entry.party === party)?.seats ?? 0
-
-	return ((seats('Republican') - seats('Democratic')) / state.called) * 50
 }
 
 /** The fill of a party on a bar: its slot where a bar has one, and zinc for any other. */

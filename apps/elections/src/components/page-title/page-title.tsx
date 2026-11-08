@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { Badge } from 'ui/badge'
 import { Heading } from 'ui/heading'
 import { Flex } from 'ui/structure/flex'
@@ -14,16 +13,13 @@ export type PageTitleProps = {
 	items: readonly OfficeItem[]
 	/** The value of the current item of the office switch. */
 	value: string
-	/** A control at the end of the row of the office switch, such as the color of a map. */
-	end?: ReactNode
 }
 
 /**
  * The title row of a page: the heading, and under it the office switch at
- * every width. A control in `end` sits at the end of the row of the switch,
- * and under the switch on a phone.
+ * every width.
  */
-export function PageTitle({ heading, special = false, items, value, end }: PageTitleProps) {
+export function PageTitle({ heading, special = false, items, value }: PageTitleProps) {
 	return (
 		<Stack gap="lg">
 			<Flex wrap gap="sm">
@@ -32,20 +28,7 @@ export function PageTitle({ heading, special = false, items, value, end }: PageT
 				{special ? <Badge variant="soft">Special</Badge> : null}
 			</Flex>
 
-			{end === undefined ? (
-				<OfficeSwitch items={items} value={value} />
-			) : (
-				<Flex
-					direction={{ initial: 'col', sm: 'row' }}
-					align={{ initial: 'start', sm: 'center' }}
-					justify="between"
-					gap="md"
-				>
-					<OfficeSwitch items={items} value={value} />
-
-					{end}
-				</Flex>
-			)}
+			<OfficeSwitch items={items} value={value} />
 		</Stack>
 	)
 }
