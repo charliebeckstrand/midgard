@@ -12,6 +12,7 @@ import {
 	categoryLegendId,
 	type MapCategoryMeta,
 	paintColor,
+	paintStripes,
 	paintText,
 } from '../map-region/category'
 import type { MapSwatchShape } from '../types'
@@ -29,6 +30,8 @@ type MapLegendSwatch = {
 	className?: string
 	/** Inline CSS color carrying it instead (numeric choropleth bins). */
 	color?: string
+	/** currentColor class of the stripes over the fill (a striped category). */
+	stripes?: string
 }
 
 /** One legend entry: a category, an overlay, or a merged group of them. @internal */
@@ -107,7 +110,12 @@ export function legendItems(
 		// value. Both keys are optional on the swatch, so each branch simply answers
 		// `undefined` rather than the pair being spread in conditionally.
 		swatches: [
-			{ shape: 'rect' as const, className: paintText(meta.paint), color: paintColor(meta.paint) },
+			{
+				shape: 'rect' as const,
+				className: paintText(meta.paint),
+				color: paintColor(meta.paint),
+				stripes: paintStripes(meta.paint),
+			},
 		],
 	}))
 

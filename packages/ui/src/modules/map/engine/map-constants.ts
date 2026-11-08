@@ -12,6 +12,13 @@ import type { MapPointShape, MapSwatchShape } from './types'
 export const REGION_STROKE_WIDTH = 1
 
 /**
+ * The tile edge of a striped region, in device pixels: one band of each color,
+ * three pixels wide each. The region layer scales the tile by the zoom scale,
+ * so the bands keep this width at every zoom. @internal
+ */
+export const STRIPE_TILE = 6
+
+/**
  * The selected region's outline width, a step over the boundary seam. The ring
  * therefore reads as a mark on the region, rather than a heavier shared border.
  * @internal

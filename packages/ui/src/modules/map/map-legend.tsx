@@ -1,7 +1,6 @@
 'use client'
 
 import { memo, useRef } from 'react'
-import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
 import { cn } from '../../core/cn'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
@@ -12,9 +11,9 @@ import {
 	type LegendEmphasis,
 	useLegendEmphasis,
 } from '../chart/engine/chart-legend/use-legend-emphasis'
-import { readoutSwatchShapes } from '../chart/engine/chart-readout-card'
 import type { MapLegendItem } from './engine/map-legend/items'
 import { mapMessages } from './map-messages'
+import { MapSwatch } from './map-swatch'
 
 /** Props for {@link MapLegendEntry}. @internal */
 type MapLegendEntryProps = {
@@ -70,12 +69,13 @@ const MapLegendEntry = memo(function MapLegendEntry({
 				// where a zone and the mark inside it merged into one place.
 				<span data-slot="map-legend-keys" className="flex shrink-0 items-center gap-1">
 					{item.swatches.map((swatch) => (
-						<Swatch
+						<MapSwatch
 							key={swatch.shape}
-							shape={readoutSwatchShapes[swatch.shape]}
-							color={swatch.className}
-							style={swatch.color ? { color: swatch.color } : undefined}
-							className={cn(off && 'opacity-40')}
+							shape={swatch.shape}
+							className={swatch.className}
+							color={swatch.color}
+							stripes={swatch.stripes}
+							swatchClassName={cn(off && 'opacity-40')}
 						/>
 					))}
 				</span>

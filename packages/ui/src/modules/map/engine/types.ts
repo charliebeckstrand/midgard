@@ -139,9 +139,9 @@ export type MapTopology = {
 export type MapGeography = MapTopology | MapFeatureCollection
 
 /**
- * One region category: the data value it matches, with optional legend text
- * and slot-color override. Omitted entirely, categories derive from the data
- * in first-appearance order.
+ * One region category: the data value it matches, with optional legend text,
+ * a slot-color override, a soft tone, and stripes of a second color. Omitted
+ * entirely, categories derive from the data in first-appearance order.
  */
 export type MapCategory = {
 	/** The value of `categoryKey` this category collects. */
@@ -153,6 +153,21 @@ export type MapCategory = {
 	 * fixed order, so a category keeps its color when siblings toggle.
 	 */
 	color?: MapSeriesColor
+	/**
+	 * The step of the color. `'soft'` paints the region and its swatch in a
+	 * lighter step of the same hue, so a category can stand beside its full
+	 * tone: a lead that is not called yet beside a win, for example. The soft
+	 * tone also applies to `stripes`.
+	 *
+	 * @defaultValue 'solid'
+	 */
+	tone?: 'solid' | 'soft'
+	/**
+	 * A second color. The region then draws in diagonal stripes of `color` and
+	 * this color, and its legend and tooltip swatches show the same stripes:
+	 * a state whose seats split between two parties, for example.
+	 */
+	stripes?: MapSeriesColor
 }
 
 /**

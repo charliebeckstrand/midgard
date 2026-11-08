@@ -12,7 +12,7 @@ The subsections below describe the module as it is now. The [browser benchmarks 
 
 ### Color modes and the data union
 
-Both color modes ship. Categorical mode colors each region from a `categoryKey` value, in a fixed slot order. Numeric mode (the choropleth) bins a `valueKey` along a `colorRange` ramp, by equal interval or by quantile. `MapRangeLegend` paints the continuous bar beside the plot, and `ChoroplethChart` wraps the numeric mode as a chart-family component. Both modes emit one shape of meta and index, so the regions, the legend, the tooltip, and the table read either mode unchanged.
+Both color modes ship. Categorical mode colors each region from a `categoryKey` value, in a fixed slot order. A category can take the soft tone of its slot (`tone: 'soft'`), or stripes of a second slot (`stripes`), which a pattern in the region layer draws. Numeric mode (the choropleth) bins a `valueKey` along a `colorRange` ramp, by equal interval or by quantile. `MapRangeLegend` paints the continuous bar beside the plot, and `ChoroplethChart` wraps the numeric mode as a chart-family component. Both modes emit one shape of meta and index, so the regions, the legend, the tooltip, and the table read either mode unchanged.
 
 `MapPlatProps` makes the fields of the two modes mutually exclusive. The plat gives the readout its props whole and does not rebuild them, so the exclusion reaches the join intact. `ChoroplethChart` reaches that union through a constructor, not a cast. It states its scale in a `series`, and `series[0]` can be absent under `noUncheckedIndexedAccess`. Each field that it reads one at a time therefore widens by `undefined`, and an object built from those fields matches no branch.
 
