@@ -1,0 +1,171 @@
+{
+	"election_name": "Georgia US House 6",
+	"election_type": "House of Representatives",
+	"election_scope": "General",
+	"election_date": "2026-11-03T05:00:00.000Z",
+	"country": "US",
+	"province": "GA",
+	"district": "GA-06",
+	"municipality": null,
+	"polls_open": "2026-11-03T12:00:00.000Z",
+	"polls_close": "2026-11-04T00:00:00.000Z",
+	"is_disputed": false,
+	"has_map": true,
+	"registered_voters": null,
+	"percent_reporting": 90.5,
+	"test_data": false,
+	"last_updated": "2026-11-08T05:05:27.330Z",
+	"round": 1,
+	"candidates": [
+		{
+			"name": "Lucy McBath",
+			"candidate_id": 220181,
+			"party": "Democratic",
+			"incumbent": true,
+			"major_candidate": true,
+			"winner": true,
+			"advanced": false,
+			"color": "#4874a3",
+			"votes": 263803,
+			"percent": 80.89
+		},
+		{
+			"name": "Kevin Martin",
+			"candidate_id": 220182,
+			"party": "Republican",
+			"incumbent": false,
+			"major_candidate": true,
+			"winner": false,
+			"advanced": false,
+			"color": "#c6606b",
+			"votes": 62335,
+			"percent": 19.11
+		}
+	],
+	"region_results": {
+		"cobb": {
+			"name": "Cobb",
+			"type": "County",
+			"fips": "13067",
+			"fill": "#4874a3",
+			"percent_reporting": 92.7,
+			"candidates": [
+				{
+					"name": "Lucy McBath",
+					"party": "Democratic",
+					"votes": 92383,
+					"percent": 78.92,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": true,
+					"major_candidate": true
+				},
+				{
+					"name": "Kevin Martin",
+					"party": "Republican",
+					"votes": 24674,
+					"percent": 21.08,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				}
+			]
+		},
+		"douglas": {
+			"name": "Douglas",
+			"type": "County",
+			"fips": "13097",
+			"fill": "#4874a3",
+			"percent_reporting": 91.9,
+			"candidates": [
+				{
+					"name": "Lucy McBath",
+					"party": "Democratic",
+					"votes": 33799,
+					"percent": 82.64,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": true,
+					"major_candidate": true
+				},
+				{
+					"name": "Kevin Martin",
+					"party": "Republican",
+					"votes": 7099,
+					"percent": 17.36,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				}
+			]
+		},
+		"fayette": {
+			"name": "Fayette",
+			"type": "County",
+			"fips": "13113",
+			"fill": "#4874a3",
+			"percent_reporting": 95.2,
+			"candidates": [
+				{
+					"name": "Lucy McBath",
+					"party": "Democratic",
+					"votes": 6982,
+					"percent": 76.31,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": true,
+					"major_candidate": true
+				},
+				{
+					"name": "Kevin Martin",
+					"party": "Republican",
+					"votes": 2167,
+					"percent": 23.69,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				}
+			]
+		},
+		"fulton": {
+			"name": "Fulton",
+			"type": "County",
+			"fips": "13121",
+			"fill": "#4874a3",
+			"percent_reporting": 88.5,
+			"candidates": [
+				{
+					"name": "Lucy McBath",
+					"party": "Democratic",
+					"votes": 130639,
+					"percent": 82.15,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": true,
+					"major_candidate": true
+				},
+				{
+					"name": "Kevin Martin",
+					"party": "Republican",
+					"votes": 28395,
+					"percent": 17.85,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				}
+			]
+		}
+	}
+}

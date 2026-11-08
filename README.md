@@ -33,6 +33,7 @@ An older global pnpm delegates to pnpm 12 through its tools cache. Turbo cannot 
 | [`apps/admin`](apps/admin/README.md) | Next.js admin app (App Router, Turbopack). |
 | [`apps/places`](apps/places/README.md) | Next.js map of the places you have been (App Router, Turbopack). |
 | [`apps/picks`](apps/picks/README.md) | Next.js picks of the NFL winners, week by week (App Router, Turbopack). |
+| [`apps/elections`](apps/elections/README.md) | Next.js election results by state, district, and county, from civicAPI (App Router, Turbopack). |
 | [`packages/ui`](packages/ui/README.md) | Design system: components, primitives, hooks, providers, recipes. |
 | [`packages/auth`](packages/auth/README.md) | Auth library: config, proxy, user. |
 | [`packages/shared`](packages/shared/README.md) | Shared auth UI and the global stylesheet. |
@@ -75,6 +76,7 @@ Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs C
 |---|---|---|
 | `admin.ivoryimage.dev` | `apps/admin` | [`Dockerfile`](Dockerfile), with `APP=admin` |
 | `places.ivoryimage.dev` | `apps/places` | [`Dockerfile`](Dockerfile), with `APP=places` |
+| `elections.ivoryimage.dev` | `apps/elections` | [`Dockerfile`](Dockerfile), with `APP=elections` |
 | `docs.ivoryimage.dev` | The docs site of `ui`, served in the language of the reader | [`Dockerfile.docs`](Dockerfile.docs) |
 
 The Next apps build with `output: 'standalone'`. To build one image locally:

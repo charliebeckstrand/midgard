@@ -146,6 +146,13 @@ const SWATCH_BOX = 12
  */
 const SWATCH_TILE_SHIFT = (SWATCH_BOX - TILE) / 2
 
+/** The variant of a plain legend swatch: a dashed line, a framed square, or a fill. @internal */
+function swatchVariant(swatch: 'rect' | 'line', dashed: boolean, hollow: boolean) {
+	if (swatch === 'line') return dashed ? 'dashed' : undefined
+
+	return hollow ? 'outline' : undefined
+}
+
 /**
  * A legend swatch that mirrors a textured mark: the shared color key, with the
  * slot's hatch laid over a square (bar / slice) swatch. The hatch applies always
@@ -162,6 +169,7 @@ export function ChartSwatch({
 	swatchColor,
 	color,
 	dashed = false,
+	hollow = false,
 	active,
 	off,
 }: {
@@ -172,6 +180,8 @@ export function ChartSwatch({
 	color?: ChartColorSlot
 	/** Dash the `line` swatch, mirroring a dashed series stroke; ignored for a `rect`. */
 	dashed?: boolean
+	/** Frame the `rect` swatch in place of a fill, mirroring a ring mark; ignored for a `line`. */
+	hollow?: boolean
 	active: boolean
 	off: boolean
 }) {
@@ -180,12 +190,13 @@ export function ChartSwatch({
 	// A raw color carries no slot, so it never hatches: it inks its
 	// `currentColor` inline on a plain swatch, the same opt-out as a raw mark. A
 	// dashed line swatch mirrors the stroke here too: the line never routes
-	// through the textured path below, so this is its only paint.
-	if (swatch !== 'rect' || !color) {
+	// through the textured path below, so this is its only paint. A hollow
+	// swatch frames a ring mark, which has no fill to hatch.
+	if (swatch !== 'rect' || !color || hollow) {
 		return (
 			<Swatch
 				shape={swatch === 'rect' ? 'square' : 'line'}
-				variant={swatch === 'line' && dashed ? 'dashed' : undefined}
+				variant={swatchVariant(swatch, dashed, hollow)}
 				color={swatchClass}
 				style={swatchColor ? { color: swatchColor } : undefined}
 				className={cn(off && 'opacity-40')}

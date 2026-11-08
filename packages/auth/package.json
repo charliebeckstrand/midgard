@@ -9,6 +9,11 @@
 			"import": "./dist/index.js",
 			"default": "./dist/index.js"
 		},
+		"./app-config": {
+			"types": "./src/app-config.ts",
+			"import": "./dist/app-config.js",
+			"default": "./dist/app-config.js"
+		},
 		"./config": {
 			"types": "./src/config.ts",
 			"import": "./dist/config.js",
