@@ -34,21 +34,22 @@ export function ElectionList({ elections }: { elections: readonly Election[] }) 
 							render={<Link href={electionPath(election)} />}
 							className="h-full transition-shadow hover:shadow-md"
 						>
-							<Stack gap="sm">
-								<Flex wrap gap="sm">
+							{/* The status sits at the end, centered on the title and the date. */}
+							<Flex justify="between" align="center" gap="md">
+								<Stack gap="sm" className="min-w-0">
 									<span className="font-semibold">
 										{election.year} {election.name}
 									</span>
 
-									<Badge variant="soft" color={status.color}>
-										{status.label}
-									</Badge>
-								</Flex>
+									<span className="text-sm text-zinc-600 dark:text-zinc-400">
+										{election.countryName}, {electionDay(election.date)}
+									</span>
+								</Stack>
 
-								<span className="text-sm text-zinc-600 dark:text-zinc-400">
-									{election.countryName}, {electionDay(election.date)}
-								</span>
-							</Stack>
+								<Badge variant="soft" color={status.color} className="shrink-0">
+									{status.label}
+								</Badge>
+							</Flex>
 						</Card>
 					</div>
 				)
