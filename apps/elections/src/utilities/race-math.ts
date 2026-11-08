@@ -50,36 +50,55 @@ export function marginLabel(candidates: readonly Candidate[], digits = 1): strin
 	return `${partyLetter(leader.party)}+${points.toFixed(digits)}`
 }
 
+/** A count of seats of one party. */
+type PartyCount = { party: string; slot: PartySlot; seats: number }
+
 /** The seats of a delegation that each party won, and the seats not called yet. */
 export type Delegation = {
 	/** The seats won by each party, most seats first. */
-	parties: { party: string; slot: PartySlot; seats: number }[]
+	parties: PartyCount[]
+	/** The seats not called that each party leads, most seats first. */
+	leads: PartyCount[]
 	called: number
 	total: number
 }
 
+/** Adds one seat to the count of the party of a candidate. */
+function addSeat(counts: Map<string, PartyCount>, candidate: Candidate) {
+	const held = counts.get(candidate.party)
+
+	counts.set(candidate.party, {
+		party: candidate.party,
+		slot: candidate.slot,
+		seats: (held?.seats ?? 0) + 1,
+	})
+}
+
+/** The counts of a map, most seats first. */
+function bySeats(counts: Map<string, PartyCount>): PartyCount[] {
+	return [...counts.values()].sort((a, b) => b.seats - a.seats)
+}
+
 /** The delegation of a state from the races of its districts. */
 export function delegation(districts: readonly (readonly Candidate[])[]): Delegation {
-	const won = new Map<string, { party: string; slot: PartySlot; seats: number }>()
+	const won = new Map<string, PartyCount>()
+
+	const led = new Map<string, PartyCount>()
 
 	for (const candidates of districts) {
 		const winner = candidates.find((candidate) => candidate.winner)
 
-		if (winner === undefined) continue
+		const [leader] = candidates
 
-		const held = won.get(winner.party)
-
-		won.set(winner.party, {
-			party: winner.party,
-			slot: winner.slot,
-			seats: (held?.seats ?? 0) + 1,
-		})
+		if (winner !== undefined) addSeat(won, winner)
+		else if (leader !== undefined) addSeat(led, leader)
 	}
 
-	const parties = [...won.values()].sort((a, b) => b.seats - a.seats)
+	const parties = bySeats(won)
 
 	return {
 		parties,
+		leads: bySeats(led),
 		called: parties.reduce((sum, party) => sum + party.seats, 0),
 		total: districts.length,
 	}

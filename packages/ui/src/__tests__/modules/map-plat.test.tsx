@@ -353,6 +353,25 @@ describe('MapPlat', () => {
 		expect(legend).toHaveAttribute('aria-orientation', 'horizontal')
 	})
 
+	it('lays a side panel out as the wrap row under the map below the frame @lg', () => {
+		// Under 32rem the frame stacks the panel under the map. The panel takes the
+		// centered wrap row there, and the arrows rove across it.
+		const { container } = renderUI(categoricalPlat({ legend: 'right', width: 400 }))
+
+		const legend = bySlot(container, 'map-legend')
+
+		expect(legend).toHaveClass('flex', 'flex-wrap', 'justify-center', '@lg:grid', '@lg:grid-cols-1')
+
+		expect(legend).toHaveAttribute('aria-orientation', 'horizontal')
+
+		// Each entry keeps its own width in the row, and stretches to the column beside the map.
+		const [entry] = allBySlot(container, 'map-legend-item')
+
+		expect(entry).toHaveClass('@lg:w-full')
+
+		expect(entry).not.toHaveClass('w-full')
+	})
+
 	it('toggles a category off: neutral fill, struck legend text, pressed off', () => {
 		const { container } = renderUI(categoricalPlat())
 
@@ -1170,7 +1189,7 @@ describe('MapPlat choropleth mode', () => {
 
 describe('MapPlat legend orientation', () => {
 	it('roves vertically for a side panel and horizontally under the map', () => {
-		const aside = renderUI(categoricalPlat({ legend: 'left' }))
+		const aside = renderUI(categoricalPlat({ legend: 'left', width: 600 }))
 
 		expect(bySlot(aside.container, 'map-legend')?.getAttribute('aria-orientation')).toBe('vertical')
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { stateRows } from '../components/national-map/state-rows'
 import { findContest, findElection } from '../elections/registry'
 import { stateOfKey } from '../elections/us-states'
 import { readNationalRace } from '../server/civic-race'
@@ -11,6 +12,7 @@ import {
 	entryName,
 	entryStep,
 	matchesSearch,
+	type RaceEntry,
 	raceWinner,
 	readEntries,
 	seatGroups,
@@ -205,6 +207,40 @@ describe('the Winner map', () => {
 		])
 
 		expect(delegationWinner(lead)).toBe('Republican lead')
+	})
+
+	it('gives a delegation with no called seat the lead of the side that leads most of its seats', () => {
+		const seat = (party: string, slot: 'blue' | 'red') => [
+			{ name: party, party, slot, votes: 1, percent: 50, winner: false, incumbent: false },
+		]
+
+		// An at-large seat that is not called, such as Alaska.
+		expect(delegationWinner(delegation([seat('R', 'red')]))).toBe('Republican lead')
+
+		expect(
+			delegationWinner(delegation([seat('D', 'blue'), seat('D', 'blue'), seat('R', 'red')])),
+		).toBe('Democratic lead')
+
+		// A tie of the leads has no category.
+		expect(delegationWinner(delegation([seat('D', 'blue'), seat('R', 'red')]))).toBeNull()
+	})
+
+	it('keeps a row for a state with a race and no category, so the map opens it', () => {
+		const leader = (party: string, slot: 'blue' | 'red') => [
+			{ name: party, party, slot, votes: 0, percent: 0, winner: false, incumbent: false },
+		]
+
+		const ak = houseEntries.find((entry) => entry.state.key === 'ak')
+
+		if (ak === undefined) throw new Error('The House fixture has no Alaska race.')
+
+		// Two seats not called, each led by another side: a tie of the leads.
+		const tied: RaceEntry[] = [
+			{ ...ak, candidates: leader('D', 'blue') },
+			{ ...ak, district: '02', candidates: leader('R', 'red') },
+		]
+
+		expect(stateRows(tied, delegations(tied))).toEqual([{ fips: '02', winner: null }])
 	})
 })
 

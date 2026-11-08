@@ -7,7 +7,7 @@
 
 import type { LegendBandBreakpoint } from '../../../chart/engine/chart-legend/band'
 import type { ChartRangeLegendConfig } from '../../../chart/engine/chart-legend/range'
-import { resolveRangeLegend } from '../../../chart/engine/chart-legend/range'
+import { rangeLegendBeside, resolveRangeLegend } from '../../../chart/engine/chart-legend/range'
 import type { RangeOrientation, RangeScale } from '../../../chart/engine/chart-legend/range-legend'
 import { resolveValueFormat } from '../map-region/value'
 import type { MapLegendPlacement } from '../types'
@@ -135,6 +135,12 @@ type MapLegendPlan = {
 	placement: MapLegendPlacement
 	/** The continuous scale bar's resolved shape, or `null` for the binned switchboard. */
 	range: MapLegendRange | null
+	/**
+	 * The measured axis of the switchboard, for `aria-orientation` and its arrow
+	 * keys: vertical while a side panel stands beside the map, horizontal in a
+	 * row. Under the map frame's `@lg`, a side panel stacks as a row.
+	 */
+	orientation: RangeOrientation
 }
 
 /**
@@ -160,6 +166,8 @@ export function planLegend(
 	scale: MapRangeScale,
 ): MapLegendPlan {
 	if (!(numeric && isRangeLegend(legend))) {
+		const placement = resolvePlacement(legend, numeric)
+
 		return {
 			show: legendCanShow(
 				legend,
@@ -167,8 +175,11 @@ export function planLegend(
 				switchboard.entryCount,
 				switchboard.hasOverlayChildren,
 			),
-			placement: resolvePlacement(legend, numeric),
+			placement,
 			range: null,
+			orientation: rangeLegendBeside(placement, box.width, 'right', 'lg')
+				? 'vertical'
+				: 'horizontal',
 		}
 	}
 
@@ -201,5 +212,10 @@ export function planLegend(
 				}
 			: null
 
-	return { show: range !== null, placement: resolved.placement, range }
+	return {
+		show: range !== null,
+		placement: resolved.placement,
+		range,
+		orientation: resolved.orientation,
+	}
 }

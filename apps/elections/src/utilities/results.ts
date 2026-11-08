@@ -282,12 +282,24 @@ export function countyWinner(
  * of the seats of the state is the winner. A tie of the two largest sides of
  * the called seats is `Split`. Short of that, the side with the most called
  * seats is the winner when every seat is called, and leads while a seat is
- * not. A delegation with no called seat has no category.
+ * not. A delegation with no called seat takes the lead of the side that leads
+ * the most of its seats, as a statewide race that is not called does. With no
+ * seat called and a tie of the leads, or with no seat, it has no category.
  */
 export function delegationWinner(state: Delegation): string | null {
 	const [first, second] = state.parties
 
-	if (first === undefined) return null
+	if (first === undefined) {
+		const [leader, runnerUp] = state.leads
+
+		const side = leader === undefined ? undefined : SIDE[leader.slot]
+
+		if (side === undefined || (runnerUp !== undefined && runnerUp.seats === leader?.seats)) {
+			return null
+		}
+
+		return `${side} lead`
+	}
 
 	const side = SIDE[first.slot]
 

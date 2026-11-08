@@ -166,7 +166,9 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 					</Container>
 				</DrawerHeader>
 
-				<DrawerBody className="px-0">
+				{/* A panel body mutes its text, for the prose of a dialog. The body here holds
+				    results, so it takes the default text color, as the page does. */}
+				<DrawerBody className="px-0 text-zinc-950 dark:text-white">
 					<Container size="lg" padding="lg" className="h-auto">
 						<div className="max-w-[440px]">{shown?.body}</div>
 					</Container>

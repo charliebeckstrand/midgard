@@ -8,7 +8,7 @@ import { useIntl } from 'ui/primitives/intl'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
 import type { Race } from '../../types'
-import { isCalled, percentText } from '../../utilities/race-math'
+import { isCalled } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
 import { RaceSummary } from '../race-summary'
 import { loadCountyMap } from './load-county-map'
@@ -35,7 +35,7 @@ const CountyMap = lazy(() => loadCountyMap().then((module) => ({ default: module
 /** The still shape of the county map while its code loads. */
 const MAP_PLACEHOLDER = (
 	<div aria-busy="true">
-		<Placeholder className="aspect-[4/3]" />
+		<Placeholder className="aspect-[4/3] h-auto w-full" />
 	</div>
 )
 
@@ -55,11 +55,11 @@ function FactTime({ value }: { value: string | undefined }) {
 }
 
 /**
- * The facts of a race under its candidates: the votes, the percent reporting,
- * the polls, and the call. The votes and the percent reporting come from the
- * national results at once. The times come with the race; until then each
- * holds its row with a still line. A time that the race does not give drops
- * its row.
+ * The facts of a race under its candidates: the votes, the polls, and the
+ * call. The percent reporting is in the row over the facts, so the facts do
+ * not repeat it. The votes come from the national results at once. The times
+ * come with the race; until then each holds its row with a still line. A time
+ * that the race does not give drops its row.
  */
 function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Race | undefined }) {
 	const intl = useIntl()
@@ -74,11 +74,6 @@ function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Rac
 		<DescriptionList>
 			<DescriptionTerm>Total votes</DescriptionTerm>
 			<DescriptionDetails className="tabular-nums">{intl.formatNumber(votes)}</DescriptionDetails>
-
-			<DescriptionTerm>Reporting</DescriptionTerm>
-			<DescriptionDetails className="tabular-nums">
-				{percentText(intl.formatNumber, race?.reporting ?? entry.reporting, 1)}
-			</DescriptionDetails>
 
 			{race?.pollsClose === null ? null : (
 				<>

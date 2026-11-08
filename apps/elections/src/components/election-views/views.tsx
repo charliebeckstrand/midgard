@@ -76,7 +76,10 @@ export function OfficeView({ election, result }: { election: Election; result: C
 					result.entries,
 					contest.depth === 'district' ? delegations(result.entries) : null,
 				)}
-				closest={closestRaces(result.entries, 6)}
+				closest={closestRaces(
+					result.entries.filter((entry) => !entry.called),
+					6,
+				)}
 				heading={contest.plural}
 				items={officeItems(election)}
 			/>
