@@ -1,7 +1,6 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Badge } from 'ui/badge'
 import { Card } from 'ui/card'
 import { Link } from 'ui/link'
 import { useIntl } from 'ui/primitives/intl'
@@ -18,7 +17,7 @@ import { ReportingRow, WinnerMark } from '../race-summary'
 /** Props for {@link RaceCard}. */
 export type RaceCardProps = {
 	entry: RaceEntry
-	/** Shows the office beside the name, for a list of races of many offices. */
+	/** Shows the office under the name, for a list of races of many offices. */
 	office?: boolean
 	/** Where the card leads. */
 	href?: string
@@ -106,21 +105,22 @@ function CardFrame({
 }
 
 /**
- * A card of one close race: the race, with its office badge at the end of the
- * row away from the names of the leaders, the two leaders to two decimals, a
- * head-to-head bar with a mark at 50%, and the percent reporting with the call
- * badge.
+ * A card of one close race: the race, with its office under it, the two
+ * leaders to two decimals, a head-to-head bar with a mark at 50%, and the
+ * percent reporting with the call badge.
  */
 export function RaceCard({ entry, office = false, href, onPick }: RaceCardProps) {
 	const { leader, runnerUp } = leaders(entry.candidates)
 
 	return (
 		<CardFrame href={href} onPick={onPick}>
-			<Flex justify="between" gap="sm">
-				<span className="min-w-0 font-semibold">{entryName(entry)}</span>
+			<div>
+				<div className="font-semibold">{entryName(entry)}</div>
 
-				{office ? <Badge variant="soft">{entry.contest.label}</Badge> : null}
-			</Flex>
+				{office ? (
+					<div className="text-sm/5 text-zinc-500 dark:text-zinc-400">{entry.contest.label}</div>
+				) : null}
+			</div>
 
 			<Stack gap="xs">
 				{leader === undefined ? null : <LeaderRow candidate={leader} />}
