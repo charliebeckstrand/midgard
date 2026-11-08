@@ -47,7 +47,8 @@ export type CardProps = BoxProps<
  *
  * The card sets the default text color. Its content therefore reads the same on
  * the page and in a surface that mutes its text, such as the body of a dialog
- * or a drawer.
+ * or a drawer. A card that is a link (`href`) takes the focus
+ * ring of a control on a keyboard focus.
  *
  * The card clips its overflow, but it is not a scroll container. Thus in a flex
  * row or a grid track, the card is at least as wide as its widest word, as is

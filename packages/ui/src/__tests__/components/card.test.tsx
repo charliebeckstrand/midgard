@@ -51,6 +51,16 @@ describe('Card', () => {
 		// The description keeps its muted color.
 		expect(bySlot(container, 'card-description')).toHaveClass('text-zinc-500')
 	})
+
+	it('takes the focus ring of a control as a link', () => {
+		const { container } = renderUI(<Card href="/next">Link</Card>)
+
+		const card = bySlot(container, 'card')
+
+		expect(card?.tagName).toBe('A')
+
+		expect(card).toHaveClass('focus-visible:outline-2', 'focus-visible:outline-blue-600')
+	})
 })
 
 describe('Card size system', () => {
