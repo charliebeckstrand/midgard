@@ -1,15 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Candidate } from '../types'
-import {
-	delegation,
-	isCalled,
-	lead,
-	marginLabel,
-	shareLabel,
-	signedLabel,
-	signedMargin,
-	signedShare,
-} from '../utilities/race-math'
+import { delegation, isCalled, lead, marginLabel } from '../utilities/race-math'
 
 function candidate(party: string, percent: number, winner = false): Candidate {
 	const slot = party === 'Democratic' ? 'blue' : party === 'Republican' ? 'red' : 'amber'
@@ -18,8 +9,6 @@ function candidate(party: string, percent: number, winner = false): Candidate {
 }
 
 const dLead = [candidate('Democratic', 55.2), candidate('Republican', 42.8)]
-
-const rLead = [candidate('Republican', 51), candidate('Democratic', 47)]
 
 const iLead = [candidate('Independent', 50.5), candidate('Republican', 48)]
 
@@ -38,40 +27,12 @@ describe('race math', () => {
 		expect(lead(unopposed)).toBeNull()
 	})
 
-	it('signs the margin of a two-party map: Democratic negative, Republican positive', () => {
-		expect(signedMargin(dLead)).toBeCloseTo(-12.4)
-
-		expect(signedMargin(rLead)).toBe(4)
-
-		expect(signedMargin(iLead)).toBeNull()
-
-		expect(signedMargin(unopposed)).toBeNull()
-	})
-
 	it('labels a margin with the letter of the leading party', () => {
 		expect(marginLabel(dLead)).toBe('D+12.4')
 
 		expect(marginLabel(iLead)).toBe('I+2.5')
 
 		expect(marginLabel(unopposed)).toBe('Unopposed')
-
-		expect(signedLabel(-12.4)).toBe('D+12.4')
-
-		expect(signedLabel(8)).toBe('R+8')
-
-		expect(signedLabel(35)).toBe('R+35')
-
-		expect(signedLabel(0.04)).toBe('Even')
-
-		expect(signedLabel(0)).toBe('Even')
-	})
-
-	it('labels a seat share as the share of the party that holds more seats', () => {
-		expect(shareLabel(-50)).toBe('All D')
-
-		expect(shareLabel(10)).toBe('60% R')
-
-		expect(shareLabel(0)).toBe('Even')
 	})
 
 	it('counts the called seats of a delegation by party, and leaves out the seats not called', () => {
@@ -90,11 +51,5 @@ describe('race math', () => {
 			called: 3,
 			total: 4,
 		})
-
-		expect(signedShare(state)).toBeCloseTo(50 / 3)
-	})
-
-	it('gives no seat share to a delegation with no called seat', () => {
-		expect(signedShare(delegation([dLead]))).toBeNull()
 	})
 })

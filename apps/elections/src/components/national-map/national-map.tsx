@@ -1,9 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Button } from 'ui/button'
 import { Heading } from 'ui/heading'
-import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { MapPlat } from 'ui/map'
 import { Stack } from 'ui/structure/stack'
 import type { Contest, Election } from '../../elections/registry'
@@ -11,13 +10,7 @@ import { stateOfFips, stateOfKey, type UsState } from '../../elections/us-states
 import { useDrawerParam } from '../../hooks/use-drawer-param'
 import { STATES } from '../../utilities/atlas'
 import { REGION_PARAM, racePath } from '../../utilities/elections-url'
-import {
-	type Delegation,
-	shareLabel,
-	signedLabel,
-	signedMargin,
-	signedShare,
-} from '../../utilities/race-math'
+import type { Delegation } from '../../utilities/race-math'
 import {
 	closestRaces,
 	delegations,
@@ -33,28 +26,8 @@ import { RaceCard, RaceCardGrid } from '../race-card'
 import { DelegationSummary, RaceSummary } from '../race-summary'
 import { type DrawerView, ResultDrawer } from '../result-drawer'
 
-/**
- * The margin ramp, from a Democratic lead of 35 points through a gray even
- * step to a Republican lead of 35. The gray reads on a light and a dark page.
- */
-const MARGIN_RANGE = ['#1d4ed8', '#3b82f6', '#93c5fd', '#a1a1aa', '#fca5a5', '#ef4444', '#b91c1c']
-
-/** The steps of the margin ramp fall at 5, 15, and 25 points. */
-const MARGIN_DOMAIN: [number, number] = [-35, 35]
-
-/**
- * The seat-share ramp, from every seat Democratic through a gray even split to
- * every seat Republican.
- */
-const SHARE_RANGE = ['#1d4ed8', '#93c5fd', '#a1a1aa', '#fca5a5', '#b91c1c']
-
-const SHARE_DOMAIN: [number, number] = [-50, 50]
-
-/** One state of the map. */
-type StateRow = { fips: string; value: number | null; winner: string | null }
-
-/** What colors the map: the margin (the seat share on the House), or the winner. */
-type ColorMode = 'value' | 'winner'
+/** One state of the map: its Winner category. */
+type StateRow = { fips: string; winner: string }
 
 /** Props for {@link NationalMap}. */
 export type NationalMapProps = {
@@ -68,41 +41,31 @@ export type NationalMapProps = {
 	items: readonly OfficeItem[]
 }
 
-/** The rows of the map: the value and the Winner category of each state. */
+/** The rows of the map: the Winner category of each state that has a race of the office. */
 function stateRows(
 	entries: readonly RaceEntry[],
 	byState: ReadonlyMap<string, Delegation> | null,
 ): StateRow[] {
-	if (byState !== null) {
-		return [...byState].flatMap(([key, delegation]) => {
-			const state = stateOfKey(key)
+	const rows =
+		byState === null
+			? entries.map((entry) => ({ fips: entry.state.fips, winner: raceWinner(entry) }))
+			: [...byState].map(([key, delegation]) => ({
+					fips: stateOfKey(key)?.fips,
+					winner: delegationWinner(delegation),
+				}))
 
-			return state === undefined
-				? []
-				: [
-						{
-							fips: state.fips,
-							value: signedShare(delegation),
-							winner: delegationWinner(delegation),
-						},
-					]
-		})
-	}
-
-	return entries.map((entry) => ({
-		fips: entry.state.fips,
-		value: signedMargin(entry.candidates),
-		winner: raceWinner(entry),
-	}))
+	return rows.flatMap(({ fips, winner }) =>
+		fips === undefined || winner === null ? [] : [{ fips, winner }],
+	)
 }
 
 /**
- * The national map of an office under the title of its page. A Listbox at the
- * end of the row of the office switch sets the color of the map: the margin
- * (the seat share on the House) or the winner. A click on
- * a state opens the Drawer on it (`?region=ga`), with the race of the state,
- * or its delegation on the House, and a link to the tab of the office on the
- * state page. Under the map, the closest races open the same Drawer.
+ * The national map of an office under the title of its page, colored by the
+ * winner of each state. A click on a state with a race opens the Drawer on it
+ * (`?region=ga`), with the race of the state, or its delegation on the House,
+ * and a link to the tab of the office on the state page. A state with no race
+ * of the office does nothing. Under the map, the closest races open the same
+ * Drawer.
  */
 export function NationalMap({ election, contest, entries, heading, items }: NationalMapProps) {
 	const districts = contest.depth === 'district'
@@ -110,8 +73,6 @@ export function NationalMap({ election, contest, entries, heading, items }: Nati
 	const byState = useMemo(() => (districts ? delegations(entries) : null), [districts, entries])
 
 	const rows = useMemo(() => stateRows(entries, byState), [entries, byState])
-
-	const [mode, setMode] = useState<ColorMode>('value')
 
 	const drawer = useDrawerParam(REGION_PARAM)
 
@@ -163,75 +124,32 @@ export function NationalMap({ election, contest, entries, heading, items }: Nati
 		}
 	}
 
-	const valueRows = rows.filter((row) => row.value !== null)
+	const present = new Set(rows.map((row) => row.winner))
 
-	const winnerRows = rows.filter((row) => row.winner !== null)
-
-	const present = new Set(winnerRows.map((row) => row.winner))
-
-	const label = districts ? 'Seat share' : 'Margin'
-
-	const common = {
-		'aria-label': `${election.year} ${contest.label} results by state`,
-		geography: STATES,
-		projection: 'albers-usa',
-		regionKey: 'fips',
-		selectedRegion: picked?.fips ?? null,
-		onRegionClick: (fips: string) => {
-			const state = stateOfFips(fips)
-
-			if (state !== undefined) drawer.open(state.key)
-		},
-	} as const
-
-	const modes: Record<ColorMode, string> = { value: label, winner: 'Winner' }
+	// A state with no race of the office has no row, so a click on it does nothing.
+	const raced = new Set(rows.map((row) => row.fips))
 
 	return (
 		<Stack gap="xl">
-			<PageTitle
-				heading={heading}
-				items={items}
-				value={contest.slug}
-				end={
-					<Listbox<ColorMode>
-						aria-label="Color the map by"
-						value={mode}
-						onValueChange={(next) => setMode(next ?? 'value')}
-						displayValue={(key) => modes[key]}
-						className="w-full sm:w-40"
-					>
-						{(['value', 'winner'] as const).map((key) => (
-							<ListboxOption key={key} value={key}>
-								<ListboxLabel>{modes[key]}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
-				}
-			/>
+			<PageTitle heading={heading} items={items} value={contest.slug} />
 
-			{mode === 'value' ? (
-				<MapPlat
-					{...common}
-					data={valueRows}
-					valueKey="value"
-					colorName={label}
-					colorRange={districts ? SHARE_RANGE : MARGIN_RANGE}
-					colorDomain={districts ? SHARE_DOMAIN : MARGIN_DOMAIN}
-					bins={districts ? SHARE_RANGE.length : MARGIN_RANGE.length}
-					binning="linear"
-					formatValue={districts ? shareLabel : signedLabel}
-					legend={{ placement: 'right' }}
-				/>
-			) : (
-				<MapPlat
-					{...common}
-					data={winnerRows}
-					categoryKey="winner"
-					colorName="Winner"
-					categories={WINNER_CATEGORIES.filter((category) => present.has(category.value))}
-					legend="right"
-				/>
-			)}
+			<MapPlat
+				aria-label={`${election.year} ${contest.label} results by state`}
+				geography={STATES}
+				projection="albers-usa"
+				regionKey="fips"
+				selectedRegion={picked?.fips ?? null}
+				onRegionClick={(fips: string) => {
+					const state = stateOfFips(fips)
+
+					if (state !== undefined && raced.has(fips)) drawer.open(state.key)
+				}}
+				data={rows}
+				categoryKey="winner"
+				colorName="Winner"
+				categories={WINNER_CATEGORIES.filter((category) => present.has(category.value))}
+				legend="right"
+			/>
 
 			<section>
 				<Stack gap="lg">

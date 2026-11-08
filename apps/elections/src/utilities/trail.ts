@@ -28,14 +28,26 @@ export type Crumb = {
 	menu?: readonly ElectionMenuItem[]
 }
 
-/** The trail of the page of the elections of a year. */
+/** The label of the first crumb of each trail: the list of every election. */
+const HOME_LABEL = 'Elections'
+
+/** The trail of the page of every election. */
+export function homeCrumbs(): Crumb[] {
+	return [{ label: HOME_LABEL }]
+}
+
+/** The trail of the page of the elections of a year, under the list of every election. */
 export function yearCrumbs(year: string): Crumb[] {
-	return [{ label: year }]
+	return [{ label: HOME_LABEL, href: '/' }, { label: year }]
 }
 
 /** The trail of the page of the elections of a country in a year. */
 export function countryCrumbs(year: string, countryName: string): Crumb[] {
-	return [{ label: year, href: `/${year}` }, { label: countryName }]
+	return [
+		{ label: HOME_LABEL, href: '/' },
+		{ label: year, href: `/${year}` },
+		{ label: countryName },
+	]
 }
 
 /** The elections of the year and the country of an election, for the menu of its crumb. */
@@ -48,7 +60,7 @@ function electionMenu(election: Election): ElectionMenuItem[] {
 	}))
 }
 
-/** The trail of a page of an election, from the year down to the district. */
+/** The trail of a page of an election, from the list of every election down to the district. */
 export function electionCrumbs(election: Election, location: RaceLocation): Crumb[] {
 	const year = String(election.year)
 

@@ -118,7 +118,7 @@ describe('the Winner map', () => {
 })
 
 describe('the trail and the office switch', () => {
-	it('reads the trail of a district down to the district', () => {
+	it('reads the trail of a district from the list of every election down to the district', () => {
 		const georgia = stateOfKey('ga') ?? null
 
 		const crumbs = electionCrumbs(midterms, {
@@ -128,12 +128,15 @@ describe('the trail and the office switch', () => {
 		})
 
 		expect(crumbs.map((crumb) => crumb.label)).toEqual([
+			'Elections',
 			'2026',
 			'United States',
 			'Midterms',
 			'Georgia',
 			'6th District',
 		])
+
+		expect(crumbs[0]?.href).toBe('/')
 	})
 
 	it('keeps an office with no race in the state, disabled', () => {
