@@ -33,8 +33,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 /**
- * The national map of an office of an election. A state of the map opens the
- * Drawer, which holds the races of the state.
+ * The page of an office of an election. The layout renders the national map
+ * of the office; the page holds the Drawer and the live refresh.
  */
 export default async function OfficePage({ params, searchParams }: Params) {
 	const { election, contest } = await readOffice(params)

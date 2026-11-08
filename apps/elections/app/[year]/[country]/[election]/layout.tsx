@@ -20,6 +20,11 @@ import { electionCrumbs, OVERVIEW } from '@/utilities/trail'
  * The layout also gives the races of each office to the Drawer of each page.
  * A navigation between the pages keeps the layout, so the races do not travel
  * again with each page.
+ *
+ * The layout renders the view of each page: the overview and the national map
+ * of each office. The view of the current page shows, and the other views stay
+ * mounted and hidden, so a switch shows a view that is already rendered. A
+ * page holds only its Drawer and its live refresh.
  */
 export default async function ElectionLayout({
 	params,
