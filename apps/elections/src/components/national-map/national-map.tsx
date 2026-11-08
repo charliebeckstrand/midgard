@@ -3,10 +3,10 @@
 import { useMemo, useState } from 'react'
 import { Button } from 'ui/button'
 import { Heading } from 'ui/heading'
+import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { MapPlat } from 'ui/map'
-import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
-import type { Election } from '../../elections/registry'
+import type { Contest, Election } from '../../elections/registry'
 import { stateOfFips, stateOfKey, type UsState } from '../../elections/us-states'
 import { useDrawerParam } from '../../hooks/use-drawer-param'
 import { STATES } from '../../utilities/atlas'
@@ -27,6 +27,8 @@ import {
 	raceWinner,
 	WINNER_CATEGORIES,
 } from '../../utilities/results'
+import type { OfficeItem } from '../../utilities/trail'
+import { PageTitle } from '../page-title'
 import { RaceCard, RaceCardGrid } from '../race-card'
 import { DelegationSummary, RaceSummary } from '../race-summary'
 import { type DrawerView, ResultDrawer } from '../result-drawer'
@@ -45,11 +47,19 @@ const SHARE_DOMAIN: [number, number] = [-50, 50]
 /** One state of the map. */
 type StateRow = { fips: string; value: number | null; winner: string | null }
 
+/** What colors the map: the margin (the seat share on the House), or the winner. */
+type ColorMode = 'value' | 'winner'
+
 /** Props for {@link NationalMap}. */
 export type NationalMapProps = {
 	election: Election
+	contest: Contest
 	/** The races of the office: one per state, or one per district for the House. */
 	entries: readonly RaceEntry[]
+	/** The heading of the page. */
+	heading: string
+	/** The items of the office switch. */
+	items: readonly OfficeItem[]
 }
 
 /** The rows of the map: the value and the Winner category of each state. */
@@ -81,36 +91,29 @@ function stateRows(
 }
 
 /**
- * The national map of an office. A Segment over the map switches its color
- * between the margin (the seat share on the House) and the winner. A click on
+ * The national map of an office under the title of its page. A Listbox at the
+ * end of the row of the office switch sets the color of the map: the margin
+ * (the seat share on the House) or the winner. A click on
  * a state opens the Drawer on it (`?region=ga`), with the race of the state,
  * or its delegation on the House, and a link to the tab of the office on the
  * state page. Under the map, the closest races open the same Drawer.
  */
-export function NationalMap({ election, entries }: NationalMapProps) {
-	const [first] = entries
-
-	const contest = first?.contest
-
-	const districts = contest?.depth === 'district'
+export function NationalMap({ election, contest, entries, heading, items }: NationalMapProps) {
+	const districts = contest.depth === 'district'
 
 	const byState = useMemo(() => (districts ? delegations(entries) : null), [districts, entries])
 
 	const rows = useMemo(() => stateRows(entries, byState), [entries, byState])
 
-	const [mode, setMode] = useState<'value' | 'winner'>('value')
+	const [mode, setMode] = useState<ColorMode>('value')
 
 	const drawer = useDrawerParam(REGION_PARAM)
 
 	const picked = drawer.value === null ? undefined : stateOfKey(drawer.value)
 
-	if (contest === undefined) return null
-
 	const view = picked === undefined ? null : drawerView(picked)
 
 	function drawerView(state: UsState): DrawerView | null {
-		if (contest === undefined) return null
-
 		const open = (
 			<Button href={racePath(election, { region: state, contest })} className="self-start">
 				Open {state.name}
@@ -175,43 +178,54 @@ export function NationalMap({ election, entries }: NationalMapProps) {
 		},
 	} as const
 
+	const modes: Record<ColorMode, string> = { value: label, winner: 'Winner' }
+
 	return (
 		<Stack gap="xl">
-			<Stack gap="lg">
-				<Segment
-					value={mode}
-					onValueChange={(next) => setMode(next === 'winner' ? 'winner' : 'value')}
-				>
-					<SegmentControl aria-label="Color the map by" className="self-start">
-						<SegmentItem value="value">{label}</SegmentItem>
-						<SegmentItem value="winner">Winner</SegmentItem>
-					</SegmentControl>
-				</Segment>
+			<PageTitle
+				heading={heading}
+				items={items}
+				value={contest.slug}
+				end={
+					<Listbox<ColorMode>
+						aria-label="Color the map by"
+						value={mode}
+						onValueChange={(next) => setMode(next ?? 'value')}
+						displayValue={(key) => modes[key]}
+						className="w-40"
+					>
+						{(['value', 'winner'] as const).map((key) => (
+							<ListboxOption key={key} value={key}>
+								<ListboxLabel>{modes[key]}</ListboxLabel>
+							</ListboxOption>
+						))}
+					</Listbox>
+				}
+			/>
 
-				{mode === 'value' ? (
-					<MapPlat
-						{...common}
-						data={valueRows}
-						valueKey="value"
-						colorName={label}
-						colorRange={districts ? SHARE_RANGE : MARGIN_RANGE}
-						colorDomain={districts ? SHARE_DOMAIN : MARGIN_DOMAIN}
-						bins={districts ? SHARE_RANGE.length : MARGIN_RANGE.length}
-						binning="linear"
-						formatValue={districts ? shareLabel : signedLabel}
-						legend={{ placement: 'right' }}
-					/>
-				) : (
-					<MapPlat
-						{...common}
-						data={winnerRows}
-						categoryKey="winner"
-						colorName="Winner"
-						categories={WINNER_CATEGORIES.filter((category) => present.has(category.value))}
-						legend="right"
-					/>
-				)}
-			</Stack>
+			{mode === 'value' ? (
+				<MapPlat
+					{...common}
+					data={valueRows}
+					valueKey="value"
+					colorName={label}
+					colorRange={districts ? SHARE_RANGE : MARGIN_RANGE}
+					colorDomain={districts ? SHARE_DOMAIN : MARGIN_DOMAIN}
+					bins={districts ? SHARE_RANGE.length : MARGIN_RANGE.length}
+					binning="linear"
+					formatValue={districts ? shareLabel : signedLabel}
+					legend={{ placement: 'right' }}
+				/>
+			) : (
+				<MapPlat
+					{...common}
+					data={winnerRows}
+					categoryKey="winner"
+					colorName="Winner"
+					categories={WINNER_CATEGORIES.filter((category) => present.has(category.value))}
+					legend="right"
+				/>
+			)}
 
 			<section>
 				<Stack gap="lg">

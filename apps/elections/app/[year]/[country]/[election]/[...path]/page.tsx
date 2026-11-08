@@ -74,13 +74,13 @@ async function NationalPage({ election, contest }: { election: Election; contest
 		>
 			<LiveRefresh live={counting} />
 
-			<PageTitle
+			<NationalMap
+				election={election}
+				contest={contest}
+				entries={result.entries}
 				heading={contest.plural}
 				items={officeItems(election, null)}
-				value={contest.slug}
 			/>
-
-			<NationalMap election={election} entries={result.entries} />
 		</PageFrame>
 	)
 }
