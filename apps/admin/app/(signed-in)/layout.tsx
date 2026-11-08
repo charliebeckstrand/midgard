@@ -1,6 +1,5 @@
 import { requireSession } from 'auth'
 import type { ReactNode } from 'react'
-import { RequestLocale } from 'shared/locale'
 import { SignedInClient } from './client'
 
 /**
@@ -27,10 +26,8 @@ export default async function SignedInLayout({ children }: { children: ReactNode
 	const { user } = await requireSession()
 
 	return (
-		<RequestLocale>
-			<SignedInClient user={user} admin={user.roles.includes('admin')}>
-				{children}
-			</SignedInClient>
-		</RequestLocale>
+		<SignedInClient user={user} admin={user.roles.includes('admin')}>
+			{children}
+		</SignedInClient>
 	)
 }
