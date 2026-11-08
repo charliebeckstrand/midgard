@@ -18,7 +18,9 @@ export function OfficeCard({
 }) {
 	return (
 		<CardButton onPick={onPick}>
-			<Stack gap="lg">
+			{/* The gap under the title is the inset of the card, as in a race card, so the
+			title stands as far from the body as from the top edge. */}
+			<Stack gap="md">
 				<span className="text-base/6 font-semibold">{title}</span>
 
 				{children}
