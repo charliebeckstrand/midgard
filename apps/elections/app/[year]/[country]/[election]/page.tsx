@@ -1,0 +1,122 @@
+import type { Metadata } from 'next'
+import { LiveRefresh } from 'shared/refresh'
+import { Heading } from 'ui/heading'
+import { Columns } from 'ui/structure/columns'
+import { Stack } from 'ui/structure/stack'
+import { LatestCalls } from '@/components/latest-calls'
+import { PageFrame } from '@/components/page-frame'
+import { PageTitle } from '@/components/page-title'
+import { RaceCard, RaceCardGrid } from '@/components/race-card'
+import { SeatCard } from '@/components/seat-card'
+import { UncalledTable } from '@/components/uncalled-table'
+import type { Election } from '@/elections/registry'
+import { type ElectionParams, readElection } from '@/server/params'
+import { electionResults, latestCalls } from '@/server/results'
+import { racePath } from '@/utilities/elections-url'
+import {
+	closestRaces,
+	entryKey,
+	isCounting,
+	newestUpdate,
+	type RaceEntry,
+} from '@/utilities/results'
+import { electionCrumbs, OVERVIEW, officeItems } from '@/utilities/trail'
+
+type Params = { params: Promise<ElectionParams> }
+
+/** The page reads the results before it renders, so the first frame has them. */
+export const instant = false
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+	const election = await readElection(params)
+
+	return { title: `${election.year} ${election.name}` }
+}
+
+/** The page of the race of an entry: the tab of its office in its state, or its district. */
+function entryPath(election: Election, entry: RaceEntry): string {
+	return racePath(election, {
+		region: entry.state,
+		contest: entry.contest,
+		district: entry.district,
+	})
+}
+
+/**
+ * The overview of an election: the balance of power of each chamber, the
+ * closest races, the latest calls, and every race not called.
+ */
+export default async function OverviewPage({ params }: Params) {
+	const election = await readElection(params)
+
+	const results = await electionResults(election)
+
+	const calls = await latestCalls(results, 5)
+
+	const entries = results.flatMap((result) => result.entries)
+
+	const uncalled = entries.filter((entry) => !entry.called)
+
+	const counting = isCounting(entries)
+
+	return (
+		<PageFrame
+			crumbs={electionCrumbs(election, { region: null, contest: null, district: null })}
+			status={{
+				counting,
+				reporting: null,
+				updated: newestUpdate(results.map((result) => result.national)),
+			}}
+		>
+			<LiveRefresh live={counting} />
+
+			<PageTitle heading="Balance of power" items={officeItems(election, null)} value={OVERVIEW} />
+
+			<Columns columns={{ initial: 1, md: 2, lg: 3 }}>
+				{results.map((result) => (
+					<SeatCard
+						key={result.contest.slug}
+						contest={result.contest}
+						parties={result.national.parties}
+						href={racePath(election, { contest: result.contest })}
+					/>
+				))}
+			</Columns>
+
+			<section>
+				<Stack gap="lg">
+					<Heading level={2}>Closest races</Heading>
+
+					<RaceCardGrid>
+						{closestRaces(uncalled, 6).map((entry) => (
+							<RaceCard
+								key={entryKey(entry)}
+								entry={entry}
+								office
+								href={entryPath(election, entry)}
+							/>
+						))}
+					</RaceCardGrid>
+				</Stack>
+			</section>
+
+			<section>
+				<Stack gap="sm">
+					<Heading level={2}>Latest calls</Heading>
+
+					<LatestCalls
+						calls={calls.map((call) => ({ ...call, href: entryPath(election, call.entry) }))}
+					/>
+				</Stack>
+			</section>
+
+			<UncalledTable
+				rows={uncalled.map((entry) => ({
+					key: entryKey(entry),
+					entry,
+					href: entryPath(election, entry),
+				}))}
+			/>
+		</PageFrame>
+	)
+}

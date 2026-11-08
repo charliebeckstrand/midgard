@@ -63,8 +63,8 @@ jobs:
       # package keeps the key of the others.
       - id: next-deps
         run: |
-          hash=$(pnpm turbo run build --filter=admin --filter=picks --filter=places --dry=json \
-            | jq -er '[.tasks[] | select(.taskId | test("^(admin|picks|places)#build$")) | .hashOfExternalDependencies] | if length == 3 then sort | join("-") else error("missing app") end')
+          hash=$(pnpm turbo run build --filter=admin --filter=elections --filter=picks --filter=places --dry=json \
+            | jq -er '[.tasks[] | select(.taskId | test("^(admin|elections|picks|places)#build$")) | .hashOfExternalDependencies] | if length == 4 then sort | join("-") else error("missing app") end')
           echo "hash=$hash" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v6
         with:
