@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { Seed } from 'shared/queries'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
@@ -33,6 +34,9 @@ export type ElectionDrawerProps = {
 
 /** Moves the Drawer to a step, or closes it with `null`. */
 type Go = (step: DrawerStep | null) => void
+
+/** The open state of the county table of a race. */
+type CountiesOpen = { open: boolean; onOpenChange: (open: boolean) => void }
 
 /** Whether the votes of a race are still counted. */
 function counting(entry: Pick<RaceEntry, 'reporting' | 'called'>): boolean {
@@ -159,6 +163,7 @@ function raceView(
 	trail: TrailCrumb[],
 	step: DrawerStep,
 	go: Go,
+	counties: CountiesOpen,
 ): DrawerView {
 	const subtitle = race?.special ? 'Special election' : undefined
 
@@ -186,7 +191,13 @@ function raceView(
 		steps: trail,
 		subtitle,
 		body: (
-			<RaceDetail entry={entry} race={race} onCounty={(fips) => go({ ...step, county: fips })} />
+			<RaceDetail
+				entry={entry}
+				race={race}
+				onCounty={(fips) => go({ ...step, county: fips })}
+				countiesOpen={counties.open}
+				onCountiesOpenChange={counties.onOpenChange}
+			/>
 		),
 	}
 }
@@ -202,6 +213,7 @@ function drawerView(
 	entry: RaceEntry | undefined,
 	race: Race | undefined,
 	go: Go,
+	counties: CountiesOpen,
 ): DrawerView | null {
 	const races = stateRaces(results, step.region)
 
@@ -213,7 +225,7 @@ function drawerView(
 		return { steps: trail, body: <StateOverview races={races} step={step} go={go} /> }
 	}
 
-	if (entry !== undefined) return raceView(entry, race, trail, step, go)
+	if (entry !== undefined) return raceView(entry, race, trail, step, go, counties)
 
 	if (office.contest.depth !== 'district' || step.district !== null) return null
 
@@ -243,7 +255,15 @@ export function ElectionDrawer({ election, results, seed }: ElectionDrawerProps)
 
 	const race = read.data?.id === entry?.raceId ? read.data : undefined
 
-	const view = step === null ? null : drawerView(election, results, step, entry, race, go)
+	// The county table starts closed on each race, and stays open across a visit to one of its counties.
+	const [openRace, setOpenRace] = useState<number | null>(null)
+
+	const counties: CountiesOpen = {
+		open: entry !== undefined && openRace === entry.raceId,
+		onOpenChange: (open) => setOpenRace(open && entry !== undefined ? entry.raceId : null),
+	}
+
+	const view = step === null ? null : drawerView(election, results, step, entry, race, go, counties)
 
 	return <ResultDrawer view={view} onClose={() => go(null)} />
 }

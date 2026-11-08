@@ -1,11 +1,9 @@
 'use client'
 
-import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from 'ui/badge'
-import { Collapse, CollapsePanel, CollapseTrigger, useCollapseContext } from 'ui/collapse'
+import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { Grid, type GridColumn, type GridSortState } from 'ui/grid'
-import { Icon } from 'ui/icon'
 import { useIntl } from 'ui/primitives/intl'
 import { ProgressBar } from 'ui/progress'
 import { Flex } from 'ui/structure/flex'
@@ -14,6 +12,7 @@ import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
 import { marginLabel, percentText } from '../../utilities/race-math'
 import { entryName, entryStep, type RaceEntry } from '../../utilities/results'
+import { CollapseCaret } from '../collapse-caret'
 
 /** One race of {@link UncalledTable}. */
 export type UncalledRow = { key: string; entry: RaceEntry }
@@ -73,21 +72,6 @@ const COLUMNS: GridColumn<UncalledRow>[] = [
 	},
 ]
 
-/** The caret of the trigger, which turns up while the table is open. */
-function Caret() {
-	const { open } = useCollapseContext()
-
-	return (
-		<Icon
-			icon={<ChevronDown />}
-			size="sm"
-			className={
-				open ? 'rotate-180 motion-safe:transition-transform' : 'motion-safe:transition-transform'
-			}
-		/>
-	)
-}
-
 /**
  * Every race not called, in a section that opens on a click: a table with
  * sortable columns, the closest lead first. A row opens its race in the Drawer.
@@ -111,7 +95,7 @@ export function UncalledTable({
 					<Badge variant="soft" color="amber">
 						{rows.length}
 					</Badge>
-					<Caret />
+					<CollapseCaret />
 				</Flex>
 			</CollapseTrigger>
 
