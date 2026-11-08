@@ -1,6 +1,6 @@
 'use client'
 
-import { lazy, Suspense } from 'react'
+import { Activity, lazy, Suspense } from 'react'
 import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import { Placeholder } from 'ui/placeholder'
@@ -11,6 +11,7 @@ import type { Race } from '../../types'
 import { isCalled, percentText } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
 import { RaceSummary } from '../race-summary'
+import { loadCountyMap } from './load-county-map'
 
 /** The view of a race: its overview, or its counties on a map. */
 export type RaceView = 'overview' | 'counties'
@@ -28,10 +29,8 @@ export type RaceDetailProps = {
 	onViewChange: (view: RaceView) => void
 }
 
-/** The map loads when it first shows, because the map module is a large part of the code. */
-const CountyMap = lazy(() =>
-	import('./county-map').then((module) => ({ default: module.CountyMap })),
-)
+/** The county map, from its chunk. */
+const CountyMap = lazy(() => loadCountyMap().then((module) => ({ default: module.CountyMap })))
 
 /** The still shape of the county map while its code loads. */
 const MAP_PLACEHOLDER = (
@@ -112,6 +111,10 @@ function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Rac
  *
  * The candidates and the facts show from the national results at once. The
  * times of the facts and the colors of the map show when the race loads.
+ *
+ * The map renders in the background while the overview shows, in a hidden
+ * `Activity`. A switch to By county therefore shows a map that is already
+ * drawn.
  */
 export function RaceDetail({ entry, race, onCounty, view, onViewChange }: RaceDetailProps) {
 	const candidates = race?.candidates ?? entry.candidates
@@ -137,16 +140,19 @@ export function RaceDetail({ entry, race, onCounty, view, onViewChange }: RaceDe
 
 					<RaceFacts entry={entry} race={race} />
 				</>
-			) : (
+			) : null}
+
+			<Activity mode={view === 'counties' ? 'visible' : 'hidden'}>
 				<Suspense fallback={MAP_PLACEHOLDER}>
 					<CountyMap
 						label={`${entryName(entry)} ${entry.contest.label}`}
 						state={entry.state.key}
+						statewide={entry.district === null}
 						counties={race?.counties}
 						onCounty={onCounty}
 					/>
 				</Suspense>
-			)}
+			</Activity>
 		</Stack>
 	)
 }

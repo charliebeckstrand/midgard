@@ -20,7 +20,7 @@ import {
 import { contestItems } from '../../utilities/trail'
 import { OfficeCard } from '../office-card'
 import { RaceCard } from '../race-card'
-import { RaceDetail, type RaceView } from '../race-detail'
+import { RaceDetail, type RaceView, usePreloadCountyMap } from '../race-detail'
 import { DelegationSummary, RaceSummary } from '../race-summary'
 import { type DrawerView, ResultDrawer, type TrailCrumb } from '../result-drawer'
 
@@ -244,6 +244,8 @@ function drawerView(
  */
 export function ElectionDrawer({ election, results, seed }: ElectionDrawerProps) {
 	const { step, go } = useDrawerStep(election)
+
+	usePreloadCountyMap(step?.region.key ?? null)
 
 	const entry = step === null ? undefined : stepEntry(results, step)
 
