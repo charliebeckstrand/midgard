@@ -103,6 +103,10 @@
 		"defaultMessage": "Previous legend entries",
 		"description": "The name of the button that shows the page of legend entries before."
 	},
+	"ui.chart.seats": {
+		"defaultMessage": "Seats",
+		"description": "The name of the value of each group in a seat chart, such as the seats of a party."
+	},
 	"ui.chart.showMore": {
 		"defaultMessage": "Show {count, number} more",
 		"description": "The name of the button that shows the legend entries that do not fit. The count is the number of those entries."

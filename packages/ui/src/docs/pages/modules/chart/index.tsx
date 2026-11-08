@@ -14,6 +14,7 @@ const TABS = [
 	'Area',
 	'Pie',
 	'Donut',
+	'Seat',
 	'Combo',
 	'Scatter',
 	'Bubble',

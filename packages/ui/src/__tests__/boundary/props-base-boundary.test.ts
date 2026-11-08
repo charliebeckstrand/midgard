@@ -161,6 +161,10 @@ const NO_BASE_EXEMPT = new Map<string, string>([
 		'the fullscreen view renders the chart a second time, so an `id` or a `ref` would reach two elements',
 	],
 	[
+		'modules/chart/seat-chart/seat-chart.tsx → SeatChartProps',
+		'the fullscreen view renders the chart a second time, so an `id` or a `ref` would reach two elements',
+	],
+	[
 		'modules/chat/chat-prompt.tsx → ChatPromptProps',
 		'its root is a `Control`, and its `ref` and its name already go to the textarea',
 	],

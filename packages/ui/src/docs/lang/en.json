@@ -1865,7 +1865,7 @@
 	},
 	"docs.demo.36205fe85f09": {
 		"defaultMessage": "Democrats",
-		"description": "Text of a demo in the docs as label, in components/progress/segments.tsx."
+		"description": "Text of a demo in the docs as label, in components/progress/segments.tsx, modules/chart/seat/basic.tsx, modules/chart/seat/center-content.tsx."
 	},
 	"docs.demo.3664895579f0": {
 		"defaultMessage": "Export",
@@ -2543,6 +2543,10 @@
 		"defaultMessage": "Project details",
 		"description": "Text of a demo in the docs, in providers/glass/overlays.tsx."
 	},
+	"docs.demo.606124ade426": {
+		"defaultMessage": "Not called",
+		"description": "Text of a demo in the docs as label, in modules/chart/seat/basic.tsx, modules/chart/seat/center-content.tsx."
+	},
 	"docs.demo.611fdddb5884": {
 		"defaultMessage": "Revenue change by month",
 		"description": "Text of a demo in the docs as aria-label, in modules/chart/line/value-labels.tsx, modules/chart/negative-values.tsx."
@@ -2605,7 +2609,7 @@
 	},
 	"docs.demo.6508cca989ca": {
 		"defaultMessage": "House seats",
-		"description": "Text of a demo in the docs as aria-label, in components/progress/segments.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/progress/segments.tsx, modules/chart/seat/center-content.tsx."
 	},
 	"docs.demo.65479e3e408a": {
 		"defaultMessage": "Marks",
@@ -2938,6 +2942,10 @@
 	"docs.demo.76f68a75f01e": {
 		"defaultMessage": "Business",
 		"description": "Text of a demo in the docs as label, in components/select/with-descriptions.tsx."
+	},
+	"docs.demo.76f8b8b2c983": {
+		"defaultMessage": "Senate seats",
+		"description": "Text of a demo in the docs as aria-label, in modules/chart/seat/basic.tsx."
 	},
 	"docs.demo.76faaef2da50": {
 		"defaultMessage": "Notification {next}",
@@ -4138,6 +4146,10 @@
 	"docs.demo.b48ca1a31a0f": {
 		"defaultMessage": "Weight (kg)",
 		"description": "Text of a demo in the docs, in components/number-input/decimal-step.tsx."
+	},
+	"docs.demo.b4b1b7f5ddc3": {
+		"defaultMessage": "To win",
+		"description": "Text of a demo in the docs, in modules/chart/seat/center-content.tsx."
 	},
 	"docs.demo.b4ca996ab8cb": {
 		"defaultMessage": "Enter your shipping address.",
@@ -5373,7 +5385,7 @@
 	},
 	"docs.demo.fb84860b10a4": {
 		"defaultMessage": "Republicans",
-		"description": "Text of a demo in the docs as label, in components/progress/segments.tsx."
+		"description": "Text of a demo in the docs as label, in components/progress/segments.tsx, modules/chart/seat/basic.tsx, modules/chart/seat/center-content.tsx."
 	},
 	"docs.demo.fb9ef894175c": {
 		"defaultMessage": "Product",
@@ -7521,6 +7533,10 @@
 	},
 	"docs.tab.scatter": {
 		"defaultMessage": "Scatter",
+		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
+	},
+	"docs.tab.seat": {
+		"defaultMessage": "Seat",
 		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
 	},
 	"docs.tab.selection": {
