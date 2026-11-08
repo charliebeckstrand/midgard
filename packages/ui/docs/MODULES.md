@@ -14,7 +14,7 @@ import { MapPlat } from 'ui/modules/map' // or the 'ui/map' shorthand
 
 `chart` · `chat` · `dashboard` · `events` · `form` · `grid` · `kanban` · `map` · `query`
 
-> `chart` holds the charts on one engine: `BarChart`, `LineChart`, `AreaChart`, `ComboChart`, `PieChart`, `DonutChart`, `ScatterChart`, `BubbleChart`, `HeatmapChart`, `ChoroplethChart`, and `SeatChart`. `SeatChart` draws the seats of a chamber on the arcs of a hemicycle. The groups take the seats in order from the start. A group can be hollow, with a framed legend key, a line can mark the majority, and content can sit in the hole. Its legend is a key with no switches.
+> `chart` holds the charts on one engine: `BarChart`, `LineChart`, `AreaChart`, `ComboChart`, `PieChart`, `DonutChart`, `ScatterChart`, `BubbleChart`, `HeatmapChart`, `ChoroplethChart`, and `SeatChart`. `SeatChart` draws the seats of a chamber on the arcs of a hemicycle. The groups take the seats in order from the start. A group can be hollow, with a framed legend key. A tick above the arcs can mark the majority, and content can sit in the hole. Content too large for the hole scales down to fit it. Its legend is a key with no switches.
 
 > `map` holds `MapPlat` and the marks that draw over it. A region category can take a soft tone, a lighter step of its color. It can also take stripes of a second color. The legend and the tooltip show the same tone and stripes.
 

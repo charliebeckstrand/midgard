@@ -118,7 +118,7 @@ describe('SeatChart', () => {
 
 		const layout = seatLayout(100, 5)
 
-		const fit = seatFit(400, 200, MARK_GAP, layout.dot)
+		const fit = seatFit(400, 200, MARK_GAP, layout.dot, true)
 
 		// The last seat sits at the end of the hemicycle, in the last group.
 		const seat = layout.seats.at(-1)
