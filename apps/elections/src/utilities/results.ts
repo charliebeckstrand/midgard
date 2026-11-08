@@ -151,7 +151,7 @@ export function newestUpdate(races: readonly { updated: string }[]): string | nu
 
 /** The name of the side of a slot on a two-party map, for the categories of the Winner map. */
 const SIDE: Partial<Record<PartySlot, string>> = {
-	blue: 'Democrat',
+	blue: 'Democratic',
 	red: 'Republican',
 	amber: 'Independent and other',
 }
@@ -162,8 +162,8 @@ const SIDE: Partial<Record<PartySlot, string>> = {
  * from a win.
  */
 export const WINNER_CATEGORIES: readonly MapCategory[] = [
-	{ value: 'Democrat', color: 'blue' },
-	{ value: 'Democrat lead', color: 'blue', tone: 'soft' },
+	{ value: 'Democratic', color: 'blue' },
+	{ value: 'Democratic lead', color: 'blue', tone: 'soft' },
 	{ value: 'Split', color: 'blue', stripes: 'red' },
 	{ value: 'Independent and other lead', color: 'amber', tone: 'soft' },
 	{ value: 'Independent and other', color: 'amber' },

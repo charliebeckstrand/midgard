@@ -71,9 +71,9 @@ describe('the Winner map', () => {
 
 		const ak = senateEntries.find((entry) => entry.state.key === 'ak')
 
-		expect(ga && raceWinner(ga)).toBe('Democrat')
+		expect(ga && raceWinner(ga)).toBe('Democratic')
 
-		expect(ak && raceWinner(ak)).toBe('Democrat lead')
+		expect(ak && raceWinner(ak)).toBe('Democratic lead')
 	})
 
 	it('marks a tie of the called seats of a state as Split', () => {
@@ -97,7 +97,7 @@ describe('the Winner map', () => {
 			seat('R', 'red', false),
 		])
 
-		expect(delegationWinner(won)).toBe('Democrat')
+		expect(delegationWinner(won)).toBe('Democratic')
 
 		const open = delegation([
 			seat('D', 'blue', true),
