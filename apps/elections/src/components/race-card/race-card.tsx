@@ -25,7 +25,10 @@ export type RaceCardProps = {
 	onPick?: () => void
 }
 
-/** One leader of a head-to-head, with the share to two decimals. */
+/**
+ * One leader of a head-to-head, with the share to two decimals. The winner mark
+ * follows the name, as in the race summary.
+ */
 function LeaderRow({ candidate }: { candidate: Candidate }) {
 	const intl = useIntl()
 
@@ -33,9 +36,11 @@ function LeaderRow({ candidate }: { candidate: Candidate }) {
 		<Flex gap="sm" className="text-sm/6">
 			<Swatch color={candidate.slot} />
 
-			<span className="min-w-0 flex-1 truncate">{candidate.name}</span>
+			<Flex gap="sm" flex="1" className="min-w-0">
+				<span className="truncate">{candidate.name}</span>
 
-			{candidate.winner ? <WinnerMark /> : null}
+				{candidate.winner ? <WinnerMark /> : null}
+			</Flex>
 
 			<span className="font-semibold tabular-nums">
 				{percentText(intl.formatNumber, candidate.percent, 2)}
