@@ -111,8 +111,11 @@ export const k = defineKata(
 		responsive: { layout: { flush: 'rounded-none', floating: 'rounded-xl' } },
 		compound: [...DOCKED_STEPS, ...INSETS, ...DOCKED_WIDTHS],
 		slots: {
-			title: [inset.x, inset.top],
-			description: inset.x,
+			// The header stands one slot gap from the top edge, as the header of a drawer
+			// does (see `kata/drawer.ts`).
+			header: [inset.x, inset.head],
+			title: [inset.x, inset.head, 'in-data-[slot=sheet-header]:p-0'],
+			description: [inset.x, 'in-data-[slot=sheet-header]:px-0'],
 			footer: [inset.x, inset.bottom],
 			body: [
 				flex.fill,

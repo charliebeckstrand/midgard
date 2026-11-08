@@ -79,7 +79,12 @@ export {
 	 * default footer of the sheet, which holds the standard Close button.
 	 */
 	Footer as SheetFooter,
-	/** The header of a sheet: a `<div>` that groups the sheet's title and description. */
+	/**
+	 * The header of a sheet: a `<div>` that holds the title and the description, or a
+	 * row such as the title with a close button. It stands one slot gap from the top
+	 * edge, and the sheet puts the same gap under it, at each density. A title or a
+	 * description in it takes no inset of its own.
+	 */
 	Header as SheetHeader,
 	/**
 	 * A trigger that opens the panel of the enclosing {@link Sheet}. A single

@@ -45,6 +45,12 @@ const itemX = 'density-px-[2,2.5,3,3.5,4]'
 /** The bottom padding of a tab and of an accordion body: the `lg` stop of the padding scale. */
 const bottom = 'density-pb-[2,3,4,5,6]'
 
+/**
+ * The top padding at the `lg` stop of the padding scale: the top inset of the copy
+ * button of a code block, and the space above the header of a drawer or a sheet.
+ */
+const top = 'density-pt-[2,3,4,5,6]'
+
 export const space = {
 	scale,
 	/**
@@ -96,7 +102,7 @@ export const space = {
 		 * The inset of the copy button of a code block: the top and the end padding
 		 * of the block, which the scroll box beside it does not cover.
 		 */
-		copy: 'density-pt-[2,3,4,5,6] density-pe-[2,3,4,5,6]',
+		copy: `${top} density-pe-[2,3,4,5,6]`,
 	},
 	/** The padding of a popover panel. */
 	popover: scale.p.lg,
@@ -116,6 +122,14 @@ export const space = {
 		above: 'not-first:density-mt-[2,3,4,5,6]',
 		/** The inset above the first slot, on the panel or on the slot. */
 		top: 'density-pt-[4,5,6,7,8]',
+		/**
+		 * The space above the header of a drawer or a sheet: the slot gap of a panel
+		 * (`gap.scale.lg`). The header is the header slot, or a title that is the first
+		 * slot. The panel puts the same gap under the header, so the header stands one
+		 * gap from the edge and one gap from the slot under it. If the gap changes, this
+		 * ramp changes with it.
+		 */
+		head: top,
 		/** The inset under the last slot, on the panel or on the slot. */
 		bottom: 'density-pb-[4,5,6,7,8]',
 		/**
@@ -126,13 +140,16 @@ export const space = {
 			x: 'density-px-[1.25,1.75,2.25,2.75,3.25]',
 			/**
 			 * The negative margin of a grip in the flow toward the slot next to it: the
-			 * slot gap (`gap.scale.lg`) plus the inset. The grip lies over the inset of
-			 * that slot, so the content of the slot starts where the grip ends. If the
-			 * gap or the inset changes, this ramp changes with it.
+			 * slot gap (`gap.scale.lg`) plus the space at the edge of that slot. The grip
+			 * lies over that space, so the content of the slot starts where the grip ends.
+			 * If the gap or a space at the edge changes, this ramp changes with it.
+			 *
+			 * - `top`: a grip at the bottom edge, over the inset under the last slot.
+			 * - `bottom`: a grip at the top edge, over the space above the header (`head`).
 			 */
 			over: {
 				top: 'density-mt-[-6,-8,-10,-12,-14]',
-				bottom: 'density-mb-[-6,-8,-10,-12,-14]',
+				bottom: 'density-mb-[-4,-6,-8,-10,-12]',
 			},
 		},
 		/**
