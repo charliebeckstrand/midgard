@@ -1,46 +1,21 @@
-import type { ReactNode } from 'react'
-import { describe, expect, it } from 'vitest'
-import { Drawer, DrawerBody, DrawerPanel } from '../../../components/drawer'
+import { type ReactNode, useState } from 'react'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
+import {
+	Drawer,
+	DrawerBody,
+	DrawerHeader,
+	DrawerPanel,
+	DrawerTitle,
+} from '../../../components/drawer'
 import { MapPlat } from '../../../modules/map'
+import { Container } from '../../../structure/container'
 import { frames, getSlot, renderUI } from '../../helpers'
 
 /**
  * PROBE: a `fit` drawer must grow to hold a box whose height comes from its
  * width, such as a map frame. This runs in each engine.
  */
-function Probe({ children, bodyClassName }: { children: ReactNode; bodyClassName?: string }) {
-	return (
-		<Drawer open onOpenChange={() => {}}>
-			<DrawerPanel height="fit" aria-label="Probe">
-				<DrawerBody className={bodyClassName}>
-					<div style={{ height: 42 }} />
-
-					{children}
-				</DrawerBody>
-			</DrawerPanel>
-		</Drawer>
-	)
-}
-
-async function overflow(): Promise<string> {
-	await frames()
-
-	await frames()
-
-	const panel = getSlot(document.body, 'drawer')
-
-	const body = getSlot(document.body, 'drawer-body')
-
-	return `panel=${Math.round(panel.getBoundingClientRect().height)} body=${body.clientHeight}/${body.scrollHeight} vh=${window.innerHeight}`
-}
-
-const aspect = <div className="w-full" style={{ aspectRatio: '1.02 / 1' }} />
-
-const contained = (
-	<div className="@container flex w-full min-w-48 flex-col">
-		<div className="relative overflow-hidden" style={{ aspectRatio: '1.02 / 1' }} />
-	</div>
-)
 
 const square = {
 	type: 'FeatureCollection' as const,
@@ -65,36 +40,115 @@ const square = {
 	],
 }
 
-const map = (
-	<MapPlat
-		aria-label="Probe"
-		geography={square}
-		projection="identity"
-		regionKey="id"
-		data={[{ id: 'a', winner: 'X' }]}
-		categoryKey="winner"
-		categories={[{ value: 'X', color: 'blue' }]}
-	/>
-)
+function ProbeMap({ shapes }: { shapes: boolean }) {
+	return (
+		<MapPlat
+			aria-label="Probe"
+			geography={shapes ? square : null}
+			projection="identity"
+			regionKey="id"
+			data={shapes ? [{ id: 'a', winner: 'X' }] : []}
+			categoryKey="winner"
+			categories={shapes ? [{ value: 'X', color: 'blue' }] : []}
+		/>
+	)
+}
 
-const CASES: [string, ReactNode, string | undefined][] = [
-	['aspect box', aspect, undefined],
-	['contained aspect box', contained, undefined],
-	['contained aspect box, body basis auto', contained, 'flex-auto'],
-	['map', map, undefined],
-	['map, body basis auto', map, 'flex-auto'],
+/** The steps of a switch to the map: the overview, a placeholder, the map with no shapes, the map. */
+const STAGES: ReactNode[] = [
+	<div key="overview" style={{ height: 160 }} />,
+	<div key="placeholder" className="aspect-[4/3] w-full" />,
+	<ProbeMap key="map" shapes={false} />,
+	<ProbeMap key="map" shapes />,
 ]
 
-describe('fit drawer and a box sized by its width (PROBE)', () => {
-	for (const [name, content, bodyClassName] of CASES) {
-		it(name, async () => {
-			renderUI(<Probe bodyClassName={bodyClassName}>{content}</Probe>)
+let goTo: (stage: number) => void = () => {}
 
-			const reading = await overflow()
+function Probe({ app }: { app: boolean }) {
+	const [stage, setStage] = useState(0)
+
+	goTo = setStage
+
+	const content = (
+		<div className="flex flex-col gap-8">
+			<div style={{ height: 36 }} />
+
+			{STAGES[stage]}
+		</div>
+	)
+
+	return (
+		<Drawer open onOpenChange={() => {}}>
+			<DrawerPanel glass={app} height="fit" footer={null} aria-label="Probe">
+				<DrawerHeader className="px-0">
+					<DrawerTitle>Texas › Governor</DrawerTitle>
+				</DrawerHeader>
+
+				<DrawerBody className="px-0">
+					{app ? (
+						<Container size="lg" padding="lg" className="h-auto">
+							<div className="max-w-[440px]">{content}</div>
+						</Container>
+					) : (
+						content
+					)}
+				</DrawerBody>
+			</DrawerPanel>
+		</Drawer>
+	)
+}
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+function read(): string {
+	const panel = getSlot(document.body, 'drawer')
+
+	const body = getSlot(document.body, 'drawer-body')
+
+	return `panel=${panel.getBoundingClientRect().height.toFixed(1)} pin=${panel.style.height || '-'} body=${body.clientHeight}/${body.scrollHeight} vh=${window.innerHeight}`
+}
+
+const CASES: [string, boolean, number[]][] = [
+	['at once', false, [0, 0, 0]],
+	['mid travel', false, [60, 120, 200]],
+	['after travels', false, [700, 700, 700]],
+	['app tree, at once', true, [0, 0, 0]],
+	['app tree, mid travel', true, [60, 120, 200]],
+	['app tree, after travels', true, [700, 700, 700]],
+]
+
+describe('fit drawer switched to a map (PROBE)', () => {
+	beforeAll(() => page.viewport(390, 844))
+
+	for (const [name, app, delays] of CASES) {
+		it(name, async () => {
+			renderUI(<Probe app={app} />)
+
+			await wait(800)
+
+			const log: string[] = [`start ${read()}`]
+
+			for (const [index, delay] of delays.entries()) {
+				goTo(index + 1)
+
+				await wait(delay)
+
+				log.push(`stage ${index + 1} ${read()}`)
+			}
+
+			await wait(1500)
+
+			await frames()
+
+			const reading = read()
+
+			log.push(`end ${reading}`)
+
+			console.log(`[probe] ${name}\n${log.join('\n')}`)
 
 			const [, client, scroll] = /body=(\d+)\/(\d+)/.exec(reading) ?? []
 
-			expect(Number(scroll) - Number(client), reading).toBeLessThanOrEqual(1)
+			expect(Number(scroll) - Number(client), log.join('\n')).toBeLessThanOrEqual(1)
 		})
 	}
 })
