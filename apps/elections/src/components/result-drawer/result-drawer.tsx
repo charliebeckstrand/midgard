@@ -30,7 +30,11 @@ export type TrailCrumb = {
 	label: string
 	/** Fires when the crumb is picked. Absent for the last crumb, which is where the reader is. */
 	onPick?: () => void
-	/** The choices that a chevron after the crumb opens, such as the offices of a state. */
+	/**
+	 * The choices of the menu of the crumb, such as the offices of a state. A
+	 * chevron after a crumb that leads back opens them. A press on any part of a
+	 * crumb that leads nowhere opens them.
+	 */
 	menu?: readonly CrumbChoice[]
 }
 
@@ -66,7 +70,13 @@ function CrumbLink({ crumb, current }: { crumb: TrailCrumb; current: boolean }) 
 	)
 }
 
-/** A crumb with a menu: the label, then a chevron that opens its choices, as the election crumb of the header. */
+/**
+ * A crumb with a menu. A crumb that leads back keeps its label as the link, and
+ * a chevron after it opens the menu, as the election crumb of the header. A
+ * crumb that leads nowhere is one button of its label and its chevron, so a
+ * press on any part of it opens the menu. The chevron is at the same place in
+ * the two forms.
+ */
 function MenuCrumb({
 	crumb,
 	menu,
@@ -76,6 +86,42 @@ function MenuCrumb({
 	menu: readonly CrumbChoice[]
 	current: boolean
 }) {
+	const content = (
+		<MenuContent>
+			{menu.map((choice) => (
+				<MenuItem key={choice.label} disabled={choice.disabled} onAction={choice.onPick}>
+					<MenuLabel>{choice.label}</MenuLabel>
+				</MenuItem>
+			))}
+		</MenuContent>
+	)
+
+	if (crumb.onPick === undefined) {
+		return (
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					{/* The children of a button are presentational, so the button carries the
+					    current mark. The gap is the padding of the chevron button of the other
+					    form, and the chevron takes the muted color of the trail, as there. */}
+					<button
+						type="button"
+						aria-current={current ? 'page' : undefined}
+						className="group inline-flex min-w-0 max-w-full cursor-pointer items-center gap-1.25 rounded-sm text-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+					>
+						<CrumbLink crumb={crumb} current={current} />
+
+						<Icon
+							icon={<ChevronDown />}
+							className="text-zinc-600 group-hover:text-zinc-950 dark:text-zinc-400 dark:group-hover:text-white"
+						/>
+					</button>
+				</MenuTrigger>
+
+				{content}
+			</Menu>
+		)
+	}
+
 	return (
 		<span className="inline-flex min-w-0 items-center">
 			<CrumbLink crumb={crumb} current={current} />
@@ -92,13 +138,7 @@ function MenuCrumb({
 					</Button>
 				</MenuTrigger>
 
-				<MenuContent>
-					{menu.map((choice) => (
-						<MenuItem key={choice.label} disabled={choice.disabled} onAction={choice.onPick}>
-							<MenuLabel>{choice.label}</MenuLabel>
-						</MenuItem>
-					))}
-				</MenuContent>
+				{content}
 			</Menu>
 		</span>
 	)
