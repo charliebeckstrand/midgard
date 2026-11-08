@@ -1,11 +1,12 @@
 'use client'
 
-import { List, ListItem, ListLabel } from 'ui/list'
+import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { Swatch } from 'ui/swatch'
 import { TimeAgo } from 'ui/time-ago'
 import type { Candidate } from '../../types'
+import { districtName } from '../../utilities/elections-url'
 import { surname } from '../../utilities/race-math'
-import { entryName, type RaceEntry } from '../../utilities/results'
+import type { RaceEntry } from '../../utilities/results'
 
 /** One call of {@link LatestCalls}. */
 export type LatestCall = {
@@ -18,16 +19,18 @@ export type LatestCall = {
 }
 
 /**
- * The race of a call with its office: `Virginia Senate`. A district names no
- * office, because a district race is always the House: `Texas 3rd District`.
+ * The race of a call with its office, under the winner: `Virginia Senate`, or
+ * `Texas House 3rd District`.
  */
 function raceName(entry: RaceEntry): string {
-	return entry.district === null ? `${entryName(entry)} ${entry.contest.label}` : entryName(entry)
+	const office = `${entry.state.name} ${entry.contest.label}`
+
+	return entry.district === null ? office : `${office} ${districtName(entry.district)}`
 }
 
 /**
- * The newest calls, newest first, as a plain List: one line with the winner
- * and the race, and how long ago. Each row leads to the page of the race.
+ * The newest calls, newest first, as a plain List: the winner, the race with
+ * its office under it, and how long ago. Each row leads to the page of the race.
  */
 export function LatestCalls({ calls }: { calls: readonly LatestCall[] }) {
 	if (calls.length === 0) {
@@ -48,10 +51,9 @@ export function LatestCalls({ calls }: { calls: readonly LatestCall[] }) {
 					prefix={<Swatch color={call.winner.slot} />}
 					suffix={<TimeAgo value={call.at} className="text-zinc-500 dark:text-zinc-400" />}
 				>
-					{/* The line wraps on a phone, so the race is never cut. */}
-					<ListLabel className="whitespace-normal">
-						{surname(call.winner.name)} wins {raceName(call.entry)}
-					</ListLabel>
+					<ListLabel>{surname(call.winner.name)} wins</ListLabel>
+
+					<ListDescription>{raceName(call.entry)}</ListDescription>
 				</ListItem>
 			)}
 		</List>
