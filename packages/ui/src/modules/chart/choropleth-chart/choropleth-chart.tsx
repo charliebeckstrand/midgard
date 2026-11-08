@@ -97,7 +97,8 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	geographyObject?: string
 	/**
 	 * How the globe projects onto the frame. Pass `'albers-usa'` for US state
-	 * maps: it places Alaska and Hawaii as insets.
+	 * maps: it places Alaska and Hawaii as insets. Pass `'identity'` for an
+	 * atlas that is already projected, such as `us-atlas` `states-albers-10m`.
 	 * @defaultValue 'mercator'
 	 */
 	projection?: MapProjection

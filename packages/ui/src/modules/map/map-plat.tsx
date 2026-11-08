@@ -103,9 +103,12 @@ type MapPlatBaseProps = AccessibleName &
 		geographyObject?: string
 		/**
 		 * How the globe projects onto the frame. Pass `'albers-usa'` for US state
-		 * maps: it places Alaska and Hawaii as insets. A passed d3 instance is fit
-		 * to the geography one time; a resize scales that fit and does not refit
-		 * the instance.
+		 * maps: it places Alaska and Hawaii as insets. Pass `'identity'` for an
+		 * atlas that is already projected, such as `us-atlas`
+		 * `states-albers-10m`. That atlas draws the map that `states-10m` draws
+		 * under `'albers-usa'`, for a small part of the cost. Marks, coverage,
+		 * and the graticule do not apply under `'identity'`. A passed d3 instance is fit to the geography one time; a resize
+		 * scales that fit and does not refit the instance.
 		 * @defaultValue 'mercator'
 		 */
 		projection?: MapProjection
@@ -885,9 +888,13 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const sweep = useMemo(
 		() =>
 			animation === 'sweep'
-				? () => regionSweep(cachedRegionCentroids(shape.features), shape.project)
+				? () =>
+						regionSweep(
+							cachedRegionCentroids(shape.features, projection === 'identity'),
+							shape.project,
+						)
 				: null,
-		[animation, shape.features, shape.project],
+		[animation, shape.features, shape.project, projection],
 	)
 
 	// Region identity, resolved off the geography alone: a property of the
@@ -1312,12 +1319,14 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const resolveStops = useCallback(
 		() =>
 			mapStops(
-				regions.answers ? cachedRegionCentroids(shape.features) : NO_CENTROIDS,
+				regions.answers
+					? cachedRegionCentroids(shape.features, projection === 'identity')
+					: NO_CENTROIDS,
 				entries,
 				hidden,
 				shape.project,
 			),
-		[shape.features, shape.project, entries, hidden, regions.answers],
+		[shape.features, shape.project, entries, hidden, regions.answers, projection],
 	)
 
 	const { click: pickRegion } = regions

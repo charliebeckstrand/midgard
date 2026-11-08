@@ -182,8 +182,18 @@ export type MapOverlaySelection = {
 	index?: number
 }
 
-/** A built-in projection name; the US composite places Alaska and Hawaii as insets. */
-export type MapNamedProjection = 'mercator' | 'albers-usa' | 'equal-earth'
+/**
+ * A built-in projection name; the US composite places Alaska and Hawaii as
+ * insets. `'identity'` draws a geography that is already projected, such as the
+ * `us-atlas` `*-albers-10m` files. Its coordinates are frame units with `y`
+ * down, so the map scales and moves them to the frame and does no spherical
+ * math. A projected atlas costs a small part of the walk that `'albers-usa'`
+ * makes through every coordinate.
+ *
+ * Marks, coverage, and the graticule read longitude and latitude, so they do
+ * not apply under `'identity'`. The map draws no sphere outline there.
+ */
+export type MapNamedProjection = 'mercator' | 'albers-usa' | 'equal-earth' | 'identity'
 
 /**
  * How the map projects the globe onto the frame: a built-in name, or any

@@ -11,6 +11,7 @@ import {
 	geoAlbers,
 	geoAlbersUsa,
 	geoEqualEarth,
+	geoIdentity,
 	geoMercator,
 	geoPath,
 } from 'd3-geo'
@@ -93,7 +94,8 @@ export function collection(features: MapFeature[]): GeoPermissibleObjects {
 
 /**
  * Resolves a {@link MapProjection} to a d3-geo instance: a fresh projection
- * for the built-in names, the instance itself when one is passed. A d3
+ * for the built-in names, the instance itself when one is passed. `'identity'`
+ * resolves to `geoIdentity`, which d3-geo types apart from a projection. A d3
  * projection is stateful, so fitting mutates a passed instance in place.
  *
  * @internal
@@ -104,6 +106,12 @@ export function resolveProjection(spec: MapProjection): GeoProjection {
 	if (spec === 'albers-usa') return geoAlbersUsa()
 
 	if (spec === 'equal-earth') return geoEqualEarth()
+
+	// The engine reads only the members that `geoIdentity` shares with a
+	// projection: the call, `invert`, `stream`, `scale`, `translate`,
+	// `clipExtent`, and the `fit*` helpers. It reads `precision` through `?.`,
+	// because the identity has none.
+	if (spec === 'identity') return geoIdentity() as unknown as GeoProjection
 
 	return spec
 }
