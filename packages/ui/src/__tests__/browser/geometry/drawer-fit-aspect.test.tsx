@@ -11,6 +11,7 @@ import {
 import { MapPlat } from '../../../modules/map'
 import { Container } from '../../../structure/container'
 import { frames, getSlot, renderUI } from '../../helpers'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * PROBE: a `fit` drawer must grow to hold a box whose height comes from its
@@ -98,8 +99,6 @@ function Probe({ app }: { app: boolean }) {
 	)
 }
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
 function read(): string {
 	const panel = getSlot(document.body, 'drawer')
 
@@ -124,19 +123,19 @@ describe('fit drawer switched to a map (PROBE)', () => {
 		it(name, async () => {
 			renderUI(<Probe app={app} />)
 
-			await wait(800)
+			await pause(800)
 
 			const log: string[] = [`start ${read()}`]
 
 			for (const [index, delay] of delays.entries()) {
 				goTo(index + 1)
 
-				await wait(delay)
+				await pause(delay)
 
 				log.push(`stage ${index + 1} ${read()}`)
 			}
 
-			await wait(1500)
+			await pause(1500)
 
 			await frames()
 
