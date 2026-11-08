@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Fragment, type MouseEvent, type ReactNode, useState } from 'react'
 import {
 	Breadcrumb,
@@ -12,10 +12,11 @@ import {
 import { Button } from 'ui/button'
 import { Drawer, DrawerBody, DrawerClose, DrawerHeader, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
+import { MenuItem, MenuLabel } from 'ui/menu'
 import { Container } from 'ui/structure/container'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
+import { MenuCrumb } from '../menu-crumb'
 
 /** One choice of the menu of a crumb, such as an office of the office crumb. */
 export type CrumbChoice = {
@@ -70,82 +71,6 @@ function CrumbLink({ crumb, current }: { crumb: TrailCrumb; current: boolean }) 
 	)
 }
 
-/**
- * A crumb with a menu. A crumb that leads back keeps its label as the link, and
- * a chevron after it opens the menu, as the election crumb of the header. A
- * crumb that leads nowhere is one button of its label and its chevron, so a
- * press on any part of it opens the menu. The chevron is within a pixel of its
- * place in the other form.
- */
-function MenuCrumb({
-	crumb,
-	menu,
-	current,
-}: {
-	crumb: TrailCrumb
-	menu: readonly CrumbChoice[]
-	current: boolean
-}) {
-	const content = (
-		<MenuContent>
-			{menu.map((choice) => (
-				<MenuItem key={choice.label} disabled={choice.disabled} onAction={choice.onPick}>
-					<MenuLabel>{choice.label}</MenuLabel>
-				</MenuItem>
-			))}
-		</MenuContent>
-	)
-
-	if (crumb.onPick === undefined) {
-		return (
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					{/* The children of a button are presentational, so the button carries the
-					    current mark. The chevron takes the muted color of the trail, as in the
-					    other form. */}
-					<button
-						type="button"
-						aria-current={current ? 'page' : undefined}
-						className="group inline-flex min-w-0 max-w-full cursor-pointer rounded-sm text-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-					>
-						<Flex as="span" align="center" gap="xs" className="min-w-0">
-							<CrumbLink crumb={crumb} current={current} />
-
-							<Icon
-								icon={<ChevronDown />}
-								className="text-zinc-600 group-hover:text-zinc-950 dark:text-zinc-400 dark:group-hover:text-white"
-							/>
-						</Flex>
-					</button>
-				</MenuTrigger>
-
-				{content}
-			</Menu>
-		)
-	}
-
-	return (
-		<span className="inline-flex min-w-0 items-center">
-			<CrumbLink crumb={crumb} current={current} />
-
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<Button
-						type="button"
-						variant="bare"
-						aria-label={`Switch from ${crumb.label}`}
-						className="shrink-0"
-					>
-						<Icon icon={<ChevronDown />} />
-					</Button>
-				</MenuTrigger>
-
-				{content}
-			</Menu>
-		</span>
-	)
-}
-
 /** Props for {@link ResultDrawer}. */
 export type ResultDrawerProps = {
 	/** What the Drawer shows, or `null` to close it. */
@@ -196,10 +121,27 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 															<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
 														) : (
 															<MenuCrumb
-																crumb={step}
-																menu={step.menu}
+																label={step.label}
 																current={index === shown.steps.length - 1}
-															/>
+																link={
+																	step.onPick === undefined ? undefined : (
+																		<CrumbLink
+																			crumb={step}
+																			current={index === shown.steps.length - 1}
+																		/>
+																	)
+																}
+															>
+																{step.menu.map((choice) => (
+																	<MenuItem
+																		key={choice.label}
+																		disabled={choice.disabled}
+																		onAction={choice.onPick}
+																	>
+																		<MenuLabel>{choice.label}</MenuLabel>
+																	</MenuItem>
+																))}
+															</MenuCrumb>
 														)}
 													</BreadcrumbItem>
 												</Fragment>
