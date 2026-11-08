@@ -1,16 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
-import { Grid, type GridColumn, type GridSortState } from 'ui/grid'
+import type { GridSortState } from 'ui/grid'
 import { Placeholder } from 'ui/placeholder'
 import { useIntl } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
-import type { CountyResult, Race } from '../../types'
-import { isCalled, marginLabel, percentText } from '../../utilities/race-math'
+import type { Race } from '../../types'
+import { isCalled, percentText } from '../../utilities/race-math'
 import type { RaceEntry } from '../../utilities/results'
 import { CollapseCaret } from '../collapse-caret'
 import { RaceSummary } from '../race-summary'
@@ -27,6 +27,18 @@ export type RaceDetailProps = {
 	countiesOpen: boolean
 	onCountiesOpenChange: (open: boolean) => void
 }
+
+/** The table loads when it first opens, because the Grid is a large part of the code of the page. */
+const CountyGrid = lazy(() =>
+	import('./county-grid').then((module) => ({ default: module.CountyGrid })),
+)
+
+/** The still shape of the county table while the race or the table loads. */
+const TABLE_PLACEHOLDER = (
+	<div aria-busy="true">
+		<Placeholder className="h-64" />
+	</div>
+)
 
 /** The time format of the polls and the call: the day and the time, in the zone of the reader. */
 const WHEN: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
@@ -90,57 +102,14 @@ function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Rac
 	)
 }
 
-/** The total votes of a county. */
-function countyVotes(county: CountyResult): number {
-	return county.candidates.reduce((sum, candidate) => sum + candidate.votes, 0)
-}
-
-function CountyNumber({ value }: { value: number }) {
-	const intl = useIntl()
-
-	return <span className="tabular-nums">{intl.formatNumber(value)}</span>
-}
-
-function CountyShare({ value }: { value: number }) {
-	const intl = useIntl()
-
-	return <span className="tabular-nums">{percentText(intl.formatNumber, value, 0)}</span>
-}
-
-const COLUMNS: GridColumn<CountyResult>[] = [
-	{ id: 'county', title: 'County', cell: (county) => county.name, value: (county) => county.name },
-	{
-		id: 'margin',
-		title: 'Margin',
-		cell: (county) => <span className="tabular-nums">{marginLabel(county.candidates)}</span>,
-		// The margin sorts by its number, not by its label.
-		value: (county) => {
-			const [leader, runnerUp] = county.candidates
-
-			return leader === undefined ? 0 : leader.percent - (runnerUp?.percent ?? 0)
-		},
-	},
-	{
-		id: 'votes',
-		title: 'Votes',
-		cell: (county) => <CountyNumber value={countyVotes(county)} />,
-		value: countyVotes,
-	},
-	{
-		id: 'in',
-		title: 'In',
-		cell: (county) => <CountyShare value={county.reporting} />,
-		value: (county) => county.reporting,
-	},
-]
-
 /**
  * One race in full, the body of the Drawer on a statewide race or a district:
  * the candidates with their party and votes, the facts of the race, then the
  * counties in a table. The table is in a Collapse, and a county row opens the
  * county. The candidates, the facts, and the closed table show from the
  * national results at once. The times of the facts and the rows of the table
- * show when the race loads, and still shapes hold their place until then.
+ * show when the race loads, and still shapes hold their place until then. The
+ * table also loads its code on the first open, behind the same still shape.
  */
 export function RaceDetail({
 	entry,
@@ -177,23 +146,20 @@ export function RaceDetail({
 
 				<CollapsePanel>
 					<div className="pt-4">
-						{race === undefined ? (
-							<Placeholder className="h-64" />
-						) : (
-							<Grid
-								columns={COLUMNS}
-								rows={race.counties}
-								getKey={(county) => county.fips}
-								sort={{ value: sort, onValueChange: setSort }}
-								search={{
-									value: query,
-									onValueChange: setQuery,
-									placeholder: 'Search counties',
-								}}
-								header={{ position: 'sticky' }}
-								onRowClick={(county) => onCounty(county.fips)}
-							/>
-						)}
+						<Suspense fallback={TABLE_PLACEHOLDER}>
+							{race === undefined ? (
+								TABLE_PLACEHOLDER
+							) : (
+								<CountyGrid
+									counties={race.counties}
+									sort={sort}
+									onSortChange={setSort}
+									query={query}
+									onQueryChange={setQuery}
+									onCounty={onCounty}
+								/>
+							)}
+						</Suspense>
 					</div>
 				</CollapsePanel>
 			</Collapse>
