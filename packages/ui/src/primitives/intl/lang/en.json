@@ -1671,6 +1671,14 @@
 		"defaultMessage": "Total",
 		"description": "The header of the column and of the row that hold the totals of a pivot table."
 	},
+	"ui.progress.segment": {
+		"defaultMessage": "{label} {value}",
+		"description": "One part of a progress bar that has more than one part: the name of the part and its value, such as \"Democrats 252\"."
+	},
+	"ui.progress.segments": {
+		"defaultMessage": "{segments}, of {max}.",
+		"description": "The description of a progress bar that has more than one part: the list of the parts, then the value of a full bar, such as \"Democrats 252, Republicans 161, of 435.\""
+	},
 	"ui.query.after": {
 		"defaultMessage": "after",
 		"description": "The operator of a date condition of a filter: the date is after the value."

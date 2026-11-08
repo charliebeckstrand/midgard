@@ -56,6 +56,116 @@ describe('ProgressBar', () => {
 	})
 })
 
+describe('ProgressBar segments and marks', () => {
+	const seats = [
+		{ value: 252, color: 'blue', label: 'Democrats' },
+		{ value: 161, color: 'red', label: 'Republicans', from: 'end' },
+	] as const
+
+	it('is an image with a description of each segment and the marks', () => {
+		renderUI(
+			<ProgressBar
+				max={435}
+				segments={[...seats]}
+				marks={[{ value: 218, label: '218 for a majority.' }]}
+				aria-label="House seats"
+			/>,
+		)
+
+		const bar = screen.getByRole('img', { name: 'House seats' })
+
+		expect(bar).not.toHaveAttribute('aria-valuenow')
+
+		expect(bar).toHaveAccessibleDescription(
+			'Democrats 252, Republicans 161, of 435. 218 for a majority.',
+		)
+	})
+
+	it('stays a progressbar at the value of one segment', () => {
+		renderUI(
+			<ProgressBar
+				max={10}
+				segments={[{ value: 4, color: 'green', label: 'Done' }]}
+				aria-label="Tasks"
+			/>,
+		)
+
+		expect(screen.getByRole('progressbar', { name: 'Tasks' })).toHaveAttribute('aria-valuenow', '4')
+	})
+
+	it('draws the segments from the end in reverse order after a spacer', () => {
+		const { container } = renderUI(
+			<ProgressBar
+				max={100}
+				segments={[
+					{ value: 30, color: 'blue', label: 'A' },
+					{ value: 20, color: 'red', label: 'B', from: 'end' },
+					{ value: 10, color: 'amber', label: 'C', from: 'end' },
+				]}
+				aria-label="Split"
+			/>,
+		)
+
+		const row = bySlot(container, 'progress-bar')?.firstElementChild
+
+		const from = [...(row?.children ?? [])].map((el) => el.getAttribute('data-from') ?? 'spacer')
+
+		expect(from).toEqual(['start', 'spacer', 'end', 'end'])
+	})
+
+	it('leaves out the spacer when the segments fill the bar', () => {
+		const { container } = renderUI(
+			<ProgressBar max={413} segments={[...seats]} aria-label="House seats" />,
+		)
+
+		expect(bySlot(container, 'progress-bar')?.firstElementChild?.children).toHaveLength(2)
+	})
+
+	it('keeps a plain value as a progressbar under marks, with the mark label as its description', () => {
+		const { container } = renderUI(
+			<ProgressBar value={60} marks={[{ value: 50, label: 'Half' }]} aria-label="Lead" />,
+		)
+
+		const bar = screen.getByRole('progressbar', { name: 'Lead' })
+
+		expect(bar).toHaveAttribute('aria-valuenow', '60')
+
+		expect(bar).toHaveAccessibleDescription('Half')
+
+		expect(container.querySelectorAll('[data-slot=progress-mark]')).toHaveLength(1)
+	})
+
+	it('keeps the description of the consumer', () => {
+		renderUI(
+			<>
+				<span id="note">Unofficial.</span>
+				<ProgressBar
+					max={435}
+					segments={[...seats]}
+					aria-label="House seats"
+					aria-describedby="note"
+				/>
+			</>,
+		)
+
+		expect(screen.getByRole('img')).toHaveAccessibleDescription(
+			'Unofficial. Democrats 252, Republicans 161, of 435.',
+		)
+	})
+
+	it('writes the description in the digits of the locale', () => {
+		renderUI(
+			<LocaleProvider locale="ar-EG">
+				<ProgressBar max={435} segments={[...seats]} aria-label="House seats" />
+			</LocaleProvider>,
+		)
+
+		expect(screen.getByRole('img').getAttribute('aria-describedby')).toBeTruthy()
+
+		expect(screen.getByText(/٢٥٢/)).toBeInTheDocument()
+	})
+})
+
 describe('ProgressGauge', () => {
 	it('sets progressbar role and aria attributes', () => {
 		const { container } = renderUI(<ProgressGauge value={75} max={100} aria-label="Progress" />)

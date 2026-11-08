@@ -1863,6 +1863,10 @@
 		"defaultMessage": "Throw in a handler",
 		"description": "Text of a demo in the docs, in modules/events/report-a-bug.tsx."
 	},
+	"docs.demo.36205fe85f09": {
+		"defaultMessage": "Democrats",
+		"description": "Text of a demo in the docs as label, in components/progress/segments.tsx."
+	},
 	"docs.demo.3664895579f0": {
 		"defaultMessage": "Export",
 		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx, components/menu/submenus.tsx."
@@ -2598,6 +2602,10 @@
 	"docs.demo.64fcdcd57ab3": {
 		"defaultMessage": "Signed in as wade@example.com",
 		"description": "Text of a demo in the docs, in components/nav/with-content.tsx."
+	},
+	"docs.demo.6508cca989ca": {
+		"defaultMessage": "House seats",
+		"description": "Text of a demo in the docs as aria-label, in components/progress/segments.tsx."
 	},
 	"docs.demo.65479e3e408a": {
 		"defaultMessage": "Marks",
@@ -5363,6 +5371,10 @@
 		"defaultMessage": "File actions",
 		"description": "Text of a demo in the docs as aria-label, in components/context-menu/with-actions.tsx."
 	},
+	"docs.demo.fb84860b10a4": {
+		"defaultMessage": "Republicans",
+		"description": "Text of a demo in the docs as label, in components/progress/segments.tsx."
+	},
 	"docs.demo.fb9ef894175c": {
 		"defaultMessage": "Product",
 		"description": "Text of a demo in the docs as label, title, in modules/dashboard/data.ts, modules/dashboard/widgets.tsx, structure/flex/wrap.tsx and 1 more."
@@ -5398,6 +5410,10 @@
 	"docs.demo.fccd73a69e8b": {
 		"defaultMessage": "Project settings",
 		"description": "Text of a demo in the docs, in components/card/playground.tsx, components/card/with-header-and-footer.tsx."
+	},
+	"docs.demo.fcf5d077455e": {
+		"defaultMessage": "218 to win",
+		"description": "Text of a demo in the docs as label, in components/progress/segments.tsx."
 	},
 	"docs.demo.fd1331d7a6cd": {
 		"defaultMessage": "Booked",
@@ -8514,6 +8530,10 @@
 	"docs.title.segment-labels": {
 		"defaultMessage": "Segment labels",
 		"description": "The title of an example on a page of the docs. It comes from the file name segment-labels.tsx."
+	},
+	"docs.title.segments": {
+		"defaultMessage": "Segments",
+		"description": "The title of an example on a page of the docs. It comes from the file name segments.tsx."
 	},
 	"docs.title.select-a-state": {
 		"defaultMessage": "Select a state",

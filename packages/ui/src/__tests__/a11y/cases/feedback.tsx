@@ -40,6 +40,22 @@ export const feedbackCases: readonly Case[] = [
 		],
 	},
 	{
+		// Two segments make an image, described by each part and the mark.
+		name: 'progress-segments',
+		element: (
+			<ProgressBar
+				key="pbs"
+				max={435}
+				segments={[
+					{ value: 214, color: 'blue', label: 'Democrats' },
+					{ value: 203, color: 'red', label: 'Republicans', from: 'end' },
+				]}
+				marks={[{ value: 218, label: '218 to win' }]}
+				aria-label="House seats"
+			/>
+		),
+	},
+	{
 		name: 'alert',
 		element: (
 			<Alert key="a" severity="success" title="Saved" description="Your changes are live." />
