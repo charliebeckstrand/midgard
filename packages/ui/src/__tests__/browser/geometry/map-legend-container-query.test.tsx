@@ -8,7 +8,8 @@ import { renderZones } from '../helpers/map-zones'
  * A side legend lays out against the map's own width, not the viewport. A
  * `@container` on the map frame gates the side-by-side row on `@lg` (512px). A
  * map in a narrow column therefore stacks its legend under the plot on a wide
- * screen too, and the frame holds a `min-w-48` (192px) floor. Container
+ * screen too, with its entries in one centered row, and the frame holds a
+ * `min-w-48` (192px) floor. Container
  * queries, flex direction, and a min width are computed-layout facts that jsdom
  * cannot resolve.
  */
@@ -51,8 +52,31 @@ describe('map side-legend container query (real browser)', () => {
 		expect(legend.top).toBeGreaterThanOrEqual(plot.bottom)
 	})
 
-	it('gives each stacked entry the width of the widest', async () => {
+	it('sets the entries of a stacked legend in one centered row', async () => {
 		const { container } = await zones(300)
+
+		const entries = allBySlot(container, 'map-legend-item').map((entry) =>
+			entry.getBoundingClientRect(),
+		)
+
+		expect(entries).toHaveLength(3)
+
+		const [first] = entries
+
+		for (const entry of entries) expect(entry.top).toBeNear(first?.top ?? 0, HALF_PIXEL)
+
+		// The row is centered under the plot, so its free space is the same on each side.
+		const plot = getSlot(container, 'map-plot').getBoundingClientRect()
+
+		const left = Math.min(...entries.map((entry) => entry.left)) - plot.left
+
+		const right = plot.right - Math.max(...entries.map((entry) => entry.right))
+
+		expect(left).toBeNear(right, 1)
+	})
+
+	it('gives each entry of a legend beside the plot the width of the widest', async () => {
+		const { container } = await zones(600)
 
 		const widths = allBySlot(container, 'map-legend-item').map(
 			(entry) => entry.getBoundingClientRect().width,
