@@ -8,6 +8,7 @@ import type { ScaleStep } from '../../core/density/scale'
 import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
 import { Density } from '../../primitives/density'
+import { HeightMotionContext } from '../../primitives/height-motion/context'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives/panel'
 import type { PanelOverlayProps } from '../../primitives/panel/types'
@@ -72,7 +73,9 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * `fit` takes the whole screen when the content asks for that much. It
 		 * measures each new height, so the panel grows or shrinks into it rather than
 		 * jumping. It is the answer wherever the panel's own content decides how tall
-		 * it is, which is two cases in practice.
+		 * it is, which is two cases in practice. Content that animates its own
+		 * height, such as an Accordion, a Collapse, or a Tree, moves the panel with
+		 * it on each frame, and the panel adds no travel on top.
 		 *
 		 * One is a panel whose content is *swapped*, under a breadcrumb, a back step,
 		 * or a detail opened from a list. There a fixed height fits one step and
@@ -252,7 +255,7 @@ export function DrawerPanel({
 	// a `fit` panel grows and shrinks into whatever it is handed. It stands down
 	// for a drag, so the two never write the same property at once, and it stamps
 	// its own `data-full` rather than reporting one back through a render.
-	const fitRef = usePanelFit({
+	const fit = usePanelFit({
 		enabled: height === 'fit',
 		dragged: resize.size !== null,
 		getCeiling: drawerCeiling,
@@ -262,7 +265,7 @@ export function DrawerPanel({
 	// One node, three readers of it. The gesture writes the height the reader sets
 	// and the fit writes the height the content asks for; both need the element.
 	// A consumer `ref` joins them.
-	const panelRef = useComposedRefs(resize.ref, fitRef, ref)
+	const panelRef = useComposedRefs(resize.ref, fit.ref, ref)
 
 	const full = resize.size === null ? height === 'full' : resize.atCeiling
 
@@ -300,20 +303,24 @@ export function DrawerPanel({
 				style={resize.size === null ? style : { ...style, height: resize.size }}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
-					{grip ? (
-						<DrawerHandle
-							handleProps={resize.handleProps}
-							covers={resize.covers}
-							controls={panelId}
-						/>
-					) : null}
+					{/* Content that moves its own height tells a `fit` panel, which then follows it. Any
+					other panel gives `null`, so its content does not tell a `fit` drawer outside it. */}
+					<HeightMotionContext value={height === 'fit' ? fit.host : null}>
+						{grip ? (
+							<DrawerHandle
+								handleProps={resize.handleProps}
+								covers={resize.covers}
+								controls={panelId}
+							/>
+						) : null}
 
-					<Density step={size}>
-						{children}
-						<DrawerDefaultFooter>
-							{footer === undefined ? <DrawerClose /> : footer}
-						</DrawerDefaultFooter>
-					</Density>
+						<Density step={size}>
+							{children}
+							<DrawerDefaultFooter>
+								{footer === undefined ? <DrawerClose /> : footer}
+							</DrawerDefaultFooter>
+						</Density>
+					</HeightMotionContext>
 				</PanelProviders>
 			</m.div>
 		</Overlay>

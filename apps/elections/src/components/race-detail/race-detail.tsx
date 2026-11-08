@@ -167,12 +167,7 @@ export function RaceDetail({
 
 			<RaceFacts entry={entry} race={race} />
 
-			{/*
-			 * The Drawer is the one that travels: the panel grows to its content in
-			 * one move, so the Collapse snaps rather than animating a second height
-			 * that the panel would then chase.
-			 */}
-			<Collapse open={countiesOpen} onOpenChange={onCountiesOpenChange} animate={false}>
+			<Collapse open={countiesOpen} onOpenChange={onCountiesOpenChange}>
 				<CollapseTrigger>
 					<Flex as="span" gap="sm" className="text-base/6 font-semibold">
 						By county
