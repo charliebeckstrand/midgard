@@ -7,10 +7,10 @@ import { Swatch } from 'ui/swatch'
 import { barColor, type Delegation } from '../../utilities/race-math'
 
 /**
- * The body of each place where the seats of a state show: the national Drawer
- * of the House, the House card of a state, and the House tab. It lists the
- * seats that each party won, each with a bar of its share of the seats, then
- * the count of the seats called.
+ * The seats of a state in the Drawer: in the House card of the overview of a
+ * state, and over the districts on the House step. It lists the seats that
+ * each party won, each with a bar of its share of the seats, then the count
+ * of the seats called.
  */
 export function DelegationSummary({ delegation }: { delegation: Delegation }) {
 	const { parties, called, total } = delegation
