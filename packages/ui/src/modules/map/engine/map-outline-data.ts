@@ -7,11 +7,10 @@
  * @internal
  */
 
-import type { MapOutline } from './map-outline'
-import type { MapNamedProjection } from './types'
+import type { MapOutline, MapOutlinedProjection } from './map-outline'
 
 /** @internal */
-export const MAP_OUTLINE_DATA: Record<MapNamedProjection, MapOutline> = {
+export const MAP_OUTLINE_DATA: Record<MapOutlinedProjection, MapOutline> = {
 	'albers-usa': {
 		width: 500,
 		height: 293,

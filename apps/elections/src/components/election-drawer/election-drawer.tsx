@@ -7,7 +7,7 @@ import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
 import { useRace } from '../../queries/race-queries'
 import type { Race } from '../../types'
-import { type DrawerStep, districtName, OVERVIEW } from '../../utilities/elections-url'
+import { type DrawerStep, districtName } from '../../utilities/elections-url'
 import { delegation } from '../../utilities/race-math'
 import {
 	entryKey,
@@ -17,10 +17,10 @@ import {
 	stateRaces,
 	stepEntry,
 } from '../../utilities/results'
-import { officeItems } from '../../utilities/trail'
+import { contestItems } from '../../utilities/trail'
 import { OfficeCard } from '../office-card'
 import { RaceCard } from '../race-card'
-import { RaceDetail } from '../race-detail'
+import { RaceDetail, type RaceView } from '../race-detail'
 import { DelegationSummary, RaceSummary } from '../race-summary'
 import { type DrawerView, ResultDrawer, type TrailCrumb } from '../result-drawer'
 
@@ -36,13 +36,13 @@ export type ElectionDrawerProps = {
 /** Moves the Drawer to a step, or closes it with `null`. */
 type Go = (step: DrawerStep | null) => void
 
-/** The open state of the county table of a race. */
-type CountiesOpen = { open: boolean; onOpenChange: (open: boolean) => void }
+/** The view of the race of the step, which the Drawer holds across a visit to a county. */
+type Views = { view: RaceView; onViewChange: (view: RaceView) => void }
 
 /**
- * The trail of a step: the state, which leads to its overview; the office, with
- * the menu of the offices of the state; and the district, where there is one.
- * The caller adds the county.
+ * The trail of a step: the state, which is its overview and leads back to it;
+ * then, on an office, the office with the menu of the offices of the state, and
+ * the district where there is one. The caller adds the county.
  */
 function drawerTrail(
 	election: Election,
@@ -50,29 +50,27 @@ function drawerTrail(
 	step: DrawerStep,
 	go: Go,
 ): TrailCrumb[] {
-	const { region } = step
+	const { region, office } = step
+
+	// The overview of the state is the state alone.
+	if (office === null) return [{ label: region.name }]
 
 	const offices = new Set(
-		races.filter((office) => office.entries.length > 0).map((office) => office.contest.slug),
+		races.filter((entry) => entry.entries.length > 0).map((entry) => entry.contest.slug),
 	)
 
-	const items = officeItems(election, offices)
+	const items = contestItems(election, offices)
 
 	const deeper = step.district !== null || step.county !== null
 
 	const trail: TrailCrumb[] = [
 		{
 			label: region.name,
-			onPick:
-				step.office === OVERVIEW
-					? undefined
-					: () => go({ region, office: OVERVIEW, district: null, county: null }),
+			onPick: () => go({ region, office: null, district: null, county: null }),
 		},
 		{
-			label: items.find((item) => item.value === step.office)?.label ?? step.office,
-			onPick: deeper
-				? () => go({ region, office: step.office, district: null, county: null })
-				: undefined,
+			label: items.find((item) => item.value === office)?.label ?? office,
+			onPick: deeper ? () => go({ region, office, district: null, county: null }) : undefined,
 			menu: items.map((item) => ({
 				label: item.label,
 				disabled: item.disabled,
@@ -159,7 +157,7 @@ function raceView(
 	trail: TrailCrumb[],
 	step: DrawerStep,
 	go: Go,
-	counties: CountiesOpen,
+	views: Views,
 ): DrawerView {
 	const subtitle = race?.special ? 'Special election' : undefined
 
@@ -191,8 +189,8 @@ function raceView(
 				entry={entry}
 				race={race}
 				onCounty={(fips) => go({ ...step, county: fips })}
-				countiesOpen={counties.open}
-				onCountiesOpenChange={counties.onOpenChange}
+				view={views.view}
+				onViewChange={views.onViewChange}
 			/>
 		),
 	}
@@ -209,7 +207,7 @@ function drawerView(
 	entry: RaceEntry | undefined,
 	race: Race | undefined,
 	go: Go,
-	counties: CountiesOpen,
+	views: Views,
 ): DrawerView | null {
 	const races = stateRaces(results, step.region)
 
@@ -221,7 +219,7 @@ function drawerView(
 		return { steps: trail, body: <StateOverview races={races} step={step} go={go} /> }
 	}
 
-	if (entry !== undefined) return raceView(entry, race, trail, step, go, counties)
+	if (entry !== undefined) return raceView(entry, race, trail, step, go, views)
 
 	if (office.contest.depth !== 'district' || step.district !== null) return null
 
@@ -234,11 +232,13 @@ function drawerView(
  *
  * Its trail is the state, the office, then the district and the county where
  * the reader went that deep, such as `Georgia › House › 6th District › Fulton`.
- * The state leads to its overview. The office crumb opens the offices of the
- * state, and an office with no race in the state is disabled.
+ * The state alone is its overview, and the state crumb leads back to it. The
+ * office crumb opens the offices of the state, and an office with no race in
+ * the state is disabled.
  *
  * - The overview: a card of each office of the state, which leads to the office.
- * - A statewide office or a district: the race in full, with its counties.
+ * - A statewide office or a district: the race, with a Segment between its
+ *   overview and its counties on a map.
  * - The House: the delegation of the state, then a card of each district.
  * - A county: the race in that county.
  */
@@ -251,15 +251,16 @@ export function ElectionDrawer({ election, results, seed }: ElectionDrawerProps)
 
 	const race = read.data?.id === entry?.raceId ? read.data : undefined
 
-	// The county table starts closed on each race, and stays open across a visit to one of its counties.
-	const [openRace, setOpenRace] = useState<number | null>(null)
+	// Each race opens on its overview. The map stays across a visit to one of its counties.
+	const [mapRace, setMapRace] = useState<number | null>(null)
 
-	const counties: CountiesOpen = {
-		open: entry !== undefined && openRace === entry.raceId,
-		onOpenChange: (open) => setOpenRace(open && entry !== undefined ? entry.raceId : null),
+	const views: Views = {
+		view: entry !== undefined && mapRace === entry.raceId ? 'counties' : 'overview',
+		onViewChange: (next) =>
+			setMapRace(next === 'counties' && entry !== undefined ? entry.raceId : null),
 	}
 
-	const view = step === null ? null : drawerView(election, results, step, entry, race, go, counties)
+	const view = step === null ? null : drawerView(election, results, step, entry, race, go, views)
 
 	return <ResultDrawer view={view} onClose={() => go(null)} />
 }

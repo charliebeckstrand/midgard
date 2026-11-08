@@ -1,5 +1,5 @@
 import { ELECTIONS, type Election, electionPath, findElections } from '../elections/registry'
-import { OVERVIEW, officePath } from './elections-url'
+import { officePath } from './elections-url'
 
 /**
  * The trail of a page, which is its title: the list of every election, the
@@ -82,6 +82,9 @@ export function listedElections(elections: readonly Election[] = ELECTIONS): Ele
 	)
 }
 
+/** The value of the overview in the office switch of a page, beside the slug of each office. */
+export const OVERVIEW = 'overview'
+
 /** One item of the office switch: the overview or an office. */
 export type OfficeItem = {
 	/** The value of the item: {@link OVERVIEW}, or the slug of an office. */
@@ -94,23 +97,30 @@ export type OfficeItem = {
 }
 
 /**
- * The items of the office switch: the overview, then each office. The page
- * switch leads to the page of each, and the switch of the Drawer moves the
- * Drawer. In the Drawer, an office with no race in the state stays in the list,
- * disabled, so the list keeps its shape from state to state.
+ * The items of the office switch of a page: the overview, then each office.
+ * Each item leads to its page.
+ */
+export function officeItems(election: Election): OfficeItem[] {
+	return [
+		{ value: OVERVIEW, label: 'Overview', href: officePath(election, null), disabled: false },
+		...contestItems(election),
+	]
+}
+
+/**
+ * The item of each office, such as for the office menu of the Drawer. In the
+ * Drawer, an office with no race in the state stays in the list, disabled, so
+ * the list keeps its shape from state to state.
  *
  * @param election - The election of the page.
  * @param offices - The slugs of the offices with a race in the state of the
- * Drawer. Omit it for the switch of a page, where each office has races.
+ * Drawer. Omit it where each office has races.
  */
-export function officeItems(election: Election, offices?: ReadonlySet<string>): OfficeItem[] {
-	return [
-		{ value: OVERVIEW, label: 'Overview', href: officePath(election, null), disabled: false },
-		...election.contests.map((contest) => ({
-			value: contest.slug,
-			label: contest.label,
-			href: officePath(election, contest),
-			disabled: offices !== undefined && !offices.has(contest.slug),
-		})),
-	]
+export function contestItems(election: Election, offices?: ReadonlySet<string>): OfficeItem[] {
+	return election.contests.map((contest) => ({
+		value: contest.slug,
+		label: contest.label,
+		href: officePath(election, contest),
+		disabled: offices !== undefined && !offices.has(contest.slug),
+	}))
 }

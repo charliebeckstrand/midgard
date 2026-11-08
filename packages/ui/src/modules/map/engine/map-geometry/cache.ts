@@ -82,6 +82,9 @@ const EMPTY: StaticMapGeometry = { features: [], canonical: null, atlas: null }
 // the whole atlas twice.
 const decoded = new WeakMap<MapGeography, Map<string | undefined, MapFeature[]>>()
 
+// The same, decoded and not rewound, for an atlas drawn under `'identity'`.
+const decodedPlanar = new WeakMap<MapGeography, Map<string | undefined, MapFeature[]>>()
+
 /**
  * An atlas object's features, decoded and rewound once per atlas and object
  * name, and shared across instances and mounts.
@@ -90,6 +93,11 @@ const decoded = new WeakMap<MapGeography, Map<string | undefined, MapFeature[]>>
  * the same reason. A raw-GeoJSON exterior wound opposite d3's spherical
  * convention reads as the region's complement. That floods the frame when it is
  * fit, and swallows the globe when a position is tested against it.
+ *
+ * A `planar` atlas is not rewound. Its coordinates are frame units, not
+ * longitude and latitude, so the spherical measure cannot read its winding.
+ * `'identity'` does no spherical clip, so it draws each ring as the atlas gives
+ * it.
  *
  * Absent geography yields the shared empty list, as {@link staticMapGeometry}
  * yields the empty geometry. A caller waiting on a fetched atlas therefore
@@ -103,14 +111,17 @@ const decoded = new WeakMap<MapGeography, Map<string | undefined, MapFeature[]>>
 export function cachedGeographyFeatures(
 	geography: MapGeography | null | undefined,
 	objectName: string | undefined,
+	planar = false,
 ): MapFeature[] {
 	if (geography == null) return EMPTY.features
 
-	const byName = getOrCompute(decoded, geography, () => new Map())
+	const byName = getOrCompute(planar ? decodedPlanar : decoded, geography, () => new Map())
 
-	return getOrCompute(byName, objectName, () =>
-		rewindFeatures(geographyFeatures(geography, objectName)),
-	)
+	return getOrCompute(byName, objectName, () => {
+		const features = geographyFeatures(geography, objectName)
+
+		return planar ? features : rewindFeatures(features)
+	})
 }
 
 // Atlas → (object name + named projection) → computed geometry. The atlas keys
@@ -133,7 +144,7 @@ export function computeStaticMapGeometry(
 	// Decoded and rewound through the shared memo above, so an atlas the coverage
 	// hook has already read costs nothing here, and the rewind, which the fit
 	// depends on, happens once per atlas either way.
-	const features = cachedGeographyFeatures(geography, geographyObject)
+	const features = cachedGeographyFeatures(geography, geographyObject, projection === 'identity')
 
 	// One walk draws the geography and measures the frame it fits, because the
 	// bounds a fit needs are a scan of the points the buffer already holds. The
@@ -202,15 +213,22 @@ const measuredPaths = new WeakMap<
 // not projected, and a resize re-projects it rather than measure it again.
 const centroids = new WeakMap<MapFeature[], (LngLat | null)[]>()
 
+// The same for a `planar` atlas. A planar decode can be the very array that a
+// spherical one is, so the two kinds of centroid cannot share a key.
+const planarCentroids = new WeakMap<MapFeature[], (LngLat | null)[]>()
+
 /**
  * The regions' lon/lat centroids, memoized on the decoded feature list and
  * computed on the first read. Callers gate that read on keyboard navigation
- * being live, so a map nobody tabs into never pays the pass.
+ * being live, so a map nobody tabs into never pays the pass. A `planar` atlas
+ * gets its centroids on the plane, in its own units.
  *
  * @internal
  */
-export function cachedRegionCentroids(features: MapFeature[]): (LngLat | null)[] {
-	return getOrCompute(centroids, features, regionCentroids)
+export function cachedRegionCentroids(features: MapFeature[], planar = false): (LngLat | null)[] {
+	return getOrCompute(planar ? planarCentroids : centroids, features, () =>
+		regionCentroids(features, planar),
+	)
 }
 
 // The last chrome paths per fitted projection. Keyed on the fit rather than on
@@ -288,7 +306,9 @@ export function cachedChromePaths(
 	view: MapViewFrame,
 	frame: MapTransform | null = null,
 ): MapChromePaths {
-	if (step === null && !sphere) return EMPTY_CHROME
+	// The graticule and the sphere are lines on the globe, and an `'identity'`
+	// geography is not on one.
+	if ((step === null && !sphere) || spec === 'identity') return EMPTY_CHROME
 
 	const fit = chromeFit(fitted, view, frame)
 

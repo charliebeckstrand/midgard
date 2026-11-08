@@ -22,12 +22,22 @@ export type MapOutline = {
 }
 
 /**
+ * A named projection with a fixed subject to outline: every name but
+ * `'identity'`, which draws whatever geography it is given.
+ *
+ * @internal
+ */
+export type MapOutlinedProjection = Exclude<MapNamedProjection, 'identity'>
+
+/**
  * The outline for `projection`, or `null` where it has none. `albers-usa` draws
  * the United States. `mercator` and `equal-earth` draw the land of the world
- * without Antarctica. A passed d3 instance has no outline.
+ * without Antarctica. `identity` and a passed d3 instance have no outline.
  *
  * @internal
  */
 export function mapOutline(projection: MapProjection | undefined): MapOutline | null {
-	return typeof projection === 'string' ? MAP_OUTLINE_DATA[projection as MapNamedProjection] : null
+	return typeof projection === 'string' && projection !== 'identity'
+		? MAP_OUTLINE_DATA[projection]
+		: null
 }

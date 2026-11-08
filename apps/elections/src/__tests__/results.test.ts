@@ -5,6 +5,7 @@ import { readNationalRace } from '../server/civic-race'
 import { delegation } from '../utilities/race-math'
 import {
 	closestRaces,
+	countyWinner,
 	delegations,
 	delegationWinner,
 	entryName,
@@ -15,7 +16,7 @@ import {
 	stateRaces,
 	stepEntry,
 } from '../utilities/results'
-import { electionCrumbs, officeItems } from '../utilities/trail'
+import { contestItems, electionCrumbs, officeItems } from '../utilities/trail'
 import house from './fixtures/house.json'
 import senate from './fixtures/senate.json'
 
@@ -78,7 +79,7 @@ describe('the race of a step of the Drawer', () => {
 
 	it('gives no race for the overview, or the delegation of a state', () => {
 		expect(
-			stepEntry(results, { region: georgia, office: 'overview', district: null, county: null }),
+			stepEntry(results, { region: georgia, office: null, district: null, county: null }),
 		).toBeUndefined()
 
 		expect(
@@ -121,6 +122,26 @@ describe('the Winner map', () => {
 		expect(ga && raceWinner(ga)).toBe('Democratic')
 
 		expect(ak && raceWinner(ak)).toBe('Democratic lead')
+	})
+
+	it('colors a county by the side of its leader, soft while it counts', () => {
+		const candidate = (slot: 'blue' | 'red', votes: number) => ({
+			name: slot,
+			party: slot,
+			slot,
+			votes,
+			percent: 0,
+			winner: false,
+			incumbent: false,
+		})
+
+		const leads = [candidate('red', 900), candidate('blue', 600)]
+
+		expect(countyWinner({ candidates: leads, reporting: 100 })).toBe('Republican')
+
+		expect(countyWinner({ candidates: leads, reporting: 40 })).toBe('Republican lead')
+
+		expect(countyWinner({ candidates: [candidate('blue', 0)], reporting: 0 })).toBeNull()
 	})
 
 	it('marks a tie of the called seats of a state as Split', () => {
@@ -178,11 +199,19 @@ describe('the trail and the office switch', () => {
 		expect(crumbs[0]?.href).toBe('/')
 	})
 
+	it('leads the page switch with the overview', () => {
+		expect(officeItems(midterms).map((item) => item.value)).toEqual([
+			'overview',
+			'senate',
+			'house',
+			'governor',
+		])
+	})
+
 	it('keeps an office with no race in the state, disabled', () => {
-		const items = officeItems(midterms, new Set(['house', 'governor']))
+		const items = contestItems(midterms, new Set(['house', 'governor']))
 
 		expect(items.map((item) => [item.value, item.disabled])).toEqual([
-			['overview', false],
 			['senate', true],
 			['house', false],
 			['governor', false],

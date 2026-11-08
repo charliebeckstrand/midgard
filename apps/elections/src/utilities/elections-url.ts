@@ -1,14 +1,11 @@
 import { type Contest, type Election, electionPath, findContest } from '../elections/registry'
 import { stateOfKey, type UsState } from '../elections/us-states'
 
-/** The value of the overview of a state in the Drawer, beside the slug of each office. */
-export const OVERVIEW = 'overview'
-
 /**
  * The step of the Drawer of an election, which the address holds, such as
  * `?region=ga&office=house&district=06&county=13121`.
  *
- * - A state and the overview: the race of each office in the state.
+ * - A state alone: the overview, with the race of each office in the state.
  * - A state and a statewide office: the race in full, with its counties.
  * - A state and the House: the delegation and its districts.
  * - A district too: the race of the district in full, with its counties.
@@ -16,8 +13,8 @@ export const OVERVIEW = 'overview'
  */
 export type DrawerStep = {
 	region: UsState
-	/** {@link OVERVIEW}, or the slug of an office. */
-	office: string
+	/** The slug of an office, or `null` for the overview of the state. */
+	office: string | null
 	/** The district of a district race: two digits such as `06`, or `al` for an at-large seat. */
 	district: string | null
 	/** The 5-digit FIPS code of a county. */
@@ -49,7 +46,7 @@ export function readDrawerStep(
 
 	const contest = findContest(election, params.get('office') ?? '')
 
-	if (contest === undefined) return { region, office: OVERVIEW, district: null, county: null }
+	if (contest === undefined) return { region, office: null, district: null, county: null }
 
 	const district = params.get('district')
 
