@@ -35,6 +35,21 @@ import { Flex } from 'ui/structure/flex'
 import { Spacer } from 'ui/structure/spacer'
 import { Text } from 'ui/text'
 
+// The box that scrolls the pages of an admin. It has the height of the
+// viewport, so the document is never taller than the screen. Chrome on iOS
+// collapses its toolbars only on a page that is taller than the screen, and on
+// a load of such a page it draws the old page under the toolbar for a frame.
+// The toolbars of a phone thus stay at their full size while the box scrolls.
+// The box is a size container, so the layout fills the box (`SidebarLayout`).
+// A size container gets no width from its content, so the box takes the full
+// width of the body, which is a flex row.
+//
+// In print, the box has the height of its content and does not scroll, so each
+// page prints whole. The box is not a size container in print: a size container
+// gets no height from its content.
+const SCROLLER =
+	'h-dvh w-full overflow-y-auto @container-size print:h-auto print:overflow-visible print:@container-normal'
+
 type SignedInClientProps = {
 	user: User
 	/**
@@ -70,67 +85,73 @@ export function SignedInClient({ user, admin, children }: SignedInClientProps) {
  * so it sets `current` itself. The chrome renders at request time, after the
  * session, so `usePathname` here does not stop the prerender of a route with
  * params.
+ *
+ * The pages scroll in a box (`SCROLLER`). On a navigation to a new page, the
+ * router scrolls the new page into view in the box, so the page starts at the
+ * top.
  */
 function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 	const pathname = usePathname()
 
 	return (
 		<UIProvider pathname={pathname}>
-			<SidebarLayout
-				actions={<EventsButton />}
-				aside={<EventsAside />}
-				navbar={
-					<NavBar variant="plain" className="px-0 py-0">
-						<Link href="/" className="flex">
-							<Brand />
-						</Link>
-					</NavBar>
-				}
-				sidebar={
-					<Sidebar>
-						<SidebarHeader>
-							<SidebarItem href="/">
-								<Image src="/gradient.png" alt="" width={24} height={24} />
-								<SidebarLabel>
-									<Text className="font-black text-lg">Admin</Text>
-								</SidebarLabel>
-							</SidebarItem>
-						</SidebarHeader>
-						<SidebarBody>
-							<SidebarSection>
-								<SidebarItem href="/users" match="prefix">
-									<UsersIcon />
-									<SidebarLabel>Users</SidebarLabel>
+			<div className={SCROLLER}>
+				<SidebarLayout
+					actions={<EventsButton />}
+					aside={<EventsAside />}
+					navbar={
+						<NavBar variant="plain" className="px-0 py-0">
+							<Link href="/" className="flex">
+								<Brand />
+							</Link>
+						</NavBar>
+					}
+					sidebar={
+						<Sidebar>
+							<SidebarHeader>
+								<SidebarItem href="/">
+									<Image src="/gradient.png" alt="" width={24} height={24} />
+									<SidebarLabel>
+										<Text className="font-black text-lg">Admin</Text>
+									</SidebarLabel>
 								</SidebarItem>
-								<SidebarItem href="/security" match="prefix">
-									<ShieldExclamationIcon />
-									<SidebarLabel>Security</SidebarLabel>
-								</SidebarItem>
-							</SidebarSection>
-						</SidebarBody>
-						<SidebarFooter>
-							{/* The settings button sits beside the account menu, so it shows in
+							</SidebarHeader>
+							<SidebarBody>
+								<SidebarSection>
+									<SidebarItem href="/users" match="prefix">
+										<UsersIcon />
+										<SidebarLabel>Users</SidebarLabel>
+									</SidebarItem>
+									<SidebarItem href="/security" match="prefix">
+										<ShieldExclamationIcon />
+										<SidebarLabel>Security</SidebarLabel>
+									</SidebarItem>
+								</SidebarSection>
+							</SidebarBody>
+							<SidebarFooter>
+								{/* The settings button sits beside the account menu, so it shows in
 						    the desktop sidebar and in the mobile drawer. */}
-							<Flex align="center" gap="sm">
-								<div className="min-w-0 flex-1">
-									<UserMenu admin placement="top-start">
-										<SidebarItem current={pathname.startsWith('/account')}>
-											<UserAvatar user={user} />
-											<SidebarLabel>{user.email}</SidebarLabel>
-											<ChevronUpDownIcon />
-										</SidebarItem>
-									</UserMenu>
-								</div>
-								<AppearanceSettings>
-									<EventsSwitch />
-								</AppearanceSettings>
-							</Flex>
-						</SidebarFooter>
-					</Sidebar>
-				}
-			>
-				{children}
-			</SidebarLayout>
+								<Flex align="center" gap="sm">
+									<div className="min-w-0 flex-1">
+										<UserMenu admin placement="top-start">
+											<SidebarItem current={pathname.startsWith('/account')}>
+												<UserAvatar user={user} />
+												<SidebarLabel>{user.email}</SidebarLabel>
+												<ChevronUpDownIcon />
+											</SidebarItem>
+										</UserMenu>
+									</div>
+									<AppearanceSettings>
+										<EventsSwitch />
+									</AppearanceSettings>
+								</Flex>
+							</SidebarFooter>
+						</Sidebar>
+					}
+				>
+					{children}
+				</SidebarLayout>
+			</div>
 		</UIProvider>
 	)
 }

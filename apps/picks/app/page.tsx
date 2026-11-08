@@ -2,6 +2,7 @@ import { requireSession } from 'auth'
 import { Suspense } from 'react'
 import { seed } from 'shared/queries'
 import { Container } from 'ui/structure/container'
+import { PageFrame } from '@/components/page-frame'
 import { PicksHeader } from '@/components/picks-header'
 import { type ClosingWeek, ScheduleList } from '@/components/schedule-list'
 import { TallyTotal } from '@/components/tally-total'
@@ -117,9 +118,7 @@ export default async function Page() {
 	const seasonTally = Object.values(tallies).reduce(addTally, EMPTY_TALLY)
 
 	return (
-		<>
-			<PicksHeader user={user} />
-
+		<PageFrame header={<PicksHeader user={user} />}>
 			<Container size="full" padding="lg" className="py-6">
 				<Suspense>
 					<ScheduleList
@@ -135,6 +134,6 @@ export default async function Page() {
 					/>
 				</Suspense>
 			</Container>
-		</>
+		</PageFrame>
 	)
 }
