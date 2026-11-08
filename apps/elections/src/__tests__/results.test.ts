@@ -10,6 +10,7 @@ import {
 	delegationWinner,
 	entryName,
 	entryStep,
+	matchesSearch,
 	raceWinner,
 	readEntries,
 	seatGroups,
@@ -41,6 +42,28 @@ describe('the races of a contest', () => {
 		expect(ga06 && entryName(ga06)).toBe('Georgia 6th District')
 
 		expect(senateEntries.every((entry) => entry.district === null)).toBe(true)
+	})
+
+	it('finds a race by its district or a candidate, with each word of the query', () => {
+		const ga06 = houseEntries.find((entry) => entry.state.key === 'ga' && entry.district === '06')
+
+		if (ga06 === undefined) throw new Error('The fixture has no Georgia 6th District.')
+
+		const [first] = ga06.candidates
+
+		if (first === undefined) throw new Error('The Georgia 6th District has no candidate.')
+
+		const race = { ...ga06, candidates: [{ ...first, name: 'Vicente González' }] }
+
+		expect(matchesSearch(race, '')).toBe(true)
+
+		expect(matchesSearch(race, '  6th  ')).toBe(true)
+
+		expect(matchesSearch(race, 'GONZALEZ')).toBe(true)
+
+		expect(matchesSearch(race, 'vicente 6th')).toBe(true)
+
+		expect(matchesSearch(race, 'vicente 7th')).toBe(false)
 	})
 
 	it('gives the closest races first, and never an unopposed race', () => {

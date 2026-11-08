@@ -80,6 +80,28 @@ export function entryName(entry: Pick<RaceEntry, 'state' | 'district'>): string 
 		: `${entry.state.name} ${districtName(entry.district)}`
 }
 
+/** A text for a search: lower case and with no accents, so that `gonzalez` finds `González`. */
+function searchText(text: string): string {
+	return text.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase()
+}
+
+/**
+ * Whether a race matches a search: each word of the query is in the name of
+ * the race or in the name of one of its candidates. An empty query matches
+ * each race.
+ */
+export function matchesSearch(entry: RaceEntry, query: string): boolean {
+	const words = searchText(query).split(/\s+/).filter(Boolean)
+
+	if (words.length === 0) return true
+
+	const text = searchText(
+		[entryName(entry), ...entry.candidates.map((candidate) => candidate.name)].join(' '),
+	)
+
+	return words.every((word) => text.includes(word))
+}
+
 /** A key of a race that is unique in an election, such as `senate:ga` or `house:ga-06`. */
 export function entryKey(entry: RaceEntry): string {
 	const region = entry.district === null ? entry.state.key : `${entry.state.key}-${entry.district}`
