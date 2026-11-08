@@ -1,5 +1,5 @@
 # App Platform spec for midgard: one app that serves the admin app, the places
-# app, and the docs site of `ui`, each on its own subdomain. The deploy workflow
+# app, the elections app, and the docs site of `ui`, each on its own subdomain. The deploy workflow
 # applies it on each push to main, and the first run creates the app. The two
 # Next apps build from the Dockerfile at the repository root, which gets each
 # build-time variable below as a build argument. The docs site builds from
@@ -29,6 +29,9 @@ domains:
   - domain: docs.ivoryimage.dev
     type: ALIAS
     zone: ivoryimage.dev
+  - domain: elections.ivoryimage.dev
+    type: ALIAS
+    zone: ivoryimage.dev
 
 # Each rule sends one subdomain to one component. The `authority` match reads
 # the host of the request.
@@ -53,6 +56,13 @@ ingress:
       match:
         authority:
           exact: docs.ivoryimage.dev
+        path:
+          prefix: /
+    - component:
+        name: elections
+      match:
+        authority:
+          exact: elections.ivoryimage.dev
         path:
           prefix: /
 
@@ -141,6 +151,39 @@ services:
         scope: RUN_TIME
         type: SECRET
         value: ${CLIENT_IP_SECRET}
+
+  # The elections app is public. It has no sign-in and does not call the
+  # gateway, so it needs no BIFROST_URL and no CLIENT_IP_SECRET. Its server
+  # reads civicAPI, also during `next build`, which prerenders the pages.
+  - name: elections
+    github:
+      repo: charliebeckstrand/midgard
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: Dockerfile
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    # The same reason as for admin.
+    alerts:
+      - rule: RESTART_COUNT
+        operator: GREATER_THAN
+        value: 2
+        window: FIVE_MINUTES
+      - rule: MEM_UTILIZATION
+        operator: GREATER_THAN
+        value: 80
+        window: TEN_MINUTES
+      - rule: CPU_UTILIZATION
+        operator: GREATER_THAN
+        value: 80
+        window: TEN_MINUTES
+    health_check:
+      http_path: /
+    envs:
+      - key: APP
+        scope: BUILD_TIME
+        value: elections
 
   # The docs site of `ui`. The build writes each page to `<path>/index.html`,
   # and in each other language to `<path>/index.<locale>.html`, such as

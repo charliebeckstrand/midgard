@@ -10,8 +10,9 @@ pnpm --filter elections dev
 The app runs on port 3003. It is public: it has no sign-in, and it reads no
 data of a user.
 
-The app does not deploy yet. [`.do/app.yaml`](../../.do/app.yaml) has no
-`elections` component, so a push to `main` does not build it.
+Each push to `main` deploys the app to `elections.ivoryimage.dev`, through the
+`elections` component of [`.do/app.yaml`](../../.do/app.yaml). The build
+prerenders the pages, so it reads civicAPI.
 
 ```bash
 pnpm --filter elections test
