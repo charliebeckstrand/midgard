@@ -20,18 +20,6 @@ export type SeatCardProps = {
 	href: string
 }
 
-/** The words in the hole of the chart: the seats that a party needs to win the chamber. */
-function HoleText({ majority }: { majority: number }) {
-	// The hole is small, so its words stay short and break onto two lines.
-	return (
-		<div className="flex flex-col items-center pb-0.5 text-center text-xs/4 font-semibold">
-			<span>{majority}</span>
-
-			<span>to win</span>
-		</div>
-	)
-}
-
 /** One large seat count under the chart, which rolls to a new count when a seat is called. */
 function SeatCount({ party }: { party: PartySeats | undefined }) {
 	if (party === undefined) return <span />
@@ -48,8 +36,7 @@ function SeatCount({ party }: { party: PartySeats | undefined }) {
 /**
  * The balance of power of one office: a hemicycle of its seats, and the seats
  * of the two largest sides as large counts. An office with a majority gets a
- * dashed line at it and the seats to win in the hole. The menu of the chart
- * sits at the end of the title row.
+ * tick at it. The menu of the chart sits at the end of the title row.
  */
 export function SeatCard({ contest, parties, href }: SeatCardProps) {
 	const blue = parties.find((party) => party.slot === 'blue')
@@ -82,9 +69,7 @@ export function SeatCard({ contest, parties, href }: SeatCardProps) {
 						majority={contest.majority}
 						contextMenu={{ button: true }}
 						height={220}
-					>
-						{contest.majority === undefined ? null : <HoleText majority={contest.majority} />}
-					</SeatChart>
+					/>
 
 					<Flex align="end" justify="between" gap="lg">
 						<SeatCount party={blue} />
