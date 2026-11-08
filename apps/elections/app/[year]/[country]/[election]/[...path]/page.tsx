@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { LiveRefresh } from 'shared/refresh'
 import { Stack } from 'ui/structure/stack'
 import { NationalMap } from '@/components/national-map'
-import { PageFrame } from '@/components/page-frame'
+import { PageBody } from '@/components/page-frame'
 import { PageTitle } from '@/components/page-title'
 import { RaceCard, RaceCardGrid } from '@/components/race-card'
 import { RacePage } from '@/components/race-page'
@@ -17,7 +17,7 @@ import { type ContestResult, contestResult, electionResults } from '@/server/res
 import { districtName, parseRacePath, type RaceLocation, racePath } from '@/utilities/elections-url'
 import { delegation, isCalled } from '@/utilities/race-math'
 import { entryKey, isCounting, newestUpdate } from '@/utilities/results'
-import { electionCrumbs, OVERVIEW, officeItems } from '@/utilities/trail'
+import { OVERVIEW, officeItems } from '@/utilities/trail'
 
 type Params = { params: Promise<ElectionParams & { path: string[] }> }
 
@@ -68,10 +68,7 @@ async function NationalPage({ election, contest }: { election: Election; contest
 	const counting = isCounting(result.entries)
 
 	return (
-		<PageFrame
-			crumbs={electionCrumbs(election, { region: null, contest, district: null })}
-			status={{ counting, reporting: null, updated: result.national.updated }}
-		>
+		<PageBody status={{ counting, reporting: null, updated: result.national.updated }}>
 			<LiveRefresh live={counting} />
 
 			<NationalMap
@@ -81,7 +78,7 @@ async function NationalPage({ election, contest }: { election: Election; contest
 				heading={contest.plural}
 				items={officeItems(election, null)}
 			/>
-		</PageFrame>
+		</PageBody>
 	)
 }
 
@@ -107,16 +104,13 @@ async function StatePage({
 
 	const items = officeItems(election, region, offices)
 
-	const crumbs = electionCrumbs(election, location)
-
 	if (contest === null) {
 		const entries = results.flatMap((result) => stateEntries(result, region))
 
 		const counting = isCounting(entries)
 
 		return (
-			<PageFrame
-				crumbs={crumbs}
+			<PageBody
 				status={{
 					counting,
 					reporting: null,
@@ -154,7 +148,7 @@ async function StatePage({
 						)
 					})}
 				</Stack>
-			</PageFrame>
+			</PageBody>
 		)
 	}
 
@@ -166,10 +160,7 @@ async function StatePage({
 		const counting = isCounting(races)
 
 		return (
-			<PageFrame
-				crumbs={crumbs}
-				status={{ counting, reporting: null, updated: result?.national.updated ?? null }}
-			>
+			<PageBody status={{ counting, reporting: null, updated: result?.national.updated ?? null }}>
 				<LiveRefresh live={counting} />
 
 				<PageTitle heading={contest.label} items={items} value={contest.slug} />
@@ -187,7 +178,7 @@ async function StatePage({
 						/>
 					))}
 				</RaceCardGrid>
-			</PageFrame>
+			</PageBody>
 		)
 	}
 
@@ -202,10 +193,7 @@ async function StatePage({
 	const heading = district === null ? contest.label : districtName(district)
 
 	return (
-		<PageFrame
-			crumbs={crumbs}
-			status={{ counting, reporting: read.reporting, updated: read.updated }}
-		>
+		<PageBody status={{ counting, reporting: read.reporting, updated: read.updated }}>
 			<LiveRefresh live={counting} />
 
 			<PageTitle heading={heading} special={read.special} items={items} value={contest.slug} />
@@ -217,7 +205,7 @@ async function StatePage({
 					district === null ? contest.label : `${contest.label}, ${districtName(district)}`
 				}
 			/>
-		</PageFrame>
+		</PageBody>
 	)
 }
 

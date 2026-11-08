@@ -4,7 +4,7 @@ import { Heading } from 'ui/heading'
 import { Columns } from 'ui/structure/columns'
 import { Stack } from 'ui/structure/stack'
 import { LatestCalls } from '@/components/latest-calls'
-import { PageFrame } from '@/components/page-frame'
+import { PageBody } from '@/components/page-frame'
 import { PageTitle } from '@/components/page-title'
 import { RaceCard, RaceCardGrid } from '@/components/race-card'
 import { SeatCard } from '@/components/seat-card'
@@ -20,7 +20,7 @@ import {
 	newestUpdate,
 	type RaceEntry,
 } from '@/utilities/results'
-import { electionCrumbs, OVERVIEW, officeItems } from '@/utilities/trail'
+import { OVERVIEW, officeItems } from '@/utilities/trail'
 
 type Params = { params: Promise<ElectionParams> }
 
@@ -60,8 +60,7 @@ export default async function OverviewPage({ params }: Params) {
 	const counting = isCounting(entries)
 
 	return (
-		<PageFrame
-			crumbs={electionCrumbs(election, { region: null, contest: null, district: null })}
+		<PageBody
 			status={{
 				counting,
 				reporting: null,
@@ -117,6 +116,6 @@ export default async function OverviewPage({ params }: Params) {
 					href: entryPath(election, entry),
 				}))}
 			/>
-		</PageFrame>
+		</PageBody>
 	)
 }
