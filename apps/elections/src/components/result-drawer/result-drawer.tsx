@@ -135,7 +135,9 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 			<DrawerPanel glass height="fit" footer={null} aria-label={title}>
 				{/* The trail and the body are children of the panel, so the body is the scroll region of the panel. */}
 				<Container size="lg" padding="lg" className="h-auto shrink-0">
-					<div className="max-w-[440px] pt-6 pb-3">
+					{/* The panel puts its 16px slot gap between the trail and the body. Thus 8px
+					    here and that gap are equal to the 24px above the trail. */}
+					<div className="max-w-[440px] pt-6 pb-2">
 						<Flex align="start" justify="between" gap="lg">
 							<Stack gap="xs" flex="1" className="min-w-0">
 								<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
