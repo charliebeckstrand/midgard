@@ -12,6 +12,7 @@ import {
 } from 'ui/breadcrumb'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
+import { StackedLayoutHeader } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { useIntl } from 'ui/primitives/intl'
@@ -102,11 +103,12 @@ function ElectionCrumb({
  * The bar at the top of each page. The title is the trail, such as
  * `2026 › United States › Midterms › Georgia`, where each crumb but the last
  * leads up. The trail gives way from the left, as the trail of Places does.
- * The appearance settings sit on its right.
+ * The appearance settings sit on its right. The bar stays at the top while
+ * the body under it scrolls (`PageColumn`).
  */
 export function ElectionsHeader({ crumbs }: { crumbs: readonly Crumb[] }) {
 	return (
-		<header className="border-b border-zinc-950/10 dark:border-white/10">
+		<StackedLayoutHeader className="border-b border-zinc-950/10 dark:border-white/10">
 			<Container size="lg" padding="lg">
 				<Flex justify="between" align="center" gap="md" className="h-16">
 					{/* `min-w-0` lets the trail give way, and `flex-1` gives it the room that its fit measures. */}
@@ -152,6 +154,6 @@ export function ElectionsHeader({ crumbs }: { crumbs: readonly Crumb[] }) {
 					<AppearanceSettings />
 				</Flex>
 			</Container>
-		</header>
+		</StackedLayoutHeader>
 	)
 }
