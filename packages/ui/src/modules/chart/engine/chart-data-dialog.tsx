@@ -77,7 +77,7 @@ function ChartDataTable({ readout: source }: { readout: ChartReadoutSource }) {
 	if (readout === null) return null
 
 	return (
-		<Table size="sm" striped>
+		<Table size="sm">
 			<TableHead>
 				<TableRow>
 					<TableHeader>{readout.corner}</TableHeader>

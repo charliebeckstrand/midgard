@@ -71,7 +71,7 @@ function HeadToHead({ leader, runnerUp }: { leader: Candidate; runnerUp: Candida
 /**
  * A card of one close race: the race, with its office under it, the two
  * leaders to two decimals, a head-to-head bar with a mark at 50%, and the
- * percent reporting with the call badge.
+ * percent reporting with the call dot.
  */
 export function RaceCard({ entry, office = false, onPick }: RaceCardProps) {
 	const { leader, runnerUp } = leaders(entry.candidates)

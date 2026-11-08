@@ -128,7 +128,7 @@ describe('readRace', () => {
 			atlasCountyNames,
 		)
 
-		expect(race.candidates.at(-1)).toMatchObject({ party: NO_PARTY, slot: 'amber' })
+		expect(race.candidates.at(-1)).toMatchObject({ party: NO_PARTY, slot: 'zinc' })
 
 		expect(() =>
 			readRace(
@@ -201,13 +201,18 @@ describe('readNationalRace', () => {
 })
 
 describe('the party colors and the names', () => {
-	it('colors Democratic blue, Republican red, and every other party amber', () => {
-		expect(['Democratic', 'Republican', 'Independent', 'Libertarian'].map(partySlot)).toEqual([
-			'blue',
-			'red',
-			'amber',
-			'amber',
-		])
+	it('colors Democratic blue, Republican red, no party zinc, and every other party amber', () => {
+		expect(
+			[
+				'Democratic',
+				'Republican',
+				'Nonpartisan',
+				'Write-In',
+				NO_PARTY,
+				'Independent',
+				'Libertarian',
+			].map(partySlot),
+		).toEqual(['blue', 'red', 'zinc', 'zinc', 'zinc', 'amber', 'amber'])
 	})
 
 	it('folds a name to lowercase with single spaces', () => {

@@ -1,25 +1,22 @@
 'use client'
 
 import { CircleCheck } from 'lucide-react'
-import { Badge } from 'ui/badge'
 import { Icon } from 'ui/icon'
 import { useIntl } from 'ui/primitives/intl'
+import { StatusDot } from 'ui/status'
 import { Flex } from 'ui/structure/flex'
 import { percentText } from '../../utilities/race-math'
 
 /**
- * The call of a race or a chamber: a small soft green `Called` badge, or an
- * amber `Not called` one. Green is a call, so no party color takes it.
+ * The call of a race: a solid green dot, or a pulsing amber dot while the race
+ * is not called. Green is a call, so no party color takes it. The dot has the
+ * name `Called` or `Not called` for screen readers.
  */
-export function CallBadge({ called, label }: { called: boolean; label?: string }) {
+function CallDot({ called }: { called: boolean }) {
 	return called ? (
-		<Badge variant="soft" color="green" size="sm">
-			{label ?? 'Called'}
-		</Badge>
+		<StatusDot status="active" label="Called" />
 	) : (
-		<Badge variant="soft" color="amber" size="sm">
-			Not called
-		</Badge>
+		<StatusDot status="warning" pulse label="Not called" />
 	)
 }
 
@@ -33,17 +30,17 @@ export function WinnerMark() {
 }
 
 /**
- * The percent reporting of a race with its call badge set beside it, not at
- * the far end of the row, so the two read as one fact.
+ * The percent reporting of a race with its call dot before it, so the two read
+ * as one fact.
  */
 export function ReportingRow({ reporting, called }: { reporting: number; called: boolean }) {
 	const intl = useIntl()
 
 	return (
 		<Flex wrap gap="sm" className="text-sm/6 text-zinc-600 dark:text-zinc-400">
-			<span className="tabular-nums">{percentText(intl.formatNumber, reporting, 1)} reporting</span>
+			<CallDot called={called} />
 
-			<CallBadge called={called} />
+			<span className="tabular-nums">{percentText(intl.formatNumber, reporting, 1)} reporting</span>
 		</Flex>
 	)
 }

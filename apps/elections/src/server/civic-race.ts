@@ -59,19 +59,28 @@ function optionalText(value: unknown): string | null {
 }
 
 /**
- * The color of a party in the US: Democratic is blue, Republican is red, and
- * any other party is amber. Green stays free, because green is a call.
+ * The color of a party in the US: Democratic is blue, Republican is red, a
+ * candidate with no party is zinc, and any other party is amber. Green stays
+ * free, because green is a call.
  */
 export function partySlot(party: string): PartySlot {
 	if (party === 'Democratic') return 'blue'
 
 	if (party === 'Republican') return 'red'
 
+	if (NONPARTY.has(party)) return 'zinc'
+
 	return 'amber'
 }
 
 /** The party of a choice with none, such as `None of These Candidates` on the ballot of Nevada. */
 export const NO_PARTY = 'No party'
+
+/**
+ * The parties that name no party: a nonpartisan race, a write-in, and a choice
+ * with none. They take zinc, so that amber is only for a third party.
+ */
+const NONPARTY: ReadonlySet<string> = new Set(['Nonpartisan', 'Write-In', NO_PARTY])
 
 /** The party of a candidate. An empty party is a choice with no party, and any other value throws. */
 function readParty(value: unknown, path: string): string {
