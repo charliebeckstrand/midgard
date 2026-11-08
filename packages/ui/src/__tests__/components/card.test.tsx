@@ -36,6 +36,31 @@ describe('Card', () => {
 
 		expect(bySlot(container, 'card-header')).toBeInTheDocument()
 	})
+
+	it('sets the default text color, so it reads the same inside a muted panel body', () => {
+		const { container } = renderUI(
+			<div className="text-zinc-500">
+				<Card>
+					<CardDescription>Muted</CardDescription>
+				</Card>
+			</div>,
+		)
+
+		expect(bySlot(container, 'card')).toHaveClass('text-zinc-950', 'dark:text-white')
+
+		// The description keeps its muted color.
+		expect(bySlot(container, 'card-description')).toHaveClass('text-zinc-500')
+	})
+
+	it('takes the focus ring of a control as a link', () => {
+		const { container } = renderUI(<Card href="/next">Link</Card>)
+
+		const card = bySlot(container, 'card')
+
+		expect(card?.tagName).toBe('A')
+
+		expect(card).toHaveClass('focus-visible:outline-2', 'focus-visible:outline-blue-600')
+	})
 })
 
 describe('Card size system', () => {

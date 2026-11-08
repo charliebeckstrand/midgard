@@ -1476,6 +1476,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		show: showLegend,
 		placement: legendPlacement,
 		range: rangeLegend,
+		orientation: legendOrientation,
 	} = planLegend(
 		legend,
 		numeric,
@@ -1603,6 +1604,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					range={rangeLegend}
 					show={showLegend}
 					aside={aside}
+					orientation={legendOrientation}
 					items={items}
 					hidden={switched}
 					onToggle={toggle}
