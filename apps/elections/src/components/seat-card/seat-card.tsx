@@ -65,7 +65,10 @@ export function SeatCard({ contest, parties, href }: SeatCardProps) {
 							{contest.plural}
 						</Link>
 
-						<HeaderActionsSlot />
+						{/* The chart puts its View data and menu buttons here, side by side. */}
+						<Flex gap="xs" align="center">
+							<HeaderActionsSlot />
+						</Flex>
 					</Flex>
 
 					<SeatChart
