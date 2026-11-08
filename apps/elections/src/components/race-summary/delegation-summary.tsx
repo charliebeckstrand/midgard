@@ -5,13 +5,12 @@ import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Swatch } from 'ui/swatch'
 import { barColor, type Delegation } from '../../utilities/race-math'
-import { CallBadge } from './call-badge'
 
 /**
  * The body of each place where the seats of a state show: the national Drawer
  * of the House, the House card of a state, and the House tab. It lists the
  * seats that each party won, each with a bar of its share of the seats, then
- * the seats called with the call badge.
+ * the count of the seats called.
  */
 export function DelegationSummary({ delegation }: { delegation: Delegation }) {
 	const { parties, called, total } = delegation
@@ -46,13 +45,9 @@ export function DelegationSummary({ delegation }: { delegation: Delegation }) {
 				</Stack>
 			)}
 
-			<Flex wrap gap="sm" className="text-sm/6 text-zinc-600 dark:text-zinc-400">
-				<span className="tabular-nums">
-					Seats called {called} of {total}
-				</span>
-
-				<CallBadge called={called === total} />
-			</Flex>
+			<p className="text-sm/6 text-zinc-600 tabular-nums dark:text-zinc-400">
+				Seats called {called} of {total}
+			</p>
 		</Stack>
 	)
 }
