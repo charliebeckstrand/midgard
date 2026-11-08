@@ -117,7 +117,7 @@ export type ResultDrawerProps = {
  * panel needs no Back button, and the close sits at the end of that row. A
  * crumb with a menu switches between its choices, as the office crumb does.
  * The panel is as tall as its body, and moves between heights as the step
- * changes. The content is one column on the left edge of
+ * changes. A body taller than the screen scrolls under the trail, which stays. The content is one column on the left edge of
  * the page container, so it lines up with the header.
  */
 export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
@@ -133,9 +133,10 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 	return (
 		<Drawer open={view !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
 			<DrawerPanel glass height="fit" footer={null} aria-label={title}>
-				<Container size="lg" padding="lg" className="h-auto">
-					<Stack gap="md" className="max-w-[440px]">
-						<Flex align="start" justify="between" gap="lg" className="pt-6">
+				{/* The trail and the body are children of the panel, so the body is the scroll region of the panel. */}
+				<Container size="lg" padding="lg" className="h-auto shrink-0">
+					<div className="max-w-[440px] pt-6 pb-3">
+						<Flex align="start" justify="between" gap="lg">
 							<Stack gap="xs" flex="1" className="min-w-0">
 								<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
 
@@ -172,10 +173,14 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 								</Button>
 							</DrawerClose>
 						</Flex>
-
-						<DrawerBody className="px-0">{shown?.body}</DrawerBody>
-					</Stack>
+					</div>
 				</Container>
+
+				<DrawerBody className="px-0">
+					<Container size="lg" padding="lg" className="h-auto">
+						<div className="max-w-[440px]">{shown?.body}</div>
+					</Container>
+				</DrawerBody>
 			</DrawerPanel>
 		</Drawer>
 	)
