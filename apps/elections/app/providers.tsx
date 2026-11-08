@@ -5,12 +5,11 @@ import { AppProviders } from 'shared/providers'
 
 /**
  * App-wide client providers: `AppProviders` from `shared`. It sets no time
- * zone, so the times of the calls are in the zone of the reader. The app has
- * no catalog of its own, so it renders in English and has no Language picker.
+ * zone, so the times of the calls are in the zone of the reader.
  *
  * @remarks Rendered from the root layout. The app has no client queries, so
  * the query defaults are the defaults of `shared`.
  */
 export function Providers({ children }: { children: ReactNode }) {
-	return <AppProviders localeChoice={false}>{children}</AppProviders>
+	return <AppProviders>{children}</AppProviders>
 }

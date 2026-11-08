@@ -1,18 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import { requireSession, type Session } from 'auth'
-import { type ReactNode, useState } from 'react'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import SignedInLayout from '../../app/(signed-in)/layout'
 
 vi.mock('auth', () => ({ requireSession: vi.fn() }))
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/account' }))
-
-// The locale of the request reads the cookies and the headers of a server
-// render. The test renders the layout in jsdom, so the locale renders the page alone.
-vi.mock('shared/locale', () => ({
-	RequestLocale: ({ children }: { children: ReactNode }) => children,
-}))
 
 // The count of the pages that mounted.
 let mounts = 0
