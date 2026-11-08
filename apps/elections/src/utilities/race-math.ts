@@ -82,9 +82,11 @@ export function signedLabel(value: number): string {
 	return `${value < 0 ? 'D' : 'R'}+${points}`
 }
 
-/** A signed seat share of a two-party map as text: `-50` reads `100% D`, `10` reads `60% R`. */
+/** A signed seat share of a two-party map as text: `-50` reads `All D`, `10` reads `60% R`. */
 export function shareLabel(value: number): string {
 	if (value === 0) return 'Even'
+
+	if (Math.abs(value) >= 50) return `All ${value < 0 ? 'D' : 'R'}`
 
 	return `${Math.round(50 + Math.abs(value))}% ${value < 0 ? 'D' : 'R'}`
 }

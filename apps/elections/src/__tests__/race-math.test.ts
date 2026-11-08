@@ -67,7 +67,7 @@ describe('race math', () => {
 	})
 
 	it('labels a seat share as the share of the party that holds more seats', () => {
-		expect(shareLabel(-50)).toBe('100% D')
+		expect(shareLabel(-50)).toBe('All D')
 
 		expect(shareLabel(10)).toBe('60% R')
 
