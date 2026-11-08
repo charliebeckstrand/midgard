@@ -7,19 +7,16 @@ import { TimeAgo } from 'ui/time-ago'
 export type ElectionsFooterProps = {
 	/** Votes are still counted, so the footer shows a live dot. */
 	counting: boolean
-	/** The percent reporting of the race of a race page, or `null` on a page of many races. */
-	reporting: number | null
 	/** The newest update of the results on the page, as an ISO time, or `null` for a page with none. */
 	updated: string | null
 }
 
 /**
  * The foot of each page. It holds the status, so no page has a status line:
- * on the left a live dot while votes are counted, the percent reporting of a
- * race, and the age of the newest update; on the right the sources. Under
- * 640px the two stack.
+ * on the left a live dot while votes are counted and the age of the newest
+ * update; on the right the sources. Under 640px the two stack.
  */
-export function ElectionsFooter({ counting, reporting, updated }: ElectionsFooterProps) {
+export function ElectionsFooter({ counting, updated }: ElectionsFooterProps) {
 	return (
 		<footer className="mt-auto border-t border-zinc-950/10 dark:border-white/10">
 			<Container size="lg" padding="lg" className="py-4 text-xs/5 text-zinc-500 dark:text-zinc-400">
@@ -37,7 +34,6 @@ export function ElectionsFooter({ counting, reporting, updated }: ElectionsFoote
 
 							<span>
 								{counting ? 'Counting' : 'Counted'}
-								{reporting === null ? null : `, ${reporting.toFixed(1)}% reporting`}
 								{', updated '}
 								<TimeAgo value={updated} />
 							</span>

@@ -1,87 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
-import { Grid, type GridColumn, type GridSortState } from 'ui/grid'
-import { useIntl } from 'ui/primitives/intl'
-import { ProgressBar } from 'ui/progress'
+import type { GridSortState } from 'ui/grid'
+import { Placeholder } from 'ui/placeholder'
 import { Flex } from 'ui/structure/flex'
-import { Swatch } from 'ui/swatch'
 import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
-import { marginLabel, percentText } from '../../utilities/race-math'
-import { entryName, entryStep, type RaceEntry } from '../../utilities/results'
+import { entryStep, type RaceEntry } from '../../utilities/results'
 import { CollapseCaret } from '../collapse-caret'
 
-/** One race of {@link UncalledTable}. */
-export type UncalledRow = { key: string; entry: RaceEntry }
-
-function ReportingCell({ reporting }: { reporting: number }) {
-	const intl = useIntl()
-
-	return (
-		<Flex as="span" gap="sm">
-			<ProgressBar aria-label="Reporting" value={reporting} size="xs" className="w-16 shrink-0" />
-
-			<span className="tabular-nums">{percentText(intl.formatNumber, reporting, 0)}</span>
-		</Flex>
-	)
-}
-
-const COLUMNS: GridColumn<UncalledRow>[] = [
-	{
-		id: 'race',
-		title: 'Race',
-		cell: (row) => entryName(row.entry),
-		value: (row) => entryName(row.entry),
-	},
-	{
-		id: 'office',
-		title: 'Office',
-		cell: (row) => row.entry.contest.label,
-		value: (row) => row.entry.contest.label,
-	},
-	{
-		id: 'leader',
-		title: 'Leader',
-		cell: (row) => {
-			const leader = row.entry.candidates[0]
-
-			return leader === undefined ? null : (
-				<Flex as="span" gap="sm">
-					<Swatch color={leader.slot} />
-					{leader.name}
-				</Flex>
-			)
-		},
-		value: (row) => row.entry.candidates[0]?.name ?? '',
-	},
-	{
-		id: 'lead',
-		title: 'Lead',
-		// The lead sorts by its number, not by its label.
-		cell: (row) => <span className="tabular-nums">{marginLabel(row.entry.candidates)}</span>,
-		value: (row) => row.entry.lead ?? Number.POSITIVE_INFINITY,
-	},
-	{
-		id: 'reporting',
-		title: 'Reporting',
-		cell: (row) => <ReportingCell reporting={row.entry.reporting} />,
-		value: (row) => row.entry.reporting,
-	},
-]
+/** The table loads when it first opens, because the Grid is a large part of the code of the page. */
+const UncalledGrid = lazy(() =>
+	import('./uncalled-grid').then((module) => ({ default: module.UncalledGrid })),
+)
 
 /**
  * Every race not called, in a section that opens on a click: a table with
  * sortable columns, the closest lead first. A row opens its race in the Drawer.
+ * The first open shows a placeholder while the table loads.
  */
 export function UncalledTable({
 	election,
-	rows,
+	entries,
 }: {
 	election: Election
-	rows: readonly UncalledRow[]
+	entries: readonly RaceEntry[]
 }) {
 	const { go } = useDrawerStep(election)
 
@@ -93,7 +38,7 @@ export function UncalledTable({
 				<Flex as="span" gap="sm" className="text-base/6 font-semibold">
 					Every race not called
 					<Badge variant="soft" color="amber">
-						{rows.length}
+						{entries.length}
 					</Badge>
 					<CollapseCaret />
 				</Flex>
@@ -101,13 +46,20 @@ export function UncalledTable({
 
 			<CollapsePanel>
 				<div className="pt-4">
-					<Grid
-						columns={COLUMNS}
-						rows={[...rows]}
-						getKey={(row) => row.key}
-						sort={{ value: sort, onValueChange: setSort }}
-						onRowClick={(row) => go(entryStep(row.entry))}
-					/>
+					<Suspense
+						fallback={
+							<div aria-busy="true">
+								<Placeholder className="h-64" />
+							</div>
+						}
+					>
+						<UncalledGrid
+							entries={entries}
+							sort={sort}
+							onSortChange={setSort}
+							onPick={(entry) => go(entryStep(entry))}
+						/>
+					</Suspense>
 				</div>
 			</CollapsePanel>
 		</Collapse>

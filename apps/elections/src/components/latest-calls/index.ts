@@ -1,1 +1,1 @@
-export { type LatestCall, LatestCalls } from './latest-calls'
+export { LatestCalls } from './latest-calls'

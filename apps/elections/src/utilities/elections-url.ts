@@ -99,11 +99,6 @@ export function drawerHref(path: string, step: DrawerStep | null): string {
 	return query === '' ? path : `${path}?${query}`
 }
 
-/** The key of a district in civicAPI, such as `ga-06`. */
-export function districtKey(region: string, district: string): string {
-	return `${region}-${district}`
-}
-
 /** The district of a civicAPI key such as `ga-06`, or `null` for a key with no district. */
 export function districtOfKey(key: string): string | null {
 	const [, district] = key.split('-')

@@ -5,9 +5,8 @@ import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import type { OfficeItem } from '../../utilities/trail'
 
 /**
- * The switch between the overview and the offices of an election. It changes
- * the route and keeps the region, so a national page moves between the
- * national maps, and a state page between the tabs of the state.
+ * The switch between the overview and the national map of each office of an
+ * election. It changes the route.
  */
 export function OfficeSwitch({ items, value }: { items: readonly OfficeItem[]; value: string }) {
 	const router = useRouter()

@@ -14,7 +14,7 @@ import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults, latestCalls } from '@/server/results'
 import { OVERVIEW, officePath } from '@/utilities/elections-url'
-import { entryKey, isCounting, newestUpdate } from '@/utilities/results'
+import { isCounting, newestUpdate } from '@/utilities/results'
 import { officeItems } from '@/utilities/trail'
 
 type Params = { params: Promise<ElectionParams>; searchParams: SearchParams }
@@ -40,9 +40,11 @@ export default async function OverviewPage({ params, searchParams }: Params) {
 
 	const races = officeRaces(results)
 
-	const seed = await drawerSeed(election, races, searchParams)
-
-	const calls = await latestCalls(results, 5)
+	// The two reads do not depend on each other, so a cache miss waits for one upstream read, not two.
+	const [seed, calls] = await Promise.all([
+		drawerSeed(election, races, searchParams),
+		latestCalls(results, 5),
+	])
 
 	const entries = results.flatMap((result) => result.entries)
 
@@ -52,11 +54,7 @@ export default async function OverviewPage({ params, searchParams }: Params) {
 
 	return (
 		<PageBody
-			status={{
-				counting,
-				reporting: null,
-				updated: newestUpdate(results.map((result) => result.national)),
-			}}
+			status={{ counting, updated: newestUpdate(results.map((result) => result.national)) }}
 		>
 			<LiveRefresh live={counting} />
 
@@ -83,10 +81,7 @@ export default async function OverviewPage({ params, searchParams }: Params) {
 				</Stack>
 			</section>
 
-			<UncalledTable
-				election={election}
-				rows={uncalled.map((entry) => ({ key: entryKey(entry), entry }))}
-			/>
+			<UncalledTable election={election} entries={uncalled} />
 
 			<ElectionDrawer election={election} results={races} seed={seed} />
 		</PageBody>

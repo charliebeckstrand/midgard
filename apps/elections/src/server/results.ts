@@ -1,6 +1,6 @@
 import { type Contest, ELECTIONS, type Election } from '../elections/registry'
-import type { Candidate, NationalRace } from '../types'
-import { type RaceEntry, readEntries } from '../utilities/results'
+import type { NationalRace } from '../types'
+import { type RaceCall, type RaceEntry, readEntries } from '../utilities/results'
 import { nationalRace, race } from './races'
 
 /** The results of one contest: its national race and the race of each region. */
@@ -32,14 +32,6 @@ export async function isKnownRace(id: number): Promise<boolean> {
 	const results = await Promise.all(counted.map(electionResults))
 
 	return results.flat().some((result) => result.entries.some((entry) => entry.raceId === id))
-}
-
-/** One call of a race: the race, its winner, and when civicAPI called it. */
-export type RaceCall = {
-	entry: RaceEntry
-	winner: Candidate
-	/** When civicAPI called the race, or its last update where it gives no call time. */
-	at: string
 }
 
 /**

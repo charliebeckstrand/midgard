@@ -1,7 +1,6 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Card } from 'ui/card'
 import { useIntl } from 'ui/primitives/intl'
 import { ProgressBar } from 'ui/progress'
 import { Columns } from 'ui/structure/columns'
@@ -11,6 +10,7 @@ import { Swatch } from 'ui/swatch'
 import type { Candidate } from '../../types'
 import { barColor, leaders, percentText } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
+import { CardButton } from '../card-button'
 import { ReportingRow, WinnerMark } from '../race-summary'
 
 /** Props for {@link RaceCard}. */
@@ -19,7 +19,7 @@ export type RaceCardProps = {
 	/** Shows the office under the name, for a list of races of many offices. */
 	office?: boolean
 	/** Fires when the card is picked. It opens the race in the Drawer. */
-	onPick?: () => void
+	onPick: () => void
 }
 
 /**
@@ -68,32 +68,6 @@ function HeadToHead({ leader, runnerUp }: { leader: Candidate; runnerUp: Candida
 	)
 }
 
-/** The frame of a card: a button, or a plain card. */
-function CardFrame({ onPick, children }: Omit<RaceCardProps, 'entry'> & { children: ReactNode }) {
-	const frame =
-		'h-full text-start transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-blue-500'
-
-	const body = (
-		<Stack gap="md" className="h-full">
-			{children}
-		</Stack>
-	)
-
-	if (onPick !== undefined) {
-		return (
-			<button
-				type="button"
-				onClick={onPick}
-				className="block h-full w-full cursor-pointer rounded-xl text-start"
-			>
-				<Card className={frame}>{body}</Card>
-			</button>
-		)
-	}
-
-	return <Card className={frame}>{body}</Card>
-}
-
 /**
  * A card of one close race: the race, with its office under it, the two
  * leaders to two decimals, a head-to-head bar with a mark at 50%, and the
@@ -103,29 +77,31 @@ export function RaceCard({ entry, office = false, onPick }: RaceCardProps) {
 	const { leader, runnerUp } = leaders(entry.candidates)
 
 	return (
-		<CardFrame onPick={onPick}>
-			<div>
-				<div className="font-semibold">{entryName(entry)}</div>
+		<CardButton onPick={onPick}>
+			<Stack gap="md" className="h-full">
+				<div>
+					<div className="font-semibold">{entryName(entry)}</div>
 
-				{office ? (
-					<div className="text-sm/5 text-zinc-500 dark:text-zinc-400">{entry.contest.label}</div>
+					{office ? (
+						<div className="text-sm/5 text-zinc-500 dark:text-zinc-400">{entry.contest.label}</div>
+					) : null}
+				</div>
+
+				<Stack gap="xs">
+					{leader === undefined ? null : <LeaderRow candidate={leader} />}
+
+					{runnerUp === undefined ? null : <LeaderRow candidate={runnerUp} />}
+				</Stack>
+
+				{leader !== undefined && runnerUp !== undefined ? (
+					<HeadToHead leader={leader} runnerUp={runnerUp} />
 				) : null}
-			</div>
 
-			<Stack gap="xs">
-				{leader === undefined ? null : <LeaderRow candidate={leader} />}
-
-				{runnerUp === undefined ? null : <LeaderRow candidate={runnerUp} />}
+				<div className="mt-auto">
+					<ReportingRow reporting={entry.reporting} called={entry.called} />
+				</div>
 			</Stack>
-
-			{leader !== undefined && runnerUp !== undefined ? (
-				<HeadToHead leader={leader} runnerUp={runnerUp} />
-			) : null}
-
-			<div className="mt-auto">
-				<ReportingRow reporting={entry.reporting} called={entry.called} />
-			</div>
-		</CardFrame>
+		</CardButton>
 	)
 }
 

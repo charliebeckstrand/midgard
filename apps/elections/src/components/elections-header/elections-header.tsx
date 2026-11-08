@@ -28,6 +28,24 @@ function ElectionDate({ date }: { date: string }) {
 	return intl.formatDate(`${date}T12:00:00Z`, { dateStyle: 'medium', timeZone: 'UTC' })
 }
 
+/** The label of a crumb: a link where the crumb leads somewhere, or the plain name where it does not. */
+function CrumbLink({ crumb, current }: { crumb: Crumb; current: boolean }) {
+	return crumb.href === undefined ? (
+		<BreadcrumbLink current={current} className="font-semibold">
+			{crumb.label}
+		</BreadcrumbLink>
+	) : (
+		<BreadcrumbLink
+			current={current}
+			href={crumb.href}
+			render={<Link href={crumb.href} />}
+			className="font-semibold"
+		>
+			{crumb.label}
+		</BreadcrumbLink>
+	)
+}
+
 /**
  * The crumb of an election: its name, which leads to its overview, and a
  * chevron that opens the elections of its year. The name is a crumb as any
@@ -44,20 +62,7 @@ function ElectionCrumb({
 }) {
 	return (
 		<span className="inline-flex min-w-0 items-center">
-			{crumb.href === undefined ? (
-				<BreadcrumbLink current={current} className="font-semibold">
-					{crumb.label}
-				</BreadcrumbLink>
-			) : (
-				<BreadcrumbLink
-					current={current}
-					href={crumb.href}
-					render={<Link href={crumb.href} />}
-					className="font-semibold"
-				>
-					{crumb.label}
-				</BreadcrumbLink>
-			)}
+			<CrumbLink crumb={crumb} current={current} />
 
 			<Menu placement="bottom-start">
 				<MenuTrigger>
@@ -101,7 +106,7 @@ function ElectionCrumb({
 
 /**
  * The bar at the top of each page. The title is the trail, such as
- * `2026 › United States › Midterms › Georgia`, where each crumb but the last
+ * `Elections › 2026 › United States › Midterms`, where each crumb but the last
  * leads up. The trail gives way from the left, as the trail of Places does.
  * The appearance settings sit on its right. The bar stays at the top while
  * the body under it scrolls (`PageColumn`).
@@ -121,28 +126,14 @@ export function ElectionsHeader({ crumbs }: { crumbs: readonly Crumb[] }) {
 										{index > 0 ? <BreadcrumbSeparator /> : null}
 
 										<BreadcrumbItem>
-											{crumb.menu !== undefined ? (
+											{crumb.menu === undefined ? (
+												<CrumbLink crumb={crumb} current={index === crumbs.length - 1} />
+											) : (
 												<ElectionCrumb
 													crumb={crumb}
 													menu={crumb.menu}
 													current={index === crumbs.length - 1}
 												/>
-											) : crumb.href === undefined ? (
-												<BreadcrumbLink
-													current={index === crumbs.length - 1}
-													className="font-semibold"
-												>
-													{crumb.label}
-												</BreadcrumbLink>
-											) : (
-												<BreadcrumbLink
-													current={index === crumbs.length - 1}
-													href={crumb.href}
-													render={<Link href={crumb.href} />}
-													className="font-semibold"
-												>
-													{crumb.label}
-												</BreadcrumbLink>
 											)}
 										</BreadcrumbItem>
 									</Fragment>

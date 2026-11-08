@@ -11,6 +11,7 @@ import { type DrawerStep, districtName, OVERVIEW } from '../../utilities/electio
 import { delegation } from '../../utilities/race-math'
 import {
 	entryKey,
+	isCounting,
 	type OfficeRaces,
 	type RaceEntry,
 	stateRaces,
@@ -37,11 +38,6 @@ type Go = (step: DrawerStep | null) => void
 
 /** The open state of the county table of a race. */
 type CountiesOpen = { open: boolean; onOpenChange: (open: boolean) => void }
-
-/** Whether the votes of a race are still counted. */
-function counting(entry: Pick<RaceEntry, 'reporting' | 'called'>): boolean {
-	return entry.reporting < 100 || !entry.called
-}
 
 /**
  * The trail of a step: the state, which leads to its overview; the office, with
@@ -251,7 +247,7 @@ export function ElectionDrawer({ election, results, seed }: ElectionDrawerProps)
 
 	const entry = step === null ? undefined : stepEntry(results, step)
 
-	const read = useRace(entry?.raceId ?? null, seed, entry !== undefined && counting(entry))
+	const read = useRace(entry?.raceId ?? null, seed, entry !== undefined && isCounting([entry]))
 
 	const race = read.data?.id === entry?.raceId ? read.data : undefined
 
