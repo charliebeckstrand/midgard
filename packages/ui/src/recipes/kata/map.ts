@@ -88,43 +88,43 @@ export const k = {
 	series: palette.series,
 	/**
 	 * The soft tone of each slot, for a category with `tone: 'soft'`: a lighter
-	 * step of the same hue for a region and its swatch. In light mode it is the
-	 * 300 step. In dark mode it is the 800 step, so the soft tone also moves
-	 * toward the surface. `zinc` takes 400 and 600, because its 300 and 800 steps
-	 * are too near the no-data fill ({@link k.region.empty}).
+	 * step of the same hue for a region and its swatch: the 300 step in light
+	 * and dark mode, so it reads lighter than the solid step on each surface.
+	 * `zinc` takes 400 and 600, because its 300 and 800 steps are too near the
+	 * no-data fill ({@link k.region.empty}).
 	 */
 	soft: {
 		blue: {
-			fill: mode('fill-blue-300', 'dark:fill-blue-800'),
-			text: mode('text-blue-300', 'dark:text-blue-800'),
+			fill: mode('fill-blue-300', 'dark:fill-blue-300'),
+			text: mode('text-blue-300', 'dark:text-blue-300'),
 		},
 		orange: {
-			fill: mode('fill-orange-300', 'dark:fill-orange-800'),
-			text: mode('text-orange-300', 'dark:text-orange-800'),
+			fill: mode('fill-orange-300', 'dark:fill-orange-300'),
+			text: mode('text-orange-300', 'dark:text-orange-300'),
 		},
 		violet: {
-			fill: mode('fill-violet-300', 'dark:fill-violet-800'),
-			text: mode('text-violet-300', 'dark:text-violet-800'),
+			fill: mode('fill-violet-300', 'dark:fill-violet-300'),
+			text: mode('text-violet-300', 'dark:text-violet-300'),
 		},
 		green: {
-			fill: mode('fill-green-300', 'dark:fill-green-800'),
-			text: mode('text-green-300', 'dark:text-green-800'),
+			fill: mode('fill-green-300', 'dark:fill-green-300'),
+			text: mode('text-green-300', 'dark:text-green-300'),
 		},
 		red: {
-			fill: mode('fill-red-300', 'dark:fill-red-800'),
-			text: mode('text-red-300', 'dark:text-red-800'),
+			fill: mode('fill-red-300', 'dark:fill-red-300'),
+			text: mode('text-red-300', 'dark:text-red-300'),
 		},
 		sky: {
-			fill: mode('fill-sky-300', 'dark:fill-sky-800'),
-			text: mode('text-sky-300', 'dark:text-sky-800'),
+			fill: mode('fill-sky-300', 'dark:fill-sky-300'),
+			text: mode('text-sky-300', 'dark:text-sky-300'),
 		},
 		amber: {
-			fill: mode('fill-amber-300', 'dark:fill-amber-800'),
-			text: mode('text-amber-300', 'dark:text-amber-800'),
+			fill: mode('fill-amber-300', 'dark:fill-amber-300'),
+			text: mode('text-amber-300', 'dark:text-amber-300'),
 		},
 		rose: {
-			fill: mode('fill-rose-300', 'dark:fill-rose-800'),
-			text: mode('text-rose-300', 'dark:text-rose-800'),
+			fill: mode('fill-rose-300', 'dark:fill-rose-300'),
+			text: mode('text-rose-300', 'dark:text-rose-300'),
 		},
 		zinc: {
 			fill: mode('fill-zinc-400', 'dark:fill-zinc-600'),
@@ -156,7 +156,7 @@ export const k = {
 	/** The map's own region tokens beside the shared data-viz palette. */
 	region: {
 		/** A region with no matching datum, and a toggled-off category's fallback. */
-		empty: mode('fill-zinc-200', 'dark:fill-zinc-800'),
+		empty: mode('fill-zinc-200', 'dark:fill-zinc-300'),
 		/** Region boundary seam: the surface color, so shared borders read as gaps. */
 		border: mode('stroke-white', 'dark:stroke-zinc-900'),
 		/**
