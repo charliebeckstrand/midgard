@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Seed } from 'shared/queries'
+import { SearchInput } from 'ui/search-input'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
@@ -12,6 +13,7 @@ import { delegation } from '../../utilities/race-math'
 import {
 	entryKey,
 	isCounting,
+	matchesSearch,
 	type OfficeRaces,
 	type RaceEntry,
 	stateRaces,
@@ -38,6 +40,12 @@ type Go = (step: DrawerStep | null) => void
 
 /** The view of the race of the step, which the Drawer holds across a visit to a county. */
 type Views = { view: RaceView; onViewChange: (view: RaceView) => void }
+
+/** The search of the districts of an office, which the Drawer holds across a visit to a district. */
+type Search = { query: string; onQueryChange: (query: string) => void }
+
+/** The number of districts that an office must pass to get a search. */
+const SEARCH_ABOVE = 3
 
 /**
  * The trail of a step: the state, which is its overview and leads back to it;
@@ -130,13 +138,46 @@ function StateOverview({
 	)
 }
 
-/** The delegation of a state, then a card of each district, which leads to the district. */
-function StateDelegation({ office, step, go }: { office: OfficeRaces; step: DrawerStep; go: Go }) {
+/**
+ * The delegation of a state, then a card of each district, which leads to the
+ * district. Above {@link SEARCH_ABOVE} districts, a search over the cards finds a
+ * district by its name or by the name of a candidate.
+ */
+function StateDelegation({
+	office,
+	step,
+	go,
+	search,
+}: {
+	office: OfficeRaces
+	step: DrawerStep
+	go: Go
+	search: Search
+}) {
+	const searchable = office.entries.length > SEARCH_ABOVE
+
+	const query = searchable ? search.query : ''
+
+	const districts = office.entries.filter((district) => matchesSearch(district, query))
+
 	return (
 		<Stack gap="lg">
 			<DelegationSummary delegation={delegation(office.entries.map((race) => race.candidates))} />
 
-			{office.entries.map((district) => (
+			{searchable ? (
+				<SearchInput
+					value={search.query}
+					onValueChange={search.onQueryChange}
+					placeholder="Search districts and candidates"
+					aria-label="Search districts and candidates"
+				/>
+			) : null}
+
+			{searchable && districts.length === 0 ? (
+				<p className="text-sm text-zinc-500 dark:text-zinc-400">No district matches.</p>
+			) : null}
+
+			{districts.map((district) => (
 				<RaceCard
 					key={entryKey(district)}
 					entry={district}
@@ -208,6 +249,7 @@ function drawerView(
 	race: Race | undefined,
 	go: Go,
 	views: Views,
+	search: Search,
 ): DrawerView | null {
 	const races = stateRaces(results, step.region)
 
@@ -223,7 +265,10 @@ function drawerView(
 
 	if (office.contest.depth !== 'district' || step.district !== null) return null
 
-	return { steps: trail, body: <StateDelegation office={office} step={step} go={go} /> }
+	return {
+		steps: trail,
+		body: <StateDelegation office={office} step={step} go={go} search={search} />,
+	}
 }
 
 /**
@@ -260,7 +305,21 @@ export function ElectionDrawer({ election, results, seed }: ElectionDrawerProps)
 			setMapRace(next === 'counties' && entry !== undefined ? entry.raceId : null),
 	}
 
-	const view = step === null ? null : drawerView(election, results, step, entry, race, go, views)
+	// The search belongs to an office of a state: it stays across a visit to one
+	// of its districts, and empties once the Drawer leaves the office.
+	const scope = step === null || step.office === null ? null : `${step.region.key}:${step.office}`
+
+	const [held, setHeld] = useState({ scope, query: '' })
+
+	if (held.scope !== scope) setHeld({ scope, query: '' })
+
+	const search: Search = {
+		query: held.scope === scope ? held.query : '',
+		onQueryChange: (query) => setHeld({ scope, query }),
+	}
+
+	const view =
+		step === null ? null : drawerView(election, results, step, entry, race, go, views, search)
 
 	return <ResultDrawer view={view} onClose={() => go(null)} />
 }
