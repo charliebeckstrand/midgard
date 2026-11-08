@@ -35,7 +35,7 @@ const CountyMap = lazy(() => loadCountyMap().then((module) => ({ default: module
 /** The still shape of the county map while its code loads. */
 const MAP_PLACEHOLDER = (
 	<div aria-busy="true">
-		<Placeholder className="aspect-[4/3]" />
+		<Placeholder className="aspect-[4/3] h-auto w-full" />
 	</div>
 )
 
