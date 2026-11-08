@@ -61,6 +61,7 @@ import {
 	DonutChart,
 	LineChart,
 	PieChart,
+	SeatChart,
 } from '../../../modules/chart'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { MapPlat, MapPoint, MapRoute } from '../../../modules/map'
@@ -461,6 +462,30 @@ export const dataDisplayCases: readonly Case[] = [
 					<StatValue>$185</StatValue>
 				</Stat>
 			</DonutChart>
+		),
+	},
+	{
+		// A hemicycle of seats: the plot is an image named by its label, the
+		// legend is a key with no switches, and the hole holds a stat.
+		name: 'seat chart',
+		element: (
+			<SeatChart
+				key="sc"
+				aria-label="Senate seats"
+				groups={[
+					{ seats: 47, color: 'blue', label: 'Democrats' },
+					{ seats: 6, color: 'zinc', label: 'Not called', hollow: true },
+					{ seats: 47, color: 'red', label: 'Republicans' },
+				]}
+				majority={51}
+				width={320}
+				height={200}
+			>
+				<Stat>
+					<StatLabel>To win</StatLabel>
+					<StatValue>51</StatValue>
+				</Stat>
+			</SeatChart>
 		),
 	},
 	{
