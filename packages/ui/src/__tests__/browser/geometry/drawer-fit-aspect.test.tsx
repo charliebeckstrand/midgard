@@ -57,8 +57,8 @@ function ProbeMap({ shapes }: { shapes: boolean }) {
 
 /** The steps of a switch to the map: the overview, a placeholder, the map with no shapes, the map. */
 const STAGES: ReactNode[] = [
-	<div key="overview" style={{ height: 160 }} />,
-	<div key="placeholder" className="aspect-[4/3] w-full" />,
+	<div key="overview" style={{ height: 600 }} />,
+	<div key="placeholder" style={{ height: 16 }} />,
 	<ProbeMap key="map" shapes={false} />,
 	<ProbeMap key="map" shapes />,
 ]
@@ -114,6 +114,9 @@ const CASES: [string, boolean, number[]][] = [
 	['app tree, at once', true, [0, 0, 0]],
 	['app tree, mid travel', true, [60, 120, 200]],
 	['app tree, after travels', true, [700, 700, 700]],
+	['app tree, as the app loads', true, [300, 840, 0]],
+	['app tree, slow shapes', true, [300, 300, 1500]],
+	['app tree, fast chunk', true, [20, 300, 600]],
 ]
 
 describe('fit drawer switched to a map (PROBE)', () => {
