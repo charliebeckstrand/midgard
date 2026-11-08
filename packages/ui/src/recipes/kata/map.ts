@@ -156,7 +156,7 @@ export const k = {
 	/** The map's own region tokens beside the shared data-viz palette. */
 	region: {
 		/** A region with no matching datum, and a toggled-off category's fallback. */
-		empty: mode('fill-zinc-200', 'dark:fill-zinc-300'),
+		empty: mode('fill-zinc-200', 'dark:fill-zinc-800'),
 		/** Region boundary seam: the surface color, so shared borders read as gaps. */
 		border: mode('stroke-white', 'dark:stroke-zinc-900'),
 		/**
