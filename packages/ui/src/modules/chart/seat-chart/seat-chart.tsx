@@ -363,6 +363,7 @@ export function SeatChart(props: SeatChartProps) {
 						left={frameWidth > 0 ? `${(fit.cx / frameWidth) * 100}%` : '50%'}
 						top={frameHeight > 0 ? `${(fit.cy / frameHeight) * 100}%` : '100%'}
 						radius={seatHole(layout) * fit.scale}
+						measured={frameWidth > 0 && frameHeight > 0}
 					>
 						{children}
 					</SeatChartHole>
