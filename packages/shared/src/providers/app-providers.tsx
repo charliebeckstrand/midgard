@@ -28,6 +28,15 @@ type AppProvidersProps = {
 	timeZone?: LocaleConfig['timeZone']
 	/** The default format of a `DateTime` with no `format` of its own. */
 	dateFormat?: LocaleConfig['dateFormat']
+	/**
+	 * Whether the reader can choose the locale. With `false`, the app renders in
+	 * `en`, and `AppearanceSettings` has no Language picker. Use it for an app
+	 * that has no catalog of its own, so that its text and the text of ui stay
+	 * in one language.
+	 *
+	 * @defaultValue `true`
+	 */
+	localeChoice?: boolean
 	children: ReactNode
 }
 
@@ -47,7 +56,8 @@ type AppProvidersProps = {
  * per request wraps its subtree in `RequestLocale` from `shared/locale`, so its
  * server markup is already in the locale of the reader. `LocaleProvider` is
  * above `UIProvider`, so the dialog of `useConfirm`, which `UIProvider` renders,
- * uses the same locale as the page.
+ * uses the same locale as the page. An app with `localeChoice={false}` has no
+ * picker and renders in `en`.
  *
  * A failed mutation shows its error in a toast, and a `401` sends the page to
  * `/login` (see {@link createAppQueryClient}). The `QueryClientProvider` is in
@@ -60,12 +70,18 @@ type AppProvidersProps = {
  * on the server never shares a cache between requests. The client reads
  * `queries` one time, when it is built.
  */
-export function AppProviders({ queries, timeZone, dateFormat, children }: AppProvidersProps) {
+export function AppProviders({
+	queries,
+	timeZone,
+	dateFormat,
+	localeChoice = true,
+	children,
+}: AppProvidersProps) {
 	return (
 		<AppearanceProvider>
 			<LocaleProvider
 				locale={DEFAULT_LOCALE}
-				locales={LOCALES}
+				locales={localeChoice ? LOCALES : undefined}
 				timeZone={timeZone}
 				dateFormat={dateFormat}
 				catalogs={catalogs}
