@@ -1,16 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import { Grid, type GridColumn, type GridSortState } from 'ui/grid'
-import { Heading } from 'ui/heading'
 import { Placeholder } from 'ui/placeholder'
 import { useIntl } from 'ui/primitives/intl'
+import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import type { CountyResult, Race } from '../../types'
 import { isCalled, marginLabel, percentText } from '../../utilities/race-math'
 import type { RaceEntry } from '../../utilities/results'
+import { CollapseCaret } from '../collapse-caret'
 import { RaceSummary } from '../race-summary'
 
 /** Props for {@link RaceDetail}. */
@@ -21,6 +23,9 @@ export type RaceDetailProps = {
 	race: Race | undefined
 	/** Opens a county of the race, by its FIPS code. */
 	onCounty: (fips: string) => void
+	/** The county table is open. The Drawer holds it, so it stays open across a visit to a county. */
+	countiesOpen: boolean
+	onCountiesOpenChange: (open: boolean) => void
 }
 
 /** The time format of the polls and the call: the day and the time, in the zone of the reader. */
@@ -110,11 +115,18 @@ const COLUMNS: GridColumn<CountyResult>[] = [
 /**
  * One race in full, the body of the Drawer on a statewide race or a district:
  * the candidates with their party and votes, the facts of the race, then the
- * counties in a table. A county row opens the county. The candidates show from
- * the national results at once; the facts and the counties show when the race
- * loads, and a still shape holds their place until then.
+ * counties in a table. The table is in a Collapse, and a county row opens the
+ * county. The candidates show from the national results at once; the facts and
+ * the counties show when the race loads, and a still shape holds their place
+ * until then.
  */
-export function RaceDetail({ entry, race, onCounty }: RaceDetailProps) {
+export function RaceDetail({
+	entry,
+	race,
+	onCounty,
+	countiesOpen,
+	onCountiesOpenChange,
+}: RaceDetailProps) {
 	const [query, setQuery] = useState('')
 
 	const [sort, setSort] = useState<GridSortState[]>([{ column: 'votes', direction: 'desc' }])
@@ -141,19 +153,32 @@ export function RaceDetail({ entry, race, onCounty }: RaceDetailProps) {
 				<>
 					<RaceFacts race={race} />
 
-					<Stack as="div" gap="lg">
-						<Heading level={3}>By county</Heading>
+					<Collapse open={countiesOpen} onOpenChange={onCountiesOpenChange}>
+						<CollapseTrigger>
+							<Flex as="span" gap="sm" className="text-base/6 font-semibold">
+								By county
+								<CollapseCaret />
+							</Flex>
+						</CollapseTrigger>
 
-						<Grid
-							columns={COLUMNS}
-							rows={race.counties}
-							getKey={(county) => county.fips}
-							sort={{ value: sort, onValueChange: setSort }}
-							search={{ value: query, onValueChange: setQuery, placeholder: 'Search counties' }}
-							header={{ position: 'sticky' }}
-							onRowClick={(county) => onCounty(county.fips)}
-						/>
-					</Stack>
+						<CollapsePanel>
+							<div className="pt-4">
+								<Grid
+									columns={COLUMNS}
+									rows={race.counties}
+									getKey={(county) => county.fips}
+									sort={{ value: sort, onValueChange: setSort }}
+									search={{
+										value: query,
+										onValueChange: setQuery,
+										placeholder: 'Search counties',
+									}}
+									header={{ position: 'sticky' }}
+									onRowClick={(county) => onCounty(county.fips)}
+								/>
+							</div>
+						</CollapsePanel>
+					</Collapse>
 				</>
 			)}
 		</Stack>
