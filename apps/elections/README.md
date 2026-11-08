@@ -63,3 +63,8 @@ each page of an election. Its step is in the search params:
 
 `src/utilities/elections-url.ts` reads and writes the paths and the params, and
 `src/hooks/use-drawer-step.ts` moves the Drawer.
+
+The layout of an election renders the view of each of its pages, and
+`src/components/election-views` shows the view of the current page. The other
+views stay mounted and hidden, so an office switch shows a view that is already
+rendered. A page holds only its Drawer and its live refresh.

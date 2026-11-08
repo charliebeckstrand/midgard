@@ -22,7 +22,8 @@ export type PageFrameProps = PageBodyProps & { crumbs: readonly Crumb[] }
  * page to page. The header, the body, and the foot share one container width,
  * so their edges line up.
  *
- * Each page has its own body, so a navigation to a new page starts at the top.
+ * Each view of an election has its own body, so each view keeps its own
+ * scroll position from switch to switch.
  */
 export function PageBody({ status, children }: PageBodyProps) {
 	return (
