@@ -8,9 +8,10 @@ import { entryKey, entryStep, type RaceEntry } from '../../utilities/results'
 import { RaceCard, RaceCardGrid } from '../race-card'
 
 /**
- * The closest races of a page, under a heading. The page picks them on the
- * server with `closestRaces`, so it sends only the races that show. A card
- * opens its race in the Drawer.
+ * The closest races of a page that are not called, under a heading. The page
+ * picks them on the server with `closestRaces`, so it sends only the races
+ * that show. A card opens its race in the Drawer. Once each race is called,
+ * the section shows nothing.
  *
  * @param office - Shows the office under the name of each race, for races of many offices.
  */
@@ -24,6 +25,8 @@ export function ClosestRaces({
 	office?: boolean
 }) {
 	const { go } = useDrawerStep(election)
+
+	if (entries.length === 0) return null
 
 	return (
 		<section>

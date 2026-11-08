@@ -35,7 +35,7 @@ describe('race math', () => {
 		expect(marginLabel(unopposed)).toBe('Unopposed')
 	})
 
-	it('counts the called seats of a delegation by party, and leaves out the seats not called', () => {
+	it('counts the called seats of a delegation by party, and the leaders of the seats not called', () => {
 		const state = delegation([
 			[candidate('Republican', 60, true), candidate('Democratic', 40)],
 			[candidate('Republican', 55, true), candidate('Democratic', 45)],
@@ -48,6 +48,7 @@ describe('race math', () => {
 				{ party: 'Republican', slot: 'red', seats: 2 },
 				{ party: 'Democratic', slot: 'blue', seats: 1 },
 			],
+			leads: [{ party: 'Democratic', slot: 'blue', seats: 1 }],
 			called: 3,
 			total: 4,
 		})

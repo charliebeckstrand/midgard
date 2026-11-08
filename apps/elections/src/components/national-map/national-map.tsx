@@ -16,9 +16,9 @@ import type { StateRow } from './state-rows'
 export type NationalMapProps = {
 	election: Election
 	contest: Contest
-	/** The Winner category of each state with a race of the office, from `stateRows`. */
+	/** Each state with a race of the office, and its Winner category, from `stateRows`. */
 	rows: StateRow[]
-	/** The closest races of the office, which show under the map. */
+	/** The closest races of the office that are not called, which show under the map. */
 	closest: readonly RaceEntry[]
 	/** The heading of the page. */
 	heading: string
@@ -42,7 +42,11 @@ export function NationalMap({
 }: NationalMapProps) {
 	const { step, go } = useDrawerStep(election)
 
-	const present = new Set(rows.map((row) => row.winner))
+	// The map colors the states with a category. A state with a race and no
+	// category yet stays neutral, and a click still opens it.
+	const data = rows.filter((row): row is { fips: string; winner: string } => row.winner !== null)
+
+	const present = new Set(data.map((row) => row.winner))
 
 	// A state with no race of the office has no row, so a click on it does nothing.
 	const raced = new Set(rows.map((row) => row.fips))
@@ -65,7 +69,7 @@ export function NationalMap({
 						go({ region: state, office: contest.slug, district: null, county: null })
 					}
 				}}
-				data={rows}
+				data={data}
 				categoryKey="winner"
 				colorName="Winner"
 				categories={WINNER_CATEGORIES.filter((category) => present.has(category.value))}
