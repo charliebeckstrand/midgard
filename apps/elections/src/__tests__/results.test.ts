@@ -73,17 +73,17 @@ describe('the seat chart', () => {
 })
 
 describe('the Winner map', () => {
-	it('colors a statewide race by its winner, or by the lead of its leader', () => {
+	it('colors a statewide race by its winner, and a race not called gray', () => {
 		const ga = senateEntries.find((entry) => entry.state.key === 'ga')
 
 		const ak = senateEntries.find((entry) => entry.state.key === 'ak')
 
 		expect(ga && raceWinner(ga)).toBe('Democratic')
 
-		expect(ak && raceWinner(ak)).toBe('Democratic lead')
+		expect(ak && raceWinner(ak)).toBe('Not called')
 	})
 
-	it('marks an even split of the called seats of a state as Split', () => {
+	it('marks a tie of a state with every seat called as Split', () => {
 		const byState = delegations(houseEntries)
 
 		const montana = byState.get('mt')
@@ -91,6 +91,28 @@ describe('the Winner map', () => {
 		expect(montana && delegationWinner(montana)).toBe('Split')
 
 		expect(delegationWinner(delegation([]))).toBeNull()
+	})
+
+	it('gives a delegation to a side with most of its seats, called or not', () => {
+		const seat = (party: string, slot: 'blue' | 'red', winner: boolean) => [
+			{ name: party, party, slot, votes: 1, percent: 50, winner, incumbent: false },
+		]
+
+		const won = delegation([
+			seat('D', 'blue', true),
+			seat('D', 'blue', true),
+			seat('R', 'red', false),
+		])
+
+		expect(delegationWinner(won)).toBe('Democratic')
+
+		const open = delegation([
+			seat('D', 'blue', true),
+			seat('R', 'red', true),
+			seat('R', 'red', false),
+		])
+
+		expect(delegationWinner(open)).toBe('Not called')
 	})
 })
 

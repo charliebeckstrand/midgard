@@ -192,7 +192,7 @@ export function NationalMap({ election, contest, entries, heading, items }: Nati
 						value={mode}
 						onValueChange={(next) => setMode(next ?? 'value')}
 						displayValue={(key) => modes[key]}
-						className="w-40"
+						className="w-full sm:w-40"
 					>
 						{(['value', 'winner'] as const).map((key) => (
 							<ListboxOption key={key} value={key}>
