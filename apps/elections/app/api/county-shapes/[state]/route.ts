@@ -3,7 +3,11 @@ import { countyShapes } from '@/server/county-shapes'
 
 type Context = { params: Promise<{ state: string }> }
 
-/** A day, in seconds. The atlas changes only with a release of the app. */
+/**
+ * A day, in seconds. The atlas changes only with a release of the app. A
+ * release that changes the form of the shapes must also change this path, or
+ * a browser draws the shapes it holds from the release before.
+ */
 const DAY = 86_400
 
 /**
