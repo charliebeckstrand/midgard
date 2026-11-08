@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react'
 import { ElectionRacesProvider } from '@/components/election-drawer'
+import { ElectionViews } from '@/components/election-views'
+import { OfficeView, OverviewView } from '@/components/election-views/views'
 import { ElectionsHeader } from '@/components/elections-header'
 import { PageColumn } from '@/components/page-frame'
 import { officeRaces } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
-import { electionCrumbs } from '@/utilities/trail'
+import { electionCrumbs, OVERVIEW } from '@/utilities/trail'
 
 /**
  * The frame of the pages of an election. The header lives here, not in each
@@ -28,13 +30,29 @@ export default async function ElectionLayout({
 }) {
 	const election = await readElection(params)
 
-	const races = officeRaces(await electionResults(election))
+	const results = await electionResults(election)
+
+	const races = officeRaces(results)
+
+	const views = {
+		[OVERVIEW]: <OverviewView election={election} results={results} />,
+		...Object.fromEntries(
+			results.map((result) => [
+				result.contest.slug,
+				<OfficeView key={result.contest.slug} election={election} result={result} />,
+			]),
+		),
+	}
 
 	return (
 		<PageColumn>
 			<ElectionsHeader crumbs={electionCrumbs(election)} />
 
-			<ElectionRacesProvider races={races}>{children}</ElectionRacesProvider>
+			<ElectionRacesProvider races={races}>
+				<ElectionViews views={views} />
+
+				{children}
+			</ElectionRacesProvider>
 		</PageColumn>
 	)
 }

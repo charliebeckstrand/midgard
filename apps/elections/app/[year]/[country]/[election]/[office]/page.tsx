@@ -2,14 +2,11 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { LiveRefresh } from 'shared/refresh'
 import { ElectionDrawer } from '@/components/election-drawer'
-import { NationalMap, stateRows } from '@/components/national-map'
-import { PageBody } from '@/components/page-frame'
 import { type Contest, type Election, findContest } from '@/elections/registry'
 import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
-import { closestRaces, delegations, isCounting } from '@/utilities/results'
-import { officeItems } from '@/utilities/trail'
+import { isCounting } from '@/utilities/results'
 
 type Params = { params: Promise<ElectionParams & { office: string }>; searchParams: SearchParams }
 
@@ -50,25 +47,11 @@ export default async function OfficePage({ params, searchParams }: Params) {
 
 	const seed = await drawerSeed(election, officeRaces(all), searchParams)
 
-	const counting = isCounting(result.entries)
-
 	return (
-		<PageBody status={{ counting, updated: result.national.updated }}>
-			<LiveRefresh live={counting} />
-
-			<NationalMap
-				election={election}
-				contest={contest}
-				rows={stateRows(
-					result.entries,
-					contest.depth === 'district' ? delegations(result.entries) : null,
-				)}
-				closest={closestRaces(result.entries, 6)}
-				heading={contest.plural}
-				items={officeItems(election)}
-			/>
+		<>
+			<LiveRefresh live={isCounting(result.entries)} />
 
 			<ElectionDrawer election={election} seed={seed} />
-		</PageBody>
+		</>
 	)
 }
