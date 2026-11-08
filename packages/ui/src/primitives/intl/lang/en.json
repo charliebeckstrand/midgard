@@ -107,6 +107,10 @@
 		"defaultMessage": "Seats",
 		"description": "The name of the value of each group in a seat chart, such as the seats of a party."
 	},
+	"ui.chart.seatsToWin": {
+		"defaultMessage": "{majority, number} to win",
+		"description": "The label beside the majority mark of a seat chart: the seats for a majority, such as \"218 to win\"."
+	},
 	"ui.chart.showMore": {
 		"defaultMessage": "Show {count, number} more",
 		"description": "The name of the button that shows the legend entries that do not fit. The count is the number of those entries."

@@ -9,7 +9,6 @@ export default function Basic() {
 				{ seats: 6, color: 'zinc', label: 'Not called', hollow: true },
 				{ seats: 47, color: 'red', label: 'Republicans' },
 			]}
-			majority={51}
 		/>
 	)
 }

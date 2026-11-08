@@ -10,14 +10,11 @@ import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types/accessible-name'
 import { percentFormat, readoutFormat } from '../../../utilities/format-number'
 import { once } from '../../../utilities/once'
-import { MARK_GAP, TICK_TARGET } from '../engine/chart-constants'
+import { TICK_TARGET } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import { chartAspectRatio, chartFrameSizing } from '../engine/chart-frame/sizing'
 import {
-	majorityAngle,
-	majorityLine,
 	nearestSeat,
-	seatFit,
 	seatGroups,
 	seatHole,
 	seatLayout,
@@ -34,7 +31,9 @@ import type { ChartBaseProps, ChartReadout } from '../engine/types'
 import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { sectorFrame, sectorLegendItems } from '../sector-chart/sector-chart-frame'
 import { SeatChartHole } from './seat-chart-hole'
+import { SeatChartMajority } from './seat-chart-majority'
 import { SeatChartMarks } from './seat-chart-marks'
+import { useSeatChartMajority } from './use-seat-chart-majority'
 
 /** One group of seats in a {@link SeatChart}, such as the seats of one party. */
 export type SeatChartGroup = {
@@ -74,6 +73,16 @@ export type SeatChartProps = AccessibleName &
 		 * for a chamber with no majority to read, such as the governors.
 		 */
 		majority?: number
+		/**
+		 * Labels the majority tick with the seats to win, such as "218 to win". The
+		 * label sits beside the outer end of the tick, as a callout label sits beside
+		 * its slice, and reads away from the center. It shows only where the frame
+		 * has the space beside the tick, clear of the seats. The frame never grows
+		 * for it.
+		 *
+		 * @defaultValue false
+		 */
+		majorityLabel?: boolean
 		/**
 		 * The number of arcs. Omit it to take the number that keeps the seats about
 		 * as far apart along an arc as from one arc to the next: 4 for 50 seats, 5
@@ -136,7 +145,8 @@ function seatCount(group: SeatChartGroup): number {
  * hemicycle, as a parliament draws its floor. The groups take the seats in
  * order from the start of the hemicycle, so each group reads as one block.
  * A hollow group draws rings, such as seats that are not called yet, and its
- * legend key is a frame. A tick marks the `majority`, and `children`
+ * legend key is a frame. A tick marks the `majority`, with an optional
+ * callout label beside it (`majorityLabel`), and `children`
  * render in the hole, as in a {@link DonutChart}. Content too large for the
  * hole scales down, so it never covers a seat.
  *
@@ -157,15 +167,15 @@ function seatCount(group: SeatChartGroup): number {
  *     { seats: 203, color: 'red', label: 'Republicans' },
  *   ]}
  *   majority={218}
- * >
- *   <Stat label="to win" value="218" />
- * </SeatChart>
+ *   majorityLabel
+ * />
  * ```
  */
 export function SeatChart(props: SeatChartProps) {
 	const {
 		groups,
 		majority,
+		majorityLabel = false,
 		rows,
 		width,
 		height,
@@ -235,11 +245,17 @@ export function SeatChart(props: SeatChartProps) {
 
 	const paints = colors.map((color) => k.series[color])
 
-	const angle = majorityAngle(layout.seats, majority)
-
-	const line = angle === null ? null : majorityLine(angle, layout)
-
-	const fit = seatFit(frameWidth, frameHeight, MARK_GAP, layout.dot, line !== null)
+	const {
+		fit,
+		mark,
+		hostRef: textHostRef,
+	} = useSeatChartMajority({
+		layout,
+		majority,
+		label: majorityLabel,
+		width: frameWidth,
+		height: frameHeight,
+	})
 
 	const toFrame = (x: number, y: number) => ({
 		x: fit.cx + x * fit.scale,
@@ -332,6 +348,7 @@ export function SeatChart(props: SeatChartProps) {
 			fill={fillFrame}
 			aspect={frameAspect}
 			tier={policy.tier}
+			textHostRef={textHostRef}
 			legend={
 				legendItems && (
 					<ChartLegend
@@ -378,19 +395,7 @@ export function SeatChart(props: SeatChartProps) {
 				fit={fit}
 			/>
 
-			{line && (
-				<line
-					data-slot="chart-majority"
-					x1={fit.cx + line.x1 * fit.scale}
-					y1={fit.cy + line.y1 * fit.scale}
-					x2={fit.cx + line.x2 * fit.scale}
-					y2={fit.cy + line.y2 * fit.scale}
-					strokeWidth={1.5}
-					strokeLinecap="round"
-					className={cn(k.majority)}
-					pointerEvents="none"
-				/>
-			)}
+			{mark && <SeatChartMajority {...mark} />}
 
 			{showTooltip && total > 0 && (
 				<ChartHitArea
