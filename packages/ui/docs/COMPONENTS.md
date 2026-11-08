@@ -97,6 +97,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `loading` · `progress`
 
+> A `ProgressBar` with `segments` draws parts of one whole, such as the seats of each party, from the inline start or the inline end. A bar of two or more segments is a `role="img"` with a description of each part. `marks` draw lines across the bar, such as a majority, with an optional label above the track.
+
 ## Domain & specialized
 
 `pdf-viewer`

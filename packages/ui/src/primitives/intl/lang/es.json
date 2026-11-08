@@ -417,6 +417,8 @@
 	"ui.pdfViewer.zoomOut": "Alejar",
 	"ui.pdfViewer.zoomOutTo": "Alejar ({percent})",
 	"ui.pivotTable.total": "Total",
+	"ui.progress.segment": "{label} {value}",
+	"ui.progress.segments": "{segments}, de {max}.",
 	"ui.query.after": "después del",
 	"ui.query.and": "Y",
 	"ui.query.before": "antes del",
