@@ -69,7 +69,7 @@ export type SeatChartProps = AccessibleName &
 		 */
 		groups: SeatChartGroup[]
 		/**
-		 * The seats for a majority. A dashed tick above the outer arc marks the
+		 * The seats for a majority. A tick above the outer arc marks the
 		 * angle between the last seat of the majority and the next seat. Omit it
 		 * for a chamber with no majority to read, such as the governors.
 		 */
@@ -136,7 +136,7 @@ function seatCount(group: SeatChartGroup): number {
  * hemicycle, as a parliament draws its floor. The groups take the seats in
  * order from the start of the hemicycle, so each group reads as one block.
  * A hollow group draws rings, such as seats that are not called yet, and its
- * legend key is a frame. A dashed tick marks the `majority`, and `children`
+ * legend key is a frame. A tick marks the `majority`, and `children`
  * render in the hole, as in a {@link DonutChart}. Content too large for the
  * hole scales down, so it never covers a seat.
  *
@@ -385,7 +385,6 @@ export function SeatChart(props: SeatChartProps) {
 					x2={fit.cx + line.x2 * fit.scale}
 					y2={fit.cy + line.y2 * fit.scale}
 					strokeWidth={1.5}
-					strokeDasharray="4 3"
 					strokeLinecap="round"
 					className={cn(k.majority)}
 					pointerEvents="none"
