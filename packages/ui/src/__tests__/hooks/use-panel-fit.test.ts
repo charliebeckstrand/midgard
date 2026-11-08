@@ -33,7 +33,7 @@ describe('usePanelFit', () => {
 
 		const panel = pinnedPanel()
 
-		act(() => result.current(panel))
+		act(() => result.current.ref(panel))
 
 		rerender({ dragged: false })
 
@@ -45,7 +45,7 @@ describe('usePanelFit', () => {
 
 		const panel = pinnedPanel()
 
-		act(() => result.current(panel))
+		act(() => result.current.ref(panel))
 
 		expect(panel.style.height).toBe('')
 	})
