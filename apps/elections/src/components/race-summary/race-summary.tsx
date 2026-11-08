@@ -9,7 +9,7 @@ import { Stack } from 'ui/structure/stack'
 import { Swatch } from 'ui/swatch'
 import type { Candidate } from '../../types'
 import { barColor, initials, percentText } from '../../utilities/race-math'
-import { ReportingRow, WinnerMark } from './call-badge'
+import { ReportingRow, WinnerMark } from './call-dot'
 
 /** Props for {@link RaceSummary}. */
 export type RaceSummaryProps = {
@@ -24,7 +24,7 @@ export type RaceSummaryProps = {
 	rows?: number | 'all'
 	/**
 	 * Shows each candidate in full: an avatar, the party, `Incumbent`, and the
-	 * votes. The tab of a race uses it, and a card does not.
+	 * votes. The step of a race uses it, and a card does not.
 	 * @defaultValue false
 	 */
 	detail?: boolean
@@ -80,15 +80,16 @@ function CandidateRow({
 					) : null}
 				</Stack>
 
-				<Flex align="baseline" gap="md" className="shrink-0 tabular-nums">
+				{/* The votes sit under the share, as the party sits under the name. */}
+				<Stack gap="xs" align="end" className="shrink-0 tabular-nums">
+					<span className="font-semibold">{share}</span>
+
 					{detail ? (
 						<span className="text-sm text-zinc-500 dark:text-zinc-400">
 							{intl.formatNumber(candidate.votes)}
 						</span>
 					) : null}
-
-					<span className="font-semibold">{share}</span>
-				</Flex>
+				</Stack>
 			</Flex>
 
 			<ProgressBar
@@ -102,11 +103,10 @@ function CandidateRow({
 }
 
 /**
- * The body of each place where a race shows: the national Drawer on a state,
- * the cards of a state, the tab of a race, and the Drawer on a county. It
- * lists the leading candidates, each with the share and a bar, then the
- * percent reporting with the call badge. The place around it adds its title
- * and its link.
+ * A race in the Drawer: in an office card of the overview of a state, on the
+ * step of a race, and on the step of a county. It lists the leading
+ * candidates, each with the share and a bar, then the percent reporting with
+ * the call dot. The place around it adds its title and its link.
  */
 export function RaceSummary({
 	candidates,
