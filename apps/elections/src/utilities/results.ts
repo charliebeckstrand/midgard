@@ -156,47 +156,56 @@ const SIDE: Partial<Record<PartySlot, string>> = {
 	amber: 'Independent and other',
 }
 
-/** The category of a race or a delegation that is not decided. */
-const NOT_CALLED = 'Not called'
-
 /**
  * The categories of the Winner map, in the order of its legend. A race that is
- * not called is gray, as the hollow seats of a seat chart are. The Margin map
- * shows who leads it.
+ * not called takes the soft tone of the side that leads it, so it reads apart
+ * from a win.
  */
 export const WINNER_CATEGORIES: readonly MapCategory[] = [
 	{ value: 'Democratic', color: 'blue' },
+	{ value: 'Democratic lead', color: 'blue', tone: 'soft' },
 	{ value: 'Split', color: 'blue', stripes: 'red' },
+	{ value: 'Independent and other lead', color: 'amber', tone: 'soft' },
 	{ value: 'Independent and other', color: 'amber' },
+	{ value: 'Republican lead', color: 'red', tone: 'soft' },
 	{ value: 'Republican', color: 'red' },
-	{ value: NOT_CALLED, color: 'zinc', tone: 'soft' },
 ]
 
-/** The category of a statewide race on the Winner map: the side of the winner, or `Not called`. */
+/**
+ * The category of a statewide race on the Winner map: the side of the winner,
+ * or the lead of the side of the leader while the race is not called.
+ */
 export function raceWinner(entry: Pick<RaceEntry, 'candidates' | 'called'>): string | null {
-	if (!entry.called) return NOT_CALLED
+	const leader = entry.called
+		? entry.candidates.find((candidate) => candidate.winner)
+		: entry.candidates[0]
 
-	const winner = entry.candidates.find((candidate) => candidate.winner)
+	const side = leader === undefined ? undefined : SIDE[leader.slot]
 
-	return (winner && SIDE[winner.slot]) ?? null
+	if (side === undefined) return null
+
+	return entry.called ? side : `${side} lead`
 }
 
 /**
  * The category of a delegation on the Winner map. A side with more than half
- * of the seats of the state is the winner. When every seat is called, the side
- * with the most seats is the winner, and a tie of the two largest sides is
- * `Split`. Any other delegation is `Not called`.
+ * of the seats of the state is the winner. A tie of the two largest sides of
+ * the called seats is `Split`. Short of that, the side with the most called
+ * seats is the winner when every seat is called, and leads while a seat is
+ * not. A delegation with no called seat has no category.
  */
 export function delegationWinner(state: Delegation): string | null {
-	if (state.total === 0) return null
-
 	const [first, second] = state.parties
 
-	if (first !== undefined && first.seats > state.total / 2) return SIDE[first.slot] ?? null
+	if (first === undefined) return null
 
-	if (first === undefined || state.called < state.total) return NOT_CALLED
+	const side = SIDE[first.slot]
+
+	if (first.seats > state.total / 2) return side ?? null
 
 	if (second !== undefined && second.seats === first.seats) return 'Split'
 
-	return SIDE[first.slot] ?? null
+	if (side === undefined) return null
+
+	return state.called === state.total ? side : `${side} lead`
 }
