@@ -1,6 +1,6 @@
 import { feature } from 'topojson-client'
 import type { MapFeatureCollection } from 'ui/map'
-import counties from 'us-atlas/counties-10m.json'
+import counties from 'us-atlas/counties-albers-10m.json'
 
 type Topology = Parameters<typeof feature>[0]
 
@@ -12,11 +12,11 @@ type Atlas = {
 const atlas = counties as unknown as Atlas
 
 /**
- * The decimals that a coordinate keeps. Three decimals of a degree are about
- * 100 meters, finer than a county map in the Drawer can show, and they halve the
- * size of the shapes.
+ * The decimals that a coordinate keeps. The atlas is projected onto a frame
+ * 975 units wide, and it is quantized to about a hundredth of a unit. Two
+ * decimals therefore keep all of it, and they halve the size of the shapes.
  */
-const PLACES = 1000
+const PLACES = 100
 
 /** The shapes of each state that a reader opened, by FIPS code. Built once for each state. */
 const byState = new Map<string, string>()
@@ -24,7 +24,8 @@ const byState = new Map<string, string>()
 /**
  * The counties of a state from `us-atlas`, as one feature collection in JSON.
  * The id of each county is its 5-digit FIPS code, and its name is in
- * `properties.name`.
+ * `properties.name`. The shapes are already projected by the `albers-usa`
+ * composite, so the map draws them under `'identity'` with no spherical math.
  *
  * @param stateFips - The 2-digit FIPS code of the state.
  */

@@ -60,7 +60,7 @@ export function CountyMap({ label, state, counties, onCounty }: CountyMapProps) 
 		<MapPlat
 			aria-label={`${label} results by county`}
 			geography={geography}
-			projection="albers-usa"
+			projection="identity"
 			regionKey="fips"
 			onRegionClick={(fips: string) => {
 				if (counted.has(fips)) onCounty(fips)
