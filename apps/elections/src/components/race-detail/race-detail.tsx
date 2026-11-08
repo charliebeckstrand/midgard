@@ -1,12 +1,14 @@
 'use client'
 
-import { lazy, Suspense } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Activity, lazy, Suspense, useEffect } from 'react'
 import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import { Placeholder } from 'ui/placeholder'
 import { useIntl } from 'ui/primitives/intl'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
+import { countyShapesQuery } from '../../queries/county-queries'
 import type { Race } from '../../types'
 import { isCalled, percentText } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
@@ -28,10 +30,30 @@ export type RaceDetailProps = {
 	onViewChange: (view: RaceView) => void
 }
 
-/** The map loads when it first shows, because the map module is a large part of the code. */
-const CountyMap = lazy(() =>
-	import('./county-map').then((module) => ({ default: module.CountyMap })),
-)
+/** The chunk of the county map. The map module is a large part of the code, so no page loads it. */
+const loadCountyMap = () => import('./county-map')
+
+/** The county map, from its chunk. */
+const CountyMap = lazy(() => loadCountyMap().then((module) => ({ default: module.CountyMap })))
+
+/**
+ * Loads the county map of a state in the background while the Drawer shows the
+ * state: the chunk of the map and the county shapes of the state. A race of the
+ * state then draws its map with no wait for the network.
+ *
+ * @param state - The lowercase postal code of the state, or `null` for a closed Drawer.
+ */
+export function usePreloadCountyMap(state: string | null) {
+	const queryClient = useQueryClient()
+
+	useEffect(() => {
+		if (state === null) return
+
+		void loadCountyMap()
+
+		void queryClient.prefetchQuery(countyShapesQuery(state))
+	}, [queryClient, state])
+}
 
 /** The still shape of the county map while its code loads. */
 const MAP_PLACEHOLDER = (
@@ -112,6 +134,10 @@ function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Rac
  *
  * The candidates and the facts show from the national results at once. The
  * times of the facts and the colors of the map show when the race loads.
+ *
+ * The map renders in the background while the overview shows, in a hidden
+ * `Activity`. A switch to By county therefore shows a map that is already
+ * drawn.
  */
 export function RaceDetail({ entry, race, onCounty, view, onViewChange }: RaceDetailProps) {
 	const candidates = race?.candidates ?? entry.candidates
@@ -137,16 +163,19 @@ export function RaceDetail({ entry, race, onCounty, view, onViewChange }: RaceDe
 
 					<RaceFacts entry={entry} race={race} />
 				</>
-			) : (
+			) : null}
+
+			<Activity mode={view === 'counties' ? 'visible' : 'hidden'}>
 				<Suspense fallback={MAP_PLACEHOLDER}>
 					<CountyMap
 						label={`${entryName(entry)} ${entry.contest.label}`}
 						state={entry.state.key}
+						statewide={entry.district === null}
 						counties={race?.counties}
 						onCounty={onCounty}
 					/>
 				</Suspense>
-			)}
+			</Activity>
 		</Stack>
 	)
 }

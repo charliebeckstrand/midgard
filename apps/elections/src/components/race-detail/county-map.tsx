@@ -12,6 +12,8 @@ export type CountyMapProps = {
 	label: string
 	/** The lowercase postal code of the state of the race. */
 	state: string
+	/** The race is statewide, so its map holds every county of the state. */
+	statewide: boolean
 	/** The counties of the race, or `undefined` while the race loads. */
 	counties: readonly CountyResult[] | undefined
 	/** Opens a county of the race, by its FIPS code. */
@@ -24,10 +26,14 @@ type CountyRow = { fips: string; winner: string }
 /**
  * The counties of a race on a map of its state, colored by the side that leads
  * each county. A district race draws only the counties of the district. A click
- * on a county opens it. The shapes load when the map first shows, so it is the
- * entry of a lazy chunk.
+ * on a county opens it. The map is the entry of a lazy chunk, which the Drawer
+ * loads with the shapes when it opens on a state.
+ *
+ * Until the counties of the race load, a statewide race draws the shapes of its
+ * state, and they pulse. The counties of a district are known only from the
+ * race, so a district race reserves the frame until then.
  */
-export function CountyMap({ label, state, counties, onCounty }: CountyMapProps) {
+export function CountyMap({ label, state, statewide, counties, onCounty }: CountyMapProps) {
 	const shapes = useCountyShapes(state)
 
 	const rows = useMemo(
@@ -42,7 +48,9 @@ export function CountyMap({ label, state, counties, onCounty }: CountyMapProps) 
 
 	// The shapes of the counties of the race: all of the state, or the counties of a district.
 	const geography = useMemo(() => {
-		if (shapes.data === undefined || counties === undefined) return null
+		if (shapes.data === undefined) return null
+
+		if (counties === undefined) return statewide ? shapes.data : null
 
 		const raced = new Set(counties.map((county) => county.fips))
 
@@ -50,7 +58,7 @@ export function CountyMap({ label, state, counties, onCounty }: CountyMapProps) 
 			...shapes.data,
 			features: shapes.data.features.filter((shape) => raced.has(String(shape.id))),
 		}
-	}, [shapes.data, counties])
+	}, [shapes.data, counties, statewide])
 
 	const present = new Set(rows.map((row) => row.winner))
 
@@ -61,6 +69,7 @@ export function CountyMap({ label, state, counties, onCounty }: CountyMapProps) 
 			aria-label={`${label} results by county`}
 			geography={geography}
 			projection="identity"
+			loading={counties === undefined}
 			regionKey="fips"
 			onRegionClick={(fips: string) => {
 				if (counted.has(fips)) onCounty(fips)
