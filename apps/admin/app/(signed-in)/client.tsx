@@ -137,13 +137,14 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 
 /**
  * Header chrome of a user that is not an admin: the name of the app, the
- * appearance settings, and the account menu.
+ * appearance settings, and the account menu. The layout has the height of the
+ * viewport, and the body scrolls under the header (see `StackedLayout`).
  *
  * @internal
  */
 function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 	return (
-		<StackedLayout className="min-h-dvh w-full">
+		<StackedLayout className="h-dvh w-full print:h-auto">
 			<StackedLayoutHeader className="border-b border-zinc-950/5 dark:border-white/5">
 				<Container size="md" padding="md">
 					<Flex align="center" gap="sm" className="py-2.5">
@@ -164,7 +165,7 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 				</Container>
 			</StackedLayoutHeader>
 			<StackedLayoutBody>
-				<Container size="md" padding="md" className="pb-8 lg:pb-12">
+				<Container size="md" padding="md" className="density-pt-[2,3,4,5,6] pb-8 lg:pb-12">
 					{children}
 				</Container>
 			</StackedLayoutBody>

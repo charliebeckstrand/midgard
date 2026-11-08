@@ -24,9 +24,9 @@ Static scaffold: a min-height-collapsing column with fixed-height ends around a 
 
 | Export | Summary |
 |---|---|
-| `StackedLayout` | Vertically stacked page scaffold hosting the header, body, and footer slots; the body flexes between fixed-height ends. The body scrolls only under a parent that bounds its height (`data-slot="stacked-layout"`). |
+| `StackedLayout` | Vertically stacked page scaffold hosting the header, body, and footer slots; the body flexes between fixed-height ends, with no gap. The body scrolls only under a parent that bounds its height. A page shell with the height of the viewport (`h-dvh print:h-auto`) makes the body the box that scrolls. The document is then never taller than the screen, so Chrome on iOS does not shift it on a load (`data-slot="stacked-layout"`). |
 | `StackedLayoutHeader` | Fixed-height header slot (`data-slot="header"`). |
-| `StackedLayoutBody` | Flexible, vertically scrolling main slot taking the height between header and footer; it scrolls only under a bounded parent (`data-slot="body"`). |
+| `StackedLayoutBody` | Flexible, vertically scrolling main slot taking the height between header and footer; it scrolls only under a bounded parent. It contains its positioned elements, and it prints whole (`data-slot="body"`). |
 | `StackedLayoutFooter` | Fixed-height footer slot (`data-slot="footer"`). |
 
 ## `DashboardLayout`: stacked content with a filter rail
