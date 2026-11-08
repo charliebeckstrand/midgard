@@ -25,12 +25,11 @@ import { RaceCard } from '../race-card'
 import { RaceDetail, type RaceView, usePreloadCountyMap } from '../race-detail'
 import { DelegationSummary, RaceSummary } from '../race-summary'
 import { type DrawerView, ResultDrawer, type TrailCrumb } from '../result-drawer'
+import { useElectionRaces } from './context'
 
 /** Props for {@link ElectionDrawer}. */
 export type ElectionDrawerProps = {
 	election: Election
-	/** The races of each office, in the order of the registry. */
-	results: readonly OfficeRaces[]
 	/** The race of the step of the address, which the page read on the server, or `null`. */
 	seed: Seed<Race> | null
 }
@@ -273,7 +272,8 @@ function drawerView(
 
 /**
  * The Drawer of an election, on each page of it. A state opens it; the address
- * holds its step (see {@link useDrawerStep}).
+ * holds its step (see {@link useDrawerStep}). It reads the races from the
+ * `ElectionRacesProvider` of the layout of the election.
  *
  * Its trail is the state, the office, then the district and the county where
  * the reader went that deep, such as `Georgia › House › 6th District › Fulton`.
@@ -287,7 +287,9 @@ function drawerView(
  * - The House: the delegation of the state, then a card of each district.
  * - A county: the race in that county.
  */
-export function ElectionDrawer({ election, results, seed }: ElectionDrawerProps) {
+export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
+	const results = useElectionRaces()
+
 	const { step, go } = useDrawerStep(election)
 
 	usePreloadCountyMap(step?.region.key ?? null)

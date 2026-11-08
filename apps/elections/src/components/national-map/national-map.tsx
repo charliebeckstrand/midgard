@@ -4,51 +4,26 @@ import { MapPlat } from 'ui/map'
 import { Stack } from 'ui/structure/stack'
 import statesAtlas from 'us-atlas/states-albers-10m.json'
 import type { Contest, Election } from '../../elections/registry'
-import { stateOfFips, stateOfKey } from '../../elections/us-states'
+import { stateOfFips } from '../../elections/us-states'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
-import type { Delegation } from '../../utilities/race-math'
-import {
-	delegations,
-	delegationWinner,
-	type RaceEntry,
-	raceWinner,
-	WINNER_CATEGORIES,
-} from '../../utilities/results'
+import { type RaceEntry, WINNER_CATEGORIES } from '../../utilities/results'
 import type { OfficeItem } from '../../utilities/trail'
 import { ClosestRaces } from '../closest-races'
 import { PageTitle } from '../page-title'
-
-/** One state of the map: its Winner category. */
-type StateRow = { fips: string; winner: string }
+import type { StateRow } from './state-rows'
 
 /** Props for {@link NationalMap}. */
 export type NationalMapProps = {
 	election: Election
 	contest: Contest
-	/** The races of the office: one per state, or one per district for the House. */
-	entries: readonly RaceEntry[]
+	/** The Winner category of each state with a race of the office, from `stateRows`. */
+	rows: StateRow[]
+	/** The closest races of the office, which show under the map. */
+	closest: readonly RaceEntry[]
 	/** The heading of the page. */
 	heading: string
 	/** The items of the office switch. */
 	items: readonly OfficeItem[]
-}
-
-/** The rows of the map: the Winner category of each state that has a race of the office. */
-function stateRows(
-	entries: readonly RaceEntry[],
-	byState: ReadonlyMap<string, Delegation> | null,
-): StateRow[] {
-	const rows =
-		byState === null
-			? entries.map((entry) => ({ fips: entry.state.fips, winner: raceWinner(entry) }))
-			: [...byState].map(([key, delegation]) => ({
-					fips: stateOfKey(key)?.fips,
-					winner: delegationWinner(delegation),
-				}))
-
-	return rows.flatMap(({ fips, winner }) =>
-		fips === undefined || winner === null ? [] : [{ fips, winner }],
-	)
 }
 
 /**
@@ -57,11 +32,14 @@ function stateRows(
  * office in the state. A state with no race of the office does nothing. Under
  * the map, the closest races open the Drawer on their race.
  */
-export function NationalMap({ election, contest, entries, heading, items }: NationalMapProps) {
-	const districts = contest.depth === 'district'
-
-	const rows = stateRows(entries, districts ? delegations(entries) : null)
-
+export function NationalMap({
+	election,
+	contest,
+	rows,
+	closest,
+	heading,
+	items,
+}: NationalMapProps) {
 	const { step, go } = useDrawerStep(election)
 
 	const present = new Set(rows.map((row) => row.winner))
@@ -94,7 +72,7 @@ export function NationalMap({ election, contest, entries, heading, items }: Nati
 				legend="right"
 			/>
 
-			<ClosestRaces election={election} entries={entries} />
+			<ClosestRaces election={election} entries={closest} />
 		</Stack>
 	)
 }
