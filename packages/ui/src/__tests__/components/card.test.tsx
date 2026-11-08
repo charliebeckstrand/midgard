@@ -36,6 +36,21 @@ describe('Card', () => {
 
 		expect(bySlot(container, 'card-header')).toBeInTheDocument()
 	})
+
+	it('sets the default text color, so it reads the same inside a muted panel body', () => {
+		const { container } = renderUI(
+			<div className="text-zinc-500">
+				<Card>
+					<CardDescription>Muted</CardDescription>
+				</Card>
+			</div>,
+		)
+
+		expect(bySlot(container, 'card')).toHaveClass('text-zinc-950', 'dark:text-white')
+
+		// The description keeps its muted color.
+		expect(bySlot(container, 'card-description')).toHaveClass('text-zinc-500')
+	})
 })
 
 describe('Card size system', () => {

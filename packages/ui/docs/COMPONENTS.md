@@ -87,7 +87,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > For a custom trigger or panel in an `AccordionItem`, use `useAccordionItem` from `accordion`. It gives the open state, `toggle`, and the ARIA props of the trigger and the panel. A custom trigger that spreads `triggerProps` takes part in the arrow keys of the accordion.
 
-> In a flex row or a grid track, a `Card` is at least as wide as its widest word. A `Stat` value in it stays on one line. Give the card `min-w-0` to let it become narrower.
+> A `Card` sets the default text color, so its content reads the same in the muted body of a dialog or a drawer. In a flex row or a grid track, a `Card` is at least as wide as its widest word. A `Stat` value in it stays on one line. Give the card `min-w-0` to let it become narrower.
 
 ## Typography
 

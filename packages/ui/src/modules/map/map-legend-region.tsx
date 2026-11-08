@@ -2,6 +2,7 @@
 
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
+import type { Orientation } from '../../types/orientation'
 import type { MapLegendItem } from './engine/map-legend/items'
 import { MapLegend } from './map-legend'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
@@ -25,6 +26,8 @@ type MapLegendSlotProps = {
 	show: boolean
 	/** Reserve the side panel's fixed column instead of the row's height. */
 	aside: boolean
+	/** The measured axis of the entries: a column beside the map, or a row. */
+	orientation: Orientation
 	items: MapLegendItem[]
 	hidden: ReadonlySet<string>
 	onToggle: (id: string) => void
@@ -38,7 +41,15 @@ type MapLegendSlotProps = {
  *
  * @internal
  */
-function MapLegendSlot({ show, aside, items, hidden, onToggle, onFocus }: MapLegendSlotProps) {
+function MapLegendSlot({
+	show,
+	aside,
+	orientation,
+	items,
+	hidden,
+	onToggle,
+	onFocus,
+}: MapLegendSlotProps) {
 	if (!show) return null
 
 	return (
@@ -50,6 +61,7 @@ function MapLegendSlot({ show, aside, items, hidden, onToggle, onFocus }: MapLeg
 					onToggle={onToggle}
 					onFocus={onFocus}
 					panel={aside}
+					orientation={orientation}
 				/>
 			)}
 		</div>

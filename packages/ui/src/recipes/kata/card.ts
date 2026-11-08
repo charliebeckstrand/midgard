@@ -19,6 +19,10 @@ const { flex } = narabi
  * nested card with a `size` is its own scope, so its sections do not follow
  * the outer card.
  *
+ * The card sets the default text color, as a popover does, so its content
+ * reads the same on the page and inside a surface that mutes its text, such
+ * as the body of a dialog or a drawer. The description keeps its muted color.
+ *
  * The card clips its overflow, because media fills the card to its rounded
  * edge. Thus content that runs past the edge of the card is hidden, and the
  * user cannot scroll to it. The clip is `overflow: clip`, not `hidden`, so the
@@ -28,9 +32,9 @@ const { flex } = narabi
  * breaks a token that is wider than its line.
  */
 export const k = defineKata({
-	base: ['overflow-clip -outline-offset-1', dan.space.box.base, dan.radius.card],
+	base: ['overflow-clip -outline-offset-1', text.default, dan.space.box.base, dan.radius.card],
 	slots: {
-		header: [text.default, dan.space.card.header.bottom],
+		header: dan.space.card.header.bottom,
 		body: 'wrap-break-word',
 		footer: [flex.row, 'flex-wrap', dan.space.card.footer.top, dan.gap.default],
 		description: [dan.text.small, text.muted],
