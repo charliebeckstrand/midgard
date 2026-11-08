@@ -31,11 +31,33 @@ export type RaceDetailProps = {
 /** The time format of the polls and the call: the day and the time, in the zone of the reader. */
 const WHEN: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
-/** The facts of a race beside its candidates: the votes, the percent reporting, the polls, and the call. */
-function RaceFacts({ race }: { race: Race }) {
+/**
+ * A time of a race, or a still line of one text height while the race loads,
+ * so the row keeps its height when the time arrives.
+ */
+function FactTime({ value }: { value: string | undefined }) {
+	return value === undefined ? (
+		<Placeholder as="span" pulse={false} className="inline-block h-[1lh] w-40 align-top" />
+	) : (
+		<DateTime value={value} format={WHEN} />
+	)
+}
+
+/**
+ * The facts of a race under its candidates: the votes, the percent reporting,
+ * the polls, and the call. The votes and the percent reporting come from the
+ * national results at once. The times come with the race; until then each
+ * holds its row with a still line. A time that the race does not give drops
+ * its row.
+ */
+function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Race | undefined }) {
 	const intl = useIntl()
 
-	const votes = race.candidates.reduce((sum, candidate) => sum + candidate.votes, 0)
+	const candidates = race?.candidates ?? entry.candidates
+
+	const votes = candidates.reduce((sum, candidate) => sum + candidate.votes, 0)
+
+	const called = race === undefined ? entry.called : race.calledAt !== null
 
 	return (
 		<DescriptionList>
@@ -44,26 +66,26 @@ function RaceFacts({ race }: { race: Race }) {
 
 			<DescriptionTerm>Reporting</DescriptionTerm>
 			<DescriptionDetails className="tabular-nums">
-				{percentText(intl.formatNumber, race.reporting, 1)}
+				{percentText(intl.formatNumber, race?.reporting ?? entry.reporting, 1)}
 			</DescriptionDetails>
 
-			{race.pollsClose === null ? null : (
+			{race?.pollsClose === null ? null : (
 				<>
 					<DescriptionTerm>Polls closed</DescriptionTerm>
 					<DescriptionDetails>
-						<DateTime value={race.pollsClose} format={WHEN} />
+						<FactTime value={race?.pollsClose ?? undefined} />
 					</DescriptionDetails>
 				</>
 			)}
 
-			{race.calledAt === null ? null : (
+			{called ? (
 				<>
 					<DescriptionTerm>Called</DescriptionTerm>
 					<DescriptionDetails>
-						<DateTime value={race.calledAt} format={WHEN} />
+						<FactTime value={race?.calledAt ?? undefined} />
 					</DescriptionDetails>
 				</>
-			)}
+			) : null}
 		</DescriptionList>
 	)
 }
@@ -116,9 +138,9 @@ const COLUMNS: GridColumn<CountyResult>[] = [
  * One race in full, the body of the Drawer on a statewide race or a district:
  * the candidates with their party and votes, the facts of the race, then the
  * counties in a table. The table is in a Collapse, and a county row opens the
- * county. The candidates show from the national results at once; the facts and
- * the counties show when the race loads, and a still shape holds their place
- * until then.
+ * county. The candidates, the facts, and the closed table show from the
+ * national results at once. The times of the facts and the rows of the table
+ * show when the race loads, and still shapes hold their place until then.
  */
 export function RaceDetail({
 	entry,
@@ -143,44 +165,43 @@ export function RaceDetail({
 				detail
 			/>
 
-			{race === undefined ? (
-				<Stack gap="lg">
-					<Placeholder className="h-24" />
+			<RaceFacts entry={entry} race={race} />
 
-					<Placeholder className="h-64" />
-				</Stack>
-			) : (
-				<>
-					<RaceFacts race={race} />
+			{/*
+			 * The Drawer is the one that travels: the panel grows to its content in
+			 * one move, so the Collapse snaps rather than animating a second height
+			 * that the panel would then chase.
+			 */}
+			<Collapse open={countiesOpen} onOpenChange={onCountiesOpenChange} animate={false}>
+				<CollapseTrigger>
+					<Flex as="span" gap="sm" className="text-base/6 font-semibold">
+						By county
+						<CollapseCaret />
+					</Flex>
+				</CollapseTrigger>
 
-					<Collapse open={countiesOpen} onOpenChange={onCountiesOpenChange}>
-						<CollapseTrigger>
-							<Flex as="span" gap="sm" className="text-base/6 font-semibold">
-								By county
-								<CollapseCaret />
-							</Flex>
-						</CollapseTrigger>
-
-						<CollapsePanel>
-							<div className="pt-4">
-								<Grid
-									columns={COLUMNS}
-									rows={race.counties}
-									getKey={(county) => county.fips}
-									sort={{ value: sort, onValueChange: setSort }}
-									search={{
-										value: query,
-										onValueChange: setQuery,
-										placeholder: 'Search counties',
-									}}
-									header={{ position: 'sticky' }}
-									onRowClick={(county) => onCounty(county.fips)}
-								/>
-							</div>
-						</CollapsePanel>
-					</Collapse>
-				</>
-			)}
+				<CollapsePanel>
+					<div className="pt-4">
+						{race === undefined ? (
+							<Placeholder className="h-64" />
+						) : (
+							<Grid
+								columns={COLUMNS}
+								rows={race.counties}
+								getKey={(county) => county.fips}
+								sort={{ value: sort, onValueChange: setSort }}
+								search={{
+									value: query,
+									onValueChange: setQuery,
+									placeholder: 'Search counties',
+								}}
+								header={{ position: 'sticky' }}
+								onRowClick={(county) => onCounty(county.fips)}
+							/>
+						)}
+					</div>
+				</CollapsePanel>
+			</Collapse>
 		</Stack>
 	)
 }
