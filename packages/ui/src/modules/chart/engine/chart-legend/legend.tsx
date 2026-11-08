@@ -196,6 +196,7 @@ function ChartLegendSwatch({ item, off, texture }: ChartLegendSwatchProps) {
 			swatchColor={item.swatchColor}
 			color={item.color}
 			dashed={item.dashed}
+			hollow={item.hollow}
 			active={texture}
 			off={off}
 		/>
@@ -437,6 +438,13 @@ export type ChartLegendItem = {
 	 * @defaultValue false
 	 */
 	dashed?: boolean
+	/**
+	 * Whether the `rect` swatch is a frame, not a fill, mirroring a mark drawn
+	 * as a ring, such as a seat that is not called. A hollow swatch takes no
+	 * texture.
+	 * @defaultValue false
+	 */
+	hollow?: boolean
 	/** The slot color, so a textured legend swatch mirrors the mark's tile; unset for a raw color. */
 	color?: ChartColorSlot
 	/** A trailing readout: the side panel carries each slice's live share. */

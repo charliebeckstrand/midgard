@@ -44,7 +44,7 @@ export type SeatChartGroup = {
 	label: string
 	/**
 	 * Draws the seats as rings, not discs, such as seats that are not called
-	 * yet.
+	 * yet. The legend key of the group is a frame, not a fill.
 	 *
 	 * @defaultValue false
 	 */
@@ -130,7 +130,8 @@ function seatCount(group: SeatChartGroup): number {
  * A seat chart: the seats of a chamber as dots on the concentric arcs of a
  * hemicycle, as a parliament draws its floor. The groups take the seats in
  * order from the start of the hemicycle, so each group reads as one block.
- * A hollow group draws rings, such as seats that are not called yet. A dashed
+ * A hollow group draws rings, such as seats that are not called yet, and its
+ * legend key is a frame. A dashed
  * line marks the `majority`, and `children` render in the hole, as in a
  * {@link DonutChart}.
  *
@@ -266,8 +267,12 @@ export function SeatChart(props: SeatChartProps) {
 
 	const shares = counts.map((count) => (total > 0 && count > 0 ? count / total : null))
 
+	// A hollow group draws rings, so its legend key is a frame, not a fill.
 	const legendItems = hasLegend
-		? sectorLegendItems(labels, paints, colors, shares, aside, percent)
+		? sectorLegendItems(labels, paints, colors, shares, aside, percent).map((item) => ({
+				...item,
+				hollow: stableGroups[item.index]?.hollow === true,
+			}))
 		: null
 
 	// The pointer names the group of the nearest seat, within a reach of a few

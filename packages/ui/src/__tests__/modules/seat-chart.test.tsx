@@ -80,6 +80,16 @@ describe('SeatChart', () => {
 		expect(bySlot(container, 'chart-legend')).toHaveAttribute('inert')
 	})
 
+	it('keys a hollow group with a frame and the rest with a fill', () => {
+		const { container } = renderUI(chart({ legend: true }))
+
+		const keys = allBySlot(container, 'chart-legend-item').map(
+			(item) => item.querySelector('[data-slot="swatch"]')?.getAttribute('data-variant') ?? null,
+		)
+
+		expect(keys).toEqual(['solid', 'outline', 'solid'])
+	})
+
 	it('lists the seats of each group in the data table', () => {
 		const { container } = renderUI(chart())
 
