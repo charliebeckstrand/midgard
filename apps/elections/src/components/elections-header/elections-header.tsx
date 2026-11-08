@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 import { Fragment } from 'react'
 import { Badge } from 'ui/badge'
 import {
@@ -10,16 +10,15 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
-import { Button } from 'ui/button'
-import { Icon } from 'ui/icon'
 import { StackedLayoutHeader } from 'ui/layouts'
 import { Link } from 'ui/link'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
+import { MenuItem, MenuLabel, MenuSeparator } from 'ui/menu'
 import { useIntl } from 'ui/primitives/intl'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Container } from 'ui/structure/container'
 import { Flex } from 'ui/structure/flex'
 import type { Crumb, ElectionMenuItem } from '../../utilities/trail'
+import { MenuCrumb } from '../menu-crumb'
 
 /** The date of an election to come, such as `Nov 3, 2026`, in the zone of the election day. */
 function ElectionDate({ date }: { date: string }) {
@@ -47,9 +46,10 @@ function CrumbLink({ crumb, current }: { crumb: Crumb; current: boolean }) {
 }
 
 /**
- * The crumb of an election: its name, which leads to its overview, and a
- * chevron that opens the elections of its year. The name is a crumb as any
- * other, so it gives way to a mark when the row runs out of room.
+ * The crumb of an election, with a chevron that opens the elections of its
+ * year. On a page under the election, its name leads to the overview of the
+ * election. On the overview itself the name leads nowhere, so a press on any
+ * part of the crumb opens the menu.
  */
 function ElectionCrumb({
 	crumb,
@@ -60,47 +60,40 @@ function ElectionCrumb({
 	menu: readonly ElectionMenuItem[]
 	current: boolean
 }) {
+	const pathname = usePathname()
+
 	return (
-		<span className="inline-flex min-w-0 items-center">
-			<CrumbLink crumb={crumb} current={current} />
+		<MenuCrumb
+			label={crumb.label}
+			current={current}
+			link={
+				crumb.href === undefined || crumb.href === pathname ? undefined : (
+					<CrumbLink crumb={crumb} current={current} />
+				)
+			}
+		>
+			{menu.map((item) => (
+				<MenuItem key={item.href} href={item.href}>
+					<MenuLabel>{item.label}</MenuLabel>
 
-			<Menu placement="bottom-start">
-				<MenuTrigger>
-					<Button
-						type="button"
-						variant="bare"
-						aria-label={`Switch from ${crumb.label}`}
-						className="shrink-0"
-					>
-						<Icon icon={<ChevronDown />} />
-					</Button>
-				</MenuTrigger>
+					{item.live ? (
+						<Badge variant="soft" color="green">
+							Live
+						</Badge>
+					) : item.upcoming === null ? null : (
+						<span className="text-sm text-zinc-500 dark:text-zinc-400">
+							<ElectionDate date={item.upcoming} />
+						</span>
+					)}
+				</MenuItem>
+			))}
 
-				<MenuContent>
-					{menu.map((item) => (
-						<MenuItem key={item.href} href={item.href}>
-							<MenuLabel>{item.label}</MenuLabel>
+			<MenuSeparator />
 
-							{item.live ? (
-								<Badge variant="soft" color="green">
-									Live
-								</Badge>
-							) : item.upcoming === null ? null : (
-								<span className="text-sm text-zinc-500 dark:text-zinc-400">
-									<ElectionDate date={item.upcoming} />
-								</span>
-							)}
-						</MenuItem>
-					))}
-
-					<MenuSeparator />
-
-					<MenuItem href="/">
-						<MenuLabel>All elections</MenuLabel>
-					</MenuItem>
-				</MenuContent>
-			</Menu>
-		</span>
+			<MenuItem href="/">
+				<MenuLabel>All elections</MenuLabel>
+			</MenuItem>
+		</MenuCrumb>
 	)
 }
 
