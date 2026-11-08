@@ -15,8 +15,11 @@ const SEAT_DOT_RATIO = 0.42
 /** The radius of a lone seat, in unit space. @internal */
 const LONE_SEAT_DOT = 0.25
 
-/** How far the majority line goes past the seats, in seat radii. @internal */
-const MAJORITY_OVERSHOOT = 1.5
+/** The gap between the outer seats and the majority tick, in seat radii. @internal */
+const MAJORITY_GAP = 1
+
+/** The length of the majority tick, in unit space. @internal */
+const MAJORITY_TICK = 0.12
 
 /** One seat in unit space: its center, and its angle and arc radius. @internal */
 export type Seat = {
@@ -129,6 +132,21 @@ export function seatLayout(total: number, rows: number): SeatLayout {
 }
 
 /**
+ * The radius of the clear hole of a hemicycle, in unit space: the inner arc
+ * less a seat and a gap of one seat radius, so content in the hole keeps clear
+ * of the seats. A chart with no seat has no hole.
+ *
+ * @internal
+ */
+export function seatHole(layout: SeatLayout): number {
+	if (layout.seats.length === 0) return 0
+
+	const inner = layout.seats.reduce((min, seat) => Math.min(min, seat.radius), 1)
+
+	return Math.max(0, inner - 2 * layout.dot)
+}
+
+/**
  * The group of each seat: the groups take the seats in order, each as many as
  * its count. A seat past the sum of the counts takes no group (`-1`).
  *
@@ -165,16 +183,20 @@ export function majorityAngle(seats: readonly Seat[], majority: number | undefin
 	return (last.angle + next.angle) / 2
 }
 
-/** The ends of the majority line in unit space: from inside the inner arc to past the outer arc. @internal */
+/**
+ * The ends of the majority tick in unit space: a short radial stroke past the
+ * outer arc, clear of the seats. A line across the arcs would touch the seats
+ * near it, because the seats of each arc sit at other angles.
+ *
+ * @internal
+ */
 export function majorityLine(
 	angle: number,
 	layout: SeatLayout,
 ): { x1: number; y1: number; x2: number; y2: number } {
-	const inner = Math.min(...layout.seats.map((seat) => seat.radius))
+	const from = 1 + (1 + MAJORITY_GAP) * layout.dot
 
-	const from = Math.max(0, inner - MAJORITY_OVERSHOOT * layout.dot)
-
-	const to = 1 + MAJORITY_OVERSHOOT * layout.dot
+	const to = from + MAJORITY_TICK
 
 	return {
 		x1: from * Math.cos(angle),
@@ -193,14 +215,21 @@ export type SeatFit = {
 }
 
 /**
- * Fits the hemicycle and its majority line into a box of `width` by `height`
- * with `margin` on each side, centered in the box. The hemicycle spans
- * `2 (1 + dot)` across and `1 + 1.5 dot + dot` down.
+ * Fits the hemicycle into a box of `width` by `height` with `margin` on each
+ * side, centered in the box. The hemicycle spans `2 (1 + dot)` across and
+ * `1 + 2 dot` down. With `tick`, the box also holds the majority tick above
+ * the outer arc.
  *
  * @internal
  */
-export function seatFit(width: number, height: number, margin: number, dot: number): SeatFit {
-	const top = 1 + MAJORITY_OVERSHOOT * dot
+export function seatFit(
+	width: number,
+	height: number,
+	margin: number,
+	dot: number,
+	tick = false,
+): SeatFit {
+	const top = tick ? 1 + (1 + MAJORITY_GAP) * dot + MAJORITY_TICK : 1 + dot
 
 	const across = 2 * (1 + dot)
 

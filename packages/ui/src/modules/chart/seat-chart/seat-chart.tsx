@@ -19,6 +19,7 @@ import {
 	nearestSeat,
 	seatFit,
 	seatGroups,
+	seatHole,
 	seatLayout,
 	seatRows,
 } from '../engine/chart-geometry/seat'
@@ -32,6 +33,7 @@ import { type ChartMarkRef, useChartFullscreen } from '../engine/context'
 import type { ChartBaseProps, ChartReadout } from '../engine/types'
 import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { sectorFrame, sectorLegendItems } from '../sector-chart/sector-chart-frame'
+import { SeatChartHole } from './seat-chart-hole'
 import { SeatChartMarks } from './seat-chart-marks'
 
 /** One group of seats in a {@link SeatChart}, such as the seats of one party. */
@@ -67,9 +69,9 @@ export type SeatChartProps = AccessibleName &
 		 */
 		groups: SeatChartGroup[]
 		/**
-		 * The seats for a majority. A dashed line crosses the hemicycle between the
-		 * last seat of the majority and the next seat. Omit it for a chamber with no
-		 * majority to read, such as the governors.
+		 * The seats for a majority. A dashed tick above the outer arc marks the
+		 * angle between the last seat of the majority and the next seat. Omit it
+		 * for a chamber with no majority to read, such as the governors.
 		 */
 		majority?: number
 		/**
@@ -78,7 +80,10 @@ export type SeatChartProps = AccessibleName &
 		 * for 100, and 10 for 435.
 		 */
 		rows?: number
-		/** Content in the hole of the hemicycle, above its base: a total, a stat. */
+		/**
+		 * Content in the hole of the hemicycle, above its base: a total, a stat. Content
+		 * too large for the hole scales down to fit it.
+		 */
 		children?: ReactNode
 	}
 
@@ -131,9 +136,9 @@ function seatCount(group: SeatChartGroup): number {
  * hemicycle, as a parliament draws its floor. The groups take the seats in
  * order from the start of the hemicycle, so each group reads as one block.
  * A hollow group draws rings, such as seats that are not called yet, and its
- * legend key is a frame. A dashed
- * line marks the `majority`, and `children` render in the hole, as in a
- * {@link DonutChart}.
+ * legend key is a frame. A dashed tick marks the `majority`, and `children`
+ * render in the hole, as in a {@link DonutChart}. Content too large for the
+ * hole scales down, so it never covers a seat.
  *
  * The chart reuses the frame of the Chart module: the legend names each group,
  * the tooltip reads the group under the pointer, and a visually-hidden data
@@ -224,13 +229,6 @@ export function SeatChart(props: SeatChartProps) {
 		tickTarget: TICK_TARGET,
 	})
 
-	const fit = seatFit(frameWidth, frameHeight, MARK_GAP, layout.dot)
-
-	const toFrame = (x: number, y: number) => ({
-		x: fit.cx + x * fit.scale,
-		y: fit.cy + y * fit.scale,
-	})
-
 	const labels = stableGroups.map((group) => group.label)
 
 	const colors = stableGroups.map((group) => group.color)
@@ -240,6 +238,13 @@ export function SeatChart(props: SeatChartProps) {
 	const angle = majorityAngle(layout.seats, majority)
 
 	const line = angle === null ? null : majorityLine(angle, layout)
+
+	const fit = seatFit(frameWidth, frameHeight, MARK_GAP, layout.dot, line !== null)
+
+	const toFrame = (x: number, y: number) => ({
+		x: fit.cx + x * fit.scale,
+		y: fit.cy + y * fit.scale,
+	})
 
 	// The readout lists the seats of each group, built on first read.
 	const seatsLabel = intl.formatMessage(messages.seats)
@@ -354,18 +359,13 @@ export function SeatChart(props: SeatChartProps) {
 			className={className}
 			overlay={
 				children ? (
-					<div data-slot="chart-center" className="pointer-events-none absolute inset-0">
-						{/* The content sits in the hole, its base on the base of the hemicycle. */}
-						<div
-							className="absolute -translate-x-1/2 -translate-y-full"
-							style={{
-								left: frameWidth > 0 ? `${(fit.cx / frameWidth) * 100}%` : '50%',
-								top: frameHeight > 0 ? `${(fit.cy / frameHeight) * 100}%` : '100%',
-							}}
-						>
-							{children}
-						</div>
-					</div>
+					<SeatChartHole
+						left={frameWidth > 0 ? `${(fit.cx / frameWidth) * 100}%` : '50%'}
+						top={frameHeight > 0 ? `${(fit.cy / frameHeight) * 100}%` : '100%'}
+						radius={seatHole(layout) * fit.scale}
+					>
+						{children}
+					</SeatChartHole>
 				) : undefined
 			}
 		>

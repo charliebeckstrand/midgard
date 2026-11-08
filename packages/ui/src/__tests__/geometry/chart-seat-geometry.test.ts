@@ -8,6 +8,7 @@ import {
 	SEAT_INNER_RATIO,
 	seatFit,
 	seatGroups,
+	seatHole,
 	seatLayout,
 	seatRows,
 } from '../../modules/chart/engine/chart-geometry/seat'
@@ -140,16 +141,16 @@ describe('majorityAngle', () => {
 		expect(majorityAngle(seats, 5.5)).toBeNull()
 	})
 
-	it('runs from inside the inner arc to past the outer arc', () => {
+	it('ticks past the outer arc, clear of every seat', () => {
 		const layout = seatLayout(100, 5)
 
 		const line = majorityLine(Math.PI / 2, layout)
 
 		expect(line.x1).toBeNear(0, UNIT_TOLERANCE)
 
-		expect(-line.y1).toBeLessThan(SEAT_INNER_RATIO)
+		expect(-line.y1).toBeGreaterThan(1 + layout.dot)
 
-		expect(-line.y2).toBeGreaterThan(1 + layout.dot)
+		expect(-line.y2).toBeGreaterThan(-line.y1)
 	})
 })
 
@@ -157,7 +158,7 @@ describe('seatFit', () => {
 	it('fits the hemicycle and its line inside the box', () => {
 		const layout = seatLayout(435, 10)
 
-		const fit = seatFit(400, 200, 4, layout.dot)
+		const fit = seatFit(400, 200, 4, layout.dot, true)
 
 		const line = majorityLine(Math.PI / 2, layout)
 
@@ -170,8 +171,32 @@ describe('seatFit', () => {
 		expect(fit.cy + layout.dot * fit.scale).toBeLessThanOrEqual(196 + 1e-9)
 	})
 
+	it('takes more of the box with no tick to hold', () => {
+		const dot = seatLayout(435, 10).dot
+
+		expect(seatFit(400, 200, 4, dot).scale).toBeGreaterThan(seatFit(400, 200, 4, dot, true).scale)
+	})
+
 	it('scales to nothing in a box with no room', () => {
 		expect(seatFit(0, 0, 4, 0.02).scale).toBe(0)
+	})
+})
+
+describe('seatHole', () => {
+	it('keeps a gap of one seat between the hole and each seat', () => {
+		const layout = seatLayout(435, 10)
+
+		const hole = seatHole(layout)
+
+		for (const seat of layout.seats) {
+			expect(Math.hypot(seat.x, seat.y) - layout.dot - hole).toBeGreaterThanOrEqual(
+				layout.dot - UNIT_TOLERANCE,
+			)
+		}
+	})
+
+	it('has no hole with no seat', () => {
+		expect(seatHole(seatLayout(0, 1))).toBe(0)
 	})
 })
 
