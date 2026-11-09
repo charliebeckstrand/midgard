@@ -174,6 +174,12 @@ export const k = {
 		 */
 		clickable: CLICKABLE,
 		/**
+		 * The cursor of a region that takes no click on a clickable layer
+		 * (`MapPlat`'s `isRegionDisabled`). It is on the path, so it overrides the
+		 * pointer cursor that the path inherits from the layer.
+		 */
+		disabled: 'cursor-default',
+		/**
 		 * The region layer while its VALUES are still loading. The shapes are drawn and
 		 * their numbers are not in yet, so every one of them holds the no-data fill.
 		 *

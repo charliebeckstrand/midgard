@@ -29,7 +29,8 @@ export type NationalMapProps = {
 /**
  * The national map of an office under the title of its page, colored by the
  * winner of each state. A click on a state with a race opens the Drawer on the
- * office in the state. A state with no race of the office does nothing. Under
+ * office in the state. A state with no race of the office is disabled: it takes
+ * no click, no pointer cursor, and no hover. Under
  * the map, the closest races open the Drawer on their race.
  */
 export function NationalMap({
@@ -48,7 +49,7 @@ export function NationalMap({
 
 	const present = new Set(data.map((row) => row.winner))
 
-	// A state with no race of the office has no row, so a click on it does nothing.
+	// A state with no race of the office has no row, so the map disables it.
 	const raced = new Set(rows.map((row) => row.fips))
 
 	return (
@@ -65,10 +66,11 @@ export function NationalMap({
 				onRegionClick={(fips: string) => {
 					const state = stateOfFips(fips)
 
-					if (state !== undefined && raced.has(fips)) {
+					if (state !== undefined) {
 						go({ region: state, office: contest.slug, district: null, county: null })
 					}
 				}}
+				isRegionDisabled={(fips: string) => !raced.has(fips)}
 				data={data}
 				categoryKey="winner"
 				colorName="Winner"

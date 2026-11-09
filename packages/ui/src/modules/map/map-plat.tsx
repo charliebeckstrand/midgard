@@ -24,6 +24,7 @@ import { useLocale } from '../../providers/locale/context'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types/accessible-name'
 import { getOrCompute } from '../../utilities/get-or-compute'
+import { sameElements } from '../../utilities/same-elements'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import type { ChartItemClick } from '../chart/engine/types'
 import {
@@ -337,7 +338,8 @@ type MapPlatBaseProps = AccessibleName &
 		 * cross-filter hook the charts' `onCategoryClick` is, and the same shape.
 		 *
 		 * Set, the region layer carries a pointer cursor and every region answers a
-		 * click, unmatched ones included. The keyboard reports through the same
+		 * click, unmatched ones included, unless {@link isRegionDisabled} disables
+		 * it. The keyboard reports through the same
 		 * handler. The plot region is one tab stop, and Enter or Space picks the
 		 * region its arrow cursor sits on. A pick therefore carries the same identity
 		 * whichever input made it.
@@ -346,6 +348,17 @@ type MapPlatBaseProps = AccessibleName &
 		 * tooltip, because a touch reads nothing from the map.
 		 */
 		onRegionClick?: ChartItemClick
+		/**
+		 * Whether a region takes no click, by the identity and feature index
+		 * {@link onRegionClick} reports. Use it for a region that opens nothing,
+		 * such as a state with no race. A disabled region takes no pointer cursor
+		 * and no click hover, and a click, a double tap, or Enter on it reports
+		 * nothing. Its readout stays: a disabled region with a row still shows its
+		 * tooltip and its hover. With no {@link onRegionClick}, this does nothing.
+		 *
+		 * Omitted, every region answers a click.
+		 */
+		isRegionDisabled?: (id: string, index: number) => boolean
 		/**
 		 * Fires when a right-click lands on a region, with the same identity and
 		 * feature index {@link onRegionClick} reports. It suits a context menu that
@@ -609,13 +622,14 @@ function valueColumnHeader(intl: IntlShape, colorName: string | undefined): stri
 function bridgeRegionIdentity(
 	report: ((id: string, index: number) => void) | undefined,
 	regionIds: string[],
+	disabled?: readonly boolean[],
 ): ((index: number) => void) | undefined {
 	if (report === undefined) return undefined
 
 	return (index: number) => {
 		const id = regionIds[index]
 
-		if (id !== undefined) report(id, index)
+		if (id !== undefined && disabled?.[index] !== true) report(id, index)
 	}
 }
 
@@ -842,6 +856,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		regionPointer,
 		animate: animation = false,
 		onRegionClick,
+		isRegionDisabled,
 		onRegionContextMenu,
 		onRegionPreload,
 		selectedRegion,
@@ -974,9 +989,24 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// the props report identity. Bridge them here, memoized like this component's
 	// sibling derivations so the memoized region layer holds across the legend and
 	// resize commits.
+	// Each region that takes no click, resolved once against the ids a click
+	// reports. An inline predicate is a new identity on each render, so the
+	// result holds its last identity while its content is the same, and the
+	// memoized region layer holds with it.
+	const regionDisabled = useStableValue(
+		useMemo(
+			() =>
+				onRegionClick === undefined || isRegionDisabled === undefined
+					? undefined
+					: regionIds.map((id, index) => isRegionDisabled(id, index)),
+			[onRegionClick, isRegionDisabled, regionIds],
+		),
+		sameElements,
+	)
+
 	const clickRegion = useMemo(
-		() => bridgeRegionIdentity(onRegionClick, regionIds),
-		[onRegionClick, regionIds],
+		() => bridgeRegionIdentity(onRegionClick, regionIds, regionDisabled),
+		[onRegionClick, regionIds, regionDisabled],
 	)
 
 	const contextMenuRegion = useMemo(
@@ -1421,18 +1451,22 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// picker or a zooming map with `tooltip={false}` does not rove in silence.
 	// With it, a region that reads nothing (no row, or a category the legend
 	// holds off) still speaks its name where Enter picks it: the reader must hear
-	// what a pick would report.
+	// what a pick would report. A disabled region reports no pick, so it stays
+	// silent like a region of a map that picks nothing.
 	const describeTarget = useCallback(
 		(target: MapHoverTarget) => {
 			if (!readable) return nameMapTarget(target, tooltipProps)
 
 			const readout = describeMapTarget(target, tooltipProps)
 
-			return readout === null && target.kind === 'region' && picksRegions
+			return readout === null &&
+				target.kind === 'region' &&
+				picksRegions &&
+				regionDisabled?.[target.index] !== true
 				? nameMapTarget(target, tooltipProps)
 				: readout
 		},
-		[readable, picksRegions, tooltipProps],
+		[readable, picksRegions, regionDisabled, tooltipProps],
 	)
 
 	// The cursor earns a tab stop from either of its two outputs. Gating on the
@@ -1542,6 +1576,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							animate={animate}
 							sweep={sweep}
 							onRegionClick={regions.click}
+							disabled={regionDisabled}
 							onRegionContextMenu={regions.contextMenu}
 							selected={selected}
 							loading={loading}

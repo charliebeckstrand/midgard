@@ -108,6 +108,14 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	 */
 	onRegionClick?: (index: number) => void
 	/**
+	 * Each region that takes no click, by feature index, from `MapPlat`'s
+	 * `isRegionDisabled`. A disabled region takes the default cursor, and the
+	 * hover emphasis only where it carries data. {@link onRegionClick} arrives
+	 * already gated, so the layer reads this for the paint alone. `undefined`
+	 * where every region answers.
+	 */
+	disabled: readonly boolean[] | undefined
+	/**
 	 * Reports the region under a right-click, resolved by the same
 	 * {@link regionIndexAt} delegation {@link onRegionClick} uses. The hover
 	 * provider deliberately isolates its state. A context menu wrapping the map
@@ -226,7 +234,11 @@ function drawnRegions(paths: (string | null)[]): { index: number; d: string }[] 
 }
 
 /** Props for {@link MapRegionsBase}: the layer's own inputs, none of the shared emphasis. @internal */
-type MapRegionsBaseProps = MapRegionLayer & { delay: WashDelay; interactive: boolean }
+type MapRegionsBaseProps = MapRegionLayer & {
+	delay: WashDelay
+	interactive: boolean
+	disabled: readonly boolean[] | undefined
+}
 
 /**
  * Every region path, painted by category. Deliberately blind to the shared
@@ -246,6 +258,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	paints,
 	delay,
 	interactive,
+	disabled,
 }: MapRegionsBaseProps) {
 	const { set } = useMapHoverActions()
 
@@ -280,7 +293,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 						key={index}
 						d={d}
 						index={index}
-						className={paint.className}
+						className={disabled?.[index] === true ? paint.disabledClassName : paint.className}
 						fillColor={paint.fillColor}
 						style={delay(index)}
 						onTrack={handleTrack}
@@ -340,6 +353,7 @@ export const MapRegions = memo(function MapRegions({
 	animate,
 	sweep,
 	onRegionClick,
+	disabled,
 	onRegionContextMenu,
 	selected,
 	loading,
@@ -413,6 +427,7 @@ export const MapRegions = memo(function MapRegions({
 					paints={paints}
 					delay={delay}
 					interactive={interactive}
+					disabled={disabled}
 				/>
 			</g>
 

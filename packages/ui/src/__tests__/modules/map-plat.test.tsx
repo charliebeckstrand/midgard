@@ -1275,6 +1275,38 @@ describe('MapPlat region click', () => {
 		expect(gamma).toContain('dark:hover:brightness-110')
 	})
 
+	it('gives a disabled region no click, no pointer cursor, and no click hover', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(
+			categoricalPlat({ onRegionClick, isRegionDisabled: (id) => id !== 'B' }),
+		)
+
+		const [alpha, beta, gamma] = allRegions(container)
+
+		fireEvent.click(alpha as Element)
+
+		fireEvent.click(beta as Element)
+
+		fireEvent.click(gamma as Element)
+
+		expect(onRegionClick).toHaveBeenCalledTimes(1)
+
+		expect(onRegionClick).toHaveBeenCalledWith('B', 1)
+
+		expect(beta?.getAttribute('class')).not.toContain('cursor-default')
+
+		// Gamma matches no row, so a disabled Gamma has no hover at all.
+		expect(gamma?.getAttribute('class')).toContain('cursor-default')
+
+		expect(gamma?.getAttribute('class')).not.toContain('hover:')
+
+		// Alpha matches a row, so its readout keeps the hover.
+		expect(alpha?.getAttribute('class')).toContain('cursor-default')
+
+		expect(alpha?.getAttribute('class')).toContain('hover:brightness-90')
+	})
+
 	it('reports the right-clicked region, and nothing when the right-click misses one', () => {
 		const onRegionContextMenu = vi.fn()
 
