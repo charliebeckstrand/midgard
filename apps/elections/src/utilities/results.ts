@@ -320,3 +320,53 @@ export function delegationWinner(state: Delegation): string | null {
 
 	return state.called === state.total ? side : `${side} lead`
 }
+
+/**
+ * The counties of many races of one office in a state, such as the districts
+ * of the House, as one county map: the votes of each party in each county,
+ * added over the races. A county counts all of its vote once each race counts
+ * all of its vote there, so it takes the lowest percent reporting of its
+ * races. Each party is one row, most votes first, and no row is a winner.
+ *
+ * @param races - The counties of each race.
+ */
+export function partyCounties(races: readonly (readonly CountyResult[])[]): CountyResult[] {
+	const byFips = new Map<string, { county: CountyResult; votes: Map<string, Candidate> }>()
+
+	for (const counties of races) {
+		for (const county of counties) {
+			const held = byFips.get(county.fips) ?? {
+				county: { ...county, candidates: [] },
+				votes: new Map<string, Candidate>(),
+			}
+
+			held.county.reporting = Math.min(held.county.reporting, county.reporting)
+
+			for (const candidate of county.candidates) {
+				const party = held.votes.get(candidate.party)
+
+				held.votes.set(candidate.party, {
+					name: candidate.party,
+					party: candidate.party,
+					slot: candidate.slot,
+					votes: (party?.votes ?? 0) + candidate.votes,
+					percent: 0,
+					winner: false,
+					incumbent: false,
+				})
+			}
+
+			byFips.set(county.fips, held)
+		}
+	}
+
+	return [...byFips.values()].map(({ county, votes }) => {
+		const total = [...votes.values()].reduce((sum, party) => sum + party.votes, 0)
+
+		const candidates = [...votes.values()]
+			.map((party) => ({ ...party, percent: total === 0 ? 0 : (party.votes / total) * 100 }))
+			.sort((a, b) => b.votes - a.votes)
+
+		return { ...county, candidates }
+	})
+}

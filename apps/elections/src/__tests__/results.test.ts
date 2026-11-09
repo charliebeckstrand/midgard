@@ -12,6 +12,7 @@ import {
 	entryName,
 	entryStep,
 	matchesSearch,
+	partyCounties,
 	type RaceEntry,
 	raceWinner,
 	readEntries,
@@ -258,6 +259,31 @@ describe('the trail and the office switch', () => {
 		expect(crumbs[0]?.href).toBe('/')
 	})
 
+	it('ends the trail of a page of a state at the state', () => {
+		const georgia = stateOfKey('ga')
+
+		const crumbs = electionCrumbs(midterms, georgia)
+
+		expect(crumbs.at(-1)).toEqual({ label: 'Georgia', href: '/2026/us/midterms/georgia' })
+
+		expect(crumbs.at(-2)).toEqual({ label: 'Midterms', href: '/2026/us/midterms' })
+	})
+
+	it('leads the switch of a state to the pages of the state, with no pick for an office it has no race of', () => {
+		const georgia = stateOfKey('ga')
+
+		if (georgia === undefined) throw new Error('The states have no Georgia.')
+
+		const items = officeItems(midterms, { state: georgia, offices: new Set(['house']) })
+
+		expect(items.map((item) => [item.href, item.disabled])).toEqual([
+			['/2026/us/midterms/georgia', false],
+			['/2026/us/midterms/georgia/senate', true],
+			['/2026/us/midterms/georgia/house', false],
+			['/2026/us/midterms/georgia/governor', true],
+		])
+	})
+
 	it('leads the page switch with the overview', () => {
 		expect(officeItems(midterms).map((item) => item.value)).toEqual([
 			'overview',
@@ -275,5 +301,62 @@ describe('the trail and the office switch', () => {
 			['house', false],
 			['governor', false],
 		])
+	})
+})
+
+describe('the counties of many races', () => {
+	const candidate = (party: string, slot: 'blue' | 'red', votes: number) => ({
+		name: `${party} candidate`,
+		party,
+		slot,
+		votes,
+		percent: 0,
+		winner: false,
+		incumbent: false,
+	})
+
+	it('adds the votes of each party in a county over the races, and keeps the lowest percent reporting', () => {
+		const counties = partyCounties([
+			[
+				{
+					fips: '13121',
+					name: 'Fulton',
+					reporting: 100,
+					candidates: [candidate('Democratic', 'blue', 300), candidate('Republican', 'red', 100)],
+				},
+			],
+			[
+				{
+					fips: '13121',
+					name: 'Fulton',
+					reporting: 80,
+					candidates: [candidate('Republican', 'red', 250), candidate('Democratic', 'blue', 50)],
+				},
+				{
+					fips: '13089',
+					name: 'DeKalb',
+					reporting: 100,
+					candidates: [candidate('Democratic', 'blue', 90), candidate('Republican', 'red', 10)],
+				},
+			],
+		])
+
+		expect(counties).toHaveLength(2)
+
+		const [fulton, dekalb] = counties
+
+		expect(fulton?.reporting).toBe(80)
+
+		expect(fulton?.candidates.map((row) => [row.party, row.votes, row.percent])).toEqual([
+			['Democratic', 350, 50],
+			['Republican', 350, 50],
+		])
+
+		expect(dekalb?.candidates.map((row) => [row.party, row.votes])).toEqual([
+			['Democratic', 90],
+			['Republican', 10],
+		])
+
+		expect(countyWinner(dekalb ?? { candidates: [], reporting: 0 })).toBe('Democratic')
 	})
 })

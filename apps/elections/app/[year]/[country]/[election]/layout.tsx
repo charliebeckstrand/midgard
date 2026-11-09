@@ -2,14 +2,14 @@ import type { ReactNode } from 'react'
 import { ElectionRacesProvider } from '@/components/election-drawer'
 import { ElectionViews } from '@/components/election-views'
 import { OfficeView, OverviewView } from '@/components/election-views/views'
-import { ElectionsHeader } from '@/components/elections-header'
+import { ElectionHeader } from '@/components/elections-header'
 import { PageColumn } from '@/components/page-frame'
 import { RaceSearch } from '@/components/race-search'
 import { ELECTIONS } from '@/elections/registry'
 import { officeRaces } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
-import { electionCrumbs, OVERVIEW } from '@/utilities/trail'
+import { OVERVIEW } from '@/utilities/trail'
 
 /**
  * The elections of the registry, which prerender with the build. The static
@@ -29,8 +29,8 @@ export function generateStaticParams(): ElectionParams[] {
 /**
  * The frame of the pages of an election. The header lives here, not in each
  * page, so a navigation inside the election keeps it in place. Its trail ends
- * at the election on each page: the office switch names the office, and the
- * Drawer names the state. There is no
+ * at the election, or at the state on a page of a state: the office switch
+ * names the office, and the Drawer names the state that it shows. There is no
  * loading page: a navigation keeps the page in view until the next page is
  * whole, and a reload paints the whole page in its first frame.
  *
@@ -40,8 +40,10 @@ export function generateStaticParams(): ElectionParams[] {
  *
  * The layout renders the view of each page: the overview and the national map
  * of each office. The view of the current page shows, and the other views stay
- * mounted and hidden, so a switch shows a view that is already rendered. A
- * page holds only its Drawer and its live refresh.
+ * mounted and hidden, so a switch shows a view that is already rendered. On a
+ * page of a state, each of these views is hidden, and the layout of the state
+ * renders the views of the state. A page holds only its Drawer and its live
+ * refresh.
  */
 export default async function ElectionLayout({
 	params,
@@ -69,10 +71,7 @@ export default async function ElectionLayout({
 	return (
 		<PageColumn>
 			<ElectionRacesProvider races={races}>
-				<ElectionsHeader
-					crumbs={electionCrumbs(election)}
-					search={<RaceSearch election={election} />}
-				/>
+				<ElectionHeader election={election} search={<RaceSearch election={election} />} />
 
 				<ElectionViews views={views} />
 

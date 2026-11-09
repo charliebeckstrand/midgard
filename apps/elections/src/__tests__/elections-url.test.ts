@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { ELECTIONS, findContest, findElection } from '../elections/registry'
-import { stateOfKey, US_STATES } from '../elections/us-states'
+import { stateOfKey, stateOfSlug, stateSlug, US_STATES } from '../elections/us-states'
 import {
 	districtName,
 	districtOfKey,
 	drawerHref,
 	officePath,
 	readDrawerStep,
+	statePath,
 } from '../utilities/elections-url'
 
 const found = findElection('2026', 'us', 'midterms')
@@ -136,5 +137,31 @@ describe('districts', () => {
 		expect(districtName('22')).toBe('22nd District')
 
 		expect(districtName('al')).toBe('At-large District')
+	})
+})
+
+describe('the path of a state', () => {
+	it('names a state by its name in lower case, with a hyphen for each space', () => {
+		const newYork = stateOfKey('ny')
+
+		if (newYork === undefined) throw new Error('The states have no New York.')
+
+		expect(stateSlug(newYork)).toBe('new-york')
+
+		expect(stateOfSlug('new-york')).toBe(newYork)
+
+		expect(stateOfSlug('ny')).toBeUndefined()
+	})
+
+	it('gives each state a slug that is not the slug of an office', () => {
+		const offices = new Set(ELECTIONS.flatMap((election) => election.contests.map((c) => c.slug)))
+
+		expect(US_STATES.filter((state) => offices.has(stateSlug(state)))).toEqual([])
+	})
+
+	it('writes the path of a state and of an office in the state', () => {
+		expect(statePath(midterms, georgia, null)).toBe('/2026/us/midterms/georgia')
+
+		expect(senate && statePath(midterms, georgia, senate)).toBe('/2026/us/midterms/georgia/senate')
 	})
 })

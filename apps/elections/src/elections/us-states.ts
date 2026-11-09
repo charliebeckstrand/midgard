@@ -66,6 +66,13 @@ const byKey = new Map(US_STATES.map((state) => [state.key, state]))
 
 const byFips = new Map(US_STATES.map((state) => [state.fips, state]))
 
+/** The segment of a state in the URL: its name in lower case, with a hyphen for each space, such as `new-york`. */
+export function stateSlug(state: UsState): string {
+	return state.name.toLowerCase().replaceAll(' ', '-')
+}
+
+const bySlug = new Map(US_STATES.map((state) => [stateSlug(state), state]))
+
 /** The state of a region key, such as `ga`, or `undefined` for a key that names none. */
 export function stateOfKey(key: string): UsState | undefined {
 	return byKey.get(key)
@@ -74,4 +81,9 @@ export function stateOfKey(key: string): UsState | undefined {
 /** The state of a 2-digit FIPS code, or `undefined` for a code that names none. */
 export function stateOfFips(fips: string): UsState | undefined {
 	return byFips.get(fips)
+}
+
+/** The state of a segment of the URL, such as `new-york`, or `undefined` for a segment that names none. */
+export function stateOfSlug(slug: string): UsState | undefined {
+	return bySlug.get(slug)
 }

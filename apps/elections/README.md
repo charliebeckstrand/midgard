@@ -66,6 +66,12 @@ contest (`chamber` or `executive`), never the name of an office.
 | `/2026/us` | The elections of a country in a year |
 | `/2026/us/midterms` | The overview: the balance of power, the closest races, and the latest calls |
 | `/2026/us/midterms/senate` | The national map of an office |
+| `/2026/us/midterms/georgia` | The overview of a state: a card of each office with a race in the state |
+| `/2026/us/midterms/georgia/senate` | An office in a state: the county map, the closest races, and the called races |
+
+A segment under an election is an office or a state, so the route folder is
+`[section]`. A state takes its name in lower case, with a hyphen for each
+space, such as `new-york`. No state has the slug of an office.
 
 The first three routes are the level pages. Each level page is the same
 compilation of the elections of its scope (`src/components/level-view`). A
@@ -99,7 +105,18 @@ gives the rows of both.
 The layout of an election renders the view of each of its pages, and
 `src/components/election-views` shows the view of the current page. The other
 views stay mounted and hidden, so an office switch shows a view that is already
-rendered. A page holds only its Drawer and its live refresh.
+rendered. A page holds only its Drawer and its live refresh. The layout of a
+state does the same for the pages of the state, and the trail of the header
+then ends at the state.
+
+The overview of a state in the Drawer links to the page of the state.
+
+On the page of an office in a state, an office with one race shows the
+counties of the race, and a click on a county opens the county in the Drawer.
+An office with more races, such as the districts of the House, shows the
+votes of each party in each county, added over the races. A county can be in
+more than one district, so a click on it opens nothing. The map has the ratio
+of the state, so its frame has its final size in the first paint.
 
 The build prerenders each election of the registry and each of its offices.
 The static shell of a page holds the layout with its results. Cache Components
