@@ -18,6 +18,17 @@ const entries = new Set<Entry>()
 
 let mounts = 0
 
+/** Adds the entry of an overlay that mounts, with `target` as its default target. */
+function mount(target: Element | null): Entry {
+	mounts += 1
+
+	const entry: Entry = { order: mounts, target }
+
+	entries.add(entry)
+
+	return entry
+}
+
 /** Whether `target` is not an element that can get the focus back. */
 function missing(target: Element | null): boolean {
 	return (
@@ -86,9 +97,7 @@ export function useOverlayReturnFocus(
 	useLayoutEffect(() => {
 		// The layout effects of a child run before the effects of its parent. The
 		// initial focus of the overlay thus has not moved the focus yet.
-		const entry: Entry = { order: ++mounts, target: document.activeElement }
-
-		entries.add(entry)
+		const entry = mount(document.activeElement)
 
 		return () => {
 			entries.delete(entry)
