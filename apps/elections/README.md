@@ -35,7 +35,10 @@ on, and for hours once the race is fully in and called. While votes are
 counted, `LiveRefresh` from `shared` renders the page again each minute.
 
 A county row with a FIPS code joins the county of `us-atlas`. A `County` row
-with no code takes the code of the atlas county of the same name. The Alaska
+with no code takes the code of the atlas county of the same name, with no
+periods. A `County` row with no code, no atlas county, and no votes changes no
+total, so the parser leaves it out: Chicago is such a row in the House
+districts of Illinois, and Cook holds its votes. The Alaska
 areas of Chugach and Copper River add into the Valdez-Cordova area that the
 atlas still draws. The towns of New England and the state house districts of
 Alaska are parts of a county row, so the parser leaves them out.

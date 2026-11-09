@@ -69,7 +69,7 @@ function readEntry(contest: Contest, region: RegionRace): RaceEntry {
 export type RaceCall = {
 	entry: RaceEntry
 	winner: Candidate
-	/** When civicAPI called the race, or its last update where it gives no call time. */
+	/** When civicAPI called the race. */
 	at: string
 }
 
