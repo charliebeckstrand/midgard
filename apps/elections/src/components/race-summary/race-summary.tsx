@@ -2,6 +2,7 @@
 
 import { Avatar } from 'ui/avatar'
 import { Badge } from 'ui/badge'
+import { Odometer } from 'ui/odometer'
 import { useIntl } from 'ui/primitives/intl'
 import { ProgressBar } from 'ui/progress'
 import { Flex } from 'ui/structure/flex'
@@ -9,6 +10,7 @@ import { Stack } from 'ui/structure/stack'
 import { Swatch } from 'ui/swatch'
 import type { Candidate } from '../../types'
 import { barColor, initials, percentText } from '../../utilities/race-math'
+import { PercentOdometer } from '../percent-odometer'
 import { ReportingRow, WinnerMark } from './call-dot'
 
 /** Props for {@link RaceSummary}. */
@@ -30,7 +32,10 @@ export type RaceSummaryProps = {
 	detail?: boolean
 }
 
-/** One candidate of a {@link RaceSummary}: the name, the share, and a bar of the share. */
+/**
+ * One candidate of a {@link RaceSummary}: the name, the share, and a bar of the
+ * share. A changed share or count of votes rolls to its new value.
+ */
 function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boolean }) {
 	const intl = useIntl()
 
@@ -71,13 +76,14 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 				</Stack>
 
 				{/* The votes sit under the share, as the party sits under the name. */}
-				<Stack gap="xs" align="end" className="shrink-0 tabular-nums">
-					<span className="font-semibold">{share}</span>
+				<Stack gap="xs" align="end" className="shrink-0">
+					<PercentOdometer value={candidate.percent} digits={1} className="font-semibold" />
 
 					{detail ? (
-						<span className="text-sm text-zinc-500 dark:text-zinc-400">
-							{intl.formatNumber(candidate.votes)}
-						</span>
+						<Odometer
+							value={candidate.votes}
+							className="text-sm text-zinc-500 dark:text-zinc-400"
+						/>
 					) : null}
 				</Stack>
 			</Flex>

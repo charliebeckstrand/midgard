@@ -12,7 +12,6 @@ import { type DrawerStep, districtName } from '../../utilities/elections-url'
 import { delegation } from '../../utilities/race-math'
 import {
 	entryKey,
-	isCounting,
 	matchesSearch,
 	type OfficeRaces,
 	type RaceEntry,
@@ -296,7 +295,7 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 
 	const entry = step === null ? undefined : stepEntry(results, step)
 
-	const read = useRace(entry?.raceId ?? null, seed, entry !== undefined && isCounting([entry]))
+	const read = useRace(entry?.raceId ?? null, seed)
 
 	const race = read.data?.id === entry?.raceId ? read.data : undefined
 

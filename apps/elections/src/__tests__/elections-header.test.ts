@@ -37,14 +37,26 @@ if (midterms === undefined) throw new Error('The registry has no 2026 midterms.'
 const election: Election = midterms
 
 describe('ElectionsHeader', () => {
+	it('links each crumb to its own level', () => {
+		pathname = '/2026/us/midterms/senate'
+
+		render(h(ElectionsHeader, { crumbs: electionCrumbs(election) }))
+
+		const hrefs = ['Elections', '2026', 'United States', 'Midterms'].map((name) =>
+			screen.getByRole('link', { name }).getAttribute('href'),
+		)
+
+		expect(hrefs).toEqual(['/', '/2026', '/2026/us', '/2026/us/midterms'])
+
+		expect(screen.queryByRole('button', { name: /Midterms/ })).toBeNull()
+	})
+
 	it('marks the election crumb as the current page only on the overview', () => {
 		pathname = '/2026/us/midterms/senate'
 
 		render(h(ElectionsHeader, { crumbs: electionCrumbs(election) }))
 
-		const link = screen.getByRole('link', { name: 'Midterms' })
-
-		expect(link.getAttribute('aria-current')).toBeNull()
+		expect(screen.getByRole('link', { name: 'Midterms' }).getAttribute('aria-current')).toBeNull()
 
 		cleanup()
 
@@ -52,8 +64,10 @@ describe('ElectionsHeader', () => {
 
 		render(h(ElectionsHeader, { crumbs: electionCrumbs(election) }))
 
-		expect(screen.getByRole('button', { name: 'Midterms' }).getAttribute('aria-current')).toBe(
-			'page',
-		)
+		expect(screen.queryByRole('link', { name: 'Midterms' })).toBeNull()
+
+		expect(
+			screen.getByText('Midterms').closest('[aria-current]')?.getAttribute('aria-current'),
+		).toBe('page')
 	})
 })

@@ -1,14 +1,21 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { LiveRefresh } from 'shared/refresh'
+import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
-import { type Contest, type Election, findContest } from '@/elections/registry'
+import { type Contest, type Election, findContest, findElection } from '@/elections/registry'
 import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
 import { isCounting } from '@/utilities/results'
 
 type Params = { params: Promise<ElectionParams & { office: string }>; searchParams: SearchParams }
+
+/** The offices of each election of the registry, which prerender with the build, as the layout does. */
+export function generateStaticParams({ params }: { params: ElectionParams }): { office: string }[] {
+	const election = findElection(params.year, params.country, params.election)
+
+	return (election?.contests ?? []).map((contest) => ({ office: contest.slug }))
+}
 
 /** The page reads the results before it renders, so the first frame has them. */
 export const instant = false
@@ -35,6 +42,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 /**
  * The page of an office of an election. The layout renders the national map
  * of the office; the page holds the Drawer and the live refresh.
+ *
+ * The refresh runs while any race of the election is counted, not only a race
+ * of the office, because the Drawer opens on each office and gets its race
+ * from the refresh.
  */
 export default async function OfficePage({ params, searchParams }: Params) {
 	const { election, contest } = await readOffice(params)
@@ -49,7 +60,7 @@ export default async function OfficePage({ params, searchParams }: Params) {
 
 	return (
 		<>
-			<LiveRefresh live={isCounting(result.entries)} />
+			<AutoUpdateRefresh live={isCounting(all.flatMap((entry) => entry.entries))} />
 
 			<ElectionDrawer election={election} seed={seed} />
 		</>

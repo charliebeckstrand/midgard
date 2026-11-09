@@ -104,7 +104,8 @@ export type ChartTooltipProps = {
 	/**
 	 * The emphasized series' index, when one is: the keyboard cursor reading a
 	 * dataset, or a legend entry. Its row stays at full strength while every other
-	 * row dims, mirroring the marks; `null` (the default) reads every row equally.
+	 * series row dims, mirroring the marks; `null` (the default) reads every row
+	 * equally. A row with no `index` is not a series, so it never dims.
 	 */
 	emphasis?: number | null
 }
@@ -241,8 +242,11 @@ export function ChartTooltip({
 								// Two series can share a name, so a row keys on its series.
 								key={row.index ?? position}
 								data-slot="chart-tooltip-row"
-								// A cursor on one dataset dims the rest, the same recede the marks take.
-								className={seriesGroupClass(emphasis !== null && row.index !== emphasis)}
+								// A cursor on one dataset dims the rest, the same recede the marks take. A
+								// row with no series index names no series, so an emphasis never dims it.
+								className={seriesGroupClass(
+									emphasis !== null && row.index !== undefined && row.index !== emphasis,
+								)}
 								swatch={
 									<ReadoutSwatch
 										shape={row.swatch}

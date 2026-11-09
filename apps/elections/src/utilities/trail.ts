@@ -1,4 +1,4 @@
-import { ELECTIONS, type Election, electionPath, findElections } from '../elections/registry'
+import { ELECTIONS, type Election, electionPath } from '../elections/registry'
 import { officePath } from './elections-url'
 
 /**
@@ -9,23 +9,11 @@ import { officePath } from './elections-url'
  * because the Drawer shows it.
  */
 
-/** One election of the menu of the election crumb. */
-export type ElectionMenuItem = {
-	label: string
-	href: string
-	/** The votes are being counted. */
-	live: boolean
-	/** The election day of an election to come, as an ISO date, or `null`. */
-	upcoming: string | null
-}
-
 /** One crumb of the trail. */
 export type Crumb = {
 	label: string
 	/** Where the crumb leads, or `undefined` for a crumb that leads nowhere. */
 	href?: string
-	/** The elections that the crumb switches between, for the election crumb. */
-	menu?: readonly ElectionMenuItem[]
 }
 
 /** The label of the first crumb of each trail: the list of every election. */
@@ -50,16 +38,6 @@ export function countryCrumbs(year: string, countryName: string): Crumb[] {
 	]
 }
 
-/** The elections of the year and the country of an election, for the menu of its crumb. */
-function electionMenu(election: Election): ElectionMenuItem[] {
-	return findElections(String(election.year), election.country).map((entry) => ({
-		label: entry.name,
-		href: electionPath(entry),
-		live: entry.status === 'live',
-		upcoming: entry.status === 'upcoming' ? entry.date : null,
-	}))
-}
-
 /** The trail of a page of an election, from the list of every election down to the election. */
 export function electionCrumbs(election: Election): Crumb[] {
 	const year = String(election.year)
@@ -69,7 +47,7 @@ export function electionCrumbs(election: Election): Crumb[] {
 			...crumb,
 			href: crumb.href ?? `/${year}/${election.country}`,
 		})),
-		{ label: election.name, href: electionPath(election), menu: electionMenu(election) },
+		{ label: election.name, href: electionPath(election) },
 	]
 }
 

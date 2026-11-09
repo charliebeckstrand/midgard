@@ -10,10 +10,9 @@ import {
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
 import { Button } from 'ui/button'
-import { Drawer, DrawerBody, DrawerClose, DrawerHeader, DrawerPanel, DrawerTitle } from 'ui/drawer'
+import { Dialog, DialogBody, DialogClose, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
 import { Icon } from 'ui/icon'
 import { MenuItem, MenuLabel } from 'ui/menu'
-import { Container } from 'ui/structure/container'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { MenuCrumb } from '../menu-crumb'
@@ -79,16 +78,17 @@ export type ResultDrawerProps = {
 }
 
 /**
- * The glass Drawer of a result, docked to the bottom, built as the summary
- * Drawer of Places: its title is the trail, so a crumb is the way back and the
- * panel needs no Back button, and the close sits at the end of that row. A
- * crumb with a menu switches between its choices, as the office crumb does.
- * The panel is as tall as its body, and moves between heights as the step
- * changes. A body taller than the screen scrolls under the trail, which stays. The content is one column on the left edge of
- * the page container, so it lines up with the header.
+ * The glass panel of a result, a Dialog: docked to the bottom on a phone, and
+ * centered from `sm`, so the panel is as wide as its content and not as wide
+ * as the page. It is built as the summary Drawer of Places: its title is the
+ * trail, so a crumb is the way back and the panel needs no Back button, and
+ * the close sits at the end of that row. A crumb with a menu switches between
+ * its choices, as the office crumb does. The panel is as tall as its body, and
+ * travels between heights as the step or the view changes. A body taller than
+ * the cap of the panel scrolls under the trail, which stays.
  */
 export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
-	// The last view, so that the body stays while the panel slides out.
+	// The last view, so that the body stays while the panel closes.
 	const [last, setLast] = useState(view)
 
 	if (view !== null && view !== last) setLast(view)
@@ -98,82 +98,70 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 	const title = shown?.steps.map((step) => step.label).join(' › ') ?? ''
 
 	return (
-		<Drawer open={view !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
-			<DrawerPanel glass height="fit" footer={null} aria-label={title}>
+		<Dialog open={view !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
+			<DialogPanel glass height="fit" footer={null} aria-label={title}>
 				{/* The trail and the body are children of the panel, so the body is the scroll region of the panel. */}
-				{/* The header and the body take the inline padding of the page container, so the
-				    trail and the cards line up with the page header. */}
-				<DrawerHeader className="px-0">
-					<Container size="lg" padding="lg" className="h-auto">
-						<div className="max-w-[440px]">
-							<Flex align="start" justify="between" gap="lg">
-								<Stack gap="xs" flex="1" className="min-w-0">
-									<DrawerTitle className="sr-only">{title}</DrawerTitle>
+				<DialogHeader>
+					<Flex align="start" justify="between" gap="lg">
+						<Stack gap="xs" flex="1" className="min-w-0">
+							<DialogTitle className="sr-only">{title}</DialogTitle>
 
-									<Breadcrumb collapse>
-										<BreadcrumbList className="text-base/7">
-											{shown?.steps.map((step, index) => (
-												<Fragment key={index}>
-													{index > 0 ? <BreadcrumbSeparator /> : null}
+							<Breadcrumb collapse>
+								<BreadcrumbList className="text-base/7">
+									{shown?.steps.map((step, index) => (
+										<Fragment key={index}>
+											{index > 0 ? <BreadcrumbSeparator /> : null}
 
-													<BreadcrumbItem>
-														{step.menu === undefined ? (
-															<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
-														) : (
-															<MenuCrumb
-																label={step.label}
-																current={index === shown.steps.length - 1}
-																link={
-																	step.onPick === undefined ? undefined : (
-																		<CrumbLink
-																			crumb={step}
-																			current={index === shown.steps.length - 1}
-																		/>
-																	)
-																}
+											<BreadcrumbItem>
+												{step.menu === undefined ? (
+													<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
+												) : (
+													<MenuCrumb
+														label={step.label}
+														current={index === shown.steps.length - 1}
+														link={
+															step.onPick === undefined ? undefined : (
+																<CrumbLink
+																	crumb={step}
+																	current={index === shown.steps.length - 1}
+																/>
+															)
+														}
+													>
+														{step.menu.map((choice) => (
+															<MenuItem
+																key={choice.label}
+																disabled={choice.disabled}
+																onAction={choice.onPick}
 															>
-																{step.menu.map((choice) => (
-																	<MenuItem
-																		key={choice.label}
-																		disabled={choice.disabled}
-																		onAction={choice.onPick}
-																	>
-																		<MenuLabel>{choice.label}</MenuLabel>
-																	</MenuItem>
-																))}
-															</MenuCrumb>
-														)}
-													</BreadcrumbItem>
-												</Fragment>
-											))}
-										</BreadcrumbList>
-									</Breadcrumb>
+																<MenuLabel>{choice.label}</MenuLabel>
+															</MenuItem>
+														))}
+													</MenuCrumb>
+												)}
+											</BreadcrumbItem>
+										</Fragment>
+									))}
+								</BreadcrumbList>
+							</Breadcrumb>
 
-									{shown?.subtitle === undefined ? null : (
-										<span className="text-sm text-zinc-600 dark:text-zinc-400">
-											{shown.subtitle}
-										</span>
-									)}
-								</Stack>
+							{shown?.subtitle === undefined ? null : (
+								<span className="text-sm text-zinc-600 dark:text-zinc-400">{shown.subtitle}</span>
+							)}
+						</Stack>
 
-								<DrawerClose>
-									<Button type="button" variant="bare" aria-label="Close">
-										<Icon icon={<X />} />
-									</Button>
-								</DrawerClose>
-							</Flex>
-						</div>
-					</Container>
-				</DrawerHeader>
+						<DialogClose>
+							<Button type="button" variant="bare" aria-label="Close">
+								<Icon icon={<X />} />
+							</Button>
+						</DialogClose>
+					</Flex>
+				</DialogHeader>
 
 				{/* A panel body mutes its text, for the prose of a dialog. The body here holds
 				    results, so it takes the default text color, as the page does. */}
-				<DrawerBody className="px-0 text-zinc-950 dark:text-white">
-					<Container size="lg" padding="lg" className="h-auto">
-						<div className="max-w-[440px]">{shown?.body}</div>
-					</Container>
-				</DrawerBody>
-			</DrawerPanel>
-		</Drawer>
+				<DialogBody className="text-zinc-950 dark:text-white">{shown?.body}</DialogBody>
+			</DialogPanel>
+		</Dialog>
 	)
 }

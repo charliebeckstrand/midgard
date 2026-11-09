@@ -31,8 +31,16 @@ with no sign.
 Three national races give the whole picture of the midterms: the race of each
 state or district, and the seats of each party. One race of a state gives its
 counties. The cache keeps each parsed race for a minute while the count goes
-on, and for hours once the race is fully in and called. While votes are
-counted, `LiveRefresh` from `shared` renders the page again each minute.
+on, and for hours once the race is fully in and called.
+
+The Auto update switch of the settings dialog in the header controls the
+updates. It is on by default, and `localStorage` keeps it. While it is on and
+votes are counted, `LiveRefresh` from `shared` renders the page again each
+minute while any race of the election is counted. The page reads the race of
+the Drawer again with it, so the Drawer has no clock of its own. A hidden tab
+skips these updates.
+A changed number rolls to its new value through the `Odometer` of `ui`, and
+under reduced motion it goes to the value with no roll.
 
 A county row with a FIPS code joins the county of `us-atlas`. A `County` row
 with no code takes the code of the atlas county of the same name, with no
@@ -78,6 +86,10 @@ each page of an election. Its step is in the search params:
 `src/utilities/elections-url.ts` reads and writes the paths and the params, and
 `src/hooks/use-drawer-step.ts` moves the Drawer.
 
+The Drawer is a `Dialog` of `ui`. On a phone, it is docked to the bottom
+edge. From `sm`, it is centered, and it is as wide as its content. Its height
+travels to each new height of its content (`height="fit"`).
+
 The search in the header of an election finds its states and races, and a
 pick opens the Drawer on the page. The search in the header of each level page
 finds each election and the states and races of each, and a pick opens the page of the
@@ -88,6 +100,14 @@ The layout of an election renders the view of each of its pages, and
 `src/components/election-views` shows the view of the current page. The other
 views stay mounted and hidden, so an office switch shows a view that is already
 rendered. A page holds only its Drawer and its live refresh.
+
+The build prerenders each election of the registry and each of its offices.
+The static shell of a page holds the layout with its results. Cache Components
+serves that shell, and renders the next shell in the background once the
+shell is a minute old. Thus a visit does not wait for civicAPI. A link to an
+election prefetches the shell and its code before the click. `LiveRefresh`
+renders the whole page on the server, so each refresh reads the cache of the
+races.
 
 ## The design
 

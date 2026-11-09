@@ -1,21 +1,19 @@
 'use client'
 
 import { Grid, type GridColumn, type GridSortState } from 'ui/grid'
-import { useIntl } from 'ui/primitives/intl'
 import { ProgressBar } from 'ui/progress'
 import { Flex } from 'ui/structure/flex'
 import { Swatch } from 'ui/swatch'
-import { marginLabel, percentText } from '../../utilities/race-math'
+import { marginLabel } from '../../utilities/race-math'
 import { entryKey, entryName, type RaceEntry } from '../../utilities/results'
+import { PercentOdometer } from '../percent-odometer'
 
 function ReportingCell({ reporting }: { reporting: number }) {
-	const intl = useIntl()
-
 	return (
 		<Flex as="span" gap="sm">
 			<ProgressBar aria-label="Reporting" value={reporting} size="xs" className="w-16 shrink-0" />
 
-			<span className="tabular-nums">{percentText(intl.formatNumber, reporting, 0)}</span>
+			<PercentOdometer value={reporting} digits={0} />
 		</Flex>
 	)
 }

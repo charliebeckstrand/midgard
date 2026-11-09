@@ -162,6 +162,34 @@ describe('SeatChart', () => {
 		expect(receded(container)).toEqual([false, false, false])
 	})
 
+	it('reads the seats of the pointed group at full strength', () => {
+		const { container } = renderUI(chart())
+
+		const hit = getSlot(container, 'chart-hit')
+
+		hit.getBoundingClientRect = () =>
+			({ left: 0, top: 0, right: 400, bottom: 200, width: 400, height: 200, x: 0, y: 0 }) as DOMRect
+
+		const layout = seatLayout(100, 5)
+
+		const fit = seatFit(400, 200, MARK_GAP, layout.dot, true)
+
+		const seat = layout.seats.at(-1)
+
+		if (!seat) throw new Error('expected the last seat')
+
+		fireEvent.pointerMove(hit, {
+			clientX: fit.cx + seat.x * fit.scale,
+			clientY: fit.cy + seat.y * fit.scale,
+		})
+
+		const row = present(document.querySelector('[data-slot="chart-tooltip-row"]'), 'the row')
+
+		expect(row.textContent).toContain('47')
+
+		expect(row.getAttribute('class')).not.toContain('opacity-25')
+	})
+
 	it('draws an empty chamber with no seats and no hit layer', () => {
 		const { container } = renderUI(chart({ groups: [], majority: undefined }))
 

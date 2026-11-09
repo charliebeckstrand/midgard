@@ -35,7 +35,7 @@ export async function OverviewView({
 				updated: newestUpdate(results.map((result) => result.national)),
 			}}
 		>
-			<PageTitle heading="Balance of power" items={officeItems(election)} value={OVERVIEW} />
+			<PageTitle heading="Overview" items={officeItems(election)} value={OVERVIEW} />
 
 			<Columns columns={{ initial: 1, md: 2, lg: 3 }}>
 				{results.map((result) => (
