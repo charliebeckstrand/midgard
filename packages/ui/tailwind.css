@@ -122,6 +122,10 @@
 @source inline('{sm,md,lg,xl,2xl}:max-h-[85%]');
 @source inline('{sm,md,lg,xl,2xl}:[--ui-panel-safe:env(safe-area-inset-bottom)]');
 @source inline('{sm,md,lg,xl,2xl}:[--ui-panel-safe:0px]');
+/* Dialog `height="fit"`: the corner of a docked panel at the top edge. */
+@source inline('{sm,md,lg,xl,2xl}:data-full:rounded-t-{none,2xl}');
+@source inline('{sm,md,lg,xl,2xl}:motion-safe:transition-[border-radius]');
+@source inline('{sm,md,lg,xl,2xl}:motion-safe:duration-150');
 /* Toast `position`: the viewport (its `justify-*` are a line above) and the stack. */
 @source inline('{sm,md,lg,xl,2xl}:{left,right}-{0,auto}');
 @source inline('{sm,md,lg,xl,2xl}:w-fit');
