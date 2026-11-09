@@ -59,6 +59,14 @@ contest (`chamber` or `executive`), never the name of an office.
 | `/2026/us/midterms` | The overview: the balance of power, the closest races, and the latest calls |
 | `/2026/us/midterms/senate` | The national map of an office |
 
+The first three routes are the level pages. Each level page is the same
+compilation of the elections of its scope (`src/components/level-view`). A
+Segment switches between two views: a list of the elections that are counted
+now, then the elections to come, then the past elections, and a calendar with
+each election day marked. A filter of the year, the country, or the office
+shows only where it has two options or more. The trail of the header is the
+title of a level page, so the heading of the body is only for a screen reader.
+
 The Drawer shows a state, its offices, its districts, and its counties over
 each page of an election. Its step is in the search params:
 `?region=ga` opens the overview of a state, `&office=senate` its race,
@@ -68,8 +76,8 @@ each page of an election. Its step is in the search params:
 `src/hooks/use-drawer-step.ts` moves the Drawer.
 
 The search in the header of an election finds its states and races, and a
-pick opens the Drawer on the page. The search in the header of `/` finds each
-election and the states and races of each, and a pick opens the page of the
+pick opens the Drawer on the page. The search in the header of each level page
+finds each election and the states and races of each, and a pick opens the page of the
 election with the Drawer on the state or the race. `src/utilities/race-search.ts`
 gives the rows of both.
 
@@ -82,9 +90,7 @@ rendered. A page holds only its Drawer and its live refresh.
 
 Each screen shows only what a reader needs. No label reads "All", and a title
 has no badge beside it. The cards stack in one column, and a page at
-390 px wide has no overflow. The status of the count shows only in the footer. A page with no results, such as
-`/`, has no footer. On `/`, the title of the header is the heading of the page,
-so the body has no heading of its own.
+390 px wide has no overflow. The status of the count shows only in the footer. A page with no results has no footer.
 
 A call is a solid green dot before the percent reporting. A race that is not
 called has an amber dot that pulses. Green is for a call, so no party takes it. A

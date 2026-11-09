@@ -1,5 +1,6 @@
 import { type Contest, ELECTIONS, type Election } from '../elections/registry'
 import type { NationalRace } from '../types'
+import type { ElectionRaces } from '../utilities/race-search'
 import { type RaceCall, type RaceEntry, readEntries } from '../utilities/results'
 import { nationalRace, race } from './races'
 
@@ -68,4 +69,20 @@ export async function latestCalls(
 		.filter((call): call is RaceCall => call !== null)
 		.sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
 		.slice(0, count)
+}
+
+/**
+ * The races of each office of each election, for the search of every
+ * election. An election to come has no results, so it has no races.
+ */
+export function searchedElections(elections: readonly Election[]): Promise<ElectionRaces[]> {
+	return Promise.all(
+		elections.map(async (election) => ({
+			election,
+			races:
+				election.status === 'upcoming'
+					? []
+					: (await electionResults(election)).map(({ contest, entries }) => ({ contest, entries })),
+		})),
+	)
 }

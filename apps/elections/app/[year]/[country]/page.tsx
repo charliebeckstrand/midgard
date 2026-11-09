@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { Heading } from 'ui/heading'
-import { ElectionList } from '@/components/election-list'
-import { PageFrame } from '@/components/page-frame'
+import { LevelPage } from '@/components/level-page'
 import { ELECTIONS, findElections } from '@/elections/registry'
-import { countryCrumbs, listedElections } from '@/utilities/trail'
+import { countryCrumbs } from '@/utilities/trail'
 
 type Params = { params: Promise<{ year: string; country: string }> }
 
@@ -43,12 +41,10 @@ export default async function CountryPage({ params }: Params) {
 	const { year, countryName, elections } = await readCountry(params)
 
 	return (
-		<PageFrame crumbs={countryCrumbs(year, countryName)}>
-			<Heading level={1}>
-				{year} elections, {countryName}
-			</Heading>
-
-			<ElectionList elections={listedElections(elections)} />
-		</PageFrame>
+		<LevelPage
+			crumbs={countryCrumbs(year, countryName)}
+			heading={`${year} elections, ${countryName}`}
+			elections={elections}
+		/>
 	)
 }

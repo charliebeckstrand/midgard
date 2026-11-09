@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { Heading } from 'ui/heading'
-import { ElectionList } from '@/components/election-list'
-import { PageFrame } from '@/components/page-frame'
+import { LevelPage } from '@/components/level-page'
 import { ELECTIONS, findElections } from '@/elections/registry'
-import { listedElections, yearCrumbs } from '@/utilities/trail'
+import { yearCrumbs } from '@/utilities/trail'
 
 type Params = { params: Promise<{ year: string }> }
 
@@ -27,11 +25,5 @@ export default async function YearPage({ params }: Params) {
 
 	if (elections.length === 0) notFound()
 
-	return (
-		<PageFrame crumbs={yearCrumbs(year)}>
-			<Heading level={1}>{year} elections</Heading>
-
-			<ElectionList elections={listedElections(elections)} />
-		</PageFrame>
-	)
+	return <LevelPage crumbs={yearCrumbs(year)} heading={`${year} elections`} elections={elections} />
 }

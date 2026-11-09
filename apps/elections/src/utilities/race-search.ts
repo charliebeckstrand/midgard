@@ -8,7 +8,7 @@ import { entryKey, entryName, entryStep, matchesWords, type OfficeRaces } from '
  * The search of an election, in the header of each of its pages. A row is a
  * state or a race, and a pick opens the Drawer on it.
  *
- * The search of every election, in the header of the list of every election,
+ * The search of every election, in the header of each level page,
  * holds the rows of each election too, and a row of each election. A pick
  * opens the page of the election, with the Drawer on the state or the race.
  */

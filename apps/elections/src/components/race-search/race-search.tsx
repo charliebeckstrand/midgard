@@ -17,7 +17,7 @@ const loadPanel = () => import('./race-search-panel')
 
 /**
  * Props for {@link RaceSearch}: the election of the page, or each election for
- * the list of every election.
+ * a level page.
  */
 export type RaceSearchProps =
 	| { election: Election; elections?: never }
@@ -29,7 +29,7 @@ export type RaceSearchProps =
  * election. A pick opens the Drawer of the page on the state or the race, as
  * a press on the map does. The races come from `ElectionRacesProvider`.
  *
- * On the list of every election, the search holds each election, and the
+ * On a level page, the search holds each election, and the
  * states and the races of each (`elections`). A pick goes to the page of the
  * election, with the Drawer on the state or the race.
  *
