@@ -3,7 +3,7 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { findElection } from '../elections/registry'
 import { stateOfKey } from '../elections/us-states'
-import { useDrawerStep } from '../hooks/use-drawer-step'
+import { useDrawerGo, useDrawerStep } from '../hooks/use-drawer'
 
 /**
  * The search of the router. `null` follows the address of the browser. A
@@ -96,5 +96,36 @@ describe('useDrawerStep', () => {
 		})
 
 		expect(result.current.step).toBeNull()
+	})
+
+	it('moves the Drawer from a reader of the way alone, and does not render that reader again', () => {
+		window.history.replaceState(null, '', '/2026/us/midterms')
+
+		let renders = 0
+
+		const drawer = renderHook(() => useDrawerStep(midterms))
+
+		const opener = renderHook(() => {
+			renders += 1
+
+			return useDrawerGo(midterms)
+		})
+
+		act(() =>
+			opener.result.current({ region: georgia, office: 'senate', district: null, county: null }),
+		)
+
+		expect(drawer.result.current.step?.office).toBe('senate')
+
+		// A move to the step that shows writes no history entry.
+		const before = window.history.length
+
+		act(() =>
+			opener.result.current({ region: georgia, office: 'senate', district: null, county: null }),
+		)
+
+		expect(window.history.length).toBe(before)
+
+		expect(renders).toBe(1)
 	})
 })

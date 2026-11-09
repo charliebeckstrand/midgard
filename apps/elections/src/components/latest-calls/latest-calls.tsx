@@ -4,7 +4,7 @@ import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { Swatch } from 'ui/swatch'
 import { TimeAgo } from 'ui/time-ago'
 import type { Election } from '../../elections/registry'
-import { useDrawerStep } from '../../hooks/use-drawer-step'
+import { useDrawerGo } from '../../hooks/use-drawer'
 import { districtName } from '../../utilities/elections-url'
 import { surname } from '../../utilities/race-math'
 import { entryKey, entryStep, type RaceCall, type RaceEntry } from '../../utilities/results'
@@ -30,7 +30,7 @@ export function LatestCalls({
 	election: Election
 	calls: readonly RaceCall[]
 }) {
-	const { go } = useDrawerStep(election)
+	const go = useDrawerGo(election)
 
 	if (calls.length === 0) {
 		return <p className="text-sm text-zinc-500 dark:text-zinc-400">No race called yet.</p>

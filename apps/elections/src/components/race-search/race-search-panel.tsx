@@ -12,7 +12,7 @@ import {
 } from 'ui/command-palette'
 import { Swatch } from 'ui/swatch'
 import type { Election } from '../../elections/registry'
-import { useDrawerStep } from '../../hooks/use-drawer-step'
+import { useDrawerGo } from '../../hooks/use-drawer'
 import {
 	type ElectionRaces,
 	electionsSearchGroups,
@@ -44,7 +44,7 @@ function SearchResults({ election }: { election: Election }) {
 
 	const races = useElectionRaces()
 
-	const { go } = useDrawerStep(election)
+	const go = useDrawerGo(election)
 
 	return searchGroups(races, query).map((group) => (
 		<CommandPaletteGroup key={group.heading}>

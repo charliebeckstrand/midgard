@@ -2,7 +2,7 @@
 
 import type { Contest, Election } from '../../elections/registry'
 import type { UsState } from '../../elections/us-states'
-import { useDrawerStep } from '../../hooks/use-drawer-step'
+import { useDrawerGo } from '../../hooks/use-drawer'
 import type { CountyResult } from '../../types'
 import type { RaceEntry } from '../../utilities/results'
 import { CountyMap } from '../race-detail/county-map'
@@ -37,7 +37,7 @@ const MAX_HEIGHT = 560
  * {@link MAX_HEIGHT}.
  */
 export function StateMap({ election, contest, state, entries, counties, aspect }: StateMapProps) {
-	const { go } = useDrawerStep(election)
+	const go = useDrawerGo(election)
 
 	const [only, ...others] = entries
 
