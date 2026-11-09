@@ -3,6 +3,7 @@ export {
 	DIALOG_ALIGN,
 	Dialog,
 	type DialogAlign,
+	type DialogHeight,
 	DialogPanel,
 	type DialogPanelProps,
 	type DialogProps,

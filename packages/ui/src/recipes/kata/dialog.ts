@@ -68,6 +68,11 @@ export const k = defineKata(
 		 * slide. The fade of a floating panel moves no box, so it stays as it is.
 		 */
 		still: { desktop: popover, mobile: ugoki.still(ugoki.panel.bottom) },
+		/**
+		 * The travel of a `fit` panel between two content heights, for
+		 * {@link usePanelFit}. It is the tempo of the `fit` Drawer.
+		 */
+		fit: ugoki.spring.fit,
 	},
 )
 

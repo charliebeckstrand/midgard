@@ -23,13 +23,12 @@ export type MenuCrumbProps = {
 }
 
 /**
- * A crumb with a menu, such as the office crumb of the Drawer or the election
- * crumb of the header. A crumb that leads somewhere keeps its label as the
- * link, and a chevron after it opens the menu. A crumb that leads nowhere is
- * one button of its label and its chevron, so a press on any part of it opens
- * the menu. The chevron is within a pixel of its place in the other form. In
- * both forms the label gives way to a mark when the row runs out of room, and
- * the chevron stays.
+ * A crumb with a menu, such as the office crumb of the Drawer. A crumb that
+ * leads somewhere keeps its label as the link, and a chevron after it opens the
+ * menu. A crumb that leads nowhere is one button of its label and its chevron,
+ * so a press on any part of it opens the menu. The chevron is within a pixel of
+ * its place in the other form. In both forms the label gives way to a mark when
+ * the row runs out of room, and the chevron stays.
  */
 export function MenuCrumb({ label, current, link, children }: MenuCrumbProps) {
 	if (link === undefined) {
