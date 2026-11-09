@@ -36,6 +36,12 @@ type RegionPaint = {
 	fillColor: string | undefined
 	/** The path's classes. */
 	className: string
+	/**
+	 * The path's classes for a region that takes no click on a clickable layer:
+	 * the hover emphasis only where the region carries data, and the default
+	 * cursor. The same as {@link className} on a layer that takes no click.
+	 */
+	disabledClassName: string
 	/** The classes of the outline a legend emphasis draws on the region ({@link emphasisOutline}). */
 	outline: string
 }
@@ -126,19 +132,22 @@ function categoryPaint(
 	// the bin color alone, and a striped region takes the slot ink.
 	const fillColor = applied?.kind === 'stripes' ? `url(#${pattern})` : color
 
+	const base = [...(fillClass ?? []), ...k.region.border, animate && WASH]
+
+	// The hover emphasis normally marks a region carrying data. On a clickable
+	// layer every region answers a click (a no-data one included), so it reads
+	// as the target it is. A disabled region answers no click, so only its data
+	// earns the emphasis.
+	const className = cn(...base, (active || clickable) && k.region.hover)
+
 	return {
 		groupId: active ? id : null,
 		fillColor,
 		outline: emphasisOutline(color),
-		// The hover emphasis normally marks a region carrying data. On a clickable
-		// layer every region answers a click (a no-data one included), so it reads
-		// as the target it is.
-		className: cn(
-			...(fillClass ?? []),
-			...k.region.border,
-			(active || clickable) && k.region.hover,
-			animate && WASH,
-		),
+		className,
+		disabledClassName: clickable
+			? cn(...base, active && k.region.hover, k.region.disabled)
+			: className,
 	}
 }
 

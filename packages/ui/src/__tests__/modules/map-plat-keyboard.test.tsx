@@ -201,6 +201,31 @@ describe('MapPlat keyboard navigation', () => {
 		expect(onRegionClick).toHaveBeenLastCalledWith('B', 1)
 	})
 
+	it('picks nothing with Enter on a disabled region, and speaks nothing where it reads nothing', async () => {
+		const onRegionClick = vi.fn()
+
+		const { plot } = renderNavigable(
+			categoricalPlat({ onRegionClick, isRegionDisabled: (id) => id === 'C' }),
+		)
+
+		// Gamma matches no row and is disabled, so it is a stop with no output.
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onRegionClick).not.toHaveBeenCalled()
+
+		await flushAnnouncer()
+
+		expect(liveRegion()?.textContent ?? '').toBe('')
+
+		fireEvent.keyDown(plot, { key: 'Home' })
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onRegionClick).toHaveBeenCalledWith('A', 0)
+	})
+
 	it('picks nothing before an arrow has placed the cursor', () => {
 		const onRegionClick = vi.fn()
 
