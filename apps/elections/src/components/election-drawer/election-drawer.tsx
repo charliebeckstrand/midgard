@@ -148,7 +148,7 @@ function StateOverview({
 			})}
 
 			{onPage ? null : (
-				<Button href={page} variant="outline">
+				<Button href={page} variant="soft">
 					View {step.region.name}
 				</Button>
 			)}
