@@ -67,6 +67,10 @@ each page of an election. Its step is in the search params:
 `src/utilities/elections-url.ts` reads and writes the paths and the params, and
 `src/hooks/use-drawer-step.ts` moves the Drawer.
 
+The Drawer is a `Dialog` of `ui`. On a phone, it is docked to the bottom
+edge. From `sm`, it is centered, and it is as wide as its content. Its height
+travels to each new height of its content (`height="fit"`).
+
 The layout of an election renders the view of each of its pages, and
 `src/components/election-views` shows the view of the current page. The other
 views stay mounted and hidden, so an office switch shows a view that is already
