@@ -35,6 +35,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 /**
  * The page of an office of an election. The layout renders the national map
  * of the office; the page holds the Drawer and the live refresh.
+ *
+ * The refresh runs while any race of the election is counted, not only a race
+ * of the office, because the Drawer opens on each office and gets its race
+ * from the refresh.
  */
 export default async function OfficePage({ params, searchParams }: Params) {
 	const { election, contest } = await readOffice(params)
@@ -49,7 +53,7 @@ export default async function OfficePage({ params, searchParams }: Params) {
 
 	return (
 		<>
-			<AutoUpdateRefresh live={isCounting(result.entries)} />
+			<AutoUpdateRefresh live={isCounting(all.flatMap((entry) => entry.entries))} />
 
 			<ElectionDrawer election={election} seed={seed} />
 		</>

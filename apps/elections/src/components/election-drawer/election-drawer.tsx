@@ -5,7 +5,6 @@ import type { Seed } from 'shared/queries'
 import { SearchInput } from 'ui/search-input'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
-import { useAutoUpdate } from '../../hooks/use-auto-update'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
 import { useRace } from '../../queries/race-queries'
 import type { Race } from '../../types'
@@ -13,7 +12,6 @@ import { type DrawerStep, districtName } from '../../utilities/elections-url'
 import { delegation } from '../../utilities/race-math'
 import {
 	entryKey,
-	isCounting,
 	matchesSearch,
 	type OfficeRaces,
 	type RaceEntry,
@@ -297,13 +295,7 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 
 	const entry = step === null ? undefined : stepEntry(results, step)
 
-	const autoUpdate = useAutoUpdate()
-
-	const read = useRace(
-		entry?.raceId ?? null,
-		seed,
-		autoUpdate && entry !== undefined && isCounting([entry]),
-	)
+	const read = useRace(entry?.raceId ?? null, seed)
 
 	const race = read.data?.id === entry?.raceId ? read.data : undefined
 
