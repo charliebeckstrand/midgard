@@ -123,7 +123,8 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * time, and a press in a form field does not toggle it.
  *
  * @remarks The page scrolls at each width, so the scroll restoration of a router
- * resets and restores the position of the page. In the drawer layout, the navbar
+ * resets and restores the position of the page. In a box that scrolls (below),
+ * the app restores the scroll of the box. In the drawer layout, the navbar
  * is the one bar that sticks to the top. The navbar is a region named "Navigation
  * bar", which holds the menu button, `navbar`, and `actions`. Inside the main
  * landmark of another layout, the navbar is not a region. The header scrolls

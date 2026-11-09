@@ -71,3 +71,25 @@ The layout of an election renders the view of each of its pages, and
 `src/components/election-views` shows the view of the current page. The other
 views stay mounted and hidden, so an office switch shows a view that is already
 rendered. A page holds only its Drawer and its live refresh.
+
+## The design
+
+Each screen shows only what a reader needs. No label reads "All", and a title
+has no badge beside it. The cards stack in one column, and a page at
+390 px wide has no overflow. The status of the count shows only in the footer.
+
+A call is a solid green dot before the percent reporting. A race that is not
+called has an amber dot that pulses. Green is for a call, so no party takes it. A
+winner has a green circle check after the name.
+
+The Democratic party is blue and the Republican party is red. A choice with no
+party, a nonpartisan race, and a write-in are zinc. Each other party is amber.
+The margin of a race is the lead of the leader over the runner-up, of any
+party.
+
+A map shows the winner of each region. A race that is not called shows a soft
+tone of the color of the leader. A House delegation of two parties shows the
+stripes of both. A state with no race ignores a click.
+
+An election has no `loading.tsx`. Its layout renders the header, so the header
+stays while a page changes.
