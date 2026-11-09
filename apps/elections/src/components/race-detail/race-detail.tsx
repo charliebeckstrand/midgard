@@ -3,8 +3,8 @@
 import { Activity, lazy, Suspense } from 'react'
 import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
+import { Odometer } from 'ui/odometer'
 import { Placeholder } from 'ui/placeholder'
-import { useIntl } from 'ui/primitives/intl'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
 import type { Race } from '../../types'
@@ -62,8 +62,6 @@ function FactTime({ value }: { value: string | undefined }) {
  * that the race does not give drops its row.
  */
 function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Race | undefined }) {
-	const intl = useIntl()
-
 	const candidates = race?.candidates ?? entry.candidates
 
 	const votes = candidates.reduce((sum, candidate) => sum + candidate.votes, 0)
@@ -73,7 +71,9 @@ function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Rac
 	return (
 		<DescriptionList>
 			<DescriptionTerm>Total votes</DescriptionTerm>
-			<DescriptionDetails className="tabular-nums">{intl.formatNumber(votes)}</DescriptionDetails>
+			<DescriptionDetails>
+				<Odometer value={votes} />
+			</DescriptionDetails>
 
 			{race?.pollsClose === null ? null : (
 				<>

@@ -2,10 +2,9 @@
 
 import { CircleCheck } from 'lucide-react'
 import { Icon } from 'ui/icon'
-import { useIntl } from 'ui/primitives/intl'
 import { StatusDot } from 'ui/status'
 import { Flex } from 'ui/structure/flex'
-import { percentText } from '../../utilities/race-math'
+import { PercentOdometer } from '../percent-odometer'
 
 /**
  * The call of a race: a solid green dot, or a pulsing amber dot while the race
@@ -34,13 +33,13 @@ export function WinnerMark() {
  * as one fact.
  */
 export function ReportingRow({ reporting, called }: { reporting: number; called: boolean }) {
-	const intl = useIntl()
-
 	return (
 		<Flex wrap gap="sm" className="text-sm/6 text-zinc-600 dark:text-zinc-400">
 			<CallDot called={called} />
 
-			<span className="tabular-nums">{percentText(intl.formatNumber, reporting, 1)} reporting</span>
+			<span>
+				<PercentOdometer value={reporting} digits={1} /> reporting
+			</span>
 		</Flex>
 	)
 }

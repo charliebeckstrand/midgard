@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { LiveRefresh } from 'shared/refresh'
+import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
 import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
@@ -27,7 +27,7 @@ export default async function OverviewPage({ params, searchParams }: Params) {
 
 	return (
 		<>
-			<LiveRefresh live={isCounting(results.flatMap((result) => result.entries))} />
+			<AutoUpdateRefresh live={isCounting(results.flatMap((result) => result.entries))} />
 
 			<ElectionDrawer election={election} seed={seed} />
 		</>

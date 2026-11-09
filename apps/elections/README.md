@@ -31,8 +31,14 @@ with no sign.
 Three national races give the whole picture of the midterms: the race of each
 state or district, and the seats of each party. One race of a state gives its
 counties. The cache keeps each parsed race for a minute while the count goes
-on, and for hours once the race is fully in and called. While votes are
-counted, `LiveRefresh` from `shared` renders the page again each minute.
+on, and for hours once the race is fully in and called.
+
+The Auto update switch of the settings dialog in the header controls the
+updates. It is on by default, and `localStorage` keeps it. While it is on and
+votes are counted, `LiveRefresh` from `shared` renders the page again each
+minute, and the Drawer reads its race again. A hidden tab skips these updates.
+A changed number rolls to its new value through the `Odometer` of `ui`, and
+under reduced motion it goes to the value with no roll.
 
 A county row with a FIPS code joins the county of `us-atlas`. A `County` row
 with no code takes the code of the atlas county of the same name, with no
