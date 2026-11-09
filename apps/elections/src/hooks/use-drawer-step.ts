@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useSearchParams } from 'next/navigation'
+import { useSyncExternalStore } from 'react'
 import type { Election } from '../elections/registry'
 import { type DrawerStep, drawerHref, readDrawerStep } from '../utilities/elections-url'
 
@@ -31,10 +32,64 @@ if (typeof window !== 'undefined') {
 	})
 }
 
+/** The listeners of the address, which a move of the Drawer calls. */
+const listeners = new Set<() => void>()
+
+/**
+ * Subscribes to the address: a move of the Drawer, and Back or Forward
+ * (`popstate`), for `useSyncExternalStore`.
+ */
+function subscribe(listener: () => void): () => void {
+	listeners.add(listener)
+
+	window.addEventListener('popstate', listener)
+
+	return () => {
+		listeners.delete(listener)
+
+		window.removeEventListener('popstate', listener)
+	}
+}
+
+/** Tells each listener that the Drawer wrote the address. */
+function emit(): void {
+	for (const listener of listeners) listener()
+}
+
+/** The address of the server render and of the hydration: none, so the step comes from the router. */
+function noAddress(): null {
+	return null
+}
+
+/**
+ * The query of the step. The address of the browser gives it while its path is
+ * the path of the router. Else, the router gives it, as on the server, at the
+ * hydration, and while a navigation to another page renders.
+ */
+function stepQuery(address: string | null, pathname: string, params: URLSearchParams): string {
+	if (address === null) return params.toString()
+
+	const mark = address.indexOf('?')
+
+	const path = mark === -1 ? address : address.slice(0, mark)
+
+	if (path !== pathname) return params.toString()
+
+	return mark === -1 ? '' : address.slice(mark + 1)
+}
+
 /**
  * The step of the Drawer of an election, which the address holds, and the way
  * to move it. The address is the one source, so a reload opens the Drawer on
  * the same step.
+ *
+ * The step follows the address of the browser at once, not the search params
+ * of the router. The router applies a change of the address in a transition,
+ * and a transition waits for each router request in flight, such as the
+ * refresh of a live page, which can take seconds on a phone. A Drawer that
+ * followed the router thus stayed open after a close, or closed after an
+ * open, until the request completed. The router still takes each change, so a
+ * later refresh reads the step of the address on the server.
  *
  * Each move is a history entry, so Back walks the trail of the Drawer and then
  * closes it. A move to the current step writes no entry. A move writes the address in place, with no navigation: the page
@@ -56,7 +111,11 @@ export function useDrawerStep(election: Election): {
 
 	const params = useSearchParams()
 
-	const step = readDrawerStep(election, params)
+	const browserAddress = useSyncExternalStore(subscribe, currentAddress, noAddress)
+
+	const query = stepQuery(browserAddress, pathname, params)
+
+	const step = readDrawerStep(election, new URLSearchParams(query))
 
 	return {
 		step,
@@ -64,8 +123,13 @@ export function useDrawerStep(election: Election): {
 			const known = entries.addresses[entries.position] === currentAddress()
 
 			if (next === null) {
-				if (known && entries.position > 0) window.history.go(-entries.position)
-				else window.history.replaceState(null, '', drawerHref(pathname, null))
+				if (known && entries.position > 0) {
+					window.history.go(-entries.position)
+				} else {
+					window.history.replaceState(null, '', drawerHref(pathname, null))
+
+					emit()
+				}
 
 				return
 			}
@@ -92,6 +156,8 @@ export function useDrawerStep(election: Election): {
 			}
 
 			window.history.pushState(null, '', address)
+
+			emit()
 		},
 	}
 }
