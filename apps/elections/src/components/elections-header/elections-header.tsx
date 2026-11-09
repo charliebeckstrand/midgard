@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Fragment } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { Badge } from 'ui/badge'
 import {
 	Breadcrumb,
@@ -97,14 +97,21 @@ function ElectionCrumb({
 	)
 }
 
+/** Props for {@link ElectionsHeader}. */
+export type ElectionsHeaderProps = {
+	crumbs: readonly Crumb[]
+	/** The search of the page, before the appearance settings, such as `RaceSearch` on a page of an election. */
+	search?: ReactNode
+}
+
 /**
  * The bar at the top of each page. The title is the trail, such as
  * `Elections › 2026 › United States › Midterms`, where each crumb but the last
  * leads up. The trail gives way from the left, as the trail of Places does.
- * The appearance settings sit on its right. The bar stays at the top while
- * the body under it scrolls (`PageColumn`).
+ * The search and the appearance settings sit on its right. The bar stays at
+ * the top while the body under it scrolls (`PageColumn`).
  */
-export function ElectionsHeader({ crumbs }: { crumbs: readonly Crumb[] }) {
+export function ElectionsHeader({ crumbs, search }: ElectionsHeaderProps) {
 	return (
 		<StackedLayoutHeader className="border-b border-zinc-950/10 dark:border-white/10">
 			<Container size="lg" padding="lg">
@@ -135,7 +142,11 @@ export function ElectionsHeader({ crumbs }: { crumbs: readonly Crumb[] }) {
 						</Breadcrumb>
 					</div>
 
-					<AppearanceSettings />
+					<Flex align="center" gap="sm">
+						{search}
+
+						<AppearanceSettings />
+					</Flex>
 				</Flex>
 			</Container>
 		</StackedLayoutHeader>
