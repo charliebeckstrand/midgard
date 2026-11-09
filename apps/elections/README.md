@@ -30,8 +30,12 @@ with no sign.
 
 Three national races give the whole picture of the midterms: the race of each
 state or district, and the seats of each party. One race of a state gives its
-counties. The cache keeps each parsed race for a minute while the count goes
-on, and for hours once the race is fully in and called.
+counties. While the count goes on, the cache reads each race again once its
+parsed copy is a minute old, and it serves that copy for up to a day while the
+fresh read runs in the background. Once the race is fully in and called, the
+copy holds for hours. Thus a page does not wait for civicAPI unless it has
+had no visit for a day. The cache handler of `auth/app-config` keeps each
+entry until it expires.
 
 The Auto update switch of the settings dialog in the header controls the
 updates. It is on by default, and `localStorage` keeps it. While it is on and
@@ -121,7 +125,8 @@ of the state, so its frame has its final size in the first paint.
 The build prerenders each election of the registry and each of its offices.
 The static shell of a page holds the layout with its results. Cache Components
 serves that shell, and renders the next shell in the background once the
-shell is a minute old. Thus a visit does not wait for civicAPI. A link to an
+shell is a minute old. Thus a visit does not wait for civicAPI. A state is not
+prerendered: it renders on each visit, from the cache of its races. A link to an
 election prefetches the shell and its code before the click. `LiveRefresh`
 renders the whole page on the server, so each refresh reads the cache of the
 races.

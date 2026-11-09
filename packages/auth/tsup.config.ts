@@ -4,6 +4,7 @@ export default defineConfig({
 	entry: {
 		index: 'src/index.ts',
 		'app-config': 'src/app-config.ts',
+		'cache-handler': 'src/cache-handler.ts',
 		config: 'src/config.ts',
 		proxy: 'src/proxy.ts',
 	},

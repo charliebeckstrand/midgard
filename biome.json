@@ -339,6 +339,7 @@
 				"packages/ui/src/docs/app/routes/*.tsx",
 				"packages/ui/src/docs/app/entry.server.tsx",
 				"packages/ui/src/docs/pages/**/*.tsx",
+				"packages/auth/src/cache-handler.ts",
 				"**/*.config.ts",
 				"**/*.d.ts"
 			],
