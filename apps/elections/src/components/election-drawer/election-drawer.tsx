@@ -7,6 +7,7 @@ import { Button } from 'ui/button'
 import { SearchInput } from 'ui/search-input'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
+import { useAutoUpdate } from '../../hooks/use-auto-update'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
 import { useRace } from '../../queries/race-queries'
 import type { Race } from '../../types'
@@ -320,7 +321,13 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 
 	const entry = step === null ? undefined : stepEntry(results, step)
 
-	const read = useRace(entry?.raceId ?? null, seed, entry !== undefined && isCounting([entry]))
+	const autoUpdate = useAutoUpdate()
+
+	const read = useRace(
+		entry?.raceId ?? null,
+		seed,
+		autoUpdate && entry !== undefined && isCounting([entry]),
+	)
 
 	const race = read.data?.id === entry?.raceId ? read.data : undefined
 

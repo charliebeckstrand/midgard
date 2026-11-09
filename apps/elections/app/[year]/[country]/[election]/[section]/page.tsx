@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { LiveRefresh } from 'shared/refresh'
+import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
 import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
 import { readSection, type SectionParams } from '@/server/params'
@@ -47,7 +47,7 @@ export default async function SectionPage({ params, searchParams }: Params) {
 
 	return (
 		<>
-			<LiveRefresh live={isCounting(entries)} />
+			<AutoUpdateRefresh live={isCounting(entries)} />
 
 			<ElectionDrawer election={election} seed={seed} />
 		</>

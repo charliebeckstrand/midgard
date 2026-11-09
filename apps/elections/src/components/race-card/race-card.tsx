@@ -1,16 +1,16 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useIntl } from 'ui/primitives/intl'
 import { ProgressBar } from 'ui/progress'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Swatch } from 'ui/swatch'
 import type { Candidate } from '../../types'
-import { barColor, leaders, percentText } from '../../utilities/race-math'
+import { barColor, leaders } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
 import { CardButton } from '../card-button'
+import { PercentOdometer } from '../percent-odometer'
 import { ReportingRow, WinnerMark } from '../race-summary'
 
 /** Props for {@link RaceCard}. */
@@ -27,8 +27,6 @@ export type RaceCardProps = {
  * follows the name, as in the race summary.
  */
 function LeaderRow({ candidate }: { candidate: Candidate }) {
-	const intl = useIntl()
-
 	return (
 		<Flex gap="sm" className="text-sm/6">
 			<Swatch color={candidate.slot} />
@@ -39,9 +37,7 @@ function LeaderRow({ candidate }: { candidate: Candidate }) {
 				{candidate.winner ? <WinnerMark /> : null}
 			</Flex>
 
-			<span className="font-semibold tabular-nums">
-				{percentText(intl.formatNumber, candidate.percent, 2)}
-			</span>
+			<PercentOdometer value={candidate.percent} digits={2} className="font-semibold" />
 		</Flex>
 	)
 }

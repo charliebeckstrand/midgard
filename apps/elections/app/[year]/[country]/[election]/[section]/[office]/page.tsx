@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { LiveRefresh } from 'shared/refresh'
+import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
 import { type Contest, type Election, findContest } from '@/elections/registry'
 import type { UsState } from '@/elections/us-states'
@@ -61,7 +61,7 @@ export default async function StateOfficePage({ params, searchParams }: Params) 
 
 	return (
 		<>
-			<LiveRefresh live={isCounting(entries)} />
+			<AutoUpdateRefresh live={isCounting(entries)} />
 
 			<ElectionDrawer election={election} seed={seed} />
 		</>
