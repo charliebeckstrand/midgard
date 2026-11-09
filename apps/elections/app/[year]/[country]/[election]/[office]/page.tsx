@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { LiveRefresh } from 'shared/refresh'
+import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
 import { type Contest, type Election, findContest } from '@/elections/registry'
 import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
@@ -49,7 +49,7 @@ export default async function OfficePage({ params, searchParams }: Params) {
 
 	return (
 		<>
-			<LiveRefresh live={isCounting(result.entries)} />
+			<AutoUpdateRefresh live={isCounting(result.entries)} />
 
 			<ElectionDrawer election={election} seed={seed} />
 		</>

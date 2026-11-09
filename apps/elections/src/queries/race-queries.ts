@@ -15,7 +15,9 @@ const LIVE_INTERVAL = 60_000
  *
  * @param id - The race, or `null` for a step that shows no one race.
  * @param seed - The race that the page read, or `null`.
- * @param live - The votes are still counted, so the race reads again each minute.
+ * @param live - The votes are still counted and the Auto update setting is on,
+ * so the race reads again each minute. A hidden tab skips these reads. A race
+ * that is not live also does not read again when the window gets the focus.
  */
 export function useRace(id: number | null, seed: Seed<Race> | null, live: boolean) {
 	return useQuery({
@@ -23,6 +25,7 @@ export function useRace(id: number | null, seed: Seed<Race> | null, live: boolea
 		queryFn: ({ signal }) => fetchRace(id ?? 0, signal),
 		enabled: id !== null,
 		refetchInterval: live ? LIVE_INTERVAL : false,
+		refetchOnWindowFocus: live,
 		...(seed !== null && seed.data.id === id ? seededQuery(seed) : {}),
 	})
 }
