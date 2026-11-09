@@ -25,6 +25,7 @@ import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
+import { useOverlayKeepFocus } from './use-overlay-keep-focus'
 import { useOverlayReturnFocus } from './use-overlay-return-focus'
 import { useOverlayViewportFit } from './use-overlay-viewport-fit'
 
@@ -138,7 +139,8 @@ export type OverlayProps = {
  * no key. The body stays locked until the exit completes. A modal overlay
  * seals the page only while it is open, so the page is in the accessibility
  * tree for the exit. The focus goes to `<body>` when the overlay closes, and a
- * modal overlay returns it to the trigger at unmount.
+ * modal overlay returns it to the trigger at unmount. While a modal overlay is
+ * open, the focus stays in it when its focused element unmounts.
  *
  * The portal carries the density scope and the direction of the place that
  * opened the overlay (see {@link Portal}), so the panel follows that place.
@@ -366,7 +368,8 @@ function outside(box: Element): Element[] {
 /**
  * Wraps the overlay panel in a modal `FloatingFocusManager`, which traps focus
  * and seals the page while the overlay is open. `useOverlayInitialFocus` moves
- * the focus in on open, and `useOverlayReturnFocus` gives it back at unmount.
+ * the focus in on open, `useOverlayKeepFocus` keeps it in while the overlay is
+ * open, and `useOverlayReturnFocus` gives it back at unmount.
  * Only a modal overlay renders it. A non-modal surface renders bare: no trap,
  * no initial-focus steal, no focus return. Focus stays where it is.
  *
@@ -413,6 +416,8 @@ function OverlayFocus({
 	// The focus manager returns the focus when it is disabled, which is too
 	// early (see `useOverlayReturnFocus`). Thus it gets no return focus.
 	const present = useIsPresent()
+
+	useOverlayKeepFocus(present ? context.elements.floating : null)
 
 	useOverlayReturnFocus(returnFocusTo)
 
