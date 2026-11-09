@@ -300,8 +300,11 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 
 	const race = read.data?.id === entry?.raceId ? read.data : undefined
 
-	// Each race opens on its overview. The map stays across a visit to one of its counties.
+	// Each race opens on its overview. The map stays across a visit to one of its
+	// counties, and resets once the Drawer leaves the race.
 	const [mapRace, setMapRace] = useState<number | null>(null)
+
+	if (mapRace !== null && mapRace !== entry?.raceId) setMapRace(null)
 
 	const views: Views = {
 		view: entry !== undefined && mapRace === entry.raceId ? 'counties' : 'overview',

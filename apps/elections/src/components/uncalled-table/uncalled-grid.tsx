@@ -86,6 +86,7 @@ export function UncalledGrid({
 			getKey={entryKey}
 			sort={{ value: sort, onValueChange: onSortChange }}
 			onRowClick={onPick}
+			tableProps={{ 'aria-label': 'Every race not called' }}
 		/>
 	)
 }

@@ -27,6 +27,11 @@ function ElectionDate({ date }: { date: string }) {
 	return intl.formatDate(`${date}T12:00:00Z`, { dateStyle: 'medium', timeZone: 'UTC' })
 }
 
+/** Whether a crumb is the page that the reader is on: it leads nowhere, or it leads to this page. */
+function isHere(crumb: Crumb, pathname: string): boolean {
+	return crumb.href === undefined || crumb.href === pathname
+}
+
 /** The label of a crumb: a link where the crumb leads somewhere, or the plain name where it does not. */
 function CrumbLink({ crumb, current }: { crumb: Crumb; current: boolean }) {
 	return crumb.href === undefined ? (
@@ -66,11 +71,7 @@ function ElectionCrumb({
 		<MenuCrumb
 			label={crumb.label}
 			current={current}
-			link={
-				crumb.href === undefined || crumb.href === pathname ? undefined : (
-					<CrumbLink crumb={crumb} current={current} />
-				)
-			}
+			link={isHere(crumb, pathname) ? undefined : <CrumbLink crumb={crumb} current={false} />}
 		>
 			{menu.map((item) => (
 				<MenuItem key={item.href} href={item.href}>
@@ -107,11 +108,14 @@ export type ElectionsHeaderProps = {
 /**
  * The bar at the top of each page. The title is the trail, such as
  * `Elections › 2026 › United States › Midterms`, where each crumb but the last
- * leads up. The trail gives way from the left, as the trail of Places does.
+ * leads up. The last crumb is the current page only where it is the page: on
+ * the page of an office, the election crumb leads up to the overview. The trail gives way from the left, as the trail of Places does.
  * The search and the appearance settings sit on its right. The bar stays at
  * the top while the body under it scrolls (`PageColumn`).
  */
 export function ElectionsHeader({ crumbs, search }: ElectionsHeaderProps) {
+	const pathname = usePathname()
+
 	return (
 		<StackedLayoutHeader className="border-b border-zinc-950/10 dark:border-white/10">
 			<Container size="lg" padding="lg">
@@ -127,12 +131,15 @@ export function ElectionsHeader({ crumbs, search }: ElectionsHeaderProps) {
 
 										<BreadcrumbItem>
 											{crumb.menu === undefined ? (
-												<CrumbLink crumb={crumb} current={index === crumbs.length - 1} />
+												<CrumbLink
+													crumb={crumb}
+													current={index === crumbs.length - 1 && isHere(crumb, pathname)}
+												/>
 											) : (
 												<ElectionCrumb
 													crumb={crumb}
 													menu={crumb.menu}
-													current={index === crumbs.length - 1}
+													current={index === crumbs.length - 1 && isHere(crumb, pathname)}
 												/>
 											)}
 										</BreadcrumbItem>
