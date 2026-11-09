@@ -1,9 +1,11 @@
 'use client'
 
+import { ArrowRight } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import type { Seed } from 'shared/queries'
 import { Button } from 'ui/button'
+import { Icon } from 'ui/icon'
 import { SearchInput } from 'ui/search-input'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
@@ -148,7 +150,7 @@ function StateOverview({
 			})}
 
 			{onPage ? null : (
-				<Button href={page} variant="soft">
+				<Button href={page} variant="plain" suffix={<Icon icon={<ArrowRight />} />}>
 					View {step.region.name}
 				</Button>
 			)}
