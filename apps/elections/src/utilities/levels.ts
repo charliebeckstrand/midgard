@@ -78,7 +78,7 @@ export function filterElections(
 export type StatusGroup = { status: ElectionStatus; heading: string; elections: Election[] }
 
 const HEADINGS: Record<ElectionStatus, string> = {
-	live: 'Counting now',
+	live: 'Counting',
 	upcoming: 'Upcoming',
 	past: 'Past',
 }

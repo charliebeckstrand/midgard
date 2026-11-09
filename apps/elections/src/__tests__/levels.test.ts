@@ -53,7 +53,7 @@ describe('the level pages', () => {
 		expect(
 			statusGroups(all).map((group) => [group.heading, group.elections.map((entry) => entry.date)]),
 		).toEqual([
-			['Counting now', ['2026-11-03']],
+			['Counting', ['2026-11-03']],
 			['Upcoming', ['2026-11-26', '2028-11-07']],
 			['Past', ['2024-11-05', '2020-11-03']],
 		])

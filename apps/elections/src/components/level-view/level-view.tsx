@@ -130,7 +130,7 @@ function LevelFilter({
 
 	return (
 		<>
-			<Button variant="outline" onClick={() => setOpen(true)}>
+			<Button variant="plain" onClick={() => setOpen(true)}>
 				<Icon icon={<ListFilter />} />
 				Filter
 				{count === 0 ? null : (
