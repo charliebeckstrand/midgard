@@ -86,20 +86,29 @@ function searchText(text: string): string {
 }
 
 /**
+ * Whether texts match a search: each word of the query is in one of the
+ * texts, with no regard to case or accents. An empty query matches each text.
+ */
+export function matchesWords(texts: readonly string[], query: string): boolean {
+	const words = searchText(query).split(/\s+/).filter(Boolean)
+
+	if (words.length === 0) return true
+
+	const text = searchText(texts.join(' '))
+
+	return words.every((word) => text.includes(word))
+}
+
+/**
  * Whether a race matches a search: each word of the query is in the name of
  * the race or in the name of one of its candidates. An empty query matches
  * each race.
  */
 export function matchesSearch(entry: RaceEntry, query: string): boolean {
-	const words = searchText(query).split(/\s+/).filter(Boolean)
-
-	if (words.length === 0) return true
-
-	const text = searchText(
-		[entryName(entry), ...entry.candidates.map((candidate) => candidate.name)].join(' '),
+	return matchesWords(
+		[entryName(entry), ...entry.candidates.map((candidate) => candidate.name)],
+		query,
 	)
-
-	return words.every((word) => text.includes(word))
 }
 
 /** A key of a race that is unique in an election, such as `senate:ga` or `house:ga-06`. */

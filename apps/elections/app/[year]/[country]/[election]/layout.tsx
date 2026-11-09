@@ -4,6 +4,7 @@ import { ElectionViews } from '@/components/election-views'
 import { OfficeView, OverviewView } from '@/components/election-views/views'
 import { ElectionsHeader } from '@/components/elections-header'
 import { PageColumn } from '@/components/page-frame'
+import { RaceSearch } from '@/components/race-search'
 import { officeRaces } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
@@ -17,9 +18,9 @@ import { electionCrumbs, OVERVIEW } from '@/utilities/trail'
  * loading page: a navigation keeps the page in view until the next page is
  * whole, and a reload paints the whole page in its first frame.
  *
- * The layout also gives the races of each office to the Drawer of each page.
- * A navigation between the pages keeps the layout, so the races do not travel
- * again with each page.
+ * The layout also gives the races of each office to the Drawer of each page
+ * and to the search in the header. A navigation between the pages keeps the
+ * layout, so the races do not travel again with each page.
  *
  * The layout renders the view of each page: the overview and the national map
  * of each office. The view of the current page shows, and the other views stay
@@ -51,9 +52,12 @@ export default async function ElectionLayout({
 
 	return (
 		<PageColumn>
-			<ElectionsHeader crumbs={electionCrumbs(election)} />
-
 			<ElectionRacesProvider races={races}>
+				<ElectionsHeader
+					crumbs={electionCrumbs(election)}
+					search={<RaceSearch election={election} />}
+				/>
+
 				<ElectionViews views={views} />
 
 				{children}
