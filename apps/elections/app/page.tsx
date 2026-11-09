@@ -1,15 +1,8 @@
-import { Heading } from 'ui/heading'
-import { ElectionList } from '@/components/election-list'
-import { PageFrame } from '@/components/page-frame'
-import { homeCrumbs, listedElections } from '@/utilities/trail'
+import { LevelPage } from '@/components/level-page'
+import { ELECTIONS } from '@/elections/registry'
+import { homeCrumbs } from '@/utilities/trail'
 
-/** Every election of the registry: live ones first, then upcoming, then past. */
+/** Every election of the registry. */
 export default function Page() {
-	return (
-		<PageFrame crumbs={homeCrumbs()}>
-			<Heading level={1}>Elections</Heading>
-
-			<ElectionList elections={listedElections()} />
-		</PageFrame>
-	)
+	return <LevelPage crumbs={homeCrumbs()} heading="Elections" elections={ELECTIONS} />
 }

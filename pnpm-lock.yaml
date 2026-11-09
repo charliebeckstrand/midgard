@@ -354,6 +354,9 @@ importers:
       auth:
         specifier: workspace:*
         version: link:../../packages/auth
+      country-flag-icons:
+        specifier: ^1.6.20
+        version: 1.6.20
       lucide-react:
         specifier: 'catalog:'
         version: 1.21.0(react@19.3.0)
@@ -3567,6 +3570,9 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  country-flag-icons@1.6.20:
+    resolution: {integrity: sha512-py8JiEKzjhYw6HPJ0L7SxLgCYim36UPRTZX43/kqGueUCZLSvnrqAiwW8HtQibur7mdkFQUkjOgdK+o/9FBtaw==}
 
   credit-card-type@10.1.2:
     resolution: {integrity: sha512-fP9vlyeYSHfKbIdE6IOR63YivTXMy0ZqyEkBhHxuAbvpltepe+zJmQ34A2Va7zJ8J7ZaB5IMAdD+1YJOmsajJA==}
@@ -8139,6 +8145,8 @@ snapshots:
       parse-json: 5.2.0
     optionalDependencies:
       typescript: 7.0.2
+
+  country-flag-icons@1.6.20: {}
 
   credit-card-type@10.1.2: {}
 

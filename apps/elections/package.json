@@ -19,6 +19,7 @@
 	"dependencies": {
 		"@tanstack/react-query": "catalog:",
 		"auth": "workspace:*",
+		"country-flag-icons": "^1.6.20",
 		"lucide-react": "catalog:",
 		"next": "catalog:",
 		"react": "catalog:",

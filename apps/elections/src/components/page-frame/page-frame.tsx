@@ -8,13 +8,20 @@ import { ElectionsHeader } from '../elections-header'
 
 /** Props for {@link PageBody}. */
 export type PageBodyProps = {
-	/** The status of the foot. A page with no results leaves it out. */
+	/**
+	 * The status of the foot. A page with no results leaves it out, and then
+	 * the page has no foot: the foot gives the sources of the results.
+	 */
 	status?: ElectionsFooterProps
 	children: ReactNode
 }
 
 /** Props for {@link PageFrame}. */
-export type PageFrameProps = PageBodyProps & { crumbs: readonly Crumb[] }
+export type PageFrameProps = PageBodyProps & {
+	crumbs: readonly Crumb[]
+	/** The search of the header, such as the search of every election. */
+	search?: ReactNode
+}
 
 /**
  * The body and the foot of a page: the box that scrolls under the header. The
@@ -34,7 +41,7 @@ export function PageBody({ status, children }: PageBodyProps) {
 					<Stack gap="xl">{children}</Stack>
 				</Container>
 
-				<ElectionsFooter {...(status ?? { counting: false, updated: null })} />
+				{status === undefined ? null : <ElectionsFooter {...status} />}
 			</div>
 		</StackedLayoutBody>
 	)
@@ -50,11 +57,11 @@ export function PageColumn({ children }: { children: ReactNode }) {
 	return <StackedLayout className="h-dvh print:h-auto">{children}</StackedLayout>
 }
 
-/** The frame of a page outside an election: the header with the trail, the body, and the foot. */
-export function PageFrame({ crumbs, ...body }: PageFrameProps) {
+/** The frame of a page outside an election: the header with the trail, and the body. */
+export function PageFrame({ crumbs, search, ...body }: PageFrameProps) {
 	return (
 		<PageColumn>
-			<ElectionsHeader crumbs={crumbs} />
+			<ElectionsHeader crumbs={crumbs} search={search} />
 
 			<PageBody {...body} />
 		</PageColumn>
