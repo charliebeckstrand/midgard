@@ -15,14 +15,9 @@ import { FLOW_SCROLL, TAB_LIST_SCROLL_SELECTOR } from './tabs-constants'
  *
  * @param current - Whether the tab is current.
  * @param orientation - List flow axis; selects the scroll axis.
- * @param enabled - Off for the segment variant, which renders no viewport.
  * @returns The ref of the tab trigger.
  */
-export function useTabSelectScroll(
-	current: boolean,
-	orientation: TabsOrientation,
-	enabled: boolean,
-) {
+export function useTabSelectScroll(current: boolean, orientation: TabsOrientation) {
 	const ref = useRef<HTMLButtonElement>(null)
 
 	const wasCurrent = useRef(current)
@@ -36,9 +31,8 @@ export function useTabSelectScroll(
 
 		const scroller = tab?.closest<HTMLElement>(TAB_LIST_SCROLL_SELECTOR)
 
-		if (becameCurrent && enabled && tab && scroller)
-			scrollNodeWithin(scroller, tab, FLOW_SCROLL[orientation])
-	}, [current, orientation, enabled])
+		if (becameCurrent && tab && scroller) scrollNodeWithin(scroller, tab, FLOW_SCROLL[orientation])
+	}, [current, orientation])
 
 	return ref
 }

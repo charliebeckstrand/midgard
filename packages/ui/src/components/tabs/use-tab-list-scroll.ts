@@ -17,17 +17,16 @@ import { FLOW_SCROLL, TAB_LIST_SCROLL_SELECTOR, TAB_SELECTOR } from './tabs-cons
  * start, so the first paint and the hydrated page agree.
  *
  * @param orientation - List flow axis; selects the scroll axis.
- * @param enabled - Off for the segment variant, which renders no viewport.
  * @returns The focus handler of the tab list.
  */
-export function useTabListScroll(orientation: TabsOrientation, enabled: boolean) {
+export function useTabListScroll(orientation: TabsOrientation) {
 	const options = FLOW_SCROLL[orientation]
 
 	return (event: FocusEvent<HTMLDivElement>) => {
 		// The viewport is the parent of the tab list, as `useTabSelectScroll` finds it.
 		const scroller = event.currentTarget.closest<HTMLElement>(TAB_LIST_SCROLL_SELECTOR)
 
-		if (!scroller || !enabled) return
+		if (!scroller) return
 
 		const target = event.target
 

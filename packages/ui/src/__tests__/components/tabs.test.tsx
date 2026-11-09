@@ -189,7 +189,7 @@ describe('TabList', () => {
 		expect(bySlot(container, 'tab-list-scroll')?.className).toContain('overflow-y-auto')
 	})
 
-	it('omits the scroll viewport for the segment variant', () => {
+	it('puts the segment box in the scroll viewport', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a" variant="segment">
 				<TabList aria-label="Tabs">
@@ -198,10 +198,9 @@ describe('TabList', () => {
 			</Tabs>,
 		)
 
-		// The segment box is a fixed pill control with no overflow viewport.
-		expect(bySlot(container, 'tab-list-scroll')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'tab-list')).toBeInTheDocument()
+		// A box of one-word labels can be wider than a phone column, so it scrolls
+		// in the viewport, as the underline list does.
+		expect(bySlot(container, 'tab-list')?.parentElement).toBe(bySlot(container, 'tab-list-scroll'))
 	})
 
 	it('reflects vertical orientation on tab-group and tab-list', () => {
