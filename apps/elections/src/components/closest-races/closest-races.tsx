@@ -3,7 +3,7 @@
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
-import { useDrawerStep } from '../../hooks/use-drawer-step'
+import { useDrawerGo } from '../../hooks/use-drawer-step'
 import { entryKey, entryStep, type RaceEntry } from '../../utilities/results'
 import { RaceCard, RaceCardGrid } from '../race-card'
 
@@ -28,7 +28,7 @@ export function ClosestRaces({
 	office?: boolean
 	heading?: string
 }) {
-	const { go } = useDrawerStep(election)
+	const go = useDrawerGo(election)
 
 	if (entries.length === 0) return null
 

@@ -78,10 +78,82 @@ function stepQuery(address: string | null, pathname: string, params: URLSearchPa
 	return mark === -1 ? '' : address.slice(mark + 1)
 }
 
+/** Moves the Drawer to a step, or closes it with `null`. */
+export type DrawerGo = (step: DrawerStep | null) => void
+
+/**
+ * The way to move the Drawer of an election, with no read of its step. A part
+ * of the page that only opens the Drawer, such as a card of a race, takes this
+ * hook and not {@link useDrawerStep}, so a move of the Drawer does not render it
+ * again.
+ *
+ * A move reads the step from the address of the browser when it runs. The
+ * Drawer follows that address at once (see {@link useDrawerStep}), so the step
+ * that a move reads is the step that shows.
+ *
+ * Each move is a history entry, so Back walks the trail of the Drawer and then
+ * closes it. A move to the current step writes no entry. A move writes the
+ * address in place, with no navigation: the page under the Drawer stays as it
+ * is, and the Drawer reads what it needs.
+ *
+ * A close goes back to the entry from before the Drawer opened, so Back after
+ * a close leaves the page and does not open the Drawer again. Where that entry
+ * is not known, such as on a page that loaded with the Drawer open, the close
+ * writes the closed address over the current entry.
+ *
+ * @returns A function that moves the Drawer to a step, or closes it with `null`.
+ */
+export function useDrawerGo(election: Election): DrawerGo {
+	const pathname = usePathname()
+
+	return (next) => {
+		const step = readDrawerStep(election, new URLSearchParams(window.location.search))
+
+		const known = entries.addresses[entries.position] === currentAddress()
+
+		if (next === null) {
+			if (known && entries.position > 0) {
+				window.history.go(-entries.position)
+			} else {
+				window.history.replaceState(null, '', drawerHref(pathname, null))
+
+				emit()
+			}
+
+			return
+		}
+
+		const address = drawerHref(pathname, next)
+
+		if (step !== null && address === drawerHref(pathname, step)) return
+
+		// An open from a closed Drawer starts the record at the page. A move
+		// inside a Drawer that the record does not know keeps no record.
+		if (step === null) {
+			entries.addresses = [currentAddress()]
+
+			entries.position = 0
+		} else if (!known) {
+			entries.addresses = []
+		}
+
+		if (entries.addresses.length > 0) {
+			// A move drops the entries after the position, as the browser does.
+			entries.addresses = [...entries.addresses.slice(0, entries.position + 1), address]
+
+			entries.position += 1
+		}
+
+		window.history.pushState(null, '', address)
+
+		emit()
+	}
+}
+
 /**
  * The step of the Drawer of an election, which the address holds, and the way
- * to move it. The address is the one source, so a reload opens the Drawer on
- * the same step.
+ * to move it ({@link useDrawerGo}). The address is the one source, so a reload
+ * opens the Drawer on the same step.
  *
  * The step follows the address of the browser at once, not the search params
  * of the router. The router applies a change of the address in a transition,
@@ -91,21 +163,15 @@ function stepQuery(address: string | null, pathname: string, params: URLSearchPa
  * open, until the request completed. The router still takes each change, so a
  * later refresh reads the step of the address on the server.
  *
- * Each move is a history entry, so Back walks the trail of the Drawer and then
- * closes it. A move to the current step writes no entry. A move writes the address in place, with no navigation: the page
- * under the Drawer stays as it is, and the Drawer reads what it needs.
- *
- * A close goes back to the entry from before the Drawer opened, so Back after
- * a close leaves the page and does not open the Drawer again. Where that entry
- * is not known, such as on a page that loaded with the Drawer open, the close
- * writes the closed address over the current entry.
+ * Each move renders each reader of the step again. A part of the page that
+ * only moves the Drawer takes {@link useDrawerGo}.
  *
  * @returns The step, or `null` for a closed Drawer, and a function that moves
  * the Drawer to a step, or closes it with `null`.
  */
 export function useDrawerStep(election: Election): {
 	step: DrawerStep | null
-	go: (step: DrawerStep | null) => void
+	go: DrawerGo
 } {
 	const pathname = usePathname()
 
@@ -117,47 +183,7 @@ export function useDrawerStep(election: Election): {
 
 	const step = readDrawerStep(election, new URLSearchParams(query))
 
-	return {
-		step,
-		go: (next) => {
-			const known = entries.addresses[entries.position] === currentAddress()
+	const go = useDrawerGo(election)
 
-			if (next === null) {
-				if (known && entries.position > 0) {
-					window.history.go(-entries.position)
-				} else {
-					window.history.replaceState(null, '', drawerHref(pathname, null))
-
-					emit()
-				}
-
-				return
-			}
-
-			const address = drawerHref(pathname, next)
-
-			if (step !== null && address === drawerHref(pathname, step)) return
-
-			// An open from a closed Drawer starts the record at the page. A move
-			// inside a Drawer that the record does not know keeps no record.
-			if (step === null) {
-				entries.addresses = [currentAddress()]
-
-				entries.position = 0
-			} else if (!known) {
-				entries.addresses = []
-			}
-
-			if (entries.addresses.length > 0) {
-				// A move drops the entries after the position, as the browser does.
-				entries.addresses = [...entries.addresses.slice(0, entries.position + 1), address]
-
-				entries.position += 1
-			}
-
-			window.history.pushState(null, '', address)
-
-			emit()
-		},
-	}
+	return { step, go }
 }
