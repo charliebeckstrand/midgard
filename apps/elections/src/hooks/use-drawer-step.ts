@@ -37,7 +37,7 @@ if (typeof window !== 'undefined') {
  * the same step.
  *
  * Each move is a history entry, so Back walks the trail of the Drawer and then
- * closes it. A move writes the address in place, with no navigation: the page
+ * closes it. A move to the current step writes no entry. A move writes the address in place, with no navigation: the page
  * under the Drawer stays as it is, and the Drawer reads what it needs.
  *
  * A close goes back to the entry from before the Drawer opened, so Back after
@@ -70,6 +70,10 @@ export function useDrawerStep(election: Election): {
 				return
 			}
 
+			const address = drawerHref(pathname, next)
+
+			if (step !== null && address === drawerHref(pathname, step)) return
+
 			// An open from a closed Drawer starts the record at the page. A move
 			// inside a Drawer that the record does not know keeps no record.
 			if (step === null) {
@@ -79,8 +83,6 @@ export function useDrawerStep(election: Election): {
 			} else if (!known) {
 				entries.addresses = []
 			}
-
-			const address = drawerHref(pathname, next)
 
 			if (entries.addresses.length > 0) {
 				// A move drops the entries after the position, as the browser does.
