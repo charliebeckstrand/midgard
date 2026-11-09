@@ -1,8 +1,10 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { Card } from 'ui/card'
 import { Link } from 'ui/link'
 import { useIntl } from 'ui/primitives/intl'
+import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { type Election, electionPath } from '../../elections/registry'
 
@@ -16,13 +18,23 @@ export function ElectionDay({ date }: { date: string }) {
 	return intl.formatDate(`${date}T12:00:00Z`, { dateStyle: 'long', timeZone: 'UTC' })
 }
 
+/** The flag of each country of a list, by the code of the country, such as `us`. */
+export type CountryFlags = Readonly<Record<string, ReactNode>>
+
+/** Props for {@link ElectionList}. */
+export type ElectionListProps = {
+	elections: readonly Election[]
+	/** The flag of each country, which the card shows before the name of the country. */
+	flags: CountryFlags
+}
+
 /**
  * The elections of a list, each a card that leads to its overview. The cards
- * stack in one column. A card names the election, its country, and its day,
- * which every election has, whatever its country and its offices. The list
- * gives no status: the group of the list names it.
+ * stack in one column. A card names the election, its country with its flag,
+ * and its day, which every election has, whatever its country and its
+ * offices. The list gives no status: the group of the list names it.
  */
-export function ElectionList({ elections }: { elections: readonly Election[] }) {
+export function ElectionList({ elections, flags }: ElectionListProps) {
 	return (
 		<Stack gap="md">
 			{elections.map((election) => (
@@ -37,9 +49,18 @@ export function ElectionList({ elections }: { elections: readonly Election[] }) 
 							{election.year} {election.name}
 						</span>
 
-						<span className="text-sm text-zinc-600 dark:text-zinc-400">
-							{election.countryName}, <ElectionDay date={election.date} />
-						</span>
+						<Flex
+							as="span"
+							align="center"
+							gap="sm"
+							className="text-sm text-zinc-600 dark:text-zinc-400"
+						>
+							{flags[election.country]}
+
+							<span>
+								{election.countryName}, <ElectionDay date={election.date} />
+							</span>
+						</Flex>
 					</Stack>
 				</Card>
 			))}

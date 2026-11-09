@@ -66,7 +66,8 @@ now, then the elections to come, then the past elections, and a calendar with
 each election day marked. A Filter button opens a dialog with a form of the
 year and the country, which every election has. A field shows only where it
 has two options or more, and the button shows only where a field shows. A card
-names the election, its country, and its day, and no office. The trail of the header is the
+names the election, its country with its flag, and its day, and no office. The
+flags come from `country-flag-icons`, and the server renders them. The trail of the header is the
 title of a level page, so the heading of the body is only for a screen reader.
 
 The Drawer shows a state, its offices, its districts, and its counties over

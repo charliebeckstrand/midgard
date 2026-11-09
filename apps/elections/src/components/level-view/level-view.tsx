@@ -35,7 +35,7 @@ import {
 	openingDay,
 	statusGroups,
 } from '../../utilities/levels'
-import { ElectionDay, ElectionList } from '../election-list'
+import { type CountryFlags, ElectionDay, ElectionList } from '../election-list'
 
 /** The views of a level page. */
 type LevelViewKind = 'list' | 'calendar'
@@ -47,13 +47,13 @@ const FILTER_LABELS: Record<keyof LevelFilterValue, string> = {
 }
 
 /** The list view: the elections in groups of their status. */
-function ListView({ elections }: { elections: readonly Election[] }) {
+function ListView({ elections, flags }: { elections: readonly Election[]; flags: CountryFlags }) {
 	return statusGroups(elections).map((group) => (
 		<section key={group.status}>
 			<Stack gap="sm">
 				<Heading level={2}>{group.heading}</Heading>
 
-				<ElectionList elections={group.elections} />
+				<ElectionList elections={group.elections} flags={flags} />
 			</Stack>
 		</section>
 	))
@@ -63,7 +63,13 @@ function ListView({ elections }: { elections: readonly Election[] }) {
  * The calendar view: a month with each election day marked, and under it the
  * elections of the picked day. A day with no election picks nothing.
  */
-function CalendarView({ elections }: { elections: readonly Election[] }) {
+function CalendarView({
+	elections,
+	flags,
+}: {
+	elections: readonly Election[]
+	flags: CountryFlags
+}) {
 	const [picked, setPicked] = useState(() => openingDay(elections))
 
 	const days = new Set(elections.map((election) => election.date))
@@ -92,7 +98,7 @@ function CalendarView({ elections }: { elections: readonly Election[] }) {
 							<ElectionDay date={picked} />
 						</Heading>
 
-						<ElectionList elections={shown} />
+						<ElectionList elections={shown} flags={flags} />
 					</Stack>
 				</section>
 			)}
@@ -203,7 +209,14 @@ function LevelFilter({
  * - List: the elections counted now, then those to come, then the past ones.
  * - Calendar: the month of the first of them, with each election day marked.
  */
-export function LevelView({ elections }: { elections: readonly Election[] }) {
+export function LevelView({
+	elections,
+	flags,
+}: {
+	elections: readonly Election[]
+	/** The flag of each country of the elections, which the server renders. */
+	flags: CountryFlags
+}) {
 	const [view, setView] = useState<LevelViewKind>('list')
 
 	const [filter, setFilter] = useState<LevelFilterValue>(NO_FILTER)
@@ -230,10 +243,14 @@ export function LevelView({ elections }: { elections: readonly Election[] }) {
 			</Flex>
 
 			{view === 'list' ? (
-				<ListView elections={shown} />
+				<ListView elections={shown} flags={flags} />
 			) : (
 				// A new filter opens the calendar again on its first election.
-				<CalendarView key={shown.map((election) => election.date).join()} elections={shown} />
+				<CalendarView
+					key={shown.map((election) => election.date).join()}
+					elections={shown}
+					flags={flags}
+				/>
 			)}
 		</>
 	)

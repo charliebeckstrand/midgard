@@ -1,6 +1,7 @@
 import { ELECTIONS, type Election } from '../../elections/registry'
 import { searchedElections } from '../../server/results'
 import { type Crumb, listedElections } from '../../utilities/trail'
+import { CountryFlag } from '../country-flag'
 import { LevelView } from '../level-view'
 import { PageFrame } from '../page-frame'
 import { RaceSearch } from '../race-search'
@@ -19,8 +20,8 @@ export type LevelPageProps = {
  * a country in a year. Each level is the same page over the elections of its
  * scope (`LevelView`). The trail of the header is its visible title, so the
  * heading of the body is only for a screen reader. The search of the header
- * holds every election at each level. The page shows no results, so it has no
- * foot.
+ * holds every election at each level. The page renders the flag of each
+ * country on the server. The page shows no results, so it has no foot.
  */
 export async function LevelPage({ crumbs, heading, elections }: LevelPageProps) {
 	const searched = await searchedElections(listedElections(ELECTIONS))
@@ -29,7 +30,15 @@ export async function LevelPage({ crumbs, heading, elections }: LevelPageProps) 
 		<PageFrame crumbs={crumbs} search={<RaceSearch elections={searched} />}>
 			<h1 className="sr-only">{heading}</h1>
 
-			<LevelView elections={elections} />
+			<LevelView
+				elections={elections}
+				flags={Object.fromEntries(
+					elections.map((election) => [
+						election.country,
+						<CountryFlag key={election.country} country={election.country} />,
+					]),
+				)}
+			/>
 		</PageFrame>
 	)
 }
