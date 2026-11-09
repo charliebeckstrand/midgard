@@ -49,9 +49,10 @@ export function ElectionList({ elections, flags }: ElectionListProps) {
 							{election.year} {election.name}
 						</span>
 
+						{/* On the baseline, so the flag stands where the capitals of the name stand. */}
 						<Flex
 							as="span"
-							align="center"
+							align="baseline"
 							gap="sm"
 							className="text-sm text-zinc-600 dark:text-zinc-400"
 						>

@@ -9,8 +9,8 @@ function isFlagCode(code: string): code is FlagCode {
 }
 
 /**
- * The flag of a country, from `country-flag-icons`, at the height of a line
- * of small text. The flag sits beside the name of the country, which names it,
+ * The flag of a country, from `country-flag-icons`, as tall as a capital
+ * letter of the text beside it (`1cap`). The flag sits beside the name of the country, which names it,
  * so the flag is hidden from a screen reader. A country with no flag in the
  * set renders nothing.
  *
@@ -33,7 +33,7 @@ export function CountryFlag({ country }: { country: string }) {
 	return (
 		<Flag
 			aria-hidden
-			className="h-3.5 w-auto shrink-0 rounded-xs outline -outline-offset-1 outline-zinc-950/10 dark:outline-white/10"
+			className="h-[1cap] w-auto shrink-0 rounded-xs outline -outline-offset-1 outline-zinc-950/10 dark:outline-white/10"
 		/>
 	)
 }
