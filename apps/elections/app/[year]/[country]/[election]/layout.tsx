@@ -5,10 +5,26 @@ import { OfficeView, OverviewView } from '@/components/election-views/views'
 import { ElectionHeader } from '@/components/elections-header'
 import { PageColumn } from '@/components/page-frame'
 import { RaceSearch } from '@/components/race-search'
+import { ELECTIONS } from '@/elections/registry'
 import { officeRaces } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
 import { OVERVIEW } from '@/utilities/trail'
+
+/**
+ * The elections of the registry, which prerender with the build. The static
+ * shell of each page holds this layout with its results. Cache Components
+ * serves the shell, and renders the next one in the background. Thus a visit
+ * does not wait for civicAPI, and a link prefetches the election with its code
+ * before the click.
+ */
+export function generateStaticParams(): ElectionParams[] {
+	return ELECTIONS.map((election) => ({
+		year: String(election.year),
+		country: election.country,
+		election: election.slug,
+	}))
+}
 
 /**
  * The frame of the pages of an election. The header lives here, not in each

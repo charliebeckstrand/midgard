@@ -45,17 +45,23 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
  * The page of an office in a state, such as the Senate in Georgia. The layout
  * of the state renders its view; the page holds the Drawer and the live
  * refresh. An office with no race in the state renders the not-found page.
+ *
+ * The refresh runs while any race of the election is counted, not only a race
+ * of the page, because the Drawer opens on each office and gets its race from
+ * the refresh.
  */
 export default async function StateOfficePage({ params, searchParams }: Params) {
 	const { election, state, contest } = await readStateOffice(params)
 
 	const all = await electionResults(election)
 
-	const entries = all
-		.find((result) => result.contest.slug === contest.slug)
-		?.entries.filter((entry) => entry.state.key === state.key)
+	const entries = all.flatMap((result) => result.entries)
 
-	if (entries === undefined || entries.length === 0) notFound()
+	if (
+		!entries.some((entry) => entry.contest.slug === contest.slug && entry.state.key === state.key)
+	) {
+		notFound()
+	}
 
 	const seed = await drawerSeed(election, officeRaces(all), searchParams)
 
