@@ -55,7 +55,7 @@ No root barrel; the `exports` map exposes each component path.
 | `src/fonts/` | The generated font files and `fonts.css`. |
 | `src/__tests__/` | Component, primitive, and boundary tests. |
 | `src/__benchmarks__/` | Benchmarks. |
-| `src/docs/` | The docs site: a React Router app that prerenders each page. `pages/` holds the examples, and `plugin/` gives the API data, the page list, and the highlighted code. |
+| `src/docs/` | The docs site: a React Router app whose build prerenders each page. The dev server does not prerender, so a check of the first paint or of hydration runs on `docs:build` and `docs:preview`. `pages/` holds the examples, and `plugin/` gives the API data, the page list, and the highlighted code. |
 
 ## 4. Further reading
 

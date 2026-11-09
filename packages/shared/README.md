@@ -17,6 +17,7 @@ The apps compile this package from its source, as they do `ui`. The one build st
 | `shared/mimir` | The `paths` and `components` types of the Mimir API, in asgard, from `src/mimir/openapi.d.ts`. The places and the picks apps type their Mimir clients from it. `createMimirClient` makes the client in the browser, and `unwrap` from `shared/auth` reads its result. |
 | `shared/queries` | `seed` marks the read of a server page with the time of the read, and `seededQuery` puts that read into a client query. The query keeps the entry only while its page is open, so a revisit shows the newer read of the server and does not fetch again. |
 | `shared/refresh` | `LiveRefresh`, which renders the page again on the server each minute while its `live` prop holds and the tab is visible. The picks and the elections apps render it on a page with live data. |
+| `shared/events` | `onRouterTransitionStart`, which records the start of each navigation of the App Router as a route event while the events of `ui/events` run. Each app re-exports it from its `instrumentation-client.ts`. |
 | `shared/pages` | `ErrorPage` and `NotFoundPage`, which the `app/error.tsx` and `app/not-found.tsx` of each app re-export as their default exports, and `notFoundMetadata`, which `app/not-found.tsx` re-exports as its `metadata`. |
 | `shared/globals.css` | Global stylesheet: `ui/tailwind.css`, which gives the font (except its latin face) and `--font-sans`, the root styles, and a `dark` variant that follows the `.dark` class, else the OS while the root has no `.light` class. `AppearanceProvider` from `ui/providers/appearance` sets the classes, and it adds the latin face. |
 
@@ -39,7 +40,7 @@ The apps compile this package from its source, as they do `ui`. The one build st
 
 ## 4. Consumers
 
-All three apps use the auth UI, the providers, the stylesheet, and the error and 404 pages. [`apps/places`](../../apps/places/README.md) and [`apps/picks`](../../apps/picks/README.md) use the Mimir types. This package depends on [`ui`](../ui/README.md).
+Each app uses the providers, the stylesheet, the error and 404 pages, and the navigation hook of `shared/events`. Admin, places, and picks also use the auth UI. [`apps/places`](../../apps/places/README.md) and [`apps/picks`](../../apps/picks/README.md) use the Mimir types. This package depends on [`ui`](../ui/README.md).
 
 ---
 
