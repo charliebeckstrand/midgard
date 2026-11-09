@@ -6425,15 +6425,15 @@
 	},
 	"docs.prop.height": {
 		"defaultMessage": "Height",
-		"description": "The label of a field of a playground in the docs. The field sets the prop height of DrawerPanel."
+		"description": "The label of a field of a playground in the docs. The field sets the prop height of DialogPanel, DrawerPanel."
 	},
 	"docs.prop.height.auto": {
 		"defaultMessage": "Auto",
-		"description": "An option of the Height field of a playground in the docs. It sets the prop height to 'auto' on DrawerPanel."
+		"description": "An option of the Height field of a playground in the docs. It sets the prop height to 'auto' on DialogPanel, DrawerPanel."
 	},
 	"docs.prop.height.fit": {
 		"defaultMessage": "Fit",
-		"description": "An option of the Height field of a playground in the docs. It sets the prop height to 'fit' on DrawerPanel."
+		"description": "An option of the Height field of a playground in the docs. It sets the prop height to 'fit' on DialogPanel, DrawerPanel."
 	},
 	"docs.prop.height.full": {
 		"defaultMessage": "Full",

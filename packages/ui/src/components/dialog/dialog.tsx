@@ -1,8 +1,11 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core/cn'
+import { usePanelFit } from '../../hooks/use-panel-fit'
 import { useResponsiveValue } from '../../hooks/use-responsive-value'
+import { HeightMotionContext } from '../../primitives/height-motion/context'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives/panel'
 import type { PanelOverlayProps } from '../../primitives/panel/types'
@@ -11,6 +14,7 @@ import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 import { adaptive, type Responsive, withInitial } from '../../utilities/responsive'
+import { dialogCeiling } from './dialog-ceiling'
 import { DialogClose, DialogDefaultFooter } from './slots'
 
 /** Where a {@link DialogPanel} sits: docked to the `bottom` edge, or floating at the `center` or the `top`. */
@@ -21,6 +25,9 @@ export const DIALOG_ALIGN = adaptive({
 	compact: 'bottom',
 	medium: 'center',
 }) satisfies Responsive<DialogAlign>
+
+/** How a {@link DialogPanel} takes its height: `auto` snaps to its content, and `fit` travels to it. */
+export type DialogHeight = 'auto' | 'fit'
 
 /** Props for {@link Dialog}: the open state, controlled or uncontrolled. */
 export type DialogProps = PanelRootProps
@@ -65,6 +72,21 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		 * @defaultValue {@link DIALOG_ALIGN}
 		 */
 		align?: Responsive<DialogAlign>
+		/**
+		 * How the panel takes the height of its content. The panel is as tall as
+		 * its content in both, up to the cap of its `align`.
+		 *
+		 * With `auto`, a change of the content changes the height in one step.
+		 * With `fit`, the panel measures each new height and travels to it, as a
+		 * Drawer with `height="fit"` does. Use `fit` for a panel whose content
+		 * swaps, such as the steps under a breadcrumb, or a Segment between two
+		 * views of different heights. Content that animates its own height, such
+		 * as an Accordion or a Collapse, then moves the panel on each frame. The
+		 * travel takes no time under reduced motion.
+		 *
+		 * @defaultValue 'auto'
+		 */
+		height?: DialogHeight
 		/**
 		 * Opts into the glass surface treatment. Omit it to follow the ambient
 		 * `<GlassProvider>`. Set `false` to keep the flat surface inside one.
@@ -151,6 +173,7 @@ export function DialogPanel({
 	backdrop,
 	container,
 	width,
+	height = 'auto',
 	glass,
 	className,
 	children,
@@ -161,6 +184,7 @@ export function DialogPanel({
 	'aria-label': ariaLabel,
 	'data-slot': slot = 'dialog',
 	onClick,
+	ref,
 	...props
 }: DialogPanelProps) {
 	const surface = useResolvedSurface(glass)
@@ -185,6 +209,18 @@ export function DialogPanel({
 		returnFocusTo,
 	})
 
+	// A `fit` panel travels between the heights of its content. No drag holds
+	// the height of a dialog.
+	const fit = usePanelFit({
+		enabled: height === 'fit',
+		dragged: false,
+		getCeiling: dialogCeiling,
+		transition: k.fit,
+	})
+
+	// The fit reads the node. A consumer `ref` joins it.
+	const panelRef = useComposedRefs(fit.ref, ref)
+
 	const slots = k({ surface, width, align })
 
 	return (
@@ -194,15 +230,20 @@ export function DialogPanel({
 					data-slot={slot}
 					{...props}
 					{...panelProps}
+					ref={panelRef}
 					// A command palette's rows hover inside this panel, not inside a popover,
 					// so they take the glass wash that the panel opens.
 					className={cn('pointer-events-auto', panelClassName, slots.base, className)}
 				>
 					<PanelProviders onOpenChange={setOpen} a11y={a11y}>
-						{children}
-						<DialogDefaultFooter>
-							{footer === undefined ? <DialogClose /> : footer}
-						</DialogDefaultFooter>
+						{/* Content that moves its own height tells a `fit` panel, which then follows it. An
+						`auto` panel gives `null`, so its content does not tell a `fit` panel outside it. */}
+						<HeightMotionContext value={height === 'fit' ? fit.host : null}>
+							{children}
+							<DialogDefaultFooter>
+								{footer === undefined ? <DialogClose /> : footer}
+							</DialogDefaultFooter>
+						</HeightMotionContext>
 					</PanelProviders>
 				</m.div>
 			</div>
