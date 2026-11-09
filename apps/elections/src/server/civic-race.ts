@@ -123,9 +123,12 @@ function readCandidates(value: unknown, path: string): Candidate[] {
  */
 export type CountyNames = (stateFips: string) => ReadonlyMap<string, string>
 
-/** A name in the form that the atlas lookup keys on: lowercase, with single spaces. */
+/**
+ * A name in the form that the atlas lookup keys on: lowercase, with no periods
+ * and single spaces. civicAPI writes `St Joseph` where the atlas has `St. Joseph`.
+ */
 export function foldName(name: string): string {
-	return name.toLowerCase().replace(/\s+/g, ' ').trim()
+	return name.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim()
 }
 
 /** The 5-digit FIPS code of a county. */
@@ -174,6 +177,9 @@ function mergeCounty(a: CountyResult, b: CountyResult): CountyResult {
 /**
  * The FIPS code of a row of a race: its own code, the code of the atlas county
  * of its name for a `County` row with none, or `null` for a part of a county.
+ * A `County` row with no code, no atlas county, and no votes is also `null`,
+ * because it changes no total. Chicago is such a row in the House districts of
+ * Illinois, and Cook holds its votes.
  */
 function readCountyFips(
 	row: Json,
@@ -187,16 +193,20 @@ function readCountyFips(
 
 	const fips = atlas.get(foldName(name))
 
-	if (fips === undefined) throw new CivicShapeError(`${path} names no county of the atlas.`)
+	if (fips !== undefined) return fips
 
-	return fips
+	const candidates = readCandidates(row.candidates, `${path}.candidates`)
+
+	if (candidates.every((candidate) => candidate.votes === 0)) return null
+
+	throw new CivicShapeError(`${path} names no county of the atlas.`)
 }
 
 /**
  * The counties of a race, joined to the county atlas. A row with a FIPS code is
  * a county, a parish, a borough, or a city. A row of the type `County` with no
- * code takes the code of the atlas county of the same name in its state. Every
- * other row (a town, a township, a planning region, a state house district, the
+ * code takes the code of the atlas county of the same name in its state, and
+ * one with no such county and no votes is left out. Every other row (a town, a township, a planning region, a state house district, the
  * overseas votes) is a part that a county row already holds, so the reader
  * leaves it out.
  */

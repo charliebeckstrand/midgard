@@ -37,7 +37,8 @@ export async function isKnownRace(id: number): Promise<boolean> {
 /**
  * The newest calls of the statewide races, newest first. The national races
  * mark a winner but give no call time, so each called race is read for it. A
- * race without `called_at` takes its last update.
+ * race without `called_at` is left out: its last update moves with each count,
+ * so it does not tell when the race was called.
  *
  * @param results - The results of the contests of the election.
  * @param count - The most calls to give.
@@ -57,7 +58,9 @@ export async function latestCalls(
 
 			const winner = read.candidates.find((candidate) => candidate.winner)
 
-			return winner === undefined ? null : { entry, winner, at: read.calledAt ?? read.updated }
+			if (winner === undefined || read.calledAt === null) return null
+
+			return { entry, winner, at: read.calledAt }
 		}),
 	)
 

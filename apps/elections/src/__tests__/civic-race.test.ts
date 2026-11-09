@@ -13,6 +13,8 @@ import ctGovernor from './fixtures/ct-governor.json'
 import ga06 from './fixtures/ga-06.json'
 import gaSenate from './fixtures/ga-senate.json'
 import house from './fixtures/house.json'
+import il01 from './fixtures/il-01.json'
+import in02 from './fixtures/in-02.json'
 import mnSenate from './fixtures/mn-senate.json'
 import senate from './fixtures/senate.json'
 
@@ -59,6 +61,18 @@ describe('readRace', () => {
 		expect(codes.get('Lake Of The Woods')).toBe('27077')
 
 		expect(codes.get('Mcleod')).toBe('27085')
+	})
+
+	it('joins a county row with no code to the atlas county of the same name without its periods', () => {
+		const race = readRace(87136, in02, '18', atlasCountyNames)
+
+		expect(race.counties.find((county) => county.name === 'St Joseph')?.fips).toBe('18141')
+	})
+
+	it('leaves out a county row with no code and no votes, such as Chicago inside Cook', () => {
+		const race = readRace(87112, il01, '17', atlasCountyNames)
+
+		expect(race.counties.map((county) => county.fips).sort()).toEqual(['17031', '17091', '17197'])
 	})
 
 	it('adds the two new Alaska areas into the Valdez-Cordova county of the atlas, and leaves out the state house districts', () => {
@@ -217,5 +231,9 @@ describe('the party colors and the names', () => {
 
 	it('folds a name to lowercase with single spaces', () => {
 		expect(foldName(' Lac  Qui Parle ')).toBe('lac qui parle')
+	})
+
+	it('folds a name without its periods', () => {
+		expect(foldName('St. Joseph')).toBe(foldName('St Joseph'))
 	})
 })
