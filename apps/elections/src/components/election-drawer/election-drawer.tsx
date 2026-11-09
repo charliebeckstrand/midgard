@@ -1,14 +1,16 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import type { Seed } from 'shared/queries'
+import { Button } from 'ui/button'
 import { SearchInput } from 'ui/search-input'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer-step'
 import { useRace } from '../../queries/race-queries'
 import type { Race } from '../../types'
-import { type DrawerStep, districtName } from '../../utilities/elections-url'
+import { type DrawerStep, districtName, statePath } from '../../utilities/elections-url'
 import { delegation } from '../../utilities/race-math'
 import {
 	entryKey,
@@ -96,16 +98,28 @@ function drawerTrail(
 	return trail
 }
 
-/** The overview of a state: a card of each office with a race in the state, which leads to the office. */
+/**
+ * The overview of a state: a card of each office with a race in the state,
+ * which leads to the office. Under the cards, a link leads to the page of the
+ * state, except on a page of that state.
+ */
 function StateOverview({
+	election,
 	races,
 	step,
 	go,
 }: {
+	election: Election
 	races: readonly OfficeRaces[]
 	step: DrawerStep
 	go: Go
 }) {
+	const pathname = usePathname()
+
+	const page = statePath(election, step.region, null)
+
+	const onPage = pathname === page || pathname.startsWith(`${page}/`)
+
 	return (
 		<Stack gap="lg">
 			{races.map(({ contest, entries }) => {
@@ -133,6 +147,12 @@ function StateOverview({
 					</OfficeCard>
 				)
 			})}
+
+			{onPage ? null : (
+				<Button href={page} variant="outline">
+					View {step.region.name}
+				</Button>
+			)}
 		</Stack>
 	)
 }
@@ -257,7 +277,10 @@ function drawerView(
 	const office = races.find((candidate) => candidate.contest.slug === step.office)
 
 	if (office === undefined) {
-		return { steps: trail, body: <StateOverview races={races} step={step} go={go} /> }
+		return {
+			steps: trail,
+			body: <StateOverview election={election} races={races} step={step} go={go} />,
+		}
 	}
 
 	if (entry !== undefined) return raceView(entry, race, trail, step, go, views)
@@ -281,7 +304,8 @@ function drawerView(
  * office crumb opens the offices of the state, and an office with no race in
  * the state is disabled.
  *
- * - The overview: a card of each office of the state, which leads to the office.
+ * - The overview: a card of each office of the state, which leads to the
+ *   office, and a link to the page of the state.
  * - A statewide office or a district: the race, with a Segment between its
  *   overview and its counties on a map.
  * - The House: the delegation of the state, then a card of each district.

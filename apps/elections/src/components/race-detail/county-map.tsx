@@ -16,8 +16,14 @@ export type CountyMapProps = {
 	statewide: boolean
 	/** The counties of the race, or `undefined` while the race loads. */
 	counties: readonly CountyResult[] | undefined
-	/** Opens a county of the race, by its FIPS code. */
-	onCounty: (fips: string) => void
+	/** Opens a county of the race, by its FIPS code. Omit it for a map whose counties open nothing. */
+	onCounty?: (fips: string) => void
+	/**
+	 * The ratio of the width to the height of the frame, such as the ratio of
+	 * the state from `countyAspect`.
+	 * @defaultValue 'auto'
+	 */
+	aspectRatio?: number | 'auto'
 }
 
 /** One county of the map: its FIPS code and its category. */
@@ -26,14 +32,22 @@ type CountyRow = { fips: string; winner: string }
 /**
  * The counties of a race on a map of its state, colored by the side that leads
  * each county. A district race draws only the counties of the district. A click
- * on a county opens it. The map is the entry of a lazy chunk, which the Drawer
- * loads with the shapes when it opens on a state.
+ * on a county opens it. In the Drawer, the map is the entry of a lazy chunk,
+ * which the Drawer loads with the shapes when it opens on a state. The page of
+ * a state shows the map of each office.
  *
  * Until the counties of the race load, a statewide race draws the shapes of its
  * state, and they pulse. The counties of a district are known only from the
  * race, so a district race reserves the frame until then.
  */
-export function CountyMap({ label, state, statewide, counties, onCounty }: CountyMapProps) {
+export function CountyMap({
+	label,
+	state,
+	statewide,
+	counties,
+	onCounty,
+	aspectRatio = 'auto',
+}: CountyMapProps) {
 	const shapes = useCountyShapes(state)
 
 	const rows = useMemo(
@@ -69,11 +83,16 @@ export function CountyMap({ label, state, statewide, counties, onCounty }: Count
 			aria-label={`${label} results by county`}
 			geography={geography}
 			projection="identity"
+			aspectRatio={aspectRatio}
 			loading={counties === undefined}
 			regionKey="fips"
-			onRegionClick={(fips: string) => {
-				if (counted.has(fips)) onCounty(fips)
-			}}
+			onRegionClick={
+				onCounty === undefined
+					? undefined
+					: (fips: string) => {
+							if (counted.has(fips)) onCounty(fips)
+						}
+			}
 			data={rows}
 			categoryKey="winner"
 			colorName="Leader"

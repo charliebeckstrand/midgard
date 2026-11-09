@@ -1,1 +1,1 @@
-export { OfficeCard } from './office-card'
+export { OfficeCard, type OfficeCardProps } from './office-card'

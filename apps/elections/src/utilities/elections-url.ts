@@ -1,5 +1,5 @@
 import { type Contest, type Election, electionPath, findContest } from '../elections/registry'
-import { stateOfKey, type UsState } from '../elections/us-states'
+import { stateOfKey, stateSlug, type UsState } from '../elections/us-states'
 
 /**
  * The step of the Drawer of an election, which the address holds, such as
@@ -85,6 +85,16 @@ export function drawerSearch(step: DrawerStep | null): URLSearchParams {
 /** The path of an office of an election, or of its overview, such as `/2026/us/midterms/senate`. */
 export function officePath(election: Election, contest: Contest | null): string {
 	const base = electionPath(election)
+
+	return contest === null ? base : `${base}/${contest.slug}`
+}
+
+/**
+ * The path of a state in an election, or of an office in the state, such as
+ * `/2026/us/midterms/georgia` or `/2026/us/midterms/georgia/senate`.
+ */
+export function statePath(election: Election, state: UsState, contest: Contest | null): string {
+	const base = `${electionPath(election)}/${stateSlug(state)}`
 
 	return contest === null ? base : `${base}/${contest.slug}`
 }
