@@ -6,12 +6,18 @@ import type { Election, ElectionStatus } from '../elections/registry'
  * the elections of its scope, with the same views and the same filters.
  */
 
-/** The filters of a level page. An absent field filters nothing. */
+/**
+ * The filters of a level page. A `null` field filters nothing. The filters
+ * name only what every election has, a year and a country, so they hold for
+ * the elections of each country.
+ */
 export type LevelFilterValue = {
-	year?: string
-	country?: string
-	office?: string
+	year: string | null
+	country: string | null
 }
+
+/** The filter value that filters nothing. */
+export const NO_FILTER: LevelFilterValue = { year: null, country: null }
 
 /** One option of a filter of a level page. */
 export type LevelFilterOption = { value: string; label: string }
@@ -38,8 +44,7 @@ function distinct(
 /**
  * The options of each filter for the elections of a level. A filter with fewer
  * than two options narrows nothing, so the page does not show it: the page of a
- * country shows no country filter, and a registry of one election shows only
- * the office filter.
+ * country shows no country filter.
  */
 export function levelFilterOptions(elections: readonly Election[]): LevelFilterOptions {
 	return {
@@ -49,10 +54,12 @@ export function levelFilterOptions(elections: readonly Election[]): LevelFilterO
 		country: distinct(elections, (election) => [
 			{ value: election.country, label: election.countryName },
 		]),
-		office: distinct(elections, (election) =>
-			election.contests.map((contest) => ({ value: contest.label, label: contest.label })),
-		),
 	}
+}
+
+/** The number of the fields of a filter value that filter something. */
+export function activeFilters(filter: LevelFilterValue): number {
+	return Object.values(filter).filter((value) => value !== null).length
 }
 
 /** The elections that each field of a filter value lets through. */
@@ -62,10 +69,8 @@ export function filterElections(
 ): Election[] {
 	return elections.filter(
 		(election) =>
-			(filter.year === undefined || String(election.year) === filter.year) &&
-			(filter.country === undefined || election.country === filter.country) &&
-			(filter.office === undefined ||
-				election.contests.some((contest) => contest.label === filter.office)),
+			(filter.year === null || String(election.year) === filter.year) &&
+			(filter.country === null || election.country === filter.country),
 	)
 }
 

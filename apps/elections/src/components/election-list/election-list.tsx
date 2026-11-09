@@ -1,20 +1,26 @@
+'use client'
+
 import { Card } from 'ui/card'
 import { Link } from 'ui/link'
+import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/structure/stack'
 import { type Election, electionPath } from '../../elections/registry'
 
-/** The day of an election, such as `November 3, 2026`. The day is a date, so it reads in UTC. */
-export function electionDay(date: string): string {
-	return new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', {
-		dateStyle: 'long',
-		timeZone: 'UTC',
-	})
+/**
+ * The day of an election in the locale of the page, such as `November 3, 2026`.
+ * The day is a date, so it reads in UTC: each zone shows the same day.
+ */
+export function ElectionDay({ date }: { date: string }) {
+	const intl = useIntl()
+
+	return intl.formatDate(`${date}T12:00:00Z`, { dateStyle: 'long', timeZone: 'UTC' })
 }
 
 /**
  * The elections of a list, each a card that leads to its overview. The cards
- * stack in one column. A card names the election, its country and its day, and
- * its offices. The list gives no status: the group of the list names it.
+ * stack in one column. A card names the election, its country, and its day,
+ * which every election has, whatever its country and its offices. The list
+ * gives no status: the group of the list names it.
  */
 export function ElectionList({ elections }: { elections: readonly Election[] }) {
 	return (
@@ -32,14 +38,8 @@ export function ElectionList({ elections }: { elections: readonly Election[] }) 
 						</span>
 
 						<span className="text-sm text-zinc-600 dark:text-zinc-400">
-							{election.countryName}, {electionDay(election.date)}
+							{election.countryName}, <ElectionDay date={election.date} />
 						</span>
-
-						{election.contests.length === 0 ? null : (
-							<span className="text-sm text-zinc-600 dark:text-zinc-400">
-								{election.contests.map((contest) => contest.label).join(', ')}
-							</span>
-						)}
 					</Stack>
 				</Card>
 			))}

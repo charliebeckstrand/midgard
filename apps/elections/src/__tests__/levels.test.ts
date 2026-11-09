@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { type Election, findElection } from '../elections/registry'
 import {
+	activeFilters,
 	filterElections,
 	isoDay,
 	levelFilterOptions,
 	localDay,
+	NO_FILTER,
 	openingDay,
 	statusGroups,
 } from '../utilities/levels'
@@ -59,7 +61,7 @@ describe('the level pages', () => {
 		expect(statusGroups([locals]).map((group) => group.heading)).toEqual(['Upcoming'])
 	})
 
-	it('gives each filter its distinct options, so a filter of one option can hide', () => {
+	it('gives the year and the country filter their distinct options, so a filter of one option can hide', () => {
 		const options = levelFilterOptions(all)
 
 		expect(options.year.map((option) => option.value)).toEqual(['2020', '2028', '2026', '2024'])
@@ -69,19 +71,19 @@ describe('the level pages', () => {
 			{ value: 'gb', label: 'United Kingdom' },
 		])
 
-		expect(options.office.map((option) => option.label)).toEqual(['Senate', 'House', 'Governor'])
-
 		expect(levelFilterOptions([midterms]).country).toHaveLength(1)
 	})
 
 	it('lets through only the elections that match each set field', () => {
-		expect(filterElections(all, {})).toHaveLength(all.length)
+		expect(filterElections(all, NO_FILTER)).toHaveLength(all.length)
 
-		expect(filterElections(all, { country: 'gb' })).toEqual([locals])
+		expect(filterElections(all, { year: null, country: 'gb' })).toEqual([locals])
 
-		expect(filterElections(all, { year: '2026', office: 'Senate' })).toEqual([midterms])
+		expect(filterElections(all, { year: '2026', country: 'us' })).toEqual([midterms])
 
-		expect(filterElections(all, { office: 'Senate', country: 'gb' })).toEqual([])
+		expect(filterElections(all, { year: '2028', country: 'gb' })).toEqual([])
+
+		expect(activeFilters({ year: '2026', country: null })).toBe(1)
 	})
 
 	it('opens the calendar on the first election of the list', () => {

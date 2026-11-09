@@ -63,8 +63,10 @@ The first three routes are the level pages. Each level page is the same
 compilation of the elections of its scope (`src/components/level-view`). A
 Segment switches between two views: a list of the elections that are counted
 now, then the elections to come, then the past elections, and a calendar with
-each election day marked. A filter of the year, the country, or the office
-shows only where it has two options or more. The trail of the header is the
+each election day marked. A Filter button opens a dialog with a form of the
+year and the country, which every election has. A field shows only where it
+has two options or more, and the button shows only where a field shows. A card
+names the election, its country, and its day, and no office. The trail of the header is the
 title of a level page, so the heading of the body is only for a screen reader.
 
 The Drawer shows a state, its offices, its districts, and its counties over

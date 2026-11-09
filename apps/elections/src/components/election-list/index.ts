@@ -1,1 +1,1 @@
-export { ElectionList, electionDay } from './election-list'
+export { ElectionDay, ElectionList } from './election-list'
