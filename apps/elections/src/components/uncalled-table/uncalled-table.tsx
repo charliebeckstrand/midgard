@@ -7,7 +7,7 @@ import type { GridSortState } from 'ui/grid'
 import { Placeholder } from 'ui/placeholder'
 import { Flex } from 'ui/structure/flex'
 import type { Election } from '../../elections/registry'
-import { useDrawerGo } from '../../hooks/use-drawer-step'
+import { useDrawerGo } from '../../hooks/use-drawer'
 import { entryStep, type RaceEntry } from '../../utilities/results'
 import { CollapseCaret } from '../collapse-caret'
 

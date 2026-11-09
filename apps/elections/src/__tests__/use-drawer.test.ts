@@ -3,7 +3,7 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { findElection } from '../elections/registry'
 import { stateOfKey } from '../elections/us-states'
-import { useDrawerGo, useDrawerStep } from '../hooks/use-drawer-step'
+import { useDrawerGo, useDrawerStep } from '../hooks/use-drawer'
 
 /**
  * The search of the router. `null` follows the address of the browser. A

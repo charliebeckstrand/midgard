@@ -12,7 +12,7 @@ import {
 } from 'ui/command-palette'
 import { Swatch } from 'ui/swatch'
 import type { Election } from '../../elections/registry'
-import { useDrawerGo } from '../../hooks/use-drawer-step'
+import { useDrawerGo } from '../../hooks/use-drawer'
 import {
 	type ElectionRaces,
 	electionsSearchGroups,

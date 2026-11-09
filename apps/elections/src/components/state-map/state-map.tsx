@@ -2,7 +2,7 @@
 
 import type { Contest, Election } from '../../elections/registry'
 import type { UsState } from '../../elections/us-states'
-import { useDrawerGo } from '../../hooks/use-drawer-step'
+import { useDrawerGo } from '../../hooks/use-drawer'
 import type { CountyResult } from '../../types'
 import type { RaceEntry } from '../../utilities/results'
 import { CountyMap } from '../race-detail/county-map'

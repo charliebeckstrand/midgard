@@ -3,7 +3,7 @@
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
-import { useDrawerGo } from '../../hooks/use-drawer-step'
+import { useDrawerGo } from '../../hooks/use-drawer'
 import { entryKey, entryStep, type RaceEntry } from '../../utilities/results'
 import { RaceCard, RaceCardGrid } from '../race-card'
 

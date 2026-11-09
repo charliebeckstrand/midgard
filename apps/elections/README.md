@@ -90,7 +90,7 @@ each page of an election. Its step is in the search params:
 `&district=06` a district of the House, and `&county=13121` a county.
 
 `src/utilities/elections-url.ts` reads and writes the paths and the params, and
-`src/hooks/use-drawer-step.ts` moves the Drawer.
+`src/hooks/use-drawer.ts` moves the Drawer.
 
 The Drawer is a `Dialog` of `ui`. On a phone, it is docked to the bottom
 edge. From `sm`, it is centered, and it is as wide as its content. Its height
