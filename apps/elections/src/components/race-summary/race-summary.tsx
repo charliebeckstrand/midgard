@@ -76,7 +76,7 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 				</Stack>
 
 				{/* The votes sit under the share, as the party sits under the name. */}
-				<Stack gap="xs" align="end" className="shrink-0 tabular-nums">
+				<Stack gap="xs" align="end" className="shrink-0">
 					<PercentOdometer value={candidate.percent} digits={1} className="font-semibold" />
 
 					{detail ? (
