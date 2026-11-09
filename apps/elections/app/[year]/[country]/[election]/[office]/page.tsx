@@ -2,13 +2,20 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
-import { type Contest, type Election, findContest } from '@/elections/registry'
+import { type Contest, type Election, findContest, findElection } from '@/elections/registry'
 import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
 import { isCounting } from '@/utilities/results'
 
 type Params = { params: Promise<ElectionParams & { office: string }>; searchParams: SearchParams }
+
+/** The offices of each election of the registry, which prerender with the build, as the layout does. */
+export function generateStaticParams({ params }: { params: ElectionParams }): { office: string }[] {
+	const election = findElection(params.year, params.country, params.election)
+
+	return (election?.contests ?? []).map((contest) => ({ office: contest.slug }))
+}
 
 /** The page reads the results before it renders, so the first frame has them. */
 export const instant = false

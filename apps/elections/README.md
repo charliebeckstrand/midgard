@@ -82,6 +82,14 @@ The layout of an election renders the view of each of its pages, and
 views stay mounted and hidden, so an office switch shows a view that is already
 rendered. A page holds only its Drawer and its live refresh.
 
+The build prerenders each election of the registry and each of its offices.
+The static shell of a page holds the layout with its results. Cache Components
+serves that shell, and renders the next shell in the background once the
+shell is a minute old. Thus a visit does not wait for civicAPI. A link to an
+election prefetches the shell and its code before the click. `LiveRefresh`
+renders the whole page on the server, so each refresh reads the cache of the
+races.
+
 ## The design
 
 Each screen shows only what a reader needs. No label reads "All", and a title
