@@ -1,11 +1,16 @@
+import { type Election, electionPath } from '../elections/registry'
 import type { UsState } from '../elections/us-states'
 import type { PartySlot } from '../types'
-import type { DrawerStep } from './elections-url'
+import { type DrawerStep, drawerHref } from './elections-url'
 import { entryKey, entryName, entryStep, matchesWords, type OfficeRaces } from './results'
 
 /**
  * The search of an election, in the header of each of its pages. A row is a
  * state or a race, and a pick opens the Drawer on it.
+ *
+ * The search of every election, in the header of the list of every election,
+ * holds the rows of each election too, and a row of each election. A pick
+ * opens the page of the election, with the Drawer on the state or the race.
  */
 
 /** One row of the search: a state or a race, and the step of the Drawer that it opens. */
@@ -101,4 +106,68 @@ export function searchGroups(races: readonly OfficeRaces[], query: string): Sear
 	}
 
 	return groups.filter((group) => group.rows.length > 0)
+}
+
+/** The races of each office of one election, for the search of every election. */
+export type ElectionRaces = {
+	election: Election
+	/** The races of each office, or none for an election with no results, such as one to come. */
+	races: readonly OfficeRaces[]
+}
+
+/** One row of the search of every election: an election, a state, or a race, and the address of its page. */
+export type LinkRow = Omit<SearchRow, 'step'> & { href: string }
+
+/** One group of the search of every election. */
+export type LinkGroup = { heading: string; rows: LinkRow[] }
+
+/**
+ * The groups of the search of every election for a query: the elections, then
+ * the groups of the search of each election (`searchGroups`). A group with no
+ * match is left out.
+ *
+ * An election matches by its year, its name, and its country. An empty query
+ * gives only the elections, so the search opens on the list of the elections.
+ * The heading of each group of an election names the election, such as
+ * `Senate, 2026 Midterms`, because a pick leaves the list for the page of
+ * that election.
+ */
+export function electionsSearchGroups(
+	elections: readonly ElectionRaces[],
+	query: string,
+): LinkGroup[] {
+	const rows: LinkRow[] = elections
+		.filter(({ election }) =>
+			matchesWords([String(election.year), election.name, election.countryName], query),
+		)
+		.map(({ election }) => ({
+			key: `election:${electionPath(election)}`,
+			label: electionName(election),
+			description: election.countryName,
+			slot: null,
+			href: electionPath(election),
+		}))
+
+	const groups: LinkGroup[] = [{ heading: 'Elections', rows }]
+
+	if (query.trim() !== '') {
+		for (const { election, races } of elections) {
+			for (const group of searchGroups(races, query)) {
+				groups.push({
+					heading: `${group.heading}, ${electionName(election)}`,
+					rows: group.rows.map(({ step, ...row }) => ({
+						...row,
+						href: drawerHref(electionPath(election), step),
+					})),
+				})
+			}
+		}
+	}
+
+	return groups.filter((group) => group.rows.length > 0)
+}
+
+/** The name of an election with its year, such as `2026 Midterms`. */
+function electionName(election: Election): string {
+	return `${election.year} ${election.name}`
 }

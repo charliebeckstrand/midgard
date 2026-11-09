@@ -21,7 +21,7 @@ pnpm --filter elections test
 ## The results
 
 [civicAPI](https://civicapi.org) gives the results. It is free, needs no key,
-and asks for attribution, which the foot of each page gives. The server of the
+and asks for attribution, which the foot of each page with results gives. The server of the
 app is the only reader. `src/server/civic.ts` reads `race/{id}`, and
 `src/server/civic-race.ts` reads each field of the answer into the types of
 the app. The parser fails closed: an answer without a field that the screens
@@ -67,6 +67,12 @@ each page of an election. Its step is in the search params:
 `src/utilities/elections-url.ts` reads and writes the paths and the params, and
 `src/hooks/use-drawer-step.ts` moves the Drawer.
 
+The search in the header of an election finds its states and races, and a
+pick opens the Drawer on the page. The search in the header of `/` finds each
+election and the states and races of each, and a pick opens the page of the
+election with the Drawer on the state or the race. `src/utilities/race-search.ts`
+gives the rows of both.
+
 The layout of an election renders the view of each of its pages, and
 `src/components/election-views` shows the view of the current page. The other
 views stay mounted and hidden, so an office switch shows a view that is already
@@ -76,7 +82,9 @@ rendered. A page holds only its Drawer and its live refresh.
 
 Each screen shows only what a reader needs. No label reads "All", and a title
 has no badge beside it. The cards stack in one column, and a page at
-390 px wide has no overflow. The status of the count shows only in the footer.
+390 px wide has no overflow. The status of the count shows only in the footer. A page with no results, such as
+`/`, has no footer. On `/`, the title of the header is the heading of the page,
+so the body has no heading of its own.
 
 A call is a solid green dot before the percent reporting. A race that is not
 called has an amber dot that pulses. Green is for a call, so no party takes it. A

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { findContest, findElection } from '../elections/registry'
+import { type Election, findContest, findElection } from '../elections/registry'
 import { readNationalRace } from '../server/civic-race'
-import { SEARCH_LIMIT, searchGroups } from '../utilities/race-search'
+import { electionsSearchGroups, SEARCH_LIMIT, searchGroups } from '../utilities/race-search'
 import { type OfficeRaces, readEntries } from '../utilities/results'
 import governors from './fixtures/governors.json'
 import house from './fixtures/house.json'
@@ -97,5 +97,75 @@ describe('the search of an election', () => {
 
 	it('leaves out a group with no match', () => {
 		expect(headings('qqqq')).toEqual([])
+	})
+})
+
+describe('the search of every election', () => {
+	if (midterms === undefined) throw new Error('The registry has no 2026 midterms.')
+
+	const upcoming: Election = {
+		...midterms,
+		year: 2028,
+		slug: 'general',
+		name: 'General',
+		date: '2028-11-07',
+		status: 'upcoming',
+	}
+
+	const elections = [
+		{ election: midterms, races },
+		{ election: upcoming, races: [] },
+	]
+
+	it('lists only the elections for an empty query, each to its overview', () => {
+		const groups = electionsSearchGroups(elections, '')
+
+		expect(groups).toEqual([
+			{
+				heading: 'Elections',
+				rows: [
+					expect.objectContaining({ label: '2026 Midterms', href: '/2026/us/midterms' }),
+					expect.objectContaining({ label: '2028 General', href: '/2028/us/general' }),
+				],
+			},
+		])
+	})
+
+	it('finds an election by its year, its name, or its country', () => {
+		const labels = (query: string) =>
+			electionsSearchGroups(elections, query)
+				.find((group) => group.heading === 'Elections')
+				?.rows.map((row) => row.label)
+
+		expect(labels('2028')).toEqual(['2028 General'])
+
+		expect(labels('midterms')).toEqual(['2026 Midterms'])
+
+		expect(labels('united states')).toEqual(['2026 Midterms', '2028 General'])
+	})
+
+	it('names the election in the heading of each group of races, and leads to its Drawer', () => {
+		const groups = electionsSearchGroups(elections, 'georgia house 6th')
+
+		expect(groups.map((group) => group.heading)).toEqual(['House, 2026 Midterms'])
+
+		expect(groups[0]?.rows[0]).toMatchObject({
+			label: 'Georgia 6th District',
+			href: '/2026/us/midterms?region=ga&office=house&district=06',
+		})
+	})
+
+	it('gives the same matches as the search of the election', () => {
+		const one = searchGroups(races, 'georgia')
+
+		const every = electionsSearchGroups(elections, 'georgia')
+
+		expect(every.map((group) => group.heading)).toEqual(
+			one.map((group) => `${group.heading}, 2026 Midterms`),
+		)
+
+		expect(every.map((group) => group.rows.map((row) => row.key))).toEqual(
+			one.map((group) => group.rows.map((row) => row.key)),
+		)
 	})
 })

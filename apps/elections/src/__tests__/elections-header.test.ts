@@ -4,7 +4,7 @@ import { createElement as h } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ElectionsHeader } from '../components/elections-header'
 import { type Election, findElection } from '../elections/registry'
-import { electionCrumbs } from '../utilities/trail'
+import { electionCrumbs, homeCrumbs } from '../utilities/trail'
 
 /** The path of the page that the header is on. */
 let pathname = '/'
@@ -55,5 +55,15 @@ describe('ElectionsHeader', () => {
 		expect(screen.getByRole('button', { name: 'Midterms' }).getAttribute('aria-current')).toBe(
 			'page',
 		)
+	})
+
+	it('makes a trail of one crumb the heading of the page', () => {
+		pathname = '/'
+
+		render(h(ElectionsHeader, { crumbs: homeCrumbs() }))
+
+		expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Elections')
+
+		expect(screen.queryByRole('navigation')).toBeNull()
 	})
 })
