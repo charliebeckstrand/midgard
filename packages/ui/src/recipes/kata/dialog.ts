@@ -2,7 +2,33 @@ import { defineKata, type VariantProps } from '../../core/recipe'
 import { shaku, ugoki } from '../kiso'
 import { inset, panel } from '../kumi/panel'
 
-const { popover } = ugoki
+const { popover, css } = ugoki
+
+/**
+ * The cap of a `fit` panel in each `align`. A `fit` panel goes up to the edge
+ * of its box when its content asks for that much, as a `fit` Drawer does. A
+ * docked panel then meets the top edge of the screen, so it squares its top
+ * corners while it stands there (`data-full`). A floating panel already stops
+ * 1rem short of each edge, so it keeps its corners. The rules of the three
+ * aligns write the same properties, so a breakpoint replaces each one.
+ */
+const FIT = [
+	{
+		height: 'fit',
+		align: 'bottom',
+		class: `max-h-full data-full:rounded-t-none ${css.corner} ${css.duration}`,
+	},
+	{
+		height: 'fit',
+		align: 'center',
+		class: `max-h-full data-full:rounded-t-2xl ${css.corner} ${css.duration}`,
+	},
+	{
+		height: 'fit',
+		align: 'top',
+		class: `max-h-full data-full:rounded-t-2xl ${css.corner} ${css.duration}`,
+	},
+]
 
 /** The panel of a `center` or a `top` align, which floats in the box. */
 const floating =
@@ -27,6 +53,11 @@ export const k = defineKata(
 		/** The maximum width of the panel. */
 		width: shaku.panel,
 		/**
+		 * How the panel takes the height of its content. The `compound` rules give
+		 * `fit` its cap in each `align`.
+		 */
+		height: { auto: [], fit: [] },
+		/**
 		 * The classes of each `align` of the panel. Each value writes the same properties, so a breakpoint replaces each one.
 		 * `bottom` docks the panel to the bottom edge as a sheet: it spans the
 		 * width, rounds its top corners only, and scrolls past 85% of the height.
@@ -41,6 +72,7 @@ export const k = defineKata(
 				top: floating,
 			},
 		},
+		compound: FIT,
 		slots: {
 			/**
 			 * The box around the panel. The overlay root is positioned in both modes,
@@ -58,7 +90,7 @@ export const k = defineKata(
 				},
 			},
 		},
-		defaults: { width: 'lg' },
+		defaults: { width: 'lg', height: 'auto' },
 	},
 	{
 		/** The motion of a floating panel (`desktop`) and of a panel on the bottom edge (`mobile`). */
@@ -77,7 +109,10 @@ export const k = defineKata(
 )
 
 /** Recipe variant props for the {@link Dialog} panel: its styling axes (`surface`, `width`), for consumers composing custom slots. */
-export type DialogPanelVariants = Omit<VariantProps<typeof k>, 'surface' | 'width' | 'align'> & {
+export type DialogPanelVariants = Omit<
+	VariantProps<typeof k>,
+	'surface' | 'width' | 'align' | 'height'
+> & {
 	/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. @defaultValue 'flat' */
 	surface?: VariantProps<typeof k>['surface']
 	/** The maximum width of the panel. @defaultValue 'lg' */

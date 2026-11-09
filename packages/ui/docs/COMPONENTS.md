@@ -71,7 +71,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`: a root such as `Dialog`, a `DialogTrigger`, and a `DialogPanel`.
 
-> A `DialogPanel` or a `DrawerPanel` with `height="fit"` travels to each new height of its content. The default `auto` changes the height in one step.
+> A `DialogPanel` or a `DrawerPanel` with `height="fit"` travels to each new height of its content. On the bottom edge, it goes up to the top edge of the screen when its content asks for that much. The default `auto` changes the height in one step and stops at 85% of the screen.
 
 ## Data display
 

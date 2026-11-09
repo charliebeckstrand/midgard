@@ -74,11 +74,16 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		align?: Responsive<DialogAlign>
 		/**
 		 * How the panel takes the height of its content. The panel is as tall as
-		 * its content in both, up to the cap of its `align`.
+		 * its content in both, up to a cap.
 		 *
-		 * With `auto`, a change of the content changes the height in one step.
+		 * With `auto`, a change of the content changes the height in one step. A
+		 * docked `auto` panel stops at 85% of the screen.
+		 *
 		 * With `fit`, the panel measures each new height and travels to it, as a
-		 * Drawer with `height="fit"` does. Use `fit` for a panel whose content
+		 * Drawer with `height="fit"` does. A docked `fit` panel goes up to the top
+		 * edge of the screen when its content asks for that much, and squares its
+		 * top corners there. A floating panel stops 1rem short of each edge with
+		 * either value. Use `fit` for a panel whose content
 		 * swaps, such as the steps under a breadcrumb, or a Segment between two
 		 * views of different heights. Content that animates its own height, such
 		 * as an Accordion or a Collapse, then moves the panel on each frame. The
@@ -221,7 +226,7 @@ export function DialogPanel({
 	// The fit reads the node. A consumer `ref` joins it.
 	const panelRef = useComposedRefs(fit.ref, ref)
 
-	const slots = k({ surface, width, align })
+	const slots = k({ surface, width, align, height })
 
 	return (
 		<Overlay {...overlayProps} backdropClassName={slots.backdrop}>
