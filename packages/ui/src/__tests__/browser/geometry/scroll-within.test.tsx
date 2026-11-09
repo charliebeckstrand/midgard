@@ -122,4 +122,24 @@ describe('scrollWithin against a real scroller', () => {
 
 		expect(scroller.scrollLeft).toBeGreaterThan(0)
 	})
+
+	it('adds the scroll margin of the target, as native scrollIntoView does', async () => {
+		const { scroller, target, go } = mounted({ block: 'start', inline: 'start' })
+
+		target.style.scrollMargin = '8px'
+
+		go()
+
+		await waitFor(() =>
+			expect(target.getBoundingClientRect().left).toBeNear(
+				scroller.getBoundingClientRect().left + 8,
+				HALF_PIXEL,
+			),
+		)
+
+		expect(target.getBoundingClientRect().top).toBeNear(
+			scroller.getBoundingClientRect().top + 8,
+			HALF_PIXEL,
+		)
+	})
 })

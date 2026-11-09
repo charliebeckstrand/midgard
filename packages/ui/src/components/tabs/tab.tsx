@@ -186,8 +186,8 @@ export function Tab({
 	const handleFocus = composeEventHandlers(onFocus, preload)
 
 	// A selection that does not move focus scrolls the tab into the viewport of
-	// the list. The segment variant has no viewport.
-	const selectScrollRef = useTabSelectScroll(current, orientation, !isSegment)
+	// the list.
+	const selectScrollRef = useTabSelectScroll(current, orientation)
 
 	const setTab = useComposedRefs(selectScrollRef, consumerRef)
 

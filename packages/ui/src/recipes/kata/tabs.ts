@@ -25,20 +25,15 @@ const { border, focus, forced } = sen
  */
 const segment = {
 	/**
-	 * The box that holds the items and the indicator. `self-start` keeps the box
-	 * at the width of its content inside the `flex flex-col` tab group, over the
-	 * `align-items: stretch` of the cross axis. `max-w-full` holds it inside its
-	 * container: where the labels do not fit on one line, the items shrink and
-	 * wrap their labels, and the page does not widen.
+	 * The box that holds the items and the indicator. It sits in the overflow
+	 * viewport (the `scroll` slot), which takes the width of the tab group.
+	 * `w-fit` keeps the box at the width of its content, and no wider than the
+	 * viewport. Where the labels do not fit on one line, the items shrink and
+	 * wrap their labels. An item does not shrink below its longest word, so a
+	 * box of one-word labels can be wider than the viewport. Then the box
+	 * scrolls in the viewport, and the page does not widen.
 	 */
-	control: [
-		flex.inline,
-		'self-start max-w-full',
-		...bg.tint,
-		rounded.lg,
-		`p-1 ${dan.gap.default}`,
-		ji.ramp,
-	],
+	control: [flex.row, 'w-fit', ...bg.tint, rounded.lg, `p-1 ${dan.gap.default}`, ji.ramp],
 	/** One item of the box: the layout, the focus ring, and the disabled and cursor states. */
 	item: [
 		flex.row,
@@ -68,6 +63,10 @@ const segment = {
 		`${dan.text.small} ${dan.space.segment.item.x} ${dan.space.row.y}`,
 		// An icon is the small text size plus 4 px, as an icon beside body text is.
 		dan.size.icon.small,
+		// The `p-1` of the box. An item that scrolls into the viewport keeps its
+		// focus ring in view, and the first and last items also show the edge of
+		// the box.
+		'scroll-mx-1',
 		'*:data-[slot=icon]:shrink-0',
 		dan.gap.item,
 	],
@@ -98,12 +97,13 @@ export const k = defineKata(
 				},
 			},
 			/**
-			 * The overflow viewport around the underline list: an over-long tab row
-			 * scrolls within it instead of widening the page. The cross axis stays
-			 * clipped: the active-indicator/focus rail sits flush with the content edge,
-			 * so nothing is lost. The native scrollbar is hidden, so it never crosses the
-			 * rail. The active tab scrolls into view, and roving keeps every tab
-			 * reachable. While a horizontal row overflows, the edge with more tabs
+			 * The overflow viewport around the underline list and the segment box: an
+			 * over-long tab row scrolls within it instead of widening the page. The
+			 * cross axis stays clipped: the active-indicator/focus rail sits flush with
+			 * the content edge, and the focus ring of a segment item sits in the padding
+			 * of the box, so nothing is lost. The native scrollbar is hidden, so it never
+			 * crosses the rail. The active tab scrolls into view, and roving keeps every
+			 * tab reachable. While a horizontal row overflows, the edge with more tabs
 			 * behind it fades.
 			 *
 			 * A vertical list sits beside the panel in the `flex-row` group, and does not
