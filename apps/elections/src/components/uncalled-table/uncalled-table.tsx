@@ -19,7 +19,8 @@ const UncalledGrid = lazy(() =>
 /**
  * Every race not called, in a section that opens on a click: a table with
  * sortable columns, the closest lead first. A row opens its race in the Drawer.
- * The first open shows a placeholder while the table loads.
+ * The first open shows a placeholder while the table loads. Once each race is
+ * called, the section shows nothing.
  */
 export function UncalledTable({
 	election,
@@ -31,6 +32,8 @@ export function UncalledTable({
 	const go = useDrawerGo(election)
 
 	const [sort, setSort] = useState<GridSortState[]>([{ column: 'lead', direction: 'asc' }])
+
+	if (entries.length === 0) return null
 
 	return (
 		<Collapse>
