@@ -46,11 +46,15 @@ export type TrailCrumb = {
 	menu?: readonly CrumbChoice[]
 }
 
-/** What a {@link ResultDrawer} shows: its trail, an optional line under it, and its body. */
+/** What a {@link ResultDrawer} shows: its trail, an optional badge after it, and its body. */
 export type DrawerView = {
 	steps: readonly TrailCrumb[]
-	/** A line under the trail, such as `Special election`. */
-	subtitle?: ReactNode
+	/**
+	 * A badge after the trail, such as `Special`. It sits in the row of
+	 * the trail and the trail gives it room, so it does not change the height of
+	 * the panel when it comes.
+	 */
+	badge?: ReactNode
 	body: ReactNode
 }
 
@@ -117,7 +121,7 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 						<Stack gap="xs" flex="1" className="min-w-0">
 							<DialogTitle className="sr-only">{title}</DialogTitle>
 
-							<Breadcrumb collapse>
+							<Breadcrumb collapse className="gap-2">
 								<BreadcrumbList className="text-base/7">
 									{shown?.steps.map((step, index) => (
 										<Fragment key={index}>
@@ -155,11 +159,12 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 										</Fragment>
 									))}
 								</BreadcrumbList>
-							</Breadcrumb>
 
-							{shown?.subtitle === undefined ? null : (
-								<span className="text-sm text-zinc-600 dark:text-zinc-400">{shown.subtitle}</span>
-							)}
+								{/* After the list, in the nav: the fit of the trail keeps room for it. */}
+								{shown?.badge === undefined ? null : (
+									<span className="flex shrink-0">{shown.badge}</span>
+								)}
+							</Breadcrumb>
 						</Stack>
 
 						<DialogClose>

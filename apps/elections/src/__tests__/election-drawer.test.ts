@@ -179,7 +179,7 @@ describe('ElectionDrawer', () => {
 	it('keeps the rows of a race when the race loads', () => {
 		window.history.replaceState(null, '', '/2026/us/midterms?region=ga&office=senate')
 
-		/** The terms of the facts, and the lines of the head: the title, the trail, and the kind. */
+		/** The terms of the facts, and the lines of the head: the title and the trail. */
 		const shape = () => ({
 			terms: Array.from(document.querySelectorAll('dt'), (term) => term.textContent),
 			head: screen.getByRole('navigation').parentElement?.childElementCount,
@@ -200,6 +200,7 @@ describe('ElectionDrawer', () => {
 		expect(shape()).toEqual(before)
 		expect(before.terms).toEqual(['Total votes', 'Polls closed', 'Called'])
 		expect(screen.getByText('Unknown')).toBeTruthy()
-		expect(screen.getByText('General election')).toBeTruthy()
+		// A general election has no line of its kind.
+		expect(screen.queryByText('General election')).toBeNull()
 	})
 })
