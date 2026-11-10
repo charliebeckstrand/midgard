@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { CommandPalette, CommandPaletteItem } from '../../components/command-palette'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
+import { GlassSurfacesContext } from '../../providers/glass/context'
 import { getSlot, noop, renderUI, screen } from '../helpers'
 
 /**
@@ -49,13 +50,17 @@ describe('Glass item wash (real browser)', () => {
 		return screen.getByRole('menuitem', { name: 'Alpha' })
 	}
 
-	/** The single row of an open command palette, which hovers inside a Dialog. */
+	/**
+	 * The single row of an open command palette, which hovers inside a Dialog.
+	 * `glass` stands for the Surfaces setting of the reader, which the Dialog follows.
+	 */
 	function paletteRow(glass: boolean): HTMLElement {
 		renderUI(
-			<CommandPalette open onOpenChange={noop}>
-				<CommandPaletteItem>Alpha</CommandPaletteItem>
-			</CommandPalette>,
-			{ glass },
+			<GlassSurfacesContext value={glass}>
+				<CommandPalette open onOpenChange={noop}>
+					<CommandPaletteItem>Alpha</CommandPaletteItem>
+				</CommandPalette>
+			</GlassSurfacesContext>,
 		)
 
 		return screen.getByRole('option', { name: 'Alpha' })
