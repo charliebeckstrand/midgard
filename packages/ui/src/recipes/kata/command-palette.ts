@@ -7,7 +7,7 @@
  * of a result row, which extends the item group.
  */
 import { defineKata, mode } from '../../core/recipe'
-import { iro, ji, kara, narabi, shaku } from '../kiso'
+import { iro, ji, narabi, shaku } from '../kiso'
 import { item } from '../kumi/item'
 import { gap } from '../kumi/panel'
 
@@ -44,10 +44,13 @@ const row = defineKata({
 
 export const k = defineKata(
 	{
-		// The body of the listbox: collapses while the listbox is empty, so that it
-		// adds no gap of the panel under the search input. `kara` adds the
-		// virtualized case, which `:empty` alone cannot see.
-		base: ['has-[>[role=listbox]:empty]:hidden', kara.list],
+		// The body of the listbox: collapses while it holds no result, so that it
+		// adds no gap of the panel under the search input. A result is an option,
+		// or a `VirtualOptions` wrapper with items, as the palette counts it. The
+		// rule reads the presence of a result and not `:empty` on the listbox:
+		// WebKit does not match `:has()` again when a `:empty` inside it changes,
+		// so the body stayed hidden after the first rows came.
+		base: 'not-has-[[role=option],[data-slot=virtual-options]:not([data-empty])]:hidden',
 		slots: {
 			// A group after any sibling takes the slot gap of the panel, which is the
 			// space between the search input and the first group. Each heading

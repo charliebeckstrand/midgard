@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CommandPalette } from '../../../components/command-palette'
+import { CommandPalette, CommandPaletteItem } from '../../../components/command-palette'
 import { getSlot, noop, present, renderUI } from '../../helpers'
 
 /**
@@ -29,5 +29,33 @@ describe('Command palette empty space (real browser)', () => {
 		expect(gap).toBeGreaterThan(0)
 
 		expect(footer.getBoundingClientRect().top - frame.getBoundingClientRect().bottom).toBe(gap)
+	})
+
+	// The rows of a search come after the palette opens on an empty list. The
+	// body must show them, and hide again when they go.
+	it('shows the body when the first rows come, and hides it when they go', () => {
+		const palette = (rows: string[]) => (
+			<CommandPalette open onOpenChange={noop}>
+				{rows.map((row) => (
+					<CommandPaletteItem key={row}>{row}</CommandPaletteItem>
+				))}
+			</CommandPalette>
+		)
+
+		const { rerender } = renderUI(palette([]))
+
+		const body = getSlot(document.body, 'dialog-body')
+
+		expect(getComputedStyle(body).display).toBe('none')
+
+		rerender(palette(['Georgia', 'Texas']))
+
+		expect(getComputedStyle(body).display).not.toBe('none')
+
+		expect(body.getBoundingClientRect().height).toBeGreaterThan(0)
+
+		rerender(palette([]))
+
+		expect(getComputedStyle(body).display).toBe('none')
 	})
 })
