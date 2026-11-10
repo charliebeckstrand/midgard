@@ -121,49 +121,52 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 						<Stack gap="xs" flex="1" className="min-w-0">
 							<DialogTitle className="sr-only">{title}</DialogTitle>
 
-							<Breadcrumb collapse className="gap-2">
-								<BreadcrumbList className="text-base/7">
-									{shown?.steps.map((step, index) => (
-										<Fragment key={index}>
-											{index > 0 ? <BreadcrumbSeparator /> : null}
+							<Breadcrumb collapse>
+								{/* The badge follows the list inside the nav, so the fit of the trail keeps
+								    room for it. The row sizes to its content, so its end is the end of the badge. */}
+								<Flex gap="sm" align="center" className="min-w-0">
+									<BreadcrumbList className="text-base/7">
+										{shown?.steps.map((step, index) => (
+											<Fragment key={index}>
+												{index > 0 ? <BreadcrumbSeparator /> : null}
 
-											<BreadcrumbItem>
-												{step.menu === undefined ? (
-													<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
-												) : (
-													<MenuCrumb
-														label={step.label}
-														current={index === shown.steps.length - 1}
-														link={
-															step.onPick === undefined ||
-															index === shown.steps.length - 1 ? undefined : (
-																<CrumbLink
-																	crumb={step}
-																	current={index === shown.steps.length - 1}
-																/>
-															)
-														}
-													>
-														{step.menu.map((choice) => (
-															<MenuItem
-																key={choice.label}
-																disabled={choice.disabled}
-																onAction={choice.onPick}
-															>
-																<MenuLabel>{choice.label}</MenuLabel>
-															</MenuItem>
-														))}
-													</MenuCrumb>
-												)}
-											</BreadcrumbItem>
-										</Fragment>
-									))}
-								</BreadcrumbList>
+												<BreadcrumbItem>
+													{step.menu === undefined ? (
+														<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
+													) : (
+														<MenuCrumb
+															label={step.label}
+															current={index === shown.steps.length - 1}
+															link={
+																step.onPick === undefined ||
+																index === shown.steps.length - 1 ? undefined : (
+																	<CrumbLink
+																		crumb={step}
+																		current={index === shown.steps.length - 1}
+																	/>
+																)
+															}
+														>
+															{step.menu.map((choice) => (
+																<MenuItem
+																	key={choice.label}
+																	disabled={choice.disabled}
+																	onAction={choice.onPick}
+																>
+																	<MenuLabel>{choice.label}</MenuLabel>
+																</MenuItem>
+															))}
+														</MenuCrumb>
+													)}
+												</BreadcrumbItem>
+											</Fragment>
+										))}
+									</BreadcrumbList>
 
-								{/* After the list, in the nav: the fit of the trail keeps room for it. */}
-								{shown?.badge === undefined ? null : (
-									<span className="flex shrink-0">{shown.badge}</span>
-								)}
+									{shown?.badge === undefined ? null : (
+										<span className="flex shrink-0">{shown.badge}</span>
+									)}
+								</Flex>
 							</Breadcrumb>
 						</Stack>
 
