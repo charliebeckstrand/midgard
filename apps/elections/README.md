@@ -129,7 +129,8 @@ races.
 ## The design
 
 Each screen shows only what a reader needs. No label reads "All", and a title
-has no badge beside it. On a phone, the cards stack in one column. A wider
+has no badge beside it. A list of elections stacks its cards in one column.
+On a phone, the cards of an election also stack in one column, and a wider
 screen shows two or three columns. A page at 390 px wide has no overflow. The status of the count shows only in the footer. A page with no results has no footer.
 
 A call is a solid green dot before the percent reporting. A race that is not
