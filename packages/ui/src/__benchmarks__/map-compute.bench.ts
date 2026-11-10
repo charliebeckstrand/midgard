@@ -152,7 +152,7 @@ compareBenches('map-projection · measuredMapFit (every resize frame)', (bench) 
 	// it must stay flat in the region count: it never touches a coordinate.
 	for (const { label, canonical } of FITTED) {
 		bench(`${label} · refit to 960×600`, () => {
-			measuredMapFit('albers-usa', canonical, 960, 600)
+			measuredMapFit(canonical, 960, 600)
 		})
 	}
 })
@@ -165,14 +165,12 @@ compareBenches('map-geometry · region paths (the mount’s largest pass)', (ben
 	// under the canonical fit. The region layer carries those strings onto each
 	// later fit, so a refit and a resize cost no emit.
 	for (const { label, features, canonical } of FITTED) {
-		const measured = measuredMapFit('albers-usa', canonical, 800, 450)?.projection
-
 		const buffer = projectAtlas(features, canonical.projection)
 
-		if (!buffer || !measured) throw new Error('fixture yielded no projected atlas')
+		if (!buffer) throw new Error('fixture yielded no projected atlas')
 
 		bench(`${label} · regionPaths (the direct walk, per fit)`, () => {
-			regionPaths(features, measured)
+			regionPaths(features, canonical.projection)
 		})
 
 		bench(`${label} · projectAtlas (the walk, once per atlas)`, () => {
@@ -180,7 +178,7 @@ compareBenches('map-geometry · region paths (the mount’s largest pass)', (ben
 		})
 
 		bench(`${label} · emitRegionPaths (per fit, from the buffer)`, () => {
-			emitRegionPaths(buffer, measured)
+			emitRegionPaths(buffer, canonical.projection)
 		})
 	}
 })

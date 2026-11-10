@@ -98,7 +98,7 @@ describe('MapPlat', () => {
 		expect(allRegions(container)).toHaveLength(3)
 	})
 
-	it('carries the canonical paths onto a measured frame, except for a geography that holds a point', () => {
+	it('carries the canonical paths onto a measured frame, for a geography that holds a point also', () => {
 		/** The largest x of a region path, in the units of the path. */
 		const reach = (region: Element | undefined) =>
 			Math.max(
@@ -134,12 +134,13 @@ describe('MapPlat', () => {
 			/>,
 		)
 
-		// d3 draws a point at a radius in frame units, which a transform would
-		// scale. The paths of this geography are therefore in the measured frame,
-		// and the layer has no transform.
-		expect(reach(allRegions(pinned.container)[2])).toBeLessThanOrEqual(400)
+		// The buffer declines a geography that holds a point, so its paths come from
+		// the direct walk. They take the same route: the canonical frame, under the
+		// transform of the layer. d3 draws the point at a radius in the units of
+		// the path, so the point scales with the frame.
+		expect(reach(allRegions(pinned.container)[2])).toBeGreaterThan(400)
 
-		expect(bySlot(pinned.container, 'map-regions')).not.toHaveAttribute('transform')
+		expect(layerScale(bySlot(pinned.container, 'map-regions'))).toBeLessThan(1)
 	})
 
 	it('reserves the frame without geography and paints it once provided', () => {

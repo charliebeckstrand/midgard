@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import {
 	cachedCanonicalPaths,
+	cachedChromePaths,
 	computeStaticMapGeometry,
 	staticMapGeometry,
 } from '../../modules/map/engine/map-geometry/cache'
@@ -91,25 +92,37 @@ describe('staticMapGeometry', () => {
 		)
 	})
 
-	it('leaves the shared canonical projection unmutated under a measured refit', () => {
+	it('leaves the shared canonical projection as it was after a measured chrome pass', () => {
 		const geometry = staticMapGeometry(FIXTURE_GEOJSON, undefined, 'mercator')
+
+		const { canonical } = geometry
+
+		if (canonical === null) throw new Error('nothing to fit')
 
 		const probe: LngLat = [5, 5]
 
-		const before = geometry.canonical?.projection(probe)
+		const before = canonical.projection(probe)
+
+		const precision = canonical.projection.precision()
 
 		const paths = cachedCanonicalPaths(geometry).slice()
 
-		// The per-instance measured refit MapPlat runs on mount must build a fresh
-		// projection, never re-fit the shared cached one that siblings and SSR
-		// requests read through.
-		const measured = measuredMapFit('mercator', geometry.canonical, 640, 400)
+		// Each plat on this atlas and each SSR request reads this one projection,
+		// at each box. The measured stage draws the chrome through it, and changes
+		// its curve tolerance for that pass. The pass must put the tolerance back.
+		const frame = measuredMapFit(canonical, 640, 400)
 
-		expect(measured).not.toBeNull()
+		if (frame === null) throw new Error('expected a fit')
 
-		expect(measured?.projection).not.toBe(geometry.canonical?.projection)
+		const view = { width: 640, height: 400 }
 
-		expect(geometry.canonical?.projection(probe)).toEqual(before)
+		expect(
+			cachedChromePaths(canonical.projection, 'mercator', 10, true, view, frame).graticule,
+		).not.toBeNull()
+
+		expect(canonical.projection.precision()).toBe(precision)
+
+		expect(canonical.projection(probe)).toEqual(before)
 
 		expect(cachedCanonicalPaths(geometry)).toEqual(paths)
 	})

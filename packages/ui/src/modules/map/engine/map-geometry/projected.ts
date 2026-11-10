@@ -12,12 +12,11 @@
  * buffer under any later fit. The later fit is reached by arithmetic, because a
  * d3 projection places a point as `scale · raw + translate` and nothing else.
  * Two fits of one projection therefore differ by a scale and a translation on
- * the frame. That is the same fact `measuredMapFit` (`map-projection/fit`)
- * already derives the measured fit itself from.
+ * the frame. That is the same fact that the measured fit rests on
+ * (`measuredMapFit`, `map-projection/fit`).
  *
  * The map emits once, under the canonical fit. The region layer carries those
- * paths onto the measured fit, and onto each resize, with one transform (the
- * `carry` of `measuredMapFit`).
+ * paths onto the measured fit, and onto each resize, with that one transform.
  *
  * The claim is tested rather than trusted. The buffer keeps one witness
  * position. A fit that does not place it where the affine says refuses the
@@ -196,9 +195,9 @@ const WITNESS_TOLERANCE = 1e-6
  * claim the emit rests on, tested rather than assumed.
  *
  * A d3 projection places a point as `scale · raw + translate` and nothing else,
- * so any two fits of one projection differ by exactly this affine. That is what
- * `measuredMapFit` (`map-projection/fit`) already derives the measured fit
- * from. But the two are stated in different files, and a projection reaching the
+ * so any two fits of one projection differ by exactly this affine. That is the
+ * fact that the measured fit rests on (`measuredMapFit`, `map-projection/fit`).
+ * But the two are stated in different files, and a projection reaching the
  * emit need not be one of the three the module mints.
  *
  * A `center`, a `rotate`, a per-axis factor, or a `postclip` set below
@@ -459,9 +458,7 @@ function coordinate(rounded: number): string {
  *
  * {@link emitRegionPaths} applies it to every coordinate to write the paths of
  * a fit. The region layer does not read it. That layer carries the canonical
- * paths on the frame transform of the measured fit (`measuredMapFit`,
- * `map-projection/fit`), which is the transform that made the measured
- * projection.
+ * paths on the measured fit (`measuredMapFit`, `map-projection/fit`).
  */
 function frameAffine(
 	atlas: MapProjectedAtlas,

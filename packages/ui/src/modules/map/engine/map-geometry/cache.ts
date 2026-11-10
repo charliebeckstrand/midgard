@@ -191,17 +191,6 @@ export function staticMapGeometry(
 	)
 }
 
-// The last measured-fit paths per shared geometry, for the geography that the
-// buffer declines (`measuredRegionPaths`). The fit of a named projection is a
-// pure function of the geometry and the frame box. A remount at the same box (a
-// tab switch, the small multiples of a dashboard) therefore reuses the paths, as
-// the canonical stage reuses its fit. One slot per geometry: a resize replaces
-// it, so the cache never accumulates sizes.
-const measuredPaths = new WeakMap<
-	StaticMapGeometry,
-	{ width: number; height: number; paths: (string | null)[] }
->()
-
 // Region centroids per decoded feature list. Held apart from the mount-critical
 // pair above because nothing on the mount path reads them: only the keyboard
 // cursor does, and only once a reader tabs in. Computing them beside the paths
@@ -229,65 +218,47 @@ export function cachedRegionCentroids(features: MapFeature[], planar = false): (
 	)
 }
 
-// The last chrome paths per fitted projection. Keyed on the fit rather than on
-// the geometry, because a map draws chrome under two fits in one mount (the
-// canonical one on the first commit, the measured one a beat later) and a
-// geometry-keyed slot would have them evict each other, so every mount paid the
-// pass twice and no remount ever hit. The canonical projection is itself shared
+// The chrome paths of the canonical stage, per fitted projection. Keyed on the
+// projection rather than on the geometry: the canonical projection is shared
 // across instances and mounts (`staticMapGeometry`), so its chrome is drawn once
-// per atlas and step for good; a measured fit is a fresh instance per box, and
-// its entry falls with it. The fit state stays in the slot for the one
-// projection that keeps its identity across fits (a passed d3 instance, which
-// a fit mutates in place), so a resize or a refit to new geography can never
-// read a stale path off one.
+// per atlas and step. The measured stage draws under the same projection at
+// each box. It stays out of the slot, where it would evict the canonical stage
+// on each mount, and the memo of the hook holds it. The fit state stays in the
+// slot for the one projection that a fit mutates in place (a passed d3
+// instance), so a refit to new geography can never read a stale path off one.
 const chrome = new WeakMap<
 	GeoProjection,
 	{ fit: ChromeFit; step: number | null; paths: MapChromePaths }
 >()
 
 /**
- * The state that the chrome paths read from a fit: the scale and the translate
- * of the projection, and the frame transform. The viewBox also bounds the
- * graticule, so it joins them. @internal
+ * The state that the canonical chrome paths read from a fit: the scale and the
+ * translate of the projection. The viewBox also bounds the graticule, so it
+ * joins them. @internal
  */
 type ChromeFit = readonly [
 	scale: number,
 	x: number,
 	y: number,
-	frameX: number,
-	frameY: number,
-	frameK: number,
 	viewWidth: number,
 	viewHeight: number,
 ]
 
-/** The {@link ChromeFit} of `fitted` under `frame`, in `view`. @internal */
-function chromeFit(
-	fitted: GeoProjection,
-	view: MapViewFrame,
-	frame: MapTransform | null,
-): ChromeFit {
+/** The {@link ChromeFit} of `fitted` in `view`. @internal */
+function chromeFit(fitted: GeoProjection, view: MapViewFrame): ChromeFit {
 	const [x, y] = fitted.translate()
 
-	return [
-		fitted.scale(),
-		x,
-		y,
-		frame?.x ?? 0,
-		frame?.y ?? 0,
-		frame?.k ?? 1,
-		view.width,
-		view.height,
-	]
+	return [fitted.scale(), x, y, view.width, view.height]
 }
 
 /**
- * The chrome paths under a fit, memoized on the fitted projection by its fit
- * state and the graticule step. `spec` names the projection that `fitted` was
- * resolved from, so the bound reads the frame through the right piece
- * (`invertingPiece`). It stays out of the key, because a fitted instance comes
- * from one spec for good. Chrome off yields {@link EMPTY_CHROME} without
- * touching the cache, so the default map pays neither the pass nor a slot.
+ * The chrome paths under a fit. The canonical stage (`frame` is `null`) is
+ * memoized on the fitted projection by its fit state and the graticule step.
+ * `spec` names the projection that `fitted` was resolved from, so the bound
+ * reads the frame through the right piece (`invertingPiece`). It stays out of
+ * the key, because a fitted instance comes from one spec for good. Chrome off
+ * yields {@link EMPTY_CHROME} without touching the cache, so the default map
+ * pays neither the pass nor a slot.
  *
  * `sphere` only gates that early return. The frame path resolves for either
  * part: drawn it is the sphere outline, unstroked it bounds the graticule. It
@@ -308,13 +279,17 @@ export function cachedChromePaths(
 	// geography is not on one.
 	if ((step === null && !sphere) || spec === 'identity') return EMPTY_CHROME
 
-	const fit = chromeFit(fitted, view, frame)
+	const inverse = invertingPiece(spec, fitted)
+
+	if (frame !== null) return chromePaths(fitted, inverse, step, view, frame)
+
+	const fit = chromeFit(fitted, view)
 
 	const hit = chrome.get(fitted)
 
 	if (hit !== undefined && hit.step === step && sameElements(hit.fit, fit)) return hit.paths
 
-	const paths = chromePaths(fitted, invertingPiece(spec, fitted), step, view, frame)
+	const paths = chromePaths(fitted, inverse, step, view)
 
 	chrome.set(fitted, { fit, step, paths })
 
@@ -323,13 +298,10 @@ export function cachedChromePaths(
 
 // The canonical-fit paths per shared geometry. Every map draws them before its
 // box is measured, and the region layer carries the same paths onto the measured
-// fit, so one emit serves both stages. Held apart from the entry rather than on
-// it, because one kind of plat never reads them. A geography that the buffer
-// declines, at a box known on the first commit, draws at the measured fit only
-// (`measuredRegionPaths`). A function rather than a lazy property for the reason
-// the rest of this file is functions: there is no field for a spread, a clone,
-// or a key walk to force, so a caller that does not want the pass simply does
-// not call.
+// fit, so one emit serves both stages. A function rather than a lazy property
+// for the reason the rest of this file is functions: there is no field for a
+// spread, a clone, or a key walk to force, so a caller that does not want the
+// pass simply does not call.
 const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
 
 /**
@@ -352,34 +324,4 @@ export function cachedCanonicalPaths(geometry: StaticMapGeometry): (string | nul
 			regionPaths(features, canonical.projection)
 		)
 	})
-}
-
-/**
- * Region paths under a measured fit, for the geography that the buffer declines
- * under a named projection: one that holds a point or a line. `d3-geo` draws a
- * point at a radius in frame units, which a transform would scale. The region
- * layer therefore does not carry the paths of such a geography, and each box
- * takes the direct walk ({@link regionPaths}).
- *
- * Memoized on the shared {@link StaticMapGeometry} entry by frame box. The slot
- * above holds one box, so a drag redraws the geography at each size that it
- * commits.
- *
- * @internal
- */
-export function measuredRegionPaths(
-	geometry: StaticMapGeometry,
-	fitted: GeoProjection,
-	width: number,
-	height: number,
-): (string | null)[] {
-	const hit = measuredPaths.get(geometry)
-
-	if (hit !== undefined && hit.width === width && hit.height === height) return hit.paths
-
-	const paths = regionPaths(geometry.features, fitted)
-
-	measuredPaths.set(geometry, { width, height, paths })
-
-	return paths
 }

@@ -5,7 +5,6 @@ import { type FrameReserve, usePlotFrame } from '../../hooks/use-plot-frame'
 import {
 	cachedCanonicalPaths,
 	cachedChromePaths,
-	measuredRegionPaths,
 	staticMapGeometry,
 } from './engine/map-geometry/cache'
 import { EMPTY_CHROME, type MapChromePaths } from './engine/map-geometry/chrome'
@@ -47,18 +46,18 @@ export type MapFrameShape = {
 	/** Whether the frame is measured. Until then the canonical frame scales to meet the box. */
 	measured: boolean
 	/**
-	 * Region path ds, index-aligned with the features; empty until fitted. Stated
-	 * in the frame {@link regionFrame} names: the canonical one where a transform
-	 * carries them, the drawn one where it is `null`. A reader outside the layer
-	 * that draws them must therefore take the pair together.
+	 * Region path ds in the canonical frame, index-aligned with the features;
+	 * empty until fitted. {@link regionFrame} carries them onto the measured
+	 * frame. A reader outside the layer that draws them must therefore take the
+	 * pair together.
 	 */
 	paths: (string | null)[]
 	/**
-	 * The view transform {@link paths} are drawn under, `null` where they are
-	 * already stated in the active frame. A measured refit is a scale and a
-	 * translation on the canonical fit. The layer therefore moves one group
-	 * transform, rather than taking every path back through the projection and
-	 * rewriting every `d`.
+	 * The measured fit: the view transform {@link paths} are drawn under. `null`
+	 * until the frame is measured, while the view frame is the canonical one. A
+	 * measured refit is a scale and a translation on the canonical fit. The layer
+	 * therefore moves one group transform, rather than taking every path back
+	 * through the projection and rewriting every `d`.
 	 */
 	regionFrame: MapTransform | null
 	/** The graticule and sphere `d`s under the active fit; both `null` where the chrome is off. */
@@ -141,7 +140,7 @@ export function useMapShape({
 		[geography, geographyObject, projection],
 	)
 
-	// A refit reprojects every region path, and the drawing scales with its box
+	// A refit projects every overlay mark again, and the drawing scales with its box
 	// through its `viewBox`. So resize commits ride a transition (`scaled`): a burst
 	// coalesces to the sizes the machine can afford, and a stale refit is abandoned
 	// rather than blocking.
@@ -160,46 +159,24 @@ export function useMapShape({
 		reserve,
 	} = usePlotFrame(width, sizing, false, true)
 
-	// The measured refit, its region paths, and the projector, resolved as one
-	// unit so a resize moves all three together. One memo over the live
-	// frame dimensions fits again on every resize, and hands the context
-	// a fresh `project` identity so overlay marks recompute. The
-	// projector closes over the measured fit's own values, never over a refit
-	// projection alone: a passed d3 instance keeps its canonical fit, and its
-	// frame transform is what changes (`measuredMapFit`). The region paths are the
-	// canonical ones under a transform, so a refit projects no region again. With
-	// nothing to frame the measured fit is `null`, so the map holds the canonical
-	// draw (or the neutral frame) rather than projecting through an unfitted
-	// default.
+	// The measured refit and the projector, resolved as one unit so a resize moves
+	// both together. One memo over the live frame dimensions fits again on every
+	// resize, and hands the context a fresh `project` identity so overlay marks
+	// recompute. The projection is the canonical one at each box, and the frame
+	// transform is what changes (`measuredMapFit`). The region paths are the
+	// canonical ones under that transform, so a refit projects no region again.
+	// With nothing to frame the transform is `null`, so the map holds the
+	// canonical draw (or the neutral frame).
 	const view = useMemo(() => {
 		const { canonical } = statics
 
-		const measured = measuredMapFit(projection, canonical, frameWidth, frameHeight)
+		const frame = measuredMapFit(canonical, frameWidth, frameHeight)
 
-		// Draw from the measured fit once it lands, the canonical fit until then, so
-		// the geography never waits on the container being measured.
-		const fitted = measured?.projection ?? canonical?.projection ?? null
-
-		const frame = measured?.frame ?? null
-
-		// The layer draws the canonical paths and carries them onto the measured fit
-		// on one attribute. The exception is a geography that the buffer declines
-		// under a named projection (`measuredRegionPaths`): its paths are drawn at
-		// the measured fit, and the transform is `null`.
-		const regionFrame =
-			frame ?? (measured === null || statics.atlas === null ? null : measured.carry)
-
-		const paths =
-			measured !== null && regionFrame === null
-				? measuredRegionPaths(statics, measured.projection, frameWidth, frameHeight)
-				: cachedCanonicalPaths(statics)
+		const fitted = canonical?.projection ?? null
 
 		return {
-			viewWidth: measured ? frameWidth : (canonical?.width ?? 0),
-			viewHeight: measured ? frameHeight : (canonical?.height ?? 0),
-			measured: measured !== null,
-			paths,
-			regionFrame,
+			viewWidth: frame ? frameWidth : (canonical?.width ?? 0),
+			viewHeight: frame ? frameHeight : (canonical?.height ?? 0),
 			fit: fitted,
 			frame,
 			project: (position: LngLat) => {
@@ -210,7 +187,7 @@ export function useMapShape({
 			unproject: (at: MapPoint2D) =>
 				unprojectPoint(fitted, frame === null ? at : invertTransform(at, frame)),
 		}
-	}, [projection, statics, frameWidth, frameHeight])
+	}, [statics, frameWidth, frameHeight])
 
 	// The chrome, resolved beside the geography rather than inside it: it reads
 	// the same fit, but a chrome toggle must not rebuild the view (that would
@@ -233,7 +210,7 @@ export function useMapShape({
 		[view, projection, graticule, sphere],
 	)
 
-	const { viewWidth, viewHeight, measured, paths, regionFrame, project, unproject } = view
+	const { viewWidth, viewHeight, frame, project, unproject } = view
 
 	return {
 		ref,
@@ -242,9 +219,9 @@ export function useMapShape({
 		fill: sizing.mode === 'fill',
 		viewWidth,
 		viewHeight,
-		measured,
-		paths,
-		regionFrame,
+		measured: frame !== null,
+		paths: cachedCanonicalPaths(statics),
+		regionFrame: frame,
 		chrome,
 		features: statics.features,
 		project,

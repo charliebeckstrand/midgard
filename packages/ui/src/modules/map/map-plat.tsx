@@ -771,7 +771,7 @@ const MEASURED_SVG = { className: 'absolute inset-0 block size-full' }
 /**
  * The plot SVG before the frame is measured. Its box is the plot box less
  * {@link MAP_FIT_INSET} on each side. The canonical frame meets this box, and
- * the measured fit meets the same box (`canonicalFrame` in
+ * the measured fit meets the same box (`measuredMapFit` in
  * `engine/map-projection/fit`), so the geography does not move when the
  * measurement lands. The box of the SVG is the box that the frame readers
  * (`frameToClient`) measure, so it is an inset and not a padding.
