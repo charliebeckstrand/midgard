@@ -4,7 +4,7 @@ import { useCallback, useMemo } from 'react'
 import { cn } from '../../core/cn'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/map'
-import { useMapPlat, useMapZoomScale } from './context'
+import { useMapPlat } from './context'
 import { GEOFENCE_FILL_OPACITY, GEOFENCE_STROKE_WIDTH } from './engine/map-constants'
 import { circleRing, zoneBudget, zoneSpare } from './engine/map-geofence'
 import { areaAnchor, projectArea, ringsPath } from './engine/map-geometry/mark'
@@ -156,11 +156,6 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	// that ground, so the rings have to resolve before the registration does.
 	const { project } = useMapPlat()
 
-	// Read here rather than off the registration below, for the same reason the
-	// projector is: the budget this zone publishes is a device-pixel figure over a
-	// frame measure, so it needs the scale before it registers.
-	const unitsPerPixel = useMapZoomScale()
-
 	// Memoized so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project the whole territory; `project` identity
 	// holds until the measured refit, a circle's rings hold on the primitives
@@ -174,11 +169,12 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	const d = useMemo(() => ringsPath(rings), [rings])
 
 	// Measured once for the whole zone rather than once per dot asking. The budget
-	// depends on nothing but the rings and the scale, both memoized above, while
-	// the resolver below runs for every dot on the map against every visible zone,
-	// so an inline measure walked every vertex of a dissolved territory once per
-	// dot, on the beat a wheel notch rebuilds them.
-	const budget = useMemo(() => zoneBudget(rings, unitsPerPixel), [rings, unitsPerPixel])
+	// depends on nothing but the rings, memoized above, while the resolver below
+	// runs for every dot on the map against every visible zone, so an inline
+	// measure walked every vertex of a dissolved territory once per dot, on the
+	// beat a wheel notch rebuilds them. The budget is frame units, so a zoom keeps
+	// it, and the resolver takes the scale.
+	const budget = useMemo(() => zoneBudget(rings), [rings])
 
 	// A zone that draws no ring (a radius at or below zero, or fewer than three
 	// points that project) takes no stop, so the cursor only stands where the map
@@ -201,15 +197,19 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	// because a zone drawn through its own marks puts them on its boundary,
 	// where inside-or-out has no answer and a ray cast reads the winding. Held on
 	// the budget, so a resize or a new radius tells the dots to measure again.
-	const spare = useCallback((position: MapPoint2D) => zoneSpare(budget, position), [budget])
+	const spare = useCallback(
+		(position: MapPoint2D, unitsPerPixel: number) => zoneSpare(budget, position, unitsPerPixel),
+		[budget],
+	)
 
-	const { slot, hidden, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
-		...shared,
-		kind: 'geofence',
-		swatch: 'rect',
-		stops: anchor,
-		spare,
-	})
+	const { slot, hidden, unitsPerPixel, animate, dim, selected, onPointerLeave, hit } =
+		useMapOverlay({
+			...shared,
+			kind: 'geofence',
+			swatch: 'rect',
+			stops: anchor,
+			spare,
+		})
 
 	if (slot === undefined || hidden || d === '') return null
 

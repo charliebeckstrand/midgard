@@ -78,29 +78,30 @@ describe('circleRing', () => {
 })
 
 /**
- * What a zone can spare the marks that stand on it. The budget is resolved once
+ * What a zone can spare the marks that stand on it. The budget is measured once
  * for the whole zone and the per-dot answer only places the dot against it, which
  * is both what makes every mark on one zone point alike and what keeps a
  * dissolved territory from being re-measured once per dot.
  */
 describe('zoneBudget and zoneSpare', () => {
-	const getBudget = (side: number, unitsPerPixel = 1) =>
-		zoneBudget(projectArea([[squareRing(side)]], flatProjector), unitsPerPixel)
+	const getBudget = (side: number) => zoneBudget(projectArea([[squareRing(side)]], flatProjector))
+
+	const middle = { x: 30, y: 30 }
 
 	it('spares a share of the zone’s own room, not the whole of it', () => {
 		// A 60-unit square holds 30 units of inscribed room, so the zone keeps half
 		// and hands out half: a dot at the middle can never blanket what drew it.
-		expect(getBudget(60).spare).toBe(30 * AREA_SPARE_FRACTION)
+		expect(zoneSpare(getBudget(60), middle, 1)).toBe(30 * AREA_SPARE_FRACTION)
 	})
 
 	it('claims nothing of a dot standing clear of the zone', () => {
 		// Past the competing band, which is one whole finger target wide.
 		const zone = getBudget(60)
 
-		expect(zoneSpare(zone, { x: -POINT_HIT_RADIUS - 1, y: 30 })).toBe(Infinity)
+		expect(zoneSpare(zone, { x: -POINT_HIT_RADIUS - 1, y: 30 }, 1)).toBe(Infinity)
 
 		// And inside it, so the band's own edge is what the two cases part on.
-		expect(zoneSpare(zone, { x: -POINT_HIT_RADIUS + 1, y: 30 })).toBe(zone.spare)
+		expect(zoneSpare(zone, { x: -POINT_HIT_RADIUS + 1, y: 30 }, 1)).toBe(zoneSpare(zone, middle, 1))
 	})
 
 	it('budgets a dot on the boundary exactly as one at the middle', () => {
@@ -108,24 +109,29 @@ describe('zoneBudget and zoneSpare', () => {
 		// drawn through its own marks could not answer. One budget, one answer.
 		const zone = getBudget(60)
 
-		expect(zoneSpare(zone, { x: 0, y: 0 })).toBe(zoneSpare(zone, { x: 30, y: 30 }))
+		expect(zoneSpare(zone, { x: 0, y: 0 }, 1)).toBe(zoneSpare(zone, middle, 1))
 	})
 
-	it('reads the budget in device pixels through a zoom', () => {
-		// Under the transform one device pixel spans two frame units, so a zone of
-		// fixed frame width spares half as many pixels, and the band it competes
-		// over grows to stay one finger target wide on screen.
-		expect(getBudget(60, 2).spare).toBe(15 * AREA_SPARE_FRACTION)
+	it('reads one budget in device pixels through a zoom', () => {
+		// The budget is frame units, so one budget answers each scale. Under the
+		// transform one device pixel spans two frame units, so a zone of fixed frame
+		// width spares half as many pixels.
+		const zone = getBudget(60)
 
-		expect(getBudget(60, 2).margin).toBe(POINT_HIT_RADIUS * 2)
+		expect(zoneSpare(zone, middle, 2)).toBe(15 * AREA_SPARE_FRACTION)
+
+		// The band that the zone competes over grows to stay one finger target wide
+		// on screen.
+		expect(zoneSpare(zone, { x: -POINT_HIT_RADIUS * 2 + 1, y: 30 }, 2)).toBe(
+			15 * AREA_SPARE_FRACTION,
+		)
+
+		expect(zoneSpare(zone, { x: -POINT_HIT_RADIUS * 2 - 1, y: 30 }, 2)).toBe(Infinity)
 	})
 
 	it('spares nothing from a zone the projection dropped', () => {
-		const zone = zoneBudget(
-			projectArea([[squareRing(60)]], () => null),
-			1,
-		)
+		const zone = zoneBudget(projectArea([[squareRing(60)]], () => null))
 
-		expect(zoneSpare(zone, { x: 30, y: 30 })).toBe(Infinity)
+		expect(zoneSpare(zone, middle, 1)).toBe(Infinity)
 	})
 })

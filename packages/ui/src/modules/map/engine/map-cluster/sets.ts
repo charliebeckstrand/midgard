@@ -12,6 +12,7 @@
 
 import { createEmitter } from '../../../../utilities/emitter'
 import { once } from '../../../../utilities/once'
+import { sameElements } from '../../../../utilities/same-elements'
 import { groupLegendId } from '../map-legend/items'
 import type { MapOverlayEntry } from '../map-overlay/entry'
 import type { LngLat, MapProjector } from '../types'
@@ -272,7 +273,8 @@ export type MapClusterStore = {
 	 * The snapshot: the grouping at a zoom scale. The identity of this function
 	 * changes each time the sets change, so a reader can hold its result in a memo.
 	 * It holds the grouping of the last scale that it was asked for, because every
-	 * set asks for the same scale.
+	 * set asks for the same scale. A new scale that puts each dot in the same group
+	 * gives the same `sets` and the same `marks`, with a new `room`.
 	 */
 	grouping: () => (unitsPerPixel: number) => MapPointGrouping
 	/** Calls `listener` each time the sets change, and returns the unsubscribe. */
@@ -318,7 +320,17 @@ export function createClusterStore(
 
 		return (unitsPerPixel: number) => {
 			if (last?.unitsPerPixel !== unitsPerPixel) {
-				last = { unitsPerPixel, grouping: groupSets(gathered(), project, getRadius, unitsPerPixel) }
+				const next = groupSets(gathered(), project, getRadius, unitsPerPixel)
+
+				// A zoom that moves no dot to another group keeps the sets and the marks
+				// of the last scale, so each reader keeps what it derived from them. The
+				// room is the one part that reads the scale, so it is always the new one.
+				const grouping =
+					last !== null && sameMembership(last.grouping, next)
+						? { sets: last.grouping.sets, marks: last.grouping.marks, room: next.room }
+						: next
+
+				last = { unitsPerPixel, grouping }
 			}
 
 			return last.grouping
@@ -349,6 +361,34 @@ export function createClusterStore(
 		},
 		getRadius,
 	}
+}
+
+/**
+ * Whether two groupings of the same sets put each dot in the same group. The
+ * marks of the two then have the same radius and the same order, because each
+ * mark is a function of its members. The position of a mark is the mean of its
+ * members, so the two positions are equal to the precision of that sum.
+ *
+ * @internal
+ */
+function sameMembership(prev: MapPointGrouping, next: MapPointGrouping): boolean {
+	if (prev.marks.length !== next.marks.length) return false
+
+	for (const [id, { groups }] of prev.sets) {
+		const others = next.sets.get(id)?.groups
+
+		if (others?.length !== groups.length) return false
+
+		const same = groups.every((group, index) => {
+			const other = others[index]
+
+			return other?.mark === group.mark && sameElements(other.members, group.members)
+		})
+
+		if (!same) return false
+	}
+
+	return true
 }
 
 /**
