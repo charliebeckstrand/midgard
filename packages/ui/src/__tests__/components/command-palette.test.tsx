@@ -766,6 +766,8 @@ describe('CommandPalette no results', () => {
 
 		expect(status.textContent).toBe('')
 
+		await setupUser().type(input, 'zzz')
+
 		rerender(
 			<CommandPalette open onOpenChange={() => {}}>
 				<VirtualWrapperStandIn empty />
@@ -775,6 +777,38 @@ describe('CommandPalette no results', () => {
 		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'))
 
 		expect(status).toHaveTextContent('No results')
+	})
+
+	// A palette can show its items only after the reader types. An empty list
+	// under no query is then the start state, and not a search that found nothing.
+	it('writes no no-results text while the query is empty', async () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				{null}
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		const status = getSlot(document.body, 'command-palette-no-results')
+
+		expect(input).toHaveAttribute('aria-expanded', 'false')
+
+		expect(status.textContent).toBe('')
+
+		const user = setupUser()
+
+		await user.type(input, '  ')
+
+		expect(status.textContent).toBe('')
+
+		await user.type(input, 'zzz')
+
+		await waitFor(() => expect(status).toHaveTextContent('No results'))
+
+		await user.clear(input)
+
+		await waitFor(() => expect(status.textContent).toBe(''))
 	})
 })
 

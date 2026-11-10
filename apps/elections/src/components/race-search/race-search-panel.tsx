@@ -67,8 +67,8 @@ export type RaceSearchPanelProps = {
 }
 
 /**
- * The command palette of the search of an election. An empty query lists the
- * states. A query lists the states, then the races of each office, that match
+ * The command palette of the search of an election. An empty query lists
+ * nothing. A query lists the states, then the races of each office, that match
  * it (`searchGroups`). A pick closes the palette and opens the Drawer on the
  * state or the race.
  */
