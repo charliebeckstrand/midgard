@@ -168,7 +168,8 @@ export function useMapCoverage({
 	const rules = useMemo(() => parseZipSelection(stated), [stated])
 
 	// The cut and the dissolve, over the ZIP atlas alone. This is what a keystroke
-	// in a coverage field re-runs, and it touches only the codes the territory
+	// in a coverage field re-runs. The cut tests the code of each geometry in the
+	// file. The decode and the merge then touch only the codes that the territory
 	// names, not the tens of thousands in the file.
 	const area = useMemo(
 		() => zipArea(zips, zipsObject, zipMatcher(rules), zipId),

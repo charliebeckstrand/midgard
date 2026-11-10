@@ -1,8 +1,8 @@
 /**
  * Reading a hover target back off the DOM. The drawn marks carry their identity
- * in data attributes. Each reader of that identity, such as the delegated
- * handlers of a layer or the scroll-settle lookup of the hover provider, reads
- * it here. Thus no reader parses the attributes for itself.
+ * in data attributes. A reader that resolves a mark from a node, such as the
+ * delegated handlers of a layer or the scroll-settle lookup of the hover
+ * provider, reads it here. Thus no such reader parses the attributes for itself.
  *
  * Framework-free like the rest of the engine: these take an `Element` and
  * return data, so they are testable against a bare DOM.
@@ -12,9 +12,11 @@ import type { MapHoverTarget } from './target'
 
 /**
  * The region index under a DOM node, resolved from the `data-region-index`
- * anchor the region paths carry. This is the one place that reads that anchor.
- * The hover provider's scroll-settle resolve and the region layer's own
- * delegated handlers share it, so the contract can't drift between them.
+ * anchor the region paths carry. The hover provider's scroll-settle resolve and
+ * the region layer's own delegated handlers share it, so the contract can't
+ * drift between them. One reader stays outside. The pointer handler of a region
+ * path reads the attribute of its own element (`track` in `map-regions.tsx`),
+ * where the anchor is always present.
  *
  * The result is `null` whenever the node is outside every region, or the anchor
  * doesn't read as an index. A missing attribute must never coerce to region 0,

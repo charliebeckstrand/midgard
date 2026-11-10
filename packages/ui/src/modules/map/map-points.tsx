@@ -583,10 +583,10 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * alike, whichever dot draws last.
  *
  * @remarks Renders only inside {@link MapPlat}. Prefer this to a `MapPoint` per
- * position past a handful. `MapPoint` registers its own legend entry. Two
- * hundred of them therefore cost two hundred state commits, two hundred
- * re-sorts, and two hundred legend rows against an eight-slot palette. This
- * costs one of each.
+ * position past a handful. `MapPoint` registers its own legend entry. The
+ * registrations of one mount land in one commit. Two hundred of them still cost
+ * two hundred sorts of the ledger, and two hundred legend rows against an
+ * eight-slot palette. This costs one of each.
  *
  * A dot whose position the projection has no image for is omitted, and the rest
  * keep their readouts. The US composite drops points outside its insets. The

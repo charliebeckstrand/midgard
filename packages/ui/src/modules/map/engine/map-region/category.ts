@@ -135,8 +135,9 @@ export function binEmphasisId(bin: number): string {
 /**
  * The legend id a region's toggle and emphasis key on (its category's stable
  * {@link categoryLegendId}), or `null` for a no-data region outside every
- * group. One resolution shared by the region fill and the plat's pointed-mark
- * gate, so the two can't disagree on which regions belong to a group.
+ * group. The plat's pointed-mark gate reads it. The region fill spells the same
+ * resolution in `categoryPaint` (`map-region/paint`), so a change to one must
+ * reach the other.
  *
  * @internal
  */

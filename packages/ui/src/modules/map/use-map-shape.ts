@@ -161,9 +161,9 @@ export function useMapShape({
 	} = usePlotFrame(width, sizing, false, true)
 
 	// The measured refit, its region paths, and the projector, resolved as one
-	// unit so a resize reprojects all three together. Deriving them inside one
-	// memo over the live frame dimensions reprojects on every resize, and hands
-	// the context a fresh `project` identity so overlay marks recompute. The
+	// unit so a resize moves all three together. One memo over the live
+	// frame dimensions fits again on every resize, and hands the context
+	// a fresh `project` identity so overlay marks recompute. The
 	// projector closes over the measured fit's own values, never over a refit
 	// projection alone: a passed d3 instance keeps its canonical fit, and its
 	// frame transform is what changes (`measuredMapFit`). The region paths are the

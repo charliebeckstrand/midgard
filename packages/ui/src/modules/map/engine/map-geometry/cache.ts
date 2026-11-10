@@ -53,9 +53,8 @@ import { rewindFeatures } from './winding'
  * The mount-critical geometry a {@link MapPlat} draws from on its first,
  * measurement-free commit: the decoded features and the canonical fit (`null`
  * with nothing to fit). The paths that fit draws are memoized beside it, not on
- * it ({@link cachedCanonicalPaths}). A caller such as the coverage hook wants
- * the fit and never the paths. Shared across instances, so
- * treat every field as read-only.
+ * it ({@link cachedCanonicalPaths}), so only a plat that draws them pays that
+ * pass. Shared across instances, so treat every field as read-only.
  *
  * @internal
  */
@@ -325,8 +324,9 @@ export function cachedChromePaths(
 // The canonical-fit paths per shared geometry. Every map draws them before its
 // box is measured, and the region layer carries the same paths onto the measured
 // fit, so one emit serves both stages. Held apart from the entry rather than on
-// it: a caller that reads only the decode or the fit, such as the coverage hook,
-// does not pay the emit. A function rather than a lazy property for the reason
+// it, because one kind of plat never reads them. A geography that the buffer
+// declines, at a box known on the first commit, draws at the measured fit only
+// (`measuredRegionPaths`). A function rather than a lazy property for the reason
 // the rest of this file is functions: there is no field for a spread, a clone,
 // or a key walk to force, so a caller that does not want the pass simply does
 // not call.
