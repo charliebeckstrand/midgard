@@ -103,7 +103,7 @@ describe('ChoroplethChart', () => {
 
 		// Beside the plot: the reserved side-panel column.
 		expect(bySlot(container, 'map-legend-box')?.parentElement?.getAttribute('class')).toContain(
-			'@lg:grid-cols-[minmax(0,1fr)_12rem]',
+			'@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)]',
 		)
 	})
 

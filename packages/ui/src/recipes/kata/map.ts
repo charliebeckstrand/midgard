@@ -262,13 +262,13 @@ export const k = {
 	 * - The `row` box holds one item-row of height. Each placement takes it: top
 	 *   and bottom, and a side panel too, which is a row under the map below the
 	 *   map's own `@lg` width.
-	 * - The side `rail` is the grid of the plot and the panel. From the map's
+	 * - The side `rail` is the grid of the plot and a side legend. From the map's
 	 *   `@lg` width, it has a fixed 12rem column for the panel beside the plot.
 	 *   A label too wide for it clips, and shows itself on hover.
 	 *
 	 * The plot's width therefore never depends on what has registered. The rail
 	 * is a track of the grid, not the width of the panel, so the plot has its
-	 * final width before the browser parses the panel. The panel follows a large
+	 * final box before the browser parses the panel. The panel follows a large
 	 * SVG in the HTML, and a browser can paint the page before it gets there.
 	 *
 	 * The item-row is 32 px, the height of a `sm` button. An entry is a
@@ -281,17 +281,33 @@ export const k = {
 		entry: dan.gap.scale.sm,
 		row: 'min-h-8',
 		/**
-		 * The columns of the plot and the panel from the map's `@lg`, for each
-		 * side. The panel follows the plot in the DOM, so a panel at the left
-		 * comes first through `order`. The side is physical, and the columns of a
-		 * right-to-left grid start at the right, so the `rtl:` variant swaps the
-		 * columns and the order back. Tailwind finds a class only as a complete
-		 * literal, so each entry is written out in full.
+		 * The grid of the plot and a side legend. It is one column, with the
+		 * legend under the plot, below the map's `@lg`. From there it is two
+		 * columns, and the `left` or `right` entry puts the rail on that side.
+		 *
+		 * The `plot` line names the column of the plot, and `band` puts the plot
+		 * there. The plot is the first child from the time the browser parses it,
+		 * so it has its final column while it is the only child. The legend
+		 * follows it in the DOM and takes the column that stays. Do not use
+		 * `order` here: it does not move an only child off the first column.
+		 *
+		 * The `--map-rail` property is the width of the rail. The `panel` entry
+		 * gives the fixed column of a switchboard. The `bar` entry gives a range
+		 * bar the width of its labels, which the browser knows only after it
+		 * parses the bar.
+		 *
+		 * The side is physical, and the columns of a right-to-left grid start at
+		 * the right, so the `rtl:` variant of each side is the columns of the
+		 * other side. Tailwind finds a class only as a complete literal, so each
+		 * entry is written out in full.
 		 */
 		rail: {
-			left: '@lg:grid-cols-[12rem_minmax(0,1fr)] @lg:*:last:order-first rtl:@lg:grid-cols-[minmax(0,1fr)_12rem] rtl:@lg:*:last:order-none',
+			band: 'grid grid-cols-1 @lg:*:first:col-start-[plot] @lg:*:first:row-start-1',
+			panel: '[--map-rail:12rem]',
+			bar: '[--map-rail:auto]',
+			left: '@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)] rtl:@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)]',
 			right:
-				'@lg:grid-cols-[minmax(0,1fr)_12rem] rtl:@lg:grid-cols-[12rem_minmax(0,1fr)] rtl:@lg:*:last:order-first',
+				'@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)] rtl:@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)]',
 		},
 	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */

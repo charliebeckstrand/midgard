@@ -309,8 +309,12 @@ describe('MapPlat', () => {
 
 		// The frame's grid holds the 12rem column, not the box, so the plot has its
 		// width before the box is in the DOM.
-		expect(bySlot(container, 'map-legend-box')?.parentElement?.getAttribute('class')).toContain(
-			'@lg:grid-cols-[12rem_minmax(0,1fr)]',
+		const band = bySlot(container, 'map-legend-box')?.parentElement
+
+		expect(band).toHaveClass('[--map-rail:12rem]')
+
+		expect(band?.getAttribute('class')).toContain(
+			'@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)]',
 		)
 
 		// The side panel spans the reserved column beside the map from the map's own `@lg`.
@@ -326,8 +330,8 @@ describe('MapPlat', () => {
 
 	it('stacks a side panel under the map below its own @lg width and beside it from there', () => {
 		for (const [legend, columns] of [
-			['right', '@lg:grid-cols-[minmax(0,1fr)_12rem]'],
-			['left', '@lg:grid-cols-[12rem_minmax(0,1fr)]'],
+			['right', '@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)]'],
+			['left', '@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)]'],
 		] as const) {
 			const { container } = renderUI(categoricalPlat({ legend }))
 
@@ -1034,8 +1038,12 @@ describe('MapPlat choropleth mode', () => {
 
 		// The numeric mode reads its legend beside the plot: the reserved side-panel
 		// column, not the bottom row.
-		expect(bySlot(container, 'map-legend-box')?.parentElement?.getAttribute('class')).toContain(
-			'@lg:grid-cols-[minmax(0,1fr)_12rem]',
+		const band = bySlot(container, 'map-legend-box')?.parentElement
+
+		expect(band).toHaveClass('[--map-rail:12rem]')
+
+		expect(band?.getAttribute('class')).toContain(
+			'@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)]',
 		)
 	})
 
@@ -1046,9 +1054,9 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(bar).not.toBeNull()
 
-		// The bar has the width of its labels, so no fixed column holds it: its
-		// row stays a flex row.
-		expect(bySlot(container, 'map-plot')?.parentElement).toHaveClass('flex', 'flex-col')
+		// The bar is in the same grid as a panel. It has the width of its labels,
+		// so its column has no fixed width.
+		expect(bySlot(container, 'map-plot')?.parentElement).toHaveClass('grid', '[--map-rail:auto]')
 
 		// The gradient bar paints the colorRange stops.
 		expect(bySlot(container, 'map-range-track')?.getAttribute('style')).toContain('--range-ramp')

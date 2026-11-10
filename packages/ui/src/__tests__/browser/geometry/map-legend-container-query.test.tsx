@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { allBySlot, getSlot } from '../../helpers'
+import { allBySlot, getSlot, present } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { renderZones } from '../helpers/map-zones'
 
@@ -33,26 +33,43 @@ describe('map side-legend container query (real browser)', () => {
 		expect(legend.top).toBeLessThan(plot.bottom)
 	})
 
-	it('gives the plot its width beside the panel before the panel is in the layout', async () => {
-		const { container } = await zones(600)
+	it.each([
+		['ltr', 'right'],
+		['ltr', 'left'],
+		['rtl', 'right'],
+		['rtl', 'left'],
+	] as const)(
+		'gives the plot its box beside the panel before the panel is in the DOM (%s, %s)',
+		async (dir, legend) => {
+			const { container } = await renderZones(['North', 'South', 'East'], {
+				legend,
+				frame: { dir, width: 600 },
+			})
 
-		const plot = getSlot(container, 'map-plot')
+			const plot = getSlot(container, 'map-plot')
 
-		const box = getSlot(container, 'map-legend-box')
+			const box = getSlot(container, 'map-legend-box')
 
-		const width = plot.getBoundingClientRect().width
+			const band = present(box.parentElement, 'band')
 
-		// The panel comes after the SVG of the plot in the HTML, so a browser that
-		// paints while it parses draws the plot with no panel. A panel out of the
-		// layout stands in for that state: the column of the grid stays.
-		box.style.display = 'none'
+			const { left, width } = plot.getBoundingClientRect()
 
-		expect(plot.getBoundingClientRect().width).toBeNear(width, HALF_PIXEL)
+			expect(width).toBeLessThan(600 - 192)
 
-		box.style.display = ''
+			// The panel comes after the SVG of the plot in the HTML, so a browser that
+			// paints while it parses draws the plot with no panel after it. A band
+			// without the panel is that state: the plot is then its only child.
+			box.remove()
 
-		expect(width).toBeLessThan(600 - 192)
-	})
+			const parsed = plot.getBoundingClientRect()
+
+			band.append(box)
+
+			expect(parsed.width).toBeNear(width, HALF_PIXEL)
+
+			expect(parsed.left).toBeNear(left, HALF_PIXEL)
+		},
+	)
 
 	it('stacks the legend under a full-width plot in a narrow container', async () => {
 		const { container } = await zones(300)
