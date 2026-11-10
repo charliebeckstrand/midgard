@@ -52,6 +52,7 @@ describe('Popover fill in a glass panel (real browser)', () => {
 	it('keeps the translucent popover fill in a flat Settings dialog', async () => {
 		const listbox = await openPicker(false)
 
-		expect(readAlpha(listbox)).toBeLessThan(1)
+		// The light alpha of `bg.popover` when no glass sets `--popover-alpha`.
+		expect(readAlpha(listbox)).toBeCloseTo(0.9, 3)
 	})
 })

@@ -19,12 +19,13 @@ import { ring } from '../sen/ring'
 import { bg } from './bg'
 import { panelGlass } from './glass'
 
-/** The `glass` surface behind the `surfaces-glass` variant: no fill, and the blur of `panelGlass`. */
+/** The `glass` surface behind the `surfaces-glass` variant: no fill, the blur of `panelGlass`, and its `--popover-alpha`. */
 const glassBehind = [
 	...mode(
 		['surfaces-glass:bg-transparent', 'surfaces-glass:[--surface-fill:transparent]'],
 		['dark:surfaces-glass:bg-transparent', 'dark:surfaces-glass:[--surface-fill:transparent]'],
 	),
+	'surfaces-glass:[--popover-alpha:100%]',
 	'surfaces-glass:backdrop-blur-lg',
 ]
 
