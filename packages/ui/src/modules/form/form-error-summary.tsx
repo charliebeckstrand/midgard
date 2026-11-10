@@ -68,7 +68,7 @@ function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
 
 /**
  * A list of the errors of the enclosing `Form`, which shows after a submit fails
- * and takes the focus. Each row links to the control of its field.
+ * and takes the focus. Each row names its field and links to its control.
  *
  * @remarks
  * A refused submit fails, and so does a handler that returns a field issue.
@@ -80,8 +80,13 @@ function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
  * A row links to the control of its field. A control that binds the field
  * registers its id, and so does a form-bound `Message`. A click moves the focus
  * to that control. A row whose field has no registered control shows the issue
- * as text. Write each issue so that it is clear without its field, such as
- * "Enter an email address".
+ * as text.
+ *
+ * A row names its field with the text of the field `Label` of the control. The
+ * label shows in bold, and the issue shows on the line below it. The two lines
+ * are one link. The row takes only the text of the label, and no element of it. A control with no field `Label`, such
+ * as a control with only an `aria-label` or a native `<label>`, gives a row with
+ * only the issue. Thus write each issue so that it is clear without its field.
  *
  * The summary is an error `Alert`, so it announces itself. It also takes the
  * focus after each failure, so the reader starts from it. An `onInvalidSubmit`
@@ -162,23 +167,35 @@ export function FormErrorSummary({
 			ref={setRoot}
 			tabIndex={-1}
 		>
-			<ul>
+			<ul className="flex flex-col gap-2">
 				{items.map(({ name, issue }) => {
-					const id = targets[name]
+					const target = targets[name]
+
+					if (target === undefined) return <li key={name}>{issue}</li>
+
+					const { id, label } = target
 
 					return (
 						<li key={name}>
-							{id === undefined ? (
-								issue
-							) : (
-								<a
-									href={`#${id}`}
-									className={cn(linkK({ underline: true }).base)}
-									onClick={(event) => focusControl(event, id)}
-								>
-									{issue}
-								</a>
-							)}
+							<a
+								href={`#${id}`}
+								className={cn(
+									linkK({ underline: label === undefined }).base,
+									label !== undefined && 'inline-flex flex-col',
+								)}
+								onClick={(event) => focusControl(event, id)}
+							>
+								{label === undefined ? (
+									issue
+								) : (
+									<>
+										{/* The label carries the underline, the mark of the link (WCAG 1.4.1).
+										The space keeps the two lines apart in the name of the link. */}
+										<span className="font-semibold underline underline-offset-4">{label}</span>{' '}
+										<span>{issue}</span>
+									</>
+								)}
+							</a>
 						</li>
 					)
 				})}

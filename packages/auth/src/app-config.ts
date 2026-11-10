@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'node:url'
 import type { NextConfig } from 'next'
 
 /*
@@ -43,9 +42,4 @@ export const appConfig: NextConfig = {
 	// instant navigation to a route whose request reads sit in `<Suspense>`.
 	cacheComponents: true,
 	partialPrefetching: true,
-	// The `'use cache'` handler keeps an entry until it expires, and Next renders
-	// a fresh one in the background once the entry is past its revalidate time.
-	// Thus a read does not wait for the source of the data (`cache-handler.ts`).
-	// The path is the built file beside this one in `dist`.
-	cacheHandlers: { default: fileURLToPath(new URL('./cache-handler.js', import.meta.url)) },
 }

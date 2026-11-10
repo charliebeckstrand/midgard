@@ -9,6 +9,7 @@ import type { LegendBandBreakpoint } from '../../../chart/engine/chart-legend/ba
 import type { ChartRangeLegendConfig } from '../../../chart/engine/chart-legend/range'
 import { rangeLegendBeside, resolveRangeLegend } from '../../../chart/engine/chart-legend/range'
 import type { RangeOrientation, RangeScale } from '../../../chart/engine/chart-legend/range-legend'
+import { legendAside } from '../../../chart/engine/chart-legend/schema'
 import { resolveValueFormat } from '../map-region/value'
 import type { MapLegendPlacement } from '../types'
 
@@ -129,10 +130,20 @@ export type MapLegendRange = RangeScale & {
 	orientation: RangeOrientation
 }
 
+/**
+ * The legend that shows at a side of the map: the switchboard `panel` or the
+ * range `bar`. The frame gives each its own width of the rail.
+ *
+ * @internal
+ */
+export type MapLegendRail = 'panel' | 'bar'
+
 /** What the map draws for its legend: whether it shows, where it sits, and the range bar in range mode. @internal */
 type MapLegendPlan = {
 	show: boolean
 	placement: MapLegendPlacement
+	/** The legend that shows at a side, or `null` when no legend shows or it is a band. */
+	rail: MapLegendRail | null
 	/** The continuous scale bar's resolved shape, or `null` for the binned switchboard. */
 	range: MapLegendRange | null
 	/**
@@ -168,14 +179,17 @@ export function planLegend(
 	if (!(numeric && isRangeLegend(legend))) {
 		const placement = resolvePlacement(legend, numeric)
 
+		const show = legendCanShow(
+			legend,
+			switchboard.categoryCount,
+			switchboard.entryCount,
+			switchboard.hasOverlayChildren,
+		)
+
 		return {
-			show: legendCanShow(
-				legend,
-				switchboard.categoryCount,
-				switchboard.entryCount,
-				switchboard.hasOverlayChildren,
-			),
+			show,
 			placement,
+			rail: show && legendAside(placement) ? 'panel' : null,
 			range: null,
 			orientation: rangeLegendBeside(placement, box.width, 'right', 'lg')
 				? 'vertical'
@@ -215,6 +229,7 @@ export function planLegend(
 	return {
 		show: range !== null,
 		placement: resolved.placement,
+		rail: range !== null && legendAside(resolved.placement) ? 'bar' : null,
 		range,
 		orientation: resolved.orientation,
 	}

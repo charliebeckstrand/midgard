@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import type { Seed } from 'shared/queries'
+import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { SearchInput } from 'ui/search-input'
@@ -266,7 +267,13 @@ function raceView(
 	views: Views,
 	layouts: Layouts,
 ): DrawerView {
-	const subtitle = race?.special ? 'Special election' : undefined
+	// Only the race tells a special election, so the badge comes when the race
+	// loads. It sits in the row of the trail, so the panel keeps its height.
+	const badge = race?.special ? (
+		<Badge variant="soft" color="zinc">
+			Special
+		</Badge>
+	) : undefined
 
 	const county =
 		step.county === null
@@ -276,14 +283,14 @@ function raceView(
 	if (county !== undefined) {
 		return {
 			steps: [...trail, { label: county.name }],
-			subtitle,
+			badge,
 			body: <CountyView county={county} called={entry.called} layouts={layouts} />,
 		}
 	}
 
 	return {
 		steps: trail,
-		subtitle,
+		badge,
 		body: (
 			<RaceDetail
 				entry={entry}

@@ -10,7 +10,9 @@ describe('rootMarks', () => {
 		expect(rootMarks()).toEqual({ classes: [], attributes: [] })
 
 		expect(
-			rootMarks('locale=es; theme=system; density=snug; motion=system; sidebar=locked'),
+			rootMarks(
+				'locale=es; theme=system; density=snug; motion=system; sidebar=locked; surfaces=glass',
+			),
 		).toEqual({
 			classes: [],
 			attributes: [],
@@ -18,10 +20,10 @@ describe('rootMarks', () => {
 
 		expect(
 			rootMarks(
-				'theme=dark; density=compact; motion=reduced; sidebar=offcanvas; events-on=1; events-pinned=1',
+				'theme=dark; density=compact; motion=reduced; sidebar=offcanvas; surfaces=solid; events-on=1; events-pinned=1',
 			),
 		).toEqual({
-			classes: ['dark', 'density-root-sm', 'reduced-motion', 'sidebar-offcanvas'],
+			classes: ['dark', 'density-root-sm', 'reduced-motion', 'sidebar-offcanvas', 'surfaces-solid'],
 			attributes: ['data-events', 'data-events-pinned'],
 		})
 

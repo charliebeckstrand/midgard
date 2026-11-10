@@ -30,19 +30,24 @@ with no sign.
 
 Three national races give the whole picture of the midterms: the race of each
 state or district, and the seats of each party. One race of a state gives its
-counties. While the count goes on, the cache reads each race again once its
-parsed copy is a minute old, and it serves that copy for up to a day while the
-fresh read runs in the background. Once the race is fully in and called, the
-copy holds for hours. Thus a page does not wait for civicAPI unless it has
-had no visit for a day. The cache handler of `auth/app-config` keeps each
-entry until it expires.
+counties. The cache keeps each parsed race for a minute while the count goes
+on, and for hours once the race is fully in and called.
 
-The Auto update switch of the settings dialog in the header controls the
-updates. It is on by default, and `localStorage` keeps it. While it is on and
-votes are counted, `LiveRefresh` from `shared` renders the page again each
-minute while any race of the election is counted. The page reads the race of
-the Drawer again with it, so the Drawer has no clock of its own. A hidden tab
-skips these updates.
+The results update only when the reader asks. The Refresh button of the
+footer, beside the age of the newest update, renders the page again on the
+server, in place (`useRefresh` from `shared`). The page reads the race of the
+Drawer again with it, so the Drawer has no clock of its own. While the
+refresh is in flight, the button reads "Refreshing". A refresh with no answer
+leaves the page as it is, and an error toast says so.
+
+Next reloads the whole page when a refresh cannot apply in place: after a
+deploy, on an error answer, or with no network. So before each refresh, the
+page reads the build of the server from `/api/build`, and it refreshes only
+when the server runs the build of the page. Each minute, while the tab is
+visible, the page also reads the build, and no data (`useBuildWatch`). After
+a deploy, the footer shows "New build available" in place of the Refresh
+button, with a Refresh link that reloads the whole page.
+
 A changed number rolls to its new value through the `Odometer` of `ui`, and
 under reduced motion it goes to the value with no roll.
 
@@ -109,7 +114,7 @@ gives the rows of both.
 The layout of an election renders the view of each of its pages, and
 `src/components/election-views` shows the view of the current page. The other
 views stay mounted and hidden, so an office switch shows a view that is already
-rendered. A page holds only its Drawer and its live refresh. The layout of a
+rendered. A page holds only its Drawer. The layout of a
 state does the same for the pages of the state, and the trail of the header
 then ends at the state.
 
@@ -132,16 +137,16 @@ of the state, so its frame has its final size in the first paint.
 The build prerenders each election of the registry and each of its offices.
 The static shell of a page holds the layout with its results. Cache Components
 serves that shell, and renders the next shell in the background once the
-shell is a minute old. Thus a visit does not wait for civicAPI. A state is not
-prerendered: it renders on each visit, from the cache of its races. A link to an
-election prefetches the shell and its code before the click. `LiveRefresh`
+shell is a minute old. Thus a visit does not wait for civicAPI. A link to an
+election prefetches the shell and its code before the click. A refresh
 renders the whole page on the server, so each refresh reads the cache of the
 races.
 
 ## The design
 
 Each screen shows only what a reader needs. No label reads "All", and a title
-has no badge beside it. A list of elections stacks its cards in one column.
+has no badge beside it. A collapse toggle can show the count of the rows that
+it hides. A list of elections stacks its cards in one column.
 On a phone, the cards of an election also stack in one column, and a wider
 screen shows two or three columns. A page at 390 px wide has no overflow. The status of the count shows only in the footer. A page with no results has no footer.
 

@@ -1215,7 +1215,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[anchored, hidden, regionRoom],
 	)
 
-	// Every visible dot-drawing mark's stops, projected. This is the pool a dot
+	// Every visible dot-drawing mark's dots, in frame units. This is the pool a dot
 	// divides its target's ground against, and the seam that lifts `crowd.ts`'s
 	// one accepted bound: a mark could previously see only its own dots, so two
 	// separate marks each kept a full target and the overlap went to whichever
@@ -1518,6 +1518,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const {
 		show: showLegend,
 		placement: legendPlacement,
+		rail: legendRail,
 		range: rangeLegend,
 		orientation: legendOrientation,
 	} = planLegend(
@@ -1650,6 +1651,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				/>
 			}
 			legendPlacement={legendPlacement}
+			rail={legendRail}
 			plotRegion={
 				<MapPlotRegion
 					aria-label={ariaLabel}

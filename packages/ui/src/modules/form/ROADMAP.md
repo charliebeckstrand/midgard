@@ -28,9 +28,11 @@ Three parts act on the state of the form:
 
 - [`FormSubmit`](form-submit.tsx) is a submit button that shows its loading state while a submit runs.
 - [`FormReset`](form-reset.tsx) is a reset button that is `aria-disabled` while the form is clean or a submit runs. It stays enabled, so it keeps the focus after the reset that it starts.
-- [`FormErrorSummary`](form-error-summary.tsx) lists the issue of each invalid field after a failure, and takes the focus. Each row links to the control of its field.
+- [`FormErrorSummary`](form-error-summary.tsx) lists the issue of each invalid field after a failure, and takes the focus. Each row names its field and links to the control of its field.
 
 `Form` renders `ControlTargetsContext`, a registry of control ids by field name. Each bindable control registers its id there, and so does a form-bound `Message`. A bare control, with no `id` and no `Field` or `Control` around it, registers the id that it renders. `Input`, `Checkbox`, `Switch`, `Slider`, `RangeSlider`, `Rating`, and the pickers make that id with `useIdScope`. The registry counts each registration, so the end of one does not remove the other. A row of a field that registers no id, such as a custom field over `useFormValue`, shows its issue as text. A filter bar opens no registry, so its fields do not take the names of the form.
+
+A field `Label` registers its text with the same registry, by the id of the control that it names. The label reads its text from the DOM after each commit, and registers only a change. So the row takes the plain text of the label, and no element of it, such as a link or a button. A row of a field with a label shows the label in bold, with the issue on the line below it. The two lines are one link. A control with only an `aria-label` or a native `<label>` registers no text, so its row shows only the issue.
 
 ## Engine: the substrate
 
@@ -42,7 +44,7 @@ The engine reads `hasIssues` from the binding contract, because a control and th
 
 ## Backlog
 
-- **Field labels in the summary.** A row of `FormErrorSummary` shows the issue of its field. A row that also names the field needs the label of the field, which the form does not hold.
+The backlog is empty.
 
 ---
 

@@ -4,6 +4,9 @@
  * panel. The raw color pairs live here, not in `bg.ts`; the `blur` filter
  * is its own concern.
  *
+ * `glass` also holds the `base` scrim behind the `surfaces-solid` variant, for the
+ * paint before hydration while the reader chose solid surfaces (see `panel.ts`).
+ *
  * Layer: kiso · Concern: backdrop fill
  */
 
@@ -18,5 +21,9 @@ const fill = {
 
 export const backdrop = {
 	base: [fill.md, blur.sm],
-	glass: fill.lg,
+	glass: [
+		fill.lg,
+		...mode('surfaces-solid:bg-white/50', 'dark:surfaces-solid:bg-zinc-950/50'),
+		'surfaces-solid:backdrop-blur-sm',
+	],
 } as const

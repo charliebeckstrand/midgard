@@ -99,6 +99,23 @@ describe('createDotPool', () => {
 		expect(pool.neighbors('p')()).toEqual([dot(0, 0, 4), dot(10, 0, 4)])
 	})
 
+	it('holds a dot that a mark gives as a frame position where the mark draws it', () => {
+		// A set: a summary draws at the mean of the frame positions of its members, which is the image
+		// of no position that the summary holds. The pool therefore does not project the dot.
+		const projected = vi.fn(project)
+
+		const set = {
+			...entry('s', { current: [[4, 0]] }),
+			dotsAt: (): MapEntryDot[] => [{ drawn: { x: 3, y: 0.5 }, radius: 9 }],
+		}
+
+		const pool = createDotPool([set], new Set(), projected)
+
+		expect(pool.neighbors('p')()).toEqual([dot(3, 0.5, 9)])
+
+		expect(projected).not.toHaveBeenCalled()
+	})
+
 	it('tells its readers when a restaked mark moved, and gives each other mark a new snapshot', () => {
 		const a = { current: [[1, 1]] as LngLat[] }
 

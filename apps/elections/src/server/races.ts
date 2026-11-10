@@ -7,25 +7,16 @@ import { readNationalRace, readRace } from './civic-race'
 import { atlasCountyNames } from './county-names'
 
 /**
- * The cache life of a count that goes on: a fresh read each minute, as
- * `minutes`. A read serves its last answer for up to a day while the fresh
- * read runs in the background, so a page after a quiet hour does not wait for
- * civicAPI. `LiveRefresh` then shows the fresh count within a minute.
- */
-const COUNTING = { stale: 300, revalidate: 60, expire: 86_400 }
-
-/**
  * Sets the cache life of a read from the count of its races. A count that goes
- * on, or a race that has no winner, reads again each minute (`COUNTING`).
- * Races that are fully in and called hold for hours.
+ * on, or a race that has no winner, reads again each minute. Races that are
+ * fully in and called hold for hours.
  */
 function countLife(
 	races: readonly { reporting: number; candidates: readonly Candidate[] }[],
 ): void {
 	const counting = races.some((race) => race.reporting < 100 || !isCalled(race.candidates))
 
-	if (counting) cacheLife(COUNTING)
-	else cacheLife('hours')
+	cacheLife(counting ? 'minutes' : 'hours')
 }
 
 /**

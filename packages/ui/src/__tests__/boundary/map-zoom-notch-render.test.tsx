@@ -125,6 +125,10 @@ describe('map zoom notch renders', () => {
 		// The set renders its dots one time, for the scale. It does not read its own
 		// dots from the pool, so the restake of those dots renders no dot again.
 		expect(setDots()).toBe(STOPS.length)
+
+		// The set stakes each dot in the pool at the frame position that it draws,
+		// so the restake resolves no anchor on the sphere.
+		expect(clusterAnchor).not.toHaveBeenCalled()
 	})
 
 	it('renders only the marks, once each, for a notch that regroups nothing', () => {

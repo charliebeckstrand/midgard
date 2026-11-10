@@ -88,9 +88,21 @@ describe('FormErrorSummary', () => {
 		const items = within(summary).getAllByRole('listitem')
 
 		expect(items.map((item) => item.textContent)).toEqual([
-			'Enter a name.',
-			'Enter an email address.',
+			'Name Enter a name.',
+			'Email Enter an email address.',
 		])
+	})
+
+	it('shows the label of a field above its issue, both in the link', async () => {
+		const { container } = renderSignup()
+
+		await submit(container)
+
+		const link = summaryLink(container, 'Email Enter an email address.')
+
+		expect(within(link).getByText('Email')).not.toBe(link)
+
+		expect(within(link).getByText('Enter an email address.')).not.toBe(link)
 	})
 
 	it('takes the focus after a refused submit', async () => {
@@ -118,7 +130,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		const link = summaryLink(container, 'Enter a name.')
+		const link = summaryLink(container, 'Name Enter a name.')
 
 		expect(link).toHaveAttribute('href', '#name-control')
 
@@ -132,7 +144,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		const link = summaryLink(container, 'Enter an email address.')
+		const link = summaryLink(container, 'Email Enter an email address.')
 
 		const email = within(container).getByRole('textbox', { name: 'Email' })
 
@@ -156,7 +168,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		const link = summaryLink(container, 'Attach a file.')
+		const link = summaryLink(container, 'Files Attach a file.')
 
 		expect(link).toHaveAttribute('href', '#files-control')
 
@@ -195,6 +207,79 @@ describe('FormErrorSummary', () => {
 		expect(within(summary).getByText('Enter a name.')).toBeInTheDocument()
 	})
 
+	it('names a field with the text of its label, and follows a change of that text', async () => {
+		function Signup({ label }: { label: string }) {
+			return (
+				<Form defaultValues={{ email: '' }} validate={{ email: () => 'Enter an email address.' }}>
+					<FormErrorSummary />
+					<Field>
+						<Label>
+							<strong>{label}</strong> address
+						</Label>
+						<Input name="email" />
+					</Field>
+				</Form>
+			)
+		}
+
+		const { container, rerender } = renderUI(<Signup label="Email" />)
+
+		await submit(container)
+
+		expect(summaryLink(container, 'Email address Enter an email address.')).toBeInTheDocument()
+
+		rerender(<Signup label="Work email" />)
+
+		expect(summaryLink(container, 'Work email address Enter an email address.')).toBeInTheDocument()
+	})
+
+	it('names a field with a span Label, as on a control whose id is on a wrapper', async () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ score: 0 }} validate={{ score: () => 'Rate the stay.' }}>
+				<FormErrorSummary />
+				<Field>
+					<Label as="span">Score</Label>
+					<Rating name="score" />
+				</Field>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(summaryLink(container, 'Score Rate the stay.')).toBeInTheDocument()
+	})
+
+	it('names a bare control with the Label that points at its id', async () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ email: '' }} validate={{ email: () => 'Enter an email address.' }}>
+				<FormErrorSummary />
+				<Label htmlFor="email">Email</Label>
+				<Input id="email" name="email" />
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(summaryLink(container, 'Email Enter an email address.')).toHaveAttribute(
+			'href',
+			'#email',
+		)
+	})
+
+	it('shows only the issue of a control that a native label names', async () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ email: '' }} validate={{ email: () => 'Enter an email address.' }}>
+				<FormErrorSummary />
+				<label htmlFor="email">Email</label>
+				<Input id="email" name="email" />
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(summaryLink(container, 'Enter an email address.')).toBeInTheDocument()
+	})
+
 	it('focuses the first focusable element of a control whose id is on a wrapper', async () => {
 		const { container } = renderUI(
 			<Form defaultValues={{ score: 0 }} validate={{ score: () => 'Rate the stay.' }}>
@@ -208,7 +293,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		fireEvent.click(summaryLink(container, 'Rate the stay.'))
+		fireEvent.click(summaryLink(container, 'Score Rate the stay.'))
 
 		const focused = document.activeElement as HTMLElement
 
@@ -310,11 +395,7 @@ describe('FormErrorSummary', () => {
 
 		await submit(container)
 
-		expect(
-			within(getSlot(container, 'form-error-summary')).queryByRole('link', {
-				name: 'Enter a name.',
-			}),
-		).toBeNull()
+		expect(within(getSlot(container, 'form-error-summary')).queryByRole('link')).toBeNull()
 	})
 
 	it('drops a row when its field becomes valid, and goes with the last row', async () => {
@@ -347,7 +428,7 @@ describe('FormErrorSummary', () => {
 
 		const summary = getSlot(container, 'form-error-summary')
 
-		expect(summaryLink(container, 'This name is taken.')).toBeInTheDocument()
+		expect(summaryLink(container, 'Name This name is taken.')).toBeInTheDocument()
 
 		expect(summary).toHaveFocus()
 	})

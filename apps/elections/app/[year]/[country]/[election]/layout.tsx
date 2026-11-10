@@ -41,8 +41,7 @@ export function generateStaticParams(): ElectionParams[] {
  * of each office. The view of the current page shows, and the other views stay
  * mounted and hidden, so a switch shows a view that is already rendered. On a
  * page of a state, each of these views is hidden, and the layout of the state
- * renders the views of the state. A page holds only its Drawer and its live
- * refresh.
+ * renders the views of the state. A page holds only its Drawer.
  */
 export default async function ElectionLayout({
 	params,

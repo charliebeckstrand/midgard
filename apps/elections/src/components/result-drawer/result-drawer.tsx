@@ -46,11 +46,15 @@ export type TrailCrumb = {
 	menu?: readonly CrumbChoice[]
 }
 
-/** What a {@link ResultDrawer} shows: its trail, an optional line under it, and its body. */
+/** What a {@link ResultDrawer} shows: its trail, an optional badge after it, and its body. */
 export type DrawerView = {
 	steps: readonly TrailCrumb[]
-	/** A line under the trail, such as `Special election`. */
-	subtitle?: string
+	/**
+	 * A badge after the trail, such as `Special`. It sits in the row of
+	 * the trail and the trail gives it room, so it does not change the height of
+	 * the panel when it comes.
+	 */
+	badge?: ReactNode
 	body: ReactNode
 }
 
@@ -118,48 +122,52 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 							<DialogTitle className="sr-only">{title}</DialogTitle>
 
 							<Breadcrumb collapse>
-								<BreadcrumbList className="text-base/7">
-									{shown?.steps.map((step, index) => (
-										<Fragment key={index}>
-											{index > 0 ? <BreadcrumbSeparator /> : null}
+								{/* The badge follows the list inside the nav, so the fit of the trail keeps
+								    room for it. The row sizes to its content, so its end is the end of the badge. */}
+								<Flex gap="sm" align="center" className="min-w-0">
+									<BreadcrumbList className="text-base/7">
+										{shown?.steps.map((step, index) => (
+											<Fragment key={index}>
+												{index > 0 ? <BreadcrumbSeparator /> : null}
 
-											<BreadcrumbItem>
-												{step.menu === undefined ? (
-													<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
-												) : (
-													<MenuCrumb
-														label={step.label}
-														current={index === shown.steps.length - 1}
-														link={
-															step.onPick === undefined ||
-															index === shown.steps.length - 1 ? undefined : (
-																<CrumbLink
-																	crumb={step}
-																	current={index === shown.steps.length - 1}
-																/>
-															)
-														}
-													>
-														{step.menu.map((choice) => (
-															<MenuItem
-																key={choice.label}
-																disabled={choice.disabled}
-																onAction={choice.onPick}
-															>
-																<MenuLabel>{choice.label}</MenuLabel>
-															</MenuItem>
-														))}
-													</MenuCrumb>
-												)}
-											</BreadcrumbItem>
-										</Fragment>
-									))}
-								</BreadcrumbList>
+												<BreadcrumbItem>
+													{step.menu === undefined ? (
+														<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
+													) : (
+														<MenuCrumb
+															label={step.label}
+															current={index === shown.steps.length - 1}
+															link={
+																step.onPick === undefined ||
+																index === shown.steps.length - 1 ? undefined : (
+																	<CrumbLink
+																		crumb={step}
+																		current={index === shown.steps.length - 1}
+																	/>
+																)
+															}
+														>
+															{step.menu.map((choice) => (
+																<MenuItem
+																	key={choice.label}
+																	disabled={choice.disabled}
+																	onAction={choice.onPick}
+																>
+																	<MenuLabel>{choice.label}</MenuLabel>
+																</MenuItem>
+															))}
+														</MenuCrumb>
+													)}
+												</BreadcrumbItem>
+											</Fragment>
+										))}
+									</BreadcrumbList>
+
+									{shown?.badge === undefined ? null : (
+										<span className="flex shrink-0">{shown.badge}</span>
+									)}
+								</Flex>
 							</Breadcrumb>
-
-							{shown?.subtitle === undefined ? null : (
-								<span className="text-sm text-zinc-600 dark:text-zinc-400">{shown.subtitle}</span>
-							)}
 						</Stack>
 
 						<DialogClose>

@@ -21,9 +21,9 @@ let focusOnShow = false
  * A pick writes the address of the item in place, with no navigation. The
  * layout already renders the view of each item, and shows the view of the
  * address at once (`ElectionViews`). Thus a pick reads nothing from the
- * server, and does not wait for a request in flight, such as the refresh of a
- * live count. The router takes the address too, so Back, a reload, and the
- * next refresh go to the page of the item.
+ * server, and does not wait for a request in flight, such as a refresh. The
+ * router takes the address too, so Back, a reload, and the next refresh go to
+ * the page of the item.
  *
  * A pick from a switch that has the focus keeps the focus on the switch, on
  * its selected item.

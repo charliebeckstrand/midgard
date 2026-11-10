@@ -17,7 +17,7 @@ import { OVERVIEW, pageTitle } from '@/utilities/trail'
  * and each office with a race in the state. As in the layout of the election,
  * the view of the current page shows, and the other views stay mounted and
  * hidden, so a switch between the offices of the state shows a view that is
- * already rendered. A page holds only its Drawer and its live refresh.
+ * already rendered. A page holds only its Drawer.
  */
 export default async function SectionLayout({
 	params,

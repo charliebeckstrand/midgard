@@ -10,8 +10,8 @@ import { useEffect, useSyncExternalStore } from 'react'
  *
  * The router takes each change of the address too, but it applies the change
  * in a transition. A transition waits for each router request in flight, such
- * as the refresh of a live page, which can take seconds on a phone. Thus the
- * page follows the browser, not the router, while the router is behind.
+ * as a refresh or the read of a page, which can take seconds on a phone. Thus
+ * the page follows the browser, not the router, while the router is behind.
  */
 
 /** The listeners of the address, which a write and Back or Forward call. */
