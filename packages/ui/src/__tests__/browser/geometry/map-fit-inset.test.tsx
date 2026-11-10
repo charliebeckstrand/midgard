@@ -7,7 +7,7 @@ import {
 	MARK_SELECTED_HALO,
 	POINT_RADIUS,
 } from '../../../modules/map/engine/map-constants'
-import { attach, frames, getSlot } from '../../helpers'
+import { attach, frames, getSlot, present } from '../../helpers'
 import { hydrate, serverMarkup } from '../../helpers/hydrate'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 
@@ -19,6 +19,13 @@ function gaps(outer: Element, inner: Element): [number, number, number, number] 
 
 	return [i.left - o.left, i.top - o.top, o.right - i.right, o.bottom - i.bottom]
 }
+
+/**
+ * The slack between the server paint and the measured fit on the free axis:
+ * four layout units. The browser keeps each box height as a count of 1/64 px,
+ * and the measured frame takes its height from the ratio.
+ */
+const RATIO_HEIGHT = 4 / 64
 
 /** Parses the server markup of `element` in a box `width` px wide, with no script run. */
 function parseServerMarkup(element: ReactElement, width: number): HTMLElement {
@@ -45,7 +52,7 @@ describe('map fit inset (real browser)', () => {
 		</MapPlat>
 	)
 
-	it.each([320, 640])(
+	it.each([320, 375, 392, 640])(
 		'draws a selected dot on the edge whole, before and after hydration, at %i px',
 		async (width) => {
 			const container = parseServerMarkup(edge, width)
@@ -60,6 +67,15 @@ describe('map fit inset (real browser)', () => {
 			// and the other takes the remainder, centered.
 			expect(Math.min(...before)).toBeNear(MAP_FIT_INSET, 0.5)
 
+			// Browsers put an SVG box on a whole pixel. The server SVG therefore starts
+			// a whole number of pixels in from the box, or its paint moves by the part
+			// of a pixel that the browser drops, and moves back at hydration.
+			const [left, top] = gaps(plot, present(plot.querySelector('svg'), 'plot svg'))
+
+			expect(Number.isInteger(left)).toBe(true)
+
+			expect(Number.isInteger(top)).toBe(true)
+
 			const { consoleError, onRecoverableError } = hydrate(container, edge)
 
 			await frames()
@@ -70,15 +86,20 @@ describe('map fit inset (real browser)', () => {
 
 			const after = gaps(getSlot(container, 'map-plot'), getSlot(container, 'map-regions'))
 
-			// To a pixel: the measured frame takes the box height in whole pixels, so
-			// the free axis of a wide geography can move by a fraction of one.
-			for (const [index, gap] of after.entries()) expect(gap).toBeNear(before[index] ?? 0, 1)
+			// The measured frame is the exact box, not the box in whole pixels, so the
+			// geography stays where the server drew it. The box heights are counts of
+			// layout units, and the frame takes its height from the ratio, so the free
+			// axis can differ by a few units. A frame in whole pixels moved it by a
+			// quarter of a pixel.
+			for (const [index, gap] of after.entries()) {
+				expect(gap).toBeNear(before[index] ?? 0, RATIO_HEIGHT)
+			}
 
-			// The halo is the dot's radius and the clear space past it, which is the
-			// inset itself, so it ends at the edge of the frame and not past it.
+			// The halo is the dot's radius and the clear space past it. The inset is that
+			// reach up to a whole pixel, so the halo ends inside the frame, not past it.
 			const halo = gaps(getSlot(container, 'map-plot'), getSlot(container, 'map-point-selected'))
 
-			expect(POINT_RADIUS + MARK_SELECTED_HALO).toBe(MAP_FIT_INSET)
+			expect(POINT_RADIUS + MARK_SELECTED_HALO).toBeLessThanOrEqual(MAP_FIT_INSET)
 
 			expect(halo[0]).toBeGreaterThan(-0.5)
 		},

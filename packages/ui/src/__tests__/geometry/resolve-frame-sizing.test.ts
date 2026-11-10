@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { resolveFrameSizing } from '../../hooks/use-plot-frame'
+import { FLOAT } from '../helpers/geometry/tolerance'
 
 /**
  * `resolveFrameSizing` takes a policy, a width and a height, and returns a
@@ -20,6 +21,15 @@ describe('resolveFrameSizing', () => {
 			height: 200,
 			reserve: { mode: 'aspect', ratio: 2 },
 		})
+	})
+
+	it('takes the exact height for a scaled drawing, and whole px for a pixel drawing', () => {
+		expect(resolveFrameSizing({ mode: 'aspect', ratio: 1000 / 585 }, 392, 0).height).toBe(229)
+
+		expect(resolveFrameSizing({ mode: 'aspect', ratio: 1000 / 585 }, 392, 0, true).height).toBeNear(
+			(392 * 585) / 1000,
+			FLOAT,
+		)
 	})
 
 	it('holds a fixed height with nothing to reserve, ignoring the container', () => {
