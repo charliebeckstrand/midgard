@@ -1,7 +1,7 @@
 /**
- * The dots of every visible dot-drawing mark on a plat, projected into frame units, each with the
- * radius it paints at. A dot-shaped
- * mark divides its target's ground against this pool, with its own dots left out (see `ground.ts`).
+ * The dots of every visible dot-drawing mark on a plat, in frame units, each with the radius it
+ * paints at. A dot-shaped mark divides its target's ground against this pool, with its own dots
+ * left out (see `ground.ts`).
  *
  * Frame arithmetic and a listener set, React-free, like the rest of the engine.
  */
@@ -25,6 +25,12 @@ import type { MapGroundDot } from './ground'
  * Each mark reads its own view of the pool. The view of a mark holds no dot of that mark, so a
  * restake changes the view of each other mark and keeps the view of the mark that moved.
  *
+ * A new fit gives a new pool, which projects each dot in lon/lat with that fit. A set gives each
+ * dot at the frame position where it draws the dot (`MapEntryDot`), and that position is of the fit
+ * that the set committed last. In the render of a refit, the pool therefore holds the dots of a
+ * set at the old fit. The set restakes in a layout effect of the same commit, so each reader
+ * divides its ground again before the refit paints.
+ *
  * @internal
  */
 export type MapDotPool = {
@@ -44,10 +50,9 @@ export type MapDotPool = {
  * A new {@link MapDotPool} over the entries of a ledger.
  *
  * The first read gathers the whole pool, and the pool holds that gather. The gather invokes each
- * entry's `dotsAt`. `MapPoints` registers that as a thunk. Thus the O(N) build, and the spherical
- * centroid behind the anchor of each summary, land on the one reader that wants them. A plat with
- * no dot-shaped mark therefore never gathers. M marks share one gather, and each drops only its
- * own dots from it.
+ * entry's `dotsAt`. `MapPoints` registers that as a thunk. Thus the O(N) build lands on the one
+ * reader that wants it. A plat with no dot-shaped mark therefore never gathers. M marks share one
+ * gather, and each drops only its own dots from it.
  *
  * A restake before the first read does nothing, because no reader holds a gather yet. After it, a
  * restake gathers the one mark again. It changes the pool only when a dot of that mark moved or
@@ -124,8 +129,8 @@ export function createDotPool(
 }
 
 /**
- * Every visible dot-drawing mark's dots, projected into frame units, by the mark's id. A mark that
- * draws no dot has no key.
+ * Every visible dot-drawing mark's dots, in frame units, by the mark's id. A mark that draws no dot
+ * has no key.
  *
  * @internal
  */
@@ -152,8 +157,9 @@ function gatherDots(
  * `dotsAt`, which draw no dots. A zone's claim on the ground is a `spare` budget rather than a
  * boundary.
  *
- * Off-projection dots are dropped: they draw nothing, so they crowd nothing; the US composite
- * drops points outside its insets.
+ * A dot in lon/lat is projected, and a drawn dot is in frame units already. Off-projection dots
+ * are dropped: they draw nothing, so they crowd nothing; the US composite drops points outside its
+ * insets.
  *
  * @internal
  */
@@ -167,7 +173,7 @@ function entryDots(
 	const dots: MapGroundDot[] = []
 
 	for (const dot of entry.dotsAt()) {
-		const at = project(dot.at)
+		const at = 'drawn' in dot ? dot.drawn : project(dot.at)
 
 		if (at !== null) dots.push({ at, radius: dot.radius })
 	}
