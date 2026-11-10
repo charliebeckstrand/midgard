@@ -16,7 +16,6 @@ import { writeCookie } from '../../utilities/cookie'
 import {
 	act,
 	bySlot,
-	clearCookies,
 	fireEvent,
 	present,
 	renderUI,
@@ -352,31 +351,26 @@ describe('AppearanceSettings', () => {
 		expect(dialog).not.toHaveTextContent('(md)')
 	})
 
-	it('opens a glass dialog with glass set, and a flat one while the surfaces are solid', async () => {
+	it('opens a glass dialog with glass set', async () => {
+		const dialog = await openSettings(
+			<AppearanceProvider>
+				<AppearanceSettings glass />
+			</AppearanceProvider>,
+		)
+
+		expect(dialog).toHaveAttribute('data-glass', '')
+	})
+
+	it('opens a flat dialog with glass set while the surfaces are solid', async () => {
 		localStorage.setItem('surfaces', 'solid')
 
-		const flat = await openSettings(
+		const dialog = await openSettings(
 			<AppearanceProvider>
 				<AppearanceSettings glass />
 			</AppearanceProvider>,
 		)
 
-		expect(flat).not.toHaveAttribute('data-glass')
-
-		cleanup()
-
-		// The first dialog copied the stored choice into its cookie.
-		clearCookies()
-
-		localStorage.removeItem('surfaces')
-
-		const glass = await openSettings(
-			<AppearanceProvider>
-				<AppearanceSettings glass />
-			</AppearanceProvider>,
-		)
-
-		expect(glass).toHaveAttribute('data-glass', '')
+		expect(dialog).not.toHaveAttribute('data-glass')
 	})
 
 	it('shows the motion picker at the system motion', async () => {
