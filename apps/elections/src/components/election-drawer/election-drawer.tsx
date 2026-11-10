@@ -78,8 +78,6 @@ function drawerTrail(
 
 	const items = contestItems(election, offices)
 
-	const deeper = step.district !== null || step.county !== null
-
 	const trail: TrailCrumb[] = [
 		{
 			label: region.name,
@@ -87,7 +85,7 @@ function drawerTrail(
 		},
 		{
 			label: items.find((item) => item.value === office)?.label ?? office,
-			onPick: deeper ? () => go({ region, office, district: null, county: null }) : undefined,
+			onPick: () => go({ region, office, district: null, county: null }),
 			menu: items.map((item) => ({
 				label: item.label,
 				disabled: item.disabled,
@@ -99,7 +97,7 @@ function drawerTrail(
 	if (step.district !== null) {
 		trail.push({
 			label: districtName(step.district),
-			onPick: step.county === null ? undefined : () => go({ ...step, county: null }),
+			onPick: () => go({ ...step, county: null }),
 		})
 	}
 
@@ -200,8 +198,17 @@ function StateDelegation({
 				/>
 			) : null}
 
-			{searchable && districts.length === 0 ? (
-				<p className="text-sm text-zinc-500 dark:text-zinc-400">No district matches.</p>
+			{/* The status stays in the page while the search shows, so a screen reader
+			    reads its text when a query matches nothing (WCAG 4.1.3). */}
+			{searchable ? (
+				<p
+					role="status"
+					className={
+						districts.length === 0 ? 'text-sm text-zinc-500 dark:text-zinc-400' : 'sr-only'
+					}
+				>
+					{districts.length === 0 ? 'No district matches.' : null}
+				</p>
 			) : null}
 
 			{districts.map((district) => (
