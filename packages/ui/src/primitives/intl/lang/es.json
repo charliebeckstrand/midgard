@@ -173,7 +173,6 @@
 	"ui.fileUpload.upload": "Subir",
 	"ui.fileUpload.uploadFile": "Subir un archivo",
 	"ui.form.submitting": "Enviando",
-	"ui.formErrorSummary.row": "{label}: {issue}",
 	"ui.formErrorSummary.title": "Hay un problema",
 	"ui.formFilters.active": "{count, plural, one {# filtro activo} other {# filtros activos}}",
 	"ui.grid.actionsColumn": "Acciones",

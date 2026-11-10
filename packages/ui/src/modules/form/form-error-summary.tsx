@@ -32,21 +32,12 @@ export type FormErrorSummaryProps = Omit<ComponentProps<'div'>, 'title' | 'color
 	title?: ReactNode
 }
 
-const messages = defineMessages<{
-	title: Record<never, never>
-	row: { label: string; issue: string }
-}>({
+const messages = defineMessages({
 	title: {
 		id: 'ui.formErrorSummary.title',
 		defaultMessage: 'There is a problem',
 		description:
 			'The heading of the box at the top of a form that lists the fields with errors, after a failed submit.',
-	},
-	row: {
-		id: 'ui.formErrorSummary.row',
-		defaultMessage: '{label}: {issue}',
-		description:
-			'One row of the box that lists the fields with errors. {label} is the label of the field, and {issue} is its error.',
 	},
 })
 
@@ -91,9 +82,9 @@ function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
  * to that control. A row whose field has no registered control shows the issue
  * as text.
  *
- * A row names its field with the text of the field `Label` of the control, such
- * as "Email: Enter an email address". The row takes only the text of the
- * label, and no element of it. A control with no field `Label`, such
+ * A row names its field with the text of the field `Label` of the control. The
+ * label shows in bold, and the issue shows on the line below it. The two lines
+ * are one link. The row takes only the text of the label, and no element of it. A control with no field `Label`, such
  * as a control with only an `aria-label` or a native `<label>`, gives a row with
  * only the issue. Thus write each issue so that it is clear without its field.
  *
@@ -176,7 +167,7 @@ export function FormErrorSummary({
 			ref={setRoot}
 			tabIndex={-1}
 		>
-			<ul>
+			<ul className="flex flex-col gap-2">
 				{items.map(({ name, issue }) => {
 					const target = targets[name]
 
@@ -188,10 +179,22 @@ export function FormErrorSummary({
 						<li key={name}>
 							<a
 								href={`#${id}`}
-								className={cn(linkK({ underline: true }).base)}
+								className={cn(
+									linkK({ underline: label === undefined }).base,
+									label !== undefined && 'inline-flex flex-col',
+								)}
 								onClick={(event) => focusControl(event, id)}
 							>
-								{label === undefined ? issue : intl.formatMessage(messages.row, { label, issue })}
+								{label === undefined ? (
+									issue
+								) : (
+									<>
+										{/* The label carries the underline, the mark of the link (WCAG 1.4.1).
+										The space keeps the two lines apart in the name of the link. */}
+										<span className="font-semibold underline underline-offset-4">{label}</span>{' '}
+										<span>{issue}</span>
+									</>
+								)}
 							</a>
 						</li>
 					)
