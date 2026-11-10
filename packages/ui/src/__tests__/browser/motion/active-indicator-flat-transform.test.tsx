@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Segment, SegmentControl, SegmentItem } from '../../../components/segment'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { nextPaint } from '../../helpers/frames'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 
 /** The inline transform of the active indicator, or `null` while no indicator shows. */
@@ -31,6 +32,12 @@ describe('active indicator morph (real Motion)', () => {
 		)
 
 		const county = screen.getByRole('tab', { name: 'By county' })
+
+		// A reader presses a Segment that has painted. Motion completes the mount
+		// of the indicator in a microtask after the render. A press in the task of
+		// the render comes before that, and Motion then takes no snapshot of the
+		// indicator that leaves, so no morph runs.
+		await nextPaint()
 
 		const samples: string[] = []
 
