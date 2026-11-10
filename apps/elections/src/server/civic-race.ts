@@ -54,6 +54,12 @@ function count(value: unknown, path: string): number {
 	return value
 }
 
+function flag(value: unknown, path: string): boolean {
+	if (typeof value !== 'boolean') throw new CivicShapeError(`${path} is not a flag.`)
+
+	return value
+}
+
 function optionalText(value: unknown): string | null {
 	return typeof value === 'string' && value !== '' ? value : null
 }
@@ -100,8 +106,8 @@ function readCandidate(value: unknown, path: string): Candidate {
 		slot: partySlot(party),
 		votes: count(raw.votes, `${path}.votes`),
 		percent: count(raw.percent, `${path}.percent`),
-		winner: raw.winner === true,
-		incumbent: raw.incumbent === true,
+		winner: flag(raw.winner, `${path}.winner`),
+		incumbent: flag(raw.incumbent, `${path}.incumbent`),
 	}
 }
 
@@ -205,7 +211,7 @@ function readCountyFips(
 ): string | null {
 	if (typeof row.fips === 'string' && FIPS.test(row.fips)) return row.fips
 
-	if (row.type !== 'County') return null
+	if (text(row.type, `${path}.type`) !== 'County') return null
 
 	const fips = atlas.get(foldName(name))
 
