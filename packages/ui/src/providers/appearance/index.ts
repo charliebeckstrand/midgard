@@ -5,6 +5,7 @@ export {
 	type MotionMode,
 	motionModes,
 	type SidebarMode,
+	type SurfaceMode,
 	sidebarModes,
 	type ThemeMode,
 	themeModes,
