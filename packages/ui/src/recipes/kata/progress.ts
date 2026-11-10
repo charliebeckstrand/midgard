@@ -4,7 +4,7 @@
  * `bar.indeterminate` are its fills. A bar with segments or marks also takes
  * `bar.layered`, holds its fills in `bar.fills`, and draws each mark with
  * `bar.mark`. The `gauge` slot holds `base`, `label`,
- * and `track`, the parts of the gauge. Its colors are the `iro.meter` shades,
+ * and `track`, the parts of the gauge. Its colors are the `zu.meter` shades,
  * which Sparkline also reads. The bar fill reads the `bg` row, and the gauge
  * ring reads the `stroke` row. The track and the label of the gauge use fixed
  * tokens.
@@ -12,9 +12,10 @@
 
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
+import { dan, iro, ji, kasane, kokkaku, narabi, sen, ugoki, zu } from '../kiso'
 
-const { meter, text } = iro
+const { text } = iro
+const { meter } = zu
 const { muted } = text
 const { weight } = ji
 const { rounded } = kasane

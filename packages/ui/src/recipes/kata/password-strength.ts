@@ -3,13 +3,14 @@
  * checklist. The `level` axis of the `segment` bar fill and of the `label`
  * text is the strength tier (weak / fair / good / strong / empty). The
  * `passed` axis of the `rule.icon` and `rule.text` slots pairs a pass/fail
- * icon with a pass/fail text color. A tier fills with the `iro.meter` shade of
+ * icon with a pass/fail text color. A tier fills with the `zu.meter` shade of
  * its color, as a progress bar does.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, iro, ji, kasane, narabi, omote, sen } from '../kiso'
+import { dan, iro, ji, kasane, narabi, omote, sen, zu } from '../kiso'
 
-const { meter, palette, text } = iro
+const { palette, text } = iro
+const { meter } = zu
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi

@@ -19,7 +19,7 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | Family | Concern |
 |---|---|
 | `dan` 段 | Density ramps: each stepped `density-*` class that writes a value for each step, nested under the unit that reads it (`space.box.bottom`). |
-| `iro` 色 | The color tokens of the kata. The chromatic `palette`, its `extended` hues, and its `hover` hold one literal class string for each variant and color. The other tokens are the intent-color text bundle, the `marker` and `meter` shades, and the `on.wash` rung. |
+| `iro` 色 | The color tokens of the kata. The chromatic `palette`, its `extended` hues, and its `hover` hold one literal class string for each variant and color. The other tokens are the intent-color text bundle, the `marker` shade, and the `on.wash` rung. |
 | `ji` 字 | Typography: size scale plus `weight` / `leading` / `family` aliases, and `ramp`, the stepped text size of a density-native component. |
 | `ma` 間 | Named spacing scale projected as padding and gap utilities, in all-sides and axis variants. Each stop but `0` is a ramp of `dan`, so it takes the step of the nearest density scope. |
 | `narabi` 並び | Sibling arrangement: field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, stacked item text, truncation, and flex primitives. `fit` caps a floating panel. |
@@ -30,7 +30,7 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | `ugoki` 動き | Motion: tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
 | `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
 | `kokkaku` 骨格 | The skeleton form of each unit: the dimensions of its placeholders, with no chrome, variant, or color. |
-| `zu` 図 | Data-viz substrate: the categorical series `palette`, the chrome and readout `ink`, and the reveal `motion`. |
+| `zu` 図 | Data-viz substrate: the categorical series `palette`, the `meter` shade of a measured value, the chrome and readout `ink`, and the reveal `motion`. |
 | `sou` 層 | App-level stacking order: the ordered rung ladder (`overlay` / `float` / `lens` / `toast`) every portaled surface lands on. |
 | `tsunagi` 繋ぎ | Group-join class fragments, keyed on the DOM position of each child of the group. |
 | `kara` 空 | Virtualized emptiness: selectors that read `data-empty` on a `VirtualOptions` wrapper. |
