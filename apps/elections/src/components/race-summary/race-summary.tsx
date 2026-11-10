@@ -70,7 +70,9 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 							</Badge>
 
 							{candidate.incumbent ? (
-								<span className="text-sm text-zinc-500 dark:text-zinc-400">Incumbent</span>
+								<Badge variant="soft" color="zinc">
+									Incumbent
+								</Badge>
 							) : null}
 						</Flex>
 					) : null}
