@@ -16,6 +16,7 @@ import {
 	fitWidthFromProbeBounds,
 	resolveProjection,
 } from '../../modules/map/engine/map-projection/resolve'
+import { applyTransform } from '../../modules/map/engine/map-zoom/transform'
 import type { LngLat, MapFeature } from '../../modules/map/engine/types'
 import { FLOAT } from '../helpers/geometry/tolerance'
 import { fitProjection } from '../helpers/map-fit'
@@ -32,6 +33,13 @@ const HALF_FRAME_UNIT = 0.5
  * fits can differ by one percent of scale.
  */
 const RESAMPLE_SCALE_RATIO = 0.01
+
+/**
+ * The canonical fit rounds the height of its frame to the path grid, one
+ * decimal. The measured fit therefore misses a direct fit of d3 by a part of
+ * that step. Half a step, in frame units, bounds the fixtures here.
+ */
+const PATH_GRID_HALF_STEP = 0.05
 
 const FEATURES = FIXTURE_GEOJSON.features
 
@@ -103,108 +111,84 @@ describe('measuredMapFit', () => {
 		[120, 500],
 	] as const
 
-	it.each(NAMED)('frames the geography like a direct fitExtent under %s', (spec, features) => {
-		const canonical = canonicalFit(spec, features)
-
-		if (canonical === null) throw new Error('nothing to fit')
-
-		const shape = { type: 'FeatureCollection', features } as const
-
-		for (const [width, height] of frames) {
-			const fit = measuredMapFit(spec, canonical, width, height)
-
-			if (fit === null) throw new Error('expected a fit')
-
-			// A named projection draws in the measured frame itself.
-			expect(fit.frame).toBeNull()
-
-			const derived = fit.projection
-
-			// The geography sits inside the frame less the inset, centered, filling
-			// one axis from inset to inset: the fit contract itself.
-			const [[x0, y0], [x1, y1]] = geoPath(derived).bounds(
-				shape as unknown as Parameters<ReturnType<typeof geoPath>['bounds']>[0],
-			)
-
-			const inset = MAP_FIT_INSET
-
-			expect(x0).toBeGreaterThanOrEqual(inset - 0.5)
-
-			expect(y0).toBeGreaterThanOrEqual(inset - 0.5)
-
-			expect(x1).toBeLessThanOrEqual(width - inset + 0.5)
-
-			expect(y1).toBeLessThanOrEqual(height - inset + 0.5)
-
-			expect(Math.min(width - inset * 2 - (x1 - x0), height - inset * 2 - (y1 - y0))).toBeLessThan(
-				1,
-			)
-
-			expect(x0 + x1).toBeNear(width, HALF_FRAME_UNIT)
-
-			expect(y0 + y1).toBeNear(height, HALF_FRAME_UNIT)
-
-			// And it lands where a direct fitExtent would, within the sub-percent
-			// margin of d3's adaptive resampling, which refines each pass's curves
-			// at the scale that pass runs at.
-			const direct = fitProjection(spec, features, width, height)
-
-			expect(derived.scale() / direct.scale()).toBeNear(1, RESAMPLE_SCALE_RATIO)
-		}
-	})
-
 	it.each(NAMED)(
-		'carries the canonical drawing onto the measured fit under %s',
+		'frames the geography like a direct fitExtent under %s',
 		(spec, features, positions) => {
 			const canonical = canonicalFit(spec, features)
 
 			if (canonical === null) throw new Error('nothing to fit')
 
+			const shape = { type: 'FeatureCollection', features } as const
+
+			// The geography as the canonical projection draws it. The frame carries
+			// each of these bounds onto the box.
+			const [[left, top], [right, bottom]] = geoPath(canonical.projection).bounds(
+				shape as unknown as Parameters<ReturnType<typeof geoPath>['bounds']>[0],
+			)
+
 			for (const [width, height] of frames) {
-				const fit = measuredMapFit(spec, canonical, width, height)
+				const frame = measuredMapFit(canonical, width, height)
 
-				if (fit === null) throw new Error('expected a fit')
+				if (frame === null) throw new Error('expected a fit')
 
-				// The region layer draws the canonical paths under the carry. Each
-				// position must therefore land where the measured projection draws it.
+				const { x: x0, y: y0 } = applyTransform({ x: left, y: top }, frame)
+
+				const { x: x1, y: y1 } = applyTransform({ x: right, y: bottom }, frame)
+
+				// The geography sits inside the frame less the inset, centered, filling
+				// one axis from inset to inset: the fit contract itself.
+				const inset = MAP_FIT_INSET
+
+				expect(x0).toBeGreaterThanOrEqual(inset - 0.5)
+
+				expect(y0).toBeGreaterThanOrEqual(inset - 0.5)
+
+				expect(x1).toBeLessThanOrEqual(width - inset + 0.5)
+
+				expect(y1).toBeLessThanOrEqual(height - inset + 0.5)
+
+				expect(
+					Math.min(width - inset * 2 - (x1 - x0), height - inset * 2 - (y1 - y0)),
+				).toBeLessThan(1)
+
+				expect(x0 + x1).toBeNear(width, HALF_FRAME_UNIT)
+
+				expect(y0 + y1).toBeNear(height, HALF_FRAME_UNIT)
+
+				// And it lands where a direct fitExtent would, within the sub-percent
+				// margin of d3's adaptive resampling, which refines each pass's curves
+				// at the scale that pass runs at.
+				const direct = fitProjection(spec, features, width, height)
+
+				expect((canonical.projection.scale() * frame.k) / direct.scale()).toBeNear(
+					1,
+					RESAMPLE_SCALE_RATIO,
+				)
+
+				// Each mark goes through the canonical projection and then the frame.
+				// It must land where the direct fit draws the same position.
 				for (const position of positions) {
 					const from = canonical.projection(position)
 
-					const to = fit.projection(position)
+					const to = direct(position)
 
 					if (from === null || to === null) throw new Error('fixture position has no image')
 
-					expect(from[0] * fit.carry.k + fit.carry.x).toBeNear(to[0], FLOAT)
+					const at = applyTransform({ x: from[0], y: from[1] }, frame)
 
-					expect(from[1] * fit.carry.k + fit.carry.y).toBeNear(to[1], FLOAT)
+					expect(at.x).toBeNear(to[0], PATH_GRID_HALF_STEP)
+
+					expect(at.y).toBeNear(to[1], PATH_GRID_HALF_STEP)
 				}
 			}
 		},
 	)
 
-	it('leaves the cached canonical projection untouched', () => {
-		const canonical = canonicalFit('mercator', FEATURES)
-
-		if (canonical === null) throw new Error('nothing to fit')
-
-		const scale = canonical.projection.scale()
-
-		const translate = canonical.projection.translate()
-
-		const fit = measuredMapFit('mercator', canonical, 300, 100)
-
-		expect(fit?.projection).not.toBe(canonical.projection)
-
-		expect(canonical.projection.scale()).toBe(scale)
-
-		expect(canonical.projection.translate()).toEqual(translate)
-	})
-
 	it('is null when there is nothing to frame', () => {
 		// Empty geography leaves the canonical fit null; a lone-point atlas whose
 		// bounds collapse does too. Either way there is no measured fit to derive,
 		// so overlays never project through an unfitted default.
-		expect(measuredMapFit('mercator', null, 300, 100)).toBeNull()
+		expect(measuredMapFit(null, 300, 100)).toBeNull()
 	})
 
 	it('is null before the frame is measured', () => {
@@ -212,9 +196,9 @@ describe('measuredMapFit', () => {
 
 		if (canonical === null) throw new Error('nothing to fit')
 
-		expect(measuredMapFit('mercator', canonical, 0, 100)).toBeNull()
+		expect(measuredMapFit(canonical, 0, 100)).toBeNull()
 
-		expect(measuredMapFit('mercator', canonical, 300, 0)).toBeNull()
+		expect(measuredMapFit(canonical, 300, 0)).toBeNull()
 	})
 
 	it('is null where the frame has no room inside the inset', () => {
@@ -224,14 +208,14 @@ describe('measuredMapFit', () => {
 
 		// A frame of twice the inset, or less, on one axis has no area left for
 		// the geography. A fit there would scale it to nothing, or mirror it.
-		expect(measuredMapFit('mercator', canonical, 300, MAP_FIT_INSET * 2)).toBeNull()
+		expect(measuredMapFit(canonical, 300, MAP_FIT_INSET * 2)).toBeNull()
 
-		expect(measuredMapFit('mercator', canonical, MAP_FIT_INSET * 2, 100)).toBeNull()
+		expect(measuredMapFit(canonical, MAP_FIT_INSET * 2, 100)).toBeNull()
 
-		expect(measuredMapFit('mercator', canonical, 300, MAP_FIT_INSET * 2 + 1)).not.toBeNull()
+		expect(measuredMapFit(canonical, 300, MAP_FIT_INSET * 2 + 1)).not.toBeNull()
 	})
 
-	it('keeps the canonical fit of a passed instance, and frames it per box', () => {
+	it('frames a passed instance for each box, and leaves its canonical fit', () => {
 		const instance = geoMercator()
 
 		const canonical = canonicalFit(instance, FEATURES)
@@ -242,20 +226,21 @@ describe('measuredMapFit', () => {
 
 		const translate = instance.translate()
 
-		const small = measuredMapFit(instance, canonical, 150, 50)
+		const small = measuredMapFit(canonical, 150, 50)
 
-		const large = measuredMapFit(instance, canonical, 600, 200)
+		const large = measuredMapFit(canonical, 600, 200)
 
-		if (small?.frame == null || large?.frame == null) throw new Error('expected a framed fit')
+		if (small === null || large === null) throw new Error('expected a fit')
 
-		// The instance belongs to the consumer, and a refit in place would give both
-		// fits one identity. Each box takes its own frame over the canonical fit:
-		// the scale that meets the box less the inset on each side.
+		// The instance belongs to the consumer, and a refit in place would give the
+		// canonical fit and the measured fit one identity. Each box takes its own
+		// frame over the canonical fit: the scale that meets the box less the inset
+		// on each side.
+		expect(canonical.projection).toBe(instance)
+
 		expect(instance.scale()).toBe(scale)
 
 		expect(instance.translate()).toEqual(translate)
-
-		expect(small.projection).toBe(canonical.projection)
 
 		const meet = (width: number, height: number) =>
 			Math.min(
@@ -263,39 +248,9 @@ describe('measuredMapFit', () => {
 				(height - MAP_FIT_INSET * 2) / canonical.height,
 			)
 
-		expect(small.frame.k).toBeNear(meet(150, 50), FLOAT)
+		expect(small.k).toBeNear(meet(150, 50), FLOAT)
 
-		expect(large.frame.k).toBeNear(meet(600, 200), FLOAT)
-
-		// The projection stays canonical, so the frame over its output is also the
-		// carry of the canonical paths.
-		expect(small.carry).toEqual(small.frame)
-
-		expect(large.carry).toEqual(large.frame)
-	})
-
-	it('puts a passed instance where a named projection puts the same geography', () => {
-		const named = canonicalFit('mercator', FEATURES)
-
-		const passed = canonicalFit(geoMercator(), FEATURES)
-
-		if (named === null || passed === null) throw new Error('nothing to fit')
-
-		const a = measuredMapFit('mercator', named, 300, 160)
-
-		const b = measuredMapFit(passed.projection, passed, 300, 160)
-
-		if (a === null || b?.frame == null) throw new Error('expected a fit')
-
-		const at: [number, number] = [10, 5]
-
-		const [ax, ay] = a.projection(at) ?? [Number.NaN, Number.NaN]
-
-		const [bx, by] = b.projection(at) ?? [Number.NaN, Number.NaN]
-
-		expect(bx * b.frame.k + b.frame.x).toBeNear(ax, FLOAT)
-
-		expect(by * b.frame.k + b.frame.y).toBeNear(ay, FLOAT)
+		expect(large.k).toBeNear(meet(600, 200), FLOAT)
 	})
 })
 

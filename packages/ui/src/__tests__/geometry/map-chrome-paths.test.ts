@@ -9,6 +9,7 @@ import {
 	geoPath,
 } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
+import countries from 'world-atlas/countries-110m.json'
 import {
 	GRATICULE_MIN_STEP_DEGREES,
 	GRATICULE_STEP_DEGREES,
@@ -19,9 +20,12 @@ import {
 	EMPTY_CHROME,
 	graticuleStep,
 } from '../../modules/map/engine/map-geometry/chrome'
+import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
+import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
+import { canonicalFit, measuredMapFit } from '../../modules/map/engine/map-projection/fit'
 import { invertingPiece } from '../../modules/map/engine/map-projection/resolve'
 import type { MapViewFrame } from '../../modules/map/engine/map-zoom/transform'
-import type { MapProjection } from '../../modules/map/engine/types'
+import type { MapProjection, MapTopology } from '../../modules/map/engine/types'
 import { subpathCount } from '../helpers/geometry/svg-path'
 import { HALF_PIXEL } from '../helpers/geometry/tolerance'
 import { fitProjection } from '../helpers/map-fit'
@@ -42,6 +46,19 @@ const FITTED = fitProjection('mercator', FIXTURE_GEOJSON.features, 400, 200)
 
 /** The box that {@link FITTED} fills. */
 const FITTED_VIEW: MapViewFrame = { width: 400, height: 200 }
+
+/**
+ * The countries of the world. A whole-world projection draws its outline and
+ * its meridians as curves round them, which the fixture squares do not reach.
+ */
+const WORLD = rewindFeatures(geographyFeatures(countries as unknown as MapTopology, 'countries'))
+
+/** Boxes below and above the canonical frame, from the smallest to the largest. */
+const WORLD_BOXES = [
+	[400, 260],
+	[800, 450],
+	[1400, 700],
+] as const
 
 /**
  * How far a point of one graticule path can land from the line of the other.
@@ -183,8 +200,8 @@ describe('graticuleStep', () => {
 
 describe('chromePaths', () => {
 	it('carries the paths through a frame transform', () => {
-		// The measured fit of a passed instance keeps the canonical projection and
-		// frames its output. The path streams the projected points through it.
+		// The measured fit keeps the canonical projection and frames its output.
+		// The path streams the projected points through it.
 		const plain = chromePaths(FITTED, FITTED, null, FITTED_VIEW).frame
 
 		const framed = chromePaths(FITTED, FITTED, null, FITTED_VIEW, { x: 10, y: 20, k: 2 }).frame
@@ -196,6 +213,48 @@ describe('chromePaths', () => {
 		expect(fx).toBeNear(x * 2 + 10, HALF_PIXEL)
 
 		expect(fy).toBeNear(y * 2 + 20, HALF_PIXEL)
+	})
+
+	it('refines a curve through a frame as a fit to the box refines it', () => {
+		// d3 refines a curve to a tolerance in the units of the projection, and a
+		// frame scales those units. The pass therefore divides the tolerance by the
+		// scale of the frame. Each path is then the one that the same projection
+		// draws when it is fitted to the box, and the outline of the globe takes
+		// more points in a larger box.
+		const canonical = canonicalFit('equal-earth', WORLD)
+
+		if (canonical === null) throw new Error('nothing to fit')
+
+		const { projection } = canonical
+
+		const precision = projection.precision()
+
+		const [x, y] = projection.translate()
+
+		const points = WORLD_BOXES.map(([width, height]) => {
+			const frame = measuredMapFit(canonical, width, height)
+
+			if (frame === null) throw new Error(`no fit at ${width}×${height}`)
+
+			const fitted = geoEqualEarth()
+				.scale(projection.scale() * frame.k)
+				.translate([x * frame.k + frame.x, y * frame.k + frame.y])
+
+			const view = { width, height }
+
+			const through = chromePaths(projection, projection, GRATICULE_STEP_DEGREES, view, frame)
+
+			expect(through).toEqual(chromePaths(fitted, fitted, GRATICULE_STEP_DEGREES, view))
+
+			return polylines(through.frame).flat().length
+		})
+
+		expect(points).toEqual([...points].sort((a, b) => a - b))
+
+		expect(new Set(points).size).toBe(points.length)
+
+		// The canonical projection is shared, so the pass puts its tolerance back.
+		expect(projection.precision()).toBe(precision)
 	})
 
 	it('draws the meridians and parallels as one multi-line path', () => {
@@ -376,6 +435,17 @@ describe('cachedChromePaths', () => {
 		expect(second.graticule).not.toBeNull()
 
 		expect(second.frame).not.toBeNull()
+	})
+
+	it('holds the canonical stage across a measured read', () => {
+		// One mount reads the chrome at the canonical stage and then under the
+		// measured fit, through the same projection. The measured read stays out of
+		// the slot, so the next mount finds the canonical stage there.
+		const held = cachedChromePaths(FITTED, 'mercator', 10, true, FITTED_VIEW)
+
+		cachedChromePaths(FITTED, 'mercator', 10, true, FITTED_VIEW, { x: 20, y: 0, k: 2 })
+
+		expect(cachedChromePaths(FITTED, 'mercator', 10, true, FITTED_VIEW)).toBe(held)
 	})
 
 	it('redraws on a changed step, frame, or view', () => {

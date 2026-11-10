@@ -197,11 +197,11 @@ export type MapNamedProjection = 'mercator' | 'albers-usa' | 'equal-earth' | 'id
 
 /**
  * How the map projects the globe onto the frame: a built-in name, or any
- * `d3-geo` projection instance as the escape hatch. A named projection is refit
- * to the drawn geography whenever the frame resizes. A passed instance is fit to
- * the geography one time and keeps that fit, and a frame transform carries its
- * output onto the measured frame. Thus a point that the consumer projects
- * through the instance lands in the units of the canonical frame.
+ * `d3-geo` projection instance as the escape hatch. The map fits a projection to
+ * the drawn geography one time, and a frame transform carries its output onto
+ * the measured frame at each size. A passed instance keeps that fit. Thus a
+ * point that the consumer projects through the instance lands in the units of
+ * the canonical frame.
  */
 export type MapProjection = MapNamedProjection | GeoProjection
 

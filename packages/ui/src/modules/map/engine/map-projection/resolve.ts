@@ -151,8 +151,7 @@ export function invertingPiece(spec: MapProjection, fitted: GeoProjection): GeoP
  * the same arithmetic, which halves the cost of a fit on the mount path. The
  * frame is therefore measured at {@link PROBE_SCALE} rather than at drawing
  * scale, where adaptive resampling refines a curve differently. The two agree
- * to the last bit on a real atlas, and `carriedProjection` (`fit.ts`) already
- * accepts a divergence of that kind by name.
+ * to the last bit on a real atlas.
  *
  * The clip extent is saved and restored around the pass, as d3's own `fit`
  * does. A projection a consumer clipped to some frame would otherwise report

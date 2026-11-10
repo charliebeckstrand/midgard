@@ -341,9 +341,9 @@ function boundedGraticule(step: number, bound: GeoExtent | null): GeoGeometryObj
  * draws in the same frame units, where a second decimal serializes detail no
  * display resolves.
  *
- * `view` is the viewBox, in frame units. `frame` is the transform of a measured
- * fit that keeps the canonical projection (`measuredMapFit`). The path then
- * streams the projected points through it.
+ * `view` is the viewBox, in frame units. `frame` is the measured fit
+ * (`measuredMapFit`), and `null` at the canonical stage. The path streams the
+ * projected points through it.
  *
  * @internal
  */
@@ -358,13 +358,26 @@ export function chromePaths(
 		REGION_PATH_DIGITS,
 	)
 
-	return {
+	// `d3-geo` refines a curve to a tolerance in the units of the projection, and
+	// the frame then scales those units. The tolerance is therefore divided by the
+	// scale of the frame for this pass, so a curve keeps one tolerance in pixels
+	// at each box. Saved and restored, as `probeCanonicalFit` does, because the
+	// canonical projection is shared.
+	const precision = frame === null ? null : (projection.precision?.() ?? null)
+
+	if (precision !== null && frame !== null) projection.precision(precision / frame.k)
+
+	const paths = {
 		graticule:
 			step === null
 				? null
 				: drawn(path(boundedGraticule(step, graticuleBound(path, inverse, view, frame, step)))),
 		frame: drawn(path(SPHERE)),
 	}
+
+	if (precision !== null) projection.precision(precision)
+
+	return paths
 }
 
 /**

@@ -42,15 +42,22 @@ const canonical = canonicalFit('albers-usa', stateFeatures)
 if (canonical === null) throw new Error('fixture atlas yielded no fit')
 
 /**
- * The measured `albers-usa` refit of `fit` at a box, or a failure naming the
- * box rather than a `null` that each site would then narrow away.
+ * An `albers-usa` projection that draws `fit` in a box: the canonical fit,
+ * scaled and moved by the measured fit, on a new instance. The emit reads one
+ * buffer at more than one fit, and this gives it a second fit that is an affine
+ * of the first. A box with no fit fails by name rather than with a `null` that
+ * each site would then narrow away.
  */
 function refit(fit: MapCanonicalFit, width: number, height: number): GeoProjection {
-	const measured = measuredMapFit('albers-usa', fit, width, height)
+	const frame = measuredMapFit(fit, width, height)
 
-	if (measured === null) throw new Error(`no fit at ${width}×${height}`)
+	if (frame === null) throw new Error(`no fit at ${width}×${height}`)
 
-	return measured.projection
+	const [x, y] = fit.projection.translate()
+
+	return geoAlbersUsa()
+		.scale(fit.projection.scale() * frame.k)
+		.translate([x * frame.k + frame.x, y * frame.k + frame.y])
 }
 
 /** A feature carrying `geometry`, with the identity fields the drawing never reads. */
@@ -77,11 +84,12 @@ describe('projectAtlas + emitRegionPaths', () => {
 		).toEqual(regionPaths(stateFeatures, canonical.projection))
 	})
 
-	it('emits a measured refit byte for byte, from the canonical buffer', () => {
-		// The pass the change exists for: the buffer is drawn once under the
-		// canonical fit and read again under the measured one, which
-		// `measuredMapFit` derives from it by the same arithmetic the emit
-		// applies. Several boxes, because one could agree by coincidence of scale,
+	it('emits a second fit byte for byte, from the canonical buffer', () => {
+		// The claim that the emit rests on: a buffer drawn under one fit reads byte
+		// for byte under a second fit that is an affine of the first. The map reads
+		// the probe buffer at the canonical fit that way. Here the second fit is
+		// the canonical one carried onto a box by the arithmetic of
+		// `measuredMapFit`. Several boxes, because one could agree by coincidence of scale,
 		// and one of them far above the canonical frame: a real atlas carries
 		// vertices enough that the resampling below never shows on it.
 		const atlas = projected(stateFeatures, canonical.projection)
@@ -199,7 +207,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 			regionPaths(stateFeatures, canonical.projection),
 		)
 
-		// And through a measured refit, the fit an ordinary mount settles on.
+		// And at a second fit, the canonical one carried onto a box.
 		const measured = refit(probed.canonical, 800, 450)
 
 		expect(emitRegionPaths(probed.atlas, measured)).toEqual(regionPaths(stateFeatures, measured))

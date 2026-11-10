@@ -763,15 +763,13 @@ describe('a dot over regions that answer the pointer', () => {
 	function squareSide(width: number) {
 		const canonical = canonicalFit('mercator', FIXTURE_GEOJSON.features)
 
-		const fit =
-			canonical &&
-			measuredMapFit('mercator', canonical, width, width / canonical.aspect)?.projection
+		const frame = canonical && measuredMapFit(canonical, width, width / canonical.aspect)
 
-		const [west] = fit?.([0, 5]) ?? [Number.NaN]
+		const [west] = canonical?.projection([0, 5]) ?? [Number.NaN]
 
-		const [east] = fit?.([30, 5]) ?? [Number.NaN]
+		const [east] = canonical?.projection([30, 5]) ?? [Number.NaN]
 
-		return (east - west) / 3
+		return ((east - west) * (frame?.k ?? Number.NaN)) / 3
 	}
 
 	/**
