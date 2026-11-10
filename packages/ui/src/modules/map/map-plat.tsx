@@ -1650,6 +1650,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				/>
 			}
 			legendPlacement={legendPlacement}
+			rail={aside && showLegend && rangeLegend === null}
 			plotRegion={
 				<MapPlotRegion
 					aria-label={ariaLabel}

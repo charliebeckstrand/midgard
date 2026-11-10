@@ -36,6 +36,12 @@ import type { MapZoomOptions } from './use-map-zoom'
 type MapFrameProps = Omit<ComponentProps<'div'>, 'ref' | 'children'> & {
 	legendNode: ReactNode
 	legendPlacement: MapLegendPlacement
+	/**
+	 * Whether a switchboard panel stands at a side: the plot and the panel then
+	 * lay out in the grid of {@link k.legend.rail}, with a fixed column for the
+	 * panel.
+	 */
+	rail: boolean
 	plotRegion: ReactNode
 	/** The plot region element; the hover provider re-resolves settled scroll pointers within it. */
 	plotRef: RefObject<HTMLDivElement | null>
@@ -63,6 +69,7 @@ type MapFrameProps = Omit<ComponentProps<'div'>, 'ref' | 'children'> & {
 export function MapFrame({
 	legendNode,
 	legendPlacement,
+	rail,
 	plotRegion,
 	plotRef,
 	containerRef,
@@ -124,7 +131,13 @@ export function MapFrame({
 				    The panel and plot sit side by side once the map's own box reaches
 				    `@lg` (32rem). That leaves the plot at least 19rem beside the 12rem
 				    rail. Below it they stack with the panel always under the map, so a
-				    left panel reverses the row instead of moving in the DOM.
+				    left panel comes first through `order` instead of moving in the DOM.
+
+				    A switchboard panel lays out in a grid with a fixed column for it
+				    (`k.legend.rail`). The plot therefore has its final width before
+				    the panel is in the DOM, which is the case while the browser parses
+				    the SVG of the plot. A range bar has the width of its labels, so its
+				    row stays a flex row.
 
 				    The stack
 				    stretches its children, because the plot reserves its height from
@@ -132,13 +145,7 @@ export function MapFrame({
 				    side is physical, so a left panel stays left in a right-to-left page.
 				    A band legend needs no box of its own (`contents`), so the legend
 				    and plot lay out in the frame's column. */}
-				<div
-					className={
-						aside
-							? cn('flex flex-col @lg:items-center', k.frame, legendBandRow(legendPlacement, 'lg'))
-							: 'contents'
-					}
-				>
+				<div className={aside ? sideBand(legendPlacement, rail) : 'contents'}>
 					{legendPlacement === 'top' && legendNode}
 
 					{plot}
@@ -150,6 +157,26 @@ export function MapFrame({
 			<MapDeferredTable table={table} />
 		</div>
 	)
+}
+
+/**
+ * The classes of the band of the plot and a side legend: the grid with the
+ * fixed column of a switchboard panel (`rail`), else a flex row. A range bar
+ * and a side legend that does not show take the flex row. Each stacks under
+ * the map's own `@lg` width.
+ *
+ * @internal
+ */
+function sideBand(placement: MapLegendPlacement, rail: boolean): string {
+	if (rail) {
+		return cn(
+			'grid grid-cols-1 @lg:items-center',
+			k.frame,
+			k.legend.rail[placement === 'left' ? 'left' : 'right'],
+		)
+	}
+
+	return cn('flex flex-col @lg:items-center', k.frame, legendBandRow(placement, 'lg'))
 }
 
 /**

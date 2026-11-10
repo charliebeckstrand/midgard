@@ -256,15 +256,20 @@ export const k = {
 	/** Keyboard focus ring: the shared accent outline, on the navigable plot region. */
 	focus: sen.focus.ring,
 	/**
-	 * The legend's reserved box, mounted before any button registers so the
+	 * The legend's reserved space, there before any button registers so the
 	 * frame never shifts as entries land:
 	 *
-	 * - The `row` placements (top / bottom, and every placement stacked below
-	 *   the map's own `@lg` width) hold one item-row of height.
-	 * - The side `panel` holds a fixed column width from the map's `@lg` width. A label too wide
-	 *   for it clips, revealing itself on hover.
+	 * - The `row` box holds one item-row of height. Each placement takes it: top
+	 *   and bottom, and a side panel too, which is a row under the map below the
+	 *   map's own `@lg` width.
+	 * - The side `rail` is the grid of the plot and the panel. From the map's
+	 *   `@lg` width, it has a fixed 12rem column for the panel beside the plot.
+	 *   A label too wide for it clips, and shows itself on hover.
 	 *
-	 * The plot's width therefore never depends on what has registered.
+	 * The plot's width therefore never depends on what has registered. The rail
+	 * is a track of the grid, not the width of the panel, so the plot has its
+	 * final width before the browser parses the panel. The panel follows a large
+	 * SVG in the HTML, and a browser can paint the page before it gets there.
 	 *
 	 * The item-row is 32 px, the height of a `sm` button. An entry is a
 	 * `LegendSwitch`, and its explicit `size="sm"` makes it its own density
@@ -275,7 +280,19 @@ export const k = {
 		/** The gap of the swatch and the label of a legend entry. */
 		entry: dan.gap.scale.sm,
 		row: 'min-h-8',
-		panel: ['min-h-8', 'shrink-0', '@lg:w-48'],
+		/**
+		 * The columns of the plot and the panel from the map's `@lg`, for each
+		 * side. The panel follows the plot in the DOM, so a panel at the left
+		 * comes first through `order`. The side is physical, and the columns of a
+		 * right-to-left grid start at the right, so the `rtl:` variant swaps the
+		 * columns and the order back. Tailwind finds a class only as a complete
+		 * literal, so each entry is written out in full.
+		 */
+		rail: {
+			left: '@lg:grid-cols-[12rem_minmax(0,1fr)] @lg:*:last:order-first rtl:@lg:grid-cols-[minmax(0,1fr)_12rem] rtl:@lg:*:last:order-none',
+			right:
+				'@lg:grid-cols-[minmax(0,1fr)_12rem] rtl:@lg:grid-cols-[12rem_minmax(0,1fr)] rtl:@lg:*:last:order-first',
+		},
 	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,

@@ -102,7 +102,9 @@ describe('ChoroplethChart', () => {
 		const { container } = renderUI(chart())
 
 		// Beside the plot: the reserved side-panel column.
-		expect(bySlot(container, 'map-legend-box')?.getAttribute('class')).toContain('lg:w-48')
+		expect(bySlot(container, 'map-legend-box')?.parentElement?.getAttribute('class')).toContain(
+			'@lg:grid-cols-[minmax(0,1fr)_12rem]',
+		)
 	})
 
 	it('renders the continuous range scale bar under legend="range"', () => {
