@@ -98,17 +98,24 @@ export const GEOFENCE_CIRCLE_STEPS = 64
 export const POINT_RADIUS = 5.5
 
 /**
- * The clear space, in device pixels, that the measured fit keeps between the
- * geography and each edge of the frame. It is the reach of a selected dot: the
- * dot's radius and its halo. A dot on an extremum of the geography, such as the
- * westernmost stop, therefore draws whole, and so do its halo and the stroke of
- * a selected region on that edge. A summary dot of a high grade reaches past
- * it, and the frame clips the part of that dot that is out of the inset.
+ * The clear space, in CSS pixels, that the fit keeps between the geography and
+ * each edge of the frame. It is the reach of a selected dot: the dot's radius
+ * and its halo, up to a whole pixel. A dot on an extremum of the geography,
+ * such as the westernmost stop, therefore draws whole, and so do its halo and
+ * the stroke of a selected region on that edge. A summary dot of a high grade
+ * reaches past it, and the frame clips the part of that dot that is out of the
+ * inset.
  *
- * It is in device pixels, so it holds at each size of the frame. In the
- * canonical frame, the scale of the box would change it. @internal
+ * It is in CSS pixels, so it holds at each size of the frame. In the canonical
+ * frame, the scale of the box would change it.
+ *
+ * It is a whole number of pixels because the server paint holds its SVG this
+ * far in from each edge of the box, and browsers put an SVG box on a whole
+ * pixel. At a half pixel (8.5), the server paint drew the map half a pixel
+ * down and to the right, and the map moved back when the measured frame, which
+ * starts at the edge of the box, took its place. @internal
  */
-export const MAP_FIT_INSET = POINT_RADIUS + MARK_SELECTED_HALO
+export const MAP_FIT_INSET = Math.ceil(POINT_RADIUS + MARK_SELECTED_HALO)
 
 /**
  * Invisible hit-circle radius over a point (and a marker pin), for a coarse

@@ -119,12 +119,19 @@ function contentReserve({
  * container's measured height and `fixed` is its own pixel value: neither
  * reserves anything.
  *
+ * A pixel drawing (a chart) takes an `aspect` height in whole px. A drawing
+ * that scales with its box (`exact`, a map) takes the height that the CSS
+ * ratio gives the box, with no rounding. Its `viewBox` meets the box, so a
+ * rounded height scales the drawing by the rounding, and the drawing moves by
+ * a part of a pixel when it changes from the server frame to the measured one.
+ *
  * @internal
  */
 export function resolveFrameSizing(
 	sizing: FrameSizing,
 	width: number,
 	containerHeight: number,
+	exact = false,
 ): ResolvedFrameSizing {
 	if (sizing.mode === 'fixed') return { height: sizing.height, reserve: null }
 
@@ -165,9 +172,24 @@ export function resolveFrameSizing(
 	}
 
 	return {
-		height: width > 0 ? Math.round(width / sizing.ratio) : 0,
+		height: aspectHeight(width, sizing.ratio, exact),
 		reserve: { mode: 'aspect', ratio: sizing.ratio },
 	}
+}
+
+/**
+ * The height that a `ratio` gives a box `width` px wide: in whole px, or the
+ * exact value for a drawing that scales with its box. `0` until the width is
+ * measured.
+ *
+ * @internal
+ */
+function aspectHeight(width: number, ratio: number, exact: boolean): number {
+	if (width <= 0) return 0
+
+	const height = width / ratio
+
+	return exact ? height : Math.round(height)
 }
 
 /**
@@ -179,7 +201,7 @@ export function resolveFrameSizing(
  */
 export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElement | null>
 
-/** The measured size of a plot frame, in integer px. @internal */
+/** The measured size of a plot frame: whole px, or the exact box of a scaled drawing. @internal */
 type FrameSize = { width: number; height: number; containerHeight: number }
 
 /** Whether two frame sizes are the same on each axis. @internal */
@@ -230,7 +252,9 @@ function sameSize(a: FrameSize, b: FrameSize): boolean {
  * plot, so the plot measures the width that remains. It has no effect without
  * an explicit `width`, because the plot then measures its width anyway.
  * @param scaled - The drawing scales with its box through its `viewBox`, so a
- * resize commits as a transition rather than before the paint.
+ * resize commits as a transition rather than before the paint. The frame is
+ * then the exact box, not the box in whole px, so the measured drawing meets
+ * the box as the server drawing does.
  * @returns The wrapper `ref` to attach, and the resolved drawing box. The ref
  * is a callback ref that re-targets the observer if React swaps the node, still
  * readable through `.current`. An unmeasured `width` stays `0`, which renders
@@ -282,8 +306,10 @@ export function usePlotFrame(
 	// reads this.
 	const measureContainer = sizing.mode === 'fill'
 
-	// The size of the plot element, in integer px. An axis the policy ignores
-	// stays 0, so it never re-renders the frame.
+	// The size of the plot element. An axis the policy ignores stays 0, so it
+	// never re-renders the frame. A pixel drawing reads whole px. A scaled
+	// drawing reads the exact box (`getBoundingClientRect`), because its
+	// `viewBox` meets the box, and a rounded frame scales it by the rounding.
 	const readSize = useCallback(
 		(el: HTMLDivElement): FrameSize | null => {
 			// A node the commit just detached (a layout branch re-arranged around
@@ -300,13 +326,15 @@ export function usePlotFrame(
 				? (el.closest<HTMLElement>('[data-plot-fill-container]')?.clientHeight ?? 0)
 				: 0
 
+			const box = scaled ? el.getBoundingClientRect() : null
+
 			return {
-				width: measureWidth ? Math.round(el.clientWidth) : 0,
-				height: measureHeight ? Math.round(el.clientHeight) : 0,
+				width: measureWidth ? (box?.width ?? Math.round(el.clientWidth)) : 0,
+				height: measureHeight ? (box?.height ?? Math.round(el.clientHeight)) : 0,
 				containerHeight: Math.round(container),
 			}
 		},
-		[measureWidth, measureHeight, measureContainer],
+		[measureWidth, measureHeight, measureContainer, scaled],
 	)
 
 	const measures = measureWidth || measureHeight
@@ -404,7 +432,7 @@ export function usePlotFrame(
 	// The explicit width stands until a shared plot has a measurement.
 	const resolvedWidth = width === undefined || (sharedWidth && size.width > 0) ? size.width : width
 
-	const { height, reserve } = resolveFrameSizing(sizing, resolvedWidth, size.height)
+	const { height, reserve } = resolveFrameSizing(sizing, resolvedWidth, size.height, scaled)
 
 	return { ref, width: resolvedWidth, height, containerHeight: size.containerHeight, reserve }
 }
