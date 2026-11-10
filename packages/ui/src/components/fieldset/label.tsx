@@ -1,11 +1,12 @@
 'use client'
 
-import { type ComponentProps, type MouseEvent, useEffect } from 'react'
+import { useComposedRefs } from 'motion/react'
+import { type ComponentProps, type MouseEvent, type Ref, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { k } from '../../recipes/kata/fieldset'
 import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
-import { useControl } from '../control/context'
+import { useControl, useControlTargets } from '../control/context'
 
 /**
  * Props for {@link Label}. As a `<label>` (the default): the optional `htmlFor` override (defaults
@@ -83,8 +84,11 @@ function keepControlFocus(event: MouseEvent<HTMLLabelElement>) {
  * has the same style and registers its id in the same way. Thus a control that reads
  * `aria-labelledby` from the field still takes its name from the text. The `<span>` takes no
  * press: it has no pointer cursor, and its text is selectable.
+ *
+ * Inside a `Form`, the label registers its text by the id of the control that it names. A
+ * `FormErrorSummary` then names the field of each error with that text.
  */
-export function Label(props: LabelProps) {
+export function Label({ ref: refProp, ...props }: LabelProps) {
 	const control = useControl()
 
 	const id = props.id ?? control?.labelId
@@ -95,11 +99,48 @@ export function Label(props: LabelProps) {
 
 	useEffect(() => registerLabel?.(props.id), [registerLabel, props.id])
 
+	const elementRef = useRef<HTMLElement>(null)
+
+	const ref = useComposedRefs<HTMLElement>(elementRef, refProp as Ref<HTMLElement> | undefined)
+
+	// A form names the field of each error with the text of its label, by the
+	// id of the control that the label names.
+	const targets = useControlTargets()
+
+	// The text that the label renders. It starts empty, so the hydration pass
+	// matches the server markup.
+	const [text, setText] = useState('')
+
+	// After each commit, because a render can change the text. The effect writes
+	// only a change, so it schedules no idle render. Outside a registry, no part
+	// reads the text, so the effect reads nothing.
+	useEffect(() => {
+		if (!targets) return
+
+		const next = elementRef.current?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
+
+		if (next !== text) setText(next)
+	})
+
+	const target = props.as === 'span' ? control?.id : (props.htmlFor ?? control?.id)
+
+	useEffect(() => {
+		if (!targets || !target || !text) return
+
+		return targets.registerLabel(target, text)
+	}, [targets, target, text])
+
 	if (props.as === 'span') {
 		const { as, className, id: _, children, ...rest } = props
 
 		return (
-			<span id={id} className={cn(k({ as }).label, className)} {...rest} data-slot="label">
+			<span
+				id={id}
+				ref={ref}
+				className={cn(k({ as }).label, className)}
+				{...rest}
+				data-slot="label"
+			>
 				{children}
 			</span>
 		)
@@ -110,6 +151,7 @@ export function Label(props: LabelProps) {
 	return (
 		<label
 			id={id}
+			ref={ref}
 			htmlFor={htmlFor ?? control?.id}
 			className={cn(k({ as }).label, className)}
 			{...rest}

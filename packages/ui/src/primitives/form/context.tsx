@@ -4,7 +4,7 @@ import { type ReactNode, useCallback, useRef, useSyncExternalStore } from 'react
 import { createContext } from '../../core/create-context'
 import { noopSubscribe } from '../../utilities/noop'
 import { sameElements } from '../../utilities/same-elements'
-import type { FormFieldTargets } from './form-field-targets'
+import type { FormFieldTarget, FormFieldTargets } from './form-field-targets'
 
 /** Snapshot of a form's reactive state: field values, per-field errors/touched/dirty maps, and the derived `dirty`/`valid`/`submitting` flags. */
 export type FormStateValue = {
@@ -141,7 +141,7 @@ export function FormProvider({
 	failures?: number
 	/** Locks each field of the form: a field write does nothing. */
 	locked?: boolean
-	/** The registry of the control ids of the fields, which a `FormErrorSummary` reads. A provider with no summary leaves it out. */
+	/** The registry of the control ids and the labels of the fields, which a `FormErrorSummary` reads. A provider with no summary leaves it out. */
 	targets?: FormFieldTargets
 	children: ReactNode
 }) {
@@ -378,15 +378,16 @@ export function useFormErrors(): FormStateValue['errors'] {
 }
 
 // The registry of no form. One object, so the snapshot keeps its identity.
-const NO_TARGETS: Readonly<Record<string, string>> = {}
+const NO_TARGETS: Readonly<Record<string, FormFieldTarget>> = {}
 
 /**
- * Subscribes to the control ids that the fields of the enclosing form registered.
+ * Subscribes to the control ids and the labels that the fields of the enclosing
+ * form registered.
  *
- * @returns The control id of each registered field, by field name.
+ * @returns The target of each registered field, by field name.
  * @internal
  */
-export function useFormFieldTargets(): Readonly<Record<string, string>> {
+export function useFormFieldTargets(): Readonly<Record<string, FormFieldTarget>> {
 	const targets = useFormFieldTargetsContext()
 
 	return useSyncExternalStore(
