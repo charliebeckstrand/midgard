@@ -8,7 +8,7 @@
 
 import type { MapSeriesColor } from '../../../../recipes/kata/map'
 import type { MapClusterInput } from '../map-cluster/sets'
-import type { LngLat, MapSwatchShape } from '../types'
+import type { LngLat, MapPoint2D, MapSwatchShape } from '../types'
 import type { MapSpareResolver } from './spare'
 
 /** The overlay kinds that register legend entries. @internal */
@@ -49,15 +49,22 @@ export type MapStopPart = {
 
 /**
  * One dot that a mark draws, as it registers it for the plat's dot pool: where it stands, and how
- * far it paints from its center in device pixels. The pool projects the position, and a dot near it
- * divides ground by both (`ground.ts`).
+ * far it paints from its center in device pixels. A dot near it divides ground by both
+ * (`ground.ts`).
+ *
+ * The dot stands in one of two forms, because the pool must hold the place where the mark draws
+ * the dot:
+ *
+ * - `at` is a position in lon/lat, which the pool projects. A point and a pin draw at the image of
+ *   their position, so they give this form. After a refit, the pool projects the position again,
+ *   and the mark tells it nothing.
+ * - `drawn` is the frame position where the mark draws the dot. A summary draws at the mean of the
+ *   frame positions of its members, which is not the image of a position that the summary holds.
+ *   A set therefore gives each dot in this form, and restakes its dots when a refit moves them.
  *
  * @internal
  */
-export type MapEntryDot = {
-	at: LngLat
-	radius: number
-}
+export type MapEntryDot = { radius: number } & ({ at: LngLat } | { drawn: MapPoint2D })
 
 /**
  * One overlay mark's registration: what the legend draws for it, and what the
@@ -106,10 +113,11 @@ export type MapOverlayEntry = {
 	 */
 	stopsAt: () => (LngLat | null)[]
 	/**
-	 * The dots the mark draws, which the plat's dot pool holds: each one in lon/lat, with the radius
-	 * it paints at in device pixels. A point's dots are its stops. A `MapMarker` draws two pins but
-	 * has one stop, the middle of its leg. Absent on the line and area marks: a route's waypoints and
-	 * a zone's ring paint nothing a pointer could be aimed at instead of. Stable like
+	 * The dots the mark draws, which the plat's dot pool holds: each one where it stands, with the
+	 * radius it paints at in device pixels. A point's dot is its stop. A `MapMarker` draws two pins
+	 * but has one stop, the middle of its leg. A set gives each dot where it draws it, which is not
+	 * where the keyboard stands on a summary. Absent on the line and area marks: a route's waypoints
+	 * and a zone's ring paint nothing a pointer could be aimed at instead of. Stable like
 	 * {@link stopsAt}.
 	 */
 	dotsAt?: () => MapEntryDot[]

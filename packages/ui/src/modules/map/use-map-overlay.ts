@@ -150,9 +150,10 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		stops: () => (LngLat | null)[]
 		/**
 		 * The dots the mark draws, for the plat's dot pool (see
-		 * {@link MapOverlayEntry.dotsAt}): each in lon/lat, with the radius it paints
-		 * at. Passed by the dot-drawing marks alone. A point passes its one dot, and a
-		 * marker passes its two pins.
+		 * {@link MapOverlayEntry.dotsAt}): each where it stands, with the radius it
+		 * paints at. Passed by the dot-drawing marks alone. A point passes its one
+		 * dot, a marker passes its two pins, and a set passes each dot where it draws
+		 * it.
 		 *
 		 * Hold its identity until the dots move. A new identity restakes the
 		 * mark's dots in the pool, so the dots near it divide their ground again.
@@ -408,16 +409,33 @@ export function useMapOverlay({
 	// throws when it runs during render.
 	//
 	// Synced in a layout effect rather than in render. Every render-time reader
-	// runs off the ledger or off a store that a mark tells after this sync: the
+	// runs off the ledger or off a store that this effect tells after the sync: the
 	// plat gathers the dot pool once per `entries`, `hidden`, or projection, and the
 	// table resolves its picked row once per `entries` or pick. By the time any of
-	// those runs again, this effect has written the committed values. The restakes
-	// and the reground below read these values, so they must stay after this effect.
+	// those runs again, this effect has written the committed values.
 	const live = useRef({ stops, dots, cluster, resolveStop, getIndex, ownSpare })
 
 	useLayoutEffect(() => {
+		const last = live.current
+
 		live.current = { stops, dots, cluster, resolveStop, getIndex, ownSpare }
-	}, [stops, dots, cluster, resolveStop, getIndex, ownSpare])
+
+		// A move changes no entry of the ledger, so it cannot reach a store of the
+		// plat through the ledger. Each store holds what it read last: the pool holds
+		// the dots, the shared pass holds the input of the set, the keyboard cursor
+		// holds the stops, and the resolver of the plat holds the budget of the zone.
+		// The mark therefore tells each store when the identity of the value that the
+		// store reads changes. Each store reads the new value through `live`, so the
+		// tells come after the write. The effect is a layout effect, so that each
+		// reader has the new answer before the move paints.
+		if (last.dots !== dots) pool.restake(id)
+
+		if (last.cluster !== cluster) clusters.restake(id)
+
+		if (last.stops !== stops) moves.move()
+
+		if (last.ownSpare !== ownSpare) spare.reground()
+	}, [stops, dots, cluster, resolveStop, getIndex, ownSpare, pool, clusters, moves, spare, id])
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
@@ -434,60 +452,6 @@ export function useMapOverlay({
 	// Registered by a set that clusters alone. A set that turns its grouping on
 	// or off registers again, because the pass must learn of it.
 	const ownCluster = cluster === undefined ? undefined : clusterAt
-
-	// A move changes no entry of the ledger, so it cannot reach the pool through the plat. The mark
-	// restakes its own dots instead, off the identity of `dots`. A layout effect, so that the dots
-	// near it divide their ground again before the move paints.
-	const staked = useRef(dots)
-
-	useLayoutEffect(() => {
-		if (staked.current === dots) return
-
-		staked.current = dots
-
-		pool.restake(id)
-	}, [pool, id, dots])
-
-	// A move changes no entry of the ledger, so the shared pass holds the dots it
-	// gathered last. The set restakes its dots in the pass off the identity of
-	// `cluster`, as it restakes the pool off `dots`.
-	const grouped = useRef(cluster)
-
-	useLayoutEffect(() => {
-		if (grouped.current === cluster) return
-
-		grouped.current = cluster
-
-		clusters.restake(id)
-	}, [clusters, id, cluster])
-
-	// A move changes no entry of the ledger either, so the keyboard cursor holds the
-	// stops it resolved last. The mark tells it off the identity of `stops`, as it
-	// restakes the pool off `dots`. A layout effect, so that the cursor reads the
-	// new stops before the move paints.
-	const placed = useRef(stops)
-
-	useLayoutEffect(() => {
-		if (placed.current === stops) return
-
-		placed.current = stops
-
-		moves.move()
-	}, [moves, stops])
-
-	// A zone's budget changes no entry of the ledger either, so the dots under it
-	// hold the targets they measured last. The zone regrounds the plat's resolver
-	// off the identity of its own, after the sync above has written it. A layout
-	// effect, so that the dots measure again before the change paints.
-	const budgeted = useRef(ownSpare)
-
-	useLayoutEffect(() => {
-		if (budgeted.current === ownSpare) return
-
-		budgeted.current = ownSpare
-
-		spare.reground()
-	}, [spare, ownSpare])
 
 	// The view of the pool that this mark reads. The pool keeps the view through a restake of this
 	// mark, so a mark that regroups does not divide its ground again against dots that did not move.

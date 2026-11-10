@@ -657,6 +657,73 @@ describe('crowded marks divide their targets', () => {
 		expect(readClip(bySlot(container, 'map-point-hit'))).not.toBeNull()
 	})
 
+	/** The ordinates of a ring along the x axis, off its `points` attribute. */
+	function xs(points: string) {
+		return points.split(' ').map((point) => Number.parseFloat(point))
+	}
+
+	/**
+	 * A pair of stops on one parallel that draws as one summary, and a point to the east of it on
+	 * the same parallel. The summary draws midway between its stops, so each stop stands to one side
+	 * of that place.
+	 *
+	 * @param spread - The degrees of longitude between the two stops.
+	 * @param width - The width of the frame, in px.
+	 */
+	function besideSummary(spread: number, width = 400) {
+		return (
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={width}>
+				<MapPoints label="Fleet" points={[{ at: [5, 5] }, { at: [5 + spread, 5] }]} />
+
+				<MapPoint label="Depot" at={[6.9, 5]} />
+			</MapPlat>
+		)
+	}
+
+	/** The ring of the summary, then the ring of the point beside it: the `points` of each. */
+	function summaryRings(container: HTMLElement) {
+		expect(allBySlot(container, 'map-points-cluster')).toHaveLength(1)
+
+		return ['map-points-hit', 'map-point-hit'].map((slot) => {
+			const clip = container.querySelector(`clipPath#${readClip(bySlot(container, slot))} polygon`)
+
+			return present(clip, `the clip of ${slot}`).getAttribute('points') ?? ''
+		})
+	}
+
+	it('cuts a summary and the point beside it along one line', () => {
+		const { container } = renderUI(besideSummary(0.9))
+
+		const [summary = '', point = ''] = summaryRings(container)
+
+		// The three dots stand on one parallel, so the cut is a line of one x. The summary keeps the
+		// ground to the west of it and the point keeps the ground to the east. The pool held the
+		// summary at one of its stops, so the point cut against a place where nothing draws, and a
+		// strip between the two lines answered both marks or neither.
+		expect(Math.max(...xs(summary))).toBe(Math.min(...xs(point)))
+	})
+
+	it('cuts a point against a summary beside it again when the frame resizes', () => {
+		// A pair close enough to stay one summary in the wider frame.
+		const plat = (width: number) => besideSummary(0.5, width)
+
+		const { container, rerender, unmount } = renderUI(plat(400))
+
+		const before = summaryRings(container)
+
+		// A set gives the pool the frame positions that it draws, and a resize moves each of them. The
+		// set therefore restakes its dots, and the point cuts again before the new frame paints.
+		rerender(plat(600))
+
+		const resized = summaryRings(container)
+
+		expect(resized).not.toEqual(before)
+
+		unmount()
+
+		expect(resized).toEqual(summaryRings(renderUI(plat(600)).container))
+	})
+
 	it('does not let a route or a zone contest a point’s ground', () => {
 		const { container } = renderUI(catchment(<MapPoint label="Depot" at={[15, 5]} />))
 

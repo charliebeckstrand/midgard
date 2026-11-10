@@ -777,9 +777,10 @@ export function MapPoints({
 
 	// A thunk, so the O(N) build (and the spherical centroid behind every
 	// summary's anchor) lands on the one keypress that reads it. Held on the
-	// grouping, because a new identity tells the plat's pool that the dots moved.
-	// A shared summary is one stop, the stop of the set that draws it. The parts of
-	// the other sets stand at `null`, and the plat reads every part from that stop.
+	// grouping, because a new identity tells the keyboard cursor that the stops
+	// moved. A shared summary is one stop, the stop of the set that draws it. The
+	// parts of the other sets stand at `null`, and the plat reads every part from
+	// that stop.
 	const stops = useCallback(
 		() =>
 			groups.map((group) => {
@@ -790,20 +791,34 @@ export function MapPoints({
 		[groups, positions, id],
 	)
 
-	// The dots this mark draws, for the plat's dot pool: every group but the shared
-	// summaries that another set draws, each at what its shape paints out to.
+	// The dots this mark draws, index for index with its groups, each at what its
+	// shape paints out to. A group stands at `null` where the set draws no dot for
+	// it: the projection drops the group, or another set draws the shared summary
+	// that holds it. The pool and the grounds below read this one list, so each
+	// neighbor cuts against the place where the set draws the dot.
+	const drawn = useMemo(
+		() =>
+			groups.map((group, index): MapGroundDot | null => {
+				if (group.at === null) return null
+
+				if (group.shared !== undefined && !leads(group.shared, id)) return null
+
+				return { at: group.at, radius: dotReach(radii[index] ?? POINT_RADIUS, shapes[index]) }
+			}),
+		[groups, id, radii, shapes],
+	)
+
+	// The drawn dots, for the plat's dot pool. A summary draws at the mean of the
+	// frame positions of its members, which is not the image of a position that
+	// it holds. The set therefore stakes each dot at the frame position where it
+	// draws the dot. Held on the drawn dots, because a new identity tells the pool
+	// that the dots moved.
 	const dots = useCallback(
 		() =>
-			groups.flatMap((group, index): MapEntryDot[] => {
-				const radius = dotReach(radii[index] ?? POINT_RADIUS, shapes[index])
-
-				if (group.shared === undefined) {
-					return [{ at: clusterAnchor(group.members, positions), radius }]
-				}
-
-				return leads(group.shared, id) ? [{ at: group.shared.anchor(), radius }] : []
-			}),
-		[groups, positions, id, radii, shapes],
+			drawn.flatMap((dot): MapEntryDot[] =>
+				dot === null ? [] : [{ drawn: dot.at, radius: dot.radius }],
+			),
+		[drawn],
 	)
 
 	const { slot, hidden, spare, animate, dim, onPointerLeave, neighbors, hit } = useMapOverlay({
@@ -866,25 +881,14 @@ export function MapPoints({
 	// face, to the summary that drew later. `null` for almost every dot, which
 	// draws no clip.
 	//
-	// The dots that another set draws stand at `null` here: that set divides
+	// The dots that another set draws stand at `null` in `drawn`: that set divides
 	// their ground, and the pool hands them in as its own.
 	//
 	// Memoized beside `targets`, and for the same reason: a pointer crossing moves
 	// none of these inputs.
 	const grounds = useMemo(
-		() =>
-			setGrounds(
-				groups.map((group, index): MapGroundDot | null => {
-					if (group.at === null) return null
-
-					if (group.shared !== undefined && !leads(group.shared, id)) return null
-
-					return { at: group.at, radius: dotReach(radii[index] ?? POINT_RADIUS, shapes[index]) }
-				}),
-				neighbors(),
-				unitsPerPixel,
-			),
-		[groups, id, radii, shapes, neighbors, unitsPerPixel],
+		() => setGrounds(drawn, neighbors(), unitsPerPixel),
+		[drawn, neighbors, unitsPerPixel],
 	)
 
 	const clips = `${useId()}-hit`
