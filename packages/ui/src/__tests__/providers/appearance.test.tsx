@@ -63,7 +63,7 @@ afterEach(() => {
 		'light',
 		'reduced-motion',
 		'sidebar-offcanvas',
-		'glass-off',
+		'surfaces-solid',
 	)
 
 	writeRootDensity(document.documentElement, 'md')
@@ -277,17 +277,17 @@ describe('AppearanceProvider', () => {
 		expect(document.documentElement).not.toHaveClass('sidebar-offcanvas')
 	})
 
-	it('marks the root and turns each glass surface flat while the glass is off', async () => {
+	it('marks the root and turns each glass surface flat while the surfaces are solid', async () => {
 		function GlassProbe() {
-			const { glass, setGlass } = useAppearance()
+			const { surfaces, setSurfaces } = useAppearance()
 
 			const surface = useResolvedSurface(true)
 
 			const ambient = useGlass()
 
 			return (
-				<button type="button" onClick={() => setGlass(glass === 'on' ? 'off' : 'on')}>
-					{`${glass} ${surface ?? 'flat'} ${ambient}`}
+				<button type="button" onClick={() => setSurfaces(surfaces === 'glass' ? 'solid' : 'glass')}>
+					{`${surfaces} ${surface ?? 'flat'} ${ambient}`}
 				</button>
 			)
 		}
@@ -301,24 +301,24 @@ describe('AppearanceProvider', () => {
 
 		const button = screen.getByRole('button')
 
-		expect(button).toHaveTextContent('on glass true')
+		expect(button).toHaveTextContent('glass glass true')
 
-		expect(document.documentElement).not.toHaveClass('glass-off')
+		expect(document.documentElement).not.toHaveClass('surfaces-solid')
 
 		await userEvent.click(button)
 
 		// The setting wins over a `glass` prop and over the ambient flag.
-		expect(button).toHaveTextContent('off flat false')
+		expect(button).toHaveTextContent('solid flat false')
 
-		expect(document.documentElement).toHaveClass('glass-off')
+		expect(document.documentElement).toHaveClass('surfaces-solid')
 
-		expect(localStorage.getItem('glass')).toBe('off')
+		expect(localStorage.getItem('surfaces')).toBe('solid')
 
 		await userEvent.click(button)
 
-		expect(button).toHaveTextContent('on glass true')
+		expect(button).toHaveTextContent('glass glass true')
 
-		expect(document.documentElement).not.toHaveClass('glass-off')
+		expect(document.documentElement).not.toHaveClass('surfaces-solid')
 	})
 
 	it('throws when useAppearance has no provider', () => {

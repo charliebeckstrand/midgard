@@ -4,10 +4,10 @@
  * axis of a modal panel.
  *
  * The `glass` half of the axis also holds the flat surface behind the
- * `glass-off` variant. A server can paint an open modal panel before
- * hydration, and the Glass setting of the reader is then only a class on the
- * root (`core/glass/root.ts`). Thus that paint is flat when the reader turned
- * the glass off. After hydration, the panel takes the `flat` half itself.
+ * `surfaces-solid` variant. A server can paint an open modal panel before
+ * hydration, and the Surfaces setting of the reader is then only a class on
+ * the root (`core/surfaces/root.ts`). Thus that paint is flat when the reader chose
+ * solid surfaces. After hydration, the panel takes the `flat` half itself.
  *
  * Layer: kiso · Concern: panel surface
  */
@@ -18,13 +18,16 @@ import { ring } from '../sen/ring'
 import { bg } from './bg'
 import { glass } from './glass'
 
-/** The `flat` surface behind the `glass-off` variant: the fill of `bg.surface`, and no blur. */
-const glassOff = [
+/** The `flat` surface behind the `surfaces-solid` variant: the fill of `bg.surface`, and no blur. */
+const solid = [
 	...mode(
-		['glass-off:bg-white', 'glass-off:[--surface-fill:var(--color-white)]'],
-		['dark:glass-off:bg-zinc-900', 'dark:glass-off:[--surface-fill:var(--color-zinc-900)]'],
+		['surfaces-solid:bg-white', 'surfaces-solid:[--surface-fill:var(--color-white)]'],
+		[
+			'dark:surfaces-solid:bg-zinc-900',
+			'dark:surfaces-solid:[--surface-fill:var(--color-zinc-900)]',
+		],
 	),
-	'glass-off:backdrop-blur-none',
+	'surfaces-solid:backdrop-blur-none',
 ]
 
 export const panel = {
@@ -33,5 +36,5 @@ export const panel = {
 	/** Fill + chrome, everything a floating panel needs. */
 	base: [...ring.default, ...bg.surface],
 	/** The `surface` axis of a modal panel: `flat` is opaque, and `glass` is translucent and blurred. */
-	axis: { glass: [...glass, ...glassOff], flat: bg.surface },
+	axis: { glass: [...glass, ...solid], flat: bg.surface },
 } as const

@@ -31,11 +31,11 @@ An app mounts `AppearanceProvider` once, in `<body>` above all text. The server 
 
 | Export | Summary |
 |---|---|
-| `AppearanceProvider` | App-root owner of the theme, density, motion, sidebar, and glass preferences. It keeps them in `localStorage` and writes them as classes on the root element. While the glass is `off`, each glass surface is flat. It loads the latin face of the font, and `ui/tailwind.css` holds the other faces. |
+| `AppearanceProvider` | App-root owner of the theme, density, motion, sidebar, and surfaces preferences. It keeps them in `localStorage` and writes them as classes on the root element. While the surfaces are `solid`, each glass surface is flat. It loads the latin face of the font, and `ui/tailwind.css` holds the other faces. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
 | `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, and sidebar pickers. ⌘B or Ctrl+B toggles the sidebar. Under a `LocaleProvider` with `locales`, it adds the Language picker. `children` adds more fields. |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
-| `useAppearance` | Reads the theme, the density, the motion, the sidebar, the glass, and their setters from the nearest `AppearanceProvider`; throws outside one. |
+| `useAppearance` | Reads the theme, the density, the motion, the sidebar, the surfaces, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |
 | `themeModes` | The theme modes, for a theme picker, each with a translated `message`. |
@@ -43,7 +43,7 @@ An app mounts `AppearanceProvider` once, in `<body>` above all text. The server 
 | `motionModes` | The motion modes, for a motion picker, each with a translated `message`. |
 | `SidebarMode` *(type)* | Sidebar preference: `locked` keeps the sidebar of a `SidebarLayout` in its panel where the layout is inline. `offcanvas` hides it at the start edge, and a pointer near the edge opens it. |
 | `sidebarModes` | The sidebar modes, for a sidebar picker, each with a translated `message`. |
-| `GlassMode` *(type)* | Glass preference: `on` paints each glass surface as glass, and `off` paints it flat. `AppearanceSettings` has no picker for it, so an app with glass surfaces adds its own field. |
+| `SurfaceMode` *(type)* | Surfaces preference: `glass` paints each glass surface as glass, and `solid` paints it flat. `AppearanceSettings` has no picker for it, so an app with glass surfaces adds its own field. |
 
 ## `ui/providers/density`
 
@@ -65,8 +65,8 @@ Sets the ambient glass flag so glass-aware chrome switches to its glass variant.
 |---|---|
 | `GlassProvider` | Sets the ambient glass flag for the subtree. An RSC tree can host it. |
 | `GlassProviderProps` *(type)* | Props for `GlassProvider`. |
-| `useGlass` | Reads the ambient glass flag; `false` outside a `<GlassProvider>`, and `false` while the Glass setting of the reader is `off`. |
-| `useResolvedSurface` | Resolves a chrome panel's `surface` variant. While the Glass setting of the reader is `off`, each panel is flat. Else a set `glass` prop wins, so `false` opts out inside a `<GlassProvider>`; with no prop, the ambient flag decides. |
+| `useGlass` | Reads the ambient glass flag; `false` outside a `<GlassProvider>`, and `false` while the Surfaces setting of the reader is `solid`. |
+| `useResolvedSurface` | Resolves a chrome panel's `surface` variant. While the Surfaces setting of the reader is `solid`, each panel is flat. Else a set `glass` prop wins, so `false` opts out inside a `<GlassProvider>`; with no prop, the ambient flag decides. |
 
 ## `ui/providers/headless`
 

@@ -79,10 +79,10 @@ export const sidebarModes: { message: MessageDescriptor; value: SidebarMode }[] 
 ]
 
 /**
- * The Glass setting: `'on'` paints each glass surface as glass, and `'off'`
- * paints it flat. An app shows its own field for it, such as a switch.
+ * The Surfaces setting: `'glass'` paints each glass surface as glass, and
+ * `'solid'` paints it flat. An app shows its own field for it.
  */
-export type GlassMode = 'on' | 'off'
+export type SurfaceMode = 'glass' | 'solid'
 
-/** The values of the Glass setting. */
-export const glassModes: readonly GlassMode[] = ['on', 'off']
+/** The values of the Surfaces setting. */
+export const surfaceModes: readonly SurfaceMode[] = ['glass', 'solid']

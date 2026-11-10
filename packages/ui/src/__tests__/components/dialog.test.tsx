@@ -186,14 +186,14 @@ describe('Dialog', () => {
 
 		// glass resolves the panel to the transparent glass surface variant;
 		// the flat default fills with bg-white instead. The glass keeps the flat
-		// fill only behind the `glass-off` variant.
+		// fill only behind the `surfaces-solid` variant.
 		const panel = bySlot(document.body, 'dialog')
 
 		expect(panel?.classList).toContain('bg-transparent')
 
 		expect(panel?.classList).not.toContain('bg-white')
 
-		expect(panel?.classList).toContain('glass-off:bg-white')
+		expect(panel?.classList).toContain('surfaces-solid:bg-white')
 	})
 
 	it('marks the glass panel as the group the item wash keys on', () => {

@@ -3,8 +3,8 @@
  * (`src/fonts/fonts.css`, with no latin face: `AppearanceProvider` adds it),
  * the `density-any` variant, the `motion-reduce` and `motion-safe` variants
  * that follow the Motion setting, the `sidebar-offcanvas` variant that follows
- * the Sidebar setting, the `glass-off` variant that follows the Glass
- * setting, the stepped and ring utilities
+ * the Sidebar setting, the `surfaces-solid` variant that follows the
+ * Surfaces setting, the stepped and ring utilities
  * (`density-p-[2,3,4]`, `px-ring-2`, …), the `scroll-fade-inline` and `scroll-fade-block` edge fades,
  * the 10 px `2xs` step of the text scale, two base styles on the root
  * element: `touch-action: manipulation`, and
@@ -21,7 +21,7 @@
 @plugin './src/core/scheme/base.ts';
 @plugin './src/core/motion/variants.ts';
 @plugin './src/core/sidebar/variants.ts';
-@plugin './src/core/glass/variants.ts';
+@plugin './src/core/surfaces/variants.ts';
 @plugin './src/core/scroll/fade.ts';
 @plugin './src/core/panel/base.ts';
 

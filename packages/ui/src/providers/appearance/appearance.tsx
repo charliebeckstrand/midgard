@@ -2,20 +2,20 @@
 
 import { type ReactNode, useEffect, useMemo } from 'react'
 import { writeRootDensity } from '../../core/density/steps'
-import { ROOT_GLASS_OFF_CLASS } from '../../core/glass/root'
 import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
+import { ROOT_SOLID_SURFACES_CLASS } from '../../core/surfaces/root'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
 import { matchesMediaQuery, subscribeMediaQuery } from '../../utilities/media-query'
 import { levelToStep } from '../density/context'
-import { GlassOffContext } from '../glass/context'
+import { SolidSurfacesContext } from '../glass/context'
 import {
 	DARK_SCHEME,
 	DENSITY,
-	GLASS,
 	MOTION,
 	readChoice,
 	SIDEBAR,
+	SURFACES,
 	subscribeChoices,
 	THEME,
 } from './appearance-storage'
@@ -29,7 +29,7 @@ export type AppearanceProviderProps = {
 }
 
 /**
- * App-root owner of the theme, density, motion, sidebar, and glass preferences. It keeps them
+ * App-root owner of the theme, density, motion, sidebar, and surfaces preferences. It keeps them
  * in `localStorage`. It toggles the `.dark` class on the root element, and while
  * the theme is `'system'` it follows the OS preference live. It writes the step
  * of the density as a class on the root element (`writeRootDensity`), which
@@ -48,12 +48,12 @@ export type AppearanceProviderProps = {
  * `ui/tailwind.css` reads. `SidebarLayout` then shows its sidebar as a floating
  * sheet while its layout is inline.
  *
- * While the glass is `'off'`, the root element has the `glass-off` class, which
- * the `glass-off` variant of `ui/tailwind.css` reads. A glass overlay panel
- * then paints flat before hydration. The provider also gives the choice to
- * `useGlass` and `useResolvedSurface`, so each glass-aware component renders
- * its flat surface. The settings dialog has no picker for the glass: an app
- * that has glass surfaces adds its own field.
+ * While the surfaces are `'solid'`, the root element has the `surfaces-solid`
+ * class, which the `surfaces-solid` variant of `ui/tailwind.css` reads. A glass
+ * overlay panel then paints flat before hydration. The provider also gives the
+ * choice to `useGlass` and `useResolvedSurface`, so each glass-aware component
+ * renders its flat surface. The settings dialog has no picker for the
+ * surfaces: an app that has glass surfaces adds its own field.
  *
  * Render one instance for each app. All instances share the storage keys and
  * the root element, so a region cannot hold an appearance of its own.
@@ -61,7 +61,7 @@ export type AppearanceProviderProps = {
  * The app's stylesheet must key its `dark` variant on the class, for example
  * `@custom-variant dark (&:where(.dark, .dark *))`. Each choice has a copy in
  * a cookie, so the server writes the classes of the stored theme, density,
- * motion, sidebar, and glass on the root before the first paint (`rootMarks` in
+ * motion, sidebar, and surfaces on the root before the first paint (`rootMarks` in
  * `ui/providers/ui`). With no cookie, the choices apply at hydration. A light
  * theme adds the `light` class, so a `dark` variant can follow the OS while
  * the root has no theme class.
@@ -87,12 +87,12 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 
 	const [sidebar, setSidebar] = useAppearanceChoice(SIDEBAR)
 
-	const [glass, setGlass] = useAppearanceChoice(GLASS)
+	const [surfaces, setSurfaces] = useAppearanceChoice(SURFACES)
 
 	useEffect(() => {
 		// The classes on the root are side effects, not rendered state, so the
 		// store drives them directly. The effect does not read `theme`,
-		// `density`, `motion`, `sidebar`, or `glass`: during hydration they hold the defaults, and a
+		// `density`, `motion`, `sidebar`, or `surfaces`: during hydration they hold the defaults, and a
 		// value from a default would undo what the server set.
 		let unsubscribeScheme: (() => void) | undefined
 
@@ -133,7 +133,7 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 
 			root.classList.toggle(ROOT_OFFCANVAS_SIDEBAR_CLASS, readChoice(SIDEBAR) === 'offcanvas')
 
-			root.classList.toggle(ROOT_GLASS_OFF_CLASS, readChoice(GLASS) === 'off')
+			root.classList.toggle(ROOT_SOLID_SURFACES_CLASS, readChoice(SURFACES) === 'solid')
 		}
 
 		sync()
@@ -153,23 +153,34 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 			density,
 			motion,
 			sidebar,
-			glass,
+			surfaces,
 			setTheme,
 			setDensity,
 			setMotion,
 			setSidebar,
-			setGlass,
+			setSurfaces,
 		}),
-		[theme, density, motion, sidebar, glass, setTheme, setDensity, setMotion, setSidebar, setGlass],
+		[
+			theme,
+			density,
+			motion,
+			sidebar,
+			surfaces,
+			setTheme,
+			setDensity,
+			setMotion,
+			setSidebar,
+			setSurfaces,
+		],
 	)
 
 	return (
 		<AppearanceContext value={value}>
 			<ReducedMotionContext value={motion === 'reduced'}>
-				<GlassOffContext value={glass === 'off'}>
+				<SolidSurfacesContext value={surfaces === 'solid'}>
 					<FontScript />
 					{children}
-				</GlassOffContext>
+				</SolidSurfacesContext>
 			</ReducedMotionContext>
 		</AppearanceContext>
 	)
