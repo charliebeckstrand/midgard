@@ -1,9 +1,10 @@
 'use client'
 
-import { CircleCheck } from 'lucide-react'
+import { CircleCheck, Landmark } from 'lucide-react'
 import { Icon } from 'ui/icon'
 import { StatusDot } from 'ui/status'
 import { Flex } from 'ui/structure/flex'
+import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { PercentOdometer } from '../percent-odometer'
 
 /**
@@ -25,6 +26,28 @@ export function WinnerMark() {
 		<span className="inline-flex shrink-0 text-green-600 dark:text-green-500">
 			<Icon icon={<CircleCheck />} size="sm" label="Winner" />
 		</span>
+	)
+}
+
+/**
+ * The mark of an incumbent after the name: a gray landmark, which a tooltip
+ * names `Incumbent`. A tap opens the tooltip, so it shows on a touch screen
+ * too, and a screen reader hears the name of the button.
+ */
+export function IncumbentMark() {
+	return (
+		<Tooltip trigger="click">
+			<TooltipTrigger>
+				<button
+					type="button"
+					className="inline-flex shrink-0 rounded-sm text-zinc-500 dark:text-zinc-400"
+				>
+					<Icon icon={<Landmark />} size="sm" label="Incumbent" />
+				</button>
+			</TooltipTrigger>
+
+			<TooltipContent>Incumbent</TooltipContent>
+		</Tooltip>
 	)
 }
 

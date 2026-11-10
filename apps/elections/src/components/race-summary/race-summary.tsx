@@ -11,7 +11,7 @@ import { Swatch } from 'ui/swatch'
 import type { Candidate } from '../../types'
 import { barColor, initials, percentText } from '../../utilities/race-math'
 import { PercentOdometer } from '../percent-odometer'
-import { ReportingRow, WinnerMark } from './call-dot'
+import { IncumbentMark, ReportingRow, WinnerMark } from './call-dot'
 
 /** Props for {@link RaceSummary}. */
 export type RaceSummaryProps = {
@@ -25,8 +25,8 @@ export type RaceSummaryProps = {
 	 */
 	rows?: number | 'all'
 	/**
-	 * Shows each candidate in full: an avatar, the party, `Incumbent`, and the
-	 * votes. The overview of a race and the detailed layout of a county use it,
+	 * Shows each candidate in full: an avatar, the mark of an incumbent, the
+	 * party, and the votes. The overview of a race and the detailed layout of a county use it,
 	 * and a card does not.
 	 * @defaultValue false
 	 */
@@ -60,18 +60,16 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 					<Flex gap="sm">
 						<span className="truncate font-medium">{candidate.name}</span>
 
+						{detail && candidate.incumbent ? <IncumbentMark /> : null}
+
 						{candidate.winner ? <WinnerMark /> : null}
 					</Flex>
 
 					{detail ? (
-						<Flex wrap gap="sm">
+						<Flex>
 							<Badge variant="soft" color={barColor(candidate.slot)}>
 								{candidate.party}
 							</Badge>
-
-							{candidate.incumbent ? (
-								<span className="text-sm text-zinc-500 dark:text-zinc-400">Incumbent</span>
-							) : null}
 						</Flex>
 					) : null}
 				</Stack>
