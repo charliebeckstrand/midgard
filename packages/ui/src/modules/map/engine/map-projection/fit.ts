@@ -86,6 +86,17 @@ function canonicalFrame(
 /**
  * The canonical projection carried onto `frame`: its scale and its translate,
  * scaled by `k` and moved by the offset, on a fresh instance of `spec`.
+ *
+ * The output of a named projection is linear in `scale` and `translate`. The
+ * composite `albers-usa` derives its inset offsets and clips from them
+ * proportionally. A scale of the canonical parameters by the
+ * {@link canonicalFrame} therefore frames the geography the way `fitExtent`
+ * does over the box less {@link MAP_FIT_INSET} on each side. It takes no bounds
+ * pass that re-projects every coordinate, the bulk of the cost of a direct fit.
+ *
+ * It lands within `fitExtent`'s adaptive-resampling margin, sub-percent, from the
+ * resampling each pass runs at its own scale. Under the canonical aspect it is a
+ * pure zoom of the canonical paint, so a refit never reshapes the geography.
  */
 function carriedProjection(
 	spec: MapNamedProjection,
@@ -100,43 +111,24 @@ function carriedProjection(
 }
 
 /**
- * The measured-frame fit derived from a {@link canonicalFit} by arithmetic
- * alone. The named projections' output is linear in `scale` and `translate`.
- * The composite `albers-usa` derives its inset offsets and clips from them
- * proportionally. A scale of the canonical parameters by the
- * {@link canonicalFrame} therefore frames the geography the way `fitExtent`
- * does over the box less {@link MAP_FIT_INSET} on each side.
- * It takes no bounds pass that re-projects every coordinate, the bulk of a
- * refit's cost on every resize.
- *
- * It lands within `fitExtent`'s adaptive-resampling margin, sub-percent, from the
- * resampling each pass runs at its own scale. Under the canonical aspect it is a
- * pure zoom of the canonical paint, so a refit never reshapes the geography.
- * `null` where the box less the inset has no area.
- *
- * @internal
- */
-export function scaleCanonicalFit(
-	spec: MapNamedProjection,
-	canonical: MapCanonicalFit,
-	width: number,
-	height: number,
-): GeoProjection | null {
-	const frame = canonicalFrame(canonical, width, height)
-
-	return frame === null ? null : carriedProjection(spec, canonical, frame)
-}
-
-/**
- * A measured fit: the projection, and the transform that carries its output
- * onto the measured frame. The transform is `null` where the projection draws
- * in the measured frame itself.
+ * A measured fit: the projection, and the two transforms that put a drawing on
+ * the measured frame. Both come from one {@link canonicalFrame}, so the
+ * projection and the carried paths cannot disagree.
  *
  * @internal
  */
 type MapMeasuredFit = {
 	projection: GeoProjection
+	/**
+	 * Carries the output of {@link projection} onto the measured frame. `null`
+	 * where the projection draws in the measured frame itself.
+	 */
 	frame: MapTransform | null
+	/**
+	 * Carries the canonical frame onto the measured frame. The region layer draws
+	 * the canonical paths under it, so a refit moves one attribute.
+	 */
+	carry: MapTransform
 }
 
 /**
@@ -146,7 +138,7 @@ type MapMeasuredFit = {
  * fit is already `null` for the first two.
  *
  * A named projection derives a new projection from the canonical one
- * ({@link scaleCanonicalFit}). A passed d3 instance belongs to the consumer, and
+ * ({@link carriedProjection}). A passed d3 instance belongs to the consumer, and
  * the module cannot make a copy of it. Thus it keeps its canonical fit, and the
  * {@link canonicalFrame} carries its output onto the measured frame. A refit in
  * place would give the canonical fit and the measured fit one identity. Then a
@@ -168,6 +160,6 @@ export function measuredMapFit(
 	if (frame === null) return null
 
 	return typeof projection === 'string'
-		? { projection: carriedProjection(projection, canonical, frame), frame: null }
-		: { projection: canonical.projection, frame }
+		? { projection: carriedProjection(projection, canonical, frame), frame: null, carry: frame }
+		: { projection: canonical.projection, frame, carry: frame }
 }

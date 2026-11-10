@@ -7,7 +7,6 @@ import { ALBERS_USA_ASPECT } from '../../modules/map/engine/map-constants'
 import {
 	affineBasis,
 	areaOnly,
-	carriedTransform,
 	emitRegionPaths,
 	type MapProjectedAtlas,
 	probeCanonicalFit,
@@ -19,22 +18,10 @@ import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
 import {
 	canonicalFit,
 	type MapCanonicalFit,
-	scaleCanonicalFit,
+	measuredMapFit,
 } from '../../modules/map/engine/map-projection/fit'
-import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
+import { fitProjection } from '../helpers/map-fit'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
-
-/**
- * The carried scale is a quotient of two projection scales, so it can carry
- * rounding noise below this bound.
- */
-const SCALE_RATIO_TOLERANCE = 5e-13
-
-/**
- * A carried coordinate composes a scale and a translation, so it can drift from
- * the measured fit by this bound in frame units.
- */
-const CARRY_TOLERANCE = 5e-7
 
 /**
  * The buffer stands in for the projection walk, so the whole of it rests on the
@@ -59,11 +46,11 @@ if (canonical === null) throw new Error('fixture atlas yielded no fit')
  * box rather than a `null` that each site would then narrow away.
  */
 function refit(fit: MapCanonicalFit, width: number, height: number): GeoProjection {
-	const measured = scaleCanonicalFit('albers-usa', fit, width, height)
+	const measured = measuredMapFit('albers-usa', fit, width, height)
 
 	if (measured === null) throw new Error(`no fit at ${width}×${height}`)
 
-	return measured
+	return measured.projection
 }
 
 /** A feature carrying `geometry`, with the identity fields the drawing never reads. */
@@ -93,7 +80,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 	it('emits a measured refit byte for byte, from the canonical buffer', () => {
 		// The pass the change exists for: the buffer is drawn once under the
 		// canonical fit and read again under the measured one, which
-		// `scaleCanonicalFit` derives from it by the same arithmetic the emit
+		// `measuredMapFit` derives from it by the same arithmetic the emit
 		// applies. Several boxes, because one could agree by coincidence of scale,
 		// and one of them far above the canonical frame: a real atlas carries
 		// vertices enough that the resampling below never shows on it.
@@ -259,7 +246,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 	it('emits byte for byte across two direct fits of one passed projection', () => {
 		// The escape-hatch path: a consumer's own d3 instance, which `fitProjection`
 		// fits in place rather than deriving by arithmetic, so its two fits reach the
-		// emit through d3's own `fitExtent` and not through `scaleCanonicalFit`. On the
+		// emit through d3's own `fitExtent` and not through `measuredMapFit`. On the
 		// atlas rather than the fixture squares, whose four-vertex edges straddle a
 		// resampling threshold between the two boxes and would measure the bound
 		// above instead of this path.
@@ -457,70 +444,5 @@ describe('projectAtlas + emitRegionPaths', () => {
 		expect(affineBasis(canonical.projection)).not.toBeNull()
 
 		expect(affineBasis(geoMercator())).not.toBeNull()
-	})
-})
-
-/**
- * The one group transform the region layer moves per refit, in place of a new
- * `d` on every path. It must put each canonical coordinate where the measured
- * fit draws it, and refuse where the buffer cannot prove that.
- */
-describe('carriedTransform', () => {
-	const atlas = projected(stateFeatures, canonical.projection)
-
-	it('carries a canonical position onto the measured fit', () => {
-		const measured = refit(canonical, 800, 450)
-
-		const transform = carriedTransform(atlas, canonical.projection, measured)
-
-		expect(transform).not.toBeNull()
-
-		if (transform === null) return
-
-		expect(transform.k).toBeNear(
-			measured.scale() / canonical.projection.scale(),
-			SCALE_RATIO_TOLERANCE,
-		)
-
-		for (const position of [
-			[-100, 40],
-			[-75, 42],
-			[-120, 35],
-		] as [number, number][]) {
-			const from = canonical.projection(position)
-
-			const to = measured(position)
-
-			if (from === null || to === null) throw new Error('fixture position has no image')
-
-			expect(from[0] * transform.k + transform.x).toBeNear(to[0], CARRY_TOLERANCE)
-
-			expect(from[1] * transform.k + transform.y).toBeNear(to[1], CARRY_TOLERANCE)
-		}
-	})
-
-	it('refuses one projection refit in place, whose canonical basis is gone', () => {
-		expect(carriedTransform(atlas, canonical.projection, canonical.projection)).toBeNull()
-	})
-
-	it('refuses where either fit cannot be reached from the buffer', () => {
-		const fixture = projected(FIXTURE_GEOJSON.features, geoMercator())
-
-		const clipped = geoMercator().clipExtent([
-			[0, 0],
-			[100, 100],
-		])
-
-		const rotated = geoMercator().rotate([40, 0])
-
-		expect(carriedTransform(fixture, clipped, geoMercator())).toBeNull()
-
-		expect(carriedTransform(fixture, geoMercator(), rotated)).toBeNull()
-	})
-
-	it('refuses a canonical fit scaled to nothing', () => {
-		const fixture = projected(FIXTURE_GEOJSON.features, geoMercator())
-
-		expect(carriedTransform(fixture, geoMercator().scale(0), geoMercator())).toBeNull()
 	})
 })

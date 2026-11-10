@@ -12,7 +12,7 @@
  * buffer under any later fit. The later fit is reached by arithmetic, because a
  * d3 projection places a point as `scale · raw + translate` and nothing else.
  * Two fits of one projection therefore differ by a scale and a translation on
- * the frame. That is the same fact `scaleCanonicalFit` (`map-projection/fit`)
+ * the frame. That is the same fact `measuredMapFit` (`map-projection/fit`)
  * already derives the measured fit itself from.
  *
  * The claim is tested rather than trusted. The buffer keeps one witness
@@ -54,7 +54,6 @@ import { geoPath } from 'd3-geo'
 import { MAP_CANONICAL_WIDTH, REGION_PATH_DIGITS, REGION_PATH_ROUNDING } from '../map-constants'
 import type { MapCanonicalFit } from '../map-projection/fit'
 import { fitWidthFromProbeBounds, PROBE_SCALE, resolveProjection } from '../map-projection/resolve'
-import type { MapTransform } from '../map-zoom/transform'
 import type { LngLat, MapFeature, MapProjection } from '../types'
 
 /**
@@ -194,7 +193,7 @@ const WITNESS_TOLERANCE = 1e-6
  *
  * A d3 projection places a point as `scale · raw + translate` and nothing else,
  * so any two fits of one projection differ by exactly this affine. That is what
- * `scaleCanonicalFit` (`map-projection/fit`) already derives the measured fit
+ * `measuredMapFit` (`map-projection/fit`) already derives the measured fit
  * from. But the two are stated in different files, and a projection reaching the
  * emit need not be one of the three the module mints.
  *
@@ -454,13 +453,11 @@ function coordinate(rounded: number): string {
  * `clipExtent`, one scaled to nothing, or one the witness refuses
  * ({@link agrees}).
  *
- * Stated once because two readers need the same arithmetic and must not drift.
- * {@link emitRegionPaths} applies it to every coordinate to write a fit's paths.
- * The region layer applies it as one group transform, to draw the paths it
- * already has. A refit that moves one attribute where it used to rewrite every
- * `d` is the same fact read the cheaper way.
- *
- * @internal
+ * {@link emitRegionPaths} applies it to every coordinate to write the paths of
+ * a fit. The region layer does not read it. That layer carries the canonical
+ * paths on the frame transform of the measured fit (`measuredMapFit`,
+ * `map-projection/fit`), which is the transform that made the measured
+ * projection.
  */
 function frameAffine(
 	atlas: MapProjectedAtlas,
@@ -481,56 +478,6 @@ function frameAffine(
 	const dy = basis.translate[1] - atlas.translate[1] * factor
 
 	return agrees(atlas, fitted, factor, dx, dy) ? { factor, dx, dy } : null
-}
-
-/**
- * The view transform carrying paths drawn at `canonical` onto `measured`, or
- * `null` where they cannot be carried and must be emitted at `measured` instead.
- *
- * The region layer draws the canonical paths once and moves this one attribute
- * per refit. It used to take every path back through the projection and rewrite
- * every `d`. Across the counties, those writes and the forced layout cost many
- * times more than the one attribute does. It is the module's own
- * {@link MapTransform}, so the layer renders it through `transformAttribute`
- * (`map-zoom/transform`). The two transforms this module puts on nested groups
- * are therefore written by one hand, and cannot drift on the attribute's
- * format.
- *
- * Neither affine off the buffer is the one the layer needs, because the buffer
- * is held at the probe scale the frame was measured from. This composes them. A
- * buffer point reaches the canonical frame as `p·fc + dc`, and the measured one
- * as `p·fm + dm`. The canonical frame therefore reaches the measured one by
- * `fm / fc` and the offset that leaves. Both halves are witness-tested, so the
- * composition is too.
- *
- * One projection refuses by identity rather than by a rule about its origin. A
- * passed d3 instance is refit in place, so `canonical` and `measured` are the
- * same object at the same scale by the time this runs. The basis those paths
- * were drawn at is gone. Named projections mint a fresh instance per fit
- * (`scaleCanonicalFit`), so the two are never the same object there.
- *
- * @internal
- */
-export function carriedTransform(
-	atlas: MapProjectedAtlas,
-	canonical: GeoProjection,
-	measured: GeoProjection,
-): MapTransform | null {
-	if (canonical === measured) return null
-
-	const toCanonical = frameAffine(atlas, canonical)
-
-	if (toCanonical === null) return null
-
-	const toMeasured = frameAffine(atlas, measured)
-
-	if (toMeasured === null) return null
-
-	const k = toMeasured.factor / toCanonical.factor
-
-	if (!Number.isFinite(k)) return null
-
-	return { x: toMeasured.dx - toCanonical.dx * k, y: toMeasured.dy - toCanonical.dy * k, k }
 }
 
 /**

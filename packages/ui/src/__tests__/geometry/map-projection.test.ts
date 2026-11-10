@@ -10,19 +10,15 @@ import {
 	mapFrameSizing,
 	projectionFallbackAspect,
 } from '../../modules/map/engine/map-projection/aspect'
-import {
-	canonicalFit,
-	measuredMapFit,
-	scaleCanonicalFit,
-} from '../../modules/map/engine/map-projection/fit'
+import { canonicalFit, measuredMapFit } from '../../modules/map/engine/map-projection/fit'
 import { frameToClient } from '../../modules/map/engine/map-projection/frame'
 import {
-	fitProjection,
 	fitWidthFromProbeBounds,
 	resolveProjection,
 } from '../../modules/map/engine/map-projection/resolve'
-import type { MapFeature } from '../../modules/map/engine/types'
+import type { LngLat, MapFeature } from '../../modules/map/engine/types'
 import { FLOAT } from '../helpers/geometry/tolerance'
+import { fitProjection } from '../helpers/map-fit'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**
@@ -59,6 +55,27 @@ const US_FEATURES = [
 	},
 ] as unknown as MapFeature[]
 
+/** Three positions inside {@link FEATURES}, which spans lon 0 to 30 and lat 0 to 10. */
+const WORLD_POSITIONS: LngLat[] = [
+	[0, 0],
+	[15, 5],
+	[30, 10],
+]
+
+/** The corners of the triangle of {@link US_FEATURES}. */
+const US_POSITIONS: LngLat[] = [
+	[-120, 34],
+	[-95, 44],
+	[-80, 34],
+]
+
+/** Each named projection, with a geography that it can frame and positions inside that geography. */
+const NAMED = [
+	['mercator', FEATURES, WORLD_POSITIONS],
+	['equal-earth', FEATURES, WORLD_POSITIONS],
+	['albers-usa', US_FEATURES, US_POSITIONS],
+] as const
+
 describe('resolveProjection', () => {
 	it('resolves each built-in name to a fresh projection', () => {
 		for (const name of ['mercator', 'albers-usa', 'equal-earth'] as const) {
@@ -77,56 +94,7 @@ describe('resolveProjection', () => {
 	})
 })
 
-describe('fitProjection', () => {
-	it('fits the geography into the frame less the inset', () => {
-		const projection = fitProjection('mercator', FEATURES, 300, 100)
-
-		const inset = MAP_FIT_INSET - 0.01
-
-		// The fixture spans lon 0–30, lat 0–10; every corner projects inside the
-		// frame, and the inset keeps each one off the edge.
-		for (const corner of [
-			[0, 0],
-			[30, 0],
-			[0, 10],
-			[30, 10],
-		] as const) {
-			const point = projection([corner[0], corner[1]])
-
-			expect(point).not.toBeNull()
-
-			const [x, y] = point as [number, number]
-
-			expect(x).toBeGreaterThanOrEqual(inset)
-
-			expect(x).toBeLessThanOrEqual(300 - inset)
-
-			expect(y).toBeGreaterThanOrEqual(inset)
-
-			expect(y).toBeLessThanOrEqual(100 - inset)
-		}
-	})
-
-	it('returns an unfitted projection when there is nothing to frame', () => {
-		const unfitted = geoMercator()
-
-		// No features, a frame with no width, and a frame with no room inside the
-		// inset: none gives a fit.
-		const empties = [
-			fitProjection('mercator', [], 300, 100),
-			fitProjection('mercator', FIXTURE_GEOJSON.features, 0, 100),
-			fitProjection('mercator', FIXTURE_GEOJSON.features, 300, MAP_FIT_INSET * 2),
-		]
-
-		for (const projection of empties) {
-			expect(projection.scale()).toBe(unfitted.scale())
-
-			expect(projection.translate()).toEqual(unfitted.translate())
-		}
-	})
-})
-
-describe('scaleCanonicalFit', () => {
+describe('measuredMapFit', () => {
 	// Frames wider and narrower than the geography's own shape, so both
 	// letterboxing axes are exercised.
 	const frames = [
@@ -135,11 +103,7 @@ describe('scaleCanonicalFit', () => {
 		[120, 500],
 	] as const
 
-	it.each([
-		['mercator', FEATURES],
-		['equal-earth', FEATURES],
-		['albers-usa', US_FEATURES],
-	] as const)('frames the geography like a direct fitExtent under %s', (spec, features) => {
+	it.each(NAMED)('frames the geography like a direct fitExtent under %s', (spec, features) => {
 		const canonical = canonicalFit(spec, features)
 
 		if (canonical === null) throw new Error('nothing to fit')
@@ -147,9 +111,14 @@ describe('scaleCanonicalFit', () => {
 		const shape = { type: 'FeatureCollection', features } as const
 
 		for (const [width, height] of frames) {
-			const derived = scaleCanonicalFit(spec, canonical, width, height)
+			const fit = measuredMapFit(spec, canonical, width, height)
 
-			if (derived === null) throw new Error('expected a fit')
+			if (fit === null) throw new Error('expected a fit')
+
+			// A named projection draws in the measured frame itself.
+			expect(fit.frame).toBeNull()
+
+			const derived = fit.projection
 
 			// The geography sits inside the frame less the inset, centered, filling
 			// one axis from inset to inset: the fit contract itself.
@@ -184,6 +153,35 @@ describe('scaleCanonicalFit', () => {
 		}
 	})
 
+	it.each(NAMED)(
+		'carries the canonical drawing onto the measured fit under %s',
+		(spec, features, positions) => {
+			const canonical = canonicalFit(spec, features)
+
+			if (canonical === null) throw new Error('nothing to fit')
+
+			for (const [width, height] of frames) {
+				const fit = measuredMapFit(spec, canonical, width, height)
+
+				if (fit === null) throw new Error('expected a fit')
+
+				// The region layer draws the canonical paths under the carry. Each
+				// position must therefore land where the measured projection draws it.
+				for (const position of positions) {
+					const from = canonical.projection(position)
+
+					const to = fit.projection(position)
+
+					if (from === null || to === null) throw new Error('fixture position has no image')
+
+					expect(from[0] * fit.carry.k + fit.carry.x).toBeNear(to[0], FLOAT)
+
+					expect(from[1] * fit.carry.k + fit.carry.y).toBeNear(to[1], FLOAT)
+				}
+			}
+		},
+	)
+
 	it('leaves the cached canonical projection untouched', () => {
 		const canonical = canonicalFit('mercator', FEATURES)
 
@@ -193,29 +191,13 @@ describe('scaleCanonicalFit', () => {
 
 		const translate = canonical.projection.translate()
 
-		scaleCanonicalFit('mercator', canonical, 300, 100)
+		const fit = measuredMapFit('mercator', canonical, 300, 100)
+
+		expect(fit?.projection).not.toBe(canonical.projection)
 
 		expect(canonical.projection.scale()).toBe(scale)
 
 		expect(canonical.projection.translate()).toEqual(translate)
-	})
-})
-
-describe('measuredMapFit', () => {
-	it('derives a named-projection fit matching a direct fitExtent', () => {
-		const canonical = canonicalFit('mercator', FEATURES)
-
-		if (canonical === null) throw new Error('nothing to fit')
-
-		const fit = measuredMapFit('mercator', canonical, 300, 100)
-
-		if (fit === null) throw new Error('expected a fit')
-
-		const direct = fitProjection('mercator', FEATURES, 300, 100)
-
-		expect(fit.frame).toBeNull()
-
-		expect(fit.projection.scale() / direct.scale()).toBeNear(1, RESAMPLE_SCALE_RATIO)
 	})
 
 	it('is null when there is nothing to frame', () => {
@@ -245,8 +227,6 @@ describe('measuredMapFit', () => {
 		expect(measuredMapFit('mercator', canonical, 300, MAP_FIT_INSET * 2)).toBeNull()
 
 		expect(measuredMapFit('mercator', canonical, MAP_FIT_INSET * 2, 100)).toBeNull()
-
-		expect(scaleCanonicalFit('mercator', canonical, 300, MAP_FIT_INSET * 2)).toBeNull()
 
 		expect(measuredMapFit('mercator', canonical, 300, MAP_FIT_INSET * 2 + 1)).not.toBeNull()
 	})
@@ -286,6 +266,12 @@ describe('measuredMapFit', () => {
 		expect(small.frame.k).toBeNear(meet(150, 50), FLOAT)
 
 		expect(large.frame.k).toBeNear(meet(600, 200), FLOAT)
+
+		// The projection stays canonical, so the frame over its output is also the
+		// carry of the canonical paths.
+		expect(small.carry).toEqual(small.frame)
+
+		expect(large.carry).toEqual(large.frame)
 	})
 
 	it('puts a passed instance where a named projection puts the same geography', () => {

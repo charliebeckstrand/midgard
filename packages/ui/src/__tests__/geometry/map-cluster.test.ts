@@ -28,8 +28,8 @@ import { projectPoint } from '../../modules/map/engine/map-geometry/mark'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
 import { type MapOverlayEntry, sameAnchors } from '../../modules/map/engine/map-overlay/entry'
-import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
+import { fitProjection } from '../helpers/map-fit'
 import { englishRadius, flatProjector } from '../helpers/map-flat'
 
 /** The projection has no image past this meridian: the insets a US composite drops. */
