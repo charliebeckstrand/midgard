@@ -1,7 +1,9 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
+import { ChoroplethChart } from '../../../modules/chart'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { getSlot, renderUI, waitFor } from '../../helpers'
+import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 import { renderZones } from '../helpers/map-zones'
 
 type Side = 'left' | 'right'
@@ -27,9 +29,10 @@ const expectSide = vi.defineHelper((plot: Element, legend: Element, side: Side) 
 
 /**
  * The `left` and `right` legend placements are physical sides. They hold in a
- * right-to-left page too. A right-to-left flex row runs from the right, so the
- * chart frame and the map frame must lay out the side band with one rule. The
- * flex direction is a computed-layout fact that jsdom cannot resolve.
+ * right-to-left page too. A right-to-left flex row runs from the right, and the
+ * columns of a right-to-left grid start at the right, so the flex row of the
+ * chart frame and the grid of the map frame must each swap back. The side is a
+ * computed-layout fact that jsdom cannot resolve.
  */
 describe('side legend in a right-to-left page (real browser)', () => {
 	// Wide viewport and wide containers: both frames put the legend beside the plot.
@@ -68,5 +71,35 @@ describe('side legend in a right-to-left page (real browser)', () => {
 		})
 
 		expectSide(getSlot(container, 'map-plot'), getSlot(container, 'map-legend-box'), side)
+	})
+
+	it.each(CASES)('puts the range bar of a map on the physical side (%s, %s)', async (dir, side) => {
+		const { container } = renderUI(
+			<div dir={dir} style={{ width: 640 }}>
+				<ChoroplethChart
+					aria-label="Population"
+					geography={FIXTURE_GEOJSON}
+					legend={{ placement: side }}
+					data={[
+						{ region: 'A', pop: 0 },
+						{ region: 'B', pop: 100 },
+					]}
+					series={[
+						{
+							idKey: 'region',
+							colorKey: 'pop',
+							colorRange: ['#dbeafe', '#1e3a8a'],
+							colorName: 'Pop',
+						},
+					]}
+				/>
+			</div>,
+		)
+
+		const plot = getSlot(container, 'map-plot')
+
+		await waitFor(() => expect(plot.getBoundingClientRect().width).toBeGreaterThan(0))
+
+		expectSide(plot, getSlot(container, 'map-legend-box'), side)
 	})
 })
