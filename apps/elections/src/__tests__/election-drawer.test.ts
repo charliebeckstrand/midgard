@@ -99,4 +99,33 @@ describe('ElectionDrawer', () => {
 
 		expect(selected('Overview')).toBe('true')
 	})
+
+	it('shows a county in detail, and holds the layout across counties', () => {
+		const county = (fips: string) => `/2026/us/midterms?region=ga&office=senate&county=${fips}`
+
+		window.history.replaceState(null, '', county('13001'))
+
+		const client = new QueryClient()
+
+		const view = render(drawer(client))
+
+		const selected = (name: string) =>
+			screen.getByRole('tab', { name }).getAttribute('aria-selected')
+
+		// Detailed shows the party of each candidate, as the overview of the race does.
+		expect(selected('Detailed')).toBe('true')
+		expect(screen.getByText('Republican')).toBeTruthy()
+
+		fireEvent.click(screen.getByRole('tab', { name: 'Condensed' }))
+
+		expect(screen.queryByText('Republican')).toBeNull()
+
+		act(() => {
+			window.history.pushState(null, '', county('13003'))
+
+			view.rerender(drawer(client))
+		})
+
+		expect(selected('Condensed')).toBe('true')
+	})
 })

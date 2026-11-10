@@ -26,7 +26,8 @@ export type RaceSummaryProps = {
 	rows?: number | 'all'
 	/**
 	 * Shows each candidate in full: an avatar, the party, `Incumbent`, and the
-	 * votes. The step of a race uses it, and a card does not.
+	 * votes. The overview of a race and the detailed layout of a county use it,
+	 * and a card does not.
 	 * @defaultValue false
 	 */
 	detail?: boolean

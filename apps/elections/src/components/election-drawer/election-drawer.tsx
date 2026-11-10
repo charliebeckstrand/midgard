@@ -7,11 +7,12 @@ import type { Seed } from 'shared/queries'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { SearchInput } from 'ui/search-input'
+import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer'
 import { useRace } from '../../queries/race-queries'
-import type { Race } from '../../types'
+import type { CountyResult, Race } from '../../types'
 import { type DrawerStep, districtName, statePath } from '../../utilities/elections-url'
 import { delegation } from '../../utilities/race-math'
 import {
@@ -42,6 +43,12 @@ type Go = (step: DrawerStep | null) => void
 
 /** The view of the race of the step, which the Drawer holds across a visit to a county. */
 type Views = { view: RaceView; onViewChange: (view: RaceView) => void }
+
+/** The layout of a county: each candidate in full, or one short line each. */
+type CountyLayout = 'detailed' | 'condensed'
+
+/** The layout of a county, which the Drawer holds across counties and races. */
+type Layouts = { layout: CountyLayout; onLayoutChange: (layout: CountyLayout) => void }
 
 /** The search of the districts of an office, which the Drawer holds across a visit to a district. */
 type Search = { query: string; onQueryChange: (query: string) => void }
@@ -209,6 +216,45 @@ function StateDelegation({
 }
 
 /**
+ * One county of a race. A Segment at the top switches between two layouts:
+ *
+ * - Detailed: each candidate with an avatar, the party, and the votes, as the
+ *   overview of the race shows them.
+ * - Condensed: each candidate with a swatch, the name, and the share.
+ */
+function CountyView({
+	county,
+	called,
+	layouts,
+}: {
+	county: CountyResult
+	called: boolean
+	layouts: Layouts
+}) {
+	return (
+		<Stack gap="xl">
+			<Segment
+				value={layouts.layout}
+				onValueChange={(next) => layouts.onLayoutChange(next as CountyLayout)}
+			>
+				<SegmentControl aria-label="Layout">
+					<SegmentItem value="detailed">Detailed</SegmentItem>
+					<SegmentItem value="condensed">Condensed</SegmentItem>
+				</SegmentControl>
+			</Segment>
+
+			<RaceSummary
+				candidates={county.candidates}
+				reporting={county.reporting}
+				called={called}
+				rows="all"
+				detail={layouts.layout === 'detailed'}
+			/>
+		</Stack>
+	)
+}
+
+/**
  * The view of one race: the race in full, or one county of it. The county shows
  * once the race loads; until then the Drawer holds the race.
  */
@@ -219,6 +265,7 @@ function raceView(
 	step: DrawerStep,
 	go: Go,
 	views: Views,
+	layouts: Layouts,
 ): DrawerView {
 	const subtitle = race?.special ? 'Special election' : undefined
 
@@ -231,14 +278,7 @@ function raceView(
 		return {
 			steps: [...trail, { label: county.name }],
 			subtitle,
-			body: (
-				<RaceSummary
-					candidates={county.candidates}
-					reporting={county.reporting}
-					called={entry.called}
-					rows="all"
-				/>
-			),
+			body: <CountyView county={county} called={entry.called} layouts={layouts} />,
 		}
 	}
 
@@ -269,6 +309,7 @@ function drawerView(
 	race: Race | undefined,
 	go: Go,
 	views: Views,
+	layouts: Layouts,
 	search: Search,
 ): DrawerView | null {
 	const races = stateRaces(results, step.region)
@@ -284,7 +325,7 @@ function drawerView(
 		}
 	}
 
-	if (entry !== undefined) return raceView(entry, race, trail, step, go, views)
+	if (entry !== undefined) return raceView(entry, race, trail, step, go, views, layouts)
 
 	if (office.contest.depth !== 'district' || step.district !== null) return null
 
@@ -310,7 +351,8 @@ function drawerView(
  * - A statewide office or a district: the race, with a Segment between its
  *   overview and its counties on a map.
  * - The House: the delegation of the state, then a card of each district.
- * - A county: the race in that county.
+ * - A county: the race in that county, with a Segment between a detailed and a
+ *   condensed layout of the candidates.
  */
 export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 	const results = useElectionRaces()
@@ -337,6 +379,12 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 			setMapRace(next === 'counties' && entry !== undefined ? entry.raceId : null),
 	}
 
+	// The layout of a county is a choice of the reader, so it stays across
+	// counties and races.
+	const [layout, setLayout] = useState<CountyLayout>('detailed')
+
+	const layouts: Layouts = { layout, onLayoutChange: setLayout }
+
 	// The search belongs to an office of a state: it stays across a visit to one
 	// of its districts, and empties once the Drawer leaves the office.
 	const scope = step === null || step.office === null ? null : `${step.region.key}:${step.office}`
@@ -351,7 +399,9 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 	}
 
 	const view =
-		step === null ? null : drawerView(election, results, step, entry, race, go, views, search)
+		step === null
+			? null
+			: drawerView(election, results, step, entry, race, go, views, layouts, search)
 
 	return <ResultDrawer view={view} onClose={() => go(null)} />
 }
