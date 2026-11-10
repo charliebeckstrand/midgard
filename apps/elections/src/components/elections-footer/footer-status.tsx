@@ -19,14 +19,15 @@ export type FooterStatusProps = {
 
 /**
  * The status of the count in the footer: the age of the newest update, with a
- * Refresh button that renders the page again in place. After a deploy, the
+ * Refresh button that renders the page again in place. A refresh with no
+ * answer shows an error toast. After a deploy, the
  * page cannot take new results, so a line under the status names the new
  * build, and its Refresh link reloads the whole page.
  */
 export function FooterStatus({ counting, updated }: FooterStatusProps) {
 	const newBuild = useBuildWatch()
 
-	const { refresh, pending, failed } = useRefresh()
+	const { refresh, pending } = useRefresh()
 
 	return (
 		<span className="text-zinc-600 dark:text-zinc-300">
@@ -46,9 +47,6 @@ export function FooterStatus({ counting, updated }: FooterStatusProps) {
 								</button>
 							</>
 						)}
-						<span aria-live="polite">
-							{failed && !pending && !newBuild ? '. Could not refresh.' : null}
-						</span>
 					</span>
 				</Flex>
 			)}

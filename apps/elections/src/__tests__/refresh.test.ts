@@ -32,19 +32,30 @@ function serve(...answers: (string | number | null)[]) {
 async function load() {
 	vi.resetModules()
 
-	const [{ LiveRefresh }, { ElectionsFooter }] = await Promise.all([
+	const [{ LiveRefresh }, { ElectionsFooter }, { Toast, ToastProvider }] = await Promise.all([
 		import('shared/refresh'),
 		import('../components/elections-footer'),
+		import('ui/toast'),
 	])
 
-	return { LiveRefresh, ElectionsFooter }
+	return { LiveRefresh, ElectionsFooter, Toast, ToastProvider }
 }
 
-/** Renders the footer of a page that counts votes, and the first read of the build. */
+/**
+ * Renders the footer of a page that counts votes, under a toast queue as
+ * `AppProviders` gives it, and the first read of the build.
+ */
 async function openFooter() {
-	const { ElectionsFooter } = await load()
+	const { ElectionsFooter, Toast, ToastProvider } = await load()
 
-	render(createElement(ElectionsFooter, { counting: true, updated: '2026-11-05T02:00:00.000Z' }))
+	render(
+		createElement(
+			ToastProvider,
+			null,
+			createElement(ElectionsFooter, { counting: true, updated: '2026-11-05T02:00:00.000Z' }),
+			createElement(Toast),
+		),
+	)
 
 	await act(() => vi.advanceTimersByTimeAsync(0))
 }
@@ -95,7 +106,7 @@ describe('the Refresh button of the footer', () => {
 		expect(refresh).not.toHaveBeenCalled()
 	})
 
-	it('keeps the page when the network is down, so Next does not reload it, and says so', async () => {
+	it('keeps the page when the network is down, so Next does not reload it, and says so in a toast', async () => {
 		serve('build-a', null)
 
 		await openFooter()
@@ -104,7 +115,17 @@ describe('the Refresh button of the footer', () => {
 
 		expect(refresh).not.toHaveBeenCalled()
 
-		expect(screen.getByText(/Could not refresh/)).not.toBeNull()
+		expect(screen.getByRole('alert').textContent).toContain('Could not refresh')
+
+		// A second failure takes the place of the first toast: the first one
+		// leaves, inert, and one toast stays.
+		await press('Refresh')
+
+		await act(() => vi.advanceTimersByTimeAsync(1000))
+
+		const toasts = [...document.querySelectorAll('[data-slot="toast-viewport"] li')]
+
+		expect(toasts.filter((toast) => !toast.hasAttribute('inert'))).toHaveLength(1)
 	})
 
 	it('keeps the page on an error answer', async () => {

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react'
 import { createElement as h } from 'react'
+import { ToastProvider } from 'ui/toast'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ElectionsFooter } from '../components/elections-footer'
 import { ReportingRow } from '../components/race-summary'
@@ -17,8 +18,13 @@ function dotClass(container: HTMLElement): string | null {
 
 describe('ElectionsFooter', () => {
 	it('shows the dot of a race that is not called while votes are counted, because green is for a call', () => {
+		// A failed refresh of the footer shows a toast, so the footer needs a toast queue.
 		const footer = render(
-			h(ElectionsFooter, { counting: true, updated: '2026-11-05T02:00:00.000Z' }),
+			h(
+				ToastProvider,
+				null,
+				h(ElectionsFooter, { counting: true, updated: '2026-11-05T02:00:00.000Z' }),
+			),
 		)
 
 		const row = render(h(ReportingRow, { reporting: 50, called: false }))

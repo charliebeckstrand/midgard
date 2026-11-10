@@ -38,7 +38,7 @@ footer, beside the age of the newest update, renders the page again on the
 server, in place (`useRefresh` from `shared`). The page reads the race of the
 Drawer again with it, so the Drawer has no clock of its own. While the
 refresh is in flight, the button reads "Refreshing". A refresh with no answer
-leaves the page as it is, and the footer says so.
+leaves the page as it is, and an error toast says so.
 
 Next reloads the whole page when a refresh cannot apply in place: after a
 deploy, on an error answer, or with no network. So before each refresh, the
