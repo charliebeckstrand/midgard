@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { markNewBuild } from './new-build'
+import { markNewBuild } from './use-new-build'
 
 /** How often a live page renders again. The server caches of live data hold one minute. */
 const REFRESH_MS = 60_000
