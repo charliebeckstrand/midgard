@@ -118,12 +118,6 @@ export const space = {
 		 * (`gap.scale.lg`) under a child that is the edge of the panel.
 		 */
 		flush: 'density-mb-[-2,-3,-4,-5,-6]',
-		/**
-		 * `flush` on the body of a listbox while it holds no result: no option, and
-		 * no `VirtualOptions` wrapper with items.
-		 */
-		flushEmpty:
-			'not-has-[[role=option],[data-slot=virtual-options]:not([data-empty])]:density-mb-[-2,-3,-4,-5,-6]',
 		/** The slot gap of a panel (`gap.scale.lg`) above a child that follows a sibling. */
 		above: 'not-first:density-mt-[2,3,4,5,6]',
 		/** The inset above the first slot, on the panel or on the slot. */
