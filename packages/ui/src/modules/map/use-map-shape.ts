@@ -1,18 +1,15 @@
 'use client'
 
-import type { GeoProjection } from 'd3-geo'
 import { type RefObject, useMemo } from 'react'
 import { type FrameReserve, usePlotFrame } from '../../hooks/use-plot-frame'
 import {
 	cachedCanonicalPaths,
 	cachedChromePaths,
 	measuredRegionPaths,
-	type StaticMapGeometry,
 	staticMapGeometry,
 } from './engine/map-geometry/cache'
 import { EMPTY_CHROME, type MapChromePaths } from './engine/map-geometry/chrome'
 import { projectPoint, unprojectPoint } from './engine/map-geometry/mark'
-import { carriedTransform } from './engine/map-geometry/projected'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import { measuredMapFit } from './engine/map-projection/fit'
 import { applyTransform, invertTransform, type MapTransform } from './engine/map-zoom/transform'
@@ -104,20 +101,6 @@ export type MapFrameShapeOptions = {
 }
 
 /**
- * The transform the region layer carries its canonical paths on, where one
- * holds. Nothing but the null-checks lives here: {@link carriedTransform}
- * states when a refit can be carried and when it must be emitted instead.
- */
-function regionFrameFor(
-	statics: StaticMapGeometry,
-	measured: GeoProjection | null,
-): MapTransform | null {
-	if (measured === null || statics.atlas === null || statics.canonical === null) return null
-
-	return carriedTransform(statics.atlas, statics.canonical.projection, measured)
-}
-
-/**
  * Resolves the geometry the map draws, decoupled from measurement so the
  * neutral geography paints on the first commit. A single canonical fit (fixed
  * frame, no container read) paints the geography immediately, on the server
@@ -183,12 +166,11 @@ export function useMapShape({
 	// the context a fresh `project` identity so overlay marks recompute. The
 	// projector closes over the measured fit's own values, never over a refit
 	// projection alone: a passed d3 instance keeps its canonical fit, and its
-	// frame transform is what changes (`measuredMapFit`). The measured paths
-	// themselves come through the cross-instance memo (`measuredRegionPaths`), so
-	// a remount at the same box reuses them instead of reprojecting the atlas.
-	// With nothing to frame the measured fit is `null`, so the map holds the
-	// canonical draw (or the neutral frame) rather than projecting through an
-	// unfitted default.
+	// frame transform is what changes (`measuredMapFit`). The region paths are the
+	// canonical ones under a transform, so a refit projects no region again. With
+	// nothing to frame the measured fit is `null`, so the map holds the canonical
+	// draw (or the neutral frame) rather than projecting through an unfitted
+	// default.
 	const view = useMemo(() => {
 		const { canonical } = statics
 
@@ -201,9 +183,11 @@ export function useMapShape({
 		const frame = measured?.frame ?? null
 
 		// The layer draws the canonical paths and carries them onto the measured fit
-		// on one attribute; `null` where they cannot be carried and the paths are
-		// emitted at that fit instead, as they were before.
-		const regionFrame = frame ?? regionFrameFor(statics, measured?.projection ?? null)
+		// on one attribute. The exception is a geography that the buffer declines
+		// under a named projection (`measuredRegionPaths`): its paths are drawn at
+		// the measured fit, and the transform is `null`.
+		const regionFrame =
+			frame ?? (measured === null || statics.atlas === null ? null : measured.carry)
 
 		const paths =
 			measured !== null && regionFrame === null

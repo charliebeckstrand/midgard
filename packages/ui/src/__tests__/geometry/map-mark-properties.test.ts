@@ -2,8 +2,8 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect } from 'vitest'
 import { projectPoint, unprojectPoint } from '../../modules/map/engine/map-geometry/mark'
-import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import { FLOAT } from '../helpers/geometry/tolerance'
+import { fitProjection } from '../helpers/map-fit'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 // `map-geometry.test.ts` holds one round trip at a fixed position. The property

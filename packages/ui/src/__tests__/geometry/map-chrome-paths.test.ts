@@ -19,11 +19,12 @@ import {
 	EMPTY_CHROME,
 	graticuleStep,
 } from '../../modules/map/engine/map-geometry/chrome'
-import { fitProjection, invertingPiece } from '../../modules/map/engine/map-projection/resolve'
+import { invertingPiece } from '../../modules/map/engine/map-projection/resolve'
 import type { MapViewFrame } from '../../modules/map/engine/map-zoom/transform'
 import type { MapProjection } from '../../modules/map/engine/types'
 import { subpathCount } from '../helpers/geometry/svg-path'
 import { HALF_PIXEL } from '../helpers/geometry/tolerance'
+import { fitProjection } from '../helpers/map-fit'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**

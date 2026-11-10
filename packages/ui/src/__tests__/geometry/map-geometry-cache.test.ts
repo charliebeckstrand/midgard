@@ -7,7 +7,7 @@ import {
 	computeStaticMapGeometry,
 	staticMapGeometry,
 } from '../../modules/map/engine/map-geometry/cache'
-import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
+import { measuredMapFit } from '../../modules/map/engine/map-projection/fit'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
 describe('staticMapGeometry', () => {
@@ -103,9 +103,11 @@ describe('staticMapGeometry', () => {
 		// The per-instance measured refit MapPlat runs on mount must build a fresh
 		// projection, never re-fit the shared cached one that siblings and SSR
 		// requests read through.
-		const measured = fitProjection('mercator', geometry.features, 640, 400)
+		const measured = measuredMapFit('mercator', geometry.canonical, 640, 400)
 
-		expect(measured).not.toBe(geometry.canonical?.projection)
+		expect(measured).not.toBeNull()
+
+		expect(measured?.projection).not.toBe(geometry.canonical?.projection)
 
 		expect(geometry.canonical?.projection(probe)).toEqual(before)
 

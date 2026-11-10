@@ -9,7 +9,7 @@ import {
 import { regionCentroids, regionPaths } from '../modules/map/engine/map-geometry/region'
 import { geographyFeatures } from '../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../modules/map/engine/map-geometry/winding'
-import { canonicalFit, scaleCanonicalFit } from '../modules/map/engine/map-projection/fit'
+import { canonicalFit, measuredMapFit } from '../modules/map/engine/map-projection/fit'
 import { invertingPiece } from '../modules/map/engine/map-projection/resolve'
 import { regionCategoryIndexes, resolveCategories } from '../modules/map/engine/map-region/category'
 import { regionValueJoin, resolveValueBins } from '../modules/map/engine/map-region/value'
@@ -144,14 +144,14 @@ const FITTED = ATLASES.map(({ label, atlas }) => {
 	return { label, features: atlas.geoJson.features, canonical }
 })
 
-compareBenches('map-projection · scaleCanonicalFit (every resize frame)', (bench) => {
+compareBenches('map-projection · measuredMapFit (every resize frame)', (bench) => {
 	// The refit a resize runs: pure arithmetic over the cached canonical
 	// parameters, deliberately avoiding the bounds pass `canonicalFit` above
 	// takes. Against that bar it is the whole point of the canonical cache, and
 	// it must stay flat in the region count: it never touches a coordinate.
 	for (const { label, canonical } of FITTED) {
 		bench(`${label} · refit to 960×600`, () => {
-			scaleCanonicalFit('albers-usa', canonical, 960, 600)
+			measuredMapFit('albers-usa', canonical, 960, 600)
 		})
 	}
 })
@@ -163,7 +163,7 @@ compareBenches('map-geometry · region paths (the mount’s largest pass)', (ben
 	// pays that walk once and emits the strings from it, which is the whole of
 	// what a refit and a resize then cost.
 	for (const { label, features, canonical } of FITTED) {
-		const measured = scaleCanonicalFit('albers-usa', canonical, 800, 450)
+		const measured = measuredMapFit('albers-usa', canonical, 800, 450)?.projection
 
 		const buffer = projectAtlas(features, canonical.projection)
 

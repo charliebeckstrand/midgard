@@ -64,8 +64,8 @@ export type StaticMapGeometry = {
 	canonical: MapCanonicalFit | null
 	/**
 	 * The geography drawn into frame coordinates, which the fit above was
-	 * measured from and every fit below is emitted from. `null` where the buffer
-	 * could not stand in for the walk, and the paths fall back to
+	 * measured from and the canonical paths are emitted from. `null` where the
+	 * buffer could not stand in for the walk, and the paths fall back to
 	 * {@link regionPaths}.
 	 */
 	atlas: MapProjectedAtlas | null
@@ -192,13 +192,12 @@ export function staticMapGeometry(
 	)
 }
 
-// The last measured-fit paths per shared geometry. Reprojecting every region
-// through the fitted projection is the measured refit's whole cost (the bulk
-// of a mount on a county atlas), yet for a named projection the fit is a pure
-// function of the geometry and the frame box, so a remount at the same box (a
-// tab switch, a dashboard's small multiples) can reuse the previous paths the
-// way the canonical stage already reuses its fit. One slot per geometry: a
-// resize replaces it, so the cache never accumulates sizes.
+// The last measured-fit paths per shared geometry, for the geography that the
+// buffer declines (`measuredRegionPaths`). The fit of a named projection is a
+// pure function of the geometry and the frame box. A remount at the same box (a
+// tab switch, the small multiples of a dashboard) therefore reuses the paths, as
+// the canonical stage reuses its fit. One slot per geometry: a resize replaces
+// it, so the cache never accumulates sizes.
 const measuredPaths = new WeakMap<
 	StaticMapGeometry,
 	{ width: number; height: number; paths: (string | null)[] }
@@ -338,39 +337,33 @@ const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
  * {@link StaticMapGeometry} entry: one pass per atlas, object, and projection,
  * however many plats draw it. Empty where there was nothing to fit.
  *
- * Emitted from the entry's own buffer, so this stage and the measured one below
- * share the walk the fit already paid for.
+ * Emitted from the buffer of the entry where it stands, so the paths share the
+ * walk that the fit already paid for. Where it does not stand, the direct walk
+ * gives the same answer at a larger cost.
  *
  * @internal
  */
 export function cachedCanonicalPaths(geometry: StaticMapGeometry): (string | null)[] {
-	return getOrCompute(canonicalPaths, geometry, ({ canonical }) =>
-		canonical === null ? [] : projectedPaths(geometry, canonical.projection),
-	)
+	return getOrCompute(canonicalPaths, geometry, ({ canonical, atlas, features }) => {
+		if (canonical === null) return []
+
+		return (
+			(atlas === null ? null : emitRegionPaths(atlas, canonical.projection)) ??
+			regionPaths(features, canonical.projection)
+		)
+	})
 }
 
 /**
- * Region paths under `fitted`, from the shared buffer where it stands and the
- * direct walk where it does not. The two answer identically; only the cost
- * parts them.
- */
-function projectedPaths(geometry: StaticMapGeometry, fitted: GeoProjection): (string | null)[] {
-	const { atlas, features } = geometry
-
-	return (atlas === null ? null : emitRegionPaths(atlas, fitted)) ?? regionPaths(features, fitted)
-}
-
-/**
- * Region paths under a measured fit, memoized on the shared
- * {@link StaticMapGeometry} entry by frame box. A geometry computed outside
- * the cache (a passed d3 instance) is a fresh object each time. It therefore
- * misses here and pays the projection directly. Its stateful projection
- * couldn't key a shared entry anyway.
+ * Region paths under a measured fit, for the geography that the buffer declines
+ * under a named projection: one that holds a point or a line. `d3-geo` draws a
+ * point at a radius in frame units, which a transform would scale. The region
+ * layer therefore does not carry the paths of such a geography, and each box
+ * takes the direct walk ({@link regionPaths}).
  *
- * {@link emitRegionPaths} emits these from the shared buffer, which is what
- * takes a resize off the projection entirely. The slot above holds one box.
- * Without the emit, a drag redraws the whole atlas at each size that it
- * commits, at many times the cost of an emit.
+ * Memoized on the shared {@link StaticMapGeometry} entry by frame box. The slot
+ * above holds one box, so a drag redraws the geography at each size that it
+ * commits.
  *
  * @internal
  */
@@ -384,7 +377,7 @@ export function measuredRegionPaths(
 
 	if (hit !== undefined && hit.width === width && hit.height === height) return hit.paths
 
-	const paths = projectedPaths(geometry, fitted)
+	const paths = regionPaths(geometry.features, fitted)
 
 	measuredPaths.set(geometry, { width, height, paths })
 

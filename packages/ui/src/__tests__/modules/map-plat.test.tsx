@@ -98,6 +98,50 @@ describe('MapPlat', () => {
 		expect(allRegions(container)).toHaveLength(3)
 	})
 
+	it('carries the canonical paths onto a measured frame, except for a geography that holds a point', () => {
+		/** The largest x of a region path, in the units of the path. */
+		const reach = (region: Element | undefined) =>
+			Math.max(
+				...Array.from((region?.getAttribute('d') ?? '').matchAll(/[ML](-?[\d.]+),/g), (match) =>
+					Number(match[1]),
+				),
+			)
+
+		const areas = renderUI(<MapPlat aria-label="Areas" geography={FIXTURE_GEOJSON} width={400} />)
+
+		// The paths stay in the canonical frame, 1000 wide, and the layer moves them
+		// onto the frame of 400 with one transform.
+		expect(reach(allRegions(areas.container)[2])).toBeGreaterThan(400)
+
+		expect(layerScale(bySlot(areas.container, 'map-regions'))).toBeLessThan(1)
+
+		const pinned = renderUI(
+			<MapPlat
+				aria-label="Pinned"
+				geography={{
+					type: 'FeatureCollection',
+					features: [
+						...FIXTURE_GEOJSON.features,
+						{
+							type: 'Feature',
+							id: 'P',
+							properties: { name: 'Pin' },
+							geometry: { type: 'Point', coordinates: [15, 5] },
+						},
+					],
+				}}
+				width={400}
+			/>,
+		)
+
+		// d3 draws a point at a radius in frame units, which a transform would
+		// scale. The paths of this geography are therefore in the measured frame,
+		// and the layer has no transform.
+		expect(reach(allRegions(pinned.container)[2])).toBeLessThanOrEqual(400)
+
+		expect(bySlot(pinned.container, 'map-regions')).not.toHaveAttribute('transform')
+	})
+
 	it('reserves the frame without geography and paints it once provided', () => {
 		// A lazily fetched atlas passes through as null: no guard at the call
 		// site, no crash; the plot box holds the space, then the geography

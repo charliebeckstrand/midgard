@@ -10,9 +10,9 @@ import {
 import { projectPoint, unprojectPoint } from '../../modules/map/engine/map-geometry/mark'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
-import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import { NO_REGION_CLAIM, regionSpare } from '../../modules/map/engine/map-region/spare'
 import type { LngLat, MapFeature, MapPoint2D } from '../../modules/map/engine/types'
+import { fitProjection } from '../helpers/map-fit'
 import { flatProjector } from '../helpers/map-flat'
 
 /**

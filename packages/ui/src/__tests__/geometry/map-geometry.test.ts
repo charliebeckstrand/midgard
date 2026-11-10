@@ -24,10 +24,10 @@ import {
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
-import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import type { MapFeature } from '../../modules/map/engine/types'
 import { subpathCount } from '../helpers/geometry/svg-path'
 import { FLOAT } from '../helpers/geometry/tolerance'
+import { fitProjection } from '../helpers/map-fit'
 import { flatProjector, squareRing } from '../helpers/map-flat'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 

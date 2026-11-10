@@ -1,8 +1,9 @@
 /**
  * Naming a projection and fitting one: the `d3-geo` boundary the rest of the
  * projection engine sits above. Everything here is the direct route: resolve the
- * spec, fit it to a frame. `fit.ts` derives the same result by arithmetic, to
- * keep a resize off it.
+ * spec, and fit it to a width with one pass over the geography. `fit.ts` derives
+ * the fit of each measured box from that fit by arithmetic, to keep a resize off
+ * the pass.
  */
 
 import {
@@ -15,7 +16,7 @@ import {
 	geoMercator,
 	geoPath,
 } from 'd3-geo'
-import { MAP_FIT_INSET, REGION_PATH_DIGITS, REGION_PATH_ROUNDING } from '../map-constants'
+import { REGION_PATH_DIGITS, REGION_PATH_ROUNDING } from '../map-constants'
 import type { MapFeature, MapProjection } from '../types'
 
 /**
@@ -137,36 +138,6 @@ export function invertingPiece(spec: MapProjection, fitted: GeoProjection): GeoP
 }
 
 /**
- * Resolves and fits a projection so the geography fills a `width` × `height`
- * frame less {@link MAP_FIT_INSET} on each side: the direct `fitExtent` that
- * `scaleCanonicalFit` (`fit.ts`) derives by arithmetic. With no features, or no
- * area inside the inset, the projection returns unfitted: there is nothing to
- * frame.
- *
- * @internal
- */
-export function fitProjection(
-	spec: MapProjection,
-	features: MapFeature[],
-	width: number,
-	height: number,
-): GeoProjection {
-	const projection = resolveProjection(spec)
-
-	const inset = MAP_FIT_INSET
-
-	if (features.length === 0 || width <= inset * 2 || height <= inset * 2) return projection
-
-	return projection.fitExtent(
-		[
-			[inset, inset],
-			[width - inset, height - inset],
-		],
-		collection(features),
-	)
-}
-
-/**
  * Fits `projection` so the geography spans `width` exactly, aligned to the
  * frame's top-left, and reports the height that frame comes to. `null` where
  * the bounds collapse on either axis: no geography, a lone point, or a height
@@ -180,7 +151,7 @@ export function fitProjection(
  * the same arithmetic, which halves the cost of a fit on the mount path. The
  * frame is therefore measured at {@link PROBE_SCALE} rather than at drawing
  * scale, where adaptive resampling refines a curve differently. The two agree
- * to the last bit on a real atlas, and `scaleCanonicalFit` (`fit.ts`) already
+ * to the last bit on a real atlas, and `carriedProjection` (`fit.ts`) already
  * accepts a divergence of that kind by name.
  *
  * The clip extent is saved and restored around the pass, as d3's own `fit`

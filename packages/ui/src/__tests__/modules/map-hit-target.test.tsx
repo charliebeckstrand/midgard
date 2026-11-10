@@ -15,7 +15,7 @@ import {
 	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
 import { squareDotStroke } from '../../modules/map/engine/map-geometry/mark'
-import { canonicalFit, scaleCanonicalFit } from '../../modules/map/engine/map-projection/fit'
+import { canonicalFit, measuredMapFit } from '../../modules/map/engine/map-projection/fit'
 import { k } from '../../recipes/kata/map'
 import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { englishRadius } from '../helpers/map-flat'
@@ -764,7 +764,8 @@ describe('a dot over regions that answer the pointer', () => {
 		const canonical = canonicalFit('mercator', FIXTURE_GEOJSON.features)
 
 		const fit =
-			canonical && scaleCanonicalFit('mercator', canonical, width, width / canonical.aspect)
+			canonical &&
+			measuredMapFit('mercator', canonical, width, width / canonical.aspect)?.projection
 
 		const [west] = fit?.([0, 5]) ?? [Number.NaN]
 
