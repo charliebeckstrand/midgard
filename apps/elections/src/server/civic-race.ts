@@ -144,7 +144,17 @@ const MERGED: Record<string, { fips: string; name: string }> = {
 	'02066': { fips: '02261', name: 'Valdez-Cordova' },
 }
 
-/** Adds the candidates of two parts of one county, by name. */
+/** The votes of a county or a part of one. */
+function countedVotes(part: CountyResult): number {
+	return part.candidates.reduce((sum, candidate) => sum + candidate.votes, 0)
+}
+
+/**
+ * Adds the candidates of two parts of one county, by name. The percent
+ * reporting of the county is the share of the expected vote of the parts that
+ * is in. The expected vote of a part is its votes over its percent reporting,
+ * so a part with 0% reporting has no known expected vote and adds none.
+ */
 function mergeCounty(a: CountyResult, b: CountyResult): CountyResult {
 	const votes = new Map<string, Candidate>()
 
@@ -156,11 +166,17 @@ function mergeCounty(a: CountyResult, b: CountyResult): CountyResult {
 
 	const total = [...votes.values()].reduce((sum, candidate) => sum + candidate.votes, 0)
 
-	const weight = (part: CountyResult) =>
-		part.candidates.reduce((sum, candidate) => sum + candidate.votes, 0)
+	const counted = [a, b].filter((part) => part.reporting > 0)
+
+	const expected = counted.reduce(
+		(sum, part) => sum + (countedVotes(part) * 100) / part.reporting,
+		0,
+	)
 
 	const reporting =
-		total === 0 ? a.reporting : (a.reporting * weight(a) + b.reporting * weight(b)) / total
+		expected === 0
+			? a.reporting
+			: (counted.reduce((sum, part) => sum + countedVotes(part), 0) * 100) / expected
 
 	return {
 		...a,
@@ -206,9 +222,10 @@ function readCountyFips(
  * The counties of a race, joined to the county atlas. A row with a FIPS code is
  * a county, a parish, a borough, or a city. A row of the type `County` with no
  * code takes the code of the atlas county of the same name in its state, and
- * one with no such county and no votes is left out. Every other row (a town, a township, a planning region, a state house district, the
- * overseas votes) is a part that a county row already holds, so the reader
- * leaves it out.
+ * one with no such county and no votes is left out. Every other row is a part
+ * that a county row already holds, so the reader leaves it out. Such a part is
+ * a town, a township, a planning region, a state house district, or the
+ * overseas votes.
  */
 function readCounties(
 	value: unknown,

@@ -102,6 +102,11 @@ describe('readRace', () => {
 			parts.reduce((sum, votes) => sum + votes, 0),
 		)
 
+		// The percent reporting is the share of the expected vote of the two
+		// parts that is in. Chugach has 1,680 votes at 59.7% reporting, and
+		// Copper River has 1,295 votes at 99%.
+		expect(merged?.reporting).toBeCloseTo(72.17, 1)
+
 		// Every county of the race is a borough or a census area with a code.
 		expect(race.counties.every((county) => /^02\d{3}$/.test(county.fips))).toBe(true)
 	})
