@@ -24,10 +24,7 @@ export const bg = {
 	 * ancestor sets it, else 90% in light mode and 75% in dark mode. A glass
 	 * surface sets it to `100%` for the popovers inside it (`glass.ts`).
 	 */
-	popover: mode(
-		'bg-white/[var(--popover-alpha,90%)]',
-		'dark:bg-zinc-800/[var(--popover-alpha,75%)]',
-	),
+	popover: mode('bg-white/(--popover-alpha,90%)', 'dark:bg-zinc-800/(--popover-alpha,75%)'),
 	tint: mode('bg-zinc-950/5', 'dark:bg-white/10'),
 	skeleton: {
 		/** The tone of a loading skeleton. */
