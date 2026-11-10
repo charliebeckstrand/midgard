@@ -7,7 +7,7 @@ import {
 	regionCategoryIndexes,
 	resolveCategories,
 } from './engine/map-region/category'
-import type { MapRegionData } from './engine/map-region/data'
+import { type MapRegionData, rowsByRegion } from './engine/map-region/data'
 import { defaultRegionLabel } from './engine/map-region/identity'
 import {
 	type RegionValueJoin,
@@ -15,7 +15,7 @@ import {
 	resolveValueBins,
 	resolveValueFormat,
 } from './engine/map-region/value'
-import type { DataKey, MapFeature } from './engine/types'
+import type { MapFeature } from './engine/types'
 
 /** The names a map with no rows resolves to: one shared array, never rebuilt. @internal */
 const EMPTY_NAMES: string[] = []
@@ -41,19 +41,16 @@ type MapRegionReadout = {
 }
 
 /**
- * The rows that the regions on the map join: for each region id, the last row
- * with that id, as {@link regionValueJoin} reads it. A row that matches no
- * region, such as a total, draws nothing. An earlier row with the same id as a
- * later row draws nothing too. Neither row must stretch the color scale of the
- * regions.
+ * The rows that the regions on the map join: for each region id, its row in
+ * `rows` ({@link rowsByRegion}). A row that matches no region, such as a total,
+ * draws nothing. An earlier row with the same id as a later row draws nothing
+ * too. Neither row must stretch the color scale of the regions.
  *
  * @internal
  */
-function joinedRows<T>(data: T[], regionKey: DataKey<T>, regionIds: readonly string[]): T[] {
-	const byRegion = new Map(data.map((datum) => [String(datum[regionKey]), datum]))
-
+function joinedRows<T>(rows: ReadonlyMap<string, T>, regionIds: readonly string[]): T[] {
 	return [...new Set(regionIds)].flatMap((id) => {
-		const datum = byRegion.get(id)
+		const datum = rows.get(id)
 
 		return datum === undefined ? [] : [datum]
 	})
@@ -146,6 +143,10 @@ export function useMapRegionReadout<T>(
 
 		if (data === undefined || regionKey === undefined) return neutral
 
+		// One lookup for each update. The scale and the join of a mode read the
+		// same rows from it.
+		const rows = rowsByRegion(data, regionKey)
+
 		if (valueKey !== undefined && colorRange !== undefined) {
 			const format = resolveValueFormat(formatValue, locale)
 
@@ -154,7 +155,7 @@ export function useMapRegionReadout<T>(
 				domain,
 				assign,
 				thresholds: edges,
-			} = resolveValueBins(joinedRows(data, regionKey, regionIds), valueKey, {
+			} = resolveValueBins(joinedRows(rows, regionIds), valueKey, {
 				colorRange,
 				bins,
 				binning,
@@ -167,7 +168,7 @@ export function useMapRegionReadout<T>(
 			// and its raw number (the range legend's arrow).
 			return {
 				categoryMetas: metas,
-				...regionValueJoin(regionIds, data, regionKey, valueKey, assign, format),
+				...regionValueJoin(regionIds, rows, valueKey, assign, format),
 				domain,
 				thresholds: edges,
 			}
@@ -178,7 +179,7 @@ export function useMapRegionReadout<T>(
 
 			return {
 				categoryMetas: metas,
-				regionCategory: regionCategoryIndexes(regionIds, data, regionKey, categoryKey, metas),
+				regionCategory: regionCategoryIndexes(regionIds, rows, categoryKey, metas),
 				// Categorical mode reads the category label off the meta; no separate value.
 				regionValues: noValues,
 				regionNumbers: noValues,

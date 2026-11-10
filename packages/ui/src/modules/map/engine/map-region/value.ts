@@ -113,8 +113,8 @@ export type RegionValueJoin = {
 }
 
 /**
- * Matches each region to its row in one pass. The row whose `regionKey` equals
- * the region's id yields:
+ * Matches each region to its row in one pass. The row of the region in `rows`
+ * (`rowsByRegion`, `data.ts`) yields:
  *
  * - the bin its color reads from, through `assign` (the
  *   {@link resolveValueBins} scale, equal-interval or quantile alike);
@@ -129,14 +129,11 @@ export type RegionValueJoin = {
  */
 export function regionValueJoin<T>(
 	regionIds: string[],
-	data: T[],
-	regionKey: DataKey<T>,
+	rows: ReadonlyMap<string, T>,
 	valueKey: DataKey<T>,
 	assign: (value: number) => number | null,
 	format: (value: number) => string,
 ): RegionValueJoin {
-	const byRegion = new Map(data.map((datum) => [String(datum[regionKey]), datum]))
-
 	const regionCategory: (number | null)[] = []
 
 	const regionValues: (string | null)[] = []
@@ -144,7 +141,7 @@ export function regionValueJoin<T>(
 	const regionNumbers: (number | null)[] = []
 
 	for (const id of regionIds) {
-		const datum = byRegion.get(id)
+		const datum = rows.get(id)
 
 		const value = datum == null ? null : parseNumeric(datum[valueKey])
 

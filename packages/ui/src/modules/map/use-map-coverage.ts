@@ -158,9 +158,11 @@ export function useMapCoverage({
 	regionsObject,
 	regionGroup = defaultRegionGroup,
 }: MapCoverageOptions): MapCoverage {
-	// The territory keyed by its own text rather than by the prop's identity: a
+	// The territory keyed by its own terms rather than by the prop's identity: a
 	// caller's `['606', '610']` is a fresh array every render, and every stage
-	// below hangs off this. One join is cheaper than re-cutting an atlas.
+	// below hangs off this. The key holds the terms and not the raw input, so a
+	// separator that a reader types after a term cuts no atlas. One split and one
+	// join are cheaper than re-cutting an atlas.
 	const stated = zipSelectionText(coverage)
 
 	const rules = useMemo(() => parseZipSelection(stated), [stated])

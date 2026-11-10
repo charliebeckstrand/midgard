@@ -967,6 +967,25 @@ describe('MapPlat touch over the marks', () => {
 
 		expect(remove).not.toHaveBeenCalled()
 	})
+
+	it('keeps its wheel listener across a change of the modifier, and reads the new setting', () => {
+		const { container, svg, rerender } = renderZoomable()
+
+		const add = vi.spyOn(svg, 'addEventListener')
+
+		// The default map hands a plain wheel back to the page.
+		expect(wheel(svg, -200).defaultPrevented).toBe(false)
+
+		rerender(categoricalPlat(DIRECT))
+
+		// The listener reads its handler through an effect event, so the new
+		// setting needs no new binding.
+		expect(add.mock.calls.filter(([type]) => type === 'wheel')).toHaveLength(0)
+
+		expect(wheel(svg, -200).defaultPrevented).toBe(true)
+
+		expect(readScale(container)).toBeGreaterThan(1)
+	})
 })
 
 describe('MapPlat pinch under the page', () => {

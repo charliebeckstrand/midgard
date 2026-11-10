@@ -46,6 +46,18 @@ type MapRegionRows<T> = {
 	regionKey: DataKey<T>
 }
 
+/**
+ * The row that each region id joins. It is the one statement of the join rule:
+ * the value of `regionKey` compares as a string, and the last row with an id
+ * wins. The bin scale, the numeric join, and the categorical join read this
+ * map, so they cannot disagree on which row a region draws.
+ *
+ * @internal
+ */
+export function rowsByRegion<T>(data: T[], regionKey: DataKey<T>): Map<string, T> {
+	return new Map(data.map((datum) => [String(datum[regionKey]), datum]))
+}
+
 /** The numeric-mode fields, absent (as `undefined`) on the categorical and empty branches. @internal */
 type MapNumericAbsent = {
 	valueKey?: undefined

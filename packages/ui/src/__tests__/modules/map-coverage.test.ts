@@ -203,6 +203,33 @@ describe('useMapCoverage', () => {
 		expect(result.current.geography).toBe(first.geography)
 	})
 
+	it('holds its result when only the separators of the territory change', () => {
+		const { result, rerender } = renderHook(
+			({ coverage }: { coverage: string }) => useMapCoverage({ coverage, zips, regions: counties }),
+			{ initialProps: { coverage: '606' } },
+		)
+
+		const first = result.current
+
+		// What a reader types between two terms: a comma, then a space. The terms
+		// are the same, so no stage runs again, and `MapGeofence` gets the same
+		// `area` to project.
+		for (const coverage of ['606,', '606, ', ' 606;  ']) {
+			rerender({ coverage })
+
+			expect(result.current.area).toBe(first.area)
+
+			expect(result.current.codes).toBe(first.codes)
+
+			expect(result.current.geography).toBe(first.geography)
+		}
+
+		// The next term is a new territory.
+		rerender({ coverage: '606, 46001' })
+
+		expect(result.current.area).not.toBe(first.area)
+	})
+
 	it('draws nothing until its geography arrives, without a guard at the call site', () => {
 		const { result } = renderHook(() => useMapCoverage({ coverage: '606' }))
 

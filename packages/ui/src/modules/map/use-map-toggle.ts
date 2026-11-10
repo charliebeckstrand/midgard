@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useReportedChange } from '../../hooks/use-reported-change'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
 import { toggleItem } from '../../utilities/toggle-item'
 import { REGION_FADE } from './engine/map-motion'
@@ -11,7 +12,7 @@ import { REGION_FADE } from './engine/map-motion'
 export type MapToggle = {
 	/** Legend ids toggled off. */
 	hidden: ReadonlySet<string>
-	/** Toggles an id on or off. */
+	/** Toggles an id on or off. It keeps one identity for the mount. */
 	toggle: (id: string) => void
 	/** Moves the legend emphasis (`null` clears it). */
 	setFocus: (id: string | null) => void
@@ -73,24 +74,24 @@ export function useMapToggle(
 	// timer. The wheel settle in `use-map-zoom` re-arms the same way.
 	const settle = useTimeout()
 
-	const toggle = useCallback(
-		(id: string) => {
-			// Only the way back on has a wash to protect. Hiding an entry drops the
-			// emphasis on its own (a hidden entry can't hold one), so the hold could
-			// change nothing there, and arming it would spend a timer and the render
-			// that ends it for a beat no one can see.
-			const restoring = hidden.has(id)
+	// One identity for the mount. Each memoized legend entry takes this handler,
+	// and the handler reads the hidden set. A handler with a new identity for each
+	// toggle would render every entry for a change to one.
+	const toggle = useStableEvent((id: string) => {
+		// Only the way back on has a wash to protect. Hiding an entry drops the
+		// emphasis on its own (a hidden entry can't hold one), so the hold could
+		// change nothing there, and arming it would spend a timer and the render
+		// that ends it for a beat no one can see.
+		const restoring = hidden.has(id)
 
-			setHidden((prev) => toggleItem(prev, id))
+		setHidden((prev) => toggleItem(prev, id))
 
-			if (!washes || !restoring) return
+		if (!washes || !restoring) return
 
-			setWashing(true)
+		setWashing(true)
 
-			settle.set(() => setWashing(false), REGION_FADE.duration * 1000)
-		},
-		[hidden, washes, settle],
-	)
+		settle.set(() => setWashing(false), REGION_FADE.duration * 1000)
+	})
 
 	// Read from the committed set rather than from `toggle`, because the set is
 	// written through an updater. A map with every entry shown says nothing.
