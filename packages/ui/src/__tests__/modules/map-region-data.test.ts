@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { numericRegionData } from '../../modules/map/engine/map-region/data'
+import { numericRegionData, rowsByRegion } from '../../modules/map/engine/map-region/data'
 
 type Row = { region: string; pop: number }
 
@@ -69,5 +69,25 @@ describe('numericRegionData', () => {
 
 	it('keeps a range request on the branch that carries a scale', () => {
 		expect(numericRegionData<Row>({ ...WHOLE, legend: 'range' }).legend).toBe('range')
+	})
+})
+
+describe('rowsByRegion', () => {
+	it('joins a region id to the last row that has it', () => {
+		const first = { region: 'A', pop: 1 }
+
+		const last = { region: 'A', pop: 2 }
+
+		const rows = rowsByRegion([first, { region: 'B', pop: 3 }, last], 'region')
+
+		expect(rows.get('A')).toBe(last)
+
+		expect(rows.size).toBe(2)
+	})
+
+	it('compares the value of the key as a string', () => {
+		const row = { fips: 6037, pop: 1 }
+
+		expect(rowsByRegion([row], 'fips').get('6037')).toBe(row)
 	})
 })

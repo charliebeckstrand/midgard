@@ -224,29 +224,26 @@ function deriveCategories<T>(data: T[], categoryKey: DataKey<T>): MapCategory[] 
 }
 
 /**
- * Matches each region to its category: the row whose `regionKey` equals the
- * region's id names the category, by index into the resolved metas. `null`
- * where no row or no listed category matches: the region draws in the
- * neutral no-data fill.
+ * Matches each region to its category: the row of the region in `rows`
+ * (`rowsByRegion`, `data.ts`) names the category, by index into the resolved
+ * metas. `null` where no row or no listed category matches: the region draws in
+ * the neutral no-data fill.
  *
  * @internal
  */
 export function regionCategoryIndexes<T>(
 	regionIds: string[],
-	data: T[],
-	regionKey: DataKey<T>,
+	rows: ReadonlyMap<string, T>,
 	categoryKey: DataKey<T>,
 	categories: MapCategoryMeta[],
 ): (number | null)[] {
-	const byRegion = new Map(data.map((datum) => [String(datum[regionKey]), datum]))
-
 	// A value → index lookup built once, so matching a region is a Map hit
 	// rather than a scan of the categories: linear in the regions, not
 	// O(regions × categories), on the mount critical path.
 	const indexByValue = new Map(categories.map((meta, index) => [meta.value, index]))
 
 	return regionIds.map((id) => {
-		const datum = byRegion.get(id)
+		const datum = rows.get(id)
 
 		if (datum == null) return null
 

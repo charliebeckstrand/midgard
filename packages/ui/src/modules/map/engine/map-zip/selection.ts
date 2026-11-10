@@ -97,15 +97,31 @@ export type MapZipRules = {
 export type MapZipSelection = string | readonly string[]
 
 /**
- * A stated territory as one string, whichever form it arrived in. The one place
- * a list becomes text. A caller keying work on a territory's content and the
- * parser reading that territory can therefore never disagree about what a list
- * means.
+ * The terms of a stated territory, in the order that the caller wrote them. A
+ * list joins first, so the two forms of a selection split by one rule. Space
+ * around a hyphen closes up before the split, so `606 - 610` is one term.
+ *
+ * @internal
+ */
+function zipTerms(selection: MapZipSelection): string[] {
+	const text = typeof selection === 'string' ? selection : selection.join(',')
+
+	return text.replace(RANGE_SPACING, '-').split(TERM_SEPARATOR).filter(Boolean)
+}
+
+/**
+ * A stated territory as one string of its terms, whichever form it arrived in:
+ * the key of the territory. The parser reads the same terms, so a caller that
+ * keys work on this text and the parser cannot disagree about a selection.
+ *
+ * The text holds the terms and not the input. `606`, `606,`, and ` 606;  ` are
+ * therefore one key, and a separator that a reader types between two terms
+ * starts no work.
  *
  * @internal
  */
 export function zipSelectionText(selection: MapZipSelection): string {
-	return typeof selection === 'string' ? selection : selection.join(',')
+	return zipTerms(selection).join(',')
 }
 
 /** The lowest code a term of any width covers: `606` starts at `60600`. @internal */
@@ -177,14 +193,9 @@ function readRule(term: string): MapZipRule | null {
  * @internal
  */
 export function parseZipSelection(selection: MapZipSelection): MapZipRules {
-	const terms = zipSelectionText(selection)
-		.replace(RANGE_SPACING, '-')
-		.split(TERM_SEPARATOR)
-		.filter(Boolean)
-
 	const rules: MapZipRules = { include: [], exclude: [], invalid: [] }
 
-	for (const term of terms) {
+	for (const term of zipTerms(selection)) {
 		const negated = term.startsWith('!')
 
 		const rule = readRule(negated ? term.slice(1) : term)

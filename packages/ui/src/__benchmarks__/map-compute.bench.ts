@@ -12,6 +12,7 @@ import { rewindFeatures } from '../modules/map/engine/map-geometry/winding'
 import { canonicalFit, measuredMapFit } from '../modules/map/engine/map-projection/fit'
 import { invertingPiece } from '../modules/map/engine/map-projection/resolve'
 import { regionCategoryIndexes, resolveCategories } from '../modules/map/engine/map-region/category'
+import { rowsByRegion } from '../modules/map/engine/map-region/data'
 import { regionValueJoin, resolveValueBins } from '../modules/map/engine/map-region/value'
 import {
 	countiesAtlas,
@@ -215,7 +216,7 @@ compareBenches('map-region/category · regionCategoryIndexes (the categorical jo
 		const categories = resolveCategories(zones.rows, 'zone')
 
 		bench(label, () => {
-			regionCategoryIndexes(atlas.ids, zones.rows, 'fips', 'zone', categories)
+			regionCategoryIndexes(atlas.ids, rowsByRegion(zones.rows, 'fips'), 'zone', categories)
 		})
 	}
 })
@@ -259,7 +260,7 @@ compareBenches('map-region/value · regionValueJoin (the numeric join)', (bench)
 			['Intl', intlFormat],
 		] as const) {
 			bench(`${label} · ${readout} readout`, () => {
-				regionValueJoin(atlas.ids, values.rows, 'fips', 'value', assign, format)
+				regionValueJoin(atlas.ids, rowsByRegion(values.rows, 'fips'), 'value', assign, format)
 			})
 		}
 	}

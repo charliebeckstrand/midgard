@@ -9,6 +9,7 @@ import {
 	regionCategoryIndexes,
 	resolveCategories,
 } from '../../modules/map/engine/map-region/category'
+import { rowsByRegion } from '../../modules/map/engine/map-region/data'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import { k } from '../../recipes/kata/map'
 import { FIXTURE_ROWS } from '../helpers/map-geography'
@@ -107,20 +108,19 @@ describe('resolveCategories', () => {
 describe('regionCategoryIndexes', () => {
 	const metas = resolveCategories(FIXTURE_ROWS, 'zone')
 
+	const rows = rowsByRegion(FIXTURE_ROWS, 'state')
+
 	it('matches each region to its category by row id', () => {
-		expect(regionCategoryIndexes(['A', 'B'], FIXTURE_ROWS, 'state', 'zone', metas)).toEqual([0, 1])
+		expect(regionCategoryIndexes(['A', 'B'], rows, 'zone', metas)).toEqual([0, 1])
 	})
 
 	it('leaves unmatched regions null', () => {
-		expect(regionCategoryIndexes(['C'], FIXTURE_ROWS, 'state', 'zone', metas)).toEqual([null])
+		expect(regionCategoryIndexes(['C'], rows, 'zone', metas)).toEqual([null])
 	})
 
 	it('leaves a region null when its value names no listed category', () => {
 		const limited = resolveCategories(FIXTURE_ROWS, 'zone', [{ value: 'East' }])
 
-		expect(regionCategoryIndexes(['A', 'B'], FIXTURE_ROWS, 'state', 'zone', limited)).toEqual([
-			0,
-			null,
-		])
+		expect(regionCategoryIndexes(['A', 'B'], rows, 'zone', limited)).toEqual([0, null])
 	})
 })

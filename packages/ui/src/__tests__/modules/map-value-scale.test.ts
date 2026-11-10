@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { rowsByRegion } from '../../modules/map/engine/map-region/data'
 import { regionValueJoin, resolveValueBins } from '../../modules/map/engine/map-region/value'
 
 type Row = { id: string; v: number }
@@ -158,7 +159,13 @@ describe('regionValueJoin', () => {
 
 	it('joins each region to its bin, formatted readout, and raw number in one pass', () => {
 		expect(
-			regionValueJoin(['a', 'b', 'c'], ROWS, 'id', 'v', assignFor({ bins: 3 }), round),
+			regionValueJoin(
+				['a', 'b', 'c'],
+				rowsByRegion(ROWS, 'id'),
+				'v',
+				assignFor({ bins: 3 }),
+				round,
+			),
 		).toEqual({
 			regionCategory: [0, 1, 2],
 			regionValues: ['0', '50', '100'],
@@ -169,13 +176,15 @@ describe('regionValueJoin', () => {
 	it('reads null throughout for an unmatched region or a non-finite value', () => {
 		const assign = assignFor()
 
-		expect(regionValueJoin(['x'], ROWS, 'id', 'v', assign, round)).toEqual({
+		expect(regionValueJoin(['x'], rowsByRegion(ROWS, 'id'), 'v', assign, round)).toEqual({
 			regionCategory: [null],
 			regionValues: [null],
 			regionNumbers: [null],
 		})
 
-		expect(regionValueJoin(['a'], [{ id: 'a', v: Number.NaN }], 'id', 'v', assign, round)).toEqual({
+		expect(
+			regionValueJoin(['a'], rowsByRegion([{ id: 'a', v: Number.NaN }], 'id'), 'v', assign, round),
+		).toEqual({
 			regionCategory: [null],
 			regionValues: [null],
 			regionNumbers: [null],
@@ -200,15 +209,20 @@ describe('regionValueJoin', () => {
 
 		// `null` and `''` are no-data (the neutral fill), not bin 0; only the real
 		// value bins.
-		expect(regionValueJoin(['a', 'b', 'c'], rows, 'id', 'v', assign, round).regionCategory).toEqual(
-			[null, null, 3],
-		)
+		expect(
+			regionValueJoin(['a', 'b', 'c'], rowsByRegion(rows, 'id'), 'v', assign, round).regionCategory,
+		).toEqual([null, null, 3])
 	})
 
 	it('places every region in bin 0 when the domain has no span', () => {
 		expect(
-			regionValueJoin(['a', 'b'], ROWS, 'id', 'v', assignFor({ domain: [50, 50] }), round)
-				.regionCategory,
+			regionValueJoin(
+				['a', 'b'],
+				rowsByRegion(ROWS, 'id'),
+				'v',
+				assignFor({ domain: [50, 50] }),
+				round,
+			).regionCategory,
 		).toEqual([0, 0])
 	})
 })

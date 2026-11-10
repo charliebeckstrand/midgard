@@ -4,7 +4,6 @@ import {
 	type MouseEvent,
 	type PointerEvent,
 	type RefObject,
-	useCallback,
 	useEffect,
 	useEffectEvent,
 	useLayoutEffect,
@@ -180,9 +179,8 @@ export function useMapZoom({
 
 	const max = settings?.max ?? 0
 
-	// Read off the settings rather than passed around as one: the reader is a
-	// fresh object every render, and the wheel's listener keys its binding on
-	// this (an object there would re-bind it on every gesture commit).
+	// The key that arms the wheel. It is `null` for a map that does not zoom, and
+	// for a map that takes each wheel outright.
 	const modifier = settings?.modifier ?? null
 
 	if (settings !== null && held.subject !== subject) {
@@ -206,8 +204,8 @@ export function useMapZoom({
 	const [gesturing, setGesturing] = useState(false)
 
 	// The gesture handlers read the view through this rather than through their
-	// own closure: the wheel listener is attached once while the frame has an
-	// area, and a pointer sequence outlives the render it began on.
+	// own closure: a pointer sequence outlives the render it began on, and two
+	// events can land before React renders.
 	const live = useRef({ transform, view, max })
 
 	// Synced in a layout effect, ahead of the effects below and of any event. Only
@@ -217,10 +215,10 @@ export function useMapZoom({
 		live.current = { transform, view, max }
 	}, [transform, view, max])
 
-	// Memoized because the wheel effect below depends on it. The pointer handlers
-	// land on a new object each render and feed no dependency array, so a memo
-	// on them would give nothing.
-	const commit = useCallback((next: MapTransform) => {
+	// A plain function, as each gesture handler below is. No dependency array
+	// names one of them: the native listeners read their handlers through an
+	// effect event, and the pointer handlers land on a new object each render.
+	function commit(next: MapTransform) {
 		// The live view takes the write at once, not on the next render. A phone
 		// reports each finger of a pinch as its own move, and both moves can land
 		// before React renders. The second move then builds on the first, where a
@@ -230,7 +228,7 @@ export function useMapZoom({
 		setHeld((prev) =>
 			sameTransform(prev.transform, next) ? prev : { subject: prev.subject, transform: next },
 		)
-	}, [])
+	}
 
 	// The pointers down on the surface, in viewport coordinates: one is a pan,
 	// two are a pinch. Held on a ref because a gesture writes on every move and
@@ -290,38 +288,35 @@ export function useMapZoom({
 	// below is what writes it and the hold is the gesture's, not the key's.
 	const wheelStream = useRef<MapWheelStream | null>(null)
 
-	const settleGesture = useCallback(() => {
+	function settleGesture() {
 		if (pointers.current.size > 0 || wheelSettle.pending()) return
 
 		setGesturing(false)
 
 		holdReadout(false)
-	}, [wheelSettle, holdReadout])
+	}
 
 	// Claims one wheel event for the map: what it pushed, whether the stream it
 	// belongs to is running down, and the window that outlives it. All of it is set
 	// together and cleared together, so the stream can never stand past the settle
 	// that was meant to end it. A key held says nothing about the device, so an
 	// armed notch always leaves the stream unproven; only a tail claims otherwise.
-	const holdGesture = useCallback(
-		(push: number, coasting: boolean) => {
-			setGesturing(true)
+	function holdGesture(push: number, coasting: boolean) {
+		setGesturing(true)
 
-			// The map scales away under a still pointer, so the readout of the shape
-			// it sat on goes, as it does for a pinch. A browser can fire a leave when
-			// the layer stops taking the pointer, but this does not wait on one.
-			holdReadout(true)
+		// The map scales away under a still pointer, so the readout of the shape
+		// it sat on goes, as it does for a pinch. A browser can fire a leave when
+		// the layer stops taking the pointer, but this does not wait on one.
+		holdReadout(true)
 
-			wheelStream.current = { push, coasting }
+		wheelStream.current = { push, coasting }
 
-			wheelSettle.set(() => {
-				wheelStream.current = null
+		wheelSettle.set(() => {
+			wheelStream.current = null
 
-				settleGesture()
-			}, MAP_WHEEL_SETTLE_MS)
-		},
-		[settleGesture, wheelSettle, holdReadout],
-	)
+			settleGesture()
+		}, MAP_WHEEL_SETTLE_MS)
+	}
 
 	// The SVG's box, read once when the gesture starts and held until a scroll
 	// moves it. Reading it per move would force a layout pass over the whole
@@ -821,11 +816,10 @@ export function useMapZoom({
  * A modifier map holds the stream it takes until the stream itself ends, rather
  * than until the key is let go. {@link takeWheelTail} answers that.
  *
- * Its effect carries a dependency array, and `commit` and `holdGesture` are in
- * it. Thus those two are memoized, and so is `settleGesture`, which
- * `holdGesture` reads. Everything it reads per event comes off `live`. Thus the
+ * The listener reads its handler through an effect event, as
+ * {@link useMapTouchPinch} does. The handler reads the view off `live`. Thus the
  * listener binds once while the frame has an area, not once per gesture or per
- * resize.
+ * resize, and no function that it calls needs a memo.
  *
  * @internal
  */
@@ -839,6 +833,52 @@ function useWheelZoom(
 	live: RefObject<{ transform: MapTransform; view: MapViewFrame; max: number }>,
 	stream: RefObject<MapWheelStream | null>,
 ) {
+	const onWheel = useEffectEvent((event: WheelEvent, svg: SVGSVGElement) => {
+		const armed = modifier === 'shift' && event.shiftKey
+
+		const push = wheelPush(event.deltaY, event.deltaX)
+
+		// A modifier map hands every plain wheel back to the page untouched: that
+		// is the whole bargain the key buys. What the key already armed is not a
+		// plain wheel, though, so the tail of that stream goes to `takeWheelTail`
+		// rather than to the page.
+		if (modifier === 'shift' && !armed) {
+			takeWheelTail(event, push, stream, hold)
+
+			return
+		}
+
+		const { transform: from, view: frame, max } = live.current
+
+		// Read fresh per event, unlike a pointer gesture's: a wheel has no press
+		// to measure at, and the page can scroll between two of them.
+		const focus = clientToFrame(
+			{ x: event.clientX, y: event.clientY },
+			svg.getBoundingClientRect(),
+			frame.width,
+			frame.height,
+		)
+
+		if (focus === null) return
+
+		const travel = wheelTravel(event.deltaY, event.deltaX, armed)
+
+		const next = zoomTransform(from, focus, wheelZoomFactor(travel, event.deltaMode), frame, max)
+
+		// Without a modifier the map takes the gesture only where it can use it:
+		// at the fit and at the ceiling nothing moves, so the wheel stays the
+		// page's and a reader is never held on the map. Holding the key says the
+		// opposite (the reader aimed this at the map), so it is taken either
+		// way, and a shift-wheel never scrolls the page sideways under them.
+		if (modifier === null && sameTransform(next, from)) return
+
+		event.preventDefault()
+
+		hold(push, false)
+
+		commit(next)
+	})
+
 	useEffect(() => {
 		const svg = svgRef.current
 
@@ -846,58 +886,14 @@ function useWheelZoom(
 		// this effect onto the live node. A frame with no area draws nothing to zoom.
 		if (!enabled || !framed || svg === null) return
 
-		const onWheel = (event: WheelEvent) => {
-			const armed = modifier === 'shift' && event.shiftKey
+		const listener = (event: WheelEvent) => onWheel(event, svg)
 
-			const push = wheelPush(event.deltaY, event.deltaX)
-
-			// A modifier map hands every plain wheel back to the page untouched: that
-			// is the whole bargain the key buys. What the key already armed is not a
-			// plain wheel, though, so the tail of that stream goes to `takeWheelTail`
-			// rather than to the page.
-			if (modifier === 'shift' && !armed) {
-				takeWheelTail(event, push, stream, hold)
-
-				return
-			}
-
-			const { transform: from, view: frame, max } = live.current
-
-			// Read fresh per event, unlike a pointer gesture's: a wheel has no press
-			// to measure at, and the page can scroll between two of them.
-			const focus = clientToFrame(
-				{ x: event.clientX, y: event.clientY },
-				svg.getBoundingClientRect(),
-				frame.width,
-				frame.height,
-			)
-
-			if (focus === null) return
-
-			const travel = wheelTravel(event.deltaY, event.deltaX, armed)
-
-			const next = zoomTransform(from, focus, wheelZoomFactor(travel, event.deltaMode), frame, max)
-
-			// Without a modifier the map takes the gesture only where it can use it:
-			// at the fit and at the ceiling nothing moves, so the wheel stays the
-			// page's and a reader is never held on the map. Holding the key says the
-			// opposite (the reader aimed this at the map), so it is taken either
-			// way, and a shift-wheel never scrolls the page sideways under them.
-			if (modifier === null && sameTransform(next, from)) return
-
-			event.preventDefault()
-
-			hold(push, false)
-
-			commit(next)
-		}
-
-		svg.addEventListener('wheel', onWheel, { passive: false })
+		svg.addEventListener('wheel', listener, { passive: false })
 
 		return () => {
-			svg.removeEventListener('wheel', onWheel)
+			svg.removeEventListener('wheel', listener)
 		}
-	}, [enabled, framed, modifier, svgRef, commit, hold, live, stream])
+	}, [enabled, framed, svgRef])
 }
 
 /**
