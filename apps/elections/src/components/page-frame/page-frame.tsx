@@ -9,8 +9,8 @@ import { ElectionsHeader } from '../elections-header'
 /** Props for {@link PageBody}. */
 export type PageBodyProps = {
 	/**
-	 * The status of the foot. A page with no results leaves it out, and then
-	 * the page has no foot: the foot gives the sources of the results.
+	 * The status of the footer. A page with no results leaves it out, and then
+	 * the page has no footer: the footer gives the sources of the results.
 	 */
 	status?: ElectionsFooterProps
 	children: ReactNode
@@ -24,9 +24,9 @@ export type PageFrameProps = PageBodyProps & {
 }
 
 /**
- * The body and the foot of a page: the box that scrolls under the header. The
+ * The body and the footer of a page: the box that scrolls under the header. The
  * layout of an election puts them under its header, which stays in place from
- * page to page. The header, the body, and the foot share one container width,
+ * page to page. The header, the body, and the footer share one container width,
  * so their edges line up.
  *
  * Each view of an election has its own body, so each view keeps its own
@@ -35,7 +35,7 @@ export type PageFrameProps = PageBodyProps & {
 export function PageBody({ status, children }: PageBodyProps) {
 	return (
 		<StackedLayoutBody>
-			{/* A column at least as tall as the body, so the foot is at the bottom of a short page. */}
+			{/* A column at least as tall as the body, so the footer is at the bottom of a short page. */}
 			<div className="flex min-h-full flex-col">
 				<Container size="lg" padding="lg" className="py-6">
 					<Stack gap="xl">{children}</Stack>

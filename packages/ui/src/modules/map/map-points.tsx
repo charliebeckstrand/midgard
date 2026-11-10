@@ -655,9 +655,11 @@ export function MapPoints({
 
 	// Each drawn group's radius, read by the dots, their targets, and the halo: a
 	// shared summary's is the radius of every dot that it holds.
+	const { marks } = grouping
+
 	const radii = useMemo(
-		() => groups.map((group) => grouping.marks[group.mark]?.radius ?? POINT_RADIUS),
-		[groups, grouping],
+		() => groups.map((group) => marks[group.mark]?.radius ?? POINT_RADIUS),
+		[groups, marks],
 	)
 
 	// Each group's own shape: a lone dot's own, the one that a summary's members

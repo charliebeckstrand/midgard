@@ -7,7 +7,7 @@ import KeyboardShortcut from '../pages/components/command-palette/keyboard-short
 
 // The key of an example is in the HTML of the build, so it is in the first
 // paint. The build cannot know the platform, so it writes the two texts and
-// shows ⌘. The client shows Ctrl+ after the hydration on other platforms. The
+// shows ⌘. The client shows ⌃ after the hydration on other platforms. The
 // markup keeps the two texts, so the key keeps its size (CONVENTIONS §3.13).
 
 const hint = (
@@ -28,14 +28,14 @@ describe('ShortcutHint', () => {
 		expect(hydrateOnPlatform(hint, 'MacIntel', shown)).toEqual({ before: '⌘J', after: '⌘J' })
 	})
 
-	it('shows Ctrl+ after the hydration on other platforms', () => {
-		expect(hydrateOnPlatform(hint, 'Win32', shown)).toEqual({ before: '⌘J', after: 'Ctrl+J' })
+	it('shows ⌃ after the hydration on other platforms', () => {
+		expect(hydrateOnPlatform(hint, 'Win32', shown)).toEqual({ before: '⌘J', after: '⌃J' })
 	})
 
 	it.each(['MacIntel', 'Win32'])(
 		'keeps the two texts in the markup through the hydration on %s',
 		(platform) => {
-			expect(hydrateOnPlatform(hint, platform)).toEqual({ before: '⌘JCtrl+J', after: '⌘JCtrl+J' })
+			expect(hydrateOnPlatform(hint, platform)).toEqual({ before: '⌘J⌃J', after: '⌘J⌃J' })
 		},
 	)
 })
@@ -67,7 +67,7 @@ describe('the Keyboard shortcut example of the command palette', () => {
 	it('opens from the key that its button shows', () => {
 		renderUI(<KeyboardShortcut />)
 
-		expect(screen.getByRole('button', { name: /Search commands/ }).textContent).toContain('Ctrl+J')
+		expect(screen.getByRole('button', { name: /Search commands/ }).textContent).toContain('⌃J')
 
 		press('J')
 

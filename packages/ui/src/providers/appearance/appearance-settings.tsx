@@ -33,8 +33,8 @@ export type AppearanceSettingsProps = {
  * immediately and persists. Put it in the header or the navbar of the app.
  *
  * Inside a `SidebarLayout`, the dialog also has the Sidebar picker (Locked or
- * Offcanvas), with the key that toggles it: ⌘B on Apple platforms, and Ctrl+B
- * on others. The picker shows only while the layout is inline.
+ * Offcanvas), with the key that toggles it: ⌘B on Apple platforms, and ⌃B
+ * (Control) on others. The picker shows only while the layout is inline.
  *
  * Under a `LocaleProvider` that has `locales`, the dialog also has the Language
  * picker. It offers System and each of the `locales`, with the name of each

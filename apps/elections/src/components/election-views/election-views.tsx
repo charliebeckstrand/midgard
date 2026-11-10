@@ -12,7 +12,7 @@ import { OVERVIEW } from '../../utilities/trail'
 export function ElectionViews({ views }: { views: Readonly<Record<string, ReactNode>> }) {
 	const segment = useSelectedLayoutSegment()
 
-	const current = segment === null || segment === '__PAGE__' ? OVERVIEW : segment
+	const current = segment ?? OVERVIEW
 
 	return Object.entries(views).map(([key, view]) => (
 		<Activity key={key} mode={key === current ? 'visible' : 'hidden'}>

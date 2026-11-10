@@ -20,11 +20,12 @@ export type MapSpareResolver = (at: MapPoint2D, unitsPerPixel: number) => number
  * The resolver of a plat, as a store that a mark reads through `useSyncExternalStore`.
  *
  * @remarks
- * The plat makes a new store each time its ledger, its toggles, or its region layer change. A zone
- * whose ground changes changes none of these. It registers its budget behind a stable getter, so
- * that a redrawn zone does not write the ledger again (`MapOverlayEntry.spare`). The zone therefore
- * calls {@link MapSpareStore.reground} when its budget changes. The store then gives its readers a
- * new resolver, and each dot measures its target again.
+ * The plat makes a new store each time the anchors of its ledger (`sameAnchors`), its toggles, or
+ * its region layer change. A zone whose ground changes changes none of these. It registers its
+ * budget behind a stable getter, so that a redrawn zone does not write the ledger again
+ * (`MapOverlayEntry.spare`). The zone therefore calls {@link MapSpareStore.reground} when its
+ * budget changes. The store then gives its readers a new resolver, and each dot measures its
+ * target again.
  *
  * @internal
  */

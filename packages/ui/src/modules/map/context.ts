@@ -226,10 +226,11 @@ export type MapPlatContextValue = {
 	 * geometry and the mark applies its own `unitsPerPixel`.
 	 *
 	 * A store rather than a resolver in the value. A mark that moves changes nothing the value holds,
-	 * so the mark restakes its own dots, and only the readers of the pool render again. The snapshot
-	 * excludes the asking mark, by id: a mark's own dots are its own business, and it holds them in
-	 * drawn form already. The pool also excludes hidden marks and each mark that draws no dot. Thus the
-	 * waypoints of a route and the ring of a zone never contest ground that they paint nothing on.
+	 * so the mark restakes its own dots, and only the other readers of the pool render again. The
+	 * snapshot excludes the asking mark, by id: a mark's own dots are its own business, and it holds
+	 * them in drawn form already. The pool also excludes hidden marks and each mark that draws no
+	 * dot. Thus the waypoints of a route and the ring of a zone never contest ground that they paint
+	 * nothing on.
 	 */
 	pool: MapDotPool
 	/**

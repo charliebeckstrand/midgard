@@ -4,7 +4,7 @@ import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
 import { type Contest, type Election, findContest } from '@/elections/registry'
 import type { UsState } from '@/elections/us-states'
-import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
+import { drawerSeed, type SearchParams } from '@/server/drawer'
 import { readSection, type SectionParams } from '@/server/params'
 import { electionResults } from '@/server/results'
 import { isCounting } from '@/utilities/results'
@@ -63,7 +63,7 @@ export default async function StateOfficePage({ params, searchParams }: Params) 
 		notFound()
 	}
 
-	const seed = await drawerSeed(election, officeRaces(all), searchParams)
+	const seed = await drawerSeed(election, all, searchParams)
 
 	return (
 		<>

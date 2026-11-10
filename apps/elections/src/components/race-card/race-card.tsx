@@ -29,7 +29,7 @@ export type RaceCardProps = {
 function LeaderRow({ candidate }: { candidate: Candidate }) {
 	return (
 		<Flex gap="sm" className="text-sm/6">
-			<Swatch color={candidate.slot} />
+			<Swatch color={candidate.slot} label={candidate.party} />
 
 			<Flex gap="sm" flex="1" className="min-w-0">
 				<span className="truncate">{candidate.name}</span>
@@ -65,9 +65,10 @@ function HeadToHead({ leader, runnerUp }: { leader: Candidate; runnerUp: Candida
 }
 
 /**
- * A card of one close race: the race, with its office under it, the two
- * leaders to two decimals, a head-to-head bar with a mark at 50%, and the
- * percent reporting with the call dot.
+ * A card of one race: the race, with its office under it in a list of many
+ * offices, the two leaders to two decimals, a head-to-head bar with a mark at
+ * 50% when the race has a runner-up, and the percent reporting with the call
+ * dot.
  */
 export function RaceCard({ entry, office = false, onPick }: RaceCardProps) {
 	const { leader, runnerUp } = leaders(entry.candidates)

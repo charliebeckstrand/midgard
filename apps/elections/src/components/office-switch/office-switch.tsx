@@ -15,14 +15,16 @@ import type { OfficeItem } from '../../utilities/trail'
 let focusOnShow = false
 
 /**
- * The switch between the overview and the national map of each office of an
- * election. It changes the route.
+ * The switch between the overview and the page of each office of an
+ * election, or of a state on the pages of a state. An office with no race in
+ * the state is disabled. It changes the route.
  *
- * The switch reads the page of each other item before the pick, so a pick
- * waits for no server round trip. A page of an election reads its results on
- * the server (`instant = false`), so the default prefetch reads none of it, and
- * the switch asks for the full page. When a read goes stale, such as after the
- * refresh of a live count, the switch reads that page again.
+ * The switch reads the page of each other item that is not disabled before
+ * the pick, so a pick waits for no server round trip. A page of an election
+ * reads its results on the server (`instant = false`), so the default
+ * prefetch reads none of it, and the switch asks for the full page. When a
+ * read goes stale, such as after the refresh of a live count, the switch reads
+ * that page again.
  *
  * A pick from a switch that has the focus keeps the focus on the switch, on
  * its selected item.

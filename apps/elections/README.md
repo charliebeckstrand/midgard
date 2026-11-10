@@ -21,7 +21,7 @@ pnpm --filter elections test
 ## The results
 
 [civicAPI](https://civicapi.org) gives the results. It is free, needs no key,
-and asks for attribution, which the foot of each page with results gives. The server of the
+and asks for attribution, which the footer of each page with results gives. The server of the
 app is the only reader. `src/server/civic.ts` reads `race/{id}`, and
 `src/server/civic-race.ts` reads each field of the answer into the types of
 the app. The parser fails closed: an answer without a field that the screens
@@ -58,8 +58,8 @@ Alaska are parts of a county row, so the parser leaves them out.
 ## The elections
 
 `src/elections/registry.ts` holds the elections. A new election is one more
-entry, with the same routes and screens: the screens read the kind of each
-contest (`chamber` or `executive`), never the name of an office.
+entry, with the same routes and screens: the screens read the depth of each
+contest (`state` or `district`) and its majority, never the name of an office.
 
 ## The routes
 
@@ -134,8 +134,9 @@ races.
 ## The design
 
 Each screen shows only what a reader needs. No label reads "All", and a title
-has no badge beside it. The cards stack in one column, and a page at
-390 px wide has no overflow. The status of the count shows only in the footer. A page with no results has no footer.
+has no badge beside it. A list of elections stacks its cards in one column.
+On a phone, the cards of an election also stack in one column, and a wider
+screen shows two or three columns. A page at 390 px wide has no overflow. The status of the count shows only in the footer. A page with no results has no footer.
 
 A call is a solid green dot before the percent reporting. A race that is not
 called has an amber dot that pulses. Green is for a call, so no party takes it. A

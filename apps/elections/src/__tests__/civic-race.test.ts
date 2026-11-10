@@ -102,6 +102,11 @@ describe('readRace', () => {
 			parts.reduce((sum, votes) => sum + votes, 0),
 		)
 
+		// The percent reporting is the share of the expected vote of the two
+		// parts that is in. Chugach has 1,680 votes at 59.7% reporting, and
+		// Copper River has 1,295 votes at 99%.
+		expect(merged?.reporting).toBeCloseTo(72.17, 1)
+
 		// Every county of the race is a borough or a census area with a code.
 		expect(race.counties.every((county) => /^02\d{3}$/.test(county.fips))).toBe(true)
 	})
@@ -154,6 +159,19 @@ describe('readRace', () => {
 		).toThrow(CivicShapeError)
 	})
 
+	it('fails closed on a candidate with no call flag, because a missing flag reads as no call', () => {
+		const [first] = ga06.candidates
+
+		const broken = (flag: 'winner' | 'incumbent') => ({
+			...ga06,
+			candidates: [{ ...first, [flag]: undefined }],
+		})
+
+		expect(() => readRace(87078, broken('winner'), '13', atlasCountyNames)).toThrow(/winner/)
+
+		expect(() => readRace(87078, broken('incumbent'), '13', atlasCountyNames)).toThrow(/incumbent/)
+	})
+
 	it('fails closed on a candidate with no votes', () => {
 		const broken = {
 			...ga06,
@@ -177,6 +195,17 @@ describe('readRace', () => {
 		}
 
 		expect(() => readRace(87078, broken, '13', atlasCountyNames)).toThrow(/names no county/)
+	})
+
+	it('fails closed on a row with no code and no type, because it could be a county', () => {
+		const broken = {
+			...ga06,
+			region_results: {
+				appling: { name: 'Appling', percent_reporting: 100, candidates: ga06.candidates },
+			},
+		}
+
+		expect(() => readRace(87078, broken, '13', atlasCountyNames)).toThrow(/type/)
 	})
 })
 

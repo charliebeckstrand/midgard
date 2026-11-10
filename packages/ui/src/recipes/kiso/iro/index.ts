@@ -1,8 +1,8 @@
 /**
  * Iro (色): the color tokens of the kata. The chromatic `palette`, its
  * `extended` hues and its `hover`, the semantic intent-color text bundle, the `marker` shade for
- * chromatic dots / glyphs, the `meter` shade for a measured value, and the
- * `on.wash` rung for the neutral wash.
+ * chromatic dots / glyphs, and the `on.wash` rung for the neutral wash. The
+ * shade of a measured value is `zu.meter`.
  *
  * `text` is keyed by purpose; `marker` and `on.wash` are keyed by the ground
  * they ink, so they sit beside it rather than inside it. `on.wash` is then
@@ -17,7 +17,6 @@
  */
 
 import { intent } from './intent'
-import { meter } from './meter'
 import { extended, hover, palette } from './palette'
 import { marker, onWash } from './ramp'
 
@@ -27,6 +26,5 @@ export const iro = {
 	hover,
 	text: intent,
 	marker,
-	meter,
 	on: { wash: onWash },
 } as const

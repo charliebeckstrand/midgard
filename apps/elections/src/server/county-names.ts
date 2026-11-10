@@ -1,4 +1,4 @@
-import counties from 'us-atlas/counties-10m.json'
+import counties from 'us-atlas/counties-albers-10m.json'
 import { type CountyNames, foldName } from './civic-race'
 
 /** One county of the atlas topology: its FIPS code and its name. */
@@ -30,7 +30,8 @@ const NONE: ReadonlyMap<string, string> = new Map()
 
 /**
  * The FIPS codes of the counties of a state in `us-atlas`, by name in
- * lowercase. The parser reads a county that civicAPI sends with no code, such
+ * lowercase. They come from the projected atlas that the map draws, so each
+ * county that the parser joins has a shape. The parser reads a county that civicAPI sends with no code, such
  * as `Lac Qui Parle` in Minnesota, through it.
  */
 export const atlasCountyNames: CountyNames = (stateFips) => byState.get(stateFips) ?? NONE

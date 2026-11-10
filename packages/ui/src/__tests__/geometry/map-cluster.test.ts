@@ -10,7 +10,12 @@ import {
 import { clusterAnchor, clusterSpan } from '../../modules/map/engine/map-cluster/geo'
 import { clusterPoints, groupsByMember } from '../../modules/map/engine/map-cluster/group'
 import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
-import { groupSets, sameClusterEntries } from '../../modules/map/engine/map-cluster/sets'
+import {
+	createClusterStore,
+	groupSets,
+	type MapPointGrouping,
+	sameClusterEntries,
+} from '../../modules/map/engine/map-cluster/sets'
 import {
 	CLUSTER_COUNT_CHAR_WIDTH,
 	CLUSTER_COUNT_INSET,
@@ -22,7 +27,7 @@ import {
 import { projectPoint } from '../../modules/map/engine/map-geometry/mark'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
-import type { MapOverlayEntry } from '../../modules/map/engine/map-overlay/entry'
+import { type MapOverlayEntry, sameAnchors } from '../../modules/map/engine/map-overlay/entry'
 import { fitProjection } from '../../modules/map/engine/map-projection/resolve'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 import { englishRadius, flatProjector } from '../helpers/map-flat'
@@ -643,6 +648,77 @@ describe('groupSets', () => {
 	})
 })
 
+describe('createClusterStore', () => {
+	// A pair 12 units apart, and one dot clear of a merge with them. The pair
+	// merges while the reach of two dots spans more than 12 units, which is each
+	// scale above 0.6.
+	const input = {
+		positions: [
+			[0, 0],
+			[12, 0],
+			[36, 0],
+		] as LngLat[],
+		gap: GAP,
+	}
+
+	const set: MapOverlayEntry = {
+		id: 'a',
+		label: 'Stops',
+		kind: 'point',
+		swatch: 'dot',
+		stopsAt: () => [],
+		getStop: (index) => index,
+		clusterAt: () => input,
+	}
+
+	const bind = () => createClusterStore([set], new Set(), flatProjector, englishRadius).grouping()
+
+	const members = (grouping: MapPointGrouping) =>
+		grouping.sets.get('a')?.groups.map((group) => group.members)
+
+	it('holds the grouping of the last scale', () => {
+		const at = bind()
+
+		expect(at(1)).toBe(at(1))
+	})
+
+	it('keeps the sets and the marks through a scale that moves no dot to another group', () => {
+		const at = bind()
+
+		const fit = at(1)
+
+		const near = at(0.8)
+
+		expect(members(near)).toEqual([[0, 1], [2]])
+
+		expect(near.sets).toBe(fit.sets)
+
+		expect(near.marks).toBe(fit.marks)
+
+		// The room reads the scale, so it is the room of the new scale.
+		expect(near.room()).toEqual(neighborRoom(fit.marks, 0.8))
+
+		expect(near.room()).not.toEqual(fit.room())
+	})
+
+	it('gives new sets and new marks for a scale that regroups', () => {
+		const at = bind()
+
+		const fit = at(1)
+
+		const close = at(0.5)
+
+		expect(members(close)).toEqual([[0], [1], [2]])
+
+		expect(close.sets).not.toBe(fit.sets)
+
+		expect(close.marks).not.toBe(fit.marks)
+
+		// The way back regroups too, so it is not the first grouping.
+		expect(at(1).sets).not.toBe(fit.sets)
+	})
+})
+
 describe('sameClusterEntries', () => {
 	const clusterAt = () => ({ positions: [], gap: 4 })
 
@@ -679,5 +755,49 @@ describe('sameClusterEntries', () => {
 		expect(sameClusterEntries([set], [{ ...set, group: 'fleet' }])).toBe(false)
 
 		expect(sameClusterEntries([set], [{ ...set, activate: () => {} }])).toBe(false)
+	})
+})
+
+describe('sameAnchors', () => {
+	const stopsAt = () => []
+
+	const set: MapOverlayEntry = {
+		id: 'stops',
+		label: 'Stops',
+		kind: 'point',
+		swatch: 'dot',
+		stopsAt,
+		dotsAt: () => [],
+		getStop: (index) => index,
+	}
+
+	it('holds through a change of a readout', () => {
+		// A regroup gives the set new stop rows, and a new label is a readout too.
+		const read: MapOverlayEntry = {
+			...set,
+			label: 'Depots',
+			detail: '3',
+			stopRows: [{ label: 'A' }],
+		}
+
+		expect(sameAnchors([set], [read])).toBe(true)
+	})
+
+	it('changes with each field that a geometry reader of the plat reads', () => {
+		expect(sameAnchors([set], [set, { ...set, id: 'depots' }])).toBe(false)
+
+		expect(sameAnchors([set], [{ ...set, id: 'depots' }])).toBe(false)
+
+		expect(sameAnchors([set], [{ ...set, group: 'fleet' }])).toBe(false)
+
+		expect(sameAnchors([set], [{ ...set, color: 'blue' }])).toBe(false)
+
+		expect(sameAnchors([set], [{ ...set, stopsAt: () => [] }])).toBe(false)
+
+		expect(sameAnchors([set], [{ ...set, dotsAt: undefined }])).toBe(false)
+
+		expect(sameAnchors([set], [{ ...set, spare: () => 0 }])).toBe(false)
+
+		expect(sameAnchors([set], [{ ...set, getIndex: (stop) => stop }])).toBe(false)
 	})
 })

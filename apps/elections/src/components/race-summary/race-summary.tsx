@@ -11,7 +11,7 @@ import { Swatch } from 'ui/swatch'
 import type { Candidate } from '../../types'
 import { barColor, initials, percentText } from '../../utilities/race-math'
 import { PercentOdometer } from '../percent-odometer'
-import { ReportingRow, WinnerMark } from './call-dot'
+import { IncumbentMark, ReportingRow, WinnerMark } from './reporting-row'
 
 /** Props for {@link RaceSummary}. */
 export type RaceSummaryProps = {
@@ -25,8 +25,9 @@ export type RaceSummaryProps = {
 	 */
 	rows?: number | 'all'
 	/**
-	 * Shows each candidate in full: an avatar, the party, `Incumbent`, and the
-	 * votes. The step of a race uses it, and a card does not.
+	 * Shows each candidate in full: an avatar, the mark of an incumbent, the
+	 * party, and the votes. The overview of a race and the detailed layout of a county use it,
+	 * and a card does not.
 	 * @defaultValue false
 	 */
 	detail?: boolean
@@ -51,7 +52,7 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 						variant="soft"
 					/>
 				) : (
-					<Swatch color={candidate.slot} />
+					<Swatch color={candidate.slot} label={candidate.party} />
 				)}
 
 				{/* The party always sits under the name, so each row has the same shape. */}
@@ -59,18 +60,16 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 					<Flex gap="sm">
 						<span className="truncate font-medium">{candidate.name}</span>
 
+						{detail && candidate.incumbent ? <IncumbentMark /> : null}
+
 						{candidate.winner ? <WinnerMark /> : null}
 					</Flex>
 
 					{detail ? (
-						<Flex wrap gap="sm">
+						<Flex>
 							<Badge variant="soft" color={barColor(candidate.slot)}>
 								{candidate.party}
 							</Badge>
-
-							{candidate.incumbent ? (
-								<span className="text-sm text-zinc-500 dark:text-zinc-400">Incumbent</span>
-							) : null}
 						</Flex>
 					) : null}
 				</Stack>
@@ -99,10 +98,10 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 }
 
 /**
- * A race in the Drawer: in an office card of the overview of a state, on the
- * step of a race, and on the step of a county. It lists the leading
- * candidates, each with the share and a bar, then the percent reporting with
- * the call dot. The place around it adds its title and its link.
+ * A race in an office card of the overview of a state, in the Drawer and on
+ * the page of the state. It also shows in the Drawer on the step of a race and
+ * on the step of a county. It lists the leading candidates, each with the
+ * share and a bar, then the percent reporting with the call dot. The place around it adds its title and its link.
  */
 export function RaceSummary({
 	candidates,

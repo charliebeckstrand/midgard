@@ -8,7 +8,6 @@ import {
 	type ReactNode,
 	type Ref,
 	useCallback,
-	useDeferredValue,
 	useMemo,
 	useRef,
 	useState,
@@ -44,6 +43,7 @@ import type { MapHoverTarget, MapOverlayTarget } from './engine/map-hover/target
 import { createStopMoves, entryTarget, mapStops } from './engine/map-keyboard/stops'
 import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
 import { planLegend } from './engine/map-legend/plan'
+import { type MapOverlayAnchor, sameAnchors } from './engine/map-overlay/entry'
 import { targetParts } from './engine/map-overlay/selection'
 import { overlaySlotColors } from './engine/map-overlay/slots'
 import { createSpareStore } from './engine/map-overlay/spare'
@@ -61,7 +61,6 @@ import type {
 	MapFeature,
 	MapGeography,
 	MapOverlaySelection,
-	MapPoint2D,
 	MapProjection,
 } from './engine/types'
 import { MapChrome } from './map-chrome'
@@ -956,12 +955,20 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	const { entries, register } = useMapLegendRegistry()
 
+	// The ledger as its geometry readers read it: the slot colors, the toggles,
+	// the order, the spare resolver, the dot pool, and the keyboard stops. A
+	// regroup changes the stop rows of a set, and so the ledger, but no anchor.
+	// These readers therefore hold through a regroup, and so does each mark that
+	// reads them. The legend, the tooltip, and the table draw the readout fields,
+	// so they read the ledger itself.
+	const anchored = useStableValue<readonly MapOverlayAnchor[]>(entries, sameAnchors)
+
 	// Overlay slot colors continue the fixed order after the categories, by
 	// registration order, one slot per legend entry, so a merged group's members
 	// share their first member's color rather than each drawing one.
 	const colors = useMemo<ReadonlyMap<string, MapSeriesColor>>(
-		() => overlaySlotColors(entries, categoryMetas.length),
-		[entries, categoryMetas.length],
+		() => overlaySlotColors(anchored, categoryMetas.length),
+		[anchored, categoryMetas.length],
 	)
 
 	// What the legend has switched off, as the MARKS it silences: the switchboard's
@@ -975,15 +982,15 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	//
 	// A map with no group hands `switched` straight back rather than a copy of it,
 	// for its identity and not the allocation: `regionActive` is the one reader that
-	// does not already depend on `entries`, so a fresh set here would re-key the
+	// does not already depend on the ledger, so a fresh set here would re-key the
 	// memoized region layer on every overlay registration.
 	const hidden = useMemo<ReadonlySet<string>>(() => {
-		const members = entries.flatMap((entry) =>
+		const members = anchored.flatMap((entry) =>
 			entry.group !== undefined && switched.has(groupLegendId(entry.group)) ? [entry.id] : [],
 		)
 
 		return members.length === 0 ? switched : new Set<string>([...switched, ...members])
-	}, [switched, entries])
+	}, [switched, anchored])
 
 	// The region layer reports the index it resolved off the pointed path's anchor;
 	// the props report identity. Bridge them here, memoized like this component's
@@ -1042,8 +1049,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	// Registration ordinal per entry, so a staggered reveal can key off it.
 	const order = useMemo<ReadonlyMap<string, number>>(
-		() => new Map(entries.map((entry, index) => [entry.id, index])),
-		[entries],
+		() => new Map(anchored.map((entry, index) => [entry.id, index])),
+		[anchored],
 	)
 
 	const numeric = valueKey !== undefined
@@ -1167,44 +1174,46 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// How much reach everything under a mark leaves it at a position: the tightest
 	// claim any of them allows, since a dot standing over two shapes has to satisfy
 	// both. The region layer claims first, then each visible zone. Rebuilt as the
-	// ledger, the legend's toggles, or the fit change: the resolvers themselves are
-	// stable, so the dots that read it hold through a pointer crossing rather than
-	// measure again. A zone redrawn in place tells them through the store below.
+	// anchors of the ledger, the legend's toggles, or the fit change: the resolvers
+	// themselves are stable, so the dots that read it hold through a pointer
+	// crossing rather than measure again.
+	//
+	// The resolver is a store. A zone whose budget changes in place changes none of
+	// the deps below, so the zone regrounds the store, and the dots measure their
+	// targets again.
+	//
 	// A loop rather than a `reduce` closure: every dot on the map calls this, and
 	// the callback would be a fresh allocation per call rather than per rebuild.
-	const resolveSpare = useCallback(
-		(at: MapPoint2D, unitsPerPixel: number) => {
-			// A region layer that answers the pointer is the third claimant on this ground, and it
-			// claims first (see `regionPointerState` for what counts as answering).
-			//
-			// A finger-sized target over such a region takes a 44px bite out of the shape under it:
-			// the dot is the topmost thing at those pixels, so the region cannot be pointed at or
-			// picked there, and a dot near the middle of a small region can put it out of reach
-			// altogether. The dot gives back a share of what the region itself holds, the way it
-			// does for a zone: `regionSpare` states why a share and not a figure. Touch keeps the
-			// whole 44px target, since `k.hit.fine` narrows only on a device with no coarse pointer:
-			// a region is a large shape a finger can reach elsewhere, and a coarse pointer cannot aim
-			// at an 11px target (WCAG 2.5.5).
-			//
-			// The identity of the minimum otherwise, not a size: a map whose regions answer nothing
-			// and which draws no zones claims nothing here, and `markTargets` is the one place that
-			// knows the cap.
-			let room = regionRoom(at, unitsPerPixel)
+	const spare = useMemo(
+		() =>
+			createSpareStore((at, unitsPerPixel) => {
+				// A region layer that answers the pointer is the third claimant on this ground, and it
+				// claims first (see `regionPointerState` for what counts as answering).
+				//
+				// A finger-sized target over such a region takes a 44px bite out of the shape under it:
+				// the dot is the topmost thing at those pixels, so the region cannot be pointed at or
+				// picked there, and a dot near the middle of a small region can put it out of reach
+				// altogether. The dot gives back a share of what the region itself holds, the way it
+				// does for a zone: `regionSpare` states why a share and not a figure. Touch keeps the
+				// whole 44px target, since `k.hit.fine` narrows only on a device with no coarse pointer:
+				// a region is a large shape a finger can reach elsewhere, and a coarse pointer cannot aim
+				// at an 11px target (WCAG 2.5.5).
+				//
+				// The identity of the minimum otherwise, not a size: a map whose regions answer nothing
+				// and which draws no zones claims nothing here, and `markTargets` is the one place that
+				// knows the cap.
+				let room = regionRoom(at, unitsPerPixel)
 
-			for (const entry of entries) {
-				if (entry.spare === undefined || hidden.has(entry.id)) continue
+				for (const entry of anchored) {
+					if (entry.spare === undefined || hidden.has(entry.id)) continue
 
-				room = Math.min(room, entry.spare(at))
-			}
+					room = Math.min(room, entry.spare(at, unitsPerPixel))
+				}
 
-			return room
-		},
-		[entries, hidden, regionRoom],
+				return room
+			}),
+		[anchored, hidden, regionRoom],
 	)
-
-	// The resolver as a store. A zone whose budget changes in place changes none of the deps above,
-	// so the zone regrounds the store, and the dots measure their targets again.
-	const spare = useMemo(() => createSpareStore(resolveSpare), [resolveSpare])
 
 	// Every visible dot-drawing mark's stops, projected. This is the pool a dot
 	// divides its target's ground against, and the seam that lifts `crowd.ts`'s
@@ -1217,8 +1226,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// plat with no dot-shaped mark on it must never run the pass at all. A mark that moves changes none
 	// of these deps, so it restakes its own dots in the pool (see `createDotPool`).
 	const pool = useMemo(
-		() => createDotPool(entries, hidden, shape.project),
-		[entries, hidden, shape.project],
+		() => createDotPool(anchored, hidden, shape.project),
+		[anchored, hidden, shape.project],
 	)
 
 	const intl = useIntl()
@@ -1352,11 +1361,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				regions.answers
 					? cachedRegionCentroids(shape.features, projection === 'identity')
 					: NO_CENTROIDS,
-				entries,
+				anchored,
 				hidden,
 				shape.project,
 			),
-		[shape.features, shape.project, entries, hidden, regions.answers, projection],
+		[shape.features, shape.project, anchored, hidden, regions.answers, projection],
 	)
 
 	const { click: pickRegion } = regions
@@ -1589,13 +1598,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		</svg>
 	)
 
-	// The visually-hidden table renders one row per region (thousands on a
-	// county atlas) and none of it is mount-critical: defer it off the urgent
-	// render the way the chart frame defers its data table, so the geography
-	// commits first and the table hydrates a low-priority beat behind. The
-	// table rides as one memoized element, so the deferred render can't tear
-	// across a data change. Parity is unchanged: the table always converges
-	// on the current readout, one low-priority commit behind.
+	// The visually-hidden table. The frame defers it off the urgent render (see
+	// `MapDeferredTable`). The table rides as one memoized element, so the
+	// deferred render can't tear across a data change.
 	// The name of the map also names its table.
 	const table = useMemo(
 		() =>
@@ -1628,8 +1633,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			ariaLabelledBy,
 		],
 	)
-
-	const deferredTable = useDeferredValue(table, null)
 
 	return (
 		<MapFrame
@@ -1691,7 +1694,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			regionActive={regionActive}
 			emphasis={emphasis}
 			preloadRegion={preloadRegion}
-			table={deferredTable}
+			table={table}
 			width={width}
 			fill={shape.fill}
 			className={className}

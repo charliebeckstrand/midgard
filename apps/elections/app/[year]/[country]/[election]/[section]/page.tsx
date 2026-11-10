@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
 import { findElection } from '@/elections/registry'
-import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
+import { drawerSeed, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readSection, type SectionParams } from '@/server/params'
 import { electionResults } from '@/server/results'
 import { isCounting } from '@/utilities/results'
@@ -62,7 +62,7 @@ export default async function SectionPage({ params, searchParams }: Params) {
 
 	if (own.length === 0) notFound()
 
-	const seed = await drawerSeed(election, officeRaces(all), searchParams)
+	const seed = await drawerSeed(election, all, searchParams)
 
 	return (
 		<>

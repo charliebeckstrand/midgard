@@ -14,9 +14,9 @@ export type PercentOdometerProps = {
 }
 
 /**
- * A share as text in the locale of the reader, such as `59.0%`. When the share
- * changes, the number rolls to the new share. Under reduced motion, it goes to
- * the new share with no roll.
+ * A share as text in the locale of the app (`en`), such as `59.0%`. When the
+ * share changes, the number rolls to the new share. Under reduced motion, it
+ * goes to the new share with no roll.
  */
 export function PercentOdometer({ value, digits, className }: PercentOdometerProps) {
 	const intl = useIntl()

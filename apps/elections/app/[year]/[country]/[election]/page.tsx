@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
-import { drawerSeed, officeRaces, type SearchParams } from '@/server/drawer'
+import { drawerSeed, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
 import { isCounting } from '@/utilities/results'
@@ -23,7 +23,7 @@ export default async function OverviewPage({ params, searchParams }: Params) {
 
 	const results = await electionResults(election)
 
-	const seed = await drawerSeed(election, officeRaces(results), searchParams)
+	const seed = await drawerSeed(election, results, searchParams)
 
 	return (
 		<>

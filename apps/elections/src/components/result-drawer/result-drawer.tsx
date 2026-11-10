@@ -28,8 +28,16 @@ export type CrumbChoice = {
 /** One crumb of the trail of a {@link ResultDrawer}. */
 export type TrailCrumb = {
 	label: string
-	/** Fires when the crumb is picked. Absent for the last crumb, which is where the reader is. */
+	/**
+	 * Fires when the crumb is picked. The Drawer ignores it on the last crumb,
+	 * which is where the reader is, so the last crumb is never a link.
+	 */
 	onPick?: () => void
+	/**
+	 * The address of the step that the crumb leads back to, beside `onPick`. A
+	 * plain click calls `onPick`. A new tab or a copied link opens this address.
+	 */
+	href?: string
 	/**
 	 * The choices of the menu of the crumb, such as the offices of a state. A
 	 * chevron after a crumb that leads back opens them. A press on any part of a
@@ -46,14 +54,17 @@ export type DrawerView = {
 	body: ReactNode
 }
 
-/** The label of a crumb: a link back where the crumb acts, or the plain name where it does not. */
+/**
+ * The label of a crumb: a link back where the crumb acts, or the plain name
+ * where it does not. The current crumb is where the reader is, so it does not act.
+ */
 function CrumbLink({ crumb, current }: { crumb: TrailCrumb; current: boolean }) {
-	const { onPick } = crumb
+	const onPick = current ? undefined : crumb.onPick
 
 	return (
 		<BreadcrumbLink
 			current={current}
-			href={onPick === undefined ? undefined : '#'}
+			href={onPick === undefined ? undefined : crumb.href}
 			className="font-semibold"
 			onClick={
 				onPick === undefined
@@ -78,11 +89,11 @@ export type ResultDrawerProps = {
 }
 
 /**
- * The glass panel of a result, a Dialog: docked to the bottom on a phone, and
- * centered from `sm`, so the panel is as wide as its content and not as wide
- * as the page. It is built as the summary Drawer of Places: its title is the
- * trail, so a crumb is the way back and the panel needs no Back button, and
- * the close sits at the end of that row. A crumb with a menu switches between
+ * The glass panel of a result, a Dialog. It is docked to the bottom on a phone
+ * and centered from `sm`, so the panel is as wide as its content and not as
+ * wide as the page. Its title is the trail, as in the summary Drawer of
+ * Places. A crumb is the way back, so the panel needs no Back button. The
+ * close sits at the end of that row. A crumb with a menu switches between
  * its choices, as the office crumb does. The panel is as tall as its body, and
  * travels between heights as the step or the view changes. A body taller than
  * the cap of the panel scrolls under the trail, which stays.
@@ -120,7 +131,8 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 														label={step.label}
 														current={index === shown.steps.length - 1}
 														link={
-															step.onPick === undefined ? undefined : (
+															step.onPick === undefined ||
+															index === shown.steps.length - 1 ? undefined : (
 																<CrumbLink
 																	crumb={step}
 																	current={index === shown.steps.length - 1}
