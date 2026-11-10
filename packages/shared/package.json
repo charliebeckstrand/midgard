@@ -35,6 +35,10 @@
 			"types": "./src/refresh/index.ts",
 			"default": "./src/refresh/index.ts"
 		},
+		"./refresh/build": {
+			"types": "./src/refresh/build-route.ts",
+			"default": "./src/refresh/build-route.ts"
+		},
 		"./globals.css": "./src/globals.css"
 	},
 	"scripts": {

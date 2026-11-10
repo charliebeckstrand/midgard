@@ -13,6 +13,12 @@ beforeEach(() => {
 	localStorage.clear()
 
 	refresh.mockClear()
+
+	// The server runs the build of the page, so each check before a refresh passes.
+	vi.stubGlobal(
+		'fetch',
+		vi.fn(async () => new Response('build-a')),
+	)
 })
 
 afterEach(() => {
@@ -59,34 +65,34 @@ describe('useAutoUpdate', () => {
 })
 
 describe('AutoUpdateRefresh', () => {
-	it('renders the page again each minute while the setting is on', () => {
+	it('renders the page again each minute while the setting is on', async () => {
 		vi.useFakeTimers()
 
 		render(createElement(AutoUpdateRefresh, { live: true }))
 
-		act(() => vi.advanceTimersByTime(60_000))
+		await act(() => vi.advanceTimersByTimeAsync(60_000))
 
 		expect(refresh).toHaveBeenCalledTimes(1)
 	})
 
-	it('stops when the setting goes off', () => {
+	it('stops when the setting goes off', async () => {
 		vi.useFakeTimers()
 
 		render(createElement(AutoUpdateRefresh, { live: true }))
 
 		act(() => setAutoUpdate(false))
 
-		act(() => vi.advanceTimersByTime(120_000))
+		await act(() => vi.advanceTimersByTimeAsync(120_000))
 
 		expect(refresh).not.toHaveBeenCalled()
 	})
 
-	it('does not refresh a page whose votes are all counted', () => {
+	it('does not refresh a page whose votes are all counted', async () => {
 		vi.useFakeTimers()
 
 		render(createElement(AutoUpdateRefresh, { live: false }))
 
-		act(() => vi.advanceTimersByTime(120_000))
+		await act(() => vi.advanceTimersByTimeAsync(120_000))
 
 		expect(refresh).not.toHaveBeenCalled()
 	})
