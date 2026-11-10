@@ -5,7 +5,8 @@ import { countyAspect } from '@/server/county-shapes'
 import { readSection, type SectionParams } from '@/server/params'
 import { electionResults } from '@/server/results'
 import { stateOffices } from '@/server/state'
-import { OVERVIEW } from '@/utilities/trail'
+import { statePath } from '@/utilities/elections-url'
+import { OVERVIEW, pageTitle } from '@/utilities/trail'
 
 /**
  * The frame of a section of an election: an office, or a state. The layout of
@@ -38,25 +39,33 @@ export default async function SectionLayout({
 	const aspect = countyAspect(state.fips)
 
 	const views = {
-		[OVERVIEW]: <StateOverviewView election={election} state={state} offices={offices} />,
+		[OVERVIEW]: {
+			title: pageTitle(election, state.name),
+			view: <StateOverviewView election={election} state={state} offices={offices} />,
+		},
 		...Object.fromEntries(
 			offices.map((office) => [
 				office.contest.slug,
-				<StateOfficeView
-					key={office.contest.slug}
-					election={election}
-					state={state}
-					office={office}
-					offices={offices}
-					aspect={aspect}
-				/>,
+				{
+					title: pageTitle(election, state.name, office.contest.label),
+					view: (
+						<StateOfficeView
+							key={office.contest.slug}
+							election={election}
+							state={state}
+							office={office}
+							offices={offices}
+							aspect={aspect}
+						/>
+					),
+				},
 			]),
 		),
 	}
 
 	return (
 		<>
-			<ElectionViews views={views} />
+			<ElectionViews base={statePath(election, state, null)} views={views} />
 
 			{children}
 		</>

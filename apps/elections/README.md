@@ -113,6 +113,13 @@ rendered. A page holds only its Drawer and its live refresh. The layout of a
 state does the same for the pages of the state, and the trail of the header
 then ends at the state.
 
+A pick of the office switch writes the address in place, with no navigation,
+as a move of the Drawer does (`src/hooks/use-address.ts`). The views follow
+the address of the browser at once, so a pick reads nothing from the server
+and does not wait for a request in flight, such as a refresh. The router takes
+the address too, so Back, a reload, and the next refresh go to the page of the
+pick.
+
 The overview of a state in the Drawer links to the page of the state.
 
 On the page of an office in a state, an office with one race shows the

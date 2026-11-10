@@ -8,6 +8,7 @@ import { drawerSeed, type SearchParams } from '@/server/drawer'
 import { readSection, type SectionParams } from '@/server/params'
 import { electionResults } from '@/server/results'
 import { isCounting } from '@/utilities/results'
+import { pageTitle } from '@/utilities/trail'
 
 type Params = {
 	params: Promise<SectionParams & { office: string }>
@@ -38,7 +39,7 @@ async function readStateOffice(
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
 	const { election, state, contest } = await readStateOffice(params)
 
-	return { title: `${election.year} ${election.name} ${state.name} ${contest.label}` }
+	return { title: pageTitle(election, state.name, contest.label) }
 }
 
 /**

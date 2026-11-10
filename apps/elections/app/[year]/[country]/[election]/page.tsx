@@ -5,6 +5,7 @@ import { drawerSeed, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
 import { isCounting } from '@/utilities/results'
+import { pageTitle } from '@/utilities/trail'
 
 type Params = { params: Promise<ElectionParams>; searchParams: SearchParams }
 
@@ -14,7 +15,7 @@ export const instant = false
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
 	const election = await readElection(params)
 
-	return { title: `${election.year} ${election.name}` }
+	return { title: pageTitle(election) }
 }
 
 /** The overview of an election. The layout renders its view; the page holds the Drawer. */

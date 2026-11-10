@@ -4,11 +4,11 @@ import { ElectionViews, OfficeView, OverviewView } from '@/components/election-v
 import { ElectionHeader } from '@/components/elections-header'
 import { PageColumn } from '@/components/page-frame'
 import { RaceSearch } from '@/components/race-search'
-import { ELECTIONS } from '@/elections/registry'
+import { ELECTIONS, electionPath } from '@/elections/registry'
 import { officeRaces } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
-import { OVERVIEW } from '@/utilities/trail'
+import { OVERVIEW, pageTitle } from '@/utilities/trail'
 
 /**
  * The elections of the registry, which prerender with the build. The static
@@ -58,11 +58,17 @@ export default async function ElectionLayout({
 	const races = officeRaces(results)
 
 	const views = {
-		[OVERVIEW]: <OverviewView election={election} results={results} />,
+		[OVERVIEW]: {
+			title: pageTitle(election),
+			view: <OverviewView election={election} results={results} />,
+		},
 		...Object.fromEntries(
 			results.map((result) => [
 				result.contest.slug,
-				<OfficeView key={result.contest.slug} election={election} result={result} />,
+				{
+					title: pageTitle(election, result.contest.label),
+					view: <OfficeView key={result.contest.slug} election={election} result={result} />,
+				},
 			]),
 		),
 	}
@@ -72,7 +78,7 @@ export default async function ElectionLayout({
 			<ElectionRacesProvider races={races}>
 				<ElectionHeader election={election} search={<RaceSearch election={election} />} />
 
-				<ElectionViews views={views} />
+				<ElectionViews base={electionPath(election)} views={views} />
 
 				{children}
 			</ElectionRacesProvider>

@@ -1,9 +1,8 @@
 'use client'
 
-import { PrefetchKind } from 'next/dist/client/components/router-reducer/router-reducer-types'
-import { useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
+import { writeAddress } from '../../hooks/use-address'
 import type { OfficeItem } from '../../utilities/trail'
 
 /**
@@ -17,21 +16,19 @@ let focusOnShow = false
 /**
  * The switch between the overview and the page of each office of an
  * election, or of a state on the pages of a state. An office with no race in
- * the state is disabled. It changes the route.
+ * the state is disabled.
  *
- * The switch reads the page of each other item that is not disabled before
- * the pick, so a pick waits for no server round trip. A page of an election
- * reads its results on the server (`instant = false`), so the default
- * prefetch reads none of it, and the switch asks for the full page. When a
- * read goes stale, such as after the refresh of a live count, the switch reads
- * that page again.
+ * A pick writes the address of the item in place, with no navigation. The
+ * layout already renders the view of each item, and shows the view of the
+ * address at once (`ElectionViews`). Thus a pick reads nothing from the
+ * server, and does not wait for a request in flight, such as the refresh of a
+ * live count. The router takes the address too, so Back, a reload, and the
+ * next refresh go to the page of the item.
  *
  * A pick from a switch that has the focus keeps the focus on the switch, on
  * its selected item.
  */
 export function OfficeSwitch({ items, value }: { items: readonly OfficeItem[]; value: string }) {
-	const router = useRouter()
-
 	const list = useRef<HTMLDivElement>(null)
 
 	// Activity runs the effects of a view again when it shows the view.
@@ -43,28 +40,6 @@ export function OfficeSwitch({ items, value }: { items: readonly OfficeItem[]; v
 		list.current?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus()
 	}, [])
 
-	useEffect(() => {
-		// A switch that is gone reads no page again.
-		let mounted = true
-
-		const read = (href: string) => {
-			router.prefetch(href, {
-				kind: PrefetchKind.FULL,
-				onInvalidate: () => {
-					if (mounted) read(href)
-				},
-			})
-		}
-
-		for (const item of items) {
-			if (item.value !== value && !item.disabled) read(item.href)
-		}
-
-		return () => {
-			mounted = false
-		}
-	}, [items, value, router])
-
 	return (
 		<Segment
 			value={value}
@@ -75,7 +50,7 @@ export function OfficeSwitch({ items, value }: { items: readonly OfficeItem[]; v
 
 				focusOnShow = list.current?.contains(document.activeElement) ?? false
 
-				router.push(item.href)
+				writeAddress(item.href, 'push')
 			}}
 		>
 			<SegmentControl ref={list} aria-label="Office">

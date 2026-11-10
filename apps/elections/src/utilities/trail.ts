@@ -60,6 +60,14 @@ export function electionCrumbs(election: Election, state?: UsState): Crumb[] {
 	return crumbs
 }
 
+/**
+ * The title of a page of an election, such as `2026 Midterms Georgia Senate`:
+ * the year, the election, and each name under the election.
+ */
+export function pageTitle(election: Election, ...names: string[]): string {
+	return [String(election.year), election.name, ...names].join(' ')
+}
+
 /** The elections of the registry in the order of the list: live ones first, then upcoming, then past. */
 export function listedElections(elections: readonly Election[] = ELECTIONS): Election[] {
 	const rank = { live: 0, upcoming: 1, past: 2 } as const
