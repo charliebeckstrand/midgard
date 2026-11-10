@@ -13,7 +13,7 @@ import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer'
 import { useRace } from '../../queries/race-queries'
 import type { CountyResult, Race } from '../../types'
-import { type DrawerStep, districtName, statePath } from '../../utilities/elections-url'
+import { type DrawerStep, districtName, drawerHref, statePath } from '../../utilities/elections-url'
 import { delegation } from '../../utilities/race-math'
 import {
 	entryKey,
@@ -59,18 +59,25 @@ const SEARCH_ABOVE = 3
 /**
  * The trail of a step: the state, which is its overview and leads back to it;
  * then, on an office, the office with the menu of the offices of the state, and
- * the district where there is one. The caller adds the county.
+ * the district where there is one. The caller adds the county. Each crumb that
+ * leads back has the address of its step on the page at `path`.
  */
 function drawerTrail(
 	election: Election,
 	races: readonly OfficeRaces[],
 	step: DrawerStep,
 	go: Go,
+	path: string,
 ): TrailCrumb[] {
 	const { region, office } = step
 
 	// The overview of the state is the state alone.
 	if (office === null) return [{ label: region.name }]
+
+	const back = (target: DrawerStep) => ({
+		href: drawerHref(path, target),
+		onPick: () => go(target),
+	})
 
 	const offices = new Set(
 		races.filter((entry) => entry.entries.length > 0).map((entry) => entry.contest.slug),
@@ -81,11 +88,11 @@ function drawerTrail(
 	const trail: TrailCrumb[] = [
 		{
 			label: region.name,
-			onPick: () => go({ region, office: null, district: null, county: null }),
+			...back({ region, office: null, district: null, county: null }),
 		},
 		{
 			label: items.find((item) => item.value === office)?.label ?? office,
-			onPick: () => go({ region, office, district: null, county: null }),
+			...back({ region, office, district: null, county: null }),
 			menu: items.map((item) => ({
 				label: item.label,
 				disabled: item.disabled,
@@ -97,7 +104,7 @@ function drawerTrail(
 	if (step.district !== null) {
 		trail.push({
 			label: districtName(step.district),
-			onPick: () => go({ ...step, county: null }),
+			...back({ ...step, county: null }),
 		})
 	}
 
@@ -318,10 +325,11 @@ function drawerView(
 	views: Views,
 	layouts: Layouts,
 	search: Search,
+	path: string,
 ): DrawerView | null {
 	const races = stateRaces(results, step.region)
 
-	const trail = drawerTrail(election, races, step, go)
+	const trail = drawerTrail(election, races, step, go, path)
 
 	const office = races.find((candidate) => candidate.contest.slug === step.office)
 
@@ -366,6 +374,8 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 
 	const { step, go } = useDrawerStep(election)
 
+	const pathname = usePathname()
+
 	usePreloadCountyMap(step?.region.key ?? null)
 
 	const entry = step === null ? undefined : stepEntry(results, step)
@@ -408,7 +418,7 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 	const view =
 		step === null
 			? null
-			: drawerView(election, results, step, entry, race, go, views, layouts, search)
+			: drawerView(election, results, step, entry, race, go, views, layouts, search, pathname)
 
 	return <ResultDrawer view={view} onClose={() => go(null)} />
 }

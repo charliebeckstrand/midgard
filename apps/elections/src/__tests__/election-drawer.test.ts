@@ -137,6 +137,18 @@ describe('ElectionDrawer', () => {
 		expect(selected('Condensed')).toBe('true')
 	})
 
+	it('gives each crumb that leads back the address of its step', () => {
+		window.history.replaceState(null, '', '/2026/us/midterms?region=ga&office=senate&county=13001')
+
+		render(drawer(new QueryClient()))
+
+		const href = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
+
+		// A new tab or a copied link opens the step of the crumb, not the county.
+		expect(href('Georgia')).toBe('/2026/us/midterms?region=ga')
+		expect(href('Senate')).toBe('/2026/us/midterms?region=ga&office=senate')
+	})
+
 	it('gives the last crumb no link when the race has no county of the address', () => {
 		window.history.replaceState(null, '', '/2026/us/midterms?region=ga&office=senate&county=99999')
 
