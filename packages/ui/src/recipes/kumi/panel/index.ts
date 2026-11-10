@@ -69,6 +69,12 @@ export const gap = {
 	 */
 	flush: dan.space.panel.flush,
 	/**
+	 * `flush` on the body of a listbox while it holds no result. The body stays
+	 * in the layout, and the panel keeps one gap where the list is empty. The
+	 * empty command palette is an example.
+	 */
+	flushEmpty: dan.space.panel.flushEmpty,
+	/**
 	 * Puts the gap of `base` above a child that follows a sibling. A list in the
 	 * body uses it to keep the rhythm of the panel slots. The groups of a command
 	 * palette below its search input are an example.

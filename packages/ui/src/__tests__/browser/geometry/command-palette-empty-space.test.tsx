@@ -4,9 +4,9 @@ import { getSlot, noop, present, renderUI } from '../../helpers'
 
 /**
  * Command palette empty space (real layout). While the listbox holds no
- * result, the body of the list and the empty status take no part in the
- * layout. The footer then sits one gap of the panel below the search input,
- * and not two. jsdom lays nothing out, so only a real browser can measure it.
+ * result, the body of the list cancels the gap under it, and the empty status
+ * is out of the flow. The footer then sits one gap of the panel below the
+ * search input, and not two. jsdom lays nothing out, so only a real browser can measure it.
  */
 describe('Command palette empty space (real browser)', () => {
 	it('puts one gap of the panel between the search input and the footer', () => {
@@ -32,8 +32,8 @@ describe('Command palette empty space (real browser)', () => {
 	})
 
 	// The rows of a search come after the palette opens on an empty list. The
-	// body must show them, and hide again when they go.
-	it('shows the body when the first rows come, and hides it when they go', () => {
+	// body must show them, and take no space again when they go.
+	it('shows the rows in the body when they come, and takes no space when they go', () => {
 		const palette = (rows: string[]) => (
 			<CommandPalette open onOpenChange={noop}>
 				{rows.map((row) => (
@@ -46,16 +46,14 @@ describe('Command palette empty space (real browser)', () => {
 
 		const body = getSlot(document.body, 'dialog-body')
 
-		expect(getComputedStyle(body).display).toBe('none')
+		expect(body.getBoundingClientRect().height).toBe(0)
 
 		rerender(palette(['Georgia', 'Texas']))
-
-		expect(getComputedStyle(body).display).not.toBe('none')
 
 		expect(body.getBoundingClientRect().height).toBeGreaterThan(0)
 
 		rerender(palette([]))
 
-		expect(getComputedStyle(body).display).toBe('none')
+		expect(body.getBoundingClientRect().height).toBe(0)
 	})
 })

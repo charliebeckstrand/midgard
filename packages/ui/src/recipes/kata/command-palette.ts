@@ -1,7 +1,7 @@
 /**
  * Command-palette kata: the unit of the grouped result listbox of
  * `<CommandPalette>`, with no axes. The root slot `base` is the scroll body
- * that holds the listbox, which hides while the listbox holds no result.
+ * that holds the listbox, which adds no gap while the listbox holds no result.
  * `group` holds the rows of a group, `title` is the
  * heading of a group, and `empty` is the no-results status. `item` is the unit
  * of a result row, which extends the item group.
@@ -44,13 +44,12 @@ const row = defineKata({
 
 export const k = defineKata(
 	{
-		// The body of the listbox: collapses while it holds no result, so that it
-		// adds no gap of the panel under the search input. A result is an option,
-		// or a `VirtualOptions` wrapper with items, as the palette counts it. The
-		// rule reads the presence of a result and not `:empty` on the listbox:
-		// WebKit does not match `:has()` again when a `:empty` inside it changes,
-		// so the body stayed hidden after the first rows came.
-		base: 'not-has-[[role=option],[data-slot=virtual-options]:not([data-empty])]:hidden',
+		// The body of the listbox. While it holds no result, its bottom margin
+		// cancels the slot gap under it, so that the empty palette has one gap of
+		// the panel under the search input. The body never hides: in WebKit, a body
+		// that goes from `display: none` to shown in a panel at its maximum height
+		// stays at a height of zero.
+		base: gap.flushEmpty,
 		slots: {
 			// A group after any sibling takes the slot gap of the panel, which is the
 			// space between the search input and the first group. Each heading
