@@ -13,6 +13,29 @@ import * as m from '../reduced-motion/reduced-motion-elements'
 // the shared-element morph.
 const INDICATOR_RADIUS = 8
 
+/** The leading translate of a Motion projection transform, with no depth. */
+const TRANSLATE_3D = /^translate3d\(([^,]+), ([^,]+), 0px\)/
+
+/**
+ * The transform template of the marker: it writes the translate of the morph as
+ * a 2D `translate()`.
+ *
+ * Motion writes the translate of a layout projection as `translate3d()`, also
+ * with no depth. WebKit gives an element with a 3D transform function a
+ * compositing layer of its own. The marker then has a layer for the duration of
+ * the morph and none at rest. The label of the item paints above the marker in
+ * the page, but iOS Safari painted the label below the layer of the marker. The
+ * label went out of view under the marker for the morph and came back at rest.
+ * With a 2D translate, the marker paints in the layer of its item, in the order
+ * of the page, so the label stays above it.
+ *
+ * Motion calls the template with an empty transform to reset the marker, so an
+ * empty transform becomes `none`, as Motion writes it with no template.
+ */
+function flatTransform(_values: unknown, generated: string) {
+	return generated === '' ? 'none' : generated.replace(TRANSLATE_3D, 'translate($1, $2)')
+}
+
 /**
  * Carries the `LayoutGroup` `layoutId` an `ActiveIndicatorScope` opens, letting
  * descendant `ActiveIndicator`s share one morph scope; `undefined` outside a
@@ -77,7 +100,9 @@ export type ActiveIndicatorProps = Omit<
  *
  * @remarks Decorative (`pointer-events-none`): it paints behind the item and
  * never intercepts presses. Defaults to an `8px` corner radius, set inline so
- * Motion's layout projection can inverse-scale it mid-morph.
+ * Motion's layout projection can inverse-scale it mid-morph. The morph moves it
+ * with a 2D transform. Thus it gets no compositing layer in WebKit, and the
+ * label of the item stays above it in each frame.
  * @see {@link ActiveIndicatorScope}
  */
 export function ActiveIndicator({ className, style, ...props }: ActiveIndicatorProps) {
@@ -100,6 +125,7 @@ export function ActiveIndicator({ className, style, ...props }: ActiveIndicatorP
 				// Motion's layout projection applies inverse-scale correction to inline
 				// `borderRadius` during the shared-element transition.
 				style={{ borderRadius: INDICATOR_RADIUS, ...style }}
+				transformTemplate={flatTransform}
 				transition={k.spring}
 			/>
 		</ReducedMotion>

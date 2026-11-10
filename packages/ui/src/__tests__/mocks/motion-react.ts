@@ -37,6 +37,7 @@ const MOTION_PROPS = new Set([
 	'layout',
 	'layoutId',
 	'layoutDependency',
+	'transformTemplate',
 	'onAnimationComplete',
 	'onAnimationStart',
 	'onLayoutAnimationComplete',
