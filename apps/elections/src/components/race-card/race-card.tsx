@@ -29,7 +29,7 @@ export type RaceCardProps = {
 function LeaderRow({ candidate }: { candidate: Candidate }) {
 	return (
 		<Flex gap="sm" className="text-sm/6">
-			<Swatch color={candidate.slot} />
+			<Swatch color={candidate.slot} label={candidate.party} />
 
 			<Flex gap="sm" flex="1" className="min-w-0">
 				<span className="truncate">{candidate.name}</span>

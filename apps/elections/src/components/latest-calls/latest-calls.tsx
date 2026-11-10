@@ -47,7 +47,7 @@ export function LatestCalls({
 			{(call) => (
 				<ListItem
 					onClick={() => go(entryStep(call.entry))}
-					prefix={<Swatch color={call.winner.slot} />}
+					prefix={<Swatch color={call.winner.slot} label={call.winner.party} />}
 					suffix={<TimeAgo value={call.at} className="text-zinc-500 dark:text-zinc-400" />}
 				>
 					<ListLabel>{surname(call.winner.name)} wins</ListLabel>

@@ -39,7 +39,7 @@ const COLUMNS: GridColumn<RaceEntry>[] = [
 
 			return leader === undefined ? null : (
 				<Flex as="span" gap="sm">
-					<Swatch color={leader.slot} />
+					<Swatch color={leader.slot} label={leader.party} />
 					{leader.name}
 				</Flex>
 			)
@@ -80,7 +80,7 @@ export function UncalledGrid({
 	return (
 		<Grid
 			columns={COLUMNS}
-			rows={[...entries]}
+			rows={entries}
 			getKey={entryKey}
 			sort={{ value: sort, onValueChange: onSortChange }}
 			onRowClick={onPick}
