@@ -52,7 +52,7 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 						variant="soft"
 					/>
 				) : (
-					<Swatch color={candidate.slot} />
+					<Swatch color={candidate.slot} label={candidate.party} />
 				)}
 
 				{/* The party always sits under the name, so each row has the same shape. */}
