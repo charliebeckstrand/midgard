@@ -12,9 +12,10 @@ type Atlas = {
 const atlas = counties as unknown as Atlas
 
 /**
- * The decimals that a coordinate keeps. The atlas is projected onto a frame
- * 975 units wide, and it is quantized to about a hundredth of a unit. Two
- * decimals therefore keep all of it, and they halve the size of the shapes.
+ * The scale that rounds a coordinate: `100` keeps two decimals. The atlas is
+ * projected onto a frame 975 units wide, and it is quantized to about a
+ * hundredth of a unit. Two decimals therefore keep all of it, and they halve
+ * the size of the shapes.
  */
 const PLACES = 100
 
