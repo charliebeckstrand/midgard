@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { ElectionViews } from '@/components/election-views'
-import { StateOfficeView, StateOverviewView } from '@/components/election-views/state-views'
+import { ElectionViews, StateOfficeView, StateOverviewView } from '@/components/election-views'
 import { countyAspect } from '@/server/county-shapes'
 import { readSection, type SectionParams } from '@/server/params'
 import { electionResults } from '@/server/results'

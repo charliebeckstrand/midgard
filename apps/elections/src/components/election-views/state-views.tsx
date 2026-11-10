@@ -3,14 +3,12 @@ import type { Election } from '../../elections/registry'
 import type { UsState } from '../../elections/us-states'
 import type { StateOffice } from '../../server/state'
 import { statePath } from '../../utilities/elections-url'
-import { delegation } from '../../utilities/race-math'
 import { closestRaces, isCounting, newestUpdate } from '../../utilities/results'
 import { OVERVIEW, officeItems, type StateScope } from '../../utilities/trail'
 import { ClosestRaces } from '../closest-races'
 import { OfficeCard } from '../office-card'
 import { PageBody } from '../page-frame'
 import { PageTitle } from '../page-title'
-import { DelegationSummary, RaceSummary } from '../race-summary'
 import { StateMap } from '../state-map'
 
 /** The state of a page and the offices with a race in it, for the office switch. */
@@ -52,29 +50,14 @@ export function StateOverviewView({
 			/>
 
 			<Columns columns={{ initial: 1, md: 2, lg: 3 }}>
-				{offices.map(({ contest, entries: races }) => {
-					const [only] = races
-
-					if (only === undefined) return null
-
-					return (
-						<OfficeCard
-							key={contest.slug}
-							title={contest.label}
-							href={statePath(election, state, contest)}
-						>
-							{contest.depth === 'district' ? (
-								<DelegationSummary delegation={delegation(races.map((race) => race.candidates))} />
-							) : (
-								<RaceSummary
-									candidates={only.candidates}
-									reporting={only.reporting}
-									called={only.called}
-								/>
-							)}
-						</OfficeCard>
-					)
-				})}
+				{offices.map(({ contest, entries: races }) => (
+					<OfficeCard
+						key={contest.slug}
+						contest={contest}
+						entries={races}
+						href={statePath(election, state, contest)}
+					/>
+				))}
 			</Columns>
 		</PageBody>
 	)

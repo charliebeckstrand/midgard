@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { ElectionRacesProvider } from '@/components/election-drawer'
-import { ElectionViews } from '@/components/election-views'
-import { OfficeView, OverviewView } from '@/components/election-views/views'
+import { ElectionViews, OfficeView, OverviewView } from '@/components/election-views'
 import { ElectionHeader } from '@/components/elections-header'
 import { PageColumn } from '@/components/page-frame'
 import { RaceSearch } from '@/components/race-search'

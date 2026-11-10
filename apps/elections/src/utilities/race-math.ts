@@ -32,7 +32,7 @@ export function lead(candidates: readonly Candidate[]): number | null {
 }
 
 /** The letter of a party in a margin, such as `D` for Democratic. */
-export function partyLetter(party: string): string {
+function partyLetter(party: string): string {
 	return party.charAt(0).toUpperCase()
 }
 

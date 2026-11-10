@@ -21,9 +21,6 @@ export type DrawerStep = {
 	county: string | null
 }
 
-/** The search params of the Drawer. */
-const PARAMS = ['region', 'office', 'district', 'county'] as const
-
 /** A district segment: two digits, or `al` for the at-large seat of a state. */
 const DISTRICT = /^(\d{2}|al)$/
 
@@ -65,19 +62,25 @@ export function readDrawerStep(
 	return step
 }
 
-/** The search params of a step of the Drawer, or none for a closed Drawer. */
-export function drawerSearch(step: DrawerStep | null): URLSearchParams {
+/**
+ * The search params of a step of the Drawer, or none for a closed Drawer. The
+ * literal sets the order of the params, so one step always gives one address.
+ */
+function drawerSearch(step: DrawerStep | null): URLSearchParams {
 	const search = new URLSearchParams()
 
 	if (step === null) return search
 
-	const values = [step.region.key, step.office, step.district, step.county]
+	const values = {
+		region: step.region.key,
+		office: step.office,
+		district: step.district,
+		county: step.county,
+	}
 
-	PARAMS.forEach((name, index) => {
-		const value = values[index]
-
-		if (value !== null && value !== undefined) search.set(name, value)
-	})
+	for (const [name, value] of Object.entries(values)) {
+		if (value !== null) search.set(name, value)
+	}
 
 	return search
 }

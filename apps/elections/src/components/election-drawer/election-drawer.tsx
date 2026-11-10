@@ -135,31 +135,16 @@ function StateOverview({
 
 	return (
 		<Stack gap="lg">
-			{races.map(({ contest, entries }) => {
-				const [only] = entries
-
-				if (only === undefined) return null
-
-				return (
-					<OfficeCard
-						key={contest.slug}
-						title={contest.label}
-						onPick={() =>
-							go({ region: step.region, office: contest.slug, district: null, county: null })
-						}
-					>
-						{contest.depth === 'district' ? (
-							<DelegationSummary delegation={delegation(entries.map((race) => race.candidates))} />
-						) : (
-							<RaceSummary
-								candidates={only.candidates}
-								reporting={only.reporting}
-								called={only.called}
-							/>
-						)}
-					</OfficeCard>
-				)
-			})}
+			{races.map(({ contest, entries }) => (
+				<OfficeCard
+					key={contest.slug}
+					contest={contest}
+					entries={entries}
+					onPick={() =>
+						go({ region: step.region, office: contest.slug, district: null, county: null })
+					}
+				/>
+			))}
 
 			{onPage ? null : (
 				<Button href={page} variant="plain" suffix={<Icon icon={<ArrowRight />} />}>
