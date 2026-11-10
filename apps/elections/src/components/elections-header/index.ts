@@ -1,2 +1,2 @@
 export { ElectionHeader } from './election-header'
-export { ElectionsHeader } from './elections-header'
+export { ElectionsHeader, type ElectionsHeaderProps } from './elections-header'

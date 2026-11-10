@@ -89,11 +89,11 @@ export type ResultDrawerProps = {
 }
 
 /**
- * The glass panel of a result, a Dialog: docked to the bottom on a phone, and
- * centered from `sm`, so the panel is as wide as its content and not as wide
- * as the page. It is built as the summary Drawer of Places: its title is the
- * trail, so a crumb is the way back and the panel needs no Back button, and
- * the close sits at the end of that row. A crumb with a menu switches between
+ * The glass panel of a result, a Dialog. It is docked to the bottom on a phone
+ * and centered from `sm`, so the panel is as wide as its content and not as
+ * wide as the page. Its title is the trail, as in the summary Drawer of
+ * Places. A crumb is the way back, so the panel needs no Back button. The
+ * close sits at the end of that row. A crumb with a menu switches between
  * its choices, as the office crumb does. The panel is as tall as its body, and
  * travels between heights as the step or the view changes. A body taller than
  * the cap of the panel scrolls under the trail, which stays.
