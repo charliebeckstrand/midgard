@@ -1,7 +1,8 @@
 /**
  * Command-palette kata: the unit of the grouped result listbox of
- * `<CommandPalette>`, with no axes. The root slot `base` is the listbox, which
- * hides when it is empty. `group` holds the rows of a group, `title` is the
+ * `<CommandPalette>`, with no axes. The root slot `base` is the scroll body
+ * that holds the listbox, which hides while the listbox holds no result.
+ * `group` holds the rows of a group, `title` is the
  * heading of a group, and `empty` is the no-results status. `item` is the unit
  * of a result row, which extends the item group.
  */
@@ -43,20 +44,22 @@ const row = defineKata({
 
 export const k = defineKata(
 	{
-		// Inner listbox: collapses when empty. `kara` adds the virtualized case,
-		// which `:empty` alone cannot see.
-		base: ['empty:hidden', kara.list],
+		// The body of the listbox: collapses while the listbox is empty, so that it
+		// adds no gap of the panel under the search input. `kara` adds the
+		// virtualized case, which `:empty` alone cannot see.
+		base: ['has-[>[role=listbox]:empty]:hidden', kara.list],
 		slots: {
 			// A group after any sibling takes the slot gap of the panel, which is the
 			// space between the search input and the first group. Each heading
 			// therefore has the same space above it.
 			group: ['flex flex-col gap-0.5', gap.above],
 			title: ['p-2', size.xs, text.muted, weight.medium],
-			// Sibling no-results status: a persistent `<output>` (role=status). It never
-			// hides, because a live region speaks only while it is in the accessibility
-			// tree. The palette writes its text on zero results. The padding applies only
-			// while the block holds the text, so the empty region takes no space.
-			empty: ['block', 'not-empty:p-2', size.sm, text.muted],
+			// The no-results status after the body: a persistent `<output>`
+			// (role=status). It never hides, because a live region speaks only while it
+			// is in the accessibility tree. The palette writes its text on zero results.
+			// While it holds no text, it is out of the flow, so it adds no gap of the
+			// panel.
+			empty: ['block', 'empty:sr-only', 'not-empty:p-2', size.sm, text.muted],
 		},
 	},
 	{

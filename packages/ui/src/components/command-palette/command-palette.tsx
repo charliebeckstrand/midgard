@@ -46,8 +46,8 @@ const messages = defineMessages({
 	},
 })
 
-/** The slots of the result listbox. */
-const list = k()
+/** The slots of the result area. */
+const results = k()
 
 /** The palette docks to the bottom edge on a compact viewport, and floats near the top from medium. */
 const PALETTE_ALIGN = adaptive({
@@ -286,27 +286,31 @@ export function CommandPalette({
 						/>
 						{/* A press on the chrome of the list, such as a heading or the gap
 						    between the rows, keeps the focus on the input, as a row does. */}
-						<DialogBody onMouseDown={keepInputFocus}>
+						<DialogBody onMouseDown={keepInputFocus} className={results.base}>
 							<div
 								ref={attachList}
 								id={listboxId}
 								role="listbox"
 								aria-label={placeholder}
 								data-slot="command-palette-list"
-								className={list.base}
 							>
 								<VirtualItemSourceContext value={virtualSourceRef}>
 									{children}
 								</VirtualItemSourceContext>
 							</div>
-							{/* The listbox owns only options (`aria-required-children`), so the
-							    no-results status is a sibling `<output>`. It stays in the
-							    accessibility tree, and it holds text only on zero results for a
-							    query: a live region speaks only a change of text. */}
-							<output data-slot="command-palette-no-results" className={list.empty}>
-								{empty && searched ? intl.formatMessage(intlMessages.noResults) : null}
-							</output>
 						</DialogBody>
+						{/* The listbox owns only options (`aria-required-children`), so the
+						    no-results status is an `<output>` after the body, which hides
+						    while the listbox is empty. The status stays in the accessibility
+						    tree, and it holds text only on zero results for a query: a live
+						    region speaks only a change of text. */}
+						<output
+							data-slot="command-palette-no-results"
+							className={results.empty}
+							onMouseDown={keepInputFocus}
+						>
+							{empty && searched ? intl.formatMessage(intlMessages.noResults) : null}
+						</output>
 						{footerContent === null || footerContent === false ? null : (
 							<DialogFooter data-slot="command-palette-footer">{footerContent}</DialogFooter>
 						)}
