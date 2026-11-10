@@ -28,7 +28,10 @@ export type CrumbChoice = {
 /** One crumb of the trail of a {@link ResultDrawer}. */
 export type TrailCrumb = {
 	label: string
-	/** Fires when the crumb is picked. Absent for the last crumb, which is where the reader is. */
+	/**
+	 * Fires when the crumb is picked. The Drawer ignores it on the last crumb,
+	 * which is where the reader is, so the last crumb is never a link.
+	 */
 	onPick?: () => void
 	/**
 	 * The choices of the menu of the crumb, such as the offices of a state. A
@@ -46,9 +49,12 @@ export type DrawerView = {
 	body: ReactNode
 }
 
-/** The label of a crumb: a link back where the crumb acts, or the plain name where it does not. */
+/**
+ * The label of a crumb: a link back where the crumb acts, or the plain name
+ * where it does not. The current crumb is where the reader is, so it does not act.
+ */
 function CrumbLink({ crumb, current }: { crumb: TrailCrumb; current: boolean }) {
-	const { onPick } = crumb
+	const onPick = current ? undefined : crumb.onPick
 
 	return (
 		<BreadcrumbLink
@@ -120,7 +126,8 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 														label={step.label}
 														current={index === shown.steps.length - 1}
 														link={
-															step.onPick === undefined ? undefined : (
+															step.onPick === undefined ||
+															index === shown.steps.length - 1 ? undefined : (
 																<CrumbLink
 																	crumb={step}
 																	current={index === shown.steps.length - 1}

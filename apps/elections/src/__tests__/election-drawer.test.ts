@@ -11,6 +11,7 @@ import { readNationalRace, readRace } from '../server/civic-race'
 import { atlasCountyNames } from '../server/county-names'
 import { readEntries } from '../utilities/results'
 import gaSenate from './fixtures/ga-senate.json'
+import house from './fixtures/house.json'
 import senate from './fixtures/senate.json'
 
 vi.mock('next/navigation', () => ({
@@ -52,7 +53,14 @@ if (midterms === undefined || contest === undefined) {
 
 const election: Election = midterms
 
-const races = [{ contest, entries: readEntries(contest, readNationalRace(87528, senate)) }]
+const houseContest = findContest(midterms, 'house')
+
+if (houseContest === undefined) throw new Error('The registry has no 2026 House.')
+
+const races = [
+	{ contest, entries: readEntries(contest, readNationalRace(87528, senate)) },
+	{ contest: houseContest, entries: readEntries(houseContest, readNationalRace(87524, house)) },
+]
 
 /** The Georgia Senate race, as the page seeds it. */
 const georgia = seed(readRace(87087, gaSenate, '13', atlasCountyNames))
@@ -127,5 +135,32 @@ describe('ElectionDrawer', () => {
 		})
 
 		expect(selected('Condensed')).toBe('true')
+	})
+
+	it('gives the last crumb no link when the race has no county of the address', () => {
+		window.history.replaceState(null, '', '/2026/us/midterms?region=ga&office=senate&county=99999')
+
+		render(drawer(new QueryClient()))
+
+		expect(screen.getByRole('link', { name: 'Georgia' })).toBeTruthy()
+
+		expect(screen.queryByRole('link', { name: 'Senate' })).toBeNull()
+	})
+
+	it('tells a screen reader when the district search matches nothing', () => {
+		window.history.replaceState(null, '', '/2026/us/midterms?region=ga&office=house')
+
+		render(drawer(new QueryClient()))
+
+		// The status is in the page before its text, so a screen reader reads the text when it comes.
+		const status = screen.getByRole('status')
+
+		expect(status.textContent).toBe('')
+
+		fireEvent.change(screen.getByRole('searchbox', { name: 'Search districts and candidates' }), {
+			target: { value: 'zzzz' },
+		})
+
+		expect(screen.getByRole('status').textContent).toBe('No district matches.')
 	})
 })
