@@ -35,9 +35,6 @@ const DENSITY_FILES = [
 	'src/__tests__/browser/geometry/*-density.test.tsx',
 	'src/__tests__/browser/geometry/size-steps.test.tsx',
 	'src/__tests__/browser/geometry/drawer-fit-aspect.test.tsx',
-	// A temporary probe: revert before merge.
-	'src/__tests__/browser/geometry/has-empty-probe.test.tsx',
-	'src/__tests__/browser/geometry/command-palette-empty-space.test.tsx',
 ]
 
 /** The CSS of this package, and not the CSS of a dependency. */
