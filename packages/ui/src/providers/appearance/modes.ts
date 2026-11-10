@@ -77,3 +77,12 @@ export const sidebarModes: { message: MessageDescriptor; value: SidebarMode }[] 
 	{ message: modeMessages.locked, value: 'locked' },
 	{ message: modeMessages.offcanvas, value: 'offcanvas' },
 ]
+
+/**
+ * The Glass setting: `'on'` paints each glass surface as glass, and `'off'`
+ * paints it flat. An app shows its own field for it, such as a switch.
+ */
+export type GlassMode = 'on' | 'off'
+
+/** The values of the Glass setting. */
+export const glassModes: readonly GlassMode[] = ['on', 'off']

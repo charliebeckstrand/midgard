@@ -4,6 +4,9 @@
  * panel. The raw color pairs live here, not in `bg.ts`; the `blur` filter
  * is its own concern.
  *
+ * `glass` also holds the `base` scrim behind the `glass-off` variant, for the
+ * paint before hydration while the reader has the glass off (see `panel.ts`).
+ *
  * Layer: kiso · Concern: backdrop fill
  */
 
@@ -18,5 +21,9 @@ const fill = {
 
 export const backdrop = {
 	base: [fill.md, blur.sm],
-	glass: fill.lg,
+	glass: [
+		fill.lg,
+		...mode('glass-off:bg-white/50', 'dark:glass-off:bg-zinc-950/50'),
+		'glass-off:backdrop-blur-sm',
+	],
 } as const

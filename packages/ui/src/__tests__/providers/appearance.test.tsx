@@ -10,6 +10,7 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { AppearanceProvider, AppearanceSettings, useAppearance } from '../../providers/appearance'
 import { type AppearanceChoice, parseChoice } from '../../providers/appearance/appearance-storage'
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
+import { useGlass, useResolvedSurface } from '../../providers/glass'
 import { LocaleProvider, useLocale } from '../../providers/locale'
 import { writeCookie } from '../../utilities/cookie'
 import {
@@ -57,7 +58,13 @@ function MotionProbe() {
 afterEach(() => {
 	cleanup()
 
-	document.documentElement.classList.remove('dark', 'light', 'reduced-motion', 'sidebar-offcanvas')
+	document.documentElement.classList.remove(
+		'dark',
+		'light',
+		'reduced-motion',
+		'sidebar-offcanvas',
+		'glass-off',
+	)
 
 	writeRootDensity(document.documentElement, 'md')
 })
@@ -268,6 +275,50 @@ describe('AppearanceProvider', () => {
 		await userEvent.click(button)
 
 		expect(document.documentElement).not.toHaveClass('sidebar-offcanvas')
+	})
+
+	it('marks the root and turns each glass surface flat while the glass is off', async () => {
+		function GlassProbe() {
+			const { glass, setGlass } = useAppearance()
+
+			const surface = useResolvedSurface(true)
+
+			const ambient = useGlass()
+
+			return (
+				<button type="button" onClick={() => setGlass(glass === 'on' ? 'off' : 'on')}>
+					{`${glass} ${surface ?? 'flat'} ${ambient}`}
+				</button>
+			)
+		}
+
+		renderUI(
+			<AppearanceProvider>
+				<GlassProbe />
+			</AppearanceProvider>,
+			{ glass: true },
+		)
+
+		const button = screen.getByRole('button')
+
+		expect(button).toHaveTextContent('on glass true')
+
+		expect(document.documentElement).not.toHaveClass('glass-off')
+
+		await userEvent.click(button)
+
+		// The setting wins over a `glass` prop and over the ambient flag.
+		expect(button).toHaveTextContent('off flat false')
+
+		expect(document.documentElement).toHaveClass('glass-off')
+
+		expect(localStorage.getItem('glass')).toBe('off')
+
+		await userEvent.click(button)
+
+		expect(button).toHaveTextContent('on glass true')
+
+		expect(document.documentElement).not.toHaveClass('glass-off')
 	})
 
 	it('throws when useAppearance has no provider', () => {

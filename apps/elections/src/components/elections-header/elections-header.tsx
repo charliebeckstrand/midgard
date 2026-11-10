@@ -16,6 +16,7 @@ import { Container } from 'ui/structure/container'
 import { Flex } from 'ui/structure/flex'
 import type { Crumb } from '../../utilities/trail'
 import { AutoUpdateSwitch } from '../auto-update'
+import { GlassSwitch } from '../glass-switch'
 
 /**
  * The label of a crumb. A crumb that leads to another page is a link. The crumb
@@ -52,7 +53,7 @@ export type ElectionsHeaderProps = {
  * office, the election crumb leads up to the overview. The trail gives way from
  * the left, as the trail of Places does.
  * The search and the settings sit on its right. The settings add the Auto
- * update switch to the appearance pickers. The bar stays at
+ * update and the Glass surfaces switches to the appearance pickers. The bar stays at
  * the top while the body under it scrolls (`PageColumn`).
  */
 export function ElectionsHeader({ crumbs, search }: ElectionsHeaderProps) {
@@ -83,6 +84,8 @@ export function ElectionsHeader({ crumbs, search }: ElectionsHeaderProps) {
 
 						<AppearanceSettings>
 							<AutoUpdateSwitch />
+
+							<GlassSwitch />
 						</AppearanceSettings>
 					</Flex>
 				</Flex>

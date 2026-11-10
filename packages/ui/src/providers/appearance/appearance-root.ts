@@ -1,4 +1,5 @@
 import { rootDensityClasses } from '../../core/density/steps'
+import { ROOT_GLASS_OFF_CLASS } from '../../core/glass/root'
 import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
 import { readCookie } from '../../utilities/cookie'
@@ -6,6 +7,7 @@ import { levelToStep } from '../density/context'
 import {
 	type AppearanceChoice,
 	DENSITY,
+	GLASS,
 	MOTION,
 	parseChoice,
 	SIDEBAR,
@@ -22,7 +24,8 @@ import {
  * `'system'` gives no class, so the `dark` variant of the stylesheet must
  * follow `prefers-color-scheme` while the root has neither class. Density: a
  * step other than `md` gives its class. Motion: `'reduced'` gives
- * `reduced-motion`. Sidebar: `'offcanvas'` gives `sidebar-offcanvas`.
+ * `reduced-motion`. Sidebar: `'offcanvas'` gives `sidebar-offcanvas`. Glass:
+ * `'off'` gives `glass-off`.
  *
  * @internal
  */
@@ -46,6 +49,8 @@ export function appearanceRootClasses(cookies: string): string[] {
 	if (read(MOTION) === 'reduced') classes.push(ROOT_REDUCED_MOTION_CLASS)
 
 	if (read(SIDEBAR) === 'offcanvas') classes.push(ROOT_OFFCANVAS_SIDEBAR_CLASS)
+
+	if (read(GLASS) === 'off') classes.push(ROOT_GLASS_OFF_CLASS)
 
 	return classes
 }

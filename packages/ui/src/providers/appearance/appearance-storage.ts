@@ -2,6 +2,8 @@ import { readCookie, writeCookie } from '../../utilities/cookie'
 import { createEmitter } from '../../utilities/emitter'
 import { type DensityLevel, densityLevels } from '../density/context'
 import {
+	type GlassMode,
+	glassModes,
 	type MotionMode,
 	motionModes,
 	type SidebarMode,
@@ -78,6 +80,18 @@ export const SIDEBAR: AppearanceChoice<SidebarMode> = {
 	values: sidebarModes.map((option) => option.value),
 	fallback: 'locked',
 	cookie: 'sidebar',
+}
+
+/**
+ * The glass choice. With no stored choice, the glass is on.
+ *
+ * @internal
+ */
+export const GLASS: AppearanceChoice<GlassMode> = {
+	key: 'glass',
+	values: glassModes,
+	fallback: 'on',
+	cookie: 'glass',
 }
 
 /**

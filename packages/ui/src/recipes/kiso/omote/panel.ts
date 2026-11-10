@@ -3,12 +3,29 @@
  * forced-color outline), and fill + chrome combined. And `axis`, the `surface`
  * axis of a modal panel.
  *
+ * The `glass` half of the axis also holds the flat surface behind the
+ * `glass-off` variant. A server can paint an open modal panel before
+ * hydration, and the Glass setting of the reader is then only a class on the
+ * root (`core/glass/root.ts`). Thus that paint is flat when the reader turned
+ * the glass off. After hydration, the panel takes the `flat` half itself.
+ *
  * Layer: kiso · Concern: panel surface
  */
+
+import { mode } from '../../../core/recipe'
 
 import { ring } from '../sen/ring'
 import { bg } from './bg'
 import { glass } from './glass'
+
+/** The `flat` surface behind the `glass-off` variant: the fill of `bg.surface`, and no blur. */
+const glassOff = [
+	...mode(
+		['glass-off:bg-white', 'glass-off:[--surface-fill:var(--color-white)]'],
+		['dark:glass-off:bg-zinc-900', 'dark:glass-off:[--surface-fill:var(--color-zinc-900)]'],
+	),
+	'glass-off:backdrop-blur-none',
+]
 
 export const panel = {
 	/** Chrome only: ring + forced-color outline, no fill. */
@@ -16,5 +33,5 @@ export const panel = {
 	/** Fill + chrome, everything a floating panel needs. */
 	base: [...ring.default, ...bg.surface],
 	/** The `surface` axis of a modal panel: `flat` is opaque, and `glass` is translucent and blurred. */
-	axis: { glass, flat: bg.surface },
+	axis: { glass: [...glass, ...glassOff], flat: bg.surface },
 } as const
