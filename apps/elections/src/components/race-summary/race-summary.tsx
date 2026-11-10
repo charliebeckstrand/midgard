@@ -70,7 +70,7 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 							</Badge>
 
 							{candidate.incumbent ? (
-								<Badge variant="soft" color="zinc">
+								<Badge variant="outline" color="zinc">
 									Incumbent
 								</Badge>
 							) : null}
