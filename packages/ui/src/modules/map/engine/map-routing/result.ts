@@ -34,17 +34,23 @@ export type MapRouteAnswer =
 	| { ok: true; route: MapRouteResult }
 	| { ok: false; failure: MapRouteFailure }
 
-/** The OSRM route payload. @internal */
+/**
+ * The OSRM route payload, as a parsed body holds it. JSON has no `undefined`: a
+ * service with no value for a key omits the key or writes `null`. Each level
+ * can thus be `null`, and the reader takes a `null` as an absent value.
+ *
+ * @internal
+ */
 export type OsrmPayload = {
 	routes?: Array<{
 		/** GeoJSON geometry (OSRM `geometries=geojson`). */
-		geometry?: { coordinates?: LngLat[] }
-		distance?: number
-		duration?: number
-	}>
+		geometry?: { coordinates?: LngLat[] | null } | null
+		distance?: number | null
+		duration?: number | null
+	} | null> | null
 	/** The service's own status: `'Ok'` on a routed answer, its own refusal otherwise. */
-	code?: string
-}
+	code?: string | null
+} | null
 
 /**
  * The codes OSRM refuses a pair it cannot join with. `'NoRoute'` is where no
@@ -87,25 +93,31 @@ export function refusedFailure(status: number, body: unknown): MapRouteFailure {
  * @internal
  */
 function emptyPayloadFailure(payload: OsrmPayload): MapRouteFailure {
-	if (payload.code !== undefined && payload.code !== 'Ok') return noRouteFailure(payload.code)
+	const code = payload?.code
 
-	return payload.routes === undefined ? routeFailure('payload') : noRouteFailure()
+	if (code != null && code !== 'Ok') return noRouteFailure(code)
+
+	return payload?.routes == null ? routeFailure('payload') : noRouteFailure()
 }
 
 /** The first route's geometry and totals, or why the payload holds none. @internal */
 export function routeAnswer(payload: OsrmPayload): MapRouteAnswer {
-	const route = payload.routes?.[0]
+	const routes = payload?.routes
 
-	if (route === undefined) return { ok: false, failure: emptyPayloadFailure(payload) }
+	if (routes == null || routes.length === 0) {
+		return { ok: false, failure: emptyPayloadFailure(payload) }
+	}
 
-	const path = route.geometry?.coordinates ?? []
+	const route = routes[0]
+
+	const path = route?.geometry?.coordinates ?? []
 
 	// `overview: 'false'` answers with the totals and no geometry (the cheap
 	// distance/duration-only request the option documents), so keep them and hand
 	// back an empty path the overlay draws a straight line for. A leg with neither
 	// geometry nor a total is nothing the service could have routed, so it reads as
 	// a payload this reader cannot take rather than as a refusal it never made.
-	if (path.length === 0 && route.distance === undefined && route.duration === undefined) {
+	if (path.length === 0 && route?.distance == null && route?.duration == null) {
 		return { ok: false, failure: routeFailure('payload') }
 	}
 
@@ -113,8 +125,8 @@ export function routeAnswer(payload: OsrmPayload): MapRouteAnswer {
 		ok: true,
 		route: {
 			path,
-			distanceMeters: route.distance ?? 0,
-			durationSeconds: route.duration ?? 0,
+			distanceMeters: route?.distance ?? 0,
+			durationSeconds: route?.duration ?? 0,
 		},
 	}
 }

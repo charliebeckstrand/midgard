@@ -27,6 +27,9 @@ const PAYLOAD = {
 	],
 }
 
+/** The answer to a body that is not a routing answer. */
+const NO_ANSWER = { ok: false, failure: { kind: 'payload', retryable: false } }
+
 function stubFetch(response: { ok: boolean; status?: number; json?: unknown }) {
 	const mock = vi.fn().mockResolvedValue({
 		ok: response.ok,
@@ -272,6 +275,34 @@ describe('fetchOsrmRoute', () => {
 			expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({ ok: false, failure })
 		},
 	)
+
+	// JSON has no `undefined`. A service with no value for a key omits the key or
+	// writes `null`. The reader thus takes a `null` as an absent value at each
+	// level of the body.
+	it.for([
+		{ name: 'the body', json: null, answer: NO_ANSWER },
+		{ name: 'the routes', json: { routes: null }, answer: NO_ANSWER },
+		{ name: 'a leg', json: { routes: [null] }, answer: NO_ANSWER },
+		{
+			name: 'the totals of a leg with no geometry',
+			json: { routes: [{ geometry: null, distance: null, duration: null }] },
+			answer: NO_ANSWER,
+		},
+		{
+			name: 'the code of a refusal',
+			json: { code: null, routes: [] },
+			answer: { ok: false, failure: { kind: 'no-route', retryable: false } },
+		},
+		{
+			name: 'the geometry of a leg with totals',
+			json: { routes: [{ geometry: null, distance: 3243000, duration: 106200 }] },
+			answer: { ok: true, route: { path: [], distanceMeters: 3243000, durationSeconds: 106200 } },
+		},
+	])('reads a JSON null as an absent value: $name', async ({ json, answer }) => {
+		stubFetch({ ok: true, json })
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual(answer)
+	})
 
 	it('honors a custom base URL and profile', async () => {
 		const mock = stubFetch({ ok: true, json: PAYLOAD })
