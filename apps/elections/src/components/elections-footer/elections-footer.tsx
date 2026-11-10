@@ -6,16 +6,17 @@ import { TimeAgo } from 'ui/time-ago'
 
 /** Props for {@link ElectionsFooter}. */
 export type ElectionsFooterProps = {
-	/** Votes are still counted, so the footer shows a live dot. */
+	/** Votes are still counted, so the footer shows an amber dot that pulses. */
 	counting: boolean
 	/** The newest update of the results on the page, as an ISO time, or `null` for a page with none. */
 	updated: string | null
 }
 
 /**
- * The footer of each page. It holds the status, so no page has a status line:
- * on the left a live dot while votes are counted and the age of the newest
- * update; on the right the sources. Under 640px the two stack.
+ * The footer of each page with results. It holds the status of the count, so
+ * no page has a status line. On the left are the age of the newest update and,
+ * while votes are counted, an amber dot that pulses, as on a race that is not
+ * called. On the right are the sources. Under 640px the two stack.
  */
 export function ElectionsFooter({ counting, updated }: ElectionsFooterProps) {
 	return (
@@ -31,7 +32,7 @@ export function ElectionsFooter({ counting, updated }: ElectionsFooterProps) {
 						<span />
 					) : (
 						<Flex as="span" gap="sm" className="text-zinc-600 dark:text-zinc-300">
-							{counting ? <StatusDot status="active" pulse /> : null}
+							{counting ? <StatusDot status="warning" pulse /> : null}
 
 							<span>
 								{counting ? 'Counting' : 'Counted'}
