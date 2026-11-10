@@ -1669,7 +1669,7 @@
 	},
 	"docs.demo.29887a5ff984": {
 		"defaultMessage": "Share",
-		"description": "Text of a demo in the docs as label, in components/context-menu/playground.tsx, components/group/item-count.tsx, components/menu/submenus.tsx and 2 more."
+		"description": "Text of a demo in the docs as label, in components/context-menu/playground.tsx, components/group/item-count.tsx, components/menu/submenus.tsx and 1 more."
 	},
 	"docs.demo.29c95d3e1e99": {
 		"defaultMessage": "A paid plan renews each month until you cancel it. The service charges the card on your account on the first day of each period.",
@@ -1869,7 +1869,7 @@
 	},
 	"docs.demo.355f79f29d7d": {
 		"defaultMessage": "Comments",
-		"description": "Text of a demo in the docs, in components/checkbox/group.tsx, providers/glass/overlays.tsx."
+		"description": "Text of a demo in the docs, in components/checkbox/group.tsx."
 	},
 	"docs.demo.3561662ec0d6": {
 		"defaultMessage": "Bare input",
@@ -2107,10 +2107,6 @@
 		"defaultMessage": "Enter a different username. This one is taken.",
 		"description": "Text of a demo in the docs as fieldErrors, in modules/form/server-errors.tsx."
 	},
-	"docs.demo.45989de49fb7": {
-		"defaultMessage": "Details",
-		"description": "Text of a demo in the docs, in providers/glass/overlays.tsx."
-	},
 	"docs.demo.45a232b3c4ec": {
 		"defaultMessage": "Count late stops",
 		"description": "Text of a demo in the docs as label, in modules/chat/conversation/failed-reply.tsx, modules/chat/conversation/reply.ts."
@@ -2138,10 +2134,6 @@
 	"docs.demo.4709bd3cfc9f": {
 		"defaultMessage": "Write API docs",
 		"description": "Text of a demo in the docs as title, in data/tasks.ts."
-	},
-	"docs.demo.4783eaba186b": {
-		"defaultMessage": "Wade Cooper created this project on June 18.",
-		"description": "Text of a demo in the docs, in providers/glass/overlays.tsx."
 	},
 	"docs.demo.479ad21ac909": {
 		"defaultMessage": "Bottom",
@@ -2197,7 +2189,7 @@
 	},
 	"docs.demo.48f0d3d397d4": {
 		"defaultMessage": "Sign out",
-		"description": "Text of a demo in the docs as label, in components/confirm/glass.tsx, components/menu/title-and-description.tsx, components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs, in components/menu/title-and-description.tsx, components/sidebar/sections-divider-and-spacer.tsx."
 	},
 	"docs.demo.4938576bb32b": {
 		"defaultMessage": "Search or add a person",
@@ -2559,10 +2551,6 @@
 		"defaultMessage": "New version available",
 		"description": "Text of a demo in the docs as title, in components/banner/closable.tsx, components/banner/index.tsx, components/banner/with-actions.tsx."
 	},
-	"docs.demo.5f770a8de37b": {
-		"defaultMessage": "Project details",
-		"description": "Text of a demo in the docs, in providers/glass/overlays.tsx."
-	},
 	"docs.demo.606124ade426": {
 		"defaultMessage": "Not called",
 		"description": "Text of a demo in the docs as label, in modules/chart/seat/basic.tsx, modules/chart/seat/center-content.tsx, modules/chart/seat/majority.tsx."
@@ -2730,10 +2718,6 @@
 	"docs.demo.69493e6f1a69": {
 		"defaultMessage": "Hex",
 		"description": "Text of a demo in the docs as label, in components/swatch/color.tsx."
-	},
-	"docs.demo.6a18dd4e01b1": {
-		"defaultMessage": "You must sign in again on each of your devices.",
-		"description": "Text of a demo in the docs as description, in components/confirm/glass.tsx."
 	},
 	"docs.demo.6a983f3d58ca": {
 		"defaultMessage": "Search now finds the text in your attachments. Shared folders show who changed each file last, and the dark theme follows the setting of your system.",
@@ -3090,10 +3074,6 @@
 	"docs.demo.7d339dd6cbb7": {
 		"defaultMessage": "Main content (2/3)",
 		"description": "Text of a demo in the docs, in structure/split/sidebar-layout.tsx."
-	},
-	"docs.demo.7d9eb7acb13e": {
-		"defaultMessage": "Close",
-		"description": "Text of a demo in the docs, in providers/glass/overlays.tsx."
 	},
 	"docs.demo.7e1b0d5641f2": {
 		"defaultMessage": "Account",
@@ -4075,10 +4055,6 @@
 		"defaultMessage": "Server",
 		"description": "Text of a demo in the docs, in modules/grid/virtualization/index.tsx."
 	},
-	"docs.demo.af180fca9025": {
-		"defaultMessage": "Sign out everywhere",
-		"description": "Text of a demo in the docs, in components/confirm/glass.tsx."
-	},
 	"docs.demo.af73af020022": {
 		"defaultMessage": "Last error:",
 		"description": "Text of a demo in the docs, in modules/events/report-a-bug.tsx."
@@ -4299,14 +4275,6 @@
 		"defaultMessage": "photo-002.png",
 		"description": "Text of a demo in the docs as label, in components/tree/rich-content.tsx."
 	},
-	"docs.demo.bb01934e466b": {
-		"defaultMessage": "Sign out everywhere?",
-		"description": "Text of a demo in the docs as title, in components/confirm/glass.tsx."
-	},
-	"docs.demo.bb4c77951491": {
-		"defaultMessage": "Share the project",
-		"description": "Text of a demo in the docs, in providers/glass/overlays.tsx."
-	},
 	"docs.demo.bb7234ec1245": {
 		"defaultMessage": "Register",
 		"description": "Text of a demo in the docs, in modules/form/server-errors.tsx."
@@ -4397,7 +4365,7 @@
 	},
 	"docs.demo.c022b19a38a6": {
 		"defaultMessage": "Open command palette",
-		"description": "Text of a demo in the docs, in components/command-palette/custom-footer.tsx, components/command-palette/glass.tsx, components/command-palette/playground.tsx and 1 more."
+		"description": "Text of a demo in the docs, in components/command-palette/custom-footer.tsx, components/command-palette/playground.tsx, components/command-palette/with-actions.tsx."
 	},
 	"docs.demo.c06d735bae3a": {
 		"defaultMessage": "You own the files that you upload. You give the service permission to store them, copy them for backups, and show them to the people that you share them with.",
@@ -5075,10 +5043,6 @@
 		"defaultMessage": "Application",
 		"description": "Text of a demo in the docs as title, in components/command-palette/commands.tsx."
 	},
-	"docs.demo.e7b847c86ba3": {
-		"defaultMessage": "Tanya Fox approved the new header.",
-		"description": "Text of a demo in the docs, in providers/glass/overlays.tsx."
-	},
 	"docs.demo.e7cf3ef4f17c": {
 		"defaultMessage": "Password",
 		"description": "Text of a demo in the docs as aria-label, placeholder, in components/password-confirm/in-a-form.tsx, components/password-confirm/playground.tsx, components/password-confirm/with-strength-meter.tsx and 10 more."
@@ -5122,10 +5086,6 @@
 	"docs.demo.eb1a70e39274": {
 		"defaultMessage": "Discard",
 		"description": "Text of a demo in the docs, in modules/form/unsaved-changes.tsx."
-	},
-	"docs.demo.eb3026c69074": {
-		"defaultMessage": "Ravi Shah and Mia Chen can edit this project.",
-		"description": "Text of a demo in the docs, in providers/glass/overlays.tsx."
 	},
 	"docs.demo.eb5e7a5e3d68": {
 		"defaultMessage": "Date modified",
@@ -6414,10 +6374,6 @@
 	"docs.prop.gap.xs": {
 		"defaultMessage": "Extra small",
 		"description": "An option of the Gap field of a playground in the docs. It sets the prop gap to 'xs' on Columns, Flex, Split, Stack."
-	},
-	"docs.prop.glass": {
-		"defaultMessage": "Glass",
-		"description": "The label of a field of a playground in the docs. The field sets the prop glass of CommandPalette, Confirm, DialogPanel, DrawerPanel, SheetPanel."
 	},
 	"docs.prop.handle": {
 		"defaultMessage": "Handle",
@@ -8366,10 +8322,6 @@
 	"docs.title.overflow": {
 		"defaultMessage": "Overflow",
 		"description": "The title of an example on a page of the docs. It comes from the file name overflow.tsx."
-	},
-	"docs.title.overlays": {
-		"defaultMessage": "Overlays",
-		"description": "The title of an example on a page of the docs. It comes from the file name overlays.tsx."
 	},
 	"docs.title.past": {
 		"defaultMessage": "Past",

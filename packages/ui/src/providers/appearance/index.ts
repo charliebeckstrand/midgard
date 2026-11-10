@@ -7,6 +7,7 @@ export {
 	type SidebarMode,
 	type SurfaceMode,
 	sidebarModes,
+	surfaceModes,
 	type ThemeMode,
 	themeModes,
 } from './modes'

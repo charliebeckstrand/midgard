@@ -257,7 +257,7 @@ export function PredictionSheet({
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetPanel glass aria-label={title}>
+			<SheetPanel aria-label={title}>
 				<SheetHeader>
 					<Flex justify="between" align="center" gap="md">
 						<SheetTitle>{shown === null ? title : `${title}: ${shown.label}`}</SheetTitle>

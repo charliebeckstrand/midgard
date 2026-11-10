@@ -28,9 +28,11 @@ export type AppearanceSettingsProps = {
 }
 
 /**
- * Settings icon button that opens a dialog with the appearance, density, and
- * motion pickers of the nearest {@link AppearanceProvider}. A selection applies
- * immediately and persists. Put it in the header or the navbar of the app.
+ * Settings icon button that opens a dialog with the appearance, density,
+ * motion, and surfaces pickers of the nearest {@link AppearanceProvider}. A
+ * selection applies immediately and persists. Put it in the header or the
+ * navbar of the app. The Surfaces picker (Glass or Solid) sets the surface of
+ * each Dialog, Drawer, and Sheet panel, the dialog itself included.
  *
  * Inside a `SidebarLayout`, the dialog also has the Sidebar picker (Locked or
  * Offcanvas), with the key that toggles it: ⌘B on Apple platforms, and ⌃B

@@ -39,7 +39,7 @@ export const panel = defineGroup({
 	slots: {
 		backdrop: {
 			base: 'absolute inset-0',
-			surface: { glass: omote.backdrop.glass, flat: omote.backdrop.base },
+			surface: omote.backdrop.axis,
 		},
 		/**
 		 * Optional wrapper around title + description for the tighter `sm` gap, or around

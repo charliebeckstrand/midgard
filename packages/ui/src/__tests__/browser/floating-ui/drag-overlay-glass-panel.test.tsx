@@ -8,6 +8,7 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../../modules/kanban'
+import { GlassSurfacesContext } from '../../../providers/glass/context'
 import { renderUI, waitFor } from '../../helpers'
 import { drag } from '../helpers/drag'
 
@@ -63,17 +64,19 @@ describe('drag overlay in a glass drawer (real browser)', () => {
 		const overlay = '[data-slot="kanban-card"][data-overlay]'
 
 		renderUI(
-			<Drawer open onOpenChange={() => {}}>
-				<DrawerPanel glass aria-label="Sortable">
-					<DrawerTitle>Sortable</DrawerTitle>
+			<GlassSurfacesContext value>
+				<Drawer open onOpenChange={() => {}}>
+					<DrawerPanel aria-label="Sortable">
+						<DrawerTitle>Sortable</DrawerTitle>
 
-					<DrawerBody>
-						{spacer}
+						<DrawerBody>
+							{spacer}
 
-						<Board />
-					</DrawerBody>
-				</DrawerPanel>
-			</Drawer>,
+							<Board />
+						</DrawerBody>
+					</DrawerPanel>
+				</Drawer>
+			</GlassSurfacesContext>,
 		)
 
 		const grip = await waitFor(() => {

@@ -4,11 +4,11 @@ import { type ReactNode, useEffect, useMemo } from 'react'
 import { writeRootDensity } from '../../core/density/steps'
 import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
-import { ROOT_SOLID_SURFACES_CLASS } from '../../core/surfaces/root'
+import { ROOT_GLASS_SURFACES_CLASS } from '../../core/surfaces/root'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
 import { matchesMediaQuery, subscribeMediaQuery } from '../../utilities/media-query'
 import { levelToStep } from '../density/context'
-import { SolidSurfacesContext } from '../glass/context'
+import { GlassSurfacesContext } from '../glass/context'
 import {
 	DARK_SCHEME,
 	DENSITY,
@@ -48,12 +48,12 @@ export type AppearanceProviderProps = {
  * `ui/tailwind.css` reads. `SidebarLayout` then shows its sidebar as a floating
  * sheet while its layout is inline.
  *
- * While the surfaces are `'solid'`, the root element has the `surfaces-solid`
- * class, which the `surfaces-solid` variant of `ui/tailwind.css` reads. A glass
- * overlay panel then paints flat before hydration. The provider also gives the
- * choice to `useGlass` and `useResolvedSurface`, so each glass-aware component
- * renders its flat surface. The settings dialog has no picker for the
- * surfaces: an app that has glass surfaces adds its own field.
+ * While the surfaces are `'glass'`, the root element has the `surfaces-glass`
+ * class, which the `surfaces-glass` variant of `ui/tailwind.css` reads. A modal
+ * panel that the server paints flat then paints as glass before hydration. The
+ * provider also gives the choice to each Dialog, Drawer, and Sheet panel, so the
+ * panel renders the glass surface. The choice does not change a Popover, a
+ * Menu, a Tooltip, or a field: their `glass` prop and `<GlassProvider>` decide.
  *
  * Render one instance for each app. All instances share the storage keys and
  * the root element, so a region cannot hold an appearance of its own.
@@ -133,7 +133,7 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 
 			root.classList.toggle(ROOT_OFFCANVAS_SIDEBAR_CLASS, readChoice(SIDEBAR) === 'offcanvas')
 
-			root.classList.toggle(ROOT_SOLID_SURFACES_CLASS, readChoice(SURFACES) === 'solid')
+			root.classList.toggle(ROOT_GLASS_SURFACES_CLASS, readChoice(SURFACES) === 'glass')
 		}
 
 		sync()
@@ -177,10 +177,10 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 	return (
 		<AppearanceContext value={value}>
 			<ReducedMotionContext value={motion === 'reduced'}>
-				<SolidSurfacesContext value={surfaces === 'solid'}>
+				<GlassSurfacesContext value={surfaces === 'glass'}>
 					<FontScript />
 					{children}
-				</SolidSurfacesContext>
+				</GlassSurfacesContext>
 			</ReducedMotionContext>
 		</AppearanceContext>
 	)

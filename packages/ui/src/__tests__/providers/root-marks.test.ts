@@ -11,7 +11,7 @@ describe('rootMarks', () => {
 
 		expect(
 			rootMarks(
-				'locale=es; theme=system; density=snug; motion=system; sidebar=locked; surfaces=glass',
+				'locale=es; theme=system; density=snug; motion=system; sidebar=locked; surfaces=solid',
 			),
 		).toEqual({
 			classes: [],
@@ -20,10 +20,10 @@ describe('rootMarks', () => {
 
 		expect(
 			rootMarks(
-				'theme=dark; density=compact; motion=reduced; sidebar=offcanvas; surfaces=solid; events-on=1; events-pinned=1',
+				'theme=dark; density=compact; motion=reduced; sidebar=offcanvas; surfaces=glass; events-on=1; events-pinned=1',
 			),
 		).toEqual({
-			classes: ['dark', 'density-root-sm', 'reduced-motion', 'sidebar-offcanvas', 'surfaces-solid'],
+			classes: ['dark', 'density-root-sm', 'reduced-motion', 'sidebar-offcanvas', 'surfaces-glass'],
 			attributes: ['data-events', 'data-events-pinned'],
 		})
 

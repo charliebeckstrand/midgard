@@ -71,12 +71,11 @@ const IGNORE_TAKEN_OR_FIELD: KeybindingFilter = (event) =>
 
 /**
  * Props for {@link CommandPalette}. The open state (`open` or `defaultOpen`) comes
- * from {@link DialogProps}, and `glass` comes from {@link DialogPanelProps}. The
+ * from {@link DialogProps}. The
  * panel `<div>` of the dialog takes the rest, except the keys that Motion gives a
  * meaning of its own. The palette sets the `role` and the `aria-label` of the panel.
  */
 export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
-	Pick<DialogPanelProps, 'glass'> &
 	Omit<
 		ComponentProps<'div'>,
 		'children' | 'role' | 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
@@ -181,7 +180,6 @@ export function CommandPalette({
 	open: openProp,
 	defaultOpen,
 	onOpenChange,
-	glass,
 	onActiveChange,
 	placeholder: placeholderProp,
 	dismissOnBackdrop = true,
@@ -254,7 +252,6 @@ export function CommandPalette({
 				align={PALETTE_ALIGN}
 				dismissOnBackdrop={dismissOnBackdrop}
 				width={width}
-				glass={glass}
 				className={className}
 				initialFocus={inputRef}
 				// Names the dialog directly; the palette has no visible heading.

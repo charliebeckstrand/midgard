@@ -2,7 +2,6 @@ import api from 'virtual:docs/api/components/confirm'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
 import AskWithAHook from './ask-with-a-hook.tsx'
 import CancelOrClose from './cancel-or-close.tsx'
-import Glass from './glass.tsx'
 import ConfirmPlayground from './playground.tsx'
 import WithBodyContent from './with-body-content.tsx'
 
@@ -13,7 +12,6 @@ export default function ConfirmPage() {
 			<Example of={WithBodyContent} />
 			<Example of={CancelOrClose} />
 			<Example of={AskWithAHook} />
-			<Example of={Glass} />
 			<ApiTable api={api} />
 		</>
 	)

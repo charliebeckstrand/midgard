@@ -29,10 +29,11 @@ export type MenuContentProps = {
 	 */
 	'aria-labelledby'?: string
 	/**
-	 * Opts the surface into the translucent glass chrome, as the panel family
-	 * does. An ambient `<GlassProvider>` already turns it on; this is the
-	 * per-surface opt-in for a tree that has none. Set `false` to keep the flat
-	 * surface inside a `<GlassProvider>`.
+	 * Opts the popover panel into the translucent glass chrome. An ambient
+	 * `<GlassProvider>` already turns it on; this is the per-surface opt-in for
+	 * a tree that has none. Set `false` to keep the flat surface inside a
+	 * `<GlassProvider>`. The bottom sheet on a phone does not read it: it
+	 * follows the Surfaces setting of the reader, as each Drawer does.
 	 *
 	 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
 	 */
@@ -105,7 +106,6 @@ export function MenuContent({
 			<MenuSheet
 				title={title}
 				description={description}
-				glass={glass}
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
 				className={className}

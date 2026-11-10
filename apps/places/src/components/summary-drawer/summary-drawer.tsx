@@ -181,7 +181,7 @@ export type SummaryFrame<T extends Located> = Pick<
 >
 
 /**
- * The glass drawer that shows what a point stands for: a list of records, or
+ * The drawer that shows what a point stands for: a list of records, or
  * one record. The caller gives the bodies; the drawer owns the trail, the step,
  * and the size.
  *
@@ -273,7 +273,6 @@ export function SummaryDrawer<T extends Located>({
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerPanel
-				glass
 				// Grown to what each step holds, because this panel is navigated: the
 				// crumb walks between the region's list and one record, and the two are
 				// not the same size. A fixed height fits one of them: a list of twelve

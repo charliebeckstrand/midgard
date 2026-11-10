@@ -1,6 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Confirm } from '../../components/confirm'
+import { GlassSurfacesContext } from '../../providers/glass/context'
 import { attach, bySlot, fireEvent, getSlot, renderUI, screen, waitFor } from '../helpers'
 
 describe('Confirm', () => {
@@ -217,8 +218,12 @@ describe('Confirm Dialog props', () => {
 		expect(wrapper?.className).not.toContain('items-end')
 	})
 
-	it('passes glass to the Dialog', () => {
-		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} glass />)
+	it('takes the glass surface while the Surfaces setting is glass', () => {
+		renderUI(
+			<GlassSurfacesContext value>
+				<Confirm open onOpenChange={() => {}} onConfirm={() => {}} />
+			</GlassSurfacesContext>,
+		)
 
 		expect(bySlot(document.body, 'confirm')).toHaveAttribute('data-glass', '')
 	})

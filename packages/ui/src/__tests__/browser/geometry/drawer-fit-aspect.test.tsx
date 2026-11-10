@@ -9,6 +9,7 @@ import {
 	DrawerTitle,
 } from '../../../components/drawer'
 import { MapPlat } from '../../../modules/map'
+import { GlassSurfacesContext } from '../../../providers/glass/context'
 import { Container } from '../../../structure/container'
 import { frames, getSlot, renderUI } from '../../helpers'
 import { pause } from '../helpers/wall-clock'
@@ -79,23 +80,25 @@ function Probe({ app }: { app: boolean }) {
 	)
 
 	return (
-		<Drawer open onOpenChange={() => {}}>
-			<DrawerPanel glass={app} height="fit" footer={null} aria-label="Probe">
-				<DrawerHeader className="px-0">
-					<DrawerTitle>Texas › Governor</DrawerTitle>
-				</DrawerHeader>
+		<GlassSurfacesContext value={app}>
+			<Drawer open onOpenChange={() => {}}>
+				<DrawerPanel height="fit" footer={null} aria-label="Probe">
+					<DrawerHeader className="px-0">
+						<DrawerTitle>Texas › Governor</DrawerTitle>
+					</DrawerHeader>
 
-				<DrawerBody className="px-0">
-					{app ? (
-						<Container size="lg" padding="lg" className="h-auto">
-							<div className="max-w-[440px]">{content}</div>
-						</Container>
-					) : (
-						content
-					)}
-				</DrawerBody>
-			</DrawerPanel>
-		</Drawer>
+					<DrawerBody className="px-0">
+						{app ? (
+							<Container size="lg" padding="lg" className="h-auto">
+								<div className="max-w-[440px]">{content}</div>
+							</Container>
+						) : (
+							content
+						)}
+					</DrawerBody>
+				</DrawerPanel>
+			</Drawer>
+		</GlassSurfacesContext>
 	)
 }
 

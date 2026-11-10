@@ -93,7 +93,7 @@ export type ResultDrawerProps = {
 }
 
 /**
- * The glass panel of a result, a Dialog. It is docked to the bottom on a phone
+ * The panel of a result, a Dialog. It is docked to the bottom on a phone
  * and centered from `sm`, so the panel is as wide as its content and not as
  * wide as the page. Its title is the trail, as in the summary Drawer of
  * Places. A crumb is the way back, so the panel needs no Back button. The
@@ -114,7 +114,7 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 
 	return (
 		<Dialog open={view !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
-			<DialogPanel glass height="fit" footer={null} aria-label={title}>
+			<DialogPanel height="fit" footer={null} aria-label={title}>
 				{/* The trail and the body are children of the panel, so the body is the scroll region of the panel. */}
 				<DialogHeader>
 					<Flex align="start" justify="between" gap="lg">

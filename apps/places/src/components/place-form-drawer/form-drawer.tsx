@@ -62,7 +62,7 @@ export type FormDrawerProps<V extends Record<string, unknown>> = {
 }
 
 /**
- * The half-height glass drawer that a record form sits in: the title and the
+ * The half-height drawer that a record form sits in: the title and the
  * close, the fields in two columns from `sm`, the message of a refused write,
  * and Cancel and the submit button.
  *
@@ -95,7 +95,6 @@ export function FormDrawer<V extends Record<string, unknown>>({
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerPanel
-				glass
 				// Grown to the form, and stopping at the screen rather than short of it
 				// (the second case `DrawerProps.height` describes). Measured here: at a 700px
 				// window `auto` held the panel at 595 while the fields came to 709, leaving

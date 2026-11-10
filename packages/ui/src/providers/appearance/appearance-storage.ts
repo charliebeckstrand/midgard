@@ -83,14 +83,14 @@ export const SIDEBAR: AppearanceChoice<SidebarMode> = {
 }
 
 /**
- * The surfaces choice. With no stored choice, the glass surfaces are glass.
+ * The surfaces choice. With no stored choice, the surfaces are solid.
  *
  * @internal
  */
 export const SURFACES: AppearanceChoice<SurfaceMode> = {
 	key: 'surfaces',
-	values: surfaceModes,
-	fallback: 'glass',
+	values: surfaceModes.map((option) => option.value),
+	fallback: 'solid',
 	cookie: 'surfaces',
 }
 

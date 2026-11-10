@@ -3,6 +3,7 @@ import { commands, userEvent } from 'vitest/browser'
 import { Button } from '../../components/button'
 import { CommandPalette, CommandPaletteItem } from '../../components/command-palette'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
+import { GlassSurfacesContext } from '../../providers/glass/context'
 import { noop, renderUI, screen, waitFor } from '../helpers'
 import { emulateForcedColors, systemColor } from './helpers/forced-colors'
 
@@ -39,14 +40,18 @@ function readWash(element: Element): number {
 	return Number(alpha[1])
 }
 
-/** The two rows of an open command palette, the first one roved by the keyboard. */
+/**
+ * The two rows of an open command palette, the first one roved by the keyboard.
+ * The palette is a Dialog, so `glass` stands for the Surfaces setting of the reader.
+ */
 const rovedPaletteRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElement> => {
 	renderUI(
-		<CommandPalette open onOpenChange={noop}>
-			<CommandPaletteItem>Alpha</CommandPaletteItem>
-			<CommandPaletteItem>Beta</CommandPaletteItem>
-		</CommandPalette>,
-		{ glass },
+		<GlassSurfacesContext value={glass}>
+			<CommandPalette open onOpenChange={noop}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+				<CommandPaletteItem>Beta</CommandPaletteItem>
+			</CommandPalette>
+		</GlassSurfacesContext>,
 	)
 
 	const row = screen.getByRole('option', { name: 'Alpha' })

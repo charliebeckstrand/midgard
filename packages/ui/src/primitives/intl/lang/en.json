@@ -2003,6 +2003,18 @@
 		"defaultMessage": "Offcanvas",
 		"description": "A sidebar setting that hides the sidebar at the edge until the pointer comes near."
 	},
+	"ui.settings.surfaces": {
+		"defaultMessage": "Surfaces",
+		"description": "The label of the picker for the glass or solid fill of dialogs, sheets, and drawers."
+	},
+	"ui.settings.surfaces.glass": {
+		"defaultMessage": "Glass",
+		"description": "A surfaces setting that paints dialogs, sheets, and drawers as translucent glass."
+	},
+	"ui.settings.surfaces.solid": {
+		"defaultMessage": "Solid",
+		"description": "A surfaces setting that paints dialogs, sheets, and drawers with a flat fill."
+	},
 	"ui.settings.theme.dark": {
 		"defaultMessage": "Dark",
 		"description": "A theme with light text on a dark background."

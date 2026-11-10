@@ -31,6 +31,12 @@ export const appearanceMessages = defineMessages({
 		defaultMessage: 'Sidebar',
 		description: 'The label of the picker for the behavior of the sidebar.',
 	},
+	surfaces: {
+		id: 'ui.settings.surfaces',
+		defaultMessage: 'Surfaces',
+		description:
+			'The label of the picker for the glass or solid fill of dialogs, sheets, and drawers.',
+	},
 	language: {
 		id: 'ui.settings.language',
 		defaultMessage: 'Language',

@@ -20,7 +20,7 @@ import { localeOptions } from '../locale/locale-choice'
 import { UIProvider } from '../ui'
 import { appearanceMessages } from './appearance-messages'
 import { useAppearance } from './context'
-import { motionModes, sidebarModes, themeModes } from './modes'
+import { motionModes, sidebarModes, surfaceModes, themeModes } from './modes'
 
 type ChoiceListboxProps<T extends string> = {
 	options: readonly { label: string; value: T }[]
@@ -90,7 +90,7 @@ type AppearanceSettingsDialogProps = {
 
 /**
  * The dialog of `AppearanceSettings`, with the appearance, density, motion,
- * sidebar, and language pickers. `AppearanceSettings` loads this module on the
+ * sidebar, surfaces, and language pickers. `AppearanceSettings` loads this module on the
  * first press of its button.
  *
  * The listbox panels portal into a node inside the dialog (through the
@@ -110,8 +110,18 @@ export function AppearanceSettingsDialog({
 	onOpenChange,
 	children,
 }: AppearanceSettingsDialogProps) {
-	const { theme, density, motion, sidebar, setTheme, setDensity, setMotion, setSidebar } =
-		useAppearance()
+	const {
+		theme,
+		density,
+		motion,
+		sidebar,
+		surfaces,
+		setTheme,
+		setDensity,
+		setMotion,
+		setSidebar,
+		setSurfaces,
+	} = useAppearance()
 
 	// The Sidebar setting changes the inline sidebar only, so the picker shows
 	// where the enclosing layout is inline.
@@ -184,6 +194,14 @@ export function AppearanceSettingsDialog({
 										/>
 									</Field>
 								)}
+								<Field>
+									<Label>{intl.formatMessage(appearanceMessages.surfaces)}</Label>
+									<ChoiceListbox
+										options={choices(surfaceModes)}
+										value={surfaces}
+										onValueChange={setSurfaces}
+									/>
+								</Field>
 								{localeChoice && (
 									<Field>
 										<Label>{intl.formatMessage(appearanceMessages.language)}</Label>

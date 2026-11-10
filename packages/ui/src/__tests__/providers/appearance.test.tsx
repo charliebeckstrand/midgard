@@ -11,6 +11,7 @@ import { AppearanceProvider, AppearanceSettings, useAppearance } from '../../pro
 import { type AppearanceChoice, parseChoice } from '../../providers/appearance/appearance-storage'
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { useGlass, useResolvedSurface } from '../../providers/glass'
+import { useReaderSurface } from '../../providers/glass/context'
 import { LocaleProvider, useLocale } from '../../providers/locale'
 import { writeCookie } from '../../utilities/cookie'
 import {
@@ -63,7 +64,7 @@ afterEach(() => {
 		'light',
 		'reduced-motion',
 		'sidebar-offcanvas',
-		'surfaces-solid',
+		'surfaces-glass',
 	)
 
 	writeRootDensity(document.documentElement, 'md')
@@ -277,9 +278,11 @@ describe('AppearanceProvider', () => {
 		expect(document.documentElement).not.toHaveClass('sidebar-offcanvas')
 	})
 
-	it('marks the root and turns each glass surface flat while the surfaces are solid', async () => {
+	it('marks the root and turns the modal panels glass while the surfaces are glass', async () => {
 		function GlassProbe() {
 			const { surfaces, setSurfaces } = useAppearance()
+
+			const panel = useReaderSurface()
 
 			const surface = useResolvedSurface(true)
 
@@ -287,7 +290,7 @@ describe('AppearanceProvider', () => {
 
 			return (
 				<button type="button" onClick={() => setSurfaces(surfaces === 'glass' ? 'solid' : 'glass')}>
-					{`${surfaces} ${surface ?? 'flat'} ${ambient}`}
+					{`${surfaces} ${panel ?? 'flat'} ${surface ?? 'flat'} ${ambient}`}
 				</button>
 			)
 		}
@@ -301,24 +304,25 @@ describe('AppearanceProvider', () => {
 
 		const button = screen.getByRole('button')
 
-		expect(button).toHaveTextContent('glass glass true')
+		// The default is solid. The setting changes only the modal panels: a
+		// `glass` prop and the ambient flag do not follow it.
+		expect(button).toHaveTextContent('solid flat glass true')
 
-		expect(document.documentElement).not.toHaveClass('surfaces-solid')
-
-		await userEvent.click(button)
-
-		// The setting wins over a `glass` prop and over the ambient flag.
-		expect(button).toHaveTextContent('solid flat false')
-
-		expect(document.documentElement).toHaveClass('surfaces-solid')
-
-		expect(localStorage.getItem('surfaces')).toBe('solid')
+		expect(document.documentElement).not.toHaveClass('surfaces-glass')
 
 		await userEvent.click(button)
 
-		expect(button).toHaveTextContent('glass glass true')
+		expect(button).toHaveTextContent('glass glass glass true')
 
-		expect(document.documentElement).not.toHaveClass('surfaces-solid')
+		expect(document.documentElement).toHaveClass('surfaces-glass')
+
+		expect(localStorage.getItem('surfaces')).toBe('glass')
+
+		await userEvent.click(button)
+
+		expect(button).toHaveTextContent('solid flat glass true')
+
+		expect(document.documentElement).not.toHaveClass('surfaces-glass')
 	})
 
 	it('throws when useAppearance has no provider', () => {
@@ -349,6 +353,25 @@ describe('AppearanceSettings', () => {
 
 		expect(dialog).toHaveTextContent('Snug')
 		expect(dialog).not.toHaveTextContent('(md)')
+	})
+
+	it('opens a flat dialog with the Surfaces picker at Solid by default', async () => {
+		const dialog = await openSettings()
+
+		expect(dialog).not.toHaveAttribute('data-glass')
+
+		expect(dialog).toHaveTextContent('Surfaces')
+		expect(dialog).toHaveTextContent('Solid')
+	})
+
+	it('opens a glass dialog while the surfaces are glass', async () => {
+		localStorage.setItem('surfaces', 'glass')
+
+		const dialog = await openSettings()
+
+		expect(dialog).toHaveAttribute('data-glass', '')
+
+		expect(dialog).toHaveTextContent('Glass')
 	})
 
 	it('shows the motion picker at the system motion', async () => {
