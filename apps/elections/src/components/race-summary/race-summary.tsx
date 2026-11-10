@@ -99,10 +99,9 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 
 /**
  * A race in an office card of the overview of a state, in the Drawer and on
- * the page of the state, and in the Drawer on the step of a race and on the
- * step of a county. It lists the leading
- * candidates, each with the share and a bar, then the percent reporting with
- * the call dot. The place around it adds its title and its link.
+ * the page of the state. It also shows in the Drawer on the step of a race and
+ * on the step of a county. It lists the leading candidates, each with the
+ * share and a bar, then the percent reporting with the call dot. The place around it adds its title and its link.
  */
 export function RaceSummary({
 	candidates,

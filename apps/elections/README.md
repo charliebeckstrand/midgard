@@ -54,8 +54,8 @@ Alaska are parts of a county row, so the parser leaves them out.
 ## The elections
 
 `src/elections/registry.ts` holds the elections. A new election is one more
-entry, with the same routes and screens: the screens read the kind of each
-contest (`chamber` or `executive`), never the name of an office.
+entry, with the same routes and screens: the screens read the depth of each
+contest (`state` or `district`) and its majority, never the name of an office.
 
 ## The routes
 

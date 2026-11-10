@@ -32,7 +32,8 @@ export type ElectionListProps = {
  * The elections of a list, each a card that leads to its overview. The cards
  * stack in one column. A card names the election, its country with its flag,
  * and its day, which every election has, whatever its country and its
- * offices. The list gives no status: the group of the list names it.
+ * offices. The list gives no status. In the list view, the heading of each
+ * group names it.
  */
 export function ElectionList({ elections, flags }: ElectionListProps) {
 	return (

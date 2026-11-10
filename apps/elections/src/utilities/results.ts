@@ -222,7 +222,7 @@ export function isCounting(entries: readonly Pick<RaceEntry, 'reporting' | 'call
 	return entries.some((entry) => entry.reporting < 100 || !entry.called)
 }
 
-/** The newest update of a set of national races, as an ISO time, or `null` for none. */
+/** The newest update of a set of races, as an ISO time, or `null` for none. */
 export function newestUpdate(races: readonly { updated: string }[]): string | null {
 	return races.reduce<string | null>(
 		(newest, race) =>
