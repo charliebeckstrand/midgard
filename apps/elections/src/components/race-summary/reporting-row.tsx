@@ -1,6 +1,7 @@
 'use client'
 
 import { CircleCheck, Landmark } from 'lucide-react'
+import { useHasHover } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { StatusDot } from 'ui/status'
 import { Flex } from 'ui/structure/flex'
@@ -31,12 +32,15 @@ export function WinnerMark() {
 
 /**
  * The mark of an incumbent after the name: a gray landmark, which a tooltip
- * names `Incumbent`. A tap opens the tooltip, so it shows on a touch screen
- * too, and a screen reader hears the name of the button.
+ * names `Incumbent`. A hover opens the tooltip on a device with a mouse or a
+ * pen. A touch screen gives no hover, so a tap opens it there. A screen reader
+ * hears the name of the button.
  */
 export function IncumbentMark() {
+	const trigger = useHasHover() ? 'hover' : 'click'
+
 	return (
-		<Tooltip trigger="click">
+		<Tooltip trigger={trigger}>
 			<TooltipTrigger>
 				<button
 					type="button"
