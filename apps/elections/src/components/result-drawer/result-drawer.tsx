@@ -50,7 +50,7 @@ export type TrailCrumb = {
 export type DrawerView = {
 	steps: readonly TrailCrumb[]
 	/** A line under the trail, such as `Special election`. */
-	subtitle?: string
+	subtitle?: ReactNode
 	body: ReactNode
 }
 
