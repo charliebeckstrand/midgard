@@ -84,6 +84,8 @@ function SidebarSuffix() {
 type AppearanceSettingsDialogProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	/** The `glass` prop of the panel. */
+	glass?: boolean
 	/** More fields for the dialog, below the pickers. */
 	children?: ReactNode
 }
@@ -108,6 +110,7 @@ type AppearanceSettingsDialogProps = {
 export function AppearanceSettingsDialog({
 	open,
 	onOpenChange,
+	glass,
 	children,
 }: AppearanceSettingsDialogProps) {
 	const { theme, density, motion, sidebar, setTheme, setDensity, setMotion, setSidebar } =
@@ -141,7 +144,7 @@ export function AppearanceSettingsDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogPanel width="sm">
+			<DialogPanel width="sm" glass={glass}>
 				<DialogHeader>
 					<DialogTitle>{intl.formatMessage(appearanceMessages.settings)}</DialogTitle>
 				</DialogHeader>

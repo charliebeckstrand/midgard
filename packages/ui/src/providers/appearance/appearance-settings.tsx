@@ -17,8 +17,14 @@ import { appearanceMessages } from './appearance-messages'
  */
 const loadDialog = () => import('./appearance-settings-dialog')
 
-/** Props for {@link AppearanceSettings}: more fields for the dialog. */
+/** Props for {@link AppearanceSettings}: more fields for the dialog, and its surface. */
 export type AppearanceSettingsProps = {
+	/**
+	 * Opts the dialog into the glass surface, as the `glass` prop of
+	 * `DialogPanel` does. Omit it to follow the ambient `<GlassProvider>`. While
+	 * the Surfaces setting of the reader is `'solid'`, the dialog is flat.
+	 */
+	glass?: boolean
 	/**
 	 * More fields for the dialog, such as the settings of one app. They go below
 	 * the pickers of the dialog, in the same stack. Their floating panels portal
@@ -48,7 +54,7 @@ export type AppearanceSettingsProps = {
  * load of a press fails, the error throws in the next render, so the nearest
  * error boundary shows it.
  */
-export function AppearanceSettings({ children }: AppearanceSettingsProps) {
+export function AppearanceSettings({ glass, children }: AppearanceSettingsProps) {
 	const [open, setOpen] = useState(false)
 
 	const fail = useFail()
@@ -72,7 +78,7 @@ export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 				<Icon icon={<Settings2 />} />
 			</Button>
 			{dialog && (
-				<dialog.AppearanceSettingsDialog open={open} onOpenChange={setOpen}>
+				<dialog.AppearanceSettingsDialog open={open} onOpenChange={setOpen} glass={glass}>
 					{children}
 				</dialog.AppearanceSettingsDialog>
 			)}

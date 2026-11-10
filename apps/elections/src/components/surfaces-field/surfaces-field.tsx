@@ -17,11 +17,12 @@ function labelFor(value: SurfaceMode): string {
 
 /**
  * The Surfaces field of the settings dialog, a Listbox in the form of the
- * appearance pickers above it. With `Glass`, the panel of a result is glass:
- * the page shows through it, with a blur. With `Solid`, the panel is opaque.
- * The field writes the Surfaces setting of `AppearanceProvider`, which has a
- * copy in a cookie. Thus the server paints a panel that is open on a reload
- * with the surface that the reader chose.
+ * appearance pickers above it. With `Glass`, each dialog of the app is glass:
+ * the panel of a result, the search, the filter, and the settings. The page
+ * shows through it, with a blur. With `Solid`, each dialog is opaque. The
+ * field writes the Surfaces setting of `AppearanceProvider`, which has a copy
+ * in a cookie. Thus the server paints a panel that is open on a reload with
+ * the surface that the reader chose.
  */
 export function SurfacesField() {
 	const { surfaces, setSurfaces } = useAppearance()

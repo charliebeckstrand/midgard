@@ -75,6 +75,7 @@ export type RaceSearchPanelProps = {
 export function RaceSearchPanel({ election, open, onOpenChange }: RaceSearchPanelProps) {
 	return (
 		<CommandPalette
+			glass
 			open={open}
 			onOpenChange={onOpenChange}
 			placeholder="Search states, races, and candidates"
@@ -117,6 +118,7 @@ export type ElectionsSearchPanelProps = {
 export function ElectionsSearchPanel({ elections, open, onOpenChange }: ElectionsSearchPanelProps) {
 	return (
 		<CommandPalette
+			glass
 			open={open}
 			onOpenChange={onOpenChange}
 			placeholder="Search elections, races, and candidates"

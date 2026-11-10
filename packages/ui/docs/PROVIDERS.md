@@ -33,8 +33,8 @@ An app mounts `AppearanceProvider` once, in `<body>` above all text. The server 
 |---|---|
 | `AppearanceProvider` | App-root owner of the theme, density, motion, sidebar, and surfaces preferences. It keeps them in `localStorage` and writes them as classes on the root element. While the surfaces are `solid`, each glass surface is flat. It loads the latin face of the font, and `ui/tailwind.css` holds the other faces. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
-| `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, and sidebar pickers. ⌘B or Ctrl+B toggles the sidebar. Under a `LocaleProvider` with `locales`, it adds the Language picker. `children` adds more fields. |
-| `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
+| `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, and sidebar pickers. ⌘B or Ctrl+B toggles the sidebar. Under a `LocaleProvider` with `locales`, it adds the Language picker. `children` adds more fields, and `glass` gives the dialog the glass surface. |
+| `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog, and its surface. |
 | `useAppearance` | Reads the theme, the density, the motion, the sidebar, the surfaces, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |

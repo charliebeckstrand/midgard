@@ -81,7 +81,7 @@ export function ElectionsHeader({ crumbs, search }: ElectionsHeaderProps) {
 					<Flex align="center" gap="sm">
 						{search}
 
-						<AppearanceSettings>
+						<AppearanceSettings glass>
 							<SurfacesField />
 						</AppearanceSettings>
 					</Flex>
