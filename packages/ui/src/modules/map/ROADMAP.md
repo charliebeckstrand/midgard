@@ -234,7 +234,7 @@ Each failure states whether a retry can give a different answer, because a `null
 
 Two kinds separate on what the answer carries. A signal names itself in the reason that it aborts with. The combined signal passes on the reason of the signal that fired, so `'timeout'` and `'aborted'` separate on a name. OSRM refuses a pair that it cannot join under a 400, with `NoRoute` or `NoSegment` in the body. A refused response with one of those codes reads as that refusal, and any other refused response reads as its status.
 
-Under a 200, a code that is not `Ok` is still the answer of the service, and reads as a refusal with that code. An empty `routes` array reads as a refusal with no code. A body with neither is not a routing answer, whatever else it parses as. `routeFetch` (`engine/map-routing/request`) reads the failures that occur before the payload, and the client keeps only the URL of its service.
+Under a 200, a code that is not `Ok` is still the answer of the service, and reads as a refusal with that code. An empty `routes` array reads as a refusal with no code. A body with neither is not a routing answer, whatever else it parses as. A JSON `null` reads as an absent value at each level of the body. `routeFetch` (`engine/map-routing/request`) reads the failures that occur before the payload, and the client keeps only the URL of its service.
 
 ### Mount cost
 
