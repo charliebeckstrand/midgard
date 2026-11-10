@@ -1,12 +1,10 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
 import { findElection } from '@/elections/registry'
 import { drawerSeed, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readSection, type SectionParams } from '@/server/params'
 import { electionResults } from '@/server/results'
-import { isCounting } from '@/utilities/results'
 
 type Params = { params: Promise<SectionParams>; searchParams: SearchParams }
 
@@ -40,11 +38,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 /**
  * The page of an office of an election, or the overview of a state. A layout
  * renders the view: the national map of the office, or the overview of the
- * state. The page holds the Drawer and the live refresh.
- *
- * The refresh runs while any race of the election is counted, not only a race
- * of the page, because the Drawer opens on each office and gets its race from
- * the refresh. A section with no race renders the not-found page.
+ * state. The page holds the Drawer. A section with no race renders the
+ * not-found page.
  */
 export default async function SectionPage({ params, searchParams }: Params) {
 	const section = await readSection(params)
@@ -64,11 +59,5 @@ export default async function SectionPage({ params, searchParams }: Params) {
 
 	const seed = await drawerSeed(election, all, searchParams)
 
-	return (
-		<>
-			<AutoUpdateRefresh live={isCounting(entries)} />
-
-			<ElectionDrawer election={election} seed={seed} />
-		</>
-	)
+	return <ElectionDrawer election={election} seed={seed} />
 }

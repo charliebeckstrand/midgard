@@ -15,7 +15,6 @@ import { AppearanceSettings } from 'ui/providers/appearance'
 import { Container } from 'ui/structure/container'
 import { Flex } from 'ui/structure/flex'
 import type { Crumb } from '../../utilities/trail'
-import { AutoUpdateSwitch } from '../auto-update'
 import { SurfacesField } from '../surfaces-field'
 
 /**
@@ -53,8 +52,8 @@ export type ElectionsHeaderProps = {
  * office, the election crumb leads up to the overview. The trail gives way from
  * the left, as the trail of Places does.
  * The search and the settings sit on its right. The settings add the Surfaces
- * picker and the Auto update switch to the appearance pickers. The bar stays at
- * the top while the body under it scrolls (`PageColumn`).
+ * picker to the appearance pickers. The bar stays at the top while the body
+ * under it scrolls (`PageColumn`).
  */
 export function ElectionsHeader({ crumbs, search }: ElectionsHeaderProps) {
 	return (
@@ -84,8 +83,6 @@ export function ElectionsHeader({ crumbs, search }: ElectionsHeaderProps) {
 
 						<AppearanceSettings>
 							<SurfacesField />
-
-							<AutoUpdateSwitch />
 						</AppearanceSettings>
 					</Flex>
 				</Flex>
