@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			    chart strokes paint the same color as the page. The body of each page is the
 			    box that scrolls (`PageColumn`), so the document has the height of the screen
 			    and does not scroll. After the keyboard of iOS closes, WebKit can keep the
-			    page moved, and the reader can then scroll it under the foot. In print, the
+			    page moved, and the reader can then scroll it under the footer. In print, the
 			    document has the height of its content. */}
 			<body className="h-dvh overflow-hidden print:h-auto print:overflow-visible bg-white text-zinc-950 antialiased [--surface-fill:var(--color-white)] dark:bg-zinc-900 dark:text-white dark:[--surface-fill:var(--color-zinc-900)]">
 				<Providers>{children}</Providers>
