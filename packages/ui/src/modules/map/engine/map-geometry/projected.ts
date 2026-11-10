@@ -1,10 +1,10 @@
 /**
- * The atlas projected once, and the region paths emitted from it. A map draws
+ * The atlas projected once, and the region paths emitted from it. A map shows
  * the same geography under two fits in one mount. One is canonical, on the
- * first commit; the other is measured, a beat later. It draws it again under a
- * third fit on every resize. `regionPaths` streams every coordinate through
- * `d3-geo` afresh for each. That walk is the mount's largest pass, many times
- * the cost of building the strings it ends in.
+ * first commit; the other is measured, a beat later. Each resize is one more
+ * fit. A direct walk (`regionPaths`) streams every coordinate through `d3-geo`
+ * afresh for each fit. That walk is the mount's largest pass, many times the
+ * cost of building the strings it ends in.
  *
  * So the walk happens once and its output is kept. {@link projectAtlas} streams
  * the geography through the fitted projection into a flat buffer of frame
@@ -14,6 +14,10 @@
  * Two fits of one projection therefore differ by a scale and a translation on
  * the frame. That is the same fact `measuredMapFit` (`map-projection/fit`)
  * already derives the measured fit itself from.
+ *
+ * The map emits once, under the canonical fit. The region layer carries those
+ * paths onto the measured fit, and onto each resize, with one transform (the
+ * `carry` of `measuredMapFit`).
  *
  * The claim is tested rather than trusted. The buffer keeps one witness
  * position. A fit that does not place it where the affine says refuses the

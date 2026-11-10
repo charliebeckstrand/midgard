@@ -1103,8 +1103,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	useReportedChange(ownEmphasis, onEmphasisChange)
 
 	// The hover provider's pointed-emphasis gate: a region takes the emphasis
-	// only while its category is matched and shown, resolved through the same
-	// group id the region fill keys on so the two can't disagree.
+	// only while its category is matched and shown. `regionGroupId` resolves the
+	// group id that the region fill also keys on (`categoryPaint`).
 	const regionActive = useCallback(
 		(index: number) => {
 			const id = regionGroupId(regionCategory[index] ?? null, categoryMetas)

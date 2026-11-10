@@ -278,8 +278,8 @@ function seedGroups(
  * A merge moves a group's center and grades its mark up, so the overlapping
  * pairs change as merges land. The rule is a fixpoint, not a single sweep. Each
  * round folds every overlapping group into the first it meets, so the count
- * strictly falls and the rounds run out. In practice one settles it, and a set
- * with nothing to merge costs one indexed pass.
+ * strictly falls and the rounds run out. The loop stops at the first round that
+ * merges nothing, so a set with nothing to merge costs one indexed pass.
  *
  * @internal
  */

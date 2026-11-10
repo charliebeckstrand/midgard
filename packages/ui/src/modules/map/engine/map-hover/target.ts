@@ -80,11 +80,14 @@ export function sameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): bo
  *
  * - the pointed mark recedes everything but itself;
  * - else the legend's focused id dims marks outside its group (`groupId`: an
- *   overlay's own entry id, a region's category id);
+ *   overlay's own entry id, or the legend id of its group);
  * - else nothing dims.
  *
  * The pointed mark winning over a still-held legend focus mirrors the chart's
  * mark-emphasis resolution.
+ *
+ * The overlay marks call this. The region layer keeps the complement of the
+ * same rule by branch (`MapRegionsLit`), so a change here must reach it.
  *
  * @internal
  */

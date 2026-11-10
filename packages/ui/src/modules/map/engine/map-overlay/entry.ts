@@ -72,7 +72,7 @@ export type MapEntryDot = { radius: number } & ({ at: LngLat } | { drawn: MapPoi
  * the registered order, after the region categories.
  *
  * The ledger is one list rather than two. A second registry for the cursor would
- * double the state commits per mark. It would also split one identity across
+ * double the state writes per mark. It would also split one identity across
  * two lists that must hold the same order. The legend and the cursor therefore
  * read the same entry.
  *

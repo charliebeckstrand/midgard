@@ -158,11 +158,12 @@ compareBenches('map-projection · measuredMapFit (every resize frame)', (bench) 
 })
 
 compareBenches('map-geometry · region paths (the mount’s largest pass)', (bench) => {
-	// A map draws the atlas under two fits in one mount (canonical on the first
-	// commit, measured a beat later) and under another on every resize. The
-	// direct walk streams every coordinate through d3-geo each time; the buffer
-	// pays that walk once and emits the strings from it, which is the whole of
-	// what a refit and a resize then cost.
+	// A map shows the atlas under two fits in one mount (canonical on the first
+	// commit, measured a beat later) and under one more on each resize. The
+	// direct walk streams every coordinate through d3-geo for each fit. The
+	// buffer pays that walk once, and the map emits the strings from it once,
+	// under the canonical fit. The region layer carries those strings onto each
+	// later fit, so a refit and a resize cost no emit.
 	for (const { label, features, canonical } of FITTED) {
 		const measured = measuredMapFit('albers-usa', canonical, 800, 450)?.projection
 

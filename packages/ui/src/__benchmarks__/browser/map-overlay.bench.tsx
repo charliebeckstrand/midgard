@@ -6,8 +6,9 @@
  * The first two subjects are the same two hundred dots, drawn the two ways the
  * module offers: one `MapPoint` each, and one `MapPoints` holding all of them.
  * Every `MapPoint` claims its own legend entry, so the singular form pays two
- * hundred registrations (each a state commit that re-sorts the ledger and
- * re-renders the legend) against the plural form's one.
+ * hundred registrations against the plural form's one. The registrations land
+ * in one commit. Each one sorts the ledger again, and the legend draws two
+ * hundred rows.
  *
  * The rest put a drawn zone under those dots, which is the one scene in the
  * module where two marks price each other. A dot on a zone sizes its pointer

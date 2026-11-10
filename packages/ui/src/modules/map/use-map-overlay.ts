@@ -359,9 +359,9 @@ export function useMapOverlay({
 	const id = given ?? generated
 
 	// Which id this mark's emphasis answers to: its group's legend id where it
-	// merged into one, else its own. `mapMarkDimmed` has always taken this (the
-	// region layer passes a category id), so a grouped mark is not a case it learns,
-	// only the first overlay with something better than its own id to pass.
+	// merged into one, else its own. `mapMarkDimmed` compares the focused id of
+	// the legend with the group id that its caller passes, so a grouped mark is
+	// not a case that it learns.
 	//
 	// The toggle resolves plat-side instead, where the same expansion serves the
 	// readers that index `hidden` by mark id and hold no group of their own (the
