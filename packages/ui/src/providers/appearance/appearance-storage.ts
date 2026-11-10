@@ -5,7 +5,9 @@ import {
 	type MotionMode,
 	motionModes,
 	type SidebarMode,
+	type SurfaceMode,
 	sidebarModes,
+	surfaceModes,
 	type ThemeMode,
 	themeModes,
 } from './modes'
@@ -78,6 +80,18 @@ export const SIDEBAR: AppearanceChoice<SidebarMode> = {
 	values: sidebarModes.map((option) => option.value),
 	fallback: 'locked',
 	cookie: 'sidebar',
+}
+
+/**
+ * The surfaces choice. With no stored choice, the glass surfaces are glass.
+ *
+ * @internal
+ */
+export const SURFACES: AppearanceChoice<SurfaceMode> = {
+	key: 'surfaces',
+	values: surfaceModes,
+	fallback: 'glass',
+	cookie: 'surfaces',
 }
 
 /**

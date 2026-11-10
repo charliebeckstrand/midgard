@@ -842,7 +842,7 @@ function ChartFigure({
 							// takes the figure's own gap, as a bottom bar does.
 							rail ? 'gap-3 @sm:gap-4' : 'gap-2',
 							stretch ? '@sm:items-stretch' : '@sm:items-center',
-							legendBandRow(legendPlacement, 'sm'),
+							legendBandRow(legendPlacement),
 						)
 					: 'contents'
 			}

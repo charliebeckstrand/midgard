@@ -6,6 +6,7 @@ import { useState } from 'react'
 import type { Seed } from 'shared/queries'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
+import { Placeholder } from 'ui/placeholder'
 import { SearchInput } from 'ui/search-input'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
@@ -254,6 +255,20 @@ function CountyView({
 }
 
 /**
+ * The kind of a race, the line under the trail of each race: a special or a
+ * general election. Only the race tells the kind, so until it loads a still
+ * line of one text height holds the place. The line is on each race, so the
+ * panel keeps its height when the race loads.
+ */
+function RaceKind({ race }: { race: Race | undefined }) {
+	if (race === undefined) {
+		return <Placeholder as="span" pulse={false} className="inline-block h-[1lh] w-28 align-top" />
+	}
+
+	return race.special ? 'Special election' : 'General election'
+}
+
+/**
  * The view of one race: the race in full, or one county of it. The county shows
  * once the race loads; until then the Drawer holds the race.
  */
@@ -266,7 +281,7 @@ function raceView(
 	views: Views,
 	layouts: Layouts,
 ): DrawerView {
-	const subtitle = race?.special ? 'Special election' : undefined
+	const subtitle = <RaceKind race={race} />
 
 	const county =
 		step.county === null

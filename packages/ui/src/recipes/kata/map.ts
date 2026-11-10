@@ -256,15 +256,20 @@ export const k = {
 	/** Keyboard focus ring: the shared accent outline, on the navigable plot region. */
 	focus: sen.focus.ring,
 	/**
-	 * The legend's reserved box, mounted before any button registers so the
+	 * The legend's reserved space, there before any button registers so the
 	 * frame never shifts as entries land:
 	 *
-	 * - The `row` placements (top / bottom, and every placement stacked below
-	 *   the map's own `@lg` width) hold one item-row of height.
-	 * - The side `panel` holds a fixed column width from the map's `@lg` width. A label too wide
-	 *   for it clips, revealing itself on hover.
+	 * - The `row` box holds one item-row of height. Each placement takes it: top
+	 *   and bottom, and a side panel too, which is a row under the map below the
+	 *   map's own `@lg` width.
+	 * - The side `rail` is the grid of the plot and a side legend. From the map's
+	 *   `@lg` width, it has a fixed 12rem column for the panel beside the plot.
+	 *   A label too wide for it clips, and shows itself on hover.
 	 *
-	 * The plot's width therefore never depends on what has registered.
+	 * The plot's width therefore never depends on what has registered. The rail
+	 * is a track of the grid, not the width of the panel, so the plot has its
+	 * final box before the browser parses the panel. The panel follows a large
+	 * SVG in the HTML, and a browser can paint the page before it gets there.
 	 *
 	 * The item-row is 32 px, the height of a `sm` button. An entry is a
 	 * `LegendSwitch`, and its explicit `size="sm"` makes it its own density
@@ -275,7 +280,35 @@ export const k = {
 		/** The gap of the swatch and the label of a legend entry. */
 		entry: dan.gap.scale.sm,
 		row: 'min-h-8',
-		panel: ['min-h-8', 'shrink-0', '@lg:w-48'],
+		/**
+		 * The grid of the plot and a side legend. It is one column, with the
+		 * legend under the plot, below the map's `@lg`. From there it is two
+		 * columns, and the `left` or `right` entry puts the rail on that side.
+		 *
+		 * The `plot` line names the column of the plot, and `band` puts the plot
+		 * there. The plot is the first child from the time the browser parses it,
+		 * so it has its final column while it is the only child. The legend
+		 * follows it in the DOM and takes the column that stays. Do not use
+		 * `order` here: it does not move an only child off the first column.
+		 *
+		 * The `--map-rail` property is the width of the rail. The `panel` entry
+		 * gives the fixed column of a switchboard. The `bar` entry gives a range
+		 * bar the width of its labels, which the browser knows only after it
+		 * parses the bar.
+		 *
+		 * The side is physical, and the columns of a right-to-left grid start at
+		 * the right, so the `rtl:` variant of each side is the columns of the
+		 * other side. Tailwind finds a class only as a complete literal, so each
+		 * entry is written out in full.
+		 */
+		rail: {
+			band: 'grid grid-cols-1 @lg:*:first:col-start-[plot] @lg:*:first:row-start-1',
+			panel: '[--map-rail:12rem]',
+			bar: '[--map-rail:auto]',
+			left: '@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)] rtl:@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)]',
+			right:
+				'@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)] rtl:@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)]',
+		},
 	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,
