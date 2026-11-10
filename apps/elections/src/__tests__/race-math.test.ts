@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Candidate } from '../types'
-import { delegation, isCalled, lead, marginLabel } from '../utilities/race-math'
+import { delegation, initials, isCalled, lead, marginLabel, surname } from '../utilities/race-math'
 
 function candidate(party: string, percent: number, winner = false): Candidate {
 	const slot = party === 'Democratic' ? 'blue' : party === 'Republican' ? 'red' : 'amber'
@@ -52,5 +52,18 @@ describe('race math', () => {
 			called: 3,
 			total: 4,
 		})
+	})
+
+	it('reads the initials and the surname of a name past its suffix and its nickname', () => {
+		expect(initials('Jon Ossoff')).toBe('JO')
+		expect(initials('Nick Begich III')).toBe('NB')
+		expect(initials('Thomas Kean Jr.')).toBe('TK')
+		expect(initials('Henry J. Ward, III')).toBe('HW')
+		expect(initials('James C. "Jim" McDermott')).toBe('JM')
+		expect(initials('Ángel Pérez')).toBe('ÁP')
+
+		expect(surname('Nick Begich III')).toBe('Begich')
+		expect(surname('Stewart Cathey, Jr.')).toBe('Cathey')
+		expect(surname('Prescription Dope Deaths Johnson, Jr')).toBe('Johnson')
 	})
 })

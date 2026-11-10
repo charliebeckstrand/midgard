@@ -109,9 +109,24 @@ export function barColor(slot: PartySlot): 'blue' | 'red' | 'amber' | 'zinc' {
 	return slot === 'blue' || slot === 'red' || slot === 'amber' ? slot : 'zinc'
 }
 
-/** The initials of a candidate for an avatar, such as `JO` for Jon Ossoff. */
+/** The suffixes of a name that are not the surname, such as `Jr.` or `III`. */
+const NAME_SUFFIX = /^(jr\.?|sr\.?|ii|iii|iv|v)$/i
+
+/**
+ * The words of a name with no suffix. A comma separates words, as in
+ * `Stewart Cathey, Jr.`, so no word keeps it.
+ */
+function nameWords(name: string): string[] {
+	return name.split(/[\s,]+/).filter((word) => word !== '' && !NAME_SUFFIX.test(word))
+}
+
+/**
+ * The initials of a candidate for an avatar, such as `JO` for Jon Ossoff, or
+ * `NB` for Nick Begich III. A word that does not start with a letter, such as
+ * a nickname in quotes, gives no initial.
+ */
 export function initials(name: string): string {
-	const words = name.split(' ').filter((word) => /^[A-Za-z]/.test(word))
+	const words = nameWords(name).filter((word) => /^\p{L}/u.test(word))
 
 	const first = words[0]?.charAt(0) ?? ''
 
@@ -120,7 +135,7 @@ export function initials(name: string): string {
 	return `${first}${last}`.toUpperCase()
 }
 
-/** A share from 0 to 100 as text in the locale of the reader, such as `59.0%`. */
+/** A share from 0 to 100 as text in the locale of the app (`en`), such as `59.0%`. */
 export function percentText(
 	format: IntlShape['formatNumber'],
 	value: number,
@@ -133,12 +148,7 @@ export function percentText(
 	})
 }
 
-/** The suffixes of a name that are not the surname, such as `Jr.` or `III`. */
-const NAME_SUFFIX = /^(jr\.?|sr\.?|ii|iii|iv|v)$/i
-
 /** The surname of a candidate, such as `Ossoff` for Jon Ossoff, or `Begich` for Nick Begich III. */
 export function surname(name: string): string {
-	const words = name.split(' ').filter((word) => !NAME_SUFFIX.test(word))
-
-	return words.at(-1) ?? name
+	return nameWords(name).at(-1) ?? name
 }
