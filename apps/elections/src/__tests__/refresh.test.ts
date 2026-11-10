@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { createElement } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const refresh = vi.fn()
 
@@ -68,6 +68,13 @@ const press = (name: string) =>
 
 		await vi.advanceTimersByTimeAsync(0)
 	})
+
+// The first load transforms the footer, the toasts, and their imports, which
+// can take more than the time of one test while the other suites run. Each
+// later load only runs the transformed modules again.
+beforeAll(async () => {
+	await load()
+}, 60_000)
 
 beforeEach(() => {
 	vi.useFakeTimers()
