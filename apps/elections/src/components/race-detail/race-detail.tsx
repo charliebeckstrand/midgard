@@ -7,7 +7,7 @@ import { Odometer } from 'ui/odometer'
 import { Placeholder } from 'ui/placeholder'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
-import type { Race } from '../../types'
+import type { Candidate, Race } from '../../types'
 import { isCalled } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
 import { RaceSummary } from '../race-summary'
@@ -43,12 +43,17 @@ const MAP_PLACEHOLDER = (
 const WHEN: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 /**
- * A time of a race, or a still line of one text height while the race loads,
- * so the row keeps its height when the time arrives.
+ * A time of a race: a still line of one text height while the race loads, so
+ * the row keeps its height when the time arrives, then the time. A time that
+ * the race does not give reads `Unknown`, so the row stays.
  */
-function FactTime({ value }: { value: string | undefined }) {
-	return value === undefined ? (
-		<Placeholder as="span" pulse={false} className="inline-block h-[1lh] w-40 align-top" />
+function FactTime({ value }: { value: string | null | undefined }) {
+	if (value === undefined) {
+		return <Placeholder as="span" pulse={false} className="inline-block h-[1lh] w-40 align-top" />
+	}
+
+	return value === null ? (
+		<span className="text-zinc-500 dark:text-zinc-400">Unknown</span>
 	) : (
 		<DateTime value={value} format={WHEN} />
 	)
@@ -58,15 +63,22 @@ function FactTime({ value }: { value: string | undefined }) {
  * The facts of a race under its candidates: the votes, the polls, and the
  * call. The percent reporting is in the row over the facts, so the facts do
  * not repeat it. The votes come from the national results at once. The times
- * come with the race; until then each holds its row with a still line. A time
- * that the race does not give drops its row.
+ * come with the race; until then each holds its row with a still line.
+ *
+ * The rows come from what the Drawer has before the race loads: the polls
+ * always, and the call when a candidate won. The race only fills in the times,
+ * so the facts keep their height when the race loads.
  */
-function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Race | undefined }) {
-	const candidates = race?.candidates ?? entry.candidates
-
+function RaceFacts({
+	candidates,
+	called,
+	race,
+}: {
+	candidates: readonly Candidate[]
+	called: boolean
+	race: Race | undefined
+}) {
 	const votes = candidates.reduce((sum, candidate) => sum + candidate.votes, 0)
-
-	const called = race === undefined ? entry.called : race.calledAt !== null
 
 	return (
 		<DescriptionList>
@@ -75,20 +87,16 @@ function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Rac
 				<Odometer value={votes} />
 			</DescriptionDetails>
 
-			{race?.pollsClose === null ? null : (
-				<>
-					<DescriptionTerm>Polls closed</DescriptionTerm>
-					<DescriptionDetails>
-						<FactTime value={race?.pollsClose ?? undefined} />
-					</DescriptionDetails>
-				</>
-			)}
+			<DescriptionTerm>Polls closed</DescriptionTerm>
+			<DescriptionDetails>
+				<FactTime value={race?.pollsClose} />
+			</DescriptionDetails>
 
 			{called ? (
 				<>
 					<DescriptionTerm>Called</DescriptionTerm>
 					<DescriptionDetails>
-						<FactTime value={race?.calledAt ?? undefined} />
+						<FactTime value={race?.calledAt} />
 					</DescriptionDetails>
 				</>
 			) : null}
@@ -114,6 +122,8 @@ function RaceFacts({ entry, race }: { entry: RaceDetailProps['entry']; race: Rac
 export function RaceDetail({ entry, race, onCounty, view, onViewChange }: RaceDetailProps) {
 	const candidates = race?.candidates ?? entry.candidates
 
+	const called = race === undefined ? entry.called : isCalled(race.candidates)
+
 	return (
 		<Stack gap="xl">
 			<Segment value={view} onValueChange={(next) => onViewChange(next as RaceView)}>
@@ -128,12 +138,12 @@ export function RaceDetail({ entry, race, onCounty, view, onViewChange }: RaceDe
 					<RaceSummary
 						candidates={candidates}
 						reporting={race?.reporting ?? entry.reporting}
-						called={race === undefined ? entry.called : isCalled(race.candidates)}
+						called={called}
 						rows="all"
 						detail
 					/>
 
-					<RaceFacts entry={entry} race={race} />
+					<RaceFacts candidates={candidates} called={called} race={race} />
 				</>
 			) : null}
 
