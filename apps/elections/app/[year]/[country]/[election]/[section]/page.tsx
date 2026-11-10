@@ -5,6 +5,7 @@ import { findElection } from '@/elections/registry'
 import { drawerSeed, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readSection, type SectionParams } from '@/server/params'
 import { electionResults } from '@/server/results'
+import { pageTitle } from '@/utilities/trail'
 
 type Params = { params: Promise<SectionParams>; searchParams: SearchParams }
 
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 	const name = section.kind === 'office' ? section.contest.label : section.state.name
 
-	return { title: `${election.year} ${election.name} ${name}` }
+	return { title: pageTitle(election, name) }
 }
 
 /**
