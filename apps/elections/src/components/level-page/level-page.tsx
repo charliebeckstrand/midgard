@@ -21,7 +21,7 @@ export type LevelPageProps = {
  * scope (`LevelView`). The trail of the header is its visible title, so the
  * heading of the body is only for a screen reader. The search of the header
  * holds every election at each level. The page renders the flag of each
- * country on the server. The page shows no results, so it has no foot.
+ * country on the server. The page shows no results, so it has no footer.
  */
 export async function LevelPage({ crumbs, heading, elections }: LevelPageProps) {
 	const searched = await searchedElections(listedElections(ELECTIONS))

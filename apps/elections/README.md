@@ -21,7 +21,7 @@ pnpm --filter elections test
 ## The results
 
 [civicAPI](https://civicapi.org) gives the results. It is free, needs no key,
-and asks for attribution, which the foot of each page with results gives. The server of the
+and asks for attribution, which the footer of each page with results gives. The server of the
 app is the only reader. `src/server/civic.ts` reads `race/{id}`, and
 `src/server/civic-race.ts` reads each field of the answer into the types of
 the app. The parser fails closed: an answer without a field that the screens

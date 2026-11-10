@@ -8,8 +8,9 @@ import { Swatch } from 'ui/swatch'
 import { barColor, type Delegation } from '../../utilities/race-math'
 
 /**
- * The seats of a state in the Drawer: in the House card of the overview of a
- * state, and over the districts on the House step. It lists the seats that
+ * The seats of a state: in the House card of the overview of a state, in the
+ * Drawer and on the page of the state, and in the Drawer over the districts on
+ * the House step. It lists the seats that
  * each party won, each with a bar of its share of the seats, then the count
  * of the seats called. With no seat called, only the count shows. A changed
  * count rolls to its new value.

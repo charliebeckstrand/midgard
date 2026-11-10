@@ -19,7 +19,8 @@ export function countyShapesQuery(state: string) {
 }
 
 /**
- * The county shapes of a state, for the county map of the Drawer.
+ * The county shapes of a state, for the county map of the Drawer and of the
+ * page of the state.
  *
  * @param state - The lowercase postal code of the state, such as `ga`.
  */

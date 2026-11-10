@@ -1,3 +1,4 @@
+import { Link } from 'ui/link'
 import { StatusDot } from 'ui/status'
 import { Container } from 'ui/structure/container'
 import { Flex } from 'ui/structure/flex'
@@ -12,7 +13,7 @@ export type ElectionsFooterProps = {
 }
 
 /**
- * The foot of each page. It holds the status, so no page has a status line:
+ * The footer of each page. It holds the status, so no page has a status line:
  * on the left a live dot while votes are counted and the age of the newest
  * update; on the right the sources. Under 640px the two stack.
  */
@@ -43,9 +44,9 @@ export function ElectionsFooter({ counting, updated }: ElectionsFooterProps) {
 					<span className="sm:text-end">
 						<span className="block">
 							Results from{' '}
-							<a href="https://civicapi.org" className="underline underline-offset-2">
+							<Link href="https://civicapi.org" underline className="underline-offset-2">
 								civicAPI
-							</a>
+							</Link>
 							.
 						</span>
 

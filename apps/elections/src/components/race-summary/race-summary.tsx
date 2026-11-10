@@ -11,7 +11,7 @@ import { Swatch } from 'ui/swatch'
 import type { Candidate } from '../../types'
 import { barColor, initials, percentText } from '../../utilities/race-math'
 import { PercentOdometer } from '../percent-odometer'
-import { IncumbentMark, ReportingRow, WinnerMark } from './call-dot'
+import { IncumbentMark, ReportingRow, WinnerMark } from './reporting-row'
 
 /** Props for {@link RaceSummary}. */
 export type RaceSummaryProps = {
@@ -98,8 +98,9 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 }
 
 /**
- * A race in the Drawer: in an office card of the overview of a state, on the
- * step of a race, and on the step of a county. It lists the leading
+ * A race in an office card of the overview of a state, in the Drawer and on
+ * the page of the state, and in the Drawer on the step of a race and on the
+ * step of a county. It lists the leading
  * candidates, each with the share and a bar, then the percent reporting with
  * the call dot. The place around it adds its title and its link.
  */
