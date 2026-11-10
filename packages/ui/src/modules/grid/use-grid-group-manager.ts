@@ -21,20 +21,13 @@ import {
 	type ZoneMap,
 	zoneMapToStores,
 } from './engine/grid-zone/map'
-import type { GridColumnGroup } from './grid-group-types'
-import type { GridColumnManagerItem } from './types'
+import type { GridGroupManagerProps } from './grid-group-manager'
 
 /** Options for {@link useGridGroupManager}. @internal */
-type GridGroupManagerOptions = {
-	groups: GridColumnGroup[]
-	onGroupsChange: (groups: GridColumnGroup[]) => void
-	/** Orderable (non-frozen) data columns, in display order. */
-	columns: GridColumnManagerItem[]
-	/** Current column order; a within-ungrouped drag reorders it. */
-	order: (string | number)[]
-	/** Commits the next column order after a within-ungrouped reorder. */
-	onOrderChange: (order: (string | number)[]) => void
-}
+type GridGroupManagerOptions = Pick<
+	GridGroupManagerProps,
+	'groups' | 'onGroupsChange' | 'columns' | 'order' | 'onOrderChange'
+>
 
 /** Whether the dragged item sits below the over-item's vertical midpoint (for the insertion nudge). @internal */
 function isBelowOverMidpoint(event: DragOverEvent): boolean {

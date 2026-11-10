@@ -47,6 +47,10 @@ const resizeMetrics = [dan.space.resize.end]
  * layout (`omote.content`), which sets the fill of its flat or card value. The
  * sticky headers of the layout read the same fill. With no host at all, the
  * grid takes the page ground.
+ *
+ * A glass surface (`omote.glass`) sets the fill to `transparent`. No opaque
+ * color matches the glass, so the sticky cells paint no fill there, and a row
+ * that scrolls under them shows through.
  */
 const hostSurface = mode(
 	'bg-(--surface-fill,var(--color-white))',

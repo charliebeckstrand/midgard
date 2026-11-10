@@ -16,10 +16,8 @@ import { pinnedCellProps } from './engine/grid-pin/styles'
 import {
 	cellMarkerAt,
 	cellPropsAt,
-	type GridCellClick,
 	type GridCellRovingActivate,
 	type GridIndexedColumn,
-	type GridRowClick,
 } from './engine/grid-row/cell'
 import {
 	cellRovingAttrs,
@@ -66,18 +64,6 @@ type GridGroupLeafRowProps<T> = {
 	loading?: boolean
 	/** The class of the row, from {@link GridRowsProps.rowClassName}. */
 	className?: string
-	onRowClick?: GridRowClick<T>
-	onCellClick?: GridCellClick<T>
-	onRowDoubleClick?: GridRowClick<T>
-	onCellDoubleClick?: GridCellClick<T>
-	/** Whether the leaf row is a roving-tabindex item (row-mode keyboard nav). @defaultValue false */
-	rowRoving?: boolean
-	/** Whether the leaf's data cells are roving-tabindex items (cell-mode keyboard nav). @defaultValue false */
-	cellRoving?: boolean
-	/** Stable focused-cell activation for cell roving (see {@link GridRowsProps.cellActivate}). */
-	cellActivate?: GridCellRovingActivate<T>
-	truncate: boolean
-	pinning: GridColumnPinning | null
 	/** The group's overlay color, coloring each leaf's leading rail; `undefined` keeps it neutral. */
 	color?: PaletteColor
 	/**
@@ -92,7 +78,19 @@ type GridGroupLeafRowProps<T> = {
 	 * treegrid exposes it as `aria-level`. Manual grouping leaves it unset.
 	 */
 	level?: number
-} & GridWindowRowProps
+} & Pick<
+	GridRowsProps<T>,
+	| 'onRowClick'
+	| 'onCellClick'
+	| 'onRowDoubleClick'
+	| 'onCellDoubleClick'
+	| 'rowRoving'
+	| 'cellRoving'
+	| 'cellActivate'
+	| 'truncate'
+	| 'pinning'
+> &
+	GridWindowRowProps
 
 /** Resolves a leaf cell's inner content: an inert grip, the checkbox, the actions, or the rendered value. @internal */
 function leafCellInner<T>(args: {

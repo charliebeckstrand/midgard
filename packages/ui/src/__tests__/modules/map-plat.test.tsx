@@ -12,6 +12,7 @@ import {
 	fireEvent,
 	firstRegion,
 	layerScale,
+	present,
 	renderUI,
 	shownLayer,
 	stubMatchMedia,
@@ -208,6 +209,53 @@ describe('MapPlat', () => {
 		])
 	})
 
+	it('paints a soft category in the soft step and a striped one from its pattern', () => {
+		const { container } = renderUI(
+			categoricalPlat({
+				categories: [
+					{ value: 'East', color: 'blue', tone: 'soft' },
+					{ value: 'West', color: 'blue', stripes: 'red' },
+				],
+			}),
+		)
+
+		const [alpha, beta] = allRegions(container)
+
+		expect(alpha?.getAttribute('class')).toContain('fill-blue-300')
+
+		// The striped region names its pattern, and takes no fill class over it.
+		const fill = beta?.getAttribute('fill') ?? ''
+
+		expect(fill).toMatch(/^url\(#.+\)$/)
+
+		expect(beta?.getAttribute('class')).not.toContain('fill-blue-600')
+
+		const pattern = present(
+			container.querySelector(`pattern[id="${fill.slice(5, -1)}"]`),
+			'the stripe pattern',
+		)
+
+		expect([...pattern.querySelectorAll('rect')].map((rect) => rect.getAttribute('class'))).toEqual(
+			[expect.stringContaining('fill-blue-600'), expect.stringContaining('fill-red-600')],
+		)
+
+		// The legend swatch lays the second color over the first.
+		const [, striped] = allBySlot(container, 'map-legend-item')
+
+		const swatch = present(striped?.querySelector('[data-slot="swatch"]'), 'the striped swatch')
+
+		expect(swatch.getAttribute('class')).toContain('text-blue-600')
+
+		expect(bySlot(swatch, 'map-swatch-stripes')?.getAttribute('class')).toContain('text-red-600')
+
+		// The tooltip swatch shows the same stripes.
+		fireEvent.pointerEnter(beta as Element, { clientX: 200, clientY: 20 })
+
+		const tooltip = present(bySlot(container, 'tooltip-content'), 'the tooltip')
+
+		expect(bySlot(tooltip, 'map-swatch-stripes')?.getAttribute('class')).toContain('text-red-600')
+	})
+
 	it('shows the legend for two categories and drops it without data', () => {
 		const withData = renderUI(categoricalPlat())
 
@@ -259,33 +307,39 @@ describe('MapPlat', () => {
 	it('reserves a fixed-width column for the side panel placements', () => {
 		const { container } = renderUI(categoricalPlat({ legend: 'left' }))
 
-		const box = bySlot(container, 'map-legend-box')
+		// The frame's grid holds the 12rem column, not the box, so the plot has its
+		// width before the box is in the DOM.
+		const band = bySlot(container, 'map-legend-box')?.parentElement
 
-		expect(box?.getAttribute('class')).toContain('@lg:w-48')
+		expect(band).toHaveClass('[--map-rail:12rem]')
+
+		expect(band?.getAttribute('class')).toContain(
+			'@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)]',
+		)
 
 		// The side panel spans the reserved column beside the map from the map's own `@lg`.
 		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('@lg:w-full')
 
-		// Row placements reserve one item-row of height instead: the 32px of a `sm` LegendSwitch.
-		const row = renderUI(categoricalPlat({ legend: 'top' }))
+		// Each placement reserves one item-row of height: the 32px of a `sm` LegendSwitch.
+		for (const legend of ['left', 'top'] as const) {
+			const { container: row } = renderUI(categoricalPlat({ legend }))
 
-		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-8')
+			expect(bySlot(row, 'map-legend-box')?.getAttribute('class')).toContain('min-h-8')
+		}
 	})
 
 	it('stacks a side panel under the map below its own @lg width and beside it from there', () => {
-		for (const [legend, row] of [
-			['right', '@lg:flex-row'],
-			['left', '@lg:flex-row-reverse'],
+		for (const [legend, columns] of [
+			['right', '@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)]'],
+			['left', '@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)]'],
 		] as const) {
 			const { container } = renderUI(categoricalPlat({ legend }))
 
 			const stack = bySlot(container, 'map-legend-box')?.parentElement
 
-			expect(stack).toHaveClass('flex-col', row)
+			expect(stack).toHaveClass('grid', 'grid-cols-1')
 
-			expect(stack).not.toHaveClass('flex-row')
-
-			expect(stack).not.toHaveClass('flex-row-reverse')
+			expect(stack?.getAttribute('class')).toContain(columns)
 
 			// The legend follows the plot in the DOM, so the column puts it under the map.
 			expect(stack?.lastElementChild).toBe(bySlot(container, 'map-legend-box'))
@@ -303,6 +357,25 @@ describe('MapPlat', () => {
 		expect(legend?.getAttribute('class')).toContain('justify-center')
 
 		expect(legend).toHaveAttribute('aria-orientation', 'horizontal')
+	})
+
+	it('lays a side panel out as the wrap row under the map below the frame @lg', () => {
+		// Under 32rem the frame stacks the panel under the map. The panel takes the
+		// centered wrap row there, and the arrows rove across it.
+		const { container } = renderUI(categoricalPlat({ legend: 'right', width: 400 }))
+
+		const legend = bySlot(container, 'map-legend')
+
+		expect(legend).toHaveClass('flex', 'flex-wrap', 'justify-center', '@lg:grid', '@lg:grid-cols-1')
+
+		expect(legend).toHaveAttribute('aria-orientation', 'horizontal')
+
+		// Each entry keeps its own width in the row, and stretches to the column beside the map.
+		const [entry] = allBySlot(container, 'map-legend-item')
+
+		expect(entry).toHaveClass('@lg:w-full')
+
+		expect(entry).not.toHaveClass('w-full')
 	})
 
 	it('toggles a category off: neutral fill, struck legend text, pressed off', () => {
@@ -965,7 +1038,13 @@ describe('MapPlat choropleth mode', () => {
 
 		// The numeric mode reads its legend beside the plot: the reserved side-panel
 		// column, not the bottom row.
-		expect(bySlot(container, 'map-legend-box')?.getAttribute('class')).toContain('@lg:w-48')
+		const band = bySlot(container, 'map-legend-box')?.parentElement
+
+		expect(band).toHaveClass('[--map-rail:12rem]')
+
+		expect(band?.getAttribute('class')).toContain(
+			'@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)]',
+		)
 	})
 
 	it('paints a continuous scale bar under legend="range" instead of the switchboard', () => {
@@ -974,6 +1053,10 @@ describe('MapPlat choropleth mode', () => {
 		const bar = bySlot(container, 'map-range-legend')
 
 		expect(bar).not.toBeNull()
+
+		// The bar is in the same grid as a panel. It has the width of its labels,
+		// so its column has no fixed width.
+		expect(bySlot(container, 'map-plot')?.parentElement).toHaveClass('grid', '[--map-rail:auto]')
 
 		// The gradient bar paints the colorRange stops.
 		expect(bySlot(container, 'map-range-track')?.getAttribute('style')).toContain('--range-ramp')
@@ -1122,7 +1205,7 @@ describe('MapPlat choropleth mode', () => {
 
 describe('MapPlat legend orientation', () => {
 	it('roves vertically for a side panel and horizontally under the map', () => {
-		const aside = renderUI(categoricalPlat({ legend: 'left' }))
+		const aside = renderUI(categoricalPlat({ legend: 'left', width: 600 }))
 
 		expect(bySlot(aside.container, 'map-legend')?.getAttribute('aria-orientation')).toBe('vertical')
 
@@ -1206,6 +1289,38 @@ describe('MapPlat region click', () => {
 		expect(gamma).toContain('hover:brightness-90')
 
 		expect(gamma).toContain('dark:hover:brightness-110')
+	})
+
+	it('gives a disabled region no click, no pointer cursor, and no click hover', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(
+			categoricalPlat({ onRegionClick, isRegionDisabled: (id) => id !== 'B' }),
+		)
+
+		const [alpha, beta, gamma] = allRegions(container)
+
+		fireEvent.click(alpha as Element)
+
+		fireEvent.click(beta as Element)
+
+		fireEvent.click(gamma as Element)
+
+		expect(onRegionClick).toHaveBeenCalledTimes(1)
+
+		expect(onRegionClick).toHaveBeenCalledWith('B', 1)
+
+		expect(beta?.getAttribute('class')).not.toContain('cursor-default')
+
+		// Gamma matches no row, so a disabled Gamma has no hover at all.
+		expect(gamma?.getAttribute('class')).toContain('cursor-default')
+
+		expect(gamma?.getAttribute('class')).not.toContain('hover:')
+
+		// Alpha matches a row, so its readout keeps the hover.
+		expect(alpha?.getAttribute('class')).toContain('cursor-default')
+
+		expect(alpha?.getAttribute('class')).toContain('hover:brightness-90')
 	})
 
 	it('reports the right-clicked region, and nothing when the right-click misses one', () => {

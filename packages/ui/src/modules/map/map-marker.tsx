@@ -5,9 +5,10 @@ import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import { markTargets } from './engine/map-cluster/crowd'
 import { ownGround } from './engine/map-cluster/ground'
-import { PIN_RADIUS, POINT_HIT_RADIUS, ROUTE_STROKE_WIDTH } from './engine/map-constants'
+import { PIN_RADIUS, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './engine/map-motion'
+import type { MapEntryDot } from './engine/map-overlay/entry'
 import type { LngLat, MapPoint2D } from './engine/types'
 import { dotHitProps, MapDot, MapDotClip } from './map-dot'
 import { MapDotHalo, MapHalo } from './map-halo'
@@ -78,7 +79,10 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// moved.
 	const stops = useCallback(() => lineAnchor(points), [points])
 
-	const dots = useCallback(() => pins, [pins])
+	const dots = useCallback(
+		(): MapEntryDot[] => pins.map((at) => ({ at, radius: PIN_RADIUS })),
+		[pins],
+	)
 
 	const {
 		slot,
@@ -143,10 +147,9 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	const [startClip, endClip] = useMemo(() => {
 		const others = neighbors()
 
-		const reach = POINT_HIT_RADIUS * unitsPerPixel
-
 		const clip = (pin: MapPoint2D | null, id: string) => {
-			const ground = pin === null ? null : ownGround(pin, others, reach)
+			const ground =
+				pin === null ? null : ownGround({ at: pin, radius: PIN_RADIUS }, others, unitsPerPixel)
 
 			return ground === null ? undefined : { id, ground }
 		}

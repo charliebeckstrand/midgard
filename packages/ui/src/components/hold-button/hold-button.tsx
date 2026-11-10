@@ -7,6 +7,7 @@ import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/hold-button'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
+import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { Button, type ButtonProps } from '../button'
 import { useControlLock } from '../control/context'
@@ -141,7 +142,7 @@ export function HoldButton({
 	// The key handlers read the held-key ref, so each is a stable event and not
 	// a closure that render passes to a function.
 	const handleKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
-		if (event.repeat || (event.key !== ' ' && event.key !== 'Enter')) return
+		if (event.repeat || !isActivationKey(event.key)) return
 
 		if (heldKeyRef.current === null) heldKeyRef.current = event.key
 

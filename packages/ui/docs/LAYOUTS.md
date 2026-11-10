@@ -24,9 +24,9 @@ Static scaffold: a min-height-collapsing column with fixed-height ends around a 
 
 | Export | Summary |
 |---|---|
-| `StackedLayout` | Vertically stacked page scaffold hosting the header, body, and footer slots; the body flexes between fixed-height ends. The body scrolls only under a parent that bounds its height (`data-slot="stacked-layout"`). |
+| `StackedLayout` | Vertically stacked page scaffold hosting the header, body, and footer slots; the body flexes between fixed-height ends, with no gap. The body scrolls only under a parent that bounds its height. A page shell with the height of the viewport (`h-dvh print:h-auto`) makes the body the box that scrolls. The document is then never taller than the screen, so Chrome on iOS does not shift it on a load (`data-slot="stacked-layout"`). |
 | `StackedLayoutHeader` | Fixed-height header slot (`data-slot="header"`). |
-| `StackedLayoutBody` | Flexible, vertically scrolling main slot taking the height between header and footer; it scrolls only under a bounded parent (`data-slot="body"`). |
+| `StackedLayoutBody` | Flexible, vertically scrolling main slot taking the height between header and footer; it scrolls only under a bounded parent. It contains its positioned elements, and it prints whole (`data-slot="body"`). |
 | `StackedLayoutFooter` | Fixed-height footer slot (`data-slot="footer"`). |
 
 ## `DashboardLayout`: stacked content with a filter rail
@@ -43,7 +43,7 @@ Client app shell: an inline sidebar or a drawer-and-navbar, and a content region
 
 | Export | Summary |
 |---|---|
-| `SidebarLayout` | App shell: an inline sidebar (a panel, or a hover-revealed floating sheet) or a drawer-and-navbar, and a density-aware content region. Its `layout` chooses at each breakpoint: a drawer on a compact or a medium viewport, and inline when expanded. The Sidebar setting of `AppearanceProvider` selects the inline sidebar. The `locked` sidebar is a panel, and the `offcanvas` sidebar is a floating sheet. The ⌘B or Ctrl+B key toggles it one time for each press. The page scrolls at each width: under a sticky navbar in the drawer layout, and beside a sticky panel in the inline layout. The height of the bar that sticks is the top `scroll-padding` of the scroller. A scroll into view, an anchor, and a `Lightbox` flight keep clear of the bar. The sidebar sits on the start edge. An optional `aside` panel sits on the end edge in the inline layout. It is sticky and as tall as the viewport, as the pinned panel of the events is. |
+| `SidebarLayout` | App shell: an inline sidebar (a panel, or a hover-revealed floating sheet) or a drawer-and-navbar, and a density-aware content region. Its `layout` chooses at each breakpoint: a drawer on a compact or a medium viewport, and inline when expanded. The Sidebar setting of `AppearanceProvider` selects the inline sidebar. The `locked` sidebar is a panel, and the `offcanvas` sidebar is a floating sheet. The ⌘B or Ctrl+B key toggles it one time for each press. The page scrolls at each width: under a sticky navbar in the drawer layout, and beside a sticky panel in the inline layout. A box can scroll in place of the page. The box has a height and is a size container (`@container-size`), and the layout fills it. The admin app and the docs scroll it in such a box of `h-dvh`. The height of the bar that sticks is the top `scroll-padding` of the scroller. A scroll into view, an anchor, and a `Lightbox` flight keep clear of the bar. The sidebar sits on the start edge. An optional `aside` panel sits on the end edge in the inline layout. It is sticky and as tall as the viewport, as the pinned panel of the events is. |
 | `SidebarLayoutHeader` | Header slot; surfaces the layout's `actions` in the inline layout (`data-slot="header"`). |
 | `SidebarLayoutBody` | Main slot (`data-slot="body"`); scrolls with the page at each width. |
 | `SidebarLayoutFooter` | Footer slot (`data-slot="footer"`). |

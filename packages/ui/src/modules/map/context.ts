@@ -9,7 +9,7 @@ import type { MapHoverTarget, MapOverlayTarget } from './engine/map-hover/target
 import type { MapStopMoves } from './engine/map-keyboard/stops'
 import type { MapOverlayEntry } from './engine/map-overlay/entry'
 import type { MapSpareStore } from './engine/map-overlay/spare'
-import type { LngLat, MapOverlaySelection, MapPoint2D } from './engine/types'
+import type { MapOverlaySelection, MapPoint2D, MapProjector } from './engine/types'
 import type { MapZoom } from './use-map-zoom'
 
 /**
@@ -170,7 +170,7 @@ export const [MapZoomScaleContext, useMapZoomScale] = createContext<number>('Map
  */
 export type MapPlatContextValue = {
 	/** Projects lon/lat to frame coordinates; `null` off the projection (US-composite insets). */
-	project: (position: LngLat) => MapPoint2D | null
+	project: MapProjector
 	/** Registers an overlay's legend entry; returns the unregister cleanup. */
 	register: (entry: MapOverlayEntry) => () => void
 	/** Resolved slot color per registered entry id; marks derive their paint from it. */
@@ -226,10 +226,11 @@ export type MapPlatContextValue = {
 	 * geometry and the mark applies its own `unitsPerPixel`.
 	 *
 	 * A store rather than a resolver in the value. A mark that moves changes nothing the value holds,
-	 * so the mark restakes its own dots, and only the readers of the pool render again. The snapshot
-	 * excludes the asking mark, by id: a mark's own dots are its own business, and it holds them in
-	 * drawn form already. The pool also excludes hidden marks and each mark that draws no dot. Thus the
-	 * waypoints of a route and the ring of a zone never contest ground that they paint nothing on.
+	 * so the mark restakes its own dots, and only the other readers of the pool render again. The
+	 * snapshot excludes the asking mark, by id: a mark's own dots are its own business, and it holds
+	 * them in drawn form already. The pool also excludes hidden marks and each mark that draws no
+	 * dot. Thus the waypoints of a route and the ring of a zone never contest ground that they paint
+	 * nothing on.
 	 */
 	pool: MapDotPool
 	/**

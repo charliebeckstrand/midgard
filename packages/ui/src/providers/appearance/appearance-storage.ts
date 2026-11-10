@@ -5,7 +5,9 @@ import {
 	type MotionMode,
 	motionModes,
 	type SidebarMode,
+	type SurfaceMode,
 	sidebarModes,
+	surfaceModes,
 	type ThemeMode,
 	themeModes,
 } from './modes'
@@ -81,6 +83,18 @@ export const SIDEBAR: AppearanceChoice<SidebarMode> = {
 }
 
 /**
+ * The surfaces choice. With no stored choice, the glass surfaces are glass.
+ *
+ * @internal
+ */
+export const SURFACES: AppearanceChoice<SurfaceMode> = {
+	key: 'surfaces',
+	values: surfaceModes,
+	fallback: 'glass',
+	cookie: 'surfaces',
+}
+
+/**
  * Media query that is true when the OS prefers a dark color scheme.
  *
  * @internal
@@ -93,10 +107,6 @@ export const DARK_SCHEME = '(prefers-color-scheme: dark)'
 const memory = new Map<string, string>()
 
 const choiceChange = createEmitter()
-
-// The life of the cookie of a choice: one year, in seconds. Each write of the
-// cookie starts the year again.
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 // The value of `choice` in `localStorage`, or `undefined` when the value is
 // absent or is not one of the values of the choice.
@@ -161,7 +171,7 @@ export function writeChoice<T extends string>({ key, cookie }: AppearanceChoice<
 		memory.set(key, value)
 	}
 
-	if (cookie !== undefined) writeCookie(cookie, value, COOKIE_MAX_AGE)
+	if (cookie !== undefined) writeCookie(cookie, value)
 
 	choiceChange.emit()
 }
@@ -179,7 +189,7 @@ export function restoreChoiceCookie<T extends string>(choice: AppearanceChoice<T
 
 	const stored = readStored(choice)
 
-	if (stored !== undefined) writeCookie(choice.cookie, stored, COOKIE_MAX_AGE)
+	if (stored !== undefined) writeCookie(choice.cookie, stored)
 }
 
 /**

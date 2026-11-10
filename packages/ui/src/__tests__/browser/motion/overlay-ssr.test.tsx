@@ -1,9 +1,8 @@
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { Drawer, DrawerPanel } from '../../../components/drawer'
 import { act, attach, bySlot, present, renderUI, waitFor } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
-import { hydrateServerRender } from '../../helpers/hydrate'
+import { hydrateServerRender, serverMarkup } from '../../helpers/hydrate'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 import { budget } from '../helpers/wall-clock'
 
@@ -70,9 +69,7 @@ const drawer = (open: boolean, onOpenComplete?: () => void) => (
 
 /** Puts the server HTML of `ui` in the document, as a load paints it before hydration. */
 function serve(ui: React.ReactElement) {
-	const container = attach(document.createElement('div'))
-
-	container.innerHTML = renderToString(ui)
+	const container = attach(serverMarkup(ui))
 
 	return container
 }

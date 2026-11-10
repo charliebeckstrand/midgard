@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { crossAxisDelta, nextIndexForKey } from '../../utilities/keyboard-navigation'
+import {
+	crossAxisDelta,
+	isActivationKey,
+	nextIndexForKey,
+} from '../../utilities/keyboard-navigation'
 
 type Options = Parameters<typeof nextIndexForKey>[3]
 
@@ -43,6 +47,18 @@ describe('nextIndexForKey', () => {
 		['grid non-arrow key other than Home or End returns null', 'a', 0, 6, grid, null],
 	])('%s', (_, key, index, count, options, expected) => {
 		expect(nextIndexForKey(key, index, count, options)).toBe(expected)
+	})
+})
+
+describe('isActivationKey', () => {
+	it('takes Enter and Space, and nothing else', () => {
+		expect(isActivationKey('Enter')).toBe(true)
+
+		expect(isActivationKey(' ')).toBe(true)
+
+		expect(isActivationKey('Spacebar')).toBe(false)
+
+		expect(isActivationKey('ArrowUp')).toBe(false)
 	})
 })
 

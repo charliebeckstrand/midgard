@@ -5,7 +5,7 @@ import { type Mount, MountHold, useMountHold, useMountsEveryPanel } from '../../
 import { mountsEveryPanel } from '../../primitives/mount/mount'
 import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
 import { attach, renderUI, screen, setupUser } from '../helpers'
-import { hydrate } from '../helpers/hydrate'
+import { hydrate, serverMarkup } from '../helpers/hydrate'
 
 /**
  * The shared mount hold behind the current cascade, the disclosure panels, and
@@ -258,9 +258,7 @@ describe('useMountsEveryPanel', () => {
 	})
 
 	it('is false in the hydration render under always, and true after it, with no mismatch', () => {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = renderToString(<Probe mount="always" />)
+		const container = attach(serverMarkup(<Probe mount="always" />))
 
 		const seen: boolean[] = []
 

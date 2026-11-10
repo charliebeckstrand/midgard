@@ -31,10 +31,10 @@
  * accepts.
  *
  * `ground.ts` answers instead: it divides what the two targets overlap, and it
- * shrinks neither. It can pool across marks, because it measures in frame units,
- * and a frame position is scale-free where a reach is not. `MapPoint` and
- * `MapMarker` read it. `MapPoints` does not yet, because one clip for each dot
- * of a set is a cost that the ROADMAP holds open.
+ * shrinks neither. It can pool across marks, because the pool holds frame
+ * positions, and a frame position is scale-free where a reach is not. Each mark
+ * applies the zoom scale when it reads the pool. `MapPoint`, `MapMarker`, and
+ * `MapPoints` read it.
  *
  * Frame arithmetic over the same grid the clustering passes bucket into
  * (`grid.ts`), and React-free like the rest of the engine.

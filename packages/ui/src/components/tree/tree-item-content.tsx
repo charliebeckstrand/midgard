@@ -1,20 +1,16 @@
 'use client'
 
 import { Check, ChevronRight, Minus } from 'lucide-react'
-import {
-	type KeyboardEvent,
-	type MouseEvent,
-	type ReactElement,
-	type ReactNode,
-	useId,
-} from 'react'
+import { type KeyboardEvent, type MouseEvent, useId } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { k } from '../../recipes/kata/tree'
+import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { Icon } from '../icon'
 import { useTreeContext, useTreePosition } from './context'
 import { CHECK_SELECTOR } from './tree-constants'
+import type { TreeItemProps } from './tree-item'
 import { branchToggleKey } from './tree-keyboard'
 
 /**
@@ -22,24 +18,19 @@ import { branchToggleKey } from './tree-keyboard'
  *
  * @internal
  */
-type TreeItemContentProps = {
-	label: ReactNode
-	icon?: ReactElement
-	prefix?: ReactNode
-	suffix?: ReactNode
-	current?: boolean
+type TreeItemContentProps = Pick<
+	TreeItemProps,
+	'label' | 'icon' | 'prefix' | 'suffix' | 'current' | 'onAction' | 'className'
+> & {
 	/** The check state. `undefined` makes a row with no check box. */
 	checked?: boolean | 'mixed'
 	/** Runs when the user toggles the check box. */
 	onToggleChecked: () => void
 	hasChildren: boolean
-	/** Runs when the row itself is activated, by click or by Enter/Space. */
-	onAction?: () => void
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	/** The id of the child group, which the open row owns. */
 	groupId: string
-	className?: string
 }
 
 /**
@@ -107,7 +98,7 @@ export function TreeItemContent({
 			return
 		}
 
-		if (event.key === 'Enter' || event.key === ' ') {
+		if (isActivationKey(event.key)) {
 			event.preventDefault()
 
 			activate()

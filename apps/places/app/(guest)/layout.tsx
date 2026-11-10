@@ -1,7 +1,6 @@
 import { getSession } from 'auth'
 import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { RequestLocale } from 'shared/locale'
 
 /**
  * The layout reads the session to send a signed-in user away from the sign-in
@@ -23,9 +22,5 @@ export default async function GuestLayout({ children }: { children: ReactNode })
 
 	if (session) redirect('/')
 
-	return (
-		<RequestLocale>
-			<div className="h-full overflow-y-auto">{children}</div>
-		</RequestLocale>
-	)
+	return <div className="h-full overflow-y-auto">{children}</div>
 }

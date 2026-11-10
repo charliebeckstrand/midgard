@@ -1,0 +1,1478 @@
+{
+	"election_name": "Connecticut Governor",
+	"election_type": "Governor",
+	"election_scope": "Statewide",
+	"election_date": "2026-11-03T05:00:00.000Z",
+	"country": "US",
+	"province": "CT",
+	"district": null,
+	"municipality": null,
+	"polls_open": "2026-11-03T11:00:00.000Z",
+	"polls_close": "2026-11-04T01:00:00.000Z",
+	"is_disputed": false,
+	"has_map": true,
+	"registered_voters": null,
+	"percent_reporting": 90.2,
+	"test_data": false,
+	"last_updated": "2026-11-08T04:55:44.186Z",
+	"called_at": "2026-11-04T02:18:31.025Z",
+	"round": 1,
+	"candidates": [
+		{
+			"name": "Ned Lamont",
+			"candidate_id": 220045,
+			"party": "Democratic",
+			"incumbent": false,
+			"major_candidate": true,
+			"winner": true,
+			"advanced": false,
+			"color": "#4874a3",
+			"votes": 771350,
+			"percent": 59.56
+		},
+		{
+			"name": "Ryan Fazio",
+			"candidate_id": 220046,
+			"party": "Republican",
+			"incumbent": false,
+			"major_candidate": true,
+			"winner": false,
+			"advanced": false,
+			"color": "#c6606b",
+			"votes": 523717,
+			"percent": 40.44
+		},
+		{
+			"name": "Zenobia Adgers",
+			"candidate_id": 220047,
+			"party": "Write-In",
+			"incumbent": false,
+			"major_candidate": false,
+			"winner": false,
+			"advanced": false,
+			"color": "#808080",
+			"votes": 24,
+			"percent": 0
+		},
+		{
+			"name": "L. Lee Whitnum",
+			"candidate_id": 220049,
+			"party": "Write-In",
+			"incumbent": false,
+			"major_candidate": false,
+			"winner": false,
+			"advanced": false,
+			"color": "#808080",
+			"votes": 18,
+			"percent": 0
+		},
+		{
+			"name": "Christian Noe",
+			"candidate_id": 220048,
+			"party": "Write-In",
+			"incumbent": false,
+			"major_candidate": false,
+			"winner": false,
+			"advanced": false,
+			"color": "#808080",
+			"votes": 12,
+			"percent": 0
+		}
+	],
+	"region_results": {
+		"andover": {
+			"name": "Andover",
+			"type": "Town",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 832,
+					"percent": 51.81,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 774,
+					"percent": 48.19,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"ansonia": {
+			"name": "Ansonia",
+			"type": "Town",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 3014,
+					"percent": 53.04,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 2667,
+					"percent": 46.94,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0.02,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"ashford": {
+			"name": "Ashford",
+			"type": "Town",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 1062,
+					"percent": 54.52,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 884,
+					"percent": 45.38,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 2,
+					"percent": 0.1,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"avon": {
+			"name": "Avon",
+			"type": "Town",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 5680,
+					"percent": 62.62,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 3391,
+					"percent": 37.38,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"barkhamsted": {
+			"name": "Barkhamsted",
+			"type": "Town",
+			"fill": "#c6606b",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 988,
+					"percent": 52.14,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 907,
+					"percent": 47.86,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"tolland": {
+			"name": "Tolland",
+			"type": "County",
+			"fips": "09013",
+			"fill": "#4874a3",
+			"percent_reporting": 82.2,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 35567,
+					"percent": 56.48,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 27402,
+					"percent": 43.52,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"new_haven": {
+			"name": "New Haven",
+			"type": "County",
+			"fips": "09009",
+			"fill": "#4874a3",
+			"percent_reporting": 92.9,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 171209,
+					"percent": 59.24,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 117761,
+					"percent": 40.75,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 12,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 11,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 10,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"windham": {
+			"name": "Windham",
+			"type": "County",
+			"fips": "09015",
+			"fill": "#c6606b",
+			"percent_reporting": 85.7,
+			"candidates": [
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 21154,
+					"percent": 51.71,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 19749,
+					"percent": 48.28,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 3,
+					"percent": 0.01,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"hartford": {
+			"name": "Hartford",
+			"type": "County",
+			"fips": "09003",
+			"fill": "#4874a3",
+			"percent_reporting": 80.4,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 202996,
+					"percent": 63.61,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 116106,
+					"percent": 36.38,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 3,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 2,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"litchfield": {
+			"name": "Litchfield",
+			"type": "County",
+			"fips": "09005",
+			"fill": "#c6606b",
+			"percent_reporting": 99,
+			"candidates": [
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 41307,
+					"percent": 51.98,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 38151,
+					"percent": 48.01,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 2,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"fairfield": {
+			"name": "Fairfield",
+			"type": "County",
+			"fips": "09001",
+			"fill": "#4874a3",
+			"percent_reporting": 99,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 200271,
+					"percent": 61.8,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 123805,
+					"percent": 38.2,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 3,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 2,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"new_london": {
+			"name": "New London",
+			"type": "County",
+			"fips": "09011",
+			"fill": "#4874a3",
+			"percent_reporting": 81.3,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 59975,
+					"percent": 57.77,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 43841,
+					"percent": 42.23,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 2,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"middlesex": {
+			"name": "Middlesex",
+			"type": "County",
+			"fips": "09007",
+			"fill": "#4874a3",
+			"percent_reporting": 88.6,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 43432,
+					"percent": 57.32,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 32341,
+					"percent": 42.68,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"capitol": {
+			"name": "Capitol",
+			"type": "Planning Region",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 224823,
+					"percent": 63.39,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 129836,
+					"percent": 36.61,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 4,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 2,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"naugatuck_valley": {
+			"name": "Naugatuck Valley",
+			"type": "Planning Region",
+			"fill": "#c6606b",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 80915,
+					"percent": 51.44,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 76390,
+					"percent": 48.56,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 3,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"northeastern_connecticut": {
+			"name": "Northeastern Connecticut",
+			"type": "Planning Region",
+			"fill": "#c6606b",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 20087,
+					"percent": 54.63,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 16679,
+					"percent": 45.36,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 3,
+					"percent": 0.01,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"northwest_hills": {
+			"name": "Northwest Hills",
+			"type": "Planning Region",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 24929,
+					"percent": 50.86,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 24085,
+					"percent": 49.14,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"south_central_connecticut": {
+			"name": "South Central Connecticut",
+			"type": "Planning Region",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 122972,
+					"percent": 63.58,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 70413,
+					"percent": 36.41,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 12,
+					"percent": 0.01,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 10,
+					"percent": 0.01,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 8,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"western_connecticut": {
+			"name": "Western Connecticut",
+			"type": "Planning Region",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 137185,
+					"percent": 61.4,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 86239,
+					"percent": 38.6,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 2,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"southeastern_connecticut": {
+			"name": "Southeastern Connecticut",
+			"type": "Planning Region",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 59749,
+					"percent": 58.25,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 42828,
+					"percent": 41.75,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 2,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"greater_bridgeport": {
+			"name": "Greater Bridgeport",
+			"type": "Planning Region",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 61695,
+					"percent": 64.03,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 34661,
+					"percent": 35.97,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		},
+		"lower_connecticut_river_valley": {
+			"name": "Lower Connecticut River Valley",
+			"type": "Planning Region",
+			"fill": "#4874a3",
+			"percent_reporting": 100,
+			"candidates": [
+				{
+					"name": "Ned Lamont",
+					"party": "Democratic",
+					"votes": 46928,
+					"percent": 57.52,
+					"color": "#4874a3",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Ryan Fazio",
+					"party": "Republican",
+					"votes": 34653,
+					"percent": 42.48,
+					"color": "#c6606b",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": true
+				},
+				{
+					"name": "Zenobia Adgers",
+					"party": "Write-In",
+					"votes": 1,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "L. Lee Whitnum",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				},
+				{
+					"name": "Christian Noe",
+					"party": "Write-In",
+					"votes": 0,
+					"percent": 0,
+					"color": "#808080",
+					"winner": false,
+					"advanced": false,
+					"incumbent": false,
+					"major_candidate": false
+				}
+			]
+		}
+	}
+}

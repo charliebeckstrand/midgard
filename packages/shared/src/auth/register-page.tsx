@@ -15,7 +15,7 @@ import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
-import { chain, email, matches, minLength, required, validationMessages } from './form-validators'
+import { chain, email, newPasswordRules, required } from './form-validators'
 import { Turnstile } from './turnstile'
 import { useLeaving } from './use-leaving'
 import { useServerError } from './use-server-error'
@@ -96,11 +96,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 				validate={{
 					email: chain(required(intl), email(intl)),
 					name: chain(required(intl)),
-					password: chain(required(intl), minLength(intl, 8)),
-					confirmPassword: chain(
-						required(intl),
-						matches('password', intl.formatMessage(validationMessages.passwordMismatch)),
-					),
+					...newPasswordRules(intl),
 				}}
 				onSubmit={handleSubmit}
 				disabled={leaving}

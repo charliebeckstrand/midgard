@@ -1,9 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { chatBranches, toChatTree } from '../../modules/chat/engine/chat-branch/tree'
 import type { ChatPart } from '../../modules/chat/engine/chat-content/types'
 import {
 	appendUserMessage,
 	applyReplyChunk,
+	branchEditedMessage,
+	branchLastReply,
 	dropEmptyReply,
 	duplicateMessageIds,
 	failReply,
@@ -12,8 +15,6 @@ import {
 	findUserMessage,
 	openReply,
 	seedMessages,
-	truncateToEditedMessage,
-	truncateToLastUserMessage,
 } from '../../modules/chat/engine/chat-transcript'
 import type { ChatMessageData } from '../../modules/chat/engine/types'
 
@@ -259,14 +260,16 @@ describe('findLastUserMessage', () => {
 	})
 })
 
-describe('truncateToLastUserMessage', () => {
-	it('keeps the last user message and drops its reply', () => {
-		const messages = [user('u1', 'hi'), assistant('r1', 'first')]
+describe('branchLastReply', () => {
+	it('hides the reply to the last user message as a branch', () => {
+		const tree = branchLastReply(toChatTree([user('u1', 'hi'), assistant('r1', 'first')]))
 
-		expect(truncateToLastUserMessage(messages)).toEqual([user('u1', 'hi')])
+		expect(tree.path).toEqual([user('u1', 'hi')])
+
+		expect(tree.forks).toEqual({ u1: { before: [[assistant('r1', 'first')]], after: [] } })
 	})
 
-	it('drops every turn after the last user message', () => {
+	it('hides every turn after the last user message', () => {
 		const messages = [
 			user('u1', 'hi'),
 			assistant('r1', 'first'),
@@ -274,23 +277,31 @@ describe('truncateToLastUserMessage', () => {
 			assistant('r2', 'x'),
 		]
 
-		expect(truncateToLastUserMessage(messages)).toEqual([
+		expect(branchLastReply(toChatTree(messages)).path).toEqual([
 			user('u1', 'hi'),
 			assistant('r1', 'first'),
 			user('u2', 'again'),
 		])
 	})
 
-	it('changes nothing when the last user message has no reply yet', () => {
-		const messages = [user('u1', 'hi')]
+	it('gives the next reply the newest branch, beside the old one', () => {
+		const tree = branchLastReply(toChatTree([user('u1', 'hi'), assistant('r1', 'first')]))
 
-		expect(truncateToLastUserMessage(messages)).toEqual(messages)
+		const retried = { ...tree, path: openReply(tree.path, 'r2') }
+
+		expect(chatBranches(retried)).toEqual({ r2: { index: 1, ids: ['r1', 'r2'] } })
+	})
+
+	it('changes nothing when the last user message has no reply yet', () => {
+		const tree = toChatTree([user('u1', 'hi')])
+
+		expect(branchLastReply(tree)).toBe(tree)
 	})
 
 	it('changes nothing when the transcript holds no user message', () => {
-		const messages = [assistant('r1', 'unprompted')]
+		const tree = toChatTree([assistant('r1', 'unprompted')])
 
-		expect(truncateToLastUserMessage(messages)).toEqual(messages)
+		expect(branchLastReply(tree)).toBe(tree)
 	})
 })
 
@@ -310,41 +321,42 @@ describe('findUserMessage', () => {
 	})
 })
 
-describe('truncateToEditedMessage', () => {
-	it('replaces the message’s content and drops every turn after it', () => {
-		const messages = [
+describe('branchEditedMessage', () => {
+	const messages = [
+		user('u1', 'hi'),
+		assistant('r1', 'first'),
+		user('u2', 'again'),
+		assistant('r2', 'x'),
+	]
+
+	it('shows the new content under the new id, with no turn after it', () => {
+		expect(branchEditedMessage(toChatTree(messages), 'u2', 'u2b', 'edited').path).toEqual([
 			user('u1', 'hi'),
 			assistant('r1', 'first'),
-			user('u2', 'again'),
-			assistant('r2', 'x'),
-		]
-
-		expect(truncateToEditedMessage(messages, 'u1', 'edited')).toEqual([user('u1', 'edited')])
-	})
-
-	it('keeps the message’s other fields', () => {
-		const messages: ChatMessageData[] = [
-			{ id: 'u1', sender: 'user', content: 'hi', timestamp: '2026-08-08T00:00:00Z' },
-			assistant('r1', 'first'),
-		]
-
-		expect(truncateToEditedMessage(messages, 'u1', 'edited')).toEqual([
-			{ id: 'u1', sender: 'user', content: 'edited', timestamp: '2026-08-08T00:00:00Z' },
+			user('u2b', 'edited'),
 		])
 	})
 
-	it('changes nothing for an id that names no message', () => {
-		const messages = [user('u1', 'hi'), assistant('r1', 'first')]
+	it('hides the old message and every turn after it as a branch', () => {
+		const tree = branchEditedMessage(toChatTree(messages), 'u1', 'u1b', 'edited')
 
-		expect(truncateToEditedMessage(messages, 'absent', 'edited')).toEqual(messages)
+		expect(tree.forks).toEqual({ '': { before: [messages], after: [] } })
+
+		expect(chatBranches(tree)).toEqual({ u1b: { index: 1, ids: ['u1', 'u1b'] } })
 	})
 
-	it('returns a new list, leaving the transcript it read intact', () => {
-		const messages = [user('u1', 'hi'), assistant('r1', 'first')]
+	it('changes nothing for an id that names no message', () => {
+		const tree = toChatTree(messages)
 
-		expect(truncateToEditedMessage(messages, 'u1', 'edited')).not.toBe(messages)
+		expect(branchEditedMessage(tree, 'absent', 'b', 'edited')).toBe(tree)
+	})
 
-		expect(messages[0]).toEqual(user('u1', 'hi'))
+	it('leaves the tree it read intact', () => {
+		const tree = toChatTree(messages)
+
+		branchEditedMessage(tree, 'u1', 'u1b', 'edited')
+
+		expect(tree.path).toEqual(messages)
 	})
 })
 

@@ -60,11 +60,11 @@ function ChoiceListbox<T extends string>({
 	)
 }
 
-// The modifier of the sidebar shortcut: ⌘ on Apple platforms, Ctrl elsewhere.
+// The modifier of the sidebar shortcut: ⌘ on Apple platforms, ⌃ (Control) elsewhere.
 // It follows the `$mod` rule of tinykeys, which binds the shortcut. The dialog
 // renders only in the client, so the label never renders on the server.
 function sidebarShortcut() {
-	return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? '⌘B' : 'Ctrl+B'
+	return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? '⌘B' : '⌃B'
 }
 
 // The suffix of the sidebar picker: the key of the shortcut, then the chevron

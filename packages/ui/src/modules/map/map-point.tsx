@@ -5,9 +5,10 @@ import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import { markTargets } from './engine/map-cluster/crowd'
 import { ownGround } from './engine/map-cluster/ground'
-import { POINT_HIT_RADIUS, POINT_RADIUS, POINT_SWATCH } from './engine/map-constants'
+import { POINT_RADIUS, POINT_SWATCH } from './engine/map-constants'
 import { dotReach } from './engine/map-geometry/mark'
 import { pointPop } from './engine/map-motion'
+import type { MapEntryDot } from './engine/map-overlay/entry'
 import type { LngLat, MapPointShape } from './engine/types'
 import { dotHitProps, MapDot, MapDotClip } from './map-dot'
 import { MapDotHalo } from './map-halo'
@@ -39,8 +40,10 @@ export type MapPointProps = MapOverlayProps & {
  * The dot of another mark can stand so close that the two targets overlap. The
  * hit circle then clips to the ground nearer to this dot than to that one. Thus
  * each target keeps its whole reach outward, and the line midway between the
- * dots divides the contested middle evenly. Without the clip, the dot that draws
- * last takes the whole overlap and the tooltip of the other dot.
+ * dots divides the contested middle evenly. Where midway falls inside the face of
+ * a wider summary, the line moves to the edge of that face, so each dot keeps
+ * what it paints. Without the clip, the dot that draws last takes the whole
+ * overlap and the tooltip of the other dot.
  *
  * For a mouse, the hit circle narrows to what the ground under it can spare.
  * Two things can want that ground. A {@link MapGeofence} that the map draws
@@ -75,6 +78,15 @@ export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 	// identity tells the plat's pool that the point moved.
 	const stops = useCallback((): LngLat[] => [[lng, lat]], [lng, lat])
 
+	// What the shape paints out to, so the floor of a square's target covers its corners, and a
+	// neighbor's cut stops clear of them.
+	const reach = dotReach(POINT_RADIUS, shape)
+
+	const dots = useCallback(
+		(): MapEntryDot[] => [{ at: [lng, lat], radius: reach }],
+		[lng, lat, reach],
+	)
+
 	const {
 		slot,
 		hidden,
@@ -93,7 +105,7 @@ export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 		kind: 'point',
 		swatch: POINT_SWATCH[shape],
 		stops,
-		dots: stops,
+		dots,
 	})
 
 	const clipId = `${useId()}-hit`
@@ -119,8 +131,10 @@ export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 	 */
 	const ground = useMemo(
 		() =>
-			position === null ? null : ownGround(position, neighbors(), POINT_HIT_RADIUS * unitsPerPixel),
-		[position, neighbors, unitsPerPixel],
+			position === null
+				? null
+				: ownGround({ at: position, radius: reach }, neighbors(), unitsPerPixel),
+		[position, reach, neighbors, unitsPerPixel],
 	)
 
 	/*
@@ -133,19 +147,13 @@ export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 	 * The region half made it two projection inverts and a grid walk per call, which is more than a
 	 * toggled-off mark saves by skipping it. `ground` above already pays that trade the other
 	 * way round.
-	 *
-	 * The radius is what the shape paints out to, so the floor of a square covers its corners.
 	 */
 	const target = useMemo(
 		() =>
 			position === null
 				? undefined
-				: markTargets(
-						[{ at: position, radius: dotReach(POINT_RADIUS, shape) }],
-						unitsPerPixel,
-						spare,
-					)[0],
-		[position, shape, unitsPerPixel, spare],
+				: markTargets([{ at: position, radius: reach }], unitsPerPixel, spare)[0],
+		[position, reach, unitsPerPixel, spare],
 	)
 
 	if (slot === undefined || hidden || position === null) return null

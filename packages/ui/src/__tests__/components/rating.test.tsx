@@ -1,4 +1,3 @@
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { ControlLockContext } from '../../components/control/context'
 import { Description, Field, Label } from '../../components/fieldset'
@@ -7,6 +6,7 @@ import { Form } from '../../modules/form'
 import { LocaleProvider } from '../../providers/locale'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
+import { serverMarkup } from '../helpers/hydrate'
 
 /** The stars' own radios, in draw order. */
 function stars(container: HTMLElement): HTMLInputElement[] {
@@ -637,9 +637,7 @@ describe('RatingSkeleton', () => {
 	 * close the paragraph there, and the tree it hydrates no longer matches.
 	 */
 	it('stands in for a rating inside a paragraph, as server markup', () => {
-		const container = document.createElement('div')
-
-		container.innerHTML = renderToString(
+		const container = serverMarkup(
 			<p>
 				Rated <RatingSkeleton count={2} />
 			</p>,

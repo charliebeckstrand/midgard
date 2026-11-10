@@ -12,6 +12,7 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { observeResizeBeforePaint } from '../../utilities/observe-resize-before-paint'
 import { breadcrumbFit, breadcrumbFitRule } from './breadcrumb-fit-rule'
@@ -24,11 +25,13 @@ import { breadcrumbMessages } from './breadcrumb-messages'
  * @remarks
  * The server cannot know the room of the row. Until the first measure, the
  * server markup and the hydration render thus draw the row at its size with
- * the trail invisible (CONVENTIONS §3.13). The measure runs in a layout effect,
- * so the first frame that shows the trail holds the fit, and a client render
- * is never painted at the wrong fit. The fit re-measures on resize, after each
- * commit, and once after `document.fonts.ready`: a late font changes what the
- * text takes without changing the box that holds it.
+ * the list transparent, when the trail has more than one crumb (CONVENTIONS
+ * §3.13). A trail of one crumb has no fit, so it shows from the server. What
+ * follows the list in the `<nav>` always shows. The measure runs in a layout
+ * effect, so the list fades in at its fit (`data-fitting` until then), and a
+ * client render is never painted at the wrong fit. The fit re-measures on
+ * resize, after each commit, and once after `document.fonts.ready`: a late
+ * font changes what the text takes without changing the box that holds it.
  * @internal
  */
 export function BreadcrumbFit({ ref, className, children, ...props }: ComponentProps<'nav'>) {
@@ -96,12 +99,13 @@ export function BreadcrumbFit({ ref, className, children, ...props }: ComponentP
 
 			<nav
 				aria-label={intl.formatMessage(breadcrumbMessages.label)}
-				className={cn('flex min-w-0 items-center', collapsed === null && 'invisible', className)}
+				className={cn('flex min-w-0 items-center', className)}
 				{...props}
 				// After the spread: the fit and its rule select on these.
 				ref={navRef}
 				data-slot="breadcrumb"
 				data-collapse={id}
+				data-fitting={dataAttr(collapsed === null)}
 			>
 				{children}
 			</nav>

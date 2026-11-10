@@ -1,6 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
 import { useState } from 'react'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
@@ -19,6 +18,7 @@ import {
 } from '../../components/drawer'
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetPanel } from '../../components/sheet'
 import { allBySlot, attach, bySlot, fireEvent, renderUI, screen, within } from '../helpers'
+import { serverMarkup } from '../helpers/hydrate'
 
 /** The elements of `elements` that the page shows, by their computed `display`. */
 const shown = (elements: HTMLElement[]) =>
@@ -158,16 +158,16 @@ describe.each(FAMILIES)('$name footer', ({ name, Root, Close, Content, Footer })
 	// The case the base style exists for: the server HTML holds the default footer
 	// too, and no effect runs before the first paint to remove it.
 	it('shows only the footer child in the server HTML', () => {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = renderToString(
-			<Root open onOpenChange={() => {}}>
-				<Content>
-					<Footer>
-						<Button type="button">Save</Button>
-					</Footer>
-				</Content>
-			</Root>,
+		const container = attach(
+			serverMarkup(
+				<Root open onOpenChange={() => {}}>
+					<Content>
+						<Footer>
+							<Button type="button">Save</Button>
+						</Footer>
+					</Content>
+				</Root>,
+			),
 		)
 
 		const footers = shown(allBySlot(container, `${name}-footer`))

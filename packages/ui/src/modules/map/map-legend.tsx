@@ -1,20 +1,20 @@
 'use client'
 
 import { memo, useRef } from 'react'
-import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
 import { cn } from '../../core/cn'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/map'
+import type { Orientation } from '../../types/orientation'
 import { LEGEND_TOUCH_ROWS, LegendSwitch } from '../chart/engine/chart-legend/legend-switch'
 import {
 	type LegendEmphasis,
 	useLegendEmphasis,
 } from '../chart/engine/chart-legend/use-legend-emphasis'
-import { readoutSwatchShapes } from '../chart/engine/chart-readout-card'
 import type { MapLegendItem } from './engine/map-legend/items'
 import { mapMessages } from './map-messages'
+import { MapSwatch } from './map-swatch'
 
 /** Props for {@link MapLegendEntry}. @internal */
 type MapLegendEntryProps = {
@@ -57,25 +57,24 @@ const MapLegendEntry = memo(function MapLegendEntry({
 			label={item.label}
 			labelSlot="map-legend-label"
 			labelClassName="flex-1"
-			// The entries of the panel stretch to the column. The readouts thus share
-			// one right edge, and each entry does not center its own content. When the
-			// panel stacks under the map, a narrow entry also covers the width of the
-			// widest one. A tap in the space after a short name otherwise touched no
-			// entry, and iOS moved it to the entry above. The row under the map keeps
-			// each entry at its own width.
-			className={cn(k.legend.entry, panel && 'w-full justify-start')}
+			// The entries of the panel stretch to the column beside the map. The readouts
+			// thus share one right edge, and each entry does not center its own content.
+			// Under the map frame's `@lg`, the panel stacks under the map as a row, and
+			// each entry keeps its own width, as in the row of a bottom legend.
+			className={cn(k.legend.entry, panel && '@lg:w-full @lg:justify-start')}
 			keys={
 				// One key per distinct mark shape the entry stands for. That is a lone
 				// swatch for a category or an ungrouped mark. It is a square beside a dot
 				// where a zone and the mark inside it merged into one place.
 				<span data-slot="map-legend-keys" className="flex shrink-0 items-center gap-1">
 					{item.swatches.map((swatch) => (
-						<Swatch
+						<MapSwatch
 							key={swatch.shape}
-							shape={readoutSwatchShapes[swatch.shape]}
-							color={swatch.className}
-							style={swatch.color ? { color: swatch.color } : undefined}
-							className={cn(off && 'opacity-40')}
+							shape={swatch.shape}
+							className={swatch.className}
+							color={swatch.color}
+							stripes={swatch.stripes}
+							swatchClassName={cn(off && 'opacity-40')}
 						/>
 					))}
 				</span>
@@ -117,10 +116,17 @@ export type MapLegendProps = {
 	/** Emphasizes an entry's marks (`null` clears); other marks dim while set. */
 	onFocus: (id: string | null) => void
 	/**
-	 * Lay the entries out as a single column rather than the centered wrap
-	 * row: the static side panel beside the map.
+	 * Lay the entries out as a single column beside the map from the map
+	 * frame's `@lg`: the static side panel. Under that width the panel stacks
+	 * under the map as the centered wrap row.
 	 */
 	panel?: boolean
+	/**
+	 * The measured axis of the entries, for `aria-orientation` and the arrow
+	 * keys: `vertical` while the panel stands beside the map, `horizontal` in a row.
+	 * @defaultValue 'horizontal'
+	 */
+	orientation?: Orientation
 }
 
 /**
@@ -137,15 +143,21 @@ export type MapLegendProps = {
  * focus ({@link MapLegendEntry}).
  * @internal
  */
-export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: MapLegendProps) {
+export function MapLegend({
+	items,
+	hidden,
+	onToggle,
+	onFocus,
+	panel = false,
+	orientation = 'horizontal',
+}: MapLegendProps) {
 	const intl = useIntl()
 
 	const ref = useRef<HTMLDivElement>(null)
 
-	// The side panel lays the entries in a column, so the arrows rove vertically
-	// there and horizontally under the map: the axis matches the layout.
-	const orientation = panel ? 'vertical' : 'horizontal'
-
+	// The side panel lays the entries in a column beside the map, so the arrows
+	// rove vertically there and horizontally in a row: the axis matches the
+	// layout. CSS draws the layout, and the measured `orientation` follows it.
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: '[data-slot="map-legend-item"]',
 		orientation,
@@ -173,16 +185,16 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 			className={cn(
 				// Under the map, the entries wrap in a centered row, like the chart
 				// legend. A single column put each entry on its own line, which made the
-				// legend tall on a phone.
-				!panel && 'flex max-w-full flex-wrap items-center justify-center',
-				// The side panel is a grid column. At `@lg` the column is capped
+				// legend tall on a phone. A side panel stacks under the map below the
+				// map frame's `@lg`, so it takes the same row there.
+				'flex max-w-full flex-wrap items-center justify-center',
+				// Beside the map, the side panel is a grid column. The column is capped
 				// (`grid-cols-1` tracks at `minmax(0,1fr)`) rather than left to size
 				// itself. An implicit track is max-content, and an entry whose name
 				// never wraps contributes its whole name to that, so the track grew
 				// past the rail it sits in and the entries overhung the reserved column
 				// instead of clipping inside it.
-				panel &&
-					'mx-auto grid w-fit max-w-full justify-items-start @lg:mx-0 @lg:w-full @lg:grid-cols-1',
+				panel && '@lg:grid @lg:w-full @lg:grid-cols-1 @lg:justify-items-start',
 				// The entries touch on both axes, so each hit area keeps to its entry
 				// (`TouchTarget`), and two adjacent entries do not overlap. A coarse
 				// pointer adds a gap between the rows (`LEGEND_TOUCH_ROWS`).

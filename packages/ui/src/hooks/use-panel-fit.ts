@@ -2,6 +2,7 @@
 
 import type { AnimationPlaybackControls, ValueAnimationTransition } from 'motion'
 import { type RefCallback, useEffect, useRef, useState } from 'react'
+import type { HeightMotionHost } from '../primitives/height-motion/context'
 import { type BorderBox, measureBox } from '../utilities/measure-box'
 import { travelHeight } from './travel-height'
 import { dockExtent, type PanelCeiling } from './use-panel-resize'
@@ -68,15 +69,22 @@ export type PanelFitOptions = {
  * box is the measurement instead: capped, it stops moving exactly where it
  * must.
  *
- * @returns A callback ref to attach to the panel, beside the gesture's own.
+ * Content that moves its own height, such as a Collapse that opens, tells the
+ * panel through the returned host. The panel then follows that motion frame by
+ * frame and starts no travel of its own. A travel would chase the motion: it
+ * pins the box to a height the content passes on the next frame, and arrives
+ * only to find the content moved again. A travel that is already under way when
+ * the motion starts still runs, and its arrival is a change in one step like
+ * any other.
+ *
+ * @returns A callback ref to attach to the panel, beside the gesture's own, and
+ * the host to provide to the content of the panel.
  * @internal
  */
-export function usePanelFit({
-	enabled,
-	dragged,
-	getCeiling,
-	transition,
-}: PanelFitOptions): RefCallback<HTMLDivElement> {
+export function usePanelFit({ enabled, dragged, getCeiling, transition }: PanelFitOptions): {
+	ref: RefCallback<HTMLDivElement>
+	host: HeightMotionHost
+} {
 	// The panel as state rather than a ref, for the reason the gesture holds it
 	// that way: it is portaled and mounts on a later commit than the one that
 	// opens the drawer, so an effect keyed on anything else runs with nothing to
@@ -90,6 +98,31 @@ export function usePanelFit({
 
 	// Whether the last run on this panel found a drag that held the height.
 	const held = useRef(false)
+
+	// The number of content motions that run now, and what the panel does when the last one lands.
+	const moves = useRef(0)
+
+	const onRest = useRef<(() => void) | null>(null)
+
+	// One host for the life of the panel, so the content under it does not render
+	// again for a new context value.
+	const [host] = useState<HeightMotionHost>(() => ({
+		move: () => {
+			moves.current += 1
+
+			let ended = false
+
+			return () => {
+				if (ended) return
+
+				ended = true
+
+				moves.current -= 1
+
+				if (moves.current === 0) onRest.current?.()
+			}
+		},
+	}))
 
 	useEffect(() => {
 		if (panel === null) return
@@ -124,8 +157,23 @@ export function usePanelFit({
 
 		let travel: AnimationPlaybackControls | null = null
 
+		// Whether the next delivery is the re-read on the arrival of a travel.
+		let arriving = false
+
+		// A content motion lands after the frame that writes its last height, and
+		// before the observer delivers that frame. The panel takes the arrived box as
+		// its rest, so the delivery finds no change to travel. A travel under way
+		// reads the box itself on arrival.
+		onRest.current = () => {
+			if (travel === null) rested = measureBox(panel)
+		}
+
 		const observer = new ResizeObserver(([entry]) => {
 			const next = measureBox(panel, entry?.borderBoxSize?.[0])
+
+			const settling = arriving
+
+			arriving = false
 
 			// A width change is the window being resized, and the height that comes
 			// with it is layout reflowing rather than content changing. Starting from
@@ -150,6 +198,10 @@ export function usePanelFit({
 
 			if (Math.abs(from - next.block) < SUBPIXEL || reduced) return
 
+			// The content moves its own height on each frame, so the box already
+			// follows it, and a travel would chase it.
+			if (moves.current > 0 && !settling) return
+
 			// Off observation for the length of the travel. Every frame writes the
 			// height of the box being watched, and an observer answering its own
 			// writes is the loop the browser reports as undelivered notifications.
@@ -163,6 +215,8 @@ export function usePanelFit({
 				// Delivers the box once by itself, which is the re-read a travel needs:
 				// content swapped while the panel was pinned moved nothing observable,
 				// so the height it now asks for is only knowable from here.
+				arriving = true
+
 				observer.observe(panel)
 			})
 		})
@@ -177,8 +231,10 @@ export function usePanelFit({
 			travel?.stop()
 
 			observer.disconnect()
+
+			onRest.current = null
 		}
 	}, [panel, enabled, dragged, getCeiling, transition, reduced])
 
-	return setPanel
+	return { ref: setPanel, host }
 }

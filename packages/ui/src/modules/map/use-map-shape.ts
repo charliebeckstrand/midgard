@@ -21,8 +21,10 @@ import type {
 	MapAspectRatio,
 	MapFeature,
 	MapGeography,
+	MapInverseProjector,
 	MapPoint2D,
 	MapProjection,
+	MapProjector,
 } from './engine/types'
 
 /**
@@ -65,7 +67,7 @@ export type MapFrameShape = {
 	/** The graticule and sphere `d`s under the active fit; both `null` where the chrome is off. */
 	chrome: MapChromePaths
 	features: MapFeature[]
-	project: (position: LngLat) => MapPoint2D | null
+	project: MapProjector
 	/**
 	 * {@link project} run backwards, `null` where the fit has no lon/lat for a
 	 * frame position, which the composite's gaps between insets genuinely have.
@@ -77,7 +79,7 @@ export type MapFrameShape = {
 	 * twin rather than by handing out the fitted projection, so `d3-geo` stays
 	 * inside the geometry engine.
 	 */
-	unproject: (at: MapPoint2D) => LngLat | null
+	unproject: MapInverseProjector
 }
 
 /**

@@ -1,8 +1,9 @@
 'use client'
 
-import { type ComponentProps, useCallback, useMemo } from 'react'
+import { type ComponentProps, useCallback, useMemo, useState } from 'react'
 import { Fieldset } from '../../../components/fieldset'
 import { cn } from '../../../core/cn'
+import { useStableEvent } from '../../../hooks/use-stable-event'
 import { k } from '../../../recipes/kata/query-builder'
 import type { Orientation } from '../../../types/orientation'
 import { adaptive, type Responsive } from '../../../utilities/responsive'
@@ -10,6 +11,7 @@ import type { QueryField, QueryGroup } from '../engine/types'
 import type { QueryBuilderStateValue } from './context'
 import { QueryBuilderProvider } from './context'
 import { QueryBuilderGroup } from './query-builder-group'
+import { createQueryMove } from './query-builder-move'
 import { useQueryBuilderTree } from './use-query-builder-tree'
 
 /** The slots of the query builder. */
@@ -68,12 +70,21 @@ export type QueryBuilderProps = Omit<ComponentProps<'fieldset'>, 'children' | 'd
 	 */
 	requireRule?: boolean
 	/**
-	 * Lets the user reorder the children of each group, by drag or by keyboard.
-	 * Each child shows a grip when its group has more than one child. A node
-	 * moves only among its siblings, and each AND/OR stays in its position. A
+	 * Lets the user move the nodes of the query, by drag or by keyboard, among
+	 * their siblings and from one group into another. Each child shows a grip
+	 * when it can move: its group has more than one child, or the group is
+	 * nested and the child can leave it. In its own group a node moves between
+	 * the AND/OR separators, which stay in their positions. A node that moves
+	 * into another group takes the combinator of the place that it enters, and
+	 * each other node keeps its combinator. A pointer drag over another group
+	 * drops the node there, at the height of the pointer. With the keyboard,
+	 * Space lifts the node, the up and down arrows move it among its siblings,
+	 * the arrow toward the end of the line moves it into the group next to it,
+	 * and the arrow toward the start of the line moves it out of its group. A
 	 * pointer drag calls `onValueChange` once, on the drop, and Escape cancels
 	 * it. With the keyboard, each arrow key moves the node and calls
-	 * `onValueChange`.
+	 * `onValueChange`. Under `requireRule`, the sole node of a group does not
+	 * leave it.
 	 * @defaultValue false
 	 */
 	reorder?: boolean
@@ -106,6 +117,10 @@ export function QueryBuilder({
 		onValueChange,
 	})
 
+	const getRoot = useStableEvent(() => root)
+
+	const [move] = useState(() => createQueryMove(getRoot))
+
 	const getField = useCallback(
 		(name: string) => fields.find((field) => field.name === name),
 		[fields],
@@ -126,7 +141,7 @@ export function QueryBuilder({
 	)
 
 	return (
-		<QueryBuilderProvider state={state} actions={actions} register={register}>
+		<QueryBuilderProvider state={state} actions={actions} register={register} move={move}>
 			<Fieldset
 				data-slot="query-builder"
 				{...props}

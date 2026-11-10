@@ -63,7 +63,7 @@ type RowSortableValue = {
 const [RowSortableContext, useRowSortable] = createContext<RowSortableValue>('GridRowSortable')
 
 /** Props for {@link GridReorderRegion}. @internal */
-type GridReorderRegionProps<T> = {
+export type GridReorderRegionProps<T> = {
 	/** Whether column reorder is live now. */
 	canReorder: boolean
 	/** The options of the column sortable. */

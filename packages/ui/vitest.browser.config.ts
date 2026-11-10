@@ -34,6 +34,7 @@ const DENSITY_FILES = [
 	'src/__tests__/browser/switch-density-settle.test.tsx',
 	'src/__tests__/browser/geometry/*-density.test.tsx',
 	'src/__tests__/browser/geometry/size-steps.test.tsx',
+	'src/__tests__/browser/geometry/drawer-fit-aspect.test.tsx',
 ]
 
 /** The CSS of this package, and not the CSS of a dependency. */

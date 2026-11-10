@@ -1,7 +1,8 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
+import { useHeightMotionHost } from '../height-motion/context'
 import { ReducedMotion } from '../reduced-motion'
 import { type HeldMotionPreset, heldMotionProps, heldMotionTargets } from './mount-held-motion'
 import { MountHold } from './mount-hold'
@@ -27,6 +28,40 @@ export type MountPresenceProps = {
 	children: (motionProps: object, targets: (preset: HeldMotionPreset) => object) => ReactNode
 }
 
+/**
+ * Tells the enclosing height motion host when the height of the panel moves.
+ * Motion notifies a start for each target and a landing only for the target that
+ * lands, because a target that a new one stops does not land. The panel thus
+ * holds one move from its first start to the next landing.
+ */
+function useHeightMove() {
+	const host = useHeightMotionHost()
+
+	const end = useRef<(() => void) | null>(null)
+
+	// A panel that unmounts, or moves to another host, in the middle of a motion ends its move.
+	useEffect(() => {
+		if (host === null) return
+
+		return () => {
+			end.current?.()
+
+			end.current = null
+		}
+	}, [host])
+
+	return {
+		start: () => {
+			if (host !== null && end.current === null) end.current = host.move()
+		},
+		land: () => {
+			end.current?.()
+
+			end.current = null
+		},
+	}
+}
+
 /** The props of an inner motion element of an unheld panel: its whole preset. */
 const wholePreset = (preset: HeldMotionPreset) => preset
 
@@ -39,6 +74,9 @@ const wholePreset = (preset: HeldMotionPreset) => preset
  * in place through {@link heldMotionProps}. It rests only once the closing
  * transition lands, because `display: none` cannot animate.
  *
+ * The panel tells the enclosing height motion host when its height moves, so a
+ * `fit` drawer follows the motion and does not travel on top of it.
+ *
  * @internal
  */
 export function MountPresence({
@@ -49,6 +87,14 @@ export function MountPresence({
 	onAnimationComplete,
 	children,
 }: MountPresenceProps) {
+	const move = useHeightMove()
+
+	const landed = (definition: unknown) => {
+		move.land()
+
+		onAnimationComplete?.(definition)
+	}
+
 	if (!hold.held) {
 		return (
 			<ReducedMotion>
@@ -60,7 +106,8 @@ export function MountPresence({
 								animate: preset.animate,
 								exit: preset.exit,
 								transition: preset.transition,
-								onAnimationComplete,
+								onAnimationStart: move.start,
+								onAnimationComplete: landed,
 							},
 							wholePreset,
 						)}
@@ -74,8 +121,9 @@ export function MountPresence({
 	return (
 		<ReducedMotion>
 			<MountHold hold={hold} name={name}>
-				{children(heldMotionProps(preset, open, hold, onAnimationComplete), (inner) =>
-					heldMotionTargets(inner, open, hold),
+				{children(
+					{ ...heldMotionProps(preset, open, hold, landed), onAnimationStart: move.start },
+					(inner) => heldMotionTargets(inner, open, hold),
 				)}
 			</MountHold>
 		</ReducedMotion>

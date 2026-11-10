@@ -41,11 +41,13 @@ export const RESERVED = {
 } as const satisfies Record<ReservedField, true>
 
 /**
- * Memo entries per recipe. Combinations of declared axis values stay far
- * below this. The cap only guards a caller feeding unbounded dynamic strings
- * into a variant prop, and resets the memo instead of growing it.
+ * Memo entries per recipe or kata. Combinations of declared axis values stay
+ * far below this. The cap only guards a caller feeding unbounded dynamic
+ * strings into a variant prop, and resets the memo instead of growing it.
+ *
+ * @internal
  */
-const MEMO_CAP = 1024
+export const MEMO_CAP = 1024
 
 /**
  * A compound rule pre-split into its conditions and class payload. {@link

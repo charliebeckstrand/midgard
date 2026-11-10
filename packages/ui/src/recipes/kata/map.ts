@@ -87,6 +87,61 @@ export const k = {
 	/** Shared data-viz palette from `zu`: the same slots, order, and validation as `kata/chart`. */
 	series: palette.series,
 	/**
+	 * The soft tone of each slot, for a category with `tone: 'soft'`: a lighter
+	 * step of the same hue for a region and its swatch: the 300 step in light
+	 * and dark mode, so it reads lighter than the solid step on each surface.
+	 * `zinc` takes 400 and 600, because its 300 and 800 steps are too near the
+	 * no-data fill ({@link k.region.empty}).
+	 */
+	soft: {
+		blue: {
+			fill: mode('fill-blue-300', 'dark:fill-blue-300'),
+			text: mode('text-blue-300', 'dark:text-blue-300'),
+		},
+		orange: {
+			fill: mode('fill-orange-300', 'dark:fill-orange-300'),
+			text: mode('text-orange-300', 'dark:text-orange-300'),
+		},
+		violet: {
+			fill: mode('fill-violet-300', 'dark:fill-violet-300'),
+			text: mode('text-violet-300', 'dark:text-violet-300'),
+		},
+		green: {
+			fill: mode('fill-green-300', 'dark:fill-green-300'),
+			text: mode('text-green-300', 'dark:text-green-300'),
+		},
+		red: {
+			fill: mode('fill-red-300', 'dark:fill-red-300'),
+			text: mode('text-red-300', 'dark:text-red-300'),
+		},
+		sky: {
+			fill: mode('fill-sky-300', 'dark:fill-sky-300'),
+			text: mode('text-sky-300', 'dark:text-sky-300'),
+		},
+		amber: {
+			fill: mode('fill-amber-300', 'dark:fill-amber-300'),
+			text: mode('text-amber-300', 'dark:text-amber-300'),
+		},
+		rose: {
+			fill: mode('fill-rose-300', 'dark:fill-rose-300'),
+			text: mode('text-rose-300', 'dark:text-rose-300'),
+		},
+		zinc: {
+			fill: mode('fill-zinc-400', 'dark:fill-zinc-600'),
+			text: mode('text-zinc-400', 'dark:text-zinc-600'),
+		},
+	} satisfies Record<MapSeriesColor, { fill: string[]; text: string[] }>,
+	/**
+	 * The stripes of a category with `stripes`. On a region, a pattern in the
+	 * region layer draws them. On a swatch, this layer draws them over the
+	 * fill of the first color. The layer takes the `currentColor` class of the
+	 * second color, and the gradient paints that color in bands that match the
+	 * region. Under forced colors the gradient goes, and the swatch keeps its
+	 * one system color.
+	 */
+	stripes:
+		'pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(135deg,currentColor_0,currentColor_2px,transparent_2px,transparent_4px)] forced-colors:hidden',
+	/**
 	 * A shared summary: a summary that holds the dots of more than one set. A ring
 	 * of the colors of its sets carries the mark. Thus the disc inside the ring
 	 * and the count on it take the inks of the surface. No one set color then names a
@@ -118,6 +173,12 @@ export const k = {
 		 * layer reads its affordance beside its other paint.
 		 */
 		clickable: CLICKABLE,
+		/**
+		 * The cursor of a region that takes no click on a clickable layer
+		 * (`MapPlat`'s `isRegionDisabled`). It is on the path, so it overrides the
+		 * pointer cursor that the path inherits from the layer.
+		 */
+		disabled: 'cursor-default',
 		/**
 		 * The region layer while its VALUES are still loading. The shapes are drawn and
 		 * their numbers are not in yet, so every one of them holds the no-data fill.
@@ -195,15 +256,20 @@ export const k = {
 	/** Keyboard focus ring: the shared accent outline, on the navigable plot region. */
 	focus: sen.focus.ring,
 	/**
-	 * The legend's reserved box, mounted before any button registers so the
+	 * The legend's reserved space, there before any button registers so the
 	 * frame never shifts as entries land:
 	 *
-	 * - The `row` placements (top / bottom, and every placement stacked below
-	 *   the map's own `@lg` width) hold one item-row of height.
-	 * - The side `panel` holds a fixed column width from the map's `@lg` width. A label too wide
-	 *   for it clips, revealing itself on hover.
+	 * - The `row` box holds one item-row of height. Each placement takes it: top
+	 *   and bottom, and a side panel too, which is a row under the map below the
+	 *   map's own `@lg` width.
+	 * - The side `rail` is the grid of the plot and a side legend. From the map's
+	 *   `@lg` width, it has a fixed 12rem column for the panel beside the plot.
+	 *   A label too wide for it clips, and shows itself on hover.
 	 *
-	 * The plot's width therefore never depends on what has registered.
+	 * The plot's width therefore never depends on what has registered. The rail
+	 * is a track of the grid, not the width of the panel, so the plot has its
+	 * final box before the browser parses the panel. The panel follows a large
+	 * SVG in the HTML, and a browser can paint the page before it gets there.
 	 *
 	 * The item-row is 32 px, the height of a `sm` button. An entry is a
 	 * `LegendSwitch`, and its explicit `size="sm"` makes it its own density
@@ -214,7 +280,35 @@ export const k = {
 		/** The gap of the swatch and the label of a legend entry. */
 		entry: dan.gap.scale.sm,
 		row: 'min-h-8',
-		panel: ['min-h-8', 'shrink-0', '@lg:w-48'],
+		/**
+		 * The grid of the plot and a side legend. It is one column, with the
+		 * legend under the plot, below the map's `@lg`. From there it is two
+		 * columns, and the `left` or `right` entry puts the rail on that side.
+		 *
+		 * The `plot` line names the column of the plot, and `band` puts the plot
+		 * there. The plot is the first child from the time the browser parses it,
+		 * so it has its final column while it is the only child. The legend
+		 * follows it in the DOM and takes the column that stays. Do not use
+		 * `order` here: it does not move an only child off the first column.
+		 *
+		 * The `--map-rail` property is the width of the rail. The `panel` entry
+		 * gives the fixed column of a switchboard. The `bar` entry gives a range
+		 * bar the width of its labels, which the browser knows only after it
+		 * parses the bar.
+		 *
+		 * The side is physical, and the columns of a right-to-left grid start at
+		 * the right, so the `rtl:` variant of each side is the columns of the
+		 * other side. Tailwind finds a class only as a complete literal, so each
+		 * entry is written out in full.
+		 */
+		rail: {
+			band: 'grid grid-cols-1 @lg:*:first:col-start-[plot] @lg:*:first:row-start-1',
+			panel: '[--map-rail:12rem]',
+			bar: '[--map-rail:auto]',
+			left: '@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)] rtl:@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)]',
+			right:
+				'@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)] rtl:@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)]',
+		},
 	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,

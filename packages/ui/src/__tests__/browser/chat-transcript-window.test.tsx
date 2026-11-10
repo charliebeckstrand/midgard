@@ -1,3 +1,4 @@
+import { _resetIOSDetectionForTests } from '@tanstack/virtual-core'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import type { ChatEmbedRenderer, ChatMessageData } from '../../modules/chat'
 import { ChatEmbedProvider, ChatTranscript } from '../../modules/chat'
@@ -42,9 +43,17 @@ const history = (count: number): ChatMessageData[] =>
 	}))
 
 /** A bounded transcript, as an app shell gives one. */
-function Frame({ messages, streaming }: { messages: ChatMessageData[]; streaming?: boolean }) {
+function Frame({
+	messages,
+	streaming,
+	height = HEIGHT,
+}: {
+	messages: ChatMessageData[]
+	streaming?: boolean
+	height?: number
+}) {
 	return (
-		<div className="flex flex-col" style={{ height: HEIGHT, width: 480 }}>
+		<div className="flex flex-col" style={{ height, width: 480 }}>
 			<ChatTranscript messages={messages} streaming={streaming} />
 		</div>
 	)
@@ -431,6 +440,59 @@ describe('the transcript window', () => {
 		)
 
 		await waitFor(() => atEnd(transcript, 'Late.'), { timeout: FOLLOW })
+	})
+
+	// On iOS, the virtualizer holds back its corrections while the scroll moves.
+	// A row that grows during the follow of a new row then leaves the end below
+	// the view, and the virtualizer does not see the transcript at its end again.
+	it('keeps the pin while a reply streams on iOS', async () => {
+		vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(
+			'Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1',
+		)
+
+		_resetIOSDetectionForTests()
+
+		// The setup restores the user agent. The virtualizer then reads it again.
+		onTestFinished(_resetIOSDetectionForTests)
+
+		const messages = history(20)
+
+		const { container, rerender } = renderUI(<Frame messages={messages} streaming />)
+
+		const transcript = getTranscript(container)
+
+		await landed(transcript)
+
+		const reply = (words: number) => [
+			...messages,
+			{ id: 'reply', sender: 'assistant' as const, content: `Reply. ${filler(4).repeat(words)}` },
+		]
+
+		for (let words = 1; words <= 12; words++) {
+			rerender(<Frame messages={reply(words)} streaming />)
+
+			await frames(4)
+		}
+
+		await waitFor(() => atEnd(transcript, 'Reply.'), { timeout: FOLLOW })
+	})
+
+	// A shorter viewport moves the end down, and the browser sends no `scroll`
+	// event for it. A composer that grows a line does that.
+	it('keeps the pin when the viewport gets shorter', async () => {
+		const messages = history(200)
+
+		const { container, rerender } = renderUI(<Frame messages={messages} />)
+
+		const transcript = getTranscript(container)
+
+		await landed(transcript)
+
+		rerender(<Frame messages={messages} height={HEIGHT - 120} />)
+
+		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+
+		expect(container.querySelector('[data-slot="chat-transcript-newest"]')).toBeNull()
 	})
 
 	it('scrolls only on the block axis', async () => {

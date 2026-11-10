@@ -1,31 +1,39 @@
 /**
- * The dots of every visible dot-drawing mark on a plat, projected into frame units. A dot-shaped
+ * The dots of every visible dot-drawing mark on a plat, projected into frame units, each with the
+ * radius it paints at. A dot-shaped
  * mark divides its target's ground against this pool, with its own dots left out (see `ground.ts`).
  *
  * Frame arithmetic and a listener set, React-free, like the rest of the engine.
  */
 
 import { createEmitter } from '../../../../utilities/emitter'
-import type { MapOverlayEntry } from '../map-overlay/entry'
-import type { LngLat, MapPoint2D } from '../types'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
+import type { MapOverlayAnchor } from '../map-overlay/entry'
+import type { MapProjector } from '../types'
+import type { MapGroundDot } from './ground'
 
 /**
  * The pool of a plat, as a store that a mark reads through `useSyncExternalStore`.
  *
  * @remarks
- * The plat makes a new pool each time its ledger, its toggles, or its fit change. A mark that moves
- * changes none of these. Its stops sit behind a stable getter, so that a move does not write the
- * ledger again. The mark therefore calls {@link MapDotPool.restake} when its stops change. The pool
- * then gathers that mark again, and tells its readers only when the dots of that mark moved.
+ * The plat makes a new pool each time the anchors of its ledger (`sameAnchors`), its toggles, or
+ * its fit change. A mark that moves changes none of these. Its stops sit behind a stable getter, so
+ * that a move does not write the ledger again. The mark therefore calls
+ * {@link MapDotPool.restake} when its stops change. The pool then gathers that mark again, and
+ * tells its readers only when the dots of that mark moved or resized.
+ *
+ * Each mark reads its own view of the pool. The view of a mark holds no dot of that mark, so a
+ * restake changes the view of each other mark and keeps the view of the mark that moved.
  *
  * @internal
  */
 export type MapDotPool = {
 	/**
-	 * The snapshot: every OTHER mark's dots, for the mark that `exclude` names. The identity of this
-	 * function changes each time the pool changes, so a reader can hold its result in a memo.
+	 * The snapshot for the mark that `id` names: a function that gives the dots of every OTHER mark.
+	 * The identity of that function changes each time the dots of another mark change, so a reader
+	 * can hold its result in a memo. The function is lazy, because the first call gathers the pool.
 	 */
-	neighbors: () => (exclude: string) => MapPoint2D[]
+	neighbors: (id: string) => () => MapGroundDot[]
 	/** Calls `listener` each time the pool changes, and returns the unsubscribe. */
 	subscribe: (listener: () => void) => () => void
 	/** Gathers the dots of the mark that `id` names again, after its stops changed. */
@@ -42,8 +50,9 @@ export type MapDotPool = {
  * own dots from it.
  *
  * A restake before the first read does nothing, because no reader holds a gather yet. After it, a
- * restake gathers the one mark again. It changes the pool only when a dot of that mark moved. A mark
- * whose stops change identity but not position therefore renders no reader.
+ * restake gathers the one mark again. It changes the pool only when a dot of that mark moved or
+ * resized. A mark whose stops change identity but not position therefore renders no reader. A mark
+ * whose dots did move renders each other reader, and not itself.
  *
  * @param entries - The ledger.
  * @param hidden - The ids that the legend has toggled off.
@@ -52,13 +61,13 @@ export type MapDotPool = {
  * @internal
  */
 export function createDotPool(
-	entries: readonly MapOverlayEntry[],
+	entries: readonly MapOverlayAnchor[],
 	hidden: ReadonlySet<string>,
-	project: (at: LngLat) => MapPoint2D | null,
+	project: MapProjector,
 ): MapDotPool {
 	const changed = createEmitter()
 
-	let held: ReadonlyMap<string, readonly MapPoint2D[]> | null = null
+	let held: ReadonlyMap<string, readonly MapGroundDot[]> | null = null
 
 	const gathered = () => {
 		if (held === null) held = gatherDots(entries, hidden, project)
@@ -66,22 +75,24 @@ export function createDotPool(
 		return held
 	}
 
+	// The view of each mark that asked, by its id. A view reads the live gather, so a view that the
+	// pool keeps through a restake still gives the dots as they stand.
+	const views = new Map<string, () => MapGroundDot[]>()
+
 	// Walked rather than mapped: every dot on the map is tested per asking mark, and a `flatMap`
 	// would make an array per mark only to flatten them all away again.
-	const bind = () => (exclude: string) => {
-		const others: MapPoint2D[] = []
+	const bind = (exclude: string) => () => {
+		const others: MapGroundDot[] = []
 
 		for (const [owner, dots] of gathered()) {
-			if (owner !== exclude) for (const at of dots) others.push(at)
+			if (owner !== exclude) for (const dot of dots) others.push(dot)
 		}
 
 		return others
 	}
 
-	let neighbors = bind()
-
 	return {
-		neighbors: () => neighbors,
+		neighbors: (id) => getOrCompute(views, id, bind),
 		subscribe: changed.subscribe,
 		restake: (id) => {
 			if (held === null) return
@@ -99,7 +110,13 @@ export function createDotPool(
 
 			held = pool
 
-			neighbors = bind()
+			// The view of this mark holds none of its dots, so it stays. Each other view goes, and
+			// its reader gets a new one.
+			const own = views.get(id)
+
+			views.clear()
+
+			if (own !== undefined) views.set(id, own)
 
 			changed.emit()
 		},
@@ -107,17 +124,17 @@ export function createDotPool(
 }
 
 /**
- * Every visible dot-drawing mark's stops, projected into frame units, by the mark's id. A mark that
+ * Every visible dot-drawing mark's dots, projected into frame units, by the mark's id. A mark that
  * draws no dot has no key.
  *
  * @internal
  */
 function gatherDots(
-	entries: readonly MapOverlayEntry[],
+	entries: readonly MapOverlayAnchor[],
 	hidden: ReadonlySet<string>,
-	project: (at: LngLat) => MapPoint2D | null,
-): Map<string, readonly MapPoint2D[]> {
-	const pool = new Map<string, readonly MapPoint2D[]>()
+	project: MapProjector,
+): Map<string, readonly MapGroundDot[]> {
+	const pool = new Map<string, readonly MapGroundDot[]>()
 
 	for (const entry of entries) {
 		const dots = entryDots(entry, hidden, project)
@@ -141,32 +158,36 @@ function gatherDots(
  * @internal
  */
 function entryDots(
-	entry: MapOverlayEntry,
+	entry: MapOverlayAnchor,
 	hidden: ReadonlySet<string>,
-	project: (at: LngLat) => MapPoint2D | null,
-): MapPoint2D[] | undefined {
+	project: MapProjector,
+): MapGroundDot[] | undefined {
 	if (hidden.has(entry.id) || !entry.dotsAt) return undefined
 
-	const dots: MapPoint2D[] = []
+	const dots: MapGroundDot[] = []
 
 	for (const dot of entry.dotsAt()) {
-		const at = project(dot)
+		const at = project(dot.at)
 
-		if (at !== null) dots.push(at)
+		if (at !== null) dots.push({ at, radius: dot.radius })
 	}
 
 	return dots
 }
 
-/** Whether two lists of dots stand at the same positions, in order. @internal */
+/** Whether two lists of dots stand at the same positions at the same radii, in order. @internal */
 function sameDots(
-	prev: readonly MapPoint2D[] | undefined,
-	next: readonly MapPoint2D[] | undefined,
+	prev: readonly MapGroundDot[] | undefined,
+	next: readonly MapGroundDot[] | undefined,
 ): boolean {
 	if (prev === undefined || next === undefined) return prev === next
 
 	return (
 		prev.length === next.length &&
-		next.every((at, index) => at.x === prev[index]?.x && at.y === prev[index]?.y)
+		next.every(({ at, radius }, index) => {
+			const was = prev[index]
+
+			return at.x === was?.at.x && at.y === was.at.y && radius === was.radius
+		})
 	)
 }

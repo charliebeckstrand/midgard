@@ -1,6 +1,5 @@
 import { Fragment } from 'react'
 import { createRoot, hydrateRoot, type Root } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	Breadcrumb,
@@ -10,20 +9,21 @@ import {
 	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
 import { act, attach, frames, present } from '../helpers'
+import { serverMarkup } from '../helpers/hydrate'
 
 const CRUMBS = ['Places', 'United States of America', 'Oregon']
 
-/** A collapsing trail in a box `width` pixels wide. */
-function trail(width: number) {
+/** A collapsing trail of `crumbs` in a box `width` pixels wide. */
+function trail(width: number, crumbs: readonly string[] = CRUMBS) {
 	return (
 		<div data-testid="box" style={{ width }}>
 			<Breadcrumb collapse>
 				<BreadcrumbList>
-					{CRUMBS.map((crumb, index) => (
+					{crumbs.map((crumb, index) => (
 						<Fragment key={crumb}>
 							{index > 0 && <BreadcrumbSeparator />}
 							<BreadcrumbItem>
-								<BreadcrumbLink href={`/${crumb}`} current={index === CRUMBS.length - 1}>
+								<BreadcrumbLink href={`/${crumb}`} current={index === crumbs.length - 1}>
 									{crumb}
 								</BreadcrumbLink>
 							</BreadcrumbItem>
@@ -43,26 +43,31 @@ function drawn(container: HTMLElement) {
 	)
 }
 
+/** How opaque the list of the trail in `container` is. */
+function opacity(container: HTMLElement) {
+	const list = present(container.querySelector('[data-slot=breadcrumb-list]'), 'list')
+
+	return getComputedStyle(list).opacity
+}
+
 /** The `<nav>` of the trail in `container`. */
 function nav(container: HTMLElement) {
 	return present(container.querySelector<HTMLElement>('[data-slot=breadcrumb]'), 'nav')
 }
 
 describe('a collapsing breadcrumb (real browser)', () => {
-	it('keeps the row of the server markup invisible, and shows the fit at hydration', async ({
+	it('keeps a server trail of more than one crumb transparent, and fades it in at the fit', async ({
 		signal,
 	}) => {
-		const container = attach(document.createElement('div'))
-
-		container.innerHTML = renderToString(trail(260))
+		const container = attach(serverMarkup(trail(340)))
 
 		// The server cannot know the room of the row. The row keeps its size, and
-		// no crumb paints.
+		// the crumbs are transparent.
 		await frames()
 
 		signal.throwIfAborted()
 
-		expect(getComputedStyle(nav(container)).visibility).toBe('hidden')
+		expect(opacity(container)).toBe('0')
 
 		const height = nav(container).getBoundingClientRect().height
 
@@ -75,20 +80,32 @@ describe('a collapsing breadcrumb (real browser)', () => {
 		let root: Root | undefined
 
 		act(() => {
-			root = hydrateRoot(container, trail(260))
+			root = hydrateRoot(container, trail(340))
 		})
 
 		onTestFinished(() => act(() => root?.unmount()))
 
 		expect(error).not.toHaveBeenCalled()
 
-		// The layout effect of the hydration measures the fit before the frame
-		// that shows the trail. The row does not change its size.
-		expect(drawn(container)).toEqual(['…', '…', 'Oregon'])
-
-		expect(getComputedStyle(nav(container)).visibility).toBe('visible')
+		// The layout effect of the hydration measures the fit before the next
+		// frame. The row has room for one more crumb, and does not change its size.
+		expect(drawn(container)).toEqual(['…', 'United States of America', 'Oregon'])
 
 		expect(nav(container).getBoundingClientRect().height).toBe(height)
+
+		await expect.poll(() => opacity(container)).toBe('1')
+	})
+
+	it('shows a server trail of one crumb, which has no fit', async ({ signal }) => {
+		const container = attach(serverMarkup(trail(340, ['Oregon'])))
+
+		await frames()
+
+		signal.throwIfAborted()
+
+		expect(opacity(container)).toBe('1')
+
+		expect(drawn(container)).toEqual(['Oregon'])
 	})
 
 	it('gives way from the left as the row narrows, and comes back as it grows', async () => {

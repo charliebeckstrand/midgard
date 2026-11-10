@@ -58,10 +58,16 @@ function resolveOffset(
 	}
 }
 
+/** The length of a computed `scroll-margin` side, in px. An empty value is 0. */
+function parseMargin(value: string) {
+	return Number.parseFloat(value) || 0
+}
+
 /**
  * Scrolls `node` into view within `scroller` per `block`/`inline`. An axis left out keeps its
  * scroll position. Use it when the caller already owns the scroller. An ancestor walk could
- * reach past it and scroll an outer container.
+ * reach past it and scroll an outer container. As native `scrollIntoView` does, the scroll
+ * aligns the box of the node with its `scroll-margin` added.
  *
  * @internal
  */
@@ -72,7 +78,20 @@ export function scrollNodeWithin(
 ) {
 	const { behavior = 'auto', block, inline } = options
 
-	const nodeRect = node.getBoundingClientRect()
+	const style = getComputedStyle(node)
+
+	const rect = node.getBoundingClientRect()
+
+	const marginTop = parseMargin(style.scrollMarginTop)
+
+	const marginLeft = parseMargin(style.scrollMarginLeft)
+
+	const nodeRect = {
+		top: rect.top - marginTop,
+		left: rect.left - marginLeft,
+		height: rect.height + marginTop + parseMargin(style.scrollMarginBottom),
+		width: rect.width + marginLeft + parseMargin(style.scrollMarginRight),
+	}
 
 	const scrollerRect = scroller.getBoundingClientRect()
 

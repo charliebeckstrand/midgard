@@ -13,7 +13,7 @@ import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
-import { chain, matches, minLength, required, validationMessages } from './form-validators'
+import { newPasswordRules } from './form-validators'
 import { linkToken } from './link-token'
 import { useLeaving } from './use-leaving'
 import { useServerError } from './use-server-error'
@@ -64,13 +64,7 @@ export function ResetPasswordPage() {
 		<AuthLayout>
 			<Form<ResetPasswordValues>
 				defaultValues={{ password: '', confirmPassword: '' }}
-				validate={{
-					password: chain(required(intl), minLength(intl, 8)),
-					confirmPassword: chain(
-						required(intl),
-						matches('password', intl.formatMessage(validationMessages.passwordMismatch)),
-					),
-				}}
+				validate={newPasswordRules(intl)}
 				onSubmit={handleSubmit}
 				disabled={leaving}
 			>

@@ -67,12 +67,22 @@ export const k = defineKata(
 			full: ['h-full', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
 		},
 		slots: {
-			// The top padding is the panel's inset, and a handle already is one. Under a
-			// handle the stock header would sit a whole step below the grip, which is
-			// what made the first consumer hand-roll its own header row rather than use
-			// this slot.
-			title: [inset.x, inset.top, 'group-data-handle/drawer:pt-0'],
-			description: inset.x,
+			// The header stands one slot gap from the top edge (`inset.head`), and the
+			// panel puts the same gap under it. The header slot carries the space, so it
+			// can hold a title and a description, or a row such as a title with a close
+			// button. A title that is the first slot carries the same space. A title or a
+			// description in a header takes none of its own.
+			//
+			// A handle already is the space at the top edge. Under a handle the header
+			// would sit a whole step below the grip, so the handle removes the space.
+			header: [inset.x, inset.head, 'group-data-handle/drawer:pt-0'],
+			title: [
+				inset.x,
+				inset.head,
+				'group-data-handle/drawer:pt-0',
+				'in-data-[slot=drawer-header]:p-0',
+			],
+			description: [inset.x, 'in-data-[slot=drawer-header]:px-0'],
 			footer: [inset.x, inset.bottom],
 			body: [
 				flex.fill,

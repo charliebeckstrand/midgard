@@ -1,11 +1,12 @@
 'use client'
 
-import { type ReactNode, useCallback } from 'react'
+import { type ReactNode, useCallback, useSyncExternalStore } from 'react'
 import { createContext } from '../../../core/create-context'
 import type { Orientation } from '../../../types/orientation'
 import type { Responsive } from '../../../utilities/responsive'
 import type { QueryField } from '../engine/types'
 import type { QueryTreeActions } from '../use-query-tree'
+import type { QueryMove } from './query-builder-move'
 
 /** Registers (or, with `null`, unregisters) a focusable control under `key`. @internal */
 export type FocusRegister = (key: string, el: HTMLElement | null) => void
@@ -23,7 +24,7 @@ export type QueryBuilderStateValue = {
 	orientation: Responsive<Orientation>
 	/** When true, the query keeps at least one rule: a group's last rule hides its remove control. @defaultValue false */
 	requireRule: boolean
-	/** When true, each group with more than one child shows a drag grip beside each child. @defaultValue false */
+	/** When true, each node that can move shows a drag grip, and a node moves among its siblings and into other groups. @defaultValue false */
 	reorderable: boolean
 }
 
@@ -44,7 +45,32 @@ const [QueryBuilderActionsContext, useQueryBuilderActions] =
 const [QueryBuilderFocusContext, useQueryBuilderFocus] =
 	createContext<FocusRegister>('QueryBuilderFocus')
 
-export { useQueryBuilderActions, useQueryBuilderState }
+// The move of a node from one group into another: the drop of a pointer drag
+// and the node that a keyboard move carries.
+const [QueryBuilderMoveContext, useQueryBuilderMove] = createContext<QueryMove>('QueryBuilderMove')
+
+export { useQueryBuilderActions, useQueryBuilderMove, useQueryBuilderState }
+
+/**
+ * The index that a pointer drag from another group drops a node at in the
+ * group, or `null` while no drag drops into the group. Only the group that the
+ * drop enters or leaves renders again.
+ *
+ * @internal
+ */
+export function useDropIndex(groupId: string): number | null {
+	const { subscribe, getDrop } = useQueryBuilderMove()
+
+	return useSyncExternalStore(
+		subscribe,
+		() => {
+			const drop = getDrop()
+
+			return drop?.groupId === groupId ? drop.index : null
+		},
+		() => null,
+	)
+}
 
 /**
  * Callback ref that registers the element under `key` for the lifetime it's
@@ -58,22 +84,26 @@ export function useFocusableRef(key: string) {
 	return useCallback((el: HTMLElement | null) => register(key, el), [register, key])
 }
 
-/** The component-level provider wires the three contexts. @internal */
+/** The component-level provider wires the four contexts. @internal */
 export function QueryBuilderProvider({
 	state,
 	actions,
 	register,
+	move,
 	children,
 }: {
 	state: QueryBuilderStateValue
 	actions: QueryBuilderActions
 	register: FocusRegister
+	move: QueryMove
 	children: ReactNode
 }) {
 	return (
 		<QueryBuilderActionsContext value={actions}>
 			<QueryBuilderStateContext value={state}>
-				<QueryBuilderFocusContext value={register}>{children}</QueryBuilderFocusContext>
+				<QueryBuilderFocusContext value={register}>
+					<QueryBuilderMoveContext value={move}>{children}</QueryBuilderMoveContext>
+				</QueryBuilderFocusContext>
 			</QueryBuilderStateContext>
 		</QueryBuilderActionsContext>
 	)

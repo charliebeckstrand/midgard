@@ -1,3 +1,5 @@
+import { SECOND, YEAR } from './time-units'
+
 /**
  * The value of the cookie `name` in `cookies`, or `undefined` with no such
  * cookie or with a value that does not decode. With no `cookies`, it reads the
@@ -24,13 +26,22 @@ export function readCookie(name: string, cookies: string = document.cookie): str
 }
 
 /**
+ * The life of a cookie that holds a setting of the reader: one year, in seconds.
+ *
+ * @internal
+ */
+const SETTING_MAX_AGE = YEAR / SECOND
+
+/**
  * Writes the cookie `name` for each path of the site, for `maxAge` seconds. The
  * browser sends it with each request to the site, so a server can read it. The
  * cookie is `secure` on HTTPS. Call it in the browser only.
  *
+ * The default life is one year. Each write starts the year again.
+ *
  * @internal
  */
-export function writeCookie(name: string, value: string, maxAge: number) {
+export function writeCookie(name: string, value: string, maxAge = SETTING_MAX_AGE) {
 	const secure = location.protocol === 'https:' ? '; secure' : ''
 
 	// biome-ignore lint/suspicious/noDocumentCookie: the Cookie Store API is above the browser floor.

@@ -7,6 +7,7 @@ import {
 	useQueryBuilderActions,
 	useQueryBuilderState,
 } from '../../modules/query/query-builder/context'
+import { createQueryMove } from '../../modules/query/query-builder/query-builder-move'
 
 const fields: QueryField[] = [{ name: 'title', label: 'Title', type: 'text' }]
 
@@ -28,11 +29,17 @@ const actionsValue: QueryBuilderActions = {
 	addGroup: () => {},
 	remove: () => {},
 	move: () => {},
+	moveInto: () => {},
 }
 
 function wrapper({ children }: { children: React.ReactNode }) {
 	return (
-		<QueryBuilderProvider state={stateValue} actions={actionsValue} register={() => {}}>
+		<QueryBuilderProvider
+			state={stateValue}
+			actions={actionsValue}
+			register={() => {}}
+			move={createQueryMove(() => ({ id: 'root', type: 'group', children: [] }))}
+		>
 			{children}
 		</QueryBuilderProvider>
 	)

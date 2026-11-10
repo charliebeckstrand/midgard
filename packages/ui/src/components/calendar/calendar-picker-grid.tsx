@@ -20,7 +20,8 @@ export type CalendarPickerGridCell = {
 	onSelect: () => void
 }
 
-type CalendarPickerGridProps = {
+/** Props for {@link CalendarPickerGrid}. @internal */
+export type CalendarPickerGridProps = {
 	headerRef: RefObject<HTMLDivElement | null>
 	gridRef: Ref<HTMLDivElement>
 	onHeaderKeyDown: (event: KeyboardEvent<HTMLElement>) => void

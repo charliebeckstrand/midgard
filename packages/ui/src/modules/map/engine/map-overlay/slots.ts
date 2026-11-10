@@ -12,7 +12,7 @@
 
 import type { MapSeriesColor } from '../../../../recipes/kata/map'
 import { paletteSlot } from '../../../chart/engine/chart-color/palette'
-import type { MapOverlayEntry } from './entry'
+import type { MapOverlayAnchor } from './entry'
 
 /**
  * The slot color every registered mark paints in, keyed by mark id.
@@ -28,7 +28,7 @@ import type { MapOverlayEntry } from './entry'
  * @internal
  */
 export function overlaySlotColors(
-	entries: MapOverlayEntry[],
+	entries: readonly MapOverlayAnchor[],
 	offset: number,
 ): ReadonlyMap<string, MapSeriesColor> {
 	const colors = new Map<string, MapSeriesColor>()

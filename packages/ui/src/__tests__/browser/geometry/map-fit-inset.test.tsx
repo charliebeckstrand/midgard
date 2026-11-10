@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react'
-import { renderToString } from 'react-dom/server'
 import states from 'us-atlas/states-10m.json'
 import { describe, expect, it } from 'vitest'
 import { MapPlat, MapPoint, MapSkeleton, type MapTopology } from '../../../modules/map'
@@ -9,7 +8,7 @@ import {
 	POINT_RADIUS,
 } from '../../../modules/map/engine/map-constants'
 import { attach, frames, getSlot } from '../../helpers'
-import { hydrate } from '../../helpers/hydrate'
+import { hydrate, serverMarkup } from '../../helpers/hydrate'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 
 /** The edges of `inner` measured in from the edges of `outer`, in px: left, top, right, bottom. */
@@ -23,11 +22,9 @@ function gaps(outer: Element, inner: Element): [number, number, number, number] 
 
 /** Parses the server markup of `element` in a box `width` px wide, with no script run. */
 function parseServerMarkup(element: ReactElement, width: number): HTMLElement {
-	const container = attach(document.createElement('div'))
+	const container = attach(serverMarkup(element))
 
 	container.style.width = `${width}px`
-
-	container.innerHTML = renderToString(element)
 
 	return container
 }

@@ -247,28 +247,45 @@ type ColumnMenuFilter = {
 	openFilter: () => void
 }
 
-/** Inputs shaping the default header-menu items. @internal */
-type ColumnMenuDefaultArgs<T> = {
+/**
+ * Inputs shaping the default header-menu items. `GridContextMenu` takes
+ * the grid-wide inputs as its props and adds the right-clicked column.
+ *
+ * @internal
+ */
+export type ColumnMenuDefaultArgs<T> = {
 	/** The intl of the reader, in whose language the items read. */
 	intl: IntlShape
 	column: GridColumn<T>
-	/** The active sort in priority order, so a direction that would only repeat it stays off the menu. */
+	/**
+	 * The active sort in priority order. It backs the Sort items, and a
+	 * direction that would only repeat it stays off the menu.
+	 */
 	sort: GridSortState[]
 	/** This column's active sort direction, or `undefined` when it is not the sorted column. */
 	sortDirection: 'asc' | 'desc' | undefined
 	sortColumn: SortColumn
+	/** Clears the grid's active sort. */
 	clearSort: () => void
+	/** Pins the right-clicked column to an edge, or unpins it; backs the menu's Pin items. */
 	pinColumn: PinColumn
-	/** The group-by toggle, or `null` when the group button is off. */
+	/**
+	 * The group-by toggle for a right-clicked `groupable` column (the active
+	 * grouped column id and the write-back), or `null` when the group button is
+	 * off. Backs the menu's "Group by …" / "Ungroup" item.
+	 */
 	groupBy: GridGroupByMenu | null
+	/** Sizes every data column to its content ("Auto-size all columns"), or `null` when the grid is not resizable. */
 	autoSizeColumns: (() => void) | null
-	/** Sizes a single column to its content, or `null` when the grid is not resizable. */
+	/** Sizes a single column to its content ("Auto-size this column"), or `null` when the grid is not resizable. */
 	autoSizeColumn: ((column: string | number) => void) | null
-	/** Gives the widths back to the automatic fit, or `null` when the grid is not resizable. */
+	/** Gives the widths back to the automatic fit ("Reset column widths"), or `null` when the grid is not resizable or no column holds a width of its own. */
 	resetColumnWidths: (() => void) | null
+	/** Opens the column-manager dialog ("Manage columns"), or `null` when none is reachable. */
 	chooseColumns: (() => void) | null
 	/** The label of the "Manage columns" item: the `label` of the column manager, else the message. */
 	manageLabel: ReactNode
+	/** One action per configured export type; empty when export is off. Shared by the column menu, the cell menu, and the toolbar dropdown. */
 	exportActions: GridExportAction[]
 	/** The column's filter affordance, or `null` when the grid has no column filters. */
 	filter: ColumnMenuFilter | null

@@ -142,4 +142,28 @@ describe('useQueryTree', () => {
 
 		expect(next.children.map((child: { id: string }) => child.id)).toEqual([second.id, first.id])
 	})
+
+	it('moves a node into another group via the moveInto action', () => {
+		const { result, last } = setup()
+
+		act(() => {
+			result.current.actions.addRule(result.current.root.id)
+		})
+
+		act(() => {
+			result.current.actions.addGroup(result.current.root.id)
+		})
+
+		const [rule, group] = last().children ?? []
+
+		act(() => {
+			result.current.actions.moveInto(rule.id, group.id, 0)
+		})
+
+		const next = last()
+
+		expect(next.children.map((child: { id: string }) => child.id)).toEqual([group.id])
+
+		expect(next.children[0].children[0].id).toBe(rule.id)
+	})
 })

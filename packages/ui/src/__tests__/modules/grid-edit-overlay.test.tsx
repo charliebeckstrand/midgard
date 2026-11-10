@@ -206,9 +206,9 @@ describe('Grid editing on a phone', () => {
 			).toBeInTheDocument(),
 		)
 
-		expect(within(screen.getByRole('dialog')).getByRole('textbox', { name: 'Name' })).toHaveValue(
-			'Alicex',
-		)
+		const open = screen.getByRole('dialog')
+
+		expect(within(open).getByRole('textbox', { name: 'Name' })).toHaveValue('Alicex')
 	})
 
 	it('opens the row in a sheet with overlay sheet', async () => {
@@ -280,9 +280,15 @@ describe('Grid editing on a phone, with a save that the consumer declines', () =
 
 		await user.click(within(sheet).getByRole('button', { name: /Save/ }))
 
-		const open = screen.getByRole('dialog')
+		// The save settles in a render after the click: the submit of the form
+		// and the save of the overlay clear their state when their promises settle.
+		await waitFor(() =>
+			expect(
+				within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' }),
+			).toBeEnabled(),
+		)
 
-		expect(within(open).getByRole('button', { name: 'Cancel' })).toBeEnabled()
+		const open = screen.getByRole('dialog')
 
 		expect(within(open).getByRole('textbox', { name: 'Name' })).toHaveValue('Alicex')
 
@@ -333,7 +339,12 @@ describe('Grid editing on a phone, with a save that the consumer declines', () =
 
 		await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Save/ }))
 
-		expect(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' })).toBeEnabled()
+		// The save settles in a render after the click, as above.
+		await waitFor(() =>
+			expect(
+				within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' }),
+			).toBeEnabled(),
+		)
 	})
 
 	it('names the drawer of one cell by its column and its row', async () => {

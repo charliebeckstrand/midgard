@@ -15,7 +15,9 @@
  * to the overflow of the body stays intact. `header` is the optional wrapper
  * with the tight gap for the title and the description. Each other slot stands
  * at the `lg` stop of the gap scale. The gaps and the inset at each edge
- * (`inset`) follow density. The inset is the same on the four sides.
+ * (`inset`) follow density. The inset is the same on the four sides. A drawer
+ * and a sheet put their header one slot gap from the top edge instead
+ * (`inset.head`), so the space above the header is the space under it.
  */
 
 import { defineGroup } from '../../../core/recipe'
@@ -39,7 +41,10 @@ export const panel = defineGroup({
 			base: 'absolute inset-0',
 			surface: { glass: omote.backdrop.glass, flat: omote.backdrop.base },
 		},
-		/** Optional wrapper around title + description for the tighter `sm` gap; sits outside the body's overflow container. */
+		/**
+		 * Optional wrapper around title + description for the tighter `sm` gap, or around
+		 * a row such as a title with a close button; sits outside the body's overflow container.
+		 */
 		header: `flex flex-col ${scale.sm}`,
 		/** Color, leading, and the balanced wrap of a heading (`kata/heading.ts`) only; weight and font size are derived from the heading scale by the Title component. */
 		title: [...text.default, leading.none, '[text-wrap-style:balance]'],

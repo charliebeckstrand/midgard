@@ -103,6 +103,14 @@
 		"defaultMessage": "Previous legend entries",
 		"description": "The name of the button that shows the page of legend entries before."
 	},
+	"ui.chart.seats": {
+		"defaultMessage": "Seats",
+		"description": "The name of the value of each group in a seat chart, such as the seats of a party."
+	},
+	"ui.chart.seatsToWin": {
+		"defaultMessage": "{majority, number} to win",
+		"description": "The label beside the majority mark of a seat chart: the seats for a majority, such as \"218 to win\"."
+	},
 	"ui.chart.showMore": {
 		"defaultMessage": "Show {count, number} more",
 		"description": "The name of the button that shows the legend entries that do not fit. The count is the number of those entries."
@@ -159,9 +167,17 @@
 		"defaultMessage": "Go to the newest message",
 		"description": "The name of the button that scrolls a chat back down to its newest message. It shows when the reader has scrolled up."
 	},
+	"ui.chat.nextVersion": {
+		"defaultMessage": "Next version",
+		"description": "The name of the button that shows the next version of a chat message."
+	},
 	"ui.chat.placeholder": {
 		"defaultMessage": "Ask anything",
 		"description": "The hint text of the empty field where the reader writes a chat message."
+	},
+	"ui.chat.previousVersion": {
+		"defaultMessage": "Previous version",
+		"description": "The name of the button that shows the previous version of a chat message."
 	},
 	"ui.chat.prompt": {
 		"defaultMessage": "Message",
@@ -194,6 +210,14 @@
 	"ui.chat.user": {
 		"defaultMessage": "You said",
 		"description": "The hidden label before a chat message that the reader sent. A screen reader reads it before the message."
+	},
+	"ui.chat.versionPosition": {
+		"defaultMessage": "{index, number} of {count, number}",
+		"description": "The version of a chat message that shows, such as \"2 of 3\". The index counts from 1, and the count is the number of versions."
+	},
+	"ui.chat.versions": {
+		"defaultMessage": "Versions",
+		"description": "The name of the controls below a chat message that show its other versions. A retry or an edit makes a version."
 	},
 	"ui.chat.views": {
 		"defaultMessage": "{views, plural, one {# embedded view} other {# embedded views}}",
@@ -1659,6 +1683,14 @@
 		"defaultMessage": "Total",
 		"description": "The header of the column and of the row that hold the totals of a pivot table."
 	},
+	"ui.progress.segment": {
+		"defaultMessage": "{label} {value}",
+		"description": "One part of a progress bar that has more than one part: the name of the part and its value, such as \"Democrats 252\"."
+	},
+	"ui.progress.segments": {
+		"defaultMessage": "{segments}, of {max}.",
+		"description": "The description of a progress bar that has more than one part: the list of the parts, then the value of a full bar, such as \"Democrats 252, Republicans 161, of 435.\""
+	},
 	"ui.query.after": {
 		"defaultMessage": "after",
 		"description": "The operator of a date condition of a filter: the date is after the value."
@@ -1810,6 +1842,10 @@
 	"ui.queryBuilder.removeRule": {
 		"defaultMessage": "Remove rule",
 		"description": "The name of the button that removes a condition from a filter."
+	},
+	"ui.queryBuilder.topLevel": {
+		"defaultMessage": "the query",
+		"description": "The name of the top level of a filter, which holds each condition and each nested group, in a sentence such as \"Name contains a moved to position 3 of 3 in the query\"."
 	},
 	"ui.queryBuilder.value": {
 		"defaultMessage": "Value",

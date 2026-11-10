@@ -18,6 +18,24 @@ export type MapPoint2D = {
 }
 
 /**
+ * The live projection of a plat: the frame point of a position, or `null` where
+ * the projection has no image of it, such as a point outside the insets of the
+ * US composite.
+ *
+ * @internal
+ */
+export type MapProjector = (position: LngLat) => MapPoint2D | null
+
+/**
+ * The {@link MapProjector} run backwards: the position of a frame point, or
+ * `null` where the fit has no position for it, such as a gap between the insets
+ * of the US composite.
+ *
+ * @internal
+ */
+export type MapInverseProjector = (at: MapPoint2D) => LngLat | null
+
+/**
  * An area of several parts, nested polygon → ring → position, with each
  * polygon's outer ring first and its holes after. GeoJSON `MultiPolygon`
  * coordinates exactly, so a dissolved territory passes straight through.
@@ -121,9 +139,9 @@ export type MapTopology = {
 export type MapGeography = MapTopology | MapFeatureCollection
 
 /**
- * One region category: the data value it matches, with optional legend text
- * and slot-color override. Omitted entirely, categories derive from the data
- * in first-appearance order.
+ * One region category: the data value it matches, with optional legend text,
+ * a slot-color override, a soft tone, and stripes of a second color. Omitted
+ * entirely, categories derive from the data in first-appearance order.
  */
 export type MapCategory = {
 	/** The value of `categoryKey` this category collects. */
@@ -135,6 +153,21 @@ export type MapCategory = {
 	 * fixed order, so a category keeps its color when siblings toggle.
 	 */
 	color?: MapSeriesColor
+	/**
+	 * The step of the color. `'soft'` paints the region and its swatch in a
+	 * lighter step of the same hue, so a category can stand beside its full
+	 * tone: a lead that is not called yet beside a win, for example. The soft
+	 * tone also applies to `stripes`.
+	 *
+	 * @defaultValue 'solid'
+	 */
+	tone?: 'solid' | 'soft'
+	/**
+	 * A second color. The region then draws in diagonal stripes of `color` and
+	 * this color, and its legend and tooltip swatches show the same stripes:
+	 * a state whose seats split between two parties, for example.
+	 */
+	stripes?: MapSeriesColor
 }
 
 /**
@@ -149,8 +182,18 @@ export type MapOverlaySelection = {
 	index?: number
 }
 
-/** A built-in projection name; the US composite places Alaska and Hawaii as insets. */
-export type MapNamedProjection = 'mercator' | 'albers-usa' | 'equal-earth'
+/**
+ * A built-in projection name; the US composite places Alaska and Hawaii as
+ * insets. `'identity'` draws a geography that is already projected, such as the
+ * `us-atlas` `*-albers-10m` files. Its coordinates are frame units with `y`
+ * down, so the map scales and moves them to the frame and does no spherical
+ * math. A projected atlas costs a small part of the walk that `'albers-usa'`
+ * makes through every coordinate.
+ *
+ * Marks, coverage, and the graticule read longitude and latitude, so they do
+ * not apply under `'identity'`. The map draws no sphere outline there.
+ */
+export type MapNamedProjection = 'mercator' | 'albers-usa' | 'equal-earth' | 'identity'
 
 /**
  * How the map projects the globe onto the frame: a built-in name, or any

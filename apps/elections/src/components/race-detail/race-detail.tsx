@@ -1,0 +1,163 @@
+'use client'
+
+import { Activity, lazy, Suspense } from 'react'
+import { DateTime } from 'ui/date-time'
+import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
+import { Odometer } from 'ui/odometer'
+import { Placeholder } from 'ui/placeholder'
+import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
+import { Stack } from 'ui/structure/stack'
+import type { Candidate, Race } from '../../types'
+import { isCalled } from '../../utilities/race-math'
+import { entryName, type RaceEntry } from '../../utilities/results'
+import { RaceSummary } from '../race-summary'
+import { loadCountyMap } from './load-county-map'
+
+/** The view of a race: its overview, or its counties on a map. */
+export type RaceView = 'overview' | 'counties'
+
+/** Props for {@link RaceDetail}. */
+export type RaceDetailProps = {
+	/** The race of the national results, which the Drawer has before the race loads. */
+	entry: Pick<RaceEntry, 'candidates' | 'reporting' | 'called' | 'state' | 'district' | 'contest'>
+	/** The race with its counties, or `undefined` while it loads. */
+	race: Race | undefined
+	/** Opens a county of the race, by its FIPS code. */
+	onCounty: (fips: string) => void
+	/** The view. The Drawer holds it, so the map stays across a visit to a county. */
+	view: RaceView
+	onViewChange: (view: RaceView) => void
+}
+
+/** The county map, from its chunk. */
+const CountyMap = lazy(() => loadCountyMap().then((module) => ({ default: module.CountyMap })))
+
+/** The still shape of the county map while its code loads. */
+const MAP_PLACEHOLDER = (
+	<div aria-busy="true">
+		<Placeholder className="aspect-[4/3] h-auto w-full" />
+	</div>
+)
+
+/** The time format of the polls and the call: the day and the time, in the zone of the reader. */
+const WHEN: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
+
+/**
+ * A time of a race: a still line of one text height while the race loads, so
+ * the row keeps its height when the time arrives, then the time. A time that
+ * the race does not give reads `Unknown`, so the row stays.
+ */
+function FactTime({ value }: { value: string | null | undefined }) {
+	if (value === undefined) {
+		return <Placeholder as="span" pulse={false} className="inline-block h-[1lh] w-40 align-top" />
+	}
+
+	return value === null ? (
+		<span className="text-zinc-500 dark:text-zinc-400">Unknown</span>
+	) : (
+		<DateTime value={value} format={WHEN} />
+	)
+}
+
+/**
+ * The facts of a race under its candidates: the votes, the polls, and the
+ * call. The percent reporting is in the row over the facts, so the facts do
+ * not repeat it. The votes come from the national results at once. The times
+ * come with the race; until then each holds its row with a still line.
+ *
+ * The rows come from what the Drawer has before the race loads: the polls
+ * always, and the call when a candidate won. The race only fills in the times,
+ * so the facts keep their height when the race loads.
+ */
+function RaceFacts({
+	candidates,
+	called,
+	race,
+}: {
+	candidates: readonly Candidate[]
+	called: boolean
+	race: Race | undefined
+}) {
+	const votes = candidates.reduce((sum, candidate) => sum + candidate.votes, 0)
+
+	return (
+		<DescriptionList>
+			<DescriptionTerm>Total votes</DescriptionTerm>
+			<DescriptionDetails>
+				<Odometer value={votes} />
+			</DescriptionDetails>
+
+			<DescriptionTerm>Polls closed</DescriptionTerm>
+			<DescriptionDetails>
+				<FactTime value={race?.pollsClose} />
+			</DescriptionDetails>
+
+			{called ? (
+				<>
+					<DescriptionTerm>Called</DescriptionTerm>
+					<DescriptionDetails>
+						<FactTime value={race?.calledAt} />
+					</DescriptionDetails>
+				</>
+			) : null}
+		</DescriptionList>
+	)
+}
+
+/**
+ * One race in full, the body of the Drawer on a statewide race or a district.
+ * A Segment at the top switches between two views:
+ *
+ * - Overview: the candidates with their party and votes, then the facts of the
+ *   race.
+ * - By county: the counties of the race on a map, and a county opens the county.
+ *
+ * The candidates and the facts show from the national results at once. The
+ * times of the facts and the colors of the map show when the race loads.
+ *
+ * The map renders in the background while the overview shows, in a hidden
+ * `Activity`. A switch to By county therefore shows a map that is already
+ * drawn.
+ */
+export function RaceDetail({ entry, race, onCounty, view, onViewChange }: RaceDetailProps) {
+	const candidates = race?.candidates ?? entry.candidates
+
+	const called = race === undefined ? entry.called : isCalled(race.candidates)
+
+	return (
+		<Stack gap="xl">
+			<Segment value={view} onValueChange={(next) => onViewChange(next as RaceView)}>
+				<SegmentControl aria-label="View">
+					<SegmentItem value="overview">Overview</SegmentItem>
+					<SegmentItem value="counties">By county</SegmentItem>
+				</SegmentControl>
+			</Segment>
+
+			{view === 'overview' ? (
+				<>
+					<RaceSummary
+						candidates={candidates}
+						reporting={race?.reporting ?? entry.reporting}
+						called={called}
+						rows="all"
+						detail
+					/>
+
+					<RaceFacts candidates={candidates} called={called} race={race} />
+				</>
+			) : null}
+
+			<Activity mode={view === 'counties' ? 'visible' : 'hidden'}>
+				<Suspense fallback={MAP_PLACEHOLDER}>
+					<CountyMap
+						label={`${entryName(entry)} ${entry.contest.label}`}
+						state={entry.state.key}
+						statewide={entry.district === null}
+						counties={race?.counties}
+						onCounty={onCounty}
+					/>
+				</Suspense>
+			</Activity>
+		</Stack>
+	)
+}

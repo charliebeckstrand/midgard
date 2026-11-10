@@ -15,13 +15,15 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverActions, useMapPlat, useMapPointed, useMapZoomScale } from './context'
+import type { MapGroundDot } from './engine/map-cluster/ground'
 import type { MapClusterInput } from './engine/map-cluster/sets'
 import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
 import { groupLegendId } from './engine/map-legend/items'
-import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
+import type { MapEntryDot, MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
 import { ownStop, pickedStop } from './engine/map-overlay/selection'
-import type { LngLat, MapPoint2D, MapSwatchShape } from './engine/types'
+import type { MapSpareResolver } from './engine/map-overlay/spare'
+import type { LngLat, MapPoint2D, MapProjector, MapSwatchShape } from './engine/types'
 
 /** The stop a hit shape names, read back off the element the event fired on. @internal */
 function stopFrom(event: { currentTarget: Element }): number {
@@ -147,15 +149,16 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 */
 		stops: () => (LngLat | null)[]
 		/**
-		 * The dots the mark draws, in lon/lat, for the plat's dot pool (see
-		 * {@link MapOverlayEntry.dotsAt}). Passed by the dot-drawing marks alone. A
-		 * point passes its `stops`, and a marker passes its two pins.
+		 * The dots the mark draws, for the plat's dot pool (see
+		 * {@link MapOverlayEntry.dotsAt}): each in lon/lat, with the radius it paints
+		 * at. Passed by the dot-drawing marks alone. A point passes its one dot, and a
+		 * marker passes its two pins.
 		 *
 		 * Hold its identity until the dots move. A new identity restakes the
 		 * mark's dots in the pool, so the dots near it divide their ground again.
 		 * A thunk made inline therefore gathers the mark again on each render.
 		 */
-		dots?: () => LngLat[]
+		dots?: () => MapEntryDot[]
 		/**
 		 * The dots that the mark puts in the shared pass of the plat, and its gap
 		 * (see {@link MapOverlayEntry.clusterAt}). Passed by a {@link MapPoints}
@@ -172,9 +175,9 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 *
 		 * Hold its identity until the budget changes. A new identity tells the dots
 		 * to measure their targets again, so a resolver made inline does that on
-		 * each render.
+		 * each render. The zoom scale is an argument, so a zoom keeps the identity.
 		 */
-		spare?: (at: MapPoint2D) => number
+		spare?: MapSpareResolver
 		/**
 		 * Per-dot readouts for a plural mark, absent on a singular one. Plain data,
 		 * because the table draws it (see {@link MapOverlayEntry.stopRows}). Keyed
@@ -225,7 +228,7 @@ export type MapOverlay = {
 	 */
 	spare: (at: MapPoint2D) => number
 	/** Projects lon/lat to frame coordinates; `null` off the projection. */
-	project: (position: LngLat) => MapPoint2D | null
+	project: MapProjector
 	/**
 	 * What one device pixel spans in frame units under the plat's zoom: `1` at
 	 * rest. Every pixel spec a mark draws multiplies by it: its stroke widths,
@@ -235,7 +238,8 @@ export type MapOverlay = {
 	 */
 	unitsPerPixel: number
 	/**
-	 * Asks for every OTHER visible dot-drawing mark's dots, in frame units (see
+	 * Asks for every OTHER visible dot-drawing mark's dots, in frame units, each with the radius it
+	 * paints at (see
 	 * {@link MapPlatContextValue.pool}). A dot-shaped mark divides its pointer target's ground
 	 * against these, so two marks standing on top of one another no longer overlap.
 	 *
@@ -247,9 +251,9 @@ export type MapOverlay = {
 	 * Resolved eagerly here, every mark triggers that pass for every other mark: M² of them. Where
 	 * no dot-shaped mark is mounted, each of the M marks then discards the answer. Memoize the result
 	 * at the call site. The resolver is stable until the plat's ledger, toggles or fit change, or
-	 * until a mark's dots move.
+	 * until the dots of another mark move.
 	 */
-	neighbors: () => MapPoint2D[]
+	neighbors: () => MapGroundDot[]
 	/** Whether the plat animates; the mark picks its motion renderers off it. */
 	animate: boolean
 	/** Registration ordinal, so a mount reveal can stagger by it. */
@@ -485,18 +489,21 @@ export function useMapOverlay({
 		spare.reground()
 	}, [spare, ownSpare])
 
-	const neighbors = useSyncExternalStore(pool.subscribe, pool.neighbors, pool.neighbors)
+	// The view of the pool that this mark reads. The pool keeps the view through a restake of this
+	// mark, so a mark that regroups does not divide its ground again against dots that did not move.
+	const readNeighbors = useCallback(() => pool.neighbors(id), [pool, id])
+
+	const neighbors = useSyncExternalStore(pool.subscribe, readNeighbors, readNeighbors)
 
 	const resolveSpare = useSyncExternalStore(spare.subscribe, spare.spare, spare.spare)
-
-	const getNeighbors = useCallback(() => neighbors(id), [neighbors, id])
 
 	const spareAt = useCallback(
 		// The identity of the minimum the plat folds these into, so the fallback and
 		// the resolver state one rule rather than two. It cannot fire in fact (only a
 		// mark that passed a resolver registers this wrapper), but a mark that claims
 		// nothing and a mark that never claimed have to answer alike either way.
-		(at: MapPoint2D) => live.current.ownSpare?.(at) ?? Number.POSITIVE_INFINITY,
+		(at: MapPoint2D, unitsPerPixel: number) =>
+			live.current.ownSpare?.(at, unitsPerPixel) ?? Number.POSITIVE_INFINITY,
 		[],
 	)
 
@@ -667,7 +674,7 @@ export function useMapOverlay({
 		project,
 		spare: spareHere,
 		// The resolver, left uncalled (see {@link MapOverlay.neighbors} for why it stays lazy).
-		neighbors: getNeighbors,
+		neighbors,
 		unitsPerPixel,
 		animate,
 		order: order.get(id) ?? 0,

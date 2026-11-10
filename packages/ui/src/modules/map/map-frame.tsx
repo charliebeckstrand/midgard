@@ -1,17 +1,24 @@
 'use client'
 
-import type { ComponentProps, MouseEvent, ReactNode, Ref, RefObject } from 'react'
+import {
+	type ComponentProps,
+	type MouseEvent,
+	type ReactNode,
+	type Ref,
+	type RefObject,
+	useDeferredValue,
+} from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
 import { k as chart } from '../../recipes/kata/chart'
 import { k } from '../../recipes/kata/map'
 import { noop } from '../../utilities/noop'
-import { legendBandRow } from '../chart/engine/chart-legend/band'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import { ChartPlotBox } from '../chart/engine/chart-plot-box'
 import { useChartMenu } from '../chart/engine/context'
 import { useMapZoomView } from './context'
+import type { MapLegendRail } from './engine/map-legend/plan'
 import type { MapLegendPlacement } from './engine/types'
 import { MapHoverProvider } from './map-hover-provider'
 import { MapZoomProvider } from './map-zoom-provider'
@@ -29,6 +36,11 @@ import type { MapZoomOptions } from './use-map-zoom'
 type MapFrameProps = Omit<ComponentProps<'div'>, 'ref' | 'children'> & {
 	legendNode: ReactNode
 	legendPlacement: MapLegendPlacement
+	/**
+	 * The legend that shows at a side: a switchboard `panel`, a range `bar`, or
+	 * `null` for none. It gives the width of the rail of {@link k.legend.rail}.
+	 */
+	rail: MapLegendRail | null
 	plotRegion: ReactNode
 	/** The plot region element; the hover provider re-resolves settled scroll pointers within it. */
 	plotRef: RefObject<HTMLDivElement | null>
@@ -56,6 +68,7 @@ type MapFrameProps = Omit<ComponentProps<'div'>, 'ref' | 'children'> & {
 export function MapFrame({
 	legendNode,
 	legendPlacement,
+	rail,
 	plotRegion,
 	plotRef,
 	containerRef,
@@ -114,24 +127,25 @@ export function MapFrame({
 				    drops a side legend then keeps the plot mounted, and a plot that holds
 				    focus keeps it.
 
-				    The panel and plot sit side by side once the map's own box reaches
-				    `@lg` (32rem). That leaves the plot at least 19rem beside the 12rem
-				    rail. Below it they stack with the panel always under the map, so a
-				    left panel reverses the row instead of moving in the DOM.
+				    A side legend and the plot sit side by side once the map's own box
+				    reaches `@lg` (32rem). That leaves the plot at least 19rem beside
+				    the 12rem rail of a panel. Below it they stack with the legend
+				    always under the map. The legend follows the plot in the DOM on
+				    each side: the grid of `k.legend.rail` gives it its side, and the
+				    side is physical, so a left legend stays left in a right-to-left
+				    page.
 
-				    The stack
-				    stretches its children, because the plot reserves its height from
-				    its own width and a centered plot has no width to reserve from. The
-				    side is physical, so a left panel stays left in a right-to-left page.
-				    A band legend needs no box of its own (`contents`), so the legend
-				    and plot lay out in the frame's column. */}
-				<div
-					className={
-						aside
-							? cn('flex flex-col @lg:items-center', k.frame, legendBandRow(legendPlacement, 'lg'))
-							: 'contents'
-					}
-				>
+				    The rail of a panel is a fixed column of that grid. The plot
+				    therefore has its final box before the panel is in the DOM, which
+				    is the case while the browser parses the SVG of the plot. A range
+				    bar has the width of its labels, so the plot gets its final width
+				    only when the browser parses the bar.
+
+				    The grid stretches its children, because the plot reserves its
+				    height from its own width. A band legend needs no box of its own
+				    (`contents`), so the legend and plot lay out in the frame's
+				    column. */}
+				<div className={aside ? sideBand(legendPlacement, rail) : 'contents'}>
 					{legendPlacement === 'top' && legendNode}
 
 					{plot}
@@ -140,9 +154,48 @@ export function MapFrame({
 				</div>
 			</MapHoverProvider>
 
-			{table}
+			<MapDeferredTable table={table} />
 		</div>
 	)
+}
+
+/**
+ * The classes of the band of the plot and a side legend: the grid of
+ * {@link k.legend.rail}. With no legend at the side, the plot has the one
+ * column.
+ *
+ * @internal
+ */
+function sideBand(placement: MapLegendPlacement, rail: MapLegendRail | null): string {
+	if (rail === null) return cn('grid grid-cols-1', k.frame)
+
+	return cn(
+		k.legend.rail.band,
+		'@lg:items-center',
+		k.frame,
+		k.legend.rail[rail],
+		k.legend.rail[placement === 'left' ? 'left' : 'right'],
+	)
+}
+
+/**
+ * The table of the map, one low-priority commit behind the plat.
+ *
+ * The visually-hidden table renders one row per region (thousands on a county
+ * atlas) and none of it is mount-critical. It is deferred off the urgent render
+ * the way the chart frame defers its data table, so the geography commits first
+ * and the table hydrates a low-priority beat behind. The `null` initial value
+ * holds the table out of the first commit. Parity is unchanged: the table
+ * always converges on the current readout.
+ *
+ * The deferral is in this child, not in the plat. The component that holds a
+ * deferred value renders again for the low-priority pass. Here that pass renders
+ * this child alone, and the plat does not run again for each new table.
+ *
+ * @internal
+ */
+function MapDeferredTable({ table }: { table: ReactNode }) {
+	return useDeferredValue(table, null)
 }
 
 /**
@@ -223,10 +276,12 @@ export function MapPlotRegion({
 			{...keyboard}
 			{...surface}
 			{...press}
-			// A side legend takes the width remainder (`min-w-0 flex-1`); a free-form
-			// `fill` map instead grows into the height its region already holds (a
-			// `flex-1 min-h-0` child of the `h-full` frame), so the box measures a real
-			// height rather than the zero its own reserve would feed back.
+			// Beside a side legend, the plot takes the column of the grid that the
+			// rail leaves, and can become narrower than its content (`min-w-0`). A
+			// free-form `fill` map instead grows into the height its region already
+			// holds (a `flex-1 min-h-0` child of the `h-full` frame), so the box
+			// measures a real height rather than the zero its own reserve would feed
+			// back.
 			className={cn(
 				'relative',
 				// Without these, a long press starts a text selection that spreads across
@@ -246,8 +301,7 @@ export function MapPlotRegion({
 				// map. Every other map leaves touch alone entirely.
 				zoom && (zoom.modifier === null ? 'touch-none' : 'touch-pan-x touch-pan-y'),
 				aside && 'min-w-0',
-				(aside || shape.fill) && 'flex-1',
-				shape.fill && 'min-h-0',
+				shape.fill && 'flex-1 min-h-0',
 			)}
 		>
 			{/* PlotBox reserves the box height from its own width, steady before the

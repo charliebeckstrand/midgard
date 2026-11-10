@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { renderToString } from 'react-dom/server'
 import { expect, vi } from 'vitest'
+import { serverMarkup } from './hydrate'
 import { getSlot } from './slot-queries'
 
 /**
@@ -14,9 +14,7 @@ import { getSlot } from './slot-queries'
  * @returns The placeholder, so that a case can check its classes.
  */
 export const expectInlineSkeleton = vi.defineHelper((skeleton: ReactNode): HTMLElement => {
-	const container = document.createElement('div')
-
-	container.innerHTML = renderToString(<p>A line of text {skeleton}</p>)
+	const container = serverMarkup(<p>A line of text {skeleton}</p>)
 
 	const placeholder = getSlot(container, 'placeholder')
 

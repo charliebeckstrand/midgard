@@ -8,7 +8,6 @@ import {
 	type ReactNode,
 	type Ref,
 	useCallback,
-	useDeferredValue,
 	useMemo,
 	useRef,
 	useState,
@@ -24,6 +23,7 @@ import { useLocale } from '../../providers/locale/context'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types/accessible-name'
 import { getOrCompute } from '../../utilities/get-or-compute'
+import { sameElements } from '../../utilities/same-elements'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import type { ChartItemClick } from '../chart/engine/types'
 import {
@@ -43,6 +43,7 @@ import type { MapHoverTarget, MapOverlayTarget } from './engine/map-hover/target
 import { createStopMoves, entryTarget, mapStops } from './engine/map-keyboard/stops'
 import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
 import { planLegend } from './engine/map-legend/plan'
+import { type MapOverlayAnchor, sameAnchors } from './engine/map-overlay/entry'
 import { targetParts } from './engine/map-overlay/selection'
 import { overlaySlotColors } from './engine/map-overlay/slots'
 import { createSpareStore } from './engine/map-overlay/spare'
@@ -60,7 +61,6 @@ import type {
 	MapFeature,
 	MapGeography,
 	MapOverlaySelection,
-	MapPoint2D,
 	MapProjection,
 } from './engine/types'
 import { MapChrome } from './map-chrome'
@@ -103,9 +103,12 @@ type MapPlatBaseProps = AccessibleName &
 		geographyObject?: string
 		/**
 		 * How the globe projects onto the frame. Pass `'albers-usa'` for US state
-		 * maps: it places Alaska and Hawaii as insets. A passed d3 instance is fit
-		 * to the geography one time; a resize scales that fit and does not refit
-		 * the instance.
+		 * maps: it places Alaska and Hawaii as insets. Pass `'identity'` for an
+		 * atlas that is already projected, such as `us-atlas`
+		 * `states-albers-10m`. That atlas draws the map that `states-10m` draws
+		 * under `'albers-usa'`, for a small part of the cost. Marks, coverage,
+		 * and the graticule do not apply under `'identity'`. A passed d3 instance is fit to the geography one time; a resize
+		 * scales that fit and does not refit the instance.
 		 * @defaultValue 'mercator'
 		 */
 		projection?: MapProjection
@@ -334,7 +337,8 @@ type MapPlatBaseProps = AccessibleName &
 		 * cross-filter hook the charts' `onCategoryClick` is, and the same shape.
 		 *
 		 * Set, the region layer carries a pointer cursor and every region answers a
-		 * click, unmatched ones included. The keyboard reports through the same
+		 * click, unmatched ones included, unless {@link isRegionDisabled} disables
+		 * it. The keyboard reports through the same
 		 * handler. The plot region is one tab stop, and Enter or Space picks the
 		 * region its arrow cursor sits on. A pick therefore carries the same identity
 		 * whichever input made it.
@@ -343,6 +347,17 @@ type MapPlatBaseProps = AccessibleName &
 		 * tooltip, because a touch reads nothing from the map.
 		 */
 		onRegionClick?: ChartItemClick
+		/**
+		 * Whether a region takes no click, by the identity and feature index
+		 * {@link onRegionClick} reports. Use it for a region that opens nothing,
+		 * such as a state with no race. A disabled region takes no pointer cursor
+		 * and no click hover, and a click, a double tap, or Enter on it reports
+		 * nothing. Its readout stays: a disabled region with a row still shows its
+		 * tooltip and its hover. With no {@link onRegionClick}, this does nothing.
+		 *
+		 * Omitted, every region answers a click.
+		 */
+		isRegionDisabled?: (id: string, index: number) => boolean
 		/**
 		 * Fires when a right-click lands on a region, with the same identity and
 		 * feature index {@link onRegionClick} reports. It suits a context menu that
@@ -606,13 +621,14 @@ function valueColumnHeader(intl: IntlShape, colorName: string | undefined): stri
 function bridgeRegionIdentity(
 	report: ((id: string, index: number) => void) | undefined,
 	regionIds: string[],
+	disabled?: readonly boolean[],
 ): ((index: number) => void) | undefined {
 	if (report === undefined) return undefined
 
 	return (index: number) => {
 		const id = regionIds[index]
 
-		if (id !== undefined) report(id, index)
+		if (id !== undefined && disabled?.[index] !== true) report(id, index)
 	}
 }
 
@@ -839,6 +855,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		regionPointer,
 		animate: animation = false,
 		onRegionClick,
+		isRegionDisabled,
 		onRegionContextMenu,
 		onRegionPreload,
 		selectedRegion,
@@ -885,9 +902,13 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const sweep = useMemo(
 		() =>
 			animation === 'sweep'
-				? () => regionSweep(cachedRegionCentroids(shape.features), shape.project)
+				? () =>
+						regionSweep(
+							cachedRegionCentroids(shape.features, projection === 'identity'),
+							shape.project,
+						)
 				: null,
-		[animation, shape.features, shape.project],
+		[animation, shape.features, shape.project, projection],
 	)
 
 	// Region identity, resolved off the geography alone: a property of the
@@ -934,12 +955,20 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	const { entries, register } = useMapLegendRegistry()
 
+	// The ledger as its geometry readers read it: the slot colors, the toggles,
+	// the order, the spare resolver, the dot pool, and the keyboard stops. A
+	// regroup changes the stop rows of a set, and so the ledger, but no anchor.
+	// These readers therefore hold through a regroup, and so does each mark that
+	// reads them. The legend, the tooltip, and the table draw the readout fields,
+	// so they read the ledger itself.
+	const anchored = useStableValue<readonly MapOverlayAnchor[]>(entries, sameAnchors)
+
 	// Overlay slot colors continue the fixed order after the categories, by
 	// registration order, one slot per legend entry, so a merged group's members
 	// share their first member's color rather than each drawing one.
 	const colors = useMemo<ReadonlyMap<string, MapSeriesColor>>(
-		() => overlaySlotColors(entries, categoryMetas.length),
-		[entries, categoryMetas.length],
+		() => overlaySlotColors(anchored, categoryMetas.length),
+		[anchored, categoryMetas.length],
 	)
 
 	// What the legend has switched off, as the MARKS it silences: the switchboard's
@@ -953,23 +982,38 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	//
 	// A map with no group hands `switched` straight back rather than a copy of it,
 	// for its identity and not the allocation: `regionActive` is the one reader that
-	// does not already depend on `entries`, so a fresh set here would re-key the
+	// does not already depend on the ledger, so a fresh set here would re-key the
 	// memoized region layer on every overlay registration.
 	const hidden = useMemo<ReadonlySet<string>>(() => {
-		const members = entries.flatMap((entry) =>
+		const members = anchored.flatMap((entry) =>
 			entry.group !== undefined && switched.has(groupLegendId(entry.group)) ? [entry.id] : [],
 		)
 
 		return members.length === 0 ? switched : new Set<string>([...switched, ...members])
-	}, [switched, entries])
+	}, [switched, anchored])
 
 	// The region layer reports the index it resolved off the pointed path's anchor;
 	// the props report identity. Bridge them here, memoized like this component's
 	// sibling derivations so the memoized region layer holds across the legend and
 	// resize commits.
+	// Each region that takes no click, resolved once against the ids a click
+	// reports. An inline predicate is a new identity on each render, so the
+	// result holds its last identity while its content is the same, and the
+	// memoized region layer holds with it.
+	const regionDisabled = useStableValue(
+		useMemo(
+			() =>
+				onRegionClick === undefined || isRegionDisabled === undefined
+					? undefined
+					: regionIds.map((id, index) => isRegionDisabled(id, index)),
+			[onRegionClick, isRegionDisabled, regionIds],
+		),
+		sameElements,
+	)
+
 	const clickRegion = useMemo(
-		() => bridgeRegionIdentity(onRegionClick, regionIds),
-		[onRegionClick, regionIds],
+		() => bridgeRegionIdentity(onRegionClick, regionIds, regionDisabled),
+		[onRegionClick, regionIds, regionDisabled],
 	)
 
 	const contextMenuRegion = useMemo(
@@ -1005,8 +1049,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	// Registration ordinal per entry, so a staggered reveal can key off it.
 	const order = useMemo<ReadonlyMap<string, number>>(
-		() => new Map(entries.map((entry, index) => [entry.id, index])),
-		[entries],
+		() => new Map(anchored.map((entry, index) => [entry.id, index])),
+		[anchored],
 	)
 
 	const numeric = valueKey !== undefined
@@ -1130,44 +1174,46 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// How much reach everything under a mark leaves it at a position: the tightest
 	// claim any of them allows, since a dot standing over two shapes has to satisfy
 	// both. The region layer claims first, then each visible zone. Rebuilt as the
-	// ledger, the legend's toggles, or the fit change: the resolvers themselves are
-	// stable, so the dots that read it hold through a pointer crossing rather than
-	// measure again. A zone redrawn in place tells them through the store below.
+	// anchors of the ledger, the legend's toggles, or the fit change: the resolvers
+	// themselves are stable, so the dots that read it hold through a pointer
+	// crossing rather than measure again.
+	//
+	// The resolver is a store. A zone whose budget changes in place changes none of
+	// the deps below, so the zone regrounds the store, and the dots measure their
+	// targets again.
+	//
 	// A loop rather than a `reduce` closure: every dot on the map calls this, and
 	// the callback would be a fresh allocation per call rather than per rebuild.
-	const resolveSpare = useCallback(
-		(at: MapPoint2D, unitsPerPixel: number) => {
-			// A region layer that answers the pointer is the third claimant on this ground, and it
-			// claims first (see `regionPointerState` for what counts as answering).
-			//
-			// A finger-sized target over such a region takes a 44px bite out of the shape under it:
-			// the dot is the topmost thing at those pixels, so the region cannot be pointed at or
-			// picked there, and a dot near the middle of a small region can put it out of reach
-			// altogether. The dot gives back a share of what the region itself holds, the way it
-			// does for a zone: `regionSpare` states why a share and not a figure. Touch keeps the
-			// whole 44px target, since `k.hit.fine` narrows only on a device with no coarse pointer:
-			// a region is a large shape a finger can reach elsewhere, and a coarse pointer cannot aim
-			// at an 11px target (WCAG 2.5.5).
-			//
-			// The identity of the minimum otherwise, not a size: a map whose regions answer nothing
-			// and which draws no zones claims nothing here, and `markTargets` is the one place that
-			// knows the cap.
-			let room = regionRoom(at, unitsPerPixel)
+	const spare = useMemo(
+		() =>
+			createSpareStore((at, unitsPerPixel) => {
+				// A region layer that answers the pointer is the third claimant on this ground, and it
+				// claims first (see `regionPointerState` for what counts as answering).
+				//
+				// A finger-sized target over such a region takes a 44px bite out of the shape under it:
+				// the dot is the topmost thing at those pixels, so the region cannot be pointed at or
+				// picked there, and a dot near the middle of a small region can put it out of reach
+				// altogether. The dot gives back a share of what the region itself holds, the way it
+				// does for a zone: `regionSpare` states why a share and not a figure. Touch keeps the
+				// whole 44px target, since `k.hit.fine` narrows only on a device with no coarse pointer:
+				// a region is a large shape a finger can reach elsewhere, and a coarse pointer cannot aim
+				// at an 11px target (WCAG 2.5.5).
+				//
+				// The identity of the minimum otherwise, not a size: a map whose regions answer nothing
+				// and which draws no zones claims nothing here, and `markTargets` is the one place that
+				// knows the cap.
+				let room = regionRoom(at, unitsPerPixel)
 
-			for (const entry of entries) {
-				if (entry.spare === undefined || hidden.has(entry.id)) continue
+				for (const entry of anchored) {
+					if (entry.spare === undefined || hidden.has(entry.id)) continue
 
-				room = Math.min(room, entry.spare(at))
-			}
+					room = Math.min(room, entry.spare(at, unitsPerPixel))
+				}
 
-			return room
-		},
-		[entries, hidden, regionRoom],
+				return room
+			}),
+		[anchored, hidden, regionRoom],
 	)
-
-	// The resolver as a store. A zone whose budget changes in place changes none of the deps above,
-	// so the zone regrounds the store, and the dots measure their targets again.
-	const spare = useMemo(() => createSpareStore(resolveSpare), [resolveSpare])
 
 	// Every visible dot-drawing mark's stops, projected. This is the pool a dot
 	// divides its target's ground against, and the seam that lifts `crowd.ts`'s
@@ -1180,8 +1226,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// plat with no dot-shaped mark on it must never run the pass at all. A mark that moves changes none
 	// of these deps, so it restakes its own dots in the pool (see `createDotPool`).
 	const pool = useMemo(
-		() => createDotPool(entries, hidden, shape.project),
-		[entries, hidden, shape.project],
+		() => createDotPool(anchored, hidden, shape.project),
+		[anchored, hidden, shape.project],
 	)
 
 	const intl = useIntl()
@@ -1312,12 +1358,14 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const resolveStops = useCallback(
 		() =>
 			mapStops(
-				regions.answers ? cachedRegionCentroids(shape.features) : NO_CENTROIDS,
-				entries,
+				regions.answers
+					? cachedRegionCentroids(shape.features, projection === 'identity')
+					: NO_CENTROIDS,
+				anchored,
 				hidden,
 				shape.project,
 			),
-		[shape.features, shape.project, entries, hidden, regions.answers],
+		[shape.features, shape.project, anchored, hidden, regions.answers, projection],
 	)
 
 	const { click: pickRegion } = regions
@@ -1412,18 +1460,22 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// picker or a zooming map with `tooltip={false}` does not rove in silence.
 	// With it, a region that reads nothing (no row, or a category the legend
 	// holds off) still speaks its name where Enter picks it: the reader must hear
-	// what a pick would report.
+	// what a pick would report. A disabled region reports no pick, so it stays
+	// silent like a region of a map that picks nothing.
 	const describeTarget = useCallback(
 		(target: MapHoverTarget) => {
 			if (!readable) return nameMapTarget(target, tooltipProps)
 
 			const readout = describeMapTarget(target, tooltipProps)
 
-			return readout === null && target.kind === 'region' && picksRegions
+			return readout === null &&
+				target.kind === 'region' &&
+				picksRegions &&
+				regionDisabled?.[target.index] !== true
 				? nameMapTarget(target, tooltipProps)
 				: readout
 		},
-		[readable, picksRegions, tooltipProps],
+		[readable, picksRegions, regionDisabled, tooltipProps],
 	)
 
 	// The cursor earns a tab stop from either of its two outputs. Gating on the
@@ -1466,7 +1518,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const {
 		show: showLegend,
 		placement: legendPlacement,
+		rail: legendRail,
 		range: rangeLegend,
+		orientation: legendOrientation,
 	} = planLegend(
 		legend,
 		numeric,
@@ -1532,6 +1586,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							animate={animate}
 							sweep={sweep}
 							onRegionClick={regions.click}
+							disabled={regionDisabled}
 							onRegionContextMenu={regions.contextMenu}
 							selected={selected}
 							loading={loading}
@@ -1544,13 +1599,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		</svg>
 	)
 
-	// The visually-hidden table renders one row per region (thousands on a
-	// county atlas) and none of it is mount-critical: defer it off the urgent
-	// render the way the chart frame defers its data table, so the geography
-	// commits first and the table hydrates a low-priority beat behind. The
-	// table rides as one memoized element, so the deferred render can't tear
-	// across a data change. Parity is unchanged: the table always converges
-	// on the current readout, one low-priority commit behind.
+	// The visually-hidden table. The frame defers it off the urgent render (see
+	// `MapDeferredTable`). The table rides as one memoized element, so the
+	// deferred render can't tear across a data change.
 	// The name of the map also names its table.
 	const table = useMemo(
 		() =>
@@ -1584,8 +1635,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		],
 	)
 
-	const deferredTable = useDeferredValue(table, null)
-
 	return (
 		<MapFrame
 			{...rest}
@@ -1594,6 +1643,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					range={rangeLegend}
 					show={showLegend}
 					aside={aside}
+					orientation={legendOrientation}
 					items={items}
 					hidden={switched}
 					onToggle={toggle}
@@ -1601,6 +1651,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				/>
 			}
 			legendPlacement={legendPlacement}
+			rail={legendRail}
 			plotRegion={
 				<MapPlotRegion
 					aria-label={ariaLabel}
@@ -1645,7 +1696,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			regionActive={regionActive}
 			emphasis={emphasis}
 			preloadRegion={preloadRegion}
-			table={deferredTable}
+			table={table}
 			width={width}
 			fill={shape.fill}
 			className={className}

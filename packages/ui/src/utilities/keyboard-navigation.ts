@@ -23,6 +23,16 @@ export function isArrowKey(key: string): boolean {
 	return key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown'
 }
 
+/**
+ * Whether a key is Enter or Space, the keys that activate a button, an option,
+ * or the item under a cursor.
+ *
+ * @internal
+ */
+export function isActivationKey(key: string): boolean {
+	return key === 'Enter' || key === ' '
+}
+
 /** Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. @internal */
 export function crossAxisDelta(key: string, orientation: Orientation): number | null {
 	return orientation === 'vertical'

@@ -7,6 +7,7 @@ import {
 	type ReactNode,
 	useCallback,
 	useEffect,
+	useId,
 	useMemo,
 	useState,
 } from 'react'
@@ -20,10 +21,19 @@ import {
 	useMapPointedMark,
 	useMapZoomScale,
 } from './context'
-import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './engine/map-constants'
+import {
+	REGION_SELECTED_STROKE_WIDTH,
+	REGION_STROKE_WIDTH,
+	STRIPE_TILE,
+} from './engine/map-constants'
 import { regionIndexAt } from './engine/map-hover/anchor'
 import type { MapCategoryMeta } from './engine/map-region/category'
-import { type MapRegionLayer, paintAt, resolveRegionPaints } from './engine/map-region/paint'
+import {
+	type MapRegionLayer,
+	paintAt,
+	resolveRegionPaints,
+	stripePatternId,
+} from './engine/map-region/paint'
 import { type MapTransform, transformAttribute } from './engine/map-zoom/transform'
 import { MapRegionsLit } from './map-regions-lit'
 
@@ -97,6 +107,14 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	 * region values stay in the data table for parity.
 	 */
 	onRegionClick?: (index: number) => void
+	/**
+	 * Each region that takes no click, by feature index, from `MapPlat`'s
+	 * `isRegionDisabled`. A disabled region takes the default cursor, and the
+	 * hover emphasis only where it carries data. {@link onRegionClick} arrives
+	 * already gated, so the layer reads this for the paint alone. `undefined`
+	 * where every region answers.
+	 */
+	disabled: readonly boolean[] | undefined
 	/**
 	 * Reports the region under a right-click, resolved by the same
 	 * {@link regionIndexAt} delegation {@link onRegionClick} uses. The hover
@@ -216,7 +234,11 @@ function drawnRegions(paths: (string | null)[]): { index: number; d: string }[] 
 }
 
 /** Props for {@link MapRegionsBase}: the layer's own inputs, none of the shared emphasis. @internal */
-type MapRegionsBaseProps = MapRegionLayer & { delay: WashDelay; interactive: boolean }
+type MapRegionsBaseProps = MapRegionLayer & {
+	delay: WashDelay
+	interactive: boolean
+	disabled: readonly boolean[] | undefined
+}
 
 /**
  * Every region path, painted by category. Deliberately blind to the shared
@@ -236,6 +258,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	paints,
 	delay,
 	interactive,
+	disabled,
 }: MapRegionsBaseProps) {
 	const { set } = useMapHoverActions()
 
@@ -270,7 +293,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 						key={index}
 						d={d}
 						index={index}
-						className={paint.className}
+						className={disabled?.[index] === true ? paint.disabledClassName : paint.className}
 						fillColor={paint.fillColor}
 						style={delay(index)}
 						onTrack={handleTrack}
@@ -330,6 +353,7 @@ export const MapRegions = memo(function MapRegions({
 	animate,
 	sweep,
 	onRegionClick,
+	disabled,
 	onRegionContextMenu,
 	selected,
 	loading,
@@ -359,9 +383,11 @@ export const MapRegions = memo(function MapRegions({
 	// layer's memo still compares equal, and the lit overlay, which mounts and
 	// unmounts with the emphasis, reads the cached table instead of resolving
 	// its own from cold on every hover-in.
+	const patternBase = `map-${useId()}`
+
 	const paints = useMemo(
-		() => resolveRegionPaints(categories, hidden, revealed, animate, clickable),
-		[categories, hidden, revealed, animate, clickable],
+		() => resolveRegionPaints(categories, patternBase, hidden, revealed, animate, clickable),
+		[categories, patternBase, hidden, revealed, animate, clickable],
 	)
 
 	const receded = pointed !== null || emphasis !== null
@@ -392,6 +418,8 @@ export const MapRegions = memo(function MapRegions({
 			// right-click leaves its target cleared and this only fires to overwrite it.
 			onContextMenu={regionDelegate(onRegionContextMenu)}
 		>
+			<MapRegionStripes categories={categories} base={patternBase} />
+
 			<g data-slot="map-regions-recede" className={cn(...k.group(receded))}>
 				<MapRegionsBase
 					paths={paths}
@@ -399,6 +427,7 @@ export const MapRegions = memo(function MapRegions({
 					paints={paints}
 					delay={delay}
 					interactive={interactive}
+					disabled={disabled}
 				/>
 			</g>
 
@@ -484,6 +513,51 @@ function MapRegionsGroup({
 			    correct by construction, instead of by remembering a divisor. */}
 			<MapZoomScaleContext value={beneath}>{children}</MapZoomScaleContext>
 		</g>
+	)
+}
+
+/**
+ * The stripe patterns of the striped categories, one per category, which the
+ * region fills name by {@link stripePatternId}. A tile holds one band of each
+ * color and turns 45 degrees, so the bands run on the diagonal of the swatch
+ * stripes (`k.stripes`).
+ *
+ * The tile is in the user space of the paths, which the frame and the zoom
+ * scale. The tile therefore scales by the units of one device pixel, and a
+ * band keeps its width at every zoom. It is its own component for the reason
+ * {@link MapRegionSelected} gives: a read of the zoom scale re-renders these few
+ * patterns, and not the atlas.
+ *
+ * @internal
+ */
+function MapRegionStripes({ categories, base }: { categories: MapCategoryMeta[]; base: string }) {
+	const unitsPerPixel = useMapZoomScale()
+
+	const striped = categories.flatMap((meta, index) =>
+		meta.paint.kind === 'stripes' ? [{ index, paint: meta.paint }] : [],
+	)
+
+	if (striped.length === 0) return null
+
+	const band = STRIPE_TILE / 2
+
+	return (
+		<defs data-slot="map-region-stripes">
+			{striped.map(({ index, paint }) => (
+				<pattern
+					key={index}
+					id={stripePatternId(base, index)}
+					patternUnits="userSpaceOnUse"
+					width={STRIPE_TILE}
+					height={STRIPE_TILE}
+					patternTransform={`rotate(45) scale(${unitsPerPixel})`}
+				>
+					<rect width={band} height={STRIPE_TILE} className={cn(...paint.first.fill)} />
+
+					<rect x={band} width={band} height={STRIPE_TILE} className={cn(...paint.second.fill)} />
+				</pattern>
+			))}
+		</defs>
 	)
 }
 

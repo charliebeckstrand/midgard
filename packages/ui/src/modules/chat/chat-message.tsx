@@ -7,9 +7,11 @@ import { IntlMessage } from '../../primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 import { ChatEmbed } from './chat-embed'
+import { ChatMessageBranch } from './chat-message-branch'
 import { ChatMessageMenu } from './chat-message-menu'
 import { ChatTool, MESSAGE_HEADING_OFFSET } from './chat-tool'
 import { replyFailed } from './engine/chat-announcements'
+import type { ChatBranch } from './engine/chat-branch/types'
 import type { ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
 
@@ -101,6 +103,17 @@ export type ChatMessageProps = ChatMessageVariants &
 		 */
 		contextMenu?: ContextMenuEntry[]
 		/**
+		 * The branches at the place of the message. A retry and an edit each add
+		 * one. With more than one, a switcher below the bubble shows the position,
+		 * such as `2 of 3`, between a previous and a next button.
+		 */
+		branch?: ChatBranch
+		/**
+		 * Fires with the id of the branch that the reader picks in the switcher.
+		 * Without it, the switcher shows its position and its buttons are off.
+		 */
+		onBranchChange?: (id: string) => void
+		/**
 		 * Message content, rendered as GitHub-flavored Markdown: prose, or the blocks
 		 * it is built from.
 		 */
@@ -140,6 +153,12 @@ export type ChatMessageProps = ChatMessageVariants &
  * A `failed` reply ends with a line that says so, after what it landed. The
  * line inherits the foreground of the bubble, and a red dot marks it.
  *
+ * A message with more than one `branch` shows a switcher below its bubble. The
+ * switcher is a group named "Versions", in the language of the reader. Each
+ * button names the branch that it shows, and the text between them gives the
+ * position. The message holds no branch itself: `onBranchChange` gives the id
+ * that the reader picked, and the caller shows that branch.
+ *
  * The pulse rides each drawn {@link Markdown}, so a streaming reply that has
  * already landed a chart pulses its prose and leaves the chart steady.
  *
@@ -163,6 +182,8 @@ export const ChatMessage = memo(function ChatMessage({
 	actions,
 	trigger,
 	contextMenu,
+	branch,
+	onBranchChange,
 	className,
 	children,
 	...props
@@ -210,6 +231,9 @@ export const ChatMessage = memo(function ChatMessage({
 				bubble
 			) : (
 				<ChatMessageMenu entries={contextMenu}>{bubble}</ChatMessageMenu>
+			)}
+			{branch !== undefined && branch.ids.length > 1 && (
+				<ChatMessageBranch branch={branch} onBranchChange={onBranchChange} />
 			)}
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={slots.timestamp}>

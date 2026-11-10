@@ -16,11 +16,13 @@ While a submit runs, the form locks its parts, and disables nothing. `Form` rend
 
 The lock is React context, so it follows the component tree into a portal. A `Popover`, `Dialog`, `Drawer`, `Sheet`, `Confirm`, or `CommandPalette` that opens from inside a `Form` is in the scope of the form. So a field in the overlay locks with the form, because the field belongs to the form. A library button in the overlay that only closes or navigates writes no field, so it stays live. The standard button of `DialogClose`, `DrawerClose`, `SheetClose`, and `PopoverClose` takes `lockable={false}`, and so do `CommandPaletteClose` and the Cancel button of `Confirm`. The confirm action of `Confirm` locks, because it runs a handler of the app. A custom child of a close part is a button of the app, and the app chooses its lock.
 
+A native field reads no context, so `Form` locks it from the DOM. [`useFormNativeLock`](use-form-native-lock.ts) records the state of each `<input>`, `<select>`, and `<textarea>` that the `<form>` owns when a submit starts. While the submit runs, it cancels each text edit (`beforeinput`) and the click that toggles a check box or a radio, or opens a file picker. It puts back the state of a field that changes another way, such as a `<select>` or a range. The cancel stops the event, so no handler of the app sees an edit that does not occur. A field in a filter bar inside the form stays live. A native field in a portal is outside the `<form>`, so the form does not own it, and it stays live too.
+
 The binding contract has its own `locked` flag, which `Form` gives. The setter of `useFormField` refuses a write while the form is locked. So a control with no read-only state, such as `Calendar`, cannot change its field either. A write through the form actions still lands, because a write from the app must land. While the submit runs, the form also gives "Submitting" to the shared announcer, which speaks politely.
 
 A disabled `<fieldset>` locked the fields once, and it disabled the buttons with them. Chromium moves the focus of a control that becomes disabled to the body, so the focused submit button or field lost the focus. Now each field and button keeps the focus. `FormSubmit` stays enabled, its loading state cancels a second click, and the form ignores a submit that starts during another one. The `<fieldset>` follows only the `disabled` prop. A filter bar inside a form opens a scope with no lock, and gives the contract with no lock. So its fields and its Clear button stay live.
 
-Three checks hold the lock. The capability sweep submits a form around each control of the corpus that writes its field, and expects no write. [`form-write-boundary.test.ts`](../../__tests__/boundary/form-write-boundary.test.ts) holds each part outside the module to the setter of `useFormField`, and lists each part that reads the form actions. [`form-submit-focus.test.tsx`](../../__tests__/browser/form-submit-focus.test.tsx) holds the focus of the submit button and of a field in Chromium.
+Four checks hold the lock. The capability sweep submits a form around each control of the corpus that writes its field, and expects no write. [`form-write-boundary.test.ts`](../../__tests__/boundary/form-write-boundary.test.ts) holds each part outside the module to the setter of `useFormField`, and lists each part that reads the form actions. [`form-submit-focus.test.tsx`](../../__tests__/browser/form-submit-focus.test.tsx) holds the focus of the submit button and of a field in Chromium. [`form-native-lock.test.tsx`](../../__tests__/browser/form-native-lock.test.tsx) holds the lock of each kind of native field in Chromium.
 
 Three parts act on the state of the form:
 
@@ -30,7 +32,7 @@ Three parts act on the state of the form:
 
 `Form` renders `ControlTargetsContext`, a registry of control ids by field name. Each bindable control registers its id there, and so does a form-bound `Message`. A bare control, with no `id` and no `Field` or `Control` around it, registers the id that it renders. `Input`, `Checkbox`, `Switch`, `Slider`, `RangeSlider`, `Rating`, and the pickers make that id with `useIdScope`. The registry counts each registration, so the end of one does not remove the other. A row of a field that registers no id, such as a custom field over `useFormValue`, shows its issue as text. A filter bar opens no registry, so its fields do not take the names of the form.
 
-A field `Label` registers its text with the same registry, by the id of the control that it names. The label reads its text from the DOM after each commit, and registers only a change. So the row takes the plain text of the label, and no element of it, such as a link or a button. A row of a field with a label shows "Label: issue". A control with only an `aria-label` or a native `<label>` registers no text, so its row shows only the issue.
+A field `Label` registers its text with the same registry, by the id of the control that it names. The label reads its text from the DOM after each commit, and registers only a change. So the row takes the plain text of the label, and no element of it, such as a link or a button. A row of a field with a label shows the label in bold, with the issue on the line below it. The two lines are one link. A control with only an `aria-label` or a native `<label>` registers no text, so its row shows only the issue.
 
 ## Engine: the substrate
 
@@ -42,7 +44,7 @@ The engine reads `hasIssues` from the binding contract, because a control and th
 
 ## Backlog
 
-- **Native elements in a submit.** A native element that does not bind, such as a bare `<input>`, stays editable while a submit runs.
+The backlog is empty.
 
 ---
 

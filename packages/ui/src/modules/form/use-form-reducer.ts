@@ -15,35 +15,18 @@ import { hasIssues } from '../../primitives/form/form-issues'
 import { dirtyFields as deriveDirtyFields } from './engine/form-dirty'
 import { formReducer } from './engine/form-reducer'
 import { normalizeErrors } from './engine/form-validate'
-import type {
-	FormAction,
-	FormState,
-	FormSubmitHandler,
-	SubmitOutcome,
-	ValidateOn,
-	Validators,
-} from './engine/types'
+import type { FormAction, FormState } from './engine/types'
+import type { FormProps } from './form'
 import { useFormStore } from './use-form-store'
 import { useFormSubmission } from './use-form-submission'
 import { useFormSync } from './use-form-sync'
 
-/** Options for {@link useFormReducer}. @internal */
-type FormReducerOptions<T extends Record<string, unknown>> = {
-	defaultValues: T
-	/**
-	 * Controlled re-sync source. Reference change → `values` replaced and the
-	 * dirty baseline shifts; `touched`, `errors`, and `submitting` stay put.
-	 * Passing `undefined` re-syncs to `defaultValues` under the same contract.
-	 * Pass a stable reference; a new derived object each render loops the sync.
-	 */
-	values?: T
-	validate?: Validators<T>
-	validateOn: ValidateOn
-	onSubmit?: FormSubmitHandler<T>
-	onSettled?: (outcome: SubmitOutcome<T>) => void
-	onInvalidSubmit?: (errors: Partial<Record<keyof T, string[]>>) => void
-	onReset?: () => void
-}
+/** Options for {@link useFormReducer}: the state props of `Form`, with `validateOn` resolved. @internal */
+type FormReducerOptions<T extends Record<string, unknown>> = Pick<
+	FormProps<T>,
+	'defaultValues' | 'values' | 'validate' | 'onSubmit' | 'onSettled' | 'onInvalidSubmit' | 'onReset'
+> &
+	Required<Pick<FormProps<T>, 'validateOn'>>
 
 /** State, store, actions, and form-element handlers returned by {@link useFormReducer}. @internal */
 type FormReducerResult = {

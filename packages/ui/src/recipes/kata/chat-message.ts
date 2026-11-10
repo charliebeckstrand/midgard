@@ -77,6 +77,10 @@ export const k = defineKata({
 	slots: {
 		bubble,
 		timestamp: [size.xs, 'mt-1', ...text.muted],
+		// The switcher of a message with more than one branch: a row below the
+		// bubble, on the side of the speaker. It is a quiet label, as the timestamp
+		// is, and its digits keep one width, so `9 of 10` does not move its buttons.
+		branch: [...controls, 'mt-1 items-center tabular-nums', size.xs, ...text.muted],
 		/**
 		 * The actions of the message: a toolbar that floats over the outer top
 		 * corner of the bubble. That is the corner on the side of the speaker. A

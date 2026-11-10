@@ -17,10 +17,8 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { copyText } from '../../utilities/export-output'
 import { isDataColumn } from '../../utilities/is-data-column'
 import { isNativeContextMenuRequest } from '../../utilities/native-context-menu'
-import type { GridSortState } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import { cellText } from './engine/grid-export/accessor'
-import type { GridExportAction } from './engine/grid-export/types'
 import {
 	type GridMenuResolution,
 	openKeyboardMenu,
@@ -34,12 +32,10 @@ import { frozenSide, normalizeFreeze } from './engine/grid-pin/overrides'
 import type { GridRangeFill } from './engine/grid-range/fill'
 import type { GridColumnFilter } from './engine/grid-table/filter-view'
 import {
+	type ColumnMenuDefaultArgs,
 	cellMenuDefaults,
 	columnMenuDefaults,
 	fillItems,
-	type GridGroupByMenu,
-	type PinColumn,
-	type SortColumn,
 } from './grid-context-menu-utilities'
 import type {
 	GridCellMenuContext,
@@ -50,7 +46,20 @@ import type {
 } from './types'
 
 /** Props for {@link GridContextMenu}. @internal */
-export type GridContextMenuProps<T> = {
+export type GridContextMenuProps<T> = Pick<
+	ColumnMenuDefaultArgs<T>,
+	| 'sort'
+	| 'sortColumn'
+	| 'clearSort'
+	| 'pinColumn'
+	| 'groupBy'
+	| 'autoSizeColumns'
+	| 'autoSizeColumn'
+	| 'resetColumnWidths'
+	| 'chooseColumns'
+	| 'manageLabel'
+	| 'exportActions'
+> & {
 	config: GridContextMenuConfig<T>
 	/**
 	 * Whether right-clicks resolve to a menu at all. When `false` every click
@@ -66,31 +75,6 @@ export type GridContextMenuProps<T> = {
 	/** Rendered rows, parallel to `rowKeys`, for resolving a cell to its row. */
 	rows: readonly T[]
 	rowKeys: (string | number)[]
-	/** Active sort columns in priority order; backs the menu's Sort items. */
-	sort: GridSortState[]
-	sortColumn: SortColumn
-	/** Clears the grid's active sort. */
-	clearSort: () => void
-	/** Pins the right-clicked column to an edge, or unpins it; backs the menu's Pin items. */
-	pinColumn: PinColumn
-	/**
-	 * The group-by toggle for a right-clicked `groupable` column (the active
-	 * grouped column id and the write-back), or `null` when the group button is
-	 * off. Backs the menu's "Group by …" / "Ungroup" item.
-	 */
-	groupBy: GridGroupByMenu | null
-	/** Sizes every data column to its content ("Auto-size all columns"), or `null` when the grid is not resizable. */
-	autoSizeColumns: (() => void) | null
-	/** Sizes a single column to its content ("Auto-size this column"), or `null` when the grid is not resizable. */
-	autoSizeColumn: ((column: string | number) => void) | null
-	/** Gives the widths back to the automatic fit ("Reset column widths"), or `null` when the grid is not resizable or no column holds a width of its own. */
-	resetColumnWidths: (() => void) | null
-	/** Opens the column-manager dialog ("Manage columns"), or `null` when none is reachable. */
-	chooseColumns: (() => void) | null
-	/** The label of the "Manage columns" item: the `label` of the column manager, else the message. */
-	manageLabel: ReactNode
-	/** One action per configured export type; empty when export is off. Shared by the column menu, the cell menu, and the toolbar dropdown. */
-	exportActions: GridExportAction[]
 	/** The fill of the cell range, for the cell menu's Fill items, or `undefined` while the grid cannot fill. */
 	fill: GridRangeFill | undefined
 	/**

@@ -8,16 +8,20 @@ import {
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
 import { EventsButton, EventsSwitch } from 'ui/events'
+import { StackedLayoutHeader } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { Placeholder } from 'ui/placeholder'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { UserMenu } from '../user-menu'
 
-/** The sticky bar of a header: the trail on the left and the menu on the right. */
+/**
+ * The bar of a header: the trail on the left and the menu on the right. It
+ * stays at the top while the body under it scrolls (`PageFrame`).
+ */
 function HeaderBar({ trail, menu }: { trail: ReactNode; menu: ReactNode }) {
 	return (
-		<header className="sticky top-0 z-10 border-b border-zinc-950/10 bg-white px-6 py-4 dark:border-white/10 dark:bg-zinc-900">
+		<StackedLayoutHeader className="border-b border-zinc-950/10 px-6 py-4 dark:border-white/10">
 			<Flex justify="between" align="center" gap="md">
 				<Breadcrumb className="min-w-0">
 					<BreadcrumbList className="text-xl/8 font-semibold">{trail}</BreadcrumbList>
@@ -25,7 +29,7 @@ function HeaderBar({ trail, menu }: { trail: ReactNode; menu: ReactNode }) {
 
 				{menu}
 			</Flex>
-		</header>
+		</StackedLayoutHeader>
 	)
 }
 

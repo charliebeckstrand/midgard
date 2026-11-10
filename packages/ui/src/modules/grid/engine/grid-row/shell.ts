@@ -1,6 +1,7 @@
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, Ref } from 'react'
 import { dataAttr } from '../../../../core/data-attr'
 import { k } from '../../../../recipes/kata/grid'
+import { isActivationKey } from '../../../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../../../utilities/modifier-keys'
 import type { GridColumn } from '../../types'
 import { isNewRowAddColumn } from '../grid-new-row-column'
@@ -28,7 +29,7 @@ function activateOnEnterSpace<E extends Element>(
 ): void {
 	if (hasBrowserModifier(event)) return
 
-	if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
+	if (isActivationKey(event.key) && event.target === event.currentTarget) {
 		event.preventDefault()
 
 		activate(event)

@@ -11,8 +11,9 @@ export type BreadcrumbProps = {
 	 * only after every crumb above it has gone. Without it, the trail wraps.
 	 *
 	 * The fit is measured. The server cannot know the room of the row, so a
-	 * server-rendered trail keeps its row and shows its crumbs when hydration
-	 * measures the fit. The frame that shows the trail already holds the fit.
+	 * server-rendered trail of more than one crumb keeps its crumbs transparent.
+	 * When hydration measures the fit, the trail fades in at that fit. A trail
+	 * of one crumb shows from the server.
 	 *
 	 * The `<nav>` becomes a flex row that is the room of the fit, so give it the
 	 * full width of its line. Anything that shares the line, such as an action on

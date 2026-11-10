@@ -1,10 +1,10 @@
 import { requireSession } from 'auth'
 import { notFound } from 'next/navigation'
-import { RequestLocale } from 'shared/locale'
+import { LiveRefresh } from 'shared/refresh'
 import { Container } from 'ui/structure/container'
 import { Text } from 'ui/text'
 import { GameCard, GameGrid } from '@/components/game-card'
-import { LiveRefresh } from '@/components/live-refresh'
+import { PageFrame } from '@/components/page-frame'
 import { PicksHeader } from '@/components/picks-header'
 import { TallyTotal } from '@/components/tally-total'
 import { getSeasonPicks } from '@/server/mimir'
@@ -39,9 +39,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
 	const skipped = Object.keys(weekPicks).length === 0 && weekClosed(games, Date.now())
 
 	return (
-		<RequestLocale>
-			<PicksHeader user={user} week={week.label} />
-
+		<PageFrame header={<PicksHeader user={user} week={week.label} />}>
 			<LiveRefresh live={games.some((game) => game.state === 'live')} />
 
 			<Container size="full" padding="lg" className="py-6">
@@ -65,6 +63,6 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
 					</>
 				)}
 			</Container>
-		</RequestLocale>
+		</PageFrame>
 	)
 }

@@ -71,6 +71,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`: a root such as `Dialog`, a `DialogTrigger`, and a `DialogPanel`.
 
+> A `DialogPanel` or a `DrawerPanel` with `height="fit"` travels to each new height of its content. On the bottom edge, it goes up to the top edge of the screen when its content asks for that much. The default `auto` changes the height in one step and stops at 85% of the screen.
+
 ## Data display
 
 `table` · `pivot-table` · `list` · `listbox` · `tree` · `json-tree` · `pagination` · `description-list` · `timeline` · `stat` · `sparkline` · `odometer` · `date-time` · `time-ago` · `status` · `swatch` · `badge` · `avatar` · `kbd` · `code`
@@ -87,7 +89,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > For a custom trigger or panel in an `AccordionItem`, use `useAccordionItem` from `accordion`. It gives the open state, `toggle`, and the ARIA props of the trigger and the panel. A custom trigger that spreads `triggerProps` takes part in the arrow keys of the accordion.
 
-> In a flex row or a grid track, a `Card` is at least as wide as its widest word. A `Stat` value in it stays on one line. Give the card `min-w-0` to let it become narrower.
+> A `Card` sets the default text color, so its content reads the same in the muted body of a dialog or a drawer. A `Card` that is a link takes the focus ring of a control. In a flex row or a grid track, a `Card` is at least as wide as its widest word. A `Stat` value in it stays on one line. Give the card `min-w-0` to let it become narrower.
 
 ## Typography
 
@@ -97,9 +99,13 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `loading` · `progress`
 
+> A `ProgressBar` with `segments` draws parts of one whole, such as the seats of each party, from the inline start or the inline end. A bar of two or more segments is a `role="img"` with a description of each part. `marks` draw lines across the bar, such as a majority, with an optional label above the track.
+
 ## Domain & specialized
 
 `pdf-viewer`
+
+> `PdfViewer` gives pdf.js a URL for each file that pdf.js loads at run time: the wasm decoders, the standard fonts, and the CMaps. A new version of `pdfjs-dist` can add, remove, or rename such a file. [`pdf-viewer-binary-data-boundary.test.ts`](../src/__tests__/boundary/pdf-viewer-binary-data-boundary.test.ts) holds the map equal to the package.
 
 ## Loading skeletons
 

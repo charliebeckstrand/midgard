@@ -91,6 +91,8 @@ export const k = {
 	 * halo from a dark one.
 	 */
 	selected: { ring: ink.selected, halo: surfaceStroke },
+	/** The seat chart's majority line: the strong ink, so it stands out from the seats of every party. */
+	majority: mode('stroke-zinc-950', 'dark:stroke-white'),
 	/**
 	 * The range legend's scale-bar slider track. It paints only with its gradient,
 	 * which forced colors remove, so it keeps an outline there.

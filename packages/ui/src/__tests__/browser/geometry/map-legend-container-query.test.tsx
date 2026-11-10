@@ -8,17 +8,14 @@ import { renderZones } from '../helpers/map-zones'
  * A side legend lays out against the map's own width, not the viewport. A
  * `@container` on the map frame gates the side-by-side row on `@lg` (512px). A
  * map in a narrow column therefore stacks its legend under the plot on a wide
- * screen too, and the frame holds a `min-w-48` (192px) floor. Container
- * queries, flex direction, and a min width are computed-layout facts that jsdom
+ * screen too, with its entries in one centered row, and the frame holds a
+ * `min-w-48` (192px) floor. Container
+ * queries, grid columns, and a min width are computed-layout facts that jsdom
  * cannot resolve.
  */
 describe('map side-legend container query (real browser)', () => {
 	// Wide viewport throughout: only the map's own width may change the outcome.
 	beforeAll(() => page.viewport(1280, 800))
-
-	/** The plot-and-legend row or stack: the plot region's own parent. */
-	const body = (container: HTMLElement) =>
-		present(getSlot(container, 'map-plot').parentElement, 'map body')
 
 	/** Three zones with a right legend, in a frame `width` px wide. */
 	const zones = (width: number) =>
@@ -27,19 +24,55 @@ describe('map side-legend container query (real browser)', () => {
 	it('sits the legend beside the plot once the map is wide enough', async () => {
 		const { container } = await zones(600)
 
-		expect(getComputedStyle(body(container)).flexDirection).toBe('row')
-
 		const plot = getSlot(container, 'map-plot').getBoundingClientRect()
 
 		const legend = getSlot(container, 'map-legend-box').getBoundingClientRect()
 
 		expect(legend.left).toBeGreaterThanOrEqual(plot.right)
+
+		expect(legend.top).toBeLessThan(plot.bottom)
 	})
+
+	it.each([
+		['ltr', 'right'],
+		['ltr', 'left'],
+		['rtl', 'right'],
+		['rtl', 'left'],
+	] as const)(
+		'gives the plot its box beside the panel before the panel is in the DOM (%s, %s)',
+		async (dir, legend) => {
+			const { container } = await renderZones(['North', 'South', 'East'], {
+				legend,
+				frame: { dir, width: 600 },
+			})
+
+			const plot = getSlot(container, 'map-plot')
+
+			const box = getSlot(container, 'map-legend-box')
+
+			const band = present(box.parentElement, 'band')
+
+			const { left, width } = plot.getBoundingClientRect()
+
+			expect(width).toBeLessThan(600 - 192)
+
+			// The panel comes after the SVG of the plot in the HTML, so a browser that
+			// paints while it parses draws the plot with no panel after it. A band
+			// without the panel is that state: the plot is then its only child.
+			box.remove()
+
+			const parsed = plot.getBoundingClientRect()
+
+			band.append(box)
+
+			expect(parsed.width).toBeNear(width, HALF_PIXEL)
+
+			expect(parsed.left).toBeNear(left, HALF_PIXEL)
+		},
+	)
 
 	it('stacks the legend under a full-width plot in a narrow container', async () => {
 		const { container } = await zones(300)
-
-		expect(getComputedStyle(body(container)).flexDirection).toBe('column')
 
 		const plot = getSlot(container, 'map-plot').getBoundingClientRect()
 
@@ -51,8 +84,31 @@ describe('map side-legend container query (real browser)', () => {
 		expect(legend.top).toBeGreaterThanOrEqual(plot.bottom)
 	})
 
-	it('gives each stacked entry the width of the widest', async () => {
+	it('sets the entries of a stacked legend in one centered row', async () => {
 		const { container } = await zones(300)
+
+		const entries = allBySlot(container, 'map-legend-item').map((entry) =>
+			entry.getBoundingClientRect(),
+		)
+
+		expect(entries).toHaveLength(3)
+
+		const [first] = entries
+
+		for (const entry of entries) expect(entry.top).toBeNear(first?.top ?? 0, HALF_PIXEL)
+
+		// The row is centered under the plot, so its free space is the same on each side.
+		const plot = getSlot(container, 'map-plot').getBoundingClientRect()
+
+		const left = Math.min(...entries.map((entry) => entry.left)) - plot.left
+
+		const right = plot.right - Math.max(...entries.map((entry) => entry.right))
+
+		expect(left).toBeNear(right, 1)
+	})
+
+	it('gives each entry of a legend beside the plot the width of the widest', async () => {
+		const { container } = await zones(600)
 
 		const widths = allBySlot(container, 'map-legend-item').map(
 			(entry) => entry.getBoundingClientRect().width,

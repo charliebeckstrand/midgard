@@ -8,7 +8,8 @@
 
 import type { MapSeriesColor } from '../../../../recipes/kata/map'
 import type { MapClusterInput } from '../map-cluster/sets'
-import type { LngLat, MapPoint2D, MapSwatchShape } from '../types'
+import type { LngLat, MapSwatchShape } from '../types'
+import type { MapSpareResolver } from './spare'
 
 /** The overlay kinds that register legend entries. @internal */
 export type MapOverlayKind = 'route' | 'point' | 'marker' | 'geofence'
@@ -44,6 +45,18 @@ export type MapStopRow = {
 export type MapStopPart = {
 	id: string
 	stop: number
+}
+
+/**
+ * One dot that a mark draws, as it registers it for the plat's dot pool: where it stands, and how
+ * far it paints from its center in device pixels. The pool projects the position, and a dot near it
+ * divides ground by both (`ground.ts`).
+ *
+ * @internal
+ */
+export type MapEntryDot = {
+	at: LngLat
+	radius: number
 }
 
 /**
@@ -93,12 +106,13 @@ export type MapOverlayEntry = {
 	 */
 	stopsAt: () => (LngLat | null)[]
 	/**
-	 * The dots the mark draws, in lon/lat, which the plat's dot pool holds. A point's dots are its
-	 * stops. A `MapMarker` draws two pins but has one stop, the middle of its leg. Absent on the
-	 * line and area marks: a route's waypoints and a zone's ring paint nothing a pointer could be
-	 * aimed at instead of. Stable like {@link stopsAt}.
+	 * The dots the mark draws, which the plat's dot pool holds: each one in lon/lat, with the radius
+	 * it paints at in device pixels. A point's dots are its stops. A `MapMarker` draws two pins but
+	 * has one stop, the middle of its leg. Absent on the line and area marks: a route's waypoints and
+	 * a zone's ring paint nothing a pointer could be aimed at instead of. Stable like
+	 * {@link stopsAt}.
 	 */
-	dotsAt?: () => LngLat[]
+	dotsAt?: () => MapEntryDot[]
 	/**
 	 * The dots that the mark puts in the shared pass of the plat (`sets.ts`), and
 	 * the gap that it asks for. Registered by a {@link MapPoints} that clusters,
@@ -150,8 +164,11 @@ export type MapOverlayEntry = {
 	 * that moves or is redrawn never re-registers. The ledger's every write
 	 * re-sorts it and re-renders the legend, which a field typed into would
 	 * otherwise pay on each keystroke.
+	 *
+	 * The zoom scale is the second argument, as it is for the resolver that the
+	 * plat folds these into. A zoom therefore changes no budget.
 	 */
-	spare?: (at: MapPoint2D) => number
+	spare?: MapSpareResolver
 	/**
 	 * Which drawn stop holds an index the mark reported. The two part on a
 	 * {@link MapPoints}, whose clicks name a dot in the caller's own points. Its
@@ -172,4 +189,49 @@ export type MapOverlayEntry = {
 	 * after a zoom regroups the dots. Stable like {@link stopsAt}.
 	 */
 	getIndex?: (stop: number) => number | undefined
+}
+
+/**
+ * The fields of an entry that the geometry readers of the plat read. The
+ * readers are the slot colors, the toggles, the order, the dot pool, the spare
+ * resolver, and the keyboard stops. The readout fields are not in the list:
+ * `label`, `detail`, `swatch`, and `stopRows`.
+ *
+ * One list, so that the type and the comparison below cannot disagree.
+ *
+ * @internal
+ */
+const ANCHOR_FIELDS = [
+	'id',
+	'group',
+	'color',
+	'stopsAt',
+	'dotsAt',
+	'spare',
+	'getIndex',
+] as const satisfies readonly (keyof MapOverlayEntry)[]
+
+/** As much of a registered mark as the geometry readers of the plat read. @internal */
+export type MapOverlayAnchor = Pick<MapOverlayEntry, (typeof ANCHOR_FIELDS)[number]>
+
+/**
+ * Whether two ledgers hold the same anchors in the same order, so the plat can
+ * keep what it derived from them. A regroup changes the stop rows of a set, and
+ * a new readout changes a label or a detail. Each one writes the ledger, but
+ * neither changes an anchor.
+ *
+ * @internal
+ */
+export function sameAnchors(
+	prev: readonly MapOverlayAnchor[],
+	next: readonly MapOverlayAnchor[],
+): boolean {
+	return (
+		prev.length === next.length &&
+		prev.every((entry, index) => {
+			const other = next[index]
+
+			return other !== undefined && ANCHOR_FIELDS.every((field) => entry[field] === other[field])
+		})
+	)
 }

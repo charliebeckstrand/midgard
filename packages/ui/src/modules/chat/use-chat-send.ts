@@ -1,15 +1,35 @@
 'use client'
 
-import { type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	type Dispatch,
+	type SetStateAction,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useStableValue } from '../../hooks/use-stable-value'
 import { noop } from '../../utilities/noop'
 import { randomId } from '../../utilities/random-id'
+import {
+	chatBranches,
+	sameBranches,
+	showBranch as showChatBranch,
+	showNewestBranch,
+	toChatTree,
+	withPath,
+} from './engine/chat-branch/tree'
+import type { ChatBranch } from './engine/chat-branch/types'
 import { chatContentText } from './engine/chat-content/text'
 import type { ChatPart } from './engine/chat-content/types'
 import { draftContent } from './engine/chat-draft'
 import {
 	appendUserMessage,
 	applyReplyChunk,
+	branchEditedMessage,
+	branchLastReply,
 	dropEmptyReply,
 	duplicateMessageIds,
 	failReply,
@@ -18,8 +38,6 @@ import {
 	findUserMessage,
 	openReply,
 	seedMessages,
-	truncateToEditedMessage,
-	truncateToLastUserMessage,
 } from './engine/chat-transcript'
 import type { ChatMessageData } from './engine/types'
 
@@ -49,7 +67,7 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
 		if (duplicates.length === 0) return
 
 		console.warn(
-			`useChatSend({ initialMessages }): ${duplicates.map((id) => `"${id}"`).join(', ')} names more than one message. Every rule over the transcript reads an id rather than a position, so messages under one id are edited, truncated, and rolled back together. Give each message its own id.`,
+			`useChatSend({ initialMessages }): ${duplicates.map((id) => `"${id}"`).join(', ')} names more than one message. Every rule over the transcript reads an id rather than a position, so messages under one id are edited, branched, and rolled back together. Give each message its own id.`,
 		)
 	}, [seed])
 }
@@ -108,7 +126,7 @@ export type ChatSendOptions = {
 	 * reload would name a message that no longer exists.
 	 *
 	 * An id must be unique in the transcript, because every rule over the
-	 * transcript reads it. Two messages under one id are edited, truncated, and
+	 * transcript reads it. Two messages under one id are edited, branched, and
 	 * rolled back together, so a duplicate warns once in development.
 	 */
 	initialMessages?: ChatMessageData[]
@@ -130,28 +148,54 @@ export type ChatSendOptions = {
 
 /** Return shape of {@link useChatSend}. */
 export type ChatSend = {
-	/** The live message list (optimistic user message + streamed assistant reply). */
+	/**
+	 * The live message list (optimistic user message + streamed assistant
+	 * reply). It is the shown path through the branches of the transcript.
+	 */
 	messages: ChatMessageData[]
+	/**
+	 * The branches on the shown path, by the id of the message that shows. A
+	 * message with one branch has no entry. Give it to the `branches` of
+	 * {@link ChatTranscript}.
+	 *
+	 * @remarks
+	 * The object keeps its identity while the branches stay the same, so a
+	 * streamed chunk does not change it.
+	 */
+	branches: Readonly<Record<string, ChatBranch>>
 	/** True while a reply is in flight. */
 	streaming: boolean
 	/** Optimistically appends the user message and streams the reply via the transport. No-ops on empty input. */
 	send: (content: string) => Promise<void>
 	/**
-	 * Regenerates the reply to the last user message. Drops it and anything after
-	 * it: an existing assistant reply, also a failed one. Then streams a fresh
-	 * one for the same content. No-ops with no user message in the transcript,
-	 * or while a send is already in flight. It keeps one identity for the mount.
-	 * Do not call it during render.
+	 * Regenerates the reply to the last user message, as a new branch beside the
+	 * old reply. The old reply, also a failed one, and each turn after it stay
+	 * in {@link ChatSend.branches}. No-ops with no user message in the
+	 * transcript, or while a send is already in flight. It keeps one identity
+	 * for the mount. Do not call it during render.
+	 *
+	 * @remarks
+	 * The old reply hides until the new reply opens. A stop or a failure before
+	 * any chunk shows the newest reply that is left.
 	 */
 	retry: () => Promise<void>
 	/**
-	 * Replaces a prior user message's content and regenerates from there,
-	 * discarding everything after it (its old reply and any later turns). No-ops
-	 * if `id` doesn't match a user message, `content` trims empty, or a send is
-	 * already in flight. It keeps one identity for the mount. Do not call it
-	 * during render.
+	 * Sends new content for a prior user message, as a new branch beside it, and
+	 * streams a reply from there. The new message takes a new id. The old
+	 * message, its reply, and each later turn stay in {@link ChatSend.branches}.
+	 * No-ops if `id` doesn't match a shown user message, `content` trims empty,
+	 * or a send is already in flight. It keeps one identity for the mount. Do
+	 * not call it during render.
 	 */
 	edit: (id: string, content: string) => Promise<void>
+	/**
+	 * Shows the branch that `id` names: a sibling of a message on the shown
+	 * path. Each turn below the branch shows as the reader left it. No-ops for
+	 * an id that names no such branch, or while a send is in flight. It keeps
+	 * one identity for the mount. Give it to the `onBranchChange` of
+	 * {@link ChatTranscript}.
+	 */
+	showBranch: (id: string) => void
 	/**
 	 * Aborts the in-flight send, retry, or edit, via the {@link ChatTransport}'s
 	 * `signal`. No-ops when nothing is in flight. The send ends at once, also
@@ -160,7 +204,13 @@ export type ChatSend = {
 	 * no chunk yet goes. `onError` and `onSent` do not fire.
 	 */
 	stop: () => void
-	/** Escape hatch for direct list edits (e.g. seeding history or clearing). */
+	/**
+	 * Escape hatch for direct list edits (e.g. seeding history or clearing).
+	 *
+	 * @remarks
+	 * The list replaces the transcript, so the branches that do not show go. A
+	 * message with no id takes a client id, as a seed message does.
+	 */
 	setMessages: Dispatch<SetStateAction<ChatMessageData[]>>
 }
 
@@ -273,8 +323,9 @@ async function streamReply(
  * bubble. A string replaces its running prose, and a part list merges into its
  * blocks by id. {@link ChatSend.retry} and {@link ChatSend.edit} share that
  * same streaming path, re-pointed at the last user message's content, or an
- * edited one. They first trim the transcript back to (and, for `edit`,
- * including) that message.
+ * edited one. Each adds a branch and keeps the old one, so the hook holds the
+ * transcript as a tree. `messages` is the shown path, and
+ * {@link ChatSend.showBranch} changes it.
  *
  * Across all three, a transport failure marks the reply `failed` (keyed by id,
  * so other bubbles are untouched). It keeps the user message and what the
@@ -294,8 +345,21 @@ export function useChatSend({
 	onSent,
 	onError,
 }: ChatSendOptions): ChatSend {
-	const [messages, setMessages] = useState<ChatMessageData[]>(() =>
-		seedMessages(initialMessages ?? [], randomId),
+	const [tree, setTree] = useState(() => toChatTree(seedMessages(initialMessages ?? [], randomId)))
+
+	const messages = tree.path
+
+	// A chunk gives a new tree with the same branches, so the held object stays.
+	const branches = useStableValue(
+		useMemo(() => chatBranches(tree), [tree]),
+		sameBranches,
+	)
+
+	// A list rule acts on the shown path, and leaves the hidden branches alone.
+	const setPath = useCallback(
+		(rule: (path: ChatMessageData[]) => ChatMessageData[]) =>
+			setTree((prev) => withPath(prev, rule(prev.path))),
+		[],
 	)
 
 	useDuplicateSeedIdWarning(initialMessages)
@@ -306,7 +370,7 @@ export function useChatSend({
 	const controllerRef = useRef<AbortController | null>(null)
 
 	// Streams a reply for `text` onto whatever history send/retry/edit already
-	// committed via setMessages: the one path all three share.
+	// committed via setTree: the one path all three share.
 	const runTransport = useCallback(
 		async (text: string) => {
 			setStreaming(true)
@@ -319,11 +383,11 @@ export function useChatSend({
 			const replyId = randomId()
 
 			await streamReply(transport, text, controller.signal, {
-				open: () => setMessages((prev) => openReply(prev, replyId)),
-				fold: (chunk) => setMessages((prev) => applyReplyChunk(prev, replyId, chunk)),
+				open: () => setPath((prev) => openReply(prev, replyId)),
+				fold: (chunk) => setPath((prev) => applyReplyChunk(prev, replyId, chunk)),
 				sent: () => onSent?.(text),
 				fail: (error) => {
-					setMessages((prev) => failReply(prev, replyId))
+					setPath((prev) => failReply(prev, replyId))
 
 					onError?.(error)
 				},
@@ -333,8 +397,12 @@ export function useChatSend({
 					// running would otherwise draw a spinner that nothing stops. A reply
 					// that is still empty goes too, so a stop before the first chunk
 					// leaves no empty bubble. A failed reply stays, because it says that
-					// the send failed.
-					setMessages((prev) => dropEmptyReply(failReplyTools(prev, replyId), replyId))
+					// the send failed. A retry with no reply then shows the reply it hid.
+					setTree((prev) =>
+						showNewestBranch(
+							withPath(prev, dropEmptyReply(failReplyTools(prev.path, replyId), replyId)),
+						),
+					)
 
 					controllerRef.current = null
 
@@ -342,7 +410,7 @@ export function useChatSend({
 				},
 			})
 		},
-		[transport, onSent, onError],
+		[transport, onSent, onError, setPath],
 	)
 
 	const stop = useCallback(() => {
@@ -365,11 +433,11 @@ export function useChatSend({
 			// Minted outside the updater, which React can run more than once.
 			const userId = randomId()
 
-			setMessages((prev) => appendUserMessage(prev, userId, text))
+			setPath((prev) => appendUserMessage(prev, userId, text))
 
 			await runTransport(text)
 		},
-		[runTransport],
+		[runTransport, setPath],
 	)
 
 	// Both read the messages of the last commit, but keep one identity, so a row
@@ -381,7 +449,7 @@ export function useChatSend({
 
 		if (!lastUser) return
 
-		setMessages((prev) => truncateToLastUserMessage(prev))
+		setTree(branchLastReply)
 
 		await runTransport(chatContentText(lastUser.content))
 	})
@@ -395,10 +463,34 @@ export function useChatSend({
 
 		if (!findUserMessage(messages, id)) return
 
-		setMessages((prev) => truncateToEditedMessage(prev, id, text))
+		// Minted outside the updater, which React can run more than once.
+		const branchId = randomId()
+
+		setTree((prev) => branchEditedMessage(prev, id, branchId, text))
 
 		await runTransport(text)
 	})
 
-	return { messages, streaming, send, retry, edit, stop, setMessages }
+	// A switch while a reply streams would take that reply off the shown path.
+	const showBranch = useCallback((id: string) => {
+		if (controllerRef.current) return
+
+		setTree((prev) => showChatBranch(prev, id))
+	}, [])
+
+	// The fork of a branch is keyed by an id, so each message takes one. The ids
+	// are minted in the updater, because only the updater reads the list that an
+	// updater function gives. A second run of the updater mints ids that no
+	// state keeps.
+	const setMessages = useCallback<Dispatch<SetStateAction<ChatMessageData[]>>>(
+		(action) =>
+			setTree((prev) =>
+				toChatTree(
+					seedMessages(typeof action === 'function' ? action(prev.path) : action, randomId),
+				),
+			),
+		[],
+	)
+
+	return { messages, branches, streaming, send, retry, edit, showBranch, stop, setMessages }
 }

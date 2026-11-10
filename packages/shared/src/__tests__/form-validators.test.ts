@@ -4,6 +4,7 @@ import {
 	email,
 	matches,
 	minLength,
+	newPasswordRules,
 	required,
 	validationMessages,
 } from '../auth/form-validators'
@@ -84,6 +85,22 @@ describe('chain', () => {
 		const validate = chain(required(en), matches('password', mismatch))
 
 		expect(validate('secret', { password: 'other' })).toBe('Must match password')
+	})
+})
+
+describe('newPasswordRules', () => {
+	const rules = newPasswordRules(en)
+
+	it('takes a password of 8 characters, and refuses a shorter one', () => {
+		expect(rules.password('12345678', {})).toBeUndefined()
+
+		expect(rules.password('1234567', {})).toBe('Must be at least 8 characters')
+	})
+
+	it('requires the repeated password to match the password', () => {
+		expect(rules.confirmPassword('12345678', { password: '12345678' })).toBeUndefined()
+
+		expect(rules.confirmPassword('1234567', { password: '12345678' })).toBe('Must match password')
 	})
 })
 

@@ -1,11 +1,10 @@
-import { renderToString } from 'react-dom/server'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { allBySlot, attach, getSlot, renderUI, waitFor } from '../../helpers'
 import { measureBox } from '../../helpers/geometry/box'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
-import { hydrate } from '../../helpers/hydrate'
+import { hydrate, serverMarkup } from '../../helpers/hydrate'
 import { installDocsFont } from '../helpers/docs-font'
 
 /**
@@ -170,9 +169,7 @@ describe('pie callout fit (real browser)', () => {
 		it(`paints the hydrated box from the server markup at ${width}px`, async () => {
 			const element = chart(width)
 
-			const container = attach(document.createElement('div'))
-
-			container.innerHTML = renderToString(element)
+			const container = attach(serverMarkup(element))
 
 			const plot = getSlot(container, 'chart-plot')
 

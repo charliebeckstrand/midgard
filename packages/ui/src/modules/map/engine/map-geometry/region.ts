@@ -13,7 +13,7 @@
 
 import { type GeoProjection, geoCentroid, geoPath } from 'd3-geo'
 import { REGION_PATH_DIGITS } from '../map-constants'
-import type { LngLat, MapFeature, MapPoint2D } from '../types'
+import type { LngLat, MapFeature, MapProjector } from '../types'
 
 /**
  * Each region's SVG path under the fitted projection, index-aligned with the
@@ -39,13 +39,19 @@ export function regionPaths(features: MapFeature[], projection: GeoProjection): 
  * region that crosses the antimeridian centers correctly where a mean of its
  * projected coordinates would not.
  *
+ * A `planar` atlas, drawn under `'identity'`, has no longitude or latitude. Its
+ * centroids are the planar ones, in the atlas's own units, which `'identity'`
+ * carries onto the frame as it does the rings.
+ *
  * @internal
  */
-export function regionCentroids(features: MapFeature[]): (LngLat | null)[] {
+export function regionCentroids(features: MapFeature[], planar = false): (LngLat | null)[] {
+	const centroid = planar ? geoPath().centroid : geoCentroid
+
 	return features.map((feature) => {
 		if (feature.geometry === null) return null
 
-		const [lon, lat] = geoCentroid(feature.geometry)
+		const [lon, lat] = centroid(feature.geometry)
 
 		// A degenerate feature (empty rings, or rings that cancel) centers on
 		// NaN; drop it rather than let the cursor step onto a point that projects
@@ -69,7 +75,7 @@ export function regionCentroids(features: MapFeature[]): (LngLat | null)[] {
  */
 export function regionSweep(
 	centroids: readonly (LngLat | null)[],
-	project: (position: LngLat) => MapPoint2D | null,
+	project: MapProjector,
 ): (number | null)[] {
 	const xs = centroids.map((centroid) =>
 		centroid === null ? null : (project(centroid)?.x ?? null),

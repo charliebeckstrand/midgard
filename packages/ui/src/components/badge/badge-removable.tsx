@@ -6,6 +6,7 @@ import { cn } from '../../core/cn'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
+import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Badge } from './badge'
@@ -93,7 +94,7 @@ export function BadgeRemovable({
 		// A repeat of Enter fires a native click, and a repeat of Space arms one.
 		// The removal can move focus here while the key is still down, so each
 		// repeat is canceled.
-		if (event.repeat && (removes || event.key === 'Enter' || event.key === ' ')) {
+		if (event.repeat && (removes || isActivationKey(event.key))) {
 			event.preventDefault()
 
 			return

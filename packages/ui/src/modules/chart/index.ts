@@ -48,3 +48,4 @@ export {
 export { LineChart, type LineChartProps, type LineInterpolation } from './line-chart'
 export { PieChart, type PieChartProps } from './pie-chart'
 export { ScatterChart, type ScatterChartProps } from './scatter-chart'
+export { SeatChart, type SeatChartGroup, type SeatChartProps } from './seat-chart'

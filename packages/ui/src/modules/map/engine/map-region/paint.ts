@@ -29,10 +29,19 @@ const WASH = 'transition-colors duration-400 ease-out motion-reduce:transition-n
 type RegionPaint = {
 	/** The emphasis / toggle group the region belongs to, `null` when inactive. */
 	groupId: string | null
-	/** The `fill` attribute color for a numeric bin, `undefined` for a class fill. */
+	/**
+	 * The `fill` attribute: a numeric bin's color, or the pattern URL of a striped
+	 * category. `undefined` for a class fill.
+	 */
 	fillColor: string | undefined
 	/** The path's classes. */
 	className: string
+	/**
+	 * The path's classes for a region that takes no click on a clickable layer:
+	 * the hover emphasis only where the region carries data, and the default
+	 * cursor. The same as {@link className} on a layer that takes no click.
+	 */
+	disabledClassName: string
 	/** The classes of the outline a legend emphasis draws on the region ({@link emphasisOutline}). */
 	outline: string
 }
@@ -79,17 +88,29 @@ export function emphasisOutline(fillColor: string | undefined): string {
 }
 
 /**
+ * The `id` of the stripe pattern of the category at `index`, under the layer's
+ * own `base`. The pattern defs and the region fills read this one spelling.
+ *
+ * @internal
+ */
+export function stripePatternId(base: string, index: number): string {
+	return `${base}-stripes-${index}`
+}
+
+/**
  * One category's paint. The toggle / emphasis key is the category's stable
  * value ({@link categoryLegendId}), not its index. A reorder or removal
  * therefore can't re-point a hidden or emphasized entry at a different
  * category. The
  * neutral fill covers no-data (`null`), a toggled-off category, and the
- * pre-reveal beat, so the color (not the geometry) animates on.
+ * pre-reveal beat, so the color (not the geometry) animates on. A striped
+ * category fills from its pattern, which `pattern` names.
  *
  * @internal
  */
 function categoryPaint(
 	meta: MapCategoryMeta | null,
+	pattern: string | undefined,
 	hidden: ReadonlySet<string>,
 	revealed: boolean,
 	animate: boolean,
@@ -105,21 +126,28 @@ function categoryPaint(
 	// beside the projection rather than inside it.
 	const fillClass = applied === null ? k.region.empty : paintFill(applied)
 
-	const fillColor = applied === null ? undefined : paintColor(applied)
+	const color = applied === null ? undefined : paintColor(applied)
+
+	// A pattern URL is no color the outline can measure, so the outline reads
+	// the bin color alone, and a striped region takes the slot ink.
+	const fillColor = applied?.kind === 'stripes' ? `url(#${pattern})` : color
+
+	const base = [...(fillClass ?? []), ...k.region.border, animate && WASH]
+
+	// The hover emphasis normally marks a region carrying data. On a clickable
+	// layer every region answers a click (a no-data one included), so it reads
+	// as the target it is. A disabled region answers no click, so only its data
+	// earns the emphasis.
+	const className = cn(...base, (active || clickable) && k.region.hover)
 
 	return {
 		groupId: active ? id : null,
 		fillColor,
-		outline: emphasisOutline(fillColor),
-		// The hover emphasis normally marks a region carrying data. On a clickable
-		// layer every region answers a click (a no-data one included), so it reads
-		// as the target it is.
-		className: cn(
-			...(fillClass ?? []),
-			...k.region.border,
-			(active || clickable) && k.region.hover,
-			animate && WASH,
-		),
+		outline: emphasisOutline(color),
+		className,
+		disabledClassName: clickable
+			? cn(...base, active && k.region.hover, k.region.disabled)
+			: className,
 	}
 }
 
@@ -127,20 +155,31 @@ function categoryPaint(
  * Every category's paint plus the no-data neutral, resolved once for the whole
  * layer. A county atlas shares a handful of paints across thousands of regions.
  * The class joins and paint lookups therefore run per category, not per
- * region.
+ * region. `patternBase` is the layer's own prefix for the stripe pattern ids
+ * ({@link stripePatternId}).
  *
  * @internal
  */
 export function resolveRegionPaints(
 	categories: MapCategoryMeta[],
+	patternBase: string,
 	hidden: ReadonlySet<string>,
 	revealed: boolean,
 	animate: boolean,
 	clickable: boolean,
 ): ResolvedRegionPaints {
 	return {
-		byCategory: categories.map((meta) => categoryPaint(meta, hidden, revealed, animate, clickable)),
-		none: categoryPaint(null, hidden, revealed, animate, clickable),
+		byCategory: categories.map((meta, index) =>
+			categoryPaint(
+				meta,
+				stripePatternId(patternBase, index),
+				hidden,
+				revealed,
+				animate,
+				clickable,
+			),
+		),
+		none: categoryPaint(null, undefined, hidden, revealed, animate, clickable),
 	}
 }
 

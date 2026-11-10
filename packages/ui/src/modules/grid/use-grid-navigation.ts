@@ -17,6 +17,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp } from '../../utilities/clamp'
 import { createEmitter } from '../../utilities/emitter'
 import { closestFloatingPortal } from '../../utilities/floating-portal-registry'
+import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { noopSubscribe } from '../../utilities/noop'
 import { createPressOwner, isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
@@ -426,7 +427,7 @@ type StopAction = 'toggle' | 'descend' | 'enter' | 'swallow'
 function stopAction(key: string, entry: GridCursorRow): StopAction | null {
 	const open = entry.kind === 'group' && entry.expanded
 
-	if (entry.kind === 'group' && (key === 'Enter' || key === ' ')) return 'toggle'
+	if (entry.kind === 'group' && isActivationKey(key)) return 'toggle'
 
 	if (entry.kind === 'group' && key === 'ArrowRight') return open ? 'descend' : 'toggle'
 
@@ -434,7 +435,7 @@ function stopAction(key: string, entry: GridCursorRow): StopAction | null {
 
 	if (entry.kind === 'detail' && (key === 'Enter' || key === 'F2')) return 'enter'
 
-	const cellKey = key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Enter' || key === ' '
+	const cellKey = key === 'ArrowLeft' || key === 'ArrowRight' || isActivationKey(key)
 
 	return cellKey ? 'swallow' : null
 }
@@ -1265,7 +1266,7 @@ export function useGridNavigation({
 		(event: KeyboardEvent<HTMLTableElement>, base: Coord) => {
 			if (onEntryKey(event, base)) return
 
-			const cellKey = event.key === 'Enter' || event.key === ' '
+			const cellKey = isActivationKey(event.key)
 
 			if (cellKey && base.row !== HEADER_ROW_INDEX) {
 				activateOrSelectRow(event, { row: toDataRow(base.row), col: base.col })

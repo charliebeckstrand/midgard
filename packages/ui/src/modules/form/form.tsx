@@ -1,6 +1,7 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useState } from 'react'
+import { useComposedRefs } from 'motion/react'
+import { type ComponentProps, type ReactNode, useRef, useState } from 'react'
 import { ControlLockContext, ControlTargetsContext } from '../../components/control/context'
 import { Fieldset } from '../../components/fieldset'
 import { cn } from '../../core/cn'
@@ -10,6 +11,7 @@ import { createFormFieldTargets } from '../../primitives/form/form-field-targets
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { FormSubmitHandler, SubmitOutcome, ValidateOn, Validators } from './engine/types'
+import { useFormNativeLock } from './use-form-native-lock'
 import { useFormReducer } from './use-form-reducer'
 
 const messages = defineMessages({
@@ -94,8 +96,14 @@ export type FormProps<T extends Record<string, unknown>> = {
  * locks the Control scope, so each field is read-only and each `Button` is
  * inert, and a bound control cannot write its field. Nothing is disabled, so
  * the focused field or button keeps the focus. The form ignores a second
- * submit until the first one ends. A native element that does not bind or
- * read the scope, such as a bare `<input>`, stays editable.
+ * submit until the first one ends.
+ *
+ * A native field reads no lock scope, so the form locks it from the DOM. Each
+ * `<input>`, `<select>`, and `<textarea>` that the `<form>` owns refuses an
+ * edit. The form cancels the edit, or puts back the value of the field at the
+ * start of the submit. No handler of the app sees the refused edit. A
+ * native field in a portal is outside the `<form>`, so it stays live, and so
+ * does a field that mounts during the submit.
  *
  * The `<form>` sets `noValidate`, so a native constraint such as `type="url"` or
  * `required` never stops a submit before the validators run. Otherwise the
@@ -121,6 +129,7 @@ export function Form<T extends Record<string, unknown>>({
 	disabled,
 	className,
 	children,
+	ref,
 	...props
 }: FormProps<T>) {
 	const intl = useIntl()
@@ -147,6 +156,13 @@ export function Form<T extends Record<string, unknown>>({
 	// speaks again.
 	useA11yAnnouncements(formState.submitting ? intl.formatMessage(messages.submitting) : '')
 
+	// A native field reads no lock scope, so the form refuses its edits itself.
+	const formRef = useRef<HTMLFormElement>(null)
+
+	const setFormRef = useComposedRefs(formRef, ref)
+
+	useFormNativeLock(formRef, formState.submitting)
+
 	return (
 		<FormProvider
 			store={store}
@@ -157,6 +173,7 @@ export function Form<T extends Record<string, unknown>>({
 			targets={targets}
 		>
 			<form
+				ref={setFormRef}
 				data-slot="form"
 				noValidate
 				onSubmit={handleSubmit}

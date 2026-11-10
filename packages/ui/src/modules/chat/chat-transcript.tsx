@@ -29,6 +29,7 @@ import { k } from '../../recipes/kata/chat-transcript'
 import { ChatMessage, type ChatMessageProps } from './chat-message'
 import { ChatRowContext } from './context'
 import { describeTranscript } from './engine/chat-announcements'
+import type { ChatBranch } from './engine/chat-branch/types'
 import type { ChatMessageData } from './engine/types'
 import { useChatTranscriptItemKey } from './use-chat-transcript-item-key'
 
@@ -73,6 +74,11 @@ const UNMEASURED_ROWS = 20
  */
 const END_THRESHOLD = 1
 
+/** Whether the scroll of `element` is at its end. @internal */
+function isAtEnd(element: HTMLElement): boolean {
+	return element.scrollHeight - element.clientHeight - element.scrollTop <= END_THRESHOLD
+}
+
 /**
  * Props for {@link ChatTranscript}. The scroll `<div>` takes the rest. The
  * transcript writes its rows itself, so it takes no `children`.
@@ -110,12 +116,29 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 	 * `undefined` to keep the native menu of the browser on that message.
 	 */
 	contextMenu?: (message: ChatMessageData) => ContextMenuEntry[] | undefined
+	/**
+	 * The branches on the path that `messages` holds, by the id of the message
+	 * that shows, as the `branches` of `useChatSend` gives them. A message with
+	 * an entry of more than one branch shows a switcher below its bubble. Keep
+	 * the identity stable while the branches stay the same.
+	 */
+	branches?: Readonly<Record<string, ChatBranch>>
+	/**
+	 * Fires with the id of the branch that the reader picks in the switcher of a
+	 * message, as the `showBranch` of `useChatSend` takes it. Each switcher is
+	 * off while `streaming`.
+	 */
+	onBranchChange?: (id: string) => void
 }
 
 /** Props for {@link ChatTranscriptRow}. @internal */
-type ChatTranscriptRowProps = Pick<ChatTranscriptProps, 'actions' | 'trigger' | 'contextMenu'> & {
+type ChatTranscriptRowProps = Pick<
+	ChatTranscriptProps,
+	'actions' | 'trigger' | 'contextMenu' | 'onBranchChange'
+> & {
 	message: ChatMessageData
 	streaming: boolean
+	branch: ChatBranch | undefined
 }
 
 /**
@@ -132,6 +155,8 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 	actions,
 	trigger,
 	contextMenu,
+	branch,
+	onBranchChange,
 }: ChatTranscriptRowProps) {
 	return (
 		<ChatMessage
@@ -142,6 +167,8 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 			actions={actions?.(message)}
 			trigger={trigger}
 			contextMenu={contextMenu?.(message)}
+			branch={branch}
+			onBranchChange={onBranchChange}
 		>
 			{message.content}
 		</ChatMessage>
@@ -175,10 +202,11 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  *
  * Only a scroll of the reader toward the start releases the pin. A reader who
  * scrolled up to read is thus not pulled down. A scroll back to the end pins
- * the transcript again. Another move toward the start, such as a correction of
- * the window as rows measure, takes a pinned transcript back to its end. The
- * reader's own message pins the transcript, wherever the reader had scrolled,
- * because the reader sent it.
+ * the transcript again. Any other move or resize that leaves a pinned
+ * transcript short of its end takes it back there. That includes a correction
+ * of the window as rows measure, a row that grows, and a viewport that gets
+ * shorter. The reader's own message pins the transcript, wherever the reader
+ * had scrolled, because the reader sent it.
  *
  * The scroll goes through the window, not through `scrollTop`. The total height
  * moves as rows measure, so a scroll written against `scrollHeight` drifts.
@@ -196,6 +224,12 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * chunk does not render the settled rows again. A `'hover'` toolbar floats
  * above its message, so the first row then keeps room above it, on a device
  * that hovers.
+ *
+ * `branches` gives a message the switcher of {@link ChatMessage}. The row of a
+ * message with branches takes the key of its oldest branch, so a switch keeps
+ * the row, and the focus in the switcher. The rows below it take the keys of
+ * the turns that the branch shows. Each switcher is off while `streaming`, so
+ * the reply that streams stays on the shown path.
  *
  * The window changes what an embed's `mount` policy can promise. A row that
  * leaves the window unmounts, with the views in it. Under `lazy`, an embed the
@@ -233,6 +267,8 @@ export function ChatTranscript({
 	actions,
 	trigger,
 	contextMenu,
+	branches,
+	onBranchChange,
 	className,
 	ref,
 	onScroll,
@@ -250,7 +286,11 @@ export function ChatTranscript({
 	const count = messages.length
 
 	// A streamed chunk keeps the ids, so the key getter keeps its identity.
-	const getItemKey = useChatTranscriptItemKey(messages)
+	const getItemKey = useChatTranscriptItemKey(messages, branches)
+
+	// The switchers are off while a reply streams, because `useChatSend` ignores a
+	// switch then. A button that looks live and does nothing would mislead.
+	const branchChange = streaming === true ? undefined : onBranchChange
 
 	const getScrollElement = useCallback(() => containerRef.current, [])
 
@@ -258,7 +298,8 @@ export function ChatTranscript({
 	const follow: ScrollBehavior = usePrefersReducedMotion() ? 'auto' : 'smooth'
 
 	// The end anchor keeps a pinned transcript at its end while a row grows. The
-	// append rule below follows a new row.
+	// append rule below follows a new row. Where the anchor does not hold the end,
+	// as on iOS, the pin below takes the transcript back there.
 	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex, measureRef } = useVirtualWindow({
 		count,
 		getScrollElement,
@@ -270,6 +311,19 @@ export function ChatTranscript({
 
 	// Every scroll of the transcript goes to the end of its newest row.
 	const goToEnd = (behavior?: typeof follow) => scrollToIndex(count - 1, { align: 'end', behavior })
+
+	// Whether a glide to the end runs. The virtualizer moves the glide with the
+	// end until it lands there, so the pin does not jump to the end meanwhile.
+	const gliding = useRef(false)
+
+	// A glide that starts at the end moves nothing, and no `scroll` event ends it.
+	const glideToEnd = () => {
+		const element = containerRef.current
+
+		gliding.current = follow === 'smooth' && element !== null && !isAtEnd(element)
+
+		goToEnd(follow)
+	}
 
 	// Whether the transcript follows its end. Only the reader releases it.
 	const [pinned, setPinned] = useState(true)
@@ -319,25 +373,63 @@ export function ChatTranscript({
 		}
 	}, [])
 
+	// The pin holds the end. A move or a resize that leaves a pinned transcript
+	// short of its end, and that the reader did not make, takes it back there.
+	// The move can come from the virtualizer, from the browser, or from no
+	// `scroll` event at all, as when a row grows or the viewport gets shorter.
+	// A stable event, since it reads refs.
+	const holdEnd = useStableEvent(() => {
+		const element = containerRef.current
+
+		if (!element) return
+
+		if (isAtEnd(element)) {
+			gliding.current = false
+
+			return
+		}
+
+		if (pinned && !reading.current && !gliding.current) goToEnd()
+	})
+
 	// A stable event, since it reads a ref and goes through `composeEventHandlers`.
 	const trackPin = useStableEvent((event: UIEvent<HTMLDivElement>) => {
 		const element = event.currentTarget
 
 		const { scrollTop } = element
 
-		if (element.scrollHeight - element.clientHeight - scrollTop <= END_THRESHOLD) {
+		if (isAtEnd(element)) {
 			setPinned(true)
 
 			reading.current = false
-		} else if (scrollTop < lastScrollTop.current) {
-			// A move that is not the reader's leaves a pinned transcript short of its
-			// end, so it goes back there.
-			if (reading.current) setPinned(false)
-			else if (pinned) goToEnd()
+		} else if (reading.current && scrollTop < lastScrollTop.current) {
+			setPinned(false)
 		}
 
 		lastScrollTop.current = scrollTop
+
+		holdEnd()
 	})
+
+	// A row that grows, a window that changes its spacers, and a viewport that
+	// changes its height all move the end with no `scroll` event.
+	const contentRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		const element = containerRef.current
+
+		const content = contentRef.current
+
+		if (!element || !content) return
+
+		const observer = new ResizeObserver(() => holdEnd())
+
+		observer.observe(element)
+
+		observer.observe(content)
+
+		return () => observer.disconnect()
+	}, [holdEnd])
 
 	// The end anchor has no mount arm, so the first window that holds rows jumps
 	// to the newest one. It runs before paint, so the transcript never shows its top.
@@ -383,7 +475,7 @@ export function ChatTranscript({
 
 		setPinned(true)
 
-		goToEnd(follow)
+		glideToEnd()
 	})
 
 	const intl = useIntl()
@@ -402,7 +494,7 @@ export function ChatTranscript({
 	const goToNewest = () => {
 		setPinned(true)
 
-		goToEnd(follow)
+		glideToEnd()
 
 		containerRef.current?.focus({ preventScroll: true })
 	}
@@ -425,43 +517,45 @@ export function ChatTranscript({
 			aria-live="off"
 			className={cn(slots.base, className)}
 		>
-			{count > 0 && (
-				<div>
-					{measured && topSpacer > 0 && <div aria-hidden="true" style={{ height: topSpacer }} />}
-					{indexes.map((index) => {
-						const message = messages[index]
+			<div ref={contentRef}>
+				{measured && topSpacer > 0 && <div aria-hidden="true" style={{ height: topSpacer }} />}
+				{indexes.map((index) => {
+					const message = messages[index]
 
-						if (!message) return null
+					if (!message) return null
 
-						const key = getItemKey(index)
+					const key = getItemKey(index)
 
-						return (
-							<div
-								key={key}
-								ref={measureRef}
-								data-index={index}
-								data-slot="chat-transcript-row"
-								className={index > 0 ? slots.row : roomy ? slots.first : undefined}
-							>
-								<ChatRowContext value={key}>
-									<ChatTranscriptRow
-										message={message}
-										streaming={
-											streaming === true && message.sender === 'assistant' && index === count - 1
-										}
-										actions={actions}
-										trigger={trigger}
-										contextMenu={contextMenu}
-									/>
-								</ChatRowContext>
-							</div>
-						)
-					})}
-					{measured && bottomSpacer > 0 && (
-						<div aria-hidden="true" style={{ height: bottomSpacer }} />
-					)}
-				</div>
-			)}
+					const branch = message.id ? branches?.[message.id] : undefined
+
+					return (
+						<div
+							key={key}
+							ref={measureRef}
+							data-index={index}
+							data-slot="chat-transcript-row"
+							className={index > 0 ? slots.row : roomy ? slots.first : undefined}
+						>
+							<ChatRowContext value={key}>
+								<ChatTranscriptRow
+									message={message}
+									streaming={
+										streaming === true && message.sender === 'assistant' && index === count - 1
+									}
+									actions={actions}
+									trigger={trigger}
+									contextMenu={contextMenu}
+									branch={branch}
+									onBranchChange={branch && branchChange}
+								/>
+							</ChatRowContext>
+						</div>
+					)
+				})}
+				{measured && bottomSpacer > 0 && (
+					<div aria-hidden="true" style={{ height: bottomSpacer }} />
+				)}
+			</div>
 			{!pinned && (
 				<div data-slot="chat-transcript-newest" className={slots.newest}>
 					<Button

@@ -1,5 +1,4 @@
 import { requireGateway, requireSession } from 'auth'
-import { RequestLocale } from 'shared/locale'
 import { seed } from 'shared/queries'
 import { PlacesApp } from '@/components/places-app'
 import { flags } from '@/flags'
@@ -58,9 +57,5 @@ export default async function Page() {
 			: undefined,
 	])
 
-	return (
-		<RequestLocale>
-			<PlacesApp user={user} places={seed(places)} trips={seed(trips)} visits={seed(visits)} />
-		</RequestLocale>
-	)
+	return <PlacesApp user={user} places={seed(places)} trips={seed(trips)} visits={seed(visits)} />
 }
