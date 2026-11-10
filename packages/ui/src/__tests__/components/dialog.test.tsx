@@ -193,6 +193,8 @@ describe('Dialog', () => {
 		expect(panel?.classList).toContain('bg-transparent')
 
 		expect(panel?.classList).not.toContain('bg-white')
+		// A modal panel takes the deeper `lg` blur, not the `md` blur of a popover.
+		expect(panel?.classList).toContain('backdrop-blur-lg')
 	})
 
 	it('renders the flat surface by default, with the glass behind the surfaces-glass variant', () => {
@@ -210,6 +212,8 @@ describe('Dialog', () => {
 		expect(panel?.classList).not.toContain('bg-transparent')
 
 		expect(panel?.classList).toContain('surfaces-glass:bg-transparent')
+
+		expect(panel?.classList).toContain('surfaces-glass:backdrop-blur-lg')
 	})
 
 	it('marks the glass panel as the group the item wash keys on', () => {

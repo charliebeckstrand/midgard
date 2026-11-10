@@ -17,15 +17,15 @@ import { mode } from '../../../core/recipe'
 
 import { ring } from '../sen/ring'
 import { bg } from './bg'
-import { glass } from './glass'
+import { panelGlass } from './glass'
 
-/** The `glass` surface behind the `surfaces-glass` variant: no fill, and the blur of `glass`. */
+/** The `glass` surface behind the `surfaces-glass` variant: no fill, and the blur of `panelGlass`. */
 const glassBehind = [
 	...mode(
 		['surfaces-glass:bg-transparent', 'surfaces-glass:[--surface-fill:transparent]'],
 		['dark:surfaces-glass:bg-transparent', 'dark:surfaces-glass:[--surface-fill:transparent]'],
 	),
-	'surfaces-glass:backdrop-blur',
+	'surfaces-glass:backdrop-blur-lg',
 ]
 
 export const panel = {
@@ -34,5 +34,5 @@ export const panel = {
 	/** Fill + chrome, everything a floating panel needs. */
 	base: [...ring.default, ...bg.surface],
 	/** The `surface` axis of a modal panel: `flat` is opaque, and `glass` is translucent and blurred. */
-	axis: { glass, flat: [...bg.surface, ...glassBehind] },
+	axis: { glass: panelGlass, flat: [...bg.surface, ...glassBehind] },
 } as const
