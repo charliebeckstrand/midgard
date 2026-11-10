@@ -7,7 +7,8 @@ import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 /**
  * The pool a dot divides its ground against. A mark that moves changes no entry of the ledger, so
  * the plat keeps the same pool, and the mark restakes its own dots in it. These pin when a restake
- * reaches the readers: only after a read, and only when a dot moved.
+ * reaches the readers: only after a read, and only when a dot moved. They also pin which readers it
+ * reaches: each other mark, and not the mark that moved.
  */
 
 /** A plain projection: lon to x, lat to y. */
@@ -59,7 +60,11 @@ describe('createDotPool', () => {
 
 		expect(dotsAt).not.toHaveBeenCalled()
 
-		expect(pool.neighbors()('b')).toEqual([dot(1, 1)])
+		const view = pool.neighbors('b')
+
+		expect(dotsAt).not.toHaveBeenCalled()
+
+		expect(view()).toEqual([dot(1, 1)])
 
 		expect(dotsAt).toHaveBeenCalledTimes(1)
 	})
@@ -76,7 +81,7 @@ describe('createDotPool', () => {
 			project,
 		)
 
-		expect(pool.neighbors()('a')).toEqual([dot(2, 2)])
+		expect(pool.neighbors('a')()).toEqual([dot(2, 2)])
 	})
 
 	it('holds the drawn dots of a mark that names them apart from its stops', () => {
@@ -91,10 +96,10 @@ describe('createDotPool', () => {
 
 		const pool = createDotPool([marker], new Set(), project)
 
-		expect(pool.neighbors()('p')).toEqual([dot(0, 0, 4), dot(10, 0, 4)])
+		expect(pool.neighbors('p')()).toEqual([dot(0, 0, 4), dot(10, 0, 4)])
 	})
 
-	it('tells its readers when a restaked mark moved, and gives a new snapshot', () => {
+	it('tells its readers when a restaked mark moved, and gives each other mark a new snapshot', () => {
 		const a = { current: [[1, 1]] as LngLat[] }
 
 		const pool = createDotPool(
@@ -107,9 +112,9 @@ describe('createDotPool', () => {
 
 		pool.subscribe(listener)
 
-		const before = pool.neighbors()
+		const before = pool.neighbors('b')
 
-		expect(before('b')).toEqual([dot(1, 1)])
+		expect(before()).toEqual([dot(1, 1)])
 
 		a.current = [[5, 5]]
 
@@ -117,9 +122,36 @@ describe('createDotPool', () => {
 
 		expect(listener).toHaveBeenCalledTimes(1)
 
-		expect(pool.neighbors()).not.toBe(before)
+		expect(pool.neighbors('b')).not.toBe(before)
 
-		expect(pool.neighbors()('b')).toEqual([dot(5, 5)])
+		expect(pool.neighbors('b')()).toEqual([dot(5, 5)])
+	})
+
+	it('holds the snapshot of the mark that moved, which holds none of its dots', () => {
+		const a = { current: [[1, 1]] as LngLat[] }
+
+		const b = { current: [[2, 2]] as LngLat[] }
+
+		const pool = createDotPool([entry('a', a), entry('b', b)], new Set(), project)
+
+		const own = pool.neighbors('a')
+
+		expect(own()).toEqual([dot(2, 2)])
+
+		a.current = [[5, 5]]
+
+		pool.restake('a')
+
+		expect(pool.neighbors('a')).toBe(own)
+
+		// The held snapshot reads the live pool, so a later move of the other mark reaches it.
+		b.current = [[7, 7]]
+
+		pool.restake('b')
+
+		expect(pool.neighbors('a')).not.toBe(own)
+
+		expect(own()).toEqual([dot(7, 7)])
 	})
 
 	it('tells its readers when a restaked mark resized in place', () => {
@@ -137,7 +169,7 @@ describe('createDotPool', () => {
 
 		pool.subscribe(listener)
 
-		pool.neighbors()('b')
+		pool.neighbors('b')()
 
 		radius.current = 9
 
@@ -145,7 +177,7 @@ describe('createDotPool', () => {
 
 		expect(listener).toHaveBeenCalledTimes(1)
 
-		expect(pool.neighbors()('b')).toEqual([dot(1, 1, 9)])
+		expect(pool.neighbors('b')()).toEqual([dot(1, 1, 9)])
 	})
 
 	it('holds the snapshot when a restaked mark stands where it stood', () => {
@@ -155,14 +187,14 @@ describe('createDotPool', () => {
 
 		pool.subscribe(listener)
 
-		const before = pool.neighbors()
+		const before = pool.neighbors('b')
 
-		before('b')
+		before()
 
 		pool.restake('a')
 
 		expect(listener).not.toHaveBeenCalled()
 
-		expect(pool.neighbors()).toBe(before)
+		expect(pool.neighbors('b')).toBe(before)
 	})
 })

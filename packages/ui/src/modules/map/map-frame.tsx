@@ -1,6 +1,13 @@
 'use client'
 
-import type { ComponentProps, MouseEvent, ReactNode, Ref, RefObject } from 'react'
+import {
+	type ComponentProps,
+	type MouseEvent,
+	type ReactNode,
+	type Ref,
+	type RefObject,
+	useDeferredValue,
+} from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
@@ -140,9 +147,29 @@ export function MapFrame({
 				</div>
 			</MapHoverProvider>
 
-			{table}
+			<MapDeferredTable table={table} />
 		</div>
 	)
+}
+
+/**
+ * The table of the map, one low-priority commit behind the plat.
+ *
+ * The visually-hidden table renders one row per region (thousands on a county
+ * atlas) and none of it is mount-critical. It is deferred off the urgent render
+ * the way the chart frame defers its data table, so the geography commits first
+ * and the table hydrates a low-priority beat behind. The `null` initial value
+ * holds the table out of the first commit. Parity is unchanged: the table
+ * always converges on the current readout.
+ *
+ * The deferral is in this child, not in the plat. The component that holds a
+ * deferred value renders again for the low-priority pass. Here that pass renders
+ * this child alone, and the plat does not run again for each new table.
+ *
+ * @internal
+ */
+function MapDeferredTable({ table }: { table: ReactNode }) {
+	return useDeferredValue(table, null)
 }
 
 /**

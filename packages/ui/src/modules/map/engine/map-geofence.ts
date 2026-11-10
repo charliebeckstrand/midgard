@@ -78,8 +78,7 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
  * A drawn zone as the hit-target rule reads it:
  *
  * - The rings it paints.
- * - The reach a dot competing for its ground can take.
- * - How far outside those rings still counts as competing.
+ * - The room that the zone has, which a dot on its ground takes a part of.
  *
  * The budget is one number for the whole zone rather than a measure per dot,
  * which is the point of it. Every mark on one zone points alike, whatever the
@@ -87,45 +86,29 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
  * what makes that structural. The shape below can only be built once per zone,
  * where a per-dot resolver was free to walk every vertex again for each mark.
  *
+ * Both parts are frame units, so the budget does not read the zoom scale. A
+ * zoom therefore keeps the budget, and {@link zoneSpare} applies the scale.
+ *
  * @internal
  */
 export type MapZoneBudget = {
 	/** The drawn rings, as the only reader below wants them: boxes to place a dot against. */
 	rings: readonly MapAreaBox[]
-	/** What a dot on this zone can reach, in device pixels. */
-	spare: number
-	/** The competing band around the rings, in frame units. */
-	margin: number
+	/** The inscribed room of the zone, in frame units. */
+	reach: number
 }
 
 /**
- * What a zone can spare the marks that stand on it, resolved once for the whole
- * zone.
- *
- * A dot takes {@link AREA_SPARE_FRACTION} of the zone's own inscribed room, so
- * the zone keeps at least as much as it gives. That holds at every size, with
- * no threshold anywhere for a reader to land on the wrong side of. The reach is
- * a device-pixel figure, and the rings are frame units. The zone's own measure
- * therefore divides by the zoom scale on the way out.
- *
- * The competing band is a whole finger target wide, so a dot just outside a
- * small zone is budgeted too. Its target would blanket that zone as surely as
- * one standing in the middle of it. Being generous there costs a dot nothing it
- * can see. A zone with room to spare hands back more than a target can use, and
- * `markTargets` caps it.
+ * What a zone has to spare the marks that stand on it, measured once for the
+ * whole zone.
  *
  * @param rings - The zone's projected rings, from `projectArea`.
- * @param unitsPerPixel - Frame units per device pixel under the plat's zoom.
  * @returns The zone's budget, ready for {@link zoneSpare} to answer per dot.
  *
  * @internal
  */
-export function zoneBudget(rings: readonly MapAreaRing[], unitsPerPixel: number): MapZoneBudget {
-	return {
-		rings,
-		spare: (areaReach(rings) / unitsPerPixel) * AREA_SPARE_FRACTION,
-		margin: POINT_HIT_RADIUS * unitsPerPixel,
-	}
+export function zoneBudget(rings: readonly MapAreaRing[]): MapZoneBudget {
+	return { rings, reach: areaReach(rings) }
 }
 
 /**
@@ -133,15 +116,30 @@ export function zoneBudget(rings: readonly MapAreaRing[], unitsPerPixel: number)
  * budget where the dot competes for that ground, and no claim at all where it
  * does not.
  *
+ * A dot takes {@link AREA_SPARE_FRACTION} of the zone's own inscribed room, so
+ * the zone keeps at least as much as it gives. That holds at every size, with
+ * no threshold anywhere for a reader to land on the wrong side of. The reach is
+ * a device-pixel figure, and the room is frame units. The room therefore
+ * divides by the zoom scale on the way out.
+ *
+ * The competing band is a whole finger target wide, so a dot just outside a
+ * small zone is budgeted too. Its target would blanket that zone as surely as
+ * one standing in the middle of it. Being generous there costs a dot nothing it
+ * can see. A zone with room to spare hands back more than a target can use, and
+ * `markTargets` caps it.
+ *
  * The whole per-dot cost is the box scan, because {@link zoneBudget} has already
  * measured everything that does not depend on where the dot stands.
  *
  * @param zone - The zone's budget, from {@link zoneBudget}.
  * @param at - The dot's projected frame position.
+ * @param unitsPerPixel - Frame units per device pixel under the plat's zoom.
  * @returns The reach in device pixels, `Infinity` where this zone claims nothing.
  *
  * @internal
  */
-export function zoneSpare(zone: MapZoneBudget, at: MapPoint2D): number {
-	return ringsNear(zone.rings, at, zone.margin) ? zone.spare : Number.POSITIVE_INFINITY
+export function zoneSpare(zone: MapZoneBudget, at: MapPoint2D, unitsPerPixel: number): number {
+	return ringsNear(zone.rings, at, POINT_HIT_RADIUS * unitsPerPixel)
+		? (zone.reach / unitsPerPixel) * AREA_SPARE_FRACTION
+		: Number.POSITIVE_INFINITY
 }
