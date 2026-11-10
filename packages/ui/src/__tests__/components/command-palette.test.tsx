@@ -16,6 +16,7 @@ import {
 } from '../../components/command-palette'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
+import { GlassSurfacesContext } from '../../providers/glass/context'
 import { LocaleProvider } from '../../providers/locale'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
@@ -1502,11 +1503,13 @@ describe('CommandPalette uncontrolled mode', () => {
 })
 
 describe('CommandPalette glass', () => {
-	it('gives glass to the Dialog panel', () => {
+	it('takes the glass surface while the Surfaces setting is glass', () => {
 		renderUI(
-			<CommandPalette open glass>
-				<div>Items</div>
-			</CommandPalette>,
+			<GlassSurfacesContext value>
+				<CommandPalette open>
+					<div>Items</div>
+				</CommandPalette>
+			</GlassSurfacesContext>,
 		)
 
 		expect(screen.getByRole('dialog')).toHaveAttribute('data-glass', '')

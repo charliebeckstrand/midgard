@@ -17,16 +17,8 @@ import { appearanceMessages } from './appearance-messages'
  */
 const loadDialog = () => import('./appearance-settings-dialog')
 
-/** Props for {@link AppearanceSettings}: more fields for the dialog, and its surface. */
+/** Props for {@link AppearanceSettings}: more fields for the dialog. */
 export type AppearanceSettingsProps = {
-	/**
-	 * Opts the dialog into the glass surface, as the `glass` prop of
-	 * `DialogPanel` does. Omit it to follow the ambient `<GlassProvider>`. While
-	 * the Surfaces setting of the reader is `'solid'`, the dialog is flat.
-	 *
-	 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
-	 */
-	glass?: boolean
 	/**
 	 * More fields for the dialog, such as the settings of one app. They go below
 	 * the pickers of the dialog, in the same stack. Their floating panels portal
@@ -36,9 +28,11 @@ export type AppearanceSettingsProps = {
 }
 
 /**
- * Settings icon button that opens a dialog with the appearance, density, and
- * motion pickers of the nearest {@link AppearanceProvider}. A selection applies
- * immediately and persists. Put it in the header or the navbar of the app.
+ * Settings icon button that opens a dialog with the appearance, density,
+ * motion, and surfaces pickers of the nearest {@link AppearanceProvider}. A
+ * selection applies immediately and persists. Put it in the header or the
+ * navbar of the app. The Surfaces picker (Glass or Solid) sets the surface of
+ * each Dialog, Drawer, and Sheet panel, the dialog itself included.
  *
  * Inside a `SidebarLayout`, the dialog also has the Sidebar picker (Locked or
  * Offcanvas), with the key that toggles it: ⌘B on Apple platforms, and ⌃B
@@ -56,7 +50,7 @@ export type AppearanceSettingsProps = {
  * load of a press fails, the error throws in the next render, so the nearest
  * error boundary shows it.
  */
-export function AppearanceSettings({ glass, children }: AppearanceSettingsProps) {
+export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 	const [open, setOpen] = useState(false)
 
 	const fail = useFail()
@@ -80,7 +74,7 @@ export function AppearanceSettings({ glass, children }: AppearanceSettingsProps)
 				<Icon icon={<Settings2 />} />
 			</Button>
 			{dialog && (
-				<dialog.AppearanceSettingsDialog open={open} onOpenChange={setOpen} glass={glass}>
+				<dialog.AppearanceSettingsDialog open={open} onOpenChange={setOpen}>
 					{children}
 				</dialog.AppearanceSettingsDialog>
 			)}

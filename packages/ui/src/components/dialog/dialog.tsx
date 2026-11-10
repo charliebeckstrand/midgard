@@ -11,7 +11,7 @@ import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives
 import type { PanelOverlayProps } from '../../primitives/panel/types'
 import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
-import { useResolvedSurface } from '../../providers/glass/context'
+import { useReaderSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 import { adaptive, type Responsive, withInitial } from '../../utilities/responsive'
 import { dialogCeiling } from './dialog-ceiling'
@@ -92,16 +92,6 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 		 * @defaultValue 'auto'
 		 */
 		height?: DialogHeight
-		/**
-		 * Opts into the glass surface treatment. Omit it to follow the ambient
-		 * `<GlassProvider>`. Set `false` to keep the flat surface inside one.
-		 *
-		 * @remarks Items inside (a command palette's results) take the deeper glass
-		 * wash on hover and focus.
-		 *
-		 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
-		 */
-		glass?: boolean
 		children: ReactNode
 		/**
 		 * The content of the footer row that the dialog shows when no `DialogFooter`
@@ -155,7 +145,8 @@ export function Dialog(props: DialogProps) {
  * The surface of a {@link Dialog}, rendered in an `Overlay` with focus trapping and
  * backdrop dismiss. It reads the open state of the enclosing `<Dialog>`. By default it
  * is a bottom sheet on a compact viewport and a centered panel from medium (`align`). The
- * surface variant resolves against the enclosing Glass provider. Compose `<DialogClose>`
+ * surface follows the Surfaces setting of the reader: glass by default, flat for
+ * `'solid'`. Compose `<DialogClose>`
  * and the slot family (`<DialogContent>`, `<DialogHeader>`, `<DialogTitle>`,
  * `<DialogDescription>`, `<DialogBody>`, `<DialogFooter>`) within. With no
  * `<DialogFooter>` in its children, the dialog shows a footer with the standard Close
@@ -179,7 +170,6 @@ export function DialogPanel({
 	container,
 	width,
 	height = 'auto',
-	glass,
 	className,
 	children,
 	footer,
@@ -192,7 +182,7 @@ export function DialogPanel({
 	ref,
 	...props
 }: DialogPanelProps) {
-	const surface = useResolvedSurface(glass)
+	const surface = useReaderSurface()
 
 	// A map with no `initial` value docks there, in the CSS and in the motion alike.
 	const align = withInitial(alignProp, 'bottom')

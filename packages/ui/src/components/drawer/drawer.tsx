@@ -14,7 +14,7 @@ import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives
 import type { PanelOverlayProps } from '../../primitives/panel/types'
 import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
-import { useResolvedSurface } from '../../providers/glass/context'
+import { useReaderSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
 import { drawerCeiling, drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
@@ -122,14 +122,6 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * @defaultValue false
 		 */
 		handle?: boolean
-		/**
-		 * Opts the panel and backdrop into the translucent glass surface. Omit it to
-		 * follow the ambient `<GlassProvider>`. Set `false` to keep the flat surface
-		 * inside one.
-		 *
-		 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
-		 */
-		glass?: boolean
 		children: ReactNode
 		/**
 		 * The content of the footer row that the drawer shows when no `DrawerFooter`
@@ -183,7 +175,7 @@ export function Drawer(props: DrawerProps) {
  * - Growing to it under Framer Motion, and up to the whole screen, with `fit`.
  * - Fixed at half or the whole of it.
  *
- * Resolves the surface variant against the enclosing Glass provider. An explicit `size`
+ * The surface follows the Surfaces setting of the reader: glass by default, flat for `'solid'`. An explicit `size`
  * opens a density scope on the panel, so descendants scale in step. Compose `<DrawerClose>`
  * and the slot family (`<DrawerHeader>`, `<DrawerTitle>`,
  * `<DrawerDescription>`, `<DrawerBody>`, `<DrawerFooter>`) within. With no `<DrawerFooter>` in
@@ -202,7 +194,6 @@ export function DrawerPanel({
 	size,
 	height,
 	handle,
-	glass,
 	className,
 	children,
 	footer,
@@ -218,7 +209,7 @@ export function DrawerPanel({
 	onClick,
 	...props
 }: DrawerPanelProps) {
-	const surface = useResolvedSurface(glass)
+	const surface = useReaderSurface()
 
 	const { open, setOpen, panelId, a11y, overlayProps, panelProps, panelClassName } =
 		usePanelSurface({

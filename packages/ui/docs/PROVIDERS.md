@@ -31,10 +31,10 @@ An app mounts `AppearanceProvider` once, in `<body>` above all text. The server 
 
 | Export | Summary |
 |---|---|
-| `AppearanceProvider` | App-root owner of the theme, density, motion, sidebar, and surfaces preferences. It keeps them in `localStorage` and writes them as classes on the root element. While the surfaces are `solid`, each glass surface is flat. It loads the latin face of the font, and `ui/tailwind.css` holds the other faces. |
+| `AppearanceProvider` | App-root owner of the theme, density, motion, sidebar, and surfaces preferences. It keeps them in `localStorage` and writes them as classes on the root element. While the surfaces are `glass`, each Dialog, Drawer, and Sheet panel is glass. It loads the latin face of the font, and `ui/tailwind.css` holds the other faces. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
-| `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, and sidebar pickers. ⌘B or Ctrl+B toggles the sidebar. Under a `LocaleProvider` with `locales`, it adds the Language picker. `children` adds more fields, and `glass` gives the dialog the glass surface. |
-| `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog, and its surface. |
+| `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, sidebar, and surfaces pickers. ⌘B or Ctrl+B toggles the sidebar. Under a `LocaleProvider` with `locales`, it adds the Language picker. `children` adds more fields. |
+| `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog. |
 | `useAppearance` | Reads the theme, the density, the motion, the sidebar, the surfaces, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |
@@ -43,7 +43,8 @@ An app mounts `AppearanceProvider` once, in `<body>` above all text. The server 
 | `motionModes` | The motion modes, for a motion picker, each with a translated `message`. |
 | `SidebarMode` *(type)* | Sidebar preference: `locked` keeps the sidebar of a `SidebarLayout` in its panel where the layout is inline. `offcanvas` hides it at the start edge, and a pointer near the edge opens it. |
 | `sidebarModes` | The sidebar modes, for a sidebar picker, each with a translated `message`. |
-| `SurfaceMode` *(type)* | Surfaces preference: `glass` paints each glass surface as glass, and `solid` paints it flat. `AppearanceSettings` has no picker for it, so an app with glass surfaces adds its own field. |
+| `SurfaceMode` *(type)* | Surfaces preference: `solid` (the default) paints each Dialog, Drawer, and Sheet panel flat, and `glass` paints it as glass. A Popover, a Menu, a Tooltip, and a field do not follow it. |
+| `surfaceModes` | The surface modes, for a surfaces picker, each with a translated `message`. |
 
 ## `ui/providers/density`
 
@@ -65,8 +66,8 @@ Sets the ambient glass flag so glass-aware chrome switches to its glass variant.
 |---|---|
 | `GlassProvider` | Sets the ambient glass flag for the subtree. An RSC tree can host it. |
 | `GlassProviderProps` *(type)* | Props for `GlassProvider`. |
-| `useGlass` | Reads the ambient glass flag; `false` outside a `<GlassProvider>`, and `false` while the Surfaces setting of the reader is `solid`. |
-| `useResolvedSurface` | Resolves a chrome panel's `surface` variant. While the Surfaces setting of the reader is `solid`, each panel is flat. Else a set `glass` prop wins, so `false` opts out inside a `<GlassProvider>`; with no prop, the ambient flag decides. |
+| `useGlass` | Reads the ambient glass flag; `false` outside a `<GlassProvider>`. |
+| `useResolvedSurface` | Resolves the `surface` variant of a Popover, a Menu, or a Tooltip. A set `glass` prop wins, so `false` opts out inside a `<GlassProvider>`; with no prop, the ambient flag decides. Dialog, Drawer, and Sheet panels follow the Surfaces setting instead. |
 
 ## `ui/providers/headless`
 

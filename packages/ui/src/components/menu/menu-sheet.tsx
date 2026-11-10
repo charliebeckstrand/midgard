@@ -23,8 +23,6 @@ type MenuSheetProps = {
 	title?: ReactNode
 	/** A line of text below the heading. */
 	description?: ReactNode
-	/** Opt the sheet into the glass surface, as the `glass` of {@link MenuContent} does for the popover. */
-	glass?: boolean
 	/** The accessible name of the menu from the consumer. It does not change the heading. */
 	'aria-label'?: string
 	/** The id of an element that names the menu. It does not change the heading. */
@@ -70,7 +68,6 @@ function triggerName(trigger: HTMLElement | null): string | undefined {
 export function MenuSheet({
 	title,
 	description,
-	glass,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	className,
@@ -132,7 +129,6 @@ export function MenuSheet({
 		<Drawer open={open} onOpenChange={setOpen}>
 			<DrawerPanel
 				size={size}
-				glass={glass}
 				initialFocus={initialFocusRef}
 				aria-label={heading === undefined || typeof heading === 'string' ? heading : undefined}
 			>

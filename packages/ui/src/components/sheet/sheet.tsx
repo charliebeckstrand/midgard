@@ -10,7 +10,7 @@ import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives
 import type { PanelOverlayProps } from '../../primitives/panel/types'
 import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
-import { useResolvedSurface } from '../../providers/glass/context'
+import { useReaderSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 import { adaptive, type Responsive } from '../../utilities/responsive'
 import { sheetCeiling, sheetFloor } from './sheet-floor'
@@ -119,14 +119,6 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 		 * @see {@link DrawerPanelProps.onOpenComplete} for the same contract on the sibling panel.
 		 */
 		onOpenComplete?: () => void
-		/**
-		 * Opts the panel and backdrop into the translucent glass surface. Omit it to
-		 * follow the ambient `<GlassProvider>`. Set `false` to keep the flat surface
-		 * inside one.
-		 *
-		 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
-		 */
-		glass?: boolean
 		children: ReactNode
 		/**
 		 * The content of the footer row that the sheet shows when no `SheetFooter`
@@ -172,8 +164,8 @@ export function Sheet(props: SheetProps) {
  * The edge-anchored surface of a {@link Sheet}, sliding in from `side` (default
  * `'right'`). It reads the open state of the enclosing `<Sheet>`. Portals to
  * `document.body` by default, or scopes to a `container` with absolute
- * positioning and no scroll lock. Resolves the surface variant against the
- * enclosing Glass provider. Compose `<SheetClose>` and the slot family
+ * positioning and no scroll lock. The surface follows the Surfaces
+ * setting of the reader: glass by default, flat for `'solid'`. Compose `<SheetClose>` and the slot family
  * (`<SheetHeader>`, `<SheetTitle>`, `<SheetDescription>`, `<SheetBody>`,
  * `<SheetFooter>`) within. With no `<SheetFooter>` in its children, the sheet
  * shows a footer with the standard Close button.
@@ -195,7 +187,6 @@ export function SheetPanel({
 	layout = SHEET_LAYOUT,
 	width,
 	handle,
-	glass,
 	className,
 	children,
 	footer,
@@ -211,7 +202,7 @@ export function SheetPanel({
 	onClick,
 	...props
 }: SheetPanelProps) {
-	const surface = useResolvedSurface(glass)
+	const surface = useReaderSurface()
 
 	const rtl = useIsRtl(container)
 

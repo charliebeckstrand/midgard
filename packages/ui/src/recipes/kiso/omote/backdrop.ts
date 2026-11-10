@@ -1,11 +1,13 @@
 /**
- * Omote backdrop: modal / sheet overlay fills. Two intensities: `base`
- * is the default modal scrim; `glass` is denser for use behind a glass
- * panel. The raw color pairs live here, not in `bg.ts`; the `blur` filter
- * is its own concern.
+ * Omote backdrop: modal / sheet overlay fills. `base` is the default modal
+ * scrim. `axis` is the `surface` axis of the backdrop of a modal panel: its
+ * `flat` half is `base`, and its `glass` half is denser for use behind a glass
+ * panel. The raw color pairs live here, not in `bg.ts`; the `blur` filter is
+ * its own concern.
  *
- * `glass` also holds the `base` scrim behind the `surfaces-solid` variant, for the
- * paint before hydration while the reader chose solid surfaces (see `panel.ts`).
+ * The `flat` half also holds the `glass` scrim behind the `surfaces-glass`
+ * variant, for the paint before hydration while the reader chose glass
+ * surfaces (see `panel.ts`).
  *
  * Layer: kiso · Concern: backdrop fill
  */
@@ -21,9 +23,13 @@ const fill = {
 
 export const backdrop = {
 	base: [fill.md, blur.sm],
-	glass: [
-		fill.lg,
-		...mode('surfaces-solid:bg-white/50', 'dark:surfaces-solid:bg-zinc-950/50'),
-		'surfaces-solid:backdrop-blur-sm',
-	],
+	axis: {
+		glass: fill.lg,
+		flat: [
+			fill.md,
+			blur.sm,
+			...mode('surfaces-glass:bg-white/75', 'dark:surfaces-glass:bg-zinc-950/75'),
+			'surfaces-glass:backdrop-blur-none',
+		],
+	},
 } as const

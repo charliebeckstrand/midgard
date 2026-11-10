@@ -31,6 +31,17 @@ const modeMessages = defineMessages({
 		description:
 			'A sidebar setting that hides the sidebar at the edge until the pointer comes near.',
 	},
+	glass: {
+		id: 'ui.settings.surfaces.glass',
+		defaultMessage: 'Glass',
+		description:
+			'A surfaces setting that paints dialogs, sheets, and drawers as translucent glass.',
+	},
+	solid: {
+		id: 'ui.settings.surfaces.solid',
+		defaultMessage: 'Solid',
+		description: 'A surfaces setting that paints dialogs, sheets, and drawers with a flat fill.',
+	},
 })
 
 /** Color theme preference an `<AppearanceProvider>` holds: a fixed theme, or `'system'` to follow the OS. */
@@ -79,10 +90,17 @@ export const sidebarModes: { message: MessageDescriptor; value: SidebarMode }[] 
 ]
 
 /**
- * The Surfaces setting: `'glass'` paints each glass surface as glass, and
- * `'solid'` paints it flat. An app shows its own field for it.
+ * Surfaces preference an `<AppearanceProvider>` holds: `'glass'` paints each
+ * Dialog, Drawer, and Sheet panel as glass, and `'solid'` paints each glass
+ * surface flat.
  */
 export type SurfaceMode = 'glass' | 'solid'
 
-/** The values of the Surfaces setting. */
-export const surfaceModes: readonly SurfaceMode[] = ['glass', 'solid']
+/**
+ * The surface modes, for a surfaces picker. Each mode has a `message` that
+ * names the mode in the language of the reader.
+ */
+export const surfaceModes: { message: MessageDescriptor; value: SurfaceMode }[] = [
+	{ message: modeMessages.glass, value: 'glass' },
+	{ message: modeMessages.solid, value: 'solid' },
+]

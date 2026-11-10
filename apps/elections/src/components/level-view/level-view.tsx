@@ -147,7 +147,7 @@ function LevelFilter({
 			</Button>
 
 			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogPanel width="sm" glass>
+				<DialogPanel width="sm">
 					<DialogHeader>
 						<DialogTitle>Filter elections</DialogTitle>
 					</DialogHeader>

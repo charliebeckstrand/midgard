@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Dialog, DialogPanel } from '../../components/dialog'
 import { Drawer, DrawerPanel } from '../../components/drawer'
 import { Sheet, SheetPanel } from '../../components/sheet'
+import { GlassSurfacesContext } from '../../providers/glass/context'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 type Family = {
@@ -10,7 +11,6 @@ type Family = {
 	Root: ComponentType<{ open: boolean; onOpenChange: (open: boolean) => void; children: ReactNode }>
 	Panel: ComponentType<{
 		'aria-label'?: string
-		glass?: boolean
 		modal?: boolean
 		footer?: ReactNode
 		children: ReactNode
@@ -28,13 +28,16 @@ const FAMILIES: Family[] = [
  * follows the same rules for modality, the glass cascade, and clicks.
  */
 describe.each(FAMILIES)('$name panel surface', ({ Root, Panel }) => {
-	function panel(props: { glass?: boolean; modal?: boolean } = {}) {
+	/** Renders the panel. `glass` stands for the Surfaces setting of the reader. */
+	function panel({ glass = false, ...props }: { glass?: boolean; modal?: boolean } = {}) {
 		renderUI(
-			<Root open onOpenChange={() => {}}>
-				<Panel aria-label="Panel" {...props}>
-					Body
-				</Panel>
-			</Root>,
+			<GlassSurfacesContext value={glass}>
+				<Root open onOpenChange={() => {}}>
+					<Panel aria-label="Panel" {...props}>
+						Body
+					</Panel>
+				</Root>
+			</GlassSurfacesContext>,
 		)
 
 		return screen.getByRole('dialog', { name: 'Panel' })

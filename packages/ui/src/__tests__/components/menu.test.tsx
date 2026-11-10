@@ -1580,14 +1580,14 @@ describe('Menu on a phone', () => {
 		expect(screen.getByRole('dialog', { name: 'New tile' })).toBeInTheDocument()
 	})
 
-	// The per-surface opt-in reaches the sheet, as it reaches the popover, with
-	// no ambient GlassProvider above the menu.
-	it('takes the glass surface of the content', async () => {
+	// The sheet is a Drawer, so it follows the Surfaces setting of the reader
+	// (solid by default), and the `glass` of the content reaches only the popover.
+	it('keeps the flat sheet when the content is glass', async () => {
 		const { user } = renderPhoneMenu({ glass: true })
 
 		await user.click(screen.getByRole('button', { name: 'Add tile' }))
 
-		expect(screen.getByRole('dialog', { name: 'Add tile' })).toHaveAttribute('data-glass')
+		expect(screen.getByRole('dialog', { name: 'Add tile' })).not.toHaveAttribute('data-glass')
 	})
 
 	it('closes the sheet when a row is selected', async () => {

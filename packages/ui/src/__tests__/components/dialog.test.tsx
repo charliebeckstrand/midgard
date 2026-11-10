@@ -9,6 +9,7 @@ import {
 	DialogTitle,
 } from '../../components/dialog'
 import { DensityProvider } from '../../providers/density'
+import { GlassSurfacesContext } from '../../providers/glass/context'
 import { k as heading } from '../../recipes/kata/heading'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -177,30 +178,47 @@ describe('Dialog', () => {
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 	})
 
-	it('renders with the glass surface', () => {
+	it('renders with the glass surface while the Surfaces setting is glass', () => {
 		renderUI(
-			<Dialog open onOpenChange={() => {}}>
-				<DialogPanel glass>Glassy</DialogPanel>
-			</Dialog>,
+			<GlassSurfacesContext value>
+				<Dialog open onOpenChange={() => {}}>
+					<DialogPanel>Glassy</DialogPanel>
+				</Dialog>
+			</GlassSurfacesContext>,
 		)
 
-		// glass resolves the panel to the transparent glass surface variant;
-		// the flat default fills with bg-white instead. The glass keeps the flat
-		// fill only behind the `surfaces-solid` variant.
+		// The setting resolves the panel to the transparent glass surface variant.
 		const panel = bySlot(document.body, 'dialog')
 
 		expect(panel?.classList).toContain('bg-transparent')
 
 		expect(panel?.classList).not.toContain('bg-white')
+	})
 
-		expect(panel?.classList).toContain('surfaces-solid:bg-white')
+	it('renders the flat surface by default, with the glass behind the surfaces-glass variant', () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel>Flat</DialogPanel>
+			</Dialog>,
+		)
+
+		// A server paints this half before hydration, so the root mark can make it glass.
+		const panel = bySlot(document.body, 'dialog')
+
+		expect(panel?.classList).toContain('bg-white')
+
+		expect(panel?.classList).not.toContain('bg-transparent')
+
+		expect(panel?.classList).toContain('surfaces-glass:bg-transparent')
 	})
 
 	it('marks the glass panel as the group the item wash keys on', () => {
 		renderUI(
-			<Dialog open onOpenChange={() => {}}>
-				<DialogPanel glass>Glassy</DialogPanel>
-			</Dialog>,
+			<GlassSurfacesContext value>
+				<Dialog open onOpenChange={() => {}}>
+					<DialogPanel>Glassy</DialogPanel>
+				</Dialog>
+			</GlassSurfacesContext>,
 		)
 
 		const panel = bySlot(document.body, 'dialog')
