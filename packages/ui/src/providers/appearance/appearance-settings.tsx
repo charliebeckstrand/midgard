@@ -23,6 +23,8 @@ export type AppearanceSettingsProps = {
 	 * Opts the dialog into the glass surface, as the `glass` prop of
 	 * `DialogPanel` does. Omit it to follow the ambient `<GlassProvider>`. While
 	 * the Surfaces setting of the reader is `'solid'`, the dialog is flat.
+	 *
+	 * @defaultValue `false`, or the flag of the enclosing `<GlassProvider>`.
 	 */
 	glass?: boolean
 	/**
