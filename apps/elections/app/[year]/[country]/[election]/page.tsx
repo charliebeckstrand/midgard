@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
-import { AutoUpdateRefresh } from '@/components/auto-update'
 import { ElectionDrawer } from '@/components/election-drawer'
 import { drawerSeed, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
 import { electionResults } from '@/server/results'
-import { isCounting } from '@/utilities/results'
 
 type Params = { params: Promise<ElectionParams>; searchParams: SearchParams }
 
@@ -25,11 +23,5 @@ export default async function OverviewPage({ params, searchParams }: Params) {
 
 	const seed = await drawerSeed(election, results, searchParams)
 
-	return (
-		<>
-			<AutoUpdateRefresh live={isCounting(results.flatMap((result) => result.entries))} />
-
-			<ElectionDrawer election={election} seed={seed} />
-		</>
-	)
+	return <ElectionDrawer election={election} seed={seed} />
 }

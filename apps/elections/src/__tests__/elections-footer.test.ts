@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ElectionsFooter } from '../components/elections-footer'
 import { ReportingRow } from '../components/race-summary'
+
+// The Refresh button of the footer reads the router.
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 
 afterEach(cleanup)
 

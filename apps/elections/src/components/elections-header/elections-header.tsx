@@ -15,7 +15,6 @@ import { AppearanceSettings } from 'ui/providers/appearance'
 import { Container } from 'ui/structure/container'
 import { Flex } from 'ui/structure/flex'
 import type { Crumb } from '../../utilities/trail'
-import { AutoUpdateSwitch } from '../auto-update'
 
 /**
  * The label of a crumb. A crumb that leads to another page is a link. The crumb
@@ -81,9 +80,7 @@ export function ElectionsHeader({ crumbs, search }: ElectionsHeaderProps) {
 					<Flex align="center" gap="sm">
 						{search}
 
-						<AppearanceSettings>
-							<AutoUpdateSwitch />
-						</AppearanceSettings>
+						<AppearanceSettings />
 					</Flex>
 				</Flex>
 			</Container>
