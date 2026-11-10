@@ -1,0 +1,10 @@
+$ react-router dev src/docs --port 5199
+[restart] Relaunching with --conditions=development
+  ➜  Local:   http://localhost:5199/
+  ➜  Network: use --host to expose
+3:45:32 PM [vite] (ssr) connected.
+3:46:45 PM [vite] (client) hmr update /@fs/home/user/midgard/packages/ui/src/providers/appearance/appearance-settings.tsx
+3:46:45 PM [vite] (client) hmr update /@fs/home/user/midgard/packages/ui/src/providers/appearance/appearance-settings.tsx
+3:46:45 PM [vite] (client) hmr update /@fs/home/user/midgard/packages/ui/src/providers/appearance/appearance-settings.tsx, /app/app.css?direct
+3:46:45 PM [vite] (ssr) page reload /home/user/midgard/packages/ui/src/providers/appearance/appearance-settings.tsx
+3:46:45 PM [vite] (ssr) program reload
