@@ -35,22 +35,10 @@ const races: OfficeRaces[] = [
 const headings = (query: string) => searchGroups(races, query).map((group) => group.heading)
 
 describe('the search of an election', () => {
-	it('lists each state with a race, by name, for an empty query', () => {
-		const groups = searchGroups(races, '  ')
+	it('lists nothing for an empty query', () => {
+		expect(searchGroups(races, '')).toEqual([])
 
-		expect(groups.map((group) => group.heading)).toEqual(['States'])
-
-		const names = groups[0]?.rows.map((row) => row.label) ?? []
-
-		expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)))
-
-		expect(names.length).toBeGreaterThan(SEARCH_LIMIT)
-
-		expect(groups[0]?.rows.find((row) => row.label === 'Georgia')).toMatchObject({
-			description: 'Senate, House, Governor',
-			slot: null,
-			step: { region: { key: 'ga' }, office: null, district: null, county: null },
-		})
+		expect(searchGroups(races, '  ')).toEqual([])
 	})
 
 	it('finds a state, then its races of each office, with at most the limit of each', () => {
@@ -58,11 +46,26 @@ describe('the search of an election', () => {
 
 		expect(groups.map((group) => group.heading)).toEqual(['States', 'Senate', 'House', 'Governor'])
 
-		expect(groups[0]?.rows.map((row) => row.label)).toEqual(['Georgia'])
+		expect(groups[0]?.rows).toEqual([
+			expect.objectContaining({
+				label: 'Georgia',
+				description: 'Senate, House, Governor',
+				slot: null,
+				step: expect.objectContaining({ region: expect.objectContaining({ key: 'ga' }) }),
+			}),
+		])
 
 		expect(groups[2]?.rows).toHaveLength(SEARCH_LIMIT)
 
 		expect(groups[2]?.rows[0]?.label).toBe('Georgia 1st District')
+	})
+
+	it('lists the states that match, by name, with at most the limit', () => {
+		const names = searchGroups(races, 'a')[0]?.rows.map((row) => row.label) ?? []
+
+		expect(names).toHaveLength(SEARCH_LIMIT)
+
+		expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)))
 	})
 
 	it('finds a race by its office and its district, and opens the Drawer on it', () => {

@@ -168,7 +168,9 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * the highlight, and only an arrow key sets it. The listbox owns only options (`aria-required-children`),
  * so the no-results message lives in a sibling live `<output>`. The output
  * stays in the accessibility tree, and the palette writes its text when the
- * filtered set empties, so the change of text announces. While no option
+ * filtered set of a query empties, so the change of text announces. A query of
+ * only white space is no query. With no query, an empty listbox shows no
+ * message, so the items can show only after the reader types. While no option
  * matches, the input reports `aria-expanded="false"`. A
  * `VirtualOptions` inside `children` registers its windowed item source
  * automatically, so the highlight reaches items outside the rendered window.
@@ -237,6 +239,11 @@ export function CommandPalette({
 
 	const queryValue = useQueryValue(query, deferredQuery)
 
+	// The rendered results are those of the deferred query. With no query, an
+	// empty list means that the items show only after the reader types, so the
+	// palette writes no "No results".
+	const searched = deferredQuery.trim() !== ''
+
 	// `undefined` takes the default Close button; `null` or `false` removes the row.
 	const footerContent = footer === undefined ? <CommandPaletteClose /> : footer
 
@@ -294,10 +301,10 @@ export function CommandPalette({
 							</div>
 							{/* The listbox owns only options (`aria-required-children`), so the
 							    no-results status is a sibling `<output>`. It stays in the
-							    accessibility tree, and it holds text only on zero results: a live
-							    region speaks only a change of text. */}
+							    accessibility tree, and it holds text only on zero results for a
+							    query: a live region speaks only a change of text. */}
 							<output data-slot="command-palette-no-results" className={list.empty}>
-								{empty ? intl.formatMessage(intlMessages.noResults) : null}
+								{empty && searched ? intl.formatMessage(intlMessages.noResults) : null}
 							</output>
 						</DialogBody>
 						{footerContent === null || footerContent === false ? null : (

@@ -55,15 +55,15 @@ function stateOffices(races: readonly OfficeRaces[]): { state: UsState; offices:
  *
  * A state matches by its name. A race matches as in the search of the Drawer
  * (`matchesSearch`), and by its office too, so `georgia senate` finds the race.
- * An empty query gives each state with a race and no race, so the search
- * opens on a list of the states. A query gives at most {@link SEARCH_LIMIT}
- * rows of each group.
+ * An empty query gives no group, so the search opens on the search field
+ * alone. A query gives at most {@link SEARCH_LIMIT} rows of each group.
  */
 export function searchGroups(races: readonly OfficeRaces[], query: string): SearchGroup[] {
-	const empty = query.trim() === ''
+	if (query.trim() === '') return []
 
 	const states: SearchRow[] = stateOffices(races)
 		.filter(({ state }) => matchesWords([state.name], query))
+		.slice(0, SEARCH_LIMIT)
 		.map(({ state, offices }) => ({
 			key: `state:${state.key}`,
 			label: state.name,
@@ -72,37 +72,29 @@ export function searchGroups(races: readonly OfficeRaces[], query: string): Sear
 			step: { region: state, office: null, district: null, county: null },
 		}))
 
-	const groups: SearchGroup[] = [
-		{ heading: 'States', rows: empty ? states : states.slice(0, SEARCH_LIMIT) },
-	]
+	const groups: SearchGroup[] = [{ heading: 'States', rows: states }]
 
-	if (!empty) {
-		for (const { contest, entries } of races) {
-			const rows = entries
-				.filter((entry) =>
-					matchesWords(
-						[
-							contest.label,
-							entryName(entry),
-							...entry.candidates.map((candidate) => candidate.name),
-						],
-						query,
-					),
-				)
-				.slice(0, SEARCH_LIMIT)
-				.map((entry) => ({
-					key: entryKey(entry),
-					label: entryName(entry),
-					description: entry.candidates
-						.slice(0, 2)
-						.map((candidate) => candidate.name)
-						.join(', '),
-					slot: entry.candidates[0]?.slot ?? null,
-					step: entryStep(entry),
-				}))
+	for (const { contest, entries } of races) {
+		const rows = entries
+			.filter((entry) =>
+				matchesWords(
+					[contest.label, entryName(entry), ...entry.candidates.map((candidate) => candidate.name)],
+					query,
+				),
+			)
+			.slice(0, SEARCH_LIMIT)
+			.map((entry) => ({
+				key: entryKey(entry),
+				label: entryName(entry),
+				description: entry.candidates
+					.slice(0, 2)
+					.map((candidate) => candidate.name)
+					.join(', '),
+				slot: entry.candidates[0]?.slot ?? null,
+				step: entryStep(entry),
+			}))
 
-			groups.push({ heading: contest.label, rows })
-		}
+		groups.push({ heading: contest.label, rows })
 	}
 
 	return groups.filter((group) => group.rows.length > 0)
@@ -150,17 +142,16 @@ export function electionsSearchGroups(
 
 	const groups: LinkGroup[] = [{ heading: 'Elections', rows }]
 
-	if (query.trim() !== '') {
-		for (const { election, races } of elections) {
-			for (const group of searchGroups(races, query)) {
-				groups.push({
-					heading: `${group.heading}, ${electionName(election)}`,
-					rows: group.rows.map(({ step, ...row }) => ({
-						...row,
-						href: drawerHref(electionPath(election), step),
-					})),
-				})
-			}
+	// An empty query gives no group of an election (`searchGroups`).
+	for (const { election, races } of elections) {
+		for (const group of searchGroups(races, query)) {
+			groups.push({
+				heading: `${group.heading}, ${electionName(election)}`,
+				rows: group.rows.map(({ step, ...row }) => ({
+					...row,
+					href: drawerHref(electionPath(election), step),
+				})),
+			})
 		}
 	}
 
