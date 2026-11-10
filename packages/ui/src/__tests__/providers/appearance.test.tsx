@@ -332,7 +332,7 @@ describe('AppearanceSettings', () => {
 		// The key sits before the chevron, and a mousedown on either keeps the focus.
 		const suffix = present(dialog.querySelector('kbd')?.parentElement, 'sidebar suffix')
 
-		expect(suffix.firstElementChild).toHaveTextContent('Ctrl+B')
+		expect(suffix.firstElementChild).toHaveTextContent('⌃B')
 
 		expect(suffix.lastElementChild?.tagName.toLowerCase()).toBe('svg')
 
