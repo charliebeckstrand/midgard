@@ -34,6 +34,11 @@ export type TrailCrumb = {
 	 */
 	onPick?: () => void
 	/**
+	 * The address of the step that the crumb leads back to, beside `onPick`. A
+	 * plain click calls `onPick`. A new tab or a copied link opens this address.
+	 */
+	href?: string
+	/**
 	 * The choices of the menu of the crumb, such as the offices of a state. A
 	 * chevron after a crumb that leads back opens them. A press on any part of a
 	 * crumb that leads nowhere opens them.
@@ -59,7 +64,7 @@ function CrumbLink({ crumb, current }: { crumb: TrailCrumb; current: boolean }) 
 	return (
 		<BreadcrumbLink
 			current={current}
-			href={onPick === undefined ? undefined : '#'}
+			href={onPick === undefined ? undefined : crumb.href}
 			className="font-semibold"
 			onClick={
 				onPick === undefined
