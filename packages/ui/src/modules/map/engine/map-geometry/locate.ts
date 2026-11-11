@@ -314,9 +314,8 @@ export function* regionsMeeting(index: MapRegionIndex, box: MapBounds): Generato
 	const lastRow = rowAt(box.north)
 
 	// The loop is written out at both sites rather than delegated to a shared inner
-	// generator. `yield*` builds a generator per delegation, and the hit-target rule
-	// walks this per dot per render over a query box that spans tens of cells on a
-	// small frame, so the helper cost one object per cell to save four lines.
+	// generator. `yield*` builds a generator per delegation, and a query box can
+	// span tens of cells, so the helper cost one object per cell to save four lines.
 	for (let row = rowAt(box.south); row <= lastRow; row++) {
 		for (let column = firstColumn; column <= lastColumn; column++) {
 			for (const region of index.cells.get(cellKey(column, row)) ?? []) {

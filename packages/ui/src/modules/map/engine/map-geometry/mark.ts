@@ -14,8 +14,9 @@
  * `ringsNear`) now answer three subsystems rather than one:
  *
  * - The geofence that first wanted them.
- * - The ZIP dissolve.
- * - The region half of the hit-target rule.
+ * - The ZIP dissolve, which reads `featureRings`.
+ * - The region half of the hit-target rule, which reads `areaReach` and
+ *   `boxNear` over the rings that `geoPath` drew.
  *
  * The last two draw no mark. They stay here rather than moving to an `area.ts`,
  * because each is built on a private walk the marks share. `projectArea` rides
@@ -23,11 +24,12 @@
  * `ringAnchor`. The split would import back into this file for
  * its own internals, and buy a boundary that does not hold.
  *
- * That point-by-point walk is what bounds the ring. It draws each edge straight
- * in the frame, where `geoPath` would resample the edge along the sphere and
- * clip it at the antimeridian. A geofence over a metro or a state reads the same
- * either way, and one that wraps the world does not. The marks therefore keep
- * the cheap walk, and the region layer keeps the exact one.
+ * That point-by-point walk is what bounds the ring of a mark. It draws each edge
+ * straight in the frame, where `geoPath` would resample the edge along the
+ * sphere and clip it at the antimeridian. A geofence over a metro or a state
+ * reads the same either way, and one that wraps the world does not. The marks
+ * therefore keep the cheap walk. The region layer and the region half of the
+ * hit-target rule keep the exact one.
  */
 
 import { type GeoProjection, geoArea, geoCentroid } from 'd3-geo'
@@ -60,20 +62,18 @@ export function unprojectPoint(projection: GeoProjection | null, at: MapPoint2D)
 
 	const [lon, lat] = inverted
 
-	// `d3-geo` hands back a fresh pair, so it is returned rather than copied: a
-	// dot asks this twice per render and neither reader keeps what it is given.
+	// `d3-geo` hands back a fresh pair, so it is returned rather than copied.
 	return Number.isFinite(lon) && Number.isFinite(lat) ? inverted : null
 }
 
 /**
  * A feature's rings, in the polygon-then-ring shape both area geometries flatten
  * to. Empty for a feature that draws no area: a point, a line, a sphere, or a
- * geometry collection. Every reader here already spells that as no room.
+ * geometry collection.
  *
- * Beside {@link projectArea} and {@link areaAnchor} rather than inside either
+ * Beside {@link projectArea} and {@link areaAnchor} rather than inside its
  * caller, because the flattening is the same question wherever an area is read.
- * The ZIP dissolve asks it of a matched code, and the hit-target rule asks it of
- * a region under a dot.
+ * The ZIP dissolve asks it of a matched code.
  *
  * @internal
  */
@@ -229,9 +229,9 @@ export type MapFrameBox = { left: number; top: number; right: number; bottom: nu
 /**
  * What {@link ringsNear} actually reads: the boxes alone. Stated apart from
  * {@link MapAreaRing} so a caller that has finished measuring can drop the
- * vertex arrays, and keep placing dots against what is left. An atlas region
- * runs to thousands of points, and holding them for a box test is the whole
- * shape retained to read four numbers.
+ * vertex arrays, and keep placing dots against what is left. An area can run
+ * to thousands of points, and holding them for a box test is the whole shape
+ * retained to read four numbers.
  *
  * @internal
  */

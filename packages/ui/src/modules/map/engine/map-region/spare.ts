@@ -11,8 +11,8 @@
  * with none. A dot over open water pays as much as either.
  *
  * Thus each dot asks what regions draw near it. The module resolves a region
- * off a pointed DOM element, not off a coordinate. But the canonical fit holds
- * each ring of each region as it draws, and a measured frame is that fit under
+ * off a pointed DOM element, not off a coordinate. But the canonical fit draws
+ * each ring of each region at one place, and a measured frame is that fit under
  * one transform. A grid over the boxes of those rings therefore answers a dot
  * at each box and at each zoom, and a resize builds nothing.
  *
@@ -25,7 +25,7 @@ import { AREA_SPARE_FRACTION, POINT_HIT_RADIUS, POINT_RADIUS } from '../map-cons
 import type { StaticMapGeometry } from '../map-geometry/cache'
 import { areaReach, boxNear, type MapFrameBox } from '../map-geometry/mark'
 import { bufferBounds, drawRings, frameAffine, type MapDrawnRings } from '../map-geometry/projected'
-import { invertTransform, type MapTransform } from '../map-zoom/transform'
+import { invertTransform, MAP_FIT_TRANSFORM, type MapTransform } from '../map-zoom/transform'
 import type { MapPoint2D } from '../types'
 
 /**
@@ -72,19 +72,24 @@ type RingGrid = {
 	rings: MapDrawnRings
 	/** The scale that carries those units onto the canonical frame. */
 	factor: number
-	/** The box of each ring, in canonical frame units. */
-	boxes: MapFrameBox[]
-	/** The region that owns each ring. */
-	owner: Uint32Array
 	/** The side of one cell, in canonical frame units. */
 	cell: number
 	columns: number
 	rows: number
 	/** The rings whose box meets each cell, row after row. */
-	cells: number[][]
+	cells: GridRing[][]
 	/** The inscribed reach of each region in canonical frame units, `NaN` until a dot asks. */
 	reach: Float64Array
 }
+
+/**
+ * One ring as the grid files it: its box in canonical frame units, and the
+ * region that owns it. The two are one record, so a cell cannot read the box of
+ * one ring against the region of another.
+ *
+ * @internal
+ */
+type GridRing = MapFrameBox & { region: number }
 
 /** The grid index along one axis, held inside the grid. @internal */
 function cellAt(position: number, cell: number, count: number): number {
@@ -96,17 +101,13 @@ function cellAt(position: number, cell: number, count: number): number {
  *
  * @internal
  */
-function fileRing(
-	{ cell, columns, rows, cells }: Pick<RingGrid, 'cell' | 'columns' | 'rows' | 'cells'>,
-	box: MapFrameBox,
-	ring: number,
-): void {
-	const lastColumn = cellAt(box.right, cell, columns)
+function fileRing({ cell, columns, rows, cells }: RingGrid, ring: GridRing): void {
+	const lastColumn = cellAt(ring.right, cell, columns)
 
-	const lastRow = cellAt(box.bottom, cell, rows)
+	const lastRow = cellAt(ring.bottom, cell, rows)
 
-	for (let row = cellAt(box.top, cell, rows); row <= lastRow; row++) {
-		for (let column = cellAt(box.left, cell, columns); column <= lastColumn; column++) {
+	for (let row = cellAt(ring.top, cell, rows); row <= lastRow; row++) {
+		for (let column = cellAt(ring.left, cell, columns); column <= lastColumn; column++) {
 			cells[row * columns + column]?.push(ring)
 		}
 	}
@@ -143,8 +144,6 @@ function buildRingGrid({ canonical, atlas, features }: StaticMapGeometry): RingG
 	const grid: RingGrid = {
 		rings,
 		factor,
-		boxes: [],
-		owner: new Uint32Array(rings.ringStart.length - 1),
 		cell,
 		columns,
 		rows,
@@ -160,20 +159,17 @@ function buildRingGrid({ canonical, atlas, features }: StaticMapGeometry): RingG
 
 			const end = rings.ringStart[ring + 1] as number
 
+			if (end - from < 3) continue
+
 			const [x0, y0, x1, y1] = bufferBounds(rings.points, from, end)
 
-			const box = {
+			fileRing(grid, {
 				left: x0 * factor + dx,
 				top: y0 * factor + dy,
 				right: x1 * factor + dx,
 				bottom: y1 * factor + dy,
-			}
-
-			grid.boxes.push(box)
-
-			grid.owner[ring] = region
-
-			if (end - from >= 3) fileRing(grid, box, ring)
+				region,
+			})
 		}
 	}
 
@@ -226,11 +222,11 @@ function regionReach(grid: RingGrid, region: number): number {
 }
 
 /** The rings of a cell that the grid does not hold. @internal */
-const NO_RINGS: readonly number[] = []
+const NO_RINGS: readonly GridRing[] = []
 
 /**
  * The tightest share among the rings of one cell that draw within `reach` of a
- * dot, or `room` where none is tighter.
+ * dot, or `Infinity` where none does.
  *
  * A ring whose box covers two cells arrives two times. The minimum reads the
  * same after a repeat, so a repeat costs one box test.
@@ -239,20 +235,17 @@ const NO_RINGS: readonly number[] = []
  */
 function cellRoom(
 	grid: RingGrid,
-	rings: readonly number[],
+	rings: readonly GridRing[],
 	spot: MapPoint2D,
 	reach: number,
 	unit: number,
-	room: number,
 ): number {
-	let tightest = room
+	let tightest = Number.POSITIVE_INFINITY
 
 	for (const ring of rings) {
-		const box = grid.boxes[ring]
+		if (!boxNear(ring, spot, reach)) continue
 
-		if (box === undefined || !boxNear(box, spot, reach)) continue
-
-		const held = regionReach(grid, grid.owner[ring] as number)
+		const held = regionReach(grid, ring.region)
 
 		tightest = Math.min(tightest, (held / unit) * AREA_SPARE_FRACTION)
 
@@ -273,13 +266,13 @@ function cellRoom(
  */
 function gridRoom(
 	grid: RingGrid,
-	frame: MapTransform | null,
+	frame: MapTransform,
 	at: MapPoint2D,
 	unitsPerPixel: number,
 ): number {
-	const spot = frame === null ? at : invertTransform(at, frame)
+	const spot = invertTransform(at, frame)
 
-	const unit = frame === null ? unitsPerPixel : unitsPerPixel / frame.k
+	const unit = unitsPerPixel / frame.k
 
 	// The widest target any pointer takes, in canonical units: the band inside
 	// which a ring is worth asking about at all.
@@ -299,7 +292,7 @@ function gridRoom(
 		for (let column = firstColumn; column <= lastColumn; column++) {
 			const rings = cells[row * columns + column] ?? NO_RINGS
 
-			room = cellRoom(grid, rings, spot, reach, unit, room)
+			room = Math.min(room, cellRoom(grid, rings, spot, reach, unit))
 
 			if (room <= POINT_RADIUS) return room
 		}
@@ -333,12 +326,15 @@ export function regionSpare(
 	geometry: StaticMapGeometry,
 	frame: MapTransform | null,
 ): MapRegionSpare {
+	// The canonical frame is the canonical fit under the identity transform.
+	const drawn = frame ?? MAP_FIT_TRANSFORM
+
 	return (at, unitsPerPixel) => {
 		// Read here rather than at build time, so a map that draws no dot-shaped mark
 		// never builds a grid. It memoizes on the entry, so the lookup is all this
 		// costs after the first dot.
 		const grid = getOrCompute(grids, geometry, buildRingGrid)
 
-		return grid === null ? Number.POSITIVE_INFINITY : gridRoom(grid, frame, at, unitsPerPixel)
+		return grid === null ? Number.POSITIVE_INFINITY : gridRoom(grid, drawn, at, unitsPerPixel)
 	}
 }

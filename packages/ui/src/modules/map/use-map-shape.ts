@@ -5,13 +5,13 @@ import { type FrameReserve, usePlotFrame } from '../../hooks/use-plot-frame'
 import {
 	cachedCanonicalPaths,
 	cachedChromePaths,
-	type StaticMapGeometry,
 	staticMapGeometry,
 } from './engine/map-geometry/cache'
 import { EMPTY_CHROME, type MapChromePaths } from './engine/map-geometry/chrome'
 import { projectPoint } from './engine/map-geometry/mark'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import { measuredMapFit } from './engine/map-projection/fit'
+import { type MapRegionSpare, regionSpare } from './engine/map-region/spare'
 import { applyTransform, type MapTransform } from './engine/map-zoom/transform'
 import type {
 	LngLat,
@@ -62,13 +62,14 @@ export type MapFrameShape = {
 	/** The graticule and sphere `d`s under the active fit; both `null` where the chrome is off. */
 	chrome: MapChromePaths
 	features: MapFeature[]
-	/**
-	 * The shared geometry entry that the frame draws. The region half of the
-	 * hit-target rule keys its ring grid on it, and reads that grid through
-	 * {@link regionFrame}.
-	 */
-	geometry: StaticMapGeometry
 	project: MapProjector
+	/**
+	 * How much reach the regions of this frame leave a dot at a frame position:
+	 * the region half of the hit-target rule. It is a closure, as {@link project}
+	 * is, and not the geometry entry itself, so `d3-geo` stays inside the geometry
+	 * engine.
+	 */
+	regionRoom: MapRegionSpare
 }
 
 /**
@@ -177,6 +178,7 @@ export function useMapShape({
 
 				return at === null || frame === null ? at : applyTransform(at, frame)
 			},
+			regionRoom: regionSpare(statics, frame),
 		}
 	}, [statics, frameWidth, frameHeight])
 
@@ -201,7 +203,7 @@ export function useMapShape({
 		[view, projection, graticule, sphere],
 	)
 
-	const { viewWidth, viewHeight, frame, project } = view
+	const { viewWidth, viewHeight, frame, project, regionRoom } = view
 
 	return {
 		ref,
@@ -215,7 +217,7 @@ export function useMapShape({
 		regionFrame: frame,
 		chrome,
 		features: statics.features,
-		geometry: statics,
 		project,
+		regionRoom,
 	}
 }

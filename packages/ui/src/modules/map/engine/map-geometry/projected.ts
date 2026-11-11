@@ -94,6 +94,17 @@ export type MapProjectedAtlas = {
 }
 
 /**
+ * Whether a geometry draws as area rings alone. It is the one statement of
+ * what the buffer records: {@link areaOnly} asks it of each feature, and
+ * {@link drawRings} draws only a geometry that passes it.
+ *
+ * @internal
+ */
+function drawsArea(geometry: MapFeature['geometry']): boolean {
+	return geometry?.type === 'Polygon' || geometry?.type === 'MultiPolygon'
+}
+
+/**
  * Whether every feature draws as area rings alone, which is what this buffer
  * records. `d3-geo` draws a point as an arc of its own radius, and a line as an
  * unclosed run. Either would therefore come back from the emit as a closed ring
@@ -106,10 +117,7 @@ export type MapProjectedAtlas = {
  * @internal
  */
 export function areaOnly(features: MapFeature[]): boolean {
-	return features.every(
-		({ geometry }) =>
-			geometry === null || geometry.type === 'Polygon' || geometry.type === 'MultiPolygon',
-	)
+	return features.every(({ geometry }) => geometry === null || drawsArea(geometry))
 }
 
 /**
@@ -288,7 +296,7 @@ export function drawRings(features: MapFeature[], projection: GeoProjection): Ma
 	const regionRing: number[] = [0]
 
 	for (const { geometry } of features) {
-		if (geometry?.type === 'Polygon' || geometry?.type === 'MultiPolygon') path(geometry)
+		if (geometry !== null && drawsArea(geometry)) path(geometry)
 
 		regionRing.push(sink.ringStart.length)
 	}

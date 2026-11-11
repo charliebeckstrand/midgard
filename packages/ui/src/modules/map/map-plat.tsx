@@ -50,7 +50,7 @@ import { createSpareStore } from './engine/map-overlay/spare'
 import { regionGroupId } from './engine/map-region/category'
 import type { MapCategoricalData, MapNoData, MapNumericData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
-import { NO_REGION_CLAIM, regionSpare } from './engine/map-region/spare'
+import { NO_REGION_CLAIM } from './engine/map-region/spare'
 import type { MapZoomInput } from './engine/map-zoom/input'
 import { mapZoomSettings } from './engine/map-zoom/input'
 import type { MapTransform } from './engine/map-zoom/transform'
@@ -1155,18 +1155,15 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		contextMenuRegion,
 	)
 
-	// How much room the region under a dot can spare it, rebuilt only as the
-	// geography, the fit, or the layer's answering changes, so the per-region
-	// measurements it memoizes survive every pointer crossing and every legend
-	// toggle, and a map whose regions answer nothing never measures a shape.
+	// How much room the region under a dot can spare it. The shape holds the
+	// resolver of its frame, and its measures are on the geometry entry, so a
+	// pointer crossing, a legend toggle, and a resize measure nothing again. A map
+	// whose regions answer nothing never measures a shape.
 	//
 	// Whether they answer is this component's own policy, so it is stated here and
 	// the resolver takes no boolean about it: the zone half is gated the same way,
 	// at the fold rather than inside `zoneBudget`.
-	const regionRoom = useMemo(
-		() => (regions.answers ? regionSpare(shape.geometry, shape.regionFrame) : NO_REGION_CLAIM),
-		[shape.geometry, shape.regionFrame, regions.answers],
-	)
+	const regionRoom = regions.answers ? shape.regionRoom : NO_REGION_CLAIM
 
 	// How much reach everything under a mark leaves it at a position: the tightest
 	// claim any of them allows, since a dot standing over two shapes has to satisfy

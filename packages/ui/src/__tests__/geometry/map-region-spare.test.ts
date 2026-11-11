@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { type GeoProjection, geoIdentity } from 'd3-geo'
+import type { GeoProjection } from 'd3-geo'
 import states from 'us-atlas/states-10m.json'
 import { describe, expect, it } from 'vitest'
 import countries from 'world-atlas/countries-110m.json'
@@ -15,6 +15,7 @@ import {
 } from '../../modules/map/engine/map-geometry/cache'
 import { projectPoint } from '../../modules/map/engine/map-geometry/mark'
 import { measuredMapFit } from '../../modules/map/engine/map-projection/fit'
+import { resolveProjection } from '../../modules/map/engine/map-projection/resolve'
 import { NO_REGION_CLAIM, regionSpare } from '../../modules/map/engine/map-region/spare'
 import { applyTransform } from '../../modules/map/engine/map-zoom/transform'
 import type { LngLat, MapFeature, MapPoint2D } from '../../modules/map/engine/types'
@@ -65,7 +66,7 @@ describe('regionSpare', () => {
 	 */
 	const flatEntry = (
 		features: MapFeature[],
-		projection = geoIdentity() as unknown as GeoProjection,
+		projection = resolveProjection('identity'),
 	): StaticMapGeometry => ({
 		features,
 		canonical: { projection, width: 600, height: 600, aspect: 1 },
@@ -156,7 +157,7 @@ describe('regionSpare', () => {
 		// The grid is in the canonical frame, so a resize reads the grid that the
 		// first frame built. Counted through the stream of the projection, which
 		// only the build opens.
-		const flat = geoIdentity() as unknown as GeoProjection
+		const flat = resolveProjection('identity')
 
 		let walks = 0
 
