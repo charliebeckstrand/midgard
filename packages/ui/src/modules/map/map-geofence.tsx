@@ -45,8 +45,8 @@ type MapGeofencePolygon = {
 	 *
 	 * Hold the array itself steady across renders: a module constant, a `useMemo`,
 	 * a query result. The projected path is memoized on this reference. A ring
-	 * built inline therefore re-projects on every pointer crossing of the map,
-	 * which a long boundary pays for in full.
+	 * built inline therefore re-projects on each render of the parent, which a
+	 * long boundary pays for in full.
 	 */
 	boundary: LngLat[]
 	at?: undefined
@@ -134,7 +134,7 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	// Held on the center's own numbers rather than on its identity: an inline
 	// `at={[lon, lat]}` is a fresh array every render, and this memo feeds the
 	// projection memo below. Keyed on the array, it would hold on neither, and a
-	// circle would rebuild its whole ring on every pointer move across the map.
+	// circle would rebuild its whole ring on each render of the parent.
 	const [lon, lat] = at ?? []
 
 	// The three geometries meet here, in the widest one's shape. Everything below
@@ -156,10 +156,10 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	// that ground, so the rings have to resolve before the registration does.
 	const { project } = useMapPlat()
 
-	// Memoized so a hover-driven re-render (the plat's pointer state churns the
-	// hover context) doesn't re-project the whole territory; `project` identity
-	// holds until the measured refit, a circle's rings hold on the primitives
-	// above, and a `boundary` or an `area` is the caller's own stable ref.
+	// Memoized so a re-render for the dim, the pick, or the zoom scale does not
+	// re-project the whole territory. `project` identity holds until the
+	// measured refit, a circle's rings hold on the primitives above, and a
+	// `boundary` or an `area` is the caller's own stable ref.
 	const rings = useMemo(() => projectArea(polygons, project), [polygons, project])
 
 	// Held on the rings rather than strung beside them: the wash, the boundary,

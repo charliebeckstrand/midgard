@@ -59,7 +59,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// is a fresh array every render, and this feeds the projection memo below as a
 	// dependency (keyed on the tuples, that memo would never hold for such a
 	// caller, and a marker with no routed path would re-project and re-stringify
-	// its whole connector on every pointed-mark crossing).
+	// its whole connector on each render of the parent).
 	const [startLng, startLat] = start
 
 	const [endLng, endLat] = end
@@ -104,8 +104,8 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		dots,
 	})
 
-	// Memoized so a hover-driven re-render (the plat's pointer state churns the
-	// hover context) doesn't re-project and re-stringify the whole connector.
+	// Memoized so a re-render for the dim, the pick, or the zoom scale does not
+	// re-project and re-stringify the whole connector.
 	// `points` holds through the memo above whatever shape the caller writes, and
 	// `project` identity holds until the measured refit.
 	const d = useMemo(() => linePath(points, project), [points, project])
@@ -122,9 +122,9 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// end covering the other would take that pin's readout with it).
 	//
 	// Memoized above the guard rather than resolved below it. Below, a toggled-off
-	// marker paid nothing; the mark re-renders on every pointer crossing of every
-	// mark on the map, and `spare` is now two projection inverts and a grid walk
-	// per pin rather than the boolean read it was when that trade was made.
+	// marker paid nothing. But the mark re-renders each time its dim changes,
+	// which a crossing onto or off any mark does, and `spare` is two projection
+	// inverts and a grid walk per pin.
 	const [startTarget, endTarget] = useMemo(
 		() =>
 			markTargets(

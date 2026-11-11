@@ -80,9 +80,8 @@ export type MapFrameShape = {
 
 /**
  * What {@link useMapShape} reads: the geometry, the frame policy, and the
- * chrome request. An object rather than a parameter list: the frame props alone
- * run to seven, four of them `boolean | number | undefined`. A transposition
- * would type-check and draw a wrong map.
+ * chrome request. An object rather than a parameter list: several frame props
+ * share a type, so a transposition would type-check and draw a wrong map.
  *
  * @internal
  */
@@ -140,10 +139,6 @@ export function useMapShape({
 		[geography, geographyObject, projection],
 	)
 
-	// A refit projects every overlay mark again, and the drawing scales with its box
-	// through its `viewBox`. So resize commits ride a transition (`scaled`): a burst
-	// coalesces to the sizes the machine can afford, and a stale refit is abandoned
-	// rather than blocking.
 	// Before the geography loads there is no measured aspect; a fixed-subject
 	// projection (albers-usa is the US) still knows the ratio it will take, so
 	// the frame reserves it and a lazily fetched atlas swaps in without a height
@@ -152,6 +147,10 @@ export function useMapShape({
 
 	const sizing = mapFrameSizing(height, aspectRatio, reserveAspect)
 
+	// A refit projects every overlay mark again, and the drawing scales with its box
+	// through its `viewBox`. So resize commits ride a transition (`scaled`): a burst
+	// coalesces to the sizes the machine can afford, and a stale refit is abandoned
+	// rather than blocking.
 	const {
 		ref,
 		width: frameWidth,

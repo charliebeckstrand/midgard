@@ -1,6 +1,6 @@
 # Map roadmap
 
-> **Goal: a geography surface for logistics dashboards, on the chart module's hand-rolled SVG foundation.** The module ships `MapPlat` with two color modes, one merged legend, a Tooltip readout, and a hidden data table. `MapRoute`, `MapPoint`, `MapMarker`, and `MapGeofence` draw over the geography, and the OSRM client fetches street geometry. This file records what shipped, and what the foundation must absorb next.
+> **Goal: a geography surface for logistics dashboards, on the chart module's hand-rolled SVG foundation.** The module ships `MapPlat` with two color modes, one merged legend, a Tooltip readout, and a hidden data table. `MapRoute`, `MapPoint`, `MapPoints`, `MapMarker`, and `MapGeofence` draw over the geography, and the OSRM client fetches street geometry. This file records what shipped, and what the foundation must absorb next.
 
 ## Status
 
@@ -58,11 +58,11 @@ The map is a picker that holds no state of its own. `onRegionClick` reports the 
 
 `selectedOverlay` shows a picked overlay on the same terms. It takes the `{ id, index }` pair that the marks report, and it draws a halo on the mark that it names (`map-halo.tsx`). The halo is the shape of the mark in the selection ink, drawn behind the mark and outside its dim wrapper. The color shows through, and the pick stays visible through a passing hover.
 
-A route and the leg of a marker draw the halo along the line. A point and the pins of a marker draw it behind the dot. One ink serves every halo and the region ring.
+A route and the leg of a marker draw the halo along the line. A point and the pins of a marker draw it behind the dot. A zone draws it along its outline. One ink serves every halo and the region ring.
 
 The index counts the points that a `MapPoints` receives, not the dots that it draws. A pick inside a summary therefore draws the halo on that summary, and the pick separates onto its own dot as the frame widens. One rule resolves the stop that a pick names (`engine/map-overlay/selection`). The halo and the `aria-current` row both read that rule, so the picture and the readout always mark the same dot.
 
-The overlays are pickable on the same terms. `MapRoute`, `MapPoint`, and `MapMarker` take an optional `id` and report it from `onClick` and `onContextMenu`, in the shape of `onRegionClick`. An explicit id is also the legend key, so a mark keeps its color and its toggle state across a remount. Each mark registers a keyboard anchor and its activation beside its legend entry. The cursor therefore steps regions and overlays as one field, and Enter picks the mark under it. The plat dispatches the pick and does not need to know the kind of mark.
+The overlays are pickable on the same terms. `MapRoute`, `MapPoint`, `MapMarker`, and `MapGeofence` take an optional `id` and report it from `onClick` and `onContextMenu`, in the shape of `onRegionClick`. `MapPoints` also reports the index of the point (§Point sets). An explicit id is also the legend key, so a mark keeps its color and its toggle state across a remount. Each mark registers a keyboard anchor and its activation beside its legend entry. The cursor therefore steps regions and overlays as one field, and Enter picks the mark under it. The plat dispatches the pick and does not need to know the kind of mark.
 
 The registrations use stable getters over a ref. An inline handler, or a route whose geometry arrives late, therefore never registers again, and the ledger does not change for it. The overlay marks share one `useMapOverlay` for identity, registration, paint, and hit targets.
 
@@ -198,7 +198,7 @@ The first registered member of the group names the entry and gives its detail. A
 
 The plat expands the toggle once, not at each reader. `hidden` holds the ids of the switchboard plus the members of each group that is off. The region layer, the tooltip, the keyboard stops, the dot pool, and the `hidden` of each mark therefore ask one question. The zone budgets read through that `hidden`. The legend receives the set of the switchboard, because it draws entries. Only the emphasis resolves a group at the mark, because the emphasis is one id, not a set.
 
-The group applies to the legend only. Each mark keeps its own tooltip, table row, and keyboard stop, because the pointer lands on a mark, not on a group. The readout of an entry has its own column beside the name, at `size="sm"`, the type step of the chart legend. The swatches align to the first line of the entry, not to the middle of a wrapped block.
+The group applies to the legend only. Each mark keeps its own tooltip, table row, and keyboard stop, because the pointer lands on a mark, not on a group. The readout of an entry has its own column beside the name, at `size="xs"`, one step under the chart legend. The swatches align to the first line of the entry, not to the middle of a wrapped block.
 
 ### ZIP coverage
 
