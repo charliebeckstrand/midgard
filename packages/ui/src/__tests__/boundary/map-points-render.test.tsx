@@ -5,15 +5,16 @@ import { allRegions, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 /**
- * A plural mark must not redraw its dots for a hover that has nothing to do
- * with it.
+ * A plural mark must not redraw its dots for a hover that does not change what
+ * they draw.
  *
- * `useMapOverlay` reads the pointed mark to resolve one class, and that context
- * republishes on every discrete crossing: region to region included. Against a
- * two-hundred-dot set that rebuilt a `MapDot`, an optional count, a hit circle,
- * and two prop objects per dot, to produce exactly the output already on the
- * screen: on a region-to-region crossing the mark is not the pointed one before
- * or after, so its recede class does not change at all.
+ * `useMapOverlay` reads the dim of the mark through a selector of the pointed
+ * store, so the mark renders when its dim changes: a crossing onto a region or a
+ * mark recedes it. The recede class sits on the wrapper of the dots, and the dot
+ * layer is memoized, so that render must not reach the dots. Against a
+ * two-hundred-dot set, a render of the layer rebuilds a `MapDot`, an optional
+ * count, a hit circle, and two prop objects for each dot, to produce exactly the
+ * output already on the screen.
  *
  * `map-hover.bench` cannot show this. Its sweep settles an animation frame per
  * step, so the whole cascade sits inside one frame at this size and the wall
@@ -58,19 +59,31 @@ function fleet() {
 }
 
 describe('map plural mark renders', () => {
+	it('holds its dots through the crossing that recedes the mark', () => {
+		const { container } = renderUI(fleet())
+
+		const [alpha] = allRegions(container)
+
+		vi.mocked(MapDot).mockClear()
+
+		// The crossing recedes the mark, so its wrapper renders for the new class.
+		// The dots draw the same output, so the memo of the dot layer holds them.
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(MapDot).not.toHaveBeenCalled()
+	})
+
 	it('holds its dots through a crossing between two regions', () => {
 		const { container } = renderUI(fleet())
 
 		const [alpha, beta] = allRegions(container)
 
-		// The first crossing recedes the mark, which is a real change to what it
-		// draws, so the dots are expected to render for it.
 		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
 
 		vi.mocked(MapDot).mockClear()
 
-		// The second does not: the mark was not the pointed one before this crossing
-		// and is not after it, so its recede class is the one it already carried.
+		// The mark was not the pointed one before this crossing and is not after
+		// it, so its dim does not change.
 		fireEvent.pointerEnter(beta as Element, { clientX: 200, clientY: 20 })
 
 		expect(MapDot).not.toHaveBeenCalled()

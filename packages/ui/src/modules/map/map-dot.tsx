@@ -348,7 +348,9 @@ export function MapDotCount({
 		textAnchor: 'middle' as const,
 		dominantBaseline: 'central' as const,
 		pointerEvents: 'none' as const,
-		className: cn('select-none', className),
+		// The count sets its own type: `CLUSTER_COUNT_CHAR_WIDTH` measures the
+		// radius of a summary in this type, for each caller.
+		className: cn('select-none text-xs font-semibold tabular-nums', className),
 	}
 
 	if (!fades) return <text {...shared}>{text}</text>
@@ -391,7 +393,7 @@ export function MapDotCount({
  *
  * A props factory rather than a component, because a `MapPoints` draws one of
  * these per dot. A fiber for each of 200 dots adds a measurable part to every
- * re-render of the set. The set re-renders on each pointed-mark crossing, each
+ * re-render of the set. The set re-renders on each change of its dim, each
  * legend emphasis, and each refit. The rule stays in one place either way; only
  * the fiber goes.
  *
@@ -468,8 +470,8 @@ type MapDotClipProps = {
  * `clipPathUnits` stays at the default `userSpaceOnUse`, since the ring is already in the frame
  * coordinates the dot draws in.
  *
- * Memoized, because the mark that draws it re-renders on every pointer crossing of every mark on
- * the map. Neither its id nor its ground moves. Without the memo, `groundPoints` walks the ring and
+ * Memoized, because the mark that draws it re-renders each time its dim changes, which a crossing
+ * onto or off any mark does. Neither its id nor its ground moves. Without the memo, `groundPoints` walks the ring and
  * builds its string per crossing, for a `<polygon>` whose `points` did not change. A plural mark
  * draws its clips through {@link dotClip} instead, inside a dot layer that is itself memoized. A
  * component for each clip there brings back the fiber for each dot that `dotHitProps` avoids.

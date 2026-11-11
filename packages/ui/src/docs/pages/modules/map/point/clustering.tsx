@@ -5,10 +5,12 @@ import { useIntl } from 'ui/primitives/intl'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
 import { Stack } from 'ui/stack'
 import { labelOfState, miles, stateFrame } from '../data.ts'
-import { deliveryStops, stopStates } from './data.ts'
+import { deliveryStops } from './data.ts'
 
 // The select offers each state that holds a stop.
-const selectable = [...new Set(stopStates.filter((state) => state !== null))].sort()
+const selectable = [
+	...new Set(deliveryStops.flatMap(({ state }) => (state === null ? [] : [state]))),
+].sort()
 
 export default function Clustering() {
 	const intl = useIntl()
@@ -28,10 +30,7 @@ export default function Clustering() {
 	const frame = useMemo(() => stateFrame(picked), [picked])
 
 	const stops = useMemo(
-		() =>
-			picked === null
-				? deliveryStops
-				: deliveryStops.filter((_, index) => stopStates[index] === picked),
+		() => (picked === null ? deliveryStops : deliveryStops.filter((stop) => stop.state === picked)),
 		[picked],
 	)
 
@@ -71,7 +70,7 @@ export default function Clustering() {
 					// state, a click picks the stop, and a second click clears it.
 					onClick={
 						picked === null
-							? (_, index) => pickState(stopStates[index] ?? null)
+							? (_, index) => pickState(deliveryStops[index]?.state ?? null)
 							: (_, index) => setStop((prev) => (prev === index ? null : index))
 					}
 				/>

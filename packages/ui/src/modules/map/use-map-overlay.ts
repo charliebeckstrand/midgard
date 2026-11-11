@@ -289,7 +289,7 @@ export type MapOverlay = {
 	}
 }
 
-/** Whether two lists of stop rows read the same: each label and detail, in order. @internal */
+/** Whether two lists of stop rows read the same: each field of each row, in order. @internal */
 function sameStopRows(prev: MapStopRow[] | undefined, next: MapStopRow[] | undefined): boolean {
 	if (prev === undefined || next === undefined) return prev === next
 

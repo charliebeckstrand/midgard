@@ -992,10 +992,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		return members.length === 0 ? switched : new Set<string>([...switched, ...members])
 	}, [switched, anchored])
 
-	// The region layer reports the index it resolved off the pointed path's anchor;
-	// the props report identity. Bridge them here, memoized like this component's
-	// sibling derivations so the memoized region layer holds across the legend and
-	// resize commits.
 	// Each region that takes no click, resolved once against the ids a click
 	// reports. An inline predicate is a new identity on each render, so the
 	// result holds its last identity while its content is the same, and the
@@ -1011,6 +1007,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		sameElements,
 	)
 
+	// The region layer reports the index it resolved off the pointed path's anchor;
+	// the props report identity. Bridge them here, memoized like this component's
+	// sibling derivations so the memoized region layer holds across the legend and
+	// resize commits.
 	const clickRegion = useMemo(
 		() => bridgeRegionIdentity(onRegionClick, regionIds, regionDisabled),
 		[onRegionClick, regionIds, regionDisabled],
@@ -1231,7 +1231,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	//
 	// Held per count for the locale: the pass asks for every group it builds, on
 	// every zoom notch, and most of those groups share a few small counts. A format
-	// per ask doubled the cost of the pass on a set of 5,000 dots.
+	// per ask was a large share of the cost of the pass on a dense set.
 	const getRadius = useMemo(() => {
 		const radii = new Map<number, number>()
 
@@ -1399,10 +1399,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[entries],
 	)
 
-	// Whether anything at all can read out: a matched region, a registered
-	// overlay, or a selected region. The table takes this wider reading: a mark's
-	// own row is an output a map with no rows still has, and the row of a selected
-	// region is where the selection reads as the current one.
+	// Whether anything at all can read out: a matched region, a named region
+	// (`nameRegions`), a registered overlay, or a selected region. The table takes
+	// this wider reading: a mark's own row is an output a map with no rows still
+	// has, and the row of a selected region is where the selection reads as the
+	// current one.
 	const hasReadout = regionsRead || entries.length > 0 || nameRegions || selected !== null
 
 	// Whether the tooltip and the cursor can read anything out. A region counts
@@ -1481,11 +1482,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// An overlay's own `onClick` counts too: a `tooltip={false}` plat whose only
 	// pick is a clickable `MapPoint` is still a picker, and gating on the region
 	// half alone would leave it unreachable.
-	//
-	// The drawn-frame test is what keeps a map with nothing to navigate (no
-	// geography yet) from offering a stop
-	// that answers no key. It reads the frame rather than the stops themselves,
-	// so the gate stays O(1) and the centroids stay unresolved.
 	const pickable = regions.click !== undefined || entries.some((entry) => entry.activate)
 
 	// A zooming map earns the stop on its own: the wheel and the drag are pointer
@@ -1496,6 +1492,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// one. `tooltip` is a request, and a map with nothing to read out silences on
 	// all three channels (no tooltip, no emphasis, no table), so the prop alone
 	// would hand a backdrop map a stop that answers every key with nothing.
+	//
+	// The drawn-frame test is what keeps a map with nothing to navigate (no
+	// geography yet) from offering a stop that answers no key. It reads the frame
+	// rather than the stops themselves, so the gate stays O(1) and the centroids
+	// stay unresolved.
 	const navigable = (readable || pickable || zoomable) && shape.viewWidth > 0
 
 	// The range bar's visibility follows the chart's tier, and its announced axis

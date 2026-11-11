@@ -264,12 +264,9 @@ export function useMapKeyboard({
 	const anchor = useStableEvent((stop: MapStop | null, through: MapTransform) => {
 		// A re-anchor of the stop the cursor holds keeps the point the cursor holds.
 		// The target of the stop holds only the first point of its dot.
-		const target =
-			stop === null
-				? null
-				: held !== null && stopKey(held) === stopKey(stop.target)
-					? held
-					: stop.target
+		const keeps = stop !== null && held !== null && stopKey(held) === stopKey(stop.target)
+
+		const target = keeps ? held : (stop?.target ?? null)
 
 		// Every resolve mints fresh target objects, so hold the previous one where
 		// it names the same mark: the cursor is a dependency of the effects below,

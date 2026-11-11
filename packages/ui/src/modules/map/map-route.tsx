@@ -64,8 +64,8 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 	// resolve before the registration does.
 	const { project } = useMapPlat()
 
-	// Memoized so a hover-driven re-render (the plat's pointer state churns the
-	// hover context) doesn't re-project and re-stringify the whole polyline;
+	// Memoized so a re-render for the dim, the pick, or the zoom scale does not
+	// re-project and re-stringify the whole polyline;
 	// `project` identity holds until the measured refit, and `path` / `stops`
 	// are the caller's stable refs.
 	const d = useMemo(() => linePath(points, project), [points, project])

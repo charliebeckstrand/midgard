@@ -18,7 +18,7 @@ import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { getOrCompute } from '../../utilities/get-or-compute'
 import { rangeKeys } from '../../utilities/range-keys'
 import { useMapPlat, useMapPointed, useMapZoomScale } from './context'
-import { markTargets } from './engine/map-cluster/crowd'
+import { type MapDotMark, markTargets } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
 import { type MapGround, type MapGroundDot, setGrounds } from './engine/map-cluster/ground'
 import { clusterGap, groupsByMember } from './engine/map-cluster/group'
@@ -116,15 +116,13 @@ type MapPointsDotsProps = {
 /**
  * The drawn dots. Deliberately blind to the pointed mark and to the legend
  * emphasis. The recede class and the pointer-leave sit on the wrapper above. A
- * pointer crossing anywhere on the map therefore re-renders that wrapper, and
- * this holds its render. It is `MapRegionsBase`'s treatment, for the same reason
- * and at a similar count. Two hundred dots each rebuild a `MapDot`, an optional
- * count, a hit circle, and two prop objects.
+ * crossing that changes the dim of the set therefore re-renders that wrapper,
+ * and this holds its render. It is `MapRegionsBase`'s treatment, for the same
+ * reason and at a similar count. Two hundred dots each rebuild a `MapDot`, an
+ * optional count, a hit circle, and two prop objects.
  *
- * The crossing that matters most is the one that does not concern this mark at
- * all. The pointed-mark context republishes on every discrete crossing, region
- * to region included, and `dim` does not change on those. Without the memo the
- * whole set rebuilt to produce the output it already had.
+ * The dim changes only the class of the wrapper, so the dots draw the output
+ * that they already had. Without the memo the whole set rebuilt to produce it.
  *
  * @internal
  */
@@ -380,7 +378,7 @@ function MapPointsShared({
 			<MapDotCount
 				at={at}
 				count={summary.count}
-				className={cn('text-xs font-semibold tabular-nums', ...k.shared.count)}
+				className={cn(...k.shared.count)}
 				scale={unitsPerPixel}
 				animate={pops}
 				transition={pop}
@@ -404,6 +402,9 @@ function MapPointsShared({
 
 /** The groups of a set with no grouping yet. @internal */
 const NO_GROUPS: MapSetCluster[] = []
+
+/** The target mark of a group that the set draws no dot for. @internal */
+const NOT_DRAWN: MapDotMark = { at: null, radius: POINT_RADIUS }
 
 /** Whether a set draws a shared summary: the first of its sets does. @internal */
 function leads(summary: MapSharedCluster, id: string): boolean {
@@ -851,28 +852,24 @@ export function MapPoints({
 	// clear, and less where something else wants the same ground.
 	// `map-cluster/crowd.ts` holds the list of claimants. The neighbors are the
 	// marks of the shared pass, so a dot gives way to the dots of the other sets
-	// as well as to its own.
+	// as well as to its own. A group that the set draws no dot for asks nothing,
+	// so a shared summary that another set draws costs no zone lookup here.
 	//
-	// Memoized on the grouping and the plat's zone resolver, neither of which a
-	// pointer crossing moves, where this mark re-renders on every crossing of
-	// every mark on the map. The crowding half reads the drawn frame, so it answers
-	// the zoom on the beat the grouping does: the pair a zoom has just parted sits
-	// ~15px apart, well inside a 44px target, and stays precise until the view
-	// carries them clear of one another.
+	// Memoized on the drawn dots and the plat's zone resolver, so the dot layer
+	// holds through a render that moves neither. The crowding half reads the drawn
+	// frame, so it answers the zoom on the beat the grouping does: the pair a zoom
+	// has just parted sits ~15px apart, well inside a 44px target, and stays
+	// precise until the view carries them clear of one another.
 	const targets = useMemo(() => {
 		const room = grouping.room()
 
 		return markTargets(
-			// What each dot paints out to, so the floor of a square covers its corners.
-			groups.map((group, index) => ({
-				at: group.at,
-				radius: dotReach(radii[index] ?? POINT_RADIUS, shapes[index]),
-			})),
+			drawn.map((dot) => dot ?? NOT_DRAWN),
 			unitsPerPixel,
 			spare,
 			groups.map((group) => room[group.mark] ?? Number.POSITIVE_INFINITY),
 		)
-	}, [groups, grouping, radii, shapes, spare, unitsPerPixel])
+	}, [drawn, groups, grouping, spare, unitsPerPixel])
 
 	// The ground each dot's target keeps where a neighbor stands close enough to
 	// want some of it: the dots of this set, and the dots of every other mark on
@@ -902,9 +899,9 @@ export function MapPoints({
 	// and any one of theirs would name it wrongly.
 	//
 	// Held rather than rebuilt: this is a prop of the memoized dot layer, and that
-	// memo exists to hold the dots through every pointer crossing elsewhere on the
-	// map. A fresh array per render would defeat it, which is what
-	// `map-points-render` pins.
+	// memo exists to hold the dots through a render for the dim or the emphasis.
+	// A fresh array per render would defeat it, which is what `map-points-render`
+	// pins.
 	const paints = useMemo(() => {
 		const mark = slot === undefined ? '' : cn(...k.series[slot].stroke)
 
@@ -921,7 +918,7 @@ export function MapPoints({
 
 	if (slot === undefined || hidden) return null
 
-	const countInk = cn('text-xs font-semibold tabular-nums', ...k.series[slot].label)
+	const countInk = cn(...k.series[slot].label)
 
 	return (
 		<>

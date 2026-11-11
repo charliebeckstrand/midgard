@@ -9,12 +9,7 @@ import {
 } from './engine/map-region/category'
 import { type MapRegionData, rowsByRegion } from './engine/map-region/data'
 import { defaultRegionLabel } from './engine/map-region/identity'
-import {
-	type RegionValueJoin,
-	regionValueJoin,
-	resolveValueBins,
-	resolveValueFormat,
-} from './engine/map-region/value'
+import { regionValueJoin, resolveValueBins, resolveValueFormat } from './engine/map-region/value'
 import type { MapFeature } from './engine/types'
 
 /** The names a map with no rows resolves to: one shared array, never rebuilt. @internal */
@@ -112,20 +107,7 @@ export function useMapRegionReadout<T>(
 	// categorical branch resolves slot colors, and a data-less map leaves every
 	// region on the neutral fill. Both branches emit the same meta + index shape,
 	// so the regions, legend, tooltip, and table read either unchanged.
-	const {
-		categoryMetas,
-		regionCategory,
-		regionValues,
-		regionNumbers,
-		domain: extent,
-		thresholds,
-	} = useMemo<
-		RegionValueJoin & {
-			categoryMetas: MapCategoryMeta[]
-			domain: [number, number] | null
-			thresholds?: number[]
-		}
-	>(() => {
+	const readout = useMemo<Omit<MapRegionReadout, 'regionNames'>>(() => {
 		// The all-null column, shared by every field a branch leaves empty:
 		// nothing downstream mutates the readout arrays, so one allocation
 		// serves them all.
@@ -203,13 +185,5 @@ export function useMapRegionReadout<T>(
 		regionIds,
 	])
 
-	return {
-		categoryMetas,
-		regionNames,
-		regionCategory,
-		regionValues,
-		regionNumbers,
-		domain: extent,
-		thresholds,
-	}
+	return { ...readout, regionNames }
 }

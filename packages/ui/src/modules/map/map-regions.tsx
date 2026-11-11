@@ -94,9 +94,9 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	 * delegation on the layer group. The memoized per-region paths therefore take
 	 * no handler prop. This handler's identity (the one input here a consumer
 	 * controls) never reaches the layer the county atlas depends on. When it is
-	 * set, it also turns on the pointer cursor and lifts the hover emphasis to
-	 * every region, no-data ones included. Under a click each is a target, not
-	 * just the matched ones.
+	 * set, each region that `disabled` does not mark takes the pointer cursor and
+	 * the hover emphasis, no-data ones included. Under a click each is a target,
+	 * not just the matched ones.
 	 *
 	 * The paths themselves stay presentational. The plot is a `role="img"` leaf
 	 * over an `aria-hidden` SVG. A focusable path would therefore be unreachable
@@ -565,9 +565,8 @@ function MapRegionStripes({ categories, base }: { categories: MapCategoryMeta[];
  * The ring on the picked region, a step over the seam. It therefore reads as a
  * mark on the region, rather than a heavier shared border.
  *
- * Its own component for one reason. It is the single shape in this layer whose
- * width is not the inherited hairline. It is therefore the only one that has to
- * read the zoom scale. Reading it here confines the per-notch re-render to this
+ * Its own component because its width is not the inherited hairline, so it
+ * reads the zoom scale. Reading it here confines the per-notch re-render to this
  * one path; read in {@link MapRegions} it would take the whole atlas with it.
  *
  * @internal

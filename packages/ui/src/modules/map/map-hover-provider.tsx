@@ -63,8 +63,8 @@ const NO_HOVER: MapHoverState = { target: null, point: null }
  *   across a same-mark move so the marks reading it repaint only on discrete
  *   crossings
  *
- * Holding the state here, below {@link MapPlat} and around the plot alone, keeps
- * a pointer move off the plat, the legend, and the region layer. The provider
+ * The state sits here, below {@link MapPlat} and around the plot and its legend.
+ * A pointer move therefore stays off the plat, the legend, and the region layer. The provider
  * re-renders and its stable `children` bail, so the tooltip is the sole subtree
  * that repaints.
  *
@@ -126,10 +126,6 @@ export function MapHoverProvider({
 		[set],
 	)
 
-	// The pointed mark the marks dim against: the hover target, gated so a
-	// region outside every live group (no data, or its category toggled
-	// off) takes no emphasis; isolating the neutral fill would read as a
-	// broken map, the way a chart never dims against a hidden series.
 	const target = state.target
 
 	// Warming reads the target above rather than the gated `pointed` below, and
@@ -137,6 +133,10 @@ export function MapHoverProvider({
 	// meet: the plat sits above this provider and could not see either.
 	useMapRegionPreload(target, preloadRegion)
 
+	// The pointed mark the marks dim against: the hover target, gated so a
+	// region outside every live group (no data, or its category toggled
+	// off) takes no emphasis; isolating the neutral fill would read as a
+	// broken map, the way a chart never dims against a hidden series.
 	const pointed =
 		target !== null && target.kind === 'region' && !regionActive(target.index) ? null : target
 

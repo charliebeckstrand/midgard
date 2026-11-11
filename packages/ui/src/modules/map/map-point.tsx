@@ -123,8 +123,8 @@ export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 	 * close enough to want any) is the answer for almost every dot, and draws no clip at all.
 	 *
 	 * Memoized, and above the early return so the hook order cannot depend on visibility. This mark
-	 * re-renders on every pointer crossing of every mark on the map (`useMapOverlay` subscribes to the
-	 * pointed mark to resolve `dim`). None of these three inputs moves when a pointer crosses, the
+	 * re-renders each time its dim changes, which a crossing onto or off any mark does (`useMapOverlay`
+	 * reads `dim` from the pointed store). None of these three inputs moves when a pointer crosses, the
 	 * same reason `MapPoints` memoizes its own `targets`. Unmemoized it re-pooled every other mark's
 	 * dots and re-ran the bisector clips per crossing. It also handed `MapDotClip` a fresh ring that
 	 * defeated its own memo in turn.
