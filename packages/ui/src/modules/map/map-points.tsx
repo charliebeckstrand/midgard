@@ -116,15 +116,13 @@ type MapPointsDotsProps = {
 /**
  * The drawn dots. Deliberately blind to the pointed mark and to the legend
  * emphasis. The recede class and the pointer-leave sit on the wrapper above. A
- * pointer crossing anywhere on the map therefore re-renders that wrapper, and
- * this holds its render. It is `MapRegionsBase`'s treatment, for the same reason
- * and at a similar count. Two hundred dots each rebuild a `MapDot`, an optional
- * count, a hit circle, and two prop objects.
+ * crossing that changes the dim of the set therefore re-renders that wrapper,
+ * and this holds its render. It is `MapRegionsBase`'s treatment, for the same
+ * reason and at a similar count. Two hundred dots each rebuild a `MapDot`, an
+ * optional count, a hit circle, and two prop objects.
  *
- * The crossing that matters most is the one that does not concern this mark at
- * all. The pointed-mark context republishes on every discrete crossing, region
- * to region included, and `dim` does not change on those. Without the memo the
- * whole set rebuilt to produce the output it already had.
+ * The dim changes only the class of the wrapper, so the dots draw the output
+ * that they already had. Without the memo the whole set rebuilt to produce it.
  *
  * @internal
  */
@@ -901,9 +899,9 @@ export function MapPoints({
 	// and any one of theirs would name it wrongly.
 	//
 	// Held rather than rebuilt: this is a prop of the memoized dot layer, and that
-	// memo exists to hold the dots through every pointer crossing elsewhere on the
-	// map. A fresh array per render would defeat it, which is what
-	// `map-points-render` pins.
+	// memo exists to hold the dots through a render for the dim or the emphasis.
+	// A fresh array per render would defeat it, which is what `map-points-render`
+	// pins.
 	const paints = useMemo(() => {
 		const mark = slot === undefined ? '' : cn(...k.series[slot].stroke)
 

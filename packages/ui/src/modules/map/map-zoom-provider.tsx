@@ -10,9 +10,9 @@ type MapZoomProviderProps = MapZoomOptions & {
 }
 
 /**
- * Owns the view transform and hands it to the three things that read it. Those
- * are the layer that draws through it, the plot region that carries the
- * gestures, and the keyboard cursor that anchors against it.
+ * Owns the view transform and hands it to its readers. They are the layer that
+ * draws through it, the plot region that carries the gestures, and the keyboard
+ * cursor that anchors against it.
  *
  * It sits here, below {@link MapPlat} and around the plot alone, for the reason
  * {@link MapHoverProvider} does. A gesture writes on every wheel notch and every

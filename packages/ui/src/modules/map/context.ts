@@ -161,10 +161,10 @@ export const [MapZoomScaleContext, useMapZoomScale] = createContext<number>('Map
 /**
  * What {@link MapPlat} provides its overlay children: the fitted projection
  * as a closure, legend registration, and the resolved slot color per
- * registered entry. It also provides the legend's toggle / emphasis state, and
- * the standing pick. An
- * overlay renders nothing until its id gains a color: the beat after its
- * registration effect runs.
+ * registered entry. It also provides the legend's toggle state (`hidden`) and
+ * the standing pick. The legend emphasis goes through the pointed-mark store
+ * ({@link MapPointedStore}). An overlay renders nothing until its id gains a
+ * color: the beat after its registration effect runs.
  *
  * @internal
  */
