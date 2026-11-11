@@ -42,7 +42,8 @@ export type GridContextValue = {
 }
 
 /**
- * Reads the enclosing {@link Grid}'s shared selection and sort state.
+ * Reads the enclosing {@link Grid}'s shared selection and sort state. The
+ * provider is in the head, so only the head can read it.
  *
  * @returns The current {@link GridContextValue}.
  * @throws If called outside a `<Grid>`.

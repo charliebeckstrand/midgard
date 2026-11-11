@@ -90,7 +90,7 @@ type GridDataTableProps<T> = {
 	}
 	head: Pick<
 		GridHeadProps<T>,
-		'interactive' | 'reorderable' | 'reorderHandle' | 'resize' | 'filters' | 'groups'
+		'context' | 'interactive' | 'reorderable' | 'reorderHandle' | 'resize' | 'filters' | 'groups'
 	>
 	/** The body props that the table does not set itself. */
 	body: Omit<
