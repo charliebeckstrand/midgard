@@ -10,7 +10,7 @@ language js
 // export by its name (`instant`, `revalidate`).
 //
 // Reach is the `includes` beside this plugin in `biome.json`: the source of
-// `ui` and of the apps. Recipes are out of reach, because a recipe part is a
+// `ui`, of the apps, of `auth`, and of `shared`. Recipes are out of reach, because a recipe part is a
 // `camelCase` key. Tests and benchmarks are out of reach too.
 JsVariableDeclarator(id = $id, initializer = JsInitializerClause(expression = $value)) as $declarator where {
 	$id <: r"[a-z][A-Za-z0-9]*",

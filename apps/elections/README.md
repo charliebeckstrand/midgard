@@ -62,7 +62,7 @@ Alaska are parts of a county row, so the parser leaves them out.
 
 ## The elections
 
-`src/elections/registry.ts` holds the elections. A new election is one more
+`src/utilities/registry.ts` holds the elections. A new election is one more
 entry, with the same routes and screens: the screens read the depth of each
 contest (`state` or `district`) and its majority, never the name of an office.
 
@@ -98,7 +98,7 @@ each page of an election. Its step is in the search params:
 `?region=ga` opens the overview of a state, `&office=senate` its race,
 `&district=06` a district of the House, and `&county=13121` a county.
 
-`src/utilities/elections-url.ts` reads and writes the paths and the params, and
+`src/utilities/url.ts` reads and writes the paths and the params, and
 `src/hooks/use-drawer.ts` moves the Drawer.
 
 The Drawer is a `Dialog` of `ui`. On a phone, it is docked to the bottom

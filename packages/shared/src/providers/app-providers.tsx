@@ -10,7 +10,7 @@ import { UIProvider } from 'ui/providers/ui'
 import { useToast } from 'ui/toast'
 import { catalogs } from '../locale/catalogs'
 import { DEFAULT_LOCALE } from '../locale/locales'
-import { createAppQueryClient } from './query-client'
+import { createQueryClient } from './query-client'
 
 type AppProvidersProps = {
 	/**
@@ -46,7 +46,7 @@ type AppProvidersProps = {
  * `UIProvider` renders, uses the same locale as the page.
  *
  * A failed mutation shows its error in a toast, and a `401` sends the page to
- * `/login` (see {@link createAppQueryClient}). The `QueryClientProvider` is in
+ * `/login` (see {@link createQueryClient}). The `QueryClientProvider` is in
  * `UIProvider`, so that the client can show toasts.
  *
  * @remarks Top-level context per CONVENTIONS.md §6.1. Render it from the root
@@ -102,7 +102,7 @@ function AppQueryProvider({
 	}, [intl])
 
 	const [client] = useState(() =>
-		createAppQueryClient({
+		createQueryClient({
 			queries,
 			toast,
 			failureTitle: () => intlRef.current.formatMessage(messages.failed),

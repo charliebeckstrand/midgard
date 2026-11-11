@@ -14,7 +14,7 @@ import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { authMessages } from './auth-messages'
-import { bifrost } from './bifrost'
+import { browserBifrost } from './bifrost'
 import { chain, email, newPasswordRules, required } from './form-validators'
 import { Turnstile } from './turnstile'
 import { useLeaving } from './use-leaving'
@@ -59,7 +59,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 	const handleSubmit: FormSubmitHandler<RegisterValues> = async (values) => {
 		try {
-			const { response, error } = await bifrost.POST('/auth/register', {
+			const { response, error } = await browserBifrost.POST('/auth/register', {
 				body: {
 					email: values.email,
 					password: values.password,

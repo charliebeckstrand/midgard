@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { LevelPage } from '@/components/level-page'
-import { ELECTIONS, findElections } from '@/elections/registry'
+import { ELECTIONS, findElections } from '@/utilities/registry'
 import { countryCrumbs } from '@/utilities/trail'
 
 type Params = { params: Promise<{ year: string; country: string }> }

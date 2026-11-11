@@ -9,7 +9,7 @@ import type { SeasonPicks } from '../types'
 export const mimir = createGatewayClient<paths>()
 
 /** Every pick of the user in `season`. A failed read throws the error of the gateway. */
-export async function getSeasonPicks(season: number): Promise<SeasonPicks> {
+export async function getPicks(season: number): Promise<SeasonPicks> {
 	const picks = await requireGateway('/api/predictions', () =>
 		mimir.GET('/api/predictions/{season}', { params: { path: { season } } }),
 	)

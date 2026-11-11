@@ -1,9 +1,9 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import type { Election } from '../elections/registry'
-import { type DrawerStep, drawerHref, readDrawerStep } from '../utilities/elections-url'
-import { addressLeads, currentAddress, useAddress, writeAddress } from './use-address'
+import type { Election } from '../utilities/registry'
+import { type DrawerStep, drawerHref, readDrawerStep } from '../utilities/url'
+import { addressLeads, readAddress, useAddress, writeAddress } from './use-address'
 
 /**
  * The history entries that the Drawer wrote since it last opened: the address
@@ -19,7 +19,7 @@ const entries: { addresses: string[]; position: number } = { addresses: [], posi
 // record does not hold, such as a page before the open, clears the record.
 if (typeof window !== 'undefined') {
 	window.addEventListener('popstate', () => {
-		const address = currentAddress()
+		const address = readAddress()
 
 		if (entries.addresses[entries.position - 1] === address) entries.position -= 1
 		else if (entries.addresses[entries.position + 1] === address) entries.position += 1
@@ -76,7 +76,7 @@ export function useDrawerGo(election: Election): DrawerGo {
 
 		const step = readDrawerStep(election, new URLSearchParams(window.location.search))
 
-		const known = entries.addresses[entries.position] === currentAddress()
+		const known = entries.addresses[entries.position] === readAddress()
 
 		if (next === null) {
 			if (known && entries.position > 0) {
@@ -95,7 +95,7 @@ export function useDrawerGo(election: Election): DrawerGo {
 		// An open from a closed Drawer starts the record at the page. A move
 		// inside a Drawer that the record does not know keeps no record.
 		if (step === null) {
-			entries.addresses = [currentAddress()]
+			entries.addresses = [readAddress()]
 
 			entries.position = 0
 		} else if (!known) {

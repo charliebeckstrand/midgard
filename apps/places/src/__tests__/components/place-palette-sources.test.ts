@@ -6,9 +6,9 @@ import {
 	regionSource,
 	tripSource,
 } from '../../components/place-palette/place-palette-sources'
-import { matchCommands } from '../../utilities/places-palette'
-import { UNITED_STATES } from '../../utilities/places-view'
-import { place, trip } from '../fixtures'
+import { matchCommands } from '../../utilities/palette'
+import { UNITED_STATES } from '../../utilities/view'
+import { makePlace, makeTrip } from '../fixtures'
 
 /** Menu actions that do nothing, for the cases that are not about the menu. */
 const NO_ACTIONS = {
@@ -20,14 +20,14 @@ const NO_ACTIONS = {
 
 describe('placeSource', () => {
 	const places = [
-		place('old', {
+		makePlace('old', {
 			name: 'Multnomah Falls',
 			category: 'nature',
 			city: 'Bridal Veil',
 			state: 'Oregon',
 			createdAt: '2026-01-01T00:00:00.000Z',
 		}),
-		place('new', {
+		makePlace('new', {
 			name: 'Ichiran Shibuya',
 			city: 'Tokyo',
 			country: 'Japan',
@@ -98,8 +98,8 @@ describe('placeSource', () => {
 
 describe('tripSource', () => {
 	const trips = [
-		trip('spring', { name: 'Lisbon', city: 'Lisbon', startsOn: '2026-04-01' }),
-		trip('fall', { name: 'Kyoto', city: 'Kyoto', country: 'Japan', startsOn: '2026-10-01' }),
+		makeTrip('spring', { name: 'Lisbon', city: 'Lisbon', startsOn: '2026-04-01' }),
+		makeTrip('fall', { name: 'Kyoto', city: 'Kyoto', country: 'Japan', startsOn: '2026-10-01' }),
 	]
 
 	const actions = { onAddPlace: vi.fn(), onEditTrip: vi.fn(), onDeleteTrip: vi.fn() }
@@ -137,8 +137,8 @@ describe('regionSource', () => {
 	const source = regionSource({
 		countries: ['Georgia', 'Japan'],
 		states: ['Georgia', 'Oregon'],
-		countryRecords: new Map([['Japan', [place('a'), place('b'), trip('t')]]]),
-		stateRecords: new Map([['Georgia', [place('c')]]]),
+		countryRecords: new Map([['Japan', [makePlace('a'), makePlace('b'), makeTrip('t')]]]),
+		stateRecords: new Map([['Georgia', [makePlace('c')]]]),
 		goTo,
 		preload,
 		formatNumber: String,

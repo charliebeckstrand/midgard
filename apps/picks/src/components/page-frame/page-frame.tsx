@@ -3,7 +3,7 @@ import { StackedLayout, StackedLayoutBody } from 'ui/layouts'
 
 /** Props for {@link PageFrame}. */
 export type PageFrameProps = {
-	/** The bar at the top of the page (`PicksHeader` or `WeekHeaderSkeleton`). */
+	/** The bar at the top of the page (`PicksHeader` or `PicksHeaderSkeleton`). */
 	header: ReactNode
 	children: ReactNode
 }

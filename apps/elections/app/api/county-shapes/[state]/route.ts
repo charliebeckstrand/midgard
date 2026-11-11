@@ -1,5 +1,5 @@
-import { stateOfKey } from '@/elections/us-states'
 import { countyShapes } from '@/server/county-shapes'
+import { findStateByKey } from '@/utilities/us-states'
 
 type Context = { params: Promise<{ state: string }> }
 
@@ -18,7 +18,7 @@ const DAY = 86_400
 export async function GET(_request: Request, { params }: Context) {
 	const { state } = await params
 
-	const region = stateOfKey(state)
+	const region = findStateByKey(state)
 
 	if (region === undefined) return Response.json({ message: 'Unknown state' }, { status: 404 })
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { deletePicks, listPicks, savePicks } from '../api/predictions-api'
+import { deletePicks, fetchPicks, savePicks } from '../api/picks-api'
 
 // Stubs the gateway with one answer, and the page location with a spy.
 function stub(response: Response) {
@@ -22,7 +22,7 @@ describe('predictions api', () => {
 	it('throws an ended session with its status, for the query client to send to the sign-in page', async () => {
 		const assign = stub(json({ error: 'unauthorized', message: 'Not signed in' }, 401))
 
-		await expect(listPicks(2026)).rejects.toMatchObject({ message: 'Not signed in', status: 401 })
+		await expect(fetchPicks(2026)).rejects.toMatchObject({ message: 'Not signed in', status: 401 })
 
 		expect(assign).not.toHaveBeenCalled()
 	})

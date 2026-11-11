@@ -1,4 +1,4 @@
-import { race } from '@/server/races'
+import { getRace } from '@/server/races'
 import { isKnownRace } from '@/server/results'
 
 type Context = { params: Promise<{ id: string }> }
@@ -17,5 +17,5 @@ export async function GET(_request: Request, { params }: Context) {
 		return Response.json({ message: 'Unknown race' }, { status: 404 })
 	}
 
-	return Response.json(await race(raceId))
+	return Response.json(await getRace(raceId))
 }

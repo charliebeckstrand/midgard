@@ -4,7 +4,7 @@ import { createElement as h } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { IndexSheet, type IndexSheetProps } from '../../components/index-sheet'
 import type { Place } from '../../types'
-import { place } from '../fixtures'
+import { makePlace } from '../fixtures'
 
 afterEach(cleanup)
 
@@ -21,11 +21,11 @@ beforeEach(() => {
 	)
 })
 
-const a = place('a')
+const a = makePlace('a')
 
-const b = place('b')
+const b = makePlace('b')
 
-const c = place('c')
+const c = makePlace('c')
 
 /** Which region holds each place. */
 const regionByItem = new Map([

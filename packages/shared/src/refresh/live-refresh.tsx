@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { checkBuild } from './build'
+import { checkBuild } from './build-check'
 import { useBuildWatch } from './use-build-watch'
 
 /** How often a live page renders again. The server caches of live data hold one minute. */

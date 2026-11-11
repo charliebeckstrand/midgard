@@ -48,7 +48,7 @@ export const BIFROST_URL = url.replace(/\/+$/, '')
  *
  * @internal
  */
-export function clientIpSecret(): string | undefined {
+export function readClientIpSecret(): string | undefined {
 	const secret = process.env.CLIENT_IP_SECRET || undefined
 
 	if (!secret && process.env.NODE_ENV === 'production') {

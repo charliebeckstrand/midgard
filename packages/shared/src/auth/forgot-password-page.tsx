@@ -12,7 +12,7 @@ import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { authMessages } from './auth-messages'
-import { bifrost } from './bifrost'
+import { browserBifrost } from './bifrost'
 import { chain, email, required } from './form-validators'
 import { useServerError } from './use-server-error'
 
@@ -36,7 +36,9 @@ export function ForgotPasswordPage() {
 
 	const handleSubmit: FormSubmitHandler<ForgotPasswordValues> = async (values) => {
 		try {
-			const { response, error } = await bifrost.POST('/auth/reset-password', { body: values })
+			const { response, error } = await browserBifrost.POST('/auth/reset-password', {
+				body: values,
+			})
 
 			if (response.ok) {
 				setSent(true)

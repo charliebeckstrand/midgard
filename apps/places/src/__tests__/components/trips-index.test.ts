@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TripsIndex } from '../../components/trips-index'
-import { place, trip } from '../fixtures'
+import { makePlace, makeTrip } from '../fixtures'
 
 afterEach(cleanup)
 
@@ -43,7 +43,7 @@ beforeEach(() => {
 	)
 })
 
-const lisbon = trip('lisbon', { name: 'Lisbon' })
+const lisbon = makeTrip('lisbon', { name: 'Lisbon' })
 
 describe('TripsIndex', () => {
 	// A tap is a click and not a hover, so the places of a trip must open on a
@@ -55,7 +55,7 @@ describe('TripsIndex', () => {
 				onOpenChange: vi.fn(),
 				trips: [lisbon],
 				regionByTrip: new Map([['lisbon', 'Portugal']]),
-				placesByTrip: new Map([['lisbon', [place('a', { name: 'Time Out Market' })]]]),
+				placesByTrip: new Map([['lisbon', [makePlace('a', { name: 'Time Out Market' })]]]),
 				onOpen: vi.fn(),
 				actions: { onAddPlace: vi.fn(), onEditTrip: vi.fn(), onDeleteTrip: vi.fn() },
 			}),

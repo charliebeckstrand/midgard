@@ -12,9 +12,9 @@ import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { authMessages } from './auth-messages'
-import { bifrost } from './bifrost'
+import { browserBifrost } from './bifrost'
 import { newPasswordRules } from './form-validators'
-import { linkToken } from './link-token'
+import { readLinkToken } from './link-token'
 import { useLeaving } from './use-leaving'
 import { useServerError } from './use-server-error'
 
@@ -43,8 +43,8 @@ export function ResetPasswordPage() {
 
 	const handleSubmit: FormSubmitHandler<ResetPasswordValues> = async (values) => {
 		try {
-			const { response, error } = await bifrost.POST('/auth/reset-password/confirm', {
-				body: { token: linkToken(), password: values.password },
+			const { response, error } = await browserBifrost.POST('/auth/reset-password/confirm', {
+				body: { token: readLinkToken(), password: values.password },
 			})
 
 			// The form stays disabled until the login page replaces it.

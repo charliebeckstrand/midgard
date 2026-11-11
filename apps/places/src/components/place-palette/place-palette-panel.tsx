@@ -13,11 +13,7 @@ import {
 } from 'ui/command-palette'
 import type { ContextMenuEntry } from 'ui/context-menu'
 import { useTimeout } from 'ui/hooks'
-import {
-	matchCommands,
-	type PaletteCommand,
-	type PaletteSource,
-} from '../../utilities/places-palette'
+import { matchCommands, type PaletteCommand, type PaletteSource } from '../../utilities/palette'
 import { PlaceMenu } from '../place-menu'
 
 /**

@@ -1,7 +1,7 @@
 import { MutationObserver, type MutationOptions } from '@tanstack/react-query'
 import { describe, expect, it, vi } from 'vitest'
 import { RequestError } from '../auth/bifrost'
-import { createAppQueryClient, latestError } from '../providers/query-client'
+import { createQueryClient, getLatestError } from '../providers/query-client'
 
 // Builds the client of an app, with a spy for the toasts and a spy for the page location.
 // The title of a failure toast can change, as it does when the reader picks another locale.
@@ -14,7 +14,7 @@ function setup() {
 
 	vi.stubGlobal('window', { location: { assign } })
 
-	const client = createAppQueryClient({ toast, failureTitle: () => title })
+	const client = createQueryClient({ toast, failureTitle: () => title })
 
 	// Runs one mutation to its end, and keeps its failure off the test.
 	const run = (options: MutationOptions<unknown, Error, void>) =>
@@ -27,7 +27,7 @@ function setup() {
 	return { client, toast, assign, run, setTitle }
 }
 
-describe('createAppQueryClient', () => {
+describe('createQueryClient', () => {
 	it('shows the error of a failed mutation in a toast', async () => {
 		const { toast, assign, run } = setup()
 
@@ -127,7 +127,7 @@ describe('createAppQueryClient', () => {
 	})
 })
 
-describe('latestError', () => {
+describe('getLatestError', () => {
 	const failed = (message: string, submittedAt: number) => ({
 		error: new Error(message),
 		submittedAt,
@@ -136,18 +136,18 @@ describe('latestError', () => {
 	const idle = { error: null, submittedAt: 0 }
 
 	it('is null when no mutation ran', () => {
-		expect(latestError(idle, idle)).toBeNull()
+		expect(getLatestError(idle, idle)).toBeNull()
 	})
 
 	it('is the error of the mutation that ran last', () => {
-		expect(latestError(failed('first', 1), failed('second', 2))?.message).toBe('second')
+		expect(getLatestError(failed('first', 1), failed('second', 2))?.message).toBe('second')
 	})
 
 	it('clears when a later mutation succeeds', () => {
-		expect(latestError(failed('old', 1), { error: null, submittedAt: 2 })).toBeNull()
+		expect(getLatestError(failed('old', 1), { error: null, submittedAt: 2 })).toBeNull()
 	})
 
 	it('keeps an error that is later than an idle mutation', () => {
-		expect(latestError(idle, failed('only', 5))?.message).toBe('only')
+		expect(getLatestError(idle, failed('only', 5))?.message).toBe('only')
 	})
 })

@@ -1,5 +1,5 @@
 import type { Schema } from 'auth'
-import { bifrost, unwrap } from 'shared/auth'
+import { browserBifrost, unwrap } from 'shared/auth'
 
 /**
  * The requests that the security page sends from the client. Each goes to a
@@ -16,14 +16,14 @@ export type Ban = Schema<'Ban'>
 
 /** The newest threats. */
 export async function fetchThreats(signal?: AbortSignal): Promise<Threat[]> {
-	const { data } = await unwrap(bifrost.GET('/api/security/threats', { signal }))
+	const { data } = await unwrap(browserBifrost.GET('/api/security/threats', { signal }))
 
 	return data
 }
 
 /** The bans in force. */
 export async function fetchBans(signal?: AbortSignal): Promise<Ban[]> {
-	const { data } = await unwrap(bifrost.GET('/api/security/bans', { signal }))
+	const { data } = await unwrap(browserBifrost.GET('/api/security/bans', { signal }))
 
 	return data
 }
@@ -31,7 +31,7 @@ export async function fetchBans(signal?: AbortSignal): Promise<Ban[]> {
 /** Marks a threat as handled, or opens it again, and returns the changed threat. */
 export async function resolveThreat(id: string, resolved: boolean): Promise<Threat> {
 	return unwrap(
-		bifrost.PATCH('/api/security/threats/{id}', {
+		browserBifrost.PATCH('/api/security/threats/{id}', {
 			params: { path: { id } },
 			body: { resolved },
 		}),
@@ -40,5 +40,5 @@ export async function resolveThreat(id: string, resolved: boolean): Promise<Thre
 
 /** Removes the ban on one address. */
 export async function removeBan(ip: string): Promise<void> {
-	await unwrap(bifrost.DELETE('/api/security/bans/{ip}', { params: { path: { ip } } }))
+	await unwrap(browserBifrost.DELETE('/api/security/bans/{ip}', { params: { path: { ip } } }))
 }

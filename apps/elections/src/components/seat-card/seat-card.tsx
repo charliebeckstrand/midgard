@@ -7,8 +7,8 @@ import { Odometer } from 'ui/odometer'
 import { HeaderActions, HeaderActionsSlot } from 'ui/primitives/header-actions'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
-import type { Contest } from '../../elections/registry'
 import type { PartySeats } from '../../types'
+import type { Contest } from '../../utilities/registry'
 import { seatGroups } from '../../utilities/results'
 
 /** Props for {@link SeatCard}. */

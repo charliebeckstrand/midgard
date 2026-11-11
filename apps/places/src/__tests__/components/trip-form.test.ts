@@ -9,8 +9,8 @@ import {
 	tripValidators,
 	tripValues,
 } from '../../components/place-form-drawer/trip-form'
-import { fromDay } from '../../utilities/places-filter'
-import { photo, trip } from '../fixtures'
+import { fromDay } from '../../utilities/filter'
+import { makePhoto, makeTrip } from '../fixtures'
 
 const lisbon: AddressSuggestion = {
 	id: 'R1:city',
@@ -139,10 +139,10 @@ describe('toTripDraft', () => {
 	})
 
 	it('keeps the parts on record while an edit keeps its own match', () => {
-		const base = trip('t1', {
+		const base = makeTrip('t1', {
 			city: 'Lisboa',
 			country: 'Portugal',
-			photos: [photo('users/u1/a.jpg')],
+			photos: [makePhoto('users/u1/a.jpg')],
 		})
 
 		const values = tripValues({ trip: base })

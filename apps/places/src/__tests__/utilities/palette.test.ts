@@ -6,7 +6,7 @@ import {
 	matchCommands,
 	type PaletteCommand,
 	type PaletteSource,
-} from '../../utilities/places-palette'
+} from '../../utilities/palette'
 
 function command(label: string, fields: Partial<PaletteCommand> = {}): PaletteCommand {
 	return { id: label, label, icon: createElement('span'), run: () => {}, ...fields }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { checkBuild, readDocumentBuild } from './build'
+import { checkBuild, readDocumentBuild } from './build-check'
 import { useNewBuild } from './use-new-build'
 
 /** How often the watch reads the build of the server. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { isLocked, kickedOff, mergePicks, weekClosed } from '../utilities/locks'
-import { game, team } from './fixtures'
+import { hasKickedOff, isLocked, isWeekClosed, mergePicks } from '../utilities/locks'
+import { makeGame, makeTeam } from './fixtures'
 
 const KICKOFF = Date.parse('2026-09-10T00:20Z')
 
@@ -8,9 +8,9 @@ const before = KICKOFF - 1
 
 const after = KICKOFF + 1
 
-const open = game({ id: 'g1', kickoff: '2026-09-10T00:20Z' })
+const open = makeGame({ id: 'g1', kickoff: '2026-09-10T00:20Z' })
 
-const later = game({ id: 'g2', kickoff: '2026-09-14T17:00Z' })
+const later = makeGame({ id: 'g2', kickoff: '2026-09-14T17:00Z' })
 
 describe('isLocked', () => {
 	it('locks a game at its kickoff, whatever the cached state says', () => {
@@ -20,23 +20,23 @@ describe('isLocked', () => {
 	})
 
 	it('locks a game that is in play', () => {
-		expect(isLocked(game({ state: 'live', kickoff: '2099-01-01T00:00Z' }), before)).toBe(true)
+		expect(isLocked(makeGame({ state: 'live', kickoff: '2099-01-01T00:00Z' }), before)).toBe(true)
 	})
 })
 
-describe('kickedOff', () => {
+describe('hasKickedOff', () => {
 	it('holds from the first kickoff of the week', () => {
-		expect(kickedOff([open, later], before)).toBe(false)
+		expect(hasKickedOff([open, later], before)).toBe(false)
 
-		expect(kickedOff([open, later], after)).toBe(true)
+		expect(hasKickedOff([open, later], after)).toBe(true)
 	})
 })
 
-describe('weekClosed', () => {
+describe('isWeekClosed', () => {
 	it('holds once every game of the week is locked', () => {
-		expect(weekClosed([open, later], after)).toBe(false)
+		expect(isWeekClosed([open, later], after)).toBe(false)
 
-		expect(weekClosed([open, later], Date.parse(later.kickoff))).toBe(true)
+		expect(isWeekClosed([open, later], Date.parse(later.kickoff))).toBe(true)
 	})
 })
 
@@ -56,7 +56,7 @@ describe('mergePicks', () => {
 	})
 
 	it('keeps the saved line of an open pick whose team did not change', () => {
-		const moved = game({ id: 'g1', spread: { favorite: home, points: 3 } })
+		const moved = makeGame({ id: 'g1', spread: { favorite: home, points: 3 } })
 
 		const stored = { g1: { team: away, line: 7 } }
 
@@ -72,7 +72,7 @@ describe('mergePicks', () => {
 	})
 
 	it('saves the line of the picked team now', () => {
-		const lined = game({ id: 'g1', spread: { favorite: home, points: 3.5 } })
+		const lined = makeGame({ id: 'g1', spread: { favorite: home, points: 3.5 } })
 
 		expect(mergePicks([lined], {}, { g1: away }, before)).toEqual({
 			picks: { g1: { team: away, line: 3.5 } },
@@ -90,7 +90,7 @@ describe('mergePicks', () => {
 	})
 
 	it('refuses a team that does not play in the game', () => {
-		const other = team({ id: '99' })
+		const other = makeTeam({ id: '99' })
 
 		expect(mergePicks([open], {}, { g1: other.id }, before)).toEqual({
 			error: 'Team 99 does not play in game g1.',

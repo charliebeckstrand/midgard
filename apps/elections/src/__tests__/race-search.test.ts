@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { type Election, findContest, findElection } from '../elections/registry'
 import { readNationalRace } from '../server/civic-race'
 import { electionsSearchGroups, SEARCH_LIMIT, searchGroups } from '../utilities/race-search'
+import { type Election, findContest, findElection } from '../utilities/registry'
 import { type OfficeRaces, readEntries } from '../utilities/results'
 import governors from './fixtures/governors.json'
 import house from './fixtures/house.json'

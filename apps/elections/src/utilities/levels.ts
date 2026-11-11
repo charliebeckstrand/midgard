@@ -1,4 +1,4 @@
-import type { Election, ElectionStatus } from '../elections/registry'
+import type { Election, ElectionStatus } from './registry'
 
 /**
  * The pages of a level: every election, the elections of a year, and the

@@ -2,7 +2,7 @@ import { CalendarCog, CalendarPlus, MapPinPlus, Pencil, Trash } from 'lucide-rea
 import type { ContextMenuEntry } from 'ui/context-menu'
 import { DateTime } from 'ui/date-time'
 import type { Place, Trip, Visit } from '../../types'
-import { DAY_FORMAT } from '../../utilities/places-filter'
+import { DAY_FORMAT } from '../../utilities/filter'
 
 /** What the menu of a place does. The caller opens the panels and asks for the confirmations. */
 export type PlaceActions = {

@@ -18,8 +18,8 @@ import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { flags } from '../../flags'
 import {
-	useAddPlace,
-	useAddTrip,
+	useCreatePlace,
+	useCreateTrip,
 	useDeletePlace,
 	useDeleteTrip,
 	useDeleteVisit,
@@ -31,17 +31,18 @@ import {
 	useVisits,
 } from '../../queries/places-queries'
 import type { Located, MapRecord, Place, RecordKind, Trip, Visit, Visits } from '../../types'
-import { atlasBounded, atlasNames, atlasRegions } from '../../utilities/places-atlas'
-import { DAY_FORMAT, filterPlaces, filterTrips, showsKind } from '../../utilities/places-filter'
-import { groupByRegion, regionName } from '../../utilities/places-geography'
-import type { PaletteSource } from '../../utilities/places-palette'
-import { placesByTrip } from '../../utilities/places-trips'
-import { NOTHING_SELECTED, type PlaceSelection, selectedIds } from '../../utilities/places-url'
+import { atlasBounded, atlasNames, atlasRegions } from '../../utilities/atlas'
+import { DAY_FORMAT, filterPlaces, filterTrips, showsKind } from '../../utilities/filter'
+import { groupByRegion, regionName } from '../../utilities/geography'
+import type { PaletteSource } from '../../utilities/palette'
+import { placesByTrip } from '../../utilities/trips'
+import { NOTHING_SELECTED, type PlaceSelection, selectedIds } from '../../utilities/url'
 import {
 	buildRegions,
 	COUNTRY_SNAP_KM,
 	drillInto,
 	getCountry,
+	getPlaceView,
 	getState,
 	groupTrail,
 	initialView,
@@ -52,12 +53,11 @@ import {
 	regionsHolding,
 	viewAtlas,
 	viewCrumbs,
-	viewFor,
 	viewKey,
 	viewMark,
 	viewRegion,
 	viewUp,
-} from '../../utilities/places-view'
+} from '../../utilities/view'
 import { PlaceFilters } from '../place-filters'
 import type { PlaceFormTarget, TripFormTarget } from '../place-form-drawer'
 import type { PlaceActions, TripActions, VisitActions } from '../place-menu'
@@ -74,7 +74,7 @@ import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
 import { PlacesMap } from '../places-map'
 import { UserMenu } from '../user-menu'
 import { LazyPanel } from './lazy-panel'
-import { usePlaceLocation } from './use-place-location'
+import { useUrlState } from './use-url-state'
 
 /**
  * The code of the indexes, of the form drawers, and of the summary drawers,
@@ -763,7 +763,7 @@ export function PlacesApp({
 
 	const { data: trips } = useTrips(initialTrips)
 
-	const addPlace = useAddPlace()
+	const addPlace = useCreatePlace()
 
 	const savePlace = useSavePlace()
 
@@ -771,7 +771,7 @@ export function PlacesApp({
 
 	const deleteVisit = useDeleteVisit()
 
-	const addTrip = useAddTrip()
+	const addTrip = useCreateTrip()
 
 	const saveTrip = useSaveTrip()
 
@@ -799,7 +799,7 @@ export function PlacesApp({
 		openAt,
 		toHref,
 		setAdding,
-	} = usePlaceLocation()
+	} = useUrlState()
 
 	const { formTarget, tripTarget, formKey, tripKey, setForm, setTripForm, closeForms } =
 		useFormTargets(adding, setAdding)
@@ -1032,12 +1032,12 @@ export function PlacesApp({
 	// history entry standing on a map the reader never saw, and the second write
 	// would drop the first.
 	const openPlace = useCallback(
-		(place: Place) => openAt(viewFor(groupings.states, place), only('places', place)),
+		(place: Place) => openAt(getPlaceView(groupings.states, place), only('places', place)),
 		[openAt, groupings.states],
 	)
 
 	const openTrip = useCallback(
-		(trip: Trip) => openAt(viewFor(groupings.states, trip), only('trips', trip)),
+		(trip: Trip) => openAt(getPlaceView(groupings.states, trip), only('trips', trip)),
 		[openAt, groupings.states],
 	)
 
@@ -1050,7 +1050,7 @@ export function PlacesApp({
 	const tripLink = useMemo<TripLink>(
 		() => ({
 			trips: tripsById,
-			href: (trip) => toHref(viewFor(groupings.states, trip), only('trips', trip)),
+			href: (trip) => toHref(getPlaceView(groupings.states, trip), only('trips', trip)),
 			open: openTrip,
 		}),
 		[tripsById, toHref, groupings.states, openTrip],

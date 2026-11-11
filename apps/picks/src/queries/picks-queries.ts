@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type Seed, seededQuery } from 'shared/queries'
-import { deletePicks, listPicks, savePicks } from '../api/predictions-api'
+import { deletePicks, fetchPicks, savePicks } from '../api/picks-api'
 import { fetchWeekGames } from '../api/scoreboard-api'
 import type { SeasonPicks, TeamPicks } from '../types'
 
@@ -20,7 +20,7 @@ export const picksKeys = {
 export function usePicks(season: number, initial: Seed<SeasonPicks>) {
 	return useQuery({
 		queryKey: picksKeys.picks(season),
-		queryFn: () => listPicks(season),
+		queryFn: () => fetchPicks(season),
 		...seededQuery(initial),
 	})
 }

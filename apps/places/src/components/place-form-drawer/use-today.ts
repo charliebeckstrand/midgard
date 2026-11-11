@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useSyncExternalStore } from 'react'
-import { fromDay, toDay } from '../../utilities/places-filter'
+import { fromDay, toDay } from '../../utilities/filter'
 
 /** The day does not change in a way that a render must follow, so nothing subscribes. */
 const subscribe = () => () => {}

@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ElectionDrawer } from '@/components/election-drawer'
-import { findElection } from '@/elections/registry'
-import { drawerSeed, type SearchParams } from '@/server/drawer'
+import { getDrawerSeed, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readSection, type SectionParams } from '@/server/params'
-import { electionResults } from '@/server/results'
+import { getElectionResults } from '@/server/results'
+import { findElection } from '@/utilities/registry'
 import { pageTitle } from '@/utilities/trail'
 
 type Params = { params: Promise<SectionParams>; searchParams: SearchParams }
@@ -47,7 +47,7 @@ export default async function SectionPage({ params, searchParams }: Params) {
 
 	const { election } = section
 
-	const all = await electionResults(election)
+	const all = await getElectionResults(election)
 
 	const entries = all.flatMap((result) => result.entries)
 
@@ -58,7 +58,7 @@ export default async function SectionPage({ params, searchParams }: Params) {
 
 	if (own.length === 0) notFound()
 
-	const seed = await drawerSeed(election, all, searchParams)
+	const seed = await getDrawerSeed(election, all, searchParams)
 
 	return <ElectionDrawer election={election} seed={seed} />
 }

@@ -1,5 +1,5 @@
 import type { Game, Pick, TeamPicks, WeekPicks } from '../types'
-import { pickLine } from './grade'
+import { getTeamLine } from './grade'
 
 /**
  * A game locks at its kickoff: from then on its pick does not change. The
@@ -14,12 +14,12 @@ export function isLocked(game: Game, now: number): boolean {
  * Whether any game of `games` has kicked off. A prediction of a week deletes
  * only before its first kickoff.
  */
-export function kickedOff(games: Game[], now: number): boolean {
+export function hasKickedOff(games: Game[], now: number): boolean {
 	return games.some((game) => isLocked(game, now))
 }
 
 /** Whether every game of `games` is locked, so the week takes no more picks. */
-export function weekClosed(games: Game[], now: number): boolean {
+export function isWeekClosed(games: Game[], now: number): boolean {
 	return games.every((game) => isLocked(game, now))
 }
 
@@ -39,7 +39,7 @@ function mergedPick(
 
 	if (team === undefined) return undefined
 
-	return stored?.team === team ? stored : { team, line: pickLine(game, team) }
+	return stored?.team === team ? stored : { team, line: getTeamLine(game, team) }
 }
 
 /**

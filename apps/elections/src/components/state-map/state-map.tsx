@@ -1,10 +1,10 @@
 'use client'
 
-import type { Contest, Election } from '../../elections/registry'
-import type { UsState } from '../../elections/us-states'
 import { useDrawerGo } from '../../hooks/use-drawer'
 import type { CountyResult } from '../../types'
+import type { Contest, Election } from '../../utilities/registry'
 import type { RaceEntry } from '../../utilities/results'
+import type { UsState } from '../../utilities/us-states'
 import { CountyMap } from '../race-detail/county-map'
 
 /** Props for {@link StateMap}. */
@@ -14,7 +14,7 @@ export type StateMapProps = {
 	state: UsState
 	/** The races of the office in the state. */
 	entries: readonly RaceEntry[]
-	/** The counties of the map, from `stateOffices`. */
+	/** The counties of the map, from `getStateOffices`. */
 	counties: readonly CountyResult[]
 	/** The ratio of the width to the height of the state, from `countyAspect`. */
 	aspect: number

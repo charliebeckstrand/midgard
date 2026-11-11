@@ -7,12 +7,12 @@
 export const PREDICT_PARAM = 'predict'
 
 /** The value of the parameter for `week`. */
-export function predictValue(week: number): string {
+export function formatPredictValue(week: number): string {
 	return `w${week}`
 }
 
 /** The week that a value of the parameter names, or `null` for a value that names none. */
-export function readPredictValue(value: string | null): number | null {
+export function parsePredictValue(value: string | null): number | null {
 	const match = value === null ? null : /^w([1-9]\d?)$/.exec(value)
 
 	return match?.[1] === undefined ? null : Number(match[1])

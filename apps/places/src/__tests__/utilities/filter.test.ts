@@ -8,9 +8,9 @@ import {
 	type PlaceFilterValue,
 	showsKind,
 	toDay,
-} from '../../utilities/places-filter'
-import { placesByTrip } from '../../utilities/places-trips'
-import { place, placeOn, trip } from '../fixtures'
+} from '../../utilities/filter'
+import { placesByTrip } from '../../utilities/trips'
+import { makePlace, makePlaceOn, makeTrip } from '../fixtures'
 
 /** A committed span, in the shape the relative DatePicker writes. */
 function span(from: string, to: string) {
@@ -55,9 +55,9 @@ describe('hasActiveFilter', () => {
 
 describe('filterPlaces', () => {
 	const PLACES: Place[] = [
-		placeOn('food', '2026-08-15', { category: 'food', country: 'United States' }),
-		placeOn('nature', '2026-01-02', { category: 'nature', country: 'France' }),
-		placeOn('nowhere', '2025-06-30', { category: 'other', country: undefined }),
+		makePlaceOn('food', '2026-08-15', { category: 'food', country: 'United States' }),
+		makePlaceOn('nature', '2026-01-02', { category: 'nature', country: 'France' }),
+		makePlaceOn('nowhere', '2025-06-30', { category: 'other', country: undefined }),
 	]
 
 	function ids(filter: PlaceFilterValue): string[] {
@@ -100,7 +100,7 @@ describe('filterPlaces', () => {
 	})
 
 	it('admits a place where any of its visits falls inside a span', () => {
-		const twice = place('twice', {
+		const twice = makePlace('twice', {
 			visits: [
 				{ id: 'b', visitedAt: '2026-08-15', rating: 4, photos: [] },
 				{ id: 'a', visitedAt: '2025-03-01', rating: 2, photos: [] },
@@ -125,15 +125,15 @@ describe('filterPlaces', () => {
 })
 
 describe('filterTrips', () => {
-	const spring = trip('spring', { startsOn: '2026-04-01', endsOn: '2026-04-05' })
+	const spring = makeTrip('spring', { startsOn: '2026-04-01', endsOn: '2026-04-05' })
 
-	const fall = trip('fall', { startsOn: '2026-09-25', endsOn: '2026-10-02' })
+	const fall = makeTrip('fall', { startsOn: '2026-09-25', endsOn: '2026-10-02' })
 
 	const trips = [spring, fall]
 
 	/** A place of `category`, with one visit on the first day of `held`. */
 	function onTrip(id: string, held: Trip, category: Place['category']): Place {
-		return place(id, {
+		return makePlace(id, {
 			category,
 			visits: [
 				{ id: `${id}-visit`, visitedAt: held.startsOn, tripId: held.id, rating: 4, photos: [] },

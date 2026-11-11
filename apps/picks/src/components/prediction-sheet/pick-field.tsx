@@ -7,7 +7,7 @@ import { Message } from 'ui/fieldset'
 import { useFormValue } from 'ui/form'
 import { Columns } from 'ui/structure/columns'
 import type { Game } from '../../types'
-import { formatLine, pickLine } from '../../utilities/grade'
+import { formatLine, getTeamLine } from '../../utilities/grade'
 import { isLocked, isOff } from '../../utilities/locks'
 import { GameStatus } from '../game-card'
 import { LinePending, PendingDot } from '../pick-line'
@@ -37,7 +37,7 @@ export function PickField({ game }: { game: Game }) {
 					{[game.away, game.home].map((team) => {
 						const picked = value === team.id
 
-						const line = pickLine(game, team.id)
+						const line = getTeamLine(game, team.id)
 
 						const side = (
 							<Button

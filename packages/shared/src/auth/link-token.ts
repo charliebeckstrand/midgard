@@ -6,6 +6,6 @@
  * Call it in an event handler only. A prerender has no query, so a page that
  * reads the query in the render cannot prerender.
  */
-export function linkToken(): string {
+export function readLinkToken(): string {
 	return new URLSearchParams(window.location.search).get('token') ?? ''
 }

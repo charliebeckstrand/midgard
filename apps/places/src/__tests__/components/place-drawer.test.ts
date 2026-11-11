@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { drawerItem, drawerList, trailSteps } from '../../components/summary-drawer'
 import type { Place } from '../../types'
-import { PANEL_START, type PlacePanelStep } from '../../utilities/places-url'
-import { place } from '../fixtures'
+import { PANEL_START, type PlacePanelStep } from '../../utilities/url'
+import { makePlace } from '../fixtures'
 
-const a = place('a')
+const a = makePlace('a')
 
-const b = place('b')
+const b = makePlace('b')
 
-const c = place('c')
+const c = makePlace('c')
 
 /** Every place of the region that the trail ends on. */
 const region: readonly Place[] = [a, b, c]

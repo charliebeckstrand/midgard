@@ -494,6 +494,10 @@
 				"packages/ui/src/modules/**",
 				"packages/ui/src/primitives/**",
 				"packages/ui/src/providers/**",
+				"packages/shared/src/**",
+				"packages/auth/src/**",
+				"apps/*/app/**",
+				"apps/*/src/**",
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**"
 			],
@@ -654,6 +658,8 @@
 		{
 			"includes": [
 				"packages/ui/src/**",
+				"packages/shared/src/**",
+				"packages/auth/src/**",
 				"apps/*/app/**",
 				"apps/*/src/**",
 				"!packages/ui/src/recipes/**",

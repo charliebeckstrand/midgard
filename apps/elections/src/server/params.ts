@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
-import { type Contest, type Election, findContest, findElection } from '../elections/registry'
-import { stateOfSlug, type UsState } from '../elections/us-states'
+import { type Contest, type Election, findContest, findElection } from '../utilities/registry'
+import { findStateBySlug, type UsState } from '../utilities/us-states'
 
 /** The params of a route of an election. */
 export type ElectionParams = { year: string; country: string; election: string }
@@ -36,7 +36,7 @@ export async function readSection(params: Promise<SectionParams>): Promise<Secti
 
 	if (contest !== undefined) return { election, kind: 'office', contest }
 
-	const state = stateOfSlug(section)
+	const state = findStateBySlug(section)
 
 	if (state === undefined) notFound()
 

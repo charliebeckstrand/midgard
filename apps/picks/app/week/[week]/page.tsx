@@ -3,14 +3,14 @@ import { notFound } from 'next/navigation'
 import { LiveRefresh } from 'shared/refresh'
 import { Container } from 'ui/structure/container'
 import { Text } from 'ui/text'
-import { GameCard, GameGrid } from '@/components/game-card'
+import { GameCard, GameCardGrid } from '@/components/game-card'
 import { PageFrame } from '@/components/page-frame'
 import { PicksHeader } from '@/components/picks-header'
 import { TallyTotal } from '@/components/tally-total'
-import { getSeasonPicks } from '@/server/mimir'
+import { getPicks } from '@/server/mimir'
 import { getSchedule, getWeekGames } from '@/server/scoreboard'
 import { tallyWeek } from '@/utilities/grade'
-import { weekClosed } from '@/utilities/locks'
+import { isWeekClosed } from '@/utilities/locks'
 
 /** The page reads the session and the picks of the user before it renders. */
 export const instant = false
@@ -31,12 +31,12 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
 
 	const [games, picks] = await Promise.all([
 		getWeekGames(schedule.season, week.number),
-		getSeasonPicks(schedule.season),
+		getPicks(schedule.season),
 	])
 
 	const weekPicks = picks[week.number] ?? {}
 
-	const skipped = Object.keys(weekPicks).length === 0 && weekClosed(games, Date.now())
+	const skipped = Object.keys(weekPicks).length === 0 && isWeekClosed(games, Date.now())
 
 	return (
 		<PageFrame header={<PicksHeader user={user} week={week.label} />}>
@@ -55,11 +55,11 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
 							</Text>
 						) : null}
 
-						<GameGrid>
+						<GameCardGrid>
 							{games.map((game) => (
 								<GameCard key={game.id} game={game} pick={weekPicks[game.id]} />
 							))}
-						</GameGrid>
+						</GameCardGrid>
 					</>
 				)}
 			</Container>

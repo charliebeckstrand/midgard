@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { atlasBounded, atlasNames, atlasRegions } from '../../utilities/places-atlas'
-import { regionName } from '../../utilities/places-geography'
+import { atlasBounded, atlasNames, atlasRegions } from '../../utilities/atlas'
+import { regionName } from '../../utilities/geography'
 
 describe('places atlas', () => {
 	// The palette lists the names off the topology, and the map draws the decoded

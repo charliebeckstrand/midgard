@@ -3,9 +3,9 @@ import { Icon } from 'ui/icon'
 import { Swatch } from 'ui/swatch'
 import { CATEGORY_BY_VALUE, categoryLabel, RECORD_KIND_META } from '../../constants'
 import type { FormatNumber, MapRecord, Place, Trip } from '../../types'
-import type { PaletteCommand, PaletteSource } from '../../utilities/places-palette'
-import { isTrip, placeCount, sortTrips } from '../../utilities/places-trips'
-import { type PlaceView, UNITED_STATES } from '../../utilities/places-view'
+import type { PaletteCommand, PaletteSource } from '../../utilities/palette'
+import { isTrip, placeCount, sortTrips } from '../../utilities/trips'
+import { type PlaceView, UNITED_STATES } from '../../utilities/view'
 // The rows alone, not the barrel: the barrel also holds `PlaceMenu`, and the
 // bundle then keeps the menu code of ui on the home page.
 import {

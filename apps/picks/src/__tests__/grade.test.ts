@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import {
 	formatLine,
+	getTeamLine,
 	gradePick,
-	pickLine,
 	pickPoints,
 	scoredLine,
 	tallyWeek,
 } from '../utilities/grade'
-import { game, team } from './fixtures'
+import { makeGame, makeTeam } from './fixtures'
 
-const final = game({
+const final = makeGame({
 	id: 'g1',
 	state: 'final',
 	spread: { favorite: '12', points: 7 },
-	away: team({ id: '2', score: 17 }),
-	home: team({ id: '12', score: 24, winner: true }),
+	away: makeTeam({ id: '2', score: 17 }),
+	home: makeTeam({ id: '12', score: 24, winner: true }),
 })
 
 describe('gradePick', () => {
@@ -27,17 +27,17 @@ describe('gradePick', () => {
 	})
 
 	it('grades every pick on a tie as a tie', () => {
-		const tie = game({
+		const tie = makeGame({
 			state: 'final',
-			away: team({ id: '2', score: 20 }),
-			home: team({ id: '12', score: 20 }),
+			away: makeTeam({ id: '2', score: 20 }),
+			home: makeTeam({ id: '12', score: 20 }),
 		})
 
 		expect(gradePick(tie, { team: '12', line: 0 })).toBe('tie')
 	})
 
 	it('gives no grade before the game is over', () => {
-		expect(gradePick(game({ state: 'live' }), { team: '12', line: 0 })).toBeNull()
+		expect(gradePick(makeGame({ state: 'live' }), { team: '12', line: 0 })).toBeNull()
 	})
 
 	it('gives no grade without a pick', () => {
@@ -45,15 +45,15 @@ describe('gradePick', () => {
 	})
 })
 
-describe('pickLine', () => {
+describe('getTeamLine', () => {
 	it('signs the line negative for the favorite and positive for the underdog', () => {
-		expect(pickLine(final, '12')).toBe(-7)
+		expect(getTeamLine(final, '12')).toBe(-7)
 
-		expect(pickLine(final, '2')).toBe(7)
+		expect(getTeamLine(final, '2')).toBe(7)
 	})
 
 	it('is null without a line', () => {
-		expect(pickLine(game(), '12')).toBeNull()
+		expect(getTeamLine(makeGame(), '12')).toBeNull()
 	})
 })
 
@@ -125,6 +125,6 @@ describe('scoredLine', () => {
 	})
 
 	it('is null while no line is known', () => {
-		expect(scoredLine(game(), { team: '2', line: null })).toBeNull()
+		expect(scoredLine(makeGame(), { team: '2', line: null })).toBeNull()
 	})
 })

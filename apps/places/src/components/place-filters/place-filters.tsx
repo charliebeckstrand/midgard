@@ -19,7 +19,7 @@ import {
 	hasActiveFilter,
 	type PlaceFilterValue,
 	type PlaceVisitFilter,
-} from '../../utilities/places-filter'
+} from '../../utilities/filter'
 import { CategoryPicker } from '../category-picker'
 
 /**

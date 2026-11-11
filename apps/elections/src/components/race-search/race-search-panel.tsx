@@ -11,7 +11,6 @@ import {
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
 import { Swatch } from 'ui/swatch'
-import type { Election } from '../../elections/registry'
 import { useDrawerGo } from '../../hooks/use-drawer'
 import {
 	type ElectionRaces,
@@ -19,6 +18,7 @@ import {
 	type SearchRow,
 	searchGroups,
 } from '../../utilities/race-search'
+import type { Election } from '../../utilities/registry'
 import { useElectionRaces } from '../election-drawer/context'
 
 /** The content of a row: the color of the leader of a race, the name, and the description. */

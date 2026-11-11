@@ -3,11 +3,11 @@
 import { MapPlat } from 'ui/map'
 import { Stack } from 'ui/structure/stack'
 import statesAtlas from 'us-atlas/states-albers-10m.json'
-import type { Contest, Election } from '../../elections/registry'
-import { stateOfFips } from '../../elections/us-states'
 import { useDrawerStep } from '../../hooks/use-drawer'
+import type { Contest, Election } from '../../utilities/registry'
 import { type RaceEntry, WINNER_CATEGORIES } from '../../utilities/results'
 import type { OfficeItem } from '../../utilities/trail'
+import { findStateByFips } from '../../utilities/us-states'
 import { ClosestRaces } from '../closest-races'
 import { PageTitle } from '../page-title'
 import type { StateRow } from './state-rows'
@@ -64,7 +64,7 @@ export function NationalMap({
 				regionKey="fips"
 				selectedRegion={step?.region.fips ?? null}
 				onRegionClick={(fips: string) => {
-					const state = stateOfFips(fips)
+					const state = findStateByFips(fips)
 
 					if (state !== undefined) {
 						go({ region: state, office: contest.slug, district: null, county: null })

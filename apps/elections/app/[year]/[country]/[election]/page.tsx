@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { ElectionDrawer } from '@/components/election-drawer'
-import { drawerSeed, type SearchParams } from '@/server/drawer'
+import { getDrawerSeed, type SearchParams } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
-import { electionResults } from '@/server/results'
+import { getElectionResults } from '@/server/results'
 import { pageTitle } from '@/utilities/trail'
 
 type Params = { params: Promise<ElectionParams>; searchParams: SearchParams }
@@ -20,9 +20,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function OverviewPage({ params, searchParams }: Params) {
 	const election = await readElection(params)
 
-	const results = await electionResults(election)
+	const results = await getElectionResults(election)
 
-	const seed = await drawerSeed(election, results, searchParams)
+	const seed = await getDrawerSeed(election, results, searchParams)
 
 	return <ElectionDrawer election={election} seed={seed} />
 }

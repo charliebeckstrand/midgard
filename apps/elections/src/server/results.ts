@@ -1,8 +1,8 @@
-import { type Contest, ELECTIONS, type Election } from '../elections/registry'
 import type { NationalRace } from '../types'
 import type { ElectionRaces } from '../utilities/race-search'
+import { type Contest, ELECTIONS, type Election } from '../utilities/registry'
 import { type RaceCall, type RaceEntry, readEntries } from '../utilities/results'
-import { nationalRace, race } from './races'
+import { getNationalRace, getRace } from './races'
 
 /** The results of one contest: its national race and the race of each region. */
 export type ContestResult = {
@@ -12,15 +12,15 @@ export type ContestResult = {
 }
 
 /** The results of one contest of an election. */
-export async function contestResult(contest: Contest): Promise<ContestResult> {
-	const national = await nationalRace(contest.aggregate)
+export async function getContestResult(contest: Contest): Promise<ContestResult> {
+	const national = await getNationalRace(contest.aggregate)
 
 	return { contest, national, entries: readEntries(contest, national) }
 }
 
 /** The results of every contest of an election, in the order of the registry. */
-export function electionResults(election: Election): Promise<ContestResult[]> {
-	return Promise.all(election.contests.map(contestResult))
+export function getElectionResults(election: Election): Promise<ContestResult[]> {
+	return Promise.all(election.contests.map(getContestResult))
 }
 
 /**
@@ -30,7 +30,7 @@ export function electionResults(election: Election): Promise<ContestResult[]> {
 export async function isKnownRace(id: number): Promise<boolean> {
 	const counted = ELECTIONS.filter((election) => election.status !== 'upcoming')
 
-	const results = await Promise.all(counted.map(electionResults))
+	const results = await Promise.all(counted.map(getElectionResults))
 
 	return results.flat().some((result) => result.entries.some((entry) => entry.raceId === id))
 }
@@ -44,7 +44,7 @@ export async function isKnownRace(id: number): Promise<boolean> {
  * @param results - The results of the contests of the election.
  * @param count - The most calls to give.
  */
-export async function latestCalls(
+export async function getLatestCalls(
 	results: readonly ContestResult[],
 	count: number,
 ): Promise<RaceCall[]> {
@@ -55,7 +55,7 @@ export async function latestCalls(
 
 	const calls = await Promise.all(
 		called.map(async (entry): Promise<RaceCall | null> => {
-			const read = await race(entry.raceId)
+			const read = await getRace(entry.raceId)
 
 			const winner = read.candidates.find((candidate) => candidate.winner)
 
@@ -75,14 +75,17 @@ export async function latestCalls(
  * The races of each office of each election, for the search of every
  * election. An election to come has no results, so it has no races.
  */
-export function searchedElections(elections: readonly Election[]): Promise<ElectionRaces[]> {
+export function getSearchedElections(elections: readonly Election[]): Promise<ElectionRaces[]> {
 	return Promise.all(
 		elections.map(async (election) => ({
 			election,
 			races:
 				election.status === 'upcoming'
 					? []
-					: (await electionResults(election)).map(({ contest, entries }) => ({ contest, entries })),
+					: (await getElectionResults(election)).map(({ contest, entries }) => ({
+							contest,
+							entries,
+						})),
 		})),
 	)
 }

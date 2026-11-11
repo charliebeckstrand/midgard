@@ -111,6 +111,6 @@ export function recordCount(places: number, trips: number, format: FormatNumber)
 }
 
 /** Whether a stored day falls on one of the days of a trip. */
-export function withinTrip(trip: Pick<Trip, 'startsOn' | 'endsOn'>, day: string): boolean {
+export function inTrip(trip: Pick<Trip, 'startsOn' | 'endsOn'>, day: string): boolean {
 	return day >= trip.startsOn && day <= trip.endsOn
 }

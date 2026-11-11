@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isWebAddress, isWebsite } from '../../schemas/place'
+import { isWebAddress, isWebsite } from '../../utilities/fields'
 
 describe('isWebAddress', () => {
 	it('takes http and https', () => {

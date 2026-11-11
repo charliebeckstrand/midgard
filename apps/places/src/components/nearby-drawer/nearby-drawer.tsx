@@ -5,8 +5,8 @@ import { Heading } from 'ui/heading'
 import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/structure/stack'
 import type { FormatNumber, MapRecord, Place, PlaceCategory } from '../../types'
-import { isTrip, recordCount, sortTrips } from '../../utilities/places-trips'
-import { type PlaceOrder, sortPlaces } from '../../utilities/places-visits'
+import { isTrip, recordCount, sortTrips } from '../../utilities/trips'
+import { type PlaceOrder, sortPlaces } from '../../utilities/visits'
 import {
 	type PlaceActions,
 	PlaceMenu,

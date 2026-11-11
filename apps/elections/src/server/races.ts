@@ -1,8 +1,8 @@
 import { cacheLife } from 'next/cache'
-import { stateOfKey } from '../elections/us-states'
 import type { Candidate, NationalRace, Race } from '../types'
 import { isCalled } from '../utilities/race-math'
-import { fetchRace } from './civic'
+import { findStateByKey } from '../utilities/us-states'
+import { fetchCivicRace } from './civic'
 import { readNationalRace, readRace } from './civic-race'
 import { atlasCountyNames } from './county-names'
 
@@ -27,10 +27,10 @@ function countLife(
  * House. Each refresh reads the cache, so a hundred readers cost one upstream
  * read a minute.
  */
-export async function nationalRace(id: number): Promise<NationalRace> {
+export async function getNationalRace(id: number): Promise<NationalRace> {
 	'use cache'
 
-	const race = readNationalRace(id, await fetchRace(id))
+	const race = readNationalRace(id, await fetchCivicRace(id))
 
 	countLife(race.regions)
 
@@ -38,14 +38,14 @@ export async function nationalRace(id: number): Promise<NationalRace> {
 }
 
 /** One race of a state or a district, with its counties. */
-export async function race(id: number): Promise<Race> {
+export async function getRace(id: number): Promise<Race> {
 	'use cache'
 
-	const raw = await fetchRace(id)
+	const raw = await fetchCivicRace(id)
 
 	const province = (raw as { province?: unknown } | null)?.province
 
-	const state = typeof province === 'string' ? stateOfKey(province.toLowerCase()) : undefined
+	const state = typeof province === 'string' ? findStateByKey(province.toLowerCase()) : undefined
 
 	if (state === undefined) throw new Error(`Race ${id} names no state of the US.`)
 

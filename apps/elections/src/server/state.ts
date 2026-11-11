@@ -1,8 +1,8 @@
-import type { Contest } from '../elections/registry'
-import type { UsState } from '../elections/us-states'
 import type { CountyResult } from '../types'
+import type { Contest } from '../utilities/registry'
 import { newestUpdate, partyCounties, type RaceEntry } from '../utilities/results'
-import { race } from './races'
+import type { UsState } from '../utilities/us-states'
+import { getRace } from './races'
 import type { ContestResult } from './results'
 
 /** One office of an election in one state: its races, and the counties of its map. */
@@ -26,7 +26,7 @@ export type StateOffice = {
  * state is left out. Each race of the state is read for its counties, and the
  * cache of each race holds it (see `race`).
  */
-export async function stateOffices(
+export async function getStateOffices(
 	results: readonly ContestResult[],
 	state: UsState,
 ): Promise<StateOffice[]> {
@@ -34,7 +34,7 @@ export async function stateOffices(
 		results.map(async ({ contest, entries }): Promise<StateOffice> => {
 			const own = entries.filter((entry) => entry.state.key === state.key)
 
-			const races = await Promise.all(own.map((entry) => race(entry.raceId)))
+			const races = await Promise.all(own.map((entry) => getRace(entry.raceId)))
 
 			const [only] = races
 

@@ -8,7 +8,7 @@ export type Grade = 'right' | 'wrong' | 'tie' | null
  * positive for the underdog, and zero for a pick'em. `null` while the feed
  * gives no line.
  */
-export function pickLine(game: Game, team: string): number | null {
+export function getTeamLine(game: Game, team: string): number | null {
 	if (game.spread === null) return null
 
 	return team === game.spread.favorite ? -game.spread.points : game.spread.points
@@ -20,7 +20,7 @@ export function pickLine(game: Game, team: string): number | null {
  * feed gives the closing line. `null` while no line is known.
  */
 export function scoredLine(game: Game, pick: Pick): number | null {
-	return pick.line ?? pickLine(game, pick.team)
+	return pick.line ?? getTeamLine(game, pick.team)
 }
 
 /** A signed line as it reads, such as `−3.5`, `+7`, or `PK`. */

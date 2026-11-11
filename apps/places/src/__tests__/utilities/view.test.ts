@@ -3,6 +3,7 @@ import {
 	buildRegions,
 	drillInto,
 	getCountry,
+	getPlaceView,
 	getState,
 	groupName,
 	groupTrail,
@@ -17,14 +18,13 @@ import {
 	UNITED_STATES_VIEW,
 	viewAtlas,
 	viewCrumbs,
-	viewFor,
 	viewFrame,
 	viewKey,
 	viewMark,
 	viewRegion,
 	WORLD,
-} from '../../utilities/places-view'
-import { place } from '../fixtures'
+} from '../../utilities/view'
+import { makePlace } from '../fixtures'
 
 const OREGON: PlaceView = { country: UNITED_STATES, state: 'Oregon' }
 
@@ -101,7 +101,7 @@ describe('viewMark', () => {
 })
 
 describe('getState and getCountry', () => {
-	const held = place('a', { state: 'Oregon', country: 'United States' })
+	const held = makePlace('a', { state: 'Oregon', country: 'United States' })
 
 	it('read the field each atlas falls back to', () => {
 		expect(getState(held)).toBe('Oregon')
@@ -110,9 +110,9 @@ describe('getState and getCountry', () => {
 	})
 
 	it('answer with nothing where the geocoder named neither', () => {
-		expect(getState(place('b'))).toBeUndefined()
+		expect(getState(makePlace('b'))).toBeUndefined()
 
-		expect(getCountry(place('b'))).toBeUndefined()
+		expect(getCountry(makePlace('b'))).toBeUndefined()
 	})
 })
 
@@ -171,8 +171,8 @@ describe('viewCrumbs', () => {
 describe('buildRegions', () => {
 	it('inverts a grouping to the region holding each place', () => {
 		const grouped = new Map([
-			['Oregon', [place('a')]],
-			['Nevada', [place('b'), place('c')]],
+			['Oregon', [makePlace('a')]],
+			['Nevada', [makePlace('b'), makePlace('c')]],
 		])
 
 		expect([...buildRegions(grouped)]).toEqual([
@@ -192,7 +192,7 @@ describe('stateLabel', () => {
 	// a 10m atlas that holds the point knows better than a geocoder that wrote
 	// "OR", or wrote nothing at all.
 	it('prefers the state the geometry settled', () => {
-		const held = place('lighthouse', { state: 'OR' })
+		const held = makePlace('lighthouse', { state: 'OR' })
 
 		expect(stateLabel(new Map([['lighthouse', 'Oregon']]), held)).toBe('Oregon')
 	})
@@ -201,11 +201,13 @@ describe('stateLabel', () => {
 	// country, and outside it the geocoder's subdivision is the only answer there
 	// is. Unchecked on purpose: it is a name to print, never a region to open.
 	it('falls back to the name the geocoder gave', () => {
-		expect(stateLabel(new Map(), place('louvre', { state: 'Ile-de-France' }))).toBe('Ile-de-France')
+		expect(stateLabel(new Map(), makePlace('louvre', { state: 'Ile-de-France' }))).toBe(
+			'Ile-de-France',
+		)
 	})
 
 	it('answers with the empty string where neither placed it', () => {
-		expect(stateLabel(new Map(), place('marina'))).toBe('')
+		expect(stateLabel(new Map(), makePlace('marina'))).toBe('')
 	})
 })
 
@@ -214,7 +216,7 @@ describe('knownCountry', () => {
 	// places a travel log is full of. A place the finer atlas could put in a state
 	// is in the United States, whatever the geocoder called its country.
 	it('answers with the United States for a place the states atlas placed', () => {
-		const coastal = place('lighthouse', { country: 'United States' })
+		const coastal = makePlace('lighthouse', { country: 'United States' })
 
 		expect(knownCountry(new Map([['lighthouse', 'Oregon']]))(coastal)).toBe(UNITED_STATES)
 	})
@@ -222,7 +224,7 @@ describe('knownCountry', () => {
 	// It declines rather than guessing, which is what sends the place on to the
 	// geometry and then to its own country name.
 	it('declines for a place the states atlas could not place', () => {
-		expect(knownCountry(new Map())(place('louvre', { country: 'France' }))).toBeUndefined()
+		expect(knownCountry(new Map())(makePlace('louvre', { country: 'France' }))).toBeUndefined()
 	})
 })
 
@@ -234,13 +236,13 @@ describe('groupTrail', () => {
 	])
 
 	it('answers with nothing where no region holds the group', () => {
-		expect(groupTrail(null, [place('a')], states)).toEqual([])
+		expect(groupTrail(null, [makePlace('a')], states)).toEqual([])
 	})
 
 	// The case this exists for: a summary dot on the world map that merged one
 	// town's worth of places.
 	it('adds the state where the whole group shares one', () => {
-		expect(groupTrail(UNITED_STATES, [place('a'), place('b')], states)).toEqual([
+		expect(groupTrail(UNITED_STATES, [makePlace('a'), makePlace('b')], states)).toEqual([
 			UNITED_STATES,
 			'Oregon',
 		])
@@ -248,27 +250,29 @@ describe('groupTrail', () => {
 
 	// A step it cannot name is a step that would list the wrong places.
 	it('stops at the drawn region where the group spans two states', () => {
-		expect(groupTrail(UNITED_STATES, [place('a'), place('c')], states)).toEqual([UNITED_STATES])
+		expect(groupTrail(UNITED_STATES, [makePlace('a'), makePlace('c')], states)).toEqual([
+			UNITED_STATES,
+		])
 	})
 
 	it('stops at a country this app draws no states for', () => {
-		expect(groupTrail('France', [place('louvre')], states)).toEqual(['France'])
+		expect(groupTrail('France', [makePlace('louvre')], states)).toEqual(['France'])
 	})
 
 	// Inside the United States the drawn region already is the state, so repeating
 	// it would say the same thing twice.
 	it('does not repeat the drawn region', () => {
-		expect(groupTrail('Oregon', [place('a'), place('b')], states)).toEqual(['Oregon'])
+		expect(groupTrail('Oregon', [makePlace('a'), makePlace('b')], states)).toEqual(['Oregon'])
 	})
 })
 
-describe('viewFor', () => {
+describe('getPlaceView', () => {
 	// The world rather than the place's own country: a country is reachable only
 	// by the name its atlas gives it, and a place carries the geocoder's.
 	it('goes to the world for a place the states atlas could not place', () => {
-		const abroad = place('louvre', { country: 'France' })
+		const abroad = makePlace('louvre', { country: 'France' })
 
-		expect(viewFor(new Map(), abroad)).toEqual(WORLD)
+		expect(getPlaceView(new Map(), abroad)).toEqual(WORLD)
 	})
 
 	it('finds a place among several regions', () => {
@@ -277,7 +281,10 @@ describe('viewFor', () => {
 			['b', 'Nevada'],
 		])
 
-		expect(viewFor(states, place('b'))).toEqual({ country: UNITED_STATES, state: 'Nevada' })
+		expect(getPlaceView(states, makePlace('b'))).toEqual({
+			country: UNITED_STATES,
+			state: 'Nevada',
+		})
 	})
 })
 
@@ -286,7 +293,7 @@ describe('initialView', () => {
 	// the states atlas can place is a place in the United States, whatever the
 	// geocoder called its country.
 	it('opens on the United States where the states atlas holds every place', () => {
-		const places = [place('a'), place('b')]
+		const places = [makePlace('a'), makePlace('b')]
 
 		const states = new Map([
 			['a', 'Oregon'],
@@ -297,7 +304,7 @@ describe('initialView', () => {
 	})
 
 	it('opens on the world where one place falls outside the states', () => {
-		const places = [place('a'), place('paris')]
+		const places = [makePlace('a'), makePlace('paris')]
 
 		expect(initialView(new Map([['a', 'Oregon']]), places)).toEqual(WORLD)
 	})
@@ -309,7 +316,7 @@ describe('initialView', () => {
 })
 
 describe('regionsHolding', () => {
-	const rows = [place('a'), place('b'), place('c')]
+	const rows = [makePlace('a'), makePlace('b'), makePlace('c')]
 
 	it('names each region once, sorted', () => {
 		const held = new Map([
@@ -385,22 +392,29 @@ describe('groupName', () => {
 	it('names the group by the city that every place shares', () => {
 		const portland = { city: 'Portland' }
 
-		expect(groupName([place('a', portland), place('b', portland)], english)).toBe('Portland')
+		expect(groupName([makePlace('a', portland), makePlace('b', portland)], english)).toBe(
+			'Portland',
+		)
 	})
 
 	it('counts the group where the places span cities', () => {
 		expect(
-			groupName([place('a', { city: 'Portland' }), place('b', { city: 'Beaverton' })], english),
+			groupName(
+				[makePlace('a', { city: 'Portland' }), makePlace('b', { city: 'Beaverton' })],
+				english,
+			),
 		).toBe('2 nearby')
 	})
 
 	// A place with no city is not proof that the group shares one.
 	it('counts the group where a place has no city', () => {
-		expect(groupName([place('a', { city: 'Portland' }), place('b')], english)).toBe('2 nearby')
+		expect(groupName([makePlace('a', { city: 'Portland' }), makePlace('b')], english)).toBe(
+			'2 nearby',
+		)
 	})
 
 	it('formats the count in the locale', () => {
-		const group = Array.from({ length: 1200 }, (_, index) => place(`p${index}`))
+		const group = Array.from({ length: 1200 }, (_, index) => makePlace(`p${index}`))
 
 		expect(groupName(group, english)).toBe('1,200 nearby')
 

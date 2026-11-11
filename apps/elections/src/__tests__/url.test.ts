@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ELECTIONS, findContest, findElection } from '../elections/registry'
-import { stateOfKey, stateOfSlug, stateSlug, US_STATES } from '../elections/us-states'
+import { ELECTIONS, findContest, findElection } from '../utilities/registry'
 import {
 	districtName,
 	districtOfKey,
@@ -8,7 +7,8 @@ import {
 	officePath,
 	readDrawerStep,
 	statePath,
-} from '../utilities/elections-url'
+} from '../utilities/url'
+import { findStateByKey, findStateBySlug, stateSlug, US_STATES } from '../utilities/us-states'
 
 const found = findElection('2026', 'us', 'midterms')
 
@@ -18,7 +18,7 @@ const midterms = found
 
 const senate = findContest(midterms, 'senate')
 
-const georgia = stateOfKey('ga')
+const georgia = findStateByKey('ga')
 
 if (georgia === undefined) throw new Error('The states have no Georgia.')
 
@@ -142,15 +142,15 @@ describe('districts', () => {
 
 describe('the path of a state', () => {
 	it('names a state by its name in lower case, with a hyphen for each space', () => {
-		const newYork = stateOfKey('ny')
+		const newYork = findStateByKey('ny')
 
 		if (newYork === undefined) throw new Error('The states have no New York.')
 
 		expect(stateSlug(newYork)).toBe('new-york')
 
-		expect(stateOfSlug('new-york')).toBe(newYork)
+		expect(findStateBySlug('new-york')).toBe(newYork)
 
-		expect(stateOfSlug('ny')).toBeUndefined()
+		expect(findStateBySlug('ny')).toBeUndefined()
 	})
 
 	it('gives each state a slug that is not the slug of an office', () => {

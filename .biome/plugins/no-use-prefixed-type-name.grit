@@ -10,7 +10,8 @@ language js
 // comment is not a violation.
 //
 // Reach is the `includes` beside this plugin in `biome.json`: the shipped
-// source directories of `ui`, minus tests and benchmarks.
+// source directories of `ui`, the apps, `auth`, and `shared`, minus tests and
+// benchmarks.
 or {
 	TsTypeAliasDeclaration(binding_identifier = $name),
 	TsInterfaceDeclaration(id = $name)

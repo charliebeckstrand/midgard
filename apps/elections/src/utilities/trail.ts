@@ -1,6 +1,6 @@
-import { ELECTIONS, type Election, electionPath } from '../elections/registry'
-import type { UsState } from '../elections/us-states'
-import { officePath, statePath } from './elections-url'
+import { ELECTIONS, type Election, electionPath } from './registry'
+import { officePath, statePath } from './url'
+import type { UsState } from './us-states'
 
 /**
  * The trail of a page, which is its title: the list of every election, the

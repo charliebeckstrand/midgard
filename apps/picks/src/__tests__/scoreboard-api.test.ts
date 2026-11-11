@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fetchWeekGames } from '../api/scoreboard-api'
-import { game } from './fixtures'
+import { makeGame } from './fixtures'
 
 describe('scoreboard api', () => {
 	it('asks the route handler for the week and answers with its games', async () => {
-		const games = [game()]
+		const games = [makeGame()]
 		const fetch = vi.fn(async () => Response.json(games))
 
 		vi.stubGlobal('fetch', fetch)

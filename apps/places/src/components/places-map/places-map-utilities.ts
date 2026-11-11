@@ -1,7 +1,7 @@
 import type { MapPointDatum } from 'ui/modules/map'
 import { CATEGORY_BY_VALUE, RECORD_KIND_META } from '../../constants'
 import type { MapRecord } from '../../types'
-import { isTrip } from '../../utilities/places-trips'
+import { isTrip } from '../../utilities/trips'
 
 /**
  * The points the mark draws, in the order the records were given. That is the

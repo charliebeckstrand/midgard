@@ -9,8 +9,8 @@ import { useIntl } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import type { FormatNumber, Located } from '../../types'
-import type { PlacePanelStep } from '../../utilities/places-url'
-import { groupName } from '../../utilities/places-view'
+import type { PlacePanelStep } from '../../utilities/url'
+import { groupName } from '../../utilities/view'
 import { PlaceTrail, type PlaceTrailStep } from '../place-trail'
 
 /**

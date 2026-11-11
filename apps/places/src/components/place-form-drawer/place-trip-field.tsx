@@ -5,8 +5,8 @@ import { Field, Label, Message } from 'ui/fieldset'
 import { useFormValue } from 'ui/form'
 import { Listbox, ListboxDescription, ListboxLabel, ListboxOption } from 'ui/listbox'
 import type { Trip } from '../../types'
-import { fromDay } from '../../utilities/places-filter'
-import { sortTrips } from '../../utilities/places-trips'
+import { fromDay } from '../../utilities/filter'
+import { sortTrips } from '../../utilities/trips'
 import { DaySpan } from '../summary-drawer/summary-parts'
 
 /**

@@ -9,7 +9,7 @@ import type { Photo, Place, Trip, Visit } from '../types'
  * depending on which file it lived in, and a field added to {@link Place} broke
  * every copy separately.
  */
-export function place(id: string, fields: Partial<Place> = {}): Place {
+export function makePlace(id: string, fields: Partial<Place> = {}): Place {
 	return {
 		id,
 		name: id,
@@ -24,20 +24,20 @@ export function place(id: string, fields: Partial<Place> = {}): Place {
 }
 
 /** The same, with one visit on `visitedAt`. */
-export function placeOn(id: string, visitedAt: string, fields: Partial<Place> = {}): Place {
-	return place(id, {
+export function makePlaceOn(id: string, visitedAt: string, fields: Partial<Place> = {}): Place {
+	return makePlace(id, {
 		visits: [{ id: `${id}-visit`, visitedAt, rating: 4, photos: [] }],
 		...fields,
 	})
 }
 
 /** The same, placed at a position, which is what the geometry cases vary. */
-export function placeAt(id: string, at: [number, number], fields: Partial<Place> = {}): Place {
-	return place(id, { longitude: at[0], latitude: at[1], ...fields })
+export function makePlaceAt(id: string, at: [number, number], fields: Partial<Place> = {}): Place {
+	return makePlace(id, { longitude: at[0], latitude: at[1], ...fields })
 }
 
 /** One stored trip, with only the fields a case is about named at its call site. */
-export function trip(id: string, fields: Partial<Trip> = {}): Trip {
+export function makeTrip(id: string, fields: Partial<Trip> = {}): Trip {
 	return {
 		id,
 		name: id,
@@ -54,7 +54,7 @@ export function trip(id: string, fields: Partial<Trip> = {}): Trip {
 }
 
 /** One stored photo: its key, and the addresses of its view and its original, made from the key. */
-export function photo(key: string): Photo {
+export function makePhoto(key: string): Photo {
 	return {
 		key,
 		url: `https://photos.example.com/${key}/view`,
@@ -63,6 +63,6 @@ export function photo(key: string): Photo {
 }
 
 /** One stored visit on the fixture day, with `photos`. */
-export function visitWith(id: string, photos: Photo[]): Visit {
+export function makeVisit(id: string, photos: Photo[]): Visit {
 	return { id, visitedAt: '2026-08-15', rating: 4, photos }
 }

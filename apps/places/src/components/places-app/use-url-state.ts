@@ -3,22 +3,22 @@
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
 import type { RecordKind } from '../../types'
-import type { PlaceFilterValue } from '../../utilities/places-filter'
+import type { PlaceFilterValue } from '../../utilities/filter'
 import {
 	NOTHING_SELECTED,
 	PANEL_START,
-	type PlaceLocation,
 	type PlacePanelStep,
 	type PlaceSelection,
 	readAdding,
 	readFilter,
-	readLocation,
 	readSelected,
 	readStep,
+	readUrlState,
 	readView,
-	writeLocation,
-} from '../../utilities/places-url'
-import type { PlaceView } from '../../utilities/places-view'
+	type UrlState,
+	writeUrlState,
+} from '../../utilities/url'
+import type { PlaceView } from '../../utilities/view'
 
 /**
  * Whether a change is a step the reader can walk back out of.
@@ -31,8 +31,8 @@ import type { PlaceView } from '../../utilities/places-view'
  */
 export type PlaceStep = 'walk' | 'stay'
 
-/** What {@link usePlaceLocation} hands back: where the reader is, and the ways to move them. */
-export type PlaceLocationHandle = PlaceLocation & {
+/** What {@link useUrlState} hands back: where the reader is, and the ways to move them. */
+export type UrlStateHandle = UrlState & {
 	/** Points the map somewhere, as a step the reader can walk back out of. */
 	setView: (view: PlaceView) => void
 	/** Narrows the bar, without a history entry of its own. */
@@ -109,12 +109,8 @@ function useSlice<T>(params: URLSearchParams, read: (params: URLSearchParams) =>
 }
 
 /** The address of `location` with the parts of `next` over it, at `pathname`. */
-function buildHref(
-	pathname: string,
-	location: PlaceLocation,
-	next: Partial<PlaceLocation>,
-): string {
-	const query = writeLocation({ ...location, ...next }).toString()
+function buildHref(pathname: string, location: UrlState, next: Partial<UrlState>): string {
+	const query = writeUrlState({ ...location, ...next }).toString()
 
 	return query === '' ? pathname : `${pathname}?${query}`
 }
@@ -127,7 +123,7 @@ function buildHref(
  * link, and unreachable by the Back button, while both breadcrumb trails
  * rendered as links that went nowhere.
  */
-export function usePlaceLocation(): PlaceLocationHandle {
+export function useUrlState(): UrlStateHandle {
 	const params = useSearchParams()
 
 	const pathname = usePathname()
@@ -144,7 +140,7 @@ export function usePlaceLocation(): PlaceLocationHandle {
 
 	// Where the reader is, whole. Held rather than rebuilt, so a setter that
 	// changes one part is not a new identity for the parts it leaves alone.
-	const location = useMemo<PlaceLocation>(
+	const location = useMemo<UrlState>(
 		() => ({ view, filter, selected, step, adding }),
 		[view, filter, selected, step, adding],
 	)
@@ -154,7 +150,7 @@ export function usePlaceLocation(): PlaceLocationHandle {
 	// address of the render, because `toHref` runs during the render, also on the
 	// server.
 	const compose = useCallback(
-		(next: Partial<PlaceLocation>) => buildHref(pathname, location, next),
+		(next: Partial<UrlState>) => buildHref(pathname, location, next),
 		[location, pathname],
 	)
 
@@ -162,10 +158,10 @@ export function usePlaceLocation(): PlaceLocationHandle {
 	// keep their identity across writes. A new setter on each write made a new
 	// palette source of each region command, a new trail, and new closures for
 	// each panel that stays mounted while closed.
-	const write = useCallback((next: Partial<PlaceLocation>, entry: PlaceStep) => {
+	const write = useCallback((next: Partial<UrlState>, entry: PlaceStep) => {
 		const { pathname: path, search } = window.location
 
-		const href = buildHref(path, readLocation(new URLSearchParams(search)), next)
+		const href = buildHref(path, readUrlState(new URLSearchParams(search)), next)
 
 		// The History API, not the router. The page reads the session and the
 		// places on the server, and a router step runs the page again: each

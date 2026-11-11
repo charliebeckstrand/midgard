@@ -3,10 +3,10 @@ import type { ReactNode } from 'react'
 import { ElectionViews, StateOfficeView, StateOverviewView } from '@/components/election-views'
 import { countyAspect } from '@/server/county-shapes'
 import { readSection, type SectionParams } from '@/server/params'
-import { electionResults } from '@/server/results'
-import { stateOffices } from '@/server/state'
-import { statePath } from '@/utilities/elections-url'
+import { getElectionResults } from '@/server/results'
+import { getStateOffices } from '@/server/state'
 import { OVERVIEW, pageTitle } from '@/utilities/trail'
+import { statePath } from '@/utilities/url'
 
 /**
  * The frame of a section of an election: an office, or a state. The layout of
@@ -32,7 +32,7 @@ export default async function SectionLayout({
 
 	const { election, state } = section
 
-	const offices = await stateOffices(await electionResults(election), state)
+	const offices = await getStateOffices(await getElectionResults(election), state)
 
 	if (offices.length === 0) notFound()
 

@@ -3,7 +3,7 @@ import { mimir } from '@/server/mimir'
 import { getWeekGames } from '@/server/scoreboard'
 import { readWeekPath, type WeekPathContext } from '@/server/week-path'
 import type { TeamPicks } from '@/types'
-import { kickedOff, mergePicks } from '@/utilities/locks'
+import { hasKickedOff, mergePicks } from '@/utilities/locks'
 
 /**
  * The writes of a prediction. Mimir keeps the picks but does not read the
@@ -56,7 +56,7 @@ export async function DELETE(_request: Request, context: WeekPathContext) {
 
 	if (path === null) return refuse(404, 'Unknown week')
 
-	if (kickedOff(await getWeekGames(path.season, path.week), Date.now())) {
+	if (hasKickedOff(await getWeekGames(path.season, path.week), Date.now())) {
 		return refuse(409, 'The week has kicked off, so its prediction stays.')
 	}
 

@@ -1,16 +1,16 @@
 import type { AddressSuggestion } from 'ui/address-input'
 import type { FormProps } from 'ui/form'
 import { MAX_RATING } from '../../constants'
-import { isWebAddress } from '../../schemas/place'
 import type { Photo, Place, PlaceCategory, PlaceDraft, Trip, Visit, VisitDraft } from '../../types'
-import { fromDay, toDay } from '../../utilities/places-filter'
-import { withinTrip } from '../../utilities/places-trips'
-import { placeDraft } from '../../utilities/places-visits'
+import { isWebAddress } from '../../utilities/fields'
+import { fromDay, toDay } from '../../utilities/filter'
+import { inTrip } from '../../utilities/trips'
+import { placeDraft } from '../../utilities/visits'
 import {
 	emptyLocation,
+	formatRequired,
 	type LocationValues,
 	locationValidators,
-	required,
 	toLocationDraft,
 	toLocationValues,
 } from './location-form'
@@ -90,14 +90,14 @@ export function placeValidators(
 ): NonNullable<FormProps<PlaceValues>['validate']> {
 	return {
 		...locationValidators,
-		name: (value) => (value.trim() === '' ? required('Name') : undefined),
-		category: (value) => (value === undefined ? required('Category') : undefined),
+		name: (value) => (value.trim() === '' ? formatRequired('Name') : undefined),
+		category: (value) => (value === undefined ? formatRequired('Category') : undefined),
 		visitedAt: (value, values) => {
-			if (value === undefined || Number.isNaN(value.getTime())) return required('Visited')
+			if (value === undefined || Number.isNaN(value.getTime())) return formatRequired('Visited')
 
 			const trip = trips.find((held) => held.id === values.tripId)
 
-			return trip === undefined || withinTrip(trip, toDay(value))
+			return trip === undefined || inTrip(trip, toDay(value))
 				? undefined
 				: 'Visited is not a day of the trip.'
 		},

@@ -1,43 +1,43 @@
 import { describe, expect, it } from 'vitest'
 import type { Place } from '../../types'
-import { ratedVisit, sortPlaces } from '../../utilities/places-visits'
-import { place, placeOn } from '../fixtures'
+import { ratedVisit, sortPlaces } from '../../utilities/visits'
+import { makePlace, makePlaceOn } from '../fixtures'
 
 /** A place whose newest visit has `rating`. */
 function rated(id: string, rating: number): Place {
-	return place(id, { visits: [{ id: `${id}-visit`, visitedAt: '2026-08-15', rating, photos: [] }] })
+	return makePlace(id, {
+		visits: [{ id: `${id}-visit`, visitedAt: '2026-08-15', rating, photos: [] }],
+	})
 }
 
 const names = (places: readonly Place[]) => places.map((item) => item.name)
 
 describe('sortPlaces', () => {
 	it('orders by name', () => {
-		expect(names(sortPlaces([place('Cafe'), place('Antler'), place('Bistro')], 'name'))).toEqual([
-			'Antler',
-			'Bistro',
-			'Cafe',
-		])
+		expect(
+			names(sortPlaces([makePlace('Cafe'), makePlace('Antler'), makePlace('Bistro')], 'name')),
+		).toEqual(['Antler', 'Bistro', 'Cafe'])
 	})
 
 	it('puts the newest visit first, and ties in name order', () => {
 		const places = [
-			placeOn('Bistro', '2026-05-01'),
-			placeOn('Cafe', '2026-09-01'),
-			placeOn('Antler', '2026-05-01'),
+			makePlaceOn('Bistro', '2026-05-01'),
+			makePlaceOn('Cafe', '2026-09-01'),
+			makePlaceOn('Antler', '2026-05-01'),
 		]
 
 		expect(names(sortPlaces(places, 'visited'))).toEqual(['Cafe', 'Antler', 'Bistro'])
 	})
 
 	it('reads the newest visit, not an older one', () => {
-		const repeat = place('Antler', {
+		const repeat = makePlace('Antler', {
 			visits: [
 				{ id: 'new', visitedAt: '2026-10-01', rating: 2, photos: [] },
 				{ id: 'old', visitedAt: '2026-01-01', rating: 5, photos: [] },
 			],
 		})
 
-		expect(names(sortPlaces([placeOn('Bistro', '2026-09-01'), repeat], 'visited'))).toEqual([
+		expect(names(sortPlaces([makePlaceOn('Bistro', '2026-09-01'), repeat], 'visited'))).toEqual([
 			'Antler',
 			'Bistro',
 		])
@@ -45,7 +45,7 @@ describe('sortPlaces', () => {
 	})
 
 	it('rates a place by its newest rated visit', () => {
-		const unrated = place('Antler', {
+		const unrated = makePlace('Antler', {
 			visits: [
 				{ id: 'new', visitedAt: '2026-10-01', rating: 0, photos: [] },
 				{ id: 'old', visitedAt: '2026-01-01', rating: 4, photos: [] },
@@ -62,7 +62,7 @@ describe('sortPlaces', () => {
 	})
 
 	it('leaves the input as it was', () => {
-		const places = [place('B'), place('A')]
+		const places = [makePlace('B'), makePlace('A')]
 
 		sortPlaces(places, 'name')
 
@@ -72,7 +72,7 @@ describe('sortPlaces', () => {
 
 describe('ratedVisit', () => {
 	it('skips a newer visit with no rating', () => {
-		const repeat = place('Antler', {
+		const repeat = makePlace('Antler', {
 			visits: [
 				{ id: 'new', visitedAt: '2026-10-01', rating: 0, photos: [] },
 				{ id: 'mid', visitedAt: '2026-05-01', rating: 3.5, photos: [] },

@@ -31,7 +31,7 @@ type AppQueryClientOptions = {
 }
 
 // A `401` means that the session ended, so the page goes to the sign-in page.
-function signedOut(error: Error): boolean {
+function handleSignedOut(error: Error): boolean {
 	if (!(error instanceof RequestError) || error.status !== 401) return false
 
 	window.location.assign('/login')
@@ -49,17 +49,17 @@ function signedOut(error: Error): boolean {
  * failed query shows nothing here, because the page that reads the query shows
  * its state.
  */
-export function createAppQueryClient({
+export function createQueryClient({
 	queries,
 	toast,
 	failureTitle,
 }: AppQueryClientOptions): QueryClient {
 	return new QueryClient({
 		defaultOptions: { queries },
-		queryCache: new QueryCache({ onError: signedOut }),
+		queryCache: new QueryCache({ onError: handleSignedOut }),
 		mutationCache: new MutationCache({
 			onError: (error, _variables, _result, mutation) => {
-				if (signedOut(error) || mutation.meta?.inlineError) return
+				if (handleSignedOut(error) || mutation.meta?.inlineError) return
 
 				toast({ severity: 'error', title: failureTitle(), description: error.message })
 			},
@@ -74,10 +74,10 @@ export function createAppQueryClient({
  *
  * @example
  * ```tsx
- * const error = latestError(add, remove)
+ * const error = getLatestError(add, remove)
  * ```
  */
-export function latestError(
+export function getLatestError(
 	...mutations: Array<{ error: Error | null; submittedAt: number }>
 ): Error | null {
 	let latest: { error: Error | null; submittedAt: number } | undefined

@@ -74,16 +74,16 @@ export function stateSlug(state: UsState): string {
 const bySlug = new Map(US_STATES.map((state) => [stateSlug(state), state]))
 
 /** The state of a region key, such as `ga`, or `undefined` for a key that names none. */
-export function stateOfKey(key: string): UsState | undefined {
+export function findStateByKey(key: string): UsState | undefined {
 	return byKey.get(key)
 }
 
 /** The state of a 2-digit FIPS code, or `undefined` for a code that names none. */
-export function stateOfFips(fips: string): UsState | undefined {
+export function findStateByFips(fips: string): UsState | undefined {
 	return byFips.get(fips)
 }
 
 /** The state of a segment of the URL, such as `new-york`, or `undefined` for a segment that names none. */
-export function stateOfSlug(slug: string): UsState | undefined {
+export function findStateBySlug(slug: string): UsState | undefined {
 	return bySlug.get(slug)
 }

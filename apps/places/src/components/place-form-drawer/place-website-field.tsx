@@ -6,7 +6,7 @@ import { Field, Label, Message } from 'ui/fieldset'
 import { useFormValue } from 'ui/form'
 import { Icon } from 'ui/icon'
 import { Input } from 'ui/input'
-import { isWebsite } from '../../schemas/place'
+import { isWebsite } from '../../utilities/fields'
 
 /**
  * The website field. When the value is a website that can open, the suffix

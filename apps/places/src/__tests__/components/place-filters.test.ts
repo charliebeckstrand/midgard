@@ -3,7 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PlaceFilters } from '../../components/place-filters'
-import type { PlaceFilterValue } from '../../utilities/places-filter'
+import type { PlaceFilterValue } from '../../utilities/filter'
 
 afterEach(cleanup)
 

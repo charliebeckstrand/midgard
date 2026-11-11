@@ -11,10 +11,10 @@ import { fetchWithSecondStep } from './second-step-request'
  * the second step, the dialog of the app asks the user for it, and the request
  * goes again (see {@link fetchWithSecondStep}).
  *
- * A call such as `bifrost.GET('/auth/passkeys')` resolves to `{ data, error, response }`.
+ * A call such as `browserBifrost.GET('/auth/passkeys')` resolves to `{ data, error, response }`.
  * `data` is set when the status is OK, and `error` holds the body of any other status.
  */
-export const bifrost: Client<Paths> = createClient<Paths>({ fetch: fetchWithSecondStep })
+export const browserBifrost: Client<Paths> = createClient<Paths>({ fetch: fetchWithSecondStep })
 
 /**
  * The error of a request that the gateway answered with a status that is not

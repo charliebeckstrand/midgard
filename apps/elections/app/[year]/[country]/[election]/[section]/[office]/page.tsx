@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ElectionDrawer } from '@/components/election-drawer'
-import { type Contest, type Election, findContest } from '@/elections/registry'
-import type { UsState } from '@/elections/us-states'
-import { drawerSeed, type SearchParams } from '@/server/drawer'
+import { getDrawerSeed, type SearchParams } from '@/server/drawer'
 import { readSection, type SectionParams } from '@/server/params'
-import { electionResults } from '@/server/results'
+import { getElectionResults } from '@/server/results'
+import { type Contest, type Election, findContest } from '@/utilities/registry'
 import { pageTitle } from '@/utilities/trail'
+import type { UsState } from '@/utilities/us-states'
 
 type Params = {
 	params: Promise<SectionParams & { office: string }>
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function StateOfficePage({ params, searchParams }: Params) {
 	const { election, state, contest } = await readStateOffice(params)
 
-	const all = await electionResults(election)
+	const all = await getElectionResults(election)
 
 	const entries = all.flatMap((result) => result.entries)
 
@@ -58,7 +58,7 @@ export default async function StateOfficePage({ params, searchParams }: Params) 
 		notFound()
 	}
 
-	const seed = await drawerSeed(election, all, searchParams)
+	const seed = await getDrawerSeed(election, all, searchParams)
 
 	return <ElectionDrawer election={election} seed={seed} />
 }

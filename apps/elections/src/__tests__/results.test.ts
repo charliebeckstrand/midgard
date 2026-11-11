@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { stateRows } from '../components/national-map/state-rows'
-import { findContest, findElection } from '../elections/registry'
-import { stateOfKey } from '../elections/us-states'
 import { readNationalRace } from '../server/civic-race'
 import { delegation } from '../utilities/race-math'
+import { findContest, findElection } from '../utilities/registry'
 import {
 	closestRaces,
 	countyWinner,
@@ -21,6 +20,7 @@ import {
 	stepEntry,
 } from '../utilities/results'
 import { contestItems, electionCrumbs, officeItems } from '../utilities/trail'
+import { findStateByKey } from '../utilities/us-states'
 import house from './fixtures/house.json'
 import senate from './fixtures/senate.json'
 
@@ -86,7 +86,7 @@ describe('the race of a step of the Drawer', () => {
 		{ contest: houseContest, entries: houseEntries },
 	]
 
-	const georgia = stateOfKey('ga')
+	const georgia = findStateByKey('ga')
 
 	if (georgia === undefined) throw new Error('The states have no Georgia.')
 
@@ -260,7 +260,7 @@ describe('the trail and the office switch', () => {
 	})
 
 	it('ends the trail of a page of a state at the state', () => {
-		const georgia = stateOfKey('ga')
+		const georgia = findStateByKey('ga')
 
 		const crumbs = electionCrumbs(midterms, georgia)
 
@@ -270,7 +270,7 @@ describe('the trail and the office switch', () => {
 	})
 
 	it('leads the switch of a state to the pages of the state, with no pick for an office it has no race of', () => {
-		const georgia = stateOfKey('ga')
+		const georgia = findStateByKey('ga')
 
 		if (georgia === undefined) throw new Error('The states have no Georgia.')
 

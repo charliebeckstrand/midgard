@@ -25,7 +25,7 @@ type PicksPaths = Omit<paths, '/api/predictions/{season}/{week}'> & {
 const mimir = createMimirClient<PicksPaths>()
 
 /** Every pick of the user in `season`. */
-export function listPicks(season: number): Promise<SeasonPicks> {
+export function fetchPicks(season: number): Promise<SeasonPicks> {
 	return unwrap(mimir.GET('/api/predictions/{season}', { params: { path: { season } } }))
 }
 

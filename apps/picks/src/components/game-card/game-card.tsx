@@ -159,6 +159,6 @@ export function GameCard({ game, pick }: { game: Game; pick: Pick | undefined })
 }
 
 /** The grid of the game cards of a week: one column on a phone, up to three on a wide screen. */
-export function GameGrid({ children }: { children: ReactNode }) {
+export function GameCardGrid({ children }: { children: ReactNode }) {
 	return <Columns columns={{ initial: 1, sm: 2, lg: 3 }}>{children}</Columns>
 }

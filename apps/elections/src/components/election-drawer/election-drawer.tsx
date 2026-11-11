@@ -10,12 +10,11 @@ import { Icon } from 'ui/icon'
 import { SearchInput } from 'ui/search-input'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
-import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer'
 import { useRace } from '../../queries/race-queries'
 import type { CountyResult, Race } from '../../types'
-import { type DrawerStep, districtName, drawerHref, statePath } from '../../utilities/elections-url'
 import { delegation } from '../../utilities/race-math'
+import type { Election } from '../../utilities/registry'
 import {
 	entryKey,
 	matchesSearch,
@@ -25,6 +24,7 @@ import {
 	stepEntry,
 } from '../../utilities/results'
 import { contestItems } from '../../utilities/trail'
+import { type DrawerStep, districtName, drawerHref, statePath } from '../../utilities/url'
 import { OfficeCard } from '../office-card'
 import { RaceCard } from '../race-card'
 import { RaceDetail, type RaceView, usePreloadCountyMap } from '../race-detail'

@@ -24,7 +24,7 @@ The components compose `ui`, which carries its own suite.
 ## The map
 
 Three levels: the world, one country, and (inside the United States alone)
-one state. `src/utilities/places-view.ts` holds that model, and every other
+one state. `src/utilities/view.ts` holds that model, and every other
 question about the map is asked of it: which atlas to draw, which region the
 frame is cut to, and what the breadcrumb trail says.
 
@@ -48,8 +48,8 @@ name.
 
 Where the reader is lives in the address bar, not in React state: the view, the
 filter, the open place or trip, and an open form for a new place or trip.
-`src/utilities/places-url.ts` is the codec and
-`src/components/places-app/use-place-location.ts` binds it to the address bar, so
+`src/utilities/url.ts` is the codec and
+`src/components/places-app/use-url-state.ts` binds it to the address bar, so
 a reload keeps the map, the Back button walks the drills, and a place is a link.
 
 The hook writes the address with `history.pushState` and `replaceState`, not with
@@ -118,7 +118,7 @@ The two scopes are kept apart because the names collide: Georgia is a state of
 the United States and Georgia is a country.
 
 The geometry comes from `us-atlas` and `world-atlas`, which
-`src/utilities/places-atlas.ts` imports into the code of the app. The browser
+`src/utilities/atlas.ts` imports into the code of the app. The browser
 caches them with the rest of the code.
 
 ## The first load

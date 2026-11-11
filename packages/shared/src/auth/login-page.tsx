@@ -21,7 +21,7 @@ import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { oauthStartPath, signInProviderNames, signOut } from './account'
 import { authMessages, continueWithMessage } from './auth-messages'
-import { bifrost } from './bifrost'
+import { browserBifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
 import { chain, email, required } from './form-validators'
 import { menuMessages } from './menu-messages'
@@ -195,7 +195,7 @@ export function LoginPage({
 			// With `secondStep`, the refresh lets the server page select the second step or a redirect.
 			// The module of the second step loads first, so the form shows with the new page.
 			finish(
-				await bifrost.POST('/auth/login', { body: values }),
+				await browserBifrost.POST('/auth/login', { body: values }),
 				secondStep ? refreshWithSecondStep : home,
 			)
 		} catch {
@@ -207,7 +207,7 @@ export function LoginPage({
 	// user, and the gateway checks the result. A cancel in the browser throws.
 	async function signInWithPasskey() {
 		try {
-			const { data: options } = await bifrost.POST('/auth/login/options')
+			const { data: options } = await browserBifrost.POST('/auth/login/options')
 
 			if (!options) {
 				setServerError(intl.formatMessage(authMessages.passkeySignInFailed))
@@ -220,7 +220,7 @@ export function LoginPage({
 
 			const credential = await startAuthentication({ optionsJSON })
 
-			finish(await bifrost.POST('/auth/login/passkey', { body: credential }))
+			finish(await browserBifrost.POST('/auth/login/passkey', { body: credential }))
 		} catch {
 			setServerError(intl.formatMessage(authMessages.passkeySignInFailed))
 		}

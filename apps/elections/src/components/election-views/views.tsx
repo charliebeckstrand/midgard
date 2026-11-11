@@ -1,11 +1,11 @@
 import { Heading } from 'ui/heading'
 import { Columns } from 'ui/structure/columns'
 import { Stack } from 'ui/structure/stack'
-import type { Election } from '../../elections/registry'
-import { type ContestResult, latestCalls } from '../../server/results'
-import { officePath } from '../../utilities/elections-url'
+import { type ContestResult, getLatestCalls } from '../../server/results'
+import type { Election } from '../../utilities/registry'
 import { closestRaces, delegations, isCounting, newestUpdate } from '../../utilities/results'
 import { OVERVIEW, officeItems } from '../../utilities/trail'
+import { officePath } from '../../utilities/url'
 import { ClosestRaces } from '../closest-races'
 import { LatestCalls } from '../latest-calls'
 import { NationalMap, stateRows } from '../national-map'
@@ -22,7 +22,7 @@ export async function OverviewView({
 	election: Election
 	results: readonly ContestResult[]
 }) {
-	const calls = await latestCalls(results, 5)
+	const calls = await getLatestCalls(results, 5)
 
 	const entries = results.flatMap((result) => result.entries)
 

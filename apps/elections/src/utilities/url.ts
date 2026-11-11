@@ -1,5 +1,5 @@
-import { type Contest, type Election, electionPath, findContest } from '../elections/registry'
-import { stateOfKey, stateSlug, type UsState } from '../elections/us-states'
+import { type Contest, type Election, electionPath, findContest } from './registry'
+import { findStateByKey, stateSlug, type UsState } from './us-states'
 
 /**
  * The step of the Drawer of an election, which the address holds, such as
@@ -37,7 +37,7 @@ export function readDrawerStep(
 	election: Election,
 	params: { get: (name: string) => string | null },
 ): DrawerStep | null {
-	const region = stateOfKey(params.get('region') ?? '')
+	const region = findStateByKey(params.get('region') ?? '')
 
 	if (region === undefined) return null
 

@@ -1,7 +1,7 @@
 import type { ContextMenuEntry } from 'ui/context-menu'
 import { describe, expect, it, vi } from 'vitest'
 import { placeMenuItems, visitMenuItems } from '../../components/place-menu'
-import { place } from '../fixtures'
+import { makePlace } from '../fixtures'
 
 /** The keys of the rows, in order. A separator has a key too. */
 const keys = (entries: ContextMenuEntry[]) => entries.map((entry) => entry.key)
@@ -23,7 +23,7 @@ const placeActions = () => ({
 
 describe('placeMenuItems', () => {
 	it('lists Add visit, Edit visit, Edit place, and Delete place with no separator', () => {
-		expect(keys(placeMenuItems(place('a'), placeActions()))).toEqual([
+		expect(keys(placeMenuItems(makePlace('a'), placeActions()))).toEqual([
 			'visit',
 			'edit-visit',
 			'edit',
@@ -32,7 +32,7 @@ describe('placeMenuItems', () => {
 	})
 
 	it('opens the only visit from Edit visit', () => {
-		const only = place('a')
+		const only = makePlace('a')
 		const actions = placeActions()
 
 		run(placeMenuItems(only, actions)[1])
@@ -41,7 +41,7 @@ describe('placeMenuItems', () => {
 	})
 
 	it('lists the visits in a submenu, newest first, where there are more', () => {
-		const repeat = place('a', {
+		const repeat = makePlace('a', {
 			visits: [
 				{ id: 'new', visitedAt: '2026-10-01', rating: 4, photos: [] },
 				{ id: 'old', visitedAt: '2026-01-01', rating: 5, photos: [] },
@@ -63,7 +63,7 @@ describe('placeMenuItems', () => {
 
 describe('visitMenuItems', () => {
 	it('offers Delete visit on the only visit of a place', () => {
-		const only = place('a')
+		const only = makePlace('a')
 		const [visit] = only.visits
 		const actions = { onEditVisit: vi.fn(), onDeleteVisit: vi.fn() }
 

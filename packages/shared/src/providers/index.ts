@@ -1,2 +1,2 @@
 export { AppProviders } from './app-providers'
-export { type AppMutationMeta, latestError } from './query-client'
+export { type AppMutationMeta, getLatestError } from './query-client'

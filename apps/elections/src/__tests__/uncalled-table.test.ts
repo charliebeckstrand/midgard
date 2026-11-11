@@ -3,7 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { UncalledTable } from '../components/uncalled-table'
-import { ELECTIONS } from '../elections/registry'
+import { ELECTIONS } from '../utilities/registry'
 
 vi.mock('next/navigation', () => ({
 	usePathname: () => '/2026/us/midterms',

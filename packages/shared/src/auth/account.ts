@@ -1,5 +1,5 @@
 import type { SignInProvider } from 'auth'
-import { bifrost, unwrap } from './bifrost'
+import { browserBifrost, unwrap } from './bifrost'
 
 /** The display name of each {@link SignInProvider}. */
 export const signInProviderNames: Record<SignInProvider, string> = {
@@ -46,7 +46,7 @@ export function oauthStartPath(provider: SignInProvider, options: OAuthStartOpti
  * The sign-out goes on when the request fails, because the page leaves anyway.
  */
 export async function signOut(): Promise<void> {
-	await bifrost.POST('/auth/logout').catch(() => {})
+	await browserBifrost.POST('/auth/logout').catch(() => {})
 
 	window.location.replace('/login')
 }
@@ -59,5 +59,5 @@ export async function signOut(): Promise<void> {
  * `429`. The error then holds the gateway's message.
  */
 export async function sendVerificationEmail(): Promise<void> {
-	await unwrap(bifrost.POST('/auth/verify-email'))
+	await unwrap(browserBifrost.POST('/auth/verify-email'))
 }

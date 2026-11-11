@@ -22,7 +22,6 @@ import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
-import type { Election } from '../../elections/registry'
 import {
 	activeFilters,
 	filterElections,
@@ -35,6 +34,7 @@ import {
 	openingDay,
 	statusGroups,
 } from '../../utilities/levels'
+import type { Election } from '../../utilities/registry'
 import { type CountryFlags, ElectionDay, ElectionList } from '../election-list'
 
 /** The views of a level page. */

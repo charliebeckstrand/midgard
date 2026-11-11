@@ -9,8 +9,8 @@ import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import { authMessages } from './auth-messages'
-import { bifrost } from './bifrost'
-import { linkToken } from './link-token'
+import { browserBifrost } from './bifrost'
+import { readLinkToken } from './link-token'
 import { useServerError } from './use-server-error'
 
 /**
@@ -38,8 +38,8 @@ export function VerifyEmailPage() {
 		setServerError('')
 
 		try {
-			const { response, error } = await bifrost.POST('/auth/verify-email/confirm', {
-				body: { token: linkToken() },
+			const { response, error } = await browserBifrost.POST('/auth/verify-email/confirm', {
+				body: { token: readLinkToken() },
 			})
 
 			if (response.ok) {

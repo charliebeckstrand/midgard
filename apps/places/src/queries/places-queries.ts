@@ -31,7 +31,7 @@ import type {
 	VisitScope,
 	Visits,
 } from '../types'
-import { placeDraft } from '../utilities/places-visits'
+import { placeDraft } from '../utilities/visits'
 
 /**
  * The query keys, in one place. Both a reader and a writer name the places
@@ -97,7 +97,7 @@ export function mergeById<T extends { id: string }>(
  * its stops wrote, so both cached lists take the stored records without a
  * refetch.
  */
-export function useAddTrip() {
+export function useCreateTrip() {
 	const client = useQueryClient()
 
 	return useMutation({
@@ -259,7 +259,7 @@ export function useSetVisit() {
  * grouping walks `geoContains` over 56 features per place, and the map
  * re-clusters and re-projects every dot behind it.
  */
-export function useAddPlace() {
+export function useCreatePlace() {
 	const client = useQueryClient()
 
 	return useMutation({
@@ -275,7 +275,7 @@ export function useAddPlace() {
 /**
  * Replaces a place from the form, and writes the stored record straight into the cached list,
  * so the map and the open panel show the edit when the drawer closes. No refetch follows, for
- * the reason that {@link useAddPlace} gives.
+ * the reason that {@link useCreatePlace} gives.
  */
 export function useSavePlace() {
 	const client = useQueryClient()

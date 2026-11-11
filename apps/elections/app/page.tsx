@@ -1,5 +1,5 @@
 import { LevelPage } from '@/components/level-page'
-import { ELECTIONS } from '@/elections/registry'
+import { ELECTIONS } from '@/utilities/registry'
 import { homeCrumbs } from '@/utilities/trail'
 
 /** Every election of the registry. */

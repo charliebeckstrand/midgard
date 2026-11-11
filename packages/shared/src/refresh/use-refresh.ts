@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useRef, useTransition } from 'react'
 import { defineMessages, useIntl } from 'ui/primitives/intl'
 import { useToast } from 'ui/toast'
-import { checkBuild } from './build'
+import { checkBuild } from './build-check'
 
 const messages = defineMessages({
 	failed: {

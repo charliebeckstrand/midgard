@@ -1,6 +1,4 @@
 import type { MapCategory } from 'ui/map'
-import type { Contest } from '../elections/registry'
-import { stateOfKey, type UsState } from '../elections/us-states'
 import type {
 	Candidate,
 	CountyResult,
@@ -9,8 +7,10 @@ import type {
 	PartySlot,
 	RegionRace,
 } from '../types'
-import { type DrawerStep, districtName, districtOfKey } from './elections-url'
 import { type Delegation, delegation, isCalled, lead } from './race-math'
+import type { Contest } from './registry'
+import { type DrawerStep, districtName, districtOfKey } from './url'
+import { findStateByKey, type UsState } from './us-states'
 
 /**
  * The races of a contest as the screens read them: each race with its office,
@@ -43,7 +43,7 @@ export function readEntries(contest: Contest, national: NationalRace): RaceEntry
 function readEntry(contest: Contest, region: RegionRace): RaceEntry {
 	const [stateKey = ''] = region.key.split('-')
 
-	const state = stateOfKey(stateKey)
+	const state = findStateByKey(stateKey)
 
 	if (state === undefined) throw new Error(`The region ${region.key} names no state of the US.`)
 
@@ -81,7 +81,7 @@ export function entryName(entry: Pick<RaceEntry, 'state' | 'district'>): string 
 }
 
 /** A text for a search: lower case and with no accents, so that `gonzalez` finds `González`. */
-function searchText(text: string): string {
+function foldText(text: string): string {
 	return text.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase()
 }
 
@@ -90,11 +90,11 @@ function searchText(text: string): string {
  * texts, with no regard to case or accents. An empty query matches each text.
  */
 export function matchesWords(texts: readonly string[], query: string): boolean {
-	const words = searchText(query).split(/\s+/).filter(Boolean)
+	const words = foldText(query).split(/\s+/).filter(Boolean)
 
 	if (words.length === 0) return true
 
-	const text = searchText(texts.join(' '))
+	const text = foldText(texts.join(' '))
 
 	return words.every((word) => text.includes(word))
 }

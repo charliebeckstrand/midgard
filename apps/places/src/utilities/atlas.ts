@@ -1,8 +1,8 @@
 import type { MapFeatureCollection, MapTopology } from 'ui/modules/map'
 import states from 'us-atlas/states-10m.json'
 import countries from 'world-atlas/countries-110m.json'
-import { type BoundedRegion, boundRegions, decodeRegions, topologyNames } from './places-geography'
-import { drawnRegions, isDrawn, type PlaceAtlas } from './places-view'
+import { type BoundedRegion, boundRegions, decodeRegions, topologyNames } from './geography'
+import { drawnRegions, isDrawn, type PlaceAtlas } from './view'
 
 /**
  * The topology of each atlas, as the package ships it.

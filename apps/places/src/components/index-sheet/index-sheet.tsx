@@ -10,7 +10,7 @@ import { Sheet, SheetBody, SheetClose, SheetHeader, SheetPanel, SheetTitle } fro
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import type { Located } from '../../types'
-import { openingRegion, regionsHolding } from '../../utilities/places-view'
+import { openingRegion, regionsHolding } from '../../utilities/view'
 
 /** Props for {@link IndexSheet}. */
 export type IndexSheetProps<T extends Located> = {

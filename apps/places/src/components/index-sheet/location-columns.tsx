@@ -1,7 +1,7 @@
 import type { GridColumn } from 'ui/modules/grid'
 import { Text } from 'ui/text'
 import type { Located } from '../../types'
-import { stateLabel } from '../../utilities/places-view'
+import { stateLabel } from '../../utilities/view'
 
 /**
  * The columns that say where a record is, which My places and My trips share:

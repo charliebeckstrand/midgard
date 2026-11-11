@@ -6,11 +6,11 @@ import { PageFrame } from '@/components/page-frame'
 import { PicksHeader } from '@/components/picks-header'
 import { type ClosingWeek, ScheduleList } from '@/components/schedule-list'
 import { TallyTotal } from '@/components/tally-total'
-import { getSeasonPicks } from '@/server/mimir'
+import { getPicks } from '@/server/mimir'
 import { getSchedule, getWeekGames } from '@/server/scoreboard'
 import type { Schedule, SeasonPicks } from '@/types'
 import { addTally, EMPTY_TALLY, type Tally, tallyWeek } from '@/utilities/grade'
-import { kickedOff, weekClosed } from '@/utilities/locks'
+import { hasKickedOff, isWeekClosed } from '@/utilities/locks'
 
 /** How long before its first kickoff the next week reads as closing soon: a day. */
 const CLOSING_SOON = 24 * 60 * 60 * 1000
@@ -26,7 +26,7 @@ export const instant = false
  * week in play or next up. The dates of a week answer for every week but the
  * current one, so only the games of that week are read.
  */
-async function seasonState(
+async function getSeasonState(
 	schedule: Schedule,
 	now: number,
 ): Promise<{ started: number[]; closed: number[]; current: number | null }> {
@@ -40,11 +40,11 @@ async function seasonState(
 
 	const games = await getWeekGames(schedule.season, current.number)
 
-	const started = Date.parse(current.start) <= now && kickedOff(games, now)
+	const started = Date.parse(current.start) <= now && hasKickedOff(games, now)
 
 	return {
 		started: started ? [...ended, current.number] : ended,
-		closed: weekClosed(games, now) ? [...ended, current.number] : ended,
+		closed: isWeekClosed(games, now) ? [...ended, current.number] : ended,
 		current: current.number,
 	}
 }
@@ -53,7 +53,7 @@ async function seasonState(
  * The next week to kick off, with its first kickoff, when that kickoff is
  * within {@link CLOSING_SOON}. The picks of the week start to lock then.
  */
-async function closingWeek(
+async function getClosingWeek(
 	schedule: Schedule,
 	started: number[],
 	now: number,
@@ -72,7 +72,7 @@ async function closingWeek(
 }
 
 /** The tally of each started week that has a prediction, by week number. */
-async function weekTallies(
+async function getWeekTallies(
 	season: number,
 	picks: SeasonPicks,
 	started: number[],
@@ -104,15 +104,15 @@ export default async function Page() {
 
 	const schedule = await getSchedule()
 
-	const picks = await getSeasonPicks(schedule.season)
+	const picks = await getPicks(schedule.season)
 
 	const now = Date.now()
 
-	const { started, closed, current } = await seasonState(schedule, now)
+	const { started, closed, current } = await getSeasonState(schedule, now)
 
 	const [tallies, closing] = await Promise.all([
-		weekTallies(schedule.season, picks, started),
-		closingWeek(schedule, started, now),
+		getWeekTallies(schedule.season, picks, started),
+		getClosingWeek(schedule, started, now),
 	])
 
 	const seasonTally = Object.values(tallies).reduce(addTally, EMPTY_TALLY)

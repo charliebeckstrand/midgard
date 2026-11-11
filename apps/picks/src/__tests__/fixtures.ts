@@ -1,7 +1,7 @@
 import type { Game, Team } from '../types'
 
 /** A team with the fields that a test does not set filled in. */
-export function team(overrides: Partial<Team> = {}): Team {
+export function makeTeam(overrides: Partial<Team> = {}): Team {
 	return {
 		id: '12',
 		abbreviation: 'KC',
@@ -14,15 +14,15 @@ export function team(overrides: Partial<Team> = {}): Team {
 }
 
 /** A game with the fields that a test does not set filled in. */
-export function game(overrides: Partial<Game> = {}): Game {
+export function makeGame(overrides: Partial<Game> = {}): Game {
 	return {
 		id: '401',
 		kickoff: '2026-09-10T00:20Z',
 		state: 'scheduled',
 		detail: null,
 		spread: null,
-		away: team({ id: '2', abbreviation: 'BUF', name: 'Buffalo Bills' }),
-		home: team(),
+		away: makeTeam({ id: '2', abbreviation: 'BUF', name: 'Buffalo Bills' }),
+		home: makeTeam(),
 		...overrides,
 	}
 }

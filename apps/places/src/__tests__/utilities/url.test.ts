@@ -6,24 +6,24 @@ const flags = vi.hoisted(() => ({ visitedRegions: true }))
 
 vi.mock('../../flags', () => ({ flags }))
 
-import { fromDay } from '../../utilities/places-filter'
+import { fromDay } from '../../utilities/filter'
 import {
 	NOTHING_SELECTED,
 	PANEL_START,
-	type PlaceLocation,
-	readLocation,
-	writeLocation,
-} from '../../utilities/places-url'
-import { UNITED_STATES, WORLD } from '../../utilities/places-view'
+	readUrlState,
+	type UrlState,
+	writeUrlState,
+} from '../../utilities/url'
+import { UNITED_STATES, WORLD } from '../../utilities/view'
 
 /** An address, read. */
-function read(query: string): PlaceLocation {
-	return readLocation(new URLSearchParams(query))
+function read(query: string): UrlState {
+	return readUrlState(new URLSearchParams(query))
 }
 
 /** A location, written back as a query string. */
-function write(location: Partial<PlaceLocation>): string {
-	return writeLocation({
+function write(location: Partial<UrlState>): string {
+	return writeUrlState({
 		view: null,
 		filter: {},
 		selected: NOTHING_SELECTED,
@@ -34,7 +34,7 @@ function write(location: Partial<PlaceLocation>): string {
 }
 
 /** The empty location, which is what an address states before the reader does anything. */
-const NOTHING: PlaceLocation = {
+const NOTHING: UrlState = {
 	view: null,
 	filter: {},
 	selected: NOTHING_SELECTED,
@@ -42,7 +42,7 @@ const NOTHING: PlaceLocation = {
 	adding: null,
 }
 
-describe('readLocation', () => {
+describe('readUrlState', () => {
 	it('reads an empty address as nothing stated', () => {
 		expect(read('')).toEqual(NOTHING)
 	})
@@ -185,7 +185,7 @@ describe('readLocation', () => {
 	})
 })
 
-describe('writeLocation', () => {
+describe('writeUrlState', () => {
 	it('writes nothing for an empty location', () => {
 		expect(write({})).toBe('')
 	})
@@ -248,7 +248,7 @@ describe('a location round trip', () => {
 	// The address is the state, so what a reader lands on has to be what they
 	// left: a round trip that loses a field loses their place.
 	it('survives every field at once', () => {
-		const location: PlaceLocation = {
+		const location: UrlState = {
 			view: { country: UNITED_STATES, state: 'Oregon' },
 			filter: {
 				categories: ['food', 'shopping'],
@@ -264,11 +264,11 @@ describe('a location round trip', () => {
 			adding: 'trips',
 		}
 
-		expect(readLocation(writeLocation(location))).toEqual(location)
+		expect(readUrlState(writeUrlState(location))).toEqual(location)
 	})
 
 	it('survives the world, which is the case the mark exists for', () => {
-		const location: PlaceLocation = {
+		const location: UrlState = {
 			view: WORLD,
 			filter: {},
 			selected: NOTHING_SELECTED,
@@ -276,11 +276,11 @@ describe('a location round trip', () => {
 			adding: null,
 		}
 
-		expect(readLocation(writeLocation(location))).toEqual(location)
+		expect(readUrlState(writeUrlState(location))).toEqual(location)
 	})
 
 	it('survives a region name carrying punctuation', () => {
-		const location: PlaceLocation = {
+		const location: UrlState = {
 			view: { country: "Côte d'Ivoire", state: null },
 			filter: {},
 			selected: NOTHING_SELECTED,
@@ -288,6 +288,6 @@ describe('a location round trip', () => {
 			adding: null,
 		}
 
-		expect(readLocation(writeLocation(location))).toEqual(location)
+		expect(readUrlState(writeUrlState(location))).toEqual(location)
 	})
 })

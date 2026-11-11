@@ -1,5 +1,5 @@
 import type { User } from 'auth'
-import { bifrost, unwrap } from 'shared/auth'
+import { browserBifrost, unwrap } from 'shared/auth'
 
 /**
  * The requests that the users pages send from the client. Each goes to a
@@ -8,7 +8,7 @@ import { bifrost, unwrap } from 'shared/auth'
 
 /** Every user. */
 export async function fetchUsers(signal?: AbortSignal): Promise<User[]> {
-	const { data } = await unwrap(bifrost.GET('/api/users', { signal }))
+	const { data } = await unwrap(browserBifrost.GET('/api/users', { signal }))
 
 	return data
 }
@@ -21,7 +21,7 @@ export async function fetchUsers(signal?: AbortSignal): Promise<User[]> {
  */
 export async function setUserActive(userId: string, isActive: boolean): Promise<User> {
 	return unwrap(
-		bifrost.PATCH('/api/users/{id}', {
+		browserBifrost.PATCH('/api/users/{id}', {
 			params: { path: { id: userId } },
 			body: { is_active: isActive },
 		}),

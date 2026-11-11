@@ -4,8 +4,8 @@ import { useDateFormat } from 'ui/providers/locale'
 import { Rating } from 'ui/rating'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import type { Place } from '../../types'
-import { DAY_FORMAT } from '../../utilities/places-filter'
-import { ratedVisit } from '../../utilities/places-visits'
+import { DAY_FORMAT } from '../../utilities/filter'
+import { ratedVisit } from '../../utilities/visits'
 
 /**
  * The rating of a place: the rating of its newest rated visit, or nothing where

@@ -1,6 +1,6 @@
-import { stateOfKey } from '../../elections/us-states'
 import type { Delegation } from '../../utilities/race-math'
 import { delegationWinner, type RaceEntry, raceWinner } from '../../utilities/results'
+import { findStateByKey } from '../../utilities/us-states'
 
 /** One state of the national map: its Winner category, or `null` for a state with a race and no category yet. */
 export type StateRow = { fips: string; winner: string | null }
@@ -23,7 +23,7 @@ export function stateRows(
 		byState === null
 			? entries.map((entry) => ({ fips: entry.state.fips, winner: raceWinner(entry) }))
 			: [...byState].map(([key, delegation]) => ({
-					fips: stateOfKey(key)?.fips,
+					fips: findStateByKey(key)?.fips,
 					winner: delegationWinner(delegation),
 				}))
 

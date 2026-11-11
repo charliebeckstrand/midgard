@@ -1,8 +1,8 @@
-import { type Election, electionPath } from '../elections/registry'
-import type { UsState } from '../elections/us-states'
 import type { PartySlot } from '../types'
-import { type DrawerStep, drawerHref } from './elections-url'
+import { type Election, electionPath } from './registry'
 import { entryKey, entryName, entryStep, matchesWords, type OfficeRaces } from './results'
+import { type DrawerStep, drawerHref } from './url'
+import type { UsState } from './us-states'
 
 /**
  * The search of an election, in the header of each of its pages. A row is a

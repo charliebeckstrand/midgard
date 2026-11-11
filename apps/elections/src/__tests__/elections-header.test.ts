@@ -3,7 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ElectionsHeader } from '../components/elections-header'
-import { type Election, findElection } from '../elections/registry'
+import { type Election, findElection } from '../utilities/registry'
 import { electionCrumbs } from '../utilities/trail'
 
 /** The path of the page that the header is on. */

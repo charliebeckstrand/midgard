@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Game } from '../types'
-import { game } from './fixtures'
+import { makeGame } from './fixtures'
 
 const { cacheLife, readGames } = vi.hoisted(() => ({
 	cacheLife: vi.fn(),
@@ -44,11 +44,16 @@ afterEach(() => {
 describe('getWeekGames', () => {
 	const kickoff = Date.parse(KICKOFF)
 
-	const scheduled = game({ kickoff: KICKOFF })
+	const scheduled = makeGame({ kickoff: KICKOFF })
 
 	it.for<[string, Game[], number, string]>([
-		['holds a week in play for minutes', [game({ state: 'live' }), scheduled], kickoff, 'minutes'],
-		['holds a week that is over for days', [game({ state: 'final' })], kickoff, 'days'],
+		[
+			'holds a week in play for minutes',
+			[makeGame({ state: 'live' }), scheduled],
+			kickoff,
+			'minutes',
+		],
+		['holds a week that is over for days', [makeGame({ state: 'final' })], kickoff, 'days'],
 		[
 			'holds a week for hours while its next kickoff is more than an hour away',
 			[scheduled],
@@ -63,7 +68,7 @@ describe('getWeekGames', () => {
 		],
 		[
 			'holds a week for minutes when a kickoff passed and the feed still says scheduled',
-			[game({ state: 'final' }), scheduled],
+			[makeGame({ state: 'final' }), scheduled],
 			kickoff + MINUTE,
 			'minutes',
 		],

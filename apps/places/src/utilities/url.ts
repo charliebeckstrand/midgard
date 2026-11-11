@@ -1,10 +1,10 @@
 import type { DatePickerRelativeValue } from 'ui/date-picker'
 import { flags } from '../flags'
-import { isCategory, isDay } from '../schemas/place'
 import { RECORD_KINDS, type RecordKind } from '../types'
-import { atlasNames } from './places-atlas'
-import { fromDay, type PlaceFilterValue, toDay } from './places-filter'
-import { type PlaceView, UNITED_STATES } from './places-view'
+import { atlasNames } from './atlas'
+import { isCategory, isDay } from './fields'
+import { fromDay, type PlaceFilterValue, toDay } from './filter'
+import { type PlaceView, UNITED_STATES } from './view'
 
 /**
  * The reader's place in the app, as the address bar carries it.
@@ -27,7 +27,7 @@ import { type PlaceView, UNITED_STATES } from './places-view'
  * - `list`: `all` while the panel lists every record of its region.
  * - `add`: `place` or `trip` while the form for a new one is open.
  */
-export type PlaceLocation = {
+export type UrlState = {
 	/**
 	 * Where the map is pointed, or `null` where the address states nothing and the
 	 * opening rule still has the say.
@@ -145,7 +145,7 @@ function readSpans(params: URLSearchParams): DatePickerRelativeValue[] {
  *
  * Its own reader, like the ones below it: a location moves one part at a time,
  * and a reader that answers the whole address hands back a new value for each
- * part on a write that changed one of them. See {@link readLocation}.
+ * part on a write that changed one of them. See {@link readUrlState}.
  */
 export function readView(params: URLSearchParams): PlaceView | null {
 	if (!params.has('country')) return null
@@ -227,7 +227,7 @@ export function readAdding(params: URLSearchParams): RecordKind | null {
  * it. A field that no longer parses is dropped rather than thrown over, so a
  * stale link opens the app it can rather than an error.
  */
-export function readLocation(params: URLSearchParams): PlaceLocation {
+export function readUrlState(params: URLSearchParams): UrlState {
 	return {
 		view: readView(params),
 		filter: readFilter(params),
@@ -259,16 +259,10 @@ function writeSelected(params: URLSearchParams, selected: PlaceSelection, step: 
  *
  * A field the location does not hold is left out entirely, so the address stays
  * as short as what the reader has actually done, and an unstated view writes no
- * `country` at all, which is what {@link PlaceLocation.view} reads back as
+ * `country` at all, which is what {@link UrlState.view} reads back as
  * "the opening rule still has the say".
  */
-export function writeLocation({
-	view,
-	filter,
-	selected,
-	step,
-	adding,
-}: PlaceLocation): URLSearchParams {
+export function writeUrlState({ view, filter, selected, step, adding }: UrlState): URLSearchParams {
 	const params = new URLSearchParams()
 
 	if (view !== null) {

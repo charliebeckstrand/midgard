@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { clientIpSecret } from './env'
+import { readClientIpSecret } from './env'
 import { isApiRoute, isAuthRoute, isGuestRoute } from './routes'
-import { sessionCookie } from './session-cookie'
+import { SESSION_COOKIE } from './session-cookie'
 
 // Read when the proxy loads, so the first request after a start fails when the secret is lost.
-const secret = clientIpSecret()
+const secret = readClientIpSecret()
 
 /**
  * Continues a request, and adds the address of the browser to an auth or API request.
@@ -72,7 +72,7 @@ export function proxy(request: NextRequest) {
 
 	if (isGuestRoute(pathname)) return NextResponse.next()
 
-	if (!request.cookies.has(sessionCookie)) {
+	if (!request.cookies.has(SESSION_COOKIE)) {
 		if (isApiRoute(pathname)) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 		}

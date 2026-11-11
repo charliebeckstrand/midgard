@@ -5,7 +5,7 @@ import createClient from 'openapi-fetch'
 export type SecondFactorMethod = 'passkey' | 'totp' | 'recovery_code'
 
 /** The second factors of a user, as the gateway's `GET /auth/mfa` reports them. */
-export type SecondFactors = Schema<'Factors'>
+export type Factors = Schema<'Factors'>
 
 /**
  * Returns the methods that can give the second step, in the order of the
@@ -15,7 +15,7 @@ export function secondFactorMethods({
 	passkeys,
 	totp,
 	recovery_codes,
-}: SecondFactors): SecondFactorMethod[] {
+}: Factors): SecondFactorMethod[] {
 	const methods: SecondFactorMethod[] = []
 
 	if (passkeys > 0) methods.push('passkey')
@@ -49,7 +49,7 @@ let pending: Promise<boolean> | undefined
 // The client reads the global `fetch` at each call.
 const gateway = createClient<Paths>({ fetch: (request) => fetch(request) })
 
-async function checkSecondStep(): Promise<boolean> {
+async function runCheck(): Promise<boolean> {
 	const { data: session } = await gateway.GET('/auth/session')
 
 	if (!session) return false
@@ -80,7 +80,7 @@ async function checkSecondStep(): Promise<boolean> {
  * mounted.
  */
 export function ensureSecondStep(): Promise<boolean> {
-	pending ??= checkSecondStep().finally(() => {
+	pending ??= runCheck().finally(() => {
 		pending = undefined
 	})
 
@@ -93,7 +93,7 @@ export function ensureSecondStep(): Promise<boolean> {
  * second step it sends the request again.
  *
  * @remarks
- * The `fetch` of the `bifrost` client. When the user does not give the second
+ * The `fetch` of the `browserBifrost` client. When the user does not give the second
  * step, the first response comes back.
  */
 export async function fetchWithSecondStep(request: Request): Promise<Response> {

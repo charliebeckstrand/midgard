@@ -9,7 +9,7 @@ import {
 	toVisitDraft,
 	toVisitPlaceDraft,
 } from '../../components/place-form-drawer/place-form'
-import { photo, place, trip, visitWith } from '../fixtures'
+import { makePhoto, makePlace, makeTrip, makeVisit } from '../fixtures'
 
 /** The day that a new visit of a form starts on. */
 const TODAY = new Date(2026, 9, 1)
@@ -44,7 +44,9 @@ const sherwood: AddressSuggestion = {
 const signal = new AbortController().signal
 
 describe('placeValidators', () => {
-	const validators = placeValidators([trip('t1', { startsOn: '2026-09-25', endsOn: '2026-09-28' })])
+	const validators = placeValidators([
+		makeTrip('t1', { startsOn: '2026-09-25', endsOn: '2026-09-28' }),
+	])
 
 	it('takes a place with no match, because the address locates it', () => {
 		expect(validators.place?.(undefined, typed())).toBeUndefined()
@@ -103,7 +105,7 @@ describe('targetValues', () => {
 			{
 				kind: 'place',
 				place: null,
-				trip: trip('t1', { startsOn: '2026-09-25' }),
+				trip: makeTrip('t1', { startsOn: '2026-09-25' }),
 			},
 			TODAY,
 		)
@@ -118,7 +120,7 @@ describe('targetValues', () => {
 	})
 
 	it('reads the trip of a stored visit', () => {
-		const base = place('p1', {
+		const base = makePlace('p1', {
 			visits: [{ id: 'v1', visitedAt: '2026-09-26', rating: 0, photos: [], tripId: 't1' }],
 		})
 
@@ -288,7 +290,7 @@ describe('toPlaceDraft', () => {
 	})
 
 	it('keeps the visits on record, with their photo keys, through an edit of the place', () => {
-		const base = place('p1', { visits: [visitWith('v1', [photo('users/u1/a.jpg')])] })
+		const base = makePlace('p1', { visits: [makeVisit('v1', [makePhoto('users/u1/a.jpg')])] })
 
 		const values = targetValues({ kind: 'place', place: base }, TODAY)
 
@@ -298,7 +300,7 @@ describe('toPlaceDraft', () => {
 	})
 
 	it('keeps the parts on record while an edit keeps its own match', () => {
-		const base = place('p1', { city: 'Portland', state: 'Oregon', country: 'United States' })
+		const base = makePlace('p1', { city: 'Portland', state: 'Oregon', country: 'United States' })
 
 		const values = targetValues({ kind: 'place', place: base }, TODAY)
 
@@ -314,10 +316,10 @@ describe('toPlaceDraft', () => {
 })
 
 describe('toVisitPlaceDraft', () => {
-	const base = place('p1', {
+	const base = makePlace('p1', {
 		visits: [
-			{ id: 'v2', visitedAt: '2026-08-15', rating: 4, photos: [photo('users/u1/a.jpg')] },
-			{ id: 'v1', visitedAt: '2026-01-02', rating: 2, photos: [photo('users/u1/b.jpg')] },
+			{ id: 'v2', visitedAt: '2026-08-15', rating: 4, photos: [makePhoto('users/u1/a.jpg')] },
+			{ id: 'v1', visitedAt: '2026-01-02', rating: 2, photos: [makePhoto('users/u1/b.jpg')] },
 		],
 	})
 
@@ -340,7 +342,7 @@ describe('toVisitPlaceDraft', () => {
 
 		const values = targetValues({ kind: 'visit', place: base, visit }, TODAY)
 
-		expect(values.photos).toEqual([photo('users/u1/b.jpg')])
+		expect(values.photos).toEqual([makePhoto('users/u1/b.jpg')])
 
 		const draft = toVisitPlaceDraft({ ...values, rating: 5 }, base, visit, [
 			'users/u1/b.jpg',

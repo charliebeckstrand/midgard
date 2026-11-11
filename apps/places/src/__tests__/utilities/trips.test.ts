@@ -1,29 +1,29 @@
 import { describe, expect, it } from 'vitest'
 import {
 	drawnRecords,
+	inTrip,
 	isTrip,
 	placeCount,
 	placesByTrip,
 	recordCount,
 	sortTrips,
-	withinTrip,
-} from '../../utilities/places-trips'
-import { place, trip } from '../fixtures'
+} from '../../utilities/trips'
+import { makePlace, makeTrip } from '../fixtures'
 
 describe('placesByTrip', () => {
 	it('lists the places of each trip by the visits that name it, newest visit first', () => {
-		const early = place('early', {
+		const early = makePlace('early', {
 			visits: [{ id: 'v1', visitedAt: '2026-09-25', rating: 0, photos: [], tripId: 't1' }],
 		})
 
-		const late = place('late', {
+		const late = makePlace('late', {
 			visits: [
 				{ id: 'v2', visitedAt: '2026-09-27', rating: 0, photos: [], tripId: 't1' },
 				{ id: 'v3', visitedAt: '2026-01-02', rating: 0, photos: [] },
 			],
 		})
 
-		const home = place('home')
+		const home = makePlace('home')
 
 		const byTrip = placesByTrip([early, home, late])
 
@@ -33,7 +33,7 @@ describe('placesByTrip', () => {
 	})
 
 	it('lists a place once, whatever the number of its visits on the trip', () => {
-		const twice = place('twice', {
+		const twice = makePlace('twice', {
 			visits: [
 				{ id: 'v1', visitedAt: '2026-09-26', rating: 0, photos: [], tripId: 't1' },
 				{ id: 'v2', visitedAt: '2026-09-25', rating: 0, photos: [], tripId: 't1' },
@@ -47,45 +47,45 @@ describe('placesByTrip', () => {
 describe('sortTrips', () => {
 	it('puts the newest first day first, then the names in order', () => {
 		const trips = [
-			trip('a', { name: 'Lisbon', startsOn: '2026-04-01' }),
-			trip('b', { name: 'Porto', startsOn: '2026-10-01' }),
-			trip('c', { name: 'Kyoto', startsOn: '2026-10-01' }),
+			makeTrip('a', { name: 'Lisbon', startsOn: '2026-04-01' }),
+			makeTrip('b', { name: 'Porto', startsOn: '2026-10-01' }),
+			makeTrip('c', { name: 'Kyoto', startsOn: '2026-10-01' }),
 		]
 
 		expect(sortTrips(trips).map((held) => held.id)).toEqual(['c', 'b', 'a'])
 	})
 })
 
-describe('withinTrip', () => {
+describe('inTrip', () => {
 	it('takes the first and the last day, and refuses the days around them', () => {
-		const held = trip('t1', { startsOn: '2026-09-25', endsOn: '2026-09-28' })
+		const held = makeTrip('t1', { startsOn: '2026-09-25', endsOn: '2026-09-28' })
 
-		expect(withinTrip(held, '2026-09-25')).toBe(true)
+		expect(inTrip(held, '2026-09-25')).toBe(true)
 
-		expect(withinTrip(held, '2026-09-28')).toBe(true)
+		expect(inTrip(held, '2026-09-28')).toBe(true)
 
-		expect(withinTrip(held, '2026-09-24')).toBe(false)
+		expect(inTrip(held, '2026-09-24')).toBe(false)
 
-		expect(withinTrip(held, '2026-09-29')).toBe(false)
+		expect(inTrip(held, '2026-09-29')).toBe(false)
 	})
 })
 
 describe('drawnRecords', () => {
 	it('draws the trips and the places on no drawn trip, and stands a place at its trip', () => {
-		const lisbon = trip('lisbon')
+		const lisbon = makeTrip('lisbon')
 
-		const onTrip = place('tower', {
+		const onTrip = makePlace('tower', {
 			visits: [
 				{ id: 'v2', visitedAt: '2026-09-26', rating: 4, photos: [], tripId: 'lisbon' },
 				{ id: 'v1', visitedAt: '2025-01-01', rating: 3, photos: [] },
 			],
 		})
 
-		const onOtherTrip = place('cafe', {
+		const onOtherTrip = makePlace('cafe', {
 			visits: [{ id: 'v3', visitedAt: '2026-05-01', rating: 4, photos: [], tripId: 'rome' }],
 		})
 
-		const offTrip = place('market')
+		const offTrip = makePlace('market')
 
 		const drawn = drawnRecords([onTrip, onOtherTrip, offTrip], [lisbon])
 
@@ -99,9 +99,9 @@ describe('drawnRecords', () => {
 
 describe('isTrip', () => {
 	it('tells a trip from a place', () => {
-		expect(isTrip(trip('lisbon'))).toBe(true)
+		expect(isTrip(makeTrip('lisbon'))).toBe(true)
 
-		expect(isTrip(place('tower'))).toBe(false)
+		expect(isTrip(makePlace('tower'))).toBe(false)
 	})
 })
 

@@ -4,8 +4,8 @@ import { createElement as h } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NearbyDrawer, type NearbyDrawerProps } from '../../components/nearby-drawer'
 import type { Place } from '../../types'
-import { PANEL_START } from '../../utilities/places-url'
-import { place } from '../fixtures'
+import { PANEL_START } from '../../utilities/url'
+import { makePlace } from '../fixtures'
 
 afterEach(cleanup)
 
@@ -24,11 +24,11 @@ beforeEach(() => {
 	)
 })
 
-const a = place('a')
+const a = makePlace('a')
 
-const b = place('b')
+const b = makePlace('b')
 
-const c = place('c')
+const c = makePlace('c')
 
 /** The props of a drawer over the list of the picked `items`. */
 function props(picked: readonly string[], items: readonly Place[]): NearbyDrawerProps {

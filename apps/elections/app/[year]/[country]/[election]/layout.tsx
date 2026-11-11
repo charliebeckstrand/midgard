@@ -4,10 +4,10 @@ import { ElectionViews, OfficeView, OverviewView } from '@/components/election-v
 import { ElectionHeader } from '@/components/elections-header'
 import { PageColumn } from '@/components/page-frame'
 import { RaceSearch } from '@/components/race-search'
-import { ELECTIONS, electionPath } from '@/elections/registry'
 import { officeRaces } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
-import { electionResults } from '@/server/results'
+import { getElectionResults } from '@/server/results'
+import { ELECTIONS, electionPath } from '@/utilities/registry'
 import { OVERVIEW, pageTitle } from '@/utilities/trail'
 
 /**
@@ -52,7 +52,7 @@ export default async function ElectionLayout({
 }) {
 	const election = await readElection(params)
 
-	const results = await electionResults(election)
+	const results = await getElectionResults(election)
 
 	const races = officeRaces(results)
 

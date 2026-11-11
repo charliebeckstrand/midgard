@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import { useIntentLoad, useKeybindings } from 'ui/hooks'
 import { Icon } from 'ui/icon'
-import type { PaletteSource } from '../../utilities/places-palette'
+import type { PaletteSource } from '../../utilities/palette'
 
 /**
  * Loads the module of the command palette, which carries the dialog and the

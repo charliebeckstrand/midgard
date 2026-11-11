@@ -61,7 +61,7 @@ export const NO_POSITION = 'That match has no position. Pick another.'
 export const locationValidators: NonNullable<FormProps<LocationValues>['validate']> = {
 	place: (value) => (value === undefined || hasPosition(value) ? undefined : NO_POSITION),
 	address: (value, values) =>
-		values.locateBy === 'address' && value.trim() === '' ? required('Address') : undefined,
+		values.locateBy === 'address' && value.trim() === '' ? formatRequired('Address') : undefined,
 	latitude: (value, values) =>
 		values.locateBy === 'coordinates' ? coordinateIssue('Latitude', value, 90) : undefined,
 	longitude: (value, values) =>
@@ -145,7 +145,7 @@ export function toLocationDraft(
 }
 
 /** What an empty field says, in the one shape every one of them uses. */
-export function required(field: string): string {
+export function formatRequired(field: string): string {
 	return `${field} is required.`
 }
 
@@ -161,7 +161,7 @@ function parseCoordinate(text: string): number | undefined {
 
 /** What a coordinate field says, where the position comes from the coordinates. */
 function coordinateIssue(field: string, text: string, limit: number): string | undefined {
-	if (text.trim() === '') return required(field)
+	if (text.trim() === '') return formatRequired(field)
 
 	const value = parseCoordinate(text)
 

@@ -26,7 +26,7 @@ function varyOnCookie(response: ServerResponse): void {
  * Makes the HTML response of `response` private to the reader: a shared cache does
  * not keep it, no validator answers 304 for it, and its length can change.
  */
-function makePrivate(response: ServerResponse): void {
+function markPrivate(response: ServerResponse): void {
 	response.removeHeader('content-length')
 
 	response.removeHeader('etag')
@@ -48,7 +48,7 @@ function toBuffer(chunk: unknown, encoding?: BufferEncoding): Buffer {
 
 /**
  * The arguments of `writeHead` with the headers of an object argument copied
- * onto `response`, so {@link makePrivate} sees them.
+ * onto `response`, so {@link markPrivate} sees them.
  */
 function takeHeaders(response: ServerResponse, args: unknown[]): unknown[] {
 	return args.filter((arg) => {
@@ -94,7 +94,7 @@ export function markHtml(request: IncomingMessage, response: ServerResponse): vo
 
 		html = isPlainHtml(response.getHeader('content-type'), response.getHeader('content-encoding'))
 
-		if (html) makePrivate(response)
+		if (html) markPrivate(response)
 	}
 
 	const flush = () => {

@@ -1,10 +1,10 @@
 import { connection } from 'next/server'
 import { type Seed, seed } from 'shared/queries'
-import type { Election } from '../elections/registry'
 import type { Race } from '../types'
-import { readDrawerStep } from '../utilities/elections-url'
+import type { Election } from '../utilities/registry'
 import { type OfficeRaces, stepEntry } from '../utilities/results'
-import { race } from './races'
+import { readDrawerStep } from '../utilities/url'
+import { getRace } from './races'
 
 /** The search params of a page, as Next gives them. */
 export type SearchParams = Promise<Record<string, string | string[] | undefined>>
@@ -14,7 +14,7 @@ export type SearchParams = Promise<Record<string, string | string[] | undefined>
  * server, so a reload paints the Drawer whole. `null` for a closed Drawer, or a
  * step that shows no one race.
  */
-export async function drawerSeed(
+export async function getDrawerSeed(
 	election: Election,
 	results: readonly OfficeRaces[],
 	searchParams: SearchParams,
@@ -33,7 +33,7 @@ export async function drawerSeed(
 
 	if (entry === undefined) return null
 
-	const read = await race(entry.raceId)
+	const read = await getRace(entry.raceId)
 
 	// The seed marks the time of the read, which belongs to the request, not to a prerender.
 	await connection()

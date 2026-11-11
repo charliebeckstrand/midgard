@@ -28,7 +28,7 @@ let routerPath: string | null = null
 let lead: { from: string; path: string } | null = null
 
 /** The address of the browser: its path and its search. */
-export function currentAddress(): string {
+export function readAddress(): string {
 	return `${window.location.pathname}${window.location.search}`
 }
 
@@ -103,7 +103,7 @@ export function addressLeads(path: string, pathname: string): boolean {
 export function useAddress(): { address: string | null; pathname: string } {
 	const pathname = usePathname()
 
-	const address = useSyncExternalStore(subscribe, currentAddress, noAddress)
+	const address = useSyncExternalStore(subscribe, readAddress, noAddress)
 
 	useEffect(() => {
 		routerPath = pathname

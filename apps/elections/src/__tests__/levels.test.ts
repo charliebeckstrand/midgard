@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { type Election, findElection } from '../elections/registry'
 import {
 	activeFilters,
 	filterElections,
@@ -10,6 +9,7 @@ import {
 	openingDay,
 	statusGroups,
 } from '../utilities/levels'
+import { type Election, findElection } from '../utilities/registry'
 
 const midterms = findElection('2026', 'us', 'midterms')
 

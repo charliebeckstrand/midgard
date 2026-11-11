@@ -4,7 +4,7 @@ import type { ReactElement } from 'react'
 import { StatusDot } from 'ui/status'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import type { Game, Pick } from '../../types'
-import { formatLine, pickLine, scoredLine } from '../../utilities/grade'
+import { formatLine, getTeamLine, scoredLine } from '../../utilities/grade'
 
 /** The amber dot of a game that has no line yet. */
 export function PendingDot({ className }: { className?: string }) {
@@ -32,7 +32,7 @@ export function LinePending({ children }: { children: ReactElement }) {
  * that the closing line scores a pick saved before the line posted.
  */
 function lineNote(game: Game, pick: Pick): string | null {
-	const now = pickLine(game, pick.team)
+	const now = getTeamLine(game, pick.team)
 
 	const final = game.state === 'final'
 

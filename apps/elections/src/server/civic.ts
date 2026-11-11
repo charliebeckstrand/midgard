@@ -9,7 +9,7 @@ const USER_AGENT = 'midgard-elections (+https://github.com/charliebeckstrand/mid
  * reader of civicAPI. An answer that is not OK throws, and the error boundary
  * of the page shows it.
  */
-export async function fetchRace(id: number): Promise<unknown> {
+export async function fetchCivicRace(id: number): Promise<unknown> {
 	const response = await fetch(`${CIVIC_API}/race/${id}`, {
 		headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
 	})

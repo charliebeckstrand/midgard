@@ -13,11 +13,11 @@ import {
 import { useIntl } from 'ui/primitives/intl'
 import { RECORD_KIND_META } from '../../constants'
 import type { FormatNumber, Place, Trip } from '../../types'
-import type { PlaceVisitFilter } from '../../utilities/places-filter'
-import { centeredProjection, regionFrame, regionName } from '../../utilities/places-geography'
-import { drawnRecords, isTrip } from '../../utilities/places-trips'
-import { type PlaceSelection, selectedIds } from '../../utilities/places-url'
-import { type PlaceView, viewAtlas, viewFrame, viewRegion } from '../../utilities/places-view'
+import type { PlaceVisitFilter } from '../../utilities/filter'
+import { centeredProjection, regionFrame, regionName } from '../../utilities/geography'
+import { drawnRecords, isTrip } from '../../utilities/trips'
+import { type PlaceSelection, selectedIds } from '../../utilities/url'
+import { type PlaceView, viewAtlas, viewFrame, viewRegion } from '../../utilities/view'
 import { recordStops } from './places-map-utilities'
 
 /**

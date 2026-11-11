@@ -3,11 +3,11 @@
 import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { Swatch } from 'ui/swatch'
 import { TimeAgo } from 'ui/time-ago'
-import type { Election } from '../../elections/registry'
 import { useDrawerGo } from '../../hooks/use-drawer'
-import { districtName } from '../../utilities/elections-url'
 import { surname } from '../../utilities/race-math'
+import type { Election } from '../../utilities/registry'
 import { entryKey, entryStep, type RaceCall, type RaceEntry } from '../../utilities/results'
+import { districtName } from '../../utilities/url'
 
 /**
  * The race of a call with its office, under the winner: `Virginia Senate`, or

@@ -5,7 +5,7 @@ export {
 	signInProviderNames,
 	signOut,
 } from './account'
-export { bifrost, RequestError, unwrap } from './bifrost'
+export { browserBifrost, RequestError, unwrap } from './bifrost'
 export { ForgotPasswordPage } from './forgot-password-page'
 export { LoginPage } from './login-page'
 export { RegisterPage } from './register-page'
@@ -13,8 +13,8 @@ export { ResetPasswordPage } from './reset-password-page'
 export { SecondStepDialog } from './second-step-dialog'
 export {
 	ensureSecondStep,
+	type Factors,
 	type SecondFactorMethod,
-	type SecondFactors,
 	secondFactorMethods,
 } from './second-step-request'
 export { SignOutMenuItem, VerifyEmailMenuItem } from './user-menu-items'

@@ -1,6 +1,6 @@
 import type { MapFeatureCollection } from 'ui/modules/map'
 import type { FormatNumber, Located, VisitScope } from '../types'
-import { regionName } from './places-geography'
+import { regionName } from './geography'
 
 /**
  * How the United States names itself in `world-atlas`, which is the one country
@@ -400,7 +400,7 @@ export function groupName(group: readonly Located[], format: FormatNumber): stri
  * wrong string frames nothing; the world frames everything, and the reader is
  * one click from the country either way.
  */
-export function viewFor(states: ReadonlyMap<string, string>, place: Located): PlaceView {
+export function getPlaceView(states: ReadonlyMap<string, string>, place: Located): PlaceView {
 	const state = states.get(place.id)
 
 	return state === undefined ? WORLD : { country: UNITED_STATES, state }

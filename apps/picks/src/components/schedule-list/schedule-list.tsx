@@ -18,7 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { useDeletePicks, usePicks, useSavePicks } from '../../queries/picks-queries'
 import type { SeasonPicks, Week } from '../../types'
 import { formatRecord, recordColor, type Tally } from '../../utilities/grade'
-import { PREDICT_PARAM, predictValue, readPredictValue } from '../../utilities/predict-param'
+import { formatPredictValue, PREDICT_PARAM, parsePredictValue } from '../../utilities/predict-param'
 import { KickoffTime } from '../kickoff-time'
 import { PredictionSheet } from '../prediction-sheet'
 
@@ -35,7 +35,7 @@ function writePredict(week: number | null) {
 	const url = new URL(window.location.href)
 
 	if (week === null) url.searchParams.delete(PREDICT_PARAM)
-	else url.searchParams.set(PREDICT_PARAM, predictValue(week))
+	else url.searchParams.set(PREDICT_PARAM, formatPredictValue(week))
 
 	window.history.replaceState(null, '', url)
 }
@@ -162,7 +162,7 @@ export function ScheduleList({
 
 	const deletePicks = useDeletePicks(season)
 
-	const predicting = readPredictValue(useSearchParams().get(PREDICT_PARAM))
+	const predicting = parsePredictValue(useSearchParams().get(PREDICT_PARAM))
 
 	const predictingWeek = weeks.find((week) => week.number === predicting) ?? null
 

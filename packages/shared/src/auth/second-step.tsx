@@ -14,7 +14,7 @@ import { Input } from 'ui/input'
 import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { authMessages } from './auth-messages'
-import { bifrost } from './bifrost'
+import { browserBifrost } from './bifrost'
 import { chain, required } from './form-validators'
 import type { SecondFactorMethod } from './second-step-request'
 import { useLeaving } from './use-leaving'
@@ -78,7 +78,7 @@ export function SecondStep({
 
 	async function submit(proof: SecondFactorProof) {
 		try {
-			const { response, error } = await bifrost.POST('/auth/session/verify', { body: proof })
+			const { response, error } = await browserBifrost.POST('/auth/session/verify', { body: proof })
 
 			// The form stays disabled until the next page or the closed dialog replaces it.
 			if (response.ok) return leave(onVerified)
@@ -98,7 +98,7 @@ export function SecondStep({
 	// The gateway names only the passkeys of this user. A cancel in the browser throws.
 	async function checkPasskey() {
 		try {
-			const { data: options, error } = await bifrost.POST('/auth/session/verify/options')
+			const { data: options, error } = await browserBifrost.POST('/auth/session/verify/options')
 
 			if (!options) {
 				setServerError(error?.message || intl.formatMessage(authMessages.passkeyCheckFailed))

@@ -86,7 +86,7 @@ export function PicksHeader({ user, week }: PicksHeaderProps) {
  * The header of a week while the week loads: `Schedule`, which goes back at
  * once, and placeholders for the week and the menu.
  */
-export function WeekHeaderSkeleton() {
+export function PicksHeaderSkeleton() {
 	return (
 		<HeaderBar
 			trail={

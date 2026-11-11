@@ -5,8 +5,8 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import { useIntentLoad, useKeybindings } from 'ui/hooks'
 import { Icon } from 'ui/icon'
-import type { Election } from '../../elections/registry'
 import type { ElectionRaces } from '../../utilities/race-search'
+import type { Election } from '../../utilities/registry'
 
 /**
  * Loads the module of the search panel, which carries the command palette.

@@ -2,7 +2,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { cache } from 'react'
 import { bifrost, requireGateway, type Schema } from './fetch'
-import { sessionCookie } from './session-cookie'
+import { SESSION_COOKIE } from './session-cookie'
 
 /**
  * A role of a user. `user` lets the account change data in the apps, and
@@ -38,7 +38,7 @@ export type Session = Schema<'Session'>
 export const getSession = cache(async (): Promise<Session | undefined> => {
 	const cookieStore = await cookies()
 
-	if (!cookieStore.has(sessionCookie)) return undefined
+	if (!cookieStore.has(SESSION_COOKIE)) return undefined
 
 	return requireGateway('/auth/session', () => bifrost.GET('/auth/session'), { absent: [401] })
 })

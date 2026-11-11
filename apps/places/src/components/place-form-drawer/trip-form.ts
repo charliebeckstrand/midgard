@@ -1,15 +1,15 @@
 import type { AddressSuggestion } from 'ui/address-input'
 import type { FormProps } from 'ui/form'
 import type { PlaceCategory, Trip, TripDraft, TripStop, VisitDraft } from '../../types'
-import { fromDay, toDay } from '../../utilities/places-filter'
-import { withinTrip } from '../../utilities/places-trips'
+import { fromDay, toDay } from '../../utilities/filter'
+import { inTrip } from '../../utilities/trips'
 import {
 	addressLine,
+	formatRequired,
 	hasPosition,
 	locationLine,
 	NO_POSITION,
 	recordMatch,
-	required,
 	toLocationDraft,
 } from './location-form'
 import type { PhotoEntry } from './place-form'
@@ -73,7 +73,7 @@ function stopIssue(rows: readonly StopRow[], days: [Date, Date] | undefined): st
 
 		if (row.day === undefined) return `${name} needs a day.`
 
-		if (span !== undefined && !withinTrip(span, toDay(row.day))) {
+		if (span !== undefined && !inTrip(span, toDay(row.day))) {
 			return `${name} is not on a day of the trip.`
 		}
 	}
@@ -84,14 +84,14 @@ function stopIssue(rows: readonly StopRow[], days: [Date, Date] | undefined): st
 /** Per-field validators, in the shape `Form` takes. */
 export const tripValidators: NonNullable<FormProps<TripValues>['validate']> = {
 	location: (value) => {
-		if (value === undefined) return required('Location')
+		if (value === undefined) return formatRequired('Location')
 
 		return hasPosition(value) ? undefined : NO_POSITION
 	},
-	name: (value) => (value.trim() === '' ? required('Name') : undefined),
+	name: (value) => (value.trim() === '' ? formatRequired('Name') : undefined),
 	days: (value) =>
 		value === undefined || value.some((day) => Number.isNaN(day.getTime()))
-			? required('Dates')
+			? formatRequired('Dates')
 			: undefined,
 	stops: (rows, values) => stopIssue(rows, values.days),
 }

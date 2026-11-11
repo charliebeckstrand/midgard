@@ -1,7 +1,7 @@
 import { Container } from 'ui/structure/container'
-import { GameCardSkeleton, GameGrid } from '@/components/game-card'
+import { GameCardGrid, GameCardSkeleton } from '@/components/game-card'
 import { PageFrame } from '@/components/page-frame'
-import { WeekHeaderSkeleton } from '@/components/picks-header'
+import { PicksHeaderSkeleton } from '@/components/picks-header'
 
 /** The number of game cards that the skeleton shows: a full row at each width. */
 const CARDS = 6
@@ -12,14 +12,14 @@ const CARDS = 6
  */
 export default function Loading() {
 	return (
-		<PageFrame header={<WeekHeaderSkeleton />}>
+		<PageFrame header={<PicksHeaderSkeleton />}>
 			{/* A screen reader does not read the skeletons, so the region tells it that the week loads. */}
 			<Container size="full" padding="lg" className="py-6" aria-busy="true">
-				<GameGrid>
+				<GameCardGrid>
 					{Array.from({ length: CARDS }, (_, index) => (
 						<GameCardSkeleton key={index} />
 					))}
-				</GameGrid>
+				</GameCardGrid>
 			</Container>
 		</PageFrame>
 	)

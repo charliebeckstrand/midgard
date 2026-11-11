@@ -6,7 +6,7 @@ import { Link } from 'ui/link'
 import { useIntl } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
-import { type Election, electionPath } from '../../elections/registry'
+import { type Election, electionPath } from '../../utilities/registry'
 
 /**
  * The day of an election in the locale of the page, such as `November 3, 2026`.

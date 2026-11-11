@@ -1,5 +1,5 @@
-import { ELECTIONS, type Election } from '../../elections/registry'
-import { searchedElections } from '../../server/results'
+import { getSearchedElections } from '../../server/results'
+import { ELECTIONS, type Election } from '../../utilities/registry'
 import { type Crumb, listedElections } from '../../utilities/trail'
 import { CountryFlag } from '../country-flag'
 import { LevelView } from '../level-view'
@@ -24,7 +24,7 @@ export type LevelPageProps = {
  * country on the server. The page shows no results, so it has no footer.
  */
 export async function LevelPage({ crumbs, heading, elections }: LevelPageProps) {
-	const searched = await searchedElections(listedElections(ELECTIONS))
+	const searched = await getSearchedElections(listedElections(ELECTIONS))
 
 	return (
 		<PageFrame crumbs={crumbs} search={<RaceSearch elections={searched} />}>

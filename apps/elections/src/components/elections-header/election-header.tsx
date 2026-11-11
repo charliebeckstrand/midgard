@@ -2,9 +2,9 @@
 
 import { useSelectedLayoutSegment } from 'next/navigation'
 import type { ReactNode } from 'react'
-import type { Election } from '../../elections/registry'
-import { stateOfSlug } from '../../elections/us-states'
+import type { Election } from '../../utilities/registry'
 import { electionCrumbs } from '../../utilities/trail'
+import { findStateBySlug } from '../../utilities/us-states'
 import { ElectionsHeader } from './elections-header'
 
 /**
@@ -17,7 +17,7 @@ import { ElectionsHeader } from './elections-header'
 export function ElectionHeader({ election, search }: { election: Election; search?: ReactNode }) {
 	const segment = useSelectedLayoutSegment()
 
-	const state = segment === null ? undefined : stateOfSlug(segment)
+	const state = segment === null ? undefined : findStateBySlug(segment)
 
 	return <ElectionsHeader crumbs={electionCrumbs(election, state)} search={search} />
 }

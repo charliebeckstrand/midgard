@@ -1,1 +1,1 @@
-export { PicksHeader, WeekHeaderSkeleton } from './picks-header'
+export { PicksHeader, PicksHeaderSkeleton } from './picks-header'

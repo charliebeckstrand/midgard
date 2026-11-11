@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { findElection } from '../elections/registry'
-import { stateOfKey } from '../elections/us-states'
 import { useDrawerGo, useDrawerStep } from '../hooks/use-drawer'
+import { findElection } from '../utilities/registry'
+import { findStateByKey } from '../utilities/us-states'
 
 /**
  * The search of the router. `null` follows the address of the browser. A
@@ -27,7 +27,7 @@ const midterms = findElection('2026', 'us', 'midterms')
 
 if (midterms === undefined) throw new Error('The registry has no 2026 midterms.')
 
-const georgia = stateOfKey('ga')
+const georgia = findStateByKey('ga')
 
 if (georgia === undefined) throw new Error('No state has the key ga.')
 

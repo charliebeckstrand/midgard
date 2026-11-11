@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
-import { findContest, findElection } from '../elections/registry'
 import { readNationalRace, readRace } from '../server/civic-race'
 import { atlasCountyNames } from '../server/county-names'
-import { race } from '../server/races'
-import { latestCalls } from '../server/results'
+import { getRace } from '../server/races'
+import { getLatestCalls } from '../server/results'
+import { findContest, findElection } from '../utilities/registry'
 import { readEntries } from '../utilities/results'
 import gaSenate from './fixtures/ga-senate.json'
 import senate from './fixtures/senate.json'
 
-vi.mock('../server/races', () => ({ race: vi.fn(), nationalRace: vi.fn() }))
+vi.mock('../server/races', () => ({ getRace: vi.fn(), getNationalRace: vi.fn() }))
 
 const midterms = findElection('2026', 'us', 'midterms')
 
@@ -23,7 +23,7 @@ const result = { contest, national: readNationalRace(87528, senate), entries }
 /** A called race with a winner, as `race/{id}` gives it. */
 const called = readRace(87087, gaSenate, '13', atlasCountyNames)
 
-describe('latestCalls', () => {
+describe('getLatestCalls', () => {
 	it('leaves out a called race that gives no call time, because its last update is not when it was called', async () => {
 		const delaware = entries.find((entry) => entry.state.key === 'de')
 
@@ -31,13 +31,13 @@ describe('latestCalls', () => {
 			throw new Error('The fixture has no called Delaware race.')
 		}
 
-		vi.mocked(race).mockImplementation(async (id) =>
+		vi.mocked(getRace).mockImplementation(async (id) =>
 			id === delaware.raceId
 				? { ...called, id, calledAt: null, updated: '2026-11-09T05:00:00.000Z' }
 				: { ...called, id, calledAt: '2026-11-05T02:00:00.000Z' },
 		)
 
-		const calls = await latestCalls([result], 5)
+		const calls = await getLatestCalls([result], 5)
 
 		expect(calls).toHaveLength(5)
 

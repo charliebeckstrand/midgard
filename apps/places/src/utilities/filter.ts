@@ -86,7 +86,7 @@ function withinAny(day: string, ranges: readonly DatePickerRelativeValue[]): boo
  *
  * Each field narrows on its own and an absent one narrows nothing, so an empty
  * bar answers with everything. An empty category list admits nothing, but no
- * caller gives one: the filter bar and `readLocation` both turn an empty pick
+ * caller gives one: the filter bar and `readUrlState` both turn an empty pick
  * into the absent field.
  *
  * There is no country field. The map projects one country now, so narrowing to

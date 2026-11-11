@@ -3,7 +3,7 @@ import {
 	startRegistration,
 } from '@simplewebauthn/browser'
 import type { Schema, SignInProvider } from 'auth'
-import { bifrost, unwrap } from 'shared/auth'
+import { browserBifrost, unwrap } from 'shared/auth'
 import { downloadBlob } from 'ui/core'
 
 /**
@@ -16,7 +16,7 @@ export type Passkey = Schema<'Passkey'>
 
 /** The passkeys of the signed-in user. */
 export async function fetchPasskeys(signal?: AbortSignal): Promise<Passkey[]> {
-	const { data } = await unwrap(bifrost.GET('/auth/passkeys', { signal }))
+	const { data } = await unwrap(browserBifrost.GET('/auth/passkeys', { signal }))
 
 	return data
 }
@@ -29,14 +29,14 @@ export async function fetchPasskeys(signal?: AbortSignal): Promise<Passkey[]> {
  * ten minutes of the sign-in.
  */
 export async function addPasskey(): Promise<Passkey> {
-	const options = await unwrap(bifrost.POST('/auth/passkeys/options'))
+	const options = await unwrap(browserBifrost.POST('/auth/passkeys/options'))
 
 	// The gateway passes the options of the browser API through, so its spec names no fields.
 	const optionsJSON = options as PublicKeyCredentialCreationOptionsJSON
 
 	const credential = await startRegistration({ optionsJSON })
 
-	return unwrap(bifrost.POST('/auth/passkeys', { body: credential }))
+	return unwrap(browserBifrost.POST('/auth/passkeys', { body: credential }))
 }
 
 /**
@@ -45,7 +45,7 @@ export async function addPasskey(): Promise<Passkey> {
  * The gateway refuses to remove the last second factor of an admin with a `409`.
  */
 export async function removePasskey(id: string): Promise<void> {
-	await unwrap(bifrost.DELETE('/auth/passkeys/{id}', { params: { path: { id } } }))
+	await unwrap(browserBifrost.DELETE('/auth/passkeys/{id}', { params: { path: { id } } }))
 }
 
 /** The second factors of the signed-in user, as the gateway reports them. */
@@ -56,7 +56,7 @@ export type TotpSetup = Schema<'TotpSetup'>
 
 /** The second factors of the signed-in user. */
 export async function fetchFactors(signal?: AbortSignal): Promise<Factors> {
-	return unwrap(bifrost.GET('/auth/mfa', { signal }))
+	return unwrap(browserBifrost.GET('/auth/mfa', { signal }))
 }
 
 /**
@@ -64,12 +64,12 @@ export async function fetchFactors(signal?: AbortSignal): Promise<Factors> {
  * {@link confirmTotp} sends a code from it.
  */
 export async function startTotpSetup(): Promise<TotpSetup> {
-	return unwrap(bifrost.POST('/auth/mfa/totp/setup'))
+	return unwrap(browserBifrost.POST('/auth/mfa/totp/setup'))
 }
 
 /** Turns on the authenticator app with a code that it shows now. */
 export async function confirmTotp(code: string): Promise<void> {
-	await unwrap(bifrost.POST('/auth/mfa/totp', { body: { code } }))
+	await unwrap(browserBifrost.POST('/auth/mfa/totp', { body: { code } }))
 }
 
 /**
@@ -78,12 +78,12 @@ export async function confirmTotp(code: string): Promise<void> {
  * The gateway refuses to remove the last second factor of an admin with a `409`.
  */
 export async function removeTotp(): Promise<void> {
-	await unwrap(bifrost.DELETE('/auth/mfa/totp'))
+	await unwrap(browserBifrost.DELETE('/auth/mfa/totp'))
 }
 
 /** Replaces the recovery codes, and returns the new ones. The gateway shows them only this once. */
 export async function generateRecoveryCodes(): Promise<string[]> {
-	const { codes } = await unwrap(bifrost.POST('/auth/mfa/recovery-codes'))
+	const { codes } = await unwrap(browserBifrost.POST('/auth/mfa/recovery-codes'))
 
 	return codes
 }
@@ -96,7 +96,7 @@ export type Identity = Schema<'Identity'>
 
 /** The GitHub and Google accounts connected to the signed-in user. */
 export async function fetchIdentities(signal?: AbortSignal): Promise<Identity[]> {
-	const { identities } = await unwrap(bifrost.GET('/auth/oauth/identities', { signal }))
+	const { identities } = await unwrap(browserBifrost.GET('/auth/oauth/identities', { signal }))
 
 	return identities
 }
@@ -109,7 +109,7 @@ export async function fetchIdentities(signal?: AbortSignal): Promise<Identity[]>
  */
 export async function unlinkIdentity(provider: Provider): Promise<void> {
 	await unwrap(
-		bifrost.DELETE('/auth/oauth/identities/{provider}', { params: { path: { provider } } }),
+		browserBifrost.DELETE('/auth/oauth/identities/{provider}', { params: { path: { provider } } }),
 	)
 }
 
@@ -121,7 +121,7 @@ export type AccountExport = Schema<'AccountExport'>
  * JSON file.
  */
 export async function downloadAccount(): Promise<void> {
-	const account: AccountExport = await unwrap(bifrost.GET('/auth/account/export'))
+	const account: AccountExport = await unwrap(browserBifrost.GET('/auth/account/export'))
 
 	downloadBlob(
 		new Blob([JSON.stringify(account, null, 2)], { type: 'application/json' }),
@@ -139,7 +139,7 @@ export async function downloadAccount(): Promise<void> {
  * so that no data of the user stays in a query cache.
  */
 export async function deleteAccount(): Promise<void> {
-	await unwrap(bifrost.DELETE('/auth/account'))
+	await unwrap(browserBifrost.DELETE('/auth/account'))
 
 	window.location.replace('/login')
 }

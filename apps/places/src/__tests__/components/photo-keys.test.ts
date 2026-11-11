@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { photo } from '../fixtures'
+import { makePhoto } from '../fixtures'
 
 /** What the next upload of each file name does: fail with an error, or give its key. */
 const plan = vi.hoisted(() => new Map<string, Error>())
@@ -68,7 +68,7 @@ describe('photoKeys', () => {
 	beforeEach(reset)
 
 	it('keeps each stored key and uploads each new file, in the order of the list', async () => {
-		const photos = [file('a.jpg'), photo('users/u1/stored.jpg'), file('b.jpg')]
+		const photos = [file('a.jpg'), makePhoto('users/u1/stored.jpg'), file('b.jpg')]
 
 		await expect(photoKeys(photos, ignore, new WeakMap())).resolves.toEqual([
 			'users/u1/a.jpg',
@@ -83,7 +83,7 @@ describe('photoKeys', () => {
 		const reports: [string, number][] = []
 
 		await photoKeys(
-			[photo('users/u1/stored.jpg'), added],
+			[makePhoto('users/u1/stored.jpg'), added],
 			(key, share) => reports.push([key, share]),
 			new WeakMap(),
 		)

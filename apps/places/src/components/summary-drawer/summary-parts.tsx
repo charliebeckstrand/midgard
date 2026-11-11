@@ -7,7 +7,7 @@ import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import type { Photo } from '../../types'
-import { DAY_FORMAT } from '../../utilities/places-filter'
+import { DAY_FORMAT } from '../../utilities/filter'
 
 /**
  * One fact about a record, with an icon that names the fact. The icon box is one

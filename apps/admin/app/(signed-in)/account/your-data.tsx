@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation } from '@tanstack/react-query'
-import { latestError } from 'shared/providers'
+import { getLatestError } from 'shared/providers'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Card, CardHeader, CardTitle } from 'ui/card'
@@ -28,7 +28,7 @@ export function YourData({ admin }: YourDataProps) {
 	const remove = useMutation({ mutationFn: deleteAccount, meta: { inlineError: true } })
 	const confirm = useConfirm()
 
-	const error = latestError(download, remove)
+	const error = getLatestError(download, remove)
 
 	return (
 		<Card>
