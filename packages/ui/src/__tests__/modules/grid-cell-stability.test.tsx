@@ -122,26 +122,26 @@ describe('Grid plain rows across a sort', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
 
-		const first = container.querySelector('tbody tr')
+		const body = [...container.querySelectorAll('tbody tr')]
 
-		return { calls, first: first?.textContent }
+		expect(body[0]?.textContent).toMatch(/^Name 1\D/)
+
+		return { calls, places: body.map((tr) => tr.getAttribute('data-row-index')) }
 	}
 
 	// A plain row reads no place, so a sort moves each row with its memo held.
 	it('moves each row and renders none', () => {
-		const { calls, first } = setup(false)
-
-		expect(first).toMatch(/^Name 1\D/)
+		const { calls, places } = setup(false)
 
 		expect(calls).toBe(0)
+
+		expect(new Set(places)).toEqual(new Set(['-1']))
 	})
 
-	// Under grid semantics each row takes its new `aria-rowindex`, so it renders.
-	it('renders each row of a navigable grid', () => {
-		const { calls, first } = setup(true)
+	// Under grid semantics the editing lookups resolve a row through its place.
+	it('gives each row of a navigable grid its new place', () => {
+		const { places } = setup(true)
 
-		expect(first).toMatch(/^Name 1\D/)
-
-		expect(calls).toBe(rows.length)
+		expect(places).toEqual(rows.map((_, index) => String(index)))
 	})
 })
