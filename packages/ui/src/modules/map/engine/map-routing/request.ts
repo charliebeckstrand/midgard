@@ -5,7 +5,7 @@
  */
 
 import { thrownFailure } from './failure'
-import { type MapRouteAnswer, type OsrmPayload, refusedFailure, routeAnswer } from './result'
+import { type MapRouteAnswer, refusedFailure, routeAnswer } from './result'
 
 /** The travel profile a routing request asks for. @internal */
 export type MapRouteProfile = 'driving' | 'walking' | 'cycling'
@@ -107,15 +107,15 @@ export async function routeFetch(
 		return { ok: false, failure: refusedFailure(response.status, body) }
 	}
 
-	let payload: OsrmPayload
+	let body: unknown
 
 	try {
-		payload = (await response.json()) as OsrmPayload
+		body = await response.json()
 	} catch {
 		// A body can abort mid-read as well as fail to parse, so the signal decides
 		// here too; only what neither signal ended reads as an unusable payload.
 		return { ok: false, failure: thrownFailure('payload', signal, timeout) }
 	}
 
-	return routeAnswer(payload)
+	return routeAnswer(body)
 }
