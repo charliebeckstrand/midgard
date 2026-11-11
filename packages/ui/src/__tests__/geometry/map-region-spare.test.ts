@@ -182,6 +182,51 @@ describe('regionSpare', () => {
 		expect(walks).toBe(afterFirst)
 	})
 
+	describe('where the box of a region holds ground that the region does not', () => {
+		// A region that bends: one arm along the top of its box and one arm down the
+		// left side, each 60 units wide. The inside of the bend is in the box and is
+		// not the region.
+		const bend: MapFeature = {
+			type: 'Feature',
+			id: 'bend',
+			properties: { name: 'bend' },
+			geometry: {
+				type: 'Polygon',
+				coordinates: [
+					[
+						[0, 0],
+						[300, 0],
+						[300, 60],
+						[60, 60],
+						[60, 300],
+						[0, 300],
+						[0, 0],
+					],
+				],
+			},
+		}
+
+		// An area of 32,400 inside a perimeter of 1,200.
+		const share = ((2 * 32_400) / 1_200) * AREA_SPARE_FRACTION
+
+		const spare = spareOver([bend])
+
+		it('claims nothing of a dot in the box and far from the shape', () => {
+			// The dot stands 140 units from each arm, and its reach is 22.
+			expect(spare({ x: 200, y: 200 }, 1)).toBe(Number.POSITIVE_INFINITY)
+		})
+
+		it('claims the share for a dot off the region and within reach of its shape', () => {
+			// 15 units off the inner edge of the left arm.
+			expect(spare({ x: 75, y: 200 }, 1)).toBeNear(share, SPARE_TOLERANCE)
+		})
+
+		it('claims the share for a dot on the region, where no edge is in reach', () => {
+			// The middle of the corner of the bend, 30 units from the nearest edge.
+			expect(spare({ x: 30, y: 30 }, 1)).toBeNear(share, SPARE_TOLERANCE)
+		})
+	})
+
 	it('hands back a share under the dot’s own paint where the region has none to spare', () => {
 		// New Jersey's case on a national frame, and every smaller state's. The share
 		// is honest rather than floored here: `markTargets` applies the floor, which
