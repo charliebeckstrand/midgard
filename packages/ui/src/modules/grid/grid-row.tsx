@@ -170,7 +170,10 @@ export function renderRow<T>(
 		pinning: props.pinning,
 		animateSortRows: props.animateSortRows,
 		reduceMotion: props.reduceMotion,
-		dataRowIndex,
+		// The place is -1 when nothing reads it, as for a cell (`cellRowIndex`), so
+		// that the memoized row holds when a sort moves it. The editing lookups
+		// and the cursor cells occur only under grid semantics.
+		dataRowIndex: props.gridSemantics || props.animateSortRows ? dataRowIndex : -1,
 		rowIndex,
 		expanded,
 		rowExpandable: expandable,
@@ -279,7 +282,9 @@ export type GridRowProps<T> = {
 	 * 0-based index into the full `rows` array, surfaced as `data-row-index`.
 	 * Keyboard bridges resolve a `<tr>` to its data row through it; under
 	 * virtualization, spacer rows and windowing make physical DOM position
-	 * diverge from data order.
+	 * diverge from data order. The sort animation also reads it. A row with no
+	 * grid semantics and no sort animation gets -1, so that a sort does not
+	 * render it again.
 	 */
 	dataRowIndex: number
 	/** Frozen-column controls; pinned cells stick to an edge over the scrolling ones. `null` when none. */

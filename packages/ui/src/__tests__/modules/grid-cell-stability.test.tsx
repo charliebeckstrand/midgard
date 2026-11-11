@@ -93,3 +93,55 @@ describe('Grid grouped rows across a selection toggle', () => {
 		expect(calls).toBe(1)
 	})
 })
+
+describe('Grid plain rows across a sort', () => {
+	type Row = { id: number; name: string }
+
+	const rows: Row[] = Array.from({ length: 20 }, (_, i) => ({ id: i + 1, name: `Name ${20 - i}` }))
+
+	function setup(navigable: boolean) {
+		let calls = 0
+
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', sortable: true, cell: (row) => row.name },
+			{
+				id: 'actions',
+				actions: (row) => {
+					calls++
+
+					return <button type="button">Edit {row.name}</button>
+				},
+			},
+		]
+
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={(row) => row.id} navigable={navigable} />,
+		)
+
+		calls = 0
+
+		fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
+
+		const body = [...container.querySelectorAll('tbody tr')]
+
+		expect(body[0]?.textContent).toMatch(/^Name 1\D/)
+
+		return { calls, places: body.map((tr) => tr.getAttribute('data-row-index')) }
+	}
+
+	// A plain row reads no place, so a sort moves each row with its memo held.
+	it('moves each row and renders none', () => {
+		const { calls, places } = setup(false)
+
+		expect(calls).toBe(0)
+
+		expect(new Set(places)).toEqual(new Set(['-1']))
+	})
+
+	// Under grid semantics the editing lookups resolve a row through its place.
+	it('gives each row of a navigable grid its new place', () => {
+		const { places } = setup(true)
+
+		expect(places).toEqual(rows.map((_, index) => String(index)))
+	})
+})
