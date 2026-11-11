@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it } from 'vitest'
-import { GridHead } from '../../modules/grid/grid-head'
+import { GridDataTable } from '../../modules/grid/grid-data-table'
 
 // A compiled component keeps its memo cache in `$` and reads each slot as `$[n]`.
 // The compiler gate (`vitest.compiler.config.ts`) sets `REACT_COMPILER`, and every
@@ -8,5 +8,5 @@ import { GridHead } from '../../modules/grid/grid-head'
 // stop compiling, and then it passes the grid without a test of the compiled
 // build. Or a compiled module can reach the plain run through the module cache.
 it('compiles the grid only under the compiler gate', () => {
-	expect(/\$\[\d+\]/.test(GridHead.toString())).toBe(process.env.REACT_COMPILER === '1')
+	expect(/\$\[\d+\]/.test(GridDataTable.toString())).toBe(process.env.REACT_COMPILER === '1')
 })
