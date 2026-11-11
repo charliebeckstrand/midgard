@@ -5,7 +5,7 @@ import { TableHead, TableRow } from '../../components/table'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities/is-data-column'
-import { GridContext, type GridContextValue, useGrid } from './context'
+import { GridHeadContext, type GridHeadContextValue, useGridHead } from './context'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
 import { isFrozen, isLocked } from './engine/grid-pin/overrides'
 import { columnSort } from './engine/grid-sort/state'
@@ -26,11 +26,11 @@ import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
 /** Props for {@link GridHead}. @internal */
 type GridHeadProps<T> = {
 	/**
-	 * The table-wide state that the head reads with {@link useGrid}. The head
+	 * The state that the parts of the head read with {@link useGridHead}. The head
 	 * provides it, so that a change of a selection flag or of the sort does not
 	 * make each row of the body look for a reader.
 	 */
-	context: GridContextValue
+	context: GridHeadContextValue
 	columns: GridColumn<T>[]
 	/** Whether any rows are *visible* (post-filter); gates the select-all checkbox. */
 	hasRows: boolean
@@ -82,7 +82,7 @@ type GridHeadProps<T> = {
 
 /**
  * Header row for {@link Grid}: one {@link GridHeaderCell} per column, reading
- * selection and sort state from {@link useGrid}, which it provides. When `reorderable`, visible
+ * selection and sort state from {@link useGridHead}, which it provides. When `reorderable`, visible
  * non-pinned data columns carry a drag handle backed by the column-reorder
  * sortable. When `resize` is supplied, data columns size from the engine and
  * gain a resize separator. Under a sticky header with a band row, the two rows
@@ -122,7 +122,7 @@ export function GridHead<T>({
 	const columnRowIndex = band ? 2 : 1
 
 	return (
-		<GridContext value={context}>
+		<GridHeadContext value={context}>
 			<TableHead ref={headRef}>
 				{band && (
 					<GridGroupHead
@@ -156,7 +156,7 @@ export function GridHead<T>({
 					))}
 				</TableRow>
 			</TableHead>
-		</GridContext>
+		</GridHeadContext>
 	)
 }
 
@@ -233,7 +233,7 @@ function GridHeaderCell<T>({
 	filters,
 	pinning,
 }: GridHeaderCellProps<T>) {
-	const { sort, toggleSort, pinColumn, stickyHeader } = useGrid()
+	const { sort, toggleSort, pinColumn, stickyHeader } = useGridHead()
 
 	// The header row is the first row of the keyboard cursor, whose columns are
 	// the visible columns in display order.

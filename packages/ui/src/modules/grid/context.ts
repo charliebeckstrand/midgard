@@ -18,8 +18,8 @@ import type { GridFillHandle } from './use-grid-fill-handle'
 
 export type { GridSortState }
 
-/** Table-wide state shared with the head: the select-all flags and toggle, sort, pinning, and the sticky-header flag. @internal */
-export type GridContextValue = {
+/** The state that the head reads: the select-all flags and toggle, sort, pinning, and the sticky-header flag. @internal */
+export type GridHeadContextValue = {
 	toggleAll: () => void
 	allSelected: boolean
 	someSelected: boolean
@@ -42,14 +42,14 @@ export type GridContextValue = {
 }
 
 /**
- * Reads the enclosing {@link Grid}'s shared selection and sort state. The
- * provider is in the head, so only the head can read it.
+ * Reads the selection and sort state that {@link GridHead} provides. Only a
+ * part of the head can read it.
  *
- * @returns The current {@link GridContextValue}.
- * @throws If called outside a `<Grid>`.
+ * @returns The current {@link GridHeadContextValue}.
+ * @throws If called outside a `<GridHead>`.
  * @internal
  */
-export const [GridContext, useGrid] = createContext<GridContextValue>('Grid')
+export const [GridHeadContext, useGridHead] = createContext<GridHeadContextValue>('GridHead')
 
 /**
  * Reads the store of settled column widths (see {@link GridSettleStore}). A
@@ -70,7 +70,7 @@ export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore>
  * otherwise flash open over the content the drag is reshaping.
  *
  * @remarks It subscribes to the drag state of the {@link GridSettleStore}, not
- * to the table-wide {@link GridContextValue}. Only a surface that calls it
+ * to the {@link GridHeadContextValue} of the head. Only a surface that calls it
  * renders again when a drag starts or ends. A body cell calls it only while it
  * shows a reveal.
  *
@@ -90,7 +90,7 @@ export function useGridResizing(): boolean {
  * cells that subscribe, so the default (filtering, or unsearched) grid pays nothing.
  *
  * @remarks A dedicated context, like {@link GridSettleContext}, so the marking
- * subscribes to the query alone rather than the table-wide {@link GridContextValue}.
+ * subscribes to the query alone rather than the {@link GridHeadContextValue} of the head.
  *
  * @internal
  */
