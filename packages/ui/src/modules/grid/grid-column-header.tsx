@@ -23,7 +23,7 @@ import { GridReorderKitContext } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
-import { columnShiftStyle } from './engine/grid-reorder-compute'
+import { columnShiftStyle } from './engine/grid-reorder'
 import { fitHeaderProps } from './engine/grid-sizing/fit-styles'
 import { ariaSortValue } from './engine/grid-sort/state'
 import type { GridColumnFilter } from './engine/grid-table/filter-view'
@@ -170,7 +170,7 @@ export type GridColumnHeaderProps = {
  *
  * @internal
  */
-function headerAffordances({
+function renderAffordances({
 	column,
 	interactive,
 	filter,
@@ -192,7 +192,7 @@ function headerAffordances({
  *
  * @internal
  */
-function headerResizeHandle(
+function renderResizeHandle(
 	{
 		column,
 		size,
@@ -301,9 +301,9 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 				) : (
 					label
 				)}
-				{headerAffordances({ column, interactive, filter, filterQuery })}
+				{renderAffordances({ column, interactive, filter, filterQuery })}
 			</span>
-			{headerResizeHandle({ column, size, resizeActions, minWidth, maxWidth, resizing }, canResize)}
+			{renderResizeHandle({ column, size, resizeActions, minWidth, maxWidth, resizing }, canResize)}
 			{cursor?.marker}
 		</TableHeader>
 	)
@@ -502,9 +502,9 @@ export function GridReorderableColumnHeaderView({
 					toggleSort={toggleSort}
 					interactive={interactive}
 				/>
-				{headerAffordances({ column, interactive, filter, filterQuery })}
+				{renderAffordances({ column, interactive, filter, filterQuery })}
 			</span>
-			{headerResizeHandle({ column, size, resizeActions, minWidth, maxWidth, resizing }, canResize)}
+			{renderResizeHandle({ column, size, resizeActions, minWidth, maxWidth, resizing }, canResize)}
 			{cursor?.marker}
 		</TableHeader>
 	)

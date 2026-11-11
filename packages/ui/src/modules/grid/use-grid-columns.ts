@@ -9,9 +9,9 @@ import {
 	settleGroupedReorder,
 } from './engine/grid-group/compute'
 import { isFrozen, normalizeFreeze } from './engine/grid-pin/overrides'
-import { applyColumnReorder } from './engine/grid-reorder-compute'
+import { applyColumnReorder } from './engine/grid-reorder'
+import type { GridColumnGroup } from './grid-column-group-types'
 import type { GridColumnManagerConfig, GridColumnOrder } from './grid-data-types'
-import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumn, GridColumnManagerItem } from './types'
 import { isColumnShown, useGridColumnVisibility } from './use-grid-column-visibility'
 
@@ -92,9 +92,9 @@ export function useGridColumns<T>({
 	// actions, drag handle, expander) and frozen columns hold their slots.
 	const isOrderable = useCallback(
 		(id: string | number) => {
-			const col = columnById.get(id)
+			const column = columnById.get(id)
 
-			return !!col && isDataColumn(col) && !isFrozen(col)
+			return !!column && isDataColumn(column) && !isFrozen(column)
 		},
 		[columnById],
 	)

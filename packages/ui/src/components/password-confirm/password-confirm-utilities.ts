@@ -16,7 +16,7 @@ export type PasswordConfirmRole = 'password' | 'confirm'
  * is `null` before either edit.
  * @internal
  */
-export function deriveStatus(
+export function getStatus(
 	password: string,
 	confirm: string,
 	lastEdited: PasswordConfirmRole | null,

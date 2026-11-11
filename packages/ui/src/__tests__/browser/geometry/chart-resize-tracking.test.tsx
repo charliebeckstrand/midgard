@@ -221,8 +221,8 @@ describe('chart resize tracking (real browser)', () => {
 		// the figure tree that can recreate the plot node. An observer left on the
 		// detached node would freeze the drawing at its last committed size while
 		// the box resizes on: the defect this pins out.
-		const GRID = ['a', 'b', 'c', 'd'].flatMap((col, columnIndex) =>
-			['x', 'y', 'z'].map((row, rowIndex) => ({ col, row, value: columnIndex + rowIndex })),
+		const GRID = ['a', 'b', 'c', 'd'].flatMap((column, columnIndex) =>
+			['x', 'y', 'z'].map((row, rowIndex) => ({ col: column, row, value: columnIndex + rowIndex })),
 		)
 
 		const { container } = renderUI(

@@ -11,8 +11,8 @@ import { dataAttr } from '../core/data-attr'
 import { clamp } from '../utilities/clamp'
 import { holdTextSelection } from '../utilities/hold-text-selection'
 import { hasBrowserModifier } from '../utilities/modifier-keys'
-import { pct } from '../utilities/pct'
 import { isPrimaryPress } from '../utilities/primary-press'
+import { toPercent } from '../utilities/to-percent'
 import { type DragCursor, useDragCursor } from './use-drag-cursor'
 
 /** How far one arrow press moves the edge, as a share of the screen. */
@@ -118,7 +118,7 @@ export type PanelCeiling = (panel: HTMLElement, viewport: number) => number
 
 /** The share of the screen a size covers, which is what a splitter's value reports. @internal */
 function toShare(size: number, viewport: number): number {
-	return Math.round(clamp(pct(size, 0, viewport), 0, 100))
+	return Math.round(clamp(toPercent(size, 0, viewport), 0, 100))
 }
 
 /** Everything a gesture measured once, at the start. @internal */

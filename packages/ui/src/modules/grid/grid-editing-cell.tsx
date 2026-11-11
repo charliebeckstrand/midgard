@@ -8,7 +8,7 @@ import { isCellEditing, isColumnEditable } from './engine/grid-editing-utilities
 import { GridCellEditor } from './grid-cell-editor'
 import type { GridEditableConfig } from './grid-editing-types'
 import { searchedContent } from './grid-highlight-utilities'
-import { GridNavCell } from './grid-nav-cell'
+import { GridNavigationCell } from './grid-navigation-cell'
 import type { GridColumn } from './types'
 
 /** Props for the editing-aware data cell. @internal */
@@ -41,7 +41,7 @@ function markBusy(node: HTMLElement) {
  * A data cell whose commit is in flight. It shows the committed value, marks
  * the cell `aria-busy`, and pulses. The attribute goes on the cell itself,
  * the `role="gridcell"` element around this content, the way
- * {@link GridNavCell} writes `data-active`. @internal
+ * {@link GridNavigationCell} writes `data-active`. @internal
  */
 function GridPendingCell({ children }: { children: ReactNode }) {
 	return (
@@ -93,7 +93,7 @@ const CELL_HELD = 'held'
 /**
  * One data cell of an editable grid. When its row key is in the editable set and
  * the column binds an editor, it mounts {@link GridCellEditor}. Otherwise it
- * renders the column's display content. Both render through {@link GridNavCell},
+ * renders the column's display content. Both render through {@link GridNavigationCell},
  * which carries the active-cursor ring. A cell-scoped session (`scope: 'cell'`)
  * narrows that to the one cell it names. A cell whose commit is in flight shows
  * the value as pending and mounts no editor, whatever the session holds. On a
@@ -163,9 +163,9 @@ export function GridEditingCell<T>({
 		const value = readDraft(rowKey, columnId)?.value
 
 		return (
-			<GridNavCell row={rowIndex} col={colIndex}>
+			<GridNavigationCell row={rowIndex} col={colIndex}>
 				<GridPendingCell>{render?.(pendingRow(row, column, value))}</GridPendingCell>
-			</GridNavCell>
+			</GridNavigationCell>
 		)
 	}
 
@@ -175,7 +175,7 @@ export function GridEditingCell<T>({
 	// The overlay of a phone holds the open editors, so the cell shows its content.
 	if (overlay === null && flag !== CELL_READING && isColumnEditable(column)) {
 		return (
-			<GridNavCell row={rowIndex} col={colIndex}>
+			<GridNavigationCell row={rowIndex} col={colIndex}>
 				<GridCellEditor
 					rowIndex={rowIndex}
 					rowKey={rowKey}
@@ -194,13 +194,13 @@ export function GridEditingCell<T>({
 					held={flag === CELL_HELD}
 					rest={render?.(row)}
 				/>
-			</GridNavCell>
+			</GridNavigationCell>
 		)
 	}
 
 	return (
-		<GridNavCell row={rowIndex} col={colIndex}>
+		<GridNavigationCell row={rowIndex} col={colIndex}>
 			{searchedContent(column, render?.(row))}
-		</GridNavCell>
+		</GridNavigationCell>
 	)
 }

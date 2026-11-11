@@ -5,11 +5,11 @@ import { type FrameReserve, usePlotFrame } from '../../hooks/use-plot-frame'
 import {
 	cachedCanonicalPaths,
 	cachedChromePaths,
-	staticMapGeometry,
+	getStaticGeometry,
 } from './engine/map-geometry/cache'
 import { EMPTY_CHROME, type MapChromePaths } from './engine/map-geometry/chrome'
 import { projectPoint } from './engine/map-geometry/mark'
-import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
+import { fallbackAspect, mapFrameSizing } from './engine/map-projection/aspect'
 import { measuredMapFit } from './engine/map-projection/fit'
 import { type MapRegionSpare, regionSpare } from './engine/map-region/spare'
 import { applyTransform, type MapTransform } from './engine/map-zoom/transform'
@@ -101,7 +101,7 @@ export type MapFrameShapeOptions = {
  *
  * The measured fit is the canonical fit scaled to meet the box and centered.
  * That is the same placement that the SVG gives it, so the swap moves no shape
- * and no stroke. {@link staticMapGeometry} memoizes the canonical stage across
+ * and no stroke. {@link getStaticGeometry} memoizes the canonical stage across
  * instances. A remount of the same atlas (a tab switch, a second plat) reuses
  * it rather than recomputing on mount.
  *
@@ -129,7 +129,7 @@ export function useMapShape({
 	// render agree. The per-size measured refit below stays per-instance; it
 	// reprojects to constant-pixel marks a beat after this canonical draw.
 	const statics = useMemo(
-		() => staticMapGeometry(geography, geographyObject, projection),
+		() => getStaticGeometry(geography, geographyObject, projection),
 		[geography, geographyObject, projection],
 	)
 
@@ -137,7 +137,7 @@ export function useMapShape({
 	// projection (albers-usa is the US) still knows the ratio it will take, so
 	// the frame reserves it and a lazily fetched atlas swaps in without a height
 	// shift.
-	const reserveAspect = statics.canonical?.aspect ?? projectionFallbackAspect(projection)
+	const reserveAspect = statics.canonical?.aspect ?? fallbackAspect(projection)
 
 	const sizing = mapFrameSizing(height, aspectRatio, reserveAspect)
 

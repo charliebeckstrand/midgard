@@ -15,7 +15,7 @@ export type DatePickerRangeState = {
 }
 
 /**
- * Transitions for {@link datePickerRangeReducer}. `pinEndpoint` and `hover`
+ * Transitions for {@link rangeReducer}. `pinEndpoint` and `hover`
  * both write `hoverDate`, because the second endpoint and its live preview are
  * the same field. `pinEndpoint` names the commit-time write that freezes the
  * span through the popover's exit animation.
@@ -30,13 +30,13 @@ type DatePickerRangeAction =
 	| { type: 'setActive'; active: CalendarActive | null }
 
 /** Advances the {@link DatePickerRangeState} for a selection action. @internal */
-export function datePickerRangeReducer(
+export function rangeReducer(
 	state: DatePickerRangeState,
 	action: DatePickerRangeAction,
 ): DatePickerRangeState {
 	switch (action.type) {
 		case 'reset':
-			return initialDatePickerRangeState
+			return initialRangeState
 		case 'startRange':
 			return { ...state, rangeStart: action.date, hoverDate: null }
 		case 'pinEndpoint':
@@ -54,7 +54,7 @@ export function datePickerRangeReducer(
 }
 
 /** Empty selection: no pinned start, no preview, no highlight. @internal */
-export const initialDatePickerRangeState: DatePickerRangeState = {
+export const initialRangeState: DatePickerRangeState = {
 	rangeStart: null,
 	hoverDate: null,
 	active: null,

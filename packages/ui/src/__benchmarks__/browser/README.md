@@ -82,7 +82,7 @@ Each entry names the change and the scenarios it moved; the levers are ordered a
 
 5. **Constant-radius disc path** ([`scatter.ts`](../../modules/chart/engine/chart-geometry/scatter.ts)). A plain scatter series shares one radius across every disc, so the two arc commands are identical for all of them; the builder caches that suffix and formats only the one moving coordinate per disc. Scatter 10k update 67 → 60, past AG.
 
-6. **Sub-pixel path coordinates** ([`chart-coords.ts`](../../modules/chart/engine/chart-coords.ts)). Path `d` strings round to two decimals, a fraction of the full-float size; a structural cleanup that shrinks the DOM payload the large-N paths ship.
+6. **Sub-pixel path coordinates** ([`chart-coordinate.ts`](../../modules/chart/engine/chart-coordinate.ts)). Path `d` strings round to two decimals, a fraction of the full-float size; a structural cleanup that shrinks the DOM payload the large-N paths ship.
 
 7. **Lazy readout** ([`types.ts`](../../modules/chart/engine/types.ts) `ChartReadoutSource`, every chart body). Building the readout formats every category × series cell through `Intl`: at 10,000 rows that outweighed drawing the marks, and it ran on the mount-critical render even after the table's render was deferred. Charts now hand the frame a cached thunk (`once`): the mount render only decides a readout exists, the hover tooltip materializes it on the first pointed frame, the deferred table a low-priority beat after mount, CSV export on selection. Line 10k mount 92 → ~66, scatter 10k mount 127 → ~81: both past AG's canvas. Parity unchanged; the cache is shared by every consumer.
 

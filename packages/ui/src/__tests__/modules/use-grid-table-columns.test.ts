@@ -27,12 +27,12 @@ describe('useGridTable column resolution', () => {
 	const getKey = (row: Row) => row.id
 
 	const visibleIds = (
-		cols: GridColumn<Row>[],
+		columns: GridColumn<Row>[],
 		extra?: Partial<Parameters<typeof useGridTable<Row>>[0]>,
 	) =>
 		renderHook(() =>
-			useGridTable<Row>({ rows, columns: cols, getKey, ...extra }),
-		).result.current.visibleColumns.map((col) => col.id)
+			useGridTable<Row>({ rows, columns, getKey, ...extra }),
+		).result.current.visibleColumns.map((column) => column.id)
 
 	it('orders the rendered columns by columnOrder', () => {
 		expect(visibleIds(columns, { columnOrder: ['c', 'a', 'b', 'd'] })).toEqual(['c', 'a', 'b', 'd'])
@@ -47,7 +47,7 @@ describe('useGridTable column resolution', () => {
 	})
 
 	it('pulls left-pinned columns to the front, right-pinned to the end', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'a', title: 'A', cell: cell('a'), pinned: 'right' },
 			{ id: 'b', title: 'B', cell: cell('b'), pinned: 'left' },
 			{ id: 'c', title: 'C', cell: cell('c') },
@@ -55,11 +55,11 @@ describe('useGridTable column resolution', () => {
 		]
 
 		// Left (b, d) first in order, then the scrolling column (c), then right (a).
-		expect(visibleIds(cols)).toEqual(['b', 'd', 'c', 'a'])
+		expect(visibleIds(columns)).toEqual(['b', 'd', 'c', 'a'])
 	})
 
 	it('freezes locked columns to their edge alongside pinned ones', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'a', title: 'A', cell: cell('a'), locked: 'right' },
 			{ id: 'b', title: 'B', cell: cell('b'), locked: 'left' },
 			{ id: 'c', title: 'C', cell: cell('c') },
@@ -68,11 +68,11 @@ describe('useGridTable column resolution', () => {
 
 		// Left edge holds the left-frozen columns (b locked, d pinned), then the
 		// scrolling column (c), then the right-locked column (a).
-		expect(visibleIds(cols)).toEqual(['b', 'd', 'c', 'a'])
+		expect(visibleIds(columns)).toEqual(['b', 'd', 'c', 'a'])
 	})
 
 	it('pulls the selection column to the far left, ahead of a left-pinned column', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
 			{ id: 'a', title: 'A', cell: cell('a') },
 			{ id: 'b', title: 'B', cell: cell('b') },
@@ -82,11 +82,11 @@ describe('useGridTable column resolution', () => {
 
 		// The checkbox column leads the left edge; the pinned column (c) follows it,
 		// then the scrolling columns in order.
-		expect(visibleIds(cols)).toEqual(['select', 'c', 'a', 'b', 'd'])
+		expect(visibleIds(columns)).toEqual(['select', 'c', 'a', 'b', 'd'])
 	})
 
 	it('anchors the selection column left even when only a right column is pinned', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
 			{ id: 'a', title: 'A', cell: cell('a') },
 			{ id: 'b', title: 'B', cell: cell('b'), pinned: 'right' },
@@ -94,23 +94,24 @@ describe('useGridTable column resolution', () => {
 		]
 
 		// Selection frozen far left, b frozen right, a and c scrolling between them.
-		expect(visibleIds(cols)).toEqual(['select', 'a', 'c', 'b'])
+		expect(visibleIds(columns)).toEqual(['select', 'a', 'c', 'b'])
 	})
 
 	it('keeps a hidden column out and pinned columns at their edge together', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'a', title: 'A', cell: cell('a') },
 			{ id: 'b', title: 'B', cell: cell('b'), pinned: 'right' },
 			{ id: 'c', title: 'C', cell: cell('c') },
 			{ id: 'd', title: 'D', cell: cell('d') },
 		]
 
-		expect(visibleIds(cols, { columnVisibility: { c: false } })).toEqual(['a', 'd', 'b'])
+		expect(visibleIds(columns, { columnVisibility: { c: false } })).toEqual(['a', 'd', 'b'])
 	})
 
 	it('holds a stable visibleColumns reference across renders with identical contents', () => {
 		const { result, rerender } = renderHook(
-			({ cols }: { cols: GridColumn<Row>[] }) => useGridTable<Row>({ rows, columns: cols, getKey }),
+			({ cols: columns }: { cols: GridColumn<Row>[] }) =>
+				useGridTable<Row>({ rows, columns, getKey }),
 			{ initialProps: { cols: columns } },
 		)
 

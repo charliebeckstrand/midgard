@@ -2,7 +2,7 @@ import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { GROUP_PREFIX, UNGROUPED, zoneDropId } from '../../modules/grid/engine/grid-zone/map'
-import type { GridColumnGroup } from '../../modules/grid/grid-group-types'
+import type { GridColumnGroup } from '../../modules/grid/grid-column-group-types'
 import type { GridColumnManagerItem } from '../../modules/grid/types'
 import { useGridGroupManager } from '../../modules/grid/use-grid-group-manager'
 

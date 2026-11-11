@@ -33,8 +33,8 @@ import { useControlSurface } from '../control/use-control-surface'
 import { Icon } from '../icon'
 import { SelectionClearButton } from '../input/input-clear-button'
 import { ListboxContext } from './context'
-import { ListboxButton } from './listbox-button'
 import { ListboxPanel } from './listbox-panel'
+import { ListboxTrigger } from './listbox-trigger'
 import { resolveLabel } from './listbox-utilities'
 import { useListboxState } from './use-listbox-state'
 
@@ -532,7 +532,7 @@ export function Listbox<T>({
 								}
 					}
 				>
-					<ListboxButton
+					<ListboxTrigger
 						id={scope.id}
 						ref={triggerRef}
 						open={open}

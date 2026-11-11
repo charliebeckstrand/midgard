@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { isDataColumn } from '../../../../utilities/is-data-column'
+import type { GridColumnGroup, GridGroupSpan } from '../../grid-column-group-types'
 import type { GridGroupHeaderRow, GridVirtualize } from '../../grid-data-types'
-import type { GridColumnGroup, GridGroupSpan } from '../../grid-group-types'
 import type { GridColumn, GridPagination } from '../../types'
 import { isManualPagination } from '../grid-pagination-utilities'
 import type { GridSortState } from '../grid-sort/state'
@@ -87,7 +87,7 @@ export type GridGroupByContextValue = {
 
 /** Whether `id` names a groupable column: a present data column, not one of the non-data columns (selection, actions, drag handle, expander). @internal */
 export function isGroupableColumnId<T>(columns: GridColumn<T>[], id: string | number): boolean {
-	return columns.some((col) => col.id === id && isDataColumn(col))
+	return columns.some((column) => column.id === id && isDataColumn(column))
 }
 
 /**

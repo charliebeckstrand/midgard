@@ -188,8 +188,8 @@ describe('Grid manual (server-side) row grouping', () => {
 		const user = setupUser()
 
 		// The grouped column made sortable: its header gains the sort toggle.
-		const sortableColumns = columns.map((col) =>
-			col.id === 'region' ? { ...col, sortable: true } : col,
+		const sortableColumns = columns.map((column) =>
+			column.id === 'region' ? { ...column, sortable: true } : column,
 		)
 
 		renderUI(
@@ -448,8 +448,8 @@ describe('Grid manual (server-side) row grouping', () => {
 
 		const onCommit = vi.fn()
 
-		const editableColumns: GridColumn<Sale>[] = columns.map((col) =>
-			col.id === 'rep' ? { ...col, field: 'rep' } : col,
+		const editableColumns: GridColumn<Sale>[] = columns.map((column) =>
+			column.id === 'rep' ? { ...column, field: 'rep' } : column,
 		)
 
 		renderUI(

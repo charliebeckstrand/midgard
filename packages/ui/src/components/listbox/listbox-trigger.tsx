@@ -73,7 +73,7 @@ function ListboxTruncateTooltip({
  *
  * @internal
  */
-export function ListboxButton({
+export function ListboxTrigger({
 	id,
 	ref,
 	open,

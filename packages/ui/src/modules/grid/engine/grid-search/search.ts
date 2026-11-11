@@ -77,7 +77,7 @@ export function compileSearch<T>(
 	columns: readonly GridColumn<T>[],
 	query: string,
 ): RowTest<T> | null {
-	const readers = columns.flatMap((col) => (col.value ? [col.value] : []))
+	const readers = columns.flatMap((column) => (column.value ? [column.value] : []))
 
 	if (query === '' || readers.length === 0) return null
 

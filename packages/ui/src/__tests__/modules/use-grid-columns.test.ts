@@ -102,7 +102,7 @@ describe('useGridColumns', () => {
 	it('reorderColumns splices the reordered visible data columns into the full order', () => {
 		const onValueChange = vi.fn()
 
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
 			{ id: 'name', title: 'Name', cell: (row) => row.name },
 			{ id: 'age', title: 'Age', cell: (row) => row.age },
@@ -111,7 +111,7 @@ describe('useGridColumns', () => {
 
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
-				columns: cols,
+				columns,
 				columnOrderConfig: { onValueChange },
 				columnManagerConfig: undefined,
 			}),
@@ -131,7 +131,7 @@ describe('useGridColumns', () => {
 
 		const setGroups = vi.fn()
 
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'a', title: 'A' },
 			{ id: 'b', title: 'B' },
 			{ id: 'c', title: 'C' },
@@ -139,7 +139,7 @@ describe('useGridColumns', () => {
 
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
-				columns: cols,
+				columns,
 				columnOrderConfig: { onValueChange },
 				columnManagerConfig: undefined,
 				groups: [{ id: 'g', columns: ['b', 'c'] }],
@@ -164,7 +164,7 @@ describe('useGridColumns', () => {
 
 		const setGroups = vi.fn()
 
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'a', title: 'A' },
 			{ id: 'b', title: 'B' },
 			{ id: 'c', title: 'C' },
@@ -178,7 +178,7 @@ describe('useGridColumns', () => {
 
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
-				columns: cols,
+				columns,
 				columnOrderConfig: { onValueChange },
 				columnManagerConfig: undefined,
 				groups,
@@ -201,7 +201,7 @@ describe('useGridColumns', () => {
 	})
 
 	it('keeps selectable, actions, and pinned columns out of the hidden map even when listed as hidden', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
 			{ id: 'name', title: 'Name', cell: (row) => row.name },
 			{ id: 'pinned-status', title: 'Status', cell: (row) => row.status, pinned: true },
@@ -213,7 +213,7 @@ describe('useGridColumns', () => {
 
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
-				columns: cols,
+				columns,
 				columnManagerConfig: {
 					defaultHidden: new Set(['select', 'name', 'pinned-status', 'actions']),
 				},
@@ -226,14 +226,14 @@ describe('useGridColumns', () => {
 	})
 
 	it('keeps a hideable=false column out of the hidden map when the hidden set names it', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, hideable: false },
 			{ id: 'age', title: 'Age', cell: (row) => row.age },
 		]
 
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
-				columns: cols,
+				columns,
 				columnManagerConfig: { defaultHidden: new Set(['name', 'age']) },
 			}),
 		)
@@ -243,7 +243,7 @@ describe('useGridColumns', () => {
 	})
 
 	it('anchors a collapsed group at a hideable=false member that the hidden set names', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'a', title: 'A', hideable: false },
 			{ id: 'b', title: 'B' },
 			{ id: 'c', title: 'C' },
@@ -251,7 +251,7 @@ describe('useGridColumns', () => {
 
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
-				columns: cols,
+				columns,
 				columnManagerConfig: { defaultHidden: new Set(['a']) },
 				groups: [{ id: 'g', columns: ['a', 'b', 'c'], collapsible: true }],
 				setGroups: vi.fn(),
@@ -264,7 +264,7 @@ describe('useGridColumns', () => {
 	})
 
 	it('excludes selectable and actions columns from managerItems', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
 			{ id: 'name', title: 'Name', cell: (row) => row.name },
 			{
@@ -273,9 +273,7 @@ describe('useGridColumns', () => {
 			},
 		]
 
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({ columns: cols, columnManagerConfig: {} }),
-		)
+		const { result } = renderHook(() => useGridColumns<Row>({ columns, columnManagerConfig: {} }))
 
 		const ids = result.current.managerItems.map((m) => m.id)
 
@@ -283,25 +281,21 @@ describe('useGridColumns', () => {
 	})
 
 	it('defaults managerItems title to the id when no title is set', () => {
-		const cols: GridColumn<Row>[] = [{ id: 'name', cell: (row) => row.name }]
+		const columns: GridColumn<Row>[] = [{ id: 'name', cell: (row) => row.name }]
 
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({ columns: cols, columnManagerConfig: {} }),
-		)
+		const { result } = renderHook(() => useGridColumns<Row>({ columns, columnManagerConfig: {} }))
 
 		expect(result.current.managerItems[0]?.title).toBe('name')
 	})
 
 	it('propagates the pin side, lock side, and hideable=false metadata onto managerItems', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: true },
 			{ id: 'age', title: 'Age', cell: (row) => row.age, hideable: false },
 			{ id: 'status', title: 'Status', cell: (row) => row.status, locked: 'right' },
 		]
 
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({ columns: cols, columnManagerConfig: {} }),
-		)
+		const { result } = renderHook(() => useGridColumns<Row>({ columns, columnManagerConfig: {} }))
 
 		const items = result.current.managerItems
 
@@ -323,7 +317,7 @@ describe('useGridColumns', () => {
 	})
 
 	it('keeps a locked column out of the hidden map and holds it in place on reorder', () => {
-		const cols: GridColumn<Row>[] = [
+		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
 			{ id: 'age', title: 'Age', cell: (row) => row.age },
 			{ id: 'status', title: 'Status', cell: (row) => row.status },
@@ -333,7 +327,7 @@ describe('useGridColumns', () => {
 
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
-				columns: cols,
+				columns,
 				columnOrderConfig: { onValueChange },
 				// The locked column is listed as hidden but always shows: it's excluded
 				// from the visibility map, like a pinned column.

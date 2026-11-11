@@ -416,10 +416,10 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
  *
  * @internal
  */
-export function columnMinWidth<T>(col: GridColumn<T>): number {
-	if (col.minWidth != null) return col.minWidth
+export function columnMinWidth<T>(column: GridColumn<T>): number {
+	if (column.minWidth != null) return column.minWidth
 
-	return Math.min(DEFAULT_MIN_COLUMN_SIZE, parsePxWidth(col.width) ?? DEFAULT_MIN_COLUMN_SIZE)
+	return Math.min(DEFAULT_MIN_COLUMN_SIZE, parsePxWidth(column.width) ?? DEFAULT_MIN_COLUMN_SIZE)
 }
 
 /**
@@ -441,7 +441,7 @@ export function columnMinWidth<T>(col: GridColumn<T>): number {
  * @internal
  */
 function columnFloor<T>(
-	col: GridColumn<T>,
+	column: GridColumn<T>,
 	th: HTMLElement | undefined,
 	slotGap: number,
 ): { floor: number; header: number } {
@@ -454,13 +454,13 @@ function columnFloor<T>(
 			? headerWidth(th, titleLeaf, titleIntrinsic, slotGap)
 			: (th?.getBoundingClientRect().width ?? 0)
 
-	const max = col.maxWidth ?? Number.MAX_SAFE_INTEGER
+	const max = column.maxWidth ?? Number.MAX_SAFE_INTEGER
 
-	const headerFloor = isSingleWordTitle(col.title)
+	const headerFloor = isSingleWordTitle(column.title)
 		? header
 		: Math.max(0, header - titleIntrinsic) + HEADER_TRUNCATE_ALLOWANCE
 
-	return { floor: clamp(headerFloor, columnMinWidth(col), max), header }
+	return { floor: clamp(headerFloor, columnMinWidth(column), max), header }
 }
 
 /**
@@ -487,8 +487,8 @@ export function cellChrome(cell: HTMLElement): number {
  *
  * @internal
  */
-export function isContentSized<T>(col: GridColumn<T>): boolean {
-	return !isDataColumn(col) && col.width == null
+export function isContentSized<T>(column: GridColumn<T>): boolean {
+	return !isDataColumn(column) && column.width == null
 }
 
 /**
@@ -508,7 +508,7 @@ function fitWidths<T>(
 ): Map<string, number> {
 	const widths = new Map<string, number>()
 
-	const ids = new Set(columns.filter(isContentSized).map((col) => String(col.id)))
+	const ids = new Set(columns.filter(isContentSized).map((column) => String(column.id)))
 
 	if (ids.size === 0) return widths
 
@@ -638,18 +638,18 @@ export function measureColumns<T>({
 
 	// Pass one: every read against the current layout (header floors and body
 	// scans) before the batched leaf widening below dirties it.
-	for (const col of columns) {
-		if (!isDataColumn(col)) continue
+	for (const column of columns) {
+		if (!isDataColumn(column)) continue
 
-		const id = String(col.id)
+		const id = String(column.id)
 
-		const { floor, header } = columnFloor(col, headers.get(id), slotGap)
+		const { floor, header } = columnFloor(column, headers.get(id), slotGap)
 
 		floors.set(id, floor)
 
 		titles.set(id, header)
 
-		if (col.maxWidth != null) maxes.set(id, col.maxWidth)
+		if (column.maxWidth != null) maxes.set(id, column.maxWidth)
 
 		const cellsOfColumn = bodies.get(id)
 

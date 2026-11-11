@@ -39,10 +39,10 @@ export function headerCells<T>(
 
 	const headers = new Map<string, HTMLElement>()
 
-	columns.forEach((col, index) => {
+	columns.forEach((column, index) => {
 		const cell = cells[index]
 
-		if (cell instanceof HTMLElement) headers.set(String(col.id), cell)
+		if (cell instanceof HTMLElement) headers.set(String(column.id), cell)
 	})
 
 	return headers

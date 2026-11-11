@@ -180,7 +180,7 @@ function splitContentSizing<T>(
 	write: ColumnSizingWrite,
 	columns: readonly GridColumn<T>[],
 ): [Record<string, number>, ColumnSizingWrite] {
-	const ids = new Set(columns.filter(isContentSized).map((col) => String(col.id)))
+	const ids = new Set(columns.filter(isContentSized).map((column) => String(column.id)))
 
 	const content: Record<string, number> = {}
 
@@ -315,7 +315,7 @@ export function useGridColumnSizing<T>({
 	// frozen widths.
 	const structSignature = useMemo(
 		() =>
-			`${columns.map((col) => (isDataColumn(col) ? String(col.id) : `${col.id}:${col.width ?? ''}`)).join('')}|${density ?? ''}`,
+			`${columns.map((column) => (isDataColumn(column) ? String(column.id) : `${column.id}:${column.width ?? ''}`)).join('')}|${density ?? ''}`,
 		[columns, density],
 	)
 
@@ -384,12 +384,12 @@ export function useGridColumnSizing<T>({
 
 		const sizing: Record<string, number> = {}
 
-		for (const col of columns) {
-			const id = String(col.id)
+		for (const column of columns) {
+			const id = String(column.id)
 
 			const width = headers.get(id)?.getBoundingClientRect().width
 
-			if (!width || (!isDataColumn(col) && !isContentSized(col))) continue
+			if (!width || (!isDataColumn(column) && !isContentSized(column))) continue
 
 			sizing[id] = width
 

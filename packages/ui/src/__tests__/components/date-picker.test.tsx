@@ -565,7 +565,7 @@ describe('DatePicker open state', () => {
 		expect(document.activeElement).toBe(trigger)
 	})
 
-	// ListboxButton marks a read-only trigger, so the DatePicker trigger does too.
+	// ListboxTrigger marks a read-only trigger, so the DatePicker trigger does too.
 	it.each([
 		['single', <DatePicker key="single" readOnly aria-label="Due date" />],
 		['range', <DatePicker key="range" range readOnly aria-label="Stay" />],
@@ -1591,7 +1591,7 @@ describe('DatePicker input', () => {
 
 describe('DatePicker validation', () => {
 	// The frame paints the ring from a descendant `data-*` attribute, so the
-	// trigger button must carry each resolved severity, as ListboxButton does.
+	// trigger button must carry each resolved severity, as ListboxTrigger does.
 	const variants = [
 		['single', {}],
 		['range', { range: true }],

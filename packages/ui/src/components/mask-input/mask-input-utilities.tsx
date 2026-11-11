@@ -120,7 +120,7 @@ function formatZipGB(raw: string) {
 		: clean
 }
 
-function formatZipInternational(raw: string) {
+function formatInternationalZip(raw: string) {
 	return raw.slice(0, 12)
 }
 
@@ -139,7 +139,7 @@ const zipcodeFormats = {
 	US: formatZipUS,
 	CA: formatZipCA,
 	GB: formatZipGB,
-	international: formatZipInternational,
+	international: formatInternationalZip,
 } satisfies Record<ZipcodeMaskCountry, MaskInputFormat>
 
 const zipcodeMeaningful = {

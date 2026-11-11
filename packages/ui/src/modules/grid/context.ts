@@ -165,7 +165,7 @@ export const [GridNavContext, useGridNavContext] = createContext<GridNavStore>('
 /**
  * An external store over the rows in edit mode, and the one cell a cell-scoped
  * session edits. Each data cell subscribes to its own flag through
- * `useSyncExternalStore`, the way `GridNavCell` reads the cursor. A session
+ * `useSyncExternalStore`, the way `GridNavigationCell` reads the cursor. A session
  * move therefore re-renders the cell it leaves and the cell it enters, not the
  * whole mounted window. A row that opens or closes re-renders only the cells of
  * that row. The store also notifies when a draft changes status, as a commit

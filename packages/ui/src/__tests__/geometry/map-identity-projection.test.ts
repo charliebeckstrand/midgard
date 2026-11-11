@@ -8,19 +8,19 @@ import {
 	cachedCanonicalPaths,
 	cachedChromePaths,
 	cachedRegionCentroids,
-	staticMapGeometry,
+	getStaticGeometry,
 } from '../../modules/map/engine/map-geometry/cache'
 import { EMPTY_CHROME } from '../../modules/map/engine/map-geometry/chrome'
 import { mapOutline } from '../../modules/map/engine/map-outline'
-import { projectionFallbackAspect } from '../../modules/map/engine/map-projection/aspect'
+import { fallbackAspect } from '../../modules/map/engine/map-projection/aspect'
 import { resolveProjection } from '../../modules/map/engine/map-projection/resolve'
 import type { MapFeature } from '../../modules/map/engine/types'
 
 /** The `us-atlas` states, projected by its publisher onto a 975 × 610 frame. */
-const PROJECTED = projected as Parameters<typeof staticMapGeometry>[0]
+const PROJECTED = projected as Parameters<typeof getStaticGeometry>[0]
 
 /** The same states in longitude and latitude. */
-const SPHERICAL = spherical as Parameters<typeof staticMapGeometry>[0]
+const SPHERICAL = spherical as Parameters<typeof getStaticGeometry>[0]
 
 /** The projected states as `topojson-client` decodes them, with no rewind. */
 function decoded(): MapFeature[] {
@@ -41,9 +41,9 @@ describe("'identity' projection", () => {
 	})
 
 	it('frames the projected atlas at the ratio that albers-usa frames the spherical one', () => {
-		const flat = staticMapGeometry(PROJECTED, 'states', 'identity').canonical
+		const flat = getStaticGeometry(PROJECTED, 'states', 'identity').canonical
 
-		const round = staticMapGeometry(SPHERICAL, 'states', 'albers-usa').canonical
+		const round = getStaticGeometry(SPHERICAL, 'states', 'albers-usa').canonical
 
 		expect(flat).not.toBeNull()
 
@@ -55,7 +55,7 @@ describe("'identity' projection", () => {
 	})
 
 	it('draws from the projected buffer, the same path as the direct walk', () => {
-		const geometry = staticMapGeometry(PROJECTED, 'states', 'identity')
+		const geometry = getStaticGeometry(PROJECTED, 'states', 'identity')
 
 		expect(geometry.atlas).not.toBeNull()
 
@@ -73,7 +73,7 @@ describe("'identity' projection", () => {
 	it('keeps the rings as the atlas winds them', () => {
 		// Frame units are not degrees, so the spherical rewind would read a y of
 		// 400 as a latitude and turn rings over. The planar decode skips it.
-		const { features } = staticMapGeometry(PROJECTED, 'states', 'identity')
+		const { features } = getStaticGeometry(PROJECTED, 'states', 'identity')
 
 		expect(features.map((shape) => shape.geometry)).toEqual(
 			decoded().map((shape) => shape.geometry),
@@ -81,7 +81,7 @@ describe("'identity' projection", () => {
 	})
 
 	it('centers each region on the plane, in the atlas units', () => {
-		const { features } = staticMapGeometry(PROJECTED, 'states', 'identity')
+		const { features } = getStaticGeometry(PROJECTED, 'states', 'identity')
 
 		const centroids = cachedRegionCentroids(features, true)
 
@@ -107,7 +107,7 @@ describe("'identity' projection", () => {
 	})
 
 	it('draws no graticule and no sphere', () => {
-		const fitted = staticMapGeometry(PROJECTED, 'states', 'identity').canonical?.projection
+		const fitted = getStaticGeometry(PROJECTED, 'states', 'identity').canonical?.projection
 
 		if (fitted === undefined) throw new Error('No canonical fit')
 
@@ -117,7 +117,7 @@ describe("'identity' projection", () => {
 	})
 
 	it('reserves no fixed ratio and has no skeleton outline', () => {
-		expect(projectionFallbackAspect('identity')).toBeNull()
+		expect(fallbackAspect('identity')).toBeNull()
 
 		expect(mapOutline('identity')).toBeNull()
 	})

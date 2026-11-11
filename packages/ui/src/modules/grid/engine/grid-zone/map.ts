@@ -1,7 +1,7 @@
 import type { PaletteColor } from '../../../../core/recipe/colors'
 import { moveItem } from '../../../../utilities/move-item'
-import type { GridColumnGroup } from '../../grid-group-types'
-import { applyColumnReorder } from '../grid-reorder-compute'
+import type { GridColumnGroup } from '../../grid-column-group-types'
+import { applyColumnReorder } from '../grid-reorder'
 
 /** Sentinel zone id for the ungrouped column pool. @internal */
 export const UNGROUPED = '__grid_ungrouped__'

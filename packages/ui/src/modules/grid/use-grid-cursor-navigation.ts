@@ -40,9 +40,9 @@ function rangeText<T>(
 		const row = rows[index]
 
 		return cells.cols.map((colIndex) => {
-			const col = columns[colIndex]
+			const column = columns[colIndex]
 
-			return col && row !== undefined ? cellText(columnAccessor(col)(row)) : ''
+			return column && row !== undefined ? cellText(columnAccessor(column)(row)) : ''
 		})
 	})
 }
@@ -80,7 +80,7 @@ export type GridCursorRefs<T> = Omit<GridIndexRefs<T>, 'selectableRef' | 'toggle
  * @typeParam T - Shape of a single row.
  * @internal
  */
-export function useGridCursorNav<T>({
+export function useGridCursorNavigation<T>({
 	enabled,
 	range,
 	onRowActivate,

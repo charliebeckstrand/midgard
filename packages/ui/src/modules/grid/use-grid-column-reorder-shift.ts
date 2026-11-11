@@ -5,7 +5,7 @@ import type { RefObject } from 'react'
 import { useLayoutEffect } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/grid'
-import { columnShiftVar } from './engine/grid-reorder-compute'
+import { columnShiftVar } from './engine/grid-reorder'
 
 /**
  * Drives a reordering column's shift onto the CSS variable {@link columnShiftStyle}

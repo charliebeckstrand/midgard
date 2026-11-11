@@ -39,8 +39,8 @@ describe('grid automatic layout', () => {
 		// No width of the engine: the browser sizes the table and each column.
 		expect(table?.style.width).toBe('')
 
-		for (const col of doc.querySelectorAll<HTMLElement>('colgroup col')) {
-			expect(col.style.width).toBe('')
+		for (const column of doc.querySelectorAll<HTMLElement>('colgroup col')) {
+			expect(column.style.width).toBe('')
 		}
 
 		for (const th of doc.querySelectorAll<HTMLElement>('thead th')) {

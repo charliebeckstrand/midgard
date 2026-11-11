@@ -8,7 +8,7 @@
 
 import type { DrawnSeries } from '../chart-cartesian/series'
 import type { ChartPaint } from '../chart-color/paint'
-import { coord } from '../chart-coords'
+import { formatCoordinate } from '../chart-coordinate'
 
 /** How a line connects its points: straight or a rounded monotone curve. */
 export type LineInterpolation = 'linear' | 'smooth'
@@ -90,12 +90,12 @@ function monotoneTangents(run: LinePoint[]): number[] {
 export function polylinePath(run: LinePoint[]): string {
 	const start = run[0] as LinePoint
 
-	let d = `M ${coord(start.x)} ${coord(start.y)}`
+	let d = `M ${formatCoordinate(start.x)} ${formatCoordinate(start.y)}`
 
 	for (let i = 1; i < run.length; i++) {
 		const point = run[i] as LinePoint
 
-		d += ` L ${coord(point.x)} ${coord(point.y)}`
+		d += ` L ${formatCoordinate(point.x)} ${formatCoordinate(point.y)}`
 	}
 
 	return d
@@ -109,7 +109,7 @@ function segmentPath(run: LinePoint[], interpolation: LineInterpolation): string
 
 	const tangents = monotoneTangents(run)
 
-	let d = `M ${coord(start.x)} ${coord(start.y)}`
+	let d = `M ${formatCoordinate(start.x)} ${formatCoordinate(start.y)}`
 
 	for (let i = 0; i < run.length - 1; i++) {
 		const p0 = run[i] as LinePoint
@@ -126,7 +126,7 @@ function segmentPath(run: LinePoint[], interpolation: LineInterpolation): string
 
 		const c2y = p1.y - (tangents[i + 1] as number) * dx
 
-		d += ` C ${coord(c1x)} ${coord(c1y)} ${coord(c2x)} ${coord(c2y)} ${coord(p1.x)} ${coord(p1.y)}`
+		d += ` C ${formatCoordinate(c1x)} ${formatCoordinate(c1y)} ${formatCoordinate(c2x)} ${formatCoordinate(c2y)} ${formatCoordinate(p1.x)} ${formatCoordinate(p1.y)}`
 	}
 
 	return d
@@ -313,7 +313,7 @@ export function lineGeometry(
 
 		const last = run.at(-1) as LinePoint
 
-		return `${segments[index]} L ${coord(last.x)} ${coord(baseline)} L ${coord(first.x)} ${coord(baseline)} Z`
+		return `${segments[index]} L ${formatCoordinate(last.x)} ${formatCoordinate(baseline)} L ${formatCoordinate(first.x)} ${formatCoordinate(baseline)} Z`
 	})
 
 	return {

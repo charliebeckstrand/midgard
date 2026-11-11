@@ -1,8 +1,8 @@
 'use client'
 
 import { type RefCallback, useCallback } from 'react'
+import { observeScrollExtent } from '../utilities/observe-scroll-extent'
 import { isScrollOverflow } from '../utilities/scroll-overflow'
-import { observeScrollExtent } from './observe-scroll-extent'
 
 /**
  * Whether the user can scroll `node` on either axis. The scroll size counts

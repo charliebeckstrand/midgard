@@ -98,7 +98,7 @@ const decodedPlanar = new WeakMap<MapGeography, Map<string | undefined, MapFeatu
  * `'identity'` does no spherical clip, so it draws each ring as the atlas gives
  * it.
  *
- * Absent geography yields the shared empty list, as {@link staticMapGeometry}
+ * Absent geography yields the shared empty list, as {@link getStaticGeometry}
  * yields the empty geometry. A caller waiting on a fetched atlas therefore
  * neither guards nor mints an empty array whose fresh identity would defeat the
  * memo below it.
@@ -135,7 +135,7 @@ const cache = new WeakMap<MapGeography, Map<string, StaticMapGeometry>>()
  *
  * @internal
  */
-export function computeStaticMapGeometry(
+export function buildStaticGeometry(
 	geography: MapGeography,
 	geographyObject: string | undefined,
 	projection: MapProjection,
@@ -164,7 +164,7 @@ export function computeStaticMapGeometry(
  *
  * @internal
  */
-export function staticMapGeometry(
+export function getStaticGeometry(
 	geography: MapGeography | null | undefined,
 	geographyObject: string | undefined,
 	projection: MapProjection,
@@ -174,7 +174,7 @@ export function staticMapGeometry(
 	// A d3 instance is stateful (fitting it mutates in place), so it can't key a
 	// shared entry; compute directly and leave the cache untouched.
 	if (typeof projection !== 'string') {
-		return computeStaticMapGeometry(geography, geographyObject, projection)
+		return buildStaticGeometry(geography, geographyObject, projection)
 	}
 
 	const byKey = getOrCompute(cache, geography, () => new Map())
@@ -186,9 +186,7 @@ export function staticMapGeometry(
 	// above), and JSON serializes `undefined` in an array slot to `null`.
 	const key = JSON.stringify([geographyObject, projection])
 
-	return getOrCompute(byKey, key, () =>
-		computeStaticMapGeometry(geography, geographyObject, projection),
-	)
+	return getOrCompute(byKey, key, () => buildStaticGeometry(geography, geographyObject, projection))
 }
 
 // Region centroids per decoded feature list. Held apart from the mount-critical
@@ -220,7 +218,7 @@ export function cachedRegionCentroids(features: MapFeature[], planar = false): (
 
 // The chrome paths of the canonical stage, per fitted projection. Keyed on the
 // projection rather than on the geometry: the canonical projection is shared
-// across instances and mounts (`staticMapGeometry`), so its chrome is drawn once
+// across instances and mounts (`getStaticGeometry`), so its chrome is drawn once
 // per atlas and step. The measured stage draws under the same projection at
 // each box. It stays out of the slot, where it would evict the canonical stage
 // on each mount, and the memo of the hook holds it. The fit state stays in the

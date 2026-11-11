@@ -5,7 +5,7 @@ import { cn } from '../../core/cn'
 import { useLocale } from '../../providers/locale/context'
 import { k } from '../../recipes/kata/time-ago'
 import { Placeholder } from '../placeholder'
-import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'
+import { useTimeAgo } from './use-time-ago'
 
 /** Props for {@link TimeAgo}: the `value` to age plus `format`/`locale`/`interval` overrides over the `<time>` surface. */
 export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' | 'title'> & {
@@ -62,7 +62,7 @@ export function TimeAgo({
 }: TimeAgoProps) {
 	const ambient = useLocale()
 
-	const { then, valid, pending, text } = useTimeAgoRelativeTime({
+	const { then, valid, pending, text } = useTimeAgo({
 		value,
 		format,
 		locale: locale ?? ambient.locale,

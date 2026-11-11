@@ -42,8 +42,8 @@ import type { GridNavTableProps, GridNewRowPosition } from './use-grid-navigatio
  * @internal
  */
 export function resolveSortable<T>(columns: GridColumn<T>[]): GridColumn<T>[] {
-	return columns.map((col) =>
-		isDataColumn(col) && col.sortable === undefined ? { ...col, sortable: true } : col,
+	return columns.map((column) =>
+		isDataColumn(column) && column.sortable === undefined ? { ...column, sortable: true } : column,
 	)
 }
 
@@ -497,7 +497,8 @@ export function resolveResizeLayout<T>(args: {
 		}
 	}
 
-	const width = (col: GridColumn<T>) => (resize.fit ? fitKeptWidth(col) : resize.getSize(col.id))
+	const width = (column: GridColumn<T>) =>
+		resize.fit ? fitKeptWidth(column) : resize.getSize(column.id)
 
 	return {
 		// Built with `createElement` (not JSX) so this resolver collection stays a
@@ -505,8 +506,8 @@ export function resolveResizeLayout<T>(args: {
 		colGroup: createElement(
 			'colgroup',
 			{ className: cn(k.resize.colgroup) },
-			args.columns.map((col) =>
-				createElement('col', { key: col.id, style: { width: width(col) } }),
+			args.columns.map((column) =>
+				createElement('col', { key: column.id, style: { width: width(column) } }),
 			),
 		),
 		tableClassName: cn(k.resize.fixed, k.fit.table, k.resize.metrics, args.className),

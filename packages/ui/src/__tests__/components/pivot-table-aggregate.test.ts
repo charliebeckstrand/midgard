@@ -7,7 +7,7 @@ import {
 	aggregateRow,
 	groupValues,
 	resolveAxis,
-} from '../../components/pivot-table/pivot-table-pivot'
+} from '../../components/pivot-table/pivot-table-aggregate'
 
 describe('resolveAxis', () => {
 	type Row = { region: string; year: string }

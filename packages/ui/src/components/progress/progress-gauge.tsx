@@ -10,7 +10,7 @@ import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
 import type { AccessibleName } from '../../types/accessible-name'
 import { clamp } from '../../utilities/clamp'
-import { pct } from '../../utilities/pct'
+import { toPercent } from '../../utilities/to-percent'
 import { GAUGE_STROKE_WIDTH, GAUGE_VIEW_BOX } from './progress-gauge-constants'
 
 type ProgressColor = keyof typeof k.color
@@ -87,7 +87,7 @@ export function ProgressGauge({
 
 	const radius = (GAUGE_VIEW_BOX - strokeWidth) / 2
 
-	const percent = clamp(pct(value, 0, max), 0, 100)
+	const percent = clamp(toPercent(value, 0, max), 0, 100)
 
 	const circumference = 2 * Math.PI * radius
 

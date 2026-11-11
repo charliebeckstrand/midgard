@@ -55,7 +55,7 @@ export function useGroupTree<T>(args: {
 	const read = useMemo(() => {
 		if (columnId == null) return null
 
-		const column = columns.find((col) => String(col.id) === columnId)
+		const column = columns.find((column) => String(column.id) === columnId)
 
 		return column ? columnAccessor(column) : null
 	}, [columnId, columns])

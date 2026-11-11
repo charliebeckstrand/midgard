@@ -21,7 +21,7 @@ import type { MapAspectRatio, MapProjection } from '../types'
  *
  * @internal
  */
-export function projectionFallbackAspect(spec: MapProjection | undefined): number | null {
+export function fallbackAspect(spec: MapProjection | undefined): number | null {
 	return spec === 'albers-usa' ? ALBERS_USA_ASPECT : null
 }
 

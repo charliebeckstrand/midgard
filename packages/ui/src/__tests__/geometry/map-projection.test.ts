@@ -6,10 +6,7 @@ import {
 	MAP_FIT_INSET,
 	REGION_PATH_DIGITS,
 } from '../../modules/map/engine/map-constants'
-import {
-	mapFrameSizing,
-	projectionFallbackAspect,
-} from '../../modules/map/engine/map-projection/aspect'
+import { fallbackAspect, mapFrameSizing } from '../../modules/map/engine/map-projection/aspect'
 import { canonicalFit, measuredMapFit } from '../../modules/map/engine/map-projection/fit'
 import { frameToClient } from '../../modules/map/engine/map-projection/frame'
 import {
@@ -297,15 +294,15 @@ describe('fitWidthFromProbeBounds', () => {
 	})
 })
 
-describe('projectionFallbackAspect', () => {
+describe('fallbackAspect', () => {
 	it('reserves the US ratio for albers-usa before its geography loads', () => {
-		expect(projectionFallbackAspect('albers-usa')).toBe(ALBERS_USA_ASPECT)
+		expect(fallbackAspect('albers-usa')).toBe(ALBERS_USA_ASPECT)
 	})
 
 	it('has none for the world projections', () => {
-		expect(projectionFallbackAspect('mercator')).toBeNull()
+		expect(fallbackAspect('mercator')).toBeNull()
 
-		expect(projectionFallbackAspect('equal-earth')).toBeNull()
+		expect(fallbackAspect('equal-earth')).toBeNull()
 	})
 })
 

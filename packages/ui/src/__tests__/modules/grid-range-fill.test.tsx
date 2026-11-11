@@ -64,10 +64,12 @@ function renderFillGrid(props: { editable?: Partial<GridEditableConfig>; async?:
 
 	const grid = screen.getByRole('grid')
 
-	const cell = (row: number, col: number) => gridCells()[row * columns.length + col] as HTMLElement
+	const cell = (row: number, column: number) =>
+		gridCells()[row * columns.length + column] as HTMLElement
 
 	/** The text of each data cell, row by row. */
-	const texts = () => rows.map((_, row) => columns.map((_, col) => cell(row, col).textContent))
+	const texts = () =>
+		rows.map((_, row) => columns.map((_, column) => cell(row, column).textContent))
 
 	/** Makes the range from one cell to another. */
 	const select = (from: [number, number], to: [number, number]) => {

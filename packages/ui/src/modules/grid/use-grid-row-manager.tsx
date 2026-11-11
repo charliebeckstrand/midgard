@@ -19,7 +19,7 @@ import {
 } from './engine/grid-group/tree'
 import type { GridMenuResolution } from './engine/grid-menu-targeting'
 import { gridMessages } from './engine/grid-messages'
-import { applyColumnReorder } from './engine/grid-reorder-compute'
+import { applyColumnReorder } from './engine/grid-reorder'
 import { buildRowGroupMenu } from './grid-context-menu-utilities'
 import type { GridGroupBy } from './grid-data-types'
 import type {

@@ -68,7 +68,9 @@ export function useGridPinningView<T>(args: {
 	const widths = useMemo(
 		() =>
 			args.fitting
-				? new Map(args.visibleColumns.map((col) => [String(col.id), fitKeptWidth(col) ?? 0]))
+				? new Map(
+						args.visibleColumns.map((column) => [String(column.id), fitKeptWidth(column) ?? 0]),
+					)
 				: args.widths,
 		[args.fitting, args.visibleColumns, args.widths],
 	)

@@ -160,7 +160,7 @@ describe('engine purity boundary · self-check', () => {
 	})
 
 	it('spares a type-only import of a banned package', () => {
-		// `grid-reorder-compute.ts` describes its modifiers with dnd-kit's own
+		// `grid-reorder.ts` describes its modifiers with dnd-kit's own
 		// `ClientRect` / `Transform` / `Modifier`. The specifier is banned and the
 		// clause erases, so only the rule's runtime half can spare it.
 		const content = "import type { ClientRect, Modifier } from '@dnd-kit/core'\n"

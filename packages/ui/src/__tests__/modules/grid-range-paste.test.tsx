@@ -71,13 +71,13 @@ function renderPasteGrid(
 
 	const grid = screen.getByRole('grid')
 
-	const cell = (row: number, col: number) =>
-		gridCells()[row * (props.columns ?? columns).length + col] as HTMLElement
+	const cell = (row: number, column: number) =>
+		gridCells()[row * (props.columns ?? columns).length + column] as HTMLElement
 
 	/** The text of each data cell, row by row. */
 	const texts = () =>
 		rows.map((_, row) =>
-			(props.columns ?? columns).map((_, col) => cell(row, col).textContent ?? ''),
+			(props.columns ?? columns).map((_, column) => cell(row, column).textContent ?? ''),
 		)
 
 	/** Fires a paste of `text` as the browser does with no editor focused, on the body. */
@@ -193,10 +193,10 @@ describe('Grid range paste', () => {
 
 	it('sends a value that validate refuses to onReject, not to onCommit', () => {
 		const view = renderPasteGrid({
-			columns: columns.map((col) =>
-				col.id === 'count'
-					? { ...col, validate: (value) => ((value as number) > 99 ? 'Too big' : null) }
-					: col,
+			columns: columns.map((column) =>
+				column.id === 'count'
+					? { ...column, validate: (value) => ((value as number) > 99 ? 'Too big' : null) }
+					: column,
 			),
 		})
 
@@ -239,7 +239,7 @@ describe('Grid range paste', () => {
 		const parse = vi.fn((text: string) => text.length)
 
 		const view = renderPasteGrid({
-			columns: columns.map((col) => (col.id === 'count' ? { ...col, parse } : col)),
+			columns: columns.map((column) => (column.id === 'count' ? { ...column, parse } : column)),
 		})
 
 		fireEvent.mouseDown(view.cell(1, 1))

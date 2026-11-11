@@ -233,7 +233,7 @@ export function sortRowsSmart<T>(
 	fields: SmartSortField<T>[],
 	collator: Intl.Collator,
 ): { rows: readonly T[]; keys: (string | number)[] } {
-	return materializeSort(rows, computeSortOrder(rows, fields, collator), getKey)
+	return materializeSort(rows, buildSortOrder(rows, fields, collator), getKey)
 }
 
 /**
@@ -252,7 +252,7 @@ export function sortRowsSmart<T>(
  *
  * @internal
  */
-export function computeSortOrder<T>(
+export function buildSortOrder<T>(
 	rows: readonly T[],
 	fields: SmartSortField<T>[],
 	collator: Intl.Collator,
@@ -290,7 +290,7 @@ export function computeSortOrder<T>(
  * key, each run of equal keys in data order, and puts its empties last in data
  * order in both directions. The other direction therefore takes the runs in
  * reverse and keeps the order inside each run and the empties. It equals what
- * {@link computeSortOrder} gives for that direction, and it needs the decode
+ * {@link buildSortOrder} gives for that direction, and it needs the decode
  * but no sort. The cold sort records nothing for it, so its cost stays.
  *
  * @internal
@@ -355,7 +355,7 @@ function mirrorOrder<T>(
 const sortOrders = new WeakMap<object, WeakMap<object, Map<string, number[]>>>()
 
 /**
- * The {@link computeSortOrder} permutation of `rows`, computed one time for
+ * The {@link buildSortOrder} permutation of `rows`, computed one time for
  * each sort signature. A re-sort by a signature already seen reuses the order,
  * and pays only the linear materialize. An asc/desc flip and an unrelated
  * re-render are two such re-sorts.
@@ -400,13 +400,13 @@ export function cachedSortOrder<T>(
 
 		return flipped && only && fields.length === 1 && only.sortFn === null
 			? mirrorOrder(rows, flipped, only, collator)
-			: computeSortOrder(rows, fields, collator)
+			: buildSortOrder(rows, fields, collator)
 	})
 }
 
 /**
  * The cheap half of {@link sortRowsSmart}. It projects a sort permutation (from
- * {@link computeSortOrder}) into the reordered rows and their keys in one
+ * {@link buildSortOrder}) into the reordered rows and their keys in one
  * O(rows) pass. Each key is taken at the row's *original* index (the identity
  * `getRowId` saw). It therefore matches the engine path's `rowKeys` and the
  * body's `getRow` lookups regardless of sorted position.

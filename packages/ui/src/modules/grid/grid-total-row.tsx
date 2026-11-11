@@ -18,9 +18,9 @@ import { type PinnedCellChrome, pinnedCellProps, pinnedSpanProps } from './engin
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridAggregateCells } from './grid-aggregate-cells'
-import { GridNavCell } from './grid-nav-cell'
+import { GridNavigationCell } from './grid-navigation-cell'
 import type { GridColumn } from './types'
-import { useGridNavStopProps } from './use-grid-nav-stop-props'
+import { useGridNavigationStopProps } from './use-grid-navigation-stop-props'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /**
@@ -161,7 +161,7 @@ function GroupRevealCell({
 	cellProps,
 	children,
 }: {
-	/** The cursor props of the cell (see {@link useGridNavStopProps}). */
+	/** The cursor props of the cell (see {@link useGridNavigationStopProps}). */
 	cellProps?: ComponentProps<'td'>
 	/** Whether the reveal renders open: the row's reveal hold, not `expanded`. */
 	open: boolean
@@ -317,7 +317,7 @@ function GridGroupTotalRow<T>({
 
 	const pad = k.row.group.reveal.pad
 
-	const stopProps = useGridNavStopProps(navKey ?? '')
+	const stopProps = useGridNavigationStopProps(navKey ?? '')
 
 	// Under the cursor, a client-grouped grid is a treegrid, and a total sits
 	// at the level of its group's leaves.
@@ -345,7 +345,7 @@ function GridGroupTotalRow<T>({
 					cellProps={navKey === undefined ? undefined : stopProps}
 				>
 					{label}
-					{navKey !== undefined && <GridNavCell stop={navKey} />}
+					{navKey !== undefined && <GridNavigationCell stop={navKey} />}
 				</GroupRevealCell>
 
 				{columns.slice(span).map((column) => (

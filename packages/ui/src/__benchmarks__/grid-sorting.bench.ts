@@ -1,10 +1,10 @@
 // @vitest-environment node
 
 import {
+	buildSortOrder,
 	cachedSortOrder,
 	compareSmart,
 	compareSortKeys,
-	computeSortOrder,
 	materializeSort,
 	naturalCollator,
 	type SmartSortField,
@@ -117,7 +117,7 @@ compareBenches('grid-sort · parseNumeric (per-value)', (bench) => {
 })
 
 // The whole-function sort cost, split into the two halves the render path caches
-// apart (see `useGridClientView`): `computeSortOrder` is the costly decode-and-sort that
+// apart (see `useGridClientView`): `buildSortOrder` is the costly decode-and-sort that
 // a re-sort of unchanged rows by a seen spec reuses; `materializeSort` is the cheap
 // projection paid on every flip regardless. The ratio between them is what the
 // permutation cache trades on (a flip skips the former and pays only the latter)
@@ -141,14 +141,14 @@ compareBenches('grid-sort · sortRowsSmart split (compute vs materialize)', (ben
 
 		// The permutation of a pre-sorted set, so `materializeSort` is benched over a
 		// real order rather than the identity: the exact array the cache hands it.
-		const order = computeSortOrder(rows, [stringField], collator)
+		const order = buildSortOrder(rows, [stringField], collator)
 
-		bench(`${count.toLocaleString()} · computeSortOrder · string column (the cached half)`, () => {
-			computeSortOrder(rows, [stringField], collator)
+		bench(`${count.toLocaleString()} · buildSortOrder · string column (the cached half)`, () => {
+			buildSortOrder(rows, [stringField], collator)
 		})
 
-		bench(`${count.toLocaleString()} · computeSortOrder · numeric column (the cached half)`, () => {
-			computeSortOrder(rows, [numberField], collator)
+		bench(`${count.toLocaleString()} · buildSortOrder · numeric column (the cached half)`, () => {
+			buildSortOrder(rows, [numberField], collator)
 		})
 
 		bench(`${count.toLocaleString()} · materializeSort (paid every flip)`, () => {

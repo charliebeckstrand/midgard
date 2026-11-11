@@ -183,7 +183,7 @@ function GridExportMenu({ exportActions, exportButton, exporting }: GridExportMe
  *
  * @internal
  */
-function toolbarFocusFallback(toolbar: HTMLElement): HTMLElement | undefined {
+function findFocusFallback(toolbar: HTMLElement): HTMLElement | undefined {
 	const search = toolbar.querySelector<HTMLElement>('[data-slot="grid-filter"] input')
 
 	if (search) return search
@@ -246,7 +246,7 @@ export function GridToolbar({
 		const toolbar = toolbarRef.current
 
 		if (next.size === 0 && toolbar && batchRef.current?.contains(document.activeElement)) {
-			toolbarFocusFallback(toolbar)?.focus()
+			findFocusFallback(toolbar)?.focus()
 		}
 
 		setSelection(next)
@@ -279,7 +279,7 @@ export function GridToolbar({
 							color="amber"
 							onClick={() => {
 								// Move focus before the clear unmounts this button.
-								if (toolbarRef.current) toolbarFocusFallback(toolbarRef.current)?.focus()
+								if (toolbarRef.current) findFocusFallback(toolbarRef.current)?.focus()
 
 								columnFilters?.clear()
 							}}

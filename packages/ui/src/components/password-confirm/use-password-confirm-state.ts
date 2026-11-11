@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
-import { deriveStatus, type PasswordConfirmRole, type Status } from './password-confirm-utilities'
+import { getStatus, type PasswordConfirmRole, type Status } from './password-confirm-utilities'
 
 type PasswordConfirmStateOptions = {
 	/**
@@ -46,7 +46,7 @@ export function usePasswordConfirmState({
 
 	const [lastEdited, setLastEdited] = useState<PasswordConfirmRole | null>(null)
 
-	const status: Status = disabled ? 'idle' : deriveStatus(password, confirm, lastEdited)
+	const status: Status = disabled ? 'idle' : getStatus(password, confirm, lastEdited)
 
 	const reportMatch = useEffectEvent((matched: boolean) => onMatchChange?.(matched))
 

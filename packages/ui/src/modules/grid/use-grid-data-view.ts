@@ -110,11 +110,11 @@ export function useGridDataView<T>({
 	)
 
 	const colIndexMap = useMemo(
-		() => new Map(cursorColumns.map((col, index) => [col.id, index] as const)),
+		() => new Map(cursorColumns.map((column, index) => [column.id, index] as const)),
 		[cursorColumns],
 	)
 
-	const cursorColumnIds = useMemo(() => cursorColumns.map((col) => col.id), [cursorColumns])
+	const cursorColumnIds = useMemo(() => cursorColumns.map((column) => column.id), [cursorColumns])
 
 	// A sort, a filter, a page, or a column change moves the cells. The cursor
 	// follows its cell by the row key and the column id, and clamps to the new
@@ -149,7 +149,7 @@ export function useGridDataView<T>({
 	// A selection column makes rows selectable, so each row exposes `aria-selected`
 	// and a true grid advertises `aria-multiselectable` (see `resolveTableProps`).
 	const hasSelectionColumn = useMemo(
-		() => visibleColumns.some((col) => col.selectable),
+		() => visibleColumns.some((column) => column.selectable),
 		[visibleColumns],
 	)
 

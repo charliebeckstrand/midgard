@@ -2,9 +2,9 @@ import { act, renderHook } from '@testing-library/react'
 import type { DragControls } from 'motion/react'
 import { describe, expect, it, vi } from 'vitest'
 import * as announcer from '../../core/announcer'
-import { type ReorderDragOptions, useReorderDrag } from '../../hooks/use-reorder-drag'
+import { type DragReorderOptions, useDragReorder } from '../../hooks/use-drag-reorder'
 
-describe('useReorderDrag', () => {
+describe('useDragReorder', () => {
 	const ids = ['a', 'b', 'c']
 
 	/** Controls that record the stop. The hook calls only `stop`. */
@@ -15,7 +15,7 @@ describe('useReorderDrag', () => {
 
 		const onReorder = vi.fn()
 
-		const options: Omit<ReorderDragOptions, 'enabled'> = {
+		const options: Omit<DragReorderOptions, 'enabled'> = {
 			ids,
 			onReorder,
 			name: (id) => id.toUpperCase(),
@@ -23,7 +23,7 @@ describe('useReorderDrag', () => {
 		}
 
 		const hook = renderHook(
-			(props: { enabled: boolean }) => useReorderDrag({ ...options, ...props }),
+			(props: { enabled: boolean }) => useDragReorder({ ...options, ...props }),
 			{
 				initialProps: { enabled },
 			},

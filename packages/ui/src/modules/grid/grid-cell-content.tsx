@@ -140,20 +140,20 @@ const TOOLTIP_CLASS = cn(k.cell.tooltip)
  * @internal
  */
 export function cellBody<T>(
-	col: GridIndexedColumn<T>,
+	column: GridIndexedColumn<T>,
 	row: T,
 	rowIndex: number,
 	truncate: boolean,
 ): ReactNode {
-	const content = searchedContent(col, cellContentAt(col, row, rowIndex))
+	const content = searchedContent(column, cellContentAt(column, row, rowIndex))
 
 	if (!truncate || content == null) return content
 
 	return (
 		<GridCellContent
 			content={content}
-			tooltip={resolveCellTooltip(col, row)}
-			columnId={String(col.id)}
+			tooltip={resolveCellTooltip(column, row)}
+			columnId={String(column.id)}
 		/>
 	)
 }

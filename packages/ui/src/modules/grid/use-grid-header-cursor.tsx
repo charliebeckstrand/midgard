@@ -5,7 +5,7 @@ import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
 import { useGridNavContext } from './context'
 import { GRID_CELL_PROPS } from './engine/grid-cell-controls'
-import { focusGridOnPress, GridNavCell } from './grid-nav-cell'
+import { focusGridOnPress, GridNavigationCell } from './grid-navigation-cell'
 import { HEADER_ROW_INDEX } from './use-grid-navigation'
 
 /**
@@ -15,7 +15,7 @@ import { HEADER_ROW_INDEX } from './use-grid-navigation'
 export type GridHeaderCursor = {
 	/** The cell id, the cursor's marker attribute, its ring, and a press that seats the cursor. */
 	props: Pick<ComponentProps<'th'>, 'id' | 'className' | 'onMouseDown'>
-	/** The active-cell marker (see {@link GridNavCell}). */
+	/** The active-cell marker (see {@link GridNavigationCell}). */
 	marker: ReactNode
 }
 
@@ -45,7 +45,7 @@ export function useGridHeaderCursor(col: number): GridHeaderCursor | null {
 					if (focusGridOnPress(event)) store.seatHeader(col)
 				},
 			},
-			marker: <GridNavCell row={HEADER_ROW_INDEX} col={col} fills={false} />,
+			marker: <GridNavigationCell row={HEADER_ROW_INDEX} col={col} fills={false} />,
 		}
 	}, [store, col])
 }

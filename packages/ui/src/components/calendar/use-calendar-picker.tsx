@@ -15,7 +15,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { resolveFormat } from '../../utilities/format'
 import { calendarMessages } from './calendar-messages'
 import type { CalendarPickerGridProps } from './calendar-picker-grid'
-import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
+import { initialPickerState, pickerReducer } from './calendar-picker-reducer'
 import { isYearInRange, MAX_YEAR, MIN_YEAR } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 
@@ -87,7 +87,7 @@ export function useCalendarPicker({
 }: CalendarPickerOptions): CalendarPickerResult {
 	const intl = useIntl()
 
-	const [state, dispatch] = useReducer(calendarPickerReducer, year, initialCalendarPickerState)
+	const [state, dispatch] = useReducer(pickerReducer, year, initialPickerState)
 
 	// Each open transition reseeds the view on the calendar's year, during render.
 	// The trigger and the `openPicker` handle both pass here, so the first frame

@@ -191,7 +191,7 @@ export function resolveCategories<T>(
 	categoryKey: DataKey<T>,
 	explicit?: MapCategory[],
 ): MapCategoryMeta[] {
-	const listed = explicit ?? deriveCategories(data, categoryKey)
+	const listed = explicit ?? buildCategories(data, categoryKey)
 
 	return listed.map((category, index) => {
 		return {
@@ -210,7 +210,7 @@ export function resolveCategories<T>(
  *
  * @internal
  */
-function deriveCategories<T>(data: T[], categoryKey: DataKey<T>): MapCategory[] {
+function buildCategories<T>(data: T[], categoryKey: DataKey<T>): MapCategory[] {
 	const seen = new Set<string>()
 
 	const derived: MapCategory[] = []

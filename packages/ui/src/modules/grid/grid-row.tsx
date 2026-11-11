@@ -429,30 +429,30 @@ export function GridRowImpl<T>({
 				className,
 			)}
 		>
-			{columns.map((col, index) => {
+			{columns.map((column, index) => {
 				// Cell column indices accompany `aria-rowindex`, which grid semantics
 				// set (rowIndex is only set then).
 				const ariaColIndex = rowIndex !== undefined ? index + 1 : undefined
 
-				const specialClass = specialCellClass(col)
+				const specialClass = specialCellClass(column)
 
 				if (specialClass) {
-					const pinned = pinnedCellProps(pinning, col)
+					const pinned = pinnedCellProps(pinning, column)
 
 					// The cursor's id, role, and seat, when the grid has a cursor.
-					const cursorProps = cellPropsAt(col, row, dataRowIndex)
+					const cursorProps = cellPropsAt(column, row, dataRowIndex)
 
 					return (
 						<TableCell
 							{...cursorProps}
-							key={col.id}
+							key={column.id}
 							aria-colindex={ariaColIndex}
 							className={cn(specialClass, pinned.className, cursorProps?.className)}
 							style={{ ...cursorProps?.style, ...pinned.style }}
 							data-grid-pin={pinned.pin}
 						>
-							{col.expander ? (
-								<GridFitBox col={col}>
+							{column.expander ? (
+								<GridFitBox col={column}>
 									{toggleExpand && (
 										<GridExpandToggle
 											expanded={expanded}
@@ -466,7 +466,7 @@ export function GridRowImpl<T>({
 								</GridFitBox>
 							) : (
 								<GridRowSpecialCell
-									col={col}
+									col={column}
 									row={row}
 									rowKey={rowKey}
 									selected={selected}
@@ -475,34 +475,34 @@ export function GridRowImpl<T>({
 									sortable={sortable}
 								/>
 							)}
-							{cellMarkerAt(col, dataRowIndex)}
+							{cellMarkerAt(column, dataRowIndex)}
 						</TableCell>
 					)
 				}
 
 				// The Add column of the new-row slot is empty in a data row, so its
 				// cell reads no editing session.
-				if (isNewRowAddColumn(col.id)) {
-					const cursorProps = cellPropsAt(col, row, dataRowIndex)
+				if (isNewRowAddColumn(column.id)) {
+					const cursorProps = cellPropsAt(column, row, dataRowIndex)
 
 					return (
 						<TableCell
 							{...cursorProps}
-							key={col.id}
+							key={column.id}
 							aria-colindex={ariaColIndex}
 							className={cn(k.cell.actions, cursorProps?.className)}
 						>
-							{cellMarkerAt(col, dataRowIndex)}
+							{cellMarkerAt(column, dataRowIndex)}
 						</TableCell>
 					)
 				}
 
 				return (
 					<GridDataCell<T>
-						key={col.id}
-						col={col}
+						key={column.id}
+						col={column}
 						row={row}
-						rowIndex={cellRowIndex(col, dataRowIndex)}
+						rowIndex={cellRowIndex(column, dataRowIndex)}
 						ariaColIndex={ariaColIndex}
 						columnIndex={index}
 						reorderable={reorderable}

@@ -36,7 +36,7 @@ import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridAddRowButton } from './grid-add-row-button'
 import { GridCellEditor } from './grid-cell-editor'
 import type { GridNewRowAdd, GridNewRowAddContext } from './grid-editing-types'
-import { focusGridOnPress, GridNavCell } from './grid-nav-cell'
+import { focusGridOnPress, GridNavigationCell } from './grid-navigation-cell'
 import type { GridColumn } from './types'
 import { NEW_ROW_INDEX } from './use-grid-navigation'
 import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
@@ -189,9 +189,9 @@ function GridNewRowCell<T>({
 			style={style}
 			data-grid-pin={pin}
 		>
-			<GridNavCell row={NEW_ROW_INDEX} col={col}>
+			<GridNavigationCell row={NEW_ROW_INDEX} col={col}>
 				{content}
-			</GridNavCell>
+			</GridNavigationCell>
 		</TableCell>
 	)
 }
@@ -282,7 +282,7 @@ function GridNewRowAddCell({
 					<GridAddRowButton addRow={session.addRow} />
 				)}
 			</span>
-			<GridNavCell row={NEW_ROW_INDEX} col={col} fills={false} />
+			<GridNavigationCell row={NEW_ROW_INDEX} col={col} fills={false} />
 		</TableCell>
 	)
 }
@@ -388,7 +388,7 @@ export function GridNewRow<T>({
 								style={pinned.style}
 								data-grid-pin={pinned.pin}
 							>
-								<GridNavCell row={NEW_ROW_INDEX} col={index} fills={false} />
+								<GridNavigationCell row={NEW_ROW_INDEX} col={index} fills={false} />
 							</TableCell>
 						)
 

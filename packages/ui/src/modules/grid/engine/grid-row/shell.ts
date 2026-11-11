@@ -253,7 +253,7 @@ export function cellRovingAttrs<T>(args: {
 	'data-roving': '' | undefined
 	onKeyDown: (event: ReactKeyboardEvent<HTMLTableCellElement>) => void
 } | null {
-	const { cellRoving, cellActivate, col, row, rowKey, keyDown } = args
+	const { cellRoving, cellActivate, col: column, row, rowKey, keyDown } = args
 
 	if (!cellRoving) return null
 
@@ -264,7 +264,7 @@ export function cellRovingAttrs<T>(args: {
 
 			if (event.defaultPrevented) return
 
-			activateOnEnterSpace(event, () => cellActivate?.(cellContext(col, row, rowKey), event))
+			activateOnEnterSpace(event, () => cellActivate?.(cellContext(column, row, rowKey), event))
 		},
 	}
 }
@@ -274,14 +274,14 @@ export function cellRovingAttrs<T>(args: {
  * selection, the expander, or the actions. A data column, and the Add column of
  * the new-row slot, give `undefined`. @internal
  */
-export function specialCellClass<T>(col: GridColumn<T>): string | undefined {
-	if (col.dragHandle) return k.row.reorder.cell
+export function specialCellClass<T>(column: GridColumn<T>): string | undefined {
+	if (column.dragHandle) return k.row.reorder.cell
 
-	if (col.selectable) return k.cell.select
+	if (column.selectable) return k.cell.select
 
-	if (col.expander) return k.cell.expander
+	if (column.expander) return k.cell.expander
 
-	if (col.actions && !isNewRowAddColumn(col.id)) return k.cell.actions
+	if (column.actions && !isNewRowAddColumn(column.id)) return k.cell.actions
 
 	return undefined
 }

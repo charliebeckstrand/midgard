@@ -78,20 +78,20 @@ const keyboardColumns: Column[] = [
 ]
 
 function KeyboardBoard({ onValueChange }: { onValueChange?: (next: Column[]) => void } = {}) {
-	const [cols, setCols] = useState(keyboardColumns)
+	const [columns, setColumns] = useState(keyboardColumns)
 
 	return (
 		<Kanban
-			columns={cols}
+			columns={columns}
 			getKey={(item: Item) => item.id}
 			aria-label="Board"
 			onReorder={(next) => {
-				setCols(next)
+				setColumns(next)
 
 				onValueChange?.(next)
 			}}
 		>
-			{cols.map((column) => (
+			{columns.map((column) => (
 				<KanbanColumn key={column.id} value={column.id} aria-label={column.title}>
 					<KanbanColumnHeader>
 						<KanbanColumnTitle>{column.title}</KanbanColumnTitle>

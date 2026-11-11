@@ -94,12 +94,12 @@ export function applyPinOverrides<T>(
 ): GridColumn<T>[] {
 	if (overrides.size === 0) return columns
 
-	return columns.map((col) => {
-		const override = overrides.get(String(col.id))
+	return columns.map((column) => {
+		const override = overrides.get(String(column.id))
 
-		if (override === undefined || isLocked(col)) return col
+		if (override === undefined || isLocked(column)) return column
 
-		return { ...col, pinned: override === 'none' ? undefined : override }
+		return { ...column, pinned: override === 'none' ? undefined : override }
 	})
 }
 

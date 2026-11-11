@@ -21,9 +21,9 @@ import {
  * construction. A consumer's `cell` does not, so it is read here. @internal
  */
 function isEditableCell<T>(cell: GridActiveEdit, source: GridEditSource<T>): boolean {
-	const col = findColumn(source.columns, cell.columnId)
+	const column = findColumn(source.columns, cell.columnId)
 
-	if (!col || !isColumnEditable(col)) return false
+	if (!column || !isColumnEditable(column)) return false
 
 	return source.rows.some((row, index) => source.getKey(row, index) === cell.rowKey)
 }

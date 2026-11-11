@@ -21,8 +21,8 @@ import {
 	zoneMapToStores,
 } from '../../modules/grid/engine/grid-zone/map'
 import {
+	buildAnnouncements,
 	groupAwareKeyboardCoordinates,
-	groupManagerAnnouncements,
 } from '../../modules/grid/grid-group-manager'
 import { GridManagerGrip } from '../../modules/grid/grid-manager-grip'
 import { intlEn } from '../../primitives/intl/intl-catalog'
@@ -707,7 +707,7 @@ describe('Grid column-group editor', () => {
 	})
 })
 
-describe('groupManagerAnnouncements', () => {
+describe('buildAnnouncements', () => {
 	const groups: GridColumnGroup[] = [
 		{ id: 'g1', title: 'Contact', columns: ['email'] },
 		{ id: 'g2', title: 'Money', columns: [] },
@@ -720,7 +720,7 @@ describe('groupManagerAnnouncements', () => {
 
 	const zoneMap: ZoneMap = { g1: ['email'], g2: [], [UNGROUPED]: ['name'] }
 
-	const announcements = groupManagerAnnouncements(intlEn, groups, columnsById, zoneMap)
+	const announcements = buildAnnouncements(intlEn, groups, columnsById, zoneMap)
 
 	const at = (id: string) => ({ id }) as Active & Over
 

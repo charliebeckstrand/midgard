@@ -18,11 +18,11 @@ import { subscribeTick } from './time-ago-ticker'
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
 
 // `Intl.RelativeTimeFormat` construction is expensive; the cache holds one instance per locale.
-const relativeTimeFormatCache = new Map<string, Intl.RelativeTimeFormat>()
+const formatterByLocale = new Map<string, Intl.RelativeTimeFormat>()
 
 function getFormatter(locale: string | undefined) {
 	return getOrCompute(
-		relativeTimeFormatCache,
+		formatterByLocale,
 		locale ?? '',
 		() => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }),
 	)
@@ -136,7 +136,7 @@ type RelativeTimeResult = {
  * `interval` with {@link resolveRefreshInterval}.
  * @internal
  */
-export function useTimeAgoRelativeTime({
+export function useTimeAgo({
 	value,
 	format,
 	locale,

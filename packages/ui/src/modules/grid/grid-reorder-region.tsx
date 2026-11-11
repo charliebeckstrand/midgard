@@ -13,7 +13,7 @@ import {
 	useSortableList,
 } from '../../hooks/use-sortable-list'
 import { GridReorderContext, GridReorderKitContext } from './context'
-import { restrictToFirstScrollableAncestor } from './engine/grid-reorder-compute'
+import { restrictToFirstScrollableAncestor } from './engine/grid-reorder'
 import {
 	type GridReorderableColumnHeaderProps,
 	GridReorderableColumnHeaderView,

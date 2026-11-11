@@ -8,7 +8,7 @@ import { k } from '../../recipes/kata/grid'
 import { GridReorderContext } from './context'
 import { isFrozen } from './engine/grid-pin/overrides'
 import { pinnedCellProps } from './engine/grid-pin/styles'
-import { columnShiftStyle } from './engine/grid-reorder-compute'
+import { columnShiftStyle } from './engine/grid-reorder'
 import { cellPropsAt, type GridIndexedColumn } from './engine/grid-row/cell'
 import { fitCellProps } from './engine/grid-sizing/fit-styles'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
@@ -41,7 +41,7 @@ type GridDataCellProps<T> = {
  * @internal
  */
 function GridDataCellImpl<T>({
-	col,
+	col: column,
 	row,
 	rowIndex,
 	ariaColIndex,
@@ -50,20 +50,20 @@ function GridDataCellImpl<T>({
 	truncate,
 	pinning,
 }: GridDataCellProps<T>) {
-	const cellProps = cellPropsAt(col, row, rowIndex)
+	const cellProps = cellPropsAt(column, row, rowIndex)
 
-	const content = cellBody(col, row, rowIndex, truncate)
+	const content = cellBody(column, row, rowIndex, truncate)
 
 	// The width rules of the fit layout (see `fitCellProps`).
-	const fit = fitCellProps(col)
+	const fit = fitCellProps(column)
 
-	if (reorderable && !isFrozen(col)) {
+	if (reorderable && !isFrozen(column)) {
 		return (
 			<GridReorderableCell
-				id={col.id}
+				id={column.id}
 				columnIndex={columnIndex}
 				ariaColIndex={ariaColIndex}
-				className={cn(fit.className, col.className)}
+				className={cn(fit.className, column.className)}
 				fitStyle={fit.style}
 				cellProps={cellProps}
 			>
@@ -74,13 +74,13 @@ function GridDataCellImpl<T>({
 
 	// Pinned chrome resolves only on the plain path: the reorderable cell above
 	// glides via `columnShiftStyle` and never reads it.
-	const pinned = pinnedCellProps(pinning, col)
+	const pinned = pinnedCellProps(pinning, column)
 
 	return (
 		<TableCell
 			aria-colindex={ariaColIndex}
 			{...cellProps}
-			data-grid-col={col.id}
+			data-grid-col={column.id}
 			className={cn(fit.className, pinned.className, cellProps?.className)}
 			style={{ ...fit.style, ...cellProps?.style, ...pinned.style }}
 			data-grid-pin={pinned.pin}

@@ -3,17 +3,17 @@ import { geoMercator } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import {
+	buildStaticGeometry,
 	cachedCanonicalPaths,
 	cachedChromePaths,
-	computeStaticMapGeometry,
-	staticMapGeometry,
+	getStaticGeometry,
 } from '../../modules/map/engine/map-geometry/cache'
 import { measuredMapFit } from '../../modules/map/engine/map-projection/fit'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
-describe('staticMapGeometry', () => {
+describe('getStaticGeometry', () => {
 	it('decodes, fits, and draws the canonical geometry', () => {
-		const geometry = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, 'mercator')
+		const geometry = getStaticGeometry(FIXTURE_TOPOLOGY, undefined, 'mercator')
 
 		expect(geometry.features.map((entry) => entry.id)).toEqual(['A', 'B', 'C'])
 
@@ -27,9 +27,9 @@ describe('staticMapGeometry', () => {
 	})
 
 	it('matches the uncached pipeline value for value', () => {
-		const cached = staticMapGeometry(FIXTURE_GEOJSON, undefined, 'mercator')
+		const cached = getStaticGeometry(FIXTURE_GEOJSON, undefined, 'mercator')
 
-		const direct = computeStaticMapGeometry(FIXTURE_GEOJSON, undefined, 'mercator')
+		const direct = buildStaticGeometry(FIXTURE_GEOJSON, undefined, 'mercator')
 
 		expect(cachedCanonicalPaths(cached)).toEqual(cachedCanonicalPaths(direct))
 
@@ -41,9 +41,9 @@ describe('staticMapGeometry', () => {
 	})
 
 	it('returns the same instance for a repeat atlas + object + projection', () => {
-		const first = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, 'albers-usa')
+		const first = getStaticGeometry(FIXTURE_TOPOLOGY, undefined, 'albers-usa')
 
-		const second = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, 'albers-usa')
+		const second = getStaticGeometry(FIXTURE_TOPOLOGY, undefined, 'albers-usa')
 
 		expect(second).toBe(first)
 
@@ -53,17 +53,17 @@ describe('staticMapGeometry', () => {
 	})
 
 	it('keys the cache on the projection', () => {
-		const mercator = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, 'mercator')
+		const mercator = getStaticGeometry(FIXTURE_TOPOLOGY, undefined, 'mercator')
 
-		const albers = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, 'albers-usa')
+		const albers = getStaticGeometry(FIXTURE_TOPOLOGY, undefined, 'albers-usa')
 
 		expect(albers).not.toBe(mercator)
 	})
 
 	it('keys the cache on the topology object name', () => {
-		const first = staticMapGeometry(FIXTURE_TOPOLOGY, 'states', 'mercator')
+		const first = getStaticGeometry(FIXTURE_TOPOLOGY, 'states', 'mercator')
 
-		const unknown = staticMapGeometry(FIXTURE_TOPOLOGY, 'counties', 'mercator')
+		const unknown = getStaticGeometry(FIXTURE_TOPOLOGY, 'counties', 'mercator')
 
 		// 'states' is the only real object; 'counties' decodes to nothing.
 		expect(first.features).toHaveLength(3)
@@ -74,9 +74,9 @@ describe('staticMapGeometry', () => {
 	})
 
 	it('keeps an undefined object name distinct from an explicit empty string', () => {
-		const fromDefault = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, 'mercator')
+		const fromDefault = getStaticGeometry(FIXTURE_TOPOLOGY, undefined, 'mercator')
 
-		const fromEmpty = staticMapGeometry(FIXTURE_TOPOLOGY, '', 'mercator')
+		const fromEmpty = getStaticGeometry(FIXTURE_TOPOLOGY, '', 'mercator')
 
 		// `undefined` decodes the topology's first object; `''` names no object and
 		// decodes nothing: the key must not fold the two together.
@@ -88,12 +88,12 @@ describe('staticMapGeometry', () => {
 
 		// Each still matches its own uncached computation.
 		expect(cachedCanonicalPaths(fromEmpty)).toEqual(
-			cachedCanonicalPaths(computeStaticMapGeometry(FIXTURE_TOPOLOGY, '', 'mercator')),
+			cachedCanonicalPaths(buildStaticGeometry(FIXTURE_TOPOLOGY, '', 'mercator')),
 		)
 	})
 
 	it('leaves the shared canonical projection as it was after a measured chrome pass', () => {
-		const geometry = staticMapGeometry(FIXTURE_GEOJSON, undefined, 'mercator')
+		const geometry = getStaticGeometry(FIXTURE_GEOJSON, undefined, 'mercator')
 
 		const { canonical } = geometry
 
@@ -130,9 +130,9 @@ describe('staticMapGeometry', () => {
 	it('misses for a distinct atlas object of the same shape', () => {
 		const clone = structuredClone(FIXTURE_TOPOLOGY)
 
-		const original = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, 'mercator')
+		const original = getStaticGeometry(FIXTURE_TOPOLOGY, undefined, 'mercator')
 
-		const cloned = staticMapGeometry(clone, undefined, 'mercator')
+		const cloned = getStaticGeometry(clone, undefined, 'mercator')
 
 		// Same values, different identity: the WeakMap keys on the atlas object.
 		expect(cloned).not.toBe(original)
@@ -143,9 +143,9 @@ describe('staticMapGeometry', () => {
 	it('bypasses the cache for a passed d3 projection instance', () => {
 		const projection = geoMercator()
 
-		const first = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, projection)
+		const first = getStaticGeometry(FIXTURE_TOPOLOGY, undefined, projection)
 
-		const second = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, projection)
+		const second = getStaticGeometry(FIXTURE_TOPOLOGY, undefined, projection)
 
 		// A mutable instance can't key a shared entry: computed fresh each call.
 		expect(second).not.toBe(first)
@@ -154,7 +154,7 @@ describe('staticMapGeometry', () => {
 	})
 
 	it('yields the empty geometry for absent geography', () => {
-		const empty = staticMapGeometry(null, undefined, 'albers-usa')
+		const empty = getStaticGeometry(null, undefined, 'albers-usa')
 
 		expect(empty.features).toEqual([])
 

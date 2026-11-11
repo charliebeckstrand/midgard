@@ -10,7 +10,7 @@ import type { GridEditableConfig } from './grid-editing-types'
 import type { GridNewRow } from './grid-new-row'
 import type { GridColumn } from './types'
 import { useGridCursorColumns } from './use-grid-cursor-columns'
-import { type GridCursorRefs, useGridCursorNav } from './use-grid-cursor-nav'
+import { type GridCursorRefs, useGridCursorNavigation } from './use-grid-cursor-navigation'
 import type {
 	GridNavTableProps,
 	GridNewRowPosition,
@@ -138,7 +138,7 @@ export function useGridCursor<T>({
 	// A read-only grid shows no new-row slot, so the cursor clamps to no slot.
 	const newRowRef = useRef<GridNewRowPosition>(null)
 
-	const { nav } = useGridCursorNav<T>({
+	const { nav } = useGridCursorNavigation<T>({
 		enabled: navigable,
 		range,
 		onRowActivate,

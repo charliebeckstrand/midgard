@@ -124,7 +124,7 @@ describe('Grid per-column filters', () => {
 	})
 
 	it('keeps a client search when columnFilters is manual but no column filters', () => {
-		const plain = columns.map((col) => ({ ...col, filterable: false }))
+		const plain = columns.map((column) => ({ ...column, filterable: false }))
 
 		renderUI(
 			<Grid
@@ -152,7 +152,7 @@ describe('Grid per-column filters', () => {
 	})
 
 	it('renders no filter button when no column is filterable', () => {
-		const plain = columns.map((col) => ({ ...col, filterable: false }))
+		const plain = columns.map((column) => ({ ...column, filterable: false }))
 
 		renderUI(<Grid columns={plain} rows={rows} getKey={getKey} />)
 

@@ -1,5 +1,5 @@
 import { getOrCompute } from '../../../../utilities/get-or-compute'
-import { computeSortOrder, naturalCollator, type SmartSortField } from '../grid-sort/utilities'
+import { buildSortOrder, naturalCollator, type SmartSortField } from '../grid-sort/utilities'
 import { type GridGroup, toRowLeaf } from './tree'
 
 /**
@@ -149,7 +149,7 @@ function sortLeaves<T>(
 	}
 
 	return lists.map((list) => {
-		const positions = computeSortOrder(
+		const positions = buildSortOrder(
 			list.map((index) => rows[index] as T),
 			sort.fields,
 			collator,
@@ -178,5 +178,5 @@ function sortGroups<T>(
 		field.sortFn !== null || sort.grouped[index] ? field : { ...field, accessor: () => undefined },
 	)
 
-	return computeSortOrder(firsts, fields, collator)
+	return buildSortOrder(firsts, fields, collator)
 }

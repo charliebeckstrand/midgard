@@ -12,6 +12,6 @@ import type { GridColumn } from '../../types'
  *
  * @internal
  */
-export function columnAccessor<T>(col: GridColumn<T>): (row: T) => unknown {
-	return col.value ?? ((row) => (row as Record<string | number, unknown>)[col.id])
+export function columnAccessor<T>(column: GridColumn<T>): (row: T) => unknown {
+	return column.value ?? ((row) => (row as Record<string | number, unknown>)[column.id])
 }

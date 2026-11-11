@@ -572,7 +572,7 @@ describe.each([
 		{ id: 3, name: 'Bob', value: 'b' },
 	]
 
-	const cols: GridColumn<Person>[] = [
+	const columns: GridColumn<Person>[] = [
 		{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
 		{ id: 'value', title: 'Value', cell: (row) => row.value, value: (row) => row.value },
 	]
@@ -587,7 +587,7 @@ describe.each([
 	it('follows the display row after a sort', () => {
 		const ui = (sort: 'asc' | 'desc') => (
 			<Grid
-				columns={cols}
+				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}
 				sort={{ value: [{ column: 'name', direction: sort }] }}
@@ -604,7 +604,7 @@ describe.each([
 
 	it('follows the display row after an insert above', () => {
 		const ui = (rows: Person[]) => (
-			<Grid columns={cols} rows={rows} getKey={(row) => row.id} {...mode} />
+			<Grid columns={columns} rows={rows} getKey={(row) => row.id} {...mode} />
 		)
 
 		const view = renderUI(ui(people))
@@ -729,7 +729,7 @@ describe('Grid flat cursor follows its cell', () => {
 	]
 
 	// Each cell holds its row name and its column id, so the text names the cell.
-	const cols: GridColumn<Person>[] = ['name', 'role', 'age'].map((id) => ({
+	const columns: GridColumn<Person>[] = ['name', 'role', 'age'].map((id) => ({
 		id,
 		title: id,
 		field: id === 'role' ? undefined : (id as 'name' | 'age'),
@@ -749,7 +749,7 @@ describe('Grid flat cursor follows its cell', () => {
 
 	const ui = ({ rows = people, sort, hidden = [], order, pinning = {}, ...rest }: Layout = {}) => (
 		<Grid
-			columns={cols}
+			columns={columns}
 			rows={rows}
 			getKey={(row) => row.id}
 			sort={{ value: sort ? [{ column: sort, direction: 'asc' }] : [] }}

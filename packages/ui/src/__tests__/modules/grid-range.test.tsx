@@ -19,8 +19,8 @@ const rows: Row[] = [
 const getKey = (row: Row) => row.id
 
 /** The data cell at a row and a column, in row-major order. */
-function cell(row: number, col: number): HTMLElement {
-	return gridCells()[row * columns.length + col] as HTMLElement
+function cell(row: number, column: number): HTMLElement {
+	return gridCells()[row * columns.length + column] as HTMLElement
 }
 
 /** The `[row, col]` of each cell that carries `data-in-range`. */
@@ -366,7 +366,7 @@ describe('Grid range in an editable grid', () => {
 	it('extends a range with Shift and a click, as a read-only grid does', () => {
 		renderUI(
 			<Grid
-				columns={columns.map((col) => ({ ...col, field: col.id as keyof Row }))}
+				columns={columns.map((column) => ({ ...column, field: column.id as keyof Row }))}
 				rows={rows}
 				getKey={getKey}
 				editable={{ session: 'managed', onCommit: () => {} }}

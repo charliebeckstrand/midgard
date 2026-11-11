@@ -52,18 +52,18 @@ function GridSkeletonCellsImpl<T>({
 }: GridSkeletonCellsProps<T>): ReactElement {
 	return (
 		<>
-			{columns.map((col, index) => {
-				const pinned = pinnedCellProps(pinning, col)
+			{columns.map((column, index) => {
+				const pinned = pinnedCellProps(pinning, column)
 
 				return (
 					<TableCell
-						key={col.id}
+						key={column.id}
 						className={index === 0 ? cn(leadingClassName, pinned.className) : pinned.className}
 						style={pinned.style}
 						data-grid-pin={pinned.pin}
 					>
 						{/* The Add column of the new-row slot holds no data, so it draws no placeholder. */}
-						{!isNewRowAddColumn(col.id) && <TextSkeleton />}
+						{!isNewRowAddColumn(column.id) && <TextSkeleton />}
 					</TableCell>
 				)
 			})}

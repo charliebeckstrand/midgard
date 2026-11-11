@@ -42,7 +42,7 @@ import {
 } from './engine/grid-pin/overrides'
 import type { GridRangeFill } from './engine/grid-range/fill'
 import { sameSorts } from './engine/grid-sort/state'
-import type { GridColumnGroup } from './grid-group-types'
+import type { GridColumnGroup } from './grid-column-group-types'
 import type { GridColumn, GridMenuItem } from './types'
 
 /** Menu-item icon for an export action: a printer for `print`, a download glyph otherwise. @internal */
@@ -56,7 +56,7 @@ function exportIcon(type: GridExportAction['type']): ReactElement {
  * renders the same rows from {@link useGridExportActions}. Every route to
  * export therefore reads the same.
  */
-export function gridExportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
+export function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
 	return exportActions.map((action) => ({
 		key: `export-${action.type}`,
 		label: action.label,
@@ -475,7 +475,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			key: 'export',
 			label: intl.formatMessage(gridMessages.export),
 			icon: <Download />,
-			items: gridExportMenuItems(exportActions),
+			items: exportMenuItems(exportActions),
 		}),
 	]
 }
@@ -544,7 +544,7 @@ export function cellMenuDefaults(
 			key: 'export',
 			label: intl.formatMessage(gridMessages.export),
 			icon: <Download />,
-			items: gridExportMenuItems(exportActions),
+			items: exportMenuItems(exportActions),
 		}),
 	]
 }

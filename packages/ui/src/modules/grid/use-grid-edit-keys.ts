@@ -109,19 +109,19 @@ export function useGridEditKeys<T>({
 				'data-grid-col',
 			)
 
-			const col = cursorColumnsRef.current.find((candidate) => String(candidate.id) === colAttr)
+			const column = cursorColumnsRef.current.find((candidate) => String(candidate.id) === colAttr)
 
 			const open =
-				col !== undefined &&
-				isColumnEditable(col) &&
+				column !== undefined &&
+				isColumnEditable(column) &&
 				isCellEditing({
 					rowKey,
-					columnId: col.id,
+					columnId: column.id,
 					editableRows: editableRowsRef.current,
 					activeEdit: activeEditRef.current,
 				})
 
-			return { rowKey, columnId: open ? col.id : null }
+			return { rowKey, columnId: open ? column.id : null }
 		},
 		[rowKeysRef, cursorColumnsRef, tableRef, sessionRowRef, editableRowsRef, activeEditRef],
 	)

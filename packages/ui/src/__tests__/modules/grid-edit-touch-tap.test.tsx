@@ -42,8 +42,8 @@ function renderGrid(editable: Partial<GridEditableConfig> = {}) {
 	return {
 		...view,
 		onCellClick,
-		cell: (col: string, rowIndex = 0) =>
-			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+		cell: (column: string, rowIndex = 0) =>
+			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[
 				rowIndex
 			] as HTMLElement,
 		editors: () => [

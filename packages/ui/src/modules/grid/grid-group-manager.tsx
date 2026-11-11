@@ -61,7 +61,7 @@ import {
 	type ZoneMap,
 	zoneDropId,
 } from './engine/grid-zone/map'
-import type { GridColumnGroup } from './grid-group-types'
+import type { GridColumnGroup } from './grid-column-group-types'
 import { GridManagerCheckboxRow } from './grid-manager-checkbox-row'
 import { GridManagerColorMenu } from './grid-manager-color-menu'
 import { GridManagerGrip } from './grid-manager-grip'
@@ -198,7 +198,7 @@ export type GridGroupManagerProps = {
  * @param zoneMap - The live zone map, which says the zone that holds each column.
  * @internal
  */
-export function groupManagerAnnouncements(
+export function buildAnnouncements(
 	intl: IntlShape,
 	groups: readonly GridColumnGroup[],
 	columnsById: ReadonlyMap<string, GridColumnManagerItem>,
@@ -387,7 +387,7 @@ export function GridGroupManager({
 	// The keyboard sensor of dnd-kit drops with Space and cancels with Escape.
 	const accessibility = useMemo(
 		() => ({
-			announcements: groupManagerAnnouncements(intl, groups, byId, manager.zoneMap),
+			announcements: buildAnnouncements(intl, groups, byId, manager.zoneMap),
 			screenReaderInstructions: {
 				draggable: intl.formatMessage(reorderMessages.sensorInstructions),
 			},

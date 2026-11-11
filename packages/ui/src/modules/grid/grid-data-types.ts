@@ -6,8 +6,8 @@ import type { scale } from '../../recipes/kata/table'
 import type { GridSortState } from './context'
 import type { GridExportable, GridExportRows } from './engine/grid-export/types'
 import type { GridCellClick, GridCellClickContext, GridRowClick } from './engine/grid-row/cell'
+import type { GridColumnGroups } from './grid-column-group-types'
 import type { GridEditableConfig } from './grid-editing-types'
-import type { GridColumnGroups } from './grid-group-types'
 import type { GridRowGroups } from './grid-row-group-types'
 import type {
 	GridColumn,

@@ -14,12 +14,12 @@ import { sameElements } from '../utilities/same-elements'
 import { useDragCursorHold } from './use-drag-cursor'
 
 /**
- * Options for {@link useReorderDrag}: the keys, the drop report, the names for
+ * Options for {@link useDragReorder}: the keys, the drop report, the names for
  * the announcements, the start callback, and whether the surface takes a drag.
  *
  * @internal
  */
-export type ReorderDragOptions = {
+export type DragReorderOptions = {
 	/** The key of each item, in the committed order. */
 	ids: string[]
 	/** Called once, on the drop, with the next order and the key of the dragged item. */
@@ -66,14 +66,14 @@ const getSlot = (order: readonly string[], id: string): ReorderSlot => ({
  * Motion.
  * @internal
  */
-export function useReorderDrag({
+export function useDragReorder({
 	ids,
 	onReorder,
 	onDrop,
 	name,
 	onStart,
 	enabled,
-}: ReorderDragOptions) {
+}: DragReorderOptions) {
 	const intl = useIntl()
 
 	const [draft, setDraftState] = useState<string[] | null>(null)

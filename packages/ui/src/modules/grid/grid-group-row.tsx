@@ -15,9 +15,9 @@ import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy } from './grid-data-types'
 import { GridGroupDisclosure } from './grid-group-disclosure'
-import { GridNavCell } from './grid-nav-cell'
+import { GridNavigationCell } from './grid-navigation-cell'
 import type { GridColumn } from './types'
-import { useGridNavStopProps } from './use-grid-nav-stop-props'
+import { useGridNavigationStopProps } from './use-grid-navigation-stop-props'
 
 /** Props for {@link GridGroupRow}. @internal */
 type GridGroupRowProps<T> = {
@@ -80,7 +80,7 @@ function GridGroupRowImpl<T>({
 
 	const navKey = groupItemKey(group.id)
 
-	const stopProps = useGridNavStopProps(navKey)
+	const stopProps = useGridNavigationStopProps(navKey)
 
 	// The cursor makes a client-grouped grid a treegrid. The header is its top level.
 	const tree = useGridNavContext().enabled
@@ -116,7 +116,7 @@ function GridGroupRowImpl<T>({
 					expanded={expanded}
 					onToggle={() => onToggle(group.id)}
 				/>
-				<GridNavCell stop={navKey} />
+				<GridNavigationCell stop={navKey} />
 			</TableCell>
 
 			{aggregated && (

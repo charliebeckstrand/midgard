@@ -109,17 +109,17 @@ export type GridColumnSizer = {
  * @internal
  */
 export function isAutoSized<T>(
-	col: GridColumn<T>,
+	column: GridColumn<T>,
 	holds: ReadonlySet<string>,
 	released: ReadonlySet<string>,
 ): boolean {
-	if (!isDataColumn(col)) return false
+	if (!isDataColumn(column)) return false
 
-	const id = String(col.id)
+	const id = String(column.id)
 
 	if (holds.has(id)) return false
 
-	return parsePxWidth(col.width) == null || released.has(id)
+	return parsePxWidth(column.width) == null || released.has(id)
 }
 
 /**
@@ -137,12 +137,12 @@ export function isAutoSized<T>(
  * @internal
  */
 export function contentWidth<T>(
-	col: GridColumn<T>,
+	column: GridColumn<T>,
 	floor: number,
 	body: number,
 	capped: boolean,
 ): number {
-	const cap = col.maxWidth ?? (capped ? DEFAULT_CONTENT_MAX : Number.MAX_SAFE_INTEGER)
+	const cap = column.maxWidth ?? (capped ? DEFAULT_CONTENT_MAX : Number.MAX_SAFE_INTEGER)
 
 	return Math.max(floor, Math.min(body, cap))
 }
@@ -156,12 +156,12 @@ export function contentWidth<T>(
  *
  * @internal
  */
-export function fitKeptWidth<T>(col: GridColumn<T>): number | undefined {
-	const seed = parsePxWidth(col.width)
+export function fitKeptWidth<T>(column: GridColumn<T>): number | undefined {
+	const seed = parsePxWidth(column.width)
 
-	if (seed == null || !isDataColumn(col)) return seed
+	if (seed == null || !isDataColumn(column)) return seed
 
-	return clamp(seed, col.minWidth ?? 0, col.maxWidth ?? Number.MAX_SAFE_INTEGER)
+	return clamp(seed, column.minWidth ?? 0, column.maxWidth ?? Number.MAX_SAFE_INTEGER)
 }
 
 /**
@@ -257,23 +257,23 @@ export function createColumnSizer({
 		return measurement
 	}
 
-	function getFloor<T>(col: GridColumn<T>): number {
-		return floors.get(String(col.id)) ?? columnMinWidth(col)
+	function getFloor<T>(column: GridColumn<T>): number {
+		return floors.get(String(column.id)) ?? columnMinWidth(column)
 	}
 
 	// The widest content (px) of a data column: its widest body cell so far, or its
 	// header with the title in full. A column that rendered no body cell (an empty
 	// result, a loading skeleton) still has its header.
-	function widestContent<T>(col: GridColumn<T>): number {
-		const id = String(col.id)
+	function widestContent<T>(column: GridColumn<T>): number {
+		const id = String(column.id)
 
 		return Math.max(widest.get(id) ?? 0, titles.get(id) ?? 0)
 	}
 
 	// The width (px) of a data column that sizes to its content without the fill:
 	// the content width of its widest row so far, inside its floor and its cap.
-	function desiredWidth<T>(col: GridColumn<T>): number {
-		return contentWidth(col, getFloor(col), widestContent(col), true)
+	function desiredWidth<T>(column: GridColumn<T>): number {
+		return contentWidth(column, getFloor(column), widestContent(column), true)
 	}
 
 	// The least widths of a pass (see rule 1). A column that the browser sized from
@@ -294,8 +294,8 @@ export function createColumnSizer({
 	function takeControl<T>(columns: readonly GridColumn<T>[]): void {
 		mode = 'manual'
 
-		for (const col of columns) {
-			if (isDataColumn(col)) holds.add(String(col.id))
+		for (const column of columns) {
+			if (isDataColumn(column)) holds.add(String(column.id))
 		}
 	}
 
@@ -303,48 +303,48 @@ export function createColumnSizer({
 	// first, so a wider row that has left the view no longer holds it wide.
 	function freshContent<T>(
 		env: ColumnSizerEnv<T>,
-		cols: readonly GridColumn<T>[],
+		columns: readonly GridColumn<T>[],
 	): Record<string, number> {
-		const ids = new Set(cols.map((col) => String(col.id)))
+		const ids = new Set(columns.map((column) => String(column.id)))
 
 		for (const id of ids) widest.delete(id)
 
 		read(env, ids)
 
 		return Object.fromEntries(
-			cols.map((col) => [
-				String(col.id),
-				contentWidth(col, getFloor(col), widestContent(col), false),
+			columns.map((column) => [
+				String(column.id),
+				contentWidth(column, getFloor(column), widestContent(column), false),
 			]),
 		)
 	}
 
 	// Whether a column lacks the fact that a pass reads for it: the floor of a data
 	// column, or the width of a content-sized one.
-	function lacksFact<T>(col: GridColumn<T>): boolean {
-		const id = String(col.id)
+	function lacksFact<T>(column: GridColumn<T>): boolean {
+		const id = String(column.id)
 
-		if (isDataColumn(col)) return !floors.has(id)
+		if (isDataColumn(column)) return !floors.has(id)
 
-		return isContentSized(col) && !fits.has(id)
+		return isContentSized(column) && !fits.has(id)
 	}
 
 	// Each content-sized column takes its content width, and none of the spare width.
 	// A column that no pass has measured yet keeps its engine width.
-	function contentWidths<T>(cols: readonly GridColumn<T>[]): Record<string, number> {
+	function contentWidths<T>(columns: readonly GridColumn<T>[]): Record<string, number> {
 		const content: Record<string, number> = {}
 
-		for (const col of cols) {
-			const width = fits.get(String(col.id))
+		for (const column of columns) {
+			const width = fits.get(String(column.id))
 
-			if (width != null) content[String(col.id)] = width
+			if (width != null) content[String(column.id)] = width
 		}
 
 		return content
 	}
 
 	function refit<T>(env: ColumnSizerEnv<T>, fresh: boolean): ColumnSizingWrite {
-		const joined = env.columns.filter((col) => isAutoSized(col, holds, released))
+		const joined = env.columns.filter((column) => isAutoSized(column, holds, released))
 
 		const fitted = env.columns.filter(isContentSized)
 
@@ -355,21 +355,21 @@ export function createColumnSizer({
 		// is never held.
 		const stale = (fresh && (joined.length > 0 || fitted.length > 0)) || !seen || unfloored
 
-		if (stale) read(env, new Set(joined.map((col) => String(col.id))))
+		if (stale) read(env, new Set(joined.map((column) => String(column.id))))
 
 		// The fixed layout spends no spare width: each column without a hold takes the
 		// width of its content, as it does after a drag.
 		const sizing = contentWidths(fitted)
 
-		for (const col of joined) sizing[String(col.id)] = desiredWidth(col)
+		for (const column of joined) sizing[String(column.id)] = desiredWidth(column)
 
 		return { sizing, replace: false, persist: 'none' }
 	}
 
 	function observe<T>(env: ColumnSizerEnv<T>, replace: boolean): void {
 		const ids = env.columns
-			.filter((col) => isAutoSized(col, holds, released))
-			.map((col) => String(col.id))
+			.filter((column) => isAutoSized(column, holds, released))
+			.map((column) => String(column.id))
 
 		const measurement = read(env, new Set(ids))
 
@@ -388,24 +388,24 @@ export function createColumnSizer({
 		observe,
 		refit,
 		sizeColumn: (env, id) => {
-			const col = env.columns.find((candidate) => String(candidate.id) === id)
+			const column = env.columns.find((candidate) => String(candidate.id) === id)
 
-			if (!col || !isDataColumn(col)) return null
+			if (!column || !isDataColumn(column)) return null
 
 			takeControl(env.columns)
 
 			released.add(id)
 
-			return { sizing: freshContent(env, [col]), replace: false, persist: 'widths' }
+			return { sizing: freshContent(env, [column]), replace: false, persist: 'widths' }
 		},
 		sizeAll: (env) => {
-			const cols = env.columns.filter(isDataColumn)
+			const columns = env.columns.filter(isDataColumn)
 
 			takeControl(env.columns)
 
-			for (const col of cols) released.add(String(col.id))
+			for (const column of columns) released.add(String(column.id))
 
-			return { sizing: freshContent(env, cols), replace: false, persist: 'widths' }
+			return { sizing: freshContent(env, columns), replace: false, persist: 'widths' }
 		},
 		reset: () => {
 			mode = 'auto'

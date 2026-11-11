@@ -1,22 +1,22 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import type { GridNavCell } from '../../modules/grid/grid-nav-cell'
+import type { GridNavigationCell } from '../../modules/grid/grid-navigation-cell'
 import { fireEvent, gridCells, renderUI, screen } from '../helpers'
 
 // Counts the renders of each data cell's cursor flag, by `row:col`. The flag
 // holds `data-active` and `data-in-range`, so it renders when either changes.
 const flagRenders = vi.hoisted(() => [] as string[])
 
-vi.mock('../../modules/grid/grid-nav-cell', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('../../modules/grid/grid-nav-cell')>()
+vi.mock('../../modules/grid/grid-navigation-cell', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('../../modules/grid/grid-navigation-cell')>()
 
 	return {
 		...actual,
-		GridNavCell: ((props: Parameters<typeof actual.GridNavCell>[0]) => {
+		GridNavigationCell: ((props: Parameters<typeof actual.GridNavigationCell>[0]) => {
 			if (props.stop === undefined) flagRenders.push(`${props.row}:${props.col}`)
 
-			return actual.GridNavCell(props)
-		}) as typeof GridNavCell,
+			return actual.GridNavigationCell(props)
+		}) as typeof GridNavigationCell,
 	}
 })
 

@@ -157,7 +157,11 @@ export function toColumnFacets(values: Iterable<unknown>, locale?: string): Grid
 
 /** The ids of the columns that filter: each declares `filterable` and a `value`. @internal */
 export function filterableIds<T>(columns: readonly GridColumn<T>[]): Set<string> {
-	return new Set(columns.filter((col) => col.filterable && col.value).map((col) => String(col.id)))
+	return new Set(
+		columns
+			.filter((column) => column.filterable && column.value)
+			.map((column) => String(column.id)),
+	)
 }
 
 /**
@@ -246,7 +250,7 @@ export function facetSource<T>(
 	columnTests: ColumnTests<T>,
 	query: string,
 ): (id: string) => Set<unknown> {
-	const byId = new Map(columns.map((col) => [String(col.id), col] as const))
+	const byId = new Map(columns.map((column) => [String(column.id), column] as const))
 
 	const cache = new Map<string, Set<unknown>>()
 

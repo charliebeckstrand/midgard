@@ -3,9 +3,9 @@
 import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
+import { useDragReorder } from '../../hooks/use-drag-reorder'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
-import { useReorderDrag } from '../../hooks/use-reorder-drag'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { IntlMessage } from '../../primitives/intl'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
@@ -205,7 +205,7 @@ export function List<T>({
 		}
 	}, [ids, items, onReorder])
 
-	const { order, setDraft, onDragStart, onDragEnd } = useReorderDrag({
+	const { order, setDraft, onDragStart, onDragEnd } = useDragReorder({
 		ids,
 		onReorder: onReorderIds,
 		name: useCallback((id: string) => listItemName(containerRef.current, id), []),

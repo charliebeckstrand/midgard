@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { EMPTY_SET } from './engine/grid-constants'
-import { completeColumnOrder } from './engine/grid-reorder-compute'
+import { completeColumnOrder } from './engine/grid-reorder'
 
 type ColumnLike = { id: string | number }
 
@@ -78,7 +78,7 @@ export function useGridColumnVisibility<T extends ColumnLike>({
 		[resolvedOrder, columns],
 	)
 
-	const byId = useMemo(() => new Map(columns.map((col) => [col.id, col])), [columns])
+	const byId = useMemo(() => new Map(columns.map((column) => [column.id, column])), [columns])
 
 	return { order: completeOrder, setOrder, hidden: resolvedHidden, setHidden, byId }
 }

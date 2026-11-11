@@ -38,10 +38,10 @@ import { useGridRevealHold } from './use-grid-reveal-hold'
  * the actions cell, as on a flat row. The reveal wrappers inherit its alignment.
  * @internal
  */
-function leafCellClass<T>(col: GridColumn<T>): string | undefined {
-	if (col.selectable) return k.cell.select
+function getCellClass<T>(column: GridColumn<T>): string | undefined {
+	if (column.selectable) return k.cell.select
 
-	if (col.actions && !isNewRowAddColumn(col.id)) return k.cell.actions
+	if (column.actions && !isNewRowAddColumn(column.id)) return k.cell.actions
 
 	return undefined
 }
@@ -93,7 +93,7 @@ type GridGroupLeafRowProps<T> = {
 	GridWindowRowProps
 
 /** Resolves a leaf cell's inner content: an inert grip, the checkbox, the actions, or the rendered value. @internal */
-function leafCellInner<T>(args: {
+function renderCellInner<T>(args: {
 	col: GridIndexedColumn<T>
 	row: T
 	rowIndex: number
@@ -103,17 +103,17 @@ function leafCellInner<T>(args: {
 	rowLabel: string | undefined
 	truncate: boolean
 }): ReactNode {
-	const { col, row, rowIndex, rowKey, selected, toggleRow, rowLabel, truncate } = args
+	const { col: column, row, rowIndex, rowKey, selected, toggleRow, rowLabel, truncate } = args
 
 	// The Add column of the new-row slot is empty in a leaf row.
-	if (isNewRowAddColumn(col.id)) return null
+	if (isNewRowAddColumn(column.id)) return null
 
 	// Row reorder stands down under grouping, so the leaf gives no sortable and
 	// its grip is inert.
-	if (col.dragHandle || col.selectable || col.actions) {
+	if (column.dragHandle || column.selectable || column.actions) {
 		return (
 			<GridRowSpecialCell
-				col={col}
+				col={column}
 				row={row}
 				rowKey={rowKey}
 				selected={selected}
@@ -124,7 +124,7 @@ function leafCellInner<T>(args: {
 	}
 
 	// The column renders the cell as a flat row does.
-	return cellBody(col, row, rowIndex, truncate)
+	return cellBody(column, row, rowIndex, truncate)
 }
 
 /** Props for {@link GridGroupLeafCell}. @internal */
@@ -165,7 +165,7 @@ type GridGroupLeafCellProps<T> = {
  * @internal
  */
 function GridGroupLeafCell<T>({
-	col,
+	col: column,
 	row,
 	rowIndex,
 	rowKey,
@@ -184,20 +184,20 @@ function GridGroupLeafCell<T>({
 }: GridGroupLeafCellProps<T>) {
 	// Only data cells rove; the non-data columns (selection, actions, drag handle,
 	// expander) stay plain. `cellRovingAttrs` returns the marker + Enter/Space activation.
-	const dataCell = isDataColumn(col)
+	const dataCell = isDataColumn(column)
 
-	const pinned = pinnedCellProps(pinning, col)
+	const pinned = pinnedCellProps(pinning, column)
 
 	// The width rules of the fit layout, as on a flat row (see `fitCellProps`).
-	const fit = fitCellProps(col)
+	const fit = fitCellProps(column)
 
 	// The column's own cell props, such as the cursor's id and role, as on a flat row.
-	const cellProps = cellPropsAt(col, row, rowIndex)
+	const cellProps = cellPropsAt(column, row, rowIndex)
 
 	const roving = cellRovingAttrs({
 		cellRoving: cellRoving && dataCell,
 		cellActivate,
-		col,
+		col: column,
 		row,
 		rowKey,
 		keyDown: cellProps?.onKeyDown,
@@ -208,7 +208,7 @@ function GridGroupLeafCell<T>({
 			{...cellProps}
 			// Marks a data cell, as on a flat row. The cell menu, the cell click, and
 			// the autosizer read it, so a non-data cell carries none.
-			data-grid-col={dataCell ? col.id : undefined}
+			data-grid-col={dataCell ? column.id : undefined}
 			aria-colindex={ariaColIndex}
 			{...roving}
 			// The first cell carries the group's rail, so it runs unbroken down the
@@ -218,7 +218,7 @@ function GridGroupLeafCell<T>({
 				cellRoving && dataCell && k.cell.rovable,
 				leading && k.row.group.rail.border,
 				leading && color && k.row.group.rail.color[color],
-				leafCellClass(col),
+				getCellClass(column),
 				fit.className,
 				pinned.className,
 				cellProps?.className,
@@ -229,8 +229,8 @@ function GridGroupLeafCell<T>({
 			<div className={cn(k.row.group.reveal.track)} data-open={dataAttr(open)}>
 				<div className={cn(k.row.group.reveal.clip)}>
 					<div className={cn(pad)}>
-						{leafCellInner({
-							col,
+						{renderCellInner({
+							col: column,
 							row,
 							rowIndex,
 							rowKey,
@@ -243,7 +243,7 @@ function GridGroupLeafCell<T>({
 				</div>
 			</div>
 			{/* The active-cell marker of a non-data cell. A data cell renders its own. */}
-			{cellMarkerAt(col, rowIndex)}
+			{cellMarkerAt(column, rowIndex)}
 		</td>
 	)
 }
@@ -333,11 +333,11 @@ function GridGroupLeafRowImpl<T>({
 					className,
 				)}
 			>
-				{columns.map((col, index) => {
+				{columns.map((column, index) => {
 					return (
 						<GridGroupLeafCell<T>
-							key={col.id}
-							col={col}
+							key={column.id}
+							col={column}
 							row={row}
 							rowIndex={rowIndex}
 							rowKey={rowKey}

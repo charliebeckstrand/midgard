@@ -15,8 +15,8 @@ import { detailItemKey } from './engine/grid-items/items'
 import { gridMessages } from './engine/grid-messages'
 import { rowName } from './engine/grid-row/cell'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
-import { GridNavCell } from './grid-nav-cell'
-import { useGridNavStopProps } from './use-grid-nav-stop-props'
+import { GridNavigationCell } from './grid-navigation-cell'
+import { useGridNavigationStopProps } from './use-grid-navigation-stop-props'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /** Props for {@link GridExpandToggle}. @internal */
@@ -140,7 +140,7 @@ function GridDetailRowImpl<T>({
 
 	const navKey = detailItemKey(rowKey)
 
-	const stopProps = useGridNavStopProps(navKey)
+	const stopProps = useGridNavigationStopProps(navKey)
 
 	return (
 		<MountHold hold={reveal.hold} name="grid-detail-row">
@@ -159,7 +159,7 @@ function GridDetailRowImpl<T>({
 							</section>
 						</div>
 					</div>
-					<GridNavCell stop={navKey} />
+					<GridNavigationCell stop={navKey} />
 				</td>
 			</tr>
 		</MountHold>

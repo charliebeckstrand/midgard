@@ -10,7 +10,7 @@ import { isFrozen } from './engine/grid-pin/overrides'
 import type { GridColumn } from './types'
 
 /** Stable drag id for a column. @internal */
-const columnDragId = (col: { id: string | number }) => String(col.id)
+const columnDragId = (column: { id: string | number }) => String(column.id)
 
 /** Stable empty list so a non-reorderable table keeps a constant sortable `items` reference. @internal */
 const EMPTY_COLUMNS: never[] = []
@@ -53,23 +53,28 @@ export function useGridReorder<T>({
 
 	const draggableColumns = useMemo(
 		() =>
-			reorder ? visibleColumns.filter((col) => isDataColumn(col) && !isFrozen(col)) : EMPTY_COLUMNS,
+			reorder
+				? visibleColumns.filter((column) => isDataColumn(column) && !isFrozen(column))
+				: EMPTY_COLUMNS,
 		[reorder, visibleColumns],
 	)
 
 	const canReorder = reorder && draggableColumns.length > 1
 
 	const handleReorder = useCallback(
-		(next: GridColumn<T>[]) => reorderColumns(next.map((col) => col.id)),
+		(next: GridColumn<T>[]) => reorderColumns(next.map((column) => column.id)),
 		[reorderColumns],
 	)
 
 	const handleDragStart = useCallback(
-		(col: GridColumn<T>) => onReorderStart?.(col.id),
+		(column: GridColumn<T>) => onReorderStart?.(column.id),
 		[onReorderStart],
 	)
 
-	const handleDragEnd = useCallback((col: GridColumn<T>) => onReorderEnd?.(col.id), [onReorderEnd])
+	const handleDragEnd = useCallback(
+		(column: GridColumn<T>) => onReorderEnd?.(column.id),
+		[onReorderEnd],
+	)
 
 	const sortable: SortableListOptions<GridColumn<T>> = {
 		items: draggableColumns,
@@ -78,7 +83,8 @@ export function useGridReorder<T>({
 		orientation: 'horizontal',
 		onDragStart: onReorderStart ? handleDragStart : undefined,
 		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
-		describe: (col) => intl.formatMessage(gridMessages.columnName, { column: columnLabel(col) }),
+		describe: (column) =>
+			intl.formatMessage(gridMessages.columnName, { column: columnLabel(column) }),
 	}
 
 	return { canReorder, sortable }

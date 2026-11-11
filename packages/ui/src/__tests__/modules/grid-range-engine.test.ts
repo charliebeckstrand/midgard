@@ -202,12 +202,12 @@ function stepOver(shown: readonly number[]) {
 }
 
 describe('pastePlacement', () => {
-	const cols = 4
+	const columns = 4
 
 	const step = stepOver([0, 1, 2, 3, 4])
 
 	it('writes one field into each cell of the range', () => {
-		const targets = pastePlacement([['x']], { rows: [1, 2], cols: [0, 1] }, cols, step)
+		const targets = pastePlacement([['x']], { rows: [1, 2], cols: [0, 1] }, columns, step)
 
 		expect(targets).toEqual([
 			{ row: 1, col: 0, text: 'x' },
@@ -218,7 +218,12 @@ describe('pastePlacement', () => {
 	})
 
 	it('tiles a block over a range that is a whole multiple of it', () => {
-		const targets = pastePlacement([['a', 'b']], { rows: [0, 1], cols: [0, 1, 2, 3] }, cols, step)
+		const targets = pastePlacement(
+			[['a', 'b']],
+			{ rows: [0, 1], cols: [0, 1, 2, 3] },
+			columns,
+			step,
+		)
 
 		expect(targets.map((target) => target.text)).toEqual(['a', 'b', 'a', 'b', 'a', 'b', 'a', 'b'])
 	})
@@ -229,7 +234,7 @@ describe('pastePlacement', () => {
 			['d', 'e', 'f'],
 		]
 
-		expect(pastePlacement(block, { rows: [4], cols: [2] }, cols, step)).toEqual([
+		expect(pastePlacement(block, { rows: [4], cols: [2] }, columns, step)).toEqual([
 			{ row: 4, col: 2, text: 'a' },
 			{ row: 4, col: 3, text: 'b' },
 		])
@@ -238,26 +243,26 @@ describe('pastePlacement', () => {
 	it('steps over a row that the cursor does not show', () => {
 		const block = [['a'], ['b']]
 
-		expect(pastePlacement(block, { rows: [0], cols: [0] }, cols, stepOver([0, 3, 4]))).toEqual([
+		expect(pastePlacement(block, { rows: [0], cols: [0] }, columns, stepOver([0, 3, 4]))).toEqual([
 			{ row: 0, col: 0, text: 'a' },
 			{ row: 3, col: 0, text: 'b' },
 		])
 	})
 
 	it('gives empty text for a short row of the block', () => {
-		const targets = pastePlacement([['a', 'b'], ['c']], { rows: [0], cols: [0] }, cols, step)
+		const targets = pastePlacement([['a', 'b'], ['c']], { rows: [0], cols: [0] }, columns, step)
 
 		expect(targets.map((target) => target.text)).toEqual(['a', 'b', 'c', ''])
 	})
 
 	it('writes nothing for an empty block', () => {
-		expect(pastePlacement([], { rows: [0], cols: [0] }, cols, step)).toEqual([])
+		expect(pastePlacement([], { rows: [0], cols: [0] }, columns, step)).toEqual([])
 	})
 
 	it('places a block with more rows than the engine takes as call arguments', () => {
 		const block = Array.from({ length: 1_000_000 }, (_, i) => [String(i)])
 
-		expect(pastePlacement(block, { rows: [3], cols: [1] }, cols, step)).toEqual([
+		expect(pastePlacement(block, { rows: [3], cols: [1] }, columns, step)).toEqual([
 			{ row: 3, col: 1, text: '0' },
 			{ row: 4, col: 1, text: '1' },
 		])
@@ -329,7 +334,7 @@ describe('fillLine', () => {
 })
 
 describe('fillPlan', () => {
-	const read = (row: number, col: number) => row * 10 + col
+	const read = (row: number, column: number) => row * 10 + column
 
 	const step = stepOver([0, 1, 2, 3, 4])
 

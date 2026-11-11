@@ -16,6 +16,6 @@
  *
  * @internal
  */
-export function coord(value: number): string {
+export function formatCoordinate(value: number): string {
 	return String(Math.round(value * 100) / 100)
 }

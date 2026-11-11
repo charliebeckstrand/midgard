@@ -9,7 +9,7 @@ import { useFormValue } from '../../../primitives/form/use-form-value'
 import { defineMessages } from '../../../primitives/intl/intl-messages'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
-import { pct } from '../../../utilities/pct'
+import { toPercent } from '../../../utilities/to-percent'
 import { useControl } from '../../control/context'
 import { useControlProps } from '../../control/use-control-props'
 import { useControlScope } from '../../control/use-control-scope'
@@ -265,8 +265,8 @@ export function RangeSlider({
 		thumbRefs,
 	})
 
-	const lo = pct(current[0], min, max)
-	const hi = pct(current[1], min, max)
+	const lo = toPercent(current[0], min, max)
+	const hi = toPercent(current[1], min, max)
 
 	// Each thumb is bounded by the other: the start thumb runs from `min` to the
 	// end value, and the end thumb from the start value to `max`.

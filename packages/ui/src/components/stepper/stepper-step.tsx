@@ -42,7 +42,7 @@ const STATE_TEXT = {
  * @returns `'completed'` below the current value, `'current'` at it, `'upcoming'` above.
  * @internal
  */
-function computeState(stepValue: number, value: number): StepState {
+function getState(stepValue: number, value: number): StepState {
 	if (stepValue < value) return 'completed'
 	if (stepValue === value) return 'current'
 
@@ -115,7 +115,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 
 	const intl = useIntl()
 
-	const state = computeState(value, currentValue)
+	const state = getState(value, currentValue)
 
 	// Shares baseId + value with StepperPanel; the two derive matching ids.
 	const { triggerId, panelId } = useA11yDisclosure({ id: baseId, key: value })

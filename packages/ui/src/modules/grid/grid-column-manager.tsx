@@ -16,11 +16,11 @@ import { toggleItem } from '../../utilities/toggle-item'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
 import { effectivePinSide, pinMenuChoices } from './engine/grid-pin/overrides'
-import { applyColumnReorder } from './engine/grid-reorder-compute'
+import { applyColumnReorder } from './engine/grid-reorder'
+import type { GridColumnGroup } from './grid-column-group-types'
 import { type PinColumn, pinChoiceIcon } from './grid-context-menu-utilities'
 import type { GridPreferences } from './grid-data-types'
 import { GridGroupManager } from './grid-group-manager'
-import type { GridColumnGroup } from './grid-group-types'
 import { GridManagerCheckboxRow } from './grid-manager-checkbox-row'
 import type { GridColumnManagerItem } from './types'
 import { isColumnShown, useGridColumnVisibility } from './use-grid-column-visibility'
@@ -241,15 +241,15 @@ function GridColumnManagerFrozenGroup({
 
 	return (
 		<List items={items} getKey={getKey} variant="plain" sortable={false}>
-			{(col) => (
-				<ListItem prefix={frozenLeading(col, onPinChange)}>
+			{(column) => (
+				<ListItem prefix={frozenLeading(column, onPinChange)}>
 					<GridManagerCheckboxRow
-						columnTitle={col.title}
+						columnTitle={column.title}
 						checked
 						disabled
 						aria-label={intl.formatMessage(gridMessages.frozenColumn, {
-							column: columnLabel(col),
-							state: col.locked ? 'locked' : 'pinned',
+							column: columnLabel(column),
+							state: column.locked ? 'locked' : 'pinned',
 						})}
 					/>
 				</ListItem>
@@ -290,12 +290,12 @@ function GridColumnManagerOrderableList({
 }: GridColumnManagerOrderableListProps) {
 	const intl = useIntl()
 
-	const renderRow = (col: GridColumnManagerItem) => (
+	const renderRow = (column: GridColumnManagerItem) => (
 		<ListItem
 			suffix={
 				onPinChange ? (
 					<GridColumnPinControl
-						item={col}
+						item={column}
 						side={undefined}
 						onPinChange={onPinChange}
 						placement="bottom-end"
@@ -304,11 +304,11 @@ function GridColumnManagerOrderableList({
 			}
 		>
 			<GridManagerCheckboxRow
-				columnTitle={col.title}
-				checked={isColumnShown(col, hidden)}
-				disabled={col.hideable === false}
-				onChange={() => onToggle(col.id)}
-				aria-label={intl.formatMessage(gridMessages.showColumn, { column: columnLabel(col) })}
+				columnTitle={column.title}
+				checked={isColumnShown(column, hidden)}
+				disabled={column.hideable === false}
+				onChange={() => onToggle(column.id)}
+				aria-label={intl.formatMessage(gridMessages.showColumn, { column: columnLabel(column) })}
 			/>
 		</ListItem>
 	)
@@ -462,9 +462,9 @@ export function GridColumnManager({
 			// same contract that holds the pinned ones.
 			setOrder(
 				applyColumnReorder(order, reorderedIds, (id) => {
-					const col = byId.get(id)
+					const column = byId.get(id)
 
-					return !!col && effectivePinSide(col) === undefined && matches(col)
+					return !!column && effectivePinSide(column) === undefined && matches(column)
 				}),
 			)
 		},

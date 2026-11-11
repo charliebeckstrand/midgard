@@ -4,11 +4,11 @@
  * the row drag-handle column (`dragHandle`), and the row-expander column
  * (`expander`). None of those sort, filter, resize, or reorder as data.
  */
-export function isDataColumn(col: {
+export function isDataColumn(column: {
 	selectable?: boolean
 	actions?: unknown
 	dragHandle?: boolean
 	expander?: boolean
 }): boolean {
-	return !col.selectable && !col.actions && !col.dragHandle && !col.expander
+	return !column.selectable && !column.actions && !column.dragHandle && !column.expander
 }

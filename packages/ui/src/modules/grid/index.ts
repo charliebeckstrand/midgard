@@ -15,6 +15,7 @@ export type {
 	GridRowClick,
 } from './engine/grid-row/cell'
 export { Grid, type GridProps } from './grid'
+export type { GridColumnGroup, GridColumnGroups } from './grid-column-group-types'
 export type {
 	GridColumnManagerConfig,
 	GridColumnOrder,
@@ -48,7 +49,6 @@ export type {
 	GridNewRowAddContext,
 	GridRowActionsContext,
 } from './grid-editing-types'
-export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'
 export type { GridRowGroup, GridRowGroups } from './grid-row-group-types'
 export type {
 	GridAggCellContext,

@@ -10,7 +10,7 @@ import {
 	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
 import {
-	computeStaticMapGeometry,
+	buildStaticGeometry,
 	type StaticMapGeometry,
 } from '../../modules/map/engine/map-geometry/cache'
 import { projectPoint } from '../../modules/map/engine/map-geometry/mark'
@@ -252,7 +252,7 @@ describe('regionSpare', () => {
 		width: number,
 		height: number,
 	) => {
-		const entry = computeStaticMapGeometry(geography, object, projection)
+		const entry = buildStaticGeometry(geography, object, projection)
 
 		const frame = measuredMapFit(entry.canonical, width, height)
 

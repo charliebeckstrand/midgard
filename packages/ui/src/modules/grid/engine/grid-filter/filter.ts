@@ -33,7 +33,7 @@ export function compileColumnFilters<T>(
 	columns: readonly GridColumn<T>[],
 	filters: readonly GridColumnFilterState[],
 ): ColumnTests<T> {
-	const byId = new Map(columns.map((col) => [String(col.id), col] as const))
+	const byId = new Map(columns.map((column) => [String(column.id), column] as const))
 
 	// The last filter for an id wins, as the engine writes one flag per id.
 	const last = new Map(filters.map((filter) => [filter.id, filter.value as unknown] as const))
@@ -41,9 +41,9 @@ export function compileColumnFilters<T>(
 	const tests = new Map<string, RowTest<T>>()
 
 	for (const [id, value] of last) {
-		const col = byId.get(id)
+		const column = byId.get(id)
 
-		const read = col?.filterable ? col.value : undefined
+		const read = column?.filterable ? column.value : undefined
 
 		if (!read) continue
 

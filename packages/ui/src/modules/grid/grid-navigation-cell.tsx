@@ -36,7 +36,7 @@ import type { GridTouchEntry } from './use-grid-touch-entry'
  *
  * @internal
  */
-export function GridNavCell({
+export function GridNavigationCell({
 	row = -1,
 	col = -1,
 	stop,
@@ -175,11 +175,11 @@ export function seatingCellProps<T>(args: {
 	/** The touch entry of an editable cell under a grid-owned session, else `undefined`. */
 	touch?: GridTouchEntry | undefined
 }): ComponentProps<'td'> {
-	const { col, row, rowIndex, colIndexMapRef, cellId, seat, extra, touch } = args
+	const { col: column, row, rowIndex, colIndexMapRef, cellId, seat, extra, touch } = args
 
-	const colIndex = colIndexMapRef.current.get(col.id) ?? -1
+	const colIndex = colIndexMapRef.current.get(column.id) ?? -1
 
-	const columnProps = col.cellProps?.(row)
+	const columnProps = column.cellProps?.(row)
 
 	return {
 		...columnProps,

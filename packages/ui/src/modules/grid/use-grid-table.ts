@@ -421,9 +421,9 @@ function useResizeView<T>(args: {
 	const settleWidths = useMemo(
 		() =>
 			new Map(
-				visibleColumns.map((col) => [
-					String(col.id),
-					resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : undefined,
+				visibleColumns.map((column) => [
+					String(column.id),
+					resize && !resizing && isDataColumn(column) ? resize.getSize(column.id) : undefined,
 				]),
 			),
 		[visibleColumns, resize, resizing],
@@ -669,7 +669,7 @@ export function useGridTable<T>({
 		[setGlobalFilterState, resetPage],
 	)
 
-	const hasColumnFilters = columns.some((col) => col.filterable && col.value)
+	const hasColumnFilters = columns.some((column) => column.filterable && column.value)
 
 	// Each entry holds the query tree of a column, which the client view evaluates.
 	const [columnFiltersState, setColumnFiltersState] = useControllable<GridColumnFilterState[]>({

@@ -95,18 +95,18 @@ function checkCell<T>(
 	row: T,
 	cell: GridCellChange,
 ): 'keep' | 'drop' | 'refuse' {
-	const col = findColumn(columns, cell.columnId)
+	const column = findColumn(columns, cell.columnId)
 
 	// The mount predicate closes a locked column's editor on the next render,
 	// so the staged value must not write either: the two gates answer to the
 	// same `readOnly`. A column the consumer removed resolves to nothing.
-	if (!col || !isColumnEditable(col)) return 'drop'
+	if (!column || !isColumnEditable(column)) return 'drop'
 
-	const original = col.field != null ? row[col.field] : undefined
+	const original = column.field != null ? row[column.field] : undefined
 
 	if (Object.is(cell.value, original)) return 'drop'
 
-	return col.validate?.(cell.value, row) != null ? 'refuse' : 'keep'
+	return column.validate?.(cell.value, row) != null ? 'refuse' : 'keep'
 }
 
 /**
@@ -124,9 +124,9 @@ function getRowName<T>(
 
 /** The label of a column in a save announcement, else its id. @internal */
 function cellLabel<T>(source: GridEditSource<T>, columnId: string | number): string {
-	const col = findColumn(source.columns, columnId)
+	const column = findColumn(source.columns, columnId)
 
-	return col ? columnLabel(col) : String(columnId)
+	return column ? columnLabel(column) : String(columnId)
 }
 
 /**
@@ -145,13 +145,13 @@ function buildHistory<T>(
 	const cells: GridHistoryCell[] = []
 
 	for (const change of changes) {
-		const col = findColumn(source.columns, change.columnId)
+		const column = findColumn(source.columns, change.columnId)
 
-		if (col?.field == null) continue
+		if (column?.field == null) continue
 
 		const { rowKey, columnId, value } = change
 
-		cells.push({ rowKey, columnId, before: row[col.field], after: value })
+		cells.push({ rowKey, columnId, before: row[column.field], after: value })
 	}
 
 	return cells
@@ -208,13 +208,13 @@ export function readHistoryCell<T>(
 	getRow: (rowKey: string | number) => T | undefined,
 	cell: GridHistoryCell,
 ): { value: unknown } | null {
-	const col = findColumn(source.columns, cell.columnId)
+	const column = findColumn(source.columns, cell.columnId)
 
-	if (col?.field == null || !isColumnEditable(col)) return null
+	if (column?.field == null || !isColumnEditable(column)) return null
 
 	const row = getRow(cell.rowKey)
 
-	return row == null ? null : { value: row[col.field] }
+	return row == null ? null : { value: row[column.field] }
 }
 
 /** The cells of `cells`, grouped by row in their first order. @internal */
@@ -485,13 +485,13 @@ export function writeTarget<T>(
 	getRow: (rowKey: string | number) => T | undefined,
 	cell: GridCellRef,
 ): { col: GridColumn<T>; field: keyof T; row: T } | null {
-	const col = findColumn(source.columns, cell.columnId)
+	const column = findColumn(source.columns, cell.columnId)
 
-	if (col?.field == null || !isColumnEditable(col)) return null
+	if (column?.field == null || !isColumnEditable(column)) return null
 
 	const row = getRow(cell.rowKey)
 
-	return row == null ? null : { col, field: col.field, row }
+	return row == null ? null : { col: column, field: column.field, row }
 }
 
 /**
@@ -511,11 +511,11 @@ export function pasteChange<T>(
 
 	if (!target) return null
 
-	const { col, field, row } = target
+	const { col: column, field, row } = target
 
 	const text = unguardField(cell.text)
 
-	const read = col.parse ? { value: col.parse(text, row) } : coercePaste(text, row[field])
+	const read = column.parse ? { value: column.parse(text, row) } : coercePaste(text, row[field])
 
 	const { rowKey, columnId } = cell
 

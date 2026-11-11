@@ -7,7 +7,7 @@
  */
 
 import { BAR_END_RADIUS, BAR_MAX_WIDTH, MARK_GAP } from '../chart-constants'
-import { coord } from '../chart-coords'
+import { formatCoordinate } from '../chart-coordinate'
 import type { ChartOrientation } from '../chart-orientation'
 import type { BandScale } from '../chart-scale'
 
@@ -60,13 +60,13 @@ function barPath(
 ): string {
 	const vertical = orientation === 'vertical'
 
-	const b = coord(baseline)
+	const b = formatCoordinate(baseline)
 
-	const v = coord(valuePos)
+	const v = formatCoordinate(valuePos)
 
-	const a0 = coord(c0)
+	const a0 = formatCoordinate(c0)
 
-	const a1 = coord(c1)
+	const a1 = formatCoordinate(c1)
 
 	if (!rounded) {
 		return vertical
@@ -76,15 +76,15 @@ function barPath(
 
 	const radius = endRadius(valuePos, baseline, c1 - c0)
 
-	const r = coord(radius)
+	const r = formatCoordinate(radius)
 
 	// The straight sides stop short of the data end by the radius, on the
 	// baseline side of it.
-	const s = coord(valuePos < baseline ? valuePos + radius : valuePos - radius)
+	const s = formatCoordinate(valuePos < baseline ? valuePos + radius : valuePos - radius)
 
-	const n0 = coord(c0 + radius)
+	const n0 = formatCoordinate(c0 + radius)
 
-	const n1 = coord(c1 - radius)
+	const n1 = formatCoordinate(c1 - radius)
 
 	// A bar up (vertical) or to the right (horizontal) arcs clockwise; the
 	// other way mirrors it.

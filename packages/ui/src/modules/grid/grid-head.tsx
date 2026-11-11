@@ -137,10 +137,10 @@ export function GridHead<T>({
 					aria-rowindex={gridSemantics ? columnRowIndex : undefined}
 					className={cn(stacked && k.sticky.stack)}
 				>
-					{columns.map((col, index) => (
+					{columns.map((column, index) => (
 						<GridHeaderCell
-							key={col.id}
-							column={col}
+							key={column.id}
+							column={column}
 							// Header column indices accompany the global row-index scheme.
 							ariaColIndex={gridSemantics ? index + 1 : undefined}
 							columnIndex={index}

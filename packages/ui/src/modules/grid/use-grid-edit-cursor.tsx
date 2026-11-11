@@ -42,7 +42,7 @@ import { GridNewRow } from './grid-new-row'
 import type { GridColumn } from './types'
 import type { GridCursor, GridCursorInput, GridNewRowSlotProps } from './use-grid-cursor'
 import { useGridCursorColumns } from './use-grid-cursor-columns'
-import { activeCells, useGridCursorNav } from './use-grid-cursor-nav'
+import { activeCells, useGridCursorNavigation } from './use-grid-cursor-navigation'
 import { useGridEditing } from './use-grid-editing'
 import { useGridFillDrag } from './use-grid-fill-drag'
 import { useGridFillHandle } from './use-grid-fill-handle'
@@ -69,12 +69,12 @@ function isPlainKey(press: GridKeyPress): boolean {
  */
 function typedSeed<T>(
 	press: GridKeyPress,
-	col: GridColumn<T> | undefined,
+	column: GridColumn<T> | undefined,
 	row: T | undefined,
 ): string | number | null {
-	if (!col || row == null || col.editCell || !isColumnEditable(col)) return null
+	if (!column || row == null || column.editCell || !isColumnEditable(column)) return null
 
-	return seedFromKey(press, inferEditorKind(col.field != null ? row[col.field] : undefined))
+	return seedFromKey(press, inferEditorKind(column.field != null ? row[column.field] : undefined))
 }
 
 /**
@@ -87,12 +87,12 @@ function typedSeed<T>(
  */
 function slotSeed<T>(
 	press: GridKeyPress,
-	col: GridColumn<T> | undefined,
+	column: GridColumn<T> | undefined,
 	getKind: (column: GridColumn<T>) => EditorKind,
 ): string | number | null {
-	if (!col || col.editCell || !isColumnEditable(col)) return null
+	if (!column || column.editCell || !isColumnEditable(column)) return null
 
-	return seedFromKey(press, getKind(col))
+	return seedFromKey(press, getKind(column))
 }
 
 /**
@@ -120,8 +120,8 @@ function pasteTargets<T>(
  * The value that a fill reads from a data cell: its row's `field`, or
  * `undefined` for a cell with no row or no `field`. @internal
  */
-function fillValue<T>(row: T | undefined, col: GridColumn<T> | undefined): unknown {
-	return row != null && col?.field != null ? row[col.field] : undefined
+function fillValue<T>(row: T | undefined, column: GridColumn<T> | undefined): unknown {
+	return row != null && column?.field != null ? row[column.field] : undefined
 }
 
 /** The whole numbers from `from` to `to`, inclusive. @internal */
@@ -145,7 +145,7 @@ function fillKey(press: GridKeyPress & { shiftKey: boolean }): GridRangeFillDire
 
 /**
  * The cursor + editing layer of an editable {@link GridData}. It gathers the
- * keyboard cursor ({@link useGridCursorNav}) and the editing session
+ * keyboard cursor ({@link useGridCursorNavigation}) and the editing session
  * ({@link useGridEditing}) behind the surface of {@link GridCursor}. It
  * resolves these parts:
  *
@@ -248,7 +248,7 @@ export function useGridEditCursor<T>({
 		return managed && column !== undefined && isColumnEditable(column)
 	})
 
-	const { nav, copies, seated } = useGridCursorNav<T>({
+	const { nav, copies, seated } = useGridCursorNavigation<T>({
 		enabled: cursorEnabled,
 		range,
 		onRowActivate,
@@ -303,9 +303,9 @@ export function useGridEditCursor<T>({
 	// the cell's editor once that mounts.
 	const enterEditAtCell = useCallback(
 		(rowKey: string | number, columnId: string | number, seed?: string | number) => {
-			const col = cursorColumnsRef.current.find((candidate) => candidate.id === columnId)
+			const column = cursorColumnsRef.current.find((candidate) => candidate.id === columnId)
 
-			if (!col || !isColumnEditable(col)) return
+			if (!column || !isColumnEditable(column)) return
 
 			enterEdit(rowKey, columnId, seed)
 		},
@@ -317,19 +317,19 @@ export function useGridEditCursor<T>({
 	// The new-row slot has no row key, so its cells open through the slot.
 	const enterEditAt = useCallback(
 		(rowIndex: number, colIndex: number, seed?: string | number) => {
-			const col = cursorColumnsRef.current[colIndex]
+			const column = cursorColumnsRef.current[colIndex]
 
-			if (col && rowIndex === NEW_ROW_INDEX) {
-				if (isColumnEditable(col)) enterNewRow(col.id, seed)
+			if (column && rowIndex === NEW_ROW_INDEX) {
+				if (isColumnEditable(column)) enterNewRow(column.id, seed)
 
 				return
 			}
 
 			const rowKey = rowKeysRef.current[rowIndex]
 
-			if (rowKey === undefined || !col) return
+			if (rowKey === undefined || !column) return
 
-			enterEditAtCell(rowKey, col.id, seed)
+			enterEditAtCell(rowKey, column.id, seed)
 		},
 		[enterEditAtCell, enterNewRow, rowKeysRef, cursorColumnsRef],
 	)
@@ -340,11 +340,11 @@ export function useGridEditCursor<T>({
 		(rowIndex: number, colIndex: number) => {
 			const rowKey = rowKeysRef.current[rowIndex]
 
-			const col = cursorColumnsRef.current[colIndex]
+			const column = cursorColumnsRef.current[colIndex]
 
-			if (rowIndex === NEW_ROW_INDEX || rowKey === undefined || !col) return
+			if (rowIndex === NEW_ROW_INDEX || rowKey === undefined || !column) return
 
-			editing.session.expandRow(rowKey, col.id)
+			editing.session.expandRow(rowKey, column.id)
 		},
 		[editing.session, rowKeysRef, cursorColumnsRef],
 	)

@@ -9,7 +9,7 @@ import { invalidAttrs } from '../../core/invalid-attrs'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { clamp } from '../../utilities/clamp'
-import { pct } from '../../utilities/pct'
+import { toPercent } from '../../utilities/to-percent'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
 
@@ -135,7 +135,7 @@ export function Slider({
 
 	const setRef = useComposedRefs(resetRef, ref)
 
-	const percent = pct(current, min, max)
+	const percent = toPercent(current, min, max)
 
 	// Resolves id/disabled/readOnly/describedby from a wrapping Control or Field, falling
 	// back to a generated id (the same chain Input uses). A sibling <Label

@@ -8,7 +8,7 @@ import {
 	groupedColumnOrder,
 	settleGroupedReorder,
 } from '../../modules/grid/engine/grid-group/compute'
-import type { GridColumnGroup } from '../../modules/grid/grid-group-types'
+import type { GridColumnGroup } from '../../modules/grid/grid-column-group-types'
 
 const noPin = () => undefined
 

@@ -2,8 +2,8 @@
 import { describe, expect, it } from 'vitest'
 import {
 	type DatePickerRangeState,
-	datePickerRangeReducer,
-	initialDatePickerRangeState,
+	initialRangeState,
+	rangeReducer,
 } from '../../components/date-picker/date-picker-range-reducer'
 
 const start = new Date(2024, 0, 1)
@@ -12,9 +12,9 @@ const end = new Date(2024, 0, 10)
 
 const hover = new Date(2024, 0, 5)
 
-describe('datePickerRangeReducer', () => {
+describe('rangeReducer', () => {
 	it('exposes a sensible initial state', () => {
-		expect(initialDatePickerRangeState).toEqual({
+		expect(initialRangeState).toEqual({
 			rangeStart: null,
 			hoverDate: null,
 			active: null,
@@ -28,7 +28,7 @@ describe('datePickerRangeReducer', () => {
 			active: { date: start, zone: 'grid' },
 		}
 
-		expect(datePickerRangeReducer(dirty, { type: 'reset' })).toEqual({
+		expect(rangeReducer(dirty, { type: 'reset' })).toEqual({
 			rangeStart: null,
 			hoverDate: null,
 			active: null,
@@ -36,7 +36,7 @@ describe('datePickerRangeReducer', () => {
 	})
 
 	it('startRange seeds rangeStart and clears hoverDate', () => {
-		const seeded = datePickerRangeReducer(
+		const seeded = rangeReducer(
 			{ rangeStart: null, hoverDate: hover, active: null },
 			{ type: 'startRange', date: start },
 		)
@@ -47,7 +47,7 @@ describe('datePickerRangeReducer', () => {
 	})
 
 	it('pinEndpoint stores the date as hoverDate without touching rangeStart', () => {
-		const next = datePickerRangeReducer(
+		const next = rangeReducer(
 			{ rangeStart: start, hoverDate: null, active: null },
 			{ type: 'pinEndpoint', date: end },
 		)
@@ -60,7 +60,7 @@ describe('datePickerRangeReducer', () => {
 	it('hover updates only hoverDate', () => {
 		const active = { date: start, zone: 'grid' } as const
 
-		const next = datePickerRangeReducer(
+		const next = rangeReducer(
 			{ rangeStart: start, hoverDate: null, active },
 			{ type: 'hover', date: hover },
 		)
@@ -69,7 +69,7 @@ describe('datePickerRangeReducer', () => {
 	})
 
 	it('hover with null clears hoverDate', () => {
-		const next = datePickerRangeReducer(
+		const next = rangeReducer(
 			{ rangeStart: start, hoverDate: hover, active: null },
 			{ type: 'hover', date: null },
 		)
@@ -80,7 +80,7 @@ describe('datePickerRangeReducer', () => {
 	it('hover keeps the state before the first endpoint', () => {
 		const state: DatePickerRangeState = { rangeStart: null, hoverDate: null, active: null }
 
-		expect(datePickerRangeReducer(state, { type: 'hover', date: hover })).toBe(state)
+		expect(rangeReducer(state, { type: 'hover', date: hover })).toBe(state)
 	})
 
 	it('hover keeps the state for the same day', () => {
@@ -88,17 +88,17 @@ describe('datePickerRangeReducer', () => {
 
 		const sameDay = new Date(2024, 0, 5, 12)
 
-		expect(datePickerRangeReducer(state, { type: 'hover', date: sameDay })).toBe(state)
+		expect(rangeReducer(state, { type: 'hover', date: sameDay })).toBe(state)
 
 		const cleared: DatePickerRangeState = { rangeStart: start, hoverDate: null, active: null }
 
-		expect(datePickerRangeReducer(cleared, { type: 'hover', date: null })).toBe(cleared)
+		expect(rangeReducer(cleared, { type: 'hover', date: null })).toBe(cleared)
 	})
 
 	it('setActive replaces active without touching the range fields', () => {
 		const active = { date: start, zone: 'grid' as const }
 
-		const next = datePickerRangeReducer(
+		const next = rangeReducer(
 			{ rangeStart: start, hoverDate: hover, active: null },
 			{ type: 'setActive', active },
 		)
@@ -111,7 +111,7 @@ describe('datePickerRangeReducer', () => {
 	})
 
 	it('setActive accepts null to clear the active cell', () => {
-		const next = datePickerRangeReducer(
+		const next = rangeReducer(
 			{ rangeStart: null, hoverDate: null, active: { date: start, zone: 'grid' } },
 			{ type: 'setActive', active: null },
 		)

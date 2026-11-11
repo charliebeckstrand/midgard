@@ -56,8 +56,8 @@ function makeGrid(args: {
 
 		const floors = new Map(
 			grid.columns
-				.filter((col) => !col.actions)
-				.map((col) => [String(col.id), args.floors?.[col.id] ?? 40]),
+				.filter((column) => !column.actions)
+				.map((column) => [String(column.id), args.floors?.[column.id] ?? 40]),
 		)
 
 		const bodies = new Map(
@@ -76,8 +76,8 @@ function makeGrid(args: {
 
 		const titles = new Map(
 			grid.columns
-				.filter((col) => !col.actions)
-				.map((col) => [String(col.id), args.titles?.[col.id] ?? 0]),
+				.filter((column) => !column.actions)
+				.map((column) => [String(column.id), args.titles?.[column.id] ?? 0]),
 		)
 
 		const fits = new Map(Object.entries(args.fits ?? {}))
@@ -121,11 +121,11 @@ describe('contentWidth', () => {
 	})
 
 	it('caps at a declared maxWidth either way', () => {
-		const col = column('a', { maxWidth: 300 })
+		const capped = column('a', { maxWidth: 300 })
 
-		expect(contentWidth(col, 40, 900, true)).toBe(300)
+		expect(contentWidth(capped, 40, 900, true)).toBe(300)
 
-		expect(contentWidth(col, 40, 900, false)).toBe(300)
+		expect(contentWidth(capped, 40, 900, false)).toBe(300)
 	})
 })
 
@@ -303,10 +303,10 @@ describe('createColumnSizer', () => {
 			const wide = { a: 60, b: 900, c: 30 }
 
 			const each = Object.fromEntries(
-				columns.map((col) => {
+				columns.map((column) => {
 					const { env, sizer } = makeGrid({ columns, bodies: wide })
 
-					return [col.id, sizer.sizeColumn(env(), String(col.id))?.sizing[col.id]]
+					return [column.id, sizer.sizeColumn(env(), String(column.id))?.sizing[column.id]]
 				}),
 			)
 

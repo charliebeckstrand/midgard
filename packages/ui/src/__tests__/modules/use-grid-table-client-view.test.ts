@@ -195,7 +195,7 @@ describe('useGridTable facets', () => {
 
 		const { filters } = result.current
 
-		return columns.map((col) => filters?.facets(col.id))
+		return columns.map((column) => filters?.facets(column.id))
 	}
 
 	/** The same facets, read from the faceted model of a stock engine table. */
@@ -206,8 +206,8 @@ describe('useGridTable facets', () => {
 			filters: transforms.filters ?? [],
 		})
 
-		return columns.map((col) =>
-			toColumnFacets(table.getColumn(String(col.id))?.getFacetedUniqueValues().keys() ?? []),
+		return columns.map((column) =>
+			toColumnFacets(table.getColumn(String(column.id))?.getFacetedUniqueValues().keys() ?? []),
 		)
 	}
 
@@ -282,7 +282,7 @@ describe('useGridTable search and custom sort', () => {
 		],
 	]
 
-	for (const [name, cols, sortColumn] of cases) {
+	for (const [name, columns, sortColumn] of cases) {
 		test.prop([
 			rowsArb,
 			fc.string({ maxLength: 2 }),
@@ -293,14 +293,14 @@ describe('useGridTable search and custom sort', () => {
 			const { result } = renderHook(() =>
 				useGridTable<Row>({
 					rows,
-					columns: cols,
+					columns,
 					getKey,
 					globalFilter: { value: query },
 					sort,
 				}),
 			)
 
-			const shown = engineTable(rows, cols, getKey, { query, sort }).getRowModel().rows
+			const shown = engineTable(rows, columns, getKey, { query, sort }).getRowModel().rows
 
 			expect(result.current.renderRows.map((row) => row.id)).toEqual(
 				shown.map((row) => row.original.id),

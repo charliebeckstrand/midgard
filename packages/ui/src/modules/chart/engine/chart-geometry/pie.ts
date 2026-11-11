@@ -5,7 +5,7 @@
  */
 
 import { clamp } from '../../../../utilities/clamp'
-import { coord } from '../chart-coords'
+import { formatCoordinate } from '../chart-coordinate'
 import type { TextWidth } from '../chart-text-width'
 
 /** One drawable slice: its path, source index, share, and tooltip anchor. @internal */
@@ -87,14 +87,14 @@ export function pieCentroidRadius(radius: number, innerRadius: number, share: nu
 	return (2 / 3) * radius * areaFactor
 }
 
-/** A point as a path `d` writes it, through {@link coord}. @internal */
+/** A point as a path `d` writes it, through {@link formatCoordinate}. @internal */
 function pathPoint(point: { x: number; y: number }): string {
-	return `${coord(point.x)} ${coord(point.y)}`
+	return `${formatCoordinate(point.x)} ${formatCoordinate(point.y)}`
 }
 
 /** `A` command to `end` on `radius`, sweeping clockwise when `sweep` is 1. @internal */
 function arc(radius: number, large: 0 | 1, sweep: 0 | 1, end: { x: number; y: number }): string {
-	const r = coord(radius)
+	const r = formatCoordinate(radius)
 
 	return `A ${r} ${r} 0 ${large} ${sweep} ${pathPoint(end)}`
 }
@@ -177,7 +177,7 @@ function donutBack(
  * way they do through a real pie. @internal
  */
 function pieBack(cx: number, cy: number, start: number, end: number, half: number): string {
-	if (half <= 0) return `L ${coord(cx)} ${coord(cy)}`
+	if (half <= 0) return `L ${formatCoordinate(cx)} ${formatCoordinate(cy)}`
 
 	const sweep = end - start
 

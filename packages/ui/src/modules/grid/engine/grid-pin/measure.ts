@@ -62,12 +62,12 @@ export function frozenHeaderCells<T>(
 
 	const frozen: FrozenCell[] = []
 
-	columns.forEach((col, index) => {
-		const edge = side(col.id)
+	columns.forEach((column, index) => {
+		const edge = side(column.id)
 
 		const cell = cells[index]
 
-		if (edge && cell) frozen.push({ id: String(col.id), side: edge, cell })
+		if (edge && cell) frozen.push({ id: String(column.id), side: edge, cell })
 	})
 
 	return frozen

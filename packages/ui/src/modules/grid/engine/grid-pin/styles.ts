@@ -98,12 +98,12 @@ export type PinnedCellChrome = {
  */
 export function pinnedCellProps(
 	pinning: GridColumnPinning | null,
-	col: { id: string | number; className?: string },
+	column: { id: string | number; className?: string },
 ): PinnedCellChrome {
 	return {
-		className: cn(pinnedClassName(pinning, col.id), col.className),
-		style: pinnedOffsetStyle(pinning, col.id),
-		pin: pinnedCellAttribute(pinning, col.id),
+		className: cn(pinnedClassName(pinning, column.id), column.className),
+		style: pinnedOffsetStyle(pinning, column.id),
+		pin: pinnedCellAttribute(pinning, column.id),
 	}
 }
 
@@ -132,7 +132,7 @@ export function pinnedSpanProps(
 
 	if (!first || !last || !side) return NO_PIN
 
-	if (columns.some((col) => pinning?.column(col.id)?.side !== side)) return NO_PIN
+	if (columns.some((column) => pinning?.column(column.id)?.side !== side)) return NO_PIN
 
 	// A left run sticks at its first column and faces the scroll with its last.
 	// A right run is the mirror.

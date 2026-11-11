@@ -14,7 +14,7 @@ import {
 } from '../../recipes/kata/progress'
 import type { AccessibleName } from '../../types/accessible-name'
 import { clamp } from '../../utilities/clamp'
-import { pct } from '../../utilities/pct'
+import { toPercent } from '../../utilities/to-percent'
 
 /** The palette color of a fill or a segment. */
 export type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
@@ -161,7 +161,7 @@ export function ProgressBar({
 	// aria-valuenow="NaN" and width "NaN%".
 	const determinate = value != null && !Number.isNaN(value)
 
-	const percent = determinate ? clamp(pct(value, 0, max), 0, 100) : 0
+	const percent = determinate ? clamp(toPercent(value, 0, max), 0, 100) : 0
 
 	return (
 		<div
@@ -306,7 +306,7 @@ function Segments({
 	max: number
 	still: boolean
 }) {
-	const share = (part: ProgressSegment) => clamp(pct(part.value, 0, max), 0, 100)
+	const share = (part: ProgressSegment) => clamp(toPercent(part.value, 0, max), 0, 100)
 
 	const start = parts.filter((part) => part.from !== 'end')
 
@@ -339,7 +339,7 @@ function Segments({
 
 /** One mark of a layered bar: the line, and the label above the track when the mark has one. */
 function Mark({ mark, max }: { mark: ProgressMark; max: number }) {
-	const at = `${clamp(pct(mark.value, 0, max), 0, 100)}%`
+	const at = `${clamp(toPercent(mark.value, 0, max), 0, 100)}%`
 
 	return (
 		<span aria-hidden="true">

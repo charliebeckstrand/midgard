@@ -98,13 +98,13 @@ export function resolveCellAt<T>(
 
 	const rowKey = refs.rowKeysRef.current[rowIndex]
 
-	const col = refs.cursorColumnsRef.current[colIndex]
+	const column = refs.cursorColumnsRef.current[colIndex]
 
 	// A cell of a column that holds no row content, such as the selection or
 	// the actions column, names no cell, as a press on it names none.
-	if (row === undefined || rowKey === undefined || !col || !isDataColumn(col)) return null
+	if (row === undefined || rowKey === undefined || !column || !isDataColumn(column)) return null
 
-	return cellContext(col, row, rowKey)
+	return cellContext(column, row, rowKey)
 }
 
 /**

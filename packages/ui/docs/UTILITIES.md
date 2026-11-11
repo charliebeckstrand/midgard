@@ -7,7 +7,7 @@
 | Export | Summary |
 |---|---|
 | `clamp` | Constrains `value` to the inclusive range `[lo, hi]`. |
-| `pct` | Maps `value` to its percentage position within `[min, max]`; `0` when the range is empty. |
+| `toPercent` | Maps `value` to its percentage position within `[min, max]`; `0` when the range is empty. |
 | `parseAspectRatio` | Parses a chart or map `aspectRatio` to its numeric `width / height`, or `null` for a free-form frame. |
 | `digitsOnly` | Returns `value` with every non-digit character removed. |
 | `reduceNumbers` | Reduces a set of numbers that is not empty to its sum, mean, minimum, or maximum. Each caller keeps its own `count` and empty-set rules. |

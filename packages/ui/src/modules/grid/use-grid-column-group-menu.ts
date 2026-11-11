@@ -6,8 +6,8 @@ import { columnLabel } from './engine/grid-column/label'
 import type { GridMenuResolution } from './engine/grid-menu-targeting'
 import { gridMessages } from './engine/grid-messages'
 import { recolorGroupIn } from './engine/grid-zone/map'
+import type { GridColumnGroup } from './grid-column-group-types'
 import { buildColumnGroupMenu } from './grid-context-menu-utilities'
-import type { GridColumnGroup } from './grid-group-types'
 
 /**
  * Resolves the column-group band menu for a right-clicked group by its id, or

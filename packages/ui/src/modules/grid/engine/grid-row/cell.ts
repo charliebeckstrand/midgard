@@ -84,17 +84,17 @@ export type GridCellRovingActivate<T> = (
  *
  * @internal
  */
-export function cellValue<T>(col: GridColumn<T>, row: T): unknown {
-	return columnAccessor(col)(row)
+export function cellValue<T>(column: GridColumn<T>, row: T): unknown {
+	return columnAccessor(column)(row)
 }
 
 /** The context of a click or an activation on the cell of `col` in `row`. @internal */
 export function cellContext<T>(
-	col: GridColumn<T>,
+	column: GridColumn<T>,
 	row: T,
 	rowKey: string | number,
 ): GridCellClickContext<T> {
-	return { row, rowKey, columnId: col.id, value: cellValue(col, row) }
+	return { row, rowKey, columnId: column.id, value: cellValue(column, row) }
 }
 
 /**
@@ -129,9 +129,9 @@ export function resolveCellContext<T>(
 
 	if (id == null) return null
 
-	const col = columns.find((column) => String(column.id) === id && isDataColumn(column))
+	const column = columns.find((candidate) => String(candidate.id) === id && isDataColumn(candidate))
 
-	return col ? cellContext(col, row, rowKey) : null
+	return column ? cellContext(column, row, rowKey) : null
 }
 /**
  * Interactive cell content that handles its own click, so a row-level
@@ -152,10 +152,10 @@ export function fromInteractiveContent(target: EventTarget | null): boolean {
  *
  * @internal
  */
-export function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
-	if (col.cellTooltip == null) return AUTO_TOOLTIP
+export function resolveCellTooltip<T>(column: GridColumn<T>, row: T): CellTooltip {
+	if (column.cellTooltip == null) return AUTO_TOOLTIP
 
-	const node = col.cellTooltip(row)
+	const node = column.cellTooltip(row)
 
 	return node == null ? NO_TOOLTIP : { kind: 'custom', node }
 }
@@ -194,29 +194,35 @@ export type GridIndexedColumn<T> = GridColumn<T> & {
  *
  * @internal
  */
-export function cellRowIndex<T>(col: GridIndexedColumn<T>, rowIndex: number): number {
-	return col.cellAt !== undefined || col.cellPropsAt !== undefined || col.markerAt !== undefined
+export function cellRowIndex<T>(column: GridIndexedColumn<T>, rowIndex: number): number {
+	return column.cellAt !== undefined ||
+		column.cellPropsAt !== undefined ||
+		column.markerAt !== undefined
 		? rowIndex
 		: -1
 }
 
 /** The content of a column's cell in the row at `rowIndex` of the view, or `null` with no `cell`. @internal */
-export function cellContentAt<T>(col: GridIndexedColumn<T>, row: T, rowIndex: number): ReactNode {
-	if (col.cellAt) return col.cellAt(row, rowIndex) ?? null
+export function cellContentAt<T>(
+	column: GridIndexedColumn<T>,
+	row: T,
+	rowIndex: number,
+): ReactNode {
+	if (column.cellAt) return column.cellAt(row, rowIndex) ?? null
 
-	return col.cell ? (col.cell(row) ?? null) : null
+	return column.cell ? (column.cell(row) ?? null) : null
 }
 
 /** The active-cell marker of a non-data cell in the row at `rowIndex` of the view, or `null` with none. @internal */
-export function cellMarkerAt<T>(col: GridIndexedColumn<T>, rowIndex: number): ReactNode {
-	return col.markerAt ? col.markerAt(rowIndex) : null
+export function cellMarkerAt<T>(column: GridIndexedColumn<T>, rowIndex: number): ReactNode {
+	return column.markerAt ? column.markerAt(rowIndex) : null
 }
 
 /** The `cellProps` of a column's cell in the row at `rowIndex` of the view. @internal */
 export function cellPropsAt<T>(
-	col: GridIndexedColumn<T>,
+	column: GridIndexedColumn<T>,
 	row: T,
 	rowIndex: number,
 ): Omit<ComponentProps<'td'>, 'children'> | undefined {
-	return col.cellPropsAt ? col.cellPropsAt(row, rowIndex) : col.cellProps?.(row)
+	return column.cellPropsAt ? column.cellPropsAt(row, rowIndex) : column.cellProps?.(row)
 }

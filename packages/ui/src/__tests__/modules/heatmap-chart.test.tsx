@@ -1166,19 +1166,19 @@ describe('HeatmapChart keyboard navigation', () => {
 
 describe('HeatmapChart default ratio', () => {
 	/** A grid of `rows` × `cols` cells, each with a value. */
-	const grid = (rows: number, cols: number) =>
-		Array.from({ length: rows * cols }, (_, index) => ({
-			day: `R${Math.floor(index / cols)}`,
-			hour: `C${index % cols}`,
+	const grid = (rows: number, columns: number) =>
+		Array.from({ length: rows * columns }, (_, index) => ({
+			day: `R${Math.floor(index / columns)}`,
+			hour: `C${index % columns}`,
 			commits: index,
 		}))
 
 	/** The height the drawing takes at 400 px wide, with no rail beside it. */
-	const drawnHeight = (rows: number, cols: number) => {
+	const drawnHeight = (rows: number, columns: number) => {
 		const { container } = renderUI(
 			<HeatmapChart
 				aria-label="Commits"
-				data={grid(rows, cols)}
+				data={grid(rows, columns)}
 				series={SERIES}
 				width={400}
 				legend={false}

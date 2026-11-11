@@ -40,21 +40,22 @@ const NO_FIT: FitCellChrome = { className: undefined, style: undefined }
  *
  * @internal
  */
-export function fitHeaderProps<T>(col: GridColumn<T>, least: number | undefined): FitCellChrome {
-	if (!isDataColumn(col)) return NO_FIT
+export function fitHeaderProps<T>(column: GridColumn<T>, least: number | undefined): FitCellChrome {
+	if (!isDataColumn(column)) return NO_FIT
 
-	const kept = fitKeptWidth(col)
+	const kept = fitKeptWidth(column)
 
 	if (kept != null) {
 		return { className: cn(k.fit.kept.head, k.fit.floor), style: floorStyle(kept) }
 	}
 
-	const wanted = least == null ? col.minWidth : Math.max(columnMinWidth(col), least)
+	const wanted = least == null ? column.minWidth : Math.max(columnMinWidth(column), least)
 
-	const floor = wanted == null || col.maxWidth == null ? wanted : Math.min(wanted, col.maxWidth)
+	const floor =
+		wanted == null || column.maxWidth == null ? wanted : Math.min(wanted, column.maxWidth)
 
 	return {
-		className: cn(k.fit.floor, (isFrozen(col) || col.maxWidth != null) && k.fit.tight),
+		className: cn(k.fit.floor, (isFrozen(column) || column.maxWidth != null) && k.fit.tight),
 		style: floor == null ? undefined : floorStyle(floor),
 	}
 }
@@ -71,12 +72,12 @@ function floorStyle(width: number): CSSProperties {
  *
  * @internal
  */
-export function fitCellProps<T>(col: GridColumn<T>): FitCellChrome {
-	if (!isDataColumn(col)) return NO_FIT
+export function fitCellProps<T>(column: GridColumn<T>): FitCellChrome {
+	if (!isDataColumn(column)) return NO_FIT
 
-	if (fitKeptWidth(col) != null) return { className: cn(k.fit.kept.cell), style: undefined }
+	if (fitKeptWidth(column) != null) return { className: cn(k.fit.kept.cell), style: undefined }
 
-	if (col.maxWidth == null) return NO_FIT
+	if (column.maxWidth == null) return NO_FIT
 
-	return { className: undefined, style: { '--grid-cap': `${col.maxWidth}px` } as CSSProperties }
+	return { className: undefined, style: { '--grid-cap': `${column.maxWidth}px` } as CSSProperties }
 }

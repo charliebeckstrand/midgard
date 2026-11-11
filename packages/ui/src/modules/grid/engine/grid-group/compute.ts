@@ -1,5 +1,5 @@
-import type { GridColumnGroup, GridGroupSpan } from '../../grid-group-types'
-import { applyColumnReorder } from '../grid-reorder-compute'
+import type { GridColumnGroup, GridGroupSpan } from '../../grid-column-group-types'
+import { applyColumnReorder } from '../grid-reorder'
 
 /**
  * Maps each grouped column id to its {@link GridColumnGroup}. The first group to

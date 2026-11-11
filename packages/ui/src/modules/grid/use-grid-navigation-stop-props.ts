@@ -17,7 +17,7 @@ import { fromInteractiveContent } from './engine/grid-row/cell'
  *
  * @internal
  */
-export function useGridNavStopProps(key: string): ComponentProps<'td'> {
+export function useGridNavigationStopProps(key: string): ComponentProps<'td'> {
 	const store = useGridNavContext()
 
 	if (!store.enabled) return NO_STOP_PROPS

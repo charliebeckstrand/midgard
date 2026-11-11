@@ -48,12 +48,12 @@ const LEAF_IDS = ids('l', LEAVES_PER_GROUP)
 const CELL_IDS = ids('c', CELLS)
 
 /** One leaf cell, sized so a row's render is a handful of elements rather than one text node. */
-function Cell({ tick, col }: { tick: number; col: string }) {
+function Cell({ tick, col: column }: { tick: number; col: string }) {
 	return (
 		<td>
 			<div>
 				<span>{`r${tick}`}</span>
-				<span>{col}</span>
+				<span>{column}</span>
 			</div>
 		</td>
 	)
@@ -75,8 +75,8 @@ function rowBody(tick: number, expanded: boolean) {
 
 	return (
 		<tr {...shell}>
-			{CELL_IDS.map((col) => (
-				<Cell key={col} tick={tick} col={col} />
+			{CELL_IDS.map((column) => (
+				<Cell key={column} tick={tick} col={column} />
 			))}
 		</tr>
 	)

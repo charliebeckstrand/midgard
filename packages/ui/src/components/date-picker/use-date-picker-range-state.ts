@@ -9,7 +9,7 @@ import { orderDates } from '../calendar/calendar-utilities'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
-import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
+import { initialRangeState, rangeReducer } from './date-picker-range-reducer'
 import { clampDate, formatRange, stepDate } from './date-picker-utilities'
 import { useDatePickerGridEntry } from './use-date-picker-grid-entry'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
@@ -64,7 +64,7 @@ export function useDatePickerRangeState({
 		readOnly,
 	})
 
-	const [state, dispatch] = useReducer(datePickerRangeReducer, initialDatePickerRangeState)
+	const [state, dispatch] = useReducer(rangeReducer, initialRangeState)
 
 	const { rangeStart, hoverDate, active } = state
 

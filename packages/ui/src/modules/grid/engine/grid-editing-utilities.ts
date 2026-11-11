@@ -33,8 +33,8 @@ export type EditableColumn = { readOnly?: boolean; field?: unknown; editCell?: u
  * (a `field` to read/write, or a custom `editCell` slot). A cell in an editable row
  * renders its editor only when this holds. @internal
  */
-export function isColumnEditable(col: EditableColumn): boolean {
-	return !col.readOnly && (col.field != null || col.editCell != null)
+export function isColumnEditable(column: EditableColumn): boolean {
+	return !column.readOnly && (column.field != null || column.editCell != null)
 }
 
 /** The column of `columns` whose id is `columnId`, or `undefined` when none has it. @internal */

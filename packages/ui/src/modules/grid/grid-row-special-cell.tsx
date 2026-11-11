@@ -115,11 +115,17 @@ export function GridSelectCheckbox({ label, ...props }: GridSelectCheckboxProps)
  *
  * @internal
  */
-export function GridFitBox<T>({ col, children }: { col: GridColumn<T>; children: ReactNode }) {
+export function GridFitBox<T>({
+	col: column,
+	children,
+}: {
+	col: GridColumn<T>
+	children: ReactNode
+}) {
 	return (
 		<span
-			data-grid-fit={col.id}
-			className={cn(col.actions ? k.cell.fit.base : k.cell.fit.centered)}
+			data-grid-fit={column.id}
+			className={cn(column.actions ? k.cell.fit.base : k.cell.fit.centered)}
 		>
 			{children}
 		</span>
@@ -136,7 +142,7 @@ export function GridFitBox<T>({ col, children }: { col: GridColumn<T>; children:
  * @internal
  */
 export function GridRowSpecialCell<T>({
-	col,
+	col: column,
 	row,
 	rowKey,
 	selected,
@@ -155,17 +161,17 @@ export function GridRowSpecialCell<T>({
 }): ReactNode {
 	const intl = useIntl()
 
-	if (col.dragHandle) {
+	if (column.dragHandle) {
 		return (
-			<GridFitBox col={col}>
+			<GridFitBox col={column}>
 				<GridRowDragHandle sortable={sortable} rowLabel={rowLabel} rowKey={rowKey} />
 			</GridFitBox>
 		)
 	}
 
-	if (col.selectable) {
+	if (column.selectable) {
 		return (
-			<GridFitBox col={col}>
+			<GridFitBox col={column}>
 				<GridSelectCheckbox
 					checked={selected}
 					onChange={() => toggleRow(rowKey)}
@@ -177,10 +183,10 @@ export function GridRowSpecialCell<T>({
 		)
 	}
 
-	if (col.actions) {
+	if (column.actions) {
 		return (
-			<GridFitBox col={col}>
-				<GridRowActions render={col.actions} row={row} rowKey={rowKey} />
+			<GridFitBox col={column}>
+				<GridRowActions render={column.actions} row={row} rowKey={rowKey} />
 			</GridFitBox>
 		)
 	}

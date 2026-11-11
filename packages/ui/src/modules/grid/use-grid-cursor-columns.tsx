@@ -13,7 +13,7 @@ import { isDataColumn } from '../../utilities/is-data-column'
 import { isColumnEditable } from './engine/grid-editing-utilities'
 import type { GridIndexedColumn } from './engine/grid-row/cell'
 import type { GridEditingCell } from './grid-editing-cell'
-import { GridNavCell, seatingCellProps } from './grid-nav-cell'
+import { GridNavigationCell, seatingCellProps } from './grid-navigation-cell'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
 import type { GridTouchEntry } from './use-grid-touch-entry'
@@ -83,32 +83,39 @@ export function useGridCursorColumns<T>({
 
 		const getColumnIndex = (id: string | number) => colIndexMapRef.current.get(id) ?? -1
 
-		return columns.map((col): GridIndexedColumn<T> => {
+		return columns.map((column): GridIndexedColumn<T> => {
 			// A non-data cell is a cell of the cursor too, so the keyboard reaches its
 			// controls. The grid renders its content, so the cell takes the marker
 			// after that content. It holds no fill handle, because it has no value.
-			if (!isDataColumn(col)) {
+			if (!isDataColumn(column)) {
 				const cellPropsAt = (row: T, rowIndex: number): ComponentProps<'td'> => {
-					const props = seatingCellProps({ col, row, rowIndex, colIndexMapRef, cellId, seat })
+					const props = seatingCellProps({
+						col: column,
+						row,
+						rowIndex,
+						colIndexMapRef,
+						cellId,
+						seat,
+					})
 
 					return { ...props, className: cn(k.nav.cell, props.className) }
 				}
 
 				return {
-					...col,
+					...column,
 					cellPropsAt,
 					cellProps: (row: T) => cellPropsAt(row, getRowIndex(row)),
 					markerAt: (rowIndex: number) => (
-						<GridNavCell row={rowIndex} col={getColumnIndex(col.id)} fills={false} />
+						<GridNavigationCell row={rowIndex} col={getColumnIndex(column.id)} fills={false} />
 					),
 				}
 			}
 
-			const renderCell = col.cell
+			const renderCell = column.cell
 
 			// The editing cell of this column, or `undefined` for a column that cannot
 			// edit or a grid that cannot edit.
-			const EditCell = isColumnEditable(col) ? EditingCell : undefined
+			const EditCell = isColumnEditable(column) ? EditingCell : undefined
 
 			const editable = EditCell !== undefined
 
@@ -122,22 +129,22 @@ export function useGridCursorColumns<T>({
 				? (row: T, rowIndex: number): ReactNode => (
 						<EditCell
 							rowIndex={rowIndex}
-							colIndex={getColumnIndex(col.id)}
+							colIndex={getColumnIndex(column.id)}
 							rowKey={rowKeysRef.current[rowIndex] ?? rowIndex}
 							row={row}
-							column={col}
+							column={column}
 							render={renderCell}
 						/>
 					)
 				: (row: T, rowIndex: number): ReactNode => (
-						<GridNavCell row={rowIndex} col={getColumnIndex(col.id)}>
+						<GridNavigationCell row={rowIndex} col={getColumnIndex(column.id)}>
 							{renderCell?.(row)}
-						</GridNavCell>
+						</GridNavigationCell>
 					)
 
 			const cellPropsAt = (row: T, rowIndex: number): ComponentProps<'td'> =>
 				seatingCellProps({
-					col,
+					col: column,
 					row,
 					rowIndex,
 					colIndexMapRef,
@@ -148,8 +155,8 @@ export function useGridCursorColumns<T>({
 				})
 
 			return {
-				...col,
-				className: cn(k.nav.cell, editable && k.edit.cell, col.className),
+				...column,
+				className: cn(k.nav.cell, editable && k.edit.cell, column.className),
 				cellAt,
 				cellPropsAt,
 				cellProps: (row: T) => cellPropsAt(row, getRowIndex(row)),

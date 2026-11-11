@@ -8,7 +8,7 @@ import {
 	aggregateRow,
 	groupValues,
 	resolveAxis,
-} from './pivot-table-pivot'
+} from './pivot-table-aggregate'
 import type { PivotAggregation } from './types'
 
 /**

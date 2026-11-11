@@ -64,9 +64,9 @@ function editorsIn(container: HTMLElement) {
 const expectTwoCellRenders = vi.defineHelper((calls: [SessionRow, 'name' | 'count'][]) => {
 	for (const call of calls) expect(call[0]).toBe(sessionRows[0])
 
-	expect(calls.filter(([, col]) => col === 'name').length).toBeLessThanOrEqual(1)
+	expect(calls.filter(([, column]) => column === 'name').length).toBeLessThanOrEqual(1)
 
-	expect(calls.filter(([, col]) => col === 'count').length).toBeLessThanOrEqual(1)
+	expect(calls.filter(([, column]) => column === 'count').length).toBeLessThanOrEqual(1)
 })
 
 /**
@@ -78,7 +78,7 @@ const expectTwoCellRenders = vi.defineHelper((calls: [SessionRow, 'name' | 'coun
  */
 function renderSessionGrid({
 	editable,
-	cols = sessionColumns,
+	cols: columns = sessionColumns,
 	rows = sessionRows,
 }: {
 	editable?: Partial<GridEditableConfig>
@@ -91,7 +91,7 @@ function renderSessionGrid({
 
 	const view = renderUI(
 		<Grid
-			columns={cols}
+			columns={columns}
 			rows={rows}
 			getKey={(row) => row.id}
 			editable={{ session: 'managed', onRowsChange, onCommit, ...editable }}
@@ -102,8 +102,8 @@ function renderSessionGrid({
 		...view,
 		onCommit,
 		onRowsChange,
-		cell: (col: string, rowIndex = 0) =>
-			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+		cell: (column: string, rowIndex = 0) =>
+			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[
 				rowIndex
 			] as HTMLElement,
 	}
@@ -125,7 +125,7 @@ describe('Grid per-row editing', () => {
 	]
 
 	function renderGrid(
-		cols: GridColumn<SessionRow>[] = columns,
+		given: GridColumn<SessionRow>[] = columns,
 		rowLabel?: (row: SessionRow) => string,
 	) {
 		const onCommit = vi.fn()
@@ -142,7 +142,7 @@ describe('Grid per-row editing', () => {
 						save
 					</button>
 					<Grid
-						columns={cols}
+						columns={given}
 						rows={sessionRows}
 						getKey={(row) => row.id}
 						rowLabel={rowLabel}
@@ -1331,7 +1331,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 	})
 
 	it('re-renders only the cell a move along the row leaves, not the window', () => {
-		const display = vi.fn((row: SessionRow, col: 'name' | 'count') => String(row[col]))
+		const display = vi.fn((row: SessionRow, column: 'name' | 'count') => String(row[column]))
 
 		const { cell } = renderSessionGrid({
 			editable: { scope: 'cell' },
@@ -2382,8 +2382,8 @@ describe('Grid active-cell binding', () => {
 			onRowsChange,
 			onCellChange,
 			press: (name: string) => fireEvent.click(view.getByRole('button', { name })),
-			cell: (col: string, rowIndex = 0) =>
-				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+			cell: (column: string, rowIndex = 0) =>
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[
 					rowIndex
 				] as HTMLElement,
 		}
@@ -2837,7 +2837,7 @@ describe('Grid active-cell binding', () => {
 	})
 
 	it('re-renders only the two cells a controlled move along the row touches', () => {
-		const display = vi.fn((row: SessionRow, col: 'name' | 'count') => String(row[col]))
+		const display = vi.fn((row: SessionRow, column: 'name' | 'count') => String(row[column]))
 
 		// Stable across the consumer's renders, as a real consumer's columns are.
 		const columns: GridColumn<SessionRow>[] = [
@@ -2943,7 +2943,7 @@ describe('Grid editing onReject', () => {
 		},
 	]
 
-	function renderGrid(cols: GridColumn<SessionRow>[] = requiredName) {
+	function renderGrid(columns: GridColumn<SessionRow>[] = requiredName) {
 		const onCommit = vi.fn()
 
 		const onReject = vi.fn()
@@ -2960,7 +2960,7 @@ describe('Grid editing onReject', () => {
 						save
 					</button>
 					<Grid
-						columns={cols}
+						columns={columns}
 						rows={sessionRows}
 						getKey={(row) => row.id}
 						editable={{ rows: editing, onRowsChange: setEditing, onCommit, onReject }}
@@ -2999,12 +2999,12 @@ describe('Grid editing onReject', () => {
 	})
 
 	it('reports the refused cell beside the commit batch of the same row', () => {
-		const cols: GridColumn<SessionRow>[] = [
+		const columns: GridColumn<SessionRow>[] = [
 			...requiredName,
 			sessionColumns[1] as GridColumn<SessionRow>,
 		]
 
-		const { container, editRow1, save, onCommit, onReject } = renderGrid(cols)
+		const { container, editRow1, save, onCommit, onReject } = renderGrid(columns)
 
 		editRow1()
 
@@ -3070,7 +3070,7 @@ describe('Grid commitOn', () => {
 
 	function renderCommitOn(
 		editable: Partial<GridEditableConfig> = {},
-		cols: GridColumn<SessionRow>[] = sessionColumns,
+		columns: GridColumn<SessionRow>[] = sessionColumns,
 	) {
 		const onCommit = vi.fn()
 
@@ -3080,7 +3080,7 @@ describe('Grid commitOn', () => {
 			<>
 				<button type="button">outside</button>
 				<Grid
-					columns={cols}
+					columns={columns}
 					rows={sessionRows}
 					getKey={(row) => row.id}
 					editable={{ session: 'managed', onCommit, onReject, ...editable }}
@@ -3100,8 +3100,8 @@ describe('Grid commitOn', () => {
 			onReject,
 			grid: () => view.getByRole('grid'),
 			button: (name: string) => view.getByRole('button', { name }),
-			cell: (col: string, rowIndex = 0) =>
-				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+			cell: (column: string, rowIndex = 0) =>
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[
 					rowIndex
 				] as HTMLElement,
 		}
@@ -3193,7 +3193,7 @@ describe('Grid commitOn', () => {
 				// A slot that renders its own portaled surface, as a date picker or a
 				// listbox does. The surface is outside the table in the DOM, and
 				// inside the grid in the React tree.
-				const cols: GridColumn<SessionRow>[] = [
+				const columns: GridColumn<SessionRow>[] = [
 					{
 						...(sessionColumns[0] as GridColumn<SessionRow>),
 						editCell: ({ value, onValueUpdate, ariaLabel }) => (
@@ -3218,7 +3218,7 @@ describe('Grid commitOn', () => {
 				]
 
 				for (const commitOn of ['leaveEditor', 'leaveGrid'] as const) {
-					const view = renderCommitOn({ scope, commitOn }, cols)
+					const view = renderCommitOn({ scope, commitOn }, columns)
 
 					fireEvent.doubleClick(view.cell('name'))
 
@@ -3293,7 +3293,7 @@ describe('Grid commitOn', () => {
 			})
 
 			it('refuses an invalid draft on leave, as Enter does', () => {
-				const cols: GridColumn<SessionRow>[] = [
+				const columns: GridColumn<SessionRow>[] = [
 					{
 						...(sessionColumns[0] as GridColumn<SessionRow>),
 						validate: (value) => (String(value).length > 0 ? null : 'Required'),
@@ -3301,7 +3301,7 @@ describe('Grid commitOn', () => {
 					sessionColumns[1] as GridColumn<SessionRow>,
 				]
 
-				const view = renderCommitOn({ scope, commitOn: 'leaveGrid' }, cols)
+				const view = renderCommitOn({ scope, commitOn: 'leaveGrid' }, columns)
 
 				fireEvent.doubleClick(view.cell('name'))
 
@@ -3777,7 +3777,7 @@ describe('Grid session-owned drafts', () => {
 		// save, as a NumberInput blur that fires after the row closed does.
 		let late: ((next: unknown) => void) | null = null
 
-		const cols: GridColumn<SessionRow>[] = [
+		const columns: GridColumn<SessionRow>[] = [
 			{
 				id: 'name',
 				title: 'Name',
@@ -3810,7 +3810,7 @@ describe('Grid session-owned drafts', () => {
 						edit-2
 					</button>
 					<Grid
-						columns={cols}
+						columns={columns}
 						rows={sessionRows}
 						getKey={(row) => row.id}
 						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
@@ -3934,7 +3934,7 @@ describe('Grid session-owned drafts', () => {
 				)
 			}
 
-		const cols: GridColumn<SessionRow>[] = [
+		const columns: GridColumn<SessionRow>[] = [
 			{
 				id: 'name',
 				title: 'Name',
@@ -3949,7 +3949,10 @@ describe('Grid session-owned drafts', () => {
 			{ id: 'count', title: 'Count', field: 'count', editCell: slot('count') },
 		]
 
-		const { container } = renderSessionGrid({ cols, editable: { defaultRows: new Set([1]) } })
+		const { container } = renderSessionGrid({
+			cols: columns,
+			editable: { defaultRows: new Set([1]) },
+		})
 
 		const before = { ...renders }
 
@@ -4091,8 +4094,8 @@ describe('Grid async commit', () => {
 
 		const view = renderUI(<Harness />)
 
-		const cell = (col: string, rowIndex = 0) =>
-			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+		const cell = (column: string, rowIndex = 0) =>
+			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[
 				rowIndex
 			] as HTMLElement
 
@@ -4117,15 +4120,15 @@ describe('Grid async commit', () => {
 	/** Opens the cell, types `value`, and commits with `key` from the editor. */
 	function editAndCommit(
 		view: ReturnType<typeof renderAsyncGrid>,
-		col: string,
+		column: string,
 		value: string,
 		key = 'F2',
 	) {
-		fireEvent.doubleClick(view.cell(col))
+		fireEvent.doubleClick(view.cell(column))
 
-		const input = editorsIn(view.container).find((el) => view.cell(col).contains(el))
+		const input = editorsIn(view.container).find((el) => view.cell(column).contains(el))
 
-		if (!input) throw new Error(`no editor in ${col}`)
+		if (!input) throw new Error(`no editor in ${column}`)
 
 		fireEvent.change(input, { target: { value } })
 
@@ -4829,7 +4832,7 @@ describe('Grid new row', () => {
 	function renderNewRow(
 		editable: Partial<GridEditableConfig> = {},
 		props: Partial<GridProps<SessionRow>> = {},
-		cols: GridColumn<SessionRow>[] = sessionColumns,
+		columns: GridColumn<SessionRow>[] = sessionColumns,
 	) {
 		const onRowAdd = vi.fn()
 
@@ -4839,7 +4842,7 @@ describe('Grid new row', () => {
 			<>
 				<button type="button">outside</button>
 				<Grid
-					columns={cols}
+					columns={columns}
 					rows={sessionRows}
 					getKey={(row) => row.id}
 					editable={{ session: 'managed', newRow: 'bottom', onRowAdd, onCommit, ...editable }}
@@ -4850,14 +4853,14 @@ describe('Grid new row', () => {
 
 		const slot = () => view.container.querySelector<HTMLElement>('[data-slot="grid-new-row"]')
 
-		const slotCell = (col: string) =>
+		const slotCell = (column: string) =>
 			present(
-				view.container.querySelector<HTMLElement>(`td[data-grid-new-col="${col}"]`),
-				`new-row cell ${col}`,
+				view.container.querySelector<HTMLElement>(`td[data-grid-new-col="${column}"]`),
+				`new-row cell ${column}`,
 			)
 
-		const slotEditor = (col: string) =>
-			present<HTMLInputElement>(slotCell(col).querySelector('input'), `new-row editor ${col}`)
+		const slotEditor = (column: string) =>
+			present<HTMLInputElement>(slotCell(column).querySelector('input'), `new-row editor ${column}`)
 
 		return {
 			...view,
@@ -4869,9 +4872,9 @@ describe('Grid new row', () => {
 			grid: () => view.getByRole('grid'),
 			dataRows: () =>
 				Array.from(view.container.querySelectorAll<HTMLElement>('tr[data-row-index]')),
-			type: (col: string, value: string) =>
-				fireEvent.change(slotEditor(col), { target: { value } }),
-			press: (col: string, key: string) => fireEvent.keyDown(slotEditor(col), { key }),
+			type: (column: string, value: string) =>
+				fireEvent.change(slotEditor(column), { target: { value } }),
+			press: (column: string, key: string) => fireEvent.keyDown(slotEditor(column), { key }),
 		}
 	}
 
@@ -5281,7 +5284,7 @@ describe('Grid new row', () => {
 	})
 
 	it('blocks the add when validate refuses a cell, and shows the error', async () => {
-		const cols: GridColumn<SessionRow>[] = [
+		const columns: GridColumn<SessionRow>[] = [
 			{
 				...(sessionColumns[0] as GridColumn<SessionRow>),
 				validate: (value) => (value === 'bad' ? 'Not a name' : null),
@@ -5289,7 +5292,7 @@ describe('Grid new row', () => {
 			sessionColumns[1] as GridColumn<SessionRow>,
 		]
 
-		const view = renderNewRow({}, {}, cols)
+		const view = renderNewRow({}, {}, columns)
 
 		view.type('name', 'bad')
 
@@ -5306,7 +5309,7 @@ describe('Grid new row', () => {
 
 	describe('a required cell with no value', () => {
 		// The name is required, and the count may not pass 5.
-		const cols: GridColumn<SessionRow>[] = [
+		const columns: GridColumn<SessionRow>[] = [
 			{
 				...(sessionColumns[0] as GridColumn<SessionRow>),
 				required: true,
@@ -5321,7 +5324,7 @@ describe('Grid new row', () => {
 		it('blocks the add before it starts, and focuses the empty cell', async () => {
 			const onRowAdd = vi.fn(() => new Promise<undefined>(() => {}))
 
-			const view = renderNewRow({ onRowAdd }, {}, cols)
+			const view = renderNewRow({ onRowAdd }, {}, columns)
 
 			view.type('count', '3')
 
@@ -5355,7 +5358,7 @@ describe('Grid new row', () => {
 		})
 
 		it('checks an empty row, and focuses the empty required cell', async () => {
-			const view = renderNewRow({}, {}, cols)
+			const view = renderNewRow({}, {}, columns)
 
 			fireEvent.click(view.getByRole('button', { name: 'Add row' }))
 
@@ -5369,7 +5372,7 @@ describe('Grid new row', () => {
 		})
 
 		it('focuses the first refused cell in display order', () => {
-			const view = renderNewRow({}, {}, cols)
+			const view = renderNewRow({}, {}, columns)
 
 			view.type('count', '9')
 
@@ -5406,7 +5409,7 @@ describe('Grid new row', () => {
 
 	describe('a validate that reads another cell', () => {
 		// The count may not pass 5 while the name is Big.
-		const cols: GridColumn<SessionRow>[] = [
+		const columns: GridColumn<SessionRow>[] = [
 			sessionColumns[0] as GridColumn<SessionRow>,
 			{
 				...(sessionColumns[1] as GridColumn<SessionRow>),
@@ -5415,7 +5418,7 @@ describe('Grid new row', () => {
 		]
 
 		it('reads the current value of the other cell as the user types', () => {
-			const view = renderNewRow({}, {}, cols)
+			const view = renderNewRow({}, {}, columns)
 
 			view.type('name', 'Big')
 
@@ -5455,7 +5458,7 @@ describe('Grid new row', () => {
 		})
 
 		it('shows the error of a blocked add on the cell that refuses it', async () => {
-			const view = renderNewRow({}, {}, cols)
+			const view = renderNewRow({}, {}, columns)
 
 			view.type('count', '9')
 
@@ -5474,12 +5477,12 @@ describe('Grid new row', () => {
 	it('reads the values as the row that validate sees', () => {
 		const validate = vi.fn(() => null)
 
-		const cols: GridColumn<SessionRow>[] = [
+		const columns: GridColumn<SessionRow>[] = [
 			{ ...(sessionColumns[0] as GridColumn<SessionRow>), validate },
 			sessionColumns[1] as GridColumn<SessionRow>,
 		]
 
-		const view = renderNewRow({}, {}, cols)
+		const view = renderNewRow({}, {}, columns)
 
 		view.type('count', '3')
 
@@ -5719,8 +5722,10 @@ describe('Grid new row', () => {
 		const active = (view: ReturnType<typeof renderNewRow>) =>
 			view.grid().getAttribute('aria-activedescendant')
 
-		const dataCell = (view: ReturnType<typeof renderNewRow>, col: string, row: number) =>
-			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[row] as HTMLElement
+		const dataCell = (view: ReturnType<typeof renderNewRow>, column: string, row: number) =>
+			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[
+				row
+			] as HTMLElement
 
 		it('reaches the bottom row with ArrowDown from the last data row, and no further', () => {
 			const view = renderNewRow({ newRow: 'bottom' })
@@ -6021,8 +6026,8 @@ describe('Grid undo and redo (history)', () => {
 
 		const grid = view.getByRole('grid')
 
-		const cell = (col: string, rowIndex = 0) =>
-			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+		const cell = (column: string, rowIndex = 0) =>
+			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${column}"]`)[
 				rowIndex
 			] as HTMLElement
 
@@ -6662,7 +6667,7 @@ describe('Grid-owned session keys in a grouped grid', () => {
 describe('Grid row actions edit', () => {
 	// The pencil and the check are one button, as a consumer writes them: React
 	// keeps the element as the row opens.
-	function renderPencil(cols: GridColumn<SessionRow>[] = sessionColumns) {
+	function renderPencil(columns: GridColumn<SessionRow>[] = sessionColumns) {
 		const onCommit = vi.fn()
 
 		function Harness() {
@@ -6675,7 +6680,7 @@ describe('Grid row actions edit', () => {
 					</button>
 					<Grid
 						columns={[
-							...cols,
+							...columns,
 							{
 								id: 'actions',
 								actions: (row, { editing, edit, save }) => (

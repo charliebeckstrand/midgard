@@ -6,7 +6,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities/clamp'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
-import { pct } from '../../utilities/pct'
+import { toPercent } from '../../utilities/to-percent'
 import { colorMessages } from './color-messages'
 import { hsvaToHex } from './color-utilities'
 import { useColorPanelContext } from './context'
@@ -153,7 +153,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 			<div
 				data-slot="color-slider-thumb"
 				className={cn(k().handle, 'top-1/2')}
-				style={{ left: `${pct(value, 0, max)}%` }}
+				style={{ left: `${toPercent(value, 0, max)}%` }}
 			/>
 		</div>
 	)

@@ -2,9 +2,9 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import {
+	buildSortOrder,
 	cachedSortOrder,
 	compareSmart,
-	computeSortOrder,
 	materializeSort,
 	naturalCollator,
 	type SmartSortField,
@@ -174,7 +174,7 @@ describe('sortRowsSmart', () => {
 		expect(keys).toEqual(['b@1', 'c@2', 'a@0'])
 	})
 
-	describe('computeSortOrder / materializeSort split', () => {
+	describe('buildSortOrder / materializeSort split', () => {
 		it('re-materializes a reused permutation with a different getKey', () => {
 			const rows: Row[] = [
 				{ id: 'a', amount: 3 },
@@ -185,7 +185,7 @@ describe('sortRowsSmart', () => {
 			// The permutation is computed once; the cache reuses it across renders
 			// whose getKey identity differs. Both projections must key correctly off
 			// the row's *original* index, never drift with the sorted position.
-			const permutation = computeSortOrder(rows, [field('amount')], collator)
+			const permutation = buildSortOrder(rows, [field('amount')], collator)
 
 			expect(materializeSort(rows, permutation, (row) => row.id).keys).toEqual(['b', 'c', 'a'])
 
@@ -201,9 +201,9 @@ describe('sortRowsSmart', () => {
 				{ id: 'b', amount: 1 },
 			]
 
-			const asc = computeSortOrder(rows, [field('amount')], collator)
+			const asc = buildSortOrder(rows, [field('amount')], collator)
 
-			const desc = computeSortOrder(rows, [field('amount', true)], collator)
+			const desc = buildSortOrder(rows, [field('amount', true)], collator)
 
 			expect(asc).toEqual([2, 0, 1])
 
@@ -301,9 +301,9 @@ describe('compareSmart · properties', () => {
 	})
 })
 
-describe('computeSortOrder · properties', () => {
+describe('buildSortOrder · properties', () => {
 	test.prop([anyRows(), fc.boolean()])('returns every row once', (rows, descending) => {
-		const order = computeSortOrder(rows, [field('a', descending)], collator)
+		const order = buildSortOrder(rows, [field('a', descending)], collator)
 
 		expect([...order].sort((x, y) => x - y)).toEqual(rows.map((_, index) => index))
 	})
@@ -311,7 +311,7 @@ describe('computeSortOrder · properties', () => {
 	// Stability is the tie-break the engine's `sortIndex` supplies: rows the
 	// fields cannot part hold the order they arrived in.
 	test.prop([anyRows(), fc.boolean()])('holds the order of tied rows', (rows, descending) => {
-		const order = computeSortOrder(rows, [field('a', descending)], collator)
+		const order = buildSortOrder(rows, [field('a', descending)], collator)
 
 		for (let at = 0; at + 1 < order.length; at++) {
 			const before = (rows[order[at] as number] as PropertyRow).a
@@ -325,7 +325,7 @@ describe('computeSortOrder · properties', () => {
 	})
 
 	test.prop([orderableRows()])('leaves an ascending run non-decreasing', (rows) => {
-		const order = computeSortOrder(rows, [field('a', false)], collator)
+		const order = buildSortOrder(rows, [field('a', false)], collator)
 
 		for (let at = 0; at + 1 < order.length; at++) {
 			const before = (rows[order[at] as number] as PropertyRow).a
@@ -339,7 +339,7 @@ describe('computeSortOrder · properties', () => {
 	})
 
 	test.prop([orderableRows()])('leaves a descending run non-increasing', (rows) => {
-		const order = computeSortOrder(rows, [field('a', true)], collator)
+		const order = buildSortOrder(rows, [field('a', true)], collator)
 
 		for (let at = 0; at + 1 < order.length; at++) {
 			const before = (rows[order[at] as number] as PropertyRow).a
@@ -353,7 +353,7 @@ describe('computeSortOrder · properties', () => {
 	})
 
 	test.prop([anyRows(), fc.boolean()])('sinks empties last either way', (rows, descending) => {
-		const order = computeSortOrder(rows, [field('a', descending)], collator)
+		const order = buildSortOrder(rows, [field('a', descending)], collator)
 
 		const empties = order.map((index) => isEmpty((rows[index] as PropertyRow).a))
 
@@ -364,7 +364,7 @@ describe('computeSortOrder · properties', () => {
 	test.prop([anyRows(), fc.boolean(), fc.boolean()])(
 		'consults the second field on a tie alone',
 		(rows, first, second) => {
-			const order = computeSortOrder(rows, [field('a', first), field('b', second)], collator)
+			const order = buildSortOrder(rows, [field('a', first), field('b', second)], collator)
 
 			for (let at = 0; at + 1 < order.length; at++) {
 				const before = rows[order[at] as number] as PropertyRow
@@ -409,7 +409,7 @@ describe('cachedSortOrder · properties', () => {
 				'en-US',
 			)
 
-			expect(flipped).toEqual(computeSortOrder(rows, [field('a', !descending)], collator))
+			expect(flipped).toEqual(buildSortOrder(rows, [field('a', !descending)], collator))
 		},
 	)
 
@@ -421,7 +421,7 @@ describe('cachedSortOrder · properties', () => {
 		cachedSortOrder(rows, columns, 'asc', fields(false), undefined, 'en-US')
 
 		expect(cachedSortOrder(rows, columns, 'desc', fields(true), 'asc', 'en-US')).toEqual(
-			computeSortOrder(rows, fields(true), collator),
+			buildSortOrder(rows, fields(true), collator),
 		)
 	})
 })
@@ -433,7 +433,7 @@ describe('sortRowsSmart · properties', () => {
 			const fields = [field('a', descending)]
 
 			expect(sortRowsSmart(rows, rowKey, fields, collator)).toEqual(
-				materializeSort(rows, computeSortOrder(rows, fields, collator), rowKey),
+				materializeSort(rows, buildSortOrder(rows, fields, collator), rowKey),
 			)
 		},
 	)
@@ -443,7 +443,7 @@ describe('sortRowsSmart · properties', () => {
 	test.prop([anyRows(), fc.boolean()])('keys a row at its original index', (rows, descending) => {
 		const fields = [field('a', descending)]
 
-		const order = computeSortOrder(rows, fields, collator)
+		const order = buildSortOrder(rows, fields, collator)
 
 		const { rows: sorted, keys } = sortRowsSmart(rows, rowKey, fields, collator)
 

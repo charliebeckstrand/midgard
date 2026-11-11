@@ -40,7 +40,11 @@ const NEGATIVES = CATEGORIES.slice(0, 5).map((label, index) => ({
 }))
 
 const GRID = ['x', 'y', 'z'].flatMap((row, rowIndex) =>
-	['1', '2', '3', '4'].map((col, columnIndex) => ({ row, col, value: rowIndex + columnIndex })),
+	['1', '2', '3', '4'].map((column, columnIndex) => ({
+		row,
+		col: column,
+		value: rowIndex + columnIndex,
+	})),
 )
 
 const SLICES = [

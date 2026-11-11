@@ -1,11 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import {
-	deriveStatus,
+	getStatus,
 	toFieldText,
 } from '../../components/password-confirm/password-confirm-utilities'
 
-describe('deriveStatus', () => {
+describe('getStatus', () => {
 	it.each<[string, string, string, 'password' | 'confirm' | null, 'idle' | 'warning']>([
 		['returns idle when password is empty', '', 'x', 'password', 'idle'],
 		['returns idle when confirm is empty', 'hunter2', '', 'password', 'idle'],
@@ -39,7 +39,7 @@ describe('deriveStatus', () => {
 			'warning',
 		],
 	])('%s', (_name, password, confirm, lastEdited, expected) => {
-		expect(deriveStatus(password, confirm, lastEdited)).toBe(expected)
+		expect(getStatus(password, confirm, lastEdited)).toBe(expected)
 	})
 })
 

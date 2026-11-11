@@ -341,14 +341,14 @@ describe('GridColumnManager', () => {
 
 describe('GridColumnManager pinning', () => {
 	it('renders left-pinned columns prepended and right-pinned appended', () => {
-		const cols: GridColumnManagerItem[] = [
+		const columns: GridColumnManagerItem[] = [
 			{ id: 'a', title: 'A' },
 			{ id: 'b', title: 'B', pinned: 'left' },
 			{ id: 'c', title: 'C', pinned: 'right' },
 			{ id: 'd', title: 'D' },
 		]
 
-		renderUI(<GridColumnManager columns={cols} />)
+		renderUI(<GridColumnManager columns={columns} />)
 
 		// Left group prepended, the scrolling columns in the middle, right appended.
 		expect(labels()).toEqual(['B', 'A', 'D', 'C'])
@@ -392,12 +392,12 @@ describe('GridColumnManager pinning', () => {
 	it('shows a locked column with a static lock and no pin control', () => {
 		const onPinChange = vi.fn()
 
-		const cols: GridColumnManagerItem[] = [
+		const columns: GridColumnManagerItem[] = [
 			{ id: 'id', title: 'ID', locked: 'left' },
 			{ id: 'email', title: 'Email' },
 		]
 
-		renderUI(<GridColumnManager columns={cols} onPinChange={onPinChange} />)
+		renderUI(<GridColumnManager columns={columns} onPinChange={onPinChange} />)
 
 		// The locked column exposes no interactive pin control...
 		expect(screen.queryByRole('button', { name: 'Pin ID' })).not.toBeInTheDocument()
@@ -410,13 +410,13 @@ describe('GridColumnManager pinning', () => {
 	})
 
 	it('marks a locked column on either edge with a lock', () => {
-		const cols: GridColumnManagerItem[] = [
+		const columns: GridColumnManagerItem[] = [
 			{ id: 'name', title: 'Name', locked: 'left' },
 			{ id: 'email', title: 'Email' },
 			{ id: 'actions', title: 'Actions', locked: 'right' },
 		]
 
-		const { container } = renderUI(<GridColumnManager columns={cols} onPinChange={() => {}} />)
+		const { container } = renderUI(<GridColumnManager columns={columns} onPinChange={() => {}} />)
 
 		// Both locked rows lead with a lock, not the edge arrows of the pin menu.
 		expect(container.querySelectorAll('.lucide-lock')).toHaveLength(2)
@@ -427,12 +427,12 @@ describe('GridColumnManager pinning', () => {
 	})
 
 	it('appends a right-locked column to the list', () => {
-		const cols: GridColumnManagerItem[] = [
+		const columns: GridColumnManagerItem[] = [
 			{ id: 'a', title: 'A' },
 			{ id: 'actions', title: 'Actions', locked: 'right' },
 		]
 
-		renderUI(<GridColumnManager columns={cols} />)
+		renderUI(<GridColumnManager columns={columns} />)
 
 		expect(labels()).toEqual(['A', 'Actions'])
 	})

@@ -55,15 +55,15 @@ export function toColumnPinningState<T>(columns: GridColumn<T>[]): {
 	state: ColumnPinningState
 	hasPinned: boolean
 } {
-	const select = columns.filter((col) => col.selectable).map((col) => String(col.id))
+	const select = columns.filter((column) => column.selectable).map((column) => String(column.id))
 
 	const left = columns
-		.filter((col) => !col.selectable && frozenSide(col) === 'left')
-		.map((col) => String(col.id))
+		.filter((column) => !column.selectable && frozenSide(column) === 'left')
+		.map((column) => String(column.id))
 
 	const right = columns
-		.filter((col) => !col.selectable && frozenSide(col) === 'right')
-		.map((col) => String(col.id))
+		.filter((column) => !column.selectable && frozenSide(column) === 'right')
+		.map((column) => String(column.id))
 
 	const leads = left.length > 0 || right.some((id) => !isNewRowAddColumn(id))
 

@@ -6,7 +6,7 @@ import { useReportedChange } from '../../hooks/use-reported-change'
 import { toggleItem } from '../../utilities/toggle-item'
 import { buildGroupSpans, groupByColumn } from './engine/grid-group/compute'
 import type { GridGroupHeader, GridGroupResult } from './engine/grid-group/resolve'
-import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
+import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-column-group-types'
 
 /** Normalizes the {@link GridColumnGroups} prop (array shorthand or binding object) into `useControllable` inputs. @internal */
 function resolveGroupsBinding(groups: GridColumnGroups | undefined): {

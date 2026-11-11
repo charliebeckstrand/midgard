@@ -89,7 +89,7 @@ describe('grid aggregation core', () => {
 	it('reduces the built-in functions over a column, skipping non-numeric entries', () => {
 		const rows = [{ n: 10 }, { n: 20 }, { n: 'x' }, { n: 30 }]
 
-		const col = (name: SumName): GridColumn<{ n: unknown }> => ({
+		const column = (name: SumName): GridColumn<{ n: unknown }> => ({
 			id: 'n',
 			value: (row) => row.n,
 			aggFunc: name,
@@ -97,47 +97,47 @@ describe('grid aggregation core', () => {
 
 		type SumName = 'sum' | 'avg' | 'min' | 'max' | 'count'
 
-		expect(aggregateColumn(col('sum'), rows)).toBe(60)
+		expect(aggregateColumn(column('sum'), rows)).toBe(60)
 
-		expect(aggregateColumn(col('avg'), rows)).toBe(20)
+		expect(aggregateColumn(column('avg'), rows)).toBe(20)
 
-		expect(aggregateColumn(col('min'), rows)).toBe(10)
+		expect(aggregateColumn(column('min'), rows)).toBe(10)
 
-		expect(aggregateColumn(col('max'), rows)).toBe(30)
+		expect(aggregateColumn(column('max'), rows)).toBe(30)
 
 		// count counts rows, not parseable values.
-		expect(aggregateColumn(col('count'), rows)).toBe(4)
+		expect(aggregateColumn(column('count'), rows)).toBe(4)
 	})
 
 	it('parses money, comma-grouped, and percent strings the way sort does', () => {
 		const rows = [{ n: '$1,234' }, { n: '45%' }, { n: '(10)' }, { n: '   ' }]
 
-		const col = (name: 'sum' | 'min' | 'max'): GridColumn<{ n: unknown }> => ({
+		const column = (name: 'sum' | 'min' | 'max'): GridColumn<{ n: unknown }> => ({
 			id: 'n',
 			value: (row) => row.n,
 			aggFunc: name,
 		})
 
 		// $1,234 + 45 + (accounting negative) -10, whitespace-only cell dropped, not 0.
-		expect(aggregateColumn(col('sum'), rows)).toBe(1269)
+		expect(aggregateColumn(column('sum'), rows)).toBe(1269)
 
-		expect(aggregateColumn(col('min'), rows)).toBe(-10)
+		expect(aggregateColumn(column('min'), rows)).toBe(-10)
 
-		expect(aggregateColumn(col('max'), rows)).toBe(1234)
+		expect(aggregateColumn(column('max'), rows)).toBe(1234)
 	})
 
 	it('reduces min/max over a large set without overflowing the call stack', () => {
 		const rows = Array.from({ length: 200_000 }, (_, i) => ({ n: i }))
 
-		const col: GridColumn<{ n: unknown }> = { id: 'n', value: (row) => row.n, aggFunc: 'max' }
+		const column: GridColumn<{ n: unknown }> = { id: 'n', value: (row) => row.n, aggFunc: 'max' }
 
-		expect(aggregateColumn(col, rows)).toBe(199_999)
+		expect(aggregateColumn(column, rows)).toBe(199_999)
 	})
 
 	it('yields null for an all-non-numeric set rather than a fabricated zero', () => {
-		const col: GridColumn<{ n: unknown }> = { id: 'n', value: (row) => row.n, aggFunc: 'sum' }
+		const column: GridColumn<{ n: unknown }> = { id: 'n', value: (row) => row.n, aggFunc: 'sum' }
 
-		expect(aggregateColumn(col, [{ n: 'a' }, { n: null }])).toBeNull()
+		expect(aggregateColumn(column, [{ n: 'a' }, { n: null }])).toBeNull()
 
 		expect(formatAggregate(null)).toBe('')
 	})
@@ -147,12 +147,12 @@ describe('grid aggregation core', () => {
 	})
 
 	it('hands the rows themselves to a custom function', () => {
-		const col: GridColumn<Sale> = {
+		const column: GridColumn<Sale> = {
 			id: 'perUnit',
 			aggFunc: (rows) => rows.length * 2,
 		}
 
-		expect(aggregateColumn(col, sales)).toBe(8)
+		expect(aggregateColumn(column, sales)).toBe(8)
 	})
 
 	it('detects aggregation and places the label span before the first aggregated column', () => {
@@ -248,7 +248,7 @@ describe('cachedAggregate', () => {
 	it('computes each aggregate one time for each row array and column', () => {
 		const calls: number[][] = []
 
-		const col: GridColumn<Sale> = {
+		const column: GridColumn<Sale> = {
 			id: 'units',
 			aggFunc: (rows) => {
 				calls.push(rows.map((row) => row.id))
@@ -259,14 +259,14 @@ describe('cachedAggregate', () => {
 
 		const rows = sales.slice()
 
-		expect(cachedAggregate(col, rows)).toBe(4)
+		expect(cachedAggregate(column, rows)).toBe(4)
 
-		expect(cachedAggregate(col, rows)).toBe(4)
+		expect(cachedAggregate(column, rows)).toBe(4)
 
 		expect(calls).toHaveLength(1)
 
 		// A new row array, such as the rows of a new filter, computes again.
-		expect(cachedAggregate(col, rows.slice(1))).toBe(3)
+		expect(cachedAggregate(column, rows.slice(1))).toBe(3)
 
 		expect(calls).toHaveLength(2)
 	})

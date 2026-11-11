@@ -4,7 +4,7 @@ import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
 import { MAP_FIT_INSET } from './engine/map-constants'
 import { type MapOutline, mapOutline } from './engine/map-outline'
-import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
+import { fallbackAspect, mapFrameSizing } from './engine/map-projection/aspect'
 import type { MapAspectRatio, MapProjection } from './engine/types'
 
 /** Props for {@link MapSkeleton}. */
@@ -68,16 +68,12 @@ export function MapSkeleton({ aspectRatio, projection, outline, className }: Map
 	// `use-map-shape` resolves the frame through, so the order (an explicit
 	// aspect, then what the projection knows before its atlas lands, then the
 	// generic fallback) and the rule that an unparseable ratio fills instead of
-	// reserving are both stated once. Sharing only `projectionFallbackAspect`
+	// reserving are both stated once. Sharing only `fallbackAspect`
 	// would share the number and duplicate the policy over it.
 	// No height of its own: a fixed-height plat is mirrored with `aspectRatio={false}`
 	// and a height class, which is the same statement made once rather than a
 	// second prop saying it again.
-	const sizing = mapFrameSizing(
-		undefined,
-		aspectRatio ?? 'auto',
-		projectionFallbackAspect(projection),
-	)
+	const sizing = mapFrameSizing(undefined, aspectRatio ?? 'auto', fallbackAspect(projection))
 
 	// Resolved here, not as a parameter default: the React Compiler skips a
 	// default that reads another parameter.

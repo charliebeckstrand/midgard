@@ -5,7 +5,7 @@
  * unit-testable in isolation. The unstacked variant reuses `lineGeometry`.
  */
 
-import { coord } from '../chart-coords'
+import { formatCoordinate } from '../chart-coordinate'
 import { decimateRun, type LinePoint, polylinePath } from './line'
 
 /** One stacked series' drawable marks. @internal */
@@ -70,12 +70,12 @@ export function stackedAreas(
 			for (let index = below.length - 1; index >= 0; index--) {
 				const point = below[index] as LinePoint
 
-				area += ` L ${coord(point.x)} ${coord(point.y)}`
+				area += ` L ${formatCoordinate(point.x)} ${formatCoordinate(point.y)}`
 			}
 		} else {
-			const zero = coord(map(0))
+			const zero = formatCoordinate(map(0))
 
-			area += ` L ${coord((top.at(-1) as LinePoint).x)} ${zero} L ${coord((top[0] as LinePoint).x)} ${zero}`
+			area += ` L ${formatCoordinate((top.at(-1) as LinePoint).x)} ${zero} L ${formatCoordinate((top[0] as LinePoint).x)} ${zero}`
 		}
 
 		below = top

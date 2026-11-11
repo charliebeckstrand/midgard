@@ -46,7 +46,7 @@ type PasswordStrengthResult = {
  * @returns The level: `'weak'` (ratio ≤ 0.25), `'fair'` (≤ 0.5), `'good'` (< 1), else `'strong'`.
  * @internal
  */
-function deriveLevel(passed: number, total: number): Exclude<StrengthLevel, 'empty'> {
+function getLevel(passed: number, total: number): Exclude<StrengthLevel, 'empty'> {
 	const ratio = total === 0 ? 0 : passed / total
 
 	if (ratio <= 0.25) return 'weak'
@@ -88,7 +88,7 @@ export function usePasswordStrength({
 
 	const passedCount = passedIds.length
 
-	const level: StrengthLevel = value.length === 0 ? 'empty' : deriveLevel(passedCount, rules.length)
+	const level: StrengthLevel = value.length === 0 ? 'empty' : getLevel(passedCount, rules.length)
 
 	const reportStrength = useEffectEvent((strength: PasswordStrengthChange) =>
 		onStrengthChange?.(strength),

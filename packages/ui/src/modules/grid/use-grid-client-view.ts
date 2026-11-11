@@ -78,19 +78,19 @@ export function useGridClientView<T>(args: {
 	const fields = useMemo<SmartSortField<T>[] | null>(() => {
 		if (!clientSort || !sort?.length) return null
 
-		const byId = new Map(columns.map((col) => [String(col.id), col] as const))
+		const byId = new Map(columns.map((column) => [String(column.id), column] as const))
 
 		return sort.map((entry) => {
-			const col = byId.get(String(entry.column))
+			const column = byId.get(String(entry.column))
 
 			return {
 				descending: entry.direction === 'desc',
 				// The column's shared value accessor; a sort id with no matching
 				// column (never, in practice) falls back to the raw field read.
-				accessor: col
-					? columnAccessor(col)
+				accessor: column
+					? columnAccessor(column)
 					: (row) => (row as Record<string | number, unknown>)[entry.column],
-				sortFn: col?.sortFn ?? null,
+				sortFn: column?.sortFn ?? null,
 			}
 		})
 	}, [clientSort, sort, columns])

@@ -3,8 +3,8 @@ import { describe, expect, vi } from 'vitest'
 import {
 	MIN_REFRESH_MS,
 	resolveRefreshInterval,
-	useTimeAgoRelativeTime,
-} from '../../components/time-ago/use-time-ago-relative-time'
+	useTimeAgo,
+} from '../../components/time-ago/use-time-ago'
 import {
 	DAY,
 	HOUR,
@@ -19,7 +19,7 @@ import { it, onFakeClock } from '../helpers/fake-clock'
 
 const NOW = new Date('2026-05-19T12:00:00Z')
 
-describe('useTimeAgoRelativeTime', () => {
+describe('useTimeAgo', () => {
 	onFakeClock()
 
 	it.beforeEach(({ clock }) => {
@@ -27,7 +27,7 @@ describe('useTimeAgoRelativeTime', () => {
 	})
 
 	it('returns valid=false and empty text for an unparsable date', () => {
-		const { result } = renderHook(() => useTimeAgoRelativeTime({ value: 'not-a-date' }))
+		const { result } = renderHook(() => useTimeAgo({ value: 'not-a-date' }))
 
 		expect(result.current.valid).toBe(false)
 
@@ -47,7 +47,7 @@ describe('useTimeAgoRelativeTime', () => {
 	])('formats %s', (_name, offset, expected) => {
 		const then = new Date(NOW.getTime() + offset)
 
-		const { result } = renderHook(() => useTimeAgoRelativeTime({ value: then }))
+		const { result } = renderHook(() => useTimeAgo({ value: then }))
 
 		expect(result.current.text).toMatch(expected)
 	})
@@ -57,7 +57,7 @@ describe('useTimeAgoRelativeTime', () => {
 
 		const then = new Date(NOW.getTime() - 10 * SECOND)
 
-		const { result } = renderHook(() => useTimeAgoRelativeTime({ value: then, format }))
+		const { result } = renderHook(() => useTimeAgo({ value: then, format }))
 
 		expect(format).toHaveBeenCalled()
 
@@ -68,7 +68,7 @@ describe('useTimeAgoRelativeTime', () => {
 		['a numeric timestamp', NOW.getTime() - 30 * SECOND],
 		['an ISO string', new Date(NOW.getTime() - 60 * SECOND).toISOString()],
 	])('accepts %s', (_name, date) => {
-		const { result } = renderHook(() => useTimeAgoRelativeTime({ value: date }))
+		const { result } = renderHook(() => useTimeAgo({ value: date }))
 
 		expect(result.current.valid).toBe(true)
 	})
@@ -78,7 +78,7 @@ describe('useTimeAgoRelativeTime', () => {
 
 		const setIntervalSpy = vi.spyOn(window, 'setInterval')
 
-		renderHook(() => useTimeAgoRelativeTime({ value: then, interval: 1000 }))
+		renderHook(() => useTimeAgo({ value: then, interval: 1000 }))
 
 		expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 1000)
 	})
@@ -87,7 +87,7 @@ describe('useTimeAgoRelativeTime', () => {
 		const setIntervalSpy = vi.spyOn(window, 'setInterval')
 
 		// 3 days ago sits below the WEEK threshold, so the adaptive ladder picks the HOUR interval.
-		renderHook(() => useTimeAgoRelativeTime({ value: new Date(NOW.getTime() - 3 * DAY) }))
+		renderHook(() => useTimeAgo({ value: new Date(NOW.getTime() - 3 * DAY) }))
 
 		expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), HOUR)
 	})
@@ -95,7 +95,7 @@ describe('useTimeAgoRelativeTime', () => {
 	it('skips the refresh interval when the date is invalid', () => {
 		const setIntervalSpy = vi.spyOn(window, 'setInterval')
 
-		renderHook(() => useTimeAgoRelativeTime({ value: 'still-not-a-date' }))
+		renderHook(() => useTimeAgo({ value: 'still-not-a-date' }))
 
 		expect(setIntervalSpy).not.toHaveBeenCalled()
 	})
@@ -108,9 +108,7 @@ describe('useTimeAgoRelativeTime', () => {
 		async ([_name, interval], { clock }) => {
 			const format = vi.fn(() => 'x')
 
-			renderHook(() =>
-				useTimeAgoRelativeTime({ value: new Date(NOW.getTime() - SECOND), format, interval }),
-			)
+			renderHook(() => useTimeAgo({ value: new Date(NOW.getTime() - SECOND), format, interval }))
 
 			const calls = format.mock.calls.length
 

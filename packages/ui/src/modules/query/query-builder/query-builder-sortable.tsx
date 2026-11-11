@@ -14,9 +14,9 @@ import { announce } from '../../../core/announcer'
 import { dataAttr } from '../../../core/data-attr'
 import { querySlot } from '../../../core/query-slot'
 import { logicalArrowKey } from '../../../hooks/a11y/logical-arrow'
+import { useDragReorder } from '../../../hooks/use-drag-reorder'
 import { useKeyboardReorder } from '../../../hooks/use-keyboard-reorder'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
-import { useReorderDrag } from '../../../hooks/use-reorder-drag'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { IntlMessage } from '../../../primitives/intl'
 import { droppedText, movedText, reorderMessages } from '../../../primitives/intl/intl-reorder'
@@ -247,7 +247,7 @@ export function QueryBuilderSortable({
 		[shared, moveInto, intl, name, groupName],
 	)
 
-	const { order, sorting, setDraft, onDragStart, onDragEnd } = useReorderDrag({
+	const { order, sorting, setDraft, onDragStart, onDragEnd } = useDragReorder({
 		ids,
 		onReorder: useCallback((next: string[], id: string) => move(id, next.indexOf(id)), [move]),
 		onDrop,

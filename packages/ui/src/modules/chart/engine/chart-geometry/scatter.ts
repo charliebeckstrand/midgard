@@ -13,7 +13,7 @@
 import { parseNumeric } from '../../../../utilities/parse-numeric'
 import type { ChartAxisTick } from '../chart-axes/axis'
 import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RING_WIDTH } from '../chart-constants'
-import { coord } from '../chart-coords'
+import { formatCoordinate } from '../chart-coordinate'
 import { beatsHeldMark } from '../chart-hit-test'
 import { READOUT_GAP } from '../chart-series'
 import { nearestStopIndex } from '../chart-snap'
@@ -414,12 +414,12 @@ export function scatterDiscLayers(marks: ScatterMark[]): string[] {
 		if (mark.r !== cachedR) {
 			cachedR = mark.r
 
-			const r = coord(mark.r)
+			const r = formatCoordinate(mark.r)
 
-			arc = `a ${r} ${r} 0 1 0 ${coord(mark.r * 2)} 0 a ${r} ${r} 0 1 0 ${coord(-mark.r * 2)} 0 Z`
+			arc = `a ${r} ${r} 0 1 0 ${formatCoordinate(mark.r * 2)} 0 a ${r} ${r} 0 1 0 ${formatCoordinate(-mark.r * 2)} 0 Z`
 		}
 
-		const disc = `M ${coord(mark.x - mark.r)} ${coord(mark.y)} ${arc}`
+		const disc = `M ${formatCoordinate(mark.x - mark.r)} ${formatCoordinate(mark.y)} ${arc}`
 
 		// Accumulate into one buffer per layer, not a per-disc parts array joined
 		// at the end: the array is an N-string allocation the concatenation avoids.

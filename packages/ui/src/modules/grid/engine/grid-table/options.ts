@@ -31,14 +31,14 @@ import { parsePxWidth } from './resize-view'
  *
  * @internal
  */
-function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
-	if (col.selectable) return SELECT_COLUMN_SIZE
+function affordanceColumnSize<T>(column: GridColumn<T>): number | undefined {
+	if (column.selectable) return SELECT_COLUMN_SIZE
 
-	if (col.dragHandle) return DRAG_HANDLE_COLUMN_SIZE
+	if (column.dragHandle) return DRAG_HANDLE_COLUMN_SIZE
 
-	if (col.expander) return EXPANDER_COLUMN_SIZE
+	if (column.expander) return EXPANDER_COLUMN_SIZE
 
-	if (isNewRowAddColumn(col.id)) return NEW_ROW_ADD_COLUMN_SIZE
+	if (isNewRowAddColumn(column.id)) return NEW_ROW_ADD_COLUMN_SIZE
 
 	return undefined
 }
@@ -52,10 +52,10 @@ function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
  *
  * @internal
  */
-function resolveMinSize<T>(col: GridColumn<T>): { minSize?: number } {
-	if (col.minWidth == null && !isDataColumn(col)) return {}
+function resolveMinSize<T>(column: GridColumn<T>): { minSize?: number } {
+	if (column.minWidth == null && !isDataColumn(column)) return {}
 
-	return { minSize: columnMinWidth(col) }
+	return { minSize: columnMinWidth(column) }
 }
 
 /**
@@ -64,20 +64,20 @@ function resolveMinSize<T>(col: GridColumn<T>): { minSize?: number } {
  *
  * @internal
  */
-export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
+export function toColumnDef<T>(column: GridColumn<T>): EngineColumnDef<T> {
 	// A width-less column takes the engine's 150px default; the selection,
 	// drag-handle, and expander columns instead take a seed width near their
 	// content, until the autosizer measures it. (The non-resizable auto layout
 	// sizes them to content via `w-px`.)
-	const size = parsePxWidth(col.width) ?? affordanceColumnSize(col)
+	const size = parsePxWidth(column.width) ?? affordanceColumnSize(column)
 
 	return {
-		id: String(col.id),
+		id: String(column.id),
 		// Only data columns resize; non-data columns (selection, actions, drag handle, expander) hold their width.
-		enableResizing: isDataColumn(col),
+		enableResizing: isDataColumn(column),
 		...(size != null ? { size } : {}),
-		...resolveMinSize(col),
-		...(col.maxWidth != null ? { maxSize: col.maxWidth } : {}),
+		...resolveMinSize(column),
+		...(column.maxWidth != null ? { maxSize: column.maxWidth } : {}),
 	}
 }
 
@@ -88,7 +88,7 @@ export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
  * @internal
  */
 export function toColumnDefs<T>(columns: GridColumn<T>[]): EngineColumnDef<T>[] {
-	return columns.map((col) => ({ ...toColumnDef(col), meta: { gridColumn: col } }))
+	return columns.map((column) => ({ ...toColumnDef(column), meta: { gridColumn: column } }))
 }
 
 /**

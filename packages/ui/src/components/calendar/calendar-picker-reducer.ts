@@ -48,13 +48,13 @@ type CalendarPickerAction =
  *
  * @internal
  */
-export function calendarPickerReducer(
+export function pickerReducer(
 	state: CalendarPickerState,
 	action: CalendarPickerAction,
 ): CalendarPickerState {
 	switch (action.type) {
 		case 'open':
-			return initialCalendarPickerState(action.year)
+			return initialPickerState(action.year)
 		case 'stepYear': {
 			const pickerYear = clampYear(state.pickerYear + action.delta)
 
@@ -84,7 +84,7 @@ export function calendarPickerReducer(
  *
  * @internal
  */
-export function initialCalendarPickerState(year: number): CalendarPickerState {
+export function initialPickerState(year: number): CalendarPickerState {
 	const anchor = clampYear(year)
 
 	return { view: 'months', pickerYear: anchor, decadeYear: anchor }
