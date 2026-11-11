@@ -304,6 +304,77 @@ describe('fetchOsrmRoute', () => {
 		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual(answer)
 	})
 
+	// The body of a 200 comes from a service that the caller names. A value of the
+	// wrong type must not reach the overlay or the readout as a leg.
+	it.for([
+		{ name: 'routes that are not a list', json: { routes: '' } },
+		{ name: 'a leg that is not an object', json: { routes: [5] } },
+		{
+			name: 'a geometry that is not an object',
+			json: { routes: [{ geometry: 'gfo}EtohhU', distance: 3243000, duration: 106200 }] },
+		},
+		{
+			name: 'coordinates that are not a list',
+			json: { routes: [{ geometry: { coordinates: 5 }, distance: 3243000, duration: 106200 }] },
+		},
+		{
+			name: 'a position that is not two numbers',
+			json: { routes: [{ geometry: { coordinates: [WAYPOINTS[0], [-87.63, '41.88']] } }] },
+		},
+		{
+			name: 'a total that is not a number',
+			json: { routes: [{ geometry: { coordinates: WAYPOINTS }, distance: '3243000' }] },
+		},
+		// `JSON.parse` reads `1e999` as `Infinity`.
+		{
+			name: 'a total that is not finite',
+			json: {
+				routes: [{ geometry: { coordinates: WAYPOINTS }, duration: Number.POSITIVE_INFINITY }],
+			},
+		},
+		{ name: 'a code that is not a string', json: { code: 404, routes: [] } },
+		// The test reads each leg, and not only the leg that the reader takes.
+		{ name: 'a second leg that is not an object', json: { routes: [PAYLOAD.routes[0], 5] } },
+	])('reads a value of the wrong type as a payload failure: $name', async ({ json }) => {
+		stubFetch({ ok: true, json })
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual(NO_ANSWER)
+	})
+
+	it('takes the keys that it names from a body that holds more', async () => {
+		const coordinates = [
+			[-118.24, 34.05, 87],
+			[-87.63, 41.88, 180],
+		]
+
+		// The shape of an OSRM answer, with a third member in each position.
+		stubFetch({
+			ok: true,
+			json: {
+				code: 'Ok',
+				routes: [
+					{
+						geometry: { type: 'LineString', coordinates },
+						legs: [{ steps: [], summary: '', weight: 106200, duration: 106200, distance: 3243000 }],
+						weight_name: 'routability',
+						weight: 106200,
+						duration: 106200,
+						distance: 3243000,
+					},
+				],
+				waypoints: [
+					{ hint: 'a', distance: 4.2, name: 'West 1st Street', location: [-118.24, 34.05] },
+					{ hint: 'b', distance: 9.9, name: 'North State Street', location: [-87.63, 41.88] },
+				],
+			},
+		})
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: true,
+			route: { path: coordinates, distanceMeters: 3243000, durationSeconds: 106200 },
+		})
+	})
+
 	it('honors a custom base URL and profile', async () => {
 		const mock = stubFetch({ ok: true, json: PAYLOAD })
 

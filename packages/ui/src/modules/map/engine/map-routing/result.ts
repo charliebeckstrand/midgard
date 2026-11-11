@@ -39,9 +39,11 @@ export type MapRouteAnswer =
  * service with no value for a key omits the key or writes `null`. Each level
  * can thus be `null`, and the reader takes a `null` as an absent value.
  *
+ * A parsed body is `unknown` until {@link isOsrmPayload} reads it as this type.
+ *
  * @internal
  */
-export type OsrmPayload = {
+type OsrmPayload = {
 	routes?: Array<{
 		/** GeoJSON geometry (OSRM `geometries=geojson`). */
 		geometry?: { coordinates?: LngLat[] | null } | null
@@ -51,6 +53,79 @@ export type OsrmPayload = {
 	/** The service's own status: `'Ok'` on a routed answer, its own refusal otherwise. */
 	code?: string | null
 } | null
+
+/** A level of a parsed body that holds keys: what JSON gives for `{}`. @internal */
+type Fields = Record<string, unknown>
+
+function isFields(value: unknown): value is Fields {
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/** Whether a key holds no value, or a value that passes `test`. @internal */
+function absentOr(value: unknown, test: (value: unknown) => boolean): boolean {
+	return value == null || test(value)
+}
+
+/**
+ * Whether a value is a number that a total or a position can hold. `JSON.parse`
+ * reads `1e999` as `Infinity`, which is neither.
+ *
+ * @internal
+ */
+function isNumber(value: unknown): boolean {
+	return typeof value === 'number' && Number.isFinite(value)
+}
+
+/**
+ * Whether a value is a GeoJSON position: a longitude, then a latitude. GeoJSON
+ * permits more members after the two, and the reader lets them stay.
+ *
+ * @internal
+ */
+function isPosition(value: unknown): boolean {
+	return Array.isArray(value) && isNumber(value[0]) && isNumber(value[1])
+}
+
+function isGeometry(value: unknown): boolean {
+	return (
+		isFields(value) &&
+		absentOr(value.coordinates, (line) => Array.isArray(line) && line.every(isPosition))
+	)
+}
+
+function isLeg(value: unknown): boolean {
+	return (
+		isFields(value) &&
+		absentOr(value.geometry, isGeometry) &&
+		absentOr(value.distance, isNumber) &&
+		absentOr(value.duration, isNumber)
+	)
+}
+
+/**
+ * Whether a parsed body is an {@link OsrmPayload}: each value that the type
+ * names is absent, or has the type that OSRM gives it. This is the one decode
+ * of the body. The body of a 200 comes from a service that the caller names,
+ * and nothing else says what it holds. The reader gives `coordinates` to the
+ * overlay as its `path` and the totals to the readout, so a value of the wrong
+ * type must stop here.
+ *
+ * A body holds more keys than the type names. The test does not read them.
+ *
+ * @internal
+ */
+function isOsrmPayload(body: unknown): body is OsrmPayload {
+	return absentOr(
+		body,
+		(held) =>
+			isFields(held) &&
+			absentOr(held.code, (code) => typeof code === 'string') &&
+			absentOr(
+				held.routes,
+				(routes) => Array.isArray(routes) && routes.every((leg) => absentOr(leg, isLeg)),
+			),
+	)
+}
 
 /**
  * The codes OSRM refuses a pair it cannot join with. `'NoRoute'` is where no
@@ -75,7 +150,7 @@ const REFUSAL_CODES: ReadonlySet<string> = new Set(['NoRoute', 'NoSegment'])
  * @internal
  */
 export function refusedFailure(status: number, body: unknown): MapRouteFailure {
-	const code = typeof body === 'object' && body !== null && 'code' in body ? body.code : undefined
+	const code = isFields(body) ? body.code : undefined
 
 	return typeof code === 'string' && REFUSAL_CODES.has(code)
 		? noRouteFailure(code)
@@ -100,12 +175,22 @@ function emptyPayloadFailure(payload: OsrmPayload): MapRouteFailure {
 	return payload?.routes == null ? routeFailure('payload') : noRouteFailure()
 }
 
-/** The first route's geometry and totals, or why the payload holds none. @internal */
-export function routeAnswer(payload: OsrmPayload): MapRouteAnswer {
-	const routes = payload?.routes
+/**
+ * The first route's geometry and totals, or why the body holds none. A body
+ * that is not an {@link OsrmPayload} is not a routing answer, whatever else it
+ * parsed as.
+ *
+ * @param body - The parsed body of a 200.
+ *
+ * @internal
+ */
+export function routeAnswer(body: unknown): MapRouteAnswer {
+	if (!isOsrmPayload(body)) return { ok: false, failure: routeFailure('payload') }
+
+	const routes = body?.routes
 
 	if (routes == null || routes.length === 0) {
-		return { ok: false, failure: emptyPayloadFailure(payload) }
+		return { ok: false, failure: emptyPayloadFailure(body) }
 	}
 
 	const route = routes[0]
