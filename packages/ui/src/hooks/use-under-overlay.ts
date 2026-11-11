@@ -30,7 +30,7 @@ import { isUnderEnteringOverlay, subscribeOverlayLayers } from '../utilities/ove
  * @returns The value to show.
  * @internal
  */
-export function useHeldUnderOverlay<T>(value: T, ref: RefObject<Element | null>): T {
+export function useUnderOverlay<T>(value: T, ref: RefObject<Element | null>): T {
 	const covered = useSyncExternalStore(
 		subscribeOverlayLayers,
 		() => ref.current !== null && isUnderEnteringOverlay(ref.current),

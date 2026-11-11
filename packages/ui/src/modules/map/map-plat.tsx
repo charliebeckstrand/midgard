@@ -12,11 +12,11 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { useHeldUnderOverlay } from '../../hooks/use-held-under-overlay'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
+import { useUnderOverlay } from '../../hooks/use-under-overlay'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -1053,7 +1053,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// of the open, while the backdrop is still clear. The ring and the halo
 	// therefore keep their last value until the backdrop covers the map, so the
 	// new mark does not paint at full contrast for a frame and then dim.
-	const heldRegion = useHeldUnderOverlay(selectedRegion, svgRef)
+	const heldRegion = useUnderOverlay(selectedRegion, svgRef)
 
 	const selected = useMemo(() => {
 		if (heldRegion == null) return null
@@ -1063,7 +1063,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		return index === -1 ? null : index
 	}, [regionIds, heldRegion])
 
-	const markSelection = useHeldUnderOverlay(useMarkSelection(selectedOverlay), svgRef)
+	const markSelection = useUnderOverlay(useMarkSelection(selectedOverlay), svgRef)
 
 	// Registration ordinal per entry, so a staggered reveal can key off it.
 	const order = useMemo<ReadonlyMap<string, number>>(

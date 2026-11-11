@@ -148,7 +148,7 @@ export type OverlayProps = {
  *
  * The backdrop fades in from clear. Until it arrives, a mark on the page under
  * it holds a change that came with the open, such as the ring of a Map region
- * that a pick selected (`useHeldUnderOverlay`). The mark therefore does not
+ * that a pick selected (`useUnderOverlay`). The mark therefore does not
  * paint at full contrast for a frame and then dim.
  */
 export function Overlay({
