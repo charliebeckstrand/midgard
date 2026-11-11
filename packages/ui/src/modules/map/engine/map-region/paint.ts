@@ -13,7 +13,13 @@
 import { cn } from '../../../../core/cn'
 import { k } from '../../../../recipes/kata/map'
 import { contrastRatio } from '../../../../utilities/contrast'
-import { categoryLegendId, type MapCategoryMeta, paintColor, paintFill } from './category'
+import {
+	activeCategory,
+	categoryLegendId,
+	type MapCategoryMeta,
+	paintColor,
+	paintFill,
+} from './category'
 
 /**
  * The color wash's transition classes under `animate`; static maps color without
@@ -98,29 +104,27 @@ export function stripePatternId(base: string, index: number): string {
 }
 
 /**
- * One category's paint. The toggle / emphasis key is the category's stable
- * value ({@link categoryLegendId}), not its index. A reorder or removal
- * therefore can't re-point a hidden or emphasized entry at a different
- * category. The
- * neutral fill covers no-data (`null`), a toggled-off category, and the
- * pre-reveal beat, so the color (not the geometry) animates on. A striped
- * category fills from its pattern, which `pattern` names.
+ * One category's paint. `shown` is the category while the legend shows it
+ * ({@link activeCategory}), and `null` for no-data and for a toggled-off
+ * category. The toggle / emphasis key is the category's stable value
+ * ({@link categoryLegendId}), not its index. A reorder or removal therefore
+ * can't re-point a hidden or emphasized entry at a different category. The
+ * neutral fill covers `null` and the pre-reveal beat, so the color (not the
+ * geometry) animates on. A striped category fills from its pattern, which
+ * `pattern` names.
  *
  * @internal
  */
 function categoryPaint(
-	meta: MapCategoryMeta | null,
+	shown: MapCategoryMeta | null,
 	pattern: string | undefined,
-	hidden: ReadonlySet<string>,
 	revealed: boolean,
 	animate: boolean,
 	clickable: boolean,
 ): RegionPaint {
-	const id = meta === null ? null : categoryLegendId(meta.value)
+	const active = shown !== null
 
-	const active = id !== null && !hidden.has(id)
-
-	const applied = active && revealed && meta !== null ? meta.paint : null
+	const applied = active && revealed ? shown.paint : null
 
 	// The neutral is the layer's own fallback rather than a paint's, so it stays
 	// beside the projection rather than inside it.
@@ -141,7 +145,7 @@ function categoryPaint(
 	const className = cn(...base, (active || clickable) && k.region.hover)
 
 	return {
-		groupId: active ? id : null,
+		groupId: active ? categoryLegendId(shown.value) : null,
 		fillColor,
 		outline: emphasisOutline(color),
 		className,
@@ -169,17 +173,16 @@ export function resolveRegionPaints(
 	clickable: boolean,
 ): ResolvedRegionPaints {
 	return {
-		byCategory: categories.map((meta, index) =>
+		byCategory: categories.map((_, index) =>
 			categoryPaint(
-				meta,
+				activeCategory(index, categories, hidden),
 				stripePatternId(patternBase, index),
-				hidden,
 				revealed,
 				animate,
 				clickable,
 			),
 		),
-		none: categoryPaint(null, undefined, hidden, revealed, animate, clickable),
+		none: categoryPaint(null, undefined, revealed, animate, clickable),
 	}
 }
 

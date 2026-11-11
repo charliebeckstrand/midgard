@@ -133,21 +133,25 @@ export function binEmphasisId(bin: number): string {
 }
 
 /**
- * The legend id a region's toggle and emphasis key on (its category's stable
- * {@link categoryLegendId}), or `null` for a no-data region outside every
- * group. The plat's pointed-mark gate reads it. The region fill spells the same
- * resolution in `categoryPaint` (`map-region/paint`), so a change to one must
- * reach the other.
+ * The category that a region answers to: the entry at its category index, while
+ * the legend shows it. `null` for a no-data region outside every group, and for
+ * a region whose category is toggled off (`hidden` holds its
+ * {@link categoryLegendId}).
+ *
+ * This is the one statement of the rule. The region fill keys the toggle and
+ * emphasis group of each paint on it (`map-region/paint`). The plat's
+ * pointed-mark gate and the region row of the tooltip read it too.
  *
  * @internal
  */
-export function regionGroupId(
-	category: number | null,
+export function activeCategory(
+	category: number | null | undefined,
 	categories: MapCategoryMeta[],
-): string | null {
-	const meta = category === null ? null : (categories[category] ?? null)
+	hidden: ReadonlySet<string>,
+): MapCategoryMeta | null {
+	const meta = category == null ? undefined : categories[category]
 
-	return meta === null ? null : categoryLegendId(meta.value)
+	return meta === undefined || hidden.has(categoryLegendId(meta.value)) ? null : meta
 }
 
 /**
