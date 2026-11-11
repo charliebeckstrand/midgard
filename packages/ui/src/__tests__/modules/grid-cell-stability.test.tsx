@@ -145,3 +145,52 @@ describe('Grid plain rows across a sort', () => {
 		expect(places).toEqual(rows.map((_, index) => String(index)))
 	})
 })
+
+describe('Grid rows across a fresh array of the same columns', () => {
+	type Row = { id: number; name: string }
+
+	const rows: Row[] = Array.from({ length: 20 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+
+	// The column sets no `sortable`, so the grid gives it the default, and a
+	// fresh array that reached that step would give each cell a new column.
+	it.each([
+		['a plain grid', false],
+		['a navigable grid', true],
+	])('renders no cell in %s', (_, navigable) => {
+		let calls = 0
+
+		const columns: GridColumn<Row>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				cell: (row) => {
+					calls++
+
+					return row.name
+				},
+			},
+		]
+
+		function Harness() {
+			const [, setTick] = useState(0)
+
+			return (
+				<>
+					<button type="button" onClick={() => setTick((tick) => tick + 1)}>
+						Rerender
+					</button>
+
+					<Grid columns={[...columns]} rows={rows} getKey={(row) => row.id} navigable={navigable} />
+				</>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		calls = 0
+
+		fireEvent.click(screen.getByRole('button', { name: 'Rerender' }))
+
+		expect(calls).toBe(0)
+	})
+})

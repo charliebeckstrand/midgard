@@ -5,7 +5,9 @@ import { announce } from '../../core/announcer'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useControllable } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useStableValue } from '../../hooks/use-stable-value'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { sameElements } from '../../utilities/same-elements'
 import { describeColumnVisibility, describePin } from './engine/grid-announcements'
 import { columnLabel } from './engine/grid-column/label'
 import { implyVirtualize } from './engine/grid-data/guards'
@@ -122,9 +124,14 @@ export function useGridDataColumns<T>({
 		overscan,
 	} = resolveVirtualization(implyVirtualize(virtualize, infiniteScrollConfig))
 
+	// A fresh array of the same columns holds the previous reference, as a
+	// consumer that builds the array in render passes it. Each column phase then
+	// keeps its output, and the rows and cells hold their memo.
+	const heldColumns = useStableValue(columns, sameElements)
+
 	// Columns sort by default; bake that into each data column that doesn't set
 	// its own `sortable`, so head and engine read one resolved flag.
-	const resolvedColumns = useMemo(() => resolveSortable(columns), [columns])
+	const resolvedColumns = useMemo(() => resolveSortable(heldColumns), [heldColumns])
 
 	// Menu-applied pin changes, layered over the static `pinned` flags. Folding
 	// them into the columns here lets the column and engine hooks read one

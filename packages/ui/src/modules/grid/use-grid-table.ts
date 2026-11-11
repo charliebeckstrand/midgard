@@ -36,10 +36,8 @@ import type { DensityStep } from '../../core/density/steps'
 import { useControllable } from '../../hooks/use-controllable'
 import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useStableValue } from '../../hooks/use-stable-value'
 import { useLocale } from '../../providers/locale/context'
 import { isDataColumn } from '../../utilities/is-data-column'
-import { sameElements } from '../../utilities/same-elements'
 import type { GridSortState } from './context'
 import { compileColumnFilters } from './engine/grid-filter/filter'
 import { applyRowKeyOrder } from './engine/grid-group/row-manager'
@@ -515,7 +513,7 @@ function useFilterView<T>(args: {
  */
 export function useGridTable<T>({
 	rows,
-	columns: suppliedColumns,
+	columns,
 	getKey,
 	selection,
 	columnOrder = EMPTY_COLUMN_ORDER,
@@ -540,10 +538,6 @@ export function useGridTable<T>({
 	density,
 	grandTotal = false,
 }: GridTableParams<T>): GridTableResult<T> {
-	// A fresh array of the same columns holds the previous reference. The engine
-	// then keeps its columns, and every column-derived value keeps its identity.
-	const columns = useStableValue(suppliedColumns, sameElements)
-
 	// The smart comparator reads the sort direction from the engine when it runs,
 	// so a direction flip does not rebuild the column definitions.
 	const columnDefs = useMemo(() => toColumnDefs(columns), [columns])
