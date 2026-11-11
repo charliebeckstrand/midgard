@@ -7,7 +7,7 @@ import type { MapHoverTarget } from './engine/map-hover/target'
 import { seriesSwatchClass } from './engine/map-legend/items'
 import type { MapOverlayEntry, MapStopRow } from './engine/map-overlay/entry'
 import { type MapNumberFormat, markReadout } from './engine/map-overlay/readout'
-import { targetParts, targetStop } from './engine/map-overlay/selection'
+import { targetParts } from './engine/map-overlay/selection'
 import {
 	categoryLegendId,
 	type MapCategoryMeta,
@@ -123,15 +123,16 @@ function resolveCard(
 	target: MapHoverTarget,
 	props: MapTooltipProps,
 ): { key: string; content: MapTooltipContent }[] | null {
-	// The target's own block, which also answers whether the tooltip shows at all:
-	// a region with no value, and a mark that the legend toggled off, show nothing.
-	const content = resolve(target, props)
+	if (target.kind === 'region') {
+		const content = regionContent(target.index, props)
 
-	if (content === null) return null
+		return content === null ? null : [{ key: 'target', content }]
+	}
 
-	const entry = target.kind === 'entry' ? props.entries.get(target.id) : undefined
+	// A mark that the legend toggled off shows nothing.
+	const entry = props.hidden.has(target.id) ? undefined : props.entries.get(target.id)
 
-	if (target.kind === 'region' || entry === undefined) return [{ key: 'target', content }]
+	if (entry === undefined) return null
 
 	return targetParts(target, entry).flatMap((part) => {
 		const owner = props.hidden.has(part.id) ? undefined : props.entries.get(part.id)
@@ -147,38 +148,19 @@ function resolveCard(
 	})
 }
 
-/** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */
-function resolve(
-	target: MapHoverTarget,
-	{
-		regionNames,
-		regionCategory,
-		regionValues,
-		categories,
-		entries,
-		hidden,
-		nameRegions,
-		formatNumber,
-	}: MapTooltipProps,
+/** Resolves the tooltip content for the region at `index`, or `null` to stay away. @internal */
+function regionContent(
+	index: number,
+	{ regionNames, regionCategory, regionValues, categories, hidden, nameRegions }: MapTooltipProps,
 ): MapTooltipContent | null {
-	if (target.kind === 'entry') {
-		if (hidden.has(target.id)) return null
-
-		const entry = entries.get(target.id)
-
-		if (entry === undefined) return null
-
-		return stopContent(entry, targetStop(target, entry.getStop), formatNumber)
-	}
-
-	const category = regionCategory[target.index]
+	const category = regionCategory[index]
 
 	// What a region with no value of its own reads as: its name where the caller
 	// asked for one, and silence otherwise. The shape under the pointer is still a
 	// place, and naming it is the whole of what a navigation map has to say; the
 	// silence is what keeps a backdrop map from raising an empty tooltip over
 	// every region it draws.
-	const unmatched = () => nameOnly(regionNames[target.index], nameRegions)
+	const unmatched = () => nameOnly(regionNames[index], nameRegions)
 
 	if (category == null) return unmatched()
 
@@ -189,7 +171,7 @@ function resolve(
 	const { paint } = meta
 
 	return {
-		title: regionNames[target.index] ?? '',
+		title: regionNames[index] ?? '',
 		row: {
 			swatch: 'rect',
 			swatchClass: paintText(paint),
@@ -197,7 +179,7 @@ function resolve(
 			swatchStripes: paintStripes(paint),
 			// A region's own value in numeric mode (its bin only drives the color);
 			// the category label otherwise.
-			text: regionValues[target.index] ?? meta.label,
+			text: regionValues[index] ?? meta.label,
 		},
 	}
 }
