@@ -55,7 +55,7 @@ export type DrawerGo = (step: DrawerStep | null) => void
  * again.
  *
  * A move reads the step from the address of the browser when it runs. The
- * Drawer follows that address at once (see {@link useAddressStep}), so the step
+ * Drawer follows that address at once (see {@link useDrawerAddressStep}), so the step
  * that a move reads is the step that the Drawer shows.
  *
  * Each move is a history entry, so Back walks the trail of the Drawer and then
@@ -131,7 +131,7 @@ export function useDrawerGo(election: Election): DrawerGo {
  * @returns The step, or `null` for a closed Drawer, and a function that moves
  * the Drawer to a step, or closes it with `null`.
  */
-export function useAddressStep(election: Election): {
+export function useDrawerAddressStep(election: Election): {
 	step: DrawerStep | null
 	go: DrawerGo
 } {
@@ -202,7 +202,7 @@ export function setDrawerArrived(value: boolean): void {
  * the open panel and not in the frames before the backdrop covers the page.
  * Each reader of the step on the page takes this hook, so each mark waits for
  * the panel with no rule of its own. Only the Drawer reads
- * {@link useAddressStep}.
+ * {@link useDrawerAddressStep}.
  *
  * Each move renders each reader of the step again. A part of the page that
  * only moves the Drawer takes {@link useDrawerGo}.
@@ -215,7 +215,7 @@ export function useDrawerStep(election: Election): {
 	step: DrawerStep | null
 	go: DrawerGo
 } {
-	const { step, go } = useAddressStep(election)
+	const { step, go } = useDrawerAddressStep(election)
 
 	const up = useSyncExternalStore(subscribeArrival, readArrival, arrivedAtRest)
 

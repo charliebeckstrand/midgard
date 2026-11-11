@@ -3,7 +3,7 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { findElection } from '../elections/registry'
 import { stateOfKey } from '../elections/us-states'
-import { useAddressStep, useDrawerGo } from '../hooks/use-drawer'
+import { useDrawerAddressStep, useDrawerGo } from '../hooks/use-drawer'
 
 /**
  * The search of the router. `null` follows the address of the browser. A
@@ -31,11 +31,11 @@ const georgia = stateOfKey('ga')
 
 if (georgia === undefined) throw new Error('No state has the key ga.')
 
-describe('useAddressStep', () => {
+describe('useDrawerAddressStep', () => {
 	it('writes no history entry for a move to the current step', () => {
 		window.history.replaceState(null, '', '/2026/us/midterms?region=ga&office=senate')
 
-		const { result } = renderHook(() => useAddressStep(midterms))
+		const { result } = renderHook(() => useDrawerAddressStep(midterms))
 
 		const { step } = result.current
 
@@ -57,7 +57,7 @@ describe('useAddressStep', () => {
 
 		router.search = ''
 
-		const { result } = renderHook(() => useAddressStep(midterms))
+		const { result } = renderHook(() => useDrawerAddressStep(midterms))
 
 		expect(result.current.step).toBeNull()
 
@@ -71,7 +71,7 @@ describe('useAddressStep', () => {
 
 		router.search = 'region=ga&office=senate'
 
-		const { result } = renderHook(() => useAddressStep(midterms))
+		const { result } = renderHook(() => useDrawerAddressStep(midterms))
 
 		expect(result.current.step?.office).toBe('senate')
 
@@ -85,7 +85,7 @@ describe('useAddressStep', () => {
 
 		router.search = 'region=ga'
 
-		const { result } = renderHook(() => useAddressStep(midterms))
+		const { result } = renderHook(() => useDrawerAddressStep(midterms))
 
 		expect(result.current.step?.region.key).toBe('ga')
 
@@ -103,7 +103,7 @@ describe('useAddressStep', () => {
 
 		let renders = 0
 
-		const drawer = renderHook(() => useAddressStep(midterms))
+		const drawer = renderHook(() => useDrawerAddressStep(midterms))
 
 		const opener = renderHook(() => {
 			renders += 1
