@@ -5,7 +5,7 @@ import { Stack } from 'ui/structure/stack'
 import statesAtlas from 'us-atlas/states-albers-10m.json'
 import type { Contest, Election } from '../../elections/registry'
 import { stateOfFips } from '../../elections/us-states'
-import { useDrawerStep } from '../../hooks/use-drawer'
+import { useDrawerArrived, useDrawerStep } from '../../hooks/use-drawer'
 import { type RaceEntry, WINNER_CATEGORIES } from '../../utilities/results'
 import type { OfficeItem } from '../../utilities/trail'
 import { ClosestRaces } from '../closest-races'
@@ -29,9 +29,10 @@ export type NationalMapProps = {
 /**
  * The national map of an office under the title of its page, colored by the
  * winner of each state. A click on a state with a race opens the Drawer on the
- * office in the state. A state with no race of the office is disabled: it takes
- * no click, no pointer cursor, and no hover. Under
- * the map, the closest races open the Drawer on their race.
+ * office in the state. The state of the Drawer takes a ring once the panel is
+ * up. A state with no race of the office is disabled: it takes no click, no
+ * pointer cursor, and no hover. Under the map, the closest races open the
+ * Drawer on their race.
  */
 export function NationalMap({
 	election,
@@ -42,6 +43,11 @@ export function NationalMap({
 	items,
 }: NationalMapProps) {
 	const { step, go } = useDrawerStep(election)
+
+	// The ring of the state of the Drawer comes once the panel is up. Before
+	// that, the backdrop is still clear, so a ring would show at full contrast
+	// for a frame and then dim.
+	const arrived = useDrawerArrived()
 
 	// The map colors the states with a category. A state with a race and no
 	// category yet stays neutral, and a click still opens it.
@@ -62,7 +68,7 @@ export function NationalMap({
 				geographyObject="states"
 				projection="identity"
 				regionKey="fips"
-				selectedRegion={step?.region.fips ?? null}
+				selectedRegion={step !== null && arrived ? step.region.fips : null}
 				onRegionClick={(fips: string) => {
 					const state = stateOfFips(fips)
 

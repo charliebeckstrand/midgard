@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { seed } from 'shared/queries'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ElectionDrawer } from '../components/election-drawer'
 import { ElectionRacesProvider } from '../components/election-drawer/context'
 import { type Election, findContest, findElection } from '../elections/registry'
+import { useDrawerArrived } from '../hooks/use-drawer'
 import { readNationalRace, readRace } from '../server/civic-race'
 import { atlasCountyNames } from '../server/county-names'
 import { readEntries } from '../utilities/results'
@@ -202,5 +203,45 @@ describe('ElectionDrawer', () => {
 		expect(screen.getByText('Unknown')).toBeTruthy()
 		// A general election has no line of its kind.
 		expect(screen.queryByText('General election')).toBeNull()
+	})
+
+	it('tells the page that the panel is up only once it arrives', async () => {
+		window.history.replaceState(null, '', '/2026/us/midterms')
+
+		const client = new QueryClient()
+
+		/** Shows whether the panel is up, as the ring of the map reads it. */
+		function Probe() {
+			return h('output', { 'data-testid': 'arrived' }, String(useDrawerArrived()))
+		}
+
+		const page = () => h('div', null, drawer(client), h(Probe))
+
+		const view = render(page())
+
+		const arrived = () => screen.getByTestId('arrived').textContent
+
+		// A closed Drawer is not up, so the next open waits for its arrival.
+		expect(arrived()).toBe('false')
+
+		act(() => {
+			window.history.pushState(null, '', '/2026/us/midterms?region=ga&office=senate')
+
+			view.rerender(page())
+		})
+
+		// The commit that opens the panel does not mark it up.
+		expect(screen.getByRole('dialog')).toBeTruthy()
+		expect(arrived()).toBe('false')
+
+		await waitFor(() => expect(arrived()).toBe('true'))
+
+		act(() => {
+			window.history.pushState(null, '', '/2026/us/midterms')
+
+			view.rerender(page())
+		})
+
+		expect(arrived()).toBe('false')
 	})
 })

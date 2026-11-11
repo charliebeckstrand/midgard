@@ -2,7 +2,7 @@
 
 import { ArrowRight } from 'lucide-react'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Seed } from 'shared/queries'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
@@ -11,7 +11,7 @@ import { SearchInput } from 'ui/search-input'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
-import { useDrawerStep } from '../../hooks/use-drawer'
+import { setDrawerArrived, useDrawerStep } from '../../hooks/use-drawer'
 import { useRace } from '../../queries/race-queries'
 import type { CountyResult, Race } from '../../types'
 import { type DrawerStep, districtName, drawerHref, statePath } from '../../utilities/elections-url'
@@ -412,5 +412,20 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 			? null
 			: drawerView(election, results, step, entry, race, go, views, layouts, search, pathname)
 
-	return <ResultDrawer view={view} onClose={() => go(null)} />
+	const open = view !== null
+
+	// A closed panel is not up, so the next open waits for its arrival (see
+	// `useDrawerArrived`). A close by Back does not pass `go`, so the close
+	// commit clears the mark.
+	useEffect(() => {
+		if (!open) setDrawerArrived(false)
+	}, [open])
+
+	return (
+		<ResultDrawer
+			view={view}
+			onClose={() => go(null)}
+			onOpenComplete={() => setDrawerArrived(true)}
+		/>
+	)
 }
