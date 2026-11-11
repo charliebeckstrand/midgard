@@ -1,4 +1,4 @@
-import { act } from 'react'
+import { act, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
 import { fireEvent, renderUI, screen, setupUser } from '../helpers'
@@ -167,6 +167,127 @@ describe('Grid tab stops', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(screen.getByRole('button', { name: 'Edit Alice' })).not.toHaveAttribute('tabindex')
+	})
+
+	// The walk reads the records of a change, so each kind of change must name
+	// the controls that it touches.
+	describe('after a change of the rows or the controls', () => {
+		it('takes a control out of the tab order when it leaves `disabled`', async () => {
+			function Harness() {
+				const [locked, setLocked] = useState(true)
+
+				const lockColumns: GridColumn<Row>[] = [
+					{ id: 'name', title: 'Name', cell: (row) => row.name },
+					{
+						id: 'actions',
+						actions: (row) => (
+							<button type="button" disabled={locked}>
+								Archive {row.name}
+							</button>
+						),
+					},
+				]
+
+				return (
+					<>
+						<Grid columns={lockColumns} rows={rows} getKey={getKey} navigable />
+						<button type="button" onClick={() => setLocked(false)}>
+							Unlock
+						</button>
+					</>
+				)
+			}
+
+			renderUI(<Harness />)
+
+			// The observer runs in a microtask after the change.
+			await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Unlock' })))
+
+			expect(screen.getByRole('button', { name: 'Archive Alice' })).toHaveAttribute(
+				'tabindex',
+				'-1',
+			)
+
+			expect(tabbable(screen.getByRole('grid'))).toEqual([])
+		})
+
+		it('takes the controls of a new row out of the tab order', async () => {
+			const { rerender } = renderUI(
+				<Grid columns={columns} rows={rows} getKey={getKey} navigable />,
+			)
+
+			await act(async () =>
+				rerender(
+					<Grid
+						columns={columns}
+						rows={[...rows, { id: 3, name: 'Cara' }]}
+						getKey={getKey}
+						navigable
+					/>,
+				),
+			)
+
+			expect(screen.getByRole('button', { name: 'Edit Cara' })).toHaveAttribute('tabindex', '-1')
+
+			expect(tabbable(screen.getByRole('grid'))).toEqual([])
+		})
+
+		it('keeps the tab order of each control when a sort moves the rows', () => {
+			const grid = renderGrid()
+
+			act(() => screen.getByRole('button', { name: 'Edit Alice' }).focus())
+
+			fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
+
+			fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
+
+			expect(screen.getAllByRole('row')[1]).toHaveTextContent('Bob')
+
+			act(() => screen.getByRole('button', { name: 'Edit Alice' }).focus())
+
+			expect(tabbable(grid).map((element) => element.textContent)).toEqual([
+				'Edit Alice',
+				'Delete Alice',
+			])
+		})
+
+		it('leaves a control of a nested grid to that grid', async () => {
+			function Harness() {
+				const [inner, setInner] = useState(rows)
+
+				return (
+					<>
+						<Grid
+							columns={[{ id: 'expand', expander: true }, ...columns]}
+							rows={rows}
+							getKey={getKey}
+							navigable
+							expandable={{
+								defaultValue: new Set([1]),
+								render: () => <Grid columns={columns} rows={inner} getKey={getKey} navigable />,
+							}}
+						/>
+						<button type="button" onClick={() => setInner([...rows, { id: 3, name: 'Cara' }])}>
+							Add
+						</button>
+					</>
+				)
+			}
+
+			renderUI(<Harness />)
+
+			await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Add' })))
+
+			const nested = screen.getAllByRole('grid')[1] as HTMLElement
+
+			expect(screen.getByRole('button', { name: 'Edit Cara' })).toHaveAttribute('tabindex', '-1')
+
+			// The panel is a closed cell of the outer grid, so the tab stop of the
+			// nested grid is out of the tab order too.
+			expect(nested).toHaveAttribute('tabindex', '-1')
+
+			expect(tabbable(nested)).toEqual([])
+		})
 	})
 
 	describe('a row with open editors', () => {

@@ -129,10 +129,24 @@ function unpin(element: HTMLElement): void {
  * Only the attributes that differ change, so a call that changes nothing
  * writes nothing.
  *
+ * The walk visits the candidates in `root` and `root` itself. The default
+ * `root` is the whole table. A caller that knows which elements changed gives
+ * each of them, so that a small change walks a small part of the table.
+ *
  * @internal
  */
-export function pinControls(table: HTMLTableElement, entered: Element | null, unit: string): void {
-	for (const element of table.querySelectorAll<HTMLElement>(CANDIDATES)) {
+export function pinControls(
+	table: HTMLTableElement,
+	entered: Element | null,
+	unit: string,
+	root: Element = table,
+): void {
+	const candidates = Array.from(root.querySelectorAll<HTMLElement>(CANDIDATES))
+
+	if (root !== table && root instanceof HTMLElement && root.matches(CANDIDATES))
+		candidates.push(root)
+
+	for (const element of candidates) {
 		// The roving hook owns the `tabindex` of a roving item.
 		if (element.hasAttribute('data-roving')) continue
 
