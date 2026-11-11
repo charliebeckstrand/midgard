@@ -47,7 +47,7 @@ import { type MapOverlayAnchor, sameAnchors } from './engine/map-overlay/entry'
 import { targetParts } from './engine/map-overlay/selection'
 import { overlaySlotColors } from './engine/map-overlay/slots'
 import { createSpareStore } from './engine/map-overlay/spare'
-import { regionGroupId } from './engine/map-region/category'
+import { activeCategory } from './engine/map-region/category'
 import type { MapCategoricalData, MapNoData, MapNumericData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
 import { NO_REGION_CLAIM } from './engine/map-region/spare'
@@ -1103,14 +1103,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	useReportedChange(ownEmphasis, onEmphasisChange)
 
 	// The hover provider's pointed-emphasis gate: a region takes the emphasis
-	// only while its category is matched and shown. `regionGroupId` resolves the
-	// group id that the region fill also keys on (`categoryPaint`).
+	// only while its category is matched and shown. `activeCategory` is the rule
+	// that the region fill keys its group on.
 	const regionActive = useCallback(
-		(index: number) => {
-			const id = regionGroupId(regionCategory[index] ?? null, categoryMetas)
-
-			return id !== null && !hidden.has(id)
-		},
+		(index: number) => activeCategory(regionCategory[index], categoryMetas, hidden) !== null,
 		[regionCategory, categoryMetas, hidden],
 	)
 

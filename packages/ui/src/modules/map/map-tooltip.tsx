@@ -9,7 +9,7 @@ import type { MapOverlayEntry, MapStopRow } from './engine/map-overlay/entry'
 import { type MapNumberFormat, markReadout } from './engine/map-overlay/readout'
 import { targetParts } from './engine/map-overlay/selection'
 import {
-	categoryLegendId,
+	activeCategory,
 	type MapCategoryMeta,
 	paintColor,
 	paintStripes,
@@ -153,20 +153,14 @@ function regionContent(
 	index: number,
 	{ regionNames, regionCategory, regionValues, categories, hidden, nameRegions }: MapTooltipProps,
 ): MapTooltipContent | null {
-	const category = regionCategory[index]
+	const meta = activeCategory(regionCategory[index], categories, hidden)
 
 	// What a region with no value of its own reads as: its name where the caller
 	// asked for one, and silence otherwise. The shape under the pointer is still a
 	// place, and naming it is the whole of what a navigation map has to say; the
 	// silence is what keeps a backdrop map from raising an empty tooltip over
 	// every region it draws.
-	const unmatched = () => nameOnly(regionNames[index], nameRegions)
-
-	if (category == null) return unmatched()
-
-	const meta = categories[category]
-
-	if (meta === undefined || hidden.has(categoryLegendId(meta.value))) return unmatched()
+	if (meta === null) return nameOnly(regionNames[index], nameRegions)
 
 	const { paint } = meta
 

@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { cn } from '../../core/cn'
 import { paletteSlot } from '../../modules/chart/engine/chart-color/palette'
 import {
+	activeCategory,
+	categoryLegendId,
 	paintFill,
 	paintStripes,
 	paintText,
@@ -122,5 +124,38 @@ describe('regionCategoryIndexes', () => {
 		const limited = resolveCategories(FIXTURE_ROWS, 'zone', [{ value: 'East' }])
 
 		expect(regionCategoryIndexes(['A', 'B'], rows, 'zone', limited)).toEqual([0, null])
+	})
+})
+
+describe('activeCategory', () => {
+	const metas = resolveCategories(FIXTURE_ROWS, 'zone')
+
+	const [east, west] = metas
+
+	if (!east || !west) throw new Error('expected two categories')
+
+	const shown: ReadonlySet<string> = new Set()
+
+	it('gives the category of a matched region while the legend shows it', () => {
+		expect(activeCategory(0, metas, shown)).toBe(east)
+
+		expect(activeCategory(1, metas, shown)).toBe(west)
+	})
+
+	it('gives nothing for a region that matches no category', () => {
+		// A no-data region holds `null`, and an index past the regions reads `undefined`.
+		expect(activeCategory(null, metas, shown)).toBeNull()
+
+		expect(activeCategory(undefined, metas, shown)).toBeNull()
+
+		expect(activeCategory(metas.length, metas, shown)).toBeNull()
+	})
+
+	it('gives nothing for a category that the legend holds off, and keeps the others', () => {
+		const hidden = new Set([categoryLegendId(west.value)])
+
+		expect(activeCategory(1, metas, hidden)).toBeNull()
+
+		expect(activeCategory(0, metas, hidden)).toBe(east)
 	})
 })
