@@ -1,4 +1,4 @@
-import { type GeoPermissibleObjects, geoBounds, geoContains } from 'd3-geo'
+import { geoBounds, geoContains } from 'd3-geo'
 import type { LngLat } from 'ui/map'
 import { cities } from '../../../../data/places.ts'
 import { stateName, states } from '../data.ts'
@@ -40,16 +40,6 @@ const stops: { city: string; at: LngLat; parcels?: number }[] = [
 	{ city: cities.savannah, at: [-81.1, 32.08], parcels: 11 },
 ]
 
-/**
- * Each stop with its label and its readout. A depot has no parcels, its label
- * names it as a depot, and its readout is "Origin".
- */
-export const deliveryStops = stops.map((stop) => ({
-	...stop,
-	label: stop.parcels === undefined ? `${stop.city} depot` : stop.city,
-	detail: stop.parcels === undefined ? 'Origin' : `${stop.parcels} parcels`,
-}))
-
 /** Whether a position is in a `geoBounds` box. A box across the antimeridian has its west edge east of its east edge. */
 function withinBox([[west, south], [east, north]]: [LngLat, LngLat], [lon, lat]: LngLat): boolean {
 	const inLongitude = west <= east ? lon >= west && lon <= east : lon >= west || lon <= east
@@ -57,19 +47,30 @@ function withinBox([[west, south], [east, north]]: [LngLat, LngLat], [lon, lat]:
 	return inLongitude && lat >= south && lat <= north
 }
 
-const bounds = states.features.map((state) => {
-	const shape = state as unknown as GeoPermissibleObjects
-
-	return { name: stateName(state), box: geoBounds(shape), shape }
-})
+const bounds = states.features.flatMap((state) =>
+	state.geometry === null
+		? []
+		: [{ name: stateName(state), box: geoBounds(state.geometry), shape: state.geometry }],
+)
 
 /**
- * The state that holds each stop, in the order of `deliveryStops`. The atlas
- * gives the state, so no row of the data names it. The box test goes first,
- * because `geoContains` reads each vertex of a state.
+ * The state that holds a position. The atlas gives the state, so no row of the
+ * data names it. The box test goes first, because `geoContains` reads each
+ * vertex of a state.
  */
-export const stopStates: (string | null)[] = deliveryStops.map(
-	(stop) =>
-		bounds.find((state) => withinBox(state.box, stop.at) && geoContains(state.shape, stop.at))
-			?.name ?? null,
-)
+function stateAt(at: LngLat): string | null {
+	return (
+		bounds.find((state) => withinBox(state.box, at) && geoContains(state.shape, at))?.name ?? null
+	)
+}
+
+/**
+ * Each stop with its label, its readout, and its state. A depot has no parcels,
+ * its label names it as a depot, and its readout is "Origin".
+ */
+export const deliveryStops = stops.map((stop) => ({
+	...stop,
+	label: stop.parcels === undefined ? `${stop.city} depot` : stop.city,
+	detail: stop.parcels === undefined ? 'Origin' : `${stop.parcels} parcels`,
+	state: stateAt(stop.at),
+}))

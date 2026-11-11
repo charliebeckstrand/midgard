@@ -7,19 +7,20 @@ import { Text } from 'ui/text'
 import { stateLabel } from '../../../data/us-states.ts'
 import { labelOfState, stateName, states, timezones, zoneCategories } from './data.ts'
 
+const zoned = new Set(timezones.map((row) => row.state))
+
+// A state with no timezone row has no option in the select, so the map disables
+// it: it takes no pointer cursor, and a click on it picks nothing.
+const unzoned = (state: string) => !zoned.has(state)
+
 export default function SelectAState() {
 	// One value drives the map and the select, so they always show the same state.
 	const [picked, setPicked] = useState<string | null>(null)
 
 	const zone = timezones.find((row) => row.state === picked)?.zone
 
-	// A click on the picked state clears the pick. A state with no timezone row
-	// has no option in the select, so a click on it picks nothing.
-	const pick = (state: string) => {
-		if (!timezones.some((row) => row.state === state)) return
-
-		setPicked((prev) => (prev === state ? null : state))
-	}
+	// A click on the picked state clears the pick.
+	const pick = (state: string) => setPicked((prev) => (prev === state ? null : state))
 
 	return (
 		<Stack gap="md">
@@ -54,6 +55,7 @@ export default function SelectAState() {
 				regionId={stateName}
 				regionLabel={stateLabel}
 				onRegionClick={pick}
+				isRegionDisabled={unzoned}
 				selectedRegion={picked}
 				legend="right"
 			/>
