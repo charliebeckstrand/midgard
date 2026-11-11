@@ -19,7 +19,6 @@ import {
 } from './engine/grid-data/seeds'
 import {
 	isGroupableColumnId,
-	resolveDetailExpansion,
 	resolveGroupingGates,
 	resolveGroupingMode,
 } from './engine/grid-group/resolve'
@@ -178,14 +177,11 @@ export function useGridDataColumns<T>({
 	// The grid's own id scope keeps the detail panel ids of two grids apart.
 	const detailIdScope = useId()
 
-	const expansion = useGridExpansion<T>(expandableConfig)
-	const groupingActive = groupingMode.active
-	const paginated = paginationConfig != null
-
-	// One wiring while its inputs hold, so the memoized body does not render again.
-	const detail = useMemo(
-		() => resolveDetailExpansion(expansion, groupingActive, detailIdScope, paginated),
-		[expansion, groupingActive, detailIdScope, paginated],
+	const detail = useGridExpansion<T>(
+		expandableConfig,
+		groupingMode.active,
+		detailIdScope,
+		paginationConfig != null,
 	)
 
 	// Manual grouping stands the cursor down, and editing with it, because the
