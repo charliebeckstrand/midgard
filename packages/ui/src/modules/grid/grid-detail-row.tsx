@@ -44,7 +44,7 @@ type GridExpandToggleProps = {
  *
  * @internal
  */
-export function GridExpandToggle({
+function GridExpandToggleImpl({
 	expanded,
 	expandable,
 	rowKey,
@@ -85,6 +85,12 @@ export function GridExpandToggle({
 		</Button>
 	)
 }
+
+/**
+ * Memoized {@link GridExpandToggleImpl}. When a row re-renders, the toggle renders
+ * again only when its own props change. @internal
+ */
+export const GridExpandToggle = memo(GridExpandToggleImpl)
 
 /** Props for {@link GridDetailRow}. @internal */
 type GridDetailRowProps<T> = {

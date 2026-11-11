@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import { TableHead, TableRow } from '../../components/table'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
@@ -91,7 +91,7 @@ type GridHeadProps<T> = {
  *
  * @internal
  */
-export function GridHead<T>({
+function GridHeadImpl<T>({
 	context,
 	columns,
 	hasRows,
@@ -299,3 +299,10 @@ function GridHeaderCell<T>({
 
 	return <GridColumnHeader {...shared} />
 }
+
+/**
+ * Memoized {@link GridHeadImpl}. A render of the grid that changes no prop of the
+ * head, such as a change of the selected rows that does not change the
+ * select-all state, does not render the header cells again. @internal
+ */
+export const GridHead = memo(GridHeadImpl) as typeof GridHeadImpl

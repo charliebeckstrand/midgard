@@ -2,7 +2,7 @@
 
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import { GripVertical } from 'lucide-react'
-import { type ChangeEventHandler, type CSSProperties, type ReactNode, useId } from 'react'
+import { type ChangeEventHandler, type CSSProperties, memo, type ReactNode, useId } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
@@ -135,7 +135,7 @@ export function GridFitBox<T>({ col, children }: { col: GridColumn<T>; children:
  *
  * @internal
  */
-export function GridRowSpecialCell<T>({
+function GridRowSpecialCellImpl<T>({
 	col,
 	row,
 	rowKey,
@@ -187,3 +187,10 @@ export function GridRowSpecialCell<T>({
 
 	return null
 }
+
+/**
+ * Memoized {@link GridRowSpecialCellImpl}. When a row re-renders, a special cell
+ * whose own props did not change does not render again. A sort that gives each
+ * row a new place therefore does not run the `actions` renderer again. @internal
+ */
+export const GridRowSpecialCell = memo(GridRowSpecialCellImpl) as typeof GridRowSpecialCellImpl

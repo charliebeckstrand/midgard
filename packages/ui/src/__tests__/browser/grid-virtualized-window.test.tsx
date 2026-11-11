@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, waitFor } from '../helpers'
+import { frames, renderUI, waitFor } from '../helpers'
 
 /**
  * A virtualized grid renders a window of its rows, in a real browser. jsdom
@@ -29,5 +29,49 @@ describe('grid virtualized window (real browser)', () => {
 
 			expect(rendered).toBeLessThan(50)
 		})
+	})
+
+	// The body reads `rowClassName` for each row it renders, so a call counts a
+	// render of the window. A fresh `tableProps` object renders the grid again
+	// but changes no prop of the body.
+	it('renders no row when only the table props change', async () => {
+		let calls = 0
+
+		const rowClassName = () => {
+			calls++
+
+			return undefined
+		}
+
+		const getKey = (row: Row) => row.id
+
+		const grid = () => (
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				rowClassName={rowClassName}
+				tableProps={{ 'aria-label': 'Names' }}
+				virtualize
+				maxHeight="300px"
+			/>
+		)
+
+		const { container, rerender } = renderUI(grid())
+
+		await waitFor(() => {
+			expect(container.querySelectorAll('tbody tr[data-grid-row]').length).toBeGreaterThan(0)
+		})
+
+		// The rows measure, and the window settles.
+		await frames(3)
+
+		calls = 0
+
+		rerender(grid())
+
+		await frames(2)
+
+		expect(calls).toBe(0)
 	})
 })

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { toggleItem } from '../../utilities/toggle-item'
 import type { GridExpansionResult } from './engine/grid-group/resolve'
@@ -36,11 +36,13 @@ export function useGridExpansion<T>(config: GridExpandable<T> | undefined): Grid
 		[setExpanded],
 	)
 
-	return {
-		active: config != null,
-		expanded: expanded ?? EMPTY_EXPANSION,
-		toggle,
-		render: config?.render ?? null,
-		rowExpandable: config?.rowExpandable ?? ALWAYS_EXPANDABLE,
-	}
+	const active = config != null
+	const render = config?.render ?? null
+	const rowExpandable = config?.rowExpandable ?? ALWAYS_EXPANDABLE
+
+	// One object while its parts hold, so the memoized body does not render again.
+	return useMemo(
+		() => ({ active, expanded: expanded ?? EMPTY_EXPANSION, toggle, render, rowExpandable }),
+		[active, expanded, toggle, render, rowExpandable],
+	)
 }
