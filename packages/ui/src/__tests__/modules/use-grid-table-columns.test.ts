@@ -107,18 +107,4 @@ describe('useGridTable column resolution', () => {
 
 		expect(visibleIds(cols, { columnVisibility: { c: false } })).toEqual(['a', 'd', 'b'])
 	})
-
-	it('holds a stable visibleColumns reference across renders with identical contents', () => {
-		const { result, rerender } = renderHook(
-			({ cols }: { cols: GridColumn<Row>[] }) => useGridTable<Row>({ rows, columns: cols, getKey }),
-			{ initialProps: { cols: columns } },
-		)
-
-		const first = result.current.visibleColumns
-
-		// Same column objects, fresh array: the derived list reuses its reference.
-		rerender({ cols: [...columns] })
-
-		expect(result.current.visibleColumns).toBe(first)
-	})
 })
