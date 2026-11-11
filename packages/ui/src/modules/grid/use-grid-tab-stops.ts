@@ -29,6 +29,30 @@ function scopeFor(
 }
 
 /**
+ * The elements that a batch of mutation records names: the target of each
+ * changed attribute, and each added element. An element that the same batch
+ * removed and added only moved, as a sort moves a row. Its controls keep their
+ * state, so it is not one of them.
+ */
+function changedElements(records: MutationRecord[]): Set<Element> {
+	const moved = new Set<Node>()
+
+	for (const record of records) for (const node of record.removedNodes) moved.add(node)
+
+	const changed = new Set<Element>()
+
+	for (const record of records) {
+		if (record.type === 'attributes') changed.add(record.target as Element)
+
+		for (const node of record.addedNodes) {
+			if (node instanceof Element && !moved.has(node)) changed.add(node)
+		}
+	}
+
+	return changed
+}
+
+/**
  * Keeps a grid one tab stop. The controls in each part of the grid that
  * `unit` selects leave the tab order (see {@link pinControls}), so Tab and
  * Shift+Tab leave the grid in one press. The part is a cell of the keyboard
@@ -44,8 +68,9 @@ function scopeFor(
  * keeps that part open to Tab, because the surface gives focus back to it.
  * Any other move of focus out of the grid closes the part.
  *
- * The walk runs again when the parts or their controls change, as rows mount
- * or a control swaps for another.
+ * The walk runs again when the parts or their controls change, as rows mount,
+ * a control swaps for another, or a control leaves `disabled`. It visits only
+ * the elements that changed.
  *
  * @internal
  */
@@ -63,24 +88,36 @@ export function useGridTabStops(
 		// nothing in the grid, holds focus.
 		let entered: Element | null = null
 
-		// The walk writes only the attributes that differ, and it drops the records
-		// of its own writes, so they start no second walk.
-		const normalize = (watcher: MutationObserver) => {
-			pinControls(table, entered, unit)
+		// The walk visits each of `roots` that is in the document, and each element
+		// that a pending record names: a commit can change the rows and move focus
+		// in one task, before the observer runs. The walk writes only the
+		// attributes that differ, and it drops the records of its own writes, so
+		// they start no second walk.
+		const normalize = (watcher: MutationObserver, roots: Iterable<Element | null> = [table]) => {
+			const pending = changedElements(watcher.takeRecords())
+
+			for (const root of [...roots, ...pending]) {
+				if (root?.isConnected) pinControls(table, entered, unit, root)
+			}
 
 			watcher.takeRecords()
 		}
 
-		const observer = new MutationObserver((_records, self) => normalize(self))
+		const observer = new MutationObserver((records, self) =>
+			normalize(self, changedElements(records)),
+		)
 
 		const follow = (target: EventTarget | null) => {
 			const next = scopeFor(target, table, unit)
 
 			if (next === undefined || next === entered) return
 
+			const left = entered
+
 			entered = next
 
-			normalize(observer)
+			// Only the part that focus left and the part that it entered change.
+			normalize(observer, [left, next])
 		}
 
 		const onFocusIn = (event: FocusEvent) => follow(event.target)
@@ -100,7 +137,7 @@ export function useGridTabStops(
 			subtree: true,
 			childList: true,
 			attributes: true,
-			attributeFilter: ['tabindex', 'href', GRID_CELL_ATTR],
+			attributeFilter: ['tabindex', 'href', 'disabled', GRID_CELL_ATTR],
 		})
 
 		follow(document.activeElement)
