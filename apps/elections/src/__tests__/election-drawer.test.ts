@@ -1,13 +1,12 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { seed } from 'shared/queries'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ElectionDrawer } from '../components/election-drawer'
 import { ElectionRacesProvider } from '../components/election-drawer/context'
 import { type Election, findContest, findElection } from '../elections/registry'
-import { useDrawerStep } from '../hooks/use-drawer'
 import { readNationalRace, readRace } from '../server/civic-race'
 import { atlasCountyNames } from '../server/county-names'
 import { readEntries } from '../utilities/results'
@@ -203,55 +202,5 @@ describe('ElectionDrawer', () => {
 		expect(screen.getByText('Unknown')).toBeTruthy()
 		// A general election has no line of its kind.
 		expect(screen.queryByText('General election')).toBeNull()
-	})
-
-	it('gives the page the step only once the panel is up', async () => {
-		window.history.replaceState(null, '', '/2026/us/midterms')
-
-		const client = new QueryClient()
-
-		/** Shows the state of the step as the page reads it, as the ring of the map does. */
-		function Probe() {
-			return h('output', { 'data-testid': 'step' }, useDrawerStep(election).step?.region.key ?? '')
-		}
-
-		const page = () => h('div', null, drawer(client), h(Probe))
-
-		const view = render(page())
-
-		const shown = () => screen.getByTestId('step').textContent
-
-		expect(shown()).toBe('')
-
-		act(() => {
-			window.history.pushState(null, '', '/2026/us/midterms?region=ga&office=senate')
-
-			view.rerender(page())
-		})
-
-		// The commit that opens the panel does not give the page the step.
-		expect(screen.getByRole('dialog')).toBeTruthy()
-		expect(shown()).toBe('')
-
-		await waitFor(() => expect(shown()).toBe('ga'))
-
-		act(() => {
-			window.history.pushState(null, '', '/2026/us/midterms')
-
-			view.rerender(page())
-		})
-
-		expect(shown()).toBe('')
-
-		// The next open waits for its arrival again.
-		act(() => {
-			window.history.pushState(null, '', '/2026/us/midterms?region=ga&office=senate')
-
-			view.rerender(page())
-		})
-
-		expect(shown()).toBe('')
-
-		await waitFor(() => expect(shown()).toBe('ga'))
 	})
 })

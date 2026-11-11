@@ -12,6 +12,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useHeldUnderOverlay } from '../../hooks/use-held-under-overlay'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -425,6 +426,12 @@ type MapPlatBaseProps = AccessibleName &
 		 * region. The region's row in the data table reads as the current one, so
 		 * the selection is in the accessible readout, not the pixels alone.
 		 *
+		 * A pick that opens a Dialog or a Drawer over the map changes the ring in
+		 * the same commit. The ring then keeps its last value until the backdrop of
+		 * the panel arrives, so the new ring does not paint at full contrast for a
+		 * frame and then dim. A ring that was on the map stays as it is when a
+		 * panel opens over it.
+		 *
 		 * An id matching no region draws no ring; `null` (or omitting the prop)
 		 * selects nothing.
 		 */
@@ -462,6 +469,9 @@ type MapPlatBaseProps = AccessibleName &
 		 * reads through, as a ringed region keeps its fill. The stop's row in the
 		 * data table reads as the current one, so the selection is in the accessible
 		 * readout and not the pixels alone.
+		 *
+		 * A pick that opens a Dialog or a Drawer over the map waits for its backdrop,
+		 * as a `selectedRegion` ring does.
 		 *
 		 * A pair naming no drawn stop haloes nothing; `null` (or omitting the prop)
 		 * selects nothing.
@@ -1037,15 +1047,23 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// toggle, each overlay registration, and each resize commit, and the scan is
 	// linear in the atlas. A counties map holding a pick read three thousand ids
 	// on every one of them, against a selection that had not moved.
-	const selected = useMemo(() => {
-		if (selectedRegion == null) return null
+	const svgRef = useRef<SVGSVGElement>(null)
 
-		const index = regionIds.indexOf(selectedRegion)
+	// A pick that opens a Dialog or a Drawer changes the selection in the commit
+	// of the open, while the backdrop is still clear. The ring and the halo
+	// therefore keep their last value until the backdrop covers the map, so the
+	// new mark does not paint at full contrast for a frame and then dim.
+	const heldRegion = useHeldUnderOverlay(selectedRegion, svgRef)
+
+	const selected = useMemo(() => {
+		if (heldRegion == null) return null
+
+		const index = regionIds.indexOf(heldRegion)
 
 		return index === -1 ? null : index
-	}, [regionIds, selectedRegion])
+	}, [regionIds, heldRegion])
 
-	const markSelection = useMarkSelection(selectedOverlay)
+	const markSelection = useHeldUnderOverlay(useMarkSelection(selectedOverlay), svgRef)
 
 	// Registration ordinal per entry, so a staggered reveal can key off it.
 	const order = useMemo<ReadonlyMap<string, number>>(
@@ -1312,8 +1330,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			),
 		[entries, colors],
 	)
-
-	const svgRef = useRef<SVGSVGElement>(null)
 
 	// Whether the map zooms at all, read off the prop alone. The view state
 	// itself lives in `MapZoomProvider`, below this component and around the plot,

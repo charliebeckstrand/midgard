@@ -115,13 +115,16 @@ Import these from `utilities/floating-portal-registry`. They tell whether a pres
 
 ## Overlay layers
 
-Import these from `utilities/overlay-layers`. They tell whether an open overlay covers the anchor of a float. The DOM order of the portals cannot tell.
+Import these from `utilities/overlay-layers`. They tell whether an open overlay covers the anchor of a float, and whether the backdrop of an overlay over an element still fades in. The DOM order of the portals cannot tell.
 
 | Export | Summary |
 |---|---|
 | `registerOverlayLayer` | Puts an open overlay on the top of the layer stack; returns its unregister fn. `Overlay` calls it while it is modal or paints a backdrop. |
-| `subscribeOverlayLayers` | Subscribes to the changes of the layer stack. |
+| `subscribeOverlayLayers` | Subscribes to the changes of the layer stack, and to the start and the end of the fade of each backdrop. |
 | `isCoveredByOverlay` | Whether an open overlay is above the anchor of a float. `useFloatingPanel` hides the panel then. |
+| `registerEnteringOverlay` | Records that the backdrop of an overlay fades in; returns the call that ends the record. `Overlay` calls it from the commit of the open until the backdrop arrives or the overlay closes. |
+| `isUnderEnteringOverlay` | Whether the backdrop of an overlay that covers an element still fades in. `MapPlat` holds a change of its selection then. |
+| `EnteringOverlay` *(type)* | One fade: the node of the overlay and the container that it covers. |
 | `OverlayLayer` *(type)* | One layer: the node of the overlay, the container that it covers, and the regions that it leaves uncovered. |
 
 ## Events

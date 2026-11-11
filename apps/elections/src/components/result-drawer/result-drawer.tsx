@@ -90,8 +90,6 @@ export type ResultDrawerProps = {
 	/** What the Drawer shows, or `null` to close it. */
 	view: DrawerView | null
 	onClose: () => void
-	/** Fires when the panel finishes its arrival, once for each open (`onOpenComplete` of the panel). */
-	onOpenComplete?: () => void
 }
 
 /**
@@ -104,7 +102,7 @@ export type ResultDrawerProps = {
  * travels between heights as the step or the view changes. A body taller than
  * the cap of the panel scrolls under the trail, which stays.
  */
-export function ResultDrawer({ view, onClose, onOpenComplete }: ResultDrawerProps) {
+export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 	// The last view, so that the body stays while the panel closes.
 	const [last, setLast] = useState(view)
 
@@ -116,7 +114,7 @@ export function ResultDrawer({ view, onClose, onOpenComplete }: ResultDrawerProp
 
 	return (
 		<Dialog open={view !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
-			<DialogPanel height="fit" footer={null} aria-label={title} onOpenComplete={onOpenComplete}>
+			<DialogPanel height="fit" footer={null} aria-label={title}>
 				{/* The trail and the body are children of the panel, so the body is the scroll region of the panel. */}
 				<DialogHeader>
 					<Flex align="start" justify="between" gap="lg">

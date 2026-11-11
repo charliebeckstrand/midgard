@@ -2,7 +2,7 @@
 
 import { ArrowRight } from 'lucide-react'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { Seed } from 'shared/queries'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
@@ -11,7 +11,7 @@ import { SearchInput } from 'ui/search-input'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
-import { setDrawerArrived, useDrawerAddressStep } from '../../hooks/use-drawer'
+import { useDrawerStep } from '../../hooks/use-drawer'
 import { useRace } from '../../queries/race-queries'
 import type { CountyResult, Race } from '../../types'
 import { type DrawerStep, districtName, drawerHref, statePath } from '../../utilities/elections-url'
@@ -344,7 +344,7 @@ function drawerView(
 
 /**
  * The Drawer of an election, on each page of it. A state opens it; the address
- * holds its step (see {@link useDrawerAddressStep}). It reads the races from the
+ * holds its step (see {@link useDrawerStep}). It reads the races from the
  * `ElectionRacesProvider` of the layout of the election.
  *
  * Its trail is the state, the office, then the district and the county where
@@ -364,7 +364,7 @@ function drawerView(
 export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 	const results = useElectionRaces()
 
-	const { step, go } = useDrawerAddressStep(election)
+	const { step, go } = useDrawerStep(election)
 
 	const pathname = usePathname()
 
@@ -412,20 +412,5 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 			? null
 			: drawerView(election, results, step, entry, race, go, views, layouts, search, pathname)
 
-	const open = view !== null
-
-	// The page reads the step once the panel is up (`useDrawerStep`). A closed
-	// panel is not up, so the next open waits for its arrival. A close by Back
-	// does not pass `go`, so the commit of the close clears it.
-	useEffect(() => {
-		if (!open) setDrawerArrived(false)
-	}, [open])
-
-	return (
-		<ResultDrawer
-			view={view}
-			onClose={() => go(null)}
-			onOpenComplete={() => setDrawerArrived(true)}
-		/>
-	)
+	return <ResultDrawer view={view} onClose={() => go(null)} />
 }
