@@ -123,8 +123,8 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	//
 	// Memoized above the guard rather than resolved below it. Below, a toggled-off
 	// marker paid nothing. But the mark re-renders each time its dim changes,
-	// which a crossing onto or off any mark does, and `spare` is two projection
-	// inverts and a grid walk per pin.
+	// which a crossing onto or off any mark does, and `spare` is a grid walk per
+	// pin.
 	const [startTarget, endTarget] = useMemo(
 		() =>
 			markTargets(

@@ -94,6 +94,17 @@ export type MapProjectedAtlas = {
 }
 
 /**
+ * Whether a geometry draws as area rings alone. It is the one statement of
+ * what the buffer records: {@link areaOnly} asks it of each feature, and
+ * {@link drawRings} draws only a geometry that passes it.
+ *
+ * @internal
+ */
+function drawsArea(geometry: MapFeature['geometry']): boolean {
+	return geometry?.type === 'Polygon' || geometry?.type === 'MultiPolygon'
+}
+
+/**
  * Whether every feature draws as area rings alone, which is what this buffer
  * records. `d3-geo` draws a point as an arc of its own radius, and a line as an
  * unclosed run. Either would therefore come back from the emit as a closed ring
@@ -106,10 +117,7 @@ export type MapProjectedAtlas = {
  * @internal
  */
 export function areaOnly(features: MapFeature[]): boolean {
-	return features.every(
-		({ geometry }) =>
-			geometry === null || geometry.type === 'Polygon' || geometry.type === 'MultiPolygon',
-	)
+	return features.every(({ geometry }) => geometry === null || drawsArea(geometry))
 }
 
 /**
@@ -234,12 +242,12 @@ function agrees(
  * boundary is therefore exactly a `moveTo`, and needs no other mark.
  *
  * `beginPath`, `closePath`, and `arc` are the interface's, and only the first
- * two are ever reached. {@link areaOnly} keeps every geometry that would draw an
- * arc off this path. A ring's close needs no mark, because its end is the next
- * ring's start.
+ * two are ever reached. {@link drawRings} draws area rings alone, so no geometry
+ * that would draw an arc comes here. A ring's close needs no mark, because its
+ * end is the next ring's start.
  *
  * A class rather than an object literal, so it holds no closure over
- * {@link projectAtlas}'s scope. The buffer it fills outlives the call, and a
+ * {@link drawRings}'s scope. The buffer it fills outlives the call, and a
  * literal's methods would keep the feature list alive with it.
  */
 class PointSink implements GeoContext {
@@ -265,6 +273,46 @@ class PointSink implements GeoContext {
 }
 
 /**
+ * The rings of a drawn geography: the three arrays of {@link MapProjectedAtlas}
+ * that say where each ring of each region lands.
+ *
+ * @internal
+ */
+export type MapDrawnRings = Pick<MapProjectedAtlas, 'points' | 'ringStart' | 'regionRing'>
+
+/**
+ * The area rings of each feature as `projection` draws them, region after
+ * region. A feature that draws no area (a point, a line, a collection) holds no
+ * ring here, so a geography that {@link areaOnly} declines still gives the rings
+ * of its areas.
+ *
+ * @internal
+ */
+export function drawRings(features: MapFeature[], projection: GeoProjection): MapDrawnRings {
+	const sink = new PointSink()
+
+	const path = geoPath(projection, sink)
+
+	const regionRing: number[] = [0]
+
+	for (const { geometry } of features) {
+		if (geometry !== null && drawsArea(geometry)) path(geometry)
+
+		regionRing.push(sink.ringStart.length)
+	}
+
+	// The sentinel every ring's end is read from, so the last one needs no case
+	// of its own.
+	sink.ringStart.push(sink.xy.length / 2)
+
+	return {
+		points: Float64Array.from(sink.xy),
+		ringStart: Uint32Array.from(sink.ringStart),
+		regionRing: Uint32Array.from(regionRing),
+	}
+}
+
+/**
  * Draws the geography through the fitted projection into a buffer the region
  * paths are emitted from. `null` where the buffer could not stand in for the
  * walk. That is a geography of more than area rings, or a projection whose
@@ -284,26 +332,8 @@ export function projectAtlas(
 
 	if (basis === null) return null
 
-	const sink = new PointSink()
-
-	const path = geoPath(projection, sink)
-
-	const regionRing: number[] = [0]
-
-	for (const { geometry } of features) {
-		if (geometry !== null) path(geometry)
-
-		regionRing.push(sink.ringStart.length)
-	}
-
-	// The sentinel every ring's end is read from, so the last one needs no case
-	// of its own.
-	sink.ringStart.push(sink.xy.length / 2)
-
 	return {
-		points: Float64Array.from(sink.xy),
-		ringStart: Uint32Array.from(sink.ringStart),
-		regionRing: Uint32Array.from(regionRing),
+		...drawRings(features, projection),
 		witness: buildWitness(features, projection),
 		...basis,
 	}
@@ -329,8 +359,17 @@ export function projectAtlas(
  */
 const PROBE_REFINEMENT = 4
 
-/** The buffer's own bounds, as `x0`, `y0`, `x1`, `y1`. Empty bounds collapse to infinities. */
-function bufferBounds(points: Float64Array): [number, number, number, number] {
+/**
+ * The bounds of points `from` up to `end` of a buffer, as `x0`, `y0`, `x1`,
+ * `y1`: the whole buffer by default. Empty bounds collapse to infinities.
+ *
+ * @internal
+ */
+export function bufferBounds(
+	points: Float64Array,
+	from = 0,
+	end = points.length / 2,
+): [number, number, number, number] {
 	let x0 = Number.POSITIVE_INFINITY
 
 	let y0 = Number.POSITIVE_INFINITY
@@ -339,7 +378,7 @@ function bufferBounds(points: Float64Array): [number, number, number, number] {
 
 	let y1 = Number.NEGATIVE_INFINITY
 
-	for (let index = 0; index < points.length; index += 2) {
+	for (let index = from * 2; index < end * 2; index += 2) {
 		const x = points[index] as number
 
 		const y = points[index + 1] as number
@@ -458,9 +497,12 @@ function coordinate(rounded: number): string {
  *
  * {@link emitRegionPaths} applies it to every coordinate to write the paths of
  * a fit. The region layer does not read it. That layer carries the canonical
- * paths on the measured fit (`measuredMapFit`, `map-projection/fit`).
+ * paths on the measured fit (`measuredMapFit`, `map-projection/fit`). The ring
+ * grid of the hit-target rule reads it also (`map-region/spare`).
+ *
+ * @internal
  */
-function frameAffine(
+export function frameAffine(
 	atlas: MapProjectedAtlas,
 	fitted: GeoProjection,
 ): { factor: number; dx: number; dy: number } | null {
