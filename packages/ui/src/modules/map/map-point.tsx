@@ -144,9 +144,8 @@ export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 	 * being edited.
 	 *
 	 * It sat below the guard while `spare` was a boolean read and a short loop over the zone ledger.
-	 * The region half made it two projection inverts and a grid walk per call, which is more than a
-	 * toggled-off mark saves by skipping it. `ground` above already pays that trade the other
-	 * way round.
+	 * The region half made it a grid walk per call, which is more than a toggled-off mark saves by
+	 * skipping it. `ground` above already pays that trade the other way round.
 	 */
 	const target = useMemo(
 		() =>

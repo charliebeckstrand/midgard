@@ -123,8 +123,8 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	//
 	// Memoized above the guard rather than resolved below it. Below, a toggled-off
 	// marker paid nothing; the mark re-renders on every pointer crossing of every
-	// mark on the map, and `spare` is now two projection inverts and a grid walk
-	// per pin rather than the boolean read it was when that trade was made.
+	// mark on the map, and `spare` is now a grid walk per pin rather than the
+	// boolean read it was when that trade was made.
 	const [startTarget, endTarget] = useMemo(
 		() =>
 			markTargets(

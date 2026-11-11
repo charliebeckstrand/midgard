@@ -48,8 +48,8 @@ import type {
  * `albers-usa` inverts every position. `d3-geo`'s `geoAlbersUsa` sends a
  * position outside the Alaska and Hawaii insets through the lower-48 conic.
  * Thus a position between the insets comes back as a lon/lat and not as `null`.
- * A caller that must know detects that jump itself (`pieceInverse` in
- * `map-region/spare`).
+ * The one caller reads through the lower-48 piece alone (`invertingPiece`,
+ * `map-projection/resolve`).
  *
  * @internal
  */
@@ -401,7 +401,7 @@ export function ringsPath(rings: readonly MapAreaRing[]): string {
  *
  * @internal
  */
-export function areaReach(rings: readonly MapAreaRing[]): number {
+export function areaReach(rings: readonly Pick<MapAreaRing, 'points'>[]): number {
 	let widest = 0
 
 	for (const ring of rings) {

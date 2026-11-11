@@ -5,20 +5,19 @@ import { type FrameReserve, usePlotFrame } from '../../hooks/use-plot-frame'
 import {
 	cachedCanonicalPaths,
 	cachedChromePaths,
+	type StaticMapGeometry,
 	staticMapGeometry,
 } from './engine/map-geometry/cache'
 import { EMPTY_CHROME, type MapChromePaths } from './engine/map-geometry/chrome'
-import { projectPoint, unprojectPoint } from './engine/map-geometry/mark'
+import { projectPoint } from './engine/map-geometry/mark'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import { measuredMapFit } from './engine/map-projection/fit'
-import { applyTransform, invertTransform, type MapTransform } from './engine/map-zoom/transform'
+import { applyTransform, type MapTransform } from './engine/map-zoom/transform'
 import type {
 	LngLat,
 	MapAspectRatio,
 	MapFeature,
 	MapGeography,
-	MapInverseProjector,
-	MapPoint2D,
 	MapProjection,
 	MapProjector,
 } from './engine/types'
@@ -63,19 +62,13 @@ export type MapFrameShape = {
 	/** The graticule and sphere `d`s under the active fit; both `null` where the chrome is off. */
 	chrome: MapChromePaths
 	features: MapFeature[]
-	project: MapProjector
 	/**
-	 * {@link project} run backwards, `null` where the fit has no lon/lat for a
-	 * frame position, which the composite's gaps between insets genuinely have.
-	 *
-	 * One reader has to go that way. The region half of the hit-target rule turns
-	 * a dot's frame position into a lon/lat. It asks which regions its target
-	 * stands to cover. Only the projection knows how many degrees a pixel is where
-	 * the dot happens to be. Stated as a closure like its
-	 * twin rather than by handing out the fitted projection, so `d3-geo` stays
-	 * inside the geometry engine.
+	 * The shared geometry entry that the frame draws. The region half of the
+	 * hit-target rule keys its ring grid on it, and reads that grid through
+	 * {@link regionFrame}.
 	 */
-	unproject: MapInverseProjector
+	geometry: StaticMapGeometry
+	project: MapProjector
 }
 
 /**
@@ -184,8 +177,6 @@ export function useMapShape({
 
 				return at === null || frame === null ? at : applyTransform(at, frame)
 			},
-			unproject: (at: MapPoint2D) =>
-				unprojectPoint(fitted, frame === null ? at : invertTransform(at, frame)),
 		}
 	}, [statics, frameWidth, frameHeight])
 
@@ -210,7 +201,7 @@ export function useMapShape({
 		[view, projection, graticule, sphere],
 	)
 
-	const { viewWidth, viewHeight, frame, project, unproject } = view
+	const { viewWidth, viewHeight, frame, project } = view
 
 	return {
 		ref,
@@ -224,7 +215,7 @@ export function useMapShape({
 		regionFrame: frame,
 		chrome,
 		features: statics.features,
+		geometry: statics,
 		project,
-		unproject,
 	}
 }

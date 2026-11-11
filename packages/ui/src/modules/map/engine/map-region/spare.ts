@@ -10,28 +10,23 @@
  * at the small end. A state with room to spare then takes the same bite as one
  * with none. A dot over open water pays as much as either.
  *
- * Thus each dot asks what region it stands on. The module resolves a region off
- * a pointed DOM element, not off a coordinate. `map-geometry/locate.ts` already
- * indexes an atlas by bounding box for the coverage frame, and the fit inverts.
- * A frame position therefore becomes a lon/lat, and the grid takes the
- * candidates down to a handful.
+ * Thus each dot asks what regions draw near it. The module resolves a region
+ * off a pointed DOM element, not off a coordinate. But the canonical fit holds
+ * each ring of each region as it draws, and a measured frame is that fit under
+ * one transform. A grid over the boxes of those rings therefore answers a dot
+ * at each box and at each zoom, and a resize builds nothing.
  *
  * Frame arithmetic with no React in it, like the rest of the engine.
  */
 
+import { clamp } from '../../../../utilities/clamp'
 import { getOrCompute } from '../../../../utilities/get-or-compute'
 import { AREA_SPARE_FRACTION, POINT_HIT_RADIUS, POINT_RADIUS } from '../map-constants'
-import { cachedRegionIndex, type MapBounds, regionsMeeting } from '../map-geometry/locate'
-import {
-	areaReach,
-	boxNear,
-	featureRings,
-	type MapAreaBox,
-	type MapFrameBox,
-	projectArea,
-	ringsNear,
-} from '../map-geometry/mark'
-import type { LngLat, MapFeature, MapInverseProjector, MapPoint2D, MapProjector } from '../types'
+import type { StaticMapGeometry } from '../map-geometry/cache'
+import { areaReach, boxNear, type MapFrameBox } from '../map-geometry/mark'
+import { bufferBounds, drawRings, frameAffine, type MapDrawnRings } from '../map-geometry/projected'
+import { invertTransform, type MapTransform } from '../map-zoom/transform'
+import type { MapPoint2D } from '../types'
 
 /**
  * How much reach the region layer leaves a dot at a frame position, in device
@@ -52,374 +47,298 @@ export type MapRegionSpare = (at: MapPoint2D, unitsPerPixel: number) => number
 export const NO_REGION_CLAIM: MapRegionSpare = () => Number.POSITIVE_INFINITY
 
 /**
- * A region measured once per fit: the whole region's box, the boxes of the rings
- * inside it, and the room they hold.
- *
- * The outer box is the reject the ring walk needs in front of it. `ringsNear`
- * returns on its first hit and walks every ring on a miss. A miss is the common
- * case for a candidate the geographic grid admitted. A dot that admits
- * Alaska therefore pays 137 box tests to learn it stands in Florida. One test
- * settles it, and the box is free while the rings are being measured.
+ * How many cells the grid has along the longer side of the canonical frame. At
+ * 32, the widest target of a dot covers 2 to 20 cells from a phone to a wide
+ * desktop, and a cell of a county atlas holds about ten rings.
  *
  * @internal
  */
-type MeasuredRegion = { whole: MapFrameBox | null; boxes: MapAreaBox[]; reach: number }
+const RING_GRID_CELLS = 32
 
 /**
- * The halvings that place an inset edge on a ray from the dot. Sixteen place it
- * to within 1/65,536 of the reach, far below a pixel at any zoom.
+ * The rings of a geography as the canonical fit draws them, filed in a grid
+ * over the canonical frame. A region is here as the boxes of its rings and the
+ * room that it holds.
+ *
+ * The grid files rings, not regions, because a ring is what a dot stands near.
+ * A state with islands is one region and 137 boxes. A box around all of them
+ * holds the water between them, and a dot on that water would pay for a region
+ * that draws nowhere near it.
  *
  * @internal
  */
-const EDGE_STEPS = 16
+type RingGrid = {
+	/** The drawn rings, in the units of the pass that drew them. */
+	rings: MapDrawnRings
+	/** The scale that carries those units onto the canonical frame. */
+	factor: number
+	/** The box of each ring, in canonical frame units. */
+	boxes: MapFrameBox[]
+	/** The region that owns each ring. */
+	owner: Uint32Array
+	/** The side of one cell, in canonical frame units. */
+	cell: number
+	columns: number
+	rows: number
+	/** The rings whose box meets each cell, row after row. */
+	cells: number[][]
+	/** The inscribed reach of each region in canonical frame units, `NaN` until a dot asks. */
+	reach: Float64Array
+}
 
-/**
- * The step that reads the local slope of the inverse, as a fraction of the
- * reach. It is small, so that a dot stands farther than this from its inset's
- * edge on at least one side.
- *
- * @internal
- */
-const SLOPE_STEP = 1e-6
-
-/**
- * Degrees of lon/lat for each frame unit along one frame axis, at the dot.
- *
- * @internal
- */
-type MapSlope = { x: LngLat; y: LngLat }
-
-/**
- * A longitude difference in the range -180 to 180. Thus the antimeridian does
- * not read as a jump, and the box across it stays as it was.
- *
- * @internal
- */
-function lonStep(difference: number): number {
-	return difference - 360 * Math.round(difference / 360)
+/** The grid index along one axis, held inside the grid. @internal */
+function cellAt(position: number, cell: number, count: number): number {
+	return clamp(Math.floor(position / cell), 0, count - 1)
 }
 
 /**
- * The slope of the inverse along one frame axis, read on the two sides of the
- * dot. A side that crosses an inset edge reads a jump, which is a much steeper
- * slope, so the gentler side wins. `[0, 0]` where neither side inverts, which
- * clamps that axis to the dot itself.
+ * Files a ring in each cell that its box meets.
  *
  * @internal
  */
-function slopeAlong(
-	unproject: MapInverseProjector,
-	at: MapPoint2D,
-	origin: LngLat,
-	axis: MapPoint2D,
-	step: number,
-): LngLat {
-	let gentlest: LngLat = [0, 0]
+function fileRing(
+	{ cell, columns, rows, cells }: Pick<RingGrid, 'cell' | 'columns' | 'rows' | 'cells'>,
+	box: MapFrameBox,
+	ring: number,
+): void {
+	const lastColumn = cellAt(box.right, cell, columns)
 
-	let found = false
+	const lastRow = cellAt(box.bottom, cell, rows)
 
-	for (const side of [1, -1]) {
-		const seen = unproject({ x: at.x + side * axis.x * step, y: at.y + side * axis.y * step })
+	for (let row = cellAt(box.top, cell, rows); row <= lastRow; row++) {
+		for (let column = cellAt(box.left, cell, columns); column <= lastColumn; column++) {
+			cells[row * columns + column]?.push(ring)
+		}
+	}
+}
 
-		if (seen === null) continue
+/**
+ * Builds the grid over one geometry entry, or `null` where nothing was fitted.
+ *
+ * The rings come from the buffer of the entry where it stands, as the canonical
+ * paths do (`cachedCanonicalPaths`). That is one scan of numbers that the mount
+ * already paid for, with no projection in it. Where the buffer does not stand,
+ * one walk draws the area rings at the canonical fit.
+ *
+ * A ring of fewer than three points encloses nothing, so no cell holds it.
+ *
+ * @internal
+ */
+function buildRingGrid({ canonical, atlas, features }: StaticMapGeometry): RingGrid | null {
+	if (canonical === null) return null
 
-		const slope: LngLat = [
-			(side * lonStep(seen[0] - origin[0])) / step,
-			(side * (seen[1] - origin[1])) / step,
-		]
+	const affine = atlas === null ? null : frameAffine(atlas, canonical.projection)
 
-		if (!found || Math.hypot(...slope) < Math.hypot(...gentlest)) gentlest = slope
+	const rings =
+		atlas === null || affine === null ? drawRings(features, canonical.projection) : atlas
 
-		found = true
+	const { factor, dx, dy } = affine ?? { factor: 1, dx: 0, dy: 0 }
+
+	const cell = Math.max(canonical.width, canonical.height) / RING_GRID_CELLS
+
+	const columns = Math.ceil(canonical.width / cell)
+
+	const rows = Math.ceil(canonical.height / cell)
+
+	const grid: RingGrid = {
+		rings,
+		factor,
+		boxes: [],
+		owner: new Uint32Array(rings.ringStart.length - 1),
+		cell,
+		columns,
+		rows,
+		cells: Array.from({ length: columns * rows }, () => []),
+		reach: new Float64Array(rings.regionRing.length - 1).fill(Number.NaN),
 	}
 
-	return gentlest
-}
+	for (let region = 0; region + 1 < rings.regionRing.length; region++) {
+		const endRing = rings.regionRing[region + 1] as number
 
-/**
- * The lon/lat at an offset from the dot, or `null` where the offset leaves the
- * piece of the projection that inverts the dot.
- *
- * The test is the slope: inside one piece the inverse is smooth, so the lon/lat
- * stays near the slope's prediction. A composite sends a position past an inset
- * edge through another piece, and the lon/lat jumps by many degrees. `d3-geo`'s
- * `geoAlbersUsa` inverts every position, and so the jump is the only sign of it.
- *
- * @internal
- */
-function pieceInverse(
-	unproject: MapInverseProjector,
-	at: MapPoint2D,
-	origin: LngLat,
-	slope: MapSlope,
-	offset: MapPoint2D,
-): LngLat | null {
-	const seen = unproject({ x: at.x + offset.x, y: at.y + offset.y })
+		for (let ring = rings.regionRing[region] as number; ring < endRing; ring++) {
+			const from = rings.ringStart[ring] as number
 
-	if (seen === null) return null
+			const end = rings.ringStart[ring + 1] as number
 
-	const lon = offset.x * slope.x[0] + offset.y * slope.y[0]
+			const [x0, y0, x1, y1] = bufferBounds(rings.points, from, end)
 
-	const lat = offset.x * slope.x[1] + offset.y * slope.y[1]
+			const box = {
+				left: x0 * factor + dx,
+				top: y0 * factor + dy,
+				right: x1 * factor + dx,
+				bottom: y1 * factor + dy,
+			}
 
-	const miss = Math.hypot(lonStep(seen[0] - origin[0]) - lon, seen[1] - origin[1] - lat)
+			grid.boxes.push(box)
 
-	return miss <= Math.hypot(lon, lat) / 2 ? seen : null
-}
+			grid.owner[ring] = region
 
-/**
- * The fraction of an offset that stays in the dot's own piece, by halving.
- *
- * @internal
- */
-function pieceFraction(
-	unproject: MapInverseProjector,
-	at: MapPoint2D,
-	origin: LngLat,
-	slope: MapSlope,
-	offset: MapPoint2D,
-): number {
-	if (pieceInverse(unproject, at, origin, slope, offset) !== null) return 1
-
-	let inside = 0
-
-	let outside = 1
-
-	for (let step = 0; step < EDGE_STEPS; step += 1) {
-		const middle = (inside + outside) / 2
-
-		const scaled = { x: offset.x * middle, y: offset.y * middle }
-
-		if (pieceInverse(unproject, at, origin, slope, scaled) === null) outside = middle
-		else inside = middle
+			if (end - from >= 3) fileRing(grid, box, ring)
+		}
 	}
 
-	return inside
+	return grid
 }
 
+// The grid of each geometry entry. The entry is shared across instances and
+// mounts, and its canonical fit never moves, so the grid is built one time for
+// an atlas, an object, and a projection.
+const grids = new WeakMap<StaticMapGeometry, RingGrid | null>()
+
 /**
- * The lon/lat of one corner of the reach box, with the corner clamped to the
- * dot's own inset box before it inverts.
+ * The room that a region holds, in canonical frame units: measured on the first
+ * dot that stands near one of its rings, and held from there.
  *
- * Each axis clamps alone, so a dot near one edge keeps its full reach along the
- * other. The diagonal clamps last, for a piece whose region is not a box: the
- * lower-48 conic holds the frame around the insets.
+ * `areaReach` reads points, so the rings of the one region become points for
+ * the measure and go to garbage after it. The dots of a map stand near few of
+ * its regions.
  *
  * @internal
  */
-function pieceCorner(
-	unproject: MapInverseProjector,
-	at: MapPoint2D,
-	origin: LngLat,
-	slope: MapSlope,
-	corner: MapPoint2D,
-): LngLat {
-	const whole = pieceInverse(unproject, at, origin, slope, corner)
+function regionReach(grid: RingGrid, region: number): number {
+	const held = grid.reach[region] as number
 
-	if (whole !== null) return whole
+	if (!Number.isNaN(held)) return held
 
-	const x = corner.x * pieceFraction(unproject, at, origin, slope, { x: corner.x, y: 0 })
+	const { points, ringStart, regionRing } = grid.rings
 
-	const y = corner.y * pieceFraction(unproject, at, origin, slope, { x: 0, y: corner.y })
+	const rings: { points: MapPoint2D[] }[] = []
 
-	const fraction = pieceFraction(unproject, at, origin, slope, { x, y })
+	const endRing = regionRing[region + 1] as number
 
-	const clamped = { x: x * fraction, y: y * fraction }
+	for (let ring = regionRing[region] as number; ring < endRing; ring++) {
+		const ringPoints: MapPoint2D[] = []
 
-	return pieceInverse(unproject, at, origin, slope, clamped) ?? origin
+		const end = ringStart[ring + 1] as number
+
+		for (let point = ringStart[ring] as number; point < end; point++) {
+			ringPoints.push({ x: points[point * 2] as number, y: points[point * 2 + 1] as number })
+		}
+
+		rings.push({ points: ringPoints })
+	}
+
+	const measured = areaReach(rings) * grid.factor
+
+	grid.reach[region] = measured
+
+	return measured
 }
 
+/** The rings of a cell that the grid does not hold. @internal */
+const NO_RINGS: readonly number[] = []
+
 /**
- * The lon/lat box a dot's widest possible target covers, from the frame box
- * around it. Both corners invert rather than the center alone, because the
- * conversion from pixels to degrees is the projection's own and varies with
- * latitude. An inset composite changes it outright.
+ * The tightest share among the rings of one cell that draw within `reach` of a
+ * dot, or `room` where none is tighter.
  *
- * Each corner clamps to the dot's own inset box before it inverts. Otherwise a
- * corner past an inset edge inverts through another piece of the composite. The
- * box then lies to one side of the dot and can miss the region it stands on.
- *
- * `null` where the dot itself does not invert, which reads as no claim. The
- * alternative is a box grown to the whole sphere, and a dot the projection has
- * already dropped is not standing on a region. Returning early also keeps a
- * dropped dot from building the atlas index behind it.
+ * A ring whose box covers two cells arrives two times. The minimum reads the
+ * same after a repeat, so a repeat costs one box test.
  *
  * @internal
  */
-function reachBounds(
-	unproject: MapInverseProjector,
-	at: MapPoint2D,
+function cellRoom(
+	grid: RingGrid,
+	rings: readonly number[],
+	spot: MapPoint2D,
 	reach: number,
-): MapBounds | null {
-	const origin = unproject(at)
+	unit: number,
+	room: number,
+): number {
+	let tightest = room
 
-	if (origin === null) return null
+	for (const ring of rings) {
+		const box = grid.boxes[ring]
 
-	const step = reach * SLOPE_STEP
+		if (box === undefined || !boxNear(box, spot, reach)) continue
 
-	const slope = {
-		x: slopeAlong(unproject, at, origin, { x: 1, y: 0 }, step),
-		y: slopeAlong(unproject, at, origin, { x: 0, y: 1 }, step),
+		const held = regionReach(grid, grid.owner[ring] as number)
+
+		tightest = Math.min(tightest, (held / unit) * AREA_SPARE_FRACTION)
+
+		// `markTargets` floors every claim at what the dot paints, so once the
+		// tightest region has driven the budget there, no further ring can move it.
+		if (tightest <= POINT_RADIUS) break
 	}
 
-	const [west, south] = pieceCorner(unproject, at, origin, slope, { x: -reach, y: reach })
-
-	const [east, north] = pieceCorner(unproject, at, origin, slope, { x: reach, y: -reach })
-
-	// The inverted corners are not ordered where a projection turns the frame
-	// (the composite's insets sit at their own rotations), so the box takes the
-	// extremes rather than the corners as read.
-	return {
-		west: Math.min(west, east),
-		south: Math.min(south, north),
-		east: Math.max(west, east),
-		north: Math.max(south, north),
-	}
+	return tightest
 }
 
 /**
- * The one box holding every ring's, or `null` for a region that projected
- * nothing. Such a region then rejects every dot, the right answer for a shape
- * that draws nothing to claim with.
+ * How much room the rings of a grid leave one dot. The dot and its reach go to
+ * the canonical frame, where the grid is. The answer is in device pixels, so it
+ * reads the same from either frame.
  *
  * @internal
  */
-function wholeBox(boxes: readonly MapAreaBox[]): MapFrameBox | null {
-	const first = boxes[0]
+function gridRoom(
+	grid: RingGrid,
+	frame: MapTransform | null,
+	at: MapPoint2D,
+	unitsPerPixel: number,
+): number {
+	const spot = frame === null ? at : invertTransform(at, frame)
 
-	if (first === undefined) return null
+	const unit = frame === null ? unitsPerPixel : unitsPerPixel / frame.k
 
-	const whole = { ...first.box }
+	// The widest target any pointer takes, in canonical units: the band inside
+	// which a ring is worth asking about at all.
+	const reach = POINT_HIT_RADIUS * unit
 
-	for (const { box } of boxes) {
-		whole.left = Math.min(whole.left, box.left)
+	const { cell, columns, rows, cells } = grid
 
-		whole.top = Math.min(whole.top, box.top)
+	const firstColumn = cellAt(spot.x - reach, cell, columns)
 
-		whole.right = Math.max(whole.right, box.right)
+	const lastColumn = cellAt(spot.x + reach, cell, columns)
 
-		whole.bottom = Math.max(whole.bottom, box.bottom)
+	const lastRow = cellAt(spot.y + reach, cell, rows)
+
+	let room = Number.POSITIVE_INFINITY
+
+	for (let row = cellAt(spot.y - reach, cell, rows); row <= lastRow; row++) {
+		for (let column = firstColumn; column <= lastColumn; column++) {
+			const rings = cells[row * columns + column] ?? NO_RINGS
+
+			room = cellRoom(grid, rings, spot, reach, unit, room)
+
+			if (room <= POINT_RADIUS) return room
+		}
 	}
 
-	return whole
+	return room
 }
 
 /**
- * Whether a measured region draws within `reach` of a position.
- *
- * The whole-region box answers first and answers most. The grid admits a
- * candidate on a lon/lat box, which for an antimeridian-crossing region reads
- * as spanning every longitude. Such a region is therefore offered to every dot
- * on the map, and one comparison sends it away. The ring walk behind it says
- * more only where there are several rings to tell apart, as in an archipelago
- * or a state with islands. For a single-ring region it would re-ask what the
- * whole box has already settled.
- *
- * @internal
- */
-function regionNear(region: MeasuredRegion, at: MapPoint2D, reach: number): boolean {
-	if (region.whole === null || !boxNear(region.whole, at, reach)) return false
-
-	return region.boxes.length < 2 || ringsNear(region.boxes, at, reach)
-}
-
-/**
- * Resolves how much room the region layer leaves each dot, over one geography
- * under one fit.
+ * Resolves how much room the region layer leaves each dot, over one geometry
+ * entry under one measured fit.
  *
  * A dot answers to every region its target could cover rather than to the one it
  * stands in. That is the zone half's own reading, where a dot overlapping two
  * zones satisfies both. It is what keeps a dot just inside a large state from
  * blanketing the small one across the border.
  *
- * Containment is never tested. `ringsNear` asks whether a region draws within
- * the dot's reach, which is the question the claim actually turns on. A dot
+ * Containment is never tested. The box test asks whether a ring draws within
+ * the reach of the dot, which is the question the claim actually turns on. A dot
  * outside a region but near enough to cover part of it takes that region's
- * ground as surely as one standing in the middle. The grid's own answer is a
- * box test, and so names regions the dot cannot reach. `ringsNear` is the
- * tighter filter behind it that makes the over-approximation harmless, and it
- * reads the projected boxes rather than the geographic ones.
+ * ground as surely as one standing in the middle.
  *
- * The two projectors travel together because both leave one memo in
- * `useMapShape`. A pair from different fits would measure rings in one frame
- * and place dots in another.
- *
- * @param features - The decoded regions, as the layer draws them.
- * @param unproject - Frame position back to lon/lat, for asking the grid.
- * @param project - Lon/lat to frame position, for measuring a region's rings.
+ * @param geometry - The geometry entry that the plat draws.
+ * @param frame - The measured fit, `null` while the frame is the canonical one.
  * @returns The per-dot resolver. {@link NO_REGION_CLAIM} where the layer answers
  * nothing, which is the caller's call and not this one's.
  *
  * @internal
  */
 export function regionSpare(
-	features: MapFeature[],
-	unproject: MapInverseProjector,
-	project: MapProjector,
+	geometry: StaticMapGeometry,
+	frame: MapTransform | null,
 ): MapRegionSpare {
-	// Per region, the boxes to place a dot against and the room it holds: built
-	// on the first dot whose reach box meets the region's own, which is a wider
-	// set than the regions dots actually stand on and still a small one.
-	//
-	// The vertices go to garbage as soon as the measure is taken: `areaReach`
-	// walks them once, and every reader after it wants the boxes alone. An atlas
-	// region runs to thousands of points, and a handful of them held for the life
-	// of a fit is megabytes retained to read four numbers per ring.
-	const measured = new Map<number, MeasuredRegion>()
-
-	const build = (region: number): MeasuredRegion => {
-		const feature = features[region]
-
-		const rings = feature === undefined ? [] : projectArea(featureRings(feature), project)
-
-		const boxes = rings.map(({ box }) => ({ box }))
-
-		return { whole: wholeBox(boxes), boxes, reach: areaReach(rings) }
-	}
-
-	const measure = (region: number): MeasuredRegion => getOrCompute(measured, region, build)
-
-	// Held across calls and cleared per call rather than allocated per call: the
-	// grid yields a region once per cell its box covers, so a large state arrives
-	// twenty times for one dot, and each repeat would otherwise pay a full
-	// `ringsNear` walk of every ring it holds. The resolver is not reentrant.
-	const seen = new Set<number>()
-
 	return (at, unitsPerPixel) => {
-		// The widest target any pointer takes, in frame units: the band inside which
-		// a region is worth asking about at all.
-		const reach = POINT_HIT_RADIUS * unitsPerPixel
+		// Read here rather than at build time, so a map that draws no dot-shaped mark
+		// never builds a grid. It memoizes on the entry, so the lookup is all this
+		// costs after the first dot.
+		const grid = getOrCompute(grids, geometry, buildRingGrid)
 
-		const box = reachBounds(unproject, at, reach)
-
-		if (box === null) return Number.POSITIVE_INFINITY
-
-		seen.clear()
-
-		let room = Number.POSITIVE_INFINITY
-
-		// The atlas index is read here rather than at build time, so a map that draws
-		// no dot-shaped mark never builds one: indexing walks every coordinate in the
-		// atlas, which on a county one is the same order of work as drawing it. It
-		// memoizes on the feature list itself, so the lookup is all this costs.
-		for (const region of regionsMeeting(cachedRegionIndex(features), box)) {
-			if (seen.has(region)) continue
-
-			seen.add(region)
-
-			const held = measure(region)
-
-			if (!regionNear(held, at, reach)) continue
-
-			room = Math.min(room, (held.reach / unitsPerPixel) * AREA_SPARE_FRACTION)
-
-			// `markTargets` floors every claim at what the dot paints, so once the
-			// tightest region has driven the budget there, no further candidate can
-			// move it. This is what the grid's generator is for: the ZIP frame stops
-			// on its first disagreement for the same reason.
-			if (room <= POINT_RADIUS) break
-		}
-
-		return room
+		return grid === null ? Number.POSITIVE_INFINITY : gridRoom(grid, frame, at, unitsPerPixel)
 	}
 }

@@ -1164,11 +1164,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// the resolver takes no boolean about it: the zone half is gated the same way,
 	// at the fold rather than inside `zoneBudget`.
 	const regionRoom = useMemo(
-		() =>
-			regions.answers
-				? regionSpare(shape.features, shape.unproject, shape.project)
-				: NO_REGION_CLAIM,
-		[shape.features, shape.unproject, shape.project, regions.answers],
+		() => (regions.answers ? regionSpare(shape.geometry, shape.regionFrame) : NO_REGION_CLAIM),
+		[shape.geometry, shape.regionFrame, regions.answers],
 	)
 
 	// How much reach everything under a mark leaves it at a position: the tightest
