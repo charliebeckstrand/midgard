@@ -55,8 +55,8 @@ export type DrawerGo = (step: DrawerStep | null) => void
  * again.
  *
  * A move reads the step from the address of the browser when it runs. The
- * Drawer follows that address at once (see {@link useDrawerStep}), so the step
- * that a move reads is the step that shows.
+ * Drawer follows that address at once (see {@link useAddressStep}), so the step
+ * that a move reads is the step that the Drawer shows.
  *
  * Each move is a history entry, so Back walks the trail of the Drawer and then
  * closes it. A move to the current step writes no entry. A move writes the
@@ -125,13 +125,13 @@ export function useDrawerGo(election: Election): DrawerGo {
  * flight completed. The router still takes each change, so a later refresh
  * reads the step of the address on the server.
  *
- * Each move renders each reader of the step again. A part of the page that
- * only moves the Drawer takes {@link useDrawerGo}.
+ * Only the Drawer reads this hook, because it opens the panel. The rest of the
+ * page reads {@link useDrawerStep}, which gives the step once the panel is up.
  *
  * @returns The step, or `null` for a closed Drawer, and a function that moves
  * the Drawer to a step, or closes it with `null`.
  */
-export function useDrawerStep(election: Election): {
+export function useAddressStep(election: Election): {
 	step: DrawerStep | null
 	go: DrawerGo
 } {
@@ -150,9 +150,7 @@ export function useDrawerStep(election: Election): {
 
 /*
  * Whether the panel of the Drawer is up. The step opens the panel, and the
- * panel then arrives with a fade or a slide. A mark of the step on the page,
- * such as the ring of the state on the map, waits for the arrival, so the mark
- * does not show on the page before the backdrop covers it.
+ * panel then arrives with a fade or a slide over a backdrop that starts clear.
  *
  * It starts true: a page that loads with the Drawer open paints the panel at
  * rest, and the panel reports no arrival. A closed Drawer sets it to false, so
@@ -183,8 +181,9 @@ function arrivedAtRest(): boolean {
 }
 
 /**
- * Tells each reader whether the panel of the Drawer is up. The Drawer calls it
- * with `true` when its panel arrives, and with `false` while it is closed.
+ * Tells each reader of {@link useDrawerStep} whether the panel of the Drawer
+ * is up. The Drawer calls it with `true` when its panel arrives, and with
+ * `false` while it is closed.
  *
  * @param value - Whether the panel is up.
  */
@@ -197,14 +196,28 @@ export function setDrawerArrived(value: boolean): void {
 }
 
 /**
- * Whether the panel of the Drawer is up (see {@link setDrawerArrived}). A part
- * of the page that marks the step of the Drawer, such as the ring of the state
- * on the map, shows the mark only while it is true. The mark then comes with
- * the open panel and not before it.
+ * The step of the Drawer as the page shows it, and the way to move the Drawer
+ * ({@link useDrawerGo}). The step is `null` until the panel is up, so a mark
+ * of the step on the page, such as the ring of a state on a map, comes with
+ * the open panel and not in the frames before the backdrop covers the page.
+ * Each reader of the step on the page takes this hook, so each mark waits for
+ * the panel with no rule of its own. Only the Drawer reads
+ * {@link useAddressStep}.
  *
- * @returns `true` once the panel arrives, or when the page loaded with the
- * Drawer open, and `false` from a close until the next arrival.
+ * Each move renders each reader of the step again. A part of the page that
+ * only moves the Drawer takes {@link useDrawerGo}.
+ *
+ * @returns The step once the panel is up, or when the page loaded with the
+ * Drawer open, else `null`, and a function that moves the Drawer to a step, or
+ * closes it with `null`.
  */
-export function useDrawerArrived(): boolean {
-	return useSyncExternalStore(subscribeArrival, readArrival, arrivedAtRest)
+export function useDrawerStep(election: Election): {
+	step: DrawerStep | null
+	go: DrawerGo
+} {
+	const { step, go } = useAddressStep(election)
+
+	const up = useSyncExternalStore(subscribeArrival, readArrival, arrivedAtRest)
+
+	return { step: up ? step : null, go }
 }

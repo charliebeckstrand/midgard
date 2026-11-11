@@ -5,7 +5,7 @@ import { Stack } from 'ui/structure/stack'
 import statesAtlas from 'us-atlas/states-albers-10m.json'
 import type { Contest, Election } from '../../elections/registry'
 import { stateOfFips } from '../../elections/us-states'
-import { useDrawerArrived, useDrawerStep } from '../../hooks/use-drawer'
+import { useDrawerStep } from '../../hooks/use-drawer'
 import { type RaceEntry, WINNER_CATEGORIES } from '../../utilities/results'
 import type { OfficeItem } from '../../utilities/trail'
 import { ClosestRaces } from '../closest-races'
@@ -44,11 +44,6 @@ export function NationalMap({
 }: NationalMapProps) {
 	const { step, go } = useDrawerStep(election)
 
-	// The ring of the state of the Drawer comes once the panel is up. Before
-	// that, the backdrop is still clear, so a ring would show at full contrast
-	// for a frame and then dim.
-	const arrived = useDrawerArrived()
-
 	// The map colors the states with a category. A state with a race and no
 	// category yet stays neutral, and a click still opens it.
 	const data = rows.filter((row): row is { fips: string; winner: string } => row.winner !== null)
@@ -68,7 +63,7 @@ export function NationalMap({
 				geographyObject="states"
 				projection="identity"
 				regionKey="fips"
-				selectedRegion={step !== null && arrived ? step.region.fips : null}
+				selectedRegion={step?.region.fips ?? null}
 				onRegionClick={(fips: string) => {
 					const state = stateOfFips(fips)
 

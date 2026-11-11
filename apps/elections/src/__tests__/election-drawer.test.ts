@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ElectionDrawer } from '../components/election-drawer'
 import { ElectionRacesProvider } from '../components/election-drawer/context'
 import { type Election, findContest, findElection } from '../elections/registry'
-import { useDrawerArrived } from '../hooks/use-drawer'
+import { useDrawerStep } from '../hooks/use-drawer'
 import { readNationalRace, readRace } from '../server/civic-race'
 import { atlasCountyNames } from '../server/county-names'
 import { readEntries } from '../utilities/results'
@@ -205,24 +205,23 @@ describe('ElectionDrawer', () => {
 		expect(screen.queryByText('General election')).toBeNull()
 	})
 
-	it('tells the page that the panel is up only once it arrives', async () => {
+	it('gives the page the step only once the panel is up', async () => {
 		window.history.replaceState(null, '', '/2026/us/midterms')
 
 		const client = new QueryClient()
 
-		/** Shows whether the panel is up, as the ring of the map reads it. */
+		/** Shows the state of the step as the page reads it, as the ring of the map does. */
 		function Probe() {
-			return h('output', { 'data-testid': 'arrived' }, String(useDrawerArrived()))
+			return h('output', { 'data-testid': 'step' }, useDrawerStep(election).step?.region.key ?? '')
 		}
 
 		const page = () => h('div', null, drawer(client), h(Probe))
 
 		const view = render(page())
 
-		const arrived = () => screen.getByTestId('arrived').textContent
+		const shown = () => screen.getByTestId('step').textContent
 
-		// A closed Drawer is not up, so the next open waits for its arrival.
-		expect(arrived()).toBe('false')
+		expect(shown()).toBe('')
 
 		act(() => {
 			window.history.pushState(null, '', '/2026/us/midterms?region=ga&office=senate')
@@ -230,11 +229,11 @@ describe('ElectionDrawer', () => {
 			view.rerender(page())
 		})
 
-		// The commit that opens the panel does not mark it up.
+		// The commit that opens the panel does not give the page the step.
 		expect(screen.getByRole('dialog')).toBeTruthy()
-		expect(arrived()).toBe('false')
+		expect(shown()).toBe('')
 
-		await waitFor(() => expect(arrived()).toBe('true'))
+		await waitFor(() => expect(shown()).toBe('ga'))
 
 		act(() => {
 			window.history.pushState(null, '', '/2026/us/midterms')
@@ -242,6 +241,17 @@ describe('ElectionDrawer', () => {
 			view.rerender(page())
 		})
 
-		expect(arrived()).toBe('false')
+		expect(shown()).toBe('')
+
+		// The next open waits for its arrival again.
+		act(() => {
+			window.history.pushState(null, '', '/2026/us/midterms?region=ga&office=senate')
+
+			view.rerender(page())
+		})
+
+		expect(shown()).toBe('')
+
+		await waitFor(() => expect(shown()).toBe('ga'))
 	})
 })

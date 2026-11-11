@@ -11,7 +11,7 @@ import { SearchInput } from 'ui/search-input'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
-import { setDrawerArrived, useDrawerStep } from '../../hooks/use-drawer'
+import { setDrawerArrived, useAddressStep } from '../../hooks/use-drawer'
 import { useRace } from '../../queries/race-queries'
 import type { CountyResult, Race } from '../../types'
 import { type DrawerStep, districtName, drawerHref, statePath } from '../../utilities/elections-url'
@@ -344,7 +344,7 @@ function drawerView(
 
 /**
  * The Drawer of an election, on each page of it. A state opens it; the address
- * holds its step (see {@link useDrawerStep}). It reads the races from the
+ * holds its step (see {@link useAddressStep}). It reads the races from the
  * `ElectionRacesProvider` of the layout of the election.
  *
  * Its trail is the state, the office, then the district and the county where
@@ -364,7 +364,7 @@ function drawerView(
 export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 	const results = useElectionRaces()
 
-	const { step, go } = useDrawerStep(election)
+	const { step, go } = useAddressStep(election)
 
 	const pathname = usePathname()
 
@@ -414,9 +414,9 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 
 	const open = view !== null
 
-	// A closed panel is not up, so the next open waits for its arrival (see
-	// `useDrawerArrived`). A close by Back does not pass `go`, so the close
-	// commit clears the mark.
+	// The page reads the step once the panel is up (`useDrawerStep`). A closed
+	// panel is not up, so the next open waits for its arrival. A close by Back
+	// does not pass `go`, so the commit of the close clears it.
 	useEffect(() => {
 		if (!open) setDrawerArrived(false)
 	}, [open])

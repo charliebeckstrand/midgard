@@ -3,7 +3,7 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { findElection } from '../elections/registry'
 import { stateOfKey } from '../elections/us-states'
-import { useDrawerGo, useDrawerStep } from '../hooks/use-drawer'
+import { useAddressStep, useDrawerGo } from '../hooks/use-drawer'
 
 /**
  * The search of the router. `null` follows the address of the browser. A
@@ -31,11 +31,11 @@ const georgia = stateOfKey('ga')
 
 if (georgia === undefined) throw new Error('No state has the key ga.')
 
-describe('useDrawerStep', () => {
+describe('useAddressStep', () => {
 	it('writes no history entry for a move to the current step', () => {
 		window.history.replaceState(null, '', '/2026/us/midterms?region=ga&office=senate')
 
-		const { result } = renderHook(() => useDrawerStep(midterms))
+		const { result } = renderHook(() => useAddressStep(midterms))
 
 		const { step } = result.current
 
@@ -57,7 +57,7 @@ describe('useDrawerStep', () => {
 
 		router.search = ''
 
-		const { result } = renderHook(() => useDrawerStep(midterms))
+		const { result } = renderHook(() => useAddressStep(midterms))
 
 		expect(result.current.step).toBeNull()
 
@@ -71,7 +71,7 @@ describe('useDrawerStep', () => {
 
 		router.search = 'region=ga&office=senate'
 
-		const { result } = renderHook(() => useDrawerStep(midterms))
+		const { result } = renderHook(() => useAddressStep(midterms))
 
 		expect(result.current.step?.office).toBe('senate')
 
@@ -85,7 +85,7 @@ describe('useDrawerStep', () => {
 
 		router.search = 'region=ga'
 
-		const { result } = renderHook(() => useDrawerStep(midterms))
+		const { result } = renderHook(() => useAddressStep(midterms))
 
 		expect(result.current.step?.region.key).toBe('ga')
 
@@ -103,7 +103,7 @@ describe('useDrawerStep', () => {
 
 		let renders = 0
 
-		const drawer = renderHook(() => useDrawerStep(midterms))
+		const drawer = renderHook(() => useAddressStep(midterms))
 
 		const opener = renderHook(() => {
 			renders += 1
