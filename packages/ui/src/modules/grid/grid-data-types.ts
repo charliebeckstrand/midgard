@@ -153,7 +153,7 @@ export type GridInfiniteScroll = {
  * Controlled/uncontrolled sort binding for {@link GridProps.sort}: an ordered
  * list of sorted columns, highest priority first. A single sort is a one-item
  * list; the empty list is unsorted. A header Shift-click sorts by several
- * columns at once (see {@link GridContextValue.toggleSort}).
+ * columns at once (see {@link GridHeadContextValue.toggleSort}).
  */
 export type GridSort = {
 	value?: GridSortState[]

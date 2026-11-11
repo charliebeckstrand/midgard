@@ -4,7 +4,7 @@ import { TableHeader } from '../../components/table'
 import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
-import { useGrid } from './context'
+import { useGridHead } from './context'
 import { gridMessages } from './engine/grid-messages'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
@@ -62,7 +62,7 @@ function GridSelectHeaderCell<T>({
 	/** The accessible name of the checkbox. */
 	label: string
 }) {
-	const { allSelected, someSelected, toggleAll } = useGrid()
+	const { allSelected, someSelected, toggleAll } = useGridHead()
 
 	const intl = useIntl()
 

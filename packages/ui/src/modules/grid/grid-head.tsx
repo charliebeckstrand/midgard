@@ -5,7 +5,7 @@ import { TableHead, TableRow } from '../../components/table'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities/is-data-column'
-import { useGrid } from './context'
+import { GridHeadContext, type GridHeadContextValue, useGridHead } from './context'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
 import { isFrozen, isLocked } from './engine/grid-pin/overrides'
 import { columnSort } from './engine/grid-sort/state'
@@ -25,6 +25,12 @@ import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
 
 /** Props for {@link GridHead}. @internal */
 type GridHeadProps<T> = {
+	/**
+	 * The state that the parts of the head read with {@link useGridHead}. The head
+	 * provides it, so that a change of a selection flag or of the sort does not
+	 * make each row of the body look for a reader.
+	 */
+	context: GridHeadContextValue
 	columns: GridColumn<T>[]
 	/** Whether any rows are *visible* (post-filter); gates the select-all checkbox. */
 	hasRows: boolean
@@ -76,7 +82,7 @@ type GridHeadProps<T> = {
 
 /**
  * Header row for {@link Grid}: one {@link GridHeaderCell} per column, reading
- * selection and sort state from {@link useGrid}. When `reorderable`, visible
+ * selection and sort state from {@link useGridHead}, which it provides. When `reorderable`, visible
  * non-pinned data columns carry a drag handle backed by the column-reorder
  * sortable. When `resize` is supplied, data columns size from the engine and
  * gain a resize separator. Under a sticky header with a band row, the two rows
@@ -86,6 +92,7 @@ type GridHeadProps<T> = {
  * @internal
  */
 export function GridHead<T>({
+	context,
 	columns,
 	hasRows,
 	interactive,
@@ -102,7 +109,7 @@ export function GridHead<T>({
 	// binding with no visible band leaves the header a single row.
 	const band = groups?.spans.some((span) => span.kind === 'group') ? groups : null
 
-	const { stickyHeader } = useGrid()
+	const { stickyHeader } = context
 
 	const headRef = useRef<HTMLTableSectionElement>(null)
 
@@ -115,39 +122,41 @@ export function GridHead<T>({
 	const columnRowIndex = band ? 2 : 1
 
 	return (
-		<TableHead ref={headRef}>
-			{band && (
-				<GridGroupHead
-					header={band}
-					pinning={pinning ?? null}
-					ariaRowIndex={gridSemantics ? 1 : undefined}
-					gridSemantics={!!gridSemantics}
-				/>
-			)}
-
-			<TableRow
-				aria-rowindex={gridSemantics ? columnRowIndex : undefined}
-				className={cn(stacked && k.sticky.stack)}
-			>
-				{columns.map((col, index) => (
-					<GridHeaderCell
-						key={col.id}
-						column={col}
-						// Header column indices accompany the global row-index scheme.
-						ariaColIndex={gridSemantics ? index + 1 : undefined}
-						columnIndex={index}
-						hasRows={hasRows}
-						interactive={interactive}
-						selectAllLabel={selectAllLabel}
-						reorderable={reorderable}
-						reorderHandle={reorderHandle}
-						resize={resize ?? null}
-						filters={filters ?? null}
+		<GridHeadContext value={context}>
+			<TableHead ref={headRef}>
+				{band && (
+					<GridGroupHead
+						header={band}
 						pinning={pinning ?? null}
+						ariaRowIndex={gridSemantics ? 1 : undefined}
+						gridSemantics={!!gridSemantics}
 					/>
-				))}
-			</TableRow>
-		</TableHead>
+				)}
+
+				<TableRow
+					aria-rowindex={gridSemantics ? columnRowIndex : undefined}
+					className={cn(stacked && k.sticky.stack)}
+				>
+					{columns.map((col, index) => (
+						<GridHeaderCell
+							key={col.id}
+							column={col}
+							// Header column indices accompany the global row-index scheme.
+							ariaColIndex={gridSemantics ? index + 1 : undefined}
+							columnIndex={index}
+							hasRows={hasRows}
+							interactive={interactive}
+							selectAllLabel={selectAllLabel}
+							reorderable={reorderable}
+							reorderHandle={reorderHandle}
+							resize={resize ?? null}
+							filters={filters ?? null}
+							pinning={pinning ?? null}
+						/>
+					))}
+				</TableRow>
+			</TableHead>
+		</GridHeadContext>
 	)
 }
 
@@ -224,7 +233,7 @@ function GridHeaderCell<T>({
 	filters,
 	pinning,
 }: GridHeaderCellProps<T>) {
-	const { sort, toggleSort, pinColumn, stickyHeader } = useGrid()
+	const { sort, toggleSort, pinColumn, stickyHeader } = useGridHead()
 
 	// The header row is the first row of the keyboard cursor, whose columns are
 	// the visible columns in display order.

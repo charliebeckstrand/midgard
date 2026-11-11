@@ -12,7 +12,7 @@ import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k as gridK } from '../../recipes/kata/grid'
 import { k } from '../../recipes/kata/grid-group'
-import { useGrid } from './context'
+import { useGridHead } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
 import { gridMessages } from './engine/grid-messages'
@@ -48,7 +48,7 @@ export function GridGroupHead({
 	ariaRowIndex,
 	gridSemantics,
 }: GridGroupHeadProps) {
-	const { stickyHeader } = useGrid()
+	const { stickyHeader } = useGridHead()
 
 	// Running 1-based column index for grid semantics: a spanning band cell takes
 	// the index of its leftmost column, then the counter advances by the span.
