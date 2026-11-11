@@ -53,12 +53,68 @@ export function registerOverlayLayer(layer: OverlayLayer): () => void {
 }
 
 /**
- * Subscribes to the changes of the stack. Returns the unsubscribe call.
+ * Subscribes to the changes of the stack, and to the start and the end of the
+ * fade of each backdrop. Returns the unsubscribe call.
  *
  * @internal
  */
 export function subscribeOverlayLayers(listener: () => void): () => void {
 	return changes.subscribe(listener)
+}
+
+/**
+ * An overlay whose backdrop still fades in over a box of the page. The
+ * backdrop starts clear, so a change on the page under it paints at full
+ * contrast in the first frames, and then the backdrop dims it.
+ *
+ * @internal
+ */
+export type EnteringOverlay = {
+	/** The root node of the overlay, or `null` before its portal mounts it. */
+	node: () => Element | null
+	/** The container that the overlay covers, or `null` for the viewport. */
+	scope: Element | null
+}
+
+/** The overlays whose backdrop still fades in. */
+const entering: EnteringOverlay[] = []
+
+/**
+ * Records that the backdrop of `overlay` fades in. Returns the call that ends
+ * the record, which the arrival of the backdrop or the close makes. The
+ * listeners of {@link subscribeOverlayLayers} hear both changes.
+ *
+ * @internal
+ */
+export function registerEnteringOverlay(overlay: EnteringOverlay): () => void {
+	entering.push(overlay)
+
+	changes.emit()
+
+	return () => {
+		const index = entering.indexOf(overlay)
+
+		if (index === -1) return
+
+		entering.splice(index, 1)
+
+		changes.emit()
+	}
+}
+
+/**
+ * Whether the backdrop of an overlay that covers `element` still fades in. An
+ * overlay does not cover an element in its own node. Before its portal mounts
+ * the node, the overlay holds nothing, so it covers each element in its scope.
+ *
+ * @internal
+ */
+export function isUnderEnteringOverlay(element: Element): boolean {
+	return entering.some((overlay) => {
+		if (overlay.node()?.contains(element)) return false
+
+		return !overlay.scope || overlay.scope.contains(element)
+	})
 }
 
 /** Whether `layer` covers `element`, which is not in the layer. */

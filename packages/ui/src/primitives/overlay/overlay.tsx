@@ -24,6 +24,7 @@ import { registerOverlayLayer } from '../../utilities/overlay-layers'
 import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
+import { useOverlayEntering } from './use-overlay-entering'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
 import { useOverlayKeepFocus } from './use-overlay-keep-focus'
 import { useOverlayReturnFocus } from './use-overlay-return-focus'
@@ -144,6 +145,11 @@ export type OverlayProps = {
  *
  * The portal carries the density scope and the direction of the place that
  * opened the overlay (see {@link Portal}), so the panel follows that place.
+ *
+ * The backdrop fades in from clear. Until it arrives, a mark on the page under
+ * it holds a change that came with the open, such as the ring of a Map region
+ * that a pick selected (`useUnderOverlay`). The mark therefore does not
+ * paint at full contrast for a frame and then dim.
  */
 export function Overlay({
 	open,
@@ -238,6 +244,16 @@ export function Overlay({
 		return registerOverlayLayer({ node: floating, scope: container ?? null })
 	}, [floating, covering, container])
 
+	// The fade of the backdrop holds a change of the page under it, such as a
+	// selection that comes with the open, until the backdrop covers the page.
+	const onBackdropAnimationComplete = useOverlayEntering(
+		open,
+		backdrop,
+		container,
+		containerRef,
+		k.motion.animate,
+	)
+
 	const inert = props.inert === true
 
 	// A closed overlay stays on screen for its exit animation, and its subtree
@@ -298,6 +314,7 @@ export function Overlay({
 			{(backdrop || catchesPress) && (
 				<m.div
 					{...k.motion}
+					onAnimationComplete={onBackdropAnimationComplete}
 					ref={backdropRef}
 					data-slot="overlay-backdrop"
 					className={backdrop ? (backdropClassName ?? slots.backdrop) : 'absolute inset-0'}
