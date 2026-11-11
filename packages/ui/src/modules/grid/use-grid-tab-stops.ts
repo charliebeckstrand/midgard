@@ -88,11 +88,17 @@ export function useGridTabStops(
 		// nothing in the grid, holds focus.
 		let entered: Element | null = null
 
-		// The walk visits each of `roots` that is in the document. It writes only
-		// the attributes that differ, and it drops the records of its own writes,
-		// so they start no second walk.
+		// The walk visits each of `roots` that is in the document, and each element
+		// that a pending record names: a commit can change the rows and move focus
+		// in one task, before the observer runs. The walk writes only the
+		// attributes that differ, and it drops the records of its own writes, so
+		// they start no second walk.
 		const normalize = (watcher: MutationObserver, roots: Iterable<Element | null> = [table]) => {
-			for (const root of roots) if (root?.isConnected) pinControls(table, entered, unit, root)
+			const pending = changedElements(watcher.takeRecords())
+
+			for (const root of [...roots, ...pending]) {
+				if (root?.isConnected) pinControls(table, entered, unit, root)
+			}
 
 			watcher.takeRecords()
 		}

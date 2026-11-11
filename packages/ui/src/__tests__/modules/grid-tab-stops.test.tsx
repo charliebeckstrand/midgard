@@ -1,7 +1,7 @@
 import { act, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
-import { fireEvent, renderUI, screen, setupUser } from '../helpers'
+import { fireEvent, present, renderUI, screen, setupUser } from '../helpers'
 
 type Row = { id: number; name: string }
 
@@ -230,6 +230,52 @@ describe('Grid tab stops', () => {
 			expect(screen.getByRole('button', { name: 'Edit Cara' })).toHaveAttribute('tabindex', '-1')
 
 			expect(tabbable(screen.getByRole('grid'))).toEqual([])
+		})
+
+		// The add commits the new row and moves focus to the slot in one task, so
+		// the move of focus must not drop the record of the new row.
+		it('takes the controls of a row added from the new-row slot out of the tab order', async () => {
+			function Harness() {
+				const [list, setList] = useState(rows)
+
+				const addColumns: GridColumn<Row>[] = [
+					{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+					{ id: 'actions', actions: (row) => <button type="button">Edit {row.name}</button> },
+				]
+
+				return (
+					<Grid
+						columns={addColumns}
+						rows={list}
+						getKey={getKey}
+						navigable
+						editable={{
+							session: 'managed',
+							newRow: 'bottom',
+							onCommit: () => {},
+							onRowAdd: (values) =>
+								setList((current) => [...current, { id: 3, name: String(values.name) }]),
+						}}
+					/>
+				)
+			}
+
+			const { container } = renderUI(<Harness />)
+
+			const editor = present(
+				container.querySelector<HTMLInputElement>(
+					'[data-slot="grid-new-row"] td[data-grid-new-col="name"] input',
+				),
+				'new-row editor name',
+			)
+
+			act(() => editor.focus())
+
+			fireEvent.change(editor, { target: { value: 'Cara' } })
+
+			await act(async () => fireEvent.keyDown(editor, { key: 'Enter' }))
+
+			expect(screen.getByRole('button', { name: 'Edit Cara' })).toHaveAttribute('tabindex', '-1')
 		})
 
 		it('keeps the tab order of each control when a sort moves the rows', () => {
