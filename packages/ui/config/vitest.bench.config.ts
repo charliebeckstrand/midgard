@@ -14,7 +14,7 @@ export default defineConfig({
 		// takes a little more.
 		execArgv: ['--max-old-space-size=4096'],
 		benchmark: {
-			// The browser-mode suite (vitest.bench.browser.config.ts) needs real
+			// The browser-mode suite (config/vitest.bench.browser.config.ts) needs real
 			// layout and scroll geometry, so it can't run under jsdom.
 			exclude: ['**/node_modules/**', 'src/__benchmarks__/browser/**'],
 		},

@@ -11,7 +11,7 @@ import { tooltipAfterHover } from '../helpers/tooltip'
  * an over-long slice label clips and must reveal its full text on hover.
  */
 describe('chart legend truncation tooltip (real browser)', () => {
-	// The suite arrives at the size vitest.browser.config.ts declares, and a
+	// The suite arrives at the size config/vitest.browser.config.ts declares, and a
 	// size set inside an `it` reaches this file's later cases and nothing else.
 	// Declare it once, so the file owns its own width.
 	beforeAll(() => page.viewport(960, 640))

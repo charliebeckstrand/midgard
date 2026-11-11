@@ -31,16 +31,16 @@ import { uiRoot } from './walk-source'
 // browser test file and gives each break of the three rules that the head of
 // that suite states. The suite parses the files and holds the rules.
 
-const browserConfig = readFileSync(join(uiRoot, 'vitest.browser.config.ts'), 'utf8')
+const browserConfig = readFileSync(join(uiRoot, 'config/vitest.browser.config.ts'), 'utf8')
 
 /**
- * Reads the numbers that `pattern` captures in `vitest.browser.config.ts`, so
+ * Reads the numbers that `pattern` captures in `config/vitest.browser.config.ts`, so
  * that the scan cannot drift from it.
  */
 function configNumber(pattern: RegExp): number[] {
 	const match = pattern.exec(browserConfig)
 
-	if (!match) throw new Error(`vitest.browser.config.ts no longer matches ${pattern}`)
+	if (!match) throw new Error(`config/vitest.browser.config.ts no longer matches ${pattern}`)
 
 	return match.slice(1).map((text) => Number(text.replaceAll('_', '')))
 }

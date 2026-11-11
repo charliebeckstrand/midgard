@@ -15,7 +15,7 @@ import { tabbables } from '../helpers/tabbables'
  * jsdom resolves tabbability to zero-size; floating-ui's focus guards never
  * engage there, and the `browser` project mocks `@floating-ui/react` away.
  * This project keeps the engine real (the `floating-ui` project in
- * vitest.browser.config.ts). Real keystrokes are required: testing-library
+ * config/vitest.browser.config.ts). Real keystrokes are required: testing-library
  * simulation strands focus on a guard sentinel.
  */
 describe('a11y focus trap (real browser): modal family', () => {

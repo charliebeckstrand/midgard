@@ -1,9 +1,9 @@
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { mergeConfig } from 'vitest/config'
-import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
+import { splitSequencer } from '../src/__tests__/setup/split-sequencer.ts'
+import base, { docsProject } from '../vitest.config.ts'
 import { compileUiSource } from './vitest.compiler.preset.ts'
-import base, { docsProject } from './vitest.config.ts'
 
 const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/package.json') as {
 	version: string
@@ -22,11 +22,11 @@ const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/
 // The `skips` project runs the skip gate in src/__tests__/compiler/, which only
 // this run needs.
 //
-// The compiler reads the `ui` source, not the tests (`vitest.compiler.preset.ts`).
+// The compiler reads the `ui` source, not the tests (`config/vitest.compiler.preset.ts`).
 //
 // The `docs` project is in a file of its own, so it inherits no plugin of this
 // run. Thus this run replaces it with its compiled twin
-// (`vitest.docs-compiler.config.ts`). `mergeConfig` joins the two `projects`
+// (`config/vitest.docs-compiler.config.ts`). `mergeConfig` joins the two `projects`
 // arrays, so the base config goes in with no `docs` entry.
 const { projects = [], ...baseTest } = base.test ?? {}
 
@@ -46,15 +46,16 @@ export default mergeConfig(plain, {
 		sequence: { sequencer: splitSequencer(['react-compiler-skips.test.ts']) },
 		// Added to the projects of the base config.
 		projects: [
-			'./vitest.docs-compiler.config.ts',
+			'./config/vitest.docs-compiler.config.ts',
 			{
 				test: {
 					name: 'skips',
 					environment: 'node',
 					pool: 'threads',
 					include: ['src/__tests__/compiler/*.test.ts'],
-					// Gives the skip gate the shard of the run.
-					globalSetup: ['./src/__tests__/setup/shard.ts'],
+					// Gives the skip gate the shard of the run. The path is absolute (see
+					// `config/vitest.docs-build.config.ts`).
+					globalSetup: [fileURLToPath(new URL('../src/__tests__/setup/shard.ts', import.meta.url))],
 					// The group of `unit`, so the one long file runs next to that project
 					// and not after the last group. As a last group, it ran alone while the
 					// other workers waited.
@@ -71,7 +72,7 @@ export default mergeConfig(plain, {
 		// on the compiler's version, so the path carries that version. A
 		// compiler upgrade then starts a cold cache, not a stale one.
 		fsModuleCachePath: fileURLToPath(
-			new URL(`../../node_modules/.vitest-cache-compiler-${version}`, import.meta.url),
+			new URL(`../../../node_modules/.vitest-cache-compiler-${version}`, import.meta.url),
 		),
 	},
 })

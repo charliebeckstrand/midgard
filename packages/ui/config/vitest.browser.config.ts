@@ -296,7 +296,7 @@ export default defineConfig({
 		// default of 1s on every machine, and no option above scales it. It is the
 		// budget of `asyncUtilTimeout`, so a poll and a `waitFor` fail at one time.
 		expect: { ...assertions, poll: { timeout: CI ? 4_000 : 1_000 } },
-		// The cleanup of `vitest.base.ts`, for the shared registry that `isolate`
+		// The cleanup of `config/vitest.base.ts`, for the shared registry that `isolate`
 		// declares below.
 		...cleanup,
 		// One page per instance, and one module graph across the files it runs. The
@@ -359,7 +359,9 @@ export default defineConfig({
 				{
 					browser: 'chromium',
 					name: 'browser',
-					setupFiles: [resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts')],
+					setupFiles: [
+						resolve(import.meta.dirname, '../src/__tests__/browser/setup/module-mocks.ts'),
+					],
 					include: ['src/__tests__/browser/**/*.test.{ts,tsx}'],
 					exclude: [
 						...configDefaults.exclude,
@@ -373,21 +375,28 @@ export default defineConfig({
 				{
 					browser: 'chromium',
 					name: 'geometry',
-					setupFiles: [resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts')],
+					setupFiles: [
+						resolve(import.meta.dirname, '../src/__tests__/browser/setup/module-mocks.ts'),
+					],
 					include: ['src/__tests__/browser/geometry/**/*.test.{ts,tsx}'],
 				},
 				{
 					browser: 'chromium',
 					name: 'scrollbars',
 					provider: playwright({ launchOptions: { ignoreDefaultArgs: ['--hide-scrollbars'] } }),
-					setupFiles: [resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts')],
+					setupFiles: [
+						resolve(import.meta.dirname, '../src/__tests__/browser/setup/module-mocks.ts'),
+					],
 					include: ['src/__tests__/browser/scrollbars/**/*.test.{ts,tsx}'],
 				},
 				{
 					browser: 'chromium',
 					name: 'floating-ui',
 					setupFiles: [
-						resolve(import.meta.dirname, 'src/__tests__/browser/floating-ui/setup/module-mocks.ts'),
+						resolve(
+							import.meta.dirname,
+							'../src/__tests__/browser/floating-ui/setup/module-mocks.ts',
+						),
 					],
 					include: ['src/__tests__/browser/floating-ui/**/*.test.{ts,tsx}'],
 				},
@@ -395,7 +404,7 @@ export default defineConfig({
 					browser: 'chromium',
 					name: 'motion',
 					setupFiles: [
-						resolve(import.meta.dirname, 'src/__tests__/browser/motion/setup/module-mocks.ts'),
+						resolve(import.meta.dirname, '../src/__tests__/browser/motion/setup/module-mocks.ts'),
 					],
 					include: ['src/__tests__/browser/motion/**/*.test.{ts,tsx}'],
 				},
@@ -405,7 +414,7 @@ export default defineConfig({
 					setupFiles: [
 						resolve(
 							import.meta.dirname,
-							'src/__tests__/browser/floating-motion/setup/module-mocks.ts',
+							'../src/__tests__/browser/floating-motion/setup/module-mocks.ts',
 						),
 					],
 					include: ['src/__tests__/browser/floating-motion/**/*.test.{ts,tsx}'],

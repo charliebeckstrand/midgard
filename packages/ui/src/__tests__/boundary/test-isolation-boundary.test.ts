@@ -79,7 +79,7 @@ import {
 
 const testsDir = join(srcDir, '__tests__')
 
-// `browser/` runs under vitest.browser.config.ts and is scanned on its own
+// `browser/` runs under config/vitest.browser.config.ts and is scanned on its own
 // below; `setup/` is the sanctioned home for a global mock. `boundary/` is
 // split: its `*-boundary` files share a registry and are scanned below, the
 // rest run on forks.
@@ -88,7 +88,7 @@ const SHARED_REGISTRY_SKIP = new Set(['boundary', 'browser', 'setup'])
 // The `unit` project's whole test tree (not only `*.test.*`, since a mock in a
 // helper reaches the same registry), the suites of the `docs` project, the
 // `boundary` project's own files, and the browser suite, whose instances
-// share one page each (`isolate: false` in vitest.browser.config.ts). Its
+// share one page each (`isolate: false` in config/vitest.browser.config.ts). Its
 // per-instance doubles live in a `setup/` directory at either depth, which
 // `skip` prunes by entry name.
 const SHARED_REGISTRY_SCANS = [
@@ -892,13 +892,13 @@ describe('test isolation boundary', () => {
 	})
 
 	// The scans above enumerate the projects that share a registry. That set
-	// lives in vitest.config.ts and vitest.docs.config.ts, the config of the
+	// lives in vitest.config.ts and config/vitest.docs.config.ts, the config of the
 	// `docs` project, and can change with no signal here, which would
 	// leave this gate guarding a registry it no longer covers. Read the config as
 	// text rather than import it: an import runs the config, and its walk of the
 	// test tree, in a test worker.
 	it('covers every project that shares a module registry', () => {
-		const config = ['vitest.config.ts', 'vitest.docs.config.ts']
+		const config = ['vitest.config.ts', 'config/vitest.docs.config.ts']
 			.map((file) => readFileSync(join(uiRoot, file), 'utf8'))
 			.join('\n')
 
@@ -913,17 +913,17 @@ describe('test isolation boundary', () => {
 
 		expect(
 			shared.sort(),
-			'a project changed its isolation, or vitest.config.ts or vitest.docs.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
+			'a project changed its isolation, or vitest.config.ts or config/vitest.docs.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
 		).toEqual(['boundary', 'docs', 'geometry', 'pure', 'unit', 'workspace'])
 
 		// The browser config is the fourth scan above, and it is a separate file
 		// the parse over vitest.config.ts cannot reach. Its instances share one
 		// page each, which is why that scan exists at all.
-		const browser = readFileSync(join(uiRoot, 'vitest.browser.config.ts'), 'utf8')
+		const browser = readFileSync(join(uiRoot, 'config/vitest.browser.config.ts'), 'utf8')
 
 		expect(
 			/^\s*isolate: false/m.test(browser),
-			'vitest.browser.config.ts no longer shares a page — drop the browser scan above, which exists for that setting',
+			'config/vitest.browser.config.ts no longer shares a page — drop the browser scan above, which exists for that setting',
 		).toBe(true)
 	})
 

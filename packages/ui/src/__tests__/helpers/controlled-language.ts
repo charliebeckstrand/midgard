@@ -398,9 +398,9 @@ const UNSHIPPED_TREE = /[\\/](?:__tests__|__benchmarks__)[\\/]/
 
 /**
  * Every cadence rule 5 break in the comments that {@link scanPackage} does not
- * read: the test and benchmark trees, the scripts, and the configs at the
- * package root. A reader of those comments is a reader too, so the aside rule
- * holds there. The other rules are not gated there.
+ * read: the test and benchmark trees, the scripts, and the configs. A reader of
+ * those comments is a reader too, so the aside rule holds there. The other
+ * rules are not gated there.
  *
  * @param server - The TypeScript server that parses the files, in one project.
  */

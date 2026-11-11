@@ -9,7 +9,7 @@ import { compileUiSource } from './vitest.compiler.preset.ts'
  * ships them. Compare it with a plain `bench:browser` run to see what the
  * compiler gains or costs.
  *
- * The compiler reads the `ui` source only (`vitest.compiler.preset.ts`). The
+ * The compiler reads the `ui` source only (`config/vitest.compiler.preset.ts`). The
  * bench harness under `__benchmarks__` stays plain, so both runs time the same
  * harness.
  */

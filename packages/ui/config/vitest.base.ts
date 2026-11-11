@@ -1,6 +1,6 @@
 /**
  * The test settings that the jsdom run (`vitest.config.ts`) and the browser
- * run (`vitest.browser.config.ts`) share.
+ * run (`config/vitest.browser.config.ts`) share.
  */
 
 /** Whether the run is on CI, where the budgets scale up. */

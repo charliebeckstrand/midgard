@@ -2,7 +2,7 @@ import { mergeConfig } from 'vitest/config'
 import { compileUiSource } from './vitest.compiler.preset.ts'
 import docs from './vitest.docs.config.ts'
 
-// The `docs` project of the compiled run (`vitest.compiler.config.ts`). A
+// The `docs` project of the compiled run (`config/vitest.compiler.config.ts`). A
 // project in a file of its own inherits no plugin and no option of that run, so
 // this file adds the compiler and the flag that the run sets. The module cache
 // of the run reaches this project too, because a project with no cache path of

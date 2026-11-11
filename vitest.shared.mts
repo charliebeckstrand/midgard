@@ -9,7 +9,7 @@
  * Each spy, stubbed global, and stubbed variable is restored after its test, and
  * the call history of each mock is cleared, so no case leaks into the next. A
  * module mock keeps its implementation. These are the cleanup options of the ui
- * runs (`packages/ui/vitest.base.ts`), so a test file restores nothing itself.
+ * runs (`packages/ui/config/vitest.base.ts`), so a test file restores nothing itself.
  *
  * A test that makes no assertion fails, as in ui.
  *

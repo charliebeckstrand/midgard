@@ -15,7 +15,7 @@ import { docsSites, srcDir, srcRelative, walkSource } from '../helpers/walk-sour
 // Fix a new skip. If you cannot, opt the function out, and add it to that list.
 //
 // The pass compiles each module and takes a long time, so it runs only in
-// the compiled run (vitest.compiler.config.ts), in a project of its own. Each
+// the compiled run (config/vitest.compiler.config.ts), in a project of its own. Each
 // shard of the run compiles its part of the modules (`setup/shard.ts`).
 
 /** Each file with skips, and in it each skipped function with its cause. */

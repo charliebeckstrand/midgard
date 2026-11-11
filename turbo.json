@@ -27,6 +27,7 @@
 				"src/**",
 				"app/**",
 				"scripts/**",
+				"config/**",
 				"*.ts",
 				"tsconfig.json",
 				"tsconfig.scripts.json",
@@ -56,7 +57,7 @@
 				"src/docs/dist/**",
 				"src/__tests__/docs-build/**",
 				"scripts/docs-server.ts",
-				"vitest.docs-build.config.ts"
+				"config/vitest.docs-build.config.ts"
 			]
 		},
 		"docs:bench": {
@@ -67,6 +68,7 @@
 			"inputs": [
 				"src/**",
 				"app/**",
+				"config/**",
 				"*.ts",
 				"*.json",
 				"$TURBO_ROOT$/biome.json",
@@ -91,8 +93,8 @@
 			"inputs": [
 				"src/**",
 				"vitest.config.ts",
-				"vitest.compiler.config.ts",
-				"vitest.compiler.preset.ts",
+				"config/vitest.compiler.config.ts",
+				"config/vitest.compiler.preset.ts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"package.json"
@@ -104,7 +106,7 @@
 			"passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"],
 			"inputs": [
 				"src/**",
-				"vitest.browser.config.ts",
+				"config/vitest.browser.config.ts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			]

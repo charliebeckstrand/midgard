@@ -19,7 +19,7 @@ function nestedSelectors(rules: CSSRuleList, found: string[] = []): string[] {
 
 /**
  * The browser suite reads the utility CSS that a build ships (see `servedTailwind`
- * in `vitest.browser.config.ts`). A build lowers the native nesting that Tailwind
+ * in `config/vitest.browser.config.ts`). A build lowers the native nesting that Tailwind
  * generates, so the served CSS must hold no nested style rule. A nested
  * `**:` variant restyles each element with a `data-slot` attribute much more
  * slowly than its flat form, and a benchmark would time that cost.

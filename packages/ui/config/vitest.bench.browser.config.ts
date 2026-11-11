@@ -27,7 +27,7 @@ export default defineConfig({
 	// runtime too.
 	oxc: { jsx: { development: false } },
 	// Pre-bundle the bench dependency set so the optimizer doesn't discover it
-	// lazily and reload the page mid-run (see vitest.browser.config.ts).
+	// lazily and reload the page mid-run (see config/vitest.browser.config.ts).
 	optimizeDeps: {
 		rolldownOptions: { transform: { define: { 'process.env.NODE_ENV': '"production"' } } },
 		include: [

@@ -8,7 +8,7 @@ import { present, renderUI, screen, waitFor } from '../../helpers'
  * come fully into view.
  *
  * The case runs with real scrollbars (the `scrollbars` instance of
- * `vitest.browser.config.ts`). With hidden scrollbars, a stable gutter still
+ * `config/vitest.browser.config.ts`). With hidden scrollbars, a stable gutter still
  * reserves 15 px, but the range is computed as if the scrollbar had no width.
  * The range is then 15 px short: at the end in a left-to-right scroller, and
  * at the start in a right-to-left one. A user with visible scrollbars never

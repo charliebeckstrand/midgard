@@ -36,7 +36,7 @@ import { uiRoot, workspaceRoot } from '../helpers/walk-source'
 //   7. Cadence rule 5 in every Markdown file of the package is pinned at zero.
 //      The other rules are not gated outside the curated surface docs.
 //   8. Cadence rule 5 in the comments outside the shipped tree (the test and
-//      benchmark trees, the scripts, and the root configs) is pinned at zero.
+//      benchmark trees, the scripts, and the configs) is pinned at zero.
 //      The other rules are not gated there.
 //   9. Cadence rule 5 outside ui (the comments and the Markdown of the apps,
 //      of auth, and of shared) is pinned at zero. The other rules are not gated

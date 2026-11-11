@@ -11,7 +11,7 @@ import { LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
 import { Sidebar } from 'ui/sidebar'
 import { describe, expect, it, vi } from 'vitest'
-import { CI } from '../../../vitest.base.ts'
+import { CI } from '../../../config/vitest.base.ts'
 import { catalogs } from '../app/catalogs.ts'
 import { LOCALES } from '../app/language.ts'
 import { findPages, type Page } from '../plugin/pages.ts'
@@ -62,7 +62,7 @@ import { findSameText, readTexts, recordIntl } from './same-text.ts'
 // suite.
 //
 // The pages import the virtual modules of the docs plugin, so the `docs`
-// project loads the plugin (`vitest.docs.config.ts`).
+// project loads the plugin (`config/vitest.docs.config.ts`).
 
 /** The English module of each page and each tab, keyed by module path. */
 const englishModules = import.meta.glob<ComponentType>(

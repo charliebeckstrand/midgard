@@ -10,7 +10,7 @@ import { stripSourceComments, uiRoot, workspaceRoot } from '../helpers/walk-sour
 // The docs plugin and the `ui` modules that it imports were in the graph of
 // `vitest.config.ts` once. Then an edit to `code-shiki.ts` made the whole cache
 // miss, and `test:changed` ran 757 files, not 48. The plugin now loads in
-// `vitest.docs.config.ts`, the config of the `docs` project, and this gate keeps
+// `config/vitest.docs.config.ts`, the config of the `docs` project, and this gate keeps
 // the root configs to the test harness.
 //
 // The CI cache keys hash the same files (`.github/workflows/ci.yml`). Thus a
@@ -20,7 +20,7 @@ import { stripSourceComments, uiRoot, workspaceRoot } from '../helpers/walk-sour
 /** The root configs, and the prefix of the CI cache key of each. */
 const ROOTS = [
 	{ config: 'vitest.config.ts', key: 'vitest-cache-' },
-	{ config: 'vitest.compiler.config.ts', key: 'vitest-compiler-cache-' },
+	{ config: 'config/vitest.compiler.config.ts', key: 'vitest-compiler-cache-' },
 ] as const
 
 const srcRoot = join(uiRoot, 'src')
@@ -121,7 +121,7 @@ describe('vitest config', () => {
 
 		expect(
 			source,
-			'a root config imports ui source, so each edit to it empties the module cache and makes `--changed` run each test file. Load it in the config of the project that needs it, as `vitest.docs.config.ts` loads the docs plugin',
+			'a root config imports ui source, so each edit to it empties the module cache and makes `--changed` run each test file. Load it in the config of the project that needs it, as `config/vitest.docs.config.ts` loads the docs plugin',
 		).toEqual([])
 	})
 

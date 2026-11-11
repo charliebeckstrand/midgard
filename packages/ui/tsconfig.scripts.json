@@ -4,6 +4,6 @@
 		"noEmit": true,
 		"tsBuildInfoFile": ".tsbuildinfo/scripts.tsbuildinfo"
 	},
-	"include": ["scripts", "*.config.ts"],
+	"include": ["scripts", "*.config.ts", "config"],
 	"exclude": []
 }

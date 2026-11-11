@@ -13,7 +13,7 @@ import { vi } from 'vitest'
  * off before the clock does.
  *
  * The config also restores the spies and stubs before each test (`cleanup` in
- * `vitest.base.ts`). That leaves the gap at the end of a file: the last test
+ * `config/vitest.base.ts`). That leaves the gap at the end of a file: the last test
  * keeps its spies while the next file runs its `beforeAll` hooks. A clock that
  * a test installs also stays when the runner aborts the test at `testTimeout`.
  * `useRealTimers` is a no-op where no fake clock is installed.

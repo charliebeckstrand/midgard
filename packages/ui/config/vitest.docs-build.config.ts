@@ -1,5 +1,6 @@
+import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
-import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
+import { splitSequencer } from '../src/__tests__/setup/split-sequencer.ts'
 
 /**
  * The suite of the docs build (src/__tests__/docs-build/). It reads the output
@@ -21,7 +22,12 @@ export default defineConfig({
 		name: 'docs-build',
 		environment: 'node',
 		include: ['src/__tests__/docs-build/**/*.test.ts'],
-		globalSetup: ['./src/__tests__/setup/shard.ts', './src/__tests__/docs-build/setup/serve.ts'],
+		// Each path is absolute. Vitest reads a relative path of a global setup
+		// from the root, and Knip reads it from the folder of this file.
+		globalSetup: [
+			resolve(import.meta.dirname, '../src/__tests__/setup/shard.ts'),
+			resolve(import.meta.dirname, '../src/__tests__/docs-build/setup/serve.ts'),
+		],
 		sequence: { sequencer: splitSequencer(['accessibility.test.ts']) },
 		// Each wait of Playwright has a limit of 30 s, far longer than a page load
 		// in Chromium, so a page that does not hydrate fails with the error of

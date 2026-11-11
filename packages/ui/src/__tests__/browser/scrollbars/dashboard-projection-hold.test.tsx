@@ -11,7 +11,7 @@ import { resizeObserverLoopErrors } from '../helpers/resize-observer-loop'
  * With no hold, the board switched between the two states on each frame.
  *
  * The case runs with real scrollbars (the `scrollbars` instance of
- * `vitest.browser.config.ts`). With hidden scrollbars, the width of the board
+ * `config/vitest.browser.config.ts`). With hidden scrollbars, the width of the board
  * does not depend on its height, so no loop can start.
  */
 describe('dashboard projection at a classic scrollbar (real browser, real scrollbars)', () => {

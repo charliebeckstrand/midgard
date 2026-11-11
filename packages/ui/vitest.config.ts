@@ -2,12 +2,12 @@ import { readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
+import { assertions, CI, cleanup, coverageScope, sequence } from './config/vitest.base.ts'
 import {
 	docblockEnvironment,
 	docsTestDir,
 	walkSource,
 } from './src/__tests__/helpers/walk-source.ts'
-import { assertions, CI, cleanup, coverageScope, sequence } from './vitest.base.ts'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` and `docs` exclude them. The scan skips
@@ -155,7 +155,7 @@ export const unitSetupFiles = [...setupFiles, './src/__tests__/setup/grid-module
 /**
  * The test options of each project. The inline projects below inherit them
  * from the root `test` block, and each project of the array can change one.
- * The `docs` project is in a file of its own (`vitest.docs.config.ts`), and
+ * The `docs` project is in a file of its own (`config/vitest.docs.config.ts`), and
  * such a project inherits no option of the root config. Thus that file spreads
  * this object.
  */
@@ -201,7 +201,7 @@ export const projectDefaults = {
 	// it, the docs shell (`app/root.tsx`) renders its stylesheet link with an
 	// empty `href`, and React warns.
 	css: { include: [/\.css\?url$/] },
-	// See `vitest.base.ts`. `resetModules` is barred too; see the unit project
+	// See `config/vitest.base.ts`. `resetModules` is barred too; see the unit project
 	// below.
 	...cleanup,
 }
@@ -210,7 +210,7 @@ export const projectDefaults = {
 const projects = [
 	{
 		// The jsdom suites of `src/__tests__`. The jsdom suites of the docs app
-		// run in the `docs` project (`vitest.docs.config.ts`) with these settings.
+		// run in the `docs` project (`config/vitest.docs.config.ts`) with these settings.
 		test: {
 			name: 'unit',
 			setupFiles: unitSetupFiles,
@@ -228,13 +228,13 @@ const projects = [
 			// `integration` below, which keeps process isolation on forks.
 			isolate: false,
 			include: ['src/__tests__/**/*.test.{ts,tsx}'],
-			// The browser suite (vitest.browser.config.ts) verifies behavior
+			// The browser suite (config/vitest.browser.config.ts) verifies behavior
 			// jsdom can't (layout/color geometry and, in its floating-ui
 			// project, real-floating-engine focus trapping) so it may not
 			// run under this jsdom config. The compiler/ suite runs only in
-			// the compiled run (vitest.compiler.config.ts), and the
+			// the compiled run (config/vitest.compiler.config.ts), and the
 			// docs-build/ suite only after the docs build
-			// (vitest.docs-build.config.ts). The boundary/
+			// (config/vitest.docs-build.config.ts). The boundary/
 			// suites run in the two projects below, the node-docblock
 			// files in `pure`, and the geometry/ suites in `geometry`.
 			exclude: [
@@ -330,7 +330,7 @@ const projects = [
 		// are examples. It has the settings of `pure`: a plain node
 		// environment on one shared worker. The layout geometry that needs
 		// a real engine runs in the `geometry` instance of
-		// vitest.browser.config.ts. `pnpm test:geometry` runs the two.
+		// config/vitest.browser.config.ts. `pnpm test:geometry` runs the two.
 		//
 		// Each file still opens with `// @vitest-environment node`, so
 		// `node-environment-boundary.test.ts` keeps the file clear of the
@@ -356,7 +356,7 @@ const projects = [
 export const docsGroupOrder = projects.length
 
 /** The config file of the `docs` project. The compiled run replaces it. */
-export const docsProject = './vitest.docs.config.ts'
+export const docsProject = './config/vitest.docs.config.ts'
 
 export default defineConfig({
 	plugins: cachePlugins,

@@ -1,14 +1,15 @@
+import { resolve } from 'node:path'
 import { configDefaults, defineConfig } from 'vitest/config'
-import { docsTestDir, srcRelative } from './src/__tests__/helpers/walk-source.ts'
-import { reactDocs } from './src/docs/plugin/index.ts'
-import { sequence } from './vitest.base.ts'
+import { docsTestDir, srcRelative } from '../src/__tests__/helpers/walk-source.ts'
+import { reactDocs } from '../src/docs/plugin/index.ts'
 import {
 	cachePlugins,
 	docsGroupOrder,
 	nodeFiles,
 	projectDefaults,
 	unitSetupFiles,
-} from './vitest.config.ts'
+} from '../vitest.config.ts'
+import { sequence } from './vitest.base.ts'
 
 /**
  * The `docs` project: the jsdom suites of the docs app, under
@@ -30,9 +31,13 @@ import {
  * A project in a file of its own inherits no option of the root config, so this
  * file spreads `projectDefaults`. The other settings are the settings of the
  * `unit` project: one module registry and one jsdom window for each worker.
- * `vitest.docs-compiler.config.ts` adds the React Compiler for the compiled run.
+ * `config/vitest.docs-compiler.config.ts` adds the React Compiler for the compiled run.
  */
 export default defineConfig({
+	// Vitest runs a project file from the folder of the file. The paths of this
+	// project start at the root of the package, as the paths of the other
+	// projects do.
+	root: resolve(import.meta.dirname, '..'),
 	plugins: [...cachePlugins, reactDocs()],
 	test: {
 		...projectDefaults,

@@ -7,7 +7,7 @@ import { present, renderUI, screen, waitFor } from '../../helpers'
  * horizontal scroll. The case measures the pinned cell against the scroller at
  * each end of the scroll range. With hidden scrollbars, a stable gutter makes
  * that range 15 px short, so the case runs with real scrollbars (the
- * `scrollbars` instance of `vitest.browser.config.ts`).
+ * `scrollbars` instance of `config/vitest.browser.config.ts`).
  */
 describe('grid pinned column in a right-to-left grid (real browser, real scrollbars)', () => {
 	type Row = { id: number }

@@ -14,6 +14,6 @@ import { loadGridReorderKit } from '../../modules/grid/grid-region'
 //
 // The load is a top-level await, not a `beforeAll`. It is an import, as the
 // static imports above are, and an import has no time limit. On a cold module
-// cache, the compiled run (`vitest.compiler.config.ts`) transforms the grid for
+// cache, the compiled run (`config/vitest.compiler.config.ts`) transforms the grid for
 // the first file of each worker, and that took more than the hook limit.
 await Promise.all([loadGridDataDialogs(), loadGridReorderKit(), loadGridEditing()])

@@ -20,7 +20,7 @@ import './tailwind.css'
  */
 expect.extend(toHaveNoViolations)
 
-// The budget is provided by vitest.browser.config.ts, which owns the CI
+// The budget is provided by config/vitest.browser.config.ts, which owns the CI
 // wall-clock headroom policy alongside testTimeout. Without this the suite that
 // does real layout ran at RTL's own 1s default on every machine, while the
 // jsdom projects took 4s on CI.
@@ -32,11 +32,11 @@ declare module 'vitest' {
 
 declare module 'vitest/browser' {
 	interface BrowserCommands {
-		/** Moves the real mouse off the tester iframe. `vitest.browser.config.ts` defines it. */
+		/** Moves the real mouse off the tester iframe. `config/vitest.browser.config.ts` defines it. */
 		parkPointer: () => Promise<void>
-		/** Holds the real primary button down over the element that `selector` matches, at its center or at the fraction `at` of its box. `vitest.browser.config.ts` defines it. */
+		/** Holds the real primary button down over the element that `selector` matches, at its center or at the fraction `at` of its box. `config/vitest.browser.config.ts` defines it. */
 		pressPointer: (selector: string, at?: { x: number; y: number }) => Promise<void>
-		/** Releases the real primary button, over the element that `selector` matches when one is given. `vitest.browser.config.ts` defines it. */
+		/** Releases the real primary button, over the element that `selector` matches when one is given. `config/vitest.browser.config.ts` defines it. */
 		releasePointer: (selector?: string) => Promise<void>
 	}
 }
@@ -75,7 +75,7 @@ installResidueGuard()
 installSingletonResets()
 
 // A case starts with the cursor off the page, whatever the case before it
-// hovered. See `parkPointer` in `vitest.browser.config.ts`. It runs before the
+// hovered. See `parkPointer` in `config/vitest.browser.config.ts`. It runs before the
 // case renders, so a case that failed or timed out still hands on a clean page.
 beforeEach(() => commands.parkPointer())
 

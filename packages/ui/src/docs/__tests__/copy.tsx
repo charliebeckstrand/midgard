@@ -1,7 +1,7 @@
 import { type RenderResult, render } from '@testing-library/react'
 import type { ComponentType, ReactNode } from 'react'
 import { LocaleProvider } from 'ui/providers/locale'
-import { CI } from '../../../vitest.base.ts'
+import { CI } from '../../../config/vitest.base.ts'
 import { catalogs } from '../app/catalogs.ts'
 import { LOCALES } from '../app/language.ts'
 

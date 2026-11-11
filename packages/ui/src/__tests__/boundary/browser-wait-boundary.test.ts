@@ -11,7 +11,7 @@ import { startTypeScript } from '../helpers/ts-server'
 import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // Browser wait boundary. The browser suite waits for a signal with a deadline,
-// and never for a fixed time (#2006). `vitest.browser.config.ts` states the
+// and never for a fixed time (#2006). `config/vitest.browser.config.ts` states the
 // rule: machine speed can change when a test passes, never whether it passes.
 // This suite holds three parts of that rule in `src/__tests__/browser/`:
 //
@@ -25,7 +25,7 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 //   not as the error of the wait.
 //
 // The suite is a boundary test and not a Biome plugin. The third part reads
-// numbers from `vitest.browser.config.ts`, multiplies them, and follows a call
+// numbers from `config/vitest.browser.config.ts`, multiplies them, and follows a call
 // from a case to a helper in the same file. GritQL cannot do arithmetic or
 // follow a call, and one gate is easier to read than two.
 //
@@ -60,7 +60,7 @@ describe('browser wait boundary', () => {
 			.map((finding) => finding.text)
 			.join('\n  ')
 
-	it('reads the time limit and the factors from vitest.browser.config.ts', () => {
+	it('reads the time limit and the factors from config/vitest.browser.config.ts', () => {
 		expect(TEST_TIMEOUT).toBeGreaterThan(0)
 
 		expect(FACTORS).toHaveLength(2)

@@ -10,23 +10,23 @@
 				"docs/*.md",
 				"REFERENCE.md",
 				"vitest.config.ts",
-				"vitest.docs.config.ts",
-				"vitest.base.ts",
-				"vitest.browser.config.ts",
+				"config/vitest.docs.config.ts",
+				"config/vitest.base.ts",
+				"config/vitest.browser.config.ts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"package.json"
 			]
 		},
 		"test:browser": {
-			"inputs": ["$TURBO_EXTENDS$", "vitest.base.ts"]
+			"inputs": ["$TURBO_EXTENDS$", "config/vitest.base.ts"]
 		},
 		"test:compiler": {
 			"inputs": [
 				"$TURBO_EXTENDS$",
-				"vitest.base.ts",
-				"vitest.docs.config.ts",
-				"vitest.docs-compiler.config.ts"
+				"config/vitest.base.ts",
+				"config/vitest.docs.config.ts",
+				"config/vitest.docs-compiler.config.ts"
 			]
 		},
 		"test:workspace": {
@@ -36,9 +36,9 @@
 				"docs/*.md",
 				"REFERENCE.md",
 				"vitest.config.ts",
-				"vitest.base.ts",
-				"vitest.compiler.config.ts",
-				"vitest.compiler.preset.ts",
+				"config/vitest.base.ts",
+				"config/vitest.compiler.config.ts",
+				"config/vitest.compiler.preset.ts",
 				"package.json",
 				"$TURBO_ROOT$/{CLAUDE,CONVENTIONS,STE}.md",
 				"$TURBO_ROOT$/.github/workflows/ci.yml",

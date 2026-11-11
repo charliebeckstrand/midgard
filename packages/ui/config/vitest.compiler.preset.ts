@@ -16,8 +16,8 @@ const DOCS = /[\\/]src[\\/]docs[\\/]/
 
 /**
  * The React Compiler over the `ui` source, for the compiled test run
- * (`vitest.compiler.config.ts`) and the compiled bench run
- * (`vitest.bench.browser.compiler.config.ts`). An app with `reactCompiler: true`
+ * (`config/vitest.compiler.config.ts`) and the compiled bench run
+ * (`config/vitest.bench.browser.compiler.config.ts`). An app with `reactCompiler: true`
  * compiles the `ui` source that it imports, and each run compiles it the same
  * way.
  *
