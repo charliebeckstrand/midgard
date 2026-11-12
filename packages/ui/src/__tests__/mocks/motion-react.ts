@@ -243,8 +243,9 @@ function useAnimate(): [{ current: null }, (...args: unknown[]) => void] {
 // the subscribers at once, and a `useTransform` output follows on the next frame.
 // The real `useInView` watches through the `IntersectionObserver` that the jsdom
 // setup or a suite installs. The real `useComposedRefs` and the real `frame`
-// scheduler need no runtime.
-const { frame, useComposedRefs, useInView, useMotionValue, useTransform } =
+// scheduler need no runtime. The real `visualElementStore` holds no element,
+// because the mock elements make no visual element.
+const { frame, useComposedRefs, useInView, useMotionValue, useTransform, visualElementStore } =
 	await vi.importActual<typeof import('motion/react')>('motion/react')
 
 // `Reorder` renders its plain elements. The drag runs only in a real browser
@@ -304,4 +305,5 @@ export default {
 	useInView,
 	useMotionValue,
 	useTransform,
+	visualElementStore,
 }

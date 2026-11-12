@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutGroup, type MotionStyle } from 'motion/react'
+import { LayoutGroup, type MotionStyle, useComposedRefs, visualElementStore } from 'motion/react'
 import { type ComponentProps, type ReactNode, useId } from 'react'
 import { cn } from '../../core/cn'
 import { createContext } from '../../core/create-context'
@@ -34,6 +34,31 @@ const TRANSLATE_3D = /^translate3d\(([^,]+), ([^,]+), 0px\)/
  */
 function flatTransform(_values: unknown, generated: string) {
 	return generated === '' ? 'none' : generated.replace(TRANSLATE_3D, 'translate($1, $2)')
+}
+
+/**
+ * The ref of the marker: it removes the snapshot that the projection node of
+ * the marker kept from its own unmount.
+ *
+ * Motion measures a node with a `layoutId` when the node unmounts, so that the
+ * next marker of the group can morph from that box. A hidden `<Activity>`
+ * detaches the marker but keeps its node, so the node keeps the box. Motion
+ * measures the box in the commit that hides the marker, before that commit
+ * sets the final layout. For example, the view that becomes visible can be
+ * above the marker in the page at that time. When the `<Activity>` shows the
+ * marker again, Motion morphs from that box, and the marker slides in from
+ * another position. A marker that mounts morphs only from the marker that it
+ * replaces (`resumeFrom`), never from a box of its own.
+ *
+ * Motion calls this ref after it mounts the node. A new node has no snapshot,
+ * so the ref changes nothing on a usual mount.
+ */
+function dropOwnSnapshot(marker: HTMLSpanElement | null) {
+	if (marker === null) return
+
+	const projection = visualElementStore.get(marker)?.projection
+
+	if (projection) projection.snapshot = undefined
 }
 
 /**
@@ -102,11 +127,14 @@ export type ActiveIndicatorProps = Omit<
  * never intercepts presses. Defaults to an `8px` corner radius, set inline so
  * Motion's layout projection can inverse-scale it mid-morph. The morph moves it
  * with a 2D transform. Thus it gets no compositing layer in WebKit, and the
- * label of the item stays above it in each frame.
+ * label of the item stays above it in each frame. A marker that a hidden
+ * `<Activity>` shows again paints at its item at once, with no morph.
  * @see {@link ActiveIndicatorScope}
  */
-export function ActiveIndicator({ className, style, ...props }: ActiveIndicatorProps) {
+export function ActiveIndicator({ className, style, ref, ...props }: ActiveIndicatorProps) {
 	const scopedLayoutId = useActiveIndicatorScope()
+
+	const setMarker = useComposedRefs(ref, dropOwnSnapshot)
 
 	const layoutId = scopedLayoutId ?? 'current-indicator'
 
@@ -119,6 +147,7 @@ export function ActiveIndicator({ className, style, ...props }: ActiveIndicatorP
 			<m.span
 				data-slot="active-indicator"
 				{...props}
+				ref={setMarker}
 				layoutId={layoutId}
 				layoutDependency={instanceId}
 				className={cn('pointer-events-none absolute inset-0', k().base, className)}
