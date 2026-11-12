@@ -349,8 +349,13 @@ export function MapDotCount({
 		dominantBaseline: 'central' as const,
 		pointerEvents: 'none' as const,
 		// The count sets its own type: `CLUSTER_COUNT_CHAR_WIDTH` measures the
-		// radius of a summary in this type, for each caller.
-		className: cn('select-none text-xs font-semibold tabular-nums', className),
+		// radius of a summary in this type, for each caller. The size is `text-xs`
+		// in pixels: before the plot is measured, the frame scales to meet the box,
+		// and `--map-unit` gives the frame units in one pixel (`MapPlat`).
+		className: cn(
+			'select-none text-[length:calc(var(--map-unit,1)*var(--text-xs))] font-semibold tabular-nums',
+			className,
+		),
 	}
 
 	if (!fades) return <text {...shared}>{text}</text>

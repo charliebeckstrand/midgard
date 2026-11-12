@@ -163,8 +163,9 @@ export const [MapZoomScaleContext, useMapZoomScale] = createContext<number>('Map
  * as a closure, legend registration, and the resolved slot color per
  * registered entry. It also provides the legend's toggle state (`hidden`) and
  * the standing pick. The legend emphasis goes through the pointed-mark store
- * ({@link MapPointedStore}). An overlay renders nothing until its id gains a
- * color: the beat after its registration effect runs.
+ * ({@link MapPointedStore}). An overlay renders nothing until it has a color.
+ * A mark outside a group that names its own color has it from the first render.
+ * Every other mark gets its color the beat after its registration effect runs.
  *
  * @internal
  */
@@ -260,6 +261,18 @@ export type MapPlatContextValue = {
 	selectedOverlay: MapOverlaySelection | null
 	/** Whether the plat animates; overlays pick their motion renderers off it. */
 	animate: boolean
+	/**
+	 * The canonical frame, in frame units, while the box is not measured: on the
+	 * server, and in the hydration render. `null` once the box is measured.
+	 *
+	 * The frame then scales to meet a box that no render knows. A mark whose
+	 * drawing depends on the width in pixels draws for every width at once, and a
+	 * container query on the plot shows the drawing of the width that the box has
+	 * (`MapPoints`). The plot is the container `map-plot`, and the SVG sets
+	 * `--map-unit` to the frame units in one pixel, so a mark can size text in
+	 * pixels before the measurement.
+	 */
+	unmeasured: { width: number; height: number } | null
 }
 
 export const [MapPlatContext, useMapPlat] = createContext<MapPlatContextValue>('MapPlat')

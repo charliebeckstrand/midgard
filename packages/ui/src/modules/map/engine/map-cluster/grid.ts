@@ -1,12 +1,11 @@
 /**
- * The uniform grid both clustering passes bucket into, at one cell per reach. An
- * entry within reach of a point can only sit in that point's own cell, or one of
- * the eight around it. Each mark therefore reads nine buckets, rather than every
- * group built before it. That is a linear pass where the naive scan is
- * quadratic.
+ * The uniform grid that the map passes bucket into. At one cell per reach, an
+ * entry within reach of a point can only sit in the cell of that point, or in
+ * one of the eight around it. Each mark therefore reads nine buckets, rather
+ * than every mark. That is a linear pass where the naive scan is quadratic.
  *
- * Generic over what a cell holds, because the broad phase files seeds and the
- * merge round files slot indices. Neither pass can pay for the other's shape.
+ * Generic over what a cell holds, because each pass files its own entries: the
+ * merge tree, the dot targets, the grounds, and the locator of the regions.
  */
 
 import { getOrCompute } from '../../../../utilities/get-or-compute'

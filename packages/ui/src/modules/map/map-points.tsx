@@ -29,7 +29,13 @@ import {
 	type MapSetCluster,
 	type MapSharedCluster,
 } from './engine/map-cluster/sets'
-import { POINT_RADIUS, POINT_SWATCH } from './engine/map-constants'
+import { clusterTree, type MapClusterNode } from './engine/map-cluster/tree'
+import {
+	MAP_FIT_INSET,
+	MAP_PREPAINT_NARROWEST,
+	POINT_RADIUS,
+	POINT_SWATCH,
+} from './engine/map-constants'
 import { dotReach } from './engine/map-geometry/mark'
 import { type MapHoverTarget, mapMarkDimmed } from './engine/map-hover/target'
 import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
@@ -211,6 +217,187 @@ const MapPointsDots = memo(function MapPointsDots({
 		</>
 	)
 })
+
+/**
+ * The shape of a group: the one shape that all its dots share, else the
+ * mark's.
+ *
+ * @internal
+ */
+function groupShape(
+	points: readonly MapPointDatum[],
+	members: readonly number[],
+	shape: MapPointShape,
+): MapPointShape {
+	const [first, ...rest] = members.map((member) => points[member]?.shape ?? shape)
+
+	return first !== undefined && rest.every((held) => held === first) ? first : shape
+}
+
+/**
+ * The stroke class of a group. A lone dot wears its own color where it carries
+ * one. A summary wears the mark's class, because it stands for several stops,
+ * and the color of one of them would name it wrongly.
+ *
+ * @internal
+ */
+function groupPaint(
+	points: readonly MapPointDatum[],
+	members: readonly number[],
+	mark: string,
+): string {
+	const own = members.length === 1 ? points[members[0] ?? -1]?.color : undefined
+
+	return own === undefined ? mark : cn(...k.series[own].stroke)
+}
+
+/** A group that a {@link MapPointsPrepaint} draws, with the widths of the frame where it holds. @internal */
+type MapPrepaintGroup = {
+	node: MapClusterNode
+	/** The narrowest frame width where the group holds, in device pixels, included. */
+	from: number
+	/** The widest frame width where the group holds, in device pixels, not included. */
+	to: number
+}
+
+/** A length in pixels for a container query, to a thousandth of a pixel. @internal */
+function px(value: number): string {
+	return `${Math.round(value * 1000) / 1000}px`
+}
+
+/**
+ * The container query that holds where the frame of the plot is at least
+ * `from` and less than `to` pixels wide. The frame meets the plot box less the
+ * inset, so its width is the smaller of the width of that box and its height
+ * times the aspect of the frame.
+ *
+ * @internal
+ */
+function frameQuery(from: number, to: number, aspect: number): string {
+	const inset = MAP_FIT_INSET * 2
+
+	const wide = `(width >= ${px(from + inset)}) and (height >= ${px(from / aspect + inset)})`
+
+	if (to === Number.POSITIVE_INFINITY) return wide
+
+	return `${wide} and ((width < ${px(to + inset)}) or (height < ${px(to / aspect + inset)}))`
+}
+
+/** Props for {@link MapPointsPrepaint}. @internal */
+type MapPointsPrepaintProps = {
+	groups: MapPrepaintGroup[]
+	/** The prefix of the names that tie each group to its rule. */
+	scope: string
+	/** The width over the height of the canonical frame. */
+	aspect: number
+	points: readonly MapPointDatum[]
+	/** The radius of a group of each count, in device pixels. */
+	radius: (count: number) => number
+	/** The shape of the mark. */
+	shape: MapPointShape
+	/** The series slot of the mark. */
+	slot: MapSeriesColor
+	/** The point that the standing pick names, or `null`. */
+	picked: number | null
+}
+
+/**
+ * The dots of a {@link MapPoints} before the box of the plot is measured: on
+ * the server, and in the hydration render.
+ *
+ * The groups depend on the width of the frame in pixels, which no render knows
+ * yet. The set therefore draws the groups of every width, from its merge tree
+ * (`clusterTree`). Each group holds over one range of widths. A container query
+ * on the plot shows each group in its range alone, so the first paint draws the
+ * groups that the measured frame draws. Each dot is a cap of a stroke that
+ * keeps its width in pixels, and each count sizes its type in pixels through
+ * `--map-unit`, so the sizes are exact too.
+ *
+ * Nothing here answers the pointer. The box is measured in the layout effects
+ * of the hydration, and the dots of the measured frame take over in that
+ * commit.
+ *
+ * The rules come from the frame arithmetic of the server and of the browser
+ * alike, but the last digit of a projection can differ between two engines. The
+ * text of the rules therefore does not have to match at hydration. The rules
+ * round each width to a thousandth of a pixel.
+ *
+ * @internal
+ */
+function MapPointsPrepaint({
+	groups,
+	scope,
+	aspect,
+	points,
+	radius,
+	shape,
+	slot,
+	picked,
+}: MapPointsPrepaintProps) {
+	const band = (index: number) => `${scope}-${index}`
+
+	const mark = cn(...k.series[slot].stroke)
+
+	const countInk = cn(...k.series[slot].label)
+
+	const rules = groups
+		.map(({ from, to }, index) => {
+			const select = `[data-map-band="${band(index)}"]`
+
+			return `${select}{display:none}@container map-plot ${frameQuery(from, to, aspect)}{${select}{display:inline}}`
+		})
+		.join('')
+
+	return (
+		<g data-slot="map-points">
+			<style suppressHydrationWarning>{rules}</style>
+
+			{/* The halos first, so each draws under every dot, as the measured frame draws it. */}
+			{picked !== null &&
+				groups.map(({ node }, index) =>
+					node.at !== null && node.members.includes(picked) ? (
+						<g key={band(index)} data-map-band={band(index)}>
+							<MapDotHalo
+								slot="map-points-selected"
+								at={node.at}
+								radius={radius(node.members.length)}
+								shape={groupShape(points, node.members, shape)}
+								scale={1}
+							/>
+						</g>
+					) : null,
+				)}
+
+			{groups.map(({ node }, index) => {
+				const count = node.members.length
+
+				return node.at === null ? null : (
+					<g key={band(index)} data-map-band={band(index)}>
+						<MapDot
+							slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
+							at={node.at}
+							radius={radius(count)}
+							shape={groupShape(points, node.members, shape)}
+							scale={1}
+							className={groupPaint(points, node.members, mark)}
+						/>
+
+						{count > 1 && (
+							<MapDotCount
+								at={node.at}
+								count={count}
+								className={countInk}
+								scale={1}
+								animate={false}
+								transition={k.motion.instant}
+							/>
+						)}
+					</g>
+				)
+			})}
+		</g>
+	)
+}
 
 /** Props for {@link MapPointsReveal}. @internal */
 type MapPointsRevealProps = {
@@ -609,7 +796,7 @@ export function MapPoints({
 	// and the readouts this mark registers are the summarized ones, and a summary
 	// is a fact about the projected frame, so the grouping has to resolve before
 	// the mark registers, not after.
-	const { project, clusters, selectedOverlay } = useMapPlat()
+	const { project, clusters, selectedOverlay, unmeasured } = useMapPlat()
 
 	const intl = useIntl()
 
@@ -635,6 +822,36 @@ export function MapPoints({
 	// What this set puts in the shared pass. Held, because a new identity restakes
 	// the set in the pass, and every set on the plat groups again.
 	const input = useMemo<MapClusterInput>(() => ({ positions, gap }), [positions, gap])
+
+	// Before the box is measured, the groups of every width (see `MapPointsPrepaint`).
+	// The set groups alone here, as it does before it registers: no render before
+	// the measurement can know the other sets of the plat.
+	const prepaint = useMemo(() => {
+		if (unmeasured === null || gap === null) return null
+
+		const { width } = unmeasured
+
+		const tree = clusterTree(
+			positions,
+			project,
+			() => gap,
+			gap,
+			clusters.getRadius,
+			width / MAP_PREPAINT_NARROWEST,
+		)
+
+		const groups = tree.nodes.flatMap((node): MapPrepaintGroup[] => {
+			if (node.at === null || !(node.from < node.to)) return []
+
+			const from = Math.max(MAP_PREPAINT_NARROWEST, width / node.to)
+
+			const to = node.from === 0 ? Number.POSITIVE_INFINITY : width / node.from
+
+			return from < to ? [{ node, from, to }] : []
+		})
+
+		return { groups, aspect: width / unmeasured.height }
+	}, [unmeasured, gap, positions, project, clusters.getRadius])
 
 	const pass = useSyncExternalStore(clusters.subscribe, clusters.grouping, clusters.grouping)
 
@@ -667,12 +884,7 @@ export function MapPoints({
 	// share, else the mark's. The readout keys its swatch to it. Held for the same
 	// reason as `paints` below.
 	const ownShapes = useMemo(
-		() =>
-			groups.map(({ members }) => {
-				const [first, ...rest] = members.map((member) => points[member]?.shape ?? shape)
-
-				return first !== undefined && rest.every((held) => held === first) ? first : shape
-			}),
+		() => groups.map(({ members }) => groupShape(points, members, shape)),
 		[groups, points, shape],
 	)
 
@@ -890,13 +1102,13 @@ export function MapPoints({
 
 	const clips = `${useId()}-hit`
 
+	const scope = useId()
+
 	// Held across re-renders: rebuilding them would allocate one string per dot
 	// every time, which is the cost this mark exists to remove.
 	const keys = useMemo(() => rangeKeys(groups.length, 'dot'), [groups.length])
 
-	// Each drawn group's stroke class. A lone dot wears its own color where it
-	// carries one; a summary wears the mark's, because it stands for several stops
-	// and any one of theirs would name it wrongly.
+	// Each drawn group's stroke class (`groupPaint`).
 	//
 	// Held rather than rebuilt: this is a prop of the memoized dot layer, and that
 	// memo exists to hold the dots through a render for the dim or the emphasis.
@@ -905,18 +1117,24 @@ export function MapPoints({
 	const paints = useMemo(() => {
 		const mark = slot === undefined ? '' : cn(...k.series[slot].stroke)
 
-		return groups.map(({ members }) => {
-			if (members.length !== 1) return mark
-
-			const first = members[0]
-
-			const own = first === undefined ? undefined : points[first]?.color
-
-			return own === undefined ? mark : cn(...k.series[own].stroke)
-		})
+		return groups.map(({ members }) => groupPaint(points, members, mark))
 	}, [groups, points, slot])
 
 	if (slot === undefined || hidden) return null
+
+	if (prepaint !== null) {
+		return (
+			<MapPointsPrepaint
+				{...prepaint}
+				scope={scope}
+				points={points}
+				radius={clusters.getRadius}
+				shape={shape}
+				slot={slot}
+				picked={selectedOverlay?.id === id ? (selectedOverlay.index ?? 0) : null}
+			/>
+		)
+	}
 
 	const countInk = cn(...k.series[slot].label)
 
