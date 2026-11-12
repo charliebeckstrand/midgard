@@ -1,7 +1,36 @@
 import { playwright } from '@vitest/browser-playwright'
 import type { Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
+import type { BrowserCommand } from 'vitest/node'
 import { servedTailwind } from './vitest.browser.config.ts'
+
+const watched = new WeakSet<object>()
+
+// Temporary diagnostic: log what happens to the page and the browser.
+const diagWatch: BrowserCommand<[]> = async (context) => {
+	const page = context.page
+	if (watched.has(page)) return
+	watched.add(page)
+	const log = (text: string) => console.error(`[diag] ${new Date().toISOString()} ${text}`)
+	page.on('crash', () => log('page crash'))
+	page.on('close', () => log('page close'))
+	page.on('pageerror', (error) => log(`page error ${error.message}`))
+	page.on('framenavigated', (frame) =>
+		log(
+			`frame navigated ${frame === page.mainFrame() ? 'main' : 'child'} ${frame.url().slice(0, 80)}`,
+		),
+	)
+	page.on('console', (message) => {
+		if (message.text().includes('[vite]') && !message.text().includes('connect'))
+			log(`console ${message.text()}`)
+	})
+	page.context().on('page', () => log('new page'))
+	page
+		.context()
+		.browser()
+		?.on('disconnected', () => log('browser disconnected'))
+	log('watching the page')
+}
 
 // Temporary diagnostic: log how each upgraded socket of the server closes.
 function logSockets(): Plugin {
@@ -12,6 +41,12 @@ function logSockets(): Plugin {
 				const query = new URL(request.url ?? '/', 'http://localhost')
 				const url = `${query.pathname} ${query.searchParams.get('type') ?? 'hmr'}`
 				const opened = Date.now()
+				socket.on('data', (chunk: Buffer) => {
+					if (chunk.length < 8 || (chunk.readUInt8(0) & 0x0f) !== 8) return
+					if ((chunk.readUInt8(1) & 0x7f) < 2) return
+					const code = chunk.readUInt16BE(6) ^ chunk.readUInt16BE(2)
+					console.error(`[diag] ${new Date().toISOString()} close frame ${code} ${url}`)
+				})
 				socket.on('end', () =>
 					console.error(`[diag] ${new Date().toISOString()} end (peer FIN) ${url}`),
 				)
@@ -96,6 +131,7 @@ export default defineConfig({
 				},
 			}),
 			headless: true,
+			commands: { diagWatch },
 			screenshotFailures: false,
 			instances: [{ browser: 'chromium' }],
 		},

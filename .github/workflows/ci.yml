@@ -247,11 +247,11 @@ jobs:
         run: |
           for i in 1 2 3; do
             echo "::group::repeat $i"
-            if BENCH_NETLOG="$RUNNER_TEMP/netlog-$i.json" DEBUG=vitest:browser:api pnpm bench:browser:smoke > "$RUNNER_TEMP/repeat-$i.log" 2>&1; then
+            if VITE_BENCH_DIAG=1 BENCH_NETLOG="$RUNNER_TEMP/netlog-$i.json" DEBUG=vitest:browser:api,pw:browser pnpm bench:browser:smoke > "$RUNNER_TEMP/repeat-$i.log" 2>&1; then
               echo "repeat $i passed"; tail -n 8 "$RUNNER_TEMP/repeat-$i.log"
             else
               echo "repeat $i FAILED"
-              grep -n "\[diag\]\|connected\|connection lost\|Error\|Test Files\|Duration" "$RUNNER_TEMP/repeat-$i.log" | grep -v "INFO:CONSOLE" | tail -n 120
+              grep -n "\[diag\]\|connected\|connection lost\|Error\|Test Files\|Duration\|pw:browser" "$RUNNER_TEMP/repeat-$i.log" | grep -v "INFO:CONSOLE" | tail -n 150
               node ../../.github/tmp-diag/netlog-summary.mjs "$RUNNER_TEMP/netlog-$i.json" || true
             fi
             rm -f "$RUNNER_TEMP/netlog-$i.json"
