@@ -496,8 +496,6 @@ export function ChartFrame({
 
 	const [pointerReference, setPointerReference] = useState<number | null>(null)
 
-	const [activeReference, setActiveReference] = useState<number | null>(null)
-
 	// The mark the pointer sits on (a bar, a line, a disc), resolved by the hit
 	// layer. It recedes every other mark behind it, and merges below with the
 	// series the legend or keyboard emphasizes: the pointed mark wins while it's
@@ -554,12 +552,11 @@ export function ChartFrame({
 	// same hover the pointer does: a tab stop only where a readout can answer it.
 	// A click callback keeps the stop with the tooltip off, so Enter and Space fire
 	// what a click fires. The live region then names the point alone.
-	const keyboard = useChartKeyboard(
+	const { tabStop: keyboard, reference: activeReference } = useChartKeyboard(
 		focus,
 		orientation ?? 'vertical',
 		readout !== null && keyboardAnswers(tooltipShown, onActivate !== undefined, spark),
 		hoverStore,
-		setActiveReference,
 		keyboardEmphasis ? setSeriesFocus : ignoreActiveSeries,
 		announceRead,
 		announceReference,
