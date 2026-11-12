@@ -10,7 +10,8 @@ import { servedTailwind } from './vitest.browser.config.ts'
  *
  * Chromium launches with the frame-rate limit off: the hover benches settle
  * one frame per iteration, so a vsync'd browser would quantize every such
- * sample to ~16ms.
+ * sample to ~16ms. It also exposes `gc`, which the bench setup calls after
+ * each file (see `src/__benchmarks__/browser/setup.ts`).
  */
 export default defineConfig({
 	plugins: [servedTailwind()],
@@ -62,12 +63,7 @@ export default defineConfig({
 			enabled: true,
 			provider: playwright({
 				launchOptions: {
-					args: [
-						'--disable-frame-rate-limit',
-						'--disable-gpu-vsync',
-						// Temporary diagnostic.
-						...(process.env.BENCH_CHROMIUM_ARGS?.split(' ').filter(Boolean) ?? []),
-					],
+					args: ['--disable-frame-rate-limit', '--disable-gpu-vsync', '--js-flags=--expose-gc'],
 				},
 			}),
 			headless: true,
