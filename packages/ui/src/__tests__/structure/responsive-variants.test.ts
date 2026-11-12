@@ -115,21 +115,33 @@ const MIN_BREAKPOINTS = Object.keys(BREAKPOINT_WIDTHS) as MinBreakpoint[]
 /**
  * The declarations of the CSS of one class, as `context|property`. The context
  * is each nested selector and layer around the declaration, so `&>dt` in the
- * layer `density` differs from `&>dt` in no nested layer. The first line is the
- * selector of the class itself, and it is not part of the context.
+ * layer `density` differs from `&>dt` in no nested layer. The first selector
+ * that is not an at-rule is the selector of the class itself. It is not part
+ * of the context, because it differs for each class. An at-rule, such as the
+ * layer of a density utility, can come before it.
  */
 function declarations(css: string): string[] {
-	const context: string[] = []
+	// The selector of the class holds `null`, so the context skips it.
+	const context: (string | null)[] = []
 
 	const keys: string[] = []
 
-	for (const line of css.split('\n').slice(1)) {
+	let classSeen = false
+
+	for (const line of css.split('\n')) {
 		const text = line.trim()
 
-		if (text.endsWith('{')) context.push(text.slice(0, -1).trim())
-		else if (text === '}') context.pop()
+		if (text.endsWith('{')) {
+			const block = text.slice(0, -1).trim()
+
+			const isClass = !classSeen && !block.startsWith('@')
+
+			classSeen ||= isClass
+
+			context.push(isClass ? null : block)
+		} else if (text === '}') context.pop()
 		else if (text.includes(':'))
-			keys.push(`${context.join(' ')}|${text.slice(0, text.indexOf(':'))}`)
+			keys.push(`${context.filter(Boolean).join(' ')}|${text.slice(0, text.indexOf(':'))}`)
 	}
 
 	return keys
