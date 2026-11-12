@@ -536,7 +536,7 @@ export function useChartCartesian<T>(
 	// Walks every row to detect a date axis, then again to label it, so it is
 	// memoized rather than re-run on every render: a hover, a legend toggle, or
 	// a resize commit does not change any of its inputs.
-	const { categories, rawCategories, readoutCategory } = useMemo(
+	const { categories, rawCategories } = useMemo(
 		() => resolveCategories(data, xKey, timeAxis, axes.x?.format, locale, times),
 		[data, xKey, timeAxis, axes.x?.format, locale, times],
 	)
@@ -623,17 +623,9 @@ export function useChartCartesian<T>(
 	const readout = useMemo(
 		() =>
 			xKey && readoutInput.data.length > 0 && readoutInput.visible.length > 0
-				? once(() =>
-						chartReadout(
-							readoutInput.data,
-							xKey,
-							readoutInput.visible,
-							readoutInput.formatAxisValue,
-							readoutCategory,
-						),
-					)
+				? once(() => chartReadout(categories, readoutInput.visible, readoutInput.formatAxisValue))
 				: null,
-		[readoutInput, xKey, readoutCategory],
+		[readoutInput, xKey, categories],
 	)
 
 	// The tooltip lists its rows in the marks' visible order (a vertical stack

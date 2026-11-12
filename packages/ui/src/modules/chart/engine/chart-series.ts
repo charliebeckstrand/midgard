@@ -99,22 +99,20 @@ export type SeriesMeta = {
  * Builds the readout behind the marks: category labels crossed with each
  * series' formatted values. Each series is formatted by its own axis's
  * formatter, so a dual-axis tooltip and table read a currency beside a percent.
- * `formatCategory` overrides the default `String` coercion of each row's
- * category. A time axis passes a date formatter, so the tooltip and table read
- * the same dates the axis labels do. The swatch takes the series' slot class
- * or, for a raw color, an inline `currentColor`.
+ * `categories` are the band-axis labels, so a time axis or a `formatCategory`
+ * gives the tooltip and the table the same dates and labels that the axis
+ * shows. The swatch takes the series' slot class or, for a raw color, an inline
+ * `currentColor`.
  *
  * @internal
  */
-export function chartReadout<T>(
-	data: T[],
-	xKey: DataKey<T>,
+export function chartReadout(
+	categories: string[],
 	metas: SeriesMeta[],
 	format: (value: number, axis: ChartValueAxisId) => string,
-	formatCategory: (value: unknown) => string = String,
 ): ChartReadout {
 	return {
-		categories: data.map((datum) => formatCategory(datum[xKey])),
+		categories,
 		rows: metas.map((meta) => {
 			const formatValue = (value: number) => format(value, meta.axis)
 

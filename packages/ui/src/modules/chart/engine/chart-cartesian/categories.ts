@@ -1,24 +1,25 @@
 /**
- * The categories of a cartesian chart: the band-axis labels, their raw forms,
- * and the readout formatter. It holds no React, so the label resolution is
+ * The categories of a cartesian chart: the band-axis labels and their raw
+ * forms. It holds no React, so the label resolution is
  * unit-testable in isolation.
  */
 
 import { dateCategoryFormat, timeCategory } from '../chart-time'
 
-/** The category labels, their raw forms, and the readout formatter. @internal */
+/** The category labels and their raw forms. @internal */
 type ResolvedCategories = {
-	/** The band-axis labels: formatted when a formatter resolved, else raw. */
+	/**
+	 * The band-axis labels, which the tooltip and the data table also read:
+	 * formatted when a formatter resolved, else raw.
+	 */
 	categories: string[]
 	/** The raw `String`-coerced values, which the click callback keys off. */
 	rawCategories: string[]
-	/** The tooltip and data table category formatter; `undefined` falls back to `String`. */
-	readoutCategory: ((value: unknown) => string) | undefined
 }
 
 /**
- * Resolves the band axis's category labels and readout formatter from the raw
- * `xKey` values. An explicit `formatCategory` wins for both the labels and the
+ * Resolves the band axis's category labels from the raw `xKey` values. The
+ * tooltip and the data table read the same labels. An explicit `formatCategory` wins for both the labels and the
  * readout. With none set, a plain axis whose every value parses as a date
  * normalizes itself to the locale's numeric month/day order (see
  * {@link dateCategoryFormat}). A time axis writes its labels and its readout as
@@ -57,6 +58,5 @@ export function resolveCategories<T>(
 		// Without a formatter the labels *are* the raw categories; one pass, one array.
 		categories: categoryFormat ? rawValues.map(categoryFormat) : rawCategories,
 		rawCategories,
-		readoutCategory: categoryFormat,
 	}
 }
