@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { MapPlat, MapPoint, MapPoints } from '../../modules/map'
 import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { hydrateServerRender } from '../helpers/hydrate'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { overlayPlat } from '../helpers/map-plat'
@@ -667,5 +668,21 @@ describe('a square MapPoint', () => {
 		expect(dot?.getAttribute('d')).toMatch(/Z/)
 
 		expect(dot?.getAttribute('stroke-linejoin')).toBe('round')
+	})
+
+	it('hydrates the dots that the server drew before the box is measured', () => {
+		// No width: the server draws the groups of every width (see
+		// `map-points-server-markup`). The hydration renders the same groups.
+		const { onRecoverableError, consoleError, container } = hydrateServerRender(
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON}>
+				<MapPoints id="stops" label="Stops" color="blue" points={BUNCHED} />
+			</MapPlat>,
+		)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(consoleError).not.toHaveBeenCalled()
+
+		expect(allBySlot(container, 'map-points-dot').length).toBeGreaterThan(0)
 	})
 })

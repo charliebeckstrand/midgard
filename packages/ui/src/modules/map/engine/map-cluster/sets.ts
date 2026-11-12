@@ -18,8 +18,9 @@ import type { MapOverlayEntry } from '../map-overlay/entry'
 import type { LngLat, MapProjector } from '../types'
 import { type MapDotMark, neighborRoom } from './crowd'
 import { clusterAnchor } from './geo'
-import { clusterPoints, type MapPointCluster } from './group'
+import { clusterPoints } from './group'
 import type { MapClusterRadius } from './radius'
+import type { MapPointCluster } from './tree'
 
 /**
  * What a set of dots puts in the pass: its positions, and the gap it asks for in
