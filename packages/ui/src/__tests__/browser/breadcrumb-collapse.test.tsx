@@ -105,10 +105,18 @@ describe('a collapsing breadcrumb (real browser)', () => {
 		expect(boxes(container)).toEqual(before)
 	})
 
-	it('shows a trail of one crumb with no mark', () => {
+	it('shows a trail of one crumb whole, with no mark', () => {
 		const container = attach(serverMarkup(trail(400, ['Oregon'])))
 
 		expect(drawn(container)).toEqual(['Oregon'])
+
+		const label = present(
+			container.querySelector<HTMLElement>('[data-slot=breadcrumb-label]'),
+			'label',
+		)
+
+		// The row has room, so the crumb shows its whole label.
+		expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
 
 		expect(list(container).getBoundingClientRect().left).toBe(
 			present(

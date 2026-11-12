@@ -65,7 +65,7 @@ dedupePeers: true
 overrides:
   esbuild: '>=0.28.2 <0.29'
   postcss: '>=8.5.28 <9'
-  undici: '>=7.29.0 <8'
+  undici: '>=7.30.1 <8'
 
 minimumReleaseAgeExclude:
   - hlidskjalf
