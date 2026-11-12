@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { type RefObject, useLayoutEffect, useRef, useState } from 'react'
+import { memo, type RefObject, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/popover'
@@ -204,8 +204,7 @@ function ChartLegendSwatch({ item, off, texture }: ChartLegendSwatchProps) {
 }
 
 /** Props for {@link ChartLegendEntry}. @internal */
-type ChartLegendEntryProps = {
-	item: ChartLegendItem
+type ChartLegendEntryProps = ChartLegendItem & {
 	/** The series is toggled off: strike the label and dim the swatch. */
 	off: boolean
 	/** Panel layout: the entry stretches full-width and left-justifies its content. */
@@ -236,16 +235,19 @@ type ChartLegendEntryProps = {
  * empties the chart by design. The legend is forced on for a lone series, so it
  * holds the switch that brings the series back. Emphasis then has no sibling marks to
  * dim, so it does nothing.
+ *
+ * The entry takes the fields of its item as props. Each body run of a chart
+ * makes new items, so a new item with the same content renders nothing.
  * @internal
  */
-function ChartLegendEntry({
-	item,
+const ChartLegendEntry = memo(function ChartLegendEntry({
 	off,
 	panel,
 	texture,
 	onToggle,
 	emphasis,
 	ghost = false,
+	...item
 }: ChartLegendEntryProps) {
 	return (
 		<LegendSwitch
@@ -272,7 +274,7 @@ function ChartLegendEntry({
 			onFocusChange={emphasis.sync}
 		/>
 	)
-}
+})
 
 /** Props for {@link ChartLegendOverflowSwitch}. @internal */
 type ChartLegendOverflowSwitchProps = {
@@ -338,8 +340,7 @@ function ChartLegendOverflowSwitch({
 }
 
 /** Props for {@link ChartLegendReferenceSwitch}. @internal */
-type ChartLegendReferenceSwitchProps = {
-	reference: ChartLegendReference
+type ChartLegendReferenceSwitchProps = ChartLegendReference & {
 	/** The rule is toggled off: the label strikes through and the swatch dims. */
 	off: boolean
 	/** Toggles the rule on or off by its index. */
@@ -367,14 +368,17 @@ type ChartLegendReferenceSwitchProps = {
  * rule is gone, so it recedes nothing. A palette slot inks the swatch through
  * its `currentColor` class, and a raw color inks it inline. The line dashes to
  * match the rule, unless the rule is solid.
+ *
+ * The chip takes the fields of its rule as props, so a new rule with the same
+ * content renders nothing, as a series entry does.
  * @internal
  */
-function ChartLegendReferenceSwitch({
-	reference,
+const ChartLegendReferenceSwitch = memo(function ChartLegendReferenceSwitch({
 	off,
 	onToggle,
 	emphasis,
 	ghost = false,
+	...reference
 }: ChartLegendReferenceSwitchProps) {
 	return (
 		<Button
@@ -414,7 +418,7 @@ function ChartLegendReferenceSwitch({
 			</Text>
 		</Button>
 	)
-}
+})
 
 /** One legend entry: the series name keyed by its mark-mirroring swatch. @internal */
 export type ChartLegendItem = {
@@ -727,13 +731,13 @@ export function ChartLegend({
 	const overflowCount = overflowItems.length + overflowReferences.length
 
 	// A rule that goes recedes nothing, so its toggle clears the recede at once.
-	const toggleReference = (index: number) => {
+	const toggleReference = useStableEvent((index: number) => {
 		const off = referenceHidden.has(index)
 
 		onToggleReference?.(index)
 
 		if (!off) setReferenceActive(null)
-	}
+	})
 
 	// A rule that comes back recedes the marks only when the plot draws it and a
 	// pointer or a visible focus still holds its chip. A tap leaves neither. The
@@ -800,7 +804,7 @@ export function ChartLegend({
 	const renderEntry = (item: ChartLegendItem, ghost: boolean) => (
 		<ChartLegendEntry
 			key={item.index}
-			item={item}
+			{...item}
 			off={hidden.has(item.index)}
 			panel={panel}
 			texture={texture}
@@ -874,7 +878,7 @@ export function ChartLegend({
 			{shownReferences.map((reference) => (
 				<ChartLegendReferenceSwitch
 					key={`reference:${reference.index}`}
-					reference={reference}
+					{...reference}
 					off={referenceHidden.has(reference.index)}
 					onToggle={toggleReference}
 					emphasis={referenceEmphasis}
@@ -927,7 +931,7 @@ export function ChartLegend({
 							{overflowReferences.map((reference) => (
 								<ChartLegendReferenceSwitch
 									key={`reference:${reference.index}`}
-									reference={reference}
+									{...reference}
 									off={referenceHidden.has(reference.index)}
 									onToggle={toggleReference}
 									emphasis={referenceEmphasis}
@@ -1014,7 +1018,7 @@ export function ChartLegend({
 					{references.map((reference) => (
 						<ChartLegendReferenceSwitch
 							key={`reference:${reference.index}`}
-							reference={reference}
+							{...reference}
 							off={referenceHidden.has(reference.index)}
 							ghost
 							onToggle={toggleReference}
