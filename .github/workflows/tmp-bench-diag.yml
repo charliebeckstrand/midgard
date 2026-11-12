@@ -1,0 +1,53 @@
+name: Temporary bench diagnostic
+
+# Temporary diagnostic of the connection loss of the browser bench smoke.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/playwright
+      - name: Environment
+        run: |
+          id; uname -a; ulimit -a
+          sysctl vm.max_map_count vm.overcommit_memory fs.file-max fs.nr_open kernel.pid_max kernel.threads-max || true
+          cat /proc/sys/net/core/rmem_default /proc/sys/net/core/wmem_default || true
+          df -h /dev/shm /tmp; free -m; nproc
+          systemctl show user-$(id -u).slice -p TasksMax -p MemoryMax 2>/dev/null || true
+          cat /proc/self/limits
+      - name: Repeat the smoke
+        working-directory: packages/ui
+        run: |
+          for i in 1 2 3 4 5 6 7 8; do
+            if [ $((i % 2)) = 1 ]; then
+              variant=base; args='--enable-logging=stderr --v=0'
+            else
+              variant=no-ipcz; args='--enable-logging=stderr --v=0 --disable-features=MojoIpcz'
+            fi
+            rm -f "$RUNNER_TEMP/s.log"
+            ../../.github/tmp-diag/sample.sh "$RUNNER_TEMP/s.log" & sampler=$!
+            BENCH_CHROMIUM_ARGS="$args" DEBUG=pw:browser pnpm bench:browser:smoke > "$RUNNER_TEMP/r.log" 2>&1 || true
+            kill $sampler
+            lost=$(grep -c 'Browser connection was closed' "$RUNNER_TEMP/r.log")
+            echo "::group::repeat $i $variant: $lost losses, $(grep 'Test Files' "$RUNNER_TEMP/r.log")"
+            echo "-- peak per process type"
+            awk '{split($4,f,"=");split($5,m,"=");split($6,r,"=");split($7,t,"="); k=$3; if(f[2]>F[k])F[k]=f[2]; if(m[2]>M[k])M[k]=m[2]; if(r[2]>R[k])R[k]=r[2]; if(t[2]>T[k])T[k]=t[2]} END{for(k in F) print k, "fds", F[k], "maps", M[k], "rssKB", R[k], "threads", T[k]}' "$RUNNER_TEMP/s.log"
+            echo "-- Chromium stderr (not console)"
+            grep '\[err\]' "$RUNNER_TEMP/r.log" | grep -v 'INFO:CONSOLE' | tail -n 60
+            if [ "$lost" != 0 ]; then
+              echo "-- last samples"
+              tail -n 60 "$RUNNER_TEMP/s.log"
+              echo "-- around the loss"
+              grep -n -B5 -A5 'Browser connection was closed' "$RUNNER_TEMP/r.log" | head -40
+            fi
+            echo "::endgroup::"
+          done
+          sudo dmesg | tail -n 40 || true
