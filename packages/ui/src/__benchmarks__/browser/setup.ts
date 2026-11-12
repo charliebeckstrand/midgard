@@ -16,3 +16,8 @@ import '../../__tests__/browser/setup/tailwind.css'
 import { loadGridEditing } from '../../modules/grid/grid-data'
 
 await loadGridEditing()
+
+// Temporary experiment.
+afterAll(() => {
+	;(globalThis as { gc?: () => void }).gc?.()
+})

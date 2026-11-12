@@ -13,5 +13,6 @@ while true; do
     thr=$(awk '/Threads/ {print $2}' /proc/$p/status 2>/dev/null)
     echo "$ts $p ${t#--type=}${u#--utility-sub-type=} fds=$fds maps=$maps rssKB=$rss threads=$thr"
   done >> "$out"
+  echo "$ts tmp $(df -k /tmp | tail -1 | awk '{print "usedKB=" $3, "availKB=" $4}') shm $(ls /tmp | grep -c org.chromium)" >> "$out"
   sleep 0.25
 done
