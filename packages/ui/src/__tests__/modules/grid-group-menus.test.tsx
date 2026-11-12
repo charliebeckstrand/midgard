@@ -5,7 +5,8 @@ import {
 	buildRowGroupMenu,
 } from '../../modules/grid/grid-context-menu-utilities'
 import type { GridMenuItem } from '../../modules/grid/types'
-import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
+import { intlEs } from '../helpers/intl'
 
 /** The rows of a menu by label, and each separator as `---`. */
 const shape = (items: GridMenuItem[]) =>

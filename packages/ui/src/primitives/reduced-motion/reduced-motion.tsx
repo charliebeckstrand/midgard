@@ -1,9 +1,10 @@
 'use client'
 
 import { LazyMotion, MotionConfig } from 'motion/react'
-import { type ReactNode, use } from 'react'
+import { memo, type ReactNode, use } from 'react'
+import { createContext } from '../../core/create-context'
 import { MotionFeaturesContext, ReducedMotionContext } from './context'
-import { motionFeatures } from './reduced-motion-features'
+import { type MotionFeatureSet, motionFeatures } from './reduced-motion-features'
 
 /** Props for {@link ReducedMotion}. */
 export type ReducedMotionProps = {
@@ -17,6 +18,32 @@ export type ReducedMotionProps = {
 	layout?: boolean
 	children: ReactNode
 }
+
+/** The children of a root, for the slot under its `LazyMotion`. */
+const [RootChildrenContext] = createContext<ReactNode>('RootChildren', { default: null })
+
+/** Renders the children of the nearest root. */
+function RootChildren() {
+	return use(RootChildrenContext)
+}
+
+/** One element for each render, so `LazyMotion` gets the same children each time. */
+const ROOT_CHILDREN = <RootChildren />
+
+/**
+ * The `LazyMotion` of a root. `LazyMotion` gives a new context value each time
+ * that it renders, and each `m` element reads that value. Thus a render of
+ * `LazyMotion` renders each `m` element in its subtree again. This memo renders
+ * it again only when the feature set changes. The children go through a context
+ * to a constant slot, so a new `children` value renders only the subtree.
+ */
+const RootFeatures = memo(function RootFeatures({ features }: { features: MotionFeatureSet }) {
+	return (
+		<LazyMotion features={motionFeatures(features)} strict>
+			{ROOT_CHILDREN}
+		</LazyMotion>
+	)
+})
 
 /**
  * The root of each part of the library that animates with Motion. Apply it at
@@ -46,6 +73,9 @@ export type ReducedMotionProps = {
  * does not load them. Thus the shape of the tree depends only on the position
  * of the root. A change to the reduced-motion setting changes a prop, not the
  * tree. React does not mount the subtree again.
+ *
+ * A render of the root does not render the `m` elements of its subtree. Only
+ * the elements that render for their own reasons render.
  */
 export function ReducedMotion({ children, layout = false }: ReducedMotionProps) {
 	const reduced = use(ReducedMotionContext)
@@ -58,9 +88,9 @@ export function ReducedMotion({ children, layout = false }: ReducedMotionProps) 
 
 	const root = (
 		<MotionFeaturesContext value={features}>
-			<LazyMotion features={motionFeatures(features)} strict>
-				{children}
-			</LazyMotion>
+			<RootChildrenContext value={children}>
+				<RootFeatures features={features} />
+			</RootChildrenContext>
 		</MotionFeaturesContext>
 	)
 

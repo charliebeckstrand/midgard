@@ -1,11 +1,12 @@
+import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Listbox, ListboxOption } from '../../components/listbox'
 import { defineMessages, type IntlShape, useIntl } from '../../primitives/intl'
 import { writeChoice } from '../../providers/appearance/appearance-storage'
 import { LocaleProvider, resolveRequestLocale, useLocale } from '../../providers/locale'
 import { localeChoice, matchLocale } from '../../providers/locale/locale-choice'
-import { act, clearCookies, renderUI, screen } from '../helpers'
+import { act, attach, clearCookies, deferred, renderUI, screen } from '../helpers'
 
 // The English locales, with the default first.
 const LOCALES = ['en-US', 'en-GB', 'en-CA', 'en-AU'] as const
@@ -441,6 +442,121 @@ describe('LocaleProvider catalogs', () => {
 		)
 
 		expect(intls.size).toBe(1)
+	})
+})
+
+/** A loader of the catalog of the test app in one language, which the case settles by hand. */
+function heldLoader(messages: Record<string, string>) {
+	const load = deferred<{ default: Record<string, string> }>()
+
+	const loader = vi.fn(() => load.promise)
+
+	return { loader, resolve: () => load.resolve({ default: messages }) }
+}
+
+describe('LocaleProvider catalog loads', () => {
+	it('loads no translation for an English locale', () => {
+		const { loader } = heldLoader({ 'test.greeting': 'Hola' })
+
+		renderUI(
+			<LocaleProvider locale="en-US" catalogs={{ es: loader }}>
+				<AppText />
+			</LocaleProvider>,
+		)
+
+		expect(greeting()).toHaveTextContent('Hello')
+
+		expect(loader).not.toHaveBeenCalled()
+	})
+
+	it('keeps the server markup until the translation loads, and then hydrates it', async () => {
+		const messages = { 'test.greeting': 'Hola' }
+
+		// The server markup, as a server that waits for the translation renders it.
+		const html = renderToString(
+			<LocaleProvider locale="es-ES" catalogs={{ es: messages }}>
+				<AppText />
+			</LocaleProvider>,
+		)
+
+		const container = attach(document.createElement('div'))
+
+		container.innerHTML = html
+
+		const { loader, resolve } = heldLoader(messages)
+
+		const onRecoverableError = vi.fn()
+
+		// The hydration suspends, so it goes into an `act` that the case awaits.
+		await act(async () => {
+			const root = hydrateRoot(
+				container,
+				<LocaleProvider locale="es-ES" catalogs={{ es: loader }}>
+					<AppText />
+				</LocaleProvider>,
+				{ onRecoverableError },
+			)
+
+			onTestFinished(() => act(() => root.unmount()))
+		})
+
+		expect(loader).toHaveBeenCalledOnce()
+
+		expect(container.innerHTML).toBe(html)
+
+		await act(async () => resolve())
+
+		expect(container.innerHTML).toBe(html)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+	})
+
+	it('shows the English defaults when the translation fails to load', async () => {
+		const error = new Error('chunk not found')
+
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const loader = vi.fn(() => Promise.reject(error))
+
+		await act(async () => {
+			renderUI(
+				<LocaleProvider locale="es-ES" catalogs={{ es: loader }}>
+					<AppText />
+					<EmptyListbox />
+				</LocaleProvider>,
+			)
+		})
+
+		expect(greeting()).toHaveTextContent('Hello')
+
+		expect(fruit()).toHaveTextContent('Seleccionar')
+
+		expect(consoleError).toHaveBeenCalledWith(error)
+	})
+
+	it('keeps the old language until the translation of a new choice loads', async () => {
+		const { loader, resolve } = heldLoader({ 'test.greeting': 'Hola' })
+
+		const locales = ['en-US', 'es-ES'] as const
+
+		renderUI(
+			<LocaleProvider locale="en-US" locales={locales} catalogs={{ es: loader }}>
+				<AppText />
+				<LocaleProbe />
+			</LocaleProvider>,
+		)
+
+		await act(async () => writeChoice(localeChoice(locales), 'es-ES'))
+
+		expect(greeting()).toHaveTextContent('Hello')
+
+		expect(screen.getByTestId('locale')).toHaveTextContent('en-US')
+
+		await act(async () => resolve())
+
+		expect(greeting()).toHaveTextContent('Hola')
+
+		expect(screen.getByTestId('locale')).toHaveTextContent('es-ES')
 	})
 })
 

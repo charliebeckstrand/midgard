@@ -27,10 +27,11 @@ const DEFAULT_SEPARATOR = (
 export function BreadcrumbSeparator({ children, className, ...props }: BreadcrumbSeparatorProps) {
 	return (
 		<li
-			data-slot="breadcrumb-separator"
 			aria-hidden="true"
 			className={cn(k().separator, className)}
 			{...props}
+			// After the spread: the fit of a collapsing trail selects on it.
+			data-slot="breadcrumb-separator"
 		>
 			{children ?? DEFAULT_SEPARATOR}
 		</li>

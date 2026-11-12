@@ -7,7 +7,7 @@ import {
 	summarizeQuery,
 } from '../../modules/query/engine/query-summary'
 import type { QueryField, QueryNode, QueryRule } from '../../modules/query/engine/types'
-import { intlEs } from '../../primitives/intl/intl-catalog'
+import { intlEs } from '../helpers/intl'
 
 const nameField: QueryField = { name: 'name', label: 'Name', type: 'text' }
 

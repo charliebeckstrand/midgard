@@ -387,3 +387,11 @@ export const POINT_SWATCH = {
 	circle: 'dot',
 	square: 'rect',
 } as const satisfies Record<MapPointShape, MapSwatchShape>
+
+/**
+ * The narrowest frame, in device pixels, that a `MapPoints` groups its dots for
+ * before the box is measured. A narrower frame draws the groups of this width
+ * until the box is measured. The merge tree below this width costs the most to
+ * build, and no map draws a frame this narrow. @internal
+ */
+export const MAP_PREPAINT_NARROWEST = 120

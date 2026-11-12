@@ -20,7 +20,7 @@ import { catalogs } from '../locale/catalogs'
 // `AppProviders` gives the translations to `LocaleProvider`, over the catalogs
 // of ui. This test holds the files in step, with the checks of ui:
 //
-//   1. The source catalog and the module that imports each translation equal
+//   1. The source catalog and the module that loads each translation equal
 //      the output of `pnpm intl` (`scripts/intl.ts`).
 //   2. Each id starts with `shared.`, so no message of shared replaces a
 //      message of ui or of an app.
@@ -47,7 +47,7 @@ describe('intl catalog of shared', () => {
 		expect(Object.keys(source).filter((id) => !id.startsWith('shared.'))).toEqual([])
 	})
 
-	it('imports each translation', () => {
+	it('loads each translation', () => {
 		expect(
 			readFileSync(join(LANG_DIR, TRANSLATIONS_MODULE), 'utf8'),
 			'run `pnpm intl` to write the module',
@@ -63,8 +63,10 @@ describe('intl catalog of shared', () => {
 			expect(Object.keys(messages).sort()).toEqual(Object.keys(source).sort())
 		})
 
-		it('loads in the catalogs of shared', () => {
-			expect(catalogs[language]).toEqual(messages)
+		it('loads in the catalogs of shared', async () => {
+			const source = catalogs[language]
+
+			expect(typeof source === 'function' ? (await source()).default : source).toEqual(messages)
 		})
 
 		it('parses each message, with the arguments of its English default', () => {

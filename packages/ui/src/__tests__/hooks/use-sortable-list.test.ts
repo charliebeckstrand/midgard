@@ -16,7 +16,8 @@ import {
 	sortableAnnouncements,
 	useSortableList,
 } from '../../hooks/use-sortable-list'
-import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
+import { intlEs } from '../helpers/intl'
 
 type Item = { id: string; label: string }
 

@@ -801,10 +801,45 @@ const CANONICAL_SVG = {
 	} satisfies CSSProperties,
 }
 
-/** The class and the style of the plot SVG in each state of the frame. @internal */
-function plotSvgProps(measured: boolean): { className: string; style?: CSSProperties } {
-	return measured ? MEASURED_SVG : CANONICAL_SVG
+/**
+ * The class and the style of the plot SVG in each state of the frame.
+ *
+ * Before the measurement, the style also sets `--map-unit`: the frame units in
+ * one pixel. The frame meets the box less the inset, so a frame `width` units
+ * wide draws as wide as the smaller of the width of that box and its height
+ * times the aspect of the frame. `tan(atan2(length, 1px))` gives a length as a
+ * number of pixels, which CSS cannot divide by otherwise. Text that a mark sizes
+ * as a multiple of `--map-unit` then draws at its size in pixels.
+ *
+ * @internal
+ */
+function plotSvgProps(
+	measured: boolean,
+	width: number,
+	height: number,
+): { className: string; style?: CSSProperties } {
+	if (measured) return MEASURED_SVG
+
+	const inset = MAP_FIT_INSET * 2
+
+	const drawn = `min(100cqw - ${inset}px, (100cqh - ${inset}px) * ${width / height})`
+
+	return {
+		...CANONICAL_SVG,
+		style: {
+			...CANONICAL_SVG.style,
+			'--map-unit': `calc(${width} / tan(atan2(${drawn}, 1px)))`,
+		} as CSSProperties,
+	}
 }
+
+/**
+ * The box that holds the plot SVG: the whole plot box, as the container
+ * `map-plot`. A size container, so a mark can ask for the size of the box in a
+ * container query and in `cq` units before the measurement. The SVG is out of
+ * flow, so the box has no content size to contain.
+ */
+const PLOT_CONTAINER = 'absolute inset-0 [container:map-plot/size]'
 
 /**
  * An SVG geography map on the chart module's interaction grammar. Regions take
@@ -1282,6 +1317,15 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// One store for the life of the plat, so the value below holds through a move.
 	const [moves] = useState(createStopMoves)
 
+	// The canonical frame until the box is measured (see `MapPlatContextValue`).
+	const unmeasured = useMemo(
+		() =>
+			shape.measured || shape.viewWidth <= 0 || shape.viewHeight <= 0
+				? null
+				: { width: shape.viewWidth, height: shape.viewHeight },
+		[shape.measured, shape.viewWidth, shape.viewHeight],
+	)
+
 	const plat = useMemo<MapPlatContextValue>(
 		() => ({
 			project: shape.project,
@@ -1296,6 +1340,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			moves,
 			animate,
 			selectedOverlay: markSelection,
+			unmeasured,
 		}),
 		[
 			shape.project,
@@ -1310,6 +1355,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			moves,
 			animate,
 			markSelection,
+			unmeasured,
 		],
 	)
 
@@ -1558,20 +1604,23 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// Until the measurement, the SVG sits inside the inset of the fit
 	// (`plotSvgProps`).
 	//
-	// The SVG is out of flow, as `ChartPlotBox` requires. In flow, its `viewBox`
+	// The SVG sits in the container box of the plot (`PLOT_CONTAINER`).
+	//
+	// The box is out of flow, as `ChartPlotBox` requires. In flow, the `viewBox`
 	// ratio gave the box a content height. A container that sizes to its content,
 	// such as a `1fr` grid row, then kept the height of the last frame. A fill map
 	// that became narrow and then wide again stayed taller than its container.
 	const svg = shape.viewWidth > 0 && shape.viewHeight > 0 && (
-		<svg
-			ref={svgRef}
-			aria-hidden="true"
-			{...plotSvgProps(shape.measured)}
-			viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
-		>
-			<MapPlatContext value={plat}>
-				<MapZoomLayer>
-					{/* Inside the zoom, above the marks layer. Inside, because a meridian
+		<div className={PLOT_CONTAINER}>
+			<svg
+				ref={svgRef}
+				aria-hidden="true"
+				{...plotSvgProps(shape.measured, shape.viewWidth, shape.viewHeight)}
+				viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
+			>
+				<MapPlatContext value={plat}>
+					<MapZoomLayer>
+						{/* Inside the zoom, above the marks layer. Inside, because a meridian
 					    is a position on the globe like every other. It draws in frame
 					    units, so it must travel and scale with the geography it rules
 					    rather than hang over a map moving under it. Its hairlines convert
@@ -1579,31 +1628,32 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					    does. Above the marks layer rather than within it, because chrome
 					    is frame and not data: it never animates on, and it joins no
 					    motion group. */}
-					<MapChrome paths={shape.chrome} sphere={sphere} />
+						<MapChrome paths={shape.chrome} sphere={sphere} />
 
-					<MapMarksLayer animate={animate}>
-						<MapRegions
-							paths={shape.paths}
-							frame={shape.regionFrame}
-							regionCategory={regionCategory}
-							categories={categoryMetas}
-							interactive={regions.tracked}
-							hidden={hidden}
-							emphasis={emphasis}
-							animate={animate}
-							sweep={sweep}
-							onRegionClick={regions.click}
-							disabled={regionDisabled}
-							onRegionContextMenu={regions.contextMenu}
-							selected={selected}
-							loading={loading}
-						/>
+						<MapMarksLayer animate={animate}>
+							<MapRegions
+								paths={shape.paths}
+								frame={shape.regionFrame}
+								regionCategory={regionCategory}
+								categories={categoryMetas}
+								interactive={regions.tracked}
+								hidden={hidden}
+								emphasis={emphasis}
+								animate={animate}
+								sweep={sweep}
+								onRegionClick={regions.click}
+								disabled={regionDisabled}
+								onRegionContextMenu={regions.contextMenu}
+								selected={selected}
+								loading={loading}
+							/>
 
-						{children}
-					</MapMarksLayer>
-				</MapZoomLayer>
-			</MapPlatContext>
-		</svg>
+							{children}
+						</MapMarksLayer>
+					</MapZoomLayer>
+				</MapPlatContext>
+			</svg>
+		</div>
 	)
 
 	// The visually-hidden table. The frame defers it off the urgent render (see

@@ -1,11 +1,10 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useStableValue } from '../../../hooks/use-stable-value'
 import { once } from '../../../utilities/once'
 import { rawColor, textClass } from '../engine/chart-color/paint'
 import { scatterReadoutValues } from '../engine/chart-geometry/scatter'
-import type { ChartReadout, ScatterChartSeries } from '../engine/types'
+import type { ChartReadout } from '../engine/types'
 import type { ScatterMeta } from './scatter-chart-layout'
 
 /**
@@ -68,48 +67,23 @@ function buildReadout(
 }
 
 /**
- * The readout thunk, memoized on the content its cells read: the rows, each
- * visible series' fields, name, and color, and the three formats. A parent render
- * hands new metas with the same content. A new thunk would reformat every cell
- * of the hidden table, and the deferred table would render the frame again.
- *
- * The metas and the x values are held while the rows and the key of the visible
- * series stay the same, so the memo lists what it reads.
+ * The readout thunk, memoized on the visible metas, the x values, and the three
+ * formats. The chart body holds the metas and the x values while the rows and
+ * the series stay the same, so a parent render keeps the thunk. A new thunk
+ * would format each cell of the hidden table again, and the deferred table
+ * would render the frame again.
  *
  * @internal
  */
-export function useScatterChartReadout<T>(
-	data: T[],
-	series: ScatterChartSeries<T>[],
+export function useScatterChartReadout(
 	visible: ScatterMeta[],
 	uniqueXs: number[],
 	format: (value: number) => string,
 	formatX: (value: number) => string,
 	formatSize: (value: number) => string,
 ): (() => ChartReadout | null) | null {
-	const key = visible
-		.map((meta) => {
-			const entry = series[meta.index]
-
-			return [
-				meta.index,
-				meta.label,
-				meta.sizeName,
-				entry?.xKey,
-				entry?.yKey,
-				entry?.sizeKey,
-				entry?.color,
-			].join('\u0001')
-		})
-		.join('\u0000')
-
-	const held = useStableValue(
-		{ data, key, visible, uniqueXs },
-		(prev, next) => prev.data === next.data && prev.key === next.key,
-	)
-
 	return useMemo(
-		() => buildReadout(held.visible, held.uniqueXs, format, formatX, formatSize),
-		[held, format, formatX, formatSize],
+		() => buildReadout(visible, uniqueXs, format, formatX, formatSize),
+		[visible, uniqueXs, format, formatX, formatSize],
 	)
 }

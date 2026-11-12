@@ -29,13 +29,20 @@ export function useLaidOutHidden(
 
 	const hold = animate && !still ? (exit ?? 0) : 0
 
-	const [laid, setLaid] = useState(hidden)
+	// A chart that holds nothing lays out `hidden` itself, so it keeps no set, and
+	// a toggle does not render the chart body again to copy the set.
+	const tracked = hold > 0 ? hidden : null
+
+	const [laid, setLaid] = useState(tracked)
 
 	const waits =
-		hold > 0 && !sameMembers(laid, hidden) && [...laid].every((index) => hidden.has(index))
+		laid !== null &&
+		tracked !== null &&
+		!sameMembers(laid, hidden) &&
+		[...laid].every((index) => hidden.has(index))
 
 	// A set during render replaces this render at once.
-	if (!waits && laid !== hidden) setLaid(hidden)
+	if (!waits && laid !== tracked) setLaid(tracked)
 
 	useEffect(() => {
 		if (!waits) return
@@ -45,5 +52,5 @@ export function useLaidOutHidden(
 		return () => clearTimeout(timer)
 	}, [waits, hidden, hold])
 
-	return waits ? laid : hidden
+	return waits && laid !== null ? laid : hidden
 }

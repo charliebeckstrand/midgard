@@ -260,6 +260,18 @@ export type MapPlatContextValue = {
 	selectedOverlay: MapOverlaySelection | null
 	/** Whether the plat animates; overlays pick their motion renderers off it. */
 	animate: boolean
+	/**
+	 * The canonical frame, in frame units, while the box is not measured: on the
+	 * server, and in the hydration render. `null` once the box is measured.
+	 *
+	 * The frame then scales to meet a box that no render knows. A mark whose
+	 * drawing depends on the width in pixels draws for every width at once, and a
+	 * container query on the plot shows the drawing of the width that the box has
+	 * (`MapPoints`). The plot is the container `map-plot`, and the SVG sets
+	 * `--map-unit` to the frame units in one pixel, so a mark can size text in
+	 * pixels before the measurement.
+	 */
+	unmeasured: { width: number; height: number } | null
 }
 
 export const [MapPlatContext, useMapPlat] = createContext<MapPlatContextValue>('MapPlat')

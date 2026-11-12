@@ -9,7 +9,7 @@ import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import type { Place, Trip } from '../../types'
 import { placeCount } from '../../utilities/places-trips'
-import { PlaceRow } from '../place-summary/place-row'
+import { PlaceRow } from '../place-summary'
 import { DaySpan, SummaryFact, SummaryPhotos, SummaryRow } from '../summary-drawer'
 
 /**

@@ -57,6 +57,12 @@ const touchY = {
 	xl: 'density-set-[4,5,6,7,8]/[--touch-target-gap-y]',
 } as const
 
+/**
+ * The `sm` gap of `scale` as `--ui-breadcrumb-gap`, in a collapsing breadcrumb.
+ * The fit of the trail reads it beside the gap of the same stop.
+ */
+const breadcrumb = 'in-data-collapse:density-set-[0.5,1,2,3,4.5]/[--ui-breadcrumb-gap]'
+
 /** The gap of a control and of a badge: half of the block padding of a control. */
 const narrow = 'density-gap-[0.5,0.75,1,1.25,1.5]'
 
@@ -69,6 +75,7 @@ export const gap = {
 	none: 'density-gap-[0,0,0,0,0]',
 	/** The inline gap at each stop of `scale`. */
 	x: scaleX,
+	breadcrumb,
 	/** The block gap at each stop of `scale`. */
 	y: scaleY,
 	touch: {

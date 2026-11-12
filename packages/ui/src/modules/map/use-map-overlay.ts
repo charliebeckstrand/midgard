@@ -84,6 +84,10 @@ export type MapOverlayProps = {
 	/**
 	 * Named mark color override; defaults to the next slot after the region categories.
 	 *
+	 * A `MapPoints` with its own color and no `group` draws its dots in the server
+	 * markup, before the scripts run. Every other mark draws after it registers,
+	 * in the hydration.
+	 *
 	 * @defaultValue `'blue'`, or the next slot color in the fixed order after the region categories and the earlier marks.
 	 */
 	color?: MapSeriesColor

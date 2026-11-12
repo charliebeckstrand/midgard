@@ -1,6 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
+import { PieChart } from '../../../modules/chart/pie-chart'
+import { SeatChart } from '../../../modules/chart/seat-chart'
 import { allBySlot, bySlot, getSlot, renderUI, waitFor } from '../../helpers'
 
 /**
@@ -87,5 +89,108 @@ describe('chart box-law (real browser)', () => {
 
 		// 360 / (16 / 9) ≈ 202, the ratio's own height, not a clamped remainder.
 		expect(figure.getBoundingClientRect().height).toBeGreaterThan(190)
+	})
+
+	const SLICES = [
+		{ quarter: 'Q1', sales: 40 },
+		{ quarter: 'Q2', sales: 80 },
+		{ quarter: 'Q3', sales: 65 },
+	]
+
+	const pie = (data = SLICES, legend?: false) => (
+		<PieChart
+			aria-label="Sales by quarter"
+			className="h-full"
+			data={data}
+			series={[{ xKey: 'quarter', yKey: 'sales' }]}
+			aspectRatio={1}
+			legend={legend}
+		/>
+	)
+
+	/** How far the drawing runs past the bottom of the host, in px. */
+	const overflow = (container: HTMLElement) => {
+		const host = container.firstElementChild as HTMLElement
+
+		const svg = bySlot(container, 'chart-plot')?.querySelector('svg')
+
+		return (svg?.getBoundingClientRect().bottom ?? 0) - host.getBoundingClientRect().bottom
+	}
+
+	it('clamps a pie with no legend to a definite-height host', async () => {
+		// A 1:1 pie in a 400 x 200 host wants 400 px of height. With no legend it
+		// must clamp to the host, as a bar chart and a pie with a legend do.
+		const { container } = renderUI(
+			<div style={{ width: 400, height: 200 }}>{pie(SLICES, false)}</div>,
+		)
+
+		await waitFor(() => expect(svgHeight(container)).toBeGreaterThan(0))
+
+		expect(overflow(container)).toBeLessThanOrEqual(0.6)
+	})
+
+	it('clamps a pie whose one slice hides the legend', async () => {
+		const { container } = renderUI(
+			<div style={{ width: 400, height: 200 }}>{pie(SLICES.slice(0, 1))}</div>,
+		)
+
+		await waitFor(() => expect(svgHeight(container)).toBeGreaterThan(0))
+
+		expect(overflow(container)).toBeLessThanOrEqual(0.6)
+	})
+
+	it('clamps a seat chart with no legend to a definite-height host', async () => {
+		const { container } = renderUI(
+			<div style={{ width: 400, height: 150, display: 'flex', flexDirection: 'column' }}>
+				<SeatChart
+					aria-label="Seats"
+					className="h-full"
+					groups={[
+						{ seats: 50, color: 'blue', label: 'A' },
+						{ seats: 50, color: 'red', label: 'B' },
+					]}
+					legend={false}
+				/>
+			</div>,
+		)
+
+		await waitFor(() => expect(svgHeight(container)).toBeGreaterThan(0))
+
+		expect(overflow(container)).toBeLessThanOrEqual(0.6)
+	})
+
+	it('gives a pie with no legend its full ratio height when nothing clamps it', async () => {
+		const { container } = renderUI(<div style={{ width: 400 }}>{pie(SLICES, false)}</div>)
+
+		await waitFor(() => expect(svgHeight(container)).toBeGreaterThan(0))
+
+		// 400 / 1, the ratio's own height.
+		expect(svgHeight(container)).toBeGreaterThan(390)
+	})
+
+	it('keeps the title of a pie with no legend inside its ratio box', async () => {
+		// The figure carries the ratio, as it does with a stacked legend and for a
+		// cartesian chart: the figure is 400 px tall, and the pie takes the height
+		// that the title leaves.
+		const { container } = renderUI(
+			<div style={{ width: 400 }}>
+				<PieChart
+					aria-label="Sales by quarter"
+					title="Sales by quarter"
+					data={SLICES}
+					series={[{ xKey: 'quarter', yKey: 'sales' }]}
+					aspectRatio={1}
+					legend={false}
+				/>
+			</div>,
+		)
+
+		await waitFor(() => expect(svgHeight(container)).toBeGreaterThan(0))
+
+		const figure = getSlot(container, 'chart-figure').getBoundingClientRect().height
+
+		expect(figure).toBeGreaterThan(398)
+		expect(figure).toBeLessThan(402)
+		expect(svgHeight(container)).toBeLessThan(figure - 16)
 	})
 })

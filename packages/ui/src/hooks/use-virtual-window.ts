@@ -11,6 +11,7 @@ import {
 } from '@tanstack/virtual-core'
 import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
+import { clamp } from '../utilities/clamp'
 
 /** Options for {@link useVirtualWindow}: the item count, the size estimate, and the overscan. */
 export type VirtualWindowOptions = {
@@ -142,19 +143,23 @@ function viewTop(instance: Virtualizer<HTMLElement, Element>): number {
 }
 
 /**
- * The private field of the virtualizer that its `scroll` handler clears: the
- * offset of its last write of `scrollTop`. @internal
+ * The private method of the virtualizer that applies a scroll correction: a
+ * move that keeps the content in view still when the content above it
+ * changes. It writes the offset, and it records the write, so that the
+ * `scroll` handler reads the next event as the result of this write. It adds
+ * the move to `scrollOffset` at once. While a touch on iOS controls the
+ * scroller, or the scroller bounces past an edge, it holds the move and
+ * renders the rows shifted by it, and it writes the move when it can. @internal
  */
-type ScrollState = { _intendedScrollOffset: number | null }
+type ScrollCorrection = { applyScrollAdjustment: (delta: number) => boolean }
 
 /**
- * Where the scroller is once the pending adjustments land. A scroll adjustment
- * moves the scroller at once, but the virtualizer can read the new offset only
- * from the next `scroll` event. Until then `scrollAdjustments` holds the moves.
- * @internal
+ * The scroll offset in the layout of the list. Since virtual-core 3.19, a
+ * correction goes into `scrollOffset` at once, before the next `scroll` event,
+ * and `scrollAdjustments` is always 0. @internal
  */
-function effectiveOffset(instance: Virtualizer<HTMLElement, Element>): number {
-	return (instance.scrollOffset ?? 0) + instance.scrollAdjustments
+function layoutOffset(instance: Virtualizer<HTMLElement, Element>): number {
+	return instance.scrollOffset ?? 0
 }
 
 /**
@@ -272,7 +277,7 @@ function recordStartAnchor(
 ): StartAnchorRecord {
 	const measurements = freshMeasurements(instance)
 
-	const offset = effectiveOffset(instance)
+	const offset = layoutOffset(instance)
 
 	const top = offset + instance.options.scrollPaddingStart
 
@@ -368,21 +373,22 @@ function holdStartAnchor(
 
 		if (start === undefined) continue
 
-		const target = start - row.offset
+		if (element) {
+			// The commit is in the layout, so the height of the scroller is the new
+			// height. A scroller that cannot move to the target goes to the nearest
+			// offset that it can reach. A scroller that does not scroll thus takes
+			// no change. The virtualizer gets no `scroll` event for a write that
+			// does not move the scroller, so it must not get such a move.
+			const max = Math.max(0, element.scrollHeight - element.clientHeight)
 
-		// A scroller that cannot move there clamps the offset, so a scroller that
-		// does not scroll takes no change.
-		if (element && Math.abs(target - effectiveOffset(virtualizer)) >= 1) {
-			element.scrollTop = target
+			const delta = clamp(start - row.offset, 0, max) - layoutOffset(virtualizer)
 
-			virtualizer.scrollOffset = element.scrollTop
-
-			virtualizer.scrollAdjustments = 0
-
-			;(virtualizer as unknown as ScrollState)._intendedScrollOffset = null
+			if (Math.abs(delta) >= 1) {
+				;(virtualizer as unknown as ScrollCorrection).applyScrollAdjustment(delta)
+			}
 		}
 
-		const offset = start - effectiveOffset(virtualizer)
+		const offset = start - layoutOffset(virtualizer)
 
 		return { count, getItemKey, rows: [{ index, key: row.key, offset }] }
 	}
@@ -398,7 +404,7 @@ type WindowState = { start: number | null; end: number | null; sizes: number }
 
 /**
  * The fields of the virtualizer that {@link windowState} reads. The size
- * version is private in virtual-core 3.17. @internal
+ * version is private in virtual-core 3.19. @internal
  */
 type WindowFields = { itemSizeCacheVersion: number }
 
@@ -430,9 +436,10 @@ function sameState(a: WindowState, b: WindowState): boolean {
  * full view then moved the scroller, because the old height put the row below
  * the bottom edge.
  *
- * It reads the layout height, which a transform does not change, as the
- * `border-box` entry of the observer does. A difference of one pixel or less
- * can come from a rounded value, so the height then stays. @internal
+ * It reads `clientHeight`, as the rect observer of virtual-core 3.19 does: the
+ * height inside the borders and the horizontal scrollbar, which a transform
+ * does not change. A difference of one pixel or less can come from a rounded
+ * value, so the height then stays. @internal
  */
 function syncScrollHeight(instance: Virtualizer<HTMLElement, Element>): void {
 	const element = instance.scrollElement
@@ -441,7 +448,7 @@ function syncScrollHeight(instance: Virtualizer<HTMLElement, Element>): void {
 
 	if (!element || !rect) return
 
-	const height = element.offsetHeight
+	const height = element.clientHeight
 
 	if (Math.abs(height - rect.height) > 1) instance.scrollRect = { ...rect, height }
 }
@@ -654,12 +661,12 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * native scroll anchoring of the browser does the same. A reader at the top of
  * a filtered list thus sees the top of the full list when the filter clears.
  *
- * The anchor writes the offset into the virtualizer as its `scroll` handler
- * does. The virtualizer reads a write of `scrollTop` only from the next
- * `scroll` event. A render before that event would paint the window at the old
- * offset, and a second list change in that gap would anchor against a stale
- * offset. The anchor step of virtual-core 3.17 acts only with
- * `anchorTo: 'end'`. A scroller that does not scroll takes no
+ * The anchor moves the scroller through the scroll correction of the
+ * virtualizer, which puts the new offset into the virtualizer at once. Without
+ * it, the virtualizer reads a write of `scrollTop` only from the next `scroll`
+ * event. A render before that event would paint the window at the old offset,
+ * and a second list change in that gap would anchor against a stale offset.
+ * The anchor step of virtual-core 3.19 acts only with `anchorTo: 'end'`. A scroller that does not scroll takes no
  * change, and the render after a move holds no anchor, so a move never starts
  * another.
  *
@@ -754,7 +761,7 @@ export function useVirtualWindow({
 	// move the rows in view. The library default skips that adjustment, so the
 	// measured path replaces it. The uniform path writes nothing here.
 
-	// The start anchor. virtual-core 3.17 holds only the end edge. The measured
+	// The start anchor. virtual-core 3.19 holds only the end edge. The measured
 	// path holds the start edge in a layout effect below.
 	const startAnchor = getItemKey != null && anchorTo !== 'end'
 
@@ -816,13 +823,13 @@ export function useVirtualWindow({
 		// A render with a new list holds the first recorded row still. The move
 		// renders once more before the paint. The new record names the new list,
 		// so that render holds nothing, and the move does not start another one.
-		const before = effectiveOffset(virtualizer)
+		const before = layoutOffset(virtualizer)
 
 		const prev = anchorRecord.current
 
 		const held = prev && holdStartAnchor(virtualizer, prev, count, getItemKey, virtualItems)
 
-		if (held && Math.abs(effectiveOffset(virtualizer) - before) >= 1) {
+		if (held && Math.abs(layoutOffset(virtualizer) - before) >= 1) {
 			anchorRecord.current = held
 
 			forceResync()

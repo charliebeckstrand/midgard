@@ -123,20 +123,20 @@ export function readTranslations(langDir: string): Translation[] {
 	}))
 }
 
-/** The name of the module that imports each translation of a catalog folder ({@link translationsText}). */
+/** The name of the module that loads each translation of a catalog folder ({@link translationsText}). */
 export const TRANSLATIONS_MODULE = 'index.ts'
 
 /** A language subtag, the name of a translation. The catalogs of a locale go by its language subtag. */
 const LANGUAGE = /^[a-z]{2,3}$/
 
 /**
- * The text of the module that imports each translation in `langDir`. Its
+ * The text of the module that loads each translation in `langDir`. Its
  * `languages` holds the language subtag of each translation, and its
- * `translations` holds the messages of each language, by language subtag. A
- * module that needs the languages alone imports `languages`, so a bundle
- * leaves the messages out. The
- * `intl` script of a package writes the module, so a new translation needs no
- * import by hand. It throws for a file name that is not a language subtag.
+ * `translations` holds the loader of each language, by language subtag. A
+ * loader is a dynamic import, so a bundle puts each translation in a chunk of
+ * its own, and a page loads only the language that it shows. The `intl`
+ * script of a package writes the module, so a new translation needs no import
+ * by hand. It throws for a file name that is not a language subtag.
  */
 export function translationsText(langDir: string): string {
 	const languages = readLanguages(langDir)
@@ -152,14 +152,12 @@ export function translationsText(langDir: string): string {
 	return [
 		'// `pnpm intl` writes this module from the translations in this folder.',
 		'',
-		...languages.map((language) => `import ${language} from './${language}.json'`),
-		'',
 		'/** The language subtag of each translation, in name order. */',
 		`export const languages = [${languages.map((language) => `'${language}'`).join(', ')}] as const`,
 		'',
-		'/** The messages of each translation, by language subtag. */',
+		'/** The loader of the messages of each translation, by language subtag. */',
 		'export const translations = {',
-		...languages.map((language) => `\t${language},`),
+		...languages.map((language) => `\t${language}: () => import('./${language}.json'),`),
 		'}',
 		'',
 	].join('\n')

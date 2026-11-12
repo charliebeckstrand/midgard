@@ -2,8 +2,11 @@ import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Swatch } from '../../components/swatch'
 import { BarChart } from '../../modules/chart/bar-chart'
+import { scatterDiscLayers, scatterMarks } from '../../modules/chart/engine/chart-geometry/scatter'
 import { ChartHeader } from '../../modules/chart/engine/chart-header'
 import { LegendSwitch } from '../../modules/chart/engine/chart-legend/legend-switch'
+import { useChartSweep } from '../../modules/chart/engine/use-chart-sweep'
+import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
@@ -19,8 +22,12 @@ import { act, renderUI } from '../helpers'
  * chart render asks for the `category` prefix. The frame builds the header on
  * each of its renders, so the header count reads the frame renders. Each series
  * entry renders one `LegendSwitch`, and each series or rule swatch renders one
- * `Swatch`, so those two counts read the legend renders. The counts need module
- * mocks, so this suite sits in `boundary/`.
+ * `Swatch`, so those two counts read the legend renders. A scatter chart lays
+ * out its discs with `scatterMarks` and draws a plain series with
+ * `scatterDiscLayers`, so those two counts read the scatter layout. The
+ * heatmap cell grid is the one caller of `useChartSweep`, so that count reads
+ * the grid renders. The counts need module mocks, so this suite sits in
+ * `boundary/`.
  */
 vi.mock('../../utilities/range-keys', async (importActual) => {
 	const actual = await importActual<typeof import('../../utilities/range-keys')>()
@@ -41,6 +48,23 @@ vi.mock('../../modules/chart/engine/chart-legend/legend-switch', async (importOr
 	return { ...actual, LegendSwitch: vi.fn(actual.LegendSwitch) }
 })
 
+vi.mock('../../modules/chart/engine/chart-geometry/scatter', async (importOriginal) => {
+	const actual =
+		await importOriginal<typeof import('../../modules/chart/engine/chart-geometry/scatter')>()
+
+	return {
+		...actual,
+		scatterDiscLayers: vi.fn(actual.scatterDiscLayers),
+		scatterMarks: vi.fn(actual.scatterMarks),
+	}
+})
+
+vi.mock('../../modules/chart/engine/use-chart-sweep', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('../../modules/chart/engine/use-chart-sweep')>()
+
+	return { ...actual, useChartSweep: vi.fn(actual.useChartSweep) }
+})
+
 vi.mock('../../components/swatch', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../components/swatch')>()
 
@@ -57,6 +81,10 @@ const headerRenders = () => vi.mocked(ChartHeader).mock.calls.length
 /** The legend entry and swatch renders since the last clear. */
 const legendRenders = () =>
 	vi.mocked(LegendSwitch).mock.calls.length + vi.mocked(Swatch).mock.calls.length
+
+/** The scatter layout calls since the last clear. */
+const scatterLayouts = () =>
+	vi.mocked(scatterMarks).mock.calls.length + vi.mocked(scatterDiscLayers).mock.calls.length
 
 type Row = { week: string; a: number; b: number }
 
@@ -79,6 +107,18 @@ const SCATTER_SERIES: { xKey: 'a'; yKey: 'b'; yName: string }[] = [
 const REFERENCE = [{ value: 25, label: 'Goal' }]
 
 const PIE_SERIES: [{ xKey: 'week'; yKey: 'a' }] = [{ xKey: 'week', yKey: 'a' }]
+
+type HeatRow = { day: string; hour: string; commits: number }
+
+const HEAT: HeatRow[] = Array.from({ length: 24 }, (_, index) => ({
+	day: `D${index % 4}`,
+	hour: `H${Math.floor(index / 4)}`,
+	commits: index,
+}))
+
+const HEAT_SERIES: [{ xKey: 'hour'; yKey: 'day'; colorKey: 'commits'; colorRange: string[] }] = [
+	{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#f7fee7', '#365314'] },
+]
 
 const charts = {
 	line: () => <LineChart aria-label="L" title="T" data={DATA} series={SERIES} width={400} />,
@@ -106,6 +146,12 @@ async function renderFiveTimes(make: () => ReactElement, atMount?: () => void) {
 	vi.mocked(LegendSwitch).mockClear()
 
 	vi.mocked(Swatch).mockClear()
+
+	vi.mocked(scatterMarks).mockClear()
+
+	vi.mocked(scatterDiscLayers).mockClear()
+
+	vi.mocked(useChartSweep).mockClear()
 
 	for (let pass = 0; pass < 5; pass++) {
 		rerender(make())
@@ -164,4 +210,40 @@ describe('chart parent render', () => {
 			expect(legendRenders()).toBe(0)
 		})
 	}
+
+	const scatters = {
+		'stable series': charts.scatter,
+		'a new series literal': () => (
+			<ScatterChart
+				aria-label="S"
+				title="T"
+				data={DATA}
+				series={[{ xKey: 'a', yKey: 'b', yName: 'AB' }]}
+				width={400}
+			/>
+		),
+	}
+
+	for (const [name, make] of Object.entries(scatters)) {
+		it(`scatter with ${name}: lays out no disc for a parent render with equal props`, async () => {
+			await renderFiveTimes(make, () => {
+				// The discs laid out on mount, so the later `toBe(0)` can fail.
+				expect(scatterLayouts()).toBeGreaterThan(0)
+			})
+
+			expect(scatterLayouts()).toBe(0)
+		})
+	}
+
+	it('heatmap: renders no cell for a parent render with equal props', async () => {
+		await renderFiveTimes(
+			() => <HeatmapChart aria-label="H" title="T" data={HEAT} series={HEAT_SERIES} width={400} />,
+			() => {
+				// The grid rendered on mount, so the later `toBe(0)` can fail.
+				expect(vi.mocked(useChartSweep)).toHaveBeenCalled()
+			},
+		)
+
+		expect(vi.mocked(useChartSweep)).not.toHaveBeenCalled()
+	})
 })

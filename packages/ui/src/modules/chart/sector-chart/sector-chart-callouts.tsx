@@ -5,7 +5,6 @@ import type { FrameStep } from '../../../hooks/use-plot-frame'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
-import { getOrCompute } from '../../../utilities/get-or-compute'
 import { sameElements } from '../../../utilities/same-elements'
 import { MARK_GAP } from '../engine/chart-constants'
 import {
@@ -74,7 +73,8 @@ type CalloutFitAt = (frameWidth: number, maxRadius: number) => PieCalloutFit
 
 /**
  * The callouts of the visible slices in one render: the texts as they draw,
- * their width, and the fit. A fit runs once for each frame width.
+ * their width, and the fit. The fit runs on each call, and the chart calls it
+ * once in a render.
  *
  * @internal
  */
@@ -165,15 +165,11 @@ export function resolveCallouts(
 
 	const textWidth: TextWidth = (text) => widths.get(text) ?? 0
 
-	const fits = new Map<string, PieCalloutFit>()
-
 	return {
 		shown,
 		textWidth,
 		fit: (frameWidth, maxRadius) =>
-			getOrCompute(fits, `${frameWidth} ${maxRadius}`, () =>
-				pieCalloutFit({ values: sliceValues, texts: shown, textWidth, frameWidth, maxRadius }),
-			),
+			pieCalloutFit({ values: sliceValues, texts: shown, textWidth, frameWidth, maxRadius }),
 	}
 }
 

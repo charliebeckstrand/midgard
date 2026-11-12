@@ -83,7 +83,9 @@ const MapLegendEntry = memo(function MapLegendEntry({
 				// Beside the label rather than under it, a step down the scale. A readout
 				// is a short word (a mileage, a count, a service class), so it holds its
 				// own column. The name gives up the width instead, because a name clips
-				// to an ellipsis gracefully and a clipped readout says nothing.
+				// to an ellipsis gracefully and a clipped readout says nothing. The muted
+				// tone is the step down in color. It meets 4.5:1 at this size, but the
+				// tone under an opacity does not (3.29:1 at 80% on white).
 				item.detail && (
 					<Text
 						as="span"
@@ -91,7 +93,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 						data-slot="map-legend-detail"
 						tone="muted"
 						className={cn(
-							'shrink-0 text-end leading-tight whitespace-nowrap tabular-nums font-normal opacity-80',
+							'shrink-0 text-end leading-tight whitespace-nowrap tabular-nums font-normal',
 							off && 'opacity-60',
 						)}
 					>

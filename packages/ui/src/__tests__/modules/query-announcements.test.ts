@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { describeNode } from '../../modules/query/engine/query-announcements'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
 import type { QueryField } from '../../modules/query/engine/types'
-import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
+import { intlEs } from '../helpers/intl'
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
