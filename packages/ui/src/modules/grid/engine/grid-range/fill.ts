@@ -9,8 +9,16 @@ import type { GridRowDistance, GridRowStep } from './range'
 /** The direction of a fill, from the source cells to the cells that it writes. @internal */
 export type GridFillDirection = 'down' | 'right' | 'up' | 'left'
 
-/** The significant digits that a series value keeps, so `0.1 + 0.2` gives `0.3`. */
+/**
+ * The significant digits that a series value keeps, so `0.1 + 0.2` gives `0.3`.
+ * A whole number keeps all its digits, because a safe integer can have 16.
+ */
 const SERIES_PRECISION = 15
+
+/** The value of a series at `next`, with the error of a fraction taken off. */
+function seriesValue(next: number): number {
+	return Number.isInteger(next) ? next : Number(next.toPrecision(SERIES_PRECISION))
+}
 
 /** The step of a line of numbers, or `null` when the line is not a series. */
 function seriesStep(line: readonly unknown[]): number | null {
@@ -46,9 +54,7 @@ export function fillLine(line: readonly unknown[], count: number): unknown[] {
 	const last = line.at(-1) as number
 
 	return Array.from({ length: count }, (_, index) =>
-		step === null
-			? line[index % line.length]
-			: Number((last + step * (index + 1)).toPrecision(SERIES_PRECISION)),
+		step === null ? line[index % line.length] : seriesValue(last + step * (index + 1)),
 	)
 }
 

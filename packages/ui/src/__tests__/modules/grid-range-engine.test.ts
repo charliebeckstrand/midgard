@@ -315,6 +315,14 @@ describe('fillLine', () => {
 		expect(fillLine([0.1, 0.2], 1)).toEqual([0.3])
 	})
 
+	// A safe integer has up to 16 digits, one more than the precision that
+	// takes off the error of a fraction.
+	it('continues a series of whole numbers of 16 digits exactly', () => {
+		expect(fillLine([1_000_000_000_000_001, 1_000_000_000_000_002], 3)).toEqual([
+			1_000_000_000_000_003, 1_000_000_000_000_004, 1_000_000_000_000_005,
+		])
+	})
+
 	it('repeats every other line', () => {
 		expect(fillLine([5], 2)).toEqual([5, 5])
 
