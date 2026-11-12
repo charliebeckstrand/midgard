@@ -125,6 +125,8 @@
 				"src/**",
 				"vitest.bench.browser.config.ts",
 				"vitest.browser.config.ts",
+				"vitest.base.ts",
+				"tailwind.css",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			]
