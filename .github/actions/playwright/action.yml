@@ -1,9 +1,10 @@
 name: Playwright
 description: Restore Playwright Chromium from the cache, and install it on a miss.
 
-# Each job that runs Chromium uses this action after `setup`: `browser` and
-# `docs` in ci.yml, visual.yml, and browser-stress.yml. One copy keeps the
-# cache key the same in each job, so those jobs share one cache entry.
+# Each job that runs Chromium uses this action after `setup`: `browser`,
+# `docs`, and the browser `bench` job in ci.yml, visual.yml, and
+# browser-stress.yml. One copy keeps the cache key the same in each job, so
+# those jobs share one cache entry.
 #
 # The `density` job does not use this action. It runs Firefox and WebKit in
 # the Playwright container image, which holds the browsers and their system
