@@ -27,6 +27,8 @@ describe('getTurnstileSiteKey', () => {
 		stubGateway(200, { turnstile_site_key: null })
 
 		await expect(getTurnstileSiteKey()).resolves.toBeNull()
+
+		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('hours')
 	})
 
 	it('returns null and logs a failure', async () => {
