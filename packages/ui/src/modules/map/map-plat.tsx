@@ -354,9 +354,9 @@ type MapPlatBaseProps = AccessibleName &
 		 * Whether a region takes no click, by the identity and feature index
 		 * {@link onRegionClick} reports. Use it for a region that opens nothing,
 		 * such as a state with no race. A disabled region takes no pointer cursor
-		 * and no click hover, and a click, a double tap, or Enter on it reports
-		 * nothing. Its readout stays: a disabled region with a row still shows its
-		 * tooltip and its hover. With no {@link onRegionClick}, this does nothing.
+		 * and no click hover, and a click, a touch pick (see {@link touchPick}),
+		 * or Enter on it reports nothing. Its readout stays: a disabled region with
+		 * a row still shows its tooltip and its hover. With no {@link onRegionClick}, this does nothing.
 		 *
 		 * Omitted, every region answers a click.
 		 */
