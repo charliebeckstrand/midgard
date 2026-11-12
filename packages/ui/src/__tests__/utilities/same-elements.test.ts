@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { sameElements } from '../../utilities/same-elements'
+import { sameElements, sameFieldElements } from '../../utilities/same-elements'
 
 describe('sameElements', () => {
 	it('matches lists with the same items in the same order', () => {
@@ -23,5 +23,43 @@ describe('sameElements', () => {
 		expect(sameElements(undefined, [])).toBe(false)
 
 		expect(sameElements([], undefined)).toBe(false)
+	})
+})
+
+describe('sameFieldElements', () => {
+	it('matches new items with the same fields in the same order', () => {
+		expect(sameFieldElements([{ a: 1, b: 'x' }], [{ a: 1, b: 'x' }])).toBe(true)
+
+		expect(sameFieldElements([], [])).toBe(true)
+	})
+
+	it('rejects a different field value, field set, length, or order', () => {
+		expect(sameFieldElements([{ a: 1 }], [{ a: 2 }])).toBe(false)
+
+		expect(sameFieldElements([{ a: 1 }], [{ a: 1, b: 2 }])).toBe(false)
+
+		expect(sameFieldElements([{ a: 1 }], [{ b: 1 }])).toBe(false)
+
+		expect(sameFieldElements<{ a?: number }>([{ a: undefined }], [{}])).toBe(false)
+
+		expect(sameFieldElements([{ a: 1 }], [{ a: 1 }, { a: 1 }])).toBe(false)
+
+		expect(sameFieldElements([{ a: 1 }, { a: 2 }], [{ a: 2 }, { a: 1 }])).toBe(false)
+	})
+
+	it('compares each field by reference, one level deep', () => {
+		const nested = { x: 1 }
+
+		expect(sameFieldElements([{ nested }], [{ nested }])).toBe(true)
+
+		expect(sameFieldElements([{ nested }], [{ nested: { x: 1 } }])).toBe(false)
+	})
+
+	it('matches undefined only to undefined', () => {
+		expect(sameFieldElements(undefined, undefined)).toBe(true)
+
+		expect(sameFieldElements(undefined, [])).toBe(false)
+
+		expect(sameFieldElements([], undefined)).toBe(false)
 	})
 })

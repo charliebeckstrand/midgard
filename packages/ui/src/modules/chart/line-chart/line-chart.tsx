@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import { buildLineSeries, type LineInterpolation } from '../engine/chart-geometry/line'
@@ -43,6 +44,9 @@ export type LineChartProps<T = never> = CartesianChartProps<T> & {
 	labels?: ChartValueLabelConfig
 }
 
+/** Every line series takes a line swatch. One function, so the series memo of the chart holds. @internal */
+const LINE_SWATCH = () => 'line' as const
+
 /**
  * A multi-series line chart on the shared cartesian frame. It draws 2px
  * round-joined lines that break at missing values, plus an optional area wash
@@ -73,7 +77,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 
 	const chart = useChartCartesian(props, {
 		zeroBaseline: false,
-		swatch: () => 'line',
+		swatch: LINE_SWATCH,
 		legendByValue: true,
 		points,
 		// Reserve the room the point labels need past the data extremes, so a
@@ -89,11 +93,17 @@ export function LineChart<T>(props: LineChartProps<T>) {
 	const floor = chart.plot.y + chart.plot.height
 
 	// One band-center array for every series: they all span the same categories.
-	const list = buildLineSeries(chart.drawn, chart.bandPositions, floor, interpolation, points)
+	const list = useMemo(
+		() => buildLineSeries(chart.drawn, chart.bandPositions, floor, interpolation, points),
+		[chart.drawn, chart.bandPositions, floor, interpolation, points],
+	)
 
 	const seriesRuns = list.map((series) => series.geometry.runs)
 
-	const fills = chart.drawn.map(({ meta }) => chart.tex.fillFor(meta.slot))
+	const fills = useMemo(
+		() => chart.drawn.map(({ meta }) => chart.tex.fillFor(meta.slot)),
+		[chart.drawn, chart.tex],
+	)
 
 	const marks = animate ? (
 		<AnimatedChartLineMarks

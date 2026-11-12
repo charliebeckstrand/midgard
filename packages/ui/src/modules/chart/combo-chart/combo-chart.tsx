@@ -1,6 +1,9 @@
 'use client'
 
+import { useMemo } from 'react'
+import { useStableValue } from '../../../hooks/use-stable-value'
 import type { AccessibleName } from '../../../types/accessible-name'
+import { sameElements } from '../../../utilities/same-elements'
 import { barProjection } from '../engine/chart-cartesian/series'
 import { MARK_GAP } from '../engine/chart-constants'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
@@ -17,7 +20,12 @@ import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/li
 import { BAR_SHRINK, LINE_UNDRAW } from '../engine/chart-motion'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import type { ChartMarkRef } from '../engine/context'
-import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../engine/types'
+import type {
+	CartesianFrameProps,
+	ChartBaseProps,
+	ChartSeries,
+	ComboChartSeries,
+} from '../engine/types'
 import { useChartCartesian } from '../engine/use-chart-cartesian'
 
 /**
@@ -123,6 +131,16 @@ function comboMarkAt(
 }
 
 /**
+ * A bar series takes a rect swatch, and a line or an area series a line swatch.
+ * One function, so the series memo of the chart holds.
+ *
+ * @internal
+ */
+function comboSwatch<T>(entry: ChartSeries<T>): 'rect' | 'line' {
+	return 'type' in entry && entry.type === 'bar' ? 'rect' : 'line'
+}
+
+/**
  * A combined bar, line, and area chart: one shared value axis by default, with
  * a second on request. A series carrying `axis: 'y2'` reads the secondary scale
  * the chart's `axes.y2` config shapes. A count therefore plots beside a currency
@@ -158,7 +176,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	const chart = useChartCartesian(props, {
 		zeroBaseline: true,
 		categoryRule: 'zero',
-		swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
+		swatch: comboSwatch,
 		points,
 		// Reserve the room the point labels need past the data extremes. Only the
 		// visible line and area series carry labels, so only they count toward the
@@ -183,50 +201,61 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	// partition off the one drawn list so their indices stay aligned.
 	const { drawn, tex } = chart
 
-	const pick = (type: ComboChartSeries<T>['type']) =>
-		drawn.filter((entry) => series[entry.meta.index]?.type === type)
-
-	const barEntries = pick('bar')
-
-	const lineEntries = pick('line')
-
-	const areaEntries = pick('area')
-
-	const projection = barProjection(barEntries, chart.baseline)
-
-	const bars = barMarks(
-		barEntries.map((entry) => entry.meta.values),
-		chart.band,
-		projection.map,
-		projection.baseline,
+	// The mark type of each series, held while each keeps its type, so that the
+	// geometry below keeps its identity on a render with a new `series` literal.
+	const types = useStableValue(
+		series.map((entry) => entry.type),
+		sameElements,
 	)
 
 	// Lines and areas share the polyline geometry; an area is a line that also
 	// fills down to its baseline.
 	const xs = chart.bandPositions
 
-	const lines = buildLineSeries(lineEntries, xs, floor, interpolation, points)
+	// The geometry keeps its identity while the drawn series and the band keep
+	// theirs, so the memos of the marks hold on a parent render.
+	const geometry = useMemo(() => {
+		const pick = (type: ComboChartSeries<T>['type']) =>
+			drawn.filter((entry) => types[entry.meta.index] === type)
 
-	// Each wash closes on the zero line of its own axis, as an AreaChart wash does.
-	// A negative bar or a domain pinned below zero lifts that line off the floor.
-	const areas = areaEntries.flatMap((entry) =>
-		buildLineSeries([entry], xs, entry.baseline, interpolation, points),
-	)
+		const barEntries = pick('bar')
+
+		const lineEntries = pick('line')
+
+		const areaEntries = pick('area')
+
+		const projection = barProjection(barEntries, chart.baseline)
+
+		return {
+			areaEntries,
+			bars: barMarks(
+				barEntries.map((entry) => entry.meta.values),
+				chart.band,
+				projection.map,
+				projection.baseline,
+			),
+			lines: buildLineSeries(lineEntries, xs, floor, interpolation, points),
+			// Each wash closes on the zero line of its own axis, as an AreaChart wash
+			// does. A negative bar or a domain pinned below zero lifts that line off
+			// the floor.
+			areas: areaEntries.flatMap((entry) =>
+				buildLineSeries([entry], xs, entry.baseline, interpolation, points),
+			),
+			barPaints: barEntries.map((entry) => entry.meta.paint),
+			// The bar series' own indices, aligned to `bars`, so the isolation keys on
+			// the series identity rather than the bar's slot among the picked bar series.
+			barIndices: barEntries.map((entry) => entry.meta.index),
+			// The bars and the area washes resolve their fill from the texture; the
+			// line series carry no fill and stay flat.
+			barFills: barEntries.map((entry) => tex.fillFor(entry.meta.slot)),
+			areaFills: areaEntries.map((entry) => tex.fillFor(entry.meta.slot)),
+		}
+	}, [drawn, types, chart.baseline, chart.band, xs, floor, interpolation, points, tex])
+
+	const { areaEntries, bars, lines, areas, barPaints, barIndices, barFills, areaFills } = geometry
 
 	// The hit test reads each wash down to the same zero line.
 	const areaBase = (order: number) => areaEntries[order]?.baseline ?? floor
-
-	const barPaints = barEntries.map((entry) => entry.meta.paint)
-
-	// The bar series' own indices, aligned to `bars`, so the isolation keys on the
-	// series identity rather than the bar's slot among the picked bar series.
-	const barIndices = barEntries.map((entry) => entry.meta.index)
-
-	// The bars and the area washes resolve their fill from the texture; the line
-	// series carry no fill and stay flat.
-	const barFills = barEntries.map((entry) => tex.fillFor(entry.meta.slot))
-
-	const areaFills = areaEntries.map((entry) => tex.fillFor(entry.meta.slot))
 
 	// Stroke the line and area dots wherever bars sit behind them; with the bars
 	// hidden the curves stand alone and the dots need no stroke.
@@ -293,7 +322,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			fullscreen={<ComboChart {...props} />}
 			marks={marks}
 			markAt={(x, y, held) => comboMarkAt({ lines, areas, areaBase, bars, barIndices }, x, y, held)}
-			bars={(index) => series[index]?.type === 'bar'}
+			bars={(index) => types[index] === 'bar'}
 			// Value labels ride the line and area series only: bars read against the axis.
 			valueLabels={{ list: [...areas, ...lines] }}
 		/>

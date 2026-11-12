@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { barProjection, type DrawnSeries } from '../engine/chart-cartesian/series'
 import { MARK_GAP } from '../engine/chart-constants'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
@@ -58,6 +59,9 @@ export type BarChartProps<T = never> = CartesianChartProps<T> & {
 	labels?: Pick<ChartValueLabelConfig, 'references'>
 }
 
+/** Every bar series takes a rect swatch. One function, so the series memo of the chart holds. @internal */
+const RECT_SWATCH = () => 'rect' as const
+
 /**
  * The stacked columns through the one scale of the stack. It is empty before that
  * scale resolves.
@@ -114,7 +118,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 	const chart = useChartCartesian(props, {
 		zeroBaseline: true,
 		categoryRule: 'zero',
-		swatch: () => 'rect',
+		swatch: RECT_SWATCH,
 		orientation,
 		stack: stacked,
 		stackPositive: true,
@@ -125,28 +129,32 @@ export function BarChart<T>(props: BarChartProps<T>) {
 	// own baseline; a series whose scale never resolved takes no marks.
 	const { drawn, tex } = chart
 
-	const seriesValues = drawn.map((entry) => entry.meta.values)
+	// The geometry keeps its identity while the drawn series and the band keep
+	// theirs, so the memos of the marks hold on a parent render.
+	const marks = useMemo(() => {
+		const seriesValues = drawn.map((entry) => entry.meta.values)
 
-	const projection = barProjection(drawn, chart.baseline)
+		const projection = barProjection(drawn, chart.baseline)
 
-	const marks = stacked
-		? stackedColumns(drawn, seriesValues, chart.band, chart.orientation, thick)
-		: barMarks(
-				seriesValues,
-				chart.band,
-				projection.map,
-				projection.baseline,
-				chart.orientation,
-				thick,
-			)
+		return stacked
+			? stackedColumns(drawn, seriesValues, chart.band, chart.orientation, thick)
+			: barMarks(
+					seriesValues,
+					chart.band,
+					projection.map,
+					projection.baseline,
+					chart.orientation,
+					thick,
+				)
+	}, [drawn, chart.baseline, stacked, chart.band, chart.orientation, thick])
 
 	// Each drawn series' own index, aligned to `marks`, so the isolation and hit
 	// test speak the series identity the emphasis keys on rather than a draw slot.
-	const indices = drawn.map((entry) => entry.meta.index)
+	const indices = useMemo(() => drawn.map((entry) => entry.meta.index), [drawn])
 
-	const paints = drawn.map((entry) => entry.meta.paint)
+	const paints = useMemo(() => drawn.map((entry) => entry.meta.paint), [drawn])
 
-	const fills = drawn.map((entry) => tex.fillFor(entry.meta.slot))
+	const fills = useMemo(() => drawn.map((entry) => tex.fillFor(entry.meta.slot)), [drawn, tex])
 
 	const marksNode = animate ? (
 		<AnimatedChartBarMarks

@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import type { DrawnSeries } from '../engine/chart-cartesian/series'
 import type { Crosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
@@ -194,6 +195,9 @@ function stackedRibbons(
 		: []
 }
 
+/** Every area series takes a line swatch. One function, so the series memo of the chart holds. @internal */
+const AREA_SWATCH = () => 'line' as const
+
 /**
  * A filled area chart on the shared cartesian frame: each series is a wash
  * under its band-edge line. The series stack into a part-to-whole ribbon set,
@@ -240,7 +244,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		// Each wash and the first ribbon of a stack stand on the zero line, so the
 		// category rule draws there too.
 		categoryRule: 'zero',
-		swatch: () => 'line',
+		swatch: AREA_SWATCH,
 		stack: stacked,
 		points,
 		// Reserve the room the point labels need past the data extremes, so a
@@ -261,26 +265,32 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 	// so its ribbons read that one scale; unstacked series each read their own.
 	const { drawn, tex } = chart
 
-	const stackedGeometry = stackedRibbons(drawn, xs, stacked)
+	// The geometry keeps its identity while the drawn series and the band keep
+	// theirs, so the memos of the marks hold on a parent render.
+	const stackedGeometry = useMemo(() => stackedRibbons(drawn, xs, stacked), [drawn, xs, stacked])
 
-	const list: ChartLineSeries[] = drawn.map((entry, order) => ({
-		index: entry.meta.index,
-		label: entry.meta.label,
-		paint: entry.meta.paint,
-		geometry: areaGeometry(entry, order, {
-			stacked,
-			stackedGeometry,
-			centers: xs,
-			interpolation,
-		}),
-		markers: points,
-		dashed: entry.meta.dashed,
-	}))
+	const list: ChartLineSeries[] = useMemo(
+		() =>
+			drawn.map((entry, order) => ({
+				index: entry.meta.index,
+				label: entry.meta.label,
+				paint: entry.meta.paint,
+				geometry: areaGeometry(entry, order, {
+					stacked,
+					stackedGeometry,
+					centers: xs,
+					interpolation,
+				}),
+				markers: points,
+				dashed: entry.meta.dashed,
+			})),
+		[drawn, stackedGeometry, xs, stacked, interpolation, points],
+	)
 
 	// Every drawn run, held for the hit test so a pointer move allocates none.
 	const seriesRuns = list.map((entry) => entry.geometry.runs)
 
-	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
+	const fills = useMemo(() => drawn.map(({ meta }) => tex.fillFor(meta.slot)), [drawn, tex])
 
 	const marks = animate ? (
 		<AnimatedChartLineMarks

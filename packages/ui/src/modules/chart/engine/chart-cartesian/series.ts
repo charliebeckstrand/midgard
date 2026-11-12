@@ -43,25 +43,6 @@ export function seriesMetas<T>(
 	})
 }
 
-/**
- * The content of the visible series that a readout reads, as one key: each
- * series' position, name, axis, swatch, field, and color. The values come from
- * the rows and the field, so the rows and this key together fix every cell.
- *
- * @internal
- */
-export function readoutSeriesKey<T>(visible: SeriesMeta[], series: ChartSeries<T>[]): string {
-	return visible
-		.map((meta) => {
-			const entry = series[meta.index]
-
-			return [meta.index, meta.label, meta.axis, meta.swatch, entry?.yKey, entry?.color].join(
-				'\u0001',
-			)
-		})
-		.join('\u0000')
-}
-
 /** One visible series resolved to the scale and baseline it draws through. @internal */
 export type DrawnSeries = {
 	meta: SeriesMeta

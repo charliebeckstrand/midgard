@@ -7,6 +7,7 @@ import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale/context'
 import { k } from '../../../recipes/kata/chart'
 import { once } from '../../../utilities/once'
+import { sameFieldElements } from '../../../utilities/same-elements'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { type ChartValueAxisId, resolveAxes } from './chart-axes/schema'
 import {
@@ -21,7 +22,6 @@ import {
 	type DrawnSeries,
 	drawnSeries,
 	orderReadout,
-	readoutSeriesKey,
 	seriesMetas,
 } from './chart-cartesian/series'
 import { resolveStackMode } from './chart-cartesian/stack'
@@ -88,7 +88,11 @@ export type CartesianData<T> = Pick<
 export type CartesianConfig<T> = {
 	/** Anchor the value domains at zero: bar-bearing charts. */
 	zeroBaseline: boolean
-	/** The legend / tooltip swatch mirroring each series' mark. */
+	/**
+	 * The legend / tooltip swatch mirroring each series' mark. Pass one function
+	 * for each chart, such as a module constant: the series memo reads it, and a
+	 * new function on each render rebuilds the series and the geometry.
+	 */
 	swatch: (series: ChartSeries<T>, index: number) => 'rect' | 'line'
 	/**
 	 * Scale the value axis to the per-category sum of the visible series rather
@@ -370,9 +374,12 @@ function useCartesianLayout(
 	horizontal: boolean,
 	drawn: boolean,
 ): { layout: CartesianLayout; hostRef: RefObject<HTMLDivElement | null> } {
-	const vertical = horizontal ? null : verticalLayout(input)
+	const vertical = useMemo(() => (horizontal ? null : verticalLayout(input)), [horizontal, input])
 
-	const labels = vertical ? vertical.bandTicks.map((tick) => tick.label) : input.categories
+	const labels = useMemo(
+		() => (vertical ? vertical.bandTicks.map((tick) => tick.label) : input.categories),
+		[vertical, input.categories],
+	)
 
 	const text = useChartTextWidth(
 		drawn ? labels : NO_LABELS,
@@ -383,16 +390,18 @@ function useCartesianLayout(
 		vertical ? bandLabelRoom(vertical.bandTicks, input.frameWidth) : GUTTER_LABEL_ROOM,
 	)
 
-	if (!vertical)
-		return { layout: horizontalLayout({ ...input, bandLabel: text }), hostRef: text.hostRef }
+	const layout = useMemo(
+		() =>
+			vertical
+				? {
+						...vertical,
+						bandTicks: vertical.bandTicks.map((tick) => ({ ...tick, label: text.fit(tick.label) })),
+					}
+				: horizontalLayout({ ...input, bandLabel: text }),
+		[vertical, input, text],
+	)
 
-	return {
-		layout: {
-			...vertical,
-			bandTicks: vertical.bandTicks.map((tick) => ({ ...tick, label: text.fit(tick.label) })),
-		},
-		hostRef: text.hostRef,
-	}
+	return { layout, hostRef: text.hostRef }
 }
 
 /**
@@ -414,11 +423,19 @@ export function useChartCartesian<T>(
 	props: CartesianData<T>,
 	config: CartesianConfig<T>,
 ): CartesianChart {
-	const { data, series, width, height, aspectRatio = '16/9' } = props
+	const { data, width, height, aspectRatio = '16/9', formatValue } = props
+
+	// A caller often passes `series` and `reference` as new list literals on each
+	// render. Each list is held while its entries keep the same fields, so the
+	// memos below that read it hold too. A real change costs one more render pass.
+	const series = useStableValue(props.series, sameFieldElements)
+
+	const reference = useStableValue(props.reference, sameFieldElements)
 
 	// The legend prop resolves to its placement / show value and the inert flag.
-	// The hook reads the value, and the legend reads the flag.
-	const resolvedLegend = resolveLegend(props.legend)
+	// The hook reads the value, and the legend reads the flag. The memo freezes
+	// the result, so the legend items memo below can hold on its value.
+	const resolvedLegend = useMemo(() => resolveLegend(props.legend), [props.legend])
 
 	const legend = resolvedLegend.value
 
@@ -495,12 +512,18 @@ export function useChartCartesian<T>(
 	// A rule keeps its hide by its key, so a `reference` list that drops a rule
 	// leaves each other rule as the reader left it.
 	const { hidden: referenceHidden, toggle: toggleReference } = useChartReferenceToggle(
-		ruleKeys(props.reference ?? []),
+		ruleKeys(reference ?? []),
 	)
 
 	const stack = config.stack ?? false
 
-	const metas = seriesMetas(data, series, config.swatch, stack)
+	// Each producer below is memoized on what it reads, so a render whose props
+	// keep their content hands the chart body and the marks the identities they
+	// already hold. The marks memos then hold, and the body runs no geometry.
+	const metas = useMemo(
+		() => seriesMetas(data, series, config.swatch, stack),
+		[data, series, config.swatch, stack],
+	)
 
 	// A hidden series keeps its place in the layout while it plays its exit. The
 	// legend and the emphasis read `hidden` at once.
@@ -512,25 +535,41 @@ export function useChartCartesian<T>(
 
 	// Toggled-off series leave the scales and readout; slot colors stay put
 	// because each meta's paint keyed off its original index.
-	const visible = metas.filter((meta) => !laid.has(meta.index))
+	const visible = useMemo(() => metas.filter((meta) => !laid.has(meta.index)), [metas, laid])
 
 	// One tile set over every visible slot, so that each filled mark of a chart
 	// resolves its fill: the bars and the area washes of a combo alike.
-	const tex = useChartTexture(
-		props.texture ?? false,
-		visible.map((meta) => meta.slot),
-	)
+	const slots = useMemo(() => visible.map((meta) => meta.slot), [visible])
 
-	const { value, value2, bandTitle, formatAxisValue } = resolveValueAxes(
-		props,
-		axes,
-		visible,
-		resolveStackMode(config),
-		data,
-		laidReferences,
-		policy.compactFormat,
-		policy.axisTitles,
-		locale,
+	const tex = useChartTexture(props.texture ?? false, slots)
+
+	const stackMode = resolveStackMode(config)
+
+	const { value, value2, bandTitle, formatAxisValue } = useMemo(
+		() =>
+			resolveValueAxes(
+				{ formatValue, reference },
+				axes,
+				visible,
+				stackMode,
+				data,
+				laidReferences,
+				policy.compactFormat,
+				policy.axisTitles,
+				locale,
+			),
+		[
+			formatValue,
+			reference,
+			axes,
+			visible,
+			stackMode,
+			data,
+			laidReferences,
+			policy.compactFormat,
+			policy.axisTitles,
+			locale,
+		],
 	)
 
 	// Walks every row to detect a date axis, then again to label it, so it is
@@ -559,29 +598,58 @@ export function useChartCartesian<T>(
 
 	const horizontal = orientation === 'horizontal'
 
-	const layoutInput: CartesianLayoutInput = {
-		frameWidth,
-		frameHeight,
-		axes: drawAxes,
-		tickTarget: policy.tickTarget,
-		zeroBaseline: config.zeroBaseline,
-		value,
-		value2,
-		categories,
-		bandTitle,
-		bandAxis: policy.bandAxis,
-		tickRotation: axes.x?.tickRotation ?? false,
-		times,
-		locale,
-		count: data.length,
-		markInset: markReach(visible, config.points, stack),
-		valueHeadroom: config.valueHeadroom?.(visible) ?? 0,
-		visibleValues: visible.map((meta) => ({
-			values: meta.values,
-			axis: meta.axis,
-			index: meta.index,
-		})),
-	}
+	// Numbers, so a new `valueHeadroom` function on each render changes no memo.
+	const markInset = markReach(visible, config.points, stack)
+
+	const valueHeadroom = config.valueHeadroom?.(visible) ?? 0
+
+	const visibleValues = useMemo(
+		() => visible.map((meta) => ({ values: meta.values, axis: meta.axis, index: meta.index })),
+		[visible],
+	)
+
+	const tickRotation = axes.x?.tickRotation ?? false
+
+	const layoutInput: CartesianLayoutInput = useMemo(
+		() => ({
+			frameWidth,
+			frameHeight,
+			axes: drawAxes,
+			tickTarget: policy.tickTarget,
+			zeroBaseline: config.zeroBaseline,
+			value,
+			value2,
+			categories,
+			bandTitle,
+			bandAxis: policy.bandAxis,
+			tickRotation,
+			times,
+			locale,
+			count: data.length,
+			markInset,
+			valueHeadroom,
+			visibleValues,
+		}),
+		[
+			frameWidth,
+			frameHeight,
+			drawAxes,
+			policy.tickTarget,
+			config.zeroBaseline,
+			value,
+			value2,
+			categories,
+			bandTitle,
+			policy.bandAxis,
+			tickRotation,
+			times,
+			locale,
+			data.length,
+			markInset,
+			valueHeadroom,
+			visibleValues,
+		],
+	)
 
 	const { layout, hostRef: textHostRef } = useCartesianLayout(
 		layoutInput,
@@ -594,65 +662,77 @@ export function useChartCartesian<T>(
 	// mount-critical render only decides whether one exists (cheap), and leaves
 	// materializing to the first consumer that needs the cells: the tooltip on
 	// hover, or the deferred table a beat after mount
-	// ({@link ChartReadoutSource}).
-	//
-	// Memoized on the content the cells read, not on the identity of the metas and
-	// formatters, which are new on each render. A new thunk on a parent render
-	// would reformat every cell of the hidden table, and the deferred table would
-	// render the frame a second time. The metas and the formatter are held while
-	// the rows, the key of the visible series, the two readout formats, and the
-	// locale stay the same, so the memo lists what it reads.
-	const readoutInput = useStableValue(
-		{
-			data,
-			key: readoutSeriesKey(visible, series),
-			yFormat: axes.y?.format ?? props.formatValue,
-			y2Format: axes.y2?.format ?? props.formatValue,
-			locale,
-			visible,
-			formatAxisValue,
-		},
-		(prev, next) =>
-			prev.data === next.data &&
-			prev.key === next.key &&
-			prev.yFormat === next.yFormat &&
-			prev.y2Format === next.y2Format &&
-			prev.locale === next.locale,
-	)
-
+	// ({@link ChartReadoutSource}). The visible series and the formatter keep
+	// their identity while their inputs do, so a parent render keeps the thunk,
+	// and the hidden table formats no cell again.
 	const readout = useMemo(
 		() =>
-			xKey && readoutInput.data.length > 0 && readoutInput.visible.length > 0
-				? once(() => chartReadout(categories, readoutInput.visible, readoutInput.formatAxisValue))
+			xKey && data.length > 0 && visible.length > 0
+				? once(() => chartReadout(categories, visible, formatAxisValue))
 				: null,
-		[readoutInput, xKey, categories],
+		[data, visible, formatAxisValue, xKey, categories],
 	)
 
 	// The tooltip lists its rows in the marks' visible order (a vertical stack
 	// reversed, else the legend's value order); the readout keeps series order for
 	// the hidden table. Empty without a readout to order.
-	const readoutOrder = readout
-		? orderReadout(visible, stack, orientation, config.legendByValue, metas)
-		: []
+	const readoutOrder = useMemo(
+		() => (readout ? orderReadout(visible, stack, orientation, config.legendByValue, metas) : []),
+		[readout, visible, stack, orientation, config.legendByValue, metas],
+	)
 
 	// Reference lines map onto their own axis's scale the way the rules do, kept
 	// aligned to the prop so the keyboard's active-rule index names the rule it
 	// draws; a rule toggled off through its chip drops its stop with its rule.
-	const referencePositions = buildReferences(
-		props.reference,
-		{
-			y: layout.valueScale,
-			y2: layout.value2Scale,
-		},
-		referenceHidden,
+	const referencePositions = useMemo(
+		() =>
+			buildReferences(reference, { y: layout.valueScale, y2: layout.value2Scale }, referenceHidden),
+		[reference, layout.valueScale, layout.value2Scale, referenceHidden],
 	)
 
 	// Reference chips resolve regardless; the frame mounts the legend (and with
 	// it these) only when `legendItems` is non-null, so they join a shown legend
 	// and never force one of their own.
 	// A chip whose rule draws nothing, as outside a pinned domain, recedes nothing.
-	const referenceItems = referenceLegendItems(props.reference, formatAxisValue).map((item) =>
-		referencePositions[item.index] == null ? { ...item, drawn: false } : item,
+	const referenceItems = useMemo(
+		() =>
+			referenceLegendItems(reference, formatAxisValue).map((item) =>
+				referencePositions[item.index] == null ? { ...item, drawn: false } : item,
+			),
+		[reference, formatAxisValue, referencePositions],
+	)
+
+	// Each visible series draws through its own axis's scale. A series whose
+	// scale never resolved takes no marks.
+	const drawn = useMemo(
+		() =>
+			drawnSeries({
+				visible,
+				yScale: layout.valueScale,
+				y2Scale: layout.value2Scale,
+				baseline: layout.baseline,
+				y2Baseline: layout.value2Baseline,
+			}),
+		[visible, layout.valueScale, layout.value2Scale, layout.baseline, layout.value2Baseline],
+	)
+
+	const legendItems = useMemo(
+		() => cartesianLegendItems(metas, legend, config.legendByValue),
+		[metas, legend, config.legendByValue],
+	)
+
+	// Read off every series' values, so a legend toggle (which drops a series
+	// from `visible`) leaves the key steady and only a real data change swaps it.
+	const dataKey = useMemo(() => seriesDataKey(metas.map((meta) => meta.values)), [metas])
+
+	const gridPositions = useMemo(
+		() => buildGrid(axes, layout, policy.grid),
+		[axes, layout, policy.grid],
+	)
+
+	const categoryGridPositions = useMemo(
+		() => buildCategoryGrid(axes, layout, data.length, policy.grid),
+		[axes, layout, data.length, policy.grid],
 	)
 
 	return {
@@ -681,24 +761,14 @@ export function useChartCartesian<T>(
 		resolvedLegend,
 		tex,
 		metas,
-		// Read off every series' values, so a legend toggle (which drops a series
-		// from `visible`) leaves the key steady and only a real data change swaps it.
-		dataKey: seriesDataKey(metas.map((meta) => meta.values)),
+		dataKey,
 		visible,
-		// Each visible series draws through its own axis's scale. A series whose
-		// scale never resolved takes no marks.
-		drawn: drawnSeries({
-			visible,
-			yScale: layout.valueScale,
-			y2Scale: layout.value2Scale,
-			baseline: layout.baseline,
-			y2Baseline: layout.value2Baseline,
-		}),
+		drawn,
 		hidden,
 		toggleSeries: toggle,
 		readout,
 		readoutOrder,
-		legendItems: cartesianLegendItems(metas, legend, config.legendByValue),
+		legendItems,
 		referenceItems,
 		referenceHidden,
 		toggleReference,
@@ -707,8 +777,8 @@ export function useChartCartesian<T>(
 		snapSeries: layout.snapSeries,
 		valueLabelRoom: layout.valueLabelRoom,
 		referencePositions,
-		gridPositions: buildGrid(axes, layout, policy.grid),
-		categoryGridPositions: buildCategoryGrid(axes, layout, data.length, policy.grid),
+		gridPositions,
+		categoryGridPositions,
 		categorySeparator: axes.x?.separator,
 		axisTitles: layout.titles,
 		formatAxisValue,

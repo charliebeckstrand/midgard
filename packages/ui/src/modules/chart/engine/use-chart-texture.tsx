@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useId } from 'react'
+import { type ReactNode, useId, useMemo } from 'react'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
 import { ChartPatternDefs } from './chart-pattern-defs'
 
@@ -24,20 +24,26 @@ export type ChartTexture = {
  * carries a `null` slot: it opts out of the categorical palette and takes no
  * tile. `fillFor` hands it back `undefined` so the mark fills flat.
  *
+ * The value keeps its identity while `active` and the `slots` list keep theirs,
+ * so a mark memo that reads `fillFor` holds.
+ *
  * @internal
  */
 export function useChartTexture(active: boolean, slots: (ChartColorSlot | null)[]): ChartTexture {
 	const base = useId()
 
-	const idFor = (slot: ChartColorSlot) => `chart-tx-${base}-${slot}`
+	return useMemo(() => {
+		const idFor = (slot: ChartColorSlot) => `chart-tx-${base}-${slot}`
 
-	const distinct = new Set(slots.filter((slot) => slot !== null))
+		const distinct = new Set(slots.filter((slot) => slot !== null))
 
-	const entries = [...distinct].map((slot) => ({ color: slot, id: idFor(slot) }))
+		const entries = [...distinct].map((slot) => ({ color: slot, id: idFor(slot) }))
 
-	return {
-		defs: <ChartPatternDefs entries={entries} />,
-		fillFor: (slot) => (slot === null ? undefined : `url(#${idFor(slot)})`),
-		active,
-	}
+		return {
+			defs: <ChartPatternDefs entries={entries} />,
+			fillFor: (slot: ChartColorSlot | null) =>
+				slot === null ? undefined : `url(#${idFor(slot)})`,
+			active,
+		}
+	}, [base, slots, active])
 }
