@@ -144,21 +144,20 @@ type ChartCursorRead =
 	| { reference: number }
 	| { index: number; series: number | null; stop: number }
 
+/** Whether a reference index names a live (finite) reference stop. @internal */
+function isReferenceStop(
+	targets: ChartFocusTargets,
+	reference: number | undefined,
+): reference is number {
+	return reference !== undefined && targets.references?.[reference] != null
+}
+
 /** The reference line a cursor parks on, or `null` off any live rule. @internal */
 function cursorRule(
 	cursor: ChartCursor | null,
 	targets: ChartFocusTargets | undefined,
 ): number | null {
-	const reference = cursor?.reference
-
-	if (reference === undefined || targets?.references?.[reference] == null) return null
-
-	return reference
-}
-
-/** Whether a reference index names a live (finite) reference stop. @internal */
-function isReferenceStop(targets: ChartFocusTargets, reference: number | undefined): boolean {
-	return reference !== undefined && targets.references?.[reference] != null
+	return cursor && targets && isReferenceStop(targets, cursor.reference) ? cursor.reference : null
 }
 
 /**
@@ -466,6 +465,14 @@ function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
 	)
 }
 
+/** What {@link useChartKeyboard} gives the frame. @internal */
+type ChartKeyboard = {
+	/** The tab stop of the plot region, or `null` when navigation is off. */
+	tabStop: PlotTabStopProps | null
+	/** The reference line that the cursor parks on, or `null` off a live rule. */
+	reference: number | null
+}
+
 /**
  * Makes the plot region a single arrow-navigable tab stop that drives the
  * shared hover context. The crosshair and tooltip therefore answer the keyboard
@@ -501,15 +508,16 @@ function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
  * pointer's readout alone. Escape drops focus to the body, then re-arms the
  * region as the next Tab's destination. Tabbing back in therefore returns to the
  * chart the reader just left, rather than stepping to the following stop.
- * Returns `null` (no tab stop) when navigation is off or the chart carries no
- * value point, leaving the region the plain `role="img"` it was.
+ * The tab stop is `null` when navigation is off or the chart carries no value
+ * point, leaving the region the plain `role="img"` it was. The reference is the
+ * rule that the cursor parks on, which recedes the marks. It reads from the
+ * cursor, so it goes with the rule or the cursor in the same render.
  *
  * @param targets - The per-category anchor points and reference stops to navigate, or `undefined` on a chart with none.
  * @param orientation - Which screen axis the value runs along, so the arrows map to the right axes and steps sort in screen order.
  * @param enabled - Whether a readout answers the cursor: the tooltip that makes navigation legible, or a click callback that Enter and Space fire.
  * @param store - The hover store. Each step moves its hover to the cursor's
  * anchor, and Escape reads it for a readout to clear.
- * @param setReference - The emphasis setter, moved to the reference line the cursor parks on, or `null` off it.
  * @param setActiveSeries - The series-emphasis setter, moved to the series the
  * cursor sits on. It is `null` off any series: a reference, a cleared cursor, or
  * a chart with no series map.
@@ -533,12 +541,11 @@ export function useChartKeyboard(
 	orientation: ChartOrientation,
 	enabled: boolean,
 	store: ChartHoverStore,
-	setReference: (reference: number | null) => void,
 	setActiveSeries: (series: number | null) => void,
 	onRead?: (index: number, series: number | null, stop: number) => void,
 	onReadReference?: (reference: number) => void,
 	onActivate?: (index: number, stop: number) => void,
-): PlotTabStopProps | null {
+): ChartKeyboard {
 	const [cursor, setCursor] = useState<ChartCursor | null>(null)
 
 	// The frame point the keyboard last wrote to the hover, or `null` for a clear.
@@ -554,8 +561,6 @@ export function useChartKeyboard(
 	// keeps this from clearing a hover the pointer owns.
 	useEffect(() => {
 		if (!active) {
-			setReference(null)
-
 			setActiveSeries(null)
 
 			if (cursor !== null) {
@@ -564,7 +569,7 @@ export function useChartKeyboard(
 				setCursor(null)
 			}
 		}
-	}, [active, cursor, store, setReference, setActiveSeries])
+	}, [active, cursor, store, setActiveSeries])
 
 	// A resize or a data change moves the stops under a parked cursor. Re-anchor
 	// the cursor, so the crosshair and the tooltip do not stay on a stale point
@@ -595,8 +600,6 @@ export function useChartKeyboard(
 		const rule = cursorRule(next, targets)
 
 		const point = next !== null && targets && rule === null ? cursorPoint(next, targets) : null
-
-		setReference(rule)
 
 		const series = next !== null && targets && point ? cursorSeries(next, targets) : null
 
@@ -688,5 +691,10 @@ export function useChartKeyboard(
 		read(applyCursor(cursor === null && isArrowKey(event.key) ? firstCursor(targets) : move.cursor))
 	}
 
-	return active ? { tabIndex: 0, onKeyDown, onBlur } : null
+	return {
+		tabStop: active ? { tabIndex: 0, onKeyDown, onBlur } : null,
+		// The rule is read from the clamped cursor, so it goes in the same render as
+		// the rule or the cursor, and no copy of it can outlive either.
+		reference: active ? cursorRule(live, targets) : null,
+	}
 }

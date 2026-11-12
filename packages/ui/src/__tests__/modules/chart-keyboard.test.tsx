@@ -778,6 +778,37 @@ describe('LineChart keyboard cursor under a pointer', () => {
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W5')
 	})
+
+	it('drops the recede of a parked rule when the rule goes', () => {
+		const rule = [{ value: 50, label: 'Target' }]
+
+		const { container, rerender } = renderUI(line({ reference: rule }))
+
+		const plot = getSlot(container, 'chart-plot')
+
+		const receded = () =>
+			getSlot(container, 'chart-marks').getAttribute('class')?.includes('opacity-25') ?? false
+
+		// Up the screen from A at 10, the rule at 50 is the next stop. The cursor
+		// parks on it, and the marks recede.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		expect(receded()).toBe(true)
+
+		// The pointer takes the readout, so the cursor does not re-anchor.
+		const hit = getSlot(container, 'chart-hit')
+
+		const { width, height } = sizeHitLayer(hit)
+
+		fireEvent.pointerEnter(hit, { clientX: width / 2, clientY: height / 2 })
+
+		// With no rule left, nothing recedes the marks.
+		rerender(line({ reference: [] }))
+
+		expect(receded()).toBe(false)
+	})
 })
 
 const WEEKS = [
