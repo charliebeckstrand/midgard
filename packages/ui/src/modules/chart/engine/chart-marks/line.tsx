@@ -400,8 +400,10 @@ export function AnimatedChartLineMarks({
 			)}
 
 			{/* Each series is its own presence, so a hidden one plays its exit while the
-			    rest stay. `propagate` passes the exit of a data change through. */}
-			<AnimatePresence propagate>
+			    rest stay. `propagate` passes the exit of a data change through. No
+			    mark animates its layout, so the presence keeps one context value, and
+			    a memoized series does not render again with it. */}
+			<AnimatePresence propagate presenceAffectsLayout={false}>
 				{lineSeriesGroups(
 					list,
 					lit,

@@ -210,9 +210,11 @@ export function AnimatedScatterChartMarks({ list, hidden }: ScatterChartMarksPro
 	const still = usePrefersReducedMotion()
 
 	// Each series is its own presence, so a hidden one plays its exit while the
-	// rest stay. `propagate` passes the exit of the marks generation through.
+	// rest stay. `propagate` passes the exit of the marks generation through. No
+	// disc animates its layout, so the presence keeps one context value, and a
+	// memoized disc does not render again with it.
 	return (
-		<AnimatePresence propagate>
+		<AnimatePresence propagate presenceAffectsLayout={false}>
 			{list.map(({ index, label, paint, marks, sized }) =>
 				hidden?.has(index) ? null : (
 					<g key={index} data-slot="chart-scatter-series">

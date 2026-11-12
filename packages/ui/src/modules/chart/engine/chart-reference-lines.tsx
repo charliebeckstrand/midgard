@@ -428,10 +428,15 @@ function ReferenceRule(props: ReferenceRuleProps) {
 
 /**
  * The presence of the rules on an animated chart, so a rule toggled off plays
- * its exit. A static chart removes the rule at once. @internal
+ * its exit. A static chart removes the rule at once. No rule animates its
+ * layout, so the presence keeps one context value through a render. @internal
  */
 function RulePresence({ animate, children }: { animate: boolean; children: ReactNode }) {
-	return animate ? <AnimatePresence>{children}</AnimatePresence> : children
+	return animate ? (
+		<AnimatePresence presenceAffectsLayout={false}>{children}</AnimatePresence>
+	) : (
+		children
+	)
 }
 
 /**
