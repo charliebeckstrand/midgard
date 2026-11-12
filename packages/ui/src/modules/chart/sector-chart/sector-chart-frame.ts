@@ -89,9 +89,10 @@ type SectorFrame = {
 
 /**
  * Folds a stacked legend into the pie's aspect box. A live ratio with a top /
- * bottom legend hands the ratio to the figure wrapper and measures the pie's
- * remaining height. A pie and its legend band thus fill a fixed-aspect box
- * together. A side legend instead keeps the ratio on the pie box and bands
+ * bottom legend, or with no legend, hands the ratio to the figure wrapper and
+ * measures the pie's remaining height. A pie and its legend band thus fill a
+ * fixed-aspect box together, and a definite-height parent clamps the box, as it
+ * clamps a cartesian chart. A side legend instead keeps the ratio on the pie box and bands
  * beside it at its own width. The pie then never squeezes to fit the panel. The
  * `content` fit (the default) and a `fixed` height band the legend beside the
  * plot as before, reserving nothing extra.
@@ -107,9 +108,10 @@ export function sectorFrame(
 
 	const aside = legendAside(legend)
 
-	// Only a stacked legend shares the pie's aspect box; a side legend leaves the
-	// ratio on the pie box and bands beside it, the same as a legend-free pie.
-	const shareAspect = sizing.mode === 'aspect' && hasLegend && !aside
+	// The box is law: a definite-height parent clamps the pie, with a stacked
+	// legend or with none, as it clamps a cartesian chart. Only a side legend
+	// leaves the ratio on the pie box and bands beside it.
+	const shareAspect = sizing.mode === 'aspect' && !aside
 
 	const frameSizing: FrameSizing = shareAspect
 		? { mode: 'aspect-fill', ratio: sizing.ratio }
