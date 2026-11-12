@@ -146,6 +146,7 @@ export default defineConfig({
 			enabled: true,
 			provider: playwright({
 				launchOptions: {
+					...(process.env.BENCH_CHANNEL ? { channel: process.env.BENCH_CHANNEL } : {}),
 					args: [
 						'--disable-frame-rate-limit',
 						'--disable-gpu-vsync',

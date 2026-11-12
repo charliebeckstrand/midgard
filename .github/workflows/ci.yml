@@ -246,9 +246,9 @@ jobs:
         working-directory: packages/ui
         run: |
           for i in 1 2 3 4 5 6; do
-            if [ $((i % 2)) = 0 ]; then mode=--no-isolate; else mode=--isolate; fi
-            pnpm bench:browser:smoke $mode > "$RUNNER_TEMP/repeat-$i.log" 2>&1 || true
-            echo "repeat $i $mode: $(grep -c 'Browser connection was closed' "$RUNNER_TEMP/repeat-$i.log") connection losses, $(grep 'Test Files' "$RUNNER_TEMP/repeat-$i.log")"
+            if [ $((i % 2)) = 0 ]; then mode=chromium; else mode=; fi
+            BENCH_CHANNEL=$mode pnpm bench:browser:smoke > "$RUNNER_TEMP/repeat-$i.log" 2>&1 || true
+            echo "repeat $i channel=${mode:-headless-shell}: $(grep -c 'Browser connection was closed' "$RUNNER_TEMP/repeat-$i.log") connection losses, $(grep 'Test Files' "$RUNNER_TEMP/repeat-$i.log")"
           done
           echo "ip monitor:"; cat "$RUNNER_TEMP/ip-monitor.log" || true
       - name: Prune the Turbo cache to this run's tasks
