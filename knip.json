@@ -1,13 +1,15 @@
 {
 	"$schema": "https://unpkg.com/knip@6/schema.json",
-	"ignoreUnresolved": ["next"],
 	"ignoreExportsUsedInFile": true,
 	"workspaces": {
 		".": {
 			"entry": ["postcss.config.mjs"]
 		},
 		"apps/*": {
-			"ignoreDependencies": ["@tailwindcss/postcss"]
+			"ignoreDependencies": ["@tailwindcss/postcss"],
+			"ignoreIssues": {
+				"**/components/*/index.ts": ["types"]
+			}
 		},
 		"packages/*": {
 			"entry": ["src/**/index.ts"]
