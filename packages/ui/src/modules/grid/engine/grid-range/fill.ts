@@ -4,20 +4,32 @@
  * step, and each other line repeats.
  */
 
+import { clamp } from '../../../../utilities/clamp'
 import type { GridRowDistance, GridRowStep } from './range'
 
 /** The direction of a fill, from the source cells to the cells that it writes. @internal */
 export type GridFillDirection = 'down' | 'right' | 'up' | 'left'
 
 /**
- * The significant digits that a series value keeps, so `0.1 + 0.2` gives `0.3`.
- * A whole number keeps all its digits, because a safe integer can have 16.
+ * The decimal places of a number as it prints, such as 1 for `0.5` and 8 for
+ * `1.5e-7`, at most 100 (the limit of `toFixed`).
  */
-const SERIES_PRECISION = 15
+function decimalPlaces(value: number): number {
+	const [mantissa = '', exponent = '0'] = String(value).split('e')
 
-/** The value of a series at `next`, with the error of a fraction taken off. */
-function seriesValue(next: number): number {
-	return Number.isInteger(next) ? next : Number(next.toPrecision(SERIES_PRECISION))
+	const fraction = mantissa.split('.')[1]?.length ?? 0
+
+	return clamp(fraction - Number(exponent), 0, 100)
+}
+
+/**
+ * The value of a series at `next`, rounded to `places`, the most decimal
+ * places of a source value. Each value of a series has no more places than its
+ * source, so the round takes off only the float error (`0.1 + 0.2` gives `0.3`)
+ * and never a digit of the value, whatever its size. `+ 0` turns `-0` into `0`.
+ */
+function seriesValue(next: number, places: number): number {
+	return places === 0 ? next : Number(next.toFixed(places)) + 0
 }
 
 /** The step of a line of numbers, or `null` when the line is not a series. */
@@ -51,11 +63,15 @@ export function fillLine(line: readonly unknown[], count: number): unknown[] {
 
 	const step = seriesStep(line)
 
-	const last = line.at(-1) as number
+	if (step === null) return Array.from({ length: count }, (_, index) => line[index % line.length])
 
-	return Array.from({ length: count }, (_, index) =>
-		step === null ? line[index % line.length] : seriesValue(last + step * (index + 1)),
-	)
+	const numbers = line as readonly number[]
+
+	const last = numbers.at(-1) as number
+
+	const places = Math.max(...numbers.map(decimalPlaces))
+
+	return Array.from({ length: count }, (_, index) => seriesValue(last + step * (index + 1), places))
 }
 
 /** One cell that a fill writes: a data row index, a data column index, and its value. @internal */

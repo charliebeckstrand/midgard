@@ -315,12 +315,24 @@ describe('fillLine', () => {
 		expect(fillLine([0.1, 0.2], 1)).toEqual([0.3])
 	})
 
-	// A safe integer has up to 16 digits, one more than the precision that
-	// takes off the error of a fraction.
-	it('continues a series of whole numbers of 16 digits exactly', () => {
+	// A series value keeps the decimal places of its source values, whatever its
+	// size. A safe integer has up to 16 digits.
+	it('continues a series of 16 digits exactly', () => {
 		expect(fillLine([1_000_000_000_000_001, 1_000_000_000_000_002], 3)).toEqual([
 			1_000_000_000_000_003, 1_000_000_000_000_004, 1_000_000_000_000_005,
 		])
+
+		expect(fillLine([1_000_000_000_000_000.5, 1_000_000_000_000_001], 3)).toEqual([
+			1_000_000_000_000_001.5, 1_000_000_000_000_002, 1_000_000_000_000_002.5,
+		])
+	})
+
+	it('takes off the error of a fraction across zero', () => {
+		expect(fillLine([-0.3, -0.2], 4)).toEqual([-0.1, 0, 0.1, 0.2])
+
+		expect(fillLine([0.7, 0.8], 3)).toEqual([0.9, 1, 1.1])
+
+		expect(fillLine([1.5e-7, 2.5e-7], 2)).toEqual([3.5e-7, 4.5e-7])
 	})
 
 	it('repeats every other line', () => {
