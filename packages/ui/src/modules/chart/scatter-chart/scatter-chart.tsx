@@ -1,5 +1,7 @@
 'use client'
 
+import { useMemo } from 'react'
+import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale/context'
 import type { AccessibleName } from '../../../types/accessible-name'
 import { resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
@@ -115,6 +117,30 @@ export type ScatterChartProps<T = never> = AccessibleName &
 		 */
 		onPointClick?: (at: { series: number; datum: number }) => void
 	}
+
+/** Whether two scatter series read the same fields and draw the same discs. @internal */
+function sameScatterSeries<T>(
+	a: ScatterChartSeries<T>,
+	b: ScatterChartSeries<T> | undefined,
+): boolean {
+	return (
+		a === b ||
+		(b !== undefined &&
+			a.xKey === b.xKey &&
+			a.yKey === b.yKey &&
+			a.yName === b.yName &&
+			a.color === b.color &&
+			a.sizeKey === b.sizeKey &&
+			a.sizeName === b.sizeName &&
+			a.size === b.size &&
+			a.maxSize === b.maxSize)
+	)
+}
+
+/** Whether two series lists hold the same series, in order. @internal */
+function sameScatterSeriesList<T>(a: ScatterChartSeries<T>[], b: ScatterChartSeries<T>[]): boolean {
+	return a.length === b.length && a.every((entry, index) => sameScatterSeries(entry, b[index]))
+}
 
 /**
  * The held disc, as its place in the drawn `marks`, so that the hit test can
@@ -245,7 +271,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	// The one place the `axes` prop's boolean-or-object union is read: the draw
 	// switch and each axis's domain, formatter, title, and grid participation.
-	const { draw, config: axesConfig } = resolveAxes(axes)
+	const { draw, config: axesConfig } = useMemo(() => resolveAxes(axes), [axes])
 
 	// A live ratio carries on the figure wrapper, so a definite-height parent
 	// clamps the whole chart, and the plot measures the height a stacked legend
@@ -302,75 +328,113 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		onHiddenChange,
 	)
 
-	const metas = scatterMetas(data, series)
+	// A series literal is new on each render of the caller, so the chart holds the
+	// series by content, as the heatmap does, and the memos below hold with it.
+	const heldSeries = useStableValue(series, sameScatterSeriesList)
+
+	const metas = useMemo(() => scatterMetas(data, heldSeries), [data, heldSeries])
 
 	// A hidden series keeps its place in the scales while its discs pop out. The
 	// legend and the emphasis read `hidden` at once.
 	const laid = useLaidOutHidden(hidden, animate, POINT_UNPOP.duration)
 
-	const visible = metas.filter((meta) => !laid.has(meta.index))
+	const visible = useMemo(() => metas.filter((meta) => !laid.has(meta.index)), [metas, laid])
 
-	const { plot, xScale, yScale, xTicks, yTicks, titles } = scatterScales({
-		visible,
-		frameWidth,
-		frameHeight,
-		axes: draw,
-		spark,
-		tickTarget: policy.tickTarget,
-		pins: {
-			min: axesConfig.y?.min,
-			max: axesConfig.y?.max,
-			xMin: axesConfig.x?.min,
-			xMax: axesConfig.x?.max,
-		},
-		format: tickFormat,
-		formatX: tickFormatX,
-		// Titles resolve only when the tier affords a title band, the same gate the
-		// cartesian value titles pass through.
-		xTitle: policy.axisTitles ? axesConfig.x?.title : undefined,
-		yTitle: policy.axisTitles ? axesConfig.y?.title : undefined,
-	})
+	const yMin = axesConfig.y?.min
+	const yMax = axesConfig.y?.max
+	const xMin = axesConfig.x?.min
+	const xMax = axesConfig.x?.max
+	// Titles resolve only when the tier affords a title band, the same gate the
+	// cartesian value titles pass through.
+	const xTitle = policy.axisTitles ? axesConfig.x?.title : undefined
+	const yTitle = policy.axisTitles ? axesConfig.y?.title : undefined
+	const tickTarget = policy.tickTarget
+
+	const { plot, xScale, yScale, xTicks, yTicks, titles } = useMemo(
+		() =>
+			scatterScales({
+				visible,
+				frameWidth,
+				frameHeight,
+				axes: draw,
+				spark,
+				tickTarget,
+				pins: { min: yMin, max: yMax, xMin, xMax },
+				format: tickFormat,
+				formatX: tickFormatX,
+				xTitle,
+				yTitle,
+			}),
+		[
+			visible,
+			frameWidth,
+			frameHeight,
+			draw,
+			spark,
+			tickTarget,
+			yMin,
+			yMax,
+			xMin,
+			xMax,
+			tickFormat,
+			tickFormatX,
+			xTitle,
+			yTitle,
+		],
+	)
 
 	// The sorted unique x values are the scatter's categories: the hover index,
 	// snap columns, keyboard cursor, and readout all key on them. A point that
 	// draws no disc keeps its column, so the readout still reads it. Its column
 	// holds no snap stop, so the keyboard steps over it.
-	const uniqueXs = uniqueXValues(visible.map((meta) => meta.points))
+	const uniqueXs = useMemo(() => uniqueXValues(visible.map((meta) => meta.points)), [visible])
 
-	const scaled = xScale !== null && yScale !== null
-
-	const bandPositions = scaled ? uniqueXs.map((x) => xScale.map(x)) : []
+	const bandPositions = useMemo(
+		() => (xScale !== null && yScale !== null ? uniqueXs.map((x) => xScale.map(x)) : []),
+		[uniqueXs, xScale, yScale],
+	)
 
 	// The snap stops kept whole (position and point identity together), so the
 	// crosshair reads the positions while the isolation names the disc behind
 	// the stop the tooltip anchors.
-	const snapStops = scaled
-		? scatterSnapStops(
-				visible.map((meta) => meta.drawn),
-				uniqueXs,
-				yScale.map,
-			)
-		: []
+	const snapStops = useMemo(
+		() =>
+			xScale !== null && yScale !== null
+				? scatterSnapStops(
+						visible.map((meta) => meta.drawn),
+						uniqueXs,
+						yScale.map,
+					)
+				: [],
+		[visible, uniqueXs, xScale, yScale],
+	)
 
-	const snapColumns = scatterSnapColumns(snapStops)
+	const snapColumns = useMemo(() => scatterSnapColumns(snapStops), [snapStops])
 
-	const list: ChartScatterSeries[] = scaled
-		? visible.map((meta) => ({
-				index: meta.index,
-				label: meta.label,
-				paint: meta.paint,
-				marks: scatterMarks(meta.drawn, xScale.map, yScale.map, meta.radius),
-				sized: meta.sized,
-			}))
-		: []
+	const list: ChartScatterSeries[] = useMemo(
+		() =>
+			xScale !== null && yScale !== null
+				? visible.map((meta) => ({
+						index: meta.index,
+						label: meta.label,
+						paint: meta.paint,
+						marks: scatterMarks(meta.drawn, xScale.map, yScale.map, meta.radius),
+						sized: meta.sized,
+					}))
+				: [],
+		[visible, xScale, yScale],
+	)
 
 	const allMarks = list.map((entry) => entry.marks)
 
-	const indices = list.map((entry) => entry.index)
+	const indices = useMemo(() => list.map((entry) => entry.index), [list])
 
 	// The series behind each keyboard stop, so the cursor recedes the other
 	// series, as a cartesian cursor does. One visible series has none to recede.
-	const stopSeries = indices.length > 1 ? scatterSnapSeries(snapStops, indices) : undefined
+	const stopSeries = useMemo(
+		() => (indices.length > 1 ? scatterSnapSeries(snapStops, indices) : undefined),
+		[snapStops, indices],
+	)
 
 	// A point named by its series and its place in the drawn points, reported by
 	// its row in `data`.
@@ -391,15 +455,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			if (hit) reportPoint({ series: indices[hit.series] ?? hit.series, datum: hit.datum })
 		})
 
-	const readout = useScatterChartReadout(
-		data,
-		series,
-		visible,
-		uniqueXs,
-		format,
-		formatX,
-		formatSize,
-	)
+	const readout = useScatterChartReadout(visible, uniqueXs, format, formatX, formatSize)
 
 	// A keyboard stop speaks its one point: the x, the series, and the value with
 	// its size. The readout joins the points that share an x, so it cannot tell
