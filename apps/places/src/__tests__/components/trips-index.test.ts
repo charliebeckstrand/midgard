@@ -8,8 +8,9 @@ import { place, trip } from '../fixtures'
 afterEach(cleanup)
 
 // jsdom has no layout, so each box measures 0 and the grid, which virtualizes
-// its rows, renders none. Each box measures 800 × 600 here.
-const sizes = ['offsetWidth', 'offsetHeight'] as const
+// its rows, renders none. Each box measures 800 × 600 here. The virtualizer
+// reads the client size of the scroller.
+const sizes = ['clientWidth', 'clientHeight'] as const
 
 const layout = sizes.map(
 	(key) => [key, Object.getOwnPropertyDescriptor(HTMLElement.prototype, key)] as const,
@@ -19,14 +20,17 @@ beforeEach(() => {
 	for (const key of sizes) {
 		Object.defineProperty(HTMLElement.prototype, key, {
 			configurable: true,
-			get: () => (key === 'offsetWidth' ? 800 : 600),
+			get: () => (key.endsWith('Width') ? 800 : 600),
 		})
 	}
 })
 
+// jsdom declares the client size on `Element.prototype`, so `HTMLElement`
+// has no own descriptor to put back, and the mock is removed.
 afterEach(() => {
 	for (const [key, descriptor] of layout) {
 		if (descriptor !== undefined) Object.defineProperty(HTMLElement.prototype, key, descriptor)
+		else Reflect.deleteProperty(HTMLElement.prototype, key)
 	}
 })
 
