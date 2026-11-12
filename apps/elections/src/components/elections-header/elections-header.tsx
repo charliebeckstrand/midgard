@@ -59,7 +59,7 @@ export function ElectionsHeader({ crumbs, search }: ElectionsHeaderProps) {
 		<StackedLayoutHeader className="border-b border-zinc-950/10 dark:border-white/10">
 			<Container size="lg" padding="lg">
 				<Flex justify="between" align="center" gap="md" className="h-16">
-					{/* `min-w-0` lets the trail give way, and `flex-1` gives it the room that its fit measures. */}
+					{/* `min-w-0` lets the trail give way, and `flex-1` gives it the room of its fit. */}
 					<div className="min-w-0 flex-1">
 						<Breadcrumb collapse>
 							<BreadcrumbList className="text-lg/7 sm:text-xl/8">

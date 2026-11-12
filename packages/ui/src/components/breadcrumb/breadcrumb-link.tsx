@@ -19,8 +19,8 @@ export type BreadcrumbLinkProps = {
  * renders in React Server Components.
  * `href` renders a plain anchor; pass `render` (e.g. `render={<Link />}`) to
  * compose the app router link at the call site. Breadcrumb supplies its own
- * `k.link` styling. In a collapsing `Breadcrumb`, the crumb shows its label or
- * a `…` mark in its place, as the fit of the trail says.
+ * `k.link` styling. In a collapsing `Breadcrumb`, a crumb that gives way shows
+ * a `…` mark at the start of the row.
  */
 export function BreadcrumbLink({
 	current = false,
@@ -43,10 +43,9 @@ export function BreadcrumbLink({
 			// only while the crumb is not current.
 			aria-current={current ? 'page' : ariaCurrent}
 		>
-			{/* The label and the mark carry no padding, so the fit of a collapsing trail
-			    reads their widths as they are. The label stays in the tree when its crumb
-			    collapses, so the crumb still announces where it goes; the mark is drawn
-			    from CSS and says nothing. Outside a collapsing trail the mark is not
+			{/* In a collapsing trail, the label stays in the tree when its crumb gives
+			    way, so the crumb still announces where it goes. The mark is drawn from
+			    CSS and says nothing. Outside a collapsing trail the mark is not
 			    displayed and the label is a plain span. */}
 			<span data-slot="breadcrumb-label" className={k().label}>
 				{children}

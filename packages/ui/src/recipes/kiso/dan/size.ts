@@ -234,6 +234,11 @@ export const size = {
 		base: 'density-size-[2.5,3,3.5,4,4.5]',
 		/** The separator glyph of a breadcrumb: the size of small text. The separator can be any `svg`. */
 		svg: '[&>svg]:density-size-[2.5,3,3.5,4,4.5]',
+		/**
+		 * The room of a separator in a collapsing breadcrumb: the size of `svg` as
+		 * `--ui-breadcrumb-separator`. The fit of the trail reads it.
+		 */
+		room: 'in-data-collapse:density-set-[2.5,3,3.5,4,4.5]/[--ui-breadcrumb-separator]',
 	},
 	resize: {
 		/** The width of a grid column resize handle. */

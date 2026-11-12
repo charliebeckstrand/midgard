@@ -33,11 +33,11 @@ export type PlaceTrailProps = {
  * that owns the screen, and a wrapped one grows the header downward. It takes the
  * thing it describes to say where the reader is, and moves every control beside
  * it in the process. The fit is the one of a collapsing `Breadcrumb`: the steps
- * above the title give way whole to a mark, leftmost first, and the title clips
- * last.
+ * above the title give way whole, leftmost first, to one `…` mark, and the title
+ * clips last.
  *
- * Give the trail a box that holds the row's full width (`flex-1`), because the
- * fit measures that box. Anything that sits on the line after the trail goes in
+ * Give the trail a box that holds the row's full width (`flex-1`), because that
+ * box is the room of the fit. Anything that sits on the line after the trail goes in
  * as `children`, inside the same row.
  */
 export function PlaceTrail({ steps, className, children }: PlaceTrailProps) {
