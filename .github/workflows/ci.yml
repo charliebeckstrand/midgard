@@ -233,6 +233,8 @@ jobs:
       - if: matrix.task == 'bench:browser:smoke'
         uses: ./.github/actions/playwright
       - run: pnpm turbo run ${{ matrix.task }} --filter=ui --summarize -- ${{ matrix.args }}
+        env:
+          DEBUG: ${{ matrix.task == 'bench:browser:smoke' && 'vitest:browser:*,pw:browser*' || '' }}
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
