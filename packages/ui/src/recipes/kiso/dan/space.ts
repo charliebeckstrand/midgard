@@ -161,19 +161,30 @@ export const space = {
 		 * child of the form while a title comes before the form. Thus the body must
 		 * also have no ancestor in the panel that is not a first child. Without this
 		 * condition, the inset adds to the slot gap under the title.
+		 *
+		 * The body (`&`) is the subject of the selector in `:not()`. Thus, when the
+		 * `:first-child` state of an element changes, Chromium restyles only each body
+		 * in that element. The `not-in-*` variant puts `*` there, and then Chromium
+		 * restyles all of the descendants of that element, on each page that ships
+		 * this rule.
 		 */
 		first: {
-			drawer: 'first:not-in-[[data-slot=drawer]_:not(:first-child)]:density-mt-[4,5,6,7,8]',
-			sheet: 'first:not-in-[[data-slot=sheet]_:not(:first-child)]:density-mt-[4,5,6,7,8]',
+			drawer:
+				'[&:first-child:not(:where([data-slot=drawer]_:not(:first-child)_&))]:density-mt-[4,5,6,7,8]',
+			sheet:
+				'[&:first-child:not(:where([data-slot=sheet]_:not(:first-child)_&))]:density-mt-[4,5,6,7,8]',
 		},
 		/**
 		 * The inset of a body that is the last slot, a margin for the reason that `first`
 		 * gives. The body must have no ancestor in the panel that is not a last child,
-		 * for the reason that `first` gives.
+		 * for the reason that `first` gives. The body is the subject of the selector
+		 * in `:not()`, for the reason that `first` gives.
 		 */
 		last: {
-			drawer: 'last:not-in-[[data-slot=drawer]_:not(:last-child)]:density-mb-[4,5,6,7,8]',
-			sheet: 'last:not-in-[[data-slot=sheet]_:not(:last-child)]:density-mb-[4,5,6,7,8]',
+			drawer:
+				'[&:last-child:not(:where([data-slot=drawer]_:not(:last-child)_&))]:density-mb-[4,5,6,7,8]',
+			sheet:
+				'[&:last-child:not(:where([data-slot=sheet]_:not(:last-child)_&))]:density-mb-[4,5,6,7,8]',
 		},
 		/**
 		 * The bottom padding of a panel that can sit on the bottom edge.
