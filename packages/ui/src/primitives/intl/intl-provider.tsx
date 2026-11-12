@@ -39,7 +39,8 @@ export type IntlProviderProps = {
  * A translation that a loader gives loads when the provider first shows its
  * language, and the provider suspends until it loads. Thus the server render
  * waits for the translation, and the hydration render keeps the HTML of the
- * server until it loads. No text shows in English first.
+ * server until it loads. No text shows in English first. A translation that
+ * fails to load shows the English defaults, so the page does not break.
  *
  * @internal
  */

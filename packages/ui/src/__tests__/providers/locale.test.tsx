@@ -511,6 +511,29 @@ describe('LocaleProvider catalog loads', () => {
 		expect(onRecoverableError).not.toHaveBeenCalled()
 	})
 
+	it('shows the English defaults when the translation fails to load', async () => {
+		const error = new Error('chunk not found')
+
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const loader = vi.fn(() => Promise.reject(error))
+
+		await act(async () => {
+			renderUI(
+				<LocaleProvider locale="es-ES" catalogs={{ es: loader }}>
+					<AppText />
+					<EmptyListbox />
+				</LocaleProvider>,
+			)
+		})
+
+		expect(greeting()).toHaveTextContent('Hello')
+
+		expect(fruit()).toHaveTextContent('Seleccionar')
+
+		expect(consoleError).toHaveBeenCalledWith(error)
+	})
+
 	it('keeps the old language until the translation of a new choice loads', async () => {
 		const { loader, resolve } = heldLoader({ 'test.greeting': 'Hola' })
 

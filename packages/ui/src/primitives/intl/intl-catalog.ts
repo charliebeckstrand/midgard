@@ -35,7 +35,7 @@ export const uiChain: CatalogChain = [uiCatalogs]
 const chains = new WeakMap<CatalogChain, WeakMap<IntlCatalogs, CatalogChain>>()
 
 // The messages of each loader that loaded, and the load of each loader that
-// started. A load that fails leaves the cache, so a later render tries again.
+// started. A load that fails leaves the cache (`load`).
 const loaded = new WeakMap<IntlCatalogLoader, IntlMessages>()
 
 const loads = new WeakMap<IntlCatalogLoader, Promise<IntlMessages>>()
@@ -43,8 +43,7 @@ const loads = new WeakMap<IntlCatalogLoader, Promise<IntlMessages>>()
 // The messages of each chain in each language, or their load when a loader of
 // the chain had not loaded. A chain keeps its load after it settles, so each
 // render of a provider reads `use` in the same way, and `use` reads a load that
-// it saw settle with no suspend. A load that fails leaves the cache, so a later
-// render tries again.
+// it saw settle with no suspend.
 const messagesByChain = new WeakMap<
 	CatalogChain,
 	Map<string, IntlMessages | Promise<IntlMessages>>
@@ -84,7 +83,11 @@ function isLoader(source: IntlMessages | IntlCatalogLoader): source is IntlCatal
 }
 
 // The load of the messages of `loader`. Each call with the same loader gives
-// the same promise until the load fails.
+// the same promise until the load fails. A load that fails, such as the load of
+// a chunk that a deploy removed, gives no messages, so the language shows the
+// English defaults and the page does not break. The chain that saw the failure
+// keeps that result, so its provider does not load again at each render. A
+// provider with a new chain, or the next page load, tries again.
 function load(loader: IntlCatalogLoader): Promise<IntlMessages> {
 	return getOrCompute(loads, loader, () =>
 		loader().then(
@@ -96,7 +99,9 @@ function load(loader: IntlCatalogLoader): Promise<IntlMessages> {
 			(error: unknown) => {
 				loads.delete(loader)
 
-				throw error
+				if (process.env.NODE_ENV !== 'production') console.error(error)
+
+				return NO_MESSAGES
 			},
 		),
 	)
@@ -145,21 +150,15 @@ export function chainMessages(
 		return merged
 	}
 
-	const messagesLoad = Promise.all(waiting.map(load)).then(
-		() => mergeSources(sources),
-		(error: unknown) => {
-			byLanguage.delete(language)
-
-			throw error
-		},
-	)
+	const messagesLoad = Promise.all(waiting.map(load)).then(() => mergeSources(sources))
 
 	byLanguage.set(language, messagesLoad)
 
 	return messagesLoad
 }
 
-// The messages of each source, merged in order. A loader has loaded.
+// The messages of each source, merged in order. A loader that failed gives no
+// messages.
 function mergeSources(sources: readonly (IntlMessages | IntlCatalogLoader)[]): IntlMessages {
 	const messages = sources.map((source) =>
 		isLoader(source) ? (loaded.get(source) ?? NO_MESSAGES) : source,
