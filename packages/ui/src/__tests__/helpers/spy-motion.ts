@@ -4,7 +4,9 @@ type Motion = typeof import('motion/react-m')
 
 /**
  * Wraps each element of `motion/react-m`, so that a suite can read the props
- * that each element takes. `create` stays as it is.
+ * that each element takes. An element has the name of its tag, which starts
+ * with a lowercase letter. The other exports stay as they are: `create`, and
+ * since Motion 14.11 the `Reorder` namespace.
  *
  * A suite mocks `motion/react-m` with this function, and records what it needs
  * in `onProps`. The mock is per file, so the suite sits in `boundary/`. The
@@ -29,14 +31,14 @@ export function spyMotion(
 ): Motion {
 	// One wrapper for each tag, so each element keeps its component identity.
 	return Object.fromEntries(
-		(Object.entries(actual) as [string, ElementType][]).map(([tag, real]) => [
-			tag,
-			tag === 'create'
+		Object.entries(actual).map(([name, real]) => [
+			name,
+			name === 'create' || !/^[a-z]/.test(name)
 				? real
 				: (props: Record<string, unknown>) => {
-						onProps(props, tag)
+						onProps(props, name)
 
-						return createElement(real, props)
+						return createElement(real as ElementType, props)
 					},
 		]),
 	) as Motion
