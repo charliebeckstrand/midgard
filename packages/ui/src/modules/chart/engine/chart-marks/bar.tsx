@@ -263,7 +263,9 @@ const AnimatedBar = memo(function AnimatedBar({
  *
  * The layer is a memo and reads no emphasis: each {@link AnimatedBar} reads
  * it. A render of the chart body that keeps the marks therefore renders no
- * bar and no presence.
+ * bar and no presence. Each series is its own presence
+ * ({@link AnimatedBarSeries}), so a legend toggle renders the presences of the
+ * toggled series only.
  *
  * @internal
  */
@@ -278,42 +280,89 @@ export const AnimatedChartBarMarks = memo(function AnimatedChartBarMarks({
 }: ChartBarMarksProps) {
 	const still = usePrefersReducedMotion()
 
-	// Each bar is its own presence, so a hidden series plays its exit while the
-	// rest stay. `propagate` passes the exit of a data change through. No bar
-	// animates its layout, so the presence keeps one context value, and a
-	// memoized bar does not render again with it.
+	// Each series is its own presence, so a hidden series plays its exit while
+	// the rest stay, and a toggle renders the presence of that series only.
+	// `propagate` passes the exit of a data change, or of a hidden series, on to
+	// each bar. Keyed on the series, not the draw slot: a legend toggle then
+	// leaves each shown series on its own nodes, so no other series replays the
+	// grow.
 	return (
 		<AnimatePresence propagate presenceAffectsLayout={false}>
-			{marks.flatMap((row, seriesIndex) => {
-				const paint = paints[seriesIndex]
-
+			{marks.map((row, seriesIndex) => {
 				const series = indices[seriesIndex] ?? seriesIndex
 
-				if (hidden?.has(series)) return []
+				if (hidden?.has(series)) return null
 
-				// Keyed on the series, not the draw slot: a legend toggle then leaves each
-				// shown series on its own nodes, so no other series replays the grow.
-				return rangeKeys(row.length, `bar-${series}`).map((key, index) => {
-					const mark = row[index]
+				return (
+					<AnimatedBarSeries
+						key={`bar-${series}`}
+						row={row}
+						series={series}
+						paint={paints[seriesIndex]}
+						tile={fills?.[seriesIndex]}
+						textureActive={textureActive}
+						orientation={orientation}
+						still={still}
+					/>
+				)
+			})}
+		</AnimatePresence>
+	)
+})
 
-					if (!mark) return null
+/** Props for {@link AnimatedBarSeries}: one series of bars, in values that the layer holds steady. @internal */
+type AnimatedBarSeriesProps = {
+	/** The marks of the series; `null` entries are omitted bars. */
+	row: (BarMark | null)[]
+	/** The own index of the series (`meta.index`). */
+	series: number
+	paint: ChartPaint | undefined
+	/** The texture tile fill URL, if any. */
+	tile: string | undefined
+	textureActive: boolean
+	orientation: ChartOrientation
+	still: boolean
+}
 
-					return (
-						<AnimatedBar
-							key={key}
-							series={series}
-							datum={index}
-							paint={paint}
-							textureActive={textureActive}
-							d={mark.d}
-							positive={mark.positive}
-							orientation={orientation}
-							delay={barGrowDelay(index, row.length)}
-							tile={fills?.[seriesIndex]}
-							still={still}
-						/>
-					)
-				})
+/**
+ * One series of animated bars, each bar its own presence. A memo, so a toggle
+ * of another series renders none of its bars and none of their presences. No
+ * bar animates its layout, so the presence keeps one context value, and a
+ * memoized bar does not render again with it.
+ *
+ * @internal
+ */
+const AnimatedBarSeries = memo(function AnimatedBarSeries({
+	row,
+	series,
+	paint,
+	tile,
+	textureActive,
+	orientation,
+	still,
+}: AnimatedBarSeriesProps) {
+	return (
+		<AnimatePresence propagate presenceAffectsLayout={false}>
+			{rangeKeys(row.length, `bar-${series}`).map((key, index) => {
+				const mark = row[index]
+
+				if (!mark) return null
+
+				return (
+					<AnimatedBar
+						key={key}
+						series={series}
+						datum={index}
+						paint={paint}
+						textureActive={textureActive}
+						d={mark.d}
+						positive={mark.positive}
+						orientation={orientation}
+						delay={barGrowDelay(index, row.length)}
+						tile={tile}
+						still={still}
+					/>
+				)
 			})}
 		</AnimatePresence>
 	)

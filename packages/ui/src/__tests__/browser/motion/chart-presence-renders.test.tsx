@@ -124,6 +124,32 @@ describe('chart presence renders (real Motion)', () => {
 		expect(componentRenders(container, 'AnimatedBar')).toBe(2 * CATEGORIES)
 	})
 
+	it('renders the presences of the toggled series only on a legend toggle', async () => {
+		// Each series of bars is its own presence. With one presence over every bar,
+		// a toggle renders the presence wrapper of each bar of both series. The
+		// count reads the name of the Motion `PresenceChild` component.
+		const { container } = renderUI(
+			<BarChart aria-label="Sales" data={DATA} series={[...SERIES]} width={800} animate />,
+		)
+
+		await waitFor(() => {
+			expect(container.querySelectorAll('[data-slot="chart-bar"]')).toHaveLength(2 * CATEGORIES)
+		}, SETTLE)
+
+		act(() => {
+			legendItem(container, 'South').click()
+		})
+
+		const presences = componentRenders(container, 'PresenceChild')
+
+		// The South bars take their exit, so their presences render, and the walk
+		// is live.
+		expect(presences).toBeGreaterThanOrEqual(CATEGORIES)
+
+		// The North bars keep theirs.
+		expect(presences).toBeLessThan(2 * CATEGORIES)
+	})
+
 	it('renders no disc when the owner of a scatter renders again', async () => {
 		// The `ReducedMotion` root of the chart hosts its `LazyMotion` in a memo.
 		// Without it, the root gives each disc a new context value, so each disc of
