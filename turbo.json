@@ -109,6 +109,28 @@
 				"$TURBO_ROOT$/tsconfig.base.json"
 			]
 		},
+		"bench:smoke": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**",
+				"vitest.bench.config.ts",
+				"tsconfig.json",
+				"$TURBO_ROOT$/tsconfig.base.json"
+			]
+		},
+		"bench:browser:smoke": {
+			"dependsOn": ["^build"],
+			"passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"],
+			"inputs": [
+				"src/**",
+				"vitest.bench.browser.config.ts",
+				"vitest.browser.config.ts",
+				"vitest.base.ts",
+				"tailwind.css",
+				"tsconfig.json",
+				"$TURBO_ROOT$/tsconfig.base.json"
+			]
+		},
 		"test:changed": {
 			"dependsOn": ["^build"],
 			"env": ["TURBO_SCM_BASE"],

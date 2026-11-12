@@ -133,6 +133,8 @@
 		"bench": "vitest bench --run --config vitest.bench.config.ts",
 		"bench:browser": "vitest bench --run --config vitest.bench.browser.config.ts",
 		"bench:browser:compiler": "vitest bench --run --config vitest.bench.browser.compiler.config.ts",
+		"bench:smoke": "VITE_BENCH_SMOKE=1 vitest bench --run --config vitest.bench.config.ts",
+		"bench:browser:smoke": "VITE_BENCH_SMOKE=1 vitest bench --run --config vitest.bench.browser.config.ts",
 		"visual": "tsx scripts/visual.ts",
 		"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json && tsc --noEmit -p src/docs/tsconfig.json",
 		"lint": "biome check .",

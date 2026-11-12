@@ -26,13 +26,22 @@ import {
 const WINDOW: BenchRunOptions = { time: 500, iterations: 10, warmupTime: 100, warmupIterations: 5 }
 
 /**
+ * The window of a smoke run (`pnpm bench:smoke`, `pnpm bench:browser:smoke`):
+ * one sample of each bench, with no warmup. CI runs it on each pull request, so
+ * a change that breaks a bench fails before it merges. The figures of a smoke
+ * run are not measurements.
+ */
+const SMOKE: BenchRunOptions = { time: 0, iterations: 1, warmupTime: 0, warmupIterations: 0 }
+
+/**
  * Registers one test named `name`. The test runs `body`, then runs each bench
  * that `body` registered, and compares them.
  *
  * @param body - Registers the benches of the group through the `bench` that it
  * gets. It runs when the test starts, not when the file loads.
  * @param options - The sample window of each bench in the group, such as
- * `time`. A field that it does not set comes from {@link WINDOW}.
+ * `time`. A field that it does not set comes from {@link WINDOW}. A smoke run
+ * uses {@link SMOKE} and ignores it.
  */
 export function compareBenches(
 	name: string,
@@ -66,7 +75,7 @@ export function compareBenches(
 
 		if (!first) throw new Error(`The group "${name}" registers no bench.`)
 
-		const window = { ...WINDOW, ...options }
+		const window = import.meta.env.VITE_BENCH_SMOKE ? SMOKE : { ...WINDOW, ...options }
 
 		if (rest.length === 0) await first.run(window)
 		else await bench.compare(first, ...rest, window)

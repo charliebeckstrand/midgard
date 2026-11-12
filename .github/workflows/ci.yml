@@ -197,6 +197,36 @@ jobs:
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
+  # One sample of each jsdom benchmark (`bench:smoke` in packages/ui), so that a
+  # change that breaks a bench fails before it merges. No other job runs the
+  # benches, and #3269 broke six of them unseen. The figures are not
+  # measurements. Two shards keep each job shorter than the `test` job, because
+  # one file holds a large part of the time. The browser benches are not here:
+  # on the GitHub runner, Chromium loses its connection to Vitest partway
+  # through `bench:browser:smoke`.
+  bench:
+    name: bench (jsdom ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      # Let the other shard finish, so that one run shows each failure.
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 1/2
+            cache: bench-jsdom-1
+          - shard: 2/2
+            cache: bench-jsdom-2
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/turbo-cache
+        with:
+          name: ${{ matrix.cache }}
+      - run: pnpm turbo run bench:smoke --filter=ui --summarize -- --shard=${{ matrix.shard }}
+      - name: Prune the Turbo cache to this run's tasks
+        run: .github/actions/turbo-cache/prune.sh
+
   # The `playwright` version that packages/ui pins, for the tag of the
   # container image of `density`. One statement of the version means that the
   # image and the npm package cannot drift: a bump of `playwright` changes the
@@ -344,7 +374,7 @@ jobs:
   # Add each new job to `needs`. The job runs when a needed job fails, and then
   # it fails. A needed job that fails, is cancelled, or is skipped makes it fail.
   ci-ok:
-    needs: [gate, build, test, browser, playwright-version, density, docs, compiler]
+    needs: [gate, build, test, browser, bench, playwright-version, density, docs, compiler]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
