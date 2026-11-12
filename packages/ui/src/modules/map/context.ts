@@ -163,9 +163,8 @@ export const [MapZoomScaleContext, useMapZoomScale] = createContext<number>('Map
  * as a closure, legend registration, and the resolved slot color per
  * registered entry. It also provides the legend's toggle state (`hidden`) and
  * the standing pick. The legend emphasis goes through the pointed-mark store
- * ({@link MapPointedStore}). An overlay renders nothing until it has a color.
- * A mark outside a group that names its own color has it from the first render.
- * Every other mark gets its color the beat after its registration effect runs.
+ * ({@link MapPointedStore}). An overlay renders nothing until its id gains a
+ * color: the beat after its registration effect runs.
  *
  * @internal
  */

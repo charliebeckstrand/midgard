@@ -84,9 +84,9 @@ export type MapOverlayProps = {
 	/**
 	 * Named mark color override; defaults to the next slot after the region categories.
 	 *
-	 * A mark with its own color and no `group` knows its color before it
-	 * registers. `MapPoints` then draws its dots in the server markup, before the
-	 * scripts run. A mark without one draws after it registers, in the hydration.
+	 * A `MapPoints` with its own color and no `group` draws its dots in the server
+	 * markup, before the scripts run. Every other mark draws after it registers,
+	 * in the hydration.
 	 *
 	 * @defaultValue `'blue'`, or the next slot color in the fixed order after the region categories and the earlier marks.
 	 */
@@ -217,12 +217,7 @@ export type MapOverlayHit = ReturnType<MapOverlay['hit']>
 
 /** The resolved plat state and DOM props an overlay draws itself from. @internal */
 export type MapOverlay = {
-	/**
-	 * The slot color. A mark outside a group that names its own {@link MapOverlayProps.color}
-	 * has it from the first render, on the server too, because the ledger gives that mark its own
-	 * color. Every other mark has `undefined` until its registration lands, and renders nothing
-	 * meanwhile.
-	 */
+	/** The slot color, `undefined` until registration lands: the mark renders nothing meanwhile. */
 	slot: MapSeriesColor | undefined
 	/** Whether the legend has toggled this mark off. */
 	hidden: boolean
@@ -641,14 +636,8 @@ export function useMapOverlay({
 		[id, pickable, track, clickMark, menuable, menuMark],
 	)
 
-	// The ledger gives a mark outside a group the color that it names
-	// (`overlaySlotColors`). That answer needs no registration, so the mark draws
-	// on the server and in the hydration render. Before this, its dots came only
-	// after hydration.
-	const ownSlot = group === undefined ? color : undefined
-
 	return {
-		slot: colors.get(id) ?? ownSlot,
+		slot: colors.get(id),
 		hidden: hidden.has(id),
 		project,
 		spare: spareHere,

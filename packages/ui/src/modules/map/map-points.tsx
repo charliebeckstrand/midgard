@@ -22,6 +22,7 @@ import { type MapDotMark, markTargets } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
 import { type MapGround, type MapGroundDot, setGrounds } from './engine/map-cluster/ground'
 import { clusterGap, groupsByMember } from './engine/map-cluster/group'
+import type { MapClusterRadius } from './engine/map-cluster/radius'
 import {
 	groupSets,
 	type MapClusterInput,
@@ -42,7 +43,13 @@ import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapEntryDot, MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
 import { pickedStop } from './engine/map-overlay/selection'
-import type { LngLat, MapOverlaySelection, MapPoint2D, MapPointShape } from './engine/types'
+import type {
+	LngLat,
+	MapOverlaySelection,
+	MapPoint2D,
+	MapPointShape,
+	MapProjector,
+} from './engine/types'
 import { dotClip, dotHitProps, MapDot, MapDotClip, MapDotCount, MapDotRing } from './map-dot'
 import { MapDotHalo } from './map-halo'
 import { type MapOverlay, type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -254,7 +261,7 @@ function groupPaint(
 /** A group that a {@link MapPointsPrepaint} draws, with the widths of the frame where it holds. @internal */
 type MapPrepaintGroup = {
 	node: MapClusterNode
-	/** The narrowest frame width where the group holds, in device pixels, included. */
+	/** The narrowest frame width where the group holds, in device pixels, included. `0` for every narrower width. */
 	from: number
 	/** The widest frame width where the group holds, in device pixels, not included. */
 	to: number
@@ -278,9 +285,58 @@ function frameQuery(from: number, to: number, aspect: number): string {
 
 	const wide = `(width >= ${px(from + inset)}) and (height >= ${px(from / aspect + inset)})`
 
+	const narrow = `((width < ${px(to + inset)}) or (height < ${px(to / aspect + inset)}))`
+
 	if (to === Number.POSITIVE_INFINITY) return wide
 
-	return `${wide} and ((width < ${px(to + inset)}) or (height < ${px(to / aspect + inset)}))`
+	return from === 0 ? narrow : `${wide} and ${narrow}`
+}
+
+/**
+ * The groups of a set for every width of the frame, from the merge tree of the
+ * set. A group that holds at the narrowest frame holds at every narrower frame
+ * too. With the grouping off, each dot holds at every width.
+ *
+ * @param width - The width of the canonical frame, in frame units.
+ * @internal
+ */
+function prepaintGroups(
+	positions: readonly LngLat[],
+	project: MapProjector,
+	gap: number | null,
+	getRadius: MapClusterRadius,
+	width: number,
+): MapPrepaintGroup[] {
+	if (gap === null) {
+		return positions.flatMap((position, index): MapPrepaintGroup[] => {
+			const at = project(position)
+
+			if (at === null) return []
+
+			const node = { members: [index], at, from: 0, to: Number.POSITIVE_INFINITY }
+
+			return [{ node, from: 0, to: Number.POSITIVE_INFINITY }]
+		})
+	}
+
+	const tree = clusterTree(
+		positions,
+		project,
+		() => gap,
+		gap,
+		getRadius,
+		width / MAP_PREPAINT_NARROWEST,
+	)
+
+	return tree.nodes.flatMap((node): MapPrepaintGroup[] => {
+		if (node.at === null || !(node.from < node.to)) return []
+
+		const from = node.to === Number.POSITIVE_INFINITY ? 0 : width / node.to
+
+		const to = node.from === 0 ? Number.POSITIVE_INFINITY : width / node.from
+
+		return [{ node, from, to }]
+	})
 }
 
 /** Props for {@link MapPointsPrepaint}. @internal */
@@ -295,7 +351,7 @@ type MapPointsPrepaintProps = {
 	radius: (count: number) => number
 	/** The shape of the mark. */
 	shape: MapPointShape
-	/** The series slot of the mark. */
+	/** The color of the mark: its own, because the ledger has not given one yet. */
 	slot: MapSeriesColor
 	/** The point that the standing pick names, or `null`. */
 	picked: number | null
@@ -342,6 +398,8 @@ function MapPointsPrepaint({
 
 	const rules = groups
 		.map(({ from, to }, index) => {
+			if (from === 0 && to === Number.POSITIVE_INFINITY) return ''
+
 			const select = `[data-map-band="${band(index)}"]`
 
 			return `${select}{display:none}@container map-plot ${frameQuery(from, to, aspect)}{${select}{display:inline}}`
@@ -825,33 +883,21 @@ export function MapPoints({
 
 	// Before the box is measured, the groups of every width (see `MapPointsPrepaint`).
 	// The set groups alone here, as it does before it registers: no render before
-	// the measurement can know the other sets of the plat.
+	// the measurement can know the other sets of the plat. Only a mark with its own
+	// color outside a group knows its color before it registers.
 	const prepaint = useMemo(() => {
-		if (unmeasured === null || gap === null) return null
+		if (unmeasured === null || overlay.color === undefined || overlay.group !== undefined) {
+			return null
+		}
 
-		const { width } = unmeasured
+		const { width, height } = unmeasured
 
-		const tree = clusterTree(
-			positions,
-			project,
-			() => gap,
-			gap,
-			clusters.getRadius,
-			width / MAP_PREPAINT_NARROWEST,
-		)
-
-		const groups = tree.nodes.flatMap((node): MapPrepaintGroup[] => {
-			if (node.at === null || !(node.from < node.to)) return []
-
-			const from = Math.max(MAP_PREPAINT_NARROWEST, width / node.to)
-
-			const to = node.from === 0 ? Number.POSITIVE_INFINITY : width / node.from
-
-			return from < to ? [{ node, from, to }] : []
-		})
-
-		return { groups, aspect: width / unmeasured.height }
-	}, [unmeasured, gap, positions, project, clusters.getRadius])
+		return {
+			groups: prepaintGroups(positions, project, gap, clusters.getRadius, width),
+			aspect: width / height,
+			slot: overlay.color,
+		}
+	}, [unmeasured, overlay.color, overlay.group, gap, positions, project, clusters.getRadius])
 
 	const pass = useSyncExternalStore(clusters.subscribe, clusters.grouping, clusters.grouping)
 
@@ -1120,7 +1166,7 @@ export function MapPoints({
 		return groups.map(({ members }) => groupPaint(points, members, mark))
 	}, [groups, points, slot])
 
-	if (slot === undefined || hidden) return null
+	if (hidden) return null
 
 	if (prepaint !== null) {
 		return (
@@ -1130,11 +1176,12 @@ export function MapPoints({
 				points={points}
 				radius={clusters.getRadius}
 				shape={shape}
-				slot={slot}
 				picked={selectedOverlay?.id === id ? (selectedOverlay.index ?? 0) : null}
 			/>
 		)
 	}
+
+	if (slot === undefined) return null
 
 	const countInk = cn(...k.series[slot].label)
 
