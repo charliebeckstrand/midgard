@@ -3,7 +3,7 @@ import { BarChart } from '../../../modules/chart/bar-chart'
 import { ScatterChart } from '../../../modules/chart/scatter-chart'
 import { act, fireEvent, renderUI, waitFor } from '../../helpers'
 import { legendItem } from '../../helpers/chart-legend'
-import { motionRenders } from '../helpers/motion-renders'
+import { componentRenders, motionRenders } from '../helpers/motion-renders'
 import { budget } from '../helpers/wall-clock'
 
 /** Long enough for the mount reveal to end. */
@@ -95,6 +95,33 @@ describe('chart presence renders (real Motion)', () => {
 
 		// Only the South discs, which dim, render.
 		expect(renders).toBeLessThanOrEqual(CATEGORIES)
+	})
+
+	it('renders no bar when the owner of an animated bar chart renders again', async () => {
+		// The animated bar layer is a memo, and each bar reads the emphasis
+		// itself. Without the memo, a render of the owner renders the layer, its
+		// presence, and each bar of both series. The series list is a new literal
+		// on each render, as a caller writes it inline.
+		const chart = () => (
+			<BarChart aria-label="Sales" data={DATA} series={[...SERIES]} width={800} animate />
+		)
+
+		const { container, rerender } = renderUI(chart())
+
+		await waitFor(() => {
+			expect(container.querySelectorAll('[data-slot="chart-bar"]')).toHaveLength(2 * CATEGORIES)
+		}, SETTLE)
+
+		await act(async () => rerender(chart()))
+
+		expect(componentRenders(container, 'AnimatedChartBarMarks')).toBe(0)
+
+		expect(componentRenders(container, 'AnimatedBar')).toBe(0)
+
+		// A legend hover still reaches each bar, past the memo of the layer.
+		pointAt(container, 'North')
+
+		expect(componentRenders(container, 'AnimatedBar')).toBe(2 * CATEGORIES)
 	})
 
 	it('renders no disc when the owner of a scatter renders again', async () => {
