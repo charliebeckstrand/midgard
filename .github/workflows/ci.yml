@@ -206,7 +206,7 @@ jobs:
   bench:
     name: bench (${{ matrix.name }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     strategy:
       # Let the other jobs finish, so that one run shows each failure.
       fail-fast: false
@@ -232,28 +232,7 @@ jobs:
           name: ${{ matrix.cache }}
       - if: matrix.task == 'bench:browser:smoke'
         uses: ./.github/actions/playwright
-      - if: matrix.task == 'bench:browser:smoke'
-        run: (ip -ts monitor address link route > "$RUNNER_TEMP/ip-monitor.log" 2>&1 &)
       - run: pnpm turbo run ${{ matrix.task }} --filter=ui --summarize -- ${{ matrix.args }}
-        env:
-          DEBUG: ${{ matrix.task == 'bench:browser:smoke' && 'vitest:browser:*,pw:browser*' || '' }}
-          BENCH_NETLOG: ${{ matrix.task == 'bench:browser:smoke' && format('{0}/netlog.json', runner.temp) || '' }}
-      - if: always() && matrix.task == 'bench:browser:smoke'
-        run: |
-          echo "ip monitor:"; cat "$RUNNER_TEMP/ip-monitor.log" || true
-          node .github/tmp-diag/netlog-summary.mjs "$RUNNER_TEMP/netlog.json" || true
-      - if: always() && matrix.task == 'bench:browser:smoke'
-        working-directory: packages/ui
-        run: |
-          npx -y playwright@1.63.0 install chromium-headless-shell > /dev/null
-          old=$(ls -d ~/.cache/ms-playwright/chromium_headless_shell-1243)/chrome-headless-shell-linux64/chrome-headless-shell
-          ls -la "$old"
-          for i in 1 2 3 4 5 6; do
-            if [ $((i % 2)) = 0 ]; then mode=; else mode=$old; fi
-            BENCH_EXECUTABLE=$mode pnpm bench:browser:smoke > "$RUNNER_TEMP/repeat-$i.log" 2>&1 || true
-            echo "repeat $i browser=${mode:-1248}: $(grep -c 'Browser connection was closed' "$RUNNER_TEMP/repeat-$i.log") connection losses, $(grep 'Test Files' "$RUNNER_TEMP/repeat-$i.log") $(grep -m1 'Error' "$RUNNER_TEMP/repeat-$i.log")"
-          done
-          echo "ip monitor:"; cat "$RUNNER_TEMP/ip-monitor.log" || true
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 

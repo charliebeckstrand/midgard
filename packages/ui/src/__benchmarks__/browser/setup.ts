@@ -13,15 +13,6 @@
  */
 import '../../fonts/google-sans-flex-latin.js'
 import '../../__tests__/browser/setup/tailwind.css'
-import { commands } from 'vitest/browser'
 import { loadGridEditing } from '../../modules/grid/grid-data'
-
-declare module 'vitest/browser' {
-	interface BrowserCommands {
-		diagWatch: () => Promise<void>
-	}
-}
-
-if (import.meta.env.VITE_BENCH_DIAG) await commands.diagWatch()
 
 await loadGridEditing()

@@ -1,90 +1,6 @@
 import { playwright } from '@vitest/browser-playwright'
-import type { Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
-import type { BrowserCommand } from 'vitest/node'
 import { servedTailwind } from './vitest.browser.config.ts'
-
-const watched = new WeakSet<object>()
-
-// Temporary diagnostic: log what happens to the page and the browser.
-const diagWatch: BrowserCommand<[]> = async (context) => {
-	const page = context.page
-	if (watched.has(page)) return
-	watched.add(page)
-	const log = (text: string) => console.error(`[diag] ${new Date().toISOString()} ${text}`)
-	page.on('crash', () => log('page crash'))
-	page.on('close', () => log('page close'))
-	page.on('pageerror', (error) => log(`page error ${error.message}`))
-	page.on('framenavigated', (frame) =>
-		log(
-			`frame navigated ${frame === page.mainFrame() ? 'main' : 'child'} ${frame.url().slice(0, 80)}`,
-		),
-	)
-	page.on('console', (message) => {
-		const text = message.text()
-		if (text.includes('[diag-ws]') || text.includes('WebSocket') || message.type() === 'error')
-			log(`console ${message.type()} ${text.slice(0, 600)}`)
-	})
-	await page.addInitScript(() => {
-		const Native = window.WebSocket
-		const close = Native.prototype.close
-		const name = (socket: WebSocket) => socket.url.split('?')[0]
-		Native.prototype.close = function (this: WebSocket, ...args: [number?, string?]) {
-			console.log(`[diag-ws] close() ${name(this)} ${args.join(' ')} ${new Error().stack}`)
-			return close.apply(this, args)
-		}
-		class Wrapped extends Native {
-			constructor(url: string | URL, protocols?: string | string[]) {
-				super(url, protocols)
-				this.addEventListener('error', () => console.log(`[diag-ws] error event ${name(this)}`))
-				this.addEventListener('close', (event) =>
-					console.log(
-						`[diag-ws] close event ${name(this)} code=${event.code} clean=${event.wasClean} reason=${event.reason}`,
-					),
-				)
-			}
-		}
-		window.WebSocket = Wrapped
-		console.log(`[diag-ws] installed in ${location.href.slice(0, 60)}`)
-	})
-	page.context().on('page', () => log('new page'))
-	page
-		.context()
-		.browser()
-		?.on('disconnected', () => log('browser disconnected'))
-	log('watching the page')
-}
-
-// Temporary diagnostic: log how each upgraded socket of the server closes.
-function logSockets(): Plugin {
-	return {
-		name: 'diag:log-sockets',
-		configureServer(server) {
-			server.httpServer?.on('upgrade', (request, socket) => {
-				const query = new URL(request.url ?? '/', 'http://localhost')
-				const url = `${query.pathname} ${query.searchParams.get('type') ?? 'hmr'}`
-				const opened = Date.now()
-				socket.on('data', (chunk: Buffer) => {
-					if (chunk.length < 8 || (chunk.readUInt8(0) & 0x0f) !== 8) return
-					if ((chunk.readUInt8(1) & 0x7f) < 2) return
-					const code = chunk.readUInt16BE(6) ^ chunk.readUInt16BE(2)
-					console.error(`[diag] ${new Date().toISOString()} close frame ${code} ${url}`)
-				})
-				socket.on('end', () =>
-					console.error(`[diag] ${new Date().toISOString()} end (peer FIN) ${url}`),
-				)
-				socket.on('error', (error: Error) =>
-					console.error(`[diag] ${new Date().toISOString()} error ${error.message} ${url}`),
-				)
-				socket.on('close', (hadError: boolean) =>
-					console.error(
-						`[diag] ${new Date().toISOString()} close hadError=${hadError} after ${Date.now() - opened}ms ${url} rss=${process.memoryUsage().rss}`,
-					),
-				)
-			})
-		},
-	}
-}
 
 /**
  * The benchmarks of the ui modules in real Chromium (`pnpm bench:browser`),
@@ -97,7 +13,7 @@ function logSockets(): Plugin {
  * sample to ~16ms.
  */
 export default defineConfig({
-	plugins: [servedTailwind(), ...(process.env.BENCH_NETLOG ? [logSockets()] : [])],
+	plugins: [servedTailwind()],
 	// Measure the React the module actually ships: production, not the
 	// development build Vite serves by default. The dev build's invariant checks
 	// and warnings run several times the work per render, so a dev-React number
@@ -145,17 +61,9 @@ export default defineConfig({
 		browser: {
 			enabled: true,
 			provider: playwright({
-				launchOptions: {
-					...(process.env.BENCH_EXECUTABLE ? { executablePath: process.env.BENCH_EXECUTABLE } : {}),
-					args: [
-						'--disable-frame-rate-limit',
-						'--disable-gpu-vsync',
-						...(process.env.BENCH_NETLOG ? [`--log-net-log=${process.env.BENCH_NETLOG}`] : []),
-					],
-				},
+				launchOptions: { args: ['--disable-frame-rate-limit', '--disable-gpu-vsync'] },
 			}),
 			headless: true,
-			commands: { diagWatch },
 			screenshotFailures: false,
 			instances: [{ browser: 'chromium' }],
 		},
