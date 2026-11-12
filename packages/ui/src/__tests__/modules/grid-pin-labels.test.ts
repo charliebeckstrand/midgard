@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { describePin } from '../../modules/grid/engine/grid-announcements'
 import { pinMenuChoices } from '../../modules/grid/engine/grid-pin/overrides'
 import { fillItems } from '../../modules/grid/grid-context-menu-utilities'
-import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
+import { intlEs } from '../helpers/intl'
 
 /**
  * The pin menu and its announcement name the physical edge a column goes to.

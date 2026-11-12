@@ -33,9 +33,25 @@ export type MessageSet<V extends Record<string, MessageValues>> = {
 }
 
 /**
- * The translated messages of an app or a package, by language subtag and then
- * by message id, such as `{ es: { 'shared.signIn': 'Iniciar sesión' } }`.
- * English has no entry, because the default message of each descriptor is
- * English. `LocaleProvider` takes it as `catalogs`.
+ * The translated messages of one language, by message id, such as
+ * `{ 'shared.signIn': 'Iniciar sesión' }`.
  */
-export type IntlCatalogs = Readonly<Record<string, Readonly<Record<string, string>>>>
+export type IntlMessages = Readonly<Record<string, string>>
+
+/**
+ * A function that loads the {@link IntlMessages} of one language, such as
+ * `() => import('./es.json')`. A bundle puts the translation in a chunk of its
+ * own, so a page loads only the language that it shows.
+ */
+export type IntlCatalogLoader = () => Promise<{ readonly default: IntlMessages }>
+
+/**
+ * The translated messages of an app or a package, by language subtag: the
+ * {@link IntlMessages} of the language, or the {@link IntlCatalogLoader} that
+ * loads them. An example is `{ es: () => import('./es.json') }`. English has
+ * no entry, because the default message of each descriptor is English.
+ * `LocaleProvider` takes it as `catalogs`. A server that renders a page in the
+ * locale of the request can give the messages of that language, so the page
+ * loads no chunk for them.
+ */
+export type IntlCatalogs = Readonly<Record<string, IntlMessages | IntlCatalogLoader>>

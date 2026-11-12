@@ -12,7 +12,7 @@ import {
 	TRANSLATIONS_MODULE,
 	translationsText,
 } from '../../../scripts/intl-catalog'
-import { localeIntl } from '../../primitives/intl/intl-catalog'
+import { loadMessages, uiChain } from '../../primitives/intl/intl-catalog'
 
 // The source catalog holds the English default of each message of ui, and each
 // translation maps the same ids to the text of its language. The provider loads
@@ -20,7 +20,7 @@ import { localeIntl } from '../../primitives/intl/intl-catalog'
 // shows its English default, so a gap does not break a page, but it does leave
 // English in a translated page. This test holds the files in step:
 //
-//   1. The source catalog and the module that imports each translation equal
+//   1. The source catalog and the module that loads each translation equal
 //      the output of `pnpm intl` (`scripts/intl.ts`).
 //   2. Each translation has each id of the source catalog, and no other id, and
 //      the catalog of ui loads it.
@@ -38,7 +38,7 @@ describe('intl catalog', () => {
 		expect(readFileSync(SOURCE_CATALOG, 'utf8'), 'run `pnpm intl` to write the catalog').toBe(text)
 	})
 
-	it('imports each translation', () => {
+	it('loads each translation', () => {
 		expect(
 			readFileSync(join(LANG_DIR, TRANSLATIONS_MODULE), 'utf8'),
 			'run `pnpm intl` to write the module',
@@ -54,8 +54,8 @@ describe('intl catalog', () => {
 			expect(Object.keys(messages).sort()).toEqual(Object.keys(source).sort())
 		})
 
-		it('loads in the catalog of ui', () => {
-			expect(localeIntl(language).messages).toEqual(messages)
+		it('loads in the catalog of ui', async () => {
+			expect(await loadMessages(uiChain, language)).toEqual(messages)
 		})
 
 		it('parses each message, with the arguments of its English default', () => {
