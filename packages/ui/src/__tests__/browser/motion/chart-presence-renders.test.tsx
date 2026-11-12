@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { ScatterChart } from '../../../modules/chart/scatter-chart'
-import { fireEvent, renderUI, waitFor } from '../../helpers'
+import { act, fireEvent, renderUI, waitFor } from '../../helpers'
 import { legendItem } from '../../helpers/chart-legend'
+import { motionRenders } from '../helpers/motion-renders'
 import { budget } from '../helpers/wall-clock'
 
 /** Long enough for the mount reveal to end. */
@@ -32,58 +33,8 @@ const SCATTER = [
 	{ xKey: 'x', yKey: 'south', yName: 'South' },
 ] as const
 
-/** The part of a React fiber that the count reads. */
-type Fiber = {
-	type: unknown
-	flags: number
-	child: Fiber | null
-	sibling: Fiber | null
-	alternate: Fiber | null
-}
-
-/** React sets this flag on each fiber that rendered in the commit. */
-const PERFORMED_WORK = 1
-
-/** A Motion `m.*` element: a `forwardRef` around `MotionDOMComponent`. */
-function isMotionElement(fiber: Fiber): boolean {
-	const render = (fiber.type as { render?: { name?: string } } | null)?.render
-
-	return render?.name === 'MotionDOMComponent'
-}
-
-/**
- * The Motion elements that rendered in the last commit of the root in
- * `container`. React keeps no public count, so this reads the current fiber
- * tree. A subtree that React skipped keeps the child of its old fiber, so the
- * walk does not go into it.
- */
-function motionRenders(container: HTMLElement): number {
-	const key = Object.keys(container).find((name) => name.startsWith('__reactContainer$'))
-
-	const host = key ? (container as unknown as Record<string, Fiber>)[key] : undefined
-
-	const root = (host as unknown as { stateNode: { current: Fiber } } | undefined)?.stateNode.current
-
-	if (!root) throw new Error('expected a React root in the container')
-
-	let count = 0
-
-	const walk = (first: Fiber | null) => {
-		for (let fiber = first; fiber; fiber = fiber.sibling) {
-			const old = fiber.alternate
-
-			const rendered = old === null || (fiber.flags & PERFORMED_WORK) !== 0
-
-			if (rendered && isMotionElement(fiber)) count += 1
-
-			if (old === null || fiber.child !== old.child) walk(fiber.child)
-		}
-	}
-
-	walk(root.child)
-
-	return count
-}
+/** One series list for each render, so a render of the owner changes no prop. */
+const SCATTER_SERIES = [...SCATTER]
 
 /**
  * Points at the legend entry of `name`. `act` runs the render of the hover to
@@ -144,5 +95,26 @@ describe('chart presence renders (real Motion)', () => {
 
 		// Only the South discs, which dim, render.
 		expect(renders).toBeLessThanOrEqual(CATEGORIES)
+	})
+
+	it('renders no disc when the owner of a scatter renders again', async () => {
+		// The `ReducedMotion` root of the chart hosts its `LazyMotion` in a memo.
+		// Without it, the root gives each disc a new context value, so each disc of
+		// both series renders.
+		const chart = () => (
+			<ScatterChart aria-label="Points" data={POINTS} series={SCATTER_SERIES} width={800} animate />
+		)
+
+		const { container, rerender } = renderUI(chart())
+
+		await waitFor(() => {
+			expect(container.querySelectorAll('[data-slot="chart-legend-item"]').length).toBeGreaterThan(
+				0,
+			)
+		}, SETTLE)
+
+		await act(async () => rerender(chart()))
+
+		expect(motionRenders(container)).toBeLessThan(CATEGORIES)
 	})
 })
