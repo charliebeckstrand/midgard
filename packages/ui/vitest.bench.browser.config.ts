@@ -1,6 +1,32 @@
 import { playwright } from '@vitest/browser-playwright'
+import type { Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
 import { servedTailwind } from './vitest.browser.config.ts'
+
+// Temporary diagnostic: log how each upgraded socket of the server closes.
+function logSockets(): Plugin {
+	return {
+		name: 'diag:log-sockets',
+		configureServer(server) {
+			server.httpServer?.on('upgrade', (request, socket) => {
+				const query = new URL(request.url ?? '/', 'http://localhost')
+				const url = `${query.pathname} ${query.searchParams.get('type') ?? 'hmr'}`
+				const opened = Date.now()
+				socket.on('end', () =>
+					console.error(`[diag] ${new Date().toISOString()} end (peer FIN) ${url}`),
+				)
+				socket.on('error', (error: Error) =>
+					console.error(`[diag] ${new Date().toISOString()} error ${error.message} ${url}`),
+				)
+				socket.on('close', (hadError: boolean) =>
+					console.error(
+						`[diag] ${new Date().toISOString()} close hadError=${hadError} after ${Date.now() - opened}ms ${url} rss=${process.memoryUsage().rss}`,
+					),
+				)
+			})
+		},
+	}
+}
 
 /**
  * The benchmarks of the ui modules in real Chromium (`pnpm bench:browser`),
@@ -13,7 +39,7 @@ import { servedTailwind } from './vitest.browser.config.ts'
  * sample to ~16ms.
  */
 export default defineConfig({
-	plugins: [servedTailwind()],
+	plugins: [servedTailwind(), ...(process.env.BENCH_NETLOG ? [logSockets()] : [])],
 	// Measure the React the module actually ships: production, not the
 	// development build Vite serves by default. The dev build's invariant checks
 	// and warnings run several times the work per render, so a dev-React number
