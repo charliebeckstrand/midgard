@@ -10,7 +10,7 @@ import {
 	describeSettle,
 } from '../../modules/grid/engine/grid-announcements'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
 import {
 	expectAnnouncement,
 	fireEvent,
@@ -21,6 +21,7 @@ import {
 	setupUser,
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
+import { intlEs } from '../helpers/intl'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate

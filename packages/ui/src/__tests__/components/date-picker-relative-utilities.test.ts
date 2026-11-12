@@ -20,7 +20,8 @@ import {
 	startOfDay,
 	stepDate,
 } from '../../components/date-picker/date-picker-utilities'
-import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
+import { intlEs } from '../helpers/intl'
 
 const DEFAULT_RELATIVE_PRESETS = defaultRelativePresets(intlEn)
 

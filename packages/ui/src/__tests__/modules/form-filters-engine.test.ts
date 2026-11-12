@@ -9,7 +9,8 @@ import {
 	writeFilter,
 } from '../../modules/form/engine/form-filters'
 import { formFiltersAxis } from '../../modules/form/engine/form-filters-axis'
-import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
+import { intlEs } from '../helpers/intl'
 
 describe('isFilterActive', () => {
 	it.each([

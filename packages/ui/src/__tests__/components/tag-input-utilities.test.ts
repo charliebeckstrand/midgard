@@ -5,7 +5,8 @@ import {
 	describeBatch,
 	splitTokens,
 } from '../../components/tag-input/tag-input-utilities'
-import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
+import { intlEs } from '../helpers/intl'
 
 describe('splitTokens', () => {
 	it.each([

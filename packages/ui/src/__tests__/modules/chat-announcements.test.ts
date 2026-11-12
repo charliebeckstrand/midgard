@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { describeReply, describeTranscript } from '../../modules/chat/engine/chat-announcements'
 import type { ChatEmbedPart, ChatPart } from '../../modules/chat/engine/chat-content/types'
 import type { ChatMessageData } from '../../modules/chat/engine/types'
-import { intlEn, intlEs } from '../../primitives/intl/intl-catalog'
+import { intlEn } from '../../primitives/intl/intl-catalog'
+import { intlEs } from '../helpers/intl'
 
 function text(id: string, value: string): ChatPart {
 	return { kind: 'text', id, text: value }

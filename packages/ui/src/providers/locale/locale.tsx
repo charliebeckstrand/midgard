@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, useDeferredValue, useMemo } from 'react'
 import { Direction } from '../../primitives/direction'
 import type { TextDirection } from '../../primitives/direction/context'
 import { IntlProvider } from '../../primitives/intl/intl-provider'
@@ -55,6 +55,10 @@ export type LocaleProviderProps = LocaleConfig & {
 	 * catalogs of each enclosing provider, so a nested provider adds to them. A
 	 * message with the same id as an outer message replaces it.
 	 *
+	 * A language can give a loader in place of its messages, such as
+	 * `() => import('./es.json')`. The loader runs when a provider first shows
+	 * the language, so a page in another language loads none of them.
+	 *
 	 * Give a constant of a module, not an object that each render builds: the
 	 * provider keeps one intl for each catalog object, and a new object makes a
 	 * new intl.
@@ -75,10 +79,15 @@ export type LocaleProviderProps = LocaleConfig & {
  * of ui. A control shows its built-in text, such as the name of a Close button,
  * from the catalog of the language of the locale. {@link CATALOG_LOCALES}
  * lists the languages that ui has a catalog for. A language with no catalog,
- * and a message that a catalog does not have, show the English default. A prop that sets the text of a
- * control still wins. An app or a package gives the translations of its own
- * messages through `catalogs`, and reads them through `useIntl` from
- * `ui/primitives/intl`.
+ * and a message that a catalog does not have, show the English default. The
+ * catalog of a language loads when a provider first shows the language, and
+ * the provider suspends until it loads. Thus the server render waits for the
+ * catalog, the hydration render keeps the HTML of the server until it loads,
+ * and a page in English loads no catalog. When the locale changes to a
+ * language that has not loaded, the subtree keeps the old locale until it
+ * loads. A prop that sets the text of a control still wins. An app or a
+ * package gives the translations of its own messages through `catalogs`, and
+ * reads them through `useIntl` from `ui/primitives/intl`.
  *
  * A nested provider overrides one field and leaves the rest of the enclosing
  * config alone. So a nested `<LocaleProvider currency="EUR">` keeps the outer
@@ -121,6 +130,12 @@ export function LocaleProvider({
 
 	const stored = useStoredLocale(locales, locale ?? outer.locale ?? locales?.[0])
 
+	// When the locale changes to a language whose translation has not loaded,
+	// the subtree keeps the old locale until it loads (`IntlProvider`). The
+	// formats and the text thus change together, and no text shows in English
+	// first.
+	const shown = useDeferredValue(stored.locale)
+
 	// The memo reads the resolved fields, not the outer value. A nested provider
 	// with its own locale thus keeps its value when only the outer locale
 	// changes, as it does after hydration.
@@ -134,13 +149,13 @@ export function LocaleProvider({
 
 	const value = useMemo<LocaleConfig>(
 		() => ({
-			locale: stored.locale,
+			locale: shown,
 			currency: resolvedCurrency,
 			numberFormat: resolvedNumberFormat,
 			dateFormat: resolvedDateFormat,
 			timeZone: resolvedTimeZone,
 		}),
-		[stored.locale, resolvedCurrency, resolvedNumberFormat, resolvedDateFormat, resolvedTimeZone],
+		[shown, resolvedCurrency, resolvedNumberFormat, resolvedDateFormat, resolvedTimeZone],
 	)
 
 	const choice = useMemo<LocaleChoiceValue | null>(
@@ -168,7 +183,7 @@ export function LocaleProvider({
 	return (
 		<LocaleChoiceContext value={choice ?? outerChoice}>
 			<LocaleContext value={value}>
-				<IntlProvider locale={stored.locale} catalogs={catalogs}>
+				<IntlProvider locale={shown} catalogs={catalogs}>
 					{scoped}
 				</IntlProvider>
 			</LocaleContext>
