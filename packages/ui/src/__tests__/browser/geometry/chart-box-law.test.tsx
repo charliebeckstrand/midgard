@@ -167,4 +167,30 @@ describe('chart box-law (real browser)', () => {
 		// 400 / 1, the ratio's own height.
 		expect(svgHeight(container)).toBeGreaterThan(390)
 	})
+
+	it('keeps the title of a pie with no legend inside its ratio box', async () => {
+		// The figure carries the ratio, as it does with a stacked legend and for a
+		// cartesian chart: the figure is 400 px tall, and the pie takes the height
+		// that the title leaves.
+		const { container } = renderUI(
+			<div style={{ width: 400 }}>
+				<PieChart
+					aria-label="Sales by quarter"
+					title="Sales by quarter"
+					data={SLICES}
+					series={[{ xKey: 'quarter', yKey: 'sales' }]}
+					aspectRatio={1}
+					legend={false}
+				/>
+			</div>,
+		)
+
+		await waitFor(() => expect(svgHeight(container)).toBeGreaterThan(0))
+
+		const figure = getSlot(container, 'chart-figure').getBoundingClientRect().height
+
+		expect(figure).toBeGreaterThan(398)
+		expect(figure).toBeLessThan(402)
+		expect(svgHeight(container)).toBeLessThan(figure - 16)
+	})
 })

@@ -217,8 +217,9 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		showCallouts ? CALLOUT_FRAME : undefined,
 	)
 
-	// A live ratio with a legend describes the whole chart: the figure carries the
-	// ratio and the pie measures the height the legend leaves.
+	// A live ratio with a stacked legend or with no legend describes the whole
+	// chart: the figure carries the ratio and the pie measures the height that the
+	// title and the legend leave. A side legend keeps the ratio on the pie box.
 	const {
 		sizing: frameSizing,
 		frameAspect,
