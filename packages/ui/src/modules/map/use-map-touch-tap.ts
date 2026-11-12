@@ -7,6 +7,9 @@ import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { targetAt } from './engine/map-hover/anchor'
 import type { MapHoverTarget } from './engine/map-hover/target'
 
+/** How a touch picks a mark on the plot: with one tap, or with a double tap. See `MapPlat`'s `touchPick`. */
+export type MapTouchPick = 'tap' | 'double-tap'
+
 /** Time, in ms, from the lift of one tap to the lift of the next, in which the two are a double tap. @internal */
 export const MAP_DOUBLE_TAP_WINDOW = 400
 
@@ -16,11 +19,12 @@ export const MAP_DOUBLE_TAP_SLOP = 40
 type Tap = { x: number; y: number; at: number }
 
 /**
- * Finds a double tap on the plot, and picks the mark under the second tap.
+ * Finds the taps on the plot that pick, and picks the mark under the last tap.
  *
- * A touch reads nothing from the map, and one tap picks nothing. Two taps that
- * lift in {@link MAP_DOUBLE_TAP_WINDOW} and land in {@link MAP_DOUBLE_TAP_SLOP}
- * of each other pick the region or the overlay mark under the second tap. The
+ * A touch reads nothing from the map. Under `'double-tap'`, one tap picks
+ * nothing. Two taps that lift in {@link MAP_DOUBLE_TAP_WINDOW} and land in
+ * {@link MAP_DOUBLE_TAP_SLOP} of each other pick the region or the overlay mark
+ * under the second tap. Under `'tap'`, each tap picks the mark under it. The
  * pick goes through `activate`, which is the path of the keyboard's Enter, so a
  * touch pick and a click carry the same identity.
  *
@@ -31,12 +35,16 @@ type Tap = { x: number; y: number; at: number }
  * Spread the handlers on the plot element. A tap off that element picks nothing.
  *
  * @param activate - Picks one target, as the keyboard cursor does.
+ * @param mode - Whether one tap or a double tap picks.
  * @returns The press handlers. {@link TouchTap.fromTouch} tells the click
  * handler which clicks came from a touch.
  *
  * @internal
  */
-export function useMapTouchTap(activate: (target: MapHoverTarget) => void): TouchTap {
+export function useMapTouchTap(
+	activate: (target: MapHoverTarget) => void,
+	mode: MapTouchPick,
+): TouchTap {
 	// The element that the handlers are on, from the last press.
 	const plot = useRef<Element | null>(null)
 
@@ -50,12 +58,15 @@ export function useMapTouchTap(activate: (target: MapHoverTarget) => void): Touc
 
 		const at = performance.now()
 
-		const double =
-			prev !== null &&
-			at - prev.at <= MAP_DOUBLE_TAP_WINDOW &&
-			Math.hypot(x - prev.x, y - prev.y) <= MAP_DOUBLE_TAP_SLOP
+		// Under 'tap', each tap picks. Under 'double-tap', a tap picks only as the
+		// second of a pair.
+		const picks =
+			mode === 'tap' ||
+			(prev !== null &&
+				at - prev.at <= MAP_DOUBLE_TAP_WINDOW &&
+				Math.hypot(x - prev.x, y - prev.y) <= MAP_DOUBLE_TAP_SLOP)
 
-		if (!double) {
+		if (!picks) {
 			prevTap.current = { x, y, at }
 
 			return

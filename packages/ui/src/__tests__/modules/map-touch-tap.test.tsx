@@ -184,3 +184,86 @@ describe('MapPlat touch taps', () => {
 		expect(onRegionClick).toHaveBeenCalledTimes(1)
 	})
 })
+
+describe('MapPlat touch taps under touchPick="tap"', () => {
+	it('picks the region under one tap, once, and shows no readout', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(categoricalPlat({ onRegionClick, touchPick: 'tap' }))
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		tap(region)
+
+		// The click that a browser can still send after the touch.
+		fireEvent.click(region)
+
+		expect(onRegionClick).toHaveBeenCalledExactlyOnceWith('A', 0)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('picks once for each of two quick taps', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(categoricalPlat({ onRegionClick, touchPick: 'tap' }))
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		tap(region)
+
+		now += 100
+
+		tap(region)
+
+		expect(onRegionClick).toHaveBeenCalledTimes(2)
+	})
+
+	it('picks the dot under one tap', () => {
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={onClick} />, {
+				touchPick: 'tap',
+			}),
+		)
+
+		tap(present(bySlot(container, 'map-point-hit'), 'point hit'))
+
+		expect(onClick).toHaveBeenCalledExactlyOnceWith('depot', 0)
+	})
+
+	it('picks nothing from a disabled region', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(
+			categoricalPlat({ onRegionClick, touchPick: 'tap', isRegionDisabled: () => true }),
+		)
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		tap(region)
+
+		expect(onRegionClick).not.toHaveBeenCalled()
+	})
+
+	it('picks nothing from a drag', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(categoricalPlat({ onRegionClick, touchPick: 'tap' }))
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		stubElementFromPoint(region)
+
+		const at = { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 40, clientY: 20 }
+
+		fireEvent.pointerDown(region, at)
+
+		fireEvent.pointerMove(region, { ...at, clientY: 60 })
+
+		fireEvent.pointerUp(region, { ...at, clientY: 60 })
+
+		expect(onRegionClick).not.toHaveBeenCalled()
+	})
+})

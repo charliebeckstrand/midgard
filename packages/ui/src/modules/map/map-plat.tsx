@@ -81,6 +81,7 @@ import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapRegionReadout } from './use-map-region-readout'
 import { useMapShape } from './use-map-shape'
 import { useMapToggle } from './use-map-toggle'
+import type { MapTouchPick } from './use-map-touch-tap'
 
 /**
  * The props of {@link MapPlat} that each form of its region data shares.
@@ -344,8 +345,9 @@ type MapPlatBaseProps = AccessibleName &
 		 * region its arrow cursor sits on. A pick therefore carries the same identity
 		 * whichever input made it.
 		 *
-		 * A touch picks with a double tap. One tap picks nothing and shows no
-		 * tooltip, because a touch reads nothing from the map.
+		 * A touch picks with a double tap, or with one tap under
+		 * {@link touchPick}. A touch shows no tooltip, because a touch reads
+		 * nothing from the map.
 		 */
 		onRegionClick?: ChartItemClick
 		/**
@@ -359,6 +361,18 @@ type MapPlatBaseProps = AccessibleName &
 		 * Omitted, every region answers a click.
 		 */
 		isRegionDisabled?: (id: string, index: number) => boolean
+		/**
+		 * How a touch picks a region or an overlay mark. `'double-tap'` picks the
+		 * mark under the second of two taps, and one tap picks nothing. It suits a
+		 * map that a reader pans and zooms, where a stray tap must not open a place.
+		 * `'tap'` picks the mark under each tap. It suits a map that is a menu of its
+		 * regions, such as the states of an election. Either way, a touch shows no
+		 * tooltip, and a drag, a scroll, a hold, or a pinch picks nothing. A mouse,
+		 * a pen, and the keyboard do not change.
+		 *
+		 * @defaultValue 'double-tap'
+		 */
+		touchPick?: MapTouchPick
 		/**
 		 * Fires when a right-click lands on a region, with the same identity and
 		 * feature index {@link onRegionClick} reports. It suits a context menu that
@@ -874,6 +888,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		animate: animation = false,
 		onRegionClick,
 		isRegionDisabled,
+		touchPick = 'double-tap',
 		onRegionContextMenu,
 		onRegionPreload,
 		selectedRegion,
@@ -1699,6 +1714,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						svgRef,
 						subject: shape.features,
 					}}
+					touchPick={touchPick}
 					tooltip={
 						// A backdrop map mounted a Tooltip that resolved `null` for every
 						// region it was ever pointed at.

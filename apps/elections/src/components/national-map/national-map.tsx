@@ -28,7 +28,7 @@ export type NationalMapProps = {
 
 /**
  * The national map of an office under the title of its page, colored by the
- * winner of each state. A click on a state with a race opens the Drawer on the
+ * winner of each state. A click or one tap on a state with a race opens the Drawer on the
  * office in the state. A state with no race of the office is disabled: it takes
  * no click, no pointer cursor, and no hover. Under
  * the map, the closest races open the Drawer on their race.
@@ -71,6 +71,7 @@ export function NationalMap({
 					}
 				}}
 				isRegionDisabled={(fips: string) => !raced.has(fips)}
+				touchPick="tap"
 				data={data}
 				categoryKey="winner"
 				colorName="Winner"

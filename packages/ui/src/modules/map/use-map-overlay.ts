@@ -102,7 +102,8 @@ export type MapOverlayProps = {
 	 * Set, the mark carries a pointer cursor. The keyboard reaches it through the
 	 * plot region's own cursor. That cursor visits every overlay alongside the
 	 * regions, and activates the one it sits on with Enter or Space. A touch
-	 * picks the mark with a double tap, and one tap picks nothing.
+	 * picks the mark with a double tap, or with one tap under `MapPlat`'s
+	 * `touchPick`.
 	 *
 	 * A singular mark holds one stop, so it is called with a trailing `0` its type
 	 * omits: the plural {@link MapPoints} passes the dot's index there. A handler
