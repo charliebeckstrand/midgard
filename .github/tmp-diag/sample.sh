@@ -12,6 +12,14 @@ while true; do
     rss=$(awk '/VmRSS/ {print $2}' /proc/$p/status 2>/dev/null)
     thr=$(awk '/Threads/ {print $2}' /proc/$p/status 2>/dev/null)
     echo "$ts $p ${t#--type=}${u#--utility-sub-type=} fds=$fds maps=$maps rssKB=$rss threads=$thr"
+    if [ "$t" = --type=renderer ] && [ ! -e "$out.limits.$p" ]; then
+      grep -E 'open files|address space' /proc/$p/limits > "$out.limits.$p"
+      echo "$ts $p limits $(tr -s ' ' < "$out.limits.$p" | tr '\n' ' ')"
+    fi
+    if [ "$t" = --type=renderer ] && [ "$fds" -gt 15000 ] && [ ! -e "$out.kinds.$p" ]; then
+      ls -l /proc/$p/fd | awk 'NR>1{print $NF}' | sed -E 's/[0-9]+/N/g' | sort | uniq -c | sort -rn | head -4 > "$out.kinds.$p"
+      echo "$ts $p kinds $(tr -s ' ' < "$out.kinds.$p" | tr '\n' ' ')"
+    fi
   done >> "$out"
   echo "$ts tmp $(df -k /tmp | tail -1 | awk '{print "usedKB=" $3, "availKB=" $4}') shm $(ls /tmp | grep -c org.chromium)" >> "$out"
   sleep 0.25
