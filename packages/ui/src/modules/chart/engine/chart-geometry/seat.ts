@@ -7,6 +7,7 @@
  */
 
 import { clamp } from '../../../../utilities/clamp'
+import { coord } from '../chart-coords'
 import { CALLOUT_GAP, CALLOUT_LINE, CALLOUT_NUB } from './pie'
 
 /** The radius of the inner arc, as a fraction of the outer arc, when the chart has two or more rows. @internal */
@@ -397,12 +398,15 @@ export function nearestSeat(
  * @internal
  */
 export function discsPath(points: readonly { x: number; y: number }[], r: number): string {
+	// Each disc shares the radius, so the arcs format once.
+	const radius = coord(r)
+
+	const arcs = `a${radius} ${radius} 0 1 0 ${coord(2 * r)} 0a${radius} ${radius} 0 1 0 ${coord(-2 * r)} 0`
+
 	let d = ''
 
-	const round = (value: number) => Math.round(value * 100) / 100
-
 	for (const point of points) {
-		d += `M${round(point.x - r)} ${round(point.y)}a${round(r)} ${round(r)} 0 1 0 ${round(2 * r)} 0a${round(r)} ${round(r)} 0 1 0 ${round(-2 * r)} 0`
+		d += `M${coord(point.x - r)} ${coord(point.y)}${arcs}`
 	}
 
 	return d
