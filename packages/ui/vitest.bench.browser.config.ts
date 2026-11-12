@@ -21,8 +21,31 @@ const diagWatch: BrowserCommand<[]> = async (context) => {
 		),
 	)
 	page.on('console', (message) => {
-		if (message.text().includes('[vite]') && !message.text().includes('connect'))
-			log(`console ${message.text()}`)
+		const text = message.text()
+		if (text.includes('[diag-ws]') || text.includes('WebSocket') || message.type() === 'error')
+			log(`console ${message.type()} ${text.slice(0, 600)}`)
+	})
+	await page.addInitScript(() => {
+		const Native = window.WebSocket
+		const close = Native.prototype.close
+		const name = (socket: WebSocket) => socket.url.split('?')[0]
+		Native.prototype.close = function (this: WebSocket, ...args: [number?, string?]) {
+			console.log(`[diag-ws] close() ${name(this)} ${args.join(' ')} ${new Error().stack}`)
+			return close.apply(this, args)
+		}
+		class Wrapped extends Native {
+			constructor(url: string | URL, protocols?: string | string[]) {
+				super(url, protocols)
+				this.addEventListener('error', () => console.log(`[diag-ws] error event ${name(this)}`))
+				this.addEventListener('close', (event) =>
+					console.log(
+						`[diag-ws] close event ${name(this)} code=${event.code} clean=${event.wasClean} reason=${event.reason}`,
+					),
+				)
+			}
+		}
+		window.WebSocket = Wrapped
+		console.log(`[diag-ws] installed in ${location.href.slice(0, 60)}`)
 	})
 	page.context().on('page', () => log('new page'))
 	page
