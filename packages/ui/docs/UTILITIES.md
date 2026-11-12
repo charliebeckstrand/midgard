@@ -207,6 +207,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `moveItem` | Returns a copy of `items` with the item at `from` moved to index `to`. No mutation. |
 | `toggleListItem` | Returns a copy of `list` with `item` toggled: removed if present, else added at the end. No mutation. |
 | `sameElements` | Whether two lists hold the same items in the same order, by reference. `undefined` matches only `undefined`. |
+| `sameFieldElements` | Whether two lists hold plain objects with the same fields in the same order, each field the same by reference. A new list literal with the same entries matches. `undefined` matches only `undefined`. |
 | `keyByOccurrence` | Pairs each string with a React-key-safe id that is unique for any input, keying repeats by occurrence index. |
 | `rangeKeys` | Builds `count` stable `${prefix}-${index}` keys for fixed-length placeholder loops (skeletons). |
 | `isDataColumn` | True for a content column. False for the selection-checkbox, row-actions, drag-handle, and expander columns. |
