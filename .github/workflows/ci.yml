@@ -197,33 +197,42 @@ jobs:
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
-  # One sample of each jsdom benchmark (`bench:smoke` in packages/ui), so that a
-  # change that breaks a bench fails before it merges. No other job runs the
-  # benches, and #3269 broke six of them unseen. The figures are not
-  # measurements. Two shards keep each job shorter than the `test` job, because
-  # one file holds a large part of the time. The browser benches are not here:
-  # on the GitHub runner, Chromium loses its connection to Vitest partway
-  # through `bench:browser:smoke`.
+  # One sample of each benchmark (`bench:smoke` and `bench:browser:smoke` in
+  # packages/ui), so that a change that breaks a bench fails before it merges.
+  # No other job runs the benches, and #3269 broke six of them unseen. The
+  # figures are not measurements. Three jobs keep each one shorter than the
+  # `test` job: the jsdom suite in two shards, because one file holds a large
+  # part of its time, and the browser suite whole.
   bench:
-    name: bench (jsdom ${{ matrix.shard }})
+    name: bench (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
-      # Let the other shard finish, so that one run shows each failure.
+      # Let the other jobs finish, so that one run shows each failure.
       fail-fast: false
       matrix:
         include:
-          - shard: 1/2
+          - name: jsdom 1/2
             cache: bench-jsdom-1
-          - shard: 2/2
+            task: bench:smoke
+            args: --shard=1/2
+          - name: jsdom 2/2
             cache: bench-jsdom-2
+            task: bench:smoke
+            args: --shard=2/2
+          - name: browser
+            cache: bench-browser
+            task: bench:browser:smoke
+            args: ''
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/turbo-cache
         with:
           name: ${{ matrix.cache }}
-      - run: pnpm turbo run bench:smoke --filter=ui --summarize -- --shard=${{ matrix.shard }}
+      - if: matrix.task == 'bench:browser:smoke'
+        uses: ./.github/actions/playwright
+      - run: pnpm turbo run ${{ matrix.task }} --filter=ui --summarize -- ${{ matrix.args }}
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 

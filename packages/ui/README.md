@@ -34,7 +34,7 @@ No root barrel; the `exports` map exposes each component path.
 | Tests with the React Compiler on | `pnpm --filter ui test:compiler` |
 | Tests that read files outside `ui` (rule documents, Biome plugins, apps) | `pnpm --filter ui test:workspace` |
 | Benchmarks | `pnpm --filter ui bench` |
-| Benchmarks, one sample each, to check that they run (CI runs the jsdom one) | `pnpm --filter ui bench:smoke` / `pnpm --filter ui bench:browser:smoke` |
+| Benchmarks, one sample each, to check that they run (CI runs it) | `pnpm --filter ui bench:smoke` / `pnpm --filter ui bench:browser:smoke` |
 | Typecheck | `pnpm --filter ui check-types` |
 | Lint | `pnpm --filter ui lint` |
 
