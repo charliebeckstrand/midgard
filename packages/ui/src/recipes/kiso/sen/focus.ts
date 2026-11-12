@@ -85,6 +85,15 @@ export const focus = {
 	],
 	indicator: 'focus-visible:after:bg-blue-600',
 	/**
+	 * The `ring` stroke on a part whose parent has the keyboard focus. The `…`
+	 * mark of a hidden breadcrumb crumb draws it, because the mark stands in
+	 * for its link on the line.
+	 */
+	parent: [
+		'[:focus-visible>&]:outline-2 [:focus-visible>&]:outline-offset-2',
+		'[:focus-visible>&]:outline-blue-600',
+	],
+	/**
 	 * The inset ring of a box whose control has keyboard focus. The control
 	 * removes its own outline, and the box draws the ring around the control and
 	 * its neighbors. A control that sits deeper, such as an action in an affix

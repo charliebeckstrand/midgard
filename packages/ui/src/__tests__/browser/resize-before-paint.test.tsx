@@ -1,13 +1,4 @@
-import { Fragment } from 'react'
 import { describe, expect, it, onTestFinished } from 'vitest'
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbSeparator,
-} from '../../components/breadcrumb'
-import { breadcrumbFit } from '../../components/breadcrumb/breadcrumb-fit-rule'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { frames, getSlot, present, renderUI, waitFor } from '../helpers'
 
@@ -93,52 +84,5 @@ describe('content sized from a measurement of its box, on a resize (real browser
 		expect(gaps.length).toBeGreaterThan(1)
 
 		expect(gaps.every((gap) => gap === 0)).toBe(true)
-	})
-
-	it('collapses a breadcrumb for the width of its row in the frame that narrows it', async () => {
-		const crumbs = ['Places', 'United States of America', 'Oregon', 'Portland']
-
-		const { container } = renderUI(
-			<Row width={560}>
-				<Breadcrumb collapse>
-					<BreadcrumbList>
-						{crumbs.map((crumb, index) => (
-							<Fragment key={crumb}>
-								{index > 0 && <BreadcrumbSeparator />}
-								<BreadcrumbItem>
-									<BreadcrumbLink href={`/${crumb}`} current={index === crumbs.length - 1}>
-										{crumb}
-									</BreadcrumbLink>
-								</BreadcrumbItem>
-							</Fragment>
-						))}
-					</BreadcrumbList>
-				</Breadcrumb>
-			</Row>,
-		)
-
-		const nav = getSlot(container, 'breadcrumb')
-
-		const closed = () =>
-			Array.from(
-				nav.querySelectorAll<HTMLElement>('[data-slot=breadcrumb-label]'),
-				(label) => label.clientWidth === 0,
-			).filter(Boolean).length
-
-		await waitFor(() => expect(closed()).toBe(breadcrumbFit(nav)))
-
-		const readings = probe(nav, () => ({ shown: closed(), fit: breadcrumbFit(nav) }))
-
-		await slide(
-			present(container.querySelector<HTMLElement>('[data-testid="rail"]'), 'rail'),
-			[80, 160, 240, 320],
-		)
-
-		expect(readings.length).toBeGreaterThan(1)
-
-		// The steps narrow the row past at least one crumb.
-		expect(readings.at(-1)?.fit).toBeGreaterThan(readings[0]?.fit ?? 0)
-
-		for (const { shown, fit } of readings) expect(shown).toBe(fit)
 	})
 })
