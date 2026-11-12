@@ -134,7 +134,7 @@ function declarations(css: string): string[] {
 		if (text.endsWith('{')) {
 			const block = text.slice(0, -1).trim()
 
-			const isClass = !classSeen && !block.startsWith('@')
+			const isClass: boolean = !classSeen && !block.startsWith('@')
 
 			classSeen ||= isClass
 
