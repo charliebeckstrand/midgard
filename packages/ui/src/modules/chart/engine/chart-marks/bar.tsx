@@ -263,9 +263,11 @@ export function AnimatedChartBarMarks({
 	const still = usePrefersReducedMotion()
 
 	// Each bar is its own presence, so a hidden series plays its exit while the
-	// rest stay. `propagate` passes the exit of a data change through.
+	// rest stay. `propagate` passes the exit of a data change through. No bar
+	// animates its layout, so the presence keeps one context value, and a
+	// memoized bar does not render again with it.
 	return (
-		<AnimatePresence propagate>
+		<AnimatePresence propagate presenceAffectsLayout={false}>
 			{marks.flatMap((row, seriesIndex) => {
 				const paint = paints[seriesIndex]
 

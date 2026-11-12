@@ -88,7 +88,9 @@ export function ChartGeneration({
 
 	return (
 		<ReducedMotion>
-			<AnimatePresence mode="wait">
+			{/* No mark animates its layout, so the presence keeps one context value
+			    through a render. */}
+			<AnimatePresence mode="wait" presenceAffectsLayout={false}>
 				<m.g
 					key={generation}
 					data-slot={slot}
