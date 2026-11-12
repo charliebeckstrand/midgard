@@ -232,9 +232,17 @@ jobs:
           name: ${{ matrix.cache }}
       - if: matrix.task == 'bench:browser:smoke'
         uses: ./.github/actions/playwright
+      - if: matrix.task == 'bench:browser:smoke'
+        run: (ip -ts monitor address link route > "$RUNNER_TEMP/ip-monitor.log" 2>&1 &)
       - run: pnpm turbo run ${{ matrix.task }} --filter=ui --summarize -- ${{ matrix.args }}
         env:
           DEBUG: ${{ matrix.task == 'bench:browser:smoke' && 'vitest:browser:*,pw:browser*' || '' }}
+          BENCH_NETLOG: ${{ matrix.task == 'bench:browser:smoke' && format('{0}/netlog.json', runner.temp) || '' }}
+      - if: always() && matrix.task == 'bench:browser:smoke'
+        run: |
+          echo "ip monitor:"; cat "$RUNNER_TEMP/ip-monitor.log" || true
+          ls -la "$RUNNER_TEMP/netlog.json" || true
+          node .github/tmp-diag/netlog-summary.mjs "$RUNNER_TEMP/netlog.json" || true
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 

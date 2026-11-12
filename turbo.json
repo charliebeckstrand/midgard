@@ -120,7 +120,7 @@
 		},
 		"bench:browser:smoke": {
 			"dependsOn": ["^build"],
-			"passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH", "DEBUG"],
+			"passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH", "DEBUG", "BENCH_NETLOG"],
 			"inputs": [
 				"src/**",
 				"vitest.bench.browser.config.ts",

@@ -61,7 +61,13 @@ export default defineConfig({
 		browser: {
 			enabled: true,
 			provider: playwright({
-				launchOptions: { args: ['--disable-frame-rate-limit', '--disable-gpu-vsync'] },
+				launchOptions: {
+					args: [
+						'--disable-frame-rate-limit',
+						'--disable-gpu-vsync',
+						...(process.env.BENCH_NETLOG ? [`--log-net-log=${process.env.BENCH_NETLOG}`] : []),
+					],
+				},
 			}),
 			headless: true,
 			screenshotFailures: false,
