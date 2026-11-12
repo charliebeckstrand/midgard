@@ -19,7 +19,6 @@ import {
 } from './engine/grid-data/seeds'
 import {
 	isGroupableColumnId,
-	resolveDetailExpansion,
 	resolveGroupingGates,
 	resolveGroupingMode,
 } from './engine/grid-group/resolve'
@@ -178,8 +177,8 @@ export function useGridDataColumns<T>({
 	// The grid's own id scope keeps the detail panel ids of two grids apart.
 	const detailIdScope = useId()
 
-	const detail = resolveDetailExpansion(
-		useGridExpansion<T>(expandableConfig),
+	const detail = useGridExpansion<T>(
+		expandableConfig,
 		groupingMode.active,
 		detailIdScope,
 		paginationConfig != null,

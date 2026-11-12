@@ -139,10 +139,13 @@ describe('Grid plain rows across a sort', () => {
 	})
 
 	// Under grid semantics the editing lookups resolve a row through its place.
-	it('gives each row of a navigable grid its new place', () => {
-		const { places } = setup(true)
+	// The special cells read no place, so their memo holds.
+	it('gives each row of a navigable grid its new place and renders no actions', () => {
+		const { calls, places } = setup(true)
 
 		expect(places).toEqual(rows.map((_, index) => String(index)))
+
+		expect(calls).toBe(0)
 	})
 })
 
@@ -186,6 +189,67 @@ describe('Grid rows across a fresh array of the same columns', () => {
 		}
 
 		renderUI(<Harness />)
+
+		calls = 0
+
+		fireEvent.click(screen.getByRole('button', { name: 'Rerender' }))
+
+		expect(calls).toBe(0)
+	})
+})
+
+describe('Grid body across a render of the grid', () => {
+	type Row = { id: number; name: string }
+
+	const rows: Row[] = Array.from({ length: 20 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
+
+	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
+
+	const getKey = (row: Row) => row.id
+
+	const expandable = { render: (row: Row) => `Details of ${row.name}` }
+
+	// The body reads `rowClassName` for each row it renders, so a call counts a
+	// render of the body. A fresh `tableProps` object, which a consumer often
+	// passes inline, renders the grid again but changes no prop of the body.
+	// jsdom renders no window, so the browser suite holds the windowed body.
+	it.each([
+		['a plain grid', {}],
+		['a navigable grid', { navigable: true }],
+		['a master-detail grid', { expandable }],
+	])('renders no row in %s when only the table props change', (_, props) => {
+		let calls = 0
+
+		const rowClassName = () => {
+			calls++
+
+			return undefined
+		}
+
+		function Harness() {
+			const [, setTick] = useState(0)
+
+			return (
+				<>
+					<button type="button" onClick={() => setTick((tick) => tick + 1)}>
+						Rerender
+					</button>
+
+					<Grid
+						columns={columns}
+						rows={rows}
+						getKey={getKey}
+						rowClassName={rowClassName}
+						tableProps={{ 'aria-label': 'Names' }}
+						{...props}
+					/>
+				</>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		expect(calls).toBeGreaterThan(0)
 
 		calls = 0
 

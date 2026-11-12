@@ -412,7 +412,7 @@ function rowPlaces<T>(
  *
  * @internal
  */
-export function GridBody<T>(props: GridBodyProps<T>) {
+function GridBodyImpl<T>(props: GridBodyProps<T>) {
 	const {
 		loading,
 		rows,
@@ -558,3 +558,10 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		</TableBody>
 	)
 }
+
+/**
+ * Memoized {@link GridBodyImpl}. A render of the grid that changes no prop of the
+ * body, such as a move of the cursor or a render of the parent, does not walk
+ * the rows again. @internal
+ */
+export const GridBody = memo(GridBodyImpl) as typeof GridBodyImpl

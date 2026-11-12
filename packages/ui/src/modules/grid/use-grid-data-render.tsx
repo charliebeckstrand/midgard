@@ -521,6 +521,36 @@ export function useGridDataRender<T>(
 		[toggleAll, allSelected, someSelected, sort, toggleSort, pinColumn, stickyHeader],
 	)
 
+	const windowed = gated.virtualize
+	const windowEstimate = estimateSize ?? rowHeight ?? FIRST_ROW_ESTIMATE
+
+	// One window binding while its parts hold, so the memoized body does not
+	// render again.
+	const virtualize = useMemo(
+		() =>
+			windowed
+				? {
+						scrollRef,
+						estimateSize: windowEstimate,
+						overscan,
+						scrollIntoViewRef: scrollRowIntoViewRef,
+						infiniteScroll,
+						fitRenderedRows,
+						stickyHeader,
+					}
+				: null,
+		[
+			windowed,
+			scrollRef,
+			windowEstimate,
+			overscan,
+			scrollRowIntoViewRef,
+			infiniteScroll,
+			fitRenderedRows,
+			stickyHeader,
+		],
+	)
+
 	const needsScrollWrapper = stickyHeader || gated.virtualize
 
 	// Highlight-mode search (`search.mode === 'highlight'`): every row stays and the
@@ -607,17 +637,7 @@ export function useGridDataRender<T>(
 				groupTotalRow,
 				expansion: detail.body,
 				truncate,
-				virtualize: gated.virtualize
-					? {
-							scrollRef,
-							estimateSize: estimateSize ?? rowHeight ?? FIRST_ROW_ESTIMATE,
-							overscan,
-							scrollIntoViewRef: scrollRowIntoViewRef,
-							infiniteScroll,
-							fitRenderedRows,
-							stickyHeader,
-						}
-					: null,
+				virtualize,
 			}}
 			newRow={{
 				place: newRowPlace,
