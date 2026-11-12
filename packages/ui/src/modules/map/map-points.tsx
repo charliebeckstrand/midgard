@@ -339,11 +339,46 @@ function prepaintGroups(
 	})
 }
 
+/**
+ * The declarations that scale a mark before the box is measured, so that it
+ * draws at its size in pixels. The frame scales to meet the plot box less the
+ * inset, so a frame `width` units wide draws as wide as the smaller of the
+ * width of that box and its height times `aspect`. The scale is `width` over
+ * that drawn width.
+ *
+ * The second declaration divides a length by a length. A browser without that
+ * arithmetic drops it as it parses, and keeps the first, which gets the number
+ * of pixels of a length through `tan(atan2(length, 1px))`. WebKit 26 can divide,
+ * but its trigonometry gives `0` for a length in `cq` units, so it needs the
+ * second.
+ *
+ * @internal
+ */
+function pixelScale(width: number, aspect: number): string {
+	const inset = MAP_FIT_INSET * 2
+
+	const drawn = `min(100cqw - ${inset}px, (100cqh - ${inset}px) * ${aspect})`
+
+	return `transform:scale(calc(${width} / tan(atan2(${drawn}, 1px))));transform:scale(calc(${width}px / ${drawn}))`
+}
+
+/**
+ * The props of the wrapper of one group of a {@link MapPointsPrepaint}: its
+ * name for the rules, and the point that its scale keeps in place.
+ *
+ * @internal
+ */
+function bandProps(name: string, at: MapPoint2D) {
+	return { 'data-map-band': name, style: { transformOrigin: `${at.x}px ${at.y}px` } }
+}
+
 /** Props for {@link MapPointsPrepaint}. @internal */
 type MapPointsPrepaintProps = {
 	groups: MapPrepaintGroup[]
 	/** The prefix of the names that tie each group to its rule. */
 	scope: string
+	/** The width of the canonical frame, in frame units. */
+	width: number
 	/** The width over the height of the canonical frame. */
 	aspect: number
 	points: readonly MapPointDatum[]
@@ -365,9 +400,9 @@ type MapPointsPrepaintProps = {
  * yet. The set therefore draws the groups of every width, from its merge tree
  * (`clusterTree`). Each group holds over one range of widths. A container query
  * on the plot shows each group in its range alone, so the first paint draws the
- * groups that the measured frame draws. Each dot is a cap of a stroke that
- * keeps its width in pixels, and each count sizes its type in pixels through
- * `--map-unit`, so the sizes are exact too.
+ * groups that the measured frame draws. Each group draws at the scale of one
+ * pixel (`pixelScale`) around its own point, so the shapes, the strokes, and
+ * the counts are at their size in pixels too.
  *
  * Nothing here answers the pointer. The box is measured in the layout effects
  * of the hydration, and the dots of the measured frame take over in that
@@ -383,6 +418,7 @@ type MapPointsPrepaintProps = {
 function MapPointsPrepaint({
 	groups,
 	scope,
+	width,
 	aspect,
 	points,
 	radius,
@@ -396,7 +432,7 @@ function MapPointsPrepaint({
 
 	const countInk = cn(...k.series[slot].label)
 
-	const rules = groups
+	const shows = groups
 		.map(({ from, to }, index) => {
 			if (from === 0 && to === Number.POSITIVE_INFINITY) return ''
 
@@ -406,6 +442,8 @@ function MapPointsPrepaint({
 		})
 		.join('')
 
+	const rules = `[data-map-band^="${scope}-"]{${pixelScale(width, aspect)}}${shows}`
+
 	return (
 		<g data-slot="map-points">
 			<style suppressHydrationWarning>{rules}</style>
@@ -414,7 +452,7 @@ function MapPointsPrepaint({
 			{picked !== null &&
 				groups.map(({ node }, index) =>
 					node.at !== null && node.members.includes(picked) ? (
-						<g key={band(index)} data-map-band={band(index)}>
+						<g key={band(index)} {...bandProps(band(index), node.at)}>
 							<MapDotHalo
 								slot="map-points-selected"
 								at={node.at}
@@ -430,7 +468,7 @@ function MapPointsPrepaint({
 				const count = node.members.length
 
 				return node.at === null ? null : (
-					<g key={band(index)} data-map-band={band(index)}>
+					<g key={band(index)} {...bandProps(band(index), node.at)}>
 						<MapDot
 							slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
 							at={node.at}
@@ -894,6 +932,7 @@ export function MapPoints({
 
 		return {
 			groups: prepaintGroups(positions, project, gap, clusters.getRadius, width),
+			width,
 			aspect: width / height,
 			slot: overlay.color,
 		}

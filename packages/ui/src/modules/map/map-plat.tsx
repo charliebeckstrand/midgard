@@ -801,36 +801,9 @@ const CANONICAL_SVG = {
 	} satisfies CSSProperties,
 }
 
-/**
- * The class and the style of the plot SVG in each state of the frame.
- *
- * Before the measurement, the style also sets `--map-unit`: the frame units in
- * one pixel. The frame meets the box less the inset, so a frame `width` units
- * wide draws as wide as the smaller of the width of that box and its height
- * times the aspect of the frame. `tan(atan2(length, 1px))` gives a length as a
- * number of pixels, which CSS cannot divide by otherwise. Text that a mark sizes
- * as a multiple of `--map-unit` then draws at its size in pixels.
- *
- * @internal
- */
-function plotSvgProps(
-	measured: boolean,
-	width: number,
-	height: number,
-): { className: string; style?: CSSProperties } {
-	if (measured) return MEASURED_SVG
-
-	const inset = MAP_FIT_INSET * 2
-
-	const drawn = `min(100cqw - ${inset}px, (100cqh - ${inset}px) * ${width / height})`
-
-	return {
-		...CANONICAL_SVG,
-		style: {
-			...CANONICAL_SVG.style,
-			'--map-unit': `calc(${width} / tan(atan2(${drawn}, 1px)))`,
-		} as CSSProperties,
-	}
+/** The class and the style of the plot SVG in each state of the frame. @internal */
+function plotSvgProps(measured: boolean): { className: string; style?: CSSProperties } {
+	return measured ? MEASURED_SVG : CANONICAL_SVG
 }
 
 /**
@@ -1615,7 +1588,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			<svg
 				ref={svgRef}
 				aria-hidden="true"
-				{...plotSvgProps(shape.measured, shape.viewWidth, shape.viewHeight)}
+				{...plotSvgProps(shape.measured)}
 				viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
 			>
 				<MapPlatContext value={plat}>

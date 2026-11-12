@@ -49,6 +49,23 @@ describe('MapPoints server markup', () => {
 		expect(count(html, '@container map-plot')).toBe(3)
 	})
 
+	it('scales each group to its size in pixels by a division that WebKit gets right', () => {
+		const html = markup(<MapPoints id="stops" label="Stops" color="blue" points={POINTS} />)
+
+		const rule = /\[data-map-band\^="[^"]+-"\]\{([^}]*)\}/.exec(html)?.[1] ?? ''
+
+		// WebKit 26 gives 0 for `tan(atan2())` of a length in `cq` units, so the last
+		// declaration divides the lengths. A browser that cannot divide them drops
+		// it and keeps the first.
+		const [first, last] = rule.split(';')
+
+		expect(first).toMatch(/^transform:scale\(calc\(\d+ \/ tan\(atan2\(/)
+
+		expect(last).toMatch(/^transform:scale\(calc\(\d+px \/ min\(100cqw/)
+
+		expect(count(html, 'transform-origin:')).toBe(4)
+	})
+
 	it('draws nothing for a mark whose color comes from the ledger', () => {
 		// The slot of such a mark is known only after it registers.
 		const html = markup(<MapPoints id="stops" label="Stops" points={POINTS} />)

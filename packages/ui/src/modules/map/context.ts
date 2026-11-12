@@ -267,9 +267,8 @@ export type MapPlatContextValue = {
 	 * The frame then scales to meet a box that no render knows. A mark whose
 	 * drawing depends on the width in pixels draws for every width at once, and a
 	 * container query on the plot shows the drawing of the width that the box has
-	 * (`MapPoints`). The plot is the container `map-plot`, and the SVG sets
-	 * `--map-unit` to the frame units in one pixel, so a mark can size text in
-	 * pixels before the measurement.
+	 * (`MapPoints`). The plot is the container `map-plot`, so a mark can read the
+	 * size of the box in a container query and in `cq` units.
 	 */
 	unmeasured: { width: number; height: number } | null
 }
