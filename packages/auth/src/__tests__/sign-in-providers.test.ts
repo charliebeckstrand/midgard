@@ -3,6 +3,9 @@ import { BIFROST_URL } from '../env'
 import { getSignInProviders } from '../sign-in-providers'
 import { stubGateway } from './helpers/stub-gateway'
 
+// Next keeps the shortest life of all the `cacheLife` calls in one cache scope.
+// So each case expects exactly one call: a second call with a shorter life
+// changes the life of an answer.
 const cacheLife = vi.hoisted(() => vi.fn())
 
 vi.mock('next/cache', () => ({ cacheLife }))
@@ -15,7 +18,7 @@ describe('getSignInProviders', () => {
 
 		expect(fetch.mock.calls[0]?.[0].headers.has('cookie')).toBe(false)
 
-		expect(cacheLife).toHaveBeenCalledWith('hours')
+		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('hours')
 
 		expect(fetch.mock.calls[0]?.[0].url).toBe(`${BIFROST_URL}/auth/oauth/providers`)
 	})
@@ -29,7 +32,7 @@ describe('getSignInProviders', () => {
 
 		expect(error).toHaveBeenCalledOnce()
 
-		expect(cacheLife).toHaveBeenCalledWith('seconds')
+		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('seconds')
 	})
 
 	it('returns none when the gateway does not answer', async () => {
@@ -46,6 +49,6 @@ describe('getSignInProviders', () => {
 
 		expect(error).toHaveBeenCalledOnce()
 
-		expect(cacheLife).toHaveBeenCalledWith('seconds')
+		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('seconds')
 	})
 })
