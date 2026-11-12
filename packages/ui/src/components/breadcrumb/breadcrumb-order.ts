@@ -16,8 +16,12 @@ const PLACES = 31
  * Thus the server paints the fit.
  * @internal
  */
-export const BREADCRUMB_ORDER_RULE = Array.from(
-	{ length: PLACES },
-	(_, index) =>
-		`[data-collapse] [data-slot=breadcrumb-list]>:nth-last-child(${index + 1}){order:${index + 1}}`,
-).join('')
+export const BREADCRUMB_ORDER_RULE = [
+	// Each item takes the last place first. A rule with a place has the higher specificity.
+	`[data-collapse] [data-slot=breadcrumb-list]>*{order:${PLACES + 1}}`,
+	...Array.from(
+		{ length: PLACES },
+		(_, index) =>
+			`[data-collapse] [data-slot=breadcrumb-list]>:nth-last-child(${index + 1}){order:${index + 1}}`,
+	),
+].join('')

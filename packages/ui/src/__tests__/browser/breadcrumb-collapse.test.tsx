@@ -183,6 +183,20 @@ describe('a collapsing breadcrumb (real browser)', () => {
 		)
 	})
 
+	it('keeps the current page on the line in a trail past the places of the order rule', () => {
+		const crumbs = Array.from({ length: 20 }, (_, index) => `Crumb ${index + 1}`)
+
+		const container = attach(serverMarkup(trail(360, crumbs)))
+
+		const shown = drawn(container)
+
+		expect(shown[0]).toBe('…')
+
+		expect(shown.at(-1)).toBe('Crumb 20')
+
+		expect(shown).not.toContain('Crumb 1')
+	})
+
 	it('sends the pointer on the mark to the nearest crumb that gave way', () => {
 		const container = attach(serverMarkup(trail(360)))
 
