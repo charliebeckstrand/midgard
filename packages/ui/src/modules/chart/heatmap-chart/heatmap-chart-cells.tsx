@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { cn } from '../../../core/cn'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { k } from '../../../recipes/kata/chart'
@@ -92,10 +92,11 @@ type HeatmapChartCellsProps = {
  * @remarks Under `animate` the grid paints the neutral at once, and the colors
  * wash in, as the choropleth's color washes in, column by column under
  * `'sweep'`. The wash is a CSS color transition on a plain `<rect>`, so the grid
- * carries no motion runtime.
+ * carries no motion runtime. The grid is memoized: the chart holds each of its
+ * props in a memo, so a parent render with equal props renders no cell.
  * @internal
  */
-export function HeatmapChartCells({
+export const HeatmapChartCells = memo(function HeatmapChartCells({
 	cells,
 	cols,
 	fills,
@@ -142,7 +143,7 @@ export function HeatmapChartCells({
 			})}
 		</g>
 	)
-}
+})
 
 /** The rect of one stroke of a cell mark. @internal */
 function CellStroke({ cell, side }: { cell: HeatmapCell; side: 'outer' | 'inner' }) {
