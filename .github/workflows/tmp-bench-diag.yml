@@ -26,6 +26,7 @@ jobs:
       - name: Repeat the smoke
         working-directory: packages/ui
         run: |
+          set +e
           for i in 1 2 3 4 5 6 7 8; do
             if [ $((i % 2)) = 1 ]; then
               variant=base; args='--enable-logging=stderr --v=0'
