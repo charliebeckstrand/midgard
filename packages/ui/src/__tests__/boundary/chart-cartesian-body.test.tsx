@@ -7,6 +7,8 @@ import { seriesMetas } from '../../modules/chart/engine/chart-cartesian/series'
 import { barMarks } from '../../modules/chart/engine/chart-geometry/bar'
 import { buildLineSeries, lineGeometry } from '../../modules/chart/engine/chart-geometry/line'
 import { verticalLayout } from '../../modules/chart/engine/chart-layout'
+import { chartReadout } from '../../modules/chart/engine/chart-series'
+import { COMPACT_WIDTH } from '../../modules/chart/engine/chart-tier'
 import { LineChart } from '../../modules/chart/line-chart'
 import { act, fireEvent, getSlot, renderUI } from '../helpers'
 import { legendItem } from '../helpers/chart-legend'
@@ -30,6 +32,12 @@ vi.mock('../../modules/chart/engine/chart-cartesian/series', async (importOrigin
 		await importOriginal<typeof import('../../modules/chart/engine/chart-cartesian/series')>()
 
 	return { ...actual, seriesMetas: vi.fn(actual.seriesMetas) }
+})
+
+vi.mock('../../modules/chart/engine/chart-series', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('../../modules/chart/engine/chart-series')>()
+
+	return { ...actual, chartReadout: vi.fn(actual.chartReadout) }
 })
 
 vi.mock('../../modules/chart/engine/chart-geometry/bar', async (importOriginal) => {
@@ -71,13 +79,20 @@ async function settle() {
 
 /** Clears each count. */
 function clearCounts() {
-	for (const fn of [verticalLayout, seriesMetas, barMarks, buildLineSeries, lineGeometry]) {
+	for (const fn of [
+		verticalLayout,
+		seriesMetas,
+		chartReadout,
+		barMarks,
+		buildLineSeries,
+		lineGeometry,
+	]) {
 		vi.mocked(fn).mockClear()
 	}
 }
 
 /** A line chart, with a `series` and a `reference` that are new list literals on each call. */
-const lineChart = (data: Row[]) => (
+const lineChart = (data: Row[], width = 400) => (
 	<LineChart
 		aria-label="L"
 		data={data}
@@ -86,7 +101,7 @@ const lineChart = (data: Row[]) => (
 			{ xKey: 'week', yKey: 'b', yName: 'B' },
 		]}
 		reference={[{ value: 20, label: 'Goal' }]}
-		width={400}
+		width={width}
 	/>
 )
 
@@ -196,6 +211,47 @@ describe('cartesian chart body', () => {
 		})
 
 		expect(vi.mocked(verticalLayout)).toHaveBeenCalledTimes(1)
+	})
+
+	it('formats no readout cell again on a reference toggle', async () => {
+		const { container } = renderUI(lineChart(DATA))
+
+		await settle()
+
+		// The deferred table builds the readout once on mount.
+		expect(vi.mocked(chartReadout)).toHaveBeenCalled()
+
+		clearCounts()
+
+		const chip = container.querySelector<HTMLButtonElement>(
+			'button[data-slot="chart-legend-reference"]',
+		)
+
+		act(() => {
+			chip?.click()
+		})
+
+		await settle()
+
+		expect(chip?.getAttribute('aria-pressed')).toBe('false')
+
+		expect(vi.mocked(chartReadout)).not.toHaveBeenCalled()
+	})
+
+	it('formats no readout cell again when the tick labels go compact', async () => {
+		const { rerender } = renderUI(lineChart(DATA, COMPACT_WIDTH + 16))
+
+		await settle()
+
+		clearCounts()
+
+		act(() => rerender(lineChart(DATA, COMPACT_WIDTH - 16)))
+
+		await settle()
+
+		expect(vi.mocked(verticalLayout)).toHaveBeenCalled()
+
+		expect(vi.mocked(chartReadout)).not.toHaveBeenCalled()
 	})
 
 	it('builds the series again when an entry of the series changes', async () => {

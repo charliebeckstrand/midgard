@@ -54,36 +54,12 @@ function domainValuesFor<T>(args: {
 	return values
 }
 
-/** The per-axis formatters and layout inputs resolved from the chart props. @internal */
+/** The per-axis layout inputs resolved from the chart props. @internal */
 type ResolvedValueAxes = {
 	value?: ChartValueAxisInput
 	value2?: ChartValueAxisInput
 	/** The category axis's title, gated on the tier affording a title band. */
 	bandTitle?: string
-	formatAxisValue: (value: number, axis: ChartValueAxisId) => string
-}
-
-/** One axis's tick and readout formatters. @internal */
-type AxisFormatters = {
-	/** The value gutter's labels: the compact default in a narrow frame. */
-	tick: (value: number) => string
-	/** The tooltip, hidden table, and reference rules: never compact. */
-	readout: (value: number) => string
-}
-
-/**
- * One axis's tick and readout formatters. An explicit per-axis or chart `format`
- * wins for both. Absent, the tick labels take `tickDefault` (compact in a narrow
- * frame), while the readout keeps `readoutDefault`, which is never compact.
- *
- * @internal
- */
-function axisFormatters(
-	explicit: ((value: number) => string) | undefined,
-	tickDefault: (value: number) => string,
-	readoutDefault: (value: number) => string,
-): AxisFormatters {
-	return { tick: explicit ?? tickDefault, readout: explicit ?? readoutDefault }
 }
 
 /**
@@ -91,20 +67,17 @@ function axisFormatters(
  *
  * - Each axis's domain candidates and pins.
  * - Its `format`, winning over the chart's `formatValue`.
- * - Its tick and readout formatters.
+ * - Its tick formatter.
  * - Its title.
  *
- * Two formatters per axis, not one. The tick labels take the compact default in
- * a narrow frame (`compact`): locale compact notation (`48.2K`, `1.25M`), where
- * a full-format label would crowd the plot. Each tick label keeps the digits of
- * the tick step, so two ticks never read the same. The readout is never compact,
- * so a gutter stays cheap without coarsening the numbers a reader opens the
- * tooltip for. It writes two fraction digits, or six significant digits where
- * they show more. That readout is the tooltip, the hidden table, and the
- * reference rules.
- * An explicit `format` / `formatValue` overrides both. Titles resolve only
- * when the tier affords them (`axisTitles`), so a narrow frame reserves no title
- * band.
+ * The tick labels take the compact default in a narrow frame (`compact`):
+ * locale compact notation (`48.2K`, `1.25M`), where a full-format label would
+ * crowd the plot. Each tick label keeps the digits of the tick step, so two
+ * ticks never read the same. The readout is never compact, so a gutter stays
+ * cheap without coarsening the numbers a reader opens the tooltip for
+ * ({@link axisReadoutFormat}). An explicit `format` / `formatValue` overrides
+ * both. Titles resolve only when the tier affords them (`axisTitles`), so a
+ * narrow frame reserves no title band.
  *
  * @internal
  */
@@ -119,16 +92,14 @@ export function resolveValueAxes<T>(
 	axisTitles: boolean,
 	locale: string | undefined,
 ): ResolvedValueAxes {
-	// The tick labels take the compact default in a narrow frame; the readout is
-	// never compact. An explicit per-axis or chart formatter wins for both. The
-	// defaults write numbers in the ambient locale, as the band axis writes dates.
-	const readoutDefault = readoutFormat(locale)
-
+	// The tick labels take the compact default in a narrow frame. An explicit
+	// per-axis or chart formatter wins. The defaults write numbers in the ambient
+	// locale, as the band axis writes dates.
 	const tickDefault = compact ? compactTickFormat(locale) : tickFormat(locale)
 
-	const y = axisFormatters(axes.y?.format ?? props.formatValue, tickDefault, readoutDefault)
+	const yTick = axes.y?.format ?? props.formatValue ?? tickDefault
 
-	const y2 = axisFormatters(axes.y2?.format ?? props.formatValue, tickDefault, readoutDefault)
+	const y2Tick = axes.y2?.format ?? props.formatValue ?? tickDefault
 
 	const yDomainValues = domainValuesFor({
 		axis: 'y',
@@ -173,7 +144,7 @@ export function resolveValueAxes<T>(
 					domainValues: yDomainValues,
 					min: axes.y?.min,
 					max: axes.y?.max,
-					format: y.tick,
+					format: yTick,
 					title: axisTitles ? axes.y?.title : undefined,
 				}
 			: undefined,
@@ -182,13 +153,39 @@ export function resolveValueAxes<T>(
 					domainValues: y2DomainValues,
 					min: axes.y2?.min,
 					max: axes.y2?.max,
-					format: y2.tick,
+					format: y2Tick,
 					title: axisTitles ? axes.y2?.title : undefined,
 				}
 			: undefined,
 		bandTitle: axisTitles ? axes.x?.title : undefined,
-		formatAxisValue: (value, axis) => (axis === 'y2' ? y2.readout(value) : y.readout(value)),
 	}
+}
+
+/**
+ * The readout formatter of both value axes: the tooltip, the hidden table, and
+ * the reference rules. An explicit per-axis or chart formatter wins. Else the
+ * readout default writes the number in the ambient locale, never compact.
+ *
+ * The readout formatter is apart from {@link resolveValueAxes}, because its
+ * inputs are only the two formatters and the locale. A reference toggle or a
+ * compact tier change then keeps the formatter, and the readout that it builds.
+ *
+ * @param yFormat - The formatter of the `y` axis: its `format`, else the chart's `formatValue`.
+ * @param y2Format - The formatter of the `y2` axis, resolved the same way.
+ * @internal
+ */
+export function axisReadoutFormat(
+	yFormat: ((value: number) => string) | undefined,
+	y2Format: ((value: number) => string) | undefined,
+	locale: string | undefined,
+): (value: number, axis: ChartValueAxisId) => string {
+	const readoutDefault = readoutFormat(locale)
+
+	const y = yFormat ?? readoutDefault
+
+	const y2 = y2Format ?? readoutDefault
+
+	return (value, axis) => (axis === 'y2' ? y2(value) : y(value))
 }
 
 /**

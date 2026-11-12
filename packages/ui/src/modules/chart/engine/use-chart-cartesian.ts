@@ -11,6 +11,7 @@ import { sameFieldElements } from '../../../utilities/same-elements'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { type ChartValueAxisId, resolveAxes } from './chart-axes/schema'
 import {
+	axisReadoutFormat,
 	buildCategoryGrid,
 	buildGrid,
 	buildReferences,
@@ -545,7 +546,7 @@ export function useChartCartesian<T>(
 
 	const stackMode = resolveStackMode(config)
 
-	const { value, value2, bandTitle, formatAxisValue } = useMemo(
+	const { value, value2, bandTitle } = useMemo(
 		() =>
 			resolveValueAxes(
 				{ formatValue, reference },
@@ -570,6 +571,18 @@ export function useChartCartesian<T>(
 			policy.axisTitles,
 			locale,
 		],
+	)
+
+	// The readout formatter keys only on the two formatters and the locale, apart
+	// from the axes above. A reference toggle or a compact tier change then keeps
+	// the readout thunk, and the hidden table formats no cell again.
+	const yFormat = axes.y?.format ?? formatValue
+
+	const y2Format = axes.y2?.format ?? formatValue
+
+	const formatAxisValue = useMemo(
+		() => axisReadoutFormat(yFormat, y2Format, locale),
+		[yFormat, y2Format, locale],
 	)
 
 	// Walks every row to detect a date axis, then again to label it, so it is
