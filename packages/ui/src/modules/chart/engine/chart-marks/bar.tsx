@@ -188,15 +188,19 @@ export function litOverlay(
 
 /** Props for {@link AnimatedBar}: one bar, in plain values so the memo holds. @internal */
 type AnimatedBarProps = {
+	/** The own index of the series (`meta.index`), the identity that the emphasis keys on. */
+	series: number
+	/** The index of the bar in its series. */
+	datum: number
+	paint: ChartPaint | undefined
+	textureActive: boolean
 	d: string
 	positive: boolean
 	orientation: ChartOrientation
 	/** The grow delay of the bar in its series, in seconds ({@link barGrowDelay}). */
 	delay: number
-	fill: string | undefined
 	/** The texture tile fill URL, if any. */
 	tile: string | undefined
-	className: string
 	/**
 	 * Mount the bar at rest, and remove it with no exit: the reader asks for
 	 * reduced motion, or the render is on the server or is the hydration render.
@@ -205,41 +209,51 @@ type AnimatedBarProps = {
 }
 
 /**
- * One grown bar. Memoized on plain values, so an emphasis change renders only
- * the bars whose dim class changed, not each bar of the chart.
+ * One grown bar. It reads the emphasis itself, so the layer above it reads
+ * none. The path element is a memo on the dim class and the plain values, so
+ * an emphasis change renders each bar, but renders the Motion path only of the
+ * bars whose dim class changed.
  *
  * @internal
  */
 const AnimatedBar = memo(function AnimatedBar({
+	series,
+	datum,
+	paint,
+	textureActive,
 	d,
 	positive,
 	orientation,
 	delay,
-	fill,
 	tile,
-	className,
 	still,
 }: AnimatedBarProps) {
-	const grow = barGrow(orientation, positive)
+	const { lit } = useChartMarkEmphasis()
 
-	return (
-		<m.path
-			data-slot="chart-bar"
-			d={d}
-			fill={fill}
-			className={className}
-			// The server cannot read the preference, so it renders the bar at rest.
-			// A bar at its zero scale is invisible until the motion features load.
-			initial={still ? false : grow.initial}
-			animate={grow.animate}
-			// The bar shrinks back to the same baseline end it grew from (the
-			// reveal in reverse) when a data change swaps the marks generation, or a
-			// toggle hides its series.
-			exit={still ? undefined : { ...grow.initial, transition: BAR_SHRINK }}
-			style={{ ...grow.style, ...textureStyle(tile) }}
-			transition={{ ...BAR_GROW, delay }}
-		/>
-	)
+	const dim = !lit(series, datum)
+
+	return useMemo(() => {
+		const grow = barGrow(orientation, positive)
+
+		return (
+			<m.path
+				data-slot="chart-bar"
+				d={d}
+				fill={paint && rawColor(paint)}
+				className={barClass(paint, dim, textureActive, tile)}
+				// The server cannot read the preference, so it renders the bar at rest.
+				// A bar at its zero scale is invisible until the motion features load.
+				initial={still ? false : grow.initial}
+				animate={grow.animate}
+				// The bar shrinks back to the same baseline end it grew from (the
+				// reveal in reverse) when a data change swaps the marks generation, or a
+				// toggle hides its series.
+				exit={still ? undefined : { ...grow.initial, transition: BAR_SHRINK }}
+				style={{ ...grow.style, ...textureStyle(tile) }}
+				transition={{ ...BAR_GROW, delay }}
+			/>
+		)
+	}, [d, paint, dim, textureActive, tile, still, orientation, positive, delay])
 })
 
 /**
@@ -247,9 +261,13 @@ const AnimatedBar = memo(function AnimatedBar({
  * sequence. They shrink back to it on a data change, and the bars of a series
  * shrink back when a toggle hides it.
  *
+ * The layer is a memo and reads no emphasis: each {@link AnimatedBar} reads
+ * it. A render of the chart body that keeps the marks therefore renders no
+ * bar and no presence.
+ *
  * @internal
  */
-export function AnimatedChartBarMarks({
+export const AnimatedChartBarMarks = memo(function AnimatedChartBarMarks({
 	marks,
 	paints,
 	indices,
@@ -258,8 +276,6 @@ export function AnimatedChartBarMarks({
 	orientation = 'vertical',
 	hidden,
 }: ChartBarMarksProps) {
-	const { lit } = useChartMarkEmphasis()
-
 	const still = usePrefersReducedMotion()
 
 	// Each bar is its own presence, so a hidden series plays its exit while the
@@ -285,13 +301,15 @@ export function AnimatedChartBarMarks({
 					return (
 						<AnimatedBar
 							key={key}
+							series={series}
+							datum={index}
+							paint={paint}
+							textureActive={textureActive}
 							d={mark.d}
 							positive={mark.positive}
 							orientation={orientation}
 							delay={barGrowDelay(index, row.length)}
-							fill={paint && rawColor(paint)}
 							tile={fills?.[seriesIndex]}
-							className={barClass(paint, !lit(series, index), textureActive, fills?.[seriesIndex])}
 							still={still}
 						/>
 					)
@@ -299,4 +317,4 @@ export function AnimatedChartBarMarks({
 			})}
 		</AnimatePresence>
 	)
-}
+})
