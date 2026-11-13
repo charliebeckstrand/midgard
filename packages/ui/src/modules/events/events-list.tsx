@@ -68,13 +68,17 @@ function EventLine({
 	// scrolls on the inline axis.
 	const slot = (
 		<span className="flex size-4 shrink-0 items-center">
-			{(panel !== undefined || entry.report) && <Icon icon={<ChevronRight />} size={12} />}
+			{(panel !== undefined || entry.report) && (
+				<Icon icon={<ChevronRight />} size={12} className="rtl:-scale-x-100" />
+			)}
 		</span>
 	)
 
 	const head = (
 		<span className={cn('flex font-mono text-xs', color)}>
-			<span className="shrink-0 whitespace-pre">{formatColumns(entry, width)}</span>
+			<span dir="ltr" className="shrink-0 whitespace-pre">
+				{formatColumns(entry, width)}
+			</span>
 			{panel === undefined ? (
 				// The gap is the gap of the toggle, so the texts of the two kinds of line
 				// start in one column.
@@ -85,7 +89,7 @@ function EventLine({
 			) : (
 				// The trigger gives its muted color to the chevron. The text keeps the
 				// color of the line.
-				<CollapseTrigger className="min-w-0 items-start text-start text-xs aria-expanded:*:first:rotate-90">
+				<CollapseTrigger className="min-w-0 items-start text-start text-xs aria-expanded:*:first:rotate-90 rtl:aria-expanded:*:first:-rotate-90">
 					{slot}
 					<span className={cn('min-w-0', color ?? slots.text)}>{text}</span>
 				</CollapseTrigger>

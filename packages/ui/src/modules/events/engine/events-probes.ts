@@ -66,9 +66,23 @@ export function parseFrames(stack: string | undefined): string[] {
 		.filter((frame) => frame && frame !== 'Error')
 }
 
+/**
+ * A thrown value as text. `String` throws for a value that has no primitive
+ * form, such as an object with no prototype, and its tag is the text then.
+ *
+ * @internal
+ */
+export function formatValue(value: unknown): string {
+	try {
+		return String(value)
+	} catch {
+		return Object.prototype.toString.call(value)
+	}
+}
+
 /** The message of a thrown value: the message of an `Error`, else the value as text. */
 function getMessage(error: unknown): string {
-	return error instanceof Error ? error.message : String(error)
+	return error instanceof Error ? error.message : formatValue(error)
 }
 
 /**
