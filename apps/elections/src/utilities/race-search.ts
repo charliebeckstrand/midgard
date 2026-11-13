@@ -2,7 +2,16 @@ import { type Election, electionPath } from '../elections/registry'
 import type { UsState } from '../elections/us-states'
 import type { PartySlot } from '../types'
 import { type DrawerStep, drawerHref } from './elections-url'
-import { entryKey, entryName, entryStep, matchesWords, type OfficeRaces } from './results'
+import {
+	entryKey,
+	entryName,
+	entryStep,
+	matchesWords,
+	type OfficeRaces,
+	type RaceEntry,
+	searchText,
+	searchWords,
+} from './results'
 
 /**
  * The search of an election, in the header of each of its pages. A row is a
@@ -19,7 +28,10 @@ export type SearchRow = {
 	key: string
 	/** The name of the state or the race, such as `Georgia` or `Georgia 6th District`. */
 	label: string
-	/** The offices of a state, or the two leaders of a race. */
+	/**
+	 * The offices of a state, or the candidates of a race: the two leaders, and
+	 * each other candidate that the query finds (`raceDescription`).
+	 */
 	description: string
 	/** The color of the leader of a race, or `null` for a state. */
 	slot: PartySlot | null
@@ -47,6 +59,36 @@ function stateOffices(races: readonly OfficeRaces[]): { state: UsState; offices:
 	}
 
 	return [...byKey.values()].sort((a, b) => a.state.name.localeCompare(b.state.name))
+}
+
+/** The most leaders of a race that its row names. */
+const LEADERS = 2
+
+/**
+ * The description of the row of a race: the names of its two leaders, then the
+ * name of each other candidate that a word of the query needs, in the order of
+ * the votes.
+ *
+ * A word needs a candidate when the office, the name of the race, and the two
+ * leaders do not hold it. Then the match of the race is on a candidate that the
+ * row does not name, so the row names that candidate too. Thus `fox` names a
+ * third candidate `Fox-Spencer`, but `georgia` adds no name to a race of
+ * Georgia, because the name of the race holds it.
+ */
+function raceDescription(entry: RaceEntry, query: string): string {
+	const leaders = entry.candidates.slice(0, LEADERS)
+
+	const names = [entry.contest.label, entryName(entry), ...leaders.map((leader) => leader.name)]
+
+	const shown = searchText(names.join(' '))
+
+	const words = searchWords(query).filter((word) => !shown.includes(word))
+
+	const found = entry.candidates
+		.slice(LEADERS)
+		.filter((candidate) => words.some((word) => searchText(candidate.name).includes(word)))
+
+	return [...leaders, ...found].map((candidate) => candidate.name).join(', ')
 }
 
 /**
@@ -86,10 +128,7 @@ export function searchGroups(races: readonly OfficeRaces[], query: string): Sear
 			.map((entry) => ({
 				key: entryKey(entry),
 				label: entryName(entry),
-				description: entry.candidates
-					.slice(0, 2)
-					.map((candidate) => candidate.name)
-					.join(', '),
+				description: raceDescription(entry, query),
 				slot: entry.candidates[0]?.slot ?? null,
 				step: entryStep(entry),
 			}))
