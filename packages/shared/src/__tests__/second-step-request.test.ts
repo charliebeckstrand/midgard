@@ -134,6 +134,22 @@ describe('fetchWithSecondStep', () => {
 		expect(await response.json()).toEqual({ code: 'second_step_required' })
 	})
 
+	it('returns the first response when the check fails', async () => {
+		stubGateway({
+			...unpassed,
+			'/auth/passkeys': stepRequired,
+		})
+
+		// As when the chunk of the dialog does not load.
+		setSecondStepDialog(async () => {
+			throw new Error('Failed to load the chunk')
+		})
+
+		const response = await fetchWithSecondStep(new Request('/auth/passkeys', { method: 'DELETE' }))
+
+		expect(response.status).toBe(403)
+	})
+
 	it('returns another 403 as it is', async () => {
 		const fetch = stubGateway({
 			'/auth/passkeys': () => Response.json({ message: 'Sign in again' }, { status: 403 }),

@@ -12,6 +12,7 @@ import { menuMessages } from './menu-messages'
 /** Where sending a verification link stands, and the label it shows. */
 const verifyLabels = {
 	idle: menuMessages.verifyMenu,
+	sending: menuMessages.verifyMenu,
 	sent: menuMessages.verifyMenuSent,
 	failed: menuMessages.verifyMenuFailed,
 } as const
@@ -21,7 +22,9 @@ const verifyLabels = {
  * It renders nothing when the email of the user is verified.
  *
  * @remarks The item stays open when you select it, and its label shows the
- * result. After the link is sent, the item is disabled. Put it directly above
+ * result. While the request runs, and after the link is sent, the item is
+ * disabled. Thus a second press sends no second request, which the gateway
+ * refuses. Put it directly above
  * {@link SignOutMenuItem}.
  */
 export function VerifyEmailMenuItem({ user }: { user: User }) {
@@ -32,6 +35,8 @@ export function VerifyEmailMenuItem({ user }: { user: User }) {
 	if (user.is_verified) return null
 
 	function sendVerification() {
+		setVerify('sending')
+
 		sendVerificationEmail().then(
 			() => setVerify('sent'),
 			() => setVerify('failed'),
@@ -40,7 +45,11 @@ export function VerifyEmailMenuItem({ user }: { user: User }) {
 
 	return (
 		<>
-			<MenuItem onAction={sendVerification} disabled={verify === 'sent'} closeOnAction={false}>
+			<MenuItem
+				onAction={sendVerification}
+				disabled={verify === 'sending' || verify === 'sent'}
+				closeOnAction={false}
+			>
 				<Icon icon={<MailCheck />} />
 				<MenuLabel>{intl.formatMessage(verifyLabels[verify])}</MenuLabel>
 			</MenuItem>
