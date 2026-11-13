@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale/context'
 import type { AccessibleName } from '../../../types/accessible-name'
+import { sameFieldElements } from '../../../utilities/same-elements'
 import { resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
 import { SCATTER_HIT_SLACK, TICK_TARGET } from '../engine/chart-constants'
 import type { Crosshair, ResolvedCrosshair } from '../engine/chart-crosshair'
@@ -117,30 +118,6 @@ export type ScatterChartProps<T = never> = AccessibleName &
 		 */
 		onPointClick?: (at: { series: number; datum: number }, press: ChartPress) => void
 	}
-
-/** Whether two scatter series read the same fields and draw the same discs. @internal */
-function sameScatterSeries<T>(
-	a: ScatterChartSeries<T>,
-	b: ScatterChartSeries<T> | undefined,
-): boolean {
-	return (
-		a === b ||
-		(b !== undefined &&
-			a.xKey === b.xKey &&
-			a.yKey === b.yKey &&
-			a.yName === b.yName &&
-			a.color === b.color &&
-			a.sizeKey === b.sizeKey &&
-			a.sizeName === b.sizeName &&
-			a.size === b.size &&
-			a.maxSize === b.maxSize)
-	)
-}
-
-/** Whether two series lists hold the same series, in order. @internal */
-function sameScatterSeriesList<T>(a: ScatterChartSeries<T>[], b: ScatterChartSeries<T>[]): boolean {
-	return a.length === b.length && a.every((entry, index) => sameScatterSeries(entry, b[index]))
-}
 
 /**
  * The held disc, as its place in the drawn `marks`, so that the hit test can
@@ -329,8 +306,9 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	)
 
 	// A series literal is new on each render of the caller, so the chart holds the
-	// series by content, as the heatmap does, and the memos below hold with it.
-	const heldSeries = useStableValue(series, sameScatterSeriesList)
+	// series by their fields, as the cartesian charts do, and the memos below hold
+	// with it.
+	const heldSeries = useStableValue(series, sameFieldElements)
 
 	const metas = useMemo(() => scatterMetas(data, heldSeries), [data, heldSeries])
 
