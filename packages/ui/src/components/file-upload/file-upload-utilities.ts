@@ -132,3 +132,46 @@ export function partitionFiles(
 
 	return { accepted: kept, rejected }
 }
+
+/** The live-region message of each reason of a refusal. */
+const REFUSED = {
+	type: fileUploadMessages.refusedType,
+	size: fileUploadMessages.refusedSize,
+	count: fileUploadMessages.refusedCount,
+} as const
+
+/**
+ * The live-region text of one pick or drop: the accepted files, then the
+ * refused files of each reason, in the order of `partitionFiles`.
+ *
+ * A batch gets one message, because a second write to the region replaces the
+ * first before a screen reader speaks it (WCAG 4.1.3).
+ *
+ * @returns The text, or `''` when the batch holds no file.
+ * @internal
+ */
+export function describeSelection(
+	intl: IntlShape,
+	{ accepted, rejected }: { accepted: File[]; rejected: readonly FileRejection[] },
+): string {
+	const said: string[] = []
+
+	const part = (message: (typeof REFUSED)[keyof typeof REFUSED], files: File[]) => {
+		const names = formatFileNames(files)
+
+		if (names !== undefined) said.push(intl.formatMessage(message, { count: files.length, names }))
+	}
+
+	part(fileUploadMessages.announced, accepted)
+
+	for (const reason of ['type', 'size', 'count'] as const) {
+		part(
+			REFUSED[reason],
+			rejected
+				.filter((rejection) => rejection.reason === reason)
+				.map((rejection) => rejection.file),
+		)
+	}
+
+	return said.join('. ')
+}
