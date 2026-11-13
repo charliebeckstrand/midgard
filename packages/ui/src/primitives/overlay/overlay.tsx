@@ -28,6 +28,7 @@ import { useOverlayEntering } from './use-overlay-entering'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
 import { useOverlayKeepFocus } from './use-overlay-keep-focus'
 import { useOverlayReturnFocus } from './use-overlay-return-focus'
+import { useOverlayTapRun } from './use-overlay-tap-run'
 import { useOverlayViewportFit } from './use-overlay-viewport-fit'
 
 /**
@@ -150,6 +151,12 @@ export type OverlayProps = {
  * it holds a change that came with the open, such as the ring of a Map region
  * that a pick selected (`useUnderOverlay`). The mark therefore does not
  * paint at full contrast for a frame and then dim.
+ *
+ * A double tap on a control that opens the overlay on one tap opens it on the
+ * first tap. The second tap then does nothing in the overlay: it does not
+ * close it from the backdrop, and it does not press a control in the panel. A
+ * touch press that starts in the double-tap window after the open does
+ * nothing, and each press after the window acts. Nothing waits for the window.
  */
 export function Overlay({
 	open,
@@ -254,6 +261,9 @@ export function Overlay({
 		k.motion.animate,
 	)
 
+	// The second tap of a double tap that opened the overlay does nothing in it.
+	const tapRun = useOverlayTapRun(open)
+
 	const inert = props.inert === true
 
 	// A closed overlay stays on screen for its exit animation, and its subtree
@@ -292,12 +302,22 @@ export function Overlay({
 			ref={setPanel}
 			data-slot="overlay"
 			{...props}
+			onPointerDownCapture={(event) => {
+				props.onPointerDownCapture?.(event)
+
+				tapRun.onPointerDownCapture(event)
+			}}
 			// A press that ends off the backdrop sends the backdrop no click, so its flag must
 			// not stay for a later click.
 			onPointerUpCapture={(event) => {
 				props.onPointerUpCapture?.(event)
 
 				if (event.target !== backdropRef.current) pressedRef.current = false
+			}}
+			onClickCapture={(event) => {
+				props.onClickCapture?.(event)
+
+				tapRun.onClickCapture(event)
 			}}
 			// On iOS, the on-screen keyboard makes the visual viewport smaller than the
 			// page, and a touch pans the page under a modal overlay. The body lock does
