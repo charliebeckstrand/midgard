@@ -12,6 +12,7 @@ import { UIProvider } from 'ui/providers/ui'
 import { Sidebar } from 'ui/sidebar'
 import { describe, expect, it, vi } from 'vitest'
 import { CI } from '../../../vitest.base.ts'
+import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { catalogs } from '../app/catalogs.ts'
 import { LOCALES } from '../app/language.ts'
 import { findPages, type Page } from '../plugin/pages.ts'
@@ -152,14 +153,26 @@ function RouterLink({ href, ...props }: LinkProps) {
 }
 
 /** Adds each path that the router shows to `visited`. */
-function VisitedPaths({ visited }: { visited: Set<string> }) {
+function VisitedPaths({ visited, at }: { visited: Set<string>; at?: { path: string } }) {
 	const { pathname } = useLocation()
 
 	useEffect(() => {
 		visited.add(pathname)
-	}, [visited, pathname])
+
+		if (at) at.path = pathname
+	}, [visited, at, pathname])
 
 	return null
+}
+
+/**
+ * The id of each example in the document: the id of its heading, which is the
+ * anchor of the example (`kit/example.tsx`).
+ */
+function exampleIds(): Set<string> {
+	return new Set(
+		[...document.body.querySelectorAll('[data-slot="example"] > * > h2[id]')].map(({ id }) => id),
+	)
 }
 
 /** The label of a tab, qualified by its tablist, so two lists with a tab `A` stay apart. */
@@ -181,7 +194,9 @@ function isOpenable(tab: Element): boolean {
 /**
  * Calls `visit` on the first render of a page, and again after it opens each
  * tab. It opens each tab that it finds, also a tab that a panel shows, until
- * no tab stays closed. A disabled tab stays closed.
+ * no tab stays closed. A disabled tab stays closed. It opens the last closed
+ * tab in the document first. A tab that a panel shows comes after the tab of
+ * its panel, so the walk opens it before it leaves the panel.
  */
 async function visitTabs(container: Element, visit: () => Promise<void>): Promise<void> {
 	await visit()
@@ -189,7 +204,7 @@ async function visitTabs(container: Element, visit: () => Promise<void>): Promis
 	const seen = new Set<string>()
 
 	for (;;) {
-		const next = [...container.querySelectorAll('[role="tab"]')].find(
+		const next = [...container.querySelectorAll('[role="tab"]')].findLast(
 			(tab) => !seen.has(tabKey(tab)) && isOpenable(tab),
 		)
 
@@ -249,6 +264,8 @@ type Walk = {
 	bare: number
 	/** Each path that the router showed. */
 	visited: ReadonlySet<string>
+	/** Each example that a path shows only after a tab of the path opens, as `path#id` ({@link exampleIds}). */
+	hidden: readonly string[]
 	/** Each text that a translated page shows as the English page does (`same-text.ts`), as `locale: text`. */
 	same: readonly string[]
 }
@@ -288,20 +305,22 @@ function loadPage(page: Page, from: Modules): Promise<Loaded> {
  * of the shell. The heading shows the name of a component, which is code.
  *
  * The render is synchronous, so the first visit of the page goes into `act`
- * before an update of the page that waits for a microtask.
+ * before an update of the page that waits for a microtask. `at` holds the path
+ * that the router shows.
  */
 function renderPage(
 	page: Page,
 	locale: string,
 	[Page, tabs]: Loaded,
 	visited: Set<string>,
+	at?: { path: string },
 ): Element {
 	return render(
 		<MemoryRouter initialEntries={[page.path]}>
 			<LocaleProvider locale={locale} catalogs={catalogs}>
 				<UIProvider link={RouterLink}>
 					<AppearanceProvider>
-						<VisitedPaths visited={visited} />
+						<VisitedPaths visited={visited} at={at} />
 						<Heading translate="no">{page.name}</Heading>
 						<Sidebar />
 						<SidebarLayoutBody>
@@ -400,13 +419,35 @@ async function walk(page: Page): Promise<Walk> {
 
 	const english = new Set<string>()
 
+	// The ids of the examples that each path shows when the router opens it,
+	// and the ids that it shows after a tab of the path opens.
+	const opened = new Map<string, Set<string>>()
+
+	const shown = new Map<string, Set<string>>()
+
+	const at = { path: '' }
+
+	let last = ''
+
 	// As in the translated walk, the read goes inside `act`, so the updates of
 	// the live page land in it.
 	await visitTabs(
-		renderPage(page, ENGLISH, await loadPage(page, englishModules), new Set()),
+		renderPage(page, ENGLISH, await loadPage(page, englishModules), new Set(), at),
 		async () => {
 			await act(async () => readTexts(document.body, 'en', english))
+
+			const into = at.path === last ? shown : opened
+
+			for (const id of exampleIds()) getOrCompute(into, at.path, () => new Set()).add(id)
+
+			last = at.path
 		},
+	)
+
+	// An example that a path shows only after a tab opens is hidden: a link to
+	// the path, as a result of the search gives it, does not find its anchor.
+	const hidden = [...shown].flatMap(([path, ids]) =>
+		[...ids].filter((id) => !opened.get(path)?.has(id)).map((id) => `${path}#${id}`),
 	)
 
 	// The English read is quick, so a timer of the page can still be due. The
@@ -421,6 +462,7 @@ async function walk(page: Page): Promise<Walk> {
 		duplicates: [...new Set(walks.flatMap(({ duplicates }) => duplicates))],
 		bare: walks.reduce((sum, { bare }) => sum + bare, 0),
 		visited,
+		hidden,
 		same: translated.flatMap(([locale, { texts, formatted }]) =>
 			findSameText(locale, texts, english, formatted).map((text) => `${locale}: ${text}`),
 		),
@@ -437,7 +479,7 @@ export function describePageSmoke(part: readonly Page[]): void {
 			// suite. The limit scales on CI by the factor of the suite `testTimeout`.
 			{ timeout: CI ? 180_000 : 60_000 },
 			async (_path, page) => {
-				const { logged, violations, duplicates, bare, visited, same } = await walk(page)
+				const { logged, violations, duplicates, bare, visited, hidden, same } = await walk(page)
 
 				expect(logged).toEqual([])
 
@@ -452,6 +494,8 @@ export function describePageSmoke(part: readonly Page[]): void {
 					.filter((path) => !visited.has(path))
 
 				expect(closed, 'the walk did not open these tabs of the page').toEqual([])
+
+				expect(hidden, 'examples that show only after a tab of the route opens').toEqual([])
 
 				expect(same, 'text that a translated page shows in English').toEqual([])
 			},

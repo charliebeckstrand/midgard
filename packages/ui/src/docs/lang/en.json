@@ -1059,10 +1059,6 @@
 		"defaultMessage": "Underline",
 		"description": "Text of a demo in the docs as label, in components/toolbar/playground.tsx, components/toolbar/with-groups.tsx."
 	},
-	"docs.demo.039277ecd938": {
-		"defaultMessage": "Group type",
-		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/index.tsx."
-	},
 	"docs.demo.04c0940339ec": {
 		"defaultMessage": "You can preview images, PDF files, video, and most text files. Other files show their name and size.",
 		"description": "Text of a demo in the docs as text, in components/drawer/fit-content.tsx."
@@ -1174,10 +1170,6 @@
 	"docs.demo.0c6789827f81": {
 		"defaultMessage": "Revenue, margin, and costs by month",
 		"description": "Text of a demo in the docs as aria-label, in modules/chart/line/multi-series.tsx."
-	},
-	"docs.demo.0c77fe09ab33": {
-		"defaultMessage": "Client",
-		"description": "Text of a demo in the docs, in modules/grid/virtualization/index.tsx."
 	},
 	"docs.demo.0d269385dc9a": {
 		"defaultMessage": "Description list",
@@ -2078,10 +2070,6 @@
 	"docs.demo.3fbe5ed156f1": {
 		"defaultMessage": "Enterprise",
 		"description": "Text of a demo in the docs as label, in modules/form/error-summary.tsx."
-	},
-	"docs.demo.3fdc9a587693": {
-		"defaultMessage": "Column",
-		"description": "Text of a demo in the docs, in modules/grid/groups/index.tsx."
 	},
 	"docs.demo.3ffd2686dc17": {
 		"defaultMessage": "Shiny text",
@@ -3579,10 +3567,6 @@
 		"defaultMessage": "Bold",
 		"description": "Text of a demo in the docs as label, in components/toolbar/playground.tsx, components/toolbar/with-groups.tsx."
 	},
-	"docs.demo.95110d74c4c0": {
-		"defaultMessage": "Row",
-		"description": "Text of a demo in the docs, in modules/grid/groups/index.tsx."
-	},
 	"docs.demo.95236e3abc9d": {
 		"defaultMessage": "Orders by weekday and hour",
 		"description": "Text of a demo in the docs as aria-label, in modules/chart/heatmap/activity.tsx, modules/chart/heatmap/animated.tsx."
@@ -4075,10 +4059,6 @@
 		"defaultMessage": "and scroll to zoom. Drag to pan.",
 		"description": "Text of a demo in the docs, in modules/map/point/zoomable.tsx."
 	},
-	"docs.demo.ada60a9721c8": {
-		"defaultMessage": "Virtualization type",
-		"description": "Text of a demo in the docs as aria-label, in modules/grid/virtualization/index.tsx."
-	},
 	"docs.demo.adb5102dc678": {
 		"defaultMessage": "Mammals",
 		"description": "Text of a demo in the docs as label, in components/tree/without-icons.tsx."
@@ -4090,10 +4070,6 @@
 	"docs.demo.ae53cea8228b": {
 		"defaultMessage": "Postal code",
 		"description": "Text of a demo in the docs as aria-label, placeholder, in components/group/with-inputs.tsx, components/mask-input/postal-code.tsx."
-	},
-	"docs.demo.aef7de28d529": {
-		"defaultMessage": "Server",
-		"description": "Text of a demo in the docs, in modules/grid/virtualization/index.tsx."
 	},
 	"docs.demo.af73af020022": {
 		"defaultMessage": "Last error:",
