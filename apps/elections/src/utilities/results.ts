@@ -81,8 +81,13 @@ export function entryName(entry: Pick<RaceEntry, 'state' | 'district'>): string 
 }
 
 /** A text for a search: lower case and with no accents, so that `gonzalez` finds `González`. */
-function searchText(text: string): string {
+export function searchText(text: string): string {
 	return text.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase()
+}
+
+/** The words of a query, each as a text for a search (`searchText`). */
+export function searchWords(query: string): string[] {
+	return searchText(query).split(/\s+/).filter(Boolean)
 }
 
 /**
@@ -90,7 +95,7 @@ function searchText(text: string): string {
  * texts, with no regard to case or accents. An empty query matches each text.
  */
 export function matchesWords(texts: readonly string[], query: string): boolean {
-	const words = searchText(query).split(/\s+/).filter(Boolean)
+	const words = searchWords(query)
 
 	if (words.length === 0) return true
 

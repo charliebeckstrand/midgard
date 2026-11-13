@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { type Election, findContest, findElection } from '../elections/registry'
 import { readNationalRace } from '../server/civic-race'
 import { electionsSearchGroups, SEARCH_LIMIT, searchGroups } from '../utilities/race-search'
-import { type OfficeRaces, readEntries } from '../utilities/results'
+import { entryKey, type OfficeRaces, readEntries } from '../utilities/results'
 import governors from './fixtures/governors.json'
 import house from './fixtures/house.json'
 import senate from './fixtures/senate.json'
@@ -96,6 +96,43 @@ describe('the search of an election', () => {
 		expect(
 			groups.find((group) => group.heading === 'Senate')?.rows.map((row) => row.key),
 		).toContain('senate:ga')
+	})
+
+	it('names a candidate after the two leaders when the query finds that candidate', () => {
+		const entry = races
+			.flatMap((office) => office.entries)
+			.find((race) => {
+				const surname = race.candidates[2]?.name.split(' ').at(-1)?.toLowerCase()
+
+				return (
+					surname !== undefined &&
+					race.candidates
+						.slice(0, 2)
+						.every((leader) => !leader.name.toLowerCase().includes(surname))
+				)
+			})
+
+		const [first, second, third] = entry?.candidates ?? []
+
+		if (entry === undefined || first === undefined || second === undefined || third === undefined) {
+			throw new Error('No race has a third candidate.')
+		}
+
+		const surname = third.name.split(' ').at(-1) ?? ''
+
+		const row = searchGroups(races, `${entry.state.name} ${surname}`)
+			.flatMap((group) => group.rows)
+			.find((found) => found.key === entryKey(entry))
+
+		expect(row?.description).toBe(`${first.name}, ${second.name}, ${third.name}`)
+	})
+
+	it('names no other candidate when the race or its leaders hold each word', () => {
+		const rows = searchGroups(races, 'a').flatMap((group) => group.rows)
+
+		for (const row of rows.filter((found) => found.slot !== null)) {
+			expect(row.description.split(', ').length).toBeLessThanOrEqual(2)
+		}
 	})
 
 	it('leaves out a group with no match', () => {

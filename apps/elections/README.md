@@ -108,7 +108,9 @@ The search in the header of an election finds its states and races, and a
 pick opens the Drawer on the page. The search in the header of each level page
 finds each election and the states and races of each, and a pick opens the page of the
 election with the Drawer on the state or the race. `src/utilities/race-search.ts`
-gives the rows of both.
+gives the rows of both. The row of a race names its two leaders. When the query
+finds a candidate that the row does not show, the row names that candidate
+after the leaders, so that each row shows why it matches.
 
 The layout of an election renders the view of each of its pages, and
 `src/components/election-views` shows the view of the current page. The other
