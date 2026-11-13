@@ -1,6 +1,6 @@
 import {
-	Bold,
 	Italic,
+	LetterB,
 	Redo,
 	Strikethrough,
 	TextAlignCenter,
@@ -65,7 +65,7 @@ export default function WithGroups() {
 			</ToolbarGroup>
 			<ToolbarSeparator />
 			<ToolbarGroup aria-label="Marks">
-				<Mark label="Bold" icon={<Bold />} />
+				<Mark label="Bold" icon={<LetterB />} />
 				<Mark label="Italic" icon={<Italic />} />
 				<Mark label="Underline" icon={<Underline />} />
 				<Mark label="Strikethrough" icon={<Strikethrough />} />

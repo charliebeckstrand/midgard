@@ -1,6 +1,6 @@
 'use client'
 
-import { Bold, Italic, List, ListOrdered } from 'lucide-react'
+import { Italic, LetterB, List, ListOrdered } from 'lucide-react'
 import { type ReactElement, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { Button } from 'ui/button'
@@ -55,7 +55,7 @@ export function PlaceReviewField() {
 					<ToolbarGroup>
 						<FormatButton
 							label="Bold"
-							icon={<Bold />}
+							icon={<LetterB />}
 							onPress={() => apply((edit) => toggleMarker(edit, 'bold'))}
 						/>
 

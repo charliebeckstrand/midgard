@@ -17,7 +17,7 @@ import {
 	sortableKeyboardCoordinates,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { EllipsisVertical, Plus, Trash2 } from 'lucide-react'
+import { EllipsisVertical, Plus, Trash } from 'lucide-react'
 import {
 	memo,
 	type ReactNode,
@@ -674,7 +674,7 @@ function GridGroupManagerZoneHeader({
 				aria-label={intl.formatMessage(gridMessages.removeGroupNamed, { group: label })}
 				onClick={() => removeGroup(group.id)}
 			>
-				<Icon icon={<Trash2 />} />
+				<Icon icon={<Trash />} />
 			</Button>
 		</div>
 	)

@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
+import { CircleCheckBig, CircleX, Info, TriangleExclamationPoint, X } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
@@ -36,9 +36,9 @@ const severityColors = {
 
 const severityIcons = {
 	info: <Info />,
-	success: <CheckCircle />,
-	warning: <AlertTriangle />,
-	error: <XCircle />,
+	success: <CircleCheckBig />,
+	warning: <TriangleExclamationPoint />,
+	error: <CircleX />,
 } satisfies Record<AlertSeverity, ReactElement>
 
 /**

@@ -1,6 +1,6 @@
 'use client'
 
-import { CircleAlert, Pencil, Plus, Trash2 } from 'lucide-react'
+import { CircleExclamationPoint, Pencil, Plus, Trash } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { type ReactElement, type ReactNode, useState } from 'react'
 import type { Seed } from 'shared/queries'
@@ -104,7 +104,7 @@ function WeekActions({
 			<ActionButton label="Edit prediction" color="blue" icon={<Pencil />} onClick={onPredict} />
 
 			{started ? null : (
-				<ActionButton label="Delete prediction" color="red" icon={<Trash2 />} onClick={onDelete} />
+				<ActionButton label="Delete prediction" color="red" icon={<Trash />} onClick={onDelete} />
 			)}
 		</>
 	)
@@ -230,7 +230,9 @@ export function ScheduleList({
 												</>
 											}
 											color="zinc"
-											icon={<CircleAlert className="text-amber-500 dark:text-amber-400" />}
+											icon={
+												<CircleExclamationPoint className="text-amber-500 dark:text-amber-400" />
+											}
 										/>
 									) : null}
 

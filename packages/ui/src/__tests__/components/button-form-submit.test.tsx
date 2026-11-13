@@ -1,4 +1,4 @@
-import { Bold } from 'lucide-react'
+import { LetterB } from 'lucide-react'
 import { describe, expect, it, vi } from 'vitest'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
@@ -49,7 +49,7 @@ describe('form submission semantics', () => {
 		],
 		[
 			'ToggleIconButton',
-			<ToggleIconButton key="t" pressed={false} icon={<Bold />} aria-label="Bold" />,
+			<ToggleIconButton key="t" pressed={false} icon={<LetterB />} aria-label="Bold" />,
 			['Bold'],
 		],
 		[

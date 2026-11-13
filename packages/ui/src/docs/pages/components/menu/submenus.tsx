@@ -1,4 +1,4 @@
-import { ChevronDown, Download, Share2, SquarePen, Trash } from 'lucide-react'
+import { ChevronDown, Download, Pencil, Share2, Trash } from 'lucide-react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSub, MenuTrigger } from 'ui/menu'
@@ -13,7 +13,7 @@ export default function Submenus() {
 			</MenuTrigger>
 			<MenuContent>
 				<MenuItem>
-					<Icon icon={<SquarePen />} />
+					<Icon icon={<Pencil />} />
 					<MenuLabel>Edit</MenuLabel>
 				</MenuItem>
 				<MenuSub label="Share" icon={<Share2 />}>
