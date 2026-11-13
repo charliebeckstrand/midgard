@@ -298,7 +298,8 @@ export function MapPlotRegion({
 				// the same bargain touch that it makes the wheel (one finger scrolls
 				// the page, two pan and pinch), so it keeps the browser's scrolling and
 				// takes only its pinch, which would otherwise zoom the page over the
-				// map. Every other map leaves touch alone entirely.
+				// map. A zoomed view takes one finger too, from the touch events
+				// (`useMapZoom`). Every other map leaves touch alone entirely.
 				zoom && (zoom.modifier === null ? 'touch-none' : 'touch-pan-x touch-pan-y'),
 				aside && 'min-w-0',
 				shape.fill && 'flex-1 min-h-0',

@@ -6,7 +6,8 @@ import { it } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat } from '../helpers/map-plat'
-import { CLICK } from '../helpers/press'
+import { CLICK, TAP } from '../helpers/press'
+import { stubElementFromPoint } from '../helpers/stub-element-from-point'
 
 /**
  * The zoom is a transform over the fitted geography, so these assert what the
@@ -559,7 +560,7 @@ describe('MapPlat two-finger gestures', () => {
 		expect(readTransform(container)).not.toBe(before)
 	})
 
-	it('leaves a lone finger to the page by default', () => {
+	it('leaves the touch pointers of a lone finger alone by default, since the touch events carry it', () => {
 		const { container, plot, before } = renderZoomed()
 
 		fireEvent.pointerDown(plot, {
@@ -575,6 +576,138 @@ describe('MapPlat two-finger gestures', () => {
 		fireEvent.pointerUp(plot, { pointerId: 1 })
 
 		expect(readTransform(container)).toBe(before)
+	})
+
+	it('leaves a lone finger to the page at the fit by default', () => {
+		const { container, svg } = renderZoomable()
+
+		const before = readTransform(container)
+
+		// `fireEvent` returns `false` when a listener canceled the event.
+		expect(touch(svg, 'touchStart', [{ id: 1, x: 200, y: 100 }])).toBe(true)
+
+		expect(touch(svg, 'touchMove', [{ id: 1, x: 140, y: 60 }])).toBe(true)
+
+		touch(svg, 'touchEnd', [])
+
+		expect(readTransform(container)).toBe(before)
+	})
+
+	it('pans a lone finger on a zoomed view by default, and keeps the touch from the page', () => {
+		const { container, svg, before } = renderZoomed()
+
+		const scale = readScale(container)
+
+		expect(touch(svg, 'touchStart', [{ id: 1, x: 200, y: 100 }])).toBe(false)
+
+		expect(touch(svg, 'touchMove', [{ id: 1, x: 140, y: 60 }])).toBe(false)
+
+		touch(svg, 'touchEnd', [])
+
+		expect(readTransform(container)).not.toBe(before)
+
+		expect(readScale(container)).toBeCloseTo(scale, 6)
+	})
+
+	it('holds a zoomed view under a lone finger that travels no more than a tap', () => {
+		const { container, svg, before } = renderZoomed()
+
+		touch(svg, 'touchStart', [{ id: 1, x: 200, y: 100 }])
+
+		touch(svg, 'touchMove', [{ id: 1, x: 206, y: 106 }])
+
+		touch(svg, 'touchEnd', [])
+
+		expect(readTransform(container)).toBe(before)
+	})
+
+	it('pans with the finger left down after a pinch', () => {
+		const { container, svg } = renderZoomed()
+
+		const pair = [
+			{ id: 1, x: 190, y: 100 },
+			{ id: 2, x: 210, y: 100 },
+		]
+
+		touch(svg, 'touchStart', pair)
+
+		touch(svg, 'touchEnd', pair.slice(0, 1))
+
+		const before = readTransform(container)
+
+		expect(touch(svg, 'touchMove', [{ id: 1, x: 186, y: 98 }])).toBe(false)
+
+		touch(svg, 'touchEnd', [])
+
+		expect(readTransform(container)).not.toBe(before)
+	})
+
+	it('gives a lone finger back to the page once the view returns to the fit', () => {
+		const { svg, plot } = renderZoomed()
+
+		fireEvent.keyDown(plot, { key: '0' })
+
+		expect(touch(svg, 'touchStart', [{ id: 1, x: 200, y: 100 }])).toBe(true)
+
+		expect(touch(svg, 'touchMove', [{ id: 1, x: 140, y: 60 }])).toBe(true)
+	})
+
+	it('picks nothing from a lone finger that pans a zoomed view', () => {
+		const onRegionClick = vi.fn()
+
+		const { container, svg, before } = renderZoomed({ onRegionClick })
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		stubElementFromPoint(region)
+
+		// The browser sends the pointer events and the touch events of one finger.
+		const finger = { isPrimary: true, pointerId: 1, pointerType: 'touch' }
+
+		fireEvent.pointerDown(region, { ...finger, clientX: 200, clientY: 100 })
+
+		touch(svg, 'touchStart', [{ id: 1, x: 200, y: 100 }])
+
+		fireEvent.pointerMove(region, { ...finger, clientX: 170, clientY: 80 })
+
+		touch(svg, 'touchMove', [{ id: 1, x: 170, y: 80 }])
+
+		fireEvent.pointerUp(region, { ...finger, clientX: 170, clientY: 80 })
+
+		touch(svg, 'touchEnd', [])
+
+		fireEvent.touchEnd(region)
+
+		expect(readTransform(container)).not.toBe(before)
+
+		expect(onRegionClick).not.toHaveBeenCalled()
+	})
+
+	it('holds the view under a touch tap on a map that claims touch, and picks from the lift', () => {
+		const onRegionClick = vi.fn()
+
+		const { container, plot } = renderZoomable({ ...DIRECT, onRegionClick })
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		const before = readTransform(container)
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		stubElementFromPoint(region)
+
+		// Past the mouse threshold, inside the tap slop. The press is a tap, so it is no pan.
+		const finger = { isPrimary: true, pointerId: 1, pointerType: 'touch' }
+
+		fireEvent.pointerDown(region, { ...finger, clientX: 200, clientY: 100 })
+
+		fireEvent.pointerMove(region, { ...finger, clientX: 206, clientY: 106 })
+
+		fireEvent.pointerUp(region, { ...finger, clientX: 206, clientY: 106 })
+
+		expect(readTransform(container)).toBe(before)
+
+		expect(onRegionClick).toHaveBeenCalledExactlyOnceWith('A', 0, TAP)
 	})
 
 	it('still pans a lone mouse, which has no scroll to give up', () => {

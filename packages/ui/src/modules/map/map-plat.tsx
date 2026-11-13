@@ -223,7 +223,8 @@ type MapPlatBaseProps = AccessibleName &
 		nameRegions?: boolean
 		/**
 		 * Lets the reader zoom and pan the drawn geography. Shift and a wheel zoom
-		 * about the pointer, a drag pans, and two touches pan and pinch. The plot's
+		 * about the pointer, a drag pans, and two touches pan and pinch. On a zoomed
+		 * view, one touch pans too. The plot's
 		 * own tab stop takes `+`, `-`, and `0`, so the keyboard reaches every scale
 		 * the pointer does. Each of these keys speaks the result through a polite
 		 * live region. `+` and `-` speak the new scale as a percent of the fit,
@@ -258,7 +259,9 @@ type MapPlatBaseProps = AccessibleName &
 		 * @remarks The page keeps every wheel the reader does not aim at the map.
 		 * Shift arms it. Held, the wheel zooms and the page stays put; unheld, the plot
 		 * scrolls past like anything else. Touch keeps the same bargain, with one
-		 * finger scrolling and two panning and pinching.
+		 * finger scrolling and two panning and pinching. A zoomed view takes one
+		 * finger as a pan, since a reader who zoomed in aimed the touch at the map.
+		 * Back at the fit, one finger scrolls the page again.
 		 *
 		 * That way a map dropped into a page cannot swallow a scroll. That is the
 		 * failure worth defaulting against, because it is silent, and it strands the

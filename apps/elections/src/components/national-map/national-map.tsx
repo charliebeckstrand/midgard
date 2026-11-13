@@ -83,7 +83,8 @@ export function NationalMap({
 				categories={WINNER_CATEGORIES.filter((category) => present.has(category.value))}
 				legend="right"
 				// The page scrolls under the map, so the default modifier stays: shift
-				// and the wheel zoom, and one finger scrolls the page. Two fingers pinch.
+				// and the wheel zoom, and two fingers pinch. One finger scrolls the page
+				// at the fit and pans a zoomed map.
 				zoom
 			/>
 

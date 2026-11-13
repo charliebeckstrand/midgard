@@ -101,7 +101,8 @@ export function CountyMap({
 			colorName="Leader"
 			categories={WINNER_CATEGORIES.filter((category) => present.has(category.value))}
 			// The page and the Drawer scroll under the map, so the default modifier
-			// stays: shift and the wheel zoom, and one finger scrolls. Two fingers pinch.
+			// stays: shift and the wheel zoom, and two fingers pinch. One finger
+			// scrolls at the fit and pans a zoomed map.
 			zoom
 		/>
 	)
