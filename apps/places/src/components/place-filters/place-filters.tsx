@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
 import { ControlSkeleton } from 'ui/control'
 import type { DatePickerRelativeValue } from 'ui/date-picker'
 import {
@@ -20,6 +21,7 @@ import {
 	type PlaceFilterValue,
 	type PlaceVisitFilter,
 } from '../../utilities/places-filter'
+import { foldText } from '../../utilities/places-palette'
 import { CategoryPicker } from '../category-picker'
 
 /**
@@ -52,6 +54,22 @@ export type PlaceFiltersProps = {
 /** The name of a kind, which is what the trigger of the Show field shows. */
 function kindLabel(kind: RecordKind): string {
 	return RECORD_KIND_META[kind].label
+}
+
+/**
+ * The regions whose names hold the query, in the order of the list. The match
+ * folds case and accents, as the palette does, so "sao" finds "São Paulo".
+ */
+function MatchingRegions({ regionNames }: { regionNames: readonly string[] }) {
+	const query = foldText(useComboboxDeferredQuery().trim())
+
+	return regionNames
+		.filter((region) => foldText(region).includes(query))
+		.map((region) => (
+			<ComboboxOption key={region} value={region}>
+				<ComboboxLabel>{region}</ComboboxLabel>
+			</ComboboxOption>
+		))
 }
 
 /**
@@ -103,7 +121,8 @@ function ShowField() {
  * bar rather than inside it: it does not narrow the places, it decides the
  * geography. It lists the regions it is given: on the world map, the countries
  * that hold a place, because the palette reaches the rest. It and the
- * breadcrumb read the same view, so clearing either is the way back.
+ * breadcrumb read the same view, so clearing either is the way back. The reader
+ * types into it to narrow the list, because the list of countries is long.
  *
  * It also names itself for what it lists (countries on the world map, states
  * inside the United States), because the same control means a different grain at
@@ -150,7 +169,7 @@ export function PlaceFilters({
 					    narrowing the places), but it rides the same rail: two scroll
 					    containers side by side is one the reader's wheel finds and one it
 					    does not. */}
-					<Listbox<string>
+					<Combobox<string>
 						aria-label={regionLabel}
 						placeholder={regionLabel}
 						clearable
@@ -159,12 +178,8 @@ export function PlaceFilters({
 						value={drilled}
 						onValueChange={onDrill}
 					>
-						{regionNames.map((region) => (
-							<ListboxOption key={region} value={region}>
-								<ListboxLabel>{region}</ListboxLabel>
-							</ListboxOption>
-						))}
-					</Listbox>
+						<MatchingRegions regionNames={regionNames} />
+					</Combobox>
 
 					{/* Only while the reader has a trip: with places alone there is
 					    nothing to choose between. */}
