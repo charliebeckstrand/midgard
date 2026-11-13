@@ -56,6 +56,8 @@ A key that holds a handler or an object needs both sides, and a spread position 
 
 A `ref` is such a key. The component destructures it and joins it to its own ref through the `useComposedRefs` of Motion (`motion/react`). Then the consumer ref and the internal ref both get the node, as in `tab-list.tsx`.
 
+A JSX `key` comes before each spread. After a spread, the JSX transform falls back to `createElement`. The SWC transform of Next then puts the children in a `children` array. In development, React warns that each child in that array has no key. Vitest and the docs app use a different transform, so a test does not see the warning. The [`no-key-after-spread`](.biome/plugins/no-key-after-spread.grit) Biome plugin holds the rule in the apps and the packages.
+
 Pass `checkForDefaultPrevented: false` in three cases only. The first is the activation that the component exists to perform. The second is a roving keyboard model, which no consumer switches off. The third is the wiring that keeps the state of the component true. Examples are the touched mark and the value of a form field, the end of a gesture, and an event the browser cannot cancel. React's synthetic `preventDefault()` marks even an event that cannot be canceled, so the default would let a consumer switch that wiring off.
 
 Side behavior, such as a preload or a pause on hover, keeps the default.

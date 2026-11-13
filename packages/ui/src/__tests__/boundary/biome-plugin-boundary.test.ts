@@ -184,6 +184,28 @@ export const b = 'px-3'
 `,
 		},
 	],
+	'no-key-after-spread': [
+		{
+			file: 'key.tsx',
+			source: `declare const props: { title: string }
+declare const items: { id: string }[]
+export const a = items.map((item) => <td {...props} key={item.id} />) // flag
+export const b = items.map((item) => (
+	<td
+		{...props}
+		title="x"
+		key={item.id} // flag
+	>
+		{item.id}
+		{item.id}
+	</td>
+))
+export const c = items.map((item) => <td key={item.id} {...props} />)
+export const d = items.map((item) => <td title="x" key={item.id} />)
+export const e = <td {...props} />
+`,
+		},
+	],
 	'no-motion-reduced-motion-hook': [
 		{
 			file: 'motion.tsx',
