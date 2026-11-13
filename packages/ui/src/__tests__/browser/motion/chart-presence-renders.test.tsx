@@ -117,11 +117,24 @@ describe('chart presence renders (real Motion)', () => {
 		expect(componentRenders(container, 'AnimatedChartBarMarks')).toBe(0)
 
 		expect(componentRenders(container, 'AnimatedBar')).toBe(0)
+	})
 
-		// A legend hover still reaches each bar, past the memo of the layer.
+	it('renders only the bars whose emphasis changes on a legend hover', async () => {
+		// Each bar reads its own lit state from the emphasis store. A hover on
+		// North dims the South bars and leaves the North bars lit, so only the
+		// South bars render. With a context read, each bar of both series
+		// renders on each change of the emphasis.
+		const { container } = renderUI(
+			<BarChart aria-label="Sales" data={DATA} series={[...SERIES]} width={800} animate />,
+		)
+
+		await waitFor(() => {
+			expect(container.querySelectorAll('[data-slot="chart-bar"]')).toHaveLength(2 * CATEGORIES)
+		}, SETTLE)
+
 		pointAt(container, 'North')
 
-		expect(componentRenders(container, 'AnimatedBar')).toBe(2 * CATEGORIES)
+		expect(componentRenders(container, 'AnimatedBar')).toBe(CATEGORIES)
 	})
 
 	it('renders the presences of the toggled series only on a legend toggle', async () => {

@@ -125,6 +125,42 @@ export const [ChartMarkEmphasisContext, useChartMarkEmphasis] =
 	createContext<ChartMarkEmphasis>('ChartMarkEmphasis')
 
 /**
+ * The {@link ChartMarkEmphasis} as a store, for a reader of one mark. The frame
+ * publishes each new emphasis to it after the commit that makes it. A mark that
+ * reads its own lit state through {@link useChartMarkLit} renders again only
+ * when that state flips, not on each emphasis change. The context value keeps
+ * its identity, so the context renders no reader.
+ *
+ * @internal
+ */
+export type ChartMarkEmphasisStore = {
+	get: () => ChartMarkEmphasis
+	set: (emphasis: ChartMarkEmphasis) => void
+	subscribe: (listener: () => void) => () => void
+}
+
+export const [ChartMarkEmphasisStoreContext, useChartMarkEmphasisStore] =
+	createContext<ChartMarkEmphasisStore>('ChartMarkEmphasisStore')
+
+/**
+ * Whether one mark reads at full strength ({@link ChartMarkEmphasis.lit}). The
+ * reader renders again only when the answer flips. A chart of many marks reads
+ * this in each mark, so an emphasis change renders only the marks that dim or
+ * light up.
+ *
+ * @param series - The own index of the series of the mark.
+ * @param datum - The index of the mark in its series.
+ * @internal
+ */
+export function useChartMarkLit(series: number, datum: number): boolean {
+	const store = useChartMarkEmphasisStore()
+
+	const read = () => store.get().lit(series, datum)
+
+	return useSyncExternalStore(store.subscribe, read, read)
+}
+
+/**
  * Whether a datum sits in the held category selection. A group-level query
  * passes no `datum`, and a selection by category never dims a whole series. An
  * empty selection holds nothing, so each datum reads lit. @internal
