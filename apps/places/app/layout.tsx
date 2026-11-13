@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { appTitle } from 'shared/pages'
 
 import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-	title: 'Places',
+	title: appTitle('Places'),
 	description: 'The places you have been, on one map.',
 }
 

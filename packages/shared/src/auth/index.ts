@@ -4,6 +4,13 @@ export {
 	sendVerificationEmail,
 	signInProviderNames,
 } from './account'
+export {
+	forgotPasswordMetadata,
+	loginMetadata,
+	registerMetadata,
+	resetPasswordMetadata,
+	verifyEmailMetadata,
+} from './auth-metadata'
 export { bifrost, RequestError, unwrap } from './bifrost'
 export { ForgotPasswordPage } from './forgot-password-page'
 export { LoginPage } from './login-page'

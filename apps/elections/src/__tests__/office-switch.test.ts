@@ -87,7 +87,7 @@ describe('OfficeSwitch', () => {
 
 		expect(window.location.pathname).toBe('/e/senate')
 
-		expect(document.title).toBe('Senate')
+		expect(document.title).toBe('Senate | Elections')
 
 		// Back shows the overview at once too.
 		await act(async () => {

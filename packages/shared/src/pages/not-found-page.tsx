@@ -39,5 +39,5 @@ export function NotFoundPage() {
  * locale of the reader, so the title stays in English.
  */
 export const notFoundMetadata: Metadata = {
-	title: '404 - Page Not Found',
+	title: 'Page not found',
 }

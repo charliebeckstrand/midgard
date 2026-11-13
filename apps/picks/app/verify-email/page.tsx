@@ -1,5 +1,7 @@
 import { VerifyEmailPage } from 'shared/auth'
 
+export { verifyEmailMetadata as metadata } from 'shared/auth'
+
 /**
  * Page that the verification link opens. The link gives the token in `?token=`.
  *

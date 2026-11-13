@@ -1,1 +1,1 @@
-export { ForgotPasswordPage as default } from 'shared/auth'
+export { ForgotPasswordPage as default, forgotPasswordMetadata as metadata } from 'shared/auth'

@@ -1,4 +1,5 @@
 import { bifrost } from 'auth'
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
@@ -7,6 +8,8 @@ import { TextSkeleton } from 'ui/text'
 import { PageHeader } from '@/components/page-header'
 import { SecurityClient } from './client'
 import { BansSection, ThreatsSection } from './sections'
+
+export const metadata: Metadata = { title: 'Security' }
 
 /**
  * Reads the threats and the bans from the gateway, and hands them to the

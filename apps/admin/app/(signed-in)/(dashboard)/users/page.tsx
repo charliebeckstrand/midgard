@@ -1,9 +1,12 @@
 import { bifrost, requireGateway } from 'auth'
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { seed } from 'shared/queries'
 import { Stack } from 'ui/structure/stack'
 import { PageHeader } from '@/components/page-header'
 import { UsersClient, UsersLoading } from './client'
+
+export const metadata: Metadata = { title: 'Users' }
 
 /**
  * Reads all users from the gateway, and hands them to the grid.

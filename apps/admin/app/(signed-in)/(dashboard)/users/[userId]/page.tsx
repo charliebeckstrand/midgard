@@ -1,4 +1,5 @@
 import { bifrost, requireGateway } from 'auth'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { type ReactNode, Suspense } from 'react'
 import { Badge } from 'ui/badge'
@@ -18,6 +19,8 @@ import { Stack } from 'ui/structure/stack'
 import { TextSkeleton } from 'ui/text'
 import { ActivityTable } from '@/components/activity-table'
 import { PageHeader } from '@/components/page-header'
+
+export const metadata: Metadata = { title: 'User' }
 
 type Params = Promise<{ userId: string }>
 

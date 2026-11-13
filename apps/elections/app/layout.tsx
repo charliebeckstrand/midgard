@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { appTitle } from 'shared/pages'
+import { APP_NAME } from '@/utilities/trail'
 
 import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-	title: 'Elections',
+	title: appTitle(APP_NAME),
 	description: 'Election results by state, district, and county.',
 }
 

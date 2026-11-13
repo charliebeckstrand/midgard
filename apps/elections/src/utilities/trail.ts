@@ -60,6 +60,9 @@ export function electionCrumbs(election: Election, state?: UsState): Crumb[] {
 	return crumbs
 }
 
+/** The name of the app, after the title of each page but the home page. */
+export const APP_NAME = 'Elections'
+
 /**
  * The title of a page of an election, such as `2026 Midterms Georgia Senate`:
  * the year, the election, and each name under the election.
