@@ -417,6 +417,15 @@ export type ChartFrameProps = AccessibleName & {
 	 * when the frame is itself rendering inside the fullscreen dialog.
 	 */
 	fullscreen?: ReactElement
+	/**
+	 * The drawing before the width is measured, in place of the SVG.
+	 *
+	 * @remarks A chart gives one only when its fit needs no measure, such as a
+	 * seat chart with no label. The drawing must then sit where the measured SVG
+	 * draws it, at each size. Without it, the box stays empty until the width is
+	 * measured.
+	 */
+	prepaint?: ReactNode
 	/** The SVG content: axes, gridlines, marks, and the hit layer. */
 	children: ReactNode
 }
@@ -469,6 +478,7 @@ export function ChartFrame({
 	annotations,
 	contextMenu,
 	fullscreen,
+	prepaint,
 	children,
 	...label
 }: ChartFrameProps) {
@@ -600,26 +610,29 @@ export function ChartFrame({
 	// it. Absolute, so it stays out of flow and the box owns its own size.
 	// At spark `k.drawing` renders the whole drawing pointer-inert: the veto half
 	// of the spark posture, killing mark hover styling and any hit target inside.
-	const svg = width > 0 && (
-		<svg
-			aria-hidden="true"
-			// The drawing is physical: its geometry runs left to right, so its text
-			// anchors must too. In a right-to-left page an end anchor would otherwise
-			// run each label from its anchor into the plot. The bidi of the text
-			// itself still reads a right-to-left label in its own order.
-			direction="ltr"
-			className={cn(
-				// biome-ignore lint/plugin/no-physical-side: the drawing keeps its physical axis, so it sits at the left edge of the plot
-				'absolute left-0 top-0 block',
-				k.drawing(spark),
-			)}
-			width={width}
-			height={height}
-			viewBox={`0 0 ${width} ${height}`}
-		>
-			{children}
-		</svg>
-	)
+	const svg =
+		width > 0 ? (
+			<svg
+				aria-hidden="true"
+				// The drawing is physical: its geometry runs left to right, so its text
+				// anchors must too. In a right-to-left page an end anchor would otherwise
+				// run each label from its anchor into the plot. The bidi of the text
+				// itself still reads a right-to-left label in its own order.
+				direction="ltr"
+				className={cn(
+					// biome-ignore lint/plugin/no-physical-side: the drawing keeps its physical axis, so it sits at the left edge of the plot
+					'absolute left-0 top-0 block',
+					k.drawing(spark),
+				)}
+				width={width}
+				height={height}
+				viewBox={`0 0 ${width} ${height}`}
+			>
+				{children}
+			</svg>
+		) : (
+			prepaint
+		)
 
 	const aside = legendAside(legendPlacement)
 
