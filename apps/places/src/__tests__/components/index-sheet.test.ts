@@ -57,6 +57,13 @@ function props(open: boolean, items: readonly Place[]): IndexSheetProps<Place> {
 const region = () => screen.getByRole('combobox', { name: 'Region' }).textContent
 
 describe('IndexSheet', () => {
+	// The header holds the close, so the sheet has no Close row of its own.
+	it('shows one Close button', () => {
+		render(h(IndexSheet<Place>, props(true, [a, b, c])))
+
+		expect(screen.getAllByRole('button', { name: 'Close' })).toHaveLength(1)
+	})
+
 	it('opens on the region of the view', () => {
 		const { rerender } = render(h(IndexSheet<Place>, props(false, [a, b, c])))
 

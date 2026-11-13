@@ -281,6 +281,8 @@ export function SummaryDrawer<T extends Located>({
 				// is the honest answer for a step with that much to show. The crumb above
 				// is how the reader gets back to it.
 				height="fit"
+				// The header holds the close, so the panel shows no Close row.
+				footer={null}
 				aria-label={title}
 			>
 				<DrawerHeader>

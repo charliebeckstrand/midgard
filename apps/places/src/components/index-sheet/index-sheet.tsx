@@ -121,7 +121,7 @@ export function IndexSheet<T extends Located>({
 		// the width of what it holds, and a drag could only make the table scroll or
 		// pad it with space.
 		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetPanel width="fit" aria-label={title}>
+			<SheetPanel width="fit" footer={null} aria-label={title}>
 				{/* The title and the close on one line in the header. The form drawer's
 				    header is built the same way, so the two panels answer the same corner. */}
 				<SheetHeader>

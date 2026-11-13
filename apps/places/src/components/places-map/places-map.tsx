@@ -291,10 +291,7 @@ export function PlacesMap({
 				data={rows}
 				regionKey="region"
 				categoryKey="visited"
-				// The neutral slot, not a categorical one. A covered region is a
-				// backdrop that says "there is something here to open", and any of the
-				// eight data hues would read as a sixth category. Worse, the first of
-				// them is the Food dots' own blue, which a blue region swallowed.
+				// The paint of the visited regions: `COVERED_CATEGORIES` gives its reason.
 				categories={COVERED_CATEGORIES}
 				// One mark and one region category, so a legend would draw two rows
 				// that each name a paint rather than telling two things apart.
@@ -326,7 +323,8 @@ export function PlacesMap({
 				// Every region opens, whether or not it holds places: an empty one is a
 				// place to look, and a reader who has just added somewhere new must not
 				// have to find out from a dead click that the map disagreed. The paint
-				// still says which regions hold places: it reports, and no longer gates.
+				// says which regions the reader marked visited, and it does not gate the
+				// click.
 				onRegionClick={(region, _index, press) => {
 					if (!isSingleTap(press)) onDrill(region)
 				}}
