@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Grid, type GridColumn } from 'ui/grid'
 import { filterableColumns, type Person, people } from '../data.tsx'
 
@@ -8,8 +7,6 @@ const selectColumns: GridColumn<Person>[] = [
 ]
 
 export default function ExportWithSelection() {
-	const [selection, setSelection] = useState<Set<string | number>>(new Set())
-
 	// While rows are selected, an export takes only the selected rows.
 	return (
 		<Grid
@@ -18,7 +15,6 @@ export default function ExportWithSelection() {
 			rows={people}
 			getKey={(row) => row.id}
 			rowLabel={(row) => row.name}
-			selection={{ value: selection, onValueChange: setSelection }}
 		/>
 	)
 }
