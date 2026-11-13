@@ -12,6 +12,9 @@ import { catalogs } from '../locale/catalogs'
 import { DEFAULT_LOCALE } from '../locale/locales'
 import { createAppQueryClient } from './query-client'
 
+/** The id of the mark at the end of the shell, which the render-blocking link names. */
+const SHELL_END = 'shell-end'
+
 type AppProvidersProps = {
 	/**
 	 * The query defaults of the app, such as a `staleTime` or no refetch on a
@@ -49,6 +52,16 @@ type AppProvidersProps = {
  * `/login` (see {@link createAppQueryClient}). The `QueryClientProvider` is in
  * `UIProvider`, so that the client can show toasts.
  *
+ * The browser paints the HTML of a page while it parses it, and a page can
+ * come in parts. Thus a frame could show half a page, such as a page with no
+ * Drawer over it. After the providers, an empty `template` with the id
+ * `shell-end` marks the end of the shell of React. A `link` with
+ * `rel="expect"` and `blocking="render"` names that mark, and React puts the
+ * link in the head. The browser then holds the first paint until it parses the
+ * mark, so the first paint has the whole shell. A browser without support for
+ * the link paints as before. Each Suspense boundary of a page streams after the
+ * shell, as before.
+ *
  * @remarks Top-level context per CONVENTIONS.md §6.1. Render it from the root
  * layout, in a `<body>` whose `<html>` has `suppressHydrationWarning`: the
  * server of the app writes the stored settings of the reader on `<html>`
@@ -58,18 +71,24 @@ type AppProvidersProps = {
  */
 export function AppProviders({ queries, timeZone, dateFormat, children }: AppProvidersProps) {
 	return (
-		<AppearanceProvider>
-			<LocaleProvider
-				locale={DEFAULT_LOCALE}
-				timeZone={timeZone}
-				dateFormat={dateFormat}
-				catalogs={catalogs}
-			>
-				<UIProvider link={NextLink}>
-					<AppQueryProvider queries={queries}>{children}</AppQueryProvider>
-				</UIProvider>
-			</LocaleProvider>
-		</AppearanceProvider>
+		<>
+			<link rel="expect" href={`#${SHELL_END}`} blocking="render" />
+
+			<AppearanceProvider>
+				<LocaleProvider
+					locale={DEFAULT_LOCALE}
+					timeZone={timeZone}
+					dateFormat={dateFormat}
+					catalogs={catalogs}
+				>
+					<UIProvider link={NextLink}>
+						<AppQueryProvider queries={queries}>{children}</AppQueryProvider>
+					</UIProvider>
+				</LocaleProvider>
+			</AppearanceProvider>
+
+			<template id={SHELL_END} />
+		</>
 	)
 }
 
