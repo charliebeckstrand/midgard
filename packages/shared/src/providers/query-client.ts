@@ -31,7 +31,7 @@ type AppQueryClientOptions = {
 }
 
 // A `401` means that the session ended, so the page goes to the sign-in page.
-function signedOut(error: Error): boolean {
+function redirectSignedOut(error: Error): boolean {
 	if (!(error instanceof RequestError) || error.status !== 401) return false
 
 	window.location.assign('/login')
@@ -56,10 +56,10 @@ export function createAppQueryClient({
 }: AppQueryClientOptions): QueryClient {
 	return new QueryClient({
 		defaultOptions: { queries },
-		queryCache: new QueryCache({ onError: signedOut }),
+		queryCache: new QueryCache({ onError: redirectSignedOut }),
 		mutationCache: new MutationCache({
 			onError: (error, _variables, _result, mutation) => {
-				if (signedOut(error) || mutation.meta?.inlineError) return
+				if (redirectSignedOut(error) || mutation.meta?.inlineError) return
 
 				toast({ severity: 'error', title: failureTitle(), description: error.message })
 			},

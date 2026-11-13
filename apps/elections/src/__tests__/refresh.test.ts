@@ -210,7 +210,7 @@ describe('LiveRefresh', () => {
 
 	it('skips a minute with no answer, and stops after a deploy', async () => {
 		// The first read is the build of the document; then a minute with no answer, one in step, and a deploy.
-		serve('build-a', null, null, 'build-a', 'build-a', 'build-b')
+		serve('build-a', null, 'build-a', 'build-b')
 
 		const { LiveRefresh } = await load()
 
@@ -221,6 +221,22 @@ describe('LiveRefresh', () => {
 		for (let i = 0; i < 5; i++) await minute()
 
 		expect(refresh).toHaveBeenCalledTimes(1)
+	})
+
+	it('reads the build of the server one time each minute', async () => {
+		const fetch = serve('build-a')
+
+		const { LiveRefresh } = await load()
+
+		render(createElement(LiveRefresh, { live: true }))
+
+		await act(() => vi.advanceTimersByTimeAsync(0))
+
+		const reads = fetch.mock.calls.length
+
+		await minute()
+
+		expect(fetch).toHaveBeenCalledTimes(reads + 1)
 	})
 
 	it('does not refresh while `live` is off', async () => {

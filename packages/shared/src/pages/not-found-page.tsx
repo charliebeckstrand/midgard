@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Heading } from 'ui/heading'
 import { defineMessages, IntlMessage } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
@@ -24,7 +25,7 @@ export function NotFoundPage() {
 	return (
 		<Flex justify="center" align="center" className="min-h-dvh grow">
 			<Stack align="center" gap="sm" className="px-4 text-center text-xl dark:text-white">
-				<div className="text-3xl font-black">404</div>
+				<Heading className="text-3xl font-black">404</Heading>
 				<div className="font-light text-gray-400">
 					<IntlMessage message={messages.body} />
 				</div>
