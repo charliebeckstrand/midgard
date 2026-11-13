@@ -22,7 +22,7 @@ import {
 	recordSample,
 	releaseSpeed,
 	SWIPE_EDGE_RESISTANCE,
-	SWIPE_SLOP,
+	SWIPE_THRESHOLD,
 	swipeStep,
 } from './lightbox-utilities'
 import { type LightboxZoom, useLightboxZoom } from './use-lightbox-zoom'
@@ -93,7 +93,7 @@ export type LightboxTrack = {
 	/**
 	 * The pointer handlers of a control that a swipe along the line moves the
 	 * track from, such as the pill of the step buttons. A press on the control
-	 * takes the track only when it travels past the slop, so a press that does
+	 * takes the track only when it travels past the threshold, so a press that does
 	 * not travel stays the press of the control.
 	 */
 	controlHandlers: LightboxPointerHandlers
@@ -118,7 +118,7 @@ type Press = {
 	/** The travel that the track painted when the press started, in px. */
 	base: number
 	/**
-	 * What the press does once it travels past the slop: `'swipe'` along the line
+	 * What the press does once it travels past the threshold: `'swipe'` along the line
 	 * steps, `'dismiss'` closes, and `'pan'` moves a zoomed photo. A second
 	 * finger makes the press a `'pinch'`.
 	 */
@@ -140,7 +140,7 @@ type Press = {
 	samples: LightboxSample[]
 	/**
 	 * Whether the press started on a control. It only swipes along the line, and
-	 * it takes the track only when it travels past the slop.
+	 * it takes the track only when it travels past the threshold.
 	 */
 	along: boolean
 }
@@ -169,7 +169,7 @@ function createPress(event: PointerEvent, base: number, along: boolean): Press {
 
 /**
  * Whether a press holds the track. A press on a control that has not traveled
- * past the slop does not, so its lift or its cancel leaves the track as it is,
+ * past the threshold does not, so its lift or its cancel leaves the track as it is,
  * and a press of a step button stays the press of the button.
  */
 function holdsTrack(press: Press): boolean {
@@ -198,7 +198,7 @@ function travelTo(track: HTMLElement, offset: number): number {
 
 /**
  * What a press means once it travels: `'swipe'` along the line, `'dismiss'` up
- * or down, or `'wait'` while it stays inside the slop. A press on a zoomed
+ * or down, or `'wait'` while it stays inside the threshold. A press on a zoomed
  * photo is a `'pan'` in any direction. With one photo, there is no photo to
  * swipe to, so a press in any direction is `'dismiss'`. A press that catches
  * the track between two photos is a `'swipe'`, and so is a press on a control
@@ -214,7 +214,7 @@ function resolveIntent(
 
 	const dy = Math.abs(event.clientY - press.y)
 
-	if (Math.max(dx, dy) < SWIPE_SLOP) return 'wait'
+	if (Math.max(dx, dy) < SWIPE_THRESHOLD) return 'wait'
 
 	if (press.along) return 'swipe'
 
@@ -593,7 +593,7 @@ export function useLightboxTrack(
 		if (press.current?.points.has(pointerId)) abandon()
 	}
 
-	// A press that travels past the slop starts a swipe along the line or up and
+	// A press that travels past the threshold starts a swipe along the line or up and
 	// down. It reads the layout once, here, and never during the moves.
 	const begin = (current: Press, track: HTMLElement, event: PointerEvent<HTMLElement>) => {
 		current.mode = resolveIntent(current, event, count, zoom.zoomed())

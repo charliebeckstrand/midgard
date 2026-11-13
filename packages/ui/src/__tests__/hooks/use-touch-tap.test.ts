@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import type { PointerEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { MULTI_TAP_SLOP, MULTI_TAP_WINDOW, useTouchTap } from '../../hooks/use-touch-tap'
+import { MULTI_TAP_DISTANCE, MULTI_TAP_WINDOW, useTouchTap } from '../../hooks/use-touch-tap'
 
 function finger(pointerId: number, isPrimary: boolean, clientX = 40, clientY = 60) {
 	return {
@@ -91,14 +91,14 @@ describe('useTouchTap', () => {
 			expect(onTap.mock.calls.map((call) => call[2])).toEqual([1, 2])
 		})
 
-		it('starts a new run after the window, or past the slop', () => {
+		it('starts a new run after the window, or past the distance', () => {
 			const { onTap, touch } = setup()
 
 			tapAt(touch, 1_000)
 
 			tapAt(touch, 1_000 + MULTI_TAP_WINDOW + 100)
 
-			tapAt(touch, 1_000 + MULTI_TAP_WINDOW + 200, 40 + MULTI_TAP_SLOP + 1)
+			tapAt(touch, 1_000 + MULTI_TAP_WINDOW + 200, 40 + MULTI_TAP_DISTANCE + 1)
 
 			expect(onTap.mock.calls.map((call) => call[2])).toEqual([1, 1, 1])
 		})

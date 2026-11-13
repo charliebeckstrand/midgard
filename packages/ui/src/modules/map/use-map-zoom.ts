@@ -14,7 +14,7 @@ import { useAnimationFrame } from '../../hooks/use-animation-frame'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useTimeout } from '../../hooks/use-timeout'
-import { TOUCH_SLOP } from '../../hooks/use-touch-tap'
+import { TAP_THRESHOLD } from '../../hooks/use-touch-tap'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { useMapHoverActions } from './context'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS, MAP_ZOOM_FIT } from './engine/map-constants'
@@ -121,19 +121,19 @@ export type MapZoomOptions = {
  */
 type MapPress = {
 	from: MapPoint2D
-	slop: number
+	threshold: number
 	moved: boolean
 }
 
 /**
  * The travel past which a press of this kind is a pan. A touch picks from its
- * lift while it travels no more than {@link TOUCH_SLOP}, so a touch pans only
+ * lift while it travels no more than {@link TAP_THRESHOLD}, so a touch pans only
  * past that same travel: a press is a tap or a pan, never both. A mouse or a pen
  * picks through its click, which a pan swallows, so it pans at
  * {@link MAP_PAN_THRESHOLD}.
  */
-function panSlop(pointerType: string): number {
-	return pointerType === 'touch' ? TOUCH_SLOP : MAP_PAN_THRESHOLD
+function panThreshold(pointerType: string): number {
+	return pointerType === 'touch' ? TAP_THRESHOLD : MAP_PAN_THRESHOLD
 }
 
 /** A wheel stream in flight: what it last pushed, and whether it has been seen running down. */
@@ -162,7 +162,7 @@ type MapWheelStream = {
  * goes to the page, so the map does not trap the reader. A wheel with the
  * modifier key held is aimed at the map, so the map takes it in all cases.
  *
- * A drag pans once it passes its slop ({@link panSlop}). The click that follows
+ * A drag pans once it passes its threshold ({@link panThreshold}). The click that follows
  * goes nowhere, and a touch that pans is no tap, so a pan across a clickable map
  * never reports a pick. Two pointers pinch about their own midpoint. On a
  * modifier map, one finger pans only a view that is zoomed in when the finger
@@ -584,11 +584,11 @@ export function useMapZoom({
 		// The touch of a palm while a pen or a mouse holds the map.
 		if (holder.current !== null) return false
 
-		const contacts = readContacts(event, pointers.current)
-
-		claimTouch(event, contacts)
-
 		const prev = pointers.current
+
+		const contacts = readContacts(event, prev)
+
+		claimTouch(event, prev, contacts)
 
 		if (pairKey(contacts) === pairKey(prev)) {
 			pointers.current = contacts
@@ -619,7 +619,7 @@ export function useMapZoom({
 
 	/**
 	 * Starts the press of a lone contact, or ends the press. A finger that lands
-	 * alone is a tap until it travels past the slop. A finger left down after a
+	 * alone is a tap until it travels past the threshold. A finger left down after a
 	 * pinch is already a gesture, so it pans from its first move.
 	 */
 	function pressContact(prev: Map<number, MapPoint2D>, contacts: Map<number, MapPoint2D>) {
@@ -627,7 +627,7 @@ export function useMapZoom({
 
 		press.current =
 			contacts.size === 1 && at !== undefined
-				? { from: at, slop: TOUCH_SLOP, moved: prev.size > 1 }
+				? { from: at, threshold: panThreshold('touch'), moved: prev.size > 1 }
 				: null
 	}
 
@@ -660,14 +660,18 @@ export function useMapZoom({
 	 * A new sequence also clears the last pan's flag. No click follows a touch
 	 * gesture, so that flag must not swallow the click after it.
 	 */
-	function claimTouch(event: TouchEvent, contacts: Map<number, MapPoint2D>) {
-		if (pointers.current.size === 0 && contacts.size > 0) {
+	function claimTouch(
+		event: TouchEvent,
+		prev: Map<number, MapPoint2D>,
+		contacts: Map<number, MapPoint2D>,
+	) {
+		if (prev.size === 0 && contacts.size > 0) {
 			panned.current = false
 
 			touchHeld.current = live.current.transform.k > MAP_ZOOM_FIT
 		}
 
-		if (contacts.size > 1 && pointers.current.size < 2) {
+		if (contacts.size > 1 && prev.size < 2) {
 			touchHeld.current = true
 
 			holdReadout(true)
@@ -738,7 +742,7 @@ export function useMapZoom({
 
 		// A touch never gets here on a modifier map, so every lone pointer drags.
 		if (pointers.current.size === 1) {
-			press.current = { from: at, slop: panSlop(event.pointerType), moved: false }
+			press.current = { from: at, threshold: panThreshold(event.pointerType), moved: false }
 
 			return
 		}
@@ -756,7 +760,7 @@ export function useMapZoom({
 		// that shakes on the way to picking a region must not shift the map out
 		// from under the pick.
 		if (!gesture.moved) {
-			if (pointerGap(gesture.from, at) <= gesture.slop) return
+			if (pointerGap(gesture.from, at) <= gesture.threshold) return
 
 			gesture.moved = true
 

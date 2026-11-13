@@ -1,5 +1,5 @@
 import { describe, expect, vi } from 'vitest'
-import { TOUCH_SLOP, TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
+import { TAP_THRESHOLD, TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
@@ -202,7 +202,7 @@ describe('BarChart', () => {
 		// A press shorter than a long press still gives a click.
 		fireEvent.click(hit, TOUCH)
 
-		const moved = { ...TOUCH, clientX: 280 - TOUCH_SLOP - 1 }
+		const moved = { ...TOUCH, clientX: 280 - TAP_THRESHOLD - 1 }
 
 		fireEvent.pointerOver(hit, TOUCH)
 

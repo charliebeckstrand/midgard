@@ -5,7 +5,7 @@ import { holdTextSelection } from '../utilities/hold-text-selection'
 import { createPressOwner, type isPrimaryPress } from '../utilities/primary-press'
 import { useStableEvent } from './use-stable-event'
 import { useTimeout } from './use-timeout'
-import { TOUCH_SLOP } from './use-touch-tap'
+import { TAP_THRESHOLD } from './use-touch-tap'
 
 /** The press that a hold times: its pointer, the viewport point where it landed, and its target. @internal */
 export type TouchPress = { id: number; x: number; y: number; target: EventTarget | null }
@@ -21,7 +21,7 @@ export type TouchHold = {
 	 */
 	start: (event: PointerEvent, delay: number) => boolean
 	/**
-	 * Ends a pending hold whose pointer moves past {@link TOUCH_SLOP}. Such a press is a scroll or
+	 * Ends a pending hold whose pointer moves past {@link TAP_THRESHOLD}. Such a press is a scroll or
 	 * a drag. A hold that fired is not changed.
 	 *
 	 * @returns Whether the move ended the hold.
@@ -38,7 +38,7 @@ export type TouchHold = {
 /**
  * Times a touch hold: the arm and the cancel phase of a long press.
  *
- * A press arms a timer and keeps the point where it landed. A move past {@link TOUCH_SLOP} before
+ * A press arms a timer and keeps the point where it landed. A move past {@link TAP_THRESHOLD} before
  * the timer fires ends the hold, because the finger scrolls or drags. When the timer fires,
  * `onHold` gets the press. The press stays held until {@link TouchHold.cancel}, so the caller can
  * match the moves and the lift of the same pointer. While the touch holds, the page selects no
@@ -96,7 +96,7 @@ export function useTouchHold(onHold: (press: TouchPress) => void): TouchHold {
 
 				if (current === null || !owner.owns(event) || !timer.pending()) return false
 
-				if (Math.hypot(event.clientX - current.x, event.clientY - current.y) <= TOUCH_SLOP) {
+				if (Math.hypot(event.clientX - current.x, event.clientY - current.y) <= TAP_THRESHOLD) {
 					return false
 				}
 

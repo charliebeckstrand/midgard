@@ -216,7 +216,7 @@ export function getOverlap(a: LightboxBox, b: LightboxBox): LightboxBox | undefi
 }
 
 /** Travel, in CSS px, past which a press on the stage is a swipe. @internal */
-export const SWIPE_SLOP = 8
+export const SWIPE_THRESHOLD = 8
 
 /** The share of the stage width past which a swipe steps to the next photo. */
 const SWIPE_DISTANCE = 0.2
@@ -489,7 +489,7 @@ export const PAN_KEY_STEP = 0.1
 const DOUBLE_TAP_WINDOW = 300
 
 /** Distance, in CSS px, between the two taps of a double tap. */
-const DOUBLE_TAP_SLOP = 40
+const DOUBLE_TAP_DISTANCE = 40
 
 /** A point in px, from the top left corner of the stage. @internal */
 export type LightboxPoint = { x: number; y: number }
@@ -499,7 +499,7 @@ export type LightboxTap = LightboxPoint & { at: number }
 
 /**
  * Whether `tap` and the tap before it are a double tap: they lift in
- * {@link DOUBLE_TAP_WINDOW} and land in {@link DOUBLE_TAP_SLOP} of each other.
+ * {@link DOUBLE_TAP_WINDOW} and land in {@link DOUBLE_TAP_DISTANCE} of each other.
  *
  * @internal
  */
@@ -507,7 +507,7 @@ export function isDoubleTap(prev: LightboxTap | null, tap: LightboxTap): boolean
 	return (
 		prev !== null &&
 		tap.at - prev.at <= DOUBLE_TAP_WINDOW &&
-		Math.hypot(tap.x - prev.x, tap.y - prev.y) <= DOUBLE_TAP_SLOP
+		Math.hypot(tap.x - prev.x, tap.y - prev.y) <= DOUBLE_TAP_DISTANCE
 	)
 }
 

@@ -35,8 +35,8 @@ export type GridTouchEntry = {
  * run of taps of {@link useTouchTap} opens the cell. The run gives the time and
  * the distance between the two taps. A third tap starts a new pair.
  *
- * {@link useTouchTap} finds the tap. A press that travels more than its
- * slop is a scroll, and a press that the browser cancels is a scroll that the
+ * {@link useTouchTap} finds the tap. A press that travels past its
+ * threshold is a scroll, and a press that the browser cancels is a scroll that the
  * browser took. A press that holds past its window is a hold. None of them
  * opens the cell. A mouse and a pen do nothing here, so the double-click stays
  * their entry.
