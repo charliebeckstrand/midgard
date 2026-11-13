@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { MapPlat } from 'ui/map'
+import { type MapFeatureCollection, MapPlat } from 'ui/map'
 import { useCountyShapes } from '../../queries/county-queries'
 import type { CountyResult } from '../../types'
 import { countyWinner, WINNER_CATEGORIES } from '../../utilities/results'
@@ -24,6 +24,11 @@ export type CountyMapProps = {
 	 * @defaultValue 'auto'
 	 */
 	aspectRatio?: number | 'auto'
+	/**
+	 * The county shapes of the state, which the page read on the server, so the
+	 * first paint draws the map. Omit it to read them in the browser.
+	 */
+	shapes?: MapFeatureCollection | null
 }
 
 /** One county of the map: its FIPS code and its category. */
@@ -48,8 +53,9 @@ export function CountyMap({
 	counties,
 	onCounty,
 	aspectRatio = 'auto',
+	shapes: seeded = null,
 }: CountyMapProps) {
-	const shapes = useCountyShapes(state)
+	const shapes = useCountyShapes(state, seeded)
 
 	const rows = useMemo(
 		() =>

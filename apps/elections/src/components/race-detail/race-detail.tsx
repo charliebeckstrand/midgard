@@ -3,18 +3,17 @@
 import { Activity, lazy, Suspense } from 'react'
 import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
+import type { MapFeatureCollection } from 'ui/map'
 import { Odometer } from 'ui/odometer'
 import { Placeholder } from 'ui/placeholder'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
 import type { Candidate, Race } from '../../types'
+import type { RaceView } from '../../utilities/elections-url'
 import { isCalled } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
 import { RaceSummary } from '../race-summary'
 import { loadCountyMap } from './load-county-map'
-
-/** The view of a race: its overview, or its counties on a map. */
-export type RaceView = 'overview' | 'counties'
 
 /** Props for {@link RaceDetail}. */
 export type RaceDetailProps = {
@@ -24,9 +23,15 @@ export type RaceDetailProps = {
 	race: Race | undefined
 	/** Opens a county of the race, by its FIPS code. */
 	onCounty: (fips: string) => void
-	/** The view. The Drawer holds it, so the map stays across a visit to a county. */
+	/** The view. The address holds it, so a reload opens the same view. */
 	view: RaceView
 	onViewChange: (view: RaceView) => void
+	/**
+	 * The county shapes of the state, which the page read on the server where the
+	 * address opens the race on its map, so the first paint draws the map. `null`
+	 * reads them in the browser.
+	 */
+	shapes: MapFeatureCollection | null
 }
 
 /** The county map, from its chunk. */
@@ -119,7 +124,7 @@ function RaceFacts({
  * `Activity`. A switch to By county therefore shows a map that is already
  * drawn.
  */
-export function RaceDetail({ entry, race, onCounty, view, onViewChange }: RaceDetailProps) {
+export function RaceDetail({ entry, race, onCounty, view, onViewChange, shapes }: RaceDetailProps) {
 	const candidates = race?.candidates ?? entry.candidates
 
 	const called = race === undefined ? entry.called : isCalled(race.candidates)
@@ -155,6 +160,7 @@ export function RaceDetail({ entry, race, onCounty, view, onViewChange }: RaceDe
 						statewide={entry.district === null}
 						counties={race?.counties}
 						onCounty={onCounty}
+						shapes={shapes}
 					/>
 				</Suspense>
 			</Activity>

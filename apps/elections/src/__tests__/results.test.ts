@@ -98,18 +98,35 @@ describe('the race of a step of the Drawer', () => {
 		expect(stepEntry(results, entryStep(ga06))).toBe(ga06)
 
 		expect(
-			stepEntry(results, { region: georgia, office: 'senate', district: null, county: null })?.state
-				.key,
+			stepEntry(results, {
+				region: georgia,
+				office: 'senate',
+				district: null,
+				view: 'overview',
+				county: null,
+			})?.state.key,
 		).toBe('ga')
 	})
 
 	it('gives no race for the overview, or the delegation of a state', () => {
 		expect(
-			stepEntry(results, { region: georgia, office: null, district: null, county: null }),
+			stepEntry(results, {
+				region: georgia,
+				office: null,
+				district: null,
+				view: 'overview',
+				county: null,
+			}),
 		).toBeUndefined()
 
 		expect(
-			stepEntry(results, { region: georgia, office: 'house', district: null, county: null }),
+			stepEntry(results, {
+				region: georgia,
+				office: 'house',
+				district: null,
+				view: 'overview',
+				county: null,
+			}),
 		).toBeUndefined()
 	})
 

@@ -1,2 +1,2 @@
 export { ElectionRacesProvider } from './context'
-export { ElectionDrawer, type ElectionDrawerProps } from './election-drawer'
+export { type DrawerSeed, ElectionDrawer, type ElectionDrawerProps } from './election-drawer'

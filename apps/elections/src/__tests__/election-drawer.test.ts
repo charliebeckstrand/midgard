@@ -71,7 +71,10 @@ function drawer(client: QueryClient, raceSeed: typeof georgia | null = georgia) 
 		client,
 		children: h(ElectionRacesProvider, {
 			races,
-			children: h(ElectionDrawer, { election, seed: raceSeed }),
+			children: h(ElectionDrawer, {
+				election,
+				seed: raceSeed === null ? null : { race: raceSeed, shapes: null },
+			}),
 		}),
 	})
 }
@@ -106,6 +109,28 @@ describe('ElectionDrawer', () => {
 		goTo(race)
 
 		expect(selected('Overview')).toBe('true')
+	})
+
+	it('writes the view into the address, so a reload opens the same view', () => {
+		window.history.replaceState(null, '', '/2026/us/midterms?region=ga&office=senate')
+
+		const before = window.history.length
+
+		const first = render(drawer(new QueryClient()))
+
+		fireEvent.click(screen.getByRole('tab', { name: 'By county' }))
+
+		// The switch writes over the entry, so Back walks the trail and not the switches.
+		expect(window.location.search).toBe('?region=ga&office=senate&view=counties')
+		expect(window.history.length).toBe(before)
+
+		first.unmount()
+
+		render(drawer(new QueryClient()))
+
+		expect(screen.getByRole('tab', { name: 'By county' }).getAttribute('aria-selected')).toBe(
+			'true',
+		)
 	})
 
 	it('shows a county in detail, and holds the layout across counties', () => {

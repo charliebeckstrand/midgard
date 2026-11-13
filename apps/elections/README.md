@@ -97,6 +97,11 @@ The Drawer shows a state, its offices, its districts, and its counties over
 each page of an election. Its step is in the search params:
 `?region=ga` opens the overview of a state, `&office=senate` its race,
 `&district=06` a district of the House, and `&county=13121` a county.
+`&view=counties` opens a race on its map (By county), so a reload opens the
+same view. A switch of view writes over the history entry, so Back walks the
+trail and not the switches. A county keeps the view of its race. On a reload
+on the map, the page reads the county shapes on the server, so the first
+paint draws the map.
 
 `src/utilities/elections-url.ts` reads and writes the paths and the params, and
 `src/hooks/use-drawer.ts` moves the Drawer.

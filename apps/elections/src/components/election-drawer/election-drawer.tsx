@@ -7,6 +7,7 @@ import type { Seed } from 'shared/queries'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
+import type { MapFeatureCollection } from 'ui/map'
 import { SearchInput } from 'ui/search-input'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
@@ -14,7 +15,13 @@ import type { Election } from '../../elections/registry'
 import { useDrawerStep } from '../../hooks/use-drawer'
 import { useRace } from '../../queries/race-queries'
 import type { CountyResult, Race } from '../../types'
-import { type DrawerStep, districtName, drawerHref, statePath } from '../../utilities/elections-url'
+import {
+	type DrawerStep,
+	districtName,
+	drawerHref,
+	type RaceView,
+	statePath,
+} from '../../utilities/elections-url'
 import { delegation } from '../../utilities/race-math'
 import {
 	entryKey,
@@ -27,22 +34,33 @@ import {
 import { contestItems } from '../../utilities/trail'
 import { OfficeCard } from '../office-card'
 import { RaceCard } from '../race-card'
-import { RaceDetail, type RaceView, usePreloadCountyMap } from '../race-detail'
+import { RaceDetail, usePreloadCountyMap } from '../race-detail'
 import { DelegationSummary, RaceSummary } from '../race-summary'
 import { type DrawerView, ResultDrawer, type TrailCrumb } from '../result-drawer'
 import { useElectionRaces } from './context'
 
+/**
+ * What the page read on the server for the step of the address, so a reload
+ * paints the Drawer whole: the race, and the county shapes of its state where
+ * the step opens on the map of the race.
+ */
+export type DrawerSeed = {
+	race: Seed<Race>
+	/** The county shapes of the state of the race, or `null` where the step shows no map. */
+	shapes: MapFeatureCollection | null
+}
+
 /** Props for {@link ElectionDrawer}. */
 export type ElectionDrawerProps = {
 	election: Election
-	/** The race of the step of the address, which the page read on the server, or `null`. */
-	seed: Seed<Race> | null
+	/** What the page read on the server for the step of the address, or `null`. */
+	seed: DrawerSeed | null
 }
 
 /** Moves the Drawer to a step, or closes it with `null`. */
 type Go = (step: DrawerStep | null) => void
 
-/** The view of the race of the step, which the Drawer holds across a visit to a county. */
+/** The view of the race of the step, which the address holds, so a county keeps it. */
 type Views = { view: RaceView; onViewChange: (view: RaceView) => void }
 
 /** The layout of a county: each candidate in full, or one short line each. */
@@ -89,15 +107,23 @@ function drawerTrail(
 	const trail: TrailCrumb[] = [
 		{
 			label: region.name,
-			...back({ region, office: null, district: null, county: null }),
+			...back({ region, office: null, district: null, view: 'overview', county: null }),
 		},
 		{
 			label: items.find((item) => item.value === office)?.label ?? office,
-			...back({ region, office, district: null, county: null }),
+			// The crumb of a statewide race leads back to the view of the race.
+			...back({
+				region,
+				office,
+				district: null,
+				view: step.district === null ? step.view : 'overview',
+				county: null,
+			}),
 			menu: items.map((item) => ({
 				label: item.label,
 				disabled: item.disabled,
-				onPick: () => go({ region, office: item.value, district: null, county: null }),
+				onPick: () =>
+					go({ region, office: item.value, district: null, view: 'overview', county: null }),
 			})),
 		},
 	]
@@ -142,7 +168,13 @@ function StateOverview({
 					contest={contest}
 					entries={entries}
 					onPick={() =>
-						go({ region: step.region, office: contest.slug, district: null, county: null })
+						go({
+							region: step.region,
+							office: contest.slug,
+							district: null,
+							view: 'overview',
+							county: null,
+						})
 					}
 				/>
 			))}
@@ -266,6 +298,7 @@ function raceView(
 	go: Go,
 	views: Views,
 	layouts: Layouts,
+	shapes: MapFeatureCollection | null,
 ): DrawerView {
 	// Only the race tells a special election, so the badge comes when the race
 	// loads. It sits in the row of the trail, so the panel keeps its height.
@@ -298,6 +331,7 @@ function raceView(
 				onCounty={(fips) => go({ ...step, county: fips })}
 				view={views.view}
 				onViewChange={views.onViewChange}
+				shapes={shapes}
 			/>
 		),
 	}
@@ -318,6 +352,7 @@ function drawerView(
 	layouts: Layouts,
 	search: Search,
 	path: string,
+	shapes: MapFeatureCollection | null,
 ): DrawerView | null {
 	const races = stateRaces(results, step.region)
 
@@ -332,7 +367,7 @@ function drawerView(
 		}
 	}
 
-	if (entry !== undefined) return raceView(entry, race, trail, step, go, views, layouts)
+	if (entry !== undefined) return raceView(entry, race, trail, step, go, views, layouts, shapes)
 
 	if (office.contest.depth !== 'district' || step.district !== null) return null
 
@@ -368,24 +403,26 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 
 	const pathname = usePathname()
 
-	usePreloadCountyMap(step?.region.key ?? null)
-
 	const entry = step === null ? undefined : stepEntry(results, step)
 
-	const read = useRace(entry?.raceId ?? null, seed)
+	const read = useRace(entry?.raceId ?? null, seed?.race ?? null)
+
+	// The shapes belong to the state of the seeded race, so only that race takes them.
+	const shapes = seed !== null && seed.race.data.id === entry?.raceId ? seed.shapes : null
+
+	usePreloadCountyMap(step?.region.key ?? null, shapes)
 
 	const race = read.data?.id === entry?.raceId ? read.data : undefined
 
-	// Each race opens on its overview. The map stays across a visit to one of its
-	// counties, and resets once the Drawer leaves the race.
-	const [mapRace, setMapRace] = useState<number | null>(null)
-
-	if (mapRace !== null && mapRace !== entry?.raceId) setMapRace(null)
-
+	// The address holds the view of the race, so a reload opens the same view.
+	// A switch of view writes over the entry, so Back walks the trail and not the
+	// switches. A county keeps the view, so the map stays across a visit to one of
+	// its counties.
 	const views: Views = {
-		view: entry !== undefined && mapRace === entry.raceId ? 'counties' : 'overview',
-		onViewChange: (next) =>
-			setMapRace(next === 'counties' && entry !== undefined ? entry.raceId : null),
+		view: step?.view ?? 'overview',
+		onViewChange: (next) => {
+			if (step !== null) go({ ...step, view: next }, 'replace')
+		},
 	}
 
 	// The layout of a county is a choice of the reader, so it stays across
@@ -410,7 +447,19 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 	const view =
 		step === null
 			? null
-			: drawerView(election, results, step, entry, race, go, views, layouts, search, pathname)
+			: drawerView(
+					election,
+					results,
+					step,
+					entry,
+					race,
+					go,
+					views,
+					layouts,
+					search,
+					pathname,
+					shapes,
+				)
 
 	return <ResultDrawer view={view} onClose={() => go(null)} />
 }

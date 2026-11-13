@@ -1,2 +1,2 @@
-export { RaceDetail, type RaceDetailProps, type RaceView } from './race-detail'
+export { RaceDetail, type RaceDetailProps } from './race-detail'
 export { usePreloadCountyMap } from './use-preload-county-map'

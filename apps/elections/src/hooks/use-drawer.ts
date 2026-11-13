@@ -44,8 +44,12 @@ function stepQuery(address: string | null, pathname: string, params: URLSearchPa
 	return mark === -1 ? '' : address.slice(mark + 1)
 }
 
-/** Moves the Drawer to a step, or closes it with `null`. */
-export type DrawerGo = (step: DrawerStep | null) => void
+/**
+ * Moves the Drawer to a step, or closes it with `null`. `replace` writes the
+ * step over the current entry, for a change of view that is not a move along
+ * the trail, such as the switch between the overview and the map of a race.
+ */
+export type DrawerGo = (step: DrawerStep | null, mode?: 'push' | 'replace') => void
 
 /**
  * The way to move the Drawer of an election, with no read of its step. A part
@@ -58,9 +62,10 @@ export type DrawerGo = (step: DrawerStep | null) => void
  * that a move reads is the step that shows.
  *
  * Each move is a history entry, so Back walks the trail of the Drawer and then
- * closes it. A move to the current step writes no entry. A move writes the
- * address in place, with no navigation: the page under the Drawer stays as it
- * is, and the Drawer reads what it needs.
+ * closes it. A move in `replace` mode writes over the current entry. A move to
+ * the current step writes no entry. A move writes the address in place, with
+ * no navigation: the page under the Drawer stays as it is, and the Drawer reads
+ * what it needs.
  *
  * A close goes back to the entry from before the Drawer opened, so Back after
  * a close leaves the page and does not open the Drawer again. Where that entry
@@ -70,7 +75,7 @@ export type DrawerGo = (step: DrawerStep | null) => void
  * @returns A function that moves the Drawer to a step, or closes it with `null`.
  */
 export function useDrawerGo(election: Election): DrawerGo {
-	return (next) => {
+	return (next, mode = 'push') => {
 		// The path of the browser, which an office switch can move ahead of the router.
 		const pathname = window.location.pathname
 
@@ -103,13 +108,17 @@ export function useDrawerGo(election: Election): DrawerGo {
 		}
 
 		if (entries.addresses.length > 0) {
-			// A move drops the entries after the position, as the browser does.
-			entries.addresses = [...entries.addresses.slice(0, entries.position + 1), address]
+			if (mode === 'replace') {
+				entries.addresses[entries.position] = address
+			} else {
+				// A move drops the entries after the position, as the browser does.
+				entries.addresses = [...entries.addresses.slice(0, entries.position + 1), address]
 
-			entries.position += 1
+				entries.position += 1
+			}
 		}
 
-		writeAddress(address, 'push')
+		writeAddress(address, mode)
 	}
 }
 
