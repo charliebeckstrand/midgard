@@ -34,7 +34,11 @@ describe('latestCalls', () => {
 		vi.mocked(race).mockImplementation(async (id) =>
 			id === delaware.raceId
 				? { ...called, id, calledAt: null, updated: '2026-11-09T05:00:00.000Z' }
-				: { ...called, id, calledAt: '2026-11-05T02:00:00.000Z' },
+				: {
+						...called,
+						id,
+						calledAt: { at: '2026-11-05T02:00:00.000Z', text: 'Nov 4, 2026, 9:00 PM EST' },
+					},
 		)
 
 		const calls = await latestCalls([result], 5)

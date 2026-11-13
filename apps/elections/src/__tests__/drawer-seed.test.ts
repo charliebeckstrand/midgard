@@ -2,6 +2,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, render } from '@testing-library/react'
 import { createElement as h } from 'react'
+import { hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fetchCountyShapes } from '../api/county-api'
 import { ElectionDrawer } from '../components/election-drawer'
@@ -148,5 +150,50 @@ describe('ElectionDrawer', () => {
 
 		expect(plot?.isConnected).toBe(true)
 		expect(document.querySelector('[aria-label="Georgia Senate results by county"]')).toBe(plot)
+	})
+
+	it('hydrates the times of a reload with the text of the server, so the Drawer stays open with no enter', async () => {
+		window.history.replaceState(null, '', '/2026/us/midterms?region=ga&office=senate')
+
+		const seed = await readSeed('region=ga&office=senate')
+
+		const tree = () =>
+			h(QueryClientProvider, {
+				client: new QueryClient(),
+				children: h(ElectionRacesProvider, {
+					races,
+					children: h(ElectionDrawer, { election, seed }),
+				}),
+			})
+
+		const container = document.body.appendChild(document.createElement('div'))
+
+		container.innerHTML = renderToString(tree())
+
+		const panel = container.querySelector('[data-slot="dialog"]')
+
+		expect(panel?.querySelector('time')?.textContent).toBe('Nov 3, 2026, 7:00 PM EST')
+
+		// The engine of a browser can write other text for the same format, such as
+		// `at` between the day and the time. A time that the browser formats again in
+		// the hydration render then differs from the HTML, and React renders the
+		// Drawer again from the start, with its enter.
+		const prototype: { format: unknown } = Intl.DateTimeFormat.prototype
+
+		vi.spyOn(prototype, 'format', 'get').mockReturnValue(() => 'Nov 3, 2026 at 7:00 PM EST')
+
+		const errors: unknown[] = []
+
+		await act(async () => {
+			hydrateRoot(container, tree(), { onRecoverableError: (error) => errors.push(error) })
+		})
+
+		vi.restoreAllMocks()
+
+		expect(errors).toEqual([])
+
+		expect(document.querySelector('[data-slot="dialog"] time')?.textContent).toBe(
+			'Nov 3, 2026, 7:00 PM EST',
+		)
 	})
 })

@@ -43,6 +43,20 @@ describe('readRace', () => {
 		expect(race.counties.find((county) => county.name === 'Fulton')?.fips).toBe('13121')
 	})
 
+	it('writes the times of a race in the zone of its state, with the name of the zone', () => {
+		expect(readRace(87087, gaSenate, '13', atlasCountyNames).pollsClose).toEqual({
+			at: '2026-11-04T00:00:00.000Z',
+			text: 'Nov 3, 2026, 7:00 PM EST',
+		})
+
+		expect(readRace(86916, akSenate, '02', atlasCountyNames).pollsClose?.text).toBe(
+			'Nov 3, 2026, 8:00 PM AKST',
+		)
+
+		// civicAPI gives no call time for this race.
+		expect(readRace(87087, gaSenate, '13', atlasCountyNames).calledAt).toBeNull()
+	})
+
 	it('reads the counties inside a House district', () => {
 		const race = readRace(87078, ga06, '13', atlasCountyNames)
 

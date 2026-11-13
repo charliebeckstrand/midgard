@@ -1,7 +1,6 @@
 'use client'
 
 import { Activity, type ComponentType, lazy, Suspense } from 'react'
-import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import type { MapFeatureCollection } from 'ui/map'
 import { Odometer } from 'ui/odometer'
@@ -9,7 +8,7 @@ import { Placeholder } from 'ui/placeholder'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
-import type { Candidate, Race } from '../../types'
+import type { Candidate, Race, RaceTime } from '../../types'
 import type { RaceView } from '../../utilities/elections-url'
 import { isCalled } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
@@ -75,37 +74,25 @@ const MAP_PLACEHOLDER = (
 )
 
 /**
- * The time format of the polls and the call: the day and the time in the zone
- * of the state, with the name of the zone, such as `Nov 3, 2026, 7:00 PM CST`.
- */
-const WHEN: Intl.DateTimeFormatOptions = {
-	month: 'short',
-	day: 'numeric',
-	year: 'numeric',
-	hour: 'numeric',
-	minute: '2-digit',
-	timeZoneName: 'short',
-}
-
-/**
  * A time of a race: a still line of one text height while the race loads, so
  * the row keeps its height when the time arrives, then the time. A time that
  * the race does not give reads `Unknown`, so the row stays.
  *
- * The time is in the set `zone`, so the server writes it. A reload therefore
- * paints the time, not a skeleton.
+ * The server writes the text of the time, in the zone of the state (see
+ * `readRace`). The browser does not format it again, so the hydration render
+ * has the text of the HTML, and a reload paints the time, not a skeleton.
  */
-function FactTime({ value, zone }: { value: string | null | undefined; zone: string }) {
-	if (value === undefined) {
+function FactTime({ time }: { time: RaceTime | null | undefined }) {
+	if (time === undefined) {
 		return <Placeholder as="span" pulse={false} className="inline-block h-[1lh] w-40 align-top" />
 	}
 
-	return value === null ? (
+	return time === null ? (
 		<Text as="span" tone="muted">
 			Unknown
 		</Text>
 	) : (
-		<DateTime value={value} format={{ ...WHEN, timeZone: zone }} />
+		<time dateTime={time.at}>{time.text}</time>
 	)
 }
 
@@ -123,13 +110,10 @@ function RaceFacts({
 	candidates,
 	called,
 	race,
-	zone,
 }: {
 	candidates: readonly Candidate[]
 	called: boolean
 	race: Race | undefined
-	/** The time zone of the state of the race. */
-	zone: string
 }) {
 	const votes = candidates.reduce((sum, candidate) => sum + candidate.votes, 0)
 
@@ -142,14 +126,14 @@ function RaceFacts({
 
 			<DescriptionTerm>Polls closed</DescriptionTerm>
 			<DescriptionDetails>
-				<FactTime value={race?.pollsClose} zone={zone} />
+				<FactTime time={race?.pollsClose} />
 			</DescriptionDetails>
 
 			{called ? (
 				<>
 					<DescriptionTerm>Called</DescriptionTerm>
 					<DescriptionDetails>
-						<FactTime value={race?.calledAt} zone={zone} />
+						<FactTime time={race?.calledAt} />
 					</DescriptionDetails>
 				</>
 			) : null}
@@ -213,7 +197,7 @@ export function RaceDetail({
 						detail
 					/>
 
-					<RaceFacts candidates={candidates} called={called} race={race} zone={entry.state.zone} />
+					<RaceFacts candidates={candidates} called={called} race={race} />
 				</>
 			) : null}
 
