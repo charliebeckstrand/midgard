@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { appTitle } from 'shared/pages'
+import { AppProviders } from 'shared/providers'
 
 import './globals.css'
-import { Providers } from './providers'
 
 export const metadata: Metadata = {
 	title: appTitle('Picks'),
@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		// (`rootMarks`), so its classes differ from the markup of React.
 		<html lang="en" suppressHydrationWarning>
 			<body className="min-h-dvh bg-white text-zinc-950 antialiased dark:bg-zinc-900 dark:text-white">
-				<Providers>{children}</Providers>
+				<AppProviders>{children}</AppProviders>
 			</body>
 		</html>
 	)

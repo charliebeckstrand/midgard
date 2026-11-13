@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { appTitle } from 'shared/pages'
+import { AppProviders } from 'shared/providers'
 import { APP_NAME } from '@/utilities/trail'
 
 import './globals.css'
-import { Providers } from './providers'
 
 export const metadata: Metadata = {
 	title: appTitle(APP_NAME),
@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			    page moved, and the reader can then scroll it under the footer. In print, the
 			    document has the height of its content. */}
 			<body className="h-dvh overflow-hidden print:h-auto print:overflow-visible bg-white text-zinc-950 antialiased [--surface-fill:var(--color-white)] dark:bg-zinc-900 dark:text-white dark:[--surface-fill:var(--color-zinc-900)]">
-				<Providers>{children}</Providers>
+				<AppProviders>{children}</AppProviders>
 			</body>
 		</html>
 	)

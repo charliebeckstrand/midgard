@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { appTitle } from 'shared/pages'
+import { AppProviders } from 'shared/providers'
 
 import './globals.css'
-import { Providers } from './providers'
 
 export const metadata: Metadata = {
 	title: appTitle('Places'),
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		// frame every panel docks against.
 		<html lang="en" className="h-full" suppressHydrationWarning>
 			<body className="h-full overflow-hidden bg-white dark:bg-zinc-900 antialiased">
-				<Providers>{children}</Providers>
+				<AppProviders>{children}</AppProviders>
 			</body>
 		</html>
 	)

@@ -21,9 +21,7 @@ const dateFormat: Intl.DateTimeFormatOptions = {
  */
 export function Providers({ children }: { children: ReactNode }) {
 	return (
-		// A server page seeds each list into its query (see `seededQuery`). With
-		// no stale time, the client fetches the same list again at hydration.
-		<AppProviders queries={{ staleTime: 30_000 }} dateFormat={dateFormat}>
+		<AppProviders dateFormat={dateFormat}>
 			{children}
 			<SecondStepDialog />
 		</AppProviders>

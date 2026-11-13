@@ -15,20 +15,14 @@ import { createAppQueryClient } from './query-client'
 /** The id of the mark at the end of the shell, which the render-blocking link names. */
 const SHELL_END = 'shell-end'
 
+/**
+ * The query defaults of each app. A server page seeds each read into its query
+ * (see `seededQuery`). With no stale time, the client fetches the same read
+ * again at hydration.
+ */
+const QUERIES: DefaultOptions['queries'] = { staleTime: 30_000 }
+
 type AppProvidersProps = {
-	/**
-	 * The query defaults of the app, such as a `staleTime` or no refetch on a
-	 * window focus.
-	 */
-	queries?: DefaultOptions['queries']
-	/**
-	 * The time zone of each date that does not set its own. With no zone, a date
-	 * is in the zone of the reader. A date shows a skeleton until hydration, also
-	 * with a set zone (see `LocaleConfig`).
-	 *
-	 * @defaultValue The zone of the reader.
-	 */
-	timeZone?: LocaleConfig['timeZone']
 	/** The default format of a `DateTime` with no `format` of its own. */
 	dateFormat?: LocaleConfig['dateFormat']
 	children: ReactNode
@@ -46,11 +40,13 @@ type AppProvidersProps = {
  * locale sets the formats, and the messages of ui and of shared. The provider
  * takes the catalogs of shared, and each `LocaleProvider` under it keeps them.
  * `LocaleProvider` is above `UIProvider`, so the dialog of `useConfirm`, which
- * `UIProvider` renders, uses the same locale as the page.
+ * `UIProvider` renders, uses the same locale as the page. The provider sets no
+ * time zone, so a date with no zone of its own is in the zone of the reader.
  *
  * A failed mutation shows its error in a toast, and a `401` sends the page to
- * `/login` (see {@link createAppQueryClient}). The `QueryClientProvider` is in
- * `UIProvider`, so that the client can show toasts.
+ * `/login` (see {@link createAppQueryClient}). A query stays fresh for 30
+ * seconds, so the client does not fetch a seeded read again at hydration. The
+ * `QueryClientProvider` is in `UIProvider`, so that the client can show toasts.
  *
  * The browser paints the HTML of a page while it parses it, and a page can
  * come in parts. Thus a frame could show half a page, such as a page with no
@@ -66,23 +62,17 @@ type AppProvidersProps = {
  * layout, in a `<body>` whose `<html>` has `suppressHydrationWarning`: the
  * server of the app writes the stored settings of the reader on `<html>`
  * (`rootMarks`). The client is built in state rather than at module scope, so a render
- * on the server never shares a cache between requests. The client reads
- * `queries` one time, when it is built.
+ * on the server never shares a cache between requests.
  */
-export function AppProviders({ queries, timeZone, dateFormat, children }: AppProvidersProps) {
+export function AppProviders({ dateFormat, children }: AppProvidersProps) {
 	return (
 		<>
 			<link rel="expect" href={`#${SHELL_END}`} blocking="render" />
 
 			<AppearanceProvider>
-				<LocaleProvider
-					locale={DEFAULT_LOCALE}
-					timeZone={timeZone}
-					dateFormat={dateFormat}
-					catalogs={catalogs}
-				>
+				<LocaleProvider locale={DEFAULT_LOCALE} dateFormat={dateFormat} catalogs={catalogs}>
 					<UIProvider link={NextLink}>
-						<AppQueryProvider queries={queries}>{children}</AppQueryProvider>
+						<AppQueryProvider>{children}</AppQueryProvider>
 					</UIProvider>
 				</LocaleProvider>
 			</AppearanceProvider>
@@ -101,20 +91,14 @@ const messages = defineMessages({
 })
 
 // The `toast` of `useToast` keeps one identity, so the client can hold the first one.
-function AppQueryProvider({
-	queries,
-	children,
-}: {
-	queries?: DefaultOptions['queries']
-	children: ReactNode
-}) {
+function AppQueryProvider({ children }: { children: ReactNode }) {
 	const { toast } = useToast()
 
 	const intl = useIntl()
 
 	const [client] = useState(() =>
 		createAppQueryClient({
-			queries,
+			queries: QUERIES,
 			toast,
 			failureTitle: () => intl.formatMessage(messages.failed),
 		}),
