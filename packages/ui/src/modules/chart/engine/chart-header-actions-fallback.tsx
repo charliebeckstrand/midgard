@@ -1,11 +1,12 @@
 'use client'
 
 import { EllipsisVertical, Table2 } from 'lucide-react'
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps, ReactElement, ReactNode } from 'react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import { cn } from '../../../core/cn'
 import { useIntl } from '../../../primitives/intl/use-intl'
+import type { ChartContextMenuConfig } from './chart-context-menu'
 import { chartMenuName, chartMessages } from './chart-messages'
 
 /** Props for {@link ChartViewDataButton}. @internal */
@@ -98,27 +99,23 @@ export function ChartMenuTriggerButton({ title, ...props }: ChartMenuTriggerButt
 	)
 }
 
+/** The props of a chart that decide its buttons in the header row. @internal */
+type ChartHeaderProps = {
+	title?: string
+	contextMenu?: ChartContextMenuConfig | false
+}
+
 /**
  * Props for {@link ChartHeaderActionsFallback}. The `<span>` that holds the
  * buttons takes the rest.
  */
 export type ChartHeaderActionsFallbackProps = Omit<ComponentProps<'span'>, 'children'> & {
-	/** The title of the chart. Give the same value as the chart. */
-	title?: string
 	/**
-	 * Draw the View data button. Give `false` when the menu of the chart has no
-	 * View data entry.
-	 *
-	 * @defaultValue true
+	 * The chart element that the box renders. Give the same element, so the
+	 * buttons come from the props of the chart: its `title` and its
+	 * `contextMenu`.
 	 */
-	viewData?: boolean
-	/**
-	 * Draw the touch menu button. Give `true` when the chart sets
-	 * `contextMenu.button`.
-	 *
-	 * @defaultValue false
-	 */
-	menuButton?: boolean
+	chart: ReactElement<ChartHeaderProps>
 }
 
 /**
@@ -130,35 +127,48 @@ export type ChartHeaderActionsFallbackProps = Omit<ComponentProps<'span'>, 'chil
  * needs the element of the slot, which comes only after the mount. The server
  * render thus has no buttons, and they come in at hydration. The header row
  * renders before the chart, so the chart cannot tell the server render what to
- * draw. The box tells it instead: this component draws the same buttons with
- * the same markup, so they have the same size and place. They do nothing, and
- * they are `inert`. The slot shows them until the chart puts its own buttons
- * in it, in the same frame.
+ * draw. The box tells it instead: it gives this component the chart element
+ * that it renders. This component reads the props of the chart with the rules
+ * of the chart, and draws the same buttons with the same markup. They have the
+ * same size and place. They do nothing, and they are `inert`. The slot shows
+ * them until the chart puts its own buttons in it, in the same frame.
  *
- * Give the props that match the chart. A prop that does not match draws a
- * wrong button until the mount.
+ * A chart with no data has no View data button. This component cannot see the
+ * data of each kind of chart, so it draws the button until the mount.
  *
  * @example
  * ```tsx
+ * const chart = <SeatChart contextMenu={{ button: true }} … />
+ *
  * <HeaderActions slotted>
  *   <header>
  *     {title}
  *     <HeaderActionsSlot>
- *       <ChartHeaderActionsFallback menuButton />
+ *       <ChartHeaderActionsFallback chart={chart} />
  *     </HeaderActionsSlot>
  *   </header>
  *
- *   <SeatChart contextMenu={{ button: true }} … />
+ *   {chart}
  * </HeaderActions>
  * ```
  */
 export function ChartHeaderActionsFallback({
-	title,
-	viewData = true,
-	menuButton = false,
+	chart,
 	className,
 	...props
 }: ChartHeaderActionsFallbackProps) {
+	const { title, contextMenu } = chart.props
+
+	// The rules of the chart menu: `false` turns the menu off, the View data entry
+	// is a default item, and `button` turns on the touch menu button.
+	if (contextMenu === false) return null
+
+	const viewData = contextMenu?.defaultItems !== false
+
+	const menuButton = contextMenu?.button === true
+
+	if (!viewData && !menuButton) return null
+
 	return (
 		<span {...props} inert className={cn('contents', className)}>
 			{viewData && <ChartViewDataButton title={title} />}

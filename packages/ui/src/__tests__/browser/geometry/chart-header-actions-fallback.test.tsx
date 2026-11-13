@@ -16,6 +16,15 @@ const GROUPS = [
 	{ seats: 53, color: 'red', label: 'Republicans' },
 ] as const
 
+const chart = (
+	<SeatChart
+		aria-label="Senate seats"
+		groups={[...GROUPS]}
+		contextMenu={{ button: true }}
+		height={200}
+	/>
+)
+
 const box = (
 	<HeaderActions slotted>
 		<div style={{ width: 360 }}>
@@ -24,17 +33,12 @@ const box = (
 
 				<div className="flex items-center gap-1">
 					<HeaderActionsSlot>
-						<ChartHeaderActionsFallback menuButton />
+						<ChartHeaderActionsFallback chart={chart} />
 					</HeaderActionsSlot>
 				</div>
 			</div>
 
-			<SeatChart
-				aria-label="Senate seats"
-				groups={[...GROUPS]}
-				contextMenu={{ button: true }}
-				height={200}
-			/>
+			{chart}
 		</div>
 	</HeaderActions>
 )
