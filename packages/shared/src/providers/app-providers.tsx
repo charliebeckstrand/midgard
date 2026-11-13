@@ -12,6 +12,9 @@ import { catalogs } from '../locale/catalogs'
 import { DEFAULT_LOCALE } from '../locale/locales'
 import { createAppQueryClient } from './query-client'
 
+/** The id of the mark at the end of the shell, which the render-blocking link names. */
+const SHELL_END = 'shell-end'
+
 type AppProvidersProps = {
 	/**
 	 * The query defaults of the app, such as a `staleTime` or no refetch on a
@@ -49,15 +52,14 @@ type AppProvidersProps = {
  * `/login` (see {@link createAppQueryClient}). The `QueryClientProvider` is in
  * `UIProvider`, so that the client can show toasts.
  *
- * Two marks enclose the providers: an empty `template` with `data-shell="start"`
- * before them and one with `data-shell="end"` after them. A rule of
- * `shared/globals.css` keeps the page out of view while the first mark is in
- * the body and the second is not. The browser paints the HTML of a page while
- * it parses it, and a page can come in parts. Without the marks, a frame can
- * show half a page, such as a page with no Drawer over it. The root layout
- * renders the providers as the content of `<body>`, so the marks are children
- * of the body. The end mark is at the end of the shell of React, so the first
- * paint has the whole shell. Each Suspense boundary of a page streams after the
+ * The browser paints the HTML of a page while it parses it, and a page can
+ * come in parts. Thus a frame could show half a page, such as a page with no
+ * Drawer over it. After the providers, an empty `template` with the id
+ * `shell-end` marks the end of the shell of React. A `link` with
+ * `rel="expect"` and `blocking="render"` names that mark, and React puts the
+ * link in the head. The browser then holds the first paint until it parses the
+ * mark, so the first paint has the whole shell. A browser without support for
+ * the link paints as before. Each Suspense boundary of a page streams after the
  * shell, as before.
  *
  * @remarks Top-level context per CONVENTIONS.md §6.1. Render it from the root
@@ -70,7 +72,7 @@ type AppProvidersProps = {
 export function AppProviders({ queries, timeZone, dateFormat, children }: AppProvidersProps) {
 	return (
 		<>
-			<template data-shell="start" />
+			<link rel="expect" href={`#${SHELL_END}`} blocking="render" />
 
 			<AppearanceProvider>
 				<LocaleProvider
@@ -85,7 +87,7 @@ export function AppProviders({ queries, timeZone, dateFormat, children }: AppPro
 				</LocaleProvider>
 			</AppearanceProvider>
 
-			<template data-shell="end" />
+			<template id={SHELL_END} />
 		</>
 	)
 }
