@@ -1,3 +1,4 @@
+import { stateOfFips } from '../elections/us-states'
 import type {
 	Candidate,
 	CountyResult,
@@ -5,6 +6,7 @@ import type {
 	PartySeats,
 	PartySlot,
 	Race,
+	RaceTime,
 	RegionRace,
 } from '../types'
 
@@ -62,6 +64,45 @@ function flag(value: unknown, path: string): boolean {
 
 function optionalText(value: unknown): string | null {
 	return typeof value === 'string' && value !== '' ? value : null
+}
+
+/**
+ * The format of a time of a race: the day and the time, with the name of the
+ * zone, in the locale of the app.
+ */
+const WHEN: Intl.DateTimeFormatOptions = {
+	month: 'short',
+	day: 'numeric',
+	year: 'numeric',
+	hour: 'numeric',
+	minute: '2-digit',
+	timeZoneName: 'short',
+}
+
+/**
+ * A time of a race, with its text in the zone of the state, such as
+ * `Nov 3, 2026, 7:00 PM CST`, or `null` where civicAPI gives no time or a
+ * time that does not parse. The screens can do without a time, so it does not
+ * fail the read.
+ *
+ * The server writes the text, and each browser shows that text. The text of a
+ * format comes from the date data of the JavaScript engine, and two engines
+ * can write different text for one format and one zone, such as a different
+ * word between the day and the time. A browser that writes the text again at
+ * hydration can thus write text that differs from the HTML of the server.
+ * React then renders the Drawer again from the start, and the Drawer plays its
+ * enter after the first paint.
+ */
+function raceTime(value: unknown, zone: string): RaceTime | null {
+	const at = optionalText(value)
+
+	if (at === null) return null
+
+	const date = new Date(at)
+
+	if (Number.isNaN(date.getTime())) return null
+
+	return { at, text: new Intl.DateTimeFormat('en', { ...WHEN, timeZone: zone }).format(date) }
 }
 
 /**
@@ -272,7 +313,8 @@ function readCounties(
 }
 
 /**
- * Reads one race, as `race/{id}` gives it.
+ * Reads one race, as `race/{id}` gives it. The times of the race get their
+ * text in the zone of the state here, on the server (see {@link raceTime}).
  *
  * @param id - The id of the race.
  * @param value - The answer of civicAPI.
@@ -284,6 +326,10 @@ export function readRace(id: number, value: unknown, stateFips: string, names: C
 
 	const name = text(raw.election_name, 'race.election_name')
 
+	const state = stateOfFips(stateFips)
+
+	if (state === undefined) throw new Error(`No state of the US has the FIPS code ${stateFips}.`)
+
 	return {
 		id,
 		name,
@@ -291,8 +337,8 @@ export function readRace(id: number, value: unknown, stateFips: string, names: C
 		special: /\bspecial\b/i.test(name),
 		reporting: count(raw.percent_reporting, 'race.percent_reporting'),
 		updated: text(raw.last_updated, 'race.last_updated'),
-		pollsClose: optionalText(raw.polls_close),
-		calledAt: optionalText(raw.called_at),
+		pollsClose: raceTime(raw.polls_close, state.zone),
+		calledAt: raceTime(raw.called_at, state.zone),
 		candidates: readCandidates(raw.candidates, 'race.candidates'),
 		counties: readCounties(raw.region_results, 'race.region_results', stateFips, names),
 	}

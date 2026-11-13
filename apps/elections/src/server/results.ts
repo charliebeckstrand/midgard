@@ -61,7 +61,7 @@ export async function latestCalls(
 
 			if (winner === undefined || read.calledAt === null) return null
 
-			return { entry, winner, at: read.calledAt }
+			return { entry, winner, at: read.calledAt.at }
 		}),
 	)
 
