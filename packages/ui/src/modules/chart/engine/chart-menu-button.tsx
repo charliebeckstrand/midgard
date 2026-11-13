@@ -2,7 +2,6 @@
 
 import { createPortal } from 'react-dom'
 import { ContextMenuList } from '../../../components/context-menu'
-import type { ContextMenuEntry, ContextMenuItem } from '../../../components/context-menu/types'
 import { Menu, MenuContent, MenuTrigger } from '../../../components/menu'
 import { dataAttr } from '../../../core/data-attr'
 import { useHeaderActionsSlotted } from '../../../primitives/header-actions/context'
@@ -12,6 +11,7 @@ import {
 	ChartMenuTriggerButton,
 	ChartViewDataButton,
 } from './chart-header-actions-fallback'
+import { chartHeaderRow } from './chart-menu-entries'
 import { useChartMenu } from './context'
 
 /** Props for {@link ChartMenuButton}. @internal */
@@ -28,11 +28,6 @@ export type ChartMenuButtonProps = {
 	 * copy, so at most one shows.
 	 */
 	place: 'host' | 'header' | 'corner'
-}
-
-/** The item of `entries` with `key`, or `undefined`. */
-function findItem(entries: ContextMenuEntry[], key: string): ContextMenuItem | undefined {
-	return entries.find((entry): entry is ContextMenuItem => 'key' in entry && entry.key === key)
 }
 
 /**
@@ -77,7 +72,7 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 
 	const entries = chartMenu?.entries ?? []
 
-	const button = entries.length > 0 && chartMenu?.button === true
+	const { viewData, menu: button, ownFullscreen } = chartHeaderRow(entries, chartMenu?.button)
 
 	const menu = button ? (
 		<ChartMenuButtonBox place={place}>
@@ -95,18 +90,16 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 
 	if (host === null) return menu
 
-	const viewData = findItem(entries, 'view-data')
-
 	// The host copy puts its row in the slot also when the row is empty, such as
 	// for a chart with no data. The row marks the slot as taken, so a fallback in
 	// the slot hides and draws no button that the chart does not have.
 	return createPortal(
 		<span
 			data-slot="chart-header-actions"
-			data-own-fullscreen={dataAttr(button && findItem(entries, 'fullscreen') !== undefined)}
+			data-own-fullscreen={dataAttr(ownFullscreen)}
 			className="contents"
 		>
-			{viewData?.onAction && (
+			{viewData && (
 				<ChartViewDataButton
 					title={title}
 					disabled={viewData.disabled}

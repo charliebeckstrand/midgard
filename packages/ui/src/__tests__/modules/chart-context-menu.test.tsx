@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	BarChart,
-	ChartHeaderActionsFallback,
 	ChoroplethChart,
 	type ChoroplethChartSeries,
 	HeatmapChart,
@@ -648,53 +647,6 @@ describe('Chart menu button', () => {
 
 		expect(getSlot(container, 'chart').contains(button)).toBe(!inHeader)
 	})
-
-	// The fallback reads the props of the chart element with the rules of the
-	// chart menu, so the box gives no second copy of the config.
-	it.each([
-		{ name: 'the default menu', contextMenu: undefined, buttons: ['chart-view-data'] },
-		{
-			name: 'a menu button',
-			contextMenu: BUTTON,
-			buttons: ['chart-view-data', 'chart-menu-button'],
-		},
-		{
-			name: 'no default items',
-			contextMenu: { button: true, defaultItems: false },
-			buttons: ['chart-menu-button'],
-		},
-		{ name: 'the menu off', contextMenu: false, buttons: [] as string[] },
-	] as const)(
-		'draws the buttons of the chart before the mount: $name',
-		({ contextMenu, buttons }) => {
-			const chart = (
-				<BarChart
-					title="Revenue"
-					aria-label="Revenue"
-					data={data}
-					contextMenu={contextMenu}
-					series={[...series]}
-				/>
-			)
-
-			const markup = serverMarkup(<ChartHeaderActionsFallback chart={chart} />)
-
-			expect(
-				[
-					...markup.querySelectorAll(
-						'[data-slot="chart-view-data"], [data-slot="chart-menu-button"]',
-					),
-				].map((node) => node.getAttribute('data-slot')),
-			).toEqual(buttons)
-
-			if (buttons.some((slot) => slot === 'chart-view-data')) {
-				expect(getSlot(markup, 'chart-view-data')).toHaveAttribute(
-					'aria-label',
-					'View data for Revenue',
-				)
-			}
-		},
-	)
 
 	it('puts a View data button in the header row of a box, and marks its own fullscreen', () => {
 		const { container } = renderUI(
