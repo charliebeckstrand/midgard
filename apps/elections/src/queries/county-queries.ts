@@ -30,6 +30,6 @@ export function countyShapesQuery(state: string) {
  * @param state - The lowercase postal code of the state, such as `ga`.
  * @param seed - The shapes of the state that the page read on the server, or `null`.
  */
-export function useCountyShapes(state: string, seed: MapFeatureCollection | null = null) {
+export function useCountyShapes(state: string, seed: MapFeatureCollection | null) {
 	return useQuery({ ...countyShapesQuery(state), initialData: seed ?? undefined })
 }

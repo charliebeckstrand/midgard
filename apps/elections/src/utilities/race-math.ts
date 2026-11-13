@@ -40,14 +40,14 @@ function partyLetter(party: string): string {
  * The lead as text, such as `D+12.4`, with the letter of the leading party. An
  * unopposed race reads `Unopposed`.
  */
-export function marginLabel(candidates: readonly Candidate[], digits = 1): string {
+export function marginLabel(candidates: readonly Candidate[]): string {
 	const points = lead(candidates)
 
 	const leader = candidates[0]
 
 	if (points === null || leader === undefined) return 'Unopposed'
 
-	return `${partyLetter(leader.party)}+${points.toFixed(digits)}`
+	return `${partyLetter(leader.party)}+${points.toFixed(1)}`
 }
 
 /** A count of seats of one party. */

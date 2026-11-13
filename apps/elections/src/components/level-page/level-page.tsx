@@ -1,4 +1,4 @@
-import { ELECTIONS, type Election } from '../../elections/registry'
+import type { Election } from '../../elections/registry'
 import { searchedElections } from '../../server/results'
 import { electionDays } from '../../utilities/levels'
 import { type Crumb, listedElections } from '../../utilities/trail'
@@ -26,7 +26,7 @@ export type LevelPageProps = {
  * page shows no results, so it has no footer.
  */
 export async function LevelPage({ crumbs, heading, elections }: LevelPageProps) {
-	const searched = await searchedElections(listedElections(ELECTIONS))
+	const searched = await searchedElections(listedElections())
 
 	return (
 		<PageFrame
