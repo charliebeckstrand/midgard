@@ -160,25 +160,28 @@ describe('chart series exit (real Motion)', () => {
 			...container.querySelectorAll<SVGCircleElement>('[data-slot="chart-scatter-point"]'),
 		]
 
+		// The drawn radius: the box of the disc holds its radius and the scale of the pop.
 		const radius = (disc: SVGCircleElement | undefined) =>
-			Number.parseFloat(disc?.getAttribute('r') ?? '0')
+			(disc?.getBoundingClientRect().width ?? 0) / 2
 
 		// A plain disc rests at the marker radius.
 		const rest = MARKER_RADIUS
 
+		const resting = (disc: SVGCircleElement | undefined) => Math.abs(radius(disc) - rest) < 0.01
+
 		await waitFor(() => {
 			expect(discs()).toHaveLength(6)
 
-			expect(discs().every((disc) => radius(disc) === rest)).toBe(true)
+			expect(discs().every(resting)).toBe(true)
 		}, SETTLE)
 
 		const leaving = await sampleMotionFrames(
 			discs,
-			(nodes) => nodes.length === 6 && radius(nodes[3]) < rest && radius(nodes[3]) > 0,
+			(nodes) => nodes.length === 6 && radius(nodes[3]) < rest - 0.01 && radius(nodes[3]) > 0,
 			{ during: async () => legendItem(container, 'North').click() },
 		)
 
-		expect(radius(leaving[0])).toBe(rest)
+		expect(resting(leaving[0])).toBe(true)
 
 		await waitFor(() => expect(discs()).toHaveLength(3), SETTLE)
 	})

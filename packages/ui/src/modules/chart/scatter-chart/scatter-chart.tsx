@@ -491,7 +491,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	const legendItems = scatterLegendItems(metas, resolvedLegend.value)
 
 	const marksNode = animate ? (
-		<AnimatedScatterChartMarks list={list} hidden={hidden} ceiling={ceiling} />
+		<AnimatedScatterChartMarks list={list} hidden={hidden} />
 	) : (
 		<ScatterChartMarks list={list} />
 	)

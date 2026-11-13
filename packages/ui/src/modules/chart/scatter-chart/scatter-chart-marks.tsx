@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
-import { memo, useMemo, useState } from 'react'
+import { memo, useMemo } from 'react'
 import { cn } from '../../../core/cn'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
@@ -183,66 +183,38 @@ function ScatterDiscSeries({ layers, spot, dimmed, paint }: ScatterDiscSeriesPro
 	)
 }
 
-/** The pop of a disc from its center. @internal */
-const DISC_HIDDEN = { r: 0, opacity: 0 }
+/**
+ * The pop of a disc from its center. The pop rides the scale of the disc, not
+ * its radius, so the radius stays geometry and lands at once, as the center
+ * does. A radius that changes in the middle of the pop thus grows the disc
+ * toward the new radius.
+ *
+ * @internal
+ */
+const DISC_HIDDEN = { scale: 0, opacity: 0 }
 
 /** @internal */
 const DISC_POP = { ...POINT_POP, delay: 0 }
 
 /** The pop-out of a disc to its center: the pop in reverse. @internal */
-const DISC_EXIT = { r: 0, opacity: 0, transition: POINT_UNPOP }
-
-/** The disc under reduced motion or after a resize: a new radius applies at once. @internal */
-const DISC_STILL = { ...DISC_POP, r: k.motion.instant }
-
-/** Props for {@link AnimatedScatterChartMarks}. @internal */
-type AnimatedScatterChartMarksProps = ScatterChartMarksProps & {
-	/** The largest bubble diameter of the frame ({@link bubbleCeiling}). */
-	ceiling: number
-}
-
-/**
- * Whether the last change of `list` came with a new `ceiling`, that is, from a
- * resize of the frame. The flag stays with that `list`, so each render of one
- * `list` reads the same answer.
- *
- * @internal
- */
-function useResized(list: ChartScatterSeries[], ceiling: number): boolean {
-	const [drawn, setDrawn] = useState({ list, ceiling, resized: false })
-
-	if (drawn.list === list) return drawn.resized
-
-	const resized = drawn.ceiling !== ceiling
-
-	setDrawn({ list, ceiling, resized })
-
-	return resized
-}
+const DISC_EXIT = { scale: 0, opacity: 0, transition: POINT_UNPOP }
 
 /**
  * The Framer Motion scatter discs: each pops from its center on mount, on the
  * point-marker beat but with no line draw to wait behind. The discs of a series
  * pop out to their centers when a toggle hides it. Under reduced motion the
- * discs mount at rest, change size at once, and leave at once. The radius is no
- * transform, so the reduced-motion config of motion does not skip it.
+ * discs mount at rest and leave at once.
  *
- * A resize moves each disc at once, so a radius that changes with the frame
- * ({@link bubbleCeiling}) also applies at once. A size that changes with the
- * data still grows or shrinks.
+ * The center and the radius are geometry, so a resize or a data change moves
+ * and sizes each disc at once. The radius of a bubble follows the frame
+ * ({@link bubbleCeiling}).
  *
  * @internal
  */
-export function AnimatedScatterChartMarks({
-	list,
-	hidden,
-	ceiling,
-}: AnimatedScatterChartMarksProps) {
+export function AnimatedScatterChartMarks({ list, hidden }: ScatterChartMarksProps) {
 	const { lit } = useChartMarkEmphasis()
 
 	const still = usePrefersReducedMotion()
-
-	const resized = useResized(list, ceiling)
 
 	// Each series is its own presence, so a hidden one plays its exit while the
 	// rest stay. `propagate` passes the exit of the marks generation through. No
@@ -263,7 +235,6 @@ export function AnimatedScatterChartMarks({
 								sized={sized}
 								lit={lit(index, datum)}
 								still={still}
-								instant={still || resized}
 							/>
 						))}
 					</g>
@@ -282,8 +253,6 @@ type AnimatedDiscProps = {
 	sized: boolean
 	lit: boolean
 	still: boolean
-	/** Apply a new radius at once: under reduced motion, or after a resize. */
-	instant: boolean
 }
 
 /**
@@ -300,21 +269,21 @@ const AnimatedDisc = memo(function AnimatedDisc({
 	sized,
 	lit,
 	still,
-	instant,
 }: AnimatedDiscProps) {
 	return (
 		<m.circle
 			data-slot="chart-scatter-point"
 			cx={cx}
 			cy={cy}
+			r={r}
 			{...markProps(paint, sized)}
 			initial={still ? false : DISC_HIDDEN}
 			exit={still ? undefined : DISC_EXIT}
 			// Motion owns the disc's opacity through the pop-in, so the dim rides the
 			// same channel (receding to the class dim's depth) rather than a class
 			// the inline value would override.
-			animate={{ r, opacity: lit ? 1 : DIM_OPACITY }}
-			transition={instant ? DISC_STILL : DISC_POP}
+			animate={{ scale: 1, opacity: lit ? 1 : DIM_OPACITY }}
+			transition={DISC_POP}
 		/>
 	)
 })
