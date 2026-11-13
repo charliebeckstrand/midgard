@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../components/drawer'
 import { Input } from '../../components/input'
 import { Overlay } from '../../primitives/overlay'
@@ -109,16 +110,92 @@ describe('overlay with the on-screen keyboard', () => {
 		expect(panel.getBoundingClientRect().height).toBeCloseTo(height, 0)
 	})
 
-	it('gives the full viewport back at once when the field loses the focus', () => {
+	// A tap on Close takes the focus from the field when the press starts. If the
+	// box moved then, Close would move out from under the finger, and the tap
+	// would not click it.
+	it('keeps the box over the keyboard when the field loses the focus', () => {
 		const panel = renderDrawer()
 
 		focusField()
 
 		setViewportHeight(window.innerHeight - KEYBOARD)
 
-		// The keyboard goes down over the panel. The visual viewport is still small.
 		act(() => {
 			screen.getByRole('textbox', { name: 'Name' }).blur()
+		})
+
+		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight - KEYBOARD, 0)
+	})
+
+	it('closes on the first press of Close with the keyboard up', async ({ signal }) => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Drawer open onOpenChange={onOpenChange}>
+				<DrawerPanel aria-label="Search">
+					<DrawerBody>
+						<Input aria-label="Name" />
+					</DrawerBody>
+				</DrawerPanel>
+			</Drawer>,
+		)
+
+		focusField()
+
+		setViewportHeight(window.innerHeight - KEYBOARD)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+
+		signal.throwIfAborted()
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('stops following the visual viewport when the keyboard goes down', () => {
+		const panel = renderDrawer()
+
+		focusField()
+
+		setViewportHeight(window.innerHeight - KEYBOARD)
+
+		act(() => {
+			screen.getByRole('textbox', { name: 'Name' }).blur()
+		})
+
+		setViewportHeight(window.innerHeight)
+
+		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
+
+		// A later keyboard with no field in focus is not for the box.
+		setViewportHeight(window.innerHeight - KEYBOARD)
+
+		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
+	})
+
+	// A non-modal overlay leaves the page fields in reach. iOS keeps the keyboard
+	// up when the focus moves to one of them, and the keyboard is then the page's.
+	it('gives the full viewport back when a field on the page takes the keyboard', () => {
+		renderUI(
+			<>
+				<Input aria-label="Page" />
+				<Drawer open onOpenChange={() => {}}>
+					<DrawerPanel modal={false} aria-label="Edit">
+						<DrawerBody>
+							<Input aria-label="Name" />
+						</DrawerBody>
+					</DrawerPanel>
+				</Drawer>
+			</>,
+		)
+
+		const panel = getSlot(document.body, 'drawer')
+
+		focusField()
+
+		setViewportHeight(window.innerHeight - KEYBOARD)
+
+		act(() => {
+			screen.getByRole('textbox', { name: 'Page' }).focus()
 		})
 
 		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)

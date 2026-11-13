@@ -22,12 +22,19 @@ import { containsThroughPortals } from '../../utilities/floating-portal-registry
  * the address bar, and for the toolbars of the browser. If the box followed
  * those changes, the panel height would change behind the address bar, and
  * then step back to the full viewport over the frames that the browser takes
- * to give the visual viewport back. The box therefore keeps the full viewport
- * when the focus is not on a field in it, and when the page does not have the
- * focus. A field in a floating surface that opened from the box, such as a
- * popover in a drawer, is a field in the box. When the field loses the focus,
- * the box gets the full viewport at once, and the keyboard goes down over the
- * panel.
+ * to give the visual viewport back. The box therefore starts to follow the
+ * visual viewport only when a field in it gets the focus. A field in a
+ * floating surface that opened from the box, such as a popover in a drawer, is
+ * a field in the box.
+ *
+ * The box stops to follow the visual viewport when the keyboard of the field
+ * goes down, that is, when the visual viewport fills the window again and no
+ * field in the box has the focus. It also stops when a field outside the box
+ * takes the keyboard, and when the page loses the focus, for example to the
+ * address bar. The focus change alone does not move the
+ * box. A tap on a button in the panel, such as Close, takes the focus from
+ * the field when the press starts. If the box moved then, the button would
+ * move out from under the finger, and the tap would not click it.
  *
  * A pinch zoom also makes the visual viewport smaller, but the page is then
  * larger, not covered. The box then keeps the full viewport.
@@ -65,16 +72,35 @@ export function useOverlayViewportFit(
 		// The focused element, while the page has the focus.
 		let focused: Element | null = document.activeElement
 
+		// Whether the keyboard on screen is for a field in the box.
+		let owned = false
+
 		const fit = () => {
+			const keyboard = opensKeyboard(focused)
+
+			const field = keyboard && containsThroughPortals(node, focused)
+
+			// A focused field takes the keyboard: the keyboard is the box's only when
+			// the field is in the box.
+			if (keyboard) owned = field
+
 			// A keyboard that is not for a field in the box moves no edge of the box.
-			if (!opensKeyboard(focused) || !containsThroughPortals(node, focused)) return apply(0, 0)
+			if (!owned) return apply(0, 0)
 
 			// A pinch zoom moves no edge of the box.
 			if (Math.abs(viewport.scale - 1) > 0.01) return apply(0, 0)
 
 			const { offsetTop, height } = viewport
 
-			apply(Math.max(0, offsetTop), Math.max(0, window.innerHeight - offsetTop - height))
+			const top = Math.max(0, offsetTop)
+
+			const bottom = Math.max(0, window.innerHeight - offsetTop - height)
+
+			apply(top, bottom)
+
+			// The keyboard of the field is down when the visual viewport fills the
+			// window again. Less than a pixel is layout rounding.
+			if (!field && top < 1 && bottom < 1) owned = false
 		}
 
 		fit()
@@ -108,11 +134,14 @@ export function useOverlayViewportFit(
 			{ signal: listeners.signal },
 		)
 
-		// The browser takes the focus, for example for its address bar.
+		// The browser takes the focus, for example for its address bar. The
+		// keyboard on screen is then the browser's.
 		window.addEventListener(
 			'blur',
 			() => {
 				focused = null
+
+				owned = false
 
 				fit()
 			},
