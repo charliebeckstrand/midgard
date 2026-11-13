@@ -4,7 +4,7 @@ import { type Crumb, listedElections } from '../../utilities/trail'
 import { CountryFlag } from '../country-flag'
 import { LevelView } from '../level-view'
 import { PageFrame } from '../page-frame'
-import { RaceSearch } from '../race-search'
+import { RaceSearch, RaceSearchProvider } from '../race-search'
 
 /** Props for {@link LevelPage}. */
 export type LevelPageProps = {
@@ -27,7 +27,14 @@ export async function LevelPage({ crumbs, heading, elections }: LevelPageProps) 
 	const searched = await searchedElections(listedElections(ELECTIONS))
 
 	return (
-		<PageFrame crumbs={crumbs} search={<RaceSearch elections={searched} />}>
+		<PageFrame
+			crumbs={crumbs}
+			search={
+				<RaceSearchProvider>
+					<RaceSearch elections={searched} />
+				</RaceSearchProvider>
+			}
+		>
 			<h1 className="sr-only">{heading}</h1>
 
 			<LevelView

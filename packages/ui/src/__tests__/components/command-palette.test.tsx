@@ -1394,6 +1394,44 @@ describe('CommandPalette open/close transitions', () => {
 		expect(reopenedInput.value).toBe('')
 	})
 
+	it('keeps a controlled query across a close, and reports each edit', async () => {
+		const onQueryChange = vi.fn()
+
+		function Palette({ open, query }: { open: boolean; query: string }) {
+			return (
+				<CommandPalette
+					open={open}
+					onOpenChange={() => {}}
+					query={query}
+					onQueryChange={onQueryChange}
+				>
+					<FilteredItems />
+				</CommandPalette>
+			)
+		}
+
+		const { rerender } = renderUI(<Palette open query="" />)
+
+		await setupUser().type(screen.getByRole('combobox'), 'g')
+
+		expect(onQueryChange).toHaveBeenLastCalledWith('g')
+
+		// The owner holds the query, so the field shows the query of the owner.
+		expect(screen.getByRole('combobox')).toHaveValue('')
+
+		rerender(<Palette open query="ga" />)
+
+		rerender(<Palette open={false} query="ga" />)
+
+		rerender(<Palette open query="ga" />)
+
+		expect(screen.getByRole('combobox')).toHaveValue('ga')
+
+		expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual(['Gamma'])
+
+		expect(onQueryChange).toHaveBeenCalledTimes(1)
+	})
+
 	it('focuses the input on open', async () => {
 		renderUI(
 			<CommandPalette open onOpenChange={() => {}}>

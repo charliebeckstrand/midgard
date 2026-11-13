@@ -36,6 +36,7 @@ import { OfficeCard } from '../office-card'
 import { RaceCard } from '../race-card'
 import { type CountyMapSeed, RaceDetail, usePreloadCountyMap } from '../race-detail'
 import type { CountyMapProps } from '../race-detail/county-map'
+import { useBackToSearch } from '../race-search'
 import { DelegationSummary, RaceSummary } from '../race-summary'
 import { type DrawerView, ResultDrawer, type TrailCrumb } from '../result-drawer'
 import { useElectionRaces } from './context'
@@ -403,6 +404,10 @@ function drawerView(
  * - The House: the delegation of the state, then a card of each district.
  * - A county: the race in that county, with a Segment between a detailed and a
  *   condensed layout of the candidates.
+ *
+ * A pick in the search of the header opens the Drawer with Back to search,
+ * which closes the Drawer and opens the search again on the same query. The
+ * Drawer reads the search from `RaceSearchProvider`.
  */
 export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 	const results = useElectionRaces()
@@ -461,10 +466,12 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 		onQueryChange: (query) => setHeld({ scope, query }),
 	}
 
+	const onBackToSearch = useBackToSearch(step !== null, () => go(null))
+
 	const view =
 		step === null
 			? null
 			: drawerView(election, results, step, entry, race, go, views, layouts, search, pathname, maps)
 
-	return <ResultDrawer view={view} onClose={() => go(null)} />
+	return <ResultDrawer view={view && { ...view, onBackToSearch }} onClose={() => go(null)} />
 }

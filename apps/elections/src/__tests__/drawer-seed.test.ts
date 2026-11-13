@@ -9,6 +9,7 @@ import { fetchCountyShapes } from '../api/county-api'
 import { ElectionDrawer } from '../components/election-drawer'
 import { ElectionRacesProvider } from '../components/election-drawer/context'
 import { CountyMap } from '../components/race-detail/county-map'
+import { RaceSearchProvider } from '../components/race-search'
 import { type Election, findContest, findElection } from '../elections/registry'
 import { readNationalRace, readRace } from '../server/civic-race'
 import { atlasCountyNames } from '../server/county-names'
@@ -100,7 +101,7 @@ describe('ElectionDrawer', () => {
 					client: new QueryClient(),
 					children: h(ElectionRacesProvider, {
 						races,
-						children: h(ElectionDrawer, { election, seed }),
+						children: h(RaceSearchProvider, { children: h(ElectionDrawer, { election, seed }) }),
 					}),
 				}),
 			)
@@ -130,7 +131,9 @@ describe('ElectionDrawer', () => {
 				client,
 				children: h(ElectionRacesProvider, {
 					races,
-					children: h(ElectionDrawer, { election, seed: next }),
+					children: h(RaceSearchProvider, {
+						children: h(ElectionDrawer, { election, seed: next }),
+					}),
 				}),
 			})
 
@@ -162,7 +165,7 @@ describe('ElectionDrawer', () => {
 				client: new QueryClient(),
 				children: h(ElectionRacesProvider, {
 					races,
-					children: h(ElectionDrawer, { election, seed }),
+					children: h(RaceSearchProvider, { children: h(ElectionDrawer, { election, seed }) }),
 				}),
 			})
 

@@ -6,6 +6,7 @@ import { seed } from 'shared/queries'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ElectionDrawer } from '../components/election-drawer'
 import { ElectionRacesProvider } from '../components/election-drawer/context'
+import { RaceSearchProvider, type RaceSearchState, useRaceSearch } from '../components/race-search'
 import { type Election, findContest, findElection } from '../elections/registry'
 import { readNationalRace, readRace } from '../server/civic-race'
 import { atlasCountyNames } from '../server/county-names'
@@ -71,15 +72,88 @@ function drawer(client: QueryClient, raceSeed: typeof georgia | null = georgia) 
 		client,
 		children: h(ElectionRacesProvider, {
 			races,
-			children: h(ElectionDrawer, {
-				election,
-				seed: raceSeed === null ? null : { race: raceSeed, map: null },
+			children: h(RaceSearchProvider, {
+				children: h(ElectionDrawer, {
+					election,
+					seed: raceSeed === null ? null : { race: raceSeed, map: null },
+				}),
 			}),
 		}),
 	})
 }
 
+/** Hands the state of the search to the test, as the search in the header reads it. */
+function SearchProbe({ onState }: { onState: (state: RaceSearchState) => void }) {
+	onState(useRaceSearch())
+
+	return null
+}
+
 describe('ElectionDrawer', () => {
+	it('leads back to the search only from a Drawer that a pick in the search opened', () => {
+		window.history.replaceState(null, '', '/2026/us/midterms')
+
+		const client = new QueryClient()
+
+		let search: RaceSearchState | undefined
+
+		const tree = () =>
+			h(QueryClientProvider, {
+				client,
+				children: h(ElectionRacesProvider, {
+					races,
+					children: h(RaceSearchProvider, {
+						children: [
+							h(SearchProbe, {
+								key: 'probe',
+								onState: (state) => {
+									search = state
+								},
+							}),
+							h(ElectionDrawer, { key: 'drawer', election, seed: { race: georgia, map: null } }),
+						],
+					}),
+				}),
+			})
+
+		const view = render(tree())
+
+		/** Moves the address, as Back or a pick does, and renders the page again. */
+		const goTo = (address: string, pick = false) =>
+			act(() => {
+				if (pick) search?.pick()
+
+				window.history.pushState(null, '', address)
+
+				view.rerender(tree())
+			})
+
+		const back = () => screen.queryByRole('button', { name: 'Back to search' })
+
+		// A pick in the search opens the Drawer with the way back.
+		goTo('/2026/us/midterms?region=ga&office=senate', true)
+
+		expect(back()).not.toBeNull()
+
+		// The way back stays along the trail.
+		goTo('/2026/us/midterms?region=ga')
+
+		expect(back()).not.toBeNull()
+
+		// Back to search closes the Drawer and opens the search.
+		act(() => back()?.click())
+
+		expect(window.location.search).toBe('')
+		expect(search?.open).toBe(true)
+
+		act(() => search?.setOpen(false))
+
+		// An open with no pick, as from the map, has no way back to the search.
+		goTo('/2026/us/midterms?region=ga&office=senate')
+
+		expect(back()).toBeNull()
+	})
+
 	it('opens a race on its overview again after the Drawer leaves the race', () => {
 		const race = '/2026/us/midterms?region=ga&office=senate'
 

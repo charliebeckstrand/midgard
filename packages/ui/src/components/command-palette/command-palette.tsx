@@ -90,6 +90,16 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 		 */
 		onOpenChange?: (open: boolean) => void
 		/**
+		 * Controlled query of the search field. Pair it with `onQueryChange`. The
+		 * palette clears a query that it holds when it closes. A controlled query
+		 * stays across a close, so the owner can open the palette again on the same
+		 * query, or clear it.
+		 * @defaultValue Uncontrolled, with an empty query on each open.
+		 */
+		query?: string
+		/** Fires when the reader edits the search field, with the new query. */
+		onQueryChange?: (query: string) => void
+		/**
 		 * Fires when the keyboard highlight moves, with the id of the highlighted
 		 * option, or `null` when nothing is highlighted.
 		 *
@@ -156,7 +166,8 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * Searchable command launcher in a modal dialog; items read the query via
  * {@link useCommandPaletteQuery} for client-side filtering. Drives open state
  * controlled (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), as
- * {@link Dialog} does. An uncontrolled palette opens from `triggerShortcut` alone.
+ * {@link Dialog} does. The query is controlled (`query`/`onQueryChange`) or held
+ * by the palette. An uncontrolled palette opens from `triggerShortcut` alone.
  *
  * @remarks Focus moves into the search input on open via the Dialog
  * `initialFocus`. Arrow keys drive a virtual roving highlight via
@@ -180,6 +191,8 @@ export function CommandPalette({
 	open: openProp,
 	defaultOpen,
 	onOpenChange,
+	query: queryProp,
+	onQueryChange,
 	onActiveChange,
 	placeholder: placeholderProp,
 	dismissOnBackdrop = true,
@@ -212,7 +225,7 @@ export function CommandPalette({
 		empty,
 		onKeyDown,
 		virtualSourceRef,
-	} = useCommandPaletteState({ open, onActiveChange })
+	} = useCommandPaletteState({ open, query: queryProp, onQueryChange, onActiveChange })
 
 	const triggerBindings = useMemo<KeybindingsMap>(() => {
 		if (triggerShortcut === false) return {}

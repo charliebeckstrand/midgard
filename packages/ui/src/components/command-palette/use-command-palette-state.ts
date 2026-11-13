@@ -20,12 +20,16 @@ import {
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
+import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useDeferredQueryValue } from '../../primitives/query/use-query-value'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
 type CommandPaletteStateOptions = {
 	open: boolean
+	/** The controlled query, or `undefined` for a query that the palette holds. */
+	query?: string
+	onQueryChange?: (query: string) => void
 	onActiveChange?: (optionId: string | null) => void
 }
 
@@ -128,7 +132,7 @@ function createSourceRegistry(
  * Query, deferred query, and virtual-roving wiring for {@link CommandPalette}.
  * It returns the search value plus the refs and `onKeyDown` that drive
  * `aria-activedescendant` highlighting over options while focus stays on the
- * input. Resets the query on close and keeps the highlight on the top result as
+ * input. Resets a query that it holds on close, and keeps the highlight on the top result as
  * the filtered set changes, through `seedVirtualTopMatch`. A seeded highlight
  * also follows a change of the results under an unchanged query: the observer
  * of the listbox and the registration of a source tell of it. A highlight that
@@ -150,8 +154,24 @@ function createSourceRegistry(
  * @internal
  * @see {@link useA11yRoving}
  */
-export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteStateOptions) {
-	const [query, setQuery] = useState('')
+export function useCommandPaletteState({
+	open,
+	query: queryProp,
+	onQueryChange,
+	onActiveChange,
+}: CommandPaletteStateOptions) {
+	const [heldQuery, setHeldQuery] = useState('')
+
+	const controlled = useControlledLatch(queryProp)
+
+	const query = controlled ? (queryProp ?? '') : heldQuery
+
+	// An edit of the reader. A controlled palette holds no query, so it only reports.
+	const setQuery = useStableEvent((next: string) => {
+		if (!controlled) setHeldQuery(next)
+
+		onQueryChange?.(next)
+	})
 
 	const deferredQuery = useDeferredQueryValue(query)
 
@@ -342,13 +362,14 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 	}, [lagging, open, query, rovingKeyDown])
 
 	// Resets the query when closed, during render rather than in an effect, so
-	// the closing palette paints no stale filter.
+	// the closing palette paints no stale filter. The owner of a controlled
+	// query keeps it or clears it.
 	const [prevOpen, setPrevOpen] = useState(open)
 
 	if (open !== prevOpen) {
 		setPrevOpen(open)
 
-		if (!open) setQuery('')
+		if (!open && !controlled) setHeldQuery('')
 	}
 
 	// The closing panel unmounts its options after its exit animation, so
