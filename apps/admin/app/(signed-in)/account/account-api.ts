@@ -135,8 +135,9 @@ export async function downloadAccount(): Promise<void> {
  *
  * @remarks
  * The gateway accepts it only soon after the sign-in, and after the second
- * step. It refuses an admin with a `403`. A full page load, like a sign-out,
- * so that no data of the user stays in a query cache.
+ * step. It refuses an admin with a `403`. Then the function loads `/login` as a
+ * full page, as a sign-out does, so that no data of the user stays in a query
+ * cache.
  */
 export async function deleteAccount(): Promise<void> {
 	await unwrap(bifrost.DELETE('/auth/account'))

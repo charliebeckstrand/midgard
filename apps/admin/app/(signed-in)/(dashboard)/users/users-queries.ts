@@ -25,11 +25,15 @@ export function useUsers(initial: Seed<User[]>) {
 	})
 }
 
-/** Deactivates or reactivates one user, and writes the changed record into the cached list. */
+/**
+ * Deactivates or reactivates one user, and writes the changed record into the
+ * cached list. It sets `inlineError`, because the page shows its error in place.
+ */
 export function useSetUserActive() {
 	const client = useQueryClient()
 
 	return useMutation({
+		meta: { inlineError: true },
 		mutationFn: ({ userId, isActive }: { userId: string; isActive: boolean }) =>
 			setUserActive(userId, isActive),
 		onSuccess: (updated) => {
