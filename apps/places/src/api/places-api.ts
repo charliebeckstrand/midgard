@@ -14,8 +14,8 @@ import type {
 /**
  * The client's whole reach: same-origin `/api/*` paths, per CONVENTIONS §6.3,
  * and the upload addresses that Mimir signs. Nothing else in the app fetches.
- * The places and the visits go through the gateway to Mimir, in asgard, whose
- * spec types {@link mimir}.
+ * The places, the trips, the visits, and the upload addresses go through the
+ * gateway to Mimir, in asgard, whose spec types {@link mimir}.
  */
 
 const mimir = createMimirClient()
@@ -105,7 +105,7 @@ const UPLOAD_ATTEMPTS = 3
 const RETRY_DELAYS_MS = [1000, 4000] as const
 
 /**
- * How long a send may go with no progress before it stops and the upload tries
+ * How long a send can go with no progress before it stops and the upload tries
  * again, in milliseconds. A phone that changes networks can leave a request
  * open that never sends another byte.
  */

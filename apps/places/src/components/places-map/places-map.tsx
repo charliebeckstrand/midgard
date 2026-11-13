@@ -324,7 +324,7 @@ export function PlacesMap({
 				regionPointer={cut === null}
 				selectedOverlay={selectedOverlay}
 				// Every region opens, whether or not it holds places: an empty one is a
-				// place to look, and a reader who has just added somewhere new should not
+				// place to look, and a reader who has just added somewhere new must not
 				// have to find out from a dead click that the map disagreed. The paint
 				// still says which regions hold places: it reports, and no longer gates.
 				onRegionClick={(region, _index, press) => {

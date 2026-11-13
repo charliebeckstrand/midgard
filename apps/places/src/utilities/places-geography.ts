@@ -145,7 +145,7 @@ function rings(geometry: NonNullable<MapFeature['geometry']>): [number, number][
  * function. The coarser the drawing the more slack a rescue needs, and the more
  * a wrong answer costs: whatever sits outside every region of a world atlas is
  * water, where the nearest coast is the right answer, while outside every region
- * of a states atlas lies Canada and Mexico, where it is not.
+ * of a states atlas lie Canada and Mexico, where it is not.
  *
  * Only positions no region contains reach here, so the edge walk is paid for the
  * rare miss. The box test comes first and rejects most regions outright: a point
@@ -302,7 +302,7 @@ export type GroupOptions = {
 	/** An answer settled off a finer atlas, trusted ahead of the drawn geometry. */
 	known?: (place: Located) => string | undefined
 	/**
-	 * How far a position may sit outside every region and still be rescued by the
+	 * How far a position can sit outside every region and still be rescued by the
 	 * nearest one, in kilometers. Omit for no rescue, which is what an atlas fine
 	 * enough to contain its own coastline wants. See {@link nearestRegion}.
 	 */
