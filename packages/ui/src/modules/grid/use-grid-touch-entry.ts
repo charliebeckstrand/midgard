@@ -7,17 +7,6 @@ import { useTouchTap } from '../../hooks/use-touch-tap'
 import type { Coord } from './use-grid-navigation'
 
 /**
- * Time, in ms, from the lift of one tap to the lift of the next, in which two
- * taps on one cell are a double tap.
- *
- * @internal
- */
-export const GRID_DOUBLE_TAP_WINDOW = 400
-
-/** A tap on a cell: where and when it lifted. @internal */
-type CellTap = { coord: Coord; at: number }
-
-/**
  * The touch handlers of the editable cells of a grid. Each handler keeps one
  * identity for the mount.
  *
@@ -42,9 +31,9 @@ export type GridTouchEntry = {
  *
  * One tap on a cell moves the cursor to it, through the mouse events that the
  * browser makes from the tap, and opens nothing. That is true also for a tap
- * on the cell that holds the cursor. A second tap on the same cell that lifts
- * in {@link GRID_DOUBLE_TAP_WINDOW} of the first opens the cell. A third tap
- * starts a new pair.
+ * on the cell that holds the cursor. A tap on the same cell that continues the
+ * run of taps of {@link useTouchTap} opens the cell. The run gives the time and
+ * the distance between the two taps. A third tap starts a new pair.
  *
  * {@link useTouchTap} finds the tap. A press that travels more than its
  * slop is a scroll, and a press that the browser cancels is a scroll that the
@@ -68,42 +57,36 @@ export function useGridTouchEntry(enter: (coord: Coord) => void): GridTouchEntry
 	// The cell of the touch press.
 	const pressed = useRef<Coord | null>(null)
 
-	// The last tap, which the next tap on its cell makes a double tap.
-	const prevTap = useRef<CellTap | null>(null)
+	// The cell of the last tap, which the next tap of its run on that cell makes
+	// a double tap.
+	const prevCell = useRef<Coord | null>(null)
 
 	// Whether the last tap opened a cell, so its touch end cancels the click.
 	const opened = useRef(false)
 
 	const open = useStableEvent(enter)
 
-	const touch = useTouchTap(() => {
+	const touch = useTouchTap((_clientX, _clientY, count) => {
 		const coord = pressed.current
+
+		const prev = prevCell.current
 
 		pressed.current = null
 
-		if (coord === null) {
-			prevTap.current = null
-
-			return
-		}
-
-		const at = performance.now()
-
-		const prev = prevTap.current
-
 		const double =
+			coord !== null &&
 			prev !== null &&
-			prev.coord.row === coord.row &&
-			prev.coord.col === coord.col &&
-			at - prev.at <= GRID_DOUBLE_TAP_WINDOW
+			count > 1 &&
+			prev.row === coord.row &&
+			prev.col === coord.col
 
 		if (!double) {
-			prevTap.current = { coord, at }
+			prevCell.current = coord
 
 			return
 		}
 
-		prevTap.current = null
+		prevCell.current = null
 
 		opened.current = true
 

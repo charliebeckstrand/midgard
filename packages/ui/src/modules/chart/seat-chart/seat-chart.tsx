@@ -10,6 +10,7 @@ import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types/accessible-name'
 import { percentFormat, readoutFormat } from '../../../utilities/format-number'
 import { once } from '../../../utilities/once'
+import { sameFieldElements } from '../../../utilities/same-elements'
 import { TICK_TARGET } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import { chartAspectRatio, chartFrameSizing } from '../engine/chart-frame/sizing'
@@ -117,24 +118,6 @@ function ignoreToggle(_index: number): void {}
 /** How far from a seat the pointer still names it, in seat radii. @internal */
 const SEAT_REACH = 2.5
 
-/** Whether two lists of groups draw the same chart, so a new array with the same groups keeps the readout. @internal */
-function sameGroups(a: readonly SeatChartGroup[], b: readonly SeatChartGroup[]): boolean {
-	return (
-		a.length === b.length &&
-		a.every((group, index) => {
-			const other = b[index]
-
-			return (
-				other !== undefined &&
-				group.seats === other.seats &&
-				group.color === other.color &&
-				group.label === other.label &&
-				group.hollow === other.hollow
-			)
-		})
-	)
-}
-
 /** The seats of a group as a whole count of zero or more. @internal */
 function seatCount(group: SeatChartGroup): number {
 	return Number.isFinite(group.seats) ? Math.max(0, Math.floor(group.seats)) : 0
@@ -200,7 +183,7 @@ export function SeatChart(props: SeatChartProps) {
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
-	const stableGroups = useStableValue(groups, sameGroups)
+	const stableGroups = useStableValue(groups, sameFieldElements)
 
 	const counts = useMemo(() => stableGroups.map(seatCount), [stableGroups])
 
