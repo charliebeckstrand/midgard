@@ -4,7 +4,7 @@ Cross-app auth UI, the error and 404 pages, the types of the Mimir API, the glob
 
 ## 0. Prerequisites
 
-Peer-compatible with Next 15–16 and React 18–19.
+Peer-compatible with Next 16.3 or later and React 19.2 or later.
 
 ## 1. Exports
 
