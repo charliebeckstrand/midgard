@@ -171,6 +171,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | Export | Summary |
 |---|---|
 | `measureBox` | The border box of an element, from a `ResizeObserver` entry where the caller has one. |
+| `maxHeightIn` | The tallest that an element can be in a box of a given height: its computed `max-height`, with a `%` cap read against that height. |
 | `measureContentBox` | The content box of an element. Use it to size a drawing surface, such as a canvas, inside a border or padding. |
 | `BorderBox` *(type)* | An element's border box, on the two axes a resize is read along: `inline` and `block`. |
 | `ContentBox` *(type)* | An element's content box in CSS px: `width` and `height`. The return type of `measureContentBox`. |
@@ -178,6 +179,8 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `rewatchResize` | Moves the observation of a `ResizeObserver` to the elements of a new scan, when the scan found other elements. Use it where React can mount the observed elements again. Import it from `utilities/rewatch-resize`. |
 | `getScroller` | The nearest element from a start node up that scrolls, or `null`. The walk stops below `<body>`. Import it from `utilities/get-scroller`. |
 | `ScrollerOptions` *(type)* | Options for `getScroller`: `inline`, `overflowing`, and `stopAtClip`. |
+| `scrollWithin` | Scrolls a node into view in its nearest scrollable ancestor, and leaves each outer scroller as it is. Import it from `utilities/scroll-within`. |
+| `ScrollWithinOptions` *(type)* | Options for `scrollWithin`: `behavior`, `block`, and `inline`, as in `scrollIntoView`. |
 | `forceStyleFlush` | Makes the browser compute styles and layout now, so a CSS transition has a style to start from. It is a call, not a bare `offsetHeight` read, which the React Compiler removes. |
 
 ## Keyboard navigation
@@ -207,6 +210,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `moveItem` | Returns a copy of `items` with the item at `from` moved to index `to`. No mutation. |
 | `toggleListItem` | Returns a copy of `list` with `item` toggled: removed if present, else added at the end. No mutation. |
 | `sameElements` | Whether two lists hold the same items in the same order, by reference. `undefined` matches only `undefined`. |
+| `sameMembers` | Whether two sets hold the same members, in any order. |
 | `sameFieldElements` | Whether two lists hold plain objects with the same fields in the same order, each field the same by reference. A new list literal with the same entries matches. `undefined` matches only `undefined`. |
 | `keyByOccurrence` | Pairs each string with a React-key-safe id that is unique for any input, keying repeats by occurrence index. |
 | `rangeKeys` | Builds `count` stable `${prefix}-${index}` keys for fixed-length placeholder loops (skeletons). |
