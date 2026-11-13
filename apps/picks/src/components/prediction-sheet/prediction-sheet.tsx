@@ -243,14 +243,14 @@ export function PredictionSheet({
 
 		const copy = linelessCopy(count)
 
-		void confirm({
+		const confirmed = await confirm({
 			title: copy.title,
 			description: copy.body,
 			confirm: { label: action },
 			cancel: { label: 'Keep editing' },
-		}).then((confirmed) => {
-			if (confirmed) void save(values)
 		})
+
+		if (confirmed) await save(values)
 
 		return undefined
 	}

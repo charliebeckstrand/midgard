@@ -118,3 +118,23 @@ describe('readGames', () => {
 		expect(readGames({ events: [{ id: '402' }, event('pre')] })).toHaveLength(1)
 	})
 })
+
+describe('readGames, the line', () => {
+	function withOdds(odds: unknown) {
+		const body = event('pre')
+
+		return { events: [{ ...body, competitions: [{ ...body.competitions[0], odds: [odds] }] }] }
+	}
+
+	it('reads the spread and the favorite', () => {
+		const [game] = readGames(withOdds({ spread: -3.5, homeTeamOdds: { favorite: true } }))
+
+		expect(game?.spread).toEqual({ favorite: '12', points: 3.5 })
+	})
+
+	it("gives no line for a null spread, which is not a pick'em", () => {
+		const [game] = readGames(withOdds({ spread: null }))
+
+		expect(game?.spread).toBeNull()
+	})
+})

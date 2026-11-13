@@ -7,7 +7,7 @@ import type { Grade } from '../../utilities/grade'
 
 /**
  * The glyph, the color, and the label of each state of a pick. A pick shows a
- * grey check until its game is settled. A tie stays grey. Only the pending
+ * gray check until its game is settled. A tie stays gray. Only the pending
  * label names the pick, because the mark of a settled pick tells its result.
  */
 const MARKS = {
