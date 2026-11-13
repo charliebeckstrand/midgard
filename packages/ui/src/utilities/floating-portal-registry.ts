@@ -140,3 +140,33 @@ export function pressLandsInSurfaceOpenedWithin(container: Element, target: Node
 
 	return portal != null && referenceOpenedWithin(container, portal)
 }
+
+/**
+ * Whether `element` is in `container`, or in a floating surface that opened
+ * from inside `container`, at any depth. A surface that opened from a surface
+ * in `container` is in `container` too.
+ *
+ * @remarks A surface that published no reference has no descendancy to claim.
+ * A loop of references ends the search.
+ *
+ * @internal
+ */
+export function containsThroughPortals(container: Element, element: Element | null): boolean {
+	const visited = new Set<Element>()
+
+	let current = element
+
+	while (current !== null) {
+		if (container.contains(current)) return true
+
+		const portal = closestFloatingPortal(current)
+
+		if (portal === null || visited.has(portal)) return false
+
+		visited.add(portal)
+
+		current = portalReference(portal)
+	}
+
+	return false
+}

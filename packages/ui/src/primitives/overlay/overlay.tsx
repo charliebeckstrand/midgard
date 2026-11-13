@@ -220,7 +220,7 @@ export function Overlay({
 
 	const backdropRef = useRef<HTMLDivElement>(null)
 
-	// A box fixed to the viewport keeps clear of the on-screen keyboard.
+	// A box fixed to the viewport keeps clear of the on-screen keyboard of a field in it.
 	useOverlayViewportFit(floating, backdropRef, present && !scoped)
 
 	useEffect(() => {
