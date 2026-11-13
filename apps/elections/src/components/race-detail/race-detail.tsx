@@ -8,6 +8,7 @@ import { Odometer } from 'ui/odometer'
 import { Placeholder } from 'ui/placeholder'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
+import { Text } from 'ui/text'
 import type { Candidate, Race } from '../../types'
 import type { RaceView } from '../../utilities/elections-url'
 import { isCalled } from '../../utilities/race-math'
@@ -71,7 +72,9 @@ function FactTime({ value, zone }: { value: string | null | undefined; zone: str
 	}
 
 	return value === null ? (
-		<span className="text-zinc-500 dark:text-zinc-400">Unknown</span>
+		<Text as="span" tone="muted">
+			Unknown
+		</Text>
 	) : (
 		<DateTime value={value} format={{ ...WHEN, timeZone: zone }} />
 	)

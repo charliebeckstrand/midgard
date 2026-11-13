@@ -173,6 +173,8 @@ In an app, an action such as Close or Remove is a `Button` with `variant="bare"`
 
 5.11 In `ui`, a panel that swaps or opens in place does not change the width of its host. Examples are the panels of Accordion, Collapse, `CurrentContents`, and Stepper. Each such panel takes `contain-inline-size`, so the host width comes from the host and not from the panel. A new surface of this kind does the same. `panel-width.test.tsx` in the browser suite holds the rule.
 
+5.12 In an app and in `shared`, muted text is `<Text tone="muted">`, with `as="span"` inside a line. A part that is not text, such as an icon or the class of a component, takes the same rung: `text-zinc-500 dark:text-zinc-400`. A part of ui keeps its own ink, such as the description of a list row, which sits on a hover wash. No text is fainter than the muted rung, because the muted rung is the lightest ink that keeps the AA contrast on the page surface. The neutral palette is zinc, as in ui. The [`no-faint-text-color`](.biome/plugins/no-faint-text-color.grit) Biome plugin finds a lighter zinc rung in the light mode and a `gray` class.
+
 ## 6. State & data
 
 6.1 No global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx`. Biome's `noRestrictedImports` keeps the common ones out of `apps`.

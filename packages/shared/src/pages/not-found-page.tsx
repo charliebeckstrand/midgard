@@ -3,6 +3,7 @@ import { Heading } from 'ui/heading'
 import { defineMessages, IntlMessage } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
+import { Text } from 'ui/text'
 
 const messages = defineMessages({
 	body: {
@@ -26,9 +27,9 @@ export function NotFoundPage() {
 		<Flex justify="center" align="center" className="min-h-dvh grow">
 			<Stack align="center" gap="sm" className="px-4 text-center text-xl dark:text-white">
 				<Heading className="text-3xl font-black">404</Heading>
-				<div className="font-light text-gray-400">
+				<Text as="div" tone="muted" className="font-light">
 					<IntlMessage message={messages.body} />
-				</div>
+				</Text>
 			</Stack>
 		</Flex>
 	)

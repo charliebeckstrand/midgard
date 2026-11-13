@@ -269,7 +269,7 @@ export function ScheduleList({
 
 							{showDates ? (
 								// One gap on every row keeps the dates clear of the badge of the current week.
-								<ListDescription className="mt-1 text-zinc-500 dark:text-zinc-400">
+								<ListDescription className="mt-1">
 									{dayFormat?.formatRange(new Date(week.start), new Date(week.end))}
 								</ListDescription>
 							) : null}
