@@ -1,6 +1,7 @@
 import { Grid, type GridCellClickContext } from 'ui/grid'
 import { JsonTree } from 'ui/json-tree'
 import { Stack } from 'ui/stack'
+import { Text } from 'ui/text'
 import { columns, type Person, people } from '../data.tsx'
 import { useClickInspector } from './use-click-inspector.ts'
 
@@ -9,7 +10,7 @@ type PickedCell = { event: string } & Omit<GridCellClickContext<Person>, 'value'
 	}
 
 export default function DoubleClick() {
-	const { pick, tree } = useClickInspector<PickedCell>()
+	const { picked, pick, ...tree } = useClickInspector<PickedCell>()
 
 	// `onRowDoubleClick` gives the row, and `onCellDoubleClick` gives the same
 	// context as `onCellClick`. A double click also fires each click handler twice.
@@ -23,7 +24,8 @@ export default function DoubleClick() {
 					pick({ event: 'cellDoubleClick', ...cell, value: String(cell.value) })
 				}
 			/>
-			<JsonTree {...tree} />
+			<Text>Last cell double-click: {picked ? null : 'None'}</Text>
+			{picked && <JsonTree data={picked} aria-label="Last cell double-click" {...tree} />}
 		</Stack>
 	)
 }

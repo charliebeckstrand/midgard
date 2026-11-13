@@ -84,7 +84,7 @@ function sparklineColumns(sortKey: string, intl: IntlShape): GridColumn<Metric>[
 	]
 }
 
-export default function InCellSparklines() {
+export default function InACell() {
 	const intl = useIntl()
 
 	const [sort, setSort] = useState<GridSortState[]>([])
