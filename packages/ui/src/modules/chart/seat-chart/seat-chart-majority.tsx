@@ -11,13 +11,21 @@ import type { SeatChartMajorityMark } from './use-seat-chart-majority'
  *
  * @internal
  */
-export function SeatChartMajority({ tick, callout }: SeatChartMajorityMark) {
+export function SeatChartMajority({
+	tick,
+	callout,
+	fixedStroke = false,
+}: SeatChartMajorityMark & {
+	/** The drawing scales to its box, so the stroke keeps its width in px. */
+	fixedStroke?: boolean
+}) {
 	return (
 		<g pointerEvents="none">
 			<line
 				data-slot="chart-majority"
 				{...tick}
 				strokeWidth={1.5}
+				vectorEffect={fixedStroke ? 'non-scaling-stroke' : undefined}
 				strokeLinecap="round"
 				className={cn(k.majority)}
 			/>

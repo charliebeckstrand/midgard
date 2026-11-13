@@ -218,6 +218,28 @@ export type SeatFit = {
 	cy: number
 }
 
+/** The box of the drawing of a hemicycle, in unit space. @internal */
+export type SeatExtent = {
+	/** The distance from the center of the arcs up to the top of the drawing. */
+	top: number
+	/** The width of the drawing. The center of the arcs is at its middle. */
+	across: number
+	/** The height of the drawing: `top`, and the radius of a seat under the center. */
+	down: number
+}
+
+/**
+ * The box of the drawing of a hemicycle with seats of radius `dot`, in unit
+ * space. With `tick`, the box also holds the majority tick above the outer arc.
+ *
+ * @internal
+ */
+export function seatExtent(dot: number, tick = false): SeatExtent {
+	const top = tick ? 1 + (1 + MAJORITY_GAP) * dot + MAJORITY_TICK : 1 + dot
+
+	return { top, across: 2 * (1 + dot), down: top + dot }
+}
+
 /**
  * Fits the hemicycle into a box of `width` by `height` with `margin` on each
  * side, centered in the box. The hemicycle spans `2 (1 + dot)` across and
@@ -237,11 +259,7 @@ export function seatFit(
 	tick = false,
 	label = false,
 ): SeatFit {
-	const top = tick ? 1 + (1 + MAJORITY_GAP) * dot + MAJORITY_TICK : 1 + dot
-
-	const across = 2 * (1 + dot)
-
-	const down = top + dot
+	const { top, across, down } = seatExtent(dot, tick)
 
 	const topMargin = tick && label ? Math.max(margin, CALLOUT_LINE / 2) : margin
 

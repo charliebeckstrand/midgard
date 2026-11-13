@@ -34,6 +34,7 @@ import { sectorFrame, sectorLegendItems } from '../sector-chart/sector-chart-fra
 import { SeatChartHole } from './seat-chart-hole'
 import { SeatChartMajority } from './seat-chart-majority'
 import { SeatChartMarks } from './seat-chart-marks'
+import { SeatChartPrepaint } from './seat-chart-prepaint'
 import { useSeatChartMajority } from './use-seat-chart-majority'
 
 /** One group of seats in a {@link SeatChart}, such as the seats of one party. */
@@ -139,6 +140,10 @@ function seatCount(group: SeatChartGroup): number {
  * because a group that leaves would move every seat of the chamber. The plot is
  * one tab stop, and the arrow keys walk the groups. The context menu offers the
  * fullscreen view, the data, and the downloads.
+ *
+ * The first paint draws the seats before the width is measured, where the
+ * measured frame draws them. A chart with `majorityLabel` draws its seats after
+ * the measure, because the label needs the width of its text.
  *
  * @example
  * ```tsx
@@ -323,6 +328,16 @@ export function SeatChart(props: SeatChartProps) {
 		<ChartFrame
 			{...name}
 			fullscreen={<SeatChart {...props} />}
+			prepaint={
+				majorityLabel ? undefined : (
+					<SeatChartPrepaint
+						layout={layout}
+						owners={owners}
+						groups={stableGroups}
+						majority={majority}
+					/>
+				)
+			}
 			ref={ref}
 			width={frameWidth}
 			fixedWidth={width}
