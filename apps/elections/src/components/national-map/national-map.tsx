@@ -30,8 +30,8 @@ export type NationalMapProps = {
  * The national map of an office under the title of its page, colored by the
  * winner of each state. A click on a state with a race opens the Drawer on the
  * office in the state. A state with no race of the office is disabled: it takes
- * no click, no pointer cursor, and no hover. Under
- * the map, the closest races open the Drawer on their race.
+ * no click, no pointer cursor, and no hover. The reader can zoom and pan the
+ * map. Under the map, the closest races open the Drawer on their race.
  */
 export function NationalMap({
 	election,
@@ -76,6 +76,9 @@ export function NationalMap({
 				colorName="Winner"
 				categories={WINNER_CATEGORIES.filter((category) => present.has(category.value))}
 				legend="right"
+				// The page scrolls under the map, so the default modifier stays: shift
+				// and the wheel zoom, and one finger scrolls the page. Two fingers pinch.
+				zoom
 			/>
 
 			<ClosestRaces election={election} entries={closest} />
