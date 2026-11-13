@@ -4,12 +4,12 @@ import { describePlace } from './events-target'
 import type { EventEntry, EventReport } from './types'
 
 // The report of a bug or of a capture: the snapshot of the page, and its text
-// in Markdown, which the report view shows and Copy writes.
+// in Markdown. The report view shows the text, and Copy writes it.
 
 /** The file of this module, whose hash names the build. */
 const BUILD = new URL(import.meta.url).pathname.split('/').at(-1) ?? ''
 
-/** What the store knows about a report before the snapshot. */
+/** What the store knows about a report before the snapshot. @internal */
 export type ReportInput = Pick<
 	EventReport,
 	'origin' | 'stack' | 'componentStack' | 'route' | 'trail' | 'started'
@@ -23,7 +23,7 @@ export type ReportInput = Pick<
 }
 
 /** A 7-digit hex hash of a text (32-bit FNV-1a). */
-export function hashText(text: string): string {
+function hashText(text: string): string {
 	let hash = 0x811c9dc5
 
 	for (let index = 0; index < text.length; index++)
@@ -32,7 +32,7 @@ export function hashText(text: string): string {
 	return (hash >>> 0).toString(16).padStart(8, '0').slice(0, 7)
 }
 
-/** The report of the page now. */
+/** The report of the page now. @internal */
 export function createReport({ title, pointer, focus, ...input }: ReportInput): EventReport {
 	const pointerKind = matchesMediaQuery('(pointer: coarse)') ? 'coarse' : 'fine'
 
@@ -69,12 +69,12 @@ function row(name: string, value: string | undefined): string[] {
 	return value ? [`| ${name} | ${value.replaceAll('|', '\\|')} |`] : []
 }
 
-/** The title of a report: the text of its event, with the count of a bug that occurs more than one time. */
+/** The title of a report: the text of its event, with the count of a bug that occurs more than one time. @internal */
 export function formatTitle({ text, report }: EventEntry): string {
 	return report && report.count > 1 ? `${text} ×${report.count}` : text
 }
 
-/** The report of an event in Markdown: a heading, a table of the page, then the stacks and the trail. */
+/** The report of an event in Markdown: a heading, a table of the page, then the stacks and the trail. @internal */
 export function formatMarkdown(entry: EventEntry & { report: EventReport }): string {
 	const { report } = entry
 

@@ -1,11 +1,17 @@
 /**
  * Events kata: the unit of the views of `ui/events`. The root slot `base` is
  * the card of the pinned panel, and `body` and `footer` are its other parts.
- * The sheet and the pinned panel share the title `row`. `button` is the header
- * button, `dot` is its report dot, `pin` is the Pin button of the sheet, `text` is the text of an entry, and `hash` colors the hash of a
- * report. The `kind` extra colors the kinds that stand apart from the DOM
- * events: the callbacks of the components and of the modules, the captures,
- * and the bugs. The colors are the bare entries of the extended palette, which
+ * The sheet and the pinned panel share the title `row`. The other slots are:
+ *
+ * - `button`: the header button.
+ * - `dot`: the report dot of the header button.
+ * - `pin`: the Pin button of the sheet.
+ * - `text`: the text of an entry.
+ * - `hash`: the color of the hash of a report.
+ *
+ * The `kind` extra colors the kinds that stand apart from the DOM events. They
+ * are the callbacks of the components and of the modules, the captures, and
+ * the bugs. The colors are the bare entries of the extended palette, which
  * clear AA on the surface.
  */
 import { defineKata } from '../../core/recipe'
@@ -19,8 +25,8 @@ const { forced } = sen
 
 export const k = defineKata(
 	{
-		// The panel shows only in the aside of a sidebar layout, which shows only
-		// while the layout is inline, so the panel is always a card.
+		// The panel shows only in the aside of a sidebar layout. The aside shows
+		// only while the layout is inline, so the panel is always a card.
 		base: [omote.content.card, 'flex h-full min-h-0 flex-col'],
 		slots: {
 			body: [x, 'min-h-0 flex-1 overflow-auto py-2'],

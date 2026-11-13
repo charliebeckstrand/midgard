@@ -29,7 +29,7 @@ import { useEvents } from './use-events'
 /** The tab of the view. */
 type Tab = 'events' | 'bugs'
 
-/** The parts of the view, which the sheet and the pinned panel place in their own frames. */
+/** The parts of the view, which the sheet and the pinned panel place in their own frames. @internal */
 export type EventsViewParts = {
 	/** The store of the tab. */
 	store: EventStore

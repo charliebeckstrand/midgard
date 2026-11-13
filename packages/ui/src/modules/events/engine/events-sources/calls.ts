@@ -20,6 +20,8 @@ const CALLS: readonly [object, string][] = [
  * focus, with the first two frames of its caller. The detail holds the full
  * stack. It runs only when the app asks for it, because it replaces methods
  * of the page.
+ *
+ * @internal
  */
 export const calls: EventSource = (note) =>
 	all(

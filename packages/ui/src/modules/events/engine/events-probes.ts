@@ -13,6 +13,8 @@ let kept: HTMLElement | undefined
  * two times, and each change lays out the page again. The recorder keeps the
  * probe while it runs, so a reading for a resize lays out only what the
  * resize changed.
+ *
+ * @internal
  */
 export function keepViewportProbe(): () => void {
 	const probe = document.body.appendChild(createProbe())
@@ -26,7 +28,7 @@ export function keepViewportProbe(): () => void {
 	}
 }
 
-/** The heights that place a surface fixed to an edge now, with no scroll position. */
+/** The heights that place a surface fixed to an edge now, with no scroll position. @internal */
 export function readViewport(): Omit<EventViewport, 'y'> {
 	const visual = window.visualViewport
 
@@ -56,7 +58,7 @@ export function readViewport(): Omit<EventViewport, 'y'> {
 	}
 }
 
-/** The frames of a stack, with each URL cut to its file name. The `Error` header of a V8 stack goes out. */
+/** The frames of a stack, with each URL cut to its file name. The `Error` header of a V8 stack goes out. @internal */
 export function parseFrames(stack: string | undefined): string[] {
 	return (stack ?? '')
 		.split('\n')
@@ -65,7 +67,7 @@ export function parseFrames(stack: string | undefined): string[] {
 }
 
 /** The message of a thrown value: the message of an `Error`, else the value as text. */
-export function getMessage(error: unknown): string {
+function getMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error)
 }
 
@@ -73,6 +75,8 @@ export function getMessage(error: unknown): string {
  * The frames of the stack of a thrown value. A thrown value that is not an
  * `Error` has none. The header of a V8 stack, the name and the message, goes
  * out, so the first frame is the frame of the throw on each engine.
+ *
+ * @internal
  */
 export function parseStack(error: unknown): string[] {
 	if (!(error instanceof Error)) return []
@@ -108,7 +112,7 @@ function createProbe(): HTMLElement {
 	return probe
 }
 
-/** The text of the event of a bug that React or a router reports: the origin, the message, and the first component frame. */
+/** The text of the event of a bug that React or a router reports: the origin, the message, and the first component frame. @internal */
 export function formatBugText(origin: string, error: unknown, componentStack?: string): string {
 	const [component] = parseFrames(componentStack)
 

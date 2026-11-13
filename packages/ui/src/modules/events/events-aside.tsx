@@ -21,9 +21,9 @@ const panel = createLazyModule(() => import('./events-panel'))
 const getServerSnapshot = () => false
 
 /**
- * The pinned panel of the events, for the `aside` of `SidebarLayout`. While
- * the layout is inline, the events run and the panel is pinned, it shows each event
- * as it comes in, with the Bugs tab and Capture. The Pin of the events sheet
+ * The pinned panel of the events, for the `aside` of `SidebarLayout`. It
+ * shows while the layout is inline, the events run, and the panel is pinned.
+ * It shows each event as it comes in, with the Bugs tab and Capture. The Pin of the events sheet
  * pins it, and its Unpin returns the view to `EventsButton`.
  *
  * The box renders on the server too, and CSS shows it by the attributes that

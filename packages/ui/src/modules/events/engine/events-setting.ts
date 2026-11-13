@@ -24,15 +24,15 @@ const ON: Setting = { key: 'events:on', cookie: 'events-on' }
 const PINNED: Setting = { key: 'events:pinned', cookie: 'events-pinned' }
 
 /** The attribute of the root element while the events run. CSS shows the header button by it. */
-export const ON_ATTRIBUTE = 'data-events'
+const ON_ATTRIBUTE = 'data-events'
 
 /** The attribute of the root element while the panel is pinned. CSS shows the pinned panel by it while the sidebar layout is inline. */
-export const PINNED_ATTRIBUTE = 'data-events-pinned'
+const PINNED_ATTRIBUTE = 'data-events-pinned'
 
-/** The attribute of the root element while a capture runs. CSS makes the icon of the header button red by it. */
+/** The attribute of the root element while a capture runs. CSS makes the icon of the header button red by it. @internal */
 export const CAPTURE_ATTRIBUTE = 'data-events-capture'
 
-/** The attribute of the root element while the store holds a report. CSS shows the dot of the header button by it. */
+/** The attribute of the root element while the store holds a report. CSS shows the dot of the header button by it. @internal */
 export const REPORTS_ATTRIBUTE = 'data-events-reports'
 
 /** What an app gives to `startEvents`. */
@@ -84,9 +84,11 @@ export function startEvents(next: StartEventsOptions = {}): Promise<void> {
 
 	writeMirror(PINNED, isEventsPinned())
 
-	if (!isEventsOn()) return Promise.resolve()
-
+	// The server writes the attributes from the cookies, which can disagree
+	// with the storage, so they follow the storage on each path.
 	syncAttributes()
+
+	if (!isEventsOn()) return Promise.resolve()
 
 	return loadRecorder().then(({ start }) => {
 		start(options)

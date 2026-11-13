@@ -71,6 +71,8 @@ function create(): EventStore {
  * load writes the lines of the load. A start after {@link halt} writes a
  * separator and the reading of now. A call while the store runs returns the
  * same store.
+ *
+ * @internal
  */
 export function start(options: StartEventsOptions = {}): EventStore {
 	if (!store) {
@@ -90,6 +92,8 @@ export function start(options: StartEventsOptions = {}): EventStore {
  * Stops the sources, ends a capture, and drops the events and the kept copy.
  * The store stays the store of the tab, so a sheet keeps it, and "Preserve"
  * keeps its value.
+ *
+ * @internal
  */
 export function halt(): void {
 	stop?.()
@@ -107,6 +111,8 @@ export function halt(): void {
  * without a cause also writes the first byte and the end of the HTML at
  * their times, so the lines show the request before the paint source writes
  * `first-contentful-paint`.
+ *
+ * @internal
  */
 export function begin(target: EventStore, cause?: string): void {
 	const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
@@ -158,6 +164,8 @@ function toEntry({
  * Runs the sources, and returns a function that stops them. A line that a
  * source writes after the stop, such as from a timer, goes out. A bug line
  * files a report, also while the store is paused.
+ *
+ * @internal
  */
 export function listen(target: EventStore, options: StartEventsOptions = {}): () => void {
 	let running = true

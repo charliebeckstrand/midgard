@@ -2,7 +2,7 @@ import { describeTarget, isOwn } from '../events-target'
 import type { EventSource } from '../types'
 import { addListeners, nextBatch, QUIET } from './dom'
 
-/** The start and the end of each scroll, as one batch. */
+/** The start and the end of each scroll, as one batch. @internal */
 export const scroll: EventSource = (note) => {
 	let scrolling: ReturnType<typeof setTimeout> | undefined
 

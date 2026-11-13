@@ -17,7 +17,7 @@ import { eventsMessages } from './events-messages'
 /** The slots of the events. */
 const slots = k()
 
-/** An event with a report. */
+/** An event with a report. @internal */
 export type ReportEntry = EventEntry & { report: EventReport }
 
 function getKey(entry: ReportEntry): string {
@@ -45,7 +45,6 @@ function ReportLine({
 	return (
 		<ListItem
 			onClick={onView}
-			className="text-start"
 			suffix={
 				<Flex align="center" gap="sm">
 					<Button
@@ -70,18 +69,21 @@ function ReportLine({
 		>
 			<span className="block min-w-0">
 				<Text
+					as="span"
 					className={cn(
-						'truncate font-mono text-xs',
+						'block truncate font-mono text-xs',
 						report.origin === 'capture' ? k.kind.capture : k.kind.error,
 					)}
 				>
 					{formatTitle(entry)}
 				</Text>
-				<Text tone="muted" className="truncate text-xs">
+				<Text as="span" tone="muted" className="block truncate text-xs">
 					{report.page} · {intl.formatTime(new Date(report.at), { timeStyle: 'medium' })} ·{' '}
 					{report.origin}
 				</Text>
-				<Text className={cn('truncate font-mono text-xs', slots.hash)}>{report.hash}</Text>
+				<Text as="span" className={cn('block truncate font-mono text-xs', slots.hash)}>
+					{report.hash}
+				</Text>
 			</span>
 		</ListItem>
 	)

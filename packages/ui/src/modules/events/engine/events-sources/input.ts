@@ -46,6 +46,8 @@ const GESTURE_ENDS = new Set(['click', 'pointercancel'])
  * The input events, the keys with their modifiers, and each default that a
  * script cancels. The events of one gesture, from its start to its end, are
  * one batch, such as the eight events of a tap from `pointerdown` to `click`.
+ *
+ * @internal
  */
 export const input: EventSource = (note) => {
 	let gesture: string | undefined

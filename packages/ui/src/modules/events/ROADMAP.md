@@ -6,13 +6,20 @@
 
 The first version replaces the Event log and the Bug log of the docs. The store keeps one list of events. An event with a report is a bug or a capture, and the Bugs tab shows the events with a report. So a bug is an event, and the events stay the primary list.
 
-The module does not guess what a bug is. A bug comes from a channel that the framework gives: the root callbacks of React (`eventsRootOptions`), the error callback of a router, the `error` and `unhandledrejection` events of `window`, and `reportBug` for a boundary of the app. A thrown value that two channels report adds to the first report, and adds no event. A response under 500 that a route throws is an event, not a bug.
+The module does not guess what a bug is. A bug comes from a channel that the framework gives:
+
+- The root callbacks of React (`eventsRootOptions`).
+- The error callback of a router.
+- The `error` and `unhandledrejection` events of `window`.
+- `reportBug`, for a boundary of the app.
+
+A thrown value that two channels report adds to the first report, and adds no event. A response under 500 that a route throws is an event, not a bug.
 
 Capture is a switch. While it runs, the store keeps each event through a reload, and "Preserve" stays on. Stop files a report that holds each event from the start of the capture.
 
 The view is one header button and one sheet with the Events and Bugs tabs. While the sidebar layout is inline, Pin docks the view on the end edge of the page, in the `aside` slot of `SidebarLayout`. The pinned panel shows each event as it comes in.
 
-Each adapter lives in its consumer, so `ui` has no dependency on a framework. The adapter of React Router lives in the docs app ([`../../docs/debug/router.ts`](../../docs/debug/router.ts)). Each app on Next.js starts the events in its own `instrumentation-client.ts`, and the route source (`onRouterTransitionStart`) and the error page that calls `reportBug` are in `packages/shared`.
+Each adapter lives in its consumer, so `ui` has no dependency on a framework. The adapter of React Router lives in the docs app ([`../../docs/debug/router.ts`](../../docs/debug/router.ts)). Each app on Next.js starts the events in its own `instrumentation-client.ts`. The route source (`onRouterTransitionStart`) and the error page that calls `reportBug` are in `packages/shared`.
 
 ## Engine
 

@@ -14,6 +14,8 @@ function getResourceUrl(target: unknown): string {
  * to load, and the unhandled rejections. An error that a React root reports
  * to `window` after its own callback is the same thrown value, so the store
  * adds it to the report of that callback.
+ *
+ * @internal
  */
 export const errors: EventSource = (note) =>
 	all([
