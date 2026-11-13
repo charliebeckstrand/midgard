@@ -45,6 +45,12 @@ export type FloatingPanelResult = {
 	 * closes.
 	 */
 	isPositioned: boolean
+	/**
+	 * Places the panel again from the current reference. A caller whose virtual
+	 * reference reads a value that changed calls it, because the reference keeps
+	 * its identity and floating-ui sees no change.
+	 */
+	update: () => void
 }
 
 /**
@@ -370,10 +376,11 @@ export type FloatingPanelOptions = {
  * clientPoint, etc.) against the returned `context`. For the common
  * dismiss+role pattern, prefer `useFloatingUI`.
  *
- * @returns `{ refs, floatingStyles, context, placement, isPositioned }`:
+ * @returns `{ refs, floatingStyles, context, placement, isPositioned, update }`:
  * floating-ui's reference / floating refs, the positioning styles for the
  * floating element, the shared `FloatingRootContext` interaction hooks attach
- * to, the placement after `flip`, and whether floating-ui placed the open panel.
+ * to, the placement after `flip`, whether floating-ui placed the open panel,
+ * and the call that places it again.
  */
 export function useFloatingPanel({
 	placement,
@@ -444,6 +451,7 @@ export function useFloatingPanel({
 		middlewareData,
 		placement: resolvedPlacement,
 		isPositioned,
+		update,
 	} = useFloating({
 		placement: side ? `${side}-start` : (placement as Placement),
 		open,
@@ -513,5 +521,5 @@ export function useFloatingPanel({
 		prevOpenRef.current = open
 	}, [open, returnFocusTo])
 
-	return { refs, floatingStyles, context, placement: resolvedPlacement, isPositioned }
+	return { refs, floatingStyles, context, placement: resolvedPlacement, isPositioned, update }
 }

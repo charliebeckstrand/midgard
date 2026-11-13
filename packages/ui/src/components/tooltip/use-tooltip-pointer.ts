@@ -1,7 +1,7 @@
 'use client'
 
-import { type Placement, useClientPoint, useInteractions } from '@floating-ui/react'
-import { type RefObject, useLayoutEffect, useMemo } from 'react'
+import { type ClientRectObject, type Placement, useInteractions } from '@floating-ui/react'
+import { type RefObject, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import type { TooltipContextValue } from './context'
 
@@ -21,7 +21,7 @@ export type TooltipPointerOptions = {
 	 * element's box when the panel positions, not during render. A caller that
 	 * holds its point in its own frame therefore needs no layout read of its own.
 	 * The point scales with the element, so it holds under an ancestor scale or
-	 * zoom. Omitted, `point` is in client coordinates. `axis` does not apply with it.
+	 * zoom. Omitted, `point` is in client coordinates.
 	 */
 	originRef?: RefObject<Element | null>
 	/**
@@ -34,13 +34,6 @@ export type TooltipPointerOptions = {
 	 * @defaultValue 12
 	 */
 	offset?: number
-	/**
-	 * Constrain pointer tracking to one axis (floating-ui `useClientPoint`). For
-	 * example, `'x'` suits a horizontal sweep whose vertical anchor is pinned to
-	 * a snapped value.
-	 * @defaultValue 'both'
-	 */
-	axis?: 'x' | 'y' | 'both'
 	/**
 	 * Reposition strategy while open, forwarded to {@link useFloatingPanel}.
 	 * `'auto'` keeps `autoUpdate`, the parity default. `'point'` drops it, and
@@ -111,18 +104,60 @@ function toClientPoint(origin: Element | null, x: number, y: number) {
 	}
 }
 
+/** A virtual element that floating-ui measures, at a point that can move. @internal */
+type PointAnchor = {
+	/** The origin that the point is relative to, or `undefined` for a client point. */
+	origin: RefObject<Element | null> | undefined
+	/** The newest point. A move writes it, and the element keeps its identity. */
+	point: { x: number; y: number }
+	contextElement: Element | undefined
+	getBoundingClientRect: () => ClientRectObject
+}
+
+/**
+ * A virtual element at `point`, which floating-ui measures when it positions
+ * the panel. A relative point reads the box of the origin there, so a scrolled
+ * or resized origin still anchors where it is now.
+ *
+ * @internal
+ */
+function createPointAnchor(
+	origin: RefObject<Element | null> | undefined,
+	point: { x: number; y: number },
+): PointAnchor {
+	const anchor: PointAnchor = {
+		origin,
+		point,
+		// The element that holds the point. An overlay over it then covers the
+		// readout too (`useFloatingPanel`).
+		get contextElement() {
+			return origin?.current ?? undefined
+		},
+		getBoundingClientRect() {
+			const { left, top } = toClientPoint(origin?.current ?? null, anchor.point.x, anchor.point.y)
+
+			return { x: left, y: top, width: 0, height: 0, top, left, right: left, bottom: top }
+		},
+	}
+
+	return anchor
+}
+
 /**
  * Floating and pointer-anchoring state for a point-following tooltip, returned
  * as the {@link TooltipContextValue} a `<TooltipContent>` reads. The chart, map,
  * and heatmap readouts share this. Each supplies a client `point` and an `open`
- * flag off its own hover pipeline. The tooltip then rides the pointer through
- * `useClientPoint`, while wearing the standard Tooltip chrome.
+ * flag off its own hover pipeline. The tooltip then rides the pointer at one
+ * virtual anchor, while wearing the standard Tooltip chrome.
  *
  * @remarks Rides {@link useFloatingPanel}'s base (memoized offset/flip/shift
- * chain). Composes only `useClientPoint` (no role, dismiss, or overlay-signal),
- * so nothing stamps `role="tooltip"`/`aria-describedby`; the readout is a pointer
- * enhancement the consumer marks `aria-hidden`. `track` defaults to `'auto'`
- * (parity with `autoUpdate`); every current caller opts into `'point'`.
+ * chain). The anchor keeps its identity and reads the newest point, so a move
+ * places the panel again through `update` and sets no new reference: a pointer
+ * step takes one commit for the point and one for the position. It composes no
+ * interaction (no role, dismiss, or overlay-signal), so nothing stamps
+ * `role="tooltip"`/`aria-describedby`; the readout is a pointer enhancement
+ * that the consumer marks `aria-hidden`. `track` defaults to `'auto'` (parity
+ * with `autoUpdate`); every current caller opts into `'point'`.
  * @internal
  * @see {@link useFloatingPanel}
  */
@@ -131,11 +166,10 @@ export function useTooltipPointer({
 	point,
 	placement = 'top',
 	offset = 12,
-	axis = 'both',
 	track = 'auto',
 	originRef,
 }: TooltipPointerOptions): TooltipContextValue {
-	const { refs, floatingStyles, context } = useFloatingPanel({
+	const { refs, floatingStyles, update } = useFloatingPanel({
 		placement,
 		open,
 		offset,
@@ -146,29 +180,35 @@ export function useTooltipPointer({
 
 	const y = point?.y ?? null
 
-	const clientPoint = useClientPoint(context, { enabled: originRef === undefined, x, y, axis })
-
 	const { setPositionReference } = refs
 
-	// The relative form of `useClientPoint`'s own anchor: a virtual element that
-	// floating-ui measures when it positions the panel. The origin's box is read
-	// there, so a scrolled or resized origin still anchors where it is now.
+	// The anchor of the panel. A move writes the new point to it and places the
+	// panel again. Floating-ui then stores no new reference, which would be one
+	// more commit.
+	const anchorRef = useRef<PointAnchor | null>(null)
+
 	useLayoutEffect(() => {
-		if (originRef === undefined || x === null || y === null) return
+		if (x === null || y === null) return
 
-		setPositionReference({
-			// The plot that holds the point. An overlay over the plot then covers
-			// the readout too (`useFloatingPanel`).
-			contextElement: originRef.current ?? undefined,
-			getBoundingClientRect() {
-				const { left, top } = toClientPoint(originRef.current, x, y)
+		const anchor = anchorRef.current
 
-				return { x: left, y: top, width: 0, height: 0, top, left, right: left, bottom: top }
-			},
-		})
-	}, [originRef, x, y, setPositionReference])
+		if (anchor !== null && anchor.origin === originRef && refs.reference.current === anchor) {
+			anchor.point = { x, y }
 
-	const { getReferenceProps, getFloatingProps } = useInteractions([clientPoint])
+			update()
+
+			return
+		}
+
+		const next = createPointAnchor(originRef, { x, y })
+
+		anchorRef.current = next
+
+		setPositionReference(next)
+	}, [originRef, x, y, refs, setPositionReference, update])
+
+	// No interaction hook: the caller drives the point and the open state.
+	const { getReferenceProps, getFloatingProps } = useInteractions([])
 
 	return useMemo(
 		() => ({
