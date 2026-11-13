@@ -76,6 +76,12 @@ async function sortBy(label: string) {
 }
 
 describe('NearbyDrawer', () => {
+	it('shows one Close button, in the header', () => {
+		render(h(NearbyDrawer, props(['a', 'b', 'c'], [a, b, c])))
+
+		expect(screen.getAllByRole('button', { name: 'Close' })).toHaveLength(1)
+	})
+
 	it('returns the pickers to their start on a new pick', async () => {
 		const { rerender } = render(h(NearbyDrawer, props(['a', 'b', 'c'], [a, b, c])))
 

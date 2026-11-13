@@ -65,7 +65,13 @@ describe('toggleMarker', () => {
 			'grows a caret in a word to the word for italic, as Markdown reads no `_` in a word',
 			'It was go|od food',
 			'italic',
-			'It was _[good]_ food',
+			'It was _go|od_ food',
+		],
+		[
+			'puts a pair of italic markers at a caret at the end of a word',
+			'It was good|',
+			'italic',
+			'It was good_|_',
 		],
 		[
 			'grows a selection in a word to the word for italic',
@@ -77,7 +83,7 @@ describe('toggleMarker', () => {
 			'removes italic from the word that holds the caret',
 			'It was _go|od_ food',
 			'italic',
-			'It was [good] food',
+			'It was go|od food',
 		],
 		[
 			'keeps a caret in a word for bold, which Markdown reads in a word',

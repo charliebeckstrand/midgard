@@ -29,8 +29,10 @@ export type ReviewMarker = keyof typeof REVIEW_MARKERS
  * them, so the next text that the reader types has the format.
  *
  * Markdown reads `_` as italic only at the bounds of a word, so `wo_r_d` stays
- * plain text. Thus for italic, a selection or a caret that touches a word
- * grows to the bounds of that word first.
+ * plain text. Thus for italic, a selection that touches a word grows to the
+ * bounds of that word first. A caret grows only when it is in a word, and it
+ * stays a caret, so the next text that the reader types does not replace the
+ * word. A caret at the end of a word gets a pair of markers.
  *
  * @param edit - The text and the selection.
  * @param format - The format to put on or take off.
@@ -38,8 +40,6 @@ export type ReviewMarker = keyof typeof REVIEW_MARKERS
  */
 export function toggleMarker(edit: ReviewEdit, format: ReviewMarker): ReviewEdit {
 	const marker = REVIEW_MARKERS[format]
-
-	const size = marker.length
 
 	const { value } = edit
 
@@ -49,11 +49,43 @@ export function toggleMarker(edit: ReviewEdit, format: ReviewMarker): ReviewEdit
 
 	while (end > start && /\s/.test(value.charAt(end - 1))) end--
 
-	if (format === 'italic') {
-		while (start > 0 && WORD.test(value.charAt(start - 1))) start--
+	const caret = start === end ? start : undefined
 
-		while (end < value.length && WORD.test(value.charAt(end))) end++
-	}
+	if (format === 'italic') [start, end] = growToWord(value, start, end)
+
+	const result = applyMarker(value, start, end, marker)
+
+	if (caret === undefined || start === end) return result
+
+	// The caret grew to its word. It moves with the marker in front of it.
+	const at = caret + (result.value.length - value.length) / 2
+
+	return { value: result.value, start: at, end: at }
+}
+
+/**
+ * The range from `start` to `end`, grown to the bounds of the words that it
+ * touches. A caret grows only when it is in a word.
+ */
+function growToWord(value: string, start: number, end: number): [number, number] {
+	const isWord = (at: number) => WORD.test(value.charAt(at))
+
+	if (start === end && !(isWord(start - 1) && isWord(start))) return [start, end]
+
+	let from = start
+
+	let to = end
+
+	while (isWord(from - 1)) from--
+
+	while (isWord(to)) to++
+
+	return [from, to]
+}
+
+/** Removes the marker around the range from `start` to `end`, or puts it there. */
+function applyMarker(value: string, start: number, end: number, marker: string): ReviewEdit {
+	const size = marker.length
 
 	// The markers are outside the selection.
 	if (value.slice(start - size, start) === marker && value.slice(end, end + size) === marker) {
