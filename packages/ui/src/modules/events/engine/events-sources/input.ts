@@ -28,19 +28,20 @@ const MODIFIERS = [
 ] as const
 
 /**
- * Whether a key types a character, such as `a` or `Space`. A named key, such
- * as `Enter` or `Tab`, does not.
+ * Whether a key is a named key of UI Events, such as `Enter`, `Tab`, or `F1`.
+ * Each named key is a word in this form. Each other key types text, which
+ * can be more than one code point, such as a cluster of an Indic layout.
  */
-function isCharacter(key: string): boolean {
-	return [...key].length === 1
+function isNamedKey(key: string): boolean {
+	return /^[A-Z][A-Za-z0-9]+$/.test(key)
 }
 
 /**
- * Whether the events mask the key of a keyboard event: a key that types a
- * character into a password field.
+ * Whether the events mask the key of a keyboard event: a key that types text
+ * into a password field.
  */
 function isMasked(event: KeyboardEvent): boolean {
-	return isSecret(event.target) && isCharacter(event.key)
+	return isSecret(event.target) && !isNamedKey(event.key)
 }
 
 /**

@@ -177,6 +177,9 @@ describe('listen', () => {
 
 		password.dispatchEvent(new KeyboardEvent('keydown', { key: 'h', code: 'KeyH', bubbles: true }))
 
+		// A key of an Indic layout types a cluster of three code points.
+		password.dispatchEvent(new KeyboardEvent('keydown', { key: 'க்ஷ', code: 'KeyK', bubbles: true }))
+
 		password.dispatchEvent(
 			new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }),
 		)
@@ -196,6 +199,7 @@ describe('listen', () => {
 
 		expect(texts(store)).toEqual([
 			'keydown *** input=*** synthetic',
+			'keydown *** input=*** synthetic',
 			'keydown Enter input=*** synthetic',
 			'input input=*** synthetic',
 			'keydown m input=midgard synthetic',
@@ -204,7 +208,7 @@ describe('listen', () => {
 
 		expect(store.entries[0]?.detail).toEqual({ key: '***', code: '***', repeat: false })
 
-		expect(store.entries[1]?.detail).toEqual({ key: 'Enter', code: 'Enter', repeat: false })
+		expect(store.entries[2]?.detail).toEqual({ key: 'Enter', code: 'Enter', repeat: false })
 	})
 
 	it('records the start and the end of a scroll as one batch', async ({ clock }) => {
