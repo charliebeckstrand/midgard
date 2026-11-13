@@ -175,7 +175,7 @@ In an app, an action such as Close or Remove is a `Button` with `variant="bare"`
 
 6.1 No global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx`. Biome's `noRestrictedImports` keeps the common ones out of `apps`.
 
-6.2 Server data is fetched in Server Components or `'use server'`. They attach the bearer token and resolve the gateway origin server-side.
+6.2 Server data is fetched in Server Components or `'use server'`. They forward the session cookie of the request and resolve the gateway origin server-side.
 
 6.3 Client fetches hit same-origin `/api/*` or `/auth/*` paths. They never call the gateway or handle tokens directly. In an app wrapped in `withAuth`, both prefixes rewrite to the gateway. The rewrites are in the `fallback` phase, so a route handler of the app serves its own path first. The `proxy.ts` of the app gates `/api/*` by the session cookie and leaves `/auth/*` open, because sign-in and register run before a session exists. A file upload is the one fetch to another origin. The client gets a signed address from a service through `/api/*`, and sends the file to that address, not through the gateway.
 

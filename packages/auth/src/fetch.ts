@@ -126,39 +126,29 @@ export async function requireGateway<Data>(
 	throw new GatewayError(path, { cause: `status ${answer.response.status}` })
 }
 
-/** Options for {@link readGateway}. */
-type ReadGatewayOptions = {
-	/** The failed statuses that are expected, and that do not go to the log, such as `401`. */
-	quiet?: number[]
-}
-
 /**
  * Resolves to the `data` of one gateway read, or `undefined` when the gateway
  * refuses or does not answer.
  *
  * @internal
  * @remarks
- * Each failure goes to the log, except a status in `quiet`. The control-flow
- * errors of Next, such as the dynamic-usage signal of a prerender, propagate.
+ * Each failure goes to the log. The control-flow errors of Next, such as the
+ * dynamic-usage signal of a prerender, propagate.
  *
  * @param path - The gateway path, for the log.
  * @param read - The read, such as `() => bifrost.GET('/auth/session')`.
- * @param options - The failed statuses that do not go to the log.
  * @returns The `data` of an OK status, or `undefined` on a failure.
  */
 export async function readGateway<Data>(
 	path: string,
 	read: () => Promise<{ data?: Data; response: Response }>,
-	{ quiet = [] }: ReadGatewayOptions = {},
 ): Promise<Data | undefined> {
 	try {
 		const { data, response } = await read()
 
 		if (data) return data
 
-		if (!quiet.includes(response.status)) {
-			console.error(`auth: GET ${path} failed (${response.status})`)
-		}
+		console.error(`auth: GET ${path} failed (${response.status})`)
 	} catch (error) {
 		// A prerender reads `cookies()`, and Next throws to mark the route dynamic. Let it through.
 		unstable_rethrow(error)

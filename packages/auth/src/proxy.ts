@@ -48,7 +48,8 @@ export function forwardClientIp(request: NextRequest): NextResponse {
  * @remarks
  * Export it from the `proxy.ts` of an app. The proxy only finds the cookie, and
  * sends no request to the gateway. The gateway checks the session on each
- * `/api/*` request, and `requireAdmin` checks it for each protected page. So a
+ * `/api/*` request, and `requireSession` or `requireAdmin` checks it for each
+ * protected page. So a
  * cookie that is not valid gets no data.
  *
  * An auth route (`/auth/*`) and a guest route (such as `/login`) continue
