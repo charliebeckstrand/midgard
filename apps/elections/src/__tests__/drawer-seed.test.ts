@@ -115,4 +115,38 @@ describe('ElectionDrawer', () => {
 
 		expect(fetchCountyShapes).not.toHaveBeenCalled()
 	})
+
+	it('keeps the map of the first seed when a refresh gives a seed with no map', async () => {
+		window.history.replaceState(null, '', '/2026/us/midterms?region=ga&office=senate&view=counties')
+
+		const seed = await readSeed('region=ga&office=senate&view=counties')
+
+		const client = new QueryClient()
+
+		const tree = (next: typeof seed) =>
+			h(QueryClientProvider, {
+				client,
+				children: h(ElectionRacesProvider, {
+					races,
+					children: h(ElectionDrawer, { election, seed: next }),
+				}),
+			})
+
+		let rerender: (ui: ReturnType<typeof tree>) => void = () => {}
+
+		act(() => {
+			rerender = render(tree(seed)).rerender
+		})
+
+		const plot = document.querySelector('[aria-label="Georgia Senate results by county"]')
+
+		// A refresh after a switch to Overview reads the seed again, with no map. The
+		// map stays mounted, so it keeps its zoom.
+		act(() => {
+			rerender(tree(seed === null ? null : { ...seed, map: null }))
+		})
+
+		expect(plot?.isConnected).toBe(true)
+		expect(document.querySelector('[aria-label="Georgia Senate results by county"]')).toBe(plot)
+	})
 })

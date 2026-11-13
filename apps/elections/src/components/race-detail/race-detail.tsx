@@ -25,9 +25,7 @@ export type CountyMapSeed = {
 	shapes: MapFeatureCollection
 	/**
 	 * The county map, as a client reference from the page. The browser loads its
-	 * chunk before it hydrates the Drawer. After hydration, the Drawer moves into
-	 * its portal and mounts again, and the map then draws at once. Without it,
-	 * the lazy map waits for its chunk at that mount and shows the placeholder.
+	 * chunk before it hydrates the Drawer.
 	 */
 	CountyMap: ComponentType<CountyMapProps>
 }
@@ -44,11 +42,25 @@ export type RaceDetailProps = {
 	view: RaceView
 	onViewChange: (view: RaceView) => void
 	/**
-	 * The county map and the county shapes of the state, which the page gives
-	 * where the address opens the race on its map. `null` loads the map from its
-	 * chunk and reads the shapes in the browser.
+	 * The county shapes of the state, which the page read on the server where the
+	 * address opens the race on its map, so the first paint draws the map. `null`
+	 * reads them in the browser.
 	 */
-	map: CountyMapSeed | null
+	shapes: MapFeatureCollection | null
+	/**
+	 * The county map from the page (`CountyMapSeed`), or `null` to load the map
+	 * from its chunk. With it, the map renders with no Suspense boundary.
+	 *
+	 * After hydration, the Drawer moves into its portal and mounts again. The
+	 * lazy map then waits for its chunk again and shows the placeholder, so a
+	 * reload on the map takes the map from the page. A boundary also lets the
+	 * server send a large map after its fallback, and the fallback then paints
+	 * first, so a map with its code takes no boundary.
+	 *
+	 * The value must stay the same for the life of the Drawer: a change swaps the
+	 * element type and mounts a new map, which drops its zoom.
+	 */
+	CountyMap: ComponentType<CountyMapProps> | null
 }
 
 /** The county map, from its chunk. */
@@ -157,7 +169,15 @@ function RaceFacts({
  * `Activity`. A switch to By county therefore shows a map that is already
  * drawn.
  */
-export function RaceDetail({ entry, race, onCounty, view, onViewChange, map }: RaceDetailProps) {
+export function RaceDetail({
+	entry,
+	race,
+	onCounty,
+	view,
+	onViewChange,
+	shapes,
+	CountyMap,
+}: RaceDetailProps) {
 	const candidates = race?.candidates ?? entry.candidates
 
 	const called = race === undefined ? entry.called : isCalled(race.candidates)
@@ -168,6 +188,7 @@ export function RaceDetail({ entry, race, onCounty, view, onViewChange, map }: R
 		statewide: entry.district === null,
 		counties: race?.counties,
 		onCounty,
+		shapes,
 	}
 
 	return (
@@ -194,15 +215,12 @@ export function RaceDetail({ entry, race, onCounty, view, onViewChange, map }: R
 			) : null}
 
 			<Activity mode={view === 'counties' ? 'visible' : 'hidden'}>
-				{map === null ? (
+				{CountyMap === null ? (
 					<Suspense fallback={MAP_PLACEHOLDER}>
-						<LazyCountyMap {...countyMap} shapes={null} />
+						<LazyCountyMap {...countyMap} />
 					</Suspense>
 				) : (
-					// No boundary: the map has its code, so it waits for nothing. A boundary
-					// lets the server send a large map after its fallback, and the fallback
-					// then paints first.
-					<map.CountyMap {...countyMap} shapes={map.shapes} />
+					<CountyMap {...countyMap} />
 				)}
 			</Activity>
 		</Stack>

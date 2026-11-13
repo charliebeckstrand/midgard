@@ -2,11 +2,12 @@
 
 import { ArrowRight } from 'lucide-react'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { type ComponentType, useState } from 'react'
 import type { Seed } from 'shared/queries'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
+import type { MapFeatureCollection } from 'ui/map'
 import { SearchInput } from 'ui/search-input'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/structure/stack'
@@ -34,6 +35,7 @@ import { contestItems } from '../../utilities/trail'
 import { OfficeCard } from '../office-card'
 import { RaceCard } from '../race-card'
 import { type CountyMapSeed, RaceDetail, usePreloadCountyMap } from '../race-detail'
+import type { CountyMapProps } from '../race-detail/county-map'
 import { DelegationSummary, RaceSummary } from '../race-summary'
 import { type DrawerView, ResultDrawer, type TrailCrumb } from '../result-drawer'
 import { useElectionRaces } from './context'
@@ -61,6 +63,12 @@ type Go = (step: DrawerStep | null) => void
 
 /** The view of the race of the step, which the address holds, so a county keeps it. */
 type Views = { view: RaceView; onViewChange: (view: RaceView) => void }
+
+/** The county map of the race (see `RaceDetailProps`): the seeded shapes, and the map from the page. */
+type Maps = {
+	shapes: MapFeatureCollection | null
+	CountyMap: ComponentType<CountyMapProps> | null
+}
 
 /** The layout of a county: each candidate in full, or one short line each. */
 type CountyLayout = 'detailed' | 'condensed'
@@ -297,7 +305,7 @@ function raceView(
 	go: Go,
 	views: Views,
 	layouts: Layouts,
-	map: CountyMapSeed | null,
+	maps: Maps,
 ): DrawerView {
 	// Only the race tells a special election, so the badge comes when the race
 	// loads. It sits in the row of the trail, so the panel keeps its height.
@@ -330,7 +338,8 @@ function raceView(
 				onCounty={(fips) => go({ ...step, county: fips })}
 				view={views.view}
 				onViewChange={views.onViewChange}
-				map={map}
+				shapes={maps.shapes}
+				CountyMap={maps.CountyMap}
 			/>
 		),
 	}
@@ -351,7 +360,7 @@ function drawerView(
 	layouts: Layouts,
 	search: Search,
 	path: string,
-	map: CountyMapSeed | null,
+	maps: Maps,
 ): DrawerView | null {
 	const races = stateRaces(results, step.region)
 
@@ -366,7 +375,7 @@ function drawerView(
 		}
 	}
 
-	if (entry !== undefined) return raceView(entry, race, trail, step, go, views, layouts, map)
+	if (entry !== undefined) return raceView(entry, race, trail, step, go, views, layouts, maps)
 
 	if (office.contest.depth !== 'district' || step.district !== null) return null
 
@@ -406,10 +415,19 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 
 	const read = useRace(entry?.raceId ?? null, seed?.race ?? null)
 
-	// The shapes belong to the state of the seeded race, so only that race takes the map.
-	const map = seed !== null && seed.race.data.id === entry?.raceId ? seed.map : null
+	// The shapes belong to the state of the seeded race, so only that race takes them.
+	const shapes =
+		seed !== null && seed.race.data.id === entry?.raceId ? (seed.map?.shapes ?? null) : null
 
-	usePreloadCountyMap(step?.region.key ?? null, map?.shapes ?? null)
+	// The map of the first seed stays for the life of the Drawer. A refresh reads
+	// the seed again for the address of the moment, and a change of the map would
+	// mount a new map, at its first zoom. Its code serves each race. The
+	// initializer returns the component, because `useState` calls a function value.
+	const [CountyMap] = useState(() => seed?.map?.CountyMap ?? null)
+
+	const maps: Maps = { shapes, CountyMap }
+
+	usePreloadCountyMap(step?.region.key ?? null, shapes)
 
 	const race = read.data?.id === entry?.raceId ? read.data : undefined
 
@@ -446,7 +464,7 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 	const view =
 		step === null
 			? null
-			: drawerView(election, results, step, entry, race, go, views, layouts, search, pathname, map)
+			: drawerView(election, results, step, entry, race, go, views, layouts, search, pathname, maps)
 
 	return <ResultDrawer view={view} onClose={() => go(null)} />
 }
