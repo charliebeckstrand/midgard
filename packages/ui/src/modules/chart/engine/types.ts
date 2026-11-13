@@ -163,14 +163,30 @@ export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
 }
 
 /**
+ * The press that picked an item of a chart or a map. Every pick handler gets it
+ * as its last argument.
+ *
+ * `pointerType` names the input: `'mouse'`, `'pen'`, `'touch'`, or
+ * `'keyboard'` for Enter or Space. `count` is the number of quick presses in a
+ * row on one spot, as the `detail` of a click counts them. A double-click or a
+ * double tap is 2, and a key press is always 1. A handler can use it as a gate.
+ * For example, a map that must not open a place on a stray tap returns early
+ * while `pointerType` is `'touch'` and `count` is less than 2.
+ */
+export type ChartPress = {
+	readonly pointerType: 'mouse' | 'pen' | 'touch' | 'keyboard'
+	readonly count: number
+}
+
+/**
  * A click on one item of a chart: a category band, a pie slice, or a map
- * region. It carries the item's own identity and its data index. It is the
- * cross-filter hook: a dashboard toggles a filter on what was clicked, and
- * narrows its neighbors.
+ * region. It carries the item's own identity, its data index, and the
+ * {@link ChartPress} that picked it. It is the cross-filter hook: a dashboard
+ * toggles a filter on what was clicked, and narrows its neighbors.
  *
  * One shape across the module, so a dashboard wires every chart the same way.
  */
-export type ChartItemClick = (id: string, index: number) => void
+export type ChartItemClick = (id: string, index: number, press: ChartPress) => void
 
 /**
  * The props every chart shares: the data plus the frame's sizing, legend,
@@ -409,8 +425,8 @@ export type CartesianFrameProps = {
 	 */
 	reference?: ChartReferenceLine[]
 	/**
-	 * Fires when a click lands on a category's band, with the category's label and
-	 * its data index. The whole band is the target, the same generous hit the
+	 * Fires when a click lands on a category's band, with the category's label,
+	 * its data index, and the {@link ChartPress} that picked it. The whole band is the target, the same generous hit the
 	 * tooltip reads. The cross-filter hook: a dashboard toggles a filter on the
 	 * clicked category and narrows its neighbors. Coexists with the tooltip on
 	 * either trigger (a `'click'`-triggered readout still pins). It carries a

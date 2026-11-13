@@ -14,6 +14,8 @@ import { cn } from '../../core/cn'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
+import { clickPress } from '../chart/engine/chart-press'
+import type { ChartPress } from '../chart/engine/types'
 import { useMapHoverActions, useMapPlat, useMapPointed, useMapZoomScale } from './context'
 import type { MapGroundDot } from './engine/map-cluster/ground'
 import type { MapClusterInput } from './engine/map-cluster/sets'
@@ -95,24 +97,20 @@ export type MapOverlayProps = {
 	detail?: string
 	/**
 	 * Fires when a click lands on the mark (anywhere on its hit shape, the same
-	 * target the tooltip reads) with the mark's {@link id}. `MapPlat`'s
-	 * `onRegionClick` in the same shape, so a map whose regions and overlays are
-	 * both pickable reports both the one way.
+	 * target the tooltip reads) with the mark's {@link id} and the
+	 * {@link ChartPress} that picked it. `MapPlat`'s `onRegionClick` reports in
+	 * the same way, so a map whose regions and overlays are both pickable reports
+	 * both the one way.
 	 *
 	 * Set, the mark carries a pointer cursor. The keyboard reaches it through the
 	 * plot region's own cursor. That cursor visits every overlay alongside the
-	 * regions, and activates the one it sits on with Enter or Space. A touch
-	 * picks the mark with a double tap, or with one tap under `MapPlat`'s
-	 * `touchPick`.
-	 *
-	 * A singular mark holds one stop, so it is called with a trailing `0` its type
-	 * omits: the plural {@link MapPoints} passes the dot's index there. A handler
-	 * declared as this type never sees the argument.
+	 * regions, and activates the one it sits on with Enter or Space. A tap
+	 * picks the mark, as a click does.
 	 *
 	 * Handing the reported pair back as `MapPlat`'s `selectedOverlay` haloes the
 	 * pick, the way `selectedRegion` rings a picked region.
 	 */
-	onClick?: (id: string) => void
+	onClick?: (id: string, press: ChartPress) => void
 	/**
 	 * Fires when a right-click lands on the mark, with the same identity
 	 * {@link onClick} reports. It serves a context menu wrapping the map, which
@@ -124,18 +122,20 @@ export type MapOverlayProps = {
 
 /**
  * The reporters as the hook takes them, naming the stop as well as the mark. A
- * singular mark's public `(id) => void` is assignable to this. It passes its own
- * prop straight through, and never sees the stop it does not have.
+ * singular mark passes its public `onClick` straight through, and never sees
+ * the stop it does not have. A plural mark passes `onStopClick` instead, which
+ * names the stop. A singular mark's public `(id) => void` menu is assignable to
+ * `onContextMenu`.
  *
  * @internal
  */
 type MapOverlayReporters = {
-	onClick?: (id: string, stop: number) => void
+	onStopClick?: (id: string, stop: number, press: ChartPress) => void
 	onContextMenu?: (id: string, stop: number) => void
 }
 
 /** What an overlay hands {@link useMapOverlay} beyond its shared props. @internal */
-type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
+type MapOverlayConfig = Omit<MapOverlayProps, 'onContextMenu'> &
 	MapOverlayReporters & {
 		kind: MapOverlayKind
 		swatch: MapSwatchShape
@@ -348,6 +348,7 @@ export function useMapOverlay({
 	color,
 	detail,
 	onClick,
+	onStopClick,
 	onContextMenu,
 	kind,
 	swatch,
@@ -493,13 +494,16 @@ export function useMapOverlay({
 
 	// The reporters run only in events, so they are stable events: a consumer's
 	// inline handler is a fresh identity every render, and it cannot churn the ledger.
-	const pick = useStableEvent((stop: number) => onClick?.(id, stop))
+	const pick = useStableEvent((stop: number, press: ChartPress) => {
+		if (onStopClick !== undefined) onStopClick(id, stop, press)
+		else onClick?.(id, press)
+	})
 
 	// Registered only where the mark answers a pick, so its presence is the
 	// question the plat's tab-stop gate asks. The handler itself is a stable
 	// event: this depends on whether there is one, a boolean that changes only when
 	// a consumer adds or drops the prop.
-	const pickable = onClick !== undefined
+	const pickable = onClick !== undefined || onStopClick !== undefined
 
 	const activate = pickable ? pick : undefined
 
@@ -606,7 +610,10 @@ export function useMapOverlay({
 	// The pointer's route to the reporter the keyboard already reaches through
 	// `pick`: one spelling of the call, so an activation cannot come to mean two
 	// different things depending on which input made it.
-	const clickMark = useCallback((event: MouseEvent<SVGElement>) => pick(stopFrom(event)), [pick])
+	const clickMark = useCallback(
+		(event: MouseEvent<SVGElement>) => pick(stopFrom(event), clickPress(event)),
+		[pick],
+	)
 
 	// Bubbles, and never prevents default: a wrapping menu still opens, and this
 	// only names which mark it opened over.

@@ -9,6 +9,7 @@ import {
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { overlayPlat } from '../helpers/map-plat'
+import { CLICK } from '../helpers/press'
 
 /** A ring over the fixture geography, wide enough to hold a mark inside it. */
 const ZONE: LngLat[] = [
@@ -151,7 +152,7 @@ describe('MapGeofence', () => {
 
 		fireEvent.click(bySlot(container, 'map-geofence-hit') as Element)
 
-		expect(onClick).toHaveBeenCalledWith('zone-a', 0)
+		expect(onClick).toHaveBeenCalledWith('zone-a', CLICK)
 	})
 
 	it('haloes its outline while the plat holds it selected', () => {

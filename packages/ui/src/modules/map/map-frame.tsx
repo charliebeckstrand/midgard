@@ -24,7 +24,7 @@ import { MapHoverProvider } from './map-hover-provider'
 import { MapZoomProvider } from './map-zoom-provider'
 import { type MapKeyboardOptions, useMapKeyboard } from './use-map-keyboard'
 import type { MapFrameShape } from './use-map-shape'
-import { type MapTouchPick, useMapTouchTap } from './use-map-touch-tap'
+import { useMapTouchTap } from './use-map-touch-tap'
 import type { MapZoomOptions } from './use-map-zoom'
 
 /**
@@ -214,8 +214,6 @@ type MapPlotRegionProps = Pick<ComponentProps<'div'>, 'aria-label' | 'aria-label
 	tooltip: ReactNode
 	/** What the keyboard cursor needs; the plat resolves it, this element hosts it. */
 	keyboard: Omit<MapKeyboardOptions, 'zoom'>
-	/** Whether one tap or a double tap of a touch picks the mark under it. */
-	touchPick: MapTouchPick
 	children: ReactNode
 }
 
@@ -232,7 +230,6 @@ export function MapPlotRegion({
 	aside,
 	tooltip,
 	keyboard: options,
-	touchPick,
 	children,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledBy,
@@ -244,9 +241,9 @@ export function MapPlotRegion({
 
 	const keyboard = useMapKeyboard({ ...options, zoom: zoom?.cursor ?? null })
 
-	// A touch reads nothing. A double tap, or one tap under `touchPick: 'tap'`,
-	// picks the mark under it, through the keyboard's own pick. See `useMapTouchTap`.
-	const touch = useMapTouchTap(options.activate, touchPick)
+	// A touch reads nothing. A tap picks the mark under it, through the keyboard's
+	// own pick. See `useMapTouchTap`.
+	const touch = useMapTouchTap(options.activate)
 
 	const surface = zoom?.surface
 

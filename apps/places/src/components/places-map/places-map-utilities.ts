@@ -1,3 +1,4 @@
+import type { ChartPress } from 'ui/chart'
 import type { MapPointDatum } from 'ui/modules/map'
 import { CATEGORY_BY_VALUE, RECORD_KIND_META } from '../../constants'
 import type { MapRecord } from '../../types'
@@ -26,4 +27,13 @@ export function recordStops(records: readonly MapRecord[]): MapPointDatum[] {
 					color: CATEGORY_BY_VALUE.get(record.category)?.color,
 				}),
 	}))
+}
+
+/**
+ * Whether a press is one tap of a finger. On a phone, the map opens a place or
+ * a region only on a double tap, so that a stray tap while the reader pans does
+ * not open one. A click, a key, and the second tap of a double tap open it.
+ */
+export function isSingleTap(press: ChartPress): boolean {
+	return press.pointerType === 'touch' && press.count < 2
 }

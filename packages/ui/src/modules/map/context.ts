@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core/create-context'
 import type { MapSeriesColor } from '../../recipes/kata/map'
+import type { ChartPress } from '../chart/engine/types'
 import type { MapDotPool } from './engine/map-cluster/pool'
 import type { MapClusterStore } from './engine/map-cluster/sets'
 import type { MapHoverTarget, MapOverlayTarget } from './engine/map-hover/target'
@@ -249,7 +250,10 @@ export type MapPlatContextValue = {
 	 * reporter of its own set. A shared summary reports its click through it, so a pick from any
 	 * input reaches every part of the summary by one rule. A stable function.
 	 */
-	report: (target: MapOverlayTarget, kind: 'activate' | 'menu') => void
+	report: {
+		(target: MapOverlayTarget, kind: 'activate', press: ChartPress): void
+		(target: MapOverlayTarget, kind: 'menu'): void
+	}
 	/**
 	 * The moves of the marks, for the keyboard cursor. A mark calls `move` when
 	 * its stops change, and the cursor resolves its stop list again. One store for

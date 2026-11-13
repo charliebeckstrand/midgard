@@ -7,6 +7,7 @@
  */
 
 import type { MapSeriesColor } from '../../../../recipes/kata/map'
+import type { ChartPress } from '../../../chart/engine/types'
 import type { MapClusterInput } from '../map-cluster/sets'
 import type { LngLat, MapPoint2D, MapSwatchShape } from '../types'
 import type { MapSpareResolver } from './spare'
@@ -145,7 +146,7 @@ export type MapOverlayEntry = {
 	 * registered only where the mark answers a pick, so its presence is the
 	 * question the plat's tab-stop gate asks.
 	 */
-	activate?: (stop: number) => void
+	activate?: (stop: number, press: ChartPress) => void
 	/**
 	 * Reports a right-click on one of the mark's stops, as a click on the stop
 	 * reports a pick. Stable like {@link activate}, and registered only where the

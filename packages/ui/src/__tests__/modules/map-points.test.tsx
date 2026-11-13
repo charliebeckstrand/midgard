@@ -6,6 +6,7 @@ import { hydrateServerRender } from '../helpers/hydrate'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { overlayPlat } from '../helpers/map-plat'
+import { CLICK, KEY } from '../helpers/press'
 
 /** The fixture spans lon 0–30, lat 0–10, so these project inside the frame. */
 const DEPOT: [number, number] = [5, 5]
@@ -102,7 +103,7 @@ describe('MapPoints', () => {
 		fireEvent.click(allBySlot(container, 'map-points-hit')[1] as Element)
 
 		// An unmerged dot stands for itself alone, so the pick and the group agree.
-		expect(onClick).toHaveBeenCalledWith('fleet', 1, [1])
+		expect(onClick).toHaveBeenCalledWith('fleet', 1, [1], CLICK)
 	})
 
 	it('reports the same arguments from a right-click', () => {
@@ -131,14 +132,14 @@ describe('MapPoints', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onClick).toHaveBeenCalledWith('fleet', 2, [2])
+		expect(onClick).toHaveBeenCalledWith('fleet', 2, [2], KEY)
 
 		// The dots sit west to east, so a westward step reaches the one before it.
 		fireEvent.keyDown(plot, { key: 'ArrowLeft' })
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onClick).toHaveBeenLastCalledWith('fleet', 1, [1])
+		expect(onClick).toHaveBeenLastCalledWith('fleet', 1, [1], KEY)
 	})
 
 	it('holds the point the cursor stands on when a zoom regroups the dots', () => {
@@ -173,7 +174,7 @@ describe('MapPoints', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onClick).toHaveBeenLastCalledWith('fleet', 2, [2])
+		expect(onClick).toHaveBeenLastCalledWith('fleet', 2, [2], KEY)
 
 		// Back at the fit the pair merges again, and the cursor stays on the far dot.
 		fireEvent.keyDown(plot, { key: '0' })
@@ -219,7 +220,7 @@ describe('MapPoints', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onClick).toHaveBeenLastCalledWith('fleet', 1, [1])
+		expect(onClick).toHaveBeenLastCalledWith('fleet', 1, [1], KEY)
 	})
 
 	it('reads the point under the pointer after a zoom regroups the dots', () => {
@@ -428,13 +429,13 @@ describe('MapPoints', () => {
 
 		// The pick names a real point, and the group beside it names every stop the
 		// one dot the reader pressed was standing for.
-		expect(onClick).toHaveBeenCalledWith('fleet', 0, [0, 1])
+		expect(onClick).toHaveBeenCalledWith('fleet', 0, [0, 1], CLICK)
 
 		// The far dot still reports its own index, though a group ahead of it holds
 		// two stops: the caller counts in points, never in groups.
 		fireEvent.click(allBySlot(container, 'map-points-hit')[1] as Element)
 
-		expect(onClick).toHaveBeenLastCalledWith('fleet', 2, [2])
+		expect(onClick).toHaveBeenLastCalledWith('fleet', 2, [2], CLICK)
 	})
 
 	it('reads a summary out as the group, by the count and the spread it holds', () => {

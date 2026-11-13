@@ -6,6 +6,7 @@ import { it } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat } from '../helpers/map-plat'
+import { CLICK } from '../helpers/press'
 
 /**
  * The zoom is a transform over the fitted geography, so these assert what the
@@ -1248,7 +1249,7 @@ describe('MapPlat pan', () => {
 
 		fireEvent.click(region)
 
-		expect(onRegionClick).toHaveBeenCalledWith('A', 0)
+		expect(onRegionClick).toHaveBeenCalledWith('A', 0, CLICK)
 	})
 })
 

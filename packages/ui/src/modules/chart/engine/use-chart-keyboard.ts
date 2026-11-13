@@ -7,7 +7,9 @@ import { clamp } from '../../../utilities/clamp'
 import { isActivationKey, isArrowKey, wrap } from '../../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../../utilities/modifier-keys'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
+import { KEY_PRESS } from './chart-press'
 import { type ChartHoverStore, samePoint } from './context'
+import type { ChartPress } from './types'
 
 /**
  * The per-category anchor points a chart hands its frame for keyboard
@@ -531,7 +533,8 @@ type ChartKeyboard = {
  * label and the value of the line through it. A band step along the same line, a
  * re-anchor, and a pointer move do not call it.
  * @param onActivate - Called when Enter or Space lands on a data point, with the
- * hover index that the cursor writes and the place of its stop in the category.
+ * hover index that the cursor writes, the key press, and the place of its stop
+ * in the category.
  * The frame passes the click callback of the chart through it. A cursor on a
  * reference line, or no cursor, calls nothing.
  * @internal
@@ -544,7 +547,7 @@ export function useChartKeyboard(
 	setActiveSeries: (series: number | null) => void,
 	onRead?: (index: number, series: number | null, stop: number) => void,
 	onReadReference?: (reference: number) => void,
-	onActivate?: (index: number, stop: number) => void,
+	onActivate?: (index: number, press: ChartPress, stop: number) => void,
 ): ChartKeyboard {
 	const [cursor, setCursor] = useState<ChartCursor | null>(null)
 
@@ -657,7 +660,9 @@ export function useChartKeyboard(
 
 		event.preventDefault()
 
-		if (stop?.anchor && targets) onActivate(cursorIndex(stop.live, targets), stop.live.value)
+		if (stop?.anchor && targets) {
+			onActivate(cursorIndex(stop.live, targets), KEY_PRESS, stop.live.value)
+		}
 	}
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {

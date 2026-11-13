@@ -60,7 +60,7 @@ export function markAnchorAt(
 
 /**
  * The mark under a DOM node: a region, else an overlay mark, else `null`. The
- * hover provider's scroll-settle resolve and the touch double tap both read the
+ * hover provider's scroll-settle resolve and the touch tap both read the
  * target here. Thus the two cannot disagree about what is under a point.
  *
  * @internal

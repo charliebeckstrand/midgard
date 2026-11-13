@@ -55,7 +55,7 @@ export const k = {
 		 *
 		 * It narrows only where the device has no coarse pointer at all. `pointer-fine`
 		 * reads the primary pointer alone. A laptop with a touchscreen therefore matched
-		 * it, and a finger double tap hit-tested the narrowed circle
+		 * it, and a finger tap hit-tested the narrowed circle
 		 * (`use-map-touch-tap`). A mouse on such a device keeps the coarse target.
 		 *
 		 * It is what lets a small area mark be pointed at. A `MapGeofence` drawn tight

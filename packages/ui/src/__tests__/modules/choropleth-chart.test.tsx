@@ -18,6 +18,7 @@ import {
 	shownLayer,
 } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { CLICK } from '../helpers/press'
 
 type Row = { region: string; pop: number }
 
@@ -126,7 +127,7 @@ describe('ChoroplethChart', () => {
 
 		fireEvent.click(beta as Element)
 
-		expect(onRegionClick).toHaveBeenCalledWith('B', 1)
+		expect(onRegionClick).toHaveBeenCalledWith('B', 1, CLICK)
 	})
 
 	it('rings the selected region, the pick that a click reports', () => {

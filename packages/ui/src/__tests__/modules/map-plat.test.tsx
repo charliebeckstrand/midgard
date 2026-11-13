@@ -22,6 +22,7 @@ import {
 import { it } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 import { categoricalPlat, overlayPlat } from '../helpers/map-plat'
+import { CLICK } from '../helpers/press'
 
 describe('MapPlat', () => {
 	it('draws one region per feature under a labeled role="img" plot', () => {
@@ -1272,13 +1273,13 @@ describe('MapPlat region click', () => {
 
 		fireEvent.click(beta as Element)
 
-		expect(onRegionClick).toHaveBeenLastCalledWith('B', 1)
+		expect(onRegionClick).toHaveBeenLastCalledWith('B', 1, CLICK)
 
 		// Gamma matches no row: an unmatched region is still a target, so selection
 		// can reach a state with nothing to show rather than reading as inert.
 		fireEvent.click(gamma as Element)
 
-		expect(onRegionClick).toHaveBeenLastCalledWith('C', 2)
+		expect(onRegionClick).toHaveBeenLastCalledWith('C', 2, CLICK)
 
 		expect(onRegionClick).toHaveBeenCalledTimes(2)
 	})
@@ -1298,7 +1299,7 @@ describe('MapPlat region click', () => {
 
 		fireEvent.click(allRegions(container)[0] as Element)
 
-		expect(onRegionClick).toHaveBeenCalledWith('Alpha', 0)
+		expect(onRegionClick).toHaveBeenCalledWith('Alpha', 0, CLICK)
 	})
 
 	it('ignores a click that lands on the layer but outside every region', () => {
@@ -1353,7 +1354,7 @@ describe('MapPlat region click', () => {
 
 		expect(onRegionClick).toHaveBeenCalledTimes(1)
 
-		expect(onRegionClick).toHaveBeenCalledWith('B', 1)
+		expect(onRegionClick).toHaveBeenCalledWith('B', 1, CLICK)
 
 		expect(beta?.getAttribute('class')).not.toContain('cursor-default')
 

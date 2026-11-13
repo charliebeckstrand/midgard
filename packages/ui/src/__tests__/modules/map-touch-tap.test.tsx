@@ -1,20 +1,23 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
+import { MULTI_TAP_WINDOW, TOUCH_TAP_WINDOW } from '../../hooks/use-touch-tap'
+import type { ChartPress } from '../../modules/chart'
 import { MapPoint } from '../../modules/map'
-import { MAP_DOUBLE_TAP_SLOP, MAP_DOUBLE_TAP_WINDOW } from '../../modules/map/use-map-touch-tap'
 import { bySlot, fireEvent, firstRegion, present, renderUI } from '../helpers'
+import { it } from '../helpers/fake-clock'
 import { categoricalPlat, overlayPlat } from '../helpers/map-plat'
+import { CLICK, TAP } from '../helpers/press'
 import { stubElementFromPoint } from '../helpers/stub-element-from-point'
 
 /** The fixture spans lon 0–30, lat 0–10; this projects inside the frame. */
 const DEPOT: [number, number] = [5, 5]
 
-/** The clock that the double tap reads. */
-let now = 0
-
-beforeEach(() => {
-	now = 1_000
-
-	vi.spyOn(performance, 'now').mockImplementation(() => now)
+/** A touch of the primary finger at a point. */
+const finger = (x: number, y: number) => ({
+	pointerId: 1,
+	pointerType: 'touch',
+	isPrimary: true,
+	clientX: x,
+	clientY: y,
 })
 
 /**
@@ -22,22 +25,20 @@ beforeEach(() => {
  * press, the lift, and the touch end. jsdom has no layout, so the point names
  * `target` as the element under it.
  */
-function tap(target: Element, x = 40, y = 20, pointerId = 1) {
+function tap(target: Element, x = 40, y = 20) {
 	stubElementFromPoint(target)
 
-	const at = { pointerId, pointerType: 'touch', isPrimary: true, clientX: x, clientY: y }
+	fireEvent.pointerEnter(target, finger(x, y))
 
-	fireEvent.pointerEnter(target, at)
+	fireEvent.pointerDown(target, finger(x, y))
 
-	fireEvent.pointerDown(target, at)
-
-	fireEvent.pointerUp(target, at)
+	fireEvent.pointerUp(target, finger(x, y))
 
 	fireEvent.touchEnd(target)
 }
 
 describe('MapPlat touch taps', () => {
-	it('picks nothing and shows no readout on one tap', () => {
+	it('picks the region under one tap, once, and shows no readout', () => {
 		const onRegionClick = vi.fn()
 
 		const { container } = renderUI(categoricalPlat({ onRegionClick }))
@@ -49,12 +50,12 @@ describe('MapPlat touch taps', () => {
 		// The click that a browser can still send after the touch.
 		fireEvent.click(region)
 
-		expect(onRegionClick).not.toHaveBeenCalled()
+		expect(onRegionClick).toHaveBeenCalledExactlyOnceWith('A', 0, TAP)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
-	it('picks the region under a double tap, once', () => {
+	it('picks once for each tap', () => {
 		const onRegionClick = vi.fn()
 
 		const { container } = renderUI(categoricalPlat({ onRegionClick }))
@@ -63,67 +64,112 @@ describe('MapPlat touch taps', () => {
 
 		tap(region)
 
-		now += MAP_DOUBLE_TAP_WINDOW - 50
+		tap(region)
 
-		tap(region, 44, 22)
-
-		expect(onRegionClick).toHaveBeenCalledExactlyOnceWith('A', 0)
-
-		expect(bySlot(container, 'tooltip-content')).toBeNull()
+		expect(onRegionClick).toHaveBeenCalledTimes(2)
 	})
 
-	it('picks the dot under a double tap', () => {
+	it('picks the dot under one tap', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(
 			overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={onClick} />),
 		)
 
-		const dot = present(bySlot(container, 'map-point-hit'), 'point hit')
+		tap(present(bySlot(container, 'map-point-hit'), 'point hit'))
 
-		tap(dot)
-
-		expect(onClick).not.toHaveBeenCalled()
-
-		tap(dot)
-
-		expect(onClick).toHaveBeenCalledWith('depot', 0)
+		expect(onClick).toHaveBeenCalledExactlyOnceWith('depot', TAP)
 	})
 
-	it('picks nothing from two taps too far apart in time or in space', () => {
+	it('picks nothing from a tap on a disabled region', () => {
 		const onRegionClick = vi.fn()
 
-		const { container } = renderUI(categoricalPlat({ onRegionClick }))
+		const { container } = renderUI(categoricalPlat({ onRegionClick, isRegionDisabled: () => true }))
 
-		const region = present<SVGPathElement>(firstRegion(container), 'region path')
-
-		tap(region)
-
-		now += MAP_DOUBLE_TAP_WINDOW + 1
-
-		tap(region)
-
-		now += 100
-
-		tap(region, 40 + MAP_DOUBLE_TAP_SLOP + 1, 20)
+		tap(present<SVGPathElement>(firstRegion(container), 'region path'))
 
 		expect(onRegionClick).not.toHaveBeenCalled()
 	})
 
-	it('starts a new pair after a double tap', () => {
+	it('picks nothing from a drag', () => {
 		const onRegionClick = vi.fn()
 
 		const { container } = renderUI(categoricalPlat({ onRegionClick }))
 
 		const region = present<SVGPathElement>(firstRegion(container), 'region path')
 
-		for (let i = 0; i < 3; i++) {
-			tap(region)
+		stubElementFromPoint(region)
 
-			now += 100
-		}
+		fireEvent.pointerDown(region, finger(40, 20))
 
-		expect(onRegionClick).toHaveBeenCalledTimes(1)
+		fireEvent.pointerMove(region, finger(40, 60))
+
+		fireEvent.pointerUp(region, finger(40, 60))
+
+		expect(onRegionClick).not.toHaveBeenCalled()
+	})
+
+	it('picks nothing from a hold', async ({ clock }) => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(categoricalPlat({ onRegionClick }))
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		stubElementFromPoint(region)
+
+		fireEvent.pointerDown(region, finger(40, 20))
+
+		await clock.advance(TOUCH_TAP_WINDOW)
+
+		fireEvent.pointerUp(region, finger(40, 20))
+
+		expect(onRegionClick).not.toHaveBeenCalled()
+	})
+
+	it('lets a handler gate on a double tap with the press', async ({ clock, signal }) => {
+		const opened = vi.fn()
+
+		const { container } = renderUI(
+			categoricalPlat({
+				onRegionClick: (id: string, _index: number, press: ChartPress) => {
+					if (press.pointerType === 'touch' && press.count < 2) return
+
+					opened(id)
+				},
+			}),
+		)
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		tap(region)
+
+		expect(opened).not.toHaveBeenCalled()
+
+		await clock.advance(MULTI_TAP_WINDOW - 100)
+
+		signal.throwIfAborted()
+
+		tap(region, 44, 22)
+
+		expect(opened).toHaveBeenCalledExactlyOnceWith('A')
+	})
+
+	it('reports the click count of a mouse in the press', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(categoricalPlat({ onRegionClick }))
+
+		const region = present<SVGPathElement>(firstRegion(container), 'region path')
+
+		fireEvent.click(region, { detail: 1 })
+
+		fireEvent.click(region, { detail: 2 })
+
+		expect(onRegionClick.mock.calls.map((call) => call[2])).toEqual([
+			CLICK,
+			{ pointerType: 'mouse', count: 2 },
+		])
 	})
 
 	it('picks nothing from a pinch', () => {
@@ -155,8 +201,6 @@ describe('MapPlat touch taps', () => {
 					clientY: 20,
 				})
 			}
-
-			now += 100
 		}
 
 		expect(onRegionClick).not.toHaveBeenCalled()
@@ -182,88 +226,5 @@ describe('MapPlat touch taps', () => {
 		fireEvent.click(region)
 
 		expect(onRegionClick).toHaveBeenCalledTimes(1)
-	})
-})
-
-describe('MapPlat touch taps under touchPick="tap"', () => {
-	it('picks the region under one tap, once, and shows no readout', () => {
-		const onRegionClick = vi.fn()
-
-		const { container } = renderUI(categoricalPlat({ onRegionClick, touchPick: 'tap' }))
-
-		const region = present<SVGPathElement>(firstRegion(container), 'region path')
-
-		tap(region)
-
-		// The click that a browser can still send after the touch.
-		fireEvent.click(region)
-
-		expect(onRegionClick).toHaveBeenCalledExactlyOnceWith('A', 0)
-
-		expect(bySlot(container, 'tooltip-content')).toBeNull()
-	})
-
-	it('picks once for each of two quick taps', () => {
-		const onRegionClick = vi.fn()
-
-		const { container } = renderUI(categoricalPlat({ onRegionClick, touchPick: 'tap' }))
-
-		const region = present<SVGPathElement>(firstRegion(container), 'region path')
-
-		tap(region)
-
-		now += 100
-
-		tap(region)
-
-		expect(onRegionClick).toHaveBeenCalledTimes(2)
-	})
-
-	it('picks the dot under one tap', () => {
-		const onClick = vi.fn()
-
-		const { container } = renderUI(
-			overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={onClick} />, {
-				touchPick: 'tap',
-			}),
-		)
-
-		tap(present(bySlot(container, 'map-point-hit'), 'point hit'))
-
-		expect(onClick).toHaveBeenCalledExactlyOnceWith('depot', 0)
-	})
-
-	it('picks nothing from a disabled region', () => {
-		const onRegionClick = vi.fn()
-
-		const { container } = renderUI(
-			categoricalPlat({ onRegionClick, touchPick: 'tap', isRegionDisabled: () => true }),
-		)
-
-		const region = present<SVGPathElement>(firstRegion(container), 'region path')
-
-		tap(region)
-
-		expect(onRegionClick).not.toHaveBeenCalled()
-	})
-
-	it('picks nothing from a drag', () => {
-		const onRegionClick = vi.fn()
-
-		const { container } = renderUI(categoricalPlat({ onRegionClick, touchPick: 'tap' }))
-
-		const region = present<SVGPathElement>(firstRegion(container), 'region path')
-
-		stubElementFromPoint(region)
-
-		const at = { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 40, clientY: 20 }
-
-		fireEvent.pointerDown(region, at)
-
-		fireEvent.pointerMove(region, { ...at, clientY: 60 })
-
-		fireEvent.pointerUp(region, { ...at, clientY: 60 })
-
-		expect(onRegionClick).not.toHaveBeenCalled()
 	})
 })

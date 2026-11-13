@@ -15,6 +15,17 @@ export const TOUCH_TAP_WINDOW = 300
  */
 export const TOUCH_SLOP = 10
 
+/**
+ * Time, in ms, from the lift of one tap to the lift of the next, in which the
+ * second tap continues the run of the first, as a double tap does.
+ *
+ * @internal
+ */
+export const MULTI_TAP_WINDOW = 400
+
+/** Distance, in CSS px, between two taps of one run. @internal */
+export const MULTI_TAP_SLOP = 40
+
 /** The press handlers {@link useTouchTap} gives. Spread them next to the hover handlers. @internal */
 export type TouchTap = {
 	onPointerDown: (event: PointerEvent<Element>) => void
@@ -40,6 +51,9 @@ export type TouchTap = {
  * the time stamp of the press, and whether it is still a tap.
  */
 type Press = { id: number; x: number; y: number; at: number; tap: boolean }
+
+/** The last tap of a run: where and when it lifted, and its place in the run. */
+type Tap = { x: number; y: number; at: number; count: number }
 
 /**
  * Finds a tap in the pointer events of a touch, and reports it from the lift.
@@ -69,12 +83,23 @@ type Press = { id: number; x: number; y: number; at: number; tap: boolean }
  * {@link TouchTap.onTouchEnd} cancels that click, so a touch press on the
  * marks reports through the lift alone.
  *
- * @param onTap - Called with the viewport point of the lift. It can change on
- * each render.
+ * Each tap reports its place in a run of taps, as the `detail` of a click
+ * counts the clicks of a run. A tap that lifts in {@link MULTI_TAP_WINDOW} of
+ * the tap before it, and in {@link MULTI_TAP_SLOP} of it, continues the run: the
+ * second tap of a double tap reports 2. Any other tap starts a new run at 1. A
+ * press that is not a tap ends the run.
+ *
+ * @param onTap - Called with the viewport point of the lift and the place of
+ * the tap in its run. It can change on each render.
  * @internal
  */
-export function useTouchTap(onTap: (clientX: number, clientY: number) => void): TouchTap {
+export function useTouchTap(
+	onTap: (clientX: number, clientY: number, count: number) => void,
+): TouchTap {
 	const press = useRef<Press | null>(null)
+
+	// The last tap, which the next tap can continue.
+	const lastTap = useRef<Tap | null>(null)
 
 	// Whether the last press was a touch, so the click that it gives is ignored.
 	const touched = useRef(false)
@@ -123,15 +148,35 @@ export function useTouchTap(onTap: (clientX: number, clientY: number) => void): 
 
 			press.current = null
 
-			if (current === null || event.pointerType !== 'touch' || !current.tap) return
+			if (current === null || event.pointerType !== 'touch') return
 
-			// A lift at or past the tap window ends a hold, not a tap.
-			if (event.timeStamp - current.at >= TOUCH_TAP_WINDOW) return
+			// A drag, a pinch, or a lift at or past the tap window (a hold) is not a
+			// tap, and it ends the run.
+			if (!current.tap || event.timeStamp - current.at >= TOUCH_TAP_WINDOW) {
+				lastTap.current = null
 
-			tap(event.clientX, event.clientY)
+				return
+			}
+
+			const { clientX: x, clientY: y, timeStamp: at } = event
+
+			const prev = lastTap.current
+
+			const count =
+				prev !== null &&
+				at - prev.at <= MULTI_TAP_WINDOW &&
+				Math.hypot(x - prev.x, y - prev.y) <= MULTI_TAP_SLOP
+					? prev.count + 1
+					: 1
+
+			lastTap.current = { x, y, at, count }
+
+			tap(x, y, count)
 		},
 		onPointerCancel: () => {
 			press.current = null
+
+			lastTap.current = null
 		},
 		onTouchEnd: (event) => {
 			// The browser makes no click from a touch end that is canceled. A touch

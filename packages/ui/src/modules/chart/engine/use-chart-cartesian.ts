@@ -51,7 +51,7 @@ import type { BandScale, LinearScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices } from './chart-series'
 import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
 import { parseInstant } from './chart-time'
-import type { CartesianChartProps, ChartReadoutSource, ChartSeries } from './types'
+import type { CartesianChartProps, ChartPress, ChartReadoutSource, ChartSeries } from './types'
 import { useChartFrameSizing } from './use-chart-frame-sizing'
 import { useLaidOutHidden } from './use-chart-laid-out-hidden'
 import { useChartTextWidth } from './use-chart-text-width'
@@ -332,7 +332,7 @@ export type CartesianChart = {
 	 * even with the tooltip off. The frame also fires it on Enter and Space, for
 	 * the category under the keyboard cursor.
 	 */
-	onBandClick?: (index: number) => void
+	onBandClick?: (index: number, press: ChartPress) => void
 	/**
 	 * The consumer's `selectedCategories` resolved to data indices, or `null` when
 	 * nothing is selected. Pass it to the frame, which lights these data and
@@ -600,7 +600,8 @@ export function useChartCartesian<T>(
 	const { onCategoryClick } = props
 
 	const onBandClick = onCategoryClick
-		? (index: number) => onCategoryClick(rawCategories[index] ?? '', index)
+		? (index: number, press: ChartPress) =>
+				onCategoryClick(rawCategories[index] ?? '', index, press)
 		: undefined
 
 	// The held selection keys off the same raw category that a click reports.

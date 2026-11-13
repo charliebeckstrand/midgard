@@ -26,7 +26,7 @@ import type { AccessibleName } from '../../types/accessible-name'
 import { getOrCompute } from '../../utilities/get-or-compute'
 import { sameElements } from '../../utilities/same-elements'
 import { legendAside } from '../chart/engine/chart-legend/schema'
-import type { ChartItemClick } from '../chart/engine/types'
+import type { ChartItemClick, ChartPress } from '../chart/engine/types'
 import {
 	MapPlatContext,
 	type MapPlatContextValue,
@@ -81,7 +81,6 @@ import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapRegionReadout } from './use-map-region-readout'
 import { useMapShape } from './use-map-shape'
 import { useMapToggle } from './use-map-toggle'
-import type { MapTouchPick } from './use-map-touch-tap'
 
 /**
  * The props of {@link MapPlat} that each form of its region data shares.
@@ -345,34 +344,24 @@ type MapPlatBaseProps = AccessibleName &
 		 * region its arrow cursor sits on. A pick therefore carries the same identity
 		 * whichever input made it.
 		 *
-		 * A touch picks with a double tap, or with one tap under
-		 * {@link touchPick}. A touch shows no tooltip, because a touch reads
-		 * nothing from the map.
+		 * A tap picks the region under it, as a click does. A touch shows no
+		 * tooltip, because a touch reads nothing from the map. A pan, a pinch, or a
+		 * hold picks nothing. The last argument is the {@link ChartPress} that
+		 * picked the region. A map that opens a region only on a double tap returns
+		 * early while its `pointerType` is `'touch'` and its `count` is less than 2.
 		 */
 		onRegionClick?: ChartItemClick
 		/**
 		 * Whether a region takes no click, by the identity and feature index
 		 * {@link onRegionClick} reports. Use it for a region that opens nothing,
 		 * such as a state with no race. A disabled region takes no pointer cursor
-		 * and no click hover, and a click, a touch pick (see {@link touchPick}),
-		 * or Enter on it reports nothing. Its readout stays: a disabled region with
-		 * a row still shows its tooltip and its hover. With no {@link onRegionClick}, this does nothing.
+		 * and no click hover, and a click, a tap, or Enter on it reports
+		 * nothing. Its readout stays: a disabled region with a row still shows its
+		 * tooltip and its hover. With no {@link onRegionClick}, this does nothing.
 		 *
 		 * Omitted, every region answers a click.
 		 */
 		isRegionDisabled?: (id: string, index: number) => boolean
-		/**
-		 * How a touch picks a region or an overlay mark. `'double-tap'` picks the
-		 * mark under the second of two taps, and one tap picks nothing. It suits a
-		 * map that a reader pans and zooms, where a stray tap must not open a place.
-		 * `'tap'` picks the mark under each tap. It suits a map that is a menu of its
-		 * regions, such as the states of an election. Either way, a touch shows no
-		 * tooltip, and a drag, a scroll, a hold, or a pinch picks nothing. A mouse,
-		 * a pen, and the keyboard do not change.
-		 *
-		 * @defaultValue 'double-tap'
-		 */
-		touchPick?: MapTouchPick
 		/**
 		 * Fires when a right-click lands on a region, with the same identity and
 		 * feature index {@link onRegionClick} reports. It suits a context menu that
@@ -642,17 +631,17 @@ function valueColumnHeader(intl: IntlShape, colorName: string | undefined): stri
  *
  * @internal
  */
-function bridgeRegionIdentity(
-	report: ((id: string, index: number) => void) | undefined,
+function bridgeRegionIdentity<A extends unknown[]>(
+	report: ((id: string, index: number, ...rest: A) => void) | undefined,
 	regionIds: string[],
 	disabled?: readonly boolean[],
-): ((index: number) => void) | undefined {
+): ((index: number, ...rest: A) => void) | undefined {
 	if (report === undefined) return undefined
 
-	return (index: number) => {
+	return (index: number, ...rest: A) => {
 		const id = regionIds[index]
 
-		if (id !== undefined && disabled?.[index] !== true) report(id, index)
+		if (id !== undefined && disabled?.[index] !== true) report(id, index, ...rest)
 	}
 }
 
@@ -743,7 +732,7 @@ type MapRegionPointerState = {
 	 */
 	answers: boolean
 	/** The pick the layer makes, on the pointer and on the keyboard alike. */
-	click: ((index: number) => void) | undefined
+	click: ((index: number, press: ChartPress) => void) | undefined
 	/** The menu the layer opens. */
 	contextMenu: ((index: number) => void) | undefined
 }
@@ -771,7 +760,7 @@ type MapRegionPointerState = {
 function regionPointerState(
 	regionPointer: boolean | undefined,
 	earned: boolean,
-	click: ((index: number) => void) | undefined,
+	click: ((index: number, press: ChartPress) => void) | undefined,
 	contextMenu: ((index: number) => void) | undefined,
 ): MapRegionPointerState {
 	if (regionPointer === false) {
@@ -888,7 +877,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		animate: animation = false,
 		onRegionClick,
 		isRegionDisabled,
-		touchPick = 'double-tap',
 		onRegionContextMenu,
 		onRegionPreload,
 		selectedRegion,
@@ -1291,15 +1279,20 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// that the target names (`targetParts`), through the reporter of its own set.
 	// A pick on a shared summary from any input therefore reaches every part. A
 	// stable event, so the value below holds through a change of the ledger.
-	const report = useStableEvent((target: MapOverlayTarget, kind: 'activate' | 'menu') => {
-		const entry = entries.find(({ id }) => id === target.id)
+	const report = useStableEvent(
+		(target: MapOverlayTarget, kind: 'activate' | 'menu', press?: ChartPress) => {
+			const entry = entries.find(({ id }) => id === target.id)
 
-		if (entry === undefined) return
+			if (entry === undefined) return
 
-		for (const part of targetParts(target, entry)) {
-			entries.find(({ id }) => id === part.id)?.[kind]?.(part.stop)
-		}
-	})
+			for (const part of targetParts(target, entry)) {
+				const own = entries.find(({ id }) => id === part.id)
+
+				if (kind === 'menu') own?.menu?.(part.stop)
+				else if (press !== undefined) own?.activate?.(part.stop, press)
+			}
+		},
+	)
 
 	// The moves of the marks, which the cursor reads to resolve its stops again.
 	// One store for the life of the plat, so the value below holds through a move.
@@ -1414,9 +1407,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// reporter, an overlay through the activation it registered, so the plat
 	// dispatches a keyboard pick without knowing what kind of mark it landed on.
 	const activateTarget = useCallback(
-		(target: MapHoverTarget) => {
-			if (target.kind === 'region') pickRegion?.(target.index)
-			else report(target, 'activate')
+		(target: MapHoverTarget, press: ChartPress) => {
+			if (target.kind === 'region') pickRegion?.(target.index, press)
+			else report(target, 'activate', press)
 		},
 		[pickRegion, report],
 	)
@@ -1714,7 +1707,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						svgRef,
 						subject: shape.features,
 					}}
-					touchPick={touchPick}
 					tooltip={
 						// A backdrop map mounted a Tooltip that resolved `null` for every
 						// region it was ever pointed at.

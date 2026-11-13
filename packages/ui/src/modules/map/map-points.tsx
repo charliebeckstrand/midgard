@@ -2,6 +2,7 @@
 
 import {
 	Fragment,
+	type MouseEvent,
 	memo,
 	type ReactNode,
 	startTransition,
@@ -17,6 +18,8 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { getOrCompute } from '../../utilities/get-or-compute'
 import { rangeKeys } from '../../utilities/range-keys'
+import { clickPress } from '../chart/engine/chart-press'
+import type { ChartPress } from '../chart/engine/types'
 import { useMapPlat, useMapPointed, useMapZoomScale } from './context'
 import { type MapDotMark, markTargets } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
@@ -626,7 +629,9 @@ function MapPointsShared({
 	const reach = {
 		...own,
 		className: picks ? k.clickable : undefined,
-		onClick: picks ? () => report(named, 'activate') : undefined,
+		onClick: picks
+			? (event: MouseEvent<SVGElement>) => report(named, 'activate', clickPress(event))
+			: undefined,
 		onContextMenu: menus ? () => report(named, 'menu') : undefined,
 	}
 
@@ -706,8 +711,14 @@ function leads(summary: MapSharedCluster, id: string): boolean {
  * @param id - The mark's own `id`.
  * @param index - The picked point's index; always `merged[0]`.
  * @param merged - Every index this dot draws for.
+ * @param press - The press that picked the dot (see {@link ChartPress}).
  */
-export type MapPointsPick = (id: string, index: number, merged: readonly number[]) => void
+export type MapPointsPick = (
+	id: string,
+	index: number,
+	merged: readonly number[],
+	press: ChartPress,
+) => void
 
 /**
  * The drawn dot of each point, per grouping. The map is built on the first read
@@ -824,8 +835,8 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * the dot it stands on with Enter or Space.
 	 */
 	onClick?: MapPointsPick
-	/** Fires when a right-click lands on a dot, with the same arguments {@link onClick} reports. */
-	onContextMenu?: MapPointsPick
+	/** Fires when a right-click lands on a dot, with the `id`, `index`, and `merged` that {@link onClick} reports. */
+	onContextMenu?: (id: string, index: number, merged: readonly number[]) => void
 }
 
 /**
@@ -1061,15 +1072,19 @@ export function MapPoints({
 	// group beside it, because a summary is one dot to the reader and every stop
 	// under it is what they just pointed at. A part of a shared summary hands back
 	// the stops of this set alone.
-	const report = (handler: MapPointsPick | undefined) => {
+	const report = <A extends unknown[]>(
+		handler:
+			| ((id: string, index: number, merged: readonly number[], ...rest: A) => void)
+			| undefined,
+	) => {
 		if (handler === undefined) return undefined
 
-		return (id: string, group: number) => {
+		return (id: string, group: number, ...rest: A) => {
 			const members = groups[group]?.members
 
 			const first = members?.[0]
 
-			if (members !== undefined && first !== undefined) handler(id, first, members)
+			if (members !== undefined && first !== undefined) handler(id, first, members, ...rest)
 		}
 	}
 
@@ -1134,7 +1149,7 @@ export function MapPoints({
 		// made against.
 		getStop,
 		getIndex,
-		onClick: report(onClick),
+		onStopClick: report(onClick),
 		onContextMenu: report(onContextMenu),
 	})
 

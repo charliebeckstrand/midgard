@@ -32,7 +32,7 @@ import { snapTargets } from '../engine/chart-snap'
 import { headerLineCount } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartMarkRef } from '../engine/context'
-import type { ChartBaseProps, ScatterChartSeries } from '../engine/types'
+import type { ChartBaseProps, ChartPress, ScatterChartSeries } from '../engine/types'
 import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 import { useLaidOutHidden } from '../engine/use-chart-laid-out-hidden'
@@ -97,9 +97,9 @@ export type ScatterChartProps<T = never> = AccessibleName &
 		/** The series to plot, one disc per parseable row; slot colors follow this order. */
 		series: ScatterChartSeries<T>[]
 		/**
-		 * Fires when a click lands on a point, with the point's series index and
-		 * the index of its row in `data`. A click within a few pixels of a disc
-		 * lands on it.
+		 * Fires when a click lands on a point, with the point's series index, the
+		 * index of its row in `data`, and the {@link ChartPress} that picked it. A
+		 * click within a few pixels of a disc lands on it.
 		 *
 		 * The cross-filter hook the cartesian charts' `onCategoryClick` is, in the
 		 * address space a scatter has. A point is named by a pair and not by one id,
@@ -115,7 +115,7 @@ export type ScatterChartProps<T = never> = AccessibleName &
 		 * tooltip reads. That point is in the x column nearest the click, and its y
 		 * is the nearest to the click in that column. It can sit far from the click.
 		 */
-		onPointClick?: (at: { series: number; datum: number }) => void
+		onPointClick?: (at: { series: number; datum: number }, press: ChartPress) => void
 	}
 
 /** Whether two scatter series read the same fields and draw the same discs. @internal */
@@ -185,7 +185,7 @@ function ScatterHitLayer(props: {
 	stops: ScatterSnapStop[][]
 	trigger: ChartTooltipTrigger
 	/** The consumer's point-click report; its presence alone makes the plot interactive. */
-	onPointClick?: (at: { series: number; datum: number }) => void
+	onPointClick?: (at: { series: number; datum: number }, press: ChartPress) => void
 }) {
 	const { plot, tooltip, crosshair, centers, marks, indices, stops, trigger, onPointClick } = props
 
@@ -216,7 +216,7 @@ function ScatterHitLayer(props: {
 			// The hit test above names a disc, so each mark that it reports has a datum.
 			onMarkClick={
 				onPointClick &&
-				((mark) => onPointClick({ series: mark.series, datum: mark.datum as number }))
+				((mark, press) => onPointClick({ series: mark.series, datum: mark.datum as number }, press))
 			}
 		/>
 	)
@@ -440,19 +440,22 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// its row in `data`.
 	const reportPoint =
 		onPointClick &&
-		((at: { series: number; datum: number }) =>
-			onPointClick({
-				series: at.series,
-				datum: metas[at.series]?.drawn[at.datum]?.row ?? at.datum,
-			}))
+		((at: { series: number; datum: number }, press: ChartPress) =>
+			onPointClick(
+				{
+					series: at.series,
+					datum: metas[at.series]?.drawn[at.datum]?.row ?? at.datum,
+				},
+				press,
+			))
 
 	// Enter or Space on a keyboard stop reports the point behind that stop.
 	const activatePoint =
 		reportPoint &&
-		((column: number, stop: number) => {
+		((column: number, press: ChartPress, stop: number) => {
 			const hit = snapStops[column]?.[stop]
 
-			if (hit) reportPoint({ series: indices[hit.series] ?? hit.series, datum: hit.datum })
+			if (hit) reportPoint({ series: indices[hit.series] ?? hit.series, datum: hit.datum }, press)
 		})
 
 	const readout = useScatterChartReadout(visible, uniqueXs, format, formatX, formatSize)

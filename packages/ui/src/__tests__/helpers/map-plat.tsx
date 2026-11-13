@@ -49,10 +49,7 @@ export function categoricalPlat(extra?: Partial<RowPlatProps>) {
  * @param props - The overlay the plat holds selected, where a case sets one.
  * @returns The plat element, for `renderUI` or `renderNavigable`.
  */
-export function overlayPlat(
-	children: ReactNode,
-	props?: Pick<MapPlatProps, 'selectedOverlay' | 'touchPick'>,
-) {
+export function overlayPlat(children: ReactNode, props?: Pick<MapPlatProps, 'selectedOverlay'>) {
 	return (
 		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} {...props}>
 			{children}

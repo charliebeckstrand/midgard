@@ -89,7 +89,6 @@ export function CountyMap({
 			regionKey="fips"
 			onRegionClick={onCounty}
 			isRegionDisabled={(fips: string) => !counted.has(fips)}
-			touchPick="tap"
 			data={rows}
 			categoryKey="winner"
 			colorName="Leader"

@@ -77,7 +77,7 @@ export default function DrillIntoCounties() {
 				<Text>
 					<PointerHint
 						mouseText="Click a state to show its counties."
-						touchText="Double-tap a state to show its counties."
+						touchText="Tap a state to show its counties."
 					/>
 				</Text>
 			)}

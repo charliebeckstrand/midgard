@@ -11,6 +11,7 @@ import { rangeLegendBeside, resolveRangeLegend } from '../engine/chart-legend/ra
 import { readoutCell } from '../engine/chart-series'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartMarkRef } from '../engine/context'
+import type { ChartPress } from '../engine/types'
 import { HeatmapFocusProvider } from './context'
 import { HeatmapCellRings, HeatmapChartCells, HeatmapProbedRings } from './heatmap-chart-cells'
 import { HeatmapChartLegend } from './heatmap-chart-legend'
@@ -151,7 +152,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 
 	// The pointer reports a cell by its row-major index. A click names the cell by
 	// its two band labels and its matrix position.
-	const reportCell = useStableEvent((index: number) => {
+	const reportCell = useStableEvent((index: number, press: ChartPress) => {
 		const row = Math.floor(index / cols)
 
 		const col = index % cols
@@ -160,7 +161,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 
 		const y = matrix.rows[row]
 
-		if (x !== undefined && y !== undefined) onCellClick?.({ x, y }, [row, col])
+		if (x !== undefined && y !== undefined) onCellClick?.({ x, y }, [row, col], press)
 	})
 
 	// A keyboard stop speaks its one cell: the column, the row, and the value. The

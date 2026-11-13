@@ -12,8 +12,10 @@ import {
 import { useHoverAcrossScroll } from '../../../hooks/use-hover-across-scroll'
 import { useTouchTap } from '../../../hooks/use-touch-tap'
 import type { PlotRect } from './chart-orientation'
+import { clickPress, tapPress } from './chart-press'
 import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartActions, useChartHoverStore } from './context'
+import type { ChartPress } from './types'
 
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
 export type ChartPointerHandlers = {
@@ -75,15 +77,15 @@ export type ChartPointerOptions = {
 	trigger?: ChartTooltipTrigger
 	/** Whether the readout snaps, so it reads off the marks too. @defaultValue false */
 	snaps?: boolean
-	/** Reports a click that resolves to a category, by data index. */
-	onIndexClick?: (index: number) => void
+	/** Reports a click that resolves to a category, by data index, with the press that made it. */
+	onIndexClick?: (index: number, press: ChartPress) => void
 	/**
 	 * Reports a click on a mark, for a chart whose items are marks rather than
 	 * categories, such as a scatter point. It rides the same probe as
 	 * {@link ChartPointerOptions.markAt}, so the mark it reports is the one the
 	 * isolation lit.
 	 */
-	onMarkClick?: (mark: ChartMarkRef) => void
+	onMarkClick?: (mark: ChartMarkRef, press: ChartPress) => void
 }
 
 /**
@@ -253,7 +255,7 @@ export function useChartPointer({
 	// A resolved index also reports through `onIndexClick`, after the toggle, so
 	// one gesture both pins the readout and drives the consumer's activation.
 	const toggle = useCallback(
-		(clientX: number, clientY: number) => {
+		(clientX: number, clientY: number, press: ChartPress) => {
 			const box = ref.current?.getBoundingClientRect()
 
 			if (box === undefined) return
@@ -272,9 +274,9 @@ export function useChartPointer({
 			if (pinned.current) set(index, { x, y }, onDataHit)
 			else set(null, null)
 
-			if (index !== null) onIndexClick?.(index)
+			if (index !== null) onIndexClick?.(index, press)
 
-			if (mark !== null) onMarkClick?.(mark)
+			if (mark !== null) onMarkClick?.(mark, press)
 		},
 		[plot, resolveIndex, probe, snaps, hoverStore, set, onIndexClick, onMarkClick],
 	)
@@ -282,7 +284,7 @@ export function useChartPointer({
 	// The hover trigger's activation click: resolve the band under the click and
 	// report it, leaving the tracked readout alone (hover keeps owning it).
 	const activate = useCallback(
-		(clientX: number, clientY: number) => {
+		(clientX: number, clientY: number, press: ChartPress) => {
 			const box = ref.current?.getBoundingClientRect()
 
 			if (box === undefined || (onIndexClick === undefined && onMarkClick === undefined)) return
@@ -291,7 +293,7 @@ export function useChartPointer({
 
 			const index = resolveIndex(x, y)
 
-			if (index !== null) onIndexClick?.(index)
+			if (index !== null) onIndexClick?.(index, press)
 
 			// Only where a consumer reads marks. `probe` scans the series, and a
 			// chart that takes category clicks alone has no use for the result.
@@ -299,7 +301,7 @@ export function useChartPointer({
 
 			const { mark } = probe(x, y, index)
 
-			if (mark !== null) onMarkClick(mark)
+			if (mark !== null) onMarkClick(mark, press)
 		},
 		[plot, resolveIndex, probe, onIndexClick, onMarkClick],
 	)
@@ -358,7 +360,7 @@ export function useChartPointer({
 	useHoverAcrossScroll(trigger === 'hover', clear, resolveAt)
 
 	// A touch activates from its tap, and a mouse or a pen from its click.
-	const touch = useTouchTap(activate)
+	const touch = useTouchTap((x, y, count) => activate(x, y, tapPress(count)))
 
 	if (trigger === 'click') {
 		return {
@@ -370,7 +372,7 @@ export function useChartPointer({
 			onPointerCancel: touch.onPointerCancel,
 			onTouchEnd: touch.onTouchEnd,
 			onClick: (event) => {
-				if (!touch.fromTouch()) toggle(event.clientX, event.clientY)
+				if (!touch.fromTouch()) toggle(event.clientX, event.clientY, clickPress(event))
 			},
 			// Isolation follows a mouse or a pen under a pinned readout; the cursor
 			// rides along on a non-snap chart (see pointCursor). A touch isolates nothing.
@@ -409,7 +411,7 @@ export function useChartPointer({
 					onPointerUp: touch.onPointerUp,
 					onPointerCancel: touch.onPointerCancel,
 					onClick: (event: MouseEvent<SVGRectElement>) => {
-						if (!touch.fromTouch()) activate(event.clientX, event.clientY)
+						if (!touch.fromTouch()) activate(event.clientX, event.clientY, clickPress(event))
 					},
 					onTouchEnd: touch.onTouchEnd,
 				}
