@@ -35,7 +35,8 @@ const DEFAULT_LIMIT = 8
 const WORD_BREAK = /[^\p{L}\p{N}]+/u
 
 /**
- * The text in the form that the palette compares: lower case, with no accents.
+ * The text in the form that the palette and the region picker compare: lower
+ * case, with no accents.
  * With it, "sao" finds "São".
  */
 export function foldText(text: string): string {
