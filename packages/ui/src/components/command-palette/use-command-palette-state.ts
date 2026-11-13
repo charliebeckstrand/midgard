@@ -310,14 +310,23 @@ export function useCommandPaletteState({
 		[lagging, query, rovingKeyDown, reportActiveFromDom],
 	)
 
+	// The listbox of the last seed effect, so that the effect can tell an attach.
+	const lastListRef = useRef(listNode)
+
 	// On each filter change, moves the keyboard highlight to the top result so
 	// `data-active` / `aria-selected` / `aria-activedescendant` point at a live
 	// option (or are cleared when nothing matches). Skipped on the initial
-	// value; the first arrow key on open picks the first item. Under a
+	// value; the first arrow key on open picks the first item. A palette that
+	// opens on a query, as a controlled query held across a close, seeds when
+	// its listbox attaches, as the same query typed in does. Under a
 	// registered `virtualSourceRef`, index math replaces the DOM query (a
 	// windowed-out item isn't in the DOM to find).
 	useEffect(() => {
-		if (lastDeferredRef.current === deferredQuery) return
+		const attached = listNode !== null && listNode !== lastListRef.current
+
+		lastListRef.current = listNode
+
+		const changed = lastDeferredRef.current !== deferredQuery
 
 		lastDeferredRef.current = deferredQuery
 
@@ -328,6 +337,8 @@ export function useCommandPaletteState({
 		// `query`, so this transition's effect can run while `open` is already
 		// false; guard on it directly.
 		if (!open) return
+
+		if (!changed && !(attached && deferredQuery.trim() !== '')) return
 
 		seedVirtualTopMatch(
 			listRef.current,
@@ -340,7 +351,7 @@ export function useCommandPaletteState({
 		originRef.current = 'seeded'
 
 		reportActiveFromDom()
-	}, [deferredQuery, open, reportActiveFromDom, virtualSourceRef])
+	}, [deferredQuery, listNode, open, reportActiveFromDom, virtualSourceRef])
 
 	// Runs a held Enter when the deferred query catches up. The seed effect above
 	// runs first in the same commit, so the Enter runs the highlighted row of the

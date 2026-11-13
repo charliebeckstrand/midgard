@@ -1432,6 +1432,32 @@ describe('CommandPalette open/close transitions', () => {
 		expect(onQueryChange).toHaveBeenCalledTimes(1)
 	})
 
+	it('highlights the top row of a held query on open, so Enter runs it', async () => {
+		const onAction = vi.fn()
+
+		function Palette({ open }: { open: boolean }) {
+			return (
+				<CommandPalette open={open} onOpenChange={() => {}} query="a" onQueryChange={() => {}}>
+					<FilteredItems onAction={onAction} />
+				</CommandPalette>
+			)
+		}
+
+		const { rerender } = renderUI(<Palette open={false} />)
+
+		rerender(<Palette open />)
+
+		const input = screen.getByRole('combobox')
+
+		const top = screen.getAllByRole('option')[0]
+
+		expect(input).toHaveAttribute('aria-activedescendant', top?.id)
+
+		await setupUser().type(input, '{Enter}')
+
+		expect(onAction).toHaveBeenCalledWith('Alpha')
+	})
+
 	it('focuses the input on open', async () => {
 		renderUI(
 			<CommandPalette open onOpenChange={() => {}}>
