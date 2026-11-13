@@ -11,7 +11,7 @@ const KICKOFF = '2026-10-04T17:00:00Z'
 const KICKOFF_FORMAT = { weekday: 'short', hour: 'numeric', minute: '2-digit' } as const
 
 describe('DateTime', () => {
-	it('renders a skeleton line on the server in the zone of the reader, then the date after hydration', () => {
+	it('renders a skeleton of the date in UTC on the server in the zone of the reader, then the date after hydration', () => {
 		const element = (
 			<LocaleProvider locale="en-US">
 				<DateTime value={KICKOFF} format={KICKOFF_FORMAT} />
@@ -20,9 +20,8 @@ describe('DateTime', () => {
 
 		const { html, container, onRecoverableError, consoleError } = hydrateServerRender(element)
 
-		expect(html).toContain('data-slot="placeholder"')
-
-		expect(html).not.toContain('PM')
+		// The skeleton holds the date in UTC, hidden, only to give it the size of the text.
+		expect(html).toMatch(/data-slot="placeholder" aria-hidden="true"[^>]*>Sun,? 5:00 PM</)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 

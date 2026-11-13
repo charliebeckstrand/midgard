@@ -7,16 +7,18 @@ import {
 	DescriptionTerm,
 } from '../../../components/description-list'
 import { TimeAgo } from '../../../components/time-ago'
-import { attach, renderUI } from '../../helpers'
+import { attach, bySlot, present, renderUI } from '../../helpers'
 import { serverMarkup } from '../../helpers/hydrate'
+import { emulateForcedColors } from '../helpers/forced-colors'
 
 /**
  * The server markup of a DateTime with no zone, and of a TimeAgo, holds a
- * skeleton line in place of the text. The line is an empty box, so it has no
- * baseline. Its bottom edge sits on the baseline of the text, and the line box
- * then also holds the descent of the text. The row was 6 px taller than the
- * text that replaced it. Thus a panel that fits its content changed its height
- * after hydration. These tests hold the row at the height of the text, in the
+ * skeleton in place of the text. The skeleton of a TimeAgo is an empty line
+ * box, so it has no baseline. Its bottom edge sits on the baseline of the text,
+ * and the line box then also holds the descent of the text. The row was 6 px
+ * taller than the text that replaced it. Thus a panel that fits its content
+ * changed its height after hydration. The skeleton of a DateTime holds text, so
+ * it has a baseline. These tests hold the row at the height of the text, in the
  * server markup and after the mount.
  */
 const VALUE = '2026-11-04T01:00:00Z'
@@ -68,5 +70,65 @@ describe('skeleton line of a time (real browser)', () => {
 		expect(shown.details).toBeGreaterThan(0)
 
 		expect(heights(server)).toEqual(shown)
+	})
+})
+
+/**
+ * The skeleton of a DateTime holds the date in UTC as text that does not show.
+ * The test browser runs in UTC, so the skeleton and the text have the same size.
+ * A skeleton of an estimated width was wider than a short time, and in a narrow
+ * column it held one line where the text breaks into more lines. The row then
+ * changed its size after hydration.
+ */
+describe('skeleton of a DateTime (real browser)', () => {
+	const sizes = [
+		{ name: 'a short time in a wide row', width: 400, format: { timeStyle: 'short' } },
+		{
+			name: 'a long date in a narrow column',
+			width: 80,
+			format: { dateStyle: 'medium', timeStyle: 'short' },
+		},
+	] as const
+
+	it.each(sizes)('has the size of its text: $name', ({ width, format }) => {
+		const cell = (
+			<div style={{ width }} className="text-base/6">
+				<DateTime value={VALUE} format={format} data-testid="time" />
+			</div>
+		)
+
+		const box = (container: HTMLElement) => {
+			const rect = container.querySelector('[data-testid="time"]')?.getBoundingClientRect()
+
+			return rect ? { width: rect.width, height: rect.height } : null
+		}
+
+		const server = attach(serverMarkup(cell))
+
+		expect(server.querySelector('[data-slot="placeholder"]')).not.toBeNull()
+
+		const settled = renderUI(cell)
+
+		expect(settled.container.querySelector('[data-slot="placeholder"]')).toBeNull()
+
+		expect(box(server)).toEqual(box(settled.container))
+	})
+})
+
+/**
+ * Forced colors replace the color of text with a system color, and a
+ * transparent color too. The UTC text of the skeleton then shows as the time
+ * of the reader, with no zone, until hydration. The skeleton keeps its own
+ * colors, so its text stays transparent.
+ */
+describe('skeleton of a DateTime under forced colors (real browser)', () => {
+	emulateForcedColors()
+
+	it('does not show its UTC text', () => {
+		const server = attach(serverMarkup(<DateTime value={VALUE} />))
+
+		const skeleton = present(bySlot(server, 'placeholder'), 'the skeleton')
+
+		expect(getComputedStyle(skeleton).color).toBe('rgba(0, 0, 0, 0)')
 	})
 })

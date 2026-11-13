@@ -2,8 +2,8 @@ import { DateTime } from 'ui/date-time'
 
 /**
  * The prerendered page does not know the zone of the reader, so it shows a
- * skeleton line. After hydration, it shows the kickoff in the zone of the
- * reader.
+ * skeleton with the size of the kickoff in UTC. After hydration, it shows the
+ * kickoff in the zone of the reader.
  */
 export default function ReaderZone() {
 	return (
