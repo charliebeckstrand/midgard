@@ -79,7 +79,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `table` · `pivot-table` · `list` · `listbox` · `tree` · `json-tree` · `pagination` · `description-list` · `timeline` · `stat` · `sparkline` · `odometer` · `date-time` · `time-ago` · `status` · `swatch` · `badge` · `avatar` · `kbd` · `code`
 
-> `date-time` uses the `timeZone` of its `format`, else of the provider, in each render. With no zone, it shows a skeleton line until hydration, then the date in the zone of the reader.
+> `date-time` uses the `timeZone` of its `format`, else of the provider, in each render. With no zone, it shows a skeleton until hydration, then the date in the zone of the reader. The skeleton has the size of the date in UTC.
 
 > A `list` loads its drag code only when it has `onReorder`. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
 

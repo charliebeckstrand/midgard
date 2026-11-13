@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn } from '../../core/cn'
+import { useLocale } from '../../providers/locale/context'
 import { useDateFormat } from '../../providers/locale/use-date-format'
 import { k } from '../../recipes/kata/date-time'
 import { Placeholder } from '../placeholder'
@@ -24,13 +24,15 @@ export type DateTimeProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children'
  * `LocaleProvider`. It follows the time-zone rules of `useDateFormat`. A zone
  * from `format` or from the provider gives the text in each render. With no
  * zone, the date is in the zone of the reader, which the server does not know.
- * The server render and the hydration render then put a skeleton line in the
+ * The server render and the hydration render then put a skeleton in the
  * `<time>`, and the text comes after hydration. An invalid `value` renders an
  * empty `<span>`.
  *
  * @remarks A server component can render it, so a server page shows a date
- * with no client wrapper of its own. The skeleton line has the line height of
- * the inherited text, so the row keeps its height. Its width is an estimate.
+ * with no client wrapper of its own. The skeleton holds the same date in UTC,
+ * in the same format, as text that does not show. Thus the skeleton has the
+ * length, the line breaks, and the baseline of the text that replaces it. Only
+ * the characters that the zone changes can change the width.
  * @example
  * ```tsx
  * <DateTime value={user.created_at} format={{ dateStyle: 'medium' }} />
@@ -39,6 +41,12 @@ export type DateTimeProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children'
 export function DateTime({ value, format, className, ...props }: DateTimeProps) {
 	const formatter = useDateFormat(format)
 
+	const { dateFormat } = useLocale()
+
+	// The text in UTC is the same in the server render and in the hydration
+	// render, so it can give the skeleton its size.
+	const stand = useDateFormat({ ...(format ?? dateFormat), timeZone: 'UTC' })
+
 	const date = new Date(value)
 
 	if (Number.isNaN(date.getTime())) {
@@ -46,14 +54,11 @@ export function DateTime({ value, format, className, ...props }: DateTimeProps) 
 	}
 
 	return (
-		<time
-			data-slot="date-time"
-			dateTime={date.toISOString()}
-			className={cn(formatter === undefined && k.pending, className)}
-			{...props}
-		>
+		<time data-slot="date-time" dateTime={date.toISOString()} className={className} {...props}>
 			{formatter === undefined ? (
-				<Placeholder as="span" className={k.skeleton.line} />
+				<Placeholder as="span" className={k.skeleton.text}>
+					{stand.format(date)}
+				</Placeholder>
 			) : (
 				formatter.format(date)
 			)}

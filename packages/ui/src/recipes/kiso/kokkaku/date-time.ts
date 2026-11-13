@@ -1,15 +1,15 @@
 /**
- * Kokkaku skeleton: date-time. One line of the inherited text, in place of a
- * date before the zone of the reader is known. DateTime takes the size of its
- * parent, so the line height is `1lh` of that text.
+ * Kokkaku skeleton: date-time. It stands in for a date before the zone of the
+ * reader is known. It holds the same date in UTC as text that does not show, so
+ * it has the size of the text that replaces it.
  *
- * The length of the text changes with the value, the locale, and the format.
- * The width holds a short default text, such as "Sun 1:00 PM", and does not go
- * wider than the parent.
+ * The skeleton is inline, so it breaks across lines as the text does. Each
+ * line of it paints its own fill (`box-decoration-clone`). The text has a
+ * baseline, so the line box keeps the height of the text.
  *
  * Layer: kiso · Concern: skeleton form · Unit: date-time
  */
 
 export const dateTime = {
-	line: 'h-lh w-[12ch] max-w-full',
+	text: 'inline box-decoration-clone text-transparent select-none',
 } as const
