@@ -44,15 +44,28 @@ const MAP_PLACEHOLDER = (
 	</div>
 )
 
-/** The time format of the polls and the call: the day and the time, in the zone of the reader. */
-const WHEN: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
+/**
+ * The time format of the polls and the call: the day and the time in the zone
+ * of the state, with the name of the zone, such as `Nov 3, 2026, 7:00 PM CST`.
+ */
+const WHEN: Intl.DateTimeFormatOptions = {
+	month: 'short',
+	day: 'numeric',
+	year: 'numeric',
+	hour: 'numeric',
+	minute: '2-digit',
+	timeZoneName: 'short',
+}
 
 /**
  * A time of a race: a still line of one text height while the race loads, so
  * the row keeps its height when the time arrives, then the time. A time that
  * the race does not give reads `Unknown`, so the row stays.
+ *
+ * The time is in the set `zone`, so the server writes it. A reload therefore
+ * paints the time, not a skeleton.
  */
-function FactTime({ value }: { value: string | null | undefined }) {
+function FactTime({ value, zone }: { value: string | null | undefined; zone: string }) {
 	if (value === undefined) {
 		return <Placeholder as="span" pulse={false} className="inline-block h-[1lh] w-40 align-top" />
 	}
@@ -60,7 +73,7 @@ function FactTime({ value }: { value: string | null | undefined }) {
 	return value === null ? (
 		<span className="text-zinc-500 dark:text-zinc-400">Unknown</span>
 	) : (
-		<DateTime value={value} format={WHEN} />
+		<DateTime value={value} format={{ ...WHEN, timeZone: zone }} />
 	)
 }
 
@@ -78,10 +91,13 @@ function RaceFacts({
 	candidates,
 	called,
 	race,
+	zone,
 }: {
 	candidates: readonly Candidate[]
 	called: boolean
 	race: Race | undefined
+	/** The time zone of the state of the race. */
+	zone: string
 }) {
 	const votes = candidates.reduce((sum, candidate) => sum + candidate.votes, 0)
 
@@ -94,14 +110,14 @@ function RaceFacts({
 
 			<DescriptionTerm>Polls closed</DescriptionTerm>
 			<DescriptionDetails>
-				<FactTime value={race?.pollsClose} />
+				<FactTime value={race?.pollsClose} zone={zone} />
 			</DescriptionDetails>
 
 			{called ? (
 				<>
 					<DescriptionTerm>Called</DescriptionTerm>
 					<DescriptionDetails>
-						<FactTime value={race?.calledAt} />
+						<FactTime value={race?.calledAt} zone={zone} />
 					</DescriptionDetails>
 				</>
 			) : null}
@@ -148,7 +164,7 @@ export function RaceDetail({ entry, race, onCounty, view, onViewChange, shapes }
 						detail
 					/>
 
-					<RaceFacts candidates={candidates} called={called} race={race} />
+					<RaceFacts candidates={candidates} called={called} race={race} zone={entry.state.zone} />
 				</>
 			) : null}
 
