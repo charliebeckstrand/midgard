@@ -24,7 +24,7 @@ describe('a nested accordion (real browser)', () => {
 			<>
 				<button type="button">Before</button>
 
-				<Accordion type="multiple" mount={mount} defaultValue={open ? ['outer'] : []}>
+				<Accordion multiple mount={mount} defaultValue={open ? ['outer'] : []}>
 					<AccordionItem value="outer">
 						<AccordionTrigger>Outer first</AccordionTrigger>
 						<AccordionPanel>

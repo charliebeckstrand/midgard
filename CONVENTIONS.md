@@ -133,8 +133,15 @@ Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 
 | The palette color | `color` | |
 | The element that takes focus when an overlay opens | `initialFocus` | |
 | The element that takes focus when the part closes | `returnFocusTo` | `finalFocus` |
+| A change of a state that a key `x` holds | `onXChange`, as `hoverDate` and `onHoverDateChange` | `onX`, as `onHoverDate` |
+| More than one open or selected part at once | `multiple`, a boolean that discriminates `value` | `type: 'single' \| 'multiple'` |
+| Only the rows in view are rendered | `virtualize` | `virtual` |
+| A time in milliseconds | A bare name: `delay`, `duration`, `timeout`, `interval`, `debounce` | A unit in the name, as `debounceMs` |
+| The pointer or keyboard activation of an item | `on<Thing>Click`, as `onRowClick` and `onDayClick`. A keyboard activation is a DOM click too | `on<Thing>Press` |
+| The close of an enclosing surface when an item acts | `closeOn<Event>`, default `true`: `closeOnAction`, `closeOnSelect`, `closeOnClick` | `preventClose` |
+| A function that makes the text of a number | `formatValue` | `format`, which holds a spec such as a token or `Intl` options |
 
-`prop-vocabulary-boundary.test.ts` reads each public props type with the checker. It holds the aliases, the heading level, and the severity rows. No gate holds the `onChange` row, because a native `onChange` is correct on an input.
+`prop-vocabulary-boundary.test.ts` reads each public props type and options type with the checker. It holds each row that has an entry in the last column, except the `onChange` row, because a native `onChange` is correct on an input. A key of a React base keeps its name, such as the native `onKeyPress`.
 
 ## 5. Styling
 

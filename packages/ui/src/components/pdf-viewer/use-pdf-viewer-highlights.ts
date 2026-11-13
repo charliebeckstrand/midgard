@@ -42,7 +42,7 @@ export type PdfViewerHighlightsOptions = {
 	activeHighlightId?: string | null
 	defaultActiveHighlightId?: string
 	onActiveHighlightChange?: (id: string | null) => void
-	onHighlightPress?: (id: string) => void
+	onHighlightClick?: (id: string) => void
 	/**
 	 * The page on screen; supplies the extent a physical {@link PdfViewerHighlightUnit} divides by.
 	 * `undefined` while the document has no pages, which holds the navigation to a region.
@@ -113,7 +113,7 @@ export function usePdfViewerHighlights({
 	activeHighlightId,
 	defaultActiveHighlightId,
 	onActiveHighlightChange,
-	onHighlightPress,
+	onHighlightClick,
 	activePage,
 	safePage,
 	goToPage,
@@ -265,7 +265,7 @@ export function usePdfViewerHighlights({
 
 	// A stable event, so a consumer that rebuilds the handler each render (the common case
 	// for an inline arrow) does not change the layer's props and re-render every region.
-	const press = useStableEvent((id: string) => onHighlightPress?.(id))
+	const press = useStableEvent((id: string) => onHighlightClick?.(id))
 
 	return {
 		regions,

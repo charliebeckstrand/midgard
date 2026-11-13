@@ -837,7 +837,7 @@ Mean ms in Chromium, the median of three interleaved pairs. The "Prototype" colu
 | resize · events off | 23.70 | 24.00 |
 | resize · events on · 500 | 72.38 | 24.14 |
 
-**The pinned panel renders each row of the list.** `List` with `virtual` windows over the nearest ancestor with `data-scroll-region`, and the body of the panel ([`events-panel.tsx`](../../modules/events/events-panel.tsx)) does not carry it. So each frame with a new event renders each of the 500 or 2,000 rows. With the attribute on the body, the frame no longer grows with the store.
+**The pinned panel renders each row of the list.** `List` with `virtualize` windows over the nearest ancestor with `data-scroll-region`, and the body of the panel ([`events-panel.tsx`](../../modules/events/events-panel.tsx)) does not carry it. So each frame with a new event renders each of the 500 or 2,000 rows. With the attribute on the body, the frame no longer grows with the store.
 
 **Each resize lays out the page two more times.** The viewport source reads the viewport units from a probe element ([`events-probes.ts`](../../modules/events/engine/events-probes.ts)), and each reading adds the probe to the page and removes it. Each change lays out the page again. A probe that stays in the page while the recorder runs, with strict containment, makes a resize cost what it costs with the events off. On a phone, the visual viewport resizes while the address bar shows or hides, so a scroll pays this too. An overlay that opens reads the same probe.
 

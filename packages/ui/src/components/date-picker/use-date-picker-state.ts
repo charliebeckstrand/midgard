@@ -248,7 +248,7 @@ export function useDatePickerState({
 		calendar: {
 			value: value ?? null,
 			// A press, not a change: a press of the selected day closes too.
-			onDayPress: handleSelect,
+			onDayClick: handleSelect,
 			active: open ? active : null,
 			calendarRef,
 		},

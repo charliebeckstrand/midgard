@@ -154,7 +154,7 @@ describe('fetchOsrmRoute', () => {
 	it('fails as a timeout where the timeout it set fires', async () => {
 		stubPendingRequest()
 
-		expect(await fetchOsrmRoute(WAYPOINTS, { timeoutMs: 1 })).toEqual({
+		expect(await fetchOsrmRoute(WAYPOINTS, { timeout: 1 })).toEqual({
 			ok: false,
 			failure: { kind: 'timeout', retryable: true },
 		})
@@ -171,7 +171,7 @@ describe('fetchOsrmRoute', () => {
 
 		const caller = new AbortController()
 
-		const answer = fetchOsrmRoute(WAYPOINTS, { signal: caller.signal, timeoutMs: 5000 })
+		const answer = fetchOsrmRoute(WAYPOINTS, { signal: caller.signal, timeout: 5000 })
 
 		caller.abort(reason)
 
@@ -182,10 +182,10 @@ describe('fetchOsrmRoute', () => {
 	// rather than answer it.
 	it.for([Number.POSITIVE_INFINITY, Number.NaN, -1])(
 		'answers rather than rejects where the timeout is no finite count: %s',
-		async (timeoutMs) => {
+		async (timeout) => {
 			stubFetch({ ok: true, json: PAYLOAD })
 
-			expect((await fetchOsrmRoute(WAYPOINTS, { timeoutMs })).ok).toBe(true)
+			expect((await fetchOsrmRoute(WAYPOINTS, { timeout })).ok).toBe(true)
 		},
 	)
 
@@ -402,7 +402,7 @@ describe('fetchOsrmRoute', () => {
 
 		expect((mock.mock.calls[0]?.[1] as RequestInit | undefined)?.signal).toBeUndefined()
 
-		await fetchOsrmRoute(WAYPOINTS, { timeoutMs: 5000 })
+		await fetchOsrmRoute(WAYPOINTS, { timeout: 5000 })
 
 		expect((mock.mock.calls[1]?.[1] as RequestInit | undefined)?.signal).toBeInstanceOf(AbortSignal)
 	})

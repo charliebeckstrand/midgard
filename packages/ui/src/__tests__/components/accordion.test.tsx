@@ -314,7 +314,7 @@ describe('Accordion multiple-select behavior', () => {
 	it('opens multiple items at once', () => {
 		const onValueChange = vi.fn()
 
-		renderUI(twoItems({ type: 'multiple', defaultValue: ['a'], onValueChange }))
+		renderUI(twoItems({ multiple: true, defaultValue: ['a'], onValueChange }))
 
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
 
@@ -326,7 +326,7 @@ describe('Accordion multiple-select behavior', () => {
 	it('closes one of many open items when its button is clicked', () => {
 		const onValueChange = vi.fn()
 
-		renderUI(twoItems({ type: 'multiple', defaultValue: ['a', 'b'], onValueChange }))
+		renderUI(twoItems({ multiple: true, defaultValue: ['a', 'b'], onValueChange }))
 
 		fireEvent.click(screen.getByText('A'))
 
@@ -334,13 +334,13 @@ describe('Accordion multiple-select behavior', () => {
 	})
 
 	it('treats a multi-select value of undefined defaultValue as empty', () => {
-		renderUI(oneItem({ type: 'multiple' }))
+		renderUI(oneItem({ multiple: true }))
 
 		expect(screen.queryByText('Panel A')).not.toBeInTheDocument()
 	})
 
 	it('supports a controlled multi-select value', () => {
-		renderUI(twoItems({ type: 'multiple', value: ['a', 'b'] }))
+		renderUI(twoItems({ multiple: true, value: ['a', 'b'] }))
 
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
 
@@ -363,7 +363,7 @@ describe('Accordion multiple-select behavior', () => {
 		}
 
 		renderUI(
-			<Accordion type="multiple" onValueChange={onValueChange}>
+			<Accordion multiple onValueChange={onValueChange}>
 				<AccordionItem value="a">
 					<AccordionTrigger>A</AccordionTrigger>
 					<AccordionPanel>Panel A</AccordionPanel>
@@ -399,7 +399,7 @@ describe('Accordion multiple-select behavior', () => {
 		// One identity across renders, so a refused toggle leaves the value unchanged.
 		const none: string[] = []
 
-		renderUI(twoItems({ type: 'multiple', value: none, onValueChange }))
+		renderUI(twoItems({ multiple: true, value: none, onValueChange }))
 
 		await user.click(screen.getByRole('button', { name: 'A' }))
 
@@ -576,7 +576,7 @@ describe('Accordion keyboard navigation', () => {
 		const user = setupUser()
 
 		renderUI(
-			<Accordion type="multiple" defaultValue={['outer']}>
+			<Accordion multiple defaultValue={['outer']}>
 				<AccordionItem value="outer">
 					<AccordionTrigger>Outer first</AccordionTrigger>
 					<AccordionPanel>
@@ -621,7 +621,7 @@ describe('Accordion keyboard navigation', () => {
 describe('Accordion mount policy', () => {
 	function Panels({ mount, defaultValue }: { mount?: Mount; defaultValue?: string }) {
 		return (
-			<Accordion type="single" collapsible mount={mount} defaultValue={defaultValue}>
+			<Accordion collapsible mount={mount} defaultValue={defaultValue}>
 				<AccordionItem value="a">
 					<AccordionTrigger>First</AccordionTrigger>
 					<AccordionPanel>
@@ -769,7 +769,7 @@ describe('Accordion mount policy', () => {
 // Held branch, for the reason the Collapse suite records.
 describe('Accordion onOpenComplete', () => {
 	const accordion = (props: { value: string; onOpenComplete: (value: string) => void }) => (
-		<Accordion type="single" mount="always" onValueChange={() => {}} {...props}>
+		<Accordion mount="always" onValueChange={() => {}} {...props}>
 			<AccordionItem value="one">
 				<AccordionTrigger>One</AccordionTrigger>
 				<AccordionPanel>First</AccordionPanel>
@@ -793,7 +793,7 @@ describe('Accordion onOpenComplete', () => {
 		expect(onOpenComplete).toHaveBeenCalledExactlyOnceWith('two')
 	})
 
-	it('reports only the section that opened on a single-type swap', () => {
+	it('reports only the section that opened on a swap in a single accordion', () => {
 		const onOpenComplete = vi.fn()
 
 		const { rerender } = renderUI(accordion({ value: 'one', onOpenComplete }))
@@ -820,7 +820,7 @@ describe('structure roots pass native props through', () => {
 	// attributes and a `ref`, and its own resolved wiring still wins.
 	it('spreads a consumer id and data attribute onto the root element', () => {
 		const { container } = renderUI(
-			<Accordion type="single" id="a11y-accordion" data-testid="acc">
+			<Accordion id="a11y-accordion" data-testid="acc">
 				<AccordionItem value="one">
 					<AccordionTrigger>One</AccordionTrigger>
 					<AccordionPanel>Body</AccordionPanel>
@@ -887,7 +887,7 @@ describe('structure roots pass native props through', () => {
 		const leak = { collapsible: 'leak' } as unknown as { collapsible: true }
 
 		const { container } = renderUI(
-			<Accordion type="single" {...leak}>
+			<Accordion {...leak}>
 				<AccordionItem value="one">
 					<AccordionTrigger>One</AccordionTrigger>
 					<AccordionPanel>Body</AccordionPanel>
@@ -902,7 +902,7 @@ describe('structure roots pass native props through', () => {
 		const { container } = renderUI(
 			// `data-slot` types through as any other `data-*` attribute; the root
 			// writes its own after the spread, so the anchor survives the attempt.
-			<Accordion type="single" data-slot="mine">
+			<Accordion data-slot="mine">
 				<AccordionItem value="one">
 					<AccordionTrigger>One</AccordionTrigger>
 					<AccordionPanel>Body</AccordionPanel>

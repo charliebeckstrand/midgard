@@ -32,7 +32,7 @@ function renderBound(onValueChange: (value: AddressSuggestion | null) => void) {
 			<AddressInput
 				name="address"
 				provider={stableProvider}
-				debounceMs={0}
+				debounce={0}
 				minQueryLength={1}
 				onValueChange={onValueChange}
 			/>

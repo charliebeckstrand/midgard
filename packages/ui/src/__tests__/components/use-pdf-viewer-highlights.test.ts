@@ -234,20 +234,20 @@ describe('usePdfViewerHighlights', () => {
 		const second = vi.fn()
 
 		const { result, rerender } = renderHook(
-			({ onHighlightPress }: { onHighlightPress: (id: string) => void }) =>
+			({ onHighlightClick }: { onHighlightClick: (id: string) => void }) =>
 				usePdfViewerHighlights({
 					highlights,
-					onHighlightPress,
+					onHighlightClick,
 					activePage: letter,
 					safePage: 1,
 					goToPage: noop,
 				}),
-			{ initialProps: { onHighlightPress: first } },
+			{ initialProps: { onHighlightClick: first } },
 		)
 
 		const press = result.current.press
 
-		rerender({ onHighlightPress: second })
+		rerender({ onHighlightClick: second })
 
 		// The same function across the rerender: the layer takes this as a prop, and a new
 		// identity each render would re-render every region on the page.

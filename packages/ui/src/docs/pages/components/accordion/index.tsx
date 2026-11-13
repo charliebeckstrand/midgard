@@ -7,7 +7,7 @@ import AccordionPlayground from './playground.tsx'
 export default function AccordionPage() {
 	return (
 		<>
-			<Playground of={AccordionPlayground} api={api} omit={['type', 'mount']} />
+			<Playground of={AccordionPlayground} api={api} omit={['multiple', 'mount']} />
 			<Example of={Multiple} />
 			<Example of={DisabledItem} />
 			<ApiTable api={api} />

@@ -23,7 +23,7 @@ export default function CustomProvider() {
 				onValueChange={setAddress}
 				provider={searchPlaces}
 				minQueryLength={1}
-				debounceMs={0}
+				debounce={0}
 				placeholder="Try 'baker' or 'london'"
 			/>
 		</Field>

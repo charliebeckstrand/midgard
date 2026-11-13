@@ -139,7 +139,7 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 *
 	 * A keyboard activation arrives as a native click, so `Enter` on a region reports here too.
 	 */
-	onHighlightPress?: (id: string) => void
+	onHighlightClick?: (id: string) => void
 	/**
 	 * Shows a magnifying lens beside the cursor while it rests over the page.
 	 *
@@ -229,7 +229,7 @@ export function PdfViewer({
 	highlights,
 	highlightUnit,
 	activeHighlightId,
-	onHighlightPress,
+	onHighlightClick,
 	magnifier,
 	onHighlightsVisibleChange,
 	onMagnifierChange,
@@ -297,7 +297,7 @@ export function PdfViewer({
 								highlights={highlights}
 								highlightUnit={highlightUnit}
 								activeHighlightId={activeHighlightId}
-								onHighlightPress={onHighlightPress}
+								onHighlightClick={onHighlightClick}
 								defaultActiveHighlightId={defaultActiveHighlightId}
 								onActiveHighlightChange={onActiveHighlightChange}
 								// What the overlay needs from the document beneath it, handed

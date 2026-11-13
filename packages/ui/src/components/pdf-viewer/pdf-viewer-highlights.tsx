@@ -301,7 +301,7 @@ function PdfViewerHighlightLayer() {
 	 * when the button comes up. Held still, the page reads as having deselected itself.
 	 *
 	 * `preventDefault` is the other half. It keeps that focus shift from happening at all, so
-	 * the caret the consumer places from `onHighlightPress` stays where it was put. Scoped to
+	 * the caret the consumer places from `onHighlightClick` stays where it was put. Scoped to
 	 * a press that actually landed in a region: the layer's background keeps every default
 	 * it had.
 	 */
