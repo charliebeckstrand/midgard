@@ -1,3 +1,5 @@
+import { maxHeightIn } from '../../utilities/measure-box'
+
 /**
  * The tallest a dialog is drawn at: the cap of its `align`, as a share of the
  * content box of the box around the panel.
@@ -20,12 +22,5 @@ export function dialogCeiling(panel: HTMLElement, viewport: number): number {
 			? viewport
 			: viewport - Number.parseFloat(frame.paddingTop) - Number.parseFloat(frame.paddingBottom)
 
-	const maxHeight = getComputedStyle(panel).maxHeight
-
-	// A browser can give the cap back as a share of the box, and not as pixels.
-	const cap = maxHeight.endsWith('%')
-		? (Number.parseFloat(maxHeight) / 100) * room
-		: Number.parseFloat(maxHeight)
-
-	return Number.isFinite(cap) ? Math.min(cap, room) : room
+	return maxHeightIn(panel, room)
 }

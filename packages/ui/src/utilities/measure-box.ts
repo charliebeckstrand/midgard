@@ -61,3 +61,24 @@ export function measureContentBox(target: Element): ContentBox {
 			(Number.parseFloat(style.paddingBottom) || 0),
 	}
 }
+
+/**
+ * The tallest that `target` can be in `room`: its computed `max-height`, and
+ * never more than `room`. A cap of `none` gives `room`.
+ *
+ * A browser can give a `%` cap back as a share, and not as pixels. The share
+ * is then of `room`, the box that the element stands in.
+ *
+ * @param target - The element with the cap.
+ * @param room - The height of the box around `target`, in CSS px.
+ * @internal
+ */
+export function maxHeightIn(target: Element, room: number): number {
+	const maxHeight = getComputedStyle(target).maxHeight
+
+	const cap = maxHeight.endsWith('%')
+		? (Number.parseFloat(maxHeight) / 100) * room
+		: Number.parseFloat(maxHeight)
+
+	return Number.isFinite(cap) ? Math.min(cap, room) : room
+}
