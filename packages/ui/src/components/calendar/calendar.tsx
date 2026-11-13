@@ -14,6 +14,7 @@ import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useToday } from '../../hooks/use-today'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useLocale } from '../../providers/locale/context'
 import type { ButtonVariants } from '../../recipes/kata/button'
@@ -34,7 +35,6 @@ import {
 } from './calendar-utilities'
 import { dayTabStop, useCalendarFocus } from './use-calendar-focus'
 import { useCalendarMonth } from './use-calendar-month'
-import { useCalendarToday } from './use-calendar-today'
 
 /** The day cells of a calendar that shows no month yet. @internal */
 const NO_DAYS: Date[] = []
@@ -278,7 +278,7 @@ export function Calendar({
 	})
 
 	// The day is null until hydration, and it moves at each local midnight.
-	const today = useCalendarToday()
+	const today = useToday()
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
 

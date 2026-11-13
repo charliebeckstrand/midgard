@@ -1,6 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
+import { createElement } from 'react'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, vi } from 'vitest'
-import { useCalendarToday } from '../../components/calendar/use-calendar-today'
+import { useToday } from '../../hooks/use-today'
 import { it, onFakeClock } from '../helpers/fake-clock'
 
 /** Tells the page that the reader shows it again, as a browser does for a tab. */
@@ -12,7 +14,12 @@ function showPage() {
 
 const HOUR = 3_600_000
 
-describe('useCalendarToday', () => {
+/** Renders whether `useToday` gives a day. */
+function Today() {
+	return useToday() === null ? 'pending' : 'known'
+}
+
+describe('useToday', () => {
 	onFakeClock()
 
 	// The suite pins the zone to UTC, so local midnight is 00:00 UTC.
@@ -20,14 +27,18 @@ describe('useCalendarToday', () => {
 		clock.set(new Date(2025, 5, 15, 12))
 	})
 
-	it('reads the day in the first client render', () => {
-		const { result } = renderHook(() => useCalendarToday())
+	it('gives no day on the server, so the server never draws a day of its own clock', () => {
+		expect(renderToString(createElement(Today))).toBe('pending')
+	})
 
-		expect(result.current?.getDate()).toBe(15)
+	it('reads the day in the first client render, as its local midnight', () => {
+		const { result } = renderHook(() => useToday())
+
+		expect(result.current).toEqual(new Date(2025, 5, 15))
 	})
 
 	it('keeps one Date for the whole day', async ({ clock }) => {
-		const { result, rerender } = renderHook(() => useCalendarToday())
+		const { result, rerender } = renderHook(() => useToday())
 
 		const first = result.current
 
@@ -41,7 +52,7 @@ describe('useCalendarToday', () => {
 	})
 
 	it('moves to the new day at local midnight', async ({ clock }) => {
-		const { result } = renderHook(() => useCalendarToday())
+		const { result } = renderHook(() => useToday())
 
 		await clock.advance(12 * HOUR - 1)
 
@@ -58,7 +69,7 @@ describe('useCalendarToday', () => {
 	})
 
 	it('reads the clock when the page shows again after a missed midnight', async ({ clock }) => {
-		const { result } = renderHook(() => useCalendarToday())
+		const { result } = renderHook(() => useToday())
 
 		// The system clock moves, and no timer fires, as in a hidden tab.
 		clock.set(new Date(2025, 5, 16, 9))
@@ -71,7 +82,7 @@ describe('useCalendarToday', () => {
 	})
 
 	it('sets a new timer when the timer fires before midnight', async ({ clock }) => {
-		const { result } = renderHook(() => useCalendarToday())
+		const { result } = renderHook(() => useToday())
 
 		// The system clock moves back one hour. The timer keeps its 12-hour
 		// delay, so it fires at 23:00 on the same day.
@@ -87,7 +98,7 @@ describe('useCalendarToday', () => {
 	})
 
 	it('clears its timer on unmount', () => {
-		const { unmount } = renderHook(() => useCalendarToday())
+		const { unmount } = renderHook(() => useToday())
 
 		expect(vi.getTimerCount()).toBe(1)
 
