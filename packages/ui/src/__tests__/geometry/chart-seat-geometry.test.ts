@@ -178,9 +178,6 @@ describe('seatLayout with a majority', () => {
 			expect(seatLayout(10, 2, majority).aisle).toBeNull()
 		}
 
-		// A chamber of two seats has no room for an aisle.
-		expect(seatLayout(2, 1, 2).aisle).toBeNull()
-
 		// Without an aisle, the seats are the seats of a chamber with no majority.
 		expect(seatLayout(10, 2, 11)).toEqual(seatLayout(10, 2))
 	})

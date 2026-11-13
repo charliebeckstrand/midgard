@@ -20,14 +20,13 @@ const SEAT_DOT_RATIO = 0.42
 const LONE_SEAT_DOT = 0.25
 
 /**
- * The half width of the aisle at the majority, as a fraction of the space
- * between two seats of the chamber with no aisle. The aisle makes that space a
- * little smaller, and the radius of a seat is {@link SEAT_DOT_RATIO} of it. Thus
- * the seats at the aisle keep clear of the line down its middle.
+ * The least clear space between the majority line and the nearest seat, in
+ * unit space: a fixed share of the radius of the hemicycle. Thus the space has
+ * one size at one chart size, for a chamber of large seats or of small seats.
  *
  * @internal
  */
-const AISLE = 0.55
+const AISLE_GAP = 0.02
 
 /** The length of one dash and one gap of the majority line, in unit space. @internal */
 const DASH_PERIOD = 0.035
@@ -189,8 +188,9 @@ export function seatLayout(total: number, rows: number, majority?: number): Seat
 			? majority - 1
 			: 0
 
-	// The half width of the aisle, from the space between two seats of the chamber with no aisle.
-	const half = before > 0 ? (AISLE * seatLayout(count, rows).dot) / SEAT_DOT_RATIO : 0
+	// The half width of the aisle: a seat of the chamber with no aisle, and the gap. The aisle
+	// makes the seats a little smaller, so the gap is at least AISLE_GAP.
+	const half = before > 0 ? seatLayout(count, rows).dot + AISLE_GAP : 0
 
 	const { sides, aisle } = chamberSides(count, radii, before, half)
 
