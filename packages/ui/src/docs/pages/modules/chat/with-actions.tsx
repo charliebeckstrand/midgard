@@ -1,4 +1,4 @@
-import { Ellipsis, Pencil, RotateCcw, SmilePlus, Trash2 } from 'lucide-react'
+import { Ellipsis, FaceSlightlySmilingPlus, Pencil, RotateCcw, Trash } from 'lucide-react'
 import { Button } from 'ui/button'
 import { ChatMessage } from 'ui/chat'
 import { CopyButton } from 'ui/copy-button'
@@ -10,7 +10,7 @@ function MessageActions({ text, own }: { text: string; own: boolean }) {
 	return (
 		<>
 			<Button variant="bare" size="sm" aria-label="Add reaction">
-				<Icon icon={<SmilePlus />} />
+				<Icon icon={<FaceSlightlySmilingPlus />} />
 			</Button>
 			<CopyButton size="sm" text={text} />
 			{own ? (
@@ -30,7 +30,7 @@ function MessageActions({ text, own }: { text: string; own: boolean }) {
 				</MenuTrigger>
 				<MenuContent>
 					<MenuItem>
-						<Icon icon={<Trash2 />} />
+						<Icon icon={<Trash />} />
 						<MenuLabel>Delete</MenuLabel>
 					</MenuItem>
 				</MenuContent>

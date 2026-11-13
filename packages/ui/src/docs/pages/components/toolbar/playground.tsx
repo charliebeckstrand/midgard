@@ -1,4 +1,4 @@
-import { Bold, Italic, TextAlignEnd, TextAlignStart, Underline } from 'lucide-react'
+import { Italic, LetterB, TextAlignEnd, TextAlignStart, Underline } from 'lucide-react'
 import { type ReactElement, useState } from 'react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
@@ -39,7 +39,7 @@ export default function ToolbarPlayground(props: ToolbarProps) {
 
 	return (
 		<Toolbar {...props} aria-label="Formatting">
-			<Mark label="Bold" icon={<Bold />} />
+			<Mark label="Bold" icon={<LetterB />} />
 			<Mark label="Italic" icon={<Italic />} />
 			<Mark label="Underline" icon={<Underline />} />
 			<ToolbarSeparator />

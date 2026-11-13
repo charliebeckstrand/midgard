@@ -1,6 +1,6 @@
 'use client'
 
-import { Copy, ListX, Trash2 } from 'lucide-react'
+import { Copy, ListX, Trash } from 'lucide-react'
 import { Button } from '../../components/button'
 import { CopyButton } from '../../components/copy-button'
 import { Icon } from '../../components/icon'
@@ -62,7 +62,7 @@ function ReportLine({
 						aria-label={intl.formatMessage(eventsMessages.delete)}
 						onClick={onDelete}
 					>
-						<Icon icon={<Trash2 />} />
+						<Icon icon={<Trash />} />
 					</Button>
 				</Flex>
 			}

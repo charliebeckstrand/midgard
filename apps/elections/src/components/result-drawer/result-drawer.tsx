@@ -1,6 +1,5 @@
 'use client'
 
-import { X } from 'lucide-react'
 import { Fragment, type MouseEvent, type ReactNode, useState } from 'react'
 import {
 	Breadcrumb,
@@ -9,12 +8,9 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
-import { Button } from 'ui/button'
-import { Dialog, DialogBody, DialogClose, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
-import { Icon } from 'ui/icon'
+import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
 import { MenuItem, MenuLabel } from 'ui/menu'
 import { Flex } from 'ui/structure/flex'
-import { Stack } from 'ui/structure/stack'
 import { MenuCrumb } from '../menu-crumb'
 
 /** One choice of the menu of a crumb, such as an office of the office crumb. */
@@ -116,66 +112,53 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 		<Dialog open={view !== null} onOpenChange={(open) => (open ? undefined : onClose())}>
 			<DialogPanel height="fit" footer={null} aria-label={title}>
 				{/* The trail and the body are children of the panel, so the body is the scroll region of the panel. */}
-				<DialogHeader>
-					<Flex align="start" justify="between" gap="lg">
-						<Stack gap="xs" flex="1" className="min-w-0">
-							<DialogTitle className="sr-only">{title}</DialogTitle>
+				<DialogHeader closable>
+					<DialogTitle className="sr-only">{title}</DialogTitle>
 
-							<Breadcrumb collapse>
-								{/* The badge follows the list inside the nav, so the fit of the trail keeps
-								    room for it. The row sizes to its content, so its end is the end of the badge. */}
-								<Flex gap="sm" align="center" className="min-w-0">
-									<BreadcrumbList className="text-base/7">
-										{shown?.steps.map((step, index) => (
-											<Fragment key={index}>
-												{index > 0 ? <BreadcrumbSeparator /> : null}
+					<Breadcrumb collapse>
+						{/* The badge follows the list inside the nav, so the fit of the trail keeps
+						    room for it. The row sizes to its content, so its end is the end of the badge. */}
+						<Flex gap="sm" align="center" className="min-w-0">
+							<BreadcrumbList className="text-base/7">
+								{shown?.steps.map((step, index) => (
+									<Fragment key={index}>
+										{index > 0 ? <BreadcrumbSeparator /> : null}
 
-												<BreadcrumbItem>
-													{step.menu === undefined ? (
-														<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
-													) : (
-														<MenuCrumb
-															label={step.label}
-															current={index === shown.steps.length - 1}
-															link={
-																step.onPick === undefined ||
-																index === shown.steps.length - 1 ? undefined : (
-																	<CrumbLink
-																		crumb={step}
-																		current={index === shown.steps.length - 1}
-																	/>
-																)
-															}
+										<BreadcrumbItem>
+											{step.menu === undefined ? (
+												<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
+											) : (
+												<MenuCrumb
+													label={step.label}
+													current={index === shown.steps.length - 1}
+													link={
+														step.onPick === undefined ||
+														index === shown.steps.length - 1 ? undefined : (
+															<CrumbLink crumb={step} current={index === shown.steps.length - 1} />
+														)
+													}
+												>
+													{step.menu.map((choice) => (
+														<MenuItem
+															key={choice.label}
+															disabled={choice.disabled}
+															onAction={choice.onPick}
 														>
-															{step.menu.map((choice) => (
-																<MenuItem
-																	key={choice.label}
-																	disabled={choice.disabled}
-																	onAction={choice.onPick}
-																>
-																	<MenuLabel>{choice.label}</MenuLabel>
-																</MenuItem>
-															))}
-														</MenuCrumb>
-													)}
-												</BreadcrumbItem>
-											</Fragment>
-										))}
-									</BreadcrumbList>
+															<MenuLabel>{choice.label}</MenuLabel>
+														</MenuItem>
+													))}
+												</MenuCrumb>
+											)}
+										</BreadcrumbItem>
+									</Fragment>
+								))}
+							</BreadcrumbList>
 
-									{shown?.badge === undefined ? null : (
-										<span className="flex shrink-0">{shown.badge}</span>
-									)}
-								</Flex>
-							</Breadcrumb>
-						</Stack>
-
-						<DialogClose>
-							<Button type="button" variant="bare" aria-label="Close">
-								<Icon icon={<X />} />
-							</Button>
-						</DialogClose>
-					</Flex>
+							{shown?.badge === undefined ? null : (
+								<span className="flex shrink-0">{shown.badge}</span>
+							)}
+						</Flex>
+					</Breadcrumb>
 				</DialogHeader>
 
 				{/* A panel body mutes its text, for the prose of a dialog. The body here holds

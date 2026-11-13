@@ -9,10 +9,13 @@ import type {
 	PanelContentProps,
 	PanelDescriptionProps,
 	PanelFooterProps,
-	PanelHeaderProps,
 	PanelTitleProps,
 } from '../../primitives/panel/types'
-import { createPanelClose } from '../button/button-close'
+import {
+	type ClosableHeaderProps,
+	createPanelClose,
+	createPanelHeader,
+} from '../button/button-close'
 
 const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = createPanel('dialog')
 
@@ -20,8 +23,8 @@ const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = cre
 export type DialogTitleProps = PanelTitleProps
 /** Props for {@link DialogDescription} (`<p>` attributes). */
 export type DialogDescriptionProps = PanelDescriptionProps
-/** Props for {@link DialogHeader} (`<div>` attributes). */
-export type DialogHeaderProps = PanelHeaderProps
+/** Props for {@link DialogHeader}: `closable` plus the `<div>` attributes. */
+export type DialogHeaderProps = ClosableHeaderProps
 /** Props for {@link DialogBody} (`<div>` attributes). */
 export type DialogBodyProps = PanelBodyProps
 /** Props for {@link DialogFooter} (`<div>` attributes). */
@@ -34,9 +37,16 @@ export type DialogCloseProps = Partial<PanelCloseProps>
 
 const Close = createPanelClose('dialog')
 
+const ClosableHeader = createPanelHeader('dialog', Header)
+
 export {
 	/** `<div>` scroll region for the dialog's main content; marked as a scroll region for overflow handling. */
 	Body as DialogBody,
+	/**
+	 * `<div>` grouping the dialog's title and description. A `closable` header puts
+	 * an X close at the end of the line of the title.
+	 */
+	ClosableHeader as DialogHeader,
 	/**
 	 * The close control of the enclosing {@link Dialog}. With no child, it renders
 	 * the standard Close button, which is also the default footer of the dialog.
@@ -61,8 +71,6 @@ export {
 	 * the dialog, which holds the standard Close button.
 	 */
 	Footer as DialogFooter,
-	/** `<div>` grouping the dialog's title and description. */
-	Header as DialogHeader,
 	/**
 	 * Opens the panel of the enclosing {@link Dialog}. A single element child is cloned, and a
 	 * click on it opens the panel. The trigger stamps `aria-haspopup="dialog"`, `aria-expanded`,

@@ -1,4 +1,4 @@
-import { Archive, ChevronDown, Copy, SquarePen, Trash } from 'lucide-react'
+import { Archive, ChevronDown, Copy, Pencil, Trash } from 'lucide-react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuShortcut, MenuTrigger } from 'ui/menu'
@@ -13,7 +13,7 @@ export default function IconsAndShortcuts() {
 			</MenuTrigger>
 			<MenuContent>
 				<MenuItem>
-					<Icon icon={<SquarePen />} />
+					<Icon icon={<Pencil />} />
 					<MenuLabel>Edit</MenuLabel>
 					<MenuShortcut>⌘E</MenuShortcut>
 				</MenuItem>

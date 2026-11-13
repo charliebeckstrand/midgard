@@ -1,10 +1,7 @@
 'use client'
 
-import { X } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
-import { Button } from 'ui/button'
-import { Drawer, DrawerBody, DrawerClose, DrawerHeader, DrawerPanel, DrawerTitle } from 'ui/drawer'
-import { Icon } from 'ui/icon'
+import { Drawer, DrawerBody, DrawerHeader, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { useIntl } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
@@ -285,7 +282,7 @@ export function SummaryDrawer<T extends Located>({
 				footer={null}
 				aria-label={title}
 			>
-				<DrawerHeader>
+				<DrawerHeader closable>
 					<Flex justify="between" align="center" gap="md">
 						{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge
@@ -304,15 +301,7 @@ export function SummaryDrawer<T extends Located>({
 						{/* The menu of the open record sits by the close, where a row of the
 				    index sheet has its own. A list row in this panel is a way into a
 				    record, not a record, so the list has no menu. */}
-						<Flex gap="xs" align="center" className="shrink-0">
-							{item ? menu(item) : null}
-
-							<DrawerClose>
-								<Button type="button" variant="bare" aria-label="Close">
-									<Icon icon={<X />} />
-								</Button>
-							</DrawerClose>
-						</Flex>
+						{item ? menu(item) : null}
 					</Flex>
 				</DrawerHeader>
 

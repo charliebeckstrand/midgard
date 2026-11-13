@@ -1,22 +1,12 @@
 'use client'
 
-import { X } from 'lucide-react'
 import { useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { useConfirm } from 'ui/confirm'
 import { cn } from 'ui/core'
 import { Form, type SubmitResult } from 'ui/form'
-import { Icon } from 'ui/icon'
-import {
-	Sheet,
-	SheetBody,
-	SheetClose,
-	SheetFooter,
-	SheetHeader,
-	SheetPanel,
-	SheetTitle,
-} from 'ui/sheet'
+import { Sheet, SheetBody, SheetFooter, SheetHeader, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
@@ -258,16 +248,8 @@ export function PredictionSheet({
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetPanel aria-label={title}>
-				<SheetHeader>
-					<Flex justify="between" align="center" gap="md">
-						<SheetTitle>{shown === null ? title : `${title}: ${shown.label}`}</SheetTitle>
-
-						<SheetClose>
-							<Button type="button" variant="bare" aria-label="Close">
-								<Icon icon={<X />} />
-							</Button>
-						</SheetClose>
-					</Flex>
+				<SheetHeader closable>
+					<SheetTitle>{shown === null ? title : `${title}: ${shown.label}`}</SheetTitle>
 				</SheetHeader>
 
 				{games.data === undefined ? (

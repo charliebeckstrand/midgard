@@ -1,4 +1,4 @@
-import { Cog, Folder, House, Inbox, LogOut, MessageCircle, Plus } from 'lucide-react'
+import { Folder, House, Inbox, LogOut, MessageCircle, Plus, Settings } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
@@ -112,7 +112,7 @@ export default function SectionsDividerAndSpacer() {
 						Wade Cooper
 					</Text>
 					<SidebarList aria-label="Account">
-						<SidebarItem icon={<Cog />}>
+						<SidebarItem icon={<Settings />}>
 							<SidebarLabel>Settings</SidebarLabel>
 						</SidebarItem>
 						<SidebarItem icon={<LogOut />}>

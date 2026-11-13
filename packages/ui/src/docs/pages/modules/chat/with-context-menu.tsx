@@ -1,4 +1,4 @@
-import { Copy, Pencil, Trash2 } from 'lucide-react'
+import { Copy, Pencil, Trash } from 'lucide-react'
 import { ChatMessage } from 'ui/chat'
 import type { ContextMenuEntry } from 'ui/context-menu'
 import { Text } from 'ui/text'
@@ -13,7 +13,7 @@ function entries(text: string): ContextMenuEntry[] {
 			onAction: () => void navigator.clipboard?.writeText(text),
 		},
 		{ key: 'edit', label: 'Edit', icon: <Pencil /> },
-		{ key: 'delete', label: 'Delete', icon: <Trash2 /> },
+		{ key: 'delete', label: 'Delete', icon: <Trash /> },
 	]
 }
 

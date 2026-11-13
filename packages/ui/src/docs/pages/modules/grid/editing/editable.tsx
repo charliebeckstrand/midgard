@@ -1,4 +1,4 @@
-import { Check, Pencil, Trash2, X } from 'lucide-react'
+import { Check, Pencil, Trash, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
@@ -39,7 +39,7 @@ export default function Editable() {
 								aria-label="Delete row"
 								onClick={() => setPeople((prev) => prev.filter((person) => person.id !== row.id))}
 							>
-								<Icon icon={<Trash2 />} />
+								<Icon icon={<Trash />} />
 							</Button>
 						</Flex>
 					),

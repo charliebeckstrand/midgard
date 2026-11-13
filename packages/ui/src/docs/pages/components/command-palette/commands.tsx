@@ -6,7 +6,7 @@ import {
 	FolderPlus,
 	Palette,
 	Settings,
-	Trash2,
+	Trash,
 	User,
 } from 'lucide-react'
 import type { ReactElement } from 'react'
@@ -32,7 +32,7 @@ export const groups: { title: string; commands: Command[] }[] = [
 		commands: [
 			{ id: 'duplicate', label: 'Duplicate', icon: <Copy />, shortcut: '⌘D' },
 			{ id: 'archive', label: 'Archive', icon: <Archive /> },
-			{ id: 'delete', label: 'Delete', icon: <Trash2 />, shortcut: '⌘⌫' },
+			{ id: 'delete', label: 'Delete', icon: <Trash />, shortcut: '⌘⌫' },
 		],
 	},
 	{

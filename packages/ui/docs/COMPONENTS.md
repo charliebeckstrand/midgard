@@ -73,6 +73,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `DialogPanel`, a `DrawerPanel`, or a `SheetPanel` has no `glass` prop. It follows the Surfaces setting of the reader: flat by default, glass when the reader picks Glass in `AppearanceSettings`. A `<GlassProvider>` does not change it. `CommandPalette`, `Confirm`, and the phone sheet of a `Menu` follow the same setting.
 
+> A `closable` `DialogHeader`, `DrawerHeader`, or `SheetHeader` puts an X close at the end of the line of the title. The X has the label "Close" in the language of the reader. An app does not build the X by hand (`panel-close-boundary.test.ts`). A panel with the X usually takes `footer={null}`, so it shows no second Close.
+
 > A `DialogPanel` or a `DrawerPanel` with `height="fit"` travels to each new height of its content. On the bottom edge, it goes up to the top edge of the screen when its content asks for that much. The default `auto` changes the height in one step and stops at 85% of the screen.
 
 ## Data display

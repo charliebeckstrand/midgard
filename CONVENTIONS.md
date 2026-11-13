@@ -175,6 +175,8 @@ In an app, an action such as Close or Remove is a `Button` with `variant="bare"`
 
 5.12 In an app and in `shared`, muted text is `<Text tone="muted">`, with `as="span"` inside a line. A part that is not text, such as an icon or the class of a component, takes the same rung: `text-zinc-500 dark:text-zinc-400`. A part of ui keeps its own ink, such as the description of a list row, which sits on a hover wash. No text is fainter than the muted rung, because the muted rung is the lightest ink that keeps the AA contrast on the page surface. The neutral palette is zinc, as in ui. The [`no-faint-text-color`](.biome/plugins/no-faint-text-color.grit) Biome plugin finds a lighter zinc rung in the light mode and a `gray` class.
 
+5.13 An icon comes from `lucide-react` by its own name, the name that the site of lucide shows. The package also exports an icon under its old names, such as `AlertTriangle` for `TriangleExclamationPoint`. Two names for one icon hide that two places show the same glyph. The `Icon` form of a name, such as `MapIcon`, is correct only where the own name hides a global, such as `Map`. For each action, ui, the apps, and the docs show one icon: `Pencil` to edit, `Trash` to delete, and `Settings` for settings. The X close of a panel header comes from its `closable` prop. `icon-name-boundary.test.ts` and `panel-close-boundary.test.ts` hold the rules.
+
 ## 6. State & data
 
 6.1 No global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx`. Biome's `noRestrictedImports` keeps the common ones out of `apps`.

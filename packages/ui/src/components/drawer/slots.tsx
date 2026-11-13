@@ -9,18 +9,21 @@ import type {
 	PanelContentProps,
 	PanelDescriptionProps,
 	PanelFooterProps,
-	PanelHeaderProps,
 	PanelTitleProps,
 } from '../../primitives/panel/types'
 import { k } from '../../recipes/kata/drawer'
-import { createPanelClose } from '../button/button-close'
+import {
+	type ClosableHeaderProps,
+	createPanelClose,
+	createPanelHeader,
+} from '../button/button-close'
 
 /** Props for {@link DrawerTitle}: the heading `level` (default 2) plus the heading attributes. */
 export type DrawerTitleProps = PanelTitleProps
 /** Props for {@link DrawerDescription} (`<p>` attributes). */
 export type DrawerDescriptionProps = PanelDescriptionProps
-/** Props for {@link DrawerHeader} (`<div>` attributes). */
-export type DrawerHeaderProps = PanelHeaderProps
+/** Props for {@link DrawerHeader}: `closable` plus the `<div>` attributes. */
+export type DrawerHeaderProps = ClosableHeaderProps
 /** Props for {@link DrawerBody} (`<div>` attributes). */
 export type DrawerBodyProps = PanelBodyProps
 /** Props for {@link DrawerFooter} (`<div>` attributes). */
@@ -44,9 +47,19 @@ export type DrawerCloseProps = Partial<PanelCloseProps>
 
 const Close = createPanelClose('drawer')
 
+const ClosableHeader = createPanelHeader('drawer', Header)
+
 export {
 	/** `<div>` scroll region for the drawer's main content; fills remaining height and scrolls on overflow. */
 	Body as DrawerBody,
+	/**
+	 * `<div>` header of the drawer: the title and the description, or a row such as
+	 * the title with a close button. It stands one slot gap from the top edge, and the
+	 * drawer puts the same gap under it, at each density. A title or a description in
+	 * it takes no inset of its own. A `closable` header puts an X close at the end
+	 * of the line of the title.
+	 */
+	ClosableHeader as DrawerHeader,
 	/**
 	 * The close control of the enclosing {@link Drawer}. With no child, it renders
 	 * the standard Close button, which is also the default footer of the drawer.
@@ -74,13 +87,6 @@ export {
 	 * the drawer, which holds the standard Close button.
 	 */
 	Footer as DrawerFooter,
-	/**
-	 * `<div>` header of the drawer: the title and the description, or a row such as
-	 * the title with a close button. It stands one slot gap from the top edge, and the
-	 * drawer puts the same gap under it, at each density. A title or a description in
-	 * it takes no inset of its own.
-	 */
-	Header as DrawerHeader,
 	/**
 	 * Opens the panel of the enclosing {@link Drawer}. A single element child is cloned, and a
 	 * click on it opens the panel. The trigger stamps `aria-haspopup="dialog"`, `aria-expanded`,

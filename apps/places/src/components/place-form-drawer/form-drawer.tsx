@@ -1,20 +1,10 @@
 'use client'
 
-import { X } from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
-import {
-	Drawer,
-	DrawerBody,
-	DrawerClose,
-	DrawerFooter,
-	DrawerHeader,
-	DrawerPanel,
-	DrawerTitle,
-} from 'ui/drawer'
+import { Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerPanel, DrawerTitle } from 'ui/drawer'
 import { Form, type FormProps, type SubmitResult } from 'ui/form'
-import { Icon } from 'ui/icon'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
@@ -107,24 +97,16 @@ export function FormDrawer<V extends Record<string, unknown>>({
 				height="fit"
 				aria-label={title}
 			>
-				<DrawerHeader>
-					<Flex justify="between" align="center">
-						<div className="min-w-0">
-							<DrawerTitle>{title}</DrawerTitle>
+				<DrawerHeader closable>
+					<div>
+						<DrawerTitle>{title}</DrawerTitle>
 
-							{subtitle === undefined ? null : (
-								<Text tone="muted" className="truncate">
-									{subtitle}
-								</Text>
-							)}
-						</div>
-
-						<DrawerClose>
-							<Button type="button" variant="bare" aria-label="Close">
-								<Icon icon={<X />} />
-							</Button>
-						</DrawerClose>
-					</Flex>
+						{subtitle === undefined ? null : (
+							<Text tone="muted" className="truncate">
+								{subtitle}
+							</Text>
+						)}
+					</div>
 				</DrawerHeader>
 
 				<Form<V>
