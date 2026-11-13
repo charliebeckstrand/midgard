@@ -20,12 +20,16 @@ import {
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
+import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useDeferredQueryValue } from '../../primitives/query/use-query-value'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
 type CommandPaletteStateOptions = {
 	open: boolean
+	/** The controlled query, or `undefined` for a query that the palette holds. */
+	query?: string
+	onQueryChange?: (query: string) => void
 	onActiveChange?: (optionId: string | null) => void
 }
 
@@ -128,7 +132,7 @@ function createSourceRegistry(
  * Query, deferred query, and virtual-roving wiring for {@link CommandPalette}.
  * It returns the search value plus the refs and `onKeyDown` that drive
  * `aria-activedescendant` highlighting over options while focus stays on the
- * input. Resets the query on close and keeps the highlight on the top result as
+ * input. Resets a query that it holds on close, and keeps the highlight on the top result as
  * the filtered set changes, through `seedVirtualTopMatch`. A seeded highlight
  * also follows a change of the results under an unchanged query: the observer
  * of the listbox and the registration of a source tell of it. A highlight that
@@ -150,8 +154,24 @@ function createSourceRegistry(
  * @internal
  * @see {@link useA11yRoving}
  */
-export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteStateOptions) {
-	const [query, setQuery] = useState('')
+export function useCommandPaletteState({
+	open,
+	query: queryProp,
+	onQueryChange,
+	onActiveChange,
+}: CommandPaletteStateOptions) {
+	const [heldQuery, setHeldQuery] = useState('')
+
+	const controlled = useControlledLatch(queryProp)
+
+	const query = controlled ? (queryProp ?? '') : heldQuery
+
+	// An edit of the reader. A controlled palette holds no query, so it only reports.
+	const setQuery = useStableEvent((next: string) => {
+		if (!controlled) setHeldQuery(next)
+
+		onQueryChange?.(next)
+	})
 
 	const deferredQuery = useDeferredQueryValue(query)
 
@@ -290,14 +310,23 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 		[lagging, query, rovingKeyDown, reportActiveFromDom],
 	)
 
+	// The listbox of the last seed effect, so that the effect can tell an attach.
+	const lastListRef = useRef(listNode)
+
 	// On each filter change, moves the keyboard highlight to the top result so
 	// `data-active` / `aria-selected` / `aria-activedescendant` point at a live
 	// option (or are cleared when nothing matches). Skipped on the initial
-	// value; the first arrow key on open picks the first item. Under a
+	// value; the first arrow key on open picks the first item. A palette that
+	// opens on a query, as a controlled query held across a close, seeds when
+	// its listbox attaches, as the same query typed in does. Under a
 	// registered `virtualSourceRef`, index math replaces the DOM query (a
 	// windowed-out item isn't in the DOM to find).
 	useEffect(() => {
-		if (lastDeferredRef.current === deferredQuery) return
+		const attached = listNode !== null && listNode !== lastListRef.current
+
+		lastListRef.current = listNode
+
+		const changed = lastDeferredRef.current !== deferredQuery
 
 		lastDeferredRef.current = deferredQuery
 
@@ -308,6 +337,8 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 		// `query`, so this transition's effect can run while `open` is already
 		// false; guard on it directly.
 		if (!open) return
+
+		if (!changed && !(attached && deferredQuery.trim() !== '')) return
 
 		seedVirtualTopMatch(
 			listRef.current,
@@ -320,7 +351,7 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 		originRef.current = 'seeded'
 
 		reportActiveFromDom()
-	}, [deferredQuery, open, reportActiveFromDom, virtualSourceRef])
+	}, [deferredQuery, listNode, open, reportActiveFromDom, virtualSourceRef])
 
 	// Runs a held Enter when the deferred query catches up. The seed effect above
 	// runs first in the same commit, so the Enter runs the highlighted row of the
@@ -342,13 +373,14 @@ export function useCommandPaletteState({ open, onActiveChange }: CommandPaletteS
 	}, [lagging, open, query, rovingKeyDown])
 
 	// Resets the query when closed, during render rather than in an effect, so
-	// the closing palette paints no stale filter.
+	// the closing palette paints no stale filter. The owner of a controlled
+	// query keeps it or clears it.
 	const [prevOpen, setPrevOpen] = useState(open)
 
 	if (open !== prevOpen) {
 		setPrevOpen(open)
 
-		if (!open) setQuery('')
+		if (!open && !controlled) setHeldQuery('')
 	}
 
 	// The closing panel unmounts its options after its exit animation, so

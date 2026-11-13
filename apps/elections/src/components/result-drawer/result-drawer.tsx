@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowLeft } from 'lucide-react'
 import { Fragment, type MouseEvent, type ReactNode, useState } from 'react'
 import {
 	Breadcrumb,
@@ -8,7 +9,9 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
+import { Button } from 'ui/button'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
+import { Icon } from 'ui/icon'
 import { MenuItem, MenuLabel } from 'ui/menu'
 import { Flex } from 'ui/structure/flex'
 import { MenuCrumb } from '../menu-crumb'
@@ -42,7 +45,10 @@ export type TrailCrumb = {
 	menu?: readonly CrumbChoice[]
 }
 
-/** What a {@link ResultDrawer} shows: its trail, an optional badge after it, and its body. */
+/**
+ * What a {@link ResultDrawer} shows: its trail, an optional badge after it, its
+ * body, and an optional way back to the search that opened it.
+ */
 export type DrawerView = {
 	steps: readonly TrailCrumb[]
 	/**
@@ -52,6 +58,11 @@ export type DrawerView = {
 	 */
 	badge?: ReactNode
 	body: ReactNode
+	/**
+	 * Fires on a press of Back to search, above the body. Without it, the panel
+	 * shows no such button.
+	 */
+	onBackToSearch?: () => void
 }
 
 /**
@@ -92,8 +103,9 @@ export type ResultDrawerProps = {
  * The panel of a result, a Dialog. It is docked to the bottom on a phone
  * and centered from `sm`, so the panel is as wide as its content and not as
  * wide as the page. Its title is the trail, as in the summary Drawer of
- * Places. A crumb is the way back, so the panel needs no Back button. The
- * close sits at the end of that row. A crumb with a menu switches between
+ * Places. A crumb is the way back along the trail, so the panel needs no Back
+ * button. A view that a pick in the search opened leads back to the search,
+ * with a button above the body. The close sits at the end of the trail row. A crumb with a menu switches between
  * its choices, as the office crumb does. The panel is as tall as its body, and
  * travels between heights as the step or the view changes. A body taller than
  * the cap of the panel scrolls under the trail, which stays.
@@ -163,7 +175,20 @@ export function ResultDrawer({ view, onClose }: ResultDrawerProps) {
 
 				{/* A panel body mutes its text, for the prose of a dialog. The body here holds
 				    results, so it takes the default text color, as the page does. */}
-				<DialogBody className="text-zinc-950 dark:text-white">{shown?.body}</DialogBody>
+				<DialogBody className="text-zinc-950 dark:text-white">
+					{shown?.onBackToSearch === undefined ? null : (
+						<Button
+							variant="bare"
+							prefix={<Icon icon={<ArrowLeft />} />}
+							onClick={shown.onBackToSearch}
+							className="mb-4"
+						>
+							Back to search
+						</Button>
+					)}
+
+					{shown?.body}
+				</DialogBody>
 			</DialogPanel>
 		</Dialog>
 	)

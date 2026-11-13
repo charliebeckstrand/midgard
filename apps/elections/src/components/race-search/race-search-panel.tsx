@@ -20,6 +20,7 @@ import {
 	searchGroups,
 } from '../../utilities/race-search'
 import { useElectionRaces } from '../election-drawer/context'
+import { useRaceSearch } from './context'
 
 /** The content of a row: the color of the leader of a race, the name, and the description. */
 function RowContent({ row }: { row: Omit<SearchRow, 'step'> }) {
@@ -46,12 +47,21 @@ function SearchResults({ election }: { election: Election }) {
 
 	const go = useDrawerGo(election)
 
+	const { pick } = useRaceSearch()
+
 	return searchGroups(races, query).map((group) => (
 		<CommandPaletteGroup key={group.heading}>
 			<CommandPaletteHeading>{group.heading}</CommandPaletteHeading>
 
 			{group.rows.map((row) => (
-				<CommandPaletteItem key={row.key} onAction={() => go(row.step)}>
+				<CommandPaletteItem
+					key={row.key}
+					onAction={() => {
+						pick()
+
+						go(row.step)
+					}}
+				>
 					<RowContent row={row} />
 				</CommandPaletteItem>
 			))}
@@ -64,19 +74,30 @@ export type RaceSearchPanelProps = {
 	election: Election
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	/** The query, which the search holds across a close. */
+	query: string
+	onQueryChange: (query: string) => void
 }
 
 /**
  * The command palette of the search of an election. An empty query lists
  * nothing. A query lists the states, then the races of each office, that match
  * it (`searchGroups`). A pick closes the palette and opens the Drawer on the
- * state or the race.
+ * state or the race, with Back to search.
  */
-export function RaceSearchPanel({ election, open, onOpenChange }: RaceSearchPanelProps) {
+export function RaceSearchPanel({
+	election,
+	open,
+	onOpenChange,
+	query,
+	onQueryChange,
+}: RaceSearchPanelProps) {
 	return (
 		<CommandPalette
 			open={open}
 			onOpenChange={onOpenChange}
+			query={query}
+			onQueryChange={onQueryChange}
 			placeholder="Search states, races, and candidates"
 		>
 			<SearchResults election={election} />
@@ -106,6 +127,9 @@ export type ElectionsSearchPanelProps = {
 	elections: readonly ElectionRaces[]
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	/** The query, which the search holds across a close. */
+	query: string
+	onQueryChange: (query: string) => void
 }
 
 /**
@@ -114,11 +138,19 @@ export type ElectionsSearchPanelProps = {
  * each election, that match it (`electionsSearchGroups`). A pick goes to the
  * page of the election, with the Drawer on the state or the race.
  */
-export function ElectionsSearchPanel({ elections, open, onOpenChange }: ElectionsSearchPanelProps) {
+export function ElectionsSearchPanel({
+	elections,
+	open,
+	onOpenChange,
+	query,
+	onQueryChange,
+}: ElectionsSearchPanelProps) {
 	return (
 		<CommandPalette
 			open={open}
 			onOpenChange={onOpenChange}
+			query={query}
+			onQueryChange={onQueryChange}
 			placeholder="Search elections, races, and candidates"
 		>
 			<ElectionsResults elections={elections} />

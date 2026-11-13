@@ -3,7 +3,7 @@ import { ElectionRacesProvider } from '@/components/election-drawer'
 import { ElectionViews, OfficeView, OverviewView } from '@/components/election-views'
 import { ElectionHeader } from '@/components/elections-header'
 import { PageColumn } from '@/components/page-frame'
-import { RaceSearch } from '@/components/race-search'
+import { RaceSearch, RaceSearchProvider } from '@/components/race-search'
 import { ELECTIONS, electionPath } from '@/elections/registry'
 import { officeRaces } from '@/server/drawer'
 import { type ElectionParams, readElection } from '@/server/params'
@@ -35,7 +35,9 @@ export function generateStaticParams(): ElectionParams[] {
  *
  * The layout also gives the races of each office to the Drawer of each page
  * and to the search in the header. A navigation between the pages keeps the
- * layout, so the races do not travel again with each page.
+ * layout, so the races do not travel again with each page. The search and the
+ * Drawer also share the state of the search, so the Drawer of a pick can lead
+ * back to the search.
  *
  * The layout renders the view of each page: the overview and the national map
  * of each office. The view of the current page shows, and the other views stay
@@ -75,11 +77,13 @@ export default async function ElectionLayout({
 	return (
 		<PageColumn>
 			<ElectionRacesProvider races={races}>
-				<ElectionHeader election={election} search={<RaceSearch election={election} />} />
+				<RaceSearchProvider>
+					<ElectionHeader election={election} search={<RaceSearch election={election} />} />
 
-				<ElectionViews base={electionPath(election)} views={views} />
+					<ElectionViews base={electionPath(election)} views={views} />
 
-				{children}
+					{children}
+				</RaceSearchProvider>
 			</ElectionRacesProvider>
 		</PageColumn>
 	)
