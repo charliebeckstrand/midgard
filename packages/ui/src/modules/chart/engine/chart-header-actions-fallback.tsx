@@ -134,7 +134,9 @@ export type ChartHeaderActionsFallbackProps = Omit<ComponentProps<'span'>, 'chil
  * them until the chart puts its own buttons in it, in the same frame.
  *
  * A chart with no data has no View data button. This component cannot see the
- * data of each kind of chart, so it draws the button until the mount.
+ * data of each kind of chart, so it draws the button until the mount. At the
+ * mount the chart puts its row in the slot also when the row is empty, so the
+ * fallback hides.
  *
  * @example
  * ```tsx

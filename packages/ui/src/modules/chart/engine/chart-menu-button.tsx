@@ -73,15 +73,15 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 	// the other copy in the chart, and the button moves at hydration.
 	const slotted = useHeaderActionsSlotted()
 
-	if (chartMenu === null || chartMenu.entries.length === 0) return null
-
 	if (place === 'host' ? host === null : host !== null || slotted) return null
 
-	const { entries, button, capped } = chartMenu
+	const entries = chartMenu?.entries ?? []
+
+	const button = entries.length > 0 && chartMenu?.button === true
 
 	const menu = button ? (
 		<ChartMenuButtonBox place={place}>
-			<Menu placement="bottom-end" capped={capped}>
+			<Menu placement="bottom-end" capped={chartMenu?.capped}>
 				<MenuTrigger>
 					<ChartMenuTriggerButton title={title} />
 				</MenuTrigger>
@@ -97,8 +97,9 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 
 	const viewData = findItem(entries, 'view-data')
 
-	if (menu === null && !viewData?.onAction) return null
-
+	// The host copy puts its row in the slot also when the row is empty, such as
+	// for a chart with no data. The row marks the slot as taken, so a fallback in
+	// the slot hides and draws no button that the chart does not have.
 	return createPortal(
 		<span
 			data-slot="chart-header-actions"

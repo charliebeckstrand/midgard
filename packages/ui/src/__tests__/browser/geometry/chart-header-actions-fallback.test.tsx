@@ -97,4 +97,37 @@ describe('chart buttons in the header row before the mount (real browser)', () =
 			menuBox(present(container.querySelector('[data-slot="chart-header-actions"]'), 'the row')),
 		)
 	})
+
+	// A chart with no data has no View data entry, and so no button in the row.
+	// The fallback cannot see the data, so it draws the button until the mount.
+	// The chart then claims the slot with an empty row, and the fallback hides.
+	it('hides the fallback of a chart that puts no button in the row', () => {
+		const empty = <SeatChart aria-label="Senate seats" groups={[]} height={200} />
+
+		const emptyBox = (
+			<HeaderActions slotted>
+				<div style={{ width: 360 }}>
+					<div className="flex min-h-9 justify-between">
+						<span>Senate</span>
+
+						<HeaderActionsSlot>
+							<ChartHeaderActionsFallback chart={empty} />
+						</HeaderActionsSlot>
+					</div>
+
+					{empty}
+				</div>
+			</HeaderActions>
+		)
+
+		const container = attach(serverMarkup(emptyBox))
+
+		expect(shown(container)).toHaveLength(1)
+
+		const { onRecoverableError } = hydrate(container, emptyBox)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(shown(container)).toEqual([])
+	})
 })
