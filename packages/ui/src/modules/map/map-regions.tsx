@@ -2,6 +2,7 @@
 
 import {
 	type CSSProperties,
+	Fragment,
 	type MouseEvent,
 	memo,
 	type PointerEvent,
@@ -21,6 +22,7 @@ import { useChartSweep, type WashDelay } from '../chart/engine/use-chart-sweep'
 import {
 	MapZoomScaleContext,
 	useMapHoverActions,
+	useMapPlat,
 	useMapPointedMark,
 	useMapZoomScale,
 } from './context'
@@ -30,6 +32,7 @@ import {
 	STRIPE_TILE,
 } from './engine/map-constants'
 import { regionIndexAt } from './engine/map-hover/anchor'
+import { pixelScale } from './engine/map-projection/frame'
 import type { MapCategoryMeta } from './engine/map-region/category'
 import {
 	type MapRegionLayer,
@@ -533,10 +536,21 @@ function MapRegionsGroup({
  * {@link MapRegionSelected} gives: a read of the zoom scale re-renders these few
  * patterns, and not the atlas.
  *
+ * Before the box is measured, as on the server, the canonical frame scales to
+ * meet a box that no render knows, so no number gives the units of one pixel.
+ * The fill is then an outer pattern over the whole canonical frame. It holds a
+ * group that a rule scales to one pixel for each unit ({@link pixelScale}), and
+ * a rect in that group paints the tile. The first paint therefore draws the
+ * bands at their width in pixels, as the measured frame draws them. The scale
+ * is on the group and not on the tile, because WebKit ignores a CSS transform
+ * on a pattern.
+ *
  * @internal
  */
 function MapRegionStripes({ categories, base }: { categories: MapCategoryMeta[]; base: string }) {
 	const unitsPerPixel = useMapZoomScale()
+
+	const { unmeasured } = useMapPlat()
 
 	const striped = categories.flatMap((meta, index) =>
 		meta.paint.kind === 'stripes' ? [{ index, paint: meta.paint }] : [],
@@ -546,25 +560,63 @@ function MapRegionStripes({ categories, base }: { categories: MapCategoryMeta[];
 
 	const band = STRIPE_TILE / 2
 
+	const scope = `${base}-pixel`
+
+	const rule =
+		unmeasured === null
+			? null
+			: `[data-map-stripes="${scope}"]{${pixelScale(unmeasured.width, unmeasured.width / unmeasured.height)}}`
+
 	return (
 		<defs data-slot="map-region-stripes">
-			{striped.map(({ index, paint }) => (
-				<pattern
-					key={index}
-					id={stripePatternId(base, index)}
-					patternUnits="userSpaceOnUse"
-					width={STRIPE_TILE}
-					height={STRIPE_TILE}
-					patternTransform={`rotate(45) scale(${unitsPerPixel})`}
-				>
-					<rect width={band} height={STRIPE_TILE} className={cn(...paint.first.fill)} />
+			{rule !== null && <style suppressHydrationWarning>{rule}</style>}
 
-					<rect x={band} width={band} height={STRIPE_TILE} className={cn(...paint.second.fill)} />
-				</pattern>
-			))}
+			{striped.map(({ index, paint }) => {
+				const id = stripePatternId(base, index)
+
+				const tile = unmeasured === null ? id : `${id}-tile`
+
+				return (
+					<Fragment key={index}>
+						<pattern
+							id={tile}
+							patternUnits="userSpaceOnUse"
+							width={STRIPE_TILE}
+							height={STRIPE_TILE}
+							patternTransform={`rotate(45) scale(${unitsPerPixel})`}
+						>
+							<rect width={band} height={STRIPE_TILE} className={cn(...paint.first.fill)} />
+
+							<rect
+								x={band}
+								width={band}
+								height={STRIPE_TILE}
+								className={cn(...paint.second.fill)}
+							/>
+						</pattern>
+
+						{unmeasured !== null && (
+							<pattern
+								id={id}
+								patternUnits="userSpaceOnUse"
+								width={unmeasured.width}
+								height={unmeasured.height}
+							>
+								<g data-map-stripes={scope}>
+									{/* The plot box in pixels, which holds the drawn frame. */}
+									<rect style={PLOT_BOX} fill={`url(#${tile})`} />
+								</g>
+							</pattern>
+						)}
+					</Fragment>
+				)
+			})}
 		</defs>
 	)
 }
+
+/** The size of the plot box, for a rect in a group at one unit for each pixel. @internal */
+const PLOT_BOX = { width: '100cqw', height: '100cqh' } satisfies CSSProperties
 
 /**
  * The ring on the picked region, a step over the seam. It therefore reads as a
