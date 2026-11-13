@@ -68,7 +68,10 @@ export type Tally = {
 	tie: number
 	/** The points of the right picks. */
 	points: number
-	/** The points of every graded pick, which is what a perfect week would score. */
+	/**
+	 * The points of every graded pick that is not a tie. A tie scores no points
+	 * for any side, so this is what a perfect week would score.
+	 */
 	possible: number
 }
 
