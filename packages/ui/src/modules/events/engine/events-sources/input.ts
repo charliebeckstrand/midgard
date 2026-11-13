@@ -1,4 +1,4 @@
-import { describeTarget, isOwn } from '../events-target'
+import { describeTarget, isOwn, isSecret, MASK } from '../events-target'
 import type { EventSource } from '../types'
 import { addListeners, nextBatch } from './dom'
 
@@ -27,13 +27,42 @@ const MODIFIERS = [
 	['metaKey', 'Meta'],
 ] as const
 
-/** A key and its modifiers, such as `Shift+Tab`. A modifier that is the key itself goes out of the modifiers. */
+/**
+ * Whether a key is a named key of UI Events, such as `Enter`, `Tab`, or `F1`.
+ * Each named key is a word in this form. Each other key types text, which
+ * can be more than one code point, such as a cluster of an Indic layout.
+ */
+function isNamedKey(key: string): boolean {
+	return /^[A-Z][A-Za-z0-9]+$/.test(key)
+}
+
+/**
+ * Whether the events mask the key of a keyboard event: a key that types text
+ * into a password field.
+ */
+function isMasked(event: KeyboardEvent): boolean {
+	return isSecret(event.target) && !isNamedKey(event.key)
+}
+
+/**
+ * A key and its modifiers, such as `Shift+Tab`. A modifier that is the key
+ * itself goes out of the modifiers. A masked key is {@link MASK}.
+ */
 function formatChord(event: KeyboardEvent): string {
+	if (isMasked(event)) return MASK
+
 	const key = event.key === ' ' ? 'Space' : event.key
 
 	const modifiers = MODIFIERS.filter(([flag, name]) => event[flag] && name !== event.key)
 
 	return [...modifiers.map(([, name]) => name), key].join('+')
+}
+
+/** The detail of a keyboard event. The key and the code of a masked key are {@link MASK}. */
+function getKeyDetail(event: KeyboardEvent) {
+	return isMasked(event)
+		? { key: MASK, code: MASK, repeat: event.repeat }
+		: { key: event.key, code: event.code, repeat: event.repeat }
 }
 
 /** The events that start a gesture: a press of a pointer or of a key. */
@@ -70,7 +99,7 @@ export const input: EventSource = (note) => {
 		note({
 			kind: 'input',
 			text: `${event.type}${keyText} ${describeTarget(event.target)}${synthetic}`,
-			detail: isKeyboard ? { key: event.key, code: event.code, repeat: event.repeat } : undefined,
+			detail: isKeyboard ? getKeyDetail(event) : undefined,
 			batch,
 		})
 

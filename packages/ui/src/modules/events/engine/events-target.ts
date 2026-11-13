@@ -17,13 +17,41 @@ export function isOwn(target: unknown): boolean {
 	return target instanceof Element && target.closest(`[${TOOL_ATTRIBUTE}]`) !== null
 }
 
-/** A short name of an event target: the tag, the anchor, and the value of an input. @internal */
+/**
+ * The text that the events write in place of a secret: the value of a
+ * password field, and each character that a key types into it. It has a
+ * fixed length, so it does not tell the length of the secret.
+ *
+ * @internal
+ */
+export const MASK = '***'
+
+/**
+ * The password fields: each input of type `password`, and each
+ * `PasswordInput`, which keeps its slot while it shows the password as text.
+ */
+const SECRET = 'input[type="password"], input[data-slot="password-input"]'
+
+/** Whether an event target is a password field, whose value the events do not write. @internal */
+export function isSecret(target: unknown): boolean {
+	return target instanceof HTMLInputElement && target.matches(SECRET)
+}
+
+/**
+ * A short name of an event target: the tag, the anchor, and the value of an
+ * input. The value of a password field is {@link MASK}.
+ *
+ * @internal
+ */
 export function describeTarget(target: unknown): string {
 	if (!(target instanceof Element) || target === document.documentElement) return 'page'
 
 	const slot = target.getAttribute('data-slot')
 
-	const value = target instanceof HTMLInputElement && target.value ? `=${target.value}` : ''
+	const value =
+		target instanceof HTMLInputElement && target.value
+			? `=${isSecret(target) ? MASK : target.value}`
+			: ''
 
 	return `${target.tagName.toLowerCase()}${slot ? `[${slot}]` : ''}${value}`
 }

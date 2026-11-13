@@ -109,8 +109,10 @@ export function PasswordInput({
 
 	return (
 		<Input
-			data-slot="password-input"
 			{...props}
+			// The events read the slot to mask the value while it shows as text, so
+			// it comes after the spread (CONVENTIONS.md §3.9).
+			data-slot="password-input"
 			type={revealed ? 'text' : 'password'}
 			suffix={
 				showToggle ? (
