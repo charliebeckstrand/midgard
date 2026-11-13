@@ -162,6 +162,51 @@ describe('listen', () => {
 		expect(store.entries[0]?.detail).toEqual({ key: 'Tab', code: 'Tab', repeat: false })
 	})
 
+	it('masks the value of a password field and each character typed into it, and keeps named keys', () => {
+		const store = listenTo()
+
+		const password = attach(document.createElement('input'))
+
+		password.type = 'password'
+
+		password.value = 'hunter2'
+
+		const field = attach(document.createElement('input'))
+
+		field.value = 'midgard'
+
+		password.dispatchEvent(new KeyboardEvent('keydown', { key: 'h', code: 'KeyH', bubbles: true }))
+
+		password.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }),
+		)
+
+		password.dispatchEvent(new Event('input', { bubbles: true }))
+
+		field.dispatchEvent(new KeyboardEvent('keydown', { key: 'm', code: 'KeyM', bubbles: true }))
+
+		// A PasswordInput that shows its password is a text input with its slot.
+		const shown = attach(document.createElement('input'))
+
+		shown.dataset.slot = 'password-input'
+
+		shown.value = 'hunter2'
+
+		shown.dispatchEvent(new Event('input', { bubbles: true }))
+
+		expect(texts(store)).toEqual([
+			'keydown *** input=*** synthetic',
+			'keydown Enter input=*** synthetic',
+			'input input=*** synthetic',
+			'keydown m input=midgard synthetic',
+			'input input[password-input]=*** synthetic',
+		])
+
+		expect(store.entries[0]?.detail).toEqual({ key: '***', code: '***', repeat: false })
+
+		expect(store.entries[1]?.detail).toEqual({ key: 'Enter', code: 'Enter', repeat: false })
+	})
+
 	it('records the start and the end of a scroll as one batch', async ({ clock }) => {
 		const store = listenTo()
 
