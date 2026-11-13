@@ -33,16 +33,16 @@ describe('the New row demo', () => {
 
 		addPerson(container, 'Ann', 'ann@example.com ')
 
-		await waitFor(() => expect(screen.getByText('Ann')).toBeInTheDocument(), { timeout: 3000 })
+		await waitFor(() => expect(screen.queryByText('Ann')).not.toBeNull(), { timeout: 3000 })
 
 		addPerson(container, 'Ann Two', 'ann@example.com')
 
 		await waitFor(
 			() =>
-				expect(screen.getByText('Enter a different email. This one is taken.')).toBeInTheDocument(),
+				expect(screen.queryByText('Enter a different email. This one is taken.')).not.toBeNull(),
 			{ timeout: 3000 },
 		)
 
-		expect(screen.queryByText('Ann Two')).not.toBeInTheDocument()
+		expect(screen.queryByText('Ann Two')).toBeNull()
 	})
 })
