@@ -6,6 +6,7 @@ import {
 	recordEvent,
 	reportBug,
 } from '../../modules/events/engine/events-sink'
+import { paint } from '../../modules/events/engine/events-sources/paint'
 import { EventStore, type NewEntry } from '../../modules/events/engine/events-store'
 import { TOOL_ATTRIBUTE } from '../../modules/events/engine/events-target'
 import { notifyOverlaySignal } from '../../primitives/overlay/overlay-signal'
@@ -249,6 +250,11 @@ describe('listen', () => {
 
 		window.dispatchEvent(Object.assign(new Event('unhandledrejection'), { reason: 'gone' }))
 
+		// A value with no primitive form, which `String` throws for.
+		window.dispatchEvent(
+			Object.assign(new Event('unhandledrejection'), { reason: Object.create(null) }),
+		)
+
 		attach(
 			Object.assign(document.createElement('script'), { src: '/assets/chunk.js' }),
 		).dispatchEvent(new Event('error'))
@@ -256,6 +262,7 @@ describe('listen', () => {
 		expect(store.entries.map(({ kind, text, report }) => [kind, text, report?.origin])).toEqual([
 			['error', 'boom', 'window'],
 			['error', 'unhandled rejection gone', 'window'],
+			['error', 'unhandled rejection [object Object]', 'window'],
 			['error', 'load fails script /assets/chunk.js', 'window'],
 		])
 
@@ -545,5 +552,48 @@ describe('start', () => {
 		expect(start()).toBe(store)
 
 		expect(texts(store)[0]).toBe(`──── on ${location.pathname}`)
+	})
+})
+
+describe('paint', () => {
+	it('skips a layout shift that moves only the tools, the root of a tool too', () => {
+		let deliver: (entries: object[]) => void = () => undefined
+
+		vi.stubGlobal(
+			'PerformanceObserver',
+			class {
+				static supportedEntryTypes = ['layout-shift']
+
+				constructor(callback: (list: { getEntries: () => object[] }) => void) {
+					deliver = (entries) => callback({ getEntries: () => entries })
+				}
+
+				observe() {}
+
+				disconnect() {}
+			},
+		)
+
+		const tool = attach(document.createElement('aside'))
+
+		tool.setAttribute(TOOL_ATTRIBUTE, '')
+
+		const page = attach(document.createElement('main'))
+
+		const note = vi.fn()
+
+		onTestFinished(paint(note))
+
+		const shift = (node: Node) => ({
+			entryType: 'layout-shift',
+			name: '',
+			startTime: 10,
+			value: 0.01,
+			sources: [{ node }],
+		})
+
+		deliver([shift(tool), shift(page)])
+
+		expect(note.mock.calls.map(([line]) => line.text)).toEqual(['layout-shift 0.0100'])
 	})
 })

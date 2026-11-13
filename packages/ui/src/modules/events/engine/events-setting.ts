@@ -97,7 +97,8 @@ export function startEvents(next: StartEventsOptions = {}): Promise<void> {
 
 /**
  * Turns the setting on or off, and starts or stops the events of this page.
- * Off drops the events and the kept copy.
+ * Off drops the events and the kept copy. The events follow the stored
+ * setting, so they stay off where the storage throws.
  */
 export function setEventsOn(on: boolean): void {
 	writeLocal(ON, on)
@@ -106,7 +107,7 @@ export function setEventsOn(on: boolean): void {
 
 	onChanges.emit()
 
-	void loadRecorder().then(({ start, halt }) => (on ? start(options) : halt()), noop)
+	void loadRecorder().then(({ start, halt }) => (isEventsOn() ? start(options) : halt()), noop)
 }
 
 /** Calls `listener` on each change of the setting that runs the events. @internal */
@@ -178,10 +179,11 @@ function writeMirror({ cookie }: Setting, on: boolean): void {
 	writeCookie(cookie, on ? '1' : '0')
 }
 
+/** Writes `setting` from `on`, and its cookie from the stored setting, so the two agree where the storage throws. */
 function writeLocal(setting: Setting, on: boolean): void {
 	writeStorage(local(), setting.key, on ? '1' : null)
 
-	writeMirror(setting, on)
+	writeMirror(setting, readLocal(setting))
 }
 
 /**

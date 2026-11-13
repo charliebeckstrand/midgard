@@ -103,8 +103,12 @@ export function useEventsView(live: boolean): EventsViewParts {
 		setViewed(id)
 	}
 
+	// Each control of the footer has a key, so a change of the view does not
+	// give the node of one control to another. Then a second press on the
+	// same spot does not run a different action.
 	const captureButton = (
 		<Button
+			key="capture"
 			size="sm"
 			color={capturing ? 'red' : 'blue'}
 			prefix={
@@ -127,7 +131,7 @@ export function useEventsView(live: boolean): EventsViewParts {
 	)
 
 	const clearButton = entries.length > 0 && (
-		<Button size="sm" color="amber" onClick={() => store.clear()}>
+		<Button key="clear" size="sm" color="amber" onClick={() => store.clear()}>
 			{intl.formatMessage(intlMessages.clear)}
 		</Button>
 	)
@@ -183,8 +187,9 @@ export function useEventsView(live: boolean): EventsViewParts {
 			body: <Markdown headingOffset={1}>{markdown}</Markdown>,
 			footer: (
 				<>
-					<EventsCopyButton text={() => markdown} />
+					<EventsCopyButton key="copy" text={() => markdown} />
 					<Button
+						key="delete"
 						size="sm"
 						color="red"
 						onClick={() => {
@@ -269,7 +274,10 @@ export function useEventsView(live: boolean): EventsViewParts {
 			),
 		footer: (
 			<>
-				<EventsCopyButton text={() => rows.map((row) => formatRow(row, width)).join('\n')} />
+				<EventsCopyButton
+					key="copy"
+					text={() => rows.map((row) => formatRow(row, width)).join('\n')}
+				/>
 				{captureButton}
 				{clearButton}
 			</>

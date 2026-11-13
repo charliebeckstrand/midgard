@@ -32,8 +32,8 @@ export type EventsSheetProps = { open: boolean; onOpenChange: (open: boolean) =>
  * body that scrolls. Where the enclosing `SidebarLayout` is inline, Pin closes
  * the sheet and docks the view on the end edge of the page. Pin shows only
  * while the page holds an `EventsAside`, which is the place of the docked
- * view, and only where that aside shows. The store records nothing while the sheet is
- * on screen, so the sheet does not record itself.
+ * view, and only where that aside shows. The store records no event but a bug
+ * while the sheet is on screen, so the sheet does not record itself.
  *
  * @internal
  */

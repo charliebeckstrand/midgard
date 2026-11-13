@@ -1,3 +1,4 @@
+import { formatValue } from '../events-probes'
 import { describeTarget } from '../events-target'
 import type { EventSource } from '../types'
 import { addListeners, all } from './dom'
@@ -35,7 +36,7 @@ export const errors: EventSource = (note) =>
 
 			note({
 				kind: 'error',
-				text: `unhandled rejection ${String(reason)}`,
+				text: `unhandled rejection ${formatValue(reason)}`,
 				bug: { origin: 'window', error: reason },
 			})
 		}),

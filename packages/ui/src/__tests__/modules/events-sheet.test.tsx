@@ -420,6 +420,29 @@ describe('EventsSheet Bugs', () => {
 		expect(screen.getByRole('list', { name: 'Bugs' })).toBeDefined()
 	})
 
+	it('does not give the node of Stop capture to Delete, so a third press on it deletes no report', async () => {
+		const store = start()
+
+		const sheet = renderSheet()
+
+		sheet.open()
+
+		const capture = screen.getByRole('button', { name: 'Capture' })
+
+		act(() => fireEvent.click(capture))
+
+		expect(await screen.findByRole('button', { name: 'Stop capture' })).toBe(capture)
+
+		act(() => fireEvent.click(capture))
+
+		expect(await screen.findByRole('heading', { name: 'capture' })).toBeDefined()
+
+		// A third press lands on the node that held Stop capture.
+		act(() => fireEvent.click(capture))
+
+		expect(store.entries.filter(({ report }) => report?.origin === 'capture')).toHaveLength(1)
+	})
+
 	it('runs a capture until Stop, then shows its report with each event from its start', async () => {
 		const store = start()
 
@@ -652,6 +675,24 @@ describe('startEvents', () => {
 		expect(root.hasAttribute('data-events')).toBe(false)
 
 		expect(root.hasAttribute('data-events-pinned')).toBe(false)
+	})
+})
+
+describe('setEventsOn', () => {
+	it('leaves the events and their cookie off where the storage throws', async () => {
+		restoreEventsOn()
+
+		vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+			throw new DOMException('quota', 'QuotaExceededError')
+		})
+
+		setEventsOn(true)
+
+		await vi.dynamicImportSettled()
+
+		expect(getEventSink()).toBeUndefined()
+
+		expect(document.cookie).toContain('events-on=0')
 	})
 })
 
