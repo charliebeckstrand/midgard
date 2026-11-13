@@ -2,10 +2,11 @@
 
 import { CornerLeftDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
-import { type FocusEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { type FocusEvent, type MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { Color } from '../../recipes'
@@ -46,6 +47,16 @@ const messages = defineMessages({
 		description: 'The validation message of a required tag field that holds no tag.',
 	},
 })
+
+/**
+ * The props of the remove button of a chip. A press on the button keeps the
+ * focus in the input, and its click does not reach the frame. All chips share
+ * this one object, so it does not render a chip.
+ */
+const REMOVE_PROPS = {
+	onMouseDown: (event: MouseEvent<HTMLButtonElement>) => event.preventDefault(),
+	onClick: (event: MouseEvent<HTMLButtonElement>) => event.stopPropagation(),
+}
 
 /**
  * Props for {@link TagInput}: controlled/uncontrolled tag list plus `max`, `validate`, the `onReject` report, and `<Form>` binding via `name`.
@@ -330,6 +341,17 @@ export function TagInput({
 		commit(inputValue.slice(0, start) + pasted + inputValue.slice(end))
 	})
 
+	// One identity for the mount, so a keystroke in the draft does not render
+	// each chip.
+	const handleRemove = useStableEvent((index: number) => {
+		removeTag(index)
+
+		// Returns focus to the input after badge removal (WCAG 2.4.3). The field
+		// stays focusable at the cap (read-only, not disabled), so this lands even
+		// when the removal is what clears the cap.
+		inputRef.current?.focus()
+	})
+
 	// Duplicate controlled values ('a','a') collide on a bare value key;
 	// repeats get an occurrence suffix (the validate path dedupes, the
 	// controlled path can't).
@@ -356,30 +378,16 @@ export function TagInput({
 				{keyedTags.map(({ value: tag, key }, index) => (
 					// The chip sits in the prefix scope of the host Input, one step below
 					// the control, so it takes that step with no `size`. A locked chip has
-					// no remove button and no Tab stop. A press on the button keeps the
-					// focus in the input, and its click does not reach the frame.
+					// no remove button and no Tab stop.
 					<BadgeRemovable
 						key={key}
 						role="listitem"
 						label={tag}
 						color={tagColor}
 						className={k().badge}
-						removeProps={{
-							onMouseDown: (event) => event.preventDefault(),
-							onClick: (event) => event.stopPropagation(),
-						}}
-						onRemove={
-							locked
-								? undefined
-								: () => {
-										removeTag(index)
-
-										// Returns focus to the input after badge removal (WCAG 2.4.3).
-										// The field stays focusable at the cap (read-only, not disabled),
-										// so this lands even when the removal is what clears the cap.
-										inputRef.current?.focus()
-									}
-						}
+						removeProps={REMOVE_PROPS}
+						value={index}
+						onRemove={locked ? undefined : handleRemove}
 					/>
 				))}
 			</Flex>

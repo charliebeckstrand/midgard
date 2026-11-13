@@ -1,7 +1,14 @@
 'use client'
 
 import { X } from 'lucide-react'
-import type { AriaRole, KeyboardEvent, MouseEventHandler, ReactNode, Ref } from 'react'
+import {
+	type AriaRole,
+	type KeyboardEvent,
+	type MouseEventHandler,
+	memo,
+	type ReactNode,
+	type Ref,
+} from 'react'
 import { cn } from '../../core/cn'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -23,9 +30,10 @@ const messages = defineMessages<{ remove: { label: string } }>({
 /**
  * Props for {@link BadgeRemovable}.
  *
+ * @typeParam V - The type of `value`, which `onRemove` takes.
  * @internal
  */
-export type BadgeRemovableProps = {
+export type BadgeRemovableProps<V = undefined> = {
 	/**
 	 * The text of the chip. The remove button has the name "Remove <label>", in
 	 * the language of the reader.
@@ -41,8 +49,17 @@ export type BadgeRemovableProps = {
 	/** The ARIA role of the chip, for example `listitem`. */
 	role?: AriaRole
 	className?: string
-	/** Fires on a click of the remove button, and on Delete or Backspace on it. Omit it for a chip with no remove button. */
-	onRemove?: () => void
+	/**
+	 * The value that the chip gives to `onRemove`, for example its position in a
+	 * list. One `onRemove` can then serve each chip of the list, so a chip
+	 * renders only when its own props change.
+	 */
+	value?: V
+	/**
+	 * Fires with `value` on a click of the remove button, and on Delete or
+	 * Backspace on it. Omit it for a chip with no remove button.
+	 */
+	onRemove?: (value: V) => void
 	/** Disables the remove button. The button stays in the chip. */
 	disabled?: boolean
 	/** The ref of the remove button. */
@@ -75,7 +92,7 @@ export type BadgeRemovableProps = {
  *
  * @internal
  */
-export function BadgeRemovable({
+function BadgeRemovableImpl<V = undefined>({
 	label,
 	children,
 	color,
@@ -85,7 +102,8 @@ export function BadgeRemovable({
 	disabled,
 	removeRef,
 	removeProps,
-}: BadgeRemovableProps) {
+	value,
+}: BadgeRemovableProps<V>) {
 	const intl = useIntl()
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -104,7 +122,7 @@ export function BadgeRemovable({
 
 		event.preventDefault()
 
-		onRemove?.()
+		onRemove?.(value as V)
 	}
 
 	return (
@@ -126,7 +144,7 @@ export function BadgeRemovable({
 						onClick={(event) => {
 							removeProps?.onClick?.(event)
 
-							onRemove()
+							onRemove(value as V)
 						}}
 						onKeyDown={handleKeyDown}
 					>
@@ -139,3 +157,10 @@ export function BadgeRemovable({
 		</Badge>
 	)
 }
+
+/**
+ * Memoized {@link BadgeRemovableImpl}. When a list gives each chip its own
+ * `value`, and one `onRemove` and one `removeProps` object that keep their
+ * identity, the list renders only the chips whose props change. @internal
+ */
+export const BadgeRemovable = memo(BadgeRemovableImpl) as typeof BadgeRemovableImpl
