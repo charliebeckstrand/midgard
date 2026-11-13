@@ -1,5 +1,6 @@
 import { Badge } from 'ui/badge'
 import { DateTime } from 'ui/date-time'
+import { useIntl } from 'ui/primitives/intl'
 import { Text } from 'ui/text'
 import { CATEGORY_BY_VALUE } from '../../constants'
 import type { Place, PlaceCategory } from '../../types'
@@ -14,6 +15,8 @@ import { PlaceRating } from './place-rating'
  * one. They are spans, because a list row puts them inside a button.
  */
 function PlaceMeta({ place }: { place: Place }) {
+	const intl = useIntl()
+
 	const latest = latestVisit(place)
 
 	return (
@@ -22,7 +25,7 @@ function PlaceMeta({ place }: { place: Place }) {
 
 			{place.visits.length > 1 ? (
 				<Text as="span" tone="muted">
-					{place.visits.length} visits
+					{intl.formatNumber(place.visits.length)} visits
 				</Text>
 			) : (
 				<Text as="span" tone="muted">

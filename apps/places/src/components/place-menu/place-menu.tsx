@@ -9,7 +9,7 @@ import { Menu, MenuContent, MenuTrigger } from 'ui/menu'
 
 /** Props for {@link PlaceMenu}. */
 export type PlaceMenuProps = {
-	/** The rows, from `placeMenuItems` or `visitMenuItems`. */
+	/** The rows, from `placeMenuItems`, `visitMenuItems`, or `tripMenuItems`. */
 	items: ContextMenuEntry[]
 	/** The name of the menu, which also names the button. */
 	'aria-label': string
@@ -21,9 +21,10 @@ export type PlaceMenuProps = {
 }
 
 /**
- * The one menu of the app, over a place or one of its visits. It opens from a
- * vertical ellipsis button on a row of My places and in the place drawer, and
- * on a right-click or a long press of a place in the search. Every spot shows
+ * The one menu of the app, over a place, one of its visits, or a trip. It opens
+ * from a vertical ellipsis button on a row of My places or My trips and in the
+ * drawer, and on a right-click or a long press of a place or a trip in the
+ * search. Every spot shows
  * the same rows, so the reader finds one action in one place.
  */
 export function PlaceMenu({ items, 'aria-label': ariaLabel, children }: PlaceMenuProps) {
