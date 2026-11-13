@@ -1,7 +1,7 @@
 'use client'
 
 import { Card } from 'ui/card'
-import { SeatChart } from 'ui/chart'
+import { ChartHeaderActionsFallback, SeatChart } from 'ui/chart'
 import { Link } from 'ui/link'
 import { Odometer } from 'ui/odometer'
 import { HeaderActions, HeaderActionsSlot } from 'ui/primitives/header-actions'
@@ -53,9 +53,12 @@ export function SeatCard({ contest, parties, href }: SeatCardProps) {
 							{contest.plural}
 						</Link>
 
-						{/* The chart puts its View data and menu buttons here, side by side. */}
+						{/* The chart puts its View data and menu buttons here, side by side. The
+						    fallback draws them in the server render, before the chart mounts. */}
 						<Flex gap="xs" align="center">
-							<HeaderActionsSlot />
+							<HeaderActionsSlot>
+								<ChartHeaderActionsFallback menuButton />
+							</HeaderActionsSlot>
 						</Flex>
 					</Flex>
 
