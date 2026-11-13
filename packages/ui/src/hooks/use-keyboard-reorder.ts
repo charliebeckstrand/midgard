@@ -18,7 +18,7 @@ import { useStableEvent } from './use-stable-event'
  */
 export type KeyboardReorderOptions<T> = {
 	/** Ordered items, in the order they render. */
-	items: T[]
+	items: readonly T[]
 	/** Stable key extractor. */
 	getKey: (item: T) => string
 	/**

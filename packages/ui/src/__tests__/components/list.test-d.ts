@@ -40,6 +40,21 @@ describe('List', () => {
 		expectTypeOf<Arms<ListProps<Item>>>().toEqualTypeOf<Before>()
 	})
 
+	it('accepts a readonly items array (compile-time)', () => {
+		// The list does not change `items`. So a caller with a readonly array
+		// passes it as it is and does not copy it on each render.
+		const items: readonly Item[] = []
+
+		const props: ListProps<Item> = {
+			items,
+			getKey: (item) => item.id,
+			onReorder: () => {},
+			children: () => null,
+		}
+
+		expectTypeOf(props.items).toEqualTypeOf<readonly Item[]>()
+	})
+
 	it('requires getKey for reorderable configurations (compile-time)', () => {
 		// The index-key fallback gives positional keys, and a reorder changes them.
 		// Each item then mounts again during a drag. Thus `onReorder` without
