@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	anchorEndTicks,
+	bubbleCeiling,
 	diameterRange,
 	scatterDiscLayers,
 	scatterMarkAt,
@@ -101,7 +102,7 @@ describe('scatter geometry', () => {
 	})
 
 	it('scales bubble areas with the size, from zero to the largest size', () => {
-		const diameters = diameterRange(8, 28)
+		const diameters = diameterRange(8, 28, 28)
 
 		expect(sizeRadius(100, 100, diameters)).toBeNear(14, RADIUS_TOLERANCE)
 
@@ -115,7 +116,7 @@ describe('scatter geometry', () => {
 	})
 
 	it('floors a small size at the smallest diameter, and reads a sizeless point there too', () => {
-		const diameters = diameterRange(8, 28)
+		const diameters = diameterRange(8, 28, 28)
 
 		expect(sizeRadius(1, 100, diameters)).toBeNear(4, RADIUS_TOLERANCE)
 
@@ -125,12 +126,26 @@ describe('scatter geometry', () => {
 	})
 
 	it('draws a zero size at the smallest diameter and a negative size as no disc', () => {
-		const diameters = diameterRange(8, 28)
+		const diameters = diameterRange(8, 28, 28)
 
 		// Every size is zero, so the peak is zero. The discs read smallest.
 		expect(sizeRadius(0, 0, diameters)).toBeNear(4, RADIUS_TOLERANCE)
 
 		expect(sizeRadius(-3, 16, diameters)).toBe(0)
+	})
+
+	it('grows the default largest diameter with the frame, from 28 px', () => {
+		// A tenth of the shorter side is less than 28 px, so the fixed diameter holds.
+		expect(bubbleCeiling(480, 270)).toBe(28)
+
+		expect(bubbleCeiling(1000, 540)).toBeNear(54, FLOAT)
+
+		expect(bubbleCeiling(540, 1000)).toBeNear(54, FLOAT)
+
+		// A series without `maxSize` takes the ceiling of its frame; an explicit one wins.
+		expect(diameterRange(undefined, undefined, 54)).toEqual([8, 54])
+
+		expect(diameterRange(8, 28, 54)).toEqual([8, 28])
 	})
 
 	it('leaves a negative size out of the largest size', () => {

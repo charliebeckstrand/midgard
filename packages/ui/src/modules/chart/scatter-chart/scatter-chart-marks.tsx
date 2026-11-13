@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
-import { memo, useMemo } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { cn } from '../../../core/cn'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
@@ -192,8 +192,33 @@ const DISC_POP = { ...POINT_POP, delay: 0 }
 /** The pop-out of a disc to its center: the pop in reverse. @internal */
 const DISC_EXIT = { r: 0, opacity: 0, transition: POINT_UNPOP }
 
-/** The disc under reduced motion: a new radius applies at once. @internal */
+/** The disc under reduced motion or after a resize: a new radius applies at once. @internal */
 const DISC_STILL = { ...DISC_POP, r: k.motion.instant }
+
+/** Props for {@link AnimatedScatterChartMarks}. @internal */
+type AnimatedScatterChartMarksProps = ScatterChartMarksProps & {
+	/** The largest bubble diameter of the frame ({@link bubbleCeiling}). */
+	ceiling: number
+}
+
+/**
+ * Whether the last change of `list` came with a new `ceiling`, that is, from a
+ * resize of the frame. The flag stays with that `list`, so each render of one
+ * `list` reads the same answer.
+ *
+ * @internal
+ */
+function useResized(list: ChartScatterSeries[], ceiling: number): boolean {
+	const [drawn, setDrawn] = useState({ list, ceiling, resized: false })
+
+	if (drawn.list === list) return drawn.resized
+
+	const resized = drawn.ceiling !== ceiling
+
+	setDrawn({ list, ceiling, resized })
+
+	return resized
+}
 
 /**
  * The Framer Motion scatter discs: each pops from its center on mount, on the
@@ -202,12 +227,22 @@ const DISC_STILL = { ...DISC_POP, r: k.motion.instant }
  * discs mount at rest, change size at once, and leave at once. The radius is no
  * transform, so the reduced-motion config of motion does not skip it.
  *
+ * A resize moves each disc at once, so a radius that changes with the frame
+ * ({@link bubbleCeiling}) also applies at once. A size that changes with the
+ * data still grows or shrinks.
+ *
  * @internal
  */
-export function AnimatedScatterChartMarks({ list, hidden }: ScatterChartMarksProps) {
+export function AnimatedScatterChartMarks({
+	list,
+	hidden,
+	ceiling,
+}: AnimatedScatterChartMarksProps) {
 	const { lit } = useChartMarkEmphasis()
 
 	const still = usePrefersReducedMotion()
+
+	const resized = useResized(list, ceiling)
 
 	// Each series is its own presence, so a hidden one plays its exit while the
 	// rest stay. `propagate` passes the exit of the marks generation through. No
@@ -228,6 +263,7 @@ export function AnimatedScatterChartMarks({ list, hidden }: ScatterChartMarksPro
 								sized={sized}
 								lit={lit(index, datum)}
 								still={still}
+								instant={still || resized}
 							/>
 						))}
 					</g>
@@ -246,6 +282,8 @@ type AnimatedDiscProps = {
 	sized: boolean
 	lit: boolean
 	still: boolean
+	/** Apply a new radius at once: under reduced motion, or after a resize. */
+	instant: boolean
 }
 
 /**
@@ -262,6 +300,7 @@ const AnimatedDisc = memo(function AnimatedDisc({
 	sized,
 	lit,
 	still,
+	instant,
 }: AnimatedDiscProps) {
 	return (
 		<m.circle
@@ -275,7 +314,7 @@ const AnimatedDisc = memo(function AnimatedDisc({
 			// same channel (receding to the class dim's depth) rather than a class
 			// the inline value would override.
 			animate={{ r, opacity: lit ? 1 : DIM_OPACITY }}
-			transition={still ? DISC_STILL : DISC_POP}
+			transition={instant ? DISC_STILL : DISC_POP}
 		/>
 	)
 })

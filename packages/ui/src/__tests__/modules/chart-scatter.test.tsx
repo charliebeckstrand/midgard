@@ -499,6 +499,27 @@ describe('BubbleChart', () => {
 		}
 	})
 
+	it('grows the largest disc with the frame unless the series sets a maxSize', () => {
+		const chart = (maxSize?: number) => (
+			<BubbleChart
+				aria-label="Dwell against distance, sized by weight"
+				data={STOPS}
+				width={1200}
+				height={600}
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', maxSize }]}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart())
+
+		// A tenth of the shorter side of the frame: 60 px across.
+		expect(Math.max(...points(container).map((disc) => Number(disc.getAttribute('r'))))).toBe(30)
+
+		rerender(chart(28))
+
+		expect(Math.max(...points(container).map((disc) => Number(disc.getAttribute('r'))))).toBe(14)
+	})
+
 	it('draws the smallest disc for a series whose sizes all fail to parse', () => {
 		const { container } = renderUI(
 			<BubbleChart

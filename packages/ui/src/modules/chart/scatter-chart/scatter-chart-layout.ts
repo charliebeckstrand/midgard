@@ -54,8 +54,15 @@ export type ScatterMeta = {
 	drawn: ScatterDatum[]
 	sized: boolean
 	sizeName: string | null
-	radius: (size: number | null) => number
+	/**
+	 * The radius of each point in a frame, from the `ceiling` of that frame
+	 * ({@link bubbleCeiling}). A plain series ignores the ceiling.
+	 */
+	radius: (ceiling: number) => (size: number | null) => number
 }
+
+/** The radius of each point of a plain series. @internal */
+const markerRadius = () => MARKER_RADIUS
 
 /**
  * Every series parsed and resolved: paint, points, and the bubble radius
@@ -77,8 +84,6 @@ export function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): Sca
 
 		const sized = entry.sizeKey !== undefined
 
-		const diameters = diameterRange(entry.size, entry.maxSize)
-
 		return {
 			index,
 			label: entry.yName ?? entry.yKey,
@@ -89,7 +94,13 @@ export function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): Sca
 			drawn: entry.sizeKey === undefined ? points : scatterDrawn(points),
 			sized,
 			sizeName: entry.sizeKey === undefined ? null : (entry.sizeName ?? entry.sizeKey),
-			radius: sized ? (size) => sizeRadius(size, peak, diameters) : () => MARKER_RADIUS,
+			radius: sized
+				? (ceiling) => {
+						const diameters = diameterRange(entry.size, entry.maxSize, ceiling)
+
+						return (size) => sizeRadius(size, peak, diameters)
+					}
+				: () => markerRadius,
 		}
 	})
 }
@@ -192,18 +203,18 @@ function scatterTitles(
 
 /**
  * How far the largest disc paints past its center: the widest disc radius
- * across the visible points, plus the half of the surface ring that strokes
- * outside that radius. A frame edge that keeps this inset therefore clears the
- * painted edge, not just the fill. Falls back to the plain
- * {@link MARKER_RADIUS} when there is nothing to measure.
+ * across the visible points at the `ceiling` of the frame, plus the half of the
+ * surface ring that strokes outside that radius. A frame edge that keeps this
+ * inset therefore clears the painted edge, not just the fill. Falls back to the
+ * plain {@link MARKER_RADIUS} when there is nothing to measure.
  * @internal
  */
-function discReach(visible: ScatterMeta[]): number {
-	const widest = visible.reduce(
-		(outer, meta) =>
-			meta.drawn.reduce((inner, point) => Math.max(inner, meta.radius(point.size)), outer),
-		MARKER_RADIUS,
-	)
+function discReach(visible: ScatterMeta[], ceiling: number): number {
+	const widest = visible.reduce((outer, meta) => {
+		const radius = meta.radius(ceiling)
+
+		return meta.drawn.reduce((inner, point) => Math.max(inner, radius(point.size)), outer)
+	}, MARKER_RADIUS)
 
 	return widest + MARKER_RING_WIDTH / 2
 }
@@ -234,6 +245,8 @@ export function scatterScales(args: {
 	visible: ScatterMeta[]
 	frameWidth: number
 	frameHeight: number
+	/** The largest bubble diameter of the frame ({@link bubbleCeiling}). */
+	ceiling: number
 	axes: boolean
 	/** Spark draws bare marks, so the gutter is reclaimed and the domain fits tight. */
 	spark: boolean
@@ -248,7 +261,18 @@ export function scatterScales(args: {
 	xTitle?: string
 	yTitle?: string
 }): ScatterScales {
-	const { visible, frameWidth, frameHeight, axes, spark, tickTarget, pins, format, formatX } = args
+	const {
+		visible,
+		frameWidth,
+		frameHeight,
+		ceiling,
+		axes,
+		spark,
+		tickTarget,
+		pins,
+		format,
+		formatX,
+	} = args
 
 	const drawAxes = axes && !spark
 
@@ -272,7 +296,7 @@ export function scatterScales(args: {
 	// band past it still keeps the reach, so a large bubble never clips there.
 	const scaleTicks = spark ? 0 : tickTarget
 
-	const reach = discReach(visible)
+	const reach = discReach(visible, ceiling)
 
 	const inset = spark ? reach : 0
 

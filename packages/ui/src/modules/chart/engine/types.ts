@@ -137,8 +137,10 @@ export type ScatterChartSeries<T> = Pick<ChartSeries<T>, 'yKey' | 'yName' | 'col
 	 */
 	size?: number
 	/**
-	 * Largest bubble diameter, in px.
-	 * @defaultValue 28
+	 * Largest bubble diameter, in px. Without it, the largest bubble follows the
+	 * frame: a tenth of the shorter side of the frame, and at least 28 px. The
+	 * size measure thus gets more range in a large frame.
+	 * @defaultValue a tenth of the shorter side of the frame, and at least 28
 	 */
 	maxSize?: number
 }
