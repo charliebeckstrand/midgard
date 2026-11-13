@@ -23,7 +23,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useFloatingPanel` | Base floating-panel hook: `useFloating` with autoUpdate and the standard offset, flip, shift, size, and hide middleware. Its resize observer stops for the rest of each delivery, so a size write causes no "ResizeObserver loop" error. It keeps the panel in the viewport, and hides it while an open overlay covers its reference. It returns the placement after `flip`, and whether floating-ui placed the open panel. |
+| `useFloatingPanel` | Base floating-panel hook: `useFloating` with autoUpdate and the standard offset, flip, shift, size, and hide middleware. Its resize observer stops for the rest of each delivery, so a size write causes no "ResizeObserver loop" error. It keeps the panel in the viewport, and hides it while an open overlay covers its reference. It returns the placement after `flip`, whether floating-ui placed the open panel, and `update`, which places the panel again. |
 | `useFloatingUI` | Floating panel with built-in dismiss + role prop-getters for listbox/combobox/menu/datepicker surfaces. |
 | `useFloatingDisclosure` | Disclosure wrapper over `useFloatingPanel`: controllable open state, trigger ref, focus restore, dismiss + role. With `signal`, an open sends the overlay signal that closes a tooltip. |
 | `useDismissable` | Overlay dismiss behavior: Escape (via the dismiss-layer stack) plus pointer-down outside the boundary, sparing a floating surface opened from within it. |
