@@ -12,7 +12,12 @@
 
 import { parseNumeric } from '../../../../utilities/parse-numeric'
 import type { ChartAxisTick } from '../chart-axes/axis'
-import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RING_WIDTH } from '../chart-constants'
+import {
+	BUBBLE_MAX_DIAMETER,
+	BUBBLE_MAX_SHARE,
+	BUBBLE_MIN_DIAMETER,
+	MARKER_RING_WIDTH,
+} from '../chart-constants'
 import { coord } from '../chart-coords'
 import { beatsHeldMark } from '../chart-hit-test'
 import { READOUT_GAP } from '../chart-series'
@@ -117,11 +122,33 @@ export function sizePeak(series: ScatterDatum[][]): number | null {
 	return peak >= 0 ? peak : null
 }
 
-/** The diameter range a series scales its bubbles into, from its spec or the defaults. @internal */
-export function diameterRange(size?: number, maxSize?: number): [number, number] {
+/**
+ * The largest bubble diameter of a frame, for a series with no `maxSize`: the
+ * {@link BUBBLE_MAX_SHARE} of the shorter side of the frame, and at least
+ * {@link BUBBLE_MAX_DIAMETER}. It reads the frame and not the plot, because the
+ * plot insets by the reach of the largest disc.
+ *
+ * @internal
+ */
+export function bubbleCeiling(frameWidth: number, frameHeight: number): number {
+	return Math.max(BUBBLE_MAX_DIAMETER, BUBBLE_MAX_SHARE * Math.min(frameWidth, frameHeight))
+}
+
+/**
+ * The diameter range a series scales its bubbles into. The series `size` and
+ * `maxSize` win. Without them, the range is {@link BUBBLE_MIN_DIAMETER} to the
+ * `ceiling` of the frame ({@link bubbleCeiling}).
+ *
+ * @internal
+ */
+export function diameterRange(
+	size: number | undefined,
+	maxSize: number | undefined,
+	ceiling: number,
+): [number, number] {
 	const low = Math.max(1, size ?? BUBBLE_MIN_DIAMETER)
 
-	return [low, Math.max(low, maxSize ?? BUBBLE_MAX_DIAMETER)]
+	return [low, Math.max(low, maxSize ?? ceiling)]
 }
 
 /**

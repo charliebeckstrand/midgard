@@ -12,6 +12,7 @@ import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/char
 import { ChartFrame } from '../engine/chart-frame/frame'
 import { chartFrameLayout, frameFills } from '../engine/chart-frame/sizing'
 import {
+	bubbleCeiling,
 	type ScatterMark,
 	type ScatterSnapStop,
 	scatterMarkAt,
@@ -328,12 +329,17 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	const yTitle = policy.axisTitles ? axesConfig.y?.title : undefined
 	const tickTarget = policy.tickTarget
 
+	// The largest bubble diameter follows the frame, so a sized series gets more
+	// range in a large frame. A resize therefore changes the radii.
+	const ceiling = bubbleCeiling(frameWidth, frameHeight)
+
 	const { plot, xScale, yScale, xTicks, yTicks, titles } = useMemo(
 		() =>
 			scatterScales({
 				visible,
 				frameWidth,
 				frameHeight,
+				ceiling,
 				axes: draw,
 				spark,
 				tickTarget,
@@ -347,6 +353,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			visible,
 			frameWidth,
 			frameHeight,
+			ceiling,
 			draw,
 			spark,
 			tickTarget,
@@ -396,11 +403,11 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 						index: meta.index,
 						label: meta.label,
 						paint: meta.paint,
-						marks: scatterMarks(meta.drawn, xScale.map, yScale.map, meta.radius),
+						marks: scatterMarks(meta.drawn, xScale.map, yScale.map, meta.radius(ceiling)),
 						sized: meta.sized,
 					}))
 				: [],
-		[visible, xScale, yScale],
+		[visible, xScale, yScale, ceiling],
 	)
 
 	const allMarks = list.map((entry) => entry.marks)

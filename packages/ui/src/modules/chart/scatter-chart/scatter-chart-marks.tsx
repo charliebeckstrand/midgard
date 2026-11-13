@@ -183,24 +183,31 @@ function ScatterDiscSeries({ layers, spot, dimmed, paint }: ScatterDiscSeriesPro
 	)
 }
 
-/** The pop of a disc from its center. @internal */
-const DISC_HIDDEN = { r: 0, opacity: 0 }
+/**
+ * The pop of a disc from its center. The pop rides the scale of the disc, not
+ * its radius, so the radius stays geometry and lands at once, as the center
+ * does. A radius that changes in the middle of the pop thus grows the disc
+ * toward the new radius.
+ *
+ * @internal
+ */
+const DISC_HIDDEN = { scale: 0, opacity: 0 }
 
 /** @internal */
 const DISC_POP = { ...POINT_POP, delay: 0 }
 
 /** The pop-out of a disc to its center: the pop in reverse. @internal */
-const DISC_EXIT = { r: 0, opacity: 0, transition: POINT_UNPOP }
-
-/** The disc under reduced motion: a new radius applies at once. @internal */
-const DISC_STILL = { ...DISC_POP, r: k.motion.instant }
+const DISC_EXIT = { scale: 0, opacity: 0, transition: POINT_UNPOP }
 
 /**
  * The Framer Motion scatter discs: each pops from its center on mount, on the
  * point-marker beat but with no line draw to wait behind. The discs of a series
  * pop out to their centers when a toggle hides it. Under reduced motion the
- * discs mount at rest, change size at once, and leave at once. The radius is no
- * transform, so the reduced-motion config of motion does not skip it.
+ * discs mount at rest and leave at once.
+ *
+ * The center and the radius are geometry, so a resize or a data change moves
+ * and sizes each disc at once. The radius of a bubble follows the frame
+ * ({@link bubbleCeiling}).
  *
  * @internal
  */
@@ -268,14 +275,15 @@ const AnimatedDisc = memo(function AnimatedDisc({
 			data-slot="chart-scatter-point"
 			cx={cx}
 			cy={cy}
+			r={r}
 			{...markProps(paint, sized)}
 			initial={still ? false : DISC_HIDDEN}
 			exit={still ? undefined : DISC_EXIT}
 			// Motion owns the disc's opacity through the pop-in, so the dim rides the
 			// same channel (receding to the class dim's depth) rather than a class
 			// the inline value would override.
-			animate={{ r, opacity: lit ? 1 : DIM_OPACITY }}
-			transition={still ? DISC_STILL : DISC_POP}
+			animate={{ scale: 1, opacity: lit ? 1 : DIM_OPACITY }}
+			transition={DISC_POP}
 		/>
 	)
 })

@@ -144,8 +144,21 @@ export const AXIS_TITLE_GAP = 8
 /** Smallest bubble diameter, so the least point stays legible. @internal */
 export const BUBBLE_MIN_DIAMETER = 8
 
-/** Largest bubble diameter: roomy enough to read, small enough that bubbles rarely swallow the plot. @internal */
+/**
+ * Largest bubble diameter in a small frame: roomy enough to read, small enough
+ * that bubbles rarely swallow the plot. A larger frame gives the largest bubble
+ * {@link BUBBLE_MAX_SHARE} of its shorter side instead.
+ * @internal
+ */
 export const BUBBLE_MAX_DIAMETER = 28
+
+/**
+ * The part of the shorter side of the frame that the largest bubble takes, where
+ * that part is more than {@link BUBBLE_MAX_DIAMETER}. The size measure thus gets
+ * more range in a large frame, and a small frame keeps the fixed diameter.
+ * @internal
+ */
+export const BUBBLE_MAX_SHARE = 0.1
 
 /** Sized bubbles fill translucently so overlapping points stay severally readable. @internal */
 export const BUBBLE_FILL_OPACITY = 0.8
