@@ -1,11 +1,10 @@
 import { Badge } from 'ui/badge'
-import { DateTime } from 'ui/date-time'
 import { useIntl } from 'ui/primitives/intl'
 import { Text } from 'ui/text'
 import { CATEGORY_BY_VALUE } from '../../constants'
 import type { Place, PlaceCategory } from '../../types'
-import { DAY_FORMAT } from '../../utilities/places-filter'
 import { latestVisit } from '../../utilities/places-visits'
+import { DayText } from '../day-text'
 import { SummaryRow } from '../summary-drawer'
 import { PlaceRating } from './place-rating'
 
@@ -29,7 +28,7 @@ function PlaceMeta({ place }: { place: Place }) {
 				</Text>
 			) : (
 				<Text as="span" tone="muted">
-					<DateTime value={latest.visitedAt} format={DAY_FORMAT} />
+					<DayText value={latest.visitedAt} />
 				</Text>
 			)}
 		</>

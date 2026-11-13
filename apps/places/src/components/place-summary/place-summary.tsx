@@ -9,16 +9,15 @@ import { Link } from 'ui/link'
 import { List } from 'ui/list'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Markdown } from 'ui/markdown'
-import { useDateFormat } from 'ui/providers/locale'
 import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import { CATEGORY_BY_VALUE } from '../../constants'
 import type { Place, PlaceCategory, Trip, Visit } from '../../types'
-import { DAY_FORMAT } from '../../utilities/places-filter'
 import { PLACE_ORDER_LABEL, type PlaceOrder } from '../../utilities/places-visits'
 import { CategoryPicker } from '../category-picker'
+import { DayText, useDayText } from '../day-text'
 import { PlaceMenu, type VisitActions, visitMenuItems } from '../place-menu'
 import { SummaryFact, SummaryPhotos } from '../summary-drawer'
 import { PlaceRow } from './place-row'
@@ -100,7 +99,7 @@ function PlaceVisit({
 }) {
 	const trip = visit.tripId === undefined ? undefined : tripLink.trips.get(visit.tripId)
 
-	const day = useDateFormat(DAY_FORMAT).format(new Date(visit.visitedAt))
+	const day = useDayText().day(visit.visitedAt)
 
 	return (
 		<Stack gap="md">
@@ -111,7 +110,9 @@ function PlaceVisit({
 			<Flex justify="between" align="center" gap="sm">
 				<Stack gap="md" className="min-w-0">
 					<SummaryFact icon={<CalendarDays />}>
-						<Text>{day}</Text>
+						<Text>
+							<DayText value={visit.visitedAt} />
+						</Text>
 					</SummaryFact>
 
 					{trip === undefined ? null : <VisitTrip trip={trip} link={tripLink} />}
@@ -126,7 +127,9 @@ function PlaceVisit({
 				<div className="flex h-lh items-center">
 					<PlaceMenu
 						items={visitMenuItems(place, visit, actions)}
-						aria-label={`Actions for the visit on ${day}`}
+						aria-label={
+							day === undefined ? 'Actions for the visit' : `Actions for the visit on ${day}`
+						}
 					/>
 				</div>
 			</Flex>

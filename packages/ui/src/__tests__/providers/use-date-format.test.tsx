@@ -1,14 +1,16 @@
-import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { DateTime } from '../../components/date-time'
 import { LocaleProvider } from '../../providers/locale'
 import { renderUI, screen } from '../helpers'
-import { hydrateServerRender } from '../helpers/hydrate'
+import { attach } from '../helpers/attach'
+import { hydrate, hydrateServerRender, serverMarkup } from '../helpers/hydrate'
 
 /** A kickoff: Sunday 1:00 PM in New York, and 5:00 PM in UTC, the zone of the test run. */
 const KICKOFF = '2026-10-04T17:00:00Z'
 
 const KICKOFF_FORMAT = { weekday: 'short', hour: 'numeric', minute: '2-digit' } as const
+
+const WHEN = { dateStyle: 'medium', timeStyle: 'short' } as const
 
 describe('DateTime', () => {
 	it('renders a skeleton of the date in UTC on the server in the zone of the reader, then the date after hydration', () => {
@@ -34,7 +36,7 @@ describe('DateTime', () => {
 		expect(time).toHaveAttribute('datetime', '2026-10-04T17:00:00.000Z')
 	})
 
-	it('gives the same text on the server and after hydration in the zone of the provider', () => {
+	it('renders a skeleton on the server in the zone of the provider, then the date after hydration', () => {
 		const element = (
 			<LocaleProvider locale="en-US" timeZone="America/New_York">
 				<DateTime value={KICKOFF} format={KICKOFF_FORMAT} />
@@ -43,7 +45,7 @@ describe('DateTime', () => {
 
 		const { html, container, onRecoverableError } = hydrateServerRender(element)
 
-		expect(html).toMatch(/Sun,? 1:00 PM/)
+		expect(html).toContain('data-slot="placeholder"')
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
@@ -57,13 +59,40 @@ describe('DateTime', () => {
 			</LocaleProvider>
 		)
 
-		expect(renderToString(element)).toContain('Oct 4, 2026')
-
 		const { container, onRecoverableError } = hydrateServerRender(element)
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
 		expect(container.querySelector('time')).toHaveTextContent('Oct 4, 2026')
+	})
+
+	// The date data of the engine of a browser can give other text than the date
+	// data of the server, such as `at` between the day and the time. The server
+	// markup and the hydration render therefore hold no text of `Intl`. With such
+	// text, React rendered the tree again from the start.
+	it.each([
+		{ name: 'a set zone', format: { ...WHEN, timeZone: 'America/Chicago' } },
+		{ name: 'the zone of the reader', format: WHEN },
+	])('hydrates with $name when the browser writes other text than the server', ({ format }) => {
+		const element = (
+			<LocaleProvider locale="en-US">
+				<DateTime value={KICKOFF} format={format} />
+			</LocaleProvider>
+		)
+
+		const server = attach(serverMarkup(element))
+
+		const prototype: { format: unknown } = Intl.DateTimeFormat.prototype
+
+		vi.spyOn(prototype, 'format', 'get').mockReturnValue((date?: Date | number) =>
+			new Date(date ?? 0).toISOString().replace('T', ' at '),
+		)
+
+		const { onRecoverableError } = hydrate(server, element)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(server.querySelector('time')).toHaveTextContent('2026-10-04 at 17:00:00.000Z')
 	})
 
 	it('renders an empty span for an invalid value', () => {

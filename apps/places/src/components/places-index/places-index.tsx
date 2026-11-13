@@ -4,7 +4,6 @@ import { Info } from 'lucide-react'
 import { useMemo } from 'react'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
-import { DateTime } from 'ui/date-time'
 import { Icon } from 'ui/icon'
 import type { GridColumn } from 'ui/modules/grid'
 import { Flex } from 'ui/structure/flex'
@@ -12,8 +11,8 @@ import { Stack } from 'ui/structure/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
-import { DAY_FORMAT } from '../../utilities/places-filter'
 import { ratedVisit } from '../../utilities/places-visits'
+import { DayText } from '../day-text'
 import { IndexSheet, locationColumns } from '../index-sheet'
 import { type PlaceActions, PlaceMenu, placeMenuItems } from '../place-menu'
 import { PlaceRating } from '../place-summary'
@@ -125,7 +124,7 @@ export function PlacesIndex({
 							<TooltipContent>
 								<Stack gap="xs">
 									{place.visits.map((visit) => (
-										<DateTime key={visit.id} value={visit.visitedAt} format={DAY_FORMAT} />
+										<DayText key={visit.id} value={visit.visitedAt} />
 									))}
 								</Stack>
 							</TooltipContent>

@@ -7,7 +7,6 @@ import { Activity, useCallback, useEffect, useMemo, useState } from 'react'
 import type { Seed } from 'shared/queries'
 import { Alert } from 'ui/alert'
 import { type ConfirmOptions, useConfirm } from 'ui/confirm'
-import { DateTime } from 'ui/date-time'
 import { EventsButton, EventsSwitch } from 'ui/events'
 import { useIdleLoad } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
@@ -32,7 +31,7 @@ import {
 } from '../../queries/places-queries'
 import type { Located, MapRecord, Place, RecordKind, Trip, Visit, Visits } from '../../types'
 import { atlasBounded, atlasNames, atlasRegions } from '../../utilities/places-atlas'
-import { DAY_FORMAT, filterPlaces, filterTrips, showsKind } from '../../utilities/places-filter'
+import { filterPlaces, filterTrips, showsKind } from '../../utilities/places-filter'
 import { groupByRegion, regionName } from '../../utilities/places-geography'
 import type { PaletteSource } from '../../utilities/places-palette'
 import { placesByTrip } from '../../utilities/places-trips'
@@ -58,6 +57,7 @@ import {
 	viewRegion,
 	viewUp,
 } from '../../utilities/places-view'
+import { DayText } from '../day-text'
 import { PlaceFilters } from '../place-filters'
 import type { PlaceFormTarget, TripFormTarget } from '../place-form-drawer'
 import type { PlaceActions, TripActions, VisitActions } from '../place-menu'
@@ -440,7 +440,7 @@ function deleteQuestion(deletion: Deletion): ConfirmOptions {
 				`Delete "${place.name}"?`
 			) : (
 				<>
-					Delete the visit on <DateTime value={visit.visitedAt} format={DAY_FORMAT} />?
+					Delete the visit on <DayText value={visit.visitedAt} />?
 				</>
 			),
 		description:

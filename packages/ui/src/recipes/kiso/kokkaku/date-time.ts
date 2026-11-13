@@ -1,7 +1,7 @@
 /**
- * Kokkaku skeleton: date-time. It stands in for a date before the zone of the
- * reader is known. It holds the same date in UTC as text that does not show, so
- * it has the size of the text that replaces it.
+ * Kokkaku skeleton: date-time. It stands in for a date until the browser
+ * formats it, after hydration. It holds the date in UTC as text that does not
+ * show, so it has about the size of the text that replaces it.
  *
  * The skeleton is inline, so it breaks across lines as the text does. Each
  * line of it paints its own fill (`box-decoration-clone`). The text has a

@@ -1,8 +1,10 @@
 import { requireGateway, requireSession } from 'auth'
 import { seed } from 'shared/queries'
+import { DayTextProvider } from '@/components/day-text'
 import { PlacesApp } from '@/components/places-app'
 import { flags } from '@/flags'
 import { mimir } from '@/server/mimir'
+import { dayTexts } from '@/utilities/day-text'
 
 /**
  * The page reads the session, the places, the trips, and (while
@@ -36,6 +38,10 @@ export const instant = false
  * app must know the list on the first frame. If not, the bar comes in when the
  * list lands, and the map under it gets smaller.
  *
+ * The page also writes the text of each day of a visit and each span of a
+ * trip (`dayTexts`), so a reload paints the dates, and the browser does not
+ * write them again at hydration.
+ *
  * The page renders the app with no Suspense boundary. The route blocks, so
  * `useSearchParams` reads the address of the request, and the markup of the app
  * is in the document. A boundary streams its content in a hidden segment, and
@@ -57,5 +63,9 @@ export default async function Page() {
 			: undefined,
 	])
 
-	return <PlacesApp user={user} places={seed(places)} trips={seed(trips)} visits={seed(visits)} />
+	return (
+		<DayTextProvider texts={dayTexts(places, trips)}>
+			<PlacesApp user={user} places={seed(places)} trips={seed(trips)} visits={seed(visits)} />
+		</DayTextProvider>
+	)
 }

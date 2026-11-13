@@ -19,9 +19,9 @@ type AppProvidersProps = {
 	 */
 	queries?: DefaultOptions['queries']
 	/**
-	 * The time zone of each date that does not set its own. The server and the
-	 * client then give the same text. With no zone, a date is in the zone of the
-	 * reader and shows a skeleton until hydration.
+	 * The time zone of each date that does not set its own. With no zone, a date
+	 * is in the zone of the reader. A date shows a skeleton until hydration, also
+	 * with a set zone (see `LocaleConfig`).
 	 *
 	 * @defaultValue The zone of the reader.
 	 */
