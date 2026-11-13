@@ -25,6 +25,7 @@ import { Stack } from 'ui/structure/stack'
 import type { Election } from '../../elections/registry'
 import {
 	activeFilters,
+	type ElectionDays,
 	filterElections,
 	isoDay,
 	type LevelFilterOptions,
@@ -47,13 +48,21 @@ const FILTER_LABELS: Record<keyof LevelFilterValue, string> = {
 }
 
 /** The list view: the elections in groups of their status. */
-function ListView({ elections, flags }: { elections: readonly Election[]; flags: CountryFlags }) {
+function ListView({
+	elections,
+	flags,
+	days,
+}: {
+	elections: readonly Election[]
+	flags: CountryFlags
+	days: ElectionDays
+}) {
 	return statusGroups(elections).map((group) => (
 		<section key={group.status}>
 			<Stack gap="sm">
 				<Heading level={2}>{group.heading}</Heading>
 
-				<ElectionList elections={group.elections} flags={flags} />
+				<ElectionList elections={group.elections} flags={flags} days={days} />
 			</Stack>
 		</section>
 	))
@@ -66,13 +75,15 @@ function ListView({ elections, flags }: { elections: readonly Election[]; flags:
 function CalendarView({
 	elections,
 	flags,
+	days,
 }: {
 	elections: readonly Election[]
 	flags: CountryFlags
+	days: ElectionDays
 }) {
 	const [picked, setPicked] = useState(() => openingDay(elections))
 
-	const days = new Set(elections.map((election) => election.date))
+	const dates = new Set(elections.map((election) => election.date))
 
 	const shown = elections.filter((election) => election.date === picked)
 
@@ -81,10 +92,10 @@ function CalendarView({
 			<Calendar
 				value={picked === null ? null : localDay(picked)}
 				onDayClick={(day) => {
-					if (days.has(isoDay(day))) setPicked(isoDay(day))
+					if (dates.has(isoDay(day))) setPicked(isoDay(day))
 				}}
 				getDayProps={({ date, selected }) =>
-					days.has(isoDay(date)) && !selected
+					dates.has(isoDay(date)) && !selected
 						? { variant: 'soft', color: 'blue' }
 						: { className: selected ? undefined : 'text-zinc-500 dark:text-zinc-400' }
 				}
@@ -95,10 +106,10 @@ function CalendarView({
 				<section>
 					<Stack gap="sm">
 						<Heading level={2}>
-							<ElectionDay date={picked} />
+							<ElectionDay date={picked} days={days} />
 						</Heading>
 
-						<ElectionList elections={shown} flags={flags} />
+						<ElectionList elections={shown} flags={flags} days={days} />
 					</Stack>
 				</section>
 			)}
@@ -212,10 +223,13 @@ function LevelFilter({
 export function LevelView({
 	elections,
 	flags,
+	days,
 }: {
 	elections: readonly Election[]
 	/** The flag of each country of the elections, which the server renders. */
 	flags: CountryFlags
+	/** The text of each election day, which the server writes (`electionDays`). */
+	days: ElectionDays
 }) {
 	const [view, setView] = useState<LevelViewKind>('list')
 
@@ -243,13 +257,14 @@ export function LevelView({
 			</Flex>
 
 			{view === 'list' ? (
-				<ListView elections={shown} flags={flags} />
+				<ListView elections={shown} flags={flags} days={days} />
 			) : (
 				// A new filter opens the calendar again on its first election.
 				<CalendarView
 					key={shown.map((election) => election.date).join()}
 					elections={shown}
 					flags={flags}
+					days={days}
 				/>
 			)}
 		</>
