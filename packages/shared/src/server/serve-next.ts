@@ -28,6 +28,7 @@ type Middleware = (request: IncomingMessage, response: ServerResponse, next: () 
 type NextServer = {
 	prepare: () => Promise<void>
 	getRequestHandler: () => (request: IncomingMessage, response: ServerResponse) => Promise<void>
+	close: () => Promise<void>
 }
 
 type NextFactory = (options: {
@@ -77,11 +78,33 @@ export async function serveNext(dir: string): Promise<void> {
 		compress(request, response, () => {
 			markHtml(request, response)
 
-			void handle(request, response)
+			// A failed request gets a 500, as in the `server.js` of Next. Without the
+			// catch, the rejection stops the process and each open request fails.
+			handle(request, response).catch((error: unknown) => {
+				console.error(`Failed to handle request for ${request.url}`, error)
+
+				response.statusCode = 500
+
+				response.end('Internal Server Error')
+			})
 		})
 	})
 
 	if (keepAliveTimeout !== undefined) server.keepAliveTimeout = keepAliveTimeout
+
+	// Node is the first process of the image, and that process ignores a signal
+	// that has no handler. Thus the server stops on a signal as the `server.js`
+	// of Next does: it takes no new request, lets the open requests end, closes
+	// Next, and exits with the code of the signal.
+	function stop(code: number) {
+		server.close(() => {
+			void app.close().finally(() => process.exit(code))
+		})
+	}
+
+	process.once('SIGTERM', () => stop(143))
+
+	process.once('SIGINT', () => stop(130))
 
 	server.listen(port, hostname, () => {
 		console.log(`Ready on http://${hostname}:${port}`)
