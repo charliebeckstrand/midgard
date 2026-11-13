@@ -3,7 +3,6 @@
 import { Trash } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from 'ui/button'
-import { announce } from 'ui/core'
 import { Description, Field, Label } from 'ui/fieldset'
 import {
 	type FileRejection,
@@ -179,11 +178,6 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 			refusing.current = true
 
 			setRejected(refused)
-
-			// The warning text has no live role, and the upload announces only the
-			// files that it takes. The assertive region keeps the refusal from being
-			// replaced by that polite announcement (WCAG 4.1.3).
-			announce(rejectionMessage(refused), { assertive: true })
 		},
 		onAccept: (files: File[]) => {
 			if (!refusing.current) setRejected([])

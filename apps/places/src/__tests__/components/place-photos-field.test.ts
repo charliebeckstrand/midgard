@@ -1,21 +1,11 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { announce } from 'ui/core'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FormDrawer } from '../../components/place-form-drawer/form-drawer'
 import { PlacePhotosField } from '../../components/place-form-drawer/place-photos-field'
 
-vi.mock('ui/core', async (original) => ({
-	...(await original<typeof import('ui/core')>()),
-	announce: vi.fn(),
-}))
-
-afterEach(() => {
-	cleanup()
-
-	vi.mocked(announce).mockClear()
-})
+afterEach(cleanup)
 
 // jsdom has no `ResizeObserver`, and the panel measures itself with one.
 beforeEach(() => {
@@ -74,15 +64,5 @@ describe('PlacePhotosField', () => {
 		await pick('a.gif')
 
 		expect(document.body.textContent).toContain('a.gif is not a JPEG, PNG, or WebP image.')
-	})
-
-	it('announces the refusal in the assertive region', async () => {
-		renderField()
-
-		await pick('a.gif')
-
-		expect(announce).toHaveBeenCalledWith('a.gif is not a JPEG, PNG, or WebP image.', {
-			assertive: true,
-		})
 	})
 })
