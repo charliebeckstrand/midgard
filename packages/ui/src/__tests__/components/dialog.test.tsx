@@ -115,6 +115,44 @@ describe('Dialog', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
+	it('puts an X close in a closable header, which closes the dialog', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Dialog defaultOpen onOpenChange={onOpenChange}>
+				<DialogPanel footer={null}>
+					<DialogHeader closable>
+						<DialogTitle>Results</DialogTitle>
+					</DialogHeader>
+				</DialogPanel>
+			</Dialog>,
+		)
+
+		const close = screen.getByRole('button', { name: 'Close' })
+
+		expect(close).toHaveAttribute('data-slot', 'dialog-close')
+
+		expect(bySlot(document.body, 'dialog-header')).toContainElement(close)
+
+		fireEvent.click(close)
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('renders no X close in a header that is not closable', () => {
+		renderUI(
+			<Dialog defaultOpen>
+				<DialogPanel footer={null}>
+					<DialogHeader>
+						<DialogTitle>Results</DialogTitle>
+					</DialogHeader>
+				</DialogPanel>
+			</Dialog>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+	})
+
 	it('renders with placement="top"', () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>

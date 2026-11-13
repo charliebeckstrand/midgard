@@ -56,6 +56,7 @@ const workspaceScans = [
 	'src/__tests__/boundary/dockerfile-pin-boundary.test.ts',
 	'src/__tests__/boundary/drag-cursor-boundary.test.ts',
 	'src/__tests__/boundary/inline-scroll-boundary.test.ts',
+	'src/__tests__/boundary/panel-close-boundary.test.ts',
 	'src/__tests__/boundary/recipe-boundary.test.ts',
 	'src/__tests__/boundary/vitest-config-boundary.test.ts',
 ]

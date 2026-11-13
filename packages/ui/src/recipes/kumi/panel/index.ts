@@ -57,6 +57,17 @@ export const panel = defineGroup({
 	defaults: { surface: 'flat' },
 })
 
+/**
+ * The header of a closable panel: a row with the column of the title (`lead`)
+ * and the X close at the end. `lead` keeps the tight gap of the header between
+ * the title and the description. It shrinks, so a long title wraps and does
+ * not push the X past the edge.
+ */
+export const bar = {
+	base: 'flex-row items-center',
+	lead: `flex min-w-0 flex-1 flex-col ${scale.sm}`,
+}
+
 /** The gaps of a child of a panel that is not a slot. */
 export const gap = {
 	/**

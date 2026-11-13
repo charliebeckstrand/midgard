@@ -1,13 +1,11 @@
 'use client'
 
-import { MapIcon, X } from 'lucide-react'
+import { MapIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Grid, type GridColumn, type GridProps } from 'ui/modules/grid'
-import { Sheet, SheetBody, SheetClose, SheetHeader, SheetPanel, SheetTitle } from 'ui/sheet'
-import { Flex } from 'ui/structure/flex'
+import { Sheet, SheetBody, SheetHeader, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
 import type { Located } from '../../types'
 import { openingRegion, regionsHolding } from '../../utilities/places-view'
@@ -124,16 +122,8 @@ export function IndexSheet<T extends Located>({
 			<SheetPanel width="fit" footer={null} aria-label={title}>
 				{/* The title and the close on one line in the header. The form drawer's
 				    header is built the same way, so the two panels answer the same corner. */}
-				<SheetHeader>
-					<Flex justify="between" align="center" gap="md">
-						<SheetTitle>{title}</SheetTitle>
-
-						<SheetClose>
-							<Button type="button" variant="bare" aria-label="Close">
-								<Icon icon={<X />} />
-							</Button>
-						</SheetClose>
-					</Flex>
+				<SheetHeader closable>
+					<SheetTitle>{title}</SheetTitle>
 				</SheetHeader>
 
 				{/* `min-h-0` so the body is the box the grid fills rather than one that
