@@ -6,6 +6,7 @@ import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI
 import { axisValues } from '../helpers/axis-labels'
 import { it } from '../helpers/fake-clock'
 import { subpathCount } from '../helpers/geometry/svg-path'
+import { TAP } from '../helpers/press'
 import { sizeHitLayer } from '../helpers/size-hit-layer'
 
 /**
@@ -142,7 +143,7 @@ describe('BarChart', () => {
 
 		await clock.advance(TOUCH_TAP_WINDOW)
 
-		expect(select).toHaveBeenCalledExactlyOnceWith('Q3', 2)
+		expect(select).toHaveBeenCalledExactlyOnceWith('Q3', 2, TAP)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -243,7 +244,7 @@ describe('BarChart', () => {
 
 		await clock.advance(TOUCH_TAP_WINDOW)
 
-		expect(select).toHaveBeenCalledExactlyOnceWith('Q3', 2)
+		expect(select).toHaveBeenCalledExactlyOnceWith('Q3', 2, TAP)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 

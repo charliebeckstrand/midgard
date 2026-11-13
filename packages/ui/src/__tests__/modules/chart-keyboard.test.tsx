@@ -27,6 +27,7 @@ import {
 	renderUI,
 	waitFor,
 } from '../helpers'
+import { KEY } from '../helpers/press'
 import { sizeHitLayer } from '../helpers/size-hit-layer'
 
 // Category 0 carries two coincident points (a chart whose series overlap on the
@@ -1080,13 +1081,13 @@ describe('chart keyboard activation', () => {
 		// `fireEvent` returns false for a press that a handler claimed with `preventDefault`.
 		expect(fireEvent.keyDown(plot, { key: 'Enter' })).toBe(false)
 
-		expect(onCategoryClick).toHaveBeenLastCalledWith('W2', 1)
+		expect(onCategoryClick).toHaveBeenLastCalledWith('W2', 1, KEY)
 
 		expect(fireEvent.keyDown(plot, { key: ' ' })).toBe(false)
 
 		expect(onCategoryClick).toHaveBeenCalledTimes(2)
 
-		expect(onCategoryClick).toHaveBeenLastCalledWith('W2', 1)
+		expect(onCategoryClick).toHaveBeenLastCalledWith('W2', 1, KEY)
 	})
 
 	it('fires nothing before the first arrow places the cursor', () => {
@@ -1146,7 +1147,7 @@ describe('chart keyboard activation', () => {
 
 		fireEvent.keyDown(plot, { key: ' ' })
 
-		expect(onCellClick).toHaveBeenCalledWith({ x: '10', y: 'Mon' }, [0, 1])
+		expect(onCellClick).toHaveBeenCalledWith({ x: '10', y: 'Mon' }, [0, 1], KEY)
 	})
 
 	it('keeps the tab stop and fires the click with the tooltip off', async () => {
@@ -1196,13 +1197,13 @@ describe('chart keyboard activation', () => {
 
 		fireEvent.keyDown(piePlot, { key: 'Enter' })
 
-		expect(onCategoryClick).toHaveBeenCalledWith('South', 1)
+		expect(onCategoryClick).toHaveBeenCalledWith('South', 1, KEY)
 
 		fireEvent.keyDown(heatmapPlot, { key: 'ArrowRight' })
 
 		fireEvent.keyDown(heatmapPlot, { key: ' ' })
 
-		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0])
+		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0], KEY)
 	})
 
 	it('fires a scatter onPointClick for the focused point, by its data row', () => {
@@ -1231,6 +1232,6 @@ describe('chart keyboard activation', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onPointClick).toHaveBeenCalledWith({ series: 0, datum: 2 })
+		expect(onPointClick).toHaveBeenCalledWith({ series: 0, datum: 2 }, KEY)
 	})
 })

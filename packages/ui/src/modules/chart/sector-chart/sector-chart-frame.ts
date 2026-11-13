@@ -6,7 +6,7 @@ import { type ChartAspectRatio, chartFrameSizing, frameFills } from '../engine/c
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
 import { legendAside, legendVisible, type ResolvedLegend } from '../engine/chart-legend/schema'
 import { readoutCell } from '../engine/chart-series'
-import type { ChartReadout } from '../engine/types'
+import type { ChartItemClick, ChartPress, ChartReadout } from '../engine/types'
 import type { SectorLabels } from './sector-chart'
 
 /** Defaults both label switches off. @internal */
@@ -21,10 +21,12 @@ export function resolveLabels(labels: SectorLabels | undefined): Required<Sector
  * @internal
  */
 export function sliceActivation(
-	onCategoryClick: ((category: string, index: number) => void) | undefined,
+	onCategoryClick: ChartItemClick | undefined,
 	sliceLabels: string[],
-): ((index: number) => void) | undefined {
-	return onCategoryClick && ((index) => onCategoryClick(sliceLabels[index] ?? '', index))
+): ((index: number, press: ChartPress) => void) | undefined {
+	return (
+		onCategoryClick && ((index, press) => onCategoryClick(sliceLabels[index] ?? '', index, press))
+	)
 }
 
 /**

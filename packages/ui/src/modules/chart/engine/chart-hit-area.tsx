@@ -9,6 +9,7 @@ import { type BandScale, nearestBandIndex } from './chart-scale'
 import { nearestStopIndex } from './chart-snap'
 import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartTier } from './context'
+import type { ChartPress } from './types'
 import { type ChartMarkAt, useChartPointer } from './use-chart-pointer'
 
 /**
@@ -83,9 +84,9 @@ export type ChartHitAreaProps = ChartHitIndex & {
 	 * plumbing behind the charts' public `onCategoryClick`. Also carries a
 	 * pointer cursor across the plot so the bands read as clickable.
 	 */
-	onIndexClick?: (index: number) => void
+	onIndexClick?: (index: number, press: ChartPress) => void
 	/** Reports a click on a mark, through the same hit test the isolation uses: a scatter point. */
-	onMarkClick?: (mark: ChartMarkRef) => void
+	onMarkClick?: (mark: ChartMarkRef, press: ChartPress) => void
 }
 
 /**
@@ -179,7 +180,7 @@ function ChartHitRect({
 export function cartesianHitActive(
 	showTooltip: boolean,
 	rails: ResolvedCrosshair | null,
-	onBandClick: ((index: number) => void) | undefined,
+	onBandClick: ((index: number, press: ChartPress) => void) | undefined,
 	count: number,
 ): boolean {
 	return (showTooltip || rails !== null || onBandClick !== undefined) && count > 0

@@ -17,6 +17,8 @@ import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
+import { KEY_PRESS } from '../chart/engine/chart-press'
+import type { ChartPress } from '../chart/engine/types'
 import { useMapHoverActions } from './context'
 import { MAP_CURSOR_INSET, MAP_ZOOM_FIT } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
@@ -121,7 +123,7 @@ export type MapKeyboardOptions = {
 	 */
 	subject: unknown
 	/** Picks the stop under the cursor: a region by index, an overlay through its own reporter. */
-	activate: (target: MapHoverTarget) => void
+	activate: (target: MapHoverTarget, press: ChartPress) => void
 	/**
 	 * The target of the stop that holds what `target` holds now. A zoom regroups
 	 * the dots of a `MapPoints`, so a target there holds the point it stands on
@@ -434,7 +436,7 @@ export function useMapKeyboard({
 
 			event.preventDefault()
 
-			activate(held)
+			activate(held, KEY_PRESS)
 
 			return
 		}

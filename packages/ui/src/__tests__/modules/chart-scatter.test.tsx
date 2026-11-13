@@ -12,6 +12,7 @@ import {
 	setupUser,
 } from '../helpers'
 import { axisLabels } from '../helpers/axis-labels'
+import { CLICK } from '../helpers/press'
 
 type Stop = { distance: unknown; dwell: unknown; weight?: unknown }
 
@@ -615,7 +616,7 @@ describe('BubbleChart', () => {
 
 		clickAt(container, Number(disc.getAttribute('cx')), Number(disc.getAttribute('cy')))
 
-		expect(onPointClick).toHaveBeenCalledWith({ series: 0, datum: 2 })
+		expect(onPointClick).toHaveBeenCalledWith({ series: 0, datum: 2 }, CLICK)
 	})
 
 	it('keeps a prop that the scatter does not take off the plot region', () => {

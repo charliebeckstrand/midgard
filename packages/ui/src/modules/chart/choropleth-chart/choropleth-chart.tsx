@@ -154,8 +154,8 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * and the same {@link ChartItemClick} shape. Pair it with `selectedRegion` to
 	 * hold a selection. It also points the cursor over the regions, so they read
 	 * as clickable. On the keyboard, Enter and Space pick the region under the
-	 * arrow cursor. A touch picks with a double tap, because one tap on a map
-	 * picks nothing (see {@link MapPlatProps.onRegionClick}).
+	 * arrow cursor. A tap picks the region under it, as a click does. The last
+	 * argument is the press that picked it (see {@link MapPlatProps.onRegionClick}).
 	 */
 	onRegionClick?: ChartItemClick
 	/**

@@ -4,6 +4,7 @@ import { DonutChart } from '../../modules/chart/donut-chart'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
 import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
 import { it } from '../helpers/fake-clock'
+import { TAP } from '../helpers/press'
 
 /** Whether each slice recedes behind an emphasis. */
 function receded(slices: Element[]): boolean[] {
@@ -185,7 +186,7 @@ describe('DonutChart', () => {
 
 		fireEvent.click(slice)
 
-		expect(select).toHaveBeenCalledExactlyOnceWith('Direct', 1)
+		expect(select).toHaveBeenCalledExactlyOnceWith('Direct', 1, TAP)
 
 		// iOS Safari can hold back the click, so the lift reports.
 		tap()
@@ -224,7 +225,7 @@ describe('DonutChart', () => {
 		// A click that the browser still sends does not pin the readout.
 		fireEvent.click(slice)
 
-		expect(select).toHaveBeenCalledExactlyOnceWith('Direct', 1)
+		expect(select).toHaveBeenCalledExactlyOnceWith('Direct', 1, TAP)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -257,7 +258,7 @@ describe('DonutChart', () => {
 		// the pointer events went to the slice. A cancelled touch end makes no click.
 		expect(fireEvent.touchEnd(slice)).toBe(false)
 
-		expect(select).toHaveBeenCalledExactlyOnceWith('Direct', 1)
+		expect(select).toHaveBeenCalledExactlyOnceWith('Direct', 1, TAP)
 	})
 
 	it('backs each slice with a hit wedge so the gap keeps the tooltip', () => {

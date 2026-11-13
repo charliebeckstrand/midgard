@@ -241,8 +241,8 @@ export function MapPlotRegion({
 
 	const keyboard = useMapKeyboard({ ...options, zoom: zoom?.cursor ?? null })
 
-	// A touch reads nothing and one tap picks nothing. A double tap picks the mark
-	// under it, through the keyboard's own pick. See `useMapTouchTap`.
+	// A touch reads nothing. A tap picks the mark under it, through the keyboard's
+	// own pick. See `useMapTouchTap`.
 	const touch = useMapTouchTap(options.activate)
 
 	const surface = zoom?.surface
@@ -251,7 +251,7 @@ export function MapPlotRegion({
 	const chartMenu = useChartMenu()
 
 	// The tap runs first and the zoom surface after it, on the same events. A
-	// touch click never reaches a region or a mark: the double tap already picked.
+	// touch click never reaches a region or a mark: the tap already picked.
 	const press = {
 		onPointerDown: composeEventHandlers(touch.onPointerDown, surface?.onPointerDown ?? noop),
 		onPointerMove: composeEventHandlers(touch.onPointerMove, surface?.onPointerMove ?? noop),
@@ -286,7 +286,7 @@ export function MapPlotRegion({
 				'relative',
 				// Without these, a long press starts a text selection that spreads across
 				// the whole map and the text around it, and iOS shows its callout menu.
-				// The double tap to pick does not use selection, so nothing is lost.
+				// The tap to pick does not use selection, so nothing is lost.
 				chart.touch.readout,
 				// The focus ring only rides a region that can take focus; a rounded
 				// corner comes with it, so the outline follows the box it rings.

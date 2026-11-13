@@ -3,6 +3,7 @@ import { MapPoints } from '../../modules/map'
 import { allBySlot, bySlot, fireEvent, getSlot, liveRegion, renderUI, waitFor } from '../helpers'
 import { renderNavigable } from '../helpers/map-navigable'
 import { overlayPlat } from '../helpers/map-plat'
+import { CLICK, KEY } from '../helpers/press'
 
 /**
  * Two point sets on the fixture frame, 30 degrees over 400px. Each depot stands
@@ -106,9 +107,9 @@ describe('two point sets on one place', () => {
 
 		fireEvent.click(bySlot(getSlot(container, 'map-points-shared'), 'map-points-hit') as Element)
 
-		expect(onStops).toHaveBeenCalledExactlyOnceWith('stops', 0, [0, 1])
+		expect(onStops).toHaveBeenCalledExactlyOnceWith('stops', 0, [0, 1], CLICK)
 
-		expect(onDepots).toHaveBeenCalledExactlyOnceWith('depots', 0, [0])
+		expect(onDepots).toHaveBeenCalledExactlyOnceWith('depots', 0, [0], CLICK)
 	})
 
 	it('give the keyboard one stop that reads and picks every part', async () => {
@@ -125,9 +126,9 @@ describe('two point sets on one place', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onStops).toHaveBeenCalledExactlyOnceWith('stops', 0, [0, 1])
+		expect(onStops).toHaveBeenCalledExactlyOnceWith('stops', 0, [0, 1], KEY)
 
-		expect(onDepots).toHaveBeenCalledExactlyOnceWith('depots', 0, [0])
+		expect(onDepots).toHaveBeenCalledExactlyOnceWith('depots', 0, [0], KEY)
 
 		// The depots add no stop of their own: End lands on the far stop.
 		fireEvent.keyDown(plot, { key: 'End' })

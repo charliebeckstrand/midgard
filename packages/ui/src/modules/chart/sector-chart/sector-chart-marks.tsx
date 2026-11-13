@@ -24,9 +24,11 @@ import {
 	SLICE_UNSWEEP,
 } from '../engine/chart-motion'
 import { textureClass, textureStyle } from '../engine/chart-pattern-defs'
+import { clickPress, tapPress } from '../engine/chart-press'
 import { seriesGroupClass } from '../engine/chart-series'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import { useChartActions, useChartHoverStore, useChartSeriesEmphasis } from '../engine/context'
+import type { ChartPress } from '../engine/types'
 import { toFrame } from '../engine/use-chart-pointer'
 import { useSliceReflowed } from './use-sector-chart-slice-reflowed'
 
@@ -335,9 +337,9 @@ type SectorChartMarksProps = {
 	 * Reports a click on a slice by data index: the plumbing behind the pie's
 	 * public `onCategoryClick`. Rides either trigger (after the `'click'`
 	 * trigger's own pin/dismiss) and gives the slices a pointer cursor. A touch
-	 * reports from its tap, and pins nothing.
+	 * reports from its tap, and pins nothing. The press names the input.
 	 */
-	onIndexClick?: (index: number) => void
+	onIndexClick?: (index: number, press: ChartPress) => void
 }
 
 /**
@@ -412,8 +414,8 @@ export function SectorChartMarks({
 
 	// A touch activates from its tap, and a mouse or a pen from its click. A
 	// touch reads nothing from the pie: it opens no readout and isolates no slice.
-	const touch = useTouchTap(() => {
-		if (pressed.current !== null) onIndexClick?.(pressed.current)
+	const touch = useTouchTap((_x, _y, count) => {
+		if (pressed.current !== null) onIndexClick?.(pressed.current, tapPress(count))
 	})
 
 	// A scroll slides the pie under a still pointer and fires no pointer event.
@@ -497,7 +499,8 @@ export function SectorChartMarks({
 						set(slice.index, drawingPoint(svg, event.clientX, event.clientY))
 					}
 
-					const activate = () => onIndexClick?.(slice.index)
+					const activate = (event: MouseEvent<SVGPathElement>) =>
+						onIndexClick?.(slice.index, clickPress(event))
 
 					// A mouse or a pen that points a slice isolates it either way the tooltip
 					// opens; the hover trigger also tracks the readout onto it.
@@ -525,7 +528,7 @@ export function SectorChartMarks({
 									if (hoverStore.get().index === slice.index) set(null, null)
 									else at(event)
 
-									activate()
+									activate(event)
 								},
 								onPointerEnter: (event: PointerEvent<SVGPathElement>) => {
 									if (event.pointerType !== 'touch') emphasize()
@@ -536,8 +539,8 @@ export function SectorChartMarks({
 									onPointerDown: press,
 									onPointerUp: touch.onPointerUp,
 									onPointerCancel: touch.onPointerCancel,
-									onClick: () => {
-										if (!touch.fromTouch()) activate()
+									onClick: (event: MouseEvent<SVGPathElement>) => {
+										if (!touch.fromTouch()) activate(event)
 									},
 									onTouchEnd: touch.onTouchEnd,
 								}),

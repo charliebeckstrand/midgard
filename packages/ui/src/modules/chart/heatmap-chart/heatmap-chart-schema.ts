@@ -19,7 +19,7 @@ import { parseNumeric } from '../../../utilities/parse-numeric'
 import { sameElements } from '../../../utilities/same-elements'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
-import type { ChartBaseProps, DataKey } from '../engine/types'
+import type { ChartBaseProps, ChartPress, DataKey } from '../engine/types'
 
 /**
  * The one series a heatmap shades cells with. It holds the two fields that
@@ -114,8 +114,9 @@ export type HeatmapChartProps<T = never> = AccessibleName &
 		 */
 		series: [] | [HeatmapChartSeries<T>]
 		/**
-		 * Fires when a click lands on a cell, with the cell's two band labels and
-		 * its `[row, col]` position in the matrix.
+		 * Fires when a click lands on a cell, with the cell's two band labels, its
+		 * `[row, col]` position in the matrix, and the {@link ChartPress} that picked
+		 * it.
 		 *
 		 * The cross-filter hook the cartesian charts' `onCategoryClick` is, in the
 		 * address space a heatmap has. A cell is named by a pair and not by one id,
@@ -126,7 +127,11 @@ export type HeatmapChartProps<T = never> = AccessibleName &
 		 * plot fire it for the cell under the cursor. Space then does not scroll the
 		 * page.
 		 */
-		onCellClick?: (cell: { x: string; y: string }, at: [row: number, col: number]) => void
+		onCellClick?: (
+			cell: { x: string; y: string },
+			at: [row: number, col: number],
+			press: ChartPress,
+		) => void
 		/**
 		 * Washes the colors in on mount. The grid paints the neutral no-data fill at
 		 * once, and then the color of every cell washes in. `'sweep'` washes the

@@ -1379,6 +1379,10 @@
 		"defaultMessage": "Dwell",
 		"description": "Text of a demo in the docs as yName, in modules/chart/bubble/animated.tsx, modules/chart/bubble/size-encoding.tsx, modules/chart/scatter/animated.tsx and 1 more."
 	},
+	"docs.demo.182385477078": {
+		"defaultMessage": "Tap a state to show its counties.",
+		"description": "Text of a demo in the docs as touchText, in modules/map/county/drill-into-counties.tsx."
+	},
 	"docs.demo.186b373fff17": {
 		"defaultMessage": "Load profile",
 		"description": "Text of a demo in the docs, in modules/form/controlled-values.tsx."
@@ -2654,10 +2658,6 @@
 	"docs.demo.66962f72a088": {
 		"defaultMessage": "Preferences",
 		"description": "Text of a demo in the docs, in components/command-palette/custom-footer.tsx."
-	},
-	"docs.demo.66a477f9f0a0": {
-		"defaultMessage": "Double-tap a state to show its counties.",
-		"description": "Text of a demo in the docs as touchText, in modules/map/county/drill-into-counties.tsx."
 	},
 	"docs.demo.66c9ab177708": {
 		"defaultMessage": "Maximum",

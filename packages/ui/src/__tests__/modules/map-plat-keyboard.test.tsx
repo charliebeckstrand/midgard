@@ -17,6 +17,7 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat, overlayPlat } from '../helpers/map-plat'
 import { allRegions, layerScale } from '../helpers/map-queries'
+import { KEY } from '../helpers/press'
 
 /**
  * The center of a region path's box, in frame units. The fixture regions are
@@ -192,13 +193,13 @@ describe('MapPlat keyboard navigation', () => {
 
 		// The identity a click reports, so a keyboard pick keys into the caller's
 		// rows exactly as a pointer pick does.
-		expect(onRegionClick).toHaveBeenCalledWith('A', 0)
+		expect(onRegionClick).toHaveBeenCalledWith('A', 0, KEY)
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
 		fireEvent.keyDown(plot, { key: ' ' })
 
-		expect(onRegionClick).toHaveBeenLastCalledWith('B', 1)
+		expect(onRegionClick).toHaveBeenLastCalledWith('B', 1, KEY)
 	})
 
 	it('picks nothing with Enter on a disabled region, and speaks nothing where it reads nothing', async () => {
@@ -223,7 +224,7 @@ describe('MapPlat keyboard navigation', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onRegionClick).toHaveBeenCalledWith('A', 0)
+		expect(onRegionClick).toHaveBeenCalledWith('A', 0, KEY)
 	})
 
 	it('picks nothing before an arrow has placed the cursor', () => {
@@ -389,7 +390,7 @@ describe('MapPlat keyboard navigation', () => {
 
 		fireEvent.keyDown(plot as Element, { key: 'Enter' })
 
-		expect(onRegionClick).toHaveBeenCalledWith('A', 0)
+		expect(onRegionClick).toHaveBeenCalledWith('A', 0, KEY)
 	})
 
 	it('speaks the name of each region a key moves onto when the readout is off', async () => {
@@ -430,7 +431,7 @@ describe('MapPlat keyboard navigation', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onRegionClick).toHaveBeenCalledWith('A', 0)
+		expect(onRegionClick).toHaveBeenCalledWith('A', 0, KEY)
 	})
 
 	it('speaks the new scale for each zoom key', async () => {

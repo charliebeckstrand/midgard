@@ -8,8 +8,7 @@ import type { Coord } from './use-grid-navigation'
 
 /**
  * Time, in ms, from the lift of one tap to the lift of the next, in which two
- * taps on one cell are a double tap. It is the window of the double tap of the
- * map.
+ * taps on one cell are a double tap.
  *
  * @internal
  */

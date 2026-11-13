@@ -4,6 +4,7 @@ import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { overlayPlat } from '../helpers/map-plat'
+import { CLICK, KEY } from '../helpers/press'
 
 /** The fixture spans lon 0–30, lat 0–10; these all project inside the frame. */
 const DEPOT: [number, number] = [5, 5]
@@ -28,11 +29,11 @@ describe('overlay identity and click', () => {
 
 		fireEvent.click(bySlot(container, 'map-route-hit') as Element)
 
-		expect(onRoute).toHaveBeenCalledWith('leg', 0)
+		expect(onRoute).toHaveBeenCalledWith('leg', CLICK)
 
 		fireEvent.click(bySlot(container, 'map-marker-hit') as Element)
 
-		expect(onMarker).toHaveBeenCalledWith('run', 0)
+		expect(onMarker).toHaveBeenCalledWith('run', CLICK)
 	})
 
 	it('carries a pointer affordance only where a click is answered', () => {
@@ -56,7 +57,7 @@ describe('overlay identity and click', () => {
 
 		fireEvent.click(bySlot(container, 'map-point-hit') as Element)
 
-		expect(onClick).toHaveBeenCalledExactlyOnceWith(expect.any(String), 0)
+		expect(onClick).toHaveBeenCalledExactlyOnceWith(expect.any(String), CLICK)
 	})
 
 	it('answers a click on every part of a marker', () => {
@@ -74,7 +75,7 @@ describe('overlay identity and click', () => {
 
 		expect(onClick).toHaveBeenCalledTimes(3)
 
-		expect(onClick).toHaveBeenLastCalledWith('run', 0)
+		expect(onClick).toHaveBeenLastCalledWith('run', CLICK)
 	})
 
 	it('keeps an inline handler from churning the legend', () => {
@@ -123,8 +124,8 @@ describe('overlay reporters across renders', () => {
 		expect(first.onContextMenu).not.toHaveBeenCalled()
 
 		expect(second.onClick.mock.calls).toEqual([
-			['yard', 0],
-			['yard', 0],
+			['yard', CLICK],
+			['yard', KEY],
 		])
 
 		expect(second.onContextMenu).toHaveBeenCalledExactlyOnceWith('yard', 0)
@@ -164,7 +165,7 @@ describe('overlay keyboard reach', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onClick).toHaveBeenCalledWith('yard', 0)
+		expect(onClick).toHaveBeenCalledWith('yard', KEY)
 	})
 
 	it('takes no tab stop for a mark that answers nothing', () => {

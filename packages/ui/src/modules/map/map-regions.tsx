@@ -2,6 +2,7 @@
 
 import {
 	type CSSProperties,
+	type MouseEvent,
 	memo,
 	type PointerEvent,
 	type ReactNode,
@@ -13,6 +14,8 @@ import {
 } from 'react'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/map'
+import { clickPress } from '../chart/engine/chart-press'
+import type { ChartPress } from '../chart/engine/types'
 import { useChartSpot } from '../chart/engine/use-chart-spot'
 import { useChartSweep, type WashDelay } from '../chart/engine/use-chart-sweep'
 import {
@@ -106,7 +109,7 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	 * (`use-map-keyboard`). The same report therefore answers both inputs, and the
 	 * region values stay in the data table for parity.
 	 */
-	onRegionClick?: (index: number) => void
+	onRegionClick?: (index: number, press: ChartPress) => void
 	/**
 	 * Each region that takes no click, by feature index, from `MapPlat`'s
 	 * `isRegionDisabled`. A disabled region takes the default cursor, and the
@@ -151,14 +154,14 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
  * @internal
  */
 function regionDelegate(
-	report: ((index: number) => void) | undefined,
-): ((event: { target: EventTarget }) => void) | undefined {
+	report: ((index: number, event: MouseEvent) => void) | undefined,
+): ((event: MouseEvent) => void) | undefined {
 	if (report === undefined) return undefined
 
 	return (event) => {
 		const index = regionIndexAt(event.target)
 
-		if (index !== null) report(index)
+		if (index !== null) report(index, event)
 	}
 }
 
@@ -412,11 +415,13 @@ export const MapRegions = memo(function MapRegions({
 			// Delegated, so the click handler stays off `Region`'s memo comparison:
 			// a prop across thousands of instances, and the one input here whose
 			// identity a consumer controls.
-			onClick={regionDelegate(onRegionClick)}
+			onClick={regionDelegate(
+				onRegionClick && ((index, event) => onRegionClick(index, clickPress(event))),
+			)}
 			// Same delegation, for the region a right-click landed on. Bubbles: a
 			// wrapping menu's own capture-phase reset runs first, so an off-region
 			// right-click leaves its target cleared and this only fires to overwrite it.
-			onContextMenu={regionDelegate(onRegionContextMenu)}
+			onContextMenu={regionDelegate(onRegionContextMenu && ((index) => onRegionContextMenu(index)))}
 		>
 			<MapRegionStripes categories={categories} base={patternBase} />
 
@@ -451,9 +456,9 @@ type MapRegionsGroupProps = {
 	frame: MapTransform | null
 	className: string
 	onPointerLeave: () => void
-	/** `regionDelegate`'s return: the delegated reporters, which read the event target alone. */
-	onClick: ((event: { target: EventTarget }) => void) | undefined
-	onContextMenu: ((event: { target: EventTarget }) => void) | undefined
+	/** `regionDelegate`'s return: the delegated reporters, which resolve the region from the event target. */
+	onClick: ((event: MouseEvent) => void) | undefined
+	onContextMenu: ((event: MouseEvent) => void) | undefined
 	children: ReactNode
 }
 

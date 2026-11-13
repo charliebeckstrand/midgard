@@ -16,6 +16,7 @@ import {
 	stubMatchMedia,
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
+import { CLICK, KEY } from '../helpers/press'
 
 type Row = { day: string; hour: string; commits: number }
 
@@ -618,7 +619,7 @@ describe('HeatmapChart cell clicks', () => {
 		// Mon at hour 9: matrix position [0, 0].
 		fireEvent.click(hit, { clientX: 130, clientY: 70 })
 
-		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0])
+		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0], CLICK)
 	})
 })
 
@@ -671,7 +672,7 @@ describe('HeatmapChart cell rings', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onCellClick).toHaveBeenCalledWith({ x: '10', y: 'Mon' }, [0, 1])
+		expect(onCellClick).toHaveBeenCalledWith({ x: '10', y: 'Mon' }, [0, 1], KEY)
 
 		fireEvent.keyDown(plot, { key: 'Escape' })
 

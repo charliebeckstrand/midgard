@@ -18,7 +18,7 @@ import { centeredProjection, regionFrame, regionName } from '../../utilities/pla
 import { drawnRecords, isTrip } from '../../utilities/places-trips'
 import { type PlaceSelection, selectedIds } from '../../utilities/places-url'
 import { type PlaceView, viewAtlas, viewFrame, viewRegion } from '../../utilities/places-view'
-import { recordStops } from './places-map-utilities'
+import { isSingleTap, recordStops } from './places-map-utilities'
 
 /**
  * What a painted region is called, per filter. The paint means whichever the
@@ -327,7 +327,9 @@ export function PlacesMap({
 				// place to look, and a reader who has just added somewhere new should not
 				// have to find out from a dead click that the map disagreed. The paint
 				// still says which regions hold places: it reports, and no longer gates.
-				onRegionClick={onDrill}
+				onRegionClick={(region, _index, press) => {
+					if (!isSingleTap(press)) onDrill(region)
+				}}
 				// The same regions that a click drills into. Inside a drill the layer
 				// answers nothing, so nothing preloads there either.
 				onRegionPreload={cut === null ? onPreload : undefined}
@@ -340,7 +342,9 @@ export function PlacesMap({
 					detail={intl.formatNumber(records.length)}
 					points={stops}
 					clusterDetail={clusterDetail}
-					onClick={(_id, _index, merged) => {
+					onClick={(_id, _index, merged, press) => {
+						if (isSingleTap(press)) return
+
 						const picked = merged.flatMap((index) => records[index] ?? [])
 
 						onSelect({

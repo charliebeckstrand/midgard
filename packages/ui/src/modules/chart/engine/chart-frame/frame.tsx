@@ -46,7 +46,7 @@ import {
 	chartMarkEmphasis,
 	sameMark,
 } from '../context'
-import type { ChartReadoutSource } from '../types'
+import type { ChartPress, ChartReadoutSource } from '../types'
 import { type ChartFocusTargets, useChartKeyboard } from '../use-chart-keyboard'
 
 /** The stable no-op the keyboard takes when its stops name no single series. @internal */
@@ -376,10 +376,11 @@ export type ChartFrameProps = AccessibleName & {
 	keyboardEmphasis?: boolean
 	/**
 	 * The click callback of the chart, as Enter and Space on the plot fire it: the
-	 * hover index of the data point under the keyboard cursor, and the place of its
-	 * stop in the category. Absent, the plot leaves both keys to the browser.
+	 * hover index of the data point under the keyboard cursor, the key press, and
+	 * the place of its stop in the category. Absent, the plot leaves both keys to
+	 * the browser.
 	 */
-	onActivate?: (index: number, stop: number) => void
+	onActivate?: (index: number, press: ChartPress, stop: number) => void
 	/**
 	 * The data indices of the held category selection, or `null`. Their marks keep
 	 * full strength and the others recede, until a hover takes the emphasis.

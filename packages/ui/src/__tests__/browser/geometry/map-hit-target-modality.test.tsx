@@ -66,7 +66,7 @@ function mediaFor(className: string) {
 describe('dot hit target by pointer modality', () => {
 	it('narrows only on a device with no coarse pointer', () => {
 		// `pointer: fine` reads the primary pointer alone, so a laptop with a
-		// touchscreen matched it, and a finger double tap hit-tested the narrowed
+		// touchscreen matched it, and a finger tap hit-tested the narrowed
 		// circle. This suite cannot emulate a second pointer: CDP overrides no
 		// `any-pointer`, and touch emulation does not turn off again. The case reads
 		// the conditions that the browser parsed instead.

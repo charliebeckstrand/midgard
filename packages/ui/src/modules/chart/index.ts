@@ -34,6 +34,7 @@ export type { ChartTooltipConfig, ChartTooltipTrigger } from './engine/chart-too
 export type {
 	BubbleChartSeries,
 	ChartItemClick,
+	ChartPress,
 	ChartSeries,
 	ComboChartSeries,
 	DataKey,
