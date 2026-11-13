@@ -1,6 +1,6 @@
 'use client'
 
-import { Activity, lazy, Suspense } from 'react'
+import { Activity, type ComponentType, lazy, Suspense } from 'react'
 import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import type { MapFeatureCollection } from 'ui/map'
@@ -13,7 +13,24 @@ import type { RaceView } from '../../utilities/elections-url'
 import { isCalled } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
 import { RaceSummary } from '../race-summary'
+import type { CountyMapProps } from './county-map'
 import { loadCountyMap } from './load-county-map'
+
+/**
+ * The county map of a race whose address opens on the map, which the page
+ * passes from the server, so that the first paint and hydration draw the map.
+ */
+export type CountyMapSeed = {
+	/** The county shapes of the state of the race. */
+	shapes: MapFeatureCollection
+	/**
+	 * The county map, as a client reference from the page. The browser loads its
+	 * chunk before it hydrates the Drawer. After hydration, the Drawer moves into
+	 * its portal and mounts again, and the map then draws at once. Without it,
+	 * the lazy map waits for its chunk at that mount and shows the placeholder.
+	 */
+	CountyMap: ComponentType<CountyMapProps>
+}
 
 /** Props for {@link RaceDetail}. */
 export type RaceDetailProps = {
@@ -27,15 +44,15 @@ export type RaceDetailProps = {
 	view: RaceView
 	onViewChange: (view: RaceView) => void
 	/**
-	 * The county shapes of the state, which the page read on the server where the
-	 * address opens the race on its map, so the first paint draws the map. `null`
-	 * reads them in the browser.
+	 * The county map and the county shapes of the state, which the page gives
+	 * where the address opens the race on its map. `null` loads the map from its
+	 * chunk and reads the shapes in the browser.
 	 */
-	shapes: MapFeatureCollection | null
+	map: CountyMapSeed | null
 }
 
 /** The county map, from its chunk. */
-const CountyMap = lazy(() => loadCountyMap().then((module) => ({ default: module.CountyMap })))
+const LazyCountyMap = lazy(() => loadCountyMap().then((module) => ({ default: module.CountyMap })))
 
 /** The still shape of the county map while its code loads. */
 const MAP_PLACEHOLDER = (
@@ -140,10 +157,18 @@ function RaceFacts({
  * `Activity`. A switch to By county therefore shows a map that is already
  * drawn.
  */
-export function RaceDetail({ entry, race, onCounty, view, onViewChange, shapes }: RaceDetailProps) {
+export function RaceDetail({ entry, race, onCounty, view, onViewChange, map }: RaceDetailProps) {
 	const candidates = race?.candidates ?? entry.candidates
 
 	const called = race === undefined ? entry.called : isCalled(race.candidates)
+
+	const countyMap = {
+		label: `${entryName(entry)} ${entry.contest.label}`,
+		state: entry.state.key,
+		statewide: entry.district === null,
+		counties: race?.counties,
+		onCounty,
+	}
 
 	return (
 		<Stack gap="xl">
@@ -169,16 +194,16 @@ export function RaceDetail({ entry, race, onCounty, view, onViewChange, shapes }
 			) : null}
 
 			<Activity mode={view === 'counties' ? 'visible' : 'hidden'}>
-				<Suspense fallback={MAP_PLACEHOLDER}>
-					<CountyMap
-						label={`${entryName(entry)} ${entry.contest.label}`}
-						state={entry.state.key}
-						statewide={entry.district === null}
-						counties={race?.counties}
-						onCounty={onCounty}
-						shapes={shapes}
-					/>
-				</Suspense>
+				{map === null ? (
+					<Suspense fallback={MAP_PLACEHOLDER}>
+						<LazyCountyMap {...countyMap} shapes={null} />
+					</Suspense>
+				) : (
+					// No boundary: the map has its code, so it waits for nothing. A boundary
+					// lets the server send a large map after its fallback, and the fallback
+					// then paints first.
+					<map.CountyMap {...countyMap} shapes={map.shapes} />
+				)}
 			</Activity>
 		</Stack>
 	)

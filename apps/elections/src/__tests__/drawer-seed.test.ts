@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fetchCountyShapes } from '../api/county-api'
 import { ElectionDrawer } from '../components/election-drawer'
 import { ElectionRacesProvider } from '../components/election-drawer/context'
-import { loadCountyMap } from '../components/race-detail/load-county-map'
+import { CountyMap } from '../components/race-detail/county-map'
 import { type Election, findContest, findElection } from '../elections/registry'
 import { readNationalRace, readRace } from '../server/civic-race'
 import { atlasCountyNames } from '../server/county-names'
@@ -70,17 +70,16 @@ function readSeed(query: string) {
 
 describe('drawerSeed', () => {
 	it('reads the county shapes only for the map of a race', async () => {
-		const map = await readSeed('region=ga&office=senate&view=counties')
+		const seed = await readSeed('region=ga&office=senate&view=counties')
 
-		expect(map?.race.data.id).toBe(87087)
-		expect(map?.shapes?.features.length).toBe(159)
+		expect(seed?.race.data.id).toBe(87087)
+		expect(seed?.map?.shapes.features.length).toBe(159)
+		expect(seed?.map?.CountyMap).toBe(CountyMap)
 
-		expect((await readSeed('region=ga&office=senate'))?.shapes).toBeNull()
+		expect((await readSeed('region=ga&office=senate'))?.map).toBeNull()
 
 		// A county shows the race in that county, and no map.
-		expect(
-			(await readSeed('region=ga&office=senate&view=counties&county=13121'))?.shapes,
-		).toBeNull()
+		expect((await readSeed('region=ga&office=senate&view=counties&county=13121'))?.map).toBeNull()
 
 		expect(await readSeed('region=ga')).toBeNull()
 	})
@@ -92,11 +91,8 @@ describe('ElectionDrawer', () => {
 
 		const seed = await readSeed('region=ga&office=senate&view=counties')
 
-		// The chunk of the map loads first. The lazy map then mounts within the act,
-		// with no wait on a timer.
-		await loadCountyMap()
-
-		await act(async () => {
+		// The seed holds the map, so the first render draws it, with no wait for the chunk.
+		act(() => {
 			render(
 				h(QueryClientProvider, {
 					client: new QueryClient(),

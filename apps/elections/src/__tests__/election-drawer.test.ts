@@ -73,7 +73,7 @@ function drawer(client: QueryClient, raceSeed: typeof georgia | null = georgia) 
 			races,
 			children: h(ElectionDrawer, {
 				election,
-				seed: raceSeed === null ? null : { race: raceSeed, shapes: null },
+				seed: raceSeed === null ? null : { race: raceSeed, map: null },
 			}),
 		}),
 	})

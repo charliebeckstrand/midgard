@@ -2,6 +2,7 @@ import { connection } from 'next/server'
 import { seed } from 'shared/queries'
 import type { MapFeatureCollection } from 'ui/map'
 import type { DrawerSeed } from '../components/election-drawer'
+import { CountyMap } from '../components/race-detail/county-map'
 import type { Election } from '../elections/registry'
 import { readDrawerStep } from '../utilities/elections-url'
 import { type OfficeRaces, stepEntry } from '../utilities/results'
@@ -15,7 +16,8 @@ export type SearchParams = Promise<Record<string, string | string[] | undefined>
  * The race of the step of the Drawer that the address names, read on the
  * server, so a reload paints the Drawer whole. `null` for a closed Drawer, or a
  * step that shows no one race. A step on the map of the race also takes the
- * county shapes of its state, so the first paint draws the map.
+ * county shapes of its state and the county map, so the first paint and
+ * hydration draw the map.
  */
 export async function drawerSeed(
 	election: Election,
@@ -41,11 +43,17 @@ export async function drawerSeed(
 	// The seed marks the time of the read, which belongs to the request, not to a prerender.
 	await connection()
 
-	const map = step?.view === 'counties' && step.county === null
+	const onMap = step?.view === 'counties' && step.county === null
 
 	return {
 		race: seed(read),
-		shapes: map ? (JSON.parse(countyShapes(entry.state.fips)) as MapFeatureCollection) : null,
+		map: onMap
+			? {
+					shapes: JSON.parse(countyShapes(entry.state.fips)) as MapFeatureCollection,
+					// A client reference: the page sends the chunk of the map with the Drawer.
+					CountyMap,
+				}
+			: null,
 	}
 }
 

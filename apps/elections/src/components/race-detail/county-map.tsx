@@ -39,8 +39,9 @@ type CountyRow = { fips: string; winner: string }
  * each county. A district race draws only the counties of the district. A click
  * on a county opens it. A county with no result is disabled, so it takes no
  * click, no pointer cursor, and no hover. The reader can zoom and pan the map. In the Drawer, the map is the entry of a lazy chunk,
- * which the Drawer loads with the shapes when it opens on a state. The page of
- * a state shows the map of each office.
+ * which the Drawer loads with the shapes when it opens on a state. A reload on
+ * the map takes the map from the page instead (`CountyMapSeed`). The page of a
+ * state shows the map of each office.
  *
  * Until the counties of the race load, a statewide race draws the shapes of its
  * state, and they pulse. The counties of a district are known only from the
