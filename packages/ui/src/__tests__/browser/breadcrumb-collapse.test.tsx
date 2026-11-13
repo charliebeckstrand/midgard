@@ -13,23 +13,30 @@ import { hydrate, serverMarkup } from '../helpers/hydrate'
 
 const CRUMBS = ['Places', 'United States of America', 'Oregon', 'Portland']
 
+/** The list of a collapsing trail of `crumbs`. */
+function crumbList(crumbs: readonly string[]) {
+	return (
+		<BreadcrumbList>
+			{crumbs.map((crumb, index) => (
+				<Fragment key={crumb}>
+					{index > 0 && <BreadcrumbSeparator />}
+					<BreadcrumbItem>
+						<BreadcrumbLink href={`/${crumb}`} current={index === crumbs.length - 1}>
+							{crumb}
+						</BreadcrumbLink>
+					</BreadcrumbItem>
+				</Fragment>
+			))}
+		</BreadcrumbList>
+	)
+}
+
 /** A collapsing trail of `crumbs` in a box `width` pixels wide, with `after` on the line after the trail. */
 function trail(width: number, crumbs: readonly string[] = CRUMBS, after?: string) {
 	return (
 		<div data-testid="box" style={{ width }}>
 			<Breadcrumb collapse>
-				<BreadcrumbList>
-					{crumbs.map((crumb, index) => (
-						<Fragment key={crumb}>
-							{index > 0 && <BreadcrumbSeparator />}
-							<BreadcrumbItem>
-								<BreadcrumbLink href={`/${crumb}`} current={index === crumbs.length - 1}>
-									{crumb}
-								</BreadcrumbLink>
-							</BreadcrumbItem>
-						</Fragment>
-					))}
-				</BreadcrumbList>
+				{crumbList(crumbs)}
 
 				{after ? <button type="button">{after}</button> : null}
 			</Breadcrumb>
@@ -189,6 +196,40 @@ describe('a collapsing breadcrumb (real browser)', () => {
 		expect(button.getBoundingClientRect().top).toBeLessThan(
 			list(container).getBoundingClientRect().bottom,
 		)
+	})
+
+	it('gives way in a box that holds the list and what follows it', () => {
+		const container = attach(
+			serverMarkup(
+				<div data-testid="box" style={{ width: 360 }}>
+					<Breadcrumb collapse>
+						<div style={{ display: 'flex', gap: 8, minWidth: 0 }}>
+							{crumbList(CRUMBS)}
+
+							<span style={{ flexShrink: 0 }}>Badge</span>
+						</div>
+					</Breadcrumb>
+				</div>,
+			),
+		)
+
+		const shown = drawn(container)
+
+		expect(shown[0]).toBe('…')
+
+		expect(shown.at(-1)).toBe('Portland')
+
+		const right = present(
+			container.querySelector('[data-testid=box]'),
+			'box',
+		).getBoundingClientRect().right
+
+		expect(list(container).getBoundingClientRect().right).toBeLessThanOrEqual(right)
+
+		expect(
+			present(container.querySelector('span:not([data-slot])'), 'badge').getBoundingClientRect()
+				.right,
+		).toBeLessThanOrEqual(right)
 	})
 
 	it('keeps the current page on the line in a trail past the places of the order rule', () => {

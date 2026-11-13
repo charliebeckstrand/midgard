@@ -20,7 +20,8 @@ export type BreadcrumbProps = {
 	 * The `<nav>` becomes a flex row that is the room of the fit, so give it the
 	 * full width of its line. Anything that shares the line, such as an action on
 	 * the current page, goes in the `<nav>` after the `<BreadcrumbList>`: the
-	 * crumbs give way before it does. The fit places sixteen crumbs. Use the
+	 * crumbs give way before it does. A box in the `<nav>` that holds the list
+	 * gives way with the list, so give it `min-width: 0`. The fit places sixteen crumbs. Use the
 	 * default separator, because the fit keeps the room of that separator.
 	 *
 	 * @defaultValue false
@@ -46,9 +47,10 @@ export function Breadcrumb({ collapse = false, className, ...props }: Breadcrumb
 			<style>{BREADCRUMB_ORDER_RULE}</style>
 
 			<BreadcrumbNav
-				// What follows the list keeps its width: the crumbs give way first.
+				// What follows the list keeps its width: the crumbs give way first. A box
+				// that holds the list gives way with it.
 				className={cn(
-					'flex min-w-0 items-center [&>:not([data-slot=breadcrumb-list])]:shrink-0',
+					'flex min-w-0 items-center [&>:not([data-slot=breadcrumb-list],:has([data-slot=breadcrumb-list]))]:shrink-0',
 					className,
 				)}
 				{...props}
