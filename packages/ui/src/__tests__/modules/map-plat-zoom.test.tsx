@@ -696,7 +696,7 @@ describe('MapPlat two-finger gestures', () => {
 
 		stubElementFromPoint(region)
 
-		// Past the mouse threshold, inside the tap slop. The press is a tap, so it is no pan.
+		// Past the mouse threshold, inside the tap threshold. The press is a tap, so it is no pan.
 		const finger = { isPrimary: true, pointerId: 1, pointerType: 'touch' }
 
 		fireEvent.pointerDown(region, { ...finger, clientX: 200, clientY: 100 })

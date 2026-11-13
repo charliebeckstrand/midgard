@@ -1,5 +1,5 @@
 import { describe, expect, vi } from 'vitest'
-import { MULTI_TAP_WINDOW, TOUCH_SLOP } from '../../hooks/use-touch-tap'
+import { MULTI_TAP_WINDOW, TAP_THRESHOLD } from '../../hooks/use-touch-tap'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { it } from '../helpers/fake-clock'
@@ -134,7 +134,7 @@ describe('Grid touch entry to edit', () => {
 		// The scroll ends the run of taps, so the tap after it is a first tap.
 		fireEvent.pointerDown(cell('name'), at)
 
-		fireEvent.pointerMove(cell('name'), { ...at, clientY: at.clientY + TOUCH_SLOP + 5 })
+		fireEvent.pointerMove(cell('name'), { ...at, clientY: at.clientY + TAP_THRESHOLD + 5 })
 
 		fireEvent.pointerCancel(cell('name'), at)
 
@@ -192,10 +192,10 @@ describe('Grid touch entry to edit', () => {
 
 		const at = { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 20, clientY: 10 }
 
-		// A pan travels past the slop, and the browser then takes the gesture.
+		// A pan travels past the tap threshold, and the browser then takes the gesture.
 		fireEvent.pointerDown(cell('name'), at)
 
-		fireEvent.pointerMove(cell('name'), { ...at, clientY: at.clientY + TOUCH_SLOP + 5 })
+		fireEvent.pointerMove(cell('name'), { ...at, clientY: at.clientY + TAP_THRESHOLD + 5 })
 
 		fireEvent.pointerCancel(cell('name'), at)
 
@@ -204,9 +204,9 @@ describe('Grid touch entry to edit', () => {
 		// A pan that the browser does not cancel still travels.
 		fireEvent.pointerDown(cell('name'), at)
 
-		fireEvent.pointerMove(cell('name'), { ...at, clientX: at.clientX + TOUCH_SLOP + 5 })
+		fireEvent.pointerMove(cell('name'), { ...at, clientX: at.clientX + TAP_THRESHOLD + 5 })
 
-		fireEvent.pointerUp(cell('name'), { ...at, clientX: at.clientX + TOUCH_SLOP + 5 })
+		fireEvent.pointerUp(cell('name'), { ...at, clientX: at.clientX + TAP_THRESHOLD + 5 })
 
 		expect(editors()).toHaveLength(0)
 	})

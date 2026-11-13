@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import type { PointerEvent } from 'react'
 import { describe, expect, vi } from 'vitest'
 import { useTouchHold } from '../../hooks/use-touch-hold'
-import { TOUCH_SLOP } from '../../hooks/use-touch-tap'
+import { TAP_THRESHOLD } from '../../hooks/use-touch-tap'
 import { it, onFakeClock } from '../helpers/fake-clock'
 
 const target = document.createElement('div')
@@ -46,18 +46,18 @@ describe('useTouchHold', () => {
 		expect(onHold).toHaveBeenCalledWith({ id: 1, x: 40, y: 60, target })
 	})
 
-	it('ends a pending hold whose pointer moves past the slop, and keeps one inside it', async ({
+	it('ends a pending hold whose pointer moves past the threshold, and keeps one inside it', async ({
 		clock,
 	}) => {
 		const { onHold, hold } = setup()
 
 		hold().start(press(40, 60), 500)
 
-		expect(hold().move(press(40 + TOUCH_SLOP, 60))).toBe(false)
+		expect(hold().move(press(40 + TAP_THRESHOLD, 60))).toBe(false)
 
 		expect(hold().pending()).toBe(true)
 
-		expect(hold().move(press(40 + TOUCH_SLOP + 1, 60))).toBe(true)
+		expect(hold().move(press(40 + TAP_THRESHOLD + 1, 60))).toBe(true)
 
 		expect(hold().active()).toBe(false)
 
@@ -83,7 +83,7 @@ describe('useTouchHold', () => {
 
 		await clock.advance(500)
 
-		// A held finger moves freely: the slop ends only a pending hold.
+		// A held finger moves freely: the threshold ends only a pending hold.
 		expect(hold().move(press(300, 300))).toBe(false)
 
 		expect(hold().active(1)).toBe(true)

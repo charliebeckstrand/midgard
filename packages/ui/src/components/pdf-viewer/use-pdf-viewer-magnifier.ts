@@ -438,7 +438,7 @@ export function usePdfViewerMagnifier(
 	 * Starts a hold: a finger that rests on the page for the dwell opens the lens above it.
 	 *
 	 * @remarks The touch counterpart of the dwell. It is the gesture of the iOS text loupe. A
-	 * finger that drifts past the touch slop before the lens opens is a scroll, and the hold ends
+	 * finger that drifts past the tap threshold before the lens opens is a scroll, and the hold ends
 	 * (see {@link drag} and {@link useTouchHold}). Once the lens is open, the finger moves it, and a lift closes it.
 	 *
 	 * The hold leaves the browser's own long-press menu alone. Nothing here cancels a

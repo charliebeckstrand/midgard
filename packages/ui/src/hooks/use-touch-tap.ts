@@ -13,7 +13,7 @@ export const TOUCH_TAP_WINDOW = 300
  *
  * @internal
  */
-export const TOUCH_SLOP = 10
+export const TAP_THRESHOLD = 10
 
 /**
  * Time, in ms, from the lift of one tap to the lift of the next, in which the
@@ -24,7 +24,7 @@ export const TOUCH_SLOP = 10
 export const MULTI_TAP_WINDOW = 400
 
 /** Distance, in CSS px, between two taps of one run. @internal */
-export const MULTI_TAP_SLOP = 40
+export const MULTI_TAP_DISTANCE = 40
 
 /** The press handlers {@link useTouchTap} gives. Spread them next to the hover handlers. @internal */
 export type TouchTap = {
@@ -59,7 +59,7 @@ type Tap = { x: number; y: number; at: number; count: number }
  * Finds a tap in the pointer events of a touch, and reports it from the lift.
  *
  * A tap is a touch press that lifts before {@link TOUCH_TAP_WINDOW} and
- * travels less than {@link TOUCH_SLOP}. A longer press is a hold, and a
+ * travels less than {@link TAP_THRESHOLD}. A longer press is a hold, and a
  * press that travels is a drag or a scroll. A canceled press is a scroll that
  * the browser took. A press that a second finger joins is a pinch or a
  * two-finger gesture. None of these is a tap, and none of them does anything.
@@ -85,7 +85,7 @@ type Tap = { x: number; y: number; at: number; count: number }
  *
  * Each tap reports its place in a run of taps, as the `detail` of a click
  * counts the clicks of a run. A tap that lifts in {@link MULTI_TAP_WINDOW} of
- * the tap before it, and in {@link MULTI_TAP_SLOP} of it, continues the run: the
+ * the tap before it, and in {@link MULTI_TAP_DISTANCE} of it, continues the run: the
  * second tap of a double tap reports 2. Any other tap starts a new run at 1. A
  * press that is not a tap ends the run.
  *
@@ -136,7 +136,7 @@ export function useTouchTap(
 
 			if (current === null || event.pointerId !== current.id) return
 
-			if (Math.hypot(event.clientX - current.x, event.clientY - current.y) > TOUCH_SLOP) {
+			if (Math.hypot(event.clientX - current.x, event.clientY - current.y) > TAP_THRESHOLD) {
 				current.tap = false
 			}
 		},
@@ -165,7 +165,7 @@ export function useTouchTap(
 			const count =
 				prev !== null &&
 				at - prev.at <= MULTI_TAP_WINDOW &&
-				Math.hypot(x - prev.x, y - prev.y) <= MULTI_TAP_SLOP
+				Math.hypot(x - prev.x, y - prev.y) <= MULTI_TAP_DISTANCE
 					? prev.count + 1
 					: 1
 
