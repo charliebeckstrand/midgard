@@ -11,7 +11,7 @@ import {
 	pickEncoding,
 	readBody,
 } from '../../../scripts/docs-server.ts'
-import { rootMarks } from '../../providers/ui/root-marks.ts'
+import { rootMarks } from '../../server/root-marks.ts'
 
 // The server of the docs compresses each text file of the build, as a CDN
 // does, so a page does not cost the reader its full size. A path with no file

@@ -30,6 +30,10 @@
 			"types": "./src/modules/*/index.ts",
 			"default": "./src/modules/*/index.ts"
 		},
+		"./server": {
+			"types": "./src/server/index.ts",
+			"default": "./src/server/index.ts"
+		},
 		"./structure/*": {
 			"types": "./src/structure/*/index.ts",
 			"default": "./src/structure/*/index.ts"

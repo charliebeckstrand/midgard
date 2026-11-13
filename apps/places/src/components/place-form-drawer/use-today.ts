@@ -1,16 +1,8 @@
 'use client'
 
-import { useMemo, useSyncExternalStore } from 'react'
+import { useMemo } from 'react'
+import { useHydrated } from 'ui/hooks'
 import { fromDay, toDay } from '../../utilities/places-filter'
-
-/** The day does not change in a way that a render must follow, so nothing subscribes. */
-const subscribe = () => () => {}
-
-/** The day of the reader, as the clock of the browser reads it. */
-const readerDay = () => toDay(new Date())
-
-/** The server cannot know the day of the reader. */
-const unknownDay = () => null
 
 /**
  * Today, at local midnight, as a day field holds it, or `null` while the day
@@ -24,7 +16,7 @@ const unknownDay = () => null
  * shows it. A form that opens after hydration has the day from its first render.
  */
 export function useToday(): Date | null {
-	const day = useSyncExternalStore(subscribe, readerDay, unknownDay)
+	const day = useHydrated() ? toDay(new Date()) : null
 
 	return useMemo(() => (day === null ? null : fromDay(day)), [day])
 }

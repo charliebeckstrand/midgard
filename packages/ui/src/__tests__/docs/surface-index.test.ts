@@ -125,6 +125,7 @@ describe('surface index ⇄ source sync (CONVENTIONS §12.2)', () => {
 		['CORE.md', 'core/index.ts'],
 		['HOOKS.md', 'hooks/index.ts'],
 		['LAYOUTS.md', 'layouts/index.ts'],
+		['SERVER.md', 'server/index.ts'],
 	])('%s documents every value export of %s', (mdFile, barrel) => {
 		const exports = barrelValueExports(server, barrel)
 
