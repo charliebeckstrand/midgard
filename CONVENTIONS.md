@@ -181,7 +181,7 @@ In an app, an action such as Close or Remove is a `Button` with `variant="bare"`
 
 The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runtime `auth` import out of a `'use client'` module.
 
-6.4 A client request to `/api/*` goes through TanStack Query. A `<feature>-api.ts` file holds the requests, and a `<feature>-queries.ts` file holds the query keys and the `use<Thing>()` hooks. When a server page fetches the data first, wrap its read in `seed`, and spread `seededQuery` of it into the query (`shared/queries`). Do not give it as a plain `initialData`, which fills only an empty entry. A mutation writes its result into the cache with `setQueryData`.
+6.4 A client request to `/api/*` goes through TanStack Query. A `<feature>-api.ts` file holds the requests, and a `<feature>-queries.ts` file holds the query keys and the `use<Thing>()` hooks. When a server page fetches the data first, wrap its read in `seed`, and spread `seededQuery` of it into the query (`shared/queries`). Do not give it as a plain `initialData`, which fills only an empty entry. The exception is data that does not change while the app runs, with a `staleTime` of `Infinity`, such as the county shapes of Elections. A copy of that data from an earlier read is the same data, and other readers share its entry. A plain `initialData` is therefore correct. The `gcTime` of `0` of `seededQuery` drops the shared entry. A mutation writes its result into the cache with `setQueryData`.
 
 ## 7. Forms
 
