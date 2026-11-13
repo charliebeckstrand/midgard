@@ -3,7 +3,7 @@
 import { Trash } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from 'ui/button'
-import { Description, Field, Label } from 'ui/fieldset'
+import { Description, Field, Label, Message } from 'ui/fieldset'
 import {
 	type FileRejection,
 	FileUploadButton,
@@ -16,7 +16,6 @@ import { Lightbox, LightboxTrigger } from 'ui/lightbox'
 import { List, ListItem } from 'ui/list'
 import { ProgressGauge } from 'ui/progress'
 import { Flex } from 'ui/structure/flex'
-import { Text } from 'ui/text'
 import { MAX_PHOTO_BYTES, MAX_PHOTO_MB, PHOTO_TYPE_NAMES, PHOTO_TYPES } from '../../api/places-api'
 import { isNewPhoto, MAX_PHOTOS, newPhoto, type PhotoEntry } from './place-form'
 
@@ -268,7 +267,11 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 				<Description>{MAX_PHOTOS} photos is the most. Remove one to add another.</Description>
 			)}
 
-			{rejected.length === 0 ? null : <Text tone="warning">{rejectionMessage(rejected)}</Text>}
+			{/* A status message, because the file upload leaves the feedback of a
+			    refusal to the field that takes `onReject` (WCAG 4.1.3). */}
+			{rejected.length === 0 ? null : (
+				<Message severity="warning">{rejectionMessage(rejected)}</Message>
+			)}
 		</Field>
 	)
 }

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FormDrawer } from '../../components/place-form-drawer/form-drawer'
@@ -56,6 +56,15 @@ describe('PlacePhotosField', () => {
 		await pick('a.gif', 'b.gif')
 
 		expect(document.body.textContent).toContain('a.gif, b.gif are not JPEG, PNG, or WebP images.')
+	})
+
+	// The file upload leaves the feedback of a refusal to the field.
+	it('shows the refusal in a status region', async () => {
+		renderField()
+
+		await pick('a.gif')
+
+		expect(screen.getByRole('status').textContent).toBe('a.gif is not a JPEG, PNG, or WebP image.')
 	})
 
 	it('names one refused file in the singular', async () => {
