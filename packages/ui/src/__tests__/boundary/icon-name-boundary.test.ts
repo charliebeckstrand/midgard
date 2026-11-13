@@ -51,6 +51,23 @@ function readLucideNames(): { own: Set<string>; other: Map<string, string> } {
 	return { own, other }
 }
 
+/**
+ * The own names of the icons that are also globals of the browser or of the
+ * language, from the `lib` declarations of TypeScript. The list is fixed: the
+ * globals of the runtime that runs this test are not the globals of the page.
+ */
+const GLOBALS: ReadonlySet<string> = new Set([
+	'Clipboard',
+	'File',
+	'Gamepad',
+	'Image',
+	'Infinity',
+	'Lock',
+	'Map',
+	'Navigation',
+	'Option',
+])
+
 /** Each icon that shows an action whose icon is another one, and the icon of the action. */
 const NOT_ICONS: ReadonlyMap<string, string> = new Map([
 	['SquarePen', 'Pencil (edit)'],
@@ -88,7 +105,7 @@ function iconFix(
 	if (own === undefined) return undefined
 
 	// The `Icon` form keeps a global, such as `Map`, in reach.
-	if (name === `${own}Icon` && own in globalThis) return undefined
+	if (name === `${own}Icon` && GLOBALS.has(own)) return undefined
 
 	return `${name} (use ${own})`
 }
@@ -123,7 +140,7 @@ describe('icon name boundary', () => {
 	})
 
 	it('finds an old name and an icon of the table, and passes the Icon form of a global', () => {
-		const code = `import { AlertTriangle, Cog, MapIcon, PencilIcon, Trash, type LucideIcon } from 'lucide-react'`
+		const code = `import { AlertTriangle, Cog, ImageIcon, MapIcon, PencilIcon, Trash, type LucideIcon } from 'lucide-react'`
 
 		expect(lucideImports(code).flatMap((name) => iconFix(name, names) ?? [])).toEqual([
 			'AlertTriangle (use TriangleExclamationPoint)',
