@@ -2,8 +2,7 @@ name: Playwright
 description: Restore Playwright Chromium from the cache, and install it on a miss.
 
 # Each job that runs Chromium uses this action after `setup`: `browser`,
-# `docs`, and the browser `bench` job in ci.yml, visual.yml, and
-# browser-stress.yml. One copy keeps the cache key the same in each job, so
+# `docs`, and the browser `bench` job in ci.yml, and browser-stress.yml. One copy keeps the cache key the same in each job, so
 # those jobs share one cache entry.
 #
 # The `density` job does not use this action. It runs Firefox and WebKit in
@@ -17,11 +16,6 @@ description: Restore Playwright Chromium from the cache, and install it on a mis
 # no restore key: a prefix match would give back a superseded revision that
 # `install` then downloads beside it, so the cache would hold both. `install`
 # is idempotent. On a hit, it skips the download.
-outputs:
-  executable:
-    description: The path of the Playwright Chromium executable.
-    value: ${{ steps.playwright.outputs.executable }}
-
 runs:
   using: composite
   steps:
@@ -30,7 +24,6 @@ runs:
       shell: bash
       run: |
         echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
-        echo "executable=$(node -p "require('playwright').chromium.executablePath()")" >> "$GITHUB_OUTPUT"
     # The key ends in `chromium`, as when the action took a browser list, so
     # the entry that the jobs already share stays valid.
     - uses: actions/cache@v6

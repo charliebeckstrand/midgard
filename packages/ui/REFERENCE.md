@@ -113,7 +113,6 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a page u
 | The rule documents, the Biome plugins, or the apps | `packages/ui` | `pnpm test:workspace` |
 | The accessibility corpus and its sweeps | `packages/ui` | `pnpm test:a11y` |
 | Benchmarks | `packages/ui` | `pnpm bench` / `pnpm bench:browser` |
-| Percy snapshots of the fixture sheets in `src/docs/fixtures` (needs `PERCY_TOKEN`) | `packages/ui` | `pnpm visual [sheet ids] [--density=<levels>]` |
 | The font files and `src/fonts/fonts.css`, after a change to the source font in `fonts/` or to `scripts/fonts.ts` (`fonts-boundary.test.ts` fails when they do not agree) | `packages/ui` | `pnpm fonts` |
 | The English catalogs of ui and of the docs app, after a change to a message. `intl-catalog-boundary.test.ts` fails when the catalog of ui is stale | `packages/ui` | `pnpm intl` |
 | Load time of the docs app | `packages/ui` | `pnpm docs:bench` |
