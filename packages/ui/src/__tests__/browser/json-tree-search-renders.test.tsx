@@ -12,10 +12,10 @@ const data = Object.fromEntries(
 
 /**
  * A new search term renders only the parts whose search state changes: the
- * entry list of the root, and the row of the one leaf whose match changes.
- * Each other row keeps its state, so it does not render. When the term was in
- * the context value, each node read it, and each node rendered on each
- * keystroke.
+ * root, whose subtree now holds a match or keeps fewer entries, its entry
+ * list, and the row of the one leaf whose match changes. Each other row keeps
+ * its state, so it does not render. When the term was in the context value,
+ * each node read it, and each node rendered on each keystroke.
  */
 describe('JsonTree search renders', () => {
 	it.each<{ name: string; search: JsonTreeSearch; next: JsonTreeSearch; rows: number }>([
@@ -36,16 +36,16 @@ describe('JsonTree search renders', () => {
 
 		expect(container.querySelectorAll('[role="treeitem"]')).toHaveLength(rows)
 
-		// The last commit is the one that renders the entries for the new term.
+		// The last commit is the one that renders the tree for the new term.
 		const renders = ['JsonTreeNodeView', 'JsonTreeEntries', 'JsonTreeLeafRow'].reduce(
 			(sum, name) => sum + componentRenders(container, name),
 			0,
 		)
 
-		// The entry list of the root renders, so the walk is live.
+		// The root and its entry list render, so the walk is live.
 		expect(renders).toBeGreaterThan(0)
 
-		// It renders with the row of `item7` at most, and the other rows do not.
-		expect(renders).toBeLessThanOrEqual(2)
+		// They render with the row of `item7` at most, and the other rows do not.
+		expect(renders).toBeLessThanOrEqual(3)
 	})
 })

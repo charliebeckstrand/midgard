@@ -15,19 +15,17 @@ import { treeMoveTarget } from '../tree/tree-keyboard'
 import { JsonTreeContext } from './context'
 import { TREE_ITEM_SELECTOR } from './json-tree-constants'
 import { isBranchToggle, jsonTreeMoveForKey } from './json-tree-keyboard'
-import { JsonTreeNode } from './json-tree-node'
+import { JsonTreeRoot } from './json-tree-root'
 import {
-	buildSearchIndex,
 	collectMatchPaths,
 	type JsonTreeCollapsible,
 	type JsonTreeSearch,
 	normalizeSearch,
-	packNodeSearch,
 } from './json-tree-utilities'
 import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
 import { unionExpandedSet } from './use-json-tree-expansion'
-import { useSearchStore } from './use-json-tree-search'
+import { useSearchIndex, useSearchStore } from './use-json-tree-search'
 import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 
 /** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
@@ -190,7 +188,9 @@ export function JsonTree({
 	// Keyed on `data` identity, so a structurally identical value with a new
 	// identity rebuilds the whole index. Correct as written: a content equality
 	// walk would cost more than the rebuild it avoids.
-	const searchIndex = useMemo(() => buildSearchIndex(data, searchValue), [data, searchValue])
+	const indexFor = useSearchIndex(data)
+
+	const searchIndex = indexFor(searchValue)
 
 	const windowed = virtualize != null
 
@@ -220,16 +220,7 @@ export function JsonTree({
 	// set as a seed. One seed serves both variants.
 	useJsonTreeSearchSeed(controlled ? matchPaths : undefined, expandControlled)
 
-	const searchStore = useSearchStore(searchValue, filter, searchIndex)
-
-	// The root has no parent to give it its search state. The tree renders for
-	// each new search, so it reads the state of the root here.
-	const rootSearch = packNodeSearch(
-		{ term: searchValue, filter, index: searchIndex },
-		rootKey,
-		data,
-		true,
-	)
+	const searchStore = useSearchStore(searchValue, filter)
 
 	const handleRovingKeyDown = useA11yRoving(ref, {
 		// An exiting group is inert, and roving skips its rows.
@@ -272,13 +263,14 @@ export function JsonTree({
 			defaultExpandDepth,
 			collapsible,
 			search: searchStore,
+			searchIndex: indexFor,
 			path: '',
 			controlled,
 			expansion,
 			toggleExpanded,
 			userOpen,
 		}),
-		[defaultExpandDepth, collapsible, searchStore, controlled, expansion, toggleExpanded],
+		[defaultExpandDepth, collapsible, searchStore, indexFor, controlled, expansion, toggleExpanded],
 	)
 
 	if (windowed) {
@@ -325,7 +317,7 @@ export function JsonTree({
 					checkForDefaultPrevented: false,
 				})}
 			>
-				<JsonTreeNode keyName={rootKey} value={data} searchState={rootSearch} />
+				<JsonTreeRoot keyName={rootKey} value={data} />
 			</div>
 		</JsonTreeContext>
 	)

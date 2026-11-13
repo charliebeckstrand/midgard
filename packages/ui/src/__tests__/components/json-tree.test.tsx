@@ -337,6 +337,43 @@ describe('JsonTree', () => {
 		expect(screen.queryByText('42')).not.toBeInTheDocument()
 	})
 
+	// A polled or streamed payload gives a new `data` value with each update. The
+	// rows that the search keeps must stay the same nodes, so the focus and the
+	// roving position stay. The search state of the new value must not come from
+	// the index of the old value, even for one commit.
+	it.each([
+		['the filter', { value: 'ship', filter: true }],
+		['a highlight', 'ship'],
+	] as const)('keeps each row and the focus across a new data value under %s', (_name, search) => {
+		const make = () => ({ group: { ship: 'yes', other: 'no' }, extra: { ship: 1 } })
+
+		const { container, rerender } = renderUI(
+			<JsonTree data={make()} search={search} defaultExpandDepth={1} />,
+		)
+
+		const rows = () => Array.from(container.querySelectorAll<HTMLElement>('[role="treeitem"]'))
+
+		const before = rows()
+
+		const group = present(
+			before.find((row) => row.textContent?.includes('"group"')),
+			'group row',
+		)
+
+		group.focus()
+
+		rerender(<JsonTree data={make()} search={search} defaultExpandDepth={1} />)
+
+		const after = rows()
+
+		expect(after).toHaveLength(before.length)
+
+		// The same nodes, not equal copies.
+		for (const [index, row] of after.entries()) expect(row).toBe(before[index])
+
+		expect(document.activeElement).toBe(group)
+	})
+
 	describe('virtualize', () => {
 		it.each<[string, () => ReactElement]>([
 			[

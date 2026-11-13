@@ -26,7 +26,7 @@ import { useEntriesSearch } from './use-json-tree-search'
 type JsonNodeProps = {
 	keyName?: string | number
 	value: JsonValue
-	/** The packed search state of the node, from its parent, or from the tree for the root. */
+	/** The packed search state of the node, from its parent, or from {@link JsonTreeRoot} for the root. */
 	searchState: number
 }
 
@@ -85,6 +85,7 @@ function JsonTreeNodeView({ keyName, value, searchState }: JsonNodeProps) {
 		defaultExpandDepth,
 		collapsible: treeCollapsible,
 		search,
+		searchIndex,
 		path,
 		controlled,
 		expansion,
@@ -138,6 +139,7 @@ function JsonTreeNodeView({ keyName, value, searchState }: JsonNodeProps) {
 			defaultExpandDepth,
 			collapsible: treeCollapsible,
 			search,
+			searchIndex,
 			path: nodePath,
 			controlled,
 			expansion,
@@ -149,6 +151,7 @@ function JsonTreeNodeView({ keyName, value, searchState }: JsonNodeProps) {
 			defaultExpandDepth,
 			treeCollapsible,
 			search,
+			searchIndex,
 			nodePath,
 			controlled,
 			expansion,
@@ -244,9 +247,9 @@ type JsonTreeEntriesProps = {
  * @internal
  */
 const JsonTreeEntries = memo(function JsonTreeEntries({ entries }: JsonTreeEntriesProps) {
-	const { depth, search } = useJsonTreeContext()
+	const { depth, search, searchIndex } = useJsonTreeContext()
 
-	const states = useEntriesSearch(search, entries)
+	const states = useEntriesSearch(search, searchIndex, entries)
 
 	return entries.map(([key, value], index) => {
 		const state = states?.[index] ?? 0

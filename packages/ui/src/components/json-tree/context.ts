@@ -4,7 +4,7 @@ import type { RefObject } from 'react'
 import { createContext } from '../../core/create-context'
 import type { KeyedStore } from '../../utilities/keyed-store'
 import type { JsonTreeCollapsible } from './json-tree-utilities'
-import type { JsonTreeSearchStore } from './use-json-tree-search'
+import type { JsonTreeSearchIndex, JsonTreeSearchStore } from './use-json-tree-search'
 
 type JsonTreeContextValue = {
 	depth: number
@@ -18,6 +18,11 @@ type JsonTreeContextValue = {
 	 * new term would render each node of the tree.
 	 */
 	search: JsonTreeSearchStore
+	/**
+	 * The search index of a term over the current `data`. It changes with `data`
+	 * alone. A new value renders each node, as each node takes a new value.
+	 */
+	searchIndex: JsonTreeSearchIndex
 	path: string
 	/** Whether the tree runs from a controlled `expanded` set. */
 	controlled: boolean

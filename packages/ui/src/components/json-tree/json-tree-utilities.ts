@@ -117,6 +117,39 @@ export function buildSearchIndex(data: JsonValue, term: string): SearchIndex {
 	return index
 }
 
+/**
+ * The search index of each term over `data`, built on the first read of the
+ * term. It keeps the index of the two newest terms: a render with a new term
+ * reads the new term, and the entry lists read the published term until the
+ * tree publishes the new one.
+ *
+ * @param data - The value of the tree.
+ * @returns A function from a term to its {@link SearchIndex} over `data`.
+ * @internal
+ */
+export function buildSearchIndexReader(data: JsonValue): (term: string) => SearchIndex {
+	const indexes = new Map<string, SearchIndex>()
+
+	return (term) => {
+		const cached = indexes.get(term)
+
+		if (cached) return cached
+
+		const index = buildSearchIndex(data, term)
+
+		indexes.set(term, index)
+
+		// Keep the two newest terms.
+		for (const key of indexes.keys()) {
+			if (indexes.size <= 2) break
+
+			indexes.delete(key)
+		}
+
+		return index
+	}
+}
+
 /** Keeps the entries that match directly, and the branches whose subtree holds a match in `index`. @internal */
 export function filterEntries(
 	entries: [string | number, JsonValue][],
