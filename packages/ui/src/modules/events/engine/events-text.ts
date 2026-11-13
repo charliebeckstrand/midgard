@@ -6,7 +6,7 @@ import type { EventEntry } from './types'
 /** The shortest width of the kind column: the longest kind that the module writes. */
 const KIND_WIDTH = 'viewport'.length
 
-/** One row of the list: one event, or the events of one batch, oldest first. */
+/** One row of the list: one event, or the events of one batch, oldest first. @internal */
 export type EventRow = readonly [EventEntry, ...EventEntry[]]
 
 /** What the kind column shows: the name of the event, else its kind. */
@@ -14,17 +14,17 @@ function getKindLabel(entry: EventEntry): string {
 	return entry.name ?? entry.kind
 }
 
-/** The width of the kind column: the longest kind, or the longest name in the list. */
+/** The width of the kind column: the longest kind, or the longest name in the list. @internal */
 export function getKindWidth(entries: readonly EventEntry[]): number {
 	return entries.reduce((width, entry) => Math.max(width, getKindLabel(entry).length), KIND_WIDTH)
 }
 
-/** The columns before the text of a line: the time, the scroll position, and the kind or the name. */
+/** The columns before the text of a line: the time, the scroll position, and the kind or the name. @internal */
 export function formatColumns(entry: EventEntry, width: number): string {
 	return `${String(entry.time).padStart(6)} y${String(entry.y).padEnd(5)} ${getKindLabel(entry).padEnd(width)} `
 }
 
-/** One line with no detail: the columns, then the text. Copy and the trail of a report write it. */
+/** One line with no detail: the columns, then the text. Copy and the trail of a report write it. @internal */
 export function formatLine(entry: EventEntry, width: number): string {
 	return formatColumns(entry, width) + entry.text
 }
@@ -33,6 +33,8 @@ export function formatLine(entry: EventEntry, width: number): string {
  * The rows of a list of events, oldest first. With `batched`, the events of
  * one batch are one row, at the place of the first event of the batch. The
  * events of other batches and the events with no batch keep their places.
+ *
+ * @internal
  */
 export function groupRows(entries: readonly EventEntry[], batched: boolean): EventRow[] {
 	if (!batched) return entries.map((entry) => [entry])
@@ -64,6 +66,8 @@ export function groupRows(entries: readonly EventEntry[], batched: boolean): Eve
  * The text of a row of a batch: the texts of the first and the last event,
  * the count of the events, and the time from the first to the last, such as
  * `pointerdown button … click button (8 lines, 3 ms)`.
+ *
+ * @internal
  */
 export function formatSummary(row: EventRow): string {
 	const first = row[0]
@@ -92,6 +96,8 @@ function formatDetailedLine(entry: EventEntry, width: number): string {
 /**
  * One row as text. A row of a batch is the columns of its first event and the
  * summary, then each event, indented by two spaces.
+ *
+ * @internal
  */
 export function formatRow(row: EventRow, width: number): string {
 	if (row.length === 1) return formatDetailedLine(row[0], width)

@@ -6,6 +6,7 @@ import {
 	isEventsPinned,
 	setEventsOn,
 	setEventsPinned,
+	startEvents,
 } from '../../modules/events/engine/events-setting'
 import { getEventSink, recordEvent, reportBug } from '../../modules/events/engine/events-sink'
 import { EventsAside } from '../../modules/events/events-aside'
@@ -550,6 +551,43 @@ describe('pin', () => {
 		expect(await screen.findByText('/live')).toBeDefined()
 	})
 
+	it('keeps the row and its focus when the store replaces the event of the row', async ({
+		clock,
+	}) => {
+		start()
+
+		render(<EventsPanel />)
+
+		// One line makes each error, so the errors share their first frame.
+		const boom = () => new Error('boom')
+
+		const error = boom()
+
+		act(() => reportBug(error))
+
+		await clock.nextFrame()
+
+		const row = screen.getByText('caught boom').closest('button')
+
+		row?.focus()
+
+		// A repeat of the bug counts it on its event, and a second channel for
+		// the same thrown value adds to its report. Each gives a new object.
+		act(() => reportBug(boom()))
+
+		await clock.nextFrame()
+
+		act(() => reportBug(error, { componentStack: '\n    at Page' }))
+
+		await clock.nextFrame()
+
+		expect(screen.getAllByText('caught boom')).toHaveLength(2)
+
+		expect(row?.isConnected).toBe(true)
+
+		expect(document.activeElement).toBe(row)
+	})
+
 	it('scrolls its list in the body, so the list renders a window of the rows', async () => {
 		start()
 
@@ -590,6 +628,30 @@ describe('EventsSwitch', () => {
 		expect(localStorage.getItem('events:on')).toBeNull()
 
 		expect(document.documentElement.hasAttribute('data-events')).toBe(false)
+	})
+})
+
+describe('startEvents', () => {
+	it('removes the root attributes of the server while the storage has the events off', async () => {
+		const root = document.documentElement
+
+		// The cookies run the events and pin the panel, so the server marked
+		// the root. The storage has the events off.
+		root.setAttribute('data-events', '')
+
+		root.setAttribute('data-events-pinned', '')
+
+		onTestFinished(() => {
+			root.removeAttribute('data-events')
+
+			root.removeAttribute('data-events-pinned')
+		})
+
+		await startEvents()
+
+		expect(root.hasAttribute('data-events')).toBe(false)
+
+		expect(root.hasAttribute('data-events-pinned')).toBe(false)
 	})
 })
 

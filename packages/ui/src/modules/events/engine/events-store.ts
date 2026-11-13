@@ -2,7 +2,7 @@ import { createEmitter } from '../../../utilities/emitter'
 import { getOrCompute } from '../../../utilities/get-or-compute'
 import { parseFrames, parseStack } from './events-probes'
 import { createReport, type ReportInput } from './events-report'
-import { CAPTURE_KEY, readStorage, writeStorage } from './events-storage'
+import { readStorage, writeStorage } from './events-storage'
 import { formatLine, getKindWidth } from './events-text'
 import type { EventBug, EventEntry, EventKind, EventReport, EventStorage } from './types'
 
@@ -10,22 +10,22 @@ import type { EventBug, EventEntry, EventKind, EventReport, EventStorage } from 
 // of the bugs and the captures among them, and the copy that "Preserve" keeps
 // in `sessionStorage`.
 
-/** The most events with no report that the store keeps outside a capture. The oldest goes first. */
+/** The most events with no report that the store keeps outside a capture. The oldest goes first. @internal */
 export const EVENT_CAPACITY = 500
 
-/** The most events with no report that the store keeps while a capture runs. */
+/** The most events with no report that the store keeps while a capture runs. @internal */
 export const CAPTURE_CAPACITY = 2000
 
-/** The most events with a report that the store keeps. The oldest goes first. */
+/** The most events with a report that the store keeps. The oldest goes first. @internal */
 export const REPORT_CAPACITY = 50
 
-/** The most lines before a bug in its report, outside a capture. */
+/** The most lines before a bug in its report, outside a capture. @internal */
 export const TRAIL_LENGTH = 40
 
 /** The prefix of the storage keys of the store. */
 const PREFIX = 'events'
 
-/** An event before the store gives it an id. */
+/** An event before the store gives it an id. @internal */
 export type NewEntry = Omit<EventEntry, 'id'>
 
 /** The start of a capture: the id of its first event, and the wall-clock time and the page of the start. */
@@ -34,8 +34,10 @@ type CaptureStart = { id: number; at: string; page: string }
 /**
  * The events of one tab in memory, kept in `sessionStorage` while
  * "Preserve" is on or a capture runs. A new store reads the kept events, so
- * a reload starts from them. The keys are `events:entries`, and
- * `events:<field>` for each flag.
+ * a reload starts from them. The keys are `events:entries`, `events:capture`
+ * for the start of a capture that runs, and `events:<field>` for each flag.
+ *
+ * @internal
  */
 export class EventStore {
 	entries: readonly EventEntry[] = []
@@ -72,7 +74,7 @@ export class EventStore {
 		this.storage = storage
 
 		try {
-			this.capture = JSON.parse(readStorage(storage, CAPTURE_KEY) ?? 'null') ?? undefined
+			this.capture = JSON.parse(readStorage(storage, key('capture')) ?? 'null') ?? undefined
 		} catch {}
 
 		// Only `save` writes the events, so the kept value is an array of events.
@@ -211,7 +213,7 @@ export class EventStore {
 
 		this.capture = start
 
-		writeStorage(this.storage, CAPTURE_KEY, JSON.stringify(start))
+		writeStorage(this.storage, key('capture'), JSON.stringify(start))
 
 		this.insert(entry)
 
@@ -232,7 +234,7 @@ export class EventStore {
 
 		this.capture = undefined
 
-		writeStorage(this.storage, CAPTURE_KEY, null)
+		writeStorage(this.storage, key('capture'), null)
 
 		this.insert(entry, (entries) => {
 			const index = entries.indexOf(entry)

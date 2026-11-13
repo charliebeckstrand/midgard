@@ -146,5 +146,5 @@ export type EventNote = (line: EventLine) => void
 /** One source of lines: it adds its listeners, and returns a function that removes them. */
 export type EventSource = (note: EventNote) => () => void
 
-/** The web storage subset that the store uses. A test gives a fake. */
+/** The web storage subset that the store uses. A test gives a fake. @internal */
 export type EventStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>

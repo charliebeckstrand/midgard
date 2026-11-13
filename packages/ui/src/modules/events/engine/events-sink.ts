@@ -9,7 +9,7 @@ import type { EventKind, EventNote, EventOrigin } from './types'
 // it. While the recorder does not run, the sink is empty, so a call costs
 // nothing, and this module loads no part of the recorder.
 
-/** What the recorder gives while it runs. */
+/** What the recorder gives while it runs. @internal */
 export type EventSink = { note: EventNote; store: EventStore }
 
 let sink: EventSink | undefined

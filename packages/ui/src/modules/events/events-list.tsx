@@ -10,7 +10,6 @@ import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
-import { getOrCompute } from '../../utilities/get-or-compute'
 import { type EventRow, formatColumns, formatSummary } from './engine/events-text'
 import type { EventEntry } from './engine/types'
 import { eventsMessages } from './events-messages'
@@ -18,25 +17,17 @@ import { eventsMessages } from './events-messages'
 /** The slots of the events. */
 const slots = k()
 
-// The key of each line. An event is an object that the store keeps until it
-// drops the event, so the key of a line stays while the line stays.
-const keys = new WeakMap<EventEntry, number>()
-
-let lastKey = 0
-
-function getEntryKey(entry: EventEntry): number {
-	return getOrCompute(keys, entry, () => ++lastKey)
-}
-
 /**
- * The key of a row in the list, and of its open state: the key of its event,
- * or the batch of a row of more than one event.
+ * The key of a row in the list, and of its open state: the id of its event,
+ * or the batch of a row of more than one event. The store keeps the id of an
+ * event when it replaces the event, such as for a repeat of a bug, so the key
+ * of a line stays while the line stays.
  */
 function getKey(row: EventRow): string {
-	return row.length === 1 ? `entry ${getEntryKey(row[0])}` : `batch ${row[0].batch}`
+	return row.length === 1 ? `entry ${row[0].id}` : `batch ${row[0].batch}`
 }
 
-/** The open state of the lines, by the key of each line. */
+/** The open state of the lines, by the key of each line. @internal */
 export type EventsOpenState = {
 	isOpen: (key: string) => boolean
 	setOpen: (key: string, open: boolean) => void
@@ -153,7 +144,7 @@ function EventRowLine({ row, ...props }: LineProps & { row: EventRow }) {
 		<EventLine
 			entry={row[0]}
 			text={formatSummary(row)}
-			panel={row.map((entry) => <EntryLine key={getEntryKey(entry)} entry={entry} {...props} />)}
+			panel={row.map((entry) => <EntryLine key={entry.id} entry={entry} {...props} />)}
 			width={props.width}
 			open={props.openState.isOpen(key)}
 			onOpenChange={(next) => props.openState.setOpen(key, next)}

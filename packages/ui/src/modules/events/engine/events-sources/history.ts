@@ -5,6 +5,8 @@ import { addListeners } from './dom'
  * Each move through the session history that the browser makes: back,
  * forward, and a change of the hash. A router writes the moves that it makes
  * itself, such as through the navigation callbacks of the router.
+ *
+ * @internal
  */
 export const sessionHistory: EventSource = (note) =>
 	addListeners(window, ['popstate', 'hashchange'], (event) =>

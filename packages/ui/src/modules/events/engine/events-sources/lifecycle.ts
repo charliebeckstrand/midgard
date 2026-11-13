@@ -7,6 +7,8 @@ import { addListeners, all } from './dom'
  * restore from the back-forward cache keeps the store, so it writes a
  * separator and the reading of the viewport, as the start of a page load
  * does.
+ *
+ * @internal
  */
 export const lifecycle: EventSource = (note) =>
 	all([

@@ -2,7 +2,7 @@ import { subscribeOverlaySignal } from '../../../../primitives/overlay/overlay-s
 import { readViewport } from '../events-probes'
 import type { EventSource } from '../types'
 
-/** Each overlay that opens, with the reading of the viewport. */
+/** Each overlay that opens, with the reading of the viewport. @internal */
 export const overlay: EventSource = (note) =>
 	subscribeOverlaySignal(() =>
 		note({ kind: 'overlay', text: 'overlay opens', detail: readViewport() }),

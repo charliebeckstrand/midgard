@@ -7,15 +7,17 @@ import { getScroller } from '../../../utilities/get-scroller'
  * The attribute of the elements of the tools: the header button and the
  * pinned panel. The sources skip the events in them, so the store does not
  * record its own use.
+ *
+ * @internal
  */
 export const TOOL_ATTRIBUTE = 'data-events-tool'
 
-/** Whether an event target is in an element of the tools. */
+/** Whether an event target is in an element of the tools. @internal */
 export function isOwn(target: unknown): boolean {
 	return target instanceof Element && target.closest(`[${TOOL_ATTRIBUTE}]`) !== null
 }
 
-/** A short name of an event target: the tag, the anchor, and the value of an input. */
+/** A short name of an event target: the tag, the anchor, and the value of an input. @internal */
 export function describeTarget(target: unknown): string {
 	if (!(target instanceof Element) || target === document.documentElement) return 'page'
 
@@ -29,6 +31,8 @@ export function describeTarget(target: unknown): string {
 /**
  * Where an element is: its name and the name of each ancestor with a slot,
  * its box, and the scroll position of its scroll container.
+ *
+ * @internal
  */
 export function describePlace(el: Element): string {
 	const names = [describeTarget(el)]

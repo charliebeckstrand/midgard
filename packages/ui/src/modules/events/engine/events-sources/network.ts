@@ -20,6 +20,8 @@ function toTimingJson(entry: PerformanceResourceTiming): JsonValue {
  * and the status of a load that fails. The detail holds the resource timing.
  * The loads of one pass are one batch: a load that starts before each load of
  * the pass ends is a part of the pass.
+ *
+ * @internal
  */
 export const network: EventSource = (note) => {
 	let pass = ''

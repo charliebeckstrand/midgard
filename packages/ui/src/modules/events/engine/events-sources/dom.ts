@@ -5,17 +5,19 @@
 // so the ids of two page loads in a kept store are not the same.
 let lastBatch = 0
 
-/** A new batch id. */
+/** A new batch id. @internal */
 export function nextBatch(): string {
 	return `${Math.round(performance.timeOrigin)}.${++lastBatch}`
 }
 
-/** The time with no new event that ends a scroll or a burst, in milliseconds. */
+/** The time with no new event that ends a scroll or a burst, in milliseconds. @internal */
 export const QUIET = 150
 
 /**
  * The batches of the bursts of a source. A line takes the batch of its key
  * while the lines of that key come less than {@link QUIET} apart.
+ *
+ * @internal
  */
 export function bursts(): { getBatch: (key: string) => string; stop: () => void } {
 	const open = new Map<string, { id: string; timer: ReturnType<typeof setTimeout> }>()
@@ -40,7 +42,7 @@ export function bursts(): { getBatch: (key: string) => string; stop: () => void 
 	}
 }
 
-/** Adds a passive capture listener for each type, and returns a function that removes them. */
+/** Adds a passive capture listener for each type, and returns a function that removes them. @internal */
 export function addListeners(
 	target: EventTarget | null | undefined,
 	types: readonly string[],
@@ -55,7 +57,7 @@ export function addListeners(
 	}
 }
 
-/** One function that calls each of `stops`. */
+/** One function that calls each of `stops`. @internal */
 export function all(stops: readonly (() => void)[]): () => void {
 	return () => {
 		for (const stop of stops) stop()
@@ -71,6 +73,8 @@ const replayed = new Set<string>()
  * Observes the performance entries of each type that the browser supports, and
  * returns a function that stops. An entry arrives late, but with its own time,
  * so the store puts its line in its place.
+ *
+ * @internal
  */
 export function observe(
 	types: readonly string[],

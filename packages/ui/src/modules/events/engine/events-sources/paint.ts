@@ -19,7 +19,7 @@ function isOwnShift(shift: LayoutShift): boolean {
 	return sources.length > 0 && sources.every(({ node }) => isOwn(node?.parentElement ?? node))
 }
 
-/** The paints, and the layout shifts that no input causes and that do not move only the tools. */
+/** The paints, and the layout shifts that no input causes and that do not move only the tools. @internal */
 export const paint: EventSource = (note) =>
 	observe(['paint', 'largest-contentful-paint', 'layout-shift'], (entry) => {
 		const shift = entry as LayoutShift

@@ -5,6 +5,8 @@ import { addListeners, all, bursts } from './dom'
 /**
  * Each resize of the window and of the visual viewport, with the reading of
  * the viewport. A burst of resizes is one batch.
+ *
+ * @internal
  */
 export const resize: EventSource = (note) => {
 	const { getBatch, stop } = bursts()
@@ -30,7 +32,7 @@ export const resize: EventSource = (note) => {
 	])
 }
 
-/** Each change of the height of the page. */
+/** Each change of the height of the page. @internal */
 export const height: EventSource = (note) => {
 	let prev = 0
 
