@@ -24,7 +24,7 @@ type BaseListProps<T> = Omit<
 	ComponentProps<'ul'>,
 	'children' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
 > & {
-	/** Ordered items. The list does not change the array, so it accepts a readonly array. */
+	/** Ordered items. */
 	items: readonly T[]
 	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards; `bare` spaces rows apart with no chrome, for rows of form controls. @defaultValue 'separated' */
 	variant?: ListVariant
