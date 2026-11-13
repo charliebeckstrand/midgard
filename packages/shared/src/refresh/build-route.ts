@@ -7,7 +7,8 @@ let buildId: string | undefined
 
 /**
  * The route handler that gives the ID of the build that the server runs, as
- * plain text. An app with `LiveRefresh` serves it at `/api/build`.
+ * plain text. An app with `LiveRefresh` or `useBuildWatch` serves it at
+ * `/api/build`.
  *
  * @remarks
  * Next writes the ID to `.next/BUILD_ID`, and its server reads the same file.
