@@ -385,8 +385,8 @@ export function TagInput({
 						label={tag}
 						color={tagColor}
 						className={k().badge}
-						removeProps={REMOVE_PROPS}
 						value={index}
+						removeProps={REMOVE_PROPS}
 						onRemove={locked ? undefined : handleRemove}
 					/>
 				))}
