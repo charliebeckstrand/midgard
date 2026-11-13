@@ -2,20 +2,20 @@
 
 import type { ReactNode } from 'react'
 import { Card } from 'ui/card'
+import { DateTime } from 'ui/date-time'
 import { Link } from 'ui/link'
-import { useIntl } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { type Election, electionPath } from '../../elections/registry'
+import { ELECTION_DAY_FORMAT, type ElectionDays, electionDayInstant } from '../../utilities/levels'
 
 /**
- * The day of an election in the locale of the page, such as `November 3, 2026`.
- * The day is a date, so it reads in UTC: each zone shows the same day.
+ * The day of an election in a `<time>`, such as `November 3, 2026`. A day in
+ * `days` shows the text of the server. Another day shows the skeleton of a
+ * `DateTime` until hydration.
  */
-export function ElectionDay({ date }: { date: string }) {
-	const intl = useIntl()
-
-	return intl.formatDate(`${date}T12:00:00Z`, { dateStyle: 'long', timeZone: 'UTC' })
+export function ElectionDay({ date, days }: { date: string; days: ElectionDays }) {
+	return <DateTime value={days[date] ?? electionDayInstant(date)} format={ELECTION_DAY_FORMAT} />
 }
 
 /** The flag of each country of a list, by the code of the country, such as `us`. */
@@ -26,6 +26,8 @@ export type ElectionListProps = {
 	elections: readonly Election[]
 	/** The flag of each country, which the card shows before the name of the country. */
 	flags: CountryFlags
+	/** The text of each election day, which the server writes (`electionDays`). */
+	days: ElectionDays
 }
 
 /**
@@ -35,7 +37,7 @@ export type ElectionListProps = {
  * offices. The list gives no status. In the list view, the heading of each
  * group names it.
  */
-export function ElectionList({ elections, flags }: ElectionListProps) {
+export function ElectionList({ elections, flags, days }: ElectionListProps) {
 	return (
 		<Stack gap="md">
 			{elections.map((election) => (
@@ -60,7 +62,7 @@ export function ElectionList({ elections, flags }: ElectionListProps) {
 							{flags[election.country]}
 
 							<span>
-								{election.countryName}, <ElectionDay date={election.date} />
+								{election.countryName}, <ElectionDay date={election.date} days={days} />
 							</span>
 						</Flex>
 					</Stack>

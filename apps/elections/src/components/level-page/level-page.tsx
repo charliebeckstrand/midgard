@@ -1,5 +1,6 @@
 import { ELECTIONS, type Election } from '../../elections/registry'
 import { searchedElections } from '../../server/results'
+import { electionDays } from '../../utilities/levels'
 import { type Crumb, listedElections } from '../../utilities/trail'
 import { CountryFlag } from '../country-flag'
 import { LevelView } from '../level-view'
@@ -21,7 +22,8 @@ export type LevelPageProps = {
  * scope (`LevelView`). The trail of the header is its visible title, so the
  * heading of the body is only for a screen reader. The search of the header
  * holds every election at each level. The page renders the flag of each
- * country on the server. The page shows no results, so it has no footer.
+ * country on the server, and writes the text of each election day there. The
+ * page shows no results, so it has no footer.
  */
 export async function LevelPage({ crumbs, heading, elections }: LevelPageProps) {
 	const searched = await searchedElections(listedElections(ELECTIONS))
@@ -45,6 +47,7 @@ export async function LevelPage({ crumbs, heading, elections }: LevelPageProps) 
 						<CountryFlag key={election.country} country={election.country} />,
 					]),
 				)}
+				days={electionDays(elections)}
 			/>
 		</PageFrame>
 	)

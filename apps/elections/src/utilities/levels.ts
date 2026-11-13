@@ -1,3 +1,4 @@
+import { type DateText, formatDateText } from 'ui/server'
 import type { Election, ElectionStatus } from '../elections/registry'
 
 /**
@@ -102,6 +103,35 @@ export function statusGroups(elections: readonly Election[]): StatusGroup[] {
 				),
 		}))
 		.filter((group) => group.elections.length > 0)
+}
+
+/** The text of each election day, by its ISO date, such as `2026-11-03` ({@link electionDays}). */
+export type ElectionDays = Readonly<Record<string, DateText>>
+
+/** The format of an election day. A day is a date, so it reads in UTC: each zone shows the same day. */
+export const ELECTION_DAY_FORMAT = {
+	dateStyle: 'long',
+	timeZone: 'UTC',
+} as const satisfies Intl.DateTimeFormatOptions
+
+/** The instant of an election day that {@link ELECTION_DAY_FORMAT} reads: noon in UTC. */
+export function electionDayInstant(date: string): string {
+	return `${date}T12:00:00Z`
+}
+
+/**
+ * Writes the text of the day of each election on the server, such as
+ * `November 3, 2026`. Thus the first paint shows each day, and the browser
+ * does not write the text again (see `formatDateText`).
+ */
+export function electionDays(elections: readonly Election[]): ElectionDays {
+	return Object.fromEntries(
+		elections.flatMap(({ date }) => {
+			const text = formatDateText(electionDayInstant(date), ELECTION_DAY_FORMAT)
+
+			return text === null ? [] : [[date, text]]
+		}),
+	)
 }
 
 /** The ISO date of a day of the calendar, which the calendar builds from local parts. */

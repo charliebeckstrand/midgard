@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { type Election, findElection } from '../elections/registry'
 import {
 	activeFilters,
+	electionDays,
 	filterElections,
 	isoDay,
 	levelFilterOptions,
@@ -98,5 +99,12 @@ describe('the level pages', () => {
 		expect(isoDay(localDay('2026-11-03'))).toBe('2026-11-03')
 
 		expect(localDay('2026-01-09').getDate()).toBe(9)
+	})
+
+	it('writes the text of each election day on the server, by its ISO date', () => {
+		expect(electionDays([midterms, general2024])).toEqual({
+			'2026-11-03': { at: '2026-11-03T12:00:00.000Z', text: 'November 3, 2026' },
+			'2024-11-05': { at: '2024-11-05T12:00:00.000Z', text: 'November 5, 2024' },
+		})
 	})
 })

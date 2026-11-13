@@ -92,6 +92,7 @@ export { type SortableItemOptions, useSortableItem } from './use-sortable-item'
 export { type SortableListOptions, useSortableList } from './use-sortable-list'
 export { type SortableSensorsOptions, useSortableSensors } from './use-sortable-sensors'
 export { type Timeout, useTimeout } from './use-timeout'
+export { useToday } from './use-today'
 export { useTruncation } from './use-truncation'
 export {
 	type MeasuredVirtualWindowOptions,

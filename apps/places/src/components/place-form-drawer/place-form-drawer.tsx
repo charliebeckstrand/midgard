@@ -1,6 +1,7 @@
 'use client'
 
 import { Field, Label, Message } from 'ui/fieldset'
+import { useToday } from 'ui/hooks'
 import { Input } from 'ui/input'
 import { Rating } from 'ui/rating'
 import type { PlaceDraft, Trip } from '../../types'
@@ -24,7 +25,6 @@ import { PlaceTripField, PlaceVisitedField } from './place-trip-field'
 import { PlaceWebsiteField } from './place-website-field'
 import { useHeldTarget } from './use-held-target'
 import { usePhotoUploads } from './use-photo-uploads'
-import { useToday } from './use-today'
 
 /** Props for {@link PlaceFormDrawer}. */
 export type PlaceFormDrawerProps = {
@@ -115,7 +115,7 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 			submit={submit}
 			editing={editing}
 			// Whether today is known is in the key. A form that the address opens
-			// thus takes the day of the reader after hydration (`useToday`).
+			// thus takes the day of the reader after hydration (`useToday` of ui).
 			formKey={`${targetKey(seed)}:${today === null ? 'pending' : 'known'}`}
 			defaultValues={defaultValues}
 			validate={placeValidators(trips)}

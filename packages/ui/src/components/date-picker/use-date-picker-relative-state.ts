@@ -4,12 +4,12 @@ import { type KeyboardEvent, useCallback, useMemo, useState } from 'react'
 
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useToday } from '../../hooks/use-today'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale/context'
 import { wrap } from '../../utilities/keyboard-navigation'
 import { orderDates, sameDay } from '../calendar/calendar-utilities'
 import { NAVIGATION_KEYS } from '../calendar/use-calendar-focus'
-import { useCalendarToday } from '../calendar/use-calendar-today'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
@@ -132,7 +132,7 @@ export function useDatePickerRelativeState({
 	const [now, setNow] = useState(() => new Date())
 
 	// The current day, which moves at local midnight.
-	const today = useCalendarToday()
+	const today = useToday()
 
 	// In-progress custom-range entry (the Start/End inputs); the committed span
 	// lives in the Form field, not here. A span only commits once both endpoints
