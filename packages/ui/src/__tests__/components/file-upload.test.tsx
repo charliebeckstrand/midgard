@@ -776,6 +776,20 @@ describe('FileUpload announcements', () => {
 
 		await expectAnnouncement(/^Selected a\.png\. b\.png is over the file limit$/)
 	})
+
+	// A caller of `onReject` shows the refusal, as an error `Message` does, and
+	// that message is an alert. A polite refusal text would be lost under it.
+	it('leaves the refusal to a caller of onReject', async () => {
+		const { container } = renderUI(
+			<FileUploadDrop multiple maxCount={1} onReject={() => {}}>
+				Upload
+			</FileUploadDrop>,
+		)
+
+		selectFiles(container, [new File(['a'], 'kept.png'), new File(['b'], 'refused.png')])
+
+		await expectAnnouncement(/^Selected kept\.png$/)
+	})
 })
 
 describe('FileUpload drag-over reporting', () => {

@@ -52,8 +52,8 @@ type FileHandlersOptions = Pick<
  * to `defaultValue` on a native form reset. Incoming files (picker or drop)
  * are split through `partitionFiles` against `accept`, `maxSize` and
  * `maxCount`. Accepted files fire `onAccept`, rejected ones fire `onReject`,
- * and one live-region message names the accepted files and the refused files
- * with their reasons. A batch with no
+ * and one live-region message names the accepted files. Without `onReject`, the
+ * message also names the refused files with their reasons. A batch with no
  * accepted file keeps the current selection. Drag highlight uses a depth counter so nested
  * children don't flicker `dragOver`; `disabled` and `readOnly` short-circuit the
  * picker and drop handling, and `readOnly` also refuses a clear. Only a drag that carries files counts: a text, link, or
@@ -133,9 +133,10 @@ export function useFileUploadHandlers({
 			})
 
 			// The batch lands on a visually-hidden input with no audible feedback,
-			// whether the field takes the files or refuses them. The live region
-			// speaks both (WCAG 4.1.3).
-			announce(describeSelection(intl, { accepted, rejected }))
+			// so the live region speaks it (WCAG 4.1.3). A caller of `onReject` owns
+			// the feedback of a refusal, and the error `Message` that it shows is an
+			// alert. A second, polite text for the refusal would be lost under it.
+			announce(describeSelection(intl, { accepted, rejected: onReject ? [] : rejected }))
 
 			if (rejected.length > 0) onReject?.(rejected)
 
