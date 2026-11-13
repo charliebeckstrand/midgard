@@ -10,7 +10,7 @@ import { hydrate, serverMarkup } from '../../helpers/hydrate'
  * frame is measured. The fit of a seat chart is one scale and one center, so an
  * SVG that scales its drawing to the box puts each seat where the measured
  * frame puts it. The box of the plot was empty until hydration, and then the
- * seats appeared. These tests hold each group of seats, and the majority tick,
+ * seats appeared. These tests hold each group of seats, and the majority line,
  * at the same box before and after the hydration.
  */
 const GROUPS = [
@@ -20,8 +20,8 @@ const GROUPS = [
 ] satisfies ComponentProps<typeof SeatChart>['groups']
 
 const cases = [
-	{ name: 'a narrow box with a majority tick', width: 320, props: { majority: 218 } },
-	{ name: 'a wide box with no tick', width: 640, props: {} },
+	{ name: 'a narrow box with a majority line', width: 320, props: { majority: 218 } },
+	{ name: 'a wide box with no majority line', width: 640, props: {} },
 	{
 		name: 'a fixed height that limits the scale',
 		width: 600,

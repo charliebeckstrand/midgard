@@ -64,7 +64,7 @@ describe('SeatChart layout (real browser)', () => {
 	)
 
 	it.each([320, 640])(
-		'keeps the majority label in the plot and off the seats at %i px',
+		'keeps the majority label in the plot, over the line and off the seats, at %i px',
 		(width) => {
 			const { container } = renderUI(
 				<div style={{ width }}>
@@ -91,9 +91,9 @@ describe('SeatChart layout (real browser)', () => {
 				'the seats',
 			).getBoundingClientRect()
 
-			const tick = present(
-				container.querySelector<SVGLineElement>('[data-slot="chart-majority"]'),
-				'the tick',
+			const line = present(
+				container.querySelector<SVGPathElement>('[data-slot="chart-majority"]'),
+				'the line',
 			).getBoundingClientRect()
 
 			const label = present(
@@ -105,14 +105,19 @@ describe('SeatChart layout (real browser)', () => {
 
 			expect(label.textContent).toBe('218 to win')
 
-			expect(box.left).toBeGreaterThan(tick.right)
+			// The label stands centered over the line.
+			expect(Math.abs((box.left + box.right) / 2 - (line.left + line.right) / 2)).toBeLessThan(1)
+
+			expect(box.bottom).toBeLessThanOrEqual(line.top + 0.5)
+
+			expect(box.left).toBeGreaterThanOrEqual(plot.left - 0.5)
 
 			expect(box.right).toBeLessThanOrEqual(plot.right + 0.5)
 
 			// The glyph box is taller than the ink, so it may reach a little past the top.
 			expect(box.top).toBeGreaterThanOrEqual(plot.top - 3)
 
-			expect(box.bottom).toBeLessThanOrEqual(seats.top + seats.height * 0.1)
+			expect(box.bottom).toBeLessThanOrEqual(seats.top)
 		},
 	)
 })

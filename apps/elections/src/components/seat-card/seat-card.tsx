@@ -36,8 +36,8 @@ function SeatCount({ party }: { party: PartySeats | undefined }) {
 /**
  * The balance of power of one office: a hemicycle of its seats, and the seats
  * of the blue side and the red side as large counts, blue at the start and red
- * at the end. An office with a majority gets a
- * tick at it. The menu of the chart sits at the end of the title row.
+ * at the end. An office with a majority gets a dashed line at it. The menu of
+ * the chart sits at the end of the title row.
  */
 export function SeatCard({ contest, parties, href }: SeatCardProps) {
 	const blue = parties.find((party) => party.slot === 'blue')

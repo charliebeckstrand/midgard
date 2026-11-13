@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { CALLOUT_LINE } from '../../modules/chart/engine/chart-geometry/pie'
 import {
 	discsPath,
-	majorityAngle,
-	majorityCallout,
-	majorityLine,
+	majorityLabel,
+	majorityMark,
 	nearestSeat,
 	SEAT_INNER_RATIO,
+	seatExtent,
 	seatFit,
 	seatGroups,
 	seatHole,
@@ -106,7 +106,111 @@ describe('seatLayout', () => {
 
 		expect(lone.seats[0]?.y).toBeNear(-1, UNIT_TOLERANCE)
 
-		expect(seatLayout(0, 3)).toEqual({ seats: [], dot: 0 })
+		expect(seatLayout(0, 3)).toEqual({ seats: [], dot: 0, aisle: null })
+	})
+})
+
+describe('seatLayout with a majority', () => {
+	/** The distance from a seat to the line down the aisle, which runs out from the center. */
+	function fromAisle(seat: { angle: number; radius: number }, aisle: number): number {
+		const turn = seat.angle - aisle
+
+		return Math.cos(turn) > 0 ? Math.abs(seat.radius * Math.sin(turn)) : seat.radius
+	}
+
+	it('opens the aisle before the seat that makes the majority', () => {
+		for (const [total, majority] of [
+			[100, 51],
+			[435, 218],
+			[435, 290],
+			[56, 29],
+		] as const) {
+			const { seats, aisle } = seatLayout(total, seatRows(total), majority)
+
+			if (aisle === null) throw new Error('expected an aisle')
+
+			expect(seats).toHaveLength(total)
+
+			expect(seats.filter((seat) => seat.angle > aisle)).toHaveLength(majority - 1)
+
+			expect(seats[majority - 2]?.angle).toBeGreaterThan(aisle)
+
+			expect(seats[majority - 1]?.angle).toBeLessThan(aisle)
+		}
+	})
+
+	it('puts the aisle of a simple majority down the middle', () => {
+		expect(seatLayout(100, 5, 51).aisle).toBeNear(Math.PI / 2, UNIT_TOLERANCE)
+
+		expect(seatLayout(56, 4, 29).aisle).toBeNear(Math.PI / 2, UNIT_TOLERANCE)
+	})
+
+	it('keeps each seat clear of the line down the aisle, and no two seats overlap', () => {
+		for (const [total, majority] of [
+			[50, 26],
+			[100, 51],
+			[435, 218],
+			[435, 2],
+			[9, 5],
+		] as const) {
+			const { seats, dot, aisle } = seatLayout(total, seatRows(total), majority)
+
+			if (aisle === null) throw new Error('expected an aisle')
+
+			for (const seat of seats) expect(fromAisle(seat, aisle)).toBeGreaterThan(dot)
+
+			for (let a = 0; a < seats.length; a++) {
+				for (let b = a + 1; b < seats.length; b++) {
+					const one = seats[a]
+
+					const two = seats[b]
+
+					if (!one || !two) continue
+
+					expect(Math.hypot(one.x - two.x, one.y - two.y)).toBeGreaterThanOrEqual(2 * dot - 1e-9)
+				}
+			}
+		}
+	})
+
+	it('keeps the seats of every small chamber clear of the line and of each other', () => {
+		// A split can space the seats of a small chamber further apart than the chamber with no aisle.
+		for (let total = 2; total <= 40; total++) {
+			for (let majority = 2; majority <= total; majority++) {
+				const { seats, dot, aisle } = seatLayout(total, seatRows(total), majority)
+
+				if (aisle === null) continue
+
+				for (const seat of seats) expect(fromAisle(seat, aisle)).toBeGreaterThan(dot)
+
+				for (let a = 0; a < seats.length; a++) {
+					for (let b = a + 1; b < seats.length; b++) {
+						const one = seats[a]
+
+						const two = seats[b]
+
+						if (!one || !two) continue
+
+						expect(Math.hypot(one.x - two.x, one.y - two.y)).toBeGreaterThanOrEqual(2 * dot - 1e-9)
+					}
+				}
+			}
+		}
+	})
+
+	it('has no aisle without a majority inside the chamber', () => {
+		for (const majority of [undefined, 0, 1, 11, 5.5]) {
+			expect(seatLayout(10, 2, majority).aisle).toBeNull()
+		}
+
+		// Without an aisle, the seats are the seats of a chamber with no majority.
+		expect(seatLayout(10, 2, 11)).toEqual(seatLayout(10, 2))
+	})
+
+	it('accepts the whole chamber as the majority', () => {
+		const { seats, aisle } = seatLayout(10, 2, 10)
+
+		expect(seats.filter((seat) => aisle !== null && seat.angle < aisle)).toHaveLength(1)
 	})
 })
 
@@ -120,146 +224,169 @@ describe('seatGroups', () => {
 	})
 })
 
-describe('majorityAngle', () => {
-	it('stands between the last seat of the majority and the next seat', () => {
-		const { seats } = seatLayout(100, 5)
+describe('majorityMark', () => {
+	/** The clear space from a point to the edge of the nearest seat. */
+	function clearance(layout: ReturnType<typeof seatLayout>, x: number, y: number): number {
+		return Math.min(...layout.seats.map((seat) => Math.hypot(seat.x - x, seat.y - y) - layout.dot))
+	}
 
-		const angle = majorityAngle(seats, 51)
+	it('dashes the line down the aisle, a gap past each dash', () => {
+		const mark = majorityMark(seatLayout(100, 5, 51))
 
-		expect(angle).not.toBeNull()
+		if (!mark) throw new Error('expected a mark')
 
-		// The 51st seat is index 50, and the next seat index 51.
-		expect(angle).toBeLessThanOrEqual(seats[50]?.angle ?? 0)
+		expect(mark.dashes.length).toBeGreaterThan(1)
 
-		expect(angle).toBeGreaterThanOrEqual(seats[51]?.angle ?? Math.PI)
+		mark.dashes.forEach((dash, index) => {
+			expect(dash.x1).toBeNear(0, UNIT_TOLERANCE)
+
+			expect(dash.x2).toBeNear(0, UNIT_TOLERANCE)
+
+			expect(dash.y2).toBeGreaterThan(dash.y1)
+
+			const next = mark.dashes[index + 1]
+
+			if (next) expect(next.y1).toBeGreaterThan(dash.y2)
+		})
+
+		expect(mark.top.y).toBeNear(mark.dashes[0]?.y1 ?? 0, UNIT_TOLERANCE)
 	})
 
-	it('is null without a majority inside the chamber', () => {
-		const { seats } = seatLayout(10, 2)
+	it('keeps one clear space to the seats beside the line and past each end', () => {
+		for (const [total, majority] of [
+			[100, 51],
+			[435, 218],
+			[56, 29],
+		] as const) {
+			const layout = seatLayout(total, seatRows(total), majority)
 
-		expect(majorityAngle(seats, undefined)).toBeNull()
+			const mark = majorityMark(layout)
 
-		expect(majorityAngle(seats, 0)).toBeNull()
+			const first = mark?.dashes[0]
 
-		expect(majorityAngle(seats, 10)).toBeNull()
+			const last = mark?.dashes.at(-1)
 
-		expect(majorityAngle(seats, 5.5)).toBeNull()
+			if (!first || !last || layout.aisle === null) throw new Error('expected a mark')
+
+			// The space beside the line: the nearest seat to any point of the line.
+			const side = Math.min(
+				...mark.dashes.flatMap((dash) => [
+					clearance(layout, dash.x1, dash.y1),
+					clearance(layout, dash.x2, dash.y2),
+				]),
+			)
+
+			const outer = Math.hypot(first.x1, first.y1) - (1 + layout.dot)
+
+			const inner =
+				Math.min(...layout.seats.map((seat) => seat.radius)) -
+				layout.dot -
+				Math.hypot(last.x2, last.y2)
+
+			expect(outer).toBeGreaterThan(0)
+
+			expect(inner).toBeNear(outer, UNIT_TOLERANCE)
+
+			expect(side).toBeGreaterThan(0)
+
+			// No seat comes nearer to the line than the space at its ends.
+			expect(side).toBeGreaterThanOrEqual(outer - UNIT_TOLERANCE)
+		}
 	})
 
-	it('ticks past the outer arc, clear of every seat', () => {
-		const layout = seatLayout(100, 5)
-
-		const line = majorityLine(Math.PI / 2, layout)
-
-		expect(line.x1).toBeNear(0, UNIT_TOLERANCE)
-
-		expect(-line.y1).toBeGreaterThan(1 + layout.dot)
-
-		expect(-line.y2).toBeGreaterThan(-line.y1)
+	it('is null with no aisle', () => {
+		expect(majorityMark(seatLayout(100, 5))).toBeNull()
 	})
 })
 
 describe('seatFit', () => {
+	/** The outer end of the majority line, in unit space. */
+	function lineTop(layout: ReturnType<typeof seatLayout>): number {
+		return majorityMark(layout)?.top.y ?? 0
+	}
+
 	it('fits the hemicycle and its line inside the box', () => {
-		const layout = seatLayout(435, 10)
+		const layout = seatLayout(435, 10, 218)
 
-		const fit = seatFit(400, 200, 4, layout.dot, true)
-
-		const line = majorityLine(Math.PI / 2, layout)
+		const fit = seatFit(400, 200, 4, seatExtent(layout))
 
 		expect(fit.cx).toBe(200)
 
 		expect(fit.cx - (1 + layout.dot) * fit.scale).toBeGreaterThanOrEqual(4 - 1e-9)
 
-		expect(fit.cy + line.y2 * fit.scale).toBeGreaterThanOrEqual(4 - 1e-9)
+		expect(fit.cy + lineTop(layout) * fit.scale).toBeGreaterThanOrEqual(4 - 1e-9)
 
 		expect(fit.cy + layout.dot * fit.scale).toBeLessThanOrEqual(196 + 1e-9)
 	})
 
-	it('takes more of the box with no tick to hold', () => {
-		const dot = seatLayout(435, 10).dot
+	it('widens the box for a line near the end of the hemicycle', () => {
+		const layout = seatLayout(435, 10, 2)
 
-		expect(seatFit(400, 200, 4, dot).scale).toBeGreaterThan(seatFit(400, 200, 4, dot, true).scale)
+		const extent = seatExtent(layout)
+
+		const top = majorityMark(layout)?.top
+
+		if (!top) throw new Error('expected a line')
+
+		expect(top.x).toBeGreaterThanOrEqual(-extent.across / 2 - UNIT_TOLERANCE)
+
+		expect(extent.across).toBeGreaterThan(2 * (1 + layout.dot))
 	})
 
 	it('scales to nothing in a box with no room', () => {
-		expect(seatFit(0, 0, 4, 0.02).scale).toBe(0)
+		expect(seatFit(0, 0, 4, seatExtent(seatLayout(10, 2))).scale).toBe(0)
 	})
 
-	it('keeps half a line above the tick for its label', () => {
-		const layout = seatLayout(435, 10)
+	it('keeps a line of text above the majority line for its label', () => {
+		const layout = seatLayout(435, 10, 218)
 
-		const fit = seatFit(400, 200, 4, layout.dot, true, true)
+		const fit = seatFit(400, 200, 4, seatExtent(layout), true)
 
-		const line = majorityLine(Math.PI / 2, layout)
-
-		expect(fit.cy + line.y2 * fit.scale).toBeGreaterThanOrEqual(CALLOUT_LINE / 2 - 1e-9)
+		expect(fit.cy + lineTop(layout) * fit.scale).toBeGreaterThanOrEqual(CALLOUT_LINE - 1e-9)
 
 		expect(fit.cy + layout.dot * fit.scale).toBeLessThanOrEqual(196 + 1e-9)
-
-		// With no tick, the label has nothing to stand beside, so it reserves nothing.
-		expect(seatFit(400, 200, 4, layout.dot, false, true)).toEqual(seatFit(400, 200, 4, layout.dot))
 	})
 })
 
-describe('majorityCallout', () => {
-	const layout = seatLayout(435, 10)
+describe('majorityLabel', () => {
+	function place(majority: number, width: number, height: number, textWidth = 60) {
+		const layout = seatLayout(435, 10, majority)
 
-	function place(angle: number, width: number, height: number, textWidth = 60) {
-		const fit = seatFit(width, height, 4, layout.dot, true, true)
+		const mark = majorityMark(layout)
+
+		if (!mark) throw new Error('expected a mark')
+
+		const fit = seatFit(width, height, 4, seatExtent(layout), true)
 
 		return {
+			mark,
 			fit,
-			callout: majorityCallout({ angle, layout, fit, width, height, margin: 4, textWidth }),
+			label: majorityLabel({ mark, fit, width, height, margin: 4, textWidth }),
 		}
 	}
 
-	it('sits a nub and a gap past the outer end of the tick, level with it', () => {
-		const angle = Math.PI / 2 - 0.01
+	it('sits centered over the line, above its outer end', () => {
+		const { mark, fit, label } = place(218, 400, 200)
 
-		const { fit, callout } = place(angle, 400, 200)
+		expect(label?.x).toBeNear(fit.cx + mark.top.x * fit.scale, PX_TOLERANCE)
 
-		const line = majorityLine(angle, layout)
+		expect(label?.y).toBeLessThan(fit.cy + mark.top.y * fit.scale - CALLOUT_LINE / 2)
 
-		expect(callout).not.toBeNull()
-
-		expect(callout?.nub.x1).toBeNear(fit.cx + line.x2 * fit.scale, PX_TOLERANCE)
-
-		expect(callout?.y).toBeNear(fit.cy + line.y2 * fit.scale, PX_TOLERANCE)
-
-		expect(callout?.nub.x2).toBeGreaterThan(callout?.nub.x1 ?? 0)
-
-		expect(callout?.x).toBeGreaterThan(callout?.nub.x2 ?? 0)
-
-		expect(callout?.anchor).toBe('start')
+		expect((label?.y ?? 0) - CALLOUT_LINE / 2).toBeGreaterThanOrEqual(-PX_TOLERANCE)
 	})
 
-	it('reads away from the center on a tick left of it', () => {
-		const { callout } = place(Math.PI / 2 + 0.2, 400, 200)
-
-		expect(callout?.anchor).toBe('end')
-
-		expect(callout?.nub.x2).toBeLessThan(callout?.nub.x1 ?? 0)
-
-		expect(callout?.x).toBeLessThan(callout?.nub.x2 ?? 0)
-	})
-
-	it('hides where the label does not fit beside the tick', () => {
-		expect(place(Math.PI / 2, 400, 200, 60).callout).not.toBeNull()
-
+	it('hides where the label does not fit above the line', () => {
 		// The label runs past the side of the frame.
-		expect(place(Math.PI / 2, 400, 200, 200).callout).toBeNull()
+		expect(place(218, 400, 200, 400).label).toBeNull()
 
-		expect(place(Math.PI / 2, 120, 200, 60).callout).toBeNull()
-
-		// The tick near the end of the hemicycle leaves the label on the seats or past the frame.
-		expect(place(0.05, 400, 200, 60).callout).toBeNull()
+		// The line near the end of the hemicycle leaves the label on the seats or past the frame.
+		expect(place(435, 400, 200, 60).label).toBeNull()
 	})
 
 	it('hides with no text and in a frame with no room', () => {
-		expect(place(Math.PI / 2, 400, 200, 0).callout).toBeNull()
+		expect(place(218, 400, 200, 0).label).toBeNull()
 
-		expect(place(Math.PI / 2, 0, 0, 60).callout).toBeNull()
+		expect(place(218, 0, 0, 60).label).toBeNull()
 	})
 })
 

@@ -6,12 +6,12 @@ import { useIntl } from '../../../primitives/intl/use-intl'
 import { MARK_GAP } from '../engine/chart-constants'
 import { CALLOUT_CHAR_WIDTH } from '../engine/chart-geometry/pie'
 import {
-	type MajorityCallout,
-	majorityAngle,
-	majorityCallout,
-	majorityLine,
+	type MajorityLabel,
+	type MajorityMark,
+	majorityLabel,
 	type SeatFit,
 	type SeatLayout,
+	seatExtent,
 	seatFit,
 } from '../engine/chart-geometry/seat'
 import { useChartTextWidth } from '../engine/use-chart-text-width'
@@ -22,21 +22,15 @@ const messages = defineMessages<{ toWin: { majority: number } }>({
 		id: 'ui.chart.seatsToWin',
 		defaultMessage: '{majority, number} to win',
 		description:
-			'The label beside the majority mark of a seat chart: the seats for a majority, such as "218 to win".',
+			'The label above the majority line of a seat chart: the seats for a majority, such as "218 to win".',
 	},
 })
-
-/** The majority mark of a seat chart, in px in the frame. @internal */
-export type SeatChartMajorityMark = {
-	/** The tick past the outer arc. */
-	tick: { x1: number; y1: number; x2: number; y2: number }
-	/** The label beside the tick, or `null` where it is off or has no space. */
-	callout: (MajorityCallout & { text: string }) | null
-}
 
 /** Options for {@link useSeatChartMajority}. @internal */
 type SeatChartMajorityOptions = {
 	layout: SeatLayout
+	/** The majority mark ({@link majorityMark}), or `null` where the chamber has no aisle. */
+	mark: MajorityMark | null
 	majority: number | undefined
 	label: boolean
 	/** The size of the frame, in px. */
@@ -46,25 +40,25 @@ type SeatChartMajorityOptions = {
 
 /** What {@link useSeatChartMajority} returns. @internal */
 type SeatChartMajority = {
-	/** The fit of the hemicycle, with the room of the tick and of the label. */
+	/** The fit of the hemicycle, with the room of the line and of the label. */
 	fit: SeatFit
-	/** The majority mark, or `null` without a majority inside the chamber. */
-	mark: SeatChartMajorityMark | null
+	/** The label above the line, or `null` where it is off or has no space. */
+	label: (MajorityLabel & { text: string }) | null
 	/** Attach to an element inside the chart, so that the label measures in its font. */
 	hostRef: RefObject<HTMLDivElement | null>
 }
 
 /**
- * The fit of a seat chart and its majority mark: the tick, and the callout
- * label beside it when `label` is on. The label measures its drawn width, and
- * it shows only where it has the space ({@link majorityCallout}). The fit
- * reserves the room of the label whether it shows or not, so the text never
- * changes the fit.
+ * The fit of a seat chart and the label of its majority mark when `label` is
+ * on. The label measures its drawn width, and it shows only where it has the
+ * space ({@link majorityLabel}). The fit reserves the room of the label whether
+ * it shows or not, so the text never changes the fit.
  *
  * @internal
  */
 export function useSeatChartMajority({
 	layout,
+	mark,
 	majority,
 	label,
 	width,
@@ -72,10 +66,8 @@ export function useSeatChartMajority({
 }: SeatChartMajorityOptions): SeatChartMajority {
 	const intl = useIntl()
 
-	const angle = majorityAngle(layout.seats, majority)
-
 	const text =
-		label && angle !== null && majority !== undefined
+		label && mark !== null && majority !== undefined
 			? intl.formatMessage(messages.toWin, { majority })
 			: ''
 
@@ -85,18 +77,13 @@ export function useSeatChartMajority({
 		CALLOUT_CHAR_WIDTH,
 	)
 
-	const fit = seatFit(width, height, MARK_GAP, layout.dot, angle !== null, label)
-
-	if (angle === null) return { fit, mark: null, hostRef: textWidth.hostRef }
-
-	const line = majorityLine(angle, layout)
+	const fit = seatFit(width, height, MARK_GAP, seatExtent(layout), label && mark !== null)
 
 	const placed =
-		text === ''
+		mark === null || text === ''
 			? null
-			: majorityCallout({
-					angle,
-					layout,
+			: majorityLabel({
+					mark,
 					fit,
 					width,
 					height,
@@ -104,17 +91,5 @@ export function useSeatChartMajority({
 					textWidth: textWidth.width(text),
 				})
 
-	return {
-		fit,
-		mark: {
-			tick: {
-				x1: fit.cx + line.x1 * fit.scale,
-				y1: fit.cy + line.y1 * fit.scale,
-				x2: fit.cx + line.x2 * fit.scale,
-				y2: fit.cy + line.y2 * fit.scale,
-			},
-			callout: placed && { ...placed, text },
-		},
-		hostRef: textWidth.hostRef,
-	}
+	return { fit, label: placed && { ...placed, text }, hostRef: textWidth.hostRef }
 }

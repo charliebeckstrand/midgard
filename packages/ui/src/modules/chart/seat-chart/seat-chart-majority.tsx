@@ -1,56 +1,64 @@
 import { cn } from '../../../core/cn'
 import { k } from '../../../recipes/kata/chart'
+import { coord } from '../engine/chart-coords'
+import type { MajorityLabel, MajorityMark, SeatFit } from '../engine/chart-geometry/seat'
 import { CALLOUT_TEXT_CLASS } from '../sector-chart/sector-chart-callouts'
-import type { SeatChartMajorityMark } from './use-seat-chart-majority'
+
+/** Props for {@link SeatChartMajority}. @internal */
+type SeatChartMajorityProps = {
+	/** The mark in unit space ({@link majorityMark}). */
+	mark: MajorityMark
+	fit: SeatFit
+	/** The label above the line, or `null` where it is off or has no space. */
+	label: (MajorityLabel & { text: string }) | null
+	/** The drawing scales to its box, so the stroke keeps its width in px. */
+	fixedStroke?: boolean
+}
 
 /**
- * The majority mark of a {@link SeatChart}: a tick past the outer arc in the
- * strong ink, and, where it has the space, a callout label beside the outer end
- * of the tick. A short nub turns from the tick toward the label, as a callout
- * leader turns toward its label.
+ * The majority mark of a {@link SeatChart}: a dashed line in the strong ink
+ * down the aisle, and, where it has the space, a label above the line. The dashes are geometry in unit
+ * space, not a dash pattern, so the line draws the same dashes before and
+ * after the frame is measured.
  *
  * @internal
  */
 export function SeatChartMajority({
-	tick,
-	callout,
+	mark,
+	fit,
+	label,
 	fixedStroke = false,
-}: SeatChartMajorityMark & {
-	/** The drawing scales to its box, so the stroke keeps its width in px. */
-	fixedStroke?: boolean
-}) {
+}: SeatChartMajorityProps) {
+	const x = (value: number) => coord(fit.cx + value * fit.scale)
+
+	const y = (value: number) => coord(fit.cy + value * fit.scale)
+
+	const dashes = mark.dashes
+		.map((dash) => `M${x(dash.x1)} ${y(dash.y1)}L${x(dash.x2)} ${y(dash.y2)}`)
+		.join('')
+
 	return (
 		<g pointerEvents="none">
-			<line
+			<path
 				data-slot="chart-majority"
-				{...tick}
+				d={dashes}
+				fill="none"
 				strokeWidth={1.5}
 				vectorEffect={fixedStroke ? 'non-scaling-stroke' : undefined}
-				strokeLinecap="round"
 				className={cn(k.majority)}
 			/>
 
-			{callout && (
-				<>
-					<line
-						data-slot="chart-majority-nub"
-						{...callout.nub}
-						strokeWidth={1.5}
-						strokeLinecap="round"
-						className={cn(k.majority)}
-					/>
-
-					<text
-						data-slot="chart-majority-label"
-						x={callout.x}
-						y={callout.y}
-						textAnchor={callout.anchor}
-						dominantBaseline="central"
-						className={CALLOUT_TEXT_CLASS}
-					>
-						{callout.text}
-					</text>
-				</>
+			{label && (
+				<text
+					data-slot="chart-majority-label"
+					x={label.x}
+					y={label.y}
+					textAnchor="middle"
+					dominantBaseline="central"
+					className={CALLOUT_TEXT_CLASS}
+				>
+					{label.text}
+				</text>
 			)}
 		</g>
 	)

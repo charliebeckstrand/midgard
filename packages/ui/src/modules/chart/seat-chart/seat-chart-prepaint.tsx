@@ -1,12 +1,7 @@
 'use client'
 
 import { MARK_GAP } from '../engine/chart-constants'
-import {
-	majorityAngle,
-	majorityLine,
-	type SeatLayout,
-	seatExtent,
-} from '../engine/chart-geometry/seat'
+import { type MajorityMark, type SeatLayout, seatExtent } from '../engine/chart-geometry/seat'
 import type { SeatChartGroup } from './seat-chart'
 import { SeatChartMajority } from './seat-chart-majority'
 import { SeatChartMarks } from './seat-chart-marks'
@@ -26,7 +21,8 @@ type SeatChartPrepaintProps = {
 	layout: SeatLayout
 	owners: number[]
 	groups: SeatChartGroup[]
-	majority: number | undefined
+	/** The majority mark, or `null` where the chamber has no aisle. */
+	mark: MajorityMark | null
 }
 
 /**
@@ -36,22 +32,18 @@ type SeatChartPrepaintProps = {
  * side, and scales the drawing to meet that box, centered in it. An SVG whose
  * `viewBox` is the box of the drawing does the same with
  * `preserveAspectRatio`. Thus the server render draws the seats where the
- * measured frame draws them, at each size. The majority tick keeps the width
- * of its stroke in px.
+ * measured frame draws them, at each size. The majority line keeps the
+ * width of its stroke in px.
  *
- * The chart draws it only without a label at the tick and without content in
+ * The chart draws it only without a label above the line and without content in
  * the hole. The label needs the width of its text, and it changes the top
  * margin. The content shows only after it has its size, and the seats show
  * with it.
  *
  * @internal
  */
-export function SeatChartPrepaint({ layout, owners, groups, majority }: SeatChartPrepaintProps) {
-	const angle = majorityAngle(layout.seats, majority)
-
-	const { top, across, down } = seatExtent(layout.dot, angle !== null)
-
-	const line = angle === null ? null : majorityLine(angle, layout)
+export function SeatChartPrepaint({ layout, owners, groups, mark }: SeatChartPrepaintProps) {
+	const { top, across, down } = seatExtent(layout)
 
 	return (
 		<div className="absolute" style={{ inset: MARK_GAP }}>
@@ -71,18 +63,7 @@ export function SeatChartPrepaint({ layout, owners, groups, majority }: SeatChar
 					fit={FIT}
 				/>
 
-				{line && (
-					<SeatChartMajority
-						tick={{
-							x1: line.x1 * UNIT,
-							y1: line.y1 * UNIT,
-							x2: line.x2 * UNIT,
-							y2: line.y2 * UNIT,
-						}}
-						callout={null}
-						fixedStroke
-					/>
-				)}
+				{mark && <SeatChartMajority mark={mark} fit={FIT} label={null} fixedStroke />}
 			</svg>
 		</div>
 	)
