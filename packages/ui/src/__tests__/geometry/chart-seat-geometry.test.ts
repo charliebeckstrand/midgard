@@ -173,6 +173,31 @@ describe('seatLayout with a majority', () => {
 		}
 	})
 
+	it('keeps the seats of every small chamber clear of the line and of each other', () => {
+		// A split can space the seats of a small chamber further apart than the chamber with no aisle.
+		for (let total = 2; total <= 40; total++) {
+			for (let majority = 2; majority <= total; majority++) {
+				const { seats, dot, aisle } = seatLayout(total, seatRows(total), majority)
+
+				if (aisle === null) continue
+
+				for (const seat of seats) expect(fromAisle(seat, aisle)).toBeGreaterThan(dot)
+
+				for (let a = 0; a < seats.length; a++) {
+					for (let b = a + 1; b < seats.length; b++) {
+						const one = seats[a]
+
+						const two = seats[b]
+
+						if (!one || !two) continue
+
+						expect(Math.hypot(one.x - two.x, one.y - two.y)).toBeGreaterThanOrEqual(2 * dot - 1e-9)
+					}
+				}
+			}
+		}
+	})
+
 	it('has no aisle without a majority inside the chamber', () => {
 		for (const majority of [undefined, 0, 1, 11, 5.5]) {
 			expect(seatLayout(10, 2, majority).aisle).toBeNull()

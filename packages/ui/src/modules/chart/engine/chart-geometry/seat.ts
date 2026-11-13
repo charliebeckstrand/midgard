@@ -159,6 +159,24 @@ function chamberSides(
 }
 
 /**
+ * The distance from the line down the aisle to the center of the nearest seat.
+ * Only the seats on the side of the center where the line runs count.
+ *
+ * @internal
+ */
+function aisleReach(seats: readonly Seat[], angle: number): number {
+	let reach = Number.POSITIVE_INFINITY
+
+	for (const seat of seats) {
+		const turn = seat.angle - angle
+
+		if (Math.cos(turn) > 0) reach = Math.min(reach, Math.abs(seat.radius * Math.sin(turn)))
+	}
+
+	return reach
+}
+
+/**
  * The seats of a hemicycle of `total` seats on `rows` arcs. Each arc spreads
  * its seats evenly from the start (`π`) to the end (`0`). A lone seat on an arc
  * sits at the middle of its span. The seats sort by angle and then by radius,
@@ -233,7 +251,11 @@ export function seatLayout(total: number, rows: number, majority?: number): Seat
 
 	seats.sort((a, b) => b.angle - a.angle || a.radius - b.radius)
 
-	const dot = Number.isFinite(space) ? space * SEAT_DOT_RATIO : LONE_SEAT_DOT
+	const spaced = Number.isFinite(space) ? space * SEAT_DOT_RATIO : LONE_SEAT_DOT
+
+	// A seat keeps at least AISLE_GAP clear of the line. The split can space the
+	// seats of a small chamber further apart, and the seats then grow past it.
+	const dot = aisle === null ? spaced : Math.min(spaced, aisleReach(seats, aisle) - AISLE_GAP)
 
 	return { seats, dot, aisle }
 }
@@ -285,25 +307,6 @@ function polar(radius: number, angle: number): Point {
 }
 
 /**
- * The clear space between the line down the aisle and the nearest seat beside
- * it: the distance from the line to the edge of that seat. Only the seats on
- * the side of the center where the line runs count.
- *
- * @internal
- */
-function aisleGap(layout: SeatLayout, angle: number): number {
-	let gap = Number.POSITIVE_INFINITY
-
-	for (const seat of layout.seats) {
-		const turn = seat.angle - angle
-
-		if (Math.cos(turn) > 0) gap = Math.min(gap, Math.abs(seat.radius * Math.sin(turn)) - layout.dot)
-	}
-
-	return Number.isFinite(gap) ? Math.max(0, gap) : 0
-}
-
-/**
  * The majority mark of a hemicycle with an aisle ({@link seatLayout}): a
  * dashed line down the aisle. The line keeps one clear space from the seats
  * on all sides: the space between the line and the seats beside it is also
@@ -318,7 +321,10 @@ export function majorityMark(layout: SeatLayout): MajorityMark | null {
 
 	if (angle === null || layout.seats.length === 0) return null
 
-	const gap = aisleGap(layout, angle)
+	const reach = aisleReach(layout.seats, angle)
+
+	// The clear space from the line to the edge of the nearest seat beside it.
+	const gap = Number.isFinite(reach) ? Math.max(0, reach - layout.dot) : 0
 
 	const inner = layout.seats.reduce((min, seat) => Math.min(min, seat.radius), 1)
 
