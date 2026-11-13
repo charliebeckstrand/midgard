@@ -61,6 +61,30 @@ describe('toggleMarker', () => {
 			'bold',
 			'Good **|**',
 		],
+		[
+			'grows a caret in a word to the word for italic, as Markdown reads no `_` in a word',
+			'It was go|od food',
+			'italic',
+			'It was _[good]_ food',
+		],
+		[
+			'grows a selection in a word to the word for italic',
+			'It was [go]od food',
+			'italic',
+			'It was _[good]_ food',
+		],
+		[
+			'removes italic from the word that holds the caret',
+			'It was _go|od_ food',
+			'italic',
+			'It was [good] food',
+		],
+		[
+			'keeps a caret in a word for bold, which Markdown reads in a word',
+			'It was go|od food',
+			'bold',
+			'It was go**|**od food',
+		],
 	])('%s', ([, input, kind, output]) => {
 		expect(show(toggleMarker(edit(input), kind))).toBe(output)
 	})

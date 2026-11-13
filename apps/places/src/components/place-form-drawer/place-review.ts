@@ -9,10 +9,13 @@ export type ReviewEdit = {
 }
 
 /** The Markdown marker of each inline format of the review toolbar. */
-export const REVIEW_MARKERS = {
+const REVIEW_MARKERS = {
 	bold: '**',
 	italic: '_',
 } as const
+
+/** A letter or a digit of any script: a character that continues a word. */
+const WORD = /[\p{L}\p{M}\p{N}]/u
 
 /** An inline format of the review toolbar. */
 export type ReviewMarker = keyof typeof REVIEW_MARKERS
@@ -24,6 +27,10 @@ export type ReviewMarker = keyof typeof REVIEW_MARKERS
  * The selection shrinks past its spaces first, because Markdown does not read
  * `** word **` as bold. A caret gets a pair of markers with the caret between
  * them, so the next text that the reader types has the format.
+ *
+ * Markdown reads `_` as italic only at the bounds of a word, so `wo_r_d` stays
+ * plain text. Thus for italic, a selection or a caret that touches a word
+ * grows to the bounds of that word first.
  *
  * @param edit - The text and the selection.
  * @param format - The format to put on or take off.
@@ -41,6 +48,12 @@ export function toggleMarker(edit: ReviewEdit, format: ReviewMarker): ReviewEdit
 	while (start < end && /\s/.test(value.charAt(start))) start++
 
 	while (end > start && /\s/.test(value.charAt(end - 1))) end--
+
+	if (format === 'italic') {
+		while (start > 0 && WORD.test(value.charAt(start - 1))) start--
+
+		while (end < value.length && WORD.test(value.charAt(end))) end++
+	}
 
 	// The markers are outside the selection.
 	if (value.slice(start - size, start) === marker && value.slice(end, end + size) === marker) {
