@@ -9,16 +9,15 @@ type SeatChartMajorityProps = {
 	/** The mark in unit space ({@link majorityMark}). */
 	mark: MajorityMark
 	fit: SeatFit
-	/** The label above the marker, or `null` where it is off or has no space. */
+	/** The label above the line, or `null` where it is off or has no space. */
 	label: (MajorityLabel & { text: string }) | null
 	/** The drawing scales to its box, so the stroke keeps its width in px. */
 	fixedStroke?: boolean
 }
 
 /**
- * The majority mark of a {@link SeatChart} in the strong ink: a dashed line
- * down the aisle to the hole, a triangle marker at its outer end, and, where it
- * has the space, a label above the marker. The dashes are geometry in unit
+ * The majority mark of a {@link SeatChart}: a dashed line in the strong ink
+ * down the aisle, and, where it has the space, a label above the line. The dashes are geometry in unit
  * space, not a dash pattern, so the line draws the same dashes before and
  * after the frame is measured.
  *
@@ -38,10 +37,6 @@ export function SeatChartMajority({
 		.map((dash) => `M${x(dash.x1)} ${y(dash.y1)}L${x(dash.x2)} ${y(dash.y2)}`)
 		.join('')
 
-	const marker = mark.marker.map((point) => `${x(point.x)},${y(point.y)}`).join(' ')
-
-	const vectorEffect = fixedStroke ? 'non-scaling-stroke' : undefined
-
 	return (
 		<g pointerEvents="none">
 			<path
@@ -49,16 +44,7 @@ export function SeatChartMajority({
 				d={dashes}
 				fill="none"
 				strokeWidth={1.5}
-				vectorEffect={vectorEffect}
-				className={cn(k.majority)}
-			/>
-
-			<polygon
-				data-slot="chart-majority-marker"
-				points={marker}
-				strokeWidth={1.5}
-				strokeLinejoin="round"
-				vectorEffect={vectorEffect}
+				vectorEffect={fixedStroke ? 'non-scaling-stroke' : undefined}
 				className={cn(k.majority)}
 			/>
 

@@ -72,17 +72,17 @@ export type SeatChartProps = AccessibleName &
 		groups: SeatChartGroup[]
 		/**
 		 * The seats for a majority. The seats part at an aisle before the seat
-		 * that makes the majority, and a dashed line runs down the aisle from a
-		 * marker past the outer arc to the hole. A group passes the line on the
-		 * seat that makes the majority, so the line of a simple majority runs down
-		 * the middle. Omit it for a chamber with no majority to read, such as the
-		 * governors.
+		 * that makes the majority, and a dashed line runs down the aisle, with the
+		 * same clear space to the seats on each side and at each end. A group
+		 * passes the line on the seat that makes the majority, so the line of a
+		 * simple majority runs down the middle. Omit it for a chamber with no
+		 * majority to read, such as the governors.
 		 */
 		majority?: number
 		/**
 		 * Labels the majority line with the seats to win, such as "218 to win". The
-		 * label sits centered above the marker. It shows only where the frame has
-		 * the space above the marker, clear of the seats. The frame never grows for
+		 * label sits centered above the line. It shows only where the frame has
+		 * the space above the line, clear of the seats. The frame never grows for
 		 * it.
 		 *
 		 * @defaultValue false
@@ -133,7 +133,7 @@ function seatCount(group: SeatChartGroup): number {
  * order from the start of the hemicycle, so each group reads as one block.
  * A hollow group draws rings, such as seats that are not called yet, and its
  * legend key is a frame. A dashed line down an aisle marks the `majority`,
- * with an optional label above its marker (`majorityLabel`), and `children`
+ * with an optional label above it (`majorityLabel`), and `children`
  * render in the hole, as in a {@link DonutChart}. Content too large for the
  * hole scales down, so it never covers a seat.
  *

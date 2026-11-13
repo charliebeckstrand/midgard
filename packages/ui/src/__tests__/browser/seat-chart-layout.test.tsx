@@ -64,7 +64,7 @@ describe('SeatChart layout (real browser)', () => {
 	)
 
 	it.each([320, 640])(
-		'keeps the majority label in the plot, over the marker and off the seats, at %i px',
+		'keeps the majority label in the plot, over the line and off the seats, at %i px',
 		(width) => {
 			const { container } = renderUI(
 				<div style={{ width }}>
@@ -91,9 +91,9 @@ describe('SeatChart layout (real browser)', () => {
 				'the seats',
 			).getBoundingClientRect()
 
-			const marker = present(
-				container.querySelector<SVGPolygonElement>('[data-slot="chart-majority-marker"]'),
-				'the marker',
+			const line = present(
+				container.querySelector<SVGPathElement>('[data-slot="chart-majority"]'),
+				'the line',
 			).getBoundingClientRect()
 
 			const label = present(
@@ -105,12 +105,10 @@ describe('SeatChart layout (real browser)', () => {
 
 			expect(label.textContent).toBe('218 to win')
 
-			// The label stands centered over the marker.
-			expect(Math.abs((box.left + box.right) / 2 - (marker.left + marker.right) / 2)).toBeLessThan(
-				1,
-			)
+			// The label stands centered over the line.
+			expect(Math.abs((box.left + box.right) / 2 - (line.left + line.right) / 2)).toBeLessThan(1)
 
-			expect(box.bottom).toBeLessThanOrEqual(marker.top + 0.5)
+			expect(box.bottom).toBeLessThanOrEqual(line.top + 0.5)
 
 			expect(box.left).toBeGreaterThanOrEqual(plot.left - 0.5)
 

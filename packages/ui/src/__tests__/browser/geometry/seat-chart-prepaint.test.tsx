@@ -10,8 +10,8 @@ import { hydrate, serverMarkup } from '../../helpers/hydrate'
  * frame is measured. The fit of a seat chart is one scale and one center, so an
  * SVG that scales its drawing to the box puts each seat where the measured
  * frame puts it. The box of the plot was empty until hydration, and then the
- * seats appeared. These tests hold each group of seats, and the majority line
- * and its marker, at the same box before and after the hydration.
+ * seats appeared. These tests hold each group of seats, and the majority line,
+ * at the same box before and after the hydration.
  */
 const GROUPS = [
 	{ seats: 214, color: 'blue', label: 'Democrats' },
@@ -31,9 +31,7 @@ const cases = [
 
 function boxes(container: Element) {
 	return [
-		...container.querySelectorAll(
-			'[data-slot="chart-seat-group"], [data-slot="chart-majority"], [data-slot="chart-majority-marker"]',
-		),
+		...container.querySelectorAll('[data-slot="chart-seat-group"], [data-slot="chart-majority"]'),
 	].map((node) => {
 		const rect = node.getBoundingClientRect()
 
@@ -58,7 +56,7 @@ describe('seat chart before measure (real browser)', () => {
 
 			const before = boxes(container)
 
-			expect(before.length).toBe('majority' in props ? GROUPS.length + 2 : GROUPS.length)
+			expect(before.length).toBe('majority' in props ? GROUPS.length + 1 : GROUPS.length)
 
 			const { onRecoverableError } = hydrate(container, chart)
 

@@ -40,9 +40,9 @@ type SeatChartMajorityOptions = {
 
 /** What {@link useSeatChartMajority} returns. @internal */
 type SeatChartMajority = {
-	/** The fit of the hemicycle, with the room of the marker and of the label. */
+	/** The fit of the hemicycle, with the room of the line and of the label. */
 	fit: SeatFit
-	/** The label above the marker, or `null` where it is off or has no space. */
+	/** The label above the line, or `null` where it is off or has no space. */
 	label: (MajorityLabel & { text: string }) | null
 	/** Attach to an element inside the chart, so that the label measures in its font. */
 	hostRef: RefObject<HTMLDivElement | null>
@@ -84,7 +84,6 @@ export function useSeatChartMajority({
 			? null
 			: majorityLabel({
 					mark,
-					layout,
 					fit,
 					width,
 					height,

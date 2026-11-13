@@ -32,10 +32,10 @@ type SeatChartPrepaintProps = {
  * side, and scales the drawing to meet that box, centered in it. An SVG whose
  * `viewBox` is the box of the drawing does the same with
  * `preserveAspectRatio`. Thus the server render draws the seats where the
- * measured frame draws them, at each size. The majority line and its marker
- * keep the width of their stroke in px.
+ * measured frame draws them, at each size. The majority line keeps the
+ * width of its stroke in px.
  *
- * The chart draws it only without a label above the marker and without content in
+ * The chart draws it only without a label above the line and without content in
  * the hole. The label needs the width of its text, and it changes the top
  * margin. The content shows only after it has its size, and the seats show
  * with it.

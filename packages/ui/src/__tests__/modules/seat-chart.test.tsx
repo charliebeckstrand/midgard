@@ -67,17 +67,11 @@ describe('SeatChart', () => {
 		expect(bySlot(renderUI(chart({ majority: 101 })).container, 'chart-majority')).toBeNull()
 	})
 
-	it('draws the majority line as dashes under a marker', () => {
-		const { container } = renderUI(chart())
-
-		expect(discs(getSlot(container, 'chart-majority'))).toBeGreaterThan(1)
-
-		expect(
-			getSlot(container, 'chart-majority-marker').getAttribute('points')?.split(' '),
-		).toHaveLength(3)
+	it('draws the majority line as dashes', () => {
+		expect(discs(getSlot(renderUI(chart()).container, 'chart-majority'))).toBeGreaterThan(1)
 	})
 
-	it('labels the majority above its marker only with majorityLabel', () => {
+	it('labels the majority above its line only with majorityLabel', () => {
 		expect(bySlot(renderUI(chart()).container, 'chart-majority-label')).toBeNull()
 
 		const label = bySlot(renderUI(chart({ majorityLabel: true })).container, 'chart-majority-label')

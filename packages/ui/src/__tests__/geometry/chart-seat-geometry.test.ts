@@ -203,51 +203,73 @@ describe('seatGroups', () => {
 })
 
 describe('majorityMark', () => {
-	it('dashes the line from past the outer arc down to the hole', () => {
-		const layout = seatLayout(100, 5, 51)
+	/** The clear space from a point to the edge of the nearest seat. */
+	function clearance(layout: ReturnType<typeof seatLayout>, x: number, y: number): number {
+		return Math.min(...layout.seats.map((seat) => Math.hypot(seat.x - x, seat.y - y) - layout.dot))
+	}
 
-		const mark = majorityMark(layout)
+	it('dashes the line down the aisle, a gap past each dash', () => {
+		const mark = majorityMark(seatLayout(100, 5, 51))
 
 		if (!mark) throw new Error('expected a mark')
 
-		const first = mark.dashes[0]
+		expect(mark.dashes.length).toBeGreaterThan(1)
 
-		const last = mark.dashes.at(-1)
-
-		if (!first || !last) throw new Error('expected dashes')
-
-		expect(first.x1).toBeNear(0, UNIT_TOLERANCE)
-
-		expect(-first.y1).toBeGreaterThan(1 + layout.dot)
-
-		expect(-last.y2).toBeNear(seatHole(layout), UNIT_TOLERANCE)
-
-		// Each dash runs down the line, and a gap parts it from the next dash.
 		mark.dashes.forEach((dash, index) => {
+			expect(dash.x1).toBeNear(0, UNIT_TOLERANCE)
+
+			expect(dash.x2).toBeNear(0, UNIT_TOLERANCE)
+
 			expect(dash.y2).toBeGreaterThan(dash.y1)
 
 			const next = mark.dashes[index + 1]
 
 			if (next) expect(next.y1).toBeGreaterThan(dash.y2)
 		})
+
+		expect(mark.top.y).toBeNear(mark.dashes[0]?.y1 ?? 0, UNIT_TOLERANCE)
 	})
 
-	it('points the tip of the marker down the line, above the outer seats', () => {
-		const layout = seatLayout(100, 5, 51)
+	it('keeps one clear space to the seats beside the line and past each end', () => {
+		for (const [total, majority] of [
+			[100, 51],
+			[435, 218],
+			[56, 29],
+		] as const) {
+			const layout = seatLayout(total, seatRows(total), majority)
 
-		const [tip, one, two] = majorityMark(layout)?.marker ?? []
+			const mark = majorityMark(layout)
 
-		if (!tip || !one || !two) throw new Error('expected a marker')
+			const first = mark?.dashes[0]
 
-		expect(tip.x).toBeNear(0, UNIT_TOLERANCE)
+			const last = mark?.dashes.at(-1)
 
-		expect(tip.y).toBeNear(majorityMark(layout)?.dashes[0]?.y1 ?? 0, UNIT_TOLERANCE)
+			if (!first || !last || layout.aisle === null) throw new Error('expected a mark')
 
-		expect(one.y).toBeNear(two.y, UNIT_TOLERANCE)
+			// The space beside the line: the nearest seat to any point of the line.
+			const side = Math.min(
+				...mark.dashes.flatMap((dash) => [
+					clearance(layout, dash.x1, dash.y1),
+					clearance(layout, dash.x2, dash.y2),
+				]),
+			)
 
-		expect(one.y).toBeLessThan(tip.y)
+			const outer = Math.hypot(first.x1, first.y1) - (1 + layout.dot)
 
-		expect((one.x + two.x) / 2).toBeNear(0, UNIT_TOLERANCE)
+			const inner =
+				Math.min(...layout.seats.map((seat) => seat.radius)) -
+				layout.dot -
+				Math.hypot(last.x2, last.y2)
+
+			expect(outer).toBeGreaterThan(0)
+
+			expect(inner).toBeNear(outer, UNIT_TOLERANCE)
+
+			expect(side).toBeGreaterThan(0)
+
+			// No seat comes nearer to the line than the space at its ends.
+			expect(side).toBeGreaterThanOrEqual(outer - UNIT_TOLERANCE)
+		}
 	})
 
 	it('is null with no aisle', () => {
@@ -256,12 +278,12 @@ describe('majorityMark', () => {
 })
 
 describe('seatFit', () => {
-	/** The top of the marker, in unit space. */
-	function markerTop(layout: ReturnType<typeof seatLayout>): number {
-		return Math.min(...(majorityMark(layout)?.marker ?? []).map((point) => point.y))
+	/** The outer end of the majority line, in unit space. */
+	function lineTop(layout: ReturnType<typeof seatLayout>): number {
+		return majorityMark(layout)?.top.y ?? 0
 	}
 
-	it('fits the hemicycle and its marker inside the box', () => {
+	it('fits the hemicycle and its line inside the box', () => {
 		const layout = seatLayout(435, 10, 218)
 
 		const fit = seatFit(400, 200, 4, seatExtent(layout))
@@ -270,41 +292,35 @@ describe('seatFit', () => {
 
 		expect(fit.cx - (1 + layout.dot) * fit.scale).toBeGreaterThanOrEqual(4 - 1e-9)
 
-		expect(fit.cy + markerTop(layout) * fit.scale).toBeGreaterThanOrEqual(4 - 1e-9)
+		expect(fit.cy + lineTop(layout) * fit.scale).toBeGreaterThanOrEqual(4 - 1e-9)
 
 		expect(fit.cy + layout.dot * fit.scale).toBeLessThanOrEqual(196 + 1e-9)
 	})
 
-	it('widens the box for a marker near the end of the hemicycle', () => {
+	it('widens the box for a line near the end of the hemicycle', () => {
 		const layout = seatLayout(435, 10, 2)
 
 		const extent = seatExtent(layout)
 
-		for (const point of majorityMark(layout)?.marker ?? []) {
-			expect(point.x).toBeGreaterThanOrEqual(-extent.across / 2 - UNIT_TOLERANCE)
+		const top = majorityMark(layout)?.top
 
-			expect(point.x).toBeLessThanOrEqual(extent.across / 2 + UNIT_TOLERANCE)
-		}
+		if (!top) throw new Error('expected a line')
+
+		expect(top.x).toBeGreaterThanOrEqual(-extent.across / 2 - UNIT_TOLERANCE)
 
 		expect(extent.across).toBeGreaterThan(2 * (1 + layout.dot))
-	})
-
-	it('takes more of the box with no marker to hold', () => {
-		expect(seatFit(400, 200, 4, seatExtent(seatLayout(435, 10))).scale).toBeGreaterThan(
-			seatFit(400, 200, 4, seatExtent(seatLayout(435, 10, 218))).scale,
-		)
 	})
 
 	it('scales to nothing in a box with no room', () => {
 		expect(seatFit(0, 0, 4, seatExtent(seatLayout(10, 2))).scale).toBe(0)
 	})
 
-	it('keeps a line above the marker for its label', () => {
+	it('keeps a line of text above the majority line for its label', () => {
 		const layout = seatLayout(435, 10, 218)
 
 		const fit = seatFit(400, 200, 4, seatExtent(layout), true)
 
-		expect(fit.cy + markerTop(layout) * fit.scale).toBeGreaterThanOrEqual(CALLOUT_LINE - 1e-9)
+		expect(fit.cy + lineTop(layout) * fit.scale).toBeGreaterThanOrEqual(CALLOUT_LINE - 1e-9)
 
 		expect(fit.cy + layout.dot * fit.scale).toBeLessThanOrEqual(196 + 1e-9)
 	})
@@ -323,27 +339,25 @@ describe('majorityLabel', () => {
 		return {
 			mark,
 			fit,
-			label: majorityLabel({ mark, layout, fit, width, height, margin: 4, textWidth }),
+			label: majorityLabel({ mark, fit, width, height, margin: 4, textWidth }),
 		}
 	}
 
-	it('sits centered over the marker, a line above its top', () => {
+	it('sits centered over the line, above its outer end', () => {
 		const { mark, fit, label } = place(218, 400, 200)
 
-		const [, one, two] = mark.marker
+		expect(label?.x).toBeNear(fit.cx + mark.top.x * fit.scale, PX_TOLERANCE)
 
-		expect(label?.x).toBeNear(fit.cx + ((one.x + two.x) / 2) * fit.scale, PX_TOLERANCE)
-
-		expect(label?.y).toBeLessThan(fit.cy + one.y * fit.scale - CALLOUT_LINE / 2)
+		expect(label?.y).toBeLessThan(fit.cy + mark.top.y * fit.scale - CALLOUT_LINE / 2)
 
 		expect((label?.y ?? 0) - CALLOUT_LINE / 2).toBeGreaterThanOrEqual(-PX_TOLERANCE)
 	})
 
-	it('hides where the label does not fit above the marker', () => {
+	it('hides where the label does not fit above the line', () => {
 		// The label runs past the side of the frame.
 		expect(place(218, 400, 200, 400).label).toBeNull()
 
-		// The marker near the end of the hemicycle leaves the label on the seats or past the frame.
+		// The line near the end of the hemicycle leaves the label on the seats or past the frame.
 		expect(place(435, 400, 200, 60).label).toBeNull()
 	})
 
