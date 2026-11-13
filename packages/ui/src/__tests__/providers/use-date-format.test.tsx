@@ -95,6 +95,32 @@ describe('DateTime', () => {
 		expect(server.querySelector('time')).toHaveTextContent('2026-10-04 at 17:00:00.000Z')
 	})
 
+	// The server wrote the text, so the server markup and the hydration render
+	// hold it, and the browser does not format it again.
+	it('shows the text of a DateText in the server markup and after hydration', () => {
+		const text = { at: KICKOFF, text: 'Sun, Oct 4, 1:00 PM EDT' }
+
+		const element = <DateTime value={text} format={KICKOFF_FORMAT} />
+
+		const server = attach(serverMarkup(element))
+
+		expect(server.querySelector('[data-slot="placeholder"]')).toBeNull()
+
+		const prototype: { format: unknown } = Intl.DateTimeFormat.prototype
+
+		vi.spyOn(prototype, 'format', 'get').mockReturnValue(() => 'other')
+
+		const { onRecoverableError } = hydrate(server, element)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		const time = server.querySelector('time')
+
+		expect(time).toHaveTextContent('Sun, Oct 4, 1:00 PM EDT')
+
+		expect(time).toHaveAttribute('datetime', KICKOFF)
+	})
+
 	it('renders an empty span for an invalid value', () => {
 		renderUI(<DateTime value="not a date" data-testid="when" />)
 

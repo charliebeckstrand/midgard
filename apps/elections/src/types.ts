@@ -1,4 +1,5 @@
 import type { MapSeriesColor } from 'ui/map'
+import type { DateText } from 'ui/server'
 
 /**
  * The color of a party: a series slot of the data-viz palette, never a raw
@@ -32,17 +33,6 @@ export type CountyResult = {
 	candidates: Candidate[]
 }
 
-/**
- * A time of a race: the ISO time, and its text in the zone of the state of the
- * race, which the server writes (see `readRace`).
- */
-export type RaceTime = {
-	/** The time, as an ISO time. */
-	at: string
-	/** The day and the time in the zone of the state, such as `Nov 3, 2026, 7:00 PM CST`. */
-	text: string
-}
-
 /** One race, as `race/{id}` gives it. */
 export type Race = {
 	id: number
@@ -56,10 +46,10 @@ export type Race = {
 	reporting: number
 	/** When civicAPI last changed the race, as an ISO time. */
 	updated: string
-	/** When the polls closed, where civicAPI gives it. */
-	pollsClose: RaceTime | null
-	/** When civicAPI called the race, where it gives it. */
-	calledAt: RaceTime | null
+	/** When the polls closed, where civicAPI gives it, with its text in the zone of the state. */
+	pollsClose: DateText | null
+	/** When civicAPI called the race, where it gives it, with its text in the zone of the state. */
+	calledAt: DateText | null
 	/** The candidates, most votes first. */
 	candidates: Candidate[]
 	/** The counties of the race. A House race gives the counties inside its district. */

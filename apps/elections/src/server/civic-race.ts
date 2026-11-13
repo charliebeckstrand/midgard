@@ -1,3 +1,4 @@
+import { type DateText, formatDateText } from 'ui/server'
 import { stateOfFips } from '../elections/us-states'
 import type {
 	Candidate,
@@ -6,7 +7,6 @@ import type {
 	PartySeats,
 	PartySlot,
 	Race,
-	RaceTime,
 	RegionRace,
 } from '../types'
 
@@ -70,14 +70,14 @@ function optionalText(value: unknown): string | null {
  * The format of a time of a race: the day and the time, with the name of the
  * zone, in the locale of the app.
  */
-const WHEN: Intl.DateTimeFormatOptions = {
+const WHEN = {
 	month: 'short',
 	day: 'numeric',
 	year: 'numeric',
 	hour: 'numeric',
 	minute: '2-digit',
 	timeZoneName: 'short',
-}
+} as const satisfies Intl.DateTimeFormatOptions
 
 /**
  * A time of a race, with its text in the zone of the state, such as
@@ -85,24 +85,14 @@ const WHEN: Intl.DateTimeFormatOptions = {
  * time that does not parse. The screens can do without a time, so it does not
  * fail the read.
  *
- * The server writes the text, and each browser shows that text. The text of a
- * format comes from the date data of the JavaScript engine, and two engines
- * can write different text for one format and one zone, such as a different
- * word between the day and the time. A browser that writes the text again at
- * hydration can thus write text that differs from the HTML of the server.
- * React then renders the Drawer again from the start, and the Drawer plays its
- * enter after the first paint.
+ * The server writes the text (`formatDateText`), and each browser shows that
+ * text, so a reload paints the time and the Drawer does not render again at
+ * hydration.
  */
-function raceTime(value: unknown, zone: string): RaceTime | null {
+function raceTime(value: unknown, zone: string): DateText | null {
 	const at = optionalText(value)
 
-	if (at === null) return null
-
-	const date = new Date(at)
-
-	if (Number.isNaN(date.getTime())) return null
-
-	return { at, text: new Intl.DateTimeFormat('en', { ...WHEN, timeZone: zone }).format(date) }
+	return at === null ? null : formatDateText(at, { ...WHEN, timeZone: zone })
 }
 
 /**

@@ -53,6 +53,7 @@ const workspaceScans = [
 	'src/__tests__/boundary/cadence-boundary.test.ts',
 	'src/__tests__/boundary/catalog-wording-boundary.test.ts',
 	'src/__tests__/boundary/controlled-language-boundary.test.ts',
+	'src/__tests__/boundary/date-text-boundary.test.ts',
 	'src/__tests__/boundary/dockerfile-pin-boundary.test.ts',
 	'src/__tests__/boundary/drag-cursor-boundary.test.ts',
 	'src/__tests__/boundary/hydration-gate-boundary.test.ts',

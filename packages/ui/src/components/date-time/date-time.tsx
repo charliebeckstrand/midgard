@@ -4,13 +4,24 @@ import type { ComponentProps } from 'react'
 import { useLocale } from '../../providers/locale/context'
 import { useDateFormat } from '../../providers/locale/use-date-format'
 import { k } from '../../recipes/kata/date-time'
+import type { DateText } from '../../server/date-text'
 import { Placeholder } from '../placeholder'
 import { standText } from './date-time-stand'
 
+/** Whether `value` is the text that a server wrote. */
+function isDateText(value: DateTimeProps['value']): value is DateText {
+	return typeof value === 'object' && !(value instanceof Date)
+}
+
 /** Props for {@link DateTime}: the `value` to show and its `format`, over the `<time>` surface. */
 export type DateTimeProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children'> & {
-	/** The instant to show: a `Date`, an ISO string, or a timestamp in milliseconds. */
-	value: Date | string | number
+	/**
+	 * The instant to show: a `Date`, an ISO string, or a timestamp in
+	 * milliseconds. A `DateText` from `formatDateText` in `ui/server` gives the
+	 * text that the server wrote, and the component shows that text in each
+	 * render.
+	 */
+	value: Date | string | number | DateText
 	/**
 	 * `Intl.DateTimeFormat` options. A `timeZone` here sets the zone for all
 	 * renders.
@@ -25,8 +36,9 @@ export type DateTimeProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children'
  * `LocaleProvider`. It follows the rules of `useDateFormat`: a `timeZone` in
  * `format`, else the zone of the provider, else the zone of the reader. The
  * browser writes the text, after hydration. The server render and the
- * hydration render put a skeleton in the `<time>`. An invalid `value` renders
- * an empty `<span>`.
+ * hydration render put a skeleton in the `<time>`. A `DateText` value shows
+ * the text of the server in each render, with no skeleton, and `format` does
+ * not apply. An invalid `value` renders an empty `<span>`.
  *
  * @remarks A server component can render it, so a server page shows a date
  * with no client wrapper of its own.
@@ -37,7 +49,7 @@ export type DateTimeProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children'
  * when the zone is set. Text from the server would differ from the text of the
  * hydration render in such a browser, and React would then render the tree
  * again from the start. A page that must paint a date in its first frame
- * formats it on the server and passes the text.
+ * writes it with `formatDateText` on the server and passes the `DateText`.
  *
  * The skeleton holds the date in UTC as text that does not show, in the shape
  * of English text for the format, which the code writes without `Intl` (see
@@ -53,6 +65,14 @@ export function DateTime({ value, format, className, ...props }: DateTimeProps) 
 	const formatter = useDateFormat(format)
 
 	const { dateFormat } = useLocale()
+
+	if (isDateText(value)) {
+		return (
+			<time data-slot="date-time" dateTime={value.at} className={className} {...props}>
+				{value.text}
+			</time>
+		)
+	}
 
 	const date = new Date(value)
 
