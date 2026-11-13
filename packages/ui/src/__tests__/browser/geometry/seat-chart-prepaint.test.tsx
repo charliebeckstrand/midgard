@@ -75,10 +75,15 @@ describe('seat chart before measure (real browser)', () => {
 		},
 	)
 
-	it('draws nothing before measure with the majority label, whose text needs the frame', () => {
+	// The label needs the width of its text, and the content of the hole needs
+	// its own size. The seats show with them after the measure, not before.
+	it.each([
+		{ name: 'the majority label', props: { majority: 218, majorityLabel: true } },
+		{ name: 'content in the hole', props: { children: <span>435</span> } },
+	])('draws nothing before measure with $name', ({ props }) => {
 		const container = serverMarkup(
 			<div style={{ width: 320 }}>
-				<SeatChart aria-label="House seats" groups={GROUPS} majority={218} majorityLabel />
+				<SeatChart aria-label="House seats" groups={GROUPS} {...props} />
 			</div>,
 		)
 

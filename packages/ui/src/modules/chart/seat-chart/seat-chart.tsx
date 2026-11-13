@@ -142,8 +142,10 @@ function seatCount(group: SeatChartGroup): number {
  * fullscreen view, the data, and the downloads.
  *
  * The first paint draws the seats before the width is measured, where the
- * measured frame draws them. A chart with `majorityLabel` draws its seats after
- * the measure, because the label needs the width of its text.
+ * measured frame draws them. A chart with `majorityLabel` or `children` draws
+ * its seats after the measure. The label needs the width of its text, and the
+ * content of the hole needs its own size to fit the hole. The seats then show
+ * with the label or the content, not before it.
  *
  * @example
  * ```tsx
@@ -329,7 +331,7 @@ export function SeatChart(props: SeatChartProps) {
 			{...name}
 			fullscreen={<SeatChart {...props} />}
 			prepaint={
-				majorityLabel ? undefined : (
+				majorityLabel || children ? undefined : (
 					<SeatChartPrepaint
 						layout={layout}
 						owners={owners}

@@ -39,8 +39,10 @@ type SeatChartPrepaintProps = {
  * measured frame draws them, at each size. The majority tick keeps the width
  * of its stroke in px.
  *
- * The chart draws it only without a label at the tick. The label needs the
- * width of its text, and it changes the top margin.
+ * The chart draws it only without a label at the tick and without content in
+ * the hole. The label needs the width of its text, and it changes the top
+ * margin. The content shows only after it has its size, and the seats show
+ * with it.
  *
  * @internal
  */
