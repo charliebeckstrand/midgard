@@ -41,6 +41,9 @@ export function ForgotPasswordPage() {
 			if (response.ok) {
 				setSent(true)
 
+				// A success clears the error of an earlier try.
+				setServerError('')
+
 				return
 			}
 
@@ -60,10 +63,13 @@ export function ForgotPasswordPage() {
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
 					<Heading className="text-center">{intl.formatMessage(authMessages.forgotTitle)}</Heading>
 
+					{/* One status region in both states, so a screen reader reads the notice when the link is sent. */}
 					{sent ? (
-						<Text tone="success">{intl.formatMessage(authMessages.forgotSent)}</Text>
+						<Text role="status" tone="success">
+							{intl.formatMessage(authMessages.forgotSent)}
+						</Text>
 					) : (
-						<Text>{intl.formatMessage(authMessages.forgotIntro)}</Text>
+						<Text role="status">{intl.formatMessage(authMessages.forgotIntro)}</Text>
 					)}
 
 					{errorAlert}
