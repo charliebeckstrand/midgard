@@ -18,7 +18,7 @@
 
 2.4 [`params` and `searchParams` are async](https://nextjs.org/docs/app/api-reference/file-conventions/page). Type them with the generated `PageProps` helper.
 
-2.5 Each page has a title of its own, which the tabs and the history of the browser show and a screen reader announces (WCAG 2.4.2). The root layout of each app sets its `title` with `appTitle` from `shared/pages`. The home page then shows the name of the app, and each other page puts its title before the name, as in `Users | Admin`. Each page below the home page exports a `metadata` or a `generateMetadata` with its title. An auth page re-exports the `metadata` of its page in `shared/auth`. `app-page-title-boundary.test.ts` holds the rule.
+2.5 Each page has a title of its own. The tabs and the history of the browser show the title, and a screen reader announces it (WCAG 2.4.2). The root layout of each app sets its `title` with `appTitle` from `shared/pages`. The home page then shows the name of the app, and each other page puts its title before the name, as in `Users | Admin`. Each page below the home page exports a `metadata` or a `generateMetadata` with its title. An auth page re-exports the `metadata` of its page in `shared/auth`. `app-page-title-boundary.test.ts` holds the rule.
 
 ## 3. Components
 
