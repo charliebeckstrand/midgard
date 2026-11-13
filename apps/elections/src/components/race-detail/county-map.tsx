@@ -33,7 +33,7 @@ type CountyRow = { fips: string; winner: string }
  * The counties of a race on a map of its state, colored by the side that leads
  * each county. A district race draws only the counties of the district. A click
  * on a county opens it. A county with no result is disabled, so it takes no
- * click, no pointer cursor, and no hover. In the Drawer, the map is the entry of a lazy chunk,
+ * click, no pointer cursor, and no hover. The reader can zoom and pan the map. In the Drawer, the map is the entry of a lazy chunk,
  * which the Drawer loads with the shapes when it opens on a state. The page of
  * a state shows the map of each office.
  *
@@ -93,6 +93,9 @@ export function CountyMap({
 			categoryKey="winner"
 			colorName="Leader"
 			categories={WINNER_CATEGORIES.filter((category) => present.has(category.value))}
+			// The page and the Drawer scroll under the map, so the default modifier
+			// stays: shift and the wheel zoom, and one finger scrolls. Two fingers pinch.
+			zoom
 		/>
 	)
 }

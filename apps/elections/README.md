@@ -163,5 +163,10 @@ A map shows the winner of each region. A race that is not called shows a soft
 tone of the color of the leader. A House delegation of two parties shows the
 stripes of both. A state with no race ignores a click.
 
+The reader can zoom and pan each map. Two fingers pinch and pan on a touch
+screen, and one finger scrolls the page, so a tap still picks a region. With a
+mouse, shift and the wheel zoom, and a drag pans. The keys `+`, `-`, and `0`
+zoom the map that has focus.
+
 An election has no `loading.tsx`. Its layout renders the header, so the header
 stays while a page changes.
