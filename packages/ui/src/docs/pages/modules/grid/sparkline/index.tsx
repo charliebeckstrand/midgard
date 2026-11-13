@@ -1,6 +1,6 @@
 import { Example } from '../../../../kit/index.ts'
-import InCellSparklines from './in-cell-sparklines.tsx'
+import InACell from './in-a-cell.tsx'
 
 export default function SparklineTab() {
-	return <Example of={InCellSparklines} />
+	return <Example of={InACell} />
 }

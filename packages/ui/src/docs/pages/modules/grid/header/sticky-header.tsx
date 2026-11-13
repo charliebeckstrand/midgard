@@ -1,5 +1,5 @@
 import { Grid } from 'ui/grid'
-import { columns, people } from '../data.tsx'
+import { columns, manyPeople } from '../data.tsx'
 
 export default function StickyHeader() {
 	return (
@@ -7,8 +7,8 @@ export default function StickyHeader() {
 			header={{ position: 'sticky' }}
 			maxHeight="200px"
 			columns={columns}
-			rows={[...people, ...people]}
-			getKey={(row, index) => `${row.id}-${index}`}
+			rows={manyPeople}
+			getKey={(row) => row.id}
 		/>
 	)
 }

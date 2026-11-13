@@ -30,7 +30,7 @@ export default function ServerInfiniteScroll() {
 		})
 	}
 
-	// The first page comes with the page, and the client adds each next page.
+	// The first page of rows renders at mount, and the client fetches each next page.
 	// `loadingMore` stops a second request while one runs, and `totalRows`
 	// gives the count of the whole set.
 	return (

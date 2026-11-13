@@ -100,7 +100,7 @@ describe('the sort of a grid demo on the Spanish page', { timeout: COPY_TIMEOUT 
 	const locale = 'es'
 
 	it('sorts the in-cell sparklines by the shown metric', async () => {
-		const { container } = await renderDemo('sparkline/in-cell-sparklines.tsx', locale)
+		const { container } = await renderDemo('sparkline/in-a-cell.tsx', locale)
 
 		const before = columnText(container, 0)
 
