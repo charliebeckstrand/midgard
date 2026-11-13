@@ -86,7 +86,7 @@ function CalendarView({
 				getDayProps={({ date, selected }) =>
 					days.has(isoDay(date)) && !selected
 						? { variant: 'soft', color: 'blue' }
-						: { className: selected ? undefined : 'text-zinc-400 dark:text-zinc-500' }
+						: { className: selected ? undefined : 'text-zinc-500 dark:text-zinc-400' }
 				}
 				className="w-fit"
 			/>

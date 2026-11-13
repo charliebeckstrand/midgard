@@ -11,8 +11,8 @@ import type { Grade } from '../../utilities/grade'
  * label names the pick, because the mark of a settled pick tells its result.
  */
 const MARKS = {
-	pending: { icon: <CircleCheck />, color: 'text-zinc-400 dark:text-zinc-500', label: 'Your pick' },
-	tie: { icon: <CircleCheck />, color: 'text-zinc-400 dark:text-zinc-500', label: 'Tie' },
+	pending: { icon: <CircleCheck />, color: 'text-zinc-500 dark:text-zinc-400', label: 'Your pick' },
+	tie: { icon: <CircleCheck />, color: 'text-zinc-500 dark:text-zinc-400', label: 'Tie' },
 	right: { icon: <CircleCheck />, color: 'text-green-600 dark:text-green-500', label: 'Correct' },
 	wrong: { icon: <CircleX />, color: 'text-red-600 dark:text-red-500', label: 'Incorrect' },
 } as const

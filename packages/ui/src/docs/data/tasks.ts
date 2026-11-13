@@ -27,7 +27,7 @@ export type Task = {
 export const tasks: readonly Task[] = [
 	{
 		id: 1,
-		title: 'Fix login redirect',
+		title: 'Fix sign-in redirect',
 		status: 'inProgress',
 		due: new Date(2026, 0, 15),
 		estimate: 3,

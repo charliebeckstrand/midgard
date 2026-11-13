@@ -304,7 +304,7 @@ describe('CreditCardInputExpiry', () => {
 
 		expect(message).toHaveAttribute('role', 'alert')
 
-		expect(message).toHaveTextContent('Enter a valid expiration date (MM/YY)')
+		expect(message).toHaveTextContent('Enter a valid expiration date (MM/YY).')
 	})
 
 	it('renders the message on blur for a partial entry and wires aria-describedby', async () => {
@@ -328,7 +328,7 @@ describe('CreditCardInputExpiry', () => {
 	it('describes the input by the built-in message outside a Field', async () => {
 		const { input } = await typeExpiry('1330')
 
-		expect(input).toHaveAccessibleDescription('Enter a valid expiration date (MM/YY)')
+		expect(input).toHaveAccessibleDescription('Enter a valid expiration date (MM/YY).')
 	})
 
 	it('keeps a caller aria-describedby ahead of the built-in message', async () => {
@@ -342,7 +342,7 @@ describe('CreditCardInputExpiry', () => {
 		)
 
 		expect(input).toHaveAccessibleDescription(
-			'As printed on the card Enter a valid expiration date (MM/YY)',
+			'As printed on the card Enter a valid expiration date (MM/YY).',
 		)
 	})
 
@@ -367,7 +367,7 @@ describe('CreditCardInputExpiry', () => {
 		expect(builtIn?.id).not.toBe(other?.id)
 
 		expect(input).toHaveAccessibleDescription(
-			expect.stringContaining('Enter a valid expiration date (MM/YY)'),
+			expect.stringContaining('Enter a valid expiration date (MM/YY).'),
 		)
 
 		expect(input).toHaveAccessibleDescription(expect.stringContaining('Card declined'))
@@ -795,7 +795,7 @@ describe('CreditCardInputExpiry form reset', () => {
 
 		expect(input).not.toHaveAttribute('aria-invalid')
 
-		expect(screen.queryByText('Enter a valid expiration date (MM/YY)')).not.toBeInTheDocument()
+		expect(screen.queryByText('Enter a valid expiration date (MM/YY).')).not.toBeInTheDocument()
 
 		expect(onValidityChange).toHaveBeenLastCalledWith(validateCardExpiry(''))
 	})

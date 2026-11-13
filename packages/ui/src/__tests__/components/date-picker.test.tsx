@@ -748,7 +748,7 @@ describe('DatePicker keyboard', () => {
 
 		expect(findDay(27)).toHaveClass('outline-2')
 
-		expect(screen.getByRole('dialog', { name: 'Choose date' })).toHaveFocus()
+		expect(screen.getByRole('dialog', { name: 'Select a date' })).toHaveFocus()
 	})
 
 	it('keeps arrow keys inside the open month picker', async ({ clock }) => {
@@ -1179,7 +1179,7 @@ describe('DatePicker input', () => {
 
 		const message = bySlot(container, 'message')
 
-		expect(message).toHaveTextContent('Enter a date on or before 12/31/2026')
+		expect(message).toHaveTextContent('Enter a date on or before 12/31/2026.')
 
 		// The message sits in the control wrapper directly after the input frame,
 		// so the field adjacency carried on the wrapper spaces it like a <Field>.

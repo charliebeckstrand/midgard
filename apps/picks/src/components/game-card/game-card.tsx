@@ -7,14 +7,13 @@ import { StatusDot } from 'ui/status'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
+import { Text } from 'ui/text'
 import type { Game, Pick, Team } from '../../types'
 import { gradePick, pickPoints, scoredLine } from '../../utilities/grade'
 import { isOff } from '../../utilities/locks'
 import { KickoffTime } from '../kickoff-time'
 import { PickLine } from '../pick-line'
 import { PickMark } from '../pick-mark'
-
-const MUTED = 'text-zinc-500 dark:text-zinc-400'
 
 /**
  * One side of a game: the logo, the name, and the score. In a final game the
@@ -39,14 +38,20 @@ function TeamRow({ team, final, mark }: { team: Team; final: boolean; mark: Reac
 			)}
 
 			<Flex align="center" gap="sm" className="min-w-0 flex-1">
-				<span className={cn('truncate', lost && MUTED)}>{team.name}</span>
+				<Text as="span" tone={lost ? 'muted' : 'default'} className="truncate">
+					{team.name}
+				</Text>
 
 				{mark}
 			</Flex>
 
-			<span className={cn('tabular-nums', team.winner && 'font-bold', lost && MUTED)}>
+			<Text
+				as="span"
+				tone={lost ? 'muted' : 'default'}
+				className={cn('tabular-nums', team.winner && 'font-bold')}
+			>
 				{team.score ?? ''}
-			</span>
+			</Text>
 		</Flex>
 	)
 }
@@ -115,9 +120,9 @@ export function GameCard({ game, pick }: { game: Game; pick: Pick | undefined })
 	)
 
 	const status = (
-		<span className={cn('min-w-0 text-end text-sm', MUTED)}>
+		<Text as="span" tone="muted" className="min-w-0 text-end text-sm">
 			<GameStatus game={game} />
-		</span>
+		</Text>
 	)
 
 	if (picked === undefined || pick === undefined) {

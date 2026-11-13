@@ -36,7 +36,7 @@ export const invalidExpiryMessage: TypedMessageDescriptor<{ format: string }> = 
 	format: string
 }>({
 	id: 'ui.creditCardInput.invalidExpiry',
-	defaultMessage: 'Enter a valid expiration date ({format})',
+	defaultMessage: 'Enter a valid expiration date ({format}).',
 	description:
 		'The error of an expiration date that cannot be valid, such as a past month. The format is the letters of the mask, such as MM/YY.',
 })

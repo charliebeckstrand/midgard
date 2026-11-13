@@ -306,7 +306,7 @@ describe('DatePicker (relative)', () => {
 		await user.type(screen.getByRole('textbox', { name: 'End' }), '07301989')
 
 		// Not the generic format message: the entry is a real date, just too early.
-		expect(bySlot(container, 'message')).toHaveTextContent('Enter a date on or after 06/01/2026')
+		expect(bySlot(container, 'message')).toHaveTextContent('Enter a date on or after 06/01/2026.')
 
 		expect(bySlot(container, 'message')).not.toHaveTextContent('Enter a valid date')
 	})

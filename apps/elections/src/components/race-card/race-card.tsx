@@ -6,6 +6,7 @@ import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Swatch } from 'ui/swatch'
+import { Text } from 'ui/text'
 import type { Candidate } from '../../types'
 import { barColor, leaders } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
@@ -80,7 +81,9 @@ export function RaceCard({ entry, office = false, onPick }: RaceCardProps) {
 					<div className="font-semibold">{entryName(entry)}</div>
 
 					{office ? (
-						<div className="text-sm/5 text-zinc-500 dark:text-zinc-400">{entry.contest.label}</div>
+						<Text as="div" tone="muted" className="text-sm/5">
+							{entry.contest.label}
+						</Text>
 					) : null}
 				</div>
 

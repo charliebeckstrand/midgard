@@ -1,8 +1,9 @@
 'use client'
 
 import { Activity, type ReactNode, useEffect } from 'react'
+import { formatTitle } from 'shared/pages'
 import { useAddressPath } from '../../hooks/use-address'
-import { OVERVIEW } from '../../utilities/trail'
+import { APP_NAME, OVERVIEW } from '../../utilities/trail'
 
 /** A view of a page of an election, and the title of its page. */
 export type ElectionView = { title: string; view: ReactNode }
@@ -49,9 +50,9 @@ export function ElectionViews({
 	const shown = key === null ? undefined : views[key]
 
 	// The router changes the title with the metadata of the page, but only once it
-	// follows the browser.
+	// follows the browser. The title takes the template of the root layout.
 	useEffect(() => {
-		if (shown !== undefined) document.title = shown.title
+		if (shown !== undefined) document.title = formatTitle(shown.title, APP_NAME)
 	}, [shown])
 
 	return Object.entries(views).map(([name, { view }]) => (

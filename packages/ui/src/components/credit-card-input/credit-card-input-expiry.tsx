@@ -86,7 +86,7 @@ export type CreditCardInputExpiryProps = Omit<
 	 * input, also outside a Field. Pass `null` (or `false`) to suppress it and
 	 * supply your own.
 	 *
-	 * @defaultValue `'Enter a valid expiration date (MM/YY)'`, in the language of the reader.
+	 * @defaultValue `'Enter a valid expiration date (MM/YY).'`, in the language of the reader.
 	 */
 	invalidMessage?: ReactNode
 }

@@ -59,7 +59,7 @@ describe('the other auth pages', () => {
 		[
 			'ResetPasswordPage',
 			() => createElement(ResetPasswordPage),
-			['Elige una contraseña nueva', 'Contraseña nueva', 'Establecer contraseña'],
+			['Establece una contraseña nueva', 'Contraseña nueva', 'Establecer contraseña'],
 		],
 		[
 			'VerifyEmailPage',

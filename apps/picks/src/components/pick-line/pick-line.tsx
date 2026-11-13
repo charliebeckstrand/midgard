@@ -2,6 +2,7 @@
 
 import type { ReactElement } from 'react'
 import { StatusDot } from 'ui/status'
+import { Text } from 'ui/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import type { Game, Pick } from '../../types'
 import { formatLine, pickLine, scoredLine } from '../../utilities/grade'
@@ -78,7 +79,10 @@ export function PickLine({ game, pick, team }: { game: Game; pick: Pick; team: s
 			<TooltipTrigger>
 				{/* The trigger makes its child a flex box, which drops the space. The span restates `inline` to keep it. */}
 				<span className="inline font-medium">
-					{team} <span className="text-zinc-500 dark:text-zinc-400">{formatLine(line)}</span>
+					{team}{' '}
+					<Text as="span" tone="muted">
+						{formatLine(line)}
+					</Text>
 					<span className="sr-only">. {note}</span>
 				</span>
 			</TooltipTrigger>

@@ -2,6 +2,8 @@ import { bifrost, getSession, getSignInProviders, requireGateway } from 'auth'
 import { redirect } from 'next/navigation'
 import { LoginPage, secondFactorMethods } from 'shared/auth'
 
+export { loginMetadata as metadata } from 'shared/auth'
+
 /**
  * The page reads the session to select the sign-in, the second step, or a
  * redirect. The route blocks, so that no form shows before a redirect.

@@ -6,6 +6,7 @@ import { cn } from 'ui/core'
 import { Message } from 'ui/fieldset'
 import { useFormValue } from 'ui/form'
 import { Columns } from 'ui/structure/columns'
+import { Text } from 'ui/text'
 import type { Game } from '../../types'
 import { formatLine, pickLine } from '../../utilities/grade'
 import { isLocked, isOff } from '../../utilities/locks'
@@ -69,9 +70,9 @@ export function PickField({ game }: { game: Game }) {
 								{line === null ? (
 									<PendingDot className="ms-auto" />
 								) : (
-									<span className="ms-auto tabular-nums text-zinc-500 dark:text-zinc-400">
+									<Text as="span" tone="muted" className="ms-auto tabular-nums">
 										{formatLine(line)}
-									</span>
+									</Text>
 								)}
 							</Button>
 						)

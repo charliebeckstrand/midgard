@@ -2,6 +2,7 @@
 
 import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { Swatch } from 'ui/swatch'
+import { Text } from 'ui/text'
 import { TimeAgo } from 'ui/time-ago'
 import type { Election } from '../../elections/registry'
 import { useDrawerGo } from '../../hooks/use-drawer'
@@ -33,7 +34,11 @@ export function LatestCalls({
 	const go = useDrawerGo(election)
 
 	if (calls.length === 0) {
-		return <p className="text-sm text-zinc-500 dark:text-zinc-400">No race called yet.</p>
+		return (
+			<Text tone="muted" className="text-sm">
+				No race called yet.
+			</Text>
+		)
 	}
 
 	return (

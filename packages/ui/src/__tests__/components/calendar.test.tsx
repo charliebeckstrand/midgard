@@ -413,7 +413,7 @@ describe('Calendar month/year picker', () => {
 
 		await user.click(openPicker(/June 2025/))
 
-		expect(screen.getByRole('dialog', { name: 'Choose month and year' })).toBeInTheDocument()
+		expect(screen.getByRole('dialog', { name: 'Select month and year' })).toBeInTheDocument()
 	})
 
 	it('names Gregorian months and years in a locale with another default calendar', async () => {

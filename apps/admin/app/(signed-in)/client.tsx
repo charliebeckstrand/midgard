@@ -178,7 +178,7 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 							<EventsSwitch />
 						</AppearanceSettings>
 						<UserMenu placement="bottom-end">
-							<Button variant="plain" aria-label="Account menu">
+							<Button variant="plain" aria-label="User menu">
 								<UserAvatar user={user} />
 							</Button>
 						</UserMenu>
@@ -223,7 +223,7 @@ type UserMenuProps = {
 }
 
 /**
- * Account menu: the account and settings links, and sign-out.
+ * User menu: the account and settings links, and sign-out.
  *
  * @internal
  * @remarks Sign-out is `SignOutMenuItem` from `shared/auth`.

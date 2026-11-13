@@ -91,6 +91,20 @@ export const d = () => fetch('/auth/logout', { method: 'POST' })
 		},
 		{ file: 'server.tsx', source: `import { bifrost } from 'auth'\n\nexport const a = bifrost\n` },
 	],
+	'no-faint-text-color': [
+		{
+			file: 'ink.tsx',
+			source: `export const a = <p className="text-sm text-zinc-400">Note</p> // flag
+export const b = 'text-zinc-400 dark:text-zinc-500' // flag
+export const c = <div className="font-light text-gray-400" /> // flag
+export const d = \`py-1 \${size} text-zinc-300\` // flag
+export const e = 'text-zinc-500 dark:text-zinc-400'
+export const f = 'text-zinc-600 group-hover:text-zinc-950 dark:text-zinc-400'
+export const g = 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+export const h = <span className="text-zinc-950 dark:text-zinc-300" />
+`,
+		},
+	],
 	'no-formatjs-import-outside-intl': [
 		{
 			file: 'intl.tsx',

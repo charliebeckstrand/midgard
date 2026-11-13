@@ -122,7 +122,7 @@ describe('FileUpload drop variant selection', () => {
 
 		const click = vi.spyOn(input, 'click')
 
-		fireEvent.click(screen.getByRole('button', { name: 'Choose a different file' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Select a different file' }))
 
 		expect(click).toHaveBeenCalledTimes(1)
 	})
@@ -189,7 +189,7 @@ describe('FileUpload input variant', () => {
 	it('falls back to a default placeholder when none is provided', () => {
 		const { container } = renderUI(<FileUploadInput />)
 
-		expect(display(container)).toHaveTextContent('Choose a file')
+		expect(display(container)).toHaveTextContent('Select a file')
 	})
 
 	it('disables the display button when disabled is set', () => {
@@ -436,7 +436,7 @@ describe('FileUpload + Control', () => {
 			</Field>,
 		)
 
-		expect(display(container)).toHaveAccessibleName('Resume Choose a file')
+		expect(display(container)).toHaveAccessibleName('Resume Select a file')
 
 		selectFiles(container, [resume])
 
@@ -474,7 +474,7 @@ describe('FileUpload + Control', () => {
 
 		const overlay = present(dropzone(container).querySelector('button'), 'overlay button')
 
-		expect(overlay).toHaveAccessibleName('Choose a different file')
+		expect(overlay).toHaveAccessibleName('Select a different file')
 
 		expect(overlay).not.toHaveAttribute('aria-invalid')
 	})
@@ -943,7 +943,7 @@ describe('FileUpload focus handoff', () => {
 
 		selectFiles(container, [resume])
 
-		expect(screen.getByRole('button', { name: 'Choose a different file' })).toHaveFocus()
+		expect(screen.getByRole('button', { name: 'Select a different file' })).toHaveFocus()
 	})
 
 	it('moves focus from Reset to the empty drop zone', () => {
@@ -990,7 +990,7 @@ describe('FileUpload focus handoff', () => {
 		selectFiles(container, [resume])
 
 		// The focus arms the truncation measure of the label, which renders.
-		act(() => screen.getByRole('button', { name: 'Choose a different file' }).focus())
+		act(() => screen.getByRole('button', { name: 'Select a different file' }).focus())
 
 		selectFiles(container, [new File(['y'], 'cover.pdf')])
 
@@ -1090,7 +1090,7 @@ describe('FileUpload value binding', () => {
 
 		const { container } = renderUI(
 			<Form defaultValues={{ files: [] as File[] }} onSubmit={onSubmit}>
-				<FileUploadInput name="files" placeholder="Choose a file" />
+				<FileUploadInput name="files" placeholder="Select a file" />
 				<button type="reset">Reset</button>
 				<button type="submit">Submit</button>
 			</Form>,
@@ -1111,7 +1111,7 @@ describe('FileUpload value binding', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
 
-		expect(display(container)).toHaveTextContent('Choose a file')
+		expect(display(container)).toHaveTextContent('Select a file')
 	})
 
 	it('marks the field invalid from a bound Form error', async () => {

@@ -40,7 +40,7 @@ export const authMessages = defineMessages({
 	},
 	unexpected: {
 		id: 'shared.auth.unexpected',
-		defaultMessage: 'An unexpected error occurred. Please try again later.',
+		defaultMessage: 'An unexpected error occurred. Try again later.',
 		description: 'The error of an auth request that fails, such as on a network failure.',
 	},
 	confirmIdentity: {
@@ -55,17 +55,17 @@ export const authMessages = defineMessages({
 	},
 	loginFailed: {
 		id: 'shared.auth.loginFailed',
-		defaultMessage: 'Login failed. Please check your credentials and try again.',
+		defaultMessage: 'The sign-in failed. Check your credentials and try again.',
 		description: 'The error of a sign-in that the gateway refused without a reason.',
 	},
 	passkeySignInFailed: {
 		id: 'shared.auth.passkeySignInFailed',
-		defaultMessage: 'Passkey sign-in did not complete. Please try again.',
+		defaultMessage: 'Passkey sign-in did not complete. Try again.',
 		description: 'The error of a passkey sign-in that the reader or the browser stopped.',
 	},
 	oauthFailed: {
 		id: 'shared.auth.oauthFailed',
-		defaultMessage: 'That sign-in did not complete. Please try again.',
+		defaultMessage: 'That sign-in did not complete. Try again.',
 		description: 'The error of a GitHub or Google sign-in that did not complete.',
 	},
 	oauthUnavailable: {
@@ -93,13 +93,13 @@ export const authMessages = defineMessages({
 	},
 	expired: {
 		id: 'shared.auth.expired',
-		defaultMessage: 'Too many wrong tries. Please sign in again.',
+		defaultMessage: 'Too many wrong tries. Sign in again.',
 		description:
 			'The notice after the gateway ended a session for too many wrong second-step tries.',
 	},
 	passwordSet: {
 		id: 'shared.auth.passwordSet',
-		defaultMessage: 'Your password is set. Please sign in.',
+		defaultMessage: 'Your password is set. Sign in.',
 		description: 'The notice on the sign-in page after a password reset.',
 	},
 	registered: {
@@ -144,7 +144,7 @@ export const authMessages = defineMessages({
 	},
 	registrationFailed: {
 		id: 'shared.auth.registrationFailed',
-		defaultMessage: 'Registration failed. Please check your details and try again.',
+		defaultMessage: 'The registration failed. Check your details and try again.',
 		description: 'The error of a registration that the gateway refused without a reason.',
 	},
 	haveAccount: {
@@ -185,13 +185,13 @@ export const authMessages = defineMessages({
 	},
 	requestFailed: {
 		id: 'shared.auth.requestFailed',
-		defaultMessage: 'The request failed. Please try again.',
+		defaultMessage: 'The request failed. Try again.',
 		description:
 			'The error of a request for a reset link that the gateway refused without a reason.',
 	},
 	resetTitle: {
 		id: 'shared.auth.resetTitle',
-		defaultMessage: 'Choose a new password',
+		defaultMessage: 'Set a new password',
 		description: 'The title of the page that sets a new password from a reset link.',
 	},
 	newPassword: {
@@ -206,7 +206,7 @@ export const authMessages = defineMessages({
 	},
 	resetFailed: {
 		id: 'shared.auth.resetFailed',
-		defaultMessage: 'The password did not change. Please try again.',
+		defaultMessage: 'The password did not change. Try again.',
 		description: 'The error of a password reset that the gateway refused without a reason.',
 	},
 	linkExpired: {
@@ -236,17 +236,17 @@ export const authMessages = defineMessages({
 	},
 	verifyFailed: {
 		id: 'shared.auth.verifyFailed',
-		defaultMessage: 'The email was not verified. Please try again.',
+		defaultMessage: 'The email was not verified. Try again.',
 		description: 'The error of an email verification that the gateway refused without a reason.',
 	},
 	passkeyCheckFailed: {
 		id: 'shared.auth.passkeyCheckFailed',
-		defaultMessage: 'The passkey check did not complete. Please try again.',
+		defaultMessage: 'The passkey check did not complete. Try again.',
 		description: 'The error of a passkey second step that the reader or the browser stopped.',
 	},
 	codeRejected: {
 		id: 'shared.auth.codeRejected',
-		defaultMessage: 'That code was not accepted. Please try again.',
+		defaultMessage: 'That code was not accepted. Try again.',
 		description: 'The error of a second-step code that the gateway refused without a reason.',
 	},
 	recoveryCode: {

@@ -3,10 +3,6 @@
 		"defaultMessage": "Enter an address",
 		"description": "The placeholder of a field that searches for an address or a place. It is also the name of the field when no label names it."
 	},
-	"ui.alert.dismiss": {
-		"defaultMessage": "Dismiss",
-		"description": "The name of the button that closes a message or a toast."
-	},
 	"ui.badge.remove": {
 		"defaultMessage": "Remove {label}",
 		"description": "The name of the button that removes a chip, such as a tag. The label is the text of the chip."
@@ -14,10 +10,6 @@
 	"ui.breadcrumb.label": {
 		"defaultMessage": "Breadcrumb",
 		"description": "The name of the navigation landmark that holds the trail of links from the top page to the current page."
-	},
-	"ui.calendar.chooseMonthYear": {
-		"defaultMessage": "Choose month and year",
-		"description": "The name of the panel that holds the month picker and the year picker."
 	},
 	"ui.calendar.nextDecade": {
 		"defaultMessage": "Next decade",
@@ -46,6 +38,10 @@
 	"ui.calendar.selectMonth": {
 		"defaultMessage": "Select month",
 		"description": "The name of the grid of months in the month picker."
+	},
+	"ui.calendar.selectMonthYear": {
+		"defaultMessage": "Select month and year",
+		"description": "The name of the panel that holds the month picker and the year picker."
 	},
 	"ui.calendar.selectYear": {
 		"defaultMessage": "Select year",
@@ -255,16 +251,12 @@
 		"defaultMessage": "{channel} channel",
 		"description": "The name of the field of one color channel. The channel is its letter: R, G, or B."
 	},
-	"ui.color.choose": {
-		"defaultMessage": "Choose color",
-		"description": "The name of the dialog of a color picker."
-	},
 	"ui.color.copyHex": {
 		"defaultMessage": "Copy hex value",
 		"description": "The name of the button that copies the hexadecimal code of a color."
 	},
 	"ui.color.eyedropper": {
-		"defaultMessage": "Pick color from screen",
+		"defaultMessage": "Select color from screen",
 		"description": "The name of the button that takes a color from a point on the screen."
 	},
 	"ui.color.hex": {
@@ -274,6 +266,10 @@
 	"ui.color.hue": {
 		"defaultMessage": "Hue",
 		"description": "The name of the slider that sets the hue of a color."
+	},
+	"ui.color.select": {
+		"defaultMessage": "Select color",
+		"description": "The name of the dialog of a color picker."
 	},
 	"ui.color.swatches": {
 		"defaultMessage": "Swatches",
@@ -372,7 +368,7 @@
 		"description": "The name of the field of the expiration date of a payment card, when no label names it."
 	},
 	"ui.creditCardInput.invalidExpiry": {
-		"defaultMessage": "Enter a valid expiration date ({format})",
+		"defaultMessage": "Enter a valid expiration date ({format}).",
 		"description": "The error of an expiration date that cannot be valid, such as a past month. The format is the letters of the mask, such as MM/YY."
 	},
 	"ui.creditCardInput.number": {
@@ -476,7 +472,7 @@
 		"description": "Spoken when a tidy packs the board. The count is the number of tiles that moved."
 	},
 	"ui.dateInput.between": {
-		"defaultMessage": "Enter a date between {min} and {max}",
+		"defaultMessage": "Enter a date between {min} and {max}.",
 		"description": "The error of a date field whose date is before the first date or after the last date that it accepts."
 	},
 	"ui.dateInput.clear": {
@@ -484,7 +480,7 @@
 		"description": "The name of the button that clears a date field."
 	},
 	"ui.dateInput.invalid": {
-		"defaultMessage": "Enter a valid date ({format})",
+		"defaultMessage": "Enter a valid date ({format}).",
 		"description": "The error of a date field whose text is not a date. The format is the pattern of the field, such as DD/MM/YYYY."
 	},
 	"ui.dateInput.name": {
@@ -492,11 +488,11 @@
 		"description": "The name of a date field that has no label."
 	},
 	"ui.dateInput.onOrAfter": {
-		"defaultMessage": "Enter a date on or after {min}",
+		"defaultMessage": "Enter a date on or after {min}.",
 		"description": "The error of a date field whose date is before the first date that it accepts."
 	},
 	"ui.dateInput.onOrBefore": {
-		"defaultMessage": "Enter a date on or before {max}",
+		"defaultMessage": "Enter a date on or before {max}.",
 		"description": "The error of a date field whose date is after the last date that it accepts."
 	},
 	"ui.datePicker.actions": {
@@ -506,10 +502,6 @@
 	"ui.datePicker.backToPresets": {
 		"defaultMessage": "Back to presets",
 		"description": "The button that goes back from the custom range to the list of ranges."
-	},
-	"ui.datePicker.chooseDate": {
-		"defaultMessage": "Choose date",
-		"description": "The name of the panel of a date picker, which holds the calendar."
 	},
 	"ui.datePicker.closeCalendar": {
 		"defaultMessage": "Close calendar",
@@ -541,7 +533,7 @@
 	},
 	"ui.datePicker.selectDate": {
 		"defaultMessage": "Select a date",
-		"description": "The text of an empty date picker that holds one date."
+		"description": "The text of an empty date picker that holds one date, and the name of the panel that holds its calendar."
 	},
 	"ui.datePicker.selectDates": {
 		"defaultMessage": "Select dates",
@@ -655,14 +647,6 @@
 		"defaultMessage": "Browse files",
 		"description": "The name of the button that opens the file picker of a file field."
 	},
-	"ui.fileUpload.chooseDifferent": {
-		"defaultMessage": "Choose a different file",
-		"description": "The name of the drop zone after a selection. A press opens the file picker again."
-	},
-	"ui.fileUpload.chooseFile": {
-		"defaultMessage": "Choose a file",
-		"description": "The placeholder of an empty file field."
-	},
 	"ui.fileUpload.clear": {
 		"defaultMessage": "{count, plural, one {Clear selected file} other {Clear selected files}}",
 		"description": "The name of the button that clears the selected files of a file field."
@@ -690,6 +674,14 @@
 	"ui.fileUpload.reset": {
 		"defaultMessage": "Reset",
 		"description": "The label of the button that clears the selected files."
+	},
+	"ui.fileUpload.selectDifferent": {
+		"defaultMessage": "Select a different file",
+		"description": "The name of the drop zone after a selection. A press opens the file picker again."
+	},
+	"ui.fileUpload.selectFile": {
+		"defaultMessage": "Select a file",
+		"description": "The placeholder of an empty file field."
 	},
 	"ui.fileUpload.selected": {
 		"defaultMessage": "{count, plural, one {# file selected} other {# files selected}}",
@@ -2140,7 +2132,7 @@
 		"description": "Spoken when the reader removes a tag."
 	},
 	"ui.tagInput.required": {
-		"defaultMessage": "Add at least one tag",
+		"defaultMessage": "Add at least one tag.",
 		"description": "The validation message of a required tag field that holds no tag."
 	},
 	"ui.tagInput.tags": {

@@ -13,7 +13,7 @@ import {
 import { cn } from '../../core/cn'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { useControllableFlag } from '../../hooks/use-controllable'
-import { defineMessages } from '../../primitives/intl/intl-messages'
+import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { flattenFragments } from '../../utilities/children'
@@ -21,14 +21,6 @@ import { Button } from '../button'
 import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
 import { Icon } from '../icon'
 import { AlertBody } from './alert-body'
-
-const messages = defineMessages({
-	dismiss: {
-		id: 'ui.alert.dismiss',
-		defaultMessage: 'Dismiss',
-		description: 'The name of the button that closes a message or a toast.',
-	},
-})
 
 /** Semantic kind of an alert; selects its default color, icon, and ARIA live role. */
 export type AlertSeverity = 'info' | 'success' | 'warning' | 'error'
@@ -341,7 +333,7 @@ export function Alert({
 						variant="plain"
 						color={variant === 'solid' ? 'inherit' : resolvedColor}
 						data-slot="alert-close"
-						aria-label={intl.formatMessage(messages.dismiss)}
+						aria-label={intl.formatMessage(intlMessages.close)}
 						onClick={() => {
 							closePressedRef.current = true
 

@@ -10,7 +10,7 @@ type ColorValues = {
 	eyedropper: Record<never, never>
 	hex: Record<never, never>
 	copyHex: Record<never, never>
-	choose: Record<never, never>
+	select: Record<never, never>
 	hue: Record<never, never>
 	alpha: Record<never, never>
 	swatches: Record<never, never>
@@ -50,7 +50,7 @@ export const colorMessages: MessageSet<ColorValues> = defineMessages<ColorValues
 	},
 	eyedropper: {
 		id: 'ui.color.eyedropper',
-		defaultMessage: 'Pick color from screen',
+		defaultMessage: 'Select color from screen',
 		description: 'The name of the button that takes a color from a point on the screen.',
 	},
 	hex: {
@@ -63,9 +63,9 @@ export const colorMessages: MessageSet<ColorValues> = defineMessages<ColorValues
 		defaultMessage: 'Copy hex value',
 		description: 'The name of the button that copies the hexadecimal code of a color.',
 	},
-	choose: {
-		id: 'ui.color.choose',
-		defaultMessage: 'Choose color',
+	select: {
+		id: 'ui.color.select',
+		defaultMessage: 'Select color',
 		description: 'The name of the dialog of a color picker.',
 	},
 	hue: {

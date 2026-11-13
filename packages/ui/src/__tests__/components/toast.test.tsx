@@ -385,7 +385,7 @@ describe('Toast: useToast behavior', () => {
 		fireEvent.pointerEnter(screen.getByText('First'), { pointerType: 'mouse' })
 
 		act(() => {
-			fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+			fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 		})
 
 		// Drain the dismissed toast's removal (rAF) through the mocked exit.
@@ -417,7 +417,7 @@ describe('Toast: useToast behavior', () => {
 		fireEvent.focusIn(screen.getByText('First'))
 
 		act(() => {
-			fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+			fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 		})
 
 		await clock.advance(100)
@@ -611,7 +611,7 @@ describe('Toast: useToast behavior', () => {
 
 		expect(screen.getByText('Closable')).toBeInTheDocument()
 
-		const dismissButton = screen.getByRole('button', { name: 'Dismiss' })
+		const dismissButton = screen.getByRole('button', { name: 'Close' })
 
 		act(() => {
 			fireEvent.click(dismissButton)
@@ -715,7 +715,7 @@ describe('Toast: useToast behavior', () => {
 			})
 
 			act(() => {
-				fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+				fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 			})
 
 			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('close')
@@ -903,7 +903,7 @@ describe('Toast: useToast behavior', () => {
 
 			const close = within(screen.getByText('Second').closest('li') as HTMLElement).getByRole(
 				'button',
-				{ name: 'Dismiss' },
+				{ name: 'Close' },
 			)
 
 			act(() => close.focus())
@@ -1024,7 +1024,7 @@ describe('Toast: useToast behavior', () => {
 				api.toast({ title: 'Saved', persist: true })
 			})
 
-			const close = screen.getByRole('button', { name: 'Dismiss' })
+			const close = screen.getByRole('button', { name: 'Close' })
 
 			act(() => close.focus())
 
@@ -1052,7 +1052,7 @@ describe('Toast: useToast behavior', () => {
 
 			const close = within(screen.getByText('Near').closest('li') as HTMLElement).getByRole(
 				'button',
-				{ name: 'Dismiss' },
+				{ name: 'Close' },
 			)
 
 			act(() => close.focus())
@@ -1085,7 +1085,7 @@ describe('Toast: useToast behavior', () => {
 				api.toast({ title: 'Saved', persist: true })
 			})
 
-			const close = screen.getByRole('button', { name: 'Dismiss' })
+			const close = screen.getByRole('button', { name: 'Close' })
 
 			act(() => close.focus())
 
@@ -1200,7 +1200,7 @@ describe('Toast: keyboard reach', () => {
 
 		expect(screen.getByRole('button', { name: 'Undo First' })).toHaveFocus()
 
-		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
 		expect(outside).toHaveFocus()
 	})
@@ -1234,7 +1234,7 @@ describe('Toast: keyboard reach', () => {
 
 		expect(undo).toHaveFocus()
 
-		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
 		expect(outside).not.toHaveFocus()
 	})

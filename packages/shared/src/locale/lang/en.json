@@ -20,7 +20,7 @@
 		"description": "The button that closes the dialog of the second step."
 	},
 	"shared.auth.codeRejected": {
-		"defaultMessage": "That code was not accepted. Please try again.",
+		"defaultMessage": "That code was not accepted. Try again.",
 		"description": "The error of a second-step code that the gateway refused without a reason."
 	},
 	"shared.auth.confirmIdentity": {
@@ -56,7 +56,7 @@
 		"description": "The error of a GitHub or Google sign-in with an account whose email is not verified."
 	},
 	"shared.auth.expired": {
-		"defaultMessage": "Too many wrong tries. Please sign in again.",
+		"defaultMessage": "Too many wrong tries. Sign in again.",
 		"description": "The notice after the gateway ended a session for too many wrong second-step tries."
 	},
 	"shared.auth.forgotIntro": {
@@ -92,7 +92,7 @@
 		"description": "The text before the link to get a new reset link."
 	},
 	"shared.auth.loginFailed": {
-		"defaultMessage": "Login failed. Please check your credentials and try again.",
+		"defaultMessage": "The sign-in failed. Check your credentials and try again.",
 		"description": "The error of a sign-in that the gateway refused without a reason."
 	},
 	"shared.auth.loginTitle": {
@@ -108,7 +108,7 @@
 		"description": "The text before the link to the register page."
 	},
 	"shared.auth.oauthFailed": {
-		"defaultMessage": "That sign-in did not complete. Please try again.",
+		"defaultMessage": "That sign-in did not complete. Try again.",
 		"description": "The error of a GitHub or Google sign-in that did not complete."
 	},
 	"shared.auth.oauthUnavailable": {
@@ -116,11 +116,11 @@
 		"description": "The error of a GitHub or Google sign-in that the gateway does not offer."
 	},
 	"shared.auth.passkeyCheckFailed": {
-		"defaultMessage": "The passkey check did not complete. Please try again.",
+		"defaultMessage": "The passkey check did not complete. Try again.",
 		"description": "The error of a passkey second step that the reader or the browser stopped."
 	},
 	"shared.auth.passkeySignInFailed": {
-		"defaultMessage": "Passkey sign-in did not complete. Please try again.",
+		"defaultMessage": "Passkey sign-in did not complete. Try again.",
 		"description": "The error of a passkey sign-in that the reader or the browser stopped."
 	},
 	"shared.auth.password": {
@@ -128,7 +128,7 @@
 		"description": "The label of the password field of an auth form."
 	},
 	"shared.auth.passwordSet": {
-		"defaultMessage": "Your password is set. Please sign in.",
+		"defaultMessage": "Your password is set. Sign in.",
 		"description": "The notice on the sign-in page after a password reset."
 	},
 	"shared.auth.recoveryCode": {
@@ -144,19 +144,19 @@
 		"description": "The notice on the sign-in page after a registration."
 	},
 	"shared.auth.registrationFailed": {
-		"defaultMessage": "Registration failed. Please check your details and try again.",
+		"defaultMessage": "The registration failed. Check your details and try again.",
 		"description": "The error of a registration that the gateway refused without a reason."
 	},
 	"shared.auth.requestFailed": {
-		"defaultMessage": "The request failed. Please try again.",
+		"defaultMessage": "The request failed. Try again.",
 		"description": "The error of a request for a reset link that the gateway refused without a reason."
 	},
 	"shared.auth.resetFailed": {
-		"defaultMessage": "The password did not change. Please try again.",
+		"defaultMessage": "The password did not change. Try again.",
 		"description": "The error of a password reset that the gateway refused without a reason."
 	},
 	"shared.auth.resetTitle": {
-		"defaultMessage": "Choose a new password",
+		"defaultMessage": "Set a new password",
 		"description": "The title of the page that sets a new password from a reset link."
 	},
 	"shared.auth.sendAnotherLink": {
@@ -184,7 +184,7 @@
 		"description": "The menu item and the button that end the session."
 	},
 	"shared.auth.unexpected": {
-		"defaultMessage": "An unexpected error occurred. Please try again later.",
+		"defaultMessage": "An unexpected error occurred. Try again later.",
 		"description": "The error of an auth request that fails, such as on a network failure."
 	},
 	"shared.auth.useAuthenticator": {
@@ -208,7 +208,7 @@
 		"description": "The button that verifies the email from the link."
 	},
 	"shared.auth.verifyFailed": {
-		"defaultMessage": "The email was not verified. Please try again.",
+		"defaultMessage": "The email was not verified. Try again.",
 		"description": "The error of an email verification that the gateway refused without a reason."
 	},
 	"shared.auth.verifyMenu": {
@@ -252,19 +252,19 @@
 		"description": "The title of the toast that shows when a refresh of the page got no answer from the server."
 	},
 	"shared.validation.email": {
-		"defaultMessage": "Please enter a valid email address",
+		"defaultMessage": "Enter a valid email address.",
 		"description": "The error of an email field that does not hold an email address."
 	},
 	"shared.validation.minLength": {
-		"defaultMessage": "{min, plural, one {Must be at least # character} other {Must be at least # characters}}",
+		"defaultMessage": "{min, plural, one {Enter at least # character.} other {Enter at least # characters.}}",
 		"description": "The error of a field that is too short. The min is the shortest length."
 	},
 	"shared.validation.passwordMismatch": {
-		"defaultMessage": "Must match password",
+		"defaultMessage": "Enter the same password again.",
 		"description": "The error of the field that repeats the password, when the two differ."
 	},
 	"shared.validation.required": {
-		"defaultMessage": "This field is required",
+		"defaultMessage": "Fill in this field.",
 		"description": "The error of a form field that the reader left empty."
 	}
 }

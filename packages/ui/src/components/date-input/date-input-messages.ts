@@ -30,24 +30,24 @@ export const dateInputMessages: MessageSet<DateInputValues> = defineMessages<Dat
 	},
 	invalid: {
 		id: 'ui.dateInput.invalid',
-		defaultMessage: 'Enter a valid date ({format})',
+		defaultMessage: 'Enter a valid date ({format}).',
 		description:
 			'The error of a date field whose text is not a date. The format is the pattern of the field, such as DD/MM/YYYY.',
 	},
 	between: {
 		id: 'ui.dateInput.between',
-		defaultMessage: 'Enter a date between {min} and {max}',
+		defaultMessage: 'Enter a date between {min} and {max}.',
 		description:
 			'The error of a date field whose date is before the first date or after the last date that it accepts.',
 	},
 	onOrAfter: {
 		id: 'ui.dateInput.onOrAfter',
-		defaultMessage: 'Enter a date on or after {min}',
+		defaultMessage: 'Enter a date on or after {min}.',
 		description: 'The error of a date field whose date is before the first date that it accepts.',
 	},
 	onOrBefore: {
 		id: 'ui.dateInput.onOrBefore',
-		defaultMessage: 'Enter a date on or before {max}',
+		defaultMessage: 'Enter a date on or before {max}.',
 		description: 'The error of a date field whose date is after the last date that it accepts.',
 	},
 })

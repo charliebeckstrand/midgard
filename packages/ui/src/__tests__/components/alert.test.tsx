@@ -203,7 +203,7 @@ describe('Alert', () => {
 			</>,
 		)
 
-		const [subject, reference] = screen.getAllByRole('button', { name: 'Dismiss' })
+		const [subject, reference] = screen.getAllByRole('button', { name: 'Close' })
 
 		expect(bySlot(container, 'alert-body')).not.toBeInTheDocument()
 
@@ -247,7 +247,7 @@ describe('Alert', () => {
 			</Alert>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
@@ -260,7 +260,7 @@ describe('Alert', () => {
 			</Alert>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
 		expect(screen.getByText('content')).toBeInTheDocument()
 	})
@@ -285,11 +285,11 @@ describe('Alert', () => {
 	it('moves focus to returnFocusTo when dismissed', () => {
 		renderUI(<Harness />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
 		// The dismiss button unmounts with the alert; focus lands on the caller's
 		// element rather than falling to <body>.
-		expect(screen.queryByRole('button', { name: 'Dismiss' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'Trigger' })).toHaveFocus()
 	})
@@ -297,7 +297,7 @@ describe('Alert', () => {
 	it('keeps focus on the dismiss button when a controlled alert stays open', () => {
 		renderUI(<Harness open />)
 
-		const dismiss = screen.getByRole('button', { name: 'Dismiss' })
+		const dismiss = screen.getByRole('button', { name: 'Close' })
 
 		dismiss.focus()
 
@@ -318,7 +318,7 @@ describe('Alert', () => {
 
 		renderUI(<Controlled />)
 
-		const dismiss = screen.getByRole('button', { name: 'Dismiss' })
+		const dismiss = screen.getByRole('button', { name: 'Close' })
 
 		dismiss.focus()
 

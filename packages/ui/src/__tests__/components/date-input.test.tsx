@@ -111,7 +111,7 @@ describe('DateInput', () => {
 		expect(builtIn?.id).not.toBe(other?.id)
 
 		expect(input).toHaveAccessibleDescription(
-			expect.stringContaining('Enter a valid date (MM/DD/YYYY)'),
+			expect.stringContaining('Enter a valid date (MM/DD/YYYY).'),
 		)
 
 		expect(input).toHaveAccessibleDescription(expect.stringContaining('Date taken'))
@@ -282,7 +282,7 @@ describe('DateInput', () => {
 
 		// A parseable date out of range reports the bound, not the format message.
 		expect(bySlot(container, 'message')).toHaveTextContent(
-			'Enter a date between 01/01/2026 and 12/31/2026',
+			'Enter a date between 01/01/2026 and 12/31/2026.',
 		)
 	})
 
@@ -407,7 +407,7 @@ describe('DateInput', () => {
 
 		expect(message).toHaveAttribute('role', 'alert')
 
-		expect(message).toHaveTextContent('Enter a valid date (MM/DD/YYYY)')
+		expect(message).toHaveTextContent('Enter a valid date (MM/DD/YYYY).')
 	})
 
 	it('renders the message on blur for a partial entry and wires aria-describedby', async () => {

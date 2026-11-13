@@ -112,7 +112,7 @@ function DropSelection({
 					<button
 						ref={overlayRef}
 						type="button"
-						aria-label={intl.formatMessage(fileUploadMessages.chooseDifferent)}
+						aria-label={intl.formatMessage(fileUploadMessages.selectDifferent)}
 						// A Field Label wins over `aria-label`, so the name is the Label
 						// and then the selection text.
 						aria-labelledby={labelledBy ? `${labelledBy} ${textId}` : undefined}

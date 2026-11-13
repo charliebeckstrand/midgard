@@ -33,7 +33,7 @@ describe('DatePicker sheet focus return (real browser)', () => {
 	}
 
 	async function closeWith(how: 'close' | 'backdrop') {
-		const sheet = await screen.findByRole('dialog', { name: 'Choose date' })
+		const sheet = await screen.findByRole('dialog', { name: 'Select a date' })
 
 		await waitFor(() => expect(sheet.contains(document.activeElement)).toBe(true))
 

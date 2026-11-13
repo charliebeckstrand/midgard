@@ -1,5 +1,6 @@
 import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
+import { appTitle, formatTitle } from '../pages/app-title'
 import { ErrorPage } from '../pages/error-page'
 import { NotFoundPage } from '../pages/not-found-page'
 import { renderInLocale } from './helpers/intl'
@@ -43,5 +44,13 @@ describe('NotFoundPage', () => {
 		expect(renderInLocale('es', createElement(NotFoundPage))).toContain(
 			'No se encontró esta página',
 		)
+	})
+})
+
+describe('appTitle', () => {
+	it('shows the name of the app on the home page, and puts each other title before it', () => {
+		expect(appTitle('Admin')).toEqual({ default: 'Admin', template: '%s | Admin' })
+
+		expect(formatTitle('Users', 'Admin')).toBe('Users | Admin')
 	})
 })

@@ -1,4 +1,5 @@
 import { bifrost, getSignInProviders, requireGateway, requireSession } from 'auth'
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { seed } from 'shared/queries'
 import { Card, CardHeader, CardTitle } from 'ui/card'
@@ -8,6 +9,8 @@ import type { Activity } from '@/components/activity-table'
 import { PageHeader } from '@/components/page-header'
 import type { Factors, Identity, Passkey } from './account-api'
 import { AccountClient } from './client'
+
+export const metadata: Metadata = { title: 'Account' }
 
 /**
  * Fetches the passkeys of the signed-in user from the gateway, server-side.

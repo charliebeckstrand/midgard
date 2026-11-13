@@ -1,0 +1,26 @@
+language js
+
+// The text of an app keeps the AA contrast of 4.5:1 on the page surface. The
+// muted rung is the lightest ink that keeps it: `Text tone="muted"`, or
+// `text-zinc-500 dark:text-zinc-400` where a part is not text, such as an icon.
+// A lighter zinc rung in the light mode, such as `text-zinc-400`, is fainter
+// than that. The apps write the neutral palette as zinc, as ui does, so a
+// `gray` class is a second palette.
+//
+// The plugin matches a class in a string, a JSX string, or a template chunk.
+// A light rung behind a variant, such as `dark:text-zinc-400`, is the ink of
+// another ground, so it does not match. A mention in a comment is not a
+// violation.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the apps and
+// `shared`, minus tests.
+or { JsStringLiteralExpression(), JsxString(), JsTemplateChunkElement() } as $class where {
+	or {
+		$class <: r"[\s\S]*\bgray-[0-9][\s\S]*",
+		$class <: r"(?:[\s\S]*[\s'\x22\x60])?text-zinc-(?:50|100|200|300|400)\b[\s\S]*"
+	},
+	register_diagnostic(
+		span = $class,
+		message = "write muted text with `Text tone=\"muted\"` (or `text-zinc-500 dark:text-zinc-400` on a part that is not text), not a fainter rung or a `gray` class"
+	)
+}

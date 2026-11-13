@@ -18,6 +18,8 @@
 
 2.4 [`params` and `searchParams` are async](https://nextjs.org/docs/app/api-reference/file-conventions/page). Type them with the generated `PageProps` helper.
 
+2.5 Each page has a title of its own. The tabs and the history of the browser show the title, and a screen reader announces it (WCAG 2.4.2). The root layout of each app sets its `title` with `appTitle` from `shared/pages`. The home page then shows the name of the app, and each other page puts its title before the name, as in `Users | Admin`. Each page below the home page exports a `metadata` or a `generateMetadata` with its title. An auth page re-exports the `metadata` of its page in `shared/auth`. `app-page-title-boundary.test.ts` holds the rule.
+
 ## 3. Components
 
 See [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md).
@@ -170,6 +172,8 @@ In an app, an action such as Close or Remove is a `Button` with `variant="bare"`
 5.10 In `ui`, a part that shows a state or an edge only with a background or a box-shadow keeps a paint under forced colors. Forced colors replace a background with a system color and remove a box-shadow, so the part disappears. Kiso owns each ring, and each kiso ring carries an outline that keeps it under forced colors. Thus a kata, a component, or a module writes no ring width with no gate. It takes an edge from `sen.ring` (`default`, `inset`, or `line[width]`) and a focus ring from `sen.focus`. A row whose control has the focus takes `sen.focus.within`. A gap around an element, such as the gap of an Avatar group, is an outline, not a ring. For a part that has no ring, use one entry of `sen.forced`. A fill or a bar that shows a value or a selection takes `mark`. A grip or a bar that the reader sees only as its background takes `shape`. A surface or a track takes `outline`. Tailwind reads only literal class names. Thus a ring behind another gate, such as `data-active`, writes the four outline classes behind that gate. A fallback writes `outline-solid`, not a bare `outline`, because an ungated `outline-none` removes the style that a bare `outline` reads. `forced-colors-boundary.test.ts` finds a ring width in a kata and a ring with no fallback behind its gate. It has no exemption list. Forced colors make red, amber, and green one color. Thus only an invalid ring keeps a mark: it takes the outline of `forced.invalid` behind its gate. A warning ring and a valid ring have no fallback. `recipes/forced-colors.test.ts` holds the parts that have no gate in their class, and `browser/forced-colors-indicators.test.tsx` examines each state in a real browser.
 
 5.11 In `ui`, a panel that swaps or opens in place does not change the width of its host. Examples are the panels of Accordion, Collapse, `CurrentContents`, and Stepper. Each such panel takes `contain-inline-size`, so the host width comes from the host and not from the panel. A new surface of this kind does the same. `panel-width.test.tsx` in the browser suite holds the rule.
+
+5.12 In an app and in `shared`, muted text is `<Text tone="muted">`, with `as="span"` inside a line. A part that is not text, such as an icon or the class of a component, takes the same rung: `text-zinc-500 dark:text-zinc-400`. A part of ui keeps its own ink, such as the description of a list row, which sits on a hover wash. No text is fainter than the muted rung, because the muted rung is the lightest ink that keeps the AA contrast on the page surface. The neutral palette is zinc, as in ui. The [`no-faint-text-color`](.biome/plugins/no-faint-text-color.grit) Biome plugin finds a lighter zinc rung in the light mode and a `gray` class.
 
 ## 6. State & data
 
@@ -361,7 +365,7 @@ Mark each proper noun and each code of the data with `names` (`src/docs/kit/prop
 
 An `aria-label` names the content, not the demo: "Monthly revenue", not "Line chart, animated". A demo does not explain itself in its own text, because its title names the feature. A demo that needs an action from the reader gives one short instruction. When the action is different for a mouse and for a touch, the instruction uses `PointerHint` from the kit. A demo that shows the key of a `$mod` shortcut uses `ShortcutHint` from the kit. The hint shows ⌘ on an Apple platform and Ctrl elsewhere. A demo shortcut does not use a key of the site, such as ⌘K for the search.
 
-13.9 For each idea, use the word in the second column, and do not use the words in the last column. The table covers the visible text and the prose of TSDoc, not the names in the code:
+13.9 For each idea, use the word in the second column, and do not use the words in the last column. The table covers the visible text and the prose of TSDoc, not the names in the code. The visible text includes the catalogs of `ui` and of `shared`, which the apps show, so §13.3 and §13.4 hold their messages too. `catalog-wording-boundary.test.ts` holds the last column in the English catalogs of `ui`, `shared`, and the docs:
 
 | Idea | Word | Not |
 |---|---|---|

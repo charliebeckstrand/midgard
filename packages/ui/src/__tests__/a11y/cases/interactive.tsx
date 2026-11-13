@@ -269,7 +269,7 @@ export const interactive: readonly InteractiveCase[] = [
 	},
 	{
 		// Color picker: a Control-integrated swatch trigger opens its picker dialog
-		// (role="dialog", aria-label="Choose color") on click. The panel's 2D
+		// (role="dialog", aria-label="Select color") on click. The panel's 2D
 		// saturation/brightness slider, hue/alpha sliders, swatches, and hex/channel
 		// inputs only mount on open; this case drives it open to assert that surface.
 		name: 'color picker',

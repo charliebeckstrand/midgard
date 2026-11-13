@@ -48,8 +48,10 @@ export const nodeFiles = nodeEnvironmentFiles()
 const workspaceScans = [
 	'src/__tests__/boundary/app-gap-boundary.test.ts',
 	'src/__tests__/boundary/app-hook-file-boundary.test.ts',
+	'src/__tests__/boundary/app-page-title-boundary.test.ts',
 	'src/__tests__/boundary/biome-plugin-boundary.test.ts',
 	'src/__tests__/boundary/cadence-boundary.test.ts',
+	'src/__tests__/boundary/catalog-wording-boundary.test.ts',
 	'src/__tests__/boundary/controlled-language-boundary.test.ts',
 	'src/__tests__/boundary/dockerfile-pin-boundary.test.ts',
 	'src/__tests__/boundary/drag-cursor-boundary.test.ts',

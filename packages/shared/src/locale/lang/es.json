@@ -38,7 +38,7 @@
 	"shared.auth.registrationFailed": "No se pudo completar el registro. Revisa tus datos e inténtalo de nuevo.",
 	"shared.auth.requestFailed": "La solicitud falló. Inténtalo de nuevo.",
 	"shared.auth.resetFailed": "La contraseña no cambió. Inténtalo de nuevo.",
-	"shared.auth.resetTitle": "Elige una contraseña nueva",
+	"shared.auth.resetTitle": "Establece una contraseña nueva",
 	"shared.auth.sendAnotherLink": "Enviar otro enlace",
 	"shared.auth.sendLink": "Enviar enlace",
 	"shared.auth.setPassword": "Establecer contraseña",
@@ -62,8 +62,8 @@
 	"shared.mutation.failed": "Algo salió mal",
 	"shared.notFound.body": "No se encontró esta página",
 	"shared.refresh.failed": "No se pudo actualizar",
-	"shared.validation.email": "Introduce una dirección de correo electrónico válida",
-	"shared.validation.minLength": "{min, plural, one {Debe tener al menos # carácter} other {Debe tener al menos # caracteres}}",
-	"shared.validation.passwordMismatch": "Debe coincidir con la contraseña",
-	"shared.validation.required": "Este campo es obligatorio"
+	"shared.validation.email": "Introduce una dirección de correo electrónico válida.",
+	"shared.validation.minLength": "{min, plural, one {Introduce al menos # carácter.} other {Introduce al menos # caracteres.}}",
+	"shared.validation.passwordMismatch": "Vuelve a introducir la misma contraseña.",
+	"shared.validation.required": "Rellena este campo."
 }
