@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ChartHeaderActionsFallback, SeatChart } from '../../../modules/chart'
+import { ChartHeaderActionsFallback, ScatterChart, SeatChart } from '../../../modules/chart'
 import { HeaderActions, HeaderActionsSlot } from '../../../primitives/header-actions'
 import { attach, present } from '../../helpers'
 import { hydrate, serverMarkup } from '../../helpers/hydrate'
@@ -98,17 +98,25 @@ describe('chart buttons in the header row before the mount (real browser)', () =
 		)
 	})
 
-	// A chart with no data has no View data entry, and so no button in the row.
-	// The fallback cannot see the data, so it draws the button until the mount.
-	// The chart then claims the slot with an empty row, and the fallback hides.
+	// A scatter chart with rows but no row where the x and the y are numbers has
+	// no readout, and so no View data button in the row. The fallback reads only
+	// whether the chart has rows, so it draws the button until the mount. The
+	// chart then claims the slot with an empty row, and the fallback hides.
 	it('hides the fallback of a chart that puts no button in the row', () => {
-		const empty = <SeatChart aria-label="Senate seats" groups={[]} height={200} />
+		const empty = (
+			<ScatterChart
+				aria-label="Turnout"
+				data={[{ age: null, turnout: null }]}
+				series={[{ xKey: 'age', yKey: 'turnout' }]}
+				height={200}
+			/>
+		)
 
 		const emptyBox = (
 			<HeaderActions slotted>
 				<div style={{ width: 360 }}>
 					<div className="flex min-h-9 justify-between">
-						<span>Senate</span>
+						<span>Turnout</span>
 
 						<HeaderActionsSlot>
 							<ChartHeaderActionsFallback chart={empty} />

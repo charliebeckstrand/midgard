@@ -5,8 +5,11 @@ import type { ComponentProps, ReactElement, ReactNode } from 'react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import { cn } from '../../../core/cn'
+import { dataAttr } from '../../../core/data-attr'
 import { useIntl } from '../../../primitives/intl/use-intl'
+import { noop } from '../../../utilities/noop'
 import type { ChartContextMenuConfig } from './chart-context-menu'
+import { chartHeaderRow, chartMenuDefaultKeys, chartMenuEntries } from './chart-menu-entries'
 import { chartMenuName, chartMessages } from './chart-messages'
 
 /** Props for {@link ChartViewDataButton}. @internal */
@@ -103,6 +106,33 @@ export function ChartMenuTriggerButton({ title, ...props }: ChartMenuTriggerButt
 type ChartHeaderProps = {
 	title?: string
 	contextMenu?: ChartContextMenuConfig | false
+	/** The rows of each chart but the seat chart. */
+	data?: readonly unknown[]
+	/** The series of each chart but the seat chart. */
+	series?: readonly unknown[]
+	/** The groups of the seat chart. */
+	groups?: readonly unknown[]
+}
+
+/**
+ * Whether the chart has a readout in its first render, from its props alone.
+ * The legend hides no series before the mount, so the readout of each chart
+ * depends only on its data:
+ *
+ * - The seat chart has a readout when it has a group.
+ * - Each other chart has a readout when it has a row and a series.
+ *
+ * The scatter chart and the bubble chart are the one exception. They also need
+ * a row where the x and the y are numbers. A chart that has rows but no such
+ * row thus draws the View data button until the mount. An element with none of
+ * these props, such as a wrapper of a chart, gets the button until the mount.
+ */
+function chartHasReadout({ data, series, groups }: ChartHeaderProps): boolean {
+	if (groups !== undefined) return groups.length > 0
+
+	if (data === undefined || series === undefined) return true
+
+	return data.length > 0 && series.length > 0
 }
 
 /**
@@ -112,8 +142,8 @@ type ChartHeaderProps = {
 export type ChartHeaderActionsFallbackProps = Omit<ComponentProps<'span'>, 'children'> & {
 	/**
 	 * The chart element that the box renders. Give the same element, so the
-	 * buttons come from the props of the chart: its `title` and its
-	 * `contextMenu`.
+	 * buttons come from the props of the chart: its `title`, its `contextMenu`,
+	 * and whether it has data.
 	 */
 	chart: ReactElement<ChartHeaderProps>
 }
@@ -133,10 +163,12 @@ export type ChartHeaderActionsFallbackProps = Omit<ComponentProps<'span'>, 'chil
  * same size and place. They do nothing, and they are `inert`. The slot shows
  * them until the chart puts its own buttons in it, in the same frame.
  *
- * A chart with no data has no View data button. This component cannot see the
- * data of each kind of chart, so it draws the button until the mount. At the
- * mount the chart puts its row in the slot also when the row is empty, so the
- * fallback hides.
+ * The buttons come from the same rules as the menu of the chart: its default
+ * items, its custom `items`, `defaultItems`, and `button`. A chart with no data
+ * has no View data button. A scatter chart or a bubble chart with rows but no
+ * row where the x and the y are numbers is the one exception: this component
+ * draws the button until the mount. At the mount the chart puts its row in the
+ * slot also when the row is empty, so the fallback hides.
  *
  * @example
  * ```tsx
@@ -161,21 +193,35 @@ export function ChartHeaderActionsFallback({
 }: ChartHeaderActionsFallbackProps) {
 	const { title, contextMenu } = chart.props
 
-	// The rules of the chart menu: `false` turns the menu off, the View data entry
-	// is a default item, and `button` turns on the touch menu button.
 	if (contextMenu === false) return null
 
-	const viewData = contextMenu?.defaultItems !== false
+	// The rules of the chart menu, with stand-in default items: the chart gives
+	// the menu a fullscreen copy, and it has the View data item only with a
+	// readout. The custom items and `button` then decide the row as they do for
+	// the chart.
+	const defaults = chartMenuDefaultKeys(true, chartHasReadout(chart.props)).map((key) => ({
+		key,
+		label: key,
+		onAction: noop,
+	}))
 
-	const menuButton = contextMenu?.button === true
+	const { viewData, menu, ownFullscreen } = chartHeaderRow(
+		chartMenuEntries(contextMenu, defaults),
+		contextMenu?.button,
+	)
 
-	if (!viewData && !menuButton) return null
+	if (!viewData && !menu) return null
 
 	return (
-		<span {...props} inert className={cn('contents', className)}>
-			{viewData && <ChartViewDataButton title={title} />}
+		<span
+			{...props}
+			inert
+			data-own-fullscreen={dataAttr(ownFullscreen)}
+			className={cn('contents', className)}
+		>
+			{viewData && <ChartViewDataButton title={title} disabled={viewData.disabled} />}
 
-			{menuButton && (
+			{menu && (
 				<ChartMenuButtonBox place="host">
 					<ChartMenuTriggerButton title={title} />
 				</ChartMenuButtonBox>

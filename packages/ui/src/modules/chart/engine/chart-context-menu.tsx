@@ -14,7 +14,6 @@ import {
 } from 'react'
 import { Button } from '../../../components/button'
 import { ContextMenu } from '../../../components/context-menu'
-import { resolveContextMenuEntries } from '../../../components/context-menu/context-menu-merge'
 import type { ContextMenuConfig, ContextMenuItem } from '../../../components/context-menu/types'
 import { Dialog, DialogClose, DialogFooter, DialogPanel } from '../../../components/dialog'
 import { downloadBlob } from '../../../core/download-blob'
@@ -24,6 +23,11 @@ import { useIntl } from '../../../primitives/intl/use-intl'
 import { copyText, downloadCsv } from '../../../utilities/export-output'
 import { ChartDataDialog } from './chart-data-dialog'
 import { type ChartImageType, chartFileName, rasterizeImage, readoutToCsv } from './chart-export'
+import {
+	type ChartMenuDefaultKey,
+	chartMenuDefaultKeys,
+	chartMenuEntries,
+} from './chart-menu-entries'
 import { chartMenuName, chartMessages } from './chart-messages'
 import { ChartFullscreenContext, ChartMenuContext, useChartFullscreen } from './context'
 import type { ChartReadoutSource } from './types'
@@ -173,13 +177,13 @@ export type ChartContextMenuProps = {
 const FULLSCREEN_CHART_CLASS = 'w-full max-h-[calc(100dvh-9rem)]'
 
 /**
- * Materializes the readout thunk on selection; a thunk that resolves to no readout
- * exports the empty CSV its chart would have rendered as a table.
+ * Materializes the readout thunk on selection; no thunk, or a thunk that resolves
+ * to no readout, exports the empty CSV its chart would have rendered as a table.
  *
  * @internal
  */
-function exportCsv(source: ChartReadoutSource): string {
-	const readout = source()
+function exportCsv(source: ChartReadoutSource | null): string {
+	const readout = source?.() ?? null
 
 	return readout === null ? '' : readoutToCsv(readout)
 }
@@ -309,63 +313,53 @@ export function ChartContextMenu({
 	)
 
 	// Memoized for the same reason `customItems` is. Without the memo, each host
-	// render builds this array and its five icon elements again and discards them. A
-	// steady array also spares `ContextMenu` the pass that its own `entries` memo keys
-	// on this array, though that pass is the cheap half: it reorders the references
-	// that exist.
-	const defaults = useMemo<ContextMenuItem[]>(
-		() => [
-			...(hasFullscreen
-				? [
-						{
-							key: 'fullscreen',
-							label: intl.formatMessage(chartMessages.fullscreen),
-							icon: <Maximize2 />,
-							onAction: () => handleFullscreenChange(true),
-						},
-					]
-				: []),
-			...(readout
-				? [
-						{
-							key: 'view-data',
-							label: intl.formatMessage(chartMessages.viewData),
-							icon: <Table2 />,
-							onAction: () => setDataOpen(true),
-						},
-						{
-							key: 'copy-data',
-							label: intl.formatMessage(chartMessages.copyData),
-							icon: <Clipboard />,
-							onAction: () => copyText(exportCsv(readout)),
-						},
-					]
-				: []),
-			{
+	// render builds these items and their six icon elements again and discards
+	// them. A steady array also spares `ContextMenu` the pass that its own
+	// `entries` memo keys on this array, though that pass is the cheap half: it
+	// reorders the references that exist. The keys and their order come from
+	// `chartMenuDefaultKeys`, which `ChartHeaderActionsFallback` reads too.
+	const defaults = useMemo<ContextMenuItem[]>(() => {
+		const byKey: Record<ChartMenuDefaultKey, ContextMenuItem> = {
+			fullscreen: {
+				key: 'fullscreen',
+				label: intl.formatMessage(chartMessages.fullscreen),
+				icon: <Maximize2 />,
+				onAction: () => handleFullscreenChange(true),
+			},
+			'view-data': {
+				key: 'view-data',
+				label: intl.formatMessage(chartMessages.viewData),
+				icon: <Table2 />,
+				onAction: () => setDataOpen(true),
+			},
+			'copy-data': {
+				key: 'copy-data',
+				label: intl.formatMessage(chartMessages.copyData),
+				icon: <Clipboard />,
+				onAction: () => copyText(exportCsv(readout)),
+			},
+			'download-png': {
 				key: 'download-png',
 				label: intl.formatMessage(chartMessages.downloadPng),
 				icon: <ImageIcon />,
 				onAction: () => void exportImage('image/png', 'png'),
 			},
-			{
+			'download-jpg': {
 				key: 'download-jpg',
 				label: intl.formatMessage(chartMessages.downloadJpg),
 				icon: <ImageIcon />,
 				onAction: () => void exportImage('image/jpeg', 'jpg'),
 			},
-			...(readout
-				? [
-						{
-							key: 'download-csv',
-							label: intl.formatMessage(chartMessages.downloadCsv),
-							icon: <Download />,
-							onAction: () => downloadCsv(chartFileName(title, 'csv'), exportCsv(readout)),
-						},
-					]
-				: []),
-		],
-		[hasFullscreen, readout, title, handleFullscreenChange, exportImage, intl],
-	)
+			'download-csv': {
+				key: 'download-csv',
+				label: intl.formatMessage(chartMessages.downloadCsv),
+				icon: <Download />,
+				onAction: () => downloadCsv(chartFileName(title, 'csv'), exportCsv(readout)),
+			},
+		}
+
+		return chartMenuDefaultKeys(hasFullscreen, readout !== null).map((key) => byKey[key])
+	}, [hasFullscreen, readout, title, handleFullscreenChange, exportImage, intl])
 
 	// Held as an element, not gated on `open`. A closed Dialog still runs the heaviest
 	// hook chain here on each host render: its own controllable, min-width, and
@@ -441,19 +435,12 @@ export function ChartContextMenu({
 
 	const capped = config?.capped
 
-	const buttonItems = useMemo(
-		() => (typeof items === 'function' ? items({ index: null }) : items),
-		[items],
+	const entries = useMemo(
+		() => chartMenuEntries({ items, defaultItems, insert }, defaults),
+		[items, defaultItems, insert, defaults],
 	)
 
-	const chartMenu = useMemo(
-		() => ({
-			entries: resolveContextMenuEntries({ items: buttonItems, defaultItems, insert }, defaults),
-			button,
-			capped,
-		}),
-		[buttonItems, defaultItems, insert, defaults, button, capped],
-	)
+	const chartMenu = useMemo(() => ({ entries, button, capped }), [entries, button, capped])
 
 	if (contextMenu === false) return <>{children}</>
 
