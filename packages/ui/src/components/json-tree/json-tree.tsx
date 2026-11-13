@@ -22,10 +22,12 @@ import {
 	type JsonTreeCollapsible,
 	type JsonTreeSearch,
 	normalizeSearch,
+	packNodeSearch,
 } from './json-tree-utilities'
 import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
 import { unionExpandedSet } from './use-json-tree-expansion'
+import { useSearchStore } from './use-json-tree-search'
 import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 
 /** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
@@ -218,6 +220,17 @@ export function JsonTree({
 	// set as a seed. One seed serves both variants.
 	useJsonTreeSearchSeed(controlled ? matchPaths : undefined, expandControlled)
 
+	const searchStore = useSearchStore(searchValue, filter, searchIndex)
+
+	// The root has no parent to give it its search state. The tree renders for
+	// each new search, so it reads the state of the root here.
+	const rootSearch = packNodeSearch(
+		{ term: searchValue, filter, index: searchIndex },
+		rootKey,
+		data,
+		true,
+	)
+
 	const handleRovingKeyDown = useA11yRoving(ref, {
 		// An exiting group is inert, and roving skips its rows.
 		itemSelector: TREE_ITEM_SELECTOR,
@@ -258,25 +271,14 @@ export function JsonTree({
 			depth: 0,
 			defaultExpandDepth,
 			collapsible,
-			search: searchValue,
-			filter,
-			searchIndex,
+			search: searchStore,
 			path: '',
 			controlled,
 			expansion,
 			toggleExpanded,
 			userOpen,
 		}),
-		[
-			defaultExpandDepth,
-			collapsible,
-			searchValue,
-			filter,
-			searchIndex,
-			controlled,
-			expansion,
-			toggleExpanded,
-		],
+		[defaultExpandDepth, collapsible, searchStore, controlled, expansion, toggleExpanded],
 	)
 
 	if (windowed) {
@@ -323,7 +325,7 @@ export function JsonTree({
 					checkForDefaultPrevented: false,
 				})}
 			>
-				<JsonTreeNode keyName={rootKey} value={data} />
+				<JsonTreeNode keyName={rootKey} value={data} searchState={rootSearch} />
 			</div>
 		</JsonTreeContext>
 	)
