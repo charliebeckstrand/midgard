@@ -31,10 +31,7 @@ import {
  */
 export function appearanceRootClasses(cookies: string): string[] {
 	const read = <T extends string>(choice: AppearanceChoice<T>) =>
-		parseChoice(
-			choice,
-			choice.cookie === undefined ? undefined : readCookie(choice.cookie, cookies),
-		)
+		parseChoice(choice, readCookie(choice.key, cookies))
 
 	const classes: string[] = []
 

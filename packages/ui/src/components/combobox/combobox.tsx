@@ -33,7 +33,6 @@ import {
 import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { useScrollWithin } from '../../hooks/use-scroll-within'
 import { useSelectableValueChange } from '../../hooks/use-selectable-value-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
@@ -47,6 +46,7 @@ import { VirtualItemSourceContext } from '../../primitives/virtual-options/conte
 import { useGlass } from '../../providers/glass/context'
 import { k, type scale } from '../../recipes/kata/combobox'
 import type { SelectionValueProps } from '../../types/selection-value'
+import { scrollWithin } from '../../utilities/scroll-within'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
@@ -353,6 +353,15 @@ export function followOptions(
  */
 const MIXED_SOURCE_WARNING =
 	'Combobox: an option is outside the `items` of the `VirtualOptions` that registers the keyboard source. Arrow keys and type-ahead move through those items by index, so they do not reach the option. Put each option into the items, a create row too, and give it the `id` that `getOptionId` returns.'
+
+// Brings the selected option into view when the list mounts.
+function scrollToSelected(node: HTMLDivElement | null) {
+	if (!node) return
+
+	const selected = node.querySelector<HTMLElement>('[role="option"][data-selected]')
+
+	if (selected) scrollWithin(selected, { block: 'nearest' })
+}
 
 /**
  * Warns in development when a registered `source` and an option outside its
@@ -791,19 +800,6 @@ export function Combobox<T>({
 		inputRef,
 		isLocked,
 	})
-
-	const scrollWithin = useScrollWithin()
-
-	const scrollToSelected = useCallback(
-		(node: HTMLDivElement | null) => {
-			if (!node) return
-
-			const selected = node.querySelector<HTMLElement>('[role="option"][data-selected]')
-
-			if (selected) scrollWithin(selected, { block: 'nearest' })
-		},
-		[scrollWithin],
-	)
 
 	const hasValue = hasSelection(value, multiple)
 

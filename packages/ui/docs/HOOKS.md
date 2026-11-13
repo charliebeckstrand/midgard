@@ -69,7 +69,6 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useResponsiveValue` | The value of a `Responsive<T>` prop at the viewport, as its classes give it. During SSR, the value of the largest breakpoint. |
 | `useTruncation` | Callback ref plus a flag that is true while the single-line element clips its content. The first hover or focus starts the measure. |
 | `useScrollRegion` | Callback ref that makes a scroll container a tab stop while its content overflows. A `label` also makes it a named `region`. |
-| `useScrollWithin` | Returns a function that scrolls a node into view in its nearest scrollable ancestor. |
 | `useVirtualWindow` | Drives a vertical windowed list from a `@tanstack/virtual-core` virtualizer, over uniform or measured rows. It gives the visible items and the spacer heights. |
 
 ## Drag & drop
@@ -123,7 +122,6 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `OffcanvasOptions` | Options for `useOffcanvas`: the `layout` and the change report. |
 | `OffcanvasLayout` | Where an offcanvas panel is: `drawer` or `inline`. `OFFCANVAS_LAYOUT` is the default, the `layout` that `SidebarLayout` and `DashboardLayout` take. |
 | `ScrollRegionOptions` | Options for `useScrollRegion`: the `label` or `labelledBy` that names the region while it scrolls. |
-| `ScrollWithinOptions` | Options for `useScrollWithin`. |
 | `SortableItemOptions` / `SortableListOptions` / `SortableSensorsOptions` | Options for the `@dnd-kit` wrappers. |
 | `DragCursor` | The cursors that `useDragCursor` can hold. |
 | `VirtualWindowOptions` / `MeasuredVirtualWindowOptions` | Options for `useVirtualWindow`, over uniform rows or measured rows. |

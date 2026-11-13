@@ -1,6 +1,5 @@
-import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { scrollNodeWithin, useScrollWithin } from '../../hooks/use-scroll-within'
+import { scrollNodeWithin, scrollWithin } from '../../utilities/scroll-within'
 import { attach, mockDomGeometry } from '../helpers'
 
 function makeScrollable() {
@@ -68,42 +67,28 @@ function makeClippedTree(clip: { overflowX: string; overflowY: string }) {
  * The offset arithmetic, pinned over geometry this file states.
  *
  * Each case builds a scroller with a known client box and a known content box,
- * spies on `scrollTo`, and asserts the offset the hook asked for. That is the
+ * spies on `scrollTo`, and asserts the offset the function asked for. That is the
  * right shape for the fine-grained claims: the scroller's top border coming out
  * of the offset, each axis resolving independently under `nearest`, and the
  * walk stopping at an ancestor that clips the requested axis. A browser gives
  * what layout produces, so those inputs could only be approached, never set.
  *
  * It is not the whole contract, because a spy on `scrollTo` reads the number
- * the hook asked for and stops there. Whether that number puts the node where
+ * the function asked for and stops there. Whether that number puts the node where
  * the caller meant is asserted against a real scroller in
  * `browser/geometry/scroll-within.test.tsx`.
  */
-describe('useScrollWithin', () => {
-	it('returns the same function across renders', () => {
-		const { result, rerender } = renderHook(() => useScrollWithin())
-
-		const first = result.current
-
-		rerender()
-
-		expect(result.current).toBe(first)
-	})
-
+describe('scrollWithin', () => {
 	it('is a no-op when called with null', () => {
-		const { result } = renderHook(() => useScrollWithin())
-
-		expect(() => result.current(null)).not.toThrow()
+		expect(() => scrollWithin(null)).not.toThrow()
 	})
 
 	it('is a no-op when the node has no scrollable ancestor', () => {
-		const { result } = renderHook(() => useScrollWithin())
-
 		const node = document.createElement('div')
 
 		attach(node)
 
-		expect(() => result.current(node)).not.toThrow()
+		expect(() => scrollWithin(node)).not.toThrow()
 	})
 
 	describe('inside a scrollable ancestor', () => {
@@ -114,9 +99,7 @@ describe('useScrollWithin', () => {
 		}
 
 		// The scroller box spans y 0 to 100, and the node is 20 tall.
-		it.each<
-			[string, number, Parameters<ReturnType<typeof useScrollWithin>>[1], ScrollToOptions | null]
-		>([
+		it.each<[string, number, Parameters<typeof scrollWithin>[1], ScrollToOptions | null]>([
 			[
 				'scrolls to the start when block="start"',
 				50,
@@ -152,9 +135,7 @@ describe('useScrollWithin', () => {
 
 			node.getBoundingClientRect = () => DOMRect.fromRect({ y: nodeY, height: 20 })
 
-			const { result } = renderHook(() => useScrollWithin())
-
-			result.current(node, options)
+			scrollWithin(node, options)
 
 			// A null expectation is a node already in view, which asks for no scroll.
 			expect(vi.mocked(scroller.scrollTo).mock.calls).toEqual(expected ? [[expected]] : [])
@@ -173,9 +154,7 @@ describe('useScrollWithin', () => {
 
 			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 50, height: 20 })
 
-			const { result } = renderHook(() => useScrollWithin())
-
-			result.current(node, { block: 'start' })
+			scrollWithin(node, { block: 'start' })
 
 			expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 45, behavior: 'auto' })
 		})
@@ -192,9 +171,7 @@ describe('useScrollWithin', () => {
 
 			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 110, height: 20 })
 
-			const { result } = renderHook(() => useScrollWithin())
-
-			result.current(node)
+			scrollWithin(node)
 
 			expect(scroller.scrollTo).not.toHaveBeenCalled()
 		})
@@ -205,16 +182,14 @@ describe('useScrollWithin', () => {
 			// Node sits below the outer viewport; a reveal would otherwise scroll it.
 			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 200, height: 20 })
 
-			const { result } = renderHook(() => useScrollWithin())
-
-			result.current(node)
+			scrollWithin(node)
 
 			expect(outer.scrollTo).not.toHaveBeenCalled()
 		})
 	})
 })
 
-describe('useScrollWithin inline axis', () => {
+describe('scrollWithin inline axis', () => {
 	/** A scroller that overflows on both axes, with the metrics jsdom reports as 0. */
 	function makeBothAxes() {
 		vi.spyOn(window, 'getComputedStyle').mockReturnValue({
@@ -249,7 +224,7 @@ describe('useScrollWithin inline axis', () => {
 	it.for<{
 		name: string
 		at: { x: number; y: number }
-		options: Parameters<ReturnType<typeof useScrollWithin>>[1]
+		options: Parameters<typeof scrollWithin>[1]
 		expected: ScrollToOptions | null
 	}>([
 		{
@@ -289,9 +264,7 @@ describe('useScrollWithin inline axis', () => {
 
 		node.getBoundingClientRect = () => DOMRect.fromRect({ ...at, width: 20, height: 20 })
 
-		const { result } = renderHook(() => useScrollWithin())
-
-		result.current(node, options)
+		scrollWithin(node, options)
 
 		// A null expectation is a node in view on both axes, which asks for no scroll.
 		expect(vi.mocked(scroller.scrollTo).mock.calls).toEqual(expected ? [[expected]] : [])
@@ -304,9 +277,7 @@ describe('useScrollWithin inline axis', () => {
 
 		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 50, y: 10, width: 20, height: 20 })
 
-		const { result } = renderHook(() => useScrollWithin())
-
-		result.current(node, { block: 'start', inline: 'start' })
+		scrollWithin(node, { block: 'start', inline: 'start' })
 
 		expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 10, left: 45, behavior: 'auto' })
 	})
@@ -319,9 +290,7 @@ describe('useScrollWithin inline axis', () => {
 
 		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 200, y: 10, width: 20, height: 20 })
 
-		const { result } = renderHook(() => useScrollWithin())
-
-		result.current(node, { inline: 'start' })
+		scrollWithin(node, { inline: 'start' })
 
 		expect(scroller.scrollTo).toHaveBeenCalledWith({
 			top: undefined,
@@ -335,9 +304,7 @@ describe('useScrollWithin inline axis', () => {
 
 		node.getBoundingClientRect = () => DOMRect.fromRect({ x: 200, y: 10, width: 20, height: 20 })
 
-		const { result } = renderHook(() => useScrollWithin())
-
-		result.current(node, { inline: 'start' })
+		scrollWithin(node, { inline: 'start' })
 
 		expect(outer.scrollTo).not.toHaveBeenCalled()
 	})

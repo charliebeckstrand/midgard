@@ -13,25 +13,23 @@ import {
 } from './modes'
 
 /**
- * One stored appearance choice: its `localStorage` key, the values it can
- * hold, the value with no stored choice, and an optional cookie.
- * A server reads the cookies and writes the classes on the root element
- * ({@link appearanceRootClasses}).
+ * One stored appearance choice: its key, the values it can hold, and the value
+ * with no stored choice. A server reads the cookies and writes the classes on
+ * the root element ({@link appearanceRootClasses}).
  *
  * @internal
  */
 export type AppearanceChoice<T extends string> = {
+	/**
+	 * The name of the `localStorage` entry and of the cookie that hold the
+	 * choice. A server reads the cookie with {@link parseChoice}. In the browser,
+	 * the cookie wins over `localStorage`, so the server and the browser read
+	 * the same value. The copy in `localStorage` tells the other tabs about a
+	 * change, and it keeps the choice when the cookie expires.
+	 */
 	key: string
 	values: readonly T[]
 	fallback: T
-	/**
-	 * The name of a cookie that holds a copy of the choice, so a server can read
-	 * the choice with {@link parseChoice}. In the browser, the cookie wins over
-	 * `localStorage`, so the server and the browser read the same value. The
-	 * copy in `localStorage` tells the other tabs about a change, and it keeps
-	 * the choice when the cookie expires.
-	 */
-	cookie?: string
 }
 
 /**
@@ -43,7 +41,6 @@ export const THEME: AppearanceChoice<ThemeMode> = {
 	key: 'theme',
 	values: themeModes.map((option) => option.value),
 	fallback: 'system',
-	cookie: 'theme',
 }
 
 /**
@@ -55,7 +52,6 @@ export const DENSITY: AppearanceChoice<DensityLevel> = {
 	key: 'density',
 	values: densityLevels.map((level) => level.value),
 	fallback: 'snug',
-	cookie: 'density',
 }
 
 /**
@@ -67,7 +63,6 @@ export const MOTION: AppearanceChoice<MotionMode> = {
 	key: 'motion',
 	values: motionModes.map((option) => option.value),
 	fallback: 'system',
-	cookie: 'motion',
 }
 
 /**
@@ -79,7 +74,6 @@ export const SIDEBAR: AppearanceChoice<SidebarMode> = {
 	key: 'sidebar',
 	values: sidebarModes.map((option) => option.value),
 	fallback: 'locked',
-	cookie: 'sidebar',
 }
 
 /**
@@ -91,7 +85,6 @@ export const SURFACES: AppearanceChoice<SurfaceMode> = {
 	key: 'surfaces',
 	values: surfaceModes.map((option) => option.value),
 	fallback: 'solid',
-	cookie: 'surfaces',
 }
 
 /**
@@ -122,12 +115,10 @@ function readStored<T extends string>({ key, values }: AppearanceChoice<T>): T |
 	return values.find((value) => value === stored)
 }
 
-// The value of `choice` in its cookie, or `undefined` when the choice has no
-// cookie, or the cookie holds no value of the choice.
-function readMirror<T extends string>({ cookie, values }: AppearanceChoice<T>): T | undefined {
-	if (cookie === undefined) return undefined
-
-	const raw = readCookie(cookie)
+// The value of `choice` in its cookie, or `undefined` when the cookie holds no
+// value of the choice.
+function readMirror<T extends string>({ key, values }: AppearanceChoice<T>): T | undefined {
+	const raw = readCookie(key)
 
 	return values.find((value) => value === raw)
 }
@@ -162,7 +153,7 @@ export function parseChoice<T extends string>(
  *
  * @internal
  */
-export function writeChoice<T extends string>({ key, cookie }: AppearanceChoice<T>, value: T) {
+export function writeChoice<T extends string>({ key }: AppearanceChoice<T>, value: T) {
 	try {
 		localStorage.setItem(key, value)
 
@@ -171,7 +162,7 @@ export function writeChoice<T extends string>({ key, cookie }: AppearanceChoice<
 		memory.set(key, value)
 	}
 
-	if (cookie !== undefined) writeCookie(cookie, value)
+	writeCookie(key, value)
 
 	choiceChange.emit()
 }
@@ -185,11 +176,11 @@ export function writeChoice<T extends string>({ key, cookie }: AppearanceChoice<
  * @internal
  */
 export function restoreChoiceCookie<T extends string>(choice: AppearanceChoice<T>) {
-	if (choice.cookie === undefined || readMirror(choice) !== undefined) return
+	if (readMirror(choice) !== undefined) return
 
 	const stored = readStored(choice)
 
-	if (stored !== undefined) writeCookie(choice.cookie, stored)
+	if (stored !== undefined) writeCookie(choice.key, stored)
 }
 
 /**

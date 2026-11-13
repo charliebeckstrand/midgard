@@ -14,10 +14,6 @@ import {
  */
 export const SYSTEM_LOCALE = 'system'
 
-// The `localStorage` key of the choice. The choice shares the storage of the
-// appearance choices, so a write in another tab arrives here too.
-const LOCALE_KEY = 'locale'
-
 /**
  * The name of the cookie that holds the locale choice of the reader: `'system'`,
  * or a locale tag. The provider writes it, so a server that renders per request
@@ -29,15 +25,16 @@ export const LOCALE_COOKIE = 'locale'
  * The locale choice over `locales`: `'system'`, or one of `locales`. A stored
  * value that is not one of them reads as `'system'`. The choice has the cookie
  * {@link LOCALE_COOKIE}, so the server and the browser read the same choice.
+ * It shares the storage of the appearance choices, so a write in another tab
+ * arrives here too.
  *
  * @internal
  */
 export function localeChoice(locales: readonly string[]): AppearanceChoice<string> {
 	return {
-		key: LOCALE_KEY,
+		key: LOCALE_COOKIE,
 		values: [SYSTEM_LOCALE, ...locales],
 		fallback: SYSTEM_LOCALE,
-		cookie: LOCALE_COOKIE,
 	}
 }
 

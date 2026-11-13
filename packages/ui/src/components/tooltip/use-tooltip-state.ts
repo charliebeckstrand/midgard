@@ -190,7 +190,7 @@ export function useTooltipState({
 
 	const subscribeDisabled = useCallback(
 		(onChange: () => void) =>
-			domReference ? observeReferenceDisabled(domReference, onChange) : () => {},
+			domReference ? observeReferenceDisabled(domReference, onChange) : noop,
 		[domReference],
 	)
 

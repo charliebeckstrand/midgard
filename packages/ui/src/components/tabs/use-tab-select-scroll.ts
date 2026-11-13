@@ -1,7 +1,7 @@
 'use client'
 
 import { useLayoutEffect, useRef } from 'react'
-import { scrollNodeWithin } from '../../hooks/use-scroll-within'
+import { scrollNodeWithin } from '../../utilities/scroll-within'
 import type { TabsOrientation } from './context'
 import { FLOW_SCROLL, TAB_LIST_SCROLL_SELECTOR } from './tabs-constants'
 

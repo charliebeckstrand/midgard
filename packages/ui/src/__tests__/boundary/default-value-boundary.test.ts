@@ -50,7 +50,7 @@ import {
 } from 'typescript/unstable/sync'
 import { describe, expect, it } from 'vitest'
 import type { ResolvedConfig } from '../../core/recipe/engine/types'
-import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
+import { openPublicProject, publicBarrels, resolvedSymbol } from '../helpers/public-barrels'
 import { startTypeScript } from '../helpers/ts-server'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
@@ -210,11 +210,6 @@ function bare(node: Expression): Expression {
 	return node
 }
 
-/** The symbol that an import alias names, or the symbol itself. */
-function resolved(checker: Checker, symbol: TsSymbol): TsSymbol {
-	return symbol.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
-}
-
 /** A key for a node that holds across two reads of its file. */
 function nodeKey(node: AstNode): string {
 	return `${node.getSourceFile().fileName}:${node.pos}`
@@ -372,7 +367,7 @@ function scanKataTypes(
 
 					const [argument] = node.typeArguments ?? []
 
-					if (name && resolved(checker, name).id === variantProps.id && argument) {
+					if (name && resolvedSymbol(checker, name).id === variantProps.id && argument) {
 						const type = isTypeQueryNode(argument) ? checker.getTypeAtLocation(argument) : undefined
 
 						const recipe = type && recipeByType.get(type.id)
@@ -463,7 +458,8 @@ function publicComponents(
 		if (isIdentifier(node)) {
 			const symbol = checker.getSymbolAtLocation(node)
 
-			const declaration = symbol && resolved(checker, symbol).valueDeclaration?.resolve(project)
+			const declaration =
+				symbol && resolvedSymbol(checker, symbol).valueDeclaration?.resolve(project)
 
 			return declaration === node ? undefined : unwrap(declaration, depth + 1)
 		}
@@ -479,7 +475,7 @@ function publicComponents(
 		for (const exported of getExports(barrel)) {
 			if (!/^[A-Z]/.test(exported.name)) continue
 
-			const target = resolved(checker, exported)
+			const target = resolvedSymbol(checker, exported)
 
 			if (!(target.flags & SymbolFlags.Value) || seen.has(target.id)) continue
 
@@ -575,7 +571,8 @@ function expectedDefault(
 
 	const symbol = project.checker.getSymbolAtLocation(node)
 
-	const declaration = symbol && resolved(project.checker, symbol).valueDeclaration?.resolve(project)
+	const declaration =
+		symbol && resolvedSymbol(project.checker, symbol).valueDeclaration?.resolve(project)
 
 	if (
 		declaration &&
@@ -641,7 +638,8 @@ function heldLiteral(project: Project, node: Expression): ObjectLiteralExpressio
 
 	const symbol = project.checker.getSymbolAtLocation(node)
 
-	const declaration = symbol && resolved(project.checker, symbol).valueDeclaration?.resolve(project)
+	const declaration =
+		symbol && resolvedSymbol(project.checker, symbol).valueDeclaration?.resolve(project)
 
 	if (!declaration || !isVariableDeclaration(declaration) || !declaration.initializer) {
 		return undefined
@@ -748,7 +746,8 @@ function fallbackDefault(
 
 	const symbol = project.checker.getSymbolAtLocation(node)
 
-	const declaration = symbol && resolved(project.checker, symbol).valueDeclaration?.resolve(project)
+	const declaration =
+		symbol && resolvedSymbol(project.checker, symbol).valueDeclaration?.resolve(project)
 
 	const list = declaration?.parent
 

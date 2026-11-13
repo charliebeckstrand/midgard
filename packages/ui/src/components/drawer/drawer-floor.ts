@@ -1,3 +1,5 @@
+import { maxHeightIn } from '../../utilities/measure-box'
+
 /**
  * The shortest a drawer with nothing to give resizes to: a grip and a little
  * under it. It is therefore still a panel, and still has something to pull back
@@ -49,13 +51,6 @@ export function drawerFloor(panel: HTMLElement, height: number): number {
  * @internal
  */
 export function drawerCeiling(panel: HTMLElement, viewport: number): number {
-	const maxHeight = getComputedStyle(panel).maxHeight
-
-	// A cap is a share of the box the panel docks in, and a browser can give it
-	// back as that share and not as pixels.
-	const cap = maxHeight.endsWith('%')
-		? (Number.parseFloat(maxHeight) / 100) * viewport
-		: Number.parseFloat(maxHeight)
-
-	return Number.isFinite(cap) ? Math.min(cap, viewport) : viewport
+	// A `%` cap is a share of the box that the panel docks in.
+	return maxHeightIn(panel, viewport)
 }

@@ -12,8 +12,8 @@ import {
 /**
  * One persisted appearance choice. The server render and the hydration render
  * use the fallback of the choice, then the stored value replaces it. Thus a
- * stored choice never causes a hydration mismatch. A choice with a cookie gets
- * its cookie back from `localStorage` when the cookie is missing.
+ * stored choice never causes a hydration mismatch. A choice gets its cookie
+ * back from `localStorage` when the cookie is missing.
  *
  * @internal
  */

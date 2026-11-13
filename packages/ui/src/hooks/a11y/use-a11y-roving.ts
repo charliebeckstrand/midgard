@@ -9,7 +9,7 @@ import {
 } from '../../utilities/keyboard-navigation'
 import { matchesMediaQuery, NO_HOVER_QUERY } from '../../utilities/media-query'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
-import { scrollWithin } from '../use-scroll-within'
+import { scrollWithin } from '../../utilities/scroll-within'
 import { logicalArrowKey } from './logical-arrow'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
 

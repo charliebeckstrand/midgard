@@ -1,4 +1,4 @@
-import type { ScrollWithinOptions } from '../../hooks/use-scroll-within'
+import type { ScrollWithinOptions } from '../../utilities/scroll-within'
 import type { TabsOrientation } from './context'
 
 export const TAB_SELECTOR = 'button[data-slot="tab"]:not(:disabled)'

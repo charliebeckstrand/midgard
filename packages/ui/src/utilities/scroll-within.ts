@@ -1,11 +1,9 @@
-'use client'
-
-import { getScroller } from '../utilities/get-scroller'
+import { getScroller } from './get-scroller'
 
 /** Where a node must land within the scroller, per axis. Mirrors native `scrollIntoView`. */
 type ScrollAlignment = 'start' | 'center' | 'end' | 'nearest'
 
-/** Options for {@link useScrollWithin}: the motion of the scroll and the alignment on each axis. */
+/** Options for {@link scrollWithin}: the motion of the scroll and the alignment on each axis. */
 export type ScrollWithinOptions = {
 	/**
 	 * How the scroller moves to the node, as in native `scrollIntoView`.
@@ -124,9 +122,14 @@ export function scrollNodeWithin(
 }
 
 /**
- * Scrolls `node` into view within its nearest overflowing ancestor per `block`/`inline`,
- * leaving outer scrollers untouched. The function that {@link useScrollWithin} gives, for a
- * caller that is not a component or a hook.
+ * Scrolls `node` into view within its nearest scrollable ancestor, and leaves
+ * each outer scroller as it is. The options mirror `block`, `inline`, and
+ * `behavior` of native `scrollIntoView`.
+ *
+ * The walk stops at the first ancestor that overflows on a requested axis, and
+ * at a clip (`overflow: hidden` or `clip`). Thus a node in a wrapper that does
+ * not overflow never scrolls the page. `inline` is opt in: with no `inline`,
+ * the horizontal position does not change. A `null` node does nothing.
  *
  * @internal
  */
@@ -147,19 +150,4 @@ export function scrollWithin(node: HTMLElement | null, options: ScrollWithinOpti
 	})
 
 	if (scroller) scrollNodeWithin(scroller, node, { ...options, block })
-}
-
-/**
- * Returns a function that scrolls a node into view within its nearest
- * scrollable ancestor, without affecting any outer scroll containers.
- * Mirrors the `block`/`inline`/`behavior` options of native `scrollIntoView`.
- *
- * @returns A stable `(node, { block?, inline?, behavior? }?) => void`. It walks up to
- * the first ancestor that overflows on a requested axis, and stops at any clipping
- * (`overflow: hidden`/`clip`) boundary. A node in a non-overflowing wrapper therefore
- * never scrolls the page. `inline` is opt-in: omit it and the horizontal position is
- * untouched.
- */
-export function useScrollWithin() {
-	return scrollWithin
 }

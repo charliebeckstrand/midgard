@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { sameElements, sameFieldElements } from '../../utilities/same-elements'
+import { sameElements, sameFieldElements, sameMembers } from '../../utilities/same-elements'
 
 describe('sameElements', () => {
 	it('matches lists with the same items in the same order', () => {
@@ -61,5 +61,19 @@ describe('sameFieldElements', () => {
 		expect(sameFieldElements(undefined, [])).toBe(false)
 
 		expect(sameFieldElements([], undefined)).toBe(false)
+	})
+})
+
+describe('sameMembers', () => {
+	it('matches two sets with the same members in any order', () => {
+		expect(sameMembers(new Set([1, 2, 3]), new Set([3, 1, 2]))).toBe(true)
+
+		expect(sameMembers(new Set(), new Set())).toBe(true)
+	})
+
+	it('rejects a different size or a different member', () => {
+		expect(sameMembers(new Set([1, 2]), new Set([1, 2, 3]))).toBe(false)
+
+		expect(sameMembers(new Set([1, 2]), new Set([1, 3]))).toBe(false)
 	})
 })

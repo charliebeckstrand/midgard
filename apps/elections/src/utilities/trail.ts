@@ -72,10 +72,10 @@ export function pageTitle(election: Election, ...names: string[]): string {
 }
 
 /** The elections of the registry in the order of the list: live ones first, then upcoming, then past. */
-export function listedElections(elections: readonly Election[] = ELECTIONS): Election[] {
+export function listedElections(): Election[] {
 	const rank = { live: 0, upcoming: 1, past: 2 } as const
 
-	return [...elections].sort(
+	return [...ELECTIONS].sort(
 		(a, b) => rank[a.status] - rank[b.status] || b.date.localeCompare(a.date),
 	)
 }

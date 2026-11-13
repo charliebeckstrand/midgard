@@ -23,7 +23,6 @@ import { createSlot } from '../../core/create-slot'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
-import { useScrollWithin } from '../../hooks/use-scroll-within'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Landmark } from '../../primitives/landmark'
@@ -34,6 +33,7 @@ import { useAppearanceChoice } from '../../providers/appearance/use-appearance-c
 import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
 import type { Responsive } from '../../utilities/responsive'
+import { scrollWithin } from '../../utilities/scroll-within'
 import { SidebarLayoutContext } from './context'
 import { useStickyBars } from './use-sticky-bars'
 
@@ -58,6 +58,17 @@ const messages = defineMessages({
 // composition and a press in a form field.
 const IGNORE_TAKEN_OR_FIELD: KeybindingFilter = (event) =>
 	event.defaultPrevented || defaultKeybindingsHandlerIgnore(event)
+
+// Brings the current item into view when the drawer mounts its panel. A
+// function at module scope keeps one identity, so a render of the layout does
+// not detach and attach the ref, and scroll again.
+function scrollToCurrent(node: HTMLDivElement | null) {
+	if (!node) return
+
+	const current = node.querySelector<HTMLElement>('[data-current]')
+
+	if (current) scrollWithin(current, { block: 'center' })
+}
 
 // Writes the other sidebar mode. The handler reads the stored choice, not a
 // rendered value, so a press always toggles the current mode.
@@ -204,22 +215,6 @@ export function SidebarLayout({
 	const closeOnLeave = useCallback((event: PointerEvent) => {
 		if (event.pointerType !== 'touch') setFloatingOpen(false)
 	}, [])
-
-	const scrollWithin = useScrollWithin()
-
-	// Brings the current item into view when the drawer mounts its panel. A
-	// stable callback, so that a render of the layout without the compiler does
-	// not detach and attach the ref, and scroll again.
-	const scrollToCurrent = useCallback(
-		(node: HTMLDivElement | null) => {
-			if (!node) return
-
-			const current = node.querySelector<HTMLElement>('[data-current]')
-
-			if (current) scrollWithin(current, { block: 'center' })
-		},
-		[scrollWithin],
-	)
 
 	// The floating sheet docks flush to the start edge. The sheet resolves `start`
 	// itself, but its flush offset is a physical class, so it keys on the same read.

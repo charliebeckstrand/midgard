@@ -18,6 +18,7 @@ import type { MessageDescriptor } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
+import { noop } from '../../utilities/noop'
 import type { QueryGroup } from '../query/engine/types'
 import { GridReorderKitContext } from './context'
 import { columnLabel } from './engine/grid-column/label'
@@ -332,16 +333,13 @@ export type GridColumnSortable = {
 	isSorting: boolean
 }
 
-/** Does nothing with a node, for the static bindings. @internal */
-const ignoreNode = () => {}
-
 /**
  * The bindings of a header before the drag and drop module is loaded: a header
  * at rest, which no drag can start. @internal
  */
 const STATIC_COLUMN_SORTABLE: GridColumnSortable = {
-	setNodeRef: ignoreNode,
-	setActivatorNodeRef: ignoreNode,
+	setNodeRef: noop,
+	setActivatorNodeRef: noop,
 	attributes: undefined,
 	listeners: undefined,
 	x: 0,

@@ -1,18 +1,8 @@
 import { createEmitter } from '../../../utilities/emitter'
+import { sameMembers } from '../../../utilities/same-elements'
 import type { GridActiveEditStore } from '../context'
 import { EMPTY_SET } from './grid-constants'
 import { type GridActiveEdit, sameCell } from './grid-editing-utilities'
-
-/** Whether two sets of row keys hold the same keys. @internal */
-function sameKeys(a: ReadonlySet<string | number>, b: ReadonlySet<string | number>): boolean {
-	if (a === b) return true
-
-	if (a.size !== b.size) return false
-
-	for (const key of a) if (!b.has(key)) return false
-
-	return true
-}
 
 /**
  * Builds the store behind {@link GridActiveEditStore}. `seat` moves the coord
@@ -73,7 +63,7 @@ export function createActiveEditStore(): GridActiveEditStore & {
 		setRows: (next) => {
 			rows = next
 
-			const same = sameKeys(toldRows, next)
+			const same = sameMembers(toldRows, next)
 
 			toldRows = next
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
-import { sameMembers } from './use-chart-toggle'
+import { sameMembers } from '../../../utilities/same-elements'
 
 /**
  * The series that the layout leaves out: the hidden set, but held for `exit`

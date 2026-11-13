@@ -465,12 +465,11 @@ function LocaleOutput() {
 	return <output data-testid="locale">{useLocale().locale}</output>
 }
 
-/** A stored choice with a cookie, as a choice that a server reads declares it. */
+/** A stored choice, with its copy in the cookie of the same name. */
 const MIRRORED: AppearanceChoice<'a' | 'b'> = {
 	key: 'mirrored',
 	values: ['a', 'b'],
 	fallback: 'a',
-	cookie: 'mirrored',
 }
 
 function MirroredProbe() {
