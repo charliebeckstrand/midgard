@@ -8,9 +8,9 @@ import { Link } from 'ui/link'
 import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
+import { getLinkSecret } from '../link-secrets'
 import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
-import { useLinkToken } from './use-link-token'
 import { useServerError } from './use-server-error'
 
 /**
@@ -22,9 +22,9 @@ import { useServerError } from './use-server-error'
  * that opens the link does not use it. The page works with and without a
  * session, because the user can open the link on a different device.
  *
- * The page takes the token from the `?token=` of the link when it mounts
- * (`useLinkToken`), so Next prerenders all of the page, and the token leaves
- * the address bar.
+ * The app moves the token from the `?token=` of the link into memory before
+ * the page hydrates (`takeLinkSecrets` of `shared/link-secrets`). The page
+ * reads it on the click, so Next prerenders all of the page.
  */
 export function VerifyEmailPage() {
 	const intl = useIntl()
@@ -33,8 +33,6 @@ export function VerifyEmailPage() {
 
 	const [errorAlert, setServerError] = useServerError()
 
-	const linkToken = useLinkToken()
-
 	async function verify() {
 		setState('pending')
 
@@ -42,7 +40,7 @@ export function VerifyEmailPage() {
 
 		try {
 			const { response, error } = await bifrost.POST('/auth/verify-email/confirm', {
-				body: { token: linkToken() },
+				body: { token: getLinkSecret('token') },
 			})
 
 			if (response.ok) {

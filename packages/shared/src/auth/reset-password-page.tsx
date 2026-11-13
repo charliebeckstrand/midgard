@@ -11,11 +11,11 @@ import { PasswordInput } from 'ui/password-input'
 import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import { getLinkSecret } from '../link-secrets'
 import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { newPasswordRules } from './form-validators'
 import { useLeaving } from './use-leaving'
-import { useLinkToken } from './use-link-token'
 import { useServerError } from './use-server-error'
 
 type ResetPasswordValues = { password: string; confirmPassword: string }
@@ -29,9 +29,9 @@ type ResetPasswordValues = { password: string; confirmPassword: string }
  * The gateway signs the user out on all devices, so the user signs in again with
  * the new password. A link works one time, for one hour.
  *
- * The page takes the token from the `?token=` of the link when it mounts
- * (`useLinkToken`), so Next prerenders all of the page, and the token leaves
- * the address bar.
+ * The app moves the token from the `?token=` of the link into memory before
+ * the page hydrates (`takeLinkSecrets` of `shared/link-secrets`). The page
+ * reads it on the submit, so Next prerenders all of the page.
  */
 export function ResetPasswordPage() {
 	const intl = useIntl()
@@ -42,12 +42,10 @@ export function ResetPasswordPage() {
 
 	const [leaving, leave] = useLeaving()
 
-	const linkToken = useLinkToken()
-
 	const handleSubmit: FormSubmitHandler<ResetPasswordValues> = async (values) => {
 		try {
 			const { response, error } = await bifrost.POST('/auth/reset-password/confirm', {
-				body: { token: linkToken(), password: values.password },
+				body: { token: getLinkSecret('token'), password: values.password },
 			})
 
 			// The form stays disabled until the login page replaces it.
