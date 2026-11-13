@@ -117,7 +117,8 @@ export type PlacesMapProps = {
  * both kinds. The filter's swatches are the key to the shapes and the colors.
  *
  * A click on any region drills into it, and a drilled region stops answering
- * entirely: only its dots do.
+ * entirely: only its dots do. On a phone, a region drills on a double tap and a
+ * point opens on one tap.
  */
 export function PlacesMap({
 	regions,
@@ -340,9 +341,10 @@ export function PlacesMap({
 					detail={intl.formatNumber(records.length)}
 					points={stops}
 					clusterDetail={clusterDetail}
-					onClick={(_id, _index, merged, press) => {
-						if (isSingleTap(press)) return
-
+					// One tap opens a point. A point is a small target that the reader aims
+					// at, so a tap on it is not a stray tap while they pan, as a tap on a
+					// region can be.
+					onClick={(_id, _index, merged) => {
 						const picked = merged.flatMap((index) => records[index] ?? [])
 
 						onSelect({

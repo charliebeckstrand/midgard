@@ -30,9 +30,10 @@ export function recordStops(records: readonly MapRecord[]): MapPointDatum[] {
 }
 
 /**
- * Whether a press is one tap of a finger. On a phone, the map opens a place or
- * a region only on a double tap, so that a stray tap while the reader pans does
- * not open one. A click, a key, and the second tap of a double tap open it.
+ * Whether a press is one tap of a finger. On a phone, the map opens a region
+ * only on a double tap, so that a stray tap while the reader pans does not
+ * drill into one. A click, a key, and the second tap of a double tap open it.
+ * A place or a trip opens on one tap, so only the region holds a tap back.
  */
 export function isSingleTap(press: ChartPress): boolean {
 	return press.pointerType === 'touch' && press.count < 2
