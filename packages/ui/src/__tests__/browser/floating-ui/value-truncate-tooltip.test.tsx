@@ -95,7 +95,7 @@ describe('FileUploadDrop selection truncation (real browser)', () => {
 
 		pick(container, LONG_NAME)
 
-		await screen.findByRole('button', { name: 'Choose a different file' })
+		await screen.findByRole('button', { name: 'Select a different file' })
 
 		// The label ignores the pointer, so a hover off the Reset button lands on
 		// the overlay under the label.
@@ -113,7 +113,7 @@ describe('FileUploadDrop selection truncation (real browser)', () => {
 
 		pick(container, 'cv.pdf')
 
-		await screen.findByRole('button', { name: 'Choose a different file' })
+		await screen.findByRole('button', { name: 'Select a different file' })
 
 		await userEvent.hover(getSlot(container, 'file-upload'), { position: { x: 8, y: 8 } })
 

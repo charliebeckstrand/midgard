@@ -8,8 +8,8 @@ type FileUploadValues = {
 	reset: Record<never, never>
 	dropClick: Record<never, never>
 	dropTap: Record<never, never>
-	chooseDifferent: Record<never, never>
-	chooseFile: Record<never, never>
+	selectDifferent: Record<never, never>
+	selectFile: Record<never, never>
 	clear: { count: number }
 	browse: Record<never, never>
 	selected: { count: number }
@@ -52,15 +52,15 @@ export const fileUploadMessages: MessageSet<FileUploadValues> = defineMessages<F
 		defaultMessage: 'Drop files here or tap to browse',
 		description: 'The prompt of an empty drop zone on a touch device.',
 	},
-	chooseDifferent: {
-		id: 'ui.fileUpload.chooseDifferent',
-		defaultMessage: 'Choose a different file',
+	selectDifferent: {
+		id: 'ui.fileUpload.selectDifferent',
+		defaultMessage: 'Select a different file',
 		description:
 			'The name of the drop zone after a selection. A press opens the file picker again.',
 	},
-	chooseFile: {
-		id: 'ui.fileUpload.chooseFile',
-		defaultMessage: 'Choose a file',
+	selectFile: {
+		id: 'ui.fileUpload.selectFile',
+		defaultMessage: 'Select a file',
 		description: 'The placeholder of an empty file field.',
 	},
 	clear: {

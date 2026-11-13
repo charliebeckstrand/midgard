@@ -18,23 +18,23 @@ type Values = {
 export const validationMessages: MessageSet<Values> = defineMessages<Values>({
 	required: {
 		id: 'shared.validation.required',
-		defaultMessage: 'This field is required',
+		defaultMessage: 'Fill in this field.',
 		description: 'The error of a form field that the reader left empty.',
 	},
 	email: {
 		id: 'shared.validation.email',
-		defaultMessage: 'Please enter a valid email address',
+		defaultMessage: 'Enter a valid email address.',
 		description: 'The error of an email field that does not hold an email address.',
 	},
 	minLength: {
 		id: 'shared.validation.minLength',
 		defaultMessage:
-			'{min, plural, one {Must be at least # character} other {Must be at least # characters}}',
+			'{min, plural, one {Enter at least # character.} other {Enter at least # characters.}}',
 		description: 'The error of a field that is too short. The min is the shortest length.',
 	},
 	passwordMismatch: {
 		id: 'shared.validation.passwordMismatch',
-		defaultMessage: 'Must match password',
+		defaultMessage: 'Enter the same password again.',
 		description: 'The error of the field that repeats the password, when the two differ.',
 	},
 })
@@ -52,7 +52,7 @@ export type Validator = (value: string, values: Record<string, string>) => strin
  *
  * @internal
  * @param intl - Formats the default message in the language of the reader.
- * @param message - Error message on failure. Defaults to `'This field is required'`, in the language of the reader.
+ * @param message - Error message on failure. Defaults to `'Fill in this field.'`, in the language of the reader.
  */
 export const required =
 	(intl: IntlShape, message?: string): Validator =>
@@ -64,7 +64,7 @@ export const required =
  *
  * @internal
  * @param intl - Formats the default message in the language of the reader.
- * @param message - Error message on failure. Defaults to `'Please enter a valid email address'`, in the language of the reader.
+ * @param message - Error message on failure. Defaults to `'Enter a valid email address.'`, in the language of the reader.
  */
 export const email =
 	(intl: IntlShape, message?: string): Validator =>
@@ -79,7 +79,7 @@ export const email =
  * @internal
  * @param intl - Formats the default message in the language of the reader.
  * @param min - Minimum length, inclusive.
- * @param message - Error message on failure. Defaults to `` `Must be at least ${min} characters` ``, in the language of the reader.
+ * @param message - Error message on failure. Defaults to `` `Enter at least ${min} characters.` ``, in the language of the reader.
  */
 export const minLength =
 	(intl: IntlShape, min: number, message?: string): Validator =>

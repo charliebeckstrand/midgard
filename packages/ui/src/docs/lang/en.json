@@ -2515,10 +2515,6 @@
 		"defaultMessage": "Copy invite link",
 		"description": "Text of a demo in the docs as aria-label, in components/copy-button/playground.tsx."
 	},
-	"docs.demo.5c82fec78fe8": {
-		"defaultMessage": "Fix login redirect",
-		"description": "Text of a demo in the docs as title, in data/tasks.ts."
-	},
 	"docs.demo.5ccb8caacdc5": {
 		"defaultMessage": "Draft saved",
 		"description": "Text of a demo in the docs as title, in components/toast/severity.tsx, components/tooltip/interactive-content.tsx."
@@ -2938,6 +2934,10 @@
 	"docs.demo.74a883a037bc": {
 		"defaultMessage": "Settings",
 		"description": "Text of a demo in the docs as aria-label, label, in components/command-palette/commands.tsx, components/menu/title-and-description.tsx, components/nav/with-content.tsx and 4 more."
+	},
+	"docs.demo.74aa4e7860e6": {
+		"defaultMessage": "Fix sign-in redirect",
+		"description": "Text of a demo in the docs as title, in data/tasks.ts."
 	},
 	"docs.demo.74f3ff12948f": {
 		"defaultMessage": "Last row click:",

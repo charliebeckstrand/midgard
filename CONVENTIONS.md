@@ -361,7 +361,7 @@ Mark each proper noun and each code of the data with `names` (`src/docs/kit/prop
 
 An `aria-label` names the content, not the demo: "Monthly revenue", not "Line chart, animated". A demo does not explain itself in its own text, because its title names the feature. A demo that needs an action from the reader gives one short instruction. When the action is different for a mouse and for a touch, the instruction uses `PointerHint` from the kit. A demo that shows the key of a `$mod` shortcut uses `ShortcutHint` from the kit. The hint shows ⌘ on an Apple platform and Ctrl elsewhere. A demo shortcut does not use a key of the site, such as ⌘K for the search.
 
-13.9 For each idea, use the word in the second column, and do not use the words in the last column. The table covers the visible text and the prose of TSDoc, not the names in the code:
+13.9 For each idea, use the word in the second column, and do not use the words in the last column. The table covers the visible text and the prose of TSDoc, not the names in the code. The visible text includes the catalogs of `ui` and of `shared`, which the apps show, so §13.3 and §13.4 hold their messages too. `catalog-wording-boundary.test.ts` holds the last column in the English catalogs of `ui`, `shared`, and the docs:
 
 | Idea | Word | Not |
 |---|---|---|

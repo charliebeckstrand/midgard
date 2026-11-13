@@ -140,9 +140,7 @@ describe('LoginPage with the second step', () => {
 			render(<LoginPage secondStep methods={['passkey']} />)
 		})
 
-		expect(
-			await screen.findByText('The passkey check did not complete. Please try again.'),
-		).toBeTruthy()
+		expect(await screen.findByText('The passkey check did not complete. Try again.')).toBeTruthy()
 		expect(startAuthentication).toHaveBeenCalledTimes(1)
 		expect(screen.getByRole('button', { name: 'Use a passkey' })).toBeTruthy()
 		expect(router.push).not.toHaveBeenCalled()

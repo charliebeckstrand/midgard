@@ -27,7 +27,7 @@ const connectErrors: Record<string, string> = {
 	second_step_required: 'Confirm that it is you to connect an account.',
 	email_unverified: 'Verify your email to connect an account.',
 	oauth_unavailable: 'That sign-in method is not available.',
-	oauth_failed: 'Connecting the account did not complete. Please try again.',
+	oauth_failed: 'Connecting the account did not complete. Try again.',
 }
 
 /**

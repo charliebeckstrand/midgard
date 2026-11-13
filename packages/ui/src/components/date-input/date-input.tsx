@@ -107,10 +107,10 @@ export type DateInputProps = Omit<
 	 * `<Message>` with an id of its own, wired into the `aria-describedby` of the
 	 * input, also outside a Field. A complete entry that parses to a real date
 	 * but falls outside `min`/`max` instead shows a bound-specific message (e.g.
-	 * "Enter a date on or after 06/01/2026"). Pass `null` (or `false`) to
+	 * "Enter a date on or after 06/01/2026."). Pass `null` (or `false`) to
 	 * suppress both and supply your own.
 	 *
-	 * @defaultValue `` `Enter a valid date (${format})` ``, in the language of the reader.
+	 * @defaultValue `` `Enter a valid date (${format}).` ``, in the language of the reader.
 	 */
 	invalidMessage?: ReactNode
 }

@@ -74,7 +74,7 @@ export function ColorPickerContent({
 			id={id}
 			role="dialog"
 			aria-modal="true"
-			aria-label={intl.formatMessage(colorMessages.choose)}
+			aria-label={intl.formatMessage(colorMessages.select)}
 			className={cn(k.content.portal)}
 			tabIndex={-1}
 		>

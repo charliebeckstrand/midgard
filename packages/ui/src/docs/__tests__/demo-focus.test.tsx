@@ -29,13 +29,13 @@ describe('demo focus', () => {
 	])('moves the focus between the close button and Reset of the %s example', (_, Demo) => {
 		render(<Demo />)
 
-		press(screen.getByRole('button', { name: 'Dismiss' }))
+		press(screen.getByRole('button', { name: 'Close' }))
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reset' }))
 
 		press(screen.getByRole('button', { name: 'Reset' }))
 
-		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Dismiss' }))
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close' }))
 	})
 
 	it('moves the focus between a question and Back in the Drawer example', async () => {

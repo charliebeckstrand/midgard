@@ -57,7 +57,7 @@ describe('form submission semantics', () => {
 			<Alert key="a" closable>
 				Heads up
 			</Alert>,
-			['Dismiss'],
+			['Close'],
 		],
 	])('%s does not submit', (_name, control, buttons) => {
 		const onSubmit = inForm(control)

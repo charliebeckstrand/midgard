@@ -32,7 +32,7 @@ describe('FileUploadDrop focus handoff (real browser)', () => {
 		input.dispatchEvent(new Event('change', { bubbles: true }))
 
 		await waitFor(() =>
-			expect(document.activeElement?.getAttribute('aria-label')).toBe('Choose a different file'),
+			expect(document.activeElement?.getAttribute('aria-label')).toBe('Select a different file'),
 		)
 
 		await user.tab()

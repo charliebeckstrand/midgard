@@ -43,7 +43,7 @@ const messages = defineMessages({
 	},
 	required: {
 		id: 'ui.tagInput.required',
-		defaultMessage: 'Add at least one tag',
+		defaultMessage: 'Add at least one tag.',
 		description: 'The validation message of a required tag field that holds no tag.',
 	},
 })

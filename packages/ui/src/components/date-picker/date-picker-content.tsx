@@ -97,7 +97,7 @@ type DatePickerContentProps = {
 	/**
 	 * Accessible name for the dialog.
 	 *
-	 * @defaultValue `'Choose date'`, in the language of the reader.
+	 * @defaultValue `'Select a date'`, in the language of the reader.
 	 */
 	label?: string
 	/**
@@ -148,7 +148,7 @@ export function DatePickerContent({
 
 	const intl = useIntl()
 
-	const label = labelProp ?? intl.formatMessage(datePickerMessages.chooseDate)
+	const label = labelProp ?? intl.formatMessage(datePickerMessages.selectDate)
 
 	const glass = useGlass()
 

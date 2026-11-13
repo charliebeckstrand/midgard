@@ -31,7 +31,8 @@ export const datePickerMessages = defineMessages({
 	selectDate: {
 		id: 'ui.datePicker.selectDate',
 		defaultMessage: 'Select a date',
-		description: 'The text of an empty date picker that holds one date.',
+		description:
+			'The text of an empty date picker that holds one date, and the name of the panel that holds its calendar.',
 	},
 	selectDates: {
 		id: 'ui.datePicker.selectDates',
@@ -43,11 +44,6 @@ export const datePickerMessages = defineMessages({
 		defaultMessage: 'Select range',
 		description:
 			'The text of an empty date picker that holds a range, such as Last 7 days, and the name of its list of ranges.',
-	},
-	chooseDate: {
-		id: 'ui.datePicker.chooseDate',
-		defaultMessage: 'Choose date',
-		description: 'The name of the panel of a date picker, which holds the calendar.',
 	},
 	customRange: {
 		id: 'ui.datePicker.customRange',

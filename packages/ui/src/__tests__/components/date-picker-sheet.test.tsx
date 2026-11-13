@@ -36,7 +36,7 @@ describe('DatePicker on a phone', () => {
 
 		await user.click(trigger)
 
-		const sheet = screen.getByRole('dialog', { name: 'Choose date' })
+		const sheet = screen.getByRole('dialog', { name: 'Select a date' })
 
 		expect(sheet).toHaveAttribute('data-slot', 'drawer')
 
@@ -112,7 +112,7 @@ describe('DatePicker on a phone', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
 
-		const sheet = screen.getByRole('dialog', { name: 'Choose date' })
+		const sheet = screen.getByRole('dialog', { name: 'Select a date' })
 
 		await waitFor(() => expect(sheet).toHaveFocus())
 	})
@@ -164,7 +164,7 @@ describe('DatePicker on a phone', () => {
 
 		await user.click(screen.getByRole('combobox', { name: 'Due date' }))
 
-		expect(screen.getByRole('dialog', { name: 'Choose date' })).not.toHaveAttribute(
+		expect(screen.getByRole('dialog', { name: 'Select a date' })).not.toHaveAttribute(
 			'data-slot',
 			'drawer',
 		)

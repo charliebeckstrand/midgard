@@ -98,7 +98,7 @@ export type FileUploadInputProps = Omit<ComponentProps<'div'>, 'defaultValue' | 
 		/**
 		 * Placeholder when empty; also the hidden input's accessible name.
 		 *
-		 * @defaultValue `'Choose a file'`, in the language of the reader.
+		 * @defaultValue `'Select a file'`, in the language of the reader.
 		 */
 		placeholder?: string
 	}

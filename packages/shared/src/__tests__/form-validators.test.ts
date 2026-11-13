@@ -18,9 +18,9 @@ const mismatch = en.formatMessage(validationMessages.passwordMismatch)
 
 describe('required', () => {
 	it('fails on an empty or whitespace-only value', () => {
-		expect(required(en)('', {})).toBe('This field is required')
+		expect(required(en)('', {})).toBe('Fill in this field.')
 
-		expect(required(en)('   ', {})).toBe('This field is required')
+		expect(required(en)('   ', {})).toBe('Fill in this field.')
 	})
 
 	it('passes a value with content', () => {
@@ -38,7 +38,7 @@ describe('email', () => {
 	})
 
 	it.each(['', 'ada', 'ada@example', '@example.com', 'ada @example.com'])('fails %j', (value) => {
-		expect(email(en)(value, {})).toBe('Please enter a valid email address')
+		expect(email(en)(value, {})).toBe('Enter a valid email address.')
 	})
 })
 
@@ -48,7 +48,7 @@ describe('minLength', () => {
 	})
 
 	it('fails a shorter value with the default message', () => {
-		expect(minLength(en, 8)('1234567', {})).toBe('Must be at least 8 characters')
+		expect(minLength(en, 8)('1234567', {})).toBe('Enter at least 8 characters.')
 	})
 
 	it('uses a given message', () => {
@@ -63,7 +63,7 @@ describe('matches', () => {
 
 	it('fails when the value differs from the other field', () => {
 		expect(matches('password', mismatch)('secre', { password: 'secret' })).toBe(
-			'Must match password',
+			'Enter the same password again.',
 		)
 	})
 })
@@ -76,7 +76,7 @@ describe('chain', () => {
 	it('returns the first error, and does not run the validators after it', () => {
 		const later = vi.fn(() => 'later')
 
-		expect(chain(required(en), later)('', {})).toBe('This field is required')
+		expect(chain(required(en), later)('', {})).toBe('Fill in this field.')
 
 		expect(later).not.toHaveBeenCalled()
 	})
@@ -84,7 +84,7 @@ describe('chain', () => {
 	it('gives each validator the form values', () => {
 		const validate = chain(required(en), matches('password', mismatch))
 
-		expect(validate('secret', { password: 'other' })).toBe('Must match password')
+		expect(validate('secret', { password: 'other' })).toBe('Enter the same password again.')
 	})
 })
 
@@ -94,32 +94,34 @@ describe('newPasswordRules', () => {
 	it('takes a password of 8 characters, and refuses a shorter one', () => {
 		expect(rules.password('12345678', {})).toBeUndefined()
 
-		expect(rules.password('1234567', {})).toBe('Must be at least 8 characters')
+		expect(rules.password('1234567', {})).toBe('Enter at least 8 characters.')
 	})
 
 	it('requires the repeated password to match the password', () => {
 		expect(rules.confirmPassword('12345678', { password: '12345678' })).toBeUndefined()
 
-		expect(rules.confirmPassword('1234567', { password: '12345678' })).toBe('Must match password')
+		expect(rules.confirmPassword('1234567', { password: '12345678' })).toBe(
+			'Enter the same password again.',
+		)
 	})
 })
 
 describe('validators in a locale', () => {
 	it('words a minimum of one in the singular', () => {
-		expect(minLength(en, 1)('', {})).toBe('Must be at least 1 character')
+		expect(minLength(en, 1)('', {})).toBe('Enter at least 1 character.')
 	})
 
 	it('words each default message in the language of the locale', () => {
-		expect(required(es)('', {})).toBe('Este campo es obligatorio')
+		expect(required(es)('', {})).toBe('Rellena este campo.')
 
-		expect(email(es)('ada', {})).toBe('Introduce una dirección de correo electrónico válida')
+		expect(email(es)('ada', {})).toBe('Introduce una dirección de correo electrónico válida.')
 
-		expect(minLength(es, 8)('', {})).toBe('Debe tener al menos 8 caracteres')
+		expect(minLength(es, 8)('', {})).toBe('Introduce al menos 8 caracteres.')
 
-		expect(minLength(es, 1)('', {})).toBe('Debe tener al menos 1 carácter')
+		expect(minLength(es, 1)('', {})).toBe('Introduce al menos 1 carácter.')
 
 		expect(es.formatMessage(validationMessages.passwordMismatch)).toBe(
-			'Debe coincidir con la contraseña',
+			'Vuelve a introducir la misma contraseña.',
 		)
 	})
 })

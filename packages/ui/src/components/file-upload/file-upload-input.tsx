@@ -50,7 +50,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 
 	const { className, size, placeholder: placeholderProp, ...props } = rest
 
-	const placeholder = placeholderProp ?? intl.formatMessage(fileUploadMessages.chooseFile)
+	const placeholder = placeholderProp ?? intl.formatMessage(fileUploadMessages.selectFile)
 
 	const state = useFileUploadState(shared)
 

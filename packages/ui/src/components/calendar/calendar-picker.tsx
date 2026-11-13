@@ -70,7 +70,7 @@ export function CalendarPicker({
 					{monthLabel}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent modal aria-label={intl.formatMessage(calendarMessages.chooseMonthYear)}>
+			<PopoverContent modal aria-label={intl.formatMessage(calendarMessages.selectMonthYear)}>
 				<CalendarPickerGrid
 					headerRef={headerRef}
 					gridRef={gridRef}
