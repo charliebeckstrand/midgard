@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useReportedChange } from '../../../hooks/use-reported-change'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { keyByOccurrence } from '../../../utilities/key-by-occurrence'
-import { sameElements } from '../../../utilities/same-elements'
+import { sameElements, sameMembers } from '../../../utilities/same-elements'
 import { toggleItem } from '../../../utilities/toggle-item'
 
 /**
@@ -18,11 +18,6 @@ type ChartToggleSet = {
 	hidden: ReadonlySet<number>
 	/** Toggles an index on or off. */
 	toggle: (index: number) => void
-}
-
-/** Whether two index sets hold the same members. @internal */
-export function sameMembers(a: ReadonlySet<number>, b: ReadonlySet<number>): boolean {
-	return a.size === b.size && [...a].every((index) => b.has(index))
 }
 
 /**

@@ -203,29 +203,15 @@ export function resolveCategories<T>(
 }
 
 /**
- * The categories a dataset carries, in first-appearance order, deduped in one
- * pass. A `Set` tracks the values already seen, so deriving is linear in the
- * rows rather than quadratic. A per-row scan of the growing list would cost
- * O(rows × categories) on the mount critical path.
+ * The categories a dataset carries, in the order of first appearance. A `Set`
+ * keeps that order and drops each repeat in one pass over the rows.
  *
  * @internal
  */
 function deriveCategories<T>(data: T[], categoryKey: DataKey<T>): MapCategory[] {
-	const seen = new Set<string>()
+	const values = new Set(data.map((datum) => String(datum[categoryKey])))
 
-	const derived: MapCategory[] = []
-
-	for (const datum of data) {
-		const value = String(datum[categoryKey])
-
-		if (!seen.has(value)) {
-			seen.add(value)
-
-			derived.push({ value })
-		}
-	}
-
-	return derived
+	return [...values].map((value) => ({ value }))
 }
 
 /**

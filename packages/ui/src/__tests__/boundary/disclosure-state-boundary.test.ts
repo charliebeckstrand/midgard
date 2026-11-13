@@ -1,13 +1,8 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import {
-	type Checker,
-	type Project,
-	SymbolFlags,
-	type Symbol as TsSymbol,
-} from 'typescript/unstable/sync'
+import type { Project } from 'typescript/unstable/sync'
 import { afterAll, describe, expect, it } from 'vitest'
-import { openPublicProject, publicBarrels } from '../helpers/public-barrels'
+import { openPublicProject, publicBarrels, resolvedSymbol } from '../helpers/public-barrels'
 import { startTypeScript } from '../helpers/ts-server'
 import { srcDir } from '../helpers/walk-source'
 
@@ -49,11 +44,6 @@ const EXEMPT = new Map([
 
 const casesDir = join(srcDir, '__tests__', 'a11y', 'cases')
 
-/** The symbol that an import alias names, or the symbol itself. */
-function resolved(checker: Checker, symbol: TsSymbol): TsSymbol {
-	return symbol.flags & SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
-}
-
 /** The name of each barreled component whose props take an open-state key. */
 function componentsWithOpenState(project: Project): string[] {
 	const { program, checker } = project
@@ -76,7 +66,7 @@ function componentsWithOpenState(project: Project): string[] {
 
 			if (!symbol.name.endsWith('Props') || !names.has(component)) continue
 
-			const props = checker.getDeclaredTypeOfSymbol(resolved(checker, symbol))
+			const props = checker.getDeclaredTypeOfSymbol(resolvedSymbol(checker, symbol))
 
 			if (
 				['open', 'defaultOpen', 'onOpenChange'].some((key) => checker.getPropertyOfType(props, key))

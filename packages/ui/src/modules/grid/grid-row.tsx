@@ -6,6 +6,7 @@ import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/grid'
+import { noop } from '../../utilities/noop'
 import { GridReorderKitContext } from './context'
 import type { GridDetailExpansion } from './engine/grid-group/resolve'
 import { detailOpen } from './engine/grid-items/items'
@@ -518,9 +519,6 @@ export function GridRowImpl<T>({
 /** Memoized {@link GridRowImpl}; re-renders a row only when its own props change. @internal */
 export const GridRow = memo(GridRowImpl) as typeof GridRowImpl
 
-/** Does nothing with a node, for the static bindings. @internal */
-const ignoreNode = () => {}
-
 /** The style of a row at rest. @internal */
 const REST_STYLE = {}
 
@@ -531,8 +529,8 @@ const REST_STYLE = {}
  * @internal
  */
 const STATIC_ROW_SORTABLE: GridRowSortable = {
-	setNodeRef: ignoreNode,
-	setActivatorNodeRef: ignoreNode,
+	setNodeRef: noop,
+	setActivatorNodeRef: noop,
 	attributes: undefined,
 	listeners: undefined,
 	style: REST_STYLE,

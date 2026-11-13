@@ -14,6 +14,17 @@ export function sameElements<T>(a: readonly T[] | undefined, b: readonly T[] | u
 	return true
 }
 
+/** Whether two sets hold the same members, in any order. */
+export function sameMembers<T>(a: ReadonlySet<T>, b: ReadonlySet<T>): boolean {
+	if (a === b) return true
+
+	if (a.size !== b.size) return false
+
+	for (const member of a) if (!b.has(member)) return false
+
+	return true
+}
+
 /**
  * Whether two plain objects hold the same own fields, each the same by
  * reference. A field set to `undefined` and a field that is absent differ.
