@@ -9,6 +9,7 @@ import { Icon } from '../../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../../components/menu'
 import { cn } from '../../../core/cn'
 import { dataAttr } from '../../../core/data-attr'
+import { useHeaderActionsSlotted } from '../../../primitives/header-actions/context'
 import { useHeaderActions } from '../../../primitives/header-actions/use-header-actions'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { chartMenuName, chartMessages } from './chart-messages'
@@ -45,7 +46,9 @@ function findItem(entries: ContextMenuEntry[], key: string): ContextMenuItem | u
  * Inside a box that gives a header actions element ({@link useHeaderActions}),
  * such as a dashboard tile, the button goes into the header row of the box with a
  * portal. Otherwise it sits at the end of the chart header. The button covers no
- * mark in either place.
+ * mark in either place. The portal needs the element, which comes after the
+ * mount. In a box that sets `slotted` on its `HeaderActions`, the server render
+ * thus shows no button, and the button comes into the header row at hydration.
  *
  * A chart that draws no inline header puts the button in the top end corner of
  * the chart instead: the heatmap, the choropleth, a chart with `heading` off, a
@@ -65,11 +68,16 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 
 	const host = useHeaderActions()
 
+	// A box that renders its slot gets the host copy alone. The element of the
+	// slot comes only after the mount, so without this the server render puts
+	// the other copy in the chart, and the button moves at hydration.
+	const slotted = useHeaderActionsSlotted()
+
 	const intl = useIntl()
 
 	if (chartMenu === null || chartMenu.entries.length === 0) return null
 
-	if ((place === 'host') !== (host !== null)) return null
+	if (place === 'host' ? host === null : host !== null || slotted) return null
 
 	const { entries, button, capped } = chartMenu
 

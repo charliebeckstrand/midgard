@@ -12,6 +12,7 @@ import { readoutToCsv } from '../../modules/chart/engine/chart-export'
 import { HeaderActions, HeaderActionsSlot } from '../../primitives/header-actions'
 import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen, waitFor } from '../helpers'
+import { hydrateServerRender, serverMarkup } from '../helpers/hydrate'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 type Row = { quarter: string; revenue: number }
@@ -584,6 +585,42 @@ describe('Chart menu button', () => {
 		expect(bySlot(getSlot(container, 'box-content'), 'chart-menu-button')).toBeNull()
 
 		expect(bySlot(host, 'chart-menu-button')).not.toBeNull()
+	})
+
+	// The element of the slot comes after the mount. A box that says it renders
+	// its slot thus gets no copy of the button in the server render, and the
+	// button does not move from the chart to the header row at hydration.
+	it('puts no button in the chart in the server render of a box that renders its slot', () => {
+		const chart = (
+			<BarChart
+				title="Revenue"
+				aria-label="Revenue"
+				data={data}
+				contextMenu={BUTTON}
+				series={[...series]}
+			/>
+		)
+
+		const slotted = (
+			<HeaderActions slotted>
+				<HeaderActionsSlot />
+
+				<div data-slot="box-content">{chart}</div>
+			</HeaderActions>
+		)
+
+		expect(bySlot(serverMarkup(slotted), 'chart-menu-button')).toBeNull()
+
+		// A box with no slot, such as an expanded view, keeps the button in the chart.
+		expect(bySlot(serverMarkup(<Box>{chart}</Box>), 'chart-menu-button')).not.toBeNull()
+
+		const { container, onRecoverableError } = hydrateServerRender(slotted)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(bySlot(getSlot(container, 'box-content'), 'chart-menu-button')).toBeNull()
+
+		expect(bySlot(getSlot(container, 'header-actions'), 'chart-menu-button')).not.toBeNull()
 	})
 
 	it('puts a View data button in the header row of a box, and marks its own fullscreen', () => {

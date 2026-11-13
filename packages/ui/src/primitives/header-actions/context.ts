@@ -27,3 +27,16 @@ export type HeaderActionsStore = {
 export const [HeaderActionsContext] = createContext<HeaderActionsStore | null>('HeaderActions', {
 	default: null,
 })
+
+/**
+ * Whether the {@link HeaderActions} that encloses the reader renders a
+ * {@link HeaderActionsSlot} (its `slotted` prop), or `false` outside one. The
+ * server render knows it, but the element of the slot comes only after the
+ * mount. {@link useHeaderActionsSlotted} reads it.
+ *
+ * @internal
+ */
+export const [HeaderActionsSlottedContext, useHeaderActionsSlotted] = createContext<boolean>(
+	'HeaderActionsSlotted',
+	{ default: false },
+)

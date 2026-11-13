@@ -45,7 +45,7 @@ export function SeatCard({ contest, parties, href }: SeatCardProps) {
 	const red = parties.find((party) => party.slot === 'red')
 
 	return (
-		<HeaderActions>
+		<HeaderActions slotted>
 			<Card>
 				<Stack gap="lg">
 					<Flex justify="between" gap="sm" className="min-h-9">

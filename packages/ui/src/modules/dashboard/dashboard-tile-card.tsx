@@ -140,7 +140,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 		// The header row holds a slot where the widget puts its own controls, such as
 		// the touch menu button of a chart. Edit mode shows the edit controls there
 		// instead, so the widget then has no slot.
-		<HeaderActions>
+		<HeaderActions slotted={hasHeader && !editable}>
 			<Card
 				size="sm"
 				bg="surface"
