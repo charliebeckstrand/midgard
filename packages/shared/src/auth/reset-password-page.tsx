@@ -14,8 +14,8 @@ import { Text } from 'ui/text'
 import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { newPasswordRules } from './form-validators'
-import { linkToken } from './link-token'
 import { useLeaving } from './use-leaving'
+import { useLinkToken } from './use-link-token'
 import { useServerError } from './use-server-error'
 
 type ResetPasswordValues = { password: string; confirmPassword: string }
@@ -29,8 +29,9 @@ type ResetPasswordValues = { password: string; confirmPassword: string }
  * The gateway signs the user out on all devices, so the user signs in again with
  * the new password. A link works one time, for one hour.
  *
- * The page reads the token from the `?token=` of the link on the submit, so Next
- * prerenders all of the page.
+ * The page takes the token from the `?token=` of the link when it mounts
+ * (`useLinkToken`), so Next prerenders all of the page, and the token leaves
+ * the address bar.
  */
 export function ResetPasswordPage() {
 	const intl = useIntl()
@@ -40,6 +41,8 @@ export function ResetPasswordPage() {
 	const [errorAlert, setServerError] = useServerError()
 
 	const [leaving, leave] = useLeaving()
+
+	const linkToken = useLinkToken()
 
 	const handleSubmit: FormSubmitHandler<ResetPasswordValues> = async (values) => {
 		try {
