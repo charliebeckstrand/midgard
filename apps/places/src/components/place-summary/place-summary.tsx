@@ -46,6 +46,10 @@ function VisitTrip({ trip, link }: { trip: Trip; link: TripLink }) {
 				href={link.href(trip)}
 				underline
 				onClick={(event) => {
+					// A click with a modifier is for the browser, such as a new tab
+					// (CONVENTIONS §3.10).
+					if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
 					event.preventDefault()
 
 					link.open(trip)
@@ -167,7 +171,7 @@ export function PlaceDetails({
 
 				{place.url ? (
 					<SummaryFact icon={<Globe />}>
-						<Link href={place.url} target="_blank" underline rel="noopener noreferrer">
+						<Link href={place.url} target="_blank" underline>
 							{place.url}
 						</Link>
 					</SummaryFact>

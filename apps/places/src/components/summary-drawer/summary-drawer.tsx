@@ -146,12 +146,7 @@ export type SummaryDrawerProps<T extends Located> = {
 	/** Moves the panel to another step of its trail. */
 	onStepChange: (step: PlacePanelStep) => void
 	onOpenChange: (open: boolean) => void
-	/**
-	 * Takes the map to one of the trail's upper regions.
-	 *
-	 * Without it those steps are plain text: a crumb that lights under the pointer
-	 * and answers nothing is worse than one that never offered.
-	 */
+	/** Takes the map to one of the trail's upper regions. */
 	onNavigate: (region: string) => void
 	/**
 	 * Narrows and orders the list of a step. Held by the caller, because the
@@ -182,8 +177,8 @@ export type SummaryFrame<T extends Located> = Pick<
 
 /**
  * The drawer that shows what a point stands for: a list of records, or
- * one record. The caller gives the bodies; the drawer owns the trail, the step,
- * and the size.
+ * one record. The caller gives the bodies, the regions of the trail, and the
+ * step. The drawer makes the crumbs of the trail and sets the size.
  *
  * It is as tall as the step it is showing. One record leaves most of the map
  * up, including the dot that opened the panel; a region with records enough
@@ -286,6 +281,8 @@ export function SummaryDrawer<T extends Located>({
 				// is the honest answer for a step with that much to show. The crumb above
 				// is how the reader gets back to it.
 				height="fit"
+				// The header holds the close, so the panel shows no Close row.
+				footer={null}
 				aria-label={title}
 			>
 				<DrawerHeader>

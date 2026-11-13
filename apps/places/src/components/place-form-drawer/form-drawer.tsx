@@ -96,7 +96,7 @@ export function FormDrawer<V extends Record<string, unknown>>({
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerPanel
 				// Grown to the form, and stopping at the screen rather than short of it
-				// (the second case `DrawerProps.height` describes). Measured here: at a 700px
+				// (the second case `DrawerPanelProps.height` describes). Measured here: at a 700px
 				// window `auto` held the panel at 595 while the fields came to 709, leaving
 				// the review below the fold.
 				//

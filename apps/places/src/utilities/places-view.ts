@@ -9,7 +9,7 @@ import { regionName } from './places-geography'
  * The atlas's name and not the geocoder's. Natural Earth writes "United States
  * of America" where a geocoder commonly writes "United States", and this
  * constant is only ever compared against a name the atlas gave, never against
- * a name a place carries. Nothing here reads {@link Located.country}.
+ * a name a place carries. Nothing here compares it with {@link Located.country}.
  */
 export const UNITED_STATES = 'United States of America'
 
@@ -51,7 +51,7 @@ export function drawnRegions(regions: MapFeatureCollection | null): MapFeatureCo
 }
 
 /**
- * How far outside the world outline a place may sit and still be rescued by the
+ * How far outside the world outline a place can sit and still be rescued by the
  * nearest country, in kilometers.
  *
  * It is a fact about `world-atlas` at 110m and not a preference. That drawing
@@ -122,7 +122,7 @@ export function viewRegion(view: PlaceView): string | null {
  *
  * Read off the places rather than the atlas, so a filter built from it never
  * offers a region that would empty the list it filters: the drawn atlas has
- * fifty-odd regions and a reader's places sit in a handful.
+ * many more regions than a reader's places sit in.
  *
  * @param regionByPlace Which region holds each place, by the place's id.
  */
@@ -428,10 +428,7 @@ export function viewUp(view: PlaceView): PlaceView | null {
  * world.
  *
  * It is the smallest of the two geographies this app draws, not of every
- * geography there is: a collection held entirely in Japan opens on the world,
- * because opening on Japan would mean grouping by country to find that out, and
- * that means fetching the countries atlas on the path this rule exists to keep
- * clear.
+ * geography there is: a collection held entirely in Japan opens on the world.
  *
  * `statesByPlace` must be {@link buildRegions} of the grouping against the states
  * atlas, which is what the app holds while this is asked: nothing consults it

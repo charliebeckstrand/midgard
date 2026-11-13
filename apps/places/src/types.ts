@@ -80,14 +80,9 @@ export type PlaceColor = 'blue' | 'violet' | 'green' | 'rose' | 'amber' | 'sky' 
  * The scopes are kept apart from each other because the names collide: Georgia
  * is a state of the United States and Georgia is a country.
  *
- * Declared as a tuple so the runtime guard at the route and the type below have
- * one source: a scope added here reaches both, where two hand-written lists
- * would leave the route rejecting what the type admits.
+ * The keys of {@link Visits}, so a scope that the spec adds reaches this type.
  */
-export const VISIT_SCOPES = ['states', 'countries'] as const
-
-/** One atlas: the grain the map draws, and the scope its regions are marked under. */
-export type VisitScope = (typeof VISIT_SCOPES)[number]
+export type VisitScope = keyof Visits
 
 /** Every visited region, by the name its own atlas gives it. */
 export type Visits = Schemas['Visits']

@@ -54,7 +54,8 @@ a reload keeps the map, the Back button walks the drills, and a place is a link.
 
 The hook writes the address with `history.pushState` and `replaceState`, not with
 the router. A router step runs the server page again, and the page reads the
-session, the places, and the visits from the gateway. Each open and each close of
+session, the places, the trips, and (while `flags.visitedRegions` is on) the
+visits from the gateway. Each open and each close of
 a place then waited on those reads. Next patches the two History calls, so
 `useSearchParams` gets the new address and the server gets no request.
 
@@ -80,7 +81,7 @@ A trip is a record with a location, as a place is: a name, its first and last
 days, and a location. The location is a town, a city, a region, or a country
 that a search finds, not a street address, because a trip often goes to a city
 before it has an address in it. A trip is one level above a place, so it holds
-the places on it. The map draws places and trips as one mark: a trip is a
+the places on it. The map draws places and trips as one mark: a trip is an
 amber square with rounded corners, and a place is a dot. While the map draws a
 trip, the places on that trip are in its square, and they do not draw or count
 on their own. Points that land close together merge into one, whatever their
@@ -124,8 +125,9 @@ caches them with the rest of the code.
 ## The first load
 
 The first paint is the settled page. The atlases are in the code and the page
-reads the places and the visits on the server, so the first render has the
-opening view, the grouping, and the map in the frame that the address states.
+reads the places, the trips, and (while `flags.visitedRegions` is on) the visits
+on the server, so the first render has the opening view, the grouping, and the
+map in the frame that the address states.
 A fetch of the atlas after hydration showed the United States first, and then
 faded to the state that the address named.
 
