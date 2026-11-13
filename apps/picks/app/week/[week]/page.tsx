@@ -8,7 +8,7 @@ import { PageFrame } from '@/components/page-frame'
 import { PicksHeader } from '@/components/picks-header'
 import { TallyTotal } from '@/components/tally-total'
 import { getSeasonPicks } from '@/server/mimir'
-import { getSchedule, getWeekGames } from '@/server/scoreboard'
+import { getSchedule, getWeekGames, inPlay } from '@/server/scoreboard'
 import { tallyWeek } from '@/utilities/grade'
 import { weekClosed } from '@/utilities/locks'
 
@@ -36,11 +36,13 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
 
 	const weekPicks = picks[week.number] ?? {}
 
-	const skipped = Object.keys(weekPicks).length === 0 && weekClosed(games, Date.now())
+	const now = Date.now()
+
+	const skipped = Object.keys(weekPicks).length === 0 && weekClosed(games, now)
 
 	return (
 		<PageFrame header={<PicksHeader user={user} week={week.label} />}>
-			<LiveRefresh live={games.some((game) => game.state === 'live')} />
+			<LiveRefresh live={inPlay(games, now)} />
 
 			<Container size="full" padding="lg" className="py-6">
 				{games.length === 0 ? (
