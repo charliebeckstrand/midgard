@@ -9,7 +9,7 @@ function stubWindow(href: string) {
 		location.href = url.href
 	})
 
-	vi.stubGlobal('window', { location, history: { state: { key: 'k' }, replaceState } })
+	vi.stubGlobal('window', { location, history: { state: { __NA: true }, replaceState } })
 
 	return { location, replaceState }
 }
@@ -24,8 +24,9 @@ describe('takeLinkToken', () => {
 
 		expect(location.href).toBe('https://app.test/reset-password?next=%2F#form')
 
-		// The history entry keeps its state, so the router keeps its own.
-		expect(replaceState.mock.calls[0]?.[0]).toEqual({ key: 'k' })
+		// The App Router copies its own state into a `null` state and moves
+		// its URL. It skips the sync of a state that holds its mark.
+		expect(replaceState.mock.calls[0]?.[0]).toBeNull()
 	})
 
 	it('returns an empty token and leaves the address bar for a link with no token', () => {

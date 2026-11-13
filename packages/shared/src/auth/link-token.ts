@@ -18,7 +18,11 @@ export function takeLinkToken(): string {
 
 	url.searchParams.delete('token')
 
-	window.history.replaceState(window.history.state, '', url)
+	// A `null` state lets the App Router copy its own state into the entry
+	// and move its URL too. The current state already holds the mark of the
+	// router, and with it the router skips its sync and later writes the
+	// token back.
+	window.history.replaceState(null, '', url)
 
 	return token
 }
