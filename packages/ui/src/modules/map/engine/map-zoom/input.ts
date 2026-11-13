@@ -37,7 +37,8 @@ export type MapZoomInput =
 			 * page scrolling. Unheld, every wheel over the plot is the page's. A map
 			 * inside a scrolling page therefore never swallows a scroll the reader
 			 * meant for the page. Touch keeps the same bargain: one finger scrolls,
-			 * two pan and pinch.
+			 * two pan and pinch. A zoomed view has ground to pan to, so there one
+			 * finger pans the map. At the fit, one finger scrolls the page again.
 			 *
 			 * The key arms the wheel but does not end it. A trackpad keeps sending
 			 * after the fingers leave. What the key armed is swallowed to the end of
