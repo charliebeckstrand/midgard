@@ -1,6 +1,7 @@
 'use client'
 
 import { queryOptions, useQuery } from '@tanstack/react-query'
+import type { MapFeatureCollection } from 'ui/map'
 import { fetchCountyShapes } from '../api/county-api'
 
 /**
@@ -20,10 +21,12 @@ export function countyShapesQuery(state: string) {
 
 /**
  * The county shapes of a state, for the county map of the Drawer and of the
- * page of the state.
+ * page of the state. The shapes do not change while the app runs, so shapes
+ * that the page read on the server fill the entry with no read.
  *
  * @param state - The lowercase postal code of the state, such as `ga`.
+ * @param seed - The shapes of the state that the page read on the server, or `null`.
  */
-export function useCountyShapes(state: string) {
-	return useQuery(countyShapesQuery(state))
+export function useCountyShapes(state: string, seed: MapFeatureCollection | null = null) {
+	return useQuery({ ...countyShapesQuery(state), initialData: seed ?? undefined })
 }

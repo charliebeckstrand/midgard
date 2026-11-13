@@ -1,9 +1,12 @@
 import { type Contest, type Election, electionPath, findContest } from '../elections/registry'
 import { stateOfKey, stateSlug, type UsState } from '../elections/us-states'
 
+/** The view of a race: its overview, or its counties on a map. */
+export type RaceView = 'overview' | 'counties'
+
 /**
  * The step of the Drawer of an election, which the address holds, such as
- * `?region=ga&office=house&district=06&county=13121`.
+ * `?region=ga&office=house&district=06&view=counties&county=13121`.
  *
  * - A state alone: the overview, with the race of each office in the state.
  * - A state and a statewide office: the race in full, with its counties.
@@ -17,6 +20,13 @@ export type DrawerStep = {
 	office: string | null
 	/** The district of a district race: two digits such as `06`, or `al` for an at-large seat. */
 	district: string | null
+	/**
+	 * The view of the race of the step. The address holds `view=counties` for the
+	 * map and no param for the overview, so a reload opens the same view. A
+	 * county keeps the view of its race, so the crumb of the race leads back to
+	 * that view. A step with no one race has the overview.
+	 */
+	view: RaceView
 	/** The 5-digit FIPS code of a county. */
 	county: string | null
 }
@@ -43,19 +53,29 @@ export function readDrawerStep(
 
 	const contest = findContest(election, params.get('office') ?? '')
 
-	if (contest === undefined) return { region, office: null, district: null, county: null }
+	if (contest === undefined) {
+		return { region, office: null, district: null, view: 'overview', county: null }
+	}
 
 	const district = params.get('district')
 
 	const county = params.get('county')
 
-	const step: DrawerStep = { region, office: contest.slug, district: null, county: null }
+	const step: DrawerStep = {
+		region,
+		office: contest.slug,
+		district: null,
+		view: 'overview',
+		county: null,
+	}
 
 	if (contest.depth === 'district') {
 		if (district === null || !DISTRICT.test(district)) return step
 
 		step.district = district
 	}
+
+	if (params.get('view') === 'counties') step.view = 'counties'
 
 	if (county !== null && COUNTY.test(county)) step.county = county
 
@@ -75,6 +95,7 @@ function drawerSearch(step: DrawerStep | null): URLSearchParams {
 		region: step.region.key,
 		office: step.office,
 		district: step.district,
+		view: step.view === 'counties' ? step.view : null,
 		county: step.county,
 	}
 

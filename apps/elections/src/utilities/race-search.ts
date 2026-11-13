@@ -69,7 +69,7 @@ export function searchGroups(races: readonly OfficeRaces[], query: string): Sear
 			label: state.name,
 			description: offices.join(', '),
 			slot: null,
-			step: { region: state, office: null, district: null, county: null },
+			step: { region: state, office: null, district: null, view: 'overview', county: null },
 		}))
 
 	const groups: SearchGroup[] = [{ heading: 'States', rows: states }]

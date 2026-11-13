@@ -214,7 +214,13 @@ export function stepEntry(
 
 /** The step of the Drawer on the race of an entry: its office in its state, or its district. */
 export function entryStep(entry: RaceEntry): DrawerStep {
-	return { region: entry.state, office: entry.contest.slug, district: entry.district, county: null }
+	return {
+		region: entry.state,
+		office: entry.contest.slug,
+		district: entry.district,
+		view: 'overview',
+		county: null,
+	}
 }
 
 /** Whether votes are still counted: a race that is not fully in, or not called. */

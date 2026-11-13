@@ -59,6 +59,7 @@ export function StateMap({ election, contest, state, entries, counties, aspect }
 									region: state,
 									office: contest.slug,
 									district: single.district,
+									view: 'overview',
 									county: fips,
 								})
 				}

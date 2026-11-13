@@ -61,7 +61,15 @@ describe('useDrawerStep', () => {
 
 		expect(result.current.step).toBeNull()
 
-		act(() => result.current.go({ region: georgia, office: null, district: null, county: null }))
+		act(() =>
+			result.current.go({
+				region: georgia,
+				office: null,
+				district: null,
+				view: 'overview',
+				county: null,
+			}),
+		)
 
 		expect(result.current.step?.region).toBe(georgia)
 	})
@@ -98,6 +106,38 @@ describe('useDrawerStep', () => {
 		expect(result.current.step).toBeNull()
 	})
 
+	it('writes a replace over the entry, and a close still leaves to the page', () => {
+		window.history.replaceState(null, '', '/2026/us/midterms')
+
+		const { result } = renderHook(() => useDrawerStep(midterms))
+
+		const race = {
+			region: georgia,
+			office: 'senate',
+			district: null,
+			view: 'overview',
+			county: null,
+		} as const
+
+		act(() => result.current.go(race))
+
+		const before = window.history.length
+
+		act(() => result.current.go({ ...race, view: 'counties' }, 'replace'))
+
+		expect(window.history.length).toBe(before)
+		expect(result.current.step?.view).toBe('counties')
+
+		const back = vi.spyOn(window.history, 'go').mockImplementation(() => undefined)
+
+		act(() => result.current.go(null))
+
+		// The close goes back one entry, to the page from before the open.
+		expect(back).toHaveBeenCalledWith(-1)
+
+		back.mockRestore()
+	})
+
 	it('moves the Drawer from a reader of the way alone, and does not render that reader again', () => {
 		window.history.replaceState(null, '', '/2026/us/midterms')
 
@@ -112,7 +152,13 @@ describe('useDrawerStep', () => {
 		})
 
 		act(() =>
-			opener.result.current({ region: georgia, office: 'senate', district: null, county: null }),
+			opener.result.current({
+				region: georgia,
+				office: 'senate',
+				district: null,
+				view: 'overview',
+				county: null,
+			}),
 		)
 
 		expect(drawer.result.current.step?.office).toBe('senate')
@@ -121,7 +167,13 @@ describe('useDrawerStep', () => {
 		const before = window.history.length
 
 		act(() =>
-			opener.result.current({ region: georgia, office: 'senate', district: null, county: null }),
+			opener.result.current({
+				region: georgia,
+				office: 'senate',
+				district: null,
+				view: 'overview',
+				county: null,
+			}),
 		)
 
 		expect(window.history.length).toBe(before)

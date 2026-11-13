@@ -49,6 +49,7 @@ describe('the step of the Drawer', () => {
 			region: georgia,
 			office: null,
 			district: null,
+			view: 'overview',
 			county: null,
 		})
 
@@ -56,6 +57,7 @@ describe('the step of the Drawer', () => {
 			region: georgia,
 			office: 'senate',
 			district: null,
+			view: 'overview',
 			county: '13121',
 		})
 
@@ -63,10 +65,31 @@ describe('the step of the Drawer', () => {
 			region: georgia,
 			office: 'house',
 			district: '06',
+			view: 'overview',
 			county: '13121',
 		})
 
 		expect(read('region=ak&office=house&district=al')?.district).toBe('al')
+	})
+
+	it('reads the view of a race, and keeps it on a county of the race', () => {
+		expect(read('region=ak&office=governor&view=counties')?.view).toBe('counties')
+
+		expect(read('region=ga&office=house&district=06&view=counties&county=13121')).toEqual({
+			region: georgia,
+			office: 'house',
+			district: '06',
+			view: 'counties',
+			county: '13121',
+		})
+
+		expect(read('region=ga&office=senate&view=map')?.view).toBe('overview')
+	})
+
+	it('gives a step with no one race the overview', () => {
+		expect(read('region=ga&view=counties')?.view).toBe('overview')
+
+		expect(read('region=ga&office=house&view=counties')?.view).toBe('overview')
 	})
 
 	it('drops a param that names nothing, with each param under it', () => {
@@ -94,23 +117,42 @@ describe('the step of the Drawer', () => {
 		expect(drawerHref(path, null)).toBe(path)
 
 		// The overview of a state is the state alone.
-		expect(drawerHref(path, { region: georgia, office: null, district: null, county: null })).toBe(
-			`${path}?region=ga`,
-		)
+		expect(
+			drawerHref(path, {
+				region: georgia,
+				office: null,
+				district: null,
+				view: 'overview',
+				county: null,
+			}),
+		).toBe(`${path}?region=ga`)
 
 		const href = drawerHref(path, {
 			region: georgia,
 			office: 'house',
 			district: '06',
+			view: 'overview',
 			county: null,
 		})
 
 		expect(href).toBe('/2026/us/midterms/senate?region=ga&office=house&district=06')
 
+		// The overview of a race is the default, so the address leaves it out.
+		expect(
+			drawerHref(path, {
+				region: georgia,
+				office: 'senate',
+				district: null,
+				view: 'counties',
+				county: '13121',
+			}),
+		).toBe('/2026/us/midterms/senate?region=ga&office=senate&view=counties&county=13121')
+
 		expect(read(href.split('?')[1] ?? '')).toEqual({
 			region: georgia,
 			office: 'house',
 			district: '06',
+			view: 'overview',
 			county: null,
 		})
 	})

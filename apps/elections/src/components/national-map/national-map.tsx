@@ -67,7 +67,13 @@ export function NationalMap({
 					const state = stateOfFips(fips)
 
 					if (state !== undefined) {
-						go({ region: state, office: contest.slug, district: null, county: null })
+						go({
+							region: state,
+							office: contest.slug,
+							district: null,
+							view: 'overview',
+							county: null,
+						})
 					}
 				}}
 				isRegionDisabled={(fips: string) => !raced.has(fips)}
