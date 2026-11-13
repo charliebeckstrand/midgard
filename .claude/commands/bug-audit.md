@@ -47,7 +47,7 @@ Do every step of this section before the first agent runs.
 
 - Intent sources: `CONVENTIONS.md` §3, §4, §5, §7, §10.7, §10.8, §11.3, and §12.1; `packages/ui/REFERENCE.md` §2; the ARIA Authoring Practices pattern of each role; and the TSDoc, the comments, and the tests of the code.
 
-- Consumer roots: `apps/admin`, `apps/places`, `apps/picks`, `packages/ui/src/docs` (the pages, the kit, and the app), `packages/ui/src/modules`, `packages/ui/src/layouts`, and the shipped defaults of each component. A shipped default is the props and the wiring that a component applies when a consumer passes none. `packages/ui/src/__tests__` and `packages/ui/src/docs/fixtures` are test roots: they show that a shape can be built, not that it ships.
+- Consumer roots: `apps/admin`, `apps/places`, `apps/picks`, `packages/ui/src/docs` (the pages, the kit, and the app), `packages/ui/src/modules`, `packages/ui/src/layouts`, and the shipped defaults of each component. A shipped default is the props and the wiring that a component applies when a consumer passes none. `packages/ui/src/__tests__` is a test root: it shows that a shape can be built, not that it ships.
 
 For another package, write the two lists yourself, and put them in the record.
 
