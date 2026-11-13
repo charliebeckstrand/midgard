@@ -101,9 +101,10 @@ export function GameCard({ game, pick }: { game: Game; pick: Pick | undefined })
 
 	const line = pick === undefined ? null : scoredLine(game, pick)
 
-	const mark = (
-		<PickMark grade={gradePick(game, pick)} points={line === null ? null : pickPoints(line)} />
-	)
+	// A postponed or a canceled game scores no pick, so its mark gives no points.
+	const points = line === null || isOff(game) ? null : pickPoints(line)
+
+	const mark = <PickMark grade={gradePick(game, pick)} points={points} />
 
 	const teams = (
 		<Stack gap="sm" className="min-w-0 flex-1">

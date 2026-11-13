@@ -20,7 +20,7 @@ import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers
  * cells at the moved end of the band.
  *
  * The cache that keeps those handlers kept one for each day of each month that
- * the reader visited, for the life of the `onHoverDate` callback. It now keys
+ * the reader visited, for the life of the `onHoverDateChange` callback. It now keys
  * each handler on the `Date` of its cell, so a month off screen frees its
  * handlers.
  *
@@ -118,14 +118,14 @@ describe('calendar day cell renders', () => {
 		const ref = createRef<CalendarHandle>()
 
 		// One identity for the life of the range, as the DatePicker callback has.
-		const onHoverDate = () => {}
+		const onHoverDateChange = () => {}
 
 		const june = (rangeEnd: Date | null) => (
 			<CalendarRange
 				ref={ref}
 				rangeStart={new Date(2025, 5, 1)}
 				rangeEnd={rangeEnd}
-				onHoverDate={onHoverDate}
+				onHoverDateChange={onHoverDateChange}
 			/>
 		)
 

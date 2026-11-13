@@ -18,8 +18,9 @@ function toTimingJson(entry: PerformanceResourceTiming): JsonValue {
  * Each script and each link that the page loads, at the start time of its
  * load: the file name, the duration, `cache` for a load from the HTTP cache,
  * and the status of a load that fails. The detail holds the resource timing.
- * The loads of one pass are one batch: a load that starts before each load of
- * the pass ends is a part of the pass.
+ * The loads come in the order that they end. The loads of one pass are one
+ * batch: a load that starts before the last end of the pass so far is a part
+ * of the pass.
  *
  * @internal
  */

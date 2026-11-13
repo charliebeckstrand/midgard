@@ -46,12 +46,12 @@ export type NavItemProps = {
 	/** Classes for the inner button or link. The wrapper of the row does not take them. */
 	className?: string
 	/**
-	 * Keeps an enclosing offcanvas drawer open on each click instead of closing
-	 * it. To keep the drawer open on one click only, call `preventDefault()` in
-	 * `onClick`.
-	 * @defaultValue false
+	 * Closes an enclosing offcanvas drawer on each click. Set `false` to keep the
+	 * drawer open. To keep the drawer open on one click only, call
+	 * `preventDefault()` in `onClick`.
+	 * @defaultValue true
 	 */
-	preventClose?: boolean
+	closeOnClick?: boolean
 	/** Rendered before the inner button, outside it; the slot can host its own interactive element (e.g. a drag handle button). Slot controls auto-step one size down; an explicit `size` prop overrides. */
 	prefix?: ReactNode
 	/** Rendered after the inner button, outside it; the slot can host its own interactive element (e.g. an actions button). Slot controls auto-step one size down; an explicit `size` prop overrides. */
@@ -71,7 +71,7 @@ type NavItemOptions = {
 	/** The link of the item. Without `current` or `value`, `current` resolves against the `pathname` of `UIProvider`. */
 	href?: string
 	match?: PathMatch
-	preventClose?: boolean
+	closeOnClick?: boolean
 	onClick?: NavItemProps['onClick']
 }
 
@@ -92,7 +92,14 @@ type NavItemOptions = {
  * token (`'page'` on a link, `'true'` on a button), the active indicator
  * handle, and the composed `handleClick`.
  */
-export function useNavItem({ current, value, href, match, preventClose, onClick }: NavItemOptions) {
+export function useNavItem({
+	current,
+	value,
+	href,
+	match,
+	closeOnClick = true,
+	onClick,
+}: NavItemOptions) {
 	const ref = useRef<HTMLSpanElement>(null)
 
 	const indicator = useActiveIndicator()
@@ -140,7 +147,7 @@ export function useNavItem({ current, value, href, match, preventClose, onClick 
 
 			if (value !== undefined) item.onValueChange?.(value)
 
-			if (!preventClose && !event.defaultPrevented) offcanvas?.close()
+			if (closeOnClick && !event.defaultPrevented) offcanvas?.close()
 		},
 		{ checkForDefaultPrevented: false },
 	)

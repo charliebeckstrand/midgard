@@ -49,7 +49,7 @@ of each pick with the pick, so a later move of the line does not change the
 points. A pick saved before the line posted scores on the closing line. A tie
 scores no points, and a postponed or a canceled game is not graded.
 
-A mark after the picked team on each card shows the result: a grey check before
+A mark after the picked team on each card shows the result: a gray check before
 the game is over and for a tie, a green check for a right pick, and a red X for
 a wrong pick. The tooltip of the mark gives the points.
 

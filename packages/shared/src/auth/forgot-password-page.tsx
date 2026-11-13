@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from 'ui/button'
+import { announce } from 'ui/core'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, type FormSubmitHandler } from 'ui/form'
 import { Heading } from 'ui/heading'
@@ -30,7 +31,10 @@ type ForgotPasswordValues = { email: string }
 export function ForgotPasswordPage() {
 	const intl = useIntl()
 
+	// Whether a link went out on any try, and whether the last try sent one.
 	const [sent, setSent] = useState(false)
+
+	const [notice, setNotice] = useState(false)
 
 	const [errorAlert, setServerError] = useServerError()
 
@@ -41,11 +45,24 @@ export function ForgotPasswordPage() {
 			if (response.ok) {
 				setSent(true)
 
+				setNotice(true)
+
+				// A success clears the error of an earlier try.
+				setServerError('')
+
+				// Each send is announced, also a second send with the same notice,
+				// whose text does not change (WCAG 4.1.3).
+				announce(intl.formatMessage(authMessages.forgotSent))
+
 				return
 			}
 
+			setNotice(false)
+
 			setServerError(error?.message || intl.formatMessage(authMessages.requestFailed))
 		} catch {
+			setNotice(false)
+
 			setServerError(intl.formatMessage(authMessages.unexpected))
 		}
 	}
@@ -60,7 +77,7 @@ export function ForgotPasswordPage() {
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
 					<Heading className="text-center">{intl.formatMessage(authMessages.forgotTitle)}</Heading>
 
-					{sent ? (
+					{notice ? (
 						<Text tone="success">{intl.formatMessage(authMessages.forgotSent)}</Text>
 					) : (
 						<Text>{intl.formatMessage(authMessages.forgotIntro)}</Text>

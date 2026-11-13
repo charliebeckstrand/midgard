@@ -16,7 +16,10 @@ type LayoutShift = PerformanceEntry & {
 function isOwnShift(shift: LayoutShift): boolean {
 	const sources = shift.sources ?? []
 
-	return sources.length > 0 && sources.every(({ node }) => isOwn(node?.parentElement ?? node))
+	return (
+		sources.length > 0 &&
+		sources.every(({ node }) => isOwn(node instanceof Element ? node : node?.parentElement))
+	)
 }
 
 /** The paints, and the layout shifts that no input causes and that do not move only the tools. @internal */

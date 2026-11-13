@@ -49,6 +49,11 @@ export type FileUploadSharedProps = {
 	/**
 	 * Fires when `accept`, `multiple`, `maxSize`, or `maxCount` excludes files,
 	 * with each excluded file tagged with its reason.
+	 *
+	 * Without this callback, the component announces the refused files and
+	 * their reasons to a live region. With it, the caller owns the feedback of a
+	 * refusal: show it in a `<Message>`, which is a live region, so that a screen
+	 * reader speaks it too.
 	 */
 	onReject?: (rejected: FileRejection[]) => void
 	/**

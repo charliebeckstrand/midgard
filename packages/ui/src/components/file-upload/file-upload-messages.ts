@@ -14,12 +14,15 @@ type FileUploadValues = {
 	browse: Record<never, never>
 	selected: { count: number }
 	announced: { count: number; names: string }
+	refusedType: { count: number; names: string }
+	refusedSize: { count: number; names: string }
+	refusedCount: { count: number; names: string }
 }
 
 /**
  * The messages of the file-upload controls: the labels and names of their
  * triggers, the prompt of the drop zone, the selection summary, and the
- * live-region text of a selection.
+ * live-region text of a selection and of a refusal.
  *
  * @internal
  */
@@ -80,5 +83,25 @@ export const fileUploadMessages: MessageSet<FileUploadValues> = defineMessages<F
 		defaultMessage: '{count, plural, one {Selected {names}} other {Selected # files: {names}}}',
 		description:
 			'Spoken when the reader selects files. The names are the file names, joined by commas.',
+	},
+	refusedType: {
+		id: 'ui.fileUpload.refusedType',
+		defaultMessage:
+			'{count, plural, one {{names} is not an accepted file type} other {{names} are not accepted file types}}',
+		description:
+			'Spoken when the field refuses files because their type is not accepted. The names are the file names, joined by commas.',
+	},
+	refusedSize: {
+		id: 'ui.fileUpload.refusedSize',
+		defaultMessage: '{count, plural, one {{names} is too large} other {{names} are too large}}',
+		description:
+			'Spoken when the field refuses files because they are larger than the limit. The names are the file names, joined by commas.',
+	},
+	refusedCount: {
+		id: 'ui.fileUpload.refusedCount',
+		defaultMessage:
+			'{count, plural, one {{names} is over the file limit} other {{names} are over the file limit}}',
+		description:
+			'Spoken when the field refuses files because it takes no more files. The names are the file names, joined by commas.',
 	},
 })

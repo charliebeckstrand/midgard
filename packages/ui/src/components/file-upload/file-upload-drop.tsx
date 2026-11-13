@@ -162,8 +162,8 @@ function DropSelection({
  * and then the prompt, and the name of the overlay is the Label and then the
  * selection text, through `aria-labelledby`. With no Label, the empty zone
  * takes its name from its content, and the overlay keeps the name "Choose a
- * different file". Accepted selections are announced to a live region (WCAG
- * 4.1.3). Selection state, drag highlighting, and `maxSize` / `maxCount`
+ * different file". The accepted files of a selection are announced to a live
+ * region (WCAG 4.1.3), and so are the refused files when there is no `onReject`. Selection state, drag highlighting, and `maxSize` / `maxCount`
  * filtering live in {@link useFileUploadHandlers}.
  *
  * The prompt of the empty zone names the gesture of the primary pointer. It

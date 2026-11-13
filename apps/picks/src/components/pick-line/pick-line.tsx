@@ -5,6 +5,7 @@ import { StatusDot } from 'ui/status'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import type { Game, Pick } from '../../types'
 import { formatLine, pickLine, scoredLine } from '../../utilities/grade'
+import { isOff } from '../../utilities/locks'
 
 /** The amber dot of a game that has no line yet. */
 export function PendingDot({ className }: { className?: string }) {
@@ -36,7 +37,8 @@ function lineNote(game: Game, pick: Pick): string | null {
 
 	const final = game.state === 'final'
 
-	if (pick.line === null) return final ? null : 'Scored on the closing line'
+	// A postponed or a canceled game scores no pick, so no line scores it.
+	if (pick.line === null) return final || isOff(game) ? null : 'Scored on the closing line'
 
 	if (now === null || now === pick.line) return null
 
@@ -46,10 +48,13 @@ function lineNote(game: Game, pick: Pick): string | null {
 /**
  * The picked team and the line that scores the pick, such as `DET +7`. A
  * line with a note shows muted, and a tooltip on hover gives the note.
- * Without a line, the team shows with {@link PendingDot}.
+ * Without a line, the team shows with {@link PendingDot}, or alone for a
+ * postponed or a canceled game.
  */
 export function PickLine({ game, pick, team }: { game: Game; pick: Pick; team: string }) {
 	const line = scoredLine(game, pick)
+
+	if (line === null && isOff(game)) return <span className="font-medium">{team}</span>
 
 	if (line === null) {
 		return (

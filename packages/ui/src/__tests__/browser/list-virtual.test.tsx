@@ -5,7 +5,7 @@ import { List, ListItem } from '../../components/list'
 import { frames, present, renderUI, waitFor } from '../helpers'
 
 /**
- * The window of a `virtual` List, in a real browser.
+ * The window of a `virtualize` List, in a real browser.
  *
  * The list windows its rows over the nearest `[data-scroll-region]`. Each rule
  * here is layout: a row height, a gap, a scroll offset, and the content above
@@ -24,7 +24,7 @@ type Item = (typeof items)[number]
 
 function Rows() {
 	return (
-		<List items={items} sortable={false} virtual getKey={(item: Item) => item.id}>
+		<List items={items} sortable={false} virtualize getKey={(item: Item) => item.id}>
 			{(item) => <ListItem href={`#${item.id}`}>{item.label}</ListItem>}
 		</List>
 	)
@@ -242,7 +242,7 @@ describe('a virtual list', () => {
 		const { container } = renderUI(
 			<Profiler id="list" onRender={record}>
 				<div data-scroll-region style={{ maxHeight: 900, width: 360, overflowY: 'auto' }}>
-					<List items={lines} sortable={false} virtual getKey={(line) => line.id}>
+					<List items={lines} sortable={false} virtualize getKey={(line) => line.id}>
 						{(line) => <ListItem>{line.id}</ListItem>}
 					</List>
 				</div>

@@ -13,7 +13,7 @@ const CARDS = 6
 export default function Loading() {
 	return (
 		<PageFrame header={<WeekHeaderSkeleton />}>
-			{/* A screen reader does not read the skeletons, so the region tells it that the week loads. */}
+			{/* The region is busy while the week loads. The skeletons are hidden from a screen reader. */}
 			<Container size="full" padding="lg" className="py-6" aria-busy="true">
 				<GameGrid>
 					{Array.from({ length: CARDS }, (_, index) => (

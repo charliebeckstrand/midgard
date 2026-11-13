@@ -14,7 +14,7 @@ describe('List', () => {
 			sortable?: boolean
 			getKey?: (item: Item) => string
 			onReorder?: (next: Item[]) => void
-			virtual?: boolean
+			virtualize?: boolean
 		}
 
 		type Before =
@@ -22,19 +22,19 @@ describe('List', () => {
 					sortable?: true
 					getKey: (item: Item) => string
 					onReorder?: (next: Item[]) => void
-					virtual?: false
+					virtualize?: false
 			  }
 			| {
 					sortable: false
 					getKey: (item: Item) => string
 					onReorder: (next: Item[]) => void
-					virtual?: false
+					virtualize?: false
 			  }
 			| {
 					sortable: false
 					getKey?: (item: Item) => string
 					onReorder?: undefined
-					virtual?: boolean
+					virtualize?: boolean
 			  }
 
 		expectTypeOf<Arms<ListProps<Item>>>().toEqualTypeOf<Before>()

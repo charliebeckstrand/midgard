@@ -10,7 +10,7 @@ export default function WithTotals() {
 			rows={loads}
 			keys={{ row: 'lane', column: 'carrier', value: 'cost' }}
 			aggregation="sum"
-			format={currency}
+			formatValue={currency}
 			rowHeader="Lane"
 			totals="both"
 			outline

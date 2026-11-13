@@ -1,6 +1,5 @@
 'use client'
 
-import { useMutation } from '@tanstack/react-query'
 import { latestError } from 'shared/providers'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
@@ -8,7 +7,7 @@ import { Card, CardHeader, CardTitle } from 'ui/card'
 import { useConfirm } from 'ui/confirm'
 import { Divider } from 'ui/divider'
 import { Stack } from 'ui/structure/stack'
-import { deleteAccount, downloadAccount } from './account-api'
+import { useDeleteAccount, useDownloadAccount } from './account-queries'
 import { Section } from './section'
 
 type YourDataProps = {
@@ -24,8 +23,8 @@ type YourDataProps = {
  * and the data of each app. A deletion asks for confirmation first.
  */
 export function YourData({ admin }: YourDataProps) {
-	const download = useMutation({ mutationFn: downloadAccount, meta: { inlineError: true } })
-	const remove = useMutation({ mutationFn: deleteAccount, meta: { inlineError: true } })
+	const download = useDownloadAccount()
+	const remove = useDeleteAccount()
 	const confirm = useConfirm()
 
 	const error = latestError(download, remove)

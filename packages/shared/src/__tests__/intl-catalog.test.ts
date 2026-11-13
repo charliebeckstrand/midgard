@@ -25,8 +25,7 @@ import { catalogs } from '../locale/catalogs'
 //   2. Each id starts with `shared.`, so no message of shared replaces a
 //      message of ui or of an app.
 //   3. A translation of shared is in each language that ui has a catalog for,
-//      and in no other language. The reader can choose each of these
-//      languages (`locale/locales.ts`).
+//      and in no other language.
 //   4. Each translation has each id of the source catalog, and no other id, and
 //      the catalogs of shared load it.
 //   5. Each translated message parses, and it uses the same arguments as its

@@ -1,0 +1,18 @@
+language js
+
+// A JSX `key` comes before each spread attribute of its element. After a
+// spread, the automatic JSX runtime cannot tell the key from a prop, so the
+// transform falls back to `createElement`. The SWC transform of Next then puts
+// the children in a `children` array. In development, React warns that each
+// child in that array has no key. Vitest and the docs app use a different
+// transform, so a test does not see the warning.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: each TSX file of
+// the packages and the apps. An app compiles the `ui` source that it imports.
+or { `<$_ $attrs>$_</$_>`, `<$_ $attrs />` } where {
+	$attrs <: [..., JsxSpreadAttribute(), ..., JsxAttribute(name = `key`) as $key, ...],
+	register_diagnostic(
+		span = $key,
+		message = "put `key` before each spread attribute: after a spread, the transform of Next falls back to `createElement`, and React warns that the children have no key"
+	)
+}

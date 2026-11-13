@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { Button } from 'ui/button'
 import { reportBug } from 'ui/events'
+import { Heading } from 'ui/heading'
 import { defineMessages, useIntl } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
@@ -45,7 +46,7 @@ export function ErrorPage({ error, retry }: { error: Error; retry: () => void })
 	return (
 		<Flex justify="center" align="center" className="min-h-dvh grow">
 			<Stack align="center" gap="sm" className="px-4 text-center text-xl dark:text-white">
-				<div className="text-3xl font-black">{intl.formatMessage(messages.title)}</div>
+				<Heading className="text-3xl font-black">{intl.formatMessage(messages.title)}</Heading>
 				<div className="font-light text-gray-400">{intl.formatMessage(messages.body)}</div>
 				<Button onClick={retry}>{intl.formatMessage(messages.retry)}</Button>
 			</Stack>

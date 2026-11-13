@@ -6231,9 +6231,9 @@
 		"defaultMessage": "Count",
 		"description": "The label of a field of a playground in the docs. The field sets the prop count of Rating."
 	},
-	"docs.prop.debounceMs": {
-		"defaultMessage": "Debounce ms",
-		"description": "The label of a field of a playground in the docs. The field sets the prop debounceMs of AddressInput."
+	"docs.prop.debounce": {
+		"defaultMessage": "Debounce",
+		"description": "The label of a field of a playground in the docs. The field sets the prop debounce of AddressInput."
 	},
 	"docs.prop.defaultItems": {
 		"defaultMessage": "Default items",

@@ -675,6 +675,18 @@
 		"defaultMessage": "Drop files here or tap to browse",
 		"description": "The prompt of an empty drop zone on a touch device."
 	},
+	"ui.fileUpload.refusedCount": {
+		"defaultMessage": "{count, plural, one {{names} is over the file limit} other {{names} are over the file limit}}",
+		"description": "Spoken when the field refuses files because it takes no more files. The names are the file names, joined by commas."
+	},
+	"ui.fileUpload.refusedSize": {
+		"defaultMessage": "{count, plural, one {{names} is too large} other {{names} are too large}}",
+		"description": "Spoken when the field refuses files because they are larger than the limit. The names are the file names, joined by commas."
+	},
+	"ui.fileUpload.refusedType": {
+		"defaultMessage": "{count, plural, one {{names} is not an accepted file type} other {{names} are not accepted file types}}",
+		"description": "Spoken when the field refuses files because their type is not accepted. The names are the file names, joined by commas."
+	},
 	"ui.fileUpload.reset": {
 		"defaultMessage": "Reset",
 		"description": "The label of the button that clears the selected files."

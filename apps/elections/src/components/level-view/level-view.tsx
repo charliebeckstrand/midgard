@@ -80,7 +80,7 @@ function CalendarView({
 		<Stack gap="lg">
 			<Calendar
 				value={picked === null ? null : localDay(picked)}
-				onDayPress={(day) => {
+				onDayClick={(day) => {
 					if (days.has(isoDay(day))) setPicked(isoDay(day))
 				}}
 				getDayProps={({ date, selected }) =>

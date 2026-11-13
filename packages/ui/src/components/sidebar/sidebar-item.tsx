@@ -54,7 +54,7 @@ export function SidebarItem({
 	size,
 	className,
 	children,
-	preventClose,
+	closeOnClick,
 	prefix,
 	suffix,
 	onClick,
@@ -66,7 +66,7 @@ export function SidebarItem({
 		ariaCurrent,
 		indicator: { ref: indicatorRef, tapHandlers },
 		handleClick,
-	} = useNavItem({ current, href: props.href, match, preventClose, onClick })
+	} = useNavItem({ current, href: props.href, match, closeOnClick, onClick })
 
 	// The row is the initial scroll target only while it stays current from its
 	// mount. When the current row changes, no row is a target, so a browser that

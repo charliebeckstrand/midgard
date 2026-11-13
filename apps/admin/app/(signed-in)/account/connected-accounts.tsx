@@ -107,7 +107,6 @@ export function ConnectedAccounts({
 										<Button
 											variant="outline"
 											size="sm"
-											disabled={!providers.includes(provider)}
 											// A full page load: the gateway answers with a redirect to the provider.
 											onClick={async () => {
 												if (!(await ensureSecondStep())) return

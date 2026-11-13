@@ -6,7 +6,7 @@ import { useLocale } from '../../providers/locale/context'
 import { integerFormat } from '../../utilities/format-number'
 import { useOdometerAnimatedValue } from './use-odometer-animated-value'
 
-/** Props for {@link Odometer}: the target `value`, tween `duration`, and a display `format`, plus native `<span>` attributes. */
+/** Props for {@link Odometer}: the target `value`, tween `duration`, and a display `formatValue`, plus native `<span>` attributes. */
 export type OdometerProps = {
 	/** The target number. A change tweens the readout from the current figure to this one. */
 	value: number
@@ -21,7 +21,7 @@ export type OdometerProps = {
 	 * Formats the numeric value for display.
 	 * @defaultValue Rounds to an integer and applies the grouping of the `<LocaleProvider>` locale.
 	 */
-	format?: (value: number) => string
+	formatValue?: (value: number) => string
 } & Omit<ComponentProps<'span'>, 'children'>
 
 /**
@@ -42,7 +42,7 @@ export type OdometerProps = {
 export function Odometer({
 	value,
 	duration = 800,
-	format,
+	formatValue,
 	className,
 	// Dropped, so a consumer role cannot make the root a live region.
 	role: _role,
@@ -57,18 +57,18 @@ export function Odometer({
 	const integer = integerFormat(locale)
 
 	// `|| 0` turns a negative zero into zero, so a value such as -0.3 prints `0`, not `-0`.
-	const resolvedFormat = format ?? ((next: number) => integer(Math.round(next) || 0))
+	const format = formatValue ?? ((next: number) => integer(Math.round(next) || 0))
 
 	const displayRef = useRef<HTMLSpanElement>(null)
 
 	// React renders the first text only, and never changes it. The effect writes
 	// each later text, so a frame of the tween causes no render. It runs after
-	// each render, so a new `format` or locale shows at once.
-	const [firstText] = useState(() => resolvedFormat(display.get()))
+	// each render, so a new `formatValue` or locale shows at once.
+	const [firstText] = useState(() => format(display.get()))
 
 	useLayoutEffect(() => {
 		const write = (latest: number) => {
-			if (displayRef.current) displayRef.current.textContent = resolvedFormat(latest)
+			if (displayRef.current) displayRef.current.textContent = format(latest)
 		}
 
 		write(display.get())
@@ -84,7 +84,7 @@ export function Odometer({
 				{firstText}
 			</span>
 			<span data-slot="odometer-value" className="sr-only">
-				{resolvedFormat(value)}
+				{format(value)}
 			</span>
 		</span>
 	)

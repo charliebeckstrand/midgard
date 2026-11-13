@@ -6,6 +6,8 @@ import { type Seed, seededQuery } from 'shared/queries'
 import {
 	addPasskey,
 	confirmTotp,
+	deleteAccount,
+	downloadAccount,
 	type Factors,
 	fetchFactors,
 	fetchIdentities,
@@ -159,4 +161,14 @@ export function useUnlinkIdentity() {
 			)
 		},
 	})
+}
+
+/** Downloads the account of the signed-in user as a JSON file. */
+export function useDownloadAccount() {
+	return useMutation({ mutationFn: downloadAccount, meta: { inlineError: true } })
+}
+
+/** Deletes the account of the signed-in user, and loads `/login`. */
+export function useDeleteAccount() {
+	return useMutation({ mutationFn: deleteAccount, meta: { inlineError: true } })
 }

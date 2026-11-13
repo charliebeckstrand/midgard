@@ -43,7 +43,7 @@ export type FetchOsrmRouteOptions = {
 	 * Omitted, or a value that is not a finite count of zero or more, only
 	 * `signal` bounds it.
 	 */
-	timeoutMs?: number
+	timeout?: number
 	signal?: AbortSignal
 }
 
@@ -74,7 +74,7 @@ export async function fetchOsrmRoute(
 		baseUrl = DEFAULT_OSRM_URL,
 		profile = 'driving',
 		overview = 'simplified',
-		timeoutMs,
+		timeout,
 		signal,
 	} = options
 
@@ -82,5 +82,5 @@ export async function fetchOsrmRoute(
 
 	const url = `${baseUrl}/route/v1/${profile}/${coordinates}?overview=${overview}&geometries=geojson`
 
-	return routeFetch(url, requestSignal(signal, timeoutMs))
+	return routeFetch(url, requestSignal(signal, timeout))
 }

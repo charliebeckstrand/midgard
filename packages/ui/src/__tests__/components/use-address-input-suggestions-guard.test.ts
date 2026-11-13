@@ -12,7 +12,7 @@ type Options = Parameters<typeof useAddressInputSuggestions>[0]
  */
 function renderSuggestions(options: Partial<Options> & Pick<Options, 'query' | 'provider'>) {
 	return renderHook(() =>
-		useAddressInputSuggestions({ enabled: true, debounceMs: 0, minQueryLength: 3, ...options }),
+		useAddressInputSuggestions({ enabled: true, debounce: 0, minQueryLength: 3, ...options }),
 	)
 }
 
@@ -54,7 +54,7 @@ describe('useAddressInputSuggestions guards', () => {
 	it('still fetches an empty query when the minimum is zero', async ({ clock }) => {
 		const provider: AddressProvider = vi.fn().mockResolvedValue([])
 
-		renderSuggestions({ query: '', provider, debounceMs: 200, minQueryLength: 0 })
+		renderSuggestions({ query: '', provider, debounce: 200, minQueryLength: 0 })
 
 		// Zero, not every pending timer: running them all fires the 200ms debounce
 		// too, so the case passed whatever the delay was.

@@ -305,22 +305,22 @@ describe('Calendar', () => {
 })
 
 describe('Calendar day press', () => {
-	it('reports a press of the selected day through onDayPress, and no value change', async () => {
+	it('reports a press of the selected day through onDayClick, and no value change', async () => {
 		const user = setupUser()
 
-		const onDayPress = vi.fn()
+		const onDayClick = vi.fn()
 
 		const onValueChange = vi.fn()
 
 		const date = new Date(2025, 5, 12)
 
-		renderUI(<Calendar value={date} onValueChange={onValueChange} onDayPress={onDayPress} />)
+		renderUI(<Calendar value={date} onValueChange={onValueChange} onDayClick={onDayClick} />)
 
 		await user.click(screen.getByRole('option', { name: /\b12\b/ }))
 
-		expect(onDayPress).toHaveBeenCalledTimes(1)
+		expect(onDayClick).toHaveBeenCalledTimes(1)
 
-		expect((onDayPress.mock.calls[0]?.[0] as Date | undefined)?.getDate()).toBe(12)
+		expect((onDayClick.mock.calls[0]?.[0] as Date | undefined)?.getDate()).toBe(12)
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
@@ -328,7 +328,7 @@ describe('Calendar day press', () => {
 	it('reports a second press of the range start day in CalendarRange', async () => {
 		const user = setupUser()
 
-		const onDayPress = vi.fn()
+		const onDayClick = vi.fn()
 
 		function Harness() {
 			const [start, setStart] = useState<Date | null>(null)
@@ -336,8 +336,8 @@ describe('Calendar day press', () => {
 			return (
 				<CalendarRange
 					rangeStart={start}
-					onDayPress={(date) => {
-						onDayPress(date)
+					onDayClick={(date) => {
+						onDayClick(date)
 
 						setStart(date)
 					}}
@@ -351,7 +351,7 @@ describe('Calendar day press', () => {
 
 		await user.click(screen.getAllByRole('option', { name: /\b12\b/ })[0] as HTMLElement)
 
-		expect(onDayPress).toHaveBeenCalledTimes(2)
+		expect(onDayClick).toHaveBeenCalledTimes(2)
 	})
 })
 

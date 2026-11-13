@@ -123,7 +123,7 @@ export type CalendarProps = {
 	 * change report. Use it to act on a selection, as a parent that commits a range or
 	 * closes a popover does.
 	 */
-	onDayPress?: (date: Date) => void
+	onDayClick?: (date: Date) => void
 	min?: Date
 	max?: Date
 	/**
@@ -248,7 +248,7 @@ export function Calendar({
 	value: valueProp,
 	defaultValue,
 	onValueChange,
-	onDayPress,
+	onDayClick,
 	min,
 	max,
 	active,
@@ -356,7 +356,7 @@ export function Calendar({
 
 	// A stable event, so `handleSelect` keeps its identity for the memo of each
 	// day cell, though a parent passes an inline handler.
-	const pressDay = useStableEvent((date: Date) => onDayPress?.(date))
+	const pressDay = useStableEvent((date: Date) => onDayClick?.(date))
 
 	const handleSelect = useCallback(
 		(date: Date) => {

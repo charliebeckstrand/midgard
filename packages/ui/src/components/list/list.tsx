@@ -82,12 +82,12 @@ export type ListProps<T> = BaseListProps<T> &
 					 * @defaultValue true
 					 */
 					sortable?: true
-					virtual?: false
+					virtualize?: false
 				})
 		| (Required<ListKey<T>> &
 				Required<ListReorder<T>> & {
 					sortable: false
-					virtual?: false
+					virtualize?: false
 				})
 		| (ListKey<T> & {
 				sortable: false
@@ -98,7 +98,7 @@ export type ListProps<T> = BaseListProps<T> &
 				 * See {@link List}.
 				 * @defaultValue false
 				 */
-				virtual?: boolean
+				virtualize?: boolean
 		  })
 	)
 
@@ -126,7 +126,7 @@ export type ListProps<T> = BaseListProps<T> &
  * read-only lists does not load it. Until the chunk arrives, the keyboard
  * reorder works, and a pointer drag does not start.
  *
- * `virtual` renders only the rows in view, plus a few on each side, for a long
+ * `virtualize` renders only the rows in view, plus a few on each side, for a long
  * read-only vertical list. The list windows over the nearest ancestor with
  * `data-scroll-region`, such as the body of a drawer, a sheet, or a dialog, so
  * content above the list scrolls with it. Each row measures its own height, and
@@ -137,7 +137,7 @@ export type ListProps<T> = BaseListProps<T> &
  * Where no scroll region holds the list, every row renders. Until the scroller
  * lays out, the first twelve rows render: in a server render, in jsdom, and for
  * the one commit before the first paint. A reorderable or horizontal list
- * ignores `virtual`, because a drag needs every row it can pass over.
+ * ignores `virtualize`, because a drag needs every row it can pass over.
  *
  * A horizontal list does not wrap, because a drag moves a row along the
  * orientation axis only and cannot reach a row on a second line. The `<ul>` is
@@ -156,7 +156,7 @@ export function List<T>({
 	orientation = 'vertical',
 	disabled,
 	sortable = true,
-	virtual = false,
+	virtualize = false,
 	children,
 	className,
 	'aria-label': ariaLabel,
@@ -264,7 +264,7 @@ export function List<T>({
 	)
 
 	const listWindow = useListWindow({
-		enabled: virtual && !interactive && orientation === 'vertical',
+		enabled: virtualize && !interactive && orientation === 'vertical',
 		count: items.length,
 		getItemKey,
 		listRef: containerRef,

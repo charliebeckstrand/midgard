@@ -15,6 +15,10 @@ describe('ErrorPage', () => {
 		expect(html).toContain('Try again')
 	})
 
+	it('gives its title as the heading of the page', () => {
+		expect(renderInLocale('en', errorPage)).toMatch(/<h1[^>]*>Something went wrong<\/h1>/)
+	})
+
 	it('shows its text in the language of the locale', () => {
 		const html = renderInLocale('es', errorPage)
 
@@ -27,6 +31,10 @@ describe('ErrorPage', () => {
 })
 
 describe('NotFoundPage', () => {
+	it('gives its title as the heading of the page', () => {
+		expect(renderInLocale('en', createElement(NotFoundPage))).toMatch(/<h1[^>]*>404<\/h1>/)
+	})
+
 	it('shows its text in the language of the locale', () => {
 		expect(renderInLocale('en', createElement(NotFoundPage))).toContain(
 			'This page could not be found',

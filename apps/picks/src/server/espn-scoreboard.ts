@@ -40,7 +40,7 @@ export function readSchedule(body: unknown): Schedule | null {
 	const regular = records(league?.calendar).find((part) => part.value === REGULAR_SEASON)
 
 	const weeks = records(regular?.entries).flatMap((entry): Week[] => {
-		const number = Number(entry.value)
+		const number = Number(entry.value ?? Number.NaN)
 
 		const label = text(entry.label)
 
@@ -125,7 +125,8 @@ function readTeam(competitor: Json, state: GameState): Team | null {
 function readSpread(competition: Json, away: Team, home: Team): Spread | null {
 	const odds = records(competition.odds)[0]
 
-	const points = Number(odds?.spread)
+	// `Number(null)` is 0, so a missing spread reads as `NaN` and the line is skipped.
+	const points = Number(odds?.spread ?? Number.NaN)
 
 	if (odds === undefined || !Number.isFinite(points)) return null
 

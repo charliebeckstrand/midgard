@@ -56,6 +56,8 @@ A key that holds a handler or an object needs both sides, and a spread position 
 
 A `ref` is such a key. The component destructures it and joins it to its own ref through the `useComposedRefs` of Motion (`motion/react`). Then the consumer ref and the internal ref both get the node, as in `tab-list.tsx`.
 
+A JSX `key` comes before each spread. After a spread, the JSX transform falls back to `createElement`. The SWC transform of Next then puts the children in a `children` array. In development, React warns that each child in that array has no key. Vitest and the docs app use a different transform, so a test does not see the warning. The [`no-key-after-spread`](.biome/plugins/no-key-after-spread.grit) Biome plugin holds the rule in the apps and the packages.
+
 Pass `checkForDefaultPrevented: false` in three cases only. The first is the activation that the component exists to perform. The second is a roving keyboard model, which no consumer switches off. The third is the wiring that keeps the state of the component true. Examples are the touched mark and the value of a form field, the end of a gesture, and an event the browser cannot cancel. React's synthetic `preventDefault()` marks even an event that cannot be canceled, so the default would let a consumer switch that wiring off.
 
 Side behavior, such as a preload or a pause on hover, keeps the default.
@@ -133,8 +135,15 @@ Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 
 | The palette color | `color` | |
 | The element that takes focus when an overlay opens | `initialFocus` | |
 | The element that takes focus when the part closes | `returnFocusTo` | `finalFocus` |
+| A change of a state that a key `x` holds | `onXChange`, as `hoverDate` and `onHoverDateChange` | `onX`, as `onHoverDate` |
+| More than one open or selected part at once | `multiple`, a boolean that discriminates `value` | `type: 'single' \| 'multiple'` |
+| Only the rows in view are rendered | `virtualize` | `virtual` |
+| A time in milliseconds | A bare name: `delay`, `duration`, `timeout`, `interval`, `debounce` | A unit in the name, as `debounceMs` |
+| The pointer or keyboard activation of an item | `on<Thing>Click`, as `onRowClick` and `onDayClick`. A keyboard activation is a DOM click too | `on<Thing>Press` |
+| The close of an enclosing surface when an item acts | `closeOn<Event>`, default `true`: `closeOnAction`, `closeOnSelect`, `closeOnClick` | `preventClose` |
+| A function that makes the text of a number | `formatValue` | `format`, which holds a spec such as a token or `Intl` options |
 
-`prop-vocabulary-boundary.test.ts` reads each public props type with the checker. It holds the aliases, the heading level, and the severity rows. No gate holds the `onChange` row, because a native `onChange` is correct on an input.
+`prop-vocabulary-boundary.test.ts` reads each public props type and options type with the checker. It holds each row that has an entry in the last column, except the `onChange` row, because a native `onChange` is correct on an input. A key of a React base keeps its name, such as the native `onKeyPress`.
 
 ## 5. Styling
 
@@ -166,7 +175,7 @@ In an app, an action such as Close or Remove is a `Button` with `variant="bare"`
 
 6.1 No global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx`. Biome's `noRestrictedImports` keeps the common ones out of `apps`.
 
-6.2 Server data is fetched in Server Components or `'use server'`. They attach the bearer token and resolve the gateway origin server-side.
+6.2 Server data is fetched in Server Components or `'use server'`. They forward the session cookie of the request and resolve the gateway origin server-side.
 
 6.3 Client fetches hit same-origin `/api/*` or `/auth/*` paths. They never call the gateway or handle tokens directly. In an app wrapped in `withAuth`, both prefixes rewrite to the gateway. The rewrites are in the `fallback` phase, so a route handler of the app serves its own path first. The `proxy.ts` of the app gates `/api/*` by the session cookie and leaves `/auth/*` open, because sign-in and register run before a session exists. A file upload is the one fetch to another origin. The client gets a signed address from a service through `/api/*`, and sends the file to that address, not through the gateway.
 
