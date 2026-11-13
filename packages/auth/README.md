@@ -4,13 +4,13 @@ Auth library: config, proxy helpers, and session accessors.
 
 ## 0. Prerequisites
 
-Peer-compatible with Next 15–16 and React 18–19.
+Peer-compatible with Next 16.3.3 or a later 16.x, and React 19.2 or a later 19.x.
 
 ## 1. Exports
 
 | Path | Purpose |
 |---|---|
-| `auth` | Server-side gateway access: `bifrost` (the typed client of the gateway, which forwards the session cookies), `createGatewayClient` (the same client for the spec of a service that the gateway forwards to), `getSession` (it throws a `GatewayError` when the gateway fails), `requireGateway` (a read that throws a `GatewayError` on a failure), `requireSession`, `requireAdmin` (an admin session that passed the second step), `getSignInProviders` (the GitHub and Google sign-in the gateway has set up, and a `"use cache"` read that sends no cookies), and the `Session`, `User`, `Role`, and `SignInProvider` types. `Paths` and `Schema` give the types of the gateway API, from `src/openapi.d.ts`. |
+| `auth` | Server-side gateway access. `bifrost` is the typed client of the gateway, which forwards the session cookies. `createGatewayClient` makes the same client for the spec of a service that the gateway forwards to. `getSession` throws a `GatewayError` when the gateway fails, and so does the read of `requireGateway`. `requireSession` gives the session, and `requireAdmin` gives an admin session that passed the second step. `getSignInProviders` gives the GitHub and Google sign-in that the gateway has set up, and `getTurnstileSiteKey` gives the Turnstile key of the register page. Both are `"use cache"` reads that send no cookies. The types are `Session`, `User`, `Role`, and `SignInProvider`, and `Paths` and `Schema` give the types of the gateway API, from `src/openapi.d.ts`. |
 | `auth/app-config` | `appConfig`, the Next config that each app shares, and `securityHeaders`. It reads no environment, so an app with no sign-in uses it with no `BIFROST_URL`. |
 | `auth/config` | `withAuth`, which wraps a Next config with the gateway rewrites, and `appConfig`, the Next config that each app shares. |
 | `auth/proxy` | `proxy`, the session gate that the `proxy.ts` of an app exports, and `forwardClientIp`, the proxy of an app with no gate. Both send the browser address to the gateway. |

@@ -4,6 +4,7 @@ import { Grid, type GridColumn } from 'ui/grid'
 import { Icon } from 'ui/icon'
 import { JsonTree } from 'ui/json-tree'
 import { Stack } from 'ui/stack'
+import { Text } from 'ui/text'
 import { columns, type Person, people } from '../data.tsx'
 import { useClickInspector } from './use-click-inspector.ts'
 
@@ -20,7 +21,7 @@ const actionColumns: GridColumn<Person>[] = [
 ]
 
 export default function RowClick() {
-	const { pick, tree } = useClickInspector<Person>()
+	const { picked, pick, ...tree } = useClickInspector<Person>()
 
 	// A click on a control in a cell, such as the edit button, is not a row
 	// click. Tab into the grid, move with the arrow keys, and press Enter or
@@ -28,7 +29,8 @@ export default function RowClick() {
 	return (
 		<Stack gap="md">
 			<Grid columns={actionColumns} rows={people} getKey={(row) => row.id} onRowClick={pick} />
-			<JsonTree {...tree} />
+			<Text>Last row click: {picked ? null : 'None'}</Text>
+			{picked && <JsonTree data={picked} aria-label="Last row click" {...tree} />}
 		</Stack>
 	)
 }

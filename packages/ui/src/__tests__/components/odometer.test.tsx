@@ -25,7 +25,9 @@ describe('Odometer', () => {
 	})
 
 	it('applies a custom format function', () => {
-		const { container } = renderUI(<Odometer value={42} format={(n) => `${Math.round(n)} pts`} />)
+		const { container } = renderUI(
+			<Odometer value={42} formatValue={(n) => `${Math.round(n)} pts`} />,
+		)
 
 		expect(bySlot(container, 'odometer-display')).toHaveTextContent('42 pts')
 	})

@@ -662,6 +662,10 @@
 				"!**/__benchmarks__/**"
 			],
 			"plugins": ["./.biome/plugins/no-camel-case-fixed-constant.grit"]
+		},
+		{
+			"includes": ["apps/**/*.tsx", "packages/**/*.tsx"],
+			"plugins": ["./.biome/plugins/no-key-after-spread.grit"]
 		}
 	],
 	"files": {

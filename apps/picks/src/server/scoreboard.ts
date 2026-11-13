@@ -35,13 +35,26 @@ export async function getSchedule(): Promise<Schedule> {
 }
 
 /**
+ * Whether a week is in play at `now`: a game is live, or a kickoff is within
+ * the hour or past it. Thus the live scores start at kickoff, and not up to an
+ * hour late. The cache of the games and the refresh of the week page both
+ * follow it.
+ */
+export function inPlay(games: Game[], now: number): boolean {
+	return games.some(
+		(game) =>
+			game.state === 'live' ||
+			(game.state === 'scheduled' && Date.parse(game.kickoff) - now < HOUR),
+	)
+}
+
+/**
  * The games of one week of a regular season.
  *
  * @remarks
  * A week in play changes each minute, a week that is over does not change, and
- * a week to come changes only when a kickoff moves. The cache life follows. A
- * week with a kickoff within the hour, or past it, also takes the life of a
- * week in play, so the live scores start at kickoff and not up to an hour late.
+ * a week to come changes only when a kickoff moves. The cache life follows
+ * {@link inPlay}.
  */
 export async function getWeekGames(season: number, week: number): Promise<Game[]> {
 	'use cache'
@@ -50,13 +63,7 @@ export async function getWeekGames(season: number, week: number): Promise<Game[]
 		await scoreboard({ dates: String(season), seasontype: REGULAR_SEASON, week: String(week) }),
 	)
 
-	const now = Date.now()
-
-	const kickoffSoon = games.some(
-		(game) => game.state === 'scheduled' && Date.parse(game.kickoff) - now < HOUR,
-	)
-
-	if (kickoffSoon || games.some((game) => game.state === 'live')) cacheLife('minutes')
+	if (inPlay(games, Date.now())) cacheLife('minutes')
 	else if (games.length > 0 && games.every((game) => game.state === 'final')) cacheLife('days')
 	else cacheLife('hours')
 

@@ -48,7 +48,8 @@ export function makePerson(id: number): Person {
 	return toPerson(person(id))
 }
 
-// A larger set, so that the pagination and the window examples have pages to move through.
+// A larger set, so that the sticky header, the pagination, and the window examples have rows to
+// move through.
 export const manyPeople: Person[] = listPeople(47).map(toPerson)
 
 export const columns: GridColumn<Person>[] = [

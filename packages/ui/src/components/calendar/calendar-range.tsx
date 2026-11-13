@@ -19,10 +19,10 @@ export type CalendarRangeProps = {
 	/**
 	 * Fires when the reader presses a day, by pointer or by keyboard, with that
 	 * day. It fires also on a second press of the same day. It is an event, not
-	 * a change report, as `Calendar.onDayPress` is. The parent owns the
+	 * a change report, as `Calendar.onDayClick` is. The parent owns the
 	 * endpoints, as DatePicker does.
 	 */
-	onDayPress?: (date: Date) => void
+	onDayClick?: (date: Date) => void
 	min?: Date
 	max?: Date
 	/** Controlled first range endpoint; the band is painted from here to the effective end. */
@@ -36,7 +36,7 @@ export type CalendarRangeProps = {
 	 */
 	hoverDate?: Date | null
 	/** Fires when the pointer enters or leaves a day, with that day or `null`, so the parent can drive the `hoverDate` preview. */
-	onHoverDate?: (date: Date | null) => void
+	onHoverDateChange?: (date: Date | null) => void
 	/** Fires when the month of the grid changes, with the first of that month. The prop passes through to `<Calendar>`. */
 	onMonthChange?: (month: Date) => void
 	active?: CalendarActive | null
@@ -86,32 +86,36 @@ function getDayFlags(
 }
 
 /**
- * The enter handler of each rendered day, for each `onHoverDate`. The inner map
+ * The enter handler of each rendered day, for each `onHoverDateChange`. The inner map
  * keys each handler on the `Date` of its cell, not on the day number. The
  * calendar keeps one `Date` for each day while it renders that month. When the
  * month leaves the view, its `Date`s and their handlers go too.
  */
 const enterHandlers = new WeakMap<(date: Date | null) => void, WeakMap<Date, () => void>>()
 
-/** The leave handler, for each `onHoverDate`. */
+/** The leave handler, for each `onHoverDateChange`. */
 const leaveHandlers = new WeakMap<(date: Date | null) => void, () => void>()
 
 /**
  * The hover handlers of a day cell. Each handler keeps its identity for the same
- * `onHoverDate` and the same day while that month renders. A memoized cell then
+ * `onHoverDateChange` and the same day while that month renders. A memoized cell then
  * holds when the band moves past it.
  */
 function hoverHandlers(
-	onHoverDate: ((date: Date | null) => void) | undefined,
+	onHoverDateChange: ((date: Date | null) => void) | undefined,
 	date: Date,
 ): Pick<CalendarDayProps, 'onMouseEnter' | 'onMouseLeave'> {
-	if (!onHoverDate) return {}
+	if (!onHoverDateChange) return {}
 
-	const byDay = getOrCompute(enterHandlers, onHoverDate, () => new WeakMap<Date, () => void>())
+	const byDay = getOrCompute(
+		enterHandlers,
+		onHoverDateChange,
+		() => new WeakMap<Date, () => void>(),
+	)
 
 	return {
-		onMouseEnter: getOrCompute(byDay, date, (day) => () => onHoverDate(day)),
-		onMouseLeave: getOrCompute(leaveHandlers, onHoverDate, (report) => () => report(null)),
+		onMouseEnter: getOrCompute(byDay, date, (day) => () => onHoverDateChange(day)),
+		onMouseLeave: getOrCompute(leaveHandlers, onHoverDateChange, (report) => () => report(null)),
 	}
 }
 
@@ -123,7 +127,7 @@ function hoverHandlers(
  * the leading and trailing edges in either selection order. The effective end
  * is the `hoverDate` preview when it and `rangeStart` are set, else
  * `rangeEnd`. Hover over a day
- * reports it through `onHoverDate` for live in-progress feedback. Endpoint
+ * reports it through `onHoverDateChange` for live in-progress feedback. Endpoint
  * state is fully controlled by the parent. When the parent moves `rangeStart`
  * (else `rangeEnd`) to another month, the view follows it. Forwards `locale`,
  * `size`, bounds, and the imperative `ref` to `Calendar`.
@@ -131,13 +135,13 @@ function hoverHandlers(
  * @remarks Client component (`'use client'`).
  */
 export function CalendarRange({
-	onDayPress,
+	onDayClick,
 	min,
 	max,
 	rangeStart,
 	rangeEnd,
 	hoverDate,
-	onHoverDate,
+	onHoverDateChange,
 	onMonthChange,
 	active,
 	footerRef,
@@ -168,10 +172,10 @@ export function CalendarRange({
 					isInnerRange && 'rounded-none',
 					k({ start: isStartEdge, end: isEndEdge }).day.range,
 				),
-				...hoverHandlers(onHoverDate, date),
+				...hoverHandlers(onHoverDateChange, date),
 			}
 		},
-		[rangeStart, effectiveEnd, onHoverDate],
+		[rangeStart, effectiveEnd, onHoverDateChange],
 	)
 
 	return (
@@ -180,7 +184,7 @@ export function CalendarRange({
 			// The first endpoint anchors the view, so the grid follows a parent that
 			// moves the range to another month. `getDayProps` owns the selection.
 			value={rangeStart ?? rangeEnd ?? null}
-			onDayPress={onDayPress}
+			onDayClick={onDayClick}
 			min={min}
 			max={max}
 			active={active}

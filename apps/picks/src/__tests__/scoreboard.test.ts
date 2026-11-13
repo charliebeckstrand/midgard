@@ -14,7 +14,7 @@ vi.mock('../server/espn-scoreboard', async (importActual) => ({
 	readGames,
 }))
 
-const { getWeekGames } = await import('../server/scoreboard')
+const { getWeekGames, inPlay } = await import('../server/scoreboard')
 
 const KICKOFF = '2026-09-13T17:00Z'
 
@@ -69,5 +69,19 @@ describe('getWeekGames', () => {
 		],
 	])('%s', async ([, games, now, life]) => {
 		expect(await lifeAt(games, now)).toBe(life)
+	})
+})
+
+describe('inPlay', () => {
+	const kickoff = Date.parse(KICKOFF)
+
+	it('holds within the hour before a kickoff, so the week page refreshes from kickoff', () => {
+		expect(inPlay([game({ kickoff: KICKOFF })], kickoff - 30 * MINUTE)).toBe(true)
+	})
+
+	it('does not hold while the next kickoff is more than an hour away, or after the last game', () => {
+		expect(inPlay([game({ kickoff: KICKOFF })], kickoff - 61 * MINUTE)).toBe(false)
+
+		expect(inPlay([game({ state: 'final' })], kickoff)).toBe(false)
 	})
 })

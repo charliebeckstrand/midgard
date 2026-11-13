@@ -45,7 +45,7 @@ export type PivotTableProps<T> = Pick<
 	/** How to aggregate the value field within a (row × column) group. @defaultValue 'sum' */
 	aggregation?: PivotAggregation
 	/** Format cell values. @defaultValue up to two fraction digits in the `<LocaleProvider>` locale, so a whole number prints with no fraction. */
-	format?: (value: number) => ReactNode
+	formatValue?: (value: number) => ReactNode
 	/** Label for the row-dimension column. Without it, the corner cell is an empty `<td>`, not a header. */
 	rowHeader?: ReactNode
 	/** Which totals to render. @defaultValue 'none' */
@@ -77,7 +77,7 @@ export function PivotTable<T>({
 	rows,
 	keys,
 	aggregation = 'sum',
-	format,
+	formatValue,
 	rowHeader,
 	totals = 'none',
 	rowOrder,
@@ -110,7 +110,7 @@ export function PivotTable<T>({
 
 	const { locale } = useLocale()
 
-	const formatValue = format ?? fractionFormat(locale)
+	const format = formatValue ?? fractionFormat(locale)
 
 	return (
 		<Table
@@ -153,13 +153,13 @@ export function PivotTable<T>({
 
 								return (
 									<TableCell key={column} className="text-end tabular-nums">
-										{value != null ? formatValue(value) : emptyCell}
+										{value != null ? format(value) : emptyCell}
 									</TableCell>
 								)
 							})}
 							{showRowTotals && (
 								<TableCell className="text-end font-semibold tabular-nums">
-									{total != null ? formatValue(total) : emptyCell}
+									{total != null ? format(total) : emptyCell}
 								</TableCell>
 							)}
 						</TableRow>
@@ -178,13 +178,13 @@ export function PivotTable<T>({
 
 							return (
 								<TableCell key={column} className="text-end tabular-nums">
-									{total != null ? formatValue(total) : emptyCell}
+									{total != null ? format(total) : emptyCell}
 								</TableCell>
 							)
 						})}
 						{showRowTotals && (
 							<TableCell className="text-end tabular-nums">
-								{grandTotal != null ? formatValue(grandTotal) : emptyCell}
+								{grandTotal != null ? format(grandTotal) : emptyCell}
 							</TableCell>
 						)}
 					</TableRow>

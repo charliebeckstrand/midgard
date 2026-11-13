@@ -2,7 +2,7 @@
 
 import { type DefaultOptions, QueryClientProvider } from '@tanstack/react-query'
 import NextLink from 'next/link'
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { defineMessages, useIntl } from 'ui/primitives/intl'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { type LocaleConfig, LocaleProvider } from 'ui/providers/locale'
@@ -93,19 +93,11 @@ function AppQueryProvider({
 
 	const intl = useIntl()
 
-	// The client lives as long as the app, and the reader can change the locale.
-	// The ref gives the toast title the intl of the newest commit.
-	const intlRef = useRef(intl)
-
-	useEffect(() => {
-		intlRef.current = intl
-	}, [intl])
-
 	const [client] = useState(() =>
 		createAppQueryClient({
 			queries,
 			toast,
-			failureTitle: () => intlRef.current.formatMessage(messages.failed),
+			failureTitle: () => intl.formatMessage(messages.failed),
 		}),
 	)
 

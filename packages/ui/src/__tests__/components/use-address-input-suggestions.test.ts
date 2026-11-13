@@ -20,7 +20,7 @@ function renderSuggestions(options: Partial<Options> = {}) {
 		query: 'abc',
 		enabled: true,
 		provider: makeProvider(),
-		debounceMs: 0,
+		debounce: 0,
 		minQueryLength: 2,
 		...options,
 	}
@@ -35,7 +35,7 @@ function renderSuggestions(options: Partial<Options> = {}) {
 
 describe('useAddressInputSuggestions', () => {
 	it('returns empty initial state', () => {
-		const { result } = renderSuggestions({ query: '', debounceMs: 100 })
+		const { result } = renderSuggestions({ query: '', debounce: 100 })
 
 		expect(result.current.suggestions).toEqual([])
 
@@ -81,7 +81,7 @@ describe('useAddressInputSuggestions', () => {
 			{ id: '2', label: 'second' } as AddressSuggestion,
 		])
 
-		const { result } = renderSuggestions({ query: 'main', provider, debounceMs: 10 })
+		const { result } = renderSuggestions({ query: 'main', provider, debounce: 10 })
 
 		expect(result.current.loading).toBe(true)
 

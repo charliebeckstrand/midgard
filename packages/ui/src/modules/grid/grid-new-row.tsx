@@ -381,8 +381,8 @@ export function GridNewRow<T>({
 					if (!isDataColumn(column))
 						return (
 							<TableCell
-								{...slotCellProps(session, index)}
 								key={column.id}
+								{...slotCellProps(session, index)}
 								aria-colindex={ariaColIndex}
 								className={cn(className, k.nav.cell)}
 								style={pinned.style}

@@ -631,6 +631,26 @@ describe('SidebarItem', () => {
 		expect(close).not.toHaveBeenCalled()
 	})
 
+	it('keeps an enclosing drawer open on each click when closeOnClick is false', () => {
+		const close = vi.fn()
+
+		renderUI(
+			<OffcanvasContext value={{ close }}>
+				<Sidebar>
+					<SidebarItem closeOnClick={false}>
+						<SidebarLabel>Home</SidebarLabel>
+					</SidebarItem>
+				</Sidebar>
+			</OffcanvasContext>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Home' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Home' }))
+
+		expect(close).not.toHaveBeenCalled()
+	})
+
 	it('closes an enclosing drawer once when an href item has no onClick', () => {
 		const close = vi.fn()
 

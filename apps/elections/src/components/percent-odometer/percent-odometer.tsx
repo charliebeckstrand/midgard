@@ -24,7 +24,7 @@ export function PercentOdometer({ value, digits, className }: PercentOdometerPro
 	return (
 		<Odometer
 			value={value}
-			format={(next) => percentText(intl.formatNumber, next, digits)}
+			formatValue={(next) => percentText(intl.formatNumber, next, digits)}
 			className={className}
 		/>
 	)

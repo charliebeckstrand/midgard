@@ -34,8 +34,8 @@ export default function Range() {
 				rangeStart={start}
 				rangeEnd={end}
 				hoverDate={end === null ? hover : null}
-				onHoverDate={setHover}
-				onDayPress={pick}
+				onHoverDateChange={setHover}
+				onDayClick={pick}
 			/>
 			<Text>
 				Value:{' '}

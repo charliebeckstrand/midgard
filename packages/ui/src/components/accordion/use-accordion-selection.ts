@@ -53,8 +53,12 @@ type HeldSingle = {
  * @internal
  */
 export type SingleProps = {
-	/** The open mode. Single mode keeps one section open at most. @defaultValue 'single' */
-	type?: 'single'
+	/**
+	 * Lets more than one section be open at once. Set it to `true` to take an
+	 * array `value`.
+	 * @defaultValue false
+	 */
+	multiple?: false
 } & (CollapsibleSingle | HeldSingle)
 
 /**
@@ -62,7 +66,7 @@ export type SingleProps = {
  * @internal
  */
 export type MultipleProps = {
-	type: 'multiple'
+	multiple: true
 	value?: string[]
 	defaultValue?: string[]
 	/**
@@ -130,7 +134,7 @@ function toArray(value: string | string[] | null | undefined): string[] {
  * @internal
  */
 export function useAccordionSelection(props: SingleProps | MultipleProps): AccordionSelection {
-	const multiple = props.type === 'multiple'
+	const multiple = props.multiple === true
 
 	// A multiple accordion closes each open section on a toggle.
 	const collapsible = multiple || (props.collapsible ?? true)
@@ -139,12 +143,12 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 	// keeps the context identity stable across controlled renders.
 	const controlledValue = useMemo(
 		() =>
-			props.type === 'multiple'
+			props.multiple === true
 				? props.value
 				: props.value !== undefined
 					? toArray(props.value)
 					: undefined,
-		[props.type, props.value],
+		[props.multiple, props.value],
 	)
 
 	// Set while a toggle that changes nothing runs. `useControllable` compares

@@ -1015,6 +1015,10 @@
 		"defaultMessage": "Monthly recurring revenue",
 		"description": "Text of a demo in the docs, in components/stat/with-delta-and-description.tsx."
 	},
+	"docs.demo.0146643c33a2": {
+		"defaultMessage": "Press and hold a group header and select Manage rows",
+		"description": "Text of a demo in the docs as touchText, in modules/grid/groups/row-manager.tsx."
+	},
 	"docs.demo.0156a26b09b5": {
 		"defaultMessage": "Sign to accept the agreement.",
 		"description": "Text of a demo in the docs as validate, in components/signature-pad/in-a-form.tsx."
@@ -1054,10 +1058,6 @@
 	"docs.demo.02f843261112": {
 		"defaultMessage": "Underline",
 		"description": "Text of a demo in the docs as label, in components/toolbar/playground.tsx, components/toolbar/with-groups.tsx."
-	},
-	"docs.demo.039277ecd938": {
-		"defaultMessage": "Group type",
-		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/index.tsx."
 	},
 	"docs.demo.04c0940339ec": {
 		"defaultMessage": "You can preview images, PDF files, video, and most text files. Other files show their name and size.",
@@ -1170,10 +1170,6 @@
 	"docs.demo.0c6789827f81": {
 		"defaultMessage": "Revenue, margin, and costs by month",
 		"description": "Text of a demo in the docs as aria-label, in modules/chart/line/multi-series.tsx."
-	},
-	"docs.demo.0c77fe09ab33": {
-		"defaultMessage": "Client",
-		"description": "Text of a demo in the docs, in modules/grid/virtualization/index.tsx."
 	},
 	"docs.demo.0d269385dc9a": {
 		"defaultMessage": "Description list",
@@ -1447,6 +1443,10 @@
 		"defaultMessage": "Neutral",
 		"description": "Text of a demo in the docs, in components/toast/severity.tsx."
 	},
+	"docs.demo.1c8111849638": {
+		"defaultMessage": "Shift-click or drag across the cells to select a range",
+		"description": "Text of a demo in the docs as mouseText, in modules/grid/events/cell-range.tsx."
+	},
 	"docs.demo.1cd53eadd6b9": {
 		"defaultMessage": "Rate your visit",
 		"description": "Text of a demo in the docs, in components/rating/half-stars.tsx."
@@ -1667,6 +1667,10 @@
 		"defaultMessage": "Category",
 		"description": "Text of a demo in the docs, in modules/form/filters/with-date-picker.tsx."
 	},
+	"docs.demo.296053e54c31": {
+		"defaultMessage": "Last cell click:",
+		"description": "Text of a demo in the docs, in modules/grid/events/cell-click.tsx."
+	},
 	"docs.demo.2975132481a7": {
 		"defaultMessage": "Weekly",
 		"description": "Text of a demo in the docs as label, in components/radio/controlled.tsx."
@@ -1694,6 +1698,10 @@
 	"docs.demo.2a3d9a240c92": {
 		"defaultMessage": "Project files",
 		"description": "Text of a demo in the docs as aria-label, in components/tree/nested.tsx."
+	},
+	"docs.demo.2a477048ff6c": {
+		"defaultMessage": "Right-click a group header and select Manage rows",
+		"description": "Text of a demo in the docs as mouseText, in modules/grid/groups/row-manager.tsx."
 	},
 	"docs.demo.2a485f271d9d": {
 		"defaultMessage": "Last close reason:",
@@ -1749,7 +1757,7 @@
 	},
 	"docs.demo.2d275a74912c": {
 		"defaultMessage": "Metric",
-		"description": "Text of a demo in the docs as title, in modules/grid/sparkline/in-cell-sparklines.tsx."
+		"description": "Text of a demo in the docs as title, in modules/grid/sparkline/in-a-cell.tsx."
 	},
 	"docs.demo.2d2b151ab11d": {
 		"defaultMessage": "Invoice date",
@@ -2062,10 +2070,6 @@
 	"docs.demo.3fbe5ed156f1": {
 		"defaultMessage": "Enterprise",
 		"description": "Text of a demo in the docs as label, in modules/form/error-summary.tsx."
-	},
-	"docs.demo.3fdc9a587693": {
-		"defaultMessage": "Column",
-		"description": "Text of a demo in the docs, in modules/grid/groups/index.tsx."
 	},
 	"docs.demo.3ffd2686dc17": {
 		"defaultMessage": "Shiny text",
@@ -2387,6 +2391,10 @@
 		"defaultMessage": "Tuesday, June 16",
 		"description": "Text of a demo in the docs, in components/drawer/resize.tsx."
 	},
+	"docs.demo.54fd0713384a": {
+		"defaultMessage": "Last cell click",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/cell-click.tsx."
+	},
 	"docs.demo.556ddb005272": {
 		"defaultMessage": "Add the new team plan",
 		"description": "Text of a demo in the docs as description, in components/list/with-descriptions.tsx."
@@ -2501,7 +2509,7 @@
 	},
 	"docs.demo.5c2b06176d6c": {
 		"defaultMessage": "Signups",
-		"description": "Text of a demo in the docs as label, yName, in modules/chart/line/date-labels.tsx, modules/grid/sparkline/in-cell-sparklines.tsx."
+		"description": "Text of a demo in the docs as label, yName, in modules/chart/line/date-labels.tsx, modules/grid/sparkline/in-a-cell.tsx."
 	},
 	"docs.demo.5c58cd7963ca": {
 		"defaultMessage": "Copy invite link",
@@ -2650,6 +2658,14 @@
 	"docs.demo.664b0a5c07ec": {
 		"defaultMessage": "Referral bonus",
 		"description": "Text of a demo in the docs as label, in components/segment/campaigns.ts."
+	},
+	"docs.demo.6653426eb598": {
+		"defaultMessage": "Use a keyboard or a mouse to select a range of cells",
+		"description": "Text of a demo in the docs as touchText, in modules/grid/events/cell-range.tsx."
+	},
+	"docs.demo.66805ed90f04": {
+		"defaultMessage": "Last cell double-click:",
+		"description": "Text of a demo in the docs, in modules/grid/events/double-click.tsx."
 	},
 	"docs.demo.66880d2d8216": {
 		"defaultMessage": "Authentication",
@@ -2923,13 +2939,17 @@
 		"defaultMessage": "Settings",
 		"description": "Text of a demo in the docs as aria-label, label, in components/command-palette/commands.tsx, components/menu/title-and-description.tsx, components/nav/with-content.tsx and 4 more."
 	},
+	"docs.demo.74f3ff12948f": {
+		"defaultMessage": "Last row click:",
+		"description": "Text of a demo in the docs, in modules/grid/events/row-click.tsx."
+	},
 	"docs.demo.751ac08e0f00": {
 		"defaultMessage": "Quarterly sales report",
 		"description": "Text of a demo in the docs as aria-label, in components/pdf-viewer/playground.tsx."
 	},
 	"docs.demo.756e66241ed5": {
 		"defaultMessage": "By period",
-		"description": "Text of a demo in the docs as title, in modules/grid/sparkline/in-cell-sparklines.tsx."
+		"description": "Text of a demo in the docs as title, in modules/grid/sparkline/in-a-cell.tsx."
 	},
 	"docs.demo.7593ce8cb85d": {
 		"defaultMessage": "The team planned the scope and the schedule.",
@@ -3259,6 +3279,10 @@
 		"defaultMessage": "Workspace",
 		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections-divider-and-spacer.tsx."
 	},
+	"docs.demo.87d1b7f7669d": {
+		"defaultMessage": "Last cell double-click",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/double-click.tsx."
+	},
 	"docs.demo.87e7176a7ce7": {
 		"defaultMessage": "Delete message",
 		"description": "Text of a demo in the docs, in components/toast/with-action.tsx."
@@ -3543,10 +3567,6 @@
 		"defaultMessage": "Bold",
 		"description": "Text of a demo in the docs as label, in components/toolbar/playground.tsx, components/toolbar/with-groups.tsx."
 	},
-	"docs.demo.95110d74c4c0": {
-		"defaultMessage": "Row",
-		"description": "Text of a demo in the docs, in modules/grid/groups/index.tsx."
-	},
 	"docs.demo.95236e3abc9d": {
 		"defaultMessage": "Orders by weekday and hour",
 		"description": "Text of a demo in the docs as aria-label, in modules/chart/heatmap/activity.tsx, modules/chart/heatmap/animated.tsx."
@@ -3578,6 +3598,10 @@
 	"docs.demo.969ccbd3cf63": {
 		"defaultMessage": "Email",
 		"description": "Text of a demo in the docs as aria-label, placeholder, title, in components/control/playground.tsx, components/description-list/playground.tsx, components/fieldset/playground.tsx and 15 more."
+	},
+	"docs.demo.96cfa9013743": {
+		"defaultMessage": "Last row click",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/row-click.tsx."
 	},
 	"docs.demo.96f64f836aa3": {
 		"defaultMessage": "Project members",
@@ -3657,7 +3681,7 @@
 	},
 	"docs.demo.9adc310d36f1": {
 		"defaultMessage": "{label} by period, last 12 periods",
-		"description": "Text of a demo in the docs as aria-label, in modules/grid/sparkline/in-cell-sparklines.tsx. The argument {label} is a value from the code."
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/sparkline/in-a-cell.tsx. The argument {label} is a value from the code."
 	},
 	"docs.demo.9af70da5251e": {
 		"defaultMessage": "Find a person",
@@ -3745,7 +3769,7 @@
 	},
 	"docs.demo.9e217716c4e0": {
 		"defaultMessage": "Trend",
-		"description": "Text of a demo in the docs as title, in modules/grid/sparkline/in-cell-sparklines.tsx."
+		"description": "Text of a demo in the docs as title, in modules/grid/sparkline/in-a-cell.tsx."
 	},
 	"docs.demo.9e6c24f51918": {
 		"defaultMessage": "Meeting notes",
@@ -4035,10 +4059,6 @@
 		"defaultMessage": "and scroll to zoom. Drag to pan.",
 		"description": "Text of a demo in the docs, in modules/map/point/zoomable.tsx."
 	},
-	"docs.demo.ada60a9721c8": {
-		"defaultMessage": "Virtualization type",
-		"description": "Text of a demo in the docs as aria-label, in modules/grid/virtualization/index.tsx."
-	},
 	"docs.demo.adb5102dc678": {
 		"defaultMessage": "Mammals",
 		"description": "Text of a demo in the docs as label, in components/tree/without-icons.tsx."
@@ -4050,10 +4070,6 @@
 	"docs.demo.ae53cea8228b": {
 		"defaultMessage": "Postal code",
 		"description": "Text of a demo in the docs as aria-label, placeholder, in components/group/with-inputs.tsx, components/mask-input/postal-code.tsx."
-	},
-	"docs.demo.aef7de28d529": {
-		"defaultMessage": "Server",
-		"description": "Text of a demo in the docs, in modules/grid/virtualization/index.tsx."
 	},
 	"docs.demo.af73af020022": {
 		"defaultMessage": "Last error:",
@@ -4441,7 +4457,7 @@
 	},
 	"docs.demo.c5a9dd0c5e20": {
 		"defaultMessage": "{label} trend, last 12 periods",
-		"description": "Text of a demo in the docs as aria-label, in modules/grid/sparkline/in-cell-sparklines.tsx. The argument {label} is a value from the code."
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/sparkline/in-a-cell.tsx. The argument {label} is a value from the code."
 	},
 	"docs.demo.c5b14cdb5e46": {
 		"defaultMessage": "Order #1042",
@@ -4557,7 +4573,7 @@
 	},
 	"docs.demo.cb702378f315": {
 		"defaultMessage": "Errors",
-		"description": "Text of a demo in the docs as label, in modules/grid/sparkline/in-cell-sparklines.tsx."
+		"description": "Text of a demo in the docs as label, in modules/grid/sparkline/in-a-cell.tsx."
 	},
 	"docs.demo.cc0e38da9c41": {
 		"defaultMessage": "Subscribe",
@@ -4841,7 +4857,7 @@
 	},
 	"docs.demo.dc937b598926": {
 		"defaultMessage": "None",
-		"description": "Text of a demo in the docs, in components/command-palette/with-actions.tsx, components/context-menu/with-actions.tsx, components/hold-button/lifecycle-callbacks.tsx and 4 more."
+		"description": "Text of a demo in the docs, in components/command-palette/with-actions.tsx, components/context-menu/with-actions.tsx, components/hold-button/lifecycle-callbacks.tsx and 7 more."
 	},
 	"docs.demo.dcbbc656768e": {
 		"defaultMessage": "Accept agreement",
@@ -4913,11 +4929,11 @@
 	},
 	"docs.demo.e0d1b68224bf": {
 		"defaultMessage": "Current",
-		"description": "Text of a demo in the docs as title, in modules/grid/sparkline/in-cell-sparklines.tsx."
+		"description": "Text of a demo in the docs as title, in modules/grid/sparkline/in-a-cell.tsx."
 	},
 	"docs.demo.e0e7d293043c": {
 		"defaultMessage": "Latency",
-		"description": "Text of a demo in the docs as label, in modules/grid/sparkline/in-cell-sparklines.tsx."
+		"description": "Text of a demo in the docs as label, in modules/grid/sparkline/in-a-cell.tsx."
 	},
 	"docs.demo.e1cb6d30fa3f": {
 		"defaultMessage": "Due date",
@@ -6215,9 +6231,9 @@
 		"defaultMessage": "Count",
 		"description": "The label of a field of a playground in the docs. The field sets the prop count of Rating."
 	},
-	"docs.prop.debounceMs": {
-		"defaultMessage": "Debounce ms",
-		"description": "The label of a field of a playground in the docs. The field sets the prop debounceMs of AddressInput."
+	"docs.prop.debounce": {
+		"defaultMessage": "Debounce",
+		"description": "The label of a field of a playground in the docs. The field sets the prop debounce of AddressInput."
 	},
 	"docs.prop.defaultItems": {
 		"defaultMessage": "Default items",
@@ -8091,6 +8107,10 @@
 		"defaultMessage": "Imperative handle",
 		"description": "The title of an example on a page of the docs. It comes from the file name imperative-handle.tsx."
 	},
+	"docs.title.in-a-cell": {
+		"defaultMessage": "In a cell",
+		"description": "The title of an example on a page of the docs. It comes from the file name in-a-cell.tsx."
+	},
 	"docs.title.in-a-container": {
 		"defaultMessage": "In a container",
 		"description": "The title of an example on a page of the docs. It comes from the file name in-a-container.tsx."
@@ -8102,10 +8122,6 @@
 	"docs.title.in-a-form": {
 		"defaultMessage": "In a form",
 		"description": "The title of an example on a page of the docs. It comes from the file name in-a-form.tsx."
-	},
-	"docs.title.in-cell-sparklines": {
-		"defaultMessage": "In cell sparklines",
-		"description": "The title of an example on a page of the docs. It comes from the file name in-cell-sparklines.tsx."
 	},
 	"docs.title.inline-panel": {
 		"defaultMessage": "Inline panel",

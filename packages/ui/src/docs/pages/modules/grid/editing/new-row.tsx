@@ -85,7 +85,7 @@ export default function NewRow() {
 			{
 				id: Math.max(0, ...prev.map((person) => person.id)) + 1,
 				name: String(values.name).trim(),
-				email: String(values.email ?? ''),
+				email: String(values.email ?? '').trim(),
 				role: isRole(values.role) ? values.role : 'developer',
 				active: values.active === true,
 			},

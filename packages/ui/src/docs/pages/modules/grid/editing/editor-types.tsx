@@ -28,7 +28,6 @@ function CellDate({ value, onValueUpdate, ariaLabel }: GridEditCellContext<unkno
 	return (
 		<DatePicker
 			input
-			format="YYYY-MM-DD"
 			aria-label={ariaLabel}
 			value={value instanceof Date ? value : undefined}
 			onValueChange={(date) => onValueUpdate(date ?? undefined)}

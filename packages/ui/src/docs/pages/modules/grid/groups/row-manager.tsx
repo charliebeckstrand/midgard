@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Grid, type GridRowGroup } from 'ui/grid'
+import { Text } from 'ui/text'
 import { regions } from '../../../../data/commerce.ts'
+import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { sales, salesColumns } from './data.tsx'
 
 export default function RowManager() {
@@ -9,16 +11,24 @@ export default function RowManager() {
 		{ key: regions.east, color: 'amber' },
 	])
 
-	// Right-click a group header and select "Manage rows" to color the groups,
-	// to put the groups in order, and to put the rows of a group in order.
+	// The row manager colors the groups, puts the groups in order, and puts the
+	// rows of a group in order.
 	return (
-		<Grid
-			columns={salesColumns}
-			rows={sales}
-			getKey={(row) => row.id}
-			rowLabel={(row) => row.rep}
-			groupBy={{ value: 'region', rowGroups: { value: rowGroups, onValueChange: setRowGroups } }}
-			groupTotalRow
-		/>
+		<>
+			<Text tone="muted">
+				<PointerHint
+					mouseText="Right-click a group header and select Manage rows"
+					touchText="Press and hold a group header and select Manage rows"
+				/>
+			</Text>
+			<Grid
+				columns={salesColumns}
+				rows={sales}
+				getKey={(row) => row.id}
+				rowLabel={(row) => row.rep}
+				groupBy={{ value: 'region', rowGroups: { value: rowGroups, onValueChange: setRowGroups } }}
+				groupTotalRow
+			/>
+		</>
 	)
 }

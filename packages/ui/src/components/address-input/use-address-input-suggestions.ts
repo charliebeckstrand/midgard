@@ -7,7 +7,7 @@ type AddressSuggestionsOptions = {
 	enabled: boolean
 	provider: AddressProvider
 	query: string
-	debounceMs: number
+	debounce: number
 	minQueryLength: number
 	onError?: (error: unknown) => void
 }
@@ -16,7 +16,7 @@ export function useAddressInputSuggestions({
 	enabled,
 	provider,
 	query,
-	debounceMs,
+	debounce,
 	minQueryLength,
 	onError,
 }: AddressSuggestionsOptions) {
@@ -66,9 +66,9 @@ export function useAddressInputSuggestions({
 		// visible (with the spinner) until new results arrive.
 
 		// An empty query fetches without debouncing, so a `minQueryLength: 0` field
-		// paints its unfiltered suggestions on focus rather than after `debounceMs`.
+		// paints its unfiltered suggestions on focus rather than after `debounce`.
 		// Unreachable at the default `minQueryLength`, which returns above.
-		const delay = query.length === 0 ? 0 : debounceMs
+		const delay = query.length === 0 ? 0 : debounce
 
 		// One request for each run. The cleanup of the run aborts it, and React
 		// runs that cleanup before the next run.
@@ -112,7 +112,7 @@ export function useAddressInputSuggestions({
 
 			controller.abort()
 		}
-	}, [query, enabled, debounceMs, minQueryLength])
+	}, [query, enabled, debounce, minQueryLength])
 
 	return { suggestions, loading, ready }
 }

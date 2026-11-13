@@ -58,7 +58,7 @@ describe('accordion item renders', () => {
 	})
 
 	it('renders only the toggled item of a multiple accordion', () => {
-		renderUI(<Accordion type="multiple">{items()}</Accordion>)
+		renderUI(<Accordion multiple>{items()}</Accordion>)
 
 		click('section-3')
 

@@ -9,7 +9,7 @@ export default function WithSuffixSlot() {
 				<SidebarList aria-label="Main">
 					<SidebarItem
 						icon={<Search />}
-						preventClose
+						closeOnClick={false}
 						suffix={
 							<Badge color="zinc" size="md">
 								⌘K

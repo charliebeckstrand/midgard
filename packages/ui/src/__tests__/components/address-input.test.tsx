@@ -97,7 +97,7 @@ describe('AddressInput', () => {
 	it('calls the provider with the typed query after debounce', async ({ clock }) => {
 		const provider = vi.fn(mockProvider)
 
-		const { container } = renderUI(<AddressInput provider={provider} debounceMs={0} />)
+		const { container } = renderUI(<AddressInput provider={provider} debounce={0} />)
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
@@ -116,7 +116,7 @@ describe('AddressInput', () => {
 		const provider = vi.fn(mockProvider)
 
 		const { container } = renderUI(
-			<AddressInput provider={provider} debounceMs={0} minQueryLength={3} />,
+			<AddressInput provider={provider} debounce={0} minQueryLength={3} />,
 		)
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
@@ -133,7 +133,7 @@ describe('AddressInput', () => {
 		const provider = vi.fn(mockProvider)
 
 		const { container, getByText } = renderUI(
-			<AddressInput provider={provider} debounceMs={0} minQueryLength={1} />,
+			<AddressInput provider={provider} debounce={0} minQueryLength={1} />,
 		)
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
@@ -162,7 +162,7 @@ describe('AddressInput', () => {
 		const warn = vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		const { container } = renderUI(
-			<AddressInput provider={colliding} debounceMs={0} minQueryLength={1} />,
+			<AddressInput provider={colliding} debounce={0} minQueryLength={1} />,
 		)
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
@@ -183,7 +183,7 @@ describe('AddressInput', () => {
 	it('binds the selection to a Form field by name', async ({ clock }) => {
 		const { container } = renderUI(
 			<Form defaultValues={{ address: undefined as AddressSuggestion | undefined }}>
-				<AddressInput name="address" provider={mockProvider} debounceMs={0} minQueryLength={1} />
+				<AddressInput name="address" provider={mockProvider} debounce={0} minQueryLength={1} />
 				<FormValue name="address" />
 			</Form>,
 		)
@@ -232,7 +232,7 @@ describe('AddressInput', () => {
 		}
 
 		const { container } = renderUI(
-			<AddressInput provider={provider} debounceMs={0} minQueryLength={1} />,
+			<AddressInput provider={provider} debounce={0} minQueryLength={1} />,
 		)
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
@@ -252,7 +252,7 @@ describe('AddressInput', () => {
 		const provider = vi.fn(mockProvider)
 
 		const { container } = renderUI(
-			<AddressInput provider={provider} debounceMs={0} minQueryLength={0} />,
+			<AddressInput provider={provider} debounce={0} minQueryLength={0} />,
 		)
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
@@ -292,7 +292,7 @@ describe('AddressInput', () => {
 					value={address}
 					onValueChange={setAddress}
 					provider={mockProvider}
-					debounceMs={0}
+					debounce={0}
 					minQueryLength={1}
 				/>
 			)
@@ -328,7 +328,7 @@ describe('AddressInput', () => {
 		const { container } = renderUI(
 			<AddressInput
 				provider={mockProvider}
-				debounceMs={0}
+				debounce={0}
 				minQueryLength={1}
 				onValueChange={onValueChange}
 			/>,
@@ -390,7 +390,7 @@ describe('AddressInput', () => {
 
 		const provider: AddressProvider = () => suggestions.promise
 
-		const { container } = renderUI(<AddressInput provider={provider} debounceMs={0} />)
+		const { container } = renderUI(<AddressInput provider={provider} debounce={0} />)
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
@@ -898,7 +898,7 @@ describe('AddressInput onError', () => {
 		const { container } = renderUI(
 			<AddressInput
 				provider={() => Promise.reject(outage)}
-				debounceMs={0}
+				debounce={0}
 				minQueryLength={1}
 				onError={onError}
 			/>,
@@ -922,7 +922,7 @@ describe('AddressInput onError', () => {
 			})
 
 		const { container } = renderUI(
-			<AddressInput provider={provider} debounceMs={0} minQueryLength={1} onError={onError} />,
+			<AddressInput provider={provider} debounce={0} minQueryLength={1} onError={onError} />,
 		)
 
 		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
@@ -942,12 +942,7 @@ describe('AddressInput onError', () => {
 		const onError = vi.fn()
 
 		const { container } = renderUI(
-			<AddressInput
-				provider={async () => []}
-				debounceMs={0}
-				minQueryLength={1}
-				onError={onError}
-			/>,
+			<AddressInput provider={async () => []} debounce={0} minQueryLength={1} onError={onError} />,
 		)
 
 		await clock.user.type(getSlot<HTMLInputElement>(container, 'combobox-input'), 'a')

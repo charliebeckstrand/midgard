@@ -17,10 +17,11 @@ export function pickLine(game: Game, team: string): number | null {
 /**
  * The line that scores `pick`: the line saved with the pick, or for a pick
  * saved before the line posted, the line of the game now. After the game the
- * feed gives the closing line. `null` while no line is known.
+ * feed gives the closing line. A final game that never had a line scores as a
+ * pick'em. `null` while no line is known.
  */
 export function scoredLine(game: Game, pick: Pick): number | null {
-	return pick.line ?? pickLine(game, pick.team)
+	return pick.line ?? pickLine(game, pick.team) ?? (game.state === 'final' ? 0 : null)
 }
 
 /** A signed line as it reads, such as `−3.5`, `+7`, or `PK`. */
@@ -67,7 +68,10 @@ export type Tally = {
 	tie: number
 	/** The points of the right picks. */
 	points: number
-	/** The points of every graded pick, which is what a perfect week would score. */
+	/**
+	 * The points of every graded pick that is not a tie. A tie scores no points
+	 * for any side, so this is what a perfect week would score.
+	 */
 	possible: number
 }
 
@@ -84,12 +88,13 @@ export function tallyWeek(games: Game[], picks: WeekPicks): Tally {
 
 		if (grade === null || pick === undefined) continue
 
-		// A game that never had a line scores as a pick'em.
+		// A graded game is final, so `scoredLine` gives a line.
 		const points = pickPoints(scoredLine(game, pick) ?? 0)
 
 		tally[grade] += 1
 
-		tally.possible += points
+		// No pick wins a tie, so a perfect week does not score its points.
+		if (grade !== 'tie') tally.possible += points
 
 		if (grade === 'right') tally.points += points
 	}

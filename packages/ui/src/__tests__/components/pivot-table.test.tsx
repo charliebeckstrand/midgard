@@ -138,7 +138,7 @@ describe('PivotTable', () => {
 	})
 
 	it('uses custom format', () => {
-		renderPivot({ format: (v) => `${v} loads` })
+		renderPivot({ formatValue: (v) => `${v} loads` })
 
 		expect(screen.getByText('15 loads')).toBeInTheDocument()
 	})

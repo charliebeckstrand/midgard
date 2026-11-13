@@ -113,6 +113,22 @@ describe('tallyWeek', () => {
 			possible: 1,
 		})
 	})
+
+	it('leaves the points of a tie out of the possible points, because no pick wins a tie', () => {
+		const tied = {
+			...final,
+			away: team({ id: '2', score: 20 }),
+			home: team({ id: '12', score: 20 }),
+		}
+
+		expect(tallyWeek([tied], { g1: { team: '2', line: 7 } })).toEqual({
+			right: 0,
+			wrong: 0,
+			tie: 1,
+			points: 0,
+			possible: 0,
+		})
+	})
 })
 
 describe('scoredLine', () => {
@@ -126,5 +142,9 @@ describe('scoredLine', () => {
 
 	it('is null while no line is known', () => {
 		expect(scoredLine(game(), { team: '2', line: null })).toBeNull()
+	})
+
+	it("takes a pick'em for a final game that never had a line", () => {
+		expect(scoredLine({ ...final, spread: null }, { team: '2', line: null })).toBe(0)
 	})
 })

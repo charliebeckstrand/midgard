@@ -5,9 +5,9 @@ import type { JsonValue } from 'ui/json-tree'
 const ROOT = '$'
 
 /**
- * The state of a tree that shows the last click. The tree shows an empty
- * object before the first click, and its root starts closed. Each click opens
- * the root.
+ * The last click, and the state of a tree that shows it. `picked` is `null`
+ * before the first click. The root of the tree starts closed, and each click
+ * opens it.
  */
 export function useClickInspector<T extends JsonValue>() {
 	const [picked, setPicked] = useState<T | null>(null)
@@ -20,5 +20,5 @@ export function useClickInspector<T extends JsonValue>() {
 		setExpanded((prev) => (prev.has(ROOT) ? prev : new Set(prev).add(ROOT)))
 	}
 
-	return { pick, tree: { data: picked ?? {}, expanded, onExpandedChange: setExpanded } }
+	return { picked, pick, expanded, onExpandedChange: setExpanded }
 }

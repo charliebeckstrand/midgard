@@ -444,8 +444,8 @@ export function GridRowImpl<T>({
 
 					return (
 						<TableCell
-							{...cursorProps}
 							key={col.id}
+							{...cursorProps}
 							aria-colindex={ariaColIndex}
 							className={cn(specialClass, pinned.className, cursorProps?.className)}
 							style={{ ...cursorProps?.style, ...pinned.style }}
@@ -487,8 +487,8 @@ export function GridRowImpl<T>({
 
 					return (
 						<TableCell
-							{...cursorProps}
 							key={col.id}
+							{...cursorProps}
 							aria-colindex={ariaColIndex}
 							className={cn(k.cell.actions, cursorProps?.className)}
 						>

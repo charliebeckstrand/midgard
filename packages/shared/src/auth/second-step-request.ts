@@ -76,13 +76,18 @@ async function checkSecondStep(): Promise<boolean> {
  * @remarks
  * Use it before a full page load that needs the second step, such as the
  * connect of a GitHub account. For a request, use {@link fetchWithSecondStep}.
- * It resolves to `false` when the user closes the dialog, or when no dialog is
- * mounted.
+ * It resolves to `false` when the user closes the dialog, when no dialog is
+ * mounted, or when the check fails.
  */
 export function ensureSecondStep(): Promise<boolean> {
-	pending ??= checkSecondStep().finally(() => {
-		pending = undefined
-	})
+	// A failed check, such as a lost connection or a dialog chunk that did not
+	// load, counts as no second step. Thus `fetchWithSecondStep` returns the
+	// first response.
+	pending ??= checkSecondStep()
+		.catch(() => false)
+		.finally(() => {
+			pending = undefined
+		})
 
 	return pending
 }

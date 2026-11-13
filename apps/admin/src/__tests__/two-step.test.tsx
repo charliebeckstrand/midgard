@@ -16,9 +16,6 @@ vi.mock('../../app/(signed-in)/account/account-api', () => ({
 	startTotpSetup: vi.fn(async () => ({ secret: 'JBSWY3DPEHPK3PXP', uri: 'otpauth://totp/test' })),
 }))
 
-// The QR code is a canvas, and jsdom draws no canvas.
-vi.mock('../../app/(signed-in)/account/qr-code', () => ({ QrCode: () => null }))
-
 /** The factors of a user with the given count of recovery codes. */
 function factors(overrides: Partial<Factors>): Factors {
 	return { enabled: false, passkeys: 0, totp: false, recovery_codes: 0, ...overrides }

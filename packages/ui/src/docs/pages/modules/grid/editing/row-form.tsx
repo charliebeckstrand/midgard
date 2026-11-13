@@ -1,31 +1,28 @@
 import { Maximize2 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Grid, type GridColumn } from 'ui/grid'
 import { Icon } from 'ui/icon'
 import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { applyChanges, EditHelp, initialPeople, type Person, personColumns } from './people.tsx'
 
+// The button opens its row in a form, with one field for each column. On a
+// wide screen the form is a sheet from the side, and on a phone it is a
+// drawer. Shift+Enter on a cell also opens the form.
+const columns: GridColumn<Person>[] = [
+	...personColumns,
+	{
+		id: 'actions',
+		actions: (_, { expand }) => (
+			<Button variant="bare" color="blue" aria-label="Open row form" onClick={expand}>
+				<Icon icon={<Maximize2 />} />
+			</Button>
+		),
+	},
+]
+
 export default function RowForm() {
 	const [people, setPeople] = useState(initialPeople)
-
-	// The button opens its row in a form, with one field for each column. On a
-	// wide screen the form is a sheet from the side, and on a phone it is a
-	// drawer. Shift+Enter on a cell also opens the form.
-	const columns = useMemo(
-		(): GridColumn<Person>[] => [
-			...personColumns,
-			{
-				id: 'actions',
-				actions: (_, { expand }) => (
-					<Button variant="bare" color="blue" aria-label="Open row form" onClick={expand}>
-						<Icon icon={<Maximize2 />} />
-					</Button>
-				),
-			},
-		],
-		[],
-	)
 
 	return (
 		<>

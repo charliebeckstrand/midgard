@@ -3,7 +3,6 @@ export {
 	oauthStartPath,
 	sendVerificationEmail,
 	signInProviderNames,
-	signOut,
 } from './account'
 export { bifrost, RequestError, unwrap } from './bifrost'
 export { ForgotPasswordPage } from './forgot-password-page'
