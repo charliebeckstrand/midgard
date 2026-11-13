@@ -117,6 +117,39 @@ export function buildSearchIndex(data: JsonValue, term: string): SearchIndex {
 	return index
 }
 
+/**
+ * The search index of each term over `data`, built on the first read of the
+ * term. It keeps the index of the two newest terms: a render with a new term
+ * reads the new term, and the entry lists read the published term until the
+ * tree publishes the new one.
+ *
+ * @param data - The value of the tree.
+ * @returns A function from a term to its {@link SearchIndex} over `data`.
+ * @internal
+ */
+export function buildSearchIndexReader(data: JsonValue): (term: string) => SearchIndex {
+	const indexes = new Map<string, SearchIndex>()
+
+	return (term) => {
+		const cached = indexes.get(term)
+
+		if (cached) return cached
+
+		const index = buildSearchIndex(data, term)
+
+		indexes.set(term, index)
+
+		// Keep the two newest terms.
+		for (const key of indexes.keys()) {
+			if (indexes.size <= 2) break
+
+			indexes.delete(key)
+		}
+
+		return index
+	}
+}
+
 /** Keeps the entries that match directly, and the branches whose subtree holds a match in `index`. @internal */
 export function filterEntries(
 	entries: [string | number, JsonValue][],
@@ -127,6 +160,109 @@ export function filterEntries(
 		([key, value]) =>
 			matchesSearch(key, value, term) || (isBranch(value) && index.get(value) === true),
 	)
+}
+
+/** The search of a {@link JsonTree}: the term, the filter flag, and the index of the term. @internal */
+export type JsonTreeSearchState = { term: string; filter: boolean; index: SearchIndex }
+
+/**
+ * The search state of one node. The parts that the node shows depend on the
+ * search only through these values.
+ *
+ * @internal
+ */
+export type JsonTreeNodeSearch = {
+	/** The key or the scalar value of the node holds the term. */
+	highlighted: boolean
+	/** The node is a branch, and its subtree holds a match. */
+	hasMatch: boolean
+	/** The filter is on with a term, so the filter can hide the entries of the node. */
+	filtered: boolean
+	/** The filter hides the node. */
+	hidden: boolean
+	/** The number of entries that the filter keeps. It is 0 when `filtered` is false. */
+	kept: number
+}
+
+const HIGHLIGHTED = 1
+
+const HAS_MATCH = 2
+
+const FILTERED = 4
+
+const HIDDEN = 8
+
+/** The bits below the count of a packed {@link JsonTreeNodeSearch}. */
+const KEPT_SHIFT = 4
+
+/**
+ * The {@link JsonTreeNodeSearch} of one node, packed in a number, so two
+ * states compare by value.
+ *
+ * @param state - The search of the tree.
+ * @param keyName - The key of the node.
+ * @param value - The value of the node.
+ * @param root - The node is the root. The filter never hides a root branch,
+ * because no parent filters it.
+ * @internal
+ */
+export function packNodeSearch(
+	{ term, filter, index }: JsonTreeSearchState,
+	keyName: string | number | undefined,
+	value: JsonValue,
+	root: boolean,
+): number {
+	const branch = isBranch(value)
+
+	const highlighted = matchesSearch(keyName, value, term)
+
+	const hasMatch = branch && term ? index.get(value as object) === true : false
+
+	const filtered = filter && term !== ''
+
+	const hidden = filtered && !highlighted && !hasMatch && (!branch || !root)
+
+	const kept =
+		filtered && branch && !hidden ? filterEntries(getEntries(value), term, index).length : 0
+
+	return (
+		(highlighted ? HIGHLIGHTED : 0) |
+		(hasMatch ? HAS_MATCH : 0) |
+		(filtered ? FILTERED : 0) |
+		(hidden ? HIDDEN : 0) |
+		(kept << KEPT_SHIFT)
+	)
+}
+
+/** Unpacks the number that {@link packNodeSearch} gives. @internal */
+export function unpackNodeSearch(packed: number): JsonTreeNodeSearch {
+	return {
+		highlighted: (packed & HIGHLIGHTED) !== 0,
+		hasMatch: (packed & HAS_MATCH) !== 0,
+		filtered: (packed & FILTERED) !== 0,
+		hidden: (packed & HIDDEN) !== 0,
+		kept: packed >> KEPT_SHIFT,
+	}
+}
+
+/**
+ * The packed search state of each entry of a branch, as one string. The entry
+ * list of a branch reads it through `useSyncExternalStore`, which compares two
+ * reads by `Object.is`. So a new term renders the list only when the state of
+ * an entry changes. With no term, each state is 0, and the read gives the
+ * empty string.
+ *
+ * @param state - The search of the tree.
+ * @param entries - The entries of the branch, from {@link getEntries}.
+ * @internal
+ */
+export function readEntriesSearch(
+	state: JsonTreeSearchState,
+	entries: [string | number, JsonValue][],
+): string {
+	if (!state.term) return ''
+
+	return entries.map(([key, value]) => packNodeSearch(state, key, value, false)).join(',')
 }
 
 /**

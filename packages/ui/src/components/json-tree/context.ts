@@ -3,16 +3,26 @@
 import type { RefObject } from 'react'
 import { createContext } from '../../core/create-context'
 import type { KeyedStore } from '../../utilities/keyed-store'
-import type { JsonTreeCollapsible, SearchIndex } from './json-tree-utilities'
+import type { JsonTreeCollapsible } from './json-tree-utilities'
+import type { JsonTreeSearchIndex, JsonTreeSearchStore } from './use-json-tree-search'
 
 type JsonTreeContextValue = {
 	depth: number
 	defaultExpandDepth: number
 	/** Which branches open and close. Each node resolves it for its own depth. */
 	collapsible: JsonTreeCollapsible
-	search: string
-	filter: boolean
-	searchIndex: SearchIndex
+	/**
+	 * The search of the tree. The entry list of each branch reads the states of
+	 * its entries from the store, so a new term renders only the parts whose
+	 * state changes. The term itself stays out of the context value, because a
+	 * new term would render each node of the tree.
+	 */
+	search: JsonTreeSearchStore
+	/**
+	 * The search index of a term over the current `data`. It changes with `data`
+	 * alone. A new value renders each node, as each node takes a new value.
+	 */
+	searchIndex: JsonTreeSearchIndex
 	path: string
 	/** Whether the tree runs from a controlled `expanded` set. */
 	controlled: boolean

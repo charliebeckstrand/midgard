@@ -13,38 +13,33 @@ import { JsonTreeBranchHeader } from './json-tree-branch-header'
 import { JsonTreeLeafRow } from './json-tree-leaf-row'
 import {
 	encodePathSegment,
-	filterEntries,
 	getEntries,
 	isBranch,
 	isCollapsibleDepth,
 	joinPath,
-	matchesSearch,
+	unpackNodeSearch,
 } from './json-tree-utilities'
 import type { JsonValue } from './types'
+import { useEntriesSearch } from './use-json-tree-search'
 
 /** Props for {@link JsonTreeNode}. @internal */
 type JsonNodeProps = {
 	keyName?: string | number
 	value: JsonValue
+	/** The packed search state of the node, from its parent, or from {@link JsonTreeRoot} for the root. */
+	searchState: number
 }
 
 /**
- * Whether the search filter forces a branch closed: the filter is on, and no
- * entry of the branch stays. A controlled or fixed branch ignores it.
- *
- * @internal
+ * A leaf row that renders only when its props change. A branch renders its
+ * leaf entries as these rows, with no node of their own, so a branch that
+ * renders for one entry does not render the other rows.
  */
-function filterForcesClosed(
-	search: string | undefined,
-	filter: boolean | undefined,
-	empty: boolean,
-): boolean {
-	return Boolean(search && filter && empty)
-}
+const JsonTreeLeaf = memo(JsonTreeLeafRow)
 
 /**
  * Resolves a branch's open state by precedence. A branch that does not
- * collapse stays open. Then a filtered-out empty branch stays closed. Then comes the user's explicit toggle, then the search
+ * collapse stays open. Then a branch that the filter empties stays closed. Then comes the user's explicit toggle, then the search
  * auto-open, then the depth default. Controlled trees defer entirely to the expanded set.
  *
  * @internal
@@ -53,10 +48,10 @@ function resolveOpen(options: {
 	collapsible: boolean
 	controlled: boolean
 	expandedHas: boolean
-	search: string | undefined
-	filter: boolean | undefined
-	empty: boolean
+	/** The filter is on, and no entry of the branch stays. A controlled or fixed branch ignores it. */
+	forcedClosed: boolean
 	userOpen: boolean | undefined
+	/** The subtree holds a match, so it holds at least one entry. */
 	hasMatch: boolean
 	depth: number
 	defaultExpandDepth: number
@@ -65,11 +60,11 @@ function resolveOpen(options: {
 
 	if (options.controlled) return options.expandedHas
 
-	if (filterForcesClosed(options.search, options.filter, options.empty)) return false
+	if (options.forcedClosed) return false
 
 	if (options.userOpen !== undefined) return options.userOpen
 
-	if (options.search && options.hasMatch && !options.empty) return true
+	if (options.hasMatch) return true
 
 	return options.depth < options.defaultExpandDepth
 }
@@ -84,13 +79,12 @@ function resolveOpen(options: {
 export const JsonTreeNode = memo(JsonTreeNodeView)
 
 /** The body of {@link JsonTreeNode}, declared apart from its `memo` so the recursion names the memoized node. @internal */
-function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
+function JsonTreeNodeView({ keyName, value, searchState }: JsonNodeProps) {
 	const {
 		depth,
 		defaultExpandDepth,
 		collapsible: treeCollapsible,
 		search,
-		filter,
 		searchIndex,
 		path,
 		controlled,
@@ -108,9 +102,11 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 
 	const entries = useMemo(() => getEntries(value), [value])
 
-	const highlighted = matchesSearch(keyName, value, search)
+	// The parent gives the node its search state, so a new term renders the node
+	// only when its own state changes.
+	const { highlighted, hasMatch, filtered, hidden, kept } = unpackNodeSearch(searchState)
 
-	const hasMatch = branch && search ? searchIndex.get(value as object) === true : false
+	const count = filtered ? kept : entries.length
 
 	// Explicit user toggle; `undefined` defers to the default/search rules below.
 	// Seeded from the tree-level memory so a node that was toggled, unmounted by
@@ -122,12 +118,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 		userOpenMemory.current.get(nodePath),
 	)
 
-	const visibleEntries = useMemo(
-		() => (filter && search ? filterEntries(entries, search, searchIndex) : entries),
-		[entries, filter, search, searchIndex],
-	)
-
-	const empty = visibleEntries.length === 0
+	const forcedClosed = filtered && count === 0
 
 	const collapsible = isCollapsibleDepth(treeCollapsible, depth)
 
@@ -135,9 +126,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 		collapsible,
 		controlled,
 		expandedHas,
-		search,
-		filter,
-		empty,
+		forcedClosed,
 		userOpen,
 		hasMatch,
 		depth,
@@ -150,7 +139,6 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 			defaultExpandDepth,
 			collapsible: treeCollapsible,
 			search,
-			filter,
 			searchIndex,
 			path: nodePath,
 			controlled,
@@ -163,7 +151,6 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 			defaultExpandDepth,
 			treeCollapsible,
 			search,
-			filter,
 			searchIndex,
 			nodePath,
 			controlled,
@@ -173,12 +160,14 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 		],
 	)
 
-	if (filter && search && !branch && !highlighted) return null
+	// Only the root can hide itself, because a parent leaves out each entry that
+	// the filter hides.
+	if (hidden) return null
 
 	const isArray = Array.isArray(value)
 
-	const count = visibleEntries.length
-
+	// Only a root leaf comes here, because a branch renders each leaf entry as a
+	// row.
 	if (!branch) {
 		return (
 			<JsonTreeLeafRow depth={depth} keyName={keyName} value={value} highlighted={highlighted} />
@@ -193,7 +182,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 		} else {
 			// While the filter forces the branch closed, a press records nothing. A
 			// write here would open the branch when the search clears.
-			if (collapsible && filterForcesClosed(search, filter, empty)) return
+			if (collapsible && forcedClosed) return
 
 			// Write through to the tree-level memory as well as local state: local
 			// state drives this render, the memory outlives an ancestor's collapse.
@@ -232,9 +221,7 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 							{/* The children are one depth in, and the close bracket aligns with the header. */}
 							<div className={k().indent}>
 								<JsonTreeContext value={childContextValue}>
-									{visibleEntries.map(([childKey, childValue]) => (
-										<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />
-									))}
+									<JsonTreeEntries entries={entries} />
 								</JsonTreeContext>
 							</div>
 							<JsonTreeBranchClose isArray={isArray} />
@@ -245,3 +232,43 @@ function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 		</div>
 	)
 }
+
+/** Props for {@link JsonTreeEntries}. @internal */
+type JsonTreeEntriesProps = {
+	entries: [string | number, JsonValue][]
+}
+
+/**
+ * The entries of an open branch. The list reads the search state of each entry
+ * and gives it to the entry. It sits below the motion group of the branch, so a
+ * new term that changes the state of an entry renders the list and that entry,
+ * not the branch and its motion group.
+ *
+ * @internal
+ */
+const JsonTreeEntries = memo(function JsonTreeEntries({ entries }: JsonTreeEntriesProps) {
+	const { depth, search, searchIndex } = useJsonTreeContext()
+
+	const states = useEntriesSearch(search, searchIndex, entries)
+
+	return entries.map(([key, value], index) => {
+		const state = states?.[index] ?? 0
+
+		const entry = unpackNodeSearch(state)
+
+		// The filter hides the entry.
+		if (entry.hidden) return null
+
+		return isBranch(value) ? (
+			<JsonTreeNode key={String(key)} keyName={key} value={value} searchState={state} />
+		) : (
+			<JsonTreeLeaf
+				key={String(key)}
+				depth={depth}
+				keyName={key}
+				value={value}
+				highlighted={entry.highlighted}
+			/>
+		)
+	})
+})
