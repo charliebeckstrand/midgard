@@ -42,7 +42,7 @@ import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { brotliCompress, constants, gzip } from 'node:zlib'
 import { localeFile, requestLocale } from '../src/docs/app/language.ts'
-import { markRoot, type RootMarks, rootMarks } from '../src/providers/ui/root-marks.ts'
+import { markRoot, type RootMarks, rootMarks } from '../src/server/root-marks.ts'
 import { getOrCompute } from '../src/utilities/get-or-compute.ts'
 
 const brotli = promisify(brotliCompress)

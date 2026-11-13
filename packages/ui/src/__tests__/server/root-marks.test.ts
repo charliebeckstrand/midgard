@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { hasRootTag, markRoot, rootMarks } from '../../providers/ui/root-marks'
+import { hasRootTag, markRoot, rootMarks } from '../../server/root-marks'
 
 // A server writes the stored settings of the reader on the root element of a
 // page from the cookies of the request (CONVENTIONS §3.13).

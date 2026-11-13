@@ -62,7 +62,7 @@ export type AppearanceProviderProps = {
  * `@custom-variant dark (&:where(.dark, .dark *))`. Each choice has a copy in
  * a cookie, so the server writes the classes of the stored theme, density,
  * motion, sidebar, and surfaces on the root before the first paint (`rootMarks` in
- * `ui/providers/ui`). With no cookie, the choices apply at hydration. A light
+ * `ui/server`). With no cookie, the choices apply at hydration. A light
  * theme adds the `light` class, so a `dark` variant can follow the OS while
  * the root has no theme class.
  *

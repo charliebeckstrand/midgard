@@ -6,7 +6,9 @@ import { useDateFormat } from 'ui/providers/locale'
 import { type DayTexts, spanKey } from '../../utilities/day-text'
 import { DAY_FORMAT } from '../../utilities/places-filter'
 
-const [DayTextsContext, useDayTexts] = createContext<DayTexts>('DayTexts', { default: {} })
+const [DayTextsContext, useDayTextsContext] = createContext<DayTexts>('DayTexts', {
+	default: {},
+})
 
 /**
  * Gives the text of each day that the page read on the server (see `dayTexts`)
@@ -26,13 +28,18 @@ export function useDayText(): {
 	day: (value: string) => string | undefined
 	span: (from: string, to: string) => string | undefined
 } {
-	const texts = useDayTexts()
+	const texts = useDayTextsContext()
 
 	const format = useDateFormat(DAY_FORMAT)
 
 	return {
-		day: (value) => texts[value] ?? format?.format(new Date(value)),
+		day: (value) => texts[value]?.text ?? format?.format(new Date(value)),
 		span: (from, to) =>
-			texts[spanKey(from, to)] ?? format?.formatRange(new Date(from), new Date(to)),
+			texts[spanKey(from, to)]?.text ?? format?.formatRange(new Date(from), new Date(to)),
 	}
+}
+
+/** The text of each day and each span that the page read on the server (see `dayTexts`). */
+export function useDayTexts(): DayTexts {
+	return useDayTextsContext()
 }

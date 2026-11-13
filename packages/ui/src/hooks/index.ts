@@ -59,6 +59,7 @@ export { type FloatingUIOptions, type FloatingUIResult, useFloatingUI } from './
 export { type FormattedInputOptions, useFormattedInput } from './use-formatted-input'
 export { useHasHover } from './use-has-hover'
 export { useHoverAcrossScroll } from './use-hover-across-scroll'
+export { useHydrated } from './use-hydrated'
 export { type IdScopeOptions, useIdScope } from './use-id-scope'
 export { useIdleLoad } from './use-idle-load'
 export { type IntentLoad, useIntentLoad } from './use-intent-load'

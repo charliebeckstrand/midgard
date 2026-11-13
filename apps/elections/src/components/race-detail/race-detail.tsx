@@ -1,14 +1,16 @@
 'use client'
 
 import { Activity, type ComponentType, lazy, Suspense } from 'react'
+import { DateTime } from 'ui/date-time'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import type { MapFeatureCollection } from 'ui/map'
 import { Odometer } from 'ui/odometer'
 import { Placeholder } from 'ui/placeholder'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
+import type { DateText } from 'ui/server'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
-import type { Candidate, Race, RaceTime } from '../../types'
+import type { Candidate, Race } from '../../types'
 import type { RaceView } from '../../utilities/elections-url'
 import { isCalled } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
@@ -82,7 +84,7 @@ const MAP_PLACEHOLDER = (
  * `readRace`). The browser does not format it again, so the hydration render
  * has the text of the HTML, and a reload paints the time, not a skeleton.
  */
-function FactTime({ time }: { time: RaceTime | null | undefined }) {
+function FactTime({ time }: { time: DateText | null | undefined }) {
 	if (time === undefined) {
 		return <Placeholder as="span" pulse={false} className="inline-block h-[1lh] w-40 align-top" />
 	}
@@ -92,7 +94,7 @@ function FactTime({ time }: { time: RaceTime | null | undefined }) {
 			Unknown
 		</Text>
 	) : (
-		<time dateTime={time.at}>{time.text}</time>
+		<DateTime value={time} />
 	)
 }
 

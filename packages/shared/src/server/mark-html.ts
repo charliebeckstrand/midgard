@@ -1,5 +1,5 @@
 import type { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from 'node:http'
-import { hasRootTag, markRoot, type RootMarks, rootMarks } from 'ui/providers/ui'
+import { hasRootTag, markRoot, type RootMarks, rootMarks } from 'ui/server'
 
 // The marks of the root element come from the cookies of the request, so an
 // HTML response is not the same for each reader. A cache must not give the

@@ -1,5 +1,5 @@
-import { eventsRootAttributes } from '../../modules/events/engine/events-setting'
-import { appearanceRootClasses } from '../appearance/appearance-root'
+import { eventsRootAttributes } from '../modules/events/engine/events-setting'
+import { appearanceRootClasses } from '../providers/appearance/appearance-root'
 
 /**
  * The marks that the stored settings of the reader put on the root element of

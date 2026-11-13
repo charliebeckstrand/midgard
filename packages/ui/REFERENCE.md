@@ -14,6 +14,7 @@
 | Primitives | [`docs/PRIMITIVES.md`](docs/PRIMITIVES.md) | `ui/primitives/*`: floating/overlay shells, polymorphism, the styling-context cascades. |
 | Providers | [`docs/PROVIDERS.md`](docs/PROVIDERS.md) | `ui/providers/*`: appearance, density, glass, headless, locale, and the app-root `UIProvider`. |
 | Recipes | [`docs/RECIPES.md`](docs/RECIPES.md) | The design layer (Kiso tokens → Kumi groups → Kata), plus the recipe engine. |
+| Server | [`docs/SERVER.md`](docs/SERVER.md) | `ui/server`: functions that run on a server and render no React, such as the marks of the stored settings on the root element. |
 | Core | [`docs/CORE.md`](docs/CORE.md) | `ui/core`: `cn`, `createContext`, `createSlot`, `announce`, and friends. |
 | Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, color contrast, caret, dismiss-layers, keyboard navigation). |
 

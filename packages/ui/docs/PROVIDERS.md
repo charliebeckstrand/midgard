@@ -10,16 +10,12 @@ import { UIProvider } from 'ui/providers/ui'
 
 ## `ui/providers/ui`: app-root integration
 
-The integration point that an app mounts once in its client providers, and the server functions that write the stored settings on the root element.
+The integration point that an app mounts once in its client providers. The server functions that write the stored settings on the root element are in `ui/server` ([`SERVER.md`](SERVER.md)).
 
 | Export | Summary |
 |---|---|
 | `UIProvider` | App-root integration point: the framework link, the default portal container, and the current `pathname`. It mounts the hosts of `useConfirm` and `useToast`. Put `LocaleProvider` above it. |
 | `UIProviderProps` *(type)* | Props for `UIProvider`. |
-| `rootMarks` | Server only. The classes and the attributes of the root element for the stored settings of the reader in a `Cookie` header. |
-| `markRoot` | Server only. Writes `RootMarks` on the opening tag of the root element of an HTML string. |
-| `hasRootTag` | Server only. Whether an HTML string holds the whole opening tag of the root element. A server that streams a page marks it after this is true. |
-| `RootMarks` *(type)* | The classes and the attributes that `rootMarks` gives. |
 | `PathMatch` *(type)* | How an item `href` matches the `pathname`: `exact`, or `prefix` to also match each path under the `href`. |
 | `useLink` | Reads the app-registered framework link component from `<UIProvider>`. |
 | `usePortalContainer` | Resolves a portal's container: explicit per-call value, then ambient `<UIProvider>` value, then `null`. |

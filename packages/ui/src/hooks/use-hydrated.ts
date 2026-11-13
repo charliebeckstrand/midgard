@@ -20,7 +20,6 @@ const onServer = () => false
  * a server cannot observe, so the gate opens only after hydration.
  *
  * @returns Whether the client has hydrated.
- * @internal
  */
 export function useHydrated(): boolean {
 	return useSyncExternalStore(noopSubscribe, onClient, onServer)

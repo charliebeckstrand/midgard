@@ -16,8 +16,11 @@ const texts = dayTexts([placeOn('a', '2026-08-15')], [trip('t')])
 describe('dayTexts', () => {
 	it('writes each day of a visit and each span of a trip', () => {
 		expect(texts).toEqual({
-			'2026-08-15': 'Aug 15, 2026',
-			'2026-09-25/2026-09-28': expect.stringMatching(/^Sep 25\s–\s28, 2026$/),
+			'2026-08-15': { at: '2026-08-15T00:00:00.000Z', text: 'Aug 15, 2026' },
+			'2026-09-25/2026-09-28': {
+				at: '2026-09-25T00:00:00.000Z',
+				text: expect.stringMatching(/^Sep 25\s–\s28, 2026$/),
+			},
 		})
 	})
 })
@@ -60,7 +63,7 @@ describe('DayText', () => {
 
 		expect(container.querySelector('time')?.textContent).toBe('Aug 15, 2026')
 
-		expect(container.textContent).toContain(texts['2026-09-25/2026-09-28'])
+		expect(container.textContent).toContain(texts['2026-09-25/2026-09-28']?.text)
 
 		act(() => root?.unmount())
 	})
