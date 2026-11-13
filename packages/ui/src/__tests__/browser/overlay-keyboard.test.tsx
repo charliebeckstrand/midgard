@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../components/drawer'
 import { Input } from '../../components/input'
 import { Overlay } from '../../primitives/overlay'
-import { act, getSlot, renderUI } from '../helpers'
+import { act, getSlot, renderUI, screen } from '../helpers'
 
 /**
  * A modal overlay on a phone with the on-screen keyboard up.
@@ -11,6 +11,11 @@ import { act, getSlot, renderUI } from '../helpers'
  * visual viewport gets smaller, and the keyboard covers the bottom of the page.
  * A drawer on the bottom edge of a box fixed to the viewport went behind the
  * keyboard, and a touch on the backdrop panned the page under the overlay.
+ *
+ * The box follows only the keyboard of a field in it. The keyboard of the
+ * address bar of iOS Chrome also makes the visual viewport smaller, and a
+ * drawer that followed it changed height behind the address bar, then
+ * stepped back to the full viewport.
  *
  * Chromium shows no keyboard, so each case sets the height of the visual
  * viewport and sends its `resize`.
@@ -27,6 +32,13 @@ function setViewportHeight(height: number) {
 
 	act(() => {
 		window.visualViewport?.dispatchEvent(new Event('resize'))
+	})
+}
+
+/** Moves the focus to the field in the drawer, so the keyboard is for the drawer. */
+function focusField() {
+	act(() => {
+		screen.getByRole('textbox', { name: 'Name' }).focus()
 	})
 }
 
@@ -51,6 +63,8 @@ describe('overlay with the on-screen keyboard', () => {
 
 		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
 
+		focusField()
+
 		setViewportHeight(window.innerHeight - KEYBOARD)
 
 		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight - KEYBOARD, 0)
@@ -58,6 +72,8 @@ describe('overlay with the on-screen keyboard', () => {
 
 	it('keeps the backdrop over the full viewport, under the keyboard too', () => {
 		renderDrawer()
+
+		focusField()
 
 		setViewportHeight(window.innerHeight - KEYBOARD)
 
@@ -71,9 +87,53 @@ describe('overlay with the on-screen keyboard', () => {
 	it('gives the full viewport back when the keyboard goes down', () => {
 		const panel = renderDrawer()
 
+		focusField()
+
 		setViewportHeight(window.innerHeight - KEYBOARD)
 
 		setViewportHeight(window.innerHeight)
+
+		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
+	})
+
+	// The keyboard of the address bar, with the focus on a button in the drawer.
+	it('keeps the full viewport for a keyboard that is not for a field in the box', () => {
+		const panel = renderDrawer()
+
+		const { height } = panel.getBoundingClientRect()
+
+		setViewportHeight(window.innerHeight - KEYBOARD)
+
+		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
+
+		expect(panel.getBoundingClientRect().height).toBeCloseTo(height, 0)
+	})
+
+	it('gives the full viewport back at once when the field loses the focus', () => {
+		const panel = renderDrawer()
+
+		focusField()
+
+		setViewportHeight(window.innerHeight - KEYBOARD)
+
+		// The keyboard goes down over the panel. The visual viewport is still small.
+		act(() => {
+			screen.getByRole('textbox', { name: 'Name' }).blur()
+		})
+
+		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
+	})
+
+	it('gives the full viewport back when the browser takes the focus', () => {
+		const panel = renderDrawer()
+
+		focusField()
+
+		setViewportHeight(window.innerHeight - KEYBOARD)
+
+		act(() => {
+			window.dispatchEvent(new FocusEvent('blur'))
+		})
 
 		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
 	})
