@@ -1,7 +1,7 @@
 'use client'
 
 import { Card } from 'ui/card'
-import { SeatChart } from 'ui/chart'
+import { ChartHeaderActionsFallback, SeatChart } from 'ui/chart'
 import { Link } from 'ui/link'
 import { Odometer } from 'ui/odometer'
 import { HeaderActions, HeaderActionsSlot } from 'ui/primitives/header-actions'
@@ -44,6 +44,23 @@ export function SeatCard({ contest, parties, href }: SeatCardProps) {
 
 	const red = parties.find((party) => party.slot === 'red')
 
+	// One element: the chart renders it, and the fallback in the title row reads
+	// its props to draw the same buttons before the mount.
+	const chart = (
+		<SeatChart
+			aria-label={`${contest.label} seats`}
+			groups={seatGroups(contest, parties).map((group) => ({
+				seats: group.seats,
+				color: group.slot,
+				label: group.label,
+				hollow: group.hollow,
+			}))}
+			majority={contest.majority}
+			contextMenu={{ button: true }}
+			height={220}
+		/>
+	)
+
 	return (
 		<HeaderActions slotted>
 			<Card>
@@ -53,24 +70,16 @@ export function SeatCard({ contest, parties, href }: SeatCardProps) {
 							{contest.plural}
 						</Link>
 
-						{/* The chart puts its View data and menu buttons here, side by side. */}
+						{/* The chart puts its View data and menu buttons here, side by side. The
+						    fallback draws them in the server render, before the chart mounts. */}
 						<Flex gap="xs" align="center">
-							<HeaderActionsSlot />
+							<HeaderActionsSlot>
+								<ChartHeaderActionsFallback chart={chart} />
+							</HeaderActionsSlot>
 						</Flex>
 					</Flex>
 
-					<SeatChart
-						aria-label={`${contest.label} seats`}
-						groups={seatGroups(contest, parties).map((group) => ({
-							seats: group.seats,
-							color: group.slot,
-							label: group.label,
-							hollow: group.hollow,
-						}))}
-						majority={contest.majority}
-						contextMenu={{ button: true }}
-						height={220}
-					/>
+					{chart}
 
 					<Flex align="end" justify="between" gap="lg">
 						<SeatCount party={blue} />

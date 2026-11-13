@@ -1,18 +1,17 @@
 'use client'
 
-import { EllipsisVertical, Table2 } from 'lucide-react'
 import { createPortal } from 'react-dom'
-import { Button } from '../../../components/button'
 import { ContextMenuList } from '../../../components/context-menu'
 import type { ContextMenuEntry, ContextMenuItem } from '../../../components/context-menu/types'
-import { Icon } from '../../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../../components/menu'
-import { cn } from '../../../core/cn'
 import { dataAttr } from '../../../core/data-attr'
 import { useHeaderActionsSlotted } from '../../../primitives/header-actions/context'
 import { useHeaderActions } from '../../../primitives/header-actions/use-header-actions'
-import { useIntl } from '../../../primitives/intl/use-intl'
-import { chartMenuName, chartMessages } from './chart-messages'
+import {
+	ChartMenuButtonBox,
+	ChartMenuTriggerButton,
+	ChartViewDataButton,
+} from './chart-header-actions-fallback'
 import { useChartMenu } from './context'
 
 /** Props for {@link ChartMenuButton}. @internal */
@@ -48,7 +47,8 @@ function findItem(entries: ContextMenuEntry[], key: string): ContextMenuItem | u
  * portal. Otherwise it sits at the end of the chart header. The button covers no
  * mark in either place. The portal needs the element, which comes after the
  * mount. In a box that sets `slotted` on its `HeaderActions`, the server render
- * thus shows no button, and the button comes into the header row at hydration.
+ * thus shows no button. A {@link ChartHeaderActionsFallback} in the slot draws
+ * the same buttons until the chart puts its own there.
  *
  * A chart that draws no inline header puts the button in the top end corner of
  * the chart instead: the heatmap, the choropleth, a chart with `heading` off, a
@@ -73,45 +73,33 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 	// the other copy in the chart, and the button moves at hydration.
 	const slotted = useHeaderActionsSlotted()
 
-	const intl = useIntl()
-
-	if (chartMenu === null || chartMenu.entries.length === 0) return null
-
 	if (place === 'host' ? host === null : host !== null || slotted) return null
 
-	const { entries, button, capped } = chartMenu
+	const entries = chartMenu?.entries ?? []
+
+	const button = entries.length > 0 && chartMenu?.button === true
 
 	const menu = button ? (
-		<div
-			data-slot="chart-menu-button"
-			// In the chart header the box keeps the height of one header line, and the
-			// button overflows it. The tier reserve of the header then stays correct.
-			className={cn(
-				'hidden shrink-0 items-center pointer-coarse:flex',
-				place === 'header' && 'h-6',
-				place === 'corner' && 'absolute end-0 top-0 z-10',
-			)}
-		>
-			<Menu placement="bottom-end" capped={capped}>
+		<ChartMenuButtonBox place={place}>
+			<Menu placement="bottom-end" capped={chartMenu?.capped}>
 				<MenuTrigger>
-					<Button type="button" variant="bare" aria-label={chartMenuName(intl, title)}>
-						<Icon icon={<EllipsisVertical />} />
-					</Button>
+					<ChartMenuTriggerButton title={title} />
 				</MenuTrigger>
 
 				<MenuContent>
 					<ContextMenuList entries={entries} />
 				</MenuContent>
 			</Menu>
-		</div>
+		</ChartMenuButtonBox>
 	) : null
 
 	if (host === null) return menu
 
 	const viewData = findItem(entries, 'view-data')
 
-	if (menu === null && !viewData?.onAction) return null
-
+	// The host copy puts its row in the slot also when the row is empty, such as
+	// for a chart with no data. The row marks the slot as taken, so a fallback in
+	// the slot hides and draws no button that the chart does not have.
 	return createPortal(
 		<span
 			data-slot="chart-header-actions"
@@ -119,20 +107,11 @@ export function ChartMenuButton({ title, place }: ChartMenuButtonProps) {
 			className="contents"
 		>
 			{viewData?.onAction && (
-				<Button
-					type="button"
-					variant="bare"
-					data-slot="chart-view-data"
+				<ChartViewDataButton
+					title={title}
 					disabled={viewData.disabled}
-					aria-label={
-						title
-							? intl.formatMessage(chartMessages.viewDataFor, { title })
-							: intl.formatMessage(chartMessages.viewData)
-					}
 					onClick={viewData.onAction}
-				>
-					<Icon icon={<Table2 />} />
-				</Button>
+				/>
 			)}
 
 			{menu}
