@@ -79,10 +79,10 @@ export type AddressInputProps = Omit<
 	 */
 	clearable?: boolean
 	/**
-	 * Delay before the typed query triggers a provider fetch.
+	 * Delay in milliseconds before the typed query triggers a provider fetch.
 	 * @defaultValue 500
 	 */
-	debounceMs?: number
+	debounce?: number
 	/**
 	 * Shortest query length that triggers a fetch; below it the menu stays empty.
 	 * The length counts only the characters inside the leading and trailing white
@@ -108,7 +108,7 @@ export type AddressInputProps = Omit<
 
 /**
  * Address autocomplete over a pluggable geocoding `provider`. Built on
- * `<Combobox>`: debounces the query by `debounceMs`, fetches once the query
+ * `<Combobox>`: debounces the query by `debounce`, fetches once the query
  * reaches `minQueryLength`, and renders each {@link AddressSuggestion} as a
  * labeled option with optional description. The suffix tracks selection state.
  * It shows a `<LoadingSpinner>` while fetching, and a `<MapPin>` when empty or
@@ -135,7 +135,7 @@ export function AddressInput({
 	defaultValue,
 	onValueChange,
 	provider = photonProvider,
-	debounceMs = 500,
+	debounce = 500,
 	minQueryLength = 3,
 	onError,
 	placeholder: placeholderProp,
@@ -156,7 +156,7 @@ export function AddressInput({
 		enabled: menuRequested,
 		provider,
 		query,
-		debounceMs,
+		debounce,
 		minQueryLength,
 		onError,
 	})

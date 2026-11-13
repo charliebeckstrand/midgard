@@ -170,7 +170,10 @@ export function useDatePickerRangeState({
 		[],
 	)
 
-	const onHoverDate = useCallback((date: Date | null) => dispatch({ type: 'hover', date }), [])
+	const onHoverDateChange = useCallback(
+		(date: Date | null) => dispatch({ type: 'hover', date }),
+		[],
+	)
 
 	const onTriggerKeyDown = useDatePickerKeyboard({
 		disabled: field.disabled,
@@ -213,9 +216,9 @@ export function useDatePickerRangeState({
 			rangeStart: rangeStart ?? committedStart,
 			rangeEnd: rangeStart === null ? committedEnd : null,
 			hoverDate: rangeStart !== null ? hoverDate : null,
-			onHoverDate,
+			onHoverDateChange,
 			// A press, not a change: the second press of a range commits it.
-			onDayPress: handleSelect,
+			onDayClick: handleSelect,
 			active: open ? active : null,
 			calendarRef,
 		},

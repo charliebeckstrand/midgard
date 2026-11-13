@@ -75,7 +75,7 @@ export function TripList({
 	const intl = useIntl()
 
 	return (
-		<List items={[...shown]} sortable={false} virtual getKey={(trip) => trip.id}>
+		<List items={[...shown]} sortable={false} virtualize getKey={(trip) => trip.id}>
 			{(trip) => (
 				<SummaryRow
 					name={trip.name}

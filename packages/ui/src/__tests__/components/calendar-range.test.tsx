@@ -65,14 +65,14 @@ describe('CalendarRange', () => {
 		expect(findDay(5)?.className).not.toMatch(/rounded-[se]-none/)
 	})
 
-	it('calls onHoverDate on mouse enter and leave of a day cell', () => {
-		const onHoverDate = vi.fn()
+	it('calls onHoverDateChange on mouse enter and leave of a day cell', () => {
+		const onHoverDateChange = vi.fn()
 
 		renderUI(
 			<CalendarRange
 				rangeStart={d(2024, 3, 5)}
 				rangeEnd={d(2024, 3, 10)}
-				onHoverDate={onHoverDate}
+				onHoverDateChange={onHoverDateChange}
 			/>,
 		)
 
@@ -80,11 +80,11 @@ describe('CalendarRange', () => {
 
 		fireEvent.mouseEnter(day)
 
-		expect(onHoverDate).toHaveBeenCalledWith(expect.any(Date))
+		expect(onHoverDateChange).toHaveBeenCalledWith(expect.any(Date))
 
 		fireEvent.mouseLeave(day)
 
-		expect(onHoverDate).toHaveBeenCalledWith(null)
+		expect(onHoverDateChange).toHaveBeenCalledWith(null)
 	})
 
 	it('uses hoverDate for the effective range end when provided', () => {

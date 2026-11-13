@@ -33,7 +33,7 @@ export type NavMenuItemProps = OmitEach<NavItemProps, 'value'> & { value?: strin
  * the scope's active indicator when current. Current resolves from `current`,
  * else from the `value` selection binding, else from an `href` that matches the
  * `pathname` of `UIProvider` (see `match`). Hosts `prefix`/`suffix` affix slots outside the
- * inner button and closes an enclosing offcanvas on click unless `preventClose`.
+ * inner button and closes an enclosing offcanvas on click unless `closeOnClick` is `false`.
  * A Ctrl, Meta, or Alt click on a link is for the browser, such as a new tab, so
  * the item does not change the selection or close the offcanvas.
  *
@@ -57,7 +57,7 @@ export function NavItem({
 	match,
 	className,
 	children,
-	preventClose,
+	closeOnClick,
 	prefix,
 	suffix,
 	onClick,
@@ -69,7 +69,7 @@ export function NavItem({
 		ariaCurrent,
 		indicator: { ref: indicatorRef, tapHandlers },
 		handleClick,
-	} = useNavItem({ current, value, href: props.href, match, preventClose, onClick })
+	} = useNavItem({ current, value, href: props.href, match, closeOnClick, onClick })
 
 	// Affixes render as siblings of the inner button, not nested inside it; a
 	// slot can host its own interactive element. With an affix present the row

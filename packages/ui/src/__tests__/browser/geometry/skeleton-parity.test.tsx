@@ -639,7 +639,7 @@ describe('skeleton parity (real browser)', () => {
 			const real = box(
 				renderUI(
 					<Box density={size}>
-						<Accordion type="single" variant={variant}>
+						<Accordion variant={variant}>
 							<AccordionItem value="shipping">
 								<AccordionTrigger>Shipping</AccordionTrigger>
 							</AccordionItem>

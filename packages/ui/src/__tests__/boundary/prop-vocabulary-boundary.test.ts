@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { isPropertySignatureDeclaration, type Node } from 'typescript/unstable/ast'
-import { type Project, SymbolFlags, type Symbol as TsSymbol } from 'typescript/unstable/sync'
+import {
+	type Project,
+	SignatureKind,
+	SymbolFlags,
+	type Symbol as TsSymbol,
+	type Type,
+} from 'typescript/unstable/sync'
 import { afterAll, describe, expect, it } from 'vitest'
 import {
 	barrelExports,
@@ -12,11 +18,13 @@ import { startTypeScript } from '../helpers/ts-server'
 import { srcRelative } from '../helpers/walk-source'
 
 // A prop takes the name that the vocabulary of CONVENTIONS §4.9 gives for its
-// idea. This gate reads each props type of the public barrels with the checker,
-// so a key that a props type takes from a base or a shared type counts too.
-// It holds three rows of the table: no alias in the last column, a heading
-// level typed `HeadingLevel`, and a severity whose kinds are the kinds of
-// `AlertSeverity`.
+// idea. This gate reads each props type and each options type of the public
+// barrels with the checker, so a key that a type takes from a base or a shared
+// type counts too. It holds these rows of the table: no alias in the last
+// column, a heading level typed `HeadingLevel`, a severity whose kinds are the
+// kinds of `AlertSeverity`, `multiple` for more than one at once, `formatValue`
+// for a number formatter, a time with no unit suffix, `on<Thing>Click` for the
+// activation of an item, and `on<State>Change` for a change of a state.
 // The `onChange` row is out of scope: a native `onChange` is correct on a
 // component that takes the native base of an input.
 
@@ -28,18 +36,29 @@ const ALIASES = new Map([
 	['pending', 'loading'],
 	['dismissible', 'closable'],
 	['finalFocus', 'returnFocusTo'],
+	['virtual', 'virtualize'],
+	['preventClose', 'closeOnClick'],
 ])
+
+/** A time in milliseconds with its unit in the name, such as `debounceMs`. */
+const UNIT_SUFFIX = /^(\w+)Ms$/
+
+/** An item handler that ends in `Press`, such as `onDayPress`. */
+const PRESS_HANDLER = /^(on\w+)Press$/
+
+/** A function of one number, such as `(value: number) => string`. */
+const NUMBER_FORMATTER = /^\(\s*\w+\s*:\s*number\s*\)\s*=>/
 
 /** A union of heading levels written by hand, such as `1 | 2 | 3`. */
 const HAND_LEVELS = /^\(?\s*[1-6](?:\s*\|\s*[1-6])+\s*\)?$/
 
-/** Each exported `<Name>Props` type of the public barrels, once. */
+/** Each exported `<Name>Props` and `<Name>Options` type of the public barrels, once. */
 function publicProps(project: Project): TsSymbol[] {
 	const found = new Map<number, TsSymbol>()
 
 	for (const barrel of publicBarrels()) {
 		for (const symbol of barrelExports(project, barrel)) {
-			if (!symbol.name.endsWith('Props')) continue
+			if (!/(Props|Options)$/.test(symbol.name)) continue
 
 			const props = resolvedSymbol(project.checker, symbol)
 
@@ -72,6 +91,99 @@ function typeText(project: Project, property: TsSymbol): string | undefined {
 	return declaration.getSourceFile().text.slice(declaration.type.pos, declaration.type.end).trim()
 }
 
+/** The type of a property without `undefined` and `null`. */
+function valueType(project: Project, property: TsSymbol): Type | undefined {
+	const { checker } = project
+
+	const type = checker.getTypeOfSymbol(property)
+
+	return type && checker.getNonNullableType(type)
+}
+
+/**
+ * Whether `onX` reports a new value of the key `x`: its first parameter and
+ * `x` take the same values. `confirm` and `onConfirm` pass, because the key is
+ * the config of a button and the callback takes no value.
+ */
+function reportsState(project: Project, state: TsSymbol, callback: TsSymbol): boolean {
+	const { checker } = project
+
+	const stateType = valueType(project, state)
+
+	const callbackType = valueType(project, callback)
+
+	if (!stateType || !callbackType) return false
+
+	const [signature] = checker.getSignaturesOfType(callbackType, SignatureKind.Call)
+
+	if (!signature || signature.getParameters().length === 0) return false
+
+	const parameter = checker.getParameterType(signature, 0)
+
+	const reported = parameter && checker.getNonNullableType(parameter)
+
+	return Boolean(
+		reported &&
+			checker.isTypeAssignableTo(reported, stateType) &&
+			checker.isTypeAssignableTo(stateType, reported),
+	)
+}
+
+/** Each break of a naming pattern of the table by `property`, as a fix. */
+function patternBreaks(property: TsSymbol, text: string | undefined): string[] {
+	const fixes: string[] = []
+
+	const unit = UNIT_SUFFIX.exec(property.name)
+
+	if (unit)
+		fixes.push(`name it \`${unit[1]}\`: a time prop is in milliseconds, with no unit in its name`)
+
+	const press = PRESS_HANDLER.exec(property.name)
+
+	if (press) fixes.push(`name it \`${press[1]}Click\``)
+
+	if (property.name === 'type' && text?.includes("'multiple'")) {
+		fixes.push('name it `multiple`, a boolean that discriminates the value')
+	}
+
+	if (property.name === 'format' && text && NUMBER_FORMATTER.test(text)) {
+		fixes.push('name it `formatValue`')
+	}
+
+	return fixes
+}
+
+/**
+ * Each break of a naming pattern by a key that ui declares, as a fix. A key of
+ * a React base, such as the native `onKeyPress`, keeps its name.
+ */
+function ownBreaks(
+	project: Project,
+	property: TsSymbol,
+	text: string | undefined,
+	byName: ReadonlyMap<string, TsSymbol>,
+): string[] {
+	const file = property.declarations?.[0]?.resolve(project)?.getSourceFile().fileName
+
+	if (!file || file.includes('node_modules')) return []
+
+	const fixes = patternBreaks(property, text)
+
+	const handler = /^on([A-Z]\w*)$/.exec(property.name)?.[1]
+
+	if (!handler || handler.endsWith('Change')) return fixes
+
+	const state = `${handler.charAt(0).toLowerCase()}${handler.slice(1)}`
+
+	const stateProperty = byName.get(state)
+
+	if (stateProperty && reportsState(project, stateProperty, property)) {
+		fixes.push(`name it \`${property.name}Change\`, as it reports \`${state}\``)
+	}
+
+	return fixes
+}
+
 /** Each property of a public props type that breaks a row of the table. */
 function violations(project: Project): string[] {
 	const { checker } = project
@@ -85,7 +197,11 @@ function violations(project: Project): string[] {
 
 		const file = declaration ? srcRelative(declaration.getSourceFile().fileName) : '?'
 
-		for (const property of checker.getPropertiesOfType(checker.getDeclaredTypeOfSymbol(props))) {
+		const properties = checker.getPropertiesOfType(checker.getDeclaredTypeOfSymbol(props))
+
+		const byName = new Map(properties.map((property) => [property.name, property]))
+
+		for (const property of properties) {
 			const at = `${file} → ${props.name}.${property.name}`
 
 			const text = typeText(project, property)
@@ -96,6 +212,8 @@ function violations(project: Project): string[] {
 			if (alias && !text?.includes('=>')) found.add(`${at}: name it \`${alias}\``)
 
 			if (text && HAND_LEVELS.test(text)) found.add(`${at}: type it \`HeadingLevel\``)
+
+			for (const fix of ownBreaks(project, property, text, byName)) found.add(`${at}: ${fix}`)
 
 			if (property.name !== 'severity') continue
 

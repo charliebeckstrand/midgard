@@ -26,7 +26,7 @@ const TRIGGER_SELECTOR =
 	'[data-slot="accordion-trigger"]:not(:disabled):not(:scope [data-slot="accordion"] *)'
 
 /**
- * Props for {@link Accordion}. The `type` discriminant selects single- vs
+ * Props for {@link Accordion}. The `multiple` discriminant selects single- vs
  * multiple-open semantics and the matching `value`/`defaultValue`/`onValueChange`
  * shapes.
  */
@@ -67,7 +67,7 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 * A state change is not an arrival: `onValueChange` reports the flip, and the panel
 		 * is still growing when it does. Use this to focus, measure, or start work that
 		 * needs the section at its settled height. Never fires for a close, and never for a
-		 * section that mounts already open. A `type='single'` swap therefore reports only
+		 * section that mounts already open. A single accordion's swap therefore reports only
 		 * the section that opened, not the one it replaced.
 		 *
 		 * @see {@link DrawerPanelProps.onOpenComplete} for the panel family's form of this callback.
@@ -77,9 +77,9 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 	}
 
 /**
- * Vertically stacked set of collapsible sections. `type='single'` keeps at
- * most one open (optionally `collapsible` to none); `type='multiple'` allows
- * any number. Controlled via `value`/`onValueChange` or uncontrolled. `variant`
+ * Vertically stacked set of collapsible sections. A single accordion keeps at
+ * most one open (optionally `collapsible` to none); `multiple` allows any
+ * number. Controlled via `value`/`onValueChange` or uncontrolled. `variant`
  * defaults to `'separated'`.
  *
  * @remarks
@@ -104,7 +104,7 @@ export function Accordion(props: AccordionProps) {
 		className,
 		children,
 		ref: consumerRef,
-		type: _type,
+		multiple: _multiple,
 		value: _value,
 		defaultValue: _defaultValue,
 		onValueChange: _onValueChange,

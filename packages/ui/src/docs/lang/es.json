@@ -1557,7 +1557,7 @@
 	"docs.prop.condensed": "Condensado",
 	"docs.prop.controls": "Controles",
 	"docs.prop.count": "Cantidad",
-	"docs.prop.debounceMs": "Retardo (ms)",
+	"docs.prop.debounce": "Retardo (ms)",
 	"docs.prop.defaultItems": "Elementos iniciales",
 	"docs.prop.delay": "Retardo",
 	"docs.prop.density": "Densidad",

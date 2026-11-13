@@ -58,13 +58,13 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 			>
 				<CalendarRange
 					ref={calendarRef}
-					onDayPress={calendar.onDayPress}
+					onDayClick={calendar.onDayClick}
 					min={props.min}
 					max={props.max}
 					rangeStart={calendar.rangeStart}
 					rangeEnd={calendar.rangeEnd}
 					hoverDate={calendar.hoverDate}
-					onHoverDate={calendar.onHoverDate}
+					onHoverDateChange={calendar.onHoverDateChange}
 					onMonthChange={props.onMonthChange}
 					active={calendar.active}
 				/>

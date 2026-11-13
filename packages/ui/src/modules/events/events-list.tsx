@@ -173,7 +173,7 @@ export function EventsList({
 			getKey={getKey}
 			variant="plain"
 			sortable={false}
-			virtual
+			virtualize
 			aria-label={intl.formatMessage(eventsMessages.events)}
 		>
 			{(row) => {

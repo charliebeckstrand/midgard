@@ -13,7 +13,7 @@ export default function Currency() {
 	return (
 		<Stack gap="md" align="start">
 			<Text size="lg">
-				<Odometer value={value} format={format} />
+				<Odometer value={value} formatValue={format} />
 			</Text>
 			<Button onClick={() => setValue(Math.random() * 100_000)}>Randomize</Button>
 		</Stack>
