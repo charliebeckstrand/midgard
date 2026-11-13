@@ -26,10 +26,10 @@ export type LocaleConfig = {
 	dateFormat?: Intl.DateTimeFormatOptions
 	/**
 	 * IANA time zone (e.g. `'UTC'`, `'America/New_York'`) of each date whose
-	 * format sets no zone. The server render and the client render then give the
-	 * same text. With no zone, a date is in the zone of the reader, which the
-	 * server does not know, so it shows a skeleton until hydration.
-	 * `useDateFormat` and `DateTime` read it.
+	 * format sets no zone. With no zone, a date is in the zone of the reader.
+	 * `useDateFormat` and `DateTime` read it. A date shows a skeleton until
+	 * hydration, also with a set zone, because the date data of the server and
+	 * of the browser give different text for some formats.
 	 *
 	 * @defaultValue The zone of the reader.
 	 */
