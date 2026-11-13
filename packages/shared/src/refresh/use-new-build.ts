@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react'
 
 /**
- * Whether the server runs a new build, which `LiveRefresh` finds after a
+ * Whether the server runs a new build, which `checkBuild` finds after a
  * deploy. The flag is for this document: a reload loads the new build, and
  * the flag starts again off.
  */
@@ -12,7 +12,7 @@ let newBuild = false
 /** The readers of the flag in this document. */
 const listeners = new Set<() => void>()
 
-/** Sets the flag, and tells each reader. `LiveRefresh` calls it. */
+/** Sets the flag, and tells each reader. `checkBuild` calls it. */
 export function markNewBuild(): void {
 	if (newBuild) return
 
