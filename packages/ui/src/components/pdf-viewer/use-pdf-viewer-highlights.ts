@@ -4,8 +4,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import type { Color } from '../../core/recipe/colors'
 import { useControllable } from '../../hooks/use-controllable'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
-import { useScrollWithin } from '../../hooks/use-scroll-within'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { scrollWithin } from '../../utilities/scroll-within'
 import { toFractionRect } from './pdf-viewer-highlight-geometry'
 import type {
 	PdfViewerHighlight,
@@ -123,8 +123,6 @@ export function usePdfViewerHighlights({
 		defaultValue: defaultActiveHighlightId,
 		onValueChange: onActiveHighlightChange,
 	})
-
-	const scrollWithin = useScrollWithin()
 
 	const reduceMotion = usePrefersReducedMotion()
 
@@ -244,7 +242,7 @@ export function usePdfViewerHighlights({
 				behavior: reduceMotion ? 'auto' : 'smooth',
 			})
 		},
-		[scrollWithin, reduceMotion],
+		[reduceMotion],
 	)
 
 	const revealOnShow = useCallback(() => {

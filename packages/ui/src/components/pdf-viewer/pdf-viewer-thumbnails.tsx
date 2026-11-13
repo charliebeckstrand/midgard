@@ -3,12 +3,12 @@
 import { X } from 'lucide-react'
 import { useId, useMemo, useRef } from 'react'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
-import { useScrollWithin } from '../../hooks/use-scroll-within'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold } from '../../primitives/mount'
 import { useMountHold } from '../../primitives/mount/use-mount'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Flex } from '../../structure/flex'
+import { scrollWithin } from '../../utilities/scroll-within'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { SheetBody, SheetPanel, SheetTitle } from '../sheet'
@@ -51,8 +51,6 @@ export function PdfViewerThumbnails() {
 		root,
 		showThumbnails,
 	} = usePdfViewerContext()
-
-	const scrollCurrentIntoView = useScrollWithin()
 
 	// The sidebar is always mounted; the hold only decides whether its contents
 	// are live, and defers to the slide so the rail doesn't blank mid-transition.
@@ -127,7 +125,7 @@ export function PdfViewerThumbnails() {
 							loading={opening}
 							safePage={safePage}
 							goToPage={goToPage}
-							scrollCurrentIntoView={scrollCurrentIntoView}
+							scrollCurrentIntoView={scrollWithin}
 							onVisibleChange={showThumbnails}
 						/>
 					</MountHold>
@@ -165,7 +163,7 @@ export function PdfViewerThumbnails() {
 							loading={opening}
 							safePage={safePage}
 							goToPage={goToPage}
-							scrollCurrentIntoView={scrollCurrentIntoView}
+							scrollCurrentIntoView={scrollWithin}
 							onSelect={() => setThumbsOpen(false)}
 							onVisibleChange={showThumbnails}
 							layout="grid"

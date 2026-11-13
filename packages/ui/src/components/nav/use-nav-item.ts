@@ -9,7 +9,6 @@ import {
 	useRef,
 } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
-import { useScrollWithin } from '../../hooks/use-scroll-within'
 import { useActiveIndicator } from '../../primitives/active-indicator/use-active-indicator'
 import type { PathMatch } from '../../primitives/current/context'
 import { useCurrentItem } from '../../primitives/current/use-current'
@@ -17,6 +16,7 @@ import { useCurrentPathMatch } from '../../primitives/current/use-current-path'
 import { OffcanvasContext } from '../../primitives/offcanvas/context'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
+import { scrollWithin } from '../../utilities/scroll-within'
 
 /**
  * Canonical props shared by nav-item-style components ({@link NavItem},
@@ -110,8 +110,6 @@ export function useNavItem({
 	// The item reads its own `href`, so a navigation renders only the items whose
 	// match changes.
 	const onPath = useCurrentPathMatch(href, match)
-	const scrollWithin = useScrollWithin()
-
 	const isCurrent = current ?? (value === undefined ? onPath : item.current)
 
 	// Scroll once per becoming-current edge, tracked in a ref. The effect also
@@ -133,7 +131,7 @@ export function useNavItem({
 		scrolledRef.current = true
 
 		scrollWithin(ref.current, { block: 'nearest' })
-	}, [isCurrent, scrollWithin])
+	}, [isCurrent])
 
 	// The selection is the activation of the item, so a consumer
 	// `preventDefault()` does not cancel it. The close is side behavior, so the

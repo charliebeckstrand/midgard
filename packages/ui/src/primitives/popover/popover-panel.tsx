@@ -7,8 +7,8 @@ import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
 import type { DensityStep } from '../../core/density/steps'
 import { useA11yRoving, type VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
-import { useScrollWithin } from '../../hooks/use-scroll-within'
 import { k } from '../../recipes/kata/popover'
+import { scrollWithin } from '../../utilities/scroll-within'
 import { Density } from '../density'
 import { ReducedMotion } from '../reduced-motion'
 import * as m from '../reduced-motion/reduced-motion-elements'
@@ -156,8 +156,6 @@ export function PopoverPanel({
 		itemSource: virtualSourceRef,
 	})
 
-	const scrollWithin = useScrollWithin()
-
 	useLayoutEffect(() => {
 		if (!autoFocus || !panelRef.current) return
 
@@ -177,7 +175,7 @@ export function PopoverPanel({
 		} else {
 			panelRef.current.focus({ preventScroll: true })
 		}
-	}, [autoFocus, itemSelector, scrollWithin])
+	}, [autoFocus, itemSelector])
 
 	return (
 		<ReducedMotion>
