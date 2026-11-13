@@ -7,9 +7,13 @@
  * line of it paints its own fill (`box-decoration-clone`). The text has a
  * baseline, so the line box keeps the height of the text.
  *
+ * Forced colors replace a transparent text color with a system color, so the
+ * skeleton keeps its own colors. Otherwise the reader sees the UTC text as the
+ * time.
+ *
  * Layer: kiso · Concern: skeleton form · Unit: date-time
  */
 
 export const dateTime = {
-	text: 'inline box-decoration-clone text-transparent select-none',
+	text: 'inline box-decoration-clone text-transparent select-none forced-color-adjust-none',
 } as const
