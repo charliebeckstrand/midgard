@@ -12,7 +12,7 @@ export const listItemName = (container: ParentNode | null, id: string) =>
 	accessibleName(querySlot(container, 'list-item', 'item-id', id))
 
 type Options<T> = {
-	items: T[]
+	items: readonly T[]
 	getKey: (item: T) => string
 	orientation: Orientation
 	onReorder?: (next: T[]) => void

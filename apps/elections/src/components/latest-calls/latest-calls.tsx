@@ -40,7 +40,7 @@ export function LatestCalls({
 		<List
 			variant="plain"
 			sortable={false}
-			items={[...calls]}
+			items={calls}
 			getKey={(call) => entryKey(call.entry)}
 			aria-label="Latest calls"
 		>
