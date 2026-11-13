@@ -49,6 +49,17 @@ type AppProvidersProps = {
  * `/login` (see {@link createAppQueryClient}). The `QueryClientProvider` is in
  * `UIProvider`, so that the client can show toasts.
  *
+ * Two marks enclose the providers: an empty `template` with `data-shell="start"`
+ * before them and one with `data-shell="end"` after them. A rule of
+ * `shared/globals.css` keeps the page out of view while the first mark is in
+ * the body and the second is not. The browser paints the HTML of a page while
+ * it parses it, and a page can come in parts. Without the marks, a frame can
+ * show half a page, such as a page with no Drawer over it. The root layout
+ * renders the providers as the content of `<body>`, so the marks are children
+ * of the body. The end mark is at the end of the shell of React, so the first
+ * paint has the whole shell. Each Suspense boundary of a page streams after the
+ * shell, as before.
+ *
  * @remarks Top-level context per CONVENTIONS.md §6.1. Render it from the root
  * layout, in a `<body>` whose `<html>` has `suppressHydrationWarning`: the
  * server of the app writes the stored settings of the reader on `<html>`
@@ -58,18 +69,24 @@ type AppProvidersProps = {
  */
 export function AppProviders({ queries, timeZone, dateFormat, children }: AppProvidersProps) {
 	return (
-		<AppearanceProvider>
-			<LocaleProvider
-				locale={DEFAULT_LOCALE}
-				timeZone={timeZone}
-				dateFormat={dateFormat}
-				catalogs={catalogs}
-			>
-				<UIProvider link={NextLink}>
-					<AppQueryProvider queries={queries}>{children}</AppQueryProvider>
-				</UIProvider>
-			</LocaleProvider>
-		</AppearanceProvider>
+		<>
+			<template data-shell="start" />
+
+			<AppearanceProvider>
+				<LocaleProvider
+					locale={DEFAULT_LOCALE}
+					timeZone={timeZone}
+					dateFormat={dateFormat}
+					catalogs={catalogs}
+				>
+					<UIProvider link={NextLink}>
+						<AppQueryProvider queries={queries}>{children}</AppQueryProvider>
+					</UIProvider>
+				</LocaleProvider>
+			</AppearanceProvider>
+
+			<template data-shell="end" />
+		</>
 	)
 }
 

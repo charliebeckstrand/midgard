@@ -25,3 +25,8 @@
 :root {
 	overscroll-behavior: none;
 }
+
+/* The browser paints the HTML of a page while it parses it, and the HTML can come in parts. `AppProviders` puts an empty `template` before the shell of the page (`data-shell="start"`) and one after it (`data-shell="end"`). Until the end mark is parsed, the page stays out of view, so the first paint shows the whole shell and not half of it. A child cannot override `opacity` as it can override `visibility`. A body with no start mark, such as the global error page of Next.js, is never held. */
+body:has(> template[data-shell='start']):not(:has(> template[data-shell='end'])) {
+	opacity: 0;
+}
