@@ -12,7 +12,7 @@ import { BAR_GROW, BAR_SHRINK, barGrow, barGrowDelay } from '../chart-motion'
 import type { ChartOrientation } from '../chart-orientation'
 import { textureClass, textureStyle } from '../chart-pattern-defs'
 import { seriesGroupClass, spotClass } from '../chart-series'
-import { useChartMarkEmphasis } from '../context'
+import { useChartMarkEmphasis, useChartMarkLit } from '../context'
 import { useChartSpot } from '../use-chart-spot'
 
 /** Shared shape for the static and animated bar renderers. @internal */
@@ -209,10 +209,10 @@ type AnimatedBarProps = {
 }
 
 /**
- * One grown bar. It reads the emphasis itself, so the layer above it reads
- * none. The path element is a memo on the dim class and the plain values, so
- * an emphasis change renders each bar, but renders the Motion path only of the
- * bars whose dim class changed.
+ * One grown bar. It reads its own lit state ({@link useChartMarkLit}), so the
+ * layer above it reads no emphasis, and an emphasis change renders only the
+ * bars that dim or light up. The path element is a memo on the dim class and
+ * the plain values.
  *
  * @internal
  */
@@ -228,9 +228,7 @@ const AnimatedBar = memo(function AnimatedBar({
 	tile,
 	still,
 }: AnimatedBarProps) {
-	const { lit } = useChartMarkEmphasis()
-
-	const dim = !lit(series, datum)
+	const dim = !useChartMarkLit(series, datum)
 
 	return useMemo(() => {
 		const grow = barGrow(orientation, positive)

@@ -8,6 +8,7 @@ import {
 	type RefObject,
 	useCallback,
 	useId,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -25,6 +26,7 @@ import { ChartHeader } from '../chart-header'
 import { createChartHoverStore } from '../chart-hover-store'
 import { legendBandRow } from '../chart-legend/band'
 import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
+import { createChartMarkEmphasisStore } from '../chart-mark-emphasis-store'
 import { ChartMenuButton } from '../chart-menu-button'
 import type { ChartOrientation } from '../chart-orientation'
 import { ChartPlotBox } from '../chart-plot-box'
@@ -40,6 +42,7 @@ import {
 	ChartHoverContext,
 	type ChartHoverState,
 	ChartMarkEmphasisContext,
+	ChartMarkEmphasisStoreContext,
 	type ChartMarkRef,
 	ChartSeriesEmphasisContext,
 	ChartTierContext,
@@ -582,6 +585,12 @@ export function ChartFrame({
 		[pointedMark, markSeries, selected],
 	)
 
+	// The same emphasis as a store, for the readers of one mark. It publishes after
+	// the commit, and each reader that flips renders again before the paint.
+	const [markStore] = useState(() => createChartMarkEmphasisStore(markEmphasis))
+
+	useLayoutEffect(() => markStore.set(markEmphasis), [markStore, markEmphasis])
+
 	// The SVG renders at its committed pixel size and anchors to the box's
 	// top-left, its `viewBox` matching so user units map 1:1 to pixels, never
 	// `size-full`, which would scale the drawing (axis labels and all) to whatever
@@ -715,23 +724,25 @@ export function ChartFrame({
 			<ChartTierContext value={tier ?? 'standard'}>
 				<ChartEmphasisContext value={emphasis}>
 					<ChartMarkEmphasisContext value={markEmphasis}>
-						<ChartActionsContext value={actions}>
-							<ChartSeriesEmphasisContext value={seriesEmphasis}>
-								<ChartHoverContext value={hoverStore}>
-									<ChartFigure
-										plot={plotRegion}
-										header={header}
-										labelledBy={labelledBy}
-										legend={legendFrame}
-										legendPlacement={legendPlacement}
-										rail={rail}
-										aside={aside}
-										containerFill={containerFill}
-										aspect={aspect}
-									/>
-								</ChartHoverContext>
-							</ChartSeriesEmphasisContext>
-						</ChartActionsContext>
+						<ChartMarkEmphasisStoreContext value={markStore}>
+							<ChartActionsContext value={actions}>
+								<ChartSeriesEmphasisContext value={seriesEmphasis}>
+									<ChartHoverContext value={hoverStore}>
+										<ChartFigure
+											plot={plotRegion}
+											header={header}
+											labelledBy={labelledBy}
+											legend={legendFrame}
+											legendPlacement={legendPlacement}
+											rail={rail}
+											aside={aside}
+											containerFill={containerFill}
+											aspect={aspect}
+										/>
+									</ChartHoverContext>
+								</ChartSeriesEmphasisContext>
+							</ChartActionsContext>
+						</ChartMarkEmphasisStoreContext>
 					</ChartMarkEmphasisContext>
 				</ChartEmphasisContext>
 			</ChartTierContext>
