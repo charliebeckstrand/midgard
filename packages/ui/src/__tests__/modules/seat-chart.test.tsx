@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MARK_GAP } from '../../modules/chart/engine/chart-constants'
-import { seatFit, seatLayout } from '../../modules/chart/engine/chart-geometry/seat'
+import { seatExtent, seatFit, seatLayout } from '../../modules/chart/engine/chart-geometry/seat'
 import { SeatChart, type SeatChartProps } from '../../modules/chart/seat-chart'
 import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 
@@ -31,7 +31,7 @@ function receded(container: HTMLElement): boolean[] {
 	)
 }
 
-/** The number of discs in a seat path: each disc opens with one move. */
+/** The number of discs in a seat path, or of dashes in the majority line: each opens with one move. */
 function discs(path: Element): number {
 	return (path.getAttribute('d')?.match(/M/g) ?? []).length
 }
@@ -64,17 +64,27 @@ describe('SeatChart', () => {
 
 		expect(bySlot(renderUI(chart({ majority: undefined })).container, 'chart-majority')).toBeNull()
 
-		expect(bySlot(renderUI(chart({ majority: 100 })).container, 'chart-majority')).toBeNull()
+		expect(bySlot(renderUI(chart({ majority: 101 })).container, 'chart-majority')).toBeNull()
 	})
 
-	it('labels the majority beside its tick only with majorityLabel', () => {
+	it('draws the majority line as dashes under a marker', () => {
+		const { container } = renderUI(chart())
+
+		expect(discs(getSlot(container, 'chart-majority'))).toBeGreaterThan(1)
+
+		expect(
+			getSlot(container, 'chart-majority-marker').getAttribute('points')?.split(' '),
+		).toHaveLength(3)
+	})
+
+	it('labels the majority above its marker only with majorityLabel', () => {
 		expect(bySlot(renderUI(chart()).container, 'chart-majority-label')).toBeNull()
 
 		const label = bySlot(renderUI(chart({ majorityLabel: true })).container, 'chart-majority-label')
 
 		expect(label?.textContent).toBe('51 to win')
 
-		expect(label?.getAttribute('text-anchor')).toBe('start')
+		expect(label?.getAttribute('text-anchor')).toBe('middle')
 
 		expect(
 			bySlot(
@@ -84,8 +94,8 @@ describe('SeatChart', () => {
 		).toBeNull()
 	})
 
-	it('drops the majority label where it has no space, and keeps the tick', () => {
-		const { container } = renderUI(chart({ majorityLabel: true, width: 90, height: 45 }))
+	it('drops the majority label where it has no space, and keeps the line', () => {
+		const { container } = renderUI(chart({ majorityLabel: true, width: 60, height: 30 }))
 
 		expect(bySlot(container, 'chart-majority-label')).toBeNull()
 
@@ -141,9 +151,9 @@ describe('SeatChart', () => {
 		hit.getBoundingClientRect = () =>
 			({ left: 0, top: 0, right: 400, bottom: 200, width: 400, height: 200, x: 0, y: 0 }) as DOMRect
 
-		const layout = seatLayout(100, 5)
+		const layout = seatLayout(100, 5, 51)
 
-		const fit = seatFit(400, 200, MARK_GAP, layout.dot, true)
+		const fit = seatFit(400, 200, MARK_GAP, seatExtent(layout))
 
 		// The last seat sits at the end of the hemicycle, in the last group.
 		const seat = layout.seats.at(-1)
@@ -170,9 +180,9 @@ describe('SeatChart', () => {
 		hit.getBoundingClientRect = () =>
 			({ left: 0, top: 0, right: 400, bottom: 200, width: 400, height: 200, x: 0, y: 0 }) as DOMRect
 
-		const layout = seatLayout(100, 5)
+		const layout = seatLayout(100, 5, 51)
 
-		const fit = seatFit(400, 200, MARK_GAP, layout.dot, true)
+		const fit = seatFit(400, 200, MARK_GAP, seatExtent(layout))
 
 		const seat = layout.seats.at(-1)
 

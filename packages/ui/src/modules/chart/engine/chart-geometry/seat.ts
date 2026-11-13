@@ -8,7 +8,7 @@
 
 import { clamp } from '../../../../utilities/clamp'
 import { coord } from '../chart-coords'
-import { CALLOUT_GAP, CALLOUT_LINE, CALLOUT_NUB } from './pie'
+import { CALLOUT_LINE } from './pie'
 
 /** The radius of the inner arc, as a fraction of the outer arc, when the chart has two or more rows. @internal */
 export const SEAT_INNER_RATIO = 0.4
@@ -19,11 +19,33 @@ const SEAT_DOT_RATIO = 0.42
 /** The radius of a lone seat, in unit space. @internal */
 const LONE_SEAT_DOT = 0.25
 
-/** The gap between the outer seats and the majority tick, in seat radii. @internal */
+/** The gap between the outer seats and the majority marker, in seat radii. @internal */
 const MAJORITY_GAP = 1
 
-/** The length of the majority tick, in unit space. @internal */
-const MAJORITY_TICK = 0.12
+/** The height of the majority marker, a triangle that points down the line, in unit space. @internal */
+const MARKER_HEIGHT = 0.06
+
+/** The width of the base of the majority marker, in unit space. @internal */
+const MARKER_WIDTH = 0.07
+
+/**
+ * The half width of the aisle at the majority, as a fraction of the space
+ * between two seats of the chamber with no aisle. The aisle makes that space a
+ * little smaller, and the radius of a seat is {@link SEAT_DOT_RATIO} of it. Thus
+ * the seats at the aisle keep clear of the line down its middle.
+ *
+ * @internal
+ */
+const AISLE = 0.55
+
+/** The length of one dash and one gap of the majority line, in unit space. @internal */
+const DASH_PERIOD = 0.035
+
+/** The part of each period that the dash fills. @internal */
+const DASH_RATIO = 0.6
+
+/** The gap between the majority label and the marker, in px. @internal */
+const LABEL_GAP = 2
 
 /** One seat in unit space: its center, and its angle and arc radius. @internal */
 export type Seat = {
@@ -41,7 +63,12 @@ export type SeatLayout = {
 	seats: Seat[]
 	/** The radius of each seat. */
 	dot: number
+	/** The angle of the aisle at the majority, or `null` where the chamber has no aisle. */
+	aisle: number | null
 }
+
+/** A point in unit space or in px. @internal */
+type Point = { x: number; y: number }
 
 /**
  * The number of rows that keeps the seats about as far apart along an arc as
@@ -69,20 +96,27 @@ function arcRadii(rows: number): number[] {
 }
 
 /**
- * The seats on each arc, in proportion to its radius, so the seats stand about
- * as far apart on each arc. The seats that the rounding leaves go to the outer
- * arcs first.
+ * The seats on each arc, in proportion to the weight of the arc: the length
+ * of the arc that takes seats. Thus the seats stand about as far apart on each
+ * arc. The seats that the rounding leaves go to the outer arcs first. An arc
+ * with no weight takes no seat.
  *
  * @internal
  */
-function arcCounts(total: number, radii: number[]): number[] {
-	const sum = radii.reduce((acc, radius) => acc + radius, 0)
+function arcCounts(total: number, weights: number[]): number[] {
+	const sum = weights.reduce((acc, weight) => acc + weight, 0)
 
-	const counts = radii.map((radius) => Math.floor((total * radius) / sum))
+	const counts = weights.map((weight) => (sum > 0 ? Math.floor((total * weight) / sum) : 0))
 
 	let rest = total - counts.reduce((acc, count) => acc + count, 0)
 
-	for (let row = radii.length - 1; rest > 0; row = (row - 1 + radii.length) % radii.length) {
+	for (
+		let row = weights.length - 1;
+		rest > 0 && sum > 0;
+		row = (row - 1 + weights.length) % weights.length
+	) {
+		if ((weights[row] ?? 0) <= 0) continue
+
 		counts[row] = (counts[row] ?? 0) + 1
 
 		rest--
@@ -91,24 +125,83 @@ function arcCounts(total: number, radii: number[]): number[] {
 	return counts
 }
 
+/** The seats of one side of the aisle: the span of each arc, from the start angle to the end angle. @internal */
+type Side = { seats: number; spans: { from: number; to: number }[] }
+
 /**
- * The seats of a hemicycle of `total` seats on `rows` arcs. Each arc spreads
- * its seats evenly from the start (`π`) to the end (`0`). A lone seat on an arc
- * sits at the top. The seats sort by angle and then by radius, so a run of
- * seats fills a wedge of the hemicycle. A group of seats therefore reads as one
- * block from the start to the end. Each seat takes {@link SEAT_DOT_RATIO} of the
- * smallest space between two seats, along an arc or from one arc to the next.
+ * The sides of a chamber. With no aisle, one side holds each arc from `π` to
+ * `0`. With an aisle, `before` seats take the arcs from `π` to the aisle, and
+ * the other seats take the arcs from the aisle to `0`. The aisle has the half
+ * width `w` on each arc. The aisle stands where each side has the length of arc
+ * that its seats need, so the seats stand as far apart on each side.
  *
  * @internal
  */
-export function seatLayout(total: number, rows: number): SeatLayout {
+function chamberSides(
+	count: number,
+	radii: number[],
+	before: number,
+	w: number,
+): { sides: Side[]; aisle: number | null } {
+	const whole: Side[] = [{ seats: count, spans: radii.map(() => ({ from: Math.PI, to: 0 })) }]
+
+	if (before <= 0) return { sides: whole, aisle: null }
+
+	const sum = radii.reduce((acc, radius) => acc + radius, 0)
+
+	// The length of arc that takes seats, less the aisle on each arc.
+	const usable = Math.PI * sum - 2 * radii.length * w
+
+	if (usable <= 0) return { sides: whole, aisle: null }
+
+	const aisle = Math.PI - (radii.length * w + (usable * before) / count) / sum
+
+	return {
+		sides: [
+			{ seats: before, spans: radii.map((radius) => ({ from: Math.PI, to: aisle + w / radius })) },
+			{
+				seats: count - before,
+				spans: radii.map((radius) => ({ from: aisle - w / radius, to: 0 })),
+			},
+		],
+		aisle,
+	}
+}
+
+/**
+ * The seats of a hemicycle of `total` seats on `rows` arcs. Each arc spreads
+ * its seats evenly from the start (`π`) to the end (`0`). A lone seat on an arc
+ * sits at the middle of its span. The seats sort by angle and then by radius,
+ * so a run of seats fills a wedge of the hemicycle. A group of seats therefore
+ * reads as one block from the start to the end. Each seat takes
+ * {@link SEAT_DOT_RATIO} of the smallest space between two seats, along an arc
+ * or from one arc to the next.
+ *
+ * With a `majority` inside the chamber, an aisle opens before the seat that
+ * makes the majority. Each arc spreads the seats before the aisle and the seats
+ * after it on each side of the aisle. Thus a straight line down the aisle parts
+ * the seats, and a group passes the line on the seat that makes the majority.
+ * A simple majority puts the aisle down the middle, or half a seat from it in a
+ * chamber of an odd size. A chamber too small for an aisle has none.
+ *
+ * @internal
+ */
+export function seatLayout(total: number, rows: number, majority?: number): SeatLayout {
 	const count = Math.max(0, Math.floor(total))
 
-	if (count === 0) return { seats: [], dot: 0 }
+	if (count === 0) return { seats: [], dot: 0, aisle: null }
 
 	const radii = arcRadii(Math.max(1, Math.min(Math.floor(rows), count)))
 
-	const counts = arcCounts(count, radii)
+	const before =
+		majority !== undefined && Number.isInteger(majority) && majority >= 2 && majority <= count
+			? majority - 1
+			: 0
+
+	// The half width of the aisle, from the space between two seats of the chamber with no aisle.
+	const half = before > 0 ? (AISLE * seatLayout(count, rows).dot) / SEAT_DOT_RATIO : 0
+
+	const { sides, aisle } = chamberSides(count, radii, before, half)
 
 	const seats: Seat[] = []
 
@@ -116,23 +209,42 @@ export function seatLayout(total: number, rows: number): SeatLayout {
 	let space =
 		radii.length > 1 ? (1 - SEAT_INNER_RATIO) / (radii.length - 1) : Number.POSITIVE_INFINITY
 
-	radii.forEach((radius, row) => {
-		const onArc = counts[row] ?? 0
+	for (const side of sides) {
+		const counts = arcCounts(
+			side.seats,
+			radii.map((radius, row) => {
+				const span = side.spans[row]
 
-		if (onArc > 1) space = Math.min(space, (Math.PI * radius) / (onArc - 1))
+				// The arc length over π: a whole arc weighs its radius.
+				return span ? Math.max(0, radius * ((span.from - span.to) / Math.PI)) : 0
+			}),
+		)
 
-		for (let seat = 0; seat < onArc; seat++) {
-			const angle = onArc === 1 ? Math.PI / 2 : Math.PI * (1 - seat / (onArc - 1))
+		radii.forEach((radius, row) => {
+			const onArc = counts[row] ?? 0
 
-			seats.push({ x: radius * Math.cos(angle), y: -radius * Math.sin(angle), angle, radius })
-		}
-	})
+			const span = side.spans[row]
+
+			if (!span || onArc === 0) return
+
+			const length = span.from - span.to
+
+			if (onArc > 1) space = Math.min(space, (length * radius) / (onArc - 1))
+
+			for (let seat = 0; seat < onArc; seat++) {
+				const angle =
+					onArc === 1 ? span.to + length / 2 : span.to + length * (1 - seat / (onArc - 1))
+
+				seats.push({ x: radius * Math.cos(angle), y: -radius * Math.sin(angle), angle, radius })
+			}
+		})
+	}
 
 	seats.sort((a, b) => b.angle - a.angle || a.radius - b.radius)
 
 	const dot = Number.isFinite(space) ? space * SEAT_DOT_RATIO : LONE_SEAT_DOT
 
-	return { seats, dot }
+	return { seats, dot, aisle }
 }
 
 /**
@@ -168,45 +280,66 @@ export function seatGroups(counts: readonly number[], total: number): number[] {
 	return groups
 }
 
-/**
- * The angle of the line that marks a majority: midway between the last seat of
- * the majority and the next seat. `null` where the majority is not a seat count
- * strictly inside the chamber.
- *
- * @internal
- */
-export function majorityAngle(seats: readonly Seat[], majority: number | undefined): number | null {
-	if (majority === undefined || !Number.isInteger(majority)) return null
+/** The majority mark of a hemicycle, in unit space. @internal */
+export type MajorityMark = {
+	/** The dashes of the line down the aisle, from the marker to the hole. */
+	dashes: { x1: number; y1: number; x2: number; y2: number }[]
+	/** The marker above the line: a triangle whose tip points down the line. */
+	marker: [Point, Point, Point]
+}
 
-	const last = seats[majority - 1]
-
-	const next = seats[majority]
-
-	if (!last || !next) return null
-
-	return (last.angle + next.angle) / 2
+/** The point at `radius` from the center of the arcs, at `angle`. @internal */
+function polar(radius: number, angle: number): Point {
+	return { x: radius * Math.cos(angle), y: -radius * Math.sin(angle) }
 }
 
 /**
- * The ends of the majority tick in unit space: a short radial stroke past the
- * outer arc, clear of the seats. A line across the arcs would touch the seats
- * near it, because the seats of each arc sit at other angles.
+ * The majority mark of a hemicycle with an aisle ({@link seatLayout}): a
+ * dashed line down the aisle, from past the outer arc to the hole, and a
+ * triangle marker at the outer end. The tip of the marker is one seat radius
+ * past the outer seats, and the tip points down the line. The dashes divide
+ * the line evenly, so the line starts and ends on a dash. `null` where the
+ * chamber has no aisle.
  *
  * @internal
  */
-export function majorityLine(
-	angle: number,
-	layout: SeatLayout,
-): { x1: number; y1: number; x2: number; y2: number } {
+export function majorityMark(layout: SeatLayout): MajorityMark | null {
+	const angle = layout.aisle
+
+	if (angle === null) return null
+
 	const from = 1 + (1 + MAJORITY_GAP) * layout.dot
 
-	const to = from + MAJORITY_TICK
+	const to = seatHole(layout)
+
+	const length = from - to
+
+	const count = Math.max(1, Math.round(length / DASH_PERIOD + 1 - DASH_RATIO))
+
+	const period = length / (count - 1 + DASH_RATIO)
+
+	const dashes = Array.from({ length: count }, (_, dash) => {
+		const start = polar(from - dash * period, angle)
+
+		const end = polar(from - dash * period - DASH_RATIO * period, angle)
+
+		return { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
+	})
+
+	const base = polar(from + MARKER_HEIGHT, angle)
+
+	// Half the base, across the line.
+	const hx = (MARKER_WIDTH / 2) * Math.sin(angle)
+
+	const hy = (MARKER_WIDTH / 2) * Math.cos(angle)
 
 	return {
-		x1: from * Math.cos(angle),
-		y1: -from * Math.sin(angle),
-		x2: to * Math.cos(angle),
-		y2: -to * Math.sin(angle),
+		dashes,
+		marker: [
+			polar(from, angle),
+			{ x: base.x - hx, y: base.y - hy },
+			{ x: base.x + hx, y: base.y + hy },
+		],
 	}
 }
 
@@ -224,30 +357,43 @@ export type SeatExtent = {
 	top: number
 	/** The width of the drawing. The center of the arcs is at its middle. */
 	across: number
-	/** The height of the drawing: `top`, and the radius of a seat under the center. */
+	/** The height of the drawing: `top`, and the part of the drawing under the center. */
 	down: number
 }
 
 /**
- * The box of the drawing of a hemicycle with seats of radius `dot`, in unit
- * space. With `tick`, the box also holds the majority tick above the outer arc.
+ * The box of the drawing of a hemicycle, in unit space: the seats, and the
+ * majority marker where the chamber has an aisle. The box is centered on the
+ * center of the arcs across, so a marker near the end of the hemicycle widens
+ * it on both sides.
  *
  * @internal
  */
-export function seatExtent(dot: number, tick = false): SeatExtent {
-	const top = tick ? 1 + (1 + MAJORITY_GAP) * dot + MAJORITY_TICK : 1 + dot
+export function seatExtent(layout: SeatLayout): SeatExtent {
+	let top = 1 + layout.dot
 
-	return { top, across: 2 * (1 + dot), down: top + dot }
+	let half = 1 + layout.dot
+
+	let bottom = layout.dot
+
+	for (const point of majorityMark(layout)?.marker ?? []) {
+		top = Math.max(top, -point.y)
+
+		half = Math.max(half, Math.abs(point.x))
+
+		bottom = Math.max(bottom, point.y)
+	}
+
+	return { top, across: 2 * half, down: top + bottom }
 }
 
 /**
- * Fits the hemicycle into a box of `width` by `height` with `margin` on each
- * side, centered in the box. The hemicycle spans `2 (1 + dot)` across and
- * `1 + 2 dot` down. With `tick`, the box also holds the majority tick above
- * the outer arc. With `label`, the top margin is at least half a
- * {@link CALLOUT_LINE line}, so the label at the end of the tick
- * ({@link majorityCallout}) stays in the box. The label does not change the
- * fit when it does not draw, so the fit never depends on the text.
+ * Fits the drawing of a hemicycle ({@link seatExtent}) into a box of `width`
+ * by `height` with `margin` on each side, centered in the box. With `label`,
+ * the top margin also holds one {@link CALLOUT_LINE line} and a gap, so the
+ * label above the majority marker ({@link majorityLabel}) stays in the box.
+ * The label does not change the fit when it does not draw, so the fit never
+ * depends on the text.
  *
  * @internal
  */
@@ -255,13 +401,12 @@ export function seatFit(
 	width: number,
 	height: number,
 	margin: number,
-	dot: number,
-	tick = false,
+	extent: SeatExtent,
 	label = false,
 ): SeatFit {
-	const { top, across, down } = seatExtent(dot, tick)
+	const { top, across, down } = extent
 
-	const topMargin = tick && label ? Math.max(margin, CALLOUT_LINE / 2) : margin
+	const topMargin = label ? Math.max(margin, CALLOUT_LINE + LABEL_GAP) : margin
 
 	const scale = Math.max(
 		0,
@@ -269,33 +414,29 @@ export function seatFit(
 	)
 
 	// The box of the drawing is centered between the margins: its top at
-	// cy - top·scale, its bottom at cy + dot·scale.
+	// cy - top·scale, its bottom at cy + (down - top)·scale.
 	return {
 		scale,
 		cx: width / 2,
-		cy: (topMargin + height - margin) / 2 + ((top - dot) * scale) / 2,
+		cy: (topMargin + height - margin) / 2 + ((2 * top - down) * scale) / 2,
 	}
 }
 
 /** The rounding, in px, that a label edge can pass the frame by: far below a device pixel. @internal */
 const EDGE_SLACK = 1e-6
 
-/** The majority label beside the tick, in px in the frame. @internal */
-export type MajorityCallout = {
-	/** The nub: a short horizontal stroke from the outer end of the tick toward the label. */
-	nub: { x1: number; y1: number; x2: number; y2: number }
-	/** The anchor x of the label, a constant gap past the nub. */
+/** The majority label above the marker, in px in the frame. @internal */
+export type MajorityLabel = {
+	/** The middle of the label, across. */
 	x: number
-	/** The middle of the label, level with the outer end of the tick. */
+	/** The middle of the label, down. */
 	y: number
-	/** A label right of the center reads out from its start, a label left of it from its end. */
-	anchor: 'start' | 'end'
 }
 
-/** Options for {@link majorityCallout}. @internal */
-export type MajorityCalloutOptions = {
-	/** The angle of the majority tick ({@link majorityAngle}). */
-	angle: number
+/** Options for {@link majorityLabel}. @internal */
+export type MajorityLabelOptions = {
+	/** The majority mark ({@link majorityMark}). */
+	mark: MajorityMark
 	layout: SeatLayout
 	fit: SeatFit
 	/** The size of the frame, in px. */
@@ -308,49 +449,39 @@ export type MajorityCalloutOptions = {
 }
 
 /**
- * Places the majority label as a chart callout: the tick is its leader, a
- * {@link CALLOUT_NUB nub} turns from the outer end of the tick toward the
- * side of the tick, and the label sits a {@link CALLOUT_GAP gap} past the nub,
- * level with the end. A label right of the center reads out from its start,
- * a label left of it from its end, so it always reads away from the tick.
- *
- * The label shows only where it has the space: its box of one
- * {@link CALLOUT_LINE line} must stay inside the frame, `margin` from each
- * side, and `margin` clear of the outer seats. Otherwise the result is `null`,
- * and the tick draws alone. The frame never grows for the label.
+ * Places the majority label above the marker, centered on the base of the
+ * marker, a gap above its top. The label shows only where it has the space:
+ * its box of one {@link CALLOUT_LINE line} must stay inside the frame,
+ * `margin` from each side, and `margin` clear of the outer seats. Otherwise the
+ * result is `null`, and the line and the marker draw alone. The frame never
+ * grows for the label.
  *
  * @internal
  */
-export function majorityCallout({
-	angle,
+export function majorityLabel({
+	mark,
 	layout,
 	fit,
 	width,
 	height,
 	margin,
 	textWidth,
-}: MajorityCalloutOptions): MajorityCallout | null {
+}: MajorityLabelOptions): MajorityLabel | null {
 	if (fit.scale <= 0 || textWidth <= 0) return null
 
-	const end = (1 + (1 + MAJORITY_GAP) * layout.dot + MAJORITY_TICK) * fit.scale
+	const [, one, two] = mark.marker
 
-	const ex = fit.cx + end * Math.cos(angle)
+	const x = fit.cx + ((one.x + two.x) / 2) * fit.scale
 
-	const ey = fit.cy - end * Math.sin(angle)
+	const markerTop = fit.cy + Math.min(...mark.marker.map((point) => point.y)) * fit.scale
 
-	const dir = Math.cos(angle) >= 0 ? 1 : -1
+	const bottom = markerTop - LABEL_GAP
 
-	const nubX = ex + dir * CALLOUT_NUB
+	const top = bottom - CALLOUT_LINE
 
-	const x = nubX + dir * CALLOUT_GAP
+	const left = x - textWidth / 2
 
-	const left = dir > 0 ? x : x - textWidth
-
-	const right = dir > 0 ? x + textWidth : x
-
-	const top = ey - CALLOUT_LINE / 2
-
-	const bottom = ey + CALLOUT_LINE / 2
+	const right = x + textWidth / 2
 
 	// A label at the reserved top margin sits there up to rounding, so the edges allow a hair.
 	if (
@@ -371,12 +502,7 @@ export function majorityCallout({
 
 	if (Math.hypot(nearX - fit.cx, nearY - fit.cy) < outer + margin) return null
 
-	return {
-		nub: { x1: ex, y1: ey, x2: nubX, y2: ey },
-		x,
-		y: ey,
-		anchor: dir > 0 ? 'start' : 'end',
-	}
+	return { x, y: top + CALLOUT_LINE / 2 }
 }
 
 /**
