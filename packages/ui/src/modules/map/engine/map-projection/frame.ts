@@ -5,6 +5,7 @@
  * the placement is testable without a layout engine.
  */
 
+import { MAP_FIT_INSET } from '../map-constants'
 import type { MapPoint2D } from '../types'
 
 /** The plot SVG's box on the page, as `getBoundingClientRect` reports it. @internal */
@@ -87,4 +88,31 @@ export function clientToFrame(
 		x: (at.x - box.left - (box.width - viewWidth * scale) / 2) / scale,
 		y: (at.y - box.top - (box.height - viewHeight * scale) / 2) / scale,
 	}
+}
+
+/**
+ * The declarations that scale a drawing before the box is measured, so that
+ * one frame unit draws as one pixel. The canonical frame scales to meet the
+ * plot box less the inset, so a frame `width` units wide draws as wide as the
+ * smaller of the width of that box and its height times `aspect`. The scale is
+ * `width` over that drawn width.
+ *
+ * The lengths are in `cq` units of the plot container (`map-plot`), so a
+ * drawing in the SVG of the plot can use the declarations. No render before the
+ * measurement knows the size of the box.
+ *
+ * The second declaration divides a length by a length. A browser without that
+ * arithmetic drops it as it parses, and keeps the first, which gets the number
+ * of pixels of a length through `tan(atan2(length, 1px))`. WebKit 26 can divide,
+ * but its trigonometry gives `0` for a length in `cq` units, so it needs the
+ * second.
+ *
+ * @internal
+ */
+export function pixelScale(width: number, aspect: number): string {
+	const inset = MAP_FIT_INSET * 2
+
+	const drawn = `min(100cqw - ${inset}px, (100cqh - ${inset}px) * ${aspect})`
+
+	return `transform:scale(calc(${width} / tan(atan2(${drawn}, 1px))));transform:scale(calc(${width}px / ${drawn}))`
 }

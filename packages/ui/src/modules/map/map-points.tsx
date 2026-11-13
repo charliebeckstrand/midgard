@@ -46,6 +46,7 @@ import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapEntryDot, MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
 import { pickedStop } from './engine/map-overlay/selection'
+import { pixelScale } from './engine/map-projection/frame'
 import type {
 	LngLat,
 	MapOverlaySelection,
@@ -343,29 +344,6 @@ function prepaintGroups(
 }
 
 /**
- * The declarations that scale a mark before the box is measured, so that it
- * draws at its size in pixels. The frame scales to meet the plot box less the
- * inset, so a frame `width` units wide draws as wide as the smaller of the
- * width of that box and its height times `aspect`. The scale is `width` over
- * that drawn width.
- *
- * The second declaration divides a length by a length. A browser without that
- * arithmetic drops it as it parses, and keeps the first, which gets the number
- * of pixels of a length through `tan(atan2(length, 1px))`. WebKit 26 can divide,
- * but its trigonometry gives `0` for a length in `cq` units, so it needs the
- * second.
- *
- * @internal
- */
-function pixelScale(width: number, aspect: number): string {
-	const inset = MAP_FIT_INSET * 2
-
-	const drawn = `min(100cqw - ${inset}px, (100cqh - ${inset}px) * ${aspect})`
-
-	return `transform:scale(calc(${width} / tan(atan2(${drawn}, 1px))));transform:scale(calc(${width}px / ${drawn}))`
-}
-
-/**
  * The props of the wrapper of one group of a {@link MapPointsPrepaint}: its
  * name for the rules, and the point that its scale keeps in place.
  *
@@ -404,8 +382,8 @@ type MapPointsPrepaintProps = {
  * (`clusterTree`). Each group holds over one range of widths. A container query
  * on the plot shows each group in its range alone, so the first paint draws the
  * groups that the measured frame draws. Each group draws at the scale of one
- * pixel (`pixelScale`) around its own point, so the shapes, the strokes, and
- * the counts are at their size in pixels too.
+ * pixel ({@link pixelScale}) around its own point, so the shapes, the strokes,
+ * and the counts are at their size in pixels too.
  *
  * Nothing here answers the pointer. The box is measured in the layout effects
  * of the hydration, and the dots of the measured frame take over in that
