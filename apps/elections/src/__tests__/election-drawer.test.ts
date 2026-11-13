@@ -1,12 +1,17 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { seed } from 'shared/queries'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ElectionDrawer } from '../components/election-drawer'
 import { ElectionRacesProvider } from '../components/election-drawer/context'
-import { RaceSearchProvider, type RaceSearchState, useRaceSearch } from '../components/race-search'
+import {
+	RaceSearch,
+	RaceSearchProvider,
+	type RaceSearchState,
+	useRaceSearch,
+} from '../components/race-search'
 import { type Election, findContest, findElection } from '../elections/registry'
 import { readNationalRace, readRace } from '../server/civic-race'
 import { atlasCountyNames } from '../server/county-names'
@@ -152,6 +157,45 @@ describe('ElectionDrawer', () => {
 		goTo('/2026/us/midterms?region=ga&office=senate')
 
 		expect(back()).toBeNull()
+	})
+
+	it('opens the search on the query of the pick from Back to search, and empty from the header', async () => {
+		window.history.replaceState(null, '', '/2026/us/midterms')
+
+		render(
+			h(QueryClientProvider, {
+				client: new QueryClient(),
+				children: h(ElectionRacesProvider, {
+					races,
+					children: h(RaceSearchProvider, {
+						children: [
+							h(RaceSearch, { key: 'search', election }),
+							h(ElectionDrawer, { key: 'drawer', election, seed: { race: georgia, map: null } }),
+						],
+					}),
+				}),
+			}),
+		)
+
+		const field = async () => (await screen.findByRole('combobox')) as HTMLInputElement
+
+		fireEvent.click(screen.getByRole('button', { name: 'Search races' }))
+
+		fireEvent.change(await field(), { target: { value: 'georgia' } })
+
+		fireEvent.click(await screen.findByRole('option', { name: /Georgia.*Ossoff/ }))
+
+		fireEvent.click(await screen.findByRole('button', { name: 'Back to search' }))
+
+		expect((await field()).value).toBe('georgia')
+
+		fireEvent.keyDown(await field(), { key: 'Escape' })
+
+		await waitFor(() => expect(screen.queryByRole('combobox')).toBeNull())
+
+		fireEvent.click(screen.getByRole('button', { name: 'Search races' }))
+
+		expect((await field()).value).toBe('')
 	})
 
 	it('opens a race on its overview again after the Drawer leaves the race', () => {
