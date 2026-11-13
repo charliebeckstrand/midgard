@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { createRequire } from 'node:module'
+import type { Socket } from 'node:net'
 import path from 'node:path'
 import { readServerEnv, writeNextEnv } from './env'
 import { markHtml } from './mark-html'
@@ -28,6 +29,7 @@ type Middleware = (request: IncomingMessage, response: ServerResponse, next: () 
 type NextServer = {
 	prepare: () => Promise<void>
 	getRequestHandler: () => (request: IncomingMessage, response: ServerResponse) => Promise<void>
+	close: () => Promise<void>
 }
 
 type NextFactory = (options: {
@@ -69,21 +71,91 @@ export async function serveNext(dir: string): Promise<void> {
 
 	await app.prepare()
 
-	const handle = app.getRequestHandler()
-
-	const compress = compression()
-
-	const server = createServer((request, response) => {
-		compress(request, response, () => {
-			markHtml(request, response)
-
-			void handle(request, response)
-		})
+	const { server, stop } = createAppServer({
+		handle: app.getRequestHandler(),
+		compress: compression(),
+		close: () => app.close(),
+		exit: (code) => process.exit(code),
 	})
 
 	if (keepAliveTimeout !== undefined) server.keepAliveTimeout = keepAliveTimeout
 
+	process.once('SIGTERM', () => stop(143))
+
+	process.once('SIGINT', () => stop(130))
+
 	server.listen(port, hostname, () => {
 		console.log(`Ready on http://${hostname}:${port}`)
 	})
+}
+
+/** What {@link createAppServer} runs: the handler of Next, its compression, and the steps of a stop. */
+export type AppServerOptions = {
+	handle: (request: IncomingMessage, response: ServerResponse) => Promise<void>
+	compress: Middleware
+	/** Closes Next after the last request. */
+	close: () => Promise<void>
+	/** Ends the process with the code of the signal. */
+	exit: (code: number) => void
+}
+
+/**
+ * The HTTP server in front of Next, and the stop that a signal starts.
+ *
+ * Node is the first process of the image, and that process ignores a signal
+ * that has no handler. Thus the server stops on a signal as the `server.js` of
+ * Next does: it takes no new connection, lets the open requests end, closes
+ * Next, and exits with the code of the signal.
+ *
+ * A keep-alive connection that keeps sending requests would keep the server
+ * open, as a load balancer does. Thus after a stop starts, each connection
+ * closes when its response ends.
+ */
+export function createAppServer({ handle, compress, close, exit }: AppServerOptions) {
+	let stopping = false
+
+	// The responses that are not yet sent, with their connections.
+	const open = new Map<ServerResponse, Socket | null>()
+
+	const server = createServer((request, response) => {
+		if (stopping) response.shouldKeepAlive = false
+
+		open.set(response, response.socket)
+
+		response.once('close', () => open.delete(response))
+
+		compress(request, response, () => {
+			markHtml(request, response)
+
+			// A failed request gets a 500, as in the `server.js` of Next. Without the
+			// catch, the rejection stops the process and each open request fails.
+			handle(request, response).catch((error: unknown) => {
+				console.error(`Failed to handle request for ${request.url}`, error)
+
+				response.statusCode = 500
+
+				response.end('Internal Server Error')
+			})
+		})
+	})
+
+	function stop(code: number) {
+		if (stopping) return
+
+		stopping = true
+
+		// A response that has sent its headers already said keep-alive, so its
+		// connection ends when the response does.
+		for (const [response, socket] of open) {
+			if (response.headersSent) response.once('finish', () => socket?.end())
+			else response.shouldKeepAlive = false
+		}
+
+		// The close also ends each idle connection.
+		server.close(() => {
+			void close().finally(() => exit(code))
+		})
+	}
+
+	return { server, stop }
 }
