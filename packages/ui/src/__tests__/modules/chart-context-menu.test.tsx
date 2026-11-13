@@ -9,6 +9,7 @@ import {
 	PieChart,
 } from '../../modules/chart'
 import { readoutToCsv } from '../../modules/chart/engine/chart-export'
+import { Dashboard, DashboardTile } from '../../modules/dashboard'
 import { HeaderActions, HeaderActionsSlot } from '../../primitives/header-actions'
 import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen, waitFor } from '../helpers'
@@ -621,6 +622,30 @@ describe('Chart menu button', () => {
 		expect(bySlot(getSlot(container, 'box-content'), 'chart-menu-button')).toBeNull()
 
 		expect(bySlot(getSlot(container, 'header-actions'), 'chart-menu-button')).not.toBeNull()
+	})
+
+	// A dashboard tile renders its slot only in a header row outside edit mode. A
+	// tile that says it renders the slot when it does not would lose the button.
+	it.each([
+		{ name: 'a tile with a header row', title: 'Revenue', editing: false, inHeader: true },
+		{ name: 'a tile in edit mode', title: 'Revenue', editing: true, inHeader: false },
+		{ name: 'a tile with no header row', title: undefined, editing: false, inHeader: false },
+	])('keeps the button of the chart in $name', ({ title, editing, inHeader }) => {
+		const { container } = renderUI(
+			<Dashboard
+				aria-label="Sales"
+				editing={editing}
+				layout={{ defaultValue: [{ id: 'a', x: 0, y: 0, w: 8, h: 10 }] }}
+			>
+				<DashboardTile id="a" title={title}>
+					<BarChart aria-label="Revenue" data={data} contextMenu={BUTTON} series={[...series]} />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		const button = getSlot(container, 'chart-menu-button')
+
+		expect(getSlot(container, 'chart').contains(button)).toBe(!inHeader)
 	})
 
 	it('puts a View data button in the header row of a box, and marks its own fullscreen', () => {

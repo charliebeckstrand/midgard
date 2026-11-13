@@ -136,11 +136,14 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 		)
 	)
 
+	// The header row holds a slot where the widget puts its own controls, such as
+	// the touch menu button of a chart. Edit mode shows the edit controls there
+	// instead, so the widget then has no slot. One value renders the slot and
+	// tells the widget about it, so the two cannot disagree.
+	const slotted = hasHeader && !editable
+
 	return (
-		// The header row holds a slot where the widget puts its own controls, such as
-		// the touch menu button of a chart. Edit mode shows the edit controls there
-		// instead, so the widget then has no slot.
-		<HeaderActions slotted={hasHeader && !editable}>
+		<HeaderActions slotted={slotted}>
 			<Card
 				size="sm"
 				bg="surface"
@@ -158,7 +161,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 						description={description}
 						actions={actions}
 						clear={<DashboardTileClear id={id} label={label} />}
-						widget={editable ? null : <HeaderActionsSlot />}
+						widget={slotted ? <HeaderActionsSlot /> : null}
 						handle={handle}
 						editing={editable}
 						onError={onError}
