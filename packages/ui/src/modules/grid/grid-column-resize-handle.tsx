@@ -23,7 +23,6 @@ import {
 } from './engine/grid-constants'
 import { gridMessages } from './engine/grid-messages'
 import type { GridColumnResizeActions } from './engine/grid-table/resize-view'
-import { GRID_DOUBLE_TAP_WINDOW } from './use-grid-touch-entry'
 
 /** Props for {@link GridColumnResizeHandle}. @internal */
 type GridColumnResizeHandleProps = {
@@ -48,9 +47,10 @@ type GridColumnResizeHandleProps = {
  * A touch screen sends no double-click: the root `touch-action: manipulation`
  * of `ui` stops it on iOS, and the touch end of the drag-resize of the engine
  * cancels the mouse events of the tap. Thus the handle finds the double tap
- * itself. Two taps that lift in {@link GRID_DOUBLE_TAP_WINDOW} of each other
- * are a double tap, and a third tap starts a new pair. A press that travels or
- * holds is not a tap (see {@link useTouchTap}).
+ * itself. Each second tap of a run of taps of {@link useTouchTap} is a double
+ * tap, so a third tap starts a new pair. The run gives the time and the
+ * distance between the taps. A press that travels or holds is not a tap, and
+ * it ends the run.
  *
  * @internal
  */
@@ -87,24 +87,13 @@ export function GridColumnResizeHandle({
 		announceSettledWidth()
 	}
 
-	// The lift time of the last touch tap, which a second tap makes a double tap.
-	const prevTap = useRef<number | null>(null)
-
 	// Whether the last tap was the second tap of a double tap.
 	const doubleTapped = useRef(false)
 
 	const autoSizeTimer = useTimeout()
 
-	const touch = useTouchTap(() => {
-		const at = performance.now()
-
-		const prev = prevTap.current
-
-		const double = prev !== null && at - prev <= GRID_DOUBLE_TAP_WINDOW
-
-		prevTap.current = double ? null : at
-
-		doubleTapped.current = double
+	const touch = useTouchTap((_clientX, _clientY, count) => {
+		doubleTapped.current = count % 2 === 0
 	})
 
 	function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {

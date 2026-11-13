@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { MULTI_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { GRID_DOUBLE_TAP_WINDOW } from '../../modules/grid/use-grid-touch-entry'
 import { fireEvent, frames, present, renderUI } from '../helpers'
 import { gridHeader } from '../helpers/grid-cells'
 
@@ -53,9 +53,10 @@ describe('grid resize handle: double tap (real browser)', () => {
 	/**
 	 * Sends the events of a tap of a finger on `target`, in the order of a
 	 * browser: the pointer event, then the touch event. The finger moves `drift`
-	 * px before it lifts, as a real finger does.
+	 * px before it lifts, as a real finger does. The pointer events of the tap
+	 * have a time stamp `later` ms after the time of the browser.
 	 */
-	function tap(target: HTMLElement, drift = 0) {
+	function tap(target: HTMLElement, drift = 0, later = 0) {
 		const rect = target.getBoundingClientRect()
 
 		const x = rect.left + rect.width / 2
@@ -73,7 +74,15 @@ describe('grid resize handle: double tap (real browser)', () => {
 
 		const touchAt = (clientX: number) => new Touch({ identifier: 7, target, clientX, clientY: y })
 
-		target.dispatchEvent(new PointerEvent('pointerdown', { ...pointer, clientX: x }))
+		const send = (type: string, clientX: number) => {
+			const event = new PointerEvent(type, { ...pointer, clientX })
+
+			Object.defineProperty(event, 'timeStamp', { value: event.timeStamp + later })
+
+			target.dispatchEvent(event)
+		}
+
+		send('pointerdown', x)
 
 		target.dispatchEvent(
 			new TouchEvent('touchstart', {
@@ -85,7 +94,7 @@ describe('grid resize handle: double tap (real browser)', () => {
 		)
 
 		if (drift !== 0) {
-			target.dispatchEvent(new PointerEvent('pointermove', { ...pointer, clientX: x + drift }))
+			send('pointermove', x + drift)
 
 			target.dispatchEvent(
 				new TouchEvent('touchmove', {
@@ -97,7 +106,7 @@ describe('grid resize handle: double tap (real browser)', () => {
 			)
 		}
 
-		target.dispatchEvent(new PointerEvent('pointerup', { ...pointer, clientX: x + drift }))
+		send('pointerup', x + drift)
 
 		target.dispatchEvent(
 			new TouchEvent('touchend', {
@@ -143,17 +152,11 @@ describe('grid resize handle: double tap (real browser)', () => {
 
 		signal.throwIfAborted()
 
-		let now = 1000
-
-		vi.spyOn(performance, 'now').mockImplementation(() => now)
-
 		const start = width()
 
 		tap(separator)
 
-		now += GRID_DOUBLE_TAP_WINDOW + 1
-
-		tap(separator)
+		tap(separator, 0, MULTI_TAP_WINDOW + 1)
 
 		await frames()
 

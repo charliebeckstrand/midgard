@@ -1,19 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { TOUCH_SLOP } from '../../hooks/use-touch-tap'
+import { describe, expect, vi } from 'vitest'
+import { MULTI_TAP_WINDOW, TOUCH_SLOP } from '../../hooks/use-touch-tap'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
-import { GRID_DOUBLE_TAP_WINDOW } from '../../modules/grid/use-grid-touch-entry'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 type Row = { id: number; name: string; count: number; done: boolean }
-
-/** The clock that the double tap reads. */
-let now = 0
-
-beforeEach(() => {
-	now = 1_000
-
-	vi.spyOn(performance, 'now').mockImplementation(() => now)
-})
 
 const rows: Row[] = [
 	{ id: 1, name: 'Alice', count: 2, done: false },
@@ -112,12 +103,12 @@ describe('Grid touch entry to edit', () => {
 		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
 	})
 
-	it('only selects a cell on a second tap after the double-tap window', () => {
+	it('only selects a cell on a second tap after the double-tap window', async ({ clock }) => {
 		const { cell, editors } = renderGrid()
 
 		tap(cell('name'))
 
-		now += GRID_DOUBLE_TAP_WINDOW + 1
+		await clock.advance(MULTI_TAP_WINDOW + 1)
 
 		tap(cell('name'))
 
@@ -126,11 +117,30 @@ describe('Grid touch entry to edit', () => {
 		expect(editors()).toHaveLength(0)
 
 		// The late tap starts a new pair.
-		now += 100
+		await clock.advance(100)
 
 		tap(cell('name'))
 
 		expect(editors()).toHaveLength(1)
+	})
+
+	it('does not open a cell on a tap after a scroll', () => {
+		const { cell, editors } = renderGrid()
+
+		tap(cell('name'))
+
+		const at = { pointerId: 1, pointerType: 'touch', isPrimary: true, clientX: 20, clientY: 10 }
+
+		// The scroll ends the run of taps, so the tap after it is a first tap.
+		fireEvent.pointerDown(cell('name'), at)
+
+		fireEvent.pointerMove(cell('name'), { ...at, clientY: at.clientY + TOUCH_SLOP + 5 })
+
+		fireEvent.pointerCancel(cell('name'), at)
+
+		tap(cell('name'))
+
+		expect(editors()).toHaveLength(0)
 	})
 
 	it('only selects an unselected cell when another cell is selected', () => {
