@@ -29,8 +29,9 @@ import { containsThroughPortals } from '../../utilities/floating-portal-registry
  *
  * The box stops to follow the visual viewport when the keyboard of the field
  * goes down, that is, when the visual viewport fills the window again and no
- * field in the box has the focus. It also stops when the page loses the focus,
- * for example to the address bar. The focus change alone does not move the
+ * field in the box has the focus. It also stops when a field outside the box
+ * takes the keyboard, and when the page loses the focus, for example to the
+ * address bar. The focus change alone does not move the
  * box. A tap on a button in the panel, such as Close, takes the focus from
  * the field when the press starts. If the box moved then, the button would
  * move out from under the finger, and the tap would not click it.
@@ -75,9 +76,13 @@ export function useOverlayViewportFit(
 		let owned = false
 
 		const fit = () => {
-			const field = opensKeyboard(focused) && containsThroughPortals(node, focused)
+			const keyboard = opensKeyboard(focused)
 
-			if (field) owned = true
+			const field = keyboard && containsThroughPortals(node, focused)
+
+			// A focused field takes the keyboard: the keyboard is the box's only when
+			// the field is in the box.
+			if (keyboard) owned = field
 
 			// A keyboard that is not for a field in the box moves no edge of the box.
 			if (!owned) return apply(0, 0)

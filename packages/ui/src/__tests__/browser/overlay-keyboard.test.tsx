@@ -172,6 +172,35 @@ describe('overlay with the on-screen keyboard', () => {
 		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
 	})
 
+	// A non-modal overlay leaves the page fields in reach. iOS keeps the keyboard
+	// up when the focus moves to one of them, and the keyboard is then the page's.
+	it('gives the full viewport back when a field on the page takes the keyboard', () => {
+		renderUI(
+			<>
+				<Input aria-label="Page" />
+				<Drawer open onOpenChange={() => {}}>
+					<DrawerPanel modal={false} aria-label="Edit">
+						<DrawerBody>
+							<Input aria-label="Name" />
+						</DrawerBody>
+					</DrawerPanel>
+				</Drawer>
+			</>,
+		)
+
+		const panel = getSlot(document.body, 'drawer')
+
+		focusField()
+
+		setViewportHeight(window.innerHeight - KEYBOARD)
+
+		act(() => {
+			screen.getByRole('textbox', { name: 'Page' }).focus()
+		})
+
+		expect(panel.getBoundingClientRect().bottom).toBeCloseTo(window.innerHeight, 0)
+	})
+
 	it('gives the full viewport back when the browser takes the focus', () => {
 		const panel = renderDrawer()
 
