@@ -70,14 +70,14 @@ export function selectedIds(selected: PlaceSelection): string[] {
 const KIND_KEY: Readonly<Record<RecordKind, string>> = { places: 'place', trips: 'trip' }
 
 /**
- * The step of the open panel: the place that the reader went into from its
+ * The step of the open panel: the record that the reader went into from its
  * list, and the list that the panel shows.
  *
  * A panel with no step stated opens on what the reader picked. A lone place
  * opens on its details, and a group of places opens on the list of the group.
  */
 export type PlacePanelStep = {
-	/** The place of the list that the reader went into, by id, or `null` on a list. */
+	/** The record of the list that the reader went into, by id, or `null` on a list. */
 	opened: string | null
 	/**
 	 * Whether the list is every place of the region, and not only the places that
@@ -200,8 +200,8 @@ export function readSelected(params: URLSearchParams): PlaceSelection {
 }
 
 /**
- * The step of the open panel. A panel that stands for no place has no step, so
- * a step with no `place` beside it is dropped.
+ * The step of the open panel. A panel that stands for no record has no step, so
+ * a step with no `place` or `trip` beside it is dropped.
  */
 export function readStep(params: URLSearchParams): PlacePanelStep {
 	if (selectedIds(readSelected(params)).length === 0) return PANEL_START
