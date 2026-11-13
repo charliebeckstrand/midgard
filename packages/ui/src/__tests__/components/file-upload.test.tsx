@@ -55,6 +55,11 @@ function dragIn(zone: HTMLElement, files: File[] = []) {
 /** A one-byte file, which most cases pick or drop. */
 const resume = new File(['x'], 'resume.pdf')
 
+/** A file of `size` bytes. */
+function fileOfSize(name: string, size: number) {
+	return new File(['x'.repeat(size)], name)
+}
+
 describe('FileUpload', () => {
 	it('renders a visually hidden file input', () => {
 		const { container } = renderUI(<FileUploadDrop>Upload</FileUploadDrop>)
@@ -675,8 +680,6 @@ describe('FileUpload read-only', () => {
 })
 
 describe('FileUpload constraints', () => {
-	const fileOfSize = (name: string, size: number) => new File(['x'.repeat(size)], name)
-
 	it('splits a drop into accepted onAccept and rejected onReject by maxSize', () => {
 		const onAccept = vi.fn()
 
@@ -736,6 +739,42 @@ describe('FileUpload announcements', () => {
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 
 		await expectAnnouncement('Selected 2 files: a.png, b.png')
+	})
+
+	// A refused file shows no change on the hidden input, so the zone speaks the
+	// refusal itself, and each caller does not have to (WCAG 4.1.3).
+	it('announces a refused file by name and reason', async () => {
+		const { container } = renderUI(<FileUploadDrop accept="image/*">Upload</FileUploadDrop>)
+
+		selectFiles(container, [new File(['x'], 'notes.txt', { type: 'text/plain' })])
+
+		await expectAnnouncement(/^notes\.txt is not an accepted file type$/)
+	})
+
+	it('names more than one refused file in the plural', async () => {
+		const { container } = renderUI(
+			<FileUploadDrop multiple maxSize={1}>
+				Upload
+			</FileUploadDrop>,
+		)
+
+		selectFiles(container, [fileOfSize('a.txt', 2), fileOfSize('b.txt', 2)])
+
+		await expectAnnouncement(/^a\.txt, b\.txt are too large$/)
+	})
+
+	// One message for the batch: a second write to the region would replace the
+	// first before a screen reader speaks it.
+	it('announces the accepted and the refused files of one batch in one message', async () => {
+		const { container } = renderUI(
+			<FileUploadDrop multiple maxCount={1}>
+				Upload
+			</FileUploadDrop>,
+		)
+
+		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
+
+		await expectAnnouncement(/^Selected a\.png\. b\.png is over the file limit$/)
 	})
 })
 

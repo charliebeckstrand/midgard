@@ -13,8 +13,7 @@ import { announce } from '../../core/announcer'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { fileUploadMessages } from './file-upload-messages'
-import { formatFileNames, partitionFiles } from './file-upload-utilities'
+import { describeSelection, partitionFiles } from './file-upload-utilities'
 import type { FileUploadSharedProps } from './types'
 
 /**
@@ -53,7 +52,8 @@ type FileHandlersOptions = Pick<
  * to `defaultValue` on a native form reset. Incoming files (picker or drop)
  * are split through `partitionFiles` against `accept`, `maxSize` and
  * `maxCount`. Accepted files fire `onAccept`, rejected ones fire `onReject`,
- * and the accepted set is announced to a live region. A batch with no
+ * and one live-region message names the accepted files and the refused files
+ * with their reasons. A batch with no
  * accepted file keeps the current selection. Drag highlight uses a depth counter so nested
  * children don't flicker `dragOver`; `disabled` and `readOnly` short-circuit the
  * picker and drop handling, and `readOnly` also refuses a clear. Only a drag that carries files counts: a text, link, or
@@ -132,6 +132,11 @@ export function useFileUploadHandlers({
 				maxCount,
 			})
 
+			// The batch lands on a visually-hidden input with no audible feedback,
+			// whether the field takes the files or refuses them. The live region
+			// speaks both (WCAG 4.1.3).
+			announce(describeSelection(intl, { accepted, rejected }))
+
 			if (rejected.length > 0) onReject?.(rejected)
 
 			// A text drag or an all-rejected batch accepts no file. It keeps the
@@ -143,17 +148,6 @@ export function useFileUploadHandlers({
 			setTouched()
 
 			onAccept?.(accepted)
-
-			// The selection lands on a visually-hidden input with no audible
-			// feedback; announces through the live region (WCAG 4.1.3).
-			const names = formatFileNames(accepted)
-
-			announce(
-				intl.formatMessage(fileUploadMessages.announced, {
-					count: accepted.length,
-					names: names ?? '',
-				}),
-			)
 		},
 		[inert, accept, maxSize, maxCount, onAccept, onReject, setFiles, setTouched, intl],
 	)
