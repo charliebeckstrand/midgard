@@ -5,6 +5,7 @@ import { useLocale } from '../../providers/locale/context'
 import { useDateFormat } from '../../providers/locale/use-date-format'
 import { k } from '../../recipes/kata/date-time'
 import { Placeholder } from '../placeholder'
+import { standText } from './date-time-stand'
 
 /** Props for {@link DateTime}: the `value` to show and its `format`, over the `<time>` surface. */
 export type DateTimeProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children'> & {
@@ -21,18 +22,28 @@ export type DateTimeProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children'
 
 /**
  * An absolute date or time in a `<time>` element, in the locale of the nearest
- * `LocaleProvider`. It follows the time-zone rules of `useDateFormat`. A zone
- * from `format` or from the provider gives the text in each render. With no
- * zone, the date is in the zone of the reader, which the server does not know.
- * The server render and the hydration render then put a skeleton in the
- * `<time>`, and the text comes after hydration. An invalid `value` renders an
- * empty `<span>`.
+ * `LocaleProvider`. It follows the rules of `useDateFormat`: a `timeZone` in
+ * `format`, else the zone of the provider, else the zone of the reader. The
+ * browser writes the text, after hydration. The server render and the
+ * hydration render put a skeleton in the `<time>`. An invalid `value` renders
+ * an empty `<span>`.
  *
  * @remarks A server component can render it, so a server page shows a date
- * with no client wrapper of its own. The skeleton holds the same date in UTC,
- * in the same format, as text that does not show. Thus the skeleton has the
- * length, the line breaks, and the baseline of the text that replaces it. Only
- * the characters that the zone changes can change the width.
+ * with no client wrapper of its own.
+ *
+ * The text of `Intl` comes from the date data of the JavaScript engine, and
+ * two engines can write different text for one format, such as Node on the
+ * server and Safari in the browser. So the text waits for the browser also
+ * when the zone is set. Text from the server would differ from the text of the
+ * hydration render in such a browser, and React would then render the tree
+ * again from the start. A page that must paint a date in its first frame
+ * formats it on the server and passes the text.
+ *
+ * The skeleton holds the date in UTC as text that does not show, in the shape
+ * of English text for the format, which the code writes without `Intl` (see
+ * `standText`). Thus the skeleton has about the length, the line breaks, and
+ * the baseline of the text that replaces it.
+ *
  * @example
  * ```tsx
  * <DateTime value={user.created_at} format={{ dateStyle: 'medium' }} />
@@ -42,10 +53,6 @@ export function DateTime({ value, format, className, ...props }: DateTimeProps) 
 	const formatter = useDateFormat(format)
 
 	const { dateFormat } = useLocale()
-
-	// The text in UTC is the same in the server render and in the hydration
-	// render, so it can give the skeleton its size.
-	const stand = useDateFormat({ ...(format ?? dateFormat), timeZone: 'UTC' })
 
 	const date = new Date(value)
 
@@ -57,7 +64,7 @@ export function DateTime({ value, format, className, ...props }: DateTimeProps) 
 		<time data-slot="date-time" dateTime={date.toISOString()} className={className} {...props}>
 			{formatter === undefined ? (
 				<Placeholder as="span" className={k.skeleton.text}>
-					{stand.format(date)}
+					{standText(date, format ?? dateFormat ?? {})}
 				</Placeholder>
 			) : (
 				formatter.format(date)

@@ -1,8 +1,7 @@
 import { CalendarCog, CalendarPlus, MapPinPlus, Pencil, Trash } from 'lucide-react'
 import type { ContextMenuEntry } from 'ui/context-menu'
-import { DateTime } from 'ui/date-time'
 import type { Place, Trip, Visit } from '../../types'
-import { DAY_FORMAT } from '../../utilities/places-filter'
+import { DayText } from '../day-text'
 
 /** What the menu of a place does. The caller opens the panels and asks for the confirmations. */
 export type PlaceActions = {
@@ -38,7 +37,7 @@ function editVisitItem(place: Place, actions: PlaceActions): ContextMenuEntry {
 		disabled: place.visits.length === 0,
 		items: place.visits.map((visit) => ({
 			key: visit.id,
-			label: <DateTime value={visit.visitedAt} format={DAY_FORMAT} />,
+			label: <DayText value={visit.visitedAt} />,
 			onAction: () => actions.onEditVisit(place, visit),
 		})),
 	}

@@ -2,12 +2,12 @@ import type { ReactElement, ReactNode } from 'react'
 import { Icon } from 'ui/icon'
 import { Lightbox, LightboxTrigger } from 'ui/lightbox'
 import { ListItem } from 'ui/list'
-import { useDateFormat } from 'ui/providers/locale'
+import { Placeholder } from 'ui/placeholder'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import type { Photo } from '../../types'
-import { DAY_FORMAT } from '../../utilities/places-filter'
+import { useDayText } from '../day-text'
 
 /**
  * One fact about a record, with an icon that names the fact. The icon box is one
@@ -69,12 +69,18 @@ export function SummaryRow({
 /**
  * A span of stored days on one line, such as `Oct 4 – 9, 2026`. The format
  * leaves out what the two days share, and a span of one day reads as that day.
- * It is a span, so it can go inside the button of a list row.
+ * It is a span, so it can go inside the button of a list row. A span that the
+ * page read has the text of the server (see `useDayText`).
  */
 export function DaySpan({ from, to }: { from: string; to: string }) {
-	const format = useDateFormat(DAY_FORMAT)
+	const text = useDayText().span(from, to)
 
-	return <span>{format.formatRange(new Date(from), new Date(to))}</span>
+	// A span that the page did not read has no text until hydration.
+	if (text === undefined) {
+		return <Placeholder as="span" pulse={false} className="inline-block h-[1lh] w-28 align-top" />
+	}
+
+	return <span>{text}</span>
 }
 
 /**

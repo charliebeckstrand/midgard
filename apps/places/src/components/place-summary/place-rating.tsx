@@ -1,11 +1,10 @@
 'use client'
 
-import { useDateFormat } from 'ui/providers/locale'
 import { Rating } from 'ui/rating'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import type { Place } from '../../types'
-import { DAY_FORMAT } from '../../utilities/places-filter'
 import { ratedVisit } from '../../utilities/places-visits'
+import { useDayText } from '../day-text'
 
 /**
  * The rating of a place: the rating of its newest rated visit, or nothing where
@@ -22,11 +21,13 @@ import { ratedVisit } from '../../utilities/places-visits'
 export function PlaceRating({ place, tooltip = true }: { place: Place; tooltip?: boolean }) {
 	const visit = ratedVisit(place)
 
-	const format = useDateFormat(DAY_FORMAT)
+	const text = useDayText()
 
 	if (visit === undefined) return null
 
-	const source = `From your visit on ${format.format(new Date(visit.visitedAt))}`
+	const day = text.day(visit.visitedAt)
+
+	const source = day === undefined ? 'From your visit' : `From your visit on ${day}`
 
 	const stars = <Rating readOnly value={visit.rating} size="sm" aria-label={source} />
 
