@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import { createElement } from 'react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -32,44 +32,26 @@ function serve(...answers: (string | number | null)[]) {
 async function load() {
 	vi.resetModules()
 
-	const [{ LiveRefresh }, { ElectionsFooter }, { Toast, ToastProvider }] = await Promise.all([
+	const [{ LiveRefresh }, { ElectionsFooter }] = await Promise.all([
 		import('shared/refresh'),
 		import('../components/elections-footer'),
-		import('ui/toast'),
 	])
 
-	return { LiveRefresh, ElectionsFooter, Toast, ToastProvider }
+	return { LiveRefresh, ElectionsFooter }
 }
 
-/**
- * Renders the footer of a page that counts votes, under a toast queue as
- * `AppProviders` gives it, and the first read of the build.
- */
+/** Renders the footer of a page that counts votes, and the first read of the build. */
 async function openFooter() {
-	const { ElectionsFooter, Toast, ToastProvider } = await load()
+	const { ElectionsFooter } = await load()
 
-	render(
-		createElement(
-			ToastProvider,
-			null,
-			createElement(ElectionsFooter, { counting: true, updated: '2026-11-05T02:00:00.000Z' }),
-			createElement(Toast),
-		),
-	)
+	render(createElement(ElectionsFooter, { counting: true, updated: '2026-11-05T02:00:00.000Z' }))
 
 	await act(() => vi.advanceTimersByTimeAsync(0))
 }
 
 const minute = () => act(() => vi.advanceTimersByTimeAsync(60_000))
 
-const press = (name: string) =>
-	act(async () => {
-		fireEvent.click(screen.getByRole('button', { name }))
-
-		await vi.advanceTimersByTimeAsync(0)
-	})
-
-// The first load transforms the footer, the toasts, and their imports, which
+// The first load transforms the footer and its imports, which
 // can take more than the time of one test while the other suites run. Each
 // later load only runs the transformed modules again.
 beforeAll(async () => {
@@ -88,79 +70,6 @@ afterEach(() => {
 	vi.useRealTimers()
 })
 
-describe('the Refresh button of the footer', () => {
-	it('renders the page again in place while the server runs the build of the page', async () => {
-		const fetch = serve('build-a')
-
-		await openFooter()
-
-		await press('Refresh')
-
-		expect(fetch).toHaveBeenLastCalledWith('/api/build', { cache: 'no-store' })
-
-		expect(refresh).toHaveBeenCalledTimes(1)
-	})
-
-	it('does not refresh by itself', async () => {
-		serve('build-a')
-
-		await openFooter()
-
-		await minute()
-
-		await minute()
-
-		expect(refresh).not.toHaveBeenCalled()
-	})
-
-	it('keeps the page when the network is down, so Next does not reload it, and says so in a toast', async () => {
-		serve('build-a', null)
-
-		await openFooter()
-
-		await press('Refresh')
-
-		expect(refresh).not.toHaveBeenCalled()
-
-		expect(screen.getByRole('alert').textContent).toContain('Could not refresh')
-
-		// A second failure takes the place of the first toast: the first one
-		// leaves, inert, and one toast stays.
-		await press('Refresh')
-
-		await act(() => vi.advanceTimersByTimeAsync(1000))
-
-		const toasts = [...document.querySelectorAll('[data-slot="toast-viewport"] li')]
-
-		expect(toasts.filter((toast) => !toast.hasAttribute('inert'))).toHaveLength(1)
-	})
-
-	it('keeps the page on an error answer', async () => {
-		serve('build-a', 502)
-
-		await openFooter()
-
-		await press('Refresh')
-
-		expect(refresh).not.toHaveBeenCalled()
-	})
-
-	it('names a new build in place of the refresh, with a link that reloads the page', async () => {
-		serve('build-a', 'build-b')
-
-		await openFooter()
-
-		await press('Refresh')
-
-		expect(refresh).not.toHaveBeenCalled()
-
-		expect(screen.getByText(/New build available/)).not.toBeNull()
-
-		// One button is left: the reload of the new build.
-		expect(screen.getAllByRole('button', { name: 'Refresh' })).toHaveLength(1)
-	})
-})
-
 describe('the build watch of the footer', () => {
 	it('reads only the build each minute, and names a new build', async () => {
 		serve('build-a', 'build-a', 'build-b')
@@ -171,9 +80,15 @@ describe('the build watch of the footer', () => {
 
 		expect(screen.queryByText(/New build available/)).toBeNull()
 
+		// The footer has no refresh of its own.
+		expect(screen.queryByRole('button')).toBeNull()
+
 		await minute()
 
 		expect(screen.getByText(/New build available/)).not.toBeNull()
+
+		// The one button reloads the page for the new build.
+		expect(screen.getByRole('button', { name: 'Refresh' })).not.toBeNull()
 
 		expect(refresh).not.toHaveBeenCalled()
 	})

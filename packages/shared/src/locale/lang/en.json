@@ -247,10 +247,6 @@
 		"defaultMessage": "This page could not be found",
 		"description": "The text under the 404 of the page of a path that has no route."
 	},
-	"shared.refresh.failed": {
-		"defaultMessage": "Could not refresh",
-		"description": "The title of the toast that shows when a refresh of the page got no answer from the server."
-	},
 	"shared.validation.email": {
 		"defaultMessage": "Enter a valid email address.",
 		"description": "The error of an email field that does not hold an email address."

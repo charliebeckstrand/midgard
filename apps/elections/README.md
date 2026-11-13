@@ -33,20 +33,14 @@ state or district, and the seats of each party. One race of a state gives its
 counties. The cache keeps each parsed race for a minute while the count goes
 on, and for hours once the race is fully in and called.
 
-The results update only when the reader asks. The Refresh button of the
-footer, beside the age of the newest update, renders the page again on the
-server, in place (`useRefresh` from `shared`). The page reads the race of the
-Drawer again with it, so the Drawer has no clock of its own. While the
-refresh is in flight, the button reads "Refreshing". A refresh with no answer
-leaves the page as it is, and an error toast says so.
+The page does not refresh its results: a reload or a navigation reads them
+again. A new render of the page reads the race of the Drawer again with it, so
+the Drawer has no clock of its own.
 
-Next reloads the whole page when a refresh cannot apply in place: after a
-deploy, on an error answer, or with no network. So before each refresh, the
-page reads the build of the server from `/api/build`, and it refreshes only
-when the server runs the build of the page. Each minute, while the tab is
-visible, the page also reads the build, and no data (`useBuildWatch`). After
-a deploy, the footer shows "New build available" in place of the Refresh
-button, with a Refresh link that reloads the whole page.
+Each minute, while the tab is visible, the page reads the build of the server
+from `/api/build`, and no data (`useBuildWatch` from `shared`). After a
+deploy, the footer shows "New build available", with a Refresh button that
+reloads the whole page.
 
 A changed number rolls to its new value through the `Odometer` of `ui`, and
 under reduced motion it goes to the value with no roll.

@@ -61,7 +61,6 @@
 	"shared.error.title": "Algo salió mal",
 	"shared.mutation.failed": "Algo salió mal",
 	"shared.notFound.body": "No se encontró esta página",
-	"shared.refresh.failed": "No se pudo actualizar",
 	"shared.validation.email": "Introduce una dirección de correo electrónico válida.",
 	"shared.validation.minLength": "{min, plural, one {Introduce al menos # carácter.} other {Introduce al menos # caracteres.}}",
 	"shared.validation.passwordMismatch": "Vuelve a introducir la misma contraseña.",

@@ -11,9 +11,9 @@ import type { Race } from '../types'
  * the race that the page read on the server for the step of the address, so a
  * reload paints the Drawer whole. It fills only the query of its own race.
  *
- * The query has no clock of its own. The Refresh button of the footer renders
- * the page again, and the page reads the race of the Drawer again into a new
- * seed. A seed that is newer than the entry replaces
+ * The query has no clock of its own. Each new render of the page on the
+ * server, such as after a navigation, reads the race of the Drawer again into
+ * a new seed. A seed that is newer than the entry replaces
  * the data of the entry, so the Drawer moves with the page and reads nothing
  * more. The query reads the race only for a step that the page did not seed,
  * such as a race that the reader opened after the last render of the page.
@@ -26,7 +26,7 @@ export function useRace(id: number | null, seed: Seed<Race> | null) {
 
 	const seeded = seed !== null && seed.data.id === id ? seed : null
 
-	// `seededQuery` fills only an empty entry, so a seed from a refresh goes in here.
+	// `seededQuery` fills only an empty entry, so a seed from a new render goes in here.
 	useEffect(() => {
 		if (seeded === null) return
 
