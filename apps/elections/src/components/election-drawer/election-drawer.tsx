@@ -60,7 +60,7 @@ export type ElectionDrawerProps = {
 /** Moves the Drawer to a step, or closes it with `null`. */
 type Go = (step: DrawerStep | null) => void
 
-/** The view of the race of the step, which the Drawer holds across a visit to a county. */
+/** The view of the race of the step, which the address holds, so a county keeps it. */
 type Views = { view: RaceView; onViewChange: (view: RaceView) => void }
 
 /** The layout of a county: each candidate in full, or one short line each. */
@@ -403,14 +403,14 @@ export function ElectionDrawer({ election, seed }: ElectionDrawerProps) {
 
 	const pathname = usePathname()
 
-	usePreloadCountyMap(step?.region.key ?? null)
-
 	const entry = step === null ? undefined : stepEntry(results, step)
 
 	const read = useRace(entry?.raceId ?? null, seed?.race ?? null)
 
 	// The shapes belong to the state of the seeded race, so only that race takes them.
 	const shapes = seed !== null && seed.race.data.id === entry?.raceId ? seed.shapes : null
+
+	usePreloadCountyMap(step?.region.key ?? null, shapes)
 
 	const race = read.data?.id === entry?.raceId ? read.data : undefined
 
