@@ -313,7 +313,7 @@ function GridColumnManagerOrderableList({
 		</ListItem>
 	)
 
-	// A read-only list drops `sortable` so no static grip renders; the reorderable
+	// A read-only list has no `onReorder`, so no grip renders. The reorderable
 	// list keeps the auto-inserted handle and commits moves through `onReorder`.
 	return reorderable ? (
 		<List
