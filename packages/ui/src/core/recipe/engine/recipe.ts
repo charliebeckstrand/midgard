@@ -1,9 +1,10 @@
 /**
- * The recipe primitive: {@link defineRecipe} and its config expansion.
+ * The recipe primitive: {@link defineRecipe} and its config expansion. A recipe
+ * gives the classes of one slot. `defineKata` builds one for each slot of a
+ * unit (`kata.ts`), and the unit holds its extras, such as `skeleton`.
  *
  * @remarks Per-call composition order is `base` → matching `variants` →
- * `compound` rules. The `slots` pre-merge at creation, `palette` expands into
- * the `color` axis (`palette.ts`), and `skeleton` rides through as `k.skeleton`.
+ * `compound` rules. `palette` expands into the `color` axis (`palette.ts`).
  * The call path is compiled once at creation: entries hoisted, defaults
  * pre-stringified, palette pairs folded into an O(1) lookup. Its output is
  * memoized per variant combination. Render-hot call sites therefore pay a key
@@ -22,7 +23,6 @@ import type {
 	RecipeConfig,
 	ReservedField,
 	ResolvedConfig,
-	SlotValue,
 	VariantAxis,
 } from './types'
 
@@ -35,9 +35,7 @@ export const RESERVED = {
 	base: true,
 	palette: true,
 	compound: true,
-	slots: true,
 	defaults: true,
-	skeleton: true,
 } as const satisfies Record<ReservedField, true>
 
 /**
@@ -91,44 +89,20 @@ type Expansion = {
 }
 
 /**
- * Builds a callable recipe from a `RecipeConfig`:
- *
- * - `base`, `variants`, `compound`, and `defaults` apply per call through
- *   `clsx` + `tailwind-merge`;
- * - `slots` pre-merge onto the recipe as direct properties, and a slot group
- *   pre-merges each of its entries;
- * - `palette` expands into an implicit `color` axis;
- * - `extras` attach arbitrary kata-shaped siblings.
- *
- * The kata binds the result as `k`: `k(...)` for the variant call, `k.title`
- * for slot classes.
+ * Builds a callable recipe from a `RecipeConfig`. `base`, `variants`,
+ * `compound`, and `defaults` apply per call through `clsx` + `tailwind-merge`,
+ * and `palette` expands into an implicit `color` axis.
  *
  * @remarks Calls are memoized per resolved variant combination: the first
  * call with a given combination composes and merges classes, every later one
  * returns the cached string.
  *
  * @param config - Recipe definition; reserved fields (`base`, `palette`,
- * `compound`, `slots`, `defaults`, `skeleton`) are special-cased, every other
- * top-level field becomes a variant axis.
- * @param extras - Optional kata-shaped siblings (`motion`, sub-recipes,
- * fragment maps) attached as direct properties; the recipe stays callable.
- * @throws If a slot name collides with a recipe property: a function
- * built-in (`name`, `length`, `call`, …) or the engine-attached `config` /
- * `skeleton`.
- * @throws If an extras key collides with a slot, a function built-in, or
- * `config`. The `skeleton` key also throws, with or without a config
- * `skeleton`.
+ * `compound`, `defaults`) are special-cased, every other top-level field
+ * becomes a variant axis.
  * @see {@link expandPalette}
  */
-export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C>
-export function defineRecipe<C extends RecipeConfig, X extends Record<string, unknown>>(
-	config: C,
-	extras: X,
-): Recipe<C> & X
-export function defineRecipe<C extends RecipeConfig, X extends Record<string, unknown>>(
-	config: C,
-	extras?: X,
-): Recipe<C> | (Recipe<C> & X) {
+export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C> {
 	const expansion = expand(config)
 
 	const { resolved } = expansion
@@ -157,55 +131,11 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 		return result
 	}
 
-	const slots: Record<string, unknown> = {}
-
-	for (const [slot, value] of Object.entries(resolved.slots)) {
-		// `in` sees the function built-ins (`name`, `length`, `call`, …) through
-		// the prototype chain before anything is assigned; `config` and
-		// `skeleton` are attached by the engine below.
-		if (slot in recipe || slot === 'config' || slot === 'skeleton') {
-			throw new Error(`defineRecipe: slot name "${slot}" collides with a recipe property`)
-		}
-
-		slots[slot] = mergeSlot(value)
-	}
-
-	Object.assign(recipe, slots)
-
-	if (config.skeleton !== undefined) Object.assign(recipe, { skeleton: config.skeleton })
-
-	if (extras) {
-		// An extra must not overwrite a slot, a function built-in, or `config`.
-		// The `skeleton` is reserved for the config, also when the config has none.
-		for (const key of Object.keys(extras)) {
-			if (key in recipe || key === 'config' || key === 'skeleton') {
-				throw new Error(`defineRecipe: extra name "${key}" collides with a recipe property`)
-			}
-		}
-
-		Object.assign(recipe, extras)
-	}
-
 	Object.defineProperty(recipe, 'config', { value: resolved, enumerable: false })
 
-	// Assert the final shape: slot properties, `.config`, and extras attach
-	// at runtime, invisible to the type system.
-	return recipe as Recipe<C> & X
-}
-
-/**
- * Merges a slot into its class string. A plain object is a slot group, so each
- * of its entries merges the same way, and the result keeps the names of the
- * group. An array is a class list, and clsx flattens it.
- *
- * @internal
- */
-function mergeSlot(value: SlotValue): unknown {
-	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-		return twMerge(clsx(value))
-	}
-
-	return Object.fromEntries(Object.entries(value).map(([name, entry]) => [name, mergeSlot(entry)]))
+	// Assert the final shape: `.config` attaches at runtime, invisible to the
+	// type system.
+	return recipe as Recipe<C>
 }
 
 /**
@@ -428,7 +358,6 @@ function expand(config: RecipeConfig): Expansion {
 			variants,
 			// User compounds follow palette compounds; later rules take precedence.
 			compound: [...paletteExpansion.compound, ...userCompound],
-			slots: config.slots ?? {},
 			defaults: config.defaults ?? {},
 		},
 		palettePairs: paletteExpansion.pairs,

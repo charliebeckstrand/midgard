@@ -6,8 +6,8 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'
-import { dan, ji, kokkaku, narabi, sen } from '../kiso'
-import { box, nav } from '../kumi/nav'
+import { dan, kokkaku, narabi, sen } from '../kiso'
+import { box, nav, stack } from '../kumi/nav'
 
 const { flex } = narabi
 const { divider } = sen
@@ -83,12 +83,6 @@ const item = defineKata(
 )
 
 /**
- * A stack of items. Its gap also caps the hit areas of the items (`TouchTarget`),
- * so two adjacent items split the gap and do not overlap.
- */
-const stack = [flex.col, 'gap-0.5', '[--touch-target-gap-y:--spacing(0.5)]']
-
-/**
  * The scroll of the nav and of its body: on the vertical axis only. A sidebar
  * never scrolls on the horizontal axis. A vertical scroller also scrolls its
  * horizontal overflow, and on a coarse pointer the hit area of a small control
@@ -105,7 +99,7 @@ export const k = defineKata(
 			list: stack,
 			label: ['truncate', mini.srOnly],
 			header: [flex.row, dan.gap.scale.md],
-			body: [scroll, flex.col, flex.fill, dan.gap.scale.lg],
+			body: [scroll, flex.col, 'flex-1', dan.gap.scale.lg],
 			divider: divider.top,
 			footer: ['sticky bottom-0', ...stack, 'mt-auto'],
 		},
@@ -123,7 +117,7 @@ export const k = defineKata(
 
 /** The size scale of {@link SidebarItem}: the steps of its text, gap, padding, and radius. */
 export const scale = defineScale(
-	ji.ramp,
+	dan.text.body,
 	dan.gap.item,
 	dan.space.sidebar.item.base,
 	dan.radius.control,

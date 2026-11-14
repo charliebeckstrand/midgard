@@ -21,6 +21,11 @@ export const forced = {
 	 * that an ungated `outline-none` sets to none.
 	 */
 	outline: 'forced-colors:outline-solid forced-colors:outline-1',
+	/**
+	 * Keeps the author color of a part whose color is its content, such as a
+	 * color swatch, so that a system color does not replace it.
+	 */
+	keep: 'forced-color-adjust-none',
 	/** Item text: preserves semantic foreground color. */
 	text: 'forced-color-adjust-none forced-colors:text-[CanvasText]',
 	/** Focus state: maps to system highlight colors. */
@@ -34,6 +39,12 @@ export const forced = {
 	 * in `Highlight`.
 	 */
 	mark: 'forced-colors:bg-[Highlight]',
+	/**
+	 * Text highlight: a wash behind text that marks a match, such as a search
+	 * match. The `Highlight` of a {@link forced.mark} does not keep the contrast of
+	 * the text on it, so the highlight paints in the `Mark` and `MarkText` pair.
+	 */
+	highlight: 'forced-colors:bg-[Mark] forced-colors:text-[MarkText]',
 	/**
 	 * Shape: a control that the reader sees only as its background, such as the
 	 * grip bar of a panel. Forced colors remove that background, so the shape

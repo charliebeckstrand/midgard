@@ -1,5 +1,5 @@
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
+import { dan, hannou, iro, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 
 const { cursor, disabled, fg } = hannou
 const { text } = iro
@@ -18,7 +18,7 @@ const header = [
 	'justify-between',
 	dan.gap.scale.sm,
 	dan.space.accordion.header,
-	ji.ramp,
+	dan.text.body,
 ]
 
 export const k = defineKata(
@@ -76,7 +76,7 @@ export const k = defineKata(
 				dan.space.accordion.body.x,
 				dan.space.accordion.body.bottom,
 				'pt-0',
-				ji.ramp,
+				dan.text.body,
 				text.muted,
 			],
 		},

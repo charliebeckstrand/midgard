@@ -149,28 +149,6 @@ describe('defineRecipe', () => {
 		expect(out).not.toContain('bg-zinc-600')
 	})
 
-	it('pre-merges slot classes and exposes them as properties on the recipe', () => {
-		// Slots are computed once at definition time, looked up by name (`recipe.title`).
-		const recipe = defineRecipe({
-			slots: { title: ['font-semibold', 'text-lg'], body: 'text-sm' },
-		})
-
-		expect(recipe.title).toBe('font-semibold text-lg')
-
-		expect(recipe.body).toBe('text-sm')
-	})
-
-	// `define-recipe.test-d.ts` holds the type of `skeleton`.
-	it('attaches `skeleton` only to a recipe whose config declares one', () => {
-		const plain = defineRecipe({ base: 'block' })
-
-		const withSkeleton = defineRecipe({ base: 'block', skeleton: { base: 'h-4' } as const })
-
-		expect('skeleton' in plain).toBe(false)
-
-		expect(withSkeleton.skeleton).toEqual({ base: 'h-4' })
-	})
-
 	it('rejects a prop that is not an object', () => {
 		// The engine reads each axis as a key of the prop object, so `true` in
 		// place of `{ interactive: true }` would give the defaults.
@@ -183,21 +161,6 @@ describe('defineRecipe', () => {
 		expect(recipe(true)).toBe('block')
 
 		expect(recipe({ interactive: true })).toBe('block cursor-pointer')
-	})
-
-	it('pre-merges a slot group into a group of class strings', () => {
-		// A part keeps its children under its own name. Each entry merges on its
-		// own, so a conflict inside an entry resolves, and the entries stay apart.
-		const recipe = defineRecipe({
-			slots: {
-				close: { base: ['p-1', 'p-2'], line: 'h-lh' },
-				title: 'font-semibold',
-			},
-		})
-
-		expect(recipe.close).toEqual({ base: 'p-2', line: 'h-lh' })
-
-		expect(recipe.title).toBe('font-semibold')
 	})
 
 	it('keeps the default color active when only variant is overridden', () => {
@@ -251,32 +214,6 @@ describe('defineRecipe', () => {
 		const plain = recipe({ size: 'sm' })
 
 		expect(recipe({ size: 'sm', stray: 'x' } as { size: 'sm' })).toBe(plain)
-	})
-
-	it('rejects a slot or extra name that collides with a recipe property', () => {
-		// Function built-ins (own like `name`, inherited like `call`) would be
-		// shadowed or throw an opaque strict-mode TypeError on assignment; the
-		// engine-attached `config` / `skeleton` would be silently clobbered.
-		expect(() => defineRecipe({ slots: { name: 'x' } })).toThrow(/slot name/)
-
-		expect(() => defineRecipe({ slots: { call: 'x' } })).toThrow(/slot name/)
-
-		expect(() => defineRecipe({ slots: { config: 'x' } })).toThrow(/slot name/)
-
-		expect(() => defineRecipe({ slots: { skeleton: 'x' } })).toThrow(/slot name/)
-
-		// An extra would overwrite a slot, the skeleton, or `config` with no error.
-		expect(() => defineRecipe({ slots: { title: 'x' } }, { title: {} })).toThrow(/extra name/)
-
-		expect(() => defineRecipe({ skeleton: 'x' }, { skeleton: {} })).toThrow(/extra name/)
-
-		// `skeleton` is reserved for the config, so an extra with that name throws
-		// also when the config has no skeleton.
-		expect(() => defineRecipe({}, { skeleton: {} })).toThrow(/extra name/)
-
-		expect(() => defineRecipe({}, { config: {} })).toThrow(/extra name/)
-
-		expect(() => defineRecipe({}, { name: 'x' })).toThrow(/extra name/)
 	})
 })
 

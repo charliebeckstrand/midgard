@@ -22,7 +22,7 @@ export const k = defineKata({
 	slots: {
 		meter: [flex.row, dan.gap.scale.xs],
 		segment: {
-			base: [flex.fill, 'h-1', rounded.full, ...bg.skeleton.base],
+			base: ['flex-1', 'h-1', rounded.full, ...bg.skeleton.base],
 			// Forced colors remove the fill, so a filled segment paints the `mark`.
 			level: {
 				weak: [meter.red.bg, forced.mark],

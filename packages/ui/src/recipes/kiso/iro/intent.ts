@@ -4,7 +4,7 @@
  * `muted`) that consumers reach by purpose rather than color axis.
  * Surfaced through the barrel as `iro.text`.
  *
- * Each intent projects the ramp's `onSurface` role for its color: the
+ * Each intent reads the `onSurface` shade of its color in the ramp: the
  * foreground shade that clears AA on the page / card surface. `default` is
  * the max-emphasis neutral foreground.
  *

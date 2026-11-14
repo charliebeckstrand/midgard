@@ -1,6 +1,6 @@
 /**
- * Sen focus: how an element signals keyboard focus. Seven named shapes
- * cover the patterns the library uses:
+ * Sen focus: how an element signals keyboard focus. Each named shape covers
+ * one pattern that the library uses:
  *
  *   - `ring`      outset CSS outline + transparent offset gap. Renders as one
  *                 crisp stroke along the radius (unlike two stacked ring
@@ -27,6 +27,7 @@
  *                 color, for a focused tab. On the current tab, it paints
  *                 over the selection bar, so the current tab also shows
  *                 focus.
+ *   - `parent`    the `ring` stroke on a part whose parent has the focus
  *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
  *                 accent that reads against the panel backdrop. Split into
  *                 `raise` and one entry per indicator shape, because the host

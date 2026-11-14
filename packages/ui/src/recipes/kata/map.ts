@@ -149,7 +149,7 @@ export const k = {
 	 */
 	shared: {
 		/** The disc inside the ring: the surface color, the region seam's ink. */
-		disc: mode('stroke-white', 'dark:stroke-zinc-900'),
+		disc: ink.surface,
 		/** The count on the disc: the text ink of the surface. */
 		count: mode('fill-zinc-900', 'dark:fill-white'),
 	},
@@ -158,7 +158,7 @@ export const k = {
 		/** A region with no matching datum, and a toggled-off category's fallback. */
 		empty: mode('fill-zinc-200', 'dark:fill-zinc-800'),
 		/** Region boundary seam: the surface color, so shared borders read as gaps. */
-		border: mode('stroke-white', 'dark:stroke-zinc-900'),
+		border: ink.surface,
 		/**
 		 * Pointer emphasis on the hovered region. Light mode darkens and dark mode
 		 * brightens, so the hovered region always moves away from the surface. A

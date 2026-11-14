@@ -43,18 +43,11 @@ export const k = defineKata(
 				],
 				slots: {
 					header: [flex.row, dan.gap.scale.sm, size.md, text.default, weight.semibold],
-					title: [flex.fill, 'min-w-0 truncate'],
+					title: ['flex-1', 'min-w-0 truncate'],
 					// A disabled board dims each body as one box, not each card in it. WebKit
 					// does not repaint a card in the scroll box of the body while the opacity
 					// of the card goes down from 1. Thus the card stays bright and then jumps.
-					body: [
-						flex.col,
-						flex.fill,
-						dan.gap.scale.xs,
-						'overflow-y-auto',
-						focus.inset,
-						...disabled,
-					],
+					body: [flex.col, 'flex-1', dan.gap.scale.xs, 'overflow-y-auto', focus.inset, ...disabled],
 					// `on.wash.muted`, not `muted`: the empty message sits on the tint fill of
 					// the column Card, which `muted` is not legal over. See `iro/ramp.ts`.
 					empty: [flex.row, 'justify-center', 'min-h-16', size.sm, on.wash.muted],
@@ -76,7 +69,7 @@ export const k = defineKata(
 				],
 				slots: {
 					// Each child of the card other than its handle, in one column.
-					content: [flex.col, flex.fill, 'min-w-0', dan.gap.scale.xs],
+					content: [flex.col, 'flex-1', 'min-w-0', dan.gap.scale.xs],
 					// The card raises while the keyboard lifts it.
 					lifted: focus.lifted.raise,
 					// The clone of a dragged card in the drag overlay.

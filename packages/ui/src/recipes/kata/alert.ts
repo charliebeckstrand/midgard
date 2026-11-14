@@ -7,7 +7,7 @@ const { rounded } = kasane
 const { flex } = narabi
 const { forced, ring } = sen
 
-/** The title size: `text-lg` at `md`, one rung above `ji.ramp` at each step. */
+/** The title size: `text-lg` at `md`, one rung above `dan.text.body` at each step. */
 const titleRamp = dan.text.title
 
 /**
@@ -21,7 +21,15 @@ const titleRamp = dan.text.title
  * forced outline to keep the edge of each variant.
  */
 export const k = defineKata({
-	base: [flex.row, 'w-fit', dan.space.alert, dan.gap.scale.sm, rounded.lg, ji.ramp, forced.outline],
+	base: [
+		flex.row,
+		'w-fit',
+		dan.space.alert,
+		dan.gap.scale.sm,
+		rounded.lg,
+		dan.text.body,
+		forced.outline,
+	],
 	variant: {
 		outline: ring.line[1].inset,
 	},
@@ -36,7 +44,7 @@ export const k = defineKata({
 		icon: 'shrink-0 self-center',
 		title: [titleRamp, weight.semibold],
 		description: [leading.tight, 'col-start-2'],
-		content: [flex.fill, 'min-w-0', dan.gap.scale.sm],
+		content: ['flex-1', 'min-w-0', dan.gap.scale.sm],
 		/** The two columns of the content beside an icon. */
 		columns: ['grid grid-cols-[auto_minmax(0,1fr)]', dan.gap.x.sm],
 		body: 'col-start-2',

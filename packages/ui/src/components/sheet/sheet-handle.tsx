@@ -24,7 +24,7 @@ export type SheetHandleProps = {
  * standing on the edge that faces the screen.
  *
  * A sheet docked to a side is grabbed by a separator standing the other way
- * from the drawer's, so the grip stands with it. See the archetype's grip for
+ * from the drawer's, so the grip stands with it. See the grip of the panel group for
  * why the orientation is the separator's line and not the axis it moves.
  *
  * @internal

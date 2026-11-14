@@ -10,7 +10,7 @@
  * silhouette of one or two lines has the height of the real textarea.
  *
  * The padding, the radius, and the text are the ramps of the control density
- * (`dan.space.control.y`, `dan.radius.control`, and `ji.ramp`). The text sets
+ * (`dan.space.control.y`, `dan.radius.control`, and `dan.text.body`). The text sets
  * `lh`. So the silhouette takes the step of its nearest density scope, as the
  * textarea does. The `skeleton-parity` browser test holds the box at each step.
  *
@@ -18,13 +18,12 @@
  */
 
 import { dan } from '../dan'
-import { ji } from '../ji'
 
 const floor = dan.size.control.floor
 
 export const textarea = {
 	floor,
-	base: ['w-full', 'h-auto', floor, dan.space.control.y, dan.radius.control, ji.ramp],
+	base: ['w-full', 'h-auto', floor, dan.space.control.y, dan.radius.control, dan.text.body],
 	/** The strut: a block of the caller's count of lines. */
 	strut: 'block',
 	density: true,

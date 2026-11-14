@@ -21,7 +21,7 @@
  *
  * Re-run the validator before reordering or re-shading.
  *
- * Layer: kiso · Archetype: zu · Concern: palette
+ * Layer: kiso · Concern: palette
  */
 
 import { mode } from '../../../core/recipe'

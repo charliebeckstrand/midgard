@@ -8,6 +8,7 @@
  */
 
 import { mode } from '../../../core/recipe'
+import { sen } from '../sen'
 
 export const bg = {
 	/**
@@ -27,8 +28,11 @@ export const bg = {
 	popover: mode('bg-white/(--popover-alpha,90%)', 'dark:bg-zinc-800/(--popover-alpha,75%)'),
 	tint: mode('bg-zinc-950/5', 'dark:bg-white/10'),
 	skeleton: {
-		/** The tone of a loading skeleton. */
-		base: mode('bg-zinc-200', 'dark:bg-zinc-700'),
+		/**
+		 * The tone of a loading skeleton. Forced colors replace the fill with the
+		 * page color, so the skeleton keeps its box as an outline, as a surface does.
+		 */
+		base: [...mode('bg-zinc-200', 'dark:bg-zinc-700'), sen.forced.outline],
 		/** The same tone as an SVG fill, for a skeleton drawn as a shape. */
 		fill: mode('fill-zinc-200', 'dark:fill-zinc-700'),
 	},

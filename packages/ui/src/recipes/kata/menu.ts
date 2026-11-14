@@ -19,13 +19,14 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata, mode } from '../../core/recipe'
-import { dan, iro, ji, narabi, omote, sen } from '../kiso'
+import { dan, iro, ji, narabi, omote, sen, ugoki } from '../kiso'
 import { item } from '../kumi/item'
 
 const { text } = iro
 const { size, weight } = ji
 const { fit, flex } = narabi
 const { divider } = sen
+const { css } = ugoki
 
 /**
  * The row of a menu. The menu pads its row by the step of the nearest density
@@ -40,7 +41,7 @@ const row = defineKata({
 		dan.gap.option,
 		dan.space.menu.item.x,
 		dan.space.option.y,
-		ji.ramp,
+		dan.text.body,
 	],
 })
 
@@ -88,7 +89,7 @@ export const k = defineKata(
 			header: {
 				base: 'shrink-0 px-3 pb-1 pt-2',
 				slots: {
-					title: [ji.ramp, weight.semibold, text.default],
+					title: [dan.text.body, weight.semibold, text.default],
 					description: [size.xs, text.muted],
 				},
 			},
@@ -122,7 +123,7 @@ export const k = defineKata(
 			],
 			// The chevron of a `MenuSub` row in the bottom sheet, which turns over
 			// while the rows of the submenu show below the row.
-			chevron: 'ms-auto motion-safe:transition-transform',
+			chevron: ['ms-auto', css.transform, css.duration],
 			// The rows of a `MenuSub` in the bottom sheet, below their parent row. The
 			// indent shows that they belong to it.
 			group: 'min-w-0 space-y-0.5 ps-4',

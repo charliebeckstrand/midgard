@@ -118,7 +118,7 @@ export const k = defineKata(
 			description: [inset.x, 'in-data-[slot=sheet-header]:px-0'],
 			footer: [inset.x, inset.bottom],
 			body: [
-				flex.fill,
+				'flex-1',
 				'overflow-y-auto overscroll-contain',
 				inset.x,
 				inset.first.sheet,

@@ -1,8 +1,9 @@
 /**
- * Narabi flex: the small flex primitives shared across kata. Each is a
- * single utility (or pair) that recurred enough to earn a name; consumers
- * spread them inline rather than re-typing the literal. The `direction`,
- * `align`, and `justify` tables are the axes of the structure units.
+ * Narabi flex: the flex pairs shared across kata. `row`, `col`, and `inline`
+ * each name a pair of utilities that recurs, so a consumer reads the pair and
+ * does not type it again. A single utility, such as `flex-1`, names no pattern
+ * and stays a plain class. The `direction`, `align`, and `justify` tables are
+ * the axes of the structure units, not fragments to spread.
  *
  * Layer: kiso · Concern: flex primitives
  */
@@ -14,8 +15,6 @@ export const flex = {
 	col: 'flex flex-col',
 	/** Inline flex row with vertical centering. */
 	inline: 'inline-flex items-center',
-	/** Fill remaining flex track. */
-	fill: 'flex-1',
 	/** The `flex-direction` of each direction of a flex box. */
 	direction: {
 		row: 'flex-row',

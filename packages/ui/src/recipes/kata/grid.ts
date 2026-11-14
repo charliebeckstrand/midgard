@@ -15,7 +15,7 @@ const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { backdrop, popover } = omote
-const { focus, gridline, ring } = sen
+const { focus, forced, gridline, ring } = sen
 const { instant, spring } = ugoki
 
 /**
@@ -70,6 +70,17 @@ const draggingSurface = mode(
 	'data-dragging:bg-(--surface-fill,var(--color-white))',
 	'dark:data-dragging:bg-(--surface-fill,var(--color-zinc-950))',
 )
+
+/**
+ * The forced-colors mark of a dragged row or column. Forced colors remove the
+ * shadow and repaint the surface of the lift, so the lift draws the 4 px inset
+ * `Highlight` outline of `sen.focus.lifted`, behind the `data-dragging` gate
+ * (CONVENTIONS §5.10).
+ */
+const draggingMark = [
+	'forced-colors:data-dragging:outline-solid forced-colors:data-dragging:outline-4',
+	'forced-colors:data-dragging:-outline-offset-4 forced-colors:data-dragging:outline-[Highlight]',
+]
 
 /**
  * The 2px rule at the boundary of a frozen group: a full-height `::after` on
@@ -357,13 +368,13 @@ export const k = {
 		// lets the content overflow and keeps the one line.
 		editing: ['block', 'whitespace-nowrap'],
 		// The search-highlight wash behind a matched substring when `search.mode`
-		// is `'highlight'` (mark, don't prune). The same mode-aware amber the JsonTree's
-		// search highlight uses (`kata/json-tree` `highlight`), so a match reads the
-		// same across the system. `text-inherit` drops the browser's default
+		// is `'highlight'` (mark, don't prune). The wash is `iro.match`, the wash of
+		// the JsonTree search match too, so a match reads the same across the system.
+		// Forced colors remove it, so the match paints the `Mark` pair. `text-inherit` drops the browser's default
 		// yellow/black <mark> ink, and the wash carries no box metrics, so the marked
 		// run's width matches the plain text and the column autosizer still measures
 		// the intrinsic content width.
-		mark: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.sm, 'text-inherit'],
+		mark: [...iro.match, rounded.sm, 'text-inherit', forced.highlight],
 		// Truncation tooltip surface: cap the width and let long text wrap inside.
 		tooltip: ['max-w-xs', 'whitespace-normal', 'wrap-break-word'],
 		// A roving-focusable data cell (`onCellClick`/`onCellDoubleClick`): the
@@ -466,6 +477,7 @@ export const k = {
 				'data-dragging:text-zinc-500',
 				'dark:data-dragging:text-zinc-400',
 				...draggingSurface,
+				...draggingMark,
 			],
 			// Promotes a non-sticky reorder cell to `relative` while dragging so its
 			// lift z-index takes effect.
@@ -563,6 +575,7 @@ export const k = {
 				'data-dragging:z-10',
 				'data-dragging:shadow-lg',
 				...draggingSurface,
+				...draggingMark,
 			],
 		},
 		// The new-row slot of an editable grid. Its cells stick to the top or the
@@ -745,12 +758,12 @@ export const k = {
 		controls: {
 			// Page-size picker: the start track. It renders even when it is empty,
 			// so the navigation stays centered.
-			base: [flex.inline, flex.fill, dan.gap.scale.lg],
+			base: [flex.inline, 'flex-1', dan.gap.scale.lg],
 			bare: ['hidden', '@2xl:flex'],
 		},
 		nav: {
 			// Page navigation: the centered middle track.
-			base: ['flex', flex.fill, 'justify-center'],
+			base: ['flex', 'flex-1', 'justify-center'],
 			bare: ['justify-start', '@2xl:justify-center'],
 		},
 		// The `<Pagination>` in the track. The footer has its own narrow layout
@@ -763,7 +776,7 @@ export const k = {
 		pages: ['hidden', '@2xl:flex'],
 		// Row-range status ("1–10 of 47"): the end track, aligned to the inline
 		// end.
-		status: [size.md, text.muted, flex.fill, 'whitespace-nowrap', 'text-end', 'tabular-nums'],
+		status: [size.md, text.muted, 'flex-1', 'whitespace-nowrap', 'text-end', 'tabular-nums'],
 	},
 	// Condensed down-projections layered on the compact density the grid forwards
 	// to `<Table>` when `condensed` is set. All cast from the `<table>` element
@@ -1043,7 +1056,8 @@ export const k = {
 		error: {
 			base: [
 				'self-start max-w-xs',
-				'rounded px-1.5 py-0.5 whitespace-normal',
+				rounded.sm,
+				'px-1.5 py-0.5 whitespace-normal',
 				size.xs,
 				'text-white shadow',
 				...mode('bg-red-600', 'dark:bg-red-500'),

@@ -1,24 +1,18 @@
 import { defineKata } from '../../core/recipe'
-import { dan, hannou, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { dan, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 import { picker } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
-const { cursor } = hannou
 const { rounded } = kasane
-const { fit, flex } = narabi
+const { fit } = narabi
 
 /** The text of the color value in the trigger, cut to one line. */
 const value = ['block', 'truncate']
 
 const swatch = {
 	/** The color keeps its real color under forced colors, as the parts of the color panel do. */
-	base: [
-		'relative shrink-0 overflow-hidden',
-		'forced-color-adjust-none',
-		rounded.sm,
-		dan.size.check.box,
-	],
+	base: ['relative shrink-0 overflow-hidden', sen.forced.keep, rounded.sm, dan.size.check.box],
 	/**
 	 * The color of the trigger swatch, with the inset ring. An inset shadow paints above the
 	 * background of its own element, but below the children of that element. The ring is on the
@@ -34,13 +28,7 @@ const swatch = {
 }
 
 export const k = defineKata(
-	{
-		extends: picker,
-		slots: {
-			/** The button that opens the picker. */
-			field: [flex.row, 'text-start', 'appearance-none', ...cursor],
-		},
-	},
+	{ extends: picker },
 	{
 		value,
 		swatch,

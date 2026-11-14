@@ -16,6 +16,7 @@ import { glass } from './glass'
 import { panel } from './panel'
 import { popover } from './popover'
 import { rail } from './rail'
+import { scrollbar } from './scrollbar'
 import { skeleton } from './skeleton'
 
 export const omote = {
@@ -28,6 +29,8 @@ export const omote = {
 	content,
 	skeleton,
 	rail,
+	/** The scrollbar of a scroll container. */
+	scrollbar,
 	/** The edge fade of a scroll container, as a mask. */
 	fade,
 	checkerboard,

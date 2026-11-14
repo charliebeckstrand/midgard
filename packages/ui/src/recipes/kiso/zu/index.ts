@@ -1,5 +1,5 @@
 /**
- * Zu archetype: the data-viz substrate that the chart and map modules share.
+ * Zu (図): the data-viz substrate that the chart and map modules share.
  * Four fragments: the categorical series `palette`, the `meter` shade of a
  * measured value, which reads its hues from the palette, the chrome and readout
  * `ink`, and the reveal `motion`. Both kata read one source, so the

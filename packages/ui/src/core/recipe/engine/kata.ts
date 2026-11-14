@@ -21,7 +21,7 @@
  * A slot declares a responsive axis under `responsive`. The prop of that axis
  * takes a value or a map of values by breakpoint, and the slot takes the
  * classes of each value behind the prefix of its breakpoint (see
- * {@link resolveVariant}).
+ * {@link prefixed}).
  */
 
 import clsx, { type ClassValue } from 'clsx'

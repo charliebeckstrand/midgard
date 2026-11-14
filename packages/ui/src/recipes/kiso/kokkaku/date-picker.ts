@@ -14,7 +14,6 @@
  */
 
 import { dan } from '../dan'
-import { ji } from '../ji'
 import { control } from './control'
 
 export const datePicker = {
@@ -25,7 +24,7 @@ export const datePicker = {
 		dan.gap.datePicker,
 	],
 	value: {
-		base: ['min-w-0', ji.ramp],
+		base: ['min-w-0', dan.text.body],
 		date: 'w-[6.5ch]',
 		range: 'w-[14ch]',
 	},

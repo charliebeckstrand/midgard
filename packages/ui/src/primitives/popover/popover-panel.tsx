@@ -186,7 +186,7 @@ export function PopoverPanel({
 				// (CONVENTIONS.md §3.9).
 				data-slot="popover-panel"
 				// Half the marker `hannou.tint.glass` keys on; the `group/glass` class
-				// of the glass surface is the other half. See `recipes/kiso/hannou/glass-item.ts`.
+				// of the glass surface is the other half. See `tint.glass` in `recipes/kiso/hannou/tint.ts`.
 				data-glass={dataAttr(glass)}
 				data-density={density}
 				data-open={dataAttr(open)}

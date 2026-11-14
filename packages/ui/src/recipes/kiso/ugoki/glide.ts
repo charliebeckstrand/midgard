@@ -6,9 +6,6 @@
  * Layer: kiso · Concern: layout glide
  */
 
-import { duration } from './base'
+import { duration, ease } from './base'
 
-/** A quick start that settles softly, with no overshoot past the slot. */
-const settle = [0.22, 1, 0.36, 1] as const
-
-export const glide = { duration: duration[200], ease: settle } as const
+export const glide = { duration: duration[200], ease: ease.settle } as const
