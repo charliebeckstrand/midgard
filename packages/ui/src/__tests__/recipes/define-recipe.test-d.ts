@@ -1,35 +1,8 @@
 import { describe, expectTypeOf, it } from 'vitest'
-import { defineGroup, defineKata, defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineGroup, defineKata, type VariantProps } from '../../core/recipe'
 
 // The type cases of `define-recipe.test.ts`. Each fixture is the same as the
 // fixture of its block there.
-
-describe('defineRecipe', () => {
-	it('types `skeleton` only on a recipe whose config declares one', () => {
-		// The engine attaches no `skeleton` to a recipe without one, so the type
-		// must not offer `k.skeleton` there.
-		const plain = defineRecipe({ base: 'block' })
-
-		const withSkeleton = defineRecipe({ base: 'block', skeleton: { base: 'h-4' } as const })
-
-		expectTypeOf(plain).not.toHaveProperty('skeleton')
-
-		expectTypeOf(withSkeleton.skeleton).toEqualTypeOf<{ readonly base: 'h-4' }>()
-	})
-
-	it('types a slot group as a group of class strings', () => {
-		const recipe = defineRecipe({
-			slots: {
-				close: { base: ['p-1', 'p-2'], line: 'h-lh' },
-				title: 'font-semibold',
-			},
-		})
-
-		expectTypeOf(recipe.close).toEqualTypeOf<{ readonly base: string; readonly line: string }>()
-
-		expectTypeOf(recipe.title).toEqualTypeOf<string>()
-	})
-})
 
 describe('defineKata', () => {
 	const kata = defineKata({

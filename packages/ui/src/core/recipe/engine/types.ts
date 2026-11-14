@@ -2,10 +2,10 @@
  * Public types for the recipe engine.
  *
  * `RecipeConfig` is the shape of a recipe: the reserved fields (`base`,
- * `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of
- * variant axes as top-level fields. `Recipe<C>` is what
- * `defineRecipe` returns. `VariantProps<R>` extracts the prop shape
- * from either side; use it in kata to type the consumer-facing
+ * `palette`, `compound`, `defaults`) plus any number of variant axes as
+ * top-level fields. `Recipe<C>` is what `defineRecipe` returns: the recipe of
+ * one slot of a unit (`engine/kata.ts`). `VariantProps<R>` extracts the prop
+ * shape from either side; use it in kata to type the consumer-facing
  * `<Name>Variants` export.
  */
 
@@ -24,37 +24,8 @@ export type VariantAxis = Record<string, ClassValue>
  */
 export type CompoundRule = Record<string, string | ClassValue> & { class: ClassValue }
 
-/**
- * The classes of one slot, or a group of named slots. The engine merges a class
- * list into one string. A plain object is a group, and the engine merges each
- * of its entries the same way. Thus a part keeps its children under its own
- * name: `trigger: { base, button }` gives `k.trigger.base` and `k.trigger.button`. The group
- * takes the place of the object form of clsx, which no recipe uses.
- */
-export type SlotValue =
-	| string
-	| number
-	| bigint
-	| boolean
-	| null
-	| undefined
-	| readonly ClassValue[]
-	| { readonly [name: string]: SlotValue }
-
-/**
- * The merged form of a slot: a class string, or a group of them. A type with a
- * string index signature, such as the wide `ClassValue`, is a class list.
- */
-type SlotClasses<S> = [S] extends [object]
-	? [S] extends [readonly unknown[]]
-		? string
-		: string extends keyof S
-			? string
-			: { readonly [K in keyof S]: SlotClasses<S[K]> }
-	: string
-
 /** Reserved top-level config field names; kata must not use these as axis names. */
-export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
+export type ReservedField = 'base' | 'palette' | 'compound' | 'defaults'
 
 /**
  * A recipe config: the reserved fields plus any number of variant axes at the
@@ -65,16 +36,7 @@ export type RecipeConfig = {
 	base?: ClassValue
 	palette?: PaletteConfig<string, string>
 	compound?: CompoundRule[]
-	slots?: Record<string, SlotValue>
 	defaults?: Record<string, string | number | boolean>
-	/**
-	 * Skeleton payload: a `kokkaku.<name>` config the consumer reads as
-	 * `k.skeleton.base` / `k.skeleton.size[…]`. Attaches to the recipe at
-	 * creation time with its inferred type preserved. Callable
-	 * siblings (sub-recipes, motion bundles, fragment maps) pass through
-	 * the `extras` second argument instead.
-	 */
-	skeleton?: unknown
 }
 
 /**
@@ -87,7 +49,6 @@ export type ResolvedConfig = {
 	base?: ClassValue
 	variants: Record<string, Record<string, ClassValue>>
 	compound: CompoundRule[]
-	slots: Record<string, SlotValue>
 	defaults: Record<string, string | number | boolean>
 }
 
@@ -95,21 +56,7 @@ export type Recipe<C extends RecipeConfig> = {
 	(props?: ComputedProps<C>): string
 	/** Resolved config, exposed for introspection. */
 	readonly config: ResolvedConfig
-} & {
-	[K in keyof NonNullable<C['slots']>]: SlotClasses<NonNullable<C['slots']>[K]>
-} & Skeleton<C>
-
-/**
- * The `skeleton` property of a recipe. A config without a `skeleton` field
- * gives no property, because the engine attaches none. The type finds the key
- * before it reads the field. A read of `C['skeleton']` on a config without the
- * field gives `unknown`, and that type would put `k.skeleton` on each recipe.
- */
-type Skeleton<C> = 'skeleton' extends keyof C
-	? C[keyof C & 'skeleton'] extends undefined
-		? unknown
-		: { skeleton: C[keyof C & 'skeleton'] }
-	: unknown
+}
 
 /** Explicit `variant:` keys declared by the kata, or `never` if absent. */
 type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string : never
