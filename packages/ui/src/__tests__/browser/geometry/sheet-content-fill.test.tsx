@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Sheet, SheetBody, SheetContent, SheetFooter, SheetPanel } from '../../components/sheet'
-import { frames, renderUI, screen } from '../helpers'
+import { Sheet, SheetBody, SheetContent, SheetFooter, SheetPanel } from '../../../components/sheet'
+import { frames, renderUI, screen } from '../../helpers'
 
 /**
  * A sheet on a side has the height of the screen. SheetContent wraps the body
@@ -27,10 +27,14 @@ describe('SheetContent', () => {
 		const panel = screen.getByRole('dialog', { name: 'Panel' })
 		const footer = screen.getByRole('button', { name: 'Save' }).parentElement as HTMLElement
 
-		const space = panel.getBoundingClientRect().bottom - footer.getBoundingClientRect().bottom
+		// The foot of the content box of the panel: the panel inset stays under the
+		// footer, and no more.
+		const style = getComputedStyle(panel)
+		const foot =
+			panel.getBoundingClientRect().bottom -
+			Number.parseFloat(style.paddingBottom) -
+			Number.parseFloat(style.borderBottomWidth)
 
-		// The panel inset stays under the footer, and no more.
-		expect(space).toBeGreaterThanOrEqual(0)
-		expect(space).toBeLessThan(64)
+		expect(footer.getBoundingClientRect().bottom).toBeNear(foot, 0)
 	})
 })
