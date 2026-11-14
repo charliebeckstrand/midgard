@@ -1,7 +1,9 @@
 'use client'
 
 import { memo, useCallback } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import type { ButtonVariants } from '../../recipes/kata/button'
 import { k } from '../../recipes/kata/calendar'
 import { formatInteger } from '../../utilities/format-number'
@@ -10,7 +12,13 @@ import { dayKey, formatDayName } from './calendar-utilities'
 
 type DayCellProps = {
 	date: Date
+	/** The day cannot be picked. */
 	disabled: boolean
+	/**
+	 * A disabled day that keeps the focus: it is `aria-disabled`, and the arrows
+	 * move across it. A disabled day that is not focusable is natively disabled.
+	 */
+	focusable: boolean
 	isToday: boolean
 	isActive: boolean
 	selected: boolean
@@ -30,13 +38,15 @@ type DayCellProps = {
 /**
  * One day-grid cell: a `role="option"` button carrying selection, today, and
  * active state with a locale-resolved accessible name. Memoized so only cells
- * whose props change re-render as focus or selection moves.
+ * whose props change re-render as focus or selection moves. A press of a
+ * disabled day picks nothing.
  *
  * @internal
  */
 export const CalendarDayCell = memo(function CalendarDayCell({
 	date,
 	disabled,
+	focusable,
 	isToday,
 	isActive,
 	selected,
@@ -62,11 +72,13 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 			aria-selected={selected}
 			aria-label={formatDayName(date, localeTag)}
 			aria-current={isToday ? 'date' : undefined}
+			aria-disabled={ariaAttr(disabled && focusable)}
+			data-disabled={dataAttr(disabled && focusable)}
 			// The date picker reads the day of a focused cell from this ISO date.
 			data-date={dayKey(date)}
 			variant={variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
 			color={color ?? (selected || isToday ? 'blue' : undefined)}
-			disabled={disabled}
+			disabled={disabled && !focusable}
 			onClick={handleClick}
 			onMouseEnter={onMouseEnter}
 			onMouseLeave={onMouseLeave}

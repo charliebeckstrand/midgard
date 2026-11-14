@@ -1,7 +1,12 @@
 import { createRef, Profiler, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, vi } from 'vitest'
-import { Calendar, type CalendarHandle, CalendarRange } from '../../components/calendar'
+import {
+	Calendar,
+	type CalendarHandle,
+	type CalendarProps,
+	CalendarRange,
+} from '../../components/calendar'
 import { Form } from '../../modules/form'
 import { Box } from '../../structure/box'
 import {
@@ -719,6 +724,142 @@ describe('Calendar keyboard navigation', () => {
 			expect(document.activeElement).toBe(day('20'))
 		},
 	)
+})
+
+// June 2025 starts on a Sunday, so its weekend days are 1, 7, 8, 14, 15, 21,
+// 22, 28, and 29.
+describe('Calendar isDayDisabled', () => {
+	const isWeekend = (date: Date) => date.getDay() === 0 || date.getDay() === 6
+
+	it('marks a day that the rule disables aria-disabled, and keeps it focusable', () => {
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 11)} isDayDisabled={isWeekend} />)
+
+		expect(day('14')).toHaveAttribute('aria-disabled', 'true')
+
+		expect(day('14')).toHaveAttribute('data-disabled')
+
+		expect(day('14')).not.toBeDisabled()
+
+		expect(day('13')).not.toHaveAttribute('aria-disabled')
+
+		expect(day('13')).not.toHaveAttribute('data-disabled')
+	})
+
+	it('keeps a day outside min and max natively disabled', () => {
+		renderUI(
+			<Calendar
+				defaultValue={new Date(2025, 5, 11)}
+				min={new Date(2025, 5, 10)}
+				isDayDisabled={isWeekend}
+			/>,
+		)
+
+		expect(day('8')).toBeDisabled()
+
+		expect(day('8')).not.toHaveAttribute('aria-disabled')
+	})
+
+	it('picks nothing on a click or a key press of a disabled day', async () => {
+		const onValueChange = vi.fn()
+
+		const onDayClick = vi.fn()
+
+		renderUI(
+			<Calendar
+				defaultValue={new Date(2025, 5, 11)}
+				isDayDisabled={isWeekend}
+				onValueChange={onValueChange}
+				onDayClick={onDayClick}
+			/>,
+		)
+
+		const user = setupUser()
+
+		await user.click(day('14'))
+
+		act(() => day('14').focus())
+
+		await user.keyboard('{Enter}')
+
+		await user.keyboard(' ')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(onDayClick).not.toHaveBeenCalled()
+
+		expect(selectedDay()).toBe(day('11'))
+	})
+
+	it('moves the arrows onto and across a disabled day', async () => {
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 11)} isDayDisabled={isWeekend} />)
+
+		const user = setupUser()
+
+		act(() => day('13').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(document.activeElement).toBe(day('14'))
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(document.activeElement).toBe(day('15'))
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(document.activeElement).toBe(day('22'))
+	})
+
+	it('pages into a month where the rule disables each day', async () => {
+		renderUI(
+			<Calendar
+				defaultValue={new Date(2025, 5, 11)}
+				isDayDisabled={(date) => date.getMonth() === 6}
+			/>,
+		)
+
+		const user = setupUser()
+
+		act(() => day('11').focus())
+
+		await user.keyboard('{PageDown}')
+
+		expect(screen.getByRole('listbox', { name: 'July 2025' })).toBeInTheDocument()
+
+		expect(document.activeElement).toBe(day('11'))
+
+		expect(day('11')).toHaveAttribute('aria-disabled', 'true')
+	})
+
+	it('gives getDayProps disabled for a day that the rule disables', () => {
+		const getDayProps = vi.fn<NonNullable<CalendarProps['getDayProps']>>(() => ({}))
+
+		renderUI(
+			<Calendar
+				defaultValue={new Date(2025, 5, 11)}
+				isDayDisabled={isWeekend}
+				getDayProps={getDayProps}
+			/>,
+		)
+
+		const contexts = getDayProps.mock.calls.map(([context]) => context)
+
+		expect(contexts.find(({ date }) => date.getDate() === 14)?.disabled).toBe(true)
+
+		expect(contexts.find(({ date }) => date.getDate() === 13)?.disabled).toBe(false)
+	})
+
+	it('holds the Tab stop on a disabled today when no day is selected', ({ clock }) => {
+		clock.set(new Date(2025, 5, 14, 12))
+
+		const ref = createRef<CalendarHandle>()
+
+		renderUI(<Calendar ref={ref} value={null} isDayDisabled={isWeekend} />)
+
+		expect(ref.current?.getEntryDate()).toEqual(new Date(2025, 5, 14))
+
+		expect(dayStops()).toEqual(['14'])
+	})
 })
 
 // A calendar that no parent steers carries the date grid of the WAI-ARIA APG.

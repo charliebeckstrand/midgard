@@ -60,14 +60,15 @@ export type CalendarHandle = {
 	/**
 	 * The day where the focus enters the day grid of the shown month, as local
 	 * midnight. It is the day that holds the Tab stop of the grid: the selected
-	 * day when it is enabled, else today when it is enabled and in the month,
-	 * else the first enabled day. When `getDayProps` selects more than one day,
+	 * day when it is between `min` and `max`, else today when it is between them
+	 * and in the month, else the first day between them. A day that
+	 * `isDayDisabled` disables can hold the stop, because it keeps the focus. When `getDayProps` selects more than one day,
 	 * as {@link CalendarRange} does, the selected day is the earliest of them in
 	 * the month. A parent that moves its own highlight into the grid reads it,
 	 * because the month buttons, the month picker, and the Page keys can move
 	 * the shown month away from the value.
 	 *
-	 * @returns The day, or `null` when the shown month holds no enabled day.
+	 * @returns The day, or `null` when the shown month holds no day between `min` and `max`.
 	 */
 	getEntryDate: () => Date | null
 }
@@ -75,6 +76,7 @@ export type CalendarHandle = {
 /** Per-day state passed to a {@link CalendarProps.getDayProps} callback so it can style or decorate individual cells. */
 export type CalendarDayContextValue = {
 	date: Date
+	/** The day cannot be picked: it is outside `min` and `max`, or `isDayDisabled` disables it. */
 	disabled: boolean
 	today: boolean
 	selected: boolean
@@ -91,7 +93,7 @@ export type CalendarDayProps = {
 	onMouseLeave?: () => void
 }
 
-/** Props for {@link Calendar}: value binding, range bounds, locale/size, the `getDayProps` cell hook, and the imperative `ref`. */
+/** Props for {@link Calendar}: value binding, range bounds, the `isDayDisabled` day rule, locale/size, the `getDayProps` cell hook, and the imperative `ref`. */
 export type CalendarProps = {
 	/** Binds the selected date to an enclosing Form field. `Form.defaultValues` must seed `Date | null`. */
 	name?: string
@@ -126,6 +128,20 @@ export type CalendarProps = {
 	onDayClick?: (date: Date) => void
 	min?: Date
 	max?: Date
+	/**
+	 * Disables single days between `min` and `max`. The calendar calls it for
+	 * each day that it shows. A day for which it returns `true` cannot be
+	 * picked: a press fires no `onValueChange` and no `onDayClick`.
+	 *
+	 * Such a day is `aria-disabled`, not natively disabled. It keeps the focus,
+	 * so the arrows and the Page keys move across it, and a screen reader reads
+	 * it as disabled. Thus a reader can move through a month that has few days
+	 * to pick. A day outside `min` and `max` cannot take the focus. `getDayProps`
+	 * gets `disabled: true` for the two kinds of day.
+	 *
+	 * Omitted, each day between `min` and `max` can be picked.
+	 */
+	isDayDisabled?: (date: Date) => boolean
 	/**
 	 * The cell that a parent, such as DatePicker, highlights. A parent that sets
 	 * it steers the calendar and owns the keys of the header, the grid, and the
@@ -203,7 +219,8 @@ export type CalendarProps = {
 /**
  * Single-date month-grid picker. Binds to an enclosing Form field by `name`
  * (value-typed cascade) or falls back to controlled/uncontrolled `value`;
- * `min`/`max` bound the selectable range. Resolves `locale` against an
+ * `min`/`max` bound the selectable range, and `isDayDisabled` disables single
+ * days in it. Resolves `locale` against an
  * enclosing Locale provider. The header, grid, and day cells take the step of
  * the nearest density scope, and a set `size` makes the calendar that scope.
  * When a parent steers `active`, the parent owns the keys of the header, the
@@ -217,14 +234,17 @@ export type CalendarProps = {
  * that leaves the month steps the month. That includes ArrowUp on the top row
  * and ArrowDown on the bottom row. PageUp and PageDown step a month, and Shift
  * with a Page key steps a year. Home and End go to the first and the last
- * enabled day of the shown month. ArrowDown from the header enters the grid
- * on its Tab stop, as Tab does. After a rove, that is the roved day. Else it
- * is the selected day, else today, else the first enabled day.
+ * day of the shown month between `min` and `max`. ArrowDown from the header
+ * enters the grid on its Tab stop, as Tab does. After a rove, that is the
+ * roved day. Else it is the selected day, else today, else the first day
+ * between `min` and `max`.
  *
  * The focused day stays between `min` and `max`. An arrow or a Page key toward
- * a disabled day moves the focus to the nearest enabled day. When that is the
- * focused day, the focus stays. Thus the arrows never leave the day grid, and
- * they never wrap. Tab and Shift+Tab reach the header and the footer.
+ * a day outside them moves the focus to the nearest day inside them. When that
+ * is the focused day, the focus stays. Thus the arrows never leave the day
+ * grid, and they never wrap. Tab and Shift+Tab reach the header and the footer.
+ * A day that `isDayDisabled` disables keeps the focus, so the keys move to it
+ * as to any other day.
  *
  * @remarks
  * Client component (`'use client'`). "Today" waits for hydration, so a
@@ -251,6 +271,7 @@ export function Calendar({
 	onDayClick,
 	min,
 	max,
+	isDayDisabled,
 	active,
 	onMonthChange,
 	getDayProps,
@@ -327,8 +348,9 @@ export function Calendar({
 	// `getEntryDate` gives is a day that the grid paints selected.
 	const isSelected = useCallback(
 		(date: Date) =>
-			getDayState(date, { today, value, activeGridDate, isDisabled, getDayProps }).selected,
-		[value, getDayProps, isDisabled, today, activeGridDate],
+			getDayState(date, { today, value, activeGridDate, isDisabled, isDayDisabled, getDayProps })
+				.selected,
+		[value, getDayProps, isDisabled, isDayDisabled, today, activeGridDate],
 	)
 
 	useImperativeHandle(
@@ -426,6 +448,7 @@ export function Calendar({
 				value={value}
 				activeGridDate={activeGridDate}
 				isDisabled={isDisabled}
+				isDayDisabled={isDayDisabled}
 				getDayProps={getDayProps}
 				onSelect={handleSelect}
 				monthLabel={shownLabel}
