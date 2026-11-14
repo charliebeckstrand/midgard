@@ -26,7 +26,7 @@ import { surface } from './surface'
 export { scale } from './density'
 
 const { cursor } = hannou
-const { fit } = narabi
+const { fit, flex } = narabi
 
 /**
  * The classes of a slot under each surface. The framed surfaces take
@@ -173,7 +173,13 @@ export const list = defineGroup(
  * than its parent. `content` holds the classes of the dialog panel.
  */
 export const picker = defineGroup(
-	{ extends: trigger },
+	{
+		extends: trigger,
+		slots: {
+			/** The button that opens the picker. */
+			field: [flex.row, 'text-start', 'appearance-none', ...cursor],
+		},
+	},
 	{
 		root: ['w-fit', 'max-w-full'],
 		content: {

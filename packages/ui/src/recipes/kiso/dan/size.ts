@@ -74,10 +74,6 @@ export const size = {
 		/** The dot of a checked radio. */
 		dot: 'density-size-[0.5,1,1.5,2,2.5]',
 	},
-	thumb: {
-		/** The thumb of a range slider. */
-		base: 'density-size-[2,3,4,5,6]',
-	},
 	colorPanel: {
 		/** The color preview of a color panel. */
 		preview: 'density-size-[7,8,9,10,11]',
@@ -188,6 +184,8 @@ export const size = {
 	slider: {
 		/** The height of a slider skeleton track. */
 		track: 'density-h-[0.5,1,1.5,2,2.5]',
+		/** The thumb of a slider and a range slider. */
+		thumb: 'density-size-[2,3,4,5,6]',
 		/** The track and the thumb of a range input, in WebKit and in Firefox. */
 		input: {
 			track:

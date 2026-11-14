@@ -9,7 +9,7 @@
  * track and the preview is `omote.checkerboard`, which the color picker shares.
  *
  * Each part that shows a color keeps its real color under forced colors
- * (`forced-color-adjust-none`): the area, the tracks, the preview, and the
+ * (`sen.forced.keep`): the area, the tracks, the preview, and the
  * preset chips. A system color in their place would make every chip alike and
  * remove the hue and the alpha. The rings and the focus outlines of these parts
  * keep their forced-colors outlines.
@@ -21,7 +21,7 @@ import { dan, iro, kasane, kokkaku, omote, sen } from '../kiso'
 
 const { text } = iro
 const { rounded } = kasane
-const { focus, ring } = sen
+const { focus, forced, ring } = sen
 
 // Draggable circular handle, centered on its inline-positioned coordinate.
 const handle = [
@@ -32,19 +32,16 @@ const handle = [
 	...ring.line[1].outset,
 ] as const
 
-// The color parts keep their real color under forced colors.
-const keepColor = 'forced-color-adjust-none'
-
 const area = [
 	'relative w-full cursor-crosshair touch-none',
-	keepColor,
+	forced.keep,
 	...focus.ring,
 	dan.size.colorPanel.area,
 ]
 
 const track = [
 	'relative w-full cursor-pointer touch-none',
-	keepColor,
+	forced.keep,
 	rounded.full,
 	...focus.outline,
 	dan.size.colorPanel.channel,
@@ -52,14 +49,14 @@ const track = [
 
 const preview = [
 	'relative shrink-0 overflow-hidden',
-	keepColor,
+	forced.keep,
 	rounded.md,
 	dan.size.colorPanel.preview,
 ]
 
 export const k = defineKata(
 	{
-		base: ['flex flex-col select-none', kokkaku.colorPanel.width, dan.gap.loose],
+		base: ['flex flex-col select-none', kokkaku.colorPanel.width, dan.gap.colorPanel],
 		slots: {
 			area: {
 				base: area,
@@ -112,7 +109,7 @@ export const k = defineKata(
 			 */
 			swatch: [
 				'relative cursor-pointer',
-				keepColor,
+				forced.keep,
 				kokkaku.colorPanel.swatch,
 				rounded.md,
 				...ring.inset,
@@ -129,5 +126,5 @@ export const scale = defineScale(
 	dan.size.colorPanel.area,
 	dan.size.colorPanel.channel,
 	dan.size.colorPanel.preview,
-	dan.gap.loose,
+	dan.gap.colorPanel,
 )

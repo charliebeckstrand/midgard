@@ -127,8 +127,8 @@ export const gap = {
 	/** The gap of an option row and a menu item. */
 	option: scale.md,
 	/** The gap of a color panel. */
-	loose: 'density-gap-[1,2,4,6,9]',
-	/** The gap of the date picker panes. */
+	colorPanel: 'density-gap-[1,2,4,6,9]',
+	/** The gap between the value and the icon of a date picker trigger, and of its skeleton. */
 	datePicker: 'density-gap-[1.75,2.25,2.75,3.25,3.75]',
 	timeline: {
 		/** The inline gap of a timeline item. */

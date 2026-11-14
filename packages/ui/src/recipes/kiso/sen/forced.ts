@@ -21,6 +21,11 @@ export const forced = {
 	 * that an ungated `outline-none` sets to none.
 	 */
 	outline: 'forced-colors:outline-solid forced-colors:outline-1',
+	/**
+	 * Keeps the author color of a part whose color is its content, such as a
+	 * color swatch, so that a system color does not replace it.
+	 */
+	keep: 'forced-color-adjust-none',
 	/** Item text: preserves semantic foreground color. */
 	text: 'forced-color-adjust-none forced-colors:text-[CanvasText]',
 	/** Focus state: maps to system highlight colors. */
