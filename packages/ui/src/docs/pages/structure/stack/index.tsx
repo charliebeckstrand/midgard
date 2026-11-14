@@ -7,7 +7,7 @@ import Wrap from './wrap.tsx'
 export default function StackPage() {
 	return (
 		<>
-			<Playground of={StackPlayground} api={api} omit={['as', 'wrap']} />
+			<Playground of={StackPlayground} api={api} omit={['as', 'wrap']} start={{ gap: 'sm' }} />
 			<Example of={Wrap} />
 			<Example of={Column} />
 			<ApiTable api={api} />

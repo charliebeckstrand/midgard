@@ -187,6 +187,42 @@ describe('Playground', () => {
 		)
 	})
 
+	it('starts a choice field at the value that `start` gives, and shows it once in the code', async () => {
+		const { container } = render(
+			<Playground of={ThingPlayground} api={API} start={{ orientation: 'horizontal' }} />,
+		)
+
+		const orientation = screen.getByRole('combobox', { name: 'Orientation' })
+
+		expect(orientation.textContent).toBe('Horizontal')
+
+		expect(instanceProps()).toEqual({ orientation: 'horizontal' })
+
+		fireEvent.click(screen.getByRole('button', { name: 'Show code' }))
+
+		const panel = await waitFor(() => getSlot(container, 'collapse-panel'))
+
+		await waitFor(() =>
+			expect(panel.textContent).toContain('return <Thing orientation="horizontal" />'),
+		)
+
+		fireEvent.click(orientation)
+
+		fireEvent.click(screen.getByRole('option', { name: 'Vertical' }))
+
+		expect(instanceProps()).toEqual({ orientation: 'vertical' })
+
+		await waitFor(() =>
+			expect(panel.textContent).toContain('return <Thing orientation="vertical" />'),
+		)
+	})
+
+	it('throws for a start that is not a value of its field', () => {
+		expect(() =>
+			render(<Playground of={ThingPlayground} api={API} start={{ orientation: 'diagonal' }} />),
+		).toThrow('the start of the prop orientation is not a value of its field')
+	})
+
 	// A value with no word, such as `16/9`, is code. On a right-to-left page
 	// with no `dir`, it shows as `9/16`.
 	it('keeps a value with no word left to right, in the field and in its options', () => {

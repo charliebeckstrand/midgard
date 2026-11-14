@@ -5,7 +5,7 @@ import { Text } from 'ui/text'
 
 export default function BoxPlayground(props: BoxProps) {
 	return (
-		<Box p="lg" {...props}>
+		<Box {...props}>
 			<Stack gap="sm" align="start">
 				<Text>Your trial ends in 7 days.</Text>
 				<Button>Upgrade</Button>
