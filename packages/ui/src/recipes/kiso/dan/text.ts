@@ -22,6 +22,12 @@ export const text = {
 	h1: 'density-text-[xl,2xl,3xl,4xl,5xl]',
 	/** The label of a button, a badge, or a query chip, and a Text with a `size`. */
 	chip: body,
+	/**
+	 * The body text under `data-density`: the text of a Text skeleton with a
+	 * `size`. The skeleton writes `data-density` only for a `size`, so with no
+	 * `size` the skeleton takes the text of its parent, as Text does.
+	 */
+	scoped: 'data-density:density-text-[xs,sm,base,lg,xl]',
 	/** The caption of the combinator button between query chips. */
 	combinator: 'density-text-[xs,xs,sm,base,lg]',
 } as const

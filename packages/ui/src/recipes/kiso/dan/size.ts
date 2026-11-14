@@ -124,17 +124,10 @@ export const size = {
 		min: '[[data-slot=group]>&]:density-min-w-[8,16,24,32,40]',
 	},
 	line: {
-		/** A line of small text in a skeleton: the line height of the small text. */
-		base: 'density-h-[4.5,5,5.5,6,6.5]',
 		/** A subtitle line in a heading skeleton. */
 		subtitle: 'density-h-[3,4,5,6,7]',
 		/** A small line of text in a skeleton. */
 		small: 'density-h-[2,3,4,5,6]',
-		/**
-		 * A line of a Text skeleton with a `size`: the line height of each step of
-		 * the text. The skeleton writes `data-density` only for a `size`.
-		 */
-		text: 'data-density:density-h-[5,5.5,6,6.5,7]',
 		/** A tiny line in a skeleton: a heading rule or a progress bar. */
 		tiny: 'density-h-[1,2,3,4,5]',
 		title: {
@@ -145,18 +138,18 @@ export const size = {
 			/** A large title line in a heading skeleton. */
 			large: 'density-h-[6,7,8,9,10]',
 		},
-		/** The title line of a timeline skeleton. */
-		timeline: 'density-h-[5.5,6,6.5,7,8]',
 	},
 	stat: {
 		value: {
-			/** The height of a stat value skeleton. */
-			base: 'density-h-[7,8,9.5,11,14]',
 			/** The width of a stat value skeleton. */
 			width: 'density-w-[12,16,20,24,28]',
 		},
 	},
-	/** A row in a skeleton: a nav item, a tab, a tree item, or a switch. */
+	/**
+	 * The line height of the body text, 20 px to 28 px: the track of a switch and
+	 * the row of a tree. A skeleton line of text takes its text ramp and `h-lh`
+	 * in place of a height ramp (`kiso/README.md` §4).
+	 */
 	row: 'density-h-[5,5.5,6,6.5,7]',
 	segment: {
 		/** The height of a segment skeleton. */
