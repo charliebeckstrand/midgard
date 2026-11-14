@@ -57,6 +57,7 @@ import {
 import { Radio, RadioSkeleton } from '../../../components/radio'
 import { Rating, RatingSkeleton } from '../../../components/rating'
 import { Segment, SegmentControl, SegmentItem, SegmentSkeleton } from '../../../components/segment'
+import { ShinyText, ShinyTextSkeleton } from '../../../components/shiny-text'
 import {
 	Sidebar,
 	SidebarItem,
@@ -674,6 +675,56 @@ describe('skeleton parity (real browser)', () => {
 			const real = box(renderUI(<Text size={size}>Total</Text>).container.firstElementChild, 'text')
 
 			expect(placeholder(renderUI(<TextSkeleton size={size} />).container).height).toBe(real.height)
+		},
+	)
+
+	// Text with no `size` takes the text of its parent, so the skeleton takes one line of it.
+	it.each(['text-xs/4', 'text-sm/5', 'text-lg/7'])(
+		'TextSkeleton with no size has the line height of Text with no size in %s',
+		(parent) => {
+			const real = box(
+				renderUI(
+					<div className={parent}>
+						<Text>Total</Text>
+					</div>,
+				).container.firstElementChild?.firstElementChild,
+				'text',
+			)
+
+			expect(
+				placeholder(
+					renderUI(
+						<div className={parent}>
+							<TextSkeleton />
+						</div>,
+					).container,
+				).height,
+			).toBe(real.height)
+		},
+	)
+
+	// ShinyText is inline text, so the skeleton takes one line of the text of its parent.
+	it.each(['text-xs/4', 'text-sm/5', 'text-lg/7'])(
+		'ShinyTextSkeleton has the line height of ShinyText in %s',
+		(parent) => {
+			const real = box(
+				renderUI(
+					<p className={parent}>
+						<ShinyText>Loading</ShinyText>
+					</p>,
+				).container.firstElementChild,
+				'paragraph',
+			)
+
+			expect(
+				placeholder(
+					renderUI(
+						<p className={parent}>
+							<ShinyTextSkeleton />
+						</p>,
+					).container,
+				).height,
+			).toBe(real.height)
 		},
 	)
 
