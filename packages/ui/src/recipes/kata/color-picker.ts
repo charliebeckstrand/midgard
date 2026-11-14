@@ -18,11 +18,7 @@ const swatch = {
 	 * background of its own element, but below the children of that element. The ring is on the
 	 * color for this reason, so a white or a black color keeps an edge.
 	 */
-	fill: [
-		'block size-full rounded-[inherit]',
-		...sen.ring.line[1].inset,
-		'ring-black/10 dark:ring-white/15',
-	],
+	fill: ['block size-full rounded-[inherit]', ...sen.ring.inset],
 	/** The checkerboard behind the trigger swatch while the color is translucent. */
 	checkerboard: [omote.checkerboard, 'bg-size-[8px_8px]'],
 }
