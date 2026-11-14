@@ -28,6 +28,16 @@ export const ink = {
 	 * a sequential scale, and over the no-data fill.
 	 */
 	selected: mode('stroke-zinc-900', 'dark:stroke-white'),
+	/**
+	 * A stroke in the fill of the surface under the mark: the halo of a chart dot
+	 * and the seam between two map regions, so the stroke reads as a gap. It reads
+	 * `--surface-fill`, which a surface card and the content host of the sidebar
+	 * layout set. Without either, it takes the page ground.
+	 */
+	surface: mode(
+		'stroke-(--surface-fill,var(--color-white))',
+		'dark:stroke-(--surface-fill,var(--color-zinc-950))',
+	),
 	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ['text-sm text-start', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
