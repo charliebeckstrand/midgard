@@ -106,7 +106,7 @@ export const gap = {
 			},
 		},
 	},
-	/** The default gap: a card footer, the calendar footer, and the segment control. */
+	/** The default gap: a card footer and the calendar footer. */
 	default: scale.sm,
 	toolbar: {
 		/**

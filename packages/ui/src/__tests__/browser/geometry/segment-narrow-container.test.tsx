@@ -90,6 +90,31 @@ describe('Segment: container narrower than its labels', () => {
 		)
 	})
 
+	/**
+	 * The items had a gap between them. The padding of each item already keeps
+	 * two labels apart, so the gap only made the box wider: four office labels
+	 * scrolled on a 375 px phone, and the selected last item was cut off.
+	 */
+	it('sets the items side by side with no gap', () => {
+		renderUI(
+			<Segment defaultValue="overview">
+				<SegmentControl aria-label="Office">
+					<SegmentItem value="overview">Overview</SegmentItem>
+					<SegmentItem value="senate">Senate</SegmentItem>
+					<SegmentItem value="house">House</SegmentItem>
+				</SegmentControl>
+			</Segment>,
+		)
+
+		const [overview, senate, house] = screen
+			.getAllByRole('tab')
+			.map((tab) => tab.getBoundingClientRect())
+
+		expect(senate?.left).toBe(overview?.right)
+
+		expect(house?.left).toBe(senate?.right)
+	})
+
 	it('keeps short labels on one line', () => {
 		const { container } = renderUI(
 			<Segment defaultValue="list">
