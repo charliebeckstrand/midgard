@@ -42,7 +42,8 @@ export const k = defineKata(
 			 */
 			step: {
 				base: [
-					'group relative flex items-center first:pt-0',
+					flex.row,
+					'group relative first:pt-0',
 					'outline-none',
 					...disabled,
 					...cursor,

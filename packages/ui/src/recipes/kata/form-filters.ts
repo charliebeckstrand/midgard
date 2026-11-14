@@ -1,11 +1,12 @@
 import { defineKata } from '../../core/recipe'
-import { dan, omote } from '../kiso'
+import { dan, narabi, omote } from '../kiso'
 
+const { flex } = narabi
 const { rail } = omote
 
 export const k = defineKata({
 	/** The `<fieldset>` of `FormFilters`: a column of its rows. */
-	base: ['flex min-w-auto flex-col', dan.gap.scale.lg],
+	base: [flex.col, 'min-w-auto', dan.gap.scale.lg],
 	slots: {
 		row: {
 			// An `equal` row shares its width among its fields.
