@@ -3,6 +3,7 @@
 import { type KeyboardEventHandler, memo, type RefObject } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { k } from '../../recipes/kata/calendar'
+import { DateTimePending } from '../date-time/date-time-pending'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 import { CalendarDayCell } from './calendar-day-cell'
 import { getDayState } from './calendar-utilities'
@@ -12,6 +13,11 @@ type CalendarGridProps = {
 	onGridKeyDown: KeyboardEventHandler<HTMLElement>
 	/** Short weekday labels, pre-ordered to the active locale's first day. */
 	weekdays: string[]
+	/**
+	 * Whether the labels wait for hydration. Then `weekdays` holds the text of
+	 * their skeletons, and each day has no accessible name of its own.
+	 */
+	pending: boolean
 	days: Date[]
 	firstDayColumn: number
 	today: Date | null
@@ -45,6 +51,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 	gridRef,
 	onGridKeyDown,
 	weekdays,
+	pending,
 	days,
 	firstDayColumn,
 	today,
@@ -66,7 +73,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 		<div className={k().grid}>
 			{weekdays.map((day) => (
 				<div key={day} className={k().weekday} aria-hidden="true">
-					{day}
+					{pending ? <DateTimePending>{day}</DateTimePending> : day}
 				</div>
 			))}
 
@@ -99,6 +106,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 							id={context.active ? activeDescendantId : undefined}
 							gridColumnStart={gridColumnStart}
 							localeTag={localeTag}
+							named={!pending}
 							onSelect={onSelect}
 							onMouseEnter={dayProps?.onMouseEnter}
 							onMouseLeave={dayProps?.onMouseLeave}

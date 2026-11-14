@@ -7,7 +7,14 @@ import {
 	DateFormatter,
 } from '@internationalized/date'
 import { resolveLocale } from '../../utilities/resolve-locale'
-import { clampDay, fromCalendarDate, stepDay, toCalendarDate } from '../calendar/calendar-utilities'
+import {
+	clampDay,
+	fromCalendarDate,
+	sameDay,
+	stepDay,
+	toCalendarDate,
+} from '../calendar/calendar-utilities'
+import { standDayText } from '../date-time/date-time-stand'
 
 /**
  * Trigger label for a single date, in `locale`. That is the ambient
@@ -43,6 +50,34 @@ export function formatRange(
 	options?: Intl.DateTimeFormatOptions,
 ): string {
 	return dateFormatter(locale, options).formatRange(start, end)
+}
+
+/**
+ * The text that gives the skeleton of the label of {@link formatDate} its
+ * size, before hydration. The text of `Intl` waits for hydration, as in
+ * `Calendar`, and the code writes this text without `Intl` (`standText`).
+ *
+ * @internal
+ */
+export function standDate(date: Date, options: Intl.DateTimeFormatOptions = {}): string {
+	return standDayText(date, options)
+}
+
+/**
+ * The text that gives the skeleton of the label of {@link formatRange} its
+ * size, before hydration. A range of one day gives the text of that one date.
+ * See {@link standDate}.
+ *
+ * @internal
+ */
+export function standRange(
+	start: Date,
+	end: Date,
+	options: Intl.DateTimeFormatOptions = {},
+): string {
+	const from = standDayText(start, options)
+
+	return sameDay(start, end) ? from : `${from} – ${standDayText(end, options)}`
 }
 
 /**

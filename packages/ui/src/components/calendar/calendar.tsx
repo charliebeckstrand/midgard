@@ -13,6 +13,7 @@ import {
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useToday } from '../../hooks/use-today'
 import { useFormValue } from '../../primitives/form/use-form-value'
@@ -29,7 +30,9 @@ import {
 	getDayState,
 	getFirstDayColumn,
 	getMonthLabels,
+	getMonthStand,
 	getWeekdayLabels,
+	getWeekdayStands,
 	isDayInRange,
 	sameDay,
 } from './calendar-utilities'
@@ -262,6 +265,15 @@ export type CalendarProps = {
  * The locale and a seeded month do not wait for hydration. On a page that
  * renders on a server, set `locale` or a `LocaleProvider`, and build the seed
  * from local parts. Then the two sides agree. See `locale` and `value`.
+ *
+ * The text of the labels waits for hydration: the weekday row, the month label,
+ * and the accessible name of each day. The text of `Intl` comes from the date
+ * data of the JavaScript engine, and two engines can write different text for
+ * one format, such as Node on the server and Safari in the browser. Text from
+ * the server would then differ from the text of the hydration render, and
+ * React would render the tree again from the start. So the server render and
+ * the hydration render show a skeleton of each label, which has about the size
+ * of the label (see `DateTime`). The day numbers do not wait.
  */
 export function Calendar({
 	name,
@@ -394,7 +406,13 @@ export function Calendar({
 		[setValue, pressDay, setTouched],
 	)
 
-	const weekdays = useMemo(() => getWeekdayLabels(localeTag), [localeTag])
+	// The labels of `Intl` wait for hydration (see above).
+	const hydrated = useHydrated()
+
+	const weekdays = useMemo(
+		() => (hydrated ? getWeekdayLabels(localeTag) : getWeekdayStands(localeTag)),
+		[hydrated, localeTag],
+	)
 
 	const monthLabels = useMemo(() => getMonthLabels(localeTag), [localeTag])
 
@@ -415,6 +433,12 @@ export function Calendar({
 	// which stays the same when the markup shows it.
 	const shownLabel = shown ? monthLabel : ''
 
+	// Before hydration, the header shows the skeleton of the label, and the day
+	// listbox has no name.
+	const headerLabel = shown && !hydrated ? getMonthStand(viewDate) : shownLabel
+
+	const gridLabel = hydrated ? shownLabel : ''
+
 	const shownDays = shown ? days : NO_DAYS
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
@@ -428,7 +452,8 @@ export function Calendar({
 				year={year}
 				month={month}
 				today={today}
-				monthLabel={shownLabel}
+				monthLabel={headerLabel}
+				pending={!hydrated}
 				monthLabels={monthLabels}
 				localeTag={localeTag}
 				pickerOpen={pickerOpen}
@@ -451,7 +476,8 @@ export function Calendar({
 				isDayDisabled={isDayDisabled}
 				getDayProps={getDayProps}
 				onSelect={handleSelect}
-				monthLabel={shownLabel}
+				monthLabel={gridLabel}
+				pending={!hydrated}
 				localeTag={localeTag}
 				listboxId={listboxId}
 				activeDescendantId={activeDescendantId}

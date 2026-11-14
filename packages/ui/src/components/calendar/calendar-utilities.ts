@@ -10,6 +10,7 @@ import {
 } from '@internationalized/date'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { getOrCompute } from '../../utilities/get-or-compute'
+import { standDayText, toUtcDay } from '../date-time/date-time-stand'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 
 /**
@@ -291,8 +292,13 @@ const WEEKDAY_REFERENCE = new CalendarDate(2021, 1, 3)
 // labels then name a month that the grid does not show.
 const GREGORIAN = { calendar: 'gregory' } as const
 
+/** The format of the month label. */
+const MONTH = { ...GREGORIAN, month: 'long', year: 'numeric' } as const
+
 // A new `Intl.DateTimeFormat` for each day cell is measurable on each month
-// change, so the day-name formatter is cached by locale.
+// change, so the day-name formatter is cached by locale. A formatter keeps the
+// time zone of the runtime when it was made, so the cached formatter writes the
+// day in UTC, and it gets the UTC midnight of the local day.
 const dayNameFormatters = new Map<string, Intl.DateTimeFormat>()
 
 /** Accessible name of a day in `locale`, such as "Sunday, June 15, 2025". @internal */
@@ -307,26 +313,53 @@ export function formatDayName(date: Date, locale: string): string {
 				day: 'numeric',
 				month: 'long',
 				year: 'numeric',
+				timeZone: 'UTC',
 			}),
 	)
 
-	return formatter.format(date)
+	return formatter.format(toUtcDay(date))
 }
 
 /** Name of the month of `date` with its year in `locale`, such as "June 2025". @internal */
 export function formatMonthName(date: Date, locale: string): string {
-	return date.toLocaleDateString(locale, { ...GREGORIAN, month: 'long', year: 'numeric' })
+	return date.toLocaleDateString(locale, MONTH)
 }
+
+/** The days of the reference week, from the first day of the week of `locale`. */
+function getReferenceWeek(locale: string): Date[] {
+	const start = startOfWeek(WEEKDAY_REFERENCE, locale)
+
+	return Array.from({ length: 7 }, (_, index) => fromCalendarDate(start.add({ days: index })))
+}
+
+/** The format of a weekday label. */
+const WEEKDAY = { weekday: 'short' } as const
 
 /** Short weekday labels ordered by the locale's first day of the week. */
 export function getWeekdayLabels(locale: string): string[] {
-	const formatter = new Intl.DateTimeFormat(locale, { weekday: 'short' })
+	const formatter = new Intl.DateTimeFormat(locale, WEEKDAY)
 
-	const start = startOfWeek(WEEKDAY_REFERENCE, locale)
+	return getReferenceWeek(locale).map((day) => formatter.format(day))
+}
 
-	return Array.from({ length: 7 }, (_, index) =>
-		formatter.format(fromCalendarDate(start.add({ days: index }))),
-	)
+/**
+ * The text that gives the skeleton of each weekday label its size, in the order
+ * of {@link getWeekdayLabels}. The code writes it without `Intl` (`standText`).
+ *
+ * @internal
+ */
+export function getWeekdayStands(locale: string): string[] {
+	return getReferenceWeek(locale).map((day) => standDayText(day, WEEKDAY))
+}
+
+/**
+ * The text that gives the skeleton of the month label its size, such as
+ * `June 2025`. The code writes it without `Intl` (`standText`).
+ *
+ * @internal
+ */
+export function getMonthStand(date: Date): string {
+	return standDayText(date, MONTH)
 }
 
 /** Short month labels (Jan through Dec), in calendar order, for the locale. */

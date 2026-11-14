@@ -4,13 +4,14 @@ import type { DateDuration } from '@internationalized/date'
 import { useComposedRefs } from 'motion/react'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 
+import { useHydrated } from '../../hooks/use-hydrated'
 import { useLocale } from '../../providers/locale/context'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import { formatDateValue } from '../date-input/date-input-utilities'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
-import { clampDate, formatDate, startOfDay, stepDate } from './date-picker-utilities'
+import { clampDate, formatDate, standDate, startOfDay, stepDate } from './date-picker-utilities'
 import { useDatePickerGridEntry } from './use-date-picker-grid-entry'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
@@ -202,6 +203,12 @@ export function useDatePickerState({
 		onFooterActivate,
 	})
 
+	// The text of `Intl` waits for hydration, as in `Calendar`. Until then the
+	// trigger shows a skeleton of the label. A pinned `format` writes no `Intl` text.
+	const hydrated = useHydrated()
+
+	const pending = value != null && !format && !hydrated
+
 	return {
 		...field,
 		dialogId,
@@ -216,7 +223,10 @@ export function useDatePickerState({
 			? ''
 			: format
 				? formatDateValue(value, format)
-				: formatDate(value, ambient.locale, ambient.dateFormat),
+				: hydrated
+					? formatDate(value, ambient.locale, ambient.dateFormat)
+					: standDate(value, ambient.dateFormat),
+		pending,
 		open,
 		onOpenChange,
 		onTriggerKeyDown,

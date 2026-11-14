@@ -14,6 +14,7 @@ import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Button } from '../button'
 import { useControlSurface } from '../control/use-control-surface'
+import { DateTimePending } from '../date-time/date-time-pending'
 import { Icon } from '../icon'
 import { SelectionClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -55,6 +56,12 @@ type DatePickerTriggerProps = {
 	state: DatePickerTriggerState
 	/** Text label for the selected value; ignored when `children` is provided. */
 	displayValue?: string
+	/**
+	 * Whether `displayValue` is the text of its skeleton. The text of `Intl`
+	 * waits for hydration, as in `Calendar`, so the trigger shows a skeleton of
+	 * the label until then.
+	 */
+	pending?: boolean
 	placeholder: string
 	/**
 	 * The density step of `<DatePicker>`. Omit it to take the step of the
@@ -93,6 +100,7 @@ type DatePickerTriggerProps = {
 export function DatePickerTrigger({
 	state,
 	displayValue = '',
+	pending = false,
 	placeholder,
 	size,
 	'aria-label': ariaLabel,
@@ -135,7 +143,13 @@ export function DatePickerTrigger({
 			ref={valueRef}
 			className={cn(k({ truncate }).value, truncate ? 'min-w-0 flex-1 overflow-hidden' : 'flex-1')}
 		>
-			{displayValue || <span className={cn(k.placeholder)}>{placeholder}</span>}
+			{displayValue === '' ? (
+				<span className={cn(k.placeholder)}>{placeholder}</span>
+			) : pending ? (
+				<DateTimePending>{displayValue}</DateTimePending>
+			) : (
+				displayValue
+			)}
 		</span>
 	)
 

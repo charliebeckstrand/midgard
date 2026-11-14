@@ -335,9 +335,13 @@ export function useDatePickerRelativeState({
 
 	// --- Display derivations ---
 
+	// The day is null until hydration, and the text of `Intl` waits for it.
+	const pending = today === null
+
 	const chips = useMemo<RelativeChip[]>(
-		() => relativeChips(value, presets, now, pickedIds, ambient.locale, ambient.dateFormat),
-		[value, presets, now, pickedIds, ambient.locale, ambient.dateFormat],
+		() =>
+			relativeChips(value, presets, now, pickedIds, ambient.locale, ambient.dateFormat, pending),
+		[value, presets, now, pickedIds, ambient.locale, ambient.dateFormat, pending],
 	)
 
 	// Derived from the chips, so both readings resolve their labels once and cannot
@@ -359,6 +363,8 @@ export function useDatePickerRelativeState({
 		chips,
 		showChips,
 		summary,
+		// A lone custom span is the summary, so its skeleton is the summary too.
+		summaryPending: chips.length === 1 && chips[0]?.pending === true,
 		selectedIds,
 		customActive,
 		presets,

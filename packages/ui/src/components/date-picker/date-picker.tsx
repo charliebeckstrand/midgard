@@ -276,6 +276,14 @@ export type DatePickerProps = DatePickerBaseProps &
  * The trigger and the dialog stamp `data-open` while the dialog is open, and the
  * trigger stamps `data-disabled` while it is disabled.
  *
+ * The text of the value in the trigger waits for hydration, as the labels of
+ * `Calendar` do. The text of `Intl` comes from the date data of the JavaScript
+ * engine, and the engine of a browser, such as Safari, can write other text
+ * than the engine of the server. React would then render the tree again from
+ * the start. So the server render and the hydration render show a skeleton of
+ * the value, with about its size. A pinned `format` writes the value without
+ * `Intl`, so the server render shows it.
+ *
  * @see {@link DatePickerProps} for the discriminated value/handler shapes.
  */
 export function DatePicker(props: DatePickerProps) {
@@ -340,6 +348,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		inputProps,
 		onOpenChange,
 		displayValue,
+		pending,
 		calendar: { calendarRef, ...calendar },
 		footer,
 	} = state
@@ -457,6 +466,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			<DatePickerTrigger
 				state={state}
 				displayValue={displayValue}
+				pending={pending}
 				placeholder={placeholder ?? intl.formatMessage(datePickerMessages.selectDate)}
 				size={size}
 				truncate={truncate}

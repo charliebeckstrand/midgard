@@ -97,3 +97,50 @@ export const hydrateOnPlatform = vi.defineHelper(
 		return { before, after: read(container) }
 	},
 )
+
+/** The mark that {@link writeOtherDateText} puts at the end of each date text. */
+export const OTHER_DATE_MARK = '~'
+
+/**
+ * Makes each date text of `Intl` differ from the text of the server, as the
+ * date data of another JavaScript engine can, such as Safari on the client and
+ * Node on the server. Each text gets {@link OTHER_DATE_MARK} at its end. Call it
+ * after the server render and before the hydration. The setup of the tests
+ * restores the spies after each case.
+ */
+export function writeOtherDateText(): void {
+	const prototype = Intl.DateTimeFormat.prototype
+
+	// The type of `format` is a method, but it is an accessor of the prototype.
+	const accessors: { format: unknown } = prototype
+
+	// The parts of a date join to the text of `format`, and the spy leaves them as they are.
+	vi.spyOn(accessors, 'format', 'get').mockImplementation(function (this: unknown) {
+		const formatter = this as Intl.DateTimeFormat
+
+		return (date?: Date | number) =>
+			`${formatter
+				.formatToParts(date)
+				.map((part) => part.value)
+				.join('')}${OTHER_DATE_MARK}`
+	})
+
+	const formatRange = prototype.formatRange
+
+	vi.spyOn(prototype, 'formatRange').mockImplementation(function (
+		this: Intl.DateTimeFormat,
+		start: Date | number | bigint,
+		end: Date | number | bigint,
+	) {
+		return `${formatRange.call(this, start as Date, end as Date)}${OTHER_DATE_MARK}`
+	})
+
+	const toLocaleDateString = Date.prototype.toLocaleDateString
+
+	vi.spyOn(Date.prototype, 'toLocaleDateString').mockImplementation(function (
+		this: Date,
+		...args: Parameters<Date['toLocaleDateString']>
+	) {
+		return `${toLocaleDateString.apply(this, args)}${OTHER_DATE_MARK}`
+	})
+}
