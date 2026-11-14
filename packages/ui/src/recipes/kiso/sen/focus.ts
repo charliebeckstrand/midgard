@@ -41,6 +41,10 @@
  *                 colors a lift draws a 4 px outline, twice the width of a
  *                 focus outline.
  *
+ * Focus is blue-600 in each mode. A part that paints its own focus, such as
+ * the resize grip (`grip.ts`) and the range thumb (`ring.thumb`), uses the
+ * same blue.
+ *
  * Layer: kiso · Concern: focus indicators
  */
 
