@@ -1,7 +1,8 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
+import type { VariantProps } from '../../core/recipe/engine/types'
 import { k } from '../../recipes/kata/flex'
-import { defaultAlignFromDirection } from './flex-utilities'
+import { getDefaultAlign } from './flex-utilities'
 import type {
 	ResponsiveAlign,
 	ResponsiveDirection,
@@ -50,9 +51,9 @@ export type FlexProps = {
 	 * Fills the available space. `'1'` is `flex: 1 1 0%`; `'auto'` is `flex: 1 1 auto`.
 	 * @defaultValue false
 	 */
-	flex?: '1' | 'auto' | false
+	flex?: NonNullable<VariantProps<typeof k>['flex']> | false
 	/**
-	 * Spans full width of parent.
+	 * Spans the full width of its parent.
 	 * @defaultValue false
 	 */
 	full?: boolean
@@ -85,7 +86,7 @@ export function Flex({
 }: FlexProps) {
 	const slots = k({
 		direction,
-		align: align ?? defaultAlignFromDirection(direction),
+		align: align ?? getDefaultAlign(direction),
 		gap,
 		justify,
 		wrap,

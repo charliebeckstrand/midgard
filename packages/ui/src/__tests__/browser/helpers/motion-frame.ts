@@ -108,3 +108,27 @@ export async function waitForNoTween(animations: () => readonly Animation[]): Pr
 		(count) => count === 0,
 	)
 }
+
+/**
+ * Waits until the overlay that holds `element` is at rest: no tween runs in its
+ * panel or in its backdrop.
+ *
+ * A panel slides in, and each control in it moves until the slide ends. A
+ * pointer click sends the press and the release in two steps. Playwright makes
+ * sure that the press hits the control, but it does not check the release. If
+ * the panel moves between the two steps, the release lands off the control.
+ * The browser then sends the click to an ancestor, the control gets no click,
+ * and Playwright reports no error. Thus call this wait before a pointer action
+ * on a control in an overlay that enters.
+ *
+ * @param element - An element in the overlay.
+ * @throws When `element` is not in an overlay, or when a tween still runs at the
+ * deadline of {@link sampleMotionFrames}.
+ */
+export async function waitForOverlayRest(element: Element): Promise<void> {
+	const overlay = element.closest('[data-slot="overlay"]')
+
+	if (!overlay) throw new Error('waitForOverlayRest: the element is not in an overlay')
+
+	await waitForNoTween(() => overlay.getAnimations({ subtree: true }))
+}

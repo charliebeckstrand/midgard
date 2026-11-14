@@ -19,6 +19,7 @@ const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { border, focus } = sen
+const { css } = ugoki
 
 /** A part of a `vertical` rule, which stacks at full width. */
 const stacked = 'min-w-auto flex-initial'
@@ -118,7 +119,8 @@ export const k = defineKata(
 					handle: {
 						base: [
 							dan.space.query.grip,
-							'flex size-6 shrink-0 items-center justify-center',
+							flex.row,
+							'size-6 shrink-0 justify-center',
 							rounded.md,
 							...grab.default,
 							...text.muted,
@@ -137,10 +139,7 @@ export const k = defineKata(
 					 * The AND/OR between two nodes aligns with the nodes, past the grip and the
 					 * gap. The nodes move over it during a drag, so it fades until the drop.
 					 */
-					separator: [
-						'ps-7.5',
-						'motion-safe:transition-opacity group-data-sorting/sortable:opacity-0',
-					],
+					separator: ['ps-7.5', css.opacity, 'group-data-sorting/sortable:opacity-0'],
 				},
 			},
 		},
