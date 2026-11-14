@@ -63,8 +63,14 @@ const segment = {
 		// here, so it becomes a flex item, and the gap widens the focused item.
 		focus.ring,
 		...disabled,
+		// The ink fades between the two rungs while the indicator slides, so the
+		// label does not step to the selected ink before the indicator arrives. The
+		// list keeps the opacity of `disabled`, which this transition replaces.
+		'motion-safe:transition-[color,opacity] motion-safe:duration-300 ease-out',
 		...cursor,
-		`${dan.text.small} ${dan.space.segment.item.x} ${dan.space.row.y}`,
+		dan.text.small,
+		dan.space.segment.item.x,
+		dan.space.row.y,
 		// An icon is the small text size plus 4 px, as an icon beside body text is.
 		dan.size.icon.small,
 		// The `p-1` of the box. An item that scrolls into the viewport keeps its
