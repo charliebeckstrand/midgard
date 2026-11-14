@@ -88,15 +88,6 @@ export type ChatMessageProps = ChatMessageVariants &
 		/** Controls that act on the message, such as copy, retry, and edit. `trigger` sets when they show. */
 		actions?: ReactNode
 		/**
-		 * When `actions` show. `'hover'` is a toolbar over the top corner of the
-		 * bubble that shows while the pointer is over the message or focus is in it.
-		 * A device with no hover shows it as a row below the bubble. `'static'` is
-		 * that row on every device.
-		 * @defaultValue 'hover'
-		 * @media hover
-		 */
-		trigger?: 'hover' | 'static'
-		/**
 		 * Entries of a menu that a right-click or a touch long press on the bubble
 		 * opens: an item, a separator, or a submenu ({@link ContextMenuEntry}).
 		 * Without entries, the bubble keeps the native menu of the browser.

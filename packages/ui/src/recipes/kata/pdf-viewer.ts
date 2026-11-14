@@ -8,7 +8,7 @@
  * - The `viewport`, with its `page` frame, the magnifier `lens`, and the
  *   `highlights` layer with each `region`.
  */
-import { colors, defineKata, mode } from '../../core/recipe'
+import { colors, defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, ji, narabi, omote, sen, sou, ugoki } from '../kiso'
 
 const { cursor } = hannou
@@ -403,3 +403,9 @@ export const k = defineKata({
 		},
 	},
 })
+
+/**
+ * Recipe variant props for {@link PdfViewer}: the axes of its kata. The viewer
+ * types its `fit`, the thumbnail `layout`, and the loupe `diameter` from them.
+ */
+export type PdfViewerVariants = VariantProps<typeof k>
