@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Badge } from 'ui/badge'
 import { CurrencyInput } from 'ui/currency-input'
 import { DatePicker } from 'ui/date-picker'
+import { DateTime } from 'ui/date-time'
 import { Grid, type GridColumn, type GridEditCellContext } from 'ui/grid'
 import { useIntl } from 'ui/primitives/intl'
 import { Textarea } from 'ui/textarea'
@@ -87,7 +88,7 @@ export default function EditorTypes() {
 				id: 'due',
 				title: 'Due',
 				field: 'due',
-				cell: (row) => intl.formatDate(row.due, { dateStyle: 'medium' }),
+				cell: (row) => <DateTime value={row.due} format={{ dateStyle: 'medium' }} />,
 				editCell: CellDate,
 			},
 			{

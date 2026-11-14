@@ -11,20 +11,27 @@ import { workspaceRoot, workspaceSources } from '../helpers/walk-source'
 // renders the tree again from the start. Before, Elections and Places each
 // formatted dates on the server in their own way.
 //
-// So the apps, `auth`, and `shared` write no date text with `Intl` by hand,
-// and no date text with the date methods of FormatJS (`useIntl`), which use
-// `Intl` too. The server writes it with `formatDateText` in `ui/server`, and
-// the browser with `DateTime` or `useDateFormat`, which wait for hydration.
+// So the apps, `auth`, `shared`, and the demos of the docs write no date text
+// with `Intl` by hand, and no date text with the date methods of FormatJS
+// (`useIntl`), which use `Intl` too. The server writes it with
+// `formatDateText` in `ui/server`, and the browser with `DateTime` or
+// `useDateFormat`, which wait for hydration. The docs prerender each page in
+// Node, so a demo that wrote date text there could differ from the text of the
+// hydration render in Safari.
 
 const SCAN_ROOTS = [
 	join(workspaceRoot, 'apps'),
 	join(workspaceRoot, 'packages', 'auth'),
 	join(workspaceRoot, 'packages', 'shared'),
+	join(workspaceRoot, 'packages', 'ui', 'src', 'docs'),
 ]
 
-/** A date formatter of `Intl`, or a date method or a component that formats with one. */
+/**
+ * A date formatter of `Intl`, or a date method or a component that formats
+ * with one. A date method can also come out of `useIntl` by name.
+ */
 const HAND_FORMAT =
-	/\bIntl\.DateTimeFormat\s*\(|\.toLocale(?:Date|Time)String\s*\(|\.format(?:Date|Time|DateTimeRange)(?:ToParts)?\s*\(|<Formatted(?:Date|Time|DateTimeRange)\b/
+	/\bIntl\.DateTimeFormat\s*\(|\.toLocale(?:Date|Time)String\s*\(|\.format(?:Date|Time|DateTimeRange)(?:ToParts)?\s*\(|<Formatted(?:Date|Time|DateTimeRange)\b|\{[^}]*\bformat(?:Date|Time|DateTimeRange)(?:ToParts)?\b[^}]*\}\s*=\s*useIntl\(/
 
 describe('date-text boundary', () => {
 	it('finds each spelling of a hand-written date text', () => {
@@ -37,6 +44,8 @@ describe('date-text boundary', () => {
 		expect(HAND_FORMAT.test('intl.formatDateTimeRange(from, to)')).toBe(true)
 		expect(HAND_FORMAT.test('intl.formatDateToParts(date)')).toBe(true)
 		expect(HAND_FORMAT.test('<FormattedDate value={date} />')).toBe(true)
+		expect(HAND_FORMAT.test('const { formatNumber, formatTime } = useIntl()')).toBe(true)
+		expect(HAND_FORMAT.test('const { formatNumber } = useIntl()')).toBe(false)
 		expect(HAND_FORMAT.test('intl.formatNumber(count)')).toBe(false)
 		expect(HAND_FORMAT.test('const options: Intl.DateTimeFormatOptions = {}')).toBe(false)
 		expect(HAND_FORMAT.test('count.toLocaleString()')).toBe(false)
