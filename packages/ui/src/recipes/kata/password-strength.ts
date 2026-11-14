@@ -9,7 +9,7 @@
 import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, kasane, narabi, omote, sen, zu } from '../kiso'
 
-const { palette, text } = iro
+const { marker, text } = iro
 const { meter } = zu
 const { size, weight } = ji
 const { rounded } = kasane
@@ -48,7 +48,7 @@ export const k = defineKata({
 			slots: {
 				icon: {
 					base: 'size-4 shrink-0',
-					passed: { true: palette.bare.green, false: text.muted },
+					passed: { true: marker.green, false: text.muted },
 				},
 				text: { passed: { true: text.default, false: text.muted } },
 			},
