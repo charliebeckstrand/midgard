@@ -29,6 +29,9 @@ type Values = { readonly [prop: string]: Value | undefined }
 /** The props of the instance, from {@link buildProps}. */
 type Props = { readonly [prop: string]: Value }
 
+/** The value that each choice field starts at, from the `start` prop of {@link Playground}. */
+type Start = { readonly [prop: string]: Literal | undefined }
+
 // The key of the option of a field whose omitted state is no value. The key of
 // a value is its JSON, which never is a bare word.
 const UNSET = 'unset'
@@ -164,14 +167,36 @@ function formatLabel(intl: IntlShape, prop: string, value: Value): string {
 }
 
 /**
- * The first value of a field: its default, or the first value of a required
- * prop with no default. Any other field starts unset, as the component does
- * when the omitted prop is no value. A free field starts at its start.
+ * The first value of a field: the value that `start` gives it, else its
+ * default, or the first value of a required prop with no default. Any other
+ * field starts unset, as the component does when the omitted prop is no value.
+ * A free field starts at its start.
  */
-function getStart(field: Field): Value | undefined {
+function getStart(field: Field, start: Start): Value | undefined {
 	if (field.kind !== 'choice') return field.start
 
+	if (Object.hasOwn(start, field.name)) return start[field.name]
+
 	return field.default ?? (field.required ? field.values[0] : undefined)
+}
+
+/**
+ * Throws unless each prop of `start` has a choice field among `fields`, and its
+ * start is a value of that field. A start that no field takes would leave the
+ * instance at its default, the opposite of what the page asks for.
+ */
+function assertStart(fields: readonly Field[], start: Start): void {
+	for (const [name, value] of Object.entries(start)) {
+		const field = fields.find((candidate) => candidate.name === name)
+
+		if (field?.kind !== 'choice') {
+			throw new Error(`docs: the prop ${name} has a start but no choice field`)
+		}
+
+		if (!accepts(field, value)) {
+			throw new Error(`docs: the start of the prop ${name} is not a value of its field`)
+		}
+	}
 }
 
 /** Tells if `value` is a value of `field`. An omitted value is, unless the field is required. */
@@ -191,13 +216,13 @@ function accepts(field: Field, value: Value | undefined): boolean {
  * The value of each field: the value that the reader picked, when it is a
  * value of the field, else the start of the field.
  */
-function resolveValues(fields: readonly Field[], picked: Values): Values {
+function resolveValues(fields: readonly Field[], picked: Values, start: Start): Values {
 	return Object.fromEntries(
 		fields.map((field) => [
 			field.name,
 			Object.hasOwn(picked, field.name) && accepts(field, picked[field.name])
 				? picked[field.name]
-				: getStart(field),
+				: getStart(field, start),
 		]),
 	)
 }
@@ -386,8 +411,10 @@ function FieldPicker({
  * breakpoint, such as `{ initial: 'vertical', sm: 'horizontal' }`, is the
  * first option of the field.
  * A number prop with a number as its default, such as `max`, gets a number
- * field, and `free` names more props that get a text or a number field. The
- * fields drive this one instance. "Show code" shows the file with the values
+ * field, and `free` names more props that get a text or a number field.
+ * `start` gives a choice field a first value that is not its default, so the
+ * instance can open in a state that shows the prop, such as a Flex with a gap.
+ * The fields drive this one instance. "Show code" shows the file with the values
  * that are not the defaults as attributes. The field of a prop with a
  * `@media` tag shows only on the kind of device that the tag names, because
  * the prop has no effect on other devices.
@@ -395,7 +422,8 @@ function FieldPicker({
  * `pnpm intl` reads the fields of each `<Playground>` from the source, for the
  * catalog entries of their labels and their options (`plugin/fields.ts`). So
  * `omit`, `values`, and `free` each take a literal, or an exported constant of
- * a local module.
+ * a local module. `start` gives no label of its own, because each start is an
+ * option of its field.
  *
  * @example
  * import api from 'virtual:docs/api/components/button'
@@ -409,6 +437,7 @@ export function Playground<P extends object>({
 	omit = [],
 	values: given = {},
 	free = {},
+	start = {},
 	surface,
 	ratio,
 }: {
@@ -435,6 +464,13 @@ export function Playground<P extends object>({
 	 * the start here and not in the playground file, so "Show code" shows it.
 	 */
 	free?: { readonly [K in keyof P & string]?: string | number }
+	/**
+	 * The value that the choice field of a prop starts at, in the place of its
+	 * default. Each start is a value of the field. Give the start here and not
+	 * in the playground file, so the field shows the state of the instance, and
+	 * "Show code" shows the start as an attribute.
+	 */
+	start?: { readonly [K in keyof P & string]?: Literal }
 	/** Makes the instance box fill the frame, for a surface of a page. */
 	surface?: boolean
 	/**
@@ -459,9 +495,11 @@ export function Playground<P extends object>({
 
 	const fields = buildFields(component.props, omit, given, free, step)
 
+	assertStart(fields, start)
+
 	const [picked, setPicked] = useState<Values>({})
 
-	const values = resolveValues(fields, picked)
+	const values = resolveValues(fields, picked, start)
 
 	const props = buildProps(fields, values)
 
