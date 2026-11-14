@@ -4,7 +4,7 @@ import { type Ref, type RefObject, useEffect, useRef, useState } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { k } from '../../recipes/kata/pdf-viewer'
+import { k, type PdfViewerVariants } from '../../recipes/kata/pdf-viewer'
 import { getScroller } from '../../utilities/get-scroller'
 import { rangeKeys } from '../../utilities/range-keys'
 import { pdfViewerMessages } from './pdf-viewer-messages'
@@ -42,7 +42,7 @@ type PdfViewerThumbnailListProps = {
 	 * Rail orientation: vertical sidebar list or multi-column grid.
 	 * @defaultValue 'list'
 	 */
-	layout?: 'list' | 'grid'
+	layout?: PdfViewerVariants['layout']
 }
 
 /**

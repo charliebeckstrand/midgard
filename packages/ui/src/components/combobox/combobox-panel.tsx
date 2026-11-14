@@ -98,7 +98,7 @@ export function ComboboxPanel({
 						role="none"
 						autoFocus={false}
 						glass={glass}
-						className={cn('relative', k().options)}
+						className={cn(k().options)}
 						onKeyDown={(event) => {
 							if (event.key !== 'Escape') return
 
