@@ -16,7 +16,7 @@
  */
 
 import { defineGroup } from '../../../core/recipe'
-import { dan, hannou, iro, ji, narabi, omote, sou, ugoki } from '../../kiso'
+import { dan, hannou, iro, narabi, omote, sou, ugoki } from '../../kiso'
 import { affix } from './affix'
 import { density, inset } from './density'
 import { chrome, frame } from './frame'
@@ -26,7 +26,7 @@ import { surface } from './surface'
 export { scale } from './density'
 
 const { cursor } = hannou
-const { fit } = narabi
+const { fit, flex } = narabi
 
 /**
  * The classes of a slot under each surface. The framed surfaces take
@@ -68,10 +68,10 @@ export const input = defineGroup({
 	extends: control,
 	/**
 	 * The frame: its layout when a prefix or a suffix is present. The frame
-	 * has the step of the control, so `ji.ramp` gives it the text size of
+	 * has the step of the control, so `dan.text.body` gives it the text size of
 	 * the input. Text in an affix, such as the brand of a CreditCardInput,
 	 * inherits that size. The slot is a scope one step below the control, so
-	 * `ji.ramp` on the slot gives a smaller size. At `md` the text is
+	 * `dan.text.body` on the slot gives a smaller size. At `md` the text is
 	 * `text-base`.
 	 *
 	 * The frame keeps the input and its affixes on one row, so a narrow host
@@ -88,14 +88,13 @@ export const input = defineGroup({
 	 */
 	affixed: {
 		true: [
-			'group/control flex items-center',
 			'has-[[data-slot=tags][data-wrap]]:grid',
 			'has-[[data-slot=tags][data-wrap]]:grid-cols-[minmax(0,1fr)_auto]',
 			'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:col-start-2',
 			'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:row-start-1',
 			'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:self-start',
 			'has-[[data-slot=tags][data-wrap]]:[&>input]:col-span-2',
-			ji.ramp,
+			dan.text.body,
 		],
 		false: [],
 	},
@@ -157,9 +156,11 @@ export const list = defineGroup(
 			 * a scrollbar at seven options, and the dashboard picker hit it with screen to
 			 * spare. The cap binds only on a list that exceeds it. A panel that no longer
 			 * fits below its trigger flips above, and a panel that fits on neither side
-			 * shrinks into the larger space (the floating middleware chain).
+			 * shrinks into the larger space (the floating middleware chain). The panel
+			 * sits in the flow of its floating wrapper, which places it, so `relative`
+			 * replaces the `absolute` of the popover panel.
 			 */
-			options: ['max-h-80', fit.scroll],
+			options: ['relative', 'max-h-80', fit.scroll],
 		},
 	},
 	{
@@ -174,7 +175,13 @@ export const list = defineGroup(
  * than its parent. `content` holds the classes of the dialog panel.
  */
 export const picker = defineGroup(
-	{ extends: trigger },
+	{
+		extends: trigger,
+		slots: {
+			/** The button that opens the picker. */
+			field: [flex.row, 'text-start', 'appearance-none', ...cursor],
+		},
+	},
 	{
 		root: ['w-fit', 'max-w-full'],
 		content: {

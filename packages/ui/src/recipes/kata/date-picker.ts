@@ -10,12 +10,11 @@
  * of DatePickerSkeleton. The group gives `root` and the base of `content`.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, hannou, iro, kokkaku, narabi, sen } from '../kiso'
+import { dan, iro, kokkaku, narabi, sen } from '../kiso'
 import { picker } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
-const { cursor } = hannou
 const { focus } = sen
 const { text } = iro
 const { field, fit, flex } = narabi
@@ -82,7 +81,7 @@ const extras = {
 		// even the inset all around the chips. That is a constant one-step (4px)
 		// gap at every size. No height pin: the trigger grows to fit the rows, like
 		// TagInput's tag row.
-		chips: ['flex flex-wrap items-center', dan.gap.scale.xs, 'min-w-0 py-1'],
+		chips: [flex.row, 'flex-wrap', dan.gap.scale.xs, 'min-w-0 py-1'],
 	},
 }
 
@@ -92,11 +91,7 @@ export const k = defineKata(
 		slots: {
 			field: {
 				base: [
-					flex.row,
 					'justify-between',
-					'text-start',
-					'appearance-none',
-					...cursor,
 					// The calendar icon is inside the button, not in a suffix slot. This gap
 					// keeps it the control `px` from the value, as the Listbox chevron is.
 					dan.gap.datePicker,

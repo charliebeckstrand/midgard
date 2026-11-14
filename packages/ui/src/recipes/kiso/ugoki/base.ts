@@ -33,12 +33,17 @@ export const duration = {
 export const instant = { duration: 0 } as const
 
 /**
- * The easing vocabulary: Framer's three named curves, and `linear` for a value
- * that must move at a constant rate, such as a fill that shows time.
+ * The easing vocabulary: Framer's three named curves, `linear` for a value
+ * that must move at a constant rate, such as a fill that shows time, and two
+ * cubic Bézier curves.
  */
 export const ease = {
 	linear: 'linear',
 	in: 'easeIn',
 	out: 'easeOut',
 	inOut: 'easeInOut',
+	/** The CSS `ease` curve: a quick start into a long settle, for content that arrives (`reveal`). */
+	standard: [0.25, 0.1, 0.25, 1],
+	/** A quick start that settles softly, with no overshoot, for a box that moves to a new slot (`glide`). */
+	settle: [0.22, 1, 0.36, 1],
 } as const

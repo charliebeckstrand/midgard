@@ -14,16 +14,6 @@ const { text } = iro
 
 const { palette, ink, motion } = zu
 
-/**
- * A stroke in the fill of the surface under the chart. It reads `--surface-fill`,
- * which a surface card and the content host of the sidebar layout set. Without
- * either, it takes the page ground, as the grid host does.
- */
-const surfaceStroke = mode(
-	'stroke-(--surface-fill,var(--color-white))',
-	'dark:stroke-(--surface-fill,var(--color-zinc-950))',
-)
-
 /** The muted ink of SVG text: a tick label and an axis title. */
 const mutedFill = mode('fill-zinc-500', 'dark:fill-zinc-400')
 
@@ -65,14 +55,14 @@ export const k = {
 			'stroke-3',
 			'[stroke-linejoin:round]',
 			'[paint-order:stroke]',
-			...surfaceStroke,
+			...ink.surface,
 		],
 		/**
 		 * Point-marker stroke: the fill of the surface under the chart, so a dot stays legible
 		 * where it crosses an opaque mark or another dot. A white ring in dark mode showed as
 		 * a halo on each dot.
 		 */
-		stroke: surfaceStroke,
+		stroke: ink.surface,
 	},
 	/**
 	 * The hit layer of the plot. Under the `'click'` trigger, the pointer hook sets
@@ -90,7 +80,7 @@ export const k = {
 	 * therefore stands apart from any fill: the ring from a pale cell, and the
 	 * halo from a dark one.
 	 */
-	selected: { ring: ink.selected, halo: surfaceStroke },
+	selected: { ring: ink.selected, halo: ink.surface },
 	/** The seat chart's majority line: the strong ink, so it stands out from the seats of every party. */
 	majority: mode('stroke-zinc-950', 'dark:stroke-white'),
 	/**

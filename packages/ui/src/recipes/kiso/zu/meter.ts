@@ -9,7 +9,7 @@
  * Thus a progress bar and a swatch, a chart mark, or a map region in the same
  * color show the same shade in each mode.
  *
- * Layer: kiso · Archetype: zu · Concern: meter
+ * Layer: kiso · Concern: meter
  */
 
 import type { Color } from '../../../core/recipe'

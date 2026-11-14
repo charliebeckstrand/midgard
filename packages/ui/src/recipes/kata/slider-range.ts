@@ -53,7 +53,7 @@ export const k = defineKata({
 				'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
 				'dark:focus-visible:ring-blue-500',
 				...forced.ring.outset,
-				dan.size.thumb.base,
+				dan.size.slider.thumb,
 			],
 		},
 	},

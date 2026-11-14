@@ -42,7 +42,8 @@ export const k = defineKata(
 			 */
 			step: {
 				base: [
-					'group relative flex items-center first:pt-0',
+					flex.row,
+					'group relative first:pt-0',
 					'outline-none',
 					...disabled,
 					...cursor,
@@ -103,7 +104,7 @@ export const k = defineKata(
 			separator: {
 				base: [
 					'shrink-0 -mx-12 mt-2.25 min-w-20',
-					flex.fill,
+					'flex-1',
 					'self-start border-t',
 					...border.color.default,
 				],

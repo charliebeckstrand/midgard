@@ -57,14 +57,7 @@ export const k = defineKata(
 		// The root is the size container of the compact page list. A size container
 		// takes no width from its content, so the root fills the inline axis. In a
 		// flex row, the consumer gives it a width, for example `flex-1`.
-		base: [
-			'@container/pagination',
-			'w-full',
-			flex.row,
-			'list-none',
-			dan.gap.scale.xs,
-			dan.gap.touch.x.xs,
-		],
+		base: ['@container/pagination', 'w-full', flex.row, dan.gap.scale.xs, dan.gap.touch.x.xs],
 		slots: {
 			list,
 			/** Positioning wrapper around each page button; hosts the active indicator. */

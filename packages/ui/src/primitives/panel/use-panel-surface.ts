@@ -49,7 +49,8 @@ export type PanelSurfaceOptions<P extends Pick<HTMLMotionProps<'div'>, 'animate'
  *   `hannou.tint.glass` keys on `group-data-glass/glass`, which needs the named
  *   group and the attribute on one element. Rows inside then take their hover
  *   wash at double strength, because a 5% wash under a translucent panel reads
- *   as no hover. See `recipes/kiso/hannou/glass-item.ts`.
+ *   as no hover. See `tint.glass` in
+ *   `recipes/kiso/hannou/tint.ts`.
  * - A non-modal overlay turns off pointer events on its full-viewport root, so
  *   the page stays live. The panel turns them on again for itself.
  *

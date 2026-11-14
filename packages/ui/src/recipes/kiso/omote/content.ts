@@ -2,7 +2,7 @@
  * Omote content: the content block of an app shell. A `card` block paints a
  * surface, a shadow, and rounded corners. A `flat` block sits against the page.
  * The two values write the same properties, so a layout can switch between
- * them at a breakpoint with `resolveVariant`.
+ * them at a breakpoint with a responsive axis.
  *
  * Each value also sets `--surface-fill` to the color under the content, so a
  * grid or a chart in the block paints the fill of the block.

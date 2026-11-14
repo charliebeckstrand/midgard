@@ -1,7 +1,7 @@
 /**
  * Fieldset kata: the unit of `<Fieldset>` and the form-field primitives.
  * `legend`, `label`, `description`, and `message` take the text step of their
- * nearest density scope through `ji.ramp`. The `as` axis of `label` gives the
+ * nearest density scope through `dan.text.body`. The `as` axis of `label` gives the
  * element of the label, and the `severity` axis of `message` gives the
  * error/warning/success color. The `base` and `field` slots are static, and
  * they thread the disabled state down through the group.
@@ -17,7 +17,7 @@ const { field } = narabi
 export const k = defineKata({
 	base: [dan.space.fieldset.legend, ...disabled],
 	slots: {
-		legend: [ji.ramp, weight.semibold, text.default, ...disabled],
+		legend: [dan.text.body, weight.semibold, text.default, ...disabled],
 		field: [
 			...field,
 			...mode(
@@ -31,7 +31,7 @@ export const k = defineKata({
 		// is a sibling of the label, so the rule reads the Field. It sits in `:where()` (`in-[…]`), as
 		// in `hannou.cursor`, so the disabled rule replaces it.
 		label: {
-			base: ['flex w-fit', text.default, ji.ramp, ...disabled],
+			base: ['flex w-fit', text.default, dan.text.body, ...disabled],
 			as: {
 				label: [
 					'select-none',
@@ -42,9 +42,9 @@ export const k = defineKata({
 				span: [],
 			},
 		},
-		description: [text.muted, ji.ramp, ...disabled],
+		description: [text.muted, dan.text.body, ...disabled],
 		message: {
-			base: [ji.ramp, ...disabled],
+			base: [dan.text.body, ...disabled],
 			severity: {
 				error: text.error,
 				warning: text.warning,

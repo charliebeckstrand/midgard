@@ -13,7 +13,7 @@
  * ratio is thus 1:1 across the controls with no ControlFrame (listbox, combobox,
  * date-picker button). For a ControlFrame consumer (input, textarea, select
  * trigger), the frame starts its radius with `radius` (`./frame.ts`). The gap is half of `py` at each step, rounded to the spacing
- * scale. The text size is `ji.ramp`, the text ramp of each density-native
+ * scale. The text size is `dan.text.body`, the text ramp of each density-native
  * component.
  *
  * The axis also carries the affix autofill margins (`affix.autofill`, see
@@ -26,7 +26,7 @@
  */
 
 import { defineScale } from '../../../core/density'
-import { dan, ji } from '../../kiso'
+import { dan } from '../../kiso'
 import { affix } from './affix'
 
 /** The radius at each step. The frame also takes it (`./frame.ts`). */
@@ -45,8 +45,8 @@ export const density = [
 	dan.gap.control,
 	affix.autofill.prefix,
 	affix.autofill.suffix,
-	ji.ramp,
+	dan.text.body,
 ] as const
 
 /** The size scale of a control: the steps of its padding, radius, gap, and text. */
-export const scale = defineScale(dan.space.control.x, py, radius, dan.gap.control, ji.ramp)
+export const scale = defineScale(dan.space.control.x, py, radius, dan.gap.control, dan.text.body)

@@ -14,7 +14,7 @@ export const scale = defineScale(
 	dan.space.slider.y,
 	dan.size.slider.track,
 	dan.space.slider.track.y,
-	dan.size.thumb.base,
+	dan.size.slider.thumb,
 )
 
 export const slider = defineGroup({

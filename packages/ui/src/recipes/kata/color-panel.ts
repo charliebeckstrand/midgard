@@ -9,7 +9,7 @@
  * track and the preview is `omote.checkerboard`, which the color picker shares.
  *
  * Each part that shows a color keeps its real color under forced colors
- * (`forced-color-adjust-none`): the area, the tracks, the preview, and the
+ * (`sen.forced.keep`): the area, the tracks, the preview, and the
  * preset chips. A system color in their place would make every chip alike and
  * remove the hue and the alpha. The rings and the focus outlines of these parts
  * keep their forced-colors outlines.
@@ -17,11 +17,12 @@
 
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'
-import { dan, iro, kasane, kokkaku, omote, sen } from '../kiso'
+import { dan, iro, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { text } = iro
 const { rounded } = kasane
-const { focus, ring } = sen
+const { flex } = narabi
+const { focus, forced, ring } = sen
 
 // Draggable circular handle, centered on its inline-positioned coordinate.
 const handle = [
@@ -32,19 +33,16 @@ const handle = [
 	...ring.line[1].outset,
 ] as const
 
-// The color parts keep their real color under forced colors.
-const keepColor = 'forced-color-adjust-none'
-
 const area = [
 	'relative w-full cursor-crosshair touch-none',
-	keepColor,
+	forced.keep,
 	...focus.ring,
 	dan.size.colorPanel.area,
 ]
 
 const track = [
 	'relative w-full cursor-pointer touch-none',
-	keepColor,
+	forced.keep,
 	rounded.full,
 	...focus.outline,
 	dan.size.colorPanel.channel,
@@ -52,14 +50,14 @@ const track = [
 
 const preview = [
 	'relative shrink-0 overflow-hidden',
-	keepColor,
+	forced.keep,
 	rounded.md,
 	dan.size.colorPanel.preview,
 ]
 
 export const k = defineKata(
 	{
-		base: ['flex flex-col select-none', kokkaku.colorPanel.width, dan.gap.loose],
+		base: [flex.col, 'select-none', kokkaku.colorPanel.width, dan.gap.colorPanel],
 		slots: {
 			area: {
 				base: area,
@@ -89,7 +87,7 @@ export const k = defineKata(
 					 * also caps the hit areas (`TouchTarget`), so the copy button of the hex
 					 * field and the eyedropper after it do not overlap.
 					 */
-					row: ['flex items-center', dan.gap.scale.sm, dan.gap.touch.x.sm],
+					row: [flex.row, dan.gap.scale.sm, dan.gap.touch.x.sm],
 				},
 			},
 			handle,
@@ -98,11 +96,11 @@ export const k = defineKata(
 			/** Alpha / preview chequerboard surfaced behind translucent color. */
 			checkerboard: [omote.checkerboard, 'bg-size-[12px_12px]'],
 			/** Full-width stack for the hue (and optional alpha) tracks. */
-			sliders: ['flex flex-col', dan.gap.scale.sm],
+			sliders: [flex.col, dan.gap.scale.sm],
 			/** The grid of the channel inputs. */
 			channels: ['grid', dan.gap.scale.sm],
 			/** Label-above-input column for one channel input. */
-			field: ['flex min-w-0 flex-col', dan.gap.scale.xs],
+			field: [flex.col, 'min-w-0', dan.gap.scale.xs],
 			label: ['text-[10px] font-medium uppercase tracking-wide', ...text.muted],
 			swatches: 'grid grid-cols-10 gap-1.5',
 			/**
@@ -112,7 +110,7 @@ export const k = defineKata(
 			 */
 			swatch: [
 				'relative cursor-pointer',
-				keepColor,
+				forced.keep,
 				kokkaku.colorPanel.swatch,
 				rounded.md,
 				...ring.inset,
@@ -129,5 +127,5 @@ export const scale = defineScale(
 	dan.size.colorPanel.area,
 	dan.size.colorPanel.channel,
 	dan.size.colorPanel.preview,
-	dan.gap.loose,
+	dan.gap.colorPanel,
 )

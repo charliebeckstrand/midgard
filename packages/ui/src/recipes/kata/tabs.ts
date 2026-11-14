@@ -15,7 +15,7 @@ const { on, text } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { bg, rail } = omote
+const { bg, rail, scrollbar } = omote
 const { border, focus, forced } = sen
 
 /**
@@ -37,7 +37,7 @@ const segment = {
 	 * two labels apart, and the indicator marks the selected item. A gap only
 	 * makes the box wider, so a phone width scrolls the box sooner.
 	 */
-	control: [flex.row, 'w-fit', ...bg.tint, rounded.lg, 'p-1', ji.ramp],
+	control: [flex.row, 'w-fit', ...bg.tint, rounded.lg, 'p-1', dan.text.body],
 	/** One item of the box: the layout, the focus ring, and the disabled and cursor states. */
 	item: [
 		flex.row,
@@ -121,7 +121,7 @@ export const k = defineKata(
 			 * cross axis does not cut a tab label.
 			 */
 			scroll: {
-				base: ['scrollbar-none', '[&::-webkit-scrollbar]:hidden'],
+				base: scrollbar.hidden,
 				orientation: {
 					horizontal: [...rail],
 					vertical: 'shrink-0 overflow-y-auto overflow-x-hidden',
@@ -153,7 +153,7 @@ export const k = defineKata(
 					// Inset, because the scroll viewport clips the cross axis.
 					...forced.ring.inset,
 					// Padding, text, the icon slot, and the gap follow the nearest density scope.
-					ji.ramp,
+					dan.text.body,
 					...narabi.item,
 					dan.gap.item,
 				],
@@ -221,7 +221,7 @@ export const k = defineKata(
 
 /** The size scale of {@link Tabs} and {@link Segment}: the steps of the tab text, padding, and silhouette. */
 export const scale = defineScale(
-	ji.ramp,
+	dan.text.body,
 	dan.space.tab.x,
 	dan.space.tab.bottom,
 	dan.space.tab.vertical.x,

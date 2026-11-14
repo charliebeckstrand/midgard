@@ -5,14 +5,16 @@
  * wrapper is a column, so each `min-h-0` item between the wrapper and the
  * scroll region shrinks into that cap, and the scroll region scrolls.
  *
- * Layer: kiso · Concern: fit
+ * Layer: kiso · Concern: floating panel height
  */
+
+import { flex } from './flex'
 
 export const fit = {
 	/** The positioned wrapper that gets the max-height. */
-	wrapper: 'flex flex-col',
+	wrapper: flex.col,
 	/** An item between the wrapper and the scroll region. */
-	column: 'flex min-h-0 flex-col',
+	column: [flex.col, 'min-h-0'],
 	/** The scroll region. */
 	scroll: 'min-h-0 overflow-y-auto overscroll-contain',
 } as const

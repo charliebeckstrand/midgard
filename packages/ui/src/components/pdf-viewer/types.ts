@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { Color } from '../../core/recipe/colors'
+import type { PdfViewerVariants } from '../../recipes/kata/pdf-viewer'
 
 /**
  * A page of a `src` document, as the viewer holds it: a {@link PdfViewerPage}, and the bitmap
@@ -121,7 +122,7 @@ export type PdfViewerHighlightUnit = 'fraction' | 'inch'
  * `'width'` fits the page width, lets it overflow, and fills the height its container gives
  * it, so the container has to give it one.
  */
-export type PdfViewerFit = 'page' | 'width'
+export type PdfViewerFit = NonNullable<PdfViewerVariants['fit']>
 
 /**
  * How the toolbar's magnifier control behaves.
@@ -149,7 +150,7 @@ export type PdfViewerMagnifierZoom = 'sm' | 'md' | 'lg'
  *
  * @see {@link PdfViewerMagnifierZoom} for why the scale is named and not numeric.
  */
-export type PdfViewerMagnifierSize = 'sm' | 'md' | 'lg'
+export type PdfViewerMagnifierSize = NonNullable<PdfViewerVariants['diameter']>
 
 /**
  * How long the pointer must rest before the loupe appears: at once, or after 300ms.

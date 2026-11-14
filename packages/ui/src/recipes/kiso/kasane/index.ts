@@ -1,5 +1,5 @@
 /**
- * Kasane 重ね: layered chrome plus its companion spacing helpers. The ring
+ * Kasane (重ね): the layered chrome and the radius scale. The ring
  * utilities of `core/density/utilities.ts` (`px-ring-2`, …) subtract the 1 px
  * outer ring from a spacing stop. A class uses them directly.
  *
@@ -11,7 +11,7 @@
  *
  * A radius that follows density is a stepped `density-rounded-*` class, and
  * its inset fill is a stepped `density-rounded-ring-*` class after `before:`,
- * as `kata/control.ts` writes them.
+ * as `dan.radius` writes them.
  */
 
 import { layers } from './layers'

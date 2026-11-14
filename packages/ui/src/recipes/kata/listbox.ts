@@ -14,7 +14,6 @@ export const k = defineKata(
 		slots: {
 			/** The button that opens the list. */
 			field: [flex.row, 'text-start', 'appearance-none', ...cursor],
-			panel: 'relative min-w-full',
 			/** The text of the selected value. */
 			value: {
 				truncate: {
