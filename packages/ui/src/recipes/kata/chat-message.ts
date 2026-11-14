@@ -127,7 +127,7 @@ export const k = defineKata({
 		// The line of a failed reply. It inherits the foreground of the bubble, as
 		// the step line does, and the red dot beside it marks the failure. The gap
 		// above it is the `part` gap when the reply landed content first.
-		failure: [flex.row, `items-center ${dan.gap.scale.sm}`, size.sm],
+		failure: [flex.row, 'items-center', dan.gap.scale.sm, size.sm],
 		// A bubble of parts stacks one block per part, and each block collapses
 		// its own outer margins, so the gap between two of them is this slot's.
 		// It matches the markdown kata's `my-3` paragraph rhythm, so prose split
@@ -172,7 +172,7 @@ export const k = defineKata({
 				// line of its own and shows in full. The summary says what the step did,
 				// such as the filter that it applied. A reader cannot check a filter that
 				// the head cuts off, and on a phone the cut kept only the first words.
-				head: [flex.row, `w-full flex-wrap items-center ${dan.gap.scale.sm} text-start`, size.sm],
+				head: [flex.row, 'w-full flex-wrap items-center', dan.gap.scale.sm, 'text-start', size.sm],
 				// A disclosure head is a button: give it the pointer and the package's own
 				// focus ring rather than the UA outline. `inset` and not `ring`, because the
 				// step is a bordered box: the case `sen.focus`'s own doc names for it, and

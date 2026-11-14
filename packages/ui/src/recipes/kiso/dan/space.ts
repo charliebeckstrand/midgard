@@ -102,7 +102,7 @@ export const space = {
 		 * The inset of the copy button of a code block: the top and the end padding
 		 * of the block, which the scroll box beside it does not cover.
 		 */
-		copy: `${top} density-pe-[2,3,4,5,6]`,
+		copy: [top, 'density-pe-[2,3,4,5,6]'],
 	},
 	/** The padding of a popover panel. */
 	popover: scale.p.lg,
@@ -212,6 +212,17 @@ export const space = {
 			 * a breakpoint can switch the two.
 			 */
 			none: 'density-pt-[0,0,0,0,0]',
+		},
+		/**
+		 * The top padding of the sidebar layout content while it holds no header,
+		 * as `top` gives it to the header. The full class is written here, as
+		 * Tailwind finds a class only in a literal string.
+		 */
+		headless: {
+			/** The top padding while the layout is inline. */
+			inline: 'not-has-[[data-slot=header]]:density-pt-[2,4,6,8,10]',
+			/** No top padding while the layout is a drawer, in the layer of `inline`. */
+			none: 'not-has-[[data-slot=header]]:density-pt-[0,0,0,0,0]',
 		},
 	},
 	/** The padding of a tooltip, inside its ring. */

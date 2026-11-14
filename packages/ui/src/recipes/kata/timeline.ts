@@ -69,7 +69,8 @@ export const k = defineKata(
 					vertical: [
 						'grid grid-cols-[0.875rem_1fr]',
 						dan.gap.timeline.x,
-						`${dan.space.timeline.bottom} last:pb-0`,
+						dan.space.timeline.bottom,
+						'last:pb-0',
 					],
 					// 6.5px aligns the content with the rail. It matches the marker's `inset-s-[6.5px]`.
 					// The minimum width stops a column at a readable measure; past it, the

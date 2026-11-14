@@ -99,7 +99,9 @@ const card = {
  * the floor.
  */
 const header = [
-	`flex min-w-0 items-center gap-2 ${dan.space.box.bottom} [--touch-target-gap-x:0px]`,
+	'flex min-w-0 items-center gap-2',
+	dan.space.box.bottom,
+	'[--touch-target-gap-x:0px]',
 	'pointer-coarse:has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
 	dan.space.dashboard.bare,
 ]
@@ -146,7 +148,11 @@ const content = '@container relative min-h-0 flex-auto overflow-auto'
 const expanded = 'flex max-h-[min(70dvh,40rem)] min-h-0 w-full flex-col'
 
 /** The error state of a tile: a centered message and a retry button. */
-const error = `flex size-full flex-col items-center justify-center ${dan.gap.scale.sm} p-2 text-center`
+const error = [
+	'flex size-full flex-col items-center justify-center',
+	dan.gap.scale.sm,
+	'p-2 text-center',
+]
 
 /** The state of a spec tile whose kind no widget claims: a centered message. */
 const missing = 'flex size-full items-center justify-center p-2 text-center'

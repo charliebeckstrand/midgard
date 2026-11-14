@@ -77,7 +77,7 @@ export const k = defineKata(
 				variant: {
 					separated: [...bg.surface, border.default, rounded.lg, pad],
 					outline: pad,
-					plain: `${dan.space.list.plain.x} ${dan.space.row.y}`,
+					plain: [dan.space.list.plain.x, dan.space.row.y],
 					solid: [...bg.tint, border.default, rounded.lg, pad],
 					bare: '',
 				},

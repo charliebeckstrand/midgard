@@ -10,6 +10,6 @@
 import { dan } from '../dan'
 
 export const breadcrumb = {
-	item: `${dan.size.row} w-16`,
+	item: [dan.size.row, 'w-16'],
 	separator: dan.size.separator.base,
 } as const

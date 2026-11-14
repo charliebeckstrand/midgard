@@ -98,11 +98,11 @@ export const k = defineKata(
 			/** Alpha / preview chequerboard surfaced behind translucent color. */
 			checkerboard: [omote.checkerboard, 'bg-size-[12px_12px]'],
 			/** Full-width stack for the hue (and optional alpha) tracks. */
-			sliders: `flex flex-col ${dan.gap.scale.sm}`,
+			sliders: ['flex flex-col', dan.gap.scale.sm],
 			/** The grid of the channel inputs. */
 			channels: ['grid', dan.gap.scale.sm],
 			/** Label-above-input column for one channel input. */
-			field: `flex min-w-0 flex-col ${dan.gap.scale.xs}`,
+			field: ['flex min-w-0 flex-col', dan.gap.scale.xs],
 			label: ['text-[10px] font-medium uppercase tracking-wide', ...text.muted],
 			swatches: 'grid grid-cols-10 gap-1.5',
 			/**

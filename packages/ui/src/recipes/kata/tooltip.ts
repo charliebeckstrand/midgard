@@ -23,7 +23,8 @@ export const k = defineKata(
 			'text-pretty',
 			text.default,
 			weight.medium,
-			`${dan.space.tooltip} ${dan.radius.tooltip}`,
+			dan.space.tooltip,
+			dan.radius.tooltip,
 			ji.ramp,
 		],
 		surface: {

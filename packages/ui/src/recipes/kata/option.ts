@@ -13,7 +13,9 @@ export const k = defineKata({
 		// column.
 		'grid-cols-[1fr_auto]',
 		// Gap, padding, and text follow the nearest density scope.
-		`${dan.gap.option} ${dan.space.option.x} ${dan.space.option.y}`,
+		dan.gap.option,
+		dan.space.option.x,
+		dan.space.option.y,
 		ji.ramp,
 		...mode(
 			'group-data-editing/combobox:only-of-type:bg-zinc-950/5',

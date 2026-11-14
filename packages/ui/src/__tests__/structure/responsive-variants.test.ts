@@ -1,6 +1,8 @@
 // @vitest-environment node
 
+import { join } from 'node:path'
 import { __unstable__loadDesignSystem, compile } from '@tailwindcss/node'
+import { Scanner } from '@tailwindcss/oxide'
 import clsx, { type ClassValue } from 'clsx'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { twMerge } from '../../core/tw-merge'
@@ -14,7 +16,8 @@ import { uiRoot } from '../helpers/walk-source'
 // force. So each value of an axis writes the same properties on the same
 // selectors, in the same layer. Each prefixed class must also have CSS from the
 // `@source inline(...)` lines of `ui/tailwind.css`, because the scanner does not
-// see a class that a resolver makes at run time.
+// see a class that a resolver makes at run time. Each class with no prefix must
+// be a literal string in the source, because the scanner finds it only there.
 
 const ENTRY = `@import 'tailwindcss';\n@import './tailwind.css';`
 
@@ -113,6 +116,26 @@ const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = unitAxes(
 const MIN_BREAKPOINTS = Object.keys(BREAKPOINT_WIDTHS) as MinBreakpoint[]
 
 /**
+ * The candidates that the scanner of an app finds in the source of `ui`. An app
+ * scans `ui/src` with no tests, benchmarks, or docs (`shared/src/globals.css`).
+ */
+function sourceCandidates(): Set<string> {
+	const src = join(uiRoot, 'src')
+
+	const skip = ['__tests__', '__benchmarks__', 'docs'].map((name) => ({
+		base: join(src, name),
+		pattern: '**/*',
+		negated: true,
+	}))
+
+	const scanner = new Scanner({
+		sources: [{ base: src, pattern: '**/*', negated: false }, ...skip],
+	})
+
+	return new Set(scanner.scan())
+}
+
+/**
  * The declarations of the CSS of one class, as `context|property`. The context
  * is each nested selector and layer around the declaration, so `&>dt` in the
  * layer `density` differs from `&>dt` in no nested layer. The first selector
@@ -152,12 +175,16 @@ describe('the responsive variant axes of the components', () => {
 
 	let compiler: Awaited<ReturnType<typeof compile>>
 
+	let candidates: Set<string>
+
 	// One design system and one compiler serve each axis.
 	beforeAll(async () => {
 		;[system, compiler] = await Promise.all([
 			__unstable__loadDesignSystem(ENTRY, { base: uiRoot }),
 			compile(ENTRY, { base: uiRoot, onDependency: noop }),
 		])
+
+		candidates = sourceCandidates()
 	})
 
 	it.each(AXES)('%s writes the same properties in each value', (_name, table) => {
@@ -194,5 +221,11 @@ describe('the responsive variant axes of the components', () => {
 		}
 
 		expect(missing).toEqual([])
+	})
+
+	it.each(AXES)('%s has each class with no prefix in the source', (_name, table) => {
+		const classes = Object.keys(table).flatMap((value) => resolveVariant(value, table).split(' '))
+
+		expect(classes.filter((name) => name !== '' && !candidates.has(name))).toEqual([])
 	})
 })

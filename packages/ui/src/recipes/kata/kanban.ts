@@ -24,7 +24,7 @@ export const k = defineKata(
 	{
 		// While the columns overflow, the edge with more columns behind it fades, and
 		// the board is a tab stop with an inset ring.
-		base: [`flex ${dan.gap.scale.lg} items-stretch`, 'min-h-0', ...rail],
+		base: ['flex', dan.gap.scale.lg, 'items-stretch', 'min-h-0', ...rail],
 		slots: {
 			// The column is a `Card` with the `tint` fill. A dragged card from another
 			// column (`data-over`) steps the fill and the outline up one rung, so the
