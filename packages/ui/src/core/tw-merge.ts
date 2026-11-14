@@ -46,15 +46,43 @@ const classGroups = Object.fromEntries(
 )
 
 /**
- * Each touch gap (`core/touch/gap.ts`) joins the group of its gap, so a later
- * `gap-y-2` replaces a `touch-gap-y-0.5`, and the other way.
+ * The touch gaps of `core/touch/gap.ts`. Each one has its own group, because a
+ * touch gap also writes the cap of the hit areas, and a plain gap does not.
  */
-for (const [plain, name] of [
-	['gap', 'touch-gap'],
-	['gap-x', 'touch-gap-x'],
-	['gap-y', 'touch-gap-y'],
-] as const) {
-	classGroups[plain] = [...(classGroups[plain] ?? []), { [name]: ringStop }]
+const touchGaps = {
+	'touch-gap': [{ 'touch-gap': ringStop }],
+	'touch-gap-x': [{ 'touch-gap-x': ringStop }],
+	'touch-gap-y': [{ 'touch-gap-y': ringStop }],
+}
+
+Object.assign(classGroups, touchGaps)
+
+/**
+ * The conflicts of the touch gaps. A later touch gap replaces each gap of its
+ * axes. A later plain gap of one axis (`gap-y-2`) keeps the touch gap: the
+ * plain gap comes later in the CSS, so it sets the gap, and the cap stays. A
+ * cap under the real space is safe (`TouchTarget`). A later `gap-*` or a later
+ * stepped gap replaces the touch gaps of its axes: the `gap` shorthand comes
+ * earlier in the CSS than a touch gap of one axis, and the stepped layer comes
+ * earlier than each utility, so the touch gap would keep the gap.
+ */
+const touchGapConflicts: Record<string, string[]> = {
+	'touch-gap': [
+		'touch-gap-x',
+		'touch-gap-y',
+		'gap',
+		'gap-x',
+		'gap-y',
+		'density-gap',
+		'density-gap-x',
+		'density-gap-y',
+	],
+	'touch-gap-x': ['gap-x', 'density-gap-x'],
+	'touch-gap-y': ['gap-y', 'density-gap-y'],
+	gap: ['touch-gap', 'touch-gap-x', 'touch-gap-y'],
+	'density-gap': ['touch-gap', 'touch-gap-x', 'touch-gap-y'],
+	'density-gap-x': ['touch-gap-x'],
+	'density-gap-y': ['touch-gap-y'],
 }
 
 /**
@@ -151,6 +179,10 @@ export const twMerge = extendTailwindMerge<SteppedGroup>(
 		const groups: Record<string, readonly string[] | undefined> = config.conflictingClassGroups
 
 		for (const [group, contained] of Object.entries(steppedConflicts(groups))) {
+			groups[group] = [...(groups[group] ?? []), ...contained]
+		}
+
+		for (const [group, contained] of Object.entries(touchGapConflicts)) {
 			groups[group] = [...(groups[group] ?? []), ...contained]
 		}
 

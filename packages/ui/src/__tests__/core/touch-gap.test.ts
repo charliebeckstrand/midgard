@@ -76,12 +76,37 @@ describe('the touch gap utilities', () => {
 		expect(readRule(css, 'touch-gap-y-0.3')).toEqual([])
 	})
 
-	it('merges a touch gap with the gap of its axis', () => {
+	it('replaces each gap of its axes with a later touch gap', () => {
 		expect(cn('gap-y-2', 'touch-gap-y-0.5')).toBe('touch-gap-y-0.5')
 
-		expect(cn('touch-gap-x-0.5', 'gap-x-2')).toBe('gap-x-2')
+		expect(cn('gap-2', 'touch-gap-1')).toBe('touch-gap-1')
 
 		expect(cn('touch-gap-x-0.5', 'gap-y-2')).toBe('touch-gap-x-0.5 gap-y-2')
+	})
+
+	it('keeps the cap under a later plain gap of one axis', async () => {
+		expect(cn('touch-gap-y-0.5', 'gap-y-2')).toBe('touch-gap-y-0.5 gap-y-2')
+
+		expect(cn('touch-gap-x-0.5', 'gap-x-2')).toBe('touch-gap-x-0.5 gap-x-2')
+
+		// The plain gap comes later in the CSS, so it sets the gap.
+		const css = await buildCss(['touch-gap-y-0.5', 'gap-y-2', 'touch-gap-x-0.5', 'gap-x-2'])
+
+		const at = (selector: string) => css.indexOf(`${selector} {`)
+
+		expect(at('.touch-gap-y-0\\.5')).toBeGreaterThan(-1)
+
+		expect(at('.gap-y-2')).toBeGreaterThan(at('.touch-gap-y-0\\.5'))
+
+		expect(at('.touch-gap-x-0\\.5')).toBeGreaterThan(-1)
+
+		expect(at('.gap-x-2')).toBeGreaterThan(at('.touch-gap-x-0\\.5'))
+	})
+
+	it('replaces the touch gaps with a later gap shorthand or stepped gap', () => {
+		expect(cn('touch-gap-y-0.5', 'gap-2')).toBe('gap-2')
+
+		expect(cn('touch-gap-x-0.5', 'density-gap-x-[1,2,3,4,5]')).toBe('density-gap-x-[1,2,3,4,5]')
 	})
 })
 
