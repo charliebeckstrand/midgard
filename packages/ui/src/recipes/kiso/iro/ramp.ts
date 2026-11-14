@@ -84,3 +84,11 @@ export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:tex
 export const onWash = {
 	muted: ['text-zinc-600', 'dark:text-zinc-400'] as [light: string, dark: string],
 } as const
+
+/**
+ * The wash behind a search match in text: a JsonTree match and a marked run in a
+ * Grid cell, so a match reads the same in each. It is a wash, not a fill, so
+ * the text keeps its own ink. Forced colors remove it, so a reader also takes
+ * `sen.forced.highlight`.
+ */
+export const match: [light: string, dark: string] = ['bg-amber-100/60', 'dark:bg-amber-500/15']

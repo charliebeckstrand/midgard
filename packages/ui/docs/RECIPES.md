@@ -19,7 +19,7 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | Family | Concern |
 |---|---|
 | `dan` 段 | Density ramps: each stepped `density-*` class that writes a value for each step, nested under the unit that reads it (`space.box.bottom`). |
-| `iro` 色 | The color tokens of the kata. The chromatic `palette`, its `extended` hues, and its `hover` hold one literal class string for each variant and color. The other tokens are the intent-color text bundle, the `marker` shade, and the `on.wash` rung. |
+| `iro` 色 | The color tokens of the kata. The chromatic `palette`, its `extended` hues, and its `hover` hold one literal class string for each variant and color. The other tokens are the intent-color text bundle, the `marker` shade, the `match` wash, and the `on.wash` rung. |
 | `ji` 字 | Typography: size scale plus `weight` / `leading` / `family` aliases. The stepped text size of a density-native component is a ramp in `dan.text`. |
 | `ma` 間 | Named spacing scale projected as padding and gap utilities, in all-sides and axis variants. Each stop but `0` is a ramp of `dan`, so it takes the step of the nearest density scope. |
 | `narabi` 並び | Sibling arrangement: field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, stacked item text, truncation, and flex primitives. `fit` caps a floating panel. |
