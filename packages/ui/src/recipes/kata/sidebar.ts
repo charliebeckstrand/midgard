@@ -9,7 +9,7 @@ import { defineKata } from '../../core/recipe'
 import { dan, kokkaku, narabi, sen } from '../kiso'
 import { box, nav, stack } from '../kumi/nav'
 
-const { flex } = narabi
+const { flex, touch } = narabi
 const { divider } = sen
 
 /**
@@ -46,7 +46,7 @@ const padding = [mini.square, dan.space.sidebar.item.base]
  * the control, so the mini rail (which hides the slot) keeps its square
  * geometry.
  */
-const affix = ['[--touch-target-gap-x:0px]', mini.hidden]
+const affix = [touch.flush.x, mini.hidden]
 
 /**
  * A row of the sidebar: the `<li>` or `<div>` wrapper and the inner button. The

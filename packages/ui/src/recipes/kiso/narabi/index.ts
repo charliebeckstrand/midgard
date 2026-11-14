@@ -16,6 +16,7 @@ import { offcanvas } from './offcanvas'
 import { slide } from './slide'
 import { text } from './text'
 import { toggle } from './toggle'
+import { touch } from './touch'
 
 export const narabi = {
 	field,
@@ -32,4 +33,6 @@ export const narabi = {
 	offcanvas,
 	/** The geometry of a tree that indents each level under a mark column. */
 	nest,
+	/** The touch gaps of a container whose hosts touch. */
+	touch,
 } as const

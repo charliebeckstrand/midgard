@@ -132,42 +132,40 @@ const press = [
 	'in-[[data-slot=control-frame]:has([aria-readonly=true],[data-readonly],[readonly])]:cursor-default',
 ]
 
-/** A control that opens a floating panel. Its affixes are press targets. */
-export const trigger = defineGroup({
-	extends: control,
-	slots: {
-		prefix: press,
-		suffix: press,
-	},
-})
-
 /**
- * A trigger that opens a list of options. The panel rides the `float` rung of
- * the stacking order, which clears every overlay rung, because a list opens
- * from inside a modal panel too.
+ * A control that opens a floating panel. Its affixes are press targets. The
+ * `portal` extra is the positioned wrapper of the panel. It rides the `float`
+ * rung of the stacking order, which clears every overlay rung, because the
+ * panel opens from inside a modal panel too.
  */
-export const list = defineGroup(
+export const trigger = defineGroup(
 	{
-		extends: trigger,
+		extends: control,
 		slots: {
-			/**
-			 * The scroll region of the options. The cap is 320px, about eight rows. The
-			 * old 240px (the classic Tailwind example value, never a reasoned one) forced
-			 * a scrollbar at seven options, and the dashboard picker hit it with screen to
-			 * spare. The cap binds only on a list that exceeds it. A panel that no longer
-			 * fits below its trigger flips above, and a panel that fits on neither side
-			 * shrinks into the larger space (the floating middleware chain). The panel
-			 * sits in the flow of its floating wrapper, which places it, so `relative`
-			 * replaces the `absolute` of the popover panel.
-			 */
-			options: ['relative', 'max-h-80', fit.scroll],
+			prefix: press,
+			suffix: press,
 		},
 	},
-	{
-		/** The positioned wrapper of the panel. */
-		portal: [sou.float, fit.wrapper],
-	},
+	{ portal: [sou.float, fit.wrapper] },
 )
+
+/** A trigger that opens a list of options. */
+export const list = defineGroup({
+	extends: trigger,
+	slots: {
+		/**
+		 * The scroll region of the options. The cap is 320px, about eight rows. The
+		 * old 240px (the classic Tailwind example value, never a reasoned one) forced
+		 * a scrollbar at seven options, and the dashboard picker hit it with screen to
+		 * spare. The cap binds only on a list that exceeds it. A panel that no longer
+		 * fits below its trigger flips above, and a panel that fits on neither side
+		 * shrinks into the larger space (the floating middleware chain). The panel
+		 * sits in the flow of its floating wrapper, which places it, so `relative`
+		 * replaces the `absolute` of the popover panel.
+		 */
+		options: ['relative', 'max-h-80', fit.scroll],
+	},
+})
 
 /**
  * A trigger that opens a picker dialog. `root` sizes the box of the trigger to
@@ -185,7 +183,6 @@ export const picker = defineGroup(
 	{
 		root: ['w-fit', 'max-w-full'],
 		content: {
-			portal: [sou.float, fit.wrapper],
 			motion: ugoki.popover,
 			column: fit.column,
 			text: iro.text.default,

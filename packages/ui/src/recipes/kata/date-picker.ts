@@ -7,7 +7,8 @@
  * group are extras.
  * `relative` adds the layout of the relative popover: the preset `list`, the
  * `custom` range affordance, and the trigger chip row. `skeleton` is the form
- * of DatePickerSkeleton. The group gives `root` and the base of `content`.
+ * of DatePickerSkeleton. The group gives `root`, the base of `portal`, and the
+ * base of `content`.
  */
 import { defineKata } from '../../core/recipe'
 import { dan, iro, kokkaku, narabi, sen } from '../kiso'
@@ -18,7 +19,7 @@ export { scale } from '../kumi/control'
 const { focus } = sen
 const { text } = iro
 const { field, fit, flex } = narabi
-const { content } = picker.extras
+const { content, portal } = picker.extras
 
 // Portal-only inset around the Calendar plus the Calendar-to-footer gap;
 // an inline Calendar carries no chrome of its own, so this lives here,
@@ -35,9 +36,10 @@ const extras = {
 	icon: [flex.row, 'pointer-events-none', text.muted],
 	placeholder: text.muted,
 	skeleton: kokkaku.datePicker,
+	/** The positioned wrapper of the popover. It holds focus, so it shows the ring. */
+	portal: [focus.ring, ...portal],
 	content: {
 		...content,
-		portal: [focus.ring, ...content.portal],
 		body,
 		sheet: {
 			// The drawer of the bottom sheet on a phone. It holds focus for the

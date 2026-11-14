@@ -249,7 +249,7 @@ export function DatePickerContent({
 			role="dialog"
 			aria-modal="true"
 			aria-label={label}
-			className={cn(k.content.portal)}
+			className={cn(k.portal)}
 			tabIndex={-1}
 			onKeyDown={handleDialogKeyDown}
 		>
