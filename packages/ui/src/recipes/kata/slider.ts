@@ -20,7 +20,7 @@ export const k = defineKata(
 			'bg-transparent',
 			...cursor,
 			'outline-none',
-			...disabled,
+			...disabled.base,
 			// The rings of the thumb, and the native range and the focus outline that
 			// replace them under forced colors.
 			...ring.thumb,

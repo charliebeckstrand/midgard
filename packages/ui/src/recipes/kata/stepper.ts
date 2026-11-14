@@ -45,7 +45,7 @@ export const k = defineKata(
 					flex.row,
 					'group relative first:pt-0',
 					'outline-none',
-					...disabled,
+					...disabled.base,
 					...cursor,
 					...border.color.subtle,
 					dan.gap.stepper,
