@@ -309,31 +309,42 @@ export function useDeletePlace() {
 
 /**
  * Removes one visit of a place, and writes the stored record into the cached
- * list. A failure shows in a toast, because the confirm that asked for the
- * removal is closed.
+ * list. A place keeps at least one visit, so the delete of its last visit
+ * deletes the place and drops it from the cached list. A failure shows in a
+ * toast, because the confirm that asked for the removal is closed.
  *
  * The write sends all the visits of the place. Thus the deletes run one at a
- * time, and each one removes its visit from the cached place, which holds the
- * answer of the delete before it. A delete that started from the `place` of
- * an older render would put back a visit that an earlier delete removed.
+ * time, and each one reads the place from the cache, which holds the answer of
+ * the delete before it. A delete that started from the `place` of an older
+ * render would put back a visit that an earlier delete removed, and would not
+ * see that its visit is now the last one.
  */
 export function useDeleteVisit() {
 	const client = useQueryClient()
 
 	return useMutation({
 		scope: { id: 'delete-visit' },
-		mutationFn: ({ place, visit }: { place: Place; visit: Visit }) => {
+		mutationFn: async ({ place, visit }: { place: Place; visit: Visit }) => {
 			const held =
 				client.getQueryData<Place[]>(placesKeys.all)?.find((entry) => entry.id === place.id) ??
 				place
 
-			return savePlace(
-				held.id,
-				placeDraft({ ...held, visits: held.visits.filter((kept) => kept.id !== visit.id) }),
-			)
+			const visits = held.visits.filter((kept) => kept.id !== visit.id)
+
+			if (visits.length === 0) {
+				await deletePlace(held.id)
+
+				return null
+			}
+
+			return savePlace(held.id, placeDraft({ ...held, visits }))
 		},
-		onSuccess: (place) => {
-			client.setQueryData<Place[]>(placesKeys.all, (places) => mergeById(places, [place]))
+		onSuccess: (stored, { place }) => {
+			client.setQueryData<Place[]>(placesKeys.all, (places) =>
+				stored === null
+					? (places ?? []).filter((entry) => entry.id !== place.id)
+					: mergeById(places, [stored]),
+			)
 		},
 	})
 }

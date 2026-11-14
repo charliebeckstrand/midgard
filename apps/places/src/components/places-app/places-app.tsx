@@ -823,7 +823,9 @@ export function PlacesApp({
 
 			const { place, visit } = deletion
 
-			if (visit === null || deletesPlace(deletion)) {
+			// The delete of the last visit deletes the place. `useDeleteVisit`
+			// decides that on the cached place, which an earlier delete can change.
+			if (visit === null) {
 				deletePlace.mutate(place.id)
 
 				return
