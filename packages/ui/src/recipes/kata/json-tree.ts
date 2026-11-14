@@ -89,7 +89,7 @@ export const k = defineKata(
 				},
 			},
 			chevron: {
-				base: [nest.mark, flex.inline, 'justify-center', css.transform, css.duration],
+				base: [nest.mark, flex.inline, 'justify-center', css.transform, css.collapse],
 				slots: {
 					/** The box in place of the chevron on a row that does not open, so the rows align. */
 					spacer: ['inline-block', nest.mark],

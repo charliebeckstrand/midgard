@@ -63,7 +63,7 @@ export const k = defineKata(
 			indicator: [
 				'shrink-0',
 				css.transform,
-				css.duration,
+				css.collapse,
 				'group-aria-expanded/accordion-trigger:rotate-180',
 			],
 			// The panel adds nothing to the intrinsic width of the accordion. A host that

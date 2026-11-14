@@ -16,7 +16,7 @@ const { rounded } = kasane
 const { flex, touch } = narabi
 const { backdrop, popover } = omote
 const { focus, forced, gridline, ring } = sen
-const { instant, spring } = ugoki
+const { css, instant, spring } = ugoki
 
 /**
  * The trailing padding (`pe-*`, the inline end) of each resizable header (a
@@ -145,8 +145,8 @@ const fitCell = 'w-px text-center align-middle leading-0'
  * A reveal wrapper: a one-row CSS grid whose `track` tweens `1fr` (open) and
  * `0fr` (closed) on `data-open`. The content grows and shrinks to its height
  * with no JS measurement, which is reliable in a `<table>`, where a JS height
- * tween on a `<td>` is not. The track honors `prefers-reduced-motion`. The
- * `clip` sits between the track and the content: `min-h-0` lets the track
+ * tween on a `<td>` is not. The track moves on the tempo of `ugoki.collapse`
+ * (`css.collapse`), and only while motion is on. The `clip` sits between the track and the content: `min-h-0` lets the track
  * shrink past the content, and `overflow-hidden` hides what the collapse clips.
  */
 const reveal = {
@@ -154,10 +154,8 @@ const reveal = {
 		'grid',
 		'grid-rows-[0fr]',
 		'data-open:grid-rows-[1fr]',
-		'transition-[grid-template-rows]',
-		'duration-200',
-		'ease-in-out',
-		'motion-reduce:transition-none',
+		'motion-safe:transition-[grid-template-rows]',
+		css.collapse,
 	],
 	clip: ['overflow-hidden', 'min-h-0'],
 }
@@ -608,7 +606,7 @@ export const k = {
 	},
 	detail: {
 		// The master-detail chevron in an expander cell: rotates a quarter-turn as
-		// the panel opens (`data-open`), honoring `prefers-reduced-motion`. The
+		// the panel opens (`data-open`), in the tempo of the reveal. The
 		// class rides the chevron `<svg>` directly (the expander passes `data-open`
 		// and this recipe onto the lucide element), which rotates about its own
 		// center without a wrapper. A right-to-left grid mirrors the chevron, so it
@@ -616,9 +614,8 @@ export const k = {
 		// down once open. CSS applies the rotate after the scale.
 		chevron: [
 			'shrink-0',
-			'transition-transform',
-			'duration-200',
-			'motion-reduce:transition-none',
+			css.transform,
+			css.collapse,
 			'data-open:rotate-90',
 			'rtl:-scale-x-100',
 			'rtl:data-open:-rotate-90',
