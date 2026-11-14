@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from 'ui/button'
+import { announce } from 'ui/core'
 import { Heading } from 'ui/heading'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
@@ -25,6 +26,10 @@ import { useServerError } from './use-server-error'
  * The app moves the token from the `?token=` of the link into memory before
  * the page hydrates (`takeLinkSecrets` of `shared/link-secrets`). The page
  * reads it on the click, so Next prerenders all of the page.
+ *
+ * The focus stays on the button while the request is open and after a
+ * failure. After a success, the notice and its link replace the button, so
+ * the focus moves to the link and the notice is announced (WCAG 2.4.3, 4.1.3).
  */
 export function VerifyEmailPage() {
 	const intl = useIntl()
@@ -32,6 +37,12 @@ export function VerifyEmailPage() {
 	const [state, setState] = useState<'idle' | 'pending' | 'verified'>('idle')
 
 	const [errorAlert, setServerError] = useServerError()
+
+	const continueLink = useRef<HTMLAnchorElement>(null)
+
+	useEffect(() => {
+		if (state === 'verified') continueLink.current?.focus()
+	}, [state])
 
 	async function verify() {
 		setState('pending')
@@ -45,6 +56,8 @@ export function VerifyEmailPage() {
 
 			if (response.ok) {
 				setState('verified')
+
+				announce(intl.formatMessage(authMessages.verified))
 
 				return
 			}
@@ -67,7 +80,7 @@ export function VerifyEmailPage() {
 						<Text tone="success">{intl.formatMessage(authMessages.verified)}</Text>
 
 						<Text>
-							<Link href="/" underline>
+							<Link ref={continueLink} href="/" underline>
 								{intl.formatMessage(authMessages.continue)}
 							</Link>
 						</Text>
@@ -76,7 +89,8 @@ export function VerifyEmailPage() {
 					<>
 						{errorAlert}
 
-						<Button className="w-full" disabled={state === 'pending'} onClick={verify}>
+						{/* A loading button stays enabled, so it keeps the focus. */}
+						<Button className="w-full" loading={state === 'pending'} onClick={verify}>
 							{intl.formatMessage(authMessages.verifyEmail)}
 						</Button>
 					</>
