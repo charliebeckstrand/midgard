@@ -25,13 +25,21 @@ const TEMPLATES = [
 	{ orientation: 'vertical', ratio: '3/4', class: 'grid-rows-[3fr_1fr] grid-cols-none' },
 ]
 
+/** The share of the first pane. The compound rules give the template. */
+const RATIOS = { '1/4': '', '1/3': '', '1/2': '', '2/3': '', '3/4': '' }
+
+/**
+ * The size ratio of the first pane to the second: the share of the first pane
+ * in the two `fr` tracks.
+ */
+export type SplitRatio = keyof typeof RATIOS
+
 export const k = defineKata({
 	base: 'grid',
 	responsive: {
 		/** Whether the panes lay out as columns or rows. The compound rules give the template. */
 		orientation: { horizontal: '', vertical: '' },
-		/** The share of the first pane. The compound rules give the template. */
-		ratio: { '1/4': '', '1/3': '', '1/2': '', '2/3': '', '3/4': '' },
+		ratio: RATIOS,
 		gap: ma.gap,
 		align: narabi.flex.align,
 	},
