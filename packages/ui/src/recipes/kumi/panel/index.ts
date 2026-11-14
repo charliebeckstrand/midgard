@@ -21,7 +21,7 @@
  */
 
 import { defineGroup } from '../../../core/recipe'
-import { dan, iro, ji, narabi, omote } from '../../kiso'
+import { dan, iro, ji, narabi, omote, sen } from '../../kiso'
 
 export { grip } from './grip'
 
@@ -34,7 +34,7 @@ const { scale } = dan.gap
 export const stack = [flex.col, scale.lg]
 
 export const panel = defineGroup({
-	base: [...omote.panel.chrome, stack],
+	base: [...sen.ring.default, stack],
 	/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. */
 	surface: omote.panel.axis,
 	slots: {

@@ -16,6 +16,7 @@ import { k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as kanban } from '../../recipes/kata/kanban'
 import { k as loading } from '../../recipes/kata/loading'
 import { k as menu } from '../../recipes/kata/menu'
+import { k as panel } from '../../recipes/kata/panel'
 import { k as passwordStrength } from '../../recipes/kata/password-strength'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as placeholder } from '../../recipes/kata/placeholder'
@@ -40,8 +41,8 @@ describe('edges and state marks under forced colors', () => {
 	const region = (active: boolean) => pdfViewer({ active }).viewport.page.highlights.region
 
 	const parts: [string, unknown][] = [
-		['the panel surface', omote.panel.base],
-		['the panel chrome', omote.panel.chrome],
+		['the panel', panel().base],
+		['the export label of a grid', grid.exporting.label],
 		['the horizontal grip bar', grip.bar.horizontal],
 		['the vertical grip bar', grip.bar.vertical],
 		['the flat popover surface', omote.popover],

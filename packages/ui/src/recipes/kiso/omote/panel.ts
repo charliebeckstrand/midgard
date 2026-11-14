@@ -1,7 +1,6 @@
 /**
- * Omote panel: the surface of a panel. Two shapes: chrome only (ring +
- * forced-color outline), and fill + chrome combined. And `axis`, the `surface`
- * axis of a modal panel.
+ * Omote panel: `axis`, the `surface` axis of a modal panel. The chrome of a
+ * panel is `sen.ring.default`, and its opaque fill is `omote.bg.surface`.
  *
  * The `flat` half of the axis also holds the glass surface behind the
  * `surfaces-glass` variant. A server can paint an open modal panel before
@@ -15,7 +14,6 @@
 
 import { mode } from '../../../core/recipe'
 
-import { ring } from '../sen/ring'
 import { bg } from './bg'
 import { panelGlass } from './glass'
 
@@ -30,10 +28,6 @@ const glassBehind = [
 ]
 
 export const panel = {
-	/** Chrome only: ring + forced-color outline, no fill. */
-	chrome: ring.default,
-	/** Fill + chrome, everything a floating panel needs. */
-	base: [...ring.default, ...bg.surface],
 	/** The `surface` axis of a modal panel: `flat` is opaque, and `glass` is translucent and blurred. */
 	axis: { glass: panelGlass, flat: [...bg.surface, ...glassBehind] },
 } as const
