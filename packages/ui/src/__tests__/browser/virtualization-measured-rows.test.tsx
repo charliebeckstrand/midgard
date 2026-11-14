@@ -129,8 +129,16 @@ describe('JsonTree measures each row', () => {
 					.join()}`,
 		)
 
+		// A wrapped leaf can be taller than half the view, so no row is in view as
+		// a whole at some offsets. The case follows the first row whose top is in view.
+		const box = tree.getBoundingClientRect()
+
 		const row = present(
-			rows().find((candidate) => inView(candidate, tree)),
+			rows().find((candidate) => {
+				const { top } = candidate.getBoundingClientRect()
+
+				return top >= box.top && top < box.bottom
+			}),
 			'a row in view',
 		)
 
