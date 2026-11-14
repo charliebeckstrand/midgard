@@ -209,6 +209,9 @@ const handle = {
  *
  * The reader sees the bar only by its background, which forced colors remove.
  * The bar then paints in `CanvasText`, as the shape of a resize grip does.
+ *
+ * Auto margins center the bar of an edge in its strip. Thus the offset of the
+ * bar follows its size, and no class states half of the size.
  */
 const resize = {
 	base: [
@@ -223,11 +226,11 @@ const resize = {
 	edge: {
 		e: [
 			'inset-y-0 end-0 w-2 cursor-ew-resize',
-			'after:inset-y-[calc(50%-1rem)] after:start-[calc(50%-1.5px)] after:w-[3px]',
+			'after:inset-0 after:m-auto after:h-8 after:w-[3px]',
 		],
 		s: [
 			'inset-x-0 bottom-0 h-2 cursor-ns-resize',
-			'after:inset-x-[calc(50%-1rem)] after:top-[calc(50%-1.5px)] after:h-[3px]',
+			'after:inset-0 after:m-auto after:w-8 after:h-[3px]',
 		],
 		se: [
 			// The corner sits at the end edge, so a right-to-left tile slants the cursor the other way.
