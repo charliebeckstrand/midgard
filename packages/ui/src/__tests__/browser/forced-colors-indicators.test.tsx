@@ -881,11 +881,11 @@ describe('color parts under forced colors (real browser)', () => {
 	})
 })
 
-/** Whether an element in `container` paints the system color `keyword` as its background. */
-function paints(container: Element, keyword: string): boolean {
-	const color = systemColor(keyword)
+/** Whether an element in `container` paints the background `color`, a system color. */
+function paints(container: Element, color: string): boolean {
+	const fill = systemColor(color)
 	return [...container.querySelectorAll('*')].some(
-		(el) => getComputedStyle(el).backgroundColor === color,
+		(el) => getComputedStyle(el).backgroundColor === fill,
 	)
 }
 
@@ -893,16 +893,17 @@ function paints(container: Element, keyword: string): boolean {
 const paintsMark = (container: Element) => paints(container, 'Highlight')
 
 /**
- * The filled segments of a password-strength meter and the dots of LoadingDots
- * show only with a background. Forced colors remove it, so a segment paints the
- * `Highlight` of a `mark`, and a dot paints the `CanvasText` of a shape. A
- * search match of a JsonTree paints the system `Mark` pair, which keeps the
+ * A search match of a JsonTree, the filled segments of a password-strength
+ * meter, and the dots of LoadingDots show their state only with a background.
+ * Forced colors remove it, so a filled segment paints the `Highlight` of a
+ * `mark`, and a dot paints the `CanvasText` of a shape. A match is a wash
+ * behind text, so it paints the `Mark` of a `highlight`, which keeps the
  * contrast of the text on it.
  */
 describe('state marks under forced colors (real browser)', () => {
 	emulateForcedColors()
 
-	it('JsonTree: a search match paints Mark, and no match paints none', () => {
+	it('JsonTree: a search match paints the highlight, and no match paints none', () => {
 		const data = { alpha: 1, beta: 2 }
 		const match = renderUI(<JsonTree data={data} search="alpha" />)
 		expect(paints(match.container, 'Mark')).toBe(true)

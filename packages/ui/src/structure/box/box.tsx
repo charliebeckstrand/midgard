@@ -14,9 +14,15 @@ type BoxBaseProps = {
 	px?: ResponsiveBoxPadding
 	/** Vertical padding. Overrides p. Supports responsive breakpoints. */
 	py?: ResponsiveBoxPadding
-	/** Border radius token. @defaultValue 'none' */
+	/**
+	 * The border radius token.
+	 * @defaultValue No radius: the box keeps the radius of its class name.
+	 */
 	radius?: BoxRadius
-	/** Background surface token. @defaultValue 'none' */
+	/**
+	 * The background surface token.
+	 * @defaultValue No background: the box keeps the background of its class name.
+	 */
 	bg?: BoxBg
 	/**
 	 * Outline. `true` uses the default weight. Pass `'subtle'` or `'strong'` to

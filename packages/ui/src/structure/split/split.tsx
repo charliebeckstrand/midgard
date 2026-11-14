@@ -11,36 +11,39 @@ import type {
 /** Props for {@link Split}: layout knobs (`orientation`, `ratio`, `gap`, `align`) plus `<div>` attributes. */
 export type SplitProps = {
 	/**
-	 * Split orientation: two columns (`horizontal`) or two rows (`vertical`).
-	 * Supports responsive breakpoints, so a two-column split can stack on a
-	 * phone.
+	 * The orientation of the split: two columns (`horizontal`) or two rows
+	 * (`vertical`). Supports responsive breakpoints, so a two-column split can
+	 * stack on a phone.
 	 * @defaultValue 'horizontal'
 	 */
 	orientation?: ResponsiveSplitOrientation
 	/**
-	 * Size of the first pane relative to the second; `'1/2'` is an equal split.
-	 * Supports responsive breakpoints.
+	 * The size of the first pane relative to the second; `'1/2'` is an equal
+	 * split. Supports responsive breakpoints.
 	 * @defaultValue '1/2'
 	 */
 	ratio?: ResponsiveSplitRatio
 	/**
-	 * Gap between the two panes. Supports responsive breakpoints.
+	 * The gap between the two panes. Supports responsive breakpoints.
 	 * @defaultValue 'lg'
 	 */
 	gap?: ResponsiveSplitGap
 	/**
-	 * Cross-axis alignment. Supports responsive breakpoints.
-	 * @defaultValue No alignment: each pane stretches across the cross axis.
+	 * The block alignment of each pane in its grid track. Supports responsive
+	 * breakpoints.
+	 * @defaultValue No alignment: each pane stretches to fill its track.
 	 */
 	align?: ResponsiveSplitAlign
 } & ComponentProps<'div'>
 
 /**
- * Two-pane CSS-grid layout. `orientation` chooses columns or rows, and `ratio`
- * sizes the first pane against the second via `fr` tracks. `gap` and `align`
- * tune spacing and cross-axis placement.
- * Expects exactly two children. A static leaf with no client hooks, so it
- * renders in React Server Components.
+ * A grid of two panes. `orientation` chooses columns or rows, and `ratio`
+ * sizes the first pane against the second with `fr` tracks. `gap` sets the
+ * space between the panes, and `align` sets the block alignment of each pane.
+ * It expects exactly two children.
+ *
+ * @remarks
+ * Static leaf with no client boundary: renders in React Server Components.
  */
 export function Split({
 	orientation,
