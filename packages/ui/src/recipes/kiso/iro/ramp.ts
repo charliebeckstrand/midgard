@@ -32,12 +32,17 @@ export const onSurface = Object.fromEntries(
  * floor (WCAG 1.4.11), which lands a rung lighter than the text shade for the
  * low-contrast hues. The zinc marker takes the stronger light rung (600), so a
  * neutral spinner or star reads as firmly as a chromatic one.
+ *
+ * Each hue is the shade of its series slot (`zu/palette.ts`), so a dot, a
+ * slider fill, a meter, and a chart mark in one hue show one shade in each
+ * mode. Zu reads iro, so iro cannot read the slot, and
+ * `graphic-shade.test.ts` holds each copy to it.
  */
 export const marker: Record<Color, [light: string, dark: string]> = {
 	zinc: ['text-zinc-600', 'dark:text-zinc-400'],
 	red: ['text-red-600', 'dark:text-red-500'],
-	amber: ['text-amber-600', 'dark:text-amber-500'],
-	green: ['text-green-600', 'dark:text-green-500'],
+	amber: ['text-amber-600', 'dark:text-amber-600'],
+	green: ['text-green-600', 'dark:text-green-600'],
 	blue: ['text-blue-600', 'dark:text-blue-500'],
 }
 
