@@ -22,7 +22,7 @@ const { text } = iro
 const { size, weight, leading } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { border } = sen
+const { border, focus } = sen
 
 export const k = defineKata(
 	{
@@ -135,7 +135,7 @@ export const k = defineKata(
 					// The hover and the focus of a step button. A display-only step is an
 					// `li`, which is never enabled or focused, so these do not match there.
 					'group-enabled:group-hover:bg-zinc-500',
-					'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
+					...focus.parent,
 					// The state of the step (`data-state`). Each state class has one more
 					// variant than the class that it overrides, so it wins by specificity.
 					...mode(
