@@ -16,7 +16,7 @@
  */
 
 import { defineGroup } from '../../../core/recipe'
-import { dan, hannou, iro, ji, narabi, omote, sou, ugoki } from '../../kiso'
+import { dan, hannou, iro, narabi, omote, sou, ugoki } from '../../kiso'
 import { affix } from './affix'
 import { density, inset } from './density'
 import { chrome, frame } from './frame'
@@ -68,10 +68,10 @@ export const input = defineGroup({
 	extends: control,
 	/**
 	 * The frame: its layout when a prefix or a suffix is present. The frame
-	 * has the step of the control, so `ji.ramp` gives it the text size of
+	 * has the step of the control, so `dan.text.body` gives it the text size of
 	 * the input. Text in an affix, such as the brand of a CreditCardInput,
 	 * inherits that size. The slot is a scope one step below the control, so
-	 * `ji.ramp` on the slot gives a smaller size. At `md` the text is
+	 * `dan.text.body` on the slot gives a smaller size. At `md` the text is
 	 * `text-base`.
 	 *
 	 * The frame keeps the input and its affixes on one row, so a narrow host
@@ -94,7 +94,7 @@ export const input = defineGroup({
 			'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:row-start-1',
 			'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:self-start',
 			'has-[[data-slot=tags][data-wrap]]:[&>input]:col-span-2',
-			ji.ramp,
+			dan.text.body,
 		],
 		false: [],
 	},

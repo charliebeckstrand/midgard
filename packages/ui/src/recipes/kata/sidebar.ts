@@ -6,7 +6,7 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'
-import { dan, ji, kokkaku, narabi, sen } from '../kiso'
+import { dan, kokkaku, narabi, sen } from '../kiso'
 import { box, nav, stack } from '../kumi/nav'
 
 const { flex } = narabi
@@ -117,7 +117,7 @@ export const k = defineKata(
 
 /** The size scale of {@link SidebarItem}: the steps of its text, gap, padding, and radius. */
 export const scale = defineScale(
-	ji.ramp,
+	dan.text.body,
 	dan.gap.item,
 	dan.space.sidebar.item.base,
 	dan.radius.control,

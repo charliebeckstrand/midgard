@@ -132,7 +132,7 @@ export const k = defineKata(
 				},
 			},
 			description: {
-				base: [ji.ramp],
+				base: [dan.text.body],
 				orientation: {
 					vertical: 'col-start-2 row-start-2',
 					horizontal: 'order-2',

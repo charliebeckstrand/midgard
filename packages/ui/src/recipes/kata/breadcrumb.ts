@@ -28,7 +28,7 @@ export const k = defineKata(
 				'flex-wrap',
 				dan.gap.scale.sm,
 				'wrap-break-word',
-				ji.ramp,
+				dan.text.body,
 				'in-data-collapse:relative',
 				'in-data-collapse:min-w-0 in-data-collapse:flex-row-reverse in-data-collapse:content-start in-data-collapse:items-start in-data-collapse:justify-end',
 				'in-data-collapse:h-[calc(1lh+2*var(--ui-breadcrumb-ring))]',

@@ -17,7 +17,7 @@
  */
 
 import { defineGroup } from '../../../core/recipe'
-import { dan, hannou, iro, ji, narabi, sen, shaku } from '../../kiso'
+import { dan, hannou, iro, narabi, sen, shaku } from '../../kiso'
 
 const { cursor, tint } = hannou
 const { text } = iro
@@ -29,7 +29,7 @@ const { focus } = sen
  * radius. These take the step of the nearest density scope. A skeleton row adds
  * the padding of its unit, so its box matches the box of a real row.
  */
-export const box = [flex.row, 'w-full', dan.gap.item, ji.ramp, dan.radius.control]
+export const box = [flex.row, 'w-full', dan.gap.item, dan.text.body, dan.radius.control]
 
 /**
  * A vertical stack of items. Its gap also caps the hit areas of the items

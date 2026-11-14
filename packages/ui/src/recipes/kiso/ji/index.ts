@@ -1,13 +1,13 @@
 /**
  * Ji (字): typography. Four named axes (`size`, `weight`, `leading`,
- * `family`), each addressable as `ji.<axis>.<key>`, and `ramp`, the stepped
- * text size of a density-native component. One file per concern; this barrel
+ * `family`), each addressable as `ji.<axis>.<key>`. The stepped text size of a
+ * density-native component is a ramp, in `dan.text`. One file per concern; this barrel
  * assembles the named bundle that every kata reads.
  */
 
 import { family } from './family'
 import { leading } from './leading'
-import { ramp, size } from './size'
+import { size } from './size'
 import { weight } from './weight'
 
 export const ji = {
@@ -15,5 +15,4 @@ export const ji = {
 	weight,
 	leading,
 	family,
-	ramp,
 } as const

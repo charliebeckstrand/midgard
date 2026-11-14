@@ -25,7 +25,7 @@ export const k = defineKata(
 			weight.medium,
 			dan.space.tooltip,
 			dan.radius.tooltip,
-			ji.ramp,
+			dan.text.body,
 		],
 		surface: {
 			flat: popover,

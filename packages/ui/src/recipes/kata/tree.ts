@@ -8,7 +8,7 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata, mode } from '../../core/recipe'
-import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
+import { dan, hannou, iro, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { rest } from '../kumi/check'
 
 const { cursor, fg } = hannou
@@ -86,7 +86,7 @@ export const k = defineKata(
 							...cursor,
 							'select-none',
 							...fg.open,
-							ji.ramp,
+							dan.text.body,
 						],
 						// Forced colors map the text of each row to `CanvasText`, so the current
 						// row also takes an underline there.

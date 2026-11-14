@@ -1,5 +1,5 @@
 import { defineKata, mode } from '../../core/recipe'
-import { dan, iro, ji, narabi } from '../kiso'
+import { dan, iro, narabi } from '../kiso'
 import { item } from '../kumi/item'
 
 const { flex } = narabi
@@ -16,7 +16,7 @@ export const k = defineKata({
 		dan.gap.option,
 		dan.space.option.x,
 		dan.space.option.y,
-		ji.ramp,
+		dan.text.body,
 		...mode(
 			'group-data-editing/combobox:only-of-type:bg-zinc-950/5',
 			'dark:group-data-editing/combobox:only-of-type:bg-white/5',

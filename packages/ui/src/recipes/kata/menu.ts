@@ -40,7 +40,7 @@ const row = defineKata({
 		dan.gap.option,
 		dan.space.menu.item.x,
 		dan.space.option.y,
-		ji.ramp,
+		dan.text.body,
 	],
 })
 
@@ -88,7 +88,7 @@ export const k = defineKata(
 			header: {
 				base: 'shrink-0 px-3 pb-1 pt-2',
 				slots: {
-					title: [ji.ramp, weight.semibold, text.default],
+					title: [dan.text.body, weight.semibold, text.default],
 					description: [size.xs, text.muted],
 				},
 			},

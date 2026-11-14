@@ -1,6 +1,6 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineColors, defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, hannou, iro, ji, kasane, kokkaku, sen } from '../kiso'
+import { dan, hannou, iro, kasane, kokkaku, sen } from '../kiso'
 import { hidden, validation } from '../kumi/check'
 
 const { cursor, disabled } = hannou
@@ -157,7 +157,7 @@ export const k = defineKata(
 						'select-none',
 						...text.muted,
 						...mode('data-checked:text-zinc-950', 'dark:data-checked:text-white'),
-						ji.ramp,
+						dan.text.body,
 						...cursor,
 					],
 				},
