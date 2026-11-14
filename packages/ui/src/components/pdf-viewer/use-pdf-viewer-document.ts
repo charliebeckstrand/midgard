@@ -44,8 +44,10 @@ function loadPdfjs() {
  * @remarks Held here, and handed to `getDocument` as `worker`. pdf.js destroys a worker only
  * when the load created it. On a port, `loadingTask.destroy()` marks the worker of the port
  * pending-destroy until its round trip to the worker completes. A `getDocument` on that port
- * in this window throws. After the round trip, the destroy tears down the worker that the
- * other loads of the port use. pdf.js never destroys a worker that the caller gives.
+ * in this window throws. Two loads reach this window when one document is released while
+ * another still opens, which two viewers on different scans do. After the round trip, the
+ * destroy tears down the worker that the other loads of the port use. pdf.js never destroys
+ * a worker that the caller gives.
  * @internal
  */
 let sharedWorker: import('pdfjs-dist').PDFWorker | null = null
