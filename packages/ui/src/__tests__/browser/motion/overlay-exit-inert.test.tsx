@@ -6,6 +6,7 @@ import { CommandPalette, CommandPaletteItem } from '../../../components/command-
 import { Confirm } from '../../../components/confirm'
 import { Overlay } from '../../../primitives/overlay'
 import { present, renderUI, screen, waitFor } from '../../helpers'
+import { waitForOverlayRest } from '../helpers/motion-frame'
 
 /**
  * A closed overlay stays on screen for its 150 ms exit, and `AnimatePresence`
@@ -56,7 +57,12 @@ function PaletteApp({ onRun }: { onRun: () => void }) {
 async function openConfirm() {
 	await userEvent.click(screen.getByRole('button', { name: 'Delete' }))
 
-	return waitFor(() => screen.getByRole('button', { name: 'Delete it' }))
+	const confirm = await waitFor(() => screen.getByRole('button', { name: 'Delete it' }))
+
+	// The dialog slides in. A click on a moving button can release off the button.
+	await waitForOverlayRest(confirm)
+
+	return confirm
 }
 
 describe('Overlay exit guard (real Motion)', () => {
@@ -145,7 +151,11 @@ describe('Overlay exit guard (real Motion)', () => {
 
 		renderUI(<PaletteApp onRun={onRun} />)
 
-		await userEvent.dblClick(await waitFor(() => screen.getByRole('option', { name: 'Run' })))
+		const run = await waitFor(() => screen.getByRole('option', { name: 'Run' }))
+
+		await waitForOverlayRest(run)
+
+		await userEvent.dblClick(run)
 
 		await gone()
 

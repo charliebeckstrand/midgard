@@ -6,6 +6,7 @@ import { useConfirm } from '../../../components/confirm'
 import { Sheet, SheetPanel } from '../../../components/sheet'
 import { UIProvider } from '../../../providers/ui'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { waitForOverlayRest } from '../helpers/motion-frame'
 
 /**
  * The dialog of `useConfirm` keeps the words of a question while it closes, so
@@ -46,9 +47,17 @@ describe('useConfirm exit', () => {
 			</UIProvider>,
 		)
 
-		await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+		const save = screen.getByRole('button', { name: 'Save' })
+
+		// The Sheet slides in, and the dialog after it. A click on a moving button
+		// can release off the button (see `waitForOverlayRest`).
+		await waitForOverlayRest(save)
+
+		await userEvent.click(save)
 
 		const dialog = await screen.findByRole('alertdialog')
+
+		await waitForOverlayRest(dialog)
 
 		// Each state of the dialog from the close to its removal. A timed read
 		// can land after the exit ends on a slow runner, so the test records
