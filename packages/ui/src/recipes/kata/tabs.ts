@@ -20,8 +20,8 @@ const { border, focus, forced } = sen
 
 /**
  * The segment box: the rounded box with a sliding indicator, behind `<Segment>`
- * and `<Tabs variant="segment">`. The gap, the padding, and the text take the
- * step of the nearest density scope.
+ * and `<Tabs variant="segment">`. The padding and the text take the step of the
+ * nearest density scope.
  */
 const segment = {
 	/**
@@ -32,8 +32,12 @@ const segment = {
 	 * wrap their labels. An item does not shrink below its longest word, so a
 	 * box of one-word labels can be wider than the viewport. Then the box
 	 * scrolls in the viewport, and the page does not widen.
+	 *
+	 * The items have no gap between them. The inline padding of each item keeps
+	 * two labels apart, and the indicator marks the selected item. A gap only
+	 * makes the box wider, so a phone width scrolls the box sooner.
 	 */
-	control: [flex.row, 'w-fit', ...bg.tint, rounded.lg, `p-1 ${dan.gap.default}`, ji.ramp],
+	control: [flex.row, 'w-fit', ...bg.tint, rounded.lg, 'p-1', ji.ramp],
 	/** One item of the box: the layout, the focus ring, and the disabled and cursor states. */
 	item: [
 		flex.row,
