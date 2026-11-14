@@ -10,7 +10,10 @@
  * At `sm` and at `lg`, a stop is 4 px less and 4 px more. The `xs` stop goes
  * half of its plain value less and more, because 4 px less is 0. `spacingSteps`
  * gives the outer steps (`core/density/geometry.ts`), and
- * `density-geometry.test.ts` holds each stop to the rule.
+ * `density-geometry.test.ts` holds each stop to the rule. The `xs` and `sm`
+ * stops are not equal ramps: an equal outer step gives 0 at `xs`, so their
+ * outer steps continue the ratio. The `xs` stop is 1, 2, 4, 6, and 10 px, and
+ * the `sm` stop is 2, 4, 8, 12, and 18 px.
  */
 const scale = {
 	xs: 'density-gap-[0.25,0.5,1,1.5,2.5]',
