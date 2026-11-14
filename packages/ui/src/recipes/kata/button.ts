@@ -7,7 +7,7 @@ const { extended, hover, palette } = iro
 const { weight } = ji
 const { button } = kokkaku
 const { flex } = narabi
-const { focus, ring } = sen
+const { focus, forced, ring } = sen
 
 /** The `inherit` entry of a variant that does not fill the button: the text around it, with a wash of that text on hover. */
 const inherit = 'text-inherit not-disabled:not-data-disabled:hover:bg-current/15'
@@ -46,9 +46,11 @@ export const k = defineKata(
 			// own recipe selects a parent with `data-variant`, which Button always
 			// writes. See `kata/loading.ts` and `kata/kbd.ts`.
 		],
+		// A solid or a soft button has only its fill as an edge. Forced colors
+		// remove the fill, so the button takes the outline of a surface.
 		variant: {
-			solid: focus.ring,
-			soft: focus.inset,
+			solid: [focus.ring, forced.outline],
+			soft: [focus.inset, forced.outline],
 			outline: [...ring.line[1].inset, focus.inset],
 			plain: focus.inset,
 			// Icon-only floor: a square pad per step keeps an icon-only bare button

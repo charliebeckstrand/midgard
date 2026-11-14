@@ -1061,6 +1061,9 @@ export const k = {
 				size.xs,
 				'text-white shadow',
 				...mode('bg-red-600', 'dark:bg-red-500'),
+				// The fill and the shadow are the only edge of the message over the next
+				// row, and forced colors remove both.
+				forced.outline,
 			],
 			ring: [...ring.line[2].inset, ...mode('ring-red-600', 'dark:ring-red-500'), rounded.md],
 		},
