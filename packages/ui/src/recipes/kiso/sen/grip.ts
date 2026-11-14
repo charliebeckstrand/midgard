@@ -22,7 +22,7 @@ export const grip = [
 		'dark:after:bg-zinc-600 dark:hover:after:bg-zinc-500',
 	),
 	// The dark rest color sorts after `focus-visible:`, so the focus color repeats in dark.
-	'focus-visible:after:bg-blue-600 dark:focus-visible:after:bg-blue-600',
+	...mode('focus-visible:after:bg-blue-600', 'dark:focus-visible:after:bg-blue-600'),
 	'forced-colors:after:bg-[CanvasText]',
 	// Each state color above outranks the shape, so the shape repeats in each state.
 	'forced-colors:hover:after:bg-[CanvasText] forced-colors:focus-visible:after:bg-[CanvasText]',

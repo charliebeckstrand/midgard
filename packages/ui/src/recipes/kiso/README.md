@@ -73,14 +73,11 @@ Class-fragment arrays in kiso follow a consistent shape so cross-file reads stay
 
 Cross-cutting fragments spread from sibling kiso (`...iro.text.default`, `...hannou.cursor`) slot into the group that matches their concern.
 
-**One string per property.** Combine same-property utilities into a single quoted entry when their only difference is a variant prefix:
+**One string per property.** Combine same-property utilities into a single quoted entry when their only difference is a variant prefix. A `dark:` pair goes through `mode()` instead (see below):
 
 ```ts
 // good: bg with its read-only variant is one property
 'bg-transparent read-only:bg-transparent',
-
-// good: placeholder color with its dark-mode pair
-'placeholder:text-zinc-500 dark:placeholder:text-zinc-400',
 
 // bad: same property, broken across two entries
 'bg-transparent',
@@ -89,7 +86,17 @@ Cross-cutting fragments spread from sibling kiso (`...iro.text.default`, `...han
 
 **Separate strings carry meaning.** A string break signals a concern boundary: a different property family, different axis, or a deliberate visual grouping. Don't introduce arbitrary breaks; don't merge unrelated properties to save space.
 
-**Mode pairs go through `mode()`.** When both a light class and its `dark:` counterpart need to ship to the Tailwind scanner, use the `mode(light, dark)` helper from `core/recipe` rather than open-coding the pair.
+**Mode pairs go through `mode()`.** When both a light class and its `dark:` counterpart need to ship to the Tailwind scanner, use the `mode(light, dark)` helper from `core/recipe` rather than open-coding the pair. A string that holds a `dark:` class holds no light class:
+
+```ts
+// good
+...mode('placeholder:text-zinc-500', 'dark:placeholder:text-zinc-400'),
+
+// bad: an open pair
+'placeholder:text-zinc-500 dark:placeholder:text-zinc-400',
+```
+
+The one exception is `iro/palette.ts`. Each entry there is the whole class string of one variant in one color, because a kata reads the entry as one value (§5). `mode-pair-boundary.test.ts` holds the rule.
 
 ---
 

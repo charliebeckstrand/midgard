@@ -20,7 +20,7 @@ import { ring } from '../sen/ring'
  * is not bundled; each composer adds its own radius, as a stepped
  * `density-rounded-*` class when it follows density.
  */
-const base = [...ring.line[1].inset, 'ring-zinc-300 dark:ring-zinc-700']
+const base = [...ring.line[1].inset, ...mode('ring-zinc-300', 'dark:ring-zinc-700')]
 
 /**
  * `::before` inset fill: paints the surface inside the 1 px outer ring.

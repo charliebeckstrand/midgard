@@ -6,6 +6,7 @@
  * Layer: kumi · Group: control · Concern: input reset
  */
 
+import { mode } from '../../../core/recipe'
 import { iro } from '../../kiso'
 
 const { text } = iro
@@ -16,7 +17,7 @@ export const reset = [
 	'bg-transparent read-only:bg-transparent',
 	'border-0',
 	...text.default,
-	'placeholder:text-zinc-500 dark:placeholder:text-zinc-400',
+	...mode('placeholder:text-zinc-500', 'dark:placeholder:text-zinc-400'),
 	// The control frame draws the focus ring, and its forced-colors outline.
 	'focus:outline-none',
 ] as const
