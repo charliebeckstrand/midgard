@@ -5,12 +5,27 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getDocumentMock = vi.fn()
 
-// Shape only; `beforeEach` sets workerSrc, which is what resolveWorker() reads first.
-const globalWorkerOptions = { workerSrc: '' }
+// Shape only; `beforeEach` sets workerSrc, which resolveWorker() reads after workerPort.
+const globalWorkerOptions: { workerPort: object | null; workerSrc: string } = {
+	workerPort: null,
+	workerSrc: '',
+}
+
+/** The worker that pdf.js keeps for each port. */
+const portWorkers = new WeakMap<object, object>()
 
 vi.mock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
 	GlobalWorkerOptions: globalWorkerOptions,
 	getDocument: (...args: unknown[]) => getDocumentMock(...args),
+	PDFWorker: {
+		create: ({ port }: { port: object }) => {
+			const worker = portWorkers.get(port) ?? { port }
+
+			portWorkers.set(port, worker)
+
+			return worker
+		},
+	},
 }))
 
 import {
@@ -33,6 +48,8 @@ beforeEach(() => {
 	// no Worker, and pdf.js pre-sets workerSrc itself under Node, which is what these
 	// tests run on.
 	globalWorkerOptions.workerSrc = 'mock-worker'
+
+	globalWorkerOptions.workerPort = null
 
 	vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
 
@@ -395,5 +412,36 @@ describe('usePdfViewerDocument · base raster', () => {
 		const [canvas] = canvases
 
 		expect((canvas?.width ?? 0) * (canvas?.height ?? 0)).toBeLessThanOrEqual(4096 * 4096)
+	})
+})
+
+/*
+ * pdf.js destroys a worker only when the load created it. When a load owns the worker of a port,
+ * its release marks that worker pending-destroy. A load that starts before the release completes
+ * then throws. So the viewer gives each load the worker of the port.
+ */
+describe('usePdfViewerDocument · worker port', () => {
+	it('hands each load the worker of a workerPort that the caller set', async ({ signal }) => {
+		const port = {}
+
+		globalWorkerOptions.workerPort = port
+
+		getDocumentMock.mockImplementation(() => makeDocument(1, null))
+
+		await openLabels('/first.pdf', 1)
+
+		signal.throwIfAborted()
+
+		resetDocumentCache()
+
+		await openLabels('/second.pdf', 1)
+
+		const workers = getDocumentMock.mock.calls.map(([options]) => options.worker)
+
+		expect(workers).toHaveLength(2)
+
+		expect(workers[0]).toEqual({ port })
+
+		expect(workers[1]).toBe(workers[0])
 	})
 })
