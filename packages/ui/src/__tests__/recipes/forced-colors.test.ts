@@ -14,6 +14,7 @@ import { k as kanban } from '../../recipes/kata/kanban'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as passwordStrength } from '../../recipes/kata/password-strength'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
+import { k as placeholder } from '../../recipes/kata/placeholder'
 import { k as popover } from '../../recipes/kata/popover'
 import { k as resizable } from '../../recipes/kata/resizable'
 import { k as tooltip } from '../../recipes/kata/tooltip'
@@ -60,6 +61,9 @@ describe('edges and state marks under forced colors', () => {
 		['the rule of a Grid column group with a color', gridGroup({ color: 'red' }).rule],
 		['the fill of a HoldButton', holdButton.fill],
 		['a JsonTree search match', jsonTree({ highlighted: true }).content],
+		['a loading placeholder', placeholder().base],
+		['the skeleton of a PDF thumbnail', pdfViewer().thumbnail.skeleton],
+		['the empty password-strength segment', passwordStrength({ level: 'empty' }).segment],
 		...(['weak', 'fair', 'good', 'strong'] as const).map((level): [string, unknown] => [
 			`the ${level} password-strength segment`,
 			passwordStrength({ level }).segment,
