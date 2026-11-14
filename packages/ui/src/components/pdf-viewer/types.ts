@@ -88,7 +88,7 @@ export type PdfViewerHighlight = {
 	/**
 	 * Accessible name, and what the announcement speaks on activation.
 	 *
-	 * @remarks Required: a region is a control whenever `onActiveHighlightChange` is set,
+	 * @remarks Required: a region is a control whenever `onActiveHighlightIdChange` is set,
 	 * and a control must have a name (WCAG 4.1.2). It is also the region's whole meaning:
 	 * {@link PdfViewerHighlight.color} is decoration and never carries it.
 	 */

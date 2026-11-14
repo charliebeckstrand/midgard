@@ -1025,7 +1025,7 @@ function renderHighlights(props: Partial<PdfViewerProps> = {}) {
 		<PdfViewer
 			pages={sizedPages}
 			highlights={highlights}
-			onActiveHighlightChange={noop}
+			onActiveHighlightIdChange={noop}
 			{...props}
 		/>,
 	)
@@ -1056,7 +1056,7 @@ describe('PdfViewer highlights', () => {
 				pages={sizedPages}
 				page={2}
 				highlights={highlights}
-				onActiveHighlightChange={noop}
+				onActiveHighlightIdChange={noop}
 			/>,
 		)
 
@@ -1104,7 +1104,7 @@ describe('PdfViewer highlights', () => {
 				pages={[{ id: 'a', src: 'page-1.png', label: 'Page 1', width: 850, height: 1100 }]}
 				highlightUnit="inch"
 				highlights={[highlights[0] as PdfViewerHighlight]}
-				onActiveHighlightChange={noop}
+				onActiveHighlightIdChange={noop}
 			/>,
 		)
 
@@ -1114,9 +1114,9 @@ describe('PdfViewer highlights', () => {
 	})
 
 	it('reports the pressed region and marks it aria-current', () => {
-		const onActiveHighlightChange = vi.fn()
+		const onActiveHighlightIdChange = vi.fn()
 
-		renderHighlights({ onActiveHighlightChange })
+		renderHighlights({ onActiveHighlightIdChange })
 
 		const region = screen.getByLabelText('Total charges')
 
@@ -1124,21 +1124,21 @@ describe('PdfViewer highlights', () => {
 
 		fireEvent.click(region)
 
-		expect(onActiveHighlightChange).toHaveBeenCalledWith('total')
+		expect(onActiveHighlightIdChange).toHaveBeenCalledWith('total')
 
 		expect(screen.getByLabelText('Total charges')).toHaveAttribute('aria-current', 'true')
 	})
 
 	it('does not report a second change when the active region is pressed again', () => {
-		const onActiveHighlightChange = vi.fn()
+		const onActiveHighlightIdChange = vi.fn()
 
-		renderHighlights({ onActiveHighlightChange })
-
-		fireEvent.click(screen.getByLabelText('Total charges'))
+		renderHighlights({ onActiveHighlightIdChange })
 
 		fireEvent.click(screen.getByLabelText('Total charges'))
 
-		expect(onActiveHighlightChange).toHaveBeenCalledTimes(1)
+		fireEvent.click(screen.getByLabelText('Total charges'))
+
+		expect(onActiveHighlightIdChange).toHaveBeenCalledTimes(1)
 	})
 
 	it('navigates to the page of a region the consumer activates', () => {
@@ -1249,16 +1249,16 @@ describe('PdfViewer highlights', () => {
 	 * consumer hangs off it.
 	 */
 	it('names the region under the pointer, without selecting it', () => {
-		const onActiveHighlightChange = vi.fn()
+		const onActiveHighlightIdChange = vi.fn()
 
-		renderHighlights({ onActiveHighlightChange })
+		renderHighlights({ onActiveHighlightIdChange })
 
 		fireEvent.mouseOver(screen.getByLabelText('Total charges'))
 
 		expect(highlightLabel()).toHaveTextContent('Total charges')
 
 		// Named, not chosen: nothing about the selection moved.
-		expect(onActiveHighlightChange).not.toHaveBeenCalled()
+		expect(onActiveHighlightIdChange).not.toHaveBeenCalled()
 	})
 
 	/** Every name on the page right now, in the order they were drawn. */
@@ -1401,7 +1401,7 @@ describe('PdfViewer highlights', () => {
 	})
 
 	it('clears the selection on Escape without letting it reach an enclosing surface', () => {
-		const onActiveHighlightChange = vi.fn()
+		const onActiveHighlightIdChange = vi.fn()
 
 		const onOuterKeyDown = vi.fn()
 
@@ -1411,7 +1411,7 @@ describe('PdfViewer highlights', () => {
 				<PdfViewer
 					pages={sizedPages}
 					highlights={highlights}
-					onActiveHighlightChange={onActiveHighlightChange}
+					onActiveHighlightIdChange={onActiveHighlightIdChange}
 				/>
 			</div>,
 		)
@@ -1422,7 +1422,7 @@ describe('PdfViewer highlights', () => {
 
 		fireEvent.keyDown(region, { key: 'Escape' })
 
-		expect(onActiveHighlightChange).toHaveBeenLastCalledWith(null)
+		expect(onActiveHighlightIdChange).toHaveBeenLastCalledWith(null)
 
 		expect(onOuterKeyDown).not.toHaveBeenCalled()
 	})
@@ -1433,7 +1433,7 @@ describe('PdfViewer highlights', () => {
 
 		renderUI(
 			<div role="dialog" aria-label="Drawer" onKeyDown={onOuterKeyDown}>
-				<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />
+				<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightIdChange={noop} />
 			</div>,
 		)
 
@@ -1457,49 +1457,49 @@ describe('PdfViewer highlights', () => {
 	 * keyboard; this is the pointer's way to say it, and until now there was none.
 	 */
 	it('clears the selection on a press that lands on no region', () => {
-		const onActiveHighlightChange = vi.fn()
+		const onActiveHighlightIdChange = vi.fn()
 
-		const { container } = renderHighlights({ onActiveHighlightChange })
+		const { container } = renderHighlights({ onActiveHighlightIdChange })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
-		expect(onActiveHighlightChange).toHaveBeenLastCalledWith('total')
+		expect(onActiveHighlightIdChange).toHaveBeenLastCalledWith('total')
 
 		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'))
 
-		expect(onActiveHighlightChange).toHaveBeenLastCalledWith(null)
+		expect(onActiveHighlightIdChange).toHaveBeenLastCalledWith(null)
 
 		expect(screen.getByLabelText('Total charges')).not.toHaveAttribute('aria-current')
 	})
 
 	/** A press on a region is a selection, not a dismissal: the two share one surface. */
 	it('does not clear the selection on a press that lands on a region', () => {
-		const onActiveHighlightChange = vi.fn()
+		const onActiveHighlightIdChange = vi.fn()
 
-		renderHighlights({ onActiveHighlightChange })
-
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		renderHighlights({ onActiveHighlightIdChange })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
-		expect(onActiveHighlightChange).not.toHaveBeenCalledWith(null)
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		expect(onActiveHighlightIdChange).not.toHaveBeenCalledWith(null)
 	})
 
 	/** A Ctrl+primary press is the macOS secondary click: it opens the context menu, as a right press does. */
 	it('neither selects nor clears on a Ctrl+primary press', () => {
-		const onActiveHighlightChange = vi.fn()
+		const onActiveHighlightIdChange = vi.fn()
 
-		const { container } = renderHighlights({ onActiveHighlightChange })
+		const { container } = renderHighlights({ onActiveHighlightIdChange })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'), { button: 0, ctrlKey: true })
 
-		expect(onActiveHighlightChange).not.toHaveBeenCalled()
+		expect(onActiveHighlightIdChange).not.toHaveBeenCalled()
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
 		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'), { button: 0, ctrlKey: true })
 
-		expect(onActiveHighlightChange).not.toHaveBeenCalledWith(null)
+		expect(onActiveHighlightIdChange).not.toHaveBeenCalledWith(null)
 	})
 
 	/*
@@ -1508,9 +1508,9 @@ describe('PdfViewer highlights', () => {
 	 * page, not a dismissal of something that is not on screen.
 	 */
 	it('keeps the selection through a press while the overlay is hidden', () => {
-		const onActiveHighlightChange = vi.fn()
+		const onActiveHighlightIdChange = vi.fn()
 
-		const { container } = renderHighlights({ onActiveHighlightChange })
+		const { container } = renderHighlights({ onActiveHighlightIdChange })
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
@@ -1518,11 +1518,11 @@ describe('PdfViewer highlights', () => {
 
 		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'))
 
-		expect(onActiveHighlightChange).not.toHaveBeenCalledWith(null)
+		expect(onActiveHighlightIdChange).not.toHaveBeenCalledWith(null)
 	})
 
 	/*
-	 * Decoration answers to the consumer alone. Without `onActiveHighlightChange` the boxes are
+	 * Decoration answers to the consumer alone. Without `onActiveHighlightIdChange` the boxes are
 	 * not controls (the consumer drives what is marked from a list beside the viewer) so the
 	 * page must not put down a selection it was handed.
 	 */
@@ -1552,7 +1552,7 @@ describe('PdfViewer highlights', () => {
 						label: 'Amount',
 					},
 				]}
-				onActiveHighlightChange={noop}
+				onActiveHighlightIdChange={noop}
 			/>,
 		)
 
@@ -1598,7 +1598,7 @@ describe('PdfViewer highlight state scoping', () => {
 		renderUI(
 			<PdfViewerHighlightsProvider
 				highlights={highlights}
-				onActiveHighlightChange={noop}
+				onActiveHighlightIdChange={noop}
 				activePage={sizedPages[0]}
 				safePage={1}
 				goToPage={noop}
@@ -1712,7 +1712,7 @@ describe('PdfViewer chrome events', () => {
 				pages={sizedPages}
 				magnifier
 				highlights={highlights}
-				onActiveHighlightChange={noop}
+				onActiveHighlightIdChange={noop}
 			/>,
 		)
 

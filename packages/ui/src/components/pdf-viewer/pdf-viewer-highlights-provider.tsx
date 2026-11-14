@@ -20,7 +20,7 @@ type PdfViewerHighlightsProviderProps = PdfViewerHighlightsOptions & { children:
  * the viewport subtree too; only the layer, a context consumer, re-renders. An uncontrolled
  * activation renders the gate and the layer and nothing else.
  *
- * That holds for selection the viewer owns. A consumer whose `onActiveHighlightChange`
+ * That holds for selection the viewer owns. A consumer whose `onActiveHighlightIdChange`
  * stores the id above `&lt;PdfViewer&gt;` re-renders the whole viewer from its own state change,
  * as any lifted state would. The scoping cannot prevent that, and is not meant to.
  * @internal

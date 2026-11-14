@@ -10,7 +10,7 @@ export default function CustomFormat() {
 	return (
 		<TimeAgo
 			value={now - 90 * SECOND}
-			format={(diffMs) =>
+			formatValue={(diffMs) =>
 				intl.formatRelativeTime(-Math.round(Math.abs(diffMs) / SECOND), 'second', {
 					style: 'narrow',
 				})

@@ -53,13 +53,13 @@ describe('useTimeAgoRelativeTime', () => {
 	})
 
 	it('uses the supplied custom formatter when provided', () => {
-		const format = vi.fn(() => 'just now')
+		const formatValue = vi.fn(() => 'just now')
 
 		const then = new Date(NOW.getTime() - 10 * SECOND)
 
-		const { result } = renderHook(() => useTimeAgoRelativeTime({ value: then, format }))
+		const { result } = renderHook(() => useTimeAgoRelativeTime({ value: then, formatValue }))
 
-		expect(format).toHaveBeenCalled()
+		expect(formatValue).toHaveBeenCalled()
 
 		expect(result.current.text).toBe('just now')
 	})
@@ -106,20 +106,20 @@ describe('useTimeAgoRelativeTime', () => {
 	])(
 		'does not tick within a few hundred ms for interval=%s',
 		async ([_name, interval], { clock }) => {
-			const format = vi.fn(() => 'x')
+			const formatValue = vi.fn(() => 'x')
 
 			renderHook(() =>
-				useTimeAgoRelativeTime({ value: new Date(NOW.getTime() - SECOND), format, interval }),
+				useTimeAgoRelativeTime({ value: new Date(NOW.getTime() - SECOND), formatValue, interval }),
 			)
 
-			const calls = format.mock.calls.length
+			const calls = formatValue.mock.calls.length
 
 			// One step per act: React batches every tick inside one act into one render.
 			for (let step = 0; step < 10; step++) {
 				await clock.advance(50)
 			}
 
-			expect(format).toHaveBeenCalledTimes(calls)
+			expect(formatValue).toHaveBeenCalledTimes(calls)
 		},
 	)
 })

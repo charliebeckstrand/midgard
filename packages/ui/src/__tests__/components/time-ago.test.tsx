@@ -126,7 +126,9 @@ describe('TimeAgo', () => {
 	it('applies a custom format function', () => {
 		const past = new Date(Date.now() - 90 * SECOND)
 
-		const { container } = renderUI(<TimeAgo value={past} format={(ms) => `${Math.round(ms)}ms`} />)
+		const { container } = renderUI(
+			<TimeAgo value={past} formatValue={(ms) => `${Math.round(ms)}ms`} />,
+		)
 
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('-90000ms')
 	})

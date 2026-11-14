@@ -273,7 +273,7 @@ export function PlaceList({
 					No places match the selected {categories.length > 1 ? 'categories' : 'category'}.
 				</Text>
 			) : (
-				<List items={shown} sortable={false} virtualize getKey={(place) => place.id}>
+				<List items={shown} virtualize getKey={(place) => place.id}>
 					{(place) => <PlaceRow place={place} onOpen={onOpen} />}
 				</List>
 			)}

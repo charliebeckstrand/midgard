@@ -35,7 +35,7 @@ async function hoverPadding(row: HTMLElement, content: HTMLElement) {
 describe('an interactive List row on hover', () => {
 	it('steps its text when the pointer lights its wash, on a row marked interactive', async () => {
 		const { container } = renderUI(
-			<List variant="plain" sortable={false} items={items} aria-label="Stages">
+			<List variant="plain" items={items} aria-label="Stages">
 				{(item) => (
 					<ListItem interactive rounded>
 						<ListLabel>{item.label}</ListLabel>
@@ -67,7 +67,7 @@ describe('an interactive List row on hover', () => {
 
 	it('steps its text while the pointer rests on a slot, which the wash covers too', async () => {
 		const { container } = renderUI(
-			<List variant="plain" sortable={false} items={items} aria-label="Stages">
+			<List variant="plain" items={items} aria-label="Stages">
 				{(item) => (
 					<ListItem onClick={() => {}} suffix={<span data-testid="suffix">Due</span>}>
 						<ListLabel>{item.label}</ListLabel>
@@ -101,7 +101,7 @@ describe('an interactive List row on hover', () => {
 
 	it('shows the pointer on the row padding, where the wash shows', () => {
 		const { container } = renderUI(
-			<List variant="plain" sortable={false} items={items} aria-label="Stages">
+			<List variant="plain" items={items} aria-label="Stages">
 				{(item) => (
 					<ListItem
 						interactive
@@ -121,7 +121,7 @@ describe('an interactive List row on hover', () => {
 
 	it('refuses the pointer on the whole row while its content is disabled', () => {
 		const { container } = renderUI(
-			<List variant="plain" sortable={false} items={items} aria-label="Stages">
+			<List variant="plain" items={items} aria-label="Stages">
 				{(item) => (
 					<ListItem as="button" onClick={() => {}} disabled>
 						<ListLabel>{item.label}</ListLabel>

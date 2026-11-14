@@ -14,7 +14,7 @@ export default function Highlights() {
 			<PdfViewer
 				pages={pages}
 				highlights={regions}
-				onActiveHighlightChange={setActive}
+				onActiveHighlightIdChange={setActive}
 				aria-label="Invoice 1042"
 			/>
 			<Text tone="muted">Value: {label ?? 'Empty'}</Text>

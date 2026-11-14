@@ -7,12 +7,16 @@ import { k } from '../../recipes/kata/time-ago'
 import { Placeholder } from '../placeholder'
 import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'
 
-/** Props for {@link TimeAgo}: the `value` to age plus `format`/`locale`/`interval` overrides over the `<time>` surface. */
+/** Props for {@link TimeAgo}: the `value` to age plus `formatValue`/`locale`/`interval` overrides over the `<time>` surface. */
 export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' | 'title'> & {
 	/** The instant to age: a `Date`, an ISO string, or a timestamp in milliseconds, as on `DateTime`. */
 	value: Date | string | number
-	/** Override the default `Intl.RelativeTimeFormat` output. */
-	format?: (diffMs: number, now: Date, then: Date) => string
+	/**
+	 * Makes the text in place of the default `Intl.RelativeTimeFormat` output.
+	 * It gets the age in milliseconds (negative for the past), the current time,
+	 * and the parsed `value`.
+	 */
+	formatValue?: (diffMs: number, now: Date, then: Date) => string
 	/**
 	 * Locale for the default formatter. Resolution order: explicit prop, then
 	 * enclosing `LocaleProvider`, then the runtime default.
@@ -54,7 +58,7 @@ export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' 
  */
 export function TimeAgo({
 	value,
-	format,
+	formatValue,
 	locale,
 	interval = 'auto',
 	className,
@@ -64,7 +68,7 @@ export function TimeAgo({
 
 	const { then, valid, pending, text } = useTimeAgoRelativeTime({
 		value,
-		format,
+		formatValue,
 		locale: locale ?? ambient.locale,
 		interval,
 	})

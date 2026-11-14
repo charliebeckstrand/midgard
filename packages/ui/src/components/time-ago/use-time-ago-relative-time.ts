@@ -95,8 +95,8 @@ export function resolveRefreshInterval(interval: number | 'auto', absMs: number)
 
 type RelativeTimeOptions = {
 	value: Date | string | number
-	/** Override the default `Intl.RelativeTimeFormat` output. */
-	format?: (diffMs: number, now: Date, then: Date) => string
+	/** Makes the text in place of the default `Intl.RelativeTimeFormat` output. */
+	formatValue?: (diffMs: number, now: Date, then: Date) => string
 	/** Locale for the default formatter. */
 	locale?: string
 	/**
@@ -138,7 +138,7 @@ type RelativeTimeResult = {
  */
 export function useTimeAgoRelativeTime({
 	value,
-	format,
+	formatValue,
 	locale,
 	interval = 'auto',
 }: RelativeTimeOptions): RelativeTimeResult {
@@ -171,7 +171,7 @@ export function useTimeAgoRelativeTime({
 
 	if (now === null) return { then, valid, pending: true, text: '' }
 
-	const text = format ? format(diffMs, now, then) : formatDefault(locale, diffMs)
+	const text = formatValue ? formatValue(diffMs, now, then) : formatDefault(locale, diffMs)
 
 	return { then, valid, pending: false, text }
 }

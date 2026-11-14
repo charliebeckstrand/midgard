@@ -240,7 +240,7 @@ function GridColumnManagerFrozenGroup({
 	const intl = useIntl()
 
 	return (
-		<List items={items} getKey={getKey} variant="plain" sortable={false}>
+		<List items={items} getKey={getKey} variant="plain">
 			{(col) => (
 				<ListItem prefix={frozenLeading(col, onPinChange)}>
 					<GridManagerCheckboxRow
@@ -313,7 +313,7 @@ function GridColumnManagerOrderableList({
 		</ListItem>
 	)
 
-	// A read-only list drops `sortable` so no static grip renders; the reorderable
+	// A read-only list has no `onReorder`, so no grip renders. The reorderable
 	// list keeps the auto-inserted handle and commits moves through `onReorder`.
 	return reorderable ? (
 		<List
@@ -329,7 +329,6 @@ function GridColumnManagerOrderableList({
 		<List
 			items={items}
 			getKey={getKey}
-			sortable={false}
 			variant="plain"
 			aria-label={intl.formatMessage(gridMessages.columns)}
 		>

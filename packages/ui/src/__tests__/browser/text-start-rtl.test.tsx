@@ -52,7 +52,6 @@ describe('button text alignment in a right-to-left layout (real browser)', () =>
 			<div dir="rtl">
 				<List
 					items={[{ id: 'invoice', label: 'Invoice' }]}
-					sortable={false}
 					getKey={(item) => item.id}
 					onReorder={() => {}}
 				>

@@ -95,7 +95,7 @@ describe('List rounded dividers (real browser)', () => {
 	it('paints the focus wash on the layer of a row that holds the Tab stop', () => {
 		// A reorderable row with no handler of its own takes focus on the `<li>`.
 		const { container } = renderUI(
-			<List items={items} variant="plain" getKey={(item) => item.id} sortable onReorder={noop}>
+			<List items={items} variant="plain" getKey={(item) => item.id} onReorder={noop}>
 				{(item) => (
 					<ListItem rounded interactive>
 						{item.label}

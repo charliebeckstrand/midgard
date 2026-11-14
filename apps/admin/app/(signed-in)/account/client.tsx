@@ -118,7 +118,6 @@ export function AccountClient({
 							items={passkeys}
 							getKey={(passkey) => passkey.id}
 							variant="outline"
-							sortable={false}
 							aria-label="Passkeys"
 						>
 							{(passkey, index) => (

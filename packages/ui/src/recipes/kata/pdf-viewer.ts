@@ -299,7 +299,7 @@ export const k = defineKata({
 						highlights: {
 							base: [centered],
 							/**
-							 * The layer without `onActiveHighlightChange` is not `interactive`. Its regions are
+							 * The layer without `onActiveHighlightIdChange` is not `interactive`. Its regions are
 							 * decoration inside an `aria-hidden` layer, so there is nothing to press. Every region
 							 * still has its required `label`.
 							 */

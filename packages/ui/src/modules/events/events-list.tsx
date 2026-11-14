@@ -176,7 +176,6 @@ export function EventsList({
 			items={rows.toReversed()}
 			getKey={getKey}
 			variant="plain"
-			sortable={false}
 			virtualize
 			aria-label={intl.formatMessage(eventsMessages.events)}
 		>

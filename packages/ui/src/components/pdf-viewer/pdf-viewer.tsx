@@ -128,11 +128,11 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * pressable. That is right when a list beside the viewer is already the navigable
 	 * surface.
 	 */
-	onActiveHighlightChange?: (id: string | null) => void
+	onActiveHighlightIdChange?: (id: string | null) => void
 	/**
 	 * Fires when the reader presses a region, the already-active one included.
 	 *
-	 * @remarks Distinct from {@link onActiveHighlightChange}, which reports *selection*:
+	 * @remarks Distinct from {@link onActiveHighlightIdChange}, which reports *selection*:
 	 * re-pressing the active region changes nothing to select, so that callback stays silent.
 	 * Use this one when a press must do something every time. It can reveal the region's
 	 * row in a list beside the viewer, or put the caret in the field it was read from.
@@ -234,7 +234,7 @@ export function PdfViewer({
 	onHighlightsVisibleChange,
 	onMagnifierChange,
 	defaultActiveHighlightId,
-	onActiveHighlightChange,
+	onActiveHighlightIdChange,
 	className,
 	'aria-label': ariaLabelProp,
 	ref,
@@ -299,7 +299,7 @@ export function PdfViewer({
 								activeHighlightId={activeHighlightId}
 								onHighlightClick={onHighlightClick}
 								defaultActiveHighlightId={defaultActiveHighlightId}
-								onActiveHighlightChange={onActiveHighlightChange}
+								onActiveHighlightIdChange={onActiveHighlightIdChange}
 								// What the overlay needs from the document beneath it, handed
 								// down rather than read back out of `PdfViewerContext`, the
 								// same way the loupe takes its settings. The overlay's own

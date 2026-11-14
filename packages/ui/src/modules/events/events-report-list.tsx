@@ -110,7 +110,6 @@ export function EventsReportList({
 			items={reports.toReversed()}
 			getKey={getKey}
 			variant="plain"
-			sortable={false}
 			aria-label={intl.formatMessage(eventsMessages.bugs)}
 		>
 			{(entry) => (
