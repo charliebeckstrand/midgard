@@ -3,7 +3,7 @@ import { dan, kasane, omote, sen, ugoki } from '../kiso'
 
 const { rounded } = kasane
 const { focus, ring } = sen
-const { rail } = omote
+const { rail, scrollbar } = omote
 const { duration, ease } = ugoki
 
 /**
@@ -172,7 +172,7 @@ export const k = defineKata(
 			thumbnails: [
 				...rail,
 				'flex max-w-full gap-1 scroll-smooth p-1 motion-reduce:scroll-auto',
-				'scrollbar-none [&::-webkit-scrollbar]:hidden',
+				...scrollbar.hidden,
 			],
 			thumbnail: {
 				/**

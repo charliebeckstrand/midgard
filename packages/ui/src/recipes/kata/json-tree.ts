@@ -59,10 +59,10 @@ export const k = defineKata(
 			 */
 			spacer: 'shrink-0',
 			row,
-			leaf: [flex.row, flex.fill, 'min-w-0 outline-none', dan.gap.scale.xs],
+			leaf: [flex.row, 'flex-1', 'min-w-0 outline-none', dan.gap.scale.xs],
 			toggle: [
 				flex.row,
-				flex.fill,
+				'flex-1',
 				'min-w-0 text-start',
 				...cursor,
 				'outline-none',

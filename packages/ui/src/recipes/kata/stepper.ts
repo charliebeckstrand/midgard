@@ -103,7 +103,7 @@ export const k = defineKata(
 			separator: {
 				base: [
 					'shrink-0 -mx-12 mt-2.25 min-w-20',
-					flex.fill,
+					'flex-1',
 					'self-start border-t',
 					...border.color.default,
 				],

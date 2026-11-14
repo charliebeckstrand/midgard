@@ -66,7 +66,7 @@ export const panel = defineGroup({
  */
 export const bar = {
 	base: 'flex-row items-center',
-	lead: [flex.col, 'min-w-0', flex.fill, scale.sm],
+	lead: [flex.col, 'min-w-0', 'flex-1', scale.sm],
 }
 
 /** The gaps of a child of a panel that is not a slot. */

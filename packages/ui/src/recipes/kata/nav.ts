@@ -10,7 +10,7 @@
  */
 import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, kasane, kokkaku, narabi, omote, sen } from '../kiso'
-import { box, nav } from '../kumi/nav'
+import { box, nav, stack } from '../kumi/nav'
 
 const { rounded } = kasane
 const { flex } = narabi
@@ -42,7 +42,7 @@ export const k = defineKata(
 		// The gap also caps the hit areas of the items (`TouchTarget`) along the
 		// list, so two adjacent items split the gap and do not overlap.
 		orientation: {
-			vertical: ['flex-col', 'gap-0.5', '[--touch-target-gap-y:--spacing(0.5)]'],
+			vertical: stack,
 			horizontal: ['flex-row', dan.gap.scale.xs, dan.gap.touch.x.xs],
 		},
 		slots: {

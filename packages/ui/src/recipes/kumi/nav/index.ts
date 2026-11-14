@@ -32,6 +32,13 @@ const { focus } = sen
 export const box = [flex.row, 'w-full', dan.gap.item, ji.ramp, dan.radius.control]
 
 /**
+ * A vertical stack of items. Its gap also caps the hit areas of the items
+ * (`TouchTarget`) along the stack, so two adjacent items split the gap and do
+ * not overlap.
+ */
+export const stack = [flex.col, 'gap-0.5', '[--touch-target-gap-y:--spacing(0.5)]']
+
+/**
  * A prefix or a suffix slot, beside the button inside the chrome of the row and
  * above the active indicator. Each slot is a density scope one step below the
  * item (`data-density="slot"`), so a slot icon or a small control takes that

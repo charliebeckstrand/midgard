@@ -106,7 +106,7 @@ export const gap = {
 			},
 		},
 	},
-	/** The default gap: a card footer and the calendar footer. */
+	/** The default gap: a card footer, the calendar footer, and the actions of a sidebar layout. */
 	default: scale.sm,
 	toolbar: {
 		/**
@@ -122,7 +122,7 @@ export const gap = {
 	 * and the exit animates that padding to 0.
 	 */
 	toast: 'density-set-[0.5,1,2,3,4.5]/[--toast-gap]',
-	/** The gap of a nav item and a sidebar item. */
+	/** The gap of a nav item, a sidebar item, and a tab. */
 	item: 'density-gap-[1,1.5,2,2.5,3]',
 	/** The gap of an option row and a menu item. */
 	option: scale.md,

@@ -9,4 +9,4 @@
 
 import { flex } from './flex'
 
-export const text = [flex.col, 'min-w-0', flex.fill, 'text-start', '*:before:hidden']
+export const text = [flex.col, 'min-w-0', 'flex-1', 'text-start', '*:before:hidden']

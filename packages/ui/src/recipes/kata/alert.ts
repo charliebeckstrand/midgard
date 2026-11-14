@@ -36,7 +36,7 @@ export const k = defineKata({
 		icon: 'shrink-0 self-center',
 		title: [titleRamp, weight.semibold],
 		description: [leading.tight, 'col-start-2'],
-		content: [flex.fill, 'min-w-0', dan.gap.scale.sm],
+		content: ['flex-1', 'min-w-0', dan.gap.scale.sm],
 		/** The two columns of the content beside an icon. */
 		columns: ['grid grid-cols-[auto_minmax(0,1fr)]', dan.gap.x.sm],
 		body: 'col-start-2',

@@ -745,12 +745,12 @@ export const k = {
 		controls: {
 			// Page-size picker: the start track. It renders even when it is empty,
 			// so the navigation stays centered.
-			base: [flex.inline, flex.fill, dan.gap.scale.lg],
+			base: [flex.inline, 'flex-1', dan.gap.scale.lg],
 			bare: ['hidden', '@2xl:flex'],
 		},
 		nav: {
 			// Page navigation: the centered middle track.
-			base: ['flex', flex.fill, 'justify-center'],
+			base: ['flex', 'flex-1', 'justify-center'],
 			bare: ['justify-start', '@2xl:justify-center'],
 		},
 		// The `<Pagination>` in the track. The footer has its own narrow layout
@@ -763,7 +763,7 @@ export const k = {
 		pages: ['hidden', '@2xl:flex'],
 		// Row-range status ("1–10 of 47"): the end track, aligned to the inline
 		// end.
-		status: [size.md, text.muted, flex.fill, 'whitespace-nowrap', 'text-end', 'tabular-nums'],
+		status: [size.md, text.muted, 'flex-1', 'whitespace-nowrap', 'text-end', 'tabular-nums'],
 	},
 	// Condensed down-projections layered on the compact density the grid forwards
 	// to `<Table>` when `condensed` is set. All cast from the `<table>` element

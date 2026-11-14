@@ -23,7 +23,7 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | `ji` 字 | Typography: size scale plus `weight` / `leading` / `family` aliases, and `ramp`, the stepped text size of a density-native component. |
 | `ma` 間 | Named spacing scale projected as padding and gap utilities, in all-sides and axis variants. Each stop but `0` is a ramp of `dan`, so it takes the step of the nearest density scope. |
 | `narabi` 並び | Sibling arrangement: field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, stacked item text, truncation, and flex primitives. `fit` caps a floating panel. |
-| `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, and the `fade` mask. |
+| `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, the hidden `scrollbar`, and the `fade` mask. |
 | `hannou` 反応 | Interaction feedback: `disabled`, `busy`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, table gridlines, the resize grip, and forced-colors safety nets. |
 | `shaku` 尺 | Dimension scales per surface (`icon`, `panel`, `mark`). `icon` holds the forms of the icon scale (`icon.base`, `icon.slot`). |

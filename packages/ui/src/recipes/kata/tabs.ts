@@ -15,7 +15,7 @@ const { on, text } = iro
 const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { bg, rail } = omote
+const { bg, rail, scrollbar } = omote
 const { border, focus, forced } = sen
 
 /**
@@ -121,7 +121,7 @@ export const k = defineKata(
 			 * cross axis does not cut a tab label.
 			 */
 			scroll: {
-				base: ['scrollbar-none', '[&::-webkit-scrollbar]:hidden'],
+				base: scrollbar.hidden,
 				orientation: {
 					horizontal: [...rail],
 					vertical: 'shrink-0 overflow-y-auto overflow-x-hidden',
