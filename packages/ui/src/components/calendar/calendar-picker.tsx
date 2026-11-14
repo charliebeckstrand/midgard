@@ -2,6 +2,7 @@
 
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
+import { DateTimePending } from '../date-time/date-time-pending'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
 import { calendarMessages } from './calendar-messages'
 import { CalendarPickerGrid } from './calendar-picker-grid'
@@ -13,6 +14,8 @@ type CalendarPickerProps = {
 	today: Date | null
 	onNavigate: (year: number, month: number) => void
 	monthLabel: string
+	/** Whether `monthLabel` is the text of its skeleton, before hydration. */
+	pending: boolean
 	monthLabels: string[]
 	/** The resolved BCP 47 tag of the calendar, for the digits of the years. */
 	localeTag: string
@@ -37,6 +40,7 @@ export function CalendarPicker({
 	today,
 	onNavigate,
 	monthLabel,
+	pending,
 	monthLabels,
 	localeTag,
 	open,
@@ -67,7 +71,11 @@ export function CalendarPicker({
 					className={triggerClassName}
 					data-index={triggerIndex}
 				>
-					{monthLabel}
+					{pending && monthLabel !== '' ? (
+						<DateTimePending>{monthLabel}</DateTimePending>
+					) : (
+						monthLabel
+					)}
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent modal aria-label={intl.formatMessage(calendarMessages.selectMonthYear)}>

@@ -16,6 +16,8 @@ type CalendarHeaderProps = {
 	month: number
 	today: Date | null
 	monthLabel: string
+	/** Whether the month label is the text of its skeleton, before hydration. */
+	pending: boolean
 	/** Short month labels for the year/month picker, in the active locale. */
 	monthLabels: string[]
 	/** The resolved BCP 47 tag of the calendar. The picker writes its years in the digits of this locale. */
@@ -46,6 +48,7 @@ export const CalendarHeader = memo(function CalendarHeader({
 	month,
 	today,
 	monthLabel,
+	pending,
 	monthLabels,
 	localeTag,
 	pickerOpen,
@@ -76,6 +79,7 @@ export const CalendarHeader = memo(function CalendarHeader({
 				today={today}
 				onNavigate={onPickerNavigate}
 				monthLabel={monthLabel}
+				pending={pending}
 				monthLabels={monthLabels}
 				localeTag={localeTag}
 				open={pickerOpen}

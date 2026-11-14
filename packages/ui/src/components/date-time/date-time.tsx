@@ -3,9 +3,8 @@
 import type { ComponentProps } from 'react'
 import { useLocale } from '../../providers/locale/context'
 import { useDateFormat } from '../../providers/locale/use-date-format'
-import { k } from '../../recipes/kata/date-time'
 import type { DateText } from '../../server/date-text'
-import { Placeholder } from '../placeholder'
+import { DateTimePending } from './date-time-pending'
 import { standText } from './date-time-stand'
 
 /** Whether `value` is the text that a server wrote. */
@@ -83,9 +82,7 @@ export function DateTime({ value, format, className, ...props }: DateTimeProps) 
 	return (
 		<time data-slot="date-time" dateTime={date.toISOString()} className={className} {...props}>
 			{formatter === undefined ? (
-				<Placeholder as="span" className={k.skeleton.text}>
-					{standText(date, format ?? dateFormat ?? {})}
-				</Placeholder>
+				<DateTimePending>{standText(date, format ?? dateFormat ?? {})}</DateTimePending>
 			) : (
 				formatter.format(date)
 			)}

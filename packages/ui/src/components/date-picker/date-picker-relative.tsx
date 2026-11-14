@@ -8,6 +8,7 @@ import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'
 import { Button } from '../button'
 import { DateInputResetContext, useDateInputResets } from '../date-input/context'
+import { DateTimePending } from '../date-time/date-time-pending'
 import { Field, Label } from '../fieldset'
 import { Icon } from '../icon'
 // Sibling variant reused for the custom range's Start/End fields; safe despite the
@@ -71,7 +72,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 			<span data-density="slot" className={cn(k.relative.chips, 'flex-1')}>
 				{state.chips.map((chip) => (
 					<Badge key={chip.key} className="shrink-0 whitespace-nowrap">
-						{chip.label}
+						{chip.pending ? <DateTimePending>{chip.label}</DateTimePending> : chip.label}
 					</Badge>
 				))}
 			</span>
@@ -82,6 +83,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 			<DatePickerTrigger
 				state={state}
 				displayValue={state.summary}
+				pending={state.summaryPending}
 				placeholder={placeholder ?? selectRange}
 				size={size}
 				truncate={truncate}

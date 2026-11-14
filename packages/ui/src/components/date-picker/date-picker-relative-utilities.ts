@@ -8,6 +8,7 @@ import {
 	endOfMonth,
 	endOfYear,
 	formatRange,
+	standRange,
 	startOfDay,
 	startOfMonth,
 	startOfYear,
@@ -77,7 +78,12 @@ export type DatePickerRelativeConfig = {
 }
 
 /** A rendered trigger chip: a stable React `key` plus its display label. @internal */
-export type RelativeChip = { key: string; label: string }
+export type RelativeChip = {
+	key: string
+	label: string
+	/** Whether `label` is the text of its skeleton, before hydration. */
+	pending?: boolean
+}
 
 const presetMessages = defineMessages<{
 	yesterday: Record<never, never>
@@ -376,7 +382,9 @@ export function togglePresetValue(
 
 /**
  * Trigger chips for the committed value, in selection order: a matched preset's
- * label, or the formatted absolute range for a custom span.
+ * label, or the formatted absolute range for a custom span. Before hydration
+ * (`pending`), a custom span holds the text of its skeleton, because the text
+ * of `Intl` waits for hydration, as in `Calendar`.
  *
  * A preset chip keys on the preset id, so each key must occur once. A value can
  * hold one span more than once, for example from a shared link. The chips then
@@ -391,6 +399,7 @@ export function relativeChips(
 	preferredIds?: ReadonlySet<string>,
 	locale?: string,
 	dateFormat?: Intl.DateTimeFormatOptions,
+	pending = false,
 ): RelativeChip[] {
 	if (value === undefined) return []
 
@@ -402,10 +411,13 @@ export function relativeChips(
 		const preset = matchRelativePreset(span, presets, now, preferredIds)
 
 		if (preset === null) {
-			chips.push({
-				key: `custom-${index}`,
-				label: formatRange(span.from, span.to, locale, dateFormat),
-			})
+			const key = `custom-${index}`
+
+			chips.push(
+				pending
+					? { key, label: standRange(span.from, span.to, dateFormat), pending }
+					: { key, label: formatRange(span.from, span.to, locale, dateFormat) },
+			)
 
 			return
 		}

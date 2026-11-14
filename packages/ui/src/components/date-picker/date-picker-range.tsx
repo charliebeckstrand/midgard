@@ -42,6 +42,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 			<DatePickerTrigger
 				state={state}
 				displayValue={state.displayValue}
+				pending={state.pending}
 				placeholder={placeholder ?? intl.formatMessage(datePickerMessages.selectDates)}
 				size={size}
 				truncate={truncate}

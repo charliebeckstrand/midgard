@@ -11,9 +11,13 @@
  * skeleton keeps its own colors. Otherwise the reader sees the UTC text as the
  * time.
  *
+ * In a flex or a grid parent, such as a button, the skeleton is a block. Then
+ * it takes the height of its line of text (`h-auto`), as the text does, and
+ * not the default height of a placeholder.
+ *
  * Layer: kiso · Concern: skeleton form · Unit: date-time
  */
 
 export const dateTime = {
-	text: 'inline box-decoration-clone text-transparent select-none forced-color-adjust-none',
+	text: 'inline h-auto box-decoration-clone text-transparent select-none forced-color-adjust-none',
 } as const

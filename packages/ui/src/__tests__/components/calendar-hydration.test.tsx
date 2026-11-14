@@ -3,8 +3,9 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar } from '../../components/calendar'
+import { LocaleProvider } from '../../providers/locale'
 import { act, attach, flushAnnouncer, liveRegion, screen } from '../helpers'
-import { hydrate } from '../helpers/hydrate'
+import { hydrate, OTHER_DATE_MARK, serverMarkup, writeOtherDateText } from '../helpers/hydrate'
 
 /** The server clock: October 1 in UTC, the zone of the test run. */
 const SERVER_NOW = new Date('2026-10-01T02:00:00Z')
@@ -87,8 +88,6 @@ describe('Calendar hydration with a seed', () => {
 	])('puts the %s month in the server markup, and hydrates it with no mismatch', (_, element) => {
 		const { html, onRecoverableError, consoleError } = hydrateAcrossMonths(element)
 
-		expect(html).toContain('June 2025')
-
 		expect(html).toContain('role="option"')
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
@@ -96,5 +95,53 @@ describe('Calendar hydration with a seed', () => {
 		expect(consoleError).not.toHaveBeenCalled()
 
 		expect(screen.getAllByRole('option')).toHaveLength(30)
+	})
+})
+
+// The text of `Intl` comes from the date data of the JavaScript engine, and the
+// engine of a browser can write other text than the engine of the server.
+describe('Calendar hydration when the browser writes other date text', () => {
+	const element = (
+		<LocaleProvider locale="en-US">
+			<Calendar value={new Date(2025, 5, 15)} />
+		</LocaleProvider>
+	)
+
+	it('puts a skeleton of each label in the server markup, and no date text of Intl', () => {
+		const server = serverMarkup(element)
+
+		const header = server.querySelector('[data-slot="calendar-header"]')
+
+		expect(header?.querySelector('[data-slot="placeholder"]')).toHaveTextContent('June 2025')
+
+		expect(server.querySelectorAll('[data-slot="placeholder"]')).toHaveLength(8)
+
+		expect(server.querySelector('[role="listbox"]')?.getAttribute('aria-label')).toBe('')
+
+		for (const day of server.querySelectorAll('[role="option"]')) {
+			expect(day).not.toHaveAttribute('aria-label')
+		}
+	})
+
+	it('hydrates with no mismatch, then shows the labels of the browser', () => {
+		const container = attach(serverMarkup(element))
+
+		writeOtherDateText()
+
+		const { onRecoverableError, consoleError } = hydrate(container, element)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(consoleError).not.toHaveBeenCalled()
+
+		expect(container.querySelector('[data-slot="placeholder"]')).toBeNull()
+
+		expect(screen.getByRole('listbox', { name: `June 2025${OTHER_DATE_MARK}` })).toBeInTheDocument()
+
+		expect(screen.getByText(`Sun${OTHER_DATE_MARK}`)).toBeInTheDocument()
+
+		expect(
+			screen.getByRole('option', { name: `Sunday, June 15, 2025${OTHER_DATE_MARK}` }),
+		).toBeInTheDocument()
 	})
 })

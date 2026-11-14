@@ -35,6 +35,23 @@ export function standText(date: Date, options: Intl.DateTimeFormatOptions): stri
 	return `${day}${glue}${time}`
 }
 
+/**
+ * The {@link standText} of the local day of `date`, such as `6/15/2026` for the
+ * local midnight of June 15. A calendar day is a local midnight. The local parts
+ * of the day are the same on the server and in the browser, but the parts in
+ * UTC can differ by one day, so the text reads the local parts.
+ *
+ * @internal
+ */
+export function standDayText(date: Date, options: Intl.DateTimeFormatOptions): string {
+	const day = new Date(0)
+
+	// `setUTCFullYear` keeps the years 0 to 99, which `Date.UTC` reads as 1900 to 1999.
+	day.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate())
+
+	return standText(day, options)
+}
+
 const MONTHS = [
 	'January',
 	'February',

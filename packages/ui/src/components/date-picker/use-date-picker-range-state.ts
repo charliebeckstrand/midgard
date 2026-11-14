@@ -3,6 +3,7 @@
 import type { DateDuration } from '@internationalized/date'
 import { useCallback, useMemo, useReducer, useRef } from 'react'
 
+import { useHydrated } from '../../hooks/use-hydrated'
 import { useLocale } from '../../providers/locale/context'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { orderDates } from '../calendar/calendar-utilities'
@@ -10,7 +11,7 @@ import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
-import { clampDate, formatRange, stepDate } from './date-picker-utilities'
+import { clampDate, formatRange, standRange, stepDate } from './date-picker-utilities'
 import { useDatePickerGridEntry } from './use-date-picker-grid-entry'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
@@ -191,6 +192,10 @@ export function useDatePickerRangeState({
 		onFooterActivate,
 	})
 
+	// The text of `Intl` waits for hydration, as in `Calendar`. Until then the
+	// trigger shows a skeleton of the label.
+	const hydrated = useHydrated()
+
 	const committedStart = value ? value[0] : null
 
 	const committedEnd = value ? value[1] : null
@@ -201,7 +206,12 @@ export function useDatePickerRangeState({
 		returnFocusRef,
 		hasValue: value != null,
 		onClear: handleClear,
-		displayValue: value ? formatRange(value[0], value[1], ambient.locale, ambient.dateFormat) : '',
+		displayValue: !value
+			? ''
+			: hydrated
+				? formatRange(value[0], value[1], ambient.locale, ambient.dateFormat)
+				: standRange(value[0], value[1], ambient.dateFormat),
+		pending: value != null && !hydrated,
 		open,
 		onOpenChange,
 		onTriggerKeyDown,

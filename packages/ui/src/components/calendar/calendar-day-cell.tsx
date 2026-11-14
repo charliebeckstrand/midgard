@@ -22,6 +22,8 @@ type DayCellProps = {
 	gridColumnStart?: number
 	/** Resolved BCP 47 tag; the day number and the accessible name of the day use the same locale as the visible grid. */
 	localeTag: string
+	/** Whether the cell has the accessible name of its day. The name waits for hydration, as the labels of `Calendar` do. */
+	named: boolean
 	onSelect: (date: Date) => void
 	onMouseEnter?: () => void
 	onMouseLeave?: () => void
@@ -46,6 +48,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 	id,
 	gridColumnStart,
 	localeTag,
+	named,
 	onSelect,
 	onMouseEnter,
 	onMouseLeave,
@@ -60,7 +63,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 			id={id}
 			role="option"
 			aria-selected={selected}
-			aria-label={formatDayName(date, localeTag)}
+			aria-label={named ? formatDayName(date, localeTag) : undefined}
 			aria-current={isToday ? 'date' : undefined}
 			// The date picker reads the day of a focused cell from this ISO date.
 			data-date={dayKey(date)}
