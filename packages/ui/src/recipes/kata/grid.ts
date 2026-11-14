@@ -1056,7 +1056,8 @@ export const k = {
 		error: {
 			base: [
 				'self-start max-w-xs',
-				'rounded px-1.5 py-0.5 whitespace-normal',
+				rounded.sm,
+				'px-1.5 py-0.5 whitespace-normal',
 				size.xs,
 				'text-white shadow',
 				...mode('bg-red-600', 'dark:bg-red-500'),

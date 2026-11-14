@@ -16,7 +16,7 @@ const { mark } = shaku
 const { rail } = omote
 const { flex } = narabi
 
-const bg = omote.bg.code
+const { bg } = omote
 
 /**
  * The text of the block code: the text ramp of the inline mark, `text-sm` at
@@ -34,7 +34,7 @@ export const k = defineKata({
 		block: {
 			// The frame has no padding. The padding is in the scroll box, so a swipe
 			// on the padding scrolls the code too.
-			base: ['overflow-hidden flex items-start', rounded.lg, bg],
+			base: ['overflow-hidden flex items-start', rounded.lg, bg.code],
 			slots: {
 				// The padding of an alert, `p-4` at `md`, on the four sides. The padding on
 				// the side of the copy button is also the gap to it. While a line
