@@ -7,7 +7,7 @@ const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { focus } = sen
+const { border, focus } = sen
 
 export const k = {
 	/** The row of `FileUploadButton`: the trigger and the `Reset` button beside it. */
@@ -23,7 +23,7 @@ export const k = {
 		rounded.lg,
 		focus.ring,
 		'border border-dashed',
-		...mode('border-zinc-300', 'dark:border-zinc-700'),
+		...border.color.emphasis,
 		...cursor,
 		...mode('hover:not-disabled:border-zinc-400', 'dark:hover:not-disabled:border-zinc-500'),
 		...mode(
