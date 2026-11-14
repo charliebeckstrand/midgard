@@ -148,5 +148,14 @@ export const focus = {
 		],
 		/** Violet accent for a lifted host whose indicator is an outset outline. */
 		outline: 'focus-visible:outline-violet-600',
+		/**
+		 * The forced-colors mark of a lift behind the `data-dragging` gate, for a box
+		 * that is lifted only while it is dragged, such as a Grid row or column. It
+		 * has the width and the offset of {@link liftMark}.
+		 */
+		dragging: [
+			'forced-colors:data-dragging:outline-solid forced-colors:data-dragging:outline-4',
+			'forced-colors:data-dragging:-outline-offset-4 forced-colors:data-dragging:outline-[Highlight]',
+		],
 	},
 } as const

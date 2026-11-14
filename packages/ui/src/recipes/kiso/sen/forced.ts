@@ -40,6 +40,12 @@ export const forced = {
 	 */
 	mark: 'forced-colors:bg-[Highlight]',
 	/**
+	 * Text highlight: a wash behind text that marks a match, such as a search
+	 * match. The `Highlight` of a {@link forced.mark} does not keep the contrast of
+	 * the text on it, so the highlight paints in the `Mark` and `MarkText` pair.
+	 */
+	highlight: 'forced-colors:bg-[Mark] forced-colors:text-[MarkText]',
+	/**
 	 * Shape: a control that the reader sees only as its background, such as the
 	 * grip bar of a panel. Forced colors remove that background, so the shape
 	 * paints in `CanvasText`. A shape is not a state, so it does not take the
