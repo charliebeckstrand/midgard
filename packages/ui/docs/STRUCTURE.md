@@ -22,7 +22,7 @@ Every structure unit is static, so it renders in React Server Components ([`../R
 | `container` | A centered `<div>` with a maximum width from `lg` up and horizontal padding at every width. |
 | `flex` | A flex container with responsive direction, gap, alignment, and wrap. The gap takes the step of the nearest density scope. `as="span"` renders a `<span>` for phrasing content, such as the label of a button. |
 | `spacer` | An empty flex item that fills the free space and pushes its siblings apart. |
-| `split` | A two-pane grid with a responsive orientation and a ratio between the panes. |
+| `split` | A two-pane grid with a responsive orientation, a ratio between the panes, and a gap on the scale of `flex`. The gap takes the step of the nearest density scope. |
 | `stack` | A vertical `flex`: children stack in a column. It takes `as` from `flex`. |
 
 ---

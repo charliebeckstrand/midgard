@@ -5,7 +5,6 @@ export default function FlexPlayground(props: FlexProps) {
 	return (
 		<div className="flex h-20 overflow-hidden rounded-lg border border-zinc-950/10 p-2 dark:border-white/10">
 			<Flex
-				gap="sm"
 				className="rounded-md border border-dashed border-zinc-400 p-1 dark:border-zinc-600"
 				{...props}
 			>

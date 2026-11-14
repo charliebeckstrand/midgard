@@ -41,13 +41,13 @@ function loadPdfjs() {
 /**
  * The one worker every load shares, or `null` where this environment has none.
  *
- * @remarks Held here, and handed to `getDocument` as `worker`, rather than published on
- * pdf.js's `GlobalWorkerOptions.workerPort`. Both give one thread per page instead of one per
- * load, but a global port is one pdf.js caches and half-tears-down. `loadingTask.destroy()`
- * marks the *cached* worker pending-destroy, and any `getDocument` before that round-trip
- * completes throws. That window is reachable whenever two loads overlap: one document
- * finishing while another is still opening, which two viewers on different scans do. A
- * caller-supplied worker closes it, because pdf.js never destroys one it did not create.
+ * @remarks Held here, and handed to `getDocument` as `worker`. pdf.js destroys a worker only
+ * when the load created it. On a port, `loadingTask.destroy()` marks the worker of the port
+ * pending-destroy until its round trip to the worker completes. A `getDocument` on that port
+ * in this window throws. Two loads reach this window when one document is released while
+ * another still opens, which two viewers on different scans do. After the round trip, the
+ * destroy tears down the worker that the other loads of the port use. pdf.js never destroys
+ * a worker that the caller gives.
  * @internal
  */
 let sharedWorker: import('pdfjs-dist').PDFWorker | null = null
@@ -65,14 +65,21 @@ let sharedWorker: import('pdfjs-dist').PDFWorker | null = null
  * the call is reachable. A Vite-only query therefore breaks the build of any app that merely
  * renders this component.
  *
- * A caller that has set `workerSrc` or `workerPort` itself keeps that choice; this defers to
- * it and creates nothing.
+ * A caller that has set `workerPort` or `workerSrc` itself keeps that choice, and this creates
+ * no worker. A `workerPort` goes to `getDocument` as the worker of that port, for the reason
+ * at {@link sharedWorker}. `PDFWorker.create` gives the worker that pdf.js keeps for the port.
+ * A `workerSrc` gives each load a worker of its own, which shares nothing, so this returns
+ * `null`.
  * @internal
  */
 async function resolveWorker(): Promise<import('pdfjs-dist').PDFWorker | null> {
 	const pdfjs = await loadPdfjs()
 
-	if (pdfjs.GlobalWorkerOptions.workerSrc || pdfjs.GlobalWorkerOptions.workerPort) return null
+	const { workerPort, workerSrc } = pdfjs.GlobalWorkerOptions
+
+	if (workerPort) return pdfjs.PDFWorker.create({ port: workerPort })
+
+	if (workerSrc) return null
 
 	if (sharedWorker) return sharedWorker
 

@@ -6,9 +6,10 @@
  * one string to `cn` for each part on each render.
  */
 import { defineKata, mode } from '../../core/recipe'
-import { dan, hannou, iro, ji, kasane, omote, sen, ugoki } from '../kiso'
+import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { fg, grab } = hannou
+const { flex } = narabi
 const { forced } = sen
 const { text } = iro
 const { rounded } = kasane
@@ -66,7 +67,7 @@ const tile = {
  * colors the solid outline of a lift.
  */
 const card = {
-	base: ['relative flex size-full min-h-0 flex-col'],
+	base: [flex.col, 'relative size-full min-h-0'],
 	editable: {
 		true: ['select-none', 'outline-dashed', ...mode('outline-zinc-300', 'dark:outline-zinc-700')],
 		false: '',
@@ -99,7 +100,8 @@ const card = {
  * the floor.
  */
 const header = [
-	'flex min-w-0 items-center gap-2',
+	flex.row,
+	'min-w-0 gap-2',
 	dan.space.box.bottom,
 	'[--touch-target-gap-x:0px]',
 	'pointer-coarse:has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
@@ -119,7 +121,7 @@ const heading = 'min-w-0 flex-1'
  * controls in the row after hydration, so the row then keeps its height, and a
  * tile that takes the height of its content keeps the height of its first paint.
  */
-const actions = ['flex shrink-0 items-center gap-2', dan.size.button.row]
+const actions = [flex.row, 'shrink-0 gap-2', dan.size.button.row]
 
 /**
  * The content box. It fills the height that the header leaves. A widget taller
@@ -145,17 +147,18 @@ const content = '@container relative min-h-0 flex-auto overflow-auto'
  * height stops at 70% of the viewport or 40rem. A tall, narrow tile therefore
  * gets a wider box than its shape.
  */
-const expanded = 'flex max-h-[min(70dvh,40rem)] min-h-0 w-full flex-col'
+const expanded = [flex.col, 'max-h-[min(70dvh,40rem)] min-h-0 w-full']
 
 /** The error state of a tile: a centered message and a retry button. */
 const error = [
-	'flex size-full flex-col items-center justify-center',
+	flex.col,
+	'size-full items-center justify-center',
 	dan.gap.scale.sm,
 	'p-2 text-center',
 ]
 
 /** The state of a spec tile whose kind no widget claims: a centered message. */
-const missing = 'flex size-full items-center justify-center p-2 text-center'
+const missing = [flex.row, 'size-full justify-center p-2 text-center']
 
 /**
  * The landing placeholder of a dragged tile. It takes the radius of the tile
@@ -176,7 +179,8 @@ const placeholder = [
  */
 const handle = {
 	base: [
-		'flex shrink-0 items-center justify-center',
+		flex.row,
+		'shrink-0 justify-center',
 		dan.size.button.icon,
 		rounded.md,
 		...grab.default,
