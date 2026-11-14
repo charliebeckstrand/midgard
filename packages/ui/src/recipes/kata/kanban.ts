@@ -82,7 +82,6 @@ export const k = defineKata(
 							rounded.md,
 							text.muted,
 							...grab.default,
-							'data-disabled:cursor-not-allowed',
 							focus.ring,
 						],
 						// The handle holds the focus of a lifted card, so it takes the accent in

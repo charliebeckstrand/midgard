@@ -11,7 +11,7 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 // some on `data-dragging`, and two grips never closed it or never set
 // `touch-none`.
 //
-// Two rules keep the one source of truth:
+// Three rules keep the one source of truth:
 //
 //   1. No file but `recipes/kiso/hannou/cursor.ts` spells `cursor-grab`, which
 //      also matches `cursor-grabbing`.
@@ -19,6 +19,9 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 //   2. Each bundle closes the hand on `data-dragging`, never on `:active`. A
 //      right-click presses an element into `:active` too, and a context menu
 //      that swallows the `pointerup` leaves an `:active` cursor stuck closed.
+//
+//   3. Each bundle shows `not-allowed` on a disabled surface, and reads the
+//      native `:disabled` and `data-disabled`, so no reader adds the cursor.
 
 // Every layer that spells Tailwind classes.
 const SCAN_ROOTS = [
@@ -66,6 +69,14 @@ describe('grab-cursor boundary', () => {
 		expect(classes.filter((name) => name.startsWith('active:'))).toEqual([])
 
 		expect(classes).toContain('touch-none')
+	})
+
+	it('shows not-allowed on a disabled surface in each spelling of disabled', () => {
+		const classes = hannou.grab.default.join(' ').split(/\s+/)
+
+		expect(classes).toEqual(
+			expect.arrayContaining(['disabled:cursor-not-allowed', 'data-disabled:cursor-not-allowed']),
+		)
 	})
 
 	it('stops a long press on iOS from selecting text or showing the callout', () => {

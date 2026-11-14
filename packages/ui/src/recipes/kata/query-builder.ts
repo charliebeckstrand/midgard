@@ -130,7 +130,6 @@ export const k = defineKata(
 							),
 							...focus.ring,
 							...disabled,
-							'disabled:cursor-not-allowed',
 						],
 						held: { true: focus.lifted.outline, false: '' },
 					},
