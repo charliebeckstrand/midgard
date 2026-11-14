@@ -18,7 +18,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useIntentLoad` | `useIdleLoad` that also loads on a pointer, a focus, or a press, for a trigger that loads its code first. A press gives a failed load to the `onError` of `request`. |
 | `useHydrated` | Whether the page has hydrated: `false` on the server and in the hydration render, `true` after. A value that only the browser can read waits on it, so the hydration render matches the server markup (CONVENTIONS §3.13). |
 | `useToday` | The current day of the reader, as its local midnight, which moves to the next day at local midnight. It is `null` on the server and in the hydration render (`useHydrated`), because the server does not know the zone of the reader. The `Date` keeps its identity for the whole day. |
-| `useTimeout` | One restartable timer with stable `set`, `clear`, and `pending`, for a debounce or a dwell delay. It clears on unmount, and holds a delay past the platform limit at that limit. |
+| `useTimeout` | One restartable timer with stable `set`, `clear`, and `pending`, for a debounce or a dwell delay. It clears on unmount, ignores a `set` after unmount, and holds a delay past the platform limit at that limit. |
 | `useOffcanvas` | Open state of an offcanvas panel, which closes when its `layout` turns `inline` (by default from `lg`). It also gives the `layout`, with `drawer` as its `initial` value when the map names none, and whether that layout is `inline` at the viewport. |
 
 ## Floating & overlays

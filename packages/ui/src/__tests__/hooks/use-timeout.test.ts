@@ -108,6 +108,36 @@ describe('useTimeout', () => {
 		expect(callback).not.toHaveBeenCalled()
 	})
 
+	// React runs the cleanup of a parent before the cleanups of its children, so
+	// a child can call `set` from its cleanup after the timer cleared.
+	it('starts no timer from a call after unmount', async ({ clock }) => {
+		const callback = vi.fn()
+
+		const { result, unmount } = renderHook(() => useTimeout())
+
+		unmount()
+
+		act(() => result.current.set(callback, 100))
+
+		expect(result.current.pending()).toBe(false)
+
+		await clock.advance(100)
+
+		expect(callback).not.toHaveBeenCalled()
+	})
+
+	it('starts a timer again after a remount in Strict Mode', async ({ clock }) => {
+		const callback = vi.fn()
+
+		const { result } = renderHook(() => useTimeout(), { reactStrictMode: true })
+
+		act(() => result.current.set(callback, 100))
+
+		await clock.advance(100)
+
+		expect(callback).toHaveBeenCalledTimes(1)
+	})
+
 	it('keeps its identity across renders', () => {
 		const { result, rerender } = renderHook(() => useTimeout())
 
