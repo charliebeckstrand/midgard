@@ -175,17 +175,28 @@ function formatLabel(intl: IntlShape, prop: string, value: Value): string {
 function getStart(field: Field, start: Start): Value | undefined {
 	if (field.kind !== 'choice') return field.start
 
-	if (Object.hasOwn(start, field.name)) {
-		const value = start[field.name]
-
-		if (!accepts(field, value)) {
-			throw new Error(`docs: the start of the prop ${field.name} is not a value of its field`)
-		}
-
-		return value
-	}
+	if (Object.hasOwn(start, field.name)) return start[field.name]
 
 	return field.default ?? (field.required ? field.values[0] : undefined)
+}
+
+/**
+ * Throws unless each prop of `start` has a choice field among `fields`, and its
+ * start is a value of that field. A start that no field takes would leave the
+ * instance at its default, the opposite of what the page asks for.
+ */
+function assertStart(fields: readonly Field[], start: Start): void {
+	for (const [name, value] of Object.entries(start)) {
+		const field = fields.find((candidate) => candidate.name === name)
+
+		if (field?.kind !== 'choice') {
+			throw new Error(`docs: the prop ${name} has a start but no choice field`)
+		}
+
+		if (!accepts(field, value)) {
+			throw new Error(`docs: the start of the prop ${name} is not a value of its field`)
+		}
+	}
 }
 
 /** Tells if `value` is a value of `field`. An omitted value is, unless the field is required. */
@@ -483,6 +494,8 @@ export function Playground<P extends object>({
 	const step = useDensityStep()
 
 	const fields = buildFields(component.props, omit, given, free, step)
+
+	assertStart(fields, start)
 
 	const [picked, setPicked] = useState<Values>({})
 

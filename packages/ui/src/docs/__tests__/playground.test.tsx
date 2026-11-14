@@ -223,6 +223,23 @@ describe('Playground', () => {
 		).toThrow('the start of the prop orientation is not a value of its field')
 	})
 
+	it('throws for a start of a prop with no choice field', () => {
+		expect(() =>
+			render(
+				<Playground
+					of={ThingPlayground}
+					api={API}
+					omit={['orientation']}
+					start={{ orientation: 'horizontal' }}
+				/>,
+			),
+		).toThrow('the prop orientation has a start but no choice field')
+
+		expect(() => render(<Playground of={ThingPlayground} api={API} start={{ max: 50 }} />)).toThrow(
+			'the prop max has a start but no choice field',
+		)
+	})
+
 	// A value with no word, such as `16/9`, is code. On a right-to-left page
 	// with no `dir`, it shows as `9/16`.
 	it('keeps a value with no word left to right, in the field and in its options', () => {
