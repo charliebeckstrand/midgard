@@ -196,9 +196,9 @@ export const k = defineKata({
 
 /**
  * Recipe variant props for {@link ChatMessage}: the styling axes its kata
- * exposes (`sender`), for consumers composing custom slots. The `streaming`
- * axis of the bubble and the `trigger` axis of the actions are props of the
- * message, with their own descriptions.
+ * exposes (`sender` and `trigger`), for consumers composing custom slots. The
+ * `streaming` axis of the bubble is a prop of the message, with its own
+ * description.
  */
 export type ChatMessageVariants = Omit<
 	VariantProps<typeof k>,
@@ -206,4 +206,13 @@ export type ChatMessageVariants = Omit<
 > & {
 	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
 	sender?: VariantProps<typeof k>['sender']
+	/**
+	 * When `actions` show. `'hover'` is a toolbar over the top corner of the
+	 * bubble that shows while the pointer is over the message or focus is in it.
+	 * A device with no hover shows it as a row below the bubble. `'static'` is
+	 * that row on every device.
+	 * @defaultValue 'hover'
+	 * @media hover
+	 */
+	trigger?: VariantProps<typeof k>['trigger']
 }
