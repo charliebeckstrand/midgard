@@ -38,7 +38,8 @@ function flatTransform(_values: unknown, generated: string) {
 
 /**
  * The ref of the marker: it removes the snapshot that the projection node of
- * the marker kept from its own unmount.
+ * the marker kept from its own unmount, and keeps the snapshot that it took
+ * over from the marker that it replaces.
  *
  * Motion measures a node with a `layoutId` when the node unmounts, so that the
  * next marker of the group can morph from that box. A hidden `<Activity>`
@@ -50,15 +51,21 @@ function flatTransform(_values: unknown, generated: string) {
  * another position. A marker that mounts morphs only from the marker that it
  * replaces (`resumeFrom`), never from a box of its own.
  *
- * Motion calls this ref after it mounts the node. A new node has no snapshot,
- * so the ref changes nothing on a usual mount.
+ * Motion calls this ref after it mounts the node. On a usual mount, the stack
+ * of the `layoutId` gives the node the snapshot of the marker that it replaces
+ * (`resumeFrom`). The morph reads the box of that snapshot, and also its
+ * values, such as the corner radius. Without them, the radius starts at zero,
+ * so the marker has square corners at the start of the morph. Thus the ref
+ * keeps that snapshot.
  */
 function dropOwnSnapshot(marker: HTMLSpanElement | null) {
 	if (marker === null) return
 
 	const projection = visualElementStore.get(marker)?.projection
 
-	if (projection) projection.snapshot = undefined
+	if (projection && projection.snapshot !== projection.resumeFrom?.snapshot) {
+		projection.snapshot = undefined
+	}
 }
 
 /**
