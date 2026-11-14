@@ -14,7 +14,7 @@ import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, omote, sen } from '../kiso'
 
 const { text } = iro
-const { size } = ji
+const { size, weight } = ji
 const { rail } = omote
 const { gridline } = sen
 
@@ -55,7 +55,7 @@ const projection = {
 const rule = '[&>*>tr>:is(td,th)]:border'
 
 export const k = defineKata({
-	base: 'w-full text-start text-base',
+	base: ['w-full text-start', size.md],
 	// `true` selects the default weight, and a name selects another weight.
 	outline: {
 		true: [rule, ...gridline.default],
@@ -81,7 +81,7 @@ export const k = defineKata({
 		caption: ['caption-top text-start pb-2', size.sm, text.muted],
 		// A browser centers a `<th>` through its own stylesheet, and the `text-start` of
 		// the table does not reach it. So the header states its alignment, as a cell does.
-		header: ['text-start font-bold', text.muted, padding],
+		header: ['text-start', weight.bold, text.muted, padding],
 		cell: [text.default, padding],
 		empty: ['text-center', text.muted],
 	},

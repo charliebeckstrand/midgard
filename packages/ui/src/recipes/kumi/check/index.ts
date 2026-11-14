@@ -58,13 +58,15 @@ export const rest = mode(
  * `data-indeterminate`, as the kata does. Only a client effect sets the DOM
  * property, so the server HTML has only the attribute. A radio has no such
  * attribute, though it matches `:indeterminate` when no radio of its group is
- * checked.
+ * checked. The hover border also skips a read-only control, because a press
+ * does not change it. A Checkbox sets `aria-readonly`, and a Radio sets
+ * `data-readonly`.
  */
 const surface = [
 	...rest,
 	...mode(
-		'not-has-[:disabled,:checked,[data-indeterminate]]:hover:border-zinc-950/70 not-has-[:disabled,:checked,[data-indeterminate]]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
-		'dark:not-has-[:disabled,:checked,[data-indeterminate]]:hover:border-white/50 dark:not-has-[:disabled,:checked,[data-indeterminate]]:group-has-[[data-slot=label]:hover]/field:border-white/50',
+		'not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:hover:border-zinc-950/70 not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
+		'dark:not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:hover:border-white/50 dark:not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:group-has-[[data-slot=label]:hover]/field:border-white/50',
 	),
 	'has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',
 	...validation,

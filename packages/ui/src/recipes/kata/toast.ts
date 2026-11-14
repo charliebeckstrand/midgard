@@ -5,8 +5,9 @@
  * viewport and the stack. The motion configs are extras.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, sou, ugoki } from '../kiso'
+import { dan, narabi, sou, ugoki } from '../kiso'
 
+const { flex } = narabi
 const { spring, toast } = ugoki
 
 /** The scroll of a corner stack, which takes the width of its cards. */
@@ -46,7 +47,8 @@ export const k = defineKata(
 	{
 		base: [
 			sou.toast,
-			'fixed top-0 bottom-0 flex flex-col',
+			flex.col,
+			'fixed top-0 bottom-0',
 			// The stack keeps clear of the notch and the home indicator in a page with
 			// `viewport-fit=cover`. Elsewhere each inset is zero, and the padding is 1rem.
 			'p-4 pt-[max(--spacing(4),env(safe-area-inset-top))] pb-[max(--spacing(4),env(safe-area-inset-bottom))]',
@@ -56,7 +58,8 @@ export const k = defineKata(
 		slots: {
 			scroll: {
 				base: [
-					'flex flex-col max-h-full overflow-y-auto overscroll-contain',
+					flex.col,
+					'max-h-full overflow-y-auto overscroll-contain',
 					dan.size.toast.width,
 					'pointer-events-auto',
 				],

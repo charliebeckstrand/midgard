@@ -5,7 +5,7 @@ import BoxPlayground from './playground.tsx'
 export default function BoxPage() {
 	return (
 		<>
-			<Playground of={BoxPlayground} api={api} />
+			<Playground of={BoxPlayground} api={api} start={{ p: 'lg' }} />
 			<ApiTable api={api} />
 		</>
 	)
