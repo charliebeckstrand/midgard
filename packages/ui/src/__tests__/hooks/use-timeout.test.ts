@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
+import { useLayoutEffect } from 'react'
 import { describe, expect, vi } from 'vitest'
 import { useTimeout } from '../../hooks/use-timeout'
 import { MAX_TIMEOUT } from '../../utilities/time-units'
@@ -106,6 +107,53 @@ describe('useTimeout', () => {
 		await clock.advance(100)
 
 		expect(callback).not.toHaveBeenCalled()
+	})
+
+	// React runs the cleanup of a parent before the cleanups of its children, so
+	// a child can call `set` from its cleanup after the timer cleared.
+	it('starts no timer from a call after unmount', async ({ clock }) => {
+		const callback = vi.fn()
+
+		const { result, unmount } = renderHook(() => useTimeout())
+
+		unmount()
+
+		act(() => result.current.set(callback, 100))
+
+		await clock.advance(100)
+
+		expect(callback).not.toHaveBeenCalled()
+	})
+
+	// Strict Mode runs the layout effects again before the passive effects, as
+	// an `<Activity>` that shows its content again does.
+	it('starts a timer from a layout effect that runs again in Strict Mode', async ({ clock }) => {
+		const callback = vi.fn()
+
+		renderHook(
+			() => {
+				const timeout = useTimeout()
+
+				useLayoutEffect(() => timeout.set(callback, 100), [timeout])
+			},
+			{ reactStrictMode: true },
+		)
+
+		await clock.advance(100)
+
+		expect(callback).toHaveBeenCalledTimes(1)
+	})
+
+	it('starts a timer again after a remount in Strict Mode', async ({ clock }) => {
+		const callback = vi.fn()
+
+		const { result } = renderHook(() => useTimeout(), { reactStrictMode: true })
+
+		act(() => result.current.set(callback, 100))
+
+		await clock.advance(100)
+
+		expect(callback).toHaveBeenCalledTimes(1)
 	})
 
 	it('keeps its identity across renders', () => {

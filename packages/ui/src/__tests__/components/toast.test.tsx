@@ -433,6 +433,36 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.queryByText('Second')).not.toBeInTheDocument()
 	})
 
+	// The cleanup of the provider runs before the cleanup of the toast, which
+	// releases its hold. That release must not start a countdown that nothing
+	// clears: it would fire after the test, in the file that runs next.
+	it('starts no countdown when the provider unmounts while a toast holds focus', async ({
+		clock,
+	}) => {
+		const onDismiss = vi.fn()
+
+		let api: ReturnType<typeof useToast> | null = null
+
+		const { unmount } = renderUI(
+			<ToastProvider duration={1000}>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Held', onDismiss })
+		})
+
+		fireEvent.focusIn(screen.getByText('Held'))
+
+		unmount()
+
+		await clock.advance(10_000)
+
+		expect(onDismiss).not.toHaveBeenCalled()
+	})
+
 	it('keeps the timer paused when focus leaves while the pointer still hovers', async ({
 		clock,
 	}) => {
