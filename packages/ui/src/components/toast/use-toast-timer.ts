@@ -41,8 +41,8 @@ export function useToastTimer(
 
 	// When the whole provider unmounts, the cleanup of this timer runs before the
 	// cleanup of each `ToastAlert`, and a held toast calls `resume` from its
-	// cleanup. `useTimeout` ignores the `set` of that `resume`, so no countdown
-	// outlives the provider.
+	// cleanup. The `set` of that `resume` waits for an effect that never runs
+	// again (`useTimeout`), so no countdown outlives the provider.
 
 	// Moves each countdown to now, and drops the toasts that are gone or leave by
 	// another route. While held, the clock is stopped, so no time is subtracted.

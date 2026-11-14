@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
+import { useLayoutEffect } from 'react'
 import { describe, expect, vi } from 'vitest'
 import { useTimeout } from '../../hooks/use-timeout'
 import { MAX_TIMEOUT } from '../../utilities/time-units'
@@ -119,11 +120,28 @@ describe('useTimeout', () => {
 
 		act(() => result.current.set(callback, 100))
 
-		expect(result.current.pending()).toBe(false)
-
 		await clock.advance(100)
 
 		expect(callback).not.toHaveBeenCalled()
+	})
+
+	// Strict Mode runs the layout effects again before the passive effects, as
+	// an `<Activity>` that shows its content again does.
+	it('starts a timer from a layout effect that runs again in Strict Mode', async ({ clock }) => {
+		const callback = vi.fn()
+
+		renderHook(
+			() => {
+				const timeout = useTimeout()
+
+				useLayoutEffect(() => timeout.set(callback, 100), [timeout])
+			},
+			{ reactStrictMode: true },
+		)
+
+		await clock.advance(100)
+
+		expect(callback).toHaveBeenCalledTimes(1)
 	})
 
 	it('starts a timer again after a remount in Strict Mode', async ({ clock }) => {
