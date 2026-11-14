@@ -1,11 +1,12 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineColors, defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, hannou, iro, kasane, kokkaku, sen } from '../kiso'
+import { dan, hannou, iro, kasane, kokkaku, narabi, sen } from '../kiso'
 import { hidden, validation } from '../kumi/check'
 
 const { cursor, disabled } = hannou
 const { text } = iro
 const { rounded } = kasane
+const { flex } = narabi
 const { focus, ring } = sen
 
 const color = defineColors({
@@ -78,14 +79,15 @@ const thumb = [
  * and at `end`.
  */
 const choice = {
-	base: ['group/switch-choice inline-flex w-fit items-center', dan.gap.x.md, ...disabled],
+	base: [flex.inline, 'group/switch-choice w-fit', dan.gap.x.md, ...disabled],
 	color,
 }
 
 export const k = defineKata(
 	{
 		base: [
-			'relative inline-flex shrink-0 items-center',
+			flex.inline,
+			'relative shrink-0',
 			focus.outline,
 			...cursor,
 			rounded.full,

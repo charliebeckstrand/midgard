@@ -1,5 +1,5 @@
 import { defineKata } from '../../core/recipe'
-import { iro, ji, kara } from '../kiso'
+import { dan, iro, kara } from '../kiso'
 import { list } from '../kumi/control'
 
 export { scale } from '../kumi/control'
@@ -16,6 +16,7 @@ export const k = defineKata({
 		// case, which `:empty` alone cannot see.
 		list: ['peer', 'space-y-0.5', 'empty:hidden', kara.list],
 		// Sibling empty-state message: shown when the listbox peer holds no options.
-		empty: ['hidden', 'peer-empty:block', kara.message, 'p-2', ji.size.md, text.muted],
+		// Its text takes the step of the panel, as the text of an option does.
+		empty: ['hidden', 'peer-empty:block', kara.message, 'p-2', dan.text.body, text.muted],
 	},
 })

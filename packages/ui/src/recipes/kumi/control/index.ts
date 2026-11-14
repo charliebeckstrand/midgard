@@ -156,9 +156,11 @@ export const list = defineGroup(
 			 * a scrollbar at seven options, and the dashboard picker hit it with screen to
 			 * spare. The cap binds only on a list that exceeds it. A panel that no longer
 			 * fits below its trigger flips above, and a panel that fits on neither side
-			 * shrinks into the larger space (the floating middleware chain).
+			 * shrinks into the larger space (the floating middleware chain). The panel
+			 * sits in the flow of its floating wrapper, which places it, so `relative`
+			 * replaces the `absolute` of the popover panel.
 			 */
-			options: ['max-h-80', fit.scroll],
+			options: ['relative', 'max-h-80', fit.scroll],
 		},
 	},
 	{

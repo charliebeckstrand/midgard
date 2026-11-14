@@ -10,8 +10,7 @@
 import { defineKata } from '../../core/recipe'
 import { dan, narabi, omote, sen, sou } from '../kiso'
 
-const { flex } = narabi
-const shows = narabi.offcanvas
+const { flex, offcanvas } = narabi
 const { gap, space } = dan
 
 // The layout is in the flow, and the page scrolls at each width. A mobile
@@ -130,10 +129,10 @@ export const k = defineKata({
 	base: layout,
 	responsive: { layout: { drawer: 'flex-col bg-white', inline: 'flex-row bg-zinc-100' } },
 	slots: {
-		navbar: { base: navbar, responsive: { layout: shows.drawer.block } },
-		panel: { base: panel, responsive: { layout: shows.inline.block } },
+		navbar: { base: navbar, responsive: { layout: offcanvas.drawer.block } },
+		panel: { base: panel, responsive: { layout: offcanvas.inline.block } },
 		// The aside on the end edge. Its content takes its own width.
-		aside: { base: column, responsive: { layout: shows.inline.block } },
+		aside: { base: column, responsive: { layout: offcanvas.inline.block } },
 		actions,
 		floating: {
 			slots: {
@@ -145,7 +144,7 @@ export const k = defineKata({
 				},
 				sheet,
 				body: sheetBody,
-				buffer: { base: buffer, responsive: { layout: shows.inline.block } },
+				buffer: { base: buffer, responsive: { layout: offcanvas.inline.block } },
 			},
 		},
 		content: {
@@ -179,7 +178,7 @@ export const k = defineKata({
 			],
 			slots: {
 				/** The actions in the header, which show in the inline layout only. */
-				actions: { base: actions, responsive: { layout: shows.inline.flex } },
+				actions: { base: actions, responsive: { layout: offcanvas.inline.flex } },
 			},
 		},
 		body,

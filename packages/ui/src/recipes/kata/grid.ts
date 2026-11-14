@@ -10,7 +10,7 @@ import { mode, type PaletteColor } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { busy, cursor, fg, grab } = hannou
-const { match, text } = iro
+const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -70,6 +70,17 @@ const draggingSurface = mode(
 	'data-dragging:bg-(--surface-fill,var(--color-white))',
 	'dark:data-dragging:bg-(--surface-fill,var(--color-zinc-950))',
 )
+
+/**
+ * The forced-colors mark of a dragged row or column. Forced colors remove the
+ * shadow and repaint the surface of the lift, so the lift draws the 4 px inset
+ * `Highlight` outline of `sen.focus.lifted`, behind the `data-dragging` gate
+ * (CONVENTIONS §5.10).
+ */
+const draggingMark = [
+	'forced-colors:data-dragging:outline-solid forced-colors:data-dragging:outline-4',
+	'forced-colors:data-dragging:-outline-offset-4 forced-colors:data-dragging:outline-[Highlight]',
+]
 
 /**
  * The 2px rule at the boundary of a frozen group: a full-height `::after` on
@@ -357,13 +368,13 @@ export const k = {
 		// lets the content overflow and keeps the one line.
 		editing: ['block', 'whitespace-nowrap'],
 		// The search-highlight wash behind a matched substring when `search.mode`
-		// is `'highlight'` (mark, don't prune). It takes `iro.match`, as the search
-		// match of a JsonTree does, so a match reads the same across the system. `text-inherit` drops the browser's default
+		// is `'highlight'` (mark, don't prune). The wash is `iro.match`, the wash of
+		// the JsonTree search match too, so a match reads the same across the system.
+		// Forced colors remove it, so the match paints the `Mark` pair. `text-inherit` drops the browser's default
 		// yellow/black <mark> ink, and the wash carries no box metrics, so the marked
 		// run's width matches the plain text and the column autosizer still measures
-		// the intrinsic content width. Under forced colors the wash keeps its alpha,
-		// so the match paints the system `Mark` pair.
-		mark: [...match, rounded.sm, 'text-inherit', forced.highlight],
+		// the intrinsic content width.
+		mark: [...iro.match, rounded.sm, 'text-inherit', forced.highlight],
 		// Truncation tooltip surface: cap the width and let long text wrap inside.
 		tooltip: ['max-w-xs', 'whitespace-normal', 'wrap-break-word'],
 		// A roving-focusable data cell (`onCellClick`/`onCellDoubleClick`): the
@@ -466,9 +477,7 @@ export const k = {
 				'data-dragging:text-zinc-500',
 				'dark:data-dragging:text-zinc-400',
 				...draggingSurface,
-				// Forced colors remove the shadow and force the text color, so the lift
-				// draws the outline of a lift.
-				...focus.lifted.dragging,
+				...draggingMark,
 			],
 			// Promotes a non-sticky reorder cell to `relative` while dragging so its
 			// lift z-index takes effect.
@@ -566,7 +575,7 @@ export const k = {
 				'data-dragging:z-10',
 				'data-dragging:shadow-lg',
 				...draggingSurface,
-				...focus.lifted.dragging,
+				...draggingMark,
 			],
 		},
 		// The new-row slot of an editable grid. Its cells stick to the top or the
@@ -1047,7 +1056,8 @@ export const k = {
 		error: {
 			base: [
 				'self-start max-w-xs',
-				'rounded px-1.5 py-0.5 whitespace-normal',
+				rounded.sm,
+				'px-1.5 py-0.5 whitespace-normal',
 				size.xs,
 				'text-white shadow',
 				...mode('bg-red-600', 'dark:bg-red-500'),

@@ -1,6 +1,7 @@
 import { defineKata } from '../../core/recipe'
-import { dan, omote, sen } from '../kiso'
+import { dan, narabi, omote, sen } from '../kiso'
 
+const { flex } = narabi
 const { focus } = sen
 
 export const k = defineKata({
@@ -51,7 +52,7 @@ export const k = defineKata({
 			slots: {
 				row: ['flex', dan.space.tags.y, dan.gap.touch.tags.x, 'ms-(--touch-target-gap-x)'],
 				/** The box of the add button in `add.row`: the line and the pad of a chip. */
-				chip: ['flex items-center min-h-lh py-ring-1', dan.text.chip],
+				chip: [flex.row, 'min-h-lh py-ring-1', dan.text.chip],
 			},
 		},
 		// The text input keeps a width that a draft tag fits in: half of the frame,

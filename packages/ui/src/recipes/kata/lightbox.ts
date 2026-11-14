@@ -1,7 +1,8 @@
 import { defineKata } from '../../core/recipe'
-import { dan, kasane, omote, sen, ugoki } from '../kiso'
+import { dan, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { rounded } = kasane
+const { flex } = narabi
 const { focus, ring } = sen
 const { rail, scrollbar } = omote
 const { duration, ease } = ugoki
@@ -99,8 +100,9 @@ export const k = defineKata(
 			 */
 			slot: {
 				base: [
+					flex.row,
 					// biome-ignore lint/plugin/no-physical-side: the flight math scales the slot from its top left corner
-					'absolute inset-y-0 flex w-full origin-top-left items-center justify-center overflow-clip',
+					'absolute inset-y-0 w-full origin-top-left justify-center overflow-clip',
 					frame.base,
 				],
 				chrome: frame.chrome,
@@ -155,7 +157,8 @@ export const k = defineKata(
 			 */
 			pill: {
 				base: [
-					'flex items-center rounded-full bg-zinc-800/80 p-1 text-zinc-100 ring-white/10',
+					flex.row,
+					'rounded-full bg-zinc-800/80 p-1 text-zinc-100 ring-white/10',
 					...ring.line[1].outset,
 				],
 				/**

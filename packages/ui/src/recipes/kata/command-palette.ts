@@ -55,7 +55,7 @@ export const k = defineKata(
 			// A group after any sibling takes the slot gap of the panel, which is the
 			// space between the search input and the first group. Each heading
 			// therefore has the same space above it.
-			group: ['flex flex-col gap-0.5', gap.above],
+			group: [flex.col, 'gap-0.5', gap.above],
 			title: ['p-2', size.xs, text.muted, weight.medium],
 			// The no-results status after the body: a persistent `<output>`
 			// (role=status). It never hides, because a live region speaks only while it

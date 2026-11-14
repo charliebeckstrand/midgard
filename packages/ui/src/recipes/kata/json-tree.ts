@@ -9,7 +9,7 @@ import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
-const { match, text } = iro
+const { text } = iro
 const { family, size } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -74,10 +74,10 @@ export const k = defineKata(
 			],
 			content: {
 				base: [flex.inline, 'min-w-0', dan.gap.scale.xs],
-				// Forced colors remove the wash, so a match paints the system `Mark` pair,
-				// which keeps the contrast of the text on it.
+				// Forced colors remove the wash, so a match paints the `Mark` pair of
+				// `sen.forced.highlight`, which keeps the contrast of the text on it.
 				highlighted: {
-					true: [...match, rounded.lg, forced.highlight],
+					true: [...iro.match, rounded.lg, forced.highlight],
 					false: '',
 				},
 			},
