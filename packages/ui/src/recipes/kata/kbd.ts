@@ -24,4 +24,7 @@ export const k = defineKata({
 export const scale = defineScale(...mark.density)
 
 /** Recipe variant props for {@link Kbd}: the `size` step that the component writes as a density scope. */
-export type KbdVariants = { size?: ScaleStep<typeof scale> }
+export type KbdVariants = {
+	/** The density step. Omit it to take the step of the nearest density scope. */
+	size?: ScaleStep<typeof scale>
+}

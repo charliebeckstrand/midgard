@@ -46,7 +46,7 @@ export const k = defineKata({
 				css.transform,
 				'hover:not-disabled:scale-110',
 				'active:not-disabled:scale-110',
-				// The thumb rings match the native thumb of `Slider` (`kata/slider.ts`).
+				// The thumb rings match the native thumb of `Slider` (`sen.ring.thumb` in `kiso/sen/ring.ts`).
 				// Tailwind needs literal pseudo-element classes there, so the two lists stay apart.
 				'data-invalid:ring-2 data-invalid:ring-red-600',
 				...forced.invalid.outset,
@@ -63,5 +63,6 @@ export const k = defineKata({
 export type RangeSliderVariants = Omit<VariantProps<typeof k>, 'color'> & {
 	/** The color of the filled part of the track. @defaultValue 'blue' */
 	color?: VariantProps<typeof k>['color']
+	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: ScaleStep<typeof scale>
 }

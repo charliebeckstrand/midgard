@@ -95,9 +95,9 @@ export const k = defineKata({
 			slots: {
 				/**
 				 * The magnifier's config dialog. `Dialog` owns the panel and `Stack` the column inside it,
-				 * so `settings` and `settingsOptions` are only what the choice groups need.
+				 * so `settings.group` and `settings.options` are only what the choice groups need.
 				 *
-				 * `settings` is one captioned group.
+				 * `settings.group` is one captioned group.
 				 *
 				 * `Fieldset` puts `pt-4` under its legend. That is the right rhythm for a column of
 				 * full-width fields, and too much air over a single row of short options.
