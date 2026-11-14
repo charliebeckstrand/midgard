@@ -17,5 +17,5 @@ import { shaku } from '../shaku'
 
 export const nav = {
 	icon: ['shrink-0', shaku.icon.base],
-	label: `${dan.size.row} w-24 max-w-full`,
+	label: [dan.size.row, 'w-24 max-w-full'].join(' '),
 } as const

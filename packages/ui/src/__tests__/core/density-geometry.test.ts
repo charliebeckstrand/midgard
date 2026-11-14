@@ -181,6 +181,11 @@ describe('spacing steps', () => {
  * each path takes the number of its class, such as `size.slider.input.track#1`.
  */
 function collectRamps(node: unknown, path: string[] = []): [string, string][] {
+	// A token can list its classes, such as `[top, 'density-pe-[2,3,4,5,6]']`.
+	if (Array.isArray(node) && node.every((entry) => typeof entry === 'string')) {
+		return collectRamps(node.join(' '), path)
+	}
+
 	if (typeof node === 'string') {
 		const classes = node
 			.split(/\s+/)
@@ -226,9 +231,10 @@ const slotRamps = {
  *   - The touch gaps of the tag row and of the query chips are for a row in a
  *     slot, so `xl` keeps the value of `lg`. The tag row also gives `xs` the
  *     value of `sm`.
- *   - The top padding of the sidebar layout header in the drawer layout is 0
- *     at each step. It is a ramp so that it is in the layer of the padding of
- *     the inline layout, and a breakpoint can switch the two.
+ *   - The top padding of the sidebar layout header, and of the content with no
+ *     header, in the drawer layout is 0 at each step. It is a ramp so that it
+ *     is in the layer of the padding of the inline layout, and a breakpoint can
+ *     switch the two.
  *   - The `0` stop of the spacing scale (`space.none` and `gap.none`) is 0 at
  *     each step, for the same reason: a breakpoint switches it with a stop of
  *     the scale.
@@ -241,6 +247,7 @@ const sharedRamps = new Set([
 	'gap.touch.tags.y',
 	'gap.touch.chips',
 	'space.shell.top.none',
+	'space.shell.headless.none',
 	'space.none.p',
 	'space.none.px',
 	'space.none.py',

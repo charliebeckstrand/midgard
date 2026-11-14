@@ -37,7 +37,9 @@ const row = defineKata({
 		flex.row,
 		'w-full',
 		...narabi.item,
-		`${dan.gap.option} ${dan.space.menu.item.x} ${dan.space.option.y}`,
+		dan.gap.option,
+		dan.space.menu.item.x,
+		dan.space.option.y,
 		ji.ramp,
 	],
 })

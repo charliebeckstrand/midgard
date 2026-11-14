@@ -72,9 +72,9 @@ const INSETS = [
  */
 const DOCKED_WIDTHS = (['right', 'left'] as const).flatMap((side) => [
 	{ side, width: 'fit', layout: 'flush', class: 'w-full max-w-none' },
-	{ side, width: 'fit', layout: 'floating', class: `w-max ${CAP}` },
+	{ side, width: 'fit', layout: 'floating', class: ['w-max', CAP] },
 	{ side, width: 'full', layout: 'flush', class: 'w-full max-w-none' },
-	{ side, width: 'full', layout: 'floating', class: `w-full ${CAP}` },
+	{ side, width: 'full', layout: 'floating', class: ['w-full', CAP] },
 ])
 
 export const k = defineKata(

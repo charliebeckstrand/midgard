@@ -30,7 +30,7 @@ const { size, leading } = ji
 const { scale } = dan.gap
 
 /** The column of the slots, at the gap of the slot rhythm. */
-export const stack = `flex flex-col ${scale.lg}`
+export const stack = ['flex flex-col', scale.lg]
 
 export const panel = defineGroup({
 	base: [...omote.panel.chrome, stack],
@@ -45,12 +45,12 @@ export const panel = defineGroup({
 		 * Optional wrapper around title + description for the tighter `sm` gap, or around
 		 * a row such as a title with a close button; sits outside the body's overflow container.
 		 */
-		header: `flex flex-col ${scale.sm}`,
+		header: ['flex flex-col', scale.sm],
 		/** Color, leading, and the balanced wrap of a heading (`kata/heading.ts`) only; weight and font size are derived from the heading scale by the Title component. */
 		title: [...text.default, leading.none, '[text-wrap-style:balance]'],
 		description: [...text.muted, size.md, leading.tight],
 		/** Optional wrapper around body + footer; a Form or similar can wrap both while preserving the panel's slot rhythm. */
-		content: `flex flex-col min-h-0 ${scale.lg}`,
+		content: ['flex flex-col min-h-0', scale.lg],
 		body: [...text.muted, 'min-h-0 overflow-y-auto overscroll-contain'],
 		footer: ['flex items-center justify-end', scale.sm],
 	},
@@ -65,7 +65,7 @@ export const panel = defineGroup({
  */
 export const bar = {
 	base: 'flex-row items-center',
-	lead: `flex min-w-0 flex-1 flex-col ${scale.sm}`,
+	lead: ['flex min-w-0 flex-1 flex-col', scale.sm],
 }
 
 /** The gaps of a child of a panel that is not a slot. */

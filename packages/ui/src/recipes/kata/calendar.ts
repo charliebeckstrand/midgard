@@ -42,7 +42,7 @@ export const k = defineKata(
 	{
 		base,
 		slots: {
-			grid: `grid grid-cols-7 ${cellTargets}`,
+			grid: ['grid grid-cols-7', cellTargets],
 			header,
 			footer,
 			picker: {

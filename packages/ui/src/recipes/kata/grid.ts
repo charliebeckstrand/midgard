@@ -328,7 +328,10 @@ export const k = {
 		// checkbox. That hit area fills the cell, so the cell sets the touch gaps to
 		// zero, and the hit area of the checkbox (`TouchTarget`) keeps to the box. A
 		// floor on the box would go into the next row.
-		select: `${fitCell} relative group/field [--touch-target-gap-x:0px] [--touch-target-gap-y:0px]`,
+		select: [
+			fitCell,
+			'relative group/field [--touch-target-gap-x:0px] [--touch-target-gap-y:0px]',
+		].join(' '),
 		actions: 'w-px whitespace-nowrap',
 		// The hit area of the selection checkbox (see `GridSelectCheckbox`): a label
 		// of the checkbox that fills the cell. The hover of the label shows on the
@@ -655,7 +658,8 @@ export const k = {
 		// boundary: an outward overhang gets painted over by a neighbor's opaque
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
-			`absolute top-0 end-0 z-10 h-full ${dan.size.resize.handle}`,
+			'absolute top-0 end-0 z-10 h-full',
+			dan.size.resize.handle,
 			flex.row,
 			'justify-center',
 			'cursor-col-resize touch-none select-none outline-none',

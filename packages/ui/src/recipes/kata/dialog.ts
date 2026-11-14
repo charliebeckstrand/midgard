@@ -16,17 +16,17 @@ const FIT = [
 	{
 		height: 'fit',
 		align: 'bottom',
-		class: `max-h-full data-full:rounded-t-none ${css.corner} ${css.duration}`,
+		class: ['max-h-full data-full:rounded-t-none', css.corner, css.duration],
 	},
 	{
 		height: 'fit',
 		align: 'center',
-		class: `max-h-full data-full:rounded-t-2xl ${css.corner} ${css.duration}`,
+		class: ['max-h-full data-full:rounded-t-2xl', css.corner, css.duration],
 	},
 	{
 		height: 'fit',
 		align: 'top',
-		class: `max-h-full data-full:rounded-t-2xl ${css.corner} ${css.duration}`,
+		class: ['max-h-full data-full:rounded-t-2xl', css.corner, css.duration],
 	},
 ]
 

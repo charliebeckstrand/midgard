@@ -63,7 +63,7 @@ const extras = {
 		// the rest, trailed by the custom-range row, fill the second. `min-w` gives
 		// the grid a stable floor independent of label length. Width-scoped here so
 		// it never touches the single/range calendars.
-		list: `grid grid-flow-col ${dan.gap.scale.sm} min-w-52`,
+		list: ['grid grid-flow-col', dan.gap.scale.sm, 'min-w-52'],
 		// Preset rows read as a left-aligned menu rather than centered chips.
 		preset: 'w-full justify-start',
 		// The custom-range affordance in the second column, trailing the presets.
@@ -73,7 +73,7 @@ const extras = {
 			// Custom mode: the back affordance above the stacked Start/End inputs.
 			panel: [flex.col, dan.gap.scale.md],
 			// The back affordance of custom mode, which returns to the preset list.
-			back: `justify-start ${dan.gap.scale.xs}`,
+			back: ['justify-start', dan.gap.scale.xs],
 		},
 		// The trigger chip row wraps the chips (each `shrink-0`, see the view) onto
 		// new lines rather than scrolling or shrinking them; the gap doubles as the
@@ -82,7 +82,7 @@ const extras = {
 		// even the inset all around the chips. That is a constant one-step (4px)
 		// gap at every size. No height pin: the trigger grows to fit the rows, like
 		// TagInput's tag row.
-		chips: `flex flex-wrap items-center ${dan.gap.scale.xs} min-w-0 py-1`,
+		chips: ['flex flex-wrap items-center', dan.gap.scale.xs, 'min-w-0 py-1'],
 	},
 }
 

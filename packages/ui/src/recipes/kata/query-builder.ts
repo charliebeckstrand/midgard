@@ -25,7 +25,7 @@ const stacked = 'min-w-auto flex-initial'
 
 export const k = defineKata(
 	{
-		base: [flex.col, `${dan.gap.scale.md} p-3`, border.default, rounded.lg],
+		base: [flex.col, dan.gap.scale.md, 'p-3', border.default, rounded.lg],
 		slots: {
 			/**
 			 * A nested group that a pointer drag from another group drops its node in

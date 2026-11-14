@@ -26,7 +26,7 @@ const { border } = sen
 
 export const k = defineKata(
 	{
-		base: `flex w-full items-start ${dan.gap.scale.lg} pe-4`,
+		base: ['flex w-full items-start', dan.gap.scale.lg, 'pe-4'],
 		responsive: {
 			orientation: {
 				horizontal: 'flex-row ps-4 py-0',
@@ -115,7 +115,7 @@ export const k = defineKata(
 			 * the description sit in the step like its direct children.
 			 */
 			content: {
-				base: `flex-1 flex-col ${dan.gap.scale.xs}`,
+				base: ['flex-1 flex-col', dan.gap.scale.xs],
 				responsive: { orientation: { horizontal: 'contents', vertical: 'flex' } },
 			},
 			/**

@@ -119,7 +119,8 @@ export const k = defineKata({
 				options: [
 					flex.row,
 					'flex-wrap',
-					`${dan.gap.x.xl} ${dan.gap.y.sm}`,
+					dan.gap.x.xl,
+					dan.gap.y.sm,
 					'[&>[data-slot=field]+[data-slot=field]]:mt-0',
 				],
 			},

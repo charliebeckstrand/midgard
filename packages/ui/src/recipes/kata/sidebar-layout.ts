@@ -105,7 +105,8 @@ const content = [
 	flex.col,
 	'grow',
 	// The padding follows the nearest density scope.
-	`${space.shell.x} ${space.shell.bottom}`,
+	space.shell.x,
+	space.shell.bottom,
 ]
 
 // The padding follows the nearest density scope. A header with `stickyHeader`
@@ -151,8 +152,8 @@ export const k = defineKata({
 			base: content,
 			responsive: {
 				layout: {
-					drawer: `${omote.content.flat} not-has-[[data-slot=header]]:${top.drawer}`,
-					inline: `${omote.content.card} not-has-[[data-slot=header]]:${top.inline}`,
+					drawer: [omote.content.flat, space.shell.headless.none],
+					inline: [omote.content.card, space.shell.headless.inline],
 				},
 			},
 			slots: {
