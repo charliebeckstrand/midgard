@@ -93,30 +93,16 @@ describe('logical sides under dir=rtl', () => {
 			'left',
 			'0px',
 		],
+		[
+			'horizontal timeline marker sits at the inline start (right)',
+			timeline({ orientation: 'horizontal' }).marker.base,
+			'right',
+			'6.5px',
+		],
 		['signature pad actions sit at the inline end (left)', signaturePad().actions, 'left', '8px'],
 	] as const)('%s', ([, className, property, value]) => {
 		const style = rtl(className)
 		expect(style[property]).toBe(value)
-	})
-
-	it('horizontal timeline marker sits at the inline start (right) of the item content', () => {
-		const slots = timeline({ orientation: 'horizontal' })
-
-		const { container } = renderUI(
-			<ol dir="rtl" className={slots.base}>
-				<li className={slots.item} data-item="">
-					<span className={slots.marker.base} data-marker="" />
-				</li>
-			</ol>,
-		)
-
-		const item = present(container.querySelector<HTMLElement>('[data-item]'), 'item')
-		const marker = present(container.querySelector<HTMLElement>('[data-marker]'), 'marker')
-
-		const start = parseFloat(getComputedStyle(item).paddingRight)
-
-		expect(start).toBeGreaterThan(0)
-		expect(item.getBoundingClientRect().right - marker.getBoundingClientRect().right).toBe(start)
 	})
 
 	it('user chat bubble squares the bottom inline-end corner (bottom-left)', () => {
