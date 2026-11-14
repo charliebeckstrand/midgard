@@ -19,6 +19,11 @@ export const securityHeaders = [
 	{ key: 'Referrer-Policy', value: 'same-origin' },
 ]
 
+// The condition of a module of the repository that defines messages.
+const definesMessages = {
+	all: [{ not: 'foreign' as const }, { content: /\bdefineMessages?\b/ }],
+}
+
 /**
  * The Next config that each app of the repository shares. Pass it to
  * {@link withAuth}, or spread it into a config that adds keys of its own.
@@ -42,4 +47,26 @@ export const appConfig: NextConfig = {
 	// instant navigation to a route whose request reads sit in `<Suspense>`.
 	cacheComponents: true,
 	partialPrefetching: true,
+	turbopack: {
+		// The message loader of ui precompiles each message: the descriptors of
+		// each module that defines messages, and each translation in a `lang`
+		// folder. A module of a dependency defines no message, and the docs app
+		// of ui does not build with Next.
+		rules: {
+			'*.ts': { loaders: ['ui/scripts/intl-loader'], condition: definesMessages },
+			'*.tsx': { loaders: ['ui/scripts/intl-loader'], condition: definesMessages },
+			'*.json': {
+				loaders: ['ui/scripts/intl-loader'],
+				condition: { all: [{ not: 'foreign' }, { path: /\/lang\/[a-z]{2,3}\.json$/ }] },
+			},
+		},
+		// Each message is precompiled, so the bundle has no message parser. A
+		// message that reaches FormatJS as text shows as its raw text, and a
+		// development build logs the error. Turbopack resolves the target from
+		// the folder of the app, so the target is an entry of ui, not of
+		// FormatJS.
+		resolveAlias: {
+			'@formatjs/icu-messageformat-parser': 'ui/primitives/intl/no-parser',
+		},
+	},
 }

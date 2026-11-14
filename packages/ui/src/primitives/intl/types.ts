@@ -34,7 +34,9 @@ export type MessageSet<V extends Record<string, MessageValues>> = {
 
 /**
  * The translated messages of one language, by message id, such as
- * `{ 'shared.signIn': 'Iniciar sesión' }`.
+ * `{ 'shared.signIn': 'Iniciar sesión' }`. In the Next build of an app, the
+ * message loader of ui gives each message of a `lang` file as its syntax tree,
+ * which FormatJS takes in place of the text.
  */
 export type IntlMessages = Readonly<Record<string, string>>
 
