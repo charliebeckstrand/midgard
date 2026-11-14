@@ -311,16 +311,27 @@ export function useDeletePlace() {
  * Removes one visit of a place, and writes the stored record into the cached
  * list. A failure shows in a toast, because the confirm that asked for the
  * removal is closed.
+ *
+ * The write sends all the visits of the place. Thus the deletes run one at a
+ * time, and each one removes its visit from the cached place, which holds the
+ * answer of the delete before it. A delete that started from the `place` of
+ * an older render would put back a visit that an earlier delete removed.
  */
 export function useDeleteVisit() {
 	const client = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ place, visit }: { place: Place; visit: Visit }) =>
-			savePlace(
-				place.id,
-				placeDraft({ ...place, visits: place.visits.filter((held) => held.id !== visit.id) }),
-			),
+		scope: { id: 'delete-visit' },
+		mutationFn: ({ place, visit }: { place: Place; visit: Visit }) => {
+			const held =
+				client.getQueryData<Place[]>(placesKeys.all)?.find((entry) => entry.id === place.id) ??
+				place
+
+			return savePlace(
+				held.id,
+				placeDraft({ ...held, visits: held.visits.filter((kept) => kept.id !== visit.id) }),
+			)
+		},
 		onSuccess: (place) => {
 			client.setQueryData<Place[]>(placesKeys.all, (places) => mergeById(places, [place]))
 		},
