@@ -21,7 +21,8 @@ import {
  * `<button disabled>`, which can't take focus, so every roving query scopes to
  * enabled buttons and roving skips disabled cells. `.focus()` on a disabled element is a
  * no-op that would freeze the active index at the edge of a disabled range
- * (WCAG 2.1.1).
+ * (WCAG 2.1.1). A day that the `isDayDisabled` rule of the calendar disables is
+ * `aria-disabled`, not natively disabled, so the selector keeps it.
  *
  * @internal
  */

@@ -219,25 +219,37 @@ type DayStateInput = {
 	value: Date | null | undefined
 	activeGridDate: Date | null
 	isDisabled: (date: Date) => boolean
+	isDayDisabled?: (date: Date) => boolean
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
 }
 
 /**
  * The state of the cell of `date`: the context that `getDayProps` gets, the
- * overrides that it returns, and the selection. `getDayProps` can override the
- * match with `value`, as a range does for its two endpoints. The grid paints
- * each cell from it, and the calendar finds the Tab stop of the grid from it,
- * so the two agree.
+ * overrides that it returns, the selection, and the focus. `getDayProps` can
+ * override the match with `value`, as a range does for its two endpoints. The
+ * grid paints each cell from it, and the calendar finds the Tab stop of the
+ * grid from it, so the two agree.
+ *
+ * A day outside `min` and `max` (`isDisabled`) is disabled and cannot take the
+ * focus. A day that `isDayDisabled` disables in the range is disabled too, but
+ * it stays `focusable`, so the arrows move across it.
  *
  * @internal
  */
 export function getDayState(
 	date: Date,
-	{ today, value, activeGridDate, isDisabled, getDayProps }: DayStateInput,
-): { context: CalendarDayContextValue; dayProps: CalendarDayProps | undefined; selected: boolean } {
+	{ today, value, activeGridDate, isDisabled, isDayDisabled, getDayProps }: DayStateInput,
+): {
+	context: CalendarDayContextValue
+	dayProps: CalendarDayProps | undefined
+	selected: boolean
+	focusable: boolean
+} {
+	const focusable = !isDisabled(date)
+
 	const context: CalendarDayContextValue = {
 		date,
-		disabled: isDisabled(date),
+		disabled: !focusable || (isDayDisabled?.(date) ?? false),
 		today: today != null && sameDay(date, today),
 		selected: value != null && sameDay(date, value),
 		active: activeGridDate != null && sameDay(date, activeGridDate),
@@ -245,7 +257,7 @@ export function getDayState(
 
 	const dayProps = getDayProps?.(context)
 
-	return { context, dayProps, selected: dayProps?.selected ?? context.selected }
+	return { context, dayProps, selected: dayProps?.selected ?? context.selected, focusable }
 }
 
 /** Local-midnight `Date` for every day of `year`/`month` (0-based month), in order. @internal */

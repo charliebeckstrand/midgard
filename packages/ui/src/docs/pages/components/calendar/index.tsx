@@ -1,6 +1,7 @@
 import api from 'virtual:docs/api/components/calendar'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
 import Controlled from './controlled.tsx'
+import DisabledDays from './disabled-days.tsx'
 import Locale from './locale.tsx'
 import MinAndMax from './min-and-max.tsx'
 import CalendarPlayground from './playground.tsx'
@@ -12,6 +13,7 @@ export default function CalendarPage() {
 			<Playground of={CalendarPlayground} api={api} omit={['multiselectable']} />
 			<Example of={Controlled} />
 			<Example of={MinAndMax} />
+			<Example of={DisabledDays} />
 			<Example of={Range} />
 			<Example of={Locale} />
 			<ApiTable api={api} />

@@ -70,7 +70,7 @@ function ListView({
 
 /**
  * The calendar view: a month with each election day marked, and under it the
- * elections of the picked day. A day with no election picks nothing.
+ * elections of the picked day. A day with no election is disabled.
  */
 function CalendarView({
 	elections,
@@ -91,13 +91,10 @@ function CalendarView({
 		<Stack gap="lg">
 			<Calendar
 				value={picked === null ? null : localDay(picked)}
-				onDayClick={(day) => {
-					if (dates.has(isoDay(day))) setPicked(isoDay(day))
-				}}
-				getDayProps={({ date, selected }) =>
-					dates.has(isoDay(date)) && !selected
-						? { variant: 'soft', color: 'blue' }
-						: { className: selected ? undefined : 'text-zinc-500 dark:text-zinc-400' }
+				onDayClick={(day) => setPicked(isoDay(day))}
+				isDayDisabled={(day) => !dates.has(isoDay(day))}
+				getDayProps={({ disabled, selected }) =>
+					disabled || selected ? {} : { variant: 'soft', color: 'blue' }
 				}
 				className="w-fit"
 			/>

@@ -18,6 +18,7 @@ type CalendarGridProps = {
 	value: Date | null | undefined
 	activeGridDate: Date | null
 	isDisabled: (date: Date) => boolean
+	isDayDisabled?: (date: Date) => boolean
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
 	onSelect: (date: Date) => void
 	/** Accessible name for the day listbox, e.g. "June 2025". */
@@ -50,6 +51,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 	value,
 	activeGridDate,
 	isDisabled,
+	isDayDisabled,
 	getDayProps,
 	onSelect,
 	monthLabel,
@@ -58,7 +60,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 	activeDescendantId,
 	multiselectable,
 }: CalendarGridProps) {
-	const dayInput = { today, value, activeGridDate, isDisabled, getDayProps }
+	const dayInput = { today, value, activeGridDate, isDisabled, isDayDisabled, getDayProps }
 
 	return (
 		<div className={k().grid}>
@@ -78,7 +80,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 				className="col-span-7 grid grid-cols-7"
 			>
 				{days.map((date) => {
-					const { context, dayProps, selected } = getDayState(date, dayInput)
+					const { context, dayProps, selected, focusable } = getDayState(date, dayInput)
 
 					const gridColumnStart = date.getDate() === 1 ? firstDayColumn : undefined
 
@@ -87,6 +89,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 							key={date.toISOString()}
 							date={date}
 							disabled={context.disabled}
+							focusable={focusable}
 							isToday={context.today}
 							isActive={context.active}
 							selected={selected}
