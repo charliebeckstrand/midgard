@@ -25,7 +25,7 @@ describe('the RangeSlider thumb ring against the Slider thumb ring (real browser
 			<>
 				{invalid ? <Control severity="error">{slider}</Control> : slider}
 				<span data-probe="red" className="text-red-600" />
-				<span data-probe="blue" className="text-blue-600 dark:text-blue-500" />
+				<span data-probe="blue" className="text-blue-600" />
 			</>,
 		)
 
@@ -55,7 +55,7 @@ describe('the RangeSlider thumb ring against the Slider thumb ring (real browser
 			expect(ring(thumb)).toEqual([probe('red'), '2'])
 		})
 
-		it('rings a keyboard-focused thumb in the blue of the mode at 4px', async () => {
+		it('rings a keyboard-focused thumb in the focus blue at 4px', async () => {
 			if (dark) holdRootClass('dark')
 
 			const { thumb, probe } = renderThumb(false)
