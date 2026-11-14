@@ -22,8 +22,7 @@ import { useTruncation } from '../../../../hooks/use-truncation'
  * touch.
  * @internal
  */
-export const LEGEND_TOUCH_ROWS =
-	'pointer-coarse:gap-y-3 pointer-coarse:[--touch-target-gap-y:--spacing(3)]'
+export const LEGEND_TOUCH_ROWS = 'pointer-coarse:touch-gap-y-3'
 
 /** Props for {@link LegendSwitch}. @internal */
 export type LegendSwitchProps = {

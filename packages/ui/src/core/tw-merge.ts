@@ -46,6 +46,18 @@ const classGroups = Object.fromEntries(
 )
 
 /**
+ * Each touch gap (`core/touch/gap.ts`) joins the group of its gap, so a later
+ * `gap-y-2` replaces a `touch-gap-y-0.5`, and the other way.
+ */
+for (const [plain, name] of [
+	['gap', 'touch-gap'],
+	['gap-x', 'touch-gap-x'],
+	['gap-y', 'touch-gap-y'],
+] as const) {
+	classGroups[plain] = [...(classGroups[plain] ?? []), { [name]: ringStop }]
+}
+
+/**
  * The conflicts of the stepped groups. They mirror the conflicts of
  * `tailwind-merge`, which `defaults` holds: a group that contains the plain
  * group of a property also contains its stepped group, and the stepped group of

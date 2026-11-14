@@ -41,6 +41,9 @@ export type TouchTargetProps = {
  * goes at most half of that space past its host on each side of that axis.
  * Adjacent hit areas meet at the midpoint and do not overlap, and hosts of one
  * size get hit areas of one size. An axis with no property keeps the floor.
+ * When the space is the gap of the container, a touch gap utility writes the
+ * gap and the property from one stop (`touch-gap-y-0.5`, `core/touch/gap.ts`),
+ * and a stepped gap takes its ramp in `dan.gap.touch`.
  *
  * The properties inherit, so they cap each `TouchTarget` in the container,
  * the controls of a nested input included. A value under the real space is

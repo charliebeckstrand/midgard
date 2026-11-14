@@ -1037,14 +1037,7 @@ export const k = {
 		// drop the pair under the 24x24 target minimum (WCAG 2.5.8) at every
 		// density, worst in a condensed grid. The gap also caps the hit areas
 		// (`TouchTarget`): the two buttons split it and do not overlap.
-		settle: [
-			flex.row,
-			'gap-0.5 [--touch-target-gap-x:--spacing(0.5)]',
-			'p-0.5',
-			rounded.md,
-			...popover,
-			'shadow-sm',
-		],
+		settle: [flex.row, 'touch-gap-x-0.5', 'p-0.5', rounded.md, ...popover, 'shadow-sm'],
 		// A cell whose async commit is in flight. It signals busy the way
 		// `body.settling` does for a server sort (`hannou.busy`).
 		pending: busy,

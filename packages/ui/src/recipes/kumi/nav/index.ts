@@ -36,7 +36,7 @@ export const box = [flex.row, 'w-full', dan.gap.item, dan.text.body, dan.radius.
  * (`TouchTarget`) along the stack, so two adjacent items split the gap and do
  * not overlap.
  */
-export const stack = [flex.col, 'gap-0.5', '[--touch-target-gap-y:--spacing(0.5)]']
+export const stack = [flex.col, 'touch-gap-y-0.5']
 
 /**
  * A prefix or a suffix slot, beside the button inside the chrome of the row and
