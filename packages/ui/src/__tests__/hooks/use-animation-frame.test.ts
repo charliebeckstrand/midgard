@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
+import { useLayoutEffect } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAnimationFrame } from '../../hooks/use-animation-frame'
 
@@ -95,6 +96,41 @@ describe('useAnimationFrame', () => {
 		vi.advanceTimersToNextFrame()
 
 		expect(callback).not.toHaveBeenCalled()
+	})
+
+	// React runs the cleanup of a parent before the cleanups of its children, so
+	// a child can call `set` from its cleanup after the frame canceled.
+	it('requests no frame from a call after unmount', () => {
+		const callback = vi.fn()
+
+		const { result, unmount } = renderHook(() => useAnimationFrame())
+
+		unmount()
+
+		act(() => result.current.set(callback))
+
+		vi.advanceTimersToNextFrame()
+
+		expect(callback).not.toHaveBeenCalled()
+	})
+
+	// Strict Mode runs the layout effects again before the passive effects, as
+	// an `<Activity>` that shows its content again does.
+	it('requests a frame from a layout effect that runs again in Strict Mode', () => {
+		const callback = vi.fn()
+
+		renderHook(
+			() => {
+				const frame = useAnimationFrame()
+
+				useLayoutEffect(() => frame.set(callback), [frame])
+			},
+			{ reactStrictMode: true },
+		)
+
+		vi.advanceTimersToNextFrame()
+
+		expect(callback).toHaveBeenCalledTimes(1)
 	})
 
 	it('keeps its identity across renders', () => {
