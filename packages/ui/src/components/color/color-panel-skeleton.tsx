@@ -59,7 +59,15 @@ export function ColorPanelSkeleton({
 				{alpha && <div className={k.skeleton.track} />}
 			</div>
 
-			<div className={k.skeleton.fields} />
+			<div className={k().preview.row}>
+				<div className={k.skeleton.preview} />
+				<div className={cn(k.skeleton.control, 'flex-1')} />
+			</div>
+
+			<div className={k().field}>
+				<div className={cn(k().label, k.skeleton.line)} />
+				<div className={k.skeleton.control} />
+			</div>
 
 			{cells.length > 0 && (
 				<div className={k().swatches}>

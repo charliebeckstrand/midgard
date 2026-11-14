@@ -83,11 +83,6 @@ export const size = {
 		channel: 'density-h-[2.5,3,3.5,4,4.5]',
 		/** The width of a color panel. */
 		width: panel,
-		/**
-		 * The height of the preview row and the channel inputs of a color panel
-		 * skeleton, with the gap between them.
-		 */
-		fields: 'density-h-[19.25,23,28.5,34,41]',
 	},
 	/** The diameter of a progress gauge and of its skeleton. */
 	gauge: 'density-size-[8,12,16,20,24]',
