@@ -7,7 +7,7 @@ const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { focus } = sen
+const { border, focus } = sen
 
 export const k = {
 	/** The row of `FileUploadButton`: the trigger and the `Reset` button beside it. */
@@ -23,9 +23,17 @@ export const k = {
 		rounded.lg,
 		focus.ring,
 		'border border-dashed',
-		...mode('border-zinc-300', 'dark:border-zinc-700'),
+		...border.color.emphasis,
 		...cursor,
-		...mode('hover:not-disabled:border-zinc-400', 'dark:hover:not-disabled:border-zinc-500'),
+		// The hover color outranks the `contrast-more:` step of the resting edge, so
+		// the hover takes a step of its own, above the resting one.
+		...mode(
+			['hover:not-disabled:border-zinc-400', 'contrast-more:hover:not-disabled:border-zinc-950/70'],
+			[
+				'dark:hover:not-disabled:border-zinc-500',
+				'dark:contrast-more:hover:not-disabled:border-white/70',
+			],
+		),
 		...mode(
 			'data-drag-over:border-blue-500 data-drag-over:bg-blue-50/50',
 			'dark:data-drag-over:border-blue-400 dark:data-drag-over:bg-blue-950/20',

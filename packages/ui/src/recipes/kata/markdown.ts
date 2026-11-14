@@ -16,7 +16,7 @@
  * markers, and the structural rule/border colors are the kata's concern;
  * foreground color is the container's.
  */
-import { defineKata, mode } from '../../core/recipe'
+import { defineKata } from '../../core/recipe'
 import { ji, omote, sen } from '../kiso'
 
 const { size, weight } = ji
@@ -64,7 +64,7 @@ export const k = defineKata({
 		},
 		checkbox: 'me-2',
 
-		blockquote: ['my-4 border-s-2 ps-4 italic', ...mode('border-zinc-300', 'dark:border-zinc-700')],
+		blockquote: ['my-4 border-s-2 ps-4 italic', ...sen.border.color.emphasis],
 		hr: ['border-0 border-t', ...sen.border.color.default, 'my-6'],
 
 		table: {
