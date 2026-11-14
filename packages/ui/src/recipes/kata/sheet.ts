@@ -117,13 +117,13 @@ export const k = defineKata(
 			title: [inset.x, inset.head, 'in-data-[slot=sheet-header]:p-0'],
 			description: [inset.x, 'in-data-[slot=sheet-header]:px-0'],
 			footer: [inset.x, inset.bottom],
-			body: [
-				'flex-1',
-				'overflow-y-auto overscroll-contain',
-				inset.x,
-				inset.first.sheet,
-				inset.last.sheet,
-			],
+			body: ['flex-1', inset.x, inset.first.sheet, inset.last.sheet],
+			/**
+			 * The optional wrapper around the body and the footer. A sheet on a side has
+			 * the height of the screen. The wrapper fills that height, so the body can
+			 * grow and the footer stays at the foot of the panel.
+			 */
+			content: 'flex-1',
 		},
 		defaults: { side: 'right', width: 'md' },
 	},
