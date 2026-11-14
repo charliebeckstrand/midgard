@@ -523,6 +523,35 @@ describe('controls show their state under forced colors (real browser)', () => {
 		})
 	}
 
+	// The open picker holds focus and moves a virtual ring over the days. The
+	// selected day is a solid Button, whose resting outline is 1 px under forced
+	// colors. The ring of the active day must stay 2 px on it, as on a plain day.
+	it('date picker: the ring of the active day is 2 px on the selected day too', async () => {
+		renderUI(<DatePicker aria-label="Day" defaultValue={new Date(2024, 2, 10)} />)
+
+		await frames()
+		await userEvent.tab()
+		await userEvent.keyboard('{Enter}')
+		await frames()
+
+		const active = () =>
+			present(document.querySelector<HTMLElement>('[role=option][id]'), 'active day')
+
+		const widths: Record<string, string> = {}
+
+		for (const key of ['{ArrowRight}', '{ArrowLeft}']) {
+			await userEvent.keyboard(key)
+			await frames()
+
+			const day = active()
+
+			widths[`${day.textContent} ${day.getAttribute('aria-selected')}`] =
+				getComputedStyle(day).outlineWidth
+		}
+
+		expect(widths).toEqual({ '10 true': '2px', '9 false': '2px' })
+	})
+
 	// The shadow and the surface show a held node. Forced colors remove the
 	// shadow and repaint the surface, so a keyboard lift showed no change.
 	it('query builder: a node that the keyboard lifts draws an outline', async () => {

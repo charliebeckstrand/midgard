@@ -72,7 +72,14 @@ export const focus = {
 	// tailwind-merge (same outline-style group) when both land on one
 	// element, e.g. a plain Button day cell; without it the stroke never
 	// renders.
-	virtual: ['outline-solid outline-2 outline-offset-2', 'outline-blue-600'],
+	// The ring has no gate, so a resting forced-colors outline of the same
+	// element (`sen.forced.outline` on a solid or a soft Button day cell)
+	// outranks its width. The ring repeats its width behind the same gate.
+	virtual: [
+		'outline-solid outline-2 outline-offset-2',
+		'outline-blue-600',
+		'forced-colors:outline-2',
+	],
 	inset: [
 		'outline-none',
 		'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
