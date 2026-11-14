@@ -41,7 +41,7 @@ export type PdfViewerHighlightsOptions = {
 	highlightUnit?: PdfViewerHighlightUnit
 	activeHighlightId?: string | null
 	defaultActiveHighlightId?: string
-	onActiveHighlightChange?: (id: string | null) => void
+	onActiveHighlightIdChange?: (id: string | null) => void
 	onHighlightClick?: (id: string) => void
 	/**
 	 * The page on screen; supplies the extent a physical {@link PdfViewerHighlightUnit} divides by.
@@ -68,7 +68,7 @@ type PdfViewerRegion = {
 export type PdfViewerHighlightsResult = {
 	/** Regions on the active page only, in the caller's order. */
 	regions: PdfViewerRegion[]
-	/** True when regions are controls: `onActiveHighlightChange` is set. */
+	/** True when regions are controls: `onActiveHighlightIdChange` is set. */
 	interactive: boolean
 	/** Label of the active region, for the announcement; `null` when none is active. */
 	activeLabel: string | null
@@ -112,7 +112,7 @@ export function usePdfViewerHighlights({
 	highlightUnit = 'fraction',
 	activeHighlightId,
 	defaultActiveHighlightId,
-	onActiveHighlightChange,
+	onActiveHighlightIdChange,
 	onHighlightClick,
 	activePage,
 	safePage,
@@ -121,7 +121,7 @@ export function usePdfViewerHighlights({
 	const [activeId, setActiveId] = useControllable<string>({
 		value: activeHighlightId,
 		defaultValue: defaultActiveHighlightId,
-		onValueChange: onActiveHighlightChange,
+		onValueChange: onActiveHighlightIdChange,
 	})
 
 	const reduceMotion = usePrefersReducedMotion()
@@ -267,7 +267,7 @@ export function usePdfViewerHighlights({
 
 	return {
 		regions,
-		interactive: onActiveHighlightChange !== undefined,
+		interactive: onActiveHighlightIdChange !== undefined,
 		activeLabel,
 		activate: setActiveId,
 		press,

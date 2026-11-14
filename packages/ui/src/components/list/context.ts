@@ -7,7 +7,7 @@ import type { ListVariant } from '../../recipes/kata/list'
 import type { KeyedStore } from '../../utilities/keyed-store'
 import type { ListReorderParts } from './list-reorder'
 
-/** List-wide state shared with items: variant, interactivity/disabled flags, the keyboard-lift store, item count, the sortable flag, and item event handlers. */
+/** List-wide state shared with items: variant, interactivity/disabled flags, the keyboard-lift store, item count, the handle flag, and item event handlers. */
 export type ListContextValue = {
 	/** Visual variant; see `List.variant` for semantics. */
 	variant: ListVariant
@@ -28,8 +28,8 @@ export type ListContextValue = {
 	liftedStore: KeyedStore<string, boolean>
 	/** Number of items in the list. */
 	itemCount: number
-	/** Whether `<ListItem>` must auto-insert a `<ListHandle>`. */
-	sortable: boolean
+	/** Whether `<ListItem>` must auto-insert a `<ListHandle>`. Only a list with `onReorder` does. */
+	handle: boolean
 	/** Keyboard handler for list items: Space lifts, arrows move / navigate. It keeps its identity. */
 	onItemKeyDown: (id: string, event: KeyboardEvent) => void
 	/** Blur handler that drops any active keyboard lift. */

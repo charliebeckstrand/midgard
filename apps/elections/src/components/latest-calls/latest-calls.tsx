@@ -44,7 +44,6 @@ export function LatestCalls({
 	return (
 		<List
 			variant="plain"
-			sortable={false}
 			items={calls}
 			getKey={(call) => entryKey(call.entry)}
 			aria-label="Latest calls"

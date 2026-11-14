@@ -22,7 +22,7 @@ export default function Filter() {
 					<SegmentItem value="archived">Archived</SegmentItem>
 				</SegmentControl>
 			</Segment>
-			<List items={matches} getKey={(campaign) => campaign.label} variant="solid" sortable={false}>
+			<List items={matches} getKey={(campaign) => campaign.label} variant="solid">
 				{(campaign) => (
 					<ListItem
 						suffix={

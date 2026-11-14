@@ -99,7 +99,6 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 					id={`${id}list`}
 					items={rows}
 					getKey={(row) => row.key}
-					sortable={false}
 					variant="bare"
 					aria-labelledby={`${id}label`}
 				>

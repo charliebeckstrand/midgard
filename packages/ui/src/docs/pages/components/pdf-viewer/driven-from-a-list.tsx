@@ -26,7 +26,7 @@ export default function DrivenFromAList() {
 				pages={pages}
 				highlights={regions}
 				activeHighlightId={active}
-				onActiveHighlightChange={setActive}
+				onActiveHighlightIdChange={setActive}
 				aria-label="Invoice 1043"
 			/>
 		</Stack>

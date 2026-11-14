@@ -141,13 +141,14 @@ Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 
 | The palette color | `color` | |
 | The element that takes focus when an overlay opens | `initialFocus` | |
 | The element that takes focus when the part closes | `returnFocusTo` | `finalFocus` |
-| A change of a state that a key `x` holds | `onXChange`, as `hoverDate` and `onHoverDateChange` | `onX`, as `onHoverDate` |
+| A change of a state that a key `x` holds | `onXChange`, as `hoverDate` and `onHoverDateChange`. With `defaultX`, the three keys share the name, as `activeHighlightId`, `defaultActiveHighlightId`, and `onActiveHighlightIdChange` | `onX`, as `onHoverDate`. A callback with another name beside `x` and `defaultX`, as `onActiveHighlightChange` |
 | More than one open or selected part at once | `multiple`, a boolean that discriminates `value` | `type: 'single' \| 'multiple'` |
 | Only the rows in view are rendered | `virtualize` | `virtual` |
 | A time in milliseconds | A bare name: `delay`, `duration`, `timeout`, `interval`, `debounce` | A unit in the name, as `debounceMs` |
 | The pointer or keyboard activation of an item | `on<Thing>Click`, as `onRowClick` and `onDayClick`. A keyboard activation is a DOM click too | `on<Thing>Press` |
 | The close of an enclosing surface when an item acts | `closeOn<Event>`, default `true`: `closeOnAction`, `closeOnSelect`, `closeOnClick` | `preventClose` |
-| A function that makes the text of a number | `formatValue` | `format`, which holds a spec such as a token or `Intl` options |
+| A function that makes the text of a number | `formatValue`, as on Odometer and on TimeAgo, whose function gets the age in milliseconds | `format`, which holds a spec such as a token or `Intl` options |
+| The grip that starts the drag of a part | `handle`, as on Drawer, Sheet, `GridReorder`, and a List with `onReorder` | `sortable`. A sort by value is `sort`, as on Grid |
 
 `prop-vocabulary-boundary.test.ts` reads each public props type and options type with the checker. It holds each row that has an entry in the last column, except the `onChange` row, because a native `onChange` is correct on an input. A key of a React base keeps its name, such as the native `onKeyPress`.
 

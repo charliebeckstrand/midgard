@@ -61,7 +61,7 @@ type ListKey<T> = {
 type ListReorder<T> = {
 	/**
 	 * Fires when the reader reorders the list, with the next ordering. Omit it to
-	 * render a list that does not reorder. With `sortable: false`, render a
+	 * render a list that does not reorder. With `handle: false`, render a
 	 * `<ListHandle>` in each item.
 	 */
 	onReorder?: (next: T[]) => void
@@ -78,20 +78,17 @@ export type ListProps<T> = BaseListProps<T> &
 		| (Required<ListKey<T>> &
 				ListReorder<T> & {
 					/**
-					 * Inserts a `<ListHandle>` as the first child of each `<ListItem>`. The handle shows only when `onReorder` is set.
+					 * Inserts a `<ListHandle>` as the first child of each `<ListItem>` of a
+					 * list with `onReorder`. Set it to `false` to place a `<ListHandle>` in
+					 * each item yourself.
 					 * @defaultValue true
 					 */
-					sortable?: true
-					virtualize?: false
-				})
-		| (Required<ListKey<T>> &
-				Required<ListReorder<T>> & {
-					sortable: false
+					handle?: boolean
 					virtualize?: false
 				})
 		| (ListKey<T> & {
-				sortable: false
 				onReorder?: undefined
+				handle?: undefined
 				/**
 				 * Renders only the rows in view, plus a few on each side, in the scroll
 				 * region of the nearest panel body. For a long read-only vertical list.
@@ -107,7 +104,7 @@ export type ListProps<T> = BaseListProps<T> &
  * function, in one of five `variant`s and either orientation. With `onReorder`
  * it becomes reorderable over Motion's `Reorder`, by pointer drag on the handle
  * or keyboard lift (Space then arrows). It auto-inserts a {@link ListHandle}
- * per item unless `sortable: false`. A read-only list (no `onReorder`) shows
+ * per item unless `handle: false`. A read-only list (no `onReorder`) shows
  * no handle. A read-only list renders a plain `<ul>` with no drag wiring. Compose {@link ListItem} (with {@link ListLabel} /
  * {@link ListDescription}) in the render function.
  *
@@ -155,7 +152,7 @@ export function List<T>({
 	variant = 'separated',
 	orientation = 'vertical',
 	disabled,
-	sortable = true,
+	handle = true,
 	virtualize = false,
 	children,
 	className,
@@ -226,6 +223,9 @@ export function List<T>({
 	// live preference themselves (WCAG 2.3.3).
 	const instant = usePrefersReducedMotion()
 
+	// A read-only list has no reorder, so its items get no handle.
+	const autoHandle = handle && onReorder !== undefined
+
 	const contextValue = useMemo(
 		() => ({
 			variant,
@@ -234,7 +234,7 @@ export function List<T>({
 			disabled: reorderDisabled,
 			liftedStore,
 			itemCount: items.length,
-			sortable,
+			handle: autoHandle,
 			onItemKeyDown,
 			onItemBlur,
 			reorderParts,
@@ -245,7 +245,7 @@ export function List<T>({
 			reorderDisabled,
 			liftedStore,
 			items.length,
-			sortable,
+			autoHandle,
 			onItemKeyDown,
 			onItemBlur,
 			reorderParts,

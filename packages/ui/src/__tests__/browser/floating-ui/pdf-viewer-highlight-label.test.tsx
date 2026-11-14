@@ -79,7 +79,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 	function setup() {
 		return renderUI(
 			<div style={{ width: '520px', height: '620px' }}>
-				<PdfViewer pages={pages} highlights={highlights} onActiveHighlightChange={noop} />
+				<PdfViewer pages={pages} highlights={highlights} onActiveHighlightIdChange={noop} />
 			</div>,
 		)
 	}
@@ -209,7 +209,7 @@ describe('a name that stands over another region (real browser)', () => {
 	async function named() {
 		renderUI(
 			<div style={{ width: '520px', height: '620px' }}>
-				<PdfViewer pages={pages} highlights={highlights} onActiveHighlightChange={noop} />
+				<PdfViewer pages={pages} highlights={highlights} onActiveHighlightIdChange={noop} />
 			</div>,
 		)
 
@@ -254,7 +254,7 @@ describe('a name that stands over another region (real browser)', () => {
 						pages={pages}
 						highlights={highlights}
 						activeHighlightId={active}
-						onActiveHighlightChange={noop}
+						onActiveHighlightIdChange={noop}
 					/>
 				</div>
 			)
@@ -373,7 +373,7 @@ describe('the name of a hovered region (real browser)', () => {
 				<PdfViewer
 					pages={pages}
 					highlights={highlightsNamed(invoice)}
-					onActiveHighlightChange={noop}
+					onActiveHighlightIdChange={noop}
 				/>
 			</div>
 		)

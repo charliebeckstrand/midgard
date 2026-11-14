@@ -240,7 +240,7 @@ function GridColumnManagerFrozenGroup({
 	const intl = useIntl()
 
 	return (
-		<List items={items} getKey={getKey} variant="plain" sortable={false}>
+		<List items={items} getKey={getKey} variant="plain">
 			{(col) => (
 				<ListItem prefix={frozenLeading(col, onPinChange)}>
 					<GridManagerCheckboxRow
@@ -329,7 +329,6 @@ function GridColumnManagerOrderableList({
 		<List
 			items={items}
 			getKey={getKey}
-			sortable={false}
 			variant="plain"
 			aria-label={intl.formatMessage(gridMessages.columns)}
 		>

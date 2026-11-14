@@ -107,7 +107,7 @@ export function PdfViewerHighlights() {
  * total. One delegated press handler serves every region, so the layer allocates one
  * closure rather than one per region.
  *
- * When `onActiveHighlightChange` is set, each region is a real `<button>`. Without it, the
+ * When `onActiveHighlightIdChange` is set, each region is a real `<button>`. Without it, the
  * regions are decoration inside an `aria-hidden` layer, because a press has nothing to report to.
  * @internal
  */

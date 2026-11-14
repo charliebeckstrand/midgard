@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	List,
 	ListDescription,
+	ListHandle,
 	ListItem,
 	type ListItemProps,
 	ListLabel,
@@ -63,6 +64,26 @@ describe('List', () => {
 		)
 
 		expect(allBySlot(reorderable.container, 'list-handle')).toHaveLength(items.length)
+	})
+
+	it('inserts no handle under `handle={false}`, and keeps the one that an item places', () => {
+		const { container } = renderUI(
+			<List items={items} getKey={(i) => i.id} handle={false} onReorder={() => {}}>
+				{(item) => (
+					<ListItem>
+						<ListHandle />
+						{item.label}
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		const handles = allBySlot(container, 'list-handle')
+
+		expect(handles).toHaveLength(items.length)
+
+		for (const handle of handles)
+			expect(handle.parentElement).toHaveAttribute('data-slot', 'list-item-content')
 	})
 
 	it('shows a disabled handle in a disabled list, and none in a disabled read-only list', () => {
@@ -503,7 +524,7 @@ describe('ListDescription', () => {
 describe('List keyboard reordering', () => {
 	function renderList(onReorder: (next: Item[]) => void = () => {}) {
 		return renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={onReorder}>
+			<List items={items} getKey={(i) => i.id} onReorder={onReorder}>
 				{(item) => <ListItem>{item.label}</ListItem>}
 			</List>,
 		)
@@ -521,7 +542,7 @@ describe('List keyboard reordering', () => {
 
 	it('gives an activatable row one Tab stop, on the content rather than the row', () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => <ListItem href={`/${item.id}`}>{item.label}</ListItem>}
 			</List>,
 		)
@@ -541,7 +562,7 @@ describe('List keyboard reordering', () => {
 
 	it('keeps one Tab stop on a link row that suppresses the interactive treatment', () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => (
 					<ListItem href={`/${item.id}`} interactive={false}>
 						{item.label}
@@ -559,7 +580,7 @@ describe('List keyboard reordering', () => {
 
 	it('keeps the stop on the row when its content only displays', () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => <ListItem>{item.label}</ListItem>}
 			</List>,
 		)
@@ -574,7 +595,7 @@ describe('List keyboard reordering', () => {
 		const onReorder = vi.fn()
 
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={onReorder}>
+			<List items={items} getKey={(i) => i.id} onReorder={onReorder}>
 				{(item) => <ListItem href={`/${item.id}`}>{item.label}</ListItem>}
 			</List>,
 		)
@@ -594,7 +615,7 @@ describe('List keyboard reordering', () => {
 		const onKeyDown = vi.fn()
 
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={onReorder}>
+			<List items={items} getKey={(i) => i.id} onReorder={onReorder}>
 				{(item) => (
 					<ListItem href={`/${item.id}`} onKeyDown={onKeyDown}>
 						{item.label}
@@ -619,7 +640,7 @@ describe('List keyboard reordering', () => {
 
 	it('keeps the content anchor when a consumer passes its own data-slot', () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => (
 					<ListItem href={`/${item.id}`} data-slot="my-row">
 						{item.label}
@@ -642,7 +663,7 @@ describe('List keyboard reordering', () => {
 
 	it('joins a consumer aria-describedby with the reorder instructions', () => {
 		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+			<List items={items} getKey={(i) => i.id} onReorder={() => {}}>
 				{(item) => (
 					<ListItem href={`/${item.id}`} aria-describedby="hint">
 						{item.label}
@@ -667,7 +688,7 @@ describe('List keyboard reordering', () => {
 		const onReorder = vi.fn()
 
 		renderUI(
-			<List items={items} getKey={(i) => i.id} sortable onReorder={onReorder}>
+			<List items={items} getKey={(i) => i.id} onReorder={onReorder}>
 				{(item) => (
 					<ListItem>
 						{item.label}
@@ -799,9 +820,7 @@ describe('List keyboard reordering', () => {
 describe('List: static (non-interactive) mode', () => {
 	it('gives duplicate primitive items distinct positional ids', () => {
 		const { container } = renderUI(
-			<List items={['draft', 'draft', 'sent']} sortable={false}>
-				{(item) => <ListItem>{item}</ListItem>}
-			</List>,
+			<List items={['draft', 'draft', 'sent']}>{(item) => <ListItem>{item}</ListItem>}</List>,
 		)
 
 		const ids = allBySlot(container, 'list-item').map((row) => row.getAttribute('data-item-id'))

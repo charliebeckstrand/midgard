@@ -172,7 +172,7 @@ describe('usePdfViewerHighlights', () => {
 				usePdfViewerHighlights({
 					highlights,
 					activeHighlightId,
-					onActiveHighlightChange: noop,
+					onActiveHighlightIdChange: noop,
 					activePage: letter,
 					safePage: 1,
 					goToPage,
@@ -213,7 +213,7 @@ describe('usePdfViewerHighlights', () => {
 				usePdfViewerHighlights({
 					highlights,
 					activeHighlightId: 'pro',
-					onActiveHighlightChange: noop,
+					onActiveHighlightIdChange: noop,
 					activePage,
 					safePage: 1,
 					goToPage,
@@ -265,7 +265,7 @@ describe('usePdfViewerHighlights', () => {
 			usePdfViewerHighlights({
 				highlights,
 				activeHighlightId: 'total',
-				onActiveHighlightChange: noop,
+				onActiveHighlightIdChange: noop,
 				activePage: letter,
 				safePage: 1,
 				goToPage: noop,
@@ -297,7 +297,7 @@ describe('usePdfViewerHighlights', () => {
 			usePdfViewerHighlights({
 				highlights,
 				activeHighlightId: 'total',
-				onActiveHighlightChange: noop,
+				onActiveHighlightIdChange: noop,
 				activePage: letter,
 				safePage: 1,
 				goToPage: noop,

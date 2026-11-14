@@ -120,7 +120,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	// content area's activation treatment. Alias the former to keep them apart.
 	const {
 		variant,
-		sortable,
+		handle,
 		interactive: reorderable,
 		disabled,
 		liftedStore,
@@ -230,7 +230,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 
 	const content = (
 		<>
-			{prefix ?? (sortable ? <ListHandle /> : null)}
+			{prefix ?? (handle ? <ListHandle /> : null)}
 			<Polymorphic
 				as={as}
 				href={href}

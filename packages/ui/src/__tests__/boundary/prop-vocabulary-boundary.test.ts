@@ -24,7 +24,8 @@ import { srcRelative } from '../helpers/walk-source'
 // column, a heading level typed `HeadingLevel`, a severity whose kinds are the
 // kinds of `AlertSeverity`, `multiple` for more than one at once, `formatValue`
 // for a number formatter, a time with no unit suffix, `on<Thing>Click` for the
-// activation of an item, and `on<State>Change` for a change of a state.
+// activation of an item, and `on<State>Change` for a change of a state. The
+// last row holds a triple too: the callback of `x` and `defaultX` is `onXChange`.
 // The `onChange` row is out of scope: a native `onChange` is correct on a
 // component that takes the native base of an input.
 
@@ -38,6 +39,7 @@ const ALIASES = new Map([
 	['finalFocus', 'returnFocusTo'],
 	['virtual', 'virtualize'],
 	['preventClose', 'closeOnClick'],
+	['sortable', 'handle'],
 ])
 
 /** A time in milliseconds with its unit in the name, such as `debounceMs`. */
@@ -46,8 +48,11 @@ const UNIT_SUFFIX = /^(\w+)Ms$/
 /** An item handler that ends in `Press`, such as `onDayPress`. */
 const PRESS_HANDLER = /^(on\w+)Press$/
 
-/** A function of one number, such as `(value: number) => string`. */
-const NUMBER_FORMATTER = /^\(\s*\w+\s*:\s*number\s*\)\s*=>/
+/**
+ * A function whose first parameter is a number, such as `(value: number) => string`
+ * or `(diffMs: number, now: Date, then: Date) => string`.
+ */
+const NUMBER_FORMATTER = /^\(\s*\w+\s*:\s*number\s*[,)]/
 
 /** A union of heading levels written by hand, such as `1 | 2 | 3`. */
 const HAND_LEVELS = /^\(?\s*[1-6](?:\s*\|\s*[1-6])+\s*\)?$/
@@ -154,6 +159,42 @@ function patternBreaks(property: TsSymbol, text: string | undefined): string[] {
 }
 
 /**
+ * The fix for an `on<Y>Change` that reports a key `x` with a `defaultX` but
+ * does not take the name `onXChange`, as `onActiveHighlightChange` beside
+ * `activeHighlightId`. A key that has its own `onXChange` already is out of
+ * scope, so `onMonthChange` beside `value` and `onValueChange` passes. A key of
+ * a React base, such as the native `checked`, reports through the native
+ * `onChange`, so it is out of scope too.
+ */
+function tripleBreaks(
+	project: Project,
+	callback: TsSymbol,
+	byName: ReadonlyMap<string, TsSymbol>,
+): string[] {
+	const fixes: string[] = []
+
+	for (const [name, state] of byName) {
+		const pascal = `${name.charAt(0).toUpperCase()}${name.slice(1)}`
+
+		const expected = `on${pascal}Change`
+
+		if (callback.name === expected || byName.has(expected) || !byName.has(`default${pascal}`)) {
+			continue
+		}
+
+		const file = state.declarations?.[0]?.resolve(project)?.getSourceFile().fileName
+
+		if (!file || file.includes('node_modules')) continue
+
+		if (reportsState(project, state, callback)) {
+			fixes.push(`name it \`${expected}\`, as it reports \`${name}\``)
+		}
+	}
+
+	return fixes
+}
+
+/**
  * Each break of a naming pattern by a key that ui declares, as a fix. A key of
  * a React base, such as the native `onKeyPress`, keeps its name.
  */
@@ -171,7 +212,9 @@ function ownBreaks(
 
 	const handler = /^on([A-Z]\w*)$/.exec(property.name)?.[1]
 
-	if (!handler || handler.endsWith('Change')) return fixes
+	if (!handler) return fixes
+
+	if (handler.endsWith('Change')) return [...fixes, ...tripleBreaks(project, property, byName)]
 
 	const state = `${handler.charAt(0).toLowerCase()}${handler.slice(1)}`
 

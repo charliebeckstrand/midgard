@@ -53,7 +53,7 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 	const viewer = vi.defineHelper(async () => {
 		const { container } = renderUI(
 			<div style={{ width: 700 }}>
-				<PdfViewer pages={pages} highlights={highlights} onActiveHighlightChange={noop} />
+				<PdfViewer pages={pages} highlights={highlights} onActiveHighlightIdChange={noop} />
 			</div>,
 		)
 

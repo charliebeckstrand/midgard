@@ -51,7 +51,7 @@ export function TripDetails({
 			{places.length === 0 ? (
 				<Text tone="muted">No places on this trip yet.</Text>
 			) : (
-				<List items={places} sortable={false} getKey={(place) => place.id}>
+				<List items={places} getKey={(place) => place.id}>
 					{(place) => <PlaceRow place={place} onOpen={() => onOpenPlace(place)} />}
 				</List>
 			)}
@@ -75,7 +75,7 @@ export function TripList({
 	const intl = useIntl()
 
 	return (
-		<List items={shown} sortable={false} virtualize getKey={(trip) => trip.id}>
+		<List items={shown} virtualize getKey={(trip) => trip.id}>
 			{(trip) => (
 				<SummaryRow
 					name={trip.name}
