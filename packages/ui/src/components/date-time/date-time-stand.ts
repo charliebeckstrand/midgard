@@ -44,12 +44,22 @@ export function standText(date: Date, options: Intl.DateTimeFormatOptions): stri
  * @internal
  */
 export function standDayText(date: Date, options: Intl.DateTimeFormatOptions): string {
+	return standText(toUtcDay(date), options)
+}
+
+/**
+ * The UTC midnight of the local day of `date`. Text of the day in UTC then
+ * names the local day in each time zone.
+ *
+ * @internal
+ */
+export function toUtcDay(date: Date): Date {
 	const day = new Date(0)
 
 	// `setUTCFullYear` keeps the years 0 to 99, which `Date.UTC` reads as 1900 to 1999.
 	day.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate())
 
-	return standText(day, options)
+	return day
 }
 
 const MONTHS = [

@@ -10,7 +10,7 @@ import {
 } from '@internationalized/date'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { getOrCompute } from '../../utilities/get-or-compute'
-import { standDayText } from '../date-time/date-time-stand'
+import { standDayText, toUtcDay } from '../date-time/date-time-stand'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 
 /**
@@ -284,7 +284,9 @@ const GREGORIAN = { calendar: 'gregory' } as const
 const MONTH = { ...GREGORIAN, month: 'long', year: 'numeric' } as const
 
 // A new `Intl.DateTimeFormat` for each day cell is measurable on each month
-// change, so the day-name formatter is cached by locale.
+// change, so the day-name formatter is cached by locale. A formatter keeps the
+// time zone of the runtime when it was made, so the cached formatter writes the
+// day in UTC, and it gets the UTC midnight of the local day.
 const dayNameFormatters = new Map<string, Intl.DateTimeFormat>()
 
 /** Accessible name of a day in `locale`, such as "Sunday, June 15, 2025". @internal */
@@ -299,10 +301,11 @@ export function formatDayName(date: Date, locale: string): string {
 				day: 'numeric',
 				month: 'long',
 				year: 'numeric',
+				timeZone: 'UTC',
 			}),
 	)
 
-	return formatter.format(date)
+	return formatter.format(toUtcDay(date))
 }
 
 /** Name of the month of `date` with its year in `locale`, such as "June 2025". @internal */

@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { getMonthStand, getWeekdayStands } from '../../components/calendar/calendar-utilities'
+import {
+	formatDayName,
+	getMonthStand,
+	getWeekdayStands,
+} from '../../components/calendar/calendar-utilities'
 import { standDate } from '../../components/date-picker/date-picker-utilities'
 
 /**
@@ -34,5 +38,16 @@ describe('date skeleton text east of UTC', () => {
 		expect(getMonthStand(new Date(2025, 5, 1))).toBe('June 2025')
 
 		expect(getWeekdayStands('en-US')).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
+	})
+})
+
+describe('day names after the runtime zone moves', () => {
+	it('names the local day with the formatter that the runtime made in UTC', () => {
+		// The formatter is cached by locale, so this read makes it in UTC.
+		expect(formatDayName(new Date(2025, 5, 1), 'en-US')).toBe('Sunday, June 1, 2025')
+
+		inTokyo()
+
+		expect(formatDayName(new Date(2025, 5, 1), 'en-US')).toBe('Sunday, June 1, 2025')
 	})
 })
