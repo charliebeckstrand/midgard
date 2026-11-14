@@ -6,7 +6,7 @@
  * toggle, chevron, and the collapse motion config round out the surface.
  */
 import { defineKata, mode } from '../../core/recipe'
-import { dan, hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro
@@ -31,7 +31,9 @@ const row = [
 	'group/json-node',
 	flex.row,
 	'w-full',
-	dan.gap.scale.xs,
+	// The tree keeps one geometry at each density step: the gap, the spacer, and
+	// the indent are fixed, as the text and the row padding are.
+	'gap-1',
 	'py-0.5',
 	size.sm,
 	rounded.lg,
@@ -59,21 +61,21 @@ export const k = defineKata(
 			 */
 			spacer: 'shrink-0',
 			row,
-			leaf: [flex.row, 'flex-1', 'min-w-0 outline-none', dan.gap.scale.xs],
+			leaf: [flex.row, 'flex-1', 'min-w-0 outline-none', 'gap-1'],
 			toggle: [
 				flex.row,
 				'flex-1',
 				'min-w-0 text-start',
 				...cursor,
 				'outline-none',
-				dan.gap.scale.xs,
+				'gap-1',
 				text.muted,
 				fg.hover,
 				...fg.open,
 				rounded.lg,
 			],
 			content: {
-				base: [flex.inline, 'min-w-0', dan.gap.scale.xs],
+				base: [flex.inline, 'min-w-0', 'gap-1'],
 				// Forced colors remove the wash, so a match paints the `mark`. The text
 				// keeps the backplate that forced colors draw behind it.
 				highlighted: {
@@ -84,8 +86,11 @@ export const k = defineKata(
 			chevron: {
 				base: ['flex-none', css.transform, css.duration],
 				slots: {
-					/** The box in place of the chevron on a row that does not open, so the rows align. */
-					spacer: 'inline-block w-4 flex-none',
+					/**
+					 * The box in place of the chevron on a row that does not open, so the rows
+					 * align. It has the width of the `sm` chevron icon.
+					 */
+					spacer: 'inline-block w-4.5 flex-none',
 				},
 			},
 			index: text.muted,
@@ -95,7 +100,7 @@ export const k = defineKata(
 			 * The start padding of the children of a nested group. It equals the chevron
 			 * spacer plus the row gap, so each depth adds one step of it.
 			 */
-			indent: 'ps-5',
+			indent: 'ps-5.5',
 			/** The syntax color of a value or a key, by {@link JsonValueType}. */
 			value: { type: color },
 		},
