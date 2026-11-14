@@ -6,7 +6,7 @@ import Responsive from './responsive.tsx'
 export default function ColumnsPage() {
 	return (
 		<>
-			<Playground of={ColumnsPlayground} api={api} />
+			<Playground of={ColumnsPlayground} api={api} start={{ columns: 3 }} />
 			<Example of={Responsive} />
 			<ApiTable api={api} />
 		</>

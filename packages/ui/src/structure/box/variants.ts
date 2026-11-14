@@ -1,5 +1,6 @@
+import type { VariantProps } from '../../core/recipe/engine/types'
 import type { Ma } from '../../recipes'
-import type { BoxBg, BoxRadius } from '../../recipes/kata/box'
+import type { BoxBg, BoxRadius, k } from '../../recipes/kata/box'
 import type { Responsive } from '../../utilities/responsive'
 
 export type { BoxBg, BoxRadius }
@@ -14,4 +15,4 @@ export type ResponsiveBoxPadding = Responsive<BoxPadding>
  * Outline weight for {@link Box}: `true` for the default weight, or `'subtle'`
  * or `'strong'` for a different weight.
  */
-export type BoxOutline = boolean | 'subtle' | 'strong'
+export type BoxOutline = NonNullable<VariantProps<typeof k>['outline']>

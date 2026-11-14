@@ -23,8 +23,8 @@
  * built in memory. The file loads the legacy build of pdf.js, as the viewer does, because the
  * modern build calls built-ins that the pinned Chromium (141) lacks. Its worker goes in as the
  * global `workerPort`, so it lives for the whole run, as the viewer's shared worker does in an
- * app. The samples run one after another, so the overlap that the shared
- * worker exists for never comes up.
+ * app. The viewer gives each load the worker of that port, so the release of one sample does
+ * not destroy the worker that the next sample opens on.
  *
  * The README (PDF viewer) holds the baseline and the optimization log. In the baseline, the first
  * page painted only when the whole document settled, because the viewport showed a page only while

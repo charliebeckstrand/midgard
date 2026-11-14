@@ -92,15 +92,15 @@ describe('Split responsive axes', () => {
 })
 
 describe('Split gap resolution', () => {
-	it('ignores an ambient Density provider when gap is omitted', () => {
+	it('keeps the stepped lg gap class inside a Density provider when gap is omitted', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Split>content</Split>
 			</DensityProvider>,
 		)
 
-		// Static leaf: gap is explicit (default lg); ambient density reaches
-		// client components only.
+		// The gap class is the same at each step. The `data-density` scope of
+		// the provider picks the step in CSS.
 		expect(bySlot(container, 'split')?.className).toContain('density-gap-[2,3,4,5,6]')
 	})
 
