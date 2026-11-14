@@ -13,6 +13,7 @@ import { HoldButton } from '../../components/hold-button'
 import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { List, ListItem } from '../../components/list'
+import { LoadingDots } from '../../components/loading'
 import { NavItem, NavList } from '../../components/nav'
 import { PasswordStrength } from '../../components/password-strength'
 import { ProgressBar } from '../../components/progress'
@@ -322,6 +323,11 @@ const edges: Record<string, ReactElement> = {
 	'input frame': input,
 	'outline button': <Button variant="outline">Save</Button>,
 	'outline badge': <Badge variant="outline">New</Badge>,
+	// A solid or a soft fill is the only edge, and forced colors remove it.
+	'solid button': <Button>Save</Button>,
+	'soft button': <Button variant="soft">Save</Button>,
+	'solid badge': <Badge>New</Badge>,
+	'soft badge': <Badge variant="soft">New</Badge>,
 }
 
 /** The outline of the active indicator, as one string. */
@@ -516,6 +522,35 @@ describe('controls show their state under forced colors (real browser)', () => {
 			expect(indicatorOutline(container)).not.toBe(rest)
 		})
 	}
+
+	// The open picker holds focus and moves a virtual ring over the days. The
+	// selected day is a solid Button, whose resting outline is 1 px under forced
+	// colors. The ring of the active day must stay 2 px on it, as on a plain day.
+	it('date picker: the ring of the active day is 2 px on the selected day too', async () => {
+		renderUI(<DatePicker aria-label="Day" defaultValue={new Date(2024, 2, 10)} />)
+
+		await frames()
+		await userEvent.tab()
+		await userEvent.keyboard('{Enter}')
+		await frames()
+
+		const active = () =>
+			present(document.querySelector<HTMLElement>('[role=option][id]'), 'active day')
+
+		const widths: Record<string, string> = {}
+
+		for (const key of ['{ArrowRight}', '{ArrowLeft}']) {
+			await userEvent.keyboard(key)
+			await frames()
+
+			const day = active()
+
+			widths[`${day.textContent} ${day.getAttribute('aria-selected')}`] =
+				getComputedStyle(day).outlineWidth
+		}
+
+		expect(widths).toEqual({ '10 true': '2px', '9 false': '2px' })
+	})
 
 	// The shadow and the surface show a held node. Forced colors remove the
 	// shadow and repaint the surface, so a keyboard lift showed no change.
@@ -858,11 +893,12 @@ function paints(container: Element, color: string): boolean {
 const paintsMark = (container: Element) => paints(container, 'Highlight')
 
 /**
- * A search match of a JsonTree and the filled segments of a password-strength
- * meter show their state only with a background. Forced colors remove it, so a
- * filled segment paints the `Highlight` of a `mark`. A match is a wash behind
- * text, so it paints the `Mark` of a `highlight`, which keeps the contrast of
- * the text on it.
+ * A search match of a JsonTree, the filled segments of a password-strength
+ * meter, and the dots of LoadingDots show their state only with a background.
+ * Forced colors remove it, so a filled segment paints the `Highlight` of a
+ * `mark`, and a dot paints the `CanvasText` of a shape. A match is a wash
+ * behind text, so it paints the `Mark` of a `highlight`, which keeps the
+ * contrast of the text on it.
  */
 describe('state marks under forced colors (real browser)', () => {
 	emulateForcedColors()
@@ -874,6 +910,15 @@ describe('state marks under forced colors (real browser)', () => {
 		match.unmount()
 		const none = renderUI(<JsonTree data={data} />)
 		expect(paints(none.container, 'Mark')).toBe(false)
+	})
+
+	it('LoadingDots: each dot paints CanvasText', () => {
+		const { container } = renderUI(<LoadingDots />)
+		const dots = container.querySelectorAll<HTMLElement>('[data-slot=loading-dot]')
+		expect(dots.length).toBeGreaterThan(0)
+		for (const dot of dots) {
+			expect(getComputedStyle(dot).backgroundColor).toBe(systemColor('CanvasText'))
+		}
 	})
 
 	it('password strength: a filled segment paints the mark, and an empty meter paints none', () => {

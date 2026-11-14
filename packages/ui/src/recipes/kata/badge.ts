@@ -16,7 +16,7 @@ const { weight } = ji
 const { rounded } = kasane
 const { badge } = kokkaku
 const { flex } = narabi
-const { focus, ring } = sen
+const { focus, forced, ring } = sen
 
 /**
  * The hover wash of a link badge: one compound rule for each variant and color,
@@ -60,7 +60,11 @@ export const k = defineKata(
 			'py-ring-1',
 			dan.space.badge.base,
 		],
+		// A solid or a soft badge has only its fill as an edge. Forced colors remove
+		// the fill, so the badge takes the outline of a surface.
 		variant: {
+			solid: forced.outline,
+			soft: forced.outline,
 			outline: ring.line[1].inset,
 		},
 		radius: rounded,

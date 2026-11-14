@@ -126,8 +126,9 @@ export const k = defineKata({
 						// on the overlay, the row's own right edge) flush against it.
 						control: 'grow',
 						// The dragged row's overlay clone: an opaque, rounded, shadowed surface so it
-						// reads as lifted above the dialog while it tracks the pointer.
-						overlay: [bg.surface, rounded.md, 'shadow-lg'],
+						// reads as lifted above the dialog while it tracks the pointer. The source row
+						// is transparent, so under forced colors the clone draws the mark of a lift.
+						overlay: [bg.surface, rounded.md, 'shadow-lg', ...focus.lifted.mark],
 						// Drag grip: a grab-cursor handle, muted at rest, tinting on hover/focus.
 						grip: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, ...grab.default],
 					},

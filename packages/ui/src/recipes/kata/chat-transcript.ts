@@ -2,7 +2,7 @@ import { defineKata } from '../../core/recipe'
 import { kasane, kokkaku, omote, sen } from '../kiso'
 
 const { rounded } = kasane
-const { focus } = sen
+const { focus, forced } = sen
 
 // A transcript that overflows is a tab stop (`useScrollRegion`), so browsers
 // paint the UA focus outline. `focus.inset` suppresses it and draws the
@@ -35,10 +35,11 @@ export const k = defineKata(
 	},
 	{
 		// The skeleton bubble takes the tint fill, so the bubble shape shows
-		// behind the placeholder lines in it.
+		// behind the placeholder lines in it. Forced colors remove the fill, so the
+		// bubble takes the outline of a surface, as the real bubble does.
 		skeleton: {
 			...kokkaku.chat,
-			bubble: [...kokkaku.chat.bubble, omote.bg.tint],
+			bubble: [...kokkaku.chat.bubble, omote.bg.tint, forced.outline],
 		},
 	},
 )
