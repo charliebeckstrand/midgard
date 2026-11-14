@@ -1,5 +1,7 @@
 import { defineKata } from '../../core/recipe'
-import { type GroupOrientation, tsunagi } from '../kiso'
+import { type GroupOrientation, narabi, tsunagi } from '../kiso'
+
+const { touch } = narabi
 
 /**
  * Group kata: the unit of `<Group>`. The `base` slot is the container chrome,
@@ -14,11 +16,13 @@ import { type GroupOrientation, tsunagi } from '../kiso'
 export const k = defineKata({
 	orientation: {
 		horizontal: [
-			'inline-flex flex-row [--touch-target-gap-x:0px] [--group-member-flex:1]',
+			'inline-flex flex-row [--group-member-flex:1]',
+			touch.flush.x,
 			...tsunagi.horizontal,
 		],
 		vertical: [
-			'inline-flex flex-col [--touch-target-gap-y:0px] [--group-member-flex:none]',
+			'inline-flex flex-col [--group-member-flex:none]',
+			touch.flush.y,
 			...tsunagi.vertical,
 		],
 	} satisfies Record<GroupOrientation, string[]>,

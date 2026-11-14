@@ -9,7 +9,7 @@ import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { fg, grab } = hannou
-const { flex } = narabi
+const { flex, touch } = narabi
 const { forced } = sen
 const { text } = iro
 const { rounded } = kasane
@@ -103,7 +103,7 @@ const header = [
 	flex.row,
 	'min-w-0 gap-2',
 	dan.space.box.bottom,
-	'[--touch-target-gap-x:0px]',
+	touch.flush.x,
 	'pointer-coarse:has-data-own-fullscreen:**:data-[slot=dashboard-tile-expand]:hidden',
 	dan.space.dashboard.bare,
 ]

@@ -13,7 +13,7 @@ const { busy, cursor, fg, grab } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
-const { flex } = narabi
+const { flex, touch } = narabi
 const { backdrop, popover } = omote
 const { focus, forced, gridline, ring } = sen
 const { instant, spring } = ugoki
@@ -339,10 +339,7 @@ export const k = {
 		// checkbox. That hit area fills the cell, so the cell sets the touch gaps to
 		// zero, and the hit area of the checkbox (`TouchTarget`) keeps to the box. A
 		// floor on the box would go into the next row.
-		select: [
-			fitCell,
-			'relative group/field [--touch-target-gap-x:0px] [--touch-target-gap-y:0px]',
-		].join(' '),
+		select: [fitCell, 'relative group/field', touch.flush.x, touch.flush.y].join(' '),
 		actions: 'w-px whitespace-nowrap',
 		// The hit area of the selection checkbox (see `GridSelectCheckbox`): a label
 		// of the checkbox that fills the cell. The hover of the label shows on the
@@ -843,7 +840,8 @@ export const k = {
 			'px-3 py-2',
 			rounded.md,
 			'shadow-md',
-			...omote.panel.base,
+			...ring.default,
+			...omote.bg.surface,
 			size.sm,
 			weight.medium,
 		],

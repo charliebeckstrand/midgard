@@ -12,7 +12,7 @@ import { dan, iro, ji, kokkaku, narabi, sen } from '../kiso'
 
 const { hover, palette, text } = iro
 const { weight } = ji
-const { flex } = narabi
+const { flex, touch } = narabi
 const { focus } = sen
 
 const base = ['inline-flex flex-col', 'select-none', kokkaku.calendar.width]
@@ -25,7 +25,7 @@ const footer = [flex.row, 'justify-center', dan.gap.default]
  * The cap on the hit areas of a grid of cells (`TouchTarget`). The cells touch,
  * so each hit area keeps to its cell and two adjacent cells do not overlap.
  */
-const cellTargets = '[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]'
+const cellTargets = [touch.flush.x, touch.flush.y]
 
 const pickerGrid = ['grid grid-cols-3', dan.space.tab.x, cellTargets]
 
