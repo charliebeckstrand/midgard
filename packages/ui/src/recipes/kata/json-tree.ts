@@ -74,10 +74,10 @@ export const k = defineKata(
 			],
 			content: {
 				base: [flex.inline, 'min-w-0', dan.gap.scale.xs],
-				// Forced colors remove the wash, so a match paints the `mark`. The text
-				// keeps the backplate that forced colors draw behind it.
+				// Forced colors remove the wash, so a match paints the `Mark` pair of
+				// `sen.forced.highlight`, which keeps the contrast of the text on it.
 				highlighted: {
-					true: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.lg, forced.mark],
+					true: [...iro.match, rounded.lg, forced.highlight],
 					false: '',
 				},
 			},
