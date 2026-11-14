@@ -68,7 +68,7 @@ const surface = [
 		'not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:hover:border-zinc-950/70 not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
 		'dark:not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:hover:border-white/50 dark:not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:group-has-[[data-slot=label]:hover]/field:border-white/50',
 	),
-	...disabled.host,
+	disabled.host,
 	...validation,
 ]
 

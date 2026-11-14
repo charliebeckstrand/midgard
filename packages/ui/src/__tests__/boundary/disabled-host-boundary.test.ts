@@ -33,7 +33,7 @@ describe('disabled-host boundary', () => {
 
 		expect(
 			violations,
-			`files that dim a box on a disabled descendant (spread \`hannou.disabled.host\` instead):\n  ${violations.join('\n  ')}`,
+			`files that dim a box on a disabled descendant (use \`hannou.disabled.host\` instead):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })

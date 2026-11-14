@@ -101,7 +101,7 @@ export const k = defineKata(
 			// Validation ring overrides the resting / checked track ring when the
 			// input carries a data-* severity attribute.
 			...validation,
-			...disabled.host,
+			disabled.host,
 			// The track takes the step of the nearest density scope.
 			...kokkaku.switch.track,
 		],
