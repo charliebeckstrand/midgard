@@ -148,7 +148,7 @@ Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 
 | The pointer or keyboard activation of an item | `on<Thing>Click`, as `onRowClick` and `onDayClick`. A keyboard activation is a DOM click too | `on<Thing>Press` |
 | The close of an enclosing surface when an item acts | `closeOn<Event>`, default `true`: `closeOnAction`, `closeOnSelect`, `closeOnClick` | `preventClose` |
 | A function that makes the text of a number | `formatValue`, as on Odometer and on TimeAgo, whose function gets the age in milliseconds | `format`, which holds a spec such as a token or `Intl` options |
-| The grip that starts the drag of a part | `handle`, as on Drawer, Sheet, `GridReorder`, and a List with `onReorder` | `sortable`. A sort by value is `sort`, as on Grid |
+| The grip that starts the drag of a part | `handle`, as on Drawer, Sheet, `GridReorder`, and a List with `onReorder` | `sortable` beside `onReorder`. A `sortable` with no `onReorder` lets a part sort by value and keeps its name, as `GridColumn.sortable` does |
 
 `prop-vocabulary-boundary.test.ts` reads each public props type and options type with the checker. It holds each row that has an entry in the last column, except the `onChange` row, because a native `onChange` is correct on an input. A key of a React base keeps its name, such as the native `onKeyPress`.
 

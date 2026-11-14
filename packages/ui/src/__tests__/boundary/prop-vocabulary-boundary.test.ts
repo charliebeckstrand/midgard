@@ -39,7 +39,6 @@ const ALIASES = new Map([
 	['finalFocus', 'returnFocusTo'],
 	['virtual', 'virtualize'],
 	['preventClose', 'closeOnClick'],
-	['sortable', 'handle'],
 ])
 
 /** A time in milliseconds with its unit in the name, such as `debounceMs`. */
@@ -159,6 +158,17 @@ function patternBreaks(property: TsSymbol, text: string | undefined): string[] {
 }
 
 /**
+ * The fix for a `sortable` flag beside `onReorder`, which names the grip that
+ * starts the drag. A `sortable` with no `onReorder`, as on a Grid column, lets a
+ * part sort by value and keeps its name.
+ */
+function gripBreaks(property: TsSymbol, byName: ReadonlyMap<string, TsSymbol>): string[] {
+	return property.name === 'sortable' && byName.has('onReorder')
+		? ['name it `handle`: it turns the grip of a reorder on or off']
+		: []
+}
+
+/**
  * The fix for an `on<Y>Change` that reports a key `x` with a `defaultX` but
  * does not take the name `onXChange`, as `onActiveHighlightChange` beside
  * `activeHighlightId`. A key that has its own `onXChange` already is out of
@@ -208,7 +218,7 @@ function ownBreaks(
 
 	if (!file || file.includes('node_modules')) return []
 
-	const fixes = patternBreaks(property, text)
+	const fixes = [...patternBreaks(property, text), ...gripBreaks(property, byName)]
 
 	const handler = /^on([A-Z]\w*)$/.exec(property.name)?.[1]
 
