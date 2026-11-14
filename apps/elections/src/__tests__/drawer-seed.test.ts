@@ -2,9 +2,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, render } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { hydrateRoot } from 'react-dom/client'
+import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { fetchCountyShapes } from '../api/county-api'
 import { ElectionDrawer } from '../components/election-drawer'
 import { ElectionRacesProvider } from '../components/election-drawer/context'
@@ -171,6 +171,15 @@ describe('ElectionDrawer', () => {
 
 		const container = document.body.appendChild(document.createElement('div'))
 
+		let root: Root | undefined
+
+		// Testing Library unmounts only the roots that its own `render` made.
+		onTestFinished(() => {
+			act(() => root?.unmount())
+
+			container.remove()
+		})
+
 		container.innerHTML = renderToString(tree())
 
 		const panel = container.querySelector('[data-slot="dialog"]')
@@ -188,7 +197,7 @@ describe('ElectionDrawer', () => {
 		const errors: unknown[] = []
 
 		await act(async () => {
-			hydrateRoot(container, tree(), { onRecoverableError: (error) => errors.push(error) })
+			root = hydrateRoot(container, tree(), { onRecoverableError: (error) => errors.push(error) })
 		})
 
 		vi.restoreAllMocks()

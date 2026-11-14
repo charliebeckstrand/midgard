@@ -3,7 +3,7 @@ import { act, cleanup } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { DayText, DayTextProvider } from '../../components/day-text'
 import { DaySpan } from '../../components/summary-drawer'
 import { dayTexts } from '../../utilities/day-text'
@@ -38,6 +38,15 @@ describe('DayText', () => {
 
 		const container = document.body.appendChild(document.createElement('div'))
 
+		let root: Root | undefined
+
+		// Testing Library unmounts only the roots that its own `render` made.
+		onTestFinished(() => {
+			act(() => root?.unmount())
+
+			container.remove()
+		})
+
 		container.innerHTML = renderToString(tree())
 
 		// The date data of the engine of a browser can give other text than the
@@ -51,8 +60,6 @@ describe('DayText', () => {
 
 		const errors: unknown[] = []
 
-		let root: Root | undefined
-
 		await act(async () => {
 			root = hydrateRoot(container, tree(), { onRecoverableError: (error) => errors.push(error) })
 		})
@@ -64,12 +71,19 @@ describe('DayText', () => {
 		expect(container.querySelector('time')?.textContent).toBe('Aug 15, 2026')
 
 		expect(container.textContent).toContain(texts['2026-09-25/2026-09-28']?.text)
-
-		act(() => root?.unmount())
 	})
 
 	it('writes a day that the page did not read in the browser', async () => {
 		const container = document.body.appendChild(document.createElement('div'))
+
+		let root: Root | undefined
+
+		// Testing Library unmounts only the roots that its own `render` made.
+		onTestFinished(() => {
+			act(() => root?.unmount())
+
+			container.remove()
+		})
 
 		const tree = () => h(DayTextProvider, { texts, children: h(DayText, { value: '2026-10-04' }) })
 
@@ -77,14 +91,10 @@ describe('DayText', () => {
 
 		expect(container.querySelector('[data-slot="placeholder"]')).not.toBeNull()
 
-		let root: Root | undefined
-
 		await act(async () => {
 			root = hydrateRoot(container, tree())
 		})
 
 		expect(container.querySelector('time')?.textContent).toBe('Oct 4, 2026')
-
-		act(() => root?.unmount())
 	})
 })

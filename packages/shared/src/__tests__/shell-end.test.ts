@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { act, createElement } from 'react'
-import { hydrateRoot } from 'react-dom/client'
+import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { AppProviders } from '../providers'
 
 /** The providers around a page. Each render takes a new tree. */
@@ -39,12 +39,21 @@ describe('the shell end of AppProviders', () => {
 	it('hydrates with no recoverable error', async () => {
 		vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
 
+		let root: Root | undefined
+
+		// Nothing else unmounts a root that `hydrateRoot` made, or empties the body.
+		onTestFinished(() => {
+			act(() => root?.unmount())
+
+			document.body.replaceChildren()
+		})
+
 		document.body.innerHTML = serverDocument().body.innerHTML
 
 		const onRecoverableError = vi.fn()
 
 		await act(async () => {
-			hydrateRoot(document.body, page(), { onRecoverableError })
+			root = hydrateRoot(document.body, page(), { onRecoverableError })
 		})
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
