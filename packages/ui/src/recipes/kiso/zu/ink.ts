@@ -5,7 +5,7 @@
  * tooltip text beside the marks. The selection ink rings a picked mark in both
  * modules.
  *
- * Layer: kiso · Archetype: zu · Concern: ink
+ * Layer: kiso · Concern: ink
  */
 
 import { mode } from '../../../core/recipe'

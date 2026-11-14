@@ -1,9 +1,7 @@
 /**
  * Hannou cursor: pointer feedback that tracks the disabled and the read-only
  * states. Disabled variants override `cursor-pointer` on the element or its
- * descendants;
- * parent overrides like `has-disabled:**:cursor-not-allowed` apply for
- * sibling-label patterns. Each rule reads both spellings of disabled: the
+ * descendants. Each rule reads both spellings of disabled: the
  * native `:disabled` and `data-disabled`. One `has-[…]` holds the two in a
  * selector list. A descendant attribute takes its own brackets inside
  * `has-[…]`, as `has-[:disabled,[data-disabled]]`. The bare

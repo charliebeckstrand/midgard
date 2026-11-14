@@ -37,7 +37,7 @@
  * happened to the application, not to the surface in front of the user. No
  * surface can therefore cover it, a lens included.
  *
- * Layer: kiso · Concern: sou
+ * Layer: kiso · Concern: stacking order
  */
 
 export const sou = {

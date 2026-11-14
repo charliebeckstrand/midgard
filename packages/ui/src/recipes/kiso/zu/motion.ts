@@ -4,7 +4,7 @@
  * spec from it (`chart-motion.ts`, `map-motion.ts`), so the reveals of the two
  * modules never drift.
  *
- * Layer: kiso · Archetype: zu · Concern: motion
+ * Layer: kiso · Concern: motion
  */
 
 import { ugoki } from '../ugoki'

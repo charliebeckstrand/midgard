@@ -6,7 +6,7 @@
 
 `kiso/` is internal. Only `kumi/` and `kata/` read its values, and they read them through the barrel (`from '../kiso'`). Components, primitives, and layouts reach kiso through their owning kata (`recipes/kata/<name>`). Foundational types (`Color`, `Ma`, `GroupOrientation`) flow through the types-only `recipes` barrel, so consumers can derive prop unions without threading the type through their funnel.
 
-Composition flows downward only. A family can compose its siblings. `narabi` reads `dan` · `sen` · `shaku`, and `omote` reads `sen` · `ugoki`. `hannou` reads `iro` · `ji` · `kasane` · `narabi` · `sen` · `ugoki`. `kokkaku` reads `dan` · `ji` · `kasane` · `shaku`, and `shaku` reads `dan` · `ji` · `kasane`. `ji` reads `dan`, which reads no other family. Kiso never reaches upward into `kumi/` or `kata/`. The `recipes/kiso/**` override in `biome.json` pins the direction, and [`../README.md`](../README.md#3-boundary) has the full boundary list.
+Composition flows downward only. A family can compose its siblings. `narabi` reads `dan` · `sen` · `shaku`, and `omote` reads `sen` · `ugoki`. `hannou` reads `ugoki`, and `zu` reads `iro` · `ugoki`. `kokkaku` reads `dan` · `ji` · `kasane` · `shaku`, and `shaku` reads `dan` · `ji` · `kasane`. `kasane` reads `sen`. `ji` and `ma` read `dan`, which reads no other family. Kiso never reaches upward into `kumi/` or `kata/`. The `recipes/kiso/**` override in `biome.json` pins the direction, and [`../README.md`](../README.md#3-boundary) has the full boundary list.
 
 ## 2. Shape
 

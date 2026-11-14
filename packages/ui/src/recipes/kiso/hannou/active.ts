@@ -1,8 +1,8 @@
 /**
  * Hannou active: mode-neutral background wash on the keyboard-roved item
  * (`data-active`), the counterpart to `tint`'s hover/focus wash at the same
- * 5% intensity. Consumed by the listbox katas whose roving cursor marks the
- * active row with `data-active` (`kata/option`, `kata/menu`, `kata/command-palette`).
+ * 5% intensity. The `item` group reads it (`kumi/item`), so each unit whose
+ * roving cursor marks the active row with `data-active` gets it.
  *
  * A roved row does not take focus, so this wash is the only mark of the cursor.
  * Thus it has the two forms of the hover/focus wash. Inside a glass parent it

@@ -5,7 +5,7 @@
  * wrapper is a column, so each `min-h-0` item between the wrapper and the
  * scroll region shrinks into that cap, and the scroll region scrolls.
  *
- * Layer: kiso · Concern: fit
+ * Layer: kiso · Concern: floating panel height
  */
 
 import { flex } from './flex'
