@@ -3,13 +3,14 @@ import { mimir } from '@/server/mimir'
 import { getWeekGames } from '@/server/scoreboard'
 import { readWeekPath, type WeekPathContext } from '@/server/week-path'
 import type { TeamPicks } from '@/types'
-import { kickedOff, mergePicks } from '@/utilities/locks'
+import { kickedOff, mergePicks, weekClosed } from '@/utilities/locks'
 
 /**
  * The writes of a prediction. Mimir keeps the picks but does not read the
  * schedule, so the app checks the kickoffs here before it sends a write
- * through the gateway: a locked game keeps its stored pick, and a week
- * deletes only before its first kickoff. The app serves this path, so the
+ * through the gateway: a locked game keeps its stored pick, a week takes a
+ * write only before its last kickoff, and a week deletes only before its
+ * first kickoff. The app serves this path, so the
  * gateway rewrite does not take it. The read of a season still goes straight
  * to the gateway.
  */
@@ -39,7 +40,15 @@ export async function PUT(request: Request, context: WeekPathContext) {
 
 	if (held.data === undefined) return refuse(held.response.status, 'The picks did not load.')
 
-	const merged = mergePicks(games, held.data[path.week] ?? {}, body.picks, Date.now())
+	const now = Date.now()
+
+	// A write cannot change a locked pick. Without this, a week with no stored
+	// picks would store an empty prediction.
+	if (weekClosed(games, now)) {
+		return refuse(409, 'Every game of the week has kicked off, so its picks stay.')
+	}
+
+	const merged = mergePicks(games, held.data[path.week] ?? {}, body.picks, now)
 
 	if ('error' in merged) return refuse(400, merged.error)
 
