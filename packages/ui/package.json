@@ -18,6 +18,10 @@
 			"types": "./src/layouts/index.ts",
 			"default": "./src/layouts/index.ts"
 		},
+		"./primitives/intl/no-parser": {
+			"types": "./src/primitives/intl/intl-no-parser.ts",
+			"default": "./src/primitives/intl/intl-no-parser.ts"
+		},
 		"./primitives/*": {
 			"types": "./src/primitives/*/index.ts",
 			"default": "./src/primitives/*/index.ts"
@@ -106,6 +110,10 @@
 		"./scripts/intl-catalog": {
 			"types": "./scripts/intl-catalog.ts",
 			"default": "./scripts/intl-catalog.ts"
+		},
+		"./scripts/intl-loader": {
+			"types": "./scripts/intl-loader.ts",
+			"default": "./scripts/intl-loader.ts"
 		},
 		"./*": {
 			"types": "./src/components/*/index.ts",

@@ -1,3 +1,4 @@
+import { intlEn } from '../../../primitives/intl/intl-catalog'
 import { defineMessages } from '../../../primitives/intl/intl-messages'
 import type { IntlShape, MessageDescriptor } from '../../../primitives/intl/types'
 import { queryMessages } from './query-messages'
@@ -101,8 +102,8 @@ function worded(
 
 	const operator: QueryOperator = {
 		value,
-		label: label.defaultMessage as string,
-		...(valueLabel ? { valueLabel: valueLabel.defaultMessage as string } : {}),
+		label: intlEn.formatMessage(label),
+		...(valueLabel ? { valueLabel: intlEn.formatMessage(valueLabel) } : {}),
 		...rest,
 	}
 
