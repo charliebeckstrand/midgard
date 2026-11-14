@@ -18,8 +18,8 @@ const { border } = sen
 const { bg, rail } = omote
 
 /**
- * The box of the inner button: at `md` it is `p-2` with `gap-2`, `text-base`,
- * and `rounded-lg`. The skeleton row takes the same box, so the two boxes match.
+ * The padding of the inner button: `p-2` at `md`. The skeleton row takes it too,
+ * so the two boxes match.
  */
 const padding = dan.space.nav.item
 

@@ -1,8 +1,9 @@
 /**
- * Color-panel kata: the saturation/value picking surface. The pieces attach as
- * slot extras. Stepped classes give the width and the gap of the root the step
- * of the nearest density scope. The `area`, `track`, and `preview` pieces take
- * that step too. The `handle` and the `swatches` have a fixed size at each step.
+ * Color-panel kata: the saturation/value picking surface. The pieces are child
+ * slots of the root, and `skeleton` is the one extra. Stepped classes give the
+ * width and the gap of the root the step of the nearest density scope. The
+ * `area`, `track`, and `preview` pieces take that step too. The `handle` and
+ * the `swatches` have a fixed size at each step.
  *
  * The wash gradients are raw CSS `background-image` literals here, not kiso
  * tokens, because only the panel uses them. The checkerboard behind the alpha

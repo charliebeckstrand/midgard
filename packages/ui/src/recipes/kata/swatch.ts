@@ -47,7 +47,7 @@ export const k = defineKata({
 		// Shape-specific; the shape × dashed compounds carry the class.
 		dashed: '',
 	},
-	// A box and a dot share one 6px→16px ramp; a line holds a 2px height and
+	// A box and a dot share one 6px→14px ramp; a line holds a 2px height and
 	// grows in width. `md` matches the legend swatches, `sm` the tooltip
 	// swatches, and the full range covers StatusDot's dots.
 	compound: [

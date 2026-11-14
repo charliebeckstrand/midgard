@@ -103,20 +103,26 @@ export const k = defineKata({
 })
 
 /**
- * The size scales of the kata: `mark`, the steps of the inline mark text and
- * padding, and `block`, the steps of the block text, padding, and gap.
+ * The size scales of the kata. `mark` holds the steps of the inline mark text
+ * and padding. `block` holds the steps of the block text and padding.
  */
 export const scale = {
 	mark: defineScale(...mark.density),
-	block: defineScale(text, dan.space.alert, dan.gap.timeline.x),
+	block: defineScale(text, dan.space.alert),
 } as const
 
 /** Recipe variant props for inline {@link Code}: the `size` step that the component writes as a density scope. */
-export type CodeVariants = { size?: ScaleStep<typeof scale.mark> }
+export type CodeVariants = {
+	/** The density step. Omit it to take the step of the nearest density scope. */
+	size?: ScaleStep<typeof scale.mark>
+}
 
 /**
  * Recipe variant props for {@link CodeBlock}: the `size` step that the block
  * writes as a density scope, from the steps of its own ramps. The block chrome
  * has no other variants.
  */
-export type CodeBlockVariants = { size?: ScaleStep<typeof scale.block> }
+export type CodeBlockVariants = {
+	/** The density step. Omit it to take the step of the nearest density scope. */
+	size?: ScaleStep<typeof scale.block>
+}

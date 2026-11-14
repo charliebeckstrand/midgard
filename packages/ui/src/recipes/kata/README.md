@@ -53,7 +53,7 @@ A family of units that share a structure extends one group. The framed controls 
 - **Variants earn their axis.** Add a variant axis when ≥2 components or call sites need it. Single-use variants stay inline.
 - **Destructure the kiso families.** A kata destructures the groups of a kiso family at the top of the file: `const { flex, offcanvas } = narabi`. It does not give one group a new name, as `const shows = narabi.offcanvas` does.
 - **Keys by part.** Name each key of `k` by the rules in [`../README.md`](../README.md#4-key-names): one word for each key, and a part with children is an object whose own classes are `base`.
-- **Header when non-obvious.** Open a kata with a summary doccomment only when its structure isn't self-evident from the body: it serves more than one unit, sources a non-standard token (inline `mode()` colors rather than an `iro` palette), extends a group or composes another recipe, or groups slots non-trivially. A canonical unit with one matrix (`variant × color × size`) needs none; the header is the signal that something here is worth reading first.
+- **Header when non-obvious.** Open a kata with a summary doccomment only when its structure isn't self-evident from the body: it serves more than one unit, sources a non-standard token (inline `mode()` colors rather than an `iro` palette), composes another recipe, or groups slots non-trivially. A canonical unit with one matrix (`variant × color × size`) needs none; the header is the signal that something here is worth reading first.
 
 ---
 

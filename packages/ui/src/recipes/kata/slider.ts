@@ -71,5 +71,6 @@ export const k = defineKata(
 export type SliderVariants = Omit<VariantProps<typeof k>, 'color'> & {
 	/** The color of the filled part of the track. @defaultValue 'blue' */
 	color?: VariantProps<typeof k>['color']
+	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: ScaleStep<typeof scale>
 }

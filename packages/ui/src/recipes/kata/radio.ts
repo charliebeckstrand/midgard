@@ -48,5 +48,6 @@ export const scale = defineScale(dan.size.check.box, dan.size.radio.dot)
 export type RadioVariants = Omit<VariantProps<typeof k>, 'color'> & {
 	/** The color of the circle when it is checked. @defaultValue 'zinc' */
 	color?: VariantProps<typeof k>['color']
+	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: ScaleStep<typeof scale>
 }
