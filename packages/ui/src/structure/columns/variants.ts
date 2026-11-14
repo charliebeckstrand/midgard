@@ -1,8 +1,8 @@
+import type { ColumnCount } from '../../recipes/kata/columns'
 import type { Responsive } from '../../utilities/responsive'
 import type { ResponsiveAlign, ResponsiveGap } from '../flex/variants'
 
-/** The count of equal tracks in a row of {@link Columns}. */
-export type ColumnCount = 1 | 2 | 3 | 4 | 6
+export type { ColumnCount }
 
 /** {@link ColumnCount} per breakpoint, or a single value applied at all sizes. */
 export type ResponsiveColumnCount = Responsive<ColumnCount>

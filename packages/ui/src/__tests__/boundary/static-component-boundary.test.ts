@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
+import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // Static leaves are the library's server-renderable surface: no 'use client'
 // directive, no React hooks, no ambient-context reads (the boundary
@@ -23,6 +23,8 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 //     discoverable by filename, so the scan needs no list and can't drift as
 //     new skeletons land. Do not add skeleton files to the curated list:
 //     the scan already owns them.
+//   - Every source file under `structure` is scanned the same way. The
+//     folder holds only static layout units, so it needs no list either.
 //   - STATIC_PRIMITIVE_FILES holds the primitives a static leaf renders
 //     through. A leaf can only be as server-renderable as what it imports,
 //     and the checks above read one file at a time: a directive or a hook
@@ -83,17 +85,6 @@ const STATIC_COMPONENT_FILES = [
 	'text/text.tsx',
 ] as const
 
-// Every `structure` file is static: layout scaffolding takes props and
-// returns markup. Paths are relative to `src/structure`.
-const STATIC_STRUCTURE_FILES = [
-	'box/box.tsx',
-	'container/container.tsx',
-	'flex/flex.tsx',
-	'spacer/spacer.tsx',
-	'split/split.tsx',
-	'stack/stack.tsx',
-] as const
-
 // Paths are relative to `src/primitives`.
 const STATIC_PRIMITIVE_FILES = [
 	'polymorphic/polymorphic-static.tsx',
@@ -108,12 +99,27 @@ const primitivesDir = join(srcDir, 'primitives')
 
 const structureDir = join(srcDir, 'structure')
 
+/**
+ * Every source file under `structure`. Each one is static: layout scaffolding
+ * takes props and returns markup. The scan reads the whole folder, so a new
+ * unit needs no entry.
+ */
+function collectStructureFiles(): string[] {
+	const files: string[] = []
+
+	walkSource(structureDir, (path) => {
+		if (isSourceFile(path)) files.push(path)
+	})
+
+	return files.sort()
+}
+
 const modulesDir = join(srcDir, 'modules')
 
 /** Each curated static file, with the directory that holds it. */
 const STATIC_FILES = [
 	...STATIC_COMPONENT_FILES.map((file) => [file, componentsDir] as const),
-	...STATIC_STRUCTURE_FILES.map((file) => [file, structureDir] as const),
+	...collectStructureFiles().map((path) => [srcRelative(path), srcDir] as const),
 	...STATIC_PRIMITIVE_FILES.map((file) => [file, primitivesDir] as const),
 ]
 
@@ -192,7 +198,6 @@ describe('static component boundary', () => {
 	it('the curated static list has no stale entries', () => {
 		const missing = [
 			...STATIC_COMPONENT_FILES.filter((file) => !existsSync(join(componentsDir, file))),
-			...STATIC_STRUCTURE_FILES.filter((file) => !existsSync(join(structureDir, file))),
 			...STATIC_PRIMITIVE_FILES.filter((file) => !existsSync(join(primitivesDir, file))),
 		]
 
