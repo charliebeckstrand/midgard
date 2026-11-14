@@ -84,13 +84,7 @@ export const k = defineKata(
 			],
 			description: [inset.x, 'in-data-[slot=drawer-header]:px-0'],
 			footer: [inset.x, inset.bottom],
-			body: [
-				'flex-1',
-				'overflow-y-auto overscroll-y-contain',
-				inset.x,
-				inset.first.drawer,
-				inset.last.drawer,
-			],
+			body: ['flex-1', inset.x, inset.first.drawer, inset.last.drawer],
 			/**
 			 * The optional wrapper around the body and the footer. `half` and `full` fix
 			 * the height of the panel. The wrapper fills that height, so the body can

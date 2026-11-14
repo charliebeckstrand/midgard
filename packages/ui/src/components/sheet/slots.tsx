@@ -45,6 +45,7 @@ const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = cre
 	header: slots.header,
 	body: slots.body,
 	footer: slots.footer,
+	content: slots.content,
 })
 
 /** Props for {@link SheetClose}: one clickable child, or none for the standard Close button. */
@@ -76,7 +77,10 @@ export {
 	 * `onClick` runs first.
 	 */
 	Close as SheetClose,
-	/** A wrapper for sheet content outside the header/body/footer rhythm; renders a `<div>`. */
+	/**
+	 * `<div>` wrapper that fills the remaining height of the sheet. It can hold the body
+	 * and the footer, for example in a form, and the footer stays at the foot of the panel.
+	 */
 	Content as SheetContent,
 	/**
 	 * The footer that {@link Sheet} renders after its children while no `SheetFooter` is
