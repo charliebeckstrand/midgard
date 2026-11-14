@@ -58,8 +58,8 @@ export type SparklineProps = AccessibleName &
 		/**
 		 * The density step of the box. Omit it to take the step of the nearest
 		 * density scope. A step makes the sparkline a density scope. Each step
-		 * is 3:1 (72×24, 96×32, 120×40), so each step is the same drawing at a
-		 * different size.
+		 * is 3:1 (48×16, 72×24, 96×32, 120×40, 144×48), so each step is the same
+		 * drawing at a different size.
 		 */
 		size?: ScaleStep<typeof scale>
 		/**

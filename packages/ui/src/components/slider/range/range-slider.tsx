@@ -47,6 +47,7 @@ export type RangeSliderProps = {
 	max?: number
 	/** @defaultValue 1 */
 	step?: number
+	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: RangeSliderVariants['size']
 	/** The color of the filled part of the track. @defaultValue 'blue' */
 	color?: RangeSliderVariants['color']

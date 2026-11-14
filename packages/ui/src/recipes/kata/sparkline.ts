@@ -1,7 +1,7 @@
 /**
  * Sparkline kata: the unit of the in-cell trend chart. The root slot is a bare
- * inline box, with no axis. The `svg` slot sizes the SVG at the step
- * of the nearest density scope, at 3:1 on each step (72×24, 96×32, 120×40).
+ * inline box, with no axis. The `svg` slot sizes the SVG at the step of the
+ * nearest density scope, at 3:1 on each step (48×16 to 144×48).
  * `color` is the `zu.meter` table, which Progress also reads. The line and the
  * end point read `stroke`, and the bars and the area read `fill`. The area
  * fill sets its own opacity at the render site, so one solid `fill` row serves

@@ -1,5 +1,5 @@
 /**
- * Tree kata: the unit of the `<Tree>` treeview. The `content` row, its
+ * Tree kata: the unit of the `<Tree>` treeview. The `item.content` row, its
  * `chevron`, and the check `mark` take the step of the nearest density scope.
  * The other slots are the `base` container, the `check` box, `affix`, `label`,
  * and `group`. The `indent` axis of `group` pads each nested group, and

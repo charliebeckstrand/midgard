@@ -178,5 +178,6 @@ export const choiceScale = defineScale(dan.size.row, dan.size.switch.choice, dan
 export type SwitchVariants = Omit<VariantProps<typeof k>, 'color'> & {
 	/** The color of the track when the switch is on. @defaultValue 'zinc' */
 	color?: VariantProps<typeof k>['color']
+	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: ScaleStep<typeof scale>
 }
