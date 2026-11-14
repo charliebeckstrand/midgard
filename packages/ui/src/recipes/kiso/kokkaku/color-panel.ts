@@ -6,9 +6,12 @@
  *
  * `width` is the width of the real panel, and `max-w-full` keeps it inside a
  * narrow parent. The ColorPanel kata reads it. `area` is the height of the
- * color area, and `track` is the height of one slider track. `fields` is the
- * height of the preview row and the channel inputs, with the gap between them.
- * `swatch` is one square cell of the swatch grid. The ColorPanel kata reads it
+ * color area, and `track` is the height of one slider track. The preview row
+ * and the channel field are the rows of the real panel, with empty parts in
+ * place of the controls: `preview` is the box of the preview swatch, `control`
+ * is the height of an input, and `line` is one line of the channel label. So
+ * the rows take the height of the real rows from the same classes, with no sum
+ * of their own. `swatch` is one square cell of the swatch grid. The ColorPanel kata reads it
  * for each chip, so a cell and a chip have the same box. Each height is a
  * stepped `density-*` class, so the silhouette takes the step of its nearest
  * density scope, as the picker does.
@@ -24,6 +27,8 @@ export const colorPanel = {
 	width,
 	area: dan.size.colorPanel.area,
 	track: dan.size.colorPanel.channel,
-	fields: dan.size.colorPanel.fields,
+	preview: dan.size.colorPanel.preview,
+	control: dan.size.control.base,
+	line: 'h-lh',
 	swatch: 'aspect-square w-full',
 } as const

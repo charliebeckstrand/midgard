@@ -18,9 +18,10 @@
 
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'
-import { dan, iro, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { dan, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { text } = iro
+const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { focus, forced, ring } = sen
@@ -102,7 +103,7 @@ export const k = defineKata(
 			channels: ['grid', dan.gap.scale.sm],
 			/** Label-above-input column for one channel input. */
 			field: [flex.col, 'min-w-0', dan.gap.scale.xs],
-			label: ['text-[10px] font-medium uppercase tracking-wide', ...text.muted],
+			label: [size['2xs'], 'font-medium uppercase tracking-wide', ...text.muted],
 			swatches: 'grid grid-cols-10 gap-1.5',
 			/**
 			 * One preset chip: a label around a visually hidden radio. The inset ring
