@@ -2,8 +2,11 @@
 import { describe, expect, it } from 'vitest'
 import { k as accordion } from '../../recipes/kata/accordion'
 import { k as alert } from '../../recipes/kata/alert'
+import { k as badge } from '../../recipes/kata/badge'
+import { k as button } from '../../recipes/kata/button'
 import { k as chart } from '../../recipes/kata/chart'
 import { k as chatMessage } from '../../recipes/kata/chat-message'
+import { k as chatTranscript } from '../../recipes/kata/chat-transcript'
 import { k as dashboard } from '../../recipes/kata/dashboard'
 import { k as events } from '../../recipes/kata/events'
 import { k as grid } from '../../recipes/kata/grid'
@@ -11,6 +14,7 @@ import { k as gridGroup } from '../../recipes/kata/grid-group'
 import { k as holdButton } from '../../recipes/kata/hold-button'
 import { k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as kanban } from '../../recipes/kata/kanban'
+import { k as loading } from '../../recipes/kata/loading'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as passwordStrength } from '../../recipes/kata/password-strength'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
@@ -62,6 +66,17 @@ describe('edges and state marks under forced colors', () => {
 		['the fill of a HoldButton', holdButton.fill],
 		['a JsonTree search match', jsonTree({ highlighted: true }).content],
 		['a loading placeholder', placeholder().base],
+		['a loading dot', loading().dot],
+		['the solid badge', badge({ variant: 'solid' }).base],
+		['the soft badge', badge({ variant: 'soft' }).base],
+		['the solid button', button({ variant: 'solid' }).base],
+		['the soft button', button({ variant: 'soft' }).base],
+		['the skeleton chat bubble', chatTranscript.skeleton.bubble],
+		['a Grid search match', grid.cell.mark],
+		['a lifted Grid column', grid.reorder.cell.base],
+		['a lifted Grid row', grid.row.reorder.dragging],
+		['the validation message of a Grid cell', grid.edit.error.base],
+		['the drag clone of a Grid column group row', gridGroup().manager.row.overlay],
 		['the skeleton of a PDF thumbnail', pdfViewer().thumbnail.skeleton],
 		['the empty password-strength segment', passwordStrength({ level: 'empty' }).segment],
 		...(['weak', 'fair', 'good', 'strong'] as const).map((level): [string, unknown] => [

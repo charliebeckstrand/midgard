@@ -10,12 +10,12 @@ import { mode, type PaletteColor } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { busy, cursor, fg, grab } = hannou
-const { text } = iro
+const { match, text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { backdrop, popover } = omote
-const { focus, gridline, ring } = sen
+const { focus, forced, gridline, ring } = sen
 const { instant, spring } = ugoki
 
 /**
@@ -357,13 +357,13 @@ export const k = {
 		// lets the content overflow and keeps the one line.
 		editing: ['block', 'whitespace-nowrap'],
 		// The search-highlight wash behind a matched substring when `search.mode`
-		// is `'highlight'` (mark, don't prune). The same mode-aware amber the JsonTree's
-		// search highlight uses (`kata/json-tree` `highlight`), so a match reads the
-		// same across the system. `text-inherit` drops the browser's default
+		// is `'highlight'` (mark, don't prune). It takes `iro.match`, as the search
+		// match of a JsonTree does, so a match reads the same across the system. `text-inherit` drops the browser's default
 		// yellow/black <mark> ink, and the wash carries no box metrics, so the marked
 		// run's width matches the plain text and the column autosizer still measures
-		// the intrinsic content width.
-		mark: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.sm, 'text-inherit'],
+		// the intrinsic content width. Under forced colors the wash keeps its alpha,
+		// so the match paints the system `Mark` pair.
+		mark: [...match, rounded.sm, 'text-inherit', forced.highlight],
 		// Truncation tooltip surface: cap the width and let long text wrap inside.
 		tooltip: ['max-w-xs', 'whitespace-normal', 'wrap-break-word'],
 		// A roving-focusable data cell (`onCellClick`/`onCellDoubleClick`): the
@@ -466,6 +466,9 @@ export const k = {
 				'data-dragging:text-zinc-500',
 				'dark:data-dragging:text-zinc-400',
 				...draggingSurface,
+				// Forced colors remove the shadow and force the text color, so the lift
+				// draws the outline of a lift.
+				...focus.lifted.dragging,
 			],
 			// Promotes a non-sticky reorder cell to `relative` while dragging so its
 			// lift z-index takes effect.
@@ -563,6 +566,7 @@ export const k = {
 				'data-dragging:z-10',
 				'data-dragging:shadow-lg',
 				...draggingSurface,
+				...focus.lifted.dragging,
 			],
 		},
 		// The new-row slot of an editable grid. Its cells stick to the top or the
@@ -1047,6 +1051,9 @@ export const k = {
 				size.xs,
 				'text-white shadow',
 				...mode('bg-red-600', 'dark:bg-red-500'),
+				// The fill and the shadow are the only edge of the message over the next
+				// row, and forced colors remove both.
+				forced.outline,
 			],
 			ring: [...ring.line[2].inset, ...mode('ring-red-600', 'dark:ring-red-500'), rounded.md],
 		},

@@ -1,9 +1,10 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { dan, iro, narabi } from '../kiso'
+import { dan, iro, narabi, sen } from '../kiso'
 
 const { marker } = iro
 const { flex } = narabi
+const { forced } = sen
 
 /**
  * Indicator color, shared by both loading surfaces. Resolves to a `text-*`
@@ -17,10 +18,16 @@ const color = { current: 'text-current', ...marker }
  * A single ellipsis dot. The pulse animation is `motion-safe:`-gated, resting
  * as a steady dot under `prefers-reduced-motion` (WCAG 2.3.3). The diameter is
  * a stepped `density-*` class, so the dot takes the step of its nearest
- * density scope, as the spinner does.
+ * density scope, as the spinner does. The dot is only its background, which
+ * forced colors remove, so it takes the `shape` of `sen.forced`.
  */
 const dot = {
-	base: ['shrink-0 rounded-full bg-current', 'motion-safe:animate-pulse', dan.size.dot],
+	base: [
+		'shrink-0 rounded-full bg-current',
+		'motion-safe:animate-pulse',
+		dan.size.dot,
+		forced.shape,
+	],
 }
 
 /**
