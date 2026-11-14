@@ -15,7 +15,5 @@ export const touch = {
 		x: '[--touch-target-gap-x:0px]',
 		/** The hosts touch in a stack. */
 		y: '[--touch-target-gap-y:0px]',
-		/** The hosts touch on the two axes, such as the cells of a grid. */
-		both: ['[--touch-target-gap-x:0px]', '[--touch-target-gap-y:0px]'],
 	},
 } as const

@@ -25,7 +25,7 @@ const footer = [flex.row, 'justify-center', dan.gap.default]
  * The cap on the hit areas of a grid of cells (`TouchTarget`). The cells touch,
  * so each hit area keeps to its cell and two adjacent cells do not overlap.
  */
-const cellTargets = touch.flush.both
+const cellTargets = [touch.flush.x, touch.flush.y]
 
 const pickerGrid = ['grid grid-cols-3', dan.space.tab.x, cellTargets]
 
