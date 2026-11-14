@@ -5,7 +5,7 @@ import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/co
 import { Drawer, DrawerBody, DrawerPanel } from '../../../components/drawer'
 import { frames, getSlot, renderUI, screen } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
-import { sampleMotionFrames } from '../helpers/motion-frame'
+import { sampleMotionFrames, waitForOverlayRest } from '../helpers/motion-frame'
 import { hasIntermediate } from '../helpers/sample'
 
 /**
@@ -88,6 +88,9 @@ describe('fit drawer and a Collapse (real Motion)', () => {
 		renderUI(<FollowProbe />)
 
 		const panel = getSlot(document.body, 'drawer')
+
+		// The drawer slides in. A click on a moving button can release off the button.
+		await waitForOverlayRest(panel)
 
 		await frames()
 

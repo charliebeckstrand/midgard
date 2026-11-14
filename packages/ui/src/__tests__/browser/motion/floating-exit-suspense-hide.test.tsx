@@ -5,6 +5,7 @@ import { Button } from '../../../components/button'
 import { Dialog, DialogPanel } from '../../../components/dialog'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { waitForOverlayRest } from '../helpers/motion-frame'
 
 /**
  * A surface that a Suspense boundary hides during its exit comes off the screen
@@ -105,7 +106,12 @@ describe('floating surface hidden by Suspense during its exit (real Motion)', ()
 	it('removes a dialog that closed in the commit that hid it', async () => {
 		renderUI(<DialogHarness />)
 
-		await userEvent.click(await waitFor(() => screen.getByRole('button', { name: 'Add' })))
+		const add = await waitFor(() => screen.getByRole('button', { name: 'Add' }))
+
+		// The dialog slides in. A click on a moving button can release off the button.
+		await waitForOverlayRest(add)
+
+		await userEvent.click(add)
 
 		await revealPanel()
 
