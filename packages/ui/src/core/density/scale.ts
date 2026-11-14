@@ -49,7 +49,8 @@ type StepIn<S> = DensityStep extends infer Step ? (Step extends S ? Step : never
 
 /** The value of each step in `ramp`. It throws for a list that is not a ramp. */
 function rampValues(ramp: string): Record<DensityStep, string> {
-	const list = /^density-[a-z-]+-\[(.+)\]$/.exec(ramp)?.[1]
+	// A `density-set` ramp names its custom property in a modifier after the list.
+	const list = /^density-[a-z-]+-\[([^\]]+)\](?:\/\[--[a-z0-9-]+\])?$/.exec(ramp)?.[1]
 
 	const values = list ? valuesByStep(list) : null
 

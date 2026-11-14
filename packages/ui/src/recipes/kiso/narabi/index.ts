@@ -11,6 +11,7 @@ import { flex } from './flex'
 import { group } from './group'
 import { inset } from './inset'
 import { item } from './item'
+import { nest } from './nest'
 import { offcanvas } from './offcanvas'
 import { slide } from './slide'
 import { text } from './text'
@@ -29,4 +30,6 @@ export const narabi = {
 	/** The height fit of a floating panel: the wrapper, a column, and the scroll region. */
 	fit,
 	offcanvas,
+	/** The geometry of a tree that indents each level under a mark column. */
+	nest,
 } as const

@@ -2,6 +2,7 @@ import { fireEvent } from '@testing-library/react'
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Tree, TreeItem, TreeSkeleton } from '../../components/tree'
+import { narabi } from '../../recipes/kiso'
 import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
 import { axe } from '../helpers/axe'
 
@@ -621,7 +622,8 @@ describe('TreeItem', () => {
 		// The rows carry no inline indent: the nested group pads its start.
 		for (const row of rows) expect(row.style.paddingLeft).toBe('')
 
-		expect(getSlot(container, 'tree-group').className).toContain('density-ps-[4.5,5.5,7,8.5,10.5]')
+		// One level of `narabi.nest`: the chevron column plus the row gap.
+		expect(getSlot(container, 'tree-group').className).toContain(narabi.nest.indent)
 	})
 
 	it('pads no nested group when the Tree opts out of the indent', () => {

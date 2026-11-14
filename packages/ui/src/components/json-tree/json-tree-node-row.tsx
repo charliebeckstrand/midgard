@@ -1,10 +1,10 @@
 'use client'
 
-import type { Ref } from 'react'
+import type { CSSProperties, Ref } from 'react'
 import { dataAttr } from '../../core/data-attr'
+import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeBranchClose } from './json-tree-branch-close'
 import { JsonTreeBranchHeader } from './json-tree-branch-header'
-import { INDENT_REM } from './json-tree-constants'
 import { JsonTreeLeafRow } from './json-tree-leaf-row'
 import { type FlatNode, isCollapsibleDepth, type JsonTreeCollapsible } from './json-tree-utilities'
 
@@ -50,7 +50,8 @@ export function JsonTreeNodeRow({
 		<div
 			ref={ref}
 			data-index={index}
-			style={{ paddingInlineStart: `${node.depth * INDENT_REM}rem` }}
+			className={k().depth}
+			style={{ '--nest-depth': node.depth } as CSSProperties}
 		>
 			<JsonTreeNodeRowContent
 				node={node}

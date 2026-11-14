@@ -6,13 +6,13 @@
  * toggle, chevron, and the collapse motion config round out the surface.
  */
 import { defineKata, mode } from '../../core/recipe'
-import { dan, hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro
 const { family, size } = ji
 const { rounded } = kasane
-const { flex } = narabi
+const { flex, nest } = narabi
 const { collapse, css } = ugoki
 const { focus, forced } = sen
 
@@ -31,7 +31,7 @@ const row = [
 	'group/json-node',
 	flex.row,
 	'w-full',
-	dan.gap.scale.xs,
+	nest.gap,
 	'py-0.5',
 	size.sm,
 	rounded.lg,
@@ -43,7 +43,14 @@ const row = [
 
 export const k = defineKata(
 	{
-		base: ['inline-flex flex-col', family.mono],
+		base: [
+			'inline-flex flex-col',
+			family.mono,
+			// The inputs of `narabi.nest`: the width of the `sm` chevron icon and the
+			// gap after it. They are fixed, as the text and the row padding are, so the
+			// tree keeps one geometry at each density step.
+			'[--nest-mark:--spacing(4.5)] [--nest-gap:--spacing(1)]',
+		],
 		/**
 		 * The scroller of the windowed tree. Focus parks on it while the focused row is outside
 		 * the window. `focus.inset` removes the browser outline and draws the inset ring of the
@@ -59,21 +66,21 @@ export const k = defineKata(
 			 */
 			spacer: 'shrink-0',
 			row,
-			leaf: [flex.row, 'flex-1', 'min-w-0 outline-none', dan.gap.scale.xs],
+			leaf: [flex.row, 'flex-1', 'min-w-0 outline-none', nest.gap],
 			toggle: [
 				flex.row,
 				'flex-1',
 				'min-w-0 text-start',
 				...cursor,
 				'outline-none',
-				dan.gap.scale.xs,
+				nest.gap,
 				text.muted,
 				fg.hover,
 				...fg.open,
 				rounded.lg,
 			],
 			content: {
-				base: [flex.inline, 'min-w-0', dan.gap.scale.xs],
+				base: [flex.inline, 'min-w-0', 'gap-1'],
 				// Forced colors remove the wash, so a match paints the `Mark` pair of
 				// `sen.forced.highlight`, which keeps the contrast of the text on it.
 				highlighted: {
@@ -82,20 +89,19 @@ export const k = defineKata(
 				},
 			},
 			chevron: {
-				base: ['flex-none', css.transform, css.duration],
+				base: [nest.mark, flex.inline, 'justify-center', css.transform, css.duration],
 				slots: {
 					/** The box in place of the chevron on a row that does not open, so the rows align. */
-					spacer: 'inline-block w-4 flex-none',
+					spacer: ['inline-block', nest.mark],
 				},
 			},
 			index: text.muted,
 			punctuation: text.muted,
 			summary: text.muted,
-			/**
-			 * The start padding of the children of a nested group. It equals the chevron
-			 * spacer plus the row gap, so each depth adds one step of it.
-			 */
-			indent: 'ps-5',
+			/** The start padding of the children of a nested group: one level of `narabi.nest`. */
+			indent: nest.indent,
+			/** A row of the windowed tree, which pads to the level that its style sets in `--nest-depth`. */
+			depth: nest.depth,
 			/** The syntax color of a value or a key, by {@link JsonValueType}. */
 			value: { type: color },
 		},

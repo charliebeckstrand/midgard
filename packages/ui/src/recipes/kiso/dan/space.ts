@@ -402,8 +402,6 @@ export const space = {
 		lead: '[[data-slot=tree-item]:last-child:not([data-slot=tree-item]:not(:last-child)_*)>&]:before:density-h-[0.25,0.5,1,1.5,2.5]',
 		/** The inline padding of a tree row: the `sm` stop of the padding scale. */
 		x: scale.px.sm,
-		/** The indent of a nested tree item: the chevron width plus the row gap (`gap.scale.sm`). */
-		indent: 'density-ps-[4.5,5.5,7,8.5,10.5]',
 	},
 	timeline: {
 		/** The bottom padding of a vertical timeline item. */

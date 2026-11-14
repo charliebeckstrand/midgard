@@ -75,6 +75,11 @@ export const gap = {
 	none: 'density-gap-[0,0,0,0,0]',
 	/** The inline gap at each stop of `scale`. */
 	x: scaleX,
+	/**
+	 * The gap of a tree row, after its chevron: the `sm` stop of `scale`, as the
+	 * `--nest-gap` input of `narabi.nest`.
+	 */
+	tree: 'density-set-[0.5,1,2,3,4.5]/[--nest-gap]',
 	breadcrumb,
 	/** The block gap at each stop of `scale`. */
 	y: scaleY,

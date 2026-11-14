@@ -14,12 +14,12 @@ import { rest } from '../kumi/check'
 const { cursor, fg } = hannou
 const { text } = iro
 const { rounded } = kasane
-const { flex } = narabi
+const { flex, nest } = narabi
 const { focus } = sen
 const { css, collapse } = ugoki
 
 /** The box of a row: its layout, padding, and gap. The skeleton rows take it too. */
-const row = [flex.row, 'w-full', dan.space.tree.y, dan.space.tree.x, dan.gap.scale.sm]
+const row = [flex.row, 'w-full', dan.space.tree.y, dan.space.tree.x, nest.gap]
 
 /**
  * The check box of a checkable row. It is a picture of the state, not a
@@ -49,20 +49,17 @@ const check = [
  */
 const mark = ['stroke-white', 'forced-colors:stroke-[HighlightText]', dan.size.check.mark]
 
-/** The chevron column. Its width is the icon size of the step. */
-const chevron = [
-	'flex-none',
-	flex.row,
-	'justify-center',
-	dan.size.tree.indent,
-	css.transform,
-	css.duration,
-]
+/** The chevron column. Its width is the mark of `narabi.nest`, the icon size of the step. */
+const chevron = [nest.mark, flex.row, 'justify-center', css.transform, css.duration]
 
 export const k = defineKata(
 	{
 		base: [
 			flex.col,
+			// The inputs of `narabi.nest`: the chevron column and the row gap. The
+			// rows, the chevron, and the indent read them.
+			dan.size.tree.mark,
+			dan.gap.tree,
 			// Trims the outer block padding of the first and last visible rows, so the
 			// tree is flush with its container. The last visible row is a row of a
 			// last item, in a chain of last items. Thus each row of that chain has no
@@ -116,11 +113,11 @@ export const k = defineKata(
 					dan.space.tree.lead,
 				],
 				/**
-				 * The start padding of a nested group when `indent` is enabled. It equals
-				 * the chevron width plus the row gap, so each depth adds one step of it.
+				 * The start padding of a nested group when `indent` is enabled: one level
+				 * of `narabi.nest`, the chevron column plus the row gap.
 				 */
 				indent: {
-					true: dan.space.tree.indent,
+					true: nest.indent,
 					false: '',
 				},
 			},
@@ -130,10 +127,5 @@ export const k = defineKata(
 	{ motion: collapse.fade, skeleton: { ...kokkaku.tree, row } },
 )
 
-/** The size scale of {@link Tree}: the steps of its icon, row, and indent. */
-export const scale = defineScale(
-	dan.size.icon.base,
-	dan.size.row,
-	dan.space.tree.indent,
-	dan.size.tree.indent,
-)
+/** The size scale of {@link Tree}: the steps of its icon, row, chevron, and gap. */
+export const scale = defineScale(dan.size.icon.base, dan.size.row, dan.size.tree.mark, dan.gap.tree)
