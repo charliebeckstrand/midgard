@@ -67,15 +67,16 @@ export const k = defineKata(
 			item: {
 				base: 'relative overflow-hidden',
 				orientation: {
+					// The first column takes the width of the marker, which is the only part in it.
 					vertical: [
-						'grid grid-cols-[0.875rem_1fr]',
+						'grid grid-cols-[auto_1fr]',
 						dan.gap.timeline.x,
 						dan.space.timeline.bottom,
 						'last:pb-0',
 					],
-					// 6.5px aligns the content with the rail. It matches the marker's `inset-s-[6.5px]`.
-					// The minimum width stops a column at a readable measure; past it, the
-					// row scrolls in the list.
+					// The start padding places the content and the marker, which sits at the
+					// start of the content box. The minimum width stops a column at a readable
+					// measure; past it, the row scrolls in the list.
 					horizontal: [flex.col, 'min-w-48 ps-[6.5px] pe-8 last:pe-0', dan.space.timeline.top],
 				},
 			},
@@ -103,8 +104,9 @@ export const k = defineKata(
 						'after:h-screen after:w-0.5',
 					],
 					horizontal: [
-						// inset-s-[6.5px] centers the rail on the marker.
-						'absolute top-0 inset-s-[6.5px]',
+						// The marker sets no inline offset, so it keeps its static place: the
+						// start of the content box of the item, where the content starts.
+						'absolute top-0',
 						'before:inset-e-full before:top-1/2 before:-translate-y-1/2',
 						'before:h-0.5 before:w-screen',
 						'after:inset-s-full after:top-1/2 after:-translate-y-1/2',
