@@ -1,21 +1,9 @@
 /**
  * Iro ramp: the foreground shades of the page surface, as `[light, dark]`
- * pairs. `onSurface` reads the bare entries of the palette (`palette.ts`). The
- * other roles are color-major rows here, projected into the role-major maps
- * consumers read.
- *
- * One row per palette color naming the shade each *role* plays as a foreground,
- * light value first and the `dark:`-prefixed value second. The values are full
- * class literals (Tailwind's scanner sees only literals; nothing is composed at
- * runtime). Each shade is the least-emphatic rung that clears its contrast
- * floor on its surface. A few taste bumps are the exception: amber / green ride
- * a lighter dark rung, and the zinc `marker` rides the stronger light rung
- * (600), so a neutral spinner or star reads as firmly as a chromatic one.
- *
- * Roles:
- *   - `marker`: chromatic dot / glyph (status, spinner, timeline) on the page
- *     surface. Graphical; the non-text 3:1 floor (1.4.11) lands a rung lighter
- *     than the text ramp for the low-contrast hues.
+ * pairs, light value first and the `dark:`-prefixed value second. `onSurface`
+ * reads the bare entries of the palette (`palette.ts`). The values are full
+ * class literals, because Tailwind's scanner sees only literals. Each shade is
+ * the least-emphatic rung that clears its contrast floor on its surface.
  *
  * The `__tests__/recipes/contrast.test.ts` guard re-derives every rung's
  * contrast from Tailwind's own theme and asserts it clears its floor in both
@@ -27,29 +15,6 @@
 import type { Color } from '../../../core/recipe'
 
 import { palette } from './palette'
-import { type Pair, project } from './project'
-
-type ColorRamp = {
-	marker: Pair
-}
-
-const RAMP = {
-	zinc: {
-		marker: ['text-zinc-600', 'dark:text-zinc-400'],
-	},
-	red: {
-		marker: ['text-red-600', 'dark:text-red-500'],
-	},
-	amber: {
-		marker: ['text-amber-600', 'dark:text-amber-500'],
-	},
-	green: {
-		marker: ['text-green-600', 'dark:text-green-500'],
-	},
-	blue: {
-		marker: ['text-blue-600', 'dark:text-blue-500'],
-	},
-} satisfies Record<Color, ColorRamp>
 
 /**
  * Foreground on the page / card surface (white · zinc-900): the text of a bare
@@ -61,7 +26,20 @@ export const onSurface = Object.fromEntries(
 	Object.entries(palette.bare).map(([color, value]) => [color, value.split(' ')]),
 ) as Record<keyof typeof palette.bare, [light: string, dark: string]>
 
-export const marker = project(RAMP, 'marker')
+/**
+ * The shade of a chromatic dot or glyph on the page surface: a status dot, a
+ * spinner, a timeline marker. It is graphical, so it clears the non-text 3:1
+ * floor (WCAG 1.4.11), which lands a rung lighter than the text shade for the
+ * low-contrast hues. The zinc marker takes the stronger light rung (600), so a
+ * neutral spinner or star reads as firmly as a chromatic one.
+ */
+export const marker: Record<Color, [light: string, dark: string]> = {
+	zinc: ['text-zinc-600', 'dark:text-zinc-400'],
+	red: ['text-red-600', 'dark:text-red-500'],
+	amber: ['text-amber-600', 'dark:text-amber-500'],
+	green: ['text-green-600', 'dark:text-green-500'],
+	blue: ['text-blue-600', 'dark:text-blue-500'],
+}
 
 /** Max-emphasis neutral foreground: the `default` intent and the `bare` zinc hover. */
 export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:text-white']
@@ -92,10 +70,9 @@ export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:tex
  * Two paths deliberately not taken. Raising `muted` itself to `zinc-600` would
  * delete this fork, but many recipes read `muted`. `zinc-500` is the
  * correct least-emphatic rung *for the page*: a design call, not an
- * engineering one. And a further color-major `RAMP` role would force red /
- * amber / green / blue rungs with no consumer to size them against. When a
- * *chromatic* ink first lands on this wash it joins here as a color-keyed
- * sibling (`onWash.palette`), not as a role inside `RAMP`.
+ * engineering one. And chromatic rungs here would have no consumer to size
+ * them against. When a *chromatic* ink first lands on this wash, it joins here
+ * as a color-keyed sibling (`onWash.palette`).
  *
  * `__tests__/recipes/contrast.test.ts` measures this rung against the wash for
  * every kata registered in `TINT_CONSUMERS`. That registry reconciles on every

@@ -7,4 +7,6 @@
  * Layer: kiso · Concern: stacked item text
  */
 
-export const text = ['flex min-w-0 flex-1 flex-col text-start', '*:before:hidden']
+import { flex } from './flex'
+
+export const text = [flex.col, 'min-w-0', flex.fill, 'text-start', '*:before:hidden']

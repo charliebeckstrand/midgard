@@ -88,7 +88,6 @@ export const input = defineGroup({
 	 */
 	affixed: {
 		true: [
-			'group/control flex items-center',
 			'has-[[data-slot=tags][data-wrap]]:grid',
 			'has-[[data-slot=tags][data-wrap]]:grid-cols-[minmax(0,1fr)_auto]',
 			'has-[[data-slot=tags][data-wrap]]:*:data-[slot=suffix]:col-start-2',
