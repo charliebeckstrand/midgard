@@ -32,7 +32,8 @@ import { inject } from 'vitest'
  * @returns The value that `done` accepted.
  * @throws When the deadline passes before `done` accepts a value, or when
  * `read` or `during` throws. The default deadline is the suite budget of
- * `asyncUtilTimeout`.
+ * `asyncUtilTimeout`. The error of the deadline gives the last read, as in
+ * `sampleUntil`.
  */
 export async function sampleMotionFrames<T>(
 	read: () => T,
@@ -56,7 +57,11 @@ export async function sampleMotionFrames<T>(
 				} else if (performance.now() >= end) {
 					cancelFrame(step)
 
-					reject(new Error(`sampleMotionFrames: no accepted value in ${deadline}ms`))
+					reject(
+						new Error(
+							`sampleMotionFrames: no accepted value in ${deadline}ms; the last read was ${String(value).slice(0, 200)}`,
+						),
+					)
 				}
 			} catch (error) {
 				cancelFrame(step)
