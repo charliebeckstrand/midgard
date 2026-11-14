@@ -8,7 +8,11 @@
  * Layer: kiso · Concern: skeleton form · Unit: kanban
  */
 
+import { ji } from '../ji'
+
+const { size } = ji
+
 export const kanban = {
-	line: 'h-5 w-32 max-w-full',
-	meta: 'h-5 w-20 max-w-full',
+	line: [size.sm, 'h-lh w-32 max-w-full'].join(' '),
+	meta: [size.sm, 'h-lh w-20 max-w-full'].join(' '),
 } as const

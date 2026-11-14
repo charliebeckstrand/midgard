@@ -7,11 +7,13 @@
  * Layer: kiso · Concern: skeleton form · Unit: stepper
  */
 
+import { ji } from '../ji'
 import { kasane } from '../kasane'
 
+const { leading, size } = ji
 const { rounded } = kasane
 
 export const stepper = {
 	indicator: [rounded.full, 'size-4.5 shrink-0'],
-	title: 'h-3.5 w-20',
+	title: [size.sm, leading.none, 'h-lh w-20'].join(' '),
 } as const

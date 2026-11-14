@@ -6,8 +6,8 @@ export type TextSkeletonProps = SkeletonProps<NonNullable<TextVariants['size']>>
 
 /**
  * A placeholder for a Text while it loads. It is one line at the line height of
- * the text `size`. With no `size`, the line has the height of `md` text, the
- * size that text inherits by default.
+ * the text `size`. With no `size`, the line has the line height of the text of
+ * its parent, as a Text with no `size` takes the size of its parent.
  * @remarks Static leaf: renders in React Server Components.
  * @see {@link Text}
  */
