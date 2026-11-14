@@ -81,7 +81,7 @@ export function TimeAgo({
 		<time
 			data-slot="time-ago"
 			dateTime={then.toISOString()}
-			className={cn(k.base, pending && k.pending, className)}
+			className={cn(k({ pending }).base, className)}
 			{...props}
 		>
 			{pending ? <Placeholder as="span" className={k.skeleton.line} /> : text}

@@ -17,10 +17,11 @@
 
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'
-import { dan, iro, kasane, kokkaku, omote, sen } from '../kiso'
+import { dan, iro, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { text } = iro
 const { rounded } = kasane
+const { flex } = narabi
 const { focus, forced, ring } = sen
 
 // Draggable circular handle, centered on its inline-positioned coordinate.
@@ -56,7 +57,7 @@ const preview = [
 
 export const k = defineKata(
 	{
-		base: ['flex flex-col select-none', kokkaku.colorPanel.width, dan.gap.colorPanel],
+		base: [flex.col, 'select-none', kokkaku.colorPanel.width, dan.gap.colorPanel],
 		slots: {
 			area: {
 				base: area,
@@ -86,7 +87,7 @@ export const k = defineKata(
 					 * also caps the hit areas (`TouchTarget`), so the copy button of the hex
 					 * field and the eyedropper after it do not overlap.
 					 */
-					row: ['flex items-center', dan.gap.scale.sm, dan.gap.touch.x.sm],
+					row: [flex.row, dan.gap.scale.sm, dan.gap.touch.x.sm],
 				},
 			},
 			handle,
@@ -95,11 +96,11 @@ export const k = defineKata(
 			/** Alpha / preview chequerboard surfaced behind translucent color. */
 			checkerboard: [omote.checkerboard, 'bg-size-[12px_12px]'],
 			/** Full-width stack for the hue (and optional alpha) tracks. */
-			sliders: ['flex flex-col', dan.gap.scale.sm],
+			sliders: [flex.col, dan.gap.scale.sm],
 			/** The grid of the channel inputs. */
 			channels: ['grid', dan.gap.scale.sm],
 			/** Label-above-input column for one channel input. */
-			field: ['flex min-w-0 flex-col', dan.gap.scale.xs],
+			field: [flex.col, 'min-w-0', dan.gap.scale.xs],
 			label: ['text-[10px] font-medium uppercase tracking-wide', ...text.muted],
 			swatches: 'grid grid-cols-10 gap-1.5',
 			/**

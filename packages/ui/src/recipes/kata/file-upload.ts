@@ -42,7 +42,7 @@ export const k = {
 	 * The unit of `FileUploadInput`, which extends the input group. The field is
 	 * the display button, which lays out its text as the text of an input.
 	 */
-	input: defineKata({ extends: input, slots: { field: 'flex items-center text-start' } }),
+	input: defineKata({ extends: input, slots: { field: [flex.row, 'text-start'] } }),
 	/** The selection summary or the placeholder inside the display button. Block, so that the ellipsis paints. */
 	value: 'block min-w-0 truncate',
 	/** The placeholder inside the display button, in the shade of an input placeholder. */

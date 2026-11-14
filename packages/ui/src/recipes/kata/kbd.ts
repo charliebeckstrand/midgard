@@ -1,14 +1,16 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata } from '../../core/recipe'
-import { dan, shaku } from '../kiso'
+import { dan, narabi, shaku } from '../kiso'
 
+const { flex } = narabi
 const { mark } = shaku
 
 // The mark holds the key at its glyph width. The key takes the step of its
 // nearest density scope, and an explicit `size` makes the key its own scope.
 export const k = defineKata({
 	base: [
-		'inline-flex items-center justify-center',
+		flex.inline,
+		'justify-center',
 		...mark.base,
 		...mark.density,
 		// In a Button (`data-variant`), the key has less padding, so the key does
