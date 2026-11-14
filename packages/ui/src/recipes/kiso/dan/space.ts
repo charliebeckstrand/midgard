@@ -5,9 +5,9 @@
  */
 
 /**
- * The named padding scale (`ma.p`, `ma.px`, `ma.py`) of Box. Each stop has its
- * plain value at `md`, the stop below at `sm`, and the stop above at `lg`, as
- * the gap scale (`gap.scale`) does.
+ * The named padding scale (`ma.p`, `ma.px`, `ma.py`) of Box. Each stop takes
+ * the list of the same stop of the gap scale (`gap.scale`), so a padding and a
+ * gap of one stop have one length at each step.
  */
 const scale = {
 	p: {

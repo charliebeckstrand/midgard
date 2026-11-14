@@ -6,8 +6,11 @@
 
 /**
  * The named gap scale (`ma.gap`) of Flex, Stack, and Split, and the layout gap
- * of a kata. Each stop has its plain value at `md`, the stop below at `sm`,
- * and the stop above at `lg`.
+ * of a kata. At `md`, each stop has its plain value: 1, 2, 3, 4, and 6. At `sm`
+ * and at `lg`, a stop is 4 px less and 4 px more. The `xs` stop goes half of its
+ * plain value less and more, because 4 px less is 0. `spacingSteps` gives the
+ * outer steps (`core/density/geometry.ts`), and `density-geometry.test.ts` holds
+ * each stop to the rule.
  */
 const scale = {
 	xs: 'density-gap-[0.25,0.5,1,1.5,2.5]',

@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { type DensityStep, densitySteps } from '../../core/density'
 import { geometry, lineHeight, spacingSteps } from '../../core/density/geometry'
-import { slotStep, valuesByStep } from '../../core/density/steps'
+import { slotStep, stepDown, valuesByStep } from '../../core/density/steps'
 import { dan } from '../../recipes/kiso/dan'
 
 /**
@@ -147,7 +147,26 @@ describe('spacing steps', () => {
 		'space.scale.py': dan.space.scale.py,
 	}
 
+	/**
+	 * The plain value of each stop of the scale, in px: the value at `md`. At `sm`
+	 * and at `lg`, a stop is 4 px less and 4 px more. The `xs` stop goes half of
+	 * its plain value less and more, because 4 px less is 0.
+	 */
+	const plain = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 } as const
+
 	describe.each(Object.entries(scales))('dan.%s', (_, scale) => {
+		it('has a stop for each plain value', () => {
+			expect(Object.keys(scale)).toStrictEqual(Object.keys(plain))
+		})
+
+		it.each(Object.entries(plain))('steps the %s stop from its plain value', (stop, md) => {
+			const px = parsePx(scale[stop as keyof typeof plain])
+
+			const step = Math.min(4, md / 2)
+
+			expect([px.sm, px.md, px.lg]).toStrictEqual([md - step, md, md + step])
+		})
+
 		it.each(Object.entries(scale))('extends the %s stop by the rule', (_, ramp) => {
 			const { sm, md, lg } = parsePx(ramp)
 
@@ -155,6 +174,14 @@ describe('spacing steps', () => {
 				spacingSteps(sm, md, lg),
 			)
 		})
+	})
+
+	// One list for each stop: the padding scale and the axis forms of the gap
+	// scale take the lists of the gap scale.
+	it.each(Object.entries(scales))('gives dan.%s the lists of the gap scale', (_, scale) => {
+		expect(Object.values(scale).map(parseValues)).toStrictEqual(
+			Object.values(dan.gap.scale).map(parseValues),
+		)
 	})
 
 	describe.each(['x', 'y'] as const)('dan.gap.touch.%s', (axis) => {
@@ -254,6 +281,29 @@ const sharedRamps = new Set([
 	'gap.none',
 ])
 
+/**
+ * The ramps of a skeleton line that are as tall as the line of the text that
+ * they stand in for: the text size plus 8 px.
+ */
+const textLines = [
+	['size.line.timeline', dan.size.line.timeline, dan.text.title],
+	['size.stat.value.base', dan.size.stat.value.base, dan.text.h1],
+] as const
+
+/**
+ * The gap ramps of a toolbar group and their touch gaps. At each step, the gap
+ * is the `xs` stop of the gap scale at the step below, and 0 at `xs`. Thus the
+ * gap of a group is less than the toolbar gap at each step.
+ */
+const toolbarRamps = {
+	'gap.toolbar.group': dan.gap.toolbar.group,
+	'gap.touch.toolbar.group.x': dan.gap.touch.toolbar.group.x,
+	'gap.touch.toolbar.group.y': dan.gap.touch.toolbar.group.y,
+} as const
+
+/** The stops of `ramp` at each step, in px, before a ring utility removes its ring. */
+const parseStops = (ramp: string) => parseValues(ramp).map((value) => Number(value) * 4)
+
 describe('every ramp of dan', () => {
 	const ramps = collectRamps(dan)
 
@@ -282,17 +332,44 @@ describe('every ramp of dan', () => {
 			densitySteps.map((step) => sourceValues[densitySteps.indexOf(slotStep(step))]),
 		)
 	})
+
+	it.each(Object.entries(toolbarRamps))(
+		'gives dan.%s the toolbar gap of the step below',
+		(_, ramp) => {
+			const gap = parseValues(dan.gap.scale.xs)
+
+			expect(parseValues(ramp)).toStrictEqual(
+				densitySteps.map((step) =>
+					step === 'xs' ? '0' : gap[densitySteps.indexOf(stepDown(step))],
+				),
+			)
+		},
+	)
+
+	// A ramp that does not follow the text keeps its three inner steps, and
+	// `spacingSteps` gives its outer steps (`core/density/geometry.ts`). The rule
+	// reads the stops, before a ring utility removes its ring.
+	const lines = new Set<string>(textLines.map(([path]) => path))
+
+	const spaced = own.filter(
+		([path, ramp]) =>
+			!(path in geometry) &&
+			!(path in toolbarRamps) &&
+			!lines.has(path) &&
+			!/(?:^|:)density-text-/.test(ramp),
+	)
+
+	it.each(spaced)('extends dan.%s by the rule of its inner steps', (_, ramp) => {
+		const stops = parseStops(ramp)
+
+		const [, sm = 0, md = 0, lg = 0] = stops
+
+		expect(stops).toStrictEqual(spacingSteps(sm, md, lg))
+	})
 })
 
 describe('the line of a skeleton', () => {
-	// A skeleton line is as tall as the line of the text that it stands in for:
-	// the text size plus 8 px.
-	const lines = [
-		['size.line.timeline', dan.size.line.timeline, dan.text.title],
-		['size.stat.value.base', dan.size.stat.value.base, dan.text.h1],
-	] as const
-
-	it.each(lines)('gives dan.%s the line of its text at each step', (_, line, text) => {
+	it.each(textLines)('gives dan.%s the line of its text at each step', (_, line, text) => {
 		const height = parsePx(line)
 
 		const size = parsePx(text)
