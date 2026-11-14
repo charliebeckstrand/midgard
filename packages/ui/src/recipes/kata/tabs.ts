@@ -62,7 +62,7 @@ const segment = {
 		// The ring alone marks focus. The `::after` marker of a tab has no position
 		// here, so it becomes a flex item, and the gap widens the focused item.
 		focus.ring,
-		...disabled,
+		...disabled.base,
 		// The ink fades between the two rungs while the indicator slides, so the
 		// label does not step to the selected ink before the indicator arrives. The
 		// list keeps the opacity of `disabled`, which this transition replaces.
@@ -140,7 +140,7 @@ export const k = defineKata(
 						'dark:not-data-current:not-disabled:not-data-disabled:hover:text-zinc-200',
 					),
 					focus.indicator,
-					...disabled,
+					...disabled.base,
 					'outline-none',
 					'whitespace-nowrap',
 					// The tab is a headless Button, which drops the `select-none` of the button

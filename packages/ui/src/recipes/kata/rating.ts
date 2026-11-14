@@ -72,7 +72,7 @@ const track = [
 
 export const k = defineKata(
 	{
-		base: [flex.inline, 'w-fit', ...disabled, kokkaku.rating.gap],
+		base: [flex.inline, 'w-fit', ...disabled.base, kokkaku.rating.gap],
 		color,
 		slots: {
 			/** The group that the track reads the invalid state of the row from. The skeleton does not take it. */

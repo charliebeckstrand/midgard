@@ -57,7 +57,7 @@ export const k = defineKata(
 				...fg.expanded,
 				// The item draws the focus ring, and its forced-colors outline.
 				'focus-visible:outline-none',
-				...disabled,
+				...disabled.base,
 				...cursor,
 			],
 			indicator: [

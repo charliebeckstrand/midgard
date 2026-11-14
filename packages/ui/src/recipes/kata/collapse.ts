@@ -27,7 +27,7 @@ export const k = defineKata(
 				// outer Collapse does not give its color to the trigger of a nested Collapse.
 				...fg.expanded,
 				focus.ring,
-				...disabled,
+				...disabled.base,
 				...cursor,
 			],
 		},

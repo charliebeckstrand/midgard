@@ -15,9 +15,9 @@ const { weight } = ji
 const { field } = narabi
 
 export const k = defineKata({
-	base: [dan.space.fieldset.legend, ...disabled],
+	base: [dan.space.fieldset.legend, ...disabled.base],
 	slots: {
-		legend: [dan.text.body, weight.semibold, text.default, ...disabled],
+		legend: [dan.text.body, weight.semibold, text.default, ...disabled.base],
 		field: [
 			...field,
 			...mode(
@@ -31,7 +31,7 @@ export const k = defineKata({
 		// is a sibling of the label, so the rule reads the Field. It sits in `:where()` (`in-[…]`), as
 		// in `hannou.cursor`, so the disabled rule replaces it.
 		label: {
-			base: ['flex w-fit', text.default, dan.text.body, ...disabled],
+			base: ['flex w-fit', text.default, dan.text.body, ...disabled.base],
 			as: {
 				label: [
 					'select-none',
@@ -42,9 +42,9 @@ export const k = defineKata({
 				span: [],
 			},
 		},
-		description: [text.muted, dan.text.body, ...disabled],
+		description: [text.muted, dan.text.body, ...disabled.base],
 		message: {
-			base: [dan.text.body, ...disabled],
+			base: [dan.text.body, ...disabled.base],
 			severity: {
 				error: text.error,
 				warning: text.warning,

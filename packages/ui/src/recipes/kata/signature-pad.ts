@@ -20,7 +20,7 @@ export const k = defineKata({
 		focus.ring,
 		// The canvas carries the `data-*` validation state, so the pad paints the ring.
 		...validation,
-		...disabled,
+		...disabled.base,
 	],
 	slots: {
 		canvas: ['block w-full h-full', 'cursor-crosshair touch-none select-none'],
