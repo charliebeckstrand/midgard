@@ -7,8 +7,8 @@ import { present, renderUI, screen } from '../helpers'
  * The keys of a JsonTree line up at each density step. A branch row starts its key after the
  * chevron, and a leaf row starts its key after the spacer in place of the chevron, so the two boxes
  * have one width. A nested group adds one indent, which equals the spacer and the row gap, so a
- * child key starts one indent after the key of its parent. The windowed tree pads each row by its
- * depth (`INDENT_REM`), so its keys must line up in the same way. The file runs in the real
+ * child key starts one indent after the key of its parent. The windowed tree pads each row to its
+ * level (`narabi.nest.depth`), so its keys must line up in the same way. The file runs in the real
  * browser, because jsdom has no layout.
  */
 describe('JsonTree row alignment (real browser)', () => {

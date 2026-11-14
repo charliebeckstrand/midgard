@@ -102,17 +102,6 @@ export function spacingSteps(sm: number, md: number, lg: number): number[] {
 }
 
 /**
- * The indent of a nested tree item: the chevron, which is as wide as an icon,
- * and the row gap, which is the `sm` stop of the gap scale (4/8/12 at `sm`,
- * `md`, and `lg`). 18 px to 42 px.
- */
-export const treeIndent = (step: DensityStep) => {
-	const gap = spacingSteps(4, 8, 12)[stepIndex[step] + 2] ?? Number.NaN
-
-	return iconSize(step) + gap
-}
-
-/**
  * The ramps of `recipes/kiso/dan` that the formulas give, keyed by their path
  * in `dan`. Each formula gives the px value that the ramp renders at a step: a
  * ring utility subtracts its 1 px ring, and a text ramp gives its font size.
@@ -128,7 +117,7 @@ export const geometry = {
 	'size.check.box': iconSize,
 	'size.check.mark': (step) => iconSize(step) - 4,
 	'size.avatar.sidebar': (step) => iconSize(step) + 4,
-	'size.tree.indent': iconSize,
+	'size.tree.mark': iconSize,
 	'size.row': lineHeight,
 	'size.separator.base': smallTextSize,
 	'size.separator.svg': smallTextSize,
@@ -147,6 +136,5 @@ export const geometry = {
 	'space.button.label': padY,
 	'space.button.bare': padBare,
 	'space.control.y': padY,
-	'space.tree.indent': treeIndent,
 	'space.query.grip': (step) => 1 + 10 + boxHeight(step) / 2 - 12,
 } as const satisfies Record<string, (step: DensityStep) => number>

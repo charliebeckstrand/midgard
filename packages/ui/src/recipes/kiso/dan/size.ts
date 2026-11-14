@@ -224,8 +224,8 @@ export const size = {
 	/** The height of a chart skeleton with no ratio. */
 	chart: 'density-h-[20,40,60,80,100]',
 	tree: {
-		/** The width of a tree indent guide. */
-		indent: 'density-w-[4,4.5,5,5.5,6]',
+		/** The width of the chevron column of a tree: the icon size, as the `--nest-mark` input of `narabi.nest`. */
+		mark: 'density-set-[4,4.5,5,5.5,6]/[--nest-mark]',
 	},
 	separator: {
 		/** The separator glyph of a breadcrumb skeleton: the size of small text. */
