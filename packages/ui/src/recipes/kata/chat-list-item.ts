@@ -1,9 +1,10 @@
 import { defineKata } from '../../core/recipe'
-import { dan, hannou, iro, ji, narabi, sen } from '../kiso'
+import { dan, hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
 const { cursor, tint } = hannou
 const { text } = iro
 const { size, weight } = ji
+const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
 
@@ -13,11 +14,10 @@ export const k = defineKata({
 		// Inside a ChatList the row is an `<li>`; drop the list marker.
 		'list-none',
 		flex.row,
-		'items-center',
 		'w-full',
 		dan.gap.scale.sm,
 		'p-ring-2',
-		'rounded-[--spacing(2)]',
+		rounded.lg,
 		...cursor,
 		tint.hover,
 		// Keyboard focus projects onto the whole item: when the inner select control

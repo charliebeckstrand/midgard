@@ -7,11 +7,12 @@
  * `TimelineSkeleton` rows.
  */
 import { type Color, defineKata, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kokkaku, omote, ugoki } from '../kiso'
+import { dan, iro, ji, kokkaku, narabi, omote, ugoki } from '../kiso'
 import type { SwatchVariants } from './swatch'
 
 const { marker, text } = iro
 const { weight } = ji
+const { flex } = narabi
 const { rail } = omote
 const { css } = ugoki
 
@@ -51,7 +52,7 @@ export const k = defineKata(
 	{
 		base: 'list-none p-0 m-0',
 		orientation: {
-			vertical: 'flex flex-col',
+			vertical: flex.col,
 			// The row scrolls in the list. While it overflows, the edge with more
 			// content behind it fades, and the list is a tab stop with an inset ring.
 			horizontal: ['flex flex-row', ...rail],
@@ -75,12 +76,13 @@ export const k = defineKata(
 					// 6.5px aligns the content with the rail. It matches the marker's `inset-s-[6.5px]`.
 					// The minimum width stops a column at a readable measure; past it, the
 					// row scrolls in the list.
-					horizontal: ['flex flex-col min-w-48 ps-[6.5px] pe-8 last:pe-0', dan.space.timeline.top],
+					horizontal: [flex.col, 'min-w-48 ps-[6.5px] pe-8 last:pe-0', dan.space.timeline.top],
 				},
 			},
 			marker: {
 				base: [
-					'z-10 relative inline-flex size-3.5 items-center justify-center',
+					flex.inline,
+					'z-10 relative size-3.5 justify-center',
 					// Line segments anchor to the marker and are clipped to the item via
 					// overflow-hidden; adjacent items meet at the shared edge.
 					'before:content-[""] before:absolute',

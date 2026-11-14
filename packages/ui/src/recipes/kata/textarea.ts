@@ -1,10 +1,11 @@
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { dan, kokkaku, sen } from '../kiso'
+import { dan, kokkaku, narabi, sen } from '../kiso'
 import { control } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
 const { textarea } = kokkaku
+const { flex } = narabi
 const { border } = sen
 
 export const k = defineKata(
@@ -68,12 +69,7 @@ export const k = defineKata(
 			 * The actions row beneath the textarea, at the inline end. Its gap also caps the
 			 * hit areas of the actions (`TouchTarget`), so they do not overlap.
 			 */
-			actions: [
-				'flex items-center justify-end mt-auto',
-				dan.gap.scale.sm,
-				'pe-2 pb-2',
-				dan.gap.touch.x.sm,
-			],
+			actions: [flex.row, 'justify-end mt-auto', dan.gap.scale.sm, 'pe-2 pb-2', dan.gap.touch.x.sm],
 		},
 		defaults: { resize: 'none', actions: false },
 	},

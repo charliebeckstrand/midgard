@@ -21,13 +21,14 @@ const { x, top, bottom } = dan.space.panel
 
 const { bare } = iro.extended
 
+const { flex } = narabi
 const { forced } = sen
 
 export const k = defineKata(
 	{
 		// The panel shows only in the aside of a sidebar layout. The aside shows
 		// only while the layout is inline, so the panel is always a card.
-		base: [omote.content.card, 'flex h-full min-h-0 flex-col'],
+		base: [omote.content.card, flex.col, 'h-full min-h-0'],
 		slots: {
 			body: [x, 'min-h-0 flex-1 overflow-auto py-2'],
 			footer: [x, bottom, 'pt-2'],

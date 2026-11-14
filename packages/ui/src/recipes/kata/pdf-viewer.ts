@@ -69,12 +69,7 @@ export const k = defineKata({
 		// padding is inside the scroll container, so the wheel scrolls the bar at
 		// each point of its height.
 		toolbar: {
-			base: [
-				'flex flex-nowrap items-center justify-between',
-				dan.gap.scale.xs,
-				'px-2 py-1.5',
-				...rail,
-			],
+			base: [flex.row, 'flex-nowrap justify-between', dan.gap.scale.xs, 'px-2 py-1.5', ...rail],
 			slots: {
 				// The frame holds the border. The rail masks its whole box, so a border
 				// on the rail fades at each edge.
@@ -126,13 +121,7 @@ export const k = defineKata({
 			},
 		},
 		sidebar: {
-			base: [
-				flex.direction.col,
-				'shrink-0 w-56 min-h-0',
-				'overflow-hidden',
-				'border-e',
-				border.color.default,
-			],
+			base: ['flex-col shrink-0 w-56 min-h-0', 'overflow-hidden', 'border-e', border.color.default],
 			/**
 			 * The slide, and only for a change the reader made.
 			 *

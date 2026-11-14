@@ -105,7 +105,7 @@ export const k = defineKata(
 				},
 			},
 			/** Prefix/suffix slot wrappers flanking the label. The slots hold no control. */
-			affix: 'flex flex-none items-center',
+			affix: [flex.row, 'flex-none'],
 			label: 'flex-1 truncate text-start',
 			// A group has no clip of its own: its motion clips it only while its height
 			// moves.
