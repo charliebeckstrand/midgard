@@ -1,4 +1,5 @@
 import { Badge } from 'ui/badge'
+import { DateTime } from 'ui/date-time'
 import type { GridColumn } from 'ui/grid'
 import { useIntl } from 'ui/primitives/intl'
 import {
@@ -30,9 +31,7 @@ export function StatusBadge({ status }: { status: Person['status'] }) {
 // A day in the numeric format of the locale of the reader. It is as wide as
 // an ISO date, so the columns keep their widths.
 export function DayText({ date }: { date: Date }) {
-	const intl = useIntl()
-
-	return intl.formatDate(date, { year: 'numeric', month: '2-digit', day: '2-digit' })
+	return <DateTime value={date} format={{ year: 'numeric', month: '2-digit', day: '2-digit' }} />
 }
 
 // An amount of whole dollars in the format of the locale of the reader.

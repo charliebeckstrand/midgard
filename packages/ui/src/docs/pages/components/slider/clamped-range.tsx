@@ -1,9 +1,10 @@
 import { Field, Label } from 'ui/fieldset'
-import { useIntl } from 'ui/primitives/intl'
+import { useDateFormat } from 'ui/providers/locale'
 import { RangeSlider } from 'ui/slider'
 
 export default function ClampedRange() {
-	const intl = useIntl()
+	// The text of a time waits for hydration (`useDateFormat`).
+	const hourFormat = useDateFormat({ hour: 'numeric', minute: 'numeric' })
 
 	return (
 		<Field>
@@ -13,7 +14,7 @@ export default function ClampedRange() {
 				defaultValue={[9, 17]}
 				allowCross={false}
 				labels={['Start', 'End']}
-				getValueText={(value) => intl.formatTime(new Date(2026, 0, 1, value))}
+				getValueText={(value) => hourFormat?.format(new Date(2026, 0, 1, value)) ?? String(value)}
 			/>
 		</Field>
 	)

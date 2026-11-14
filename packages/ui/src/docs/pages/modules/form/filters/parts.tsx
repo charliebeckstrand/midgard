@@ -1,6 +1,6 @@
 import { FormFiltersClear, useFormFilters } from 'ui/form'
 import { JsonTree } from 'ui/json-tree'
-import { useIntl } from 'ui/primitives/intl'
+import { useDateFormat } from 'ui/providers/locale'
 import { ResetButton } from '../../../../kit/reset-button.tsx'
 
 export function FilterValue({
@@ -12,15 +12,16 @@ export function FilterValue({
 }) {
 	const { value } = useFormFilters()
 
-	const { formatDate } = useIntl()
+	const dayFormat = useDateFormat({ dateStyle: 'medium' })
 
 	// A date shows as the reader writes it. Else the tree shows its ISO time in UTC,
-	// which can fall on the day before.
+	// which can fall on the day before. The text waits for hydration
+	// (`useDateFormat`), and the filters hold no date until the reader picks one.
 	const data = JSON.parse(
 		JSON.stringify(value, function (this: Record<string, unknown>, key, entry) {
 			const raw = this[key]
 
-			return raw instanceof Date ? formatDate(raw, { dateStyle: 'medium' }) : entry
+			return raw instanceof Date && dayFormat ? dayFormat.format(raw) : entry
 		}),
 	)
 

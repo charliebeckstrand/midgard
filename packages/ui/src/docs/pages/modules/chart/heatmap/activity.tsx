@@ -1,19 +1,24 @@
 import { useMemo } from 'react'
 import { HeatmapChart } from 'ui/chart'
 import { useIntl } from 'ui/primitives/intl'
+import { useDateFormat } from 'ui/providers/locale'
 import { activity, greens } from '../data.ts'
 
 export default function Activity() {
-	const { formatNumber, formatTime } = useIntl()
+	const { formatNumber } = useIntl()
+
+	// The text of a time waits for hydration (`useDateFormat`). The chart draws
+	// its columns after it measures its width, after hydration.
+	const hourFormat = useDateFormat({ hour: 'numeric' })
 
 	// The data holds each hour as a number. The column shows it in the form of the reader.
 	const data = useMemo(
 		() =>
 			activity.map((datum) => ({
 				...datum,
-				hour: formatTime(new Date(2026, 0, 1, datum.hour), { hour: 'numeric' }),
+				hour: hourFormat?.format(new Date(2026, 0, 1, datum.hour)) ?? String(datum.hour),
 			})),
-		[formatTime],
+		[hourFormat],
 	)
 
 	return (

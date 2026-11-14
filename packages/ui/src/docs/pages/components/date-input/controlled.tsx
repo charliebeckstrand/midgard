@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { DateInput } from 'ui/date-input'
+import { DateTime } from 'ui/date-time'
 import { Field, Label } from 'ui/fieldset'
-import { useIntl } from 'ui/primitives/intl'
 import { Text } from 'ui/text'
 
 export default function Controlled() {
-	const intl = useIntl()
-
 	const [value, setValue] = useState<Date | null>(new Date(2026, 5, 15))
 
 	return (
@@ -15,7 +13,9 @@ export default function Controlled() {
 				<Label>Ship date</Label>
 				<DateInput format="MM/DD/YYYY" value={value} onValueChange={setValue} />
 			</Field>
-			<Text>Value: {value ? intl.formatDate(value, { dateStyle: 'long' }) : 'Empty'}</Text>
+			<Text>
+				Value: {value ? <DateTime value={value} format={{ dateStyle: 'long' }} /> : 'Empty'}
+			</Text>
 		</>
 	)
 }
