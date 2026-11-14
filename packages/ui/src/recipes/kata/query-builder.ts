@@ -17,7 +17,7 @@ const { disabled, grab } = hannou
 const { text } = iro
 const { size } = ji
 const { rounded } = kasane
-const { flex } = narabi
+const { flex, nest } = narabi
 const { border, focus } = sen
 const { css } = ugoki
 
@@ -26,7 +26,20 @@ const stacked = 'min-w-auto flex-initial'
 
 export const k = defineKata(
 	{
-		base: [flex.col, dan.gap.scale.md, 'p-3', border.default, rounded.lg],
+		/**
+		 * The root sets the two inputs of `narabi.nest` for a builder that
+		 * reorders: the grip column (`--nest-mark`) and the gap after it
+		 * (`--nest-gap`). The grip, the row gap, and the start of a separator read
+		 * them.
+		 */
+		base: [
+			flex.col,
+			dan.gap.scale.md,
+			'p-3',
+			border.default,
+			rounded.lg,
+			'[--nest-mark:--spacing(6)] [--nest-gap:--spacing(1.5)]',
+		],
 		slots: {
 			/**
 			 * A nested group that a pointer drag from another group drops its node in
@@ -93,7 +106,8 @@ export const k = defineKata(
 			 */
 			sortable: {
 				base: [
-					'flex items-start gap-1.5',
+					'flex items-start',
+					nest.gap,
 					'data-drop:relative data-drop:before:pointer-events-none data-drop:before:absolute',
 					'data-drop:before:inset-x-0 data-drop:before:border-t-2 data-drop:before:rounded-full',
 					...mode('data-drop:before:border-violet-600', 'dark:data-drop:before:border-violet-400'),
@@ -120,7 +134,8 @@ export const k = defineKata(
 						base: [
 							dan.space.query.grip,
 							flex.row,
-							'size-6 shrink-0 justify-center',
+							nest.mark,
+							'h-(--nest-mark) justify-center',
 							rounded.md,
 							...grab.default,
 							...text.muted,
@@ -135,10 +150,11 @@ export const k = defineKata(
 					},
 					node: 'min-w-0 flex-1',
 					/**
-					 * The AND/OR between two nodes aligns with the nodes, past the grip and the
-					 * gap. The nodes move over it during a drag, so it fades until the drop.
+					 * The AND/OR between two nodes aligns with the nodes: one `nest.indent`
+					 * past the grip and the gap. The nodes move over it during a drag, so it
+					 * fades until the drop.
 					 */
-					separator: ['ps-7.5', css.opacity, 'group-data-sorting/sortable:opacity-0'],
+					separator: [nest.indent, css.opacity, 'group-data-sorting/sortable:opacity-0'],
 				},
 			},
 		},
