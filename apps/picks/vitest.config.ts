@@ -9,9 +9,13 @@ import { sharedTest } from '../../vitest.shared.mts'
  *
  * The tsconfig of Next.js keeps JSX as it is, for Next.js to compile, so the
  * transform compiles JSX here.
+ *
+ * A route handler of `app/api` imports by the `@/` paths of the tsconfig, so the
+ * resolver reads them.
  */
 export default defineConfig({
 	oxc: { jsx: { runtime: 'automatic' } },
+	resolve: { tsconfigPaths: true },
 	test: {
 		...sharedTest,
 		environment: 'node',
