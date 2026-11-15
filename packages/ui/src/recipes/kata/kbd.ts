@@ -18,10 +18,7 @@ export const k = defineKata({
 		// the button with no change. Each class selects the key itself, so
 		// Chromium tests the rule only against the keys.
 		dan.space.kbd.button.x,
-		// The block padding is 1 px at each step. The key text is one step below the
-		// label, so its line is 2 px shorter than the line of the label, and the key
-		// keeps the height of the label line.
-		'[&:is([data-variant]>*)]:py-px',
+		dan.space.kbd.button.y,
 	],
 })
 
