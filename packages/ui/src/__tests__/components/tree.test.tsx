@@ -242,9 +242,11 @@ describe('TreeItem', () => {
 
 		const row = screen.getByRole('treeitem', { name: 'Parent' })
 
-		const turned = row.querySelector('.rotate-90')
+		const turned = row.querySelector('[data-open] .lucide-chevron-right')?.parentElement
 
-		expect(turned).toHaveClass('motion-safe:transition-transform')
+		expect(turned).toHaveAttribute('data-open')
+
+		expect(turned).toHaveClass('data-open:rotate-90', 'motion-safe:transition-transform')
 	})
 
 	it('renders prefix and suffix slots', () => {

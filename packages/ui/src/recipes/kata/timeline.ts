@@ -7,17 +7,18 @@
  * `TimelineSkeleton` rows.
  */
 import { type Color, defineKata, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kokkaku, narabi, omote, ugoki } from '../kiso'
+import { dan, iro, ji, kokkaku, narabi, omote, ugoki, zu } from '../kiso'
 import type { SwatchVariants } from './swatch'
 
-const { marker, text } = iro
+const { text } = iro
+const { marker } = zu
 const { weight } = ji
 const { flex } = narabi
 const { rail } = omote
 const { css } = ugoki
 
 /**
- * The rail into the marker in each hue, at the `iro.marker` shade of the dot.
+ * The rail into the marker in each hue, at the `zu.marker` shade of the dot.
  * That shade clears non-text 3:1 on the page. The zinc rail is a subtle
  * structural rail. The `before:` and `after:` prefixes are literal classes,
  * because the scanner of Tailwind finds only literal strings.
@@ -39,7 +40,7 @@ const lineAfter = {
 	blue: 'after:bg-blue-600 dark:after:bg-blue-500',
 } as const satisfies Record<Color, string>
 
-/** The fill of a decorative dot in each hue: the `iro.marker` shade. */
+/** The fill of a decorative dot in each hue: the `zu.marker` shade. */
 const color = {
 	zinc: marker.zinc,
 	red: marker.red,

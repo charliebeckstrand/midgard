@@ -1,35 +1,17 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { densitySteps } from '../../core/density'
 import { iconSize } from '../../core/density/geometry'
 import { shaku } from '../../recipes/kiso/shaku'
-import { findSteps } from '../helpers/class-stops'
 
 /**
- * The icon forms repeat the icon scale (`iconSize`), the ramps in a stepped `density-size` class.
- * Tailwind needs each class as a literal, so the forms cannot be built from the scale. This pins
- * each step of each form to the scale, in spacing units of 4 px.
+ * The fixed icon slot form repeats the icon size of the `md` step (`iconSize`). Tailwind needs
+ * each class as a literal, so the form cannot be built from the scale. `density-geometry.test.ts`
+ * pins the stepped ramps.
  */
-const scale = (step: (typeof densitySteps)[number]) => String(iconSize(step) / 4)
-
 describe('shaku icon ramps', () => {
-	it('icon.base holds the icon size of each step', () => {
-		const steps = findSteps([shaku.icon.base], 'density-size-')
-
-		for (const step of densitySteps) expect(steps[step]).toBe(scale(step))
-	})
-
-	it('icon.slot.base holds the icon slot size of each step', () => {
-		const steps = findSteps([shaku.icon.slot.base], '*:data-[slot=icon]:density-size-')
-
-		for (const step of densitySteps) expect(steps[step]).toBe(scale(step))
-
-		expect(shaku.icon.slot.base).toContain('*:data-[slot=icon]:shrink-0')
-	})
-
 	it('icon.md holds the icon slot size of md', () => {
 		expect(shaku.icon.slot.md).toBe(
-			`*:data-[slot=icon]:size-${scale('md')} *:data-[slot=icon]:shrink-0`,
+			`*:data-[slot=icon]:size-${iconSize('md') / 4} *:data-[slot=icon]:shrink-0`,
 		)
 	})
 })

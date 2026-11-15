@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { defineGroup, defineKata, definePalette, defineRecipe } from '../../core/recipe'
+import { defineGroup, defineKata, definePalette } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe/engine/recipe'
 import { k as button } from '../../recipes/kata/button'
 
 describe('defineRecipe', () => {

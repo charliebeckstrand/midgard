@@ -1,5 +1,5 @@
 import { defineKata, mode } from '../../core/recipe'
-import { dan, iro, narabi } from '../kiso'
+import { dan, narabi, zu } from '../kiso'
 import { item } from '../kumi/item'
 
 const { flex } = narabi
@@ -29,6 +29,6 @@ export const k = defineKata({
 		 * The selected-state check icon: its color and its size. The size is the
 		 * glyph size of each step.
 		 */
-		check: [...iro.marker.green, dan.size.check.box],
+		check: [...zu.marker.green, dan.size.check.box],
 	},
 })

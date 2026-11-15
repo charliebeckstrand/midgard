@@ -1,15 +1,15 @@
 /**
  * Status kata: the semantic surface for `<StatusDot>`, now a thin skin over
- * `<Swatch shape="circle">`. Maps each `status` to its `iro.marker` currentColor
+ * `<Swatch shape="circle">`. Maps each `status` to its `zu.marker` currentColor
  * shade (the graphical-mark ramp, ≥3:1 on the page surface) and carries the
  * `pulse` animation. The dot geometry and the `solid` / `outline` fill come
  * from Swatch.
  */
 import { defineKata } from '../../core/recipe'
-import { iro, ugoki } from '../kiso'
+import { ugoki, zu } from '../kiso'
 import type { SwatchVariants } from './swatch'
 
-const { marker } = iro
+const { marker } = zu
 const { css } = ugoki
 
 export const k = defineKata(
@@ -19,7 +19,7 @@ export const k = defineKata(
 		pulse: { true: css.pulse, false: '' },
 	},
 	{
-		/** Each status's `iro.marker` currentColor shade, fed to Swatch's `color`. */
+		/** Each status's `zu.marker` currentColor shade, fed to Swatch's `color`. */
 		color: {
 			inactive: marker.zinc,
 			active: marker.green,
