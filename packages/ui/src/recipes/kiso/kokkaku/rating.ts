@@ -3,9 +3,9 @@
  * per star, because the silhouette's width is the star count and not a size
  * step.
  *
- * The skeleton puts each square in the `glyph` slot and the row in the root
- * of the Rating kata, so the star size and the gap of the row are the ones of
- * the real rating.
+ * The skeleton puts each square in the `glyph` slot of the Rating kata, and
+ * the row in its root. Thus the star size and the row gap are those of the
+ * real rating.
  *
  * Layer: kiso · Concern: skeleton form · Unit: rating
  */
