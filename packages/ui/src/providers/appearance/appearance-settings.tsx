@@ -17,7 +17,15 @@ import { appearanceMessages } from './appearance-messages'
  */
 const loadDialog = () => import('./appearance-settings-dialog')
 
-/** Props for {@link AppearanceSettings}: more fields for the dialog. */
+/** One tab of the settings of an app in {@link AppearanceSettings}. */
+export type AppearanceSettingsTab = {
+	/** The label of the tab in the segment, such as "Game". */
+	label: string
+	/** The fields of the tab. */
+	children: ReactNode
+}
+
+/** Props for {@link AppearanceSettings}: more fields for the dialog, and tabs of fields. */
 export type AppearanceSettingsProps = {
 	/**
 	 * More fields for the dialog, such as the settings of one app. They go below
@@ -25,6 +33,13 @@ export type AppearanceSettingsProps = {
 	 * into the dialog, as the panels of the pickers do.
 	 */
 	children?: ReactNode
+	/**
+	 * Tabs of fields after the tab of the pickers. With tabs, a `Segment` at the
+	 * top of the dialog switches the tabs. The first tab is "UI", with the
+	 * pickers and `children`. Each tab of the list follows it, in its order.
+	 * The floating panels of each tab portal into the dialog.
+	 */
+	tabs?: readonly AppearanceSettingsTab[]
 }
 
 /**
@@ -42,6 +57,9 @@ export type AppearanceSettingsProps = {
  * picker. It offers System and each of the `locales`, with the name of each
  * locale in its own language.
  *
+ * With `tabs`, a segment at the top of the dialog switches between the "UI"
+ * tab of the pickers and each tab of the app. The dialog opens on the "UI" tab.
+ *
  * @remarks The dialog module loads in idle time after the hydration. The
  * dialog then renders closed, so the first open is the same as a later open. A
  * pointer on the button or a focus on it starts the load sooner. A press before
@@ -50,7 +68,7 @@ export type AppearanceSettingsProps = {
  * load of a press fails, the error throws in the next render, so the nearest
  * error boundary shows it.
  */
-export function AppearanceSettings({ children }: AppearanceSettingsProps) {
+export function AppearanceSettings({ children, tabs }: AppearanceSettingsProps) {
 	const [open, setOpen] = useState(false)
 
 	const fail = useFail()
@@ -74,7 +92,7 @@ export function AppearanceSettings({ children }: AppearanceSettingsProps) {
 				<Icon icon={<Settings2 />} />
 			</Button>
 			{dialog && (
-				<dialog.AppearanceSettingsDialog open={open} onOpenChange={setOpen}>
+				<dialog.AppearanceSettingsDialog open={open} onOpenChange={setOpen} tabs={tabs}>
 					{children}
 				</dialog.AppearanceSettingsDialog>
 			)}

@@ -1,3 +1,4 @@
+export { readCookie, writeCookie } from '../utilities/cookie'
 export { accessibleName } from './accessible-name'
 export { type AnnounceOptions, announce } from './announcer'
 export { ariaAttr } from './aria-attr'

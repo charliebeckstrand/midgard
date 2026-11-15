@@ -1,5 +1,9 @@
 export { AppearanceProvider, type AppearanceProviderProps } from './appearance'
-export { AppearanceSettings, type AppearanceSettingsProps } from './appearance-settings'
+export {
+	AppearanceSettings,
+	type AppearanceSettingsProps,
+	type AppearanceSettingsTab,
+} from './appearance-settings'
 export { type AppearanceContextValue, useAppearance } from './context'
 export {
 	type MotionMode,

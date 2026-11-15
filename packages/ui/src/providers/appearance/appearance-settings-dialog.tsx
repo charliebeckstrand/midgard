@@ -7,6 +7,8 @@ import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
+import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
+import { TabContent, TabContents } from '../../components/tabs'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/context'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
@@ -19,6 +21,7 @@ import { useLocaleChoice } from '../locale/context'
 import { localeOptions } from '../locale/locale-choice'
 import { UIProvider } from '../ui'
 import { appearanceMessages } from './appearance-messages'
+import type { AppearanceSettingsTab } from './appearance-settings'
 import { useAppearance } from './context'
 import { motionModes, sidebarModes, surfaceModes, themeModes } from './modes'
 
@@ -86,6 +89,8 @@ type AppearanceSettingsDialogProps = {
 	onOpenChange: (open: boolean) => void
 	/** More fields for the dialog, below the pickers. */
 	children?: ReactNode
+	/** Tabs of fields after the tab of the pickers. */
+	tabs?: readonly AppearanceSettingsTab[]
 }
 
 /**
@@ -103,12 +108,17 @@ type AppearanceSettingsDialogProps = {
  * fields render only after the node exists. `FloatingPortal` captures its
  * target on the first mount.
  *
+ * With `tabs`, a `Segment` switches the tab of the pickers ("UI") and each tab
+ * of the app. The dialog opens on the "UI" tab, because only the active panel
+ * mounts.
+ *
  * @internal
  */
 export function AppearanceSettingsDialog({
 	open,
 	onOpenChange,
 	children,
+	tabs,
 }: AppearanceSettingsDialogProps) {
 	const {
 		theme,
@@ -149,6 +159,59 @@ export function AppearanceSettingsDialog({
 
 	const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null)
 
+	// The pickers, and the fields of `children` below them: the content of the
+	// dialog, or of its "UI" tab.
+	const fields = (
+		<Stack gap="lg">
+			<Field>
+				<Label>{intl.formatMessage(appearanceMessages.appearance)}</Label>
+				<ChoiceListbox options={choices(themeModes)} value={theme} onValueChange={setTheme} />
+			</Field>
+			<Field>
+				<Label>{intl.formatMessage(appearanceMessages.density)}</Label>
+				<ChoiceListbox
+					options={choices(densityLevels)}
+					value={density}
+					onValueChange={setDensity}
+				/>
+			</Field>
+			<Field>
+				<Label>{intl.formatMessage(appearanceMessages.motion)}</Label>
+				<ChoiceListbox options={choices(motionModes)} value={motion} onValueChange={setMotion} />
+			</Field>
+			{sidebarLayout && (
+				<Field className={k({ layout: sidebarLayout }).inline.block}>
+					<Label>{intl.formatMessage(appearanceMessages.sidebar)}</Label>
+					<ChoiceListbox
+						options={choices(sidebarModes)}
+						value={sidebar}
+						onValueChange={setSidebar}
+						suffix={<SidebarSuffix />}
+					/>
+				</Field>
+			)}
+			<Field>
+				<Label>{intl.formatMessage(appearanceMessages.surfaces)}</Label>
+				<ChoiceListbox
+					options={choices(surfaceModes)}
+					value={surfaces}
+					onValueChange={setSurfaces}
+				/>
+			</Field>
+			{localeChoice && (
+				<Field>
+					<Label>{intl.formatMessage(appearanceMessages.language)}</Label>
+					<ChoiceListbox
+						options={languages}
+						value={localeChoice.choice}
+						onValueChange={localeChoice.setChoice}
+					/>
+				</Field>
+			)}
+			{children}
+		</Stack>
+	)
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogPanel width="sm">
@@ -156,66 +219,36 @@ export function AppearanceSettingsDialog({
 					<DialogTitle>{intl.formatMessage(appearanceMessages.settings)}</DialogTitle>
 				</DialogHeader>
 				<DialogBody>
-					<Stack gap="lg">
-						{portalRoot && (
-							<UIProvider portalContainer={portalRoot}>
-								<Field>
-									<Label>{intl.formatMessage(appearanceMessages.appearance)}</Label>
-									<ChoiceListbox
-										options={choices(themeModes)}
-										value={theme}
-										onValueChange={setTheme}
-									/>
-								</Field>
-								<Field>
-									<Label>{intl.formatMessage(appearanceMessages.density)}</Label>
-									<ChoiceListbox
-										options={choices(densityLevels)}
-										value={density}
-										onValueChange={setDensity}
-									/>
-								</Field>
-								<Field>
-									<Label>{intl.formatMessage(appearanceMessages.motion)}</Label>
-									<ChoiceListbox
-										options={choices(motionModes)}
-										value={motion}
-										onValueChange={setMotion}
-									/>
-								</Field>
-								{sidebarLayout && (
-									<Field className={k({ layout: sidebarLayout }).inline.block}>
-										<Label>{intl.formatMessage(appearanceMessages.sidebar)}</Label>
-										<ChoiceListbox
-											options={choices(sidebarModes)}
-											value={sidebar}
-											onValueChange={setSidebar}
-											suffix={<SidebarSuffix />}
-										/>
-									</Field>
-								)}
-								<Field>
-									<Label>{intl.formatMessage(appearanceMessages.surfaces)}</Label>
-									<ChoiceListbox
-										options={choices(surfaceModes)}
-										value={surfaces}
-										onValueChange={setSurfaces}
-									/>
-								</Field>
-								{localeChoice && (
-									<Field>
-										<Label>{intl.formatMessage(appearanceMessages.language)}</Label>
-										<ChoiceListbox
-											options={languages}
-											value={localeChoice.choice}
-											onValueChange={localeChoice.setChoice}
-										/>
-									</Field>
-								)}
-								{children}
-							</UIProvider>
-						)}
-					</Stack>
+					{portalRoot && (
+						<UIProvider portalContainer={portalRoot}>
+							{tabs?.length ? (
+								<Segment defaultValue="ui">
+									<Stack gap="lg">
+										<SegmentControl aria-label={intl.formatMessage(appearanceMessages.settings)}>
+											<SegmentItem value="ui">
+												{intl.formatMessage(appearanceMessages.interface)}
+											</SegmentItem>
+											{tabs.map((tab, index) => (
+												<SegmentItem key={tab.label} value={`tab-${index}`}>
+													{tab.label}
+												</SegmentItem>
+											))}
+										</SegmentControl>
+										<TabContents>
+											<TabContent value="ui">{fields}</TabContent>
+											{tabs.map((tab, index) => (
+												<TabContent key={tab.label} value={`tab-${index}`}>
+													<Stack gap="lg">{tab.children}</Stack>
+												</TabContent>
+											))}
+										</TabContents>
+									</Stack>
+								</Segment>
+							) : (
+								fields
+							)}
+						</UIProvider>
+					)}
 					{/* The portal target of the listbox panels. See the note above. */}
 					<div ref={setPortalRoot} className="contents" />
 				</DialogBody>

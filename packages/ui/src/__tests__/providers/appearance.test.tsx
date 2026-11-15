@@ -24,6 +24,7 @@ import {
 	stubMatchMedia,
 	userEvent,
 	waitFor,
+	within,
 } from '../helpers'
 
 function Probe() {
@@ -379,6 +380,35 @@ describe('AppearanceSettings', () => {
 
 		expect(dialog).toHaveTextContent('Motion')
 		expect(dialog).toHaveTextContent('System')
+	})
+
+	it('shows the pickers with no segment when there are no tabs', async () => {
+		const dialog = await openSettings()
+
+		expect(within(dialog).queryByRole('tablist')).toBeNull()
+	})
+
+	it('switches the "UI" tab of the pickers and each tab of the app', async () => {
+		const dialog = await openSettings(
+			<AppearanceProvider>
+				<AppearanceSettings tabs={[{ label: 'Game', children: <p>Game fields</p> }]}>
+					<p>More fields</p>
+				</AppearanceSettings>
+			</AppearanceProvider>,
+		)
+
+		expect(within(dialog).getByRole('tab', { name: 'UI' })).toHaveAttribute('aria-selected', 'true')
+		expect(dialog).toHaveTextContent('Appearance')
+		expect(dialog).toHaveTextContent('More fields')
+		expect(dialog).not.toHaveTextContent('Game fields')
+
+		await userEvent.click(within(dialog).getByRole('tab', { name: 'Game' }))
+
+		expect(await within(dialog).findByText('Game fields')).toBeInTheDocument()
+		expect(within(dialog).getByRole('tab', { name: 'Game' })).toHaveAttribute(
+			'aria-selected',
+			'true',
+		)
 	})
 
 	it('shows no sidebar picker outside a sidebar layout', async () => {

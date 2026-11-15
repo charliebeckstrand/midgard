@@ -494,6 +494,7 @@
 	"ui.settings.density.compact": "Compacta",
 	"ui.settings.density.loose": "Amplia",
 	"ui.settings.density.snug": "Estándar",
+	"ui.settings.interface": "Interfaz",
 	"ui.settings.language": "Idioma",
 	"ui.settings.motion": "Movimiento",
 	"ui.settings.motion.reduced": "Reducido",
