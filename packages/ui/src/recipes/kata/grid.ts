@@ -666,10 +666,10 @@ export const k = {
 		// gives the spare width to the columns. `content` takes the width of the
 		// content.
 		table: ['data-grid-fit-layout:table-auto', 'data-[grid-fit-layout=content]:w-max'],
-		// On a data header: the floor of the column. That is its `minWidth`, else
-		// 40px, or its least width when that is more (`--grid-min`, see
-		// `fitHeaderProps`). Keep the 40px in step with `DEFAULT_MIN_COLUMN_SIZE`.
-		floor: 'in-data-grid-fit-layout:min-w-[var(--grid-min,40px)]',
+		// On a data header: the floor of the column (`--grid-min`). That is its
+		// `minWidth`, or its least width when that is more (see `fitHeaderProps`),
+		// else the default that the `<table>` writes (`FIT_TABLE_STYLE`).
+		floor: 'in-data-grid-fit-layout:min-w-(--grid-min)',
 		// On a data header: a column that takes no spare width. That is a frozen
 		// column, or a column with a `maxWidth`.
 		tight: 'in-data-grid-fit-layout:w-px',
@@ -682,13 +682,11 @@ export const k = {
 				'in-data-grid-fit-layout:**:data-[slot=grid-edit-slot]:contain-inline-size',
 			],
 		},
-		// On the content span of a body cell: the content asks for 480px at most,
-		// or for the `maxWidth` of its column (`--grid-cap`). The span still fills
-		// a wider column. Keep the 480px in step with `DEFAULT_CONTENT_MAX`.
-		cap: [
-			'in-data-grid-fit-layout:max-w-[var(--grid-cap,480px)]',
-			'in-data-grid-fit-layout:min-w-full',
-		],
+		// On the content span of a body cell: the content asks for the `maxWidth`
+		// of its column at most (`--grid-cap`, see `fitCellProps`), else for the
+		// default that the `<table>` writes (`FIT_TABLE_STYLE`). The span still
+		// fills a wider column.
+		cap: ['in-data-grid-fit-layout:max-w-(--grid-cap)', 'in-data-grid-fit-layout:min-w-full'],
 		// On the content span of a body cell, while the `<table>` carries
 		// `data-grid-fit-held`: the content does not widen its column. The least
 		// width of the header holds the content that the grid measured, so a later

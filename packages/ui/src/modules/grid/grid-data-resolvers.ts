@@ -9,7 +9,7 @@
  * `createElement` rather than JSX so this stays a non-component file.
  */
 
-import { createElement, type ReactNode } from 'react'
+import { type CSSProperties, createElement, type ReactNode } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
@@ -21,6 +21,7 @@ import { gridMessages } from './engine/grid-messages'
 import { pageOffset } from './engine/grid-pagination-utilities'
 import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
 import type { GridFitMode } from './engine/grid-sizing/fit-layout'
+import { FIT_TABLE_STYLE } from './engine/grid-sizing/fit-styles'
 import { fitKeptWidth } from './engine/grid-sizing/sizer'
 import type { GridColumnFilter, GridGlobalFilterView } from './engine/grid-table/filter-view'
 import type { GridPaginationView } from './engine/grid-table/pagination-view'
@@ -190,6 +191,23 @@ function gridHandlers(
 }
 
 /**
+ * The style of the `<table>`. The fixed layout has the width of its columns. The
+ * automatic layout has no width, and it carries the default floor and cap of a
+ * column, which its cells read (see `FIT_TABLE_STYLE`).
+ */
+function tableStyle(
+	style: CSSProperties | undefined,
+	width: number | undefined,
+	fit: GridFitMode | undefined,
+): { style?: CSSProperties } {
+	if (width != null) return { style: { ...style, width } }
+
+	if (fit) return { style: { ...style, ...FIT_TABLE_STYLE } }
+
+	return {}
+}
+
+/**
  * Assembles the `<table>` element props: the caller's `tableProps`, with its
  * key, focus, and pointer-press handlers composed ahead of the grid's,
  * `aria-busy` while loading, and the role/index scheme. The role is `grid` when
@@ -253,9 +271,7 @@ export function resolveTableProps(args: {
 		// indicator); merge it onto any caller className so it reaches the `<table>`.
 		...(args.navigable ? { className: cn(args.tableProps?.className, k.nav.table) } : {}),
 		...(args.loading ? { 'aria-busy': true } : {}),
-		...(args.tableWidth != null
-			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
-			: {}),
+		...tableStyle(args.tableProps?.style, args.tableWidth, args.fit),
 		...(args.fit ? { 'data-grid-fit-layout': args.fit } : {}),
 		...(args.fit && args.held ? { 'data-grid-fit-held': '' } : {}),
 		...(role ? { role } : {}),
