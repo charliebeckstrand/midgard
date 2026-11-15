@@ -14,7 +14,8 @@ export const instant = false
 
 type Params = { params: Promise<{ seed: string }> }
 
-export const metadata: Metadata = { title: 'Run' }
+/** The run is the one page of the app, so its title is the name of the app only. */
+export const metadata: Metadata = { title: { absolute: 'Numbers' } }
 
 /** The run of the seed of the address. An address that is not a seed has no page. */
 export default async function SeedPage({ params }: Params) {
