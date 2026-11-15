@@ -467,7 +467,7 @@ describe('a list of three values (real browser)', () => {
 
 /**
  * Below `sm`, the panel of a dialog sits on the bottom edge. Its one bottom padding adds
- * `--ui-panel-bottom` (`density-set-[4,5,6,7,8]/[--ui-panel-bottom]`) and `--ui-panel-safe`, which
+ * `--ui-panel-bottom` (`density-set-[3,4.5,6,7.5,9]/[--ui-panel-bottom]`) and `--ui-panel-safe`, which
  * holds the safe-area inset of the home indicator below `sm` only. So the panel inset is the step
  * inset plus the safe-area inset below `sm`, and the step inset alone from `sm` up. A consumer
  * padding replaces the padding of the panel at each width.
