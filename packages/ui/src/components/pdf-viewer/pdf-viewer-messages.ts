@@ -8,7 +8,6 @@ type PdfViewerValues = {
 	controls: Record<never, never>
 	showThumbnails: Record<never, never>
 	hideThumbnails: Record<never, never>
-	closeThumbnails: Record<never, never>
 	pages: Record<never, never>
 	showHighlights: Record<never, never>
 	hideHighlights: Record<never, never>
@@ -77,12 +76,6 @@ export const pdfViewerMessages: MessageSet<PdfViewerValues> = defineMessages<Pdf
 		id: 'ui.pdfViewer.hideThumbnails',
 		defaultMessage: 'Hide thumbnails',
 		description: 'The button that hides the small images of the pages of a PDF.',
-	},
-	closeThumbnails: {
-		id: 'ui.pdfViewer.closeThumbnails',
-		defaultMessage: 'Close thumbnails',
-		description:
-			'The name of the button that closes the panel with the small images of the pages of a PDF.',
 	},
 	pages: {
 		id: 'ui.pdfViewer.pages',
