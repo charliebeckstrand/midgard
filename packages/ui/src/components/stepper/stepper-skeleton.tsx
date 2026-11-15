@@ -49,7 +49,7 @@ export function StepperSkeleton({
 			{stepKeys.map((stepKey, index) => (
 				<Fragment key={stepKey}>
 					{index > 0 && <div className={slots.separator} />}
-					<div className={cn(slots.step, 'cursor-default')}>
+					<div className={slots.step}>
 						<Placeholder className={cn(k.skeleton.indicator)} />
 						<div className={slots.content}>
 							<Placeholder className={cn(slots.title, k.skeleton.title)} />
