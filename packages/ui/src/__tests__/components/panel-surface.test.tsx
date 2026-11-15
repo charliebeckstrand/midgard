@@ -24,7 +24,7 @@ const FAMILIES: Family[] = [
 ]
 
 /**
- * The three panels share one surface wiring (`usePanelSurface`), so each one
+ * The three panels share one surface (`PanelSurface`), so each one
  * follows the same rules for modality, the glass cascade, and clicks.
  */
 describe.each(FAMILIES)('$name panel surface', ({ Root, Panel }) => {

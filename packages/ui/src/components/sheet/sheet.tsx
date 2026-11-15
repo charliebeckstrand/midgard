@@ -5,11 +5,10 @@ import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core/cn'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
-import { Overlay } from '../../primitives/overlay'
-import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives/panel'
+import { PanelRoot, type PanelRootProps } from '../../primitives/panel'
+import { usePanelState } from '../../primitives/panel/context'
+import { PanelSurface } from '../../primitives/panel/panel-surface'
 import type { PanelOverlayProps } from '../../primitives/panel/types'
-import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
-import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useReaderSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 import { adaptive, type Responsive } from '../../utilities/responsive'
@@ -182,7 +181,6 @@ export function Sheet(props: SheetProps) {
  * setter of the root. The panel stamps `data-open` while it is open.
  */
 export function SheetPanel({
-	onOpenComplete,
 	side = 'right',
 	layout = SHEET_LAYOUT,
 	width,
@@ -191,15 +189,8 @@ export function SheetPanel({
 	children,
 	footer,
 	container,
-	dismissOnBackdrop,
-	initialFocus,
-	returnFocusTo,
-	modal,
-	backdrop,
-	'aria-label': ariaLabel,
 	ref,
 	style,
-	onClick,
 	...props
 }: SheetPanelProps) {
 	const surface = useReaderSurface()
@@ -209,19 +200,7 @@ export function SheetPanel({
 	// The physical edge. The recipe, the slide, and the drag all key on it.
 	const edge = physicalSide(side, rtl)
 
-	const { open, setOpen, panelId, a11y, overlayProps, panelProps } = usePanelSurface({
-		glass: surface === 'glass',
-		motion: (reduced) => (reduced ? k.still : k.motion)[edge],
-		onOpenComplete,
-		'aria-label': ariaLabel,
-		onClick,
-		modal,
-		dismissOnBackdrop,
-		backdrop,
-		container,
-		initialFocus,
-		returnFocusTo,
-	})
+	const { open, panelId } = usePanelState()
 
 	// The dimension this side is docked across, which is the one the gesture moves
 	// and the one the cap is measured on.
@@ -246,43 +225,44 @@ export function SheetPanel({
 	const slots = k({ side: edge, width, surface, layout })
 
 	return (
-		<Overlay {...overlayProps} backdropClassName={slots.backdrop}>
-			<m.div
-				{...props}
-				{...panelProps}
-				// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
-				data-slot="sheet"
-				ref={panelRef}
-				// A dragged size beats the variant's, and it is inline because it is a
-				// measurement rather than a step on the scale. On the axis the panel is
-				// docked across, which for a sheet along the top or the bottom is its
-				// height: the gesture writes that axis, so a `width` here would state a
-				// number the drag never took.
-				//
-				// The cap goes with it, for the whole gesture and not only once a size
-				// lands: the `width` variant is a max-width, so leaving it in place would
-				// clamp the panel at its opening width while the drag went on reporting
-				// numbers past it. Cleared before the first move, because `resizing` is
-				// set on the press and the pointer moves after the render. The consumer
-				// `style` comes first, so the dragged size wins.
-				style={sized ? { ...style, [axis]: resize.size ?? undefined, maxWidth: 'none' } : style}
-				className={cn(slots.base, className)}
-			>
-				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
-					{handle ? (
-						<SheetHandle
-							handleProps={resize.handleProps}
-							covers={resize.covers}
-							controls={panelId}
-							side={edge}
-						/>
-					) : null}
+		<PanelSurface
+			{...props}
+			// The panel is a dialog. A `role` of the consumer does not reach it.
+			role="dialog"
+			container={container}
+			glass={surface === 'glass'}
+			motion={(reduced) => (reduced ? k.still : k.motion)[edge]}
+			// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
+			data-slot="sheet"
+			ref={panelRef}
+			// A dragged size beats the variant's, and it is inline because it is a
+			// measurement rather than a step on the scale. On the axis the panel is
+			// docked across, which for a sheet along the top or the bottom is its
+			// height: the gesture writes that axis, so a `width` here would state a
+			// number the drag never took.
+			//
+			// The cap goes with it, for the whole gesture and not only once a size
+			// lands: the `width` variant is a max-width, so leaving it in place would
+			// clamp the panel at its opening width while the drag went on reporting
+			// numbers past it. Cleared before the first move, because `resizing` is
+			// set on the press and the pointer moves after the render. The consumer
+			// `style` comes first, so the dragged size wins.
+			style={sized ? { ...style, [axis]: resize.size ?? undefined, maxWidth: 'none' } : style}
+			className={cn(slots.base, className)}
+			backdropClassName={slots.backdrop}
+		>
+			{handle ? (
+				<SheetHandle
+					handleProps={resize.handleProps}
+					covers={resize.covers}
+					controls={panelId}
+					side={edge}
+				/>
+			) : null}
 
-					{children}
-					<SheetDefaultFooter>{footer === undefined ? <SheetClose /> : footer}</SheetDefaultFooter>
-				</PanelProviders>
-			</m.div>
-		</Overlay>
+			{children}
+			<SheetDefaultFooter>{footer === undefined ? <SheetClose /> : footer}</SheetDefaultFooter>
+		</PanelSurface>
 	)
 }
 

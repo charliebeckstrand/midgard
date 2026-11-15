@@ -9,11 +9,10 @@ import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
 import { Density } from '../../primitives/density'
 import { HeightMotionContext } from '../../primitives/height-motion/context'
-import { Overlay } from '../../primitives/overlay'
-import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives/panel'
+import { PanelRoot, type PanelRootProps } from '../../primitives/panel'
+import { usePanelState } from '../../primitives/panel/context'
+import { PanelSurface } from '../../primitives/panel/panel-surface'
 import type { PanelOverlayProps } from '../../primitives/panel/types'
-import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
-import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useReaderSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
 import { drawerCeiling, drawerFloor } from './drawer-floor'
@@ -190,40 +189,19 @@ export function Drawer(props: DrawerProps) {
  * it is open.
  */
 export function DrawerPanel({
-	onOpenComplete,
 	size,
 	height,
 	handle,
 	className,
 	children,
 	footer,
-	initialFocus,
-	returnFocusTo,
-	dismissOnBackdrop,
-	modal,
-	backdrop,
-	container,
-	'aria-label': ariaLabel,
 	ref,
 	style,
-	onClick,
 	...props
 }: DrawerPanelProps) {
 	const surface = useReaderSurface()
 
-	const { open, setOpen, panelId, a11y, overlayProps, panelProps } = usePanelSurface({
-		glass: surface === 'glass',
-		motion: (reduced) => (reduced ? k.still : k.motion),
-		onOpenComplete,
-		'aria-label': ariaLabel,
-		onClick,
-		modal,
-		dismissOnBackdrop,
-		backdrop,
-		container,
-		initialFocus,
-		returnFocusTo,
-	})
+	const { open, panelId } = usePanelState()
 
 	// The grip only resizes, so only a panel with a fixed height shows it. A panel grown to
 	// its content (`auto` or `fit`) has no height for the grip to set.
@@ -262,57 +240,57 @@ export function DrawerPanel({
 	const slots = k({ surface, height })
 
 	return (
-		<Overlay {...overlayProps} backdropClassName={slots.backdrop}>
-			<m.div
-				{...props}
-				{...panelProps}
-				ref={panelRef}
-				// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
-				data-slot="drawer"
-				data-density={size}
-				data-height={height ?? 'auto'}
-				className={cn(slots.base, className)}
-				// The panel eases between its `height` variants, which is right for a step
-				// and wrong for a finger: eased, each frame's height becomes an animation
-				// toward where the pointer already is, so the edge trails the drag and
-				// carries on after it ends. An arrow key that sets the size suspends it too,
-				// so a held key measures the size the reader sees rather than a box still
-				// easing. The recipe suspends it off this attribute.
-				data-resizing={dataAttr(resize.resizing)}
-				// Named so the slots below can key off it: a handle changes the panel's
-				// top inset, and the header that follows must not add its own on top.
-				data-handle={dataAttr(grip)}
-				// A fixed height squares its top corners where it meets the screen edge: `full`
-				// at rest, and either step once a drag commits a height at the ceiling. A `fit`
-				// panel stamps this attribute itself, so it is left alone here.
-				data-full={hasFixedHeight ? dataAttr(full) : undefined}
-				// A dragged height beats the variant's, and a `fit` panel's, which stands
-				// down for as long as one is held. It is inline because it is a
-				// measurement rather than a step: there is no class for "412 pixels".
-				// The consumer `style` comes first, so the dragged height wins.
-				style={resize.size === null ? style : { ...style, height: resize.size }}
-			>
-				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
-					{/* Content that moves its own height tells a `fit` panel, which then follows it. Any
-					other panel gives `null`, so its content does not tell a `fit` drawer outside it. */}
-					<HeightMotionContext value={height === 'fit' ? fit.host : null}>
-						{grip ? (
-							<DrawerHandle
-								handleProps={resize.handleProps}
-								covers={resize.covers}
-								controls={panelId}
-							/>
-						) : null}
+		<PanelSurface
+			{...props}
+			// The panel is a dialog. A `role` of the consumer does not reach it.
+			role="dialog"
+			glass={surface === 'glass'}
+			motion={(reduced) => (reduced ? k.still : k.motion)}
+			ref={panelRef}
+			// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
+			data-slot="drawer"
+			data-density={size}
+			data-height={height ?? 'auto'}
+			className={cn(slots.base, className)}
+			backdropClassName={slots.backdrop}
+			// The panel eases between its `height` variants, which is right for a step
+			// and wrong for a finger: eased, each frame's height becomes an animation
+			// toward where the pointer already is, so the edge trails the drag and
+			// carries on after it ends. An arrow key that sets the size suspends it too,
+			// so a held key measures the size the reader sees rather than a box still
+			// easing. The recipe suspends it off this attribute.
+			data-resizing={dataAttr(resize.resizing)}
+			// Named so the slots below can key off it: a handle changes the panel's
+			// top inset, and the header that follows must not add its own on top.
+			data-handle={dataAttr(grip)}
+			// A fixed height squares its top corners where it meets the screen edge: `full`
+			// at rest, and either step once a drag commits a height at the ceiling. A `fit`
+			// panel stamps this attribute itself, so it is left alone here.
+			data-full={hasFixedHeight ? dataAttr(full) : undefined}
+			// A dragged height beats the variant's, and a `fit` panel's, which stands
+			// down for as long as one is held. It is inline because it is a
+			// measurement rather than a step: there is no class for "412 pixels".
+			// The consumer `style` comes first, so the dragged height wins.
+			style={resize.size === null ? style : { ...style, height: resize.size }}
+		>
+			{/* Content that moves its own height tells a `fit` panel, which then follows it. Any
+			other panel gives `null`, so its content does not tell a `fit` drawer outside it. */}
+			<HeightMotionContext value={height === 'fit' ? fit.host : null}>
+				{grip ? (
+					<DrawerHandle
+						handleProps={resize.handleProps}
+						covers={resize.covers}
+						controls={panelId}
+					/>
+				) : null}
 
-						<Density step={size}>
-							{children}
-							<DrawerDefaultFooter>
-								{footer === undefined ? <DrawerClose /> : footer}
-							</DrawerDefaultFooter>
-						</Density>
-					</HeightMotionContext>
-				</PanelProviders>
-			</m.div>
-		</Overlay>
+				<Density step={size}>
+					{children}
+					<DrawerDefaultFooter>
+						{footer === undefined ? <DrawerClose /> : footer}
+					</DrawerDefaultFooter>
+				</Density>
+			</HeightMotionContext>
+		</PanelSurface>
 	)
 }

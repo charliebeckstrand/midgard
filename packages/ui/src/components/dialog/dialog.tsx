@@ -6,11 +6,9 @@ import { cn } from '../../core/cn'
 import { usePanelFit } from '../../hooks/use-panel-fit'
 import { useResponsiveValue } from '../../hooks/use-responsive-value'
 import { HeightMotionContext } from '../../primitives/height-motion/context'
-import { Overlay } from '../../primitives/overlay'
-import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives/panel'
+import { PanelRoot, type PanelRootProps } from '../../primitives/panel'
+import { PanelSurface } from '../../primitives/panel/panel-surface'
 import type { PanelOverlayProps } from '../../primitives/panel/types'
-import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
-import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useReaderSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 import { adaptive, type Responsive, withInitial } from '../../utilities/responsive'
@@ -162,23 +160,12 @@ export function Dialog(props: DialogProps) {
  * panel stamps `data-open` while it is open.
  */
 export function DialogPanel({
-	onOpenComplete,
 	align: alignProp = DIALOG_ALIGN,
-	dismissOnBackdrop,
-	modal,
-	backdrop,
-	container,
 	width,
 	height = 'auto',
 	className,
 	children,
 	footer,
-	role = 'dialog',
-	initialFocus,
-	returnFocusTo,
-	'aria-label': ariaLabel,
-	'data-slot': slot = 'dialog',
-	onClick,
 	ref,
 	...props
 }: DialogPanelProps) {
@@ -188,21 +175,6 @@ export function DialogPanel({
 	const align = withInitial(alignProp, 'bottom')
 
 	const docked = useResponsiveValue(align, 'bottom') === 'bottom'
-
-	const { setOpen, a11y, overlayProps, panelProps } = usePanelSurface({
-		role,
-		glass: surface === 'glass',
-		motion: (reduced) => (reduced ? k.still : k.motion)[docked ? 'mobile' : 'desktop'],
-		onOpenComplete,
-		'aria-label': ariaLabel,
-		onClick,
-		modal,
-		dismissOnBackdrop,
-		backdrop,
-		container,
-		initialFocus,
-		returnFocusTo,
-	})
 
 	// A `fit` panel travels between the heights of its content. No drag holds
 	// the height of a dialog.
@@ -219,29 +191,24 @@ export function DialogPanel({
 	const slots = k({ surface, width, align, height })
 
 	return (
-		<Overlay {...overlayProps} backdropClassName={slots.backdrop}>
-			<div className={slots.box}>
-				<m.div
-					data-slot={slot}
-					{...props}
-					{...panelProps}
-					ref={panelRef}
-					// A command palette's rows hover inside this panel, not inside a popover,
-					// so they take the glass wash that the panel opens.
-					className={cn(slots.base, className)}
-				>
-					<PanelProviders onOpenChange={setOpen} a11y={a11y}>
-						{/* Content that moves its own height tells a `fit` panel, which then follows it. An
-						`auto` panel gives `null`, so its content does not tell a `fit` panel outside it. */}
-						<HeightMotionContext value={height === 'fit' ? fit.host : null}>
-							{children}
-							<DialogDefaultFooter>
-								{footer === undefined ? <DialogClose /> : footer}
-							</DialogDefaultFooter>
-						</HeightMotionContext>
-					</PanelProviders>
-				</m.div>
-			</div>
-		</Overlay>
+		<PanelSurface
+			data-slot="dialog"
+			{...props}
+			glass={surface === 'glass'}
+			motion={(reduced) => (reduced ? k.still : k.motion)[docked ? 'mobile' : 'desktop']}
+			ref={panelRef}
+			// A command palette's rows hover inside this panel, not inside a popover,
+			// so they take the glass wash that the panel opens.
+			className={cn(slots.base, className)}
+			backdropClassName={slots.backdrop}
+			boxClassName={slots.box}
+		>
+			{/* Content that moves its own height tells a `fit` panel, which then follows it. An
+			`auto` panel gives `null`, so its content does not tell a `fit` panel outside it. */}
+			<HeightMotionContext value={height === 'fit' ? fit.host : null}>
+				{children}
+				<DialogDefaultFooter>{footer === undefined ? <DialogClose /> : footer}</DialogDefaultFooter>
+			</HeightMotionContext>
+		</PanelSurface>
 	)
 }
