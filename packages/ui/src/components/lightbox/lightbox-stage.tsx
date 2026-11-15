@@ -5,6 +5,7 @@ import { PresenceContext, useComposedRefs, usePresence } from 'motion/react'
 import {
 	type CSSProperties,
 	type KeyboardEvent,
+	type Ref,
 	type SyntheticEvent,
 	use,
 	useEffectEvent,
@@ -76,6 +77,8 @@ export type LightboxStageProps = {
 	swipeControls: boolean
 	/** Whether the page behind the scrim is blurred. */
 	blur: boolean
+	/** The root of the viewer, which takes the focus when the viewer opens. */
+	ref?: Ref<HTMLDivElement>
 }
 
 /** The keys that zoom the photo, by the factor of each. */
@@ -204,6 +207,7 @@ export function LightboxStage({
 	thumbnails,
 	swipeControls,
 	blur,
+	ref,
 }: LightboxStageProps) {
 	const { thumbnail } = useLightboxContext()
 
@@ -435,6 +439,7 @@ export function LightboxStage({
 	// tab order.
 	return (
 		<div
+			ref={ref}
 			data-slot="lightbox"
 			// The stamp drops while the photo goes back to its thumbnail.
 			data-open={dataAttr(isPresent)}

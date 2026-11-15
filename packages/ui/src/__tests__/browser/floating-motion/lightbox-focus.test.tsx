@@ -15,6 +15,11 @@ import { pause } from '../helpers/wall-clock'
  * A mouse press on the stage, such as a drag of the photo, keeps the focus in
  * the viewer, so the arrow keys still step after it.
  *
+ * The viewer itself takes the focus at the open, so the close button, which
+ * is clear until it has the keyboard focus, does not show. A script focus
+ * after a keyboard press matches `:focus-visible`, as a script focus after a
+ * tap does in Safari, so a focus on the close button would show it.
+ *
  * The real engine and real Motion are necessary. The photo lands at the end of
  * the exit of the overlay, and the instant Motion mock removes the overlay in
  * the commit that closes it, so no exit occurs.
@@ -76,6 +81,28 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 			expect(hidden).toEqual([])
 		},
 	)
+
+	it('keeps the close button clear at an open from the keyboard, until Tab', async () => {
+		renderUI(<Gallery photos={photos} />)
+
+		thumbnail(0).focus()
+
+		await userEvent.keyboard('{Enter}')
+
+		await waitFor(() => expect(document.activeElement).toBe(viewer()))
+
+		const close = screen.getByRole('button', { name: 'Close' })
+
+		expect(close.matches(':focus-visible')).toBe(false)
+
+		expect(getComputedStyle(close).opacity).toBe('0')
+
+		await userEvent.keyboard('{Tab}')
+
+		expect(close).toHaveFocus()
+
+		expect(close.matches(':focus-visible')).toBe(true)
+	})
 
 	it('keeps the focus in the viewer after a mouse drag on the stage', async () => {
 		renderUI(<Gallery photos={photos} />)
