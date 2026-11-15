@@ -1,5 +1,5 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineColors, defineKata, mode, type VariantProps } from '../../core/recipe'
+import { defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, kasane, kokkaku, narabi, sen } from '../kiso'
 import { hidden, validation } from '../kumi/check'
 
@@ -9,46 +9,46 @@ const { rounded } = kasane
 const { flex } = narabi
 const { focus, ring } = sen
 
-const color = defineColors({
-	zinc: {
-		light: [
+const color = {
+	zinc: mode(
+		[
 			'[--switch-bg-ring:var(--color-zinc-950)]/90 [--switch-bg:var(--color-zinc-900)]',
 			'[--switch-ring:var(--color-zinc-950)]/90 [--switch-shadow:var(--color-black)]/10 [--switch:white]',
 		],
-		dark: [
+		[
 			'dark:[--switch-bg-ring:transparent] dark:[--switch-bg:var(--color-white)]/25',
 			'dark:[--switch-ring:var(--color-zinc-700)]/90',
 		],
-	},
-	red: {
-		light: [
+	),
+	red: mode(
+		[
 			'[--switch-bg-ring:var(--color-red-800)]/90 [--switch-bg:var(--color-red-600)]',
 			'[--switch:white] [--switch-ring:var(--color-red-800)]/90 [--switch-shadow:var(--color-red-200)]/20',
 		],
-		dark: 'dark:[--switch-bg-ring:transparent]',
-	},
-	amber: {
-		light: [
+		'dark:[--switch-bg-ring:transparent]',
+	),
+	amber: mode(
+		[
 			'[--switch-bg-ring:var(--color-amber-600)]/80 [--switch-bg:var(--color-amber-700)]',
 			'[--switch-ring:transparent] [--switch-shadow:transparent] [--switch:var(--color-amber-100)]',
 		],
-		dark: 'dark:[--switch-bg-ring:transparent]',
-	},
-	green: {
-		light: [
+		'dark:[--switch-bg-ring:transparent]',
+	),
+	green: mode(
+		[
 			'[--switch-bg-ring:var(--color-green-800)]/90 [--switch-bg:var(--color-green-600)]',
 			'[--switch:white] [--switch-ring:var(--color-green-800)]/90 [--switch-shadow:var(--color-green-200)]/20',
 		],
-		dark: 'dark:[--switch-bg-ring:transparent]',
-	},
-	blue: {
-		light: [
+		'dark:[--switch-bg-ring:transparent]',
+	),
+	blue: mode(
+		[
 			'[--switch-bg-ring:var(--color-blue-800)]/90 [--switch-bg:var(--color-blue-600)]',
 			'[--switch:white] [--switch-ring:var(--color-blue-800)]/90 [--switch-shadow:var(--color-blue-200)]/20',
 		],
-		dark: 'dark:[--switch-bg-ring:transparent]',
-	},
-})
+		'dark:[--switch-bg-ring:transparent]',
+	),
+}
 
 // The ring is the only edge of an off switch, so it keeps a 3:1 contrast
 // against the page in each mode (WCAG 1.4.11). A checked track replaces it.
@@ -103,7 +103,8 @@ export const k = defineKata(
 			...validation,
 			disabled.host,
 			// The track takes the step of the nearest density scope.
-			...kokkaku.switch.track,
+			dan.size.row,
+			dan.size.switch.width,
 		],
 		color,
 		slots: {

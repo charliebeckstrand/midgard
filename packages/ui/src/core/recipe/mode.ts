@@ -3,42 +3,21 @@
  * for a token.
  *
  * `mode()` fuses a scalar light/dark pair into a flat `string[]` (the shape
- * the recipe engine consumes). `defineColors()` does the same across a
- * multi-key map. That is useful for kata-specific color palettes, e.g.
- * checkbox / radio / switch exposing CSS-variable bundles per color.
+ * the recipe engine consumes). A per-color table of pairs is a record of
+ * `mode()` calls, such as the CSS-variable bundles of Radio and Switch.
  *
  * Authoring style: the dark string carries its own `dark:` prefix, one per
- * class; a single entry can bundle several variable-setters. Both helpers
- * expect the dark class to ship its prefix, and Tailwind detects only full
- * class literals.
+ * class; a single entry can bundle several variable-setters. Tailwind detects
+ * only full class literals.
  */
 
 type ModeValue = string | readonly string[]
-
-type ColorEntry = ModeValue | { light: ModeValue; dark: ModeValue }
 
 function flatten(value: ModeValue): string[] {
 	return typeof value === 'string' ? [value] : [...value]
 }
 
-function isPair(entry: ColorEntry): entry is { light: ModeValue; dark: ModeValue } {
-	return typeof entry === 'object' && !Array.isArray(entry) && 'light' in entry
-}
-
-function resolveEntry(entry: ColorEntry): string[] {
-	if (isPair(entry)) return [...flatten(entry.light), ...flatten(entry.dark)]
-
-	return flatten(entry)
-}
-
 /** Fuses a light / dark pair into the flat string array the engine consumes. */
 export function mode(light: ModeValue, dark: ModeValue): string[] {
 	return [...flatten(light), ...flatten(dark)]
-}
-
-/** Multi-key form of `mode()`. Each entry is a plain string or `{ light, dark }`. */
-export function defineColors<K extends string>(map: Record<K, ColorEntry>): Record<K, string[]> {
-	return Object.fromEntries(
-		Object.entries<ColorEntry>(map).map(([key, entry]) => [key, resolveEntry(entry)]),
-	) as Record<K, string[]>
 }

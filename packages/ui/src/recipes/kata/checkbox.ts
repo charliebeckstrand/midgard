@@ -1,5 +1,5 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineColors, defineKata, type VariantProps } from '../../core/recipe'
+import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, kokkaku } from '../kiso'
 import { check } from '../kumi/check'
 
@@ -17,12 +17,12 @@ export const k = defineKata(
 			'has-[:checked,[data-indeterminate]]:bg-(--check-bg) has-[:checked,[data-indeterminate]]:border-(--check-border)',
 			'not-has-[:disabled,[aria-readonly=true]]:has-[:checked,[data-indeterminate]]:hover:opacity-90',
 			// The box takes the step of the nearest density scope.
-			checkbox.box,
+			dan.size.check.box,
 			dan.radius.check,
 		],
-		color: defineColors({
+		color: {
 			zinc: '[--check-mark:var(--color-white)] [--check-bg:var(--color-zinc-600)] [--check-border:var(--color-zinc-700)]/90',
-		}),
+		},
 		slots: {
 			/**
 			 * The check mark: the sibling that follows the native input. It shows when

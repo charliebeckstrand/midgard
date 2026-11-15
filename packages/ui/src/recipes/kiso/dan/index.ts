@@ -12,6 +12,9 @@
  */
 
 import { gap } from './gap'
+
+export type { Ma } from './gap'
+
 import { radius } from './radius'
 import { size } from './size'
 import { space } from './space'

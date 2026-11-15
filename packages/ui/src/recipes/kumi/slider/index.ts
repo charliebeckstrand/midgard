@@ -23,7 +23,7 @@ export const slider = defineGroup({
 		'[--slider-track:var(--color-zinc-200)]',
 		'dark:[--slider-track:var(--color-zinc-700)]',
 	),
-	/** The color of the filled part of the track: the `iro.marker` shade of each hue. */
+	/** The color of the filled part of the track: the `zu.marker` shade of each hue. */
 	color: {
 		zinc: mode(
 			'[--slider-fill:var(--color-zinc-600)]',

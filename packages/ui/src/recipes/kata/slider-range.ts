@@ -1,6 +1,6 @@
 import type { ScaleStep } from '../../core/density'
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, hannou, kasane, kokkaku, sen, ugoki } from '../kiso'
+import { dan, hannou, kasane, sen, ugoki } from '../kiso'
 import { scale, slider } from '../kumi/slider'
 
 const { cursor, disabled } = hannou
@@ -24,18 +24,18 @@ export const k = defineKata({
 	],
 	slots: {
 		track: [
-			'absolute inset-x-0',
+			'absolute inset-x-0 top-1/2 -translate-y-1/2',
 			rounded.full,
 			'bg-(--slider-track)',
 			forced.outline,
-			kokkaku.slider.track,
+			dan.size.slider.track,
 		],
-		fill: ['absolute', rounded.full, 'bg-(--slider-fill)', forced.mark],
+		fill: ['absolute h-full', rounded.full, 'bg-(--slider-fill)', forced.mark],
 		thumb: {
 			base: [
-				'absolute',
+				'absolute top-1/2',
 				rounded.full,
-				'-translate-x-1/2',
+				'-translate-x-1/2 -translate-y-1/2',
 				// The thumb sits at `inset-inline-start`, so its center offset mirrors in a right-to-left layout.
 				'rtl:translate-x-1/2',
 				'bg-white',

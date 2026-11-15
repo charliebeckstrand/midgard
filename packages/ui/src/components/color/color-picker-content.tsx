@@ -81,7 +81,7 @@ export function ColorPickerContent({
 			<m.div
 				{...k.content.motion}
 				data-slot="color-picker-content"
-				className={cn('z-50', k.content.column, k.content.text, glass && k.content.glass)}
+				className={cn(k.content.base, glass && k.content.glass)}
 			>
 				<Box
 					bg={glass ? 'none' : 'popover'}

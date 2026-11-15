@@ -167,7 +167,7 @@ export function SidebarItem({
 			{isCurrent && (
 				// A current affixed row re-draws its focus ring on the active indicator,
 				// the topmost full-row surface; a plain row keeps the default.
-				<ActiveIndicator ref={indicatorRef} className={hasAffix ? slots.indicator : undefined} />
+				<ActiveIndicator ref={indicatorRef} className={slots.indicator} />
 			)}
 		</PolymorphicStatic>
 	)

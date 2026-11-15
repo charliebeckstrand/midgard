@@ -19,7 +19,8 @@ const edge = 'w-full [--ui-toast-card:100%]'
 /**
  * The classes of each physical `position` of the viewport and of the stack in
  * it, which also sets the width of its cards. `Toast` resolves a `start` or `end` corner to a physical one
- * first. Each value writes the same properties, so a breakpoint replaces each
+ * first. A bottom stack reverses its order, so the newest toast is at the
+ * edge. Each value writes the same properties, so a breakpoint replaces each
  * one.
  */
 const position = {
@@ -34,12 +35,12 @@ const position = {
 		// biome-ignore-end lint/plugin/no-physical-side: each of these positions names a physical corner or edge
 	},
 	scroll: {
-		'top-right': corner,
-		'top-left': corner,
-		'bottom-right': corner,
-		'bottom-left': corner,
-		top: edge,
-		bottom: edge,
+		'top-right': [corner, 'flex-col'],
+		'top-left': [corner, 'flex-col'],
+		'bottom-right': [corner, 'flex-col-reverse'],
+		'bottom-left': [corner, 'flex-col-reverse'],
+		top: [edge, 'flex-col'],
+		bottom: [edge, 'flex-col-reverse'],
 	},
 } as const
 

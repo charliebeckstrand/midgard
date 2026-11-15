@@ -11,12 +11,12 @@ import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, kasane, kokkaku, narabi, sen, ugoki } from '../kiso'
 import { rest } from '../kumi/check'
 
-const { cursor, fg } = hannou
+const { cursor, fg, turn } = hannou
 const { text } = iro
 const { rounded } = kasane
 const { flex, nest } = narabi
 const { focus } = sen
-const { css, collapse } = ugoki
+const { collapse } = ugoki
 
 /** The box of a row: its layout, padding, and gap. The skeleton rows take it too. */
 const row = [flex.row, 'w-full', dan.space.tree.y, dan.space.tree.x, nest.gap]
@@ -31,7 +31,7 @@ const check = [
 	'flex-none',
 	flex.inline,
 	'justify-center',
-	kokkaku.checkbox.box,
+	dan.size.check.box,
 	dan.radius.check,
 	...rest,
 	...mode('group-hover/tree-item:border-zinc-950/70', 'dark:group-hover/tree-item:border-white/50'),
@@ -49,8 +49,11 @@ const check = [
  */
 const mark = ['stroke-white', 'forced-colors:stroke-[HighlightText]', dan.size.check.mark]
 
-/** The chevron column. Its width is the mark of `narabi.nest`, the icon size of the step. */
-const chevron = [nest.mark, flex.row, 'justify-center', css.transform, css.collapse]
+/**
+ * The chevron column. Its width is the mark of `narabi.nest`, the icon size of
+ * the step. The column carries `data-open` and turns (`hannou.turn`).
+ */
+const chevron = [nest.mark, flex.row, 'justify-center', ...turn]
 
 export const k = defineKata(
 	{

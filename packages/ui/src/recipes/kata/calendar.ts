@@ -15,7 +15,7 @@ const { weight } = ji
 const { flex, touch } = narabi
 const { focus } = sen
 
-const base = ['inline-flex flex-col', 'select-none', kokkaku.calendar.width]
+const base = ['inline-flex flex-col', 'select-none', dan.size.calendar.width]
 
 const header = [flex.row, 'justify-between', dan.space.calendar.header.bottom]
 
