@@ -82,7 +82,7 @@ export const nav = defineGroup({
 		 * element, under positioned descendants. The focused current row therefore
 		 * draws the ring again on the pill.
 		 */
-		indicator: focus.within.indicator,
+		indicator: { affix: { true: focus.within.indicator, false: '' } },
 		prefix: [...affix, slot.prefix],
 		suffix: [...affix, slot.suffix],
 	},

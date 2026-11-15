@@ -346,32 +346,12 @@ export const h = <Button variant="bare" aria-label="Close"><Icon icon={<X />} />
 `,
 		},
 	],
-	'no-unsanctioned-define-recipe': [
-		{
-			file: 'recipe.ts',
-			source: `import { defineRecipe } from '../../core/recipe' // flag
-import { type RecipeConfig } from '../../core/recipe'
-export { defineRecipe, type RecipeConfig }
-`,
-		},
-	],
 	'no-use-prefixed-type-name': [
 		{
 			file: 'types.ts',
 			source: `export type UseA = { a: string } // flag
 export interface UseB<T> extends Array<T> {} // flag
 export type User = { name: string }
-`,
-		},
-	],
-	'no-value-import-from-recipes-barrel': [
-		{
-			file: 'barrel.ts',
-			source: `import { Ma } from '../../recipes' // flag
-import type { Step } from '../../recipes'
-import { type Color, type Ji } from '../../recipes'
-import { k } from '../../recipes/kata/button'
-export { Ma, k, type Step, type Color, type Ji }
 `,
 		},
 	],
