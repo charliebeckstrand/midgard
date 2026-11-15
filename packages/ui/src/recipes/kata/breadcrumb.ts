@@ -1,9 +1,8 @@
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
+import { dan, hannou, iro, kasane, kokkaku, narabi, sen } from '../kiso'
 
 const { fg } = hannou
 const { text } = iro
-const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
@@ -66,7 +65,7 @@ export const k = defineKata(
 					'in-data-collapse:flex in-data-collapse:min-w-0 in-data-collapse:max-w-full',
 				],
 				current: {
-					true: [text.default, weight.normal],
+					true: [text.default, 'font-normal'],
 					false: text.muted,
 				},
 				// A crumb with an `href` is a link, and it darkens on hover. A crumb with no

@@ -19,7 +19,7 @@ import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
 
 const { cursor, disabled } = hannou
 const { text } = iro
-const { size, weight, leading } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { border, focus } = sen
@@ -77,7 +77,7 @@ export const k = defineKata(
 				},
 			},
 			title: {
-				base: [size.sm, weight.medium, leading.none, ...text.muted],
+				base: [size.sm, 'font-medium', 'leading-none', ...text.muted],
 				interactive: {
 					true: [
 						...mode(

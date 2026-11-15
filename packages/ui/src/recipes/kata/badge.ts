@@ -9,10 +9,9 @@
 
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kasane, kokkaku, narabi, sen, shaku } from '../kiso'
+import { dan, iro, kasane, kokkaku, narabi, sen, shaku } from '../kiso'
 
 const { extended, hover, palette } = iro
-const { weight } = ji
 const { rounded } = kasane
 const { badge } = kokkaku
 const { flex } = narabi
@@ -38,7 +37,7 @@ export const k = defineKata(
 			'group',
 			flex.inline,
 			'w-fit',
-			weight.medium,
+			'font-medium',
 			// The ring shows only on keyboard focus, so a label badge, which takes no
 			// focus, never shows it.
 			focus.ring,

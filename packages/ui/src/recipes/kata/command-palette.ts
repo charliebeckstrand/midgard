@@ -12,7 +12,7 @@ import { item } from '../kumi/item'
 import { gap } from '../kumi/panel'
 
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { flex } = narabi
 
 /** The result row: an icon, a label, and a shortcut on one line. */
@@ -55,7 +55,7 @@ export const k = defineKata(
 			// space between the search input and the first group. Each heading
 			// therefore has the same space above it.
 			group: [flex.col, 'gap-0.5', gap.above],
-			title: ['p-2', size.xs, text.muted, weight.medium],
+			title: ['p-2', size.xs, text.muted, 'font-medium'],
 			// The no-results status after the body: a persistent `<output>`
 			// (role=status). It never hides, because a live region speaks only while it
 			// is in the accessibility tree. The palette writes its text on zero results.

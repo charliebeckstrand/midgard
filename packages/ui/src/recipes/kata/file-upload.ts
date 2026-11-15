@@ -4,7 +4,7 @@ import { input } from '../kumi/control'
 
 const { cursor, disabled } = hannou
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { border, focus } = sen
@@ -56,7 +56,7 @@ export const k = {
 	// under the label/reset so those stay operable.
 	overlay: ['absolute inset-0', rounded.lg, focus.ring, ...cursor],
 	icon: 'shrink-0',
-	label: [weight.medium, text.default],
+	label: ['font-medium', text.default],
 	/**
 	 * The unit of `FileUploadInput`, which extends the input group. The field is
 	 * the display button, which lays out its text as the text of an input.

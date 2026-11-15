@@ -10,13 +10,11 @@
  */
 
 import { dan } from '../dan'
-import { ji } from '../ji'
 import { kasane } from '../kasane'
 
-const { family } = ji
 const { rounded } = kasane
 
 export const mark = {
-	base: [family.mono, 'w-fit', 'bg-current/15', rounded.md],
+	base: ['font-mono', 'w-fit', 'bg-current/15', rounded.md],
 	density: [dan.text.small, dan.space.mark.x, dan.space.mark.y],
 } as const

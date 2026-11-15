@@ -1,21 +1,20 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kokkaku, narabi } from '../kiso'
+import { dan, iro, kokkaku, narabi } from '../kiso'
 
 const { text } = iro
-const { weight } = ji
 const { flex } = narabi
 
 // Each text is a ramp, so each slot takes the step of its nearest density
 // scope. An explicit `size` on StatValue makes the value its own scope.
-const label = [...text.muted, weight.medium, dan.text.small]
+const label = [...text.muted, 'font-medium', dan.text.small]
 
 const value = {
-	base: [weight.semibold, 'tracking-tight tabular-nums', ...text.default, dan.text.h1],
+	base: ['font-semibold', 'tracking-tight tabular-nums', ...text.default, dan.text.h1],
 }
 
 const delta = {
-	base: [flex.inline, dan.text.small, dan.gap.scale.xs, weight.medium, 'tabular-nums'],
+	base: [flex.inline, dan.text.small, dan.gap.scale.xs, 'font-medium', 'tabular-nums'],
 	trend: {
 		up: text.success,
 		down: text.error,

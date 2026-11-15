@@ -10,10 +10,10 @@
 import { ji } from '../ji'
 import { kasane } from '../kasane'
 
-const { leading, size } = ji
+const { size } = ji
 const { rounded } = kasane
 
 export const stepper = {
 	indicator: [rounded.full, 'size-4.5 shrink-0'],
-	title: [size.sm, leading.none, 'h-lh w-20'].join(' '),
+	title: [size.sm, 'leading-none', 'h-lh w-20'].join(' '),
 } as const

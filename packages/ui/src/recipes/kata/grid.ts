@@ -11,7 +11,7 @@ import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso
 
 const { busy, cursor, disabled, fg, grab } = hannou
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex, touch } = narabi
 const { backdrop, popover } = omote
@@ -567,11 +567,11 @@ export const k = {
 	aggregate: {
 		// Aggregated figures on group-header and total rows: firmer than the data
 		// they summarize, tabular so they align down their columns.
-		cell: ['tabular-nums', weight.medium],
+		cell: ['tabular-nums', 'font-medium'],
 		// The total row's leading "Total" label, matching the figures' weight. The
 		// grand total label is a row header, so the label sets the cell text color
 		// over the muted color of a header.
-		label: [text.default, weight.medium],
+		label: [text.default, 'font-medium'],
 	},
 	detail: {
 		// The master-detail chevron in an expander cell: rotates a quarter-turn as
@@ -807,7 +807,7 @@ export const k = {
 			...ring.default,
 			...omote.bg.surface,
 			size.sm,
-			weight.medium,
+			'font-medium',
 		],
 	},
 	// Framer transition configs (spread/passed to an `m` element, never to

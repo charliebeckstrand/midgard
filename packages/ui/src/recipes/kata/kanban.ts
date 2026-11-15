@@ -14,7 +14,7 @@ import { dan, hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../ki
 
 const { disabled, grab } = hannou
 const { on, text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { rail } = omote
@@ -42,7 +42,7 @@ export const k = defineKata(
 					'forced-colors:data-over:outline-2 forced-colors:data-over:-outline-offset-2',
 				],
 				slots: {
-					header: [flex.row, dan.gap.scale.sm, size.md, text.default, weight.semibold],
+					header: [flex.row, dan.gap.scale.sm, size.md, text.default, 'font-semibold'],
 					title: ['flex-1', 'min-w-0 truncate'],
 					// A disabled board dims each body as one box, not each card in it. WebKit
 					// does not repaint a card in the scroll box of the body while the opacity

@@ -13,7 +13,7 @@ import { dan, hannou, iro, ji, narabi, omote, sen, sou, ugoki } from '../kiso'
 
 const { cursor } = hannou
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { flex, offcanvas } = narabi
 const { bg, rail, skeleton } = omote
 const { border, focus, forced, ring } = sen
@@ -146,7 +146,7 @@ export const k = defineKata({
 					'px-3 py-2',
 					size.md,
 					text.muted,
-					weight.semibold,
+					'font-semibold',
 					'shrink-0',
 					'select-none',
 				],

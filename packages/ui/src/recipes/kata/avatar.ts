@@ -1,9 +1,8 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kasane, kokkaku, narabi } from '../kiso'
+import { dan, iro, kasane, kokkaku, narabi } from '../kiso'
 
 const { palette } = iro
-const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 
@@ -44,7 +43,7 @@ export const k = defineKata(
 		}),
 		defaults: { variant: 'solid', color: 'zinc' },
 		slots: {
-			initials: ['select-none fill-current text-[48px] uppercase', weight.medium],
+			initials: ['select-none fill-current text-[48px] uppercase', 'font-medium'],
 			/**
 			 * The background layer of the image. A browser leaves out a background in
 			 * print by default, so the layer asks for its colors and image in print.

@@ -12,12 +12,11 @@
 
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kasane, kokkaku, narabi, sen, ugoki, zu } from '../kiso'
+import { dan, iro, kasane, kokkaku, narabi, sen, ugoki, zu } from '../kiso'
 
 const { text } = iro
 const { meter } = zu
 const { muted } = text
-const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { spring } = ugoki
@@ -37,7 +36,7 @@ const fill = {
 const gauge = ['relative', flex.inline, 'justify-center', kokkaku.progress.gauge.diameter]
 
 const label = {
-	base: ['absolute', weight.semibold, ...text.default, dan.text.small, 'tabular-nums'],
+	base: ['absolute', 'font-semibold', ...text.default, dan.text.small, 'tabular-nums'],
 }
 
 export const k = defineKata(
@@ -103,7 +102,7 @@ export const k = defineKata(
 						'rtl:translate-x-1/2',
 						'whitespace-nowrap',
 						'pointer-events-none',
-						weight.medium,
+						'font-medium',
 						...muted,
 						dan.text.small,
 						'tabular-nums',

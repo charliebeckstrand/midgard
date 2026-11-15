@@ -3,7 +3,7 @@ import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
@@ -34,7 +34,7 @@ const button = {
 		'min-w-9',
 		'p-2',
 		size.sm,
-		weight.medium,
+		'font-medium',
 		rounded.lg,
 		focus.ring,
 		...cursor,

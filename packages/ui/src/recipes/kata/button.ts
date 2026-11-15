@@ -1,10 +1,9 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
-import { dan, hannou, iro, ji, kokkaku, narabi, sen, shaku } from '../kiso'
+import { dan, hannou, iro, kokkaku, narabi, sen, shaku } from '../kiso'
 
 const { cursor, disabled } = hannou
 const { extended, hover, palette } = iro
-const { weight } = ji
 const { button } = kokkaku
 const { flex } = narabi
 const { focus, forced, ring } = sen
@@ -24,7 +23,7 @@ export const k = defineKata(
 			flex.inline,
 			'justify-center',
 			'w-fit shrink-0',
-			weight.semibold,
+			'font-semibold',
 			...disabled.base,
 			...cursor,
 			// Each step is in a stepped `density-*` class: the button takes the step of

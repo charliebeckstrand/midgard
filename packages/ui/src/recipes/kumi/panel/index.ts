@@ -26,7 +26,7 @@ import { dan, iro, ji, narabi, omote, sen } from '../../kiso'
 export { grip } from './grip'
 
 const { text } = iro
-const { size, leading } = ji
+const { size } = ji
 const { fit, flex } = narabi
 const { scale } = dan.gap
 
@@ -48,8 +48,8 @@ export const panel = defineGroup({
 		 */
 		header: [flex.col, scale.sm],
 		/** Color, leading, and the balanced wrap of a heading (`kata/heading.ts`) only; weight and font size are derived from the heading scale by the Title component. */
-		title: [...text.default, leading.none, '[text-wrap-style:balance]'],
-		description: [...text.muted, size.md, leading.tight],
+		title: [...text.default, 'leading-none', '[text-wrap-style:balance]'],
+		description: [...text.muted, size.md, 'leading-tight'],
 		/** Optional wrapper around body + footer; a Form or similar can wrap both while preserving the panel's slot rhythm. */
 		content: [...fit.column, scale.lg],
 		body: [...text.muted, fit.scroll],

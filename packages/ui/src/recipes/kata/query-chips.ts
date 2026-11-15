@@ -6,10 +6,9 @@
  * text.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, iro, ji, narabi } from '../kiso'
+import { dan, iro, narabi } from '../kiso'
 
 const { text } = iro
-const { weight } = ji
 const { flex } = narabi
 
 /**
@@ -40,11 +39,11 @@ export const k = defineKata({
 		chip: ['max-w-full'],
 		field: [...text.default],
 		operator: [...text.muted],
-		value: [weight.semibold, ...text.default],
+		value: ['font-semibold', ...text.default],
 		// The combinator is one step below the chips. No step is below `xs`, so at
 		// `xs` the combinator takes the `xs` values.
 		combinator: {
-			base: [dan.text.combinator, weight.medium, ...text.muted, 'uppercase'],
+			base: [dan.text.combinator, 'font-medium', ...text.muted, 'uppercase'],
 			/**
 			 * The pad of the combinator Button: the values of the Button kata, one step
 			 * below the step of the row. The Button has no `size`, so it takes the step
