@@ -108,11 +108,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 		<div
 			data-slot="color-slider"
 			data-channel={channel}
-			className={cn(
-				k().track.base,
-				isHue ? k().hue : k().checkerboard,
-				disabled && 'pointer-events-none opacity-50',
-			)}
+			className={cn(k().track.base, isHue ? k().hue : k().checkerboard)}
 			onMouseDown={drag.onMouseDown}
 			onPointerDown={drag.onPointerDown}
 			onPointerMove={drag.onPointerMove}

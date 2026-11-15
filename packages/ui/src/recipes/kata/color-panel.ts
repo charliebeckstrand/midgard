@@ -18,8 +18,9 @@
 
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'
-import { dan, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { dan, hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
+const { disabled } = hannou
 const { text } = iro
 const { size } = ji
 const { rounded } = kasane
@@ -35,18 +36,26 @@ const handle = [
 	...ring.line[1].outset,
 ] as const
 
+// The area is a `<div>`, and a `<div>` does not match `:disabled`. The range
+// input of each track is disabled by the same rule that locks the area: the
+// `disabled` prop or a disabled ancestor `<fieldset>`. Thus the area dims when
+// the panel holds a disabled range input.
 const area = [
 	'relative w-full cursor-crosshair touch-none',
 	'forced-color-adjust-none',
 	...focus.ring,
+	'in-[[data-slot=color-panel]:has([data-slot=color-slider-input]:disabled)]:opacity-50',
+	'in-[[data-slot=color-panel]:has([data-slot=color-slider-input]:disabled)]:cursor-not-allowed',
 	dan.size.colorPanel.area,
 ]
 
+// The track dims through its native range input (`disabled.host`).
 const track = [
 	'relative w-full cursor-pointer touch-none',
 	'forced-color-adjust-none',
 	rounded.full,
 	...focus.outline,
+	disabled.host,
 	dan.size.colorPanel.channel,
 ]
 
@@ -108,7 +117,8 @@ export const k = defineKata(
 			/**
 			 * One preset chip: a label around a visually hidden radio. The inset ring
 			 * gives a white or a black chip an edge on the panel. The outline shows
-			 * when the radio inside has keyboard focus.
+			 * when the radio inside has keyboard focus. The chip dims through its
+			 * radio (`disabled.host`), and a disabled chip does not grow on hover.
 			 */
 			swatch: [
 				'relative cursor-pointer',
@@ -116,7 +126,8 @@ export const k = defineKata(
 				kokkaku.colorPanel.swatch,
 				rounded.md,
 				...ring.inset,
-				'hover:scale-110',
+				'hover:not-has-disabled:scale-110',
+				disabled.host,
 				...focus.outline,
 			],
 		},
