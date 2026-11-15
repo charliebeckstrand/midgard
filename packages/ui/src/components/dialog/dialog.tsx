@@ -9,7 +9,7 @@ import { HeightMotionContext } from '../../primitives/height-motion/context'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives/panel'
 import type { PanelOverlayProps } from '../../primitives/panel/types'
-import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
+import { splitOverlayProps, usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useReaderSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
@@ -164,24 +164,20 @@ export function Dialog(props: DialogProps) {
 export function DialogPanel({
 	onOpenComplete,
 	align: alignProp = DIALOG_ALIGN,
-	dismissOnBackdrop,
-	modal,
-	backdrop,
-	container,
 	width,
 	height = 'auto',
 	className,
 	children,
 	footer,
 	role = 'dialog',
-	initialFocus,
-	returnFocusTo,
 	'aria-label': ariaLabel,
 	'data-slot': slot = 'dialog',
 	onClick,
 	ref,
-	...props
+	...rest
 }: DialogPanelProps) {
+	const [overlay, props] = splitOverlayProps(rest)
+
 	const surface = useReaderSurface()
 
 	// A map with no `initial` value docks there, in the CSS and in the motion alike.
@@ -189,19 +185,13 @@ export function DialogPanel({
 
 	const docked = useResponsiveValue(align, 'bottom') === 'bottom'
 
-	const { setOpen, a11y, overlayProps, panelProps } = usePanelSurface({
+	const { setOpen, a11y, overlayProps, panelProps } = usePanelSurface(overlay, {
 		role,
 		glass: surface === 'glass',
 		motion: (reduced) => (reduced ? k.still : k.motion)[docked ? 'mobile' : 'desktop'],
 		onOpenComplete,
 		'aria-label': ariaLabel,
 		onClick,
-		modal,
-		dismissOnBackdrop,
-		backdrop,
-		container,
-		initialFocus,
-		returnFocusTo,
 	})
 
 	// A `fit` panel travels between the heights of its content. No drag holds

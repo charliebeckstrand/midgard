@@ -12,7 +12,7 @@ import { HeightMotionContext } from '../../primitives/height-motion/context'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives/panel'
 import type { PanelOverlayProps } from '../../primitives/panel/types'
-import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
+import { splitOverlayProps, usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useReaderSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k, type scale } from '../../recipes/kata/drawer'
@@ -197,32 +197,22 @@ export function DrawerPanel({
 	className,
 	children,
 	footer,
-	initialFocus,
-	returnFocusTo,
-	dismissOnBackdrop,
-	modal,
-	backdrop,
-	container,
 	'aria-label': ariaLabel,
 	ref,
 	style,
 	onClick,
-	...props
+	...rest
 }: DrawerPanelProps) {
+	const [overlay, props] = splitOverlayProps(rest)
+
 	const surface = useReaderSurface()
 
-	const { open, setOpen, panelId, a11y, overlayProps, panelProps } = usePanelSurface({
+	const { open, setOpen, panelId, a11y, overlayProps, panelProps } = usePanelSurface(overlay, {
 		glass: surface === 'glass',
 		motion: (reduced) => (reduced ? k.still : k.motion),
 		onOpenComplete,
 		'aria-label': ariaLabel,
 		onClick,
-		modal,
-		dismissOnBackdrop,
-		backdrop,
-		container,
-		initialFocus,
-		returnFocusTo,
 	})
 
 	// The grip only resizes, so only a panel with a fixed height shows it. A panel grown to

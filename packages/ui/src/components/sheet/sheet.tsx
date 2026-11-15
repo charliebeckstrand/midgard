@@ -8,7 +8,7 @@ import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders, PanelRoot, type PanelRootProps } from '../../primitives/panel'
 import type { PanelOverlayProps } from '../../primitives/panel/types'
-import { usePanelSurface } from '../../primitives/panel/use-panel-surface'
+import { splitOverlayProps, usePanelSurface } from '../../primitives/panel/use-panel-surface'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { useReaderSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
@@ -190,37 +190,27 @@ export function SheetPanel({
 	className,
 	children,
 	footer,
-	container,
-	dismissOnBackdrop,
-	initialFocus,
-	returnFocusTo,
-	modal,
-	backdrop,
 	'aria-label': ariaLabel,
 	ref,
 	style,
 	onClick,
-	...props
+	...rest
 }: SheetPanelProps) {
+	const [overlay, props] = splitOverlayProps(rest)
+
 	const surface = useReaderSurface()
 
-	const rtl = useIsRtl(container)
+	const rtl = useIsRtl(overlay.container)
 
 	// The physical edge. The recipe, the slide, and the drag all key on it.
 	const edge = physicalSide(side, rtl)
 
-	const { open, setOpen, panelId, a11y, overlayProps, panelProps } = usePanelSurface({
+	const { open, setOpen, panelId, a11y, overlayProps, panelProps } = usePanelSurface(overlay, {
 		glass: surface === 'glass',
 		motion: (reduced) => (reduced ? k.still : k.motion)[edge],
 		onOpenComplete,
 		'aria-label': ariaLabel,
 		onClick,
-		modal,
-		dismissOnBackdrop,
-		backdrop,
-		container,
-		initialFocus,
-		returnFocusTo,
 	})
 
 	// The dimension this side is docked across, which is the one the gesture moves
