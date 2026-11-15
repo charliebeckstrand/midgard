@@ -109,7 +109,7 @@ export const k = defineKata(
 		 * square corners, or `floating` 1rem in from them with round corners. The
 		 * compound rules give a side its insets.
 		 */
-		responsive: { layout: { flush: 'rounded-none', floating: 'rounded-xl' } },
+		responsive: { layout: { flush: 'rounded-none', floating: 'rounded-2xl' } },
 		compound: [...DOCKED_STEPS, ...INSETS, ...DOCKED_WIDTHS],
 		slots: {
 			// The header stands one slot gap from the top edge, as the header of a drawer

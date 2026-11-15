@@ -6,6 +6,7 @@
  * - `button`: the header button.
  * - `dot`: the report dot of the header button.
  * - `pin`: the Pin button of the sheet.
+ * - `chevron`: the chevron slot of an entry.
  * - `text`: the text of an entry.
  * - `hash`: the color of the hash of a report.
  *
@@ -15,7 +16,7 @@
  * clear AA on the surface.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, iro, narabi, omote, sen } from '../kiso'
+import { dan, hannou, iro, narabi, omote, sen } from '../kiso'
 
 const { x, top, bottom } = dan.space.panel
 
@@ -59,6 +60,12 @@ export const k = defineKata(
 			],
 			/** The Pin button of the sheet, which shows in the inline layout only. */
 			pin: { responsive: { layout: narabi.offcanvas.inline.inlineFlex } },
+			/**
+			 * The slot of the chevron, one line high. Each entry keeps it, so the texts
+			 * start in one column. The slot of an entry with a panel carries
+			 * `data-open`, and it turns while the panel opens (`hannou.turn`).
+			 */
+			chevron: ['flex size-4 shrink-0 items-center', ...hannou.turn],
 			text: [...iro.text.default],
 			hash: bare.rose,
 		},
