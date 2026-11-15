@@ -104,7 +104,7 @@ export const gap = {
 		 */
 		tags: {
 			x: 'density-set-[3,3,3.5,4,4]/[--touch-target-gap-x]',
-			y: 'density-set-[2,2,2.5,3,3]/[--touch-target-gap-y]',
+			y: 'density-set-[2,2.25,2.5,2.75,3]/[--touch-target-gap-y]',
 		},
 		/**
 		 * The touch gap along the row of query chips. The row is a slot, one step

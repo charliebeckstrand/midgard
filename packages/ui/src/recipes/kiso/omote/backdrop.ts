@@ -2,8 +2,7 @@
  * Omote backdrop: modal / sheet overlay fills. `base` is the default modal
  * scrim. `axis` is the `surface` axis of the backdrop of a modal panel: its
  * `flat` half is `base`, and its `glass` half is denser for use behind a glass
- * panel. The raw color pairs live here, not in `bg.ts`; the `blur` filter is
- * its own concern.
+ * panel. The raw color pairs live here, not in `bg.ts`.
  *
  * The `flat` half also holds the `glass` scrim behind the `surfaces-glass`
  * variant, for the paint before hydration while the reader chose glass
@@ -14,14 +13,12 @@
 
 import { mode } from '../../../core/recipe'
 
-import { blur } from './blur'
-
 const fill = {
 	md: mode('bg-white/50', 'dark:bg-zinc-950/50'),
 	lg: mode('bg-white/75', 'dark:bg-zinc-950/75'),
 } as const
 
-const base = [fill.md, blur.sm]
+const base = [fill.md, 'backdrop-blur-sm']
 
 export const backdrop = {
 	base,
