@@ -277,7 +277,7 @@ function MenuSubSheet({
 
 				<MenuLabel>{label}</MenuLabel>
 
-				<Icon icon={<ChevronDown />} className={cn(k.sub.chevron, open && 'rotate-180')} />
+				<Icon icon={<ChevronDown />} className={k.sub.chevron} />
 			</button>
 
 			{open ? (
