@@ -78,7 +78,6 @@ The barrel re-exports the substrate types, so a consumer derives a prop union wi
 | Type | Summary |
 |---|---|
 | `Ma` | Name of a spacing stop in the `ma` scale. |
-| `GroupOrientation` | Axis a joined group runs along. |
 
 ## Boundary
 

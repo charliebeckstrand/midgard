@@ -1,14 +1,14 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
-import type { GroupOrientation } from '../../recipes'
 import type { scale } from '../../recipes/kata/button'
 import { k } from '../../recipes/kata/group'
 import { Box } from '../../structure/box'
+import type { Orientation } from '../../types/orientation'
 
 type GroupBaseProps = {
 	/** Axis the group lays out on. @defaultValue 'horizontal' */
-	orientation?: GroupOrientation
+	orientation?: Orientation
 	/**
 	 * The density step of the children. Omit it to take the step of the nearest
 	 * density scope. A step makes the group a density scope.
