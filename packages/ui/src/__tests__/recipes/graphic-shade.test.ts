@@ -3,7 +3,7 @@ import clsx, { type ClassValue } from 'clsx'
 import { describe, expect, it } from 'vitest'
 import type { Color } from '../../core/recipe'
 import { k as timeline } from '../../recipes/kata/timeline'
-import { iro, kasane, zu } from '../../recipes/kiso'
+import { kasane, zu } from '../../recipes/kiso'
 import { validation as checkValidation } from '../../recipes/kumi/check'
 import { slider } from '../../recipes/kumi/slider'
 
@@ -29,9 +29,9 @@ function readShades(classes: ClassValue, hue: string) {
 /**
  * A hue that marks a value or a state as a graphic, not as text, has one shade in each mode: the
  * shade of its series slot (`zu.palette.series`). A dot, a timeline rail, a slider fill, a meter,
- * and a chart mark in one hue thus show one shade. Zu reads iro, so `iro.marker` cannot read the
- * slot, and the slider fill and the timeline rails are CSS that Tailwind must find whole. Thus each
- * copy is held to the slot here.
+ * and a chart mark in one hue thus show one shade. `zu.marker` takes the text of the slot, which
+ * must have the shade of its fill. The slider fill and the timeline rails are CSS that Tailwind
+ * must find whole, so they copy the shade. Thus each one is held to the slot here.
  */
 describe('one graphic shade for each hue', () => {
 	it.each(COLORS)('gives %s the shade of its series slot in each copy', (hue) => {
@@ -40,7 +40,7 @@ describe('one graphic shade for each hue', () => {
 		expect(slot.light).toHaveLength(1)
 		expect(slot.dark).toHaveLength(1)
 
-		expect(readShades(iro.marker[hue], hue)).toEqual(slot)
+		expect(readShades(zu.marker[hue], hue)).toEqual(slot)
 		expect(readShades(zu.meter[hue].fill, hue)).toEqual(slot)
 		expect(readShades(slider.slots.base.color[hue], hue)).toEqual(slot)
 	})

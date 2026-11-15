@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { definePalette, defineRecipe } from '../../core/recipe'
+import { definePalette } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe/engine/recipe'
 import { k as badge } from '../../recipes/kata/badge'
 import { iro } from '../../recipes/kiso'
 

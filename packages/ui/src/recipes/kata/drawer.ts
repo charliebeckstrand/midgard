@@ -7,8 +7,9 @@
 import { defineScale } from '../../core/density'
 import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, narabi, ugoki } from '../kiso'
-import { gap, grip, inset, panel } from '../kumi/panel'
+import { grip, panel } from '../kumi/panel'
 
+const { space } = dan
 const { flex } = narabi
 const { css } = ugoki
 
@@ -67,7 +68,7 @@ export const k = defineKata(
 			full: ['h-full', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
 		},
 		slots: {
-			// The header stands one slot gap from the top edge (`inset.head`), and the
+			// The header stands one slot gap from the top edge (`space.panel.head`), and the
 			// panel puts the same gap under it. The header slot carries the space, so it
 			// can hold a title and a description, or a row such as a title with a close
 			// button. A title that is the first slot carries the same space. A title or a
@@ -75,16 +76,16 @@ export const k = defineKata(
 			//
 			// A handle already is the space at the top edge. Under a handle the header
 			// would sit a whole step below the grip, so the handle removes the space.
-			header: [inset.x, inset.head, 'group-data-handle/drawer:pt-0'],
+			header: [space.panel.x, space.panel.head, 'group-data-handle/drawer:pt-0'],
 			title: [
-				inset.x,
-				inset.head,
+				space.panel.x,
+				space.panel.head,
 				'group-data-handle/drawer:pt-0',
 				'in-data-[slot=drawer-header]:p-0',
 			],
-			description: [inset.x, 'in-data-[slot=drawer-header]:px-0'],
-			footer: [inset.x, inset.bottom],
-			body: ['flex-1', inset.x, inset.first.drawer, inset.last.drawer],
+			description: [space.panel.x, 'in-data-[slot=drawer-header]:px-0'],
+			footer: [space.panel.x, space.panel.bottom],
+			body: ['flex-1', space.panel.x, space.panel.first.drawer, space.panel.last.drawer],
 			/**
 			 * The optional wrapper around the body and the footer. `half` and `full` fix
 			 * the height of the panel. The wrapper fills that height, so the body can
@@ -113,7 +114,7 @@ export const k = defineKata(
 				// The handle is the panel's own edge, not one of its slots, so it takes no
 				// slot gap: left in the flow it floats a whole step above the first thing
 				// under it. The padding above sets it off instead.
-				gap.flush,
+				space.panel.flush,
 				...grip.area,
 			],
 			bar: grip.bar.horizontal,
