@@ -638,7 +638,7 @@ describe('PdfViewer', () => {
 
 		expect(screen.getByRole('dialog', { name: 'Pages' })).toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Close thumbnails' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
 	})
 
 	// A tablet rotation across lg with the sheet open. The desktop layout unmounts the sheet
