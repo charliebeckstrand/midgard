@@ -207,7 +207,7 @@ export function NumberInput({
 				// preventDefault cancels only the focus move; the click still fires.
 				// The gap also caps the hit areas (`TouchTarget`), so the two buttons
 				// split it and do not overlap, and neither reaches over the input.
-				<span className="pointer-events-auto flex items-center gap-0.5 [--touch-target-gap-x:--spacing(0.5)]">
+				<span className="pointer-events-auto flex items-center touch-gap-x-0.5">
 					<Button
 						type="button"
 						variant="bare"

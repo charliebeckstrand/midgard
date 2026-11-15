@@ -913,7 +913,7 @@ export function ChartLegend({
 							// The popover is outside the legend, so it caps the hit areas of
 							// its entries at its own gap (`TouchTarget`).
 							className={cn(
-								'flex max-h-64 max-w-xs flex-col items-stretch gap-0.5 overflow-y-auto overscroll-contain [--touch-target-gap-y:--spacing(0.5)]',
+								'flex max-h-64 max-w-xs flex-col items-stretch touch-gap-y-0.5 overflow-y-auto overscroll-contain',
 								LEGEND_TOUCH_ROWS,
 							)}
 						>
