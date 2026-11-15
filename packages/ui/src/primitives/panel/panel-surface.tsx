@@ -35,11 +35,6 @@ export type PanelSurfaceProps<P extends PanelMotion> = PanelOverlayProps &
 		onOpenComplete?: () => void
 		/** The `aria-label` fallback of the panel. A registered title replaces it. */
 		'aria-label'?: string
-		/**
-		 * The classes of a box between the `Overlay` and the panel. With no value,
-		 * the panel is a direct child of the `Overlay`.
-		 */
-		boxClassName?: string
 		children: ReactNode
 	}
 
@@ -86,7 +81,6 @@ export function PanelSurface<P extends PanelMotion>({
 	container,
 	initialFocus,
 	returnFocusTo,
-	boxClassName,
 	children,
 	...props
 }: PanelSurfaceProps<P>) {
@@ -133,7 +127,7 @@ export function PanelSurface<P extends PanelMotion>({
 			returnFocusTo={returnFocusTo}
 			backdropClassName={k({ surface }).backdrop}
 		>
-			{boxClassName === undefined ? panel : <div className={boxClassName}>{panel}</div>}
+			{panel}
 		</Overlay>
 	)
 }

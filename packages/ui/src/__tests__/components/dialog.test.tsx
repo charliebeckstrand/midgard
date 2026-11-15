@@ -160,15 +160,15 @@ describe('Dialog', () => {
 			</Dialog>,
 		)
 
-		// A single `align` holds at each width, so the box aligns to the start
-		// with no prefix, and the panel does not dock to the bottom edge.
-		const wrapper = bySlot(document.body, 'dialog')?.parentElement
+		// A single `align` holds at each width, so the panel stands at the top
+		// with no prefix, and does not dock to the bottom edge.
+		const classes = bySlot(document.body, 'dialog')?.className.split(' ')
 
-		expect(wrapper?.className).toContain('items-start')
+		expect(classes).toEqual(expect.arrayContaining(['inset-4', 'mt-0', 'mb-auto']))
 
-		expect(wrapper?.className).not.toContain('items-end')
+		expect(classes).not.toContain('mt-auto')
 
-		expect(wrapper?.className).not.toContain('sm:items-center')
+		expect(classes).not.toContain('sm:mt-auto')
 	})
 
 	it.for<[string, DialogPanelProps['align']]>([
@@ -187,10 +187,10 @@ describe('Dialog', () => {
 			</Dialog>,
 		)
 
-		const wrapper = bySlot(document.body, 'dialog')?.parentElement
+		const classes = bySlot(document.body, 'dialog')?.className.split(' ')
 
-		expect(wrapper?.className.split(' ')).toEqual(
-			expect.arrayContaining(['items-end', 'p-0', 'sm:items-start', 'sm:p-4']),
+		expect(classes).toEqual(
+			expect.arrayContaining(['inset-0', 'mt-auto', 'sm:inset-4', 'sm:mt-0', 'sm:mb-auto']),
 		)
 	})
 
