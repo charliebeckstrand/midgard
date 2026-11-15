@@ -31,7 +31,7 @@ describe('Grid outline', () => {
 			'border-spacing-0',
 			'[&>*>tr>:is(td,th)]:border-e',
 			'[&>*>tr>:is(td,th)]:border-b',
-			'[&>:nth-child(1_of_thead,tbody,tfoot)>tr:first-child>*]:border-t',
+			'[&>:nth-child(1_of_thead,tbody,tfoot)>tr:first-child>:is(td,th)]:border-t',
 			'[&>*>tr>*:first-child]:border-s',
 		]) {
 			expect(table).toHaveClass(name)

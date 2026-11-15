@@ -72,12 +72,17 @@ const projection = {
  * A cell with a `rowspan` in the first column moves the first cell of each
  * row that it spans. Those rows then draw their inline-start edge on an
  * interior line.
+ *
+ * The top rule names its cells (`:is(td,th)`) and does not use `*`. A
+ * `:first-child` compound followed by `>*` makes Chromium restyle each child
+ * of every element whose `:first-child` state changes, on all pages
+ * (`panel-inset-restyle` holds this).
  */
 const rule = [
 	'border-separate border-spacing-0',
 	'[&>*>tr>:is(td,th)]:border-e',
 	'[&>*>tr>:is(td,th)]:border-b',
-	'[&>:nth-child(1_of_thead,tbody,tfoot)>tr:first-child>*]:border-t',
+	'[&>:nth-child(1_of_thead,tbody,tfoot)>tr:first-child>:is(td,th)]:border-t',
 	'[&>*>tr>*:first-child]:border-s',
 ]
 
