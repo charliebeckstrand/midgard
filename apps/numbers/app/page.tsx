@@ -1,20 +1,14 @@
-import { StackedLayout, StackedLayoutBody } from 'ui/layouts'
-import { GameBoard } from '@/components/game-board'
-import { NumbersHeader } from '@/components/numbers-header'
+import { redirect } from 'next/navigation'
+import { connection } from 'next/server'
+import { createSeed } from '@/utilities/seed'
 
-/**
- * The game. The column has the height of the viewport, and the body scrolls
- * under the header, so the document is never taller than the screen (see
- * `StackedLayout`).
- */
-export default function Page() {
-	return (
-		<StackedLayout className="h-dvh print:h-auto">
-			<NumbersHeader />
+/** The page only sends the reader on, with a seed of the request, so it has no shell to prerender. */
+export const instant = false
 
-			<StackedLayoutBody>
-				<GameBoard />
-			</StackedLayoutBody>
-		</StackedLayout>
-	)
+/** Starts a new run: the page sends the reader to the address of a new seed. */
+export default async function Page() {
+	// The seed belongs to the request, not to a prerender.
+	await connection()
+
+	redirect(`/${createSeed()}`)
 }

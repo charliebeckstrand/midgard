@@ -18,20 +18,20 @@ export type GameControls = {
 	draw: () => void
 	/** Puts the drawn number in the slot at `index`. */
 	place: (index: number) => void
-	/** Starts a new game. */
-	reset: () => void
+	/** Starts the run of `seed`. */
+	reset: (seed: string) => void
 }
 
 /**
- * The state of one game, and its actions.
+ * The state of the run of `seed`, and its actions.
  *
  * With `autoDraw`, the game draws each number itself: when the setting comes on
  * (also at the load of the page), after each placement, and after a reset. A
  * placement and its draw are one update, so the page never renders the step
  * between them.
  */
-export function useGame(autoDraw: boolean): GameControls {
-	const [game, setGame] = useState(createGame)
+export function useGame(seed: string, autoDraw: boolean): GameControls {
+	const [game, setGame] = useState(() => createGame(seed))
 
 	const status = getStatus(game)
 
@@ -52,6 +52,6 @@ export function useGame(autoDraw: boolean): GameControls {
 		status,
 		draw: () => setGame(drawNumber(game)),
 		place: (index) => setGame(settle(placeNumber(game, index))),
-		reset: () => setGame(settle(createGame())),
+		reset: (next) => setGame(settle(createGame(next))),
 	}
 }

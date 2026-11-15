@@ -1,13 +1,16 @@
 /*
- * The rules of the game. A draw gives a number from 1 to 1000 that no slot
- * holds. The player puts each number in one of the 20 slots, and the slots
- * must stay in ascending order from the first slot to the last. When no empty
- * slot can take the number, the game ends (a bust). When each slot holds a
- * number, the player wins.
+ * The rules of the game. Each run has a deck of 20 different numbers from 1 to
+ * 1000, which its seed gives. Each draw gives the next number of the deck. The
+ * player puts each number in one of the 20 slots, and the slots must stay in
+ * ascending order from the first slot to the last. When no empty slot can take
+ * the number, the game ends (a bust). When each slot holds a number, the
+ * player wins.
  *
- * Each function is pure and returns a new game, so a test can give the random
- * source.
+ * Each function is pure and returns a new game, so the same seed and the same
+ * placements give the same game.
  */
+
+import { createRandom } from './seed'
 
 /** The number of slots. */
 export const SLOTS = 20
@@ -17,6 +20,10 @@ export const MAX = 1000
 
 /** The state of one game. */
 export type Game = {
+	/** The seed of the run, which gives the deck. */
+	seed: string
+	/** The numbers of the run, in the order of their draws. */
+	deck: readonly number[]
 	/** The number in each slot, in slot order. An empty slot is `null`. */
 	slots: readonly (number | null)[]
 	/** The number that waits for a slot, or `null` before the first draw and after each placement. */
@@ -32,9 +39,37 @@ export type Game = {
  */
 export type Status = 'ready' | 'placing' | 'bust' | 'won'
 
-/** Makes a game with no number in a slot and no draw. */
-export function createGame(): Game {
-	return { slots: Array.from({ length: SLOTS }, () => null), drawn: null, last: null }
+/**
+ * Builds the deck of a run: 20 different numbers from 1 to {@link MAX}, each
+ * with the same chance. A partial Fisher-Yates shuffle takes them.
+ *
+ * @param random - The random source, which gives a number from 0 up to 1.
+ */
+export function buildDeck(random: () => number): number[] {
+	const pool = Array.from({ length: MAX }, (_, index) => index + 1)
+
+	for (let i = 0; i < SLOTS; i++) {
+		const j = i + Math.floor(random() * (MAX - i))
+
+		const picked = pool[j] as number
+
+		pool[j] = pool[i] as number
+
+		pool[i] = picked
+	}
+
+	return pool.slice(0, SLOTS)
+}
+
+/** Makes the game of a seed, with no number in a slot and no draw. */
+export function createGame(seed: string): Game {
+	return {
+		seed,
+		deck: buildDeck(createRandom(seed)),
+		slots: Array.from({ length: SLOTS }, () => null),
+		drawn: null,
+		last: null,
+	}
 }
 
 /**
@@ -64,23 +99,16 @@ export function getStatus(game: Game): Status {
 }
 
 /**
- * Draws a number that no slot holds. Each such number has the same chance.
- *
- * @param random - The random source, which gives a number from 0 up to 1.
+ * Draws the next number of the deck. Each number of the deck before it is in a
+ * slot, so the count of the filled slots is the position of the draw. A game
+ * with a waiting number, or with no number left, stays as it is.
  */
-export function drawNumber(game: Game, random: () => number = Math.random): Game {
-	const used = new Set(game.slots.filter((placed) => placed !== null))
+export function drawNumber(game: Game): Game {
+	if (game.drawn !== null) return game
 
-	// The position of the number among the numbers that are free.
-	let position = Math.floor(random() * (MAX - used.size))
+	const drawn = game.deck[game.slots.filter((placed) => placed !== null).length]
 
-	let drawn = 1
-
-	while (used.has(drawn) || position > 0) {
-		if (!used.has(drawn)) position--
-
-		drawn++
-	}
+	if (drawn === undefined) return game
 
 	return { ...game, drawn, last: drawn }
 }

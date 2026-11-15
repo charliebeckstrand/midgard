@@ -18,22 +18,42 @@ pnpm --filter numbers test
 
 ## The rules
 
-`src/utilities/game.ts` holds the rules as pure functions. A draw gives a
-number that no slot holds, and each such number has the same chance. A slot
-can take a number when it is empty, each number above it is smaller, and each
-number below it is larger. The tests give the random source, so each case is
-the same on each run.
+`src/utilities/game.ts` holds the rules as pure functions. Each run has a deck
+of 20 different numbers, which its seed gives, and each draw gives the next
+number of the deck. A slot can take a number when it is empty, each number
+above it is smaller, and each number below it is larger.
+
+## The seed
+
+Each run has a seed, which is the last segment of its address, such as
+`/k3x9q2`. The same seed gives the same numbers in the same order, so a reader
+can send a run to another reader. A seed has 1 to 32 lower-case letters and
+digits, so a reader can also type a word, such as `/charlie`. Another address
+has no page.
+
+`src/utilities/seed.ts` makes the seeds and the random source of a seed. The
+seed goes through FNV-1a to a 32-bit state, Mulberry32 steps the state, and a
+partial Fisher-Yates shuffle takes the deck.
+
+| Route | Page |
+| --- | --- |
+| `/` | Sends the reader to the address of a new seed |
+| `/k3x9q2` | The run of the seed |
+
+A Reset starts the run of a new seed in place, and adds its address to the
+history. Back and Forward start the run of the seed of the address again,
+from its start. The share button in the header copies the address of the run.
 
 `src/hooks/use-game.ts` holds the state of one game and its actions: Draw,
 place, and Reset.
 
 ## The page
 
-The header shows the name of the app and the settings. The settings have the
-appearance pickers of `ui` and the Auto-draw field. A bar under the header
-holds the drawn number and the action. The bar stays at the top while the
-slots scroll under it. The number rolls to each new number through the
-`Odometer` of `ui`.
+The header shows the name of the app, the share button, and the settings.
+The settings have the appearance pickers of `ui` and the Auto-draw switch. A
+bar under the header holds the drawn number and the action. The bar stays at
+the top while the slots scroll under it. The number rolls to each new number
+through the `Odometer` of `ui`.
 
 The 20 slots are buttons. Only a slot that can take the drawn number is on,
 with an amber outline. A filled slot shows its number in a soft green, and it

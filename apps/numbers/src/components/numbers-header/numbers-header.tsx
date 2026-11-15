@@ -4,11 +4,13 @@ import { Flex } from 'ui/structure/flex'
 import { Spacer } from 'ui/structure/spacer'
 import { Text } from 'ui/text'
 import { AutoDrawField } from '../auto-draw-field'
+import { ShareButton } from '../share-button'
 
 /**
- * The bar at the top of the page: the name of the app, and the settings on
- * its right. The settings add the Auto-draw switch below the appearance
- * pickers. The bar stays at the top while the body under it scrolls.
+ * The bar at the top of the page: the name of the app, and on its right the
+ * button that copies the link of the run and the settings. The settings add
+ * the Auto-draw switch below the appearance pickers. The bar stays at the top
+ * while the body under it scrolls.
  */
 export function NumbersHeader() {
 	return (
@@ -19,6 +21,8 @@ export function NumbersHeader() {
 				</Text>
 
 				<Spacer />
+
+				<ShareButton />
 
 				<AppearanceSettings>
 					<AutoDrawField />
