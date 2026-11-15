@@ -232,7 +232,6 @@ export function SheetPanel({
 			container={container}
 			glass={surface === 'glass'}
 			motion={(reduced) => (reduced ? k.still : k.motion)[edge]}
-			backdropClassName={slots.backdrop}
 			// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
 			data-slot="sheet"
 			ref={panelRef}
@@ -250,6 +249,7 @@ export function SheetPanel({
 			// `style` comes first, so the dragged size wins.
 			style={sized ? { ...style, [axis]: resize.size ?? undefined, maxWidth: 'none' } : style}
 			className={cn(slots.base, className)}
+			backdropClassName={slots.backdrop}
 		>
 			{handle ? (
 				<SheetHandle

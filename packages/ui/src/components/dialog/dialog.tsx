@@ -196,12 +196,12 @@ export function DialogPanel({
 			{...props}
 			glass={surface === 'glass'}
 			motion={(reduced) => (reduced ? k.still : k.motion)[docked ? 'mobile' : 'desktop']}
-			backdropClassName={slots.backdrop}
-			boxClassName={slots.box}
 			ref={panelRef}
 			// A command palette's rows hover inside this panel, not inside a popover,
 			// so they take the glass wash that the panel opens.
 			className={cn(slots.base, className)}
+			backdropClassName={slots.backdrop}
+			boxClassName={slots.box}
 		>
 			{/* Content that moves its own height tells a `fit` panel, which then follows it. An
 			`auto` panel gives `null`, so its content does not tell a `fit` panel outside it. */}
