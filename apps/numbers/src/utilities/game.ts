@@ -91,6 +91,11 @@ export function hasSlot(slots: Game['slots'], value: number): boolean {
 	return slots.some((_, index) => canPlace(slots, index, value))
 }
 
+/** Counts the filled slots: the score of the run. */
+export function countPlaced(slots: Game['slots']): number {
+	return slots.filter((placed) => placed !== null).length
+}
+
 /** Gives the step of the game. */
 export function getStatus(game: Game): Status {
 	if (game.drawn !== null) return hasSlot(game.slots, game.drawn) ? 'placing' : 'bust'
@@ -106,7 +111,7 @@ export function getStatus(game: Game): Status {
 export function drawNumber(game: Game): Game {
 	if (game.drawn !== null) return game
 
-	const drawn = game.deck[game.slots.filter((placed) => placed !== null).length]
+	const drawn = game.deck[countPlaced(game.slots)]
 
 	if (drawn === undefined) return game
 

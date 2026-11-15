@@ -6,18 +6,23 @@ import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
 import { useAutoDraw } from '../../hooks/use-auto-draw'
 import { useGame } from '../../hooks/use-game'
-import { type Game, SLOTS, type Status } from '../../utilities/game'
+import { countPlaced, type Game, SLOTS, type Status } from '../../utilities/game'
 import { createSeed, isSeed } from '../../utilities/seed'
+import { GameBoardScore } from './game-board-score'
 import { GameBoardSlots } from './game-board-slots'
 import { GameBoardToolbar } from './game-board-toolbar'
 
-/** The text that a screen reader speaks for each step: the drawn number, a bust, or a win. */
+/** The text that a screen reader speaks for each step: the drawn number, a bust with its score, or a win. */
 function describeStatus(game: Game, status: Status, format: (value: number) => string): string {
 	if (status === 'won') return `All ${format(SLOTS)} placed`
 
 	if (game.drawn === null) return ''
 
-	return status === 'bust' ? `${format(game.drawn)} has no slot` : format(game.drawn)
+	if (status === 'bust') {
+		return `${format(game.drawn)} has no slot. Score ${format(countPlaced(game.slots))} of ${format(SLOTS)}`
+	}
+
+	return format(game.drawn)
 }
 
 /** Props for {@link GameBoard}. */
@@ -27,8 +32,10 @@ export type GameBoardProps = {
 }
 
 /**
- * The game: the bar with the drawn number and its action, and the column of
- * slots under it.
+ * The game: the bar with the drawn number and its action, the column of slots
+ * under it, and the bar of the score at the bottom. The column fills the
+ * height of the view at the minimum, so the bar of the score is at the bottom
+ * of a tall screen too.
  *
  * A Reset starts the run of a new seed in place, and adds the address of the
  * seed to the history, so the reader can send the run. Back and Forward go to
@@ -97,7 +104,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 	const ended = status === 'bust' || status === 'won'
 
 	return (
-		<div className="mx-auto w-full max-w-md px-4">
+		<div className="mx-auto flex min-h-full w-full max-w-md flex-col px-4">
 			<GameBoardToolbar
 				game={game}
 				status={status}
@@ -112,6 +119,8 @@ export function GameBoard({ seed }: GameBoardProps) {
 				status={status}
 				onPlace={(index, event) => act(event, () => place(index))}
 			/>
+
+			<GameBoardScore game={game} />
 		</div>
 	)
 }

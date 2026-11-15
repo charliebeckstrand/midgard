@@ -62,6 +62,11 @@ stays off. When the drawn number has no slot, a dashed line and the number
 show between the two numbers that it goes between, and the action becomes a
 red Reset. After a win, the action is Reset.
 
+A bar at the bottom shows the score: the count of the filled slots, of 20.
+The bar stays at the bottom of the view while the slots scroll under it. The
+page box is the height of the visible area (`h-dvh`), so the bar is above the
+toolbar of Safari and of Chrome. A screen reader hears the score at a bust.
+
 An action can turn off the button that the reader pressed. The focus then
 moves to the first slot that can take the number, or else to the action.
 
