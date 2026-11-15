@@ -1,12 +1,11 @@
 import type { ComponentProps, CSSProperties } from 'react'
 import { cn } from '../../core/cn'
-import { type ChartColorSlot, k as chart } from '../../recipes/kata/chart'
-import { k, type SwatchVariants } from '../../recipes/kata/swatch'
+import { k, type SeriesSlot, type SwatchVariants, series } from '../../recipes/kata/swatch'
 
 /**
  * Resolves a {@link SwatchProps.color} to its `currentColor` carrier:
  *
- * - a `kata/chart` palette slot name, to its CVD-validated `text-*` class;
+ * - a data-viz palette slot name, to its CVD-validated `text-*` class;
  * - a raw hex or `oklch()` color, to an inline `color` style;
  * - anything else (a caller-supplied `text-*` utility) through unchanged as a
  *   class.
@@ -24,8 +23,8 @@ function resolveColor(color: string | undefined): {
 
 	// `Object.hasOwn` so a name off `Object.prototype` ('toString') can't pose as
 	// a slot. A slot inks through its class; the raw path never runs for it.
-	if (Object.hasOwn(chart.series, color)) {
-		return { colorClass: cn(chart.series[color as ChartColorSlot].text), colorStyle: undefined }
+	if (Object.hasOwn(series, color)) {
+		return { colorClass: cn(series[color as SeriesSlot].text), colorStyle: undefined }
 	}
 
 	// A hex or `oklch()` is a raw CSS color with no class form, so it inks inline
@@ -42,16 +41,16 @@ export type SwatchProps = SwatchVariants & {
 	/**
 	 * The hue on `currentColor`, one of:
 	 *
-	 * - a `kata/chart` palette slot name (`'blue'`, `'red'`, …), inked through its
-	 *   CVD-validated `text-*` class;
+	 * - a data-viz palette slot name (`'blue'`, `'red'`, …), the slots of a chart
+	 *   series, inked through its CVD-validated `text-*` class;
 	 * - a raw hex (`'#2563eb'`) or `oklch()` string, inked inline;
-	 * - a `text-*` utility class, typically a data-viz palette token (e.g.
-	 *   `kata/chart`'s `series[c].text`) or a `zu.marker` shade.
+	 * - a `text-*` utility class, typically a data-viz palette token (the `text`
+	 *   class of a series slot) or a `zu.marker` shade.
 	 *
 	 * `solid` fills with it, `outline` frames with it, `soft` tints with it inside
 	 * a 1px edge, `dashed` strokes it. Omitted, the swatch inherits the ambient text color.
 	 */
-	color?: ChartColorSlot | (string & {})
+	color?: SeriesSlot | (string & {})
 	/**
 	 * Accessible name. Color alone conveys meaning, so a *standalone* swatch
 	 * needs a text alternative: when set, the swatch renders as `role="img"`
@@ -80,11 +79,11 @@ export type SwatchProps = SwatchVariants & {
  * @remarks
  * The fill rides on `currentColor`, which `color` sets three ways:
  *
- * - a `kata/chart` palette slot name, inked through its CVD-validated class;
+ * - a data-viz palette slot name, inked through its CVD-validated class;
  * - a raw hex / `oklch()` color, inked inline;
  * - a `text-*` utility, passed through.
  *
- * The CVD-validated data-viz palette stays in `kata/chart` and never forks, and
+ * The CVD-validated data-viz palette stays in kiso `zu` and never forks, and
  * StatusDot composes this with its marker hues. Color alone conveys meaning:
  * pass `label` for a standalone swatch to name it via `role="img"`, and omit it
  * when the swatch sits beside visible text.

@@ -81,15 +81,15 @@ export type MapRegionLayer = {
  * @internal
  */
 export function emphasisOutline(fillColor: string | undefined): string {
-	const { dark, light, slot } = k.region.emphasized
+	const { dark, light } = k.region.emphasized
 
-	if (fillColor === undefined) return cn(...slot)
+	if (fillColor === undefined) return cn(...k.selected)
 
 	try {
 		return contrastRatio(fillColor, 'black') >= contrastRatio(fillColor, 'white') ? dark : light
 	} catch {
 		// A stop passes through verbatim, so a CSS color name can reach here.
-		return cn(...slot)
+		return cn(...k.selected)
 	}
 }
 
