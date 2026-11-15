@@ -182,10 +182,8 @@ function GroupRevealCell({
 			data-grid-col={colId}
 			data-grid-aggregate=""
 			className={cn(
-				// The leading cell carries the group rail: in the group's color when set
-				// (layered over the neutral tint), else neutral.
-				rail && k.row.group.rail.border,
-				rail && color && k.row.group.rail.color[color],
+				// The leading cell carries the group rail, in the color of the group or neutral.
+				rail && k.row.group.rail[color ?? 'neutral'],
 				pinned.className,
 			)}
 			style={pinned.style ? { ...NO_PADDING, ...pinned.style } : NO_PADDING}

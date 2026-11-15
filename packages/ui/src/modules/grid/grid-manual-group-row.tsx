@@ -69,7 +69,7 @@ function GridManualGroupRowImpl<T>({
 		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
 			<TableCell
 				colSpan={span}
-				className={cn(k.row.group.rail.border, pinned.className)}
+				className={cn(k.row.group.rail.neutral, pinned.className)}
 				style={pinned.style}
 				data-grid-pin={pinned.pin}
 			>
@@ -128,7 +128,7 @@ export function GridManualGroupPlaceholderRows<T>({
 			<GridSkeletonCells
 				columns={columns}
 				pinning={pinning}
-				leadingClassName={k.row.group.rail.border}
+				leadingClassName={k.row.group.rail.neutral}
 			/>
 		</TableRow>
 	))
