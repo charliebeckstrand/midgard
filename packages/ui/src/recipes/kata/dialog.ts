@@ -36,8 +36,7 @@ const floating =
 	'rounded-t-2xl rounded-b-2xl max-h-full overflow-y-visible overscroll-auto [--ui-panel-safe:0px]'
 
 /**
- * The unit of the {@link Dialog}: the panel (`base`) and the backdrop. Dialog
- * uses the default slots of `createPanel`.
+ * The unit of the {@link Dialog}: the panel (`base`) and the backdrop.
  */
 export const k = defineKata(
 	{

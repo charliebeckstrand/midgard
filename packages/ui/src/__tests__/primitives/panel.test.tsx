@@ -3,10 +3,11 @@ import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { createPanel, PanelClose, usePanelA11y } from '../../primitives/panel'
 import { PanelA11yContext } from '../../primitives/panel/context'
+import { k } from '../../recipes/kata/panel'
 import { bySlot, renderUI } from '../helpers'
 
 describe('createPanel', () => {
-	const { Title, Description, Header, Body, Footer, Content } = createPanel('dialog')
+	const { Title, Description, Header, Body, Footer, Content } = createPanel('dialog', k())
 
 	it.each<[string, () => ReactElement, string, string]>([
 		['Title renders with correct data-slot', () => <Title>My Title</Title>, 'dialog-title', 'H2'],

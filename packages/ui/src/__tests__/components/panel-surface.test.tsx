@@ -47,7 +47,7 @@ describe.each(FAMILIES)('$name panel surface', ({ Root, Panel }) => {
 		expect(panel()).toHaveAttribute('aria-modal', 'true')
 	})
 
-	it('turns its own pointer events on when it is not modal', () => {
+	it('takes its own pointer events, also when it is not modal', () => {
 		const surface = panel({ modal: false })
 
 		expect(surface).not.toHaveAttribute('aria-modal')

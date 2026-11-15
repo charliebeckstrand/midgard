@@ -29,6 +29,8 @@ export const k = defineKata(
 	{
 		extends: panel,
 		base: [
+			// The slots below read the `data-handle` of the panel (`group-data-handle/drawer`).
+			'group/drawer',
 			// The panel sits on the bottom edge of the overlay root. Each height below
 			// is a share of the root, so a panel in a scoped overlay fits its container.
 			'absolute inset-x-0 bottom-0',
