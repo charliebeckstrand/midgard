@@ -33,7 +33,7 @@ const fill = {
 	},
 }
 
-const gauge = ['relative', flex.inline, 'justify-center', kokkaku.progress.gauge.diameter]
+const gauge = ['relative', flex.inline, 'justify-center', dan.size.gauge]
 
 const label = {
 	base: ['absolute', 'font-semibold', ...text.default, dan.text.small, 'tabular-nums'],
@@ -46,7 +46,7 @@ export const k = defineKata(
 			rounded.full,
 			...mode('bg-zinc-200', 'dark:bg-zinc-800'),
 			forced.outline,
-			kokkaku.progress.bar.height,
+			dan.size.line.tiny,
 		],
 		slots: {
 			bar: {

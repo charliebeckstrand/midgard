@@ -65,7 +65,6 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 				color={color}
 				variant={variant}
 				disabled={disabled}
-				className={cn(k.cursor)}
 				onClick={openPicker}
 				{...inert}
 			>
@@ -79,7 +78,6 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 					variant="soft"
 					color="red"
 					disabled={disabled}
-					className={cn(k.cursor)}
 					onClick={handleReset}
 					{...inert}
 				>

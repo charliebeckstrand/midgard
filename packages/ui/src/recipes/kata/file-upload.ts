@@ -1,6 +1,6 @@
 import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, narabi, sen } from '../kiso'
-import { input } from '../kumi/control'
+import { button, input } from '../kumi/control'
 
 const { cursor, disabled } = hannou
 const { text } = iro
@@ -59,12 +59,12 @@ export const k = {
 	label: ['font-medium', text.default],
 	/**
 	 * The unit of `FileUploadInput`, which extends the input group. The field is
-	 * the display button, which lays out its text as the text of an input.
+	 * the display button (the `button` field of a trigger), which lays out its
+	 * text as the text of an input.
 	 */
-	input: defineKata({ extends: input, slots: { field: [flex.row, 'text-start'] } }),
+	input: defineKata({ extends: input, slots: { field: button } }),
 	/** The selection summary or the placeholder inside the display button. Block, so that the ellipsis paints. */
 	value: 'block min-w-0 truncate',
 	/** The placeholder inside the display button, in the shade of an input placeholder. */
 	placeholder: text.muted,
-	cursor,
 } as const

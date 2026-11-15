@@ -72,7 +72,7 @@ const track = [
 
 export const k = defineKata(
 	{
-		base: [flex.inline, 'w-fit', ...disabled.base, kokkaku.rating.gap],
+		base: [flex.inline, 'w-fit', ...disabled.base, dan.gap.rating],
 		color,
 		slots: {
 			/** The group that the track reads the invalid state of the row from. The skeleton does not take it. */
@@ -81,7 +81,7 @@ export const k = defineKata(
 			half,
 			track,
 			/** The glyph size at each step. The track and the fill share it, so the two stack exactly. */
-			glyph: kokkaku.rating.star,
+			glyph: dan.size.check.box,
 			/**
 			 * The window a partly-filled star draws its fill inside. Absolute over the
 			 * track glyph and clipping at its own width, which the component sets from
