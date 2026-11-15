@@ -26,6 +26,8 @@ export type GameBoardToolbarProps = {
 	actionRef: Ref<HTMLButtonElement>
 	/** Starts the run of a new seed, from the menu, at each step. */
 	onReset: () => void
+	/** Shows the action. With Auto-draw on, the game draws itself, so the bar shows the action only as Reset. */
+	showAction: boolean
 }
 
 /**
@@ -33,8 +35,10 @@ export type GameBoardToolbarProps = {
  * box of the slots. The readout rolls to each new number. Before the
  * first draw it shows 0, and after a placement it keeps the number. The action
  * is Draw. It is off while a number waits for a slot, and it is Reset after a
- * bust (in red) and after a win. The menu beside the action holds Reset and
- * Share seed at each step.
+ * bust (in red) and after a win. With Auto-draw on, the bar has no Draw, and
+ * the action shows only as Reset. The menu beside the action holds Reset and
+ * Share seed at each step. The bar has 1rem of space on each side, as the
+ * score bar has.
  */
 export function GameBoardToolbar({
 	game,
@@ -42,25 +46,28 @@ export function GameBoardToolbar({
 	onAction,
 	actionRef,
 	onReset,
+	showAction,
 }: GameBoardToolbarProps) {
 	const ended = status === 'bust' || status === 'won'
 
 	return (
-		<div className="mx-auto w-full max-w-md shrink-0 px-4 pt-3 pb-2">
+		<div className="mx-auto w-full max-w-md shrink-0 p-4">
 			<Toolbar variant="solid" aria-label="Number" className="items-center justify-between ps-4">
 				<Text as="span" tone={TONES[status]} className="font-semibold text-4xl/10 tabular-nums">
 					<Odometer value={game.last ?? 0} />
 				</Text>
 
 				<ToolbarGroup>
-					<Button
-						ref={actionRef}
-						color={status === 'bust' ? 'red' : undefined}
-						disabled={status === 'placing'}
-						onClick={onAction}
-					>
-						{ended ? 'Reset' : 'Draw'}
-					</Button>
+					{showAction && (
+						<Button
+							ref={actionRef}
+							color={status === 'bust' ? 'red' : undefined}
+							disabled={status === 'placing'}
+							onClick={onAction}
+						>
+							{ended ? 'Reset' : 'Draw'}
+						</Button>
+					)}
 
 					<GameBoardMenu onReset={onReset} />
 				</ToolbarGroup>

@@ -4,8 +4,8 @@ import { type MouseEvent, useEffect, useEffectEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
-import { useAutoDraw } from '../../hooks/use-auto-draw'
 import { useGame } from '../../hooks/use-game'
+import { useGameSetting } from '../../hooks/use-game-setting'
 import { countPlaced, type Game, SLOTS, type Status } from '../../utilities/game'
 import { createSeed, isSeed } from '../../utilities/seed'
 import { GameBoardScore } from './game-board-score'
@@ -55,7 +55,9 @@ export type GameBoardProps = {
  * view.
  */
 export function GameBoard({ seed }: GameBoardProps) {
-	const [autoDraw] = useAutoDraw()
+	const [autoDraw] = useGameSetting('autoDraw')
+
+	const [showScore] = useGameSetting('showScore')
 
 	const { game, status, draw, place, reset } = useGame(seed, autoDraw)
 
@@ -113,6 +115,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 				actionRef={actionRef}
 				onAction={(event) => act(event, ended ? restart : draw)}
 				onReset={restart}
+				showAction={ended || !autoDraw}
 			/>
 
 			{/* `relative` keeps each positioned element in the box, as in `StackedLayoutBody`. */}
@@ -128,7 +131,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 				</div>
 			</div>
 
-			<GameBoardScore game={game} />
+			{showScore && <GameBoardScore game={game} />}
 		</div>
 	)
 }

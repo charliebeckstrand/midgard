@@ -49,8 +49,9 @@ place, and Reset.
 
 ## The page
 
-The header shows the name of the app and the settings. The settings have the
-appearance pickers of `ui` and the Auto-draw switch. A bar under the header
+The header shows the name of the app and the settings. A segment in the
+settings switches two tabs: "UI" has the appearance pickers of `ui`, and
+"Game" has the settings of the game (see below). A bar under the header
 holds the drawn number, the action, and a menu with Reset and Share seed.
 Reset in the menu starts a new seed at each step. The number rolls to each new
 number through the `Odometer` of `ui`.
@@ -61,7 +62,8 @@ stays off. When the drawn number has no slot, a dashed line and the number
 show between the two numbers that it goes between, and the action becomes a
 red Reset. After a win, the action is Reset.
 
-A bar at the bottom shows the score: the count of the filled slots, of 20.
+A bar at the bottom shows the score: the count of the filled slots, of 20,
+while Show score is on.
 Only the slots scroll, in a box between the two bars, so the bars never cover
 a slot that has the focus. The page box is the height of the visible area
 (`h-dvh`), so the bottom bar is above the toolbar of Safari and of Chrome. A
@@ -70,13 +72,20 @@ screen reader hears the score at a bust.
 An action can turn off the button that the reader pressed. The focus then
 moves to the first slot that can take the number, or else to the action.
 
-## Auto-draw
+## Settings
 
-While Auto-draw is on, the game draws each number itself: at the load of the
-page, after each placement, and after a Reset. The setting is in
-`localStorage`, so it stays for the next visit on the same device. The server
-cannot read it, so the first paint shows the game before a draw, and the first
-number rolls in after the hydration. The setting changes no layout.
+The Game tab of the settings has two switches:
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| Auto-draw | Off | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button, and the action shows only as Reset after a bust or a win. |
+| Show score | On | The bar at the bottom shows the score. |
+
+Each setting is in a cookie (`numbers-auto-draw` and `numbers-show-score`,
+`src/utilities/settings.ts`). The page reads the cookies of the request, so
+the server renders the Draw button and the score bar as the settings of the
+reader give them, and the first paint is the final layout (CONVENTIONS
+§3.13). With Auto-draw on, the first number rolls in after the hydration.
 
 ## Deploy
 

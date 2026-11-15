@@ -3,13 +3,25 @@ import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { Spacer } from 'ui/structure/spacer'
 import { Text } from 'ui/text'
-import { AutoDrawField } from '../auto-draw-field'
+import { SettingField } from '../setting-field'
+
+/** The tabs of the settings of the game, after the "UI" tab of the appearance pickers. */
+const TABS = [
+	{
+		label: 'Game',
+		children: (
+			<>
+				<SettingField name="autoDraw" label="Auto-draw" />
+				<SettingField name="showScore" label="Show score" />
+			</>
+		),
+	},
+]
 
 /**
  * The bar at the top of the page: the name of the app, and on its right the
- * settings. The settings add
- * the Auto-draw switch below the appearance pickers. The bar stays at the top
- * while the body under it scrolls.
+ * settings. A segment in the settings switches the "UI" tab of the appearance
+ * pickers and the "Game" tab, with the Auto-draw and the Show score switches.
  */
 export function NumbersHeader() {
 	return (
@@ -21,9 +33,7 @@ export function NumbersHeader() {
 
 				<Spacer />
 
-				<AppearanceSettings>
-					<AutoDrawField />
-				</AppearanceSettings>
+				<AppearanceSettings tabs={TABS} />
 			</Flex>
 		</StackedLayoutHeader>
 	)
