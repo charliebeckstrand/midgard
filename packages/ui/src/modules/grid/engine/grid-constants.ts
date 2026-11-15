@@ -70,7 +70,7 @@ export const EXPANDER_COLUMN_SIZE = 44
 
 /**
  * Floor (px) a resizable column can shrink to when it sets no `minWidth`. The fit
- * layout states the same floor in CSS (`k.fit.floor`), so keep the two in step.
+ * layout writes it on the `<table>` (`FIT_TABLE_STYLE`), and `k.fit.floor` reads it.
  * @internal
  */
 export const DEFAULT_MIN_COLUMN_SIZE = 40
@@ -79,8 +79,8 @@ export const DEFAULT_MIN_COLUMN_SIZE = 40
  * Cap (px) on a column's auto-measured content width, so one runaway cell can't
  * starve its siblings. The autosizer holds others at their floor and overflows,
  * rather than squishing. A column's own `maxWidth` overrides this: an explicit
- * ceiling is a deliberate choice. The fit layout states the same cap in CSS
- * (`k.fit.cap`), so keep the two in step.
+ * ceiling is a deliberate choice. The fit layout writes it on the `<table>`
+ * (`FIT_TABLE_STYLE`), and `k.fit.cap` reads it.
  *
  * @internal
  */

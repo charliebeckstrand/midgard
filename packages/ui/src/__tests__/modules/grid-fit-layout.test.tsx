@@ -2,6 +2,10 @@ import type { ReactElement } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import {
+	DEFAULT_CONTENT_MAX,
+	DEFAULT_MIN_COLUMN_SIZE,
+} from '../../modules/grid/engine/grid-constants'
 import { fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 /**
@@ -57,6 +61,21 @@ describe('grid automatic layout', () => {
 		const name = doc.querySelector<HTMLElement>('th[data-grid-col="name"]')
 
 		expect(name?.style.getPropertyValue('--grid-min')).toBe('90px')
+	})
+
+	it('writes the default floor and cap of a column on the table', () => {
+		const doc = serverDocument(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const table = doc.querySelector<HTMLElement>('table')
+
+		expect(table?.style.getPropertyValue('--grid-min')).toBe(`${DEFAULT_MIN_COLUMN_SIZE}px`)
+
+		expect(table?.style.getPropertyValue('--grid-cap')).toBe(`${DEFAULT_CONTENT_MAX}px`)
+
+		// A column with no minWidth writes no floor of its own, so it inherits the default.
+		const role = doc.querySelector<HTMLElement>('th[data-grid-col="role"]')
+
+		expect(role?.style.getPropertyValue('--grid-min')).toBe('')
 	})
 
 	it('keeps a width seed', () => {
