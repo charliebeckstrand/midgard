@@ -67,6 +67,15 @@ In `dan`, a ramp nests under the unit that reads it, then the part or the side: 
 
 Two names keep their form. A key that names a component with a name of two words keeps the name of the component (`colorPanel`, `datePicker`). A key that mirrors a public prop or a library term keeps that name, such as the `stickyHeader` axis, which mirrors the prop of `SidebarLayout`.
 
+## 5. Simplicity
+
+These four rules apply to each layer. They keep a look short to read: each value has one name, and each slot reads in one file.
+
+1. **One name for one value.** Give each value one name. An alias stays only when it ties two files together, such as a kata and its skeleton form, so that the two cannot drift apart.
+2. **A token holds a choice.** A token holds a choice: a ramp, a light and dark pair, or a set of classes that go together. A token that only renames one Tailwind class adds a name and no choice. Write the class.
+3. **A fragment lives with its readers.** A fragment that one kata reads stays in that kata. A fragment that two kata or more read goes in kiso, or in a kumi group when it builds a part. Today a density ramp is the exception: `size-scale-boundary.test.ts` keeps each ramp in `dan`.
+4. **A state lives in the kata.** A component gives its kata each state as a prop or a data attribute. It does not pick classes by state in JSX.
+
 ---
 
 **See also:** [`../../REFERENCE.md`](../../REFERENCE.md), [`../../README.md`](../../README.md).
