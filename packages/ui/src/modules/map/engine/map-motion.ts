@@ -23,7 +23,7 @@ export const REGION_FADE = { duration: duration[400], ease: ease.out } as const
 export const ROUTE_DRAW = mark.draw
 
 /** A point's scale-and-fade pop-in: the chart's pop tempo, staggered instead of held. @internal */
-export const POINT_POP = { ...mark.pop, ease: ease.out } as const
+export const POINT_POP = mark.pop
 
 /** Delay step between points on the mount reveal, so a cluster staggers in. @internal */
 const POINT_STAGGER = 0.08

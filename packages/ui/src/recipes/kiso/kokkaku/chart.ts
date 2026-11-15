@@ -23,6 +23,6 @@ export const chart = {
 	aspect: ['block', 'w-full', 'h-auto', rounded.md],
 	sector: ['flex', 'w-full', 'flex-col', 'gap-3'],
 	plot: ['block', 'aspect-square', 'w-full', 'h-auto', rounded.full],
-	legend: ['self-center', 'w-48', 'max-w-full', rounded.lg, button.height],
+	legend: ['self-center', 'w-48', 'max-w-full', dan.radius.button, button.height],
 	density: true,
 } as const
