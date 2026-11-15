@@ -29,5 +29,12 @@ export const css = {
 	 */
 	corner: 'motion-safe:transition-[border-radius]',
 	duration: 'motion-safe:duration-150',
+	/**
+	 * The tempo of `collapse` in CSS: its duration and its curve (`easeInOut`
+	 * of Framer Motion). A CSS reveal that opens a panel takes it, and so does
+	 * the chevron of a panel that `collapse` opens. Thus the chevron turns in
+	 * the time that the panel takes. `ugoki-css.test.ts` holds it to `collapse`.
+	 */
+	collapse: 'motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.42,0,0.58,1)]',
 	pulse: 'motion-safe:animate-pulse',
 } as const

@@ -50,7 +50,7 @@ const check = [
 const mark = ['stroke-white', 'forced-colors:stroke-[HighlightText]', dan.size.check.mark]
 
 /** The chevron column. Its width is the mark of `narabi.nest`, the icon size of the step. */
-const chevron = [nest.mark, flex.row, 'justify-center', css.transform, css.duration]
+const chevron = [nest.mark, flex.row, 'justify-center', css.transform, css.collapse]
 
 export const k = defineKata(
 	{
