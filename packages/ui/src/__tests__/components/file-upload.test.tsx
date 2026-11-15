@@ -279,6 +279,32 @@ describe('FileUpload input variant under headless', () => {
 
 		expect(screen.queryByRole('button', { name: /Clear selected file/ })).not.toBeInTheDocument()
 	})
+
+	it('gives the display button no cursor class', () => {
+		const { container } = renderUI(
+			<HeadlessProvider>
+				<FileUploadInput />
+			</HeadlessProvider>,
+		)
+
+		expect(display(container).className).not.toMatch(/\bcursor-/)
+	})
+})
+
+describe('FileUpload button variant under headless', () => {
+	it('gives the trigger and Reset no cursor class', () => {
+		const { container } = renderUI(
+			<HeadlessProvider>
+				<FileUploadButton>Pick</FileUploadButton>
+			</HeadlessProvider>,
+		)
+
+		selectFiles(container, [resume])
+
+		for (const name of ['Pick', 'Reset']) {
+			expect(screen.getByRole('button', { name }).className).not.toMatch(/\bcursor-/)
+		}
+	})
 })
 
 describe('FileUpload button variant', () => {
