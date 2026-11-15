@@ -261,9 +261,9 @@ const slotRamps = {
  *     `xs`, and `sm`.
  *   - The avatar overlap takes two stops, so the overlap and the ring stay
  *     narrower than the space beside two initials.
- *   - The touch gaps of the tag row and of the query chips are for a row in a
- *     slot, so `xl` keeps the value of `lg`. The tag row also gives `xs` the
- *     value of `sm`.
+ *   - The inline touch gaps of the tag row and of the query chips are for a
+ *     row in a slot, so `xl` keeps the value of `lg`. The tag row also gives
+ *     `xs` the value of `sm`.
  *   - The top padding of the sidebar layout header, and of the content with no
  *     header, in the drawer layout is 0 at each step. It is a ramp so that it
  *     is in the layer of the padding of the inline layout, and a breakpoint can
@@ -277,7 +277,6 @@ const sharedRamps = new Set([
 	'size.sidebar.edge',
 	'space.avatar.overlap',
 	'gap.touch.tags.x',
-	'gap.touch.tags.y',
 	'gap.touch.chips',
 	'space.shell.top.none',
 	'space.shell.headless.none',
@@ -342,6 +341,17 @@ describe('every ramp of dan', () => {
 			)
 		},
 	)
+
+	// Two rows of tags put the `xs` gap of the row and the `py-ring-1` pad of two
+	// chips (3 px each) between their remove buttons. The touch gap of the row
+	// caps the hit areas at that space, so the areas meet and do not overlap.
+	it('gives dan.gap.touch.tags.y the space between two rows of tags', () => {
+		const gap = parseValues(dan.gap.scale.xs)
+
+		expect(parseValues(dan.gap.touch.tags.y).map(Number)).toStrictEqual(
+			gap.map((value) => Number(value) + 1.5),
+		)
+	})
 
 	// A ramp that does not follow the text keeps its three inner steps, and
 	// `spacingSteps` gives its outer steps (`core/density/geometry.ts`). The rule

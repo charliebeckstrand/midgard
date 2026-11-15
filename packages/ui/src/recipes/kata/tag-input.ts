@@ -22,11 +22,11 @@ export const k = defineKata({
 		//
 		// The row caps the hit areas of the remove buttons (`TouchTarget`) at the
 		// space between them. When the row wraps, the buttons of two rows are the
-		// `xs` gap of the row and the `py-ring-1` pad of two chips apart, 10px in all
-		// at `md`. Along the row, a one-letter tag still puts the gap, the leading
-		// pad, and the inner gap of its `xs` chip between two buttons, 14px or more at
-		// `md`. The gap steps with the scope, so each cap is 2px less or more for
-		// each step below or above.
+		// `xs` gap of the row and the `py-ring-1` pad of two chips (3px each) apart:
+		// 9px in all at `md`. The gap steps with the scope, so the block cap is 1px
+		// less or more for each step below or above. Along the row, a one-letter tag
+		// still puts the gap, the leading pad, and the inner gap of its `xs` chip
+		// between two buttons, more than the inline cap at each step.
 		//
 		// By default the row stays on one line and scrolls on the inline axis
 		// (`omote.rail`). A chip does not shrink with the other chips. A tag wider
