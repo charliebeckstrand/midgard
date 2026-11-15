@@ -52,8 +52,7 @@ export const k = defineKata({
 						// the padding of the block. At `md` the sm button (26px) overhangs the
 						// 22px `text-sm` line by 2px on each side. Thus the row stays one line
 						// tall, the glyph centers on the first code line, and a block of one line
-						// is vertically centered. The close button of an alert uses the same
-						// line box.
+						// is vertically centered.
 						/** The line box of the copy button, one code line tall. */
 						line: [flex.row, 'h-lh box-content', dan.space.code.copy, text],
 						// The block picks `dark` or `light` from the background of its theme. The
