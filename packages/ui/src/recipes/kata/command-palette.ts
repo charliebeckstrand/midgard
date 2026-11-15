@@ -39,7 +39,6 @@ const row = defineKata({
 			'dark:not-disabled:not-data-disabled:data-active:hover:bg-white/10 dark:group-data-glass/glass:not-disabled:not-data-disabled:data-active:hover:bg-white/20',
 		),
 	],
-	slots: { description: size.xs },
 })
 
 export const k = defineKata(

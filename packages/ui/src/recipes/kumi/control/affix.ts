@@ -62,7 +62,7 @@
  * highlight by the control `px` on the affixed side only: `autofill:ms`
  * beside a prefix, `autofill:me` beside a suffix. It is gated on the
  * slot's presence via `group-has` against the frame's `group/control`. The
- * margins ride the `density` axis (`./density.ts`), so every control
+ * margins are in the `density` list (`./density.ts`), so every control
  * input carries them. On elements that can't match `:autofill` (the
  * listbox / date-picker buttons) they are inert.
  * `__tests__/recipes/affix-compensation.test.ts` pins the margin to the control

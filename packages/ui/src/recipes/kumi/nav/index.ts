@@ -21,7 +21,8 @@ import { dan, hannou, iro, narabi, sen, shaku } from '../../kiso'
 
 const { cursor, tint } = hannou
 const { text } = iro
-const { flex, inset } = narabi
+const { flex } = narabi
+const { slot } = dan.space
 const { focus } = sen
 
 /**
@@ -42,8 +43,9 @@ export const stack = [flex.col, 'touch-gap-y-0.5']
  * A prefix or a suffix slot, beside the button inside the chrome of the row and
  * above the active indicator. Each slot is a density scope one step below the
  * item (`data-density="slot"`), so a slot icon or a small control takes that
- * step with no projection. `narabi.inset` moves the outer edge of the slot in
- * by the padding of the item at that step.
+ * step with no projection. `dan.space.slot` moves the outer edge of the slot in
+ * by the padding of the item at that step, so a control does not touch the
+ * chrome of the row.
  */
 const affix = ['relative', 'z-10', flex.row, 'shrink-0']
 
@@ -81,8 +83,8 @@ export const nav = defineGroup({
 		 * draws the ring again on the pill.
 		 */
 		indicator: focus.within.indicator,
-		prefix: [...affix, inset.prefix],
-		suffix: [...affix, inset.suffix],
+		prefix: [...affix, slot.prefix],
+		suffix: [...affix, slot.suffix],
 	},
 	defaults: { affix: false },
 })

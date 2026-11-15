@@ -8,8 +8,8 @@
  *   kumi/ - the groups. The shared structure of a family of units, in the
  *           shape of a unit (`defineGroup`). A kata unit extends its group.
  *           Read only by kata.
- *   kata/ - per-component recipes (1:1 with `src/components/<name>/`). Reads
- *           kumi and kiso. Consumed by components and primitives.
+ *   kata/ - the recipe of each unit: a component, a primitive, a structure
+ *           unit, a module part, or a layout. Reads kumi and kiso.
  *
  * Components, modules, and primitives reach the recipe layer through their
  * owning kata (`from '../../recipes/kata/<name>'`). Cross-layer value imports

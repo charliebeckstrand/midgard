@@ -361,10 +361,12 @@ describe('Grid sort header: reorder-drag hover hold', () => {
 
 		const sortButton = screen.getByRole('button', { name: 'Sort by A' })
 
-		expect(sortButton.className).toContain('[[data-dragging]_&]:hover:not-disabled:text-zinc-500')
+		expect(sortButton.className).toContain(
+			'[[data-dragging]_&]:hover:not-disabled:not-data-disabled:text-zinc-500',
+		)
 
 		expect(sortButton.className).toContain(
-			'dark:[[data-dragging]_&]:hover:not-disabled:text-zinc-400',
+			'dark:[[data-dragging]_&]:hover:not-disabled:not-data-disabled:text-zinc-400',
 		)
 	})
 })

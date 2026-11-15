@@ -1499,10 +1499,6 @@
 		"defaultMessage": "Weak",
 		"description": "The lowest strength of a password."
 	},
-	"ui.pdfViewer.closeThumbnails": {
-		"defaultMessage": "Close thumbnails",
-		"description": "The name of the button that closes the panel with the small images of the pages of a PDF."
-	},
 	"ui.pdfViewer.controls": {
 		"defaultMessage": "PDF controls",
 		"description": "The name of the toolbar of the PDF viewer."

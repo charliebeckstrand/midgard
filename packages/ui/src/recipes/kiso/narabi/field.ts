@@ -1,8 +1,8 @@
 /**
- * Narabi field: slot adjacency rules for `<Field>` stacks. Sibling-
- * selector margins space label / description / control / alert slots
- * evenly via a single rule per transition pair. Each gap is a ramp of
- * `dan.space.field`, so it follows density.
+ * Narabi field: slot adjacency rules for `<Field>` stacks. Sibling-selector
+ * margins space the label, description, control, list, and message slots, with
+ * one rule for each pair of slots. Each gap is a ramp of `dan.space.field`, so
+ * it follows density.
  *
  * Layer: kiso · Concern: field adjacency
  */

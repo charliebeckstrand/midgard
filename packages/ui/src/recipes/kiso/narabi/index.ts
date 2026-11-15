@@ -4,29 +4,19 @@
  * assembles the named bundle that every kata reads.
  */
 
-import { description } from './description'
 import { field } from './field'
 import { fit } from './fit'
 import { flex } from './flex'
-import { group } from './group'
-import { inset } from './inset'
 import { item } from './item'
 import { nest } from './nest'
 import { offcanvas } from './offcanvas'
 import { slide } from './slide'
-import { text } from './text'
-import { toggle } from './toggle'
 import { touch } from './touch'
 
 export const narabi = {
 	field,
 	slide,
-	toggle,
-	group,
 	item,
-	inset,
-	description,
-	text,
 	flex,
 	/** The height fit of a capped panel: the wrapper, a column, and the scroll region. */
 	fit,

@@ -1,17 +1,13 @@
 'use client'
 
-import { X } from 'lucide-react'
 import { useId, useMemo, useRef } from 'react'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold } from '../../primitives/mount'
 import { useMountHold } from '../../primitives/mount/use-mount'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { Flex } from '../../structure/flex'
 import { scrollWithin } from '../../utilities/scroll-within'
-import { Button } from '../button'
-import { Icon } from '../icon'
-import { SheetBody, SheetPanel, SheetTitle } from '../sheet'
+import { SheetBody, SheetHeader, SheetPanel, SheetTitle } from '../sheet'
 import { usePdfViewerContext } from './context'
 import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
@@ -136,27 +132,14 @@ export function PdfViewerThumbnails() {
 				<SheetPanel
 					side="start"
 					container={root}
-					// The close button beside the title closes the sheet, so it has no Close row.
+					// The X beside the title closes the sheet, so it has no Close row.
 					footer={null}
 				>
-					{/* The close button sits beside the `<h2>`, not in it: a heading takes
-					    phrasing content only, and the title names the dialog. The button
-					    margins repeat the `px-6 pt-6` inset of the title. */}
-					<Flex gap="sm" justify="between" align="center">
+					{/* The X of the closable header sits beside the `<h2>`, not in it: a
+					    heading takes phrasing content only, and the title names the dialog. */}
+					<SheetHeader closable>
 						<SheetTitle>{intl.formatMessage(pdfViewerMessages.pages)}</SheetTitle>
-						<Button
-							// A close writes no field, so a locked scope, such as a
-							// submitting form, leaves it live.
-							lockable={false}
-							type="button"
-							variant="plain"
-							aria-label={intl.formatMessage(pdfViewerMessages.closeThumbnails)}
-							className="me-6 mt-6"
-							onClick={() => setThumbsOpen(false)}
-						>
-							<Icon icon={<X />} />
-						</Button>
-					</Flex>
+					</SheetHeader>
 					<SheetBody>
 						<PdfViewerThumbnailList
 							items={thumbnails}

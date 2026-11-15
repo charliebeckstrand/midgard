@@ -87,8 +87,7 @@ export const k = defineKata(
 							flex.row,
 							'size-6 shrink-0 justify-center',
 							rounded.md,
-							text.muted,
-							...grab.default,
+							...grab.grip,
 							focus.ring,
 						],
 						// The handle holds the focus of a lifted card, so it takes the accent in

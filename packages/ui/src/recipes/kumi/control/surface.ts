@@ -1,7 +1,7 @@
 /**
  * Control group: surface vocabulary. `default` paints a solid surface,
  * `glass` is transparent + blurred for nested-in-overlay contexts. The
- * `outline` variant has no fill here; its kata layer their own borders.
+ * `outline` variant has no fill; the ring of the frame is its border.
  *
  * Layer: kumi · Group: control · Concern: surface
  */

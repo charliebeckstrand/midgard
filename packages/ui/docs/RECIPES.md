@@ -22,7 +22,7 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | `iro` 色 | The color tokens of the kata. The chromatic `palette`, its `extended` hues, and its `hover` hold one literal class string for each variant and color. The other tokens are the intent-color text bundle, the `marker` shade, the `match` wash, and the `on.wash` rung. |
 | `ji` 字 | Typography: size scale plus `weight` / `leading` / `family` aliases. The stepped text size of a density-native component is a ramp in `dan.text`. |
 | `ma` 間 | Named spacing scale projected as padding and gap utilities, in all-sides and axis variants. Each stop but `0` is a ramp of `dan`, so it takes the step of the nearest density scope. |
-| `narabi` 並び | Sibling arrangement: field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, stacked item text, truncation, and flex primitives. `fit` caps a floating panel, and `touch` sets the touch gap of hosts that touch to zero on one axis. |
+| `narabi` 並び | Sibling arrangement: field adjacency, slide positioning, icon slot, and flex primitives. `fit` is the column of a panel with a capped height. `offcanvas` shows a part in one offcanvas layout only. `nest` indents each level of a tree under a mark column. `touch` sets the touch gap of hosts that touch to zero on one axis. |
 | `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, the hidden `scrollbar`, and the `fade` mask. |
 | `hannou` 反応 | Interaction feedback: `disabled`, `busy`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, table gridlines, the resize grip, and forced-colors safety nets. |
@@ -62,15 +62,14 @@ The substrate that kumi and kata call, in [`src/core/recipe/`](../src/core/recip
 
 | Export | Summary |
 |---|---|
-| `defineRecipe` | The recipe primitive. It builds the callable recipe of one slot from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). `defineKata` builds one for each slot of a unit, and no other module calls it. |
+| `defineRecipe` | The recipe primitive. It builds the callable recipe of one slot from a `RecipeConfig`. Each call joins `base`, the matching variants, the palette pair, and the `compound` rules (clsx + tailwind-merge). `defaults` gives the value of each prop that a call leaves out. `defineKata` builds one for each slot of a unit, and no other module calls it. |
 | `defineKata` | Builds the recipe of a unit. The config is the recipe of the root slot `base`, and `slots` holds the child slots. The slots share one set of props and one set of defaults, and a call returns the class string of each slot. A slot can hold child slots under its own `slots`. Its output is then a record of its own classes (`base`) and each child slot (`k().chevron.spacer`). `k.bare` is the output with each slot empty, for a headless component. |
 | `defineGroup` | Declares a group: a config in the shape of a unit, and its extras, which a unit kata `extends`. A group can extend a group. |
 | `definePalette` | Declares the variant × color matrix of a recipe from one or more matrices, such as the `palette` and the `hover` of iro. The cells of the same variant and color join in order. The engine derives the `color` axis from the keys. |
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. |
-| `RecipeConfig` *(type)* | The shape a kata declares: the reserved fields plus any number of variant axes. |
-| `VariantProps` *(type)* | Extracts the prop shape from a recipe or config; used to type the consumer-facing `<Name>Variants` export. |
+| `VariantProps` *(type)* | Extracts the prop shape from a recipe or a kata; used to type the consumer-facing `<Name>Variants` export. |
 | `colors` / `Color` *(type)* | The standard palette color set: `zinc` · `red` · `amber` · `green` · `blue`. |
-| `extendedColors` / `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set (`rose` · `violet` · `sky`), and the union of standard plus extended. |
+| `extendedColors` / `PaletteColor` *(type)* | The opt-in extended set (`rose` · `violet` · `sky`), and the union of standard plus extended. |
 
 ## Barrel surface
 

@@ -30,6 +30,8 @@ import type {
  * The reserved config fields. The record type makes the list match
  * {@link ReservedField}: a field that the type names and the record does not
  * have is a type error, and so is a field that the record adds.
+ *
+ * @internal
  */
 export const RESERVED = {
 	base: true,

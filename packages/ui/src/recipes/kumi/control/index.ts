@@ -32,9 +32,16 @@ const { fit, flex } = narabi
  * The classes of a slot under each surface. The framed surfaces take
  * `classes`. A `bare` control has no frame, so it takes none.
  */
-function framed<const C>(classes: C) {
+export function framed<const C>(classes: C) {
 	return { default: classes, outline: classes, glass: classes, bare: [] }
 }
+
+/**
+ * The field of a trigger that is a button: the axis, the start alignment, no
+ * native look, and the cursor. A picker and a Listbox read it. A Combobox does
+ * not, because its field is a text input.
+ */
+export const button = [flex.row, 'text-start', 'appearance-none', ...cursor]
 
 export const control = defineGroup({
 	base: frame,
@@ -177,7 +184,7 @@ export const picker = defineGroup(
 		extends: trigger,
 		slots: {
 			/** The button that opens the picker. */
-			field: [flex.row, 'text-start', 'appearance-none', ...cursor],
+			field: button,
 		},
 	},
 	{

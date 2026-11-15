@@ -1,6 +1,6 @@
 /**
- * Ugoki css: Tailwind transition / animation fragments for state
- * changes that don't warrant Framer Motion.
+ * Ugoki css: the Tailwind transition and animation fragments of the state
+ * changes that do not need Motion.
  *
  * All fragments are `motion-safe:`-gated, honoring `prefers-reduced-motion:
  * reduce` (WCAG 2.3.3).

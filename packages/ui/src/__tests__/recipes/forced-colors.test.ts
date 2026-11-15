@@ -9,6 +9,7 @@ import { k as chatMessage } from '../../recipes/kata/chat-message'
 import { k as chatTranscript } from '../../recipes/kata/chat-transcript'
 import { k as dashboard } from '../../recipes/kata/dashboard'
 import { k as events } from '../../recipes/kata/events'
+import { k as fileUpload } from '../../recipes/kata/file-upload'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as gridGroup } from '../../recipes/kata/grid-group'
 import { k as holdButton } from '../../recipes/kata/hold-button'
@@ -113,6 +114,11 @@ describe('edges and state marks under forced colors', () => {
 	// width tells it from the other columns.
 	it('draws the Kanban drop target heavier than another column', () => {
 		expect(classNames([kanban().column.base])).toContain('forced-colors:data-over:outline-2')
+	})
+
+	// The tint fill of a FileUpload zone under a drag goes, so the zone draws an outline.
+	it('outlines the FileUpload zone under a drag', () => {
+		expect(classNames([fileUpload.dropzone])).toContain('forced-colors:data-drag-over:outline-2')
 	})
 })
 

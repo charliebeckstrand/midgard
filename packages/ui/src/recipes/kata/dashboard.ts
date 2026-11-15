@@ -6,12 +6,11 @@
  * one string to `cn` for each part on each render.
  */
 import { defineKata, mode } from '../../core/recipe'
-import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
+import { dan, hannou, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
-const { fg, grab } = hannou
+const { grab } = hannou
 const { flex, touch } = narabi
 const { forced } = sen
-const { text } = iro
 const { rounded } = kasane
 
 /**
@@ -183,9 +182,7 @@ const handle = {
 		'shrink-0 justify-center',
 		dan.size.button.icon,
 		rounded.md,
-		...grab.default,
-		...text.muted,
-		...fg.hover,
+		...grab.grip,
 		...sen.focus.ring,
 	],
 	floating: {

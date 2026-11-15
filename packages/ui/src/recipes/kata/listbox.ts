@@ -1,19 +1,17 @@
 import { defineKata } from '../../core/recipe'
-import { hannou, iro, narabi } from '../kiso'
-import { list } from '../kumi/control'
+import { iro } from '../kiso'
+import { button, list } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
-const { cursor } = hannou
 const { text } = iro
-const { flex } = narabi
 
 export const k = defineKata(
 	{
 		extends: list,
 		slots: {
 			/** The button that opens the list. */
-			field: [flex.row, 'text-start', 'appearance-none', ...cursor],
+			field: button,
 			/** The text of the selected value. */
 			value: {
 				truncate: {

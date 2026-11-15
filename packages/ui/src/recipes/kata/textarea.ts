@@ -1,6 +1,6 @@
 import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, kokkaku, narabi, sen } from '../kiso'
-import { control } from '../kumi/control'
+import { control, framed } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
@@ -24,12 +24,7 @@ export const k = defineKata(
 				 * A `bare` field has no inset, as a `bare` Input has none, so it
 				 * takes no floor, and a row is one line of text.
 				 */
-				variant: {
-					default: textarea.floor,
-					outline: textarea.floor,
-					glass: textarea.floor,
-					bare: [],
-				},
+				variant: framed(textarea.floor),
 				/**
 				 * Where the primary pointer is coarse, the grip slot replaces the native
 				 * grip. Safari on iOS and iPadOS draws no native grip.

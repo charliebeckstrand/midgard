@@ -23,7 +23,7 @@ const inset = 'density-size-[3,3.5,4,4.5,5]'
  */
 const box = 'density-h-[6.5,8,9.5,11,12.5]'
 
-/** A square with the side of {@link box}: a pagination page skeleton and a lightbox thumbnail. */
+/** A square with the side of {@link box}: the Previous and Next square of a pagination skeleton, and a lightbox thumbnail. */
 const square = 'density-size-[6.5,8,9.5,11,12.5]'
 
 /**
@@ -96,7 +96,7 @@ export const size = {
 		/** The height of a bare icon button, as the floor of a row that can hold one. */
 		row: 'density-min-h-[5.5,6.5,7.5,8.5,9.5]',
 	},
-	/** A pagination page skeleton. */
+	/** The square of the Previous and Next buttons in a pagination skeleton. */
 	pagination: square,
 	/**
 	 * A thumbnail in the row of a lightbox: the height of a button, so the row
@@ -124,11 +124,11 @@ export const size = {
 		min: '[[data-slot=group]>&]:density-min-w-[8,16,24,32,40]',
 	},
 	line: {
-		/** A subtitle line in a heading skeleton. */
+		/** The bar of heading level 4 in a heading skeleton, as tall as the rung of that level. */
 		subtitle: 'density-h-[3,4,5,6,7]',
-		/** A small line of text in a skeleton. */
+		/** The bar of heading level 5 in a heading skeleton, as tall as the rung of that level. */
 		small: 'density-h-[2,3,4,5,6]',
-		/** A tiny line in a skeleton: a heading rule or a progress bar. */
+		/** The bar of heading level 6 in a heading skeleton, and the track of a progress bar. */
 		tiny: 'density-h-[1,2,3,4,5]',
 		title: {
 			/** A small title line in a heading skeleton. */
@@ -227,8 +227,8 @@ export const size = {
 		room: 'in-data-collapse:density-set-[2.5,3,3.5,4,4.5]/[--ui-breadcrumb-separator]',
 	},
 	resize: {
-		/** The width of a grid column resize handle. */
-		handle: 'density-w-[1,2,4,6,9]',
+		/** The width of a grid column resize handle: twice the inline cell padding (`space.cell.x`). */
+		handle: 'density-w-[2,3,4,5,6]',
 	},
 	menu: {
 		/** The maximum height of a capped menu. */

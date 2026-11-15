@@ -1,6 +1,6 @@
 /**
- * Kokkaku skeleton: badge. Pill silhouette across the four badge size
- * steps. Each step is a `density-*` class, so the silhouette takes the step of
+ * Kokkaku skeleton: badge. A silhouette with the corner of the default badge
+ * (`radius: 'md'`), across the badge size steps. Each step is a `density-*` class, so the silhouette takes the step of
  * its nearest density scope, as the badge does.
  *
  * Layer: kiso · Concern: skeleton form · Unit: badge
