@@ -49,12 +49,11 @@ place, and Reset.
 
 ## The page
 
-The header shows the name of the app and the settings.
-The settings have the appearance pickers of `ui` and the Auto-draw switch. A
-bar under the header holds the drawn number, the action, and a menu with
-Reset and Share seed. Reset in the menu starts a new seed at each step. The bar stays at
-the top while the slots scroll under it. The number rolls to each new number
-through the `Odometer` of `ui`.
+The header shows the name of the app and the settings. The settings have the
+appearance pickers of `ui` and the Auto-draw switch. A bar under the header
+holds the drawn number, the action, and a menu with Reset and Share seed.
+Reset in the menu starts a new seed at each step. The number rolls to each new
+number through the `Odometer` of `ui`.
 
 The 20 slots are buttons. Only a slot that can take the drawn number is on,
 with an amber outline. A filled slot shows its number in a soft green, and it
@@ -63,9 +62,10 @@ show between the two numbers that it goes between, and the action becomes a
 red Reset. After a win, the action is Reset.
 
 A bar at the bottom shows the score: the count of the filled slots, of 20.
-The bar stays at the bottom of the view while the slots scroll under it. The
-page box is the height of the visible area (`h-dvh`), so the bar is above the
-toolbar of Safari and of Chrome. A screen reader hears the score at a bust.
+Only the slots scroll, in a box between the two bars, so the bars never cover
+a slot that has the focus. The page box is the height of the visible area
+(`h-dvh`), so the bottom bar is above the toolbar of Safari and of Chrome. A
+screen reader hears the score at a bust.
 
 An action can turn off the button that the reader pressed. The focus then
 moves to the first slot that can take the number, or else to the action.

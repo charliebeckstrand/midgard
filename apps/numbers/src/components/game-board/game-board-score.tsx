@@ -7,9 +7,9 @@ export type GameBoardScoreProps = {
 }
 
 /**
- * The bar of the score: the count of the filled slots, of 20. The bar stays at
- * the bottom of the view while the slots scroll under it, and it has the look
- * of the bar of the number at the top.
+ * The bar of the score: the count of the filled slots, of 20. The bar is at the
+ * bottom of the view, under the box of the slots, and it has the look of the
+ * bar of the number at the top.
  *
  * @remarks
  * The page box is the height of the visible area (`h-dvh`), so the bottom of
@@ -21,8 +21,7 @@ export function GameBoardScore({ game }: GameBoardScoreProps) {
 	const placed = countPlaced(game.slots)
 
 	return (
-		// The ground of the page under the bar hides the slots that scroll under it.
-		<div className="sticky bottom-0 z-10 mt-auto bg-(--surface-fill) pt-3 pb-[max(--spacing(4),env(safe-area-inset-bottom))]">
+		<div className="mx-auto w-full max-w-md shrink-0 px-4 pt-2 pb-[max(--spacing(4),env(safe-area-inset-bottom))]">
 			<div className="flex items-baseline justify-between rounded-lg bg-zinc-950/5 px-4 py-2.5 dark:bg-white/10">
 				<Text as="span" tone="muted" className="font-medium text-sm">
 					Score

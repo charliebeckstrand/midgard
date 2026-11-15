@@ -32,10 +32,12 @@ export type GameBoardProps = {
 }
 
 /**
- * The game: the bar with the drawn number and its action, the column of slots
- * under it, and the bar of the score at the bottom. The column fills the
- * height of the view at the minimum, so the bar of the score is at the bottom
- * of a tall screen too.
+ * The game: the bar with the drawn number and its action at the top, the
+ * column of slots, and the bar of the score at the bottom. The game fills the
+ * body, and only the slots scroll, between the two bars. The bars do not cover
+ * the slots, so a slot that gets the focus scrolls into view clear of them.
+ * The box of the slots has the full width of the body, so a wheel at the side
+ * of the column scrolls it too.
  *
  * A Reset starts the run of a new seed in place, and adds the address of the
  * seed to the history, so the reader can send the run. Back and Forward go to
@@ -104,7 +106,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 	const ended = status === 'bust' || status === 'won'
 
 	return (
-		<div className="mx-auto flex min-h-full w-full max-w-md flex-col px-4">
+		<div className="flex h-full flex-col print:h-auto">
 			<GameBoardToolbar
 				game={game}
 				status={status}
@@ -113,12 +115,18 @@ export function GameBoard({ seed }: GameBoardProps) {
 				onReset={restart}
 			/>
 
-			<GameBoardSlots
-				ref={slotsRef}
-				game={game}
-				status={status}
-				onPlace={(index, event) => act(event, () => place(index))}
-			/>
+			{/* `relative` keeps each positioned element in the box, as in `StackedLayoutBody`. */}
+			<div className="relative min-h-0 flex-1 scroll-py-1 overflow-y-auto print:overflow-visible">
+				{/* The padding keeps the focus ring of the first and the last slot in the box. */}
+				<div className="mx-auto w-full max-w-md px-4 py-1">
+					<GameBoardSlots
+						ref={slotsRef}
+						game={game}
+						status={status}
+						onPlace={(index, event) => act(event, () => place(index))}
+					/>
+				</div>
+			</div>
 
 			<GameBoardScore game={game} />
 		</div>

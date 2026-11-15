@@ -29,8 +29,8 @@ export type GameBoardToolbarProps = {
 }
 
 /**
- * The bar of the drawn number and the action, which stays at the top while
- * the slots scroll under it. The readout rolls to each new number. Before the
+ * The bar of the drawn number and the action, at the top of the game, over the
+ * box of the slots. The readout rolls to each new number. Before the
  * first draw it shows 0, and after a placement it keeps the number. The action
  * is Draw. It is off while a number waits for a slot, and it is Reset after a
  * bust (in red) and after a win. The menu beside the action holds Reset and
@@ -46,8 +46,7 @@ export function GameBoardToolbar({
 	const ended = status === 'bust' || status === 'won'
 
 	return (
-		// The ground of the page under the bar hides the slots that scroll under it.
-		<div className="sticky top-0 z-10 bg-(--surface-fill) py-3">
+		<div className="mx-auto w-full max-w-md shrink-0 px-4 pt-3 pb-2">
 			<Toolbar variant="solid" aria-label="Number" className="items-center justify-between ps-4">
 				<Text as="span" tone={TONES[status]} className="font-semibold text-4xl/10 tabular-nums">
 					<Odometer value={game.last ?? 0} />
