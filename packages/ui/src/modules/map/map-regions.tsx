@@ -413,7 +413,7 @@ export const MapRegions = memo(function MapRegions({
 			frame={frame}
 			// The cursor rides the group and inherits down, so thousands of paths carry
 			// no per-region class.
-			className={cn(clickable && k.region.clickable, ...(loading ? k.region.loading : []))}
+			className={cn(clickable && k.clickable, ...(loading ? k.region.loading : []))}
 			onPointerLeave={() => set(null, null)}
 			// Delegated, so the click handler stays off `Region`'s memo comparison:
 			// a prop across thousands of instances, and the one input here whose
@@ -639,7 +639,7 @@ function MapRegionSelected({ d }: { d: string }) {
 			strokeWidth={REGION_SELECTED_STROKE_WIDTH * unitsPerPixel}
 			// No region anchor and no pointer events: the base path stays the
 			// sole hit target, the discipline the lit copies keep.
-			className={cn('pointer-events-none', ...k.region.selected)}
+			className={cn('pointer-events-none', ...k.selected)}
 		/>
 	)
 }

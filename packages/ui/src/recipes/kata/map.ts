@@ -19,26 +19,16 @@ const { palette, ink, motion } = zu
 /** A named map mark color: the eight categorical data-viz slots plus `zinc`. */
 export type MapSeriesColor = SeriesSlot
 
-/** The map's one pointer affordance, shared by the region layer and the overlay marks. */
-const CLICKABLE = 'cursor-pointer'
-
-/**
- * The map's one selection ink, the `zu` selection ink that the heatmap cell
- * ring takes too. It holds its contrast over the geography an overlay draws
- * across as well.
- */
-const SELECTED = ink.selected
-
 export const k = {
 	/** The gap of the map frame, and of the map and its legend panel. */
 	frame: dan.gap.scale.lg,
 	/**
-	 * The pointer affordance on a mark that answers a click: an overlay's hit
-	 * shape. It carries it per shape, because a mark draws at most three. The
-	 * region layer instead rides one group over thousands of paths
-	 * (`region.clickable`, the same token).
+	 * The pointer affordance on a mark that answers a click. An overlay carries it
+	 * on each hit shape, because a mark draws at most three. A clickable region
+	 * layer carries it on its group, and it inherits down to every path, so
+	 * thousands of regions do not each repeat it.
 	 */
-	clickable: CLICKABLE,
+	clickable: 'cursor-pointer',
 	/**
 	 * The hit circle of a dot on a fine pointer. The `fine` class narrows it, and
 	 * the `radius` custom property gives that class its radius.
@@ -79,11 +69,13 @@ export const k = {
 		radius: '--map-hit-radius',
 	},
 	/**
-	 * The standing pick's ink, on an overlay mark's halo. It is the same token the
-	 * region ring takes (`region.selected`). One map therefore never marks its
-	 * geography and its overlays in two different colors.
+	 * The one selection ink of the map, the `zu` selection ink that the heatmap
+	 * cell ring takes too. It is the halo of a picked overlay mark and the outline
+	 * of a selected region, so one map never marks its geography and its overlays
+	 * in two different colors. It holds its contrast over the geography an
+	 * overlay draws across as well.
 	 */
-	selected: SELECTED,
+	selected: ink.selected,
 	/** Shared data-viz palette from `zu`: the same slots, order, and validation as `kata/chart`. */
 	series: palette.series,
 	/**
@@ -166,17 +158,10 @@ export const k = {
 		 */
 		hover: mode('hover:brightness-90', 'dark:hover:brightness-110'),
 		/**
-		 * The pointer affordance on a clickable map's region layer. Every
-		 * region is a target, so it rides the group and inherits down rather
-		 * than repeating on thousands of paths. The same token as the shared
-		 * {@link k.clickable} an overlay mark carries; kept here so the region
-		 * layer reads its affordance beside its other paint.
-		 */
-		clickable: CLICKABLE,
-		/**
 		 * The cursor of a region that takes no click on a clickable layer
 		 * (`MapPlat`'s `isRegionDisabled`). It is on the path, so it overrides the
-		 * pointer cursor that the path inherits from the layer.
+		 * pointer cursor ({@link k.clickable}) that the path inherits from the
+		 * layer.
 		 */
 		disabled: 'cursor-default',
 		/**
@@ -184,8 +169,8 @@ export const k = {
 		 * their numbers are not in yet, so every one of them holds the no-data fill.
 		 *
 		 * On the group, so it inherits to every path and thousands of regions carry no
-		 * class of their own. That is the same reason the cursor rides the group. It is
-		 * `hannou.busy`: the pulse, with a standing dim in its place for the reader who
+		 * class of their own. That is the same reason {@link k.clickable} rides the
+		 * group. It is `hannou.busy`: the pulse, with a standing dim in its place for the reader who
 		 * asked for less motion. `kata/grid`'s `body.settling` and
 		 * `kata/chat-message`'s `streaming` carry the same pair. A loading state that renders as
 		 * nothing at all for that reader is the gray map this token exists to disambiguate.
@@ -204,15 +189,12 @@ export const k = {
 		 */
 		pointed: mode('brightness-90', 'dark:brightness-110'),
 		/**
-		 * The selected region's outline: the map's shared {@link k.selected} ink,
-		 * kept here so the region layer reads its selection beside its other paint.
-		 */
-		selected: SELECTED,
-		/**
 		 * The outline on each region that a legend emphasis holds lit. The dim
 		 * fades the other regions toward the surface, which is one end of a
 		 * sequential ramp. A lit region at that end therefore has the color of the
-		 * dimmed ones, and only the outline tells it apart.
+		 * dimmed ones, and only the outline tells it apart. On a categorical
+		 * slot's class fill, the outline takes the {@link k.selected} ink. A slot
+		 * is a mid tone in both modes, so that ink parts from it.
 		 */
 		emphasized: {
 			/**
@@ -223,12 +205,6 @@ export const k = {
 			 */
 			dark: 'stroke-zinc-900',
 			light: 'stroke-white',
-			/**
-			 * On a categorical slot's class fill, the {@link k.region.selected}
-			 * ink. A slot is a mid tone in both modes, so the surface ink parts
-			 * from it.
-			 */
-			slot: SELECTED,
 		},
 	},
 	/**
