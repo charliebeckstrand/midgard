@@ -100,11 +100,7 @@ function GridGroupRowImpl<T>({
 			<TableCell
 				{...stopProps}
 				colSpan={span}
-				className={cn(
-					k.row.group.rail.border,
-					color && k.row.group.rail.color[color],
-					pinned.className,
-				)}
+				className={cn(k.row.group.rail[color ?? 'neutral'], pinned.className)}
 				style={pinned.style}
 				data-grid-pin={pinned.pin}
 			>

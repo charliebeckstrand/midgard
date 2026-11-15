@@ -95,44 +95,29 @@ const pinnedRule = [
 ]
 
 /**
- * The group rail's 2px neutral inline-start border: a continuous bar down the
- * group's leading edge. The side is logical, so a right-to-left grid draws it on
- * the right. The group header cells, the leaf and total cells, and the
- * loading placeholder rows all carry it, so the rail runs unbroken while a
- * group's children load. It sets no padding: a header cell keeps the ordinary
- * cell padding, so a header row has the height of a data row.
- *
- * The neutral is an *inline-start* border color (`border-s-<neutral>`), not the
- * all-sides `border-color`. When {@link railColor} layers a palette color on
- * the same cell they land in one tailwind-merge group (`border-color-s`).
- * The color then cleanly replaces the neutral, in both light and dark, without
- * an `!important`. (An all-sides neutral would sit in a different group and
- * survive the merge. Its `dark:` variant (one extra class under class-based
- * dark mode) would then outrank the un-variant color and win in dark mode.)
- */
-const railBorder = ['border-s-2', ...mode('border-s-zinc-950/5', 'dark:border-s-white/10')]
-
-/**
- * A colored group rail, keyed by {@link PaletteColor} so a group reads
- * `row.group.rail.color[group.color]`. Swaps the neutral {@link railBorder} tint
- * for the group's palette hue at the solid `-600` shade, when the row manager
- * assigns one. That shade matches the underline of a column group (`rule.color`
- * in `kata/grid-group`).
- * Inline-start-specific (`border-s-<color>`) with a matching `dark:` variant, so it
- * shares the neutral rail's tailwind-merge group *and* variants. It replaces the
- * neutral outright (no `!important`, no dark-mode fallthrough). Full literals
- * for Tailwind's scanner.
+ * The fill of a group rail, keyed by {@link PaletteColor}: a 2px inline-start
+ * border at the solid `-600` shade, which reads over both light and dark
+ * surfaces. That shade matches the underline of a column group (`rule.color`
+ * in `kata/grid-group`). The side is logical, so a right-to-left grid draws
+ * the rail on the right. The rail sets no padding, so a header row has the
+ * height of a data row. Full literals for Tailwind's scanner.
  */
 const railColor: Record<PaletteColor, string> = {
-	zinc: 'border-s-2 border-s-zinc-600 dark:border-s-zinc-600',
-	red: 'border-s-2 border-s-red-600 dark:border-s-red-600',
-	amber: 'border-s-2 border-s-amber-600 dark:border-s-amber-600',
-	green: 'border-s-2 border-s-green-600 dark:border-s-green-600',
-	blue: 'border-s-2 border-s-blue-600 dark:border-s-blue-600',
-	rose: 'border-s-2 border-s-rose-600 dark:border-s-rose-600',
-	violet: 'border-s-2 border-s-violet-600 dark:border-s-violet-600',
-	sky: 'border-s-2 border-s-sky-600 dark:border-s-sky-600',
+	zinc: 'border-s-2 border-s-zinc-600',
+	red: 'border-s-2 border-s-red-600',
+	amber: 'border-s-2 border-s-amber-600',
+	green: 'border-s-2 border-s-green-600',
+	blue: 'border-s-2 border-s-blue-600',
+	rose: 'border-s-2 border-s-rose-600',
+	violet: 'border-s-2 border-s-violet-600',
+	sky: 'border-s-2 border-s-sky-600',
 }
+
+/**
+ * The rail of a group that has no color: the same 2px border in a translucent
+ * gray, the row analog of the neutral underline of a column group.
+ */
+const railNeutral = ['border-s-2', ...mode('border-s-zinc-950/5', 'dark:border-s-white/10')]
 
 /**
  * A utility column that takes the width of its content, with the content in
@@ -486,18 +471,13 @@ export const k = {
 		// A row that `rowLoading` marks, while it waits on data (`hannou.busy`).
 		loading: busy,
 		group: {
-			// A 2px colored rail down the group's leading edge: carried by the first
-			// cell of every row in the group (its header and each leaf) so it reads as one
-			// continuous bar, the row-group analog of a column group's underline rule. It
-			// takes a neutral tint by default; the row manager swaps in a per-group
-			// palette color (`rail.color[group.color]`).
-			rail: {
-				// The neutral rail (see {@link railBorder}), on the leading cell of every group row.
-				border: railBorder,
-				// Per-group rail color (see {@link railColor}): the manager's palette hue,
-				// replacing the neutral `border` tint on the leading cell of every group row.
-				color: railColor,
-			},
+			// A 2px rail down the group's leading edge, keyed by color, so a cell reads
+			// `rail[group.color ?? 'neutral']` (see {@link railColor}). The first cell
+			// of each row in the group carries it: the header, each leaf, the total, and
+			// the loading rows. Thus it shows as one continuous bar, the row analog of
+			// the underline rule of a column group. Each entry is complete, so a cell
+			// takes one entry and no merge order applies.
+			rail: { ...railColor, neutral: railNeutral },
 			// Chevron at the row's trailing edge: the group row renders a right chevron
 			// when collapsed and a down chevron when expanded; `shrink-0` holds its size
 			// beside the label. A right-to-left grid mirrors it, so a collapsed chevron
