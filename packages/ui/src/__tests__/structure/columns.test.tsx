@@ -24,7 +24,7 @@ describe('Columns', () => {
 			'grid-cols-1',
 			'sm:grid-cols-2',
 			'xl:grid-cols-4',
-			'density-gap-[0.5,1,2,3,4.5]',
+			'density-gap-[1,1.5,2,2.5,3]',
 			'md:density-gap-[2,3,4,5,6]',
 		)
 	})

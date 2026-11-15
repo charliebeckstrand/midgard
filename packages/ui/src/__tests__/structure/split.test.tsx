@@ -81,9 +81,9 @@ describe('Split responsive axes', () => {
 
 		const className = bySlot(container, 'split')?.className ?? ''
 
-		expect(className).toContain('density-gap-[0.25,0.5,1,1.5,2.5]')
+		expect(className).toContain('density-gap-[0.5,0.75,1,1.25,1.5]')
 
-		expect(className).toContain('md:density-gap-[4,5,6,7,8]')
+		expect(className).toContain('md:density-gap-[3,4.5,6,7.5,9]')
 
 		expect(className).toContain('items-start')
 
@@ -113,9 +113,9 @@ describe('Split gap resolution', () => {
 
 		const split = getSlot(container, 'split')
 
-		expect(split.className).toContain('density-gap-[4,5,6,7,8]')
+		expect(split.className).toContain('density-gap-[3,4.5,6,7.5,9]')
 
-		expect(split.className).not.toContain('density-gap-[0.5,1,2,3,4.5]')
+		expect(split.className).not.toContain('density-gap-[1,1.5,2,2.5,3]')
 	})
 
 	it('lets a wrapper re-anchor the root', () => {

@@ -49,9 +49,9 @@ describe('Toggle press area', () => {
 		)
 
 		expect(bySlot(container, 'control')).toHaveClass(
-			'density-set-[0.5,1,2,3,4.5]/[--touch-target-gap-y]',
-			'pointer-coarse:density-set-[4,5,6,7,8]/[--touch-target-gap-y]',
-			'pointer-coarse:[&>[data-slot=field]+[data-slot=field]]:density-mt-[4,5,6,7,8]',
+			'density-set-[1,1.5,2,2.5,3]/[--touch-target-gap-y]',
+			'pointer-coarse:density-set-[3,4.5,6,7.5,9]/[--touch-target-gap-y]',
+			'pointer-coarse:[&>[data-slot=field]+[data-slot=field]]:density-mt-[3,4.5,6,7.5,9]',
 		)
 
 		expect(bySlot(container, 'field')).toHaveClass(

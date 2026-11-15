@@ -17,8 +17,8 @@ export const radius = {
 	button: box,
 	/** The radius of the combinator button between query chips. */
 	combinator: 'density-rounded-[1,1,1.5,2,2.5]',
-	/** The radius of a tooltip. */
-	tooltip: 'density-rounded-[0.5,1,2,3,4.5]',
+	/** The radius of a tooltip: the radius of a control, the `sm` stop of the padding scale. */
+	tooltip: box,
 	/** The radius of a card. */
 	card: 'density-rounded-[0.5,1,1.5,2,2.5]',
 	/**

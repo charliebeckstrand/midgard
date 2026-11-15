@@ -11,36 +11,39 @@
  */
 const scale = {
 	p: {
-		xs: 'density-p-[0.25,0.5,1,1.5,2.5]',
-		sm: 'density-p-[0.5,1,2,3,4.5]',
-		md: 'density-p-[1,2,3,4,5]',
+		xs: 'density-p-[0.5,0.75,1,1.25,1.5]',
+		sm: 'density-p-[1,1.5,2,2.5,3]',
+		md: 'density-p-[1.5,2.25,3,3.75,4.5]',
 		lg: 'density-p-[2,3,4,5,6]',
-		xl: 'density-p-[4,5,6,7,8]',
+		xl: 'density-p-[3,4.5,6,7.5,9]',
 	},
 	px: {
-		xs: 'density-px-[0.25,0.5,1,1.5,2.5]',
-		sm: 'density-px-[0.5,1,2,3,4.5]',
-		md: 'density-px-[1,2,3,4,5]',
+		xs: 'density-px-[0.5,0.75,1,1.25,1.5]',
+		sm: 'density-px-[1,1.5,2,2.5,3]',
+		md: 'density-px-[1.5,2.25,3,3.75,4.5]',
 		lg: 'density-px-[2,3,4,5,6]',
-		xl: 'density-px-[4,5,6,7,8]',
+		xl: 'density-px-[3,4.5,6,7.5,9]',
 	},
 	py: {
-		xs: 'density-py-[0.25,0.5,1,1.5,2.5]',
-		sm: 'density-py-[0.5,1,2,3,4.5]',
-		md: 'density-py-[1,2,3,4,5]',
+		xs: 'density-py-[0.5,0.75,1,1.25,1.5]',
+		sm: 'density-py-[1,1.5,2,2.5,3]',
+		md: 'density-py-[1.5,2.25,3,3.75,4.5]',
 		lg: 'density-py-[2,3,4,5,6]',
-		xl: 'density-py-[4,5,6,7,8]',
+		xl: 'density-py-[3,4.5,6,7.5,9]',
 	},
 } as const
 
-/** The padding of a nav item and a sidebar item. */
-const navItem = 'density-p-[1,1.5,2,2.5,3]'
+/** The padding of a nav item and a sidebar item: the `sm` stop of the padding scale. */
+const navItem = scale.p.sm
 
 /** The block padding of a list row, a segment item, an option row, and a menu item. */
 const rowY = 'density-py-[0.5,1,1.5,2,2.5]'
 
-/** The inline padding of a menu item and a segment item. */
-const itemX = 'density-px-[2,2.5,3,3.5,4]'
+/**
+ * The inline padding of a menu item and a segment item: the `md` stop of the
+ * padding scale, half of the inset of a panel at each step.
+ */
+const itemX = scale.px.md
 
 /** The bottom padding of a tab and of an accordion body: the `lg` stop of the padding scale. */
 const bottom = 'density-pb-[2,3,4,5,6]'
@@ -68,19 +71,19 @@ export const space = {
 		/** The padding of a box: a card, a list, or a date picker body. */
 		base: scale.p.md,
 		/** The bottom padding of a box header. */
-		bottom: 'density-pb-[1,2,3,4,5]',
+		bottom: 'density-pb-[1.5,2.25,3,3.75,4.5]',
 	},
 	card: {
 		header: {
 			/** The bottom padding of a card header, when a sibling follows the header. */
-			bottom: 'not-last:density-pb-[1,2,3,4,5]',
+			bottom: 'not-last:density-pb-[1.5,2.25,3,3.75,4.5]',
 		},
 		footer: {
 			/**
 			 * The top padding of a card footer, when a sibling comes before the footer.
 			 * When that sibling is a card header, the header pads the edge.
 			 */
-			top: '[:not([data-slot=card-header])+&]:density-pt-[1,2,3,4,5]',
+			top: '[:not([data-slot=card-header])+&]:density-pt-[1.5,2.25,3,3.75,4.5]',
 		},
 	},
 	cell: {
@@ -121,7 +124,7 @@ export const space = {
 		/** The slot gap of a panel (`gap.scale.lg`) above a child that follows a sibling. */
 		above: 'not-first:density-mt-[2,3,4,5,6]',
 		/** The inset above the first slot, on the panel or on the slot. */
-		top: 'density-pt-[4,5,6,7,8]',
+		top: 'density-pt-[3,4.5,6,7.5,9]',
 		/**
 		 * The space above the header of a drawer or a sheet: the slot gap of a panel
 		 * (`gap.scale.lg`). The header is the header slot, or a title that is the first
@@ -131,13 +134,13 @@ export const space = {
 		 */
 		head: top,
 		/** The inset under the last slot, on the panel or on the slot. */
-		bottom: 'density-pb-[4,5,6,7,8]',
+		bottom: 'density-pb-[3,4.5,6,7.5,9]',
 		/**
 		 * The grip of a panel at an edge. `x` is the padding around the 1.5 bar of a
 		 * grip on a side, so the grip is as thick as the inset and covers no slot.
 		 */
 		grip: {
-			x: 'density-px-[1.25,1.75,2.25,2.75,3.25]',
+			x: 'density-px-[0.75,1.5,2.25,3,3.75]',
 			/**
 			 * The negative margin of a grip in the flow toward the slot next to it: the
 			 * slot gap (`gap.scale.lg`) plus the space at the edge of that slot. The grip
@@ -148,7 +151,7 @@ export const space = {
 			 * - `bottom`: a grip at the top edge, over the space above the header (`head`).
 			 */
 			over: {
-				top: 'density-mt-[-6,-8,-10,-12,-14]',
+				top: 'density-mt-[-5,-7.5,-10,-12.5,-15]',
 				bottom: 'density-mb-[-4,-6,-8,-10,-12]',
 			},
 		},
@@ -170,9 +173,9 @@ export const space = {
 		 */
 		first: {
 			drawer:
-				'[&:first-child:not(:where([data-slot=drawer]_:not(:first-child)_&))]:density-mt-[4,5,6,7,8]',
+				'[&:first-child:not(:where([data-slot=drawer]_:not(:first-child)_&))]:density-mt-[3,4.5,6,7.5,9]',
 			sheet:
-				'[&:first-child:not(:where([data-slot=sheet]_:not(:first-child)_&))]:density-mt-[4,5,6,7,8]',
+				'[&:first-child:not(:where([data-slot=sheet]_:not(:first-child)_&))]:density-mt-[3,4.5,6,7.5,9]',
 		},
 		/**
 		 * The inset of a body that is the last slot, a margin for the reason that `first`
@@ -182,9 +185,9 @@ export const space = {
 		 */
 		last: {
 			drawer:
-				'[&:last-child:not(:where([data-slot=drawer]_:not(:last-child)_&))]:density-mb-[4,5,6,7,8]',
+				'[&:last-child:not(:where([data-slot=drawer]_:not(:last-child)_&))]:density-mb-[3,4.5,6,7.5,9]',
 			sheet:
-				'[&:last-child:not(:where([data-slot=sheet]_:not(:last-child)_&))]:density-mb-[4,5,6,7,8]',
+				'[&:last-child:not(:where([data-slot=sheet]_:not(:last-child)_&))]:density-mb-[3,4.5,6,7.5,9]',
 		},
 		/**
 		 * The bottom padding of a panel that can sit on the bottom edge.
@@ -194,7 +197,7 @@ export const space = {
 		 * zero elsewhere. One plain padding adds the two, so `cn` merges it with the
 		 * padding of a consumer `className`.
 		 */
-		safe: 'density-set-[4,5,6,7,8]/[--ui-panel-bottom] pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]',
+		safe: 'density-set-[3,4.5,6,7.5,9]/[--ui-panel-bottom] pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]',
 	},
 	shell: {
 		/** The padding of the sidebar layout regions. */
@@ -226,7 +229,7 @@ export const space = {
 		},
 	},
 	/** The padding of a tooltip, inside its ring. */
-	tooltip: 'density-p-ring-[0.5,1,2,3,4.5]',
+	tooltip: 'density-p-ring-[1,1.5,2,2.5,3]',
 	combinator: {
 		/** The padding of the combinator button between query chips, inside its ring. */
 		base: 'density-p-ring-[1.5,1.5,2,2.5,3]',
@@ -319,8 +322,8 @@ export const space = {
 	},
 	list: {
 		plain: {
-			/** The inline padding of a plain list row. */
-			x: 'density-px-[1,1.5,2,2.5,3]',
+			/** The inline padding of a plain list row: the `sm` stop of the padding scale. */
+			x: scale.px.sm,
 		},
 	},
 	row: {
@@ -363,8 +366,8 @@ export const space = {
 		vertical: {
 			/** The inline padding of a vertical tab. */
 			x: scale.px.lg,
-			/** The block padding of a vertical tab. */
-			y: 'density-py-[1,1.5,2,2.5,3]',
+			/** The block padding of a vertical tab: the `sm` stop of the padding scale. */
+			y: scale.py.sm,
 		},
 		skeleton: {
 			/** The bottom margin of a tab list skeleton. */
@@ -399,7 +402,7 @@ export const space = {
 		 * items: the bottom padding that the row of the item does not have. Its
 		 * stops are the stops of `y`.
 		 */
-		lead: '[[data-slot=tree-item]:last-child:not([data-slot=tree-item]:not(:last-child)_*)>&]:before:density-h-[0.25,0.5,1,1.5,2.5]',
+		lead: '[[data-slot=tree-item]:last-child:not([data-slot=tree-item]:not(:last-child)_*)>&]:before:density-h-[0.5,0.75,1,1.25,1.5]',
 		/** The inline padding of a tree row: the `sm` stop of the padding scale. */
 		x: scale.px.sm,
 	},
@@ -412,7 +415,7 @@ export const space = {
 	calendar: {
 		header: {
 			/** The bottom margin of the calendar header. */
-			bottom: 'density-mb-[0.5,1,2,3,4.5]',
+			bottom: 'density-mb-[1,1.5,2,2.5,3]',
 		},
 	},
 	resize: {
@@ -432,37 +435,37 @@ export const space = {
 		 * description list, in `--ui-details-top`. A plain utility reads it, so a
 		 * breakpoint can replace it with the plain `pt-0` of a horizontal list.
 		 */
-		top: 'density-set-[0.25,0.5,1,1.5,2.5]/[--ui-details-top]',
+		top: 'density-set-[0.5,0.75,1,1.25,1.5]/[--ui-details-top]',
 	},
 	field: {
 		label: {
 			/** The gap from a label to the control under it. */
-			base: '[&>[data-slot=label]:has(+*:not([data-slot=description]))]:density-mb-[0.25,0.5,1,1.5,2.5]',
+			base: '[&>[data-slot=label]:has(+*:not([data-slot=description]))]:density-mb-[0.5,0.75,1,1.25,1.5]',
 			/** The gap from a label row (a child that holds the label) to the control under it. */
-			row: '[&>:has(>[data-slot=label]):has(+*:not([data-slot=description]))]:density-mb-[0.25,0.5,1,1.5,2.5]',
+			row: '[&>:has(>[data-slot=label]):has(+*:not([data-slot=description]))]:density-mb-[0.5,0.75,1,1.25,1.5]',
 		},
 		/** The gap from a description to the slot under it. */
-		description: '[&>[data-slot=description]+[data-slot]]:density-mt-[0.25,0.5,1,1.5,2.5]',
+		description: '[&>[data-slot=description]+[data-slot]]:density-mt-[0.5,0.75,1,1.25,1.5]',
 		/** The gap from a control to the slot under it. */
 		control:
-			'[&>:is([data-slot=control],[data-slot=control-frame],[data-slot=field])+[data-slot]]:density-mt-[0.5,1,2,3,4.5]',
+			'[&>:is([data-slot=control],[data-slot=control-frame],[data-slot=field])+[data-slot]]:density-mt-[1,1.5,2,2.5,3]',
 		/** The gap from a list of controls to the slots under it. */
-		list: '[&>[data-slot=list]~[data-slot]]:density-mt-[0.5,1,2,3,4.5]',
+		list: '[&>[data-slot=list]~[data-slot]]:density-mt-[1,1.5,2,2.5,3]',
 		/** The gap above a message or an alert that is not under a label or a description. */
 		message:
-			'[&>:not([data-slot=label]):not([data-slot=description])+:is([data-slot=message],[role=alert])]:density-mt-[0.5,1,2,3,4.5]',
+			'[&>:not([data-slot=label]):not([data-slot=description])+:is([data-slot=message],[role=alert])]:density-mt-[1,1.5,2,2.5,3]',
 	},
 	fieldset: {
 		/** The gap from a legend to the slot under it. */
 		legend: '[&>legend+*]:density-pt-[2,3,4,5,6]',
 		/** The gap between two fields of a group. */
-		field: '[&>[data-slot=field]+[data-slot=field]]:density-mt-[0.5,1,2,3,4.5]',
+		field: '[&>[data-slot=field]+[data-slot=field]]:density-mt-[1,1.5,2,2.5,3]',
 		/**
 		 * The gap between two toggle fields of a group on a coarse pointer, the `xl`
 		 * stop of `dan.gap.scale`. A finger press needs a pitch near 44 px at `md`
 		 * between two rows, and the gap of `field` gives only about 32 px.
 		 */
-		toggle: 'pointer-coarse:[&>[data-slot=field]+[data-slot=field]]:density-mt-[4,5,6,7,8]',
+		toggle: 'pointer-coarse:[&>[data-slot=field]+[data-slot=field]]:density-mt-[3,4.5,6,7.5,9]',
 		/** The gap from the label of a group to its first field. */
 		label: '[&>[data-slot=label]+[data-slot=field]]:density-mt-[2,3,4,5,6]',
 	},
@@ -497,9 +500,9 @@ export const space = {
 	toolbar: {
 		separator: {
 			/** The inline margin of a toolbar separator: the toolbar gap (`gap.scale.xs`). */
-			x: 'density-mx-[0.25,0.5,1,1.5,2.5]',
+			x: 'density-mx-[0.5,0.75,1,1.25,1.5]',
 			/** The block margin of a toolbar separator: the toolbar gap (`gap.scale.xs`). */
-			y: 'density-my-[0.25,0.5,1,1.5,2.5]',
+			y: 'density-my-[0.5,0.75,1,1.25,1.5]',
 		},
 	},
 } as const

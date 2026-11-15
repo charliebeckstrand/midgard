@@ -89,7 +89,7 @@ describe('Card size system', () => {
 
 		const card = bySlot(container, 'card')
 
-		expect(card).toHaveClass('density-p-[1,2,3,4,5]', 'density-rounded-[0.5,1,1.5,2,2.5]')
+		expect(card).toHaveClass('density-p-[1.5,2.25,3,3.75,4.5]', 'density-rounded-[0.5,1,1.5,2,2.5]')
 
 		// Frame padding survives: no `:has` collapse zeroes it.
 		expect(card?.className).not.toContain(':p-0')
@@ -109,15 +109,15 @@ describe('Card size system', () => {
 		const footer = present(bySlot(container, 'card-footer'), 'card footer')
 
 		// The header pads its bottom edge when a sibling follows it.
-		expect(header).toHaveClass('not-last:density-pb-[1,2,3,4,5]')
+		expect(header).toHaveClass('not-last:density-pb-[1.5,2.25,3,3.75,4.5]')
 
 		// The footer pads its top edge when a sibling other than a header comes before it.
-		expect(footer).toHaveClass('[:not([data-slot=card-header])+&]:density-pt-[1,2,3,4,5]')
+		expect(footer).toHaveClass('[:not([data-slot=card-header])+&]:density-pt-[1.5,2.25,3,3.75,4.5]')
 
 		// No pad applies with no condition, so an outer edge keeps the one pad of the frame.
-		expect(header).not.toHaveClass('density-pb-[1,2,3,4,5]')
+		expect(header).not.toHaveClass('density-pb-[1.5,2.25,3,3.75,4.5]')
 
-		expect(footer).not.toHaveClass('density-pt-[1,2,3,4,5]')
+		expect(footer).not.toHaveClass('density-pt-[1.5,2.25,3,3.75,4.5]')
 
 		expect(bySlot(container, 'card-body')?.className ?? '').not.toMatch(/\bp[a-z]?-\d/)
 	})

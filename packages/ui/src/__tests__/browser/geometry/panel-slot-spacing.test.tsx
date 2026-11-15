@@ -294,9 +294,9 @@ const VIEWPORTS = [
 
 /** The inset and the slot gap at each density, in pixels. */
 const DENSITIES = [
-	{ density: 'compact', inset: 20, gap: 12 },
+	{ density: 'compact', inset: 18, gap: 12 },
 	{ density: 'snug', inset: 24, gap: 16 },
-	{ density: 'loose', inset: 28, gap: 20 },
+	{ density: 'loose', inset: 30, gap: 20 },
 ] as const
 
 /** The content box of `el`: the edges that its text starts and stops at. */

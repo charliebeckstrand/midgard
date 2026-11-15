@@ -147,25 +147,27 @@ describe('spacing steps', () => {
 		'space.scale.py': dan.space.scale.py,
 	}
 
-	/**
-	 * The plain value of each stop of the scale, in px: the value at `md`. At `sm`
-	 * and at `lg`, a stop is 4 px less and 4 px more. The `xs` stop goes half of
-	 * its plain value less and more, because 4 px less is 0.
-	 */
+	/** The plain value of each stop of the scale, in px: the value at `md`. */
 	const plain = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 } as const
+
+	/** The factor of each density step: each step multiplies the plain value by one factor. */
+	const factors = [0.5, 0.75, 1, 1.25, 1.5]
 
 	describe.each(Object.entries(scales))('dan.%s', (_, scale) => {
 		it('has a stop for each plain value', () => {
 			expect(Object.keys(scale)).toStrictEqual(Object.keys(plain))
 		})
 
-		it.each(Object.entries(plain))('steps the %s stop from its plain value', (stop, md) => {
-			const px = parsePx(scale[stop as keyof typeof plain])
+		it.each(Object.entries(plain))(
+			'multiplies the %s stop by the factor of each step',
+			(stop, md) => {
+				const px = parsePx(scale[stop as keyof typeof plain])
 
-			const step = Math.min(4, md / 2)
-
-			expect([px.sm, px.md, px.lg]).toStrictEqual([md - step, md, md + step])
-		})
+				expect(densitySteps.map((step) => px[step])).toStrictEqual(
+					factors.map((factor) => md * factor),
+				)
+			},
+		)
 
 		it.each(Object.entries(scale))('extends the %s stop by the rule', (_, ramp) => {
 			const { sm, md, lg } = parsePx(ramp)

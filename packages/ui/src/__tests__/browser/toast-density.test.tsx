@@ -7,7 +7,7 @@ import { renderUI, waitFor } from '../helpers'
 import { holdRoot } from './helpers/root-state'
 
 /** The space between two stacked toasts at each root step: the `sm` stop of `dan.gap.scale`. */
-const GAP_PX: Record<DensityStep, number> = { xs: 2, sm: 4, md: 8, lg: 12, xl: 18 }
+const GAP_PX: Record<DensityStep, number> = { xs: 4, sm: 6, md: 8, lg: 10, xl: 12 }
 
 /** The width of a toast card at each root step: `dan.size.toast.width`. */
 const WIDTH_PX: Record<DensityStep, number> = { xs: 256, sm: 288, md: 320, lg: 352, xl: 384 }

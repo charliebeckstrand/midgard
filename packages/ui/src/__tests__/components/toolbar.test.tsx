@@ -340,7 +340,7 @@ describe('ToolbarSeparator', () => {
 		// A horizontal <hr> renders without an explicit aria-orientation.
 		expect(el).not.toHaveAttribute('aria-orientation')
 
-		expect(el?.className).toContain('density-my-[0.25,0.5,1,1.5,2.5]')
+		expect(el?.className).toContain('density-my-[0.5,0.75,1,1.25,1.5]')
 	})
 
 	it('takes the native attributes of its rule, and keeps its anchor for the row edges', () => {

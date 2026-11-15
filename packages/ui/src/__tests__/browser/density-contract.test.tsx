@@ -492,7 +492,7 @@ describe('the bottom inset of an open dialog at 390px (real browser)', () => {
 		if (SAFE_AREA_PX) await cdp().send('Emulation.setSafeAreaInsetsOverride', { insets: {} })
 	})
 
-	const INSET_PX = { xs: 16, sm: 20, md: 24, lg: 28, xl: 32 } as const satisfies Record<
+	const INSET_PX = { xs: 12, sm: 18, md: 24, lg: 30, xl: 36 } as const satisfies Record<
 		DensityStep,
 		number
 	>
@@ -576,7 +576,7 @@ describe('the bottom inset of an open dialog from sm up (real browser)', () => {
 			</Dialog>,
 		)
 
-		expect(px(getSlot(document.body, 'dialog'), 'paddingBottom')).toBe(28)
+		expect(px(getSlot(document.body, 'dialog'), 'paddingBottom')).toBe(30)
 	})
 })
 
