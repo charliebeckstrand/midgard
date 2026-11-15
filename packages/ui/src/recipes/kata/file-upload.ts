@@ -34,10 +34,21 @@ export const k = {
 				'dark:contrast-more:hover:not-disabled:border-white/70',
 			],
 		),
+		// A drag over the zone takes the neutral step of a drop target, as the drop
+		// targets of Kanban and QueryBuilder do: the edge of the hover and the tint
+		// fill. Forced colors remove the fill, so there the zone draws an outline.
 		...mode(
-			'data-drag-over:border-blue-500 data-drag-over:bg-blue-50/50',
-			'dark:data-drag-over:border-blue-400 dark:data-drag-over:bg-blue-950/20',
+			[
+				'data-drag-over:border-zinc-400 contrast-more:data-drag-over:border-zinc-950/70',
+				'data-drag-over:bg-zinc-950/5',
+			],
+			[
+				'dark:data-drag-over:border-zinc-500 dark:contrast-more:data-drag-over:border-white/70',
+				'dark:data-drag-over:bg-white/10',
+			],
 		),
+		'forced-colors:data-drag-over:outline-solid forced-colors:data-drag-over:outline-2',
+		'forced-colors:data-drag-over:-outline-offset-2 forced-colors:data-drag-over:outline-[Highlight]',
 		...disabled.base,
 	],
 	// Full-area picker trigger for the filled dropzone: a sibling of the `Reset`
