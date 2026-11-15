@@ -27,8 +27,8 @@ const { css, instant, spring } = ugoki
  * padding does.
  *
  * The padding and the width of the handle (see `handle`) use the same ramp,
- * which is twice the horizontal cell padding of the density (`px-1`/`px-2`/
- * `px-3` → 4/8/12px). The handle sits on the trailing edge, so its centered
+ * which is twice the inline cell padding (`dan.space.cell.x`) at each step.
+ * The handle sits on the trailing edge, so its centered
  * grip lands one cell padding in from that edge. The header label and the body
  * values truncate at that line, so the grip meets the value and does not cut
  * through it.
@@ -506,10 +506,10 @@ export const k = {
 			// The reveal wrapper inside each leaf cell.
 			reveal: {
 				...reveal,
-				// The cell padding on the reveal wrapper, in the stepped class of the
+				// The cell padding on the reveal wrapper, in the stepped classes of the
 				// kata/table cell padding, so an animated leaf cell matches an ordinary one,
 				// and collapses that padding to nothing at height 0.
-				pad: dan.space.cell.base,
+				pad: `${dan.space.cell.x} ${dan.space.cell.y}`,
 			},
 		},
 		reorder: {
@@ -973,7 +973,8 @@ export const k = {
 			'z-[4]',
 			'overflow-y-auto',
 			'[&_textarea]:max-h-none [&_textarea]:overflow-auto',
-			dan.space.cell.base,
+			dan.space.cell.x,
+			dan.space.cell.y,
 			hostSurface,
 			...ring.line[2].inset,
 			'ring-blue-600',

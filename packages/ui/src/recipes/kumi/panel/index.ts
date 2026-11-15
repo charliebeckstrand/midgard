@@ -27,7 +27,7 @@ export { grip } from './grip'
 
 const { text } = iro
 const { size, leading } = ji
-const { flex } = narabi
+const { fit, flex } = narabi
 const { scale } = dan.gap
 
 /** The column of the slots, at the gap of the slot rhythm. */
@@ -51,8 +51,8 @@ export const panel = defineGroup({
 		title: [...text.default, leading.none, '[text-wrap-style:balance]'],
 		description: [...text.muted, size.md, leading.tight],
 		/** Optional wrapper around body + footer; a Form or similar can wrap both while preserving the panel's slot rhythm. */
-		content: [flex.col, 'min-h-0', scale.lg],
-		body: [...text.muted, 'min-h-0 overflow-y-auto overscroll-contain'],
+		content: [...fit.column, scale.lg],
+		body: [...text.muted, fit.scroll],
 		footer: [flex.row, 'justify-end', scale.sm],
 	},
 	defaults: { surface: 'flat' },

@@ -87,8 +87,6 @@ export const space = {
 		},
 	},
 	cell: {
-		/** The padding of a grid cell. It matches `cell.x` and `cell.y`. */
-		base: scale.p.sm,
 		/** The inline padding of a table cell. */
 		x: scale.px.sm,
 		/** The block padding of a table cell. */
@@ -419,8 +417,11 @@ export const space = {
 		},
 	},
 	resize: {
-		/** The end padding of a resizable grid header, which holds the resize handle. */
-		end: '[&>*>tr>th[data-resizable]]:density-pe-[1,2,4,6,9]',
+		/**
+		 * The end padding of a resizable grid header, which holds the resize
+		 * handle: twice the inline cell padding (`cell.x`), the width of the handle.
+		 */
+		end: '[&>*>tr>th[data-resizable]]:density-pe-[2,3,4,5,6]',
 	},
 	term: {
 		/**

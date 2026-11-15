@@ -21,13 +21,14 @@ const fill = {
 	lg: mode('bg-white/75', 'dark:bg-zinc-950/75'),
 } as const
 
+const base = [fill.md, blur.sm]
+
 export const backdrop = {
-	base: [fill.md, blur.sm],
+	base,
 	axis: {
 		glass: fill.lg,
 		flat: [
-			fill.md,
-			blur.sm,
+			...base,
 			...mode('surfaces-glass:bg-white/75', 'dark:surfaces-glass:bg-zinc-950/75'),
 			'surfaces-glass:backdrop-blur-none',
 		],

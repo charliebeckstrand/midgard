@@ -17,5 +17,5 @@ const { rounded } = kasane
 
 export const pagination = {
 	item: [rounded.lg, 'size-9'],
-	nav: [rounded.lg, dan.size.pagination],
+	nav: [dan.radius.button, dan.size.pagination],
 } as const

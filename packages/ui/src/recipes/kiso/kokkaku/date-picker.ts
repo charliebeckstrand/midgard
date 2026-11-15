@@ -14,6 +14,7 @@
  */
 
 import { dan } from '../dan'
+import { shaku } from '../shaku'
 import { control } from './control'
 
 export const datePicker = {
@@ -29,5 +30,5 @@ export const datePicker = {
 		range: 'w-[14ch]',
 	},
 	// The icon of the trigger is in a slot scope, one step below the trigger.
-	icon: ['shrink-0', dan.size.icon.base],
+	icon: ['shrink-0', shaku.icon.base],
 } as const

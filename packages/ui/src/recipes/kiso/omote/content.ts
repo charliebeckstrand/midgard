@@ -12,6 +12,8 @@
 
 import { mode } from '../../../core/recipe'
 
+import { bg } from './bg'
+
 export const content = {
 	flat: [
 		...mode(
@@ -21,12 +23,5 @@ export const content = {
 		'rounded-none',
 		'shadow-none',
 	].join(' '),
-	card: [
-		...mode(
-			['bg-white', '[--surface-fill:var(--color-white)]'],
-			['dark:bg-zinc-900', 'dark:[--surface-fill:var(--color-zinc-900)]'],
-		),
-		'rounded-lg',
-		'shadow-xs',
-	].join(' '),
-}
+	card: [...bg.surface, 'rounded-lg', 'shadow-xs'].join(' '),
+} as const
