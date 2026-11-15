@@ -45,7 +45,7 @@ const FIT = [
 const floating = `inset-4 rounded-t-2xl rounded-b-2xl ${FLOATING_CAP} overflow-y-visible overscroll-auto [--ui-panel-safe:0px]`
 
 /**
- * The unit of the {@link Dialog}: the panel (`base`) and the backdrop.
+ * The unit of the {@link Dialog}: the panel (`base`) and its slots.
  */
 export const k = defineKata(
 	{

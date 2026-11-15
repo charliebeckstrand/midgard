@@ -1,8 +1,7 @@
 /**
  * Drawer kata: the unit of the `<Drawer>` bottom panel, which extends the panel
  * group. The `base` slot is the panel, with the `surface` and `height` axes.
- * The `backdrop` follows the glass or flat surface. The `handle` drag grip and
- * the `motion` are extras.
+ * The `handle` drag grip and the `motion` are extras.
  */
 import { defineScale } from '../../core/density'
 import { defineKata, type VariantProps } from '../../core/recipe'

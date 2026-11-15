@@ -10,7 +10,7 @@
 | [Kumi 組: Groups](./kumi/README.md) | Structure | The shared structure of a family of units: slots, axes, and defaults in the shape of a unit. A unit extends its group. Reads kiso and the recipe engine. |
 | [Kata 型: Form](./kata/README.md) | Application | Per-unit recipes: the funnel for components and primitives. |
 
-The recipe engine (`defineRecipe`, `defineKata`, `defineGroup`, `definePalette`), the color axis (`colors`, `Color`), and the `mode` authoring helper live in [`core/recipe/`](../core/recipe). Files in `kumi` and `kata` import them directly.
+The recipe engine (`defineKata`, `defineGroup`, `definePalette`), the color axis (`colors`, `Color`), and the `mode` authoring helper live in [`core/recipe/`](../core/recipe). Files in `kumi` and `kata` import them directly.
 
 ## 2. Direction
 
@@ -48,6 +48,7 @@ These pin the contract:
 
 - `__tests__/boundary/recipe-boundary.test.ts`: the barrel is types-only, and `package.json` `exports` never lists `./recipes`.
 - `__tests__/boundary/kiso-families-boundary.test.ts`: the kiso barrel exports each family and no other value, and a kata or a group reads kiso through the barrel only.
+- `biome.json`, the overrides of `components`, `structure`, `layouts`, `modules`, and `primitives`: a consumer imports no module of kumi or kiso, so each value arrives through its kata. The `hooks` override also keeps kata and kumi out of a hook.
 - `biome.json`, the `recipes/kiso/**` override: kiso never reaches upward into kumi, kata, components, primitives, layouts, hooks, or providers.
 - `biome.json`, the `recipes/kumi/**` override: kumi reads kiso and the recipe engine, and never reaches upward into kata, components, primitives, layouts, hooks, or providers.
 - `check-types`: the `recipes` barrel exports types alone, so under `verbatimModuleSyntax` a value import from it does not compile. `core/recipe` does not export `defineRecipe`, so a kata builds each recipe as a unit with `defineKata`.
