@@ -5,7 +5,7 @@
  * the nearest density scope.
  */
 import { defineKata } from '../../core/recipe'
-import { ma, narabi } from '../kiso'
+import { dan, narabi } from '../kiso'
 
 const { direction, align, justify } = narabi.flex
 
@@ -23,6 +23,6 @@ export const k = defineKata({
 	wrap: { true: 'flex-wrap', false: '' },
 	full: { true: 'w-full', false: '' },
 	flex: { '1': 'flex-1', auto: 'flex-auto' },
-	responsive: { direction, align, gap: ma.gap, justify },
+	responsive: { direction, align, gap: dan.gap.scale, justify },
 	defaults: { direction: 'row' },
 })

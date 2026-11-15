@@ -28,7 +28,6 @@ const FAMILIES: Record<string, readonly [kanji: string, meaning: string]> = {
 	kara: ['空', 'emptiness: the virtualized empty state'],
 	kasane: ['重ね', 'layering: the chrome stack and the radius'],
 	kokkaku: ['骨格', 'skeleton: the placeholder forms'],
-	ma: ['間', 'space: the spacing scale'],
 	narabi: ['並び', 'arrangement: the layout of siblings'],
 	omote: ['面', 'surface: the fills and the chromes'],
 	sen: ['線', 'line: the borders, the rings, and the focus'],
