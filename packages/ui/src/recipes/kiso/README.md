@@ -6,7 +6,7 @@
 
 `kiso/` is internal. Only `kumi/` and `kata/` read its values, and they read them through the barrel (`from '../kiso'`). Components, primitives, and layouts reach kiso through their owning kata (`recipes/kata/<name>`). Foundational types (`Color`, `Ma`, `GroupOrientation`) flow through the types-only `recipes` barrel, so consumers can derive prop unions without threading the type through their funnel.
 
-Composition flows downward only. A family can compose its siblings. `narabi` reads `dan` · `sen` · `shaku`, and `omote` reads `sen` · `ugoki`. `hannou` reads `ugoki`, and `zu` reads `iro` · `ugoki`. `kokkaku` reads `dan` · `kasane` · `shaku`, and `shaku` reads `dan` · `ji` · `kasane`. `kasane` reads `sen`. `ma` reads `dan`, which reads no other family. Kiso never reaches upward into `kumi/` or `kata/`. The `recipes/kiso/**` override in `biome.json` pins the direction, and [`../README.md`](../README.md#3-boundary) has the full boundary list.
+Composition flows downward only. A family can compose its siblings. `narabi` reads `dan` · `sen` · `shaku`, and `omote` reads `sen` · `ugoki`. `hannou` reads `ugoki`, and `zu` reads `iro` · `ugoki`. `kokkaku` reads `dan` · `ji` · `kasane` · `shaku`, and `shaku` reads `dan` · `ji` · `kasane`. `kasane` reads `sen`. `ma` reads `dan`, which reads no other family. Kiso never reaches upward into `kumi/` or `kata/`. The `recipes/kiso/**` override in `biome.json` pins the direction, and [`../README.md`](../README.md#3-boundary) has the full boundary list.
 
 ## 2. Shape
 
@@ -26,7 +26,7 @@ Each concern file opens with a `Layer: kiso · Concern: <concern>` docblock that
 | `ma/` (間)         | Named spacing scale projected as finished Tailwind padding and gap utilities.                                                      | `scale`, `padding`, `gap`                                                                                          |
 | `narabi/` (並び)   | Sibling arrangement: field adjacency, toggle grid, slide positioning, icon slot, nav slot inset, truncated description, flex primitives, `fit`, which caps a floating panel to the space beside its trigger, `offcanvas`, the display of a part that shows in one offcanvas layout only, `nest`, the geometry of a tree that indents each level under a mark column, and `touch`, the zero touch gap of hosts that touch. | `field`, `group`, `toggle`, `slide`, `item`, `inset`, `description`, `text`, `flex`, `fit`, `offcanvas`, `nest`, `touch` |
 | `omote/` (面)      | Surface fills and chromes: the popover, glass, and panel chromes, the `rail` that scrolls on the inline axis, the hidden `scrollbar`, and the `fade` mask of a scroll container. `blur` is a part of the chromes and stays out of the bundle. | `bg`, `blur`, `popover`, `glass`, `panel`, `backdrop`, `content`, `skeleton`, `fade`, `rail`, `scrollbar`, `checkerboard` |
-| `hannou/` (反応)   | Interaction feedback. `tint` holds the washes: `base`, `hover`, `before`, `filled`, `surface`, and `glass`. `active` is the wash of a roved row. | `disabled`, `busy`, `fg`, `cursor`, `tint`, `active` |
+| `hannou/` (反応)   | Interaction feedback. `tint` holds the washes: `base`, `hover`, `before`, `filled`, `surface`, and `glass`. `active` is the wash of a roved row. `disabled.base` dims a disabled element, and `disabled.host` dims a box through the native control inside it. | `disabled`, `busy`, `fg`, `cursor`, `tint`, `active` |
 | `sen/` (線)        | Borders, rings, dividers, focus indicators, table gridlines, the resize grip, and forced-colors safety nets. `ring.thumb` holds the rings of a native range thumb. | `tone`, `border`, `outline`, `ring`, `divider`, `focus`, `forced`, `grip`, `gridline`                              |
 | `shaku/` (尺)      | Dimension scales for distinct surfaces. `icon` holds the forms of the icon scale (`icon.base`, `icon.slot`). | `icon`, `panel`, `mark` |
 | `ugoki/` (動き)    | Motion: tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, Framer Motion enter/exit configs, the layout glide, and their reduced-motion copies. | `css`, `base`, `spring`, `mark`, `reveal`, `popover`, `overlay`, `toast`, `tooltip`, `collapse`, `glide`, `panel`, `still` |
@@ -40,6 +40,8 @@ Each concern file opens with a `Layer: kiso · Concern: <concern>` docblock that
 ## 4. Kokkaku
 
 The keys of `kokkaku` name units, but a form is a set of measures, not a part of a component. A form holds no chrome, so the placeholder tracks only the silhouette of its unit. The forms also read each other: the chart legend reads the height of the button form, and the picker forms read the control form. Thus the forms stay together in one family. A kata reads its form as `skeleton: kokkaku.<name>`, and some kata also read a measure of the form for the real component, so the two cannot drift apart.
+
+A line of text in a form is one line of its text: it takes the text class of the line that it stands for, a `dan.text` ramp or a `ji.size`, and `h-lh`. The text sets the line height, so the form holds no height of its own for the line, and `dan` holds no ramp that restates a line height. A line that the form draws shorter than its text, such as a heading bar or a chat bar, is a shape and keeps its height.
 
 ## 5. Rules
 

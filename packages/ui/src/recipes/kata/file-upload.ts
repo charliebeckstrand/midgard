@@ -38,7 +38,7 @@ export const k = {
 			'data-drag-over:border-blue-500 data-drag-over:bg-blue-50/50',
 			'dark:data-drag-over:border-blue-400 dark:data-drag-over:bg-blue-950/20',
 		),
-		...disabled,
+		...disabled.base,
 	],
 	// Full-area picker trigger for the filled dropzone: a sibling of the `Reset`
 	// button (never its parent, which would nest interactive controls), stacked

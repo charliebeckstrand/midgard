@@ -284,15 +284,6 @@ const sharedRamps = new Set([
 ])
 
 /**
- * The ramps of a skeleton line that are as tall as the line of the text that
- * they stand in for: the text size plus 8 px.
- */
-const textLines = [
-	['size.line.timeline', dan.size.line.timeline, dan.text.title],
-	['size.stat.value.base', dan.size.stat.value.base, dan.text.h1],
-] as const
-
-/**
  * The gap ramps of a toolbar group and their touch gaps. At each step, the gap
  * is the `xs` stop of the gap scale at the step below, and 0 at `xs`. Thus the
  * gap of a group is less than the toolbar gap at each step.
@@ -351,14 +342,9 @@ describe('every ramp of dan', () => {
 	// A ramp that does not follow the text keeps its three inner steps, and
 	// `spacingSteps` gives its outer steps (`core/density/geometry.ts`). The rule
 	// reads the stops, before a ring utility removes its ring.
-	const lines = new Set<string>(textLines.map(([path]) => path))
-
 	const spaced = own.filter(
 		([path, ramp]) =>
-			!(path in geometry) &&
-			!(path in toolbarRamps) &&
-			!lines.has(path) &&
-			!/(?:^|:)density-text-/.test(ramp),
+			!(path in geometry) && !(path in toolbarRamps) && !/(?:^|:)density-text-/.test(ramp),
 	)
 
 	it.each(spaced)('extends dan.%s by the rule of its inner steps', (_, ramp) => {
@@ -367,15 +353,5 @@ describe('every ramp of dan', () => {
 		const [, sm = 0, md = 0, lg = 0] = stops
 
 		expect(stops).toStrictEqual(spacingSteps(sm, md, lg))
-	})
-})
-
-describe('the line of a skeleton', () => {
-	it.each(textLines)('gives dan.%s the line of its text at each step', (_, line, text) => {
-		const height = parsePx(line)
-
-		const size = parsePx(text)
-
-		for (const step of densitySteps) expect(height[step]).toBe(size[step] + 8)
 	})
 })

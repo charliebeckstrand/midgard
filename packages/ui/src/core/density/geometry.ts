@@ -121,8 +121,6 @@ export const geometry = {
 	'size.row': lineHeight,
 	'size.separator.base': smallTextSize,
 	'size.separator.svg': smallTextSize,
-	'size.line.text': lineHeight,
-	'size.line.base': (step) => toLeading(smallTextSize(step)),
 	'size.switch.thumb': thumbSize,
 	'size.switch.width': (step) => 2 * thumbSize(step) + 8,
 	'size.switch.choice': (step) => 3 * thumbSize(step) + 8,

@@ -41,8 +41,12 @@ export const cursor = [
  */
 export const grab = {
 	/**
-	 * The open hand, the closed one while held, and the two refusals a drag needs
-	 * from the platform.
+	 * The open hand, the closed one while held, the cursor of a disabled
+	 * surface, and the two refusals a drag needs from the platform.
+	 *
+	 * A disabled surface shows `not-allowed`, as `cursor` does, and reads the two
+	 * spellings of disabled. A handle can be a native `<button>` or a `<div>` with
+	 * `data-disabled`.
 	 *
 	 * `touch-none` is the load-bearing half. Without it the browser claims the
 	 * gesture for scrolling before the element sees a second move. A handle that
@@ -54,6 +58,7 @@ export const grab = {
 	 */
 	default: [
 		'cursor-grab data-dragging:cursor-grabbing',
+		'disabled:cursor-not-allowed data-disabled:cursor-not-allowed',
 		'touch-none select-none **:select-none [-webkit-touch-callout:none]',
 	],
 } as const

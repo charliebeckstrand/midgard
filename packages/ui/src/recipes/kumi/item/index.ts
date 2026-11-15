@@ -27,7 +27,7 @@ export const item = defineGroup({
 		size.md,
 		forced.text,
 		forced.focus,
-		disabled,
+		disabled.base,
 		cursor,
 		tint.base,
 		tint.glass.base,

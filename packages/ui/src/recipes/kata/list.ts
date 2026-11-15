@@ -175,12 +175,11 @@ export const k = defineKata(
 				'flex-none justify-center',
 				'px-3 -mx-3',
 				...grab.default,
-				'data-disabled:cursor-not-allowed',
 				...mode(
 					'text-zinc-500 not-data-disabled:hover:text-zinc-700',
 					'dark:text-zinc-500 dark:not-data-disabled:hover:text-zinc-200',
 				),
-				...disabled,
+				...disabled.base,
 			],
 			/**
 			 * Content column. Pass three flags:

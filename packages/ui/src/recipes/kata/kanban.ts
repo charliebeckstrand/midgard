@@ -47,7 +47,14 @@ export const k = defineKata(
 					// A disabled board dims each body as one box, not each card in it. WebKit
 					// does not repaint a card in the scroll box of the body while the opacity
 					// of the card goes down from 1. Thus the card stays bright and then jumps.
-					body: [flex.col, 'flex-1', dan.gap.scale.xs, 'overflow-y-auto', focus.inset, ...disabled],
+					body: [
+						flex.col,
+						'flex-1',
+						dan.gap.scale.xs,
+						'overflow-y-auto',
+						focus.inset,
+						...disabled.base,
+					],
 					// `on.wash.muted`, not `muted`: the empty message sits on the tint fill of
 					// the column Card, which `muted` is not legal over. See `iro/ramp.ts`.
 					empty: [flex.row, 'justify-center', 'min-h-16', size.sm, on.wash.muted],
@@ -82,7 +89,6 @@ export const k = defineKata(
 							rounded.md,
 							text.muted,
 							...grab.default,
-							'data-disabled:cursor-not-allowed',
 							focus.ring,
 						],
 						// The handle holds the focus of a lifted card, so it takes the accent in

@@ -19,7 +19,7 @@ export const k = defineKata({
 		...cursor,
 		'select-none',
 		'touch-none',
-		disabled,
+		disabled.base,
 		dan.space.slider.y,
 	],
 	slots: {
@@ -51,7 +51,6 @@ export const k = defineKata({
 				'data-invalid:ring-2 data-invalid:ring-red-600',
 				...forced.invalid.outset,
 				'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
-				'dark:focus-visible:ring-blue-500',
 				...forced.ring.outset,
 				dan.size.slider.thumb,
 			],
