@@ -4,13 +4,17 @@
  * Layer: kiso · Concern: density ramps
  */
 
+import type { Ma } from './gap'
+
 /**
- * The named padding scale (`ma.p`, `ma.px`, `ma.py`) of Box. Each stop takes
- * the list of the same stop of the gap scale (`gap.scale`), so a padding and a
- * gap of one stop have one length at each step.
+ * The named padding scale of Box, for each axis. Each stop takes the list of
+ * the same stop of the gap scale (`gap.scale`), so a padding and a gap of one
+ * stop have one length at each step. The `0` stop is no padding, as a stepped
+ * rule, for the reason that the gap scale gives.
  */
 const scale = {
 	p: {
+		0: 'density-p-[0,0,0,0,0]',
 		xs: 'density-p-[0.5,0.75,1,1.25,1.5]',
 		sm: 'density-p-[1,1.5,2,2.5,3]',
 		md: 'density-p-[1.5,2.25,3,3.75,4.5]',
@@ -18,6 +22,7 @@ const scale = {
 		xl: 'density-p-[3,4.5,6,7.5,9]',
 	},
 	px: {
+		0: 'density-px-[0,0,0,0,0]',
 		xs: 'density-px-[0.5,0.75,1,1.25,1.5]',
 		sm: 'density-px-[1,1.5,2,2.5,3]',
 		md: 'density-px-[1.5,2.25,3,3.75,4.5]',
@@ -25,13 +30,14 @@ const scale = {
 		xl: 'density-px-[3,4.5,6,7.5,9]',
 	},
 	py: {
+		0: 'density-py-[0,0,0,0,0]',
 		xs: 'density-py-[0.5,0.75,1,1.25,1.5]',
 		sm: 'density-py-[1,1.5,2,2.5,3]',
 		md: 'density-py-[1.5,2.25,3,3.75,4.5]',
 		lg: 'density-py-[2,3,4,5,6]',
 		xl: 'density-py-[3,4.5,6,7.5,9]',
 	},
-} as const
+} as const satisfies Record<'p' | 'px' | 'py', Record<Ma, string>>
 
 /** The padding of a nav item and a sidebar item: the `sm` stop of the padding scale. */
 const navItem = scale.p.sm
@@ -56,16 +62,6 @@ const top = 'density-pt-[2,3,4,5,6]'
 
 export const space = {
 	scale,
-	/**
-	 * No padding, as a stepped rule for each axis of `scale`. It is in the layer
-	 * of `scale`, so a breakpoint can switch it with a stop of `scale`. A plain
-	 * `p-0` outranks that layer.
-	 */
-	none: {
-		p: 'density-p-[0,0,0,0,0]',
-		px: 'density-px-[0,0,0,0,0]',
-		py: 'density-py-[0,0,0,0,0]',
-	},
 
 	box: {
 		/** The padding of a box: a card, a list, or a date picker body. */
