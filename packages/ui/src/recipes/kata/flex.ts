@@ -7,25 +7,7 @@
 import { defineKata } from '../../core/recipe'
 import { dan, narabi } from '../kiso'
 
-const { align } = narabi.flex
-
-/** The `flex-direction` of each direction of a flex box. */
-const direction = {
-	row: 'flex-row',
-	col: 'flex-col',
-	'row-reverse': 'flex-row-reverse',
-	'col-reverse': 'flex-col-reverse',
-} as const
-
-/** The `justify-content` of each distribution of the children of a flex box. */
-const justify = {
-	start: 'justify-start',
-	center: 'justify-center',
-	end: 'justify-end',
-	between: 'justify-between',
-	around: 'justify-around',
-	evenly: 'justify-evenly',
-} as const
+const { direction, align, justify } = narabi.flex
 
 /** Main-axis orientation: `row`, `col`, or their reversed variants. */
 export type FlexDirection = keyof typeof direction
