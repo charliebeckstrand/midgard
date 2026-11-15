@@ -40,7 +40,7 @@ describe('the critical CSS of a page', { timeout: 30_000 }, () => {
 	const inline = inlineClasses(stylesheet)
 
 	it('finds the classes of the `@source inline(...)` rules of ui', () => {
-		expect(inline).toEqual(expect.arrayContaining(['sm:p-0', '2xl:grid-cols-6', 'md:flex-col']))
+		expect(inline).toEqual(expect.arrayContaining(['sm:inset-0', '2xl:grid-cols-6', 'md:flex-col']))
 	})
 
 	// Tailwind expands each rule itself. When the list misses a class of a rule,
