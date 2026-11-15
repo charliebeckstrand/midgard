@@ -31,7 +31,7 @@ const check = [
 	'flex-none',
 	flex.inline,
 	'justify-center',
-	kokkaku.checkbox.box,
+	dan.size.check.box,
 	dan.radius.check,
 	...rest,
 	...mode('group-hover/tree-item:border-zinc-950/70', 'dark:group-hover/tree-item:border-white/50'),

@@ -17,7 +17,7 @@ export const k = defineKata(
 			'has-[:checked,[data-indeterminate]]:bg-(--check-bg) has-[:checked,[data-indeterminate]]:border-(--check-border)',
 			'not-has-[:disabled,[aria-readonly=true]]:has-[:checked,[data-indeterminate]]:hover:opacity-90',
 			// The box takes the step of the nearest density scope.
-			checkbox.box,
+			dan.size.check.box,
 			dan.radius.check,
 		],
 		color: defineColors({

@@ -3,21 +3,17 @@
  * per star, because the silhouette's width is the star count and not a size
  * step.
  *
- * `star` is the glyph size of the real star, and `gap` is the gap of the
- * rating row. The Rating kata reads both. Each is a stepped `density-*` class,
- * so the silhouette takes the step of its nearest density scope, as the rating
- * does.
+ * The skeleton puts each square in the `glyph` slot and the row in the root
+ * of the Rating kata, so the star size and the gap of the row are the ones of
+ * the real rating.
  *
  * Layer: kiso · Concern: skeleton form · Unit: rating
  */
 
-import { dan } from '../dan'
 import { kasane } from '../kasane'
 
 const { rounded } = kasane
 
 export const rating = {
 	base: [rounded.sm],
-	star: dan.size.check.box,
-	gap: dan.gap.rating,
 } as const

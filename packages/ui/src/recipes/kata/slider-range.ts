@@ -1,6 +1,6 @@
 import type { ScaleStep } from '../../core/density'
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, hannou, kasane, kokkaku, sen, ugoki } from '../kiso'
+import { dan, hannou, kasane, sen, ugoki } from '../kiso'
 import { scale, slider } from '../kumi/slider'
 
 const { cursor, disabled } = hannou
@@ -28,7 +28,7 @@ export const k = defineKata({
 			rounded.full,
 			'bg-(--slider-track)',
 			forced.outline,
-			kokkaku.slider.track,
+			dan.size.slider.track,
 		],
 		fill: ['absolute', rounded.full, 'bg-(--slider-fill)', forced.mark],
 		thumb: {

@@ -103,7 +103,8 @@ export const k = defineKata(
 			...validation,
 			disabled.host,
 			// The track takes the step of the nearest density scope.
-			...kokkaku.switch.track,
+			dan.size.row,
+			dan.size.switch.width,
 		],
 		color,
 		slots: {

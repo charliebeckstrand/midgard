@@ -15,7 +15,7 @@ export const k = defineKata(
 			'has-checked:bg-(--check-bg) has-checked:border-(--check-border)',
 			'not-has-[:disabled,[data-readonly]]:has-checked:hover:opacity-90',
 			// The circle takes the step of the nearest density scope.
-			radio.circle,
+			dan.size.check.box,
 		],
 		color: defineColors({
 			zinc: {

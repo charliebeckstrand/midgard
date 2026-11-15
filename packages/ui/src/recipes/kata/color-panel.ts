@@ -59,7 +59,7 @@ const preview = [
 
 export const k = defineKata(
 	{
-		base: [flex.col, 'select-none', kokkaku.colorPanel.width, dan.gap.colorPanel],
+		base: [flex.col, 'select-none', dan.size.colorPanel.width, 'max-w-full', dan.gap.colorPanel],
 		slots: {
 			area: {
 				base: area,

@@ -11,12 +11,8 @@
 
 import { dan } from '../dan'
 
-// The height of a button at each step. The chart legend reads it too.
-const height = dan.size.button.base
-
 export const button = {
-	base: [dan.radius.button, height, dan.size.button.width],
-	height,
+	base: [dan.radius.button, dan.size.button.base, dan.size.button.width],
 	density: true,
 	// Inline-level, as the `inline-flex` button is, so the silhouette can stand in
 	// for a button in a line of text, a paragraph included.
