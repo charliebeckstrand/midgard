@@ -18,17 +18,21 @@ import { srcDir, workspaceRoot, workspaceSources } from '../helpers/walk-source'
 //      A box that scrolls on both axes, such as the Grid, keeps `overflow-auto`
 //      and is not a rail, because its pinned columns sit at the edges.
 //
-//   2. No file but the home reads `fade.inline`.
+//   2. No file but the home writes `scroll-fade-inline`, other than the file
+//      that defines the utility.
 //
 //   3. No file reads or writes a scroll edge attribute: `data-overflow-start`
 //      or `data-overflow-end` on the inline axis, `data-overflow-above` or
 //      `data-overflow-below` on the block axis. A script stamps such an
 //      attribute after the first paint, so a style that keys off it arrives
 //      late, and the reader sees it appear. A block scroller takes
-//      `fade.block`, which draws its fade in CSS as the rail does.
+//      `scroll-fade-block`, which draws its fade in CSS as the rail does.
 
 /** The one file that owns the rule. */
 const HOME = 'recipes/kiso/omote/rail.ts'
+
+/** The file that defines the edge fade utilities. */
+const UTILITY = 'core/scroll/fade.ts'
 
 /** The trees to scan: the ui source and the source of each app. */
 const SCAN_ROOTS = [srcDir, join(workspaceRoot, 'apps')]
@@ -36,8 +40,8 @@ const SCAN_ROOTS = [srcDir, join(workspaceRoot, 'apps')]
 /** A class or a style that scrolls on the inline axis alone. */
 const INLINE_SCROLL = /\boverflow-x-(?:auto|scroll)\b|\boverflowX:\s*['"](?:auto|scroll)['"]/
 
-/** A read of the edge fade. */
-const READS_FADE = /\bfade\.inline\b|\{[^}]*\binline\b[^}]*\}\s*=\s*fade\b/
+/** The inline edge fade. */
+const WRITES_FADE = /\bscroll-fade-inline\b/
 
 /** A scroll edge attribute, as an attribute or as a Tailwind variant. */
 const EDGE_ATTRIBUTE = /\bdata-overflow-(?:start|end|above|below)\b/
@@ -56,14 +60,14 @@ describe('inline-scroll boundary', () => {
 		).toEqual([])
 	})
 
-	it('reads the edge fade only in the rail', () => {
+	it('writes the inline edge fade only in the rail', () => {
 		const violations = [...files]
-			.filter(([key, code]) => key !== HOME && READS_FADE.test(code))
+			.filter(([key, code]) => key !== HOME && key !== UTILITY && WRITES_FADE.test(code))
 			.map(([key]) => key)
 
 		expect(
 			violations,
-			`files that read \`fade.inline\` outside the rail (read \`omote.rail\`):\n  ${violations.join('\n  ')}`,
+			`files that write \`scroll-fade-inline\` outside the rail (read \`omote.rail\`):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 
@@ -74,7 +78,7 @@ describe('inline-scroll boundary', () => {
 
 		expect(
 			violations,
-			`files that read or write a \`data-overflow-*\` scroll edge attribute (\`omote.rail\` and \`fade.block\` draw the edge fade in CSS, with no attribute):\n  ${violations.join('\n  ')}`,
+			`files that read or write a \`data-overflow-*\` scroll edge attribute (\`omote.rail\` and \`scroll-fade-block\` draw the edge fade in CSS, with no attribute):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })

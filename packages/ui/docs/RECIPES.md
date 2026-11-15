@@ -22,7 +22,7 @@ One sub-folder for each family, except the flat files `sou.ts` and `tsunagi.ts`;
 | `iro` 色 | The color tokens of the kata. The chromatic `palette`, its `extended` hues, and its `hover` hold one literal class string for each variant and color. The other tokens are the intent-color text bundle, the `match` wash, and the `on.wash` rung. |
 | `ji` 字 | Typography: the fixed size scale. The stepped text size of a density-native component is a ramp in `dan.text`. A weight, a line height, and a font family are plain Tailwind classes. |
 | `narabi` 並び | Sibling arrangement: field adjacency, slide positioning, icon slot, and flex primitives. `fit` is the column of a panel with a capped height. `offcanvas` shows a part in one offcanvas layout only. `nest` indents each level of a tree under a mark column. `touch` sets the touch gap of hosts that touch to zero on one axis. |
-| `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, the hidden `scrollbar`, and the `fade` mask. |
+| `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, and the hidden `scrollbar`. |
 | `hannou` 反応 | Interaction feedback: `disabled`, `busy`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, table gridlines, the resize grip, and forced-colors safety nets. |
 | `shaku` 尺 | Dimension scales per surface (`icon`, `panel`, `mark`). `icon.slot` holds the forms that size the icon children of a host. |

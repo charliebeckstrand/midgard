@@ -19,7 +19,7 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata, mode } from '../../core/recipe'
-import { dan, iro, ji, narabi, omote, sen, ugoki } from '../kiso'
+import { dan, iro, ji, narabi, sen, ugoki } from '../kiso'
 import { item } from '../kumi/item'
 
 const { text } = iro
@@ -69,8 +69,8 @@ export const k = defineKata(
 					// The panel surface is translucent glass, so an overlay gradient has no
 					// solid color to fade into; a mask fades the scrolled content itself.
 					// The edge with content behind it fades, in CSS with no script. When the
-					// rows fit, no mask applies.
-					...omote.fade.block,
+					// rows fit, no mask applies. The utility is in `core/scroll/fade.ts`.
+					'scroll-fade-block',
 				],
 				// Off by default: a menu is normally a short, fixed item set, where a cap
 				// clips the last row and reads as truncation rather than as more content
