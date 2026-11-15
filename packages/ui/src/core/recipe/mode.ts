@@ -13,14 +13,12 @@
  * class literals.
  */
 
-type ModeValue = string | readonly (string | readonly string[])[]
+type ModeValue = string | readonly string[]
 
 type ColorEntry = ModeValue | { light: ModeValue; dark: ModeValue }
 
 function flatten(value: ModeValue): string[] {
-	if (typeof value === 'string') return [value]
-
-	return value.flatMap((item) => (typeof item === 'string' ? [item] : [...item]))
+	return typeof value === 'string' ? [value] : [...value]
 }
 
 function isPair(entry: ColorEntry): entry is { light: ModeValue; dark: ModeValue } {
@@ -34,8 +32,8 @@ function resolveEntry(entry: ColorEntry): string[] {
 }
 
 /** Fuses a light / dark pair into the flat string array the engine consumes. */
-export function mode(light: ModeValue, dark?: ModeValue): string[] {
-	return dark ? [...flatten(light), ...flatten(dark)] : flatten(light)
+export function mode(light: ModeValue, dark: ModeValue): string[] {
+	return [...flatten(light), ...flatten(dark)]
 }
 
 /** Multi-key form of `mode()`. Each entry is a plain string or `{ light, dark }`. */

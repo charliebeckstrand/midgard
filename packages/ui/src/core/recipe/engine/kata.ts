@@ -55,8 +55,9 @@ type ResponsiveAxes = Record<string, Record<string, ClassValue>>
 type SlotInput =
 	| string
 	| readonly ClassValue[]
-	| (Omit<Slot, 'slots' | 'defaults'> &
+	| (Omit<RecipeConfig, 'defaults'> &
 			Record<string, unknown> & {
+				defaults?: never
 				responsive?: ResponsiveAxes
 				slots?: { readonly [name: string]: SlotInput }
 			})
@@ -70,7 +71,7 @@ type UnitField = 'extends' | 'slots' | 'defaults'
  * slots, `defaults` holds the default of each prop of each slot, and `extends`
  * names the group that it extends.
  */
-type UnitInput = Omit<RecipeConfig, 'slots' | 'defaults'> &
+type UnitInput = Omit<RecipeConfig, 'defaults'> &
 	Record<string, unknown> & {
 		extends?: Group
 		slots?: Record<string, SlotInput>

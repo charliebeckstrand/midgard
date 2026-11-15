@@ -17,11 +17,9 @@
 
 import type { ClassValue } from 'clsx'
 
-import type { Color } from '../colors'
-
 import type { CompoundRule } from './types'
 
-export type PaletteConfig<M extends string = string, C extends string = Color> = {
+export type PaletteConfig<M extends string = string, C extends string = string> = {
 	matrix: Record<M, Record<C, ClassValue>>
 }
 
@@ -57,7 +55,7 @@ export function definePalette<const T extends readonly Matrix[]>(
 	return { matrix } as PaletteConfig<Variants<T>, Colors<T>>
 }
 
-/** The palette's `variant → color → classes` lookup, in rule order. */
+/** The palette's `variant → color → classes` lookup, in rule order. @internal */
 export type PalettePairs = Map<string, Map<string, ClassValue[]>>
 
 /**
@@ -66,8 +64,10 @@ export type PalettePairs = Map<string, Map<string, ClassValue[]>>
  * reads. The flat rules stay for `.config` introspection.
  *
  * The color set is derived from the keys of the matrix, not a fixed list. A
- * kata that writes the five standard colors expands over them, and a kata
+ * kata that writes the standard colors expands over them, and a kata
  * that also writes the extended set picks it up.
+ *
+ * @internal
  */
 export function expandPalette(config: PaletteConfig): {
 	colorScaffold: Record<string, ClassValue>

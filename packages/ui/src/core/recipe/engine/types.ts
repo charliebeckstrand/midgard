@@ -5,7 +5,7 @@
  * `palette`, `compound`, `defaults`) plus any number of variant axes as
  * top-level fields. `Recipe<C>` is what `defineRecipe` returns: the recipe of
  * one slot of a unit (`engine/kata.ts`). `VariantProps<R>` extracts the prop
- * shape from either side; use it in kata to type the consumer-facing
+ * shape from a recipe or a kata; use it in kata to type the consumer-facing
  * `<Name>Variants` export.
  */
 
@@ -110,7 +110,7 @@ export type ComputedProps<C> = {
 } & PaletteProps<C>
 
 /**
- * Extracts the prop shape from either a `Recipe<C>` or a `RecipeConfig`.
+ * Extracts the prop shape from a recipe or a kata: the type of its call parameter.
  *
  * @remarks A recipe gives the type of its call parameter. The type does not
  * infer `C` back from `Recipe<C>`, because that inference fails on a recipe
@@ -119,8 +119,4 @@ export type ComputedProps<C> = {
  * @example
  *   export type ButtonVariants = VariantProps<typeof button>
  */
-export type VariantProps<R> = R extends (props?: infer P) => unknown
-	? NonNullable<P>
-	: R extends RecipeConfig
-		? ComputedProps<R>
-		: never
+export type VariantProps<R> = R extends (props?: infer P) => unknown ? NonNullable<P> : never
