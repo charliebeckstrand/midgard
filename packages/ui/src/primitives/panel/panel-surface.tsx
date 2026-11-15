@@ -11,8 +11,7 @@ import { useReaderSurface } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/panel'
 import { Overlay } from '../overlay'
 import * as m from '../reduced-motion/reduced-motion-elements'
-import { usePanelState } from './context'
-import { PanelProviders } from './panel-providers'
+import { PanelA11yContext, usePanelState } from './context'
 import type { PanelOverlayProps } from './types'
 
 /** A motion preset of a panel: the props that its slide gives to the animated element. */
@@ -118,9 +117,7 @@ export function PanelSurface<P extends PanelMotion>({
 			data-glass={dataAttr(surface === 'glass')}
 			data-open={dataAttr(open)}
 		>
-			<PanelProviders onOpenChange={setOpen} a11y={a11y}>
-				{children}
-			</PanelProviders>
+			<PanelA11yContext value={a11y}>{children}</PanelA11yContext>
 		</m.div>
 	)
 

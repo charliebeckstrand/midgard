@@ -14,7 +14,7 @@ export type A11yPanelRole = 'dialog' | 'alertdialog'
 
 /**
  * Title / Description ids and registrars that {@link useA11yPanel} hands to
- * `PanelProviders`, so each slot adopts its derived id on mount.
+ * `PanelA11yContext`, so each slot adopts its derived id on mount.
  */
 export type A11yPanelProviderValue = {
 	titleId: string
@@ -27,7 +27,7 @@ export type A11yPanelProviderValue = {
 export type A11yPanel = {
 	/** Spread onto the panel root: role, `aria-modal`, and the labeling refs. */
 	ariaProps: AriaProps
-	/** Feed into `PanelProviders` so Title / Description slots register and adopt their ids. */
+	/** Feed into `PanelA11yContext` so Title / Description slots register and adopt their ids. */
 	a11y: A11yPanelProviderValue
 }
 
@@ -44,7 +44,7 @@ export type A11yPanel = {
  * `false` for non-modal surfaces. Defaults to `true`.
  * @returns An `A11yPanel` with two fields. `ariaProps` spreads onto the panel
  * root (role, `aria-modal`, labeling refs). `a11y` is the
- * `A11yPanelProviderValue` to feed `PanelProviders`, so the Title / Description
+ * `A11yPanelProviderValue` to feed `PanelA11yContext`, so the Title / Description
  * slots register and adopt their ids.
  * @see {@link useA11yScope}
  * @see {@link useA11yDisclosure}

@@ -12,10 +12,10 @@ type OffcanvasContextValue = {
  * `use(OffcanvasContext)`. The offcanvas's state owner provides it, e.g. a
  * layout calling `useOffcanvas()` from `ui/hooks/use-offcanvas`.
  *
- * @remarks The value has the same shape as `PanelCloseContext`, and the mobile
- * sidebar provides both around the same content. Keep them separate. The
- * desktop and floating-sheet paths of the sidebar read `null` here, and that
- * tells them that no offcanvas surrounds them.
+ * @remarks The mobile sidebar opens in a Drawer, so its content is also inside
+ * a panel root, and a close part of the panel closes it too. Keep this context
+ * separate. The desktop and floating-sheet paths of the sidebar read `null`
+ * here, and that tells them that no offcanvas surrounds them.
  */
 export const [OffcanvasContext] = createContext<OffcanvasContextValue | null>('Offcanvas', {
 	default: null,
