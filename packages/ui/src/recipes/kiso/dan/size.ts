@@ -227,8 +227,8 @@ export const size = {
 		room: 'in-data-collapse:density-set-[2.5,3,3.5,4,4.5]/[--ui-breadcrumb-separator]',
 	},
 	resize: {
-		/** The width of a grid column resize handle. */
-		handle: 'density-w-[1,2,4,6,9]',
+		/** The width of a grid column resize handle: twice the inline cell padding (`space.cell.x`). */
+		handle: 'density-w-[2,3,4,5,6]',
 	},
 	menu: {
 		/** The maximum height of a capped menu. */

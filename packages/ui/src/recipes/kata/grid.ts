@@ -27,8 +27,8 @@ const { css, instant, spring } = ugoki
  * padding does.
  *
  * The padding and the width of the handle (see `handle`) use the same ramp,
- * which is twice the horizontal cell padding of the density (`px-1`/`px-2`/
- * `px-3` → 4/8/12px). The handle sits on the trailing edge, so its centered
+ * which is twice the inline cell padding (`dan.space.cell.x`) at each step.
+ * The handle sits on the trailing edge, so its centered
  * grip lands one cell padding in from that edge. The header label and the body
  * values truncate at that line, so the grip meets the value and does not cut
  * through it.

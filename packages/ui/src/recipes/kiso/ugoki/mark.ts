@@ -15,7 +15,7 @@ import { duration, ease } from './base'
 const draw = { duration: duration[700], ease: ease.inOut } as const
 
 /** Point-marker pop tempo; consumers hold it (`land`) or stagger it. */
-const pop = { duration: duration[250] } as const
+const pop = { duration: duration[250], ease: ease.out } as const
 
 export const mark = {
 	draw,
