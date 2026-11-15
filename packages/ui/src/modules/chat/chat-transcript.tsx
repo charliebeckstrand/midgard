@@ -557,13 +557,13 @@ export function ChatTranscript({
 				)}
 			</div>
 			{!pinned && (
-				<div data-slot="chat-transcript-newest" className={slots.newest}>
+				<div data-slot="chat-transcript-newest" className={slots.newest.base}>
 					<Button
 						type="button"
 						variant="plain"
 						size="sm"
 						aria-label={intl.formatMessage(labels.newest)}
-						className={slots.newestButton}
+						className={slots.newest.button}
 						onClick={goToNewest}
 					>
 						<Icon icon={<ArrowDown />} />

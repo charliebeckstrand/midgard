@@ -38,6 +38,15 @@ const fill = {
 	blue: 'bg-blue-500/15',
 }
 
+/** The per-color edge: the outline ring of a Badge or a Button. */
+const edge = {
+	zinc: mode('ring-zinc-800', 'dark:ring-zinc-600'),
+	red: mode('ring-red-600', 'dark:ring-red-700'),
+	amber: mode('ring-amber-500', 'dark:ring-amber-600'),
+	green: mode('ring-green-600', 'dark:ring-green-700'),
+	blue: mode('ring-blue-600', 'dark:ring-blue-700'),
+}
+
 /**
  * The wash of the selected region: the doubled rung of the fill.
  *
@@ -320,14 +329,7 @@ export const k = defineKata({
 									 * box-shadow, which the selected stroke uses.
 									 */
 									base: ['absolute block', ...cursor, ...focus.ring],
-									/** The per-color edge: the outline ring of a Badge or a Button. */
-									color: {
-										zinc: 'ring-zinc-800 dark:ring-zinc-600',
-										red: 'ring-red-600 dark:ring-red-700',
-										amber: 'ring-amber-500 dark:ring-amber-600',
-										green: 'ring-green-600 dark:ring-green-700',
-										blue: 'ring-blue-600 dark:ring-blue-700',
-									},
+									color: edge,
 									active: {
 										/**
 										 * The selected region: a heavier stroke, and lifted above its neighbors.
@@ -381,7 +383,7 @@ export const k = defineKata({
 										 * overridden are light/dark pairs, and supplying only a base leaves the `dark:`
 										 * half of the old color standing. The rule comes after the fills, so it wins.
 										 */
-										{ dimmed: true, class: 'bg-zinc-500/15 ring-zinc-800 dark:ring-zinc-600' },
+										{ dimmed: true, class: [fill.zinc, ...edge.zinc] },
 									],
 								},
 							},

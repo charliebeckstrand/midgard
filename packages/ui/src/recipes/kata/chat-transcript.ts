@@ -29,17 +29,22 @@ export const k = defineKata(
 			// the bottom edge of the scroll and has no height, so it moves no row and
 			// the end that the window measures stays the end of the rows. The button
 			// rises out of it.
-			newest: 'sticky bottom-3 flex h-0 items-end justify-center',
-			newestButton: [rounded.full, omote.popover, 'shadow-md'],
+			newest: {
+				base: 'sticky bottom-3 flex h-0 items-end justify-center',
+				slots: { button: [rounded.full, omote.popover, 'shadow-md'] },
+			},
 		},
 	},
 	{
 		// The skeleton bubble takes the tint fill, so the bubble shape shows
 		// behind the placeholder lines in it. Forced colors remove the fill, so the
-		// bubble takes the outline of a surface, as the real bubble does.
+		// bubble takes the outline of a surface, as the real bubble does. The
+		// skeleton bubble is a flex column, so the margins of two lines do not
+		// collapse. The real bubble is not, because its parts rely on margins that
+		// collapse.
 		skeleton: {
 			...kokkaku.chat,
-			bubble: [...kokkaku.chat.bubble, omote.bg.tint, forced.outline],
+			bubble: [...kokkaku.chat.bubble, 'flex flex-col', omote.bg.tint, forced.outline],
 		},
 	},
 )
