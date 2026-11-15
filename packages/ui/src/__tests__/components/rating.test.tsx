@@ -610,7 +610,7 @@ describe('RatingSkeleton', () => {
 	const row =
 		'inline-flex items-center w-fit disabled:opacity-50 data-disabled:opacity-50 group-disabled:opacity-50 motion-safe:transition-opacity motion-safe:duration-150 density-gap-[0.25,0.5,0.75,1,1.25]'
 
-	const hue = 'text-amber-600 dark:text-amber-500'
+	const hue = 'text-amber-600 dark:text-amber-600'
 
 	const glyph = 'density-size-[4,4.5,5,5.5,6]'
 

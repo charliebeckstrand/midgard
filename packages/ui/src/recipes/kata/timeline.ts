@@ -25,8 +25,8 @@ const { css } = ugoki
 const lineBefore = {
 	zinc: 'before:bg-zinc-200 dark:before:bg-zinc-700',
 	red: 'before:bg-red-600 dark:before:bg-red-500',
-	amber: 'before:bg-amber-600 dark:before:bg-amber-500',
-	green: 'before:bg-green-600 dark:before:bg-green-500',
+	amber: 'before:bg-amber-600 dark:before:bg-amber-600',
+	green: 'before:bg-green-600 dark:before:bg-green-600',
 	blue: 'before:bg-blue-600 dark:before:bg-blue-500',
 } as const satisfies Record<Color, string>
 
@@ -34,8 +34,8 @@ const lineBefore = {
 const lineAfter = {
 	zinc: 'after:bg-zinc-200 dark:after:bg-zinc-700',
 	red: 'after:bg-red-600 dark:after:bg-red-500',
-	amber: 'after:bg-amber-600 dark:after:bg-amber-500',
-	green: 'after:bg-green-600 dark:after:bg-green-500',
+	amber: 'after:bg-amber-600 dark:after:bg-amber-600',
+	green: 'after:bg-green-600 dark:after:bg-green-600',
 	blue: 'after:bg-blue-600 dark:after:bg-blue-500',
 } as const satisfies Record<Color, string>
 
