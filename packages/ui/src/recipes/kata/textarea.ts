@@ -24,7 +24,7 @@ export const k = defineKata(
 				 * A `bare` field has no inset, as a `bare` Input has none, so it
 				 * takes no floor, and a row is one line of text.
 				 */
-				variant: framed(textarea.floor),
+				variant: framed(dan.size.control.floor),
 				/**
 				 * Where the primary pointer is coarse, the grip slot replaces the native
 				 * grip. Safari on iOS and iPadOS draws no native grip.

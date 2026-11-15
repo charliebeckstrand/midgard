@@ -3,7 +3,7 @@
  * panes, with the responsive `orientation`, `ratio`, `gap`, and `align` axes.
  */
 import { defineKata } from '../../core/recipe'
-import { ma, narabi } from '../kiso'
+import { dan, narabi } from '../kiso'
 
 /**
  * The grid template of each `orientation` and `ratio`. The tracks were an
@@ -40,7 +40,7 @@ export const k = defineKata({
 		/** Whether the panes lay out as columns or rows. The compound rules give the template. */
 		orientation: { horizontal: '', vertical: '' },
 		ratio: RATIOS,
-		gap: ma.gap,
+		gap: dan.gap.scale,
 		align: narabi.flex.align,
 	},
 	compound: TEMPLATES,
