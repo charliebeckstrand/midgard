@@ -1,5 +1,6 @@
 /**
- * Ji family: font-family aliases. `mono` is for code blocks and kbd marks.
+ * Ji family: font-family aliases. `mono` is for the inline code and key marks and
+ * for the JSON tree.
  *
  * Layer: kiso · Concern: font family
  */

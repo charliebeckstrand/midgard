@@ -1,5 +1,5 @@
 /**
- * Kokkaku skeleton: switch. Pill silhouette across three switch size
+ * Kokkaku skeleton: switch. A pill silhouette across the switch size
  * steps. Exported as `switchSkeleton` (`switch` is a reserved JS keyword);
  * surfaced through the bundle as `switch:`.
  *

@@ -1,6 +1,6 @@
 /**
- * Omote bg: the color pairs (`light`/`dark`) every surface concern
- * composes with its chrome. One source of truth for surface / popover /
+ * Omote bg: the fills that each surface concern composes with its chrome,
+ * each light and dark pair through `mode()`. One source of truth for surface / popover /
  * tint / skeleton fills. Backdrop fills live with the backdrop chrome
  * in `backdrop.ts`.
  *

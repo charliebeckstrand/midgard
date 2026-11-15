@@ -1,6 +1,6 @@
 /**
- * Kokkaku skeleton: segment. Rounded-box silhouette of the segment
- * control; height folds the `p-1` chrome over the item height per size
+ * Kokkaku skeleton: segment. The rounded-box silhouette of the segment
+ * control; the height adds the `p-1` chrome to the item height at each size
  * step. Widths are defaults; override via `className`.
  *
  * Each step is a stepped `density-*` class, so the silhouette takes the

@@ -1,5 +1,6 @@
 /**
- * Control group: density axis. Padding, radius, child gap, and text size.
+ * Control group: density classes. Padding, radius, child gap, and text size.
+ * The classes are a list that the `field` slot spreads, not a recipe axis.
  *
  * Each class is a stepped `density-*` utility. The control takes the step of
  * its nearest density scope, and a control with an explicit `size` writes that
@@ -16,10 +17,10 @@
  * scale. The text size is `dan.text.body`, the text ramp of each density-native
  * component.
  *
- * The axis also carries the affix autofill margins (`affix.autofill`, see
+ * The list also holds the affix autofill margins (`affix.autofill`, see
  * `./affix.ts`). They are `group-has` gated `autofill:` margins that inset the
  * autofill highlight of the browser from an adjacent affix slot by `px`. They
- * are on this axis, so each control input gets them with no wiring in its
+ * are in this list, so each control input gets them with no wiring in its
  * kata. The gate keeps them dormant in a frame with no slot.
  *
  * Layer: kumi · Group: control · Concern: density
