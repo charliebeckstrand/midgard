@@ -37,7 +37,7 @@ partial Fisher-Yates shuffle takes the deck.
 
 | Route | Page |
 | --- | --- |
-| `/` | Sends the reader to the address of a new seed |
+| `/` | `proxy.ts` sends the reader to the address of a new seed (`307`) |
 | `/k3x9q2` | The run of the seed |
 
 A Reset starts the run of a new seed in place, and adds its address to the
@@ -75,5 +75,6 @@ number rolls in after the hydration. The setting changes no layout.
 
 ## Deploy
 
-The app has no App Platform component yet, so a push to `main` does not
-deploy it.
+Each push to `main` deploys the app to `numbers.ivoryimage.dev`, through the
+`numbers` component of [`.do/app.yaml`](../../.do/app.yaml). The app is
+public: it has no sign-in, and it reads no data of a reader.
