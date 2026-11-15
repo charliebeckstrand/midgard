@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import type { Color } from '../../core/recipe'
 import { k as timeline } from '../../recipes/kata/timeline'
 import { iro, kasane, zu } from '../../recipes/kiso'
+import { validation as checkValidation } from '../../recipes/kumi/check'
 import { slider } from '../../recipes/kumi/slider'
 
 const COLORS = ['zinc', 'red', 'amber', 'green', 'blue'] as const satisfies readonly Color[]
@@ -58,24 +59,32 @@ describe('one graphic shade for each hue', () => {
 
 	// A validation ring marks the state of a control as a graphic, so it takes the slot shade too.
 	it.each([
-		['invalid', 'red'],
-		['warning', 'amber'],
-		['valid', 'green'],
-	] as const)('gives the %s ring of a control frame the shade of the %s slot', (state, hue) => {
-		const slot = readShades(zu.palette.series[hue].bg, hue)
-
-		const rings = clsx(kasane.layers)
-			.split(' ')
-			.filter((name) => name.includes(`has-[[data-${state}]]:`))
-
-		const shades = (names: string[]) => [
-			...new Set(names.flatMap((name) => /:ring-([a-z]+-\d+)$/.exec(name)?.[1] ?? [])),
-		]
-
-		const light = shades(rings.filter((name) => !name.startsWith('dark:')))
-		const dark = shades(rings.filter((name) => name.startsWith('dark:')))
-
-		// A ring with no dark class keeps its light shade in dark mode.
-		expect({ light, dark: dark.length > 0 ? dark : light }).toEqual(slot)
+		['a control frame', kasane.layers],
+		['a check, a radio, and a switch', checkValidation],
+	] as const)('gives each validation ring of %s the shade of its slot', (_, layers) => {
+		for (const [state, hue] of [
+			['invalid', 'red'],
+			['warning', 'amber'],
+			['valid', 'green'],
+		] as const) {
+			expectRing(clsx(layers), state, hue)
+		}
 	})
 })
+
+/** Expects the `state` ring classes in `classes` to take the shade of the `hue` slot in each mode. */
+function expectRing(classes: string, state: string, hue: 'red' | 'amber' | 'green') {
+	const slot = readShades(zu.palette.series[hue].bg, hue)
+
+	const rings = classes.split(' ').filter((name) => name.includes(`has-[[data-${state}]]:`))
+
+	const shades = (names: string[]) => [
+		...new Set(names.flatMap((name) => /:ring-([a-z]+-\d+)$/.exec(name)?.[1] ?? [])),
+	]
+
+	const light = shades(rings.filter((name) => !name.startsWith('dark:')))
+	const dark = shades(rings.filter((name) => name.startsWith('dark:')))
+
+	// A ring with no dark class keeps its light shade in dark mode.
+	expect({ state, light, dark: dark.length > 0 ? dark : light }).toEqual({ state, ...slot })
+}
