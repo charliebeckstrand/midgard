@@ -10,7 +10,7 @@ Composition flows downward only. A family can compose its siblings. `narabi` rea
 
 ## 2. Shape
 
-Each family is a sub-folder, with one file per concern, and `index.ts` assembles the named bundle. The bundle name matches the folder, so a consumer reaches a finished surface by name. The three exceptions are `kara.ts`, `sou.ts`, and `tsunagi.ts`. Each is one small concern, and more files would add no clarity.
+Each family is a sub-folder, with one file per concern, and `index.ts` assembles the named bundle. The bundle name matches the folder, so a consumer reaches a finished surface by name. The two exceptions are `sou.ts` and `tsunagi.ts`. Each is one small concern, and more files would add no clarity.
 
 The barrel `index.ts` exports each family and no other value. `__tests__/boundary/kiso-families-boundary.test.ts` holds the list of families with the kanji of each name. To add a family, add it to that list and to the table below.
 
@@ -33,7 +33,6 @@ Each concern file opens with a `Layer: kiso · Concern: <concern>` docblock that
 | `kasane/` (重ね)   | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities are in `core/density`.                             | `layers`, `rounded`                                                                                                |
 | `kokkaku/` (骨格)  | The skeleton form of each unit: the dimensions of its placeholders, with no chrome, variant, or color. See §4.                     | One file for each unit, such as `button`, `control`, and `slider` |
 | `zu/` (図)         | Data-viz substrate: the CVD-validated categorical series `palette` (slots + order), the `meter` shade of a measured value (Progress, Sparkline, and PasswordStrength), which takes its hues from the series slots, the chrome and readout `ink`, and the reveal `motion`. Composes `iro` and `ugoki`. | `palette`, `meter`, `ink`, `motion` |
-| `kara.ts` (空)     | Virtualized emptiness: selectors that read `data-empty` on a `VirtualOptions` wrapper. *Flat file: one concern.* | None                                                                                                               |
 | `sou.ts` (層)      | App-level stacking order: the ordered rung ladder (`overlay` / `float` / `lens` / `toast`) that each portaled surface lands on. Component-local `z-*` inside a positioned box stays inline. *Flat file: one concern.* | None                                                                                                               |
 | `tsunagi.ts` (繋ぎ) | Group-join class fragments, keyed on the DOM position of each child of the group. `<Group>` puts the bundle of its orientation on its container. *Flat file: one concern.*       | None                                                                                                               |
 

@@ -3,7 +3,7 @@
  *
  *   kiso/ - the design tokens. Each family has a Japanese name (dan / iro /
  *           ji / ma / narabi / omote / hannou / sen / shaku / sou / tsunagi /
- *           ugoki / kokkaku / kasane / kara / zu), and each key under it has
+ *           ugoki / kokkaku / kasane / zu), and each key under it has
  *           an English name. Read by kumi and kata.
  *   kumi/ - the groups. The shared structure of a family of units, in the
  *           shape of a unit (`defineGroup`). A kata unit extends its group.

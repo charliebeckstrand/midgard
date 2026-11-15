@@ -6,7 +6,7 @@
 
 | Layer | Role | What |
 |---|---|---|
-| [Kiso 基礎: Tokens](./kiso/README.md) | Data | The token families: `dan` · `hannou` · `iro` · `ji` · `kara` · `kasane` · `kokkaku` · `ma` · `narabi` · `omote` · `sen` · `shaku` · `sou` · `tsunagi` · `ugoki` · `zu`. Each family has a Japanese name, and each key under it has an English name. |
+| [Kiso 基礎: Tokens](./kiso/README.md) | Data | The token families: `dan` · `hannou` · `iro` · `ji` · `kasane` · `kokkaku` · `ma` · `narabi` · `omote` · `sen` · `shaku` · `sou` · `tsunagi` · `ugoki` · `zu`. Each family has a Japanese name, and each key under it has an English name. |
 | [Kumi 組: Groups](./kumi/README.md) | Structure | The shared structure of a family of units: slots, axes, and defaults in the shape of a unit. A unit extends its group. Reads kiso and the recipe engine. |
 | [Kata 型: Form](./kata/README.md) | Application | Per-unit recipes: the funnel for components and primitives. |
 

@@ -14,7 +14,7 @@ Dependencies point one way: `kata → kumi → kiso`, and `kata → kiso`. See [
 
 ## Kiso: families
 
-One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `tsunagi.ts`; `index.ts` assembles the named bundle. The barrel exports each family and no other value, and `kiso-families-boundary.test.ts` holds the list. Full tables in [`src/recipes/kiso/README.md`](../src/recipes/kiso/README.md).
+One sub-folder for each family, except the flat files `sou.ts` and `tsunagi.ts`; `index.ts` assembles the named bundle. The barrel exports each family and no other value, and `kiso-families-boundary.test.ts` holds the list. Full tables in [`src/recipes/kiso/README.md`](../src/recipes/kiso/README.md).
 
 | Family | Concern |
 |---|---|
@@ -33,7 +33,6 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | `zu` 図 | Data-viz substrate: the categorical series `palette`, the `meter` shade of a measured value, the chrome and readout `ink`, and the reveal `motion`. |
 | `sou` 層 | App-level stacking order: the ordered rung ladder (`overlay` / `float` / `lens` / `toast`) every portaled surface lands on. |
 | `tsunagi` 繋ぎ | Group-join class fragments, keyed on the DOM position of each child of the group. |
-| `kara` 空 | Virtualized emptiness: selectors that read `data-empty` on a `VirtualOptions` wrapper. |
 
 ## Kumi: groups
 
