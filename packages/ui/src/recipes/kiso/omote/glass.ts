@@ -16,16 +16,14 @@
  * Layer: kiso · Concern: glass surface
  */
 
-import { blur } from './blur'
-
 /** The clear fill of glass, with no blur. */
 const clear = ['bg-transparent', '[--surface-fill:transparent]', '[--popover-alpha:100%]']
 
-export const glass = [...clear, blur.md]
+export const glass = [...clear, 'backdrop-blur-sm']
 
 /**
  * The glass of a modal panel (Dialog, Drawer, Sheet): the same clear fill,
- * with the `lg` blur. A modal panel covers more of the page than a popover,
- * so its text needs the deeper blur to stay legible over busy content.
+ * with the deeper blur. A modal panel covers more of the page than a popover,
+ * so its text needs that blur to stay legible over busy content.
  */
-export const panelGlass = [...clear, blur.lg]
+export const panelGlass = [...clear, 'backdrop-blur-lg']

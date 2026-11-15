@@ -10,7 +10,7 @@
  * track and the preview is `omote.checkerboard`, which the color picker shares.
  *
  * Each part that shows a color keeps its real color under forced colors
- * (`sen.forced.keep`): the area, the tracks, the preview, and the
+ * (`forced-color-adjust-none`): the area, the tracks, the preview, and the
  * preset chips. A system color in their place would make every chip alike and
  * remove the hue and the alpha. The rings and the focus outlines of these parts
  * keep their forced-colors outlines.
@@ -24,7 +24,7 @@ const { text } = iro
 const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { focus, forced, ring } = sen
+const { focus, ring } = sen
 
 // Draggable circular handle, centered on its inline-positioned coordinate.
 const handle = [
@@ -37,14 +37,14 @@ const handle = [
 
 const area = [
 	'relative w-full cursor-crosshair touch-none',
-	forced.keep,
+	'forced-color-adjust-none',
 	...focus.ring,
 	dan.size.colorPanel.area,
 ]
 
 const track = [
 	'relative w-full cursor-pointer touch-none',
-	forced.keep,
+	'forced-color-adjust-none',
 	rounded.full,
 	...focus.outline,
 	dan.size.colorPanel.channel,
@@ -52,7 +52,7 @@ const track = [
 
 const preview = [
 	'relative shrink-0 overflow-hidden',
-	forced.keep,
+	'forced-color-adjust-none',
 	rounded.md,
 	dan.size.colorPanel.preview,
 ]
@@ -112,7 +112,7 @@ export const k = defineKata(
 			 */
 			swatch: [
 				'relative cursor-pointer',
-				forced.keep,
+				'forced-color-adjust-none',
 				kokkaku.colorPanel.swatch,
 				rounded.md,
 				...ring.inset,
