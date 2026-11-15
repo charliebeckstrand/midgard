@@ -16,4 +16,4 @@ export const skeleton = {
 	base: [bg.skeleton.base, css.pulse],
 	/** The same pulse on the same tone, as an SVG fill, for a skeleton drawn as a shape. */
 	shape: [bg.skeleton.fill, css.pulse],
-}
+} as const

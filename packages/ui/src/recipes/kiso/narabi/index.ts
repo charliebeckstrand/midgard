@@ -28,7 +28,7 @@ export const narabi = {
 	description,
 	text,
 	flex,
-	/** The height fit of a floating panel: the wrapper, a column, and the scroll region. */
+	/** The height fit of a capped panel: the wrapper, a column, and the scroll region. */
 	fit,
 	offcanvas,
 	/** The geometry of a tree that indents each level under a mark column. */

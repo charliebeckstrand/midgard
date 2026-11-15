@@ -14,7 +14,7 @@
  * Layer: kiso · Concern: panel motion
  */
 
-import { duration } from './base'
+import { duration, ease } from './base'
 
 function slide(axis: 'x' | 'y', value: string) {
 	const translate = axis === 'x' ? 'translateX' : 'translateY'
@@ -23,7 +23,7 @@ function slide(axis: 'x' | 'y', value: string) {
 		initial: { transform: `${translate}(${value})`, opacity: 1 },
 		animate: { transform: `${translate}(0%)`, opacity: 1, transitionEnd: { transform: 'none' } },
 		exit: { transform: `${translate}(${value})`, opacity: 1 },
-		transition: { duration: duration[150] },
+		transition: { duration: duration[150], ease: ease.out },
 	}
 }
 

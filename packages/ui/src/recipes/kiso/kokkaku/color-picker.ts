@@ -13,6 +13,7 @@
  */
 
 import { dan } from '../dan'
+import { ji } from '../ji'
 import { control } from './control'
 
 export const colorPicker = {
@@ -24,7 +25,7 @@ export const colorPicker = {
 	],
 	swatch: ['shrink-0', dan.size.check.box],
 	value: {
-		base: ['min-w-0 font-mono', dan.text.body],
+		base: ['min-w-0', ji.family.mono, dan.text.body],
 		hex: 'w-[7ch]',
 		alpha: 'w-[9ch]',
 	},

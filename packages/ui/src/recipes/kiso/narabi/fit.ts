@@ -1,11 +1,12 @@
 /**
- * Narabi fit: the height fit of a floating panel. The `fitHeight`
- * option of the floating layer writes a max-height on the positioned wrapper
- * when the panel is taller than the space on its side of the trigger. The
- * wrapper is a column, so each `min-h-0` item between the wrapper and the
- * scroll region shrinks into that cap, and the scroll region scrolls.
+ * Narabi fit: the height fit of a panel with a capped height. The wrapper is a
+ * column, so each `min-h-0` item between the wrapper and the scroll region
+ * shrinks into the cap, and the scroll region scrolls. For a floating panel,
+ * the `fitHeight` option of the floating layer writes the cap on the
+ * positioned wrapper when the panel is taller than the space on its side of
+ * the trigger. A modal panel (`kumi/panel`) has a cap of its own.
  *
- * Layer: kiso · Concern: floating panel height
+ * Layer: kiso · Concern: capped panel height
  */
 
 import { flex } from './flex'

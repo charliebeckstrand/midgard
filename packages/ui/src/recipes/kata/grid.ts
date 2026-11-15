@@ -506,10 +506,10 @@ export const k = {
 			// The reveal wrapper inside each leaf cell.
 			reveal: {
 				...reveal,
-				// The cell padding on the reveal wrapper, in the stepped class of the
+				// The cell padding on the reveal wrapper, in the stepped classes of the
 				// kata/table cell padding, so an animated leaf cell matches an ordinary one,
 				// and collapses that padding to nothing at height 0.
-				pad: dan.space.cell.base,
+				pad: `${dan.space.cell.x} ${dan.space.cell.y}`,
 			},
 		},
 		reorder: {
@@ -973,7 +973,8 @@ export const k = {
 			'z-[4]',
 			'overflow-y-auto',
 			'[&_textarea]:max-h-none [&_textarea]:overflow-auto',
-			dan.space.cell.base,
+			dan.space.cell.x,
+			dan.space.cell.y,
 			hostSurface,
 			...ring.line[2].inset,
 			'ring-blue-600',

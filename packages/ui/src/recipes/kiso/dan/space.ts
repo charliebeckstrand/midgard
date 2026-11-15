@@ -87,8 +87,6 @@ export const space = {
 		},
 	},
 	cell: {
-		/** The padding of a grid cell. It matches `cell.x` and `cell.y`. */
-		base: scale.p.sm,
 		/** The inline padding of a table cell. */
 		x: scale.px.sm,
 		/** The block padding of a table cell. */

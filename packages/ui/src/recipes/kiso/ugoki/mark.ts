@@ -20,7 +20,7 @@ const pop = { duration: duration[250] } as const
 export const mark = {
 	draw,
 	/** Area wash fade, trailing the draw so it fills in as the stroke crosses it. */
-	fade: { duration: duration[500], delay: duration[150] },
+	fade: { duration: duration[500], delay: duration[150], ease: ease.out },
 	pop,
 	/** The pop held until the draw has finished: the line's end-point landing. */
 	land: { ...pop, delay: draw.duration },

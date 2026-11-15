@@ -15,7 +15,7 @@ import { dan } from '../dan'
 import { shaku } from '../shaku'
 
 export const tree = {
-	icon: ['flex-none', shaku.icon.base],
+	icon: ['shrink-0', shaku.icon.base],
 	label: [dan.text.body, 'h-lh max-w-full'],
 	labels: ['w-32', 'w-24', 'w-28', 'w-20'],
 	first: 'pt-0',
