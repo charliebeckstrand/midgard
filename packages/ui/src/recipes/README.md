@@ -25,11 +25,14 @@ A kata takes one of three forms:
 The config of a unit is the recipe of its root slot, `base`. `slots` holds only the child slots, and a child slot with no axes can be only its classes:
 
 ```ts
+import { narabi } from '../kiso'
 import { input } from '../kumi/control'
+
+const { flex } = narabi
 
 export const k = defineKata({
   extends: input,
-  slots: { field: 'flex items-center text-start' },
+  slots: { field: [flex.row, 'text-start'] },
 })
 ```
 

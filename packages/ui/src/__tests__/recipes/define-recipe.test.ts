@@ -260,6 +260,7 @@ describe('defineKata', () => {
 		expect(() => defineKata({ slots: { base: 'a' } })).toThrow(/root slot "base"/)
 
 		expect(() =>
+			// @ts-expect-error: a child slot takes no defaults.
 			defineKata({ slots: { icon: { size: { sm: 'a' }, defaults: { size: 'sm' } } } }),
 		).toThrow(/slot "icon"/)
 
@@ -270,6 +271,7 @@ describe('defineKata', () => {
 		expect(() => defineKata({ slots: { 'icon.mark': 'a' } })).toThrow(/dot in its name/)
 
 		expect(() =>
+			// @ts-expect-error: a child slot takes no defaults.
 			defineKata({ slots: { icon: { slots: { mark: { defaults: { size: 'sm' } } } } } }),
 		).toThrow(/slot "icon.mark"/)
 
