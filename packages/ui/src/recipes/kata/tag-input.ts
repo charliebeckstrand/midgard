@@ -23,7 +23,7 @@ export const k = defineKata({
 		// The row caps the hit areas of the remove buttons (`TouchTarget`) at the
 		// space between them. When the row wraps, the buttons of two rows are the
 		// `xs` gap of the row and the `py-ring-1` pad of two chips (3px each) apart:
-		// 9px in all at `md`. The gap steps with the scope, so the block cap is 1px
+		// 10px in all at `md`. The gap steps with the scope, so the block cap is 1px
 		// less or more for each step below or above. Along the row, a one-letter tag
 		// still puts the gap, the leading pad, and the inner gap of its `xs` chip
 		// between two buttons, more than the inline cap at each step.
