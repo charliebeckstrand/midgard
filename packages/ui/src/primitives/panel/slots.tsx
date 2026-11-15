@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect } from 'react'
 import { cn } from '../../core/cn'
 import { k as heading } from '../../recipes/kata/heading'
+import { k } from '../../recipes/kata/panel'
 import { usePanelA11y } from './context'
 import type {
 	PanelBodyProps,
@@ -14,18 +15,24 @@ import type {
 } from './types'
 
 /**
- * The slot classes of a panel family for `createPanel`: the slots of the unit of
- * the family, which extends the `panel` group.
+ * Optional per-slot class overrides for `createPanel`; each defaults to the panel recipe.
  *
  * @internal
  */
-type PanelSlots = Record<'title' | 'description' | 'header' | 'body' | 'footer' | 'content', string>
+type PanelSlots = {
+	title?: string | string[]
+	description?: string | string[]
+	header?: string | string[]
+	body?: string | string[]
+	footer?: string | string[]
+	content?: string | string[]
+}
 
 /**
  * Builds the Title, Description, Header, Body, Footer, and Content slot
  * components for a panel surface, each stamping `data-slot="<slotPrefix>-*"`.
  * Title and Description adopt the ambient `PanelA11yContext` ids; Body is the
- * scroll region. `slots` are the slot classes of the unit of the family.
+ * scroll region. Pass `slots` to override individual slot classes.
  *
  * `DefaultFooter` is the footer that the root renders after its children. It
  * shows only while the panel has no Footer, so a Footer from the consumer
@@ -37,15 +44,17 @@ type PanelSlots = Record<'title' | 'description' | 'header' | 'body' | 'footer' 
  * DefaultFooter }` slot family bound to `slotPrefix`.
  * @see {@link PanelProviders}
  */
-export function createPanel(slotPrefix: string, slots: PanelSlots) {
+export function createPanel(slotPrefix: string, slots?: PanelSlots) {
+	const defaults = k()
+
 	const {
-		title: titleClass,
-		description: descriptionClass,
-		header: headerClass,
-		body: bodyClass,
-		footer: footerClass,
-		content: contentClass,
-	} = slots
+		title: titleClass = defaults.title,
+		description: descriptionClass = defaults.description,
+		header: headerClass = defaults.header,
+		body: bodyClass = defaults.body,
+		footer: footerClass = defaults.footer,
+		content: contentClass = defaults.content,
+	} = slots ?? {}
 
 	function Title({ className, id, level = 2, ...props }: PanelTitleProps) {
 		const { titleId, registerTitle } = usePanelA11y()

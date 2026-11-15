@@ -153,9 +153,13 @@ describe('spacing steps', () => {
 	/** The factor of each density step: each step multiplies the plain value by one factor. */
 	const factors = [0.5, 0.75, 1, 1.25, 1.5]
 
+	/** The stops of a scale with a plain value: each stop but the `0` stop. */
+	const valued = (scale: Record<string, string>) =>
+		Object.fromEntries(Object.entries(scale).filter(([stop]) => stop !== '0'))
+
 	describe.each(Object.entries(scales))('dan.%s', (_, scale) => {
 		it('has a stop for each plain value', () => {
-			expect(Object.keys(scale)).toStrictEqual(Object.keys(plain))
+			expect(Object.keys(valued(scale))).toStrictEqual(Object.keys(plain))
 		})
 
 		it.each(Object.entries(plain))(
@@ -169,7 +173,7 @@ describe('spacing steps', () => {
 			},
 		)
 
-		it.each(Object.entries(scale))('extends the %s stop by the rule', (_, ramp) => {
+		it.each(Object.entries(valued(scale)))('extends the %s stop by the rule', (_, ramp) => {
 			const { sm, md, lg } = parsePx(ramp)
 
 			expect(densitySteps.map((step) => parsePx(ramp)[step])).toStrictEqual(
@@ -181,13 +185,13 @@ describe('spacing steps', () => {
 	// One list for each stop: the padding scale and the axis forms of the gap
 	// scale take the lists of the gap scale.
 	it.each(Object.entries(scales))('gives dan.%s the lists of the gap scale', (_, scale) => {
-		expect(Object.values(scale).map(parseValues)).toStrictEqual(
-			Object.values(dan.gap.scale).map(parseValues),
+		expect(Object.values(valued(scale)).map(parseValues)).toStrictEqual(
+			Object.values(valued(dan.gap.scale)).map(parseValues),
 		)
 	})
 
 	describe.each(['x', 'y'] as const)('dan.gap.touch.%s', (axis) => {
-		it.each(Object.keys(dan.gap.scale) as (keyof typeof dan.gap.scale)[])(
+		it.each(Object.keys(plain) as (keyof typeof plain)[])(
 			'fills the gap of the %s stop at each step',
 			(stop) => {
 				const gap = parsePx(dan.gap.scale[stop])
@@ -264,7 +268,7 @@ const slotRamps = {
  *     header, in the drawer layout is 0 at each step. It is a ramp so that it
  *     is in the layer of the padding of the inline layout, and a breakpoint can
  *     switch the two.
- *   - The `0` stop of the spacing scale (`space.none` and `gap.none`) is 0 at
+ *   - The `0` stop of the spacing scale (`gap.scale` and `space.scale`) is 0 at
  *     each step, for the same reason: a breakpoint switches it with a stop of
  *     the scale.
  */
@@ -277,10 +281,10 @@ const sharedRamps = new Set([
 	'gap.touch.chips',
 	'space.shell.top.none',
 	'space.shell.headless.none',
-	'space.none.p',
-	'space.none.px',
-	'space.none.py',
-	'gap.none',
+	'space.scale.p.0',
+	'space.scale.px.0',
+	'space.scale.py.0',
+	'gap.scale.0',
 ])
 
 /**

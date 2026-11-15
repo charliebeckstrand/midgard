@@ -2,7 +2,7 @@
  * Recipes: the design-system layer of the UI package.
  *
  *   kiso/ - the design tokens. Each family has a Japanese name (dan / iro /
- *           ji / ma / narabi / omote / hannou / sen / shaku / sou / tsunagi /
+ *           ji / narabi / omote / hannou / sen / shaku / sou / tsunagi /
  *           ugoki / kokkaku / kasane / kara / zu), and each key under it has
  *           an English name. Read by kumi and kata.
  *   kumi/ - the groups. The shared structure of a family of units, in the
@@ -13,8 +13,8 @@
  *
  * Components, modules, and primitives reach the recipe layer through their
  * owning kata (`from '../../recipes/kata/<name>'`). Cross-layer value imports
- * are pinned by `noRestrictedImports` in `biome.json` and the
- * `no-value-import-from-recipes-barrel` Biome plugin.
+ * are pinned by `noRestrictedImports` in `biome.json`. This barrel holds types
+ * alone, so a value import from it does not compile.
  *
  * This barrel is types-only. It re-exports the recipe-substrate types
  * (`Color`, `Ma`, `GroupOrientation`); consumers
@@ -25,5 +25,5 @@
  */
 
 export type { Color } from '../core/recipe'
-export type { Ma } from './kiso/ma'
+export type { Ma } from './kiso/dan'
 export type { GroupOrientation } from './kiso/tsunagi'

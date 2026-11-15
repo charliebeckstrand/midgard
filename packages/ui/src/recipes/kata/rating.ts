@@ -4,7 +4,7 @@
  * density scope, so a rating inside a `<Field>` scales with the controls
  * beside it.
  *
- * The hues ride the `iro.marker` ramp, not the text ramp. A star is a glyph and not a word, so it answers the
+ * The hues ride the `zu.marker` ramp, not the text ramp. A star is a glyph and not a word, so it answers the
  * non-text 3:1 floor (WCAG 1.4.11). The empty
  * track keeps a neutral of its own. A track that took the hue at a lower opacity
  * would read as a part-filled star.
@@ -18,12 +18,12 @@
 
 import { defineScale } from '../../core/density'
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, hannou, iro, kokkaku, narabi, sen, ugoki } from '../kiso'
+import { dan, hannou, kokkaku, narabi, sen, ugoki, zu } from '../kiso'
 import { hidden } from '../kumi/check'
 
 const { cursor, disabled } = hannou
 const { css } = ugoki
-const { marker } = iro
+const { marker } = zu
 const { flex } = narabi
 const { focus } = sen
 
@@ -72,7 +72,7 @@ const track = [
 
 export const k = defineKata(
 	{
-		base: [flex.inline, 'w-fit', ...disabled.base, kokkaku.rating.gap],
+		base: [flex.inline, 'w-fit', ...disabled.base, dan.gap.rating],
 		color,
 		slots: {
 			/** The group that the track reads the invalid state of the row from. The skeleton does not take it. */
@@ -81,7 +81,7 @@ export const k = defineKata(
 			half,
 			track,
 			/** The glyph size at each step. The track and the fill share it, so the two stack exactly. */
-			glyph: kokkaku.rating.star,
+			glyph: dan.size.check.box,
 			/**
 			 * The window a partly-filled star draws its fill inside. Absolute over the
 			 * track glyph and clipping at its own width, which the component sets from

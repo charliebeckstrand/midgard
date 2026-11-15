@@ -4,13 +4,17 @@
  * Layer: kiso · Concern: density ramps
  */
 
+import type { Ma } from './gap'
+
 /**
- * The named padding scale (`ma.p`, `ma.px`, `ma.py`) of Box. Each stop takes
- * the list of the same stop of the gap scale (`gap.scale`), so a padding and a
- * gap of one stop have one length at each step.
+ * The named padding scale of Box, for each axis. Each stop takes the list of
+ * the same stop of the gap scale (`gap.scale`), so a padding and a gap of one
+ * stop have one length at each step. The `0` stop is no padding, as a stepped
+ * rule, for the reason that the gap scale gives.
  */
 const scale = {
 	p: {
+		0: 'density-p-[0,0,0,0,0]',
 		xs: 'density-p-[0.5,0.75,1,1.25,1.5]',
 		sm: 'density-p-[1,1.5,2,2.5,3]',
 		md: 'density-p-[1.5,2.25,3,3.75,4.5]',
@@ -18,6 +22,7 @@ const scale = {
 		xl: 'density-p-[3,4.5,6,7.5,9]',
 	},
 	px: {
+		0: 'density-px-[0,0,0,0,0]',
 		xs: 'density-px-[0.5,0.75,1,1.25,1.5]',
 		sm: 'density-px-[1,1.5,2,2.5,3]',
 		md: 'density-px-[1.5,2.25,3,3.75,4.5]',
@@ -25,13 +30,14 @@ const scale = {
 		xl: 'density-px-[3,4.5,6,7.5,9]',
 	},
 	py: {
+		0: 'density-py-[0,0,0,0,0]',
 		xs: 'density-py-[0.5,0.75,1,1.25,1.5]',
 		sm: 'density-py-[1,1.5,2,2.5,3]',
 		md: 'density-py-[1.5,2.25,3,3.75,4.5]',
 		lg: 'density-py-[2,3,4,5,6]',
 		xl: 'density-py-[3,4.5,6,7.5,9]',
 	},
-} as const
+} as const satisfies Record<'p' | 'px' | 'py', Record<Ma, string>>
 
 /** The padding of a nav item and a sidebar item: the `sm` stop of the padding scale. */
 const navItem = scale.p.sm
@@ -56,16 +62,6 @@ const top = 'density-pt-[2,3,4,5,6]'
 
 export const space = {
 	scale,
-	/**
-	 * No padding, as a stepped rule for each axis of `scale`. It is in the layer
-	 * of `scale`, so a breakpoint can switch it with a stop of `scale`. A plain
-	 * `p-0` outranks that layer.
-	 */
-	none: {
-		p: 'density-p-[0,0,0,0,0]',
-		px: 'density-px-[0,0,0,0,0]',
-		py: 'density-py-[0,0,0,0,0]',
-	},
 
 	box: {
 		/** The padding of a box: a card, a list, or a date picker body. */
@@ -108,18 +104,33 @@ export const space = {
 	/** The padding of a popover panel. */
 	popover: scale.p.lg,
 	/**
-	 * The inset of a dialog, a drawer, and a sheet: the same length on the four
-	 * sides. The `inset` of the panel group (`kumi/panel`) is this set, and its doc gives the rule.
+	 * The inset of a dialog, a drawer, and a sheet: the space between an edge and
+	 * the slot next to it. It is the same on the four sides, so the panel has one
+	 * even frame. It is larger than the slot gap of a panel (`gap.scale.lg`) at
+	 * each step, so the slots read as one group in the frame. It takes the step of
+	 * the nearest density scope, as the content of the panel does.
+	 *
+	 * The inset stops at the box of the content at the edge. A button at the edge
+	 * of a footer must show its box, or its padding adds to the inset. Thus the
+	 * standard close button of a panel is `soft`, not `plain`.
 	 */
 	panel: {
 		/** The inset at the left edge and at the right edge, on the panel or on each slot. */
 		x: scale.px.xl,
 		/**
 		 * The negative bottom margin that cancels the slot gap of a panel
-		 * (`gap.scale.lg`) under a child that is the edge of the panel.
+		 * (`gap.scale.lg`) under a child that is the edge of the panel, not one of
+		 * its slots: a drag handle above the header. The ramp is the negative of
+		 * the gap at each step. If one ramp changes and the other does not, the
+		 * difference is dead space that no test finds.
 		 */
 		flush: 'density-mb-[-2,-3,-4,-5,-6]',
-		/** The slot gap of a panel (`gap.scale.lg`) above a child that follows a sibling. */
+		/**
+		 * The slot gap of a panel (`gap.scale.lg`) above a child that follows a
+		 * sibling. A list in the body takes it to keep the rhythm of the panel
+		 * slots, such as the groups of a command palette below its search input.
+		 * The ramp is the gap, for the reason that `flush` gives.
+		 */
 		above: 'not-first:density-mt-[2,3,4,5,6]',
 		/** The inset above the first slot, on the panel or on the slot. */
 		top: 'density-pt-[3,4.5,6,7.5,9]',
