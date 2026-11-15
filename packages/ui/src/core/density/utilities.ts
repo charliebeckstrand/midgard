@@ -51,7 +51,7 @@
  * `density-set` writes a custom property, and a plain utility reads it. The
  * modifier gives the name of the property in brackets, and the list gives
  * stops of the spacing scale, for example
- * `density-set-[4,5,6,7,8]/[--ui-panel-bottom]`. A stop can be negative.
+ * `density-set-[3,4.5,6,7.5,9]/[--ui-panel-bottom]`. A stop can be negative.
  * A modifier that is not the name of a custom property, or no modifier, writes
  * no CSS. So does a name that the stepped classes read: a weight
  * (`--ui-d<step>` or `--ui-h<step>`), `--spacing`, or a name of Tailwind
