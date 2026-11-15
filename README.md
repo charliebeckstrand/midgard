@@ -34,6 +34,7 @@ An older global pnpm delegates to pnpm 12 through its tools cache. Turbo cannot 
 | [`apps/places`](apps/places/README.md) | Next.js map of the places you have been (App Router, Turbopack). |
 | [`apps/picks`](apps/picks/README.md) | Next.js picks of the NFL winners, week by week (App Router, Turbopack). |
 | [`apps/elections`](apps/elections/README.md) | Next.js election results by state, district, and county, from civicAPI (App Router, Turbopack). |
+| [`apps/numbers`](apps/numbers/README.md) | Next.js number game: put 20 random numbers in ascending order (App Router, Turbopack). |
 | [`packages/ui`](packages/ui/README.md) | Design system: components, primitives, hooks, providers, recipes. |
 | [`packages/auth`](packages/auth/README.md) | Auth library: config, proxy, user. |
 | [`packages/shared`](packages/shared/README.md) | Shared auth UI and the global stylesheet. |
@@ -57,7 +58,7 @@ The design system has its own hub, [`packages/ui/REFERENCE.md`](packages/ui/REFE
 
 ## 5. Gateway
 
-Each app except elections gets auth and API responses from the bifrost gateway. The elections app is public, so it has no gateway, no `withAuth`, and no proxy. [`withAuth`](packages/auth/README.md) rewrites the same-origin `/auth/*` and `/api/*` paths to the gateway, and the typed `bifrost` client fetches from it. The types come from the OpenAPI spec that the gateway commits (`pnpm --filter auth openapi`). [`packages/auth/src/env.ts`](packages/auth/src/env.ts) reads the origin from `BIFROST_URL`, and no other file reads it.
+Each app except elections and numbers gets auth and API responses from the bifrost gateway. The elections app and the numbers app are public, so they have no gateway, no `withAuth`, and no proxy. [`withAuth`](packages/auth/README.md) rewrites the same-origin `/auth/*` and `/api/*` paths to the gateway, and the typed `bifrost` client fetches from it. The types come from the OpenAPI spec that the gateway commits (`pnpm --filter auth openapi`). [`packages/auth/src/env.ts`](packages/auth/src/env.ts) reads the origin from `BIFROST_URL`, and no other file reads it.
 
 | Environment | `BIFROST_URL` |
 |---|---|
@@ -77,6 +78,7 @@ Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs C
 | `admin.ivoryimage.dev` | `apps/admin` | [`Dockerfile`](Dockerfile), with `APP=admin` |
 | `places.ivoryimage.dev` | `apps/places` | [`Dockerfile`](Dockerfile), with `APP=places` |
 | `elections.ivoryimage.dev` | `apps/elections` | [`Dockerfile`](Dockerfile), with `APP=elections` |
+| `numbers.ivoryimage.dev` | `apps/numbers` | [`Dockerfile`](Dockerfile), with `APP=numbers` |
 | `docs.ivoryimage.dev` | The docs site of `ui`, served in the language of the reader | [`Dockerfile.docs`](Dockerfile.docs) |
 
 The Next apps build with `output: 'standalone'`. To build one image locally:
