@@ -1,8 +1,7 @@
 import { defineKata } from '../../core/recipe'
-import { dan, iro, ji, kokkaku } from '../kiso'
+import { dan, iro, kokkaku } from '../kiso'
 
 const { text } = iro
-const { weight } = ji
 
 /**
  * The list is a grid in each orientation, and the orientations differ only in
@@ -45,7 +44,7 @@ export const k = defineKata(
 			},
 		},
 		slots: {
-			term: [text.muted, weight.medium],
+			term: [text.muted, 'font-medium'],
 			details: text.default,
 		},
 	},

@@ -1,9 +1,8 @@
 import { defineScale } from '../../core/density'
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kokkaku } from '../kiso'
+import { dan, iro, kokkaku } from '../kiso'
 
 const { text } = iro
-const { weight } = ji
 const { heading } = kokkaku
 
 /**
@@ -19,12 +18,12 @@ export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
  * panel title slot, reads its weight from `k.weight`.
  */
 const levelWeight = {
-	1: weight.bold,
-	2: weight.semibold,
-	3: weight.semibold,
-	4: weight.medium,
-	5: weight.medium,
-	6: weight.medium,
+	1: 'font-bold',
+	2: 'font-semibold',
+	3: 'font-semibold',
+	4: 'font-medium',
+	5: 'font-medium',
+	6: 'font-medium',
 } as const satisfies Record<HeadingLevel, string>
 
 /**

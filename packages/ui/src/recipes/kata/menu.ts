@@ -23,7 +23,7 @@ import { dan, iro, ji, narabi, omote, sen, ugoki } from '../kiso'
 import { item } from '../kumi/item'
 
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { fit, flex } = narabi
 const { divider } = sen
 const { css } = ugoki
@@ -90,13 +90,13 @@ export const k = defineKata(
 			header: {
 				base: ['shrink-0', dan.space.menu.item.x, 'pb-1 pt-2'],
 				slots: {
-					title: [dan.text.body, weight.semibold, text.default],
+					title: [dan.text.body, 'font-semibold', text.default],
 					description: [size.xs, text.muted],
 				},
 			},
 			section: 'first:pt-0 last:pb-0',
 			// The heading of a section takes the inline padding of a row, as the header does.
-			heading: [dan.space.menu.item.x, 'pb-1 pt-2', size.xs, weight.medium, text.muted],
+			heading: [dan.space.menu.item.x, 'pb-1 pt-2', size.xs, 'font-medium', text.muted],
 			separator: divider.top,
 		},
 		defaults: { capped: false },

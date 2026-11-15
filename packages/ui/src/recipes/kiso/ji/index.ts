@@ -1,18 +1,12 @@
 /**
- * Ji (字): typography. Four named axes (`size`, `weight`, `leading`,
- * `family`), each addressable as `ji.<axis>.<key>`. The stepped text size of a
- * density-native component is a ramp, in `dan.text`. One file per concern; this barrel
- * assembles the named bundle that kata read.
+ * Ji (字): typography. `size` is the fixed text-size scale, addressable as
+ * `ji.size.<key>`. The stepped text size of a density-native component is a
+ * ramp, in `dan.text`. A font weight, a line height, and a font family are
+ * plain Tailwind classes (`font-medium`, `leading-tight`, `font-mono`).
  */
 
-import { family } from './family'
-import { leading } from './leading'
 import { size } from './size'
-import { weight } from './weight'
 
 export const ji = {
 	size,
-	weight,
-	leading,
-	family,
 } as const

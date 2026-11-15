@@ -3,7 +3,7 @@ import { dan, hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
 const { cursor, tint } = hannou
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
@@ -50,7 +50,7 @@ export const k = defineKata({
 				false: '',
 			},
 		},
-		title: ['truncate', weight.medium, size.md, ...text.default],
+		title: ['truncate', 'font-medium', size.md, ...text.default],
 		preview: ['truncate', size.sm, ...text.muted],
 		// `relative z-10` lifts the action controls above the active indicator and the
 		// select overlay so they stay clickable.

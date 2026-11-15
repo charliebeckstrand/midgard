@@ -8,11 +8,10 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata, mode } from '../../core/recipe'
-import { dan, hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { dan, hannou, iro, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { cursor, disabled, fg } = hannou
 const { on, text } = iro
-const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { bg, rail, scrollbar } = omote
@@ -46,7 +45,7 @@ const segment = {
 		// does not, the item shrinks to its longest word and the label wraps.
 		'text-center text-balance',
 		rounded.lg,
-		weight.medium,
+		'font-medium',
 		// iOS Safari can select the text in a child of a `select-none` item on a long
 		// press, so the children also set it.
 		'select-none *:select-none',
@@ -131,7 +130,7 @@ export const k = defineKata(
 				base: [
 					'relative',
 					flex.row,
-					weight.medium,
+					'font-medium',
 					text.muted,
 					fg.current,
 					// Tab-specific intermediate hover on non-current siblings.

@@ -11,7 +11,7 @@ import { dan, iro, ji, kasane, narabi, omote, sen, zu } from '../kiso'
 
 const { text } = iro
 const { marker, meter } = zu
-const { size, weight } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { bg } = omote
@@ -33,7 +33,7 @@ export const k = defineKata({
 			},
 		},
 		label: {
-			base: [size.sm, weight.medium],
+			base: [size.sm, 'font-medium'],
 			level: {
 				weak: text.error,
 				fair: text.warning,

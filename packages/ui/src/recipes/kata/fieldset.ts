@@ -7,17 +7,16 @@
  * they thread the disabled state down through the group.
  */
 import { defineKata, mode } from '../../core/recipe'
-import { dan, hannou, iro, ji, narabi } from '../kiso'
+import { dan, hannou, iro, narabi } from '../kiso'
 
 const { cursor, disabled } = hannou
 const { text } = iro
-const { weight } = ji
 const { field } = narabi
 
 export const k = defineKata({
 	base: [dan.space.fieldset.legend, ...disabled.base],
 	slots: {
-		legend: [dan.text.body, weight.semibold, text.default, ...disabled.base],
+		legend: [dan.text.body, 'font-semibold', text.default, ...disabled.base],
 		field: [
 			...field,
 			...mode(

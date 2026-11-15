@@ -8,15 +8,15 @@ import { defineKata } from '../../core/recipe'
 import { iro, ji } from '../kiso'
 
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 
 export const k = defineKata({
 	base: [size.sm],
 	slots: {
 		field: [...text.default],
 		operator: [...text.muted],
-		value: [weight.medium, ...text.default],
-		combinator: [size.xs, weight.medium, ...text.muted, 'uppercase'],
+		value: ['font-medium', ...text.default],
+		combinator: [size.xs, 'font-medium', ...text.muted, 'uppercase'],
 		bracket: [...text.muted],
 	},
 })

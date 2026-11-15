@@ -1,8 +1,7 @@
 import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kasane, narabi, sen } from '../kiso'
+import { dan, iro, kasane, narabi, sen } from '../kiso'
 
 const { palette } = iro
-const { weight, leading } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { forced, ring } = sen
@@ -42,8 +41,8 @@ export const k = defineKata({
 	}),
 	slots: {
 		icon: 'shrink-0 self-center',
-		title: [titleRamp, weight.semibold],
-		description: [leading.tight, 'col-start-2'],
+		title: [titleRamp, 'font-semibold'],
+		description: ['leading-tight', 'col-start-2'],
 		content: ['flex-1', 'min-w-0', dan.gap.scale.sm],
 		/** The two columns of the content beside an icon. */
 		columns: ['grid grid-cols-[auto_minmax(0,1fr)]', dan.gap.x.sm],

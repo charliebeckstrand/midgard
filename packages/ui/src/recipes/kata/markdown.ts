@@ -19,12 +19,12 @@
 import { defineKata } from '../../core/recipe'
 import { ji, omote, sen } from '../kiso'
 
-const { size, weight } = ji
+const { size } = ji
 
 // A code span renders at the fixed `sm` step of the inline Code recipe, which
 // fits body text. In a heading, it takes a fraction of the heading size, so it
 // grows with the heading and stays below the heading text.
-const headingBase = [weight.semibold, '[&_code]:text-[0.875em]']
+const headingBase = ['font-semibold', '[&_code]:text-[0.875em]']
 
 /** The alignment of a table cell that its column marks. */
 // biome-ignore lint/plugin/no-physical-side: a table column that `:---` marks is left-aligned by name, and the map renders that name as the author wrote it
@@ -48,12 +48,12 @@ export const k = defineKata({
 		},
 
 		paragraph: 'my-3',
-		strong: weight.semibold,
+		strong: 'font-semibold',
 		em: 'italic',
 		del: 'line-through',
 		// Underlined and medium-weight, not colored: it stays distinguishable from
 		// body text by underline alone (WCAG 1.4.1) and inherits the prose color.
-		link: [weight.medium, 'underline underline-offset-2'],
+		link: ['font-medium', 'underline underline-offset-2'],
 
 		ul: 'my-3 list-disc ps-5',
 		ol: 'my-3 list-decimal ps-5',
@@ -76,7 +76,7 @@ export const k = defineKata({
 			},
 		},
 		// Emphasis rule under the header, default rule under cells.
-		th: { base: [weight.semibold, 'border-b px-3 py-2', ...sen.border.color.emphasis], align },
+		th: { base: ['font-semibold', 'border-b px-3 py-2', ...sen.border.color.emphasis], align },
 		td: { base: ['border-b px-3 py-2', ...sen.border.color.default], align },
 
 		img: 'my-4 max-w-full rounded-lg',

@@ -7,12 +7,11 @@
  * `TimelineSkeleton` rows.
  */
 import { type Color, defineKata, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kokkaku, narabi, omote, ugoki, zu } from '../kiso'
+import { dan, iro, kokkaku, narabi, omote, ugoki, zu } from '../kiso'
 import type { SwatchVariants } from './swatch'
 
 const { text } = iro
 const { marker } = zu
-const { weight } = ji
 const { flex } = narabi
 const { rail } = omote
 const { css } = ugoki
@@ -130,7 +129,7 @@ export const k = defineKata(
 				},
 			},
 			title: {
-				base: [weight.semibold, dan.text.title, ...text.default],
+				base: ['font-semibold', dan.text.title, ...text.default],
 				orientation: {
 					vertical: 'col-start-2 row-start-1',
 					horizontal: 'order-1',
