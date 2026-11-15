@@ -13,7 +13,7 @@
 import { defineGroup, mode } from '../../../core/recipe'
 import { hannou, narabi, sen } from '../../kiso'
 
-const { cursor } = hannou
+const { cursor, disabled } = hannou
 const { flex } = narabi
 const { focus, forced } = sen
 
@@ -68,7 +68,7 @@ const surface = [
 		'not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:hover:border-zinc-950/70 not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/70',
 		'dark:not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:hover:border-white/50 dark:not-has-[:disabled,:checked,[data-indeterminate],[aria-readonly=true],[data-readonly]]:group-has-[[data-slot=label]:hover]/field:border-white/50',
 	),
-	'has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',
+	disabled.host,
 	...validation,
 ]
 

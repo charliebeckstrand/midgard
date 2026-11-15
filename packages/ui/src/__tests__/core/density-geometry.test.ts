@@ -283,20 +283,3 @@ describe('every ramp of dan', () => {
 		)
 	})
 })
-
-describe('the line of a skeleton', () => {
-	// A skeleton line is as tall as the line of the text that it stands in for:
-	// the text size plus 8 px.
-	const lines = [
-		['size.line.timeline', dan.size.line.timeline, dan.text.title],
-		['size.stat.value.base', dan.size.stat.value.base, dan.text.h1],
-	] as const
-
-	it.each(lines)('gives dan.%s the line of its text at each step', (_, line, text) => {
-		const height = parsePx(line)
-
-		const size = parsePx(text)
-
-		for (const step of densitySteps) expect(height[step]).toBe(size[step] + 8)
-	})
-})

@@ -14,6 +14,6 @@ import { dan } from '../dan'
 import { shaku } from '../shaku'
 
 export const accordion = {
-	label: [dan.size.row, 'w-40 max-w-full'].join(' '),
+	label: [dan.text.body, 'h-lh w-40 max-w-full'].join(' '),
 	indicator: ['shrink-0', shaku.icon.base],
 } as const

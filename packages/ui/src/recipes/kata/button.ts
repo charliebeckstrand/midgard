@@ -25,7 +25,7 @@ export const k = defineKata(
 			'justify-center',
 			'w-fit shrink-0',
 			weight.semibold,
-			...disabled,
+			...disabled.base,
 			...cursor,
 			// Each step is in a stepped `density-*` class: the button takes the step of
 			// its nearest density scope, and an explicit `size` makes the button its own

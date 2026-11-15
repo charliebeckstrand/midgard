@@ -144,7 +144,7 @@ export const k = defineKata(
 								'dark:hover:not-disabled:bg-zinc-800 dark:hover:not-disabled:text-zinc-300',
 							),
 							...focus.ring,
-							...disabled,
+							...disabled.base,
 						],
 						held: { true: focus.lifted.outline, false: '' },
 					},

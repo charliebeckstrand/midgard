@@ -79,7 +79,7 @@ const thumb = [
  * and at `end`.
  */
 const choice = {
-	base: [flex.inline, 'group/switch-choice w-fit', dan.gap.x.md, ...disabled],
+	base: [flex.inline, 'group/switch-choice w-fit', dan.gap.x.md, ...disabled.base],
 	color,
 }
 
@@ -101,7 +101,7 @@ export const k = defineKata(
 			// Validation ring overrides the resting / checked track ring when the
 			// input carries a data-* severity attribute.
 			...validation,
-			'has-disabled:opacity-50',
+			disabled.host,
 			// The track takes the step of the nearest density scope.
 			...kokkaku.switch.track,
 		],

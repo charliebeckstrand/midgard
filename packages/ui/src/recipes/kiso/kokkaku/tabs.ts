@@ -19,7 +19,7 @@
 
 import { dan } from '../dan'
 
-const line = [dan.size.row, dan.size.tab.width]
+const line = [dan.text.body, 'h-lh', dan.size.tab.width]
 
 export const tabs = {
 	tab: {

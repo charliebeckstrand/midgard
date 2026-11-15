@@ -11,7 +11,11 @@
  * Layer: kiso · Concern: skeleton form · Unit: list
  */
 
+import { ji } from '../ji'
+
+const { size } = ji
+
 export const list = {
-	label: 'h-6 w-40 max-w-full',
-	description: 'h-5 w-64 max-w-full',
+	label: [size.md, 'h-lh w-40 max-w-full'].join(' '),
+	description: [size.sm, 'h-lh w-64 max-w-full'].join(' '),
 } as const

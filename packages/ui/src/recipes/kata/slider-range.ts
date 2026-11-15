@@ -19,7 +19,7 @@ export const k = defineKata({
 		...cursor,
 		'select-none',
 		'touch-none',
-		disabled,
+		disabled.base,
 		dan.space.slider.y,
 	],
 	slots: {

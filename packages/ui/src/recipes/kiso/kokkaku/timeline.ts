@@ -19,6 +19,6 @@ const { rounded } = kasane
 
 export const timeline = {
 	dot: rounded.full,
-	title: [dan.size.line.timeline, 'w-40 max-w-full'],
-	timestamp: [dan.size.line.base, 'w-20 max-w-full'],
+	title: [dan.text.title, 'h-lh w-40 max-w-full'],
+	timestamp: [dan.text.small, 'h-lh w-20 max-w-full'],
 } as const
