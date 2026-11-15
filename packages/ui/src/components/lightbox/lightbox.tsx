@@ -124,9 +124,11 @@ export type LightboxProps = {
  * of thumbnails takes the place of the step buttons, and a press on a
  * thumbnail shows its photo. Escape, the close button, and a press on the
  * stage outside the photo close the viewer, and the focus goes back to the
- * thumbnail. With `dismissOnBackdrop` set to
- * `false`, a press outside the photo does not close the viewer, and the close
- * button always shows.
+ * thumbnail. With `dismissOnBackdrop` set to `false`, a press outside the
+ * photo does not close the viewer, and the close button always shows.
+ *
+ * When the viewer opens, the viewer itself takes the focus, so the keys step
+ * and zoom at once. Tab then moves the focus to the close button.
  *
  * A pinch zooms the photo, up to four times its size, and a double tap or a
  * double click zooms into the point that it taps. A double tap on a zoomed
@@ -227,6 +229,13 @@ export function Lightbox({
 		if (open) returnRef.current = null
 	}, [open])
 
+	// The viewer itself takes the focus when it opens, not its first button. The
+	// arrow keys then step at once. The close button can be clear until it has
+	// the keyboard focus, so a focus that a script gives it must not show it. A
+	// script focus shows the ring in Safari when the last focus did not come
+	// from a click, and a tap on iOS does not focus the thumbnail.
+	const viewerRef = useRef<HTMLDivElement>(null)
+
 	const context: LightboxContextValue = {
 		photos,
 		shown,
@@ -262,10 +271,12 @@ export function Lightbox({
 				}}
 				backdrop={false}
 				dismissOnBackdrop={false}
+				initialFocus={viewerRef}
 				returnFocusTo={returnRef}
 			>
 				{position >= 0 && (
 					<LightboxStage
+						ref={viewerRef}
 						photos={viewable}
 						index={position}
 						onIndexChange={(next) =>

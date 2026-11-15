@@ -523,6 +523,21 @@ describe('Lightbox', () => {
 		expect(screen.getByRole('link', { name: "Ouvrir l'original" })).toBeInTheDocument()
 	})
 
+	it.for([{ closable: false }, { closable: true }])(
+		'gives the focus to the viewer, not to its close button, at the open (closable: $closable)',
+		async ({ closable }) => {
+			renderUI(<Gallery closable={closable} />)
+
+			await setupUser().click(screen.getByRole('button', { name: 'Harbor at dawn' }))
+
+			const viewer = await screen.findByRole('dialog', { name: 'Photos' })
+
+			await waitFor(() => expect(viewer).toHaveFocus())
+
+			expect(screen.getByRole('button', { name: 'Close' })).not.toHaveFocus()
+		},
+	)
+
 	it('keeps a close button for the keyboard with no `closable`, and closes on Escape', async () => {
 		const onIndexChange = vi.fn()
 
