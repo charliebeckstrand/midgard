@@ -2,7 +2,6 @@
 
 import { type KeyboardEvent, useRef } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
-import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities/clamp'
@@ -101,7 +100,7 @@ export function ColorArea() {
 				brightness: Math.round(hsva.v) / 100,
 			})}
 			aria-disabled={ariaAttr(disabled)}
-			className={cn(k().area.base, disabled && 'pointer-events-none opacity-50')}
+			className={k().area.base}
 			style={{ backgroundColor: `hsl(${hsva.h} 100% 50%)` }}
 			onMouseDown={drag.onMouseDown}
 			onPointerDown={drag.onPointerDown}
