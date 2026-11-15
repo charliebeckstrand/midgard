@@ -1,5 +1,5 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineColors, defineKata, type VariantProps } from '../../core/recipe'
+import { defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, kasane, kokkaku } from '../kiso'
 import { check } from '../kumi/check'
 
@@ -17,13 +17,12 @@ export const k = defineKata(
 			// The circle takes the step of the nearest density scope.
 			dan.size.check.box,
 		],
-		color: defineColors({
-			zinc: {
-				light:
-					'[--check-bg:var(--color-zinc-900)] [--check-border:var(--color-zinc-950)]/90 [--check-mark:var(--color-white)]',
-				dark: 'dark:[--check-bg:var(--color-zinc-500)] dark:[--check-border:var(--color-zinc-500)]/90',
-			},
-		}),
+		color: {
+			zinc: mode(
+				'[--check-bg:var(--color-zinc-900)] [--check-border:var(--color-zinc-950)]/90 [--check-mark:var(--color-white)]',
+				'dark:[--check-bg:var(--color-zinc-500)] dark:[--check-border:var(--color-zinc-500)]/90',
+			),
+		},
 		slots: {
 			/**
 			 * The dot: the sibling that follows the native input. It shows when the

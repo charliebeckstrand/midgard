@@ -11,6 +11,7 @@ import { cursor, grab } from './cursor'
 import { disabled } from './disabled'
 import { fg } from './fg'
 import { tint } from './tint'
+import { turn } from './turn'
 
 export const hannou = {
 	/** Disabled / dormant state. */
@@ -27,4 +28,6 @@ export const hannou = {
 	active,
 	/** Foreground (text-color) feedback on hover / disabled / current / open / expanded. */
 	fg,
+	/** The quarter turn of a disclosure chevron that carries `data-open`, in the tempo of `collapse`. */
+	turn,
 } as const

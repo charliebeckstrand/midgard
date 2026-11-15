@@ -46,7 +46,7 @@ export type SwatchProps = SwatchVariants & {
 	 *   CVD-validated `text-*` class;
 	 * - a raw hex (`'#2563eb'`) or `oklch()` string, inked inline;
 	 * - a `text-*` utility class, typically a data-viz palette token (e.g.
-	 *   `kata/chart`'s `series[c].text`) or an `iro.marker` shade.
+	 *   `kata/chart`'s `series[c].text`) or a `zu.marker` shade.
 	 *
 	 * `solid` fills with it, `outline` frames with it, `soft` tints with it inside
 	 * a 1px edge, `dashed` strokes it. Omitted, the swatch inherits the ambient text color.

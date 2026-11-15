@@ -14,10 +14,8 @@
  * `display: contents` wrappers of Form and Fieldset, so the flex-shrink chain
  * to the overflow of the body stays intact. `header` is the optional wrapper
  * with the tight gap for the title and the description. Each other slot stands
- * at the `lg` stop of the gap scale. The gaps and the inset at each edge
- * (`inset`) follow density. The inset is the same on the four sides. A drawer
- * and a sheet put their header one slot gap from the top edge instead
- * (`inset.head`), so the space above the header is the space under it.
+ * at the `lg` stop of the gap scale. The gaps follow density. The inset at
+ * each edge is `dan.space.panel`, and its doc gives the rule.
  */
 
 import { defineGroup } from '../../../core/recipe'
@@ -57,49 +55,3 @@ export const panel = defineGroup({
 	},
 	defaults: { surface: 'flat' },
 })
-
-/**
- * The header of a closable panel: a row with the column of the title (`lead`)
- * and the X close at the end. `lead` keeps the tight gap of the header between
- * the title and the description. It shrinks, so a long title wraps and does
- * not push the X past the edge.
- */
-export const bar = {
-	base: 'flex-row items-center',
-	lead: [flex.col, 'min-w-0', 'flex-1', scale.sm],
-}
-
-/** The gaps of a child of a panel that is not a slot. */
-export const gap = {
-	/**
-	 * Cancels the gap of `base` for a child that is the edge of the panel, not
-	 * one of its slots: a drag handle above the header.
-	 *
-	 * The ramp of `dan.space.panel.flush` is the negative of the gap of `base` at
-	 * each step. If one ramp changes and the other does not, the difference is
-	 * dead space that no test finds.
-	 */
-	flush: dan.space.panel.flush,
-	/**
-	 * Puts the gap of `base` above a child that follows a sibling. A list in the
-	 * body uses it to keep the rhythm of the panel slots. The groups of a command
-	 * palette below its search input are an example.
-	 *
-	 * The ramp of `dan.space.panel.above` is the gap of `base`, for the reason
-	 * that `gap.flush` gives.
-	 */
-	above: dan.space.panel.above,
-}
-
-/**
- * The inset of a panel: the space between an edge and the slot next to it. It
- * is the same on the four sides, so the panel has one even frame. It is larger
- * than the gap of `base` at each step, so the slots read as one group in the
- * frame. It takes the step of the nearest density scope, as the content of the
- * panel does. The ramps are in `dan.space.panel`.
- *
- * The inset stops at the box of the content at the edge. A button at the edge
- * of a footer must show its box, or its padding adds to the inset. Thus the
- * standard close button of a panel is `soft`, not `plain`.
- */
-export const inset = dan.space.panel

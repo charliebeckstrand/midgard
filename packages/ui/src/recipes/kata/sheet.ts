@@ -7,9 +7,10 @@
  * flat surface. The `handle` drag grip and the `motion` are extras.
  */
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { narabi, shaku, ugoki } from '../kiso'
-import { grip, inset, panel } from '../kumi/panel'
+import { dan, narabi, shaku, ugoki } from '../kiso'
+import { grip, panel } from '../kumi/panel'
 
+const { space } = dan
 const { flex, slide } = narabi
 
 /**
@@ -113,11 +114,11 @@ export const k = defineKata(
 		slots: {
 			// The header stands one slot gap from the top edge, as the header of a drawer
 			// does (see `kata/drawer.ts`).
-			header: [inset.x, inset.head],
-			title: [inset.x, inset.head, 'in-data-[slot=sheet-header]:p-0'],
-			description: [inset.x, 'in-data-[slot=sheet-header]:px-0'],
-			footer: [inset.x, inset.bottom],
-			body: ['flex-1', inset.x, inset.first.sheet, inset.last.sheet],
+			header: [space.panel.x, space.panel.head],
+			title: [space.panel.x, space.panel.head, 'in-data-[slot=sheet-header]:p-0'],
+			description: [space.panel.x, 'in-data-[slot=sheet-header]:px-0'],
+			footer: [space.panel.x, space.panel.bottom],
+			body: ['flex-1', space.panel.x, space.panel.first.sheet, space.panel.last.sheet],
 			/**
 			 * The optional wrapper around the body and the footer. A sheet on a side has
 			 * the height of the screen. The wrapper fills that height, so the body can
@@ -148,14 +149,14 @@ export const k = defineKata(
 				// survives the `bottom-0` of a cross arm, and the strip covers the panel.
 				// On a side, the strip lies over the inset and is as thick as the inset at
 				// each density step, so it covers no slot.
-				right: ['absolute inset-y-0 left-0', inset.grip.x],
-				left: ['absolute inset-y-0 right-0', inset.grip.x],
+				right: ['absolute inset-y-0 left-0', space.panel.grip.x],
+				left: ['absolute inset-y-0 right-0', space.panel.grip.x],
 				// Across, the strip is a row of the panel at its edge, as the grip of a
 				// drawer is. It lies over the inset of the slot next to it and keeps the
 				// reach of the drawer grip. `sticky` holds it at the edge when the panel
 				// scrolls.
-				top: ['sticky bottom-0 order-last w-full shrink-0 py-3', inset.grip.over.top],
-				bottom: ['sticky top-0 w-full shrink-0 py-3', inset.grip.over.bottom],
+				top: ['sticky bottom-0 order-last w-full shrink-0 py-3', space.panel.grip.over.top],
+				bottom: ['sticky top-0 w-full shrink-0 py-3', space.panel.grip.over.bottom],
 			},
 			/** Keyed by the separator's own line: a sheet docked to a side is grabbed the other way from one docked across. */
 			bar: grip.bar,

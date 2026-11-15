@@ -24,18 +24,18 @@ export const k = defineKata({
 	],
 	slots: {
 		track: [
-			'absolute inset-x-0',
+			'absolute inset-x-0 top-1/2 -translate-y-1/2',
 			rounded.full,
 			'bg-(--slider-track)',
 			forced.outline,
 			dan.size.slider.track,
 		],
-		fill: ['absolute', rounded.full, 'bg-(--slider-fill)', forced.mark],
+		fill: ['absolute h-full', rounded.full, 'bg-(--slider-fill)', forced.mark],
 		thumb: {
 			base: [
-				'absolute',
+				'absolute top-1/2',
 				rounded.full,
-				'-translate-x-1/2',
+				'-translate-x-1/2 -translate-y-1/2',
 				// The thumb sits at `inset-inline-start`, so its center offset mirrors in a right-to-left layout.
 				'rtl:translate-x-1/2',
 				'bg-white',
