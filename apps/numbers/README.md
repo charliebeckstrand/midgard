@@ -42,16 +42,17 @@ partial Fisher-Yates shuffle takes the deck.
 
 A Reset starts the run of a new seed in place, and adds its address to the
 history. Back and Forward start the run of the seed of the address again,
-from its start. The share button in the header copies the address of the run.
+from its start. Share seed in the menu of the bar copies the address of the run.
 
 `src/hooks/use-game.ts` holds the state of one game and its actions: Draw,
 place, and Reset.
 
 ## The page
 
-The header shows the name of the app, the share button, and the settings.
+The header shows the name of the app and the settings.
 The settings have the appearance pickers of `ui` and the Auto-draw switch. A
-bar under the header holds the drawn number and the action. The bar stays at
+bar under the header holds the drawn number, the action, and a menu with
+Reset and Share seed. Reset in the menu starts a new seed at each step. The bar stays at
 the top while the slots scroll under it. The number rolls to each new number
 through the `Odometer` of `ui`.
 

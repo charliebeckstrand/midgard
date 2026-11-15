@@ -4,8 +4,9 @@ import type { MouseEvent, Ref } from 'react'
 import { Button } from 'ui/button'
 import { Odometer } from 'ui/odometer'
 import { Text, type TextProps } from 'ui/text'
-import { Toolbar } from 'ui/toolbar'
+import { Toolbar, ToolbarGroup } from 'ui/toolbar'
 import type { Game, Status } from '../../utilities/game'
+import { GameBoardMenu } from './game-board-menu'
 
 /** The tone of the readout at each step: full while a number waits, red on a bust, and muted else. */
 const TONES: Record<Status, TextProps['tone']> = {
@@ -23,6 +24,8 @@ export type GameBoardToolbarProps = {
 	onAction: (event: MouseEvent<HTMLButtonElement>) => void
 	/** The ref of the action button. */
 	actionRef: Ref<HTMLButtonElement>
+	/** Starts the run of a new seed, from the menu, at each step. */
+	onReset: () => void
 }
 
 /**
@@ -30,9 +33,16 @@ export type GameBoardToolbarProps = {
  * the slots scroll under it. The readout rolls to each new number. Before the
  * first draw it shows 0, and after a placement it keeps the number. The action
  * is Draw. It is off while a number waits for a slot, and it is Reset after a
- * bust (in red) and after a win.
+ * bust (in red) and after a win. The menu beside the action holds Reset and
+ * Share seed at each step.
  */
-export function GameBoardToolbar({ game, status, onAction, actionRef }: GameBoardToolbarProps) {
+export function GameBoardToolbar({
+	game,
+	status,
+	onAction,
+	actionRef,
+	onReset,
+}: GameBoardToolbarProps) {
 	const ended = status === 'bust' || status === 'won'
 
 	return (
@@ -43,14 +53,18 @@ export function GameBoardToolbar({ game, status, onAction, actionRef }: GameBoar
 					<Odometer value={game.last ?? 0} />
 				</Text>
 
-				<Button
-					ref={actionRef}
-					color={status === 'bust' ? 'red' : undefined}
-					disabled={status === 'placing'}
-					onClick={onAction}
-				>
-					{ended ? 'Reset' : 'Draw'}
-				</Button>
+				<ToolbarGroup>
+					<Button
+						ref={actionRef}
+						color={status === 'bust' ? 'red' : undefined}
+						disabled={status === 'placing'}
+						onClick={onAction}
+					>
+						{ended ? 'Reset' : 'Draw'}
+					</Button>
+
+					<GameBoardMenu onReset={onReset} />
+				</ToolbarGroup>
 			</Toolbar>
 		</div>
 	)

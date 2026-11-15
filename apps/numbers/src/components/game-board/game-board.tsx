@@ -103,6 +103,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 				status={status}
 				actionRef={actionRef}
 				onAction={(event) => act(event, ended ? restart : draw)}
+				onReset={restart}
 			/>
 
 			<GameBoardSlots
