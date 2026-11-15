@@ -1,7 +1,8 @@
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { shaku, ugoki } from '../kiso'
-import { inset, panel } from '../kumi/panel'
+import { dan, shaku, ugoki } from '../kiso'
+import { panel } from '../kumi/panel'
 
+const { space } = dan
 const { popover, css } = ugoki
 
 /**
@@ -44,11 +45,11 @@ export const k = defineKata(
 		base: [
 			'relative',
 			'w-full',
-			inset.x,
-			inset.top,
+			space.panel.x,
+			space.panel.top,
 			// The bottom padding. On the bottom edge, the `align` table also adds the
 			// inset of the home indicator in a page with `viewport-fit=cover`.
-			inset.safe,
+			space.panel.safe,
 		],
 		/** The maximum width of the panel. */
 		width: shaku.panel,

@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { densitySteps } from '../../core/density/steps'
 import { k as menu } from '../../recipes/kata/menu'
 import { dan } from '../../recipes/kiso/dan'
-import { inset as panelInset } from '../../recipes/kumi/panel'
 import { findSteps } from '../helpers/class-stops'
 
 // Menu sheet gutter invariant.
@@ -15,7 +14,7 @@ import { findSteps } from '../helpers/class-stops'
 // changes, the case fails and names the step.
 
 describe('Menu sheet gutter', () => {
-	const inset = findSteps([panelInset.x], 'density-px-')
+	const inset = findSteps([dan.space.panel.x], 'density-px-')
 
 	const row = findSteps([dan.space.menu.item.x], 'density-px-')
 

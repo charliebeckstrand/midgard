@@ -9,7 +9,7 @@
 import { mode, type PaletteColor } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
-const { busy, cursor, disabled, fg, grab } = hannou
+const { busy, cursor, disabled, fg, grab, turn } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
@@ -574,21 +574,11 @@ export const k = {
 		label: [text.default, weight.medium],
 	},
 	detail: {
-		// The master-detail chevron in an expander cell: rotates a quarter-turn as
-		// the panel opens (`data-open`), in the tempo of the reveal. The
-		// class rides the chevron `<svg>` directly (the expander passes `data-open`
-		// and this recipe onto the lucide element), which rotates about its own
-		// center without a wrapper. A right-to-left grid mirrors the chevron, so it
-		// points to the inline end, and turns it counterclockwise, so it still points
-		// down once open. CSS applies the rotate after the scale.
-		chevron: [
-			'shrink-0',
-			css.transform,
-			css.collapse,
-			'data-open:rotate-90',
-			'rtl:-scale-x-100',
-			'rtl:data-open:-rotate-90',
-		],
+		// The master-detail chevron in an expander cell (`hannou.turn`). The class
+		// rides the chevron `<svg>` directly (the expander passes `data-open` and
+		// this recipe onto the lucide element), which rotates about its own center
+		// without a wrapper.
+		chevron: ['shrink-0', ...turn],
 		// The reveal wrapper in the `<td>` of the detail row, as the group leaves
 		// have, so a panel grows and shrinks to its content height.
 		reveal: { ...reveal },

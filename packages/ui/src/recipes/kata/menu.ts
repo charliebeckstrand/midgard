@@ -124,8 +124,9 @@ export const k = defineKata(
 				'forced-colors:data-open:outline-solid forced-colors:data-open:outline-1 forced-colors:data-open:-outline-offset-1',
 			],
 			// The chevron of a `MenuSub` row in the bottom sheet, which turns over
-			// while the rows of the submenu show below the row.
-			chevron: ['ms-auto', css.transform, css.duration],
+			// while the rows of the submenu show below the row (the `data-open` of
+			// the row).
+			chevron: ['ms-auto', 'group-data-open/option:rotate-180', css.transform, css.duration],
 			// The rows of a `MenuSub` in the bottom sheet, below their parent row. The
 			// indent shows that they belong to it.
 			group: 'min-w-0 space-y-0.5 ps-4',

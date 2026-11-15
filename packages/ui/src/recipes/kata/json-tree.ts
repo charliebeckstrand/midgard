@@ -8,12 +8,12 @@
 import { defineKata, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
-const { cursor, fg } = hannou
+const { cursor, fg, turn } = hannou
 const { text } = iro
 const { family, size } = ji
 const { rounded } = kasane
 const { flex, nest } = narabi
-const { collapse, css } = ugoki
+const { collapse } = ugoki
 const { focus, forced } = sen
 
 /** The syntax-highlight classes a {@link JsonTree} node can take: one per primitive value kind plus `key` for object property names. */
@@ -89,7 +89,7 @@ export const k = defineKata(
 				},
 			},
 			chevron: {
-				base: [nest.mark, flex.inline, 'justify-center', css.transform, css.collapse],
+				base: [nest.mark, flex.inline, 'justify-center', ...turn],
 				slots: {
 					/** The box in place of the chevron on a row that does not open, so the rows align. */
 					spacer: ['inline-block', nest.mark],

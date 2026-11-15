@@ -1301,3 +1301,15 @@ describe('JsonTree in a locale', () => {
 		expect(screen.getByText('1 elemento')).toBeInTheDocument()
 	})
 })
+
+describe('JsonTree chevron', () => {
+	it('turns the chevron on the element that carries the transform transition', () => {
+		renderUI(<JsonTree data={{ nested: { value: 1 } }} defaultExpandDepth={1} />)
+
+		const turned = document.querySelector('.lucide-chevron-right')?.parentElement
+
+		expect(turned).toHaveAttribute('data-open')
+
+		expect(turned).toHaveClass('data-open:rotate-90', 'motion-safe:transition-transform')
+	})
+})
