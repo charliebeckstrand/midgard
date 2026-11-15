@@ -85,16 +85,18 @@ export const k = defineKata(
 			},
 			// The box of the title and the description of a panel, above its rows. The
 			// header does not shrink, so the rows below it scroll when the panel is
-			// capped.
+			// capped. It takes the inline padding of a row, so its text lines up with
+			// the row text at each step.
 			header: {
-				base: 'shrink-0 px-3 pb-1 pt-2',
+				base: ['shrink-0', dan.space.menu.item.x, 'pb-1 pt-2'],
 				slots: {
 					title: [dan.text.body, weight.semibold, text.default],
 					description: [size.xs, text.muted],
 				},
 			},
 			section: 'first:pt-0 last:pb-0',
-			heading: ['px-3 pb-1 pt-2', size.xs, weight.medium, text.muted],
+			// The heading of a section takes the inline padding of a row, as the header does.
+			heading: [dan.space.menu.item.x, 'pb-1 pt-2', size.xs, weight.medium, text.muted],
 			separator: divider.top,
 		},
 		defaults: { capped: false },
