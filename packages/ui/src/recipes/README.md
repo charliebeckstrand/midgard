@@ -42,7 +42,7 @@ A unit has a `bare` output, in which each slot is `''`. A component resolves its
 
 ## 3. Boundary
 
-Cross-layer value imports are forbidden. The barrel `index.ts` re-exports foundational types only (`Color` / `Ma` / `GroupOrientation`), so consumers can derive prop unions without threading the type through their kata. No runtime value passes through the barrel.
+Cross-layer value imports are forbidden. The barrel `index.ts` re-exports foundational types only (`Color` and `Ma`), so consumers can derive prop unions without threading the type through their kata. No runtime value passes through the barrel.
 
 These pin the contract:
 

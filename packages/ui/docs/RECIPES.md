@@ -77,7 +77,6 @@ The barrel re-exports the substrate types, so a consumer derives a prop union wi
 | Type | Summary |
 |---|---|
 | `Ma` | Name of a stop of the spacing scale: the gap scale and the padding scale of `dan`. |
-| `GroupOrientation` | Axis a joined group runs along. |
 
 ## Boundary
 

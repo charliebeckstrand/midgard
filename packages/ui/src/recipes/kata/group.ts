@@ -1,5 +1,6 @@
 import { defineKata } from '../../core/recipe'
-import { type GroupOrientation, narabi, tsunagi } from '../kiso'
+import type { Orientation } from '../../types/orientation'
+import { narabi, tsunagi } from '../kiso'
 
 const { touch } = narabi
 
@@ -25,6 +26,6 @@ export const k = defineKata({
 			touch.flush.y,
 			...tsunagi.vertical,
 		],
-	} satisfies Record<GroupOrientation, string[]>,
+	} satisfies Record<Orientation, string[]>,
 	defaults: { orientation: 'horizontal' },
 })

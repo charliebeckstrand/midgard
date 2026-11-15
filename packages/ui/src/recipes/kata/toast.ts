@@ -8,7 +8,18 @@ import { defineKata } from '../../core/recipe'
 import { dan, narabi, sou, ugoki } from '../kiso'
 
 const { flex } = narabi
-const { spring, toast } = ugoki
+const { panel, spring, still } = ugoki
+
+/**
+ * The slide of a toast from the top or the bottom edge: the slide of a panel at
+ * the same edge, so the toast also rests at `transform: none`. The dismissal
+ * fade and collapse take the tempo of the slide.
+ */
+const motion = {
+	top: panel.top,
+	bottom: panel.bottom,
+	dismiss: { duration: panel.top.transition.duration },
+} as const
 
 /** The scroll of a corner stack, which takes the width of its cards. */
 const corner = 'w-fit [--ui-toast-card:var(--ui-toast-width)]'
@@ -81,9 +92,9 @@ export const k = defineKata(
 		defaults: { edge: 'top' },
 	},
 	{
-		motion: toast,
+		motion,
 		/** The motion under reduced motion: the toast shows with no slide. */
-		still: { top: ugoki.still(toast.top), bottom: ugoki.still(toast.bottom) },
+		still: { top: still(panel.top), bottom: still(panel.bottom) },
 		/** Neighbor re-pack after a dismissal: the FLIP `layout` spring the stack reflows on. */
 		spring: spring.reflow,
 	},
