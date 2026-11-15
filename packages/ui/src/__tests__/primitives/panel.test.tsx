@@ -114,6 +114,6 @@ describe('PanelClose', () => {
 					<button type="button">Close</button>
 				</PanelClose>,
 			),
-		).toThrow('PanelClose must be rendered inside a Dialog, Sheet, or Drawer')
+		).toThrow('A panel part must be rendered inside a Dialog, Sheet, or Drawer')
 	})
 })

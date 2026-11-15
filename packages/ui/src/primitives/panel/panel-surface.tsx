@@ -7,10 +7,11 @@ import { dataAttr } from '../../core/data-attr'
 import { type A11yPanelRole, useA11yPanel } from '../../hooks/a11y/use-a11y-panel'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useReaderSurface } from '../../providers/glass/context'
+import { k } from '../../recipes/kata/panel'
 import { Overlay } from '../overlay'
 import * as m from '../reduced-motion/reduced-motion-elements'
-import { usePanelState } from './context'
-import { PanelProviders } from './panel-providers'
+import { PanelA11yContext, usePanelState } from './context'
 import type { PanelOverlayProps } from './types'
 
 /** A motion preset of a panel: the props that its slide gives to the animated element. */
@@ -26,8 +27,6 @@ export type PanelSurfaceProps<P extends PanelMotion> = PanelOverlayProps &
 	Omit<HTMLMotionProps<'div'>, 'children'> & {
 		/** @defaultValue 'dialog' */
 		role?: A11yPanelRole
-		/** Whether the resolved surface of the panel is glass. */
-		glass: boolean
 		/**
 		 * Gives the motion preset of the panel. `reduced` is the reduced-motion
 		 * setting of the reader.
@@ -36,13 +35,6 @@ export type PanelSurfaceProps<P extends PanelMotion> = PanelOverlayProps &
 		onOpenComplete?: () => void
 		/** The `aria-label` fallback of the panel. A registered title replaces it. */
 		'aria-label'?: string
-		/** The classes of the backdrop of the `Overlay`. */
-		backdropClassName?: string
-		/**
-		 * The classes of a box between the `Overlay` and the panel. With no value,
-		 * the panel is a direct child of the `Overlay`.
-		 */
-		boxClassName?: string
 		children: ReactNode
 	}
 
@@ -61,6 +53,8 @@ export type PanelSurfaceProps<P extends PanelMotion> = PanelOverlayProps &
  *   root does not see it. React carries a click in the portal up the component
  *   tree. A consumer `preventDefault()` does not let the click past the panel
  *   (CONVENTIONS.md §3.9).
+ * - The surface reads the Surfaces setting of the reader. The backdrop follows
+ *   it, and is the backdrop of the panel group for each family.
  * - A glass panel opens the glass cascade to its contents:
  *   `hannou.tint.glass` keys on `group-data-glass/glass`, which needs the named
  *   group and the attribute on one element. Rows inside then take their hover
@@ -77,7 +71,6 @@ export type PanelSurfaceProps<P extends PanelMotion> = PanelOverlayProps &
  */
 export function PanelSurface<P extends PanelMotion>({
 	role = 'dialog',
-	glass,
 	motion,
 	onOpenComplete,
 	'aria-label': ariaLabel,
@@ -88,13 +81,15 @@ export function PanelSurface<P extends PanelMotion>({
 	container,
 	initialFocus,
 	returnFocusTo,
-	backdropClassName,
-	boxClassName,
 	children,
 	...props
 }: PanelSurfaceProps<P>) {
 	// The root holds the state. One setter drives the Overlay and the close parts.
 	const { open, setOpen, panelId } = usePanelState()
+
+	// The Surfaces setting of the reader sets the glass cascade and the backdrop.
+	// The backdrop of each family is the one of the panel group.
+	const surface = useReaderSurface()
 
 	const preset = motion(usePrefersReducedMotion())
 
@@ -113,12 +108,10 @@ export function PanelSurface<P extends PanelMotion>({
 			onClick={composeEventHandlers(onClick, (event) => event.stopPropagation(), {
 				checkForDefaultPrevented: false,
 			})}
-			data-glass={dataAttr(glass)}
+			data-glass={dataAttr(surface === 'glass')}
 			data-open={dataAttr(open)}
 		>
-			<PanelProviders onOpenChange={setOpen} a11y={a11y}>
-				{children}
-			</PanelProviders>
+			<PanelA11yContext value={a11y}>{children}</PanelA11yContext>
 		</m.div>
 	)
 
@@ -132,9 +125,9 @@ export function PanelSurface<P extends PanelMotion>({
 			container={container}
 			initialFocus={initialFocus}
 			returnFocusTo={returnFocusTo}
-			backdropClassName={backdropClassName}
+			backdropClassName={k({ surface }).backdrop}
 		>
-			{boxClassName === undefined ? panel : <div className={boxClassName}>{panel}</div>}
+			{panel}
 		</Overlay>
 	)
 }

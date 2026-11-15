@@ -262,6 +262,6 @@ describe.each(FAMILIES)('$name trigger', ({ Root, Panel, Trigger, Close }) => {
 					<Button type="button">Open</Button>
 				</Trigger>,
 			),
-		).toThrow('A panel trigger or panel must be rendered inside a Dialog, Sheet, or Drawer')
+		).toThrow('A panel part must be rendered inside a Dialog, Sheet, or Drawer')
 	})
 })

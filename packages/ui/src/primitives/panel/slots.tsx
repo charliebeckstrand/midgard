@@ -42,7 +42,7 @@ type PanelSlots = {
  *
  * @returns The `{ Title, Description, Header, Body, Footer, Content,
  * DefaultFooter }` slot family bound to `slotPrefix`.
- * @see {@link PanelProviders}
+ * @see `PanelSurface`, which gives the slots their context.
  */
 export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	const defaults = k()

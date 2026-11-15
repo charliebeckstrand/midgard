@@ -211,11 +211,11 @@ describe('Confirm Dialog props', () => {
 	it('passes align to the Dialog', () => {
 		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} align="top" />)
 
-		const wrapper = bySlot(document.body, 'confirm')?.parentElement
+		const classes = bySlot(document.body, 'confirm')?.className.split(' ')
 
-		expect(wrapper?.className).toContain('items-start')
+		expect(classes).toEqual(expect.arrayContaining(['mt-0', 'mb-auto']))
 
-		expect(wrapper?.className).not.toContain('items-end')
+		expect(classes).not.toContain('mt-auto')
 	})
 
 	it('takes the glass surface while the Surfaces setting is glass', () => {

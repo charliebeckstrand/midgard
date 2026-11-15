@@ -119,8 +119,9 @@
 @source inline('{sm,md,lg,xl,2xl}:{min-w-20,min-w-auto,w-32,w-full,w-auto,text-center,text-start}');
 @source inline('{sm,md,lg,xl,2xl}:gap-{0.5,(--ui-stepper-gap)}');
 @source inline('{sm,md,lg,xl,2xl}:{mt-2,mt-0,block,hidden,contents,flex}');
-/* Dialog `align`: the box (its `items-*` are a line above) and the panel. */
-@source inline('{sm,md,lg,xl,2xl}:p-{0,4}');
+/* Dialog `align`: the insets and the margins that place the panel, and its look. */
+@source inline('{sm,md,lg,xl,2xl}:{inset-0,inset-4,mt-0,mt-auto,mb-0,mb-auto}');
+@source inline('{sm,md,lg,xl,2xl}:max-h-[calc(100%-2rem)]');
 @source inline('{sm,md,lg,xl,2xl}:{rounded-t-2xl,rounded-b-none,rounded-b-2xl,max-h-full,overflow-y-auto,overflow-y-visible,overscroll-contain,overscroll-auto}');
 @source inline('{sm,md,lg,xl,2xl}:max-h-[85%]');
 @source inline('{sm,md,lg,xl,2xl}:[--ui-panel-safe:env(safe-area-inset-bottom)]');

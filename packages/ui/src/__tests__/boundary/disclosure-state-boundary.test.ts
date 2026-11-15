@@ -25,7 +25,6 @@ const EXEMPT = new Map([
 		'Overlay',
 		'a primitive; the Dialog, Sheet, and Drawer subjects cover it, and the panel in it stamps the state',
 	],
-	['PanelProviders', 'it holds only context, and renders no element with an open state'],
 	['PanelRoot', 'it renders no element; the Dialog, Sheet, and Drawer subjects cover its state'],
 	[
 		'SelectTrigger',

@@ -32,9 +32,9 @@ type Options<T> = { default: T } | { error: string }
  *   export const [GlassContext, useGlass] = createContext('Glass', { default: false })
  *
  *   // Required with a custom error:
- *   export const [PanelCloseContext, usePanelCloseContext] =
- *     createContext<PanelCloseContextValue>('PanelClose', {
- *       error: 'PanelClose must be rendered inside a Dialog, Sheet, or Drawer',
+ *   export const [PanelStateContext, usePanelState] =
+ *     createContext<PanelStateContextValue>('PanelState', {
+ *       error: 'A panel part must be rendered inside a Dialog, Sheet, or Drawer',
  *     })
  *
  *   // Thin: skip the hook, consumers use(Context) directly:

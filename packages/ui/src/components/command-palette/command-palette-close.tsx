@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { usePanelCloseContext } from '../../primitives/panel/context'
+import { usePanelState } from '../../primitives/panel/context'
 import { Button, type ButtonProps } from '../button'
 
 /**
@@ -36,7 +36,9 @@ export function CommandPaletteClose({
 	onClick,
 	...props
 }: CommandPaletteCloseProps) {
-	const { close } = usePanelCloseContext()
+	const { setOpen } = usePanelState()
+
+	const close = () => setOpen(false)
 
 	const intl = useIntl()
 

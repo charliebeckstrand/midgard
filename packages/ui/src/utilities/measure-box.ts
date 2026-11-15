@@ -64,7 +64,8 @@ export function measureContentBox(target: Element): ContentBox {
 
 /**
  * The tallest that `target` can be in `room`: its computed `max-height`, and
- * never more than `room`. A cap of `none` gives `room`.
+ * never more than `room`. A cap of `none` gives `room`. A `calc()` cap that
+ * the browser gives back as a formula, and not as pixels, gives `room` too.
  *
  * A browser can give a `%` cap back as a share, and not as pixels. The share
  * is then of `room`, the box that the element stands in.

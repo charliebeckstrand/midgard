@@ -244,7 +244,6 @@ export function DrawerPanel({
 			{...props}
 			// The panel is a dialog. A `role` of the consumer does not reach it.
 			role="dialog"
-			glass={surface === 'glass'}
 			motion={(reduced) => (reduced ? k.still : k.motion)}
 			ref={panelRef}
 			// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
@@ -252,7 +251,6 @@ export function DrawerPanel({
 			data-density={size}
 			data-height={height ?? 'auto'}
 			className={cn(slots.base, className)}
-			backdropClassName={slots.backdrop}
 			// The panel eases between its `height` variants, which is right for a step
 			// and wrong for a finger: eased, each frame's height becomes an animation
 			// toward where the pointer already is, so the edge trails the drag and
