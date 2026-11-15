@@ -1,7 +1,8 @@
 /**
- * Kokkaku skeleton: control. Shared by every `<ControlFrame>`
- * consumer (Input, Textarea, Select, Listbox, Combobox, DatePicker,
- * ColorPicker).
+ * Kokkaku skeleton: control. It is the silhouette of a framed control of one
+ * line (`<ControlSkeleton>`), such as an Input, a Select, a Listbox, or a
+ * Combobox. The DatePicker and ColorPicker forms spread its `base`. A Textarea
+ * has its own form.
  *
  * `fill` fills the parent. In a `<Group>`, the `flex` of the skeleton comes
  * from the `--group-member-flex` of the group. A horizontal group gives `1`,

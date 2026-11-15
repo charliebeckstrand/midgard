@@ -10,7 +10,7 @@ Composition flows downward only. A family can compose its siblings. `narabi` rea
 
 ## 2. Shape
 
-Each family is a sub-folder, with one file per concern, and `index.ts` assembles the named bundle. The bundle name matches the folder, so a consumer reaches a finished surface by name. The two exceptions are `sou.ts` and `tsunagi.ts`. Each is one small concern, and more files would add no clarity.
+Each family is a sub-folder, with one file per concern, and `index.ts` assembles the named bundle. The bundle name matches the folder, so a consumer reaches a finished surface by name. The exceptions are `sou.ts` and `tsunagi.ts`. Each is one small concern, and more files would add no clarity.
 
 The barrel `index.ts` exports each family and no other value. `__tests__/boundary/kiso-families-boundary.test.ts` holds the list of families with the kanji of each name. To add a family, add it to that list and to the table below.
 
@@ -37,7 +37,7 @@ Each concern file opens with a `Layer: kiso · Concern: <concern>` docblock that
 
 ## 4. Kokkaku
 
-The keys of `kokkaku` name units, but a form is a set of measures, not a part of a component. A form holds no chrome, so the placeholder tracks only the silhouette of its unit. The forms also read each other: the picker forms read the control form. Thus the forms stay together in one family. A kata reads its form as `skeleton: kokkaku.<name>`. A form and its kata that share a measure each read the same `dan` ramp, so the two cannot drift apart. A form holds no key that only renames a ramp for its kata.
+The keys of `kokkaku` name units, but a form is a set of measures, not a part of a component. A form holds no chrome, so the placeholder tracks only the silhouette of its unit. The forms also read each other: the picker forms read the control form. Thus the forms stay together in one family. A kata reads its form as `skeleton: kokkaku.<name>`. A form and its kata that share a measure each read the same `dan` ramp, so the two cannot drift apart. A measure with no ramp, such as the swatch cell of a ColorPanel, is a key of the form, and the kata reads that key. A form holds no key that only renames a ramp for its kata.
 
 A line of text in a form is one line of its text: it takes the text class of the line that it stands for, a `dan.text` ramp or a `ji.size`, and `h-lh`. The text sets the line height, so the form holds no height of its own for the line, and `dan` holds no ramp that restates a line height. A line that the form draws shorter than its text, such as a heading bar or a chat bar, is a shape and keeps its height.
 

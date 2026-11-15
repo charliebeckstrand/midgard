@@ -1,5 +1,5 @@
 /**
- * Kokkaku skeleton: rating. One star-shaped square; the component repeats it
+ * Kokkaku skeleton: rating. One star-sized square; the component repeats it
  * per star, because the silhouette's width is the star count and not a size
  * step.
  *

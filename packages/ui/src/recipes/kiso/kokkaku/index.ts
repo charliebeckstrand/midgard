@@ -5,8 +5,10 @@
  * with no chrome, variant, or color, so that a placeholder tracks the
  * silhouette of the real component. A kata reads its form as
  * `skeleton: kokkaku.<name>`. A form and its kata that share a measure
- * each read the same `dan` ramp, so the two cannot drift apart. One file per
- * unit; this barrel assembles the named bundle.
+ * each read the same `dan` ramp, so the two cannot drift apart. A measure with
+ * no ramp, such as the swatch cell of a ColorPanel, is a key of the form, and
+ * the kata reads that key. One file per unit; this barrel assembles the named
+ * bundle.
  */
 
 import { accordion } from './accordion'

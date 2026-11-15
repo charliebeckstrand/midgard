@@ -30,10 +30,11 @@
  *   - `parent`    the `ring` stroke on a part whose parent has the focus
  *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
  *                 accent that reads against the panel backdrop. Split into
- *                 `raise` and one entry per indicator shape, because the host
- *                 that lifts is not always the host that takes focus. A
- *                 reorderable List row raises the `<li>` but seats the Tab
- *                 stop on its content area when that content is activatable.
+ *                 `raise`, its forced-colors `mark`, and one entry per
+ *                 indicator shape, because the host that lifts is not
+ *                 always the host that takes focus. A reorderable List row
+ *                 raises the `<li>` but seats the Tab stop on its content
+ *                 area when that content is activatable.
  *                 Tailwind extracts whole class names, so the accent cannot be
  *                 interpolated into a shape. Stating both here is what keeps
  *                 one edit enough to change it everywhere. Forced colors
@@ -110,7 +111,7 @@ export const focus = {
 	 * removes its own outline, and the box draws the ring around the control and
 	 * its neighbors. A control that sits deeper, such as an action in an affix
 	 * slot or a header in a nested panel, keeps its own ring. Each entry carries
-	 * the forced-colors outline of `ring.inset`.
+	 * the forced-colors outline of `forced.ring.inset`.
 	 */
 	within: {
 		/** A row whose child control has the focus: the affixed row of Nav, Sidebar, and ChatList. */
