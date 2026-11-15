@@ -201,9 +201,13 @@ describe('ListItem', () => {
 
 		expect(className).toMatch(/(^|\s)dark:text-zinc-400(\s|$)/)
 
-		expect(className).toContain('group-hover/list-item:not-disabled:text-zinc-950')
+		expect(className).toContain(
+			'group-hover/list-item:not-disabled:not-data-disabled:text-zinc-950',
+		)
 
-		expect(className).toContain('dark:group-hover/list-item:not-disabled:text-white')
+		expect(className).toContain(
+			'dark:group-hover/list-item:not-disabled:not-data-disabled:text-white',
+		)
 	})
 
 	it('gives clickable content the same treatment as a link, plus the pointer', () => {
@@ -213,9 +217,13 @@ describe('ListItem', () => {
 
 		expect(className).toMatch(/(^|\s)text-zinc-600(\s|$)/)
 
-		expect(className).toContain('group-hover/list-item:not-disabled:text-zinc-950')
+		expect(className).toContain(
+			'group-hover/list-item:not-disabled:not-data-disabled:text-zinc-950',
+		)
 
-		expect(className).toContain('dark:group-hover/list-item:not-disabled:text-white')
+		expect(className).toContain(
+			'dark:group-hover/list-item:not-disabled:not-data-disabled:text-white',
+		)
 
 		expect(className).toContain('cursor-pointer')
 	})
@@ -270,7 +278,9 @@ describe('ListItem', () => {
 
 		expect(className).not.toMatch(/(^|\s)text-zinc-600(\s|$)/)
 
-		expect(className).not.toContain('group-hover/list-item:not-disabled:text-zinc-950')
+		expect(className).not.toContain(
+			'group-hover/list-item:not-disabled:not-data-disabled:text-zinc-950',
+		)
 	})
 
 	it('forwards HTML attributes to the content element', () => {

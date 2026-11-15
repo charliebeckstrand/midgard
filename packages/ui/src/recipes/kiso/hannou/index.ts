@@ -19,7 +19,7 @@ export const hannou = {
 	busy,
 	/** Cursor feedback: pointer when interactive, not-allowed when disabled. */
 	cursor,
-	/** A surface the reader drags: the grab cursors, and the touch and selection rules a drag needs (`default`). */
+	/** A surface the reader drags: the grab cursors, and the touch and selection rules a drag needs (`default`), and the look of a drag grip (`grip`). */
 	grab,
 	/** Hover/focus tint and its forms. */
 	tint,

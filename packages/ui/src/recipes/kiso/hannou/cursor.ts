@@ -19,10 +19,20 @@
  * Layer: kiso · Concern: pointer feedback
  */
 
+import { iro } from '../iro'
+import { fg } from './fg'
+
 export const cursor = [
 	'cursor-pointer',
 	'disabled:cursor-not-allowed data-disabled:cursor-not-allowed has-[:disabled,[data-disabled]]:cursor-not-allowed',
 	'[&:where([aria-readonly=true],[data-readonly],[readonly],:has([aria-readonly=true],[data-readonly],[readonly]))]:cursor-default',
+]
+
+/** The drag rules: `grab.default`, which `grab.grip` also reads. */
+const drag = [
+	'cursor-grab data-dragging:cursor-grabbing',
+	'disabled:cursor-not-allowed data-disabled:cursor-not-allowed',
+	'touch-none select-none **:select-none [-webkit-touch-callout:none]',
 ]
 
 /**
@@ -41,8 +51,8 @@ export const cursor = [
  */
 export const grab = {
 	/**
-	 * The open hand, the closed one while held, the cursor of a disabled
-	 * surface, and the two refusals a drag needs from the platform.
+	 * The open hand, the closed one while held, the cursor of a disabled surface,
+	 * and the two refusals a drag needs from the platform.
 	 *
 	 * A disabled surface shows `not-allowed`, as `cursor` does, and reads the two
 	 * spellings of disabled. A handle can be a native `<button>` or a `<div>` with
@@ -56,9 +66,12 @@ export const grab = {
 	 * also set it. A finger that rests before it moves is a long press, and iOS
 	 * shows its callout menu without `-webkit-touch-callout: none`.
 	 */
-	default: [
-		'cursor-grab data-dragging:cursor-grabbing',
-		'disabled:cursor-not-allowed data-disabled:cursor-not-allowed',
-		'touch-none select-none **:select-none [-webkit-touch-callout:none]',
-	],
+	default: drag,
+	/**
+	 * A drag grip: the handle that is the only drag surface of its item. It is
+	 * muted at rest, takes the strong foreground on hover, and takes the rules of
+	 * `default`. Each grip has this one look, so a reader adds only its box, its
+	 * focus ring, and its dim.
+	 */
+	grip: [...iro.text.muted, ...fg.hover, ...drag],
 } as const
