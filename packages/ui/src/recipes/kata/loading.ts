@@ -1,15 +1,15 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { dan, iro, narabi, sen } from '../kiso'
+import { dan, narabi, sen, zu } from '../kiso'
 
-const { marker } = iro
+const { marker } = zu
 const { flex } = narabi
 const { forced } = sen
 
 /**
  * Indicator color, shared by both loading surfaces. Resolves to a `text-*`
  * class; dots (`bg-current`) and the spinner SVG (`currentColor`) both inherit
- * it. Each color uses the `iro.marker` shade, which clears non-text 3:1 on the
+ * it. Each color uses the `zu.marker` shade, which clears non-text 3:1 on the
  * page. `current` inherits the surrounding text color.
  */
 const color = { current: 'text-current', ...marker }
