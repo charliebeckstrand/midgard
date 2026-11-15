@@ -11,6 +11,8 @@ afterEach(() => {
 	cleanup()
 
 	for (const { cookie } of Object.values(SETTINGS)) writeCookie(cookie, '', 0)
+
+	window.localStorage.clear()
 })
 
 /** Renders `useGameSetting(name)` under the settings of a request. */
@@ -52,6 +54,30 @@ describe('useGameSetting', () => {
 
 		expect(document.cookie).toContain(`${SETTINGS.autoDraw.cookie}=off`)
 		expect(first.result.current[0]).toBe(false)
+	})
+
+	it('follows a write in another tab', () => {
+		const { result } = renderSetting('autoDraw')
+
+		// Another tab writes the shared cookie and the copy in its storage, and
+		// this tab gets the `storage` event of the copy.
+		act(() => {
+			writeCookie(SETTINGS.autoDraw.cookie, 'on')
+
+			window.dispatchEvent(
+				new StorageEvent('storage', { key: SETTINGS.autoDraw.cookie, newValue: 'on' }),
+			)
+		})
+
+		expect(result.current[0]).toBe(true)
+	})
+
+	it('puts a copy of a write in the storage, for the other tabs', () => {
+		const { result } = renderSetting('showScore')
+
+		act(() => result.current[1](false))
+
+		expect(window.localStorage.getItem(SETTINGS.showScore.cookie)).toBe('off')
 	})
 
 	it('keeps each setting apart', () => {

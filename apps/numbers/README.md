@@ -85,7 +85,9 @@ Each setting is in a cookie (`numbers-auto-draw` and `numbers-show-score`,
 `src/utilities/settings.ts`). The page reads the cookies of the request, so
 the server renders the Draw button and the score bar as the settings of the
 reader give them, and the first paint is the final layout (CONVENTIONS
-§3.13). With Auto-draw on, the first number rolls in after the hydration.
+§3.13). With Auto-draw on, the first number rolls in after the hydration. A
+write also puts a copy in `localStorage`, and the `storage` event of the copy
+gives the change to the other tabs.
 
 ## Deploy
 
