@@ -27,9 +27,9 @@ describe('safe-area insets on edge surfaces', () => {
 	it('pads the dialog where it docks to the bottom edge, at each density step', () => {
 		const classes = dialog({}).base.split(' ')
 
-		expect(classes).not.toContain('density-pb-[4,5,6,7,8]')
+		expect(classes).not.toContain('density-pb-[3,4.5,6,7.5,9]')
 
-		expect(classes).toContain('density-set-[4,5,6,7,8]/[--ui-panel-bottom]')
+		expect(classes).toContain('density-set-[3,4.5,6,7.5,9]/[--ui-panel-bottom]')
 
 		expect(classes).toContain('pb-[calc(var(--ui-panel-bottom)+var(--ui-panel-safe,0px))]')
 

@@ -6,33 +6,37 @@
 
 /**
  * The named gap scale (`ma.gap`) of Flex, Stack, and Split, and the layout gap
- * of a kata. Each stop has its plain value at `md`, the stop below at `sm`,
- * and the stop above at `lg`.
+ * of a kata. At `md`, each stop has its plain value: 4, 8, 12, 16, and 24 px.
+ * Each density step multiplies the plain value by one factor: 0.5 at `xs`,
+ * 0.75 at `sm`, 1 at `md`, 1.25 at `lg`, and 1.5 at `xl`. So each stop is an
+ * equal ramp, with a step of a quarter of its plain value, and the stops keep
+ * the ratios of their plain values at each step. Each value is on the 1 px
+ * grid. `density-geometry.test.ts` holds each stop to the rule.
  */
 const scale = {
-	xs: 'density-gap-[0.25,0.5,1,1.5,2.5]',
-	sm: 'density-gap-[0.5,1,2,3,4.5]',
-	md: 'density-gap-[1,2,3,4,5]',
+	xs: 'density-gap-[0.5,0.75,1,1.25,1.5]',
+	sm: 'density-gap-[1,1.5,2,2.5,3]',
+	md: 'density-gap-[1.5,2.25,3,3.75,4.5]',
 	lg: 'density-gap-[2,3,4,5,6]',
-	xl: 'density-gap-[4,5,6,7,8]',
+	xl: 'density-gap-[3,4.5,6,7.5,9]',
 } as const
 
 /** The inline gap (`column-gap`) at each stop of the gap scale. */
 const scaleX = {
-	xs: 'density-gap-x-[0.25,0.5,1,1.5,2.5]',
-	sm: 'density-gap-x-[0.5,1,2,3,4.5]',
-	md: 'density-gap-x-[1,2,3,4,5]',
+	xs: 'density-gap-x-[0.5,0.75,1,1.25,1.5]',
+	sm: 'density-gap-x-[1,1.5,2,2.5,3]',
+	md: 'density-gap-x-[1.5,2.25,3,3.75,4.5]',
 	lg: 'density-gap-x-[2,3,4,5,6]',
-	xl: 'density-gap-x-[4,5,6,7,8]',
+	xl: 'density-gap-x-[3,4.5,6,7.5,9]',
 } as const
 
 /** The block gap (`row-gap`) at each stop of the gap scale. */
 const scaleY = {
-	xs: 'density-gap-y-[0.25,0.5,1,1.5,2.5]',
-	sm: 'density-gap-y-[0.5,1,2,3,4.5]',
-	md: 'density-gap-y-[1,2,3,4,5]',
+	xs: 'density-gap-y-[0.5,0.75,1,1.25,1.5]',
+	sm: 'density-gap-y-[1,1.5,2,2.5,3]',
+	md: 'density-gap-y-[1.5,2.25,3,3.75,4.5]',
 	lg: 'density-gap-y-[2,3,4,5,6]',
-	xl: 'density-gap-y-[4,5,6,7,8]',
+	xl: 'density-gap-y-[3,4.5,6,7.5,9]',
 } as const
 
 /**
@@ -41,30 +45,30 @@ const scaleY = {
  * same stop, so the hit areas meet and do not overlap at each step.
  */
 const touchX = {
-	xs: 'density-set-[0.25,0.5,1,1.5,2.5]/[--touch-target-gap-x]',
-	sm: 'density-set-[0.5,1,2,3,4.5]/[--touch-target-gap-x]',
-	md: 'density-set-[1,2,3,4,5]/[--touch-target-gap-x]',
+	xs: 'density-set-[0.5,0.75,1,1.25,1.5]/[--touch-target-gap-x]',
+	sm: 'density-set-[1,1.5,2,2.5,3]/[--touch-target-gap-x]',
+	md: 'density-set-[1.5,2.25,3,3.75,4.5]/[--touch-target-gap-x]',
 	lg: 'density-set-[2,3,4,5,6]/[--touch-target-gap-x]',
-	xl: 'density-set-[4,5,6,7,8]/[--touch-target-gap-x]',
+	xl: 'density-set-[3,4.5,6,7.5,9]/[--touch-target-gap-x]',
 } as const
 
 /** The gap that a hit area can fill between two hosts in a stack, as `touchX` gives in a row. */
 const touchY = {
-	xs: 'density-set-[0.25,0.5,1,1.5,2.5]/[--touch-target-gap-y]',
-	sm: 'density-set-[0.5,1,2,3,4.5]/[--touch-target-gap-y]',
-	md: 'density-set-[1,2,3,4,5]/[--touch-target-gap-y]',
+	xs: 'density-set-[0.5,0.75,1,1.25,1.5]/[--touch-target-gap-y]',
+	sm: 'density-set-[1,1.5,2,2.5,3]/[--touch-target-gap-y]',
+	md: 'density-set-[1.5,2.25,3,3.75,4.5]/[--touch-target-gap-y]',
 	lg: 'density-set-[2,3,4,5,6]/[--touch-target-gap-y]',
-	xl: 'density-set-[4,5,6,7,8]/[--touch-target-gap-y]',
+	xl: 'density-set-[3,4.5,6,7.5,9]/[--touch-target-gap-y]',
 } as const
 
 /**
  * The `sm` gap of `scale` as `--ui-breadcrumb-gap`, in a collapsing breadcrumb.
  * The fit of the trail reads it beside the gap of the same stop.
  */
-const breadcrumb = 'in-data-collapse:density-set-[0.5,1,2,3,4.5]/[--ui-breadcrumb-gap]'
+const breadcrumb = 'in-data-collapse:density-set-[1,1.5,2,2.5,3]/[--ui-breadcrumb-gap]'
 
-/** The gap of a control and of a badge: half of the block padding of a control. */
-const narrow = 'density-gap-[0.5,0.75,1,1.25,1.5]'
+/** The gap of a control and of a badge: the `xs` stop of `scale`, half of the block padding of a control. */
+const narrow = scale.xs
 
 export const gap = {
 	scale,
@@ -79,7 +83,7 @@ export const gap = {
 	 * The gap of a tree row, after its chevron: the `sm` stop of `scale`, as the
 	 * `--nest-gap` input of `narabi.nest`.
 	 */
-	tree: 'density-set-[0.5,1,2,3,4.5]/[--nest-gap]',
+	tree: 'density-set-[1,1.5,2,2.5,3]/[--nest-gap]',
 	breadcrumb,
 	/** The block gap at each stop of `scale`. */
 	y: scaleY,
@@ -102,12 +106,12 @@ export const gap = {
 		 */
 		chips: 'density-set-[2.75,3.25,3.75,4.25,4.25]/[--touch-target-gap-x]',
 		/** The touch gap between two toggle fields on a coarse pointer, as `dan.space.fieldset.toggle` gives it. */
-		toggle: 'pointer-coarse:density-set-[4,5,6,7,8]/[--touch-target-gap-y]',
+		toggle: 'pointer-coarse:density-set-[3,4.5,6,7.5,9]/[--touch-target-gap-y]',
 		toolbar: {
 			/** The touch gaps in a toolbar group, as `toolbar.group` gives them. */
 			group: {
-				x: 'density-set-[0,0.25,0.5,1,1.5]/[--touch-target-gap-x]',
-				y: 'density-set-[0,0.25,0.5,1,1.5]/[--touch-target-gap-y]',
+				x: 'density-set-[0,0.5,0.75,1,1.25]/[--touch-target-gap-x]',
+				y: 'density-set-[0,0.5,0.75,1,1.25]/[--touch-target-gap-y]',
 			},
 		},
 	},
@@ -119,16 +123,16 @@ export const gap = {
 		 * (`scale.xs`) of the step below, and 0 at `xs`. It is thus smaller than
 		 * the toolbar gap at each step, so a group reads as one cluster.
 		 */
-		group: 'density-gap-[0,0.25,0.5,1,1.5]',
+		group: 'density-gap-[0,0.5,0.75,1,1.25]',
 	},
 	/**
 	 * The gap between two stacked toasts, at the `sm` stop of `scale`. It is a
 	 * custom property and not a `gap`, because a toast pads its own item with it,
 	 * and the exit animates that padding to 0.
 	 */
-	toast: 'density-set-[0.5,1,2,3,4.5]/[--toast-gap]',
-	/** The gap of a nav item, a sidebar item, and a tab. */
-	item: 'density-gap-[1,1.5,2,2.5,3]',
+	toast: 'density-set-[1,1.5,2,2.5,3]/[--toast-gap]',
+	/** The gap of a nav item, a sidebar item, and a tab: the `sm` stop of `scale`. */
+	item: scale.sm,
 	/** The gap of an option row and a menu item. */
 	option: scale.md,
 	/** The gap of a color panel. */

@@ -48,9 +48,9 @@ import { holdRoot } from './helpers/root-state'
  */
 const BADGE_FONT_PX = { sm: 14, md: 16, lg: 18 } as const
 
-const CARD_PADDING_PX = { sm: 8, md: 12, lg: 16 } as const
+const CARD_PADDING_PX = { sm: 9, md: 12, lg: 15 } as const
 
-const CELL_PADDING_PX = { sm: 4, md: 8, lg: 12 } as const
+const CELL_PADDING_PX = { sm: 6, md: 8, lg: 10 } as const
 
 const badgeFont = (container: HTMLElement, text: string) => {
 	const badge = present(
@@ -504,7 +504,7 @@ describe('items and slots at the first paint (real browser)', () => {
 				</TreeItem>
 			</Tree>,
 			14,
-			22,
+			24,
 		],
 		[
 			'an explicit size',
@@ -514,7 +514,7 @@ describe('items and slots at the first paint (real browser)', () => {
 				</TreeItem>
 			</Tree>,
 			18,
-			34,
+			32,
 		],
 	])('sizes and indents a tree at the step of %s', (_, element, font, indent) => {
 		holdRoot('sm')

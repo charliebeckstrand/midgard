@@ -493,7 +493,7 @@ describe('ListItem', () => {
 
 		const row = bySlot(container, 'list-item')?.className ?? ''
 
-		expect(root).toContain('density-gap-[0.5,1,2,3,4.5]')
+		expect(root).toContain('density-gap-[1,1.5,2,2.5,3]')
 
 		expect(root).not.toContain('divide-y')
 
@@ -846,7 +846,7 @@ describe('ListItem density', () => {
 	)
 
 	it('pads the card variant on the uniform scale', () => {
-		expect(firstItem(list())).toHaveClass('density-p-[1,2,3,4,5]')
+		expect(firstItem(list())).toHaveClass('density-p-[1.5,2.25,3,3.75,4.5]')
 	})
 
 	it('pads the plain variant on its tighter px/py ratio, with no uniform padding', () => {
@@ -854,7 +854,7 @@ describe('ListItem density', () => {
 
 		expect(item).toHaveClass('density-px-[1,1.5,2,2.5,3]', 'density-py-[0.5,1,1.5,2,2.5]')
 
-		expect(item).not.toHaveClass('density-p-[1,2,3,4,5]')
+		expect(item).not.toHaveClass('density-p-[1.5,2.25,3,3.75,4.5]')
 	})
 
 	it('follows the scope of a compact DensityProvider', () => {

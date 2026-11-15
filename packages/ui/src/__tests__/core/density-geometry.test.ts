@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { type DensityStep, densitySteps } from '../../core/density'
 import { geometry, lineHeight, spacingSteps } from '../../core/density/geometry'
-import { slotStep, valuesByStep } from '../../core/density/steps'
+import { slotStep, stepDown, valuesByStep } from '../../core/density/steps'
 import { dan } from '../../recipes/kiso/dan'
 
 /**
@@ -147,7 +147,28 @@ describe('spacing steps', () => {
 		'space.scale.py': dan.space.scale.py,
 	}
 
+	/** The plain value of each stop of the scale, in px: the value at `md`. */
+	const plain = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 } as const
+
+	/** The factor of each density step: each step multiplies the plain value by one factor. */
+	const factors = [0.5, 0.75, 1, 1.25, 1.5]
+
 	describe.each(Object.entries(scales))('dan.%s', (_, scale) => {
+		it('has a stop for each plain value', () => {
+			expect(Object.keys(scale)).toStrictEqual(Object.keys(plain))
+		})
+
+		it.each(Object.entries(plain))(
+			'multiplies the %s stop by the factor of each step',
+			(stop, md) => {
+				const px = parsePx(scale[stop as keyof typeof plain])
+
+				expect(densitySteps.map((step) => px[step])).toStrictEqual(
+					factors.map((factor) => md * factor),
+				)
+			},
+		)
+
 		it.each(Object.entries(scale))('extends the %s stop by the rule', (_, ramp) => {
 			const { sm, md, lg } = parsePx(ramp)
 
@@ -155,6 +176,14 @@ describe('spacing steps', () => {
 				spacingSteps(sm, md, lg),
 			)
 		})
+	})
+
+	// One list for each stop: the padding scale and the axis forms of the gap
+	// scale take the lists of the gap scale.
+	it.each(Object.entries(scales))('gives dan.%s the lists of the gap scale', (_, scale) => {
+		expect(Object.values(scale).map(parseValues)).toStrictEqual(
+			Object.values(dan.gap.scale).map(parseValues),
+		)
 	})
 
 	describe.each(['x', 'y'] as const)('dan.gap.touch.%s', (axis) => {
@@ -254,6 +283,20 @@ const sharedRamps = new Set([
 	'gap.none',
 ])
 
+/**
+ * The gap ramps of a toolbar group and their touch gaps. At each step, the gap
+ * is the `xs` stop of the gap scale at the step below, and 0 at `xs`. Thus the
+ * gap of a group is less than the toolbar gap at each step.
+ */
+const toolbarRamps = {
+	'gap.toolbar.group': dan.gap.toolbar.group,
+	'gap.touch.toolbar.group.x': dan.gap.touch.toolbar.group.x,
+	'gap.touch.toolbar.group.y': dan.gap.touch.toolbar.group.y,
+} as const
+
+/** The stops of `ramp` at each step, in px, before a ring utility removes its ring. */
+const parseStops = (ramp: string) => parseValues(ramp).map((value) => Number(value) * 4)
+
 describe('every ramp of dan', () => {
 	const ramps = collectRamps(dan)
 
@@ -281,5 +324,34 @@ describe('every ramp of dan', () => {
 		expect(densitySteps.map((step) => values[densitySteps.indexOf(step)])).toStrictEqual(
 			densitySteps.map((step) => sourceValues[densitySteps.indexOf(slotStep(step))]),
 		)
+	})
+
+	it.each(Object.entries(toolbarRamps))(
+		'gives dan.%s the toolbar gap of the step below',
+		(_, ramp) => {
+			const gap = parseValues(dan.gap.scale.xs)
+
+			expect(parseValues(ramp)).toStrictEqual(
+				densitySteps.map((step) =>
+					step === 'xs' ? '0' : gap[densitySteps.indexOf(stepDown(step))],
+				),
+			)
+		},
+	)
+
+	// A ramp that does not follow the text keeps its three inner steps, and
+	// `spacingSteps` gives its outer steps (`core/density/geometry.ts`). The rule
+	// reads the stops, before a ring utility removes its ring.
+	const spaced = own.filter(
+		([path, ramp]) =>
+			!(path in geometry) && !(path in toolbarRamps) && !/(?:^|:)density-text-/.test(ramp),
+	)
+
+	it.each(spaced)('extends dan.%s by the rule of its inner steps', (_, ramp) => {
+		const stops = parseStops(ramp)
+
+		const [, sm = 0, md = 0, lg = 0] = stops
+
+		expect(stops).toStrictEqual(spacingSteps(sm, md, lg))
 	})
 })

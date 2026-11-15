@@ -52,18 +52,18 @@ describe('the gap of the flex unit', () => {
 
 	it.each([
 		[0, 'density-gap-[0,0,0,0,0]'],
-		['xs', 'density-gap-[0.25,0.5,1,1.5,2.5]'],
-		['sm', 'density-gap-[0.5,1,2,3,4.5]'],
-		['md', 'density-gap-[1,2,3,4,5]'],
+		['xs', 'density-gap-[0.5,0.75,1,1.25,1.5]'],
+		['sm', 'density-gap-[1,1.5,2,2.5,3]'],
+		['md', 'density-gap-[1.5,2.25,3,3.75,4.5]'],
 		['lg', 'density-gap-[2,3,4,5,6]'],
-		['xl', 'density-gap-[4,5,6,7,8]'],
+		['xl', 'density-gap-[3,4.5,6,7.5,9]'],
 	] as const)('maps the %s gap step to %s', (gap, className) => {
 		expect(classes({ gap })).toContain(className)
 	})
 
 	it('emits breakpoint-prefixed classes for a responsive value', () => {
 		expect(classes({ gap: { initial: 'sm', md: 'lg' } })).toEqual(
-			expect.arrayContaining(['density-gap-[0.5,1,2,3,4.5]', 'md:density-gap-[2,3,4,5,6]']),
+			expect.arrayContaining(['density-gap-[1,1.5,2,2.5,3]', 'md:density-gap-[2,3,4,5,6]']),
 		)
 	})
 

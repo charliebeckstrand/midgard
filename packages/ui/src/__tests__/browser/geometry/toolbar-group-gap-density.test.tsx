@@ -18,7 +18,7 @@ import { holdRoot } from '../helpers/root-state'
  */
 
 /** The toolbar gap at each step, in px: the `xs` stop of the gap scale. */
-const TOOLBAR_GAP = { xs: 1, sm: 2, md: 4, lg: 6, xl: 10 } as const satisfies Record<
+const TOOLBAR_GAP = { xs: 2, sm: 3, md: 4, lg: 5, xl: 6 } as const satisfies Record<
 	DensityStep,
 	number
 >

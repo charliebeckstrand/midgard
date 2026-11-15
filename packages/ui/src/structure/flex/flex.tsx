@@ -28,8 +28,9 @@ export type FlexProps = {
 	direction?: ResponsiveDirection
 	/**
 	 * Gap between children. Supports responsive breakpoints. The gap takes the
-	 * step of the nearest density scope: a stop has its value at `md`, the stop
-	 * below at `sm`, and the stop above at `lg`.
+	 * step of the nearest density scope: a stop has its value at `md`, and each
+	 * step multiplies that value by 0.5 at `xs`, 0.75 at `sm`, 1.25 at `lg`, and
+	 * 1.5 at `xl`.
 	 */
 	gap?: ResponsiveGap
 	/**

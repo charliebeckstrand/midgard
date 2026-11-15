@@ -64,7 +64,11 @@ describe('Box', () => {
 			</Box>,
 		)
 
-		expect(bySlot(container, 'box')).toHaveClass('rounded-md', 'bg-white', 'density-p-[1,2,3,4,5]')
+		expect(bySlot(container, 'box')).toHaveClass(
+			'rounded-md',
+			'bg-white',
+			'density-p-[1.5,2.25,3,3.75,4.5]',
+		)
 	})
 
 	it('respects px / py overrides', () => {
@@ -76,7 +80,7 @@ describe('Box', () => {
 
 		expect(bySlot(container, 'box')).toHaveClass(
 			'density-px-[2,3,4,5,6]',
-			'density-py-[0.5,1,2,3,4.5]',
+			'density-py-[1,1.5,2,2.5,3]',
 		)
 	})
 
@@ -111,7 +115,7 @@ describe('Box', () => {
 
 		expect(box.className).toContain('density-p-[2,3,4,5,6]')
 
-		expect(box.className).not.toContain('density-p-[0.5,1,2,3,4.5]')
+		expect(box.className).not.toContain('density-p-[1,1.5,2,2.5,3]')
 	})
 })
 
@@ -123,7 +127,7 @@ describe('Box responsive padding', () => {
 
 		const className = bySlot(container, 'box')?.className ?? ''
 
-		expect(className).toContain('density-p-[0.5,1,2,3,4.5]')
+		expect(className).toContain('density-p-[1,1.5,2,2.5,3]')
 
 		expect(className).toContain('md:density-p-[2,3,4,5,6]')
 	})
@@ -139,8 +143,8 @@ describe('Box responsive padding', () => {
 
 		expect(className).toContain('density-px-[0,0,0,0,0]')
 
-		expect(className).toContain('lg:density-px-[4,5,6,7,8]')
+		expect(className).toContain('lg:density-px-[3,4.5,6,7.5,9]')
 
-		expect(className).toContain('density-py-[0.25,0.5,1,1.5,2.5]')
+		expect(className).toContain('density-py-[0.5,0.75,1,1.25,1.5]')
 	})
 })

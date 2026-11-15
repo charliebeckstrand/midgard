@@ -467,7 +467,7 @@ describe('a list of three values (real browser)', () => {
 
 /**
  * Below `sm`, the panel of a dialog sits on the bottom edge. Its one bottom padding adds
- * `--ui-panel-bottom` (`density-set-[4,5,6,7,8]/[--ui-panel-bottom]`) and `--ui-panel-safe`, which
+ * `--ui-panel-bottom` (`density-set-[3,4.5,6,7.5,9]/[--ui-panel-bottom]`) and `--ui-panel-safe`, which
  * holds the safe-area inset of the home indicator below `sm` only. So the panel inset is the step
  * inset plus the safe-area inset below `sm`, and the step inset alone from `sm` up. A consumer
  * padding replaces the padding of the panel at each width.
@@ -492,7 +492,7 @@ describe('the bottom inset of an open dialog at 390px (real browser)', () => {
 		if (SAFE_AREA_PX) await cdp().send('Emulation.setSafeAreaInsetsOverride', { insets: {} })
 	})
 
-	const INSET_PX = { xs: 16, sm: 20, md: 24, lg: 28, xl: 32 } as const satisfies Record<
+	const INSET_PX = { xs: 12, sm: 18, md: 24, lg: 30, xl: 36 } as const satisfies Record<
 		DensityStep,
 		number
 	>
@@ -576,7 +576,7 @@ describe('the bottom inset of an open dialog from sm up (real browser)', () => {
 			</Dialog>,
 		)
 
-		expect(px(getSlot(document.body, 'dialog'), 'paddingBottom')).toBe(28)
+		expect(px(getSlot(document.body, 'dialog'), 'paddingBottom')).toBe(30)
 	})
 })
 
