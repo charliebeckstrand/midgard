@@ -55,13 +55,9 @@ export function definePalette<const T extends readonly Matrix[]>(
 	return { matrix } as PaletteConfig<Variants<T>, Colors<T>>
 }
 
-/** The palette's `variant → color → classes` lookup, in rule order. @internal */
-export type PalettePairs = Map<string, Map<string, ClassValue[]>>
-
 /**
  * Expands a palette config into the implicit `color` axis + compound rules,
- * alongside the nested {@link PalettePairs} lookup the compiled call path
- * reads. The flat rules stay for `.config` introspection.
+ * one rule for each cell of the matrix.
  *
  * The color set is derived from the keys of the matrix, not a fixed list. A
  * kata that writes the standard colors expands over them, and a kata
@@ -72,27 +68,18 @@ export type PalettePairs = Map<string, Map<string, ClassValue[]>>
 export function expandPalette(config: PaletteConfig): {
 	colorScaffold: Record<string, ClassValue>
 	compound: CompoundRule[]
-	pairs: PalettePairs
 } {
 	const colorScaffold: Record<string, ClassValue> = {}
 
 	const compound: CompoundRule[] = []
 
-	const pairs: PalettePairs = new Map()
-
 	for (const [variant, entry] of Object.entries(config.matrix)) {
-		const colors = new Map<string, ClassValue[]>()
-
-		pairs.set(variant, colors)
-
 		for (const [color, classValue] of Object.entries<ClassValue>(entry)) {
 			colorScaffold[color] = ''
 
 			compound.push({ variant, color, class: classValue } as CompoundRule)
-
-			colors.set(color, [classValue])
 		}
 	}
 
-	return { colorScaffold, compound, pairs }
+	return { colorScaffold, compound }
 }
