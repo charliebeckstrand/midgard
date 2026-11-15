@@ -16,6 +16,7 @@ const { active, cursor, disabled, tint } = hannou
 const { on, text } = iro
 const { size } = ji
 const { rounded } = kasane
+const { flex } = narabi
 const { forced } = sen
 
 export const item = defineGroup({
@@ -39,14 +40,26 @@ export const item = defineGroup({
 	slots: {
 		/** The label of the row, on one line. */
 		label: 'truncate',
-		/** A column that stacks the label over its description. */
-		text: narabi.text,
+		/**
+		 * A column that stacks the label over its description. It takes the free
+		 * width of the row, so a leading icon stays beside it. The column resets the
+		 * centered text of a button row, and it removes the spacer of an inline
+		 * description, which a column does not need.
+		 */
+		text: [flex.col, 'min-w-0', 'flex-1', 'text-start', '*:before:hidden'],
 		/**
 		 * The description of the row. It takes `on.wash.muted`, not `muted`: the
 		 * row grounds a hovered or roved row on the tint wash, which `muted` is not
-		 * legal over. See `iro/ramp.ts`.
+		 * legal over. See `iro/ramp.ts`. A spacer pseudo-element (`before:w-2`)
+		 * shrinks before the text truncates, so the ellipsis lands inside the row.
 		 */
-		description: [narabi.description, on.wash.muted],
+		description: [
+			'flex',
+			'flex-1',
+			'overflow-hidden',
+			'before:w-2 before:min-w-0 before:shrink',
+			on.wash.muted,
+		],
 		/** The keyboard shortcut of the row, at its end. */
 		shortcut: 'ms-auto',
 	},

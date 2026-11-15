@@ -106,7 +106,7 @@ export const k = defineKata({
 				 * make the reader scroll a dialog that would otherwise fit.
 				 *
 				 * The `mt-0` is a fork, and reads as one: it reaches across to clear the adjacency
-				 * margin `narabi.group` sets on every `ToggleGroup`. The honest fix is an
+				 * margin that the `kata/toggle` group sets on every `ToggleGroup`. The honest fix is an
 				 * `orientation` axis on `ToggleGroup`. `Rating` routed around the same missing
 				 * affordance by hand-rolling `role="radiogroup"` on a span. That fix widens three
 				 * public prop types, and so wants its own change rather than this one's.
