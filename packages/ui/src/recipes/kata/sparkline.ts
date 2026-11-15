@@ -15,7 +15,7 @@ import { dan, kokkaku, ugoki, zu } from '../kiso'
 export const k = defineKata(
 	{
 		base: ['inline-block', 'align-middle'],
-		slots: { svg: ['block', ...kokkaku.sparkline.box] },
+		slots: { svg: ['block', dan.size.sparkline.width, dan.size.sparkline.base] },
 	},
 	// `motion` is the shared data-viz mark-reveal family: the same timings the
 	// chart module draws with, so a sparkline and a chart animating side by side
