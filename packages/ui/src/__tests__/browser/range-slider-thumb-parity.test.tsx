@@ -13,7 +13,8 @@ import { holdRootClass } from './helpers/root-state'
  * thumb kept the light-mode blue ring in dark mode. Chromium gives no computed style for
  * `::-webkit-slider-thumb`, so each case reads the ring of the range thumb from its `box-shadow`
  * and compares it with the width and the color that the `Slider` recipe names. A probe span gives
- * the color, so the case does not copy a color value.
+ * the color in each mode, so the case does not copy a color value. The invalid ring takes the shade
+ * of the red series slot: red-600 in light mode and red-500 in dark mode.
  *
  * The file runs in the real browser, because jsdom loads no stylesheet.
  */
@@ -24,7 +25,7 @@ describe('the RangeSlider thumb ring against the Slider thumb ring (real browser
 		const { container } = renderUI(
 			<>
 				{invalid ? <Control severity="error">{slider}</Control> : slider}
-				<span data-probe="red" className="text-red-600" />
+				<span data-probe="red" className="text-red-600 dark:text-red-500" />
 				<span data-probe="blue" className="text-blue-600" />
 			</>,
 		)
