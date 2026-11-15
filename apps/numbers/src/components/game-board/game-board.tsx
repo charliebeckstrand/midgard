@@ -6,18 +6,23 @@ import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
 import { useAutoDraw } from '../../hooks/use-auto-draw'
 import { useGame } from '../../hooks/use-game'
-import { type Game, SLOTS, type Status } from '../../utilities/game'
+import { countPlaced, type Game, SLOTS, type Status } from '../../utilities/game'
 import { createSeed, isSeed } from '../../utilities/seed'
+import { GameBoardScore } from './game-board-score'
 import { GameBoardSlots } from './game-board-slots'
 import { GameBoardToolbar } from './game-board-toolbar'
 
-/** The text that a screen reader speaks for each step: the drawn number, a bust, or a win. */
+/** The text that a screen reader speaks for each step: the drawn number, a bust with its score, or a win. */
 function describeStatus(game: Game, status: Status, format: (value: number) => string): string {
 	if (status === 'won') return `All ${format(SLOTS)} placed`
 
 	if (game.drawn === null) return ''
 
-	return status === 'bust' ? `${format(game.drawn)} has no slot` : format(game.drawn)
+	if (status === 'bust') {
+		return `${format(game.drawn)} has no slot. Score ${format(countPlaced(game.slots))} of ${format(SLOTS)}`
+	}
+
+	return format(game.drawn)
 }
 
 /** Props for {@link GameBoard}. */
@@ -27,8 +32,12 @@ export type GameBoardProps = {
 }
 
 /**
- * The game: the bar with the drawn number and its action, and the column of
- * slots under it.
+ * The game: the bar with the drawn number and its action at the top, the
+ * column of slots, and the bar of the score at the bottom. The game fills the
+ * body, and only the slots scroll, between the two bars. The bars do not cover
+ * the slots, so a slot that gets the focus scrolls into view clear of them.
+ * The box of the slots has the full width of the body, so a wheel at the side
+ * of the column scrolls it too.
  *
  * A Reset starts the run of a new seed in place, and adds the address of the
  * seed to the history, so the reader can send the run. Back and Forward go to
@@ -97,7 +106,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 	const ended = status === 'bust' || status === 'won'
 
 	return (
-		<div className="mx-auto w-full max-w-md px-4">
+		<div className="flex h-full flex-col print:h-auto">
 			<GameBoardToolbar
 				game={game}
 				status={status}
@@ -106,12 +115,20 @@ export function GameBoard({ seed }: GameBoardProps) {
 				onReset={restart}
 			/>
 
-			<GameBoardSlots
-				ref={slotsRef}
-				game={game}
-				status={status}
-				onPlace={(index, event) => act(event, () => place(index))}
-			/>
+			{/* `relative` keeps each positioned element in the box, as in `StackedLayoutBody`. */}
+			<div className="relative min-h-0 flex-1 scroll-py-1 overflow-y-auto print:overflow-visible">
+				{/* The padding keeps the focus ring of the first and the last slot in the box. */}
+				<div className="mx-auto w-full max-w-md px-4 py-1">
+					<GameBoardSlots
+						ref={slotsRef}
+						game={game}
+						status={status}
+						onPlace={(index, event) => act(event, () => place(index))}
+					/>
+				</div>
+			</div>
+
+			<GameBoardScore game={game} />
 		</div>
 	)
 }

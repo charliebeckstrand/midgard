@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	buildDeck,
 	canPlace,
+	countPlaced,
 	createGame,
 	drawNumber,
 	findGap,
@@ -156,5 +157,12 @@ describe('findGap', () => {
 
 	it('gives -1 for a number before the first slot', () => {
 		expect(findGap(makeGame({ 0: 40 }).slots, 12)).toBe(-1)
+	})
+})
+
+describe('countPlaced', () => {
+	it('counts the filled slots', () => {
+		expect(countPlaced(createGame('test').slots)).toBe(0)
+		expect(countPlaced(makeGame({ 0: 5, 7: 400, 19: 990 }).slots)).toBe(3)
 	})
 })

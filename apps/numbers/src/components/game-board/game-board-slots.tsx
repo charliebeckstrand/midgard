@@ -64,7 +64,7 @@ export function GameBoardSlots({ game, status, onPlace, ref }: GameBoardSlotsPro
 	const gap = bust ? findGap(slots, drawn) : null
 
 	return (
-		<Stack ref={ref} gap="sm" className="pb-8">
+		<Stack ref={ref} gap="sm">
 			{bust && gap === -1 ? <GameBoardGap value={drawn} /> : null}
 
 			{slots.map((placed, index) => {
