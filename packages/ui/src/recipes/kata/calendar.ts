@@ -3,8 +3,8 @@
  * picker. The `base`, `header`, `footer`, `weekday`, and `picker.grid` slots
  * take the step of the nearest density scope through stepped classes. The
  * `grid`, `day`, and `picker.current` slots are static. The `day.active` slot
- * holds the state classes of a day, and the `start` and `end` axes of the
- * `day.range` slot give the edge classes. `skeleton` is an extra.
+ * holds the state classes of a day, and the `inner`, `start`, and `end` axes
+ * of the `day.range` slot give the corner classes of a range band. `skeleton` is an extra.
  */
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'
@@ -58,9 +58,11 @@ export const k = defineKata(
 					// The ring of the active cell or control. Focus stays on the grid, so the
 					// ring is virtual.
 					active: [...focus.virtual],
-					// Each endpoint squares the corners that face the band. The sides are
-					// logical, so the corners mirror with the grid in a right-to-left region.
+					// Each endpoint squares the corners that face the band, and a day inside
+					// the band squares each corner. The sides are logical, so the corners
+					// mirror with the grid in a right-to-left region.
 					range: {
+						inner: { true: 'rounded-none', false: '' },
 						start: { true: 'rounded-e-none', false: '' },
 						end: { true: 'rounded-s-none', false: '' },
 					},
