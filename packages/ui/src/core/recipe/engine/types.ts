@@ -93,7 +93,8 @@ type PaletteProps<C> = [PaletteAxes<C>] extends [never]
 			: { variant?: PaletteAxes<C>['variant'] })
 
 /**
- * Computed prop shape for a given config; used internally and by `VariantProps`.
+ * Computed prop shape for a given config: the call parameter of `Recipe` and of
+ * each slot of a kata.
  *
  * @remarks Each axis maps to its prop through a mapped type that only filters
  * the keys, so the prop keeps the TSDoc of its axis. That includes a `variant`
@@ -112,11 +113,7 @@ export type ComputedProps<C> = {
 /**
  * Extracts the prop shape from a recipe or a kata: the type of its call parameter.
  *
- * @remarks A recipe gives the type of its call parameter. The type does not
- * infer `C` back from `Recipe<C>`, because that inference fails on a recipe
- * whose extras hold other recipes.
- *
  * @example
- *   export type ButtonVariants = VariantProps<typeof button>
+ *   export type ButtonVariants = VariantProps<typeof k>
  */
 export type VariantProps<R> = R extends (props?: infer P) => unknown ? NonNullable<P> : never

@@ -13,15 +13,13 @@
  *
  * Components, modules, and primitives reach the recipe layer through their
  * owning kata (`from '../../recipes/kata/<name>'`). Cross-layer value imports
- * are pinned by `noRestrictedImports` in `biome.json`. This barrel holds types
- * alone, so a value import from it does not compile.
+ * are pinned by `noRestrictedImports` in `biome.json`.
  *
- * This barrel is types-only. It re-exports the recipe-substrate types
- * (`Color` and `Ma`); consumers
+ * This barrel holds types alone, so a value import from it does not compile.
+ * It re-exports the recipe-substrate types (`Color` and `Ma`), so consumers
  * derive prop unions from them without threading types through their kata.
- * No runtime values pass through; values reach consumers through their kata
- * funnel. The types-only shape is pinned by
- * `__tests__/boundary/recipe-boundary.test.ts`.
+ * Values reach consumers through their kata funnel.
+ * `__tests__/boundary/recipe-boundary.test.ts` pins the types-only shape.
  */
 
 export type { Color } from '../core/recipe'

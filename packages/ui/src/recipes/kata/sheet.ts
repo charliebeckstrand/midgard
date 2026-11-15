@@ -3,8 +3,8 @@
 /**
  * Sheet kata: the unit of the `<Sheet>` edge drawer, which extends the panel
  * group. The `base` slot is the panel, with the `side`, `width`, and `surface`
- * axes and the responsive `layout` axis. The `backdrop` follows the glass or
- * flat surface. The `handle` drag grip and the `motion` are extras.
+ * axes and the responsive `layout` axis. The `handle` drag grip and the
+ * `motion` are extras.
  */
 import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, narabi, shaku, ugoki } from '../kiso'

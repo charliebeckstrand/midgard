@@ -40,9 +40,9 @@ export type PanelSurfaceProps<P extends PanelMotion> = PanelOverlayProps &
 
 /**
  * The surface that Dialog, Sheet, and Drawer share: the `Overlay`, the animated
- * panel, and the contexts of its slots. It reads the open state of the root.
- * A panel gives its own props to the surface as they are, so one rule holds
- * across the family:
+ * panel, and the accessible-name context of its slots. It reads the open state
+ * of the root. A panel gives its own props to the surface as they are, so one
+ * rule holds across the family:
  *
  * - `modal` is `true` unless the consumer sets `false`.
  * - The slide moves `transform`, which `MotionConfig` does not hold still, so
