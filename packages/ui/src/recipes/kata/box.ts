@@ -5,7 +5,7 @@
  * class.
  */
 import { defineKata } from '../../core/recipe'
-import { kasane, ma, omote, sen } from '../kiso'
+import { dan, kasane, omote, sen } from '../kiso'
 
 const { bg, popover } = omote
 const { outline } = sen
@@ -29,5 +29,5 @@ export const k = defineKata({
 	bg: surfaces,
 	// `true` selects the default weight, and a name selects another weight.
 	outline: { true: outline.default, false: '', subtle: outline.subtle, strong: outline.strong },
-	responsive: { p: ma.p, px: ma.px, py: ma.py },
+	responsive: dan.space.scale,
 })

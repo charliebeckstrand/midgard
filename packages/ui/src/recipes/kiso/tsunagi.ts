@@ -29,11 +29,6 @@
  * Layer: kiso · Concern: group joins
  */
 
-import type { Orientation } from '../../types/orientation'
-
-/** Axis a joined group runs along. */
-export type GroupOrientation = Orientation
-
 // Literal class strings: Tailwind's source scanner can't see selectors built
 // from templates; each variant is spelled out in full.
 const horizontal = [

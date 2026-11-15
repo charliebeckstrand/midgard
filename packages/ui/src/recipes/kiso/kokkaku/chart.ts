@@ -14,7 +14,6 @@
 
 import { dan } from '../dan'
 import { kasane } from '../kasane'
-import { button } from './button'
 
 const { rounded } = kasane
 
@@ -23,6 +22,6 @@ export const chart = {
 	aspect: ['block', 'w-full', 'h-auto', rounded.md],
 	sector: ['flex', 'w-full', 'flex-col', 'gap-3'],
 	plot: ['block', 'aspect-square', 'w-full', 'h-auto', rounded.full],
-	legend: ['self-center', 'w-48', 'max-w-full', dan.radius.button, button.height],
+	legend: ['self-center', 'w-48', 'max-w-full', dan.radius.button, dan.size.button.base],
 	density: true,
 } as const

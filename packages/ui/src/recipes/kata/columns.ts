@@ -3,7 +3,7 @@
  * responsive `columns`, `gap`, and `align` axes.
  */
 import { defineKata } from '../../core/recipe'
-import { ma, narabi } from '../kiso'
+import { dan, narabi } from '../kiso'
 
 /** The template of each count of equal tracks. */
 const TRACKS = {
@@ -21,7 +21,7 @@ export const k = defineKata({
 	base: 'grid',
 	responsive: {
 		columns: TRACKS,
-		gap: ma.gap,
+		gap: dan.gap.scale,
 		align: narabi.flex.align,
 	},
 	defaults: { columns: 1, gap: 'lg' },

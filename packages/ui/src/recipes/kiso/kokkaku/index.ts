@@ -4,10 +4,9 @@
  * The skeleton form of each unit: the dimensions of its placeholders,
  * with no chrome, variant, or color, so that a placeholder tracks the
  * silhouette of the real component. A kata reads its form as
- * `skeleton: kokkaku.<name>`. Some kata also read a measure of the form
- * for the real component, such as the width of the calendar, so the two
- * cannot drift apart. One file per unit; this barrel assembles the named
- * bundle.
+ * `skeleton: kokkaku.<name>`. A form and its kata that share a measure
+ * each read the same `dan` ramp, so the two cannot drift apart. One file per
+ * unit; this barrel assembles the named bundle.
  */
 
 import { accordion } from './accordion'

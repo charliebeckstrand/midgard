@@ -4,8 +4,8 @@
  * of the real panel. So the box matches the panel at each step, with and
  * without the alpha slider and the swatches.
  *
- * `width` is the width of the real panel, and `max-w-full` keeps it inside a
- * narrow parent. The ColorPanel kata reads it. `area` is the height of the
+ * The skeleton root is the root of the ColorPanel kata, so the silhouette has
+ * the width of the real panel. `area` is the height of the
  * color area, and `track` is the height of one slider track. The preview row
  * and the channel field are the rows of the real panel, with empty parts in
  * place of the controls: `preview` is the box of the preview swatch, `control`
@@ -21,10 +21,7 @@
 
 import { dan } from '../dan'
 
-const width = [dan.size.colorPanel.width, 'max-w-full'] as const
-
 export const colorPanel = {
-	width,
 	area: dan.size.colorPanel.area,
 	track: dan.size.colorPanel.channel,
 	preview: dan.size.colorPanel.preview,

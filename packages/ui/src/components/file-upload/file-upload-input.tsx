@@ -111,7 +111,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${valueId}` : undefined}
 					disabled={disabled}
 					{...invalidAttrs(invalid)}
-					className={cn(slots.field, k.cursor)}
+					className={slots.field}
 					onClick={openPicker}
 					{...inert}
 				>

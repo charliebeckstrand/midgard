@@ -5,8 +5,18 @@
  */
 
 /**
- * The named gap scale (`ma.gap`) of Flex, Stack, Split, and Columns, and the layout gap
- * of a kata. At `md`, each stop has its plain value: 4, 8, 12, 16, and 24 px.
+ * The name of a stop of the spacing scale: the gap scale and the padding scale
+ * (`space.scale`). `0` is the reset stop, spelled the one way everywhere, not
+ * `'none'`, and never absent. It is a number so it reads as the bottom of a
+ * scale rather than a sixth name.
+ */
+export type Ma = 0 | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+
+/**
+ * The named gap scale of Flex, Stack, Split, and Columns, and the layout gap
+ * of a kata. The `0` stop is no gap, as a stepped rule. It is in the layer of
+ * the other stops, so a breakpoint can switch it with one of them. A plain
+ * `gap-0` outranks that layer. At `md`, each other stop has its plain value: 4, 8, 12, 16, and 24 px.
  * Each density step multiplies the plain value by one factor: 0.5 at `xs`,
  * 0.75 at `sm`, 1 at `md`, 1.25 at `lg`, and 1.5 at `xl`. So each stop is an
  * equal ramp, with a step of a quarter of its plain value, and the stops keep
@@ -14,12 +24,13 @@
  * grid. `density-geometry.test.ts` holds each stop to the rule.
  */
 const scale = {
+	0: 'density-gap-[0,0,0,0,0]',
 	xs: 'density-gap-[0.5,0.75,1,1.25,1.5]',
 	sm: 'density-gap-[1,1.5,2,2.5,3]',
 	md: 'density-gap-[1.5,2.25,3,3.75,4.5]',
 	lg: 'density-gap-[2,3,4,5,6]',
 	xl: 'density-gap-[3,4.5,6,7.5,9]',
-} as const
+} as const satisfies Record<Ma, string>
 
 /** The inline gap (`column-gap`) at each stop of the gap scale. */
 const scaleX = {
@@ -72,11 +83,6 @@ const narrow = scale.xs
 
 export const gap = {
 	scale,
-	/**
-	 * No gap, as a stepped rule. It is in the layer of `scale`, so a breakpoint
-	 * can switch it with a stop of `scale`. A plain `gap-0` outranks that layer.
-	 */
-	none: 'density-gap-[0,0,0,0,0]',
 	/** The inline gap at each stop of `scale`. */
 	x: scaleX,
 	/**
