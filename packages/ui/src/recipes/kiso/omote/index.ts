@@ -23,7 +23,7 @@ export const omote = {
 	bg,
 	popover,
 	glass,
-	/** The surface of a panel: the chrome, the fill and the chrome, and the `surface` axis of a modal panel. */
+	/** The `surface` axis of a modal panel. */
 	panel,
 	backdrop,
 	content,

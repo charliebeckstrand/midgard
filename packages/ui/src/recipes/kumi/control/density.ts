@@ -1,5 +1,8 @@
 /**
- * Control group: density axis. Padding, radius, child gap, and text size.
+ * Control group: density classes. `density` holds the child gap, the affix
+ * autofill margins, and the text size: a list that the `field` slot spreads,
+ * not a recipe axis. The padding and the radius are in `inset`, which a framed
+ * control takes (`framed(inset)`) and a `bare` control does not.
  *
  * Each class is a stepped `density-*` utility. The control takes the step of
  * its nearest density scope, and a control with an explicit `size` writes that
@@ -12,14 +15,14 @@
  * The radius is the same stop as `py` at each step. The padding-to-radius
  * ratio is thus 1:1 across the controls with no ControlFrame (listbox, combobox,
  * date-picker button). For a ControlFrame consumer (input, textarea, select
- * trigger), the frame starts its radius with `radius` (`./frame.ts`). The gap is half of `py` at each step, rounded to the spacing
- * scale. The text size is `dan.text.body`, the text ramp of each density-native
+ * trigger), the frame starts its radius with `radius` (`./frame.ts`). The gap
+ * is half of `py` at each step, rounded to the spacing scale. The text size is `dan.text.body`, the text ramp of each density-native
  * component.
  *
- * The axis also carries the affix autofill margins (`affix.autofill`, see
+ * The list also holds the affix autofill margins (`affix.autofill`, see
  * `./affix.ts`). They are `group-has` gated `autofill:` margins that inset the
  * autofill highlight of the browser from an adjacent affix slot by `px`. They
- * are on this axis, so each control input gets them with no wiring in its
+ * are in this list, so each control input gets them with no wiring in its
  * kata. The gate keeps them dormant in a frame with no slot.
  *
  * Layer: kumi · Group: control · Concern: density

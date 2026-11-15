@@ -1,6 +1,7 @@
 /**
  * Narabi slide: edge-anchored positioning for a sheet docked to the top or
- * the bottom. Each direction pins to its viewport edge and fills the width.
+ * the bottom. Each direction pins to the edge of its overlay root and fills the
+ * width.
  *
  * Layer: kiso · Concern: edge-anchored positioning
  */

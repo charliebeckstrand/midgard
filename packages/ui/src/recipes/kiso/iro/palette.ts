@@ -11,7 +11,8 @@
  *
  * The text of a bare entry clears AA (4.5:1) on the page surface, so the
  * `onSurface` shades of the ramp, and thus the `iro.text` intents, read it.
- * Soft, outline, and plain text is one rung stronger, for the 15% soft fill.
+ * Soft, outline, and plain text is 700 in light and 400 in dark, and 800 in
+ * light where 700 misses AA on the 15% soft fill (amber, green).
  * `contrast.test.ts` measures each entry through Button.
  *
  * Layer: kiso · Concern: chromatic palette

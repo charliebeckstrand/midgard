@@ -1,7 +1,7 @@
 /**
  * Ma (間): interval. The named spacing scale shared by padding and
  * gap. One file per axis family; this barrel assembles the
- * named bundle that every kata reads.
+ * named bundle that Box, Flex (and Stack), Split, and Columns read.
  *
  * The label set lives outside `--spacing-*`; semantic labels
  * (`sm` / `md` / `lg`) are distinct from Tailwind's width/height tokens

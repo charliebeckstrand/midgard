@@ -9,7 +9,7 @@
  * they ink, so they sit beside it rather than inside it. `on.wash` is then
  * keyed by purpose in turn, since what varies on that ground is emphasis.
  *
- * `palette` and `hover` are the one source of each chromatic class: Alert,
+ * `palette` and `hover` are the one source of each chromatic class of a variant: Alert,
  * Avatar, Badge, Button, and each kata that writes a hue as text or as a wash
  * read them.
  *

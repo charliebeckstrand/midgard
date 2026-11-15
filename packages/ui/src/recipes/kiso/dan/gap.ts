@@ -5,7 +5,7 @@
  */
 
 /**
- * The named gap scale (`ma.gap`) of Flex, Stack, and Split, and the layout gap
+ * The named gap scale (`ma.gap`) of Flex, Stack, Split, and Columns, and the layout gap
  * of a kata. At `md`, each stop has its plain value: 4, 8, 12, 16, and 24 px.
  * Each density step multiplies the plain value by one factor: 0.5 at `xs`,
  * 0.75 at `sm`, 1 at `md`, 1.25 at `lg`, and 1.5 at `xl`. So each stop is an
@@ -157,6 +157,6 @@ export const gap = {
 	 * with the plain gap of a horizontal step.
 	 */
 	stepper: 'density-set-[2,3,4,5,6]/[--ui-stepper-gap]',
-	/** The gap of a rating skeleton. */
+	/** The gap of the stars of a rating, live and in its skeleton. */
 	rating: 'density-gap-[0.25,0.5,0.75,1,1.25]',
 } as const
