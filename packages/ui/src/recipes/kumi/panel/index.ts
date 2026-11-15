@@ -34,9 +34,13 @@ const { scale } = dan.gap
 export const stack = [flex.col, scale.lg]
 
 export const panel = defineGroup({
-	base: [...sen.ring.default, stack],
-	/** The surface of the panel: `flat` is opaque, and `glass` is translucent and blurred. */
-	surface: omote.panel.axis,
+	base: ['pointer-events-auto', ...sen.ring.default, stack],
+	/**
+	 * The surface of the panel: `flat` is opaque, and `glass` is translucent and
+	 * blurred. `group/glass` is half of the marker that `hannou.tint.glass` keys
+	 * on, and the panel also sets `data-glass`.
+	 */
+	surface: { flat: omote.panel.axis.flat, glass: ['group/glass', ...omote.panel.axis.glass] },
 	slots: {
 		backdrop: {
 			base: 'absolute inset-0',

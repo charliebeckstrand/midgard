@@ -209,20 +209,19 @@ export function SheetPanel({
 	// The physical edge. The recipe, the slide, and the drag all key on it.
 	const edge = physicalSide(side, rtl)
 
-	const { open, setOpen, panelId, a11y, overlayProps, panelProps, panelClassName } =
-		usePanelSurface({
-			glass: surface === 'glass',
-			motion: (reduced) => (reduced ? k.still : k.motion)[edge],
-			onOpenComplete,
-			'aria-label': ariaLabel,
-			onClick,
-			modal,
-			dismissOnBackdrop,
-			backdrop,
-			container,
-			initialFocus,
-			returnFocusTo,
-		})
+	const { open, setOpen, panelId, a11y, overlayProps, panelProps } = usePanelSurface({
+		glass: surface === 'glass',
+		motion: (reduced) => (reduced ? k.still : k.motion)[edge],
+		onOpenComplete,
+		'aria-label': ariaLabel,
+		onClick,
+		modal,
+		dismissOnBackdrop,
+		backdrop,
+		container,
+		initialFocus,
+		returnFocusTo,
+	})
 
 	// The dimension this side is docked across, which is the one the gesture moves
 	// and the one the cap is measured on.
@@ -267,7 +266,7 @@ export function SheetPanel({
 				// set on the press and the pointer moves after the render. The consumer
 				// `style` comes first, so the dragged size wins.
 				style={sized ? { ...style, [axis]: resize.size ?? undefined, maxWidth: 'none' } : style}
-				className={cn(slots.base, panelClassName, className)}
+				className={cn(slots.base, className)}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					{handle ? (

@@ -11,13 +11,17 @@ import type {
 	PanelFooterProps,
 	PanelTitleProps,
 } from '../../primitives/panel/types'
+import { k } from '../../recipes/kata/dialog'
 import {
 	type ClosableHeaderProps,
 	createPanelClose,
 	createPanelHeader,
 } from '../button/button-close'
 
-const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = createPanel('dialog')
+const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = createPanel(
+	'dialog',
+	k(),
+)
 
 /** Props for {@link DialogTitle}: the heading `level` (default 2) plus the heading attributes. */
 export type DialogTitleProps = PanelTitleProps

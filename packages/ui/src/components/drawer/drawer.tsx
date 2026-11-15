@@ -211,20 +211,19 @@ export function DrawerPanel({
 }: DrawerPanelProps) {
 	const surface = useReaderSurface()
 
-	const { open, setOpen, panelId, a11y, overlayProps, panelProps, panelClassName } =
-		usePanelSurface({
-			glass: surface === 'glass',
-			motion: (reduced) => (reduced ? k.still : k.motion),
-			onOpenComplete,
-			'aria-label': ariaLabel,
-			onClick,
-			modal,
-			dismissOnBackdrop,
-			backdrop,
-			container,
-			initialFocus,
-			returnFocusTo,
-		})
+	const { open, setOpen, panelId, a11y, overlayProps, panelProps } = usePanelSurface({
+		glass: surface === 'glass',
+		motion: (reduced) => (reduced ? k.still : k.motion),
+		onOpenComplete,
+		'aria-label': ariaLabel,
+		onClick,
+		modal,
+		dismissOnBackdrop,
+		backdrop,
+		container,
+		initialFocus,
+		returnFocusTo,
+	})
 
 	// The grip only resizes, so only a panel with a fixed height shows it. A panel grown to
 	// its content (`auto` or `fit`) has no height for the grip to set.
@@ -272,7 +271,7 @@ export function DrawerPanel({
 				data-slot="drawer"
 				data-density={size}
 				data-height={height ?? 'auto'}
-				className={cn('group/drawer', slots.base, panelClassName, className)}
+				className={cn(slots.base, className)}
 				// The panel eases between its `height` variants, which is right for a step
 				// and wrong for a finger: eased, each frame's height becomes an animation
 				// toward where the pointer already is, so the edge trails the drag and

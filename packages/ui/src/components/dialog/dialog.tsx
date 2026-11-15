@@ -189,7 +189,7 @@ export function DialogPanel({
 
 	const docked = useResponsiveValue(align, 'bottom') === 'bottom'
 
-	const { setOpen, a11y, overlayProps, panelProps, panelClassName } = usePanelSurface({
+	const { setOpen, a11y, overlayProps, panelProps } = usePanelSurface({
 		role,
 		glass: surface === 'glass',
 		motion: (reduced) => (reduced ? k.still : k.motion)[docked ? 'mobile' : 'desktop'],
@@ -228,7 +228,7 @@ export function DialogPanel({
 					ref={panelRef}
 					// A command palette's rows hover inside this panel, not inside a popover,
 					// so they take the glass wash that the panel opens.
-					className={cn('pointer-events-auto', panelClassName, slots.base, className)}
+					className={cn(slots.base, className)}
 				>
 					<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 						{/* Content that moves its own height tells a `fit` panel, which then follows it. An

@@ -133,7 +133,7 @@ export function TreeItemContent({
 			tabIndex={-1}
 			data-slot="tree-item-content"
 			data-open={dataAttr(open)}
-			className={cn('group/tree-item', slots.item.content, className)}
+			className={cn(slots.item.content, className)}
 			onClick={handleClick}
 			onKeyDown={handleKeyDown}
 		>

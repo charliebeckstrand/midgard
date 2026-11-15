@@ -2,7 +2,6 @@
 
 import type { HTMLMotionProps } from 'motion/react'
 import type { MouseEventHandler } from 'react'
-import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
 import { type A11yPanelRole, useA11yPanel } from '../../hooks/a11y/use-a11y-panel'
@@ -32,9 +31,8 @@ export type PanelSurfaceOptions<P extends Pick<HTMLMotionProps<'div'>, 'animate'
 
 /**
  * The wiring that Dialog, Sheet, and Drawer share around their animated panel.
- * It reads the open state of the root. It gives the props of the `Overlay`, the
- * props of the panel element, and the classes of the panel that each surface
- * needs. Thus one rule holds across the family:
+ * It reads the open state of the root. It gives the props of the `Overlay` and
+ * the props of the panel element. Thus one rule holds across the family:
  *
  * - `modal` is `true` unless the consumer sets `false`.
  * - The slide moves `transform`, which `MotionConfig` does not hold still, so
@@ -108,6 +106,5 @@ export function usePanelSurface<P extends Pick<HTMLMotionProps<'div'>, 'animate'
 			'data-glass': dataAttr(glass),
 			'data-open': dataAttr(open),
 		},
-		panelClassName: cn(glass && 'group/glass', !modal && 'pointer-events-auto'),
 	}
 }

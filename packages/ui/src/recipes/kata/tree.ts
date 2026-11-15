@@ -75,6 +75,8 @@ export const k = defineKata(
 					/** The row of an item: the treeitem. */
 					content: {
 						base: [
+							// Its check box reads the hover of the row (`group-hover/tree-item`).
+							'group/tree-item',
 							...row,
 							text.muted,
 							fg.hover,
