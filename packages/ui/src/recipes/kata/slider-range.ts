@@ -40,7 +40,10 @@ export const k = defineKata({
 				'rtl:translate-x-1/2',
 				'bg-white',
 				...ring.line[1].outset,
-				...mode('ring-zinc-950/20', 'dark:ring-white/20'),
+				...mode(
+					['ring-zinc-950/20', 'contrast-more:ring-zinc-950/50'],
+					['dark:ring-white/20', 'dark:contrast-more:ring-white/50'],
+				),
 				'shadow-sm',
 				forced.mark,
 				css.transform,
@@ -48,7 +51,8 @@ export const k = defineKata({
 				'active:not-disabled:scale-110',
 				// The thumb rings match the native thumb of `Slider` (`sen.ring.thumb` in `kiso/sen/ring.ts`).
 				// Tailwind needs literal pseudo-element classes there, so the two lists stay apart.
-				'data-invalid:ring-2 data-invalid:ring-red-600',
+				'data-invalid:ring-2',
+				...mode('data-invalid:ring-red-600', 'dark:data-invalid:ring-red-500'),
 				...forced.invalid.outset,
 				'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
 				...forced.ring.outset,

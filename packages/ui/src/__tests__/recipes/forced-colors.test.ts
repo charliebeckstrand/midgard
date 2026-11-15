@@ -43,6 +43,7 @@ describe('edges and state marks under forced colors', () => {
 
 	const parts: [string, unknown][] = [
 		['the panel', panel().base],
+		['the content card of an app shell', omote.content.card],
 		['the export label of a grid', grid.exporting.label],
 		['the horizontal grip bar', grip.bar.horizontal],
 		['the vertical grip bar', grip.bar.vertical],

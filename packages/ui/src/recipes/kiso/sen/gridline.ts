@@ -11,26 +11,46 @@
  * Layer: kiso · Concern: table cell rules
  */
 
+import { mode } from '../../../core/recipe'
+
 export const gridline = {
 	/** Default rule: low-contrast palette, as `sen.outline.default`. */
 	default: [
-		'[&>*>tr>:is(td,th)]:border-zinc-950/10',
-		'dark:[&>*>tr>:is(td,th)]:border-white/10',
-		'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
-		'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
+		...mode(
+			[
+				'[&>*>tr>:is(td,th)]:border-zinc-950/10',
+				'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
+			],
+			[
+				'dark:[&>*>tr>:is(td,th)]:border-white/10',
+				'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
+			],
+		),
 	],
 	/** Stronger rule, as `sen.outline.strong`. */
 	strong: [
-		'[&>*>tr>:is(td,th)]:border-zinc-950/15',
-		'dark:[&>*>tr>:is(td,th)]:border-white/15',
-		'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
-		'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
+		...mode(
+			[
+				'[&>*>tr>:is(td,th)]:border-zinc-950/15',
+				'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
+			],
+			[
+				'dark:[&>*>tr>:is(td,th)]:border-white/15',
+				'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
+			],
+		),
 	],
 	/** Subtle rule, as `sen.outline.subtle`. */
 	subtle: [
-		'[&>*>tr>:is(td,th)]:border-zinc-950/5',
-		'dark:[&>*>tr>:is(td,th)]:border-white/5',
-		'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
-		'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
+		...mode(
+			[
+				'[&>*>tr>:is(td,th)]:border-zinc-950/5',
+				'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
+			],
+			[
+				'dark:[&>*>tr>:is(td,th)]:border-white/5',
+				'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
+			],
+		),
 	],
 } as const

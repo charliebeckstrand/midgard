@@ -22,7 +22,8 @@ export const hidden = ['absolute inset-0', 'opacity-0', ...cursor, forced.contro
 
 /**
  * Validation ring keyed off the overlaid input's `data-*` state: red / amber /
- * green, mirroring the framed-control kasane layers. The native input sits
+ * green, mirroring the framed-control kasane layers, each in the shade of its
+ * series slot (`zu.palette.series`). The native input sits
  * inside the surface, so the box / circle / track `has` the attribute. Literal
  * class strings; Tailwind's scanner extracts them statically.
  *
@@ -31,8 +32,8 @@ export const hidden = ['absolute inset-0', 'opacity-0', ...cursor, forced.contro
  */
 export const validation = [
 	'has-[[data-invalid],[data-warning],[data-valid]]:ring-2',
-	'has-[[data-invalid]]:ring-red-600',
-	'has-[[data-warning]]:ring-amber-500',
+	...mode('has-[[data-invalid]]:ring-red-600', 'dark:has-[[data-invalid]]:ring-red-500'),
+	'has-[[data-warning]]:ring-amber-600',
 	'has-[[data-valid]]:ring-green-600',
 	forced.invalid.within,
 ]

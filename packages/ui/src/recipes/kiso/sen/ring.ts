@@ -58,18 +58,42 @@ const thumb = [
 	...forced.ring.outset,
 	...forced.invalid.outset,
 
-	'[&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-zinc-950/20',
-	'dark:[&::-webkit-slider-thumb]:ring-white/20',
+	'[&::-webkit-slider-thumb]:ring-1',
+	...mode(
+		[
+			'[&::-webkit-slider-thumb]:ring-zinc-950/20',
+			'contrast-more:[&::-webkit-slider-thumb]:ring-zinc-950/50',
+		],
+		[
+			'dark:[&::-webkit-slider-thumb]:ring-white/20',
+			'dark:contrast-more:[&::-webkit-slider-thumb]:ring-white/50',
+		],
+	),
 	// An invalid range rings its thumb in red, as an invalid checkbox rings its box.
 	'data-invalid:[&::-webkit-slider-thumb]:ring-2',
-	'data-invalid:[&::-webkit-slider-thumb]:ring-red-600',
+	...mode(
+		'data-invalid:[&::-webkit-slider-thumb]:ring-red-600',
+		'dark:data-invalid:[&::-webkit-slider-thumb]:ring-red-500',
+	),
 	'focus-visible:[&::-webkit-slider-thumb]:ring-4',
 	'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
 
-	'[&::-moz-range-thumb]:ring-1 [&::-moz-range-thumb]:ring-zinc-950/20',
-	'dark:[&::-moz-range-thumb]:ring-white/20',
+	'[&::-moz-range-thumb]:ring-1',
+	...mode(
+		[
+			'[&::-moz-range-thumb]:ring-zinc-950/20',
+			'contrast-more:[&::-moz-range-thumb]:ring-zinc-950/50',
+		],
+		[
+			'dark:[&::-moz-range-thumb]:ring-white/20',
+			'dark:contrast-more:[&::-moz-range-thumb]:ring-white/50',
+		],
+	),
 	'data-invalid:[&::-moz-range-thumb]:ring-2',
-	'data-invalid:[&::-moz-range-thumb]:ring-red-600',
+	...mode(
+		'data-invalid:[&::-moz-range-thumb]:ring-red-600',
+		'dark:data-invalid:[&::-moz-range-thumb]:ring-red-500',
+	),
 	'focus-visible:[&::-moz-range-thumb]:ring-4',
 	'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 ]

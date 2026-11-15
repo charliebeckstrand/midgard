@@ -147,6 +147,7 @@
 @source inline('{sm,md,lg,xl,2xl}:bg-{white,zinc-100,transparent}');
 @source inline('{sm,md,lg,xl,2xl}:sidebar-offcanvas:{block,hidden,ps-0,ps-2}');
 @source inline('{sm,md,lg,xl,2xl}:{py-2,pe-0,pe-2,rounded-lg,shadow-none,shadow-xs}');
+@source inline('{sm,md,lg,xl,2xl}:forced-colors:{outline-solid,outline-1,outline-none,outline-0}');
 @source inline('{sm,md,lg,xl,2xl}:dark:bg-{transparent,zinc-900}');
 @source inline('{sm,md,lg,xl,2xl}:[--surface-fill:var(--color-white)]');
 @source inline('{sm,md,lg,xl,2xl}:dark:[--surface-fill:var(--color-{zinc-900,zinc-950})]');
