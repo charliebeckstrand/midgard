@@ -29,11 +29,7 @@ export const k = defineKata(
 		tone: text,
 		color: {
 			current: mode('text-current', 'dark:text-current'),
-			zinc: palette.bare.zinc,
-			red: palette.bare.red,
-			amber: palette.bare.amber,
-			green: palette.bare.green,
-			blue: palette.bare.blue,
+			...palette.bare,
 		},
 		pulse: { true: hannou.busy, false: '' },
 		defaults: { tone: 'default', pulse: false },
