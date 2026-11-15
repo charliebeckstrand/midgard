@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cdp } from 'vitest/browser'
-import { inset } from '../../recipes/kumi/panel'
+import { dan } from '../../recipes/kiso'
+
+const inset = dan.space.panel
 
 /**
  * The inset of a panel body reads the `:first-child` or the `:last-child` state

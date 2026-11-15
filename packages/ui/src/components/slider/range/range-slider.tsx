@@ -290,7 +290,7 @@ export function RangeSlider({
 			aria-readonly={ariaAttr(resolvedReadOnly)}
 			{...validation}
 			data-slot="slider-range-thumb"
-			className={cn(slots.thumb, 'top-1/2 -translate-y-1/2')}
+			className={slots.thumb}
 			style={{ insetInlineStart: `${thumb === 0 ? lo : hi}%` }}
 			// A read-only thumb takes no value key, so the key does what it does on the page.
 			onKeyDown={resolvedReadOnly ? undefined : handleKeyDown(thumb)}
@@ -314,15 +314,11 @@ export function RangeSlider({
 			onLostPointerCapture={onLostPointerCapture}
 		>
 			{/* Track */}
-			<div
-				ref={trackRef}
-				data-slot="slider-range-track"
-				className={cn(slots.track, 'top-1/2 -translate-y-1/2')}
-			>
+			<div ref={trackRef} data-slot="slider-range-track" className={slots.track}>
 				{/* Filled range */}
 				<div
 					data-slot="slider-range-fill"
-					className={cn(slots.fill, 'h-full')}
+					className={slots.fill}
 					style={{ insetInlineStart: `${lo}%`, insetInlineEnd: `${100 - hi}%` }}
 				/>
 			</div>

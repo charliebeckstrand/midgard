@@ -6,6 +6,5 @@ export {
 } from './colors'
 export { defineGroup, defineKata } from './engine/kata'
 export { definePalette } from './engine/palette'
-export { defineRecipe } from './engine/recipe'
 export type { VariantProps } from './engine/types'
-export { defineColors, mode } from './mode'
+export { mode } from './mode'

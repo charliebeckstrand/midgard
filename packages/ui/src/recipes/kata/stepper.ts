@@ -50,6 +50,8 @@ export const k = defineKata(
 					...border.color.subtle,
 					dan.gap.stepper,
 				],
+				// A step that is not a button shows the default cursor.
+				interactive: { true: '', false: 'cursor-default' },
 				responsive: {
 					orientation: {
 						horizontal: 'flex-col min-w-20 w-32 gap-0.5 py-0 text-center',

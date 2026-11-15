@@ -13,7 +13,8 @@ import { k as option } from '../../recipes/kata/option'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as tabs } from '../../recipes/kata/tabs'
 import { hannou, iro, omote } from '../../recipes/kiso'
-import { marker, onSurface, strong } from '../../recipes/kiso/iro/ramp'
+import { onSurface, strong } from '../../recipes/kiso/iro/ramp'
+import { marker } from '../../recipes/kiso/zu/marker'
 import { classNames } from '../helpers/class-stops'
 import { getContrast, SURFACE, tinted } from '../helpers/contrast'
 import { collectPatternViolations, srcDir } from '../helpers/walk-source'
@@ -58,7 +59,7 @@ describe('iro ramp contrast', () => {
 
 	describe('marker clears non-text 3:1 on the page surface', () => {
 		it.each(colors)('%s', (color) => {
-			const [light, dark] = marker[color]
+			const [light = '', dark = ''] = marker[color]
 
 			expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(NON_TEXT_AA)
 

@@ -120,9 +120,7 @@ export function NavItem({
 					{suffix}
 				</div>
 			)}
-			{isCurrent && (
-				<ActiveIndicator ref={indicatorRef} className={hasAffix ? slots.indicator : undefined} />
-			)}
+			{isCurrent && <ActiveIndicator ref={indicatorRef} className={slots.indicator} />}
 		</li>
 	)
 }

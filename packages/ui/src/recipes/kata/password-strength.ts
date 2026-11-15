@@ -9,8 +9,8 @@
 import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, kasane, narabi, omote, sen, zu } from '../kiso'
 
-const { marker, text } = iro
-const { meter } = zu
+const { text } = iro
+const { marker, meter } = zu
 const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi

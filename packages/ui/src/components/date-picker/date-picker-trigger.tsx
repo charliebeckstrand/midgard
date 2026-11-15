@@ -139,10 +139,7 @@ export function DatePickerTrigger({
 	const showClear = clearable && hasValue && !disabled && !readOnly
 
 	const valueNode = (
-		<span
-			ref={valueRef}
-			className={cn(k({ truncate }).value, truncate ? 'min-w-0 flex-1 overflow-hidden' : 'flex-1')}
-		>
+		<span ref={valueRef} className={k({ truncate }).value}>
 			{displayValue === '' ? (
 				<span className={cn(k.placeholder)}>{placeholder}</span>
 			) : pending ? (

@@ -19,18 +19,18 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | Family | Concern |
 |---|---|
 | `dan` 段 | Density ramps: each stepped `density-*` class that writes a value for each step, nested under the unit that reads it (`space.box.bottom`). |
-| `iro` 色 | The color tokens of the kata. The chromatic `palette`, its `extended` hues, and its `hover` hold one literal class string for each variant and color. The other tokens are the intent-color text bundle, the `marker` shade, the `match` wash, and the `on.wash` rung. |
+| `iro` 色 | The color tokens of the kata. The chromatic `palette`, its `extended` hues, and its `hover` hold one literal class string for each variant and color. The other tokens are the intent-color text bundle, the `match` wash, and the `on.wash` rung. |
 | `ji` 字 | Typography: the fixed size scale. The stepped text size of a density-native component is a ramp in `dan.text`. A weight, a line height, and a font family are plain Tailwind classes. |
 | `ma` 間 | Named spacing scale projected as padding and gap utilities, in all-sides and axis variants. Each stop but `0` is a ramp of `dan`, so it takes the step of the nearest density scope. |
 | `narabi` 並び | Sibling arrangement: field adjacency, slide positioning, icon slot, and flex primitives. `fit` is the column of a panel with a capped height. `offcanvas` shows a part in one offcanvas layout only. `nest` indents each level of a tree under a mark column. `touch` sets the touch gap of hosts that touch to zero on one axis. |
 | `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, the hidden `scrollbar`, and the `fade` mask. |
 | `hannou` 反応 | Interaction feedback: `disabled`, `busy`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, table gridlines, the resize grip, and forced-colors safety nets. |
-| `shaku` 尺 | Dimension scales per surface (`icon`, `panel`, `mark`). `icon` holds the forms of the icon scale (`icon.base`, `icon.slot`). |
+| `shaku` 尺 | Dimension scales per surface (`icon`, `panel`, `mark`). `icon.slot` holds the forms that size the icon children of a host. |
 | `ugoki` 動き | Motion: tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
 | `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
 | `kokkaku` 骨格 | The skeleton form of each unit: the dimensions of its placeholders, with no chrome, variant, or color. |
-| `zu` 図 | Data-viz substrate: the categorical series `palette`, the `meter` shade of a measured value, the chrome and readout `ink`, and the reveal `motion`. |
+| `zu` 図 | Data-viz substrate: the categorical series `palette`, the chrome and readout `ink`, and the reveal `motion`. `meter` is the shade of a measured value, and `marker` is the shade of a dot or a glyph. |
 | `sou` 層 | App-level stacking order: the ordered rung ladder (`overlay` / `float` / `lens` / `toast`) every portaled surface lands on. |
 | `tsunagi` 繋ぎ | Group-join class fragments, keyed on the DOM position of each child of the group. |
 | `kara` 空 | Virtualized emptiness: selectors that read `data-empty` on a `VirtualOptions` wrapper. |
@@ -66,7 +66,7 @@ The substrate that kumi and kata call, in [`src/core/recipe/`](../src/core/recip
 | `defineKata` | Builds the recipe of a unit. The config is the recipe of the root slot `base`, and `slots` holds the child slots. The slots share one set of props and one set of defaults, and a call returns the class string of each slot. A slot can hold child slots under its own `slots`. Its output is then a record of its own classes (`base`) and each child slot (`k().chevron.spacer`). `k.bare` is the output with each slot empty, for a headless component. |
 | `defineGroup` | Declares a group: a config in the shape of a unit, and its extras, which a unit kata `extends`. A group can extend a group. |
 | `definePalette` | Declares the variant × color matrix of a recipe from one or more matrices, such as the `palette` and the `hover` of iro. The cells of the same variant and color join in order. The engine derives the `color` axis from the keys. |
-| `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. |
+| `mode` | Fuses a colocated light (`hiru`) and dark (`yoru`) value into the flat `string[]` the engine consumes. |
 | `VariantProps` *(type)* | Extracts the prop shape from a recipe or a kata; used to type the consumer-facing `<Name>Variants` export. |
 | `colors` / `Color` *(type)* | The standard palette color set: `zinc` · `red` · `amber` · `green` · `blue`. |
 | `extendedColors` / `PaletteColor` *(type)* | The opt-in extended set (`rose` · `violet` · `sky`), and the union of standard plus extended. |
