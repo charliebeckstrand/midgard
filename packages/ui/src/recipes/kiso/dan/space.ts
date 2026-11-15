@@ -104,18 +104,33 @@ export const space = {
 	/** The padding of a popover panel. */
 	popover: scale.p.lg,
 	/**
-	 * The inset of a dialog, a drawer, and a sheet: the same length on the four
-	 * sides. The `inset` of the panel group (`kumi/panel`) is this set, and its doc gives the rule.
+	 * The inset of a dialog, a drawer, and a sheet: the space between an edge and
+	 * the slot next to it. It is the same on the four sides, so the panel has one
+	 * even frame. It is larger than the slot gap of a panel (`gap.scale.lg`) at
+	 * each step, so the slots read as one group in the frame. It takes the step of
+	 * the nearest density scope, as the content of the panel does.
+	 *
+	 * The inset stops at the box of the content at the edge. A button at the edge
+	 * of a footer must show its box, or its padding adds to the inset. Thus the
+	 * standard close button of a panel is `soft`, not `plain`.
 	 */
 	panel: {
 		/** The inset at the left edge and at the right edge, on the panel or on each slot. */
 		x: scale.px.xl,
 		/**
 		 * The negative bottom margin that cancels the slot gap of a panel
-		 * (`gap.scale.lg`) under a child that is the edge of the panel.
+		 * (`gap.scale.lg`) under a child that is the edge of the panel, not one of
+		 * its slots: a drag handle above the header. The ramp is the negative of
+		 * the gap at each step. If one ramp changes and the other does not, the
+		 * difference is dead space that no test finds.
 		 */
 		flush: 'density-mb-[-2,-3,-4,-5,-6]',
-		/** The slot gap of a panel (`gap.scale.lg`) above a child that follows a sibling. */
+		/**
+		 * The slot gap of a panel (`gap.scale.lg`) above a child that follows a
+		 * sibling. A list in the body takes it to keep the rhythm of the panel
+		 * slots, such as the groups of a command palette below its search input.
+		 * The ramp is the gap, for the reason that `flush` gives.
+		 */
 		above: 'not-first:density-mt-[2,3,4,5,6]',
 		/** The inset above the first slot, on the panel or on the slot. */
 		top: 'density-pt-[3,4.5,6,7.5,9]',

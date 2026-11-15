@@ -13,8 +13,8 @@
  *
  * Components, modules, and primitives reach the recipe layer through their
  * owning kata (`from '../../recipes/kata/<name>'`). Cross-layer value imports
- * are pinned by `noRestrictedImports` in `biome.json` and the
- * `no-value-import-from-recipes-barrel` Biome plugin.
+ * are pinned by `noRestrictedImports` in `biome.json`. This barrel holds types
+ * alone, so a value import from it does not compile.
  *
  * This barrel is types-only. It re-exports the recipe-substrate types
  * (`Color`, `Ma`, `GroupOrientation`); consumers

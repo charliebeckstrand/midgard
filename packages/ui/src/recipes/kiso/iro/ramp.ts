@@ -3,7 +3,7 @@
  * pairs, light value first and the `dark:`-prefixed value second. The values
  * are full class literals, because Tailwind's scanner sees only literals.
  * `onSurface` takes the text of the bare palette entries (`palette.ts`),
- * `marker` takes the shade of the series slot, `strong` is the max-emphasis
+ * `strong` is the max-emphasis
  * neutral, and `onWash.muted` is the least-emphatic rung that clears the text
  * floor on the wash.
  *
@@ -13,8 +13,6 @@
  *
  * Layer: kiso · Concern: color ramp
  */
-
-import type { Color } from '../../../core/recipe'
 
 import { palette } from './palette'
 
@@ -27,26 +25,6 @@ import { palette } from './palette'
 export const onSurface = Object.fromEntries(
 	Object.entries(palette.bare).map(([color, value]) => [color, value.split(' ')]),
 ) as Record<keyof typeof palette.bare, [light: string, dark: string]>
-
-/**
- * The shade of a chromatic dot or glyph on the page surface: a status dot, a
- * spinner, a timeline marker. Each hue is the shade of its series slot
- * (`zu/palette.ts`), so a dot, a slider fill, a meter, and a chart mark in one
- * hue show one shade in each mode. Each slot shade clears the non-text 3:1
- * floor (WCAG 1.4.11) on the page surface. The zinc marker takes the stronger
- * light rung (600), so a neutral spinner or star reads as firmly as a
- * chromatic one.
- *
- * Zu reads iro, so iro cannot read the slot, and `graphic-shade.test.ts` holds
- * each copy to it.
- */
-export const marker: Record<Color, [light: string, dark: string]> = {
-	zinc: ['text-zinc-600', 'dark:text-zinc-400'],
-	red: ['text-red-600', 'dark:text-red-500'],
-	amber: ['text-amber-600', 'dark:text-amber-600'],
-	green: ['text-green-600', 'dark:text-green-600'],
-	blue: ['text-blue-600', 'dark:text-blue-500'],
-}
 
 /** Max-emphasis neutral foreground: the `default` intent and the `bare` zinc hover. */
 export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:text-white']

@@ -178,7 +178,7 @@ export function StepperStep({ value, disabled, className, children, ...props }: 
 			data-state={state}
 			aria-current={state === 'current' ? 'step' : undefined}
 			data-disabled={dataAttr(disabled)}
-			className={cn(classes, 'cursor-default')}
+			className={classes}
 		>
 			{inner}
 		</li>
