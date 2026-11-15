@@ -38,8 +38,8 @@ export function framed<const C>(classes: C) {
 
 /**
  * The field of a trigger that is a button: the axis, the start alignment, no
- * native look, and the cursor. A picker and a Listbox read it. A Combobox does
- * not, because its field is a text input.
+ * native look, and the cursor. A picker, a Listbox, and the FileUpload input
+ * read it. A Combobox does not, because its field is a text input.
  */
 export const button = [flex.row, 'text-start', 'appearance-none', ...cursor]
 
@@ -191,8 +191,8 @@ export const picker = defineGroup(
 		root: ['w-fit', 'max-w-full'],
 		content: {
 			motion: ugoki.popover,
-			column: fit.column,
-			text: iro.text.default,
+			/** The panel above the page: its layer, its column, and its text color. */
+			base: ['z-50', fit.column, iro.text.default],
 			glass: omote.glass,
 		},
 	},
