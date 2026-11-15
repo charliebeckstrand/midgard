@@ -15,7 +15,7 @@ const { flex } = narabi
  * footer pads its top edge when a sibling other than the header comes before
  * it. Thus a section at an outer edge adds no pad, and with no body the header
  * owns the edge that it shares with the footer. The footer also owns its
- * action-row gap, one step tighter than `ma.gap`, so actions sit close. A
+ * action-row gap, one step tighter than the gap scale (`dan.gap.scale`), so actions sit close. A
  * nested card with a `size` is its own scope, so its sections do not follow
  * the outer card.
  *

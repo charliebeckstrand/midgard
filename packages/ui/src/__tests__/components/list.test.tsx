@@ -842,7 +842,7 @@ describe('List: static (non-interactive) mode', () => {
 describe('ListItem density', () => {
 	// The row reads no context. Its padding is a stepped class, and the nearest
 	// `data-density` scope selects the step in CSS. The card variants use the
-	// uniform `ma.p` scale, and `plain` keeps a tighter px/py ratio.
+	// uniform padding scale (`dan.space.scale.p`), and `plain` keeps a tighter px/py ratio.
 	function firstItem(ui: Parameters<typeof renderUI>[0]) {
 		const { container } = renderUI(ui)
 
