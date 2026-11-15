@@ -28,7 +28,7 @@ Peer-compatible with Next 16.3.3 or a later 16.x, and React 19.2 or a later 19.x
 
 ## 3. Consumers
 
-[`apps/admin`](../../apps/admin/README.md), [`apps/places`](../../apps/places/README.md), [`apps/picks`](../../apps/picks/README.md), [`apps/elections`](../../apps/elections/README.md), and [`shared`](../shared/README.md) use this package. `shared` takes only its types. `elections` takes only `auth/app-config`.
+[`apps/admin`](../../apps/admin/README.md), [`apps/places`](../../apps/places/README.md), [`apps/picks`](../../apps/picks/README.md), [`apps/elections`](../../apps/elections/README.md), [`apps/numbers`](../../apps/numbers/README.md), and [`shared`](../shared/README.md) use this package. `shared` takes only its types. `elections` and `numbers` take only `auth/app-config`.
 
 ---
 

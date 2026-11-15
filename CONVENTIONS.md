@@ -251,7 +251,7 @@ Use the shortest name that still tells what the function does (§8.4). A name do
 
 ## 9. Imports
 
-9.1 In apps, the `@/*` alias maps to the source root: `src` in `elections`, `places`, and `picks`, and `app` in `admin`. Use the alias in place of a deep relative chain, that is, three or more `../` segments.
+9.1 In apps, the `@/*` alias maps to the source root: `src` in `elections`, `numbers`, `places`, and `picks`, and `app` in `admin`. Use the alias in place of a deep relative chain, that is, three or more `../` segments.
 
 From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/layouts`, `ui/modules/*` (or the `ui/<module>` shorthand), `ui/structure/*`, `ui/primitives/*`, and `ui/providers/*`. A structure unit also has a `ui/<name>` shorthand, such as `ui/stack`. No root barrel. `src/types`, `src/recipes`, and `src/utilities` stay package-internal, reached by relative import; `internal-barrel-boundary.test.ts` holds `./types` off the `exports` map.
 

@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+@import 'shared/globals.css';
+
+@source './';
+@source '../src';
+
+/* Tests never ship with the app, so their classes stay out of its CSS. `shared/globals.css` names the sources of `shared` and `ui`. */
+@source not '../src/__tests__';
