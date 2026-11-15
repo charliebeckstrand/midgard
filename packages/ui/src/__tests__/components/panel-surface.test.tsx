@@ -4,6 +4,7 @@ import { Dialog, DialogPanel } from '../../components/dialog'
 import { Drawer, DrawerPanel } from '../../components/drawer'
 import { Sheet, SheetPanel } from '../../components/sheet'
 import { GlassSurfacesContext } from '../../providers/glass/context'
+import { k } from '../../recipes/kata/panel'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 type Family = {
@@ -69,6 +70,17 @@ describe.each(FAMILIES)('$name panel surface', ({ Root, Panel }) => {
 		expect(surface.className).not.toContain('group/glass')
 
 		expect(surface).not.toHaveAttribute('data-glass')
+	})
+
+	it.each([
+		{ glass: true, surface: 'glass' as const },
+		{ glass: false, surface: 'flat' as const },
+	])('paints the $surface backdrop of the panel group', ({ glass, surface }) => {
+		panel({ glass })
+
+		const backdrop = document.body.querySelector('[data-slot="overlay-backdrop"]')
+
+		expect(backdrop).toHaveAttribute('class', k({ surface }).backdrop)
 	})
 
 	it('stops a click at the panel', () => {

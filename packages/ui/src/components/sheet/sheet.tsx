@@ -230,7 +230,6 @@ export function SheetPanel({
 			// The panel is a dialog. A `role` of the consumer does not reach it.
 			role="dialog"
 			container={container}
-			glass={surface === 'glass'}
 			motion={(reduced) => (reduced ? k.still : k.motion)[edge]}
 			// The space recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
 			data-slot="sheet"
@@ -249,7 +248,6 @@ export function SheetPanel({
 			// `style` comes first, so the dragged size wins.
 			style={sized ? { ...style, [axis]: resize.size ?? undefined, maxWidth: 'none' } : style}
 			className={cn(slots.base, className)}
-			backdropClassName={slots.backdrop}
 		>
 			{handle ? (
 				<SheetHandle
