@@ -2,8 +2,8 @@
  * Hannou tint: the hover and focus washes. `base` is the mode-neutral wash on
  * the active surface: 5% zinc on light, 5% white on dark. The item group
  * (`kumi/item`) reads it for the row of a menu or a list, and so does any kata
- * that wants the same wash. The other entries are its forms for other grounds. Each wash is
- * guarded against a disabled or `data-disabled` element.
+ * that wants the same wash. The other entries are its forms for other grounds. Each wash but
+ * `hover` is guarded against a disabled or `data-disabled` element.
  *
  * Layer: kiso · Concern: hover/focus tint
  */
