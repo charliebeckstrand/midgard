@@ -5,6 +5,20 @@
  * closable panel.
  */
 import { defineKata } from '../../core/recipe'
-import { bar, panel, stack } from '../kumi/panel'
+import { dan, narabi } from '../kiso'
+import { panel, stack } from '../kumi/panel'
+
+const { flex } = narabi
+
+/**
+ * The header of a closable panel: a row with the column of the title (`lead`)
+ * and the X close at the end. `lead` keeps the tight gap of the header between
+ * the title and the description. It shrinks, so a long title wraps and does
+ * not push the X past the edge.
+ */
+const bar = {
+	base: 'flex-row items-center',
+	lead: [flex.col, 'min-w-0', 'flex-1', dan.gap.scale.sm],
+}
 
 export const k = defineKata({ extends: panel }, { stack, bar })
