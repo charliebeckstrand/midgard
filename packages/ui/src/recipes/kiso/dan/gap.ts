@@ -32,44 +32,40 @@ const scale = {
 	xl: 'density-gap-[3,4.5,6,7.5,9]',
 } as const satisfies Record<Ma, string>
 
-/** The inline gap (`column-gap`) at each stop of the gap scale. */
+/**
+ * The inline gap (`column-gap`) at a stop of the gap scale. Only the stops that
+ * a kata reads are here, so that no unused rule ships. To add a stop, copy the
+ * lists of that stop of `scale`.
+ */
 const scaleX = {
-	xs: 'density-gap-x-[0.5,0.75,1,1.25,1.5]',
 	sm: 'density-gap-x-[1,1.5,2,2.5,3]',
 	md: 'density-gap-x-[1.5,2.25,3,3.75,4.5]',
 	lg: 'density-gap-x-[2,3,4,5,6]',
 	xl: 'density-gap-x-[3,4.5,6,7.5,9]',
 } as const
 
-/** The block gap (`row-gap`) at each stop of the gap scale. */
+/** The block gap (`row-gap`) at a stop of the gap scale, as `scaleX` gives the inline gap. */
 const scaleY = {
 	xs: 'density-gap-y-[0.5,0.75,1,1.25,1.5]',
 	sm: 'density-gap-y-[1,1.5,2,2.5,3]',
-	md: 'density-gap-y-[1.5,2.25,3,3.75,4.5]',
 	lg: 'density-gap-y-[2,3,4,5,6]',
-	xl: 'density-gap-y-[3,4.5,6,7.5,9]',
 } as const
 
 /**
  * The gap that a hit area (`TouchTarget`) can fill between two hosts in a row,
- * at each stop of the gap scale. A row of hosts writes it beside the gap of the
- * same stop, so the hit areas meet and do not overlap at each step.
+ * at a stop of the gap scale. A row of hosts writes it beside the gap of the
+ * same stop, so the hit areas meet and do not overlap at each step. Only the
+ * stops that a kata reads are here, as in `scaleX`.
  */
 const touchX = {
 	xs: 'density-set-[0.5,0.75,1,1.25,1.5]/[--touch-target-gap-x]',
 	sm: 'density-set-[1,1.5,2,2.5,3]/[--touch-target-gap-x]',
-	md: 'density-set-[1.5,2.25,3,3.75,4.5]/[--touch-target-gap-x]',
-	lg: 'density-set-[2,3,4,5,6]/[--touch-target-gap-x]',
-	xl: 'density-set-[3,4.5,6,7.5,9]/[--touch-target-gap-x]',
 } as const
 
 /** The gap that a hit area can fill between two hosts in a stack, as `touchX` gives in a row. */
 const touchY = {
 	xs: 'density-set-[0.5,0.75,1,1.25,1.5]/[--touch-target-gap-y]',
 	sm: 'density-set-[1,1.5,2,2.5,3]/[--touch-target-gap-y]',
-	md: 'density-set-[1.5,2.25,3,3.75,4.5]/[--touch-target-gap-y]',
-	lg: 'density-set-[2,3,4,5,6]/[--touch-target-gap-y]',
-	xl: 'density-set-[3,4.5,6,7.5,9]/[--touch-target-gap-y]',
 } as const
 
 /**
@@ -83,7 +79,7 @@ const narrow = scale.xs
 
 export const gap = {
 	scale,
-	/** The inline gap at each stop of `scale`. */
+	/** The inline gap at the stops of `scale` that a kata reads. */
 	x: scaleX,
 	/**
 	 * The gap of a tree row, after its chevron: the `sm` stop of `scale`, as the
@@ -91,12 +87,12 @@ export const gap = {
 	 */
 	tree: 'density-set-[1,1.5,2,2.5,3]/[--nest-gap]',
 	breadcrumb,
-	/** The block gap at each stop of `scale`. */
+	/** The block gap at the stops of `scale` that a kata reads. */
 	y: scaleY,
 	touch: {
-		/** The touch gap in a row at each stop of `scale`. */
+		/** The touch gap in a row at the stops of `scale` that a kata reads. */
 		x: touchX,
-		/** The touch gap in a stack at each stop of `scale`. */
+		/** The touch gap in a stack at the stops of `scale` that a kata reads. */
 		y: touchY,
 		/**
 		 * The touch gaps of the tag row of a tag input. The row is in the prefix

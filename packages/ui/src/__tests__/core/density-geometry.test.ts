@@ -138,13 +138,21 @@ describe('spacing steps', () => {
 		expect(spacingSteps(sm as number, md as number, lg as number)).toStrictEqual(steps)
 	})
 
+	/** The scales with a stop for each plain value: the gap scale and the padding scale. */
 	const scales = {
 		'gap.scale': dan.gap.scale,
-		'gap.x': dan.gap.x,
-		'gap.y': dan.gap.y,
 		'space.scale.p': dan.space.scale.p,
 		'space.scale.px': dan.space.scale.px,
 		'space.scale.py': dan.space.scale.py,
+	}
+
+	/**
+	 * The axis forms of the gap scale. Each one has only the stops that a kata
+	 * reads, so that no unused rule ships.
+	 */
+	const axes = {
+		'gap.x': dan.gap.x,
+		'gap.y': dan.gap.y,
 	}
 
 	/** The plain value of each stop of the scale, in px: the value at `md`. */
@@ -161,13 +169,15 @@ describe('spacing steps', () => {
 		it('has a stop for each plain value', () => {
 			expect(Object.keys(valued(scale))).toStrictEqual(Object.keys(plain))
 		})
+	})
 
-		it.each(Object.entries(plain))(
+	describe.each(Object.entries({ ...scales, ...axes }))('dan.%s', (_, scale) => {
+		it.each(Object.entries(valued(scale)))(
 			'multiplies the %s stop by the factor of each step',
-			(stop, md) => {
-				const px = parsePx(scale[stop as keyof typeof plain])
+			(stop, ramp) => {
+				const md = plain[stop as keyof typeof plain]
 
-				expect(densitySteps.map((step) => px[step])).toStrictEqual(
+				expect(densitySteps.map((step) => parsePx(ramp)[step])).toStrictEqual(
 					factors.map((factor) => md * factor),
 				)
 			},
@@ -180,23 +190,24 @@ describe('spacing steps', () => {
 				spacingSteps(sm, md, lg),
 			)
 		})
-	})
 
-	// One list for each stop: the padding scale and the axis forms of the gap
-	// scale take the lists of the gap scale.
-	it.each(Object.entries(scales))('gives dan.%s the lists of the gap scale', (_, scale) => {
-		expect(Object.values(valued(scale)).map(parseValues)).toStrictEqual(
-			Object.values(valued(dan.gap.scale)).map(parseValues),
+		// One list for each stop: the padding scale and the axis forms of the gap
+		// scale take the lists of the gap scale.
+		it.each(Object.entries(valued(scale)))(
+			'takes the lists of the %s stop of the gap scale',
+			(stop, ramp) => {
+				expect(parseValues(ramp)).toStrictEqual(
+					parseValues(dan.gap.scale[stop as keyof typeof plain]),
+				)
+			},
 		)
 	})
 
 	describe.each(['x', 'y'] as const)('dan.gap.touch.%s', (axis) => {
-		it.each(Object.keys(plain) as (keyof typeof plain)[])(
+		it.each(Object.entries(dan.gap.touch[axis]))(
 			'fills the gap of the %s stop at each step',
-			(stop) => {
-				const gap = parsePx(dan.gap.scale[stop])
-
-				const ramp = dan.gap.touch[axis][stop]
+			(stop, ramp) => {
+				const gap = parsePx(dan.gap.scale[stop as keyof typeof plain])
 
 				expect(ramp).toMatch(
 					new RegExp(`^density-set-\\[[^\\]]+\\]/\\[--touch-target-gap-${axis}\\]$`),
