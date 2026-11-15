@@ -12,7 +12,7 @@
  * - The hover and de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { dan, hannou, kokkaku, omote, type SeriesSlot, sen, zu } from '../kiso'
+import { dan, hannou, kokkaku, omote, type SeriesSlot, sen, ugoki, zu } from '../kiso'
 
 const { palette, ink, motion } = zu
 
@@ -317,9 +317,9 @@ export const k = {
 		aspect: kokkaku.map.aspect,
 		/** The outline skeleton: the placeholder's pulse and tone, as the fill of the projection's outline. */
 		outline: {
-			base: [...kokkaku.map.outline.base, ...omote.skeleton.shape],
+			base: [...kokkaku.map.outline.base, omote.bg.skeleton.fill, ugoki.css.pulse],
 			/** The outline skeleton in an aspect frame: full width, with the height from the ratio. */
-			aspect: [...kokkaku.map.outline.aspect, ...omote.skeleton.shape],
+			aspect: [...kokkaku.map.outline.aspect, omote.bg.skeleton.fill, ugoki.css.pulse],
 		},
 	},
 } as const

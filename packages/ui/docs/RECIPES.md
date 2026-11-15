@@ -23,7 +23,7 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | `ji` 字 | Typography: size scale plus `weight` / `leading` / `family` aliases. The stepped text size of a density-native component is a ramp in `dan.text`. |
 | `ma` 間 | Named spacing scale projected as padding and gap utilities, in all-sides and axis variants. Each stop but `0` is a ramp of `dan`, so it takes the step of the nearest density scope. |
 | `narabi` 並び | Sibling arrangement: field adjacency, slide positioning, icon slot, and flex primitives. `fit` is the column of a panel with a capped height. `offcanvas` shows a part in one offcanvas layout only. `nest` indents each level of a tree under a mark column. `touch` sets the touch gap of hosts that touch to zero on one axis. |
-| `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, the hidden `scrollbar`, and the `fade` mask. |
+| `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, and the hidden `scrollbar`. |
 | `hannou` 反応 | Interaction feedback: `disabled`, `busy`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, table gridlines, the resize grip, and forced-colors safety nets. |
 | `shaku` 尺 | Dimension scales per surface (`icon`, `panel`, `mark`). `icon` holds the forms of the icon scale (`icon.base`, `icon.slot`). |

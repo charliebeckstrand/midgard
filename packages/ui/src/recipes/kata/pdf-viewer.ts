@@ -15,7 +15,7 @@ const { cursor } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { flex, offcanvas } = narabi
-const { bg, rail, skeleton } = omote
+const { bg, rail } = omote
 const { border, focus, forced, ring } = sen
 const { css } = ugoki
 
@@ -242,7 +242,7 @@ export const k = defineKata({
 					base: [centered, 'shadow-lg', 'bg-white'],
 					slots: {
 						frame: ['relative shrink-0'],
-						placeholder: ['w-full h-full', skeleton.base],
+						placeholder: ['w-full h-full', bg.skeleton.base, css.pulse],
 						// The message of a failed load or of a document with no pages sits on the gray
 						// of the viewport, not on the page surface. The muted text of the page is 4.39:1
 						// there, so the message takes the muted rung of the neutral wash, the same gray.
