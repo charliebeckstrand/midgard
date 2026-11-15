@@ -1,6 +1,5 @@
 import { ChevronRight } from 'lucide-react'
 import { type KeyboardEvent, useId } from 'react'
-import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { defineMessage } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -147,12 +146,8 @@ export function JsonTreeBranchHeader({
 				onClick={onToggle}
 				onKeyDown={handleKeyDown}
 			>
-				<span className={k().chevron.base} aria-hidden="true">
-					<Icon
-						icon={<ChevronRight />}
-						size="sm"
-						className={cn('rtl:-scale-x-100', open && 'rotate-90 rtl:-rotate-90')}
-					/>
+				<span data-open={dataAttr(open)} className={k().chevron.base} aria-hidden="true">
+					<Icon icon={<ChevronRight />} size="sm" />
 				</span>
 				{content}
 			</button>

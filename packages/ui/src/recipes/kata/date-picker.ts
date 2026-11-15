@@ -99,11 +99,11 @@ export const k = defineKata(
 					dan.gap.datePicker,
 				],
 			},
-			/** The text of the selected value. */
+			/** The text of the selected value, which fills the row. */
 			value: {
-				base: 'block',
+				base: ['block', 'flex-1'],
 				truncate: {
-					true: 'truncate',
+					true: ['min-w-0', 'truncate'],
 					false: '',
 				},
 			},
