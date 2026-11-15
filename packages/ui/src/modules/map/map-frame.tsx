@@ -11,7 +11,6 @@ import {
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
-import { k as chart } from '../../recipes/kata/chart'
 import { k } from '../../recipes/kata/map'
 import { noop } from '../../utilities/noop'
 import { legendAside } from '../chart/engine/chart-legend/schema'
@@ -287,7 +286,7 @@ export function MapPlotRegion({
 				// Without these, a long press starts a text selection that spreads across
 				// the whole map and the text around it, and iOS shows its callout menu.
 				// The tap to pick does not use selection, so nothing is lost.
-				chart.touch.readout,
+				k.touch.readout,
 				// The focus ring only rides a region that can take focus; a rounded
 				// corner comes with it, so the outline follows the box it rings.
 				// Joined at module scope, so each render hands `cn` one string

@@ -9,9 +9,10 @@
  *   step of its nearest density scope.
  *
  * The hue is a caller-supplied `currentColor` value applied on top: a `text-*`
- * utility, a `kata/chart` slot name, or a raw hex / `oklch()`. `Swatch` resolves
- * it. The CVD-validated data-viz palette therefore stays in `kata/chart` and
- * never forks, and any hue works. `solid` fills with it, `outline` frames with
+ * utility, a data-viz slot name, or a raw hex / `oklch()`. `Swatch` resolves
+ * it. A slot name inks through {@link series}, the `zu` palette that the chart
+ * and map kata read too. The CVD-validated data-viz palette therefore never
+ * forks, and any hue works. `solid` fills with it, `outline` frames with
  * it, and `soft` tints with it at 15% inside a 1px edge in the hue. `dashed`
  * renders it per shape: a dashed dash run across a `line`, a dashed border
  * around a `square` or `circle`. Either mirrors a dashed reference rule in a
@@ -19,7 +20,9 @@
  */
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { dan, omote, sen } from '../kiso'
+import { dan, omote, sen, zu } from '../kiso'
+
+export type { SeriesSlot } from '../kiso'
 
 const { bg } = omote
 
@@ -85,6 +88,12 @@ export const k = defineKata({
 	],
 	defaults: { shape: 'square', variant: 'solid' },
 })
+
+/**
+ * The data-viz series palette from `zu`: the CVD-validated `text-*` class of
+ * each slot name that {@link Swatch} takes as its `color`.
+ */
+export const series = zu.palette.series
 
 /** The size scale of {@link Swatch}: the steps of its box, dot, and line. */
 export const scale = defineScale(dan.size.swatch.base, dan.size.swatch.line)

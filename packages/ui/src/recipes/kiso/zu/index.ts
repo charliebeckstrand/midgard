@@ -1,8 +1,9 @@
 /**
  * Zu (図): the data-viz substrate that the chart and map modules share.
- * Five fragments: the categorical series `palette`, the `meter` shade of a
+ * Six fragments: the categorical series `palette`, the `meter` shade of a
  * measured value and the `marker` shade of a dot or a glyph, which read their
- * hues from the palette, the chrome and readout `ink`, and the reveal `motion`. Both kata read one source, so the
+ * hues from the palette, the chrome and readout `ink`, the readout `touch`
+ * posture, and the reveal `motion`. Both kata read one source, so the
  * CVD-validated slot order and the chrome inks cannot fork between them.
  */
 
@@ -11,6 +12,7 @@ import { marker } from './marker'
 import { meter } from './meter'
 import { motion } from './motion'
 import { palette } from './palette'
+import { touch } from './touch'
 
 export type { SeriesSlot } from './palette'
 
@@ -19,5 +21,6 @@ export const zu = {
 	meter,
 	marker,
 	ink,
+	touch,
 	motion,
 } as const

@@ -1,9 +1,10 @@
 /**
  * Chart kata: the sheet of every chart in the chart module. Many files read
  * it with no call, so it stays a plain object. The series palette, the shared
- * inks, and the reveal motion come from the kiso `zu` bundle, which the map
- * kata reads too. This sheet adds the chart's own chrome: the axis title, the
- * tick labels, the marker stroke, the focus ring, and the spark posture.
+ * inks, the readout touch posture, and the reveal motion come from the kiso
+ * `zu` bundle, which the map kata reads too. This sheet adds the chart's own
+ * chrome: the axis title, the tick labels, the marker stroke, the focus ring,
+ * and the spark posture.
  */
 
 import { defineScale } from '../../core/density'
@@ -12,7 +13,7 @@ import { dan, iro, kokkaku, type SeriesSlot, sen, zu } from '../kiso'
 
 const { text } = iro
 
-const { palette, ink, motion } = zu
+const { palette, ink, touch, motion } = zu
 
 /** The muted ink of SVG text: a tick label and an axis title. */
 const mutedFill = mode('fill-zinc-500', 'dark:fill-zinc-400')
@@ -104,13 +105,8 @@ export const k = {
 	drawing: (spark: boolean) => (spark ? ['pointer-events-none', '**:pointer-events-none'] : []),
 	/** The touch posture of a root: no text selection under a hold (`readout`), and no double-tap wait (`tap`). */
 	touch: {
-		/**
-		 * The root of a readout surface: a chart, a heatmap, a choropleth, or a map
-		 * plot. A long press opens the readout on a map. The surface selects no text
-		 * and opens no callout under a hold. Safari on iOS can select text in a
-		 * descendant of a `select-none` box, so every descendant also sets it.
-		 */
-		readout: ['select-none', '**:select-none', '[-webkit-touch-callout:none]'],
+		/** The root of a readout surface, from `zu`, which the map kata reads too. */
+		readout: touch.readout,
 		/**
 		 * The root of a chart, whose marks take a tap. It turns off the double-tap
 		 * zoom, so a tap lands without the wait for a second tap. A pan and a pinch

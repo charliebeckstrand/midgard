@@ -1,8 +1,8 @@
 /**
  * Map kata: the sheet of the geography map module. Many files read it with no
  * call, so it stays a plain object. The series palette, frame inks, readout
- * inks, and reveal motion come from the kiso `zu` bundle, which the chart kata
- * reads too. The two data-viz modules read as one color system, and the
+ * inks, readout touch posture, and reveal motion come from the kiso `zu`
+ * bundle, which the chart kata reads too. The two data-viz modules read as one color system, and the
  * CVD-validated slot order must never fork. The map's own region tokens sit
  * beside them:
  *
@@ -14,7 +14,7 @@
 import { mode } from '../../core/recipe'
 import { dan, hannou, kokkaku, omote, type SeriesSlot, sen, ugoki, zu } from '../kiso'
 
-const { palette, ink, motion } = zu
+const { palette, ink, touch, motion } = zu
 
 /** A named map mark color: the eight categorical data-viz slots plus `zinc`. */
 export type MapSeriesColor = SeriesSlot
@@ -229,6 +229,11 @@ export const k = {
 	 * opacity transitions made a legend focus miss frames.
 	 */
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
+	/**
+	 * The touch posture of the plot: the root of a readout surface, from `zu`, so
+	 * a hold on a map and on a chart selects no text and opens no callout.
+	 */
+	touch,
 	/** Keyboard focus ring: the shared accent outline, on the navigable plot region. */
 	focus: sen.focus.ring,
 	/**
