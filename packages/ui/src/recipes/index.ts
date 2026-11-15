@@ -3,7 +3,7 @@
  *
  *   kiso/ - the design tokens. Each family has a Japanese name (dan / iro /
  *           ji / narabi / omote / hannou / sen / shaku / sou / tsunagi /
- *           ugoki / kokkaku / kasane / kara / zu), and each key under it has
+ *           ugoki / kokkaku / kasane / zu), and each key under it has
  *           an English name. Read by kumi and kata.
  *   kumi/ - the groups. The shared structure of a family of units, in the
  *           shape of a unit (`defineGroup`). A kata unit extends its group.
@@ -17,7 +17,7 @@
  * alone, so a value import from it does not compile.
  *
  * This barrel is types-only. It re-exports the recipe-substrate types
- * (`Color`, `Ma`, `GroupOrientation`); consumers
+ * (`Color` and `Ma`); consumers
  * derive prop unions from them without threading types through their kata.
  * No runtime values pass through; values reach consumers through their kata
  * funnel. The types-only shape is pinned by
@@ -26,4 +26,3 @@
 
 export type { Color } from '../core/recipe'
 export type { Ma } from './kiso/dan'
-export type { GroupOrientation } from './kiso/tsunagi'

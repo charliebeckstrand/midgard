@@ -35,8 +35,6 @@ const levels = [1, 2, 3, 4, 5, 6] as const
 
 type Level = (typeof levels)[number]
 
-const { weight } = ji
-
 /** The rung of `level` at each step, from its ramp. */
 const getRungs = (level: Level) => findSteps([k.ramp[level]], 'density-text-')
 
@@ -92,7 +90,7 @@ describe('heading ramps', () => {
 
 describe('k.weight', () => {
 	it('eases from bold at the top of the scale to medium at the bottom', () => {
-		const order: string[] = [weight.bold, weight.semibold, weight.medium]
+		const order: string[] = ['font-bold', 'font-semibold', 'font-medium']
 
 		const ranks = levels.map((level) => order.indexOf(k.weight[level]))
 

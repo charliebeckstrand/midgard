@@ -6,7 +6,7 @@
 
 | Layer | Role | What |
 |---|---|---|
-| [Kiso 基礎: Tokens](./kiso/README.md) | Data | The token families: `dan` · `hannou` · `iro` · `ji` · `kara` · `kasane` · `kokkaku` · `narabi` · `omote` · `sen` · `shaku` · `sou` · `tsunagi` · `ugoki` · `zu`. Each family has a Japanese name, and each key under it has an English name. |
+| [Kiso 基礎: Tokens](./kiso/README.md) | Data | The token families: `dan` · `hannou` · `iro` · `ji` · `kasane` · `kokkaku` · `narabi` · `omote` · `sen` · `shaku` · `sou` · `tsunagi` · `ugoki` · `zu`. Each family has a Japanese name, and each key under it has an English name. |
 | [Kumi 組: Groups](./kumi/README.md) | Structure | The shared structure of a family of units: slots, axes, and defaults in the shape of a unit. A unit extends its group. Reads kiso and the recipe engine. |
 | [Kata 型: Form](./kata/README.md) | Application | Per-unit recipes: the funnel for components and primitives. |
 
@@ -42,7 +42,7 @@ A unit has a `bare` output, in which each slot is `''`. A component resolves its
 
 ## 3. Boundary
 
-Cross-layer value imports are forbidden. The barrel `index.ts` re-exports foundational types only (`Color` / `Ma` / `GroupOrientation`), so consumers can derive prop unions without threading the type through their kata. No runtime value passes through the barrel.
+Cross-layer value imports are forbidden. The barrel `index.ts` re-exports foundational types only (`Color` and `Ma`), so consumers can derive prop unions without threading the type through their kata. No runtime value passes through the barrel.
 
 These pin the contract:
 

@@ -25,7 +25,6 @@ const FAMILIES: Record<string, readonly [kanji: string, meaning: string]> = {
 	hannou: ['反応', 'response: the interaction feedback'],
 	iro: ['色', 'color'],
 	ji: ['字', 'character: the typography'],
-	kara: ['空', 'emptiness: the virtualized empty state'],
 	kasane: ['重ね', 'layering: the chrome stack and the radius'],
 	kokkaku: ['骨格', 'skeleton: the placeholder forms'],
 	narabi: ['並び', 'arrangement: the layout of siblings'],

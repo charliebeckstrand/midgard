@@ -8,7 +8,7 @@
  * A preset that sets `transform` directly can rest at `transform: none` only
  * if the zero of its transform is the rest. Motion starts the next animation
  * from `none` at the zero of the target: `translateX(0%)` for a slide, but
- * `scale(0)` for a scale. Thus a slide (`panel`, `toast`) rests at `none`
+ * `scale(0)` for a scale. Thus a slide (`panel`) rests at `none`
  * through `transitionEnd`, and a scale (`tooltip`) rests at `scale(1)`.
  */
 
@@ -23,7 +23,6 @@ import { popover } from './popover'
 import { reveal } from './reveal'
 import { spring } from './spring'
 import { still } from './still'
-import { toast } from './toast'
 import { tooltip } from './tooltip'
 
 export const ugoki = {
@@ -36,7 +35,6 @@ export const ugoki = {
 	reveal,
 	popover,
 	overlay,
-	toast,
 	tooltip,
 	collapse,
 	glide,

@@ -14,13 +14,13 @@ Dependencies point one way: `kata → kumi → kiso`, and `kata → kiso`. See [
 
 ## Kiso: families
 
-One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `tsunagi.ts`; `index.ts` assembles the named bundle. The barrel exports each family and no other value, and `kiso-families-boundary.test.ts` holds the list. Full tables in [`src/recipes/kiso/README.md`](../src/recipes/kiso/README.md).
+One sub-folder for each family, except the flat files `sou.ts` and `tsunagi.ts`; `index.ts` assembles the named bundle. The barrel exports each family and no other value, and `kiso-families-boundary.test.ts` holds the list. Full tables in [`src/recipes/kiso/README.md`](../src/recipes/kiso/README.md).
 
 | Family | Concern |
 |---|---|
 | `dan` 段 | Density ramps: each stepped `density-*` class that writes a value for each step, nested under the unit that reads it (`space.box.bottom`). |
 | `iro` 色 | The color tokens of the kata. The chromatic `palette`, its `extended` hues, and its `hover` hold one literal class string for each variant and color. The other tokens are the intent-color text bundle, the `match` wash, and the `on.wash` rung. |
-| `ji` 字 | Typography: size scale plus `weight` / `leading` / `family` aliases. The stepped text size of a density-native component is a ramp in `dan.text`. |
+| `ji` 字 | Typography: the fixed size scale. The stepped text size of a density-native component is a ramp in `dan.text`. A weight, a line height, and a font family are plain Tailwind classes. |
 | `narabi` 並び | Sibling arrangement: field adjacency, slide positioning, icon slot, and flex primitives. `fit` is the column of a panel with a capped height. `offcanvas` shows a part in one offcanvas layout only. `nest` indents each level of a tree under a mark column. `touch` sets the touch gap of hosts that touch to zero on one axis. |
 | `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, the hidden `scrollbar`, and the `fade` mask. |
 | `hannou` 反応 | Interaction feedback: `disabled`, `busy`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes. |
@@ -32,7 +32,6 @@ One sub-folder for each family, except the flat files `kara.ts`, `sou.ts`, and `
 | `zu` 図 | Data-viz substrate: the categorical series `palette`, the chrome and readout `ink`, and the reveal `motion`. `meter` is the shade of a measured value, and `marker` is the shade of a dot or a glyph. |
 | `sou` 層 | App-level stacking order: the ordered rung ladder (`overlay` / `float` / `lens` / `toast`) every portaled surface lands on. |
 | `tsunagi` 繋ぎ | Group-join class fragments, keyed on the DOM position of each child of the group. |
-| `kara` 空 | Virtualized emptiness: selectors that read `data-empty` on a `VirtualOptions` wrapper. |
 
 ## Kumi: groups
 
@@ -77,7 +76,6 @@ The barrel re-exports the substrate types, so a consumer derives a prop union wi
 | Type | Summary |
 |---|---|
 | `Ma` | Name of a stop of the spacing scale: the gap scale and the padding scale of `dan`. |
-| `GroupOrientation` | Axis a joined group runs along. |
 
 ## Boundary
 

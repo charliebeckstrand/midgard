@@ -5,10 +5,9 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'
-import { dan, iro, ji, narabi, omote, sen, ugoki } from '../kiso'
+import { dan, iro, narabi, omote, sen, ugoki } from '../kiso'
 
 const { text } = iro
-const { weight } = ji
 const { flex } = narabi
 const { popover, glass } = omote
 const { ring } = sen
@@ -22,7 +21,7 @@ export const k = defineKata(
 			'max-w-sm',
 			'text-pretty',
 			text.default,
-			weight.medium,
+			'font-medium',
 			dan.space.tooltip,
 			dan.radius.tooltip,
 			dan.text.body,

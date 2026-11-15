@@ -8,10 +8,9 @@
  */
 import { defineScale } from '../../core/density'
 import { defineKata } from '../../core/recipe'
-import { dan, iro, ji, kokkaku, narabi, sen } from '../kiso'
+import { dan, iro, kokkaku, narabi, sen } from '../kiso'
 
 const { hover, palette, text } = iro
-const { weight } = ji
 const { flex, touch } = narabi
 const { focus } = sen
 
@@ -33,7 +32,7 @@ const weekday = [
 	flex.row,
 	'justify-center',
 	'w-full aspect-square',
-	weight.medium,
+	'font-medium',
 	text.muted,
 	dan.text.small,
 ]
@@ -49,7 +48,7 @@ export const k = defineKata(
 				slots: {
 					grid: pickerGrid,
 					// The cell of the current month or year, when it is not the selected cell.
-					current: [weight.semibold, palette.soft.blue, hover.soft.blue],
+					current: ['font-semibold', palette.soft.blue, hover.soft.blue],
 				},
 			},
 			weekday,

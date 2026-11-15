@@ -10,7 +10,7 @@ import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
 const { cursor, fg, turn } = hannou
 const { text } = iro
-const { family, size } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex, nest } = narabi
 const { collapse } = ugoki
@@ -45,7 +45,7 @@ export const k = defineKata(
 	{
 		base: [
 			'inline-flex flex-col',
-			family.mono,
+			'font-mono',
 			// The inputs of `narabi.nest`: the width of the `sm` chevron icon and the
 			// gap after it. They are fixed, as the text and the row padding are, so the
 			// tree keeps one geometry at each density step.

@@ -14,7 +14,7 @@ import { defineKata } from '../../core/recipe'
 import { dan, iro, ji, omote, sen } from '../kiso'
 
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { rail } = omote
 const { gridline } = sen
 
@@ -113,7 +113,7 @@ export const k = defineKata({
 		caption: ['caption-top text-start pb-2', size.sm, text.muted],
 		// A browser centers a `<th>` through its own stylesheet, and the `text-start` of
 		// the table does not reach it. So the header states its alignment, as a cell does.
-		header: ['text-start', weight.bold, text.muted, padding],
+		header: ['text-start', 'font-bold', text.muted, padding],
 		cell: [text.default, padding],
 		empty: ['text-center', text.muted],
 	},

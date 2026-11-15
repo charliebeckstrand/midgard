@@ -3,7 +3,7 @@ import { dan, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { palette, text } = iro
 const { rounded } = kasane
-const { size, weight } = ji
+const { size } = ji
 const { flex } = narabi
 const { focus, forced } = sen
 
@@ -185,8 +185,8 @@ export const k = defineKata({
 				// bubble again. That includes hover, or the pointer would walk it into a
 				// fixed neutral on the blue of the user bubble.
 				trigger: ['cursor-pointer rounded-lg', 'text-inherit hover:text-inherit', focus.inset],
-				label: [weight.semibold],
-				summary: ['min-w-0', weight.normal],
+				label: ['font-semibold'],
+				summary: ['min-w-0', 'font-normal'],
 				details: ['mt-2', size.sm],
 			},
 		},

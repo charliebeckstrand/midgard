@@ -6,10 +6,9 @@
  * So this carries only the flex layout.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, iro, ji, narabi } from '../kiso'
+import { dan, iro, narabi } from '../kiso'
 
 const { text } = iro
-const { weight } = ji
 const { flex } = narabi
 
 /** The stack of the row-manager editor, and the list of its zones in it. */
@@ -30,7 +29,7 @@ export const k = defineKata({
 				// together; `min-w-0` lets the label truncate rather than shove the count.
 				main: [flex.row, dan.gap.scale.sm, 'min-w-0'],
 				// The group label, beside the grip; truncates when long.
-				label: ['min-w-0', 'truncate', weight.medium],
+				label: ['min-w-0', 'truncate', 'font-medium'],
 				// The row count, sitting right beside the label.
 				count: [text.muted, 'tabular-nums', 'shrink-0'],
 			},
