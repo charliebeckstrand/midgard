@@ -1,6 +1,8 @@
 /**
- * Control group: density classes. Padding, radius, child gap, and text size.
- * The classes are a list that the `field` slot spreads, not a recipe axis.
+ * Control group: density classes. `density` holds the child gap, the affix
+ * autofill margins, and the text size: a list that the `field` slot spreads,
+ * not a recipe axis. The padding and the radius are in `inset`, which a framed
+ * control takes (`framed(inset)`) and a `bare` control does not.
  *
  * Each class is a stepped `density-*` utility. The control takes the step of
  * its nearest density scope, and a control with an explicit `size` writes that
@@ -13,8 +15,8 @@
  * The radius is the same stop as `py` at each step. The padding-to-radius
  * ratio is thus 1:1 across the controls with no ControlFrame (listbox, combobox,
  * date-picker button). For a ControlFrame consumer (input, textarea, select
- * trigger), the frame starts its radius with `radius` (`./frame.ts`). The gap is half of `py` at each step, rounded to the spacing
- * scale. The text size is `dan.text.body`, the text ramp of each density-native
+ * trigger), the frame starts its radius with `radius` (`./frame.ts`). The gap
+ * is half of `py` at each step, rounded to the spacing scale. The text size is `dan.text.body`, the text ramp of each density-native
  * component.
  *
  * The list also holds the affix autofill margins (`affix.autofill`, see
