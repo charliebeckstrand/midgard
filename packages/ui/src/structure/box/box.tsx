@@ -92,9 +92,7 @@ export function Box({
 			href={href}
 			render={render}
 			className={cn(
-				k({ p, px, py, radius, bg, outline }).base,
-				// A link is inline, but a box is a block.
-				href !== undefined && 'block',
+				k({ p, px, py, radius, bg, outline, link: href !== undefined }).base,
 				className,
 			)}
 			{...props}

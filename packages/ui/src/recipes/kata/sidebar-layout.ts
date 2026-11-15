@@ -7,7 +7,7 @@
  * `content` and its `content.wrapper`, the `header` and its `header.actions`,
  * the `body`, and the `footer`.
  */
-import { defineKata } from '../../core/recipe'
+import { defineKata, mode } from '../../core/recipe'
 import { dan, narabi, omote, sen, sou } from '../kiso'
 
 const { flex, offcanvas } = narabi
@@ -45,7 +45,7 @@ const sidebarWidth = dan.size.sidebar.width
 // Keep the background opaque and the bar full width. Safari on iOS 26 then paints
 // the color of the bar under the status bar. The padding follows the nearest
 // density scope.
-const navbar = ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', space.shell.base]
+const navbar = ['sticky top-0 z-30', ...mode('bg-white', 'dark:bg-zinc-950'), space.shell.base]
 
 // The actions of the layout, in the navbar of the drawer layout and in the
 // header of the inline layout. The gap between the actions follows the nearest density scope.
@@ -79,6 +79,16 @@ const peek = ['absolute inset-y-0 start-0 z-30 w-2', 'hidden']
 // The floating sidebar is a Sheet of `fit` width, and its body takes the width
 // of the inline panel at each step.
 const sheet = 'sm:top-0 sm:bottom-0'
+
+// The floating sheet docks flush to the start edge. The sheet resolves `start`
+// to a physical side, so its flush offset is a physical class of that side
+// (`side`). The unit keys it on the same direction read as the sheet.
+const flush = {
+	// biome-ignore lint/plugin/no-physical-side: these classes override the physical classes of the side that the sheet resolves
+	left: 'sm:left-0 sm:rounded-l-none',
+	// biome-ignore lint/plugin/no-physical-side: these classes override the physical classes of the side that the sheet resolves
+	right: 'sm:right-0 sm:rounded-r-none',
+}
 
 const sheetBody = [flex.col, 'h-full', sidebarWidth]
 
@@ -142,7 +152,7 @@ export const k = defineKata({
 						layout: { drawer: 'sidebar-offcanvas:hidden', inline: 'sidebar-offcanvas:block' },
 					},
 				},
-				sheet,
+				sheet: { base: sheet, side: flush },
 				body: sheetBody,
 				buffer: { base: buffer, responsive: { layout: offcanvas.inline.block } },
 			},

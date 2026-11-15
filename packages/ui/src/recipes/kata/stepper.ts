@@ -149,8 +149,11 @@ export const k = defineKata(
 					'group-data-[state=current]:text-white',
 				],
 				slots: {
-					/** The blue fill of the current step. */
-					fill: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
+					/**
+					 * The blue fill of the current step. The dark class replaces the dark
+					 * fill of the ActiveIndicator, so the fill is blue in each mode.
+					 */
+					fill: ['z-10', ...mode('bg-blue-600', 'dark:bg-blue-600')],
 					/**
 					 * The content of the indicator, a number or a glyph. It comes after the fill
 					 * in the DOM at the same `z-10`, so it paints above the fill.

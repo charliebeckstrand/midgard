@@ -1,8 +1,8 @@
 /**
  * Box kata: the unit of `<Box>`. The `base` slot is the box, with the
  * `radius`, `bg`, and `outline` axes and the responsive padding axes `p`,
- * `px`, and `py`. Each axis is unset by default, so an omitted token gives no
- * class.
+ * `px`, and `py`, and the `link` axis of a box that renders a link. Each axis
+ * is unset by default, so an omitted token gives no class.
  */
 import { defineKata } from '../../core/recipe'
 import { dan, kasane, omote, sen } from '../kiso'
@@ -29,5 +29,7 @@ export const k = defineKata({
 	bg: surfaces,
 	// `true` selects the default weight, and a name selects another weight.
 	outline: { true: outline.default, false: '', subtle: outline.subtle, strong: outline.strong },
+	// A link is inline, but a box is a block.
+	link: { true: 'block', false: '' },
 	responsive: dan.space.scale,
 })

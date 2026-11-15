@@ -184,7 +184,11 @@ export function SidebarLayout({
 		onOpenChange,
 	})
 
-	const slots = k({ layout })
+	// The floating sheet docks flush to the start edge. The sheet resolves `start`
+	// itself, but its flush offset is a physical class, so it keys on the same read.
+	const rtl = useIsRtl()
+
+	const slots = k({ layout, side: rtl ? 'right' : 'left' })
 
 	const intl = useIntl()
 
@@ -215,13 +219,6 @@ export function SidebarLayout({
 	const closeOnLeave = useCallback((event: PointerEvent) => {
 		if (event.pointerType !== 'touch') setFloatingOpen(false)
 	}, [])
-
-	// The floating sheet docks flush to the start edge. The sheet resolves `start`
-	// itself, but its flush offset is a physical class, so it keys on the same read.
-	const rtl = useIsRtl()
-
-	// biome-ignore lint/plugin/no-physical-side: these classes override the physical classes of the side that the sheet resolves
-	const flush = rtl ? 'sm:right-0 sm:rounded-r-none' : 'sm:left-0 sm:rounded-l-none'
 
 	const offcanvasValue = useMemo(() => ({ close }), [close])
 
@@ -280,7 +277,7 @@ export function SidebarLayout({
 						// The peek closes when the pointer leaves, or on a tap outside it, so it has
 						// no Close row.
 						footer={null}
-						className={cn(slots.floating.sheet, flush)}
+						className={slots.floating.sheet}
 					>
 						<div
 							className={slots.floating.body}
