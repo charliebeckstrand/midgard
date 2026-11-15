@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { hannou } from '../../recipes/kiso'
+import { hannou, iro } from '../../recipes/kiso'
 import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
 
 // Grab-cursor boundary.
@@ -85,5 +85,19 @@ describe('grab-cursor boundary', () => {
 		expect(classes).toEqual(
 			expect.arrayContaining(['select-none', '**:select-none', '[-webkit-touch-callout:none]']),
 		)
+	})
+
+	it('gives a drag grip the drag rules, the muted ink, and the hover of fg', () => {
+		expect(hannou.grab.grip).toEqual([
+			...iro.text.muted,
+			...hannou.fg.hover,
+			...hannou.grab.default,
+		])
+	})
+
+	it('holds the hover foreground off a part that is disabled in either spelling', () => {
+		for (const name of hannou.fg.hover.join(' ').split(/\s+/)) {
+			expect(name).toContain('hover:not-disabled:not-data-disabled:')
+		}
 	})
 })

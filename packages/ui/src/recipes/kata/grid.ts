@@ -183,7 +183,7 @@ const hit = ['relative', "before:absolute before:-inset-1 before:content-['']"]
  * ring is `inset`, because the horizontal scroll wrapper of the table clips an
  * outset ring at its edge.
  */
-const grip = [flex.inline, 'shrink-0', ...hit, text.muted, fg.hover, focus.inset, ...grab.default]
+const grip = [flex.inline, 'shrink-0', ...hit, focus.inset, ...grab.grip]
 
 export const k = {
 	wrapper: {
@@ -394,7 +394,7 @@ export const k = {
 		// The trailing pair holds the title at the muted shade on hover while a column
 		// drag lifts and mutes this header (an ancestor carrying `data-[dragging]`);
 		// otherwise `fg.hover` would brighten the held column's own title under the
-		// dragging pointer, fighting the dim cue. The `hover:not-disabled` modifiers
+		// dragging pointer, fighting the dim cue. The `hover:not-disabled:not-data-disabled` modifiers
 		// mirror `fg.hover`, and the `[data-dragging]` ancestor adds the specificity
 		// that outranks it, so the hold lands without `!`. Inert on any header with no
 		// dragging ancestor: every non-reorder header, and a reorder header at rest.
@@ -406,8 +406,8 @@ export const k = {
 			focus.ring,
 			cursor,
 			'select-none',
-			'[[data-dragging]_&]:hover:not-disabled:text-zinc-500',
-			'dark:[[data-dragging]_&]:hover:not-disabled:text-zinc-400',
+			'[[data-dragging]_&]:hover:not-disabled:not-data-disabled:text-zinc-500',
+			'dark:[[data-dragging]_&]:hover:not-disabled:not-data-disabled:text-zinc-400',
 		],
 		// The sort arrow, which shows only on the column of the active sort. It keeps
 		// its size while the title beside it truncates.

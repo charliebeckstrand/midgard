@@ -9,7 +9,7 @@
 import { defineKata, type PaletteColor } from '../../core/recipe'
 import { dan, hannou, iro, kasane, narabi, omote, sen } from '../kiso'
 
-const { fg, grab } = hannou
+const { grab } = hannou
 const { text } = iro
 const { rounded } = kasane
 const { flex } = narabi
@@ -130,7 +130,7 @@ export const k = defineKata({
 						// is transparent, so under forced colors the clone draws the mark of a lift.
 						overlay: [bg.surface, rounded.md, 'shadow-lg', ...focus.lifted.mark],
 						// Drag grip: a grab-cursor handle, muted at rest, tinting on hover/focus.
-						grip: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, ...grab.default],
+						grip: [flex.inline, 'shrink-0', focus.ring, ...grab.grip],
 					},
 				},
 			},

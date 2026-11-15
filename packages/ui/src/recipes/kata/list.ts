@@ -26,8 +26,8 @@ const pad = dan.space.box.base
 // `hannou.fg.hover` on the hover of the row (`group/list-item`), for the content
 // column. Tailwind finds only whole class literals, so the group form is written out.
 const rowHoverFg = mode(
-	'group-hover/list-item:not-disabled:text-zinc-950',
-	'dark:group-hover/list-item:not-disabled:text-white',
+	'group-hover/list-item:not-disabled:not-data-disabled:text-zinc-950',
+	'dark:group-hover/list-item:not-disabled:not-data-disabled:text-white',
 )
 
 // The rounded wash layer of a divided row. The layer takes no pointer, so a
@@ -174,11 +174,7 @@ export const k = defineKata(
 				flex.inline,
 				'flex-none justify-center',
 				'px-3 -mx-3',
-				...grab.default,
-				...mode(
-					'text-zinc-500 not-data-disabled:hover:text-zinc-700',
-					'dark:text-zinc-500 dark:not-data-disabled:hover:text-zinc-200',
-				),
+				...grab.grip,
 				...disabled.base,
 			],
 			/**

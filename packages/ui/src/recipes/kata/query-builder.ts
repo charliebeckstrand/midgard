@@ -137,12 +137,7 @@ export const k = defineKata(
 							nest.mark,
 							'h-(--nest-mark) justify-center',
 							rounded.md,
-							...grab.default,
-							...text.muted,
-							...mode(
-								'hover:not-disabled:bg-zinc-100 hover:not-disabled:text-zinc-700',
-								'dark:hover:not-disabled:bg-zinc-800 dark:hover:not-disabled:text-zinc-300',
-							),
+							...grab.grip,
 							...focus.ring,
 							...disabled.base,
 						],
