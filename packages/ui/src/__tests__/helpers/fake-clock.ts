@@ -93,7 +93,13 @@ export function onFakeClock(): void {
 
 /** Installs the fake clock for one test. */
 async function startClock(): Promise<FakeClock> {
-	vi.useFakeTimers()
+	// `Intl` stays real. The fake `Intl.DateTimeFormat` gives a plain object, and
+	// its `formatRange` is the real method, bound when the formatter is made. A
+	// cache of formatters, such as the cache of `DateFormatter` in
+	// `@internationalized/date`, keeps that object after the test. Each later
+	// file of the worker then gets it from the cache, and a spy on the
+	// prototype (`writeOtherDateText`) does not reach its `formatRange`.
+	vi.useFakeTimers({ toNotFake: ['Intl'] })
 
 	// The `act` of RTL waits on a timeout of zero, and it moves the clock for
 	// that timeout only when it finds a `jest` global. Without this stub, each
