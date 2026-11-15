@@ -491,12 +491,6 @@ export const space = {
 		button: {
 			/** The inline padding of a key in a button. */
 			x: '[&:is([data-variant]>*)]:density-px-[0.5,1,1.5,2,2.5]',
-			/**
-			 * The block padding of a key in a button: 1 px at each step. The key text is
-			 * one step below the label, so its line is 2 px shorter than the line of the
-			 * label, and the key keeps the height of the label line.
-			 */
-			y: '[&:is([data-variant]>*)]:py-px',
 		},
 	},
 	lightbox: {

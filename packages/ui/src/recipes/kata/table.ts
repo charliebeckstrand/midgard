@@ -10,13 +10,12 @@
  * slots.
  */
 import { defineScale } from '../../core/density'
-import { defineKata } from '../../core/recipe'
-import { dan, iro, ji, omote, sen } from '../kiso'
+import { defineKata, mode } from '../../core/recipe'
+import { dan, iro, ji, omote } from '../kiso'
 
 const { text } = iro
 const { size } = ji
 const { rail } = omote
-const { gridline } = sen
 
 // Cell padding for each step.
 const padding = [dan.space.cell.x, dan.space.cell.y]
@@ -52,8 +51,8 @@ const projection = {
 
 /**
  * The cell rules of `outline`. Each line paints once, at one weight and one
- * color. The color comes from `sen.gridline`, in the weights of `sen.outline`
- * on Card and Box.
+ * color. The color comes from `gridline`, in the weights of `sen.outline` on
+ * Card and Box.
  *
  * The rule color is translucent. Where two rules paint the same pixel, the
  * alphas add, and the pixel shows darker in light mode and lighter in dark
@@ -85,6 +84,51 @@ const rule = [
 	'[&>:nth-child(1_of_thead,tbody,tfoot)>tr:first-child>:is(td,th)]:border-t',
 	'[&>*>tr>*:first-child]:border-s',
 ]
+
+/**
+ * The color of the cell rules, in the three weights of `sen.outline`. The
+ * `<table>` casts each color onto its cells as an all-sides `border-color`,
+ * and `rule` sets which sides show.
+ *
+ * Tailwind finds only whole class literals. Thus these rows cannot be built
+ * from the unprefixed `sen.outline` colors and the `contrastMore.border` step
+ * that they mirror. Keep them in step by hand.
+ */
+const gridline = {
+	/** Default rule: low-contrast palette, as `sen.outline.default`. */
+	default: mode(
+		[
+			'[&>*>tr>:is(td,th)]:border-zinc-950/10',
+			'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
+		],
+		[
+			'dark:[&>*>tr>:is(td,th)]:border-white/10',
+			'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
+		],
+	),
+	/** Stronger rule, as `sen.outline.strong`. */
+	strong: mode(
+		[
+			'[&>*>tr>:is(td,th)]:border-zinc-950/15',
+			'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
+		],
+		[
+			'dark:[&>*>tr>:is(td,th)]:border-white/15',
+			'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
+		],
+	),
+	/** Subtle rule, as `sen.outline.subtle`. */
+	subtle: mode(
+		[
+			'[&>*>tr>:is(td,th)]:border-zinc-950/5',
+			'contrast-more:[&>*>tr>:is(td,th)]:border-zinc-950/50',
+		],
+		[
+			'dark:[&>*>tr>:is(td,th)]:border-white/5',
+			'dark:contrast-more:[&>*>tr>:is(td,th)]:border-white/50',
+		],
+	),
+} as const
 
 export const k = defineKata({
 	base: ['w-full text-start', size.md],
