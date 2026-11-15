@@ -430,14 +430,6 @@
 			"plugins": ["./.biome/plugins/no-react-create-context.grit"]
 		},
 		{
-			"includes": [
-				"packages/ui/src/**",
-				"!packages/ui/src/**/__tests__/**",
-				"!packages/ui/src/**/__benchmarks__/**"
-			],
-			"plugins": ["./.biome/plugins/no-unsanctioned-define-recipe.grit"]
-		},
-		{
 			"includes": ["packages/ui/src/**"],
 			"plugins": ["./.biome/plugins/no-camel-case-data-slot.grit"]
 		},
@@ -557,18 +549,6 @@
 				"!**/__benchmarks__/**"
 			],
 			"plugins": ["./.biome/plugins/no-inline-spacing-calc.grit"]
-		},
-		{
-			"includes": [
-				"packages/ui/src/components/**",
-				"packages/ui/src/structure/**",
-				"packages/ui/src/modules/**",
-				"packages/ui/src/primitives/**",
-				"packages/ui/src/layouts/**",
-				"!**/__tests__/**",
-				"!**/__benchmarks__/**"
-			],
-			"plugins": ["./.biome/plugins/no-value-import-from-recipes-barrel.grit"]
 		},
 		{
 			"includes": ["packages/ui/src/recipes/kata/**", "!**/__tests__/**", "!**/__benchmarks__/**"],

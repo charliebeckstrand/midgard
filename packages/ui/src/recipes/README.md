@@ -50,8 +50,7 @@ These pin the contract:
 - `__tests__/boundary/kiso-families-boundary.test.ts`: the kiso barrel exports each family and no other value, and a kata or a group reads kiso through the barrel only.
 - `biome.json`, the `recipes/kiso/**` override: kiso never reaches upward into kumi, kata, components, primitives, layouts, hooks, or providers.
 - `biome.json`, the `recipes/kumi/**` override: kumi reads kiso and the recipe engine, and never reaches upward into kata, components, primitives, layouts, hooks, or providers.
-- `.biome/plugins/no-unsanctioned-define-recipe.grit`: no module of the package calls `defineRecipe`, so a kata builds each recipe as a unit with `defineKata`.
-- `.biome/plugins/no-value-import-from-recipes-barrel.grit`: components, structure, modules, primitives, and layouts import no value from the `recipes` barrel, so each value arrives through `recipes/kata/<name>`.
+- `check-types`: the `recipes` barrel exports types alone, so under `verbatimModuleSyntax` a value import from it does not compile. `core/recipe` does not export `defineRecipe`, so a kata builds each recipe as a unit with `defineKata`.
 - `.biome/plugins/no-value-import-from-sibling-kata.grit`: a kata imports no value from a sibling kata.
 
 ## 4. Key names
