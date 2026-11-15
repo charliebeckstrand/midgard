@@ -37,6 +37,12 @@ export const appearanceMessages = defineMessages({
 		description:
 			'The label of the picker for the glass or solid fill of dialogs, sheets, and drawers.',
 	},
+	interface: {
+		id: 'ui.settings.interface',
+		defaultMessage: 'UI',
+		description:
+			'The label of the tab of the settings dialog that holds the appearance pickers, beside the tabs of the app.',
+	},
 	language: {
 		id: 'ui.settings.language',
 		defaultMessage: 'Language',

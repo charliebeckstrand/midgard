@@ -42,7 +42,8 @@ export function useGame(seed: string, autoDraw: boolean): GameControls {
 		if (getStatus(game) === 'ready') setGame(drawNumber(game))
 	})
 
-	// The setting is off at the hydration, and the stored setting comes after it.
+	// The effect draws when the setting is on at the mount, and when it comes on
+	// later. A draw changes the state, so the server render has no drawn number.
 	useEffect(() => {
 		if (autoDraw) drawOnSetting()
 	}, [autoDraw])

@@ -22,6 +22,8 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `accessibleName` | Best-effort accessible name of an element: `aria-label`, joined `aria-labelledby` target text, else own text. |
 | `announce` | Imperative screen-reader announcement via a shared visually-hidden `aria-live` region on `document.body`. The first message after the region is created waits for the next paint and then 100ms, so the region is in the accessibility tree first. A repeat of the current text gets a trailing no-break space, so it is a real change. |
 | `downloadBlob` | Downloads a `Blob` under a file name through a transient object-URL anchor. The revoke of the URL waits for the next macrotask. A revoke in the same tick can stop the download in Firefox and Safari. |
+| `readCookie` | The value of a cookie by name, or `undefined`. In the browser it reads the cookies of the page. A server gives the `Cookie` header of the request. |
+| `writeCookie` | Writes a cookie for each path of the site, `secure` on HTTPS, for one year by default. Keep a copy of each layout setting of the reader in a cookie. The server then renders it in the first paint (CONVENTIONS §3.13). Browser only. |
 | `AnnounceOptions` *(type)* | Options for `announce` (politeness level). |
 | `ComposeEventHandlersOptions` *(type)* | Options for `composeEventHandlers` (`checkForDefaultPrevented`). |
 | `densitySteps` | The steps of density (`xs` / `sm` / `md` / `lg` / `xl`). The stepped `density-*` Tailwind utilities, `data-density`, and the density context all use them. |

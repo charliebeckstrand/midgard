@@ -5,8 +5,6 @@ import { SECOND, YEAR } from './time-units'
  * cookie or with a value that does not decode. With no `cookies`, it reads the
  * cookies of this page, so the call is in the browser only. A server gives the
  * `Cookie` header of the request.
- *
- * @internal
  */
 export function readCookie(name: string, cookies: string = document.cookie): string | undefined {
 	const prefix = `${name}=`
@@ -38,8 +36,6 @@ const SETTING_MAX_AGE = YEAR / SECOND
  * cookie is `secure` on HTTPS. Call it in the browser only.
  *
  * The default life is one year. Each write starts the year again.
- *
- * @internal
  */
 export function writeCookie(name: string, value: string, maxAge = SETTING_MAX_AGE) {
 	const secure = location.protocol === 'https:' ? '; secure' : ''
