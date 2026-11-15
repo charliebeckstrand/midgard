@@ -193,8 +193,13 @@ describe('Table variants', () => {
 
 		const { container: plain } = renderUI(<Table>{body}</Table>)
 
-		// The projection lives on the table element; cells stay identical.
-		expect(outlined.querySelector('table')?.className).toContain('[&>*>tr>:is(td,th)]:border')
+		// The projection lives on the table element; cells stay identical. Each cell
+		// draws its inline-end and bottom rule, so no two cells share a rule.
+		expect(outlined.querySelector('table')).toHaveClass(
+			'border-separate',
+			'[&>*>tr>:is(td,th)]:border-e',
+			'[&>*>tr>:is(td,th)]:border-b',
+		)
 
 		expect(outlined.querySelector('tbody td')?.className).toBe(
 			plain.querySelector('tbody td')?.className,
@@ -214,6 +219,8 @@ describe('Table variants', () => {
 
 	it('draws no cell borders when outline is false', () => {
 		const { container } = renderUI(<Table outline={false}>{body}</Table>)
+
+		expect(container.querySelector('table')).not.toHaveClass('border-separate')
 
 		expect(container.querySelector('table')?.className).not.toContain('[&>*>tr>:is(td,th)]:border')
 	})

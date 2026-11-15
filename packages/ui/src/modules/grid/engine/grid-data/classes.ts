@@ -32,25 +32,6 @@ export function condensedTableClass(condensed: boolean, base: string): string {
 }
 
 /**
- * The `outline` variant's cell borders (see `k.outline`) in the chosen weight,
- * or `''` when not outlined. `true` selects the default weight, as on Card. The grid draws its own outline in `border-collapse: separate` mode,
- * every rule riding its own cell. It does not forward `outline` to `<Table>`,
- * whose collapse-mode borders weld to the table grid. Those borders scroll out
- * from under the sticky header and frozen columns: a seam above the header, a
- * shifting frozen rule. Kept a helper so the branch lives here, off
- * {@link GridData}'s complexity budget.
- *
- * @internal
- */
-export function outlineTableClass(outline: BoxOutline | undefined): string {
-	if (!outline) return ''
-
-	const color = k.outline.color[outline === true ? 'default' : outline]
-
-	return cn(k.outline.table, k.outline.cell, color, k.outline.top, k.outline.start)
-}
-
-/**
  * The effective `striped` parity under the `outline` variant. An outlined grid
  * pairs its per-cell rules with odd-row zebra. A bare `striped` therefore
  * resolves to `'odd'` when outlined, although `<Table>` would read the `true`

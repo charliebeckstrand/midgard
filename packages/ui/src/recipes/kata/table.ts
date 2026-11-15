@@ -50,18 +50,45 @@ const projection = {
 	hover: ['[&>tbody>tr]:hover:bg-zinc-950/5', 'dark:[&>tbody>tr]:hover:bg-white/5'],
 } as const
 
-// The all-sides rule of each cell under `outline`. The color comes from
-// `sen.gridline`, in the weights of `sen.outline` on Card and Box.
-const rule = '[&>*>tr>:is(td,th)]:border'
+/**
+ * The cell rules of `outline`. Each line paints once, at one weight and one
+ * color. The color comes from `sen.gridline`, in the weights of `sen.outline`
+ * on Card and Box.
+ *
+ * The rule color is translucent. Where two rules paint the same pixel, the
+ * alphas add, and the pixel shows darker in light mode and lighter in dark
+ * mode. Collapsed all-sides borders (`border-collapse: collapse`) paint each
+ * junction twice, once for the horizontal rule and once for the vertical
+ * rule. Thus the table uses `border-collapse: separate` with no spacing, and
+ * no two cells share a rule. Each cell draws its inline-end and bottom rule.
+ * The first row of the first row group draws the top edge, and the first cell
+ * of each row draws the inline-start edge. The sides are logical, so a
+ * right-to-left table mirrors them.
+ *
+ * Each rule is on a cell and not on the `<table>`. Thus a sticky header or a
+ * frozen column (Grid) moves with its rules. A collapsed border stays on the
+ * table, and it scrolls out from under a sticky cell.
+ *
+ * A cell with a `rowspan` in the first column moves the first cell of each
+ * row that it spans. Those rows then draw their inline-start edge on an
+ * interior line.
+ */
+const rule = [
+	'border-separate border-spacing-0',
+	'[&>*>tr>:is(td,th)]:border-e',
+	'[&>*>tr>:is(td,th)]:border-b',
+	'[&>:nth-child(1_of_thead,tbody,tfoot)>tr:first-child>*]:border-t',
+	'[&>*>tr>*:first-child]:border-s',
+]
 
 export const k = defineKata({
 	base: ['w-full text-start', size.md],
 	// `true` selects the default weight, and a name selects another weight.
 	outline: {
-		true: [rule, ...gridline.default],
+		true: [...rule, ...gridline.default],
 		false: '',
-		subtle: [rule, ...gridline.subtle],
-		strong: [rule, ...gridline.strong],
+		subtle: [...rule, ...gridline.subtle],
+		strong: [...rule, ...gridline.strong],
 	},
 	stripe: projection.striped,
 	hover: { true: projection.hover, false: '' },

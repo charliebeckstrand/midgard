@@ -3,13 +3,11 @@ import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI, screen } from '../helpers'
 
 /**
- * The `outline` variant's cell borders. The grid draws them from its `<table>` in
- * `border-collapse: separate` mode (see `kata/grid` `outline`), not by forwarding
- * `outline` to `<Table>`: collapse-mode borders weld to the table grid and scroll
- * out from under the sticky header and frozen columns, opening a seam above the
- * header and shifting a frozen column's leading rule. Separate borders ride the
- * cell, so the sticky/frozen frame holds; these assert the projection is applied
- * (the frozen behavior itself is a browser-suite concern).
+ * The `outline` variant of the grid. The grid passes `outline` to `<Table>`,
+ * which draws the cell rules in `border-collapse: separate` mode (see
+ * `kata/table`). Each rule is on its cell, so the rules of a sticky header and
+ * of a frozen column move with those cells. The real-browser case
+ * `geometry/table-outline-rules` shows that each cell edge has one rule.
  */
 describe('Grid outline', () => {
 	type Row = { id: number; name: string; email: string }
@@ -23,42 +21,21 @@ describe('Grid outline', () => {
 
 	const getKey = (row: Row) => row.id
 
-	it('draws the outline in separate-border mode so the rules ride their cells', () => {
+	it('draws the Table outline in separate-border mode, one rule on each cell edge', () => {
 		renderUI(<Grid outline columns={columns} rows={rows} getKey={getKey} />)
 
 		const table = screen.getByRole('table')
 
-		// Separate, flush cells: the model that keeps sticky/frozen borders stable.
-		expect(table).toHaveClass('border-separate')
-
-		expect(table).toHaveClass('border-spacing-0')
-	})
-
-	it('projects an inline-end/bottom rule per cell plus a top/inline-start outer frame', () => {
-		renderUI(<Grid outline columns={columns} rows={rows} getKey={getKey} />)
-
-		const table = screen.getByRole('table')
-
-		// Interior gridlines + the inline-end/bottom outer edges, on every cell.
-		expect(table).toHaveClass('[&>*>tr>:is(td,th)]:border-e')
-
-		expect(table).toHaveClass('[&>*>tr>:is(td,th)]:border-b')
-
-		// Top edge on the first header row (rides the sticky header); inline-start edge
-		// on each row's first cell (rides a frozen leading column). Together they close
-		// the two edges the inline-end/bottom scheme leaves open, without doubling any
-		// interior line.
-		expect(table).toHaveClass('[&>thead>tr:first-child>th]:border-t')
-
-		expect(table).toHaveClass('[&>*>tr>*:first-child]:border-s')
-	})
-
-	it('does not forward the collapse-mode Table outline projection', () => {
-		renderUI(<Grid outline columns={columns} rows={rows} getKey={getKey} />)
-
-		// The grid owns its outline; the base `<Table outline>` all-sides border
-		// projection (`[&>*>tr>:is(td,th)]:border`) would double the separate-mode rules.
-		expect(screen.getByRole('table')).not.toHaveClass('[&>*>tr>:is(td,th)]:border')
+		for (const name of [
+			'border-separate',
+			'border-spacing-0',
+			'[&>*>tr>:is(td,th)]:border-e',
+			'[&>*>tr>:is(td,th)]:border-b',
+			'[&>:nth-child(1_of_thead,tbody,tfoot)>tr:first-child>*]:border-t',
+			'[&>*>tr>*:first-child]:border-s',
+		]) {
+			expect(table).toHaveClass(name)
+		}
 	})
 
 	// The weights are those of the Card outline: `true` is the default weight.

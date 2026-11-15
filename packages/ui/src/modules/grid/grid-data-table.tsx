@@ -7,12 +7,7 @@ import type { ScaleStep } from '../../core/density/scale'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/table'
 import { GridHighlightContext, GridNavContext } from './context'
-import {
-	condensedTableClass,
-	outlineTableClass,
-	settleBodyClass,
-	stripedForOutline,
-} from './engine/grid-data/classes'
+import { condensedTableClass, settleBodyClass, stripedForOutline } from './engine/grid-data/classes'
 import type { GridFitMode } from './engine/grid-sizing/fit-layout'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridBody } from './grid-body'
@@ -168,11 +163,12 @@ export function GridDataTable<T>({
 			<Table
 				size={density}
 				bleed={table.bleed}
+				outline={table.outline}
 				striped={stripedForOutline(table.striped, table.outline)}
 				hover={table.hover}
 				className={condensedTableClass(
 					table.condensed,
-					cn(table.className, settleBodyClass(table.settling), outlineTableClass(table.outline)),
+					cn(table.className, settleBodyClass(table.settling)),
 				)}
 				tableProps={resolveTableProps({
 					intl,
