@@ -9,7 +9,7 @@
 import { mode, type PaletteColor } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
-const { busy, cursor, fg, grab } = hannou
+const { busy, cursor, disabled, fg, grab } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
@@ -557,8 +557,10 @@ export const k = {
 				// The grip while reordering is unavailable (a column sort orders the
 				// rows, or the `rowReorder` prop sets `disabled`). It shows for layout
 				// stability but is inert and dimmed, so it reads as "not draggable now"
-				// rather than missing.
-				disabled: [flex.inline, 'shrink-0', text.muted, 'opacity-50', 'cursor-not-allowed'],
+				// rather than missing. It is a native disabled `<button>`, so the dim and
+				// the cursor of `hannou` apply. It takes no drag rules: a touch on it can
+				// still scroll the page.
+				disabled: [flex.inline, 'shrink-0', text.muted, ...disabled.base, ...cursor],
 			},
 			// Lifts the actively dragged row above its siblings on an opaque surface
 			// with a shadow, so the rows it slides over stay hidden behind it: a
