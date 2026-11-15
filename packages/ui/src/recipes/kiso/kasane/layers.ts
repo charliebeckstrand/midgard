@@ -69,8 +69,9 @@ const focus = [
 
 /**
  * Validation ring on the outer ring + `::after`: red / amber / green per data-*
- * attribute. Each state sets each property once. The hover class skips a
- * validation state, so the outer ring keeps its color on hover. The `::after`
+ * attribute, each in the shade of its series slot (`zu.palette.series`). Each
+ * state sets each property once. The hover class skips a validation state, so
+ * the outer ring keeps its color on hover. The `::after`
  * ring has one color in each interaction state. Its width is 1 px at rest for
  * each state, and the focus and open classes make it 2 px. The selectors stay
  * literal, because Tailwind's source scanner can't see template-constructed
@@ -83,8 +84,11 @@ const focus = [
 const validation = [
 	'has-[[data-invalid],[data-valid],[data-warning]]:not-focus-within:after:ring-1',
 	'has-[[data-valid]]:ring-green-600 has-[[data-valid]]:after:ring-green-600',
-	'has-[[data-warning]]:ring-amber-500 has-[[data-warning]]:after:ring-amber-500',
-	'has-[[data-invalid]]:ring-red-600 has-[[data-invalid]]:after:ring-red-600',
+	'has-[[data-warning]]:ring-amber-600 has-[[data-warning]]:after:ring-amber-600',
+	...mode(
+		'has-[[data-invalid]]:ring-red-600 has-[[data-invalid]]:after:ring-red-600',
+		'dark:has-[[data-invalid]]:ring-red-500 dark:has-[[data-invalid]]:after:ring-red-500',
+	),
 	...forced.invalid.overlay,
 ]
 
