@@ -38,8 +38,12 @@ export type GameBoardProps = {
  * An action can turn off the control that the reader pressed: Draw is off
  * while a number waits, and a filled slot is off. The focus then moves to the
  * next control to use: the first slot that can take the number, or else the
- * action button. The move happens only when the pressed control had the focus,
- * so a tap on a phone moves no focus.
+ * action button. The move happens only when the pressed control had the focus.
+ * Safari does not give the focus to a pressed button, so it moves no focus.
+ * Chrome and Firefox give the focus to a pressed button, so a pointer press
+ * also moves the focus, but the page does not scroll to it: the reader looks at
+ * the pressed control. A key press (`detail` 0) scrolls the next control into
+ * view.
  */
 export function GameBoard({ seed }: GameBoardProps) {
 	const [autoDraw] = useAutoDraw()
@@ -65,7 +69,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 
 		const slot = slotsRef.current?.querySelector<HTMLButtonElement>('button:enabled')
 
-		;(slot ?? actionRef.current)?.focus()
+		;(slot ?? actionRef.current)?.focus({ preventScroll: event.detail > 0 })
 	}
 
 	/** Starts the run of a new seed, and writes its address. */
