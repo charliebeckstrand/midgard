@@ -43,6 +43,10 @@ partial Fisher-Yates shuffle takes the deck.
 A Reset starts the run of a new seed in place, and adds its address to the
 history. Back and Forward start the run of the seed of the address again,
 from its start. Share seed in the menu of the bar copies the address of the run.
+Share screenshot in the menu draws the page, as the screen shows it, to a PNG
+(`rasterizeElement` of `ui/core`, `src/utilities/screenshot.ts`). It gives the
+image to the share sheet of the device, or saves it where the browser cannot
+share a file.
 
 `src/hooks/use-game.ts` holds the state of one game and its actions: Draw,
 place, and Reset.

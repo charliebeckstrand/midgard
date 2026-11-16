@@ -1,10 +1,11 @@
 'use client'
 
-import { EllipsisVertical, RotateCcw, Share2 } from 'lucide-react'
+import { Camera, EllipsisVertical, RotateCcw, Share2 } from 'lucide-react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
 import { useToast } from 'ui/toast'
+import { shareScreenshot } from '../../utilities/screenshot'
 
 /** Props for {@link GameBoardMenu}. */
 export type GameBoardMenuProps = {
@@ -15,7 +16,9 @@ export type GameBoardMenuProps = {
 /**
  * The menu beside the action: Reset starts the run of a new seed at each step,
  * also while a number waits. Share seed copies the address of the page, which
- * holds the seed, and a toast tells the reader the result.
+ * holds the seed, and a toast tells the reader the result. Share screenshot
+ * gives an image of the screen to the share sheet of the device, or saves it,
+ * and a toast tells the reader of a failure.
  */
 export function GameBoardMenu({ onReset }: GameBoardMenuProps) {
 	const { toast } = useToast()
@@ -25,6 +28,13 @@ export function GameBoardMenu({ onReset }: GameBoardMenuProps) {
 		navigator.clipboard.writeText(window.location.href).then(
 			() => toast({ title: 'Link copied', severity: 'success' }),
 			() => toast({ title: 'The link could not be copied', severity: 'error' }),
+		)
+	}
+
+	/** Shares an image of the screen. The press starts the capture, so the share sheet has its activation. */
+	const screenshot = () => {
+		shareScreenshot().catch(() =>
+			toast({ title: 'The screenshot could not be shared', severity: 'error' }),
 		)
 	}
 
@@ -45,6 +55,11 @@ export function GameBoardMenu({ onReset }: GameBoardMenuProps) {
 				<MenuItem onAction={share}>
 					<Icon icon={<Share2 />} />
 					<MenuLabel>Share seed</MenuLabel>
+				</MenuItem>
+
+				<MenuItem onAction={screenshot}>
+					<Icon icon={<Camera />} />
+					<MenuLabel>Share screenshot</MenuLabel>
 				</MenuItem>
 			</MenuContent>
 		</Menu>
