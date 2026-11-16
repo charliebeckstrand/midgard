@@ -185,3 +185,17 @@ export function playCpu(seed: string, draws: number): Game {
 
 	return game
 }
+
+/** The result of a game against the CPU, after the game of the player ends. */
+export type Outcome = 'win' | 'loss' | 'tie'
+
+/** Gives the result of `game` against `cpu`: the higher count of filled slots wins. */
+export function getOutcome(game: Game, cpu: Game): Outcome {
+	const player = countPlaced(game.slots)
+
+	const opponent = countPlaced(cpu.slots)
+
+	if (player === opponent) return 'tie'
+
+	return player > opponent ? 'win' : 'loss'
+}

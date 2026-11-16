@@ -2,21 +2,7 @@ import { cn } from 'ui/core'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
-import { countPlaced, type Game, SLOTS } from '../../utilities/game'
-
-/** The result of a game against the CPU, when the game of the player has ended. */
-export type Outcome = 'win' | 'loss' | 'tie'
-
-/** Gives the result of a game against the CPU: the higher count of filled slots wins. */
-export function getOutcome(game: Game, cpu: Game): Outcome {
-	const player = countPlaced(game.slots)
-
-	const opponent = countPlaced(cpu.slots)
-
-	if (player === opponent) return 'tie'
-
-	return player > opponent ? 'win' : 'loss'
-}
+import { countPlaced, type Game, type Outcome, SLOTS } from '../../utilities/game'
 
 /** The tint of a score cell: green for the winner, and amber for a tie. */
 type Tint = 'green' | 'amber' | undefined

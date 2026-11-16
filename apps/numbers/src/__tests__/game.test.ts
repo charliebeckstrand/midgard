@@ -8,6 +8,7 @@ import {
 	drawNumber,
 	findGap,
 	type Game,
+	getOutcome,
 	getStatus,
 	MAX,
 	placeNumber,
@@ -224,5 +225,20 @@ describe('playCpu', () => {
 		expect(['bust', 'won']).toContain(status)
 
 		if (status === 'bust') expect(cpu.drawn).toBe(cpu.deck[countPlaced(cpu.slots)])
+	})
+})
+
+describe('getOutcome', () => {
+	it('gives the win to the higher count of filled slots', () => {
+		expect(getOutcome(makeGame({ 0: 10, 1: 20 }), makeGame({ 0: 10 }))).toBe('win')
+		expect(getOutcome(makeGame({ 0: 10 }), makeGame({ 0: 10, 1: 20 }))).toBe('loss')
+	})
+
+	it('gives a tie for the same count, also for two full games', () => {
+		expect(getOutcome(makeGame({ 3: 400 }), makeGame({ 9: 900 }))).toBe('tie')
+
+		const full = Object.fromEntries(Array.from({ length: SLOTS }, (_, index) => [index, index + 1]))
+
+		expect(getOutcome(makeGame(full), makeGame(full))).toBe('tie')
 	})
 })
