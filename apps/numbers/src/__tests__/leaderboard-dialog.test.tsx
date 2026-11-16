@@ -104,7 +104,7 @@ describe('LeaderboardDialog', () => {
 		expect(screen.queryByText('Today')).toBeNull()
 	})
 
-	it('reads the three boards of the day, and shows the board of each tab', async () => {
+	it('reads the three boards of the day, in the order of the menu, and shows the board of each tab', async () => {
 		vi.mocked(readBoard).mockImplementation(async (_date, mode) =>
 			board(1, [{ rank: 1, name: `Top ${mode}`, score: 12, you: false }]),
 		)
@@ -112,6 +112,14 @@ describe('LeaderboardDialog', () => {
 		renderDialog(makeUser(true))
 
 		await screen.findByText('Top daily')
+
+		expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+			'Solo',
+			'Daily',
+			'Vs CPU',
+		])
+
+		expect(screen.getByRole('tab', { name: 'Daily' }).getAttribute('aria-selected')).toBe('true')
 
 		for (const mode of ['daily', 'solo', 'vsCpu'] as const) {
 			expect(readBoard).toHaveBeenCalledWith('20261116', mode)
