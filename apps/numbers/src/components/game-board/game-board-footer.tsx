@@ -105,11 +105,7 @@ function ScoreCell({
 			{/* A hidden label is a sibling of the score, so the line of the score holds only its text. */}
 			{!showLabel && <span className="sr-only">{label}</span>}
 
-			{/*
-			 * The score is one value, so it does not wrap. At a load, Safari can
-			 * measure the score before the font of ui is ready, and keep that
-			 * width after the font loads. The score then wrapped after its slash.
-			 */}
+			{/* The score is one value, so it does not wrap. Safari wrapped it after its slash. */}
 			<Text as="span" className="font-semibold text-xl tabular-nums whitespace-nowrap">
 				{countPlaced(game.slots)}
 				<Text as="span" tone="muted" className="font-medium text-base">
