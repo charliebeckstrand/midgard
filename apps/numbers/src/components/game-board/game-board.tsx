@@ -50,7 +50,7 @@ export type GameBoardProps = {
  *
  * A run of the daily puzzle of today, after its first run counted, tells a
  * signed-in reader that it already counts (see `useDailyNotice`), in an alert
- * at the top, over the bar of the drawn number. The reader can close the alert,
+ * with no icon at the top, over the bar of the drawn number. The reader can close the alert,
  * and it stays closed for the run. The focus then goes to Reset, the control
  * under the alert that each state of the bar has.
  *
@@ -184,6 +184,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 					<Alert
 						key={run}
 						severity="info"
+						icon={false}
 						title="You already played today's puzzle"
 						description={`Your score of ${dailyScore} / ${SLOTS} is saved. This replay won't change your streak.`}
 						closable

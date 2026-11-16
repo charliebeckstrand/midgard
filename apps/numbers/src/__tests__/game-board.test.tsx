@@ -89,6 +89,9 @@ describe('GameBoard daily notice', () => {
 
 		expect(alert.getAttribute('role')).toBe('status')
 
+		// The alert has no icon: its only icon is the X of the close button.
+		expect(alert.querySelectorAll('svg')).toHaveLength(1)
+
 		expect(alert.textContent).toContain("You already played today's puzzle")
 		expect(alert.textContent).toContain(
 			"Your score of 12 / 20 is saved. This replay won't change your streak.",
