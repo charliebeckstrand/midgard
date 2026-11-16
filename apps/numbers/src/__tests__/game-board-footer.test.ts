@@ -20,6 +20,8 @@ describe('GameBoardFooter', () => {
 		})
 
 		expect(screen.getByText('CPU (Hard)')).toBeTruthy()
+		// No side has won, so no label has a check.
+		expect(document.querySelector('.lucide-circle-check')).toBeNull()
 	})
 
 	it('names no level at the default level', () => {
@@ -49,5 +51,6 @@ describe('GameBoardFooter', () => {
 
 		expect(screen.getByText('CPU (Easy)')).toBeTruthy()
 		expect(screen.getAllByRole('img', { name: 'Winner' })).toHaveLength(1)
+		expect(document.querySelectorAll('.lucide-circle-check')).toHaveLength(2)
 	})
 })

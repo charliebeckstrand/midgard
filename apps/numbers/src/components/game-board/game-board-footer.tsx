@@ -38,7 +38,7 @@ type ScoreCellProps = {
 	label: string
 	game: Game
 	tint?: Tint
-	/** Shows a check before the label: muted grey, green for the winner, and amber for a tie. */
+	/** Shows a check before the label: green for the winner, and muted grey for the loser. */
 	check?: boolean
 }
 
@@ -66,9 +66,9 @@ function ScoreCell({ label, game, tint, check = false }: ScoreCellProps) {
 						label={tint === 'green' ? 'Winner' : undefined}
 						className={cn(
 							'shrink-0',
-							tint === 'green' && 'text-green-600 dark:text-green-500',
-							tint === 'amber' && 'text-amber-600 dark:text-amber-400',
-							!tint && 'text-zinc-500 dark:text-zinc-400',
+							tint === 'green'
+								? 'text-green-600 dark:text-green-500'
+								: 'text-zinc-500 dark:text-zinc-400',
 						)}
 					/>
 				)}
@@ -107,10 +107,10 @@ export type GameBoardFooterProps = {
  * of the filled slots, of 20, and it has the look of the bar of the number at
  * the top. Against the CPU, the bar has the score of the player above the
  * score of the CPU. Away from the default level, the label of the CPU names
- * its level, such as "CPU (Hard)". Each of the two labels has a check before
- * it, which is muted grey while the game goes on. After the end, the cell and
- * the check of the winner are green, the check of the other stays grey, and a
- * tie makes both amber and names both "Tie".
+ * its level, such as "CPU (Hard)". When one side wins, each label gets a
+ * check before it: the cell and the check of the winner are green, and the
+ * check of the loser is grey. A tie makes both cells amber, names both "Tie",
+ * and shows no check.
  * With Show score off, the bar holds only the share menu.
  *
  * @remarks
@@ -129,8 +129,10 @@ export function GameBoardFooter({
 }: GameBoardFooterProps) {
 	const tints = TINTS[outcome ?? 'playing']
 
-	// A tie names both cells "Tie".
+	// A tie names both cells "Tie". A win or a loss puts a check before each label.
 	const tie = outcome === 'tie'
+
+	const decided = outcome === 'win' || outcome === 'loss'
 
 	return (
 		<Flex
@@ -141,12 +143,17 @@ export function GameBoardFooter({
 			<div className="min-w-0 flex-1">
 				{cpu ? (
 					<Stack gap="sm">
-						<ScoreCell label={tie ? 'Tie' : 'You'} tint={tints.player} game={game} check />
+						<ScoreCell
+							label={tie ? 'Tie' : 'You'}
+							tint={tints.player}
+							game={game}
+							check={decided}
+						/>
 						<ScoreCell
 							label={tie ? 'Tie' : cpuName(difficulty)}
 							tint={tints.cpu}
 							game={cpu}
-							check
+							check={decided}
 						/>
 					</Stack>
 				) : (
