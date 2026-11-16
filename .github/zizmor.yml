@@ -1,0 +1,14 @@
+# The configuration of zizmor (.github/workflows/workflow-lint.yml).
+rules:
+  unpinned-uses:
+    # The workflows pin each action to a major tag, not to a commit SHA, by
+    # decision: .github/dependabot.yml groups the updates of those tags. The
+    # default policy of zizmor asks for a SHA for each action outside
+    # `actions/` and `github/`.
+    config:
+      policies:
+        '*': ref-pin
+  self-repository:
+    # zizmor asks for the `$/` form of a local action in place of `./`. The
+    # change is only one of style, and it has no effect on security.
+    disable: true

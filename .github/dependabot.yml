@@ -16,6 +16,11 @@ updates:
       - /.github/actions/*
     schedule:
       interval: weekly
+    # Wait a week after a release before the pull request, so that a bad or
+    # compromised release has time to be found and pulled. Renovate waits in the
+    # same way (`minimumReleaseAge` in renovate.json).
+    cooldown:
+      default-days: 7
     # One pull request for every action in the workflows and the setup action.
     # They are pinned to major tags, which move rarely, so separate pull
     # requests buy nothing.
