@@ -1,6 +1,7 @@
 import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { HydratedRouter } from 'react-router/dom'
+import { moveDoubleClickToRoot } from 'ui/core'
 import { eventsRootOptions, startEvents } from 'ui/events'
 import { routerEvents } from '../debug/router.ts'
 import { DOCS_SOURCES } from '../debug/sources.ts'
@@ -22,6 +23,11 @@ endStaleBuildWatch()
 watchStaleBuild()
 
 watchFailedLoads()
+
+// The root of the docs is the document, so its `dblclick` listeners go on the
+// root element before it hydrates. The root style then stops iOS from joining
+// two quick taps into one double-click.
+moveDoubleClickToRoot()
 
 // While the events run, the store records from before hydration: the sources
 // of the docs, and the script calls that scroll or move the focus.

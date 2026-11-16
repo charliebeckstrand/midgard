@@ -12,8 +12,14 @@
  * page meets the first condition. Thus a quick tap on a control next to the
  * control of the tap before, such as the next Radio of a group, clicks the
  * first control again. A component cannot stop this, because the listener is
- * on the container. The root style is an ancestor of each container, so it
- * stops it on each page that uses ui.
+ * on the container. The root style is an ancestor of each container that is
+ * an element, so it stops it for such a container.
+ *
+ * The document is not an element, and WebKit always lets it take a double tap.
+ * React Router and Next.js hydrate the document, so the container of the root
+ * is the document. Such an app calls `moveDoubleClickToRoot` before it
+ * hydrates (`double-click.ts`). The listeners then go on the root element, and
+ * the root style stops the double tap there.
  *
  * `manipulation` keeps pan and pinch zoom. It stops the double-tap zoom, and on
  * iOS it stops a double-tap from sending `dblclick`.

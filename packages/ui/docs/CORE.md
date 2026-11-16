@@ -25,6 +25,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `rasterizeElement` | Draws an element to a PNG or JPEG `Blob` at twice its CSS size, as the page shows it now. Each scroll box shows at its offset. The live page does not change. The image embeds the latin face of the ui font. An image file, a canvas, and a typed field value do not show. |
 | `RasterizeElementOptions` *(type)* | Options for `rasterizeElement`: the bitmap `type`, and `opaque`, which paints the surface under the element below the image. |
 | `RasterImageType` *(type)* | The bitmap formats of a raster: `'image/png' \| 'image/jpeg'`. |
+| `moveDoubleClickToRoot` | Puts each `dblclick` listener of the document on the root element. A React Router or Next.js app calls it before it hydrates. On iOS, WebKit joins two quick taps into one double-click at a node that listens for `dblclick`, and the second tap gets no click. The root `touch-action: manipulation` stops this for each element, but not for the document, where React listens. |
 | `readCookie` | The value of a cookie by name, or `undefined`. In the browser it reads the cookies of the page. A server gives the `Cookie` header of the request. |
 | `writeCookie` | Writes a cookie for each path of the site, `secure` on HTTPS, for one year by default. Keep a copy of each layout setting of the reader in a cookie. The server then renders it in the first paint (CONVENTIONS §3.13). Browser only. |
 | `AnnounceOptions` *(type)* | Options for `announce` (politeness level). |
