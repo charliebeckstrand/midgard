@@ -257,6 +257,15 @@ export type RingStyle = Pick<
  * outline, and an outline has one offset for all sides. Else the rule gives no
  * declaration.
  *
+ * @remarks
+ * A ring paints below the content of its element and below a later sibling,
+ * but an outline paints above them. Thus, where a child or a sibling paints
+ * over the ring, the capture shows the ring and the live element does not.
+ * A ring that such a box covers does not show, so a design seldom has one.
+ * The rule does not examine the paint of the children and the siblings. A box
+ * that paints nothing can cover all of the ring, as the clear touch target of
+ * a `Button` does.
+ *
  * @internal
  */
 export function ringToOutline(style: RingStyle): string {
