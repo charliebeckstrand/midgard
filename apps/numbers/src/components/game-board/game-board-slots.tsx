@@ -1,7 +1,8 @@
 'use client'
 
-import { Fragment, type MouseEvent, type Ref } from 'react'
+import { Fragment, type MouseEvent, type Ref, useEffect, useRef } from 'react'
 import { Button, type ButtonProps } from 'ui/button'
+import { cn } from 'ui/core'
 import { useIntl } from 'ui/primitives/intl'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
@@ -29,13 +30,23 @@ function getColor(placed: number | null, open: boolean): ButtonProps['color'] {
 
 /**
  * The mark of a number that has no slot: a dashed line and the number, at the
- * place where the number goes in the order.
+ * place where the number goes in the order. The mark shows on a bust. In the
+ * column of the player, it then scrolls into view, because the box of the
+ * slots can have it out of view. The scroll margin keeps about one slot on
+ * each side of it in view, so the reader sees the two numbers around it. A
+ * mark that is in view does not move.
  */
-function GameBoardGap({ value }: { value: number }) {
+function GameBoardGap({ value, reveal }: { value: number; reveal: boolean }) {
 	const intl = useIntl()
 
+	const ref = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (reveal) ref.current?.scrollIntoView({ block: 'nearest' })
+	}, [reveal])
+
 	return (
-		<Flex align="center" gap="sm">
+		<Flex ref={ref} align="center" gap="sm" className="scroll-my-12">
 			<span
 				aria-hidden
 				className="flex-1 border-t-2 border-dashed border-red-600 dark:border-red-500"
@@ -51,10 +62,11 @@ function GameBoardGap({ value }: { value: number }) {
 /**
  * The column of the slots, in ascending order from the top. An empty slot
  * shows its position, and a filled slot shows its number in a soft green. Only
- * a slot that can take the drawn number is on, with an amber outline, and a
- * filled slot stays off. After a bust, the gap mark shows between the two
- * numbers that the drawn number goes between. The column of the CPU has no
- * drawn number that waits, so each of its slots stays off.
+ * a slot that can take the drawn number is on, with an amber outline. A filled
+ * slot stays off, but it does not dim as an off slot does: the reader reads
+ * its number to choose the slot of the next number. After a bust, the gap mark
+ * shows between the two numbers that the drawn number goes between. The column
+ * of the CPU has no drawn number that waits, so each of its slots stays off.
  */
 export function GameBoardSlots({ game, status, onPlace, label, ref }: GameBoardSlotsProps) {
 	const intl = useIntl()
@@ -66,9 +78,13 @@ export function GameBoardSlots({ game, status, onPlace, label, ref }: GameBoardS
 	// The slot that the drawn number goes after; -1 puts the mark above the first slot.
 	const gap = bust ? findGap(slots, drawn) : null
 
+	// Only the column of the player scrolls to its mark. The column of the CPU
+	// can bust while the player plays on.
+	const reveal = onPlace !== undefined
+
 	return (
 		<Stack ref={ref} gap="sm" role={label ? 'group' : undefined} aria-label={label}>
-			{bust && gap === -1 ? <GameBoardGap value={drawn} /> : null}
+			{bust && gap === -1 ? <GameBoardGap value={drawn} reveal={reveal} /> : null}
 
 			{slots.map((placed, index) => {
 				const open = status === 'placing' && drawn !== null && canPlace(slots, index, drawn)
@@ -87,13 +103,13 @@ export function GameBoardSlots({ game, status, onPlace, label, ref }: GameBoardS
 									? `Slot ${position}`
 									: `Slot ${position}, ${intl.formatNumber(placed)}`
 							}
-							className="w-full tabular-nums"
+							className={cn('w-full tabular-nums', placed !== null && 'disabled:opacity-100')}
 							onClick={(event) => onPlace?.(index, event)}
 						>
 							{placed === null ? position : intl.formatNumber(placed)}
 						</Button>
 
-						{bust && gap === index ? <GameBoardGap value={drawn} /> : null}
+						{bust && gap === index ? <GameBoardGap value={drawn} reveal={reveal} /> : null}
 					</Fragment>
 				)
 			})}
