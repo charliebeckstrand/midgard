@@ -159,7 +159,13 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 				</Columns>
 			</div>
 
-			<GameBoardFooter game={game} showScore={showScore} cpu={cpu} outcome={outcome} />
+			<GameBoardFooter
+				game={game}
+				showScore={showScore}
+				cpu={cpu}
+				difficulty={difficulty}
+				outcome={outcome}
+			/>
 		</div>
 	)
 }

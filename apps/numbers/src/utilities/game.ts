@@ -152,6 +152,13 @@ export type Difficulty = 'easy' | 'normal' | 'hard'
 /** The levels of the CPU, from the weakest. */
 export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'normal', 'hard']
 
+/** The name of each level of the CPU. */
+export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
+	easy: 'Easy',
+	normal: 'Normal',
+	hard: 'Hard',
+}
+
 /** The empty slots that can take a number: `open` slots from `start`, with `low` below and `high` above. */
 type Run = { start: number; open: number; low: number; high: number }
 

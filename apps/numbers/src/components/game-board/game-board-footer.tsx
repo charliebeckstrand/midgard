@@ -2,18 +2,32 @@ import { cn } from 'ui/core'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
-import { countPlaced, type Game, type Outcome, SLOTS } from '../../utilities/game'
+import {
+	countPlaced,
+	DIFFICULTY_LABELS,
+	type Difficulty,
+	type Game,
+	type Outcome,
+	SLOTS,
+} from '../../utilities/game'
 import { GameBoardShare } from './game-board-share'
 
 /** The tint of a score cell: green for the winner, and amber for a tie. */
 type Tint = 'green' | 'amber' | undefined
 
-/** The label and the tint of the cell of the player and of the CPU, while the game goes on and for each result. */
-const RESULTS: Record<Outcome | 'playing', { player: [string, Tint]; cpu: [string, Tint] }> = {
-	playing: { player: ['You', undefined], cpu: ['CPU', undefined] },
-	win: { player: ['You win', 'green'], cpu: ['CPU', undefined] },
-	loss: { player: ['You', undefined], cpu: ['CPU wins', 'green'] },
-	tie: { player: ['Tie', 'amber'], cpu: ['Tie', 'amber'] },
+/**
+ * The label and the tint of the cell of the player and of the CPU, while the
+ * game goes on and for each result. The label of the CPU gets its name, such as
+ * "Hard CPU".
+ */
+const RESULTS: Record<
+	Outcome | 'playing',
+	{ player: [string, Tint]; cpu: [(name: string) => string, Tint] }
+> = {
+	playing: { player: ['You', undefined], cpu: [(name) => name, undefined] },
+	win: { player: ['You win', 'green'], cpu: [(name) => name, undefined] },
+	loss: { player: ['You', undefined], cpu: [(name) => `${name} wins`, 'green'] },
+	tie: { player: ['Tie', 'amber'], cpu: [() => 'Tie', 'amber'] },
 }
 
 /** Props for {@link ScoreCell}. */
@@ -58,6 +72,8 @@ export type GameBoardFooterProps = {
 	showScore: boolean
 	/** The game of the CPU, against the player. The bar then shows both scores, the player above the CPU. */
 	cpu?: Game | null
+	/** The level of the CPU, which its label names, so a screenshot shows it. */
+	difficulty: Difficulty
 	/** The result against the CPU, after the game of the player ends. */
 	outcome?: Outcome | null
 }
@@ -67,9 +83,10 @@ export type GameBoardFooterProps = {
  * the share menu at the right, with a gap between them. The score is the count
  * of the filled slots, of 20, and it has the look of the bar of the number at
  * the top. Against the CPU, the bar has the score of the player above the
- * score of the CPU. After the end, the score of the winner is green and reads
- * "You win" or "CPU wins", and a tie makes both amber. With Show score off, the bar holds only the share
- * menu.
+ * score of the CPU. The label of the CPU names its level, such as "Hard CPU".
+ * After the end, the score of the winner is green and reads "You win" or, for
+ * example, "Hard CPU wins", and a tie makes both amber. With Show score off,
+ * the bar holds only the share menu.
  *
  * @remarks
  * The page box is the height of the visible area (`h-dvh`), so the bottom of
@@ -78,7 +95,13 @@ export type GameBoardFooterProps = {
  * the home indicator when that is larger), and the top padding above it, where
  * the slots scroll out of the box.
  */
-export function GameBoardFooter({ game, showScore, cpu, outcome }: GameBoardFooterProps) {
+export function GameBoardFooter({
+	game,
+	showScore,
+	cpu,
+	difficulty,
+	outcome,
+}: GameBoardFooterProps) {
 	const { player, cpu: opponent } = RESULTS[outcome ?? 'playing']
 
 	return (
@@ -91,7 +114,11 @@ export function GameBoardFooter({ game, showScore, cpu, outcome }: GameBoardFoot
 				{cpu ? (
 					<Stack gap="sm">
 						<ScoreCell label={player[0]} tint={player[1]} game={game} />
-						<ScoreCell label={opponent[0]} tint={opponent[1]} game={cpu} />
+						<ScoreCell
+							label={opponent[0](`${DIFFICULTY_LABELS[difficulty]} CPU`)}
+							tint={opponent[1]}
+							game={cpu}
+						/>
 					</Stack>
 				) : (
 					showScore && <ScoreCell label="Score" game={game} />

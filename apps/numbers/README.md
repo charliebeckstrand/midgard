@@ -53,6 +53,8 @@ date. The server cannot know the date of the reader, so the link to the daily
 puzzle renders only in the open menu.
 
 Share seed in the share menu of the bottom bar copies the address of the run.
+Against the CPU, the address holds the seed only. A reader of the link gets the
+same numbers, and plays against the CPU at the level of their own setting.
 Share screenshot in the same menu draws the page, as the screen shows it, to a
 PNG (`rasterizeElement` of `ui/core`, `src/utilities/screenshot.ts`). It gives the
 image to the share sheet of the device, or saves it where the browser cannot
@@ -136,9 +138,10 @@ at the new level. The stats keep the score of the player only, and the CPU does
 not change the game of the player, so the level does not change the stats.
 
 The bar at the bottom has the score of the player above the score of the CPU.
-It shows also with Show score off, because it names the columns and gives the
-result. After the end, the score of the winner is green and reads "You win" or
-"CPU wins", and a tie makes both scores amber. A screen reader hears the result
+The label of the CPU names its level, such as "Hard CPU", so a screenshot shows
+the level. The bar shows also with Show score off, because it names the columns
+and gives the result. After the end, the score of the winner is green and reads
+"You win" or, for example, "Hard CPU wins", and a tie makes both scores amber. A screen reader hears the result
 at the end.
 
 ## Sign-in

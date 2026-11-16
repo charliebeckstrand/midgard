@@ -4,7 +4,7 @@ import { Field, Label } from 'ui/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Switch } from 'ui/switch'
 import { useGameSetting } from '../../hooks/use-game-setting'
-import { DIFFICULTIES, type Difficulty } from '../../utilities/game'
+import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from '../../utilities/game'
 import type { GameSettings } from '../../utilities/settings'
 
 /** The name of each setting that is on or off. */
@@ -29,13 +29,6 @@ export function SettingField({ name, label }: SettingFieldProps) {
 			<Switch checked={on} onChange={(event) => setOn(event.target.checked)} />
 		</Field>
 	)
-}
-
-/** The name of each level of the CPU. */
-const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-	easy: 'Easy',
-	normal: 'Normal',
-	hard: 'Hard',
 }
 
 /**
