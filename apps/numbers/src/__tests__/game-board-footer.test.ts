@@ -81,7 +81,7 @@ describe('GameBoardFooter', () => {
 			{ wrapper },
 		)
 
-		expect(container.querySelector('.bg-amber-500\\/10')).toBeTruthy()
+		expect(container.querySelector('.bg-amber-500\\/15')).toBeTruthy()
 		expect(document.querySelector('.lucide-circle-check')).toBeNull()
 
 		cleanup()
@@ -92,7 +92,7 @@ describe('GameBoardFooter', () => {
 			{ wrapper },
 		)
 
-		expect(playing.querySelector('.bg-amber-500\\/10')).toBeNull()
+		expect(playing.querySelector('.bg-amber-500\\/15')).toBeNull()
 	})
 
 	it('gives the solo score a label only for a screen reader', () => {

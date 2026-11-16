@@ -18,8 +18,8 @@ import { GameBoardShare } from './game-board-share'
 
 /**
  * The tint of a score cell: green for the winner, and amber for a tie or a
- * solo bust. Each tint is 10% of its 500 shade, in light and in dark, which is
- * lighter than the 15% fill of a soft button.
+ * solo bust. Each tint is the fill of a soft button: 15% of its 500 shade, in
+ * light and in dark.
  */
 type Tint = 'green' | 'amber' | undefined
 
@@ -80,8 +80,8 @@ function ScoreCell({
 			className={cn(
 				'rounded-lg',
 				inset && 'px-4 py-2.5',
-				tint === 'green' && 'bg-green-500/10',
-				tint === 'amber' && 'bg-amber-500/10',
+				tint === 'green' && 'bg-green-500/15',
+				tint === 'amber' && 'bg-amber-500/15',
 			)}
 		>
 			{(check || showLabel) && (
