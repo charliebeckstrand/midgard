@@ -11,7 +11,25 @@ const { text } = iro
 const { flex } = narabi
 const { popover, glass } = omote
 const { ring } = sen
-const { tooltip } = ugoki
+const { duration, ease } = ugoki
+
+/**
+ * The tooltip fade with a small scale, tuned for a quick show and hide.
+ *
+ * The scale sets `transform` directly, so the browser runs it off the main
+ * thread. Under reduced motion, the tooltip shows the `still` copy.
+ *
+ * The bubble rests at `scale(1)`, not at `transform: none` (see the rule in
+ * `ugoki/index.ts`). An exit from `none` grows the bubble from `scale(0)` to
+ * 95% while it fades. The positioned wrapper of the tooltip has a `transform`
+ * already, so the rest scale adds no containing block.
+ */
+const tooltip = {
+	initial: { opacity: 0, transform: 'scale(0.95)' },
+	animate: { opacity: 1, transform: 'scale(1)' },
+	exit: { opacity: 0, transform: 'scale(0.95)' },
+	transition: { duration: duration[100], ease: ease.out },
+} as const
 
 export const k = defineKata(
 	{
