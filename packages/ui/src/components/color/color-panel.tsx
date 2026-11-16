@@ -128,7 +128,7 @@ export function ColorPanelView({
 				<div className={k().preview.row}>
 					<span
 						data-slot="color-preview"
-						className={cn('group', k().preview.base, alpha && k().checkerboard)}
+						className={cn(k().preview.base, alpha && k().checkerboard)}
 					>
 						<span className="block size-full" style={{ backgroundColor: previewColor }} />
 					</span>
