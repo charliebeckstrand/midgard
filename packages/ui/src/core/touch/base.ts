@@ -17,9 +17,9 @@
  *
  * The document is not an element, and WebKit always lets it take a double tap.
  * React Router and Next.js hydrate the document, so the container of the root
- * is the document. Such an app calls `moveDoubleClickToRoot` before it
- * hydrates (`double-click.ts`). The listeners then go on the root element, and
- * the root style stops the double tap there.
+ * is the document. The patch of `react-dom` and of the copy of it in `next`
+ * (`pnpm-workspace.yaml`) puts the `dblclick` listeners of such a root on the
+ * root element. The root style then stops the double tap there too.
  *
  * `manipulation` keeps pan and pinch zoom. It stops the double-tap zoom, and on
  * iOS it stops a double-tap from sending `dblclick`.

@@ -20,5 +20,4 @@ export {
 	type RasterizeElementOptions,
 	rasterizeElement,
 } from './rasterize-element'
-export { moveDoubleClickToRoot } from './touch/double-click'
 export { type Severity, type ValidationAttrs, validationAttrs } from './validation-attrs'

@@ -58,8 +58,15 @@
 			"dependencyDashboardApproval": true
 		},
 		{
-			"description": "The packages of patchedDependencies in pnpm-workspace.yaml; keep the two lists the same. Each key there names one exact version, and pnpm stops the install when a patch matches no package. Thus a bump needs a new patch, and Renovate cannot make one: the lockfile update fails, and the branch carries a package.json with no lockfile. The comment above patchedDependencies states what a bump costs. Approval rather than `enabled: false`, so a security alert still reaches the dashboard instead of going silent. Each package also needs a group of its own, because a branch waits for approval when any upgrade in it needs one: inside `non-major`, one patched package holds the whole minor and patch tail. vitest has its group in the train rule above.",
-			"matchPackageNames": ["@floating-ui/react", "react-router", "vitest"],
+			"description": "The packages of patchedDependencies in pnpm-workspace.yaml; keep the two lists the same. Each key there names one exact version, and pnpm stops the install when a patch matches no package. Thus a bump needs a new patch, and Renovate cannot make one: the lockfile update fails, and the branch carries a package.json with no lockfile. The comment above patchedDependencies states what a bump costs. Approval rather than `enabled: false`, so a security alert still reaches the dashboard instead of going silent. Each package also needs a group of its own, because a branch waits for approval when any upgrade in it needs one: inside `non-major`, one patched package holds the whole minor and patch tail. vitest has its group in the train rule above, and the monorepo presets of config:recommended group next, and react with react-dom.",
+			"matchPackageNames": [
+				"@floating-ui/react",
+				"next",
+				"react",
+				"react-dom",
+				"react-router",
+				"vitest"
+			],
 			"dependencyDashboardApproval": true
 		},
 		{
