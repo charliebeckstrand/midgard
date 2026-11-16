@@ -110,7 +110,8 @@ export type GameBoardFooterProps = {
  * its level, such as "CPU (Hard)". When one side wins, each label gets a
  * check before it: the cell and the check of the winner are green, and the
  * check of the loser is grey. A tie makes both cells amber, with no check.
- * With Show score off, the bar holds only the share menu.
+ * A solo win makes the cell green, with a green check, as the winner against
+ * the CPU. With Show score off, the bar holds only the share menu.
  *
  * @remarks
  * The page box is the height of the visible area (`h-dvh`), so the bottom of
@@ -131,6 +132,9 @@ export function GameBoardFooter({
 	// A win or a loss puts a check before each label.
 	const decided = outcome === 'win' || outcome === 'loss'
 
+	// A solo win fills each slot.
+	const won = countPlaced(game.slots) === SLOTS
+
 	return (
 		<Flex
 			align="center"
@@ -144,7 +148,9 @@ export function GameBoardFooter({
 						<ScoreCell label={cpuName(difficulty)} tint={tints.cpu} game={cpu} check={decided} />
 					</Stack>
 				) : (
-					showScore && <ScoreCell label="Score" game={game} />
+					showScore && (
+						<ScoreCell label="Score" game={game} tint={won ? 'green' : undefined} check={won} />
+					)
 				)}
 			</div>
 
