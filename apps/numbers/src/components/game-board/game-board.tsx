@@ -186,7 +186,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 						severity="info"
 						icon={false}
 						title="You already played today's puzzle"
-						description="Replays don't change your score or streak."
+						description="Replays don't change your score."
 						closable
 						announceOnMount
 						returnFocusTo={resetRef}

@@ -190,7 +190,7 @@ After the first run of the daily puzzle of today counts, the Daily puzzle item
 of the menu shows a green check after its label (`dailyScore` of the stats). A
 new run of the puzzle shows a closable alert, with no icon, above the bar of the
 drawn number: the reader played the puzzle, and a replay does not change the
-score or the streak (`useDailyNotice`). The alert waits for the stats, and a
+score (`useDailyNotice`). The alert waits for the stats, and a
 run that ends before they arrive gets no alert, because its own result can be
 in them. A reader with no session, or with no verified email, has no stats, so
 the item stays a plain link and no alert shows.

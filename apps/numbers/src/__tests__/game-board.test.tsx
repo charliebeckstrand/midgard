@@ -93,7 +93,7 @@ describe('GameBoard daily notice', () => {
 		expect(alert.querySelectorAll('svg')).toHaveLength(1)
 
 		expect(alert.textContent).toContain("You already played today's puzzle")
-		expect(alert.textContent).toContain("Replays don't change your score or streak.")
+		expect(alert.textContent).toContain("Replays don't change your score.")
 
 		// The alert comes before the bar of the drawn number.
 		const reset = screen.getByRole('button', { name: 'Reset' })
