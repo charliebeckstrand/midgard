@@ -43,7 +43,7 @@ export function NumbersHeader({ user }: NumbersHeaderProps) {
 
 				<Spacer />
 
-				<AppearanceSettings tabs={TABS} />
+				<AppearanceSettings tabs={TABS} animate="slide" />
 
 				<NumbersMenu user={user} />
 			</Flex>

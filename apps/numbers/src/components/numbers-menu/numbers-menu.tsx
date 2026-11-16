@@ -6,10 +6,10 @@ import {
 	CalendarDays,
 	ChartColumn,
 	CircleCheck,
-	House,
 	LogIn,
 	Menu as MenuIcon,
 	Trophy,
+	UserRound,
 } from 'lucide-react'
 import { useState } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
@@ -50,7 +50,7 @@ export type NumbersMenuProps = {
 }
 
 /**
- * The menu at the right of the header. Home starts the run of a new seed, and
+ * The menu at the right of the header. Solo starts the run of a new seed, and
  * Daily puzzle opens the run of the seed of today, which each reader gets on the
  * same date, and shows a check once its first run counts. Vs CPU starts the
  * run of a new seed against the CPU. Leaderboard opens the boards of the daily
@@ -99,8 +99,8 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 
 				<MenuContent aria-label="Menu">
 					<MenuItem href="/">
-						<Icon icon={<House />} />
-						<MenuLabel>Home</MenuLabel>
+						<Icon icon={<UserRound />} />
+						<MenuLabel>Solo</MenuLabel>
 					</MenuItem>
 
 					{today && <DailyPuzzleItem today={today} played={played} />}

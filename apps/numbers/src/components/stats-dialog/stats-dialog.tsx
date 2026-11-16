@@ -78,7 +78,7 @@ function SignedInStats() {
 					<SegmentItem value="vsCpu">Vs CPU</SegmentItem>
 				</SegmentControl>
 
-				<TabContents>
+				<TabContents animate="slide">
 					<TabContent value="solo">
 						<ModeTiles stats={data?.solo} />
 					</TabContent>

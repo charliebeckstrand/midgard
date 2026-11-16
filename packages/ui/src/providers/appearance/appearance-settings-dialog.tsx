@@ -8,7 +8,7 @@ import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
-import { TabContent, TabContents } from '../../components/tabs'
+import { TabContent, TabContents, type TabContentsProps } from '../../components/tabs'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/context'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
@@ -91,6 +91,8 @@ type AppearanceSettingsDialogProps = {
 	children?: ReactNode
 	/** Tabs of fields after the tab of the pickers. */
 	tabs?: readonly AppearanceSettingsTab[]
+	/** The switch of the tabs, as the `animate` of `TabContents`. */
+	animate?: TabContentsProps['animate']
 }
 
 /**
@@ -119,6 +121,7 @@ export function AppearanceSettingsDialog({
 	onOpenChange,
 	children,
 	tabs,
+	animate,
 }: AppearanceSettingsDialogProps) {
 	const {
 		theme,
@@ -234,7 +237,7 @@ export function AppearanceSettingsDialog({
 												</SegmentItem>
 											))}
 										</SegmentControl>
-										<TabContents>
+										<TabContents animate={animate}>
 											<TabContent value="ui">{fields}</TabContent>
 											{tabs.map((tab, index) => (
 												<TabContent key={tab.label} value={`tab-${index}`}>

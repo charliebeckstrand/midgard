@@ -4,6 +4,7 @@ import { Settings2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import type { TabContentsProps } from '../../components/tabs'
 import { useFail } from '../../hooks/use-fail'
 import { useIntentLoad } from '../../hooks/use-intent-load'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -25,7 +26,7 @@ export type AppearanceSettingsTab = {
 	children: ReactNode
 }
 
-/** Props for {@link AppearanceSettings}: more fields for the dialog, and tabs of fields. */
+/** Props for {@link AppearanceSettings}: more fields for the dialog, tabs of fields, and the switch of the tabs. */
 export type AppearanceSettingsProps = {
 	/**
 	 * More fields for the dialog, such as the settings of one app. They go below
@@ -40,6 +41,13 @@ export type AppearanceSettingsProps = {
 	 * The floating panels of each tab portal into the dialog.
 	 */
 	tabs?: readonly AppearanceSettingsTab[]
+	/**
+	 * The switch of the tabs, as the `animate` of `TabContents`: `'fade'`,
+	 * `'slide'`, or `false` for no animation. It has no effect without `tabs`.
+	 *
+	 * @defaultValue 'fade'
+	 */
+	animate?: TabContentsProps['animate']
 }
 
 /**
@@ -59,6 +67,7 @@ export type AppearanceSettingsProps = {
  *
  * With `tabs`, a segment at the top of the dialog switches between the "UI"
  * tab of the pickers and each tab of the app. The dialog opens on the "UI" tab.
+ * `animate` sets how the panels switch: a fade by default, or a slide.
  *
  * @remarks The dialog module loads in idle time after the hydration. The
  * dialog then renders closed, so the first open is the same as a later open. A
@@ -68,7 +77,7 @@ export type AppearanceSettingsProps = {
  * load of a press fails, the error throws in the next render, so the nearest
  * error boundary shows it.
  */
-export function AppearanceSettings({ children, tabs }: AppearanceSettingsProps) {
+export function AppearanceSettings({ children, tabs, animate }: AppearanceSettingsProps) {
 	const [open, setOpen] = useState(false)
 
 	const fail = useFail()
@@ -92,7 +101,12 @@ export function AppearanceSettings({ children, tabs }: AppearanceSettingsProps) 
 				<Icon icon={<Settings2 />} />
 			</Button>
 			{dialog && (
-				<dialog.AppearanceSettingsDialog open={open} onOpenChange={setOpen} tabs={tabs}>
+				<dialog.AppearanceSettingsDialog
+					open={open}
+					onOpenChange={setOpen}
+					tabs={tabs}
+					animate={animate}
+				>
 					{children}
 				</dialog.AppearanceSettingsDialog>
 			)}

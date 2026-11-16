@@ -67,14 +67,16 @@ place, and Reset.
 
 ## The page
 
-The header shows the name of the app, the settings, and a menu with Home (a
+The header shows the name of the app, the settings, and a menu with Solo (a
 new seed), Daily puzzle, Vs CPU (a new seed against the CPU), and Leaderboard.
 Under a divider, the menu has Sign in, or Stats and
 Sign out for a signed-in reader. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
-below). A bar under the header holds the drawn number and, with Auto-draw off,
-Draw. A Reset button at the right of the bar, apart from it, starts a new seed
-at each step. The bar keeps one height with Draw and without it. The number rolls
+below). Each segment of the app (in the settings, Stats, and Leaderboard)
+slides to the panel of the new tab. A bar under the header holds the drawn
+number and, with Auto-draw off, Draw. A Reset button at the right of the bar,
+apart from it, starts a new seed at each step. The bar keeps one height with
+Draw and without it. The number rolls
 from the shown number to each new number through the `Odometer` of `ui`, also
 to the first number of a new run. A roll covers at least 100 (`minChange`), so a
 near number rolls from 100 away. The first number of the run that the page
@@ -173,8 +175,8 @@ Stats in the header menu, above Sign out, opens a dialog with the stats of a sig
 one tab for each mode (Solo and Vs CPU): the runs played, the best and the
 average score, the daily streak and the longest one, and a bar chart of the
 runs on each score from 1 to 20. The first number always has an empty slot, so
-no run scores 0. Mimir, in asgard, keeps them
-(`/api/games/numbers/*`, `src/api/stats-api.ts`).
+no run scores 0. A switch of tab slides to the next mode. Mimir, in asgard,
+keeps them (`/api/games/numbers/*`, `src/api/stats-api.ts`).
 
 A run counts when it ends in a bust or a win, and when a Reset ends it after
 its first placement, with its score at that step (`isUnfinished`). A link,
@@ -197,7 +199,8 @@ email, has no stats, so the item stays a plain link and no toast shows.
 Leaderboard in the header menu opens a dialog with the boards of each day, for
 each reader. A tab for each board holds the board of one date: Daily for the
 solo runs of the daily puzzle, Solo for the solo runs of other seeds, and Vs
-CPU for the runs against the CPU. A run counts on the board of the reader's
+CPU for the runs that beat the CPU. A vs CPU run that ties or loses, or that a
+Reset ends, counts in the stats but on no board (`beatCpu` of the result). A run counts on the board of the reader's
 date. A board shows the top 10 players by their best score on it, then the
 reader when they are below them, and the count of players. A better run moves a
 player up. Equal scores share a rank. The boards open on today, and the arrows

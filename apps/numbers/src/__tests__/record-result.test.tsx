@@ -31,7 +31,7 @@ describe('useRecordResult', () => {
 	it.each([
 		[{ seed: TODAY, mode: 'solo' }, 'daily'],
 		[{ seed: 'k3x9q2', mode: 'solo' }, 'solo'],
-		[{ seed: 'k3x9q2', mode: 'vsCpu' }, 'vsCpu'],
+		[{ seed: 'k3x9q2', mode: 'vsCpu', beatCpu: true }, 'vsCpu'],
 	] as const)('makes the board of the day of %j stale: %s', async (run, board) => {
 		vi.mocked(recordResult).mockResolvedValue({} as NumbersStats)
 
@@ -43,4 +43,19 @@ describe('useRecordResult', () => {
 			expect(invalidate).toHaveBeenCalledWith({ queryKey: ['numbers-board', TODAY, board] }),
 		)
 	})
+
+	it.each([false, undefined])(
+		'makes no board stale for a vs CPU run with beatCpu %s',
+		async (beatCpu) => {
+			vi.mocked(recordResult).mockResolvedValue({} as NumbersStats)
+
+			const { result, invalidate } = renderRecorder()
+
+			result.current.mutate({ seed: 'k3x9q2', mode: 'vsCpu', beatCpu, score: 10, today: TODAY })
+
+			await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+			expect(invalidate).not.toHaveBeenCalled()
+		},
+	)
 })
