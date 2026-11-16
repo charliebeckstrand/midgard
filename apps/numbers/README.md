@@ -64,8 +64,8 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Home (a
-new seed), Daily puzzle, Vs CPU (a new seed against the CPU), Stats (only for
-a signed-in reader), and Sign in or Sign out. A segment in the settings switches two tabs: "UI" has the
+new seed), Daily puzzle, Vs CPU (a new seed against the CPU), Stats and
+Leaderboard (only for a signed-in reader), and Sign in or Sign out. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). A bar under the header holds the drawn number, the action, and a menu
 with Reset. Reset in the menu starts a new seed at each step. The number rolls
@@ -160,6 +160,23 @@ ended run to its `onEnd` in the action, not in an effect, so a held route that
 shows again does not count its run a second time. A run counts only for a user
 with a verified email. The first run of a daily puzzle counts toward the
 streak. A reader with no session gets no Stats item in the menu.
+
+## Leaderboard
+
+Leaderboard in the header menu opens a dialog with the board of each daily
+puzzle, for a signed-in reader. A tab for each mode (Solo and Vs CPU) holds the
+board of one date: the top 10 players by the score of their first run of the
+puzzle, then the reader when they are below them, and the count of players.
+Equal scores share a rank. The board opens on today, the date of the reader,
+and the arrows go to earlier days, but not past today. Mimir keeps the boards
+(`/api/games/numbers/daily`, `src/api/leaderboard-api.ts`).
+
+Each player shows by a leaderboard name, or as "Anonymous" until they set one.
+A reader with a verified email sets the name at the foot of the dialog
+(`/api/games/player`), and an empty name shows them as anonymous again. A
+reader with no verified email sees the boards, and a line that asks for the
+verification, because only the runs of a verified user count. A daily run that
+counts makes its board read again.
 
 ## Deploy
 

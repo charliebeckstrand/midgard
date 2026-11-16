@@ -1,7 +1,15 @@
 'use client'
 
 import type { User } from 'auth'
-import { Bot, CalendarDays, ChartColumn, House, LogIn, Menu as MenuIcon } from 'lucide-react'
+import {
+	Bot,
+	CalendarDays,
+	ChartColumn,
+	House,
+	LogIn,
+	Menu as MenuIcon,
+	Trophy,
+} from 'lucide-react'
 import { useState } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
 import { Button } from 'ui/button'
@@ -9,6 +17,7 @@ import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { dailySeed, VS_SEGMENT } from '../../utilities/seed'
+import { LeaderboardDialog } from '../leaderboard-dialog'
 import { StatsDialog } from '../stats-dialog'
 
 /**
@@ -40,12 +49,15 @@ export type NumbersMenuProps = {
  * The menu at the right of the header. Home starts the run of a new seed, and
  * Daily puzzle opens the run of the seed of today, which each reader gets on the
  * same date. Vs CPU starts the run of a new seed against the CPU. A signed-in
- * reader also gets Stats, which opens the stats of the reader. Under them, a
+ * reader also gets Stats, which opens the stats of the reader, and
+ * Leaderboard, which opens the boards of the daily puzzles. Under them, a
  * reader with no session gets Sign in, and a signed-in reader gets Verify email
  * (until the email is verified) and Sign out.
  */
 export function NumbersMenu({ user }: NumbersMenuProps) {
 	const [statsOpen, setStatsOpen] = useState(false)
+
+	const [leaderboardOpen, setLeaderboardOpen] = useState(false)
 
 	return (
 		<>
@@ -70,10 +82,17 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 					</MenuItem>
 
 					{user && (
-						<MenuItem onAction={() => setStatsOpen(true)}>
-							<Icon icon={<ChartColumn />} />
-							<MenuLabel>Stats</MenuLabel>
-						</MenuItem>
+						<>
+							<MenuItem onAction={() => setStatsOpen(true)}>
+								<Icon icon={<ChartColumn />} />
+								<MenuLabel>Stats</MenuLabel>
+							</MenuItem>
+
+							<MenuItem onAction={() => setLeaderboardOpen(true)}>
+								<Icon icon={<Trophy />} />
+								<MenuLabel>Leaderboard</MenuLabel>
+							</MenuItem>
+						</>
 					)}
 
 					<MenuSeparator />
@@ -93,7 +112,13 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 				</MenuContent>
 			</Menu>
 
-			{user && <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} user={user} />}
+			{user && (
+				<>
+					<StatsDialog open={statsOpen} onOpenChange={setStatsOpen} user={user} />
+
+					<LeaderboardDialog open={leaderboardOpen} onOpenChange={setLeaderboardOpen} user={user} />
+				</>
+			)}
 		</>
 	)
 }

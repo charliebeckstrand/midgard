@@ -1091,7 +1091,7 @@ export interface paths {
 		put?: never
 		/**
 		 * Count a finished run
-		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak.
+		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak and the leaderboard.
 		 */
 		post: {
 			parameters: {
@@ -1150,6 +1150,170 @@ export interface paths {
 		patch?: never
 		trace?: never
 	}
+	'/api/games/numbers/daily': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		/**
+		 * Get the leaderboard of a daily puzzle
+		 * @description The first run of each player of the daily puzzle of `date` in `mode`: the top 10 by score, then the reader when they are below them. Equal scores share a rank and list in the order that they finished. A date more than one day ahead of the server's date is refused.
+		 */
+		get: {
+			parameters: {
+				query: {
+					/** @description The date of the daily puzzle, as YYYYMMDD */
+					date: string
+					/** @description The mode of the run */
+					mode: 'solo' | 'vsCpu'
+				}
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description The leaderboard */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['NumbersBoard']
+					}
+				}
+				/** @description Invalid date or mode */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		put?: never
+		post?: never
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/games/player': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		/**
+		 * Get your leaderboard name
+		 * @description The name on the leaderboards of every game, or null when you set none.
+		 */
+		get: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Your leaderboard name */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['GamePlayer']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		/**
+		 * Set your leaderboard name
+		 * @description Sets the name on the leaderboards of every game, 1 to 24 characters with the spaces at each end removed. Null removes it, so you show as anonymous.
+		 */
+		put: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['GamePlayer']
+				}
+			}
+			responses: {
+				/** @description Your new leaderboard name */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['GamePlayer']
+					}
+				}
+				/** @description Invalid name */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description No user role, or email not verified */
+				403: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		post?: never
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -1182,6 +1346,7 @@ export interface components {
 				[key: string]: components['schemas']['SeasonPicks']
 			}
 			numbers: components['schemas']['StoredNumbers']
+			games: components['schemas']['GamePlayer']
 		}
 		PlaceList: components['schemas']['Place'][]
 		Place: components['schemas']['Location'] & {
@@ -1283,6 +1448,14 @@ export interface components {
 					[key: string]: number
 				}
 			}
+		}
+		/** @description How the user shows on the leaderboards of every game */
+		GamePlayer: {
+			/**
+			 * @description The name on the leaderboards, or null to show as anonymous
+			 * @example Ada
+			 */
+			name: string | null
 		}
 		Error: {
 			error: string
@@ -1401,6 +1574,22 @@ export interface components {
 			 * @example 20261116
 			 */
 			today: string
+		}
+		/** @description The first run of each player of one daily puzzle, by score */
+		NumbersBoard: {
+			/** @description The players of the daily puzzle */
+			players: number
+			/** @description The top 10 by score, then the reader when they are below them */
+			entries: components['schemas']['NumbersBoardEntry'][]
+		}
+		NumbersBoardEntry: {
+			/** @description The place, shared by equal scores */
+			rank: number
+			/** @description The leaderboard name of the player, or null when they set none */
+			name: string | null
+			score: number
+			/** @description Whether the row is the reader */
+			you: boolean
 		}
 	}
 	responses: never
