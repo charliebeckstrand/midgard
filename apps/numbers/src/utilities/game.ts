@@ -135,3 +135,53 @@ export function placeNumber(game: Game, index: number): Game {
 export function findGap(slots: Game['slots'], value: number): number {
 	return slots.findLastIndex((placed) => placed !== null && placed < value)
 }
+
+/**
+ * Chooses the slot of the CPU for `value`. The empty slots that can take the
+ * number are a run between two filled slots (or an end). The CPU puts the
+ * number in the run in proportion to its place in the open range of the run:
+ * with no number placed, 500 goes near the middle, and 990 goes near the end.
+ * Gives `-1` when no slot can take the number.
+ */
+export function chooseSlot(slots: Game['slots'], value: number): number {
+	const below = findGap(slots, value)
+
+	// The first filled slot after the run. Each number after it is larger.
+	const above = slots.findIndex((placed, index) => index > below && placed !== null)
+
+	const end = above === -1 ? SLOTS : above
+
+	const open = end - below - 1
+
+	if (open === 0) return -1
+
+	const low = slots[below] ?? 0
+
+	const high = slots[end] ?? MAX + 1
+
+	// `value` is between `low` and `high`, so the share is below 1 and the slot is in the run.
+	return below + 1 + Math.floor(((value - low) / (high - low)) * open)
+}
+
+/**
+ * Plays the CPU on the deck of `seed`, for the first `draws` numbers. The CPU
+ * places each number with {@link chooseSlot}. When a number has no slot, the
+ * CPU stops, and the game keeps that number as its bust.
+ */
+export function playCpu(seed: string, draws: number): Game {
+	let game = createGame(seed)
+
+	for (let draw = 0; draw < draws; draw++) {
+		game = drawNumber(game)
+
+		if (game.drawn === null) break
+
+		const slot = chooseSlot(game.slots, game.drawn)
+
+		if (slot === -1) break
+
+		game = placeNumber(game, slot)
+	}
+
+	return game
+}

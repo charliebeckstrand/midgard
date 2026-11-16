@@ -2,27 +2,52 @@
 
 import { type MouseEvent, useEffect, useEffectEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
+import { cn } from 'ui/core'
 import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
 import { useGame } from '../../hooks/use-game'
 import { useGameSetting } from '../../hooks/use-game-setting'
-import { countPlaced, type Game, SLOTS, type Status } from '../../utilities/game'
+import {
+	countPlaced,
+	type Game,
+	getStatus,
+	playCpu,
+	SLOTS,
+	type Status,
+} from '../../utilities/game'
 import { createSeed, isSeed } from '../../utilities/seed'
-import { GameBoardScore } from './game-board-score'
+import { GameBoardScore, getOutcome, type Outcome } from './game-board-score'
 import { GameBoardSlots } from './game-board-slots'
 import { GameBoardToolbar } from './game-board-toolbar'
 
-/** The text that a screen reader speaks for each step: the drawn number, a bust with its score, or a win. */
-function describeStatus(game: Game, status: Status, format: (value: number) => string): string {
-	if (status === 'won') return `All ${format(SLOTS)} placed`
+/** The text that a screen reader speaks for the result against the CPU. */
+const OUTCOMES: Record<Outcome, string> = { win: 'You win', loss: 'The CPU wins', tie: 'A tie' }
 
-	if (game.drawn === null) return ''
+/**
+ * The text that a screen reader speaks for each step: the drawn number, a bust
+ * with its score, or a win. Against the CPU, the end also gives the result,
+ * with both scores.
+ */
+function describeStatus(
+	game: Game,
+	status: Status,
+	cpu: Game | null,
+	format: (value: number) => string,
+): string {
+	if (game.drawn !== null && status === 'placing') return format(game.drawn)
 
-	if (status === 'bust') {
-		return `${format(game.drawn)} has no slot. Score ${format(countPlaced(game.slots))} of ${format(SLOTS)}`
-	}
+	if (status !== 'bust' && status !== 'won') return ''
 
-	return format(game.drawn)
+	const placed = countPlaced(game.slots)
+
+	const end =
+		status === 'bust' && game.drawn !== null
+			? `${format(game.drawn)} has no slot. Score ${format(placed)} of ${format(SLOTS)}`
+			: `All ${format(SLOTS)} placed`
+
+	if (!cpu) return end
+
+	return `${end}. ${OUTCOMES[getOutcome(game, cpu)]}, ${format(placed)} to ${format(countPlaced(cpu.slots))}`
 }
 
 /** Props for {@link GameBoard}. */
@@ -33,7 +58,10 @@ export type GameBoardProps = {
 
 /**
  * The game: the bar with the drawn number and its action at the top, the
- * column of slots, and the bar of the score at the bottom. The game fills the
+ * column of slots, and the bar of the score at the bottom. With Vs CPU on, a
+ * second column beside the slots holds the game of the CPU on the same deck,
+ * and the bar shows both scores, also with Show score off, because it names
+ * the columns and gives the result. The game fills the
  * body, and only the slots scroll, between the two bars. The bars do not cover
  * the slots, so a slot that gets the focus scrolls into view clear of them.
  * The box of the slots has the full width of the body, so a wheel at the side
@@ -59,7 +87,18 @@ export function GameBoard({ seed }: GameBoardProps) {
 
 	const [showScore] = useGameSetting('showScore')
 
+	const [vsCpu] = useGameSetting('vsCpu')
+
 	const { game, status, draw, place, reset } = useGame(seed, autoDraw)
+
+	const ended = status === 'bust' || status === 'won'
+
+	// The CPU places each number after the player places it, so the player
+	// chooses first. When the game of the player ends, the CPU plays the rest of
+	// its deck.
+	const cpu = vsCpu ? playCpu(game.seed, ended ? SLOTS : countPlaced(game.slots)) : null
+
+	const outcome = cpu && ended ? getOutcome(game, cpu) : null
 
 	const actionRef = useRef<HTMLButtonElement>(null)
 
@@ -67,7 +106,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 
 	const intl = useIntl()
 
-	useA11yAnnouncements(describeStatus(game, status, intl.formatNumber))
+	useA11yAnnouncements(describeStatus(game, status, cpu, intl.formatNumber))
 
 	/** Runs `action`, then gives the focus to the next control when the pressed control had it. */
 	const act = (event: MouseEvent<HTMLButtonElement>, action: () => void) => {
@@ -105,8 +144,6 @@ export function GameBoard({ seed }: GameBoardProps) {
 		return () => window.removeEventListener('popstate', follow)
 	}, [])
 
-	const ended = status === 'bust' || status === 'won'
-
 	return (
 		<div className="flex h-full flex-col print:h-auto">
 			<GameBoardToolbar
@@ -121,17 +158,20 @@ export function GameBoard({ seed }: GameBoardProps) {
 			{/* `relative` keeps each positioned element in the box, as in `StackedLayoutBody`. */}
 			<div className="relative min-h-0 flex-1 scroll-py-1 overflow-y-auto print:overflow-visible">
 				{/* The padding keeps the focus ring of the first and the last slot in the box. */}
-				<div className="mx-auto w-full max-w-md px-4 py-1">
+				<div className={cn('mx-auto w-full max-w-md px-4 py-1', cpu && 'grid grid-cols-2 gap-2')}>
 					<GameBoardSlots
 						ref={slotsRef}
 						game={game}
 						status={status}
+						label={cpu ? 'You' : undefined}
 						onPlace={(index, event) => act(event, () => place(index))}
 					/>
+
+					{cpu && <GameBoardSlots game={cpu} status={getStatus(cpu)} label="CPU" />}
 				</div>
 			</div>
 
-			{showScore && <GameBoardScore game={game} />}
+			{(showScore || cpu) && <GameBoardScore game={game} cpu={cpu} outcome={outcome} />}
 		</div>
 	)
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	buildDeck,
 	canPlace,
+	chooseSlot,
 	countPlaced,
 	createGame,
 	drawNumber,
@@ -10,6 +11,7 @@ import {
 	getStatus,
 	MAX,
 	placeNumber,
+	playCpu,
 	SLOTS,
 } from '../utilities/game'
 
@@ -164,5 +166,63 @@ describe('countPlaced', () => {
 	it('counts the filled slots', () => {
 		expect(countPlaced(createGame('test').slots)).toBe(0)
 		expect(countPlaced(makeGame({ 0: 5, 7: 400, 19: 990 }).slots)).toBe(3)
+	})
+})
+
+describe('chooseSlot', () => {
+	it('places a number in proportion to the open range', () => {
+		const { slots } = makeGame({})
+
+		expect(chooseSlot(slots, 1)).toBe(0)
+		expect(chooseSlot(slots, 500)).toBe(9)
+		expect(chooseSlot(slots, 501)).toBe(10)
+		expect(chooseSlot(slots, MAX)).toBe(SLOTS - 1)
+	})
+
+	it('places a number in the run between its two neighbors', () => {
+		// Slots 5 to 14 are open between 100 and 200, so 150 goes near the middle of the run.
+		const { slots } = makeGame({ 4: 100, 15: 200 })
+
+		expect(chooseSlot(slots, 150)).toBe(10)
+		expect(chooseSlot(slots, 101)).toBe(5)
+		expect(chooseSlot(slots, 199)).toBe(14)
+	})
+
+	it('gives a slot that can take the number', () => {
+		const { slots } = makeGame({ 2: 300, 3: 310, 10: 700 })
+
+		for (const value of [1, 299, 400, 699, 701, MAX]) {
+			expect(canPlace(slots, chooseSlot(slots, value), value)).toBe(true)
+		}
+	})
+
+	it('gives -1 when no slot can take the number', () => {
+		expect(chooseSlot(makeGame({ 2: 300, 3: 310 }).slots, 305)).toBe(-1)
+	})
+})
+
+describe('playCpu', () => {
+	it('plays the first draws of the deck of the seed', () => {
+		const cpu = playCpu('k3x9q2', 3)
+
+		expect(countPlaced(cpu.slots)).toBe(3)
+		expect(
+			cpu.slots.filter((placed) => placed !== null).toSorted((a, b) => (a ?? 0) - (b ?? 0)),
+		).toEqual(cpu.deck.slice(0, 3).toSorted((a, b) => a - b))
+		expect(getStatus(cpu)).toBe('ready')
+	})
+
+	it('gives the same game for the same seed', () => {
+		expect(playCpu('k3x9q2', SLOTS)).toEqual(playCpu('k3x9q2', SLOTS))
+	})
+
+	it('stops at a bust, and keeps the number', () => {
+		const cpu = playCpu('k3x9q2', SLOTS)
+
+		const status = getStatus(cpu)
+
+		expect(['bust', 'won']).toContain(status)
+
+		if (status === 'bust') expect(cpu.drawn).toBe(cpu.deck[countPlaced(cpu.slots)])
 	})
 })

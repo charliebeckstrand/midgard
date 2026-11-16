@@ -18,7 +18,7 @@ afterEach(() => {
 /** Renders `useGameSetting(name)` under the settings of a request. */
 function renderSetting(
 	name: keyof GameSettings,
-	settings: GameSettings = { autoDraw: false, showScore: true },
+	settings: GameSettings = { autoDraw: false, showScore: true, vsCpu: false },
 ) {
 	const wrapper = ({ children }: { children: ReactNode }) =>
 		h(GameSettingsProvider, { settings, children })
@@ -36,7 +36,8 @@ describe('useGameSetting', () => {
 		writeCookie(SETTINGS.showScore.cookie, 'off')
 
 		expect(
-			renderSetting('showScore', { autoDraw: false, showScore: false }).result.current[0],
+			renderSetting('showScore', { autoDraw: false, showScore: false, vsCpu: false }).result
+				.current[0],
 		).toBe(false)
 	})
 

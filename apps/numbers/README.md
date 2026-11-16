@@ -1,9 +1,9 @@
 # Numbers
 
-A number game for one player. A draw gives a number from 1 to 1000. Put each
-number in one of 20 slots, so that the slots go up from the top to the bottom.
-When no empty slot can take the number, the game ends. Put a number in each
-slot to win.
+A number game for one player, or for one player against the CPU. A draw gives
+a number from 1 to 1000. Put each number in one of 20 slots, so that the slots
+go up from the top to the bottom. When no empty slot can take the number, the
+game ends. Put a number in each slot to win.
 
 ```bash
 pnpm --filter numbers dev
@@ -80,14 +80,37 @@ The Game tab of the settings has two switches:
 | --- | --- | --- |
 | Auto-draw | Off | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button, and the action shows only as Reset after a bust or a win. |
 | Show score | On | The bar at the bottom shows the score. |
+| Vs CPU | Off | The CPU plays the same deck beside the player (see below). |
 
-Each setting is in a cookie (`numbers-auto-draw` and `numbers-show-score`,
-`src/utilities/settings.ts`). The page reads the cookies of the request, so
-the server renders the Draw button and the score bar as the settings of the
-reader give them, and the first paint is the final layout (CONVENTIONS
-§3.13). With Auto-draw on, the first number rolls in after the hydration. A
+Each setting is in a cookie (`numbers-auto-draw`, `numbers-show-score`, and
+`numbers-vs-cpu`, `src/utilities/settings.ts`). The page reads the cookies of
+the request, so the server renders the Draw button, the score bar, and the
+column of the CPU as the settings of the reader give them, and the first paint
+is the final layout (CONVENTIONS §3.13). With Auto-draw on, the first number rolls in after the hydration. A
 write also puts a copy in `localStorage`, and the `storage` event of the copy
 gives the change to the other tabs.
+
+## Vs CPU
+
+With Vs CPU on, a second column beside the slots holds the game of the CPU.
+The CPU plays the deck of the same seed, so it gets the same numbers in the
+same order. It places each number after the player places it, so the player
+always chooses first. When the game of the player ends, the CPU plays the rest
+of its deck. The higher count of filled slots wins, and the same count is a
+tie.
+
+The CPU puts each number in the run of empty slots that can take it, in
+proportion to the place of the number in the open range of the run
+(`chooseSlot` in `src/utilities/game.ts`). With no number placed, 500 goes near
+the middle of the column, and 990 goes near the end. Over 20,000 seeds, the CPU
+fills 9.8 slots on average. The game of the CPU comes from the seed and the
+count of the draws only (`playCpu`), so the page keeps no state for it, and
+the switch can come on in the middle of a run.
+
+The bar at the bottom has a score under each column. It shows also with Show
+score off, because it names the columns and gives the result. After the end,
+the score of the winner is green and reads "You win" or "CPU wins", and a tie
+makes both scores amber. A screen reader hears the result at the end.
 
 ## Deploy
 

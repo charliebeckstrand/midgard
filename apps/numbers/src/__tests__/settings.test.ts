@@ -19,12 +19,21 @@ describe('readSettings', () => {
 		const cookies: Record<string, string> = {
 			[SETTINGS.autoDraw.cookie]: 'on',
 			[SETTINGS.showScore.cookie]: 'off',
+			[SETTINGS.vsCpu.cookie]: 'on',
 		}
 
-		expect(readSettings((name) => cookies[name])).toEqual({ autoDraw: true, showScore: false })
+		expect(readSettings((name) => cookies[name])).toEqual({
+			autoDraw: true,
+			showScore: false,
+			vsCpu: true,
+		})
 	})
 
 	it('gives the defaults with no cookies', () => {
-		expect(readSettings(() => undefined)).toEqual({ autoDraw: false, showScore: true })
+		expect(readSettings(() => undefined)).toEqual({
+			autoDraw: false,
+			showScore: true,
+			vsCpu: false,
+		})
 	})
 })
