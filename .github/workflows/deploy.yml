@@ -24,6 +24,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       # Without a project ID, the action creates the app in the default project
       # of the account. Stop before that happens.
@@ -62,7 +64,7 @@ jobs:
           PROJECT_ID: ${{ vars.DIGITALOCEAN_PROJECT_ID }}
         run: |
           spec="$RUNNER_TEMP/app.yaml"
-          envsubst '${CLIENT_IP_SECRET}' < .do/app.yaml > "$spec"
+          envsubst "\${CLIENT_IP_SECRET}" < .do/app.yaml > "$spec"
 
           app=$(doctl apps create --spec "$spec" --upsert --update-sources \
             --project-id "$PROJECT_ID" --format ID --no-header)

@@ -1,0 +1,56 @@
+name: Workflow lint
+
+# actionlint and zizmor read the workflows and the local actions. actionlint
+# finds a wrong expression, an unknown key, a bad `needs`, and, through
+# shellcheck, a fault in a `run` script. zizmor finds a security fault: an
+# injection of untrusted text, a token with too many permissions, a credential
+# left on disk, or a dangerous trigger. The workflow runs only when a file in
+# `.github/` changes, because the two tools read nothing else. It is not a
+# required check.
+#
+# Each tool runs at a pinned version. The `# renovate:` comment above each
+# version lets Renovate update it (`customManagers:githubActionsVersions` in
+# renovate.json).
+on:
+  pull_request:
+    paths: ['.github/**']
+  push:
+    branches: [main]
+    paths: ['.github/**']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # The image holds actionlint and shellcheck.
+      - run: docker run --rm --volume "$PWD:/repo" --workdir /repo "rhysd/actionlint:$ACTIONLINT_VERSION" -color
+        env:
+          # renovate: datasource=docker depName=rhysd/actionlint
+          ACTIONLINT_VERSION: 1.7.12
+
+  zizmor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # `.github/zizmor.yml` holds the configuration. The token lets the online
+      # audits read the actions that the workflows use, for example to find an
+      # action version with a known advisory. It can only read.
+      - run: pipx run "zizmor==$ZIZMOR_VERSION" --format github .
+        env:
+          # renovate: datasource=pypi depName=zizmor
+          ZIZMOR_VERSION: 1.32.0
+          GH_TOKEN: ${{ github.token }}
