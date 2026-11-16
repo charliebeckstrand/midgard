@@ -7,4 +7,7 @@ import { createSkeleton, type SkeletonProps } from '../placeholder/placeholder-s
 export type SwitchSkeletonProps = SkeletonProps<NonNullable<SwitchVariants['size']>>
 
 /** A placeholder for a {@link Switch} while it loads. It is sized to the switch's size scale. */
-export const SwitchSkeleton = createSkeleton<ScaleStep<typeof scale>>(k.skeleton, 'SwitchSkeleton')
+export const SwitchSkeleton = createSkeleton<ScaleStep<typeof scale.switch>>(
+	k.skeleton,
+	'SwitchSkeleton',
+)

@@ -9,8 +9,7 @@ import type { ScaleStep } from '../../core/density/scale'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import type { choiceScale } from '../../recipes/kata/switch'
-import { k, type SwitchVariants } from '../../recipes/kata/switch'
+import { k, type SwitchVariants, type scale } from '../../recipes/kata/switch'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
@@ -51,7 +50,7 @@ export type SwitchChoiceProps<T extends string = string> = Pick<SwitchVariants, 
 	 * The density step. Omit it to take the step of the nearest density scope.
 	 * A step makes the switch a density scope.
 	 */
-	size?: ScaleStep<typeof choiceScale>
+	size?: ScaleStep<typeof scale.choice>
 	/**
 	 * Keeps the position. A click, a Space press, or an arrow key does not move
 	 * the thumb, and `onValueChange` does not fire. The group sets

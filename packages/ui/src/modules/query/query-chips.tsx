@@ -288,8 +288,6 @@ export function QueryChips({
 	))
 
 	if (readOnly) {
-		// `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the row
-		// sizes as the `<div>` of the editable bar does.
 		return (
 			<fieldset
 				data-slot="query-chips"
@@ -298,7 +296,7 @@ export function QueryChips({
 				data-density="slot"
 				data-readonly=""
 				aria-label={ariaLabel}
-				className={cn(k().base, 'min-w-auto', className)}
+				className={cn(k().base, className)}
 			>
 				{body}
 			</fieldset>

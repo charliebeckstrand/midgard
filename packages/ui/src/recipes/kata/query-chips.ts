@@ -32,6 +32,9 @@ export const k = defineKata({
 		dan.gap.touch.chips,
 		'[--touch-target-gap-y:--spacing(3)]',
 		dan.text.chip,
+		// The read-only row is a `<fieldset>`. `min-w-auto` replaces its min-content
+		// floor, so the row sizes as the `<div>` of the editable bar does.
+		'min-w-auto',
 	],
 	slots: {
 		// The chip is a Badge with no `size`, so it takes the step of the row. The

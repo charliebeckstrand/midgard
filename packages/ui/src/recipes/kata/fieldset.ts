@@ -6,7 +6,7 @@
  * error/warning/success color. The `base` and `field` slots are static, and
  * they thread the disabled state down through the group.
  */
-import { defineKata, mode } from '../../core/recipe'
+import { defineKata } from '../../core/recipe'
 import { dan, hannou, iro, narabi } from '../kiso'
 
 const { cursor, disabled } = hannou
@@ -17,13 +17,7 @@ export const k = defineKata({
 	base: [dan.space.fieldset.legend, ...disabled.base],
 	slots: {
 		legend: [dan.text.body, 'font-semibold', text.default, ...disabled.base],
-		field: [
-			...field,
-			...mode(
-				'data-disabled:border-zinc-950/20 data-disabled:cursor-not-allowed',
-				'dark:data-disabled:border-white/15',
-			),
-		],
+		field: [...field, 'data-disabled:cursor-not-allowed'],
 		// A `<label>` takes the press and passes it to its control, so it has the pointer and does not
 		// select its text. A `<span>` caption takes no press, so it has neither. The label of a
 		// read-only control shows the default cursor, because the press changes nothing. The control
