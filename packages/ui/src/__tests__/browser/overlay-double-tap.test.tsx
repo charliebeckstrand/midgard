@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { commands } from 'vitest/browser'
 import { Drawer, DrawerPanel } from '../../components/drawer'
 import { MULTI_TAP_DISTANCE, MULTI_TAP_WINDOW } from '../../hooks/use-touch-tap'
+import { __resetFingerLift } from '../../primitives/overlay/use-overlay-absorb'
 import { frames, renderUI, screen } from '../helpers'
 
 /**
@@ -177,6 +178,26 @@ describe('overlay: the second tap of a double tap (real browser)', () => {
 
 		// In the window, but too far from the first tap to be a double tap.
 		expect(tapAt(x, y + MULTI_TAP_DISTANCE * 2).defaultPrevented).toBe(false)
+
+		expect(onInside).toHaveBeenCalledTimes(1)
+	})
+
+	it('stops a tap in the window when the overlay knows no lift, as one that loads on the open', async () => {
+		const { onInside, x, y } = setup()
+
+		tapAt(x, y)
+
+		// The module of a lazy overlay loads after the lift of the tap that opens it.
+		// React commits the open after this script returns, so the overlay reads no lift.
+		__resetFingerLift()
+
+		await frames(2)
+
+		tapAt(x, y + MULTI_TAP_DISTANCE * 2, 0, 2)
+
+		expect(onInside).not.toHaveBeenCalled()
+
+		tapAt(x, y, MULTI_TAP_WINDOW + 1)
 
 		expect(onInside).toHaveBeenCalledTimes(1)
 	})

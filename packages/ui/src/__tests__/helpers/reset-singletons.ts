@@ -1,5 +1,6 @@
 import { afterEach } from 'vitest'
 import { __resetAnnouncer } from '../../core/announcer'
+import { __resetFingerLift } from '../../primitives/overlay/use-overlay-absorb'
 import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
 
 /**
@@ -18,7 +19,7 @@ import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
  * needs a measurement before it gains a seam. A proposed seam for the
  * media-query registries turned out to guard nothing: a registry drops itself
  * when its last subscriber unsubscribes, and cleanup unmounts every subscriber.
- * The three below are the ones with a mechanism rather than a suspicion. The
+ * The four below are the ones with a mechanism rather than a suspicion. The
  * counter in `use-scroll-lock` and the holds in `use-drag-cursor` balance on unmount,
  * the `document-listener` registries and the time-ago ticker drop themselves
  * like the media-query ones, and the PDF viewer's `sharedWorker` is bound once
@@ -36,6 +37,11 @@ export function installSingletonResets(): void {
 	// held set. The next file then starts inside that hold, and its own release
 	// never comes. An `afterEach`, for the same reason as the announcer.
 	afterEach(__resetTextSelectionHold)
+
+	// The overlay records the last lift of a finger on the page. A case that
+	// taps leaves its lift, and an overlay that the next case opens in the
+	// double-tap window can read it as the tap that opened it.
+	afterEach(__resetFingerLift)
 
 	// The PDF document cache holds each document that a case loads. A reset in
 	// the body of a case does not empty it: the unmount in `cleanup` withdraws the

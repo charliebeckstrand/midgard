@@ -11,15 +11,18 @@ export type OverlayAbsorb = {
 	onDoubleClickCapture: (event: MouseEvent<Element>) => void
 }
 
-/** Where and when a finger last lifted, on the clock of `event.timeStamp`. */
-type Lift = { x: number; y: number; at: number }
+/**
+ * Where and when the run starts, on the clock of `event.timeStamp`: the lift
+ * of a finger, or the open when no lift is known. An open has no `point`.
+ */
+type Start = { at: number; point: { x: number; y: number } | null }
 
-let lastLift: Lift | null = null
+let lastLift: Start | null = null
 
 function recordLift(event: globalThis.PointerEvent) {
 	if (event.pointerType !== 'touch' || !event.isPrimary) return
 
-	lastLift = { x: event.clientX, y: event.clientY, at: event.timeStamp }
+	lastLift = { at: event.timeStamp, point: { x: event.clientX, y: event.clientY } }
 }
 
 /**
@@ -37,16 +40,31 @@ function watchFingerLifts() {
 watchFingerLifts()
 
 /**
- * Whether a touch press continues the run of `lift`: it starts in
- * {@link MULTI_TAP_WINDOW} of that lift, and in {@link MULTI_TAP_DISTANCE} of
- * its point. `useTouchTap` joins two taps into a double tap with the same rule.
+ * Test-only: forgets the last lift, so the next case starts as a page where no
+ * finger has lifted since the module loaded.
+ *
+ * @internal
  */
-function continuesRun(event: PointerEvent<Element>, lift: Lift | null): boolean {
-	if (event.pointerType !== 'touch' || lift === null) return false
+export function __resetFingerLift(): void {
+	lastLift = null
+}
+
+/**
+ * Whether a touch press continues the run from `start`: it starts in
+ * {@link MULTI_TAP_WINDOW} of that start, and in {@link MULTI_TAP_DISTANCE} of
+ * its point. `useTouchTap` joins two taps into a double tap with the same rule.
+ * A start with no point lets a press anywhere continue the run.
+ */
+function continuesRun(event: PointerEvent<Element>, start: Start | null): boolean {
+	if (event.pointerType !== 'touch' || start === null) return false
+
+	if (event.timeStamp - start.at > MULTI_TAP_WINDOW) return false
+
+	const { point } = start
 
 	return (
-		event.timeStamp - lift.at <= MULTI_TAP_WINDOW &&
-		Math.hypot(event.clientX - lift.x, event.clientY - lift.y) <= MULTI_TAP_DISTANCE
+		point === null ||
+		Math.hypot(event.clientX - point.x, event.clientY - point.y) <= MULTI_TAP_DISTANCE
 	)
 }
 
@@ -70,6 +88,11 @@ function continuesRun(event: PointerEvent<Element>, lift: Lift | null): boolean 
  * the point of the first tap is a tap of its own, so it acts. A press after the
  * window acts. An overlay that a mouse, a pen, or a key opened stops nothing,
  * unless a finger lifted near the press in the window before the open.
+ *
+ * The lift comes from one listener that attaches when the module loads. An
+ * overlay whose module loads on the open, through `import()`, knows no lift.
+ * Its run then starts at the open, and each touch press in the window is the
+ * second tap.
  * Nothing waits. A pinch or a drag in the window makes no mouse events, so it
  * acts.
  *
@@ -78,9 +101,10 @@ function continuesRun(event: PointerEvent<Element>, lift: Lift | null): boolean 
  * @internal
  */
 export function useOverlayAbsorb(open: boolean): OverlayAbsorb {
-	// The last lift before the open. A lift in the overlay after the open is
-	// not the lift of the tap that opened it, so the run does not follow it.
-	const openingLiftRef = useRef<Lift | null>(null)
+	// The start of the run that opened the overlay. A lift in the overlay after
+	// the open is not the lift of the tap that opened it, so the run does not
+	// follow it.
+	const startRef = useRef<Start | null>(null)
 
 	// Whether the overlay stops the mouse events of the current press.
 	const stoppingRef = useRef(false)
@@ -88,7 +112,11 @@ export function useOverlayAbsorb(open: boolean): OverlayAbsorb {
 	useLayoutEffect(() => {
 		if (!open) return
 
-		openingLiftRef.current = lastLift
+		// The listener attaches when the module loads. An overlay whose module
+		// loads on the open, through `import()`, mounts after the lift of the
+		// tap that opened it, so no lift is known. The run then starts at the
+		// open, and a touch press anywhere in the window continues it.
+		startRef.current = lastLift ?? { at: performance.now(), point: null }
 
 		stoppingRef.current = false
 	}, [open])
@@ -106,7 +134,7 @@ export function useOverlayAbsorb(open: boolean): OverlayAbsorb {
 
 	return {
 		onPointerDownCapture: (event) => {
-			stoppingRef.current = continuesRun(event, openingLiftRef.current)
+			stoppingRef.current = continuesRun(event, startRef.current)
 		},
 		onMouseDownCapture: stop,
 		onClickCapture: stop,
