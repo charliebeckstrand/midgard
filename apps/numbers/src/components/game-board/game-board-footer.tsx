@@ -143,9 +143,9 @@ export type GameBoardFooterProps = {
  * A border at the top of the bar spans the width of the view, as the border
  * under the header does. The page box is the height of the visible area
  * (`h-dvh`), so the bottom of the box is above the toolbar of Safari and of
- * Chrome. The bar has 1rem of space on each side, as the bar of the number
- * has. The bottom padding is the inset of the home indicator when that is
- * larger.
+ * Chrome. The bar has 1rem of space at each side and 0.5rem above and below,
+ * as the bar of the number has. The bottom padding is the inset of the home
+ * indicator when that is larger.
  */
 export function GameBoardFooter({
 	game,
@@ -170,7 +170,7 @@ export function GameBoardFooter({
 			<Flex
 				align="center"
 				gap="sm"
-				className="mx-auto w-full max-w-md px-4 pt-4 pb-[max(--spacing(4),env(safe-area-inset-bottom))]"
+				className="mx-auto w-full max-w-md px-4 pt-2 pb-[max(--spacing(2),env(safe-area-inset-bottom))]"
 			>
 				<div className="min-w-0 flex-1">
 					{cpu ? (

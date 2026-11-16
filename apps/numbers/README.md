@@ -92,7 +92,8 @@ A bar at the bottom shows the score at its start: the count of the filled
 slots, of 20, while Show score is on. The score has no visible label, and only
 a screen reader hears "Score". The two bars have no paint, so the slots scroll
 between them on the page background. The drawn number and the score are flush
-with the slots. Each bar has 1rem of space on each side. A win or a
+with the slots. Each bar has 1rem of space at each side and 0.5rem
+above and below. A win or a
 tie tints the score cells, and gives them padding. A border spans the bottom of the top bar and the
 top of the bottom bar, and the slots have 1rem of space inside the borders. A share button at the right of the bar, apart from the
 score, opens a menu with Share seed and Share screenshot. With Show score off,
