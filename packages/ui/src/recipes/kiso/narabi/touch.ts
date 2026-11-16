@@ -4,7 +4,7 @@
  * host. A container that sets the gap on an axis to zero keeps each hit area
  * to its host on that axis, so two adjacent hosts do not overlap. The hit area
  * keeps the floor on the other axis. A pitch sets the gaps to zero as a flush
- * grid does, and on a coarse pointer it gives each cell the floor
+ * grid does. On a coarse pointer, it also gives each cell the floor
  * (`core/touch/pitch.ts`), so a finger does not hit the next cell.
  *
  * Layer: kiso · Concern: touch gap of touching hosts

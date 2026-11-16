@@ -46,7 +46,7 @@ const pickerGrid = [
 /**
  * The listbox of the days. `--ui-calendar-day` is the side of a day at each
  * step: the height of a button. On a coarse pointer, a day under the floor
- * keeps that side in the middle of its 44 px cell, and its hit area fills the
+ * keeps that side in the middle of its 44 px cell. Its hit area fills the
  * cell. A day at the floor or over it fills its column, as on a fine pointer.
  */
 const days = ['col-span-7 grid grid-cols-7', dan.size.calendar.day, touch.pitch]
@@ -77,9 +77,9 @@ export const k = defineKata(
 			},
 			weekday,
 			day: {
-				// On a coarse pointer, the day takes the width of its column less the
-				// part of the floor that its side does not fill: its side in a 44 px
-				// column, and the full column at the floor or over it.
+				// On a coarse pointer, the day is as wide as its column, less the part
+				// of the floor that its side does not fill. In a 44 px column, that is
+				// its side. At the floor or over it, the day fills the column.
 				base: [
 					'w-full ring-inset',
 					'pointer-coarse:w-[calc(100%-max(0px,2.75rem-var(--ui-calendar-day)))]',

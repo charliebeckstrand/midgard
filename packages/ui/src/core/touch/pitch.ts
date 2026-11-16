@@ -13,11 +13,10 @@
  * 44 px, which fills a cell of 44 px. A host at the floor or over it keeps its
  * own box as its hit area.
  *
- * The container gives each column the floor: the width of a grid with a fixed
- * width, such as 7 × 44 px for the days of a calendar, or
- * `minmax(2.75rem, 1fr)` for a grid with no fixed width. A host in a column
- * that is wider than 44 px fills its column, so no space between two hit
- * areas is dead.
+ * The container gives each column the floor. A grid with a fixed width gets it
+ * from that width, such as 7 × 44 px for the days of a calendar. A grid with
+ * no fixed width uses `minmax(2.75rem, 1fr)`. A host in a column that is wider
+ * than 44 px fills its column, so no space between two hit areas is dead.
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
