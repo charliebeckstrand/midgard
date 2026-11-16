@@ -12,7 +12,11 @@ name: Claude review
 on:
   pull_request:
     types: [opened, ready_for_review]
-  issue_comment:
+  # zizmor flags `issue_comment` as a dangerous trigger. The `if` of the job
+  # runs it only for an owner, a member, or a collaborator, and the job runs no
+  # code of the pull request: its tools read files and write comments. Thus the
+  # trigger stays (decision of 2026-11-16).
+  issue_comment: # zizmor: ignore[dangerous-triggers]
     types: [created]
 
 permissions:
