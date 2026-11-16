@@ -58,7 +58,7 @@ The design system has its own hub, [`packages/ui/REFERENCE.md`](packages/ui/REFE
 
 ## 5. Gateway
 
-Each app except elections and numbers gets auth and API responses from the bifrost gateway. The elections app and the numbers app are public, so they have no gateway, no `withAuth`, and no proxy. [`withAuth`](packages/auth/README.md) rewrites the same-origin `/auth/*` and `/api/*` paths to the gateway, and the typed `bifrost` client fetches from it. The types come from the OpenAPI spec that the gateway commits (`pnpm --filter auth openapi`). [`packages/auth/src/env.ts`](packages/auth/src/env.ts) reads the origin from `BIFROST_URL`, and no other file reads it.
+Each app except elections gets auth and API responses from the bifrost gateway. The elections app is public, so it has no gateway, no `withAuth`, and no proxy. Sign-in is optional in the numbers app, so its proxy gates no route. [`withAuth`](packages/auth/README.md) rewrites the same-origin `/auth/*` and `/api/*` paths to the gateway, and the typed `bifrost` client fetches from it. The types come from the OpenAPI spec that the gateway commits (`pnpm --filter auth openapi`). [`packages/auth/src/env.ts`](packages/auth/src/env.ts) reads the origin from `BIFROST_URL`, and no other file reads it.
 
 | Environment | `BIFROST_URL` |
 |---|---|

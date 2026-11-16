@@ -48,6 +48,7 @@ No root barrel; the `exports` map exposes each component path.
 | `src/structure/<name>/` | Static units that arrange other elements. |
 | `src/hooks/` | Shared hooks. |
 | `src/providers/<name>/` | Context providers. |
+| `src/server/` | Functions that run on a server and render no React (`ui/server`). |
 | `src/core/` | Recipe engine, `cn()`, density, and the other `ui/core` exports. |
 | `src/recipes/` | Layered variant system. |
 | `src/layouts/` | Page scaffolds and app shells. |
@@ -61,7 +62,7 @@ No root barrel; the `exports` map exposes each component path.
 ## 4. Further reading
 
 - [`REFERENCE.md`](REFERENCE.md): the package hub, with the surface map, the server/client boundary, and how to compose a new component.
-- [`docs/`](docs): curated, quick-glance surface indices (components, modules, structure, layouts, hooks, primitives, providers, recipes, core, utilities), audits, and plans.
+- [`docs/`](docs): curated, quick-glance surface indices (components, modules, structure, layouts, hooks, primitives, providers, server, recipes, core, utilities), audits, and plans.
 - [`src/recipes/README.md`](src/recipes/README.md): recipe-layer architecture.
 
 ---

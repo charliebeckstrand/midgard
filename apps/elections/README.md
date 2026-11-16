@@ -31,7 +31,10 @@ with no sign.
 Three national races give the whole picture of the midterms: the race of each
 state or district, and the seats of each party. One race of a state gives its
 counties. The cache keeps each parsed race for a minute while the count goes
-on, and for hours once the race is fully in and called.
+on, and for hours once the race is fully in and called. The cache of the races
+never serves a race after its time. Do not add a handler that serves an old
+race while it reads a new one, and do not make the time of a race longer
+(#3399, closed). The static shell of a page is a different cache (below).
 
 The page does not refresh its results: a reload or a navigation reads them
 again. A new render of the page reads the race of the Drawer again with it, so
@@ -110,7 +113,8 @@ finds each election and the states and races of each, and a pick opens the page 
 election with the Drawer on the state or the race. `src/utilities/race-search.ts`
 gives the rows of both. The row of a race names its two leaders. When the query
 finds a candidate that the row does not show, the row names that candidate
-after the leaders, so that each row shows why it matches.
+after the leaders, so that each row shows why it matches. An empty query shows
+no rows, so the search of an election opens on the search field alone.
 
 The layout of an election renders the view of each of its pages, and
 `src/components/election-views` shows the view of the current page. The other
@@ -122,9 +126,8 @@ then ends at the state.
 A pick of the office switch writes the address in place, with no navigation,
 as a move of the Drawer does (`src/hooks/use-address.ts`). The views follow
 the address of the browser at once, so a pick reads nothing from the server
-and does not wait for a request in flight, such as a refresh. The router takes
-the address too, so Back, a reload, and the next refresh go to the page of the
-pick.
+and does not wait for a request in flight. The router takes the address too, so
+Back and a reload go to the page of the pick.
 
 The overview of a state in the Drawer links to the page of the state.
 
@@ -139,9 +142,7 @@ The build prerenders each election of the registry and each of its offices.
 The static shell of a page holds the layout with its results. Cache Components
 serves that shell, and renders the next shell in the background once the
 shell is a minute old. Thus a visit does not wait for civicAPI. A link to an
-election prefetches the shell and its code before the click. A refresh
-renders the whole page on the server, so each refresh reads the cache of the
-races.
+election prefetches the shell and its code before the click.
 
 ## The design
 
@@ -155,6 +156,11 @@ A call is a solid green dot before the percent reporting. A race that is not
 called has an amber dot that pulses. Green is for a call, so no party takes it. A
 winner has a green circle check after the name.
 
+The party is the only badge in a candidate row. A status mark is an icon after
+the name. In a detail row, an incumbent has a grey `Landmark` icon, and its
+tooltip says "Incumbent". The tooltip opens on hover with a mouse and on a tap
+on a touch screen.
+
 The Democratic party is blue and the Republican party is red. A choice with no
 party, a nonpartisan race, and a write-in are zinc. Each other party is amber.
 The margin of a race is the lead of the leader over the runner-up, of any
@@ -164,10 +170,11 @@ A map shows the winner of each region. A race that is not called shows a soft
 tone of the color of the leader. A House delegation of two parties shows the
 stripes of both. A state with no race ignores a click.
 
-The reader can zoom and pan each map. Two fingers pinch and pan on a touch
-screen, and one finger scrolls the page, so a tap still picks a region. With a
-mouse, shift and the wheel zoom, and a drag pans. The keys `+`, `-`, and `0`
-zoom the map that has focus.
+The reader can zoom and pan each map with gestures and keys. A map has no zoom
+buttons. Two fingers pinch and pan on a touch screen. On a zoomed map, one
+finger pans the map. At the fit, one finger scrolls the page, so a tap still
+picks a region. With a mouse, shift and the wheel zoom, and a drag pans. The
+keys `+`, `-`, and `0` zoom the map that has focus.
 
 An election has no `loading.tsx`. Its layout renders the header, so the header
 stays while a page changes.

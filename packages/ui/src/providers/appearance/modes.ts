@@ -90,9 +90,10 @@ export const sidebarModes: { message: MessageDescriptor; value: SidebarMode }[] 
 ]
 
 /**
- * Surfaces preference an `<AppearanceProvider>` holds: `'glass'` paints each
- * Dialog, Drawer, and Sheet panel as glass, and `'solid'` paints each glass
- * surface flat.
+ * Surfaces preference an `<AppearanceProvider>` holds: `'solid'` (the
+ * default) paints each Dialog, Drawer, and Sheet panel flat, and `'glass'`
+ * paints it as glass. A Popover, a Menu, a Tooltip, and a field do not follow
+ * it.
  */
 export type SurfaceMode = 'glass' | 'solid'
 

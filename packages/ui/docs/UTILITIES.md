@@ -163,8 +163,8 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 
 | Export | Summary |
 |---|---|
-| `readCookie` | The value of a cookie in this page, or `undefined` with no such cookie. Import it from `utilities/cookie`. |
-| `writeCookie` | Writes a cookie for each path of the site, for a number of seconds, so a server can read it. The default life is one year, for a setting of the reader. It is `secure` on HTTPS. Import it from `utilities/cookie`. |
+| `readCookie` | The value of a cookie by name, or `undefined` with no such cookie. With no `cookies`, it reads the cookies of this page. A server gives the `Cookie` header of the request. Import it from `utilities/cookie`. An app imports it from `ui/core` ([`CORE.md`](CORE.md)). |
+| `writeCookie` | Writes a cookie for each path of the site, for a number of seconds, so a server can read it. The default life is one year, for a setting of the reader. It is `secure` on HTTPS. Import it from `utilities/cookie`. An app imports it from `ui/core`. |
 
 ## Measurement
 

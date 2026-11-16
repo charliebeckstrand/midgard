@@ -25,7 +25,7 @@ Each concern file opens with a `Layer: kiso · Concern: <concern>` docblock that
 | `ji/` (字)         | Typography: the fixed `size` scale. The stepped text size of a density-native component is a ramp in `dan.text`. A weight, a line height, and a font family are plain Tailwind classes. | `size` |
 | `narabi/` (並び)   | Sibling arrangement: field adjacency, icon slot, flex primitives, `fit`, the column of a panel with a capped height, `offcanvas`, the display of a part that shows in one offcanvas layout only, `nest`, the geometry of a tree that indents each level under a mark column, and `touch`, the zero touch gap of hosts that touch. | `field`, `item`, `flex`, `fit`, `offcanvas`, `nest`, `touch` |
 | `omote/` (面)      | Surface fills and chromes: the popover, glass, and panel chromes, the `rail` that scrolls on the inline axis, and the hidden `scrollbar`. | `bg`, `popover`, `glass`, `panel`, `backdrop`, `content`, `rail`, `scrollbar`, `checkerboard` |
-| `hannou/` (反応)   | Interaction feedback. `tint` holds the washes: `base`, `hover`, `before`, `filled`, `surface`, and `glass`. `active` is the wash of a roved row. `disabled.base` dims a disabled element, and `disabled.host` dims a box through the native control inside it. `turn` turns a disclosure chevron that carries `data-open`. | `disabled`, `busy`, `fg`, `cursor`, `tint`, `active`, `turn` |
+| `hannou/` (反応)   | Interaction feedback. `tint` holds the washes: `base`, `hover`, `before`, `filled`, `surface`, and `glass`. `active` is the wash of a roved row. `disabled.base` dims a disabled element, and `disabled.host` dims a box through the native control inside it. `disabled-host-boundary.test.ts` keeps each such dim in `hannou/disabled.ts`. `turn` turns a disclosure chevron that carries `data-open`. | `disabled`, `busy`, `fg`, `cursor`, `tint`, `active`, `turn` |
 | `sen/` (線)        | Borders, rings, dividers, focus indicators, the resize grip, and forced-colors safety nets. `ring.thumb` holds the rings of a native range thumb. | `tone`, `border`, `outline`, `ring`, `divider`, `focus`, `forced`, `grip`                                          |
 | `shaku/` (尺)      | Dimension scales for distinct surfaces. `icon.slot` holds the forms that size the icon children of a host. | `icon`, `panel`, `mark` |
 | `ugoki/` (動き)    | Motion: tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, Framer Motion enter/exit configs, the layout glide, and their reduced-motion copies. | `css`, `base`, `spring`, `mark`, `reveal`, `popover`, `overlay`, `collapse`, `glide`, `panel`, `still` |
@@ -50,6 +50,7 @@ A line of text in a form is one line of its text: it takes the text class of the
 - **Keys by part.** Name each key by the rules in [`../README.md`](../README.md#4-key-names). A ramp in `dan` nests under the unit that reads it, then the part or the side (`space.box.bottom`).
 - **Compose, don't fork.** A kata or a group that re-derives a token already in kiso is a defect. Fold it back into the source family.
 - **No sibling bundles.** A token does not join its sibling tokens, such as a `both` form next to `x` and `y`. A reader that needs two siblings spreads the two. A token that joins other tokens stays only when it names one concept that two readers or more share, such as `sen.ring.default`.
+- **Whole scales.** A scale in `dan` keeps each of its stops, also a stop that no kata reads now, so that the scale stays regular. #3617, which removed such stops, was closed for this reason.
 - **Literal palette classes.** Each chromatic class is a stock Tailwind palette class, written whole in `iro/palette.ts`, because the Tailwind scanner finds only whole class literals. Do not build a class name from parts. Do not add a layer of color roles in CSS variables, such as a `@theme` token or a `data-color` scope, and do not add a tone as an `@utility` (#2917).
 
 ## 6. Utility-array style
@@ -96,7 +97,7 @@ Cross-cutting fragments spread from sibling kiso (`...iro.text.default`, `...han
 'placeholder:text-zinc-500 dark:placeholder:text-zinc-400',
 ```
 
-The one exception is `iro/palette.ts`. Each entry there is the whole class string of one variant in one color, because a kata reads the entry as one value (§5). `mode-pair-boundary.test.ts` holds the rule.
+The one exception is `iro/palette.ts`. Each entry there is the whole class string of one variant in one color, because a kata reads the entry as one value (§5). `mode-pair-boundary.test.ts` holds the rule in kiso and in kumi.
 
 ---
 
