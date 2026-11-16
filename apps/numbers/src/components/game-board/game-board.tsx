@@ -6,47 +6,40 @@ import { type MouseEvent, useEffect, useEffectEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
+import { Columns } from 'ui/structure/columns'
 import { useGame } from '../../hooks/use-game'
 import { useGameSetting } from '../../hooks/use-game-setting'
 import { useRunRecorder } from '../../hooks/use-run-recorder'
-import { countPlaced, type Game, SLOTS, type Status } from '../../utilities/game'
-import { createSeed, isSeed } from '../../utilities/seed'
+import { countPlaced, getOutcome, getStatus, playCpu, SLOTS } from '../../utilities/game'
+import { createSeed, isSeed, runPath } from '../../utilities/seed'
+import { describeStatus } from './describe-status'
 import { GameBoardScore } from './game-board-score'
 import { GameBoardSlots } from './game-board-slots'
 import { GameBoardToolbar } from './game-board-toolbar'
-
-/** The text that a screen reader speaks for each step: the drawn number, a bust with its score, or a win. */
-function describeStatus(game: Game, status: Status, format: (value: number) => string): string {
-	if (status === 'won') return `All ${format(SLOTS)} placed`
-
-	if (game.drawn === null) return ''
-
-	if (status === 'bust') {
-		return `${format(game.drawn)} has no slot. Score ${format(countPlaced(game.slots))} of ${format(SLOTS)}`
-	}
-
-	return format(game.drawn)
-}
 
 /** Props for {@link GameBoard}. */
 export type GameBoardProps = {
 	/** The seed of the address, which the run of the page starts from. */
 	seed: string
+	/** Plays against the CPU: the page of a `/vs` address. */
+	vsCpu?: boolean
 	/** The signed-in user, whose stats count each finished run, or none. */
 	user?: User
 }
 
 /**
  * The game: the bar with the drawn number and its action at the top, the
- * column of slots, and the bar of the score at the bottom. The game fills the
- * body, and only the slots scroll, between the two bars. The bars do not cover
+ * column of slots, and the bar of the score at the bottom. Against the CPU, a
+ * second column beside the slots holds the game of the CPU on the same deck,
+ * and the bar shows both scores, also with Show score off, because it names
+ * the columns and gives the result. The game fills the body, and only the slots scroll, between the two bars. The bars do not cover
  * the slots, so a slot that gets the focus scrolls into view clear of them.
  * The box of the slots has the full width of the body, so a wheel at the side
  * of the column scrolls it too.
  *
- * A Reset starts the run of a new seed in place, and adds the address of the
- * seed to the history, so the reader can send the run. A link, Back, and
- * Forward go to the run of the seed of the address, from its start.
+ * A Reset starts the run of a new seed in place, in the same mode, and adds the
+ * address of the seed to the history, so the reader can send the run. A link,
+ * Back, and Forward go to the run of the seed of the address, from its start.
  *
  * @remarks
  * An action can turn off the control that the reader pressed: Draw is off
@@ -59,14 +52,23 @@ export type GameBoardProps = {
  * the pressed control. A key press (`detail` 0) scrolls the next control into
  * view.
  */
-export function GameBoard({ seed, user }: GameBoardProps) {
+export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 	const [autoDraw] = useGameSetting('autoDraw')
 
 	const [showScore] = useGameSetting('showScore')
 
-	const recordRun = useRunRecorder(user, 'solo')
+	const recordRun = useRunRecorder(user, vsCpu ? 'vsCpu' : 'solo')
 
 	const { game, status, draw, place, reset } = useGame(seed, autoDraw, recordRun)
+
+	const ended = status === 'bust' || status === 'won'
+
+	// The CPU places each number after the player places it, so the player
+	// chooses first. When the game of the player ends, the CPU plays the rest of
+	// its deck.
+	const cpu = vsCpu ? playCpu(game.seed, ended ? SLOTS : countPlaced(game.slots)) : null
+
+	const outcome = cpu && ended ? getOutcome(game, cpu) : null
 
 	const actionRef = useRef<HTMLButtonElement>(null)
 
@@ -74,7 +76,7 @@ export function GameBoard({ seed, user }: GameBoardProps) {
 
 	const intl = useIntl()
 
-	useA11yAnnouncements(describeStatus(game, status, intl.formatNumber))
+	useA11yAnnouncements(describeStatus(game, status, cpu, intl.formatNumber))
 
 	/** Runs `action`, then gives the focus to the next control when the pressed control had it. */
 	const act = (event: MouseEvent<HTMLButtonElement>, action: () => void) => {
@@ -94,11 +96,11 @@ export function GameBoard({ seed, user }: GameBoardProps) {
 	const restart = () => {
 		// A bust or a win counted when it ended. A run that a Reset ends after its
 		// first placement counts with its score, so a bad run cannot be skipped.
-		if (status !== 'bust' && status !== 'won' && countPlaced(game.slots) > 0) recordRun(game)
+		if (!ended && countPlaced(game.slots) > 0) recordRun(game)
 
 		const next = createSeed()
 
-		window.history.pushState(null, '', `/${next}`)
+		window.history.pushState(null, '', runPath(next, vsCpu))
 
 		reset(next)
 	}
@@ -115,9 +117,8 @@ export function GameBoard({ seed, user }: GameBoardProps) {
 	// The effect runs at each change of the address. Cache Components holds a
 	// route that the reader leaves, and shows it again on a return. The effect
 	// also runs at each show, so a return to a held route starts its run again.
-	useEffect(() => follow(pathname.slice(1)), [pathname])
-
-	const ended = status === 'bust' || status === 'won'
+	// The seed is the last segment, also of a `/vs` address.
+	useEffect(() => follow(pathname.split('/').at(-1) ?? ''), [pathname])
 
 	return (
 		<div className="flex h-full flex-col print:h-auto">
@@ -133,17 +134,20 @@ export function GameBoard({ seed, user }: GameBoardProps) {
 			{/* `relative` keeps each positioned element in the box, as in `StackedLayoutBody`. */}
 			<div className="relative min-h-0 flex-1 scroll-py-1 overflow-y-auto print:overflow-visible">
 				{/* The padding keeps the focus ring of the first and the last slot in the box. */}
-				<div className="mx-auto w-full max-w-md px-4 py-1">
+				<Columns columns={cpu ? 2 : 1} gap="sm" className="mx-auto w-full max-w-md px-4 py-1">
 					<GameBoardSlots
 						ref={slotsRef}
 						game={game}
 						status={status}
+						label={cpu ? 'You' : undefined}
 						onPlace={(index, event) => act(event, () => place(index))}
 					/>
-				</div>
+
+					{cpu && <GameBoardSlots game={cpu} status={getStatus(cpu)} label="CPU" />}
+				</Columns>
 			</div>
 
-			{showScore && <GameBoardScore game={game} />}
+			{(showScore || cpu) && <GameBoardScore game={game} cpu={cpu} outcome={outcome} />}
 		</div>
 	)
 }

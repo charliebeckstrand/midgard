@@ -1,14 +1,14 @@
 'use client'
 
 import type { User } from 'auth'
-import { CalendarDays, ChartColumn, House, LogIn, Menu as MenuIcon } from 'lucide-react'
+import { Bot, CalendarDays, ChartColumn, House, LogIn, Menu as MenuIcon } from 'lucide-react'
 import { useState } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
 import { Button } from 'ui/button'
 import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
-import { dailySeed } from '../../utilities/seed'
+import { dailySeed, VS_SEGMENT } from '../../utilities/seed'
 import { StatsDialog } from '../stats-dialog'
 
 /**
@@ -39,9 +39,10 @@ export type NumbersMenuProps = {
 /**
  * The menu at the right of the header. Home starts the run of a new seed, and
  * Daily puzzle opens the run of the seed of today, which each reader gets on the
- * same date. Stats opens the stats of the reader. Under them, a reader with no
- * session gets Sign in, and a signed-in reader gets Verify email (until the
- * email is verified) and Sign out.
+ * same date. Vs CPU starts the run of a new seed against the CPU, and Stats
+ * opens the stats of the reader. Under them, a reader with no session gets
+ * Sign in, and a signed-in reader gets Verify email (until the email is
+ * verified) and Sign out.
  */
 export function NumbersMenu({ user }: NumbersMenuProps) {
 	const [statsOpen, setStatsOpen] = useState(false)
@@ -62,6 +63,11 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 					</MenuItem>
 
 					<DailyPuzzleItem />
+
+					<MenuItem href={`/${VS_SEGMENT}`}>
+						<Icon icon={<Bot />} />
+						<MenuLabel>Vs CPU</MenuLabel>
+					</MenuItem>
 
 					<MenuItem onAction={() => setStatsOpen(true)}>
 						<Icon icon={<ChartColumn />} />

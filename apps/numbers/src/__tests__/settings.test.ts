@@ -21,10 +21,16 @@ describe('readSettings', () => {
 			[SETTINGS.showScore.cookie]: 'off',
 		}
 
-		expect(readSettings((name) => cookies[name])).toEqual({ autoDraw: true, showScore: false })
+		expect(readSettings((name) => cookies[name])).toEqual({
+			autoDraw: true,
+			showScore: false,
+		})
 	})
 
 	it('gives the defaults with no cookies', () => {
-		expect(readSettings(() => undefined)).toEqual({ autoDraw: false, showScore: true })
+		expect(readSettings(() => undefined)).toEqual({
+			autoDraw: false,
+			showScore: true,
+		})
 	})
 })

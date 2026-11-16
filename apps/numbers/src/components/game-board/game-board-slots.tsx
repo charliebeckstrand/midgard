@@ -12,10 +12,12 @@ import { canPlace, findGap, type Game, type Status } from '../../utilities/game'
 export type GameBoardSlotsProps = {
 	game: Game
 	status: Status
-	/** Puts the drawn number in the slot at `index`. */
-	onPlace: (index: number, event: MouseEvent<HTMLButtonElement>) => void
+	/** Puts the drawn number in the slot at `index`. The column of the CPU has none. */
+	onPlace?: (index: number, event: MouseEvent<HTMLButtonElement>) => void
+	/** The name of the column, which a screen reader speaks, when two columns show. */
+	label?: string
 	/** The ref of the column. */
-	ref: Ref<HTMLDivElement>
+	ref?: Ref<HTMLDivElement>
 }
 
 /** The color of a slot: green when it holds a number, amber when it can take the drawn number, and the default else. */
@@ -50,10 +52,11 @@ function GameBoardGap({ value }: { value: number }) {
  * The column of the slots, in ascending order from the top. An empty slot
  * shows its position, and a filled slot shows its number in a soft green. Only
  * a slot that can take the drawn number is on, with an amber outline, and a
- * filled slot stays off. After a bust, the
- * gap mark shows between the two numbers that the drawn number goes between.
+ * filled slot stays off. After a bust, the gap mark shows between the two
+ * numbers that the drawn number goes between. The column of the CPU has no
+ * drawn number that waits, so each of its slots stays off.
  */
-export function GameBoardSlots({ game, status, onPlace, ref }: GameBoardSlotsProps) {
+export function GameBoardSlots({ game, status, onPlace, label, ref }: GameBoardSlotsProps) {
 	const intl = useIntl()
 
 	const { slots, drawn } = game
@@ -64,7 +67,7 @@ export function GameBoardSlots({ game, status, onPlace, ref }: GameBoardSlotsPro
 	const gap = bust ? findGap(slots, drawn) : null
 
 	return (
-		<Stack ref={ref} gap="sm">
+		<Stack ref={ref} gap="sm" role={label ? 'group' : undefined} aria-label={label}>
 			{bust && gap === -1 ? <GameBoardGap value={drawn} /> : null}
 
 			{slots.map((placed, index) => {
@@ -85,7 +88,7 @@ export function GameBoardSlots({ game, status, onPlace, ref }: GameBoardSlotsPro
 									: `Slot ${position}, ${intl.formatNumber(placed)}`
 							}
 							className="w-full tabular-nums"
-							onClick={(event) => onPlace(index, event)}
+							onClick={(event) => onPlace?.(index, event)}
 						>
 							{placed === null ? position : intl.formatNumber(placed)}
 						</Button>
