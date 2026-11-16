@@ -195,8 +195,8 @@ services:
         scope: BUILD_TIME
         value: elections
 
-  # The numbers app is public. It has no sign-in, does not call the gateway,
-  # and reads no data. `/` sends the reader to the address of a new seed.
+  # Sign-in is optional in the numbers app, and no page needs a session. `/`
+  # sends the reader to the address of a new seed.
   - name: numbers
     github:
       repo: charliebeckstrand/midgard
@@ -226,6 +226,15 @@ services:
       - key: APP
         scope: BUILD_TIME
         value: numbers
+      # The same reason as for admin.
+      - key: BIFROST_URL
+        scope: RUN_AND_BUILD_TIME
+        value: https://auth.ivoryimage.dev
+      # The same reason as for admin.
+      - key: CLIENT_IP_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: ${CLIENT_IP_SECRET}
 
   # The docs site of `ui`. The build writes each page to `<path>/index.html`,
   # and in each other language to `<path>/index.<locale>.html`, such as

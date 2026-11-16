@@ -1,16 +1,16 @@
 # Numbers
 
-A number game for one player. A draw gives a number from 1 to 1000. Put each
-number in one of 20 slots, so that the slots go up from the top to the bottom.
-When no empty slot can take the number, the game ends. Put a number in each
-slot to win.
+A number game for one player, or for one player against the CPU. A draw gives
+a number from 1 to 1000. Put each number in one of 20 slots, so that the slots
+go up from the top to the bottom. When no empty slot can take the number, the
+game ends. Put a number in each slot to win.
 
 ```bash
 pnpm --filter numbers dev
 ```
 
-The app runs on port 3004. It is public: it has no sign-in, and it has no
-server data. The game runs in the browser.
+The app runs on port 3004. The game runs in the browser, and it needs no
+session. Sign-in is optional (see [Sign-in](#sign-in)).
 
 ```bash
 pnpm --filter numbers test
@@ -39,11 +39,21 @@ partial Fisher-Yates shuffle takes the deck.
 | --- | --- |
 | `/` | `proxy.ts` sends the reader to the address of a new seed (`307`) |
 | `/k3x9q2` | The run of the seed |
+| `/20261115` | The daily puzzle of a date: the seed is the date as `YYYYMMDD` |
+| `/vs` | `proxy.ts` sends the reader to the address of a new seed against the CPU (`307`) |
+| `/vs/k3x9q2` | The run of the seed against the CPU (see [Vs CPU](#vs-cpu)) |
 
-A Reset starts the run of a new seed in place, and adds its address to the
-history. Back and Forward start the run of the seed of the address again,
-from its start. Share seed in the menu of the bar copies the address of the run.
-Share screenshot in the menu draws the page, as the screen shows it, to a PNG
+A Reset starts the run of a new seed in place, in the same mode, and adds its
+address to the history. A link, Back, and Forward start the run of the seed of
+the address again, from its start.
+
+The daily puzzle of a day is the run of the seed of its date (`dailySeed`), in
+the time zone of the reader, so each reader gets the same numbers on the same
+date. The server cannot know the date of the reader, so the link to the daily
+puzzle renders only in the open menu.
+
+Share seed in the menu of the bar copies the address of the run. Share
+screenshot in the menu draws the page, as the screen shows it, to a PNG
 (`rasterizeElement` of `ui/core`, `src/utilities/screenshot.ts`). It gives the
 image to the share sheet of the device, or saves it where the browser cannot
 share a file.
@@ -53,12 +63,13 @@ place, and Reset.
 
 ## The page
 
-The header shows the name of the app and the settings. A segment in the
-settings switches two tabs: "UI" has the appearance pickers of `ui`, and
-"Game" has the settings of the game (see below). A bar under the header
-holds the drawn number, the action, and a menu with Reset and Share seed.
-Reset in the menu starts a new seed at each step. The number rolls to each new
-number through the `Odometer` of `ui`.
+The header shows the name of the app, the settings, and a menu with Home (a
+new seed), Daily puzzle, Vs CPU (a new seed against the CPU), and Sign in or
+Sign out. A segment in the settings switches two tabs: "UI" has the appearance
+pickers of `ui`, and "Game" has the settings of the game (see below). A bar
+under the header holds the drawn number, the action, and a menu with Reset,
+Share seed, and Share screenshot. Reset in the menu starts a new seed at each
+step. The number rolls to each new number through the `Odometer` of `ui`.
 
 The 20 slots are buttons. Only a slot that can take the drawn number is on,
 with an amber outline. A filled slot shows its number in a soft green, and it
@@ -93,8 +104,46 @@ reader give them, and the first paint is the final layout (CONVENTIONS
 write also puts a copy in `localStorage`, and the `storage` event of the copy
 gives the change to the other tabs.
 
+## Vs CPU
+
+Vs CPU in the menu of the header opens `/vs`, which starts the run of a new
+seed against the CPU at `/vs/<seed>`. A second column beside the slots holds
+the game of the CPU. The server renders the two columns, so the first paint is
+the final layout. The CPU plays the deck of the same seed, so it gets the same numbers in the
+same order. It places each number after the player places it, so the player
+always chooses first. When the game of the player ends, the CPU plays the rest
+of its deck. The higher count of filled slots wins, and the same count is a
+tie.
+
+The CPU puts each number in the run of empty slots that can take it, in
+proportion to the place of the number in the open range of the run
+(`chooseSlot` in `src/utilities/game.ts`). With no number placed, 500 goes near
+the middle of the column, and 990 goes near the end. Over 20,000 seeds, the CPU
+fills 9.8 slots on average. The game of the CPU comes from the seed and the
+count of the draws only (`playCpu`), so the page keeps no state for it.
+
+The bar at the bottom has a score under each column. It shows also with Show
+score off, because it names the columns and gives the result. After the end,
+the score of the winner is green and reads "You win" or "CPU wins", and a tie
+makes both scores amber. A screen reader hears the result at the end.
+
+## Sign-in
+
+Sign-in is optional, and no page needs a session. The app takes the same parts
+as Places: `withAuth` with `gatewayApi` sends `/auth/*` and `/api/*` to the
+gateway, and the shared pages of `shared/auth` are the sign-in, register, and
+password pages (`app/(guest)`) and `/verify-email`. The proxy gates no route.
+It sends `/` and `/vs` to a new seed, and it gives the address of the browser
+to an auth or API request (`forwardClientIp`).
+
+The page of a run reads the session, so the first paint shows the menu items of
+the reader. A failure of the gateway shows the reader as signed out, and the
+run still plays. After a sign-in, the shared page goes to `/`, which starts a
+new seed. The contract with the gateway is in [asgard
+`.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md).
+
 ## Deploy
 
 Each push to `main` deploys the app to `numbers.ivoryimage.dev`, through the
-`numbers` component of [`.do/app.yaml`](../../.do/app.yaml). The app is
-public: it has no sign-in, and it reads no data of a reader.
+`numbers` component of [`.do/app.yaml`](../../.do/app.yaml). The component has
+`BIFROST_URL` and `CLIENT_IP_SECRET`, as Places has.

@@ -1,0 +1,18 @@
+import { VerifyEmailPage } from 'shared/auth'
+
+export { verifyEmailMetadata as metadata } from 'shared/auth'
+
+/**
+ * Page that the verification link opens. The link gives the token in `?token=`.
+ *
+ * @remarks
+ * The page is not in the guest layout, so it also opens with a session. The root
+ * layout stops the page scroll, so this page scrolls on its own.
+ */
+export default function VerifyEmail() {
+	return (
+		<div className="h-full overflow-y-auto">
+			<VerifyEmailPage />
+		</div>
+	)
+}
