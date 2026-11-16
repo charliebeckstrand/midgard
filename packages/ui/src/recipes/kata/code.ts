@@ -16,7 +16,13 @@ const { mark } = shaku
 const { rail } = omote
 const { flex } = narabi
 
-const { bg } = omote
+/**
+ * The code-block canvas. It is the background of the Shiki theme of the block,
+ * which the block writes to `--code-canvas`. With no value there, it is
+ * `#0d1117`, the background of the default theme `github-dark-default`. It
+ * does not change with the color mode.
+ */
+const canvas = 'bg-(--code-canvas,#0d1117)'
 
 /**
  * The text of the block code: the text ramp of the inline mark, `text-sm` at
@@ -34,7 +40,7 @@ export const k = defineKata({
 		block: {
 			// The frame has no padding. The padding is in the scroll box, so a swipe
 			// on the padding scrolls the code too.
-			base: ['overflow-hidden flex items-start', rounded.lg, bg.code],
+			base: ['overflow-hidden flex items-start', rounded.lg, canvas],
 			slots: {
 				// The padding of an alert, `p-4` at `md`, on the four sides. The padding on
 				// the side of the copy button is also the gap to it. While a line
@@ -52,8 +58,7 @@ export const k = defineKata({
 						// the padding of the block. At `md` the sm button (26px) overhangs the
 						// 22px `text-sm` line by 2px on each side. Thus the row stays one line
 						// tall, the glyph centers on the first code line, and a block of one line
-						// is vertically centered. The close button of an alert uses the same
-						// line box.
+						// is vertically centered.
 						/** The line box of the copy button, one code line tall. */
 						line: [flex.row, 'h-lh box-content', dan.space.code.copy, text],
 						// The block picks `dark` or `light` from the background of its theme. The

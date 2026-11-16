@@ -114,10 +114,9 @@ export function Button({
 	// can still override.
 	const sharedProps = {
 		'data-slot': slot,
-		// Always written, the recipe default included: the children that size
-		// themselves in a button (LoadingSpinner, LoadingDots, Kbd) select a
-		// parent with `data-variant`, which survives a wrapper that rewrites
-		// `data-slot`.
+		// Always written, the recipe default included: a Kbd child sizes itself in
+		// a button, and its recipe selects a parent with `data-variant`, which
+		// survives a wrapper that rewrites `data-slot`.
 		'data-variant': variant ?? 'solid',
 		'data-density': size,
 		'data-has-prefix': !!prefix || undefined,

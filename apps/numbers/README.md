@@ -52,7 +52,11 @@ the time zone of the reader, so each reader gets the same numbers on the same
 date. The server cannot know the date of the reader, so the link to the daily
 puzzle renders only in the open menu.
 
-Share seed in the menu of the bar copies the address of the run.
+Share seed in the menu of the bar copies the address of the run. Share
+screenshot in the menu draws the page, as the screen shows it, to a PNG
+(`rasterizeElement` of `ui/core`, `src/utilities/screenshot.ts`). It gives the
+image to the share sheet of the device, or saves it where the browser cannot
+share a file.
 
 `src/hooks/use-game.ts` holds the state of one game and its actions: Draw,
 place, and Reset.
@@ -60,11 +64,12 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Home (a
-new seed), Daily puzzle, and Vs CPU (a new seed against the CPU). A segment in the settings switches two tabs: "UI" has the appearance pickers of `ui`, and
-"Game" has the settings of the game (see below). A bar under the header
-holds the drawn number, the action, and a menu with Reset and Share seed.
-Reset in the menu starts a new seed at each step. The number rolls to each new
-number through the `Odometer` of `ui`.
+new seed), Daily puzzle, and Vs CPU (a new seed against the CPU). A segment
+in the settings switches two tabs: "UI" has the appearance pickers of `ui`,
+and "Game" has the settings of the game (see below). A bar under the header
+holds the drawn number, the action, and a menu with Reset, Share seed, and
+Share screenshot. Reset in the menu starts a new seed at each step. The number
+rolls to each new number through the `Odometer` of `ui`.
 
 The 20 slots are buttons. Only a slot that can take the drawn number is on,
 with an amber outline. A filled slot shows its number in a soft green, and it

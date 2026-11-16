@@ -41,9 +41,8 @@ export const k = defineKata(
 			dan.space.button.base,
 			dan.radius.button,
 			dan.space.button.label,
-			// A LoadingSpinner, LoadingDots, or Kbd child sizes itself in a button: its
-			// own recipe selects a parent with `data-variant`, which Button always
-			// writes. See `kata/loading.ts` and `kata/kbd.ts`.
+			// A Kbd child sizes itself in a button: its own recipe selects a parent with
+			// `data-variant`, which Button always writes. See `kata/kbd.ts`.
 		],
 		// A solid or a soft button has only its fill as an edge. Forced colors
 		// remove the fill, so the button takes the outline of a surface.

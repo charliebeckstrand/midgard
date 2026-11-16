@@ -171,16 +171,20 @@ export const k = defineKata(
 	{ skeleton: kokkaku.switch },
 )
 
-/** The size scale of {@link Switch}: the steps of its track and thumb. */
-export const scale = defineScale(dan.size.row, dan.size.switch.width, dan.size.switch.thumb)
-
-/** The size scale of {@link SwitchChoice}: the steps of its track, its thumb, and its labels. */
-export const choiceScale = defineScale(dan.size.row, dan.size.switch.choice, dan.size.switch.thumb)
+/**
+ * The size scales. `switch` is the scale of {@link Switch}: the steps of its
+ * track and thumb. `choice` is the scale of {@link SwitchChoice}: the steps of
+ * its wider track and its thumb.
+ */
+export const scale = {
+	switch: defineScale(dan.size.row, dan.size.switch.width, dan.size.switch.thumb),
+	choice: defineScale(dan.size.row, dan.size.switch.choice, dan.size.switch.thumb),
+} as const
 
 /** Recipe variant props for {@link Switch}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
 export type SwitchVariants = Omit<VariantProps<typeof k>, 'color'> & {
 	/** The color of the track when the switch is on. @defaultValue 'zinc' */
 	color?: VariantProps<typeof k>['color']
 	/** The density step. Omit it to take the step of the nearest density scope. */
-	size?: ScaleStep<typeof scale>
+	size?: ScaleStep<typeof scale.switch>
 }

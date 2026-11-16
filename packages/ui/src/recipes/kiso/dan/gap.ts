@@ -32,7 +32,7 @@ const scale = {
 	xl: 'density-gap-[3,4.5,6,7.5,9]',
 } as const satisfies Record<Ma, string>
 
-/** The inline gap (`column-gap`) at each stop of the gap scale. */
+/** The inline gap (`column-gap`) at each stop of the gap scale above `0`. */
 const scaleX = {
 	xs: 'density-gap-x-[0.5,0.75,1,1.25,1.5]',
 	sm: 'density-gap-x-[1,1.5,2,2.5,3]',
@@ -41,7 +41,7 @@ const scaleX = {
 	xl: 'density-gap-x-[3,4.5,6,7.5,9]',
 } as const
 
-/** The block gap (`row-gap`) at each stop of the gap scale. */
+/** The block gap (`row-gap`) at each stop of the gap scale above `0`. */
 const scaleY = {
 	xs: 'density-gap-y-[0.5,0.75,1,1.25,1.5]',
 	sm: 'density-gap-y-[1,1.5,2,2.5,3]',
@@ -52,8 +52,8 @@ const scaleY = {
 
 /**
  * The gap that a hit area (`TouchTarget`) can fill between two hosts in a row,
- * at each stop of the gap scale. A row of hosts writes it beside the gap of the
- * same stop, so the hit areas meet and do not overlap at each step.
+ * at each stop of the gap scale above `0`. A row of hosts writes it beside the
+ * gap of the same stop, so the hit areas meet and do not overlap at each step.
  */
 const touchX = {
 	xs: 'density-set-[0.5,0.75,1,1.25,1.5]/[--touch-target-gap-x]',
@@ -83,7 +83,7 @@ const narrow = scale.xs
 
 export const gap = {
 	scale,
-	/** The inline gap at each stop of `scale`. */
+	/** The inline gap at each stop of `scale` above `0`. */
 	x: scaleX,
 	/**
 	 * The gap of a tree row, after its chevron: the `sm` stop of `scale`, as the
@@ -91,12 +91,12 @@ export const gap = {
 	 */
 	tree: 'density-set-[1,1.5,2,2.5,3]/[--nest-gap]',
 	breadcrumb,
-	/** The block gap at each stop of `scale`. */
+	/** The block gap at each stop of `scale` above `0`. */
 	y: scaleY,
 	touch: {
-		/** The touch gap in a row at each stop of `scale`. */
+		/** The touch gap in a row at each stop of `scale` above `0`. */
 		x: touchX,
-		/** The touch gap in a stack at each stop of `scale`. */
+		/** The touch gap in a stack at each stop of `scale` above `0`. */
 		y: touchY,
 		/**
 		 * The touch gaps of the tag row of a tag input. The row is in the prefix

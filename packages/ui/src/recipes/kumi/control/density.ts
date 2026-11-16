@@ -12,12 +12,11 @@
  * plus twice `py`, the height of a button at the same step
  * (`core/density/geometry.ts`).
  *
- * The radius is the same stop as `py` at each step. The padding-to-radius
- * ratio is thus 1:1 across the controls with no ControlFrame (listbox, combobox,
- * date-picker button). For a ControlFrame consumer (input, textarea, select
- * trigger), the frame starts its radius with `radius` (`./frame.ts`). The gap
- * is half of `py` at each step, rounded to the spacing scale. The text size is `dan.text.body`, the text ramp of each density-native
- * component.
+ * The radius is the same stop as `py` at each step, so the padding-to-radius
+ * ratio is 1:1. The field takes the radius in `inset`, and the frame takes it
+ * in its chrome (`./frame.ts`). The gap is half of `py` at each step, rounded
+ * to the spacing scale. The text size is `dan.text.body`, the text ramp of each
+ * density-native component.
  *
  * The list also holds the affix autofill margins (`affix.autofill`, see
  * `./affix.ts`). They are `group-has` gated `autofill:` margins that inset the

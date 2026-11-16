@@ -91,16 +91,7 @@ function OptionImpl({
 
 	// A bare `<Check>` sized from the recipe's icon scale: this primitive
 	// never imports `<Icon>` from `components/`.
-	const checkIcon = (
-		<Check
-			aria-hidden="true"
-			data-slot="icon"
-			className={cn(
-				'relative invisible shrink-0 self-center group-data-selected/option:visible',
-				slots.check,
-			)}
-		/>
-	)
+	const checkIcon = <Check aria-hidden="true" data-slot="icon" className={cn(slots.check)} />
 
 	return (
 		<div

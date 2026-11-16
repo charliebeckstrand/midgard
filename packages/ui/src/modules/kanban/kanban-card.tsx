@@ -10,12 +10,10 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useDevWarning } from '../../hooks/use-dev-warning'
 import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { useSortableItem } from '../../hooks/use-sortable-item'
-import { k } from '../../recipes/kata/kanban'
 import { KanbanCardContext, useKanbanColumnContext, useKanbanContext } from './context'
 import { KanbanCardSurface } from './kanban-card-surface'
 
@@ -140,7 +138,8 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 			data-card-id={cardId}
 			data-dragging={dataAttr(dragging)}
 			data-lifted={dataAttr(lifted)}
-			className={cn(lifted && k().card.lifted, className)}
+			lifted={lifted}
+			className={className}
 		>
 			{children}
 		</KanbanCardSurface>

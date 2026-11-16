@@ -11,7 +11,7 @@ import { dan, narabi, shaku, ugoki } from '../kiso'
 import { grip, panel } from '../kumi/panel'
 
 const { space } = dan
-const { flex, slide } = narabi
+const { flex } = narabi
 
 /**
  * The widest a floating sheet is drawn at: the screen, less the inset it floats on.
@@ -90,8 +90,8 @@ export const k = defineKata(
 			// A sheet docked across takes the height of its content. `max-h-full`
 			// stops it at the screen, so a tall sheet scrolls its body and does not
 			// run off the far edge.
-			top: [slide.top, 'max-h-full pt-[env(safe-area-inset-top)]'],
-			bottom: [slide.bottom, 'max-h-full pb-[env(safe-area-inset-bottom)]'],
+			top: ['inset-x-0 top-0 w-full max-h-full pt-[env(safe-area-inset-top)]'],
+			bottom: ['inset-x-0 bottom-0 w-full max-h-full pb-[env(safe-area-inset-bottom)]'],
 		},
 		// The named steps are max-widths and nothing more, so they stay the shared
 		// scale. `fit` is a different kind of answer (the panel takes the width of
@@ -109,7 +109,7 @@ export const k = defineKata(
 		 * square corners, or `floating` 1rem in from them with round corners. The
 		 * compound rules give a side its insets.
 		 */
-		responsive: { layout: { flush: 'rounded-none', floating: 'rounded-xl' } },
+		responsive: { layout: { flush: 'rounded-none', floating: 'rounded-2xl' } },
 		compound: [...DOCKED_STEPS, ...INSETS, ...DOCKED_WIDTHS],
 		slots: {
 			// The header stands one slot gap from the top edge, as the header of a drawer

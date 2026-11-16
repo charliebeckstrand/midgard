@@ -7,8 +7,8 @@
  * forced colors.
  *
  *   - `default`, `inset`: the 1 px ring in the default tone. The inset ring is
- *     the one composers reach for inside translucent containers (popover,
- *     panel), where an outset ring would crop against the surface chrome.
+ *     inside the box, for a fill that an outset ring would cover, such as a
+ *     color swatch.
  *   - `line`: the ring of each width with no color, for a kata that sets its own
  *     color. `line[1].inset` is the 1 px inset ring. An outset ring is for a
  *     mark on content, such as a selected PDF region, where an inset ring would
@@ -101,7 +101,7 @@ const thumb = [
 export const ring = {
 	/** Default ring: 1 px line, low-contrast palette, and an outline under forced colors. */
 	default: [...line[1].outset, ...color],
-	/** Inset ring: sits inside the element, subtle in light / stronger in dark. */
+	/** Inset ring: the default ring inside the element. */
 	inset: [...line[1].inset, ...color],
 	line,
 	/** The rings of the native range thumb, with the native range under forced colors. */

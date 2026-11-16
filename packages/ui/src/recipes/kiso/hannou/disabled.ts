@@ -1,7 +1,7 @@
 /**
- * Hannou disabled: dormant state. Dims the element and animates the
- * opacity transition. `cursor-not-allowed` lives separately in
- * `cursor.ts`; compose both or either independently.
+ * Hannou disabled: dormant state. `base` dims the element and animates the
+ * opacity transition. `base` sets no cursor: `cursor-not-allowed` lives in
+ * `cursor.ts`.
  *
  * `host` is the form for a box that dims through the native control inside
  * it, such as the box of a checkbox, a radio, or a switch. The control is a

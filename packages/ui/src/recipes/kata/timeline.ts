@@ -6,7 +6,7 @@
  * fill of a decorative dot in each hue. `skeleton` is the form of the
  * `TimelineSkeleton` rows.
  */
-import { type Color, defineKata, type VariantProps } from '../../core/recipe'
+import { type Color, defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, iro, kokkaku, narabi, omote, ugoki, zu } from '../kiso'
 import type { SwatchVariants } from './swatch'
 
@@ -23,29 +23,20 @@ const { css } = ugoki
  * because the scanner of Tailwind finds only literal strings.
  */
 const lineBefore = {
-	zinc: 'before:bg-zinc-200 dark:before:bg-zinc-700',
-	red: 'before:bg-red-600 dark:before:bg-red-500',
-	amber: 'before:bg-amber-600 dark:before:bg-amber-600',
-	green: 'before:bg-green-600 dark:before:bg-green-600',
-	blue: 'before:bg-blue-600 dark:before:bg-blue-500',
-} as const satisfies Record<Color, string>
+	zinc: mode('before:bg-zinc-200', 'dark:before:bg-zinc-700'),
+	red: mode('before:bg-red-600', 'dark:before:bg-red-500'),
+	amber: mode('before:bg-amber-600', 'dark:before:bg-amber-600'),
+	green: mode('before:bg-green-600', 'dark:before:bg-green-600'),
+	blue: mode('before:bg-blue-600', 'dark:before:bg-blue-500'),
+} satisfies Record<Color, string[]>
 
 /** The rail out of the marker in each hue, as `lineBefore` gives the rail into it. */
 const lineAfter = {
-	zinc: 'after:bg-zinc-200 dark:after:bg-zinc-700',
-	red: 'after:bg-red-600 dark:after:bg-red-500',
-	amber: 'after:bg-amber-600 dark:after:bg-amber-600',
-	green: 'after:bg-green-600 dark:after:bg-green-600',
-	blue: 'after:bg-blue-600 dark:after:bg-blue-500',
-} as const satisfies Record<Color, string>
-
-/** The fill of a decorative dot in each hue: the `zu.marker` shade. */
-const color = {
-	zinc: marker.zinc,
-	red: marker.red,
-	amber: marker.amber,
-	green: marker.green,
-	blue: marker.blue,
+	zinc: mode('after:bg-zinc-200', 'dark:after:bg-zinc-700'),
+	red: mode('after:bg-red-600', 'dark:after:bg-red-500'),
+	amber: mode('after:bg-amber-600', 'dark:after:bg-amber-600'),
+	green: mode('after:bg-green-600', 'dark:after:bg-green-600'),
+	blue: mode('after:bg-blue-600', 'dark:after:bg-blue-500'),
 } satisfies Record<Color, string[]>
 
 export const k = defineKata(
@@ -152,10 +143,11 @@ export const k = defineKata(
 		},
 		defaults: { orientation: 'vertical', lineBefore: 'zinc', lineAfter: 'zinc', pulse: false },
 	},
-	{ color, skeleton: kokkaku.timeline },
+	// The fill of a decorative dot in each hue is the `zu.marker` shade.
+	{ color: marker, skeleton: kokkaku.timeline },
 )
 
-/** Recipe variant props for {@link Timeline}: the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
+/** Recipe variant props for {@link Timeline}: the `orientation` axis of its kata, and the `variant` style of its markers, for consumers composing custom slots. */
 export type TimelineVariants = {
 	/** The axis of the timeline. @defaultValue 'vertical' */
 	orientation?: VariantProps<typeof k>['orientation']

@@ -23,5 +23,4 @@ export const chart = {
 	sector: ['flex', 'w-full', 'flex-col', 'gap-3'],
 	plot: ['block', 'aspect-square', 'w-full', 'h-auto', rounded.full],
 	legend: ['self-center', 'w-48', 'max-w-full', dan.radius.button, dan.size.button.base],
-	density: true,
 } as const

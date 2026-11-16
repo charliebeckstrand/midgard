@@ -27,8 +27,13 @@ export const k = defineKata({
 		label: 'group-data-selected/option:font-bold',
 		/**
 		 * The selected-state check icon: its color and its size. The size is the
-		 * glyph size of each step.
+		 * glyph size of each step. The check of a row that is not selected is
+		 * invisible, so it keeps its column.
 		 */
-		check: [...zu.marker.green, dan.size.check.box],
+		check: [
+			'relative invisible shrink-0 self-center group-data-selected/option:visible',
+			...zu.marker.green,
+			dan.size.check.box,
+		],
 	},
 })

@@ -68,8 +68,8 @@ export const k = defineKata(
 					 * track, so the root does not clip, and `fills` clips in its place.
 					 */
 					layered: ['relative', 'overflow-visible'],
-					/** The room above the track that a mark label takes. */
-					labelled: 'mt-6',
+					/** The room above the track that a mark label takes. It follows the line height of the label at each step. */
+					labelled: dan.space.progress.label,
 					/** The row of segments: it clips them to the rounded track, and 2 px of track show between them. */
 					fills: ['absolute', 'inset-0', 'flex', 'gap-0.5', 'overflow-hidden', rounded.full],
 					/** One segment. It shrinks with the others when the gaps need room, and the track rounds its ends. */

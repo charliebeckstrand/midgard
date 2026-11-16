@@ -13,15 +13,9 @@ const controls = [flex.row, 'gap-0.5']
 
 const bubble = {
 	base: [
-		// The cap is 85% of the message, with a floor of 12rem, and never more than
-		// the full message. A shrink-to-fit parent (an inline-flex box, an auto grid
-		// column, a popover) takes its width from the bubble's text, and 85% of that
-		// is narrower than the text. Without the floor, a short bubble then breaks
-		// inside a word.
-		'w-fit max-w-[min(100%,max(85%,--spacing(48)))]',
-		'px-4 py-3',
+		// The width cap, the padding, and the radius of the skeleton bubble.
+		...kokkaku.chat.bubble,
 		size.md,
-		'rounded-2xl',
 		// `anywhere`, not `break-word`: a long word, such as a URL, then does not set
 		// the min-content width. In a flex or grid host, the message would
 		// otherwise grow to the full word.
@@ -30,10 +24,10 @@ const bubble = {
 	// Forced colors replace the fill, so a filled bubble keeps its edge as an
 	// outline. The system line has no fill to lose.
 	sender: {
-		user: [palette.solid.blue, 'rounded-ee-md', forced.outline],
+		user: [palette.solid.blue, kokkaku.chat.tail.user, forced.outline],
 		assistant: [
 			...mode('bg-zinc-100 text-zinc-950', 'dark:bg-white/10 dark:text-white'),
-			'rounded-es-md',
+			kokkaku.chat.tail.assistant,
 			forced.outline,
 		],
 		system: [...text.muted, 'bg-transparent px-0'],
@@ -153,7 +147,8 @@ export const k = defineKata({
 				// assistant fill and is hard to see on the blue of the user bubble. So
 				// the shape rides `currentColor` at a low alpha, as the `tool` box does,
 				// and shows on each bubble.
-				placeholder: [kokkaku.chat.embed, 'bg-current/15 dark:bg-current/15'],
+				// The dark class replaces the dark skeleton fill of the Placeholder.
+				placeholder: [kokkaku.chat.embed, ...mode('bg-current/15', 'dark:bg-current/15')],
 			},
 		},
 		/**

@@ -405,7 +405,7 @@ const ChartLegendReferenceSwitch = memo(function ChartLegendReferenceSwitch({
 				variant={reference.dashed === false ? 'solid' : 'dashed'}
 				color={reference.swatchClass || undefined}
 				style={reference.color ? { color: reference.color } : undefined}
-				className={cn(off && 'opacity-60')}
+				className={cn(off && 'opacity-40')}
 			/>
 
 			<Text

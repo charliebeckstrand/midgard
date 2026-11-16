@@ -7,8 +7,8 @@ export { scale } from '../kumi/control'
 const { rounded } = kasane
 const { fit } = narabi
 
-/** The text of the color value in the trigger, cut to one line. */
-const value = ['block', 'truncate']
+/** The text of the color value in the trigger: a hex code in a mono face that fills the row, cut to one line. */
+const value = ['block min-w-0 flex-1 truncate', 'font-mono']
 
 const swatch = {
 	/** The color keeps its real color under forced colors, as the parts of the color panel do. */

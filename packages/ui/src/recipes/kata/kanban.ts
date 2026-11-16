@@ -4,10 +4,10 @@
  * radius, and outline, and each steps with density. This kata adds the layout
  * and the drag states on top. The root slot is the board. The `column` slot
  * holds `base`, `header`, `title`, `body`, and `empty`, and `column.base` marks
- * the column a card is over. The `card` slot holds `base`, the `content`
- * column, the drag states `lifted` and `active`, and the `handle`, whose
- * `lifted` axis marks a lifted card. `skeleton` is the form of the lines of
- * the `KanbanCardSkeleton`.
+ * the column a card is over. The `card` slot holds `base`, whose `lifted` axis
+ * raises a lifted card, the `content` column, the `active` clone of a dragged
+ * card, and the `handle`, whose `lifted` axis marks a lifted card. `skeleton` is
+ * the form of the lines of the `KanbanCardSkeleton`.
  */
 import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
@@ -74,11 +74,11 @@ export const k = defineKata(
 					'transition-shadow',
 					'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 				],
+				// The card raises while the keyboard lifts it.
+				lifted: { true: focus.lifted.raise, false: '' },
 				slots: {
 					// Each child of the card other than its handle, in one column.
 					content: [flex.col, 'flex-1', 'min-w-0', dan.gap.scale.xs],
-					// The card raises while the keyboard lifts it.
-					lifted: focus.lifted.raise,
 					// The clone of a dragged card in the drag overlay.
 					active: 'z-10 shadow-lg opacity-95',
 					handle: {

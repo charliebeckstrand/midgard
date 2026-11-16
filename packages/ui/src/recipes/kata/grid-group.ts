@@ -6,7 +6,7 @@
  * (the `color` axis of `rule`). It also carries the column-manager group
  * editor (`manager`) and its Card outline colors (the `color` axis of `outline`).
  */
-import { defineKata, type PaletteColor } from '../../core/recipe'
+import { defineKata, mode, type PaletteColor } from '../../core/recipe'
 import { dan, hannou, iro, kasane, narabi, omote, sen } from '../kiso'
 
 const { grab } = hannou
@@ -40,7 +40,7 @@ const bandColor: Record<PaletteColor, string> = {
  * colorless row group's gray rail. An uncolored (or color-cleared) group therefore
  * keeps its underline in gray rather than dropping it. Full literals for Tailwind's scanner.
  */
-const bandNeutral = 'bg-zinc-950/10 dark:bg-white/15'
+const bandNeutral = mode('bg-zinc-950/10', 'dark:bg-white/15')
 
 /**
  * The outline color for a group's editor Card, keyed by {@link PaletteColor} so a

@@ -99,6 +99,12 @@ export const k = defineKata(
 					 * field and the eyedropper after it do not overlap.
 					 */
 					row: [flex.row, dan.gap.scale.sm, dan.gap.touch.x.sm],
+					/**
+					 * The color in the preview. The inset ring gives a white or a black color
+					 * an edge on the panel, as it does on a preset chip. The fill has the
+					 * corners of the preview, so the ring follows them.
+					 */
+					fill: ['block size-full rounded-[inherit]', ...ring.inset],
 				},
 			},
 			handle,

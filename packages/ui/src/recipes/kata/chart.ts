@@ -38,9 +38,9 @@ export const k = {
 	/** SVG tick-label ink: muted, tabular for vertical alignment. */
 	tick: ['text-sm', 'tabular-nums', ...mutedFill],
 	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
-	label: ink.label,
+	label: ['text-sm text-start', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
-	value: ink.value,
+	value: ['text-xs', 'tabular-nums', 'font-medium', ...text.default],
 	/** The paint beside a mark: the ink of its label (`label`) and the stroke of a point marker (`stroke`). */
 	mark: {
 		/**

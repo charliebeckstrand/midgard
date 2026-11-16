@@ -254,6 +254,15 @@ export const space = {
 		 */
 		overlap: 'density-set-[-0.5,-0.5,-1,-1,-1]/[--ui-avatar-overlap] space-x-(--ui-avatar-overlap)',
 	},
+	progress: {
+		/**
+		 * The top margin of a progress bar with mark labels: the room above the
+		 * track that a label takes. A label is 8 px above the track and has the
+		 * line height of the small text (`text.small`), so the room is 8 px more
+		 * than that line height at each step.
+		 */
+		label: 'density-mt-[6.5,7,7.5,8,8.5]',
+	},
 	query: {
 		/**
 		 * The top margin of the grip of a query node that reorders: the 1 px border
