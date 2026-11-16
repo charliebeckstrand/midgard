@@ -97,11 +97,14 @@ export function GameBoard({ seed }: GameBoardProps) {
 	// Forward, and the `pushState` of a Reset.
 	const pathname = usePathname()
 
-	/** Starts the run of the seed of the address, when it is not the run of the page. */
+	/** Starts the run of the seed of the address from its start. */
 	const follow = useEffectEvent((next: string) => {
-		if (isSeed(next) && next !== game.seed) reset(next)
+		if (isSeed(next)) reset(next)
 	})
 
+	// The effect runs at each change of the address. Cache Components holds a
+	// route that the reader leaves, and shows it again on a return. The effect
+	// also runs at each show, so a return to a held route starts its run again.
 	useEffect(() => follow(pathname.slice(1)), [pathname])
 
 	const ended = status === 'bust' || status === 'won'

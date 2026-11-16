@@ -2,18 +2,24 @@
 
 import { CalendarDays, House, Menu as MenuIcon } from 'lucide-react'
 import { Button } from 'ui/button'
+import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
 import { dailySeed } from '../../utilities/seed'
 
 /**
  * The link to the daily puzzle of today. Today is the date of the reader, which
- * the server cannot know, so the link renders only in the open menu, after the
- * hydration.
+ * the server cannot know. The link renders only in the open menu, a mount after
+ * the hydration, so `useToday` gives the day in the first render, and moves the
+ * link to the next day at midnight.
  */
 function DailyPuzzleItem() {
+	const today = useToday()
+
+	if (!today) return null
+
 	return (
-		<MenuItem href={`/${dailySeed(new Date())}`}>
+		<MenuItem href={`/${dailySeed(today)}`}>
 			<Icon icon={<CalendarDays />} />
 			<MenuLabel>Daily puzzle</MenuLabel>
 		</MenuItem>
