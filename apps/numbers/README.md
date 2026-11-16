@@ -189,12 +189,14 @@ email, has no stats, so the item stays a plain link and no toast shows.
 
 ## Leaderboard
 
-Leaderboard in the header menu opens a dialog with the board of each daily
-puzzle, for each reader. A tab for each mode (Solo and Vs CPU) holds the
-board of one date: the top 10 players by the score of their first run of the
-puzzle, then the reader when they are below them, and the count of players.
-Equal scores share a rank. The board opens on today, the date of the reader,
-and the arrows go to earlier days, but not past today. Mimir keeps the boards
+Leaderboard in the header menu opens a dialog with the boards of each day, for
+each reader. A tab for each board holds the board of one date: Daily for the
+solo runs of the daily puzzle, Solo for the solo runs of other seeds, and Vs
+CPU for the runs against the CPU. A run counts on the board of the reader's
+date. A board shows the top 10 players by their best score on it, then the
+reader when they are below them, and the count of players. A better run moves a
+player up. Equal scores share a rank. The boards open on today, and the arrows
+go to earlier days, but not past today. Mimir keeps the boards
 (`/api/games/numbers/daily`, `src/api/leaderboard-api.ts`).
 
 Each player shows by the name of their account, or as "Anonymous" when the
@@ -203,8 +205,8 @@ name that each run sends. A reader with no name sees a line that tells them how
 they show. A reader with no session sees the boards, and a line that asks
 them to sign in. A reader with no verified email sees the boards, and a line
 that asks for the verification, because only the runs of a verified user count.
-The board needs no session, so the names on it are public. A
-daily run that counts makes its board read again.
+The boards need no session, so the names on them are public. A run that
+counts makes its board read again.
 
 ## Deploy
 
