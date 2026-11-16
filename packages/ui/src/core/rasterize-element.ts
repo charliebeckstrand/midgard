@@ -171,8 +171,14 @@ function copyComputedStyle(computed: CSSStyleDeclaration, clone: Element, extra:
 	)
 }
 
-/** Splits a computed value at each space outside parentheses, such as `calc(50% + 2px) 4px`. @internal */
-function splitValue(value: string): string[] {
+/**
+ * Splits a computed value at each `separator` outside parentheses, such as the
+ * spaces of `calc(50% + 2px) 4px`, or the commas between the layers of a
+ * `box-shadow`. Each part is trimmed, and an empty part is dropped.
+ *
+ * @internal
+ */
+function splitValue(value: string, separator = ' '): string[] {
 	const parts: string[] = []
 
 	let depth = 0
@@ -184,8 +190,8 @@ function splitValue(value: string): string[] {
 
 		if (character === ')') depth--
 
-		if (character === ' ' && depth === 0) {
-			if (part) parts.push(part)
+		if (character === separator && depth === 0) {
+			if (part.trim()) parts.push(part.trim())
 
 			part = ''
 		} else {
@@ -193,9 +199,76 @@ function splitValue(value: string): string[] {
 		}
 	}
 
-	if (part) parts.push(part)
+	if (part.trim()) parts.push(part.trim())
 
 	return parts
+}
+
+/** One layer of a computed `box-shadow`. @internal */
+type ShadowLayer = {
+	/** The text of the layer, as the computed value gives it. */
+	text: string
+	color: string
+	/** The offsets, the blur, and the spread, in CSS pixels. */
+	lengths: number[]
+	inset: boolean
+}
+
+/** Reads the layers of a computed `box-shadow`, such as `rgb(0 0 0) 0px 0px 0px 1px inset`. @internal */
+function readShadows(boxShadow: string): ShadowLayer[] {
+	if (boxShadow === 'none') return []
+
+	return splitValue(boxShadow, ',').map((text) => {
+		const tokens = splitValue(text)
+
+		return {
+			text,
+			color: tokens.find((token) => token !== 'inset' && !token.endsWith('px')) ?? 'currentcolor',
+			lengths: tokens.filter((token) => token.endsWith('px')).map(Number.parseFloat),
+			inset: tokens.includes('inset'),
+		}
+	})
+}
+
+/** The style that {@link ringToOutline} reads. @internal */
+export type RingStyle = Pick<CSSStyleDeclaration, 'boxShadow' | 'outlineStyle' | 'borderTopWidth'>
+
+/**
+ * Gives the declarations that draw a shadow ring of an element as an outline.
+ * A shadow ring is a visible `box-shadow` layer with a spread, and with no
+ * offset and no blur, such as the `ring` and `inset-ring` of Tailwind.
+ *
+ * WebKit on iOS draws such a layer at the wrong place in an SVG image, so a
+ * raster shows only a part of the ring. It draws an outline correctly. Thus
+ * the capture draws the ring as an outline of the same width and color. An
+ * inset ring is in the padding box, so its outline goes in by the border and
+ * by the spread. The other layers stay a `box-shadow`.
+ *
+ * The rule applies when the element has one shadow ring and no outline of its
+ * own, because an element has only one outline. Else it gives no declaration.
+ *
+ * @internal
+ */
+export function ringToOutline(style: RingStyle): string {
+	if (style.outlineStyle !== 'none') return ''
+
+	const layers = readShadows(style.boxShadow)
+
+	const rings = layers.filter(({ color, lengths: [x = 0, y = 0, blur = 0, spread = 0] }) => {
+		return x === 0 && y === 0 && blur === 0 && spread > 0 && parseAlpha(color) > 0
+	})
+
+	const [ring] = rings
+
+	if (!ring || rings.length > 1) return ''
+
+	const spread = ring.lengths[3] ?? 0
+
+	const offset = ring.inset ? -(Number.parseFloat(style.borderTopWidth) + spread) : 0
+
+	const rest = layers.filter((layer) => layer !== ring).map((layer) => layer.text)
+
+	return `box-shadow:${rest.join(',') || 'none'};outline:${spread}px solid ${ring.color};outline-offset:${offset}px;`
 }
 
 /**
@@ -217,7 +290,8 @@ function addTranslate(translate: string, move: Shift): string {
  * computed style onto the clone ({@link copyComputedStyle}). The detached copy
  * then lays out and paints exactly as rendered. The walk drops each child that
  * paints nothing ({@link paintsNothing}). It empties each box that the plan
- * prunes, and moves each box that the plan moves.
+ * prunes, and moves each box that the plan moves. It draws a shadow ring as an
+ * outline ({@link ringToOutline}).
  *
  * A clone shows each scroll box at its start. Thus the walk moves each child of
  * a scrolled box by the scroll offset, so the clone shows the part of the box
@@ -250,7 +324,8 @@ export function freezeStyleTree(
 	copyComputedStyle(
 		computed,
 		clone,
-		move.x || move.y ? `translate:${addTranslate(computed.translate, move)};` : '',
+		(move.x || move.y ? `translate:${addTranslate(computed.translate, move)};` : '') +
+			ringToOutline(computed),
 	)
 
 	const scroll = { x: -source.scrollLeft, y: -source.scrollTop }
