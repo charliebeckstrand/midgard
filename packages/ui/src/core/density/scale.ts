@@ -106,3 +106,17 @@ export function defineScale<const R extends readonly Ramp[]>(
 
 	return densitySteps.filter((step) => steps.has(step)) as unknown as Scale<RampSteps<R[number]>>
 }
+
+/**
+ * The step of `scale` for `step`: `step` when the scale holds it, or else its
+ * inner neighbor. Each scale holds `sm`, `md`, and `lg` ({@link defineScale}),
+ * so only an outer step can be missing, and its inner neighbor is in the scale.
+ * Thus a component with no outer step renders an outer scope at the step that
+ * its ramps give that scope, as a ramp of three values does in CSS.
+ *
+ * @example
+ * snapStep(defineScale('density-w-[56,56,68,80,80]'), 'xs') // 'sm'
+ */
+export function snapStep<S extends DensityStep>(scale: Scale<S>, step: DensityStep): S | InnerStep {
+	return (scale as readonly DensityStep[]).includes(step) ? (step as S) : toInnerStep(step)
+}

@@ -14,9 +14,9 @@
  * own box as its hit area.
  *
  * The container gives each column the floor. A grid with a fixed width gets it
- * from that width, such as 7 × 44 px for the days of a calendar. A grid with
- * no fixed width uses `minmax(2.75rem, 1fr)`. A host in a column that is wider
- * than 44 px fills its column, so no space between two hit areas is dead.
+ * from that width. A grid with no fixed width uses `minmax(2.75rem, 1fr)`, as
+ * the month picker of a calendar does. A host in a column that is wider than
+ * 44 px fills its column, so no space between two hit areas is dead.
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'

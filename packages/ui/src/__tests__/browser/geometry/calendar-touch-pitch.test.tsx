@@ -1,16 +1,17 @@
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { Calendar, CalendarRange, CalendarSkeleton } from '../../../components/calendar'
-import { densitySteps } from '../../../core/density'
+import { scale } from '../../../recipes/kata/calendar'
+import { Box } from '../../../structure/box'
 import { getSlot, present, renderUI, userEvent } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { overlappingHitAreas } from './helpers/geometry-invariants'
 
 /**
  * The days of a calendar touch, so the hit areas cannot grow past them. On iOS,
- * a finger hit the next day of a 39px grid. On a coarse pointer, the touch
- * pitch (`core/touch/pitch.ts`) gives each day a cell of at least 44px, and the
- * root gives room for seven of them. A day keeps the size of its step in the
- * middle of its cell, and its hit area fills the cell.
+ * a finger hit the next day of a 39px grid. On a coarse pointer, each day fills
+ * a square cell of 40, 44, or 48 px at `sm`, `md`, and `lg`, so the cells step
+ * as the density does. The hit area of each day keeps to the day, so the hit
+ * areas tile the grid.
  *
  * This suite cannot match `pointer: coarse` (see
  * `touch-target-geometry.test.tsx`). Each coarse case therefore copies each
@@ -24,6 +25,9 @@ const COARSE = /\(pointer:\s*coarse\)/
 
 /** The coarse floor of `TouchTarget` and of the touch pitch, in px. */
 const FLOOR = 44
+
+/** The side of a cell on a coarse pointer at each step of a calendar, in px. */
+const CELL = { sm: 40, md: 44, lg: 48 } as const
 
 /** The text of each `(pointer: coarse)` rule in `rules`, in its cascade layer. */
 function coarseRules(rules: CSSRuleList, layer: string[]): string[] {
@@ -91,7 +95,7 @@ describe('the touch pitch of Calendar', () => {
 		expect(coarsePointer()).toBeGreaterThan(0)
 	})
 
-	it.each(densitySteps)('fills each cell of at least 44px with a hit area at %s', (size) => {
+	it.each(scale)('gives each day a square cell of its step at %s', (size) => {
 		coarsePointer()
 
 		const { container } = renderUI(<Calendar size={size} defaultValue={MONTH} />)
@@ -102,12 +106,18 @@ describe('the touch pitch of Calendar', () => {
 
 		const { width, height } = cell(container, 7, 6)
 
-		expect(width).toBeGreaterThanOrEqual(FLOOR - 0.5)
+		expect(width).toBeNear(CELL[size], HALF_PIXEL)
 
-		expect(height).toBeGreaterThanOrEqual(FLOOR - 0.5)
+		expect(height).toBeNear(CELL[size], HALF_PIXEL)
 
 		for (const day of days) {
+			const box = day.getBoundingClientRect()
+
 			const area = hitArea(day)
+
+			expect(box.width).toBeNear(width, HALF_PIXEL)
+
+			expect(box.height).toBeNear(height, HALF_PIXEL)
 
 			expect(area.width).toBeNear(width, HALF_PIXEL)
 
@@ -117,23 +127,31 @@ describe('the touch pitch of Calendar', () => {
 		expect(overlappingHitAreas(container)).toEqual([])
 	})
 
-	it.each(densitySteps)('keeps the size of a day at %s', (size) => {
-		const fine = options(renderUI(<Calendar size={size} defaultValue={MONTH} />).container)[0]
+	it.each([
+		['xs', 'sm'],
+		['xl', 'lg'],
+	] as const)('renders at the inner step in an %s scope', (outer, inner) => {
+		const nested = getSlot(
+			renderUI(
+				<Box density={outer}>
+					<Calendar defaultValue={MONTH} />
+				</Box>,
+			).container,
+			'calendar',
+		)
 
-		const side = present(fine, 'a day').getBoundingClientRect().height
+		const own = getSlot(
+			renderUI(<Calendar size={inner} defaultValue={MONTH} />).container,
+			'calendar',
+		)
 
-		coarsePointer()
+		expect(nested.getAttribute('data-density')).toBe(inner)
 
-		const [day] = options(renderUI(<Calendar size={size} defaultValue={MONTH} />).container)
+		const a = nested.getBoundingClientRect()
 
-		const box = present(day, 'a day').getBoundingClientRect()
+		const b = own.getBoundingClientRect()
 
-		expect(box.height).toBeNear(side, HALF_PIXEL)
-
-		// A day under the floor is a square of its side. A day at the floor or
-		// over it fills its column.
-		if (side < FLOOR) expect(box.width).toBeNear(side, HALF_PIXEL)
-		else expect(box.width).toBeGreaterThanOrEqual(side - 0.5)
+		expect([a.width, a.height]).toEqual([b.width, b.height])
 	})
 
 	it('fills each column with the days of a range band', () => {
@@ -141,7 +159,7 @@ describe('the touch pitch of Calendar', () => {
 
 		const { container } = renderUI(
 			<CalendarRange
-				size="xs"
+				size="sm"
 				rangeStart={new Date(2026, 4, 11)}
 				rangeEnd={new Date(2026, 4, 14)}
 			/>,
@@ -185,7 +203,7 @@ describe('the touch pitch of Calendar', () => {
 		expect(overlappingHitAreas(dialog)).toEqual([])
 	})
 
-	it.each(densitySteps)('keeps the skeleton the box of the calendar at %s', (size) => {
+	it.each(scale)('keeps the skeleton the box of the calendar at %s', (size) => {
 		coarsePointer()
 
 		const real = getSlot(
@@ -195,6 +213,32 @@ describe('the touch pitch of Calendar', () => {
 
 		const skeleton = present(
 			renderUI(<CalendarSkeleton size={size} />).container.firstElementChild,
+			'the skeleton',
+		)
+
+		const a = real.getBoundingClientRect()
+
+		const b = skeleton.getBoundingClientRect()
+
+		expect([b.width, b.height]).toEqual([a.width, a.height])
+	})
+
+	it('keeps the skeleton the box of the calendar in an xs scope', () => {
+		const real = getSlot(
+			renderUI(
+				<Box density="xs">
+					<Calendar defaultValue={MONTH} />
+				</Box>,
+			).container,
+			'calendar',
+		)
+
+		const skeleton = present(
+			renderUI(
+				<Box density="xs">
+					<CalendarSkeleton />
+				</Box>,
+			).container.firstElementChild?.firstElementChild,
 			'the skeleton',
 		)
 

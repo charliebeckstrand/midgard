@@ -7001,11 +7001,11 @@
 	},
 	"docs.prop.size.xl": {
 		"defaultMessage": "Extra large",
-		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'xl' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'xl' on AddressInput, Avatar, Badge, Button, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
 	},
 	"docs.prop.size.xs": {
 		"defaultMessage": "Extra small",
-		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'xs' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'xs' on AddressInput, Avatar, Badge, Button, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
 	},
 	"docs.prop.soft": {
 		"defaultMessage": "Soft",

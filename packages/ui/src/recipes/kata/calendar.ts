@@ -16,14 +16,14 @@ const { flex, touch } = narabi
 const { focus } = sen
 
 /**
- * On a coarse pointer, the width has a floor of seven columns of 44 px, so
- * each day has a cell of the touch pitch (`touch.pitch`) at each step.
+ * On a coarse pointer, the width gives each day a cell of 40, 44, or 48 px, so
+ * the cells step as the density does.
  */
 const base = [
 	'inline-flex flex-col',
 	'select-none',
 	dan.size.calendar.width,
-	'pointer-coarse:min-w-77',
+	dan.size.calendar.touch,
 ]
 
 const header = [flex.row, 'justify-between', dan.space.calendar.header.bottom]
@@ -44,12 +44,11 @@ const pickerGrid = [
 ]
 
 /**
- * The listbox of the days. `--ui-calendar-day` is the side of a day at each
- * step: the height of a button. On a coarse pointer, a day under the floor
- * keeps that side in the middle of its 44 px cell. Its hit area fills the
- * cell. A day at the floor or over it fills its column, as on a fine pointer.
+ * The listbox of the days. The days touch, so the hit area of each day keeps
+ * to the day (`touch.flush`). On a coarse pointer, each day fills its square
+ * cell, so the hit areas tile the grid.
  */
-const days = ['col-span-7 grid grid-cols-7', dan.size.calendar.day, touch.pitch]
+const days = ['col-span-7 grid grid-cols-7', touch.flush.x, touch.flush.y]
 
 const weekday = [
 	flex.row,
@@ -77,25 +76,19 @@ export const k = defineKata(
 			},
 			weekday,
 			day: {
-				// On a coarse pointer, the day is as wide as its column, less the part
-				// of the floor that its side does not fill. In a 44 px column, that is
-				// its side. At the floor or over it, the day fills the column.
-				base: [
-					'w-full ring-inset',
-					'pointer-coarse:w-[calc(100%-max(0px,2.75rem-var(--ui-calendar-day)))]',
-				],
+				// On a coarse pointer, the day is a square of the width of its column.
+				base: ['w-full ring-inset', 'pointer-coarse:h-auto pointer-coarse:aspect-square'],
 				slots: {
 					// The ring of the active cell or control. Focus stays on the grid, so the
 					// ring is virtual.
 					active: [...focus.virtual],
 					// Each endpoint squares the corners that face the band, and a day inside
 					// the band squares each corner. The sides are logical, so the corners
-					// mirror with the grid in a right-to-left region. On a coarse pointer,
-					// each day of the band fills its column, so the band has no breaks.
+					// mirror with the grid in a right-to-left region.
 					range: {
-						inner: { true: 'rounded-none pointer-coarse:w-full', false: '' },
-						start: { true: 'rounded-e-none pointer-coarse:w-full', false: '' },
-						end: { true: 'rounded-s-none pointer-coarse:w-full', false: '' },
+						inner: { true: 'rounded-none', false: '' },
+						start: { true: 'rounded-e-none', false: '' },
+						end: { true: 'rounded-s-none', false: '' },
 					},
 				},
 			},
@@ -104,10 +97,10 @@ export const k = defineKata(
 	{ skeleton: kokkaku.calendar },
 )
 
-/** The size scale of {@link Calendar}: the steps of its width, header margin, gap, and weekday text. */
-export const scale = defineScale(
-	dan.size.calendar.width,
-	dan.space.calendar.header.bottom,
-	dan.gap.default,
-	dan.text.small,
-)
+/**
+ * The size scale of {@link Calendar}: `sm`, `md`, and `lg`, the steps of its
+ * width and its header margin. In an `xs` or `xl` scope, the calendar opens a scope at its inner
+ * neighbor (`useDensityScale`), so its header margin, gap, text, and buttons
+ * take a step of the scale.
+ */
+export const scale = defineScale(dan.size.calendar.width, dan.space.calendar.header.bottom)

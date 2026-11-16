@@ -16,10 +16,11 @@ import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useToday } from '../../hooks/use-today'
+import { useDensityScale } from '../../primitives/density/use-density-scale'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useLocale } from '../../providers/locale/context'
 import type { ButtonVariants } from '../../recipes/kata/button'
-import { k, type scale } from '../../recipes/kata/calendar'
+import { k, scale } from '../../recipes/kata/calendar'
 import { Box } from '../../structure/box'
 import { resolveLocale } from '../../utilities/resolve-locale'
 import { CalendarGrid } from './calendar-grid'
@@ -210,8 +211,9 @@ export type CalendarProps = {
 	 */
 	locale?: string
 	/**
-	 * The density step of the width, the padding, and the weekday labels. Omit
-	 * it to take the step of the nearest density scope. A step makes the calendar
+	 * The density step of the width, the padding, and the weekday labels: `sm`,
+	 * `md`, or `lg`. Omit it to take the step of the nearest density scope, or
+	 * its inner neighbor in an `xs` or `xl` scope. A step makes the calendar
 	 * a density scope, so the navigation buttons and the day cells take the step
 	 * too.
 	 */
@@ -226,10 +228,12 @@ export type CalendarProps = {
  * days in it. Resolves `locale` against an
  * enclosing Locale provider. The header, grid, and day cells take the step of
  * the nearest density scope, and a set `size` makes the calendar that scope.
- * On a coarse pointer, each day and each month or year of the picker has a
- * cell of at least 44 px at each step. So a finger does not hit the next day.
- * A day keeps the size of its step in the middle of its cell, and its hit area
- * fills the cell. The calendar is then at least 308 px wide.
+ * The calendar has three steps: `sm`, `md`, and `lg`. In an `xs` or `xl`
+ * scope, it renders at `sm` or `lg`. On a coarse pointer, each day fills a
+ * square cell of 40, 44, or 48 px, so the calendar is 280, 308, or 336 px
+ * wide. The `sm` cell is under the 44 px floor of `TouchTarget`, so that the
+ * cell steps with the density. The hit areas of the days tile the grid, and
+ * each month or year of the picker has a cell of at least 44 px.
  * When a parent steers `active`, the parent owns the keys of the header, the
  * grid, and the footer, and the calendar moves no focus for them. Tab still
  * reaches each header button and the one Tab stop of the grid. Month changes
@@ -300,6 +304,8 @@ export function Calendar({
 	size,
 	className,
 }: CalendarProps) {
+	const density = useDensityScale(scale, size)
+
 	const ambient = useLocale()
 
 	const localeTag = resolveLocale(locale ?? ambient.locale)
@@ -448,7 +454,7 @@ export function Calendar({
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
 	return (
-		<Box data-slot="calendar" density={size} className={cn(k().base, className)}>
+		<Box data-slot="calendar" density={density} className={cn(k().base, className)}>
 			<CalendarHeader
 				headerRef={headerRef}
 				onHeaderKeyDown={handleHeaderKeyDown}
