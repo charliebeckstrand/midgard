@@ -41,6 +41,12 @@ export type LinearScaleOptions = {
 	/** Domain ceiling override; pinned exactly. */
 	max?: number
 	/**
+	 * Whole-number ticks: the step is at least 1. A clean step of 1 or more is
+	 * already a whole number (1, 2, or 5 times a power of ten).
+	 * @defaultValue false
+	 */
+	integer?: boolean
+	/**
 	 * Pixels of clear room to reserve between a data extreme and its unpinned
 	 * domain edge. It is the space a value label needs to sit above the peak or
 	 * below the trough, instead of flipping onto the line. Applied only where the
@@ -70,6 +76,18 @@ function niceStep(raw: number): number {
 	if (unit <= 5) return 5 * magnitude
 
 	return 10 * magnitude
+}
+
+/**
+ * The tick step of a span: the clean step nearest `tickTarget` ticks, and at
+ * least 1 on an integer axis.
+ *
+ * @internal
+ */
+function tickStep(span: number, tickTarget: number, integer: boolean): number {
+	const step = niceStep(span / Math.max(1, tickTarget))
+
+	return integer ? Math.max(1, step) : step
 }
 
 /**
@@ -256,6 +274,7 @@ export function linearScale({
 	zeroBaseline = false,
 	min: pinMin,
 	max: pinMax,
+	integer = false,
 	headroom = 0,
 }: LinearScaleOptions): LinearScale | null {
 	// A non-finite pin (a `parseFloat('')` from an input) would pin the domain to
@@ -310,7 +329,7 @@ export function linearScale({
 	// still win on their own side either way.
 	const tight = tickTarget <= 0
 
-	const step = tight ? 0 : niceStep((rawHigh - rawLow) / Math.max(1, tickTarget))
+	const step = tight ? 0 : tickStep(rawHigh - rawLow, tickTarget, integer)
 
 	const [low, high] = reserveHeadroom({
 		low: niceBound(min, rawLow, step, tight, Math.floor),

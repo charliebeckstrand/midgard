@@ -1,5 +1,6 @@
 'use client'
 
+import type { User } from 'auth'
 import { usePathname } from 'next/navigation'
 import { type MouseEvent, useEffect, useEffectEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
@@ -8,7 +9,15 @@ import { useIntl } from 'ui/primitives/intl'
 import { Columns } from 'ui/structure/columns'
 import { useGame } from '../../hooks/use-game'
 import { useGameSetting } from '../../hooks/use-game-setting'
-import { countPlaced, getOutcome, getStatus, playCpu, SLOTS } from '../../utilities/game'
+import { useRunRecorder } from '../../hooks/use-run-recorder'
+import {
+	countPlaced,
+	getOutcome,
+	getStatus,
+	isUnfinished,
+	playCpu,
+	SLOTS,
+} from '../../utilities/game'
 import { createSeed, isSeed, runPath } from '../../utilities/seed'
 import { describeStatus } from './describe-status'
 import { GameBoardScore } from './game-board-score'
@@ -21,6 +30,8 @@ export type GameBoardProps = {
 	seed: string
 	/** Plays against the CPU: the page of a `/vs` address. */
 	vsCpu?: boolean
+	/** The signed-in user, whose stats count each finished run, or none. */
+	user?: User
 }
 
 /**
@@ -48,12 +59,14 @@ export type GameBoardProps = {
  * the pressed control. A key press (`detail` 0) scrolls the next control into
  * view.
  */
-export function GameBoard({ seed, vsCpu = false }: GameBoardProps) {
+export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 	const [autoDraw] = useGameSetting('autoDraw')
 
 	const [showScore] = useGameSetting('showScore')
 
-	const { game, status, draw, place, reset } = useGame(seed, autoDraw)
+	const recordRun = useRunRecorder(user, vsCpu ? 'vsCpu' : 'solo')
+
+	const { game, status, draw, place, reset } = useGame(seed, autoDraw, recordRun)
 
 	const ended = status === 'bust' || status === 'won'
 
@@ -88,6 +101,11 @@ export function GameBoard({ seed, vsCpu = false }: GameBoardProps) {
 
 	/** Starts the run of a new seed, and writes its address. */
 	const restart = () => {
+		// A bust or a win counted when it ended. A Reset after the first placement
+		// counts the run with its score. A link, Back, or Forward leaves the run, and
+		// the run does not count.
+		if (isUnfinished(game)) recordRun(game)
+
 		const next = createSeed()
 
 		window.history.pushState(null, '', runPath(next, vsCpu))

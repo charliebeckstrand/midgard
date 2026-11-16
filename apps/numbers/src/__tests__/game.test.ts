@@ -10,6 +10,7 @@ import {
 	type Game,
 	getOutcome,
 	getStatus,
+	isUnfinished,
 	MAX,
 	placeNumber,
 	playCpu,
@@ -150,6 +151,30 @@ describe('getStatus', () => {
 		)
 
 		expect(getStatus(makeGame(placed))).toBe('won')
+	})
+})
+
+describe('isUnfinished', () => {
+	it('is true for a run with a placement that has not ended', () => {
+		expect(isUnfinished(makeGame({ 3: 200 }))).toBe(true)
+
+		expect(isUnfinished(makeGame({ 3: 200 }, 500))).toBe(true)
+	})
+
+	it('is false for a run with no placement', () => {
+		expect(isUnfinished(createGame('test'))).toBe(false)
+
+		expect(isUnfinished(makeGame({}, 500))).toBe(false)
+	})
+
+	it('is false for a run that ended in a bust or a win', () => {
+		expect(isUnfinished(makeGame({ 5: 331, 6: 412 }, 362))).toBe(false)
+
+		const placed = Object.fromEntries(
+			Array.from({ length: SLOTS }, (_, index) => [index, index + 1]),
+		)
+
+		expect(isUnfinished(makeGame(placed))).toBe(false)
 	})
 })
 
