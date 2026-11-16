@@ -42,7 +42,7 @@
 			"matchUpdateTypes": ["minor", "patch"]
 		},
 		{
-			"description": "Minor and patch updates merge without a click when every check is green. Renovate merges them itself, not GitHub auto-merge, because main has no required checks: GitHub would merge before CI finishes. Renovate waits until all the checks on the branch pass. Majors still wait for approval on the dependency dashboard.",
+			"description": "Minor and patch updates merge without a click when every check is green. Renovate merges them itself, not with GitHub auto-merge, and only when every check on the branch passes. Branch protection also requires `ci-ok` and `commitlint` (packages/ui/REFERENCE.md §4). Majors still wait for approval on the dependency dashboard.",
 			"matchUpdateTypes": ["minor", "patch"],
 			"automerge": true,
 			"platformAutomerge": false
