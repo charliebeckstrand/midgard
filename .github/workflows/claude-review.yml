@@ -12,9 +12,11 @@ name: Claude review
 on:
   pull_request:
     types: [opened, ready_for_review]
-  # zizmor flags `issue_comment` as a dangerous trigger. The `if` of the job
-  # runs it only for an owner, a member, or a collaborator, and the job runs no
-  # code of the pull request: its tools read files and write comments. Thus the
+  # zizmor flags `issue_comment` as a dangerous trigger: the run has the
+  # secrets of the repository while Claude reads the files of the pull request.
+  # The `if` of the job lets only an owner, a member, or a collaborator start
+  # it, and the first step stops the review of a pull request from a fork. Thus
+  # the secrets meet only text from a branch of this repository, and the
   # trigger stays (decision of 2026-11-16).
   issue_comment: # zizmor: ignore[dangerous-triggers]
     types: [created]
@@ -50,17 +52,26 @@ jobs:
       # The action exchanges an OIDC token for a token of the Claude GitHub app.
       id-token: write
     steps:
-      # A pull request from a fork gets no secrets. When the secret is not set,
-      # the step writes a notice, and the job passes with no review.
+      # The review runs only for a pull request from a branch of this
+      # repository, and only when the secret is set. A `pull_request` run from a
+      # fork gets no secrets, but an `issue_comment` run gets them for any pull
+      # request, so the step reads where the head is. Otherwise the step writes
+      # a notice, and the job passes with no review.
       - id: token
         run: |
-          if [ -z "$TOKEN" ]; then
+          fork=$(gh pr view "$PR" --repo "$REPO" --json isCrossRepository --jq .isCrossRepository)
+          if [ "$fork" != "false" ]; then
+            echo "::notice::The pull request comes from a fork, so no review runs."
+          elif [ -z "$TOKEN" ]; then
             echo "::notice::CLAUDE_CODE_OAUTH_TOKEN is not set, so no review runs."
           else
             echo "set=true" >> "$GITHUB_OUTPUT"
           fi
         env:
           TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+          REPO: ${{ github.repository }}
 
       # The head of the pull request, not the merge commit, so that the line
       # numbers of the inline comments agree with the diff. A comment event
