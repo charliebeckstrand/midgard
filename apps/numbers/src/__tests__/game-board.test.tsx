@@ -277,12 +277,8 @@ describe('GameBoard Reset', () => {
 		expect(screen.queryByRole('button', { name: /^Slot 10, / })).toBeNull()
 	})
 
-	it('gives the focus to Reset when a pressed Draw ends the run, because the bar then has no Draw', () => {
-		// jsdom has no `scrollIntoView`, and the bust mark scrolls into view.
-		Element.prototype.scrollIntoView = vi.fn()
-
-		renderBoard(false)
-
+	/** Plays the run with key presses until it ends: each number goes in the first slot that can take it. */
+	const playToEnd = () => {
 		/** Focuses `button` and presses it, as a key press does. */
 		const press = (button: HTMLElement) => {
 			button.focus()
@@ -290,8 +286,7 @@ describe('GameBoard Reset', () => {
 			fireEvent.click(button, { detail: 0 })
 		}
 
-		// Each number goes in the first slot that can take it, so the slots fill
-		// from the top, and a later number that is smaller has no slot.
+		// The slots fill from the top, so a later number that is smaller has no slot.
 		for (let turn = 0; turn < 20; turn++) {
 			const draw = screen.queryByRole('button', { name: 'Draw' })
 
@@ -309,6 +304,26 @@ describe('GameBoard Reset', () => {
 		}
 
 		expect(screen.queryByRole('button', { name: 'Draw' })).toBeNull()
+	}
+
+	it('gives the focus to Reset when a pressed Draw ends the run, because the bar then has no Draw', () => {
+		// jsdom has no `scrollIntoView`, and the bust mark scrolls into view.
+		Element.prototype.scrollIntoView = vi.fn()
+
+		renderBoard(false)
+
+		playToEnd()
+
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reset' }))
+	})
+
+	it('gives the focus to Share when a daily puzzle ends, because the board has no Reset', () => {
+		Element.prototype.scrollIntoView = vi.fn()
+
+		renderBoard(false, { seed: '20261101' })
+
+		playToEnd()
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Share' }))
 	})
 })

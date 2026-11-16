@@ -100,8 +100,8 @@ screen reader hears the score at a bust.
 
 An action can turn off the button that the reader pressed. The focus then
 moves to the first slot that can take the number, or else to Draw, or else to
-Reset. A daily puzzle has no Reset, so after its bust or win no control takes
-the focus. The close of the notice of a replay moves the focus by the same
+Reset. A daily puzzle has no Reset, so after its bust or win the focus goes to
+Share in the bottom bar. The close of the notice of a replay moves the focus by the same
 rule.
 
 ## Settings

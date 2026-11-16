@@ -69,7 +69,7 @@ export type GameBoardProps = {
  * next control to use: the first slot that can take the number, or else Draw,
  * or else Reset after a bust or a win. A daily puzzle has no Reset (see
  * `isDailySeed`), because a new seed is not the daily puzzle, so after its bust
- * or win no control takes the focus. The move happens only when the pressed control had the focus.
+ * or win the focus goes to Share in the bottom bar. The move happens only when the pressed control had the focus.
  * Safari does not give the focus to a pressed button, so it moves no focus.
  * Chrome and Firefox give the focus to a pressed button, so a pointer press
  * also moves the focus, but the page does not scroll to it: the reader looks at
@@ -105,6 +105,8 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 
 	const resetRef = useRef<HTMLButtonElement>(null)
 
+	const shareRef = useRef<HTMLButtonElement>(null)
+
 	const slotsRef = useRef<HTMLDivElement>(null)
 
 	const intl = useIntl()
@@ -115,12 +117,13 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 	 * Gives the focus to the next control to use: the first slot that can take
 	 * the number, or else Draw, or else Reset. After a bust or a win, the bar has
 	 * no Draw, so the focus goes to Reset. A daily puzzle has no Reset, so after
-	 * its bust or win no control takes the focus.
+	 * its bust or win the focus goes to Share, which each board has. Thus the
+	 * focus never falls to the body.
 	 */
 	const focusNext = (options: FocusOptions) => {
 		const slot = slotsRef.current?.querySelector<HTMLButtonElement>('button:enabled')
 
-		;(slot ?? drawRef.current ?? resetRef.current)?.focus(options)
+		;(slot ?? drawRef.current ?? resetRef.current ?? shareRef.current)?.focus(options)
 	}
 
 	/** Runs `action`, then gives the focus to the next control when the pressed control had it. */
@@ -241,6 +244,7 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 				cpu={cpu}
 				difficulty={difficulty}
 				outcome={outcome}
+				shareRef={shareRef}
 			/>
 		</div>
 	)

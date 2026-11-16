@@ -1,6 +1,7 @@
 'use client'
 
 import { Camera, Hash, Share2 } from 'lucide-react'
+import type { Ref } from 'react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
@@ -13,7 +14,7 @@ import { shareScreenshot } from '../../utilities/screenshot'
  * Share screenshot gives an image of the screen to the share sheet of the
  * device, or saves it, and a toast tells the reader of a failure.
  */
-export function GameBoardShare() {
+export function GameBoardShare({ ref }: { ref?: Ref<HTMLButtonElement> }) {
 	const { toast } = useToast()
 
 	/** Copies the address of the run. The copy reads the address now, because a Reset writes a new one. */
@@ -34,7 +35,7 @@ export function GameBoardShare() {
 	return (
 		<Menu placement="top-end">
 			<MenuTrigger>
-				<Button variant="plain" aria-label="Share">
+				<Button ref={ref} variant="plain" aria-label="Share">
 					<Icon icon={<Share2 />} />
 				</Button>
 			</MenuTrigger>
