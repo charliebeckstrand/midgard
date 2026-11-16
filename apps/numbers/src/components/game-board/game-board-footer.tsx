@@ -36,6 +36,11 @@ function cpuName(difficulty: Difficulty): string {
 /** Props for {@link ScoreCell}. */
 type ScoreCellProps = {
 	label: string
+	/**
+	 * Shows the label. A hidden label is only for a screen reader, and the
+	 * score is then at the start of the cell.
+	 */
+	showLabel?: boolean
 	game: Game
 	tint?: Tint
 	/** Shows a check before the label: green for the winner, and muted grey for the loser. */
@@ -44,43 +49,50 @@ type ScoreCellProps = {
 
 /**
  * One score: a label, and the count of the filled slots of `game`, of 20. The
- * cell of the winner is green.
+ * cell has no paint while the game goes on. The cell of the winner is green,
+ * and a tie makes it amber. The cell keeps its padding with no paint, so the
+ * score has the same inset as the drawn number, and a tint has space around
+ * the score.
  */
-function ScoreCell({ label, game, tint, check = false }: ScoreCellProps) {
+function ScoreCell({ label, showLabel = true, game, tint, check = false }: ScoreCellProps) {
 	return (
 		<Flex
 			align="center"
-			justify="between"
+			justify={showLabel ? 'between' : 'start'}
 			gap="sm"
 			className={cn(
 				'rounded-lg px-4 py-2.5',
 				tint === 'green' && 'bg-green-600/15 dark:bg-green-500/20',
 				tint === 'amber' && 'bg-amber-500/20 dark:bg-amber-400/20',
-				!tint && 'bg-zinc-950/5 dark:bg-white/10',
 			)}
 		>
-			<Flex align="center" gap="sm" className="min-w-0">
-				{check && (
-					<Icon
-						icon={<CircleCheck />}
-						label={tint === 'green' ? 'Winner' : undefined}
-						className={cn(
-							'shrink-0',
-							tint === 'green'
-								? 'text-green-600 dark:text-green-500'
-								: 'text-zinc-500 dark:text-zinc-400',
-						)}
-					/>
-				)}
+			{(check || showLabel) && (
+				<Flex align="center" gap="sm" className="min-w-0">
+					{check && (
+						<Icon
+							icon={<CircleCheck />}
+							label={tint === 'green' ? 'Winner' : undefined}
+							className={cn(
+								'shrink-0',
+								tint === 'green'
+									? 'text-green-600 dark:text-green-500'
+									: 'text-zinc-500 dark:text-zinc-400',
+							)}
+						/>
+					)}
 
-				<Text as="span" tone="muted" className="truncate font-medium text-sm">
-					{label}
-				</Text>
-			</Flex>
+					{showLabel && (
+						<Text as="span" tone="muted" className="truncate font-medium text-sm">
+							{label}
+						</Text>
+					)}
+				</Flex>
+			)}
 
-			<Text as="span" className="font-semibold text-lg tabular-nums">
+			<Text as="span" className="font-semibold text-xl tabular-nums">
+				{!showLabel && <span className="sr-only">{`${label} `}</span>}
 				{countPlaced(game.slots)}
-				<Text as="span" tone="muted" className="font-medium text-sm">
+				<Text as="span" tone="muted" className="font-medium text-base">
 					{` / ${SLOTS}`}
 				</Text>
 			</Text>
@@ -104,8 +116,9 @@ export type GameBoardFooterProps = {
 /**
  * The bar at the bottom of the view, under the box of the slots: the score, and
  * the share menu at the right, with a gap between them. The score is the count
- * of the filled slots, of 20, and it has the look of the bar of the number at
- * the top. Against the CPU, the bar has the score of the player above the
+ * of the filled slots, of 20, at the start of the bar. The bar has no paint,
+ * as the bar of the number at the top has none. The label "Score" is only for
+ * a screen reader. Against the CPU, the bar has the score of the player above the
  * score of the CPU. Away from the default level, the label of the CPU names
  * its level, such as "CPU (Hard)". When one side wins, each label gets a
  * check before it: the cell and the check of the winner are green, and the
@@ -149,7 +162,13 @@ export function GameBoardFooter({
 					</Stack>
 				) : (
 					showScore && (
-						<ScoreCell label="Score" game={game} tint={won ? 'green' : undefined} check={won} />
+						<ScoreCell
+							label="Score"
+							showLabel={false}
+							game={game}
+							tint={won ? 'green' : undefined}
+							check={won}
+						/>
 					)
 				)}
 			</div>
