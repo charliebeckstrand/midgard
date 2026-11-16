@@ -35,12 +35,19 @@ const segment = {
 	 * The items have no gap between them. The inline padding of each item keeps
 	 * two labels apart, and the indicator marks the selected item. A gap only
 	 * makes the box wider, so a phone width scrolls the box sooner.
+	 *
+	 * The items stretch to the height of the box, also when a label wraps. Each
+	 * item then has the same height and top, so the indicator morphs only along
+	 * the row (see `ActiveIndicatorScope`).
 	 */
-	control: [flex.row, 'w-fit', ...bg.tint, rounded.lg, 'p-1', dan.text.body],
+	control: ['flex items-stretch', 'w-fit', ...bg.tint, rounded.lg, 'p-1', dan.text.body],
 	/** One item of the box: the layout, the focus ring, and the disabled and cursor states. */
 	item: [
 		flex.row,
 		'justify-center',
+		// The item fills its wrapper, which the box stretches to its height. A
+		// short label then centers beside a label that wraps.
+		'h-full',
 		// A label stays on one line while the control fits its container. Where it
 		// does not, the item shrinks to its longest word and the label wraps.
 		'text-center text-balance',
