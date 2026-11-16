@@ -1632,6 +1632,7 @@
 	"docs.prop.lockable": "Bloqueable",
 	"docs.prop.max": "Máximo",
 	"docs.prop.min": "Mínimo",
+	"docs.prop.minChange": "Cambio mínimo",
 	"docs.prop.minQueryLength": "Longitud mínima de la búsqueda",
 	"docs.prop.mini": "Mini",
 	"docs.prop.modal": "Modal",

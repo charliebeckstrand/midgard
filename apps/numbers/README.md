@@ -75,9 +75,10 @@ appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). A bar under the header holds the drawn number and, with Auto-draw off,
 Draw. A Reset button at the right of the bar, apart from it, starts a new seed
 at each step. The bar keeps one height with Draw and without it. The number rolls
-to each new number through the `Odometer` of `ui`. The first number of the run
-that the page opens with shows at once, and the first number of each later run
-rolls from 0.
+from the shown number to each new number through the `Odometer` of `ui`, also
+to the first number of a new run. A roll covers at least 100 (`minChange`), so a
+near number rolls from 100 away. The first number of the run that the page
+opens with shows at once.
 
 The 20 slots are buttons. Only a slot that can take the drawn number is on,
 with an amber outline. A filled slot shows its number in a soft green, and it
@@ -111,7 +112,7 @@ Each setting is in a cookie (`numbers-auto-draw`, `numbers-show-score`, and
 `numbers-difficulty`, `src/utilities/settings.ts`). The page reads the cookies of the request, so
 the server renders the Draw button and the score bar as the settings of the
 reader give them, and the first paint is the final layout (CONVENTIONS
-§3.13). With Auto-draw on, the first number rolls in after the hydration. A
+§3.13). With Auto-draw on, the first state of the run holds the first draw, so the server renders the first number too. A
 write also puts a copy in `localStorage`, and the `storage` event of the copy
 gives the change to the other tabs.
 

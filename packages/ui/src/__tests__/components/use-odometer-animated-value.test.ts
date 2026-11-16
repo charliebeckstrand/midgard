@@ -72,4 +72,52 @@ describe('useOdometerAnimatedValue', () => {
 
 		expect(result.current.get()).toBe(100)
 	})
+
+	it.each([
+		{
+			from: 495,
+			to: 501,
+			start: 401,
+			case: 'starts a near target minChange away, on the side of the current figure',
+		},
+		{ from: 501, to: 495, start: 595, case: 'starts a near smaller target from above it' },
+		{
+			from: 50,
+			to: 0,
+			start: 100,
+			case: 'starts a target of 0 from the side of the current figure',
+		},
+		{
+			from: 20,
+			to: 50,
+			start: 150,
+			case: 'starts on the other side of the target when the start would be negative',
+		},
+		{ from: 100, to: 742, start: 100, case: 'starts a far target from the current figure' },
+	])('$case', ({ from, to, start }) => {
+		const { result, rerender } = renderHook(
+			({ value }) => useOdometerAnimatedValue({ value, minChange: 100 }),
+			{ initialProps: { value: from } },
+		)
+
+		vi.mocked(animate).mockClear()
+
+		rerender({ value: to })
+
+		// The mock of `animate` does not move the number, so it holds the start.
+		expect(result.current.get()).toBe(start)
+
+		expect(animate).toHaveBeenCalledWith(result.current, to, expect.anything())
+	})
+
+	it('goes to a near target with no start when the duration is 0', () => {
+		const { result, rerender } = renderHook(
+			({ value }) => useOdometerAnimatedValue({ value, duration: 0, minChange: 100 }),
+			{ initialProps: { value: 495 } },
+		)
+
+		rerender({ value: 501 })
+
+		expect(result.current.get()).toBe(501)
+	})
 })

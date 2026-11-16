@@ -1,7 +1,7 @@
 'use client'
 
 import { RotateCcw } from 'lucide-react'
-import { type MouseEvent, type Ref, useEffect, useState } from 'react'
+import type { MouseEvent, Ref } from 'react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Odometer } from 'ui/odometer'
@@ -18,26 +18,15 @@ const TONES: Record<Status, TextProps['tone']> = {
 }
 
 /**
- * The readout of the drawn number. The toolbar mounts it again for each run.
- * With `fromZero`, it shows 0 at its mount, and then rolls to `value`. Thus the
- * first number of a new run rolls from 0, also when it is near the last number
- * of the run before. The run of the page has no `fromZero`, so the server
- * render and the first paint show its number, and nothing rolls at a load.
+ * The least distance of a roll of the readout. A new number near the shown
+ * number rolls from 100 away, so each change shows as a roll.
  */
-function RunReadout({ value, fromZero }: { value: number; fromZero: boolean }) {
-	const [mounted, setMounted] = useState(!fromZero)
-
-	useEffect(() => setMounted(true), [])
-
-	return <Odometer value={mounted ? value : 0} />
-}
+const MIN_ROLL = 100
 
 /** Props for {@link GameBoardToolbar}. */
 export type GameBoardToolbarProps = {
 	game: Game
 	status: Status
-	/** The run of the board, from `useGame`. A run after the run of the page starts the readout again from 0. */
-	run: number
 	/** Draws the next number. */
 	onDraw: (event: MouseEvent<HTMLButtonElement>) => void
 	/** The ref of the Draw button. It is null while the bar has no Draw. */
@@ -53,8 +42,9 @@ export type GameBoardToolbarProps = {
 /**
  * The bar of the drawn number, at the top of the game, over the box of the
  * slots, and the Reset button at its right, with a gap between them, as the
- * share menu sits at the right of the score bar. The readout rolls to each new
- * number, and the first number of each new run rolls from 0. At a load, it
+ * share menu sits at the right of the score bar. The readout rolls from the
+ * shown number to each new number, also to the first number of a new run. A
+ * roll covers at least 100, so a near number rolls from 100 away. At a load, it
  * shows the number with no roll. Before the first draw it shows 0, and after a
  * placement it keeps the number. On a bust, it is red.
  *
@@ -70,7 +60,6 @@ export type GameBoardToolbarProps = {
 export function GameBoardToolbar({
 	game,
 	status,
-	run,
 	onDraw,
 	drawRef,
 	onReset,
@@ -85,7 +74,7 @@ export function GameBoardToolbar({
 				className="min-h-12 min-w-0 flex-1 rounded-lg border border-transparent bg-zinc-950/5 p-1 ps-4 dark:bg-white/10"
 			>
 				<Text as="span" tone={TONES[status]} className="font-semibold text-3xl tabular-nums">
-					<RunReadout key={run} value={game.last ?? 0} fromZero={run > 0} />
+					<Odometer value={game.last ?? 0} minChange={MIN_ROLL} />
 				</Text>
 
 				{showDraw && !isEnded(status) && (

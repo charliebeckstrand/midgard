@@ -18,6 +18,17 @@ export type OdometerProps = {
 	 */
 	duration?: number
 	/**
+	 * The least distance that each tween covers. A target nearer than this to
+	 * the current figure starts its tween this far from the target, on the side
+	 * of the current figure, so a small change still rolls. When that start
+	 * has the other sign from the target, the tween starts on the other side of
+	 * the target. A running tween keeps its start, and a new `minChange`
+	 * applies to the next `value`. Reduced motion and a `duration` of `0` or
+	 * less go to the target with no start.
+	 * @defaultValue 0
+	 */
+	minChange?: number
+	/**
 	 * Formats the numeric value for display.
 	 * @defaultValue Rounds to an integer and applies the grouping of the `<LocaleProvider>` locale.
 	 */
@@ -42,6 +53,7 @@ export type OdometerProps = {
 export function Odometer({
 	value,
 	duration = 800,
+	minChange,
 	formatValue,
 	className,
 	// Dropped, so a consumer role cannot make the root a live region.
@@ -50,7 +62,7 @@ export function Odometer({
 	'aria-live': _ariaLive,
 	...props
 }: OdometerProps) {
-	const display = useOdometerAnimatedValue({ value, duration })
+	const display = useOdometerAnimatedValue({ value, duration, minChange })
 
 	const { locale } = useLocale()
 

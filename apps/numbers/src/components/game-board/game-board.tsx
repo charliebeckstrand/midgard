@@ -176,7 +176,6 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 			<GameBoardToolbar
 				game={game}
 				status={status}
-				run={run}
 				drawRef={drawRef}
 				onDraw={(event) => act(event, draw)}
 				resetRef={resetRef}
