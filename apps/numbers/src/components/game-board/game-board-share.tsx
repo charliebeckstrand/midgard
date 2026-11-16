@@ -1,6 +1,6 @@
 'use client'
 
-import { Camera, Link, Share2 } from 'lucide-react'
+import { Camera, Hash, Share2 } from 'lucide-react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
@@ -41,7 +41,7 @@ export function GameBoardShare() {
 
 			<MenuContent aria-label="Share">
 				<MenuItem onAction={share}>
-					<Icon icon={<Link />} />
+					<Icon icon={<Hash />} />
 					<MenuLabel>Share seed</MenuLabel>
 				</MenuItem>
 
