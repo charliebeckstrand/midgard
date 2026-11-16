@@ -78,7 +78,7 @@ describe('GameBoard daily notice', () => {
 		return client
 	}
 
-	it('shows an alert at the top on a replay of the daily puzzle, which closes and gives the focus to the next control', () => {
+	it('shows a banner at the top on a replay of the daily puzzle, which closes and gives the focus to the next control', () => {
 		const today = dailySeed(new Date())
 
 		const { container } = renderBoard(true, {
@@ -88,19 +88,19 @@ describe('GameBoard daily notice', () => {
 		})
 
 		// The announcer adds live regions of its own, so the query names the slot.
-		const alert = container.querySelector<HTMLElement>('[data-slot="alert"]')
+		const alert = container.querySelector<HTMLElement>('[data-slot="banner"]')
 
-		if (!alert) throw new Error('The board has no alert.')
+		if (!alert) throw new Error('The board has no banner.')
 
 		expect(alert.getAttribute('role')).toBe('status')
 
-		// The alert has no icon: its only icon is the X of the close button.
+		// The banner has no icon: its only icon is the X of the close button.
 		expect(alert.querySelectorAll('svg')).toHaveLength(1)
 
 		expect(alert.textContent).toContain("You already played today's puzzle")
 		expect(alert.textContent).toContain("Replays don't change your score.")
 
-		// The alert comes before the slots. Auto-draw drew a number, so the first
+		// The banner comes before the slots. Auto-draw drew a number, so the first
 		// slot that can take it is the next control.
 		const slot = screen
 			.getAllByRole('button', { name: /^Slot / })
@@ -112,7 +112,7 @@ describe('GameBoard daily notice', () => {
 
 		fireEvent.click(within(alert).getByRole('button', { name: 'Close' }))
 
-		expect(container.querySelector('[data-slot="alert"]')).toBeNull()
+		expect(container.querySelector('[data-slot="banner"]')).toBeNull()
 		expect(document.activeElement).toBe(slot)
 	})
 })
@@ -147,7 +147,7 @@ describe('GameBoard daily notice from the server', () => {
 		</QueryClientProvider>
 	)
 
-	it('has the alert in the markup of the server, and keeps it through the hydration', async () => {
+	it('has the banner in the markup of the server, and keeps it through the hydration', async () => {
 		const today = dailySeed(new Date())
 
 		writeCookie('numbers-auto-draw', 'on')
@@ -167,7 +167,7 @@ describe('GameBoard daily notice from the server', () => {
 
 		container.innerHTML = renderToString(tree(today))
 
-		const served = container.querySelector('[data-slot="alert"]')
+		const served = container.querySelector('[data-slot="banner"]')
 
 		expect(served?.textContent).toContain("You already played today's puzzle")
 
@@ -181,11 +181,11 @@ describe('GameBoard daily notice from the server', () => {
 
 		expect(errors).toEqual([])
 
-		// The hydration keeps the alert of the server, and the browser has the same day.
-		expect(container.querySelector('[data-slot="alert"]')).toBe(served)
+		// The hydration keeps the banner of the server, and the browser has the same day.
+		expect(container.querySelector('[data-slot="banner"]')).toBe(served)
 	})
 
-	it('closes the alert after the hydration when the day of the browser is another day', async () => {
+	it('closes the banner after the hydration when the day of the browser is another day', async () => {
 		const today = dailySeed(new Date())
 
 		// The server read the stats of the day before, for the seed of the page.
@@ -205,7 +205,7 @@ describe('GameBoard daily notice from the server', () => {
 
 		container.innerHTML = renderToString(tree(yesterday))
 
-		expect(container.querySelector('[data-slot="alert"]')).not.toBeNull()
+		expect(container.querySelector('[data-slot="banner"]')).not.toBeNull()
 
 		const errors: unknown[] = []
 
@@ -218,7 +218,7 @@ describe('GameBoard daily notice from the server', () => {
 		expect(errors).toEqual([])
 
 		expect(today).not.toBe(yesterday)
-		expect(container.querySelector('[data-slot="alert"]')).toBeNull()
+		expect(container.querySelector('[data-slot="banner"]')).toBeNull()
 	})
 })
 

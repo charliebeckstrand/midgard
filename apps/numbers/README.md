@@ -211,15 +211,15 @@ streak. A reader with no session gets no Stats item in the menu.
 After the first run of the daily puzzle of today counts, the Daily puzzle item
 of the menu shows the score in a small green badge after its label, such as
 "12/20" (`dailyScore` of the stats). A
-new run of the puzzle shows a closable alert, with no icon, above the bar of the
-drawn number: the reader played the puzzle, and a replay does not change the
-score (`useDailyNotice`). The alert waits for the stats, and a
-run that ends before they arrive gets no alert, because its own result can be
-in them. A reader with no session, or with no verified email, has no stats, so
-the item stays a plain link and no alert shows.
+new run of the puzzle shows a closable banner, with no icon, across the top of
+the body, above the bar of the drawn number: the reader played the puzzle, and
+a replay does not change the score (`useDailyNotice`). The banner waits for the
+stats, and a run that ends before they arrive gets no banner, because its own
+result can be in them. A reader with no session, or with no verified email, has
+no stats, so the item stays a plain link and no banner shows.
 
 The server reads the stats of the daily puzzle of today, so the first paint
-of a load has the alert, and the alert does not move the board after the
+of a load has the banner, and the banner does not move the board after the
 hydration (CONVENTIONS §3.13, `readDailyStats` in `src/server/stats.ts`).
 The server needs the day of the reader for this. Each page writes the offset
 of the time zone of the browser in the `numbers-utc-offset` cookie
