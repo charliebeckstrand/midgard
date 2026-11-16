@@ -104,6 +104,16 @@ export function getStatus(game: Game): Status {
 }
 
 /**
+ * Whether the run has a placement and has not ended in a bust or a win. A Reset
+ * counts such a run toward the stats, with its score at that step.
+ */
+export function isUnfinished(game: Game): boolean {
+	const status = getStatus(game)
+
+	return status !== 'bust' && status !== 'won' && countPlaced(game.slots) > 0
+}
+
+/**
  * Draws the next number of the deck. Each number of the deck before it is in a
  * slot, so the count of the filled slots is the position of the draw. A game
  * with a waiting number, or with no number left, stays as it is.

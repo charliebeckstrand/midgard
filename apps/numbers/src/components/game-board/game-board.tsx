@@ -10,7 +10,14 @@ import { Columns } from 'ui/structure/columns'
 import { useGame } from '../../hooks/use-game'
 import { useGameSetting } from '../../hooks/use-game-setting'
 import { useRunRecorder } from '../../hooks/use-run-recorder'
-import { countPlaced, getOutcome, getStatus, playCpu, SLOTS } from '../../utilities/game'
+import {
+	countPlaced,
+	getOutcome,
+	getStatus,
+	isUnfinished,
+	playCpu,
+	SLOTS,
+} from '../../utilities/game'
 import { createSeed, isSeed, runPath } from '../../utilities/seed'
 import { describeStatus } from './describe-status'
 import { GameBoardScore } from './game-board-score'
@@ -94,9 +101,10 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	/** Starts the run of a new seed, and writes its address. */
 	const restart = () => {
-		// A bust or a win counted when it ended. A run that a Reset ends after its
-		// first placement counts with its score, so a bad run cannot be skipped.
-		if (!ended && countPlaced(game.slots) > 0) recordRun(game)
+		// A bust or a win counted when it ended. A Reset after the first placement
+		// counts the run with its score. A link, Back, or Forward leaves the run, and
+		// the run does not count.
+		if (isUnfinished(game)) recordRun(game)
 
 		const next = createSeed()
 

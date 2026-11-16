@@ -153,7 +153,8 @@ no run scores 0. Mimir, in asgard, keeps them
 (`/api/games/numbers/*`, `src/api/stats-api.ts`).
 
 A run counts when it ends in a bust or a win, and when a Reset ends it after
-its first placement, with its score at that step. `useGame` gives an ended run
+its first placement, with its score at that step (`isUnfinished`). A link,
+Back, or Forward leaves the run, and the run does not count. `useGame` gives an ended run
 to its `onEnd` in the action, not in an effect, so a held route that shows
 again does not count its run a second time. A run counts only for a user with a
 verified email. The first run of a daily puzzle counts toward the streak. A
