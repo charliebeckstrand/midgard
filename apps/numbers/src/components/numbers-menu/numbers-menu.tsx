@@ -65,10 +65,10 @@ export type NumbersMenuProps = {
 /**
  * The menu at the right of the header. Home starts the run of a new seed, and
  * Daily puzzle opens the run of the seed of today, which each reader gets on the
- * same date, and shows a check once its first run counts. Vs CPU starts the run of a new seed against the CPU, and Stats
- * opens the stats of the reader. Under them, a reader with no session gets
- * Sign in, and a signed-in reader gets Verify email (until the email is
- * verified) and Sign out.
+ * same date, and shows a check once its first run counts. Vs CPU starts the
+ * run of a new seed against the CPU. Under them, a reader with no session gets
+ * Sign in. A signed-in reader gets Verify email (until the email is verified),
+ * Stats, which opens the stats of the reader, and Sign out.
  */
 export function NumbersMenu({ user }: NumbersMenuProps) {
 	const [statsOpen, setStatsOpen] = useState(false)
@@ -95,16 +95,16 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 						<MenuLabel>Vs CPU</MenuLabel>
 					</MenuItem>
 
-					<MenuItem onAction={() => setStatsOpen(true)}>
-						<Icon icon={<ChartColumn />} />
-						<MenuLabel>Stats</MenuLabel>
-					</MenuItem>
-
 					<MenuSeparator />
 
 					{user ? (
 						<>
 							<VerifyEmailMenuItem user={user} />
+
+							<MenuItem onAction={() => setStatsOpen(true)}>
+								<Icon icon={<ChartColumn />} />
+								<MenuLabel>Stats</MenuLabel>
+							</MenuItem>
 
 							<SignOutMenuItem />
 						</>
@@ -117,7 +117,7 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 				</MenuContent>
 			</Menu>
 
-			<StatsDialog open={statsOpen} onOpenChange={setStatsOpen} user={user} />
+			{user && <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} user={user} />}
 		</>
 	)
 }

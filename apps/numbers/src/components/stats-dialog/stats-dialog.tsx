@@ -1,7 +1,6 @@
 'use client'
 
 import type { User } from 'auth'
-import { Button } from 'ui/button'
 import { BarChart } from 'ui/chart'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
 import { useToday } from 'ui/hooks'
@@ -20,8 +19,8 @@ import { dailySeed } from '../../utilities/seed'
 export type StatsDialogProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	/** The signed-in user, or none. */
-	user?: User
+	/** The signed-in user. The menu shows Stats only to a signed-in reader. */
+	user: User
 }
 
 /** The tiles of the stats of one mode, from {@link ModeStats}, or skeletons while they load. */
@@ -94,20 +93,7 @@ function SignedInStats() {
 }
 
 /** What the dialog shows: the stats, or why the reader has none. */
-function StatsContent({ user }: { user?: User }) {
-	if (!user) {
-		return (
-			<Stack gap="lg" align="start">
-				<Text>
-					Sign in to keep the stats of your runs: games played, best and average score, and your
-					daily streak.
-				</Text>
-
-				<Button href="/login">Sign in</Button>
-			</Stack>
-		)
-	}
-
+function StatsContent({ user }: { user: User }) {
 	if (!user.is_verified) {
 		return <Text>Verify your email to keep the stats of your runs. The menu sends the link.</Text>
 	}
@@ -116,9 +102,9 @@ function StatsContent({ user }: { user?: User }) {
 }
 
 /**
- * The stats of the reader, from the Stats item of the header menu. Sign-in is
- * optional: a reader with no session gets a link to sign in, and the dialog
- * sends no request for the stats.
+ * The stats of a signed-in reader, from the Stats item of the header menu. A
+ * reader with no verified email gets a line that asks for the verification,
+ * and the dialog sends no request for the stats.
  */
 export function StatsDialog({ open, onOpenChange, user }: StatsDialogProps) {
 	return (
