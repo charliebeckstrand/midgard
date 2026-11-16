@@ -14,6 +14,8 @@ import {
 export type GameControls = {
 	game: Game
 	status: Status
+	/** The count of the resets, which names the run. Each reset starts a new run, also of the same seed. */
+	run: number
 	/** Draws the next number. */
 	draw: () => void
 	/** Puts the drawn number in the slot at `index`. */
@@ -33,6 +35,8 @@ export type GameControls = {
 export function useGame(seed: string, autoDraw: boolean): GameControls {
 	const [game, setGame] = useState(() => createGame(seed))
 
+	const [run, setRun] = useState(0)
+
 	const status = getStatus(game)
 
 	/** Draws the next number of `next` when the setting is on and `next` waits for a draw. */
@@ -51,8 +55,13 @@ export function useGame(seed: string, autoDraw: boolean): GameControls {
 	return {
 		game,
 		status,
+		run,
 		draw: () => setGame(drawNumber(game)),
 		place: (index) => setGame(settle(placeNumber(game, index))),
-		reset: (next) => setGame(settle(createGame(next))),
+		reset: (next) => {
+			setGame(settle(createGame(next)))
+
+			setRun((count) => count + 1)
+		},
 	}
 }
