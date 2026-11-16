@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useGame } from '../hooks/use-game'
 import { createGame, SLOTS } from '../utilities/game'
 
@@ -120,5 +120,47 @@ describe('useGame', () => {
 		expect(result.current.game.drawn).toBeNull()
 		expect(result.current.game.slots.every((slot) => slot !== null)).toBe(true)
 		expect(deck).toHaveLength(SLOTS)
+	})
+
+	it('gives the run to onEnd once when it ends in a win', () => {
+		const onEnd = vi.fn()
+
+		const { result } = renderHook(() => useGame('charlie', true, onEnd))
+
+		for (const value of deck) act(() => result.current.place(findRank(value)))
+
+		expect(onEnd).toHaveBeenCalledTimes(1)
+		expect(onEnd.mock.calls[0]?.[0].slots.every((slot: number | null) => slot !== null)).toBe(true)
+	})
+
+	it('gives the run to onEnd when a draw ends it in a bust', () => {
+		// A seed whose second number is smaller than its first, so the first in the
+		// lowest slot leaves the second no slot.
+		const seed = ['a', 'b', 'c', 'd', 'e', 'f'].find((name) => {
+			const [first = 0, second = 0] = createGame(name).deck
+
+			return second < first
+		})
+
+		const onEnd = vi.fn()
+
+		const { result } = renderHook(() => useGame(seed ?? '', true, onEnd))
+
+		act(() => result.current.place(0))
+
+		expect(result.current.status).toBe('bust')
+		expect(onEnd).toHaveBeenCalledTimes(1)
+	})
+
+	it('does not give a run to onEnd that has not ended', () => {
+		const onEnd = vi.fn()
+
+		const { result } = renderHook(() => useGame('charlie', true, onEnd))
+
+		act(() => result.current.place(findRank(deck[0] ?? 0)))
+
+		act(() => result.current.reset('other'))
+
+		expect(onEnd).not.toHaveBeenCalled()
 	})
 })

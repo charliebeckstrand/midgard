@@ -216,6 +216,19 @@ describe('linearScale', () => {
 		expect(pinned?.domain).toEqual([0, 47])
 	})
 
+	it('steps the ticks of an integer axis by whole numbers', () => {
+		const counts = { values: [0, 1, 2], range: [100, 0] as [number, number], tickTarget: 4 }
+
+		expect(linearScale(counts)?.ticks).toEqual([0, 0.5, 1, 1.5, 2])
+
+		expect(linearScale({ ...counts, integer: true })?.ticks).toEqual([0, 1, 2])
+
+		// A clean step past 1 is already whole, so the option leaves it.
+		expect(linearScale({ ...counts, values: [0, 40], integer: true })?.ticks).toEqual([
+			0, 10, 20, 30, 40,
+		])
+	})
+
 	it('ignores non-finite values without collapsing the scale', () => {
 		const scale = linearScale({
 			values: [10, Number.NaN, 30, Number.POSITIVE_INFINITY],

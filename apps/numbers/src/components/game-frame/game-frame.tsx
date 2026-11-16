@@ -32,7 +32,7 @@ export function GameFrame({ seed, settings, vsCpu, user }: GameFrameProps) {
 				<NumbersHeader user={user} />
 
 				<StackedLayoutBody>
-					<GameBoard seed={seed} vsCpu={vsCpu} />
+					<GameBoard seed={seed} user={user} vsCpu={vsCpu} />
 				</StackedLayoutBody>
 			</StackedLayout>
 		</GameSettingsProvider>

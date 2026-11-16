@@ -53,8 +53,8 @@ date. The server cannot know the date of the reader, so the link to the daily
 puzzle renders only in the open menu.
 
 Share seed in the share menu of the bottom bar copies the address of the run.
-Share screenshot in the same menu draws the page, as the screen shows it, to a PNG
-(`rasterizeElement` of `ui/core`, `src/utilities/screenshot.ts`). It gives the
+Share screenshot in the same menu draws the page, as the screen shows it, to a
+PNG (`rasterizeElement` of `ui/core`, `src/utilities/screenshot.ts`). It gives the
 image to the share sheet of the device, or saves it where the browser cannot
 share a file.
 
@@ -64,13 +64,13 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Home (a
-new seed), Daily puzzle, Vs CPU (a new seed against the CPU), and Sign in or
-Sign out. A segment in the settings switches two tabs: "UI" has the appearance
-pickers of `ui`, and "Game" has the settings of the game (see below). A bar
-under the header holds the drawn number, the action, and a menu with Reset.
-Reset in the menu starts a new seed at each step. The number rolls to each new
-number through the `Odometer` of `ui`, and the first number of each run rolls
-from 0.
+new seed), Daily puzzle, Vs CPU (a new seed against the CPU), Stats, and Sign
+in or Sign out. A segment in the settings switches two tabs: "UI" has the
+appearance pickers of `ui`, and "Game" has the settings of the game (see
+below). A bar under the header holds the drawn number, the action, and a menu
+with Reset. Reset in the menu starts a new seed at each step. The number rolls
+to each new number through the `Odometer` of `ui`, and the first number of each
+run rolls from 0.
 
 The 20 slots are buttons. Only a slot that can take the drawn number is on,
 with an amber outline. A filled slot shows its number in a soft green, and it
@@ -95,7 +95,7 @@ The Game tab of the settings has two switches:
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Auto-draw | Off | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button, and the action shows only as Reset after a bust or a win. |
+| Auto-draw | On | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button, and the action shows only as Reset after a bust or a win. |
 | Show score | On | The bar at the bottom shows the score. |
 
 Each setting is in a cookie (`numbers-auto-draw` and `numbers-show-score`,
@@ -143,6 +143,23 @@ the reader. A failure of the gateway shows the reader as signed out, and the
 run still plays. After a sign-in, the shared page goes to `/`, which starts a
 new seed. The contract with the gateway is in [asgard
 `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md).
+
+## Stats
+
+Stats in the header menu opens a dialog with the stats of a signed-in reader,
+one tab for each mode (Solo and Vs CPU): the runs played, the best and the
+average score, the daily streak and the longest one, and a bar chart of the
+runs on each score from 1 to 20. The first number always has an empty slot, so
+no run scores 0. Mimir, in asgard, keeps them
+(`/api/games/numbers/*`, `src/api/stats-api.ts`).
+
+A run counts when it ends in a bust or a win, and when a Reset ends it after
+its first placement, with its score at that step (`isUnfinished`). A link,
+Back, or Forward leaves the run, and the run does not count. `useGame` gives an ended run
+to its `onEnd` in the action, not in an effect, so a held route that shows
+again does not count its run a second time. A run counts only for a user with a
+verified email. The first run of a daily puzzle counts toward the streak. A
+reader with no session gets a link to sign in, and the dialog sends no request.
 
 ## Deploy
 

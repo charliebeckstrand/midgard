@@ -18,7 +18,7 @@ afterEach(() => {
 /** Renders `useGameSetting(name)` under the settings of a request. */
 function renderSetting(
 	name: keyof GameSettings,
-	settings: GameSettings = { autoDraw: false, showScore: true },
+	settings: GameSettings = { autoDraw: true, showScore: true },
 ) {
 	const wrapper = ({ children }: { children: ReactNode }) =>
 		h(GameSettingsProvider, { settings, children })
@@ -28,32 +28,32 @@ function renderSetting(
 
 describe('useGameSetting', () => {
 	it('gives the default with no cookie', () => {
-		expect(renderSetting('autoDraw').result.current[0]).toBe(false)
+		expect(renderSetting('autoDraw').result.current[0]).toBe(true)
 		expect(renderSetting('showScore').result.current[0]).toBe(true)
 	})
 
 	it('reads the cookie', () => {
 		writeCookie(SETTINGS.showScore.cookie, 'off')
 
-		expect(
-			renderSetting('showScore', { autoDraw: false, showScore: false }).result.current[0],
-		).toBe(false)
+		expect(renderSetting('showScore', { autoDraw: true, showScore: false }).result.current[0]).toBe(
+			false,
+		)
 	})
 
 	it('writes the cookie, and tells each reader in the tab', () => {
 		const first = renderSetting('autoDraw')
 		const second = renderSetting('autoDraw')
 
-		act(() => first.result.current[1](true))
-
-		expect(document.cookie).toContain(`${SETTINGS.autoDraw.cookie}=on`)
-		expect(first.result.current[0]).toBe(true)
-		expect(second.result.current[0]).toBe(true)
-
-		act(() => second.result.current[1](false))
+		act(() => first.result.current[1](false))
 
 		expect(document.cookie).toContain(`${SETTINGS.autoDraw.cookie}=off`)
 		expect(first.result.current[0]).toBe(false)
+		expect(second.result.current[0]).toBe(false)
+
+		act(() => second.result.current[1](true))
+
+		expect(document.cookie).toContain(`${SETTINGS.autoDraw.cookie}=on`)
+		expect(first.result.current[0]).toBe(true)
 	})
 
 	it('follows a write in another tab', () => {
@@ -62,14 +62,14 @@ describe('useGameSetting', () => {
 		// Another tab writes the shared cookie and the copy in its storage, and
 		// this tab gets the `storage` event of the copy.
 		act(() => {
-			writeCookie(SETTINGS.autoDraw.cookie, 'on')
+			writeCookie(SETTINGS.autoDraw.cookie, 'off')
 
 			window.dispatchEvent(
-				new StorageEvent('storage', { key: SETTINGS.autoDraw.cookie, newValue: 'on' }),
+				new StorageEvent('storage', { key: SETTINGS.autoDraw.cookie, newValue: 'off' }),
 			)
 		})
 
-		expect(result.current[0]).toBe(true)
+		expect(result.current[0]).toBe(false)
 	})
 
 	it('puts a copy of a write in the storage, for the other tabs', () => {
@@ -87,6 +87,6 @@ describe('useGameSetting', () => {
 		act(() => showScore.result.current[1](false))
 
 		expect(showScore.result.current[0]).toBe(false)
-		expect(autoDraw.result.current[0]).toBe(false)
+		expect(autoDraw.result.current[0]).toBe(true)
 	})
 })

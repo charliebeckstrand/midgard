@@ -144,6 +144,7 @@ export function resolveValueAxes<T>(
 					domainValues: yDomainValues,
 					min: axes.y?.min,
 					max: axes.y?.max,
+					integer: axes.y?.integer,
 					format: yTick,
 					title: axisTitles ? axes.y?.title : undefined,
 				}
@@ -153,6 +154,7 @@ export function resolveValueAxes<T>(
 					domainValues: y2DomainValues,
 					min: axes.y2?.min,
 					max: axes.y2?.max,
+					integer: axes.y2?.integer,
 					format: y2Tick,
 					title: axisTitles ? axes.y2?.title : undefined,
 				}

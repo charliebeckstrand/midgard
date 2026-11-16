@@ -18,7 +18,7 @@ export type GameSettings = {
 
 /** The cookie and the default of each setting. */
 export const SETTINGS: Record<keyof GameSettings, Setting> = {
-	autoDraw: { cookie: 'numbers-auto-draw', fallback: false },
+	autoDraw: { cookie: 'numbers-auto-draw', fallback: true },
 	showScore: { cookie: 'numbers-show-score', fallback: true },
 }
 
