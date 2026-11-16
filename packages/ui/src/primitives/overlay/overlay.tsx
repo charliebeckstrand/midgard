@@ -25,11 +25,11 @@ import { registerOverlayLayer } from '../../utilities/overlay-layers'
 import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
+import { useOverlayAbsorb } from './use-overlay-absorb'
 import { useOverlayEntering } from './use-overlay-entering'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
 import { useOverlayKeepFocus } from './use-overlay-keep-focus'
 import { useOverlayReturnFocus } from './use-overlay-return-focus'
-import { useOverlayTapRun } from './use-overlay-tap-run'
 import { useOverlayViewportFit } from './use-overlay-viewport-fit'
 
 /**
@@ -264,8 +264,8 @@ export function Overlay({
 		k.motion.animate,
 	)
 
-	// The second tap of a double tap that opened the overlay does nothing in it.
-	const tapRun = useOverlayTapRun(open)
+	// The overlay absorbs the second tap of the double tap that opened it.
+	const absorb = useOverlayAbsorb(open)
 
 	const inert = props.inert === true
 
@@ -308,12 +308,12 @@ export function Overlay({
 			// The second tap of the run stops in the capture phase, before the panel sees it.
 			onPointerDownCapture={composeEventHandlers(
 				props.onPointerDownCapture,
-				tapRun.onPointerDownCapture,
+				absorb.onPointerDownCapture,
 				{ checkForDefaultPrevented: false },
 			)}
 			onMouseDownCapture={composeEventHandlers(
 				props.onMouseDownCapture,
-				tapRun.onMouseDownCapture,
+				absorb.onMouseDownCapture,
 				{ checkForDefaultPrevented: false },
 			)}
 			// A press that ends off the backdrop sends the backdrop no click, so its flag must
@@ -323,12 +323,12 @@ export function Overlay({
 
 				if (event.target !== backdropRef.current) pressedRef.current = false
 			}}
-			onClickCapture={composeEventHandlers(props.onClickCapture, tapRun.onClickCapture, {
+			onClickCapture={composeEventHandlers(props.onClickCapture, absorb.onClickCapture, {
 				checkForDefaultPrevented: false,
 			})}
 			onDoubleClickCapture={composeEventHandlers(
 				props.onDoubleClickCapture,
-				tapRun.onDoubleClickCapture,
+				absorb.onDoubleClickCapture,
 				{ checkForDefaultPrevented: false },
 			)}
 			// On iOS, the on-screen keyboard makes the visual viewport smaller than the

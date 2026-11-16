@@ -3,8 +3,8 @@
 import { type MouseEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
 import { MULTI_TAP_DISTANCE, MULTI_TAP_WINDOW } from '../../hooks/use-touch-tap'
 
-/** The capture handlers that {@link useOverlayTapRun} gives to the root of an overlay. @internal */
-export type OverlayTapRun = {
+/** The capture handlers that {@link useOverlayAbsorb} gives to the root of an overlay. @internal */
+export type OverlayAbsorb = {
 	onPointerDownCapture: (event: PointerEvent<Element>) => void
 	onMouseDownCapture: (event: MouseEvent<Element>) => void
 	onClickCapture: (event: MouseEvent<Element>) => void
@@ -51,9 +51,9 @@ function continuesRun(event: PointerEvent<Element>, lift: Lift | null): boolean 
 }
 
 /**
- * Stops the rest of the tap run that opened an overlay. A double tap on a
- * control that opens an overlay on one tap opens the overlay on the first tap.
- * The second tap then lands on the overlay. On the backdrop it closes the
+ * Absorbs the second tap of the double tap that opened an overlay. A double
+ * tap on a control that opens an overlay on one tap opens the overlay on the
+ * first tap. The second tap then lands on the overlay. On the backdrop it closes the
  * overlay at once, and in the panel it can press a control that the reader
  * has not seen.
  *
@@ -77,7 +77,7 @@ function continuesRun(event: PointerEvent<Element>, lift: Lift | null): boolean 
  * @returns The capture handlers for the root of the overlay.
  * @internal
  */
-export function useOverlayTapRun(open: boolean): OverlayTapRun {
+export function useOverlayAbsorb(open: boolean): OverlayAbsorb {
 	// The last lift before the open. A lift in the overlay after the open is
 	// not the lift of the tap that opened it, so the run does not follow it.
 	const openingLiftRef = useRef<Lift | null>(null)
