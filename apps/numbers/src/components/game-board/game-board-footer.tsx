@@ -1,6 +1,6 @@
 import { cn } from 'ui/core'
-import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
+import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import { countPlaced, type Game, type Outcome, SLOTS } from '../../utilities/game'
 import { GameBoardShare } from './game-board-share'
@@ -56,7 +56,7 @@ export type GameBoardFooterProps = {
 	game: Game
 	/** Shows the score of the player. Against the CPU, the scores show at each setting. */
 	showScore: boolean
-	/** The game of the CPU, against the player. The bar then shows a score for each, under its column. */
+	/** The game of the CPU, against the player. The bar then shows both scores, the player above the CPU. */
 	cpu?: Game | null
 	/** The result against the CPU, after the game of the player ends. */
 	outcome?: Outcome | null
@@ -66,9 +66,9 @@ export type GameBoardFooterProps = {
  * The bar at the bottom of the view, under the box of the slots: the score, and
  * the share menu at the right, with a gap between them. The score is the count
  * of the filled slots, of 20, and it has the look of the bar of the number at
- * the top. Against the CPU, the bar has a score under each column. After the
- * end, the score of the winner is green and reads "You win" or "CPU wins", and
- * a tie makes both amber. With Show score off, the bar holds only the share
+ * the top. Against the CPU, the bar has the score of the player above the
+ * score of the CPU. After the end, the score of the winner is green and reads
+ * "You win" or "CPU wins", and a tie makes both amber. With Show score off, the bar holds only the share
  * menu.
  *
  * @remarks
@@ -89,10 +89,10 @@ export function GameBoardFooter({ game, showScore, cpu, outcome }: GameBoardFoot
 		>
 			<div className="min-w-0 flex-1">
 				{cpu ? (
-					<Columns columns={2} gap="sm">
+					<Stack gap="sm">
 						<ScoreCell label={player[0]} tint={player[1]} game={game} />
 						<ScoreCell label={opponent[0]} tint={opponent[1]} game={cpu} />
-					</Columns>
+					</Stack>
 				) : (
 					showScore && <ScoreCell label="Score" game={game} />
 				)}

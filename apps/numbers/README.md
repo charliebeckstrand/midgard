@@ -135,10 +135,11 @@ at once, also during a run: the column of the CPU plays the same numbers again
 at the new level. The stats keep the score of the player only, and the CPU does
 not change the game of the player, so the level does not change the stats.
 
-The bar at the bottom has a score under each column. It shows also with Show
-score off, because it names the columns and gives the result. After the end,
-the score of the winner is green and reads "You win" or "CPU wins", and a tie
-makes both scores amber. A screen reader hears the result at the end.
+The bar at the bottom has the score of the player above the score of the CPU.
+It shows also with Show score off, because it names the columns and gives the
+result. After the end, the score of the winner is green and reads "You win" or
+"CPU wins", and a tie makes both scores amber. A screen reader hears the result
+at the end.
 
 ## Sign-in
 
