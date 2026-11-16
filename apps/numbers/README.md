@@ -68,7 +68,7 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Solo (a
-new seed), Daily puzzle, Vs CPU (a new seed against the CPU), and Leaderboard.
+new seed), Vs CPU (a new seed against the CPU), Daily puzzle, and Leaderboard.
 Under a divider, the menu has Sign in, or Stats and
 Sign out for a signed-in reader. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
@@ -197,9 +197,9 @@ email, has no stats, so the item stays a plain link and no toast shows.
 ## Leaderboard
 
 Leaderboard in the header menu opens a dialog with the boards of each day, for
-each reader. A tab for each board holds the board of one date: Daily for the
-solo runs of the daily puzzle, Solo for the solo runs of other seeds, and Vs
-CPU for the runs that beat the CPU. A vs CPU run that ties or loses, or that a
+each reader. A tab for each board holds the board of one date, in the order of the menu:
+Solo for the solo runs of other seeds, Vs CPU for the runs that beat the CPU,
+and Daily for the solo runs of the daily puzzle. The dialog opens on Daily. A vs CPU run that ties or loses, or that a
 Reset ends, counts in the stats but on no board (`beatCpu` of the result). A run counts on the board of the reader's
 date. A board shows the top 10 players by their best score on it, then the
 reader when they are below them, and the count of players. A better run moves a
