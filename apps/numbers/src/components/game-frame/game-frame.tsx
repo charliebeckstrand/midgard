@@ -30,7 +30,7 @@ export function GameFrame({ seed, settings, user }: GameFrameProps) {
 				<NumbersHeader user={user} />
 
 				<StackedLayoutBody>
-					<GameBoard seed={seed} />
+					<GameBoard seed={seed} user={user} />
 				</StackedLayoutBody>
 			</StackedLayout>
 		</GameSettingsProvider>

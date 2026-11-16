@@ -1,5 +1,6 @@
 'use client'
 
+import type { User } from 'auth'
 import { usePathname } from 'next/navigation'
 import { type MouseEvent, useEffect, useEffectEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
@@ -7,6 +8,7 @@ import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
 import { useGame } from '../../hooks/use-game'
 import { useGameSetting } from '../../hooks/use-game-setting'
+import { useRunRecorder } from '../../hooks/use-run-recorder'
 import { countPlaced, type Game, SLOTS, type Status } from '../../utilities/game'
 import { createSeed, isSeed } from '../../utilities/seed'
 import { GameBoardScore } from './game-board-score'
@@ -30,6 +32,8 @@ function describeStatus(game: Game, status: Status, format: (value: number) => s
 export type GameBoardProps = {
 	/** The seed of the address, which the run of the page starts from. */
 	seed: string
+	/** The signed-in user, whose stats count each finished run, or none. */
+	user?: User
 }
 
 /**
@@ -55,12 +59,14 @@ export type GameBoardProps = {
  * the pressed control. A key press (`detail` 0) scrolls the next control into
  * view.
  */
-export function GameBoard({ seed }: GameBoardProps) {
+export function GameBoard({ seed, user }: GameBoardProps) {
 	const [autoDraw] = useGameSetting('autoDraw')
 
 	const [showScore] = useGameSetting('showScore')
 
-	const { game, status, draw, place, reset } = useGame(seed, autoDraw)
+	const recordRun = useRunRecorder(user, 'solo')
+
+	const { game, status, draw, place, reset } = useGame(seed, autoDraw, recordRun)
 
 	const actionRef = useRef<HTMLButtonElement>(null)
 
@@ -86,6 +92,10 @@ export function GameBoard({ seed }: GameBoardProps) {
 
 	/** Starts the run of a new seed, and writes its address. */
 	const restart = () => {
+		// A bust or a win counted when it ended. A run that a Reset ends after its
+		// first placement counts with its score, so a bad run cannot be skipped.
+		if (status !== 'bust' && status !== 'won' && countPlaced(game.slots) > 0) recordRun(game)
+
 		const next = createSeed()
 
 		window.history.pushState(null, '', `/${next}`)

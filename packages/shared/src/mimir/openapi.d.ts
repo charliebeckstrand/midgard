@@ -1020,6 +1020,136 @@ export interface paths {
 		patch?: never
 		trace?: never
 	}
+	'/api/games/numbers/stats': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		/**
+		 * Get your numbers stats
+		 * @description The stats of each mode. The streaks are as of the reader's date, which must be within one day of the server's date.
+		 */
+		get: {
+			parameters: {
+				query: {
+					/** @description The reader's date, as YYYYMMDD */
+					today: string
+				}
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Stats */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['NumbersStats']
+					}
+				}
+				/** @description Invalid date */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		put?: never
+		post?: never
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/games/numbers/results': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		/**
+		 * Count a finished run
+		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak.
+		 */
+		post: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['NumbersResult']
+				}
+			}
+			responses: {
+				/** @description The new stats */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['NumbersStats']
+					}
+				}
+				/** @description Invalid result or date */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description No user role, or email not verified */
+				403: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -1051,6 +1181,7 @@ export interface components {
 			predictions: {
 				[key: string]: components['schemas']['SeasonPicks']
 			}
+			numbers: components['schemas']['StoredNumbers']
 		}
 		PlaceList: components['schemas']['Place'][]
 		Place: components['schemas']['Location'] & {
@@ -1134,6 +1265,25 @@ export interface components {
 				line: number | null
 			}
 		}
+		/** @description The results of the numbers app, by mode */
+		StoredNumbers: {
+			solo: {
+				/** @description How many runs ended on each score, from 0 to 20 */
+				scores: number[]
+				/** @description The score of the first run of each daily puzzle, by its date */
+				daily: {
+					[key: string]: number
+				}
+			}
+			vsCpu: {
+				/** @description How many runs ended on each score, from 0 to 20 */
+				scores: number[]
+				/** @description The score of the first run of each daily puzzle, by its date */
+				daily: {
+					[key: string]: number
+				}
+			}
+		}
 		Error: {
 			error: string
 			message: string
@@ -1215,6 +1365,42 @@ export interface components {
 		}
 		SavePicks: {
 			picks: components['schemas']['WeekPicks']
+		}
+		/** @description The stats of each mode */
+		NumbersStats: {
+			solo: components['schemas']['NumbersModeStats']
+			vsCpu: components['schemas']['NumbersModeStats']
+		}
+		NumbersModeStats: {
+			/** @description The counted runs */
+			played: number
+			/** @description The runs that filled all 20 slots */
+			wins: number
+			/** @description The highest score, or none */
+			best: number | null
+			/** @description The mean score, or none */
+			average: number | null
+			/** @description How many runs ended on each score, from 0 to 20 */
+			scores: number[]
+			/** @description The consecutive daily puzzles that end today or yesterday */
+			streak: number
+			/** @description The longest daily streak */
+			bestStreak: number
+		}
+		/** @description One finished run: a bust, a win, or a reset after the first placement */
+		NumbersResult: {
+			seed: string
+			score: number
+			/**
+			 * @description The mode of the run
+			 * @enum {string}
+			 */
+			mode: 'solo' | 'vsCpu'
+			/**
+			 * @description The reader's date, as YYYYMMDD
+			 * @example 20261116
+			 */
+			today: string
 		}
 	}
 	responses: never
