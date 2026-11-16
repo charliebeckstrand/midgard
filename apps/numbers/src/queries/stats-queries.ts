@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type NumbersStats, type RunResult, readStats, recordResult } from '../api/stats-api'
+import { boardKey } from './leaderboard-queries'
 
 /** The query key of the stats as of `today`, in one place, so the reader and the writer name the same entry. */
 const statsKey = (today: string) => ['numbers-stats', today] as const
@@ -19,7 +20,11 @@ export function useStats(today: string, enabled: boolean) {
 	})
 }
 
-/** Counts a finished run, and puts the stats of the answer into the cache. A failure shows in a toast. */
+/**
+ * Counts a finished run, and puts the stats of the answer into the cache. A run
+ * of the daily puzzle can add the reader to its leaderboard, so that board
+ * reads again. A failure shows in a toast.
+ */
 export function useRecordResult() {
 	const client = useQueryClient()
 
@@ -27,6 +32,10 @@ export function useRecordResult() {
 		mutationFn: recordResult,
 		onSuccess: (stats, result: RunResult) => {
 			client.setQueryData<NumbersStats>(statsKey(result.today), stats)
+
+			if (result.seed === result.today) {
+				client.invalidateQueries({ queryKey: boardKey(result.seed, result.mode) })
+			}
 		},
 	})
 }

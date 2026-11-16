@@ -9,6 +9,7 @@ import {
 	House,
 	LogIn,
 	Menu as MenuIcon,
+	Trophy,
 } from 'lucide-react'
 import { useState } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
@@ -18,6 +19,7 @@ import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { useStats } from '../../queries/stats-queries'
 import { dailySeed, VS_SEGMENT } from '../../utilities/seed'
+import { LeaderboardDialog } from '../leaderboard-dialog'
 import { StatsDialog } from '../stats-dialog'
 
 /**
@@ -68,10 +70,13 @@ export type NumbersMenuProps = {
  * same date, and shows a check once its first run counts. Vs CPU starts the
  * run of a new seed against the CPU. Under them, a reader with no session gets
  * Sign in. A signed-in reader gets Verify email (until the email is verified),
- * Stats, which opens the stats of the reader, and Sign out.
+ * Stats, which opens the stats of the reader, Leaderboard, which opens the
+ * boards of the daily puzzles, and Sign out.
  */
 export function NumbersMenu({ user }: NumbersMenuProps) {
 	const [statsOpen, setStatsOpen] = useState(false)
+
+	const [leaderboardOpen, setLeaderboardOpen] = useState(false)
 
 	return (
 		<>
@@ -106,6 +111,11 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 								<MenuLabel>Stats</MenuLabel>
 							</MenuItem>
 
+							<MenuItem onAction={() => setLeaderboardOpen(true)}>
+								<Icon icon={<Trophy />} />
+								<MenuLabel>Leaderboard</MenuLabel>
+							</MenuItem>
+
 							<SignOutMenuItem />
 						</>
 					) : (
@@ -117,7 +127,13 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 				</MenuContent>
 			</Menu>
 
-			{user && <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} user={user} />}
+			{user && (
+				<>
+					<StatsDialog open={statsOpen} onOpenChange={setStatsOpen} user={user} />
+
+					<LeaderboardDialog open={leaderboardOpen} onOpenChange={setLeaderboardOpen} user={user} />
+				</>
+			)}
 		</>
 	)
 }

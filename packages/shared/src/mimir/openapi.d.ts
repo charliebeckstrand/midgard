@@ -1091,7 +1091,7 @@ export interface paths {
 		put?: never
 		/**
 		 * Count a finished run
-		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak.
+		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak and the leaderboard. Each run keeps the name of the account, which the leaderboards show.
 		 */
 		post: {
 			parameters: {
@@ -1144,6 +1144,68 @@ export interface paths {
 				}
 			}
 		}
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/games/numbers/daily': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		/**
+		 * Get the leaderboard of a daily puzzle
+		 * @description The first run of each player of the daily puzzle of `date` in `mode`: the top 10 by score, then the reader when they are below them. Equal scores share a rank and list in the order that they finished. A date more than one day ahead of the server's date is refused.
+		 */
+		get: {
+			parameters: {
+				query: {
+					/** @description The date of the daily puzzle, as YYYYMMDD */
+					date: string
+					/** @description The mode of the run */
+					mode: 'solo' | 'vsCpu'
+				}
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description The leaderboard */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['NumbersBoard']
+					}
+				}
+				/** @description Invalid date or mode */
+				400: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Not signed in */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		put?: never
+		post?: never
 		delete?: never
 		options?: never
 		head?: never
@@ -1403,6 +1465,22 @@ export interface components {
 			 * @example 20261116
 			 */
 			today: string
+		}
+		/** @description The first run of each player of one daily puzzle, by score */
+		NumbersBoard: {
+			/** @description The players of the daily puzzle */
+			players: number
+			/** @description The top 10 by score, then the reader when they are below them */
+			entries: components['schemas']['NumbersBoardEntry'][]
+		}
+		NumbersBoardEntry: {
+			/** @description The place, shared by equal scores */
+			rank: number
+			/** @description The leaderboard name of the player, or null when they set none */
+			name: string | null
+			score: number
+			/** @description Whether the row is the reader */
+			you: boolean
 		}
 	}
 	responses: never
