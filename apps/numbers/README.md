@@ -68,7 +68,7 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Solo (a
-new seed), Daily puzzle, Vs CPU (a new seed against the CPU), and Leaderboard.
+new seed), Vs CPU (a new seed against the CPU), Daily puzzle, and Leaderboard.
 Under a divider, the menu has Sign in, or Stats and
 Sign out for a signed-in reader. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
@@ -187,13 +187,13 @@ with a verified email. The first run of a daily puzzle counts toward the
 streak. A reader with no session gets no Stats item in the menu.
 
 After the first run of the daily puzzle of today counts, the Daily puzzle item
-of the menu shows a green check (`dailyScore` of the stats). A new run of the
-puzzle shows a closable alert, with no icon, above the bar of the drawn number:
-the reader played the puzzle, and a replay does not change the score or the
-streak (`useDailyNotice`). The alert waits for the stats, and a run that ends
-before they arrive gets no alert, because its own result can be in them. A
-reader with no session, or with no verified email, has no stats, so the item
-stays a plain link and no alert shows.
+of the menu shows a green check after its label (`dailyScore` of the stats). A
+new run of the puzzle shows a closable alert, with no icon, above the bar of the
+drawn number: the reader played the puzzle, and a replay does not change the
+score or the streak (`useDailyNotice`). The alert waits for the stats, and a
+run that ends before they arrive gets no alert, because its own result can be
+in them. A reader with no session, or with no verified email, has no stats, so
+the item stays a plain link and no alert shows.
 
 The server reads the stats of the daily puzzle of today, so the first paint
 of a load has the alert, and the alert does not move the board after the
@@ -208,9 +208,9 @@ server, and after the hydration the day of the browser counts.
 ## Leaderboard
 
 Leaderboard in the header menu opens a dialog with the boards of each day, for
-each reader. A tab for each board holds the board of one date: Daily for the
-solo runs of the daily puzzle, Solo for the solo runs of other seeds, and Vs
-CPU for the runs that beat the CPU. A vs CPU run that ties or loses, or that a
+each reader. A tab for each board holds the board of one date, in the order of the menu:
+Solo for the solo runs of other seeds, Vs CPU for the runs that beat the CPU,
+and Daily for the solo runs of the daily puzzle. The dialog opens on Daily. A vs CPU run that ties or loses, or that a
 Reset ends, counts in the stats but on no board (`beatCpu` of the result). A run counts on the board of the reader's
 date. A board shows the top 10 players by their best score on it, then the
 reader when they are below them, and the count of players. A better run moves a

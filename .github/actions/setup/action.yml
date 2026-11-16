@@ -34,5 +34,9 @@ runs:
         cache: true
         save-cache: ${{ github.job == 'gate' }}
         install: false
-    - run: pnpm install ${{ inputs.install-args }}
+    # The arguments go through the environment, not into the script, and stay
+    # unquoted so that the shell splits them into words.
+    - run: pnpm install $INSTALL_ARGS
       shell: bash
+      env:
+        INSTALL_ARGS: ${{ inputs.install-args }}

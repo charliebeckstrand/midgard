@@ -25,7 +25,8 @@ import { StatsDialog } from '../stats-dialog'
 
 /**
  * The link to the daily puzzle of `today`. After the first run of the puzzle
- * counts (`played`), the item shows a green check at its end.
+ * counts (`played`), the item shows a green check after its label, at the gap
+ * of the row.
  */
 function DailyPuzzleItem({ today, played }: { today: Date; played: boolean }) {
 	return (
@@ -36,7 +37,7 @@ function DailyPuzzleItem({ today, played }: { today: Date; played: boolean }) {
 				<Icon
 					icon={<CircleCheck />}
 					label="Played"
-					className="ms-auto text-green-600 dark:text-green-500"
+					className="text-green-600 dark:text-green-500"
 				/>
 			)}
 		</MenuItem>
@@ -51,9 +52,9 @@ export type NumbersMenuProps = {
 
 /**
  * The menu at the right of the header. Solo starts the run of a new seed, and
- * Daily puzzle opens the run of the seed of today, which each reader gets on the
- * same date, and shows a check once its first run counts. Vs CPU starts the
- * run of a new seed against the CPU. Leaderboard opens the boards of the daily
+ * Vs CPU starts the run of a new seed against the CPU. Daily puzzle opens the
+ * run of the seed of today, which each reader gets on the same date, and shows
+ * a check once its first run counts. Leaderboard opens the boards of the daily
  * puzzles, which are the same for each reader, so it is above the divider, and
  * each reader gets it. Under the divider
  * are the items of the account: a reader with no session gets Sign in, and a
@@ -103,12 +104,12 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 						<MenuLabel>Solo</MenuLabel>
 					</MenuItem>
 
-					{today && <DailyPuzzleItem today={today} played={played} />}
-
 					<MenuItem href={`/${VS_SEGMENT}`}>
 						<Icon icon={<Bot />} />
 						<MenuLabel>Vs CPU</MenuLabel>
 					</MenuItem>
+
+					{today && <DailyPuzzleItem today={today} played={played} />}
 
 					<MenuItem onAction={() => setLeaderboardOpen(true)}>
 						<Icon icon={<Trophy />} />
