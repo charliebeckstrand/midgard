@@ -17,6 +17,19 @@
 		"description": "The label is the only local decision. A security fix must not wait for monday, for the cooldown, or for a click, and Renovate already drops all three without being told.",
 		"labels": ["security"]
 	},
+	"customManagers": [
+		{
+			"description": "Renovate has no built-in manager for the pnpm and turbo pins in the Dockerfiles at the repository root. Without this manager, the non-major branch moved `packageManager` and the lockfile but not the Dockerfiles, and dockerfile-pin-boundary.test.ts failed (#3641). This manager moves each pin in the same branch as the version that it must equal. The root package.json pins turbo exactly, because lock file maintenance does not run this manager and would otherwise move turbo in the lockfile alone.",
+			"customType": "regex",
+			"managerFilePatterns": ["/^Dockerfile(\\.[^/]+)?$/"],
+			"matchStrings": [
+				"npm install --global (?<depName>pnpm)@(?<currentValue>\\S+)",
+				"pnpm dlx (?<depName>turbo)@(?<currentValue>\\S+)"
+			],
+			"datasourceTemplate": "npm",
+			"versioningTemplate": "npm"
+		}
+	],
 	"packageRules": [
 		{
 			"description": "Dependabot owns GitHub Actions; see .github/dependabot.yml. Two bots on one ecosystem open a duplicate pull request for every bump and then conflict in the lockfile.",

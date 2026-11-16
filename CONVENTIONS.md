@@ -6,7 +6,7 @@
 
 1.1 Reach another workspace only through its public entry, never across package boundaries (§9).
 
-1.2 Each Dockerfile at the repository root pins pnpm to the `packageManager` version of the root `package.json`. It pins `turbo` to the version in `pnpm-lock.yaml`. Renovate does not update the Dockerfiles. `dockerfile-pin-boundary.test.ts` fails when a pin is not equal to the version that the repository uses.
+1.2 Each Dockerfile at the repository root pins pnpm to the `packageManager` version of the root `package.json`. It pins `turbo` to the version in `pnpm-lock.yaml`. The root `package.json` pins `turbo` to an exact version, not a range, so that lock file maintenance cannot move it alone. A regex manager in `renovate.json` moves both Dockerfile pins in the same branch as the versions that they copy. `dockerfile-pin-boundary.test.ts` fails when a pin is not equal to the version that the repository uses.
 
 ## 2. Routing
 
