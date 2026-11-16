@@ -1,12 +1,14 @@
 'use client'
 
+import { RotateCcw } from 'lucide-react'
 import { type MouseEvent, type Ref, useEffect, useState } from 'react'
 import { Button } from 'ui/button'
+import { Icon } from 'ui/icon'
 import { Odometer } from 'ui/odometer'
+import { Flex } from 'ui/structure/flex'
 import { Text, type TextProps } from 'ui/text'
 import { Toolbar, ToolbarGroup } from 'ui/toolbar'
 import { type Game, isEnded, type Status } from '../../utilities/game'
-import { GameBoardMenu } from './game-board-menu'
 
 /** The tone of the readout at each step: full while a number waits, red on a bust, and muted else. */
 const TONES: Record<Status, TextProps['tone']> = {
@@ -37,59 +39,66 @@ export type GameBoardToolbarProps = {
 	status: Status
 	/** The run of the board, from `useGame`. A run after the run of the page starts the readout again from 0. */
 	run: number
-	/** Draws the next number, or starts a new game after a bust or a win. */
-	onAction: (event: MouseEvent<HTMLButtonElement>) => void
-	/** The ref of the action button. */
-	actionRef: Ref<HTMLButtonElement>
-	/** Starts the run of a new seed, from the menu, at each step. */
+	/** Draws the next number. */
+	onDraw: (event: MouseEvent<HTMLButtonElement>) => void
+	/** The ref of the Draw button. It is null while the bar has no Draw. */
+	drawRef: Ref<HTMLButtonElement>
+	/** Starts the run of a new seed, at each step. */
 	onReset: () => void
-	/** Shows the action. With Auto-draw on, the game draws itself, so the bar shows the action only as Reset. */
-	showAction: boolean
+	/** The ref of the Reset button. */
+	resetRef: Ref<HTMLButtonElement>
+	/** Shows Draw. With Auto-draw on, the game draws itself, so the bar has no Draw. */
+	showDraw: boolean
 }
 
 /**
- * The bar of the drawn number and the action, at the top of the game, over the
- * box of the slots. The readout rolls to each new number, and the first number
- * of each new run rolls from 0. At a load, it shows the number with no roll. Before the first draw it shows 0, and after a
- * placement it keeps the number. The action is Draw. It is off while a number
- * waits for a slot, and it is Reset after a bust (in red) and after a win. With
- * Auto-draw on, the bar has no Draw, and the action shows only as Reset. The
- * menu beside the action holds Reset at each step. The bar has 1rem of space on
- * each side, as the score bar has.
+ * The bar of the drawn number, at the top of the game, over the box of the
+ * slots, and the Reset button at its right, with a gap between them, as the
+ * share menu sits at the right of the score bar. The readout rolls to each new
+ * number, and the first number of each new run rolls from 0. At a load, it
+ * shows the number with no roll. Before the first draw it shows 0, and after a
+ * placement it keeps the number. On a bust, it is red.
+ *
+ * With Auto-draw off, the bar holds Draw while the run goes on. Draw is off
+ * while a number waits for a slot. After a bust or a win, the bar has no Draw,
+ * and Reset starts the next run. Reset starts a new run at each step. The bar
+ * has 1rem of space on each side, as the score bar has. The bar is at least as
+ * tall as a score cell (3rem), so its height does not change when Draw shows
+ * or goes.
  */
 export function GameBoardToolbar({
 	game,
 	status,
 	run,
-	onAction,
-	actionRef,
+	onDraw,
+	drawRef,
 	onReset,
-	showAction,
+	resetRef,
+	showDraw,
 }: GameBoardToolbarProps) {
-	const ended = isEnded(status)
-
 	return (
-		<div className="mx-auto w-full max-w-md shrink-0 p-4">
-			<Toolbar variant="solid" aria-label="Number" className="items-center justify-between ps-4">
+		<Flex align="center" gap="sm" className="mx-auto w-full max-w-md shrink-0 p-4">
+			<Toolbar
+				variant="solid"
+				aria-label="Number"
+				className="min-h-12 min-w-0 flex-1 items-center justify-between ps-4"
+			>
 				<Text as="span" tone={TONES[status]} className="font-semibold text-3xl tabular-nums">
 					<RunReadout key={run} value={game.last ?? 0} fromZero={run > 0} />
 				</Text>
 
-				<ToolbarGroup>
-					{showAction && (
-						<Button
-							ref={actionRef}
-							color={status === 'bust' ? 'red' : undefined}
-							disabled={status === 'placing'}
-							onClick={onAction}
-						>
-							{ended ? 'Reset' : 'Draw'}
+				{showDraw && !isEnded(status) && (
+					<ToolbarGroup>
+						<Button ref={drawRef} disabled={status === 'placing'} onClick={onDraw}>
+							Draw
 						</Button>
-					)}
-
-					<GameBoardMenu onReset={onReset} />
-				</ToolbarGroup>
+					</ToolbarGroup>
+				)}
 			</Toolbar>
-		</div>
+
+			<Button ref={resetRef} variant="plain" aria-label="Reset" onClick={onReset}>
+				<Icon icon={<RotateCcw />} />
+			</Button>
+		</Flex>
 	)
 }

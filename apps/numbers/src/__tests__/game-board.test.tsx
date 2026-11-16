@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { UIProvider } from 'ui/providers/ui'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { GameBoard } from '../components/game-board'
@@ -47,5 +47,51 @@ describe('GameBoard', () => {
 		const first = String(createGame('charlie').deck[0])
 
 		expect(container.querySelector('[data-slot="odometer-display"]')?.textContent).toBe(first)
+	})
+})
+
+describe('GameBoard Reset', () => {
+	beforeEach(() => window.history.replaceState(null, '', '/charlie'))
+
+	it('starts a new run at once while no number is placed', () => {
+		renderBoard()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		expect(window.location.pathname).not.toBe('/charlie')
+		expect(screen.queryByRole('alertdialog')).toBeNull()
+	})
+
+	it('asks to confirm while the run goes on with a placed number, and keeps the run on Cancel', async () => {
+		renderBoard()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		const dialog = await screen.findByRole('alertdialog')
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+		await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+
+		expect(window.location.pathname).toBe('/charlie')
+		expect(screen.getByRole('button', { name: /^Slot 10, / })).toBeTruthy()
+	})
+
+	it('starts a new run when the reader confirms', async () => {
+		renderBoard()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		const dialog = await screen.findByRole('alertdialog')
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Reset' }))
+
+		await waitFor(() => expect(window.location.pathname).not.toBe('/charlie'))
+
+		expect(screen.queryByRole('button', { name: /^Slot 10, / })).toBeNull()
 	})
 })
