@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { writeCookie } from 'ui/core'
 import { UIProvider } from 'ui/providers/ui'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { GameBoard } from '../components/game-board'
@@ -11,12 +12,15 @@ vi.mock('next/navigation', () => ({ usePathname: () => '/charlie' }))
 
 afterEach(cleanup)
 
-/** Renders the board of the seed `charlie` at its address, with Auto-draw on, as the page does. */
-function renderBoard() {
+/** Renders the board of the seed `charlie` at its address, with Auto-draw on by default, as the page does. */
+function renderBoard(autoDraw = true) {
+	// The browser reads the setting from its cookie, and the server render from the provider.
+	writeCookie('numbers-auto-draw', autoDraw ? 'on' : 'off')
+
 	return render(
 		<QueryClientProvider client={new QueryClient()}>
 			<UIProvider>
-				<GameSettingsProvider settings={{ autoDraw: true, showScore: true, difficulty: 'normal' }}>
+				<GameSettingsProvider settings={{ autoDraw, showScore: true, difficulty: 'normal' }}>
 					<GameBoard seed="charlie" />
 				</GameSettingsProvider>
 			</UIProvider>
@@ -77,5 +81,40 @@ describe('GameBoard Reset', () => {
 		await waitFor(() => expect(window.location.pathname).not.toBe('/charlie'))
 
 		expect(screen.queryByRole('button', { name: /^Slot 10, / })).toBeNull()
+	})
+
+	it('gives the focus to Reset when a pressed Draw ends the run, because the bar then has no Draw', () => {
+		// jsdom has no `scrollIntoView`, and the bust mark scrolls into view.
+		Element.prototype.scrollIntoView = vi.fn()
+
+		renderBoard(false)
+
+		/** Focuses `button` and presses it, as a key press does. */
+		const press = (button: HTMLElement) => {
+			button.focus()
+
+			fireEvent.click(button, { detail: 0 })
+		}
+
+		// Each number goes in the first slot that can take it, so the slots fill
+		// from the top, and a later number that is smaller has no slot.
+		for (let turn = 0; turn < 20; turn++) {
+			const draw = screen.queryByRole('button', { name: 'Draw' })
+
+			if (!draw) break
+
+			press(draw)
+
+			const slot = screen
+				.queryAllByRole('button', { name: /^Slot \d+$/ })
+				.find((button) => !(button as HTMLButtonElement).disabled)
+
+			if (!slot) break
+
+			press(slot)
+		}
+
+		expect(screen.queryByRole('button', { name: 'Draw' })).toBeNull()
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reset' }))
 	})
 })
