@@ -6,9 +6,16 @@ import { UIProvider } from 'ui/providers/ui'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { readBoard } from '../api/leaderboard-api'
 import { NumbersMenu } from '../components/numbers-menu/numbers-menu'
+import type { Route } from '../utilities/seed'
 
 const { useStats } = vi.hoisted(() => ({
-	useStats: vi.fn<(today: string, enabled: boolean) => { data: undefined }>(),
+	useStats:
+		vi.fn<
+			(
+				today: string,
+				enabled: boolean,
+			) => { data: { solo: { dailyScore: number | null } } | undefined }
+		>(),
 }))
 
 vi.mock('../queries/stats-queries', () => ({ useStats }))
@@ -18,12 +25,12 @@ vi.mock('../api/leaderboard-api', () => ({ readBoard: vi.fn() }))
 /** A user, verified or not. */
 const makeUser = (verified: boolean) => ({ id: 'user-1', is_verified: verified }) as User
 
-/** Renders the closed menu with the providers of the app. */
-function renderMenu(user?: User) {
+/** Renders the closed menu with the providers of the app, on a page of `route`. */
+function renderMenu(user?: User, route: Route = 'solo') {
 	return render(
 		<QueryClientProvider client={new QueryClient()}>
 			<UIProvider>
-				<NumbersMenu user={user} />
+				<NumbersMenu user={user} route={route} />
 			</UIProvider>
 		</QueryClientProvider>,
 	)
@@ -95,6 +102,51 @@ describe('NumbersMenu', () => {
 		for (const mode of ['daily', 'solo', 'vsCpu'] as const) {
 			expect(readBoard).toHaveBeenCalledWith('20261116', mode)
 		}
+	})
+
+	it.each([
+		['solo', 'Solo'],
+		['vsCpu', 'Vs CPU'],
+		['daily', 'Daily puzzle'],
+	] as const)(
+		'marks the item of the route %s as the current item, in bold',
+		async (route, label) => {
+			vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
+
+			renderMenu(undefined, route)
+
+			fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+			// The test reads the rows that the query found, as the test of the order does.
+			const items = await screen.findAllByRole('menuitem')
+
+			for (const name of ['Solo', 'Vs CPU', 'Daily puzzle']) {
+				const item = items.find((row) => row.textContent === name)
+
+				const current = name === label
+
+				expect(item?.getAttribute('aria-current')).toBe(current ? 'true' : null)
+				expect(item?.classList.contains('font-semibold')).toBe(current)
+			}
+		},
+	)
+
+	it('shows the score of the daily puzzle of today in a green badge after its first run counts', async () => {
+		vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
+
+		useStats.mockReturnValue({ data: { solo: { dailyScore: 12 } } })
+
+		renderMenu(makeUser(true))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+		const items = await screen.findAllByRole('menuitem')
+
+		const badge = items
+			.find((row) => row.textContent?.startsWith('Daily puzzle'))
+			?.querySelector('[data-slot="badge"]')
+
+		expect(badge?.textContent).toBe('12/20')
 	})
 
 	it('reads no stats for a reader with no verified email, or with no session', () => {

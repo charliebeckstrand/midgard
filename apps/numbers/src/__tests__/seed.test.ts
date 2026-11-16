@@ -4,6 +4,7 @@ import {
 	createSeed,
 	dailySeed,
 	dailySeedAt,
+	getRoute,
 	isDailySeed,
 	isSeed,
 	runPath,
@@ -99,6 +100,18 @@ describe('dailySeedAt', () => {
 		const date = new Date()
 
 		expect(dailySeedAt(date.getTime(), date.getTimezoneOffset())).toBe(dailySeed(date))
+	})
+})
+
+describe('getRoute', () => {
+	it('gives Vs CPU against the CPU, Daily puzzle for a solo date seed, and Solo else', () => {
+		expect(getRoute('20261116', true)).toBe('vsCpu')
+
+		expect(getRoute('k3x9q2', true)).toBe('vsCpu')
+
+		expect(getRoute('20261116', false)).toBe('daily')
+
+		expect(getRoute('k3x9q2', false)).toBe('solo')
 	})
 })
 

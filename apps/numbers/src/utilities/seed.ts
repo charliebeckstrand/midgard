@@ -67,6 +67,20 @@ function toDailySeed(year: number, month: number, day: number): string {
 /** The first segment of the address of a run against the CPU, such as `/vs/k3x9q2`. */
 export const VS_SEGMENT = 'vs'
 
+/** A route of the menu: Solo, Vs CPU, or Daily puzzle. */
+export type Route = 'solo' | 'vsCpu' | 'daily'
+
+/**
+ * The route of the menu that the run of `seed` is on. A run against the CPU is
+ * on Vs CPU, also with a date seed, because only a solo run plays the daily
+ * puzzle. A solo run of a date seed is on Daily puzzle.
+ */
+export function getRoute(seed: string, vsCpu: boolean): Route {
+	if (vsCpu) return 'vsCpu'
+
+	return isDailySeed(seed) ? 'daily' : 'solo'
+}
+
 /** The address of the run of `seed`: `/k3x9q2`, or `/vs/k3x9q2` against the CPU. */
 export function runPath(seed: string, vsCpu: boolean): string {
 	return vsCpu ? `/${VS_SEGMENT}/${seed}` : `/${seed}`
