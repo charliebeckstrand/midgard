@@ -73,13 +73,15 @@ describe('events line columns (real browser)', () => {
 			'trigger',
 		) as HTMLElement
 
-		const chevron = present(trigger.querySelector('[data-slot="icon"]'), 'chevron')
+		// The slot of the chevron mirrors, and it turns while the panel opens.
+		const slot = present(trigger.firstElementChild, 'chevron slot')
 
-		const closed = getComputedStyle(chevron).scale
+		const closed = getComputedStyle(slot).scale
 
 		act(() => trigger.click())
 
-		const slot = present(trigger.firstElementChild, 'chevron slot')
+		// The turn is a transition. Read the rotate at its end.
+		await Promise.all(slot.getAnimations().map((animation) => animation.finished))
 
 		return { scrolls: columns.map(scrollLeft), closed, open: getComputedStyle(slot).rotate }
 	}

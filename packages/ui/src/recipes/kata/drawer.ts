@@ -22,7 +22,7 @@ const { css } = ugoki
 const RESIZING = 'data-resizing:transition-none'
 
 /** Rounded top corners, square while the panel stands at the screen edge (`data-full`). */
-const SQUARE_AT_EDGE = 'rounded-t-xl data-full:rounded-t-none'
+const SQUARE_AT_EDGE = 'rounded-t-2xl data-full:rounded-t-none'
 
 export const k = defineKata(
 	{
@@ -63,7 +63,7 @@ export const k = defineKata(
 		// `usePanelFit`, which measures the length and travels it under Framer
 		// Motion; `auto` snaps.
 		height: {
-			auto: 'max-h-[85%] rounded-t-xl',
+			auto: 'max-h-[85%] rounded-t-2xl',
 			fit: ['max-h-full', SQUARE_AT_EDGE, css.corner, css.duration],
 			half: ['h-1/2', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
 			full: ['h-full', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
