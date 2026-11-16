@@ -53,4 +53,23 @@ describe('GameBoardFooter', () => {
 		expect(screen.getAllByRole('img', { name: 'Winner' })).toHaveLength(1)
 		expect(document.querySelectorAll('.lucide-circle-check')).toHaveLength(2)
 	})
+
+	it('keeps the labels on a tie, with no check', () => {
+		const game = createGame('k3x9q2')
+
+		render(
+			h(GameBoardFooter, {
+				game,
+				showScore: true,
+				cpu: game,
+				difficulty: 'hard',
+				outcome: 'tie',
+			}),
+			{ wrapper },
+		)
+
+		expect(screen.getByText('You')).toBeTruthy()
+		expect(screen.getByText('CPU (Hard)')).toBeTruthy()
+		expect(document.querySelector('.lucide-circle-check')).toBeNull()
+	})
 })
