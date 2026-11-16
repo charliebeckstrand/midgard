@@ -15,8 +15,9 @@ import { settle } from './helpers/settle'
 // - An overlap: the hit areas of two targets overlap, so a tap in the overlap
 //   goes to the target on top.
 // - A crowded target: the hit area of a target is smaller than 44 px on an
-//   axis, and a circle of 44 px at its center reaches another target. This is
-//   the spacing test of WCAG 2.5.8, at the coarse floor.
+//   axis, and a circle of 44 px at its center reaches another target, or the
+//   circle of another small target. This is the spacing test of WCAG 2.5.8, at
+//   the coarse floor.
 //
 // A target in another target, or in the same label, is part of that target,
 // not a neighbor. An inline link in text is exempt, as in WCAG 2.5.8. axe
@@ -135,6 +136,59 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		paths: ['/fieldset'],
 		reason: 'The hit area of the info button of the example grows into the input below it.',
 	},
+	// Controls in a label.
+	{
+		finding: 'overlap field/control | field/control',
+		paths: ['/modules/form'],
+		reason:
+			'The hit areas of two controls of the form example overlap, because the rows are closer than 44 px.',
+	},
+	{
+		finding: 'crowded table-cell/control',
+		paths: [
+			'/modules/grid/editing',
+			'/modules/grid/footer',
+			'/modules/grid/pinning',
+			'/modules/grid/selection',
+		],
+		reason: 'The select checkbox of a row is 20 px, with no touch floor, and the rows touch.',
+	},
+	{
+		finding: 'crowded table-header/control',
+		paths: [
+			'/modules/grid/editing',
+			'/modules/grid/footer',
+			'/modules/grid/pinning',
+			'/modules/grid/selection',
+		],
+		reason:
+			'The select all checkbox of the header is 20 px, with no touch floor, against the first row.',
+	},
+	{
+		finding: 'crowded switch-choice-track/switch-choice-zone',
+		paths: ['/switch'],
+		reason: 'The two zones of a SwitchChoice track are 19 × 24 px, and they touch.',
+	},
+	{
+		finding: 'crowded color-swatches/color-swatch',
+		paths: ['/color'],
+		reason: 'A color swatch is 25 px, and the swatches are closer than 44 px.',
+	},
+	{
+		finding: 'crowded color-panel/color-eyedropper',
+		paths: ['/color'],
+		reason: 'The eyedropper of the color panel is 38 px wide, beside the copy button.',
+	},
+	{
+		finding: 'crowded rating/rating-star',
+		paths: ['/rating'],
+		reason: 'A star of Rating is 20 px, and the stars touch.',
+	},
+	{
+		finding: 'crowded rating-star/rating-half',
+		paths: ['/rating'],
+		reason: 'A half of a star of Rating is 10 × 20 px, against the other half.',
+	},
 	// Chips and tags.
 	{
 		finding: 'crowded badge/button',
@@ -180,18 +234,18 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	},
 	{
 		finding: 'crowded pagination/pagination-next',
-		paths: ['/modules/dashboard', '/modules/grid/pagination'],
+		paths: ['/modules/dashboard', '/modules/grid/pagination', '/pagination'],
 		reason: 'The next button is 35 px wide, against the previous button.',
 	},
 	{
 		finding: 'crowded pagination/pagination-previous',
-		paths: ['/modules/dashboard', '/modules/grid/pagination'],
+		paths: ['/modules/dashboard', '/modules/grid/pagination', '/pagination'],
 		reason: 'The previous button is 35 px wide, against the next button.',
 	},
 	// Toolbars.
 	{
 		finding: 'crowded toolbar/button',
-		paths: ['/modules/grid/toolbar', '/toolbar'],
+		paths: ['/modules/grid/toolbar', '/pdf-viewer', '/toolbar'],
 		reason: 'A toolbar button is 42 × 42 px, and the buttons touch.',
 	},
 	{
@@ -239,6 +293,16 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		finding: 'crowded flex/button',
 		paths: ['/sidebar'],
 		reason: 'The new project button of the Sidebar example is 34 px tall, against a row.',
+	},
+	{
+		finding: 'crowded chat-list-item/chat-list-item-select',
+		paths: ['/modules/chat/list'],
+		reason: 'The select area of a chat list row is 24 px tall, and the rows are closer than 44 px.',
+	},
+	{
+		finding: 'crowded stepper-item/stepper-step',
+		paths: ['/stepper'],
+		reason: 'A step of the vertical Stepper is 18 px tall, and the steps are closer than 44 px.',
 	},
 	// Grid.
 	{
@@ -361,6 +425,9 @@ type Finding = { finding: string; detail: string }
 function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: number }): Finding[] {
 	const selector = [
 		'button',
+		// A control in a label, such as `Checkbox` or `Switch`, has the label as
+		// its target.
+		'label:has(input:not([type=hidden]))',
 		'a[href]',
 		'input:not([type=hidden])',
 		'select',
@@ -455,16 +522,25 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 
 	const size = ({ box }: Target) => ({ width: box.right - box.left, height: box.bottom - box.top })
 
+	const isSmall = (target: Target) => {
+		const { width, height } = size(target)
+
+		return width < floor - 0.5 || height < floor - 0.5
+	}
+
+	const center = ({ box }: Target) => ({
+		x: (box.left + box.right) / 2,
+		y: (box.top + box.bottom) / 2,
+	})
+
 	const findings: Finding[] = []
 
 	for (const [index, a] of targets.entries()) {
 		const { width, height } = size(a)
 
-		const small = width < floor - 0.5 || height < floor - 0.5
+		const small = isSmall(a)
 
-		const x = (a.box.left + a.box.right) / 2
-
-		const y = (a.box.top + a.box.bottom) / 2
+		const { x, y } = center(a)
 
 		let crowd: Target | undefined
 
@@ -480,7 +556,12 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 				})
 			}
 
-			if (small && !crowd && distance(x, y, b.box) < floor / 2 - 0.5) crowd = b
+			// The circle of `a` reaches the box of `b`, or the circle of a small `b`.
+			const reaches =
+				distance(x, y, b.box) < floor / 2 - 0.5 ||
+				(isSmall(b) && Math.hypot(center(b).x - x, center(b).y - y) < floor - 0.5)
+
+			if (small && !crowd && reaches) crowd = b
 		}
 
 		if (crowd) {
