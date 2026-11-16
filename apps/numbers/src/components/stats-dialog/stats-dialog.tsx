@@ -23,8 +23,18 @@ export type StatsDialogProps = {
 	user: User
 }
 
-/** The tiles of the stats of one mode, from {@link ModeStats}, or skeletons while they load. */
-function ModeTiles({ stats }: { stats: ModeStats | undefined }) {
+/**
+ * The tiles of the stats of one mode, from {@link ModeStats}, or skeletons while
+ * they load. `winRate` adds Win %, the share of the runs that beat the CPU, which
+ * only Vs CPU has. It is empty until the first run that counts toward it.
+ */
+function ModeTiles({
+	stats,
+	winRate = false,
+}: {
+	stats: ModeStats | undefined
+	winRate?: boolean
+}) {
 	const intl = useIntl()
 
 	const decimal = (value: number) => intl.formatNumber(value, { maximumFractionDigits: 1 })
@@ -36,6 +46,16 @@ function ModeTiles({ stats }: { stats: ModeStats | undefined }) {
 		['Daily streak', stats && intl.formatNumber(stats.streak)],
 		['Best streak', stats && intl.formatNumber(stats.bestStreak)],
 	]
+
+	if (winRate) {
+		tiles.push([
+			'Win %',
+			stats &&
+				(stats.winRate === null
+					? '–'
+					: intl.formatNumber(stats.winRate, { style: 'percent', maximumFractionDigits: 0 })),
+		])
+	}
 
 	return (
 		<Stack gap="lg">
@@ -84,7 +104,7 @@ function SignedInStats() {
 					</TabContent>
 
 					<TabContent value="vsCpu">
-						<ModeTiles stats={data?.vsCpu} />
+						<ModeTiles stats={data?.vsCpu} winRate />
 					</TabContent>
 				</TabContents>
 			</Stack>

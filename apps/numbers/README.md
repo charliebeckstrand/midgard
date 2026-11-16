@@ -175,7 +175,10 @@ Stats in the header menu, above Sign out, opens a dialog with the stats of a sig
 one tab for each mode (Solo and Vs CPU): the runs played, the best and the
 average score, the daily streak and the longest one, and a bar chart of the
 runs on each score from 1 to 20. The first number always has an empty slot, so
-no run scores 0. A switch of tab slides to the next mode. Mimir, in asgard,
+no run scores 0. Vs CPU also shows Win %, the share of its runs that beat the
+CPU (`winRate`). Only the runs that send `beatCpu` count toward it, so the runs
+from before 2026-11-16 do not, and it shows a dash until the first one. Solo has
+no Win %, because a run that fills all 20 slots is rare. A switch of tab slides to the next mode. Mimir, in asgard,
 keeps them (`/api/games/numbers/*`, `src/api/stats-api.ts`).
 
 A run counts when it ends in a bust or a win, and when a Reset ends it after
