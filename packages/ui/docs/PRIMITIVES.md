@@ -19,6 +19,8 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `portal` | Resolves where library UI teleports, and adds `Portal`, the cell that the floating and overlay shells share. A portaled surface keeps the density and direction scopes of the place that opened it. | `usePortalContainer`, `usePortalContext`, `PortalContext`, `PortalContainer`, `Portal` |
 | `ready-reveal` | Gates content on a ready flag and cross-fades a placeholder to the children with no layout shift. | `ReadyReveal` |
 
+The floating and overlay shells use Floating UI and `Overlay`, not the `popover` attribute, CSS anchor positioning, or `showModal()`. A native close cannot wait for an exit animation in each engine. CSS cannot anchor a context menu to a point. `showModal()` does not lock the scroll, and it makes the toasts inert. Examine this again when WebKit and Firefox support `transition-behavior: allow-discrete` for `overlay`.
+
 ## Composition & polymorphism
 
 | Primitive | Summary | Key exports |
@@ -56,7 +58,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 |---|---|---|
 | `reduced-motion` | The root of each library part that animates with Motion. It loads the Motion features in a chunk, and bridges reduced motion into `MotionConfig`. An HTML `m` element of `reduced-motion-elements` is `inert` while it exits under `AnimatePresence`. | `ReducedMotion` |
 | `height-motion` | Context of a box that travels its own height to its content, such as a `fit` Drawer or a `fit` Dialog. A panel that animates its height tells the box when the motion starts and when it lands. The box follows the motion with no travel of its own. `MountPresence` tells it for Accordion, Collapse, and Tree. | `HeightMotionContext`, `useHeightMotionHost`, `HeightMotionHost` |
-| `touch-target` | Floors the hit target to WCAG pointer minimums (24px fine / 44px coarse) with no change to the layout. A container of small hosts sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap. | `TouchTarget` |
+| `touch-target` | Floors the hit target to WCAG pointer minimums (24px fine / 44px coarse) with no change to the layout. A container of small hosts sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap. When the space is the gap of the container, a `touch-gap-*` utility writes the gap and the property from one stop. | `TouchTarget` |
 
 ---
 

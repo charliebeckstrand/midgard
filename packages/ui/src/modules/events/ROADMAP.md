@@ -17,6 +17,8 @@ A thrown value that two channels report adds to the first report, and adds no ev
 
 Capture is a switch. While it runs, the store keeps each event through a reload, and "Preserve" stays on. Stop files a report that holds each event from the start of the capture.
 
+The trail holds no secret. A password field is an `input[type="password"]` or a `PasswordInput`. Its value shows as `***`, which has a fixed length, and so does each key that types a character into it. A named key, such as `Enter` or `Tab`, stays, so the trail still shows a submit (#3492).
+
 The view is one header button and one sheet with the Events and Bugs tabs. While the sidebar layout is inline, Pin docks the view on the end edge of the page, in the `aside` slot of `SidebarLayout`. The pinned panel shows each event as it comes in.
 
 Each adapter lives in its consumer, so `ui` has no dependency on a framework. The adapter of React Router lives in the docs app ([`../../docs/debug/router.ts`](../../docs/debug/router.ts)). Each app on Next.js starts the events in its own `instrumentation-client.ts`. The route source (`onRouterTransitionStart`) and the error page that calls `reportBug` are in `packages/shared`.

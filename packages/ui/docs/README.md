@@ -14,7 +14,7 @@ the always-current, quick-glance inventory of the package. **Audits** and
   [`COMPONENTS.md`](COMPONENTS.md), [`MODULES.md`](MODULES.md),
   [`STRUCTURE.md`](STRUCTURE.md), [`LAYOUTS.md`](LAYOUTS.md), [`HOOKS.md`](HOOKS.md),
   [`PRIMITIVES.md`](PRIMITIVES.md), [`PROVIDERS.md`](PROVIDERS.md),
-  [`CORE.md`](CORE.md) index the public surface, and [`RECIPES.md`](RECIPES.md)
+  [`SERVER.md`](SERVER.md), [`CORE.md`](CORE.md) index the public surface, and [`RECIPES.md`](RECIPES.md)
   and [`UTILITIES.md`](UTILITIES.md) index the package-internal layers. Each
   category but components carries a one-line summary for each item.
   [`../REFERENCE.md`](../REFERENCE.md) is the hub that maps to them. When you

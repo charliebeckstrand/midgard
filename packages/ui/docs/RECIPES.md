@@ -23,8 +23,8 @@ One sub-folder for each family, except the flat files `sou.ts` and `tsunagi.ts`;
 | `ji` 字 | Typography: the fixed size scale. The stepped text size of a density-native component is a ramp in `dan.text`. A weight, a line height, and a font family are plain Tailwind classes. |
 | `narabi` 並び | Sibling arrangement: field adjacency, icon slot, and flex primitives. `fit` is the column of a panel with a capped height. `offcanvas` shows a part in one offcanvas layout only. `nest` indents each level of a tree under a mark column. `touch` sets the touch gap of hosts that touch to zero on one axis. |
 | `omote` 面 | Surface fills and chromes (popover, glass, panel), the `checkerboard` pattern, the `rail` of a scroll container, and the hidden `scrollbar`. |
-| `hannou` 反応 | Interaction feedback: `disabled`, `busy`, `fg`, `cursor`, `grab`, `active`, and the `tint` washes. |
-| `sen` 線 | Borders, rings, dividers, focus indicators, table gridlines, the resize grip, and forced-colors safety nets. |
+| `hannou` 反応 | Interaction feedback: `disabled`, `busy`, `fg`, `cursor`, `grab`, `active`, `turn`, and the `tint` washes. `turn` turns a disclosure chevron that carries `data-open`. |
+| `sen` 線 | Borders, rings, dividers, focus indicators, the resize grip, and forced-colors safety nets. |
 | `shaku` 尺 | Dimension scales per surface (`icon`, `panel`, `mark`). `icon.slot` holds the forms that size the icon children of a host. |
 | `ugoki` 動き | Motion: tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
 | `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
@@ -60,7 +60,7 @@ The substrate that kumi and kata call, in [`src/core/recipe/`](../src/core/recip
 
 | Export | Summary |
 |---|---|
-| `defineRecipe` | The recipe primitive. It builds the callable recipe of one slot from a `RecipeConfig`. Each call joins `base`, the matching variants, the palette pair, and the `compound` rules (clsx + tailwind-merge). `defaults` gives the value of each prop that a call leaves out. `defineKata` builds one for each slot of a unit, and no other module calls it. |
+| `defineRecipe` | The recipe primitive in `engine/recipe.ts`. It builds the callable recipe of one slot from a `RecipeConfig`. Each call joins `base`, the matching variants, the rules of the palette, and the `compound` rules (clsx + tailwind-merge). `defaults` gives the value of each prop that a call leaves out. `defineKata` builds one for each slot of a unit. `core/recipe` does not export it, so a kata builds each recipe through `defineKata`. |
 | `defineKata` | Builds the recipe of a unit. The config is the recipe of the root slot `base`, and `slots` holds the child slots. The slots share one set of props and one set of defaults, and a call returns the class string of each slot. A slot can hold child slots under its own `slots`. Its output is then a record of its own classes (`base`) and each child slot (`k().chevron.spacer`). `k.bare` is the output with each slot empty, for a headless component. |
 | `defineGroup` | Declares a group: a config in the shape of a unit, and its extras, which a unit kata `extends`. A group can extend a group. |
 | `definePalette` | Declares the variant × color matrix of a recipe from one or more matrices, such as the `palette` and the `hover` of iro. The cells of the same variant and color join in order. The engine derives the `color` axis from the keys. |
