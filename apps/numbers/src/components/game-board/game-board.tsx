@@ -2,9 +2,9 @@
 
 import { type MouseEvent, useEffect, useEffectEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
-import { cn } from 'ui/core'
 import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
+import { Columns } from 'ui/structure/columns'
 import { useGame } from '../../hooks/use-game'
 import { useGameSetting } from '../../hooks/use-game-setting'
 import {
@@ -158,7 +158,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 			{/* `relative` keeps each positioned element in the box, as in `StackedLayoutBody`. */}
 			<div className="relative min-h-0 flex-1 scroll-py-1 overflow-y-auto print:overflow-visible">
 				{/* The padding keeps the focus ring of the first and the last slot in the box. */}
-				<div className={cn('mx-auto w-full max-w-md px-4 py-1', cpu && 'grid grid-cols-2 gap-2')}>
+				<Columns columns={cpu ? 2 : 1} gap="sm" className="mx-auto w-full max-w-md px-4 py-1">
 					<GameBoardSlots
 						ref={slotsRef}
 						game={game}
@@ -168,7 +168,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 					/>
 
 					{cpu && <GameBoardSlots game={cpu} status={getStatus(cpu)} label="CPU" />}
-				</div>
+				</Columns>
 			</div>
 
 			{(showScore || cpu) && <GameBoardScore game={game} cpu={cpu} outcome={outcome} />}

@@ -1,4 +1,6 @@
 import { cn } from 'ui/core'
+import { Columns } from 'ui/structure/columns'
+import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { countPlaced, type Game, SLOTS } from '../../utilities/game'
 
@@ -37,9 +39,12 @@ type ScoreCellProps = {
 /** One score: a label, and the count of the filled slots of `game`, of 20. */
 function ScoreCell({ label, game, tint }: ScoreCellProps) {
 	return (
-		<div
+		<Flex
+			align="baseline"
+			justify="between"
+			gap="sm"
 			className={cn(
-				'flex items-baseline justify-between gap-2 rounded-lg px-4 py-2.5',
+				'rounded-lg px-4 py-2.5',
 				tint === 'green' && 'bg-green-600/15 dark:bg-green-500/20',
 				tint === 'amber' && 'bg-amber-500/20 dark:bg-amber-400/20',
 				!tint && 'bg-zinc-950/5 dark:bg-white/10',
@@ -55,7 +60,7 @@ function ScoreCell({ label, game, tint }: ScoreCellProps) {
 					{` / ${SLOTS}`}
 				</Text>
 			</Text>
-		</div>
+		</Flex>
 	)
 }
 
@@ -88,10 +93,10 @@ export function GameBoardScore({ game, cpu, outcome }: GameBoardScoreProps) {
 	return (
 		<div className="mx-auto w-full max-w-md shrink-0 px-4 pt-4 pb-[max(--spacing(4),env(safe-area-inset-bottom))]">
 			{cpu ? (
-				<div className="grid grid-cols-2 gap-2">
+				<Columns columns={2} gap="sm">
 					<ScoreCell label={player[0]} tint={player[1]} game={game} />
 					<ScoreCell label={opponent[0]} tint={opponent[1]} game={cpu} />
-				</div>
+				</Columns>
 			) : (
 				<ScoreCell label="Score" game={game} />
 			)}
