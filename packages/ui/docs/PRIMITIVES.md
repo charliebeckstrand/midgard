@@ -58,7 +58,7 @@ The floating and overlay shells use Floating UI and `Overlay`, not the `popover`
 |---|---|---|
 | `reduced-motion` | The root of each library part that animates with Motion. It loads the Motion features in a chunk, and bridges reduced motion into `MotionConfig`. An HTML `m` element of `reduced-motion-elements` is `inert` while it exits under `AnimatePresence`. | `ReducedMotion` |
 | `height-motion` | Context of a box that travels its own height to its content, such as a `fit` Drawer or a `fit` Dialog. A panel that animates its height tells the box when the motion starts and when it lands. The box follows the motion with no travel of its own. `MountPresence` tells it for Accordion, Collapse, and Tree. | `HeightMotionContext`, `useHeightMotionHost`, `HeightMotionHost` |
-| `touch-target` | Floors the hit target to WCAG pointer minimums (24px fine / 44px coarse) with no change to the layout. A container of small hosts sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap. When the space is the gap of the container, a `touch-gap-*` utility writes the gap and the property from one stop. | `TouchTarget` |
+| `touch-target` | Floors the hit target to WCAG pointer minimums (24px fine / 44px coarse) with no change to the layout. A container of small hosts sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap. When the space is the gap of the container, a `touch-gap-*` utility writes the gap and the property from one stop. A hit area cannot grow past hosts that touch. A container of such hosts uses a `touch-pitch` utility, which gives each host the 44px floor on a coarse pointer. | `TouchTarget` |
 
 ---
 

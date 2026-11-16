@@ -21,6 +21,6 @@ export const narabi = {
 	offcanvas,
 	/** The geometry of a tree that indents each level under a mark column. */
 	nest,
-	/** The touch gaps of a container whose hosts touch. */
+	/** The touch gaps and the touch pitch of a container whose hosts touch. */
 	touch,
 } as const

@@ -40,7 +40,7 @@ export function CalendarSkeleton({ size, className }: CalendarSkeletonProps) {
 				))}
 
 				{dayRows.map((rowKey) => (
-					<div key={rowKey} className={cn('col-span-7', k.skeleton.row)} />
+					<div key={rowKey} className={cn('col-span-7', k.skeleton.day)} />
 				))}
 			</div>
 		</div>

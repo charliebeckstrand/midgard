@@ -2,7 +2,7 @@
  * Calendar kata: the unit of the `<Calendar>` month grid and its month/year
  * picker. The `base`, `header`, `footer`, `weekday`, and `picker.grid` slots
  * take the step of the nearest density scope through stepped classes. The
- * `grid`, `day`, and `picker.current` slots are static. The `day.active` slot
+ * `grid`, `days`, `day`, and `picker.current` slots are static. The `day.active` slot
  * holds the state classes of a day, and the `inner`, `start`, and `end` axes
  * of the `day.range` slot give the corner classes of a range band. `skeleton` is an extra.
  */
@@ -14,19 +14,33 @@ const { hover, palette, text } = iro
 const { flex, touch } = narabi
 const { focus } = sen
 
-const base = ['inline-flex flex-col', 'select-none', dan.size.calendar.width]
+/**
+ * On a coarse pointer, the width has a floor of seven columns of 44 px, so
+ * each day keeps the touch pitch (`touch.pitch`) at each step.
+ */
+const base = [
+	'inline-flex flex-col',
+	'select-none',
+	dan.size.calendar.width,
+	'pointer-coarse:min-w-77',
+]
 
 const header = [flex.row, 'justify-between', dan.space.calendar.header.bottom]
 
 const footer = [flex.row, 'justify-center', dan.gap.default]
 
 /**
- * The cap on the hit areas of a grid of cells (`TouchTarget`). The cells touch,
- * so each hit area keeps to its cell and two adjacent cells do not overlap.
+ * The cells of a grid touch. The touch pitch keeps each hit area
+ * (`TouchTarget`) to its cell, and on a coarse pointer it gives each cell the
+ * coarse floor, so a finger does not hit the next cell. The popover of the
+ * picker has no fixed width, so each column also takes the floor: the minimum
+ * size of a cell does not widen a flexible column.
  */
-const cellTargets = [touch.flush.x, touch.flush.y]
-
-const pickerGrid = ['grid grid-cols-3', dan.space.tab.x, cellTargets]
+const pickerGrid = [
+	'grid grid-cols-3 pointer-coarse:grid-cols-[repeat(3,minmax(2.75rem,1fr))]',
+	dan.space.tab.x,
+	touch.pitch,
+]
 
 const weekday = [
 	flex.row,
@@ -41,7 +55,9 @@ export const k = defineKata(
 	{
 		base,
 		slots: {
-			grid: ['grid grid-cols-7', cellTargets],
+			grid: 'grid grid-cols-7',
+			// The listbox of the days, under the weekday row.
+			days: ['col-span-7 grid grid-cols-7', touch.pitch],
 			header,
 			footer,
 			picker: {
