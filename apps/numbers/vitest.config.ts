@@ -11,6 +11,8 @@ import { sharedTest } from '../../vitest.shared.mts'
  */
 export default defineConfig({
 	oxc: { jsx: { runtime: 'automatic' } },
+	// The `@/` paths of the tsconfig, which `proxy.ts` and the pages use.
+	resolve: { tsconfigPaths: true },
 	test: {
 		...sharedTest,
 		environment: 'node',
