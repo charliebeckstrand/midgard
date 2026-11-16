@@ -128,9 +128,15 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 	// Forward, and the `pushState` of a Reset.
 	const pathname = usePathname()
 
-	/** Starts the run of the seed of the address from its start. */
+	/**
+	 * Starts the run of the seed of the address from its start. A board that
+	 * holds that run with no placement already is at its start, so it keeps
+	 * its run: the mount keeps the run of the server render.
+	 */
 	const follow = useEffectEvent((next: string) => {
-		if (isSeed(next)) reset(next)
+		if (!isSeed(next)) return
+
+		if (next !== game.seed || countPlaced(game.slots) > 0) reset(next)
 	})
 
 	// The effect runs at each change of the address. Cache Components holds a

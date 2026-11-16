@@ -23,28 +23,12 @@ import { LeaderboardDialog } from '../leaderboard-dialog'
 import { StatsDialog } from '../stats-dialog'
 
 /**
- * The link to the daily puzzle of today. Today is the date of the reader, which
- * the server cannot know. The link renders only in the open menu, a mount after
- * the hydration, so `useToday` gives the day in the first render, and moves the
- * link to the next day at midnight.
- *
- * After the first run of the puzzle counts, the item shows a green check at
- * its end. Only a signed-in reader with a verified email has stats,
- * so the item of any other reader stays a plain link.
+ * The link to the daily puzzle of `today`. After the first run of the puzzle
+ * counts (`played`), the item shows a green check at its end.
  */
-function DailyPuzzleItem({ user }: { user?: User }) {
-	const today = useToday()
-
-	const seed = today ? dailySeed(today) : ''
-
-	const { data } = useStats(seed, today !== null && user?.is_verified === true)
-
-	if (!today) return null
-
-	const played = data !== undefined && data.solo.dailyScore !== null
-
+function DailyPuzzleItem({ today, played }: { today: Date; played: boolean }) {
 	return (
-		<MenuItem href={`/${seed}`}>
+		<MenuItem href={`/${dailySeed(today)}`}>
 			<Icon icon={<CalendarDays />} />
 			<MenuLabel>Daily puzzle</MenuLabel>
 			{played && (
@@ -72,8 +56,24 @@ export type NumbersMenuProps = {
  * Sign in. A signed-in reader gets Verify email (until the email is verified),
  * Stats, which opens the stats of the reader, Leaderboard, which opens the
  * boards of the daily puzzles, and Sign out.
+ *
+ * Today is the date of the reader, which the server cannot know, so `useToday`
+ * gives it after the hydration, and moves it to the next day at midnight. The
+ * menu then reads the stats of a signed-in reader with a verified email, before
+ * the menu opens. Thus the check of the daily puzzle shows when the menu opens,
+ * and the Stats dialog opens with its stats. The stats of any other reader are
+ * not read, and the item stays a plain link.
  */
 export function NumbersMenu({ user }: NumbersMenuProps) {
+	const today = useToday()
+
+	const { data } = useStats(
+		today ? dailySeed(today) : '',
+		today !== null && user?.is_verified === true,
+	)
+
+	const played = data !== undefined && data.solo.dailyScore !== null
+
 	const [statsOpen, setStatsOpen] = useState(false)
 
 	const [leaderboardOpen, setLeaderboardOpen] = useState(false)
@@ -93,7 +93,7 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 						<MenuLabel>Home</MenuLabel>
 					</MenuItem>
 
-					<DailyPuzzleItem user={user} />
+					{today && <DailyPuzzleItem today={today} played={played} />}
 
 					<MenuItem href={`/${VS_SEGMENT}`}>
 						<Icon icon={<Bot />} />

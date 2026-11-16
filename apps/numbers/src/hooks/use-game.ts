@@ -27,10 +27,12 @@ export type GameControls = {
 /**
  * The state of the run of `seed`, and its actions.
  *
- * With `autoDraw`, the game draws each number itself: when the setting comes on
- * (also at the load of the page), after each placement, and after a reset. A
- * placement and its draw are one update, so the page never renders the step
- * between them.
+ * With `autoDraw`, the game draws each number itself: at the start of each run,
+ * after each placement, and when the setting comes on. A placement and its draw
+ * are one update, so the page never renders the step between them. The first
+ * draw of the run of the page is in the first state: the deck comes from the
+ * seed, so the server render and the hydration have the same drawn number, and
+ * the first paint shows it.
  *
  * `onEnd` gets the game once when a draw or a placement ends the run in a bust
  * or a win. It runs in the action, not in an effect, so a route that shows
@@ -41,7 +43,10 @@ export function useGame(
 	autoDraw: boolean,
 	onEnd?: (game: Game) => void,
 ): GameControls {
-	const [game, setGame] = useState(() => createGame(seed))
+	/** Draws the next number of `next` when the setting is on and `next` waits for a draw. */
+	const settle = (next: Game) => (autoDraw && getStatus(next) === 'ready' ? drawNumber(next) : next)
+
+	const [game, setGame] = useState(() => settle(createGame(seed)))
 
 	const [run, setRun] = useState(0)
 
@@ -56,15 +61,12 @@ export function useGame(
 		if (nextStatus === 'bust' || nextStatus === 'won') onEnd?.(next)
 	}
 
-	/** Draws the next number of `next` when the setting is on and `next` waits for a draw. */
-	const settle = (next: Game) => (autoDraw && getStatus(next) === 'ready' ? drawNumber(next) : next)
-
 	const drawOnSetting = useEffectEvent(() => {
 		if (getStatus(game) === 'ready') advance(drawNumber(game))
 	})
 
-	// The effect draws when the setting is on at the mount, and when it comes on
-	// later. A draw changes the state, so the server render has no drawn number.
+	// The effect draws when the setting comes on during a run. At the mount, the
+	// first state already holds the first draw, so the effect does nothing.
 	useEffect(() => {
 		if (autoDraw) drawOnSetting()
 	}, [autoDraw])
