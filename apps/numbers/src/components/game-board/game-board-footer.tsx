@@ -44,8 +44,8 @@ type ScoreCellProps = {
 	game: Game
 	tint?: Tint
 	/**
-	 * Gives the cell side padding, for a tint. With no tint in the bar, the
-	 * cell has no side padding, so the score is flush with the slots.
+	 * Gives the cell padding, for a tint. With no tint in the bar, the cell has
+	 * no padding, so the score is flush with the slots.
 	 */
 	inset?: boolean
 	/** Shows a check before the label: green for the winner, and muted grey for the loser. */
@@ -55,9 +55,9 @@ type ScoreCellProps = {
 /**
  * One score: a label, and the count of the filled slots of `game`, of 20. The
  * cell has no paint while the game goes on. The cell of the winner is green,
- * and a tie makes it amber. With no tint in the bar, the cell has no side
- * padding, so the score is flush with the slots, as the drawn number is. A
- * tint gives each cell of the bar its side padding, so the cells align.
+ * and a tie makes it amber. With no tint in the bar, the cell has no padding,
+ * so the score is flush with the slots, as the drawn number is. A tint gives
+ * each cell of the bar its padding, so the cells align.
  */
 function ScoreCell({
 	label,
@@ -73,8 +73,8 @@ function ScoreCell({
 			justify={showLabel ? 'between' : 'start'}
 			gap="sm"
 			className={cn(
-				'rounded-lg py-2.5',
-				inset && 'px-4',
+				'rounded-lg',
+				inset && 'px-4 py-2.5',
 				tint === 'green' && 'bg-green-600/15 dark:bg-green-500/20',
 				tint === 'amber' && 'bg-amber-500/20 dark:bg-amber-400/20',
 			)}
@@ -143,10 +143,9 @@ export type GameBoardFooterProps = {
  * A border at the top of the bar spans the width of the view, as the border
  * under the header does. The page box is the height of the visible area
  * (`h-dvh`), so the bottom of the box is above the toolbar of Safari and of
- * Chrome. The bar has 1rem of
- * space on each side: the side padding, the bottom padding (or the inset of
- * the home indicator when that is larger), and the top padding above it, where
- * the slots scroll out of the box.
+ * Chrome. The bar has 1rem of space on each side, as the bar of the number
+ * has. The bottom padding is the inset of the home indicator when that is
+ * larger.
  */
 export function GameBoardFooter({
 	game,
@@ -163,7 +162,7 @@ export function GameBoardFooter({
 	// A solo win fills each slot.
 	const won = countPlaced(game.slots) === SLOTS
 
-	// A result tints a cell, so each cell of the bar gets its side padding.
+	// A result tints a cell, so each cell of the bar gets its padding.
 	const settled = Boolean(outcome)
 
 	return (
