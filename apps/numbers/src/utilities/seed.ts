@@ -70,6 +70,13 @@ export const VS_SEGMENT = 'vs'
 /** A route of the menu: Solo, Vs CPU, or Daily puzzle. */
 export type Route = 'solo' | 'vsCpu' | 'daily'
 
+/** The label of each route, in the menu and in the trail of the header. */
+export const ROUTE_LABELS: Record<Route, string> = {
+	solo: 'Solo',
+	vsCpu: 'Vs CPU',
+	daily: 'Daily puzzle',
+}
+
 /**
  * The route of the menu that the run of `seed` is on. A run against the CPU is
  * on Vs CPU, also with a date seed, because only a solo run plays the daily
