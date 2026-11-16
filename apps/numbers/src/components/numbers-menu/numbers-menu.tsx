@@ -68,10 +68,12 @@ export type NumbersMenuProps = {
  * The menu at the right of the header. Home starts the run of a new seed, and
  * Daily puzzle opens the run of the seed of today, which each reader gets on the
  * same date, and shows a check once its first run counts. Vs CPU starts the
- * run of a new seed against the CPU. Under them, a reader with no session gets
- * Sign in. A signed-in reader gets Verify email (until the email is verified),
- * Stats, which opens the stats of the reader, Leaderboard, which opens the
- * boards of the daily puzzles, and Sign out.
+ * run of a new seed against the CPU. Leaderboard opens the boards of the daily
+ * puzzles, which are the same for each reader, so it is above the divider. The
+ * boards need a session, so only a signed-in reader gets it. Under the divider
+ * are the items of the account: a reader with no session gets Sign in, and a
+ * signed-in reader gets Verify email (until the email is verified), Stats,
+ * which opens the stats of the reader, and Sign out.
  */
 export function NumbersMenu({ user }: NumbersMenuProps) {
 	const [statsOpen, setStatsOpen] = useState(false)
@@ -100,6 +102,13 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 						<MenuLabel>Vs CPU</MenuLabel>
 					</MenuItem>
 
+					{user && (
+						<MenuItem onAction={() => setLeaderboardOpen(true)}>
+							<Icon icon={<Trophy />} />
+							<MenuLabel>Leaderboard</MenuLabel>
+						</MenuItem>
+					)}
+
 					<MenuSeparator />
 
 					{user ? (
@@ -109,11 +118,6 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 							<MenuItem onAction={() => setStatsOpen(true)}>
 								<Icon icon={<ChartColumn />} />
 								<MenuLabel>Stats</MenuLabel>
-							</MenuItem>
-
-							<MenuItem onAction={() => setLeaderboardOpen(true)}>
-								<Icon icon={<Trophy />} />
-								<MenuLabel>Leaderboard</MenuLabel>
 							</MenuItem>
 
 							<SignOutMenuItem />
