@@ -63,7 +63,8 @@ export type GameBoardToolbarProps = {
  * always in the bar, also while it is hidden, and Draw is as tall as Reset, so
  * the height of the bar does not change when Draw shows or goes. A border at
  * the bottom of the bar spans the width of the view, as the border of the
- * score bar does. The bar holds one control at most, so it is a plain box and
+ * score bar does. Under the banner of a replay, the bar also has the same border
+ * at the top. The border goes with the banner when the reader closes it. The bar holds one control at most, so it is a plain box and
  * not a `Toolbar`: a toolbar with no control is an empty group to a screen
  * reader.
  */
@@ -78,7 +79,7 @@ export function GameBoardToolbar({
 	showReset,
 }: GameBoardToolbarProps) {
 	return (
-		<div className="shrink-0 border-b border-zinc-950/5 dark:border-white/5">
+		<div className="shrink-0 border-b border-zinc-950/5 dark:border-white/5 [[data-slot=banner]+&]:border-t">
 			<Flex align="center" gap="sm" className="mx-auto w-full max-w-md px-4 py-2">
 				<Flex align="center" justify="between" className="min-w-0 flex-1">
 					<Text as="span" tone={TONES[status]} className="font-semibold text-2xl tabular-nums">
