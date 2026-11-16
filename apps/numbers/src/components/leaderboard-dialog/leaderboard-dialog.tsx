@@ -2,7 +2,7 @@
 
 import type { User } from 'auth'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { DateTime } from 'ui/date-time'
@@ -27,7 +27,7 @@ import {
 import { TabContent, TabContents } from 'ui/tabs'
 import { Text } from 'ui/text'
 import type { BoardEntry, BoardMode } from '../../api/leaderboard-api'
-import { useBoard } from '../../queries/leaderboard-queries'
+import { useBoard, usePrefetchBoards } from '../../queries/leaderboard-queries'
 import { SLOTS } from '../../utilities/game'
 import { dailySeed } from '../../utilities/seed'
 
@@ -82,13 +82,17 @@ function BoardRow({ entry }: { entry: BoardEntry }) {
 function Board({ date, mode }: { date: string; mode: BoardMode }) {
 	const intl = useIntl()
 
-	const { data, isError } = useBoard(date, mode)
+	const { data, isError, isPlaceholderData } = useBoard(date, mode)
 
 	if (isError) return <Text>The leaderboard could not be loaded. Try again later.</Text>
 
 	return (
 		<Stack gap="sm">
-			<Table>
+			{/* Until the rows of a new day arrive, the rows of the last day stay, dimmed. */}
+			<Table
+				aria-busy={isPlaceholderData || undefined}
+				className={isPlaceholderData ? 'opacity-50 transition-opacity' : 'transition-opacity'}
+			>
 				<TableHead>
 					<TableRow>
 						{/* Fixed widths for the numbers, so the columns hold still from day to day. */}
@@ -163,11 +167,19 @@ function Boards({ user }: { user?: User }) {
 
 	const [back, setBack] = useState(0)
 
-	if (!today) return null
+	const day = today ? addDays(today, -back) : null
 
-	const day = addDays(today, -back)
+	const date = day ? dailySeed(day) : null
 
-	const date = dailySeed(day)
+	const prefetchBoards = usePrefetchBoards()
+
+	// The tab that shows reads its own board. This reads the other two, so a
+	// switch of tab slides to a board that has its rows.
+	useEffect(() => {
+		if (date) prefetchBoards(date)
+	}, [date, prefetchBoards])
+
+	if (!day || !date) return null
 
 	return (
 		<Stack gap="lg">
@@ -198,7 +210,7 @@ function Boards({ user }: { user?: User }) {
 						</Button>
 					</Flex>
 
-					<TabContents>
+					<TabContents animate="slide">
 						<TabContent value="daily">
 							<Board date={date} mode="daily" />
 						</TabContent>

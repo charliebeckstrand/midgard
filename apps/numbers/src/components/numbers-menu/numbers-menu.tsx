@@ -17,6 +17,7 @@ import { Button } from 'ui/button'
 import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
+import { usePrefetchBoards } from '../../queries/leaderboard-queries'
 import { useStats } from '../../queries/stats-queries'
 import { dailySeed, VS_SEGMENT } from '../../utilities/seed'
 import { LeaderboardDialog } from '../leaderboard-dialog'
@@ -80,9 +81,16 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 
 	const [leaderboardOpen, setLeaderboardOpen] = useState(false)
 
+	const prefetchBoards = usePrefetchBoards()
+
 	return (
 		<>
-			<Menu placement="bottom-end">
+			<Menu
+				placement="bottom-end"
+				onOpenChange={(open) => {
+					if (open && today) prefetchBoards(dailySeed(today))
+				}}
+			>
 				<MenuTrigger>
 					<Button variant="plain" aria-label="Menu">
 						<Icon icon={<MenuIcon />} />
