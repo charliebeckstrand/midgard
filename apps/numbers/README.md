@@ -91,7 +91,9 @@ is red. After a bust or a win, the bar has no Draw.
 A bar at the bottom shows the score at its start: the count of the filled
 slots, of 20, while Show score is on. The score has no visible label, and only
 a screen reader hears "Score". The two bars have no paint, so the slots scroll
-between them on the page background. A win or a tie tints the score cell. A share button at the right of the bar, apart from the
+between them on the page background. The drawn number and the score are flush
+with the slots. A win or a tie tints the score cells, and gives them side
+padding. A share button at the right of the bar, apart from the
 score, opens a menu with Share seed and Share screenshot. With Show score off,
 the bar holds only the share button. Only the slots scroll, in a box between the two bars, so the bars never cover
 a slot that has the focus. The page box is the height of the visible area

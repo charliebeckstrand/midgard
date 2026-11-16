@@ -43,6 +43,11 @@ type ScoreCellProps = {
 	showLabel?: boolean
 	game: Game
 	tint?: Tint
+	/**
+	 * Gives the cell side padding, for a tint. With no tint in the bar, the
+	 * cell has no side padding, so the score is flush with the slots.
+	 */
+	inset?: boolean
 	/** Shows a check before the label: green for the winner, and muted grey for the loser. */
 	check?: boolean
 }
@@ -50,18 +55,26 @@ type ScoreCellProps = {
 /**
  * One score: a label, and the count of the filled slots of `game`, of 20. The
  * cell has no paint while the game goes on. The cell of the winner is green,
- * and a tie makes it amber. The cell keeps its padding with no paint, so the
- * score has the same inset as the drawn number, and a tint has space around
- * the score.
+ * and a tie makes it amber. With no tint in the bar, the cell has no side
+ * padding, so the score is flush with the slots, as the drawn number is. A
+ * tint gives each cell of the bar its side padding, so the cells align.
  */
-function ScoreCell({ label, showLabel = true, game, tint, check = false }: ScoreCellProps) {
+function ScoreCell({
+	label,
+	showLabel = true,
+	game,
+	tint,
+	inset = false,
+	check = false,
+}: ScoreCellProps) {
 	return (
 		<Flex
 			align="center"
 			justify={showLabel ? 'between' : 'start'}
 			gap="sm"
 			className={cn(
-				'rounded-lg px-4 py-2.5',
+				'rounded-lg py-2.5',
+				inset && 'px-4',
 				tint === 'green' && 'bg-green-600/15 dark:bg-green-500/20',
 				tint === 'amber' && 'bg-amber-500/20 dark:bg-amber-400/20',
 			)}
@@ -148,6 +161,9 @@ export function GameBoardFooter({
 	// A solo win fills each slot.
 	const won = countPlaced(game.slots) === SLOTS
 
+	// A result tints a cell, so each cell of the bar gets its side padding.
+	const settled = Boolean(outcome)
+
 	return (
 		<Flex
 			align="center"
@@ -157,8 +173,20 @@ export function GameBoardFooter({
 			<div className="min-w-0 flex-1">
 				{cpu ? (
 					<Stack gap="sm">
-						<ScoreCell label="You" tint={tints.player} game={game} check={decided} />
-						<ScoreCell label={cpuName(difficulty)} tint={tints.cpu} game={cpu} check={decided} />
+						<ScoreCell
+							label="You"
+							tint={tints.player}
+							inset={settled}
+							game={game}
+							check={decided}
+						/>
+						<ScoreCell
+							label={cpuName(difficulty)}
+							tint={tints.cpu}
+							inset={settled}
+							game={cpu}
+							check={decided}
+						/>
 					</Stack>
 				) : (
 					showScore && (
@@ -167,6 +195,7 @@ export function GameBoardFooter({
 							showLabel={false}
 							game={game}
 							tint={won ? 'green' : undefined}
+							inset={won}
 							check={won}
 						/>
 					)
