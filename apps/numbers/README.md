@@ -39,18 +39,26 @@ partial Fisher-Yates shuffle takes the deck.
 | --- | --- |
 | `/` | `proxy.ts` sends the reader to the address of a new seed (`307`) |
 | `/k3x9q2` | The run of the seed |
+| `/20261115` | The daily puzzle of a date: the seed is the date as `YYYYMMDD` |
 
 A Reset starts the run of a new seed in place, and adds its address to the
-history. Back and Forward start the run of the seed of the address again,
-from its start. Share seed in the menu of the bar copies the address of the run.
+history. A link, Back, and Forward start the run of the seed of the address
+again, from its start.
+
+The daily puzzle of a day is the run of the seed of its date (`dailySeed`), in
+the time zone of the reader, so each reader gets the same numbers on the same
+date. The server cannot know the date of the reader, so the link to the daily
+puzzle renders only in the open menu.
+
+Share seed in the menu of the bar copies the address of the run.
 
 `src/hooks/use-game.ts` holds the state of one game and its actions: Draw,
 place, and Reset.
 
 ## The page
 
-The header shows the name of the app and the settings. A segment in the
-settings switches two tabs: "UI" has the appearance pickers of `ui`, and
+The header shows the name of the app, the settings, and a menu with Home (a
+new seed) and Daily puzzle. A segment in the settings switches two tabs: "UI" has the appearance pickers of `ui`, and
 "Game" has the settings of the game (see below). A bar under the header
 holds the drawn number, the action, and a menu with Reset and Share seed.
 Reset in the menu starts a new seed at each step. The number rolls to each new

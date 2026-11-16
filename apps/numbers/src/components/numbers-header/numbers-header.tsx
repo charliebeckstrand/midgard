@@ -3,6 +3,7 @@ import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { Spacer } from 'ui/structure/spacer'
 import { Text } from 'ui/text'
+import { NumbersMenu } from '../numbers-menu'
 import { SettingField } from '../setting-field'
 
 /** The tabs of the settings of the game, after the "UI" tab of the appearance pickers. */
@@ -20,7 +21,7 @@ const TABS = [
 
 /**
  * The bar at the top of the page: the name of the app, and on its right the
- * settings. A segment in the settings switches the "UI" tab of the appearance
+ * settings and the menu (Home and Daily puzzle). A segment in the settings switches the "UI" tab of the appearance
  * pickers and the "Game" tab, with the Auto-draw and the Show score switches.
  */
 export function NumbersHeader() {
@@ -34,6 +35,8 @@ export function NumbersHeader() {
 				<Spacer />
 
 				<AppearanceSettings tabs={TABS} />
+
+				<NumbersMenu />
 			</Flex>
 		</StackedLayoutHeader>
 	)
