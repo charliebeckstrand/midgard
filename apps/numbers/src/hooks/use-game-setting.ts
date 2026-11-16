@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react'
 import { readCookie, writeCookie } from 'ui/core'
 import { useServerSettings } from '../components/game-settings'
-import { type GameSettings, parseSetting, SETTINGS } from '../utilities/settings'
+import { formatSetting, type GameSettings, parseSetting, SETTINGS } from '../utilities/settings'
 
 // The cookie holds each setting, and the server and the browser read it. A
 // cookie write fires no event, so a write also puts a copy in `localStorage`
@@ -32,7 +32,9 @@ function subscribe(listener: () => void): () => void {
  * and the browser reads the same cookie. A write keeps the setting in the
  * cookie and tells each reader in each tab.
  */
-export function useGameSetting(name: keyof GameSettings): [boolean, (on: boolean) => void] {
+export function useGameSetting<Name extends keyof GameSettings>(
+	name: Name,
+): [GameSettings[Name], (value: GameSettings[Name]) => void] {
 	const server = useServerSettings()[name]
 
 	const { cookie } = SETTINGS[name]
@@ -43,8 +45,8 @@ export function useGameSetting(name: keyof GameSettings): [boolean, (on: boolean
 		() => server,
 	)
 
-	const write = (on: boolean) => {
-		const raw = on ? 'on' : 'off'
+	const write = (next: GameSettings[Name]) => {
+		const raw = formatSetting(name, next)
 
 		writeCookie(cookie, raw)
 
