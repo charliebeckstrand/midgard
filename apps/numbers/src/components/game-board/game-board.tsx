@@ -20,7 +20,7 @@ import {
 } from '../../utilities/game'
 import { createSeed, isSeed, runPath } from '../../utilities/seed'
 import { describeStatus } from './describe-status'
-import { GameBoardScore } from './game-board-score'
+import { GameBoardFooter } from './game-board-footer'
 import { GameBoardSlots } from './game-board-slots'
 import { GameBoardToolbar } from './game-board-toolbar'
 
@@ -66,7 +66,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const recordRun = useRunRecorder(user, vsCpu ? 'vsCpu' : 'solo')
 
-	const { game, status, draw, place, reset } = useGame(seed, autoDraw, recordRun)
+	const { game, status, run, draw, place, reset } = useGame(seed, autoDraw, recordRun)
 
 	const ended = status === 'bust' || status === 'won'
 
@@ -133,6 +133,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 			<GameBoardToolbar
 				game={game}
 				status={status}
+				run={run}
 				actionRef={actionRef}
 				onAction={(event) => act(event, ended ? restart : draw)}
 				onReset={restart}
@@ -155,7 +156,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 				</Columns>
 			</div>
 
-			{(showScore || cpu) && <GameBoardScore game={game} cpu={cpu} outcome={outcome} />}
+			<GameBoardFooter game={game} showScore={showScore} cpu={cpu} outcome={outcome} />
 		</div>
 	)
 }

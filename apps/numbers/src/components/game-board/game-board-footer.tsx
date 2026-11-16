@@ -3,6 +3,7 @@ import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
 import { countPlaced, type Game, type Outcome, SLOTS } from '../../utilities/game'
+import { GameBoardShare } from './game-board-share'
 
 /** The tint of a score cell: green for the winner, and amber for a tie. */
 type Tint = 'green' | 'amber' | undefined
@@ -50,9 +51,11 @@ function ScoreCell({ label, game, tint }: ScoreCellProps) {
 	)
 }
 
-/** Props for {@link GameBoardScore}. */
-export type GameBoardScoreProps = {
+/** Props for {@link GameBoardFooter}. */
+export type GameBoardFooterProps = {
 	game: Game
+	/** Shows the score of the player. Against the CPU, the scores show at each setting. */
+	showScore: boolean
 	/** The game of the CPU, against the player. The bar then shows a score for each, under its column. */
 	cpu?: Game | null
 	/** The result against the CPU, after the game of the player ends. */
@@ -60,11 +63,13 @@ export type GameBoardScoreProps = {
 }
 
 /**
- * The bar of the score: the count of the filled slots, of 20. The bar is at the
- * bottom of the view, under the box of the slots, and it has the look of the
- * bar of the number at the top. Against the CPU, the bar has a score under
- * each column. After the end, the score of the winner is green and reads
- * "You win" or "CPU wins", and a tie makes both amber.
+ * The bar at the bottom of the view, under the box of the slots: the score, and
+ * the share menu at the right, with a gap between them. The score is the count
+ * of the filled slots, of 20, and it has the look of the bar of the number at
+ * the top. Against the CPU, the bar has a score under each column. After the
+ * end, the score of the winner is green and reads "You win" or "CPU wins", and
+ * a tie makes both amber. With Show score off, the bar holds only the share
+ * menu.
  *
  * @remarks
  * The page box is the height of the visible area (`h-dvh`), so the bottom of
@@ -73,19 +78,27 @@ export type GameBoardScoreProps = {
  * the home indicator when that is larger), and the top padding above it, where
  * the slots scroll out of the box.
  */
-export function GameBoardScore({ game, cpu, outcome }: GameBoardScoreProps) {
+export function GameBoardFooter({ game, showScore, cpu, outcome }: GameBoardFooterProps) {
 	const { player, cpu: opponent } = RESULTS[outcome ?? 'playing']
 
 	return (
-		<div className="mx-auto w-full max-w-md shrink-0 px-4 pt-4 pb-[max(--spacing(4),env(safe-area-inset-bottom))]">
-			{cpu ? (
-				<Columns columns={2} gap="sm">
-					<ScoreCell label={player[0]} tint={player[1]} game={game} />
-					<ScoreCell label={opponent[0]} tint={opponent[1]} game={cpu} />
-				</Columns>
-			) : (
-				<ScoreCell label="Score" game={game} />
-			)}
-		</div>
+		<Flex
+			align="center"
+			gap="sm"
+			className="mx-auto w-full max-w-md shrink-0 px-4 pt-4 pb-[max(--spacing(4),env(safe-area-inset-bottom))]"
+		>
+			<div className="min-w-0 flex-1">
+				{cpu ? (
+					<Columns columns={2} gap="sm">
+						<ScoreCell label={player[0]} tint={player[1]} game={game} />
+						<ScoreCell label={opponent[0]} tint={opponent[1]} game={cpu} />
+					</Columns>
+				) : (
+					showScore && <ScoreCell label="Score" game={game} />
+				)}
+			</div>
+
+			<GameBoardShare />
+		</Flex>
 	)
 }

@@ -52,9 +52,9 @@ the time zone of the reader, so each reader gets the same numbers on the same
 date. The server cannot know the date of the reader, so the link to the daily
 puzzle renders only in the open menu.
 
-Share seed in the menu of the bar copies the address of the run. Share
-screenshot in the menu draws the page, as the screen shows it, to a PNG
-(`rasterizeElement` of `ui/core`, `src/utilities/screenshot.ts`). It gives the
+Share seed in the share menu of the bottom bar copies the address of the run.
+Share screenshot in the same menu draws the page, as the screen shows it, to a
+PNG (`rasterizeElement` of `ui/core`, `src/utilities/screenshot.ts`). It gives the
 image to the share sheet of the device, or saves it where the browser cannot
 share a file.
 
@@ -68,9 +68,9 @@ new seed), Daily puzzle, Vs CPU (a new seed against the CPU), Stats, and Sign
 in or Sign out. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). A bar under the header holds the drawn number, the action, and a menu
-with Reset, Share seed, and Share screenshot. Reset in the menu starts a new
-seed at each step. The number rolls to each new number through the `Odometer`
-of `ui`.
+with Reset. Reset in the menu starts a new seed at each step. The number rolls
+to each new number through the `Odometer` of `ui`, and the first number of each
+run rolls from 0.
 
 The 20 slots are buttons. Only a slot that can take the drawn number is on,
 with an amber outline. A filled slot shows its number in a soft green, and it
@@ -79,8 +79,9 @@ show between the two numbers that it goes between, and the action becomes a
 red Reset. After a win, the action is Reset.
 
 A bar at the bottom shows the score: the count of the filled slots, of 20,
-while Show score is on.
-Only the slots scroll, in a box between the two bars, so the bars never cover
+while Show score is on. A share button at the right of the bar, apart from the
+score, opens a menu with Share seed and Share screenshot. With Show score off,
+the bar holds only the share button. Only the slots scroll, in a box between the two bars, so the bars never cover
 a slot that has the focus. The page box is the height of the visible area
 (`h-dvh`), so the bottom bar is above the toolbar of Safari and of Chrome. A
 screen reader hears the score at a bust.
