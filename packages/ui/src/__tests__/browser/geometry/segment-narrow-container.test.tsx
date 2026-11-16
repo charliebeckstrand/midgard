@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Segment, SegmentControl, SegmentItem } from '../../../components/segment'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
  * A Segment with long labels in a container narrower than the labels on one
@@ -30,14 +31,27 @@ describe('Segment: container narrower than its labels', () => {
 
 		const all = screen.getByRole('tab', { name: 'All' }).getBoundingClientRect()
 
-		const archived = screen.getByRole('tab', { name: 'Archived campaigns' }).getBoundingClientRect()
+		const archivedTab = screen.getByRole('tab', { name: 'Archived campaigns' })
+
+		const archived = archivedTab.getBoundingClientRect()
+
+		// The box of the label text, without the padding of the item.
+		const label = document.createRange()
+
+		label.selectNodeContents(archivedTab)
+
+		const lineHeight = Number.parseFloat(getComputedStyle(archivedTab).lineHeight)
 
 		expect(control?.right).toBeLessThanOrEqual(box.right)
 
 		// The box holds its items, and a long label wraps instead of a scroll.
 		expect(archived.right).toBeLessThanOrEqual(control?.right ?? 0)
 
-		expect(archived.height).toBeGreaterThan(all.height)
+		expect(label.getBoundingClientRect().height).toBeGreaterThan(1.5 * lineHeight)
+
+		// Each item takes the height of the box, so a short item is as tall as a
+		// wrapped one.
+		expect(all.height).toBeNear(archived.height, HALF_PIXEL)
 	})
 
 	/**
