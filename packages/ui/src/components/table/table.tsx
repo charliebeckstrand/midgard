@@ -122,7 +122,7 @@ export function Table({
 			density={size}
 			label={ownName ? ownLabel : caption?.id ? undefined : captionText}
 			labelledBy={ownName ? ownLabelledBy : caption?.id}
-			className={cn(bleed && '-mx-4 sm:-mx-6')}
+			className={k({ bleed }).scroll}
 		>
 			<table
 				{...tableProps}

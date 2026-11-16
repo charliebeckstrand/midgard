@@ -6,9 +6,6 @@ const { rounded } = kasane
 const { flex } = narabi
 const { forced, ring } = sen
 
-/** The title size: `text-lg` at `md`, one rung above `dan.text.body` at each step. */
-const titleRamp = dan.text.title
-
 /**
  * Alert kata. The padding, the text, and the title take the step of the
  * nearest density scope, and Icon takes the same step. The close button is
@@ -41,20 +38,29 @@ export const k = defineKata({
 	}),
 	slots: {
 		icon: 'shrink-0 self-center',
-		title: [titleRamp, 'font-semibold'],
+		// The title size is `text-lg` at `md`, one rung above `dan.text.body` at each
+		// step. Beside an icon, the title centers on the icon.
+		title: {
+			base: [dan.text.title, 'font-semibold'],
+			columns: { true: 'self-center', false: '' },
+		},
 		description: ['leading-tight', 'col-start-2'],
-		content: ['flex-1', 'min-w-0', dan.gap.scale.sm],
-		/** The two columns of the content beside an icon. */
-		columns: ['grid grid-cols-[auto_minmax(0,1fr)]', dan.gap.x.sm],
+		// The content is one column, or two columns beside an icon (`columns`). The
+		// parts after the title take the second column, and in one column
+		// `col-start-2` has no effect.
+		content: {
+			base: ['flex-1', 'min-w-0', dan.gap.scale.sm],
+			columns: { true: ['grid grid-cols-[auto_minmax(0,1fr)]', dan.gap.x.sm], false: flex.col },
+		},
 		body: 'col-start-2',
-		actions: [flex.row, dan.gap.scale.xs],
+		actions: [flex.row, dan.gap.scale.xs, 'col-start-2'],
 		close: [flex.row, 'shrink-0 self-center'],
 	},
-	defaults: { variant: 'soft', color: 'zinc' },
+	defaults: { variant: 'soft', color: 'zinc', columns: false },
 })
 
 /** Recipe variant props for {@link Alert}: the styling axes its kata exposes (`variant`, `color`), for consumers composing custom slots. */
-export type AlertVariants = Omit<VariantProps<typeof k>, 'variant' | 'color'> & {
+export type AlertVariants = Omit<VariantProps<typeof k>, 'variant' | 'color' | 'columns'> & {
 	/** The fill style of the alert. @defaultValue 'soft' */
 	variant?: VariantProps<typeof k>['variant']
 	/**

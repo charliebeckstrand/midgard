@@ -7,17 +7,18 @@ const { flex } = narabi
 
 /**
  * Card kata: the unit of `<Card>`. The `base` slot is the card, and the
- * `header`, `body`, `footer`, and `description` slots are its sections. Each step is a `density-*` class. Each part takes the step of its
- * nearest density scope. That scope is the card itself when it has a `size`,
- * else the scope around it. The card itself (`base`) owns the outer padding
- * and the radius. A section pads only an inner edge that it shares with a
- * sibling. The header pads its bottom edge when a sibling follows it. The
- * footer pads its top edge when a sibling other than the header comes before
- * it. Thus a section at an outer edge adds no pad, and with no body the header
- * owns the edge that it shares with the footer. The footer also owns its
- * action-row gap, one step tighter than the gap scale (`dan.gap.scale`), so actions sit close. A
- * nested card with a `size` is its own scope, so its sections do not follow
- * the outer card.
+ * `header`, `body`, `footer`, and `description` slots are its sections. Each
+ * step is a `density-*` class. Each part takes the step of its nearest density
+ * scope. That scope is the card itself when it has a `size`, else the scope
+ * around it. The card itself (`base`) owns the outer padding and the radius. A
+ * section pads only an inner edge that it shares with a sibling. The header
+ * pads its bottom edge when a sibling follows it. The footer pads its top edge
+ * when a sibling other than the header comes before it. Thus a section at an
+ * outer edge adds no pad, and with no body the header owns the edge that it
+ * shares with the footer. The footer also owns its action-row gap,
+ * `dan.gap.default` (the `sm` stop of the gap scale), so actions sit close. A
+ * nested card with a `size` is its own scope, so its sections do not follow the
+ * outer card.
  *
  * The card sets the default text color, as a popover does, so its content
  * reads the same on the page and inside a surface that mutes its text, such

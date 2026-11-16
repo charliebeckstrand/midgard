@@ -104,7 +104,11 @@ export const k = defineKata({
 		// absolute box in a cell, such as the `sr-only` label of an actions
 		// header. Without it, such a box is not clipped by the scroll, and it
 		// widens the box around the table past its edge.
-		scroll: { scrolls: { true: ['relative', ...rail], false: '' } },
+		// A table with `bleed` runs into the padding of its parent on each side.
+		scroll: {
+			scrolls: { true: ['relative', ...rail], false: '' },
+			bleed: { true: '-mx-4 sm:-mx-6', false: '' },
+		},
 		// Color only. A `border.color.subtle` sat here with no border *width*, so it
 		// painted nothing: the shipped header carries no rule. Restoring one is a
 		// visual change, not a cleanup: it needs a width and a design call.
