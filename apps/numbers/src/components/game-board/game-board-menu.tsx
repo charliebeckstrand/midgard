@@ -31,7 +31,7 @@ export function GameBoardMenu({ onReset }: GameBoardMenuProps) {
 		)
 	}
 
-	/** Shares an image of the screen. The press starts the capture, so the share sheet has its activation. */
+	/** Shares an image of the screen. The share sheet needs the activation of this press (see `shareScreenshot`). */
 	const screenshot = () => {
 		shareScreenshot().catch(() =>
 			toast({ title: 'The screenshot could not be shared', severity: 'error' }),

@@ -9,8 +9,11 @@ export type ScreenshotOutcome = 'shared' | 'downloaded' | 'cancelled'
  * now, and gives it to the share sheet of the device. A browser that cannot
  * share a file saves it. The name of the file holds the seed of the address.
  *
- * The capture reads the page before its first `await`, so call it in the event
- * handler of the press. The share sheet needs the activation of that press.
+ * The share sheet opens only within a few seconds of a press (the transient
+ * activation of the browser), so call it in the event handler of the press.
+ * The raster takes time, and on a slow device the activation can expire before
+ * the share. The browser then refuses the share (`NotAllowedError`), and the
+ * function saves the image.
  *
  * @returns What the screenshot did. The promise rejects when the page has no
  * box, when the canvas gives no image, or when the share fails.
@@ -38,6 +41,13 @@ export function shareScreenshot(): Promise<ScreenshotOutcome> {
 			(error: unknown) => {
 				// The reader closed the share sheet, which is not a failure.
 				if (error instanceof DOMException && error.name === 'AbortError') return 'cancelled'
+
+				// The activation of the press expired during the raster.
+				if (error instanceof DOMException && error.name === 'NotAllowedError') {
+					downloadBlob(blob, name)
+
+					return 'downloaded'
+				}
 
 				throw error
 			},

@@ -79,10 +79,18 @@ describe('shareScreenshot', () => {
 		await expect(shareScreenshot()).resolves.toBe('cancelled')
 	})
 
-	it('rejects when the share fails', async () => {
+	it('saves the image when the activation of the press expired', async () => {
 		stubShare(() => Promise.reject(new DOMException('Refused', 'NotAllowedError')))
 
-		await expect(shareScreenshot()).rejects.toThrow('Refused')
+		await expect(shareScreenshot()).resolves.toBe('downloaded')
+
+		expect(downloadBlob).toHaveBeenCalledWith(IMAGE, 'numbers-k3x9q2.png')
+	})
+
+	it('rejects when the share fails', async () => {
+		stubShare(() => Promise.reject(new DOMException('Failed', 'DataError')))
+
+		await expect(shareScreenshot()).rejects.toThrow('Failed')
 	})
 
 	it('rejects when the canvas gives no image', async () => {

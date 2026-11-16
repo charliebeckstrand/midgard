@@ -433,7 +433,11 @@ export async function drawClone(
  * The raster loads no file. An `<img>` with a URL that is not a `data:` URL, a
  * `<canvas>`, and a `<video>` draw empty. The value of a form field that the
  * reader typed does not show, because a clone copies attributes only. A sticky
- * box in a scrolled box draws where the scroll puts the content.
+ * box in a scrolled box draws where the scroll puts the content. The capture
+ * moves each child of a scrolled box with `translate`, and a translated box is
+ * the containing block of each positioned box in it. Thus a fixed or absolute
+ * box below a child of a scrolled box, whose containing block is the scrolled
+ * box or a box above it, draws at the wrong place after a scroll.
  *
  * @param root - The element to capture.
  * @param options - The bitmap `type`, and whether the image is `opaque`.
