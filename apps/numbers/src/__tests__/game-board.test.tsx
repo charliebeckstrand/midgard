@@ -77,7 +77,7 @@ describe('GameBoard daily notice', () => {
 		return client
 	}
 
-	it('shows an alert at the top on a replay of the daily puzzle, which closes and gives the focus to Reset', () => {
+	it('shows an alert at the top on a replay of the daily puzzle, which closes and gives the focus to the next control', () => {
 		const today = dailySeed(new Date())
 
 		const { container } = renderBoard(true, {
@@ -99,15 +99,20 @@ describe('GameBoard daily notice', () => {
 		expect(alert.textContent).toContain("You already played today's puzzle")
 		expect(alert.textContent).toContain("Replays don't change your score.")
 
-		// The alert comes before the bar of the drawn number.
-		const reset = screen.getByRole('button', { name: 'Reset' })
+		// The alert comes before the slots. Auto-draw drew a number, so the first
+		// slot that can take it is the next control.
+		const slot = screen
+			.getAllByRole('button', { name: /^Slot / })
+			.find((button) => !button.hasAttribute('disabled'))
 
-		expect(alert.compareDocumentPosition(reset) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+		if (!slot) throw new Error('The board has no open slot.')
+
+		expect(alert.compareDocumentPosition(slot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 
 		fireEvent.click(within(alert).getByRole('button', { name: 'Close' }))
 
 		expect(container.querySelector('[data-slot="alert"]')).toBeNull()
-		expect(document.activeElement).toBe(reset)
+		expect(document.activeElement).toBe(slot)
 	})
 })
 
@@ -217,6 +222,18 @@ describe('GameBoard daily notice from the server', () => {
 
 describe('GameBoard Reset', () => {
 	beforeEach(() => window.history.replaceState(null, '', '/charlie'))
+
+	it('has no Reset on a daily puzzle, of today or of another day, because a new seed is not the daily', () => {
+		renderBoard(true, { seed: dailySeed(new Date()) })
+
+		expect(screen.queryByRole('button', { name: 'Reset' })).toBeNull()
+
+		cleanup()
+
+		renderBoard(true, { seed: '20261101' })
+
+		expect(screen.queryByRole('button', { name: 'Reset' })).toBeNull()
+	})
 
 	it('starts a new run at once while no number is placed', () => {
 		renderBoard()

@@ -46,7 +46,9 @@ partial Fisher-Yates shuffle takes the deck.
 A Reset starts the run of a new seed in place, in the same mode, and adds its
 address to the history. While the run goes on and has a placed number, Reset
 asks the reader to confirm (`useConfirm` of `ui`). After a bust or a win, or
-before the first placement, Reset does not ask. A link, Back, and Forward start the run of the seed of
+before the first placement, Reset does not ask. A daily puzzle has no Reset
+(`isDailySeed`), because a new seed is not the daily puzzle; the menu opens the
+other runs. A link, Back, and Forward start the run of the seed of
 the address again, from its start.
 
 The daily puzzle of a day is the run of the seed of its date (`dailySeed`), in
@@ -98,7 +100,9 @@ screen reader hears the score at a bust.
 
 An action can turn off the button that the reader pressed. The focus then
 moves to the first slot that can take the number, or else to Draw, or else to
-Reset.
+Reset. A daily puzzle has no Reset, so after its bust or win no control takes
+the focus. The close of the notice of a replay moves the focus by the same
+rule.
 
 ## Settings
 

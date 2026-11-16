@@ -4,6 +4,7 @@ import {
 	createSeed,
 	dailySeed,
 	dailySeedAt,
+	isDailySeed,
 	isSeed,
 	runPath,
 } from '../utilities/seed'
@@ -56,6 +57,28 @@ describe('dailySeed', () => {
 
 	it('gives a seed', () => {
 		expect(isSeed(dailySeed(new Date()))).toBe(true)
+	})
+})
+
+describe('isDailySeed', () => {
+	it('takes a real date as YYYYMMDD', () => {
+		expect(isDailySeed('20261116')).toBe(true)
+
+		expect(isDailySeed('20240229')).toBe(true)
+
+		expect(isDailySeed(dailySeed(new Date()))).toBe(true)
+	})
+
+	it('refuses a seed that the app makes, a word, and a date that does not exist', () => {
+		expect(isDailySeed('k3x9q2')).toBe(false)
+
+		expect(isDailySeed('charlie')).toBe(false)
+
+		expect(isDailySeed('20261131')).toBe(false)
+
+		expect(isDailySeed('20250229')).toBe(false)
+
+		expect(isDailySeed('2026111')).toBe(false)
 	})
 })
 

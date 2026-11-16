@@ -33,10 +33,15 @@ export type GameBoardToolbarProps = {
 	drawRef: Ref<HTMLButtonElement>
 	/** Starts the run of a new seed, at each step. */
 	onReset: () => void
-	/** The ref of the Reset button. */
+	/** The ref of the Reset button. It is null while the bar has no Reset. */
 	resetRef: Ref<HTMLButtonElement>
 	/** Shows Draw. With Auto-draw on, the game draws itself, so the bar has no Draw. */
 	showDraw: boolean
+	/**
+	 * Shows Reset. A daily puzzle has no Reset, because a new seed is not the
+	 * daily puzzle.
+	 */
+	showReset: boolean
 }
 
 /**
@@ -50,7 +55,8 @@ export type GameBoardToolbarProps = {
  *
  * With Auto-draw off, the bar holds Draw while the run goes on. Draw is off
  * while a number waits for a slot. After a bust or a win, the bar has no Draw,
- * and Reset starts the next run. Reset starts a new run at each step. The bar
+ * and Reset starts the next run. Reset starts a new run at each step. A daily
+ * puzzle has no Reset: the menu opens the other runs. The bar
  * has 1rem of space on each side, as the score bar has. The bar has the tint
  * of a score cell, and it is at least as tall as a score cell (3rem), so its
  * height does not change when Draw shows or goes. The bar holds one control
@@ -65,6 +71,7 @@ export function GameBoardToolbar({
 	onReset,
 	resetRef,
 	showDraw,
+	showReset,
 }: GameBoardToolbarProps) {
 	return (
 		<Flex align="center" gap="sm" className="mx-auto w-full max-w-md shrink-0 p-4">
@@ -84,9 +91,11 @@ export function GameBoardToolbar({
 				)}
 			</Flex>
 
-			<Button ref={resetRef} variant="plain" aria-label="Reset" onClick={onReset}>
-				<Icon icon={<RotateCcw />} />
-			</Button>
+			{showReset && (
+				<Button ref={resetRef} variant="plain" aria-label="Reset" onClick={onReset}>
+					<Icon icon={<RotateCcw />} />
+				</Button>
+			)}
 		</Flex>
 	)
 }
