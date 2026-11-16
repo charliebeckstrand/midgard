@@ -40,12 +40,17 @@ export type GlobalListener = {
  * differently from run to run, so the record matches the method that adds the
  * listeners. A test that parses HTML into a new document thus
  * adds them. The record sees them since Vitest 5.
+ *
+ * The overlay of ui records the lift of each finger on the page, so it can
+ * find the second tap of the double tap that opened it. That `pointerup`
+ * listener attaches when the module loads, before any overlay mounts.
  */
 const ONCE_PER_PAGE = [
 	'listenToAllSupportedEvents',
 	'prepareDocument',
 	'attachResizeListener',
 	'EventHandler.registerEventListeners',
+	'watchFingerLifts',
 ]
 
 /** How many frames of the adding stack a report carries. */

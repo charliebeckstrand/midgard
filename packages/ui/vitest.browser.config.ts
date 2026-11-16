@@ -134,6 +134,32 @@ const pressPointer: BrowserCommand<[selector: string, at?: { x: number; y: numbe
 }
 
 /**
+ * Taps a real finger at the center of the element that `selector` matches in the tester iframe:
+ * a touch start and a touch end at one point, through the input pipeline of Chromium. The
+ * browser then makes the pointer events, the `mousedown`, and the click of a tap, and runs
+ * their default actions. A `mousedown` that a test dispatches has no default action, so a case
+ * that reads where a tap moves the focus needs a real one. The tap lands on whatever covers the
+ * element at that point, such as a backdrop that opened over it.
+ */
+const tapPointer: BrowserCommand<[selector: string]> = async (context, selector) => {
+	const box = await context.iframe.locator(selector).boundingBox()
+
+	if (!box) throw new Error(`tapPointer: ${selector} has no box`)
+
+	const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+
+	const cdp = await context.page.context().newCDPSession(context.page)
+
+	try {
+		await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] })
+
+		await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+	} finally {
+		await cdp.detach()
+	}
+}
+
+/**
  * Releases the primary button that {@link pressPointer} holds. With a `selector`, it first moves
  * the real mouse to the center of the element that the selector matches in the tester iframe.
  */
@@ -335,7 +361,7 @@ export default defineConfig({
 		browser: {
 			enabled: true,
 			// `browser/setup/index.ts` calls it before every case.
-			commands: { parkPointer, pressPointer, releasePointer },
+			commands: { parkPointer, pressPointer, releasePointer, tapPointer },
 			provider: playwright(),
 			headless: true,
 			screenshotFailures: false,
