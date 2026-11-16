@@ -9,23 +9,7 @@ import { createGame } from '../utilities/game'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/charlie' }))
 
-beforeEach(() => {
-	// jsdom has no `ResizeObserver`, and the toolbar watches its parts with one.
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-})
-
-afterEach(() => {
-	cleanup()
-
-	vi.unstubAllGlobals()
-})
+afterEach(cleanup)
 
 /** Renders the board of the seed `charlie` at its address, with Auto-draw on, as the page does. */
 function renderBoard() {
