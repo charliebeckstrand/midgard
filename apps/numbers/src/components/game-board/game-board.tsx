@@ -19,7 +19,7 @@ import { GameBoardToolbar } from './game-board-toolbar'
 export type GameBoardProps = {
 	/** The seed of the address, which the run of the page starts from. */
 	seed: string
-	/** Plays against the CPU: the page of a `/cpu` address. */
+	/** Plays against the CPU: the page of a `/vs` address. */
 	vsCpu?: boolean
 }
 
@@ -107,7 +107,7 @@ export function GameBoard({ seed, vsCpu = false }: GameBoardProps) {
 	// The effect runs at each change of the address. Cache Components holds a
 	// route that the reader leaves, and shows it again on a return. The effect
 	// also runs at each show, so a return to a held route starts its run again.
-	// The seed is the last segment, also of a `/cpu` address.
+	// The seed is the last segment, also of a `/vs` address.
 	useEffect(() => follow(pathname.split('/').at(-1) ?? ''), [pathname])
 
 	return (

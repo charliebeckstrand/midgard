@@ -53,9 +53,9 @@ describe('dailySeed', () => {
 })
 
 describe('runPath', () => {
-	it('gives the address of a run, under /cpu against the CPU', () => {
+	it('gives the address of a run, under /vs against the CPU', () => {
 		expect(runPath('k3x9q2', false)).toBe('/k3x9q2')
 
-		expect(runPath('k3x9q2', true)).toBe('/cpu/k3x9q2')
+		expect(runPath('k3x9q2', true)).toBe('/vs/k3x9q2')
 	})
 })

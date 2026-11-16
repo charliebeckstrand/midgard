@@ -5,7 +5,7 @@ import { Button } from 'ui/button'
 import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
-import { CPU_SEGMENT, dailySeed } from '../../utilities/seed'
+import { dailySeed, VS_SEGMENT } from '../../utilities/seed'
 
 /**
  * The link to the daily puzzle of today. Today is the date of the reader, which
@@ -48,7 +48,7 @@ export function NumbersMenu() {
 
 				<DailyPuzzleItem />
 
-				<MenuItem href={`/${CPU_SEGMENT}`}>
+				<MenuItem href={`/${VS_SEGMENT}`}>
 					<Icon icon={<Bot />} />
 					<MenuLabel>Vs CPU</MenuLabel>
 				</MenuItem>

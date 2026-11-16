@@ -40,8 +40,8 @@ partial Fisher-Yates shuffle takes the deck.
 | `/` | `proxy.ts` sends the reader to the address of a new seed (`307`) |
 | `/k3x9q2` | The run of the seed |
 | `/20261115` | The daily puzzle of a date: the seed is the date as `YYYYMMDD` |
-| `/cpu` | `proxy.ts` sends the reader to the address of a new seed against the CPU (`307`) |
-| `/cpu/k3x9q2` | The run of the seed against the CPU (see [Vs CPU](#vs-cpu)) |
+| `/vs` | `proxy.ts` sends the reader to the address of a new seed against the CPU (`307`) |
+| `/vs/k3x9q2` | The run of the seed against the CPU (see [Vs CPU](#vs-cpu)) |
 
 A Reset starts the run of a new seed in place, in the same mode, and adds its
 address to the history. A link, Back, and Forward start the run of the seed of
@@ -106,8 +106,8 @@ gives the change to the other tabs.
 
 ## Vs CPU
 
-Vs CPU in the menu of the header opens `/cpu`, which starts the run of a new
-seed against the CPU at `/cpu/<seed>`. A second column beside the slots holds
+Vs CPU in the menu of the header opens `/vs`, which starts the run of a new
+seed against the CPU at `/vs/<seed>`. A second column beside the slots holds
 the game of the CPU. The server renders the two columns, so the first paint is
 the final layout. The CPU plays the deck of the same seed, so it gets the same numbers in the
 same order. It places each number after the player places it, so the player

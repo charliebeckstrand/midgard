@@ -8,7 +8,7 @@ import { GameFrame } from './game-frame'
 export type RunPageProps = {
 	/** The params of the route, with the seed of the address. */
 	params: Promise<{ seed: string }>
-	/** Plays against the CPU: the page of a `/cpu` address. */
+	/** Plays against the CPU: the page of a `/vs` address. */
 	vsCpu?: boolean
 }
 

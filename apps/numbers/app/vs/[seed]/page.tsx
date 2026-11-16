@@ -13,9 +13,9 @@ type Params = { params: Promise<{ seed: string }> }
 export const metadata: Metadata = { title: 'Vs CPU' }
 
 /**
- * The run of the seed of the address against the CPU. `proxy.ts` sends `/cpu`
+ * The run of the seed of the address against the CPU. `proxy.ts` sends `/vs`
  * to the address of a new seed.
  */
-export default function CpuSeedPage({ params }: Params) {
+export default function VsSeedPage({ params }: Params) {
 	return <RunPage params={params} vsCpu />
 }

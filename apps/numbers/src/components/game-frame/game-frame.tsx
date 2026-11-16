@@ -11,7 +11,7 @@ export type GameFrameProps = {
 	seed: string
 	/** The settings of the cookies of the request. */
 	settings: GameSettings
-	/** Plays against the CPU: the page of a `/cpu` address. */
+	/** Plays against the CPU: the page of a `/vs` address. */
 	vsCpu?: boolean
 }
 
