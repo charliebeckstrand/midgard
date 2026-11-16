@@ -29,7 +29,11 @@ export const MenuHeading = createSlot('legend', 'menu-heading', panel.heading)
 /** Props for {@link MenuSeparator}: native `<hr>` attributes. */
 export type MenuSeparatorProps = ComponentProps<'hr'>
 
-/** Visual divider between menu groups; renders an `<hr>`. */
+/**
+ * Visual divider between menu groups; renders an `<hr>`. The rule starts and ends
+ * where the content of the rows starts and ends. On each side of it is the space
+ * between two rows.
+ */
 export const MenuSeparator = createSlot('hr', 'menu-separator', panel.separator)
 
 /** Props for {@link MenuLabel}: native `<span>` attributes. */

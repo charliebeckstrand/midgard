@@ -7,6 +7,7 @@ import { flushSync } from 'react-dom'
 import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
 import { Columns } from 'ui/structure/columns'
+import { useDailyNotice } from '../../hooks/use-daily-notice'
 import { useGame } from '../../hooks/use-game'
 import { useGameSetting } from '../../hooks/use-game-setting'
 import { useRunRecorder } from '../../hooks/use-run-recorder'
@@ -44,6 +45,9 @@ export type GameBoardProps = {
  * The box of the slots has the full width of the body, so a wheel at the side
  * of the column scrolls it too.
  *
+ * A run of the daily puzzle of today, after its first run counted, tells a
+ * signed-in reader that it already counts (see `useDailyNotice`).
+ *
  * A Reset starts the run of a new seed in place, in the same mode, and adds the
  * address of the seed to the history, so the reader can send the run. A link,
  * Back, and Forward go to the run of the seed of the address, from its start.
@@ -66,9 +70,13 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const [difficulty] = useGameSetting('difficulty')
 
-	const recordRun = useRunRecorder(user, vsCpu ? 'vsCpu' : 'solo')
+	const mode = vsCpu ? 'vsCpu' : 'solo'
+
+	const recordRun = useRunRecorder(user, mode)
 
 	const { game, status, run, draw, place, reset } = useGame(seed, autoDraw, recordRun)
+
+	useDailyNotice(game, run, mode, user)
 
 	const ended = status === 'bust' || status === 'won'
 

@@ -359,6 +359,21 @@ export const space = {
 			/** The inline padding of a menu item. */
 			x: itemX,
 		},
+		separator: {
+			/**
+			 * The inline margin of a menu separator: the inline padding of a menu item.
+			 * The rule starts and ends where the content of a row starts and ends.
+			 */
+			x: 'density-mx-[1.5,2.25,3,3.75,4.5]',
+			/**
+			 * The block margin of a menu separator, as `--ui-menu-separator`. The space
+			 * between the rule and the content of the row on each side is the same as
+			 * the space between the content of two rows. At each step, the margin is the
+			 * space from the edge of a row to its icon and its text, plus the gap between
+			 * two rows. The margin of the gap collapses into the margin of the rule.
+			 */
+			y: 'density-set-[1.5,2,2.5,3,3.5]/[--ui-menu-separator]',
+		},
 	},
 	segment: {
 		item: {

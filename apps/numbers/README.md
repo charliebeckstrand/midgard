@@ -66,13 +66,13 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Home (a
-new seed), Daily puzzle, Vs CPU (a new seed against the CPU), Stats, and Sign
-in or Sign out. A segment in the settings switches two tabs: "UI" has the
-appearance pickers of `ui`, and "Game" has the settings of the game (see
-below). A bar under the header holds the drawn number, the action, and a menu
-with Reset. Reset in the menu starts a new seed at each step. The number rolls
-to each new number through the `Odometer` of `ui`, and the first number of each
-run rolls from 0.
+new seed), Daily puzzle, and Vs CPU (a new seed against the CPU). Under a
+divider, the menu has Sign in, or Stats and Sign out for a signed-in reader. A
+segment in the settings switches two tabs: "UI" has the appearance pickers of
+`ui`, and "Game" has the settings of the game (see below). A bar under the
+header holds the drawn number, the action, and a menu with Reset. Reset in the
+menu starts a new seed at each step. The number rolls to each new number
+through the `Odometer` of `ui`, and the first number of each run rolls from 0.
 
 The 20 slots are buttons. Only a slot that can take the drawn number is on,
 with an amber outline. A filled slot shows its number in a soft green, and it
@@ -163,7 +163,7 @@ new seed. The contract with the gateway is in [asgard
 
 ## Stats
 
-Stats in the header menu opens a dialog with the stats of a signed-in reader,
+Stats in the header menu, above Sign out, opens a dialog with the stats of a signed-in reader,
 one tab for each mode (Solo and Vs CPU): the runs played, the best and the
 average score, the daily streak and the longest one, and a bar chart of the
 runs on each score from 1 to 20. The first number always has an empty slot, so
@@ -172,11 +172,19 @@ no run scores 0. Mimir, in asgard, keeps them
 
 A run counts when it ends in a bust or a win, and when a Reset ends it after
 its first placement, with its score at that step (`isUnfinished`). A link,
-Back, or Forward leaves the run, and the run does not count. `useGame` gives an ended run
-to its `onEnd` in the action, not in an effect, so a held route that shows
-again does not count its run a second time. A run counts only for a user with a
-verified email. The first run of a daily puzzle counts toward the streak. A
-reader with no session gets a link to sign in, and the dialog sends no request.
+Back, or Forward leaves the run, and the run does not count. `useGame` gives an
+ended run to its `onEnd` in the action, not in an effect, so a held route that
+shows again does not count its run a second time. A run counts only for a user
+with a verified email. The first run of a daily puzzle counts toward the
+streak. A reader with no session gets no Stats item in the menu.
+
+After the first run of the daily puzzle of today counts, the Daily puzzle item
+of the menu shows a green check (`dailyScore` of the stats). A new run of the
+puzzle shows a toast: the reader played the puzzle, its score is kept, and a
+replay does not change the streak (`useDailyNotice`). The toast waits for
+the stats, and a run that ends before they arrive gets no toast, because its
+own result can be in them. A reader with no session, or with no verified
+email, has no stats, so the item stays a plain link and no toast shows.
 
 ## Deploy
 

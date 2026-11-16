@@ -1386,6 +1386,8 @@ export interface components {
 			streak: number
 			/** @description The longest daily streak */
 			bestStreak: number
+			/** @description The score of the first run of today's daily puzzle, or none before it */
+			dailyScore: number | null
 		}
 		/** @description One finished run: a bust, a win, or a reset after the first placement */
 		NumbersResult: {

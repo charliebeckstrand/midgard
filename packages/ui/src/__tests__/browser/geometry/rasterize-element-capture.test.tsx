@@ -117,4 +117,31 @@ describe('rasterizeElement capture (real browser)', () => {
 
 		expect(fixed).not.toContain('-120px')
 	})
+
+	it('draws a shadow ring as an outline, which WebKit on iOS draws in place', () => {
+		const { container } = renderUI(
+			<div data-testid="root" style={{ width: 200, padding: 10 }}>
+				<div
+					data-testid="ring"
+					style={{ height: 40, borderRadius: 8, boxShadow: 'inset 0 0 0 1px rgb(245, 158, 11)' }}
+				/>
+			</div>,
+		)
+
+		const clone = frozenClone(
+			present(container.querySelector<HTMLElement>('[data-testid="root"]'), 'root'),
+		)
+
+		const ring = getComputedStyle(present(clone.querySelector('[data-testid="ring"]'), 'ring'))
+
+		expect(ring.boxShadow).toBe('none')
+
+		expect(ring.outlineStyle).toBe('solid')
+
+		expect(ring.outlineWidth).toBe('1px')
+
+		expect(ring.outlineColor).toBe('rgb(245, 158, 11)')
+
+		expect(ring.outlineOffset).toBe('-1px')
+	})
 })
