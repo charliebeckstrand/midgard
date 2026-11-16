@@ -1,0 +1,190 @@
+diff --git a/dist/compiled/react-dom/cjs/react-dom-client.development.js b/dist/compiled/react-dom/cjs/react-dom-client.development.js
+index 9cb40b56ebb66b17f5e8ddd1b4e536b0bbb775df..290f36e076473bf704e8a17daa808fcb5c96f577 100644
+--- a/dist/compiled/react-dom/cjs/react-dom-client.development.js
++++ b/dist/compiled/react-dom/cjs/react-dom-client.development.js
+@@ -20938,6 +20938,14 @@
+         eventSystemFlags,
+         targetContainer
+       );
++      // iOS joins two quick taps into one double-click when a node that allows a
++      // double tap listens for dblclick. The document always allows it, but an
++      // element follows touch-action. Thus a root on the document listens on its
++      // root element. The listener keeps the document as its container.
++      "dblclick" === domEventName &&
++        9 === targetContainer.nodeType &&
++        null !== targetContainer.documentElement &&
++        (targetContainer = targetContainer.documentElement);
+       listenerWrapper = void 0;
+       !passiveBrowserEventsSupported ||
+         ("touchstart" !== domEventName &&
+diff --git a/dist/compiled/react-dom/cjs/react-dom-client.production.js b/dist/compiled/react-dom/cjs/react-dom-client.production.js
+index 49b478252efd4b7a72cbd156d78ab8ae7a385091..429c72c2aec6366c3491f7b174c98ae0d1a8077f 100644
+--- a/dist/compiled/react-dom/cjs/react-dom-client.production.js
++++ b/dist/compiled/react-dom/cjs/react-dom-client.production.js
+@@ -13869,6 +13869,14 @@ function addTrappedEventListener(
+     eventSystemFlags,
+     targetContainer
+   );
++  // iOS joins two quick taps into one double-click when a node that allows a
++  // double tap listens for dblclick. The document always allows it, but an
++  // element follows touch-action. Thus a root on the document listens on its
++  // root element. The listener keeps the document as its container.
++  "dblclick" === domEventName &&
++    9 === targetContainer.nodeType &&
++    null !== targetContainer.documentElement &&
++    (targetContainer = targetContainer.documentElement);
+   listenerWrapper = void 0;
+   !passiveBrowserEventsSupported ||
+     ("touchstart" !== domEventName &&
+diff --git a/dist/compiled/react-dom/cjs/react-dom-profiling.development.js b/dist/compiled/react-dom/cjs/react-dom-profiling.development.js
+index c2b404c698ea39714797fc53784ac64e3901ba3b..a6047acbc2a358b19851d17ffc08c9e02d2df9e5 100644
+--- a/dist/compiled/react-dom/cjs/react-dom-profiling.development.js
++++ b/dist/compiled/react-dom/cjs/react-dom-profiling.development.js
+@@ -20946,6 +20946,14 @@
+         eventSystemFlags,
+         targetContainer
+       );
++      // iOS joins two quick taps into one double-click when a node that allows a
++      // double tap listens for dblclick. The document always allows it, but an
++      // element follows touch-action. Thus a root on the document listens on its
++      // root element. The listener keeps the document as its container.
++      "dblclick" === domEventName &&
++        9 === targetContainer.nodeType &&
++        null !== targetContainer.documentElement &&
++        (targetContainer = targetContainer.documentElement);
+       listenerWrapper = void 0;
+       !passiveBrowserEventsSupported ||
+         ("touchstart" !== domEventName &&
+diff --git a/dist/compiled/react-dom/cjs/react-dom-profiling.profiling.js b/dist/compiled/react-dom/cjs/react-dom-profiling.profiling.js
+index cc35e673f245ed52d7940f8b42ca13cb6782503c..4b58ea5d3085489ff734b737c99a6632431e9804 100644
+--- a/dist/compiled/react-dom/cjs/react-dom-profiling.profiling.js
++++ b/dist/compiled/react-dom/cjs/react-dom-profiling.profiling.js
+@@ -15755,6 +15755,14 @@ function addTrappedEventListener(
+     eventSystemFlags,
+     targetContainer
+   );
++  // iOS joins two quick taps into one double-click when a node that allows a
++  // double tap listens for dblclick. The document always allows it, but an
++  // element follows touch-action. Thus a root on the document listens on its
++  // root element. The listener keeps the document as its container.
++  "dblclick" === domEventName &&
++    9 === targetContainer.nodeType &&
++    null !== targetContainer.documentElement &&
++    (targetContainer = targetContainer.documentElement);
+   listenerWrapper = void 0;
+   !passiveBrowserEventsSupported ||
+     ("touchstart" !== domEventName &&
+diff --git a/dist/compiled/react-dom-experimental/cjs/react-dom-client.development.js b/dist/compiled/react-dom-experimental/cjs/react-dom-client.development.js
+index 161d6d1415e75c7af2ff944cd86f33b2607cd492..2c8032bb48a727e8d8a46d49acb11c8773953b1a 100644
+--- a/dist/compiled/react-dom-experimental/cjs/react-dom-client.development.js
++++ b/dist/compiled/react-dom-experimental/cjs/react-dom-client.development.js
+@@ -22698,6 +22698,14 @@
+         eventSystemFlags,
+         targetContainer
+       );
++      // iOS joins two quick taps into one double-click when a node that allows a
++      // double tap listens for dblclick. The document always allows it, but an
++      // element follows touch-action. Thus a root on the document listens on its
++      // root element. The listener keeps the document as its container.
++      "dblclick" === domEventName &&
++        9 === targetContainer.nodeType &&
++        null !== targetContainer.documentElement &&
++        (targetContainer = targetContainer.documentElement);
+       listenerWrapper = void 0;
+       !passiveBrowserEventsSupported ||
+         ("touchstart" !== domEventName &&
+diff --git a/dist/compiled/react-dom-experimental/cjs/react-dom-client.production.js b/dist/compiled/react-dom-experimental/cjs/react-dom-client.production.js
+index 2e14f4bb0797bfd42dafa7b321f91cb1f32111f4..a835800c02ffad21a8e48f7d141d97466b6d1dd0 100644
+--- a/dist/compiled/react-dom-experimental/cjs/react-dom-client.production.js
++++ b/dist/compiled/react-dom-experimental/cjs/react-dom-client.production.js
+@@ -15374,6 +15374,14 @@ function addTrappedEventListener(
+     eventSystemFlags,
+     targetContainer
+   );
++  // iOS joins two quick taps into one double-click when a node that allows a
++  // double tap listens for dblclick. The document always allows it, but an
++  // element follows touch-action. Thus a root on the document listens on its
++  // root element. The listener keeps the document as its container.
++  "dblclick" === domEventName &&
++    9 === targetContainer.nodeType &&
++    null !== targetContainer.documentElement &&
++    (targetContainer = targetContainer.documentElement);
+   listenerWrapper = void 0;
+   !passiveBrowserEventsSupported ||
+     ("touchstart" !== domEventName &&
+diff --git a/dist/compiled/react-dom-experimental/cjs/react-dom-profiling.development.js b/dist/compiled/react-dom-experimental/cjs/react-dom-profiling.development.js
+index 29430600e3922795911017f5155f1d51a11de351..ec5caee817bb7d5294508979aff20365dc6bc172 100644
+--- a/dist/compiled/react-dom-experimental/cjs/react-dom-profiling.development.js
++++ b/dist/compiled/react-dom-experimental/cjs/react-dom-profiling.development.js
+@@ -22706,6 +22706,14 @@
+         eventSystemFlags,
+         targetContainer
+       );
++      // iOS joins two quick taps into one double-click when a node that allows a
++      // double tap listens for dblclick. The document always allows it, but an
++      // element follows touch-action. Thus a root on the document listens on its
++      // root element. The listener keeps the document as its container.
++      "dblclick" === domEventName &&
++        9 === targetContainer.nodeType &&
++        null !== targetContainer.documentElement &&
++        (targetContainer = targetContainer.documentElement);
+       listenerWrapper = void 0;
+       !passiveBrowserEventsSupported ||
+         ("touchstart" !== domEventName &&
+diff --git a/dist/compiled/react-dom-experimental/cjs/react-dom-profiling.profiling.js b/dist/compiled/react-dom-experimental/cjs/react-dom-profiling.profiling.js
+index 0ca2a97aabf52eea34f249e775a49b913fb8a81b..dac254ce1fa5da44e0ef04ed4364f6400aeaed63 100644
+--- a/dist/compiled/react-dom-experimental/cjs/react-dom-profiling.profiling.js
++++ b/dist/compiled/react-dom-experimental/cjs/react-dom-profiling.profiling.js
+@@ -17411,6 +17411,14 @@ function addTrappedEventListener(
+     eventSystemFlags,
+     targetContainer
+   );
++  // iOS joins two quick taps into one double-click when a node that allows a
++  // double tap listens for dblclick. The document always allows it, but an
++  // element follows touch-action. Thus a root on the document listens on its
++  // root element. The listener keeps the document as its container.
++  "dblclick" === domEventName &&
++    9 === targetContainer.nodeType &&
++    null !== targetContainer.documentElement &&
++    (targetContainer = targetContainer.documentElement);
+   listenerWrapper = void 0;
+   !passiveBrowserEventsSupported ||
+     ("touchstart" !== domEventName &&
+diff --git a/dist/compiled/react-dom-experimental/cjs/react-dom-unstable_testing.development.js b/dist/compiled/react-dom-experimental/cjs/react-dom-unstable_testing.development.js
+index 38bf00aa998170689d15e252cb382c7ec8658a68..b99c8f4e853a4d43af87e6c3cff42e63cece7723 100644
+--- a/dist/compiled/react-dom-experimental/cjs/react-dom-unstable_testing.development.js
++++ b/dist/compiled/react-dom-experimental/cjs/react-dom-unstable_testing.development.js
+@@ -22921,6 +22921,14 @@
+         eventSystemFlags,
+         targetContainer
+       );
++      // iOS joins two quick taps into one double-click when a node that allows a
++      // double tap listens for dblclick. The document always allows it, but an
++      // element follows touch-action. Thus a root on the document listens on its
++      // root element. The listener keeps the document as its container.
++      "dblclick" === domEventName &&
++        9 === targetContainer.nodeType &&
++        null !== targetContainer.documentElement &&
++        (targetContainer = targetContainer.documentElement);
+       listenerWrapper = void 0;
+       !passiveBrowserEventsSupported ||
+         ("touchstart" !== domEventName &&
+diff --git a/dist/compiled/react-dom-experimental/cjs/react-dom-unstable_testing.production.js b/dist/compiled/react-dom-experimental/cjs/react-dom-unstable_testing.production.js
+index c7d5988e4379b27bf26dc51f2b0fb6829ae3a7fa..e71fad2c8bed1ba8722fe2a94d668da8d86f9ae8 100644
+--- a/dist/compiled/react-dom-experimental/cjs/react-dom-unstable_testing.production.js
++++ b/dist/compiled/react-dom-experimental/cjs/react-dom-unstable_testing.production.js
+@@ -15646,6 +15646,14 @@ function addTrappedEventListener(
+     eventSystemFlags,
+     targetContainer
+   );
++  // iOS joins two quick taps into one double-click when a node that allows a
++  // double tap listens for dblclick. The document always allows it, but an
++  // element follows touch-action. Thus a root on the document listens on its
++  // root element. The listener keeps the document as its container.
++  "dblclick" === domEventName &&
++    9 === targetContainer.nodeType &&
++    null !== targetContainer.documentElement &&
++    (targetContainer = targetContainer.documentElement);
+   listenerWrapper = void 0;
+   !passiveBrowserEventsSupported ||
+     ("touchstart" !== domEventName &&
