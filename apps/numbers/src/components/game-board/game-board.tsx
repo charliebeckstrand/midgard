@@ -9,7 +9,7 @@ import { useConfirm } from 'ui/confirm'
 import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
 import { Columns } from 'ui/structure/columns'
-import { useDailyNotice } from '../../hooks/use-daily-notice'
+import { type ServerStats, useDailyNotice } from '../../hooks/use-daily-notice'
 import { useGame } from '../../hooks/use-game'
 import { useGameSetting } from '../../hooks/use-game-setting'
 import { useRunRecorder } from '../../hooks/use-run-recorder'
@@ -36,6 +36,8 @@ export type GameBoardProps = {
 	vsCpu?: boolean
 	/** The signed-in user, whose stats count each finished run, or none. */
 	user?: User
+	/** The stats that the server read for the daily puzzle of the run, if any (see `useDailyNotice`). */
+	stats?: ServerStats
 }
 
 /**
@@ -72,7 +74,7 @@ export type GameBoardProps = {
  * the pressed control. A key press (`detail` 0) scrolls the next control into
  * view.
  */
-export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
+export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) {
 	const [autoDraw] = useGameSetting('autoDraw')
 
 	const [showScore] = useGameSetting('showScore')
@@ -85,7 +87,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const { game, status, run, draw, place, reset } = useGame(seed, autoDraw, recordRun)
 
-	const dailyNotice = useDailyNotice(game, run, mode, user)
+	const dailyNotice = useDailyNotice(game, run, mode, user, stats)
 
 	const ended = isEnded(status)
 

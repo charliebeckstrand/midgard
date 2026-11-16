@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { createRandom, createSeed, dailySeed, isSeed, runPath } from '../utilities/seed'
+import {
+	createRandom,
+	createSeed,
+	dailySeed,
+	dailySeedAt,
+	isSeed,
+	runPath,
+} from '../utilities/seed'
 
 describe('createSeed', () => {
 	it('makes a seed of six letters and digits', () => {
@@ -49,6 +56,26 @@ describe('dailySeed', () => {
 
 	it('gives a seed', () => {
 		expect(isSeed(dailySeed(new Date()))).toBe(true)
+	})
+})
+
+describe('dailySeedAt', () => {
+	const now = Date.UTC(2026, 10, 16, 3, 30)
+
+	it('gives the date of the reader at an offset behind UTC', () => {
+		expect(dailySeedAt(now, 0)).toBe('20261116')
+
+		// UTC-6: 21:30 on the day before.
+		expect(dailySeedAt(now, 360)).toBe('20261115')
+
+		// UTC+14: 17:30 on the same day.
+		expect(dailySeedAt(now, -840)).toBe('20261116')
+	})
+
+	it('gives the seed of the browser for the offset of the browser', () => {
+		const date = new Date()
+
+		expect(dailySeedAt(date.getTime(), date.getTimezoneOffset())).toBe(dailySeed(date))
 	})
 })
 

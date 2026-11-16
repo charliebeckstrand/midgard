@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { appTitle } from 'shared/pages'
 import { AppProviders } from 'shared/providers'
+import { ReaderOffsetCookie } from '@/components/reader-offset-cookie'
 
 import './globals.css'
 
@@ -20,7 +21,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			    scrolls (`StackedLayoutBody`), so the document has the height of the
 			    screen and does not scroll. */}
 			<body className="h-dvh overflow-hidden print:h-auto print:overflow-visible bg-white text-zinc-950 antialiased [--surface-fill:var(--color-white)] dark:bg-zinc-900 dark:text-white dark:[--surface-fill:var(--color-zinc-900)]">
-				<AppProviders>{children}</AppProviders>
+				<AppProviders>
+					{children}
+
+					{/* The server reads the day of the reader from the cookie (`readDailyStats`). */}
+					<ReaderOffsetCookie />
+				</AppProviders>
 			</body>
 		</html>
 	)

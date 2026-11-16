@@ -70,7 +70,7 @@ describe('useDailyNotice', () => {
 
 		const { result, rerender } = render({ game: playing(TODAY), run: 1, user })
 
-		expect(useStats).toHaveBeenCalledWith(TODAY, true)
+		expect(useStats).toHaveBeenCalledWith(TODAY, true, undefined)
 
 		expect(result.current).toBe(true)
 

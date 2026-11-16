@@ -24,11 +24,24 @@ export function isSeed(value: string): boolean {
  * a new puzzle at their own midnight.
  */
 export function dailySeed(date: Date): string {
-	const month = String(date.getMonth() + 1).padStart(2, '0')
+	return toDailySeed(date.getFullYear(), date.getMonth(), date.getDate())
+}
 
-	const day = String(date.getDate()).padStart(2, '0')
+/**
+ * The seed of the daily puzzle of the reader at the instant `now`, for a reader
+ * whose time zone is `offset` minutes behind UTC, as `getTimezoneOffset` gives
+ * it. The server does not know the time zone of the reader, so it uses the
+ * offset of a cookie (see `utilities/reader-offset`).
+ */
+export function dailySeedAt(now: number, offset: number): string {
+	const local = new Date(now - offset * 60_000)
 
-	return `${date.getFullYear()}${month}${day}`
+	return toDailySeed(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate())
+}
+
+/** The seed of the date of `year`, `month` (from 0), and `day`, as `YYYYMMDD`. */
+function toDailySeed(year: number, month: number, day: number): string {
+	return `${year}${String(month + 1).padStart(2, '0')}${String(day).padStart(2, '0')}`
 }
 
 /** The first segment of the address of a run against the CPU, such as `/vs/k3x9q2`. */

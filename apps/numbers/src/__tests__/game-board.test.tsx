@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { User } from 'auth'
+import type { ReactNode } from 'react'
+import { hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { seed as withReadTime } from 'shared/queries'
 import { writeCookie } from 'ui/core'
 import { UIProvider } from 'ui/providers/ui'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import type { NumbersStats } from '../api/stats-api'
 import { GameBoard } from '../components/game-board'
 import { GameSettingsProvider } from '../components/game-settings'
@@ -104,6 +108,110 @@ describe('GameBoard daily notice', () => {
 
 		expect(container.querySelector('[data-slot="alert"]')).toBeNull()
 		expect(document.activeElement).toBe(reset)
+	})
+})
+
+describe('GameBoard daily notice from the server', () => {
+	const mode = {
+		played: 1,
+		wins: 0,
+		best: 12,
+		average: 12,
+		scores: [],
+		streak: 1,
+		bestStreak: 1,
+		dailyScore: 12,
+	}
+
+	const user = { id: 'user-1', is_verified: true } as User
+
+	/** The board of the daily puzzle of `today` with the stats that the server read, in a new cache, as on a load. */
+	const tree = (today: string): ReactNode => (
+		<QueryClientProvider client={new QueryClient()}>
+			<UIProvider>
+				<GameSettingsProvider settings={{ autoDraw: true, showScore: true, difficulty: 'normal' }}>
+					<GameBoard
+						seed={today}
+						user={user}
+						stats={{ today, stats: withReadTime({ solo: mode, vsCpu: mode }) }}
+					/>
+				</GameSettingsProvider>
+			</UIProvider>
+		</QueryClientProvider>
+	)
+
+	it('has the alert in the markup of the server, and keeps it through the hydration', async () => {
+		const today = dailySeed(new Date())
+
+		writeCookie('numbers-auto-draw', 'on')
+
+		address.pathname = `/${today}`
+
+		const container = document.body.appendChild(document.createElement('div'))
+
+		let root: Root | undefined
+
+		// Testing Library unmounts only the roots that its own `render` made.
+		onTestFinished(() => {
+			act(() => root?.unmount())
+
+			container.remove()
+		})
+
+		container.innerHTML = renderToString(tree(today))
+
+		const served = container.querySelector('[data-slot="alert"]')
+
+		expect(served?.textContent).toContain("You already played today's puzzle")
+
+		const errors: unknown[] = []
+
+		await act(async () => {
+			root = hydrateRoot(container, tree(today), {
+				onRecoverableError: (error) => errors.push(error),
+			})
+		})
+
+		expect(errors).toEqual([])
+
+		// The hydration keeps the alert of the server, and the browser has the same day.
+		expect(container.querySelector('[data-slot="alert"]')).toBe(served)
+	})
+
+	it('closes the alert after the hydration when the day of the browser is another day', async () => {
+		const today = dailySeed(new Date())
+
+		// The server read the stats of the day before, for the seed of the page.
+		const yesterday = dailySeed(new Date(Date.now() - 24 * 60 * 60 * 1000))
+
+		address.pathname = `/${yesterday}`
+
+		const container = document.body.appendChild(document.createElement('div'))
+
+		let root: Root | undefined
+
+		onTestFinished(() => {
+			act(() => root?.unmount())
+
+			container.remove()
+		})
+
+		container.innerHTML = renderToString(tree(yesterday))
+
+		expect(container.querySelector('[data-slot="alert"]')).not.toBeNull()
+
+		const errors: unknown[] = []
+
+		await act(async () => {
+			root = hydrateRoot(container, tree(yesterday), {
+				onRecoverableError: (error) => errors.push(error),
+			})
+		})
+
+		expect(errors).toEqual([])
+
+		expect(today).not.toBe(yesterday)
+		expect(container.querySelector('[data-slot="alert"]')).toBeNull()
 	})
 })
 

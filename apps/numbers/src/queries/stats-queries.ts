@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { type Seed, seededQuery } from 'shared/queries'
 import { toBoardMode } from '../api/leaderboard-api'
 import { type NumbersStats, type RunResult, readStats, recordResult } from '../api/stats-api'
 import { boardKey } from './leaderboard-queries'
@@ -12,12 +13,17 @@ const statsKey = (today: string) => ['numbers-stats', today] as const
  * The stats of the reader as of `today` (`YYYYMMDD`). The query runs only while
  * `enabled`: the shared query client sends a `401` to `/login`, so a reader with
  * no session must send no request.
+ *
+ * @param seed - The stats of `today` that the server read for the page, if
+ * any. The query starts from them, so the server render and the hydration
+ * render have the stats (see `seededQuery`).
  */
-export function useStats(today: string, enabled: boolean) {
+export function useStats(today: string, enabled: boolean, seed?: Seed<NumbersStats>) {
 	return useQuery({
 		queryKey: statsKey(today),
 		queryFn: () => readStats(today),
 		enabled,
+		...(seed && seededQuery(seed)),
 	})
 }
 
