@@ -4,6 +4,7 @@ import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { Spacer } from 'ui/structure/spacer'
 import { Text } from 'ui/text'
+import type { Route } from '../../utilities/seed'
 import { NumbersMenu } from '../numbers-menu'
 import { DifficultyField, SettingField } from '../setting-field'
 
@@ -25,6 +26,8 @@ const TABS = [
 export type NumbersHeaderProps = {
 	/** The signed-in user, or none. */
 	user?: User
+	/** The route of the page, which the menu marks. */
+	route: Route
 }
 
 /**
@@ -33,7 +36,7 @@ export type NumbersHeaderProps = {
  * appearance pickers and the "Game" tab, with the Auto-draw and the Show score
  * switches and the picker of the level of the CPU.
  */
-export function NumbersHeader({ user }: NumbersHeaderProps) {
+export function NumbersHeader({ user, route }: NumbersHeaderProps) {
 	return (
 		<StackedLayoutHeader className="border-b border-zinc-950/5 dark:border-white/5">
 			<Flex align="center" gap="sm" className="mx-auto max-w-md px-4 py-2.5">
@@ -45,7 +48,7 @@ export function NumbersHeader({ user }: NumbersHeaderProps) {
 
 				<AppearanceSettings tabs={TABS} animate="slide" />
 
-				<NumbersMenu user={user} />
+				<NumbersMenu user={user} route={route} />
 			</Flex>
 		</StackedLayoutHeader>
 	)

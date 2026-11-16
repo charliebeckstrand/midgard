@@ -5,7 +5,6 @@ import {
 	Bot,
 	CalendarDays,
 	ChartColumn,
-	CircleCheck,
 	LogIn,
 	Menu as MenuIcon,
 	Trophy,
@@ -13,32 +12,48 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
+import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { usePrefetchBoards } from '../../queries/leaderboard-queries'
 import { useStats } from '../../queries/stats-queries'
-import { dailySeed, VS_SEGMENT } from '../../utilities/seed'
+import { SLOTS } from '../../utilities/game'
+import { dailySeed, type Route, VS_SEGMENT } from '../../utilities/seed'
 import { LeaderboardDialog } from '../leaderboard-dialog'
 import { StatsDialog } from '../stats-dialog'
 
 /**
- * The link to the daily puzzle of `today`. After the first run of the puzzle
- * counts (`played`), the item shows a green check after its label, at the gap
- * of the row.
+ * The props of the item of `route`, when it is the route of the page: it is
+ * the current page, and its label is bold.
  */
-function DailyPuzzleItem({ today, played }: { today: Date; played: boolean }) {
+function currentProps(route: Route, current: Route) {
+	return route === current ? ({ 'aria-current': 'page', className: 'font-semibold' } as const) : {}
+}
+
+/**
+ * The link to the daily puzzle of `today`. After the first run of the puzzle
+ * counts, the item shows its `score` in a small green badge after its label,
+ * at the gap of the row, such as "12/20".
+ */
+function DailyPuzzleItem({
+	today,
+	score,
+	route,
+}: {
+	today: Date
+	score: number | null
+	route: Route
+}) {
 	return (
-		<MenuItem href={`/${dailySeed(today)}`}>
+		<MenuItem href={`/${dailySeed(today)}`} {...currentProps('daily', route)}>
 			<Icon icon={<CalendarDays />} />
 			<MenuLabel>Daily puzzle</MenuLabel>
-			{played && (
-				<Icon
-					icon={<CircleCheck />}
-					label="Played"
-					className="text-green-600 dark:text-green-500"
-				/>
+			{score !== null && (
+				<Badge color="green" size="sm">
+					{`${score}/${SLOTS}`}
+				</Badge>
 			)}
 		</MenuItem>
 	)
@@ -48,27 +63,34 @@ function DailyPuzzleItem({ today, played }: { today: Date; played: boolean }) {
 export type NumbersMenuProps = {
 	/** The signed-in user, or none. Sign-in is optional. */
 	user?: User
+	/** The route of the page, which the menu marks. */
+	route: Route
 }
 
 /**
  * The menu at the right of the header. Solo starts the run of a new seed, and
  * Vs CPU starts the run of a new seed against the CPU. Daily puzzle opens the
  * run of the seed of today, which each reader gets on the same date, and shows
- * a check once its first run counts. A divider sets these routes apart from
+ * its score once its first run counts. A divider sets these routes apart from
  * Leaderboard, which opens the boards of each day. Each reader gets it, so it
  * is above the second divider. Under the second divider are the items of the
  * account: a reader with no session gets Sign in, and a
  * signed-in reader gets Verify email (until the email is verified), Stats,
  * which opens the stats of the reader, and Sign out.
  *
+ * The item of the route of the page is bold, and it is the current page
+ * (`aria-current`). The route comes from the props of the page, not from the
+ * address after the hydration, so the item is marked at the first open. A
+ * daily puzzle of an earlier day is on Daily puzzle.
+ *
  * Today is the date of the reader, which the server cannot know, so `useToday`
  * gives it after the hydration, and moves it to the next day at midnight. The
  * menu then reads the stats of a signed-in reader with a verified email, before
- * the menu opens. Thus the check of the daily puzzle shows when the menu opens,
+ * the menu opens. Thus the score of the daily puzzle shows when the menu opens,
  * and the Stats dialog opens with its stats. The stats of any other reader are
  * not read, and the item stays a plain link.
  */
-export function NumbersMenu({ user }: NumbersMenuProps) {
+export function NumbersMenu({ user, route }: NumbersMenuProps) {
 	const today = useToday()
 
 	const { data } = useStats(
@@ -76,7 +98,7 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 		today !== null && user?.is_verified === true,
 	)
 
-	const played = data !== undefined && data.solo.dailyScore !== null
+	const score = data?.solo.dailyScore ?? null
 
 	const [statsOpen, setStatsOpen] = useState(false)
 
@@ -99,17 +121,17 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 				</MenuTrigger>
 
 				<MenuContent aria-label="Menu">
-					<MenuItem href="/">
+					<MenuItem href="/" {...currentProps('solo', route)}>
 						<Icon icon={<UserRound />} />
 						<MenuLabel>Solo</MenuLabel>
 					</MenuItem>
 
-					<MenuItem href={`/${VS_SEGMENT}`}>
+					<MenuItem href={`/${VS_SEGMENT}`} {...currentProps('vsCpu', route)}>
 						<Icon icon={<Bot />} />
 						<MenuLabel>Vs CPU</MenuLabel>
 					</MenuItem>
 
-					{today && <DailyPuzzleItem today={today} played={played} />}
+					{today && <DailyPuzzleItem today={today} score={score} route={route} />}
 
 					<MenuSeparator />
 

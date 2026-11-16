@@ -73,7 +73,9 @@ place, and Reset.
 The header shows the name of the app, the settings, and a menu with Solo (a
 new seed), Vs CPU (a new seed against the CPU), and Daily puzzle. Under a
 divider is Leaderboard. Under a second divider, the menu has Sign in, or Stats and
-Sign out for a signed-in reader. A segment in the settings switches two tabs: "UI" has the
+Sign out for a signed-in reader. The item of the route of the page is bold
+(`aria-current`): Vs CPU on a run against the CPU, Daily puzzle on a solo run
+of a date seed, and Solo else (`getRoute`). A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). Each segment of the app (in the settings, Stats, and Leaderboard)
 slides to the panel of the new tab. A bar under the header holds the drawn
@@ -207,7 +209,8 @@ with a verified email. The first run of a daily puzzle counts toward the
 streak. A reader with no session gets no Stats item in the menu.
 
 After the first run of the daily puzzle of today counts, the Daily puzzle item
-of the menu shows a green check after its label (`dailyScore` of the stats). A
+of the menu shows the score in a small green badge after its label, such as
+"12/20" (`dailyScore` of the stats). A
 new run of the puzzle shows a closable alert, with no icon, above the bar of the
 drawn number: the reader played the puzzle, and a replay does not change the
 score (`useDailyNotice`). The alert waits for the stats, and a
