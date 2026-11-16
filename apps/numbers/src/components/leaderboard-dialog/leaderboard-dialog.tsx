@@ -7,11 +7,8 @@ import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { DateTime } from 'ui/date-time'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
-import { Field, Label, Message } from 'ui/fieldset'
-import { Form, type FormSubmitHandler } from 'ui/form'
 import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
-import { Input } from 'ui/input'
 import { useIntl } from 'ui/primitives/intl'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Flex } from 'ui/structure/flex'
@@ -30,11 +27,8 @@ import { TabContent, TabContents } from 'ui/tabs'
 import { Text } from 'ui/text'
 import type { BoardEntry } from '../../api/leaderboard-api'
 import type { Mode } from '../../api/stats-api'
-import { useBoard, usePlayer, useSavePlayer } from '../../queries/leaderboard-queries'
+import { useBoard } from '../../queries/leaderboard-queries'
 import { dailySeed } from '../../utilities/seed'
-
-/** The longest leaderboard name, which Mimir also checks. */
-const MAX_NAME = 24
 
 /** Props for {@link LeaderboardDialog}. */
 export type LeaderboardDialogProps = {
@@ -127,41 +121,24 @@ function Board({ date, mode }: { date: string; mode: Mode }) {
 	)
 }
 
-/** The field of the leaderboard name of the reader. An empty name shows the reader as anonymous. */
-function NameForm() {
-	const { data } = usePlayer(true)
+/**
+ * The line under the boards about how the reader shows on them. Only the runs
+ * of a verified user count, and a user shows by the name of their account.
+ */
+function ReaderNote({ user }: { user: User }) {
+	if (!user.is_verified) {
+		return <Text>Verify your email to be on the leaderboard. The menu sends the link.</Text>
+	}
 
-	const save = useSavePlayer()
+	if (user.name === null) {
+		return (
+			<Text tone="muted" size="sm">
+				Your account has no name, so the leaderboard shows you as Anonymous.
+			</Text>
+		)
+	}
 
-	if (data === undefined) return null
-
-	const handleSubmit: FormSubmitHandler<{ name: string }> = ({ name }) =>
-		save.mutateAsync({ name: name.trim() || null })
-
-	return (
-		<Form<{ name: string }>
-			defaultValues={{ name: data.name ?? '' }}
-			validate={{
-				name: (value) =>
-					value.trim().length > MAX_NAME ? `Use at most ${MAX_NAME} characters` : undefined,
-			}}
-			onSubmit={handleSubmit}
-		>
-			<Field>
-				<Label>Leaderboard name</Label>
-
-				<Flex gap="sm" align="start">
-					<Input name="name" autoComplete="nickname" placeholder="Anonymous" />
-
-					<Button type="submit" disabled={save.isPending}>
-						Save
-					</Button>
-				</Flex>
-
-				<Message name="name" />
-			</Field>
-		</Form>
-	)
+	return null
 }
 
 /**
@@ -220,11 +197,7 @@ function SignedInBoards({ user }: { user: User }) {
 				</Stack>
 			</Segment>
 
-			{user.is_verified ? (
-				<NameForm />
-			) : (
-				<Text>Verify your email to be on the leaderboard. The menu sends the link.</Text>
-			)}
+			<ReaderNote user={user} />
 		</Stack>
 	)
 }
@@ -232,8 +205,8 @@ function SignedInBoards({ user }: { user: User }) {
 /**
  * The leaderboard of each daily puzzle, from the Leaderboard item of the header
  * menu. Each player is ranked by the first run of the puzzle, and shows by the
- * name that they set, or as anonymous. A reader with no verified email sees the
- * boards, and a line that asks for the verification.
+ * name of their account, or as anonymous when it has none. A reader with no
+ * verified email sees the boards, and a line that asks for the verification.
  */
 export function LeaderboardDialog({ open, onOpenChange, user }: LeaderboardDialogProps) {
 	return (

@@ -4,17 +4,16 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { User } from 'auth'
 import { UIProvider } from 'ui/providers/ui'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { type Board, readBoard, readPlayer, savePlayer } from '../api/leaderboard-api'
+import { type Board, readBoard } from '../api/leaderboard-api'
 import { LeaderboardDialog } from '../components/leaderboard-dialog'
 
 vi.mock('../api/leaderboard-api', () => ({
 	readBoard: vi.fn(),
-	readPlayer: vi.fn(),
-	savePlayer: vi.fn(),
 }))
 
-/** A user, verified or not. */
-const makeUser = (verified: boolean) => ({ id: 'user-1', is_verified: verified }) as User
+/** A user, verified or not, with the name of their account. */
+const makeUser = (verified: boolean, name: string | null = 'Grace') =>
+	({ id: 'user-1', name, is_verified: verified }) as User
 
 /** A board of `players` players with `entries`. */
 const board = (players: number, entries: Board['entries']): Board => ({ players, entries })
@@ -46,8 +45,6 @@ beforeEach(() => {
 	vi.useFakeTimers({ toFake: ['Date'] })
 
 	vi.setSystemTime(new Date(2026, 10, 16, 12))
-
-	vi.mocked(readPlayer).mockResolvedValue({ name: null })
 })
 
 afterEach(() => {
@@ -117,33 +114,25 @@ describe('LeaderboardDialog', () => {
 		await waitFor(() => expect(readBoard).toHaveBeenCalledWith('20261116', 'vsCpu'))
 	})
 
-	it('saves the leaderboard name, and an empty name as anonymous', async () => {
+	it('tells a verified reader with no account name that they show as anonymous', async () => {
 		vi.mocked(readBoard).mockResolvedValue(board(0, []))
 
-		vi.mocked(readPlayer).mockResolvedValue({ name: 'Ada' })
+		const { unmount } = renderDialog(makeUser(true, null))
 
-		vi.mocked(savePlayer).mockImplementation(async (player) => player)
+		expect(
+			await screen.findByText(/no name, so the leaderboard shows you as Anonymous/),
+		).toBeTruthy()
+
+		unmount()
 
 		renderDialog(makeUser(true))
 
-		const field = await screen.findByLabelText('Leaderboard name')
+		await screen.findByText('No one has played this puzzle yet.')
 
-		expect((field as HTMLInputElement).value).toBe('Ada')
-
-		fireEvent.change(field, { target: { value: '  Grace  ' } })
-
-		fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-		await waitFor(() => expect(vi.mocked(savePlayer).mock.lastCall?.[0]).toEqual({ name: 'Grace' }))
-
-		fireEvent.change(field, { target: { value: ' ' } })
-
-		fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-		await waitFor(() => expect(vi.mocked(savePlayer).mock.lastCall?.[0]).toEqual({ name: null }))
+		expect(screen.queryByText(/shows you as Anonymous/)).toBeNull()
 	})
 
-	it('shows the board to a reader with no verified email, with no name field', async () => {
+	it('shows the board to a reader with no verified email, and asks for the verification', async () => {
 		vi.mocked(readBoard).mockResolvedValue(
 			board(1, [{ rank: 1, name: 'Ada', score: 15, you: false }]),
 		)
@@ -155,9 +144,5 @@ describe('LeaderboardDialog', () => {
 		expect(await within(table).findByText('Ada')).toBeTruthy()
 
 		expect(screen.getByText(/Verify your email to be on the leaderboard/)).toBeTruthy()
-
-		expect(screen.queryByLabelText('Leaderboard name')).toBeNull()
-
-		expect(readPlayer).not.toHaveBeenCalled()
 	})
 })

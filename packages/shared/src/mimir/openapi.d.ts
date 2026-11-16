@@ -1091,7 +1091,7 @@ export interface paths {
 		put?: never
 		/**
 		 * Count a finished run
-		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak and the leaderboard.
+		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak and the leaderboard. Each run keeps the name of the account, which the leaderboards show.
 		 */
 		post: {
 			parameters: {
@@ -1212,108 +1212,6 @@ export interface paths {
 		patch?: never
 		trace?: never
 	}
-	'/api/games/player': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		/**
-		 * Get your leaderboard name
-		 * @description The name on the leaderboards of every game, or null when you set none.
-		 */
-		get: {
-			parameters: {
-				query?: never
-				header?: never
-				path?: never
-				cookie?: never
-			}
-			requestBody?: never
-			responses: {
-				/** @description Your leaderboard name */
-				200: {
-					headers: {
-						[name: string]: unknown
-					}
-					content: {
-						'application/json': components['schemas']['GamePlayer']
-					}
-				}
-				/** @description Not signed in */
-				401: {
-					headers: {
-						[name: string]: unknown
-					}
-					content: {
-						'application/json': components['schemas']['Error']
-					}
-				}
-			}
-		}
-		/**
-		 * Set your leaderboard name
-		 * @description Sets the name on the leaderboards of every game, 1 to 24 characters with the spaces at each end removed. Null removes it, so you show as anonymous.
-		 */
-		put: {
-			parameters: {
-				query?: never
-				header?: never
-				path?: never
-				cookie?: never
-			}
-			requestBody: {
-				content: {
-					'application/json': components['schemas']['GamePlayer']
-				}
-			}
-			responses: {
-				/** @description Your new leaderboard name */
-				200: {
-					headers: {
-						[name: string]: unknown
-					}
-					content: {
-						'application/json': components['schemas']['GamePlayer']
-					}
-				}
-				/** @description Invalid name */
-				400: {
-					headers: {
-						[name: string]: unknown
-					}
-					content: {
-						'application/json': components['schemas']['Error']
-					}
-				}
-				/** @description Not signed in */
-				401: {
-					headers: {
-						[name: string]: unknown
-					}
-					content: {
-						'application/json': components['schemas']['Error']
-					}
-				}
-				/** @description No user role, or email not verified */
-				403: {
-					headers: {
-						[name: string]: unknown
-					}
-					content: {
-						'application/json': components['schemas']['Error']
-					}
-				}
-			}
-		}
-		post?: never
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -1346,7 +1244,6 @@ export interface components {
 				[key: string]: components['schemas']['SeasonPicks']
 			}
 			numbers: components['schemas']['StoredNumbers']
-			games: components['schemas']['GamePlayer']
 		}
 		PlaceList: components['schemas']['Place'][]
 		Place: components['schemas']['Location'] & {
@@ -1448,14 +1345,6 @@ export interface components {
 					[key: string]: number
 				}
 			}
-		}
-		/** @description How the user shows on the leaderboards of every game */
-		GamePlayer: {
-			/**
-			 * @description The name on the leaderboards, or null to show as anonymous
-			 * @example Ada
-			 */
-			name: string | null
 		}
 		Error: {
 			error: string

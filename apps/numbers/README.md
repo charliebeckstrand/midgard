@@ -171,12 +171,12 @@ Equal scores share a rank. The board opens on today, the date of the reader,
 and the arrows go to earlier days, but not past today. Mimir keeps the boards
 (`/api/games/numbers/daily`, `src/api/leaderboard-api.ts`).
 
-Each player shows by a leaderboard name, or as "Anonymous" until they set one.
-A reader with a verified email sets the name at the foot of the dialog
-(`/api/games/player`), and an empty name shows them as anonymous again. A
-reader with no verified email sees the boards, and a line that asks for the
-verification, because only the runs of a verified user count. A daily run that
-counts makes its board read again.
+Each player shows by the name of their account, or as "Anonymous" when the
+account has no name, as an account from GitHub or Google does. Mimir keeps the
+name that each run sends. A reader with no name sees a line that tells them how
+they show. A reader with no verified email sees the boards, and a line that
+asks for the verification, because only the runs of a verified user count. A
+daily run that counts makes its board read again.
 
 ## Deploy
 
