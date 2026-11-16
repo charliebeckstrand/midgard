@@ -11,7 +11,7 @@ import { Columns } from 'ui/structure/columns'
 import { Stack } from 'ui/structure/stack'
 import { TabContent, TabContents } from 'ui/tabs'
 import { Text } from 'ui/text'
-import type { ModeStats } from '../../api/stats-api'
+import type { Mode, ModeStats } from '../../api/stats-api'
 import { useStats } from '../../queries/stats-queries'
 import { dailySeed } from '../../utilities/seed'
 
@@ -23,18 +23,36 @@ export type StatsDialogProps = {
 	user: User
 }
 
-/** The tiles of the stats of one mode, from {@link ModeStats}, or skeletons while they load. */
-function ModeTiles({ stats }: { stats: ModeStats | undefined }) {
+/** One tile: its label, and its value, or none while the stats load. */
+type Tile = [label: string, value: string | undefined]
+
+/**
+ * The tiles of the stats of `mode`, from {@link ModeStats}, or skeletons while
+ * they load. Solo shows the daily streaks, because only a solo run plays the
+ * daily puzzle. Vs CPU shows Win % in their place, the share of the runs that
+ * beat the CPU, which is empty until the first run that counts toward it.
+ */
+function ModeTiles({ mode, stats }: { mode: Mode; stats: ModeStats | undefined }) {
 	const intl = useIntl()
 
 	const decimal = (value: number) => intl.formatNumber(value, { maximumFractionDigits: 1 })
 
-	const tiles: Array<[string, string | undefined]> = [
+	const percent = (value: number | null) =>
+		value === null ? '–' : intl.formatNumber(value, { style: 'percent', maximumFractionDigits: 0 })
+
+	const ofMode: Tile[] =
+		mode === 'solo'
+			? [
+					['Daily streak', stats && intl.formatNumber(stats.streak)],
+					['Best streak', stats && intl.formatNumber(stats.bestStreak)],
+				]
+			: [['Win %', stats && percent(stats.winRate)]]
+
+	const tiles: Tile[] = [
 		['Played', stats && intl.formatNumber(stats.played)],
 		['Best', stats && (stats.best === null ? '–' : intl.formatNumber(stats.best))],
 		['Average', stats && (stats.average === null ? '–' : decimal(stats.average))],
-		['Daily streak', stats && intl.formatNumber(stats.streak)],
-		['Best streak', stats && intl.formatNumber(stats.bestStreak)],
+		...ofMode,
 	]
 
 	return (
@@ -80,11 +98,11 @@ function SignedInStats() {
 
 				<TabContents animate="slide">
 					<TabContent value="solo">
-						<ModeTiles stats={data?.solo} />
+						<ModeTiles mode="solo" stats={data?.solo} />
 					</TabContent>
 
 					<TabContent value="vsCpu">
-						<ModeTiles stats={data?.vsCpu} />
+						<ModeTiles mode="vsCpu" stats={data?.vsCpu} />
 					</TabContent>
 				</TabContents>
 			</Stack>
