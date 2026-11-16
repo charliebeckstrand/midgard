@@ -28,6 +28,7 @@ const statsWith = (dailyScore: number | null) => {
 		streak: 1,
 		bestStreak: 1,
 		dailyScore,
+		winRate: null,
 	}
 
 	return { solo: mode, vsCpu: mode }

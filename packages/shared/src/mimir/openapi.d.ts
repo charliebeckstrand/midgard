@@ -1327,6 +1327,11 @@ export interface components {
 				daily: {
 					[key: string]: number
 				}
+				/** @description Vs CPU only: the runs that came with `beatCpu`, from 2026-11-16, and the runs of those that beat the CPU */
+				cpu?: {
+					played: number
+					beat: number
+				}
 			}
 			vsCpu: {
 				/** @description How many runs ended on each score, from 0 to 20 */
@@ -1334,6 +1339,11 @@ export interface components {
 				/** @description The score of the first run of each daily puzzle, by its date */
 				daily: {
 					[key: string]: number
+				}
+				/** @description Vs CPU only: the runs that came with `beatCpu`, from 2026-11-16, and the runs of those that beat the CPU */
+				cpu?: {
+					played: number
+					beat: number
 				}
 			}
 		}
@@ -1441,6 +1451,8 @@ export interface components {
 			bestStreak: number
 			/** @description The score of the first run of today's daily puzzle, or none before it */
 			dailyScore: number | null
+			/** @description Vs CPU only: the share, from 0 to 1, of the runs that beat the CPU, of the runs since Mimir counts the outcome (2026-11-16). None for solo, and none before the first such run. */
+			winRate: number | null
 		}
 		/** @description One finished run: a bust, a win, or a reset after the first placement */
 		NumbersResult: {

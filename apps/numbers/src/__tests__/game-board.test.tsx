@@ -70,6 +70,7 @@ describe('GameBoard daily notice', () => {
 			streak: 1,
 			bestStreak: 1,
 			dailyScore: 12,
+			winRate: null,
 		}
 
 		client.setQueryData<NumbersStats>(['numbers-stats', today], { solo: mode, vsCpu: mode })
@@ -126,6 +127,7 @@ describe('GameBoard daily notice from the server', () => {
 		streak: 1,
 		bestStreak: 1,
 		dailyScore: 12,
+		winRate: null,
 	}
 
 	const user = { id: 'user-1', is_verified: true } as User

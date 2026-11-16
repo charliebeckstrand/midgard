@@ -177,10 +177,17 @@ new seed. The contract with the gateway is in [asgard
 
 Stats in the header menu, above Sign out, opens a dialog with the stats of a signed-in reader,
 one tab for each mode (Solo and Vs CPU): the runs played, the best and the
-average score, the daily streak and the longest one, and a bar chart of the
-runs on each score from 1 to 20. The first number always has an empty slot, so
-no run scores 0. A switch of tab slides to the next mode. Mimir, in asgard,
-keeps them (`/api/games/numbers/*`, `src/api/stats-api.ts`).
+average score, and a bar chart of the runs on each score from 1 to 20. The
+first number always has an empty slot, so no run scores 0. A switch of tab
+slides to the next mode. Mimir, in asgard, keeps the stats
+(`/api/games/numbers/*`, `src/api/stats-api.ts`).
+
+Solo also shows the daily streak and the longest one. Only a solo run plays
+the daily puzzle, so Vs CPU shows Win % in place of the streaks. Win % is the
+share of the vs CPU runs that beat the CPU (`winRate`). Only a run that sends
+`beatCpu` counts toward it, so the runs from before 2026-11-16 do not. Until
+the first such run, Win % shows a dash. Solo has no Win %, because a run that
+fills all 20 slots is rare.
 
 A run counts when it ends in a bust or a win, and when a Reset ends it after
 its first placement, with its score at that step (`isUnfinished`). A link,
