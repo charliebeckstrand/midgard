@@ -1,6 +1,6 @@
 /**
- * Kokkaku skeleton: map. Fills its container with the map's rounded frame;
- * canvas and chrome collapse into one placeholder rectangle. Where the
+ * Kokkaku skeleton: map. Fills its container with one rounded placeholder
+ * rectangle; canvas and chrome collapse into it. Where the
  * projection has an outline, the outline fills the container instead, as one
  * shape. The `aspect` forms take the full width, and an inline `aspect-ratio`
  * gives the height.

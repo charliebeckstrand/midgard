@@ -1,11 +1,11 @@
 /**
- * Iro ramp: the foreground shades of the page surface, as `[light, dark]`
- * pairs, light value first and the `dark:`-prefixed value second. The values
- * are full class literals, because Tailwind's scanner sees only literals.
- * `onSurface` takes the text of the bare palette entries (`palette.ts`),
- * `strong` is the max-emphasis
- * neutral, and `onWash.muted` is the least-emphatic rung that clears the text
- * floor on the wash.
+ * Iro ramp: the `[light, dark]` pairs of iro, light value first and the
+ * `dark:`-prefixed value second: the foreground shades of the page surface and
+ * the wash, and the `match` wash behind a search match. The values are full
+ * class literals, because Tailwind's scanner sees only literals. `onSurface`
+ * takes the text of the bare palette entries (`palette.ts`), `strong` is the
+ * max-emphasis neutral, and `onWash.muted` is the least-emphatic rung that
+ * clears the text floor on the wash.
  *
  * The `__tests__/recipes/contrast.test.ts` guard re-derives every rung's
  * contrast from Tailwind's own theme and asserts it clears its floor in both

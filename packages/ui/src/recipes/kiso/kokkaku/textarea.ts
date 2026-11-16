@@ -31,5 +31,4 @@ export const textarea = {
 	],
 	/** The strut: a block of the caller's count of lines. */
 	strut: 'block',
-	density: true,
 } as const

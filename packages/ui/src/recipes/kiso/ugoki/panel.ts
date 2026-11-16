@@ -1,7 +1,6 @@
 /**
- * Ugoki panel: slide-from-edge panel configs keyed by direction. Used
- * by sheet and drawer to animate the panel into view from its anchored
- * edge.
+ * Ugoki panel: slide-from-edge panel configs keyed by direction: the slide of
+ * a panel into view from the edge that it is anchored to.
  *
  * The slide sets `transform` directly, so the browser runs it off the main
  * thread. The panel thus keeps its slide while the main thread mounts the

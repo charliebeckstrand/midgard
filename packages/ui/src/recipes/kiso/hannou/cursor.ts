@@ -45,7 +45,7 @@ const drag = [
  * held.
  *
  * Stated here because every draggable surface needs the same rules. Each one
- * that writes them out is a chance to leave one off. The katas had done that in
+ * that writes them out is a chance to leave one off. The kata had done that in
  * ten places, each slightly differently, and `grab-cursor-boundary.test.ts` now
  * keeps the rules here.
  */

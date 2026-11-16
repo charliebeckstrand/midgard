@@ -2,7 +2,7 @@
  * Hannou fg: foreground (text-color) feedback on interaction state.
  * Hover gives the strong foreground, except on a part that is disabled in either
  * spelling (`:disabled` or `data-disabled`); disabled lifts it; `current`
- * marks the active surface (e.g. the current nav item) via `data-current`.
+ * marks the active surface (the current tab) via `data-current`.
  * `open` and `expanded` give a muted disclosure trigger the strong text while
  * its content shows: `open` reads `data-open` (a Tree row, a JsonTree toggle),
  * and `expanded` reads the `aria-expanded` of the trigger itself (Accordion,

@@ -3,11 +3,10 @@
  * utilities of `core/density/utilities.ts` (`px-ring-2`, …) subtract the 1 px
  * outer ring from a spacing stop. A class uses them directly.
  *
- * Two named axes:
- *   - `layers`: the signature inset-fill-plus-rings stack, as one list (base
- *     ring, inset fill, overlay, hover, focus, validation, and disabled).
- *   - `rounded`: pass-through to Tailwind's named radius scale
- *     (none / sm / md / lg / xl / full); `rounded.lg` → `rounded-lg`.
+ * `layers` is the stack of a framed control, as one list: the base ring, the
+ * inset fill, the overlay, and the hover, focus, validation, and disabled
+ * states. `rounded` holds the classes of the named radius scale of Tailwind,
+ * from `none` to `full`, so `rounded.lg` is `rounded-lg`.
  *
  * A radius that follows density is a stepped `density-rounded-*` class, and
  * its inset fill is a stepped `density-rounded-ring-*` class after `before:`,

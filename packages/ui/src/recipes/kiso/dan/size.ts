@@ -91,7 +91,7 @@ export const size = {
 		base: box,
 		/** The width of a button skeleton. */
 		width: 'density-w-[16,20,24,28,32]',
-		/** A toggle icon button skeleton. */
+		/** The box of a bare icon button. */
 		icon: 'density-size-[5.5,6.5,7.5,8.5,9.5]',
 		/** The height of a bare icon button, as the floor of a row that can hold one. */
 		row: 'density-min-h-[5.5,6.5,7.5,8.5,9.5]',
@@ -164,13 +164,13 @@ export const size = {
 	switch: {
 		/** The thumb of a switch: the line height less 8 px. */
 		thumb: inset,
-		/** The width of a switch skeleton. */
+		/** The width of a switch track and its skeleton. */
 		width: 'density-w-[8,9,10,11,12]',
 		/** The width of a three-way switch: three thumbs and two gaps. */
 		choice: 'density-w-[11,12.5,14,15.5,17]',
 	},
 	slider: {
-		/** The height of a slider skeleton track. */
+		/** The height of a range slider track and of a slider skeleton track. */
 		track: 'density-h-[0.5,1,1.5,2,2.5]',
 		/** The thumb of a slider and a range slider. */
 		thumb: 'density-size-[2,3,4,5,6]',

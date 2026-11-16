@@ -3,8 +3,8 @@
  * line height of the live slot. The widths are defaults, and `className` can
  * change them.
  *
- * Each height is a ramp, so each silhouette takes the step of its nearest
- * density scope, as the slot does. The value silhouette also has a stepped
+ * Each text is a ramp, so each line takes the step of its nearest density
+ * scope, as the slot does. The value silhouette also has a stepped
  * width.
  *
  * Layer: kiso · Concern: skeleton form · Unit: stat
