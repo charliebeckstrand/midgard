@@ -31,7 +31,7 @@ function inScale<S extends DensityStep>(scale: Scale<S>, step: DensityStep): ste
  * @param explicit - The `size` prop of the component, if it has one.
  * @returns The step of the scope of the component, or `undefined` for no scope.
  */
-export function useDensityInScale<S extends DensityStep>(
+export function useDensityScale<S extends DensityStep>(
 	scale: Scale<S>,
 	explicit: DensityStep | undefined,
 ): S | undefined {

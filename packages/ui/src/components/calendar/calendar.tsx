@@ -16,7 +16,7 @@ import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useToday } from '../../hooks/use-today'
-import { useDensityInScale } from '../../primitives/density/use-density-in-scale'
+import { useDensityScale } from '../../primitives/density/use-density-scale'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useLocale } from '../../providers/locale/context'
 import type { ButtonVariants } from '../../recipes/kata/button'
@@ -303,7 +303,7 @@ export function Calendar({
 	size,
 	className,
 }: CalendarProps) {
-	const density = useDensityInScale(scale, size)
+	const density = useDensityScale(scale, size)
 
 	const ambient = useLocale()
 

@@ -100,7 +100,7 @@ export const k = defineKata(
 /**
  * The size scale of {@link Calendar}: `sm`, `md`, and `lg`, the steps of its
  * width and its header margin. In an `xs` or `xl` scope, the calendar opens a scope at its inner
- * neighbor (`useDensityInScale`), so its header margin, gap, text, and buttons
+ * neighbor (`useDensityScale`), so its header margin, gap, text, and buttons
  * take a step of the scale.
  */
 export const scale = defineScale(dan.size.calendar.width, dan.space.calendar.header.bottom)

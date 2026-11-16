@@ -478,14 +478,14 @@ const STEP_READ = /\buse(?:Density)?Step\b/
 
 // `useDensityScope` gives the nearest explicit scope, or `null` at the root.
 // `Portal` writes that scope on its host, so a portaled panel keeps the step of
-// the tree that opened it. `useDensityInScale` reads it to move an outer scope
+// the tree that opened it. `useDensityScale` reads it to move an outer scope
 // to a step of a scale. Only `Portal` and the primitive may read it. A
 // surface that portals goes through `Portal`, and writes no scope of its own.
 
 const SCOPE_READERS = [
 	'primitives/density/context.ts',
 	'primitives/density/index.ts',
-	'primitives/density/use-density-in-scale.ts',
+	'primitives/density/use-density-scale.ts',
 	'primitives/density/use-density-step.ts',
 	'primitives/portal/portal.tsx',
 ]

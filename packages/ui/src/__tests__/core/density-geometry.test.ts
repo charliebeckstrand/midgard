@@ -274,7 +274,7 @@ const slotRamps = {
  *   - The scale of a calendar is `sm` to `lg`. Its own ramps give `xs` the
  *     value of `sm` and `xl` the value of `lg`. Thus its static skeleton in an
  *     `xs` or `xl` scope has the box of the calendar, which renders at its
- *     inner step there (`useDensityInScale`).
+ *     inner step there (`useDensityScale`).
  */
 const sharedRamps = new Set([
 	'size.sidebar.width',
