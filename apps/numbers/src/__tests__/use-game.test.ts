@@ -34,10 +34,18 @@ describe('useGame', () => {
 		expect(result.current.status).toBe('ready')
 	})
 
-	it('draws at the mount when Auto-draw is on', () => {
-		const { result } = renderHook(() => useGame('charlie', true))
+	it('has the first draw in its first state when Auto-draw is on, so the server render shows it', () => {
+		const drawn: Array<number | null> = []
 
-		expect(result.current.game.drawn).toBe(deck[0])
+		renderHook(() => {
+			const controls = useGame('charlie', true)
+
+			drawn.push(controls.game.drawn)
+
+			return controls
+		})
+
+		expect(drawn[0]).toBe(deck[0])
 	})
 
 	it('draws when the setting comes on, and not again when it goes off', () => {

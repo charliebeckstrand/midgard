@@ -35,13 +35,8 @@ export function useDailyNotice(game: Game, run: number, mode: Mode, user: User |
 
 	const ended = isEnded(status)
 
-	// The last run that got its decision. The page starts with run 0, and at the
-	// mount the effect of the address in `GameBoard` starts the run of the
-	// address again as run 1, before the reader can play. Thus run 0 is never a
-	// run that the reader opens, and it gets no decision. Without this, a run
-	// that opens with the stats in the cache gets a toast for run 0 and a
-	// second toast for run 1.
-	const decided = useRef(0)
+	/** The last run that got its decision. */
+	const decided = useRef<number | null>(null)
 
 	useEffect(() => {
 		if (!isDaily || decided.current === run) return
