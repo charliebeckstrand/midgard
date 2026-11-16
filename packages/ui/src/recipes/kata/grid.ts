@@ -621,7 +621,9 @@ export const k = {
 			'after:h-4 after:w-0.5',
 			'after:transition-colors',
 			...sen.grip,
-			'data-resizing:after:bg-blue-600 dark:data-resizing:after:bg-blue-600',
+			// The dark hover color of `sen.grip` sorts after `data-resizing:` at the same
+			// specificity, so the drag color repeats in dark.
+			...mode('data-resizing:after:bg-blue-600', 'dark:data-resizing:after:bg-blue-600'),
 			// The drag color outranks the shape too, so the shape repeats under it.
 			'forced-colors:data-resizing:after:bg-[CanvasText]',
 		],
