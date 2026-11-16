@@ -1,10 +1,11 @@
 import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { dan, narabi, sen, zu } from '../kiso'
+import { dan, narabi, sen, ugoki, zu } from '../kiso'
 
 const { marker } = zu
 const { flex } = narabi
 const { forced } = sen
+const { css } = ugoki
 
 /**
  * Indicator color, shared by both loading surfaces. Resolves to a `text-*`
@@ -22,12 +23,7 @@ const color = { current: 'text-current', ...marker }
  * forced colors remove, so it takes the `shape` of `sen.forced`.
  */
 const dot = {
-	base: [
-		'shrink-0 rounded-full bg-current',
-		'motion-safe:animate-pulse',
-		dan.size.dot,
-		forced.shape,
-	],
+	base: ['shrink-0 rounded-full bg-current', css.pulse, dan.size.dot, forced.shape],
 }
 
 /**

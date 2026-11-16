@@ -195,7 +195,7 @@ describe('Drawer height and size', () => {
 
 		expect(drawerPanel()).not.toHaveClass('max-h-[85%]')
 
-		expect(drawerPanel()).toHaveClass('rounded-t-xl')
+		expect(drawerPanel()).toHaveClass('rounded-t-2xl')
 
 		// Nothing measured the panel, so it stands at neither its ceiling nor a
 		// pinned height: it is left to its own classes rather than to the zero an

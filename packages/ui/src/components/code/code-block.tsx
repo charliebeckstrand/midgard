@@ -391,7 +391,7 @@ export function CodeBlock({
 			className={cn(slots.block.base, className)}
 			{...props}
 			// The style of the caller spreads first, and the canvas of the theme comes
-			// after it. `omote.bg.code` reads `--code-canvas`.
+			// after it. The canvas of the code kata reads `--code-canvas`.
 			style={canvas ? ({ ...style, '--code-canvas': canvas } as CSSProperties) : style}
 		>
 			{/* Code reads left to right in each locale, so an RTL ancestor must not mirror it. */}

@@ -134,5 +134,6 @@ export const geometry = {
 	'space.button.label': padY,
 	'space.button.bare': padBare,
 	'space.control.y': padY,
+	'space.progress.label': (step) => 8 + toLeading(smallTextSize(step)),
 	'space.query.grip': (step) => 1 + 10 + boxHeight(step) / 2 - 12,
 } as const satisfies Record<string, (step: DensityStep) => number>

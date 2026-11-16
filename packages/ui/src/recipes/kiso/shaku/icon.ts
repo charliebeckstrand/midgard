@@ -3,10 +3,10 @@
  * step plus 4 px (`iconSize` in `core/density/geometry.ts`). An icon element
  * reads the ramp `dan.size.icon.base`. `icon.slot.base` sizes the
  * `data-slot="icon"` children of a parent by the step of its nearest density
- * scope, and Badge, Button, Nav, Sidebar, and `narabi.item` (Menu and Option)
- * read it. `icon.slot.md` sizes those children at the fixed `md` step, for
- * CommandPalette, where the chrome is fixed. Tailwind's JIT scans for whole
- * class literals, so no form can be interpolated from another.
+ * scope, so each unit that sets its icons by its step reads it. `icon.slot.md`
+ * sizes those children at the fixed `md` step, for CommandPalette, where the
+ * chrome is fixed. Tailwind's JIT scans for whole class literals, so no form
+ * can be interpolated from another.
  * `density-geometry.test.ts` pins the ramps to the scale, and
  * `shaku-icon-ramp.test.ts` pins the `md` form.
  *

@@ -69,7 +69,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	const chipRow =
 		state.showChips && state.chips.length > 0 ? (
 			// A slot scope, so each chip is one step below the trigger.
-			<span data-density="slot" className={cn(k.relative.chips, 'flex-1')}>
+			<span data-density="slot" className={cn(k.relative.chips)}>
 				{state.chips.map((chip) => (
 					<Badge key={chip.key} className="shrink-0 whitespace-nowrap">
 						{chip.pending ? <DateTimePending>{chip.label}</DateTimePending> : chip.label}

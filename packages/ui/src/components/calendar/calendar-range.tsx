@@ -1,7 +1,6 @@
 'use client'
 
 import { type Ref, type RefObject, useCallback } from 'react'
-import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/calendar'
 import { getOrCompute } from '../../utilities/get-or-compute'
@@ -168,10 +167,7 @@ export function CalendarRange({
 				selected: isEdge,
 				variant: isInnerRange ? 'soft' : undefined,
 				color: isInnerRange ? 'blue' : undefined,
-				className: cn(
-					isInnerRange && 'rounded-none',
-					k({ start: isStartEdge, end: isEndEdge }).day.range,
-				),
+				className: k({ inner: isInnerRange, start: isStartEdge, end: isEndEdge }).day.range,
 				...hoverHandlers(onHoverDateChange, date),
 			}
 		},

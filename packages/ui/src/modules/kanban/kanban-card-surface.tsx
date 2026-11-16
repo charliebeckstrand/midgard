@@ -7,8 +7,11 @@ import { k } from '../../recipes/kata/kanban'
 import { partitionByType } from '../../utilities/children'
 import { KanbanCardHandle } from './kanban-card-handle'
 
-/** Props for {@link KanbanCardSurface}: the `<div>` attributes of the card. @internal */
-export type KanbanCardSurfaceProps = ComponentProps<'div'>
+/** Props for {@link KanbanCardSurface}: the `<div>` attributes of the card, and its lift state. @internal */
+export type KanbanCardSurfaceProps = ComponentProps<'div'> & {
+	/** Whether the keyboard lifts the card. The lifted card raises. @defaultValue false */
+	lifted?: boolean
+}
 
 /**
  * The box of a Kanban card: a `Card` with the `surface` fill. It holds each
@@ -22,14 +25,24 @@ export type KanbanCardSurfaceProps = ComponentProps<'div'>
  *
  * @internal
  */
-export function KanbanCardSurface({ children, className, ...props }: KanbanCardSurfaceProps) {
+export function KanbanCardSurface({
+	children,
+	lifted = false,
+	className,
+	...props
+}: KanbanCardSurfaceProps) {
 	const { matched: handles, rest } = partitionByType(children, KanbanCardHandle)
 
 	// A `false` or `null` slot renders nothing, so it opens no content column.
 	const content = rest.filter((node) => node != null)
 
 	return (
-		<Card {...props} bg="surface" data-slot="kanban-card" className={cn(k().card.base, className)}>
+		<Card
+			{...props}
+			bg="surface"
+			data-slot="kanban-card"
+			className={cn(k({ lifted }).card.base, className)}
+		>
 			{handles}
 			{content.length > 0 ? (
 				<div data-slot="kanban-card-content" className={k().card.content}>

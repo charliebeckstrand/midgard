@@ -193,20 +193,20 @@ function AlertContent({
 	actionDefaults: ButtonDefaults
 	children: ReactNode
 }) {
+	const slots = k({ columns: resolvedIcon !== undefined })
+
 	return (
-		<div className={cn(k().content, resolvedIcon ? k().columns : 'flex flex-col')}>
+		<div className={slots.content}>
 			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k().icon)} />}
 
-			{hasContent(title) && (
-				<div className={cn(k().title, resolvedIcon && 'self-center')}>{title}</div>
-			)}
+			{hasContent(title) && <div className={slots.title}>{title}</div>}
 
 			{hasContent(description) && <div className={cn(k().description)}>{description}</div>}
 
 			{renderChildren(children)}
 
 			{hasContent(actions) && (
-				<div className={cn(k().actions, resolvedIcon && 'col-start-2')}>
+				<div className={slots.actions}>
 					<ButtonDefaultsProvider value={actionDefaults}>{actions}</ButtonDefaultsProvider>
 				</div>
 			)}

@@ -1,5 +1,5 @@
 import { defineScale, type ScaleStep } from '../../core/density'
-import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
+import { defineKata, definePalette, mode, type VariantProps } from '../../core/recipe'
 import { dan, iro, kasane, kokkaku, narabi } from '../kiso'
 
 const { palette } = iro
@@ -65,7 +65,11 @@ export const k = defineKata(
 			 */
 			group: [
 				flex.row,
-				'**:data-[slot=avatar]:outline-2 **:data-[slot=avatar]:outline-solid **:data-[slot=avatar]:outline-white dark:**:data-[slot=avatar]:outline-zinc-900',
+				'**:data-[slot=avatar]:outline-2 **:data-[slot=avatar]:outline-solid',
+				...mode(
+					'**:data-[slot=avatar]:outline-white',
+					'dark:**:data-[slot=avatar]:outline-zinc-900',
+				),
 				dan.space.avatar.overlap,
 			],
 			/**
@@ -80,7 +84,8 @@ export const k = defineKata(
 					/** The indicator, on the top inline-end corner of the avatar, with a gap around it, as in a group. */
 					dot: [
 						'absolute top-0 inset-e-0',
-						'outline-2 outline-solid outline-white dark:outline-zinc-900',
+						'outline-2 outline-solid',
+						...mode('outline-white', 'dark:outline-zinc-900'),
 					],
 				},
 			},

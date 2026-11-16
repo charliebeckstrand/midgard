@@ -7,6 +7,7 @@ import { Icon } from '../../components/icon'
 import { JsonTree } from '../../components/json-tree'
 import { List, ListItem } from '../../components/list'
 import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
@@ -67,10 +68,8 @@ function EventLine({
 	// text. A word that is wider than the column does not break, and the body
 	// scrolls on the inline axis.
 	const slot = (
-		<span className="flex size-4 shrink-0 items-center">
-			{(panel !== undefined || entry.report) && (
-				<Icon icon={<ChevronRight />} size={12} className="rtl:-scale-x-100" />
-			)}
+		<span data-open={dataAttr(panel !== undefined && open)} className={slots.chevron}>
+			{(panel !== undefined || entry.report) && <Icon icon={<ChevronRight />} size={12} />}
 		</span>
 	)
 
@@ -89,7 +88,7 @@ function EventLine({
 			) : (
 				// The trigger gives its muted color to the chevron. The text keeps the
 				// color of the line.
-				<CollapseTrigger className="min-w-0 items-start text-start text-xs aria-expanded:*:first:rotate-90 rtl:aria-expanded:*:first:-rotate-90">
+				<CollapseTrigger className="min-w-0 items-start text-start text-xs">
 					{slot}
 					<span className={cn('min-w-0', color ?? slots.text)}>{text}</span>
 				</CollapseTrigger>

@@ -9,7 +9,7 @@ import { shaku } from '../../recipes/kiso/shaku'
  * pins the stepped ramps.
  */
 describe('shaku icon ramps', () => {
-	it('icon.md holds the icon slot size of md', () => {
+	it('icon.slot.md holds the icon slot size of md', () => {
 		expect(shaku.icon.slot.md).toBe(
 			`*:data-[slot=icon]:size-${iconSize('md') / 4} *:data-[slot=icon]:shrink-0`,
 		)

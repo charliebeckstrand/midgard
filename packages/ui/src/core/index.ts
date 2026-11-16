@@ -15,4 +15,9 @@ export { type DensityStep, densitySteps, type InnerStep } from './density/steps'
 export { downloadBlob } from './download-blob'
 export { invalidAttrs } from './invalid-attrs'
 export { querySlot } from './query-slot'
+export {
+	type RasterImageType,
+	type RasterizeElementOptions,
+	rasterizeElement,
+} from './rasterize-element'
 export { type Severity, type ValidationAttrs, validationAttrs } from './validation-attrs'

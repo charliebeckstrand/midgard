@@ -137,7 +137,7 @@
 @source inline('{sm,md,lg,xl,2xl}:[--ui-toast-card:100%]');
 /* Sheet `layout`: the side and the width of a `fit` or `full` panel. */
 @source inline('{sm,md,lg,xl,2xl}:{top,right,bottom,left}-{0,4}');
-@source inline('{sm,md,lg,xl,2xl}:{rounded-none,rounded-xl,pb-0,w-max,max-w-none}');
+@source inline('{sm,md,lg,xl,2xl}:{rounded-none,rounded-2xl,pb-0,w-max,max-w-none}');
 @source inline('{sm,md,lg,xl,2xl}:pb-[env(safe-area-inset-bottom)]');
 @source inline('{sm,md,lg,xl,2xl}:max-w-[calc(100%-2rem)]');
 /* QueryBuilder `orientation`: the parts of a rule (`min-w-auto` is a line above). */

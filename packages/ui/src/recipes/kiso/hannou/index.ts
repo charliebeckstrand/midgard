@@ -1,7 +1,7 @@
 /**
  * Hannou (反応): response. Interaction feedback: hover, focus, the roved row,
- * disabled, busy, cursor, and drag. One file per concern; this barrel assembles the
- * named bundle that every kata reads. The row chrome that composes these
+ * disabled, busy, cursor, drag, and the turn of a disclosure chevron. One file
+ * per concern; this barrel assembles the named bundle that every kata reads. The row chrome that composes these
  * tokens is a group (`kumi/item`).
  */
 

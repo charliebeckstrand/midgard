@@ -35,7 +35,7 @@ export const k = defineKata(
 		defaults: { tone: 'default', pulse: false },
 	},
 	{
-		// One line: the `md` line, or the line of the explicit `size`.
+		// One line: the line of the text of the parent, or the line of the explicit `size`.
 		skeleton: { base: kokkaku.text.line, density: true as const },
 		/** The text ramp of a Text with a `size`. */
 		sized: dan.text.chip,
