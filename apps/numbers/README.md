@@ -200,8 +200,14 @@ CPU for the runs against the CPU. A run counts on the board of the reader's
 date. A board shows the top 10 players by their best score on it, then the
 reader when they are below them, and the count of players. A better run moves a
 player up. Equal scores share a rank. The boards open on today, and the arrows
-go to earlier days, but not past today. Mimir keeps the boards
-(`/api/games/numbers/daily`, `src/api/leaderboard-api.ts`).
+go to earlier days, but not past today. A switch of tab slides to the next
+board. Mimir keeps the boards (`/api/games/numbers/daily`,
+`src/api/leaderboard-api.ts`).
+
+The dialog keeps its height while a board loads. The menu reads the three
+boards of today when it opens, so the dialog opens with its rows. The dialog
+reads the three boards of each day that the arrows go to, so each tab has its
+rows. Until the rows of a new day arrive, the rows of the last day stay, dimmed.
 
 Each player shows by the name of their account, or as "Anonymous" when the
 account has no name, as an account from GitHub or Google does. Mimir keeps the

@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { User } from 'auth'
 import { UIProvider } from 'ui/providers/ui'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { readBoard } from '../api/leaderboard-api'
 import { NumbersMenu } from '../components/numbers-menu/numbers-menu'
 
 const { useStats } = vi.hoisted(() => ({
@@ -11,6 +12,8 @@ const { useStats } = vi.hoisted(() => ({
 }))
 
 vi.mock('../queries/stats-queries', () => ({ useStats }))
+
+vi.mock('../api/leaderboard-api', () => ({ readBoard: vi.fn() }))
 
 /** A user, verified or not. */
 const makeUser = (verified: boolean) => ({ id: 'user-1', is_verified: verified }) as User
@@ -27,6 +30,16 @@ function renderMenu(user?: User) {
 }
 
 beforeEach(() => {
+	// jsdom has no `ResizeObserver`, and the open menu watches its parts with one.
+	vi.stubGlobal(
+		'ResizeObserver',
+		class {
+			observe() {}
+			unobserve() {}
+			disconnect() {}
+		},
+	)
+
 	useStats.mockReturnValue({ data: undefined })
 
 	vi.useFakeTimers({ toFake: ['Date'] })
@@ -39,6 +52,8 @@ afterEach(() => {
 
 	vi.useRealTimers()
 
+	vi.unstubAllGlobals()
+
 	vi.clearAllMocks()
 })
 
@@ -47,6 +62,22 @@ describe('NumbersMenu', () => {
 		renderMenu(makeUser(true))
 
 		expect(useStats).toHaveBeenLastCalledWith('20261116', true)
+	})
+
+	it('reads the three boards of today when the menu opens, so the leaderboard opens with its rows', async () => {
+		vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
+
+		renderMenu()
+
+		expect(readBoard).not.toHaveBeenCalled()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+		await waitFor(() => expect(readBoard).toHaveBeenCalledTimes(3))
+
+		for (const mode of ['daily', 'solo', 'vsCpu'] as const) {
+			expect(readBoard).toHaveBeenCalledWith('20261116', mode)
+		}
 	})
 
 	it('reads no stats for a reader with no verified email, or with no session', () => {
