@@ -162,9 +162,9 @@ verified email. The first run of a daily puzzle counts toward the streak. A
 reader with no session gets a link to sign in, and the dialog sends no request.
 
 After the first run of the daily puzzle of today counts, the Daily puzzle item
-of the menu shows a check and the score of that run (`dailyScore` of the
-stats). A new run of the puzzle shows a toast: the puzzle already counts, and
-a replay does not change the streak (`useDailyNotice`). The toast waits for
+of the menu shows a green check (`dailyScore` of the stats). A new run of the
+puzzle shows a toast: the reader played the puzzle, its score is kept, and a
+replay does not change the streak (`useDailyNotice`). The toast waits for
 the stats, and a run that ends before they arrive gets no toast, because its
 own result can be in them. A reader with no session, or with no verified
 email, has no stats, so the item stays a plain link and no toast shows.

@@ -78,8 +78,8 @@ describe('useDailyNotice', () => {
 		expect(toast).toHaveBeenCalledTimes(1)
 
 		expect(toast).toHaveBeenCalledWith({
-			title: "Today's puzzle already counts",
-			description: 'Your first run scored 14 / 20. A replay does not change your streak.',
+			title: "You already played today's puzzle",
+			description: "Your score of 14 / 20 is saved. This replay won't change your streak.",
 		})
 
 		rerender({ game: placeNumber(playing(TODAY), 0), run: 1, user })

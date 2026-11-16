@@ -56,8 +56,8 @@ export function useDailyNotice(game: Game, run: number, mode: Mode, user: User |
 		if (score === null) return
 
 		toast({
-			title: "Today's puzzle already counts",
-			description: `Your first run scored ${score} / ${SLOTS}. A replay does not change your streak.`,
+			title: "You already played today's puzzle",
+			description: `Your score of ${score} / ${SLOTS} is saved. This replay won't change your streak.`,
 		})
 	}, [isDaily, run, ended, data, mode, toast])
 }

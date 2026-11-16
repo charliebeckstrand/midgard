@@ -3,9 +3,9 @@
 import type { User } from 'auth'
 import {
 	Bot,
-	CalendarCheck,
 	CalendarDays,
 	ChartColumn,
+	CircleCheck,
 	House,
 	LogIn,
 	Menu as MenuIcon,
@@ -15,17 +15,8 @@ import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
 import { Button } from 'ui/button'
 import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
-import {
-	Menu,
-	MenuContent,
-	MenuDescription,
-	MenuItem,
-	MenuLabel,
-	MenuSeparator,
-	MenuTrigger,
-} from 'ui/menu'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { useStats } from '../../queries/stats-queries'
-import { SLOTS } from '../../utilities/game'
 import { dailySeed, VS_SEGMENT } from '../../utilities/seed'
 import { StatsDialog } from '../stats-dialog'
 
@@ -35,8 +26,8 @@ import { StatsDialog } from '../stats-dialog'
  * the hydration, so `useToday` gives the day in the first render, and moves the
  * link to the next day at midnight.
  *
- * After the first run of the puzzle counts, the item shows a check and the
- * score of that run. Only a signed-in reader with a verified email has stats,
+ * After the first run of the puzzle counts, the item shows a green check at
+ * its end. Only a signed-in reader with a verified email has stats,
  * so the item of any other reader stays a plain link.
  */
 function DailyPuzzleItem({ user }: { user?: User }) {
@@ -48,13 +39,19 @@ function DailyPuzzleItem({ user }: { user?: User }) {
 
 	if (!today) return null
 
-	const score = data?.solo.dailyScore ?? null
+	const played = data !== undefined && data.solo.dailyScore !== null
 
 	return (
 		<MenuItem href={`/${seed}`}>
-			<Icon icon={score === null ? <CalendarDays /> : <CalendarCheck />} />
+			<Icon icon={<CalendarDays />} />
 			<MenuLabel>Daily puzzle</MenuLabel>
-			{score !== null && <MenuDescription>{`${score} / ${SLOTS}`}</MenuDescription>}
+			{played && (
+				<Icon
+					icon={<CircleCheck />}
+					label="Played"
+					className="ms-auto text-green-600 dark:text-green-500"
+				/>
+			)}
 		</MenuItem>
 	)
 }
@@ -68,7 +65,7 @@ export type NumbersMenuProps = {
 /**
  * The menu at the right of the header. Home starts the run of a new seed, and
  * Daily puzzle opens the run of the seed of today, which each reader gets on the
- * same date, and shows the score of its first run once it counts. Vs CPU starts the run of a new seed against the CPU, and Stats
+ * same date, and shows a check once its first run counts. Vs CPU starts the run of a new seed against the CPU, and Stats
  * opens the stats of the reader. Under them, a reader with no session gets
  * Sign in, and a signed-in reader gets Verify email (until the email is
  * verified) and Sign out.
