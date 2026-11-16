@@ -197,7 +197,8 @@ email, has no stats, so the item stays a plain link and no toast shows.
 Leaderboard in the header menu opens a dialog with the boards of each day, for
 each reader. A tab for each board holds the board of one date: Daily for the
 solo runs of the daily puzzle, Solo for the solo runs of other seeds, and Vs
-CPU for the runs against the CPU. A run counts on the board of the reader's
+CPU for the runs that beat the CPU. A vs CPU run that ties or loses, or that a
+Reset ends, counts in the stats but on no board (`beatCpu` of the result). A run counts on the board of the reader's
 date. A board shows the top 10 players by their best score on it, then the
 reader when they are below them, and the count of players. A better run moves a
 player up. Equal scores share a rank. The boards open on today, and the arrows

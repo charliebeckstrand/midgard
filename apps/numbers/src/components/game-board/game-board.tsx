@@ -77,7 +77,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const mode = vsCpu ? 'vsCpu' : 'solo'
 
-	const recordRun = useRunRecorder(user, mode)
+	const recordRun = useRunRecorder(user, mode, difficulty)
 
 	const { game, status, run, draw, place, reset } = useGame(seed, autoDraw, recordRun)
 

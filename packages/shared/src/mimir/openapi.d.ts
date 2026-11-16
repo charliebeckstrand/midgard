@@ -1091,7 +1091,7 @@ export interface paths {
 		put?: never
 		/**
 		 * Count a finished run
-		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak. Each run also counts on the leaderboard of the reader's date: a solo run of the daily puzzle on `daily`, another solo run on `solo`, and a run against the CPU on `vsCpu`. A board keeps the best score of each player. Each run keeps the name of the account, which the leaderboards show.
+		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak. Each run also counts on the leaderboard of the reader's date: a solo run of the daily puzzle on `daily`, another solo run on `solo`, and a run that beat the CPU (`beatCpu`) on `vsCpu`. A vs CPU run that tied or lost counts on no board. A board keeps the best score of each player. Each run keeps the name of the account, which the leaderboards show.
 		 */
 		post: {
 			parameters: {
@@ -1456,6 +1456,8 @@ export interface components {
 			 * @example 20261116
 			 */
 			today: string
+			/** @description Whether a vs CPU run ended with more slots filled than the CPU. Only such a run counts on the vs CPU leaderboard. A solo run ignores it. */
+			beatCpu?: boolean
 		}
 		/** @description The best run of each player on one board of one day, by score */
 		NumbersBoard: {

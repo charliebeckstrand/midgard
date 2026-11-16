@@ -16,7 +16,7 @@ export type BoardEntry = Board['entries'][number]
 
 /**
  * A board of a day: `daily` for the solo runs of the daily puzzle, `solo` for
- * the solo runs of other seeds, and `vsCpu` for the runs against the CPU.
+ * the solo runs of other seeds, and `vsCpu` for the runs that beat the CPU.
  */
 export type BoardMode = paths['/api/games/numbers/daily']['get']['parameters']['query']['mode']
 
@@ -27,9 +27,12 @@ export function readBoard(date: string, mode: BoardMode): Promise<Board> {
 	return unwrap(mimir.GET('/api/games/numbers/daily', { params: { query: { date, mode } } }))
 }
 
-/** The board that a run counts on, by the rule that Mimir also uses. */
-export function toBoardMode(result: RunResult): BoardMode {
-	if (result.mode === 'vsCpu') return 'vsCpu'
+/**
+ * The board that a run counts on, by the rule that Mimir also uses, or `null`
+ * for a vs CPU run that did not beat the CPU.
+ */
+export function toBoardMode(result: RunResult): BoardMode | null {
+	if (result.mode === 'vsCpu') return result.beatCpu ? 'vsCpu' : null
 
 	return result.seed === result.today ? 'daily' : 'solo'
 }
