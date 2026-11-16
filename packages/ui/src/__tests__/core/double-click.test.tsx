@@ -2,6 +2,7 @@ import { act } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { describe, expect, it, vi } from 'vitest'
 import { moveDoubleClickToRoot } from '../../core/touch/double-click'
+import { present } from '../helpers'
 
 // Each test makes its own document. The suite shares one document between the
 // files, and the helper replaces methods of the document that it gets.
@@ -127,7 +128,7 @@ describe('moveDoubleClickToRoot', () => {
 
 		expect(doubleClicks.every((target) => target === doc.documentElement)).toBe(true)
 
-		const button = doc.querySelector('button') as HTMLButtonElement
+		const button = present(doc.querySelector('button'), 'the button')
 
 		send(button, 'click')
 
