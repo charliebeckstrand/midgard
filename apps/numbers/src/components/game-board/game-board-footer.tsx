@@ -1,4 +1,6 @@
+import { CircleCheck } from 'lucide-react'
 import { cn } from 'ui/core'
+import { Icon } from 'ui/icon'
 import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
@@ -16,19 +18,12 @@ import { GameBoardShare } from './game-board-share'
 /** The tint of a score cell: green for the winner, and amber for a tie. */
 type Tint = 'green' | 'amber' | undefined
 
-/**
- * The label and the tint of the cell of the player and of the CPU, while the
- * game goes on and for each result. The label of the CPU gets its name (see
- * {@link cpuName}).
- */
-const RESULTS: Record<
-	Outcome | 'playing',
-	{ player: [string, Tint]; cpu: [(name: string) => string, Tint] }
-> = {
-	playing: { player: ['You', undefined], cpu: [(name) => name, undefined] },
-	win: { player: ['You win', 'green'], cpu: [(name) => name, undefined] },
-	loss: { player: ['You', undefined], cpu: [(name) => `${name} wins`, 'green'] },
-	tie: { player: ['Tie', 'amber'], cpu: [() => 'Tie', 'amber'] },
+/** The tint of the cell of the player and of the CPU, while the game goes on and for each result. */
+const TINTS: Record<Outcome | 'playing', { player: Tint; cpu: Tint }> = {
+	playing: { player: undefined, cpu: undefined },
+	win: { player: 'green', cpu: undefined },
+	loss: { player: undefined, cpu: 'green' },
+	tie: { player: 'amber', cpu: 'amber' },
 }
 
 /** The name of the CPU in its label: "CPU" at the default level, and "CPU (Easy)" or "CPU (Hard)" else. */
@@ -43,13 +38,18 @@ type ScoreCellProps = {
 	label: string
 	game: Game
 	tint?: Tint
+	/** Shows a check before the label: muted grey, green for the winner, and amber for a tie. */
+	check?: boolean
 }
 
-/** One score: a label, and the count of the filled slots of `game`, of 20. */
-function ScoreCell({ label, game, tint }: ScoreCellProps) {
+/**
+ * One score: a label, and the count of the filled slots of `game`, of 20. The
+ * cell of the winner is green.
+ */
+function ScoreCell({ label, game, tint, check = false }: ScoreCellProps) {
 	return (
 		<Flex
-			align="baseline"
+			align="center"
 			justify="between"
 			gap="sm"
 			className={cn(
@@ -59,9 +59,24 @@ function ScoreCell({ label, game, tint }: ScoreCellProps) {
 				!tint && 'bg-zinc-950/5 dark:bg-white/10',
 			)}
 		>
-			<Text as="span" tone="muted" className="truncate font-medium text-sm">
-				{label}
-			</Text>
+			<Flex align="center" gap="sm" className="min-w-0">
+				{check && (
+					<Icon
+						icon={<CircleCheck />}
+						label={tint === 'green' ? 'Winner' : undefined}
+						className={cn(
+							'shrink-0',
+							tint === 'green' && 'text-green-600 dark:text-green-500',
+							tint === 'amber' && 'text-amber-600 dark:text-amber-400',
+							!tint && 'text-zinc-500 dark:text-zinc-400',
+						)}
+					/>
+				)}
+
+				<Text as="span" tone="muted" className="truncate font-medium text-sm">
+					{label}
+				</Text>
+			</Flex>
 
 			<Text as="span" className="font-semibold text-lg tabular-nums">
 				{countPlaced(game.slots)}
@@ -92,8 +107,10 @@ export type GameBoardFooterProps = {
  * of the filled slots, of 20, and it has the look of the bar of the number at
  * the top. Against the CPU, the bar has the score of the player above the
  * score of the CPU. Away from the default level, the label of the CPU names
- * its level, such as "CPU (Hard)". After the end, the score of the winner is green and reads
- * "You win" or, for example, "CPU (Hard) wins", and a tie makes both amber.
+ * its level, such as "CPU (Hard)". Each of the two labels has a check before
+ * it, which is muted grey while the game goes on. After the end, the cell and
+ * the check of the winner are green, the check of the other stays grey, and a
+ * tie makes both amber and names both "Tie".
  * With Show score off, the bar holds only the share menu.
  *
  * @remarks
@@ -110,7 +127,10 @@ export function GameBoardFooter({
 	difficulty,
 	outcome,
 }: GameBoardFooterProps) {
-	const { player, cpu: opponent } = RESULTS[outcome ?? 'playing']
+	const tints = TINTS[outcome ?? 'playing']
+
+	// A tie names both cells "Tie".
+	const tie = outcome === 'tie'
 
 	return (
 		<Flex
@@ -121,8 +141,13 @@ export function GameBoardFooter({
 			<div className="min-w-0 flex-1">
 				{cpu ? (
 					<Stack gap="sm">
-						<ScoreCell label={player[0]} tint={player[1]} game={game} />
-						<ScoreCell label={opponent[0](cpuName(difficulty))} tint={opponent[1]} game={cpu} />
+						<ScoreCell label={tie ? 'Tie' : 'You'} tint={tints.player} game={game} check />
+						<ScoreCell
+							label={tie ? 'Tie' : cpuName(difficulty)}
+							tint={tints.cpu}
+							game={cpu}
+							check
+						/>
 					</Stack>
 				) : (
 					showScore && <ScoreCell label="Score" game={game} />

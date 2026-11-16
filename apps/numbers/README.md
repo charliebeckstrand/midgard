@@ -140,9 +140,10 @@ not change the game of the player, so the level does not change the stats.
 The bar at the bottom has the score of the player above the score of the CPU.
 At Easy and Hard, the label of the CPU names its level, such as "CPU (Hard)",
 so a screenshot shows the level. At Normal, the label is "CPU". The bar shows also with Show score off, because it names the
-columns and gives the result. After the end, the score of the winner is green
-and reads "You win" or, for example, "CPU (Hard) wins", and a tie makes both
-scores amber. A screen reader hears the result at the end.
+columns and gives the result. Each label has a check before it, which is muted
+grey while the game goes on. After the end, the score and the check of the
+winner are green, the check of the other stays grey, and a tie makes both
+scores amber and names both "Tie". A screen reader hears the result at the end.
 
 ## Sign-in
 

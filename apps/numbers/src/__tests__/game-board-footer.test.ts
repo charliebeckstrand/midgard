@@ -32,7 +32,7 @@ describe('GameBoardFooter', () => {
 		expect(screen.getByText('CPU')).toBeTruthy()
 	})
 
-	it('names the level of the CPU when the CPU wins', () => {
+	it('marks the winner with a check, and keeps its label', () => {
 		// The player has no number in a slot, so the CPU wins.
 		const cpu = playCpu('k3x9q2', SLOTS, 'easy')
 
@@ -47,6 +47,7 @@ describe('GameBoardFooter', () => {
 			{ wrapper },
 		)
 
-		expect(screen.getByText('CPU (Easy) wins')).toBeTruthy()
+		expect(screen.getByText('CPU (Easy)')).toBeTruthy()
+		expect(screen.getAllByRole('img', { name: 'Winner' })).toHaveLength(1)
 	})
 })
