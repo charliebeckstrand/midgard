@@ -5,7 +5,7 @@ import { Button } from 'ui/button'
 import { Odometer } from 'ui/odometer'
 import { Text, type TextProps } from 'ui/text'
 import { Toolbar, ToolbarGroup } from 'ui/toolbar'
-import type { Game, Status } from '../../utilities/game'
+import { type Game, isEnded, type Status } from '../../utilities/game'
 import { GameBoardMenu } from './game-board-menu'
 
 /** The tone of the readout at each step: full while a number waits, red on a bust, and muted else. */
@@ -17,13 +17,14 @@ const TONES: Record<Status, TextProps['tone']> = {
 }
 
 /**
- * The readout of the drawn number. It shows 0 at its mount, and then rolls to
- * `value`. The toolbar mounts it again for each run. Thus the first number of
- * each run rolls from 0, also when it is near the last number of the run
- * before.
+ * The readout of the drawn number. The toolbar mounts it again for each run.
+ * With `fromZero`, it shows 0 at its mount, and then rolls to `value`. Thus the
+ * first number of a new run rolls from 0, also when it is near the last number
+ * of the run before. The run of the page has no `fromZero`, so the server
+ * render and the first paint show its number, and nothing rolls at a load.
  */
-function RunReadout({ value }: { value: number }) {
-	const [mounted, setMounted] = useState(false)
+function RunReadout({ value, fromZero }: { value: number; fromZero: boolean }) {
+	const [mounted, setMounted] = useState(!fromZero)
 
 	useEffect(() => setMounted(true), [])
 
@@ -34,7 +35,7 @@ function RunReadout({ value }: { value: number }) {
 export type GameBoardToolbarProps = {
 	game: Game
 	status: Status
-	/** The run of the board, from `useGame`. A new run starts the readout again from 0. */
+	/** The run of the board, from `useGame`. A run after the run of the page starts the readout again from 0. */
 	run: number
 	/** Draws the next number, or starts a new game after a bust or a win. */
 	onAction: (event: MouseEvent<HTMLButtonElement>) => void
@@ -49,7 +50,7 @@ export type GameBoardToolbarProps = {
 /**
  * The bar of the drawn number and the action, at the top of the game, over the
  * box of the slots. The readout rolls to each new number, and the first number
- * of each run rolls from 0. Before the first draw it shows 0, and after a
+ * of each new run rolls from 0. At a load, it shows the number with no roll. Before the first draw it shows 0, and after a
  * placement it keeps the number. The action is Draw. It is off while a number
  * waits for a slot, and it is Reset after a bust (in red) and after a win. With
  * Auto-draw on, the bar has no Draw, and the action shows only as Reset. The
@@ -65,13 +66,13 @@ export function GameBoardToolbar({
 	onReset,
 	showAction,
 }: GameBoardToolbarProps) {
-	const ended = status === 'bust' || status === 'won'
+	const ended = isEnded(status)
 
 	return (
 		<div className="mx-auto w-full max-w-md shrink-0 p-4">
 			<Toolbar variant="solid" aria-label="Number" className="items-center justify-between ps-4">
 				<Text as="span" tone={TONES[status]} className="font-semibold text-3xl tabular-nums">
-					<RunReadout key={run} value={game.last ?? 0} />
+					<RunReadout key={run} value={game.last ?? 0} fromZero={run > 0} />
 				</Text>
 
 				<ToolbarGroup>

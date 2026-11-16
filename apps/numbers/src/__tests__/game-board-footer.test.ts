@@ -54,6 +54,22 @@ describe('GameBoardFooter', () => {
 		expect(document.querySelectorAll('.lucide-circle-check')).toHaveLength(2)
 	})
 
+	it('marks a solo win with a check, and no other solo score', () => {
+		const game = createGame('k3x9q2')
+
+		const won = { ...game, slots: [...game.deck].sort((a, b) => a - b) }
+
+		render(h(GameBoardFooter, { game: won, showScore: true, difficulty: 'normal' }), { wrapper })
+
+		expect(screen.getByRole('img', { name: 'Winner' })).toBeTruthy()
+
+		cleanup()
+
+		render(h(GameBoardFooter, { game, showScore: true, difficulty: 'normal' }), { wrapper })
+
+		expect(document.querySelector('.lucide-circle-check')).toBeNull()
+	})
+
 	it('keeps the labels on a tie, with no check', () => {
 		const game = createGame('k3x9q2')
 

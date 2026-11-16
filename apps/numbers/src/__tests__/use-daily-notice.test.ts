@@ -91,16 +91,16 @@ describe('useDailyNotice', () => {
 		expect(toast).toHaveBeenCalledTimes(2)
 	})
 
-	it('says nothing for run 0, which the mount replaces before the reader plays', () => {
+	it('tells the reader once for run 0, the run that the page opens with', () => {
 		useStats.mockReturnValue({ data: statsWith(14) })
 
 		const user = makeUser(true)
 
 		const { rerender } = render({ game: playing(TODAY), run: 0, user })
 
-		expect(toast).not.toHaveBeenCalled()
+		expect(toast).toHaveBeenCalledTimes(1)
 
-		rerender({ game: playing(TODAY), run: 1, user })
+		rerender({ game: placeNumber(playing(TODAY), 0), run: 0, user })
 
 		expect(toast).toHaveBeenCalledTimes(1)
 	})

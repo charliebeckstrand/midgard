@@ -72,8 +72,9 @@ Sign out for a signed-in reader. A segment in the settings switches two tabs: "U
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). A bar under the header holds the drawn number, the action, and a menu
 with Reset. Reset in the menu starts a new seed at each step. The number rolls
-to each new number through the `Odometer` of `ui`, and the first number of each
-run rolls from 0.
+to each new number through the `Odometer` of `ui`. The first number of the run
+that the page opens with shows at once, and the first number of each later run
+rolls from 0.
 
 The 20 slots are buttons. Only a slot that can take the drawn number is on,
 with an amber outline. A filled slot shows its number in a soft green, and it
