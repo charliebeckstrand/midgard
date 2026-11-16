@@ -208,9 +208,9 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 			/>
 
 			{/* `relative` keeps each positioned element in the box, as in `StackedLayoutBody`. */}
-			<div className="relative min-h-0 flex-1 scroll-py-1 overflow-y-auto print:overflow-visible">
-				{/* The padding keeps the focus ring of the first and the last slot in the box. */}
-				<Columns columns={cpu ? 2 : 1} gap="sm" className="mx-auto w-full max-w-md px-4 py-1">
+			<div className="relative min-h-0 flex-1 scroll-py-4 overflow-y-auto print:overflow-visible">
+				{/* The slots have 1rem of space under the border of the number bar and above the border of the score bar. */}
+				<Columns columns={cpu ? 2 : 1} gap="sm" className="mx-auto w-full max-w-md p-4">
 					<GameBoardSlots
 						ref={slotsRef}
 						game={game}
