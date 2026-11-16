@@ -80,8 +80,12 @@ describe('events line columns (real browser)', () => {
 
 		act(() => trigger.click())
 
-		// The turn is a transition. Read the rotate at its end.
-		await Promise.all(slot.getAnimations().map((animation) => animation.finished))
+		// The turn is a transition. Finish it, and read the rotate at its end.
+		// A wait for the end of the transition is not sufficient. Under load, one
+		// frame can last longer than the transition. Chromium then resolves
+		// `finished` before it calculates the style again, and the read gets the
+		// rotate of the first frame.
+		for (const animation of slot.getAnimations()) animation.finish()
 
 		return { scrolls: columns.map(scrollLeft), closed, open: getComputedStyle(slot).rotate }
 	}
