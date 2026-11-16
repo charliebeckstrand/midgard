@@ -21,7 +21,7 @@ const TABS = [
 
 /**
  * The bar at the top of the page: the name of the app, and on its right the
- * settings and the menu (Home and Daily puzzle). A segment in the settings switches the "UI" tab of the appearance
+ * settings and the menu (Home, Daily puzzle, and Vs CPU). A segment in the settings switches the "UI" tab of the appearance
  * pickers and the "Game" tab, with the Auto-draw and the Show score switches.
  */
 export function NumbersHeader() {

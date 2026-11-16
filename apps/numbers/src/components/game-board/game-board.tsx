@@ -16,7 +16,7 @@ import {
 	SLOTS,
 	type Status,
 } from '../../utilities/game'
-import { createSeed, isSeed } from '../../utilities/seed'
+import { createSeed, isSeed, runPath } from '../../utilities/seed'
 import { GameBoardScore, getOutcome, type Outcome } from './game-board-score'
 import { GameBoardSlots } from './game-board-slots'
 import { GameBoardToolbar } from './game-board-toolbar'
@@ -55,21 +55,22 @@ function describeStatus(
 export type GameBoardProps = {
 	/** The seed of the address, which the run of the page starts from. */
 	seed: string
+	/** Plays against the CPU: the page of a `/cpu` address. */
+	vsCpu?: boolean
 }
 
 /**
  * The game: the bar with the drawn number and its action at the top, the
- * column of slots, and the bar of the score at the bottom. With Vs CPU on, a
+ * column of slots, and the bar of the score at the bottom. Against the CPU, a
  * second column beside the slots holds the game of the CPU on the same deck,
  * and the bar shows both scores, also with Show score off, because it names
- * the columns and gives the result. The game fills the
- * body, and only the slots scroll, between the two bars. The bars do not cover
+ * the columns and gives the result. The game fills the body, and only the slots scroll, between the two bars. The bars do not cover
  * the slots, so a slot that gets the focus scrolls into view clear of them.
  * The box of the slots has the full width of the body, so a wheel at the side
  * of the column scrolls it too.
  *
- * A Reset starts the run of a new seed in place, and adds the address of the
- * seed to the history, so the reader can send the run. A link, Back, and
+ * A Reset starts the run of a new seed in place, in the same mode, and adds the
+ * address of the seed to the history, so the reader can send the run. A link, Back, and
  * Forward go to the run of the seed of the address, from its start.
  *
  * @remarks
@@ -83,12 +84,10 @@ export type GameBoardProps = {
  * the pressed control. A key press (`detail` 0) scrolls the next control into
  * view.
  */
-export function GameBoard({ seed }: GameBoardProps) {
+export function GameBoard({ seed, vsCpu = false }: GameBoardProps) {
 	const [autoDraw] = useGameSetting('autoDraw')
 
 	const [showScore] = useGameSetting('showScore')
-
-	const [vsCpu] = useGameSetting('vsCpu')
 
 	const { game, status, draw, place, reset } = useGame(seed, autoDraw)
 
@@ -127,7 +126,7 @@ export function GameBoard({ seed }: GameBoardProps) {
 	const restart = () => {
 		const next = createSeed()
 
-		window.history.pushState(null, '', `/${next}`)
+		window.history.pushState(null, '', runPath(next, vsCpu))
 
 		reset(next)
 	}
@@ -141,7 +140,8 @@ export function GameBoard({ seed }: GameBoardProps) {
 		if (isSeed(next) && next !== game.seed) reset(next)
 	})
 
-	useEffect(() => follow(pathname.slice(1)), [pathname])
+	// The seed is the last segment, also of a `/cpu` address.
+	useEffect(() => follow(pathname.split('/').at(-1) ?? ''), [pathname])
 
 	return (
 		<div className="flex h-full flex-col print:h-auto">

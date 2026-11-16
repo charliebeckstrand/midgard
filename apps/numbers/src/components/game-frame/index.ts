@@ -1,1 +1,1 @@
-export { GameFrame, type GameFrameProps } from './game-frame'
+export { RunPage, type RunPageProps } from './run-page'

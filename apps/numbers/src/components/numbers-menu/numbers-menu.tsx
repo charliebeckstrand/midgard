@@ -1,10 +1,10 @@
 'use client'
 
-import { CalendarDays, House, Menu as MenuIcon } from 'lucide-react'
+import { Bot, CalendarDays, House, Menu as MenuIcon } from 'lucide-react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
-import { dailySeed } from '../../utilities/seed'
+import { CPU_SEGMENT, dailySeed } from '../../utilities/seed'
 
 /**
  * The link to the daily puzzle of today. Today is the date of the reader, which
@@ -23,7 +23,7 @@ function DailyPuzzleItem() {
 /**
  * The menu at the right of the header. Home starts the run of a new seed, and
  * Daily puzzle opens the run of the seed of today, which each reader gets on the
- * same date.
+ * same date. Vs CPU starts the run of a new seed against the CPU.
  */
 export function NumbersMenu() {
 	return (
@@ -41,6 +41,11 @@ export function NumbersMenu() {
 				</MenuItem>
 
 				<DailyPuzzleItem />
+
+				<MenuItem href={`/${CPU_SEGMENT}`}>
+					<Icon icon={<Bot />} />
+					<MenuLabel>Vs CPU</MenuLabel>
+				</MenuItem>
 			</MenuContent>
 		</Menu>
 	)

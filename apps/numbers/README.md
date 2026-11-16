@@ -40,9 +40,11 @@ partial Fisher-Yates shuffle takes the deck.
 | `/` | `proxy.ts` sends the reader to the address of a new seed (`307`) |
 | `/k3x9q2` | The run of the seed |
 | `/20261115` | The daily puzzle of a date: the seed is the date as `YYYYMMDD` |
+| `/cpu` | `proxy.ts` sends the reader to the address of a new seed against the CPU (`307`) |
+| `/cpu/k3x9q2` | The run of the seed against the CPU (see [Vs CPU](#vs-cpu)) |
 
-A Reset starts the run of a new seed in place, and adds its address to the
-history. A link, Back, and Forward start the run of the seed of the address
+A Reset starts the run of a new seed in place, in the same mode, and adds its
+address to the history. A link, Back, and Forward start the run of the seed of the address
 again, from its start.
 
 The daily puzzle of a day is the run of the seed of its date (`dailySeed`), in
@@ -58,7 +60,7 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Home (a
-new seed) and Daily puzzle. A segment in the settings switches two tabs: "UI" has the appearance pickers of `ui`, and
+new seed), Daily puzzle, and Vs CPU (a new seed against the CPU). A segment in the settings switches two tabs: "UI" has the appearance pickers of `ui`, and
 "Game" has the settings of the game (see below). A bar under the header
 holds the drawn number, the action, and a menu with Reset and Share seed.
 Reset in the menu starts a new seed at each step. The number rolls to each new
@@ -88,20 +90,21 @@ The Game tab of the settings has two switches:
 | --- | --- | --- |
 | Auto-draw | Off | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button, and the action shows only as Reset after a bust or a win. |
 | Show score | On | The bar at the bottom shows the score. |
-| Vs CPU | Off | The CPU plays the same deck beside the player (see below). |
 
-Each setting is in a cookie (`numbers-auto-draw`, `numbers-show-score`, and
-`numbers-vs-cpu`, `src/utilities/settings.ts`). The page reads the cookies of
-the request, so the server renders the Draw button, the score bar, and the
-column of the CPU as the settings of the reader give them, and the first paint
-is the final layout (CONVENTIONS §3.13). With Auto-draw on, the first number rolls in after the hydration. A
+Each setting is in a cookie (`numbers-auto-draw` and `numbers-show-score`,
+`src/utilities/settings.ts`). The page reads the cookies of the request, so
+the server renders the Draw button and the score bar as the settings of the
+reader give them, and the first paint is the final layout (CONVENTIONS
+§3.13). With Auto-draw on, the first number rolls in after the hydration. A
 write also puts a copy in `localStorage`, and the `storage` event of the copy
 gives the change to the other tabs.
 
 ## Vs CPU
 
-With Vs CPU on, a second column beside the slots holds the game of the CPU.
-The CPU plays the deck of the same seed, so it gets the same numbers in the
+Vs CPU in the menu of the header opens `/cpu`, which starts the run of a new
+seed against the CPU at `/cpu/<seed>`. A second column beside the slots holds
+the game of the CPU. The server renders the two columns, so the first paint is
+the final layout. The CPU plays the deck of the same seed, so it gets the same numbers in the
 same order. It places each number after the player places it, so the player
 always chooses first. When the game of the player ends, the CPU plays the rest
 of its deck. The higher count of filled slots wins, and the same count is a
@@ -112,8 +115,7 @@ proportion to the place of the number in the open range of the run
 (`chooseSlot` in `src/utilities/game.ts`). With no number placed, 500 goes near
 the middle of the column, and 990 goes near the end. Over 20,000 seeds, the CPU
 fills 9.8 slots on average. The game of the CPU comes from the seed and the
-count of the draws only (`playCpu`), so the page keeps no state for it, and
-the switch can come on in the middle of a run.
+count of the draws only (`playCpu`), so the page keeps no state for it.
 
 The bar at the bottom has a score under each column. It shows also with Show
 score off, because it names the columns and gives the result. After the end,

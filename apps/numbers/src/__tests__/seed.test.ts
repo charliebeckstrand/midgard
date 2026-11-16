@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createRandom, createSeed, dailySeed, isSeed } from '../utilities/seed'
+import { createRandom, createSeed, dailySeed, isSeed, runPath } from '../utilities/seed'
 
 describe('createSeed', () => {
 	it('makes a seed of six letters and digits', () => {
@@ -49,5 +49,13 @@ describe('dailySeed', () => {
 
 	it('gives a seed', () => {
 		expect(isSeed(dailySeed(new Date()))).toBe(true)
+	})
+})
+
+describe('runPath', () => {
+	it('gives the address of a run, under /cpu against the CPU', () => {
+		expect(runPath('k3x9q2', false)).toBe('/k3x9q2')
+
+		expect(runPath('k3x9q2', true)).toBe('/cpu/k3x9q2')
 	})
 })

@@ -31,6 +31,14 @@ export function dailySeed(date: Date): string {
 	return `${date.getFullYear()}${month}${day}`
 }
 
+/** The first segment of the address of a run against the CPU, such as `/cpu/k3x9q2`. */
+export const CPU_SEGMENT = 'cpu'
+
+/** The address of the run of `seed`: `/k3x9q2`, or `/cpu/k3x9q2` against the CPU. */
+export function runPath(seed: string, vsCpu: boolean): string {
+	return vsCpu ? `/${CPU_SEGMENT}/${seed}` : `/${seed}`
+}
+
 /** Makes a new random seed. */
 export function createSeed(): string {
 	const bytes = crypto.getRandomValues(new Uint8Array(SEED_LENGTH))

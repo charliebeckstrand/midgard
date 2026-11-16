@@ -19,13 +19,11 @@ describe('readSettings', () => {
 		const cookies: Record<string, string> = {
 			[SETTINGS.autoDraw.cookie]: 'on',
 			[SETTINGS.showScore.cookie]: 'off',
-			[SETTINGS.vsCpu.cookie]: 'on',
 		}
 
 		expect(readSettings((name) => cookies[name])).toEqual({
 			autoDraw: true,
 			showScore: false,
-			vsCpu: true,
 		})
 	})
 
@@ -33,7 +31,6 @@ describe('readSettings', () => {
 		expect(readSettings(() => undefined)).toEqual({
 			autoDraw: false,
 			showScore: true,
-			vsCpu: false,
 		})
 	})
 })

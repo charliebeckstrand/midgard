@@ -10,6 +10,8 @@ export type GameFrameProps = {
 	seed: string
 	/** The settings of the cookies of the request. */
 	settings: GameSettings
+	/** Plays against the CPU: the page of a `/cpu` address. */
+	vsCpu?: boolean
 }
 
 /**
@@ -18,14 +20,14 @@ export type GameFrameProps = {
  * height of the viewport, and the body scrolls under the header, so the
  * document is never taller than the screen (see `StackedLayout`).
  */
-export function GameFrame({ seed, settings }: GameFrameProps) {
+export function GameFrame({ seed, settings, vsCpu }: GameFrameProps) {
 	return (
 		<GameSettingsProvider settings={settings}>
 			<StackedLayout className="h-dvh print:h-auto">
 				<NumbersHeader />
 
 				<StackedLayoutBody>
-					<GameBoard seed={seed} />
+					<GameBoard seed={seed} vsCpu={vsCpu} />
 				</StackedLayoutBody>
 			</StackedLayout>
 		</GameSettingsProvider>
