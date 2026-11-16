@@ -1,24 +1,23 @@
 /**
- * The `touch-pitch-x`, `touch-pitch-y`, and `touch-pitch` utilities: the
- * pitch of a set of hosts of a hit area (`TouchTarget`) that touch. The pitch
- * is the distance from the center of one host to the center of the next.
- * `ui/tailwind.css` loads this plugin with `@plugin`.
+ * The `touch-pitch` utility: the pitch of a grid of hosts of a hit area
+ * (`TouchTarget`) whose cells touch. The pitch is the distance from the center
+ * of one cell to the center of the next. `ui/tailwind.css` loads this plugin
+ * with `@plugin`.
  *
- * A hit area can only grow into free space. When hosts touch, the touch gap
- * keeps each hit area to its host, so two hit areas do not overlap. But a
- * finger then hits the next host when the hosts are smaller than the floor. On
- * a coarse pointer, each utility gives each child of the container a minimum
- * size of 44 px on its axis: the coarse floor of `TouchTarget`. On each
- * pointer, it sets the touch gap of that axis to zero, so the hit areas tile
- * the set. A fine pointer keeps the size of each host.
+ * A hit area can only grow into free space. When the cells of a grid touch and
+ * are smaller than the floor, a finger hits the next cell. On a fine pointer,
+ * the utility sets each touch gap to zero, so each hit area keeps to its host.
+ * On a coarse pointer, each row is at least 44 px tall: the coarse floor of
+ * `TouchTarget`. Each host keeps its size in the middle of its cell, and each
+ * touch gap goes back to the floor. So a host under the floor has a hit area of
+ * 44 px, which fills a cell of 44 px. A host at the floor or over it keeps its
+ * own box as its hit area.
  *
- * Use a pitch utility for a set of hosts that touch, such as the days of a
- * calendar. Use a touch gap utility (`core/touch/gap.ts`) for a set of hosts
- * with a gap between them. A container with a fixed size must also give room
- * for the floor: a grid of 7 columns needs 7 × 44 px on a coarse pointer. A
- * grid with no fixed width gives each column the floor
- * (`minmax(2.75rem, 1fr)`), because the minimum size of a child does not widen
- * a flexible column.
+ * The container gives each column the floor: the width of a grid with a fixed
+ * width, such as 7 × 44 px for the days of a calendar, or
+ * `minmax(2.75rem, 1fr)` for a grid with no fixed width. A host in a column
+ * that is wider than 44 px fills its column, so no space between two hit
+ * areas is dead.
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
@@ -35,18 +34,16 @@ const COARSE = '@media (pointer: coarse)'
  */
 export const handler: PluginCreator = ({ addUtilities }) => {
 	addUtilities({
-		'.touch-pitch-x': {
-			'--touch-target-gap-x': '0px',
-			[COARSE]: { '& > *': { 'min-inline-size': FLOOR } },
-		},
-		'.touch-pitch-y': {
-			'--touch-target-gap-y': '0px',
-			[COARSE]: { '& > *': { 'min-block-size': FLOOR } },
-		},
 		'.touch-pitch': {
 			'--touch-target-gap-x': '0px',
 			'--touch-target-gap-y': '0px',
-			[COARSE]: { '& > *': { 'min-inline-size': FLOOR, 'min-block-size': FLOOR } },
+			[COARSE]: {
+				// `initial` makes each `var()` take its fallback: the floor.
+				'--touch-target-gap-x': 'initial',
+				'--touch-target-gap-y': 'initial',
+				'grid-auto-rows': `minmax(${FLOOR}, auto)`,
+				'place-items': 'center',
+			},
 		},
 	})
 }

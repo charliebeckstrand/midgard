@@ -1,14 +1,16 @@
 import { describe, expect, it, onTestFinished } from 'vitest'
-import { Calendar, CalendarSkeleton } from '../../../components/calendar'
+import { Calendar, CalendarRange, CalendarSkeleton } from '../../../components/calendar'
 import { densitySteps } from '../../../core/density'
 import { getSlot, present, renderUI, userEvent } from '../../helpers'
+import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { overlappingHitAreas } from './helpers/geometry-invariants'
 
 /**
- * The days of a calendar touch, so the hit areas cannot grow past them. On a
- * coarse pointer, the touch pitch (`core/touch/pitch.ts`) gives each day the
- * 44px floor, and the root gives room for seven of them. On iOS, a finger hit
- * the next day of a 39px grid.
+ * The days of a calendar touch, so the hit areas cannot grow past them. On iOS,
+ * a finger hit the next day of a 39px grid. On a coarse pointer, the touch
+ * pitch (`core/touch/pitch.ts`) gives each day a cell of at least 44px, and the
+ * root gives room for seven of them. A day keeps the size of its step in the
+ * middle of its cell, and its hit area fills the cell.
  *
  * This suite cannot match `pointer: coarse` (see
  * `touch-target-geometry.test.tsx`). Each coarse case therefore copies each
@@ -56,15 +58,32 @@ function coarsePointer() {
 /** A month that spans six weeks, the tallest month a calendar draws. */
 const MONTH = new Date(2026, 4, 15)
 
-/** The width and the height of each option of the first listbox in `root`. */
-function optionSizes(root: HTMLElement) {
-	return [...root.querySelectorAll<HTMLElement>('[role="listbox"] [role="option"]')].map(
-		(option) => {
-			const { width, height } = option.getBoundingClientRect()
-
-			return { width, height }
-		},
+/** Each option of the first listbox in `root`. */
+function options(root: HTMLElement) {
+	return [...present(root.querySelector('[role="listbox"]'), 'the listbox').children].filter(
+		(child): child is HTMLElement => child.getAttribute('role') === 'option',
 	)
+}
+
+/** The box of an option joined with the box of its hit area. */
+function hitArea(option: HTMLElement) {
+	const box = option.getBoundingClientRect()
+
+	const span = present(option.querySelector('[data-slot="touch-target"]'), 'the hit area')
+
+	const area = span.getBoundingClientRect()
+
+	return {
+		width: Math.max(box.right, area.right) - Math.min(box.left, area.left),
+		height: Math.max(box.bottom, area.bottom) - Math.min(box.top, area.top),
+	}
+}
+
+/** The width of a column and the height of a row of the listbox of `root`. */
+function cell(root: HTMLElement, columns: number, rows: number) {
+	const box = present(root.querySelector('[role="listbox"]'), 'the listbox').getBoundingClientRect()
+
+	return { width: box.width / columns, height: box.height / rows }
 }
 
 describe('the touch pitch of Calendar', () => {
@@ -72,25 +91,74 @@ describe('the touch pitch of Calendar', () => {
 		expect(coarsePointer()).toBeGreaterThan(0)
 	})
 
-	it.each(densitySteps)('gives each day the coarse floor at %s', (size) => {
+	it.each(densitySteps)('fills each cell of at least 44px with a hit area at %s', (size) => {
 		coarsePointer()
 
 		const { container } = renderUI(<Calendar size={size} defaultValue={MONTH} />)
 
-		const sizes = optionSizes(container)
+		const days = options(container)
 
-		expect(sizes).toHaveLength(31)
+		expect(days).toHaveLength(31)
 
-		for (const { width, height } of sizes) {
-			expect(width).toBeGreaterThanOrEqual(FLOOR - 0.5)
+		const { width, height } = cell(container, 7, 6)
 
-			expect(height).toBeGreaterThanOrEqual(FLOOR - 0.5)
+		expect(width).toBeGreaterThanOrEqual(FLOOR - 0.5)
+
+		expect(height).toBeGreaterThanOrEqual(FLOOR - 0.5)
+
+		for (const day of days) {
+			const area = hitArea(day)
+
+			expect(area.width).toBeNear(width, HALF_PIXEL)
+
+			expect(area.height).toBeNear(height, HALF_PIXEL)
 		}
 
 		expect(overlappingHitAreas(container)).toEqual([])
 	})
 
-	it('gives each month of the picker the coarse floor', async () => {
+	it.each(densitySteps)('keeps the size of a day at %s', (size) => {
+		const fine = options(renderUI(<Calendar size={size} defaultValue={MONTH} />).container)[0]
+
+		const side = present(fine, 'a day').getBoundingClientRect().height
+
+		coarsePointer()
+
+		const [day] = options(renderUI(<Calendar size={size} defaultValue={MONTH} />).container)
+
+		const box = present(day, 'a day').getBoundingClientRect()
+
+		expect(box.height).toBeNear(side, HALF_PIXEL)
+
+		// A day under the floor is a square of its side. A day at the floor or
+		// over it fills its column.
+		if (side < FLOOR) expect(box.width).toBeNear(side, HALF_PIXEL)
+		else expect(box.width).toBeGreaterThanOrEqual(side - 0.5)
+	})
+
+	it('fills each column with the days of a range band', () => {
+		coarsePointer()
+
+		const { container } = renderUI(
+			<CalendarRange
+				size="xs"
+				rangeStart={new Date(2026, 4, 11)}
+				rangeEnd={new Date(2026, 4, 14)}
+			/>,
+		)
+
+		const { width } = cell(container, 7, 6)
+
+		const dates = ['2026-05-11', '2026-05-12', '2026-05-13', '2026-05-14']
+
+		const band = options(container).filter((day) => dates.includes(day.dataset.date ?? ''))
+
+		expect(band).toHaveLength(4)
+
+		for (const day of band) expect(day.getBoundingClientRect().width).toBeNear(width, HALF_PIXEL)
+	})
+
+	it('gives each month of the picker a cell of at least 44px', async () => {
 		coarsePointer()
 
 		const { container } = renderUI(<Calendar size="sm" defaultValue={MONTH} />)
@@ -102,11 +170,17 @@ describe('the touch pitch of Calendar', () => {
 
 		const dialog = present(document.querySelector('[role="dialog"]'), 'the picker popover')
 
-		const sizes = optionSizes(dialog)
+		const months = options(dialog)
 
-		expect(sizes).toHaveLength(12)
+		expect(months).toHaveLength(12)
 
-		for (const { height } of sizes) expect(height).toBeGreaterThanOrEqual(FLOOR - 0.5)
+		for (const month of months) {
+			const area = hitArea(month)
+
+			expect(area.width).toBeGreaterThanOrEqual(FLOOR - 0.5)
+
+			expect(area.height).toBeGreaterThanOrEqual(FLOOR - 0.5)
+		}
 
 		expect(overlappingHitAreas(dialog)).toEqual([])
 	})
@@ -132,10 +206,8 @@ describe('the touch pitch of Calendar', () => {
 	})
 
 	it('keeps the size of each day on a fine pointer', () => {
-		const { container } = renderUI(<Calendar size="md" defaultValue={MONTH} />)
+		const [day] = options(renderUI(<Calendar size="md" defaultValue={MONTH} />).container)
 
-		const [first] = optionSizes(container)
-
-		expect(first?.width).toBeLessThan(FLOOR - 0.5)
+		expect(present(day, 'a day').getBoundingClientRect().width).toBeLessThan(FLOOR - 0.5)
 	})
 })

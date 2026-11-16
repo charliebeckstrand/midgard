@@ -226,9 +226,10 @@ export type CalendarProps = {
  * days in it. Resolves `locale` against an
  * enclosing Locale provider. The header, grid, and day cells take the step of
  * the nearest density scope, and a set `size` makes the calendar that scope.
- * On a coarse pointer, each day and each cell of the month and year picker is
- * at least 44 px on each side at each step, so a finger does not hit the next
- * day. The calendar is then at least 308 px wide.
+ * On a coarse pointer, each day and each cell of the month and year picker has
+ * a cell of at least 44 px on each side at each step, so a finger does not hit
+ * the next day. A day keeps the size of its step in the middle of its cell, and
+ * its hit area fills the cell. The calendar is then at least 308 px wide.
  * When a parent steers `active`, the parent owns the keys of the header, the
  * grid, and the footer, and the calendar moves no focus for them. Tab still
  * reaches each header button and the one Tab stop of the grid. Month changes

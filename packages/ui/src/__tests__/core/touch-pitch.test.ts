@@ -37,41 +37,24 @@ function readRule(css: string, name: string) {
 const squeeze = (text: string) => text.replaceAll(/\s+/g, ' ')
 
 /**
- * A touch pitch sets the touch gap of its axes to zero, and on a coarse
- * pointer it gives each child the coarse floor of `TouchTarget` on those axes
+ * A touch pitch sets the touch gaps to zero on a fine pointer. On a coarse
+ * pointer, it gives each row the coarse floor of `TouchTarget`, puts each host
+ * in the middle of its cell, and lets each hit area take the floor
  * (`core/touch/pitch.ts`).
  */
-describe('the touch pitch utilities', () => {
-	it('tiles the hit areas and floors each child on both axes', async () => {
+describe('the touch pitch utility', () => {
+	it('keeps each hit area to its host on a fine pointer', async () => {
 		const rule = squeeze(readRule(await buildCss(['touch-pitch']), 'touch-pitch'))
 
-		expect(rule).toContain('--touch-target-gap-x: 0px;')
-
-		expect(rule).toContain('--touch-target-gap-y: 0px;')
-
-		expect(rule).toContain(
-			'@media (pointer: coarse) { & > * { min-inline-size: 2.75rem; min-block-size: 2.75rem; } }',
-		)
+		expect(rule).toMatch(/^\.touch-pitch \{ --touch-target-gap-x: 0px; --touch-target-gap-y: 0px;/)
 	})
 
-	it('floors each child on its one axis', async () => {
-		const css = await buildCss(['touch-pitch-x', 'touch-pitch-y'])
+	it('gives each cell the floor and each hit area the floor on a coarse pointer', async () => {
+		const rule = squeeze(readRule(await buildCss(['touch-pitch']), 'touch-pitch'))
 
-		const x = squeeze(readRule(css, 'touch-pitch-x'))
-
-		const y = squeeze(readRule(css, 'touch-pitch-y'))
-
-		expect(x).toContain('--touch-target-gap-x: 0px;')
-
-		expect(x).toContain('& > * { min-inline-size: 2.75rem; }')
-
-		expect(x).not.toContain('gap-y')
-
-		expect(y).toContain('--touch-target-gap-y: 0px;')
-
-		expect(y).toContain('& > * { min-block-size: 2.75rem; }')
-
-		expect(y).not.toContain('gap-x')
+		expect(rule).toContain(
+			'@media (pointer: coarse) { --touch-target-gap-x: initial; --touch-target-gap-y: initial; grid-auto-rows: minmax(2.75rem, auto); place-items: center; }',
+		)
 	})
 
 	it('takes the coarse floor of TouchTarget', () => {
@@ -82,7 +65,5 @@ describe('the touch pitch utilities', () => {
 
 	it('stays beside a touch action utility', () => {
 		expect(cn('touch-none', 'touch-pitch')).toBe('touch-none touch-pitch')
-
-		expect(cn('touch-pan-x', 'touch-pitch-x')).toBe('touch-pan-x touch-pitch-x')
 	})
 })
