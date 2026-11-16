@@ -51,8 +51,8 @@ the address again, from its start.
 
 The daily puzzle of a day is the run of the seed of its date (`dailySeed`), in
 the time zone of the reader, so each reader gets the same numbers on the same
-date. The server cannot know the date of the reader, so the link to the daily
-puzzle renders only in the open menu.
+date. The link to the daily puzzle renders only in the open menu, because the
+browser gives the date of the reader after the hydration (`useToday`).
 
 Share seed in the share menu of the bottom bar copies the address of the run.
 Against the CPU, the address holds the seed only. A reader of the link gets the
@@ -194,6 +194,16 @@ score (`useDailyNotice`). The alert waits for the stats, and a
 run that ends before they arrive gets no alert, because its own result can be
 in them. A reader with no session, or with no verified email, has no stats, so
 the item stays a plain link and no alert shows.
+
+The server reads the stats of the daily puzzle of today, so the first paint
+of a load has the alert, and the alert does not move the board after the
+hydration (CONVENTIONS §3.13, `readDailyStats` in `src/server/stats.ts`).
+The server needs the day of the reader for this. Each page writes the offset
+of the time zone of the browser in the `numbers-utc-offset` cookie
+(`ReaderOffsetCookie`), and the server gets the day from the offset and its
+clock. With no cookie, the browser reads the stats after the hydration. The
+hydration render uses the day of the server, so it has the markup of the
+server, and after the hydration the day of the browser counts.
 
 ## Leaderboard
 
