@@ -19,7 +19,7 @@ const makeUser = (verified: boolean, name: string | null = 'Grace') =>
 const board = (players: number, entries: Board['entries']): Board => ({ players, entries })
 
 /** Renders the open dialog with the providers of the app. */
-function renderDialog(user: User) {
+function renderDialog(user?: User) {
 	const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
 	return render(
@@ -144,5 +144,19 @@ describe('LeaderboardDialog', () => {
 		expect(await within(table).findByText('Ada')).toBeTruthy()
 
 		expect(screen.getByText(/Verify your email to be on the leaderboard/)).toBeTruthy()
+	})
+
+	it('shows the board to a reader with no session, and asks them to sign in', async () => {
+		vi.mocked(readBoard).mockResolvedValue(
+			board(1, [{ rank: 1, name: 'Ada', score: 15, you: false }]),
+		)
+
+		renderDialog()
+
+		const table = await screen.findByRole('table')
+
+		expect(await within(table).findByText('Ada')).toBeTruthy()
+
+		expect(screen.getByRole('link', { name: 'Sign in' }).getAttribute('href')).toBe('/login')
 	})
 })
