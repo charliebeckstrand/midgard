@@ -16,7 +16,11 @@ import {
 import { SETTINGS } from '../../utilities/settings'
 import { GameBoardShare } from './game-board-share'
 
-/** The tint of a score cell: green for the winner, and amber for a tie or a solo bust. */
+/**
+ * The tint of a score cell: green for the winner, and amber for a tie or a
+ * solo bust. Each tint is 10% of its 500 shade, in light and in dark, which is
+ * lighter than the 15% fill of a soft button.
+ */
 type Tint = 'green' | 'amber' | undefined
 
 /** The tint of the cell of the player and of the CPU, while the game goes on and for each result. */
@@ -76,8 +80,8 @@ function ScoreCell({
 			className={cn(
 				'rounded-lg',
 				inset && 'px-4 py-2.5',
-				tint === 'green' && 'bg-green-600/15 dark:bg-green-500/20',
-				tint === 'amber' && 'bg-amber-500/20 dark:bg-amber-400/20',
+				tint === 'green' && 'bg-green-500/10',
+				tint === 'amber' && 'bg-amber-500/10',
 			)}
 		>
 			{(check || showLabel) && (
