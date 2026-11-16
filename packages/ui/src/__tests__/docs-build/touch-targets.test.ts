@@ -2,6 +2,7 @@ import { devices, type Page } from 'playwright'
 import { describe, inject, it, type TestContext } from 'vitest'
 import { HYDRATED, prerenderedPages, STYLED } from '../../../scripts/docs-server'
 import { launchChromium } from './helpers/chromium'
+import { waitForIdleLoads } from './helpers/idle-loads'
 import { settle } from './helpers/settle'
 
 // The touch pitch rule (CONVENTIONS §3.10): on a coarse pointer, a finger
@@ -40,6 +41,9 @@ const QUIET = 500
 
 /** The longest wait for the layout to settle, in ms. */
 const SETTLE_LIMIT = 10_000
+
+/** The longest wait in ms for the loads that the page starts in idle time. */
+const IDLE_LIMIT = 20_000
 
 /**
  * The defects that a known defect of `ui` or of the docs causes, by finding.
@@ -575,7 +579,10 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 	return findings
 }
 
-/** Reads the findings of the page at `route` as a phone, after it settles. */
+/**
+ * Reads the findings of the page at `route` as a phone, after its idle-time
+ * loads end and its layout settles.
+ */
 async function readPage(route: string, context: TestContext): Promise<Finding[]> {
 	const tab = await openTab(context)
 
@@ -586,6 +593,8 @@ async function readPage(route: string, context: TestContext): Promise<Finding[]>
 	await tab.waitForFunction(STYLED)
 
 	await tab.waitForLoadState('networkidle')
+
+	await waitForIdleLoads(tab, { limit: IDLE_LIMIT })
 
 	await tab.evaluate(settle, { quiet: QUIET, limit: SETTLE_LIMIT })
 
