@@ -173,9 +173,10 @@ new seed. The contract with the gateway is in [asgard
 
 Stats in the header menu, above Sign out, opens a dialog with the stats of a signed-in reader,
 one tab for each mode (Solo and Vs CPU): the runs played, the best and the
-average score, the daily streak and the longest one, and a bar chart of the
-runs on each score from 1 to 20. The first number always has an empty slot, so
-no run scores 0. Vs CPU also shows Win %, the share of its runs that beat the
+average score, and a bar chart of the runs on each score from 1 to 20. Solo
+also shows the daily streak and the longest one; only a solo run plays the
+daily puzzle, so Vs CPU has no streaks. The first number always has an empty slot, so
+no run scores 0. Vs CPU shows Win % in their place, the share of its runs that beat the
 CPU (`winRate`). Only the runs that send `beatCpu` count toward it, so the runs
 from before 2026-11-16 do not, and it shows a dash until the first one. Solo has
 no Win %, because a run that fills all 20 slots is rare. A switch of tab slides to the next mode. Mimir, in asgard,
