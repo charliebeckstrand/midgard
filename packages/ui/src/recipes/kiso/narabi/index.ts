@@ -10,12 +10,10 @@ import { flex } from './flex'
 import { item } from './item'
 import { nest } from './nest'
 import { offcanvas } from './offcanvas'
-import { slide } from './slide'
 import { touch } from './touch'
 
 export const narabi = {
 	field,
-	slide,
 	item,
 	flex,
 	/** The height fit of a capped panel: the wrapper, a column, and the scroll region. */

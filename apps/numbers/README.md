@@ -82,7 +82,7 @@ The Game tab of the settings has two switches:
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Auto-draw | Off | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button, and the action shows only as Reset after a bust or a win. |
+| Auto-draw | On | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button, and the action shows only as Reset after a bust or a win. |
 | Show score | On | The bar at the bottom shows the score. |
 
 Each setting is in a cookie (`numbers-auto-draw` and `numbers-show-score`,
