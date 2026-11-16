@@ -4,6 +4,7 @@ import type { User } from 'auth'
 import { usePathname } from 'next/navigation'
 import { type MouseEvent, useEffect, useEffectEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
+import { useConfirm } from 'ui/confirm'
 import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
 import { Columns } from 'ui/structure/columns'
@@ -50,14 +51,17 @@ export type GameBoardProps = {
  * signed-in reader that it already counts (see `useDailyNotice`).
  *
  * A Reset starts the run of a new seed in place, in the same mode, and adds the
- * address of the seed to the history, so the reader can send the run. A link,
- * Back, and Forward go to the run of the seed of the address, from its start.
+ * address of the seed to the history, so the reader can send the run. While
+ * the run goes on and has a placed number, Reset asks the reader to confirm,
+ * because the reset discards the run. After a bust or a win, Reset does not
+ * ask. A link, Back, and Forward go to the run of the seed of the address, from
+ * its start.
  *
  * @remarks
  * An action can turn off the control that the reader pressed: Draw is off
  * while a number waits, and a filled slot is off. The focus then moves to the
- * next control to use: the first slot that can take the number, or else the
- * action button. The move happens only when the pressed control had the focus.
+ * next control to use: the first slot that can take the number, or else Draw,
+ * or else Reset after a bust or a win. The move happens only when the pressed control had the focus.
  * Safari does not give the focus to a pressed button, so it moves no focus.
  * Chrome and Firefox give the focus to a pressed button, so a pointer press
  * also moves the focus, but the page does not scroll to it: the reader looks at
@@ -89,7 +93,9 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const outcome = cpu && ended ? getOutcome(game, cpu) : null
 
-	const actionRef = useRef<HTMLButtonElement>(null)
+	const drawRef = useRef<HTMLButtonElement>(null)
+
+	const resetRef = useRef<HTMLButtonElement>(null)
 
 	const slotsRef = useRef<HTMLDivElement>(null)
 
@@ -108,7 +114,8 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 		const slot = slotsRef.current?.querySelector<HTMLButtonElement>('button:enabled')
 
-		;(slot ?? actionRef.current)?.focus({ preventScroll: event.detail > 0 })
+		// After a bust or a win, the bar has no Draw, so the focus goes to Reset.
+		;(slot ?? drawRef.current ?? resetRef.current)?.focus({ preventScroll: event.detail > 0 })
 	}
 
 	/** Starts the run of a new seed, and writes its address. */
@@ -123,6 +130,24 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 		window.history.pushState(null, '', runPath(next, vsCpu))
 
 		reset(next)
+	}
+
+	const confirm = useConfirm()
+
+	/** Starts a new run. A run that goes on with a placed number asks first, because the reset discards it. */
+	const resetRun = async () => {
+		if (
+			isUnfinished(game) &&
+			!(await confirm({
+				title: 'Reset the run?',
+				description: 'The numbers that you placed clear, and a new run starts.',
+				confirm: { label: 'Reset', color: 'red' },
+			}))
+		) {
+			return
+		}
+
+		restart()
 	}
 
 	// The address of the page. Next gives each change of it: a link, Back,
@@ -152,10 +177,11 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 				game={game}
 				status={status}
 				run={run}
-				actionRef={actionRef}
-				onAction={(event) => act(event, ended ? restart : draw)}
-				onReset={restart}
-				showAction={ended || !autoDraw}
+				drawRef={drawRef}
+				onDraw={(event) => act(event, draw)}
+				resetRef={resetRef}
+				onReset={resetRun}
+				showDraw={!autoDraw}
 			/>
 
 			{/* `relative` keeps each positioned element in the box, as in `StackedLayoutBody`. */}

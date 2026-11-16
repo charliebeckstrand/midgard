@@ -1091,7 +1091,7 @@ export interface paths {
 		put?: never
 		/**
 		 * Count a finished run
-		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak and the leaderboard. Each run keeps the name of the account, which the leaderboards show.
+		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak. Each run also counts on the leaderboard of the reader's date: a solo run of the daily puzzle on `daily`, another solo run on `solo`, and a run against the CPU on `vsCpu`. A board keeps the best score of each player. Each run keeps the name of the account, which the leaderboards show.
 		 */
 		post: {
 			parameters: {
@@ -1158,16 +1158,16 @@ export interface paths {
 			cookie?: never
 		}
 		/**
-		 * Get the leaderboard of a daily puzzle
-		 * @description The first run of each player of the daily puzzle of `date` in `mode`: the top 10 by score, then the reader when they are below them. Equal scores share a rank and list in the order that they finished. A date more than one day ahead of the server's date is refused. A reader with no session gets the top 10, with no entry of their own.
+		 * Get a leaderboard of a day
+		 * @description The best score of each player on the board `mode` of the day `date`: the top 10 by score, then the reader when they are below them. Equal scores share a rank and list in the order that the players got them. A date more than one day ahead of the server's date is refused. A reader with no session gets the top 10, with no entry of their own.
 		 */
 		get: {
 			parameters: {
 				query: {
-					/** @description The date of the daily puzzle, as YYYYMMDD */
+					/** @description The day of the board, as YYYYMMDD */
 					date: string
-					/** @description The mode of the run */
-					mode: 'solo' | 'vsCpu'
+					/** @description The board: `daily` for the solo runs of the daily puzzle, `solo` for the solo runs of other seeds, and `vsCpu` for the runs against the CPU */
+					mode: 'daily' | 'solo' | 'vsCpu'
 				}
 				header?: never
 				path?: never
@@ -1457,7 +1457,7 @@ export interface components {
 			 */
 			today: string
 		}
-		/** @description The first run of each player of one daily puzzle, by score */
+		/** @description The best run of each player on one board of one day, by score */
 		NumbersBoard: {
 			/** @description The players of the daily puzzle */
 			players: number
@@ -1467,7 +1467,7 @@ export interface components {
 		NumbersBoardEntry: {
 			/** @description The place, shared by equal scores */
 			rank: number
-			/** @description The leaderboard name of the player, or null when they set none */
+			/** @description The name of the account of the player, or null when it has none */
 			name: string | null
 			score: number
 			/** @description Whether the row is the reader */
