@@ -1,26 +1,42 @@
 'use client'
 
 import type { User } from 'auth'
-import { useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useToday } from 'ui/hooks'
-import { useToast } from 'ui/toast'
 import type { Mode } from '../api/stats-api'
 import { useStats } from '../queries/stats-queries'
-import { type Game, getStatus, isEnded, SLOTS } from '../utilities/game'
+import { type Game, getStatus, isEnded } from '../utilities/game'
 import { dailySeed } from '../utilities/seed'
 
+/** The decision of one run: the saved score of the daily puzzle, or `null` for no notice. */
+type Decision = { run: number; score: number | null }
+
 /**
- * Tells the reader, in a toast, that the daily puzzle of today already counts,
- * when a run of it starts after its first run counted. The toast gives the
- * score of the first run: a replay counts as a run, but it does not change the
- * streak. The stats are those of `user`, so a reader with no session or with
- * no verified email gets no toast.
+ * Decides whether the run tells the reader that the daily puzzle of today
+ * already counts: a run of it that starts after its first run counted. A
+ * replay counts as a run, but it does not change the streak. The stats are
+ * those of `user`, so a reader with no session or with no verified email gets
+ * no notice.
  *
  * Each run gets one decision. The decision waits for the stats, and it uses
  * only stats that the run itself did not change: when the run ends before the
- * stats arrive, its result can be in them, so the run gets no toast.
+ * stats arrive, its result can be in them, so the run gets no notice.
+ *
+ * @remarks
+ * The decision is made in the render, and not in an effect. Thus a run whose
+ * stats are in the cache, such as a run that the header menu opens, has the
+ * notice in its first paint. The day of the reader is not known before
+ * hydration (`useToday`), so after a load the notice comes with the stats.
+ *
+ * @returns The score of the first run of the daily puzzle, for the notice of
+ * this run, or `null` when the run has no notice.
  */
-export function useDailyNotice(game: Game, run: number, mode: Mode, user: User | undefined) {
+export function useDailyNotice(
+	game: Game,
+	run: number,
+	mode: Mode,
+	user: User | undefined,
+): number | null {
 	const today = useToday()
 
 	const daily = today ? dailySeed(today) : ''
@@ -29,35 +45,15 @@ export function useDailyNotice(game: Game, run: number, mode: Mode, user: User |
 
 	const { data } = useStats(daily, isDaily && user?.is_verified === true)
 
-	const { toast } = useToast()
+	const ended = isEnded(getStatus(game))
 
-	const status = getStatus(game)
+	const [decision, setDecision] = useState<Decision | null>(null)
 
-	const ended = isEnded(status)
+	// A set in the render renders again before the commit, and the next render
+	// finds the decision of the run, so it sets no more.
+	if (isDaily && decision?.run !== run && (ended || data)) {
+		setDecision({ run, score: ended || !data ? null : data[mode].dailyScore })
+	}
 
-	/** The last run that got its decision. */
-	const decided = useRef<number | null>(null)
-
-	useEffect(() => {
-		if (!isDaily || decided.current === run) return
-
-		if (ended) {
-			decided.current = run
-
-			return
-		}
-
-		if (!data) return
-
-		decided.current = run
-
-		const score = data[mode].dailyScore
-
-		if (score === null) return
-
-		toast({
-			title: "You already played today's puzzle",
-			description: `Your score of ${score} / ${SLOTS} is saved. This replay won't change your streak.`,
-		})
-	}, [isDaily, run, ended, data, mode, toast])
+	return isDaily && decision?.run === run ? decision.score : null
 }
