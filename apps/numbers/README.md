@@ -67,7 +67,7 @@ place, and Reset.
 
 ## The page
 
-The header shows the name of the app, the settings, and a menu with Home (a
+The header shows the name of the app, the settings, and a menu with Solo (a
 new seed), Daily puzzle, Vs CPU (a new seed against the CPU), and Leaderboard.
 Under a divider, the menu has Sign in, or Stats and
 Sign out for a signed-in reader. A segment in the settings switches two tabs: "UI" has the
