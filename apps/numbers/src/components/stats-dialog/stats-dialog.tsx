@@ -28,13 +28,10 @@ export type StatsDialogProps = {
 function ModeTiles({ stats }: { stats: ModeStats | undefined }) {
 	const intl = useIntl()
 
-	const percent = (value: number) => intl.formatNumber(value, { style: 'percent' })
-
 	const decimal = (value: number) => intl.formatNumber(value, { maximumFractionDigits: 1 })
 
 	const tiles: Array<[string, string | undefined]> = [
 		['Played', stats && intl.formatNumber(stats.played)],
-		['Win %', stats && (stats.played === 0 ? '0%' : percent(stats.wins / stats.played))],
 		['Best', stats && (stats.best === null ? '–' : intl.formatNumber(stats.best))],
 		['Average', stats && (stats.average === null ? '–' : decimal(stats.average))],
 		['Daily streak', stats && intl.formatNumber(stats.streak)],
@@ -58,6 +55,7 @@ function ModeTiles({ stats }: { stats: ModeStats | undefined }) {
 					aria-label="Runs by score"
 					data={stats.scores.map((runs, score) => ({ score: String(score), runs }))}
 					series={[{ xKey: 'score', yKey: 'runs', yName: 'Runs' }]}
+					axes={{ y: { integer: true } }}
 				/>
 			) : null}
 		</Stack>

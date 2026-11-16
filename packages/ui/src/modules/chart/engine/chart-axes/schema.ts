@@ -27,6 +27,12 @@ export type ChartValueAxis = {
 	/** Domain ceiling; defaults to this axis's data maximum. */
 	max?: number
 	/**
+	 * Steps the ticks by whole numbers, at least 1, for a measure that counts
+	 * things. A count of 2 then ticks 0, 1, 2, not 0, 0.5, 1, 1.5, 2.
+	 * @defaultValue false
+	 */
+	integer?: boolean
+	/**
 	 * Formats this axis's ticks and its series' tooltip, label, and data-table
 	 * values: a currency for `y`, a percent for `y2`.
 	 * @defaultValue the chart's `formatValue`, except a point chart's `x` axis, which takes the locale default.

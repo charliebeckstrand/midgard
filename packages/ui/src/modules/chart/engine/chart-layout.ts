@@ -290,6 +290,8 @@ export type ChartValueAxisInput = {
 	min?: number
 	/** Domain ceiling override, pinned exactly. */
 	max?: number
+	/** Whole-number ticks: the tick step is at least 1. */
+	integer?: boolean
 	format: (value: number) => string
 	title?: string
 }
@@ -747,6 +749,7 @@ function buildValueScale(
 		zeroBaseline,
 		min: axis.min,
 		max: axis.max,
+		integer: axis.integer,
 		headroom,
 	})
 }
