@@ -97,7 +97,16 @@ export const k = defineKata(
 			section: 'first:pt-0 last:pb-0',
 			// The heading of a section takes the inline padding of a row, as the header does.
 			heading: [dan.space.menu.item.x, 'pb-1 pt-2', size.xs, 'font-medium', text.muted],
-			separator: divider.top,
+			// The separator lines up with the content of the rows, and keeps the rhythm
+			// of the rows: the space on each side of the rule is the space between two rows.
+			// A plain margin reads the stepped value, because a stepped margin loses to the
+			// margin of the `space-y` gap of the rows.
+			separator: [
+				...divider.top,
+				dan.space.menu.separator.x,
+				dan.space.menu.separator.y,
+				'my-(--ui-menu-separator)',
+			],
 		},
 		defaults: { capped: false },
 	},
