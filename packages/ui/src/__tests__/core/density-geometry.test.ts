@@ -271,6 +271,10 @@ const slotRamps = {
  *   - The `0` stop of the spacing scale (`gap.scale` and `space.scale`) is 0 at
  *     each step, for the same reason: a breakpoint switches it with a stop of
  *     the scale.
+ *   - The scale of a calendar is `sm` to `lg`. Its own ramps give `xs` the
+ *     value of `sm` and `xl` the value of `lg`. Thus its static skeleton in an
+ *     `xs` or `xl` scope has the box of the calendar, which renders at its
+ *     inner step there (`useDensityInScale`).
  */
 const sharedRamps = new Set([
 	'size.sidebar.width',
@@ -284,6 +288,11 @@ const sharedRamps = new Set([
 	'space.scale.px.0',
 	'space.scale.py.0',
 	'gap.scale.0',
+	'size.calendar.width',
+	'size.calendar.touch',
+	'size.calendar.row',
+	'size.calendar.cell',
+	'space.calendar.header.bottom',
 ])
 
 /**

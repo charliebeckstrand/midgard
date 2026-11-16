@@ -440,8 +440,8 @@ export const space = {
 	},
 	calendar: {
 		header: {
-			/** The bottom margin of the calendar header. */
-			bottom: 'density-mb-[1,1.5,2,2.5,3]',
+			/** The bottom margin of the calendar header. The scale of a calendar is `sm` to `lg`. */
+			bottom: 'density-mb-[1.5,1.5,2,2.5,2.5]',
 		},
 	},
 	resize: {

@@ -106,3 +106,25 @@ export function defineScale<const R extends readonly Ramp[]>(
 
 	return densitySteps.filter((step) => steps.has(step)) as unknown as Scale<RampSteps<R[number]>>
 }
+
+/**
+ * The step of `scale` nearest to `step`. A step of the scale gives itself. An
+ * outer step that the scale does not hold, such as `xs` in a scale from `sm`
+ * to `lg`, gives its inner neighbor, as a ramp of three values does in CSS.
+ * Thus a component with no outer step renders an outer scope at the step that
+ * its ramps give that scope.
+ *
+ * @example
+ * snapStep(defineScale('density-w-[56,56,68,80,80]'), 'xs') // 'sm'
+ */
+export function snapStep<S extends DensityStep>(scale: Scale<S>, step: DensityStep): S {
+	const index = densitySteps.indexOf(step)
+
+	const [nearest] = [...scale].sort(
+		(a, b) => Math.abs(densitySteps.indexOf(a) - index) - Math.abs(densitySteps.indexOf(b) - index),
+	)
+
+	if (nearest === undefined) throw new Error('A scale holds one step at least.')
+
+	return nearest
+}

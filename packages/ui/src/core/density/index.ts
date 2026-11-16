@@ -5,6 +5,7 @@ export {
 	rampValue,
 	type Scale,
 	type ScaleStep,
+	snapStep,
 } from './scale'
 export {
 	type DensityStep,

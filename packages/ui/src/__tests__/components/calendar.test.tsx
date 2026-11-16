@@ -288,17 +288,20 @@ describe('Calendar', () => {
 		expect(el).toHaveAttribute('data-density', 'sm')
 	})
 
-	it('opens no scope in an `xs` scope, because the weekday text has an `xs` step', () => {
+	it.each([
+		['xs', 'sm'],
+		['xl', 'lg'],
+	] as const)('opens a scope at its inner step in an `%s` scope', (outer, inner) => {
 		const { container } = renderUI(
-			<Box density="xs">
+			<Box density={outer}>
 				<Calendar />
 			</Box>,
 		)
 
-		expect(bySlot(container, 'calendar')).not.toHaveAttribute('data-density')
+		expect(bySlot(container, 'calendar')).toHaveAttribute('data-density', inner)
 	})
 
-	it('opens no scope with no size outside an `xs` scope', () => {
+	it('opens no scope with no size in a scope of its scale', () => {
 		const { container } = renderUI(
 			<Box density="lg">
 				<Calendar />

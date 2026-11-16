@@ -114,6 +114,7 @@ import {
 } from '../../../modules/kanban'
 import { MapSkeleton } from '../../../modules/map'
 import { ALBERS_USA_ASPECT } from '../../../modules/map/engine/map-constants'
+import { scale as calendarScale } from '../../../recipes/kata/calendar'
 import { Box } from '../../../structure/box'
 import { present, renderUI } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
@@ -263,13 +264,6 @@ describe('skeleton parity (real browser)', () => {
 			(size) => <Sparkline data={[3, 5, 4, 8]} size={size} aria-label="Trend" />,
 			(size) => <SparklineSkeleton size={size} />,
 		],
-		[
-			'Calendar',
-			'calendar',
-			// A month that spans six weeks, the tallest month a calendar draws.
-			(size) => <Calendar size={size} defaultValue={new Date(2026, 4, 15)} />,
-			(size) => <CalendarSkeleton size={size} />,
-		],
 	]
 
 	describe.each(pairs)('%sSkeleton', (_, slot, real, skeleton) => {
@@ -280,6 +274,16 @@ describe('skeleton parity (real browser)', () => {
 				box(container.querySelector(`[data-slot="${slot}"]`), slot),
 			)
 		})
+	})
+
+	// The scale of a calendar is `sm` to `lg`. A month that spans six weeks is
+	// the tallest month a calendar draws.
+	it.each(calendarScale)('CalendarSkeleton has the box of a %s calendar', (size) => {
+		const { container } = renderUI(<Calendar size={size} defaultValue={new Date(2026, 4, 15)} />)
+
+		expect(placeholder(renderUI(<CalendarSkeleton size={size} />).container)).toStrictEqual(
+			box(container.querySelector('[data-slot="calendar"]'), 'calendar'),
+		)
 	})
 
 	it.each(densitySteps)('ProgressBarSkeleton has the height of a %s bar', (size) => {
@@ -984,8 +988,9 @@ describe('skeleton parity (real browser)', () => {
 		},
 	)
 
-	// The calendar and the skeleton with no size both take the xs scope, so each row of the
-	// skeleton must give the height of the calendar at xs.
+	// In an xs scope, the calendar renders at sm, its inner step. The skeleton with
+	// no size takes the xs scope, so each row of it must give the height of the
+	// calendar at sm.
 	it('CalendarSkeleton with no size has the box of a calendar in an xs scope', () => {
 		const { container } = renderUI(
 			<Box density="xs">

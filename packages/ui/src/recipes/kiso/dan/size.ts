@@ -198,13 +198,23 @@ export const size = {
 		width: 'density-w-[12,18,24,30,36]',
 	},
 	calendar: {
-		/** The width of a calendar. */
-		width: 'density-w-[44,56,68,80,92]',
 		/**
-		 * The side of a day as `--ui-calendar-day`: the height of a button. A day
-		 * under the coarse floor keeps this side in a cell of the floor.
+		 * The width of a calendar. The scale of a calendar is `sm` to `lg`, so an
+		 * outer step takes the value of its inner neighbor.
 		 */
-		day: 'density-set-[6.5,8,9.5,11,12.5]/[--ui-calendar-day]',
+		width: 'density-w-[56,56,68,80,80]',
+		/**
+		 * The width of a calendar on a coarse pointer: seven cells of 40, 44, or
+		 * 48 px. Each day fills its cell.
+		 */
+		touch: 'pointer-coarse:density-w-[70,70,77,84,84]',
+		/**
+		 * The height of the header row and of each day row of a calendar skeleton:
+		 * the height of a button at each step of the calendar.
+		 */
+		row: 'density-h-[8,8,9.5,11,11]',
+		/** The height of each day row of a calendar skeleton on a coarse pointer: the side of a cell. */
+		cell: 'pointer-coarse:density-h-[10,10,11,12,12]',
 	},
 	toast: {
 		/**
