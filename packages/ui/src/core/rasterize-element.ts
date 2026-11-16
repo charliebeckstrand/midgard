@@ -231,7 +231,15 @@ function readShadows(boxShadow: string): ShadowLayer[] {
 }
 
 /** The style that {@link ringToOutline} reads. @internal */
-export type RingStyle = Pick<CSSStyleDeclaration, 'boxShadow' | 'outlineStyle' | 'borderTopWidth'>
+export type RingStyle = Pick<
+	CSSStyleDeclaration,
+	| 'boxShadow'
+	| 'outlineStyle'
+	| 'borderTopWidth'
+	| 'borderRightWidth'
+	| 'borderBottomWidth'
+	| 'borderLeftWidth'
+>
 
 /**
  * Gives the declarations that draw a shadow ring of an element as an outline.
@@ -244,13 +252,19 @@ export type RingStyle = Pick<CSSStyleDeclaration, 'boxShadow' | 'outlineStyle' |
  * inset ring is in the padding box, so its outline goes in by the border and
  * by the spread. The other layers stay a `box-shadow`.
  *
- * The rule applies when the element has one shadow ring and no outline of its
- * own, because an element has only one outline. Else it gives no declaration.
+ * The rule applies when the element has one shadow ring, no outline of its
+ * own, and the same border width on each side. An element has only one
+ * outline, and an outline has one offset for all sides. Else the rule gives no
+ * declaration.
  *
  * @internal
  */
 export function ringToOutline(style: RingStyle): string {
 	if (style.outlineStyle !== 'none') return ''
+
+	const borders = [style.borderRightWidth, style.borderBottomWidth, style.borderLeftWidth]
+
+	if (borders.some((width) => width !== style.borderTopWidth)) return ''
 
 	const layers = readShadows(style.boxShadow)
 

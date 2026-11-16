@@ -11,6 +11,9 @@ const style = (boxShadow: string, extra: Partial<RingStyle> = {}): RingStyle => 
 	boxShadow,
 	outlineStyle: 'none',
 	borderTopWidth: '0px',
+	borderRightWidth: '0px',
+	borderBottomWidth: '0px',
+	borderLeftWidth: '0px',
 	...extra,
 })
 
@@ -23,7 +26,14 @@ describe('ringToOutline', () => {
 
 	it('moves an inset ring in by the border', () => {
 		expect(
-			ringToOutline(style('rgb(1, 2, 3) 0px 0px 0px 2px inset', { borderTopWidth: '1px' })),
+			ringToOutline(
+				style('rgb(1, 2, 3) 0px 0px 0px 2px inset', {
+					borderTopWidth: '1px',
+					borderRightWidth: '1px',
+					borderBottomWidth: '1px',
+					borderLeftWidth: '1px',
+				}),
+			),
 		).toBe('box-shadow:none;outline:2px solid rgb(1, 2, 3);outline-offset:-3px;')
 	})
 
@@ -49,5 +59,11 @@ describe('ringToOutline', () => {
 		expect(ringToOutline(style('rgb(1, 2, 3) 0px 0px 0px 2px, rgb(4, 5, 6) 0px 0px 0px 4px'))).toBe(
 			'',
 		)
+	})
+
+	it('keeps the ring of an element whose border widths differ', () => {
+		expect(
+			ringToOutline(style('rgb(1, 2, 3) 0px 0px 0px 1px inset', { borderBottomWidth: '2px' })),
+		).toBe('')
 	})
 })
