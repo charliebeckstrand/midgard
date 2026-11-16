@@ -174,7 +174,8 @@ export function GameBoardFooter({
 			>
 				<div className="min-w-0 flex-1">
 					{cpu ? (
-						<Stack gap="sm">
+						// With no tint, the two scores have no space between them. Two tinted cells keep a gap.
+						<Stack gap={settled ? 'sm' : undefined}>
 							<ScoreCell
 								label="You"
 								tint={tints.player}
