@@ -148,7 +148,8 @@ new seed. The contract with the gateway is in [asgard
 Stats in the header menu opens a dialog with the stats of a signed-in reader,
 one tab for each mode (Solo and Vs CPU): the runs played, the best and the
 average score, the daily streak and the longest one, and a bar chart of the
-runs on each score. Mimir, in asgard, keeps them
+runs on each score from 1 to 20. The first number always has an empty slot, so
+no run scores 0. Mimir, in asgard, keeps them
 (`/api/games/numbers/*`, `src/api/stats-api.ts`).
 
 A run counts when it ends in a bust or a win, and when a Reset ends it after

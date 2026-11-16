@@ -50,10 +50,11 @@ function ModeTiles({ stats }: { stats: ModeStats | undefined }) {
 				))}
 			</Columns>
 
+			{/* The first number always has an empty slot, so no run scores 0. */}
 			{stats && stats.played > 0 ? (
 				<BarChart
 					aria-label="Runs by score"
-					data={stats.scores.map((runs, score) => ({ score: String(score), runs }))}
+					data={stats.scores.slice(1).map((runs, index) => ({ score: String(index + 1), runs }))}
 					series={[{ xKey: 'score', yKey: 'runs', yName: 'Runs' }]}
 					axes={{ y: { integer: true } }}
 				/>
