@@ -104,17 +104,57 @@ describe('LeaderboardDialog', () => {
 		expect(screen.queryByText('Today')).toBeNull()
 	})
 
-	it.each([
-		['Solo', 'solo'],
-		['Vs CPU', 'vsCpu'],
-	])('reads the %s board of the day', async (tab, mode) => {
-		vi.mocked(readBoard).mockResolvedValue(board(0, []))
+	it('reads the three boards of the day, and shows the board of each tab', async () => {
+		vi.mocked(readBoard).mockImplementation(async (_date, mode) =>
+			board(1, [{ rank: 1, name: `Top ${mode}`, score: 12, you: false }]),
+		)
 
 		renderDialog(makeUser(true))
 
-		fireEvent.click(screen.getByRole('tab', { name: tab }))
+		await screen.findByText('Top daily')
 
-		await waitFor(() => expect(readBoard).toHaveBeenCalledWith('20261116', mode))
+		for (const mode of ['daily', 'solo', 'vsCpu'] as const) {
+			expect(readBoard).toHaveBeenCalledWith('20261116', mode)
+		}
+
+		fireEvent.click(screen.getByRole('tab', { name: 'Solo' }))
+
+		expect(await screen.findByText('Top solo')).toBeTruthy()
+
+		fireEvent.click(screen.getByRole('tab', { name: 'Vs CPU' }))
+
+		expect(await screen.findByText('Top vsCpu')).toBeTruthy()
+	})
+
+	it('keeps the rows of the last day, dimmed, until the rows of the new day arrive', async () => {
+		// The answers for the earlier day, by board, held until the test lets them arrive.
+		const arrive = new Map<string, (value: Board) => void>()
+
+		vi.mocked(readBoard).mockImplementation((date, mode) =>
+			date === '20261116'
+				? Promise.resolve(board(1, [{ rank: 1, name: 'Ada', score: 15, you: false }]))
+				: new Promise((resolve) => {
+						arrive.set(mode, resolve)
+					}),
+		)
+
+		renderDialog(makeUser(true))
+
+		await screen.findByText('Ada')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Earlier day' }))
+
+		const table = await screen.findByRole('table')
+
+		await waitFor(() => expect(table.closest('[aria-busy="true"]')).toBeTruthy())
+
+		expect(within(table).getByText('Ada')).toBeTruthy()
+
+		arrive.get('daily')?.(board(1, [{ rank: 1, name: 'Grace', score: 9, you: false }]))
+
+		expect(await within(table).findByText('Grace')).toBeTruthy()
+
+		expect(table.closest('[aria-busy="true"]')).toBeNull()
 	})
 
 	it('tells a verified reader with no account name that they show as anonymous', async () => {

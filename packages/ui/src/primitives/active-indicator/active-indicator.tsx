@@ -5,6 +5,7 @@ import { type ComponentProps, type ReactNode, useId } from 'react'
 import { cn } from '../../core/cn'
 import { createContext } from '../../core/create-context'
 import { k } from '../../recipes/kata/active-indicator'
+import type { Orientation } from '../../types/orientation'
 import { ReducedMotion } from '../reduced-motion'
 import * as m from '../reduced-motion/reduced-motion-elements'
 
@@ -69,21 +70,42 @@ function dropOwnSnapshot(marker: HTMLSpanElement | null) {
 }
 
 /**
- * Carries the `LayoutGroup` `layoutId` an `ActiveIndicatorScope` opens, letting
- * descendant `ActiveIndicator`s share one morph scope; `undefined` outside a
- * scope, falling back to the global `'current-indicator'` id.
+ * The morph scope that an `ActiveIndicatorScope` opens: the `LayoutGroup`
+ * `layoutId`, and the axis of the morph. `undefined` outside a scope, so the
+ * marker falls back to the global `'current-indicator'` id.
  *
  * @internal
  */
-const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<string | undefined>(
-	'ActiveIndicatorScope',
-	{ default: undefined },
-)
+type ActiveIndicatorScopeValue = {
+	layoutId: string
+	/** The axis of the morph: `'x'` or `'y'`, or `undefined` for the two axes. */
+	axis: 'x' | 'y' | undefined
+}
+
+const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<
+	ActiveIndicatorScopeValue | undefined
+>('ActiveIndicatorScope', { default: undefined })
 
 /** Props for {@link ActiveIndicatorScope}: the group whose indicators share one morph. */
 export type ActiveIndicatorScopeProps = {
 	/** The nav or tab group. */
 	children: ReactNode
+	/**
+	 * The axis of the items of the group. The marker morphs only along this
+	 * axis. Give it only when each item of the group has the same box on the
+	 * other axis, such as a row of tabs. Then a morph on the other axis can only
+	 * come from a move of the group itself.
+	 *
+	 * Motion morphs the marker between two boxes in the page. A container can
+	 * move the group while the marker switches, such as a panel that takes its
+	 * height from its content. Motion then adds that move to the morph, and the
+	 * marker slides across the axis of the group. With an orientation, Motion
+	 * keeps the other axis of the morph at the box of the new marker. The marker
+	 * thus stays on the line of its items.
+	 *
+	 * @defaultValue `undefined`: the marker morphs on the two axes.
+	 */
+	orientation?: Orientation
 }
 
 /**
@@ -92,16 +114,20 @@ export type ActiveIndicatorScopeProps = {
  * each other rather than against indicators in sibling groups.
  *
  * @remarks Wraps the group in {@link ReducedMotion}, so under reduced motion the
- * indicator moves to the new item with no morph. The root loads layout
+ * indicator moves to the new item with no morph. With an `orientation`, the
+ * marker morphs only along the axis of the group. A move of the group then does
+ * not slide the marker off the line of its items. The root loads layout
  * projection, which the morph needs. Until it arrives, the indicator moves with
  * no morph.
  * @see {@link useActiveIndicatorScope}
  */
-export function ActiveIndicatorScope({ children }: ActiveIndicatorScopeProps) {
+export function ActiveIndicatorScope({ children, orientation }: ActiveIndicatorScopeProps) {
 	const layoutId = `current-indicator-${useId()}`
 
+	const axis = orientation && (orientation === 'horizontal' ? 'x' : 'y')
+
 	return (
-		<ActiveIndicatorScopeContext value={layoutId}>
+		<ActiveIndicatorScopeContext value={{ layoutId, axis }}>
 			<ReducedMotion layout>
 				<LayoutGroup id={layoutId}>{children}</LayoutGroup>
 			</ReducedMotion>
@@ -139,11 +165,11 @@ export type ActiveIndicatorProps = Omit<
  * @see {@link ActiveIndicatorScope}
  */
 export function ActiveIndicator({ className, style, ref, ...props }: ActiveIndicatorProps) {
-	const scopedLayoutId = useActiveIndicatorScope()
+	const scope = useActiveIndicatorScope()
 
 	const setMarker = useComposedRefs(ref, dropOwnSnapshot)
 
-	const layoutId = scopedLayoutId ?? 'current-indicator'
+	const layoutId = scope?.layoutId ?? 'current-indicator'
 
 	// Unique per instance, stable across renders. With `layoutDependency`
 	// constant, external reflow does not animate the indicator.
@@ -155,6 +181,8 @@ export function ActiveIndicator({ className, style, ref, ...props }: ActiveIndic
 				data-slot="active-indicator"
 				{...props}
 				ref={setMarker}
+				// The axis of the morph. A `layoutId` alone morphs on the two axes.
+				layout={scope?.axis}
 				layoutId={layoutId}
 				layoutDependency={instanceId}
 				className={cn('pointer-events-none absolute inset-0', k().base, className)}

@@ -17,5 +17,7 @@ export default defineConfig({
 		...sharedTest,
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
 		environment: 'node',
+		// Sets the `asyncUtilTimeout` of the shared config on Testing Library.
+		setupFiles: ['src/__tests__/setup.ts'],
 	},
 })
