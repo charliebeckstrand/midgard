@@ -144,8 +144,7 @@ so a screenshot shows the level. At Normal, the label is "CPU". The bar shows
 also with Show score off, because it names the columns and gives the result.
 When one side wins, each label gets a check before it: the score and the check
 of the winner are green, and the check of the loser is grey. A tie makes both
-scores amber, names both "Tie", and shows no check. A screen reader hears the
-result at the end.
+scores amber, with no check. A screen reader hears the result at the end.
 
 ## Sign-in
 

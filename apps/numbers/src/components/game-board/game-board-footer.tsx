@@ -109,8 +109,7 @@ export type GameBoardFooterProps = {
  * score of the CPU. Away from the default level, the label of the CPU names
  * its level, such as "CPU (Hard)". When one side wins, each label gets a
  * check before it: the cell and the check of the winner are green, and the
- * check of the loser is grey. A tie makes both cells amber, names both "Tie",
- * and shows no check.
+ * check of the loser is grey. A tie makes both cells amber, with no check.
  * With Show score off, the bar holds only the share menu.
  *
  * @remarks
@@ -129,9 +128,7 @@ export function GameBoardFooter({
 }: GameBoardFooterProps) {
 	const tints = TINTS[outcome ?? 'playing']
 
-	// A tie names both cells "Tie". A win or a loss puts a check before each label.
-	const tie = outcome === 'tie'
-
+	// A win or a loss puts a check before each label.
 	const decided = outcome === 'win' || outcome === 'loss'
 
 	return (
@@ -143,18 +140,8 @@ export function GameBoardFooter({
 			<div className="min-w-0 flex-1">
 				{cpu ? (
 					<Stack gap="sm">
-						<ScoreCell
-							label={tie ? 'Tie' : 'You'}
-							tint={tints.player}
-							game={game}
-							check={decided}
-						/>
-						<ScoreCell
-							label={tie ? 'Tie' : cpuName(difficulty)}
-							tint={tints.cpu}
-							game={cpu}
-							check={decided}
-						/>
+						<ScoreCell label="You" tint={tints.player} game={game} check={decided} />
+						<ScoreCell label={cpuName(difficulty)} tint={tints.cpu} game={cpu} check={decided} />
 					</Stack>
 				) : (
 					showScore && <ScoreCell label="Score" game={game} />
