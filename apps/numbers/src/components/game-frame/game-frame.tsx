@@ -1,3 +1,4 @@
+import type { User } from 'auth'
 import { StackedLayout, StackedLayoutBody } from 'ui/layouts'
 import { FRAME_ID } from '../../utilities/frame'
 import type { GameSettings } from '../../utilities/settings'
@@ -11,6 +12,8 @@ export type GameFrameProps = {
 	seed: string
 	/** The settings of the cookies of the request. */
 	settings: GameSettings
+	/** The signed-in user, or none. Sign-in is optional. */
+	user?: User
 }
 
 /**
@@ -20,11 +23,11 @@ export type GameFrameProps = {
  * document is never taller than the screen (see `StackedLayout`). Share
  * screenshot draws this box ({@link FRAME_ID}).
  */
-export function GameFrame({ seed, settings }: GameFrameProps) {
+export function GameFrame({ seed, settings, user }: GameFrameProps) {
 	return (
 		<GameSettingsProvider settings={settings}>
 			<StackedLayout id={FRAME_ID} className="h-dvh print:h-auto">
-				<NumbersHeader />
+				<NumbersHeader user={user} />
 
 				<StackedLayoutBody>
 					<GameBoard seed={seed} />

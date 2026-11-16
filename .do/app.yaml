@@ -226,6 +226,15 @@ services:
       - key: APP
         scope: BUILD_TIME
         value: numbers
+      # Sign-in is optional. The same reason as for admin.
+      - key: BIFROST_URL
+        scope: RUN_AND_BUILD_TIME
+        value: https://auth.ivoryimage.dev
+      # The same reason as for admin.
+      - key: CLIENT_IP_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: ${CLIENT_IP_SECRET}
 
   # The docs site of `ui`. The build writes each page to `<path>/index.html`,
   # and in each other language to `<path>/index.<locale>.html`, such as

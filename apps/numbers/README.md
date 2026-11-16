@@ -9,8 +9,8 @@ slot to win.
 pnpm --filter numbers dev
 ```
 
-The app runs on port 3004. It is public: it has no sign-in, and it has no
-server data. The game runs in the browser.
+The app runs on port 3004. The game runs in the browser, and it needs no
+session. Sign-in is optional (see [Sign-in](#sign-in)).
 
 ```bash
 pnpm --filter numbers test
@@ -62,7 +62,7 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Home (a
-new seed) and Daily puzzle. A segment in the settings switches two tabs: "UI"
+new seed), Daily puzzle, and Sign in or Sign out. A segment in the settings switches two tabs: "UI"
 has the appearance pickers of `ui`, and "Game" has the settings of the game
 (see below). A bar under the header holds the drawn number, the action, and a
 menu with Reset, Share seed, and Share screenshot. Reset in the menu starts a
@@ -102,8 +102,23 @@ reader give them, and the first paint is the final layout (CONVENTIONS
 write also puts a copy in `localStorage`, and the `storage` event of the copy
 gives the change to the other tabs.
 
+## Sign-in
+
+Sign-in is optional, and no page needs a session. The app takes the same parts
+as Places: `withAuth` with `gatewayApi` sends `/auth/*` and `/api/*` to the
+gateway, and the shared pages of `shared/auth` are the sign-in, register, and
+password pages (`app/(guest)`) and `/verify-email`. The proxy gates no route.
+It sends `/` to a new seed, and it gives the address of the browser to an auth
+or API request (`forwardClientIp`).
+
+The page of a run reads the session, so the first paint shows the menu items of
+the reader. A failure of the gateway shows the reader as signed out, and the
+run still plays. After a sign-in, the shared page goes to `/`, which starts a
+new seed. The contract with the gateway is in [asgard
+`.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md).
+
 ## Deploy
 
 Each push to `main` deploys the app to `numbers.ivoryimage.dev`, through the
-`numbers` component of [`.do/app.yaml`](../../.do/app.yaml). The app is
-public: it has no sign-in, and it reads no data of a reader.
+`numbers` component of [`.do/app.yaml`](../../.do/app.yaml). The component has
+`BIFROST_URL` and `CLIENT_IP_SECRET`, as Places has.
