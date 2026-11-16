@@ -23,7 +23,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
 
-> `Checkbox`, `Radio`, and `Switch` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. The days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`.
+> `Checkbox`, `Radio`, and `Switch` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. The days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`. The `sm` cell is under the floor.
 
 > A `RadioGroup` in a `Field` takes the description of the `Field`. A bare `Radio` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField` to give it an id and a `Label`.
 

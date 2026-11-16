@@ -1,18 +1,13 @@
 'use client'
 
 import { type Scale, snapStep } from '../../core/density/scale'
-import type { DensityStep } from '../../core/density/steps'
+import type { DensityStep, InnerStep } from '../../core/density/steps'
 import { useDensityScope } from './context'
-
-/** Whether `scale` holds `step`. */
-function inScale<S extends DensityStep>(scale: Scale<S>, step: DensityStep): step is S {
-	return (scale as readonly DensityStep[]).includes(step)
-}
 
 /**
  * The density scope of a component whose scale does not hold each step: the
- * `size` prop, or the step of `scale` nearest to the step of the `size` or of
- * the nearest scope when the scale does not hold that step. Give the result to
+ * `size` prop, or the inner neighbor of the step of the `size` or of the
+ * nearest scope when the scale does not hold that step. Give the result to
  * the `density` prop of the root of the component.
  *
  * @remarks
@@ -34,16 +29,16 @@ function inScale<S extends DensityStep>(scale: Scale<S>, step: DensityStep): ste
 export function useDensityScale<S extends DensityStep>(
 	scale: Scale<S>,
 	explicit: DensityStep | undefined,
-): S | undefined {
+): S | InnerStep | undefined {
 	const scope = useDensityScope()
 
 	const step = explicit ?? scope
 
 	if (step === null) return undefined
 
+	const snapped = snapStep(scale, step)
+
 	// A step of the scale keeps the scope that it comes from: the `size` of
 	// the component, or the scope above it.
-	if (inScale(scale, step)) return explicit === undefined ? undefined : step
-
-	return snapStep(scale, step)
+	return explicit === undefined && snapped === step ? undefined : snapped
 }

@@ -231,8 +231,9 @@ export type CalendarProps = {
  * The calendar has three steps: `sm`, `md`, and `lg`. In an `xs` or `xl`
  * scope, it renders at `sm` or `lg`. On a coarse pointer, each day fills a
  * square cell of 40, 44, or 48 px, so the calendar is 280, 308, or 336 px
- * wide. The hit areas of the days tile the grid, and each month or year of
- * the picker has a cell of at least 44 px.
+ * wide. The `sm` cell is under the 44 px floor of `TouchTarget`, so that the
+ * cell steps with the density. The hit areas of the days tile the grid, and
+ * each month or year of the picker has a cell of at least 44 px.
  * When a parent steers `active`, the parent owns the keys of the header, the
  * grid, and the footer, and the calendar moves no focus for them. Tab still
  * reaches each header button and the one Tab stop of the grid. Month changes
