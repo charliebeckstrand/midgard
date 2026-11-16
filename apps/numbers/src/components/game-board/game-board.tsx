@@ -85,7 +85,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const { game, status, run, draw, place, reset } = useGame(seed, autoDraw, recordRun)
 
-	const dailyScore = useDailyNotice(game, run, mode, user)
+	const dailyNotice = useDailyNotice(game, run, mode, user)
 
 	const ended = isEnded(status)
 
@@ -177,7 +177,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	return (
 		<div className="flex h-full flex-col print:h-auto">
-			{dailyScore !== null && (
+			{dailyNotice && (
 				// A closed alert renders nothing, so `empty:hidden` also removes its space.
 				<div className="mx-auto w-full max-w-md shrink-0 px-4 pt-4 empty:hidden">
 					{/* The key opens the alert again for the next run that gets a notice. */}
@@ -186,7 +186,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 						severity="info"
 						icon={false}
 						title="You already played today's puzzle"
-						description={`Your score of ${dailyScore} / ${SLOTS} is saved. This replay won't change your streak.`}
+						description="Replays don't change your score or streak."
 						closable
 						announceOnMount
 						returnFocusTo={resetRef}

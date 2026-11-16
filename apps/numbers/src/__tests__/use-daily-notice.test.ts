@@ -63,7 +63,7 @@ afterEach(() => {
 })
 
 describe('useDailyNotice', () => {
-	it('gives the saved score for each run of a daily puzzle that already counts', () => {
+	it('gives the notice to each run of a daily puzzle that already counts', () => {
 		useStats.mockReturnValue({ data: statsWith(14) })
 
 		const user = makeUser(true)
@@ -72,15 +72,15 @@ describe('useDailyNotice', () => {
 
 		expect(useStats).toHaveBeenCalledWith(TODAY, true)
 
-		expect(result.current).toBe(14)
+		expect(result.current).toBe(true)
 
 		rerender({ game: placeNumber(playing(TODAY), 0), run: 1, user })
 
-		expect(result.current).toBe(14)
+		expect(result.current).toBe(true)
 
 		rerender({ game: playing(TODAY), run: 2, user })
 
-		expect(result.current).toBe(14)
+		expect(result.current).toBe(true)
 	})
 
 	it('keeps the decision of the run when the stats change during it', () => {
@@ -90,30 +90,30 @@ describe('useDailyNotice', () => {
 
 		const { result, rerender } = render({ game: playing(TODAY), run: 0, user })
 
-		expect(result.current).toBeNull()
+		expect(result.current).toBe(false)
 
 		// The first run ends, and its result is now the saved score.
 		useStats.mockReturnValue({ data: statsWith(9) })
 
 		rerender({ game: busted(TODAY), run: 0, user })
 
-		expect(result.current).toBeNull()
+		expect(result.current).toBe(false)
 
 		// The next run is a replay.
 		rerender({ game: playing(TODAY), run: 1, user })
 
-		expect(result.current).toBe(9)
+		expect(result.current).toBe(true)
 	})
 
-	it('gives no score before the first run of the daily puzzle counts', () => {
+	it('gives no notice before the first run of the daily puzzle counts', () => {
 		useStats.mockReturnValue({ data: statsWith(null) })
 
 		const { result } = render({ game: playing(TODAY), run: 1, user: makeUser(true) })
 
-		expect(result.current).toBeNull()
+		expect(result.current).toBe(false)
 	})
 
-	it('gives no score when the stats arrive after the run ended, because they can hold its result', () => {
+	it('gives no notice when the stats arrive after the run ended, because they can hold its result', () => {
 		useStats.mockReturnValue({ data: undefined })
 
 		const user = makeUser(true)
@@ -128,7 +128,7 @@ describe('useDailyNotice', () => {
 
 		rerender({ game: busted(TODAY), run: 1, user })
 
-		expect(result.current).toBeNull()
+		expect(result.current).toBe(false)
 	})
 
 	it('reads no stats for another seed, or for a reader with no verified email', () => {
@@ -142,6 +142,6 @@ describe('useDailyNotice', () => {
 
 		expect(useStats.mock.calls.every(([, enabled]) => !enabled)).toBe(true)
 
-		expect(results.every((result) => result.current === null)).toBe(true)
+		expect(results.every((result) => result.current === false)).toBe(true)
 	})
 })

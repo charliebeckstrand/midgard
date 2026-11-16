@@ -8,8 +8,8 @@ import { useStats } from '../queries/stats-queries'
 import { type Game, getStatus, isEnded } from '../utilities/game'
 import { dailySeed } from '../utilities/seed'
 
-/** The decision of one run: the saved score of the daily puzzle, or `null` for no notice. */
-type Decision = { run: number; score: number | null }
+/** The decision of one run: whether the run gets the notice. */
+type Decision = { run: number; notice: boolean }
 
 /**
  * Decides whether the run tells the reader that the daily puzzle of today
@@ -28,15 +28,14 @@ type Decision = { run: number; score: number | null }
  * notice in its first paint. The day of the reader is not known before
  * hydration (`useToday`), so after a load the notice comes with the stats.
  *
- * @returns The score of the first run of the daily puzzle, for the notice of
- * this run, or `null` when the run has no notice.
+ * @returns Whether this run gets the notice.
  */
 export function useDailyNotice(
 	game: Game,
 	run: number,
 	mode: Mode,
 	user: User | undefined,
-): number | null {
+): boolean {
 	const today = useToday()
 
 	const daily = today ? dailySeed(today) : ''
@@ -52,8 +51,8 @@ export function useDailyNotice(
 	// A set in the render renders again before the commit, and the next render
 	// finds the decision of the run, so it sets no more.
 	if (isDaily && decision?.run !== run && (ended || data)) {
-		setDecision({ run, score: ended || !data ? null : data[mode].dailyScore })
+		setDecision({ run, notice: !ended && data?.[mode].dailyScore != null })
 	}
 
-	return isDaily && decision?.run === run ? decision.score : null
+	return isDaily && decision?.run === run && decision.notice
 }
