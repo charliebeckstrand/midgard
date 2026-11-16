@@ -102,8 +102,14 @@ function ScoreCell({
 				</Flex>
 			)}
 
+			{/*
+			 * A hidden label is a sibling of the score, not a part of its text. An
+			 * absolute element in the line of the score made WebKit measure the
+			 * score too narrow, and the score wrapped after its slash.
+			 */}
+			{!showLabel && <span className="sr-only">{label}</span>}
+
 			<Text as="span" className="font-semibold text-xl tabular-nums">
-				{!showLabel && <span className="sr-only">{`${label} `}</span>}
 				{countPlaced(game.slots)}
 				<Text as="span" tone="muted" className="font-medium text-base">
 					{` / ${SLOTS}`}
