@@ -1159,7 +1159,7 @@ export interface paths {
 		}
 		/**
 		 * Get the leaderboard of a daily puzzle
-		 * @description The first run of each player of the daily puzzle of `date` in `mode`: the top 10 by score, then the reader when they are below them. Equal scores share a rank and list in the order that they finished. A date more than one day ahead of the server's date is refused.
+		 * @description The first run of each player of the daily puzzle of `date` in `mode`: the top 10 by score, then the reader when they are below them. Equal scores share a rank and list in the order that they finished. A date more than one day ahead of the server's date is refused. A reader with no session gets the top 10, with no entry of their own.
 		 */
 		get: {
 			parameters: {
@@ -1186,15 +1186,6 @@ export interface paths {
 				}
 				/** @description Invalid date or mode */
 				400: {
-					headers: {
-						[name: string]: unknown
-					}
-					content: {
-						'application/json': components['schemas']['Error']
-					}
-				}
-				/** @description Not signed in */
-				401: {
 					headers: {
 						[name: string]: unknown
 					}

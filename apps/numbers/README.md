@@ -66,9 +66,9 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Home (a
-new seed), Daily puzzle, and Vs CPU (a new seed against the CPU). Under a
-divider, the menu has Sign in, or Stats, Leaderboard and Sign out for a
-signed-in reader. A segment in the settings switches two tabs: "UI" has the
+new seed), Daily puzzle, Vs CPU (a new seed against the CPU), and Leaderboard.
+Under a divider, the menu has Sign in, or Stats and
+Sign out for a signed-in reader. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). A bar under the header holds the drawn number, the action, and a menu
 with Reset. Reset in the menu starts a new seed at each step. The number rolls
@@ -190,7 +190,7 @@ email, has no stats, so the item stays a plain link and no toast shows.
 ## Leaderboard
 
 Leaderboard in the header menu opens a dialog with the board of each daily
-puzzle, for a signed-in reader. A tab for each mode (Solo and Vs CPU) holds the
+puzzle, for each reader. A tab for each mode (Solo and Vs CPU) holds the
 board of one date: the top 10 players by the score of their first run of the
 puzzle, then the reader when they are below them, and the count of players.
 Equal scores share a rank. The board opens on today, the date of the reader,
@@ -200,8 +200,10 @@ and the arrows go to earlier days, but not past today. Mimir keeps the boards
 Each player shows by the name of their account, or as "Anonymous" when the
 account has no name, as an account from GitHub or Google does. Mimir keeps the
 name that each run sends. A reader with no name sees a line that tells them how
-they show. A reader with no verified email sees the boards, and a line that
-asks for the verification, because only the runs of a verified user count. A
+they show. A reader with no session sees the boards, and a line that asks
+them to sign in. A reader with no verified email sees the boards, and a line
+that asks for the verification, because only the runs of a verified user count.
+The board needs no session, so the names on it are public. A
 daily run that counts makes its board read again.
 
 ## Deploy

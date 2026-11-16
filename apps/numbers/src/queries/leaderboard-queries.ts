@@ -8,14 +8,12 @@ import type { Mode } from '../api/stats-api'
 export const boardKey = (date: string, mode: Mode) => ['numbers-board', date, mode] as const
 
 /**
- * The leaderboard of the daily puzzle of `date` (`YYYYMMDD`) in `mode`. The
- * query runs only while `enabled`: the shared query client sends a `401` to
- * `/login`, so a reader with no session must send no request.
+ * The leaderboard of the daily puzzle of `date` (`YYYYMMDD`) in `mode`. A
+ * reader with no session can read it too.
  */
-export function useBoard(date: string, mode: Mode, enabled: boolean) {
+export function useBoard(date: string, mode: Mode) {
 	return useQuery({
 		queryKey: boardKey(date, mode),
 		queryFn: () => readBoard(date, mode),
-		enabled,
 	})
 }

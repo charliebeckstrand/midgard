@@ -9,6 +9,7 @@ import { DateTime } from 'ui/date-time'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
 import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
+import { Link } from 'ui/link'
 import { useIntl } from 'ui/primitives/intl'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Flex } from 'ui/structure/flex'
@@ -35,8 +36,8 @@ import { dailySeed } from '../../utilities/seed'
 export type LeaderboardDialogProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	/** The signed-in user. The menu shows Leaderboard only to a signed-in reader. */
-	user: User
+	/** The signed-in user, or none. The boards are the same for each reader. */
+	user?: User
 }
 
 /** The local midnight `days` days after `date`. */
@@ -83,7 +84,7 @@ function BoardRow({ entry }: { entry: BoardEntry }) {
 function Board({ date, mode }: { date: string; mode: Mode }) {
 	const intl = useIntl()
 
-	const { data, isError } = useBoard(date, mode, true)
+	const { data, isError } = useBoard(date, mode)
 
 	if (isError) return <Text>The leaderboard could not be loaded. Try again later.</Text>
 
@@ -124,9 +125,21 @@ function Board({ date, mode }: { date: string; mode: Mode }) {
 
 /**
  * The line under the boards about how the reader shows on them. Only the runs
- * of a verified user count, and a user shows by the name of their account.
+ * of a signed-in user with a verified email count, and a user shows by the name
+ * of their account.
  */
-function ReaderNote({ user }: { user: User }) {
+function ReaderNote({ user }: { user?: User }) {
+	if (!user) {
+		return (
+			<Text>
+				<Link href="/login" underline>
+					Sign in
+				</Link>{' '}
+				to be on the leaderboard.
+			</Text>
+		)
+	}
+
 	if (!user.is_verified) {
 		return <Text>Verify your email to be on the leaderboard. The menu sends the link.</Text>
 	}
@@ -143,11 +156,10 @@ function ReaderNote({ user }: { user: User }) {
 }
 
 /**
- * The boards of a signed-in reader, by mode, on the daily puzzle of a day that
- * the arrows move. The board opens on today, and goes back to earlier days, but
- * not past today.
+ * The boards, by mode, on the daily puzzle of a day that the arrows move. The
+ * board opens on today, and goes back to earlier days, but not past today.
  */
-function SignedInBoards({ user }: { user: User }) {
+function Boards({ user }: { user?: User }) {
 	const today = useToday()
 
 	const [back, setBack] = useState(0)
@@ -206,8 +218,9 @@ function SignedInBoards({ user }: { user: User }) {
 /**
  * The leaderboard of each daily puzzle, from the Leaderboard item of the header
  * menu. Each player is ranked by the first run of the puzzle, and shows by the
- * name of their account, or as anonymous when it has none. A reader with no
- * verified email sees the boards, and a line that asks for the verification.
+ * name of their account, or as anonymous when it has none. Each reader sees the
+ * boards. A reader with no session gets a line that asks them to sign in, and a
+ * reader with no verified email gets a line that asks for the verification.
  */
 export function LeaderboardDialog({ open, onOpenChange, user }: LeaderboardDialogProps) {
 	return (
@@ -218,7 +231,7 @@ export function LeaderboardDialog({ open, onOpenChange, user }: LeaderboardDialo
 				</DialogHeader>
 
 				<DialogBody>
-					<SignedInBoards user={user} />
+					<Boards user={user} />
 				</DialogBody>
 			</DialogPanel>
 		</Dialog>
