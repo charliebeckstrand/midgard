@@ -276,7 +276,7 @@ importers:
         specifier: ^2.1.10
         version: 2.2.2
       turbo:
-        specifier: ^2.11.7
+        specifier: 2.11.10
         version: 2.11.10
 
   apps/admin:

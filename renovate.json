@@ -19,7 +19,7 @@
 	},
 	"customManagers": [
 		{
-			"description": "Renovate has no built-in manager for the pnpm and turbo pins in the Dockerfiles at the repository root. Without this manager, the non-major branch moved `packageManager` and the lockfile but not the Dockerfiles, and dockerfile-pin-boundary.test.ts failed (#3641). This manager moves each pin in the same branch as the version that it must equal.",
+			"description": "Renovate has no built-in manager for the pnpm and turbo pins in the Dockerfiles at the repository root. Without this manager, the non-major branch moved `packageManager` and the lockfile but not the Dockerfiles, and dockerfile-pin-boundary.test.ts failed (#3641). This manager moves each pin in the same branch as the version that it must equal. The root package.json pins turbo exactly, because lock file maintenance does not run this manager and would otherwise move turbo in the lockfile alone.",
 			"customType": "regex",
 			"managerFilePatterns": ["/^Dockerfile(\\.[^/]+)?$/"],
 			"matchStrings": [

@@ -6,9 +6,10 @@ import { workspaceRoot } from '../helpers/walk-source'
 // Each Dockerfile at the repository root installs pnpm at a pinned version, and
 // runs `turbo prune` through `pnpm dlx` at a pinned version. Renovate updates
 // pnpm in the `packageManager` field and turbo in the lockfile. A regex manager
-// in `renovate.json` updates the Dockerfile pins in the same branch, but a hand
-// edit can still move one copy alone. A pin that falls behind can stop the
-// deploy. In
+// in `renovate.json` updates the Dockerfile pins in the same branch. The root
+// `package.json` pins turbo exactly, so lock file maintenance cannot move it
+// alone. A hand edit can still move one copy alone. A pin that falls behind can
+// stop the deploy. In
 // charliebeckstrand/midgard#1921, an old turbo did not know a key of the root
 // `turbo.json`. Thus each pin must equal the version that the repository uses.
 
