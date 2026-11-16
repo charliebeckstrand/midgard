@@ -66,9 +66,9 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Home (a
-new seed), Daily puzzle, and Vs CPU (a new seed against the CPU). Under a
-divider, the menu has Sign in, or Stats, Leaderboard and Sign out for a
-signed-in reader. A segment in the settings switches two tabs: "UI" has the
+new seed), Daily puzzle, Vs CPU (a new seed against the CPU), and Leaderboard
+for a signed-in reader. Under a divider, the menu has Sign in, or Stats and
+Sign out for a signed-in reader. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). A bar under the header holds the drawn number, the action, and a menu
 with Reset. Reset in the menu starts a new seed at each step. The number rolls
