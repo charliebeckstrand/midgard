@@ -25,7 +25,8 @@ import { StatsDialog } from '../stats-dialog'
 
 /**
  * The link to the daily puzzle of `today`. After the first run of the puzzle
- * counts (`played`), the item shows a green check at its end.
+ * counts (`played`), the item shows a green check after its label, at the gap
+ * of the row.
  */
 function DailyPuzzleItem({ today, played }: { today: Date; played: boolean }) {
 	return (
@@ -36,7 +37,7 @@ function DailyPuzzleItem({ today, played }: { today: Date; played: boolean }) {
 				<Icon
 					icon={<CircleCheck />}
 					label="Played"
-					className="ms-auto text-green-600 dark:text-green-500"
+					className="text-green-600 dark:text-green-500"
 				/>
 			)}
 		</MenuItem>
