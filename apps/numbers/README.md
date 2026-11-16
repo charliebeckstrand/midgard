@@ -44,7 +44,9 @@ partial Fisher-Yates shuffle takes the deck.
 | `/vs/k3x9q2` | The run of the seed against the CPU (see [Vs CPU](#vs-cpu)) |
 
 A Reset starts the run of a new seed in place, in the same mode, and adds its
-address to the history. A link, Back, and Forward start the run of the seed of
+address to the history. While the run goes on and has a placed number, Reset
+asks the reader to confirm (`useConfirm` of `ui`). After a bust or a win, or
+before the first placement, Reset does not ask. A link, Back, and Forward start the run of the seed of
 the address again, from its start.
 
 The daily puzzle of a day is the run of the seed of its date (`dailySeed`), in
@@ -70,8 +72,9 @@ new seed), Daily puzzle, Vs CPU (a new seed against the CPU), and Leaderboard.
 Under a divider, the menu has Sign in, or Stats and
 Sign out for a signed-in reader. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
-below). A bar under the header holds the drawn number, the action, and a menu
-with Reset. Reset in the menu starts a new seed at each step. The number rolls
+below). A bar under the header holds the drawn number and, with Auto-draw off,
+Draw. A Reset button at the right of the bar, apart from it, starts a new seed
+at each step. The bar keeps one height with Draw and without it. The number rolls
 to each new number through the `Odometer` of `ui`. The first number of the run
 that the page opens with shows at once, and the first number of each later run
 rolls from 0.
@@ -79,8 +82,8 @@ rolls from 0.
 The 20 slots are buttons. Only a slot that can take the drawn number is on,
 with an amber outline. A filled slot shows its number in a soft green, and it
 stays off. When the drawn number has no slot, a dashed line and the number
-show between the two numbers that it goes between, and the action becomes a
-red Reset. After a win, the action is Reset.
+show between the two numbers that it goes between, and the number in the bar
+is red. After a bust or a win, the bar has no Draw.
 
 A bar at the bottom shows the score: the count of the filled slots, of 20,
 while Show score is on. A share button at the right of the bar, apart from the
@@ -91,7 +94,8 @@ a slot that has the focus. The page box is the height of the visible area
 screen reader hears the score at a bust.
 
 An action can turn off the button that the reader pressed. The focus then
-moves to the first slot that can take the number, or else to the action.
+moves to the first slot that can take the number, or else to Draw, or else to
+Reset.
 
 ## Settings
 
@@ -99,7 +103,7 @@ The Game tab of the settings has two switches and a picker:
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Auto-draw | On | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button, and the action shows only as Reset after a bust or a win. |
+| Auto-draw | On | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button. |
 | Show score | On | The bar at the bottom shows the score. |
 | CPU difficulty | Normal | The level of the CPU in Vs CPU: Easy, Normal, or Hard (see [Vs CPU](#vs-cpu)). |
 
