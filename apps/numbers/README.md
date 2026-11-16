@@ -80,7 +80,7 @@ trail gives way from the left, as the trails of Places and Elections do.
 The menu has Standard (a new solo seed), Vs CPU (a new seed against the CPU),
 and Daily puzzle. Under a divider is Leaderboard. Under a second divider, the
 menu has Sign in, or Stats and Sign out for a signed-in reader. The item of the
-route of the page is bold (`aria-current`): Vs CPU on a run against the CPU,
+route of the page is extra bold (`aria-current`): Vs CPU on a run against the CPU,
 Daily puzzle on a solo run of a date seed, and Standard else (`getRoute`).
 
 A segment in the settings switches two tabs: "UI" has the

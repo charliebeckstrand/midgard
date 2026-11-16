@@ -134,7 +134,7 @@ describe('NumbersMenu', () => {
 				const current = name === label
 
 				expect(item?.getAttribute('aria-current')).toBe(current ? 'true' : null)
-				expect(item?.classList.contains('font-semibold')).toBe(current)
+				expect(item?.classList.contains('font-extrabold')).toBe(current)
 			}
 		},
 	)
