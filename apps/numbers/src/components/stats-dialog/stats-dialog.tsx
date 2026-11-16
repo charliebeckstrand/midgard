@@ -13,7 +13,7 @@ import { TabContent, TabContents } from 'ui/tabs'
 import { Text } from 'ui/text'
 import type { Mode, ModeStats } from '../../api/stats-api'
 import { useStats } from '../../queries/stats-queries'
-import { dailySeed } from '../../utilities/seed'
+import { dailySeed, ROUTE_LABELS } from '../../utilities/seed'
 
 /** Props for {@link StatsDialog}. */
 export type StatsDialogProps = {
@@ -28,7 +28,7 @@ type Tile = [label: string, value: string | undefined]
 
 /**
  * The tiles of the stats of `mode`, from {@link ModeStats}, or skeletons while
- * they load. Solo shows the daily streaks, because only a solo run plays the
+ * they load. Standard shows the daily streaks, because only a solo run plays the
  * daily puzzle. Vs CPU shows Win % in their place, the share of the runs that
  * beat the CPU, which is empty until the first run that counts toward it.
  */
@@ -92,7 +92,7 @@ function SignedInStats() {
 		<Segment defaultValue="solo">
 			<Stack gap="lg">
 				<SegmentControl aria-label="Mode">
-					<SegmentItem value="solo">Solo</SegmentItem>
+					<SegmentItem value="solo">{ROUTE_LABELS.solo}</SegmentItem>
 					<SegmentItem value="vsCpu">Vs CPU</SegmentItem>
 				</SegmentControl>
 

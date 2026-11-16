@@ -70,7 +70,7 @@ export const VS_SEGMENT = 'vs'
 /** A route of the menu: solo (the Standard item), Vs CPU, or Daily puzzle. */
 export type Route = 'solo' | 'vsCpu' | 'daily'
 
-/** The label of each route, in the menu and in the trail of the header. */
+/** The label of each route, in the menu, in the trail of the header, and on the tabs of Stats and Leaderboard. */
 export const ROUTE_LABELS: Record<Route, string> = {
 	solo: 'Standard',
 	vsCpu: 'Vs CPU',

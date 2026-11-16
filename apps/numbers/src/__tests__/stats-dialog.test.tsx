@@ -62,7 +62,7 @@ afterEach(() => {
 })
 
 describe('StatsDialog', () => {
-	it('shows the daily streaks on Solo, and Win % in their place on Vs CPU, as a whole percent', async () => {
+	it('shows the daily streaks on Standard, and Win % in their place on Vs CPU, as a whole percent', async () => {
 		useStats.mockReturnValue({
 			data: { solo: modeStats(4, null), vsCpu: modeStats(9, 4 / 9) },
 			isError: false,
@@ -80,7 +80,7 @@ describe('StatsDialog', () => {
 
 		expect((await screen.findByText('Win %')).parentElement?.textContent).toContain('44%')
 
-		// Only a solo run plays the daily puzzle, so the hidden Solo tab holds the only streaks.
+		// Only a solo run plays the daily puzzle, so the hidden Standard tab holds the only streaks.
 		expect(screen.getAllByText('Daily streak')).toHaveLength(1)
 	})
 
