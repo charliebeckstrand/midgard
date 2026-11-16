@@ -10,6 +10,7 @@ import {
 	type Outcome,
 	SLOTS,
 } from '../../utilities/game'
+import { SETTINGS } from '../../utilities/settings'
 import { GameBoardShare } from './game-board-share'
 
 /** The tint of a score cell: green for the winner, and amber for a tie. */
@@ -17,8 +18,8 @@ type Tint = 'green' | 'amber' | undefined
 
 /**
  * The label and the tint of the cell of the player and of the CPU, while the
- * game goes on and for each result. The label of the CPU gets its name, such as
- * "Hard CPU".
+ * game goes on and for each result. The label of the CPU gets its name (see
+ * {@link cpuName}).
  */
 const RESULTS: Record<
 	Outcome | 'playing',
@@ -28,6 +29,13 @@ const RESULTS: Record<
 	win: { player: ['You win', 'green'], cpu: [(name) => name, undefined] },
 	loss: { player: ['You', undefined], cpu: [(name) => `${name} wins`, 'green'] },
 	tie: { player: ['Tie', 'amber'], cpu: [() => 'Tie', 'amber'] },
+}
+
+/** The name of the CPU in its label: "CPU" at the default level, and "CPU (Easy)" or "CPU (Hard)" else. */
+function cpuName(difficulty: Difficulty): string {
+	return difficulty === SETTINGS.difficulty.fallback
+		? 'CPU'
+		: `CPU (${DIFFICULTY_LABELS[difficulty]})`
 }
 
 /** Props for {@link ScoreCell}. */
@@ -83,10 +91,10 @@ export type GameBoardFooterProps = {
  * the share menu at the right, with a gap between them. The score is the count
  * of the filled slots, of 20, and it has the look of the bar of the number at
  * the top. Against the CPU, the bar has the score of the player above the
- * score of the CPU. The label of the CPU names its level, such as "Hard CPU".
- * After the end, the score of the winner is green and reads "You win" or, for
- * example, "Hard CPU wins", and a tie makes both amber. With Show score off,
- * the bar holds only the share menu.
+ * score of the CPU. Away from the default level, the label of the CPU names
+ * its level, such as "CPU (Hard)". After the end, the score of the winner is green and reads
+ * "You win" or, for example, "CPU (Hard) wins", and a tie makes both amber.
+ * With Show score off, the bar holds only the share menu.
  *
  * @remarks
  * The page box is the height of the visible area (`h-dvh`), so the bottom of
@@ -114,11 +122,7 @@ export function GameBoardFooter({
 				{cpu ? (
 					<Stack gap="sm">
 						<ScoreCell label={player[0]} tint={player[1]} game={game} />
-						<ScoreCell
-							label={opponent[0](`${DIFFICULTY_LABELS[difficulty]} CPU`)}
-							tint={opponent[1]}
-							game={cpu}
-						/>
+						<ScoreCell label={opponent[0](cpuName(difficulty))} tint={opponent[1]} game={cpu} />
 					</Stack>
 				) : (
 					showScore && <ScoreCell label="Score" game={game} />

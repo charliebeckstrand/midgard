@@ -19,7 +19,17 @@ describe('GameBoardFooter', () => {
 			wrapper,
 		})
 
-		expect(screen.getByText('Hard CPU')).toBeTruthy()
+		expect(screen.getByText('CPU (Hard)')).toBeTruthy()
+	})
+
+	it('names no level at the default level', () => {
+		const game = createGame('k3x9q2')
+
+		render(h(GameBoardFooter, { game, showScore: true, cpu: game, difficulty: 'normal' }), {
+			wrapper,
+		})
+
+		expect(screen.getByText('CPU')).toBeTruthy()
 	})
 
 	it('names the level of the CPU when the CPU wins', () => {
@@ -37,6 +47,6 @@ describe('GameBoardFooter', () => {
 			{ wrapper },
 		)
 
-		expect(screen.getByText('Easy CPU wins')).toBeTruthy()
+		expect(screen.getByText('CPU (Easy) wins')).toBeTruthy()
 	})
 })

@@ -138,11 +138,11 @@ at the new level. The stats keep the score of the player only, and the CPU does
 not change the game of the player, so the level does not change the stats.
 
 The bar at the bottom has the score of the player above the score of the CPU.
-The label of the CPU names its level, such as "Hard CPU", so a screenshot shows
-the level. The bar shows also with Show score off, because it names the columns
-and gives the result. After the end, the score of the winner is green and reads
-"You win" or, for example, "Hard CPU wins", and a tie makes both scores amber. A screen reader hears the result
-at the end.
+At Easy and Hard, the label of the CPU names its level, such as "CPU (Hard)",
+so a screenshot shows the level. At Normal, the label is "CPU". The bar shows also with Show score off, because it names the
+columns and gives the result. After the end, the score of the winner is green
+and reads "You win" or, for example, "CPU (Hard) wins", and a tie makes both
+scores amber. A screen reader hears the result at the end.
 
 ## Sign-in
 
