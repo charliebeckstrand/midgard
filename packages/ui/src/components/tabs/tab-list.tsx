@@ -64,11 +64,13 @@ export type TabListProps = AccessibleName &
 /**
  * `role="tablist"` container for `<Tab>` children. Manages roving focus along
  * the resolved `orientation`, and scopes the shared `<ActiveIndicator>`
- * animation. A MutationObserver keeps at least one tab tabbable as a floor; the
- * single Tab stop itself comes from each `<Tab>`'s roving `tabIndex`. The list
- * of each variant sits in an overflow viewport, so an over-long tab row scrolls
- * in place rather than widening the page, and the edge with more tabs behind it
- * fades. The row paints at its start, on the server and on the
+ * animation. The indicator morphs only along that orientation. A container that
+ * moves the list, such as a Dialog that takes its height from the panel, thus
+ * does not slide it off the line of the tabs. A MutationObserver keeps at least
+ * one tab tabbable as a floor; the single Tab stop itself comes from each
+ * `<Tab>`'s roving `tabIndex`. The list of each variant sits in an overflow
+ * viewport, so an over-long tab row scrolls in place rather than widening the
+ * page, and the edge with more tabs behind it fades. The row paints at its start, on the server and on the
  * client, and a mount does not scroll it. The active tab scrolls into view when
  * the selection changes and as focus roves. A consumer `ref` reaches the
  * `role="tablist"` element.
@@ -126,7 +128,9 @@ export function TabList({
 	)
 
 	return (
-		<ActiveIndicatorScope>
+		// Each tab of a list has the same box across the list, so the marker
+		// morphs only along the list.
+		<ActiveIndicatorScope orientation={orientation}>
 			<div data-slot="tab-list-scroll" data-scroll-region className={slots.scroll}>
 				{list}
 			</div>
