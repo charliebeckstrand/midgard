@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createRandom, createSeed, isSeed } from '../utilities/seed'
+import { createRandom, createSeed, dailySeed, isSeed } from '../utilities/seed'
 
 describe('createSeed', () => {
 	it('makes a seed of six letters and digits', () => {
@@ -37,5 +37,17 @@ describe('createRandom', () => {
 
 	it('gives another sequence for another seed', () => {
 		expect(createRandom('a')()).not.toBe(createRandom('b')())
+	})
+})
+
+describe('dailySeed', () => {
+	it('gives the date of the reader as YYYYMMDD', () => {
+		expect(dailySeed(new Date(2026, 10, 15, 23, 59))).toBe('20261115')
+
+		expect(dailySeed(new Date(2027, 0, 3, 0, 0))).toBe('20270103')
+	})
+
+	it('gives a seed', () => {
+		expect(isSeed(dailySeed(new Date()))).toBe(true)
 	})
 })

@@ -18,6 +18,19 @@ export function isSeed(value: string): boolean {
 	return SEED_PATTERN.test(value)
 }
 
+/**
+ * The seed of the daily puzzle of `date`: the date as `YYYYMMDD`, such as
+ * `20261115`. The date is in the time zone of the reader, so each reader gets
+ * a new puzzle at their own midnight.
+ */
+export function dailySeed(date: Date): string {
+	const month = String(date.getMonth() + 1).padStart(2, '0')
+
+	const day = String(date.getDate()).padStart(2, '0')
+
+	return `${date.getFullYear()}${month}${day}`
+}
+
 /** Makes a new random seed. */
 export function createSeed(): string {
 	const bytes = crypto.getRandomValues(new Uint8Array(SEED_LENGTH))
