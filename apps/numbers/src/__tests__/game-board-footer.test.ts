@@ -70,6 +70,31 @@ describe('GameBoardFooter', () => {
 		expect(document.querySelector('.lucide-circle-check')).toBeNull()
 	})
 
+	it('makes a solo bust amber, with no check', () => {
+		const game = createGame('k3x9q2')
+
+		// The first slot holds 2, so the drawn 1 has no slot.
+		const bust = { ...game, slots: [2, ...game.slots.slice(1)], drawn: 1 }
+
+		const { container } = render(
+			h(GameBoardFooter, { game: bust, showScore: true, difficulty: 'normal' }),
+			{ wrapper },
+		)
+
+		expect(container.querySelector('.bg-amber-500\\/15')).toBeTruthy()
+		expect(document.querySelector('.lucide-circle-check')).toBeNull()
+
+		cleanup()
+
+		// A run that goes on has no tint.
+		const { container: playing } = render(
+			h(GameBoardFooter, { game, showScore: true, difficulty: 'normal' }),
+			{ wrapper },
+		)
+
+		expect(playing.querySelector('.bg-amber-500\\/15')).toBeNull()
+	})
+
 	it('gives the solo score a label only for a screen reader', () => {
 		render(
 			h(GameBoardFooter, { game: createGame('k3x9q2'), showScore: true, difficulty: 'normal' }),

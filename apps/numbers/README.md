@@ -108,7 +108,8 @@ background. A border spans the bottom of the top bar and the top of the bottom
 bar, and the slots have 1rem of space inside the borders. Each bar has 1rem of
 space at each side and 0.5rem above and below, and the drawn number and the
 score are flush with the slots. A win or a tie tints the score cells, and gives
-them padding.
+them padding. A solo win, on a seed or on the daily puzzle, makes the score
+green with a check. A solo bust makes it amber, as a tie against the CPU does.
 
 An action can turn off the button that the reader pressed. The focus then
 moves to the first slot that can take the number, or else to Draw, or else to
