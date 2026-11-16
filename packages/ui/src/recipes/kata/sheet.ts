@@ -112,10 +112,10 @@ export const k = defineKata(
 		responsive: { layout: { flush: 'rounded-none', floating: 'rounded-2xl' } },
 		compound: [...DOCKED_STEPS, ...INSETS, ...DOCKED_WIDTHS],
 		slots: {
-			// The header stands one slot gap from the top edge, as the header of a drawer
-			// does (see `kata/drawer.ts`).
-			header: [space.panel.x, space.panel.head],
-			title: [space.panel.x, space.panel.head, 'in-data-[slot=sheet-header]:p-0'],
+			// The header stands the panel inset from the top edge, as the header of a
+			// drawer does (see `kata/drawer.ts`).
+			header: [space.panel.x, space.panel.top],
+			title: [space.panel.x, space.panel.top, 'in-data-[slot=sheet-header]:p-0'],
 			description: [space.panel.x, 'in-data-[slot=sheet-header]:px-0'],
 			footer: [space.panel.x, space.panel.bottom],
 			body: ['flex-1', space.panel.x, space.panel.first.sheet, space.panel.last.sheet],

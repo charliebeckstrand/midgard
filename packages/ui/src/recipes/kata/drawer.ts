@@ -69,18 +69,18 @@ export const k = defineKata(
 			full: ['h-full', SQUARE_AT_EDGE, css.size, css.duration, RESIZING],
 		},
 		slots: {
-			// The header stands one slot gap from the top edge (`space.panel.head`), and the
-			// panel puts the same gap under it. The header slot carries the space, so it
-			// can hold a title and a description, or a row such as a title with a close
+			// The header stands the panel inset from the top edge (`space.panel.top`), as
+			// the heading of a dialog does. The header slot carries the space, so it can
+			// hold a title and a description, or a row such as a title with a close
 			// button. A title that is the first slot carries the same space. A title or a
 			// description in a header takes none of its own.
 			//
 			// A handle already is the space at the top edge. Under a handle the header
 			// would sit a whole step below the grip, so the handle removes the space.
-			header: [space.panel.x, space.panel.head, 'group-data-handle/drawer:pt-0'],
+			header: [space.panel.x, space.panel.top, 'group-data-handle/drawer:pt-0'],
 			title: [
 				space.panel.x,
-				space.panel.head,
+				space.panel.top,
 				'group-data-handle/drawer:pt-0',
 				'in-data-[slot=drawer-header]:p-0',
 			],
