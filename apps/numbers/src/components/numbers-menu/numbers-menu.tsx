@@ -26,10 +26,12 @@ import { StatsDialog } from '../stats-dialog'
 
 /**
  * The props of the item of `route`, when it is the route of the page: it is
- * the current page, and its label is bold.
+ * the current item, and its label is bold. The token is `true`, not `page`,
+ * because the link of the item opens another page: a new seed, or the daily
+ * puzzle of today.
  */
 function currentProps(route: Route, current: Route) {
-	return route === current ? ({ 'aria-current': 'page', className: 'font-semibold' } as const) : {}
+	return route === current ? ({ 'aria-current': 'true', className: 'font-semibold' } as const) : {}
 }
 
 /**
@@ -78,7 +80,7 @@ export type NumbersMenuProps = {
  * signed-in reader gets Verify email (until the email is verified), Stats,
  * which opens the stats of the reader, and Sign out.
  *
- * The item of the route of the page is bold, and it is the current page
+ * The item of the route of the page is bold, and it is the current item
  * (`aria-current`). The route comes from the props of the page, not from the
  * address after the hydration, so the item is marked at the first open. A
  * daily puzzle of an earlier day is on Daily puzzle.

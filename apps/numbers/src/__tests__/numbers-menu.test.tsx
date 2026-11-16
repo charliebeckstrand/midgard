@@ -109,7 +109,7 @@ describe('NumbersMenu', () => {
 		['vsCpu', 'Vs CPU'],
 		['daily', 'Daily puzzle'],
 	] as const)(
-		'marks the item of the route %s as the current page, in bold',
+		'marks the item of the route %s as the current item, in bold',
 		async (route, label) => {
 			vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
 
@@ -125,7 +125,7 @@ describe('NumbersMenu', () => {
 
 				const current = name === label
 
-				expect(item?.getAttribute('aria-current')).toBe(current ? 'page' : null)
+				expect(item?.getAttribute('aria-current')).toBe(current ? 'true' : null)
 				expect(item?.classList.contains('font-semibold')).toBe(current)
 			}
 		},
