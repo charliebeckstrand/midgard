@@ -1,5 +1,6 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { type MouseEvent, useEffect, useEffectEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useA11yAnnouncements } from 'ui/hooks'
@@ -40,8 +41,8 @@ export type GameBoardProps = {
  * of the column scrolls it too.
  *
  * A Reset starts the run of a new seed in place, and adds the address of the
- * seed to the history, so the reader can send the run. Back and Forward go to
- * the run of the seed of the address, from its start.
+ * seed to the history, so the reader can send the run. A link, Back, and
+ * Forward go to the run of the seed of the address, from its start.
  *
  * @remarks
  * An action can turn off the control that the reader pressed: Draw is off
@@ -92,18 +93,19 @@ export function GameBoard({ seed }: GameBoardProps) {
 		reset(next)
 	}
 
-	/** Starts the run of the seed of the address, after Back or Forward. */
-	const follow = useEffectEvent(() => {
-		const next = window.location.pathname.slice(1)
+	// The address of the page. Next gives each change of it: a link, Back,
+	// Forward, and the `pushState` of a Reset.
+	const pathname = usePathname()
 
-		if (isSeed(next) && next !== game.seed) reset(next)
+	/** Starts the run of the seed of the address from its start. */
+	const follow = useEffectEvent((next: string) => {
+		if (isSeed(next)) reset(next)
 	})
 
-	useEffect(() => {
-		window.addEventListener('popstate', follow)
-
-		return () => window.removeEventListener('popstate', follow)
-	}, [])
+	// The effect runs at each change of the address. Cache Components holds a
+	// route that the reader leaves, and shows it again on a return. The effect
+	// also runs at each show, so a return to a held route starts its run again.
+	useEffect(() => follow(pathname.slice(1)), [pathname])
 
 	const ended = status === 'bust' || status === 'won'
 
