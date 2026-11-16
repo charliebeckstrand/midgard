@@ -64,6 +64,8 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const [showScore] = useGameSetting('showScore')
 
+	const [difficulty] = useGameSetting('difficulty')
+
 	const recordRun = useRunRecorder(user, vsCpu ? 'vsCpu' : 'solo')
 
 	const { game, status, run, draw, place, reset } = useGame(seed, autoDraw, recordRun)
@@ -72,8 +74,9 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	// The CPU places each number after the player places it, so the player
 	// chooses first. When the game of the player ends, the CPU plays the rest of
-	// its deck.
-	const cpu = vsCpu ? playCpu(game.seed, ended ? SLOTS : countPlaced(game.slots)) : null
+	// its deck. The game of the CPU comes from the seed, so a change of the level
+	// plays the same numbers again at the new level.
+	const cpu = vsCpu ? playCpu(game.seed, ended ? SLOTS : countPlaced(game.slots), difficulty) : null
 
 	const outcome = cpu && ended ? getOutcome(game, cpu) : null
 

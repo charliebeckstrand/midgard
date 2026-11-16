@@ -5,7 +5,7 @@ import { Flex } from 'ui/structure/flex'
 import { Spacer } from 'ui/structure/spacer'
 import { Text } from 'ui/text'
 import { NumbersMenu } from '../numbers-menu'
-import { SettingField } from '../setting-field'
+import { DifficultyField, SettingField } from '../setting-field'
 
 /** The tabs of the settings of the game, after the "UI" tab of the appearance pickers. */
 const TABS = [
@@ -15,6 +15,7 @@ const TABS = [
 			<>
 				<SettingField name="autoDraw" label="Auto-draw" />
 				<SettingField name="showScore" label="Show score" />
+				<DifficultyField />
 			</>
 		),
 	},
@@ -30,7 +31,7 @@ export type NumbersHeaderProps = {
  * The bar at the top of the page: the name of the app, and on its right the
  * settings and the menu. A segment in the settings switches the "UI" tab of the
  * appearance pickers and the "Game" tab, with the Auto-draw and the Show score
- * switches.
+ * switches and the picker of the level of the CPU.
  */
 export function NumbersHeader({ user }: NumbersHeaderProps) {
 	return (

@@ -16,9 +16,9 @@ afterEach(() => {
 })
 
 /** Renders `useGameSetting(name)` under the settings of a request. */
-function renderSetting(
-	name: keyof GameSettings,
-	settings: GameSettings = { autoDraw: true, showScore: true },
+function renderSetting<Name extends keyof GameSettings>(
+	name: Name,
+	settings: GameSettings = { autoDraw: true, showScore: true, difficulty: 'normal' },
 ) {
 	const wrapper = ({ children }: { children: ReactNode }) =>
 		h(GameSettingsProvider, { settings, children })
@@ -35,9 +35,10 @@ describe('useGameSetting', () => {
 	it('reads the cookie', () => {
 		writeCookie(SETTINGS.showScore.cookie, 'off')
 
-		expect(renderSetting('showScore', { autoDraw: true, showScore: false }).result.current[0]).toBe(
-			false,
-		)
+		expect(
+			renderSetting('showScore', { autoDraw: true, showScore: false, difficulty: 'normal' }).result
+				.current[0],
+		).toBe(false)
 	})
 
 	it('writes the cookie, and tells each reader in the tab', () => {
@@ -78,6 +79,17 @@ describe('useGameSetting', () => {
 		act(() => result.current[1](false))
 
 		expect(window.localStorage.getItem(SETTINGS.showScore.cookie)).toBe('off')
+	})
+
+	it('writes the level of the CPU', () => {
+		const { result } = renderSetting('difficulty')
+
+		expect(result.current[0]).toBe('normal')
+
+		act(() => result.current[1]('hard'))
+
+		expect(document.cookie).toContain(`${SETTINGS.difficulty.cookie}=hard`)
+		expect(result.current[0]).toBe('hard')
 	})
 
 	it('keeps each setting apart', () => {

@@ -5,6 +5,8 @@ import {
 	chooseSlot,
 	countPlaced,
 	createGame,
+	DIFFICULTIES,
+	type Difficulty,
 	drawNumber,
 	findGap,
 	type Game,
@@ -196,40 +198,66 @@ describe('countPlaced', () => {
 })
 
 describe('chooseSlot', () => {
-	it('places a number in proportion to the open range', () => {
+	it('places a number in proportion at normal to the open range', () => {
 		const { slots } = makeGame({})
 
-		expect(chooseSlot(slots, 1)).toBe(0)
-		expect(chooseSlot(slots, 500)).toBe(9)
-		expect(chooseSlot(slots, 501)).toBe(10)
-		expect(chooseSlot(slots, MAX)).toBe(SLOTS - 1)
+		expect(chooseSlot(slots, 1, 'normal')).toBe(0)
+		expect(chooseSlot(slots, 500, 'normal')).toBe(9)
+		expect(chooseSlot(slots, 501, 'normal')).toBe(10)
+		expect(chooseSlot(slots, MAX, 'normal')).toBe(SLOTS - 1)
 	})
 
 	it('places a number in the run between its two neighbors', () => {
 		// Slots 5 to 14 are open between 100 and 200, so 150 goes near the middle of the run.
 		const { slots } = makeGame({ 4: 100, 15: 200 })
 
-		expect(chooseSlot(slots, 150)).toBe(10)
-		expect(chooseSlot(slots, 101)).toBe(5)
-		expect(chooseSlot(slots, 199)).toBe(14)
+		expect(chooseSlot(slots, 150, 'normal')).toBe(10)
+		expect(chooseSlot(slots, 101, 'normal')).toBe(5)
+		expect(chooseSlot(slots, 199, 'normal')).toBe(14)
 	})
 
-	it('gives a slot that can take the number', () => {
+	it('places a number in the middle of its run at easy', () => {
+		expect(chooseSlot(makeGame({}).slots, 1, 'easy')).toBe(10)
+		expect(chooseSlot(makeGame({ 4: 100, 15: 200 }).slots, 199, 'easy')).toBe(10)
+		expect(chooseSlot(makeGame({ 4: 100, 15: 200 }).slots, 50, 'easy')).toBe(2)
+	})
+
+	it('keeps room on each side of a number at hard', () => {
+		const { slots } = makeGame({})
+
+		// 500 is in the middle of the range, so each side expects the same count of numbers.
+		expect(chooseSlot(slots, 500, 'hard')).toBe(9)
+		// A small number leaves no room below it, and a large number no room above it.
+		expect(chooseSlot(slots, 1, 'hard')).toBe(0)
+		expect(chooseSlot(slots, MAX, 'hard')).toBe(SLOTS - 1)
+		// With one slot open, the number goes there.
+		const full = makeGame(
+			Object.fromEntries(Array.from({ length: SLOTS - 1 }, (_, index) => [index, index + 1])),
+		)
+
+		expect(chooseSlot(full.slots, 600, 'hard')).toBe(SLOTS - 1)
+	})
+
+	it('gives a slot that can take the number at each level', () => {
 		const { slots } = makeGame({ 2: 300, 3: 310, 10: 700 })
 
-		for (const value of [1, 299, 400, 699, 701, MAX]) {
-			expect(canPlace(slots, chooseSlot(slots, value), value)).toBe(true)
+		for (const difficulty of DIFFICULTIES) {
+			for (const value of [1, 299, 400, 699, 701, MAX]) {
+				expect(canPlace(slots, chooseSlot(slots, value, difficulty), value)).toBe(true)
+			}
 		}
 	})
 
 	it('gives -1 when no slot can take the number', () => {
-		expect(chooseSlot(makeGame({ 2: 300, 3: 310 }).slots, 305)).toBe(-1)
+		for (const difficulty of DIFFICULTIES) {
+			expect(chooseSlot(makeGame({ 2: 300, 3: 310 }).slots, 305, difficulty)).toBe(-1)
+		}
 	})
 })
 
 describe('playCpu', () => {
 	it('plays the first draws of the deck of the seed', () => {
-		const cpu = playCpu('k3x9q2', 3)
+		const cpu = playCpu('k3x9q2', 3, 'normal')
 
 		expect(countPlaced(cpu.slots)).toBe(3)
 		expect(
@@ -239,11 +267,28 @@ describe('playCpu', () => {
 	})
 
 	it('gives the same game for the same seed', () => {
-		expect(playCpu('k3x9q2', SLOTS)).toEqual(playCpu('k3x9q2', SLOTS))
+		expect(playCpu('k3x9q2', SLOTS, 'normal')).toEqual(playCpu('k3x9q2', SLOTS, 'normal'))
+	})
+
+	it('fills more slots at each higher level, on average', () => {
+		const average = (difficulty: Difficulty) => {
+			let total = 0
+
+			for (let seed = 0; seed < 2000; seed++) {
+				total += countPlaced(playCpu(`s${seed}`, SLOTS, difficulty).slots)
+			}
+
+			return total / 2000
+		}
+
+		const [easy = 0, normal = 0, hard = 0] = DIFFICULTIES.map(average)
+
+		expect(normal - easy).toBeGreaterThan(1)
+		expect(hard - normal).toBeGreaterThan(0.4)
 	})
 
 	it('stops at a bust, and keeps the number', () => {
-		const cpu = playCpu('k3x9q2', SLOTS)
+		const cpu = playCpu('k3x9q2', SLOTS, 'normal')
 
 		const status = getStatus(cpu)
 

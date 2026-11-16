@@ -146,14 +146,21 @@ export function findGap(slots: Game['slots'], value: number): number {
 	return slots.findLastIndex((placed) => placed !== null && placed < value)
 }
 
+/** The level of the CPU: how well it chooses its slots (see {@link chooseSlot}). */
+export type Difficulty = 'easy' | 'normal' | 'hard'
+
+/** The levels of the CPU, from the weakest. */
+export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'normal', 'hard']
+
+/** The empty slots that can take a number: `open` slots from `start`, with `low` below and `high` above. */
+type Run = { start: number; open: number; low: number; high: number }
+
 /**
- * Chooses the slot of the CPU for `value`. The empty slots that can take the
- * number are a run between two filled slots (or an end). The CPU puts the
- * number in the run in proportion to its place in the open range of the run:
- * with no number placed, 500 goes near the middle, and 990 goes near the end.
- * Gives `-1` when no slot can take the number.
+ * Finds the run of `value`: the empty slots between the two filled slots (or
+ * an end) that `value` goes between. Each slot that can take the number is in
+ * the run. Gives `null` when no slot can take the number.
  */
-export function chooseSlot(slots: Game['slots'], value: number): number {
+function findRun(slots: Game['slots'], value: number): Run | null {
 	const below = findGap(slots, value)
 
 	// The first filled slot after the run. Each number after it is larger.
@@ -163,22 +170,94 @@ export function chooseSlot(slots: Game['slots'], value: number): number {
 
 	const open = end - below - 1
 
-	if (open === 0) return -1
+	if (open === 0) return null
 
-	const low = slots[below] ?? 0
-
-	const high = slots[end] ?? MAX + 1
-
-	// `value` is between `low` and `high`, so the share is below 1 and the slot is in the run.
-	return below + 1 + Math.floor(((value - low) / (high - low)) * open)
+	return { start: below + 1, open, low: slots[below] ?? 0, high: slots[end] ?? MAX + 1 }
 }
 
 /**
- * Plays the CPU on the deck of `seed`, for the first `draws` numbers. The CPU
- * places each number with {@link chooseSlot}. When a number has no slot, the
- * CPU stops, and the game keeps that number as its bust.
+ * The chance that a part of the range with `room` empty slots gets `room`
+ * numbers or fewer from the next `draws` draws, when each draw falls in the
+ * part with the chance `share`: the binomial distribution, summed to `room`.
  */
-export function playCpu(seed: string, draws: number): Game {
+function fitChance(draws: number, share: number, room: number): number {
+	let term = (1 - share) ** draws
+
+	let sum = 0
+
+	for (let count = 0; count <= Math.min(room, draws); count++) {
+		sum += term
+
+		term *= ((draws - count) / (count + 1)) * (share / (1 - share))
+	}
+
+	return sum
+}
+
+/** The rule of each level of the CPU: the slot in the run of `value`, from its offset in the run. */
+const STRATEGIES: Record<Difficulty, (run: Run, value: number, slots: Game['slots']) => number> = {
+	// The middle of the run, whatever the number is.
+	easy: ({ open }) => Math.floor(open / 2),
+
+	// In proportion to the place of the number in the open range of the run.
+	// `value` is between `low` and `high`, so the share is below 1.
+	normal: ({ open, low, high }, value) => Math.floor(((value - low) / (high - low)) * open),
+
+	// The slot that gives the best chance that each side of the number has room
+	// for the numbers that fall there. Each slot that is empty after this
+	// placement takes one more draw, so that count is the count of the draws.
+	hard: ({ open, low, high }, value, slots) => {
+		const draws = slots.filter((placed) => placed === null).length - 1
+
+		const below = (value - low - 1) / MAX
+
+		const above = (high - value - 1) / MAX
+
+		let best = 0
+
+		let bestChance = -1
+
+		for (let offset = 0; offset < open; offset++) {
+			const chance = fitChance(draws, below, offset) * fitChance(draws, above, open - 1 - offset)
+
+			if (chance > bestChance) {
+				best = offset
+
+				bestChance = chance
+			}
+		}
+
+		return best
+	},
+}
+
+/**
+ * Chooses the slot of the CPU for `value`, at `difficulty`. The empty slots
+ * that can take the number are a run between two filled slots (or an end).
+ *
+ * - `easy` puts the number in the middle of the run.
+ * - `normal` puts the number in the run in proportion to its place in the open
+ *   range of the run: with no number placed, 500 goes near the middle, and 990
+ *   goes near the end.
+ * - `hard` puts the number where the two sides of it most likely have room for
+ *   the numbers that the rest of the draws put there.
+ *
+ * Gives `-1` when no slot can take the number.
+ */
+export function chooseSlot(slots: Game['slots'], value: number, difficulty: Difficulty): number {
+	const run = findRun(slots, value)
+
+	if (!run) return -1
+
+	return run.start + STRATEGIES[difficulty](run, value, slots)
+}
+
+/**
+ * Plays the CPU at `difficulty` on the deck of `seed`, for the first `draws`
+ * numbers. The CPU places each number with {@link chooseSlot}. When a number
+ * has no slot, the CPU stops, and the game keeps that number as its bust.
+ */
+export function playCpu(seed: string, draws: number, difficulty: Difficulty): Game {
 	let game = createGame(seed)
 
 	for (let draw = 0; draw < draws; draw++) {
@@ -186,7 +265,7 @@ export function playCpu(seed: string, draws: number): Game {
 
 		if (game.drawn === null) break
 
-		const slot = chooseSlot(game.slots, game.drawn)
+		const slot = chooseSlot(game.slots, game.drawn, difficulty)
 
 		if (slot === -1) break
 

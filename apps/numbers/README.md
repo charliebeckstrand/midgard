@@ -91,15 +91,16 @@ moves to the first slot that can take the number, or else to the action.
 
 ## Settings
 
-The Game tab of the settings has two switches:
+The Game tab of the settings has two switches and a picker:
 
 | Setting | Default | What it does |
 | --- | --- | --- |
 | Auto-draw | On | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button, and the action shows only as Reset after a bust or a win. |
 | Show score | On | The bar at the bottom shows the score. |
+| CPU difficulty | Normal | The level of the CPU in Vs CPU: Easy, Normal, or Hard (see [Vs CPU](#vs-cpu)). |
 
-Each setting is in a cookie (`numbers-auto-draw` and `numbers-show-score`,
-`src/utilities/settings.ts`). The page reads the cookies of the request, so
+Each setting is in a cookie (`numbers-auto-draw`, `numbers-show-score`, and
+`numbers-difficulty`, `src/utilities/settings.ts`). The page reads the cookies of the request, so
 the server renders the Draw button and the score bar as the settings of the
 reader give them, and the first paint is the final layout (CONVENTIONS
 §3.13). With Auto-draw on, the first number rolls in after the hydration. A
@@ -117,12 +118,22 @@ always chooses first. When the game of the player ends, the CPU plays the rest
 of its deck. The higher count of filled slots wins, and the same count is a
 tie.
 
-The CPU puts each number in the run of empty slots that can take it, in
-proportion to the place of the number in the open range of the run
-(`chooseSlot` in `src/utilities/game.ts`). With no number placed, 500 goes near
-the middle of the column, and 990 goes near the end. Over 20,000 seeds, the CPU
-fills 9.8 slots on average. The game of the CPU comes from the seed and the
-count of the draws only (`playCpu`), so the page keeps no state for it.
+The CPU puts each number in the run of empty slots that can take it
+(`chooseSlot` in `src/utilities/game.ts`). The CPU difficulty setting gives the
+rule:
+
+| Level | Rule | Average |
+| --- | --- | --- |
+| Easy | The middle of the run, whatever the number is. | 7.2 |
+| Normal | In proportion to the place of the number in the open range of the run. With no number placed, 500 goes near the middle of the column, and 990 goes near the end. | 9.8 |
+| Hard | The slot that gives the best chance that each side of the number has room for the numbers that the rest of the draws put there. | 10.6 |
+
+The average is the count of the filled slots over 20,000 seeds. The game of the
+CPU comes from the seed, the count of the draws, and the level only
+(`playCpu`), so the page keeps no state for it. A change of the level applies
+at once, also during a run: the column of the CPU plays the same numbers again
+at the new level. The stats keep the score of the player only, and the CPU does
+not change the game of the player, so the level does not change the stats.
 
 The bar at the bottom has a score under each column. It shows also with Show
 score off, because it names the columns and gives the result. After the end,

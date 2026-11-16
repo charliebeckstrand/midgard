@@ -1,1 +1,1 @@
-export { SettingField, type SettingFieldProps } from './setting-field'
+export { DifficultyField, SettingField, type SettingFieldProps } from './setting-field'
