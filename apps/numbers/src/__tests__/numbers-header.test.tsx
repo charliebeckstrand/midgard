@@ -25,7 +25,7 @@ const crumbs = (trail: HTMLElement) =>
 	Array.from(trail.querySelectorAll('[data-slot="breadcrumb-label"]'), (label) => label.textContent)
 
 describe('NumbersHeader', () => {
-	it('shows only Numbers on Solo, the home of the app, as the current page', () => {
+	it('shows only Numbers on the solo route, the home of the app, as the current page', () => {
 		const trail = renderTrail('solo')
 
 		expect(crumbs(trail)).toEqual(['Numbers'])
@@ -45,7 +45,7 @@ describe('NumbersHeader', () => {
 
 		expect(crumbs(trail)).toEqual(['Numbers', label])
 
-		// Numbers leads to Solo, as the Solo item of the menu does.
+		// Numbers leads to the solo route, as the Standard item of the menu does.
 		expect(within(trail).getByRole('link', { name: 'Numbers' }).getAttribute('href')).toBe('/')
 
 		expect(within(trail).getByText(label).closest('[aria-current="page"]')).not.toBeNull()

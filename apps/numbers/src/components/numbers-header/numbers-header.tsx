@@ -38,10 +38,11 @@ export type NumbersHeaderProps = {
 
 /**
  * The bar at the top of the page: the trail, and on its right the settings and
- * the menu. Solo is the home of the app, so its trail is only `Numbers`, the
+ * the menu. The solo route (Standard in the menu) is the home of the app, so its
+ * trail is only `Numbers`, the
  * current page. On another route, the trail adds the route, such as
- * `Numbers › Vs CPU`, which is the current page. There, Numbers leads to Solo,
- * as the Solo item of the menu does, so it starts the run of a new seed. The
+ * `Numbers › Vs CPU`, which is the current page. There, Numbers leads to the solo
+ * route, as the Standard item of the menu does, so it starts the run of a new seed. The
  * trail gives way from the left, as the trails of Places and Elections do. The
  * heading of the page is "Numbers", for a screen reader only.
  *

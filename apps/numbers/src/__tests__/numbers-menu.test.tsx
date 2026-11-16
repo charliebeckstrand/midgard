@@ -71,7 +71,7 @@ describe('NumbersMenu', () => {
 		expect(useStats).toHaveBeenLastCalledWith('20261116', true)
 	})
 
-	it('lists the modes in order: Solo, Vs CPU, then Daily puzzle, with Leaderboard between two dividers', async () => {
+	it('lists the modes in order: Standard, Vs CPU, then Daily puzzle, with Leaderboard between two dividers', async () => {
 		vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
 
 		renderMenu()
@@ -85,7 +85,15 @@ describe('NumbersMenu', () => {
 		)
 
 		// A divider above and below Leaderboard sets it apart from the routes and the account.
-		expect(rows).toEqual(['Solo', 'Vs CPU', 'Daily puzzle', '---', 'Leaderboard', '---', 'Sign in'])
+		expect(rows).toEqual([
+			'Standard',
+			'Vs CPU',
+			'Daily puzzle',
+			'---',
+			'Leaderboard',
+			'---',
+			'Sign in',
+		])
 	})
 
 	it('reads the three boards of today when the menu opens, so the leaderboard opens with its rows', async () => {
@@ -105,7 +113,7 @@ describe('NumbersMenu', () => {
 	})
 
 	it.each([
-		['solo', 'Solo'],
+		['solo', 'Standard'],
 		['vsCpu', 'Vs CPU'],
 		['daily', 'Daily puzzle'],
 	] as const)(
@@ -120,7 +128,7 @@ describe('NumbersMenu', () => {
 			// The test reads the rows that the query found, as the test of the order does.
 			const items = await screen.findAllByRole('menuitem')
 
-			for (const name of ['Solo', 'Vs CPU', 'Daily puzzle']) {
+			for (const name of ['Standard', 'Vs CPU', 'Daily puzzle']) {
 				const item = items.find((row) => row.textContent === name)
 
 				const current = name === label

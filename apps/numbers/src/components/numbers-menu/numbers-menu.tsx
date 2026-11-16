@@ -7,8 +7,8 @@ import {
 	ChartColumn,
 	LogIn,
 	Menu as MenuIcon,
+	Numbers,
 	Trophy,
-	UserRound,
 } from 'lucide-react'
 import { useState } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
@@ -70,7 +70,8 @@ export type NumbersMenuProps = {
 }
 
 /**
- * The menu at the right of the header. Solo starts the run of a new seed, and
+ * The menu at the right of the header. Standard starts the solo run of a new
+ * seed, and
  * Vs CPU starts the run of a new seed against the CPU. Daily puzzle opens the
  * run of the seed of today, which each reader gets on the same date, and shows
  * its score once its first run counts. A divider sets these routes apart from
@@ -124,7 +125,7 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 
 				<MenuContent aria-label="Menu">
 					<MenuItem href="/" {...currentProps('solo', route)}>
-						<Icon icon={<UserRound />} />
+						<Icon icon={<Numbers />} />
 						<MenuLabel>{ROUTE_LABELS.solo}</MenuLabel>
 					</MenuItem>
 

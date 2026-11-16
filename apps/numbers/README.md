@@ -70,16 +70,16 @@ place, and Reset.
 
 ## The page
 
-The header shows a trail, the settings, and a menu. Solo is the home of the
-app, so its trail is only `Numbers`. Another route adds its name, such as
-`Numbers › Vs CPU`, where Numbers leads to Solo, as the Solo item of the menu
-does. A narrow trail gives way from the left,
-as the trails of Places and Elections do. The menu has Solo (a new seed), Vs CPU
+The header shows a trail, the settings, and a menu. The solo route (Standard in
+the menu) is the home of the app, so its trail is only `Numbers`. Another route
+adds its name, such as `Numbers › Vs CPU`, where Numbers leads to the solo
+route, as the Standard item of the menu does. A narrow trail gives way from the left,
+as the trails of Places and Elections do. The menu has Standard (a new solo seed), Vs CPU
 (a new seed against the CPU), and Daily puzzle. Under a
 divider is Leaderboard. Under a second divider, the menu has Sign in, or Stats and
 Sign out for a signed-in reader. The item of the route of the page is bold
 (`aria-current`): Vs CPU on a run against the CPU, Daily puzzle on a solo run
-of a date seed, and Solo else (`getRoute`). A segment in the settings switches two tabs: "UI" has the
+of a date seed, and Standard else (`getRoute`). A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). Each segment of the app (in the settings, Stats, and Leaderboard)
 slides to the panel of the new tab. A bar under the header holds the drawn
