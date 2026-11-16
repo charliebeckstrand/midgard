@@ -114,9 +114,11 @@ minimumReleaseAgeExclude:
 # `dblclick` listeners of a root on the document on its root element. Each listener keeps the
 # document as its container, so `onDoubleClick` works as before. `next` has its own copies of
 # `react-dom` for the App Router, so it has the same patch. `react` must have the version of
-# `react-dom`, so it is pinned too. Covered by `react-double-click.test.tsx`. Remove once WebKit
-# lets the document follow the touch-action of the root element, or React stops listening for
-# `dblclick` on a document.
+# `react-dom`, so it is pinned too. Covered by `react-double-click.test.tsx`. The listener must
+# not go on `window`: since WebKit 302274@main, a `dblclick` listener on `window` starts the
+# double tap too, and `window` has no touch-action. Remove once WebKit lets the document follow
+# the touch-action of the root element (WebKit bug 216681), or React stops listening for
+# `dblclick` on a document (React issue 31260).
 #
 # Each key names one exact version, and pnpm stops an install when a patch matches no package.
 # Thus each package.json pins a patched package at that version, so that a lockfile refresh
