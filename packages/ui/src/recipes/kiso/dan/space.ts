@@ -54,10 +54,7 @@ const itemX = scale.px.md
 /** The bottom padding of a tab and of an accordion body: the `lg` stop of the padding scale. */
 const bottom = 'density-pb-[2,3,4,5,6]'
 
-/**
- * The top padding at the `lg` stop of the padding scale: the top inset of the copy
- * button of a code block, and the space above the header of a drawer or a sheet.
- */
+/** The top padding at the `lg` stop of the padding scale: the top inset of the copy button of a code block. */
 const top = 'density-pt-[2,3,4,5,6]'
 
 export const space = {
@@ -132,16 +129,12 @@ export const space = {
 		 * The ramp is the gap, for the reason that `flush` gives.
 		 */
 		above: 'not-first:density-mt-[2,3,4,5,6]',
-		/** The inset above the first slot, on the panel or on the slot. */
-		top: 'density-pt-[3,4.5,6,7.5,9]',
 		/**
-		 * The space above the header of a drawer or a sheet: the slot gap of a panel
-		 * (`gap.scale.lg`). The header is the header slot, or a title that is the first
-		 * slot. The panel puts the same gap under the header, so the header stands one
-		 * gap from the edge and one gap from the slot under it. If the gap changes, this
-		 * ramp changes with it.
+		 * The inset above the first slot, on the panel or on the slot. It is the one
+		 * space above the heading of each panel: a dialog, a drawer, a sheet, and the
+		 * sheet of a menu on a phone. Thus a heading has the same position in each panel.
 		 */
-		head: top,
+		top: 'density-pt-[3,4.5,6,7.5,9]',
 		/** The inset under the last slot, on the panel or on the slot. */
 		bottom: 'density-pb-[3,4.5,6,7.5,9]',
 		/**
@@ -157,11 +150,11 @@ export const space = {
 			 * If the gap or a space at the edge changes, this ramp changes with it.
 			 *
 			 * - `top`: a grip at the bottom edge, over the inset under the last slot.
-			 * - `bottom`: a grip at the top edge, over the space above the header (`head`).
+			 * - `bottom`: a grip at the top edge, over the inset above the first slot.
 			 */
 			over: {
 				top: 'density-mt-[-5,-7.5,-10,-12.5,-15]',
-				bottom: 'density-mb-[-4,-6,-8,-10,-12]',
+				bottom: 'density-mb-[-5,-7.5,-10,-12.5,-15]',
 			},
 		},
 		/**

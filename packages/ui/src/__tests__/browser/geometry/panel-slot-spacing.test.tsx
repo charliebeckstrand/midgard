@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
-import { beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { page, userEvent } from 'vitest/browser'
+import { Button } from '../../../components/button'
 import {
 	Dialog,
 	DialogBody,
@@ -20,6 +21,7 @@ import {
 	DrawerPanel,
 	DrawerTitle,
 } from '../../../components/drawer'
+import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
 import {
 	Sheet,
 	SheetBody,
@@ -33,14 +35,14 @@ import {
 import { Form } from '../../../modules/form'
 import { DensityProvider } from '../../../providers/density'
 import { Flex } from '../../../structure/flex'
-import { getSlot, renderUI } from '../../helpers'
+import { getSlot, renderUI, screen, stubMatchMedia } from '../../helpers'
 import { settledRect } from '../helpers/sample'
 
 /**
  * The inset of a panel is the same on the four sides. It is larger than the gap
- * between two slots, and each gap between two slots is the same. The header of a
- * drawer or a sheet is the exception at the top edge: it stands one slot gap from
- * the edge, so the space above it and the space under it are the same. The body is
+ * between two slots, and each gap between two slots is the same. The heading of
+ * each panel stands the inset from the top edge: a dialog, a drawer, a sheet, and
+ * the sheet of a menu on a phone. The body is
  * the part that scrolls, so the header and the footer stay in place while it
  * scrolls. The visible space must stay even then too: an inset that is padding
  * inside the scrolling body moves out of view with the content. The inset and
@@ -55,8 +57,6 @@ const LONG = Array.from({ length: 60 }, (_, index) => `Line ${index + 1}`).map((
 type Panel = {
 	name: string
 	slot: string
-	/** The space above the header: the slot gap on a drawer or a sheet, the inset on a dialog. */
-	head: 'gap' | 'inset'
 	/** A header that holds a row of the title and a close button, then a body that scrolls. */
 	row?: ReactElement
 	/** The panel with each slot, and a body that scrolls. */
@@ -79,7 +79,6 @@ const PANELS: Panel[] = [
 	{
 		name: 'Sheet',
 		slot: 'sheet',
-		head: 'gap',
 		row: (
 			<Sheet open onOpenChange={() => {}}>
 				<SheetPanel footer={null}>
@@ -153,7 +152,6 @@ const PANELS: Panel[] = [
 	{
 		name: 'Dialog',
 		slot: 'dialog',
-		head: 'inset',
 		full: (
 			<Dialog open onOpenChange={() => {}}>
 				<DialogPanel>
@@ -214,7 +212,6 @@ const PANELS: Panel[] = [
 	{
 		name: 'Drawer',
 		slot: 'drawer',
-		head: 'gap',
 		row: (
 			<Drawer open onOpenChange={() => {}}>
 				<DrawerPanel footer={null}>
@@ -338,9 +335,7 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 	beforeAll(() => page.viewport(width, height))
 
 	describe.each(DENSITIES)('at the $density density', ({ density, inset, gap }) => {
-		describe.each(PANELS)('$name', ({ slot, head, row, full, bare, formed, split, bareFormed }) => {
-			const above = head === 'gap' ? gap : inset
-
+		describe.each(PANELS)('$name', ({ slot, row, full, bare, formed, split, bareFormed }) => {
 			it('keeps the edge insets even and larger than the slot gap, before and after a scroll', async () => {
 				renderUI(<DensityProvider density={density}>{full}</DensityProvider>)
 
@@ -371,7 +366,7 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 				const rest = measure()
 
 				expect(rest).toEqual({
-					top: above,
+					top: inset,
 					left: inset,
 					right: inset,
 					bottom: inset,
@@ -385,7 +380,7 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 			})
 
 			it.runIf(row !== undefined)(
-				'puts the same space above and under a header that holds a row',
+				'puts the inset above a header that holds a row, and the slot gap under it',
 				async () => {
 					renderUI(<DensityProvider density={density}>{row}</DensityProvider>)
 
@@ -398,18 +393,18 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 						left: header.left - panelBox.left,
 						right: panelBox.right - header.right,
 						under: visibleTop(getSlot(panel, `${slot}-body`)) - header.bottom,
-					}).toEqual({ top: gap, left: inset, right: inset, under: gap })
+					}).toEqual({ top: inset, left: inset, right: inset, under: gap })
 				},
 			)
 
-			it('puts the same space above and under a title that is the first slot', async () => {
+			it('puts the inset above a title that is the first slot', async () => {
 				renderUI(<DensityProvider density={density}>{formed}</DensityProvider>)
 
 				const panel = await settledRect(getSlot(document.body, slot))
 
 				expect(
 					contentBox(getSlot(panel, `${slot}-title`)).top - panel.getBoundingClientRect().top,
-				).toBe(above)
+				).toBe(inset)
 			})
 
 			it.each([
@@ -457,4 +452,46 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 			})
 		})
 	})
+})
+
+/**
+ * On a phone, a dropdown menu opens as a sheet. Its heading stands the panel
+ * inset from the top edge, as the heading of each other panel does.
+ */
+describe('menu sheet heading', () => {
+	beforeAll(() => page.viewport(375, 812))
+
+	// A phone: no hover and a narrow viewport.
+	beforeEach(() => {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+	})
+
+	it.each(DENSITIES)(
+		'puts the inset above the heading at the $density density',
+		async ({ density, inset }) => {
+			renderUI(
+				<DensityProvider density={density}>
+					<Menu placement="bottom-start">
+						<MenuTrigger>
+							<Button>Menu</Button>
+						</MenuTrigger>
+						<MenuContent>
+							<MenuItem>Solo</MenuItem>
+							<MenuItem>Stats</MenuItem>
+						</MenuContent>
+					</Menu>
+				</DensityProvider>,
+			)
+
+			await userEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+			await screen.findByRole('dialog', { name: 'Menu' })
+
+			const panel = await settledRect(getSlot(document.body, 'drawer'))
+
+			expect(
+				contentBox(getSlot(panel, 'drawer-header')).top - panel.getBoundingClientRect().top,
+			).toBe(inset)
+		},
+	)
 })

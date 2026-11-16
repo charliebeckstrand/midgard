@@ -48,9 +48,9 @@ export {
 	Body as DrawerBody,
 	/**
 	 * `<div>` header of the drawer: the title and the description, or a row such as
-	 * the title with a close button. It stands one slot gap from the top edge, and the
-	 * drawer puts the same gap under it, at each density. A title or a description in
-	 * it takes no inset of its own. A `closable` header puts an X close at the end
+	 * the title with a close button. It stands the panel inset from the top edge, as
+	 * the heading of a dialog does, at each density. A title or a description in it
+	 * takes no inset of its own. A `closable` header puts an X close at the end
 	 * of the line of the title.
 	 */
 	ClosableHeader as DrawerHeader,
