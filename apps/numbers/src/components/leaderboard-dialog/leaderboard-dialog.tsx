@@ -29,7 +29,7 @@ import { Text } from 'ui/text'
 import type { BoardEntry, BoardMode } from '../../api/leaderboard-api'
 import { useBoard, usePrefetchBoards } from '../../queries/leaderboard-queries'
 import { SLOTS } from '../../utilities/game'
-import { dailySeed } from '../../utilities/seed'
+import { dailySeed, ROUTE_LABELS } from '../../utilities/seed'
 
 /** Props for {@link LeaderboardDialog}. */
 export type LeaderboardDialogProps = {
@@ -158,7 +158,7 @@ function ReaderNote({ user }: { user?: User }) {
 }
 
 /**
- * The boards of a day that the arrows move, in the order of the menu: Solo for
+ * The boards of a day that the arrows move, in the order of the menu: Standard for
  * the solo runs of other seeds, Vs CPU for the runs that beat the CPU, and Daily
  * for the daily puzzle. The dialog opens on Daily. The boards open on today,
  * and go back to earlier days, but not past today.
@@ -187,7 +187,7 @@ function Boards({ user }: { user?: User }) {
 			<Segment defaultValue="daily">
 				<Stack gap="lg">
 					<SegmentControl aria-label="Board">
-						<SegmentItem value="solo">Solo</SegmentItem>
+						<SegmentItem value="solo">{ROUTE_LABELS.solo}</SegmentItem>
 						<SegmentItem value="vsCpu">Vs CPU</SegmentItem>
 						<SegmentItem value="daily">Daily</SegmentItem>
 					</SegmentControl>

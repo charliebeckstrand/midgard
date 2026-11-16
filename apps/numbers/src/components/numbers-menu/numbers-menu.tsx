@@ -7,8 +7,8 @@ import {
 	ChartColumn,
 	LogIn,
 	Menu as MenuIcon,
+	Numbers,
 	Trophy,
-	UserRound,
 } from 'lucide-react'
 import { useState } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
@@ -20,7 +20,7 @@ import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } fr
 import { usePrefetchBoards } from '../../queries/leaderboard-queries'
 import { useStats } from '../../queries/stats-queries'
 import { SLOTS } from '../../utilities/game'
-import { dailySeed, type Route, VS_SEGMENT } from '../../utilities/seed'
+import { dailySeed, ROUTE_LABELS, type Route, VS_SEGMENT } from '../../utilities/seed'
 import { LeaderboardDialog } from '../leaderboard-dialog'
 import { StatsDialog } from '../stats-dialog'
 
@@ -51,7 +51,7 @@ function DailyPuzzleItem({
 	return (
 		<MenuItem href={`/${dailySeed(today)}`} {...currentProps('daily', route)}>
 			<Icon icon={<CalendarDays />} />
-			<MenuLabel>Daily puzzle</MenuLabel>
+			<MenuLabel>{ROUTE_LABELS.daily}</MenuLabel>
 			{score !== null && (
 				<Badge color="green" size="sm">
 					{`${score}/${SLOTS}`}
@@ -70,7 +70,8 @@ export type NumbersMenuProps = {
 }
 
 /**
- * The menu at the right of the header. Solo starts the run of a new seed, and
+ * The menu at the right of the header. Standard starts the solo run of a new
+ * seed, and
  * Vs CPU starts the run of a new seed against the CPU. Daily puzzle opens the
  * run of the seed of today, which each reader gets on the same date, and shows
  * its score once its first run counts. A divider sets these routes apart from
@@ -124,13 +125,13 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 
 				<MenuContent aria-label="Menu">
 					<MenuItem href="/" {...currentProps('solo', route)}>
-						<Icon icon={<UserRound />} />
-						<MenuLabel>Solo</MenuLabel>
+						<Icon icon={<Numbers />} />
+						<MenuLabel>{ROUTE_LABELS.solo}</MenuLabel>
 					</MenuItem>
 
 					<MenuItem href={`/${VS_SEGMENT}`} {...currentProps('vsCpu', route)}>
 						<Icon icon={<Bot />} />
-						<MenuLabel>Vs CPU</MenuLabel>
+						<MenuLabel>{ROUTE_LABELS.vsCpu}</MenuLabel>
 					</MenuItem>
 
 					{today && <DailyPuzzleItem today={today} score={score} route={route} />}

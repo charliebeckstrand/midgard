@@ -114,7 +114,7 @@ describe('LeaderboardDialog', () => {
 		await screen.findByText('Top daily')
 
 		expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
-			'Solo',
+			'Standard',
 			'Vs CPU',
 			'Daily',
 		])
@@ -125,7 +125,7 @@ describe('LeaderboardDialog', () => {
 			expect(readBoard).toHaveBeenCalledWith('20261116', mode)
 		}
 
-		fireEvent.click(screen.getByRole('tab', { name: 'Solo' }))
+		fireEvent.click(screen.getByRole('tab', { name: 'Standard' }))
 
 		expect(await screen.findByText('Top solo')).toBeTruthy()
 

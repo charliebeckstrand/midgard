@@ -67,8 +67,15 @@ function toDailySeed(year: number, month: number, day: number): string {
 /** The first segment of the address of a run against the CPU, such as `/vs/k3x9q2`. */
 export const VS_SEGMENT = 'vs'
 
-/** A route of the menu: Solo, Vs CPU, or Daily puzzle. */
+/** A route of the menu: solo (the Standard item), Vs CPU, or Daily puzzle. */
 export type Route = 'solo' | 'vsCpu' | 'daily'
+
+/** The label of each route, in the menu, in the trail of the header, and on the tabs of Stats and Leaderboard. */
+export const ROUTE_LABELS: Record<Route, string> = {
+	solo: 'Standard',
+	vsCpu: 'Vs CPU',
+	daily: 'Daily puzzle',
+}
 
 /**
  * The route of the menu that the run of `seed` is on. A run against the CPU is

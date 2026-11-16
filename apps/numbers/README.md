@@ -70,12 +70,20 @@ place, and Reset.
 
 ## The page
 
-The header shows the name of the app, the settings, and a menu with Solo (a
-new seed), Vs CPU (a new seed against the CPU), and Daily puzzle. Under a
-divider is Leaderboard. Under a second divider, the menu has Sign in, or Stats and
-Sign out for a signed-in reader. The item of the route of the page is extra bold
-(`aria-current`): Vs CPU on a run against the CPU, Daily puzzle on a solo run
-of a date seed, and Solo else (`getRoute`). A segment in the settings switches two tabs: "UI" has the
+The header shows a trail, the settings, and a menu.
+
+The solo route (Standard in the menu) is the home of the app, so its trail is
+only `Numbers`. Another route adds its name, such as `Numbers › Vs CPU`, where
+Numbers leads to the solo route, as the Standard item of the menu does. A narrow
+trail gives way from the left, as the trails of Places and Elections do.
+
+The menu has Standard (a new solo seed), Vs CPU (a new seed against the CPU),
+and Daily puzzle. Under a divider is Leaderboard. Under a second divider, the
+menu has Sign in, or Stats and Sign out for a signed-in reader. The item of the
+route of the page is extra bold (`aria-current`): Vs CPU on a run against the CPU,
+Daily puzzle on a solo run of a date seed, and Standard else (`getRoute`).
+
+A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). Each segment of the app (in the settings, Stats, and Leaderboard)
 slides to the panel of the new tab. A bar under the header holds the drawn
@@ -188,17 +196,17 @@ new seed. The contract with the gateway is in [asgard
 ## Stats
 
 Stats in the header menu, above Sign out, opens a dialog with the stats of a signed-in reader,
-one tab for each mode (Solo and Vs CPU): the runs played, the best and the
+one tab for each mode (Standard and Vs CPU): the runs played, the best and the
 average score, and a bar chart of the runs on each score from 1 to 20. The
 first number always has an empty slot, so no run scores 0. A switch of tab
 slides to the next mode. Mimir, in asgard, keeps the stats
 (`/api/games/numbers/*`, `src/api/stats-api.ts`).
 
-Solo also shows the daily streak and the longest one. Only a solo run plays
+Standard also shows the daily streak and the longest one. Only a solo run plays
 the daily puzzle, so Vs CPU shows Win % in place of the streaks. Win % is the
 share of the vs CPU runs that beat the CPU (`winRate`). Only a run that sends
 `beatCpu` counts toward it, so the runs from before 2026-11-16 do not. Until
-the first such run, Win % shows a dash. Solo has no Win %, because a run that
+the first such run, Win % shows a dash. Standard has no Win %, because a run that
 fills all 20 slots is rare.
 
 A run counts when it ends in a bust or a win, and when a Reset ends it after
@@ -233,7 +241,7 @@ server, and after the hydration the day of the browser counts.
 
 Leaderboard in the header menu opens a dialog with the boards of each day, for
 each reader. A tab for each board holds the board of one date, in the order of the menu:
-Solo for the solo runs of other seeds, Vs CPU for the runs that beat the CPU,
+Standard for the solo runs of other seeds, Vs CPU for the runs that beat the CPU,
 and Daily for the solo runs of the daily puzzle. The dialog opens on Daily. A vs CPU run that ties or loses, or that a
 Reset ends, counts in the stats but on no board (`beatCpu` of the result). A run counts on the board of the reader's
 date. A board shows the top 10 players by their best score on it, then the
