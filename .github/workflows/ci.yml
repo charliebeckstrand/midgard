@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/turbo-cache
         with:
@@ -42,6 +44,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/turbo-cache
         with:
@@ -105,6 +109,8 @@ jobs:
         shard: [1, 2]
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/turbo-cache
         with:
@@ -187,6 +193,8 @@ jobs:
         shard: [1, 2]
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/turbo-cache
         with:
@@ -226,6 +234,8 @@ jobs:
             args: ''
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/turbo-cache
         with:
@@ -249,6 +259,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          persist-credentials: false
           sparse-checkout: packages/ui/package.json
           sparse-checkout-cone-mode: false
       - id: version
@@ -277,6 +288,8 @@ jobs:
     container: mcr.microsoft.com/playwright:v${{ needs.playwright-version.outputs.version }}-resolute
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       # The workspace belongs to the runner user, and the container runs as
       # root, so git refuses the repository that Turbo reads. checkout trusts
       # the workspace only for its own step.
@@ -318,6 +331,8 @@ jobs:
         shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/turbo-cache
         with:
@@ -348,6 +363,8 @@ jobs:
         shard: [1, 2]
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/turbo-cache
         with:

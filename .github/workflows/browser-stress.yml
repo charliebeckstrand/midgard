@@ -37,6 +37,8 @@ jobs:
         seed: ${{ fromJSON(github.event.inputs.seeds || '[1, 2, 3]') }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/playwright
       # One busy loop for each core, at the priority of the suite, so that the
