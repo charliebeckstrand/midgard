@@ -102,8 +102,11 @@ function ScoreCell({
 				</Flex>
 			)}
 
-			<Text as="span" className="font-semibold text-xl tabular-nums">
-				{!showLabel && <span className="sr-only">{`${label} `}</span>}
+			{/* A hidden label is a sibling of the score, so the line of the score holds only its text. */}
+			{!showLabel && <span className="sr-only">{label}</span>}
+
+			{/* The score is one value, so it does not wrap. Safari wrapped it after its slash. */}
+			<Text as="span" className="font-semibold text-xl tabular-nums whitespace-nowrap">
 				{countPlaced(game.slots)}
 				<Text as="span" tone="muted" className="font-medium text-base">
 					{` / ${SLOTS}`}
