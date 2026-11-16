@@ -29,8 +29,8 @@ An app mounts `AppearanceProvider` once, in `<body>` above all text. The server 
 |---|---|
 | `AppearanceProvider` | App-root owner of the theme, density, motion, sidebar, and surfaces preferences. It keeps them in `localStorage` and writes them as classes on the root element. While the surfaces are `glass`, each Dialog, Drawer, and Sheet panel is glass. It loads the latin face of the font, and `ui/tailwind.css` holds the other faces. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
-| `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, sidebar, and surfaces pickers. ⌘B or Ctrl+B toggles the sidebar. Under a `LocaleProvider` with `locales`, it adds the Language picker. `children` adds more fields. `tabs` adds tabs of fields after a "UI" tab of the pickers, and a `Segment` switches them. |
-| `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog, and tabs of fields. |
+| `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, sidebar, and surfaces pickers. ⌘B or Ctrl+B toggles the sidebar. Under a `LocaleProvider` with `locales`, it adds the Language picker. `children` adds more fields. `tabs` adds tabs of fields after a "UI" tab of the pickers, and a `Segment` switches them. `animate` sets the switch of the tabs (`'fade'` by default, or `'slide'`). |
+| `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: more fields for the dialog, tabs of fields, and the switch of the tabs. |
 | `AppearanceSettingsTab` *(type)* | One tab of `tabs`: its label and its fields. |
 | `useAppearance` | Reads the theme, the density, the motion, the sidebar, the surfaces, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |

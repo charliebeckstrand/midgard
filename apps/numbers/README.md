@@ -72,9 +72,11 @@ new seed), Daily puzzle, Vs CPU (a new seed against the CPU), and Leaderboard.
 Under a divider, the menu has Sign in, or Stats and
 Sign out for a signed-in reader. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
-below). A bar under the header holds the drawn number and, with Auto-draw off,
-Draw. A Reset button at the right of the bar, apart from it, starts a new seed
-at each step. The bar keeps one height with Draw and without it. The number rolls
+below). Each segment of the app (in the settings, Stats, and Leaderboard)
+slides to the panel of the new tab. A bar under the header holds the drawn
+number and, with Auto-draw off, Draw. A Reset button at the right of the bar,
+apart from it, starts a new seed at each step. The bar keeps one height with
+Draw and without it. The number rolls
 from the shown number to each new number through the `Odometer` of `ui`, also
 to the first number of a new run. A roll covers at least 100 (`minChange`), so a
 near number rolls from 100 away. The first number of the run that the page
@@ -173,8 +175,8 @@ Stats in the header menu, above Sign out, opens a dialog with the stats of a sig
 one tab for each mode (Solo and Vs CPU): the runs played, the best and the
 average score, the daily streak and the longest one, and a bar chart of the
 runs on each score from 1 to 20. The first number always has an empty slot, so
-no run scores 0. Mimir, in asgard, keeps them
-(`/api/games/numbers/*`, `src/api/stats-api.ts`).
+no run scores 0. A switch of tab slides to the next mode. Mimir, in asgard,
+keeps them (`/api/games/numbers/*`, `src/api/stats-api.ts`).
 
 A run counts when it ends in a bust or a win, and when a Reset ends it after
 its first placement, with its score at that step (`isUnfinished`). A link,
