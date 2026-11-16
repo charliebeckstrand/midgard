@@ -17,6 +17,7 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
@@ -24,11 +25,11 @@ import { registerOverlayLayer } from '../../utilities/overlay-layers'
 import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
+import { useOverlayAbsorb } from './use-overlay-absorb'
 import { useOverlayEntering } from './use-overlay-entering'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
 import { useOverlayKeepFocus } from './use-overlay-keep-focus'
 import { useOverlayReturnFocus } from './use-overlay-return-focus'
-import { useOverlayTapRun } from './use-overlay-tap-run'
 import { useOverlayViewportFit } from './use-overlay-viewport-fit'
 
 /**
@@ -154,9 +155,11 @@ export type OverlayProps = {
  *
  * A double tap on a control that opens the overlay on one tap opens it on the
  * first tap. The second tap then does nothing in the overlay: it does not
- * close it from the backdrop, and it does not press a control in the panel. A
- * touch press that starts in the double-tap window after the open does
- * nothing, and each press after the window acts. Nothing waits for the window.
+ * close it from the backdrop, press a control in the panel, or move the focus.
+ * A touch press is that second tap when it starts in the double-tap window
+ * after the lift of the first tap, and near its point. Each other press acts,
+ * so a tap on a control away from the first tap acts at once. Nothing waits for
+ * the window.
  */
 export function Overlay({
 	open,
@@ -261,8 +264,8 @@ export function Overlay({
 		k.motion.animate,
 	)
 
-	// The second tap of a double tap that opened the overlay does nothing in it.
-	const tapRun = useOverlayTapRun(open)
+	// The overlay absorbs the second tap of the double tap that opened it.
+	const absorb = useOverlayAbsorb(open)
 
 	const inert = props.inert === true
 
@@ -302,11 +305,17 @@ export function Overlay({
 			ref={setPanel}
 			data-slot="overlay"
 			{...props}
-			onPointerDownCapture={(event) => {
-				props.onPointerDownCapture?.(event)
-
-				tapRun.onPointerDownCapture(event)
-			}}
+			// The second tap of the run stops in the capture phase, before the panel sees it.
+			onPointerDownCapture={composeEventHandlers(
+				props.onPointerDownCapture,
+				absorb.onPointerDownCapture,
+				{ checkForDefaultPrevented: false },
+			)}
+			onMouseDownCapture={composeEventHandlers(
+				props.onMouseDownCapture,
+				absorb.onMouseDownCapture,
+				{ checkForDefaultPrevented: false },
+			)}
 			// A press that ends off the backdrop sends the backdrop no click, so its flag must
 			// not stay for a later click.
 			onPointerUpCapture={(event) => {
@@ -314,11 +323,14 @@ export function Overlay({
 
 				if (event.target !== backdropRef.current) pressedRef.current = false
 			}}
-			onClickCapture={(event) => {
-				props.onClickCapture?.(event)
-
-				tapRun.onClickCapture(event)
-			}}
+			onClickCapture={composeEventHandlers(props.onClickCapture, absorb.onClickCapture, {
+				checkForDefaultPrevented: false,
+			})}
+			onDoubleClickCapture={composeEventHandlers(
+				props.onDoubleClickCapture,
+				absorb.onDoubleClickCapture,
+				{ checkForDefaultPrevented: false },
+			)}
 			// On iOS, the on-screen keyboard makes the visual viewport smaller than the
 			// page, and a touch pans the page under a modal overlay. The body lock does
 			// not stop this pan. `touch-none` stops it. A scroll container in the panel

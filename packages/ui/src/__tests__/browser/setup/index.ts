@@ -38,6 +38,8 @@ declare module 'vitest/browser' {
 		pressPointer: (selector: string, at?: { x: number; y: number }) => Promise<void>
 		/** Releases the real primary button, over the element that `selector` matches when one is given. `vitest.browser.config.ts` defines it. */
 		releasePointer: (selector?: string) => Promise<void>
+		/** Taps a real finger at the center of the element that `selector` matches, through whatever covers it. `vitest.browser.config.ts` defines it. */
+		tapPointer: (selector: string) => Promise<void>
 	}
 }
 
