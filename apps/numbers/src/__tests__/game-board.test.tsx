@@ -1,27 +1,41 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import type { User } from 'auth'
 import { writeCookie } from 'ui/core'
 import { UIProvider } from 'ui/providers/ui'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { NumbersStats } from '../api/stats-api'
 import { GameBoard } from '../components/game-board'
 import { GameSettingsProvider } from '../components/game-settings'
 import { createGame } from '../utilities/game'
+import { dailySeed } from '../utilities/seed'
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/charlie' }))
+const address = vi.hoisted(() => ({ pathname: '/charlie' }))
+
+vi.mock('next/navigation', () => ({ usePathname: () => address.pathname }))
 
 afterEach(cleanup)
 
 /** Renders the board of the seed `charlie` at its address, with Auto-draw on by default, as the page does. */
-function renderBoard(autoDraw = true) {
+function renderBoard(
+	autoDraw = true,
+	{
+		seed = 'charlie',
+		client = new QueryClient(),
+		user,
+	}: { seed?: string; client?: QueryClient; user?: User } = {},
+) {
 	// The browser reads the setting from its cookie, and the server render from the provider.
 	writeCookie('numbers-auto-draw', autoDraw ? 'on' : 'off')
 
+	address.pathname = `/${seed}`
+
 	return render(
-		<QueryClientProvider client={new QueryClient()}>
+		<QueryClientProvider client={client}>
 			<UIProvider>
 				<GameSettingsProvider settings={{ autoDraw, showScore: true, difficulty: 'normal' }}>
-					<GameBoard seed="charlie" />
+					<GameBoard seed={seed} user={user} />
 				</GameSettingsProvider>
 			</UIProvider>
 		</QueryClientProvider>,
@@ -35,6 +49,61 @@ describe('GameBoard', () => {
 		const first = String(createGame('charlie').deck[0])
 
 		expect(container.querySelector('[data-slot="odometer-display"]')?.textContent).toBe(first)
+	})
+})
+
+describe('GameBoard daily notice', () => {
+	/** A client whose cache holds the stats of today, with a saved daily score of 12, as after the header menu read them. */
+	const cachedStats = (today: string) => {
+		const client = new QueryClient()
+
+		const mode = {
+			played: 1,
+			wins: 0,
+			best: 12,
+			average: 12,
+			scores: [],
+			streak: 1,
+			bestStreak: 1,
+			dailyScore: 12,
+		}
+
+		client.setQueryData<NumbersStats>(['numbers-stats', today], { solo: mode, vsCpu: mode })
+
+		return client
+	}
+
+	it('shows an alert at the top on a replay of the daily puzzle, which closes and gives the focus to Reset', () => {
+		const today = dailySeed(new Date())
+
+		const { container } = renderBoard(true, {
+			seed: today,
+			client: cachedStats(today),
+			user: { id: 'user-1', is_verified: true } as User,
+		})
+
+		// The announcer adds live regions of its own, so the query names the slot.
+		const alert = container.querySelector<HTMLElement>('[data-slot="alert"]')
+
+		if (!alert) throw new Error('The board has no alert.')
+
+		expect(alert.getAttribute('role')).toBe('status')
+
+		// The alert has no icon: its only icon is the X of the close button.
+		expect(alert.querySelectorAll('svg')).toHaveLength(1)
+
+		expect(alert.textContent).toContain("You already played today's puzzle")
+		expect(alert.textContent).toContain("Replays don't change your score.")
+
+		// The alert comes before the bar of the drawn number.
+		const reset = screen.getByRole('button', { name: 'Reset' })
+
+		expect(alert.compareDocumentPosition(reset) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+		fireEvent.click(within(alert).getByRole('button', { name: 'Close' }))
+
+		expect(container.querySelector('[data-slot="alert"]')).toBeNull()
+		expect(document.activeElement).toBe(reset)
 	})
 })
 

@@ -6,14 +6,11 @@ import type { NumbersStats } from '../api/stats-api'
 import { useDailyNotice } from '../hooks/use-daily-notice'
 import { createGame, drawNumber, type Game, getStatus, placeNumber } from '../utilities/game'
 
-const { useStats, toast } = vi.hoisted(() => ({
+const { useStats } = vi.hoisted(() => ({
 	useStats: vi.fn<(today: string, enabled: boolean) => { data: NumbersStats | undefined }>(),
-	toast: vi.fn(),
 }))
 
 vi.mock('../queries/stats-queries', () => ({ useStats }))
-
-vi.mock('ui/toast', () => ({ useToast: () => ({ toast }) }))
 
 const TODAY = '20261116'
 
@@ -66,59 +63,62 @@ afterEach(() => {
 })
 
 describe('useDailyNotice', () => {
-	it('tells the reader once for each run of a daily puzzle that already counts', () => {
+	it('gives the notice to each run of a daily puzzle that already counts', () => {
 		useStats.mockReturnValue({ data: statsWith(14) })
 
 		const user = makeUser(true)
 
-		const { rerender } = render({ game: playing(TODAY), run: 1, user })
+		const { result, rerender } = render({ game: playing(TODAY), run: 1, user })
 
 		expect(useStats).toHaveBeenCalledWith(TODAY, true)
 
-		expect(toast).toHaveBeenCalledTimes(1)
-
-		expect(toast).toHaveBeenCalledWith({
-			title: "You already played today's puzzle",
-			description: "Your score of 14 / 20 is saved. This replay won't change your streak.",
-		})
+		expect(result.current).toBe(true)
 
 		rerender({ game: placeNumber(playing(TODAY), 0), run: 1, user })
 
-		expect(toast).toHaveBeenCalledTimes(1)
+		expect(result.current).toBe(true)
 
 		rerender({ game: playing(TODAY), run: 2, user })
 
-		expect(toast).toHaveBeenCalledTimes(2)
+		expect(result.current).toBe(true)
 	})
 
-	it('tells the reader once for run 0, the run that the page opens with', () => {
-		useStats.mockReturnValue({ data: statsWith(14) })
+	it('keeps the decision of the run when the stats change during it', () => {
+		useStats.mockReturnValue({ data: statsWith(null) })
 
 		const user = makeUser(true)
 
-		const { rerender } = render({ game: playing(TODAY), run: 0, user })
+		const { result, rerender } = render({ game: playing(TODAY), run: 0, user })
 
-		expect(toast).toHaveBeenCalledTimes(1)
+		expect(result.current).toBe(false)
 
-		rerender({ game: placeNumber(playing(TODAY), 0), run: 0, user })
+		// The first run ends, and its result is now the saved score.
+		useStats.mockReturnValue({ data: statsWith(9) })
 
-		expect(toast).toHaveBeenCalledTimes(1)
+		rerender({ game: busted(TODAY), run: 0, user })
+
+		expect(result.current).toBe(false)
+
+		// The next run is a replay.
+		rerender({ game: playing(TODAY), run: 1, user })
+
+		expect(result.current).toBe(true)
 	})
 
-	it('says nothing before the first run of the daily puzzle counts', () => {
+	it('gives no notice before the first run of the daily puzzle counts', () => {
 		useStats.mockReturnValue({ data: statsWith(null) })
 
-		render({ game: playing(TODAY), run: 1, user: makeUser(true) })
+		const { result } = render({ game: playing(TODAY), run: 1, user: makeUser(true) })
 
-		expect(toast).not.toHaveBeenCalled()
+		expect(result.current).toBe(false)
 	})
 
-	it('says nothing when the stats arrive after the run ended, because they can hold its result', () => {
+	it('gives no notice when the stats arrive after the run ended, because they can hold its result', () => {
 		useStats.mockReturnValue({ data: undefined })
 
 		const user = makeUser(true)
 
-		const { rerender } = render({ game: playing(TODAY), run: 1, user })
+		const { result, rerender } = render({ game: playing(TODAY), run: 1, user })
 
 		expect(getStatus(busted(TODAY))).toBe('bust')
 
@@ -128,20 +128,20 @@ describe('useDailyNotice', () => {
 
 		rerender({ game: busted(TODAY), run: 1, user })
 
-		expect(toast).not.toHaveBeenCalled()
+		expect(result.current).toBe(false)
 	})
 
 	it('reads no stats for another seed, or for a reader with no verified email', () => {
 		useStats.mockReturnValue({ data: undefined })
 
-		render({ game: playing('charlie'), run: 1, user: makeUser(true) })
-
-		render({ game: playing(TODAY), run: 1, user: makeUser(false) })
-
-		render({ game: playing(TODAY), run: 1 })
+		const results = [
+			render({ game: playing('charlie'), run: 1, user: makeUser(true) }).result,
+			render({ game: playing(TODAY), run: 1, user: makeUser(false) }).result,
+			render({ game: playing(TODAY), run: 1 }).result,
+		]
 
 		expect(useStats.mock.calls.every(([, enabled]) => !enabled)).toBe(true)
 
-		expect(toast).not.toHaveBeenCalled()
+		expect(results.every((result) => result.current === false)).toBe(true)
 	})
 })

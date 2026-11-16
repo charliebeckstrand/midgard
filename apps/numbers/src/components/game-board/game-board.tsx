@@ -4,6 +4,7 @@ import type { User } from 'auth'
 import { usePathname } from 'next/navigation'
 import { type MouseEvent, useEffect, useEffectEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
+import { Alert } from 'ui/alert'
 import { useConfirm } from 'ui/confirm'
 import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
@@ -48,7 +49,10 @@ export type GameBoardProps = {
  * of the column scrolls it too.
  *
  * A run of the daily puzzle of today, after its first run counted, tells a
- * signed-in reader that it already counts (see `useDailyNotice`).
+ * signed-in reader that it already counts (see `useDailyNotice`), in an alert
+ * with no icon at the top, over the bar of the drawn number. The reader can close the alert,
+ * and it stays closed for the run. The focus then goes to Reset, the control
+ * under the alert that each state of the bar has.
  *
  * A Reset starts the run of a new seed in place, in the same mode, and adds the
  * address of the seed to the history, so the reader can send the run. While
@@ -81,7 +85,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const { game, status, run, draw, place, reset } = useGame(seed, autoDraw, recordRun)
 
-	useDailyNotice(game, run, mode, user)
+	const dailyNotice = useDailyNotice(game, run, mode, user)
 
 	const ended = isEnded(status)
 
@@ -173,6 +177,24 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	return (
 		<div className="flex h-full flex-col print:h-auto">
+			{dailyNotice && (
+				// A closed alert renders nothing, so `empty:hidden` also removes its space.
+				<div className="mx-auto w-full max-w-md shrink-0 px-4 pt-4 empty:hidden">
+					{/* The key opens the alert again for the next run that gets a notice. */}
+					<Alert
+						key={run}
+						severity="info"
+						icon={false}
+						title="You already played today's puzzle"
+						description="Replays don't change your score."
+						closable
+						announceOnMount
+						returnFocusTo={resetRef}
+						className="w-full"
+					/>
+				</div>
+			)}
+
 			<GameBoardToolbar
 				game={game}
 				status={status}
