@@ -26,12 +26,12 @@ import { StatsDialog } from '../stats-dialog'
 
 /**
  * The props of the item of `route`, when it is the route of the page: it is
- * the current item, and its label is bold. The token is `true`, not `page`,
+ * the current item, and its label is extra bold (800). The token is `true`, not `page`,
  * because the link of the item opens another page: a new seed, or the daily
  * puzzle of today.
  */
 function currentProps(route: Route, current: Route) {
-	return route === current ? ({ 'aria-current': 'true', className: 'font-semibold' } as const) : {}
+	return route === current ? ({ 'aria-current': 'true', className: 'font-extrabold' } as const) : {}
 }
 
 /**
