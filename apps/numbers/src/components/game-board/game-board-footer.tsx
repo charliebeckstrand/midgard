@@ -9,13 +9,14 @@ import {
 	DIFFICULTY_LABELS,
 	type Difficulty,
 	type Game,
+	getStatus,
 	type Outcome,
 	SLOTS,
 } from '../../utilities/game'
 import { SETTINGS } from '../../utilities/settings'
 import { GameBoardShare } from './game-board-share'
 
-/** The tint of a score cell: green for the winner, and amber for a tie. */
+/** The tint of a score cell: green for the winner, and amber for a tie or a solo bust. */
 type Tint = 'green' | 'amber' | undefined
 
 /** The tint of the cell of the player and of the CPU, while the game goes on and for each result. */
@@ -140,6 +141,7 @@ export type GameBoardFooterProps = {
  * check before it: the cell and the check of the winner are green, and the
  * check of the loser is grey. A tie makes both cells amber, with no check.
  * A solo win makes the cell green, with a green check, as the winner against
+ * the CPU. A solo bust makes the cell amber, with no check, as a tie against
  * the CPU. With Show score off, the bar holds only the share menu.
  *
  * @remarks
@@ -162,8 +164,12 @@ export function GameBoardFooter({
 	// A win or a loss puts a check before each label.
 	const decided = outcome === 'win' || outcome === 'loss'
 
-	// A solo win fills each slot.
-	const won = countPlaced(game.slots) === SLOTS
+	// A solo run ends in a win, which fills each slot, or in a bust.
+	const status = getStatus(game)
+
+	const won = status === 'won'
+
+	const soloTint: Tint = won ? 'green' : status === 'bust' ? 'amber' : undefined
 
 	// A result tints a cell, so each cell of the bar gets its padding.
 	const settled = Boolean(outcome)
@@ -200,8 +206,8 @@ export function GameBoardFooter({
 								label="Score"
 								showLabel={false}
 								game={game}
-								tint={won ? 'green' : undefined}
-								inset={won}
+								tint={soloTint}
+								inset={Boolean(soloTint)}
 								check={won}
 							/>
 						)
