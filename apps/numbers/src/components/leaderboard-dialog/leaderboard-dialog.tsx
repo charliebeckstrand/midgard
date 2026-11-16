@@ -26,8 +26,7 @@ import {
 } from 'ui/table'
 import { TabContent, TabContents } from 'ui/tabs'
 import { Text } from 'ui/text'
-import type { BoardEntry } from '../../api/leaderboard-api'
-import type { Mode } from '../../api/stats-api'
+import type { BoardEntry, BoardMode } from '../../api/leaderboard-api'
 import { useBoard } from '../../queries/leaderboard-queries'
 import { SLOTS } from '../../utilities/game'
 import { dailySeed } from '../../utilities/seed'
@@ -77,11 +76,10 @@ function BoardRow({ entry }: { entry: BoardEntry }) {
 }
 
 /**
- * The board of the daily puzzle of `date` in `mode`: the top 10 by the score of
- * their first run, then the reader when they are below them, and the count of
- * players.
+ * The board `mode` of the day `date`: the top 10 by their best score on it,
+ * then the reader when they are below them, and the count of players.
  */
-function Board({ date, mode }: { date: string; mode: Mode }) {
+function Board({ date, mode }: { date: string; mode: BoardMode }) {
 	const intl = useIntl()
 
 	const { data, isError } = useBoard(date, mode)
@@ -103,7 +101,7 @@ function Board({ date, mode }: { date: string; mode: Mode }) {
 				{data === undefined ? (
 					<TableLoading columns={3} rows={3} />
 				) : data.entries.length === 0 ? (
-					<TableEmpty columns={3}>No one has played this puzzle yet.</TableEmpty>
+					<TableEmpty columns={3}>No one is on this board yet.</TableEmpty>
 				) : (
 					<TableBody>
 						{/* A row is its place on the board, and players have no id here. */}
@@ -156,8 +154,9 @@ function ReaderNote({ user }: { user?: User }) {
 }
 
 /**
- * The boards, by mode, on the daily puzzle of a day that the arrows move. The
- * board opens on today, and goes back to earlier days, but not past today.
+ * The boards of a day that the arrows move: Daily for the daily puzzle, Solo
+ * for the solo runs of other seeds, and Vs CPU for the runs against the CPU. The
+ * boards open on today, and go back to earlier days, but not past today.
  */
 function Boards({ user }: { user?: User }) {
 	const today = useToday()
@@ -172,9 +171,10 @@ function Boards({ user }: { user?: User }) {
 
 	return (
 		<Stack gap="lg">
-			<Segment defaultValue="solo">
+			<Segment defaultValue="daily">
 				<Stack gap="lg">
-					<SegmentControl aria-label="Mode">
+					<SegmentControl aria-label="Board">
+						<SegmentItem value="daily">Daily</SegmentItem>
 						<SegmentItem value="solo">Solo</SegmentItem>
 						<SegmentItem value="vsCpu">Vs CPU</SegmentItem>
 					</SegmentControl>
@@ -199,6 +199,10 @@ function Boards({ user }: { user?: User }) {
 					</Flex>
 
 					<TabContents>
+						<TabContent value="daily">
+							<Board date={date} mode="daily" />
+						</TabContent>
+
 						<TabContent value="solo">
 							<Board date={date} mode="solo" />
 						</TabContent>
@@ -216,8 +220,8 @@ function Boards({ user }: { user?: User }) {
 }
 
 /**
- * The leaderboard of each daily puzzle, from the Leaderboard item of the header
- * menu. Each player is ranked by the first run of the puzzle, and shows by the
+ * The leaderboards of each day, from the Leaderboard item of the header menu.
+ * Each player is ranked by their best score on a board, and shows by the
  * name of their account, or as anonymous when it has none. Each reader sees the
  * boards. A reader with no session gets a line that asks them to sign in, and a
  * reader with no verified email gets a line that asks for the verification.

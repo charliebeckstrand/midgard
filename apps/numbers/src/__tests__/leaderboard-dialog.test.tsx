@@ -73,7 +73,7 @@ describe('LeaderboardDialog', () => {
 
 		const rows = screen.getAllByRole('row')
 
-		expect(readBoard).toHaveBeenCalledWith('20261116', 'solo')
+		expect(readBoard).toHaveBeenCalledWith('20261116', 'daily')
 
 		expect(rows.slice(1).map((row) => row.textContent)).toEqual([
 			'1Ada15 / 20',
@@ -95,23 +95,26 @@ describe('LeaderboardDialog', () => {
 
 		expect(later.hasAttribute('disabled')).toBe(true)
 
-		expect(await screen.findByText('No one has played this puzzle yet.')).toBeTruthy()
+		expect(await screen.findByText('No one is on this board yet.')).toBeTruthy()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Earlier day' }))
 
-		await waitFor(() => expect(readBoard).toHaveBeenCalledWith('20261115', 'solo'))
+		await waitFor(() => expect(readBoard).toHaveBeenCalledWith('20261115', 'daily'))
 
 		expect(screen.queryByText('Today')).toBeNull()
 	})
 
-	it('reads the board of the Vs CPU mode', async () => {
+	it.each([
+		['Solo', 'solo'],
+		['Vs CPU', 'vsCpu'],
+	])('reads the %s board of the day', async (tab, mode) => {
 		vi.mocked(readBoard).mockResolvedValue(board(0, []))
 
 		renderDialog(makeUser(true))
 
-		fireEvent.click(screen.getByRole('tab', { name: 'Vs CPU' }))
+		fireEvent.click(screen.getByRole('tab', { name: tab }))
 
-		await waitFor(() => expect(readBoard).toHaveBeenCalledWith('20261116', 'vsCpu'))
+		await waitFor(() => expect(readBoard).toHaveBeenCalledWith('20261116', mode))
 	})
 
 	it('tells a verified reader with no account name that they show as anonymous', async () => {
@@ -127,7 +130,7 @@ describe('LeaderboardDialog', () => {
 
 		renderDialog(makeUser(true))
 
-		await screen.findByText('No one has played this puzzle yet.')
+		await screen.findByText('No one is on this board yet.')
 
 		expect(screen.queryByText(/shows you as Anonymous/)).toBeNull()
 	})
