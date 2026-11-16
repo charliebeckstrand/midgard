@@ -18,7 +18,7 @@ const TONES: Record<Status, TextProps['tone']> = {
 
 /**
  * The readout of the drawn number. It shows 0 at its mount, and then rolls to
- * `value`. The toolbar mounts it again for each run, so the first number of
+ * `value`. The toolbar mounts it again for each run. Thus the first number of
  * each run rolls from 0, also when it is near the last number of the run
  * before.
  */
