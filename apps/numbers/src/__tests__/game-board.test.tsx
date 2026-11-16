@@ -225,18 +225,6 @@ describe('GameBoard daily notice from the server', () => {
 describe('GameBoard Reset', () => {
 	beforeEach(() => window.history.replaceState(null, '', '/charlie'))
 
-	it('has no Reset on a daily puzzle, of today or of another day, because a new seed is not the daily', () => {
-		renderBoard(true, { seed: dailySeed(new Date()) })
-
-		expect(screen.queryByRole('button', { name: 'Reset' })).toBeNull()
-
-		cleanup()
-
-		renderBoard(true, { seed: '20261101' })
-
-		expect(screen.queryByRole('button', { name: 'Reset' })).toBeNull()
-	})
-
 	it('starts a new run at once while no number is placed', () => {
 		renderBoard()
 
@@ -279,8 +267,64 @@ describe('GameBoard Reset', () => {
 		expect(screen.queryByRole('button', { name: /^Slot 10, / })).toBeNull()
 	})
 
-	/** Plays the run with key presses until it ends: each number goes in the first slot that can take it. */
-	const playToEnd = () => {
+	it('shows Reset on a daily puzzle from the first placement only', () => {
+		renderBoard(true, { seed: '20261101' })
+
+		// jsdom has no styles, so the test reads the class that hides Reset.
+		expect(screen.getByRole('button', { name: 'Reset' }).classList).toContain('invisible')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
+
+		expect(screen.getByRole('button', { name: 'Reset' }).classList).not.toContain('invisible')
+	})
+
+	it('starts the same seed again on a daily puzzle, keeps its address, and gives the focus to the next control', async () => {
+		window.history.replaceState(null, '', '/20261101')
+
+		const { container } = renderBoard(true, { seed: '20261101' })
+
+		const first = String(createGame('20261101').deck[0])
+
+		const entries = window.history.length
+
+		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
+
+		const reset = screen.getByRole('button', { name: 'Reset' })
+
+		reset.focus()
+
+		fireEvent.click(reset, { detail: 0 })
+
+		const dialog = await screen.findByRole('alertdialog')
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Reset' }))
+
+		await waitFor(() => expect(screen.queryByRole('button', { name: /^Slot 10, / })).toBeNull())
+
+		expect(window.location.pathname).toBe('/20261101')
+		expect(window.history.length).toBe(entries)
+
+		// Auto-draw draws the first number of the deck again.
+		expect(container.querySelector('[data-slot="odometer-value"]')?.textContent).toBe(first)
+
+		// The run is at its start, so Reset hides, and the focus goes to the first open slot.
+		expect(reset.classList).toContain('invisible')
+
+		await waitFor(() =>
+			expect(document.activeElement).toBe(
+				screen
+					.getAllByRole('button', { name: /^Slot / })
+					.find((button) => !button.hasAttribute('disabled')),
+			),
+		)
+	})
+
+	it('gives the focus to Reset when a pressed Draw ends the run, because the bar then has no Draw', () => {
+		// jsdom has no `scrollIntoView`, and the bust mark scrolls into view.
+		Element.prototype.scrollIntoView = vi.fn()
+
+		renderBoard(false)
+
 		/** Focuses `button` and presses it, as a key press does. */
 		const press = (button: HTMLElement) => {
 			button.focus()
@@ -288,7 +332,8 @@ describe('GameBoard Reset', () => {
 			fireEvent.click(button, { detail: 0 })
 		}
 
-		// The slots fill from the top, so a later number that is smaller has no slot.
+		// Each number goes in the first slot that can take it, so the slots fill
+		// from the top, and a later number that is smaller has no slot.
 		for (let turn = 0; turn < 20; turn++) {
 			const draw = screen.queryByRole('button', { name: 'Draw' })
 
@@ -306,26 +351,6 @@ describe('GameBoard Reset', () => {
 		}
 
 		expect(screen.queryByRole('button', { name: 'Draw' })).toBeNull()
-	}
-
-	it('gives the focus to Reset when a pressed Draw ends the run, because the bar then has no Draw', () => {
-		// jsdom has no `scrollIntoView`, and the bust mark scrolls into view.
-		Element.prototype.scrollIntoView = vi.fn()
-
-		renderBoard(false)
-
-		playToEnd()
-
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reset' }))
-	})
-
-	it('gives the focus to Share when a daily puzzle ends, because the board has no Reset', () => {
-		Element.prototype.scrollIntoView = vi.fn()
-
-		renderBoard(false, { seed: '20261101' })
-
-		playToEnd()
-
-		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Share' }))
 	})
 })

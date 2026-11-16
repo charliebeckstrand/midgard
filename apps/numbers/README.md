@@ -44,11 +44,12 @@ partial Fisher-Yates shuffle takes the deck.
 | `/vs/k3x9q2` | The run of the seed against the CPU (see [Vs CPU](#vs-cpu)) |
 
 A Reset starts the run of a new seed in place, in the same mode, and adds its
-address to the history. While the run goes on and has a placed number, Reset
+address to the history. On a daily puzzle, a Reset starts the same seed again
+from its start, and the address stays (`isDailySeed`). Reset shows there from
+the first placement, because before it the run is at its start. Its space
+stays, so the bar keeps its width. While the run goes on and has a placed number, Reset
 asks the reader to confirm (`useConfirm` of `ui`). After a bust or a win, or
-before the first placement, Reset does not ask. A daily puzzle has no Reset
-(`isDailySeed`), because a new seed is not the daily puzzle; the menu opens the
-other runs. A link, Back, and Forward start the run of the seed of
+before the first placement, Reset does not ask. A link, Back, and Forward start the run of the seed of
 the address again, from its start.
 
 The daily puzzle of a day is the run of the seed of its date (`dailySeed`), in
@@ -77,7 +78,7 @@ appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). Each segment of the app (in the settings, Stats, and Leaderboard)
 slides to the panel of the new tab. A bar under the header holds the drawn
 number and, with Auto-draw off, Draw. A Reset button at the right of the bar,
-apart from it, starts a new seed at each step. The bar keeps one height with
+apart from it, starts the next run at each step. The bar keeps one height with
 Draw and without it. The number rolls
 from the shown number to each new number through the `Odometer` of `ui`, also
 to the first number of a new run. A roll covers at least 100 (`minChange`), so a
@@ -100,9 +101,8 @@ screen reader hears the score at a bust.
 
 An action can turn off the button that the reader pressed. The focus then
 moves to the first slot that can take the number, or else to Draw, or else to
-Reset. A daily puzzle has no Reset, so after its bust or win the focus goes to
-Share in the bottom bar. The close of the notice of a replay moves the focus by the same
-rule.
+Reset. A Reset that hides Reset on a daily puzzle, and the close of the notice
+of a replay, move the focus by the same rule.
 
 ## Settings
 

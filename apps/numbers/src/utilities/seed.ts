@@ -42,7 +42,8 @@ export function dailySeedAt(now: number, offset: number): string {
 /**
  * Whether `seed` is the seed of a daily puzzle: a real date as `YYYYMMDD`, such
  * as `20261115`. A seed that the app makes has 6 characters, so it is never a
- * date. The rule needs no clock, so the server and the browser agree.
+ * date. Any date counts, of today or of an earlier day, because each is the
+ * page of a daily puzzle.
  */
 export function isDailySeed(seed: string): boolean {
 	if (!/^\d{8}$/.test(seed)) return false

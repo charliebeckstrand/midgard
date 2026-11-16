@@ -1,5 +1,4 @@
 import { CircleCheck } from 'lucide-react'
-import type { Ref } from 'react'
 import { cn } from 'ui/core'
 import { Icon } from 'ui/icon'
 import { Flex } from 'ui/structure/flex'
@@ -100,8 +99,6 @@ export type GameBoardFooterProps = {
 	difficulty: Difficulty
 	/** The result against the CPU, after the game of the player ends. */
 	outcome?: Outcome | null
-	/** The ref of the share button, which takes the focus after the end of a daily puzzle. */
-	shareRef?: Ref<HTMLButtonElement>
 }
 
 /**
@@ -129,7 +126,6 @@ export function GameBoardFooter({
 	cpu,
 	difficulty,
 	outcome,
-	shareRef,
 }: GameBoardFooterProps) {
 	const tints = TINTS[outcome ?? 'playing']
 
@@ -158,7 +154,7 @@ export function GameBoardFooter({
 				)}
 			</div>
 
-			<GameBoardShare ref={shareRef} />
+			<GameBoardShare />
 		</Flex>
 	)
 }
