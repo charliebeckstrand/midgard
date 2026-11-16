@@ -31,12 +31,17 @@ export type GameBoardToolbarProps = {
 	onDraw: (event: MouseEvent<HTMLButtonElement>) => void
 	/** The ref of the Draw button. It is null while the bar has no Draw. */
 	drawRef: Ref<HTMLButtonElement>
-	/** Starts the run of a new seed, at each step. */
-	onReset: () => void
-	/** The ref of the Reset button. */
+	/** Starts the next run, at each step. */
+	onReset: (event: MouseEvent<HTMLButtonElement>) => void
+	/** The ref of the Reset button. It is null while Reset does not show. */
 	resetRef: Ref<HTMLButtonElement>
 	/** Shows Draw. With Auto-draw on, the game draws itself, so the bar has no Draw. */
 	showDraw: boolean
+	/**
+	 * Shows Reset. A hidden Reset keeps its space, so the bar does not change
+	 * its width when Reset shows.
+	 */
+	showReset: boolean
 }
 
 /**
@@ -50,15 +55,17 @@ export type GameBoardToolbarProps = {
  *
  * With Auto-draw off, the bar holds Draw while the run goes on. Draw is off
  * while a number waits for a slot. After a bust or a win, the bar has no Draw,
- * and Reset starts the next run. Reset starts a new run at each step. The bar
- * has 1rem of space at each side and 0.5rem above and below, as the score bar
- * has. The bar has no paint, as the score bar has none. The number is flush
- * with the slots, as the score is. Reset is always in the bar, and Draw is as
- * tall as Reset, so the height of the bar does not change when Draw shows or
- * goes. A border at the bottom of the bar spans the width of the view, as the
- * border of the score bar does. The bar holds one control at most, so it is a
- * plain box and not a `Toolbar`: a toolbar with no control is an empty group
- * to a screen reader.
+ * and Reset starts the next run. Reset starts a new run at each step. On a
+ * daily puzzle, Reset shows from the first placement, because before it the
+ * run is at its start. The bar has 1rem of space at each side and 0.5rem
+ * above and below, as the score bar has. The bar has no paint, as the score
+ * bar has none. The number is flush with the slots, as the score is. Reset is
+ * always in the bar, also while it is hidden, and Draw is as tall as Reset, so
+ * the height of the bar does not change when Draw shows or goes. A border at
+ * the bottom of the bar spans the width of the view, as the border of the
+ * score bar does. The bar holds one control at most, so it is a plain box and
+ * not a `Toolbar`: a toolbar with no control is an empty group to a screen
+ * reader.
  */
 export function GameBoardToolbar({
 	game,
@@ -68,6 +75,7 @@ export function GameBoardToolbar({
 	onReset,
 	resetRef,
 	showDraw,
+	showReset,
 }: GameBoardToolbarProps) {
 	return (
 		<div className="shrink-0 border-b border-zinc-950/5 dark:border-white/5">
@@ -84,7 +92,14 @@ export function GameBoardToolbar({
 					)}
 				</Flex>
 
-				<Button ref={resetRef} variant="plain" aria-label="Reset" onClick={onReset}>
+				{/* `invisible` takes a hidden Reset out of the tab order and the accessibility tree. */}
+				<Button
+					ref={showReset ? resetRef : undefined}
+					variant="plain"
+					aria-label="Reset"
+					onClick={onReset}
+					className={showReset ? undefined : 'invisible'}
+				>
 					<Icon icon={<RotateCcw />} />
 				</Button>
 			</Flex>

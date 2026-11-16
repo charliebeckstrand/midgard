@@ -39,6 +39,26 @@ export function dailySeedAt(now: number, offset: number): string {
 	return toDailySeed(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate())
 }
 
+/**
+ * Whether `seed` is the seed of a daily puzzle: a real date as `YYYYMMDD`, such
+ * as `20261115`. A seed that the app makes has 6 characters, so it is never a
+ * date. Any date counts, of today or of an earlier day, because each is the
+ * page of a daily puzzle.
+ */
+export function isDailySeed(seed: string): boolean {
+	if (!/^\d{8}$/.test(seed)) return false
+
+	const year = Number(seed.slice(0, 4))
+
+	const month = Number(seed.slice(4, 6)) - 1
+
+	const day = Number(seed.slice(6))
+
+	const date = new Date(Date.UTC(year, month, day))
+
+	return toDailySeed(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) === seed
+}
+
 /** The seed of the date of `year`, `month` (from 0), and `day`, as `YYYYMMDD`. */
 function toDailySeed(year: number, month: number, day: number): string {
 	return `${year}${String(month + 1).padStart(2, '0')}${String(day).padStart(2, '0')}`

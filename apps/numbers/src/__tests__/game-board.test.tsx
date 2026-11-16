@@ -78,7 +78,7 @@ describe('GameBoard daily notice', () => {
 		return client
 	}
 
-	it('shows an alert at the top on a replay of the daily puzzle, which closes and gives the focus to Reset', () => {
+	it('shows an alert at the top on a replay of the daily puzzle, which closes and gives the focus to the next control', () => {
 		const today = dailySeed(new Date())
 
 		const { container } = renderBoard(true, {
@@ -100,15 +100,20 @@ describe('GameBoard daily notice', () => {
 		expect(alert.textContent).toContain("You already played today's puzzle")
 		expect(alert.textContent).toContain("Replays don't change your score.")
 
-		// The alert comes before the bar of the drawn number.
-		const reset = screen.getByRole('button', { name: 'Reset' })
+		// The alert comes before the slots. Auto-draw drew a number, so the first
+		// slot that can take it is the next control.
+		const slot = screen
+			.getAllByRole('button', { name: /^Slot / })
+			.find((button) => !button.hasAttribute('disabled'))
 
-		expect(alert.compareDocumentPosition(reset) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+		if (!slot) throw new Error('The board has no open slot.')
+
+		expect(alert.compareDocumentPosition(slot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 
 		fireEvent.click(within(alert).getByRole('button', { name: 'Close' }))
 
 		expect(container.querySelector('[data-slot="alert"]')).toBeNull()
-		expect(document.activeElement).toBe(reset)
+		expect(document.activeElement).toBe(slot)
 	})
 })
 
@@ -260,6 +265,58 @@ describe('GameBoard Reset', () => {
 		await waitFor(() => expect(window.location.pathname).not.toBe('/charlie'))
 
 		expect(screen.queryByRole('button', { name: /^Slot 10, / })).toBeNull()
+	})
+
+	it('shows Reset on a daily puzzle from the first placement only', () => {
+		renderBoard(true, { seed: '20261101' })
+
+		// jsdom has no styles, so the test reads the class that hides Reset.
+		expect(screen.getByRole('button', { name: 'Reset' }).classList).toContain('invisible')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
+
+		expect(screen.getByRole('button', { name: 'Reset' }).classList).not.toContain('invisible')
+	})
+
+	it('starts the same seed again on a daily puzzle, keeps its address, and gives the focus to the next control', async () => {
+		window.history.replaceState(null, '', '/20261101')
+
+		const { container } = renderBoard(true, { seed: '20261101' })
+
+		const first = String(createGame('20261101').deck[0])
+
+		const entries = window.history.length
+
+		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
+
+		const reset = screen.getByRole('button', { name: 'Reset' })
+
+		reset.focus()
+
+		fireEvent.click(reset, { detail: 0 })
+
+		const dialog = await screen.findByRole('alertdialog')
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Reset' }))
+
+		await waitFor(() => expect(screen.queryByRole('button', { name: /^Slot 10, / })).toBeNull())
+
+		expect(window.location.pathname).toBe('/20261101')
+		expect(window.history.length).toBe(entries)
+
+		// Auto-draw draws the first number of the deck again.
+		expect(container.querySelector('[data-slot="odometer-value"]')?.textContent).toBe(first)
+
+		// The run is at its start, so Reset hides, and the focus goes to the first open slot.
+		expect(reset.classList).toContain('invisible')
+
+		await waitFor(() =>
+			expect(document.activeElement).toBe(
+				screen
+					.getAllByRole('button', { name: /^Slot / })
+					.find((button) => !button.hasAttribute('disabled')),
+			),
+		)
 	})
 
 	it('gives the focus to Reset when a pressed Draw ends the run, because the bar then has no Draw', () => {

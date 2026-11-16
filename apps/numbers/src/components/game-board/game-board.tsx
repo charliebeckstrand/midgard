@@ -22,7 +22,7 @@ import {
 	playCpu,
 	SLOTS,
 } from '../../utilities/game'
-import { createSeed, isSeed, runPath } from '../../utilities/seed'
+import { createSeed, isDailySeed, isSeed, runPath } from '../../utilities/seed'
 import { describeStatus } from './describe-status'
 import { GameBoardFooter } from './game-board-footer'
 import { GameBoardSlots } from './game-board-slots'
@@ -53,11 +53,14 @@ export type GameBoardProps = {
  * A run of the daily puzzle of today, after its first run counted, tells a
  * signed-in reader that it already counts (see `useDailyNotice`), in an alert
  * with no icon at the top, over the bar of the drawn number. The reader can close the alert,
- * and it stays closed for the run. The focus then goes to Reset, the control
- * under the alert that each state of the bar has.
+ * and it stays closed for the run. The focus then goes to the next control to
+ * use, by the rule of a placement (see the remarks).
  *
  * A Reset starts the run of a new seed in place, in the same mode, and adds the
- * address of the seed to the history, so the reader can send the run. While
+ * address of the seed to the history, so the reader can send the run. On a
+ * daily puzzle, a Reset starts the same seed again from its start, because a
+ * new seed is not the daily puzzle, and the address stays. Reset shows there
+ * from the first placement, because before it the run is at its start. While
  * the run goes on and has a placed number, Reset asks the reader to confirm,
  * because the reset discards the run. After a bust or a win, Reset does not
  * ask. A link, Back, and Forward go to the run of the seed of the address, from
@@ -67,7 +70,8 @@ export type GameBoardProps = {
  * An action can turn off the control that the reader pressed: Draw is off
  * while a number waits, and a filled slot is off. The focus then moves to the
  * next control to use: the first slot that can take the number, or else Draw,
- * or else Reset after a bust or a win. The move happens only when the pressed control had the focus.
+ * or else Reset after a bust or a win. A Reset that hides Reset, on a daily
+ * puzzle, also moves the focus by this rule. The move happens only when the pressed control had the focus.
  * Safari does not give the focus to a pressed button, so it moves no focus.
  * Chrome and Firefox give the focus to a pressed button, so a pointer press
  * also moves the focus, but the page does not scroll to it: the reader looks at
@@ -109,6 +113,17 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 
 	useA11yAnnouncements(describeStatus(game, status, cpu, intl.formatNumber))
 
+	/**
+	 * Gives the focus to the next control to use: the first slot that can take
+	 * the number, or else Draw, or else Reset. After a bust or a win, the bar has
+	 * no Draw, so the focus goes to Reset, which shows after each placement.
+	 */
+	const focusNext = (options: FocusOptions) => {
+		const slot = slotsRef.current?.querySelector<HTMLButtonElement>('button:enabled')
+
+		;(slot ?? drawRef.current ?? resetRef.current)?.focus(options)
+	}
+
 	/** Runs `action`, then gives the focus to the next control when the pressed control had it. */
 	const act = (event: MouseEvent<HTMLButtonElement>, action: () => void) => {
 		const focused = event.currentTarget === document.activeElement
@@ -116,20 +131,21 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 		// The update commits before the focus moves, so the next control is on.
 		flushSync(action)
 
-		if (!focused) return
-
-		const slot = slotsRef.current?.querySelector<HTMLButtonElement>('button:enabled')
-
-		// After a bust or a win, the bar has no Draw, so the focus goes to Reset.
-		;(slot ?? drawRef.current ?? resetRef.current)?.focus({ preventScroll: event.detail > 0 })
+		if (focused) focusNext({ preventScroll: event.detail > 0 })
 	}
 
-	/** Starts the run of a new seed, and writes its address. */
+	/** Starts the run of a new seed, and writes its address. A daily puzzle starts its own seed again. */
 	const restart = () => {
 		// A bust or a win counted when it ended. A Reset after the first placement
 		// counts the run with its score. A link, Back, or Forward leaves the run, and
 		// the run does not count.
 		if (isUnfinished(game)) recordRun(game)
+
+		if (isDailySeed(game.seed)) {
+			reset(game.seed)
+
+			return
+		}
 
 		const next = createSeed()
 
@@ -140,8 +156,16 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 
 	const confirm = useConfirm()
 
-	/** Starts a new run. A run that goes on with a placed number asks first, because the reset discards it. */
-	const resetRun = async () => {
+	/**
+	 * Starts the next run. A run that goes on with a placed number asks first,
+	 * because the reset discards it. A reset that hides Reset gives the focus to
+	 * the next control when Reset had it.
+	 */
+	const resetRun = async (event: MouseEvent<HTMLButtonElement>) => {
+		const focused = event.currentTarget === document.activeElement
+
+		const options = { preventScroll: event.detail > 0 }
+
 		if (
 			isUnfinished(game) &&
 			!(await confirm({
@@ -153,7 +177,10 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 			return
 		}
 
-		restart()
+		// The update commits before the focus moves, so the next control is on.
+		flushSync(restart)
+
+		if (focused && !resetRef.current) focusNext(options)
 	}
 
 	// The address of the page. Next gives each change of it: a link, Back,
@@ -191,7 +218,9 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 						description="Replays don't change your score."
 						closable
 						announceOnMount
-						returnFocusTo={resetRef}
+						onOpenChange={(open) => {
+							if (!open) focusNext({})
+						}}
 						className="w-full"
 					/>
 				</div>
@@ -205,6 +234,7 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 				resetRef={resetRef}
 				onReset={resetRun}
 				showDraw={!autoDraw}
+				showReset={!isDailySeed(game.seed) || countPlaced(game.slots) > 0}
 			/>
 
 			{/* `relative` keeps each positioned element in the box, as in `StackedLayoutBody`. */}
