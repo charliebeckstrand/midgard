@@ -159,8 +159,8 @@ function ReaderNote({ user }: { user?: User }) {
 
 /**
  * The boards of a day that the arrows move, in the order of the menu: Solo for
- * the solo runs of other seeds, Daily for the daily puzzle, and Vs CPU for the
- * runs that beat the CPU. The dialog opens on Daily. The boards open on today,
+ * the solo runs of other seeds, Vs CPU for the runs that beat the CPU, and Daily
+ * for the daily puzzle. The dialog opens on Daily. The boards open on today,
  * and go back to earlier days, but not past today.
  */
 function Boards({ user }: { user?: User }) {
@@ -188,8 +188,8 @@ function Boards({ user }: { user?: User }) {
 				<Stack gap="lg">
 					<SegmentControl aria-label="Board">
 						<SegmentItem value="solo">Solo</SegmentItem>
-						<SegmentItem value="daily">Daily</SegmentItem>
 						<SegmentItem value="vsCpu">Vs CPU</SegmentItem>
+						<SegmentItem value="daily">Daily</SegmentItem>
 					</SegmentControl>
 
 					<Flex align="center" justify="between" gap="sm">
@@ -216,12 +216,12 @@ function Boards({ user }: { user?: User }) {
 							<Board date={date} mode="solo" />
 						</TabContent>
 
-						<TabContent value="daily">
-							<Board date={date} mode="daily" />
-						</TabContent>
-
 						<TabContent value="vsCpu">
 							<Board date={date} mode="vsCpu" />
+						</TabContent>
+
+						<TabContent value="daily">
+							<Board date={date} mode="daily" />
 						</TabContent>
 					</TabContents>
 				</Stack>

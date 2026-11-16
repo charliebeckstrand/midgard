@@ -64,6 +64,18 @@ describe('NumbersMenu', () => {
 		expect(useStats).toHaveBeenLastCalledWith('20261116', true)
 	})
 
+	it('lists the modes in order: Solo, Vs CPU, then Daily puzzle', async () => {
+		vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
+
+		renderMenu()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+		const items = (await screen.findAllByRole('menuitem')).map((item) => item.textContent)
+
+		expect(items.slice(0, 4)).toEqual(['Solo', 'Vs CPU', 'Daily puzzle', 'Leaderboard'])
+	})
+
 	it('reads the three boards of today when the menu opens, so the leaderboard opens with its rows', async () => {
 		vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
 

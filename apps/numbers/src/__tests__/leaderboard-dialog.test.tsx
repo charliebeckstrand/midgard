@@ -115,8 +115,8 @@ describe('LeaderboardDialog', () => {
 
 		expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
 			'Solo',
-			'Daily',
 			'Vs CPU',
+			'Daily',
 		])
 
 		expect(screen.getByRole('tab', { name: 'Daily' }).getAttribute('aria-selected')).toBe('true')
