@@ -11,8 +11,10 @@ describe('toBoardMode', () => {
 		[{ seed: TODAY, mode: 'solo' }, 'daily'],
 		[{ seed: 'k3x9q2', mode: 'solo' }, 'solo'],
 		[{ seed: '20261115', mode: 'solo' }, 'solo'],
-		[{ seed: 'k3x9q2', mode: 'vsCpu' }, 'vsCpu'],
-		[{ seed: TODAY, mode: 'vsCpu' }, 'vsCpu'],
+		[{ seed: 'k3x9q2', mode: 'vsCpu', beatCpu: true }, 'vsCpu'],
+		[{ seed: TODAY, mode: 'vsCpu', beatCpu: true }, 'vsCpu'],
+		[{ seed: 'k3x9q2', mode: 'vsCpu', beatCpu: false }, null],
+		[{ seed: 'k3x9q2', mode: 'vsCpu' }, null],
 	] as const)('puts %j on the %s board', (run, board) => {
 		expect(toBoardMode({ ...run, score: 10, today: TODAY })).toBe(board)
 	})

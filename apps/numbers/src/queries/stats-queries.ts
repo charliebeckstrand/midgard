@@ -22,9 +22,9 @@ export function useStats(today: string, enabled: boolean) {
 }
 
 /**
- * Counts a finished run, and puts the stats of the answer into the cache. Each
- * run can change the score of the reader on its leaderboard of the day, so that
- * board reads again. A failure shows in a toast.
+ * Counts a finished run, and puts the stats of the answer into the cache. A run
+ * that counts on a leaderboard of the day can change the score of the reader
+ * on it, so that board reads again. A failure shows in a toast.
  */
 export function useRecordResult() {
 	const client = useQueryClient()
@@ -34,7 +34,9 @@ export function useRecordResult() {
 		onSuccess: (stats, result: RunResult) => {
 			client.setQueryData<NumbersStats>(statsKey(result.today), stats)
 
-			client.invalidateQueries({ queryKey: boardKey(result.today, toBoardMode(result)) })
+			const board = toBoardMode(result)
+
+			if (board) client.invalidateQueries({ queryKey: boardKey(result.today, board) })
 		},
 	})
 }

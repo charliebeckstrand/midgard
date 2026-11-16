@@ -3,7 +3,7 @@ import { renderHook } from '@testing-library/react'
 import type { User } from 'auth'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useRunRecorder } from '../hooks/use-run-recorder'
-import { createGame, drawNumber, placeNumber } from '../utilities/game'
+import { createGame, drawNumber, placeNumber, playCpu, SLOTS } from '../utilities/game'
 
 const { mutate } = vi.hoisted(() => ({ mutate: vi.fn() }))
 
@@ -28,23 +28,39 @@ afterEach(() => {
 })
 
 describe('useRunRecorder', () => {
-	it('sends the run of a verified user, with its score, mode, and date', () => {
-		const { result } = renderHook(() => useRunRecorder(makeUser(true), 'vsCpu'))
+	it('sends the solo run of a verified user, with its score, mode, and date', () => {
+		const { result } = renderHook(() => useRunRecorder(makeUser(true), 'solo', 'normal'))
 
 		result.current(game)
 
 		expect(mutate).toHaveBeenCalledWith({
 			seed: 'charlie',
 			score: 1,
-			mode: 'vsCpu',
+			mode: 'solo',
 			today: '20261116',
 		})
 	})
 
-	it('sends nothing for a user with no verified email, or for no user', () => {
-		renderHook(() => useRunRecorder(makeUser(false), 'solo')).result.current(game)
+	// The ended run of the hard CPU on `abc` fills 15 slots, and the easy CPU 8.
+	// The same game at the same level is a tie. On `charlie`, hard fills 9 and
+	// easy 12.
+	it.each([
+		['a win', playCpu('abc', SLOTS, 'hard'), 'easy', true],
+		['a tie', playCpu('abc', SLOTS, 'hard'), 'hard', false],
+		['a loss', playCpu('charlie', SLOTS, 'hard'), 'easy', false],
+		['a run that a Reset ends', game, 'easy', false],
+	] as const)('sends whether a vs CPU run beat the CPU: %s', (_, run, difficulty, beatCpu) => {
+		const { result } = renderHook(() => useRunRecorder(makeUser(true), 'vsCpu', difficulty))
 
-		renderHook(() => useRunRecorder(undefined, 'solo')).result.current(game)
+		result.current(run)
+
+		expect(mutate).toHaveBeenCalledWith(expect.objectContaining({ mode: 'vsCpu', beatCpu }))
+	})
+
+	it('sends nothing for a user with no verified email, or for no user', () => {
+		renderHook(() => useRunRecorder(makeUser(false), 'solo', 'normal')).result.current(game)
+
+		renderHook(() => useRunRecorder(undefined, 'solo', 'normal')).result.current(game)
 
 		expect(mutate).not.toHaveBeenCalled()
 	})
