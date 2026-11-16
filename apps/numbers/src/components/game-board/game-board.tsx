@@ -4,7 +4,7 @@ import type { User } from 'auth'
 import { usePathname } from 'next/navigation'
 import { type MouseEvent, useEffect, useEffectEvent, useRef } from 'react'
 import { flushSync } from 'react-dom'
-import { Alert } from 'ui/alert'
+import { Banner } from 'ui/banner'
 import { useConfirm } from 'ui/confirm'
 import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
@@ -51,9 +51,9 @@ export type GameBoardProps = {
  * of the column scrolls it too.
  *
  * A run of the daily puzzle of today, after its first run counted, tells a
- * signed-in reader that it already counts (see `useDailyNotice`), in an alert
- * with no icon at the top, over the bar of the drawn number. The reader can close the alert,
- * and it stays closed for the run. The focus then goes to the next control to
+ * signed-in reader that it already counts (see `useDailyNotice`), in a banner
+ * with no icon across the top of the body, over the bar of the drawn number. The
+ * reader can close the banner, and it stays closed for the run. The focus then goes to the next control to
  * use, by the rule of a placement (see the remarks).
  *
  * A Reset starts the run of a new seed in place, in the same mode, and adds the
@@ -207,23 +207,21 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 	return (
 		<div className="flex h-full flex-col print:h-auto">
 			{dailyNotice && (
-				// A closed alert renders nothing, so `empty:hidden` also removes its space.
-				<div className="mx-auto w-full max-w-md shrink-0 px-4 pt-4 empty:hidden">
-					{/* The key opens the alert again for the next run that gets a notice. */}
-					<Alert
-						key={run}
-						severity="info"
-						icon={false}
-						title="You already played today's puzzle"
-						description="Replays don't change your score."
-						closable
-						announceOnMount
-						onOpenChange={(open) => {
-							if (!open) focusNext({})
-						}}
-						className="w-full"
-					/>
-				</div>
+				// The key opens the banner again for the next run that gets a notice. The
+				// band has the full width, and its text lines up with the column of the
+				// game (`max-w-md` with `px-4`), as the header does.
+				<Banner
+					key={run}
+					severity="info"
+					icon={false}
+					title="You already played today's puzzle"
+					description="Replays don't change your score."
+					announceOnMount
+					onOpenChange={(open) => {
+						if (!open) focusNext({})
+					}}
+					className="shrink-0 px-[max(1rem,calc((100%-28rem)/2+1rem))]"
+				/>
 			)}
 
 			<GameBoardToolbar
