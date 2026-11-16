@@ -28,6 +28,7 @@ import { Text } from 'ui/text'
 import type { BoardEntry } from '../../api/leaderboard-api'
 import type { Mode } from '../../api/stats-api'
 import { useBoard } from '../../queries/leaderboard-queries'
+import { SLOTS } from '../../utilities/game'
 import { dailySeed } from '../../utilities/seed'
 
 /** Props for {@link LeaderboardDialog}. */
@@ -69,7 +70,7 @@ function BoardRow({ entry }: { entry: BoardEntry }) {
 				</Flex>
 			</TableCell>
 
-			<TableCell className="text-end tabular-nums">{intl.formatNumber(entry.score)} / 20</TableCell>
+			<TableCell className="text-end tabular-nums">{`${intl.formatNumber(entry.score)} / ${SLOTS}`}</TableCell>
 		</TableRow>
 	)
 }

@@ -15,6 +15,7 @@ import {
 	countPlaced,
 	getOutcome,
 	getStatus,
+	isEnded,
 	isUnfinished,
 	playCpu,
 	SLOTS,
@@ -78,7 +79,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	useDailyNotice(game, run, mode, user)
 
-	const ended = status === 'bust' || status === 'won'
+	const ended = isEnded(status)
 
 	// The CPU places each number after the player places it, so the player
 	// chooses first. When the game of the player ends, the CPU plays the rest of

@@ -5,7 +5,7 @@ import { Button } from 'ui/button'
 import { Odometer } from 'ui/odometer'
 import { Text, type TextProps } from 'ui/text'
 import { Toolbar, ToolbarGroup } from 'ui/toolbar'
-import type { Game, Status } from '../../utilities/game'
+import { type Game, isEnded, type Status } from '../../utilities/game'
 import { GameBoardMenu } from './game-board-menu'
 
 /** The tone of the readout at each step: full while a number waits, red on a bust, and muted else. */
@@ -65,7 +65,7 @@ export function GameBoardToolbar({
 	onReset,
 	showAction,
 }: GameBoardToolbarProps) {
-	const ended = status === 'bust' || status === 'won'
+	const ended = isEnded(status)
 
 	return (
 		<div className="mx-auto w-full max-w-md shrink-0 p-4">

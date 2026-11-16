@@ -6,6 +6,7 @@ import {
 	drawNumber,
 	type Game,
 	getStatus,
+	isEnded,
 	placeNumber,
 	type Status,
 } from '../utilities/game'
@@ -51,9 +52,7 @@ export function useGame(
 	const advance = (next: Game) => {
 		setGame(next)
 
-		const nextStatus = getStatus(next)
-
-		if (nextStatus === 'bust' || nextStatus === 'won') onEnd?.(next)
+		if (isEnded(getStatus(next))) onEnd?.(next)
 	}
 
 	/** Draws the next number of `next` when the setting is on and `next` waits for a draw. */

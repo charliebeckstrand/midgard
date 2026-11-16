@@ -103,14 +103,17 @@ export function getStatus(game: Game): Status {
 	return game.slots.every((placed) => placed !== null) ? 'won' : 'ready'
 }
 
+/** Whether `status` ends the run: a bust or a win. */
+export function isEnded(status: Status): boolean {
+	return status === 'bust' || status === 'won'
+}
+
 /**
  * Whether the run has a placement and has not ended in a bust or a win. A Reset
  * counts such a run toward the stats, with its score at that step.
  */
 export function isUnfinished(game: Game): boolean {
-	const status = getStatus(game)
-
-	return status !== 'bust' && status !== 'won' && countPlaced(game.slots) > 0
+	return !isEnded(getStatus(game)) && countPlaced(game.slots) > 0
 }
 
 /**
