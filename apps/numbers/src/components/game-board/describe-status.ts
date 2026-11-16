@@ -2,6 +2,7 @@ import {
 	countPlaced,
 	type Game,
 	getOutcome,
+	isEnded,
 	type Outcome,
 	SLOTS,
 	type Status,
@@ -23,7 +24,7 @@ export function describeStatus(
 ): string {
 	if (game.drawn !== null && status === 'placing') return format(game.drawn)
 
-	if (status !== 'bust' && status !== 'won') return ''
+	if (!isEnded(status)) return ''
 
 	const placed = countPlaced(game.slots)
 
