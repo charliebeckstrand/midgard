@@ -200,6 +200,11 @@ export const size = {
 	calendar: {
 		/** The width of a calendar. */
 		width: 'density-w-[44,56,68,80,92]',
+		/**
+		 * The side of a day as `--ui-calendar-day`: the height of a button. A day
+		 * under the coarse floor keeps this side in a cell of the floor.
+		 */
+		day: 'density-set-[6.5,8,9.5,11,12.5]/[--ui-calendar-day]',
 	},
 	toast: {
 		/**

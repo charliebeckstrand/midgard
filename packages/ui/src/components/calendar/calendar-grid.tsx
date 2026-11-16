@@ -84,7 +84,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 				aria-label={monthLabel}
 				aria-multiselectable={ariaAttr(multiselectable)}
 				onKeyDown={onGridKeyDown}
-				className="col-span-7 grid grid-cols-7"
+				className={k().days}
 			>
 				{days.map((date) => {
 					const { context, dayProps, selected, focusable } = getDayState(date, dayInput)
