@@ -54,10 +54,10 @@ export type NumbersMenuProps = {
  * The menu at the right of the header. Solo starts the run of a new seed, and
  * Vs CPU starts the run of a new seed against the CPU. Daily puzzle opens the
  * run of the seed of today, which each reader gets on the same date, and shows
- * a check once its first run counts. Leaderboard opens the boards of the daily
- * puzzles, which are the same for each reader, so it is above the divider, and
- * each reader gets it. Under the divider
- * are the items of the account: a reader with no session gets Sign in, and a
+ * a check once its first run counts. A divider sets these routes apart from
+ * Leaderboard, which opens the boards of each day. Each reader gets it, so it
+ * is above the second divider. Under the second divider are the items of the
+ * account: a reader with no session gets Sign in, and a
  * signed-in reader gets Verify email (until the email is verified), Stats,
  * which opens the stats of the reader, and Sign out.
  *
@@ -110,6 +110,8 @@ export function NumbersMenu({ user }: NumbersMenuProps) {
 					</MenuItem>
 
 					{today && <DailyPuzzleItem today={today} played={played} />}
+
+					<MenuSeparator />
 
 					<MenuItem onAction={() => setLeaderboardOpen(true)}>
 						<Icon icon={<Trophy />} />

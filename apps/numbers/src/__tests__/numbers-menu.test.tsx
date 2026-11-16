@@ -64,16 +64,21 @@ describe('NumbersMenu', () => {
 		expect(useStats).toHaveBeenLastCalledWith('20261116', true)
 	})
 
-	it('lists the modes in order: Solo, Vs CPU, then Daily puzzle', async () => {
+	it('lists the modes in order: Solo, Vs CPU, then Daily puzzle, with Leaderboard between two dividers', async () => {
 		vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
 
 		renderMenu()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
 
-		const items = (await screen.findAllByRole('menuitem')).map((item) => item.textContent)
+		const menu = (await screen.findAllByRole('menuitem'))[0]?.closest('[role="menu"]')
 
-		expect(items.slice(0, 4)).toEqual(['Solo', 'Vs CPU', 'Daily puzzle', 'Leaderboard'])
+		const rows = [...(menu?.querySelectorAll('[role="menuitem"], hr') ?? [])].map((row) =>
+			row.tagName === 'HR' ? '---' : row.textContent,
+		)
+
+		// A divider above and below Leaderboard sets it apart from the routes and the account.
+		expect(rows).toEqual(['Solo', 'Vs CPU', 'Daily puzzle', '---', 'Leaderboard', '---', 'Sign in'])
 	})
 
 	it('reads the three boards of today when the menu opens, so the leaderboard opens with its rows', async () => {

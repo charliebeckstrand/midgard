@@ -68,8 +68,8 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Solo (a
-new seed), Vs CPU (a new seed against the CPU), Daily puzzle, and Leaderboard.
-Under a divider, the menu has Sign in, or Stats and
+new seed), Vs CPU (a new seed against the CPU), and Daily puzzle. Under a
+divider is Leaderboard. Under a second divider, the menu has Sign in, or Stats and
 Sign out for a signed-in reader. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). Each segment of the app (in the settings, Stats, and Leaderboard)
