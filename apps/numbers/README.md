@@ -70,9 +70,10 @@ place, and Reset.
 
 ## The page
 
-The header shows a trail, the settings, and a menu. The trail is the name of
-the app and the route of the page, such as `Numbers › Vs CPU`. Numbers leads to
-Solo, as the Solo item of the menu does. A narrow trail gives way from the left,
+The header shows a trail, the settings, and a menu. Solo is the home of the
+app, so its trail is only `Numbers`. Another route adds its name, such as
+`Numbers › Vs CPU`, where Numbers leads to Solo, as the Solo item of the menu
+does. A narrow trail gives way from the left,
 as the trails of Places and Elections do. The menu has Solo (a new seed), Vs CPU
 (a new seed against the CPU), and Daily puzzle. Under a
 divider is Leaderboard. Under a second divider, the menu has Sign in, or Stats and

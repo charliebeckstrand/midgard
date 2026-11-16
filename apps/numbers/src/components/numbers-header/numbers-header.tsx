@@ -38,11 +38,12 @@ export type NumbersHeaderProps = {
 
 /**
  * The bar at the top of the page: the trail, and on its right the settings and
- * the menu. The trail is the name of the app and the route of the page, such as
- * `Numbers › Solo` or `Numbers › Vs CPU`. Numbers leads to Solo, as the Solo
- * item of the menu does, so it starts the run of a new seed. The route is the
- * current page. The trail gives way from the left, as the trails of Places and
- * Elections do. The heading of the page is "Numbers", for a screen reader only.
+ * the menu. Solo is the home of the app, so its trail is only `Numbers`, the
+ * current page. On another route, the trail adds the route, such as
+ * `Numbers › Vs CPU`, which is the current page. There, Numbers leads to Solo,
+ * as the Solo item of the menu does, so it starts the run of a new seed. The
+ * trail gives way from the left, as the trails of Places and Elections do. The
+ * heading of the page is "Numbers", for a screen reader only.
  *
  * A segment in the settings switches the "UI" tab of the appearance pickers
  * and the "Game" tab, with the Auto-draw and the Show score
@@ -58,19 +59,29 @@ export function NumbersHeader({ user, route }: NumbersHeaderProps) {
 				<div className="min-w-0 flex-1">
 					<Breadcrumb collapse>
 						<BreadcrumbList className="text-lg/7">
-							<BreadcrumbItem>
-								<BreadcrumbLink href="/" render={<Link href="/" />} className="font-semibold">
-									Numbers
-								</BreadcrumbLink>
-							</BreadcrumbItem>
+							{route === 'solo' ? (
+								<BreadcrumbItem>
+									<BreadcrumbLink current className="font-semibold">
+										Numbers
+									</BreadcrumbLink>
+								</BreadcrumbItem>
+							) : (
+								<>
+									<BreadcrumbItem>
+										<BreadcrumbLink href="/" render={<Link href="/" />} className="font-semibold">
+											Numbers
+										</BreadcrumbLink>
+									</BreadcrumbItem>
 
-							<BreadcrumbSeparator />
+									<BreadcrumbSeparator />
 
-							<BreadcrumbItem>
-								<BreadcrumbLink current className="font-semibold">
-									{ROUTE_LABELS[route]}
-								</BreadcrumbLink>
-							</BreadcrumbItem>
+									<BreadcrumbItem>
+										<BreadcrumbLink current className="font-semibold">
+											{ROUTE_LABELS[route]}
+										</BreadcrumbLink>
+									</BreadcrumbItem>
+								</>
+							)}
 						</BreadcrumbList>
 					</Breadcrumb>
 				</div>
