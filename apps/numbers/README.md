@@ -91,13 +91,22 @@ stays off. When the drawn number has no slot, a dashed line and the number
 show between the two numbers that it goes between, and the number in the bar
 is red. After a bust or a win, the bar has no Draw.
 
-A bar at the bottom shows the score: the count of the filled slots, of 20,
-while Show score is on. A share button at the right of the bar, apart from the
-score, opens a menu with Share seed and Share screenshot. With Show score off,
-the bar holds only the share button. Only the slots scroll, in a box between the two bars, so the bars never cover
-a slot that has the focus. The page box is the height of the visible area
-(`h-dvh`), so the bottom bar is above the toolbar of Safari and of Chrome. A
-screen reader hears the score at a bust.
+A bar at the bottom shows the score at its start: the count of the filled
+slots, of 20, while Show score is on. The score has no visible label, and only
+a screen reader hears "Score". A share button at the right of the bar, apart
+from the score, opens a menu with Share seed and Share screenshot. With Show
+score off, the bar holds only the share button. A screen reader hears the score
+at a bust.
+
+Only the slots scroll, in a box between the two bars, so the bars never cover a
+slot that has the focus. The page box is the height of the visible area
+(`h-dvh`), so the bottom bar is above the toolbar of Safari and of Chrome. The
+two bars have no paint, so the slots scroll between them on the page
+background. A border spans the bottom of the top bar and the top of the bottom
+bar, and the slots have 1rem of space inside the borders. Each bar has 1rem of
+space at each side and 0.5rem above and below, and the drawn number and the
+score are flush with the slots. A win or a tie tints the score cells, and gives
+them padding.
 
 An action can turn off the button that the reader pressed. The focus then
 moves to the first slot that can take the number, or else to Draw, or else to

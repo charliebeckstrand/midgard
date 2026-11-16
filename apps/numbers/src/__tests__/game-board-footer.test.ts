@@ -70,6 +70,17 @@ describe('GameBoardFooter', () => {
 		expect(document.querySelector('.lucide-circle-check')).toBeNull()
 	})
 
+	it('gives the solo score a label only for a screen reader', () => {
+		render(
+			h(GameBoardFooter, { game: createGame('k3x9q2'), showScore: true, difficulty: 'normal' }),
+			{
+				wrapper,
+			},
+		)
+
+		expect(screen.getByText('Score', { exact: false }).className).toContain('sr-only')
+	})
+
 	it('keeps the labels on a tie, with no check', () => {
 		const game = createGame('k3x9q2')
 
