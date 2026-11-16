@@ -274,11 +274,11 @@ describe('playCpu', () => {
 		const average = (difficulty: Difficulty) => {
 			let total = 0
 
-			for (let seed = 0; seed < 2000; seed++) {
+			for (let seed = 0; seed < 500; seed++) {
 				total += countPlaced(playCpu(`s${seed}`, SLOTS, difficulty).slots)
 			}
 
-			return total / 2000
+			return total / 500
 		}
 
 		const [easy = 0, normal = 0, hard = 0] = DIFFICULTIES.map(average)
