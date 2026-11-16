@@ -315,9 +315,10 @@ jobs:
   # measures the bundle of the docs build (packages/ui/src/__tests__/docs-build/).
   # It depends on `docs:build`, so each shard builds the app one time.
   #
-  # Three shards. The axe file reads each page in Chromium and holds most of
-  # the time of the suite, so each shard reads a third of the pages, and the
-  # shards divide the other files (vitest.docs-build.config.ts). Each shard
+  # Three shards. The axe file and the touch target file each read each page in
+  # Chromium, and they hold most of the time of the suite. So each shard reads a
+  # third of the pages in each of the two files, and the shards divide the other
+  # files (vitest.docs-build.config.ts). Each shard
   # pays the setup and the build again. With two shards, the docs job was the
   # longest job of the run.
   docs:

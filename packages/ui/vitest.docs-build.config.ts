@@ -12,9 +12,10 @@ import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
  *
  * The global setup serves the build with the paths of App Platform
  * (`scripts/docs-server.ts`), and gives its origin to the tests. CI runs the
- * suite in shards (`--shard`). The axe file holds most of the time of the
- * suite, so each shard runs it, and the file reads only its part of the pages
- * (`setup/shard.ts`). The shards divide the other files.
+ * suite in shards (`--shard`). The axe file and the touch target file hold
+ * most of the time of the suite. So each shard runs them, and each file reads
+ * only its part of the pages (`setup/shard.ts`). The shards divide the other
+ * files.
  */
 export default defineConfig({
 	test: {
@@ -22,7 +23,7 @@ export default defineConfig({
 		environment: 'node',
 		include: ['src/__tests__/docs-build/**/*.test.ts'],
 		globalSetup: ['./src/__tests__/setup/shard.ts', './src/__tests__/docs-build/setup/serve.ts'],
-		sequence: { sequencer: splitSequencer(['accessibility.test.ts']) },
+		sequence: { sequencer: splitSequencer(['accessibility.test.ts', 'touch-targets.test.ts']) },
 		// Each wait of Playwright has a limit of 30 s, far longer than a page load
 		// in Chromium, so a page that does not hydrate fails with the error of
 		// Playwright, before the limit of the case.

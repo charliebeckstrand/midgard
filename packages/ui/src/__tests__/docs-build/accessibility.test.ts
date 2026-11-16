@@ -4,6 +4,7 @@ import type { Page } from 'playwright'
 import { describe, inject, it, type TestContext } from 'vitest'
 import { HYDRATED, prerenderedPages, STYLED } from '../../../scripts/docs-server'
 import { launchChromium } from './helpers/chromium'
+import { settle } from './helpers/settle'
 
 // The page smoke test runs a few structural rules of axe in jsdom, which has
 // no layout and no styles. This file runs each WCAG 2.2 A and AA rule of axe
@@ -123,48 +124,6 @@ async function openTab(context: TestContext): Promise<Page> {
 	)
 
 	return tab
-}
-
-/**
- * Waits in the page until no target moves for `quiet` ms, or until `limit` ms
- * pass. A target is an element that a reader can press or focus.
- */
-function settle({ quiet, limit }: { quiet: number; limit: number }): Promise<void> {
-	const targets = 'a[href], button, input, select, textarea, [role], [tabindex]'
-
-	const layout = () =>
-		[...document.querySelectorAll(targets)]
-			.map((element) => {
-				const { x, y, width, height } = element.getBoundingClientRect()
-
-				return `${Math.round(x)},${Math.round(y)},${Math.round(width)},${Math.round(height)}`
-			})
-			.join(';')
-
-	return new Promise((resolve) => {
-		const end = performance.now() + limit
-
-		let prev = layout()
-
-		let since = performance.now()
-
-		const frame = () => {
-			const now = performance.now()
-
-			const next = layout()
-
-			if (next !== prev) {
-				prev = next
-
-				since = now
-			}
-
-			if (now - since >= quiet || now > end) resolve()
-			else requestAnimationFrame(frame)
-		}
-
-		requestAnimationFrame(frame)
-	})
 }
 
 /**
