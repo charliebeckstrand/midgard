@@ -34,8 +34,8 @@ export type GameBoardProps = {
  * of the column scrolls it too.
  *
  * A Reset starts the run of a new seed in place, in the same mode, and adds the
- * address of the seed to the history, so the reader can send the run. A link, Back, and
- * Forward go to the run of the seed of the address, from its start.
+ * address of the seed to the history, so the reader can send the run. A link,
+ * Back, and Forward go to the run of the seed of the address, from its start.
  *
  * @remarks
  * An action can turn off the control that the reader pressed: Draw is off

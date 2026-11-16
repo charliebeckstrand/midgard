@@ -44,8 +44,8 @@ partial Fisher-Yates shuffle takes the deck.
 | `/cpu/k3x9q2` | The run of the seed against the CPU (see [Vs CPU](#vs-cpu)) |
 
 A Reset starts the run of a new seed in place, in the same mode, and adds its
-address to the history. A link, Back, and Forward start the run of the seed of the address
-again, from its start.
+address to the history. A link, Back, and Forward start the run of the seed of
+the address again, from its start.
 
 The daily puzzle of a day is the run of the seed of its date (`dailySeed`), in
 the time zone of the reader, so each reader gets the same numbers on the same
