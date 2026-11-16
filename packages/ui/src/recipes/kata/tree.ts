@@ -25,7 +25,8 @@ const row = [flex.row, 'w-full', dan.space.tree.y, dan.space.tree.x, nest.gap]
  * The check box of a checkable row. It is a picture of the state, not a
  * control: the treeitem carries `aria-checked` and takes the keys. It has the
  * size, the corners, and the zinc fill of the Checkbox box. The row hover
- * darkens its border, as a label hover does on a Checkbox.
+ * darkens the border of a box that is not checked, as a label hover does on a
+ * Checkbox. A checked box keeps its border, and the hover dims its fill.
  */
 const check = [
 	'flex-none',
@@ -34,9 +35,11 @@ const check = [
 	dan.size.check.box,
 	dan.radius.check,
 	...rest,
-	...mode('group-hover/tree-item:border-zinc-950/70', 'dark:group-hover/tree-item:border-white/50'),
+	...mode(
+		'not-data-checked:group-hover/tree-item:border-zinc-950/70',
+		'dark:not-data-checked:group-hover/tree-item:border-white/50',
+	),
 	'data-checked:bg-zinc-600 data-checked:border-zinc-700/90',
-	'dark:data-checked:bg-zinc-600 dark:data-checked:border-zinc-700/90',
 	'data-checked:group-hover/tree-item:opacity-90',
 	// Forced colors remove the fill, so a checked or mixed box paints in
 	// `Highlight`, as a `sen.forced.mark` does.
