@@ -12,6 +12,7 @@ import {
 	type Game,
 	getOutcome,
 	getStatus,
+	isEnded,
 	isUnfinished,
 	MAX,
 	placeNumber,
@@ -153,6 +154,15 @@ describe('getStatus', () => {
 		)
 
 		expect(getStatus(makeGame(placed))).toBe('won')
+	})
+})
+
+describe('isEnded', () => {
+	it('is true for a bust and a win, and false for the other steps', () => {
+		expect(isEnded('bust')).toBe(true)
+		expect(isEnded('won')).toBe(true)
+		expect(isEnded('ready')).toBe(false)
+		expect(isEnded('placing')).toBe(false)
 	})
 })
 

@@ -6,7 +6,7 @@ import { useToday } from 'ui/hooks'
 import { useToast } from 'ui/toast'
 import type { Mode } from '../api/stats-api'
 import { useStats } from '../queries/stats-queries'
-import { type Game, getStatus, SLOTS } from '../utilities/game'
+import { type Game, getStatus, isEnded, SLOTS } from '../utilities/game'
 import { dailySeed } from '../utilities/seed'
 
 /**
@@ -33,7 +33,7 @@ export function useDailyNotice(game: Game, run: number, mode: Mode, user: User |
 
 	const status = getStatus(game)
 
-	const ended = status === 'bust' || status === 'won'
+	const ended = isEnded(status)
 
 	// The last run that got its decision. The page starts with run 0, and at the
 	// mount the effect of the address in `GameBoard` starts the run of the
