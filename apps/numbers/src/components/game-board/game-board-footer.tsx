@@ -140,8 +140,10 @@ export type GameBoardFooterProps = {
  * the CPU. With Show score off, the bar holds only the share menu.
  *
  * @remarks
- * The page box is the height of the visible area (`h-dvh`), so the bottom of
- * the box is above the toolbar of Safari and of Chrome. The bar has 1rem of
+ * A border at the top of the bar spans the width of the view, as the border
+ * under the header does. The page box is the height of the visible area
+ * (`h-dvh`), so the bottom of the box is above the toolbar of Safari and of
+ * Chrome. The bar has 1rem of
  * space on each side: the side padding, the bottom padding (or the inset of
  * the home indicator when that is larger), and the top padding above it, where
  * the slots scroll out of the box.
@@ -165,44 +167,46 @@ export function GameBoardFooter({
 	const settled = Boolean(outcome)
 
 	return (
-		<Flex
-			align="center"
-			gap="sm"
-			className="mx-auto w-full max-w-md shrink-0 px-4 pt-4 pb-[max(--spacing(4),env(safe-area-inset-bottom))]"
-		>
-			<div className="min-w-0 flex-1">
-				{cpu ? (
-					<Stack gap="sm">
-						<ScoreCell
-							label="You"
-							tint={tints.player}
-							inset={settled}
-							game={game}
-							check={decided}
-						/>
-						<ScoreCell
-							label={cpuName(difficulty)}
-							tint={tints.cpu}
-							inset={settled}
-							game={cpu}
-							check={decided}
-						/>
-					</Stack>
-				) : (
-					showScore && (
-						<ScoreCell
-							label="Score"
-							showLabel={false}
-							game={game}
-							tint={won ? 'green' : undefined}
-							inset={won}
-							check={won}
-						/>
-					)
-				)}
-			</div>
+		<div className="shrink-0 border-t border-zinc-950/5 dark:border-white/5">
+			<Flex
+				align="center"
+				gap="sm"
+				className="mx-auto w-full max-w-md px-4 pt-4 pb-[max(--spacing(4),env(safe-area-inset-bottom))]"
+			>
+				<div className="min-w-0 flex-1">
+					{cpu ? (
+						<Stack gap="sm">
+							<ScoreCell
+								label="You"
+								tint={tints.player}
+								inset={settled}
+								game={game}
+								check={decided}
+							/>
+							<ScoreCell
+								label={cpuName(difficulty)}
+								tint={tints.cpu}
+								inset={settled}
+								game={cpu}
+								check={decided}
+							/>
+						</Stack>
+					) : (
+						showScore && (
+							<ScoreCell
+								label="Score"
+								showLabel={false}
+								game={game}
+								tint={won ? 'green' : undefined}
+								inset={won}
+								check={won}
+							/>
+						)
+					)}
+				</div>
 
-			<GameBoardShare />
-		</Flex>
+				<GameBoardShare />
+			</Flex>
+		</div>
 	)
 }

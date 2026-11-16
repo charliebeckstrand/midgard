@@ -51,10 +51,10 @@ export type GameBoardToolbarProps = {
  * With Auto-draw off, the bar holds Draw while the run goes on. Draw is off
  * while a number waits for a slot. After a bust or a win, the bar has no Draw,
  * and Reset starts the next run. Reset starts a new run at each step. The bar
- * has 1rem of space on each side, as the score bar has. The bar has no paint,
- * as the score bar has none. The number is flush with the slots, as the
- * score is. The bar is at least as tall as a score cell (3rem), so its height
- * does not change when Draw shows or goes. The bar holds one control
+ * has 1rem of space at each side, and 0.5rem above and below. The bar has no
+ * paint, as the score bar has none. The number is flush with the slots, as
+ * the score is. The bar is at least as tall as a button (2.5rem), so its
+ * height does not change when Draw shows or goes. The bar holds one control
  * at most, so it is a plain box and not a `Toolbar`: a toolbar with no
  * control is an empty group to a screen reader.
  */
@@ -68,8 +68,8 @@ export function GameBoardToolbar({
 	showDraw,
 }: GameBoardToolbarProps) {
 	return (
-		<Flex align="center" gap="sm" className="mx-auto w-full max-w-md shrink-0 p-4">
-			<Flex align="center" justify="between" className="min-h-12 min-w-0 flex-1">
+		<Flex align="center" gap="sm" className="mx-auto w-full max-w-md shrink-0 px-4 py-2">
+			<Flex align="center" justify="between" className="min-h-10 min-w-0 flex-1">
 				<Text as="span" tone={TONES[status]} className="font-semibold text-2xl tabular-nums">
 					<Odometer value={game.last ?? 0} minChange={MIN_ROLL} />
 				</Text>
