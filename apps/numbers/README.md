@@ -64,8 +64,8 @@ place, and Reset.
 ## The page
 
 The header shows the name of the app, the settings, and a menu with Home (a
-new seed), Daily puzzle, Vs CPU (a new seed against the CPU), Stats, and Sign
-in or Sign out. A segment in the settings switches two tabs: "UI" has the
+new seed), Daily puzzle, Vs CPU (a new seed against the CPU), Stats (only for
+a signed-in reader), and Sign in or Sign out. A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). A bar under the header holds the drawn number, the action, and a menu
 with Reset. Reset in the menu starts a new seed at each step. The number rolls
@@ -155,11 +155,11 @@ no run scores 0. Mimir, in asgard, keeps them
 
 A run counts when it ends in a bust or a win, and when a Reset ends it after
 its first placement, with its score at that step (`isUnfinished`). A link,
-Back, or Forward leaves the run, and the run does not count. `useGame` gives an ended run
-to its `onEnd` in the action, not in an effect, so a held route that shows
-again does not count its run a second time. A run counts only for a user with a
-verified email. The first run of a daily puzzle counts toward the streak. A
-reader with no session gets a link to sign in, and the dialog sends no request.
+Back, or Forward leaves the run, and the run does not count. `useGame` gives an
+ended run to its `onEnd` in the action, not in an effect, so a held route that
+shows again does not count its run a second time. A run counts only for a user
+with a verified email. The first run of a daily puzzle counts toward the
+streak. A reader with no session gets no Stats item in the menu.
 
 ## Deploy
 
