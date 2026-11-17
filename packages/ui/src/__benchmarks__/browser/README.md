@@ -24,8 +24,6 @@ pnpm bench:browser
 
 A change for speed lands only when an A/B of the whole page moves past the noise. Run the two builds in turns on one machine. Vitest has no `--compare` flag since version 5, so compare the two runs row by row. The JSON report gives the rows of each scenario in the `benchmarks` field of its test.
 
-`pnpm bench:browser:compiler` runs the same suite with the React Compiler on the `ui` source ([`vitest.bench.browser.compiler.config.ts`](../../../vitest.bench.browser.compiler.config.ts)). An app with `reactCompiler: true` ships the modules in this form. The harness stays plain, so the two runs differ only in the `ui` modules. To see what the compiler gains or costs, write the JSON report of a plain run and of a compiled run, and compare the rows. The run stops at setup if the compiler did not compile the `ui` source.
-
 `pnpm bench:browser:smoke` and `pnpm bench:smoke` run each bench of the browser suite and of the jsdom suite for one sample, with no warmup (`SMOKE` in [`compare.ts`](../compare.ts)). The `bench` jobs of CI run them on each pull request, so a change that breaks a bench, such as a lazy chunk that a bench setup does not load, fails before it merges. The browser setup runs a full garbage collection after each file ([`setup.ts`](setup.ts)). Without it, the renderer keeps the shared memory of each module load, and Chromium loses its connection to Vitest partway through the suite on the GitHub runner. A smoke run does not find a bench that times the wrong state and still passes. Read the scenario of a changed bench to find that. Its figures are not measurements.
 
 When a scenario regresses, the jsdom benches (`pnpm bench`) are the ladder down to the responsible layer. Their pure cores sit directly under these scenarios, drawing the same fixtures with no React and no DOM: `chart-scale` and per-chart `*-geometry` for the numbers going in and the paths coming out, `chart-layout` for the axis/tick/date/hit-test pass between them, `map-compute` for the projection fit, the region paths, and the region joins (with `map-render`'s cold/warm split for the geometry cache), `grid-compute` and `grid-sorting` for column allocation, export, and sort, `grid-group` for grouping and aggregation, `query-evaluate` for the filter walk, and `recipe` for the style resolution every one of them pays per element.
@@ -185,30 +183,6 @@ Added with the pure-core suite, so it carries no earlier baseline. Mean ms per i
 The suite's second open scenario, and the only one besides sort where the module does not lead: MUI takes both sizes (1.09× at 10k, 1.22× at 100k) and AG draws level at 100k. Filtering is the one path that still forces the engine's row model: `resolveActiveEngineTransform` counts a non-empty query as an active transform, so a filtered grid materializes a `Row` per datum, exactly the linear term levers 5–8 took off mount, update, and sort. The same off-engine treatment applies: a sole-filter grid can scan `rows` directly through the shared `columnAccessor`, as `sortRowsSmart` does. Below that sits the decode (a quick filter reads every searchable cell of every row on every keystroke) which is the same cached-`SortKey` lever sort is waiting on, over the same values.
 
 Sort took the off-engine path too and closed most of its gap: 100k sort fell from 162 to 40ms (from 7× behind AG to 1.7×, from 5× behind MUI to 1.3×), and 10k from 25 to 9.5ms (now edging AG, still behind MUI's 6.5). A sort that is the grid's only transform now orders `rows` directly, off the engine, like mount and update, but it still trails both rivals at 100k, the suite's one open scenario. The 40-vs-23 residual is the decode: an asc↔desc flip re-derives every row's `SortKey` (the `parseNumeric` regex work) even though only the direction changed. The next lever is caching the decoded keys per (rows, column) so a flip re-sorts without re-decoding (a `WeakMap` keyed on the `rows` array, no manual invalidation) which should close the AG gap. Below that, the per-cell render is the last rung: a cell-tree diet (`GridDataCell` → `TableCell` → span) for the residual per-row constant.
-
-#### React Compiler (2026-09-25, this container)
-
-`pnpm bench:browser:compiler` runs the suite with the React Compiler on the `ui` source. This entry compares it with the plain run, after the engine boundary compiled in full. The table gives the ui grid only, in ms per iteration. Each value is the median over interleaved pairs of runs: four pairs for the grouped body and resize, and two pairs for the rest.
-
-The contenders stay plain in both runs, so their change measures the noise. It reached ±43% between runs, so read only a change that each pair shows.
-
-| Scenario | plain | compiled | change | each pair |
-| --- | ---: | ---: | ---: | --- |
-| mount · 1,000 × 8 | 24.3 | 24.0 | −1% | same sign |
-| mount · 100,000 × 8 | 58.6 | 56.2 | −4% | mixed |
-| update · 10,000 × 8 | 10.7 | 11.2 | +5% | same sign |
-| update · 100,000 × 8 | 37.6 | 36.7 | −2% | mixed |
-| sort · 10,000 · flip | 26.4 | 22.5 | −15% | same sign |
-| sort · 100,000 · flip | 50.3 | 51.0 | +1% | mixed |
-| filter · 100,000 · apply + clear | 226 | 228 | +1% | mixed |
-| grouped body · collapsed rows live | 6.06 | 6.38 | +5% | mixed |
-| grouped body · all expanded · rested | 6.39 | 6.64 | +4% | mixed |
-| resize · 1,000 · `truncate` | 109 | 118 | +8% | same sign |
-| resize · 3,000 · `truncate` | 219 | 228 | +4% | mixed |
-
-The compiler is about neutral for the grid in this suite. Two changes held in each pair. The 10,000-row sort flip was 15% faster, over two pairs only. The 1,000-row resize with truncation was 8% slower, over four pairs. The first two pairs showed the grouped body slower, but the next two pairs reversed it.
-
-A CPU profile of that resize took 20 toggles in each build. It put the script work at 765ms plain and 785ms compiled, about 1ms a toggle. The rest of the gap was in the frames that the sample waits out. Each resize then rendered the cells of all rows again in both builds. The compiled row kept its cells in a memo block that each resize made stale, so the block added its cache work. Entry 10 of the grid log removes that cost: a resize now renders no row, and the compiled resize is level with the plain one.
 
 #### Drag and edit (2026-09-25, this container)
 
