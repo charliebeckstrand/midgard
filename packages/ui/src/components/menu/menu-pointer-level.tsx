@@ -105,8 +105,8 @@ export type MenuPointerLevelProps = {
  * Which cursor that is follows the level's roving model. It is real focus for a
  * right-click menu and for every submenu panel. It is `data-active` plus the
  * trigger's `aria-activedescendant` for a dropdown, whose focus stays on its
- * trigger. The pointer that leaves the panel of the level takes the cursor
- * with it ({@link MenuPointerValue.leavePanel}), unless a submenu is open.
+ * trigger. The pointer that leaves the rows takes the cursor with it
+ * ({@link MenuPointerValue.leave}), unless a submenu is open.
  *
  * Nothing here waits on a clock. The cursor lands on the row under the pointer
  * in the same frame, and the panels follow it there at once. A menu therefore
@@ -269,36 +269,23 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 		[setOpen],
 	)
 
-	// The pointer leaves the panel of this level. A row lit under a pointer that
-	// is not on the menu tells the reader that the next key acts on that row, so
-	// the cursor goes, in the model the level roves by. In the focus model, focus
-	// goes to the panel, which keeps the keyboard in the menu. The arrows then
-	// start again from the end they point at (`focusOnEmpty`). In the virtual
-	// model, the row loses `data-active` and the owner its
-	// `aria-activedescendant`, and a rove with no active row does the same.
-	//
-	// A level with an open submenu keeps its cursor on the parent row. The row
-	// owns the open panel, and in the focus model its blur closes that panel.
-	// The pointer also crosses the gap between the two panels on its way into
-	// the submenu, and that gap is outside this panel. Touch has no hover, and
-	// a tap fires `pointerleave` after it lifts.
-	const leavePanel = useCallback(
+	// The pointer leaves the rows of this level, so the rows lose the cursor:
+	// the next arrow key then starts at the first row. A dropdown drops
+	// `data-active` and `aria-activedescendant`. Elsewhere, focus goes from the
+	// row to the panel. A level with an open submenu keeps the cursor on the
+	// parent row, so the pointer can cross the gap into the submenu. Touch has
+	// no hover, and a tap fires `pointerleave` after it lifts.
+	const leave = useCallback(
 		(event: PointerEvent<HTMLElement>) => {
 			if (event.pointerType === 'touch' || openKeyRef.current !== null) return
 
-			const panel = event.currentTarget
+			const rows = event.currentTarget
 
 			if (virtual) {
-				setVirtualActive(queryItems(panel, MENUITEM_SELECTOR), -1, owner, {
-					ariaSelected: false,
-				})
-
-				return
+				setVirtualActive(queryItems(rows, MENUITEM_SELECTOR), -1, owner, { ariaSelected: false })
+			} else if (rows.contains(document.activeElement)) {
+				rows.closest<HTMLElement>('[role="menu"]')?.focus({ preventScroll: true })
 			}
-
-			const focused = document.activeElement
-
-			if (focused !== panel && panel.contains(focused)) panel.focus({ preventScroll: true })
 		},
 		[virtual, owner],
 	)
@@ -317,10 +304,10 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 			enterSubmenu,
 			closeSubmenu,
 			moveCursor,
-			leavePanel,
+			leave,
 			registerPanel,
 		}),
-		[hoverRow, setOpen, enterSubmenu, closeSubmenu, moveCursor, leavePanel, registerPanel],
+		[hoverRow, setOpen, enterSubmenu, closeSubmenu, moveCursor, leave, registerPanel],
 	)
 
 	return (

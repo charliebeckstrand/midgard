@@ -1066,9 +1066,11 @@ describe('MenuViewport', () => {
 	const viewportFor = (capped: boolean, ref?: Ref<HTMLDivElement>) => {
 		const { container, unmount } = renderUI(
 			<MenuCappedContext value={capped}>
-				<MenuViewport ref={ref}>
-					<span>Item</span>
-				</MenuViewport>
+				<MenuPointerLevel>
+					<MenuViewport ref={ref}>
+						<span>Item</span>
+					</MenuViewport>
+				</MenuPointerLevel>
 			</MenuCappedContext>,
 		)
 
@@ -1262,7 +1264,7 @@ describe('MenuSub', () => {
 	})
 })
 
-// The pointer that leaves a menu panel takes the roving cursor with it. The next
+// The pointer that leaves the rows of a menu takes the roving cursor with it. The next
 // arrow key then starts again at the first row, as at a pointer open.
 describe('Menu pointer leave', () => {
 	const mouse = { pointerType: 'mouse' }
@@ -1309,6 +1311,9 @@ describe('Menu pointer leave', () => {
 		if (model === 'context') fireEvent.contextMenu(getSlot(container, 'menu'))
 	}
 
+	/** The viewport that holds the rows of `panel`, whose leave the level reads. */
+	const getRows = (panel: HTMLElement) => getSlot(panel, 'menu-viewport')
+
 	/** The panel of the menu, before the panel of its submenu in the order of the document. */
 	const rootPanel = () => screen.getAllByRole('menu')[0] as HTMLElement
 
@@ -1323,7 +1328,7 @@ describe('Menu pointer leave', () => {
 
 		expect(trigger).toHaveAttribute('aria-activedescendant', row('Second').id)
 
-		fireEvent.pointerLeave(rootPanel(), mouse)
+		fireEvent.pointerLeave(getRows(rootPanel()), mouse)
 
 		expect(rootPanel().querySelector('[data-active]')).toBeNull()
 
@@ -1341,7 +1346,7 @@ describe('Menu pointer leave', () => {
 
 			expect(row('Second')).toHaveFocus()
 
-			fireEvent.pointerLeave(rootPanel(), mouse)
+			fireEvent.pointerLeave(getRows(rootPanel()), mouse)
 
 			expect(rootPanel()).toHaveFocus()
 
@@ -1357,7 +1362,7 @@ describe('Menu pointer leave', () => {
 
 		act(() => row('Second').focus())
 
-		fireEvent.pointerLeave(rootPanel(), { pointerType: 'touch' })
+		fireEvent.pointerLeave(getRows(rootPanel()), { pointerType: 'touch' })
 
 		expect(row('Second')).toHaveFocus()
 	})
@@ -1371,7 +1376,7 @@ describe('Menu pointer leave', () => {
 
 		expect(row(/More/)).toHaveAttribute('aria-expanded', 'true')
 
-		fireEvent.pointerLeave(rootPanel(), mouse)
+		fireEvent.pointerLeave(getRows(rootPanel()), mouse)
 
 		expect(row(/More/)).toHaveFocus()
 
@@ -1383,7 +1388,7 @@ describe('Menu pointer leave', () => {
 
 		fireEvent.pointerMove(row(/More/), mouse)
 
-		fireEvent.pointerLeave(rootPanel(), mouse)
+		fireEvent.pointerLeave(getRows(rootPanel()), mouse)
 
 		expect(row(/More/)).toHaveAttribute('data-active')
 
@@ -1403,7 +1408,7 @@ describe('Menu pointer leave', () => {
 
 		const submenu = screen.getByRole('menu', { name: /More/ })
 
-		fireEvent.pointerLeave(submenu, mouse)
+		fireEvent.pointerLeave(getRows(submenu), mouse)
 
 		expect(submenu).toHaveFocus()
 

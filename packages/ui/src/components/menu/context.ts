@@ -129,13 +129,10 @@ export type MenuPointerValue = {
 	 */
 	moveCursor: (row: HTMLElement) => void
 	/**
-	 * The `pointerleave` handler of the level's panel. The pointer that leaves
-	 * the panel removes the roving cursor from its rows, so no row stays lit
-	 * under a pointer that is not on the menu. The next arrow key then starts
-	 * again at the first row (or the last, for ArrowUp). A level with an open
-	 * submenu keeps its cursor on the parent row.
+	 * The `pointerleave` handler of the viewport that holds the rows of the
+	 * level. It removes the roving cursor, unless a submenu is open.
 	 */
-	leavePanel: (event: PointerEvent<HTMLElement>) => void
+	leave: (event: PointerEvent<HTMLElement>) => void
 	/**
 	 * Registers `subKey`'s floating panel, whose rect is the corridor
 	 * ({@link inCorridor}) a traveling pointer is measured against. Called with

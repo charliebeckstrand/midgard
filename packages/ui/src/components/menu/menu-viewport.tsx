@@ -2,7 +2,7 @@
 
 import type { ReactNode, Ref } from 'react'
 import { k } from '../../recipes/kata/menu'
-import { useMenuCapped } from './context'
+import { useMenuCapped, useMenuPointer } from './context'
 
 /** Props for {@link MenuViewport}. */
 type MenuViewportProps = {
@@ -28,15 +28,25 @@ type MenuViewportProps = {
  * no gate. A browser without scroll-driven animations shows no fade.
  *
  * The height cap follows the nearest density scope. Each menu panel is a
- * density scope, so the viewport reads no context.
+ * density scope, so the viewport reads no density context.
+ *
+ * The pointer that leaves the viewport removes the roving cursor of the
+ * level of the menu.
  *
  * @internal
  */
 export function MenuViewport({ ref, children }: MenuViewportProps) {
 	const capped = useMenuCapped()
 
+	const { leave } = useMenuPointer()
+
 	return (
-		<div ref={ref} data-slot="menu-viewport" className={k({ capped }).viewport}>
+		<div
+			ref={ref}
+			data-slot="menu-viewport"
+			className={k({ capped }).viewport}
+			onPointerLeave={leave}
+		>
 			{children}
 		</div>
 	)

@@ -6,7 +6,7 @@ import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
-import { useMenuActions, useMenuPointer, useMenuState } from './context'
+import { useMenuActions, useMenuState } from './context'
 import { MenuSheet } from './menu-sheet'
 import { MenuViewport } from './menu-viewport'
 import { MENUITEM_SELECTOR } from './use-menu-root'
@@ -55,9 +55,7 @@ export type MenuContentProps = {
 
 /**
  * The menu panel: a `role="menu"` surface with roving focus and typeahead over
- * its items. The pointer moves the roving cursor, and the pointer that leaves
- * the panel removes it, so the next arrow key starts at the first row. A
- * `static` menu renders inline as part of the page, with no
+ * its items. A `static` menu renders inline as part of the page, with no
  * autofocus, and it is one Tab stop: Tab goes to one row, and the arrow keys
  * move between the rows. Otherwise it mounts as a floating overlay that closes
  * on `Escape`. The `title`, else the trigger of a dropdown, names the menu.
@@ -85,7 +83,6 @@ export function MenuContent({
 	const { open, menuId, isDropdown, isSheet, floatingStyles, getFloatingProps, size } =
 		useMenuState()
 	const { close, static: isStatic, setFloating, triggerRef } = useMenuActions()
-	const { leavePanel } = useMenuPointer()
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
 	const [triggerId, setTriggerId] = useState<string>()
@@ -160,7 +157,6 @@ export function MenuContent({
 				// The page reaches the menu with Tab, so one row holds the Tab stop.
 				manageTabIndex
 				className={cn(panel.base, className)}
-				onPointerLeave={leavePanel}
 			>
 				{header}
 
@@ -216,7 +212,6 @@ export function MenuContent({
 
 					close()
 				}}
-				onPointerLeave={leavePanel}
 			>
 				{header}
 
