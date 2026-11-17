@@ -63,9 +63,10 @@ export const k = {
 		],
 		/**
 		 * The value after the name in the standing label of a reference rule: one
-		 * weight lighter and muted, so the name leads.
+		 * weight lighter, so the name leads. It takes the ink of its rule, as the
+		 * name does, unless the rule sets its own `valueColor`.
 		 */
-		value: ['font-medium', ...mutedFill],
+		value: ['font-medium'],
 		/**
 		 * The face of {@link k.mark.label} with no ink: its size, weight, and
 		 * figures. A chart measures the text of a standing label in it.

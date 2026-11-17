@@ -136,12 +136,27 @@ describe('a category reference', () => {
 
 		const alone = line({ reference: [RELEASE] })
 
-		// The value 79 draws its rule through the first label row, under `labels.references` off.
-		const crossed = line({ reference: [{ value: 79, label: 'Goal' }, RELEASE] })
+		// A value rule through the label, under `labels.references` off.
+		const at = labelY(alone.container)
+
+		const ruleY = (value: number) => {
+			const { container } = line({ reference: [{ value }] })
+
+			return Number(
+				bySlot(container, 'chart-reference-line')?.querySelector('line')?.getAttribute('y1'),
+			)
+		}
+
+		// The value whose rule runs closest to the label's center.
+		const value = [70, 72, 74, 76, 78, 80].reduce((best, next) =>
+			Math.abs(ruleY(next) - at) < Math.abs(ruleY(best) - at) ? next : best,
+		)
+
+		const crossed = line({ reference: [{ value, label: 'Goal' }, RELEASE] })
 
 		expect(allBySlot(crossed.container, 'chart-reference-label')).toHaveLength(1)
 
-		expect(labelY(crossed.container)).toBeGreaterThan(labelY(alone.container))
+		expect(labelY(crossed.container)).not.toBe(at)
 	})
 
 	it('takes no pointer and no legend chip, while a value rule keeps both', () => {

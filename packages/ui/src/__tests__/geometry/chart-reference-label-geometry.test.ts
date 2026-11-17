@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { REFERENCE_GAP } from '../../modules/chart/engine/chart-constants'
 import {
 	LABEL_HEIGHT,
 	LABEL_ROW_GAP,
@@ -22,6 +23,9 @@ function series(points: [number, number, number][]): ValueLabelSeries {
 		format: String,
 	}
 }
+
+/** The center of the second label row, the first that a label tries. */
+const SECOND_ROW = PLOT.y + LABEL_HEIGHT / 2 + LABEL_HEIGHT + LABEL_ROW_GAP
 
 /** Two boxes share area. */
 function overlaps(a: LabelBox, b: LabelBox): boolean {
@@ -125,8 +129,8 @@ describe('referenceLabels', () => {
 
 		expect(excellent?.box.x0).toBeGreaterThan(100)
 
-		// Both fit the first row, flush with the top of the plot.
-		expect([good?.y, excellent?.y]).toEqual([PLOT.y + LABEL_HEIGHT / 2, PLOT.y + LABEL_HEIGHT / 2])
+		// Both fit the first row that a label tries, one row down from the top.
+		expect([good?.y, excellent?.y]).toEqual([SECOND_ROW, SECOND_ROW])
 	})
 
 	it('stacks crowded labels in rows from the top in a horizontal chart', () => {
@@ -149,13 +153,67 @@ describe('referenceLabels', () => {
 			'middle',
 		])
 
-		// The first row is flush with the top of the plot.
-		expect(target?.y).toBe(PLOT.y + LABEL_HEIGHT / 2)
+		// The first row that a label tries is one row down from the top.
+		expect(target?.y).toBe(SECOND_ROW)
 
 		// Each crowded label sits one row, a label height and the row gap, under its neighbor.
 		expect((stretch?.y ?? 0) - (target?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_ROW_GAP)
 
 		expect((ceiling?.y ?? 0) - (stretch?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_ROW_GAP)
+	})
+
+	it('keeps the top row, against the edge of the plot, for last', () => {
+		const [release] = referenceLabels(
+			[{ at: 100, width: 42, orientation: 'horizontal' }],
+			'vertical',
+			PLOT,
+		)
+
+		expect(release?.y).toBe(SECOND_ROW)
+
+		// A plot three rows high: a value rule through the middle row sends the
+		// label to the top row, which no rule comes near.
+		const [, crowded] = referenceLabels(
+			[
+				{ at: SECOND_ROW, width: 28 },
+				{ at: 100, width: 42, orientation: 'horizontal' },
+			],
+			'vertical',
+			{ ...PLOT, height: 3 * LABEL_HEIGHT + 2 * LABEL_ROW_GAP },
+		)
+
+		expect(crowded?.y).toBe(PLOT.y + LABEL_HEIGHT / 2)
+	})
+
+	it('moves a label down a row off a rule that runs along the top of its row', () => {
+		// A value rule along the top of the second row, and a category rule across it.
+		const [, release] = referenceLabels(
+			[
+				{ at: SECOND_ROW - LABEL_HEIGHT / 2, width: 28 },
+				{ at: 100, width: 42, orientation: 'horizontal' },
+			],
+			'vertical',
+			PLOT,
+		)
+
+		// The value rule would break for the label in the second row.
+		expect(release?.y).toBe(SECOND_ROW + LABEL_HEIGHT + LABEL_ROW_GAP)
+
+		expect(release?.anchor).toBe('middle')
+	})
+
+	it('moves a label off a rule that sits just at the gap from its row', () => {
+		// The second row spans y 17 to 30, so a rule at 13 is just the gap over it.
+		const [, release] = referenceLabels(
+			[
+				{ at: SECOND_ROW - LABEL_HEIGHT / 2 - REFERENCE_GAP, width: 28 },
+				{ at: 100, width: 42, orientation: 'horizontal' },
+			],
+			'vertical',
+			PLOT,
+		)
+
+		expect(release?.y).not.toBe(SECOND_ROW)
 	})
 
 	it('places nothing for a rule that draws nothing, and keeps the slots aligned', () => {

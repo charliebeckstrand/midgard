@@ -19,8 +19,11 @@ type ChartReferenceShared = {
 	 * chart shows the value of a value rule after it. A value rule carries the
 	 * name in its hover tooltip and its legend chip. Once a chart's
 	 * `labels.references` is on, the rule draws the name and its value on the
-	 * rule, and the legend drops its chip. A category rule always draws the name
-	 * at the top of the rule where it finds room, and the category readout shows
+	 * rule, and the legend drops its chip. Where the label already holds the
+	 * value, such as `'Good 5%'`, set `labels.references` to `{ value: false }`,
+	 * and the rule draws the label alone. A value rule with `valueDisplay:
+	 * 'hover'` also draws the label alone. A category rule always draws the name
+	 * near the top of the rule where it finds room, and the category readout shows
 	 * it. Each rule breaks for the label that it draws. Omitted, a value rule
 	 * reads by its value alone, and a category rule draws no label.
 	 */
@@ -67,6 +70,21 @@ export type ChartReferenceValue = ChartReferenceShared & {
 	 * @defaultValue 'y'
 	 */
 	axis?: ChartValueAxisId
+	/**
+	 * The color of the value in the standing label of the rule
+	 * (`labels.references`): a named palette slot, or any raw CSS color. Omitted,
+	 * the value takes the color of the rule, as the label does.
+	 */
+	valueColor?: ChartColor
+	/**
+	 * Where a labeled rule shows its value under `labels.references`. `'inline'`
+	 * draws it after the label on the rule. `'hover'` draws the label alone, and
+	 * keeps the hover tooltip and the keyboard stop of the rule, which read the
+	 * label and the value. A rule with no label shows its value inline, because
+	 * the value names it.
+	 * @defaultValue 'inline'
+	 */
+	valueDisplay?: 'inline' | 'hover'
 }
 
 /**
@@ -86,6 +104,8 @@ export type ChartReferenceCategory = ChartReferenceShared & {
 	category: string
 	value?: never
 	axis?: never
+	valueColor?: never
+	valueDisplay?: never
 }
 
 /**

@@ -16,13 +16,15 @@ import { useChartTextWidth } from './use-chart-text-width'
 export type ReferenceLabelParts = {
 	/** The text that leads, in the label ink: the rule's own label, else its value. */
 	lead: string
-	/** The value after the rule's own label, in the muted ink, or empty. */
+	/** The value after the rule's own label, one weight lighter, or empty. */
 	tail: string
 }
 
 /**
  * The parts of a rule's standing label. A value rule shows its own label and
- * then its value, so a consumer gives the name alone. With no label, it shows
+ * then its value, so a consumer gives the name alone. With `withValue` off, or
+ * with a `valueDisplay` of `'hover'`, it
+ * shows its own label alone, for a label that already holds the value. With no label, it shows
  * its value, which then names the rule. A category rule shows its label only,
  * because the band axis already names its category. A category rule with no
  * label draws none.
@@ -32,12 +34,15 @@ export type ReferenceLabelParts = {
 export function referenceLabelParts(
 	line: ChartReferenceLine,
 	format: (value: number) => string,
+	withValue = true,
 ): ReferenceLabelParts {
 	if (isCategoryReference(line)) return { lead: line.label ?? '', tail: '' }
 
 	const value = format(line.value)
 
-	return line.label ? { lead: line.label, tail: value } : { lead: value, tail: '' }
+	if (!line.label) return { lead: value, tail: '' }
+
+	return { lead: line.label, tail: withValue && line.valueDisplay !== 'hover' ? value : '' }
 }
 
 /** The space between the two parts of a standing label. @internal */

@@ -31,7 +31,7 @@
  * A value label whose box meets one drops.
  */
 
-import { MARKER_REACH, TICK_CHAR_WIDTH } from '../chart-constants'
+import { MARKER_REACH, REFERENCE_GAP, TICK_CHAR_WIDTH } from '../chart-constants'
 import { type ChartOrientation, type PlotRect, valueRule } from '../chart-orientation'
 import type { ValueHeadroom } from '../chart-scale'
 
@@ -552,11 +552,12 @@ export type PlacedReferenceLabel = {
  * names only the rule that it interrupts. In a vertical chart, a label sits at
  * the right end of its rule, and then at the left end. Each end label is flush
  * with its side of the plot, so the rule stops at the label and does not show
- * a short dash past it. In a horizontal chart, a label sits on the rule in the
- * first row down from the top of the plot that it fits. In each row, it
- * centers on the rule, or ends or starts at it ({@link ruleAnchors}). The rows
- * stack one label height and {@link LABEL_ROW_GAP} apart, so a crowded label
- * sits just under its neighbor.
+ * a short dash past it. In a horizontal chart, a label sits on the rule in a
+ * row. The rows stack one label height and {@link LABEL_ROW_GAP} apart down
+ * from the top of the plot. A label tries the rows between the edges first,
+ * from the top, so a crowded label sits just under its neighbor. The top row
+ * and the bottom row, against an edge of the plot, come last. In each row, it
+ * centers on the rule, or ends or starts at it ({@link ruleAnchors}).
  *
  * @internal
  */
@@ -585,7 +586,13 @@ function referenceSpots(
 
 	const rows = Math.max(0, Math.floor((plot.height + LABEL_ROW_GAP) / LABEL_ROW_STEP))
 
-	return Array.from({ length: rows }, (_, row) => {
+	// The rows between the edges first, from the top, and then the top row and
+	// the bottom row, which a label sits against the edge of the plot in.
+	const inner = Array.from({ length: Math.max(0, rows - 2) }, (_, row) => row + 1)
+
+	const order = rows > 1 ? [...inner, 0, rows - 1] : Array.from({ length: rows }, (_, row) => row)
+
+	return order.flatMap((row) => {
 		const y = plot.y + LABEL_HALF + row * LABEL_ROW_STEP
 
 		return anchors.map(({ anchor, x0, x1 }) => ({
@@ -595,7 +602,7 @@ function referenceSpots(
 			width,
 			box: labelBox(x0, x1, y),
 		}))
-	}).flat()
+	})
 }
 
 /**
@@ -643,10 +650,11 @@ function ruleBox(at: number, orientation: ChartOrientation, plot: PlotRect): Lab
 /**
  * Places the standing reference labels, aligned with `rules`, in the order of
  * `rules`. Each label takes the first spot on its rule ({@link referenceSpots})
- * whose box meets no label already placed, no other rule, and no box of
- * `markers`: the drawn point markers. Where every free spot crosses another
- * rule or a marker, the label takes the first spot that meets no label, and
- * its halo keeps it legible over the line.
+ * whose box meets no label already placed and no box of `markers`, the drawn
+ * point markers. The box also stays more than {@link REFERENCE_GAP} from each
+ * other rule, because a rule that near breaks for the label. Where every free
+ * spot meets another rule or a marker, the label takes the first spot that
+ * meets no label, and the other rule breaks for it.
  * A label never leaves its rule, so a label with no free spot is `null`, as is
  * the label of a rule that draws nothing or is `unlabeled`. That rule keeps its
  * hover tooltip and its keyboard stop. Every rule that draws is an obstacle,
@@ -678,8 +686,17 @@ export function referenceLabels(
 			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
 		)
 
+		// A rule within the gap of a label breaks for it, so a spot that comes
+		// that near to another rule lies over that rule. The test is inclusive,
+		// as the test of the break is: a rule just at the gap breaks too.
+		const nears = (line: LabelBox, box: LabelBox) =>
+			line.x0 <= box.x1 + REFERENCE_GAP &&
+			box.x0 - REFERENCE_GAP <= line.x1 &&
+			line.y0 <= box.y1 + REFERENCE_GAP &&
+			box.y0 - REFERENCE_GAP <= line.y1
+
 		const crossed = (box: LabelBox) =>
-			lines.some((line, other) => other !== index && line !== null && overlaps(line, box)) ||
+			lines.some((line, other) => other !== index && line !== null && nears(line, box)) ||
 			markers.some((marker) => overlaps(marker, box))
 
 		const spot = free.find((candidate) => !crossed(candidate.box)) ?? free[0]

@@ -432,6 +432,37 @@ describe('reference line keyboard navigation', () => {
 		expect(referenceTooltip()?.textContent).toContain('Goal')
 	})
 
+	it('keeps the stop and the tooltip of a labeled rule whose value reads on hover', async () => {
+		const { container } = bar({
+			reference: [{ value: 60, label: 'Goal', valueDisplay: 'hover' }],
+			labels: { references: true },
+		})
+
+		// The label stands on the rule with no value after it.
+		const label = bySlot(container, 'chart-reference-label')
+
+		expect(label?.textContent).toBe('Goal')
+
+		expect(label?.querySelector('tspan')).toBeNull()
+
+		// The rule keeps its wide hover target.
+		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(2)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBe('')
+
+		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
+
+		expect(referenceTooltip()?.textContent).toContain('60')
+
+		expect(referenceTooltip()?.textContent).toContain('Goal')
+	})
+
 	it('restores the marks stepping back off the rule', async () => {
 		const { container } = bar({ reference: [{ value: 60 }] })
 
@@ -868,7 +899,10 @@ describe('reference lines in the legend', () => {
 describe('reference value labels', () => {
 	// `labels` is a line / area prop, so the labeled rules ride the line chart;
 	// `labels.references` turns each rule's hover tooltip into a standing label.
-	function lineLabels(reference: ChartReferenceLine[]) {
+	function lineLabels(
+		reference: ChartReferenceLine[],
+		references: boolean | { value?: boolean } = true,
+	) {
 		return renderUI(
 			<LineChart
 				aria-label="Revenue by month"
@@ -876,10 +910,53 @@ describe('reference value labels', () => {
 				series={[...SERIES]}
 				width={400}
 				reference={reference}
-				labels={{ references: true }}
+				labels={{ references }}
 			/>,
 		)
 	}
+
+	it('shows the label alone, with no value after it, under references.value false', () => {
+		const { container } = lineLabels([{ value: 60, label: 'Good 60' }, { value: 30 }], {
+			value: false,
+		})
+
+		const [named, bare] = allBySlot(container, 'chart-reference-label')
+
+		expect(named?.textContent).toBe('Good 60')
+
+		expect(named?.querySelector('tspan')).toBeNull()
+
+		// A rule with no label still shows its value, which names it.
+		expect(bare?.textContent).toBe('30')
+	})
+
+	it('inks the value as its rule, unless the rule sets a valueColor', () => {
+		const { container } = lineLabels([
+			{ value: 60, label: 'Goal', color: 'green' },
+			{ value: 40, label: 'Floor', color: 'green', valueColor: 'zinc' },
+			{ value: 20, label: 'Base', valueColor: '#e11d48' },
+		])
+
+		const [goal, floor, base] = allBySlot(container, 'chart-reference-label').map((label) =>
+			label.querySelector('tspan'),
+		)
+
+		// The value inherits the ink of the label: it sets no fill of its own.
+		expect(goal?.getAttribute('class')).not.toMatch(/fill-/)
+
+		expect(goal?.getAttribute('style')).toBeNull()
+
+		// A slot inks the value through its fill class, and a raw color inline.
+		expect(floor?.getAttribute('class')).toMatch(/fill-zinc/)
+
+		expect(base?.getAttribute('style')).toMatch(/fill: ?(#e11d48|rgb\(225, 29, 72\))/)
+	})
+
+	it('shows the value after the label for an object with no value key', () => {
+		const { container } = lineLabels([{ value: 60, label: 'Goal' }], {})
+
+		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('Goal60')
+	})
 
 	it('draws a standing label per rule and lays no hover target', () => {
 		const { container } = lineLabels([{ value: 60, label: 'Goal' }])
@@ -1033,7 +1110,7 @@ describe('reference value labels', () => {
 
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
-	it('labels the rules of a horizontal bar chart in the first row down from the top', () => {
+	it('labels the rules of a horizontal bar chart in the second row, off the top edge', () => {
 		const { container } = bar({
 			orientation: 'horizontal',
 			reference: [{ value: 60, label: 'Goal' }],
@@ -1044,21 +1121,20 @@ describe('reference value labels', () => {
 
 		expect(label?.textContent).toBe('Goal60')
 
-		// The rule is vertical, so the label stands on it in the top row, flush with
-		// the top of the plot, and the rule breaks for it.
+		// The rule is vertical, so the label stands on it one row down from the top
+		// of the plot: the top row sits against the edge, and comes last.
 		const line = rule(container)
-
-		expect(Number(label?.getAttribute('x'))).toBeCloseTo(Number(line?.getAttribute('x1')), 1)
-
-		expect(Number(label?.getAttribute('y'))).toBeCloseTo(Number(line?.getAttribute('y1')) + 6.5, 1)
-
-		// The rule runs across the text, so it breaks for the whole row of the label,
-		// from the top of the plot.
-		const [from, to = 0] = findBreaks(line)[0] ?? []
 
 		const labelY = Number(label?.getAttribute('y')) - Number(line?.getAttribute('y1'))
 
-		expect(from).toBe(0)
+		expect(Number(label?.getAttribute('x'))).toBeCloseTo(Number(line?.getAttribute('x1')), 1)
+
+		expect(labelY).toBeCloseTo(6.5 + 13 + 4, 1)
+
+		// The rule runs across the text, so it breaks for the whole row of the label.
+		const [from = 0, to = 0] = findBreaks(line)[0] ?? []
+
+		expect(from).toBeLessThan(labelY - 6.5)
 
 		expect(to).toBeGreaterThan(labelY + 6.5)
 
