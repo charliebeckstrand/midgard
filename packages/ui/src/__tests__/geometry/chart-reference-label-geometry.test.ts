@@ -106,19 +106,48 @@ describe('referenceLabels', () => {
 		}
 	})
 
-	it('stacks crowded labels in rows from the top in a horizontal chart', () => {
-		const [target, stretch, ceiling] = referenceLabels(
+	it('steps a label off a neighbor rule that its centered spot covers, in a horizontal chart', () => {
+		const [good, excellent] = referenceLabels(
 			[
 				{ at: 100, width: 42 },
 				{ at: 110, width: 49 },
-				{ at: 120, width: 49 },
+			],
+			'horizontal',
+			PLOT,
+		)
+
+		// Each label ends or starts at its own rule, so it covers no other rule.
+		expect([good?.anchor, good?.x]).toEqual(['end', 100])
+
+		expect([excellent?.anchor, excellent?.x]).toEqual(['start', 110])
+
+		expect(good?.box.x1).toBeLessThan(110)
+
+		expect(excellent?.box.x0).toBeGreaterThan(100)
+
+		// Both fit the first row, flush with the top of the plot.
+		expect([good?.y, excellent?.y]).toEqual([PLOT.y + LABEL_HEIGHT / 2, PLOT.y + LABEL_HEIGHT / 2])
+	})
+
+	it('stacks crowded labels in rows from the top in a horizontal chart', () => {
+		const [target, stretch, ceiling] = referenceLabels(
+			[
+				{ at: 100, width: 49 },
+				{ at: 101, width: 49 },
+				{ at: 102, width: 49 },
 			],
 			'horizontal',
 			PLOT,
 		)
 
 		// Each label stays centered on its own rule.
-		expect([target?.x, stretch?.x, ceiling?.x]).toEqual([100, 110, 120])
+		expect([target?.x, stretch?.x, ceiling?.x]).toEqual([100, 101, 102])
+
+		expect([target?.anchor, stretch?.anchor, ceiling?.anchor]).toEqual([
+			'middle',
+			'middle',
+			'middle',
+		])
 
 		// The first row is flush with the top of the plot.
 		expect(target?.y).toBe(PLOT.y + LABEL_HEIGHT / 2)

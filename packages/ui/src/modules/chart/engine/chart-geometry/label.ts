@@ -443,8 +443,8 @@ export type PlacedReferenceLabel = {
  * the right end of its rule, and then at the left end. Each end label is flush
  * with its side of the plot, so the rule stops at the label and does not show
  * a short dash past it. In a horizontal chart, a label sits on the rule in the
- * first row down from the top of the plot that it fits. It centers on the
- * rule, or anchors inward from it near a side ({@link anchorAt}). The rows
+ * first row down from the top of the plot that it fits. In each row, it
+ * centers on the rule, or ends or starts at it ({@link ruleAnchors}). The rows
  * stack one label height and {@link LABEL_ROW_GAP} apart, so a crowded label
  * sits just under its neighbor.
  *
@@ -471,19 +471,51 @@ function referenceSpots(
 		]
 	}
 
-	const across = anchorAt(at, padded, plot)
-
-	if (!across) return []
-
-	const { anchor, x0, x1 } = across
+	const anchors = ruleAnchors(at, padded, plot)
 
 	const rows = Math.max(0, Math.floor((plot.height + LABEL_ROW_GAP) / LABEL_ROW_STEP))
 
 	return Array.from({ length: rows }, (_, row) => {
 		const y = plot.y + LABEL_HALF + row * LABEL_ROW_STEP
 
-		return { x: at, y, anchor, width, box: labelBox(x0, x1, y) }
-	})
+		return anchors.map(({ anchor, x0, x1 }) => ({
+			x: at,
+			y,
+			anchor,
+			width,
+			box: labelBox(x0, x1, y),
+		}))
+	}).flat()
+}
+
+/**
+ * The ways that a label `width` wide can align on a vertical rule at `at`,
+ * in the order it tries them: centered on the rule, then ending at the rule,
+ * then starting at it. Each one keeps its text inside the plot. A label that
+ * ends or starts at its rule leaves the rule beside it, so it can step off a
+ * neighbor rule that a centered label covers. Each box keeps
+ * {@link LABEL_PAD} past the rule on the anchored side.
+ *
+ * @internal
+ */
+function ruleAnchors(
+	at: number,
+	width: number,
+	plot: PlotRect,
+): { anchor: PlacedValueLabel['anchor']; x0: number; x1: number }[] {
+	const [left, right] = [plot.x, plot.x + plot.width]
+
+	const middle = { anchor: 'middle' as const, x0: at - width / 2, x1: at + width / 2 }
+
+	const end = { anchor: 'end' as const, x0: at + LABEL_PAD - width, x1: at + LABEL_PAD }
+
+	const start = { anchor: 'start' as const, x0: at - LABEL_PAD, x1: at - LABEL_PAD + width }
+
+	return [
+		...(middle.x0 >= left && middle.x1 <= right ? [middle] : []),
+		...(end.x0 >= left ? [end] : []),
+		...(start.x1 <= right ? [start] : []),
+	]
 }
 
 /**
