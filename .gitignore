@@ -32,6 +32,7 @@ packages/ui/test-results/
 
 # debug
 npm-debug.log*
+*.log
 
 # OS
 .DS_Store
