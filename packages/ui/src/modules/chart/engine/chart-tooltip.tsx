@@ -126,7 +126,8 @@ function readoutRows(readout: ChartReadout | null, order: number[] | undefined) 
 /**
  * The readout at hover `index` as one line of text, for the announcement of a
  * keyboard cursor step. It reads what the tooltip shows: the category, then
- * each row label with its value, in the display order. A cursor on one series
+ * each row label with its value, in the display order, then the note of each
+ * category reference at the category. A cursor on one series
  * reads only the row of that series, which is the row the tooltip keeps lit.
  * Returns `null` for an index past the categories.
  *
@@ -152,7 +153,11 @@ export function describeReadout(
 		return [row.label ? `${row.label}: ${value}` : value]
 	})
 
-	return [readout.categories[index], ...values].filter(Boolean).join(', ')
+	const notes = (readout.notes?.[index] ?? []).map((note) =>
+		note.description ? `${note.text}: ${note.description}` : note.text,
+	)
+
+	return [readout.categories[index], ...values, ...notes].filter(Boolean).join(', ')
 }
 
 /**
@@ -256,6 +261,23 @@ export function ChartTooltip({
 								}
 								value={row.values[index]}
 								label={row.label}
+							/>
+						))}
+
+						{readout.notes?.[index]?.map((note) => (
+							<ChartReadoutRow
+								key={note.key}
+								data-slot="chart-tooltip-note"
+								swatch={
+									<ReadoutSwatch
+										shape="line"
+										dashed={note.dashed}
+										className={note.swatchClass}
+										color={note.swatchColor}
+									/>
+								}
+								value={note.text}
+								label={note.description}
 							/>
 						))}
 					</div>

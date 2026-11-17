@@ -398,11 +398,20 @@ export function resolveValueLabels(
 }
 
 /**
- * One rule that a standing reference label names: the value-axis position of
- * the rule, or `null` where the rule draws nothing, and the label's text.
+ * One rule that a standing reference label names: the position of the rule,
+ * or `null` where the rule draws nothing, and the label's text. A category
+ * rule sets `orientation` to the facing whose value rule it draws as
+ * ({@link crossOrientation}). Omitted, the rule is a value rule of the chart.
+ * A rule that draws but shows no label sets `unlabeled`: it takes no label,
+ * and its line stays an obstacle to the other labels.
  * @internal
  */
-export type ReferenceLabelRule = { at: number | null; text: string }
+export type ReferenceLabelRule = {
+	at: number | null
+	text: string
+	orientation?: ChartOrientation
+	unlabeled?: boolean
+}
 
 /** A placed reference label: where its text anchors, how it aligns, and its collision box. @internal */
 export type PlacedReferenceLabel = {
@@ -478,8 +487,9 @@ function ruleBox(at: number, orientation: ChartOrientation, plot: PlotRect): Lab
  * other rule. Where every free spot crosses another rule, the label takes the
  * first spot that meets no label, and its halo keeps it legible over the line.
  * A label never leaves its rule, so a label with no free spot is `null`, as is
- * the label of a rule that draws nothing. That rule keeps its hover tooltip and
- * its keyboard stop.
+ * the label of a rule that draws nothing or is `unlabeled`. That rule keeps its
+ * hover tooltip and its keyboard stop. Every rule that draws is an obstacle,
+ * also an `unlabeled` rule.
  *
  * The value labels place after these and treat the boxes as obstacles
  * ({@link resolveValueLabels}): a value label that meets one drops.
@@ -493,12 +503,16 @@ export function referenceLabels(
 ): (PlacedReferenceLabel | null)[] {
 	const placed: LabelBox[] = []
 
-	const lines = rules.map((rule) => (rule.at === null ? null : ruleBox(rule.at, orientation, plot)))
+	const lines = rules.map((rule) =>
+		rule.at === null ? null : ruleBox(rule.at, rule.orientation ?? orientation, plot),
+	)
 
 	return rules.map((rule, index) => {
-		if (rule.at === null) return null
+		if (rule.at === null || rule.unlabeled) return null
 
-		const free = referenceSpots(rule.at, labelWidth(rule.text), orientation, plot).filter(
+		const facing = rule.orientation ?? orientation
+
+		const free = referenceSpots(rule.at, labelWidth(rule.text), facing, plot).filter(
 			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
 		)
 

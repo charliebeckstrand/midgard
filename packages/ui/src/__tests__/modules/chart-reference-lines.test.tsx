@@ -206,6 +206,20 @@ describe('reference lines', () => {
 		expect(content?.textContent).toContain('Target')
 	})
 
+	it('shows the description of a rule in its tooltip', async () => {
+		const { container } = bar({
+			reference: [{ value: 55, label: 'Target', description: 'Q3 target' }],
+		})
+
+		fireEvent.focus(bySlot(container, 'chart-reference-line') as Element)
+
+		const swatch = await waitFor(() =>
+			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
+		)
+
+		expect(swatch.closest('[data-slot="tooltip-content"]')?.textContent).toContain('Q3 target')
+	})
+
 	// The legend chip of the rule is a line Swatch, which keeps a paint under
 	// forced colors. The swatch of the readout is the same key.
 	it('keys the readout with a dashed line Swatch, as the legend chip does', async () => {

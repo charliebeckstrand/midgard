@@ -91,3 +91,14 @@ export function valueRule(
 		? { from: { x: plot.x, y: at }, to: { x: plot.x + plot.width, y: at } }
 		: { from: { x: at, y: plot.y }, to: { x: at, y: plot.y + plot.height } }
 }
+
+/**
+ * The other facing. A band-axis position of a chart draws its rule as a value
+ * rule of the other facing: a category rule on a vertical chart is a vertical
+ * line, as a value rule on a horizontal chart is.
+ *
+ * @internal
+ */
+export function crossOrientation(orientation: ChartOrientation): ChartOrientation {
+	return orientation === 'vertical' ? 'horizontal' : 'vertical'
+}

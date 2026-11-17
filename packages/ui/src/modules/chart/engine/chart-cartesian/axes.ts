@@ -8,8 +8,8 @@
 import { compactTickFormat, readoutFormat, tickFormat } from '../../../../utilities/format-number'
 import type { CartesianAxes, ChartValueAxisId } from '../chart-axes/schema'
 import type { CartesianLayout, ChartValueAxisInput } from '../chart-layout'
-import type { ChartReferenceLine } from '../chart-reference'
-import { bandBoundaries, type ValueScale } from '../chart-scale'
+import { type ChartReferenceLine, categoryRows, isCategoryReference } from '../chart-reference'
+import { type BandScale, bandBoundaries, type ValueScale } from '../chart-scale'
 import type { SeriesMeta } from '../chart-series'
 import type { CartesianChartProps } from '../types'
 import { type StackMode, stackEdges } from './stack'
@@ -67,7 +67,9 @@ function domainValuesFor<T>(args: {
 	}
 
 	reference?.forEach((line, index) => {
-		if ((line.axis ?? 'y') === axis && !referenceHidden.has(index)) values.push(line.value)
+		if (isCategoryReference(line) || referenceHidden.has(index)) return
+
+		if ((line.axis ?? 'y') === axis) values.push(line.value)
 	})
 
 	return log ? values.filter((value) => value > 0) : values
@@ -268,8 +270,8 @@ export function buildCategoryGrid(
  * Each reference line's value-axis position, projected through its own axis's
  * scale. It is index-aligned to the prop, so a keyboard stop maps back to the
  * rule {@link ChartReferenceLines} draws for it. A non-finite value, an axis
- * with no resolved scale, or a rule toggled off through its legend chip holds
- * its slot with `null`. It draws no rule, and offers no stop.
+ * with no resolved scale, a rule toggled off through its legend chip, or a
+ * category rule ({@link buildCategoryReferences}) holds its slot with `null`. It draws no rule, and offers no stop.
  *
  * A value outside its scale's domain holds `null` too. The value folds into the
  * domain, so only a pinned `min` or `max` leaves it out, and the scale would
@@ -284,6 +286,8 @@ export function buildReferences(
 	hidden: ReadonlySet<number>,
 ): (number | null)[] {
 	return (reference ?? []).map((line, index) => {
+		if (isCategoryReference(line)) return null
+
 		const scale = scales[line.axis ?? 'y']
 
 		if (!scale || hidden.has(index)) return null
@@ -291,5 +295,34 @@ export function buildReferences(
 		const [low, high] = scale.domain
 
 		return line.value >= low && line.value <= high ? scale.map(line.value) : null
+	})
+}
+
+/**
+ * Each category reference line's band-axis position, aligned with the prop. A
+ * rule marks the row of its category ({@link categoryRows}). On a chart that draws bars it sits
+ * at the leading edge of the slot, between its category and the one before, so
+ * it does not cut through a bar. Otherwise it sits at the band center, where
+ * the line points are. A value rule, or a category that no row carries, holds
+ * its slot with `null`.
+ *
+ * @internal
+ */
+export function buildCategoryReferences(
+	reference: ChartReferenceLine[] | undefined,
+	rawCategories: readonly unknown[],
+	band: BandScale,
+	bars: boolean,
+): (number | null)[] {
+	if (!reference?.some(isCategoryReference)) return []
+
+	const rows = categoryRows(rawCategories)
+
+	return reference.map((line) => {
+		const index = isCategoryReference(line) ? rows.get(line.category) : undefined
+
+		if (index === undefined) return null
+
+		return bars ? band.center(index) - band.step / 2 : band.center(index)
 	})
 }
