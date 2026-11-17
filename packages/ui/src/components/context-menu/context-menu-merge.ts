@@ -88,7 +88,7 @@ function rowKey(entry: ContextMenuEntry): string | undefined {
  * Moves each custom row that has the key of a default row into the place of
  * that default. The first custom row with a key replaces the default. The
  * rows that replace a default leave the custom group, and the other custom
- * entries stay in their order. Only the top level counts: the rows inside a
+ * entries stay in their order ({@link withoutRows}). Only the top level counts: the rows inside a
  * submenu do not replace, and a separator never replaces.
  */
 function replaceDefaults(
@@ -114,7 +114,40 @@ function replaceDefaults(
 	}
 
 	return {
-		custom: custom.filter((entry) => replacement(entry) !== entry),
+		custom: withoutRows(custom, (entry) => replacement(entry) === entry),
 		defaults: defaults.map((entry) => replacement(entry) ?? entry),
 	}
+}
+
+/**
+ * The entries without each row that `removed` names. A row that goes from
+ * between two separators would leave them side by side, so the second of the
+ * two goes too. A doubled separator that the caller wrote stays as it is.
+ */
+function withoutRows(
+	entries: ContextMenuEntry[],
+	removed: (entry: ContextMenuEntry) => boolean,
+): ContextMenuEntry[] {
+	const kept: ContextMenuEntry[] = []
+
+	// A row went since the last entry that stays.
+	let gap = false
+
+	for (const entry of entries) {
+		if (removed(entry)) {
+			gap = true
+
+			continue
+		}
+
+		const last = kept.at(-1)
+
+		const doubled = gap && 'separator' in entry && last !== undefined && 'separator' in last
+
+		if (!doubled) kept.push(entry)
+
+		gap = false
+	}
+
+	return kept
 }

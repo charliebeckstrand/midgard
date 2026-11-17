@@ -135,6 +135,21 @@ describe('resolveContextMenuEntries', () => {
 		expect(entries[1]).toBe(own)
 	})
 
+	it('leaves one separator where a replacement goes from between two', () => {
+		const own: ContextMenuItem = { key: 'a', label: 'Own alpha', onAction: noop }
+
+		const tail: ContextMenuItem = { key: 'd', label: 'Delta', onAction: noop }
+
+		const entries = resolveContextMenuEntries(
+			{
+				items: [custom, { key: 'r1', separator: true }, own, { key: 'r2', separator: true }, tail],
+			},
+			defaults,
+		)
+
+		expect(shape(entries)).toEqual(['a', 'b', '|', 'c', '|', 'd'])
+	})
+
 	it('renders one row for each key when a custom item repeats a default key', () => {
 		const entries = resolveContextMenuEntries(
 			{ items: [{ key: 'a', label: 'Own alpha', onAction: noop }, custom] },

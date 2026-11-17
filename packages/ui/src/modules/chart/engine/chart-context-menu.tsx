@@ -77,7 +77,7 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	 * `'download-jpg'`, and `'download-csv'`. Thus a dashboard tile can give its
 	 * own Fullscreen, which enlarges the whole tile, and keep the other defaults.
 	 * A replaced `'view-data'` item also gives its action to the View data
-	 * button of the header row.
+	 * button of the header row. With no `onAction`, it removes that button.
 	 */
 	items?: ContextMenuItem[] | ((target: ChartContextMenuTarget) => ContextMenuItem[])
 	/**
