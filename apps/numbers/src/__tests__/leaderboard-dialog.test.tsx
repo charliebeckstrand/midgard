@@ -209,5 +209,7 @@ describe('LeaderboardDialog', () => {
 		expect(await within(table).findByText('Ada')).toBeTruthy()
 
 		expect(screen.getByRole('link', { name: 'Sign in' }).getAttribute('href')).toBe('/login')
+
+		expect(screen.getByText(/to participate in the leaderboard\./)).toBeTruthy()
 	})
 })
