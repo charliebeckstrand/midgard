@@ -45,20 +45,40 @@ export type ContentBox = {
  * scaled ancestor does not change the result. The browser rounds the client
  * size to a whole pixel.
  *
+ * `stable` subtracts only a gutter that `scrollbar-gutter: stable` reserves,
+ * and not a scrollbar that comes and goes with an overflow. Use it to fit
+ * content that can overflow the element. Content that takes its size from a
+ * box less its scrollbars can stop its own overflow, and the scrollbar then
+ * goes and the box grows again, on each frame. The stable box starts from the
+ * offset size, which also ignores transforms and is rounded.
+ *
  * @param target - The element to measure.
+ * @param options.stable - Ignore a scrollbar that the element does not reserve.
  */
-export function measureContentBox(target: Element): ContentBox {
+export function measureContentBox(
+	target: HTMLElement,
+	{ stable = false }: { stable?: boolean } = {},
+): ContentBox {
 	const style = getComputedStyle(target)
 
+	const px = (value: string) => Number.parseFloat(value) || 0
+
+	let width = target.clientWidth
+
+	let height = target.clientHeight
+
+	if (stable) {
+		const borderX = px(style.borderLeftWidth) + px(style.borderRightWidth)
+
+		// The client width already excludes a reserved gutter, with or without an overflow.
+		width = style.scrollbarGutter?.startsWith('stable') ? width : target.offsetWidth - borderX
+
+		height = target.offsetHeight - px(style.borderTopWidth) - px(style.borderBottomWidth)
+	}
+
 	return {
-		width:
-			target.clientWidth -
-			(Number.parseFloat(style.paddingLeft) || 0) -
-			(Number.parseFloat(style.paddingRight) || 0),
-		height:
-			target.clientHeight -
-			(Number.parseFloat(style.paddingTop) || 0) -
-			(Number.parseFloat(style.paddingBottom) || 0),
+		width: width - px(style.paddingLeft) - px(style.paddingRight),
+		height: height - px(style.paddingTop) - px(style.paddingBottom),
 	}
 }
 

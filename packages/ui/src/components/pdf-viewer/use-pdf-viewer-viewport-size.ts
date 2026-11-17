@@ -10,13 +10,19 @@ type ViewportSize = { width: number; height: number }
 const sameSize = (a: ViewportSize, b: ViewportSize) => a.width === b.width && a.height === b.height
 
 /**
- * Tracks the content-box size of `ref.current` (`clientWidth`/`Height` minus padding).
+ * Tracks the content-box size of `ref.current`, less only a reserved scrollbar gutter.
  *
  * @returns The current `{ width, height }`, or `null` before the first measure.
  * @remarks Each reading commits before the paint: a resize through
  * `observeResizeBeforePaint`, and a change of `invalidationKey` (for example a
  * rotation flip, which changes the aspect ratio of the viewport) in a layout
  * effect.
+ *
+ * The reading ignores a scrollbar that comes and goes. A zoomed page overflows the
+ * viewport, and the overflow gives the viewport scrollbars. A reading less the
+ * scrollbars made the fitted page smaller, and near the edge of the overflow the smaller
+ * page stopped the overflow. The scrollbars then went, the page grew, and the viewport
+ * changed between the two states on each frame.
  * @internal
  */
 export function usePdfViewerViewportSize(
@@ -44,7 +50,7 @@ export function usePdfViewerViewportSize(
 	const measure = useCallback(() => {
 		const el = ref.current
 
-		if (el) commit(measureContentBox(el))
+		if (el) commit(measureContentBox(el, { stable: true }))
 	}, [ref, commit])
 
 	// The fitted page takes its size from this reading. Thus a resize commits before the
@@ -58,14 +64,14 @@ export function usePdfViewerViewportSize(
 		measure()
 
 		return observeResizeBeforePaint(el, () => {
-			const next = measureContentBox(el)
+			const next = measureContentBox(el, { stable: true })
 
 			return shown.current && sameSize(shown.current, next) ? undefined : () => commit(next)
 		})
 	}, [ref, measure, commit])
 
 	// Caller-driven invalidation: re-measure after commit, before paint, since
-	// `measure` reads layout via getComputedStyle / clientWidth. The
+	// `measure` reads layout via getComputedStyle / offsetWidth. The
 	// prevInvalidationKey ref skips the redundant remeasure on mount.
 	useLayoutEffect(() => {
 		if (prevInvalidationKeyRef.current === invalidationKey) return

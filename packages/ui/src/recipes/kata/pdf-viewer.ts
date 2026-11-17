@@ -243,7 +243,9 @@ export const k = defineKata({
 			 * Reserved gutter, only where a vertical scrollbar can come and go. Under
 			 * `fit: 'width'` the page's height is a function of the measured width. A scrollbar
 			 * appearing would therefore narrow the box, shorten the page, and remove itself.
-			 * Under `'page'` the page always fits, and reserving a gutter would waste it.
+			 * Under `'page'` the page at 100% fits, and reserving a gutter would waste it. A
+			 * zoomed page overflows and gives the box scrollbars, but the measurement ignores
+			 * a scrollbar that is not reserved, so the page keeps its size.
 			 */
 			fit: { page: '', width: 'scrollbar-gutter-stable' },
 			slots: {
