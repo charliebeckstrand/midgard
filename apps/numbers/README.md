@@ -70,7 +70,11 @@ place, and Reset.
 
 ## The page
 
-The header shows a trail, the settings, and a menu.
+The header shows a trail, the How to play button, the settings, and a menu.
+
+The How to play button opens a dialog with an accordion of three sections:
+Rules, Vs CPU, and Daily puzzle. Rules is open when the dialog opens, and one
+section is open at a time.
 
 The solo route (Standard in the menu) is the home of the app, so its trail is
 only `Numbers`. Another route adds its name, such as `Numbers › Vs CPU`, where
