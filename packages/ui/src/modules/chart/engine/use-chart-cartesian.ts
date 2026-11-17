@@ -367,7 +367,7 @@ function cartesianChrome<T>(props: CartesianData<T>, legend: ResolvedLegend['val
  * with them: the gutter holds their widths, and the room is the gutter's. A
  * vertical layout reads no label widths, so it resolves first, and the labels
  * then draw along the x axis in the room between its ticks
- * ({@link bandLabelRoom}). The tooltip and the data table show the full label.
+ * ({@link bandLabelRoom}). A wrapped label fits each of its lines to that room. The tooltip and the data table show the full label.
  * A band that draws no labels (`drawn` off) measures nothing.
  *
  * @internal
@@ -379,8 +379,12 @@ function useCartesianLayout(
 ): { layout: CartesianLayout; hostRef: RefObject<HTMLDivElement | null> } {
 	const vertical = useMemo(() => (horizontal ? null : verticalLayout(input)), [horizontal, input])
 
+	// A wrapped label draws its lines, so each line takes the measure in place of the label.
 	const labels = useMemo(
-		() => (vertical ? vertical.bandTicks.map((tick) => tick.label) : input.categories),
+		() =>
+			vertical
+				? vertical.bandTicks.flatMap((tick) => tick.lines ?? [tick.label])
+				: input.categories,
 		[vertical, input.categories],
 	)
 
@@ -398,7 +402,11 @@ function useCartesianLayout(
 			vertical
 				? {
 						...vertical,
-						bandTicks: vertical.bandTicks.map((tick) => ({ ...tick, label: text.fit(tick.label) })),
+						bandTicks: vertical.bandTicks.map((tick) =>
+							tick.lines
+								? { ...tick, lines: tick.lines.map((line) => text.fit(line)) }
+								: { ...tick, label: text.fit(tick.label) },
+						),
 					}
 				: horizontalLayout({ ...input, bandLabel: text }),
 		[vertical, input, text],
