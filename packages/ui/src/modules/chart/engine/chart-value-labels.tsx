@@ -21,11 +21,17 @@ import { useChartTier } from './context'
  * `endpoints` and `extremes` apply only to a single-series chart. With more than
  * one series the numbers would crowd between the lines with nowhere reliable to
  * sit. They therefore stand down, and the tooltip carries the readout. A
- * `ComboChart` counts only its line and area series. The value axis reserves
- * no room for the labels. An extreme's label takes the first free spot on the
- * outward side of its point, where the line cannot be: centered past the
- * point, then level with it on its right or its left. Where none is free, the
- * label hides. `references` is unaffected by either rule.
+ * `ComboChart` counts only its line and area series.
+ *
+ * A label at the maximum or the minimum of the series takes the first free spot
+ * on the outward side of its point, where the line cannot be: centered past
+ * the point, then level with it on its right or its left. The value axis keeps
+ * room for these labels past the data extremes, while that room is at most a
+ * quarter of the plot. The top widens by the exact room. The bottom widens by
+ * whole ticks, so the axis rule stays on a gridline, and it never goes under
+ * zero for data with no negative value. On a `ComboChart`, the room widens the
+ * value axis that its bars share. A label with no free spot hides.
+ * `references` is unaffected by these rules.
  */
 export type ChartValueLabelConfig = {
 	/**
