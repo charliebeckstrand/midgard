@@ -18,7 +18,6 @@ import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
 import { useIdle } from '../kit/use-idle.ts'
 import appCss from './app.css?url'
-import { appMessages } from './app-messages.ts'
 import { catalogs } from './catalogs.ts'
 import { NavigateContext, useDocumentLocale } from './context.ts'
 import { DirectionListbox } from './direction.tsx'
@@ -106,12 +105,6 @@ const SCROLLER =
 	'h-dvh overflow-y-auto @container-size print:h-auto print:overflow-visible print:@container-normal'
 
 const messages = defineMessages({
-	notFound: {
-		id: 'docs.app.notFound',
-		defaultMessage: 'Not found',
-		description:
-			'The title of a page whose path has no page of the docs. It shows in the header and in the title of the browser tab.',
-	},
 	toggleSidebar: {
 		id: 'docs.app.toggleSidebar',
 		defaultMessage: 'Toggle sidebar',
@@ -125,7 +118,7 @@ const pageTitleMessage = defineMessage<{ page: string }>({
 	id: 'docs.app.pageTitle',
 	defaultMessage: '{page} · Docs',
 	description:
-		'The title of the browser tab on a page of the docs. The page is the name of the page, such as Button.',
+		'The title of the browser tab on a page of the docs. The page is the name of the page, such as Button, or the path of the address when no page is at it.',
 })
 
 /**
@@ -166,10 +159,8 @@ function Shell() {
 	// page, such as `/button/foo`, matches the not-found route, so it has no page.
 	const page = pages.find((link) => matches.some((match) => match.id === link.path))
 
-	// The root path lists the pages, and has no title of its own.
-	const title = page?.name ?? (pathname === '/' ? undefined : intl.formatMessage(messages.notFound))
-
-	const docs = intl.formatMessage(appMessages.docs)
+	// A path with no page takes the path as its title, such as `/button/foo`.
+	const title = page?.name ?? pathname
 
 	useIdle(warmShiki)
 
@@ -189,7 +180,7 @@ function Shell() {
 		// The links match the path of the page, so the item of a page is current
 		// on each tab of the page, and no item is current on the not-found page.
 		<UIProvider link={RouterLink} pathname={path}>
-			<title>{title ? intl.formatMessage(pageTitleMessage, { page: title }) : docs}</title>
+			<title>{intl.formatMessage(pageTitleMessage, { page: title })}</title>
 			<Stylesheet />
 			<DocsSearch>
 				<div ref={scroller} className={SCROLLER}>
@@ -212,7 +203,7 @@ function Shell() {
 									<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
 									<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
 								</Button>
-								<Heading>{title ?? docs}</Heading>
+								<Heading>{title}</Heading>
 							</Flex>
 						</SidebarLayoutHeader>
 						<SearchPaletteHost />

@@ -41,35 +41,31 @@
 	},
 	"docs.app.docs": {
 		"defaultMessage": "Docs",
-		"description": "The name of the documentation site. It shows in the title of the browser tab, in the header of the home page, and at the top of the sidebar."
-	},
-	"docs.app.notFound": {
-		"defaultMessage": "Not found",
-		"description": "The title of a page whose path has no page of the docs. It shows in the header and in the title of the browser tab."
+		"description": "The name of the documentation site. It shows at the top of the sidebar."
 	},
 	"docs.app.pageTitle": {
 		"defaultMessage": "{page} · Docs",
-		"description": "The title of the browser tab on a page of the docs. The page is the name of the page, such as Button."
+		"description": "The title of the browser tab on a page of the docs. The page is the name of the page, such as Button, or the path of the address when no page is at it."
 	},
 	"docs.app.section.components": {
 		"defaultMessage": "Components",
-		"description": "The name of the section of the sidebar and of the home page that lists the components."
+		"description": "The name of the section of the sidebar that lists the components."
 	},
 	"docs.app.section.modules": {
 		"defaultMessage": "Modules",
-		"description": "The name of the section of the sidebar and of the home page that lists the modules, such as the grid and the chart."
+		"description": "The name of the section of the sidebar that lists the modules, such as the grid and the chart."
 	},
 	"docs.app.section.primitives": {
 		"defaultMessage": "Primitives",
-		"description": "The name of the section of the sidebar and of the home page that lists the primitives: the low-level parts that the components use."
+		"description": "The name of the section of the sidebar that lists the primitives: the low-level parts that the components use."
 	},
 	"docs.app.section.providers": {
 		"defaultMessage": "Providers",
-		"description": "The name of the section of the sidebar and of the home page that lists the providers: the parts that give settings to the parts under them."
+		"description": "The name of the section of the sidebar that lists the providers: the parts that give settings to the parts under them."
 	},
 	"docs.app.section.structure": {
 		"defaultMessage": "Structure",
-		"description": "The name of the section of the sidebar and of the home page that lists the layout parts, such as a stack or a split."
+		"description": "The name of the section of the sidebar that lists the layout parts, such as a stack or a split."
 	},
 	"docs.app.toggleSidebar": {
 		"defaultMessage": "Toggle sidebar",
@@ -5519,17 +5515,9 @@
 		"defaultMessage": "Show code",
 		"description": "The label of the button under an example that shows the source code of the example."
 	},
-	"docs.home.intro": {
-		"defaultMessage": "Each component, module, structure, provider, and primitive of ui, with a playground, examples, and an API reference.",
-		"description": "The text at the top of the home page of the docs, above the list of the pages. ui is the name of the library."
-	},
 	"docs.notFound.body": {
-		"defaultMessage": "No page of the docs is at this path.",
+		"defaultMessage": "Page not found",
 		"description": "The text of the page that shows for a path that has no page of the docs."
-	},
-	"docs.notFound.home": {
-		"defaultMessage": "See each page",
-		"description": "The text of a link on the not-found page. The link goes to the home page, which lists each page of the docs."
 	},
 	"docs.page.accordion": {
 		"defaultMessage": "Accordion",

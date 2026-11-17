@@ -1,19 +1,16 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import NotFound from '../app/routes/not-found.tsx'
 
-// The link to the home page is the only action of the not-found page. It has
-// the color of the text around it, so the underline is its only mark (WCAG 1.4.1).
+// The not-found page states that no page is at the path. The sidebar holds
+// each page, so the not-found page has no link of its own.
 
 describe('the not-found page', () => {
-	it('underlines the link to the home page at rest', () => {
-		render(
-			<MemoryRouter>
-				<NotFound />
-			</MemoryRouter>,
-		)
+	it('states that no page is at the path, with no link', () => {
+		render(<NotFound />)
 
-		expect(screen.getByRole('link', { name: 'See each page' }).classList).toContain('underline')
+		expect(screen.queryByText('Page not found')).not.toBeNull()
+
+		expect(screen.queryByRole('link')).toBeNull()
 	})
 })

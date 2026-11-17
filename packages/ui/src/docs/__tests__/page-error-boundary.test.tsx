@@ -60,7 +60,7 @@ describe('docs page error boundary', () => {
 
 		expect(screen.getAllByRole('navigation').length).toBeGreaterThan(0)
 
-		expect(screen.getByRole('heading', { name: 'Not found' })).toBeTruthy()
+		expect(screen.getByRole('heading', { name: '/broken' })).toBeTruthy()
 
 		await act(() => router.navigate('/healthy'))
 

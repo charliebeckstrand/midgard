@@ -30,10 +30,10 @@ import { launchChromium } from './helpers/chromium'
 const NOT_FOUND = '/no-such-page'
 
 /**
- * The home page, component pages, a module page, a page with a tab in its
- * path, and a path with no page.
+ * Component pages, a module page, a page with a tab in its path, and a path
+ * with no page. The root path has no page: the server sends a redirect for it.
  */
-const PAGES = ['/', '/button', '/accordion', '/modules/grid', '/modules/grid/sorting', NOT_FOUND]
+const PAGES = ['/button', '/accordion', '/modules/grid', '/modules/grid/sorting', NOT_FOUND]
 
 /**
  * The chunks that a stale page names. A missing `page` chunk stops the module
