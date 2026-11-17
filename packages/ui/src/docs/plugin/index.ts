@@ -13,7 +13,7 @@ import type {
 import { TRANSLATIONS_MODULE } from '../../../scripts/intl/catalog.ts'
 import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { homeRedirect } from '../app/home.ts'
+import { rootRedirect } from '../app/root-redirect.ts'
 import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'
 import { readClientManifest } from './asset-urls.ts'
 import { labelPage } from './component-events.ts'
@@ -364,13 +364,13 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 			routes = formatRoutes(findPages(docs))
 
 			// As the server of the build does, the dev server answers the root path
-			// with a redirect to the first page (`app/home.ts`).
+			// with a redirect to the first page (`app/root-redirect.ts`).
 			server.middlewares.use((request, response, next) => {
-				const home = homeRedirect(request.url ?? '')
+				const location = rootRedirect(request.url ?? '')
 
-				if (home === undefined) return next()
+				if (location === undefined) return next()
 
-				response.writeHead(302, { location: home }).end()
+				response.writeHead(302, { location }).end()
 			})
 		},
 		hotUpdate({ file, type, modules, server }) {

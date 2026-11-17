@@ -13,7 +13,7 @@ import {
 	serveDocs,
 } from '../../../scripts/docs/server.ts'
 import { rootMarks } from '../../server/root-marks.ts'
-import { HOME } from '../app/home.ts'
+import { rootRedirect } from '../app/root-redirect.ts'
 import { findPages } from '../plugin/pages.ts'
 
 // The server of the docs compresses each text file of the build, as a CDN
@@ -146,23 +146,25 @@ describe('readBody', () => {
 })
 
 describe('the root path', () => {
-	it('goes to the first page of the sidebar', () => {
-		expect(findPages(path.join(import.meta.dirname, '..'))[0]?.path).toBe(HOME)
+	it('goes to the first page of the sidebar, with its query', () => {
+		const first = findPages(path.join(import.meta.dirname, '..'))[0]?.path
+
+		expect(rootRedirect('/')).toBe(first)
+
+		expect(rootRedirect('/?lang=es')).toBe(`${first}?lang=es`)
+
+		expect(rootRedirect('/button')).toBeUndefined()
 	})
 
-	it('gets a redirect to the first page, with its query', async () => {
+	it('gets a redirect from the server of the docs', async () => {
 		const { origin, server } = await serveDocs(0)
 
 		try {
-			const plain = await fetch(`${origin}/`, { redirect: 'manual' })
+			const response = await fetch(`${origin}/`, { redirect: 'manual' })
 
-			expect(plain.status).toBe(302)
+			expect(response.status).toBe(302)
 
-			expect(plain.headers.get('location')).toBe(HOME)
-
-			const query = await fetch(`${origin}/?lang=es`, { redirect: 'manual' })
-
-			expect(query.headers.get('location')).toBe(`${HOME}?lang=es`)
+			expect(response.headers.get('location')).toBe(rootRedirect('/'))
 		} finally {
 			server.close()
 		}

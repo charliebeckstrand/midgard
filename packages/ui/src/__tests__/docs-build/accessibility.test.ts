@@ -96,7 +96,7 @@ const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js')
 const shard = inject('shard')
 
 /**
- * The path of each prerendered page of the shard: the home page, and each
+ * The path of each prerendered page of the shard: the root path, and each
  * page and tab of the docs. The shards take the pages in turn, so the pages
  * of a section, such as the charts, go to each shard.
  */

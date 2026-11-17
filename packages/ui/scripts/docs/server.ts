@@ -4,12 +4,13 @@
  * the build with the same paths, over HTTP/2.
  *
  * The root path has no page. It gets a redirect to the first page of the
- * docs, with its query ({@link homeRedirect}). A path gets the file at that
+ * docs, with its query ({@link rootRedirect}). A path gets the file at that
  * path, or `index.html` in the directory at that path. Thus `/stepper` gets
  * `stepper/index.html` with no redirect. Any other path gets
  * `__spa-fallback.html`, the not-found page, with status 404. A missing file,
  * such as a chunk that a deploy removed, gets status 404 too.
- * `vite preview` does not do this: it gives the home page for `/stepper`.
+ * `vite preview` does not do this: it gives the HTML of the root path for
+ * `/stepper`.
  *
  * The build has the HTML of each page in each locale (`src/docs/app/language.ts`).
  * An HTML file goes in the locale of the request: the locale cookie, else the
@@ -43,8 +44,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { brotliCompress, constants, gzip } from 'node:zlib'
-import { homeRedirect } from '../../src/docs/app/home.ts'
 import { localeFile, requestLocale } from '../../src/docs/app/language.ts'
+import { rootRedirect } from '../../src/docs/app/root-redirect.ts'
 import { markRoot, type RootMarks, rootMarks } from '../../src/server/root-marks.ts'
 import { getOrCompute } from '../../src/utilities/get-or-compute.ts'
 
@@ -398,11 +399,11 @@ export async function serveDocs(
 ): Promise<{ origin: string; server: Server }> {
 	const server = createServer((request, response) => {
 		// The root path has no file. The redirect is temporary, so a browser does
-		// not keep it if the docs get a home page again.
-		const home = homeRedirect(request.url ?? '/')
+		// not keep it if the root path gets a page again.
+		const location = rootRedirect(request.url ?? '/')
 
-		if (home !== undefined) {
-			response.writeHead(302, { location: home }).end()
+		if (location !== undefined) {
+			response.writeHead(302, { location }).end()
 
 			return
 		}
