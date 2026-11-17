@@ -650,82 +650,143 @@ function clearance(a: LabelBox, b: LabelBox): number {
 	return Math.max(a.x0 - b.x1, b.x0 - a.x1, a.y0 - b.y1, b.y0 - a.y1)
 }
 
-/** Box `box` grown by `by` on each side. @internal */
-function grow(box: LabelBox, by: number): LabelBox {
-	return { x0: box.x0 - by, x1: box.x1 + by, y0: box.y0 - by, y1: box.y1 + by }
+/** A span of y, from its low end to its high end. @internal */
+type Span = readonly [number, number]
+
+/**
+ * The drawn data in one column of the plot: for each point marker and each
+ * line run that enters the column, the span of y that it covers there. A box
+ * that spans the column meets a mark where its own span of y meets a span of
+ * the mark. Each label anchor has one column, so a label tests its heights
+ * against a few spans, not against every segment of the data. The markers keep
+ * the low ends and the high ends of their spans apart, each in order, so a
+ * count of the markers that meet a box is two binary searches.
+ * @internal
+ */
+type DataColumn = { lows: number[]; highs: number[]; lines: Span[][] }
+
+/**
+ * The span of y that the segment from `p` to `q` covers between `x0` and
+ * `x1`, or `null` where it does not enter them. A straight segment is clipped
+ * to the column. A curve covers the box of its two points, which holds a
+ * monotone curve.
+ * @internal
+ */
+function segmentSpan(p: Vec, q: Vec, x0: number, x1: number, smooth: boolean): Span | null {
+	const lo = Math.min(p.x, q.x)
+
+	const hi = Math.max(p.x, q.x)
+
+	if (hi < x0 || lo > x1) return null
+
+	if (smooth || p.x === q.x) return [Math.min(p.y, q.y), Math.max(p.y, q.y)]
+
+	const at = (x: number) => p.y + ((x - p.x) * (q.y - p.y)) / (q.x - p.x)
+
+	const a = at(Math.max(lo, x0))
+
+	const b = at(Math.min(hi, x1))
+
+	return [Math.min(a, b), Math.max(a, b)]
+}
+
+/** Spans in order of their low ends, with each overlap joined into one span. @internal */
+function joinSpans(spans: Span[]): Span[] {
+	const joined: [number, number][] = []
+
+	for (const [lo, hi] of [...spans].sort((a, b) => a[0] - b[0])) {
+		const last = joined.at(-1)
+
+		if (last && lo <= last[1]) last[1] = Math.max(last[1], hi)
+		else joined.push([lo, hi])
+	}
+
+	return joined
 }
 
 /**
- * Whether the straight segment from `a` to `b` meets `box`: the segment clipped
- * to the box (Liang–Barsky) keeps some length, or a point.
+ * The drawn data in the column from `x0` to `x1`, which `reach` widens on
+ * each side ({@link DataColumn}).
  * @internal
  */
-function segmentMeets(a: Vec, b: Vec, box: LabelBox): boolean {
-	const dx = b.x - a.x
+function dataColumn(
+	x0: number,
+	x1: number,
+	reach: number,
+	markers: readonly LabelBox[],
+	lines: readonly LabelLine[],
+): DataColumn {
+	const [left, right] = [x0 - reach, x1 + reach]
 
-	const dy = b.y - a.y
+	const runs = lines.map((line) => {
+		const spans: Span[] = []
 
-	// Each pair is a side of the box: the change of the segment towards the
-	// side, and the room from the start of the segment to the side.
-	const sides: [number, number][] = [
-		[-dx, a.x - box.x0],
-		[dx, box.x1 - a.x],
-		[-dy, a.y - box.y0],
-		[dy, box.y1 - a.y],
-	]
+		for (let i = 1; i < line.points.length; i++) {
+			const span = segmentSpan(
+				line.points[i - 1] as Vec,
+				line.points[i] as Vec,
+				left,
+				right,
+				line.smooth,
+			)
 
-	let enter = 0
-
-	let leave = 1
-
-	for (const [change, room] of sides) {
-		if (change === 0) {
-			if (room < 0) return false
-
-			continue
+			if (span) spans.push(span)
 		}
 
-		const t = room / change
+		return joinSpans(spans)
+	})
 
-		if (change < 0) enter = Math.max(enter, t)
-		else leave = Math.min(leave, t)
+	const inside = markers.filter((marker) => marker.x0 <= right && left <= marker.x1)
 
-		if (enter > leave) return false
+	return {
+		lows: inside.map((marker) => marker.y0).sort((a, b) => a - b),
+		highs: inside.map((marker) => marker.y1).sort((a, b) => a - b),
+		lines: runs.filter((spans) => spans.length > 0),
 	}
-
-	return true
 }
 
 /**
- * Whether a drawn line comes within `reach` of `box`. A straight line meets
- * the box by its segments. A curve meets it by the box of each two neighbor
- * points, which holds the curve between them.
+ * The count of the values of `sorted`, in order, that are less than `value`,
+ * or also equal to it where `inclusive`.
  * @internal
  */
-function lineMeets(line: LabelLine, box: LabelBox, reach: number): boolean {
-	const near = grow(box, reach)
+function countBelow(sorted: readonly number[], value: number, inclusive = false): number {
+	let lo = 0
 
-	for (let i = 1; i < line.points.length; i++) {
-		const a = line.points[i - 1] as Vec
+	let hi = sorted.length
 
-		const b = line.points[i] as Vec
+	while (lo < hi) {
+		const mid = (lo + hi) >> 1
 
-		const meets = line.smooth
-			? clearance(
-					{
-						x0: Math.min(a.x, b.x),
-						x1: Math.max(a.x, b.x),
-						y0: Math.min(a.y, b.y),
-						y1: Math.max(a.y, b.y),
-					},
-					near,
-				) <= 0
-			: segmentMeets(a, b, near)
+		const at = sorted[mid] as number
 
-		if (meets) return true
+		if (at < value || (inclusive && at === value)) lo = mid + 1
+		else hi = mid
 	}
 
-	return false
+	return lo
+}
+
+/** Whether `span` comes within `reach` of the span of `box` across y. The test is inclusive. @internal */
+function spanMeets(span: Span, box: LabelBox, reach: number): boolean {
+	return span[0] <= box.y1 + reach && box.y0 - reach <= span[1]
+}
+
+/** The count of the data marks of `column` that come within `reach` of `box`. @internal */
+function marksMet(column: DataColumn, box: LabelBox, reach: number): number {
+	const { lows, highs } = column
+
+	// A marker misses the box where its span starts past the box, or ends short of it.
+	const past = lows.length - countBelow(lows, box.y1 + reach, true)
+
+	const short = countBelow(highs, box.y0 - reach)
+
+	return (
+		lows.length -
+		past -
+		short +
+		count(column.lines, (spans) => spans.some((span) => spanMeets(span, box, reach)))
+	)
 }
 
 /**
@@ -735,8 +796,8 @@ function lineMeets(line: LabelLine, box: LabelBox, reach: number): boolean {
  * @internal
  */
 type LabelScene = {
-	markers: readonly LabelBox[]
-	lines: readonly LabelLine[]
+	/** The drawn data in the column of a box, which `reach` widens ({@link dataColumn}). */
+	column: (box: LabelBox, reach: number) => DataColumn
 	rules: readonly LabelBox[]
 	labels: readonly LabelBox[]
 }
@@ -774,20 +835,16 @@ function count<T>(list: readonly T[], test: (item: T) => boolean): number {
  * @internal
  */
 function spotCost(box: LabelBox, scene: LabelScene): [number, number, number] {
-	const lineCrosses = scene.lines.map((line) => lineMeets(line, box, LABEL_GAP))
+	const crossed = marksMet(scene.column(box, LABEL_GAP), box, LABEL_GAP)
 
+	// A mark within the room that it does not cross crowds the box.
 	const crowded =
-		count(scene.markers, (marker) => crowds(marker, box)) +
-		count(scene.lines, (line) => lineMeets(line, box, LABEL_ROOM)) -
-		count(lineCrosses, Boolean) +
+		marksMet(scene.column(box, LABEL_ROOM), box, LABEL_ROOM) -
+		crossed +
 		count(scene.rules, (line) => crowds(line, box)) +
 		count(scene.labels, (other) => clearance(other, box) < LABEL_ROOM)
 
-	return [
-		count(scene.markers, (marker) => crosses(marker, box)) + count(lineCrosses, Boolean),
-		count(scene.rules, (line) => crosses(line, box)),
-		crowded,
-	]
+	return [crossed, count(scene.rules, (line) => crosses(line, box)), crowded]
 }
 
 /** Cost `a` is less than cost `b`: the first term that differs decides. @internal */
@@ -864,6 +921,23 @@ export function referenceLabels(
 		y1: y,
 	}))
 
+	// One column for each label anchor and reach, built on its first use.
+	const columns = new Map<string, DataColumn>()
+
+	const column = (box: LabelBox, reach: number) => {
+		const key = `${box.x0} ${box.x1} ${reach}`
+
+		let found = columns.get(key)
+
+		if (!found) {
+			found = dataColumn(box.x0, box.x1, reach, markers, lines)
+
+			columns.set(key, found)
+		}
+
+		return found
+	}
+
 	const drawnRules = rules.map((rule) =>
 		rule.at === null ? null : ruleBox(rule.at, rule.orientation ?? orientation, plot),
 	)
@@ -872,8 +946,7 @@ export function referenceLabels(
 		if (rule.at === null || rule.unlabeled) return null
 
 		const scene: LabelScene = {
-			markers,
-			lines,
+			column,
 			rules: drawnRules.filter((line, other): line is LabelBox => other !== index && line !== null),
 			labels: [...edges, ...placed],
 		}
