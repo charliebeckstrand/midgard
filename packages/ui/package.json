@@ -121,7 +121,6 @@
 		}
 	},
 	"scripts": {
-		"build:dist": "tsup",
 		"dev": "react-router dev src/docs",
 		"fonts": "tsx scripts/fonts.ts",
 		"intl": "tsx scripts/intl.ts",
@@ -226,7 +225,6 @@
 		"react-router": "8.4.0",
 		"subset-font": "^2.9.0",
 		"tailwindcss": "catalog:",
-		"tsup": "catalog:",
 		"tsx": "catalog:",
 		"typescript": "7.0.2",
 		"us-atlas": "catalog:",
