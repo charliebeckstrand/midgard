@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
@@ -117,6 +117,27 @@ describe('a click on a submenu row (real browser)', () => {
 		await waitFor(() => expect(row()).toHaveFocus())
 
 		await userEvent.keyboard('{Enter}')
+
+		await waitFor(() => expect(nested()).toHaveFocus())
+	})
+
+	// TalkBack on Android sends a double tap as a click with a pointer type and
+	// the primary button down. Floating UI calls that click virtual, as a click
+	// from a key, so focus goes into the submenu, as the root menu opens on its
+	// first row.
+	it('moves focus to the first row of the submenu on a TalkBack double tap', async () => {
+		// Chromium has `userAgentData`, and Floating UI reads its platform first.
+		vi.spyOn(
+			navigator as Navigator & { userAgentData: unknown },
+			'userAgentData',
+			'get',
+		).mockReturnValue({ platform: 'Android' })
+
+		await openContextMenu()
+
+		row().dispatchEvent(
+			new PointerEvent('click', { bubbles: true, detail: 1, pointerType: 'touch', buttons: 1 }),
+		)
 
 		await waitFor(() => expect(nested()).toHaveFocus())
 	})
