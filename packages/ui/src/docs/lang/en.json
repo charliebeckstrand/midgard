@@ -41,7 +41,7 @@
 	},
 	"docs.app.docs": {
 		"defaultMessage": "Docs",
-		"description": "The name of the documentation site. It shows in the title of the browser tab, in the header of the home page, and at the top of the sidebar."
+		"description": "The name of the documentation site. It shows in the title of the browser tab and at the top of the sidebar."
 	},
 	"docs.app.notFound": {
 		"defaultMessage": "Not found",
@@ -53,23 +53,23 @@
 	},
 	"docs.app.section.components": {
 		"defaultMessage": "Components",
-		"description": "The name of the section of the sidebar and of the home page that lists the components."
+		"description": "The name of the section of the sidebar that lists the components."
 	},
 	"docs.app.section.modules": {
 		"defaultMessage": "Modules",
-		"description": "The name of the section of the sidebar and of the home page that lists the modules, such as the grid and the chart."
+		"description": "The name of the section of the sidebar that lists the modules, such as the grid and the chart."
 	},
 	"docs.app.section.primitives": {
 		"defaultMessage": "Primitives",
-		"description": "The name of the section of the sidebar and of the home page that lists the primitives: the low-level parts that the components use."
+		"description": "The name of the section of the sidebar that lists the primitives: the low-level parts that the components use."
 	},
 	"docs.app.section.providers": {
 		"defaultMessage": "Providers",
-		"description": "The name of the section of the sidebar and of the home page that lists the providers: the parts that give settings to the parts under them."
+		"description": "The name of the section of the sidebar that lists the providers: the parts that give settings to the parts under them."
 	},
 	"docs.app.section.structure": {
 		"defaultMessage": "Structure",
-		"description": "The name of the section of the sidebar and of the home page that lists the layout parts, such as a stack or a split."
+		"description": "The name of the section of the sidebar that lists the layout parts, such as a stack or a split."
 	},
 	"docs.app.toggleSidebar": {
 		"defaultMessage": "Toggle sidebar",
@@ -5519,57 +5519,13 @@
 		"defaultMessage": "Show code",
 		"description": "The label of the button under an example that shows the source code of the example."
 	},
-	"docs.home.imports": {
-		"defaultMessage": "Import each part from its own path. ui has no root import.",
-		"description": "The last step to set up ui, above a code block of import lines. ui is the name of the library."
-	},
-	"docs.home.intro": {
-		"defaultMessage": "Each component, module, structure, provider, and primitive of ui, with a playground, examples, and an API reference.",
-		"description": "The text at the top of the home page of the docs, above the steps to set up ui. ui is the name of the library."
-	},
-	"docs.home.providers": {
-		"defaultMessage": "Put the providers at the root of the app, in this order. UIProvider takes the link component of the router.",
-		"description": "The second step to set up ui, above a code block. UIProvider is the name of a component. Keep it in English."
-	},
-	"docs.home.section.components": {
-		"defaultMessage": "The controls and the content of a page, such as Button, Dialog, and Table.",
-		"description": "What the Components section of the docs holds. Button, Dialog, and Table are names of components. Keep them in English."
-	},
-	"docs.home.section.modules": {
-		"defaultMessage": "Large parts that hold their own components and state, such as Grid, Chart, and Form.",
-		"description": "What the Modules section of the docs holds. Grid, Chart, and Form are names of modules. Keep them in English."
-	},
-	"docs.home.section.primitives": {
-		"defaultMessage": "The low-level parts that the components use.",
-		"description": "What the Primitives section of the docs holds."
-	},
-	"docs.home.section.providers": {
-		"defaultMessage": "The settings that the parts under a provider read: appearance, density, language, and more.",
-		"description": "What the Providers section of the docs holds."
-	},
-	"docs.home.section.structure": {
-		"defaultMessage": "The layout units, such as Stack and Columns. Their gap follows the density.",
-		"description": "What the Structure section of the docs holds. Stack and Columns are names of components. Keep them in English."
-	},
-	"docs.home.sections": {
-		"defaultMessage": "Sections",
-		"description": "The heading of the list on the home page of the docs that tells what each section of the sidebar holds."
-	},
-	"docs.home.setUp": {
-		"defaultMessage": "Set up an app",
-		"description": "The heading of the steps on the home page of the docs that add ui to an app."
-	},
-	"docs.home.styles": {
-		"defaultMessage": "Import the styles of ui in the stylesheet of the app, and add the source of ui to the sources of Tailwind. The dark variant follows the class that AppearanceProvider sets.",
-		"description": "The first step to set up ui, above a code block of CSS. Tailwind is the name of a CSS tool, and AppearanceProvider is the name of a component. Keep both names in English."
-	},
 	"docs.notFound.body": {
 		"defaultMessage": "No page of the docs is at this path.",
 		"description": "The text of the page that shows for a path that has no page of the docs."
 	},
 	"docs.notFound.home": {
-		"defaultMessage": "Go to the home page",
-		"description": "The text of a link on the not-found page. The link goes to the home page of the docs."
+		"defaultMessage": "Go to the first page",
+		"description": "The text of a link on the not-found page. The link goes to the first page of the docs, the first page of the sidebar."
 	},
 	"docs.page.accordion": {
 		"defaultMessage": "Accordion",

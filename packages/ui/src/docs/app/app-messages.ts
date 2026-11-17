@@ -10,7 +10,7 @@ export const appMessages = defineMessages({
 		id: 'docs.app.docs',
 		defaultMessage: 'Docs',
 		description:
-			'The name of the documentation site. It shows in the title of the browser tab, in the header of the home page, and at the top of the sidebar.',
+			'The name of the documentation site. It shows in the title of the browser tab and at the top of the sidebar.',
 	},
 })
 
@@ -21,32 +21,31 @@ const sectionMessages: Readonly<Record<string, MessageDescriptor>> = defineMessa
 	components: {
 		id: 'docs.app.section.components',
 		defaultMessage: 'Components',
-		description:
-			'The name of the section of the sidebar and of the home page that lists the components.',
+		description: 'The name of the section of the sidebar that lists the components.',
 	},
 	modules: {
 		id: 'docs.app.section.modules',
 		defaultMessage: 'Modules',
 		description:
-			'The name of the section of the sidebar and of the home page that lists the modules, such as the grid and the chart.',
+			'The name of the section of the sidebar that lists the modules, such as the grid and the chart.',
 	},
 	primitives: {
 		id: 'docs.app.section.primitives',
 		defaultMessage: 'Primitives',
 		description:
-			'The name of the section of the sidebar and of the home page that lists the primitives: the low-level parts that the components use.',
+			'The name of the section of the sidebar that lists the primitives: the low-level parts that the components use.',
 	},
 	providers: {
 		id: 'docs.app.section.providers',
 		defaultMessage: 'Providers',
 		description:
-			'The name of the section of the sidebar and of the home page that lists the providers: the parts that give settings to the parts under them.',
+			'The name of the section of the sidebar that lists the providers: the parts that give settings to the parts under them.',
 	},
 	structure: {
 		id: 'docs.app.section.structure',
 		defaultMessage: 'Structure',
 		description:
-			'The name of the section of the sidebar and of the home page that lists the layout parts, such as a stack or a split.',
+			'The name of the section of the sidebar that lists the layout parts, such as a stack or a split.',
 	},
 })
 

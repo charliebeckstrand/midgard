@@ -10,13 +10,17 @@ import {
 	isFresh,
 	pickEncoding,
 	readBody,
+	serveDocs,
 } from '../../../scripts/docs/server.ts'
 import { rootMarks } from '../../server/root-marks.ts'
+import { HOME } from '../app/home.ts'
+import { findPages } from '../plugin/pages.ts'
 
 // The server of the docs compresses each text file of the build, as a CDN
 // does, so a page does not cost the reader its full size. A path with no file
 // and no page gets the not-found page with status 404. A client with a current
-// copy of a file gets 304 and no body.
+// copy of a file gets 304 and no body. The root path has no page, so it gets
+// a redirect to the first page.
 
 describe('pickEncoding', () => {
 	it('takes brotli, else gzip, for a text file', () => {
@@ -138,5 +142,29 @@ describe('readBody', () => {
 		await utimes(file, new Date(), new Date(Date.now() + 1000))
 
 		expect(String(brotliDecompressSync(await readBody(file, 'br')))).toBe('second build')
+	})
+})
+
+describe('the root path', () => {
+	it('goes to the first page of the sidebar', () => {
+		expect(findPages(path.join(import.meta.dirname, '..'))[0]?.path).toBe(HOME)
+	})
+
+	it('gets a redirect to the first page, with its query', async () => {
+		const { origin, server } = await serveDocs(0)
+
+		try {
+			const plain = await fetch(`${origin}/`, { redirect: 'manual' })
+
+			expect(plain.status).toBe(302)
+
+			expect(plain.headers.get('location')).toBe(HOME)
+
+			const query = await fetch(`${origin}/?lang=es`, { redirect: 'manual' })
+
+			expect(query.headers.get('location')).toBe(`${HOME}?lang=es`)
+		} finally {
+			server.close()
+		}
 	})
 })

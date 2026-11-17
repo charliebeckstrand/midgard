@@ -2,6 +2,7 @@ import { Link } from 'ui/link'
 import { defineMessages, IntlMessage } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import { HOME } from '../home.ts'
 
 const messages = defineMessages({
 	body: {
@@ -11,9 +12,9 @@ const messages = defineMessages({
 	},
 	home: {
 		id: 'docs.notFound.home',
-		defaultMessage: 'Go to the home page',
+		defaultMessage: 'Go to the first page',
 		description:
-			'The text of a link on the not-found page. The link goes to the home page of the docs.',
+			'The text of a link on the not-found page. The link goes to the first page of the docs, the first page of the sidebar.',
 	},
 })
 
@@ -25,7 +26,7 @@ export default function NotFound() {
 				<IntlMessage message={messages.body} />
 			</Text>
 			<Text>
-				<Link href="/" underline>
+				<Link href={HOME} underline>
 					<IntlMessage message={messages.home} />
 				</Link>
 			</Text>
