@@ -166,9 +166,10 @@ export function placeReferenceLabels(
 			const shown = category ? modes.categories && text !== '' : modes.values
 
 			return {
-				at: shown ? rulePosition(chart, line, index) : null,
+				at: rulePosition(chart, line, index),
 				text,
 				orientation: category ? crossOrientation(chart.orientation) : undefined,
+				unlabeled: !shown,
 			}
 		}),
 		chart.orientation,

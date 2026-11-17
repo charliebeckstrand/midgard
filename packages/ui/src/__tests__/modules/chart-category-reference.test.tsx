@@ -129,6 +129,21 @@ describe('a category reference', () => {
 		)
 	})
 
+	it('moves its label off a value rule that shows no label', () => {
+		/** The y of the one standing label. */
+		const labelY = (container: HTMLElement) =>
+			Number(getSlot(container, 'chart-reference-label').getAttribute('y'))
+
+		const alone = line({ reference: [RELEASE] })
+
+		// The value 77 draws its rule through the first label row, under `labels.references` off.
+		const crossed = line({ reference: [{ value: 77, label: 'Goal' }, RELEASE] })
+
+		expect(allBySlot(crossed.container, 'chart-reference-label')).toHaveLength(1)
+
+		expect(labelY(crossed.container)).toBeGreaterThan(labelY(alone.container))
+	})
+
 	it('takes no pointer and no legend chip, while a value rule keeps both', () => {
 		const { container } = bar({
 			legend: true,
