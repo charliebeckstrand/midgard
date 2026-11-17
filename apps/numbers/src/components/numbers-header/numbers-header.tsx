@@ -46,6 +46,8 @@ export type NumbersHeaderProps = {
  * trail gives way from the left, as the trails of Places and Elections do. The
  * heading of the page is "Numbers", for a screen reader only.
  *
+ * The settings button is plain, as the menu button is.
+ *
  * A segment in the settings switches the "UI" tab of the appearance pickers
  * and the "Game" tab, with the Auto-draw and the Show score
  * switches and the picker of the level of the CPU.
@@ -87,7 +89,7 @@ export function NumbersHeader({ user, route }: NumbersHeaderProps) {
 					</Breadcrumb>
 				</div>
 
-				<AppearanceSettings tabs={TABS} animate="slide" />
+				<AppearanceSettings variant="plain" tabs={TABS} animate="slide" />
 
 				<NumbersMenu user={user} route={route} />
 			</Flex>
