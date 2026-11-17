@@ -256,6 +256,26 @@ describe('reference lines', () => {
 		expect(swatch.closest('[data-slot="tooltip-content"]')?.textContent).toContain('Q3 target')
 	})
 
+	it('wraps a long description inside the width cap of the tooltip', async () => {
+		const description = 'PDFs the classifier is unsure of are held for a person to check'
+
+		const { container } = bar({ reference: [{ value: 55, label: 'Target', description }] })
+
+		fireEvent.focus(bySlot(container, 'chart-reference-line') as Element)
+
+		const swatch = await waitFor(() =>
+			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
+		)
+
+		// The readout is the wrapping row of the category readout, so no box in
+		// the tooltip holds the text on one line.
+		const content = present(swatch.closest('[data-slot="tooltip-content"]'), 'tooltip content')
+
+		expect(content.querySelector('.whitespace-nowrap')).toBeNull()
+
+		expect(swatch.parentElement?.parentElement).toHaveClass('items-start')
+	})
+
 	// The legend chip of the rule is a line Swatch, which keeps a paint under
 	// forced colors. The swatch of the readout is the same key.
 	it('keys the readout with a dashed line Swatch, as the legend chip does', async () => {

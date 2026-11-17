@@ -50,4 +50,42 @@ describe('a chart readout with long text (real browser)', () => {
 			expect(text.left).toBeGreaterThanOrEqual(box.left)
 		}
 	})
+
+	it('keeps a short name on the line of its value, and starts a long name under it', async () => {
+		renderUI(
+			<TooltipPointer open point={{ x: 640, y: 400 }} track="point">
+				<ChartReadoutCard title="Oct 19">
+					<ChartReadoutRow
+						swatch={<ReadoutSwatch shape="line" />}
+						value={<span data-testid="short-value">76%</span>}
+						label={<span data-testid="short-label">OCR Success</span>}
+					/>
+					<ChartReadoutRow
+						swatch={<ReadoutSwatch shape="line" />}
+						value={<span data-testid="long-value">Hold for review</span>}
+						label={<span data-testid="long-label">{LONG}</span>}
+					/>
+				</ChartReadoutCard>
+			</TooltipPointer>,
+		)
+
+		const panel = await waitFor(() => present(bySlot(document.body, 'tooltip-content'), 'tooltip'))
+
+		const box = (await settledRect(panel)).getBoundingClientRect()
+
+		const rect = (id: string) => page.getByTestId(id).element().getBoundingClientRect()
+
+		// A short name shares the line of its value.
+		expect(rect('short-label').top).toBe(rect('short-value').top)
+
+		// A long name starts its own line under the value, at the left of the
+		// value, so the two do not wrap as two narrow columns.
+		const value = rect('long-value')
+
+		expect(rect('long-label').top).toBeGreaterThan(value.top + value.height / 2)
+
+		expect(rect('long-label').left).toBe(rect('long-value').left)
+
+		expect(rect('long-label').right).toBeLessThanOrEqual(box.right)
+	})
 })

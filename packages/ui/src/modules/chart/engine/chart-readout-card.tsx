@@ -94,7 +94,9 @@ type ChartReadoutRowProps = Omit<ComponentProps<'div'>, 'children'> & {
  * The text wraps inside the width cap of the tooltip, and the key stays
  * centered on the first line of the value. The key box takes the type of the
  * value, so its line height is the line height of the value. A long value,
- * such as the names of a map summary, then stays in the card.
+ * such as the names of a map summary, then stays in the card. A name that does
+ * not fit on the line after the value starts its own line under the value,
+ * so the two never wrap as two narrow columns.
  * @internal
  */
 export function ChartReadoutRow({
@@ -109,9 +111,13 @@ export function ChartReadoutRow({
 			{/* The value's type sets the line box, so `h-lh` matches its first line. */}
 			<span className={cn(k.value, 'flex h-lh shrink-0 items-center')}>{swatch}</span>
 
-			<span className={cn(k.value)}>{value}</span>
+			{/* The value and the name flow as one text: a name too long for the line
+			    after the value starts its own line under it. */}
+			<span className="flex min-w-0 flex-wrap gap-x-1.5">
+				<span className={cn(k.value)}>{value}</span>
 
-			{label !== undefined && <span className={cn(k.label)}>{label}</span>}
+				{label !== undefined && <span className={cn(k.label)}>{label}</span>}
+			</span>
 		</div>
 	)
 }
