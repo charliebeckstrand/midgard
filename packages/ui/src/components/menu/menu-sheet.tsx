@@ -14,7 +14,7 @@ import {
 	DrawerPanel,
 	DrawerTitle,
 } from '../drawer'
-import { useMenuActions, useMenuState } from './context'
+import { useMenuActions, useMenuPointer, useMenuState } from './context'
 import { MENUITEM_SELECTOR } from './use-menu-root'
 
 /** Props for {@link MenuSheet}. */
@@ -75,6 +75,7 @@ export function MenuSheet({
 }: MenuSheetProps) {
 	const { open, menuId, size } = useMenuState()
 	const { setOpen, triggerRef, openedByKey } = useMenuActions()
+	const { leavePanel } = useMenuPointer()
 
 	const panelRef = useRef<HTMLDivElement>(null)
 
@@ -154,6 +155,7 @@ export function MenuSheet({
 						data-open={dataAttr(open)}
 						className={cn(k.sheet.base, className)}
 						onKeyDown={handleKeyDown}
+						onPointerLeave={leavePanel}
 					>
 						{children}
 					</div>

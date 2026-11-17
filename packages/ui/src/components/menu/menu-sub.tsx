@@ -25,7 +25,7 @@ import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { FloatingSurface } from '../../primitives/floating-surface'
-import { PopoverPanel } from '../../primitives/popover'
+import { PopoverPanel, type PopoverPanelProps } from '../../primitives/popover'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
@@ -603,7 +603,7 @@ function MenuSubFloating({
 					getFloatingProps={getFloatingProps}
 					className={panel.surface}
 				>
-					<PopoverPanel
+					<MenuSubPanel
 						open={open}
 						id={panelId}
 						role="menu"
@@ -626,9 +626,22 @@ function MenuSubFloating({
 						onKeyDown={handlePanelKeyDown}
 					>
 						<MenuViewport ref={setRows}>{children}</MenuViewport>
-					</PopoverPanel>
+					</MenuSubPanel>
 				</FloatingSurface>
 			</MenuPointerLevel>
 		</>
 	)
+}
+
+/**
+ * The panel of a {@link MenuSubFloating}. It renders inside the level of its
+ * own rows, so the pointer that leaves it reaches that level, and not the
+ * level of the parent row.
+ *
+ * @internal
+ */
+function MenuSubPanel(props: PopoverPanelProps) {
+	const { leavePanel } = useMenuPointer()
+
+	return <PopoverPanel {...props} onPointerLeave={leavePanel} />
 }
