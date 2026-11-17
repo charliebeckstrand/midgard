@@ -334,11 +334,6 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The hit area of the add button of the new row grows into the editor beside it.',
 	},
 	{
-		finding: 'overlap control-frame/listbox-button | table-cell/grid-new-row-add',
-		paths: ['/modules/grid/editing'],
-		reason: 'The hit area of the add button of the new row grows into the select beside it.',
-	},
-	{
 		finding: 'overlap flex/button | flex/button',
 		paths: ['/modules/grid/editing', '/providers/density'],
 		reason: 'The hit areas of the edit and delete buttons of a row overlap.',
