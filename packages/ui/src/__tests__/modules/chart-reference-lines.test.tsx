@@ -1057,7 +1057,7 @@ describe('reference value labels', () => {
 
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
-	it('labels the rules of a horizontal bar chart in the first row down from the top', () => {
+	it('labels the rules of a horizontal bar chart in the second row, off the top edge', () => {
 		const { container } = bar({
 			orientation: 'horizontal',
 			reference: [{ value: 60, label: 'Goal' }],
@@ -1068,21 +1068,20 @@ describe('reference value labels', () => {
 
 		expect(label?.textContent).toBe('Goal60')
 
-		// The rule is vertical, so the label stands on it in the top row, flush with
-		// the top of the plot, and the rule breaks for it.
+		// The rule is vertical, so the label stands on it one row down from the top
+		// of the plot: the top row sits against the edge, and comes last.
 		const line = rule(container)
-
-		expect(Number(label?.getAttribute('x'))).toBeCloseTo(Number(line?.getAttribute('x1')), 1)
-
-		expect(Number(label?.getAttribute('y'))).toBeCloseTo(Number(line?.getAttribute('y1')) + 6.5, 1)
-
-		// The rule runs across the text, so it breaks for the whole row of the label,
-		// from the top of the plot.
-		const [from, to = 0] = findBreaks(line)[0] ?? []
 
 		const labelY = Number(label?.getAttribute('y')) - Number(line?.getAttribute('y1'))
 
-		expect(from).toBe(0)
+		expect(Number(label?.getAttribute('x'))).toBeCloseTo(Number(line?.getAttribute('x1')), 1)
+
+		expect(labelY).toBeCloseTo(6.5 + 13 + 4, 1)
+
+		// The rule runs across the text, so it breaks for the whole row of the label.
+		const [from = 0, to = 0] = findBreaks(line)[0] ?? []
+
+		expect(from).toBeLessThan(labelY - 6.5)
 
 		expect(to).toBeGreaterThan(labelY + 6.5)
 

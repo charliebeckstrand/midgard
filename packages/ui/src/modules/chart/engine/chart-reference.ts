@@ -20,7 +20,7 @@ type ChartReferenceShared = {
 	 * name in its hover tooltip and its legend chip. Once a chart's
 	 * `labels.references` is on, the rule draws the name and its value on the
 	 * rule, and the legend drops its chip. A category rule always draws the name
-	 * at the top of the rule where it finds room, and the category readout shows
+	 * near the top of the rule where it finds room, and the category readout shows
 	 * it. Each rule breaks for the label that it draws. Omitted, a value rule
 	 * reads by its value alone, and a category rule draws no label.
 	 */

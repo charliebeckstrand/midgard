@@ -552,11 +552,12 @@ export type PlacedReferenceLabel = {
  * names only the rule that it interrupts. In a vertical chart, a label sits at
  * the right end of its rule, and then at the left end. Each end label is flush
  * with its side of the plot, so the rule stops at the label and does not show
- * a short dash past it. In a horizontal chart, a label sits on the rule in the
- * first row down from the top of the plot that it fits. In each row, it
- * centers on the rule, or ends or starts at it ({@link ruleAnchors}). The rows
- * stack one label height and {@link LABEL_ROW_GAP} apart, so a crowded label
- * sits just under its neighbor.
+ * a short dash past it. In a horizontal chart, a label sits on the rule in a
+ * row. The rows stack one label height and {@link LABEL_ROW_GAP} apart down
+ * from the top of the plot. A label tries the rows between the edges first,
+ * from the top, so a crowded label sits just under its neighbor. The top row
+ * and the bottom row, against an edge of the plot, come last. In each row, it
+ * centers on the rule, or ends or starts at it ({@link ruleAnchors}).
  *
  * @internal
  */
@@ -585,7 +586,13 @@ function referenceSpots(
 
 	const rows = Math.max(0, Math.floor((plot.height + LABEL_ROW_GAP) / LABEL_ROW_STEP))
 
-	return Array.from({ length: rows }, (_, row) => {
+	// The rows between the edges first, from the top, and then the top row and
+	// the bottom row, which a label sits against the edge of the plot in.
+	const inner = Array.from({ length: Math.max(0, rows - 2) }, (_, row) => row + 1)
+
+	const order = rows > 1 ? [...inner, 0, rows - 1] : Array.from({ length: rows }, (_, row) => row)
+
+	return order.flatMap((row) => {
 		const y = plot.y + LABEL_HALF + row * LABEL_ROW_STEP
 
 		return anchors.map(({ anchor, x0, x1 }) => ({
@@ -595,7 +602,7 @@ function referenceSpots(
 			width,
 			box: labelBox(x0, x1, y),
 		}))
-	}).flat()
+	})
 }
 
 /**
@@ -680,20 +687,17 @@ export function referenceLabels(
 		)
 
 		// A rule within the gap of a label breaks for it, so a spot that comes
-		// that near to another rule lies over that rule.
-		const crossed = (box: LabelBox) => {
-			const reach = {
-				x0: box.x0 - REFERENCE_GAP,
-				x1: box.x1 + REFERENCE_GAP,
-				y0: box.y0 - REFERENCE_GAP,
-				y1: box.y1 + REFERENCE_GAP,
-			}
+		// that near to another rule lies over that rule. The test is inclusive,
+		// as the test of the break is: a rule just at the gap breaks too.
+		const nears = (line: LabelBox, box: LabelBox) =>
+			line.x0 <= box.x1 + REFERENCE_GAP &&
+			box.x0 - REFERENCE_GAP <= line.x1 &&
+			line.y0 <= box.y1 + REFERENCE_GAP &&
+			box.y0 - REFERENCE_GAP <= line.y1
 
-			return (
-				lines.some((line, other) => other !== index && line !== null && overlaps(line, reach)) ||
-				markers.some((marker) => overlaps(marker, box))
-			)
-		}
+		const crossed = (box: LabelBox) =>
+			lines.some((line, other) => other !== index && line !== null && nears(line, box)) ||
+			markers.some((marker) => overlaps(marker, box))
 
 		const spot = free.find((candidate) => !crossed(candidate.box)) ?? free[0]
 
