@@ -12,6 +12,7 @@ import type { ChartAxisTick } from './chart-axes/axis'
 import { type ChartValueAxisId, resolveAxes } from './chart-axes/schema'
 import {
 	axisReadoutFormat,
+	axisScales,
 	buildCategoryGrid,
 	buildGrid,
 	buildReferences,
@@ -23,6 +24,7 @@ import {
 	type DrawnSeries,
 	drawnSeries,
 	orderReadout,
+	plottedSeries,
 	seriesMetas,
 } from './chart-cartesian/series'
 import { resolveStackMode } from './chart-cartesian/stack'
@@ -47,7 +49,7 @@ import { legendAside, legendBands, type ResolvedLegend, resolveLegend } from './
 import { REFERENCE_FALL, seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
 import { referenceLegendItems, ruleKeys } from './chart-reference'
-import type { BandScale, LinearScale } from './chart-scale'
+import type { BandScale, ValueScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices } from './chart-series'
 import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
 import { parseInstant } from './chart-time'
@@ -212,9 +214,9 @@ export type CartesianChart = {
 	plot: PlotRect
 	band: BandScale
 	/** The primary (`y`) value scale; `null` when nothing yields its domain: render the empty frame. */
-	yScale: LinearScale | null
+	yScale: ValueScale | null
 	/** The secondary (`y2`) value scale; `null` while nothing binds to that axis. */
-	y2Scale: LinearScale | null
+	y2Scale: ValueScale | null
 	/** The primary zero line's position along the value axis, for bar baselines and the category axis. */
 	baseline: number
 	/**
@@ -546,12 +548,21 @@ export function useChartCartesian<T>(
 
 	const stackMode = resolveStackMode(config)
 
+	const { y: scaleY, y2: scaleY2 } = axisScales(axes, stackMode)
+
+	// The scales and the marks read the series as they plot. On a log axis a value
+	// at or below zero is a gap there, while the readout keeps it.
+	const plotted = useMemo(
+		() => plottedSeries(visible, { y: scaleY, y2: scaleY2 }),
+		[visible, scaleY, scaleY2],
+	)
+
 	const { value, value2, bandTitle } = useMemo(
 		() =>
 			resolveValueAxes(
 				{ formatValue, reference },
 				axes,
-				visible,
+				plotted,
 				stackMode,
 				data,
 				laidReferences,
@@ -563,7 +574,7 @@ export function useChartCartesian<T>(
 			formatValue,
 			reference,
 			axes,
-			visible,
+			plotted,
 			stackMode,
 			data,
 			laidReferences,
@@ -618,8 +629,8 @@ export function useChartCartesian<T>(
 	const valueHeadroom = config.valueHeadroom?.(visible) ?? 0
 
 	const visibleValues = useMemo(
-		() => visible.map((meta) => ({ values: meta.values, axis: meta.axis, index: meta.index })),
-		[visible],
+		() => plotted.map((meta) => ({ values: meta.values, axis: meta.axis, index: meta.index })),
+		[plotted],
 	)
 
 	const tickRotation = axes.x?.tickRotation ?? false
@@ -721,13 +732,13 @@ export function useChartCartesian<T>(
 	const drawn = useMemo(
 		() =>
 			drawnSeries({
-				visible,
+				visible: plotted,
 				yScale: layout.valueScale,
 				y2Scale: layout.value2Scale,
 				baseline: layout.baseline,
 				y2Baseline: layout.value2Baseline,
 			}),
-		[visible, layout.valueScale, layout.value2Scale, layout.baseline, layout.value2Baseline],
+		[plotted, layout.valueScale, layout.value2Scale, layout.baseline, layout.value2Baseline],
 	)
 
 	const legendItems = useMemo(

@@ -29,7 +29,7 @@ import {
 	referenceText,
 	ruleKeys,
 } from './chart-reference'
-import type { LinearScale } from './chart-scale'
+import type { ValueScale } from './chart-scale'
 import { seriesGroupClass } from './chart-series'
 import { useChartActions, useChartEmphasis, useChartTier } from './context'
 
@@ -43,9 +43,9 @@ import { useChartActions, useChartEmphasis, useChartTier } from './context'
 export type ChartReferenceFrame = {
 	plot: PlotRect
 	/** The resolved primary value scale, or `null` before a domain resolves. */
-	yScale: LinearScale | null
+	yScale: ValueScale | null
 	/** The secondary scale, for rules bound to `y2`. */
-	y2Scale: LinearScale | null
+	y2Scale: ValueScale | null
 	/**
 	 * Which way the value axis runs. A vertical chart draws horizontal rules, and a
 	 * horizontal chart draws vertical ones, as {@link ChartGridLines} does.

@@ -319,7 +319,12 @@ export function ChartCartesianFrame({
 						chart,
 						labels,
 						labelled,
-						labelled.map((entry) => chart.metas[entry.index] ?? NO_VALUES),
+						// The drawn series, not the raw metas: on a log axis a value at or below
+						// zero is a gap there, so the values align with the drawn points.
+						labelled.map(
+							(entry) =>
+								chart.drawn.find(({ meta }) => meta.index === entry.index)?.meta ?? NO_VALUES,
+						),
 						referenceLabels?.flatMap((placed) => (placed ? [placed.box] : [])),
 					)}
 					animate={animate}

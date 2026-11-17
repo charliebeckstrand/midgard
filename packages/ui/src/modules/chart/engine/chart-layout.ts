@@ -6,7 +6,7 @@
  */
 
 import type { ChartAxisTick } from './chart-axes/axis'
-import type { ChartValueAxisId } from './chart-axes/schema'
+import type { ChartValueAxis, ChartValueAxisId } from './chart-axes/schema'
 import {
 	AXIS_TITLE_BAND,
 	AXIS_TITLE_GAP,
@@ -27,13 +27,7 @@ import {
 } from './chart-constants'
 import { hasIsolatedPoint } from './chart-geometry/line'
 import { bandExtent, type PlotRect, valueExtent } from './chart-orientation'
-import {
-	type BandScale,
-	bandScale,
-	headroomFits,
-	type LinearScale,
-	linearScale,
-} from './chart-scale'
+import { type BandScale, bandScale, headroomFits, type ValueScale, valueScale } from './chart-scale'
 import type { TextWidth } from './chart-text-width'
 import type { ChartBandAxisMode } from './chart-tier'
 import { timeTicks } from './chart-time'
@@ -239,9 +233,9 @@ export function axisTitleAt(
 export type CartesianLayout = {
 	plot: PlotRect
 	/** The primary value scale, its range already the correct screen axis; `null` for an empty domain. */
-	valueScale: LinearScale | null
+	valueScale: ValueScale | null
 	/** The secondary value scale; `null` while nothing binds to it. */
-	value2Scale: LinearScale | null
+	value2Scale: ValueScale | null
 	/** The categorical band, its range already the cross axis. */
 	band: BandScale
 	/** The primary zero line's position along the value axis: bar baselines and the category axis line. */
@@ -292,6 +286,8 @@ export type ChartValueAxisInput = {
 	max?: number
 	/** Whole-number ticks: the tick step is at least 1. */
 	integer?: boolean
+	/** The spacing of the axis. The caller resolves it to linear on a stacked chart. */
+	scale?: ChartValueAxis['scale']
 	format: (value: number) => string
 	title?: string
 }
@@ -494,7 +490,7 @@ export type VisibleValues = {
 
 /** Value ticks placed along the value axis by the scale's own map. @internal */
 export function buildValueTicks(
-	scale: LinearScale | null,
+	scale: ValueScale | null,
 	format: (value: number) => string,
 ): ChartAxisTick[] {
 	// Keyed by the value, not the mapped `at`: a zero-height plot maps every tick
@@ -739,10 +735,10 @@ function buildValueScale(
 	tickTarget: number,
 	zeroBaseline: boolean,
 	headroom = 0,
-): LinearScale | null {
+): ValueScale | null {
 	if (!axis) return null
 
-	return linearScale({
+	return valueScale(axis.scale, {
 		values: axis.domainValues,
 		range,
 		tickTarget,
@@ -755,7 +751,7 @@ function buildValueScale(
 }
 
 /** Both value scales resolved over one shared screen range. @internal */
-type ValueScales = Record<ChartValueAxisId, LinearScale | null>
+type ValueScales = Record<ChartValueAxisId, ValueScale | null>
 
 /**
  * A value axis's gutter: its tick labels plus, where titled, the title band and
@@ -773,7 +769,7 @@ function valueGutter(on: boolean, ticks: ChartAxisTick[], title: string | undefi
 }
 
 /** The zero position of `scale`, else of `other`, else the plot-edge fallback. @internal */
-function getZero(scale: LinearScale | null, other: LinearScale | null, edge: number): number {
+function getZero(scale: ValueScale | null, other: ValueScale | null, edge: number): number {
 	return scale?.map(0) ?? other?.map(0) ?? edge
 }
 

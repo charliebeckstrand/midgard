@@ -41,6 +41,7 @@ import { useLaidOutHidden } from '../engine/use-chart-laid-out-hidden'
 import { useChartSeriesToggle } from '../engine/use-chart-toggle'
 import { ScatterChartChrome } from './scatter-chart-chrome'
 import {
+	plottedScatter,
 	scatterFormats,
 	scatterLegendItems,
 	scatterMetas,
@@ -311,7 +312,17 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// with it.
 	const heldSeries = useStableValue(series, sameFieldElements)
 
-	const metas = useMemo(() => scatterMetas(data, heldSeries), [data, heldSeries])
+	const scaleX = axesConfig.x?.scale
+
+	const scaleY = axesConfig.y?.scale
+
+	// On a log axis a point at or below zero draws no disc. The marks, the hit
+	// test, the keyboard, and a click report read the drawn points, so each of
+	// them reads the cut list.
+	const metas = useMemo(
+		() => plottedScatter(scatterMetas(data, heldSeries), { x: scaleX, y: scaleY }),
+		[data, heldSeries, scaleX, scaleY],
+	)
 
 	// A hidden series keeps its place in the scales while its discs pop out. The
 	// legend and the emphasis read `hidden` at once.
@@ -348,6 +359,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				formatX: tickFormatX,
 				xTitle,
 				yTitle,
+				spacing: { x: scaleX, y: scaleY },
 			}),
 		[
 			visible,
@@ -365,6 +377,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			tickFormatX,
 			xTitle,
 			yTitle,
+			scaleX,
+			scaleY,
 		],
 	)
 
