@@ -124,21 +124,35 @@ export type ChartReferenceLinesProps = {
 }
 
 /**
- * The glyphs of a standing label: the lead in the label ink, and then the tail
- * in {@link k.mark.value}, {@link LABEL_PART_SPACE} after it. The tail sets the
+ * The glyphs of a standing label: the lead, and then the tail in
+ * {@link k.mark.value}, {@link LABEL_PART_SPACE} after it. Both take the ink of
+ * the label, unless `valuePaint` inks the tail on its own. The tail sets the
  * central baseline of its label again. SVG 1.1 does not inherit
  * `dominant-baseline`, so an engine that follows it puts a tail on another
  * baseline than its lead.
  *
  * @internal
  */
-function ReferenceLabelGlyphs({ parts }: { parts: ReferenceLabelParts }) {
+function ReferenceLabelGlyphs({
+	parts,
+	valuePaint,
+}: {
+	parts: ReferenceLabelParts
+	valuePaint?: ChartPaint
+}) {
+	const color = valuePaint && rawColor(valuePaint)
+
 	return (
 		<>
 			{parts.lead}
 
 			{parts.tail && (
-				<tspan dx={LABEL_PART_SPACE} dominantBaseline="central" className={cn(k.mark.value)}>
+				<tspan
+					dx={LABEL_PART_SPACE}
+					dominantBaseline="central"
+					className={cn(k.mark.value, valuePaint && inkClass(valuePaint))}
+					style={color ? { fill: color } : undefined}
+				>
 					{parts.tail}
 				</tspan>
 			)}
@@ -486,8 +500,8 @@ function LabeledReferenceRule(props: ReferenceRuleProps) {
 /**
  * The standing label of a rule, on the rule, which breaks for it. The name is
  * inked to match the rule: a slot through its fill class, or a raw color
- * inline. The value of a value rule follows the name, muted
- * ({@link ReferenceLabelGlyphs}). It recedes with its rule and rides the same
+ * inline. The value of a value rule follows the name, one weight lighter, in
+ * the same ink or in its `valueColor` ({@link ReferenceLabelGlyphs}). It recedes with its rule and rides the same
  * mount rise, so rule and label reveal as one. It draws in a layer over every
  * rule, so its halo clears a neighboring rule that crosses it.
  *
@@ -498,7 +512,8 @@ function ReferenceLabel({
 	paint,
 	rise,
 	label,
-}: Pick<ReferenceRuleProps, 'index' | 'paint' | 'rise'> & {
+	line,
+}: Pick<ReferenceRuleProps, 'index' | 'paint' | 'rise' | 'line'> & {
 	label: StandingReferenceLabel
 }) {
 	const { emphasizedReference } = useChartEmphasis()
@@ -519,7 +534,10 @@ function ReferenceLabel({
 					className={cn(k.mark.label, inkClass(paint))}
 					style={color ? { fill: color } : undefined}
 				>
-					<ReferenceLabelGlyphs parts={label.parts} />
+					<ReferenceLabelGlyphs
+						parts={label.parts}
+						valuePaint={line.valueColor === undefined ? undefined : resolvePaint(line.valueColor)}
+					/>
 				</text>
 			</RuleRise>
 		</g>

@@ -16,7 +16,7 @@ import { useChartTextWidth } from './use-chart-text-width'
 export type ReferenceLabelParts = {
 	/** The text that leads, in the label ink: the rule's own label, else its value. */
 	lead: string
-	/** The value after the rule's own label, in the muted ink, or empty. */
+	/** The value after the rule's own label, one weight lighter, or empty. */
 	tail: string
 }
 

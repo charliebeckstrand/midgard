@@ -67,6 +67,12 @@ export type ChartReferenceValue = ChartReferenceShared & {
 	 * @defaultValue 'y'
 	 */
 	axis?: ChartValueAxisId
+	/**
+	 * The color of the value in the standing label of the rule
+	 * (`labels.references`): a named palette slot, or any raw CSS color. Omitted,
+	 * the value takes the color of the rule, as the label does.
+	 */
+	valueColor?: ChartColor
 }
 
 /**
@@ -86,6 +92,7 @@ export type ChartReferenceCategory = ChartReferenceShared & {
 	category: string
 	value?: never
 	axis?: never
+	valueColor?: never
 }
 
 /**

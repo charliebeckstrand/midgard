@@ -48,8 +48,9 @@ export type ChartValueLabelConfig = {
 	 * Draw a standing label on each reference rule. The label centers on its
 	 * rule, and the rule breaks for it, so a label names only the rule that it
 	 * interrupts. It shows the rule's own label, inked to match the rule, and
-	 * then the rule's value, muted. A rule with no label shows its value. The
-	 * standing readout replaces the rule's hover tooltip and its legend chip.
+	 * then the rule's value, one weight lighter in the same ink. A rule with no
+	 * label shows its value. The standing readout replaces the rule's hover
+	 * tooltip and its legend chip.
 	 * With it on, the rules shed their pointer target and keyboard stop, since
 	 * the label already reads what the tooltip would. Each label takes the first
 	 * free spot on its rule, and prefers a spot that no other rule and no point

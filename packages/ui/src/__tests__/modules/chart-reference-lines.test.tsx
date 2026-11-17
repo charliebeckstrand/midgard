@@ -899,6 +899,28 @@ describe('reference value labels', () => {
 		expect(bare?.textContent).toBe('30')
 	})
 
+	it('inks the value as its rule, unless the rule sets a valueColor', () => {
+		const { container } = lineLabels([
+			{ value: 60, label: 'Goal', color: 'green' },
+			{ value: 40, label: 'Floor', color: 'green', valueColor: 'zinc' },
+			{ value: 20, label: 'Base', valueColor: '#e11d48' },
+		])
+
+		const [goal, floor, base] = allBySlot(container, 'chart-reference-label').map((label) =>
+			label.querySelector('tspan'),
+		)
+
+		// The value inherits the ink of the label: it sets no fill of its own.
+		expect(goal?.getAttribute('class')).not.toMatch(/fill-/)
+
+		expect(goal?.getAttribute('style')).toBeNull()
+
+		// A slot inks the value through its fill class, and a raw color inline.
+		expect(floor?.getAttribute('class')).toMatch(/fill-zinc/)
+
+		expect(base?.getAttribute('style')).toMatch(/fill: ?(#e11d48|rgb\(225, 29, 72\))/)
+	})
+
 	it('shows the value after the label for an object with no value key', () => {
 		const { container } = lineLabels([{ value: 60, label: 'Goal' }], {})
 
