@@ -23,6 +23,7 @@ const TABS = [
 			<>
 				<SettingField name="autoDraw" label="Auto-draw" />
 				<SettingField name="showScore" label="Show score" />
+				<SettingField name="placementOrder" label="Placement order" />
 				<DifficultyField />
 			</>
 		),
@@ -51,8 +52,8 @@ export type NumbersHeaderProps = {
  * button is.
  *
  * A segment in the settings switches the "UI" tab of the appearance pickers
- * and the "Game" tab, with the Auto-draw and the Show score
- * switches and the picker of the level of the CPU.
+ * and the "Game" tab, with the Auto-draw, the Show score, and the Placement
+ * order switches and the picker of the level of the CPU.
  */
 export function NumbersHeader({ user, route }: NumbersHeaderProps) {
 	return (

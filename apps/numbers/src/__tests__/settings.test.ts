@@ -12,6 +12,7 @@ describe('parseSetting', () => {
 		expect(parseSetting('autoDraw', undefined)).toBe(true)
 		expect(parseSetting('showScore', undefined)).toBe(true)
 		expect(parseSetting('showScore', 'yes')).toBe(true)
+		expect(parseSetting('placementOrder', undefined)).toBe(true)
 		expect(parseSetting('difficulty', undefined)).toBe('normal')
 		expect(parseSetting('difficulty', 'expert')).toBe('normal')
 		expect(parseSetting('difficulty', 'toString')).toBe('normal')
@@ -36,12 +37,14 @@ describe('readSettings', () => {
 		const cookies: Record<string, string> = {
 			[SETTINGS.autoDraw.cookie]: 'off',
 			[SETTINGS.showScore.cookie]: 'off',
+			[SETTINGS.placementOrder.cookie]: 'off',
 			[SETTINGS.difficulty.cookie]: 'easy',
 		}
 
 		expect(readSettings((name) => cookies[name])).toEqual({
 			autoDraw: false,
 			showScore: false,
+			placementOrder: false,
 			difficulty: 'easy',
 		})
 	})
@@ -50,6 +53,7 @@ describe('readSettings', () => {
 		expect(readSettings(() => undefined)).toEqual({
 			autoDraw: true,
 			showScore: true,
+			placementOrder: true,
 			difficulty: 'normal',
 		})
 	})
