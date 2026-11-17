@@ -2,6 +2,7 @@ import { Example } from '../../../../kit/index.ts'
 import Export from './export.tsx'
 import ExportWithSelection from './export-with-selection.tsx'
 import ToolbarOnly from './toolbar-only.tsx'
+import WithFilenames from './with-filenames.tsx'
 
 export default function ExportTab() {
 	return (
@@ -9,6 +10,7 @@ export default function ExportTab() {
 			<Example of={Export} />
 			<Example of={ExportWithSelection} />
 			<Example of={ToolbarOnly} />
+			<Example of={WithFilenames} />
 		</>
 	)
 }

@@ -47,6 +47,13 @@ export type GridExportRows<T> = () => T[] | Promise<T[]>
  */
 export type GridExportTypeConfig<T> = {
 	onExport?: (context: GridExportContext<T>) => void
+	/**
+	 * The name of the file that the built-in `csv` or `excel` exporter downloads,
+	 * with its extension, such as `'top-lanes.xlsx'`. Print downloads no file,
+	 * and an `onExport` writes its own file, so neither reads it.
+	 * @defaultValue `'grid.csv'` for CSV and `'grid.xlsx'` for Excel.
+	 */
+	filename?: string
 }
 
 /**
