@@ -154,19 +154,47 @@ describe('linearScale', () => {
 			expect((scale.domain[1] - 18) / perPx).toBeGreaterThan(21)
 
 			expect((-14 - scale.domain[0]) / perPx).toBeGreaterThan(21)
+
+			// The floor is always a tick.
+			expect(scale.ticks[0]).toBe(scale.domain[0])
 		}
 	})
 
-	it('caps the reservation share so the data keeps at least half the plot', () => {
-		// At an affordable height the two reserved bands may take at most a
-		// quarter of the range each; the widened domain therefore holds the data
-		// to no less than half the plot, so small charts never render a squashed
-		// near-flat line under generous empty bands.
+	it('caps the reserved gaps so the data keeps at least half the plot', () => {
+		// At an affordable height each reserved gap takes at most a quarter of the
+		// range. The ceiling gap is exact. The floor rounds down past its gap to
+		// the next tick, which can add one step, but no more: one step higher, the
+		// trough would not clear the floor.
 		const scale = linearScale({ values: [20, 80], range: [100, 0], tickTarget: 4, headroom: 25 })
 
 		const [low, high] = scale?.domain ?? [0, 0]
 
-		expect((80 - 20) / (high - low)).toBeGreaterThanOrEqual(0.5)
+		const step = 20
+
+		expect((high - 80) / (high - low)).toBeLessThanOrEqual(0.25 + FLOAT)
+
+		expect((80 - 20) / (high - low - step)).toBeGreaterThanOrEqual(0.5)
+	})
+
+	it('drops a widened floor to the next tick, so the floor rule and its gridline are one line', () => {
+		// The trough (-14) needs room for its label under it, past the nice floor
+		// (-20). The floor drops to the tick at -30, not to a value between ticks
+		// a few px under the -20 gridline. The ceiling has no rule, so it widens
+		// exactly and carries no tick.
+		const scale = linearScale({
+			values: [12, -6, 9, -14, 18, 7],
+			range: [150, 0],
+			tickTarget: 4,
+			headroom: 25,
+		})
+
+		expect(scale?.domain[0]).toBe(-30)
+
+		expect(scale?.ticks[0]).toBe(-30)
+
+		expect(scale?.map(-30)).toBe(150)
+
+		expect(scale?.ticks.at(-1)).toBeLessThan(scale?.domain[1] ?? 0)
 	})
 
 	it('never widens a pinned bound for headroom', () => {
