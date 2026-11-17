@@ -13,6 +13,7 @@ import { ChartHitArea, cartesianHitActive } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend/legend'
 import { legendAside } from '../chart-legend/schema'
 import { ChartMarksLayer } from '../chart-marks/layer'
+import type { Vec } from '../chart-orientation'
 import { referenceText } from '../chart-reference'
 import {
 	ChartReferenceLines,
@@ -47,13 +48,26 @@ export type CartesianStops = {
 }
 
 /**
- * The line and area series that carry the point value labels.
+ * The line and area series of a chart: they carry the point value labels, and
+ * their point markers break the reference rules that they sit on.
  *
  * @internal
  */
 export type CartesianValueLabelSeries = {
 	/** The drawn series, in the order the labels resolve their overlaps. */
 	list: ChartLineSeries[]
+}
+
+/** No reference chips: the legend of a chart whose value rules stand their labels. @internal */
+const NO_REFERENCE_ITEMS: never[] = []
+
+/**
+ * The point markers that a list of line and area series draws: each point of a
+ * series with markers on, and each isolated point of a series with them off,
+ * as the marks draw them. @internal
+ */
+function drawnPoints(list: readonly ChartLineSeries[]): Vec[] {
+	return list.flatMap(({ markers, geometry }) => (markers ? geometry.points : geometry.isolated))
 }
 
 /** Props for {@link ChartCartesianFrame}. @internal */
@@ -101,12 +115,16 @@ export type ChartCartesianFrameProps = AccessibleName &
 		 */
 		bars?: boolean | ((series: number) => boolean)
 		/**
-		 * The value labels of the chart. With `references`, each reference rule
-		 * draws its value beside it in place of its hover tooltip and its keyboard
-		 * stop.
+		 * The value labels of the chart. With `references`, each value rule draws
+		 * its label on it in place of its hover tooltip, its keyboard stop, and its
+		 * legend chip.
 		 */
 		labels?: ChartValueLabelConfig
-		/** The series that carry the point value labels. Omitted, no value label layer mounts. */
+		/**
+		 * The line and area series: they carry the point value labels, and their
+		 * point markers break the reference rules. Omitted, no value label layer
+		 * mounts, and no rule breaks for a point.
+		 */
 		valueLabels?: CartesianValueLabelSeries
 		className?: string
 	}
@@ -171,14 +189,20 @@ export function ChartCartesianFrame({
 	// switch. The spark tier draws no label, so it places none.
 	const spark = chart.tier === 'spark'
 
-	const referenceLabels = placeReferenceLabels(chart, reference, {
-		values: Boolean(labels?.references) && !spark,
-		categories: !spark,
-	})
+	const standing = Boolean(labels?.references) && !spark
 
-	// A hidden series drops its labels at once, though the layout holds its
-	// place while its marks play their exit.
+	// A hidden series drops its labels and its points at once, though the layout
+	// holds its place while its marks play their exit.
 	const labelled = valueLabels?.list.filter((entry) => !chart.hidden.has(entry.index))
+
+	const points = labelled ? drawnPoints(labelled) : undefined
+
+	const referenceLabels = placeReferenceLabels(
+		chart,
+		reference,
+		{ values: standing, categories: !spark },
+		points,
+	)
 
 	const marksLayer = (
 		<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
@@ -209,7 +233,9 @@ export function ChartCartesianFrame({
 				chart.legendItems && (
 					<ChartLegend
 						items={chart.legendItems}
-						references={chart.referenceItems}
+						// A rule that stands its label on the plot is named there, so the
+						// legend does not name it again.
+						references={standing ? NO_REFERENCE_ITEMS : chart.referenceItems}
 						hidden={chart.hidden}
 						referenceHidden={chart.referenceHidden}
 						onToggle={chart.toggleSeries}
@@ -312,6 +338,7 @@ export function ChartCartesianFrame({
 				reference={reference}
 				animate={animate}
 				labels={referenceLabels}
+				points={points}
 			/>
 
 			{/* Last, over the rules, so no rule paints over a label's halo. The labels

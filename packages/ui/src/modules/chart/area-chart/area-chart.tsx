@@ -58,7 +58,7 @@ export type AreaChartProps<T = never> = CartesianChartProps<T> & {
 	 * Draw selective value labels (the `endpoints` and / or `extremes` of the
 	 * series) on its band-edge line, overlaps dropped by priority. These labels
 	 * show only while the chart shows exactly one series. With `references`,
-	 * each reference rule's value draws beside it in place of its hover tooltip.
+	 * each reference rule's label and value draw on it in place of its hover tooltip.
 	 * Off by default; the tooltip and data table carry the full readout.
 	 */
 	labels?: ChartValueLabelConfig
@@ -215,7 +215,7 @@ const AREA_SWATCH = () => 'line' as const
  * category's points in screen order. Those points are a stack's cumulative band
  * edges when stacked, and each series' own point otherwise. A reference line
  * joins that value-axis roving, receding the marks when the cursor reaches it.
- * `labels.references` is the exception: it draws the value beside the rule,
+ * `labels.references` is the exception: it draws the label on the rule,
  * which stands in for the hover and drops the rove.
  * @example
  * ```tsx

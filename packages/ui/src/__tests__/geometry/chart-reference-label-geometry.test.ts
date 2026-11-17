@@ -4,13 +4,14 @@ import {
 	LABEL_HEIGHT,
 	LABEL_ROW_GAP,
 	type LabelBox,
+	markerBox,
 	type PlacedReferenceLabel,
 	referenceLabels,
 	type ValueLabelSeries,
 	valueLabels,
 } from '../../modules/chart/engine/chart-geometry/label'
 
-/** The plot box of the tests: 200 units wide and 100 units high. */
+/** The plot box of the tests: 200 units wide and 100 units high. A label is 7 units wide for each character. */
 const PLOT = { x: 0, y: 0, width: 200, height: 100 }
 
 /** A single series over the given `[x, y, value]` points. */
@@ -33,21 +34,21 @@ function drawn(labels: (PlacedReferenceLabel | null)[]): PlacedReferenceLabel[] 
 }
 
 describe('referenceLabels', () => {
-	it('puts a label at the far end of its rule, above it, in a vertical chart', () => {
-		const [goal] = referenceLabels([{ at: 60, text: 'Goal' }], 'vertical', PLOT)
+	it('puts a label on its rule at the right end, flush with the plot, in a vertical chart', () => {
+		const [goal] = referenceLabels([{ at: 60, width: 28 }], 'vertical', PLOT)
 
 		expect(goal?.anchor).toBe('end')
 
 		expect(goal?.x).toBe(PLOT.x + PLOT.width)
 
-		expect(goal?.y).toBeLessThan(60)
+		expect(goal?.y).toBe(60)
 	})
 
-	it('flips a crowded label below its rule, at the same end', () => {
+	it('moves a crowded label to the left end of its rule', () => {
 		const [target, stretch] = referenceLabels(
 			[
-				{ at: 60, text: 'Target' },
-				{ at: 57, text: 'Stretch' },
+				{ at: 60, width: 42 },
+				{ at: 57, width: 49 },
 			],
 			'vertical',
 			PLOT,
@@ -55,39 +56,40 @@ describe('referenceLabels', () => {
 
 		expect(target?.anchor).toBe('end')
 
-		expect(target?.y).toBeLessThan(60)
+		expect(stretch?.anchor).toBe('start')
 
-		expect(stretch?.anchor).toBe('end')
+		expect(stretch?.x).toBe(PLOT.x)
 
-		expect(stretch?.y).toBeGreaterThan(57)
+		expect(stretch?.y).toBe(57)
 
 		expect(overlaps(target?.box as LabelBox, stretch?.box as LabelBox)).toBe(false)
 	})
 
-	it('prefers a spot that no other rule crosses', () => {
-		const [target] = referenceLabels(
-			[
-				{ at: 60, text: 'Target' },
-				{ at: 50, text: 'Stretch' },
-			],
-			'vertical',
-			PLOT,
-		)
+	it('prefers a spot that no point marker meets', () => {
+		const [goal] = referenceLabels([{ at: 60, width: 28 }], 'vertical', PLOT, [
+			markerBox({ x: PLOT.x + PLOT.width - 4, y: 61 }),
+		])
 
-		// Above, the label would sit over the Stretch rule, so it goes below its own.
-		expect(target?.anchor).toBe('end')
+		expect(goal?.anchor).toBe('start')
+	})
 
-		expect(target?.y).toBeGreaterThan(60)
+	it('keeps the first spot that meets no label where a marker meets every spot', () => {
+		const [goal] = referenceLabels([{ at: 60, width: 28 }], 'vertical', PLOT, [
+			markerBox({ x: PLOT.x + 4, y: 60 }),
+			markerBox({ x: PLOT.x + PLOT.width - 4, y: 60 }),
+		])
+
+		expect(goal?.anchor).toBe('end')
 	})
 
 	it('drops a label with no free spot, so its rule keeps the tooltip', () => {
 		const labels = referenceLabels(
 			[
-				{ at: 60, text: 'A' },
-				{ at: 59, text: 'B' },
-				{ at: 61, text: 'C' },
-				{ at: 60.5, text: 'D' },
-				{ at: 59.5, text: 'E' },
+				{ at: 60, width: 7 },
+				{ at: 59, width: 7 },
+				{ at: 61, width: 7 },
+				{ at: 60.5, width: 7 },
+				{ at: 59.5, width: 7 },
 			],
 			'vertical',
 			PLOT,
@@ -104,19 +106,51 @@ describe('referenceLabels', () => {
 		}
 	})
 
+	it('steps a label off a neighbor rule that its centered spot covers, in a horizontal chart', () => {
+		const [good, excellent] = referenceLabels(
+			[
+				{ at: 100, width: 42 },
+				{ at: 110, width: 49 },
+			],
+			'horizontal',
+			PLOT,
+		)
+
+		// Each label ends or starts at its own rule, so it covers no other rule.
+		expect([good?.anchor, good?.x]).toEqual(['end', 100])
+
+		expect([excellent?.anchor, excellent?.x]).toEqual(['start', 110])
+
+		expect(good?.box.x1).toBeLessThan(110)
+
+		expect(excellent?.box.x0).toBeGreaterThan(100)
+
+		// Both fit the first row, flush with the top of the plot.
+		expect([good?.y, excellent?.y]).toEqual([PLOT.y + LABEL_HEIGHT / 2, PLOT.y + LABEL_HEIGHT / 2])
+	})
+
 	it('stacks crowded labels in rows from the top in a horizontal chart', () => {
 		const [target, stretch, ceiling] = referenceLabels(
 			[
-				{ at: 100, text: 'Target' },
-				{ at: 110, text: 'Stretch' },
-				{ at: 120, text: 'Ceiling' },
+				{ at: 100, width: 49 },
+				{ at: 101, width: 49 },
+				{ at: 102, width: 49 },
 			],
 			'horizontal',
 			PLOT,
 		)
 
 		// Each label stays centered on its own rule.
-		expect([target?.x, stretch?.x, ceiling?.x]).toEqual([100, 110, 120])
+		expect([target?.x, stretch?.x, ceiling?.x]).toEqual([100, 101, 102])
+
+		expect([target?.anchor, stretch?.anchor, ceiling?.anchor]).toEqual([
+			'middle',
+			'middle',
+			'middle',
+		])
+
+		// The first row is flush with the top of the plot.
+		expect(target?.y).toBe(PLOT.y + LABEL_HEIGHT / 2)
 
 		// Each crowded label sits one row, a label height and the row gap, under its neighbor.
 		expect((stretch?.y ?? 0) - (target?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_ROW_GAP)
@@ -127,8 +161,8 @@ describe('referenceLabels', () => {
 	it('places nothing for a rule that draws nothing, and keeps the slots aligned', () => {
 		const labels = referenceLabels(
 			[
-				{ at: null, text: 'Hidden' },
-				{ at: 40, text: 'Goal' },
+				{ at: null, width: 42 },
+				{ at: 40, width: 28 },
 			],
 			'vertical',
 			PLOT,
@@ -151,7 +185,9 @@ describe('valueLabels against the reference labels', () => {
 
 		expect(free.map((label) => label.text)).toEqual(['9', '5'])
 
-		const [goal] = drawn(referenceLabels([{ at: 20, text: 'Goal' }], 'vertical', PLOT))
+		// A reference label on a rule just under the last point, where the flip
+		// below the point puts the label of that point.
+		const [goal] = drawn(referenceLabels([{ at: 34, width: 28 }], 'vertical', PLOT))
 
 		// The reference label's box, widened over the right half of the plot.
 		const right = { ...(goal?.box as LabelBox), x0: 90 }
@@ -166,7 +202,7 @@ describe('valueLabels against the reference labels', () => {
 
 		// The last point is the maximum, so its label stays on the outward side,
 		// above the point's line: level with the point, clear of the reference
-		// label under the rule. The old flip below the point met that label.
+		// label on the rule. The old flip below the point met that label.
 		expect(moved.map((label) => label.text)).toEqual(['9', '5'])
 
 		expect(moved[0]?.y).toBeLessThan(20)

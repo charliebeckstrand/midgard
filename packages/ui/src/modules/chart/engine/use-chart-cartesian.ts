@@ -1,6 +1,7 @@
 'use client'
 
-import { type RefObject, useMemo } from 'react'
+import { useComposedRefs } from 'motion/react'
+import { type Ref, type RefObject, useMemo } from 'react'
 import { cn } from '../../../core/cn'
 import type { FrameReserve, PlotFrameRef } from '../../../hooks/use-plot-frame'
 import { useStableValue } from '../../../hooks/use-stable-value'
@@ -57,6 +58,7 @@ import { parseInstant } from './chart-time'
 import type { CartesianChartProps, ChartPress, ChartReadoutSource, ChartSeries } from './types'
 import { useChartFrameSizing } from './use-chart-frame-sizing'
 import { useLaidOutHidden } from './use-chart-laid-out-hidden'
+import { type ReferenceLabelWidth, useReferenceLabelWidth } from './use-chart-reference-label-width'
 import { useChartTextWidth } from './use-chart-text-width'
 import { type ChartTexture, useChartTexture } from './use-chart-texture'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-toggle'
@@ -173,8 +175,11 @@ const NO_LABELS: readonly string[] = []
 /** Everything the cartesian frame and marks derive from the props. @internal */
 export type CartesianChart = {
 	ref: PlotFrameRef
-	/** Attach to an element around the plot, so that the category labels measure in its font. */
-	textHostRef: RefObject<HTMLDivElement | null>
+	/**
+	 * Attach to an element around the plot, so that the category labels and the
+	 * standing reference labels measure in its font.
+	 */
+	textHostRef: Ref<HTMLDivElement>
 	width: number
 	fixedWidth?: number
 	height: number
@@ -278,6 +283,8 @@ export type CartesianChart = {
 	legendItems: ChartLegendItem[] | null
 	/** The reference lines' legend chips; the frame shows them only when `legendItems` is not null. */
 	referenceItems: ChartLegendReference[]
+	/** The drawn width of a standing reference label, measured in the font of the chart. */
+	referenceLabelWidth: ReferenceLabelWidth
 	/** Reference indexes toggled off: their rules are pulled and their chips struck through. */
 	referenceHidden: ReadonlySet<number>
 	/** Toggles a reference rule on or off by its index in the `reference` array. */
@@ -688,11 +695,16 @@ export function useChartCartesian<T>(
 		],
 	)
 
-	const { layout, hostRef: textHostRef } = useCartesianLayout(
+	const { layout, hostRef: bandHostRef } = useCartesianLayout(
 		layoutInput,
 		horizontal,
 		drawAxes && policy.bandAxis !== 'off',
 	)
+
+	const referenceLabels = useReferenceLabelWidth(reference, formatAxisValue)
+
+	// One host for the band labels and the standing reference labels.
+	const textHostRef = useComposedRefs(bandHostRef, referenceLabels.hostRef)
 
 	// A cached thunk, never a value: building the readout formats every category
 	// × series cell, which at dense sizes outweighs drawing the marks. So the
@@ -825,6 +837,7 @@ export function useChartCartesian<T>(
 		readoutOrder,
 		legendItems,
 		referenceItems,
+		referenceLabelWidth: referenceLabels.width,
 		referenceHidden,
 		toggleReference,
 		bandPositions: layout.bandPositions,

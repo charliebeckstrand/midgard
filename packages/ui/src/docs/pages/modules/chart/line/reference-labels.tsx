@@ -7,7 +7,8 @@ export default function ReferenceLabels() {
 			aria-label="Revenue by month against a target"
 			data={months}
 			series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-			reference={[{ value: 60, label: 'Target', color: 'green' }]}
+			points
+			reference={[{ value: 58, label: 'Target', color: 'green' }]}
 			labels={{ references: true }}
 		/>
 	)

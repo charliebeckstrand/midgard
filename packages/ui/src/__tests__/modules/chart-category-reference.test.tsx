@@ -136,8 +136,8 @@ describe('a category reference', () => {
 
 		const alone = line({ reference: [RELEASE] })
 
-		// The value 77 draws its rule through the first label row, under `labels.references` off.
-		const crossed = line({ reference: [{ value: 77, label: 'Goal' }, RELEASE] })
+		// The value 79 draws its rule through the first label row, under `labels.references` off.
+		const crossed = line({ reference: [{ value: 79, label: 'Goal' }, RELEASE] })
 
 		expect(allBySlot(crossed.container, 'chart-reference-label')).toHaveLength(1)
 

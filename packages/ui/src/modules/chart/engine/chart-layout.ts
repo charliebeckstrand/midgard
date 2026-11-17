@@ -17,8 +17,7 @@ import {
 	GUTTER_GAP,
 	GUTTER_MAX,
 	LINE_STROKE_WIDTH,
-	MARKER_RADIUS,
-	MARKER_RING_WIDTH,
+	MARKER_REACH,
 	PLOT_TOP_PAD,
 	TICK_CHAR_WIDTH,
 	TICK_ROTATION_ANGLE,
@@ -404,7 +403,7 @@ export function markReach(
 		stacked ? series.values.length === 1 : hasIsolatedPoint(series.values),
 	)
 
-	return points || isolated ? MARKER_RADIUS + MARKER_RING_WIDTH / 2 : LINE_STROKE_WIDTH / 2
+	return points || isolated ? MARKER_REACH : LINE_STROKE_WIDTH / 2
 }
 
 /**

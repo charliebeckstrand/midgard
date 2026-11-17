@@ -27,11 +27,11 @@
  * stacked.
  *
  * The standing reference labels place first (see {@link referenceLabels}), by
- * the same rule: each takes the first free spot of a short list beside its
- * rule. A value label whose box meets one drops.
+ * the same rule: each takes the first free spot of a short list on its rule.
+ * A value label whose box meets one drops.
  */
 
-import { MARKER_RADIUS, MARKER_RING_WIDTH, TICK_CHAR_WIDTH } from '../chart-constants'
+import { MARKER_REACH, TICK_CHAR_WIDTH } from '../chart-constants'
 import { type ChartOrientation, type PlotRect, valueRule } from '../chart-orientation'
 import type { ValueHeadroom } from '../chart-scale'
 
@@ -54,7 +54,7 @@ const LABEL_PAD = 3
  *
  * @internal
  */
-const MARKER_CLEARANCE = MARKER_RADIUS + MARKER_RING_WIDTH / 2
+const MARKER_CLEARANCE = MARKER_REACH
 
 /** The gap between two rows of stacked reference labels. @internal */
 export const LABEL_ROW_GAP = 4
@@ -63,10 +63,9 @@ export const LABEL_ROW_GAP = 4
 const LABEL_ROW_STEP = LABEL_HEIGHT + LABEL_ROW_GAP
 
 /**
- * The y that a label centers on beside a point or a rule at `y`. It takes its
+ * The y that a value label centers on beside a point at `y`. It takes its
  * preferred side, `above` or below, and flips to the other side where the
- * preferred one would clip the plot. The endpoint labels and the standing
- * reference labels share this flip.
+ * preferred one would clip the plot. The endpoint labels share this flip.
  *
  * @internal
  */
@@ -422,6 +421,16 @@ function labelBox(x0: number, x1: number, y: number): LabelBox {
 	return { x0, x1, y0: y - LABEL_HALF, y1: y + LABEL_HALF }
 }
 
+/** The box of a drawn point marker, its ring included. @internal */
+export function markerBox(point: { x: number; y: number }): LabelBox {
+	return {
+		x0: point.x - MARKER_REACH,
+		x1: point.x + MARKER_REACH,
+		y0: point.y - MARKER_REACH,
+		y1: point.y + MARKER_REACH,
+	}
+}
+
 /** Two boxes share area. @internal */
 function overlaps(a: LabelBox, b: LabelBox): boolean {
 	return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1
@@ -509,7 +518,8 @@ export function resolveValueLabels(
 
 /**
  * One rule that a standing reference label names: the position of the rule,
- * or `null` where the rule draws nothing, and the label's text. A category
+ * or `null` where the rule draws nothing, and the drawn width of the label's
+ * text. A category
  * rule sets `orientation` to the facing whose value rule it draws as
  * ({@link crossOrientation}). Omitted, the rule is a value rule of the chart.
  * A rule that draws but shows no label sets `unlabeled`: it takes no label,
@@ -518,27 +528,35 @@ export function resolveValueLabels(
  */
 export type ReferenceLabelRule = {
 	at: number | null
-	text: string
+	width: number
 	orientation?: ChartOrientation
 	unlabeled?: boolean
 }
 
-/** A placed reference label: where its text anchors, how it aligns, and its collision box. @internal */
+/**
+ * A placed reference label: where its text anchors, how it aligns, the drawn
+ * width of its text, and its collision box, which pads the text on each side.
+ * @internal
+ */
 export type PlacedReferenceLabel = {
 	x: number
 	y: number
 	anchor: PlacedValueLabel['anchor']
+	width: number
 	box: LabelBox
 }
 
 /**
- * The spots a reference label can take beside its rule, in the order it tries
- * them. In a vertical chart, a label sits at the right end of its rule, above
- * the rule and then below it, so every label reads down one side. In a
- * horizontal chart, a label hangs from the top of its rule, centered on it or
- * anchored inward from it near a side ({@link anchorAt}), in the first row
- * down that it fits. The rows stack one label height and {@link LABEL_ROW_GAP}
- * apart, so a crowded label sits just under its neighbor.
+ * The spots a reference label can take on its rule, in the order it tries
+ * them. A label centers on its rule, and the rule breaks for it, so the label
+ * names only the rule that it interrupts. In a vertical chart, a label sits at
+ * the right end of its rule, and then at the left end. Each end label is flush
+ * with its side of the plot, so the rule stops at the label and does not show
+ * a short dash past it. In a horizontal chart, a label sits on the rule in the
+ * first row down from the top of the plot that it fits. In each row, it
+ * centers on the rule, or ends or starts at it ({@link ruleAnchors}). The rows
+ * stack one label height and {@link LABEL_ROW_GAP} apart, so a crowded label
+ * sits just under its neighbor.
  *
  * @internal
  */
@@ -548,34 +566,66 @@ function referenceSpots(
 	orientation: ChartOrientation,
 	plot: PlotRect,
 ): PlacedReferenceLabel[] {
+	const padded = width + 2 * LABEL_PAD
+
 	if (orientation === 'vertical') {
-		if (width > plot.width) return []
+		if (padded > plot.width) return []
 
-		const x = plot.x + plot.width
+		const left = plot.x
 
-		return [true, false].map((above) => {
-			const y = labelBesideY(at, plot, above)
+		const right = plot.x + plot.width
 
-			return { x, y, anchor: 'end', box: labelBox(x - width, x, y) }
-		})
+		return [
+			{ x: right, y: at, anchor: 'end', width, box: labelBox(right - padded, right, at) },
+			{ x: left, y: at, anchor: 'start', width, box: labelBox(left, left + padded, at) },
+		]
 	}
 
-	const across = anchorAt(at, width, plot)
+	const anchors = ruleAnchors(at, padded, plot)
 
-	if (!across) return []
-
-	const { anchor, x0, x1 } = across
-
-	const rows = Math.max(
-		0,
-		Math.floor((plot.height - LABEL_OFFSET + LABEL_ROW_GAP) / LABEL_ROW_STEP),
-	)
+	const rows = Math.max(0, Math.floor((plot.height + LABEL_ROW_GAP) / LABEL_ROW_STEP))
 
 	return Array.from({ length: rows }, (_, row) => {
-		const y = plot.y + LABEL_OFFSET + LABEL_HALF + row * LABEL_ROW_STEP
+		const y = plot.y + LABEL_HALF + row * LABEL_ROW_STEP
 
-		return { x: at, y, anchor, box: labelBox(x0, x1, y) }
-	})
+		return anchors.map(({ anchor, x0, x1 }) => ({
+			x: at,
+			y,
+			anchor,
+			width,
+			box: labelBox(x0, x1, y),
+		}))
+	}).flat()
+}
+
+/**
+ * The ways that a label `width` wide can align on a vertical rule at `at`,
+ * in the order it tries them: centered on the rule, then ending at the rule,
+ * then starting at it. Each one keeps its text inside the plot. A label that
+ * ends or starts at its rule leaves the rule beside it, so it can step off a
+ * neighbor rule that a centered label covers. Each box keeps
+ * {@link LABEL_PAD} past the rule on the anchored side.
+ *
+ * @internal
+ */
+function ruleAnchors(
+	at: number,
+	width: number,
+	plot: PlotRect,
+): { anchor: PlacedValueLabel['anchor']; x0: number; x1: number }[] {
+	const [left, right] = [plot.x, plot.x + plot.width]
+
+	const middle = { anchor: 'middle' as const, x0: at - width / 2, x1: at + width / 2 }
+
+	const end = { anchor: 'end' as const, x0: at + LABEL_PAD - width, x1: at + LABEL_PAD }
+
+	const start = { anchor: 'start' as const, x0: at - LABEL_PAD, x1: at - LABEL_PAD + width }
+
+	return [
+		...(middle.x0 >= left && middle.x1 <= right ? [middle] : []),
+		...(end.x0 >= left ? [end] : []),
+		...(start.x1 <= right ? [start] : []),
+	]
 }
 
 /**
@@ -592,10 +642,11 @@ function ruleBox(at: number, orientation: ChartOrientation, plot: PlotRect): Lab
 
 /**
  * Places the standing reference labels, aligned with `rules`, in the order of
- * `rules`. Each label takes the first spot beside its rule
- * ({@link referenceSpots}) whose box meets no label already placed and no
- * other rule. Where every free spot crosses another rule, the label takes the
- * first spot that meets no label, and its halo keeps it legible over the line.
+ * `rules`. Each label takes the first spot on its rule ({@link referenceSpots})
+ * whose box meets no label already placed, no other rule, and no box of
+ * `markers`: the drawn point markers. Where every free spot crosses another
+ * rule or a marker, the label takes the first spot that meets no label, and
+ * its halo keeps it legible over the line.
  * A label never leaves its rule, so a label with no free spot is `null`, as is
  * the label of a rule that draws nothing or is `unlabeled`. That rule keeps its
  * hover tooltip and its keyboard stop. Every rule that draws is an obstacle,
@@ -610,6 +661,7 @@ export function referenceLabels(
 	rules: ReferenceLabelRule[],
 	orientation: ChartOrientation,
 	plot: PlotRect,
+	markers: readonly LabelBox[] = [],
 ): (PlacedReferenceLabel | null)[] {
 	const placed: LabelBox[] = []
 
@@ -622,12 +674,13 @@ export function referenceLabels(
 
 		const facing = rule.orientation ?? orientation
 
-		const free = referenceSpots(rule.at, labelWidth(rule.text), facing, plot).filter(
+		const free = referenceSpots(rule.at, rule.width, facing, plot).filter(
 			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
 		)
 
 		const crossed = (box: LabelBox) =>
-			lines.some((line, other) => other !== index && line !== null && overlaps(line, box))
+			lines.some((line, other) => other !== index && line !== null && overlaps(line, box)) ||
+			markers.some((marker) => overlaps(marker, box))
 
 		const spot = free.find((candidate) => !crossed(candidate.box)) ?? free[0]
 

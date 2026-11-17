@@ -155,8 +155,8 @@ describe('LineChart value labels', () => {
 
 		expect(points).toContain('40')
 
-		// ...and the reference rule now carries its own standing label.
-		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('Target')
+		// ...and the reference rule now carries its own standing label: its name, then its value.
+		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('Target70')
 	})
 })
 

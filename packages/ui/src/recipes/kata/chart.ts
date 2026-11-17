@@ -59,6 +59,16 @@ export const k = {
 			...ink.surface,
 		],
 		/**
+		 * The value after the name in the standing label of a reference rule: one
+		 * weight lighter and muted, so the name leads.
+		 */
+		value: ['font-medium', ...mutedFill],
+		/**
+		 * The face of {@link k.mark.label} with no ink: its size, weight, and
+		 * figures. A chart measures the text of a standing label in it.
+		 */
+		face: ['text-xs', 'font-semibold', 'tabular-nums'],
+		/**
 		 * Point-marker stroke: the fill of the surface under the chart, so a dot stays legible
 		 * where it crosses an opaque mark or another dot. A white ring in dark mode showed as
 		 * a halo on each dot.

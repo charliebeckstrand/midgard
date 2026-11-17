@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
+import { REFERENCE_GAP } from '../../modules/chart/engine/chart-constants'
+import type { PlacedReferenceLabel } from '../../modules/chart/engine/chart-geometry/label'
 import type { ChartReferenceLine } from '../../modules/chart/engine/chart-reference'
+import { ruleBreaks } from '../../modules/chart/engine/chart-reference-lines'
 import { LineChart } from '../../modules/chart/line-chart'
 import {
 	allBySlot,
@@ -45,6 +48,34 @@ function bar(options: BarOptions = {}) {
 /** The visible rule is the first line in a reference group; the hover target is the second. */
 function rule(container: HTMLElement): SVGLineElement | null {
 	return bySlot(container, 'chart-reference-line')?.querySelector('line') ?? null
+}
+
+/** The lengths of the `stroke-dasharray` of a rule, drawn and empty in turn. */
+function readDashes(line: SVGLineElement | null): number[] {
+	return (line?.getAttribute('stroke-dasharray') ?? '').split(' ').filter(Boolean).map(Number)
+}
+
+/**
+ * The breaks of a rule: each empty span of its dash pattern that is wider than
+ * a dash gap, as `[from, to]` from the start of the rule.
+ */
+function findBreaks(line: SVGLineElement | null): [number, number][] {
+	const [x1, y1, x2, y2] = ['x1', 'y1', 'x2', 'y2'].map((name) => Number(line?.getAttribute(name)))
+
+	const length = Math.hypot((x2 ?? 0) - (x1 ?? 0), (y2 ?? 0) - (y1 ?? 0))
+
+	const breaks: [number, number][] = []
+
+	let at = 0
+
+	readDashes(line).forEach((span, index) => {
+		// The empty length past the end of the rule only stops the pattern repeating.
+		if (index % 2 === 1 && span > 5 && at < length) breaks.push([at, Math.min(at + span, length)])
+
+		at += span
+	})
+
+	return breaks
 }
 
 /**
@@ -93,7 +124,12 @@ describe('reference lines', () => {
 	it('dashes the rule by default and draws it solid when dashed is false', () => {
 		const dashed = bar({ reference: [{ value: 50 }] })
 
-		expect(rule(dashed.container)?.getAttribute('stroke-dasharray')).toBe('6 4')
+		// The dashes fit the rule, so it starts and ends on a full dash.
+		const [dash = 0, gap = 0] = readDashes(rule(dashed.container))
+
+		expect(dash).toBeCloseTo(6, 0)
+
+		expect(gap).toBeCloseTo(4, 0)
 
 		const solid = bar({ reference: [{ value: 50, dashed: false }] })
 
@@ -854,23 +890,38 @@ describe('reference value labels', () => {
 
 		const label = labels[0]
 
-		// The label reads the rule's own label, standing in for the value.
-		expect(label?.textContent).toBe('Goal')
+		// The label reads the rule's own label, and then its value in the muted ink.
+		expect(label?.firstChild?.textContent).toBe('Goal')
 
-		// It sits at the rule's far (right) end, anchored inward, and clears the
-		// dashes by riding just above the rule's value position.
-		const ruleY = Number(rule(container)?.getAttribute('y1'))
+		expect(label?.querySelector('tspan')?.textContent).toBe('60')
+
+		// It sits on the rule at its right end, anchored inward and flush with the plot.
+		const line = rule(container)
 
 		expect(label?.getAttribute('text-anchor')).toBe('end')
 
-		expect(Number(label?.getAttribute('y'))).toBeLessThan(ruleY)
+		expect(label?.getAttribute('x')).toBe(line?.getAttribute('x2'))
+
+		expect(label?.getAttribute('y')).toBe(line?.getAttribute('y1'))
+
+		// The rule breaks for the label: its last break runs from before the text to its end.
+		const length = Number(line?.getAttribute('x2')) - Number(line?.getAttribute('x1'))
+
+		const [from = 0, to = 0] = findBreaks(line).at(-1) ?? []
+
+		expect(from).toBeLessThan(length - 20)
+
+		expect(to).toBeCloseTo(length, 5)
+
+		// Each piece of the rule starts on a full dash.
+		expect(readDashes(line)[0]).toBeGreaterThan(5)
 
 		// No transparent hit target: the standing label replaces the hover readout,
 		// so the rule group carries only the one drawn line.
 		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
 	})
 
-	it('keeps every label at the far end, and draws the labels over every rule', () => {
+	it('moves a crowded label to the left end, and draws the labels over every rule', () => {
 		const { container } = lineLabels([
 			{ value: 60, label: 'Target' },
 			{ value: 61, label: 'Stretch' },
@@ -880,7 +931,7 @@ describe('reference value labels', () => {
 
 		expect(target?.getAttribute('text-anchor')).toBe('end')
 
-		expect(stretch?.getAttribute('text-anchor')).toBe('end')
+		expect(stretch?.getAttribute('text-anchor')).toBe('start')
 
 		// Each label follows every rule in paint order, so no rule crosses its halo.
 		const lastRule = allBySlot(container, 'chart-reference-line').at(-1) as Node
@@ -892,10 +943,43 @@ describe('reference value labels', () => {
 		}
 	})
 
-	it('reads the value alone for an unlabeled rule', () => {
+	it('reads the value alone, in the rule ink, for an unlabeled rule', () => {
 		const { container } = lineLabels([{ value: 50 }])
 
-		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('50')
+		const label = bySlot(container, 'chart-reference-label')
+
+		expect(label?.textContent).toBe('50')
+
+		expect(label?.querySelector('tspan')).toBeNull()
+	})
+
+	it('takes the rules out of the legend, since the plot names them', () => {
+		const labeled = renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[{ value: 60, label: 'Goal' }]}
+				labels={{ references: true }}
+			/>,
+		)
+
+		expect(bySlot(labeled.container, 'chart-legend-reference')).toBeNull()
+
+		const hovered = renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[{ value: 60, label: 'Goal' }]}
+			/>,
+		)
+
+		expect(bySlot(hovered.container, 'chart-legend-reference')?.textContent).toBe('Goal')
 	})
 
 	it('inks the label to match the rule — a slot through its ink class, a raw color inline', () => {
@@ -958,15 +1042,87 @@ describe('reference value labels', () => {
 
 		const label = bySlot(container, 'chart-reference-label')
 
-		expect(label?.textContent).toBe('Goal')
+		expect(label?.textContent).toBe('Goal60')
 
-		// The rule is vertical, so the label stands at the rule's x near its top end.
+		// The rule is vertical, so the label stands on it in the top row, flush with
+		// the top of the plot, and the rule breaks for it.
 		const line = rule(container)
 
 		expect(Number(label?.getAttribute('x'))).toBeCloseTo(Number(line?.getAttribute('x1')), 1)
 
-		expect(Number(label?.getAttribute('y'))).toBeLessThan(Number(line?.getAttribute('y2')) / 2)
+		expect(Number(label?.getAttribute('y'))).toBeCloseTo(Number(line?.getAttribute('y1')) + 6.5, 1)
+
+		// The rule runs across the text, so it breaks for the whole row of the label,
+		// from the top of the plot.
+		const [from, to = 0] = findBreaks(line)[0] ?? []
+
+		const labelY = Number(label?.getAttribute('y')) - Number(line?.getAttribute('y1'))
+
+		expect(from).toBe(0)
+
+		expect(to).toBeGreaterThan(labelY + 6.5)
 
 		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
+	})
+})
+
+describe('reference rule breaks', () => {
+	/** A line chart with point markers over `DATA`, with one rule at `value`. */
+	function pointed(value: number, points = true) {
+		return renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				points={points}
+				reference={[{ value, label: 'Goal' }]}
+			/>,
+		)
+	}
+
+	it('breaks a rule around each point marker that sits on it', () => {
+		const value = DATA[1]?.revenue ?? 0
+
+		const { container } = pointed(value)
+
+		const line = rule(container)
+
+		const point = allBySlot(container, 'chart-point').find(
+			(dot) => dot.getAttribute('cy') === line?.getAttribute('y1'),
+		)
+
+		// One break holds the point, with the same clear space at each side.
+		const at = Number(point?.getAttribute('cx')) - Number(line?.getAttribute('x1'))
+
+		const [from = 0, to = 0] = findBreaks(line).find(([a, b]) => a < at && at < b) ?? []
+
+		expect(at - from).toBeCloseTo(to - at, 1)
+
+		expect(at - from).toBeGreaterThan(5.5)
+	})
+
+	it('leaves a rule whole where no point marker sits on it', () => {
+		const { container } = pointed(DATA[1]?.revenue ?? 0, false)
+
+		expect(findBreaks(rule(container))).toEqual([])
+	})
+	it('breaks a rule for a neighbor label that comes nearer than the gap', () => {
+		// A label of 40 units ends at the right side of a plot 200 units wide, on a rule at y 50.
+		const label: PlacedReferenceLabel = {
+			x: 200,
+			y: 50,
+			anchor: 'end',
+			width: 40,
+			box: { x0: 156, x1: 200, y0: 43.5, y1: 56.5 },
+		}
+
+		const breaksAt = (y: number) => ruleBreaks({ x: 0, y }, { x: 200, y }, [label], [])
+
+		// A rule 5.5 units under the label's box is clear of it by more than the gap.
+		expect(breaksAt(62)).toEqual([])
+
+		// A rule 3.5 units under the box is inside the gap, so it stops short of the text.
+		expect(breaksAt(60)).toEqual([{ from: 160 - REFERENCE_GAP, to: 200 + REFERENCE_GAP }])
 	})
 })

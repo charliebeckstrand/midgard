@@ -52,8 +52,8 @@ export type BarChartProps<T = never> = CartesianChartProps<T> & {
 	 */
 	thick?: boolean
 	/**
-	 * With `references`, each reference rule's value draws beside it in place of
-	 * its hover tooltip. A bar takes no point labels, so `references` is the one
+	 * With `references`, each reference rule's label and value draw on it in
+	 * place of its hover tooltip. A bar takes no point labels, so `references` is the one
 	 * key. Off by default; the tooltip and data table carry the full readout.
 	 */
 	labels?: Pick<ChartValueLabelConfig, 'references'>
@@ -98,7 +98,7 @@ function stackedColumns(
  * The band-axis arrows step categories, and the value-axis arrows cycle each
  * category's series values, transposed with the orientation. A reference line joins that
  * value-axis roving, receding the marks when the cursor reaches it.
- * `labels.references` drawing its value beside it stands in for the hover and
+ * `labels.references` drawing its label on it stands in for the hover and
  * drops the rove.
  * @example
  * ```tsx
