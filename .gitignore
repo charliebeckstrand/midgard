@@ -17,9 +17,6 @@ next-env.d.ts
 # build
 dist/
 
-# test results
-test-results/
-
 # Vitest reports, attachments, and traces
 .vitest/
 

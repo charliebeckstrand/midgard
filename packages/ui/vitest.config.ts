@@ -381,10 +381,6 @@ export default defineConfig({
 		// `groupOrder` with it, which reorders the very queue the failure came
 		// from.
 		sequence,
-		reporters: CI ? ['default', 'junit'] : ['default'],
-		outputFile: {
-			junit: 'test-results/junit.xml',
-		},
 		projects: [
 			...projects.map((project, groupOrder) => ({
 				...project,
