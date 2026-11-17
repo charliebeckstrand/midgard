@@ -64,6 +64,7 @@
 			"dependsOn": ["^build"],
 			"inputs": [
 				"src/**",
+				"styles/tailwind.css",
 				"vitest.config.ts",
 				"vitest.compiler.config.ts",
 				"vitest.compiler.preset.ts",
