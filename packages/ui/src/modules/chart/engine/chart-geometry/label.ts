@@ -31,12 +31,9 @@
  * A value label whose box meets one drops.
  */
 
-import { MARKER_REACH, REFERENCE_GAP, TICK_CHAR_WIDTH } from '../chart-constants'
+import { LABEL_GAP, LABEL_ROOM, MARKER_REACH, TICK_CHAR_WIDTH } from '../chart-constants'
 import { type ChartOrientation, type PlotRect, valueRule } from '../chart-orientation'
 import type { ValueHeadroom } from '../chart-scale'
-
-/** The gap from a point or a rule to its label. @internal */
-const LABEL_OFFSET = 8
 
 /** The collision height of a label, which its flip tests. @internal */
 export const LABEL_HEIGHT = 13
@@ -56,11 +53,8 @@ const LABEL_PAD = 3
  */
 const MARKER_CLEARANCE = MARKER_REACH
 
-/** The gap between two rows of stacked reference labels. @internal */
-export const LABEL_ROW_GAP = 4
-
-/** The step from one row of stacked reference labels to the next. @internal */
-const LABEL_ROW_STEP = LABEL_HEIGHT + LABEL_ROW_GAP
+/** The step from one row of stacked reference labels to the next: a label height and a gap. @internal */
+const LABEL_ROW_STEP = LABEL_HEIGHT + LABEL_GAP
 
 /**
  * The y that a value label centers on beside a point at `y`. It takes its
@@ -70,23 +64,14 @@ const LABEL_ROW_STEP = LABEL_HEIGHT + LABEL_ROW_GAP
  * @internal
  */
 export function labelBesideY(y: number, plot: PlotRect, above: boolean): number {
-	const fitsAbove = y - LABEL_OFFSET - LABEL_HEIGHT >= plot.y
+	const fitsAbove = y - LABEL_ROOM - LABEL_HEIGHT >= plot.y
 
-	const fitsBelow = y + LABEL_OFFSET + LABEL_HEIGHT <= plot.y + plot.height
+	const fitsBelow = y + LABEL_ROOM + LABEL_HEIGHT <= plot.y + plot.height
 
 	const up = above ? fitsAbove || !fitsBelow : !fitsBelow
 
-	return up ? y - LABEL_OFFSET - LABEL_HALF : y + LABEL_OFFSET + LABEL_HALF
+	return up ? y - LABEL_ROOM - LABEL_HALF : y + LABEL_ROOM + LABEL_HALF
 }
-
-/**
- * The clear gap between the label of an extreme and the top or the bottom of
- * the plot. The floor carries the axis rule, and a label on that rule reads as
- * crowded.
- *
- * @internal
- */
-const LABEL_EDGE_GAP = 4
 
 /** One pixel past the fit threshold of a label, so that rounding never leaves the label exactly on it. @internal */
 const LABEL_SLACK = 1
@@ -96,15 +81,15 @@ const LABEL_SLACK = 1
  * Past the peak, it is the footprint of a label centered above the point: its
  * offset and its height. Past the trough, it is only the height of a label
  * level with the point ({@link extremeSpots}), since the floor widens by whole
- * steps. Each adds the {@link LABEL_EDGE_GAP} and {@link LABEL_SLACK}. A room that only met the fit threshold
+ * steps. Each adds the {@link LABEL_GAP} and {@link LABEL_SLACK}. A room that only met the fit threshold
  * would leave the label on that threshold, and a resize would move it from
  * spot to spot.
  *
  * @internal
  */
 const VALUE_LABEL_HEADROOM: ValueHeadroom = {
-	ceiling: LABEL_OFFSET + LABEL_HEIGHT + LABEL_EDGE_GAP + LABEL_SLACK,
-	floor: LABEL_HEIGHT + LABEL_EDGE_GAP + LABEL_SLACK,
+	ceiling: LABEL_ROOM + LABEL_HEIGHT + LABEL_GAP + LABEL_SLACK,
+	floor: LABEL_HEIGHT + LABEL_GAP + LABEL_SLACK,
 }
 
 /** The point-label switches of the `labels` prop, both optional and off by default. @internal */
@@ -318,15 +303,12 @@ type Spot = { x: number; y: number; anchor: PlacedValueLabel['anchor']; x0: numb
 
 /**
  * Whether the label of an extreme centered on `y` fits between the top and the
- * bottom of the plot, {@link LABEL_EDGE_GAP} clear of each.
+ * bottom of the plot, {@link LABEL_GAP} clear of each.
  *
  * @internal
  */
 function fitsAcross(y: number, plot: PlotRect): boolean {
-	return (
-		y - LABEL_HALF - LABEL_EDGE_GAP >= plot.y &&
-		y + LABEL_HALF + LABEL_EDGE_GAP <= plot.y + plot.height
-	)
+	return y - LABEL_HALF - LABEL_GAP >= plot.y && y + LABEL_HALF + LABEL_GAP <= plot.y + plot.height
 }
 
 /**
@@ -334,10 +316,10 @@ function fitsAcross(y: number, plot: PlotRect): boolean {
  * on the outward side of the point: above the maximum, below the minimum. No
  * value of the series is past the extreme, and a segment between two points
  * stays between them, so no part of the line enters these spots. The first
- * spot centers past the point, {@link LABEL_OFFSET} away. The next two sit
+ * spot centers past the point, {@link LABEL_ROOM} away. The next two sit
  * level with the point, one edge on its line, clear of the marker: to its
  * right, then to its left. A spot that would cross a side of the plot, or
- * come within {@link LABEL_EDGE_GAP} of its top or its bottom, is left out.
+ * come within {@link LABEL_GAP} of its top or its bottom, is left out.
  *
  * @internal
  */
@@ -348,7 +330,7 @@ function extremeSpots(candidate: Candidate, width: number, plot: PlotRect): Spot
 
 	const spots: Spot[] = []
 
-	const past = y + outward * (LABEL_OFFSET + LABEL_HALF)
+	const past = y + outward * (LABEL_ROOM + LABEL_HALF)
 
 	const across = anchorAt(x, width, plot)
 
@@ -553,7 +535,7 @@ export type PlacedReferenceLabel = {
  * the right end of its rule, and then at the left end. Each end label is flush
  * with its side of the plot, so the rule stops at the label and does not show
  * a short dash past it. In a horizontal chart, a label sits on the rule in a
- * row. The rows stack one label height and {@link LABEL_ROW_GAP} apart down
+ * row. The rows stack one label height and {@link LABEL_GAP} apart down
  * from the top of the plot. A label tries the rows between the edges first,
  * from the top, so a crowded label sits just under its neighbor. The top row
  * and the bottom row, against an edge of the plot, come last. In each row, it
@@ -584,7 +566,7 @@ function referenceSpots(
 
 	const anchors = ruleAnchors(at, padded, plot)
 
-	const rows = Math.max(0, Math.floor((plot.height + LABEL_ROW_GAP) / LABEL_ROW_STEP))
+	const rows = Math.max(0, Math.floor((plot.height + LABEL_GAP) / LABEL_ROW_STEP))
 
 	// The rows between the edges first, from the top, and then the top row and
 	// the bottom row, which a label sits against the edge of the plot in.
@@ -651,10 +633,13 @@ function ruleBox(at: number, orientation: ChartOrientation, plot: PlotRect): Lab
  * Places the standing reference labels, aligned with `rules`, in the order of
  * `rules`. Each label takes the first spot on its rule ({@link referenceSpots})
  * whose box meets no label already placed and no box of `markers`, the drawn
- * point markers. The box also stays more than {@link REFERENCE_GAP} from each
- * other rule, because a rule that near breaks for the label. Where every free
- * spot meets another rule or a marker, the label takes the first spot that
- * meets no label, and the other rule breaks for it.
+ * point markers. The box also stays more than {@link LABEL_GAP} from each
+ * other rule, because a rule that near breaks for the label. A label first
+ * takes a spot with room: {@link LABEL_ROOM} clear of each other rule and of
+ * the top and bottom edges of the plot. Where no free spot has room, it takes
+ * the first that clears the gap. Where every free spot meets another rule or a
+ * marker, the label takes the first spot that meets no label, and the other
+ * rule breaks for it.
  * A label never leaves its rule, so a label with no free spot is `null`, as is
  * the label of a rule that draws nothing or is `unlabeled`. That rule keeps its
  * hover tooltip and its keyboard stop. Every rule that draws is an obstacle,
@@ -673,6 +658,14 @@ export function referenceLabels(
 ): (PlacedReferenceLabel | null)[] {
 	const placed: LabelBox[] = []
 
+	// The top and bottom edges of the plot, which a spot with room keeps clear of.
+	const edges: LabelBox[] = [plot.y, plot.y + plot.height].map((y) => ({
+		x0: plot.x,
+		x1: plot.x + plot.width,
+		y0: y,
+		y1: y,
+	}))
+
 	const lines = rules.map((rule) =>
 		rule.at === null ? null : ruleBox(rule.at, rule.orientation ?? orientation, plot),
 	)
@@ -686,20 +679,31 @@ export function referenceLabels(
 			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
 		)
 
-		// A rule within the gap of a label breaks for it, so a spot that comes
-		// that near to another rule lies over that rule. The test is inclusive,
-		// as the test of the break is: a rule just at the gap breaks too.
-		const nears = (line: LabelBox, box: LabelBox) =>
-			line.x0 <= box.x1 + REFERENCE_GAP &&
-			box.x0 - REFERENCE_GAP <= line.x1 &&
-			line.y0 <= box.y1 + REFERENCE_GAP &&
-			box.y0 - REFERENCE_GAP <= line.y1
+		// A line that comes within `reach` of a box. The test is inclusive, as
+		// the test of a rule break is: a rule just at the gap breaks too.
+		const nears = (line: LabelBox, box: LabelBox, reach: number) =>
+			line.x0 <= box.x1 + reach &&
+			box.x0 - reach <= line.x1 &&
+			line.y0 <= box.y1 + reach &&
+			box.y0 - reach <= line.y1
 
+		const others = lines.filter((line, other): line is LabelBox => other !== index && line !== null)
+
+		// A rule within the gap of a label breaks for it, so a spot that comes
+		// that near to another rule lies over that rule.
 		const crossed = (box: LabelBox) =>
-			lines.some((line, other) => other !== index && line !== null && nears(line, box)) ||
+			others.some((line) => nears(line, box, LABEL_GAP)) ||
 			markers.some((marker) => overlaps(marker, box))
 
-		const spot = free.find((candidate) => !crossed(candidate.box)) ?? free[0]
+		// A spot with room keeps {@link LABEL_ROOM} clear of each other rule and
+		// of the top and bottom edges of the plot.
+		const roomy = (box: LabelBox) =>
+			!crossed(box) && ![...others, ...edges].some((line) => nears(line, box, LABEL_ROOM))
+
+		const spot =
+			free.find((candidate) => roomy(candidate.box)) ??
+			free.find((candidate) => !crossed(candidate.box)) ??
+			free[0]
 
 		if (!spot) return null
 

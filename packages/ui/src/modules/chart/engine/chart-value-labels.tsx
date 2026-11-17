@@ -55,11 +55,12 @@ export type ChartValueLabelConfig = {
 	 * With it on, the rules shed their pointer target and keyboard stop, since
 	 * the label already reads what the tooltip would. Each label takes the first
 	 * free spot on its rule, and prefers a spot that no other rule and no point
-	 * marker crosses or comes near. In a vertical chart that is the right end of
-	 * the rule, and then the left end. In a horizontal chart that is the first
-	 * free row down from the top of the plot. The top row and the bottom row,
-	 * against an edge of the plot, come last. A rule whose label finds no free spot keeps its
-	 * tooltip. A point label that meets a reference label drops. Each label has a
+	 * marker crosses or comes near. Of those, it prefers a spot with room from
+	 * each other rule and from the top and bottom of the plot. In a vertical
+	 * chart, the spots are the right end of the rule, and then the left end. In
+	 * a horizontal chart, the spots are the rows from the top of the plot down.
+	 * The top row and the bottom row, against an edge of the plot, come last. A
+	 * rule whose label finds no free spot keeps its tooltip. A point label that meets a reference label drops. Each label has a
 	 * halo in the surface color, so it stays legible where a line or a rule
 	 * crosses it. The visually-hidden reference list keeps the assistive-tech
 	 * parity either way. An object turns the labels on and sets them.
