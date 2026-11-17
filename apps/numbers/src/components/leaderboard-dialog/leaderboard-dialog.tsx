@@ -143,7 +143,9 @@ function ReaderNote({ user }: { user?: User }) {
 	}
 
 	if (!user.is_verified) {
-		return <Text>Verify your email to be on the leaderboard. The menu sends the link.</Text>
+		return (
+			<Text>Verify your email to participate in the leaderboard. The menu sends the link.</Text>
+		)
 	}
 
 	if (user.name === null) {

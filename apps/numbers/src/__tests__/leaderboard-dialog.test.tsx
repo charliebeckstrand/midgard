@@ -194,7 +194,7 @@ describe('LeaderboardDialog', () => {
 
 		expect(await within(table).findByText('Ada')).toBeTruthy()
 
-		expect(screen.getByText(/Verify your email to be on the leaderboard/)).toBeTruthy()
+		expect(screen.getByText(/Verify your email to participate in the leaderboard/)).toBeTruthy()
 	})
 
 	it('shows the board to a reader with no session, and asks them to sign in', async () => {
