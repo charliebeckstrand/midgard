@@ -161,6 +161,36 @@ describe('Chart context menu', () => {
 		expect(onInspect).toHaveBeenCalledOnce()
 	})
 
+	it('replaces a default action in its place with a custom item of its key', () => {
+		const onExpand = vi.fn()
+
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by quarter"
+				data={data}
+				series={[...series]}
+				contextMenu={{ items: [{ key: 'fullscreen', label: 'Expand tile', onAction: onExpand }] }}
+			/>,
+		)
+
+		openChartMenu(container)
+
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'Expand tile',
+			'View data',
+			'Copy data',
+			'Download PNG',
+			'Download JPG',
+			'Download CSV',
+		])
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Expand tile' }))
+
+		expect(onExpand).toHaveBeenCalledOnce()
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
 	it('reports both ends of the fullscreen dialog, whatever drove them', () => {
 		const onFullscreenChange = vi.fn()
 

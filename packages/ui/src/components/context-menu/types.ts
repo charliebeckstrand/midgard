@@ -77,6 +77,12 @@ export type ContextMenuConfig = {
 	/**
 	 * Custom entries to add to the menu, rendered in array order. An entry is an
 	 * item, a separator, or a submenu ({@link ContextMenuEntry}).
+	 *
+	 * An item or a submenu with the `key` of a default item replaces that
+	 * default in its place, and does not join the custom group. Thus a host can
+	 * give its own version of a default action, such as its own Fullscreen in a
+	 * chart menu. Only the top level of the defaults counts. The menu then shows
+	 * one row for each key.
 	 */
 	items?: ContextMenuEntry[]
 	/**

@@ -71,6 +71,13 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	 * for a per-mark action ("View the shipments behind this bar"), whose label can
 	 * name the mark it will act on. It is called with `index: null` when the
 	 * right-click missed every mark, so an item that needs one can be omitted.
+	 *
+	 * An item with the key of a default item replaces that default in its place.
+	 * The keys are `'fullscreen'`, `'view-data'`, `'copy-data'`, `'download-png'`,
+	 * `'download-jpg'`, and `'download-csv'`. Thus a dashboard tile can give its
+	 * own Fullscreen, which enlarges the whole tile, and keep the other defaults.
+	 * A replaced `'view-data'` item also gives its action to the View data
+	 * button of the header row. With no `onAction`, it removes that button.
 	 */
 	items?: ContextMenuItem[] | ((target: ChartContextMenuTarget) => ContextMenuItem[])
 	/**

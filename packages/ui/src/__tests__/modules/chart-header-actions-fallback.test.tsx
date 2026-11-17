@@ -16,7 +16,7 @@ import {
 	SeatChart,
 } from '../../modules/chart'
 import { HeaderActions, HeaderActionsSlot } from '../../primitives/header-actions'
-import { getSlot, noop, renderUI } from '../helpers'
+import { fireEvent, getSlot, noop, present, renderUI, screen } from '../helpers'
 import { serverMarkup } from '../helpers/hydrate'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -181,6 +181,16 @@ describe('ChartHeaderActionsFallback', () => {
 			{ button: true, defaultItems: false, items: [{ key: 'view-data', label: 'Table' }] },
 			['chart-menu-button'],
 		],
+		[
+			'a View data item that replaces the default',
+			{ items: [{ key: 'view-data', label: 'Table', onAction: noop }] },
+			['chart-view-data'],
+		],
+		[
+			'a View data item with no action that replaces the default',
+			{ items: [{ key: 'view-data', label: 'Table' }] },
+			[],
+		],
 	])('draws the buttons of the chart for %s', (_, contextMenu, expected) => {
 		const chart = (
 			<BarChart
@@ -197,6 +207,36 @@ describe('ChartHeaderActionsFallback', () => {
 		expect(fallback).toEqual(expected)
 
 		expect(fallback).toEqual(chartButtons(chart))
+	})
+
+	it('runs the action of a View data item that replaces the default from the header button', () => {
+		const onTable = vi.fn()
+
+		const { container } = renderUI(
+			<HeaderActions>
+				<HeaderActionsSlot />
+
+				<div>
+					<BarChart
+						title="Revenue"
+						aria-label="Revenue"
+						data={ROWS}
+						contextMenu={{ items: [{ key: 'view-data', label: 'Table', onAction: onTable }] }}
+						series={[{ xKey: 'quarter', yKey: 'revenue' }]}
+					/>
+				</div>
+			</HeaderActions>,
+		)
+
+		const slot = getSlot(container, 'chart-view-data')
+
+		fireEvent.click(
+			slot instanceof HTMLButtonElement ? slot : present(slot.querySelector('button'), 'button'),
+		)
+
+		expect(onTable).toHaveBeenCalledOnce()
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
 
 	it('names View data after the chart title', () => {
