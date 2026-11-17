@@ -475,7 +475,7 @@ function RangeTrack({
 				layout.track,
 				ramp && layout.ramp,
 				k.track,
-				k.focus,
+				k.focus.track,
 			)}
 			style={gradient}
 			onPointerDown={onPointerDown}

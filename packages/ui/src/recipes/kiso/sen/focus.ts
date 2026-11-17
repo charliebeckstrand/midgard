@@ -17,6 +17,11 @@
  *                 outset stroke (bordered, inline). Forced colors remove
  *                 the ring, which is a box-shadow, so under forced colors
  *                 an inset outline shows the focus
+ *   - `overlay`   the `inset` ring on an `::after` box over the content,
+ *                 for a box whose content reaches its edge, such as the
+ *                 drawing of a chart. An inset ring is a box-shadow, so it
+ *                 paints under the content, and a positioned child, such as
+ *                 a grid line at the edge, breaks it. The host is `relative`
  *   - `outline`   2 px outline on a `:has(:focus-visible)` wrapper,
  *                 swapped to an inset border inside scrollable ancestors,
  *                 which clip an outset outline
@@ -90,6 +95,20 @@ export const focus = {
 		'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
 		// The variants keep the fallback out of the tailwind-merge group of `outline-none`.
 		...forced.ring.inset,
+	],
+	/**
+	 * The `inset` ring, drawn by an `::after` box that covers the host. The box
+	 * comes after the content, so it paints over a positioned child that fills
+	 * the host. It takes the radius of the host, and it takes no pointer. Forced
+	 * colors remove the ring, so an inset outline of the same box shows the focus
+	 * there.
+	 */
+	overlay: [
+		'outline-none',
+		'after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:ring-inset',
+		'focus-visible:after:ring-2 focus-visible:after:ring-blue-600',
+		'forced-colors:focus-visible:after:outline-solid forced-colors:focus-visible:after:outline-2',
+		'forced-colors:focus-visible:after:-outline-offset-2 forced-colors:focus-visible:after:outline-[Highlight]',
 	],
 	outline: [
 		'has-focus-visible:outline-2 has-focus-visible:outline-blue-600 has-focus-visible:outline-offset-2',

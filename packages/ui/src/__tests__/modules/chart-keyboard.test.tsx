@@ -413,6 +413,18 @@ describe('LineChart keyboard navigation', () => {
 		expect(bySlot(quiet.container, 'chart-plot')).not.toHaveAttribute('tabindex')
 	})
 
+	it('rings the plot inside its box, over the drawing', () => {
+		const { container } = renderUI(line())
+
+		const plot = bySlot(container, 'chart-plot')
+
+		// `focus.overlay`: a box that clips, such as a dashboard tile, cuts the outset
+		// `focus.ring`. The ring is on `::after`, so the grid lines do not cover it.
+		expect(plot).toHaveClass('after:ring-inset', 'focus-visible:after:ring-2')
+
+		expect(plot).not.toHaveClass('focus-visible:outline-offset-2')
+	})
+
 	it('sheds the readout tooltip and its keyboard cursor at the spark tier', () => {
 		// Forced to a sparkline, the plot reveals its title veil on hover rather than
 		// a data readout, so the tooltip stands down, and with nothing left for it to

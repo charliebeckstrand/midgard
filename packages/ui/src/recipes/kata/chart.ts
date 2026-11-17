@@ -85,8 +85,14 @@ export const k = {
 	 * The attribute gives the layer the pointer cursor.
 	 */
 	hit: ['data-hit:cursor-pointer'],
-	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled, and on the range legend's scale-bar slider. */
-	focus: sen.focus.ring,
+	/**
+	 * The keyboard focus rings. The plot region takes an inset ring over its
+	 * drawing when arrow-key navigation is enabled. A box that clips, such as the
+	 * content box of a dashboard tile, would cut an outset ring, and a plot
+	 * often fills its box. The range legend's scale-bar slider keeps the outset
+	 * ring, whose gap reads against each stop of its gradient.
+	 */
+	focus: { plot: sen.focus.overlay, track: sen.focus.ring },
 	/**
 	 * The mark on a heatmap cell: the cell under the pointer or the keyboard
 	 * cursor, and the selected cell. The `ring` takes the `zu` selection ink, so
