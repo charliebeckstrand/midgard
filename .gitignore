@@ -17,10 +17,8 @@ next-env.d.ts
 # build
 dist/
 
-# test coverage
-coverage/
+# test results
 test-results/
-packages/ui/coverage/
 packages/ui/test-results/
 
 # Vitest reports, attachments, and traces

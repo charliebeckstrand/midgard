@@ -5,7 +5,7 @@ import { playwright } from '@vitest/browser-playwright'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
-import { assertions, budgets, CI, cleanup, coverageScope, sequence } from './vitest.base.ts'
+import { assertions, budgets, CI, cleanup, sequence } from './vitest.base.ts'
 
 /**
  * The factor by which a wall-clock budget of the browser suite scales on CI:
@@ -356,8 +356,6 @@ export default defineConfig({
 			'./src/__tests__/setup/restore-prototype-focus.ts',
 			'./src/__tests__/browser/setup/act-environment.ts',
 		],
-		// `test:coverage` merges this report with the report of the jsdom run.
-		coverage: coverageScope,
 		browser: {
 			enabled: true,
 			// `browser/setup/index.ts` calls it before every case.
