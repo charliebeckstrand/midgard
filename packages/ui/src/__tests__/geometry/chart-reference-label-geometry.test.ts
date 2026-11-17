@@ -158,6 +158,23 @@ describe('referenceLabels', () => {
 		expect((ceiling?.y ?? 0) - (stretch?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_ROW_GAP)
 	})
 
+	it('moves a label down a row off a rule that runs along the top of its first row', () => {
+		// A value rule at the top of the plot, and a category rule across it.
+		const [, release] = referenceLabels(
+			[
+				{ at: PLOT.y, width: 28 },
+				{ at: 100, width: 42, orientation: 'horizontal' },
+			],
+			'vertical',
+			PLOT,
+		)
+
+		// The first row touches the value rule, which would break for the label.
+		expect(release?.y).toBe(PLOT.y + LABEL_HEIGHT / 2 + LABEL_HEIGHT + LABEL_ROW_GAP)
+
+		expect(release?.anchor).toBe('middle')
+	})
+
 	it('places nothing for a rule that draws nothing, and keeps the slots aligned', () => {
 		const labels = referenceLabels(
 			[

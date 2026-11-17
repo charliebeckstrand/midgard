@@ -868,7 +868,10 @@ describe('reference lines in the legend', () => {
 describe('reference value labels', () => {
 	// `labels` is a line / area prop, so the labeled rules ride the line chart;
 	// `labels.references` turns each rule's hover tooltip into a standing label.
-	function lineLabels(reference: ChartReferenceLine[]) {
+	function lineLabels(
+		reference: ChartReferenceLine[],
+		references: boolean | { value?: boolean } = true,
+	) {
 		return renderUI(
 			<LineChart
 				aria-label="Revenue by month"
@@ -876,10 +879,31 @@ describe('reference value labels', () => {
 				series={[...SERIES]}
 				width={400}
 				reference={reference}
-				labels={{ references: true }}
+				labels={{ references }}
 			/>,
 		)
 	}
+
+	it('shows the label alone, with no value after it, under references.value false', () => {
+		const { container } = lineLabels([{ value: 60, label: 'Good 60' }, { value: 30 }], {
+			value: false,
+		})
+
+		const [named, bare] = allBySlot(container, 'chart-reference-label')
+
+		expect(named?.textContent).toBe('Good 60')
+
+		expect(named?.querySelector('tspan')).toBeNull()
+
+		// A rule with no label still shows its value, which names it.
+		expect(bare?.textContent).toBe('30')
+	})
+
+	it('shows the value after the label for an object with no value key', () => {
+		const { container } = lineLabels([{ value: 60, label: 'Goal' }], {})
+
+		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('Goal60')
+	})
 
 	it('draws a standing label per rule and lays no hover target', () => {
 		const { container } = lineLabels([{ value: 60, label: 'Goal' }])

@@ -191,6 +191,8 @@ export function ChartCartesianFrame({
 
 	const standing = Boolean(labels?.references) && !spark
 
+	const withValue = typeof labels?.references !== 'object' || labels.references.value !== false
+
 	// A hidden series drops its labels and its points at once, though the layout
 	// holds its place while its marks play their exit.
 	const labelled = valueLabels?.list.filter((entry) => !chart.hidden.has(entry.index))
@@ -200,7 +202,7 @@ export function ChartCartesianFrame({
 	const referenceLabels = placeReferenceLabels(
 		chart,
 		reference,
-		{ values: standing, categories: !spark },
+		{ values: standing, categories: !spark, withValue },
 		points,
 	)
 

@@ -107,14 +107,14 @@ export type ChartReferenceLinesProps = {
 	/**
 	 * The placed standing labels from {@link placeReferenceLabels}, aligned with
 	 * `reference`: the `labels.references` mode. Each rule draws its label on
-	 * it in place of the hover tooltip. The label shows the rule's own label and
-	 * then its value ({@link referenceLabelParts}). The rules then shed their pointer target
+	 * it in place of the hover tooltip. The label shows the parts that the
+	 * placement chose ({@link StandingReferenceLabel}). The rules then shed their pointer target
 	 * and float no surface. The caller also drops their keyboard stop
 	 * ({@link referenceStops}), since the label reads the value where pointing
 	 * once did. A rule with no label, or with the whole prop omitted, floats the
 	 * hover tooltip.
 	 */
-	labels?: (PlacedReferenceLabel | null)[]
+	labels?: (StandingReferenceLabel | null)[]
 	/**
 	 * The point markers that the chart draws. A rule breaks around each marker
 	 * that sits on it, so the dash does not cross the point
@@ -125,7 +125,10 @@ export type ChartReferenceLinesProps = {
 
 /**
  * The glyphs of a standing label: the lead in the label ink, and then the tail
- * in {@link k.mark.value}, {@link LABEL_PART_SPACE} after it.
+ * in {@link k.mark.value}, {@link LABEL_PART_SPACE} after it. The tail sets the
+ * central baseline of its label again. SVG 1.1 does not inherit
+ * `dominant-baseline`, so an engine that follows it puts a tail on another
+ * baseline than its lead.
  *
  * @internal
  */
@@ -135,7 +138,7 @@ function ReferenceLabelGlyphs({ parts }: { parts: ReferenceLabelParts }) {
 			{parts.lead}
 
 			{parts.tail && (
-				<tspan dx={LABEL_PART_SPACE} className={cn(k.mark.value)}>
+				<tspan dx={LABEL_PART_SPACE} dominantBaseline="central" className={cn(k.mark.value)}>
 					{parts.tail}
 				</tspan>
 			)}
@@ -158,7 +161,20 @@ export type ReferenceLabelModes = {
 	values: boolean
 	/** The labels of the category rules, which stand whenever there is room. */
 	categories: boolean
+	/**
+	 * Show the value after the own label of a value rule:
+	 * `labels.references.value`.
+	 */
+	withValue: boolean
 }
+
+/**
+ * A placed standing label and the parts of its text, which the placement
+ * measured. The rules draw the same parts, so the text and its spot agree.
+ *
+ * @internal
+ */
+export type StandingReferenceLabel = PlacedReferenceLabel & { parts: ReferenceLabelParts }
 
 /**
  * Places the standing reference labels, aligned with `reference`, or none when
@@ -180,24 +196,30 @@ export function placeReferenceLabels(
 	reference: ChartReferenceLine[] | undefined,
 	modes: ReferenceLabelModes,
 	points: readonly Vec[] = [],
-): (PlacedReferenceLabel | null)[] | undefined {
+): (StandingReferenceLabel | null)[] | undefined {
 	if (!reference || reference.length === 0) return undefined
 
 	if (!modes.values && !(modes.categories && reference.some(isCategoryReference))) return undefined
 
-	return referenceLabels(
+	const parts = reference.map((line) =>
+		referenceLabelParts(
+			line,
+			(value) => chart.formatAxisValue(value, line.axis ?? 'y'),
+			modes.withValue,
+		),
+	)
+
+	const placed = referenceLabels(
 		reference.map((line, index) => {
-			const parts = referenceLabelParts(line, (value) =>
-				chart.formatAxisValue(value, line.axis ?? 'y'),
-			)
+			const text = parts[index] ?? { lead: '', tail: '' }
 
 			const category = isCategoryReference(line)
 
-			const shown = category ? modes.categories && parts.lead !== '' : modes.values
+			const shown = category ? modes.categories && text.lead !== '' : modes.values
 
 			return {
 				at: rulePosition(chart, line, index),
-				width: chart.referenceLabelWidth(parts),
+				width: chart.referenceLabelWidth(text),
 				orientation: category ? crossOrientation(chart.orientation) : undefined,
 				unlabeled: !shown,
 			}
@@ -205,6 +227,10 @@ export function placeReferenceLabels(
 		chart.orientation,
 		chart.plot,
 		points.map(markerBox),
+	)
+
+	return placed.map((label, index) =>
+		label ? { ...label, parts: parts[index] ?? { lead: '', tail: '' } } : null,
 	)
 }
 
@@ -244,9 +270,7 @@ type ReferenceRuleProps = {
 	 * its keyboard stop. `null` when the mode is off, or when the label found no
 	 * free spot.
 	 */
-	label: PlacedReferenceLabel | null
-	/** The parts of the rule's standing label. */
-	parts: ReferenceLabelParts
+	label: StandingReferenceLabel | null
 	/**
 	 * The `stroke-dasharray` of the rule: its dashes between its breaks
 	 * ({@link ruleBreaks}), or `undefined` for a solid rule with no break.
@@ -474,9 +498,8 @@ function ReferenceLabel({
 	paint,
 	rise,
 	label,
-	parts,
-}: Pick<ReferenceRuleProps, 'index' | 'paint' | 'rise' | 'parts'> & {
-	label: PlacedReferenceLabel
+}: Pick<ReferenceRuleProps, 'index' | 'paint' | 'rise'> & {
+	label: StandingReferenceLabel
 }) {
 	const { emphasizedReference } = useChartEmphasis()
 
@@ -496,7 +519,7 @@ function ReferenceLabel({
 					className={cn(k.mark.label, inkClass(paint))}
 					style={color ? { fill: color } : undefined}
 				>
-					<ReferenceLabelGlyphs parts={parts} />
+					<ReferenceLabelGlyphs parts={label.parts} />
 				</text>
 			</RuleRise>
 		</g>
@@ -748,7 +771,6 @@ export function ChartReferenceLines({
 					format,
 					rise,
 					label: labels?.[index] ?? null,
-					parts: referenceLabelParts(line, format),
 				},
 			]
 		},

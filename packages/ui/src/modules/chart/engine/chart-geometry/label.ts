@@ -31,7 +31,7 @@
  * A value label whose box meets one drops.
  */
 
-import { MARKER_REACH, TICK_CHAR_WIDTH } from '../chart-constants'
+import { MARKER_REACH, REFERENCE_GAP, TICK_CHAR_WIDTH } from '../chart-constants'
 import { type ChartOrientation, type PlotRect, valueRule } from '../chart-orientation'
 import type { ValueHeadroom } from '../chart-scale'
 
@@ -643,10 +643,11 @@ function ruleBox(at: number, orientation: ChartOrientation, plot: PlotRect): Lab
 /**
  * Places the standing reference labels, aligned with `rules`, in the order of
  * `rules`. Each label takes the first spot on its rule ({@link referenceSpots})
- * whose box meets no label already placed, no other rule, and no box of
- * `markers`: the drawn point markers. Where every free spot crosses another
- * rule or a marker, the label takes the first spot that meets no label, and
- * its halo keeps it legible over the line.
+ * whose box meets no label already placed and no box of `markers`, the drawn
+ * point markers. The box also stays more than {@link REFERENCE_GAP} from each
+ * other rule, because a rule that near breaks for the label. Where every free
+ * spot meets another rule or a marker, the label takes the first spot that
+ * meets no label, and the other rule breaks for it.
  * A label never leaves its rule, so a label with no free spot is `null`, as is
  * the label of a rule that draws nothing or is `unlabeled`. That rule keeps its
  * hover tooltip and its keyboard stop. Every rule that draws is an obstacle,
@@ -678,9 +679,21 @@ export function referenceLabels(
 			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
 		)
 
-		const crossed = (box: LabelBox) =>
-			lines.some((line, other) => other !== index && line !== null && overlaps(line, box)) ||
-			markers.some((marker) => overlaps(marker, box))
+		// A rule within the gap of a label breaks for it, so a spot that comes
+		// that near to another rule lies over that rule.
+		const crossed = (box: LabelBox) => {
+			const reach = {
+				x0: box.x0 - REFERENCE_GAP,
+				x1: box.x1 + REFERENCE_GAP,
+				y0: box.y0 - REFERENCE_GAP,
+				y1: box.y1 + REFERENCE_GAP,
+			}
+
+			return (
+				lines.some((line, other) => other !== index && line !== null && overlaps(line, reach)) ||
+				markers.some((marker) => overlaps(marker, box))
+			)
+		}
 
 		const spot = free.find((candidate) => !crossed(candidate.box)) ?? free[0]
 

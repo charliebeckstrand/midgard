@@ -53,16 +53,28 @@ export type ChartValueLabelConfig = {
 	 * With it on, the rules shed their pointer target and keyboard stop, since
 	 * the label already reads what the tooltip would. Each label takes the first
 	 * free spot on its rule, and prefers a spot that no other rule and no point
-	 * marker crosses. In a vertical chart that is the right end of the rule, and
+	 * marker crosses or comes near. In a vertical chart that is the right end of the rule, and
 	 * then the left end. In a horizontal chart that is the first row down from
 	 * the top of the plot. A rule whose label finds no free spot keeps its
 	 * tooltip. A point label that meets a reference label drops. Each label has a
 	 * halo in the surface color, so it stays legible where a line or a rule
 	 * crosses it. The visually-hidden reference list keeps the assistive-tech
-	 * parity either way.
+	 * parity either way. An object turns the labels on and sets them.
 	 * @defaultValue false
 	 */
-	references?: boolean
+	references?: boolean | ChartReferenceLabelConfig
+}
+
+/** The settings of the standing reference labels: `labels.references` as an object. */
+type ChartReferenceLabelConfig = {
+	/**
+	 * Show the value of a value rule after its own label. Turn it off where the
+	 * rule's `label` already holds the value, such as `'Good 5%'`, so the value
+	 * does not show twice. A rule with no label still shows its value, which
+	 * names it. The hover tooltip and the visually-hidden list are unaffected.
+	 * @defaultValue true
+	 */
+	value?: boolean
 }
 
 /** The part of a cartesian chart that its point labels read. @internal */
