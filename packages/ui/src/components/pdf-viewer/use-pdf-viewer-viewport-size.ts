@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
-import { measureScrollContentBox } from '../../utilities/measure-box'
+import { measureContentBox } from '../../utilities/measure-box'
 import { observeResizeBeforePaint } from '../../utilities/observe-resize-before-paint'
 
 type ViewportSize = { width: number; height: number }
@@ -22,7 +22,7 @@ const sameSize = (a: ViewportSize, b: ViewportSize) => a.width === b.width && a.
  * viewport, and the overflow gives the viewport scrollbars. A reading less the
  * scrollbars made the fitted page smaller, and near the edge of the overflow the smaller
  * page stopped the overflow. The scrollbars then went, the page grew, and the viewport
- * changed between the two states on each frame. See `measureScrollContentBox`.
+ * changed between the two states on each frame.
  * @internal
  */
 export function usePdfViewerViewportSize(
@@ -50,7 +50,7 @@ export function usePdfViewerViewportSize(
 	const measure = useCallback(() => {
 		const el = ref.current
 
-		if (el) commit(measureScrollContentBox(el))
+		if (el) commit(measureContentBox(el, { stable: true }))
 	}, [ref, commit])
 
 	// The fitted page takes its size from this reading. Thus a resize commits before the
@@ -64,7 +64,7 @@ export function usePdfViewerViewportSize(
 		measure()
 
 		return observeResizeBeforePaint(el, () => {
-			const next = measureScrollContentBox(el)
+			const next = measureContentBox(el, { stable: true })
 
 			return shown.current && sameSize(shown.current, next) ? undefined : () => commit(next)
 		})

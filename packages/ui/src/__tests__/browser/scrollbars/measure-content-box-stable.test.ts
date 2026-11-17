@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { measureScrollContentBox } from '../../../utilities/measure-box'
+import { measureContentBox } from '../../../utilities/measure-box'
 
 /**
  * A 300 by 200 px content box with a 10 px padding and a 2 px border, and a child that
@@ -40,7 +40,7 @@ afterEach(() => {
  * The cases run with real scrollbars (the `scrollbars` instance of
  * `vitest.browser.config.ts`), so a scrollbar that shows takes space.
  */
-describe('measureScrollContentBox (real browser, real scrollbars)', () => {
+describe('measureContentBox with `stable` (real browser, real scrollbars)', () => {
 	const overflows = [
 		{ x: false, y: false },
 		{ x: true, y: false },
@@ -50,7 +50,7 @@ describe('measureScrollContentBox (real browser, real scrollbars)', () => {
 
 	it('ignores the scrollbars that the overflow adds', () => {
 		for (const overflow of overflows) {
-			expect(measureScrollContentBox(scroller('auto', overflow))).toEqual({
+			expect(measureContentBox(scroller('auto', overflow), { stable: true })).toEqual({
 				width: 300,
 				height: 200,
 			})
@@ -66,7 +66,7 @@ describe('measureScrollContentBox (real browser, real scrollbars)', () => {
 		expect(gutter).toBeGreaterThan(0)
 
 		for (const overflow of overflows) {
-			expect(measureScrollContentBox(scroller('stable', overflow))).toEqual({
+			expect(measureContentBox(scroller('stable', overflow), { stable: true })).toEqual({
 				width: 300 - gutter,
 				height: 200,
 			})
