@@ -19,18 +19,6 @@
 				"package.json"
 			]
 		},
-		"test:browser": {
-			"inputs": ["$TURBO_EXTENDS$", "vitest.base.ts", "$TURBO_ROOT$/vitest.shared.mts"]
-		},
-		"test:compiler": {
-			"inputs": [
-				"$TURBO_EXTENDS$",
-				"vitest.base.ts",
-				"$TURBO_ROOT$/vitest.shared.mts",
-				"vitest.docs.config.ts",
-				"vitest.docs-compiler.config.ts"
-			]
-		},
 		"test:workspace": {
 			"dependsOn": ["^build"],
 			"inputs": [
@@ -56,6 +44,87 @@
 				"$TURBO_ROOT$/packages/{auth,shared}/*.{ts,md}",
 				"$TURBO_ROOT$/packages/shared/scripts/**"
 			]
+		},
+		"test:browser": {
+			"dependsOn": ["^build"],
+			"env": ["DENSITY_ENGINES"],
+			"passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"],
+			"inputs": [
+				"src/**",
+				"vitest.browser.config.ts",
+				"tsconfig.json",
+				"$TURBO_ROOT$/tsconfig.base.json",
+				"vitest.base.ts",
+				"$TURBO_ROOT$/vitest.shared.mts"
+			]
+		},
+		"test:compiler": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**",
+				"vitest.config.ts",
+				"vitest.compiler.config.ts",
+				"vitest.compiler.preset.ts",
+				"tsconfig.json",
+				"$TURBO_ROOT$/tsconfig.base.json",
+				"package.json",
+				"vitest.base.ts",
+				"$TURBO_ROOT$/vitest.shared.mts",
+				"vitest.docs.config.ts",
+				"vitest.docs-compiler.config.ts"
+			]
+		},
+		"bench:smoke": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**",
+				"vitest.bench.config.ts",
+				"vitest.base.ts",
+				"$TURBO_ROOT$/vitest.shared.mts",
+				"tsconfig.json",
+				"$TURBO_ROOT$/tsconfig.base.json"
+			]
+		},
+		"bench:browser:smoke": {
+			"dependsOn": ["^build"],
+			"passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"],
+			"inputs": [
+				"src/**",
+				"vitest.bench.browser.config.ts",
+				"vitest.browser.config.ts",
+				"vitest.base.ts",
+				"$TURBO_ROOT$/vitest.shared.mts",
+				"tailwind.css",
+				"tsconfig.json",
+				"$TURBO_ROOT$/tsconfig.base.json"
+			]
+		},
+		"docs:build": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**",
+				"!src/**/__tests__/**",
+				"!src/__benchmarks__/**",
+				"tailwind.css",
+				"tsconfig.json",
+				"$TURBO_ROOT$/tsconfig.base.json"
+			],
+			"outputs": ["src/docs/dist/**"]
+		},
+		"test:docs-build": {
+			"dependsOn": ["docs:build"],
+			"inputs": [
+				"src/docs/dist/**",
+				"src/__tests__/docs-build/**",
+				"scripts/docs-server.ts",
+				"vitest.docs-build.config.ts",
+				"vitest.base.ts",
+				"$TURBO_ROOT$/vitest.shared.mts"
+			]
+		},
+		"docs:bench": {
+			"dependsOn": ["docs:build"],
+			"cache": false
 		}
 	}
 }
