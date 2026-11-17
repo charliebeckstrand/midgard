@@ -1,17 +1,13 @@
 /*
- * The Tailwind extensions of ui: the font of ui and its font stack
- * (`src/fonts/fonts.css`, with no latin face: `AppearanceProvider` adds it),
- * the `density-any` variant, the `motion-reduce` and `motion-safe` variants
- * that follow the Motion setting, the `sidebar-offcanvas` variant that follows
- * the Sidebar setting, the `surfaces-glass` variant that follows the
- * Surfaces setting, the stepped and ring utilities
- * (`density-p-[2,3,4]`, `px-ring-2`, …), the touch gaps (`touch-gap-y-0.5`), the touch pitches (`touch-pitch`), the `scroll-fade-inline` and `scroll-fade-block` edge fades,
- * the 10 px `2xs` step of the text scale, two base styles on the root
- * element: `touch-action: manipulation`, and
- * the `color-scheme` that follows the `dark` class, the rule that hides the
- * default footer of a panel that has its own, the keyframes of the two endless
- * loops, and the breakpoint classes of the structure units. Import this file in each Tailwind entry that scans
- * ui. Each plugin explains its classes or its style.
+ * The Tailwind extensions of ui. Import this file in each Tailwind entry that
+ * scans ui. The file holds these parts:
+ *
+ * - The font of ui and its font stack (`src/fonts/fonts.css`). The file has no
+ *   latin face, because `AppearanceProvider` adds it.
+ * - The plugins: the variants, the utilities, and the base styles. Each plugin
+ *   explains its classes or its styles.
+ * - The `2xs` step of the text scale and the keyframes of the two endless loops.
+ * - The breakpoint classes that the scanner does not find in the source.
  */
 @import '../src/fonts/fonts.css';
 
@@ -108,9 +104,9 @@
 
 /*
  * The breakpoint classes of the responsive variant axes of the components.
- * `resolveVariant` in `src/types/responsive.ts` puts the prefix on each class
- * of a value at run time. A test makes sure that each class it can make is in
- * these lines. DescriptionList `orientation` (`grid-cols-1` is a line above):
+ * `resolveVariant` in `src/utilities/responsive.ts` puts the prefix on each class
+ * of a value at run time. `responsive-variants.test.ts` makes sure that each
+ * class it can make is in these lines. DescriptionList `orientation` (`grid-cols-1` is a line above):
  */
 @source inline('{sm,md,lg,xl,2xl}:grid-cols-[min(50%,--spacing(56))_auto]');
 @source inline('{sm,md,lg,xl,2xl}:[&>dt]:pe-{0,2}');
