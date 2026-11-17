@@ -19,8 +19,8 @@ import {
 	textClass,
 } from './chart-color/paint'
 import {
+	LABEL_GAP,
 	MARKER_REACH,
-	REFERENCE_GAP,
 	REFERENCE_HIT_WIDTH,
 	REFERENCE_STROKE_WIDTH,
 } from './chart-constants'
@@ -328,7 +328,7 @@ type ReferenceRuleProps = {
 type RulePoints = { x1: number; y1: number; x2: number; y2: number }
 
 /** The radius of the hole that a point marker cuts in a rule: its reach and the gap. @internal */
-const POINT_BREAK = MARKER_REACH + REFERENCE_GAP
+const POINT_BREAK = MARKER_REACH + LABEL_GAP
 
 /**
  * The point markers that sit on a rule from `from` to `to`: each marker whose
@@ -367,11 +367,11 @@ function textSpan(label: PlacedReferenceLabel): { x0: number; x1: number } {
 /**
  * The breaks of a rule from `from` to `to`, as spans from its start. A rule
  * breaks for each standing label in `labels` that it crosses or comes nearer to
- * than {@link REFERENCE_GAP}, not only for its own. Thus no dash shows through,
+ * than {@link LABEL_GAP}, not only for its own. Thus no dash shows through,
  * or runs along, a label that another rule passes under. It
  * also breaks around each point marker in `points` that sits on it
  * ({@link pointsOnRule}). Each break clears its label or its marker by
- * {@link REFERENCE_GAP} on each side. A label text runs horizontally: a
+ * {@link LABEL_GAP} on each side. A label text runs horizontally: a
  * horizontal rule breaks for the measured width of the text, and a vertical
  * rule for the height of the label.
  *
@@ -398,23 +398,23 @@ export function ruleBreaks(
 	// close rule does not run along the glyphs of its neighbor's label.
 	const crossed = labels.filter(
 		({ box }) =>
-			box.x0 - REFERENCE_GAP <= x1 &&
-			x0 <= box.x1 + REFERENCE_GAP &&
-			box.y0 - REFERENCE_GAP <= y1 &&
-			y0 <= box.y1 + REFERENCE_GAP,
+			box.x0 - LABEL_GAP <= x1 &&
+			x0 <= box.x1 + LABEL_GAP &&
+			box.y0 - LABEL_GAP <= y1 &&
+			y0 <= box.y1 + LABEL_GAP,
 	)
 
 	const labelBreaks = crossed.map((label): RuleBreak => {
 		if (across) {
 			return {
-				from: along(0, label.box.y0) - REFERENCE_GAP,
-				to: along(0, label.box.y1) + REFERENCE_GAP,
+				from: along(0, label.box.y0) - LABEL_GAP,
+				to: along(0, label.box.y1) + LABEL_GAP,
 			}
 		}
 
 		const span = textSpan(label)
 
-		return { from: along(span.x0, 0) - REFERENCE_GAP, to: along(span.x1, 0) + REFERENCE_GAP }
+		return { from: along(span.x0, 0) - LABEL_GAP, to: along(span.x1, 0) + LABEL_GAP }
 	})
 
 	const pointBreaks = pointsOnRule(points, from, to).map((point): RuleBreak => {

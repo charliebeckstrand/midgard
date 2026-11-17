@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { REFERENCE_GAP } from '../../modules/chart/engine/chart-constants'
+import { LABEL_GAP } from '../../modules/chart/engine/chart-constants'
 import type { PlacedReferenceLabel } from '../../modules/chart/engine/chart-geometry/label'
 import type { ChartReferenceLine } from '../../modules/chart/engine/chart-reference'
 import { ruleBreaks } from '../../modules/chart/engine/chart-reference-lines'
@@ -1199,6 +1199,6 @@ describe('reference rule breaks', () => {
 		expect(breaksAt(62)).toEqual([])
 
 		// A rule 3.5 units under the box is inside the gap, so it stops short of the text.
-		expect(breaksAt(60)).toEqual([{ from: 160 - REFERENCE_GAP, to: 200 + REFERENCE_GAP }])
+		expect(breaksAt(60)).toEqual([{ from: 160 - LABEL_GAP, to: 200 + LABEL_GAP }])
 	})
 })

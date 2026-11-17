@@ -1,9 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { REFERENCE_GAP } from '../../modules/chart/engine/chart-constants'
+import { LABEL_GAP } from '../../modules/chart/engine/chart-constants'
 import {
 	LABEL_HEIGHT,
-	LABEL_ROW_GAP,
 	type LabelBox,
 	markerBox,
 	type PlacedReferenceLabel,
@@ -25,7 +24,7 @@ function series(points: [number, number, number][]): ValueLabelSeries {
 }
 
 /** The center of the second label row, the first that a label tries. */
-const SECOND_ROW = PLOT.y + LABEL_HEIGHT / 2 + LABEL_HEIGHT + LABEL_ROW_GAP
+const SECOND_ROW = PLOT.y + LABEL_HEIGHT / 2 + LABEL_HEIGHT + LABEL_GAP
 
 /** Two boxes share area. */
 function overlaps(a: LabelBox, b: LabelBox): boolean {
@@ -157,9 +156,9 @@ describe('referenceLabels', () => {
 		expect(target?.y).toBe(SECOND_ROW)
 
 		// Each crowded label sits one row, a label height and the row gap, under its neighbor.
-		expect((stretch?.y ?? 0) - (target?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_ROW_GAP)
+		expect((stretch?.y ?? 0) - (target?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_GAP)
 
-		expect((ceiling?.y ?? 0) - (stretch?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_ROW_GAP)
+		expect((ceiling?.y ?? 0) - (stretch?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_GAP)
 	})
 
 	it('keeps the top row, against the edge of the plot, for last', () => {
@@ -179,7 +178,7 @@ describe('referenceLabels', () => {
 				{ at: 100, width: 42, orientation: 'horizontal' },
 			],
 			'vertical',
-			{ ...PLOT, height: 3 * LABEL_HEIGHT + 2 * LABEL_ROW_GAP },
+			{ ...PLOT, height: 3 * LABEL_HEIGHT + 2 * LABEL_GAP },
 		)
 
 		expect(crowded?.y).toBe(PLOT.y + LABEL_HEIGHT / 2)
@@ -197,23 +196,40 @@ describe('referenceLabels', () => {
 		)
 
 		// The value rule would break for the label in the second row.
-		expect(release?.y).toBe(SECOND_ROW + LABEL_HEIGHT + LABEL_ROW_GAP)
+		expect(release?.y).toBe(SECOND_ROW + LABEL_HEIGHT + LABEL_GAP)
 
 		expect(release?.anchor).toBe('middle')
 	})
 
-	it('moves a label off a rule that sits just at the gap from its row', () => {
-		// The second row spans y 17 to 30, so a rule at 13 is just the gap over it.
+	it('prefers a row with room from another rule over a row that only clears the gap', () => {
+		// The second row spans y 17 to 30, so a rule at 12 clears it by 5: the gap,
+		// but not the room. The third row clears the rule by more than the room.
 		const [, release] = referenceLabels(
 			[
-				{ at: SECOND_ROW - LABEL_HEIGHT / 2 - REFERENCE_GAP, width: 28 },
+				{ at: 12, width: 28 },
 				{ at: 100, width: 42, orientation: 'horizontal' },
 			],
 			'vertical',
 			PLOT,
 		)
 
-		expect(release?.y).not.toBe(SECOND_ROW)
+		expect(release?.y).toBe(SECOND_ROW + LABEL_HEIGHT + LABEL_GAP)
+	})
+
+	it('moves a label off a rule that sits just at the gap from its row, where no row has room', () => {
+		// A plot three rows high: the top and bottom rows lie against its edges, and
+		// a rule at 13 is just the gap over the middle row, which spans y 17 to 30.
+		const [, release] = referenceLabels(
+			[
+				{ at: SECOND_ROW - LABEL_HEIGHT / 2 - LABEL_GAP, width: 28 },
+				{ at: 100, width: 42, orientation: 'horizontal' },
+			],
+			'vertical',
+			{ ...PLOT, height: 3 * LABEL_HEIGHT + 2 * LABEL_GAP },
+		)
+
+		// The top row meets the rule, so the label takes the bottom row.
+		expect(release?.y).toBe(SECOND_ROW + LABEL_HEIGHT + LABEL_GAP)
 	})
 
 	it('places nothing for a rule that draws nothing, and keeps the slots aligned', () => {

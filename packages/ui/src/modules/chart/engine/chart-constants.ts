@@ -191,11 +191,20 @@ export const REFERENCE_DASH_OFF = 4
 export const REFERENCE_DASH = `${REFERENCE_DASH_ON} ${REFERENCE_DASH_OFF}`
 
 /**
- * The clear space between the dash of a reference rule and a thing that breaks
- * it: the glyphs of its standing label, or a point marker that sits on it. The
- * rule stops this far from each. @internal
+ * The one spacing scale of chart labels, step one: the least clear space
+ * between a label and a thing beside it. A reference rule stops this far from
+ * a label or a point marker that breaks it. Stacked labels sit this far apart,
+ * and a label keeps this far inside the plot. @internal
  */
-export const REFERENCE_GAP = 4
+export const LABEL_GAP = 4
+
+/**
+ * The spacing scale of chart labels, step two: two gaps. A value label sits
+ * this far from its point. A reference label keeps this much clear space from
+ * each other rule and from the top and bottom edges of the plot, where a free
+ * spot has it. @internal
+ */
+export const LABEL_ROOM = 2 * LABEL_GAP
 
 /** Transparent stroke width making the reference rule an easy hover target. @internal */
 export const REFERENCE_HIT_WIDTH = 32
