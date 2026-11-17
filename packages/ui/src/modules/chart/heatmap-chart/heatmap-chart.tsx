@@ -164,7 +164,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		if (x !== undefined && y !== undefined) onCellClick?.({ x, y }, [row, col], press)
 	})
 
-	// A cell is named by its column and its row. The readout has one category for
+	// Its column and its row name a cell. The readout has one category for
 	// each column, so it cannot name a cell. The context menu reads this name while
 	// it renders, so it is a plain function and not a stable event.
 	const nameCell = (index: number) => {
