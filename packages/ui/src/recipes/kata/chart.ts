@@ -39,8 +39,11 @@ export const k = {
 	tick: ['text-sm', 'tabular-nums', ...mutedFill],
 	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ['text-sm text-start', 'leading-tight', ...text.muted],
-	/** Tooltip value ink: the strong element, values lead. */
-	value: ['text-xs', 'tabular-nums', 'font-medium', ...text.default],
+	/**
+	 * Tooltip value ink: the type of {@link k.label}, with tabular figures. Only
+	 * the ink is stronger, so the value leads and the row reads as one line.
+	 */
+	value: ['text-sm text-start', 'leading-tight', 'tabular-nums', 'font-medium', ...text.default],
 	/** The paint beside a mark: the ink of its label (`label`) and the stroke of a point marker (`stroke`). */
 	mark: {
 		/**
