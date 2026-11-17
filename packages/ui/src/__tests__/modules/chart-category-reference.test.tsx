@@ -9,6 +9,7 @@ import {
 	getSlot,
 	present,
 	renderUI,
+	waitFor,
 } from '../helpers'
 import { axisLabels } from '../helpers/axis-labels'
 
@@ -152,6 +153,45 @@ describe('a category reference', () => {
 		const lineY = peak && mar ? peak.y + ((x - peak.x) * (mar.y - peak.y)) / (mar.x - peak.x) : 0
 
 		expect(Number(label.getAttribute('y')) - 6.5).toBeGreaterThanOrEqual(lineY + 8)
+	})
+
+	it('cuts a label too wide for the space between rules, and floats the whole label', async () => {
+		const label = 'Release of the new invoice classifier'
+
+		const { container } = line({
+			reference: [{ category: 'Jan' }, { category: 'Feb', label }, { category: 'Mar' }],
+		})
+
+		const cut = getSlot(container, 'chart-reference-label')
+
+		expect(cut).toHaveAttribute('data-cut')
+
+		expect(cut.textContent).toMatch(/^Rel.*…$/)
+
+		// The cut centers on its rule, and ends the room (8) short of the rule on
+		// each side. jsdom has no text layout, so a character is 8.5 wide.
+		expect(cut).toHaveAttribute('text-anchor', 'middle')
+
+		const [jan, , mar] = rules(container).map((rule) => Number(rule.getAttribute('x1')))
+
+		const half = (8.5 * (cut.textContent?.length ?? 0)) / 2
+
+		expect(Number(cut.getAttribute('x')) - half).toBeGreaterThanOrEqual((jan ?? 0) + 8)
+
+		expect(Number(cut.getAttribute('x')) + half).toBeLessThanOrEqual((mar ?? 0) - 8)
+
+		// The floating-ui mock has no hover, so focus opens the tooltip here.
+		fireEvent.focus(getSlot(container, 'chart-reference-label-target'))
+
+		await waitFor(() =>
+			expect(document.querySelector('[data-slot="chart-reference-swatch"]')).not.toBeNull(),
+		)
+
+		expect(
+			document
+				.querySelector('[data-slot="chart-reference-swatch"]')
+				?.closest('[data-slot="tooltip-content"]')?.textContent,
+		).toContain(label)
 	})
 
 	it('moves its label off a value rule that shows no label', () => {

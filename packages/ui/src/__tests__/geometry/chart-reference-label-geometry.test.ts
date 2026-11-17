@@ -275,6 +275,78 @@ describe('referenceLabels', () => {
 		expect(smooth?.y).not.toBe(straight?.y)
 	})
 
+	it('cuts a label short of the next rule, with room, where every whole spot crosses it', () => {
+		// A cut keeps whole 7-unit characters, and needs three of them.
+		const cut = (room: number) => (room >= 21 ? Math.min(160, Math.floor(room / 7) * 7) : null)
+
+		const [hold] = referenceLabels(
+			[
+				{ at: 20, width: 160, cut },
+				{ at: 170, width: 0, unlabeled: true },
+			],
+			'horizontal',
+			PLOT,
+		)
+
+		expect(hold?.cut).toBe(true)
+
+		expect(hold?.anchor).toBe('start')
+
+		expect(hold?.width).toBeLessThan(160)
+
+		// The box ends the room short of the rule, and no less than a character short.
+		expect(hold?.box.x1).toBeLessThanOrEqual(170 - LABEL_ROOM)
+
+		expect(hold?.box.x1).toBeGreaterThan(170 - LABEL_ROOM - 7)
+	})
+
+	it('keeps a whole label that a free spot holds, and crosses a rule where no cut fits', () => {
+		const cut = (room: number) => (room >= 21 ? Math.min(28, room) : null)
+
+		const [whole] = referenceLabels(
+			[
+				{ at: 20, width: 28, cut },
+				{ at: 170, width: 0, unlabeled: true },
+			],
+			'horizontal',
+			PLOT,
+		)
+
+		expect(whole?.cut).toBeUndefined()
+
+		// The next rule leaves less room than three characters.
+		const [crossed] = referenceLabels(
+			[
+				{ at: 20, width: 160, cut },
+				{ at: 30, width: 0, unlabeled: true },
+			],
+			'horizontal',
+			{ ...PLOT, x: 10 },
+		)
+
+		expect(crossed?.cut).toBeUndefined()
+
+		expect(crossed?.width).toBe(160)
+	})
+
+	it('cuts the label at the end of a value rule short of a category rule across it', () => {
+		const cut = (room: number) => (room >= 21 ? Math.min(140, Math.floor(room / 7) * 7) : null)
+
+		// A category rule at 120 crosses both ends of the value rule at 50.
+		const [goal] = referenceLabels(
+			[
+				{ at: 50, width: 140, cut },
+				{ at: 120, width: 0, unlabeled: true, orientation: 'horizontal' },
+			],
+			'vertical',
+			PLOT,
+		)
+
+		expect([goal?.anchor, goal?.x, goal?.cut]).toEqual(['end', PLOT.x + PLOT.width, true])
+
+		expect(goal?.box.x0).toBeGreaterThanOrEqual(120 + LABEL_ROOM)
+	})
+
 	it('places nothing for a rule that draws nothing, and keeps the slots aligned', () => {
 		const labels = referenceLabels(
 			[

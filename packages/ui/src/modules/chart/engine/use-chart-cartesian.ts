@@ -58,7 +58,11 @@ import { parseInstant } from './chart-time'
 import type { CartesianChartProps, ChartPress, ChartReadoutSource, ChartSeries } from './types'
 import { useChartFrameSizing } from './use-chart-frame-sizing'
 import { useLaidOutHidden } from './use-chart-laid-out-hidden'
-import { type ReferenceLabelWidth, useReferenceLabelWidth } from './use-chart-reference-label-width'
+import {
+	type ReferenceLabelCut,
+	type ReferenceLabelWidth,
+	useReferenceLabelWidth,
+} from './use-chart-reference-label-width'
 import { useChartTextWidth } from './use-chart-text-width'
 import { type ChartTexture, useChartTexture } from './use-chart-texture'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-toggle'
@@ -285,6 +289,8 @@ export type CartesianChart = {
 	referenceItems: ChartLegendReference[]
 	/** The drawn width of a standing reference label, measured in the font of the chart. */
 	referenceLabelWidth: ReferenceLabelWidth
+	/** A standing reference label cut to fit a room, measured in the font of the chart. */
+	referenceLabelCut: ReferenceLabelCut
 	/** Reference indexes toggled off: their rules are pulled and their chips struck through. */
 	referenceHidden: ReadonlySet<number>
 	/** Toggles a reference rule on or off by its index in the `reference` array. */
@@ -838,6 +844,7 @@ export function useChartCartesian<T>(
 		legendItems,
 		referenceItems,
 		referenceLabelWidth: referenceLabels.width,
+		referenceLabelCut: referenceLabels.cut,
 		referenceHidden,
 		toggleReference,
 		bandPositions: layout.bandPositions,

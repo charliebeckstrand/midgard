@@ -432,6 +432,29 @@ describe('reference line keyboard navigation', () => {
 		expect(referenceTooltip()?.textContent).toContain('Goal')
 	})
 
+	it('keeps the hover target of a value rule whose label is cut at a category rule', () => {
+		// A category rule at Feb crosses the rule near its middle, and the label is
+		// too wide for either side of it.
+		const { container } = bar({
+			reference: [
+				{ value: 60, label: 'Hold every invoice for a second review' },
+				{ category: 'Feb' },
+			],
+			labels: { references: true },
+		})
+
+		const label = bySlot(container, 'chart-reference-label')
+
+		expect(label).toHaveAttribute('data-cut')
+
+		expect(label?.textContent).toMatch(/…$/)
+
+		// The value rule keeps its wide hover target, which reads the whole label.
+		const [valueRule] = allBySlot(container, 'chart-reference-line')
+
+		expect(valueRule?.querySelectorAll('line').length).toBe(2)
+	})
+
 	it('keeps the stop and the tooltip of a labeled rule whose value reads on hover', async () => {
 		const { container } = bar({
 			reference: [{ value: 60, label: 'Goal', valueDisplay: 'hover' }],

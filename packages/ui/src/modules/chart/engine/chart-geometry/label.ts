@@ -511,6 +511,11 @@ export type ReferenceLabelRule = {
 	width: number
 	orientation?: ChartOrientation
 	unlabeled?: boolean
+	/**
+	 * The drawn width of the label cut to fit `room`, or `null` where no cut of
+	 * it fits. Omitted, the label is never cut.
+	 */
+	cut?: (room: number) => number | null
 }
 
 /**
@@ -524,6 +529,8 @@ export type PlacedReferenceLabel = {
 	anchor: PlacedValueLabel['anchor']
 	width: number
 	box: LabelBox
+	/** The label is cut to `width` ({@link cutSpot}), so it does not show its whole text. */
+	cut?: boolean
 }
 
 /**
@@ -856,7 +863,67 @@ function lessCost(a: readonly number[], b: readonly number[]): boolean {
 	return false
 }
 
-/** The spot of least cost ({@link spotCost}), the first of a tie, or `undefined` for no spot. @internal */
+/**
+ * The spot cut short of the other rules across its line that it crosses, or
+ * `null` where it crosses none, or no cut of the label fits. A rule that a
+ * label crosses breaks for it, so a label too wide for the space between two
+ * rules shows its start and an ellipsis instead. The anchored end of the label
+ * stays, and the free end stops {@link LABEL_ROOM} short of the nearest rule
+ * past the anchor. A centered label keeps its center, and stops that far short
+ * of the nearest rule on each side. `rules` holds the other rules, and `cut`
+ * gives the width of the label cut to fit a room.
+ * @internal
+ */
+function cutSpot(
+	spot: PlacedReferenceLabel,
+	rules: readonly LabelBox[],
+	cut: (room: number) => number | null,
+): PlacedReferenceLabel | null {
+	const { box, anchor } = spot
+
+	// The rules across the line of the label: each runs along y through its row.
+	const across = rules.filter(
+		(line) => line.x0 === line.x1 && line.y0 <= box.y1 && box.y0 <= line.y1,
+	)
+
+	if (!across.some((line) => crosses(line, box))) return null
+
+	const at = anchor === 'start' ? box.x0 : anchor === 'end' ? box.x1 : (box.x0 + box.x1) / 2
+
+	const right = Math.min(...across.filter((line) => line.x0 > at).map((line) => line.x0))
+
+	const left = Math.max(...across.filter((line) => line.x0 < at).map((line) => line.x0))
+
+	// The room of the text: its box, less the padding, short of the room of each rule.
+	const room =
+		anchor === 'start'
+			? right - LABEL_ROOM - box.x0
+			: anchor === 'end'
+				? box.x1 - left - LABEL_ROOM
+				: 2 * (Math.min(at - left, right - at) - LABEL_ROOM)
+
+	const width = cut(room - 2 * LABEL_PAD)
+
+	if (width === null || width >= spot.width) return null
+
+	const padded = width + 2 * LABEL_PAD
+
+	const [x0, x1] =
+		anchor === 'start'
+			? [box.x0, box.x0 + padded]
+			: anchor === 'end'
+				? [box.x1 - padded, box.x1]
+				: [at - padded / 2, at + padded / 2]
+
+	return { ...spot, width, box: { ...box, x0, x1 }, cut: true }
+}
+
+/**
+ * The spot of least cost, the first of a tie, or `undefined` for no spot. The
+ * cost is the {@link spotCost} of the spot, with a cut spot ({@link cutSpot})
+ * after a whole one that crosses as much.
+ * @internal
+ */
 function mostOpen(
 	spots: PlacedReferenceLabel[],
 	scene: LabelScene,
@@ -866,7 +933,9 @@ function mostOpen(
 	let least: number[] | undefined
 
 	for (const spot of spots) {
-		const cost = spotCost(spot.box, scene)
+		const [data, rules, crowded] = spotCost(spot.box, scene)
+
+		const cost = [data, rules, spot.cut ? 1 : 0, crowded]
 
 		if (!least || lessCost(cost, least)) {
 			best = spot
@@ -890,7 +959,9 @@ function mostOpen(
  * other rules that it crosses, because a rule that near breaks for the label.
  * Last, the fewer things inside {@link LABEL_ROOM} of it: the data marks, the
  * other rules, the labels already placed, and the top and bottom edges of the
- * plot.
+ * plot. A rule with a `cut` also tries each spot that crosses another rule cut
+ * short of that rule ({@link cutSpot}). The cut comes after a whole spot that
+ * crosses as much, so a label is cut only where a whole label would cross.
  * A label never leaves its rule, so a label with no free spot is `null`, as is
  * the label of a rule that draws nothing or is `unlabeled`. That rule keeps its
  * hover tooltip and its keyboard stop. Every rule that draws is an obstacle,
@@ -951,8 +1022,21 @@ export function referenceLabels(
 			labels: [...edges, ...placed],
 		}
 
+		const { cut } = rule
+
+		const spots = referenceSpots(rule.at, rule.width, rule.orientation ?? orientation, plot)
+
+		// Each spot, and then its cut where it crosses a rule that a cut clears.
+		const candidates = cut
+			? spots.flatMap((spot) => {
+					const short = cutSpot(spot, scene.rules, cut)
+
+					return short ? [spot, short] : [spot]
+				})
+			: spots
+
 		const spot = mostOpen(
-			referenceSpots(rule.at, rule.width, rule.orientation ?? orientation, plot).filter(
+			candidates.filter(
 				(candidate) => !placed.some((other) => clearance(other, candidate.box) < LABEL_GAP),
 			),
 			scene,

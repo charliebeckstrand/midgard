@@ -59,8 +59,10 @@ export type ChartValueLabelConfig = {
 	 * prefers one with 8 px of room from the data, the other rules, the other
 	 * labels, and the top and bottom of the plot. In a vertical chart, the spots
 	 * are the right end of the rule, and then the left end. In a horizontal
-	 * chart, the spots are the heights from the top of the plot down. A rule
-	 * whose label finds no free spot keeps its tooltip. A point label that meets
+	 * chart, the spots are the heights from the top of the plot down. A label
+	 * too wide for the space between two rules is cut 8 px short of the next
+	 * rule, with an ellipsis, and shows the whole label in a tooltip on hover. A
+	 * rule whose label finds no free spot keeps its tooltip. A point label that meets
 	 * a reference label drops. Each label has a halo in the surface color, so it
 	 * stays legible where a line or a rule crosses it. The visually-hidden reference list keeps the assistive-tech
 	 * parity either way. An object turns the labels on and sets them.
