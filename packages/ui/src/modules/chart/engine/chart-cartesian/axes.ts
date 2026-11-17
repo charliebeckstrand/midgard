@@ -303,8 +303,8 @@ export function buildReferences(
  * rule marks the row of its category ({@link categoryRows}). On a chart that draws bars it sits
  * at the leading edge of the slot, between its category and the one before, so
  * it does not cut through a bar. Otherwise it sits at the band center, where
- * the line points are. A value rule, or a category that no row carries, holds
- * its slot with `null`.
+ * the line points are. A value rule, a category that no row carries, or a rule
+ * toggled off through its legend chip holds its slot with `null`.
  *
  * @internal
  */
@@ -313,15 +313,16 @@ export function buildCategoryReferences(
 	rawCategories: readonly unknown[],
 	band: BandScale,
 	bars: boolean,
+	hidden: ReadonlySet<number>,
 ): (number | null)[] {
 	if (!reference?.some(isCategoryReference)) return []
 
 	const rows = categoryRows(rawCategories)
 
-	return reference.map((line) => {
+	return reference.map((line, at) => {
 		const index = isCategoryReference(line) ? rows.get(line.category) : undefined
 
-		if (index === undefined) return null
+		if (index === undefined || hidden.has(at)) return null
 
 		return bars ? band.center(index) - band.step / 2 : band.center(index)
 	})

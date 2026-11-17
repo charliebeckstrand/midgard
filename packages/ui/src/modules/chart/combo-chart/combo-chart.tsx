@@ -34,7 +34,7 @@ import { useChartCartesian } from '../engine/use-chart-cartesian'
  * name for it.
  */
 export type ComboChartProps<T = never> = AccessibleName &
-	Omit<ChartBaseProps<T>, 'aria-label' | 'aria-labelledby' | 'aspectRatio'> &
+	Omit<ChartBaseProps<T>, 'aria-label' | 'aria-labelledby' | 'aspectRatio' | 'legend'> &
 	CartesianFrameProps & {
 		/** The series to plot, each drawn as bars, a line, or a filled area; slot colors follow this order. */
 		series: ComboChartSeries<T>[]

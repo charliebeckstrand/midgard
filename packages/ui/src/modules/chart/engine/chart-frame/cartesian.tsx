@@ -60,9 +60,6 @@ export type CartesianValueLabelSeries = {
 	list: ChartLineSeries[]
 }
 
-/** No reference chips: the legend of a chart whose value rules stand their labels. @internal */
-const NO_REFERENCE_ITEMS: never[] = []
-
 /**
  * The point markers that a list of line and area series draws: each point of a
  * series with markers on, and each isolated point of a series with them off,
@@ -218,7 +215,7 @@ export function ChartCartesianFrame({
 	const referenceLabels = placeReferenceLabels(
 		chart,
 		reference,
-		{ values: standing, categories: !spark, withValue },
+		{ values: standing, categories: !spark, withValue, listed: chart.listedReferences },
 		points,
 		labelled && drawnLines(labelled),
 	)
@@ -253,8 +250,9 @@ export function ChartCartesianFrame({
 					<ChartLegend
 						items={chart.legendItems}
 						// A rule that stands its label on the plot is named there, so the
-						// legend does not name it again.
-						references={standing ? NO_REFERENCE_ITEMS : chart.referenceItems}
+						// legend does not name it again. A rule that the legend names
+						// stands no label, so its chip stays.
+						references={standing ? chart.listedReferenceItems : chart.referenceItems}
 						hidden={chart.hidden}
 						referenceHidden={chart.referenceHidden}
 						onToggle={chart.toggleSeries}

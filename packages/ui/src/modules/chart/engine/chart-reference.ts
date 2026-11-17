@@ -24,8 +24,9 @@ type ChartReferenceShared = {
 	 * and the rule draws the label alone. A value rule with `valueDisplay:
 	 * 'hover'` also draws the label alone. A category rule always draws the name
 	 * near the top of the rule where it finds room, and the category readout shows
-	 * it. Each rule breaks for the label that it draws. Omitted, a value rule
-	 * reads by its value alone, and a category rule draws no label.
+	 * it. Each rule breaks for the label that it draws. A rule that the legend
+	 * names (`legend`) draws no label. Omitted, a value rule reads by its value
+	 * alone, and a category rule draws no label.
 	 */
 	label?: string
 	/**
@@ -49,6 +50,13 @@ type ChartReferenceShared = {
 	 * @defaultValue true
 	 */
 	dashed?: boolean
+	/**
+	 * Name the rule in the legend, with a chip that shows its dash, in place of a
+	 * label on the rule. `false` keeps the label on the rule. Omitted, the rule
+	 * follows `legend.references` of the chart. A chart whose legend is off
+	 * keeps the label on the rule.
+	 */
+	legend?: boolean
 }
 
 /**
@@ -91,10 +99,10 @@ export type ChartReferenceValue = ChartReferenceShared & {
  * A reference line at a category: a band-axis annotation drawn across the value
  * axis, such as a release, a launch, or a price change on a trend. It marks the
  * leading edge of the slot of its category on a chart that draws bars, and the
- * center of the band otherwise. It takes no legend chip and no keyboard stop:
- * its label and its description join the readout of its category, which the
- * pointer and the keyboard cursor both open. A category that the chart does
- * not draw draws no rule.
+ * center of the band otherwise. It takes no keyboard stop: its label and its
+ * description join the readout of its category, which the pointer and the
+ * keyboard cursor both open. It takes a legend chip only where the legend
+ * names it (`legend`). A category that the chart does not draw draws no rule.
  */
 export type ChartReferenceCategory = ChartReferenceShared & {
 	/**
@@ -171,9 +179,36 @@ export function ruleKeys(lines: readonly ChartReferenceLine[]): string[] {
 	).map(({ key }) => key)
 }
 
+/** A value rule with a finite value, or a category rule: a rule that can take a legend chip. @internal */
+function chipped(line: ChartReferenceLine): boolean {
+	return isCategoryReference(line) || Number.isFinite(line.value)
+}
+
 /**
- * The legend entries for the value reference lines: each finite rule's label,
- * or its value where it is unlabeled. A category rule takes no chip. Each is keyed to a line swatch in the rule's
+ * The indexes of the rules that the legend names in place of a label on the
+ * rule: each rule whose `legend` is on, or that follows an `all` that is on
+ * (`legend.references`). A value rule with no finite value takes no chip, so
+ * the legend does not name it.
+ *
+ * @internal
+ */
+export function legendRules(
+	reference: readonly ChartReferenceLine[] | undefined,
+	all: boolean,
+): ReadonlySet<number> {
+	const listed = new Set<number>()
+
+	reference?.forEach((line, index) => {
+		if ((line.legend ?? all) && chipped(line)) listed.add(index)
+	})
+
+	return listed
+}
+
+/**
+ * The legend entries for the reference lines: each finite value rule, and each
+ * category rule in `listed` ({@link legendRules}). An entry shows the rule's
+ * label, or else its value or its category. Each is keyed to a line swatch in the rule's
  * color, a palette slot through its `text` class or a raw color inline. The
  * swatch is dashed to match the rule, unless the rule is drawn solid. All of it
  * resolves the same way the rule itself paints. The chart legend renders these
@@ -185,15 +220,21 @@ export function ruleKeys(lines: readonly ChartReferenceLine[]): string[] {
 export function referenceLegendItems(
 	reference: ChartReferenceLine[] | undefined,
 	format: ReferenceFormat,
+	formatCategory: (category: string) => string,
+	listed: ReadonlySet<number>,
 ): ChartLegendReference[] {
 	return (reference ?? [])
 		.flatMap((line, index) =>
-			isCategoryReference(line) || !Number.isFinite(line.value) ? [] : [{ line, index }],
+			chipped(line) && (!isCategoryReference(line) || listed.has(index)) ? [{ line, index }] : [],
 		)
 		.map(({ line, index }) => {
 			const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
 
-			const label = line.label ?? format(line.value, line.axis ?? 'y')
+			const label =
+				line.label ??
+				(isCategoryReference(line)
+					? formatCategory(line.category)
+					: format(line.value, line.axis ?? 'y'))
 
 			// Mirror the rule: dashed unless it is explicitly drawn solid.
 			const dashed = line.dashed !== false
@@ -227,8 +268,9 @@ export function categoryRows(rawCategories: readonly unknown[]): Map<string, num
 /**
  * The readout notes of each category, aligned with `rawCategories`: one note
  * for each category reference at its row ({@link categoryRows}), in the order
- * of the prop. A rule with no label and no
- * description has nothing to say, so it adds no note. `undefined` when no rule
+ * of the prop. A rule with no label and no description has nothing to say, so
+ * it adds no note. A rule toggled off through its legend chip (`hidden`) adds
+ * none either. `undefined` when no rule
  * adds one, so a chart with no category reference carries no notes.
  *
  * @internal
@@ -236,13 +278,14 @@ export function categoryRows(rawCategories: readonly unknown[]): Map<string, num
 export function referenceNotes(
 	reference: ChartReferenceLine[] | undefined,
 	rawCategories: readonly unknown[],
+	hidden: ReadonlySet<number>,
 ): ChartReadoutNote[][] | undefined {
 	const lines = reference ?? []
 
 	const keys = ruleKeys(lines)
 
 	const marked = lines.flatMap((line, index): [ChartReferenceCategory, string][] =>
-		isCategoryReference(line) && (line.label || line.description)
+		isCategoryReference(line) && (line.label || line.description) && !hidden.has(index)
 			? [[line, keys[index] ?? '']]
 			: [],
 	)

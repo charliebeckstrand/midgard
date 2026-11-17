@@ -1245,3 +1245,108 @@ describe('reference rule breaks', () => {
 		expect(breaksAt(60)).toEqual([{ from: 160 - LABEL_GAP, to: 200 + LABEL_GAP }])
 	})
 })
+
+describe('reference lines that the legend names', () => {
+	const RULES: ChartReferenceLine[] = [
+		{ value: 55, label: 'Target' },
+		{ category: 'Feb', label: 'Release', description: 'Shipped v2' },
+	]
+
+	/** The text of each legend chip of a rule, in order. */
+	const chips = (container: HTMLElement) =>
+		allBySlot(container, 'chart-legend-reference').map((chip) => chip.textContent)
+
+	it('names every rule in the legend in place of its label, and shows the legend for one series', () => {
+		const { container } = bar({
+			legend: { references: true },
+			labels: { references: true },
+			reference: RULES,
+		})
+
+		// One series keeps the legend off by default. The rules that it names
+		// count as entries, so it shows.
+		expect(bySlot(container, 'chart-legend')).not.toBeNull()
+
+		expect(chips(container)).toEqual(['Target', 'Release'])
+
+		expect(allBySlot(container, 'chart-reference-label')).toHaveLength(0)
+
+		// Each chip is dashed, as its rule is.
+		expect(
+			allBySlot(container, 'chart-legend-reference').map((chip) =>
+				chip.querySelector('[data-slot="swatch"]')?.getAttribute('data-variant'),
+			),
+		).toEqual(['dashed', 'dashed'])
+	})
+
+	it('names one rule in the legend through its own legend, and a rule can opt out', () => {
+		const { container } = bar({
+			legend: { references: true },
+			labels: { references: true },
+			reference: [
+				{ value: 55, label: 'Target', legend: false },
+				{ value: 70, label: 'Ceiling' },
+				{ category: 'Feb', label: 'Release', legend: false },
+			],
+		})
+
+		expect(chips(container)).toEqual(['Ceiling'])
+
+		expect(allBySlot(container, 'chart-reference-label').map((label) => label.textContent)).toEqual(
+			['Target55', 'Release'],
+		)
+
+		const one = bar({
+			labels: { references: true },
+			reference: [
+				{ value: 55, label: 'Target' },
+				{ category: 'Feb', label: 'Release', legend: true },
+			],
+		})
+
+		expect(chips(one.container)).toEqual(['Release'])
+
+		expect(
+			allBySlot(one.container, 'chart-reference-label').map((label) => label.textContent),
+		).toEqual(['Target55'])
+	})
+
+	it('keeps the labels on the plot where the legend is off', () => {
+		const { container } = bar({
+			legend: false,
+			labels: { references: true },
+			reference: [
+				{ value: 55, label: 'Target', legend: true },
+				{ category: 'Feb', label: 'Release', legend: true },
+			],
+		})
+
+		expect(bySlot(container, 'chart-legend')).toBeNull()
+
+		expect(allBySlot(container, 'chart-reference-label')).toHaveLength(2)
+	})
+
+	it('toggles a category rule off through its chip, with its readout note', async () => {
+		const user = setupUser()
+
+		const { container } = bar({ legend: { references: true }, reference: RULES })
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		await waitFor(() => expect(allBySlot(container, 'chart-tooltip-note')).toHaveLength(1))
+
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(2)
+
+		await user.click(present(allBySlot(container, 'chart-legend-reference')[1], 'Release chip'))
+
+		await waitFor(() => expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1))
+
+		expect(allBySlot(container, 'chart-tooltip-note')).toHaveLength(0)
+
+		expect(bySlot(container, 'chart-reference-list')?.textContent).toBe('Target: 55')
+	})
+})

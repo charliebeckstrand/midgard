@@ -7,6 +7,7 @@ import DateLabels from './date-labels.tsx'
 import DualAxis from './dual-axis.tsx'
 import MultiSeries from './multi-series.tsx'
 import ReferenceLabels from './reference-labels.tsx'
+import ReferenceLegend from './reference-legend.tsx'
 import SingleSeries from './single-series.tsx'
 import TimeAxis from './time-axis.tsx'
 import ValueLabels from './value-labels.tsx'
@@ -24,6 +25,7 @@ export default function LineTab() {
 			<Example of={CategoryDividers} ratio />
 			<Example of={ValueLabels} ratio />
 			<Example of={ReferenceLabels} ratio />
+			<Example of={ReferenceLegend} ratio />
 			<Example of={Animated} ratio />
 		</>
 	)

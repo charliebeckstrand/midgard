@@ -29,7 +29,11 @@ export {
 	type ChartHeaderActionsFallbackProps,
 } from './engine/chart-header-actions-fallback'
 export type { ChartRangeLegendConfig } from './engine/chart-legend/range'
-export type { ChartLegendConfig, ChartLegendPlacement } from './engine/chart-legend/schema'
+export type {
+	ChartCartesianLegendConfig,
+	ChartLegendConfig,
+	ChartLegendPlacement,
+} from './engine/chart-legend/schema'
 export type { ChartOrientation } from './engine/chart-orientation'
 export type {
 	ChartReferenceCategory,

@@ -236,8 +236,9 @@ export function toLegendItem(meta: LegendSeries): ChartLegendItem {
 }
 
 /**
- * The legend entries: on request, or by default once a second series needs
- * telling apart. Opted into `byValue`, the switches list in the marks' visible
+ * The legend entries: on request, or by default once a second entry needs
+ * telling apart. The entries are the series and the `rules` that the legend
+ * names in place of their labels. Opted into `byValue`, the switches list in the marks' visible
  * order, each series by its latest value. Every entry keeps its own index, so
  * the reorder is display-only and a toggle still finds its series.
  *
@@ -247,8 +248,9 @@ export function cartesianLegendItems(
 	metas: SeriesMeta[],
 	legend: ResolvedLegend['value'],
 	byValue: boolean | undefined,
+	rules = 0,
 ): ChartLegendItem[] | null {
-	if (!legendVisible(legend, metas.length)) return null
+	if (!legendVisible(legend, metas.length + rules)) return null
 
 	return orderLegend(metas, byValue).map(toLegendItem)
 }

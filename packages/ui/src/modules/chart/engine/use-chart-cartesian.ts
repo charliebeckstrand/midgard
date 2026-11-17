@@ -47,10 +47,22 @@ import {
 	verticalLayout,
 } from './chart-layout'
 import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legend'
-import { legendAside, legendBands, type ResolvedLegend, resolveLegend } from './chart-legend/schema'
+import {
+	legendAside,
+	legendBands,
+	legendVisible,
+	type ResolvedLegend,
+	resolveLegend,
+} from './chart-legend/schema'
 import { REFERENCE_FALL, seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
-import { categoryRows, referenceLegendItems, referenceNotes, ruleKeys } from './chart-reference'
+import {
+	categoryRows,
+	legendRules,
+	referenceLegendItems,
+	referenceNotes,
+	ruleKeys,
+} from './chart-reference'
 import type { BandScale, ValueHeadroom, ValueScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices } from './chart-series'
 import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
@@ -287,6 +299,13 @@ export type CartesianChart = {
 	legendItems: ChartLegendItem[] | null
 	/** The reference lines' legend chips; the frame shows them only when `legendItems` is not null. */
 	referenceItems: ChartLegendReference[]
+	/** The chips of the rules that the legend names in place of their labels: a subset of `referenceItems`. */
+	listedReferenceItems: ChartLegendReference[]
+	/**
+	 * The indexes of the rules that the legend names in place of their labels
+	 * ({@link legendRules}). Empty where the legend does not show.
+	 */
+	listedReferences: ReadonlySet<number>
 	/** The drawn width of a standing reference label, measured in the font of the chart. */
 	referenceLabelWidth: ReferenceLabelWidth
 	/** A standing reference label cut to fit a room, measured in the font of the chart. */
@@ -364,17 +383,25 @@ export type CartesianChart = {
  * aspect-fill figure, for the tier's {@link chartChromeReserve chrome reserve}.
  * That is the header lines, and whether a stacked legend bands below. A side
  * legend never shares the aspect box, so it counts as no stacked band. The
- * legend otherwise shows for two or more series unless forced, the same rule
- * {@link cartesianLegendItems} reads.
+ * legend otherwise shows for two or more entries unless forced, the same rule
+ * {@link cartesianLegendItems} reads. The entries are the series and the
+ * `rules` that the legend names in place of their labels.
  *
  * @internal
  */
-function cartesianChrome<T>(props: CartesianData<T>, legend: ResolvedLegend['value']): ChartChrome {
+function cartesianChrome<T>(
+	props: CartesianData<T>,
+	legend: ResolvedLegend['value'],
+	rules: number,
+): ChartChrome {
 	return {
 		headerLines: headerLineCount(props.title, props.subtitle),
-		legend: legendBands(legend, props.series.length),
+		legend: legendBands(legend, props.series.length + rules),
 	}
 }
+
+/** No reference rule that the legend names. @internal */
+const NO_RULES: ReadonlySet<number> = new Set()
 
 /**
  * The layout of a cartesian chart, with its drawn category labels. The labels
@@ -466,6 +493,18 @@ export function useChartCartesian<T>(
 
 	const legend = resolvedLegend.value
 
+	// The rules that the legend names in place of their labels. Each one is an
+	// entry of the legend, so it counts toward the two entries that show it. A
+	// legend that does not show names no rule, and the rules keep their labels.
+	const legendCandidates = useMemo(
+		() => legendRules(reference, resolvedLegend.references),
+		[reference, resolvedLegend.references],
+	)
+
+	const listedReferences = legendVisible(legend, series.length + legendCandidates.size)
+		? legendCandidates
+		: NO_RULES
+
 	// The one place the `axes` prop's boolean-or-object union is read: the draw
 	// switch, and each axis's config under its own key. Memoized, so the memos
 	// below that read an axis config read a value that keeps its identity.
@@ -521,7 +560,7 @@ export function useChartCartesian<T>(
 		sizing,
 		aside,
 		aspect: outerAspect,
-		chrome: cartesianChrome(props, legend),
+		chrome: cartesianChrome(props, legend, listedReferences.size),
 		tickTarget: TICK_TARGET,
 		orientation,
 	})
@@ -720,15 +759,24 @@ export function useChartCartesian<T>(
 	// ({@link ChartReadoutSource}). The visible series and the formatter keep
 	// their identity while their inputs do, so a parent render keeps the thunk,
 	// and the hidden table formats no cell again.
-	const readout = useMemo(
+	const cells = useMemo(
 		() =>
 			xKey && data.length > 0 && visible.length > 0
-				? once(() => ({
-						...chartReadout(categories, visible, formatAxisValue),
-						notes: referenceNotes(reference, rawCategories),
-					}))
+				? once(() => chartReadout(categories, visible, formatAxisValue))
 				: null,
-		[data, visible, formatAxisValue, xKey, categories, reference, rawCategories],
+		[data, visible, formatAxisValue, xKey, categories],
+	)
+
+	// The notes of the category rules join the cells apart from them, so a chip
+	// toggle formats no cell again.
+	const readout = useMemo(
+		() =>
+			cells &&
+			once(() => ({
+				...cells(),
+				notes: referenceNotes(reference, rawCategories, referenceHidden),
+			})),
+		[cells, reference, rawCategories, referenceHidden],
 	)
 
 	// The tooltip lists its rows in the marks' visible order (a vertical stack
@@ -753,8 +801,8 @@ export function useChartCartesian<T>(
 	const bars = metas.some((meta) => meta.swatch === 'rect')
 
 	const categoryReferencePositions = useMemo(
-		() => buildCategoryReferences(reference, rawCategories, layout.band, bars),
-		[reference, rawCategories, layout.band, bars],
+		() => buildCategoryReferences(reference, rawCategories, layout.band, bars, referenceHidden),
+		[reference, rawCategories, layout.band, bars, referenceHidden],
 	)
 
 	const formatCategory = useMemo(() => {
@@ -769,10 +817,28 @@ export function useChartCartesian<T>(
 	// A chip whose rule draws nothing, as outside a pinned domain, recedes nothing.
 	const referenceItems = useMemo(
 		() =>
-			referenceLegendItems(reference, formatAxisValue).map((item) =>
-				referencePositions[item.index] == null ? { ...item, drawn: false } : item,
+			referenceLegendItems(reference, formatAxisValue, formatCategory, listedReferences).map(
+				(item) =>
+					(referencePositions[item.index] ?? categoryReferencePositions[item.index] ?? null) ===
+					null
+						? { ...item, drawn: false }
+						: item,
 			),
-		[reference, formatAxisValue, referencePositions],
+		[
+			reference,
+			formatAxisValue,
+			formatCategory,
+			listedReferences,
+			referencePositions,
+			categoryReferencePositions,
+		],
+	)
+
+	// The chips that stay where the rules stand their labels: the rules that the
+	// legend names in place of a label.
+	const listedReferenceItems = useMemo(
+		() => referenceItems.filter((item) => listedReferences.has(item.index)),
+		[referenceItems, listedReferences],
 	)
 
 	// Each visible series draws through its own axis's scale. A series whose
@@ -790,8 +856,8 @@ export function useChartCartesian<T>(
 	)
 
 	const legendItems = useMemo(
-		() => cartesianLegendItems(metas, legend, config.legendByValue),
-		[metas, legend, config.legendByValue],
+		() => cartesianLegendItems(metas, legend, config.legendByValue, listedReferences.size),
+		[metas, legend, config.legendByValue, listedReferences.size],
 	)
 
 	// Read off every series' values, so a legend toggle (which drops a series
@@ -843,6 +909,8 @@ export function useChartCartesian<T>(
 		readoutOrder,
 		legendItems,
 		referenceItems,
+		listedReferenceItems,
+		listedReferences,
 		referenceLabelWidth: referenceLabels.width,
 		referenceLabelCut: referenceLabels.cut,
 		referenceHidden,

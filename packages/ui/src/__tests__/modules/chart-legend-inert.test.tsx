@@ -40,36 +40,68 @@ function chartWith(extra: Partial<Parameters<typeof BarChart<(typeof DATA)[numbe
 }
 
 describe('resolveLegend', () => {
-	it('passes a boolean or placement string through with inert off', () => {
+	it('passes a boolean or placement string through with inert and references off', () => {
 		expect(resolveLegend(undefined)).toEqual({
 			value: undefined,
 			placement: undefined,
 			inert: false,
+			references: false,
 		})
 
 		// A bare boolean carries the show value but no placement.
-		expect(resolveLegend(true)).toEqual({ value: true, placement: undefined, inert: false })
+		expect(resolveLegend(true)).toEqual({
+			value: true,
+			placement: undefined,
+			inert: false,
+			references: false,
+		})
 
-		expect(resolveLegend(false)).toEqual({ value: false, placement: undefined, inert: false })
+		expect(resolveLegend(false)).toEqual({
+			value: false,
+			placement: undefined,
+			inert: false,
+			references: false,
+		})
 
-		expect(resolveLegend('left')).toEqual({ value: 'left', placement: 'left', inert: false })
+		expect(resolveLegend('left')).toEqual({
+			value: 'left',
+			placement: 'left',
+			inert: false,
+			references: false,
+		})
 	})
 
 	it('reads the object form as its placement plus the inert flag', () => {
-		expect(resolveLegend({ placement: 'left', inert: true })).toEqual({
+		expect(resolveLegend({ placement: 'left', inert: true, references: false })).toEqual({
 			value: 'left',
 			placement: 'left',
 			inert: true,
+			references: false,
 		})
 
 		// No placement falls to the default show rule (value undefined), inert defaulting off.
-		expect(resolveLegend({ inert: true })).toEqual({
+		expect(resolveLegend({ inert: true, references: false })).toEqual({
 			value: undefined,
 			placement: undefined,
 			inert: true,
+			references: false,
 		})
 
-		expect(resolveLegend({})).toEqual({ value: undefined, placement: undefined, inert: false })
+		expect(resolveLegend({})).toEqual({
+			value: undefined,
+			placement: undefined,
+			inert: false,
+			references: false,
+		})
+	})
+
+	it('reads the references flag of the object form', () => {
+		expect(resolveLegend({ references: true })).toEqual({
+			value: undefined,
+			placement: undefined,
+			inert: false,
+			references: true,
+		})
 	})
 })
 
