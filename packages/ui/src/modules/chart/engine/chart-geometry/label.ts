@@ -408,7 +408,8 @@ export function resolveValueLabels(
 
 /**
  * One rule that a standing reference label names: the position of the rule,
- * or `null` where the rule draws nothing, and the label's text. A category
+ * or `null` where the rule draws nothing, and the drawn width of the label's
+ * text. A category
  * rule sets `orientation` to the facing whose value rule it draws as
  * ({@link crossOrientation}). Omitted, the rule is a value rule of the chart.
  * A rule that draws but shows no label sets `unlabeled`: it takes no label,
@@ -417,16 +418,21 @@ export function resolveValueLabels(
  */
 export type ReferenceLabelRule = {
 	at: number | null
-	text: string
+	width: number
 	orientation?: ChartOrientation
 	unlabeled?: boolean
 }
 
-/** A placed reference label: where its text anchors, how it aligns, and its collision box. @internal */
+/**
+ * A placed reference label: where its text anchors, how it aligns, the drawn
+ * width of its text, and its collision box, which pads the text on each side.
+ * @internal
+ */
 export type PlacedReferenceLabel = {
 	x: number
 	y: number
 	anchor: PlacedValueLabel['anchor']
+	width: number
 	box: LabelBox
 }
 
@@ -450,20 +456,22 @@ function referenceSpots(
 	orientation: ChartOrientation,
 	plot: PlotRect,
 ): PlacedReferenceLabel[] {
+	const padded = width + 2 * LABEL_PAD
+
 	if (orientation === 'vertical') {
-		if (width > plot.width) return []
+		if (padded > plot.width) return []
 
 		const left = plot.x
 
 		const right = plot.x + plot.width
 
 		return [
-			{ x: right, y: at, anchor: 'end', box: labelBox(right - width, right, at) },
-			{ x: left, y: at, anchor: 'start', box: labelBox(left, left + width, at) },
+			{ x: right, y: at, anchor: 'end', width, box: labelBox(right - padded, right, at) },
+			{ x: left, y: at, anchor: 'start', width, box: labelBox(left, left + padded, at) },
 		]
 	}
 
-	const across = anchorAt(at, width, plot)
+	const across = anchorAt(at, padded, plot)
 
 	if (!across) return []
 
@@ -474,7 +482,7 @@ function referenceSpots(
 	return Array.from({ length: rows }, (_, row) => {
 		const y = plot.y + LABEL_HALF + row * LABEL_ROW_STEP
 
-		return { x: at, y, anchor, box: labelBox(x0, x1, y) }
+		return { x: at, y, anchor, width, box: labelBox(x0, x1, y) }
 	})
 }
 
@@ -524,7 +532,7 @@ export function referenceLabels(
 
 		const facing = rule.orientation ?? orientation
 
-		const free = referenceSpots(rule.at, labelWidth(rule.text), facing, plot).filter(
+		const free = referenceSpots(rule.at, rule.width, facing, plot).filter(
 			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
 		)
 

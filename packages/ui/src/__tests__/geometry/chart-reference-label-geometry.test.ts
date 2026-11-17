@@ -11,7 +11,7 @@ import {
 	valueLabels,
 } from '../../modules/chart/engine/chart-geometry/label'
 
-/** The plot box of the tests: 200 units wide and 100 units high. */
+/** The plot box of the tests: 200 units wide and 100 units high. A label is 7 units wide for each character. */
 const PLOT = { x: 0, y: 0, width: 200, height: 100 }
 
 /** A single series over the given `[x, y, value]` points. */
@@ -35,7 +35,7 @@ function drawn(labels: (PlacedReferenceLabel | null)[]): PlacedReferenceLabel[] 
 
 describe('referenceLabels', () => {
 	it('puts a label on its rule at the right end, flush with the plot, in a vertical chart', () => {
-		const [goal] = referenceLabels([{ at: 60, text: 'Goal' }], 'vertical', PLOT)
+		const [goal] = referenceLabels([{ at: 60, width: 28 }], 'vertical', PLOT)
 
 		expect(goal?.anchor).toBe('end')
 
@@ -47,8 +47,8 @@ describe('referenceLabels', () => {
 	it('moves a crowded label to the left end of its rule', () => {
 		const [target, stretch] = referenceLabels(
 			[
-				{ at: 60, text: 'Target' },
-				{ at: 57, text: 'Stretch' },
+				{ at: 60, width: 42 },
+				{ at: 57, width: 49 },
 			],
 			'vertical',
 			PLOT,
@@ -66,7 +66,7 @@ describe('referenceLabels', () => {
 	})
 
 	it('prefers a spot that no point marker meets', () => {
-		const [goal] = referenceLabels([{ at: 60, text: 'Goal' }], 'vertical', PLOT, [
+		const [goal] = referenceLabels([{ at: 60, width: 28 }], 'vertical', PLOT, [
 			markerBox({ x: PLOT.x + PLOT.width - 4, y: 61 }),
 		])
 
@@ -74,7 +74,7 @@ describe('referenceLabels', () => {
 	})
 
 	it('keeps the first spot that meets no label where a marker meets every spot', () => {
-		const [goal] = referenceLabels([{ at: 60, text: 'Goal' }], 'vertical', PLOT, [
+		const [goal] = referenceLabels([{ at: 60, width: 28 }], 'vertical', PLOT, [
 			markerBox({ x: PLOT.x + 4, y: 60 }),
 			markerBox({ x: PLOT.x + PLOT.width - 4, y: 60 }),
 		])
@@ -85,11 +85,11 @@ describe('referenceLabels', () => {
 	it('drops a label with no free spot, so its rule keeps the tooltip', () => {
 		const labels = referenceLabels(
 			[
-				{ at: 60, text: 'A' },
-				{ at: 59, text: 'B' },
-				{ at: 61, text: 'C' },
-				{ at: 60.5, text: 'D' },
-				{ at: 59.5, text: 'E' },
+				{ at: 60, width: 7 },
+				{ at: 59, width: 7 },
+				{ at: 61, width: 7 },
+				{ at: 60.5, width: 7 },
+				{ at: 59.5, width: 7 },
 			],
 			'vertical',
 			PLOT,
@@ -109,9 +109,9 @@ describe('referenceLabels', () => {
 	it('stacks crowded labels in rows from the top in a horizontal chart', () => {
 		const [target, stretch, ceiling] = referenceLabels(
 			[
-				{ at: 100, text: 'Target' },
-				{ at: 110, text: 'Stretch' },
-				{ at: 120, text: 'Ceiling' },
+				{ at: 100, width: 42 },
+				{ at: 110, width: 49 },
+				{ at: 120, width: 49 },
 			],
 			'horizontal',
 			PLOT,
@@ -132,8 +132,8 @@ describe('referenceLabels', () => {
 	it('places nothing for a rule that draws nothing, and keeps the slots aligned', () => {
 		const labels = referenceLabels(
 			[
-				{ at: null, text: 'Hidden' },
-				{ at: 40, text: 'Goal' },
+				{ at: null, width: 42 },
+				{ at: 40, width: 28 },
 			],
 			'vertical',
 			PLOT,
@@ -158,7 +158,7 @@ describe('valueLabels against the reference labels', () => {
 
 		const at = free[0]?.y ?? 0
 
-		const [goal] = drawn(referenceLabels([{ at, text: 'Goal' }], 'vertical', PLOT))
+		const [goal] = drawn(referenceLabels([{ at, width: 28 }], 'vertical', PLOT))
 
 		// A box over the right half of the plot at the height of the last point's label.
 		expect(goal?.y).toBe(at)

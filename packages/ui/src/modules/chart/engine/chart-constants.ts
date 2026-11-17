@@ -181,8 +181,14 @@ export const SCATTER_HIT_SLACK = 3
 /** Reference-rule stroke width: firm enough to read cleanly over the marks it crosses. @internal */
 export const REFERENCE_STROKE_WIDTH = 2
 
+/** The length of one dash of a reference rule. @internal */
+export const REFERENCE_DASH_ON = 6
+
+/** The gap between two dashes of a reference rule. @internal */
+export const REFERENCE_DASH_OFF = 4
+
 /** Reference-rule dash: coarser than a hairline, so the rule reads as a deliberate annotation. @internal */
-export const REFERENCE_DASH = '6 4'
+export const REFERENCE_DASH = `${REFERENCE_DASH_ON} ${REFERENCE_DASH_OFF}`
 
 /**
  * The clear space between the dash of a reference rule and a thing that breaks

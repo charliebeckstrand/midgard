@@ -64,11 +64,10 @@ export const k = {
 		 */
 		value: ['font-medium', ...mutedFill],
 		/**
-		 * The face of the cut that a standing label makes in its reference rule: the
-		 * size, weight, and figures of {@link k.mark.label}, with no ink. The cut
-		 * draws the glyphs in a mask, so it must set them as the label does.
+		 * The face of {@link k.mark.label} with no ink: its size, weight, and
+		 * figures. A chart measures the text of a standing label in it.
 		 */
-		cut: ['text-xs', 'font-semibold', 'tabular-nums', '[stroke-linejoin:round]'],
+		face: ['text-xs', 'font-semibold', 'tabular-nums'],
 		/**
 		 * Point-marker stroke: the fill of the surface under the chart, so a dot stays legible
 		 * where it crosses an opaque mark or another dot. A white ring in dark mode showed as

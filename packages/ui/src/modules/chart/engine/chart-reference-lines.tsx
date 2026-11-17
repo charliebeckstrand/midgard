@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
-import { type ReactNode, useEffect, useId, useRef } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
 import { Swatch } from '../../../components/swatch'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core/cn'
@@ -20,12 +20,12 @@ import {
 } from './chart-color/paint'
 import {
 	MARKER_REACH,
-	REFERENCE_DASH,
 	REFERENCE_GAP,
 	REFERENCE_HIT_WIDTH,
 	REFERENCE_STROKE_WIDTH,
 } from './chart-constants'
 import { markerBox, type PlacedReferenceLabel, referenceLabels } from './chart-geometry/label'
+import { type RuleBreak, ruleDashArray } from './chart-geometry/rule'
 import { REFERENCE_FALL, REFERENCE_RISE, referenceRise } from './chart-motion'
 import {
 	type ChartOrientation,
@@ -46,6 +46,12 @@ import {
 import type { ValueScale } from './chart-scale'
 import { seriesGroupClass } from './chart-series'
 import { useChartActions, useChartEmphasis, useChartTier } from './context'
+import {
+	LABEL_PART_SPACE,
+	type ReferenceLabelParts,
+	type ReferenceLabelWidth,
+	referenceLabelParts,
+} from './use-chart-reference-label-width'
 
 /**
  * The part of a cartesian chart that its reference rules read: the plot, the
@@ -56,6 +62,8 @@ import { useChartActions, useChartEmphasis, useChartTier } from './context'
  */
 export type ChartReferenceFrame = {
 	plot: PlotRect
+	/** The drawn width of a standing label ({@link useReferenceLabelWidth}). */
+	referenceLabelWidth: ReferenceLabelWidth
 	/** The resolved primary value scale, or `null` before a domain resolves. */
 	yScale: ValueScale | null
 	/** The secondary scale, for rules bound to `y2`. */
@@ -115,58 +123,22 @@ export type ChartReferenceLinesProps = {
 	points?: readonly Vec[]
 }
 
-/** The two parts of a rule's standing label. @internal */
-type ReferenceLabelParts = {
-	/** The rule's own label, or empty. */
-	name: string
-	/** The value of a value rule, or empty for a category rule. */
-	value: string
-}
-
 /**
- * The parts of a rule's standing label. A value rule shows its own label and
- * then its value, so a consumer gives the name alone. With no label, it shows
- * its value. A category rule shows its label only, because the band axis
- * already names its category. A category rule with no label draws none.
+ * The glyphs of a standing label: the lead in the label ink, and then the tail
+ * in {@link k.mark.value}, {@link LABEL_PART_SPACE} after it.
  *
  * @internal
  */
-function referenceLabelParts(
-	line: ChartReferenceLine,
-	format: (value: number) => string,
-): ReferenceLabelParts {
-	if (isCategoryReference(line)) return { name: line.label ?? '', value: '' }
-
-	return { name: line.label ?? '', value: format(line.value) }
-}
-
-/** The text of a standing label in one string: its name, then its value. @internal */
-function referenceLabelText(parts: ReferenceLabelParts): string {
-	return [parts.name, parts.value].filter(Boolean).join(' ')
-}
-
-/**
- * The glyphs of a standing label: the name in the label ink, and then the value
- * in {@link k.mark.value}. A label with no name shows its value in the label ink,
- * since the value then names the rule. `valueClass` sets the value apart, and
- * the cut ({@link RuleBreakMask}) gives only its weight.
- *
- * @internal
- */
-function ReferenceLabelGlyphs({
-	parts,
-	valueClass,
-}: {
-	parts: ReferenceLabelParts
-	valueClass: string
-}) {
-	if (!parts.name) return parts.value
-
+function ReferenceLabelGlyphs({ parts }: { parts: ReferenceLabelParts }) {
 	return (
 		<>
-			{parts.name}
+			{parts.lead}
 
-			{parts.value && <tspan className={valueClass}>{` ${parts.value}`}</tspan>}
+			{parts.tail && (
+				<tspan dx={LABEL_PART_SPACE} className={cn(k.mark.value)}>
+					{parts.tail}
+				</tspan>
+			)}
 		</>
 	)
 }
@@ -215,17 +187,17 @@ export function placeReferenceLabels(
 
 	return referenceLabels(
 		reference.map((line, index) => {
-			const text = referenceLabelText(
-				referenceLabelParts(line, (value) => chart.formatAxisValue(value, line.axis ?? 'y')),
+			const parts = referenceLabelParts(line, (value) =>
+				chart.formatAxisValue(value, line.axis ?? 'y'),
 			)
 
 			const category = isCategoryReference(line)
 
-			const shown = category ? modes.categories && text !== '' : modes.values
+			const shown = category ? modes.categories && parts.lead !== '' : modes.values
 
 			return {
 				at: rulePosition(chart, line, index),
-				text,
+				width: chart.referenceLabelWidth(parts),
 				orientation: category ? crossOrientation(chart.orientation) : undefined,
 				unlabeled: !shown,
 			}
@@ -276,40 +248,14 @@ type ReferenceRuleProps = {
 	/** The parts of the rule's standing label. */
 	parts: ReferenceLabelParts
 	/**
-	 * The standing labels that the rule crosses, its own included: the rule
-	 * breaks for each of them ({@link labelsOnRule}).
+	 * The `stroke-dasharray` of the rule: its dashes between its breaks
+	 * ({@link ruleBreaks}), or `undefined` for a solid rule with no break.
 	 */
-	cuts: LabelCut[]
-	/** The point markers that sit on the rule ({@link pointsOnRule}). */
-	breaks: Vec[]
-	/** The plot, which bounds the mask of the rule's breaks. */
-	plot: PlotRect
+	dashes: number[] | undefined
 }
 
 /** The two endpoints of a rule's drawn line, in `viewBox` user units. @internal */
 type RulePoints = { x1: number; y1: number; x2: number; y2: number }
-
-/** A standing label as a cut in a rule: where it sits, and the glyphs that it sets. @internal */
-type LabelCut = { key: string; label: PlacedReferenceLabel; parts: ReferenceLabelParts }
-
-/**
- * The standing labels whose boxes a rule from `from` to `to` crosses. A rule
- * breaks for each of them, not only for its own label, so no dash shows
- * through a label that another rule passes under. A rule is straight along one
- * axis, so it crosses a box where its fixed coordinate falls inside the box and
- * its span along the other axis meets the box.
- *
- * @internal
- */
-function labelsOnRule(cuts: readonly LabelCut[], from: Vec, to: Vec): LabelCut[] {
-	const [x0, x1] = [Math.min(from.x, to.x), Math.max(from.x, to.x)]
-
-	const [y0, y1] = [Math.min(from.y, to.y), Math.max(from.y, to.y)]
-
-	return cuts.filter(
-		({ label: { box } }) => box.x0 <= x1 && x0 <= box.x1 && box.y0 <= y1 && y0 <= box.y1,
-	)
-}
 
 /** The radius of the hole that a point marker cuts in a rule: its reach and the gap. @internal */
 const POINT_BREAK = MARKER_REACH + REFERENCE_GAP
@@ -339,127 +285,125 @@ export function pointsOnRule(points: readonly Vec[], from: Vec, to: Vec): Vec[] 
 	})
 }
 
-/** The room of a break mask past each side of the plot, so the stroke and the label clear it. @internal */
-const MASK_BLEED = REFERENCE_HIT_WIDTH
+/** The span of a label's text along the x axis, from where it anchors. @internal */
+function textSpan(label: PlacedReferenceLabel): { x0: number; x1: number } {
+	if (label.anchor === 'end') return { x0: label.x - label.width, x1: label.x }
+
+	if (label.anchor === 'start') return { x0: label.x, x1: label.x + label.width }
+
+	return { x0: label.x - label.width / 2, x1: label.x + label.width / 2 }
+}
 
 /**
- * The breaks of a rule as an SVG luminance mask: the whole plot in white, and
- * a black hole for each break. A point marker on the rule cuts a disc
- * ({@link POINT_BREAK}). A standing label that the rule crosses cuts the
- * extent of the label along the rule, and {@link REFERENCE_GAP} past it. A
- * label text runs horizontally. A horizontal rule runs along the text, so the
- * label cuts its own glyphs, set as the label sets them and widened by the gap
- * on each side: the rule stops at the real text and not at an estimate of its
- * width. A vertical rule runs across the text, so the label cuts its height,
- * which is exact. The mask is in user space, so it moves with the rule when
- * the rule rises, and its own label, which rides the same rise, keeps its cut.
+ * The breaks of a rule from `from` to `to`, as spans from its start. A rule
+ * breaks for each standing label in `labels` that it crosses or comes nearer to
+ * than {@link REFERENCE_GAP}, not only for its own. Thus no dash shows through,
+ * or runs along, a label that another rule passes under. It
+ * also breaks around each point marker in `points` that sits on it
+ * ({@link pointsOnRule}). Each break clears its label or its marker by
+ * {@link REFERENCE_GAP} on each side. A label text runs horizontally: a
+ * horizontal rule breaks for the measured width of the text, and a vertical
+ * rule for the height of the label.
  *
  * @internal
  */
-function RuleBreakMask({
-	id,
-	plot,
-	rule,
-	cuts,
-	breaks,
-}: {
-	id: string
-	plot: PlotRect
-	rule: RulePoints
-	cuts: LabelCut[]
-	breaks: Vec[]
-}) {
-	const x = plot.x - MASK_BLEED
+export function ruleBreaks(
+	from: Vec,
+	to: Vec,
+	labels: readonly PlacedReferenceLabel[],
+	points: readonly Vec[],
+): RuleBreak[] {
+	const across = from.x === to.x
 
-	const y = plot.y - MASK_BLEED
+	// The position along the rule, and across it, of a point of the plot.
+	const along = (x: number, y: number) => (across ? y - from.y : x - from.x)
 
-	const width = plot.width + 2 * MASK_BLEED
+	const offset = (point: Vec) => (across ? point.x - from.x : point.y - from.y)
 
-	const height = plot.height + 2 * MASK_BLEED
+	const [x0, x1] = [Math.min(from.x, to.x), Math.max(from.x, to.x)]
 
-	return (
-		<mask id={id} maskUnits="userSpaceOnUse" x={x} y={y} width={width} height={height}>
-			<rect x={x} y={y} width={width} height={height} fill="white" />
+	const [y0, y1] = [Math.min(from.y, to.y), Math.max(from.y, to.y)]
 
-			{breaks.map((point) => (
-				<circle
-					key={`${point.x},${point.y}`}
-					cx={point.x}
-					cy={point.y}
-					r={POINT_BREAK}
-					fill="black"
-				/>
-			))}
-
-			{cuts.map(({ key, label, parts }) =>
-				rule.x1 === rule.x2 ? (
-					<rect
-						key={key}
-						x={rule.x1 - REFERENCE_STROKE_WIDTH}
-						y={label.box.y0 - REFERENCE_GAP}
-						width={2 * REFERENCE_STROKE_WIDTH}
-						height={label.box.y1 - label.box.y0 + 2 * REFERENCE_GAP}
-						fill="black"
-					/>
-				) : (
-					<text
-						key={key}
-						x={label.x}
-						y={label.y}
-						textAnchor={label.anchor}
-						dominantBaseline="central"
-						fill="black"
-						stroke="black"
-						strokeWidth={2 * REFERENCE_GAP}
-						className={cn(k.mark.cut)}
-					>
-						<ReferenceLabelGlyphs parts={parts} valueClass="font-medium" />
-					</text>
-				),
-			)}
-		</mask>
+	// A label that comes nearer to the rule than the gap also breaks it, so that a
+	// close rule does not run along the glyphs of its neighbor's label.
+	const crossed = labels.filter(
+		({ box }) =>
+			box.x0 - REFERENCE_GAP <= x1 &&
+			x0 <= box.x1 + REFERENCE_GAP &&
+			box.y0 - REFERENCE_GAP <= y1 &&
+			y0 <= box.y1 + REFERENCE_GAP,
 	)
+
+	const labelBreaks = crossed.map((label): RuleBreak => {
+		if (across) {
+			return {
+				from: along(0, label.box.y0) - REFERENCE_GAP,
+				to: along(0, label.box.y1) + REFERENCE_GAP,
+			}
+		}
+
+		const span = textSpan(label)
+
+		return { from: along(span.x0, 0) - REFERENCE_GAP, to: along(span.x1, 0) + REFERENCE_GAP }
+	})
+
+	const pointBreaks = pointsOnRule(points, from, to).map((point): RuleBreak => {
+		const half = Math.sqrt(Math.max(POINT_BREAK ** 2 - offset(point) ** 2, 0))
+
+		const at = along(point.x, point.y)
+
+		return { from: at - half, to: at + half }
+	})
+
+	return [...labelBreaks, ...pointBreaks]
+}
+
+/**
+ * A dash pattern as `stroke-dasharray` text, to two decimals. Each end rounds
+ * from the start of the rule, not each length alone, so the rounding does not
+ * add up along the rule, and each break keeps its place. @internal
+ */
+function roundDashes(dashes: readonly number[]): string {
+	const round = (value: number) => Math.round(value * 100) / 100
+
+	let at = 0
+
+	return dashes
+		.map((length) => {
+			const from = round(at)
+
+			at += length
+
+			return round(round(at) - from)
+		})
+		.join(' ')
 }
 
 /**
  * The dashed value-axis rule itself, shared by the three renderings: a named
  * slot's stroke class, or a raw hex / `oklch()` color inline. Never takes the
  * pointer: the hover rendering lays its own transparent hit line over this.
- * The rule breaks for each standing label that it crosses and around each
- * point marker on it, through one mask ({@link RuleBreakMask}). A rule with nothing to break takes
- * no mask.
+ * The rule draws its dashes between its breaks from one computed
+ * `stroke-dasharray` ({@link ruleDashArray}), so each piece starts and ends on
+ * a full dash, and the clear space at each side of a break is the same.
  * @internal
  */
 function ReferenceRuleStroke({
-	line,
 	paint,
 	points,
-	cuts,
-	breaks,
-	plot,
-}: Pick<ReferenceRuleProps, 'line' | 'paint' | 'points' | 'cuts' | 'breaks' | 'plot'>) {
-	const maskId = useId()
-
+	dashes,
+}: Pick<ReferenceRuleProps, 'paint' | 'points' | 'dashes'>) {
 	const color = rawColor(paint)
 
-	const broken = cuts.length > 0 || breaks.length > 0
-
 	return (
-		<>
-			{broken && (
-				<RuleBreakMask id={maskId} plot={plot} rule={points} cuts={cuts} breaks={breaks} />
-			)}
-
-			<line
-				{...points}
-				strokeWidth={REFERENCE_STROKE_WIDTH}
-				strokeDasharray={line.dashed === false ? undefined : REFERENCE_DASH}
-				className={strokeClass(paint)}
-				style={color ? { stroke: color } : undefined}
-				mask={broken ? `url(#${maskId})` : undefined}
-				pointerEvents="none"
-			/>
-		</>
+		<line
+			{...points}
+			strokeWidth={REFERENCE_STROKE_WIDTH}
+			strokeDasharray={dashes && roundDashes(dashes)}
+			className={strokeClass(paint)}
+			style={color ? { stroke: color } : undefined}
+			pointerEvents="none"
+		/>
 	)
 }
 
@@ -552,7 +496,7 @@ function ReferenceLabel({
 					className={cn(k.mark.label, fillClass(paint))}
 					style={color ? { fill: color } : undefined}
 				>
-					<ReferenceLabelGlyphs parts={parts} valueClass={cn(k.mark.value)} />
+					<ReferenceLabelGlyphs parts={parts} />
 				</text>
 			</RuleRise>
 		</g>
@@ -759,7 +703,7 @@ export function ChartReferenceLines({
 	const keys = ruleKeys(reference)
 
 	const rules = reference.flatMap(
-		(line, index): (Omit<ReferenceRuleProps, 'cuts'> & { key: string; from: Vec; to: Vec })[] => {
+		(line, index): (Omit<ReferenceRuleProps, 'dashes'> & { key: string; from: Vec; to: Vec })[] => {
 			const axis = line.axis ?? 'y'
 
 			const scale = axis === 'y2' ? chart.y2Scale : chart.yScale
@@ -805,15 +749,13 @@ export function ChartReferenceLines({
 					rise,
 					label: labels?.[index] ?? null,
 					parts: referenceLabelParts(line, format),
-					breaks: pointsOnRule(points, from, to),
-					plot,
 				},
 			]
 		},
 	)
 
 	// Every standing label, so each rule breaks for each label that it crosses.
-	const cuts = rules.flatMap(({ key, label, parts }) => (label ? [{ key, label, parts }] : []))
+	const placed = rules.flatMap(({ label }) => (label ? [label] : []))
 
 	// The labels draw after every rule, so no rule paints over a label's halo. A
 	// rule toggled off leaves its presence as it last drew, and plays its exit there.
@@ -821,7 +763,15 @@ export function ChartReferenceLines({
 		<g data-slot="chart-reference-lines">
 			<RulePresence animate={animate}>
 				{rules.map(({ key, from, to, ...rule }) => (
-					<ReferenceRule key={key} {...rule} cuts={labelsOnRule(cuts, from, to)} />
+					<ReferenceRule
+						key={key}
+						{...rule}
+						dashes={ruleDashArray(
+							Math.hypot(to.x - from.x, to.y - from.y),
+							ruleBreaks(from, to, placed, points),
+							rule.line.dashed !== false,
+						)}
+					/>
 				))}
 			</RulePresence>
 
