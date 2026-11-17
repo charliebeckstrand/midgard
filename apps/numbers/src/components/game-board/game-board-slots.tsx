@@ -29,11 +29,17 @@ function getColor(placed: number | null, open: boolean): ButtonProps['color'] {
 }
 
 /**
- * The mark of a number that has no slot: a dashed line and the number, at the
- * place where the number goes in the order. The mark shows on a bust. In the
- * column of the player, it then scrolls into view, because the box of the
- * slots can have it out of view. The scroll margin keeps about one slot on
- * each side of it in view, so the reader sees the two numbers around it. A
+ * One half of the dashed line of the gap mark. The two halves have the same
+ * width, so the number is at the center, as the number of a slot is.
+ */
+const DASH = 'flex-1 border-t-2 border-dashed border-red-600 dark:border-red-500'
+
+/**
+ * The mark of a number that has no slot: a dashed line with the number at its
+ * center, at the place where the number goes in the order. The mark shows on a
+ * bust. In the column of the player, it then scrolls into view, because the box
+ * of the slots can have it out of view. The scroll margin keeps about one slot
+ * on each side of it in view, so the reader sees the two numbers around it. A
  * mark that is in view does not move.
  */
 function GameBoardGap({ value, reveal }: { value: number; reveal: boolean }) {
@@ -47,14 +53,13 @@ function GameBoardGap({ value, reveal }: { value: number; reveal: boolean }) {
 
 	return (
 		<Flex ref={ref} align="center" gap="sm" className="scroll-my-12">
-			<span
-				aria-hidden
-				className="flex-1 border-t-2 border-dashed border-red-600 dark:border-red-500"
-			/>
+			<span aria-hidden className={DASH} />
 
 			<Text as="span" tone="error" className="font-semibold tabular-nums">
 				{intl.formatNumber(value)}
 			</Text>
+
+			<span aria-hidden className={DASH} />
 		</Flex>
 	)
 }
