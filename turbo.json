@@ -29,7 +29,6 @@
 				"scripts/**",
 				"*.ts",
 				"tsconfig.json",
-				"tsconfig.scripts.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"$TURBO_ROOT$/tsconfig.nextjs.json"
 			]
@@ -62,16 +61,6 @@
 		"docs:bench": {
 			"dependsOn": ["docs:build"],
 			"cache": false
-		},
-		"lint": {
-			"inputs": [
-				"src/**",
-				"app/**",
-				"*.ts",
-				"*.json",
-				"$TURBO_ROOT$/biome.json",
-				"$TURBO_ROOT$/.biome/plugins/**"
-			]
 		},
 		"test": {
 			"dependsOn": ["^build"],
@@ -148,7 +137,7 @@
 				"$TURBO_ROOT$/vitest.shared.mts"
 			]
 		},
-		"//#biome:check": {},
+		"//#lint": {},
 		"//#knip": {}
 	}
 }

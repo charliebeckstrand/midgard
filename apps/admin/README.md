@@ -15,7 +15,6 @@ pnpm --filter admin dev
 | Build | `pnpm --filter admin build` |
 | Start (production) | `pnpm --filter admin start` |
 | Typecheck | `pnpm --filter admin check-types` |
-| Lint | `pnpm --filter admin lint` |
 
 ## 3. Layout
 

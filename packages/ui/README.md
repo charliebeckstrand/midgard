@@ -22,7 +22,6 @@ No root barrel; the `exports` map exposes each component path.
 
 | Goal | Command |
 |---|---|
-| Build `dist` (tsup; no app reads it) | `pnpm --filter ui build:dist` |
 | Docs site (dev) | `pnpm --filter ui dev` |
 | Docs site (build) | `pnpm --filter ui docs:build` |
 | Docs site (serve the build) | `pnpm --filter ui docs:preview` |
@@ -36,7 +35,6 @@ No root barrel; the `exports` map exposes each component path.
 | Benchmarks | `pnpm --filter ui bench` |
 | Benchmarks, one sample each, to check that they run (CI runs it) | `pnpm --filter ui bench:smoke` / `pnpm --filter ui bench:browser:smoke` |
 | Typecheck | `pnpm --filter ui check-types` |
-| Lint | `pnpm --filter ui lint` |
 
 ## 3. Layout
 

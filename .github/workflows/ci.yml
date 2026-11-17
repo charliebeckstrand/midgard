@@ -25,10 +25,10 @@ jobs:
       - uses: ./.github/actions/turbo-cache
         with:
           name: gate
-      # One Biome run over the whole repository, not the `lint` task of each
-      # package. The package tasks miss the files at the root, such as
-      # turbo.json and knip.json. `biome ci` also writes its findings as
-      # annotations on the pull request.
+      # One Biome run over the whole repository, as `pnpm lint` does. A run
+      # in each package missed the files at the root, such as turbo.json and
+      # knip.json. `biome ci` also writes its findings as annotations on the
+      # pull request.
       - run: pnpm biome ci .
       # The tests run in the `test` job below, the builds in the `build` job,
       # and the docs build and its budget in the `browser` job.

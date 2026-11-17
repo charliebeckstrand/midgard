@@ -37,8 +37,6 @@ The apps compile this package from its source, as they do `ui`. The one build st
 | Build the server of the app images | `pnpm --filter shared build` |
 | Generate the Mimir types | `pnpm --filter shared openapi` |
 | Write the English message catalog, `src/locale/lang/en.json` | `pnpm --filter shared intl` |
-| Lint | `pnpm --filter shared lint` |
-| Format | `pnpm --filter shared format` |
 
 ## 4. Consumers
 
