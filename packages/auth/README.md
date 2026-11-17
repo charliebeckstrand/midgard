@@ -22,8 +22,6 @@ Peer-compatible with Next 16.3.3 or a later 16.x, and React 19.2 or a later 19.x
 | Build | `pnpm --filter auth build` |
 | Watch build | `pnpm --filter auth dev` |
 | Test | `pnpm --filter auth test` |
-| Lint | `pnpm --filter auth lint` |
-| Format | `pnpm --filter auth format` |
 | Generate the gateway types | `pnpm --filter auth openapi` |
 
 ## 3. Consumers

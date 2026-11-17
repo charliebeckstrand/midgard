@@ -4,12 +4,11 @@
 	"scripts": {
 		"build": "turbo run build",
 		"dev": "hlidskjalf",
-		"lint": "turbo run lint",
-		"lint:fix": "biome check --write packages/ apps/",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
 		"check-types": "turbo run check-types",
 		"knip": "knip",
-		"biome:check": "biome check .",
-		"check": "turbo run biome:check knip && base=$(git merge-base HEAD origin/main) && TURBO_SCM_BASE=$base turbo run check-types test:changed test:workspace --affected",
+		"check": "turbo run lint knip && base=$(git merge-base HEAD origin/main) && TURBO_SCM_BASE=$base turbo run check-types test:changed test:workspace --affected",
 		"test": "turbo run test",
 		"prepare": "lefthook install"
 	},

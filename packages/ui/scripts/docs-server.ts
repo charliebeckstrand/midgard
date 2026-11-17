@@ -30,7 +30,7 @@
  * copy gets 304 and no body ({@link isFresh}).
  *
  * The service sets `HOST` and `PORT`. It runs the server as one JavaScript
- * file, which `docs:build-server` writes (`vite.docs-server.config.ts`).
+ * file, which `docs:build-server` writes (`src/docs/vite.docs-server.config.ts`).
  */
 
 import { globSync } from 'node:fs'

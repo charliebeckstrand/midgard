@@ -20,8 +20,6 @@ dist/
 # test coverage
 coverage/
 test-results/
-packages/ui/coverage/
-packages/ui/test-results/
 
 # Vitest reports, attachments, and traces
 .vitest/
@@ -32,6 +30,7 @@ packages/ui/test-results/
 
 # debug
 npm-debug.log*
+*.log
 
 # OS
 .DS_Store
