@@ -29,7 +29,6 @@
 				"scripts/**",
 				"*.ts",
 				"tsconfig.json",
-				"tsconfig.scripts.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"$TURBO_ROOT$/tsconfig.nextjs.json"
 			]
