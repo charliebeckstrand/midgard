@@ -21,10 +21,17 @@ import {
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import { type PlacedReferenceLabel, referenceLabels } from './chart-geometry/label'
 import { REFERENCE_FALL, REFERENCE_RISE, referenceRise } from './chart-motion'
-import { type ChartOrientation, type PlotRect, valueRule } from './chart-orientation'
+import {
+	type ChartOrientation,
+	crossOrientation,
+	type PlotRect,
+	valueRule,
+} from './chart-orientation'
 import {
 	type ChartReferenceLine,
+	type ChartValueReference,
 	DEFAULT_REFERENCE_COLOR,
+	isCategoryReference,
 	type ReferenceFormat,
 	referenceText,
 	ruleKeys,
@@ -59,6 +66,12 @@ export type ChartReferenceFrame = {
 	 * resolve, or a rule toggled off through its legend chip.
 	 */
 	referencePositions: (number | null)[]
+	/**
+	 * The band-axis position of each category rule, aligned with the
+	 * `reference` prop. `null`, or past its end, where the rule is a value rule
+	 * or its category draws no band.
+	 */
+	categoryReferencePositions: (number | null)[]
 }
 
 /** Props for {@link ChartReferenceLines}. @internal */
@@ -89,34 +102,75 @@ export type ChartReferenceLinesProps = {
 	labels?: (PlacedReferenceLabel | null)[]
 }
 
-/** The text of a rule's standing label: its own label, else its value. @internal */
+/**
+ * The text of a rule's standing label: its own label, else the value of a
+ * value rule. A category rule with no label draws none, because the band axis
+ * already names its category.
+ *
+ * @internal
+ */
 function referenceLabelText(line: ChartReferenceLine, format: (value: number) => string): string {
+	if (isCategoryReference(line)) return line.label ?? ''
+
 	return line.label || format(line.value)
 }
 
+/** The position of a rule: along the band axis for a category rule, else along the value axis. @internal */
+function rulePosition(chart: ChartReferenceFrame, line: ChartReferenceLine, index: number) {
+	const positions = isCategoryReference(line)
+		? chart.categoryReferencePositions
+		: chart.referencePositions
+
+	return positions[index] ?? null
+}
+
+/** Which standing reference labels {@link placeReferenceLabels} places. @internal */
+export type ReferenceLabelModes = {
+	/** The labels of the value rules: the `labels.references` mode. */
+	values: boolean
+	/** The labels of the category rules, which stand whenever there is room. */
+	categories: boolean
+}
+
 /**
- * Places the standing reference labels of the `labels.references` mode, aligned
- * with `reference`, or none when the mode is off. The caller turns the mode off
- * at the spark tier, which draws no label. The chart places them once
- * and passes them to {@link ChartReferenceLines}, which draws them, and to the
- * point value labels, which drop where they meet one. Each label takes the first
- * free spot beside its rule ({@link referenceLabels}). A rule whose label finds
- * none keeps its hover tooltip.
+ * Places the standing reference labels, aligned with `reference`, or none when
+ * there is no rule. A value rule takes a label only under the
+ * `labels.references` mode. A category rule takes one whenever it has a label,
+ * because it has no legend chip, so the plot label is its one visible name. The
+ * caller turns both off at the spark tier, which draws no label. The chart
+ * places them once and passes them to {@link ChartReferenceLines}, which draws
+ * them, and to the point value labels, which drop where they meet one. Each
+ * label takes the first free spot beside its rule ({@link referenceLabels}). A
+ * value rule whose label finds none keeps its hover tooltip. A category rule
+ * whose label finds none reads in the readout of its category only.
  *
  * @internal
  */
 export function placeReferenceLabels(
 	chart: ChartReferenceFrame,
 	reference: ChartReferenceLine[] | undefined,
-	labels: boolean | undefined,
+	modes: ReferenceLabelModes,
 ): (PlacedReferenceLabel | null)[] | undefined {
-	if (!labels || !reference || reference.length === 0) return undefined
+	if (!reference || reference.length === 0) return undefined
+
+	if (!modes.values && !(modes.categories && reference.some(isCategoryReference))) return undefined
 
 	return referenceLabels(
-		reference.map((line, index) => ({
-			at: chart.referencePositions[index] ?? null,
-			text: referenceLabelText(line, (value) => chart.formatAxisValue(value, line.axis ?? 'y')),
-		})),
+		reference.map((line, index) => {
+			const text = referenceLabelText(line, (value) =>
+				chart.formatAxisValue(value, line.axis ?? 'y'),
+			)
+
+			const category = isCategoryReference(line)
+
+			const shown = category ? modes.categories && text !== '' : modes.values
+
+			return {
+				at: shown ? rulePosition(chart, line, index) : null,
+				text,
+				orientation: category ? crossOrientation(chart.orientation) : undefined,
+			}
+		}),
 		chart.orientation,
 		chart.plot,
 	)
@@ -305,7 +359,7 @@ function HoverReferenceRule({
 	orientation,
 	format,
 	rise,
-}: ReferenceRuleProps) {
+}: ReferenceRuleProps & { line: ChartValueReference }) {
 	const { activeReference, emphasizedReference } = useChartEmphasis()
 
 	const { pointReference: setReferenceActive } = useChartActions()
@@ -381,6 +435,8 @@ function HoverReferenceRule({
 					<span className={cn(k.value)}>{format(line.value)}</span>
 
 					{line.label && <span className={cn(k.label)}>{line.label}</span>}
+
+					{line.description && <span className={cn(k.label)}>{line.description}</span>}
 				</div>
 			</TooltipContent>
 		</Tooltip>
@@ -410,7 +466,8 @@ function SparkReferenceRule({ line, paint, points, rise }: ReferenceRuleProps) {
  *
  * - The bare {@link SparkReferenceRule} at the spark tier, read through
  *   {@link ChartTierContext} so the frame decides and no chart gates it.
- * - The standing {@link LabeledReferenceRule} under `labels`.
+ * - The standing {@link LabeledReferenceRule} under `labels`, and for each
+ *   category rule.
  * - The interactive {@link HoverReferenceRule} otherwise.
  *
  * All draw the same dashed rule; they differ only in whether the value reads
@@ -423,7 +480,14 @@ function ReferenceRule(props: ReferenceRuleProps) {
 
 	if (spark) return <SparkReferenceRule {...props} />
 
-	return props.label ? <LabeledReferenceRule {...props} /> : <HoverReferenceRule {...props} />
+	const { line } = props
+
+	// A category rule takes no pointer: the readout of its category reads it.
+	return props.label || isCategoryReference(line) ? (
+		<LabeledReferenceRule {...props} />
+	) : (
+		<HoverReferenceRule {...props} line={line} />
+	)
 }
 
 /**
@@ -469,9 +533,9 @@ export function ChartReferenceLines({
 	animate = false,
 	labels,
 }: ChartReferenceLinesProps) {
-	if ((!chart.yScale && !chart.y2Scale) || !reference || reference.length === 0) return null
+	if (!reference || reference.length === 0) return null
 
-	const { plot, orientation, referencePositions } = chart
+	const { plot, orientation } = chart
 
 	const keys = ruleKeys(reference)
 
@@ -481,20 +545,30 @@ export function ChartReferenceLines({
 
 			const scale = axis === 'y2' ? chart.y2Scale : chart.yScale
 
+			const category = isCategoryReference(line)
+
 			// The chart projected each rule once. A rule it holds `null` for draws
 			// nothing, but keeps its slot, so a shown rule's emphasis still keys off
 			// its own `reference` index.
-			const at = referencePositions[index] ?? null
+			const at = rulePosition(chart, line, index)
 
-			if (!scale || at === null) return []
+			if ((!category && !scale) || at === null) return []
 
-			const { from, to } = valueRule(orientation, plot, at)
+			// A category rule spans the value axis at its band, which is the value rule
+			// of the other facing.
+			const { from, to } = valueRule(
+				category ? crossOrientation(orientation) : orientation,
+				plot,
+				at,
+			)
 
-			// The zero line each rule reveals from: the baseline the bars grow from,
-			// on the rule's own axis. `map` clamps into the scale's range, so zero
+			// The zero line each value rule reveals from: the baseline the bars grow
+			// from, on the rule's own axis. `map` clamps into the scale's range, so zero
 			// lands on the plot even off-domain. Revealing from here points every
-			// rule the way its value does, as the bar that would reach it grows.
-			const rise = animate ? referenceRise(orientation, scale.map(0) - at) : null
+			// rule the way its value does, as the bar that would reach it grows. A
+			// category rule has no value to grow to, so it stands at once.
+			const rise =
+				animate && scale && !category ? referenceRise(orientation, scale.map(0) - at) : null
 
 			return [
 				{
@@ -538,6 +612,8 @@ export type ChartReferenceListProps = {
 	reference: ChartReferenceLine[] | undefined
 	/** Formats each rule's value with its axis's formatter. */
 	format: ReferenceFormat
+	/** Writes a category as the band axis does. */
+	formatCategory?: (category: string) => string
 	/**
 	 * Reference indexes toggled off through their legend chips. They are dropped
 	 * from the parity, so it reads the rules the plot still draws. That is the way
@@ -555,9 +631,17 @@ export type ChartReferenceListProps = {
  *
  * @internal
  */
-export function ChartReferenceList({ reference, format, hidden }: ChartReferenceListProps) {
+export function ChartReferenceList({
+	reference,
+	format,
+	formatCategory,
+	hidden,
+}: ChartReferenceListProps) {
 	const lines =
-		reference?.filter((line, index) => Number.isFinite(line.value) && !hidden?.has(index)) ?? []
+		reference?.filter(
+			(line, index) =>
+				(isCategoryReference(line) || Number.isFinite(line.value)) && !hidden?.has(index),
+		) ?? []
 
 	if (lines.length === 0) return null
 
@@ -566,7 +650,7 @@ export function ChartReferenceList({ reference, format, hidden }: ChartReference
 	return (
 		<ul data-slot="chart-reference-list" className="sr-only">
 			{lines.map((line, index) => (
-				<li key={keys[index]}>{referenceText(line, format)}</li>
+				<li key={keys[index]}>{referenceText(line, format, formatCategory)}</li>
 			))}
 		</ul>
 	)

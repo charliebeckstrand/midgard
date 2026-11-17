@@ -14,6 +14,7 @@ import {
 	axisReadoutFormat,
 	axisScales,
 	buildCategoryGrid,
+	buildCategoryReferences,
 	buildGrid,
 	buildReferences,
 	resolveValueAxes,
@@ -48,7 +49,7 @@ import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legen
 import { legendAside, legendBands, type ResolvedLegend, resolveLegend } from './chart-legend/schema'
 import { REFERENCE_FALL, seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
-import { referenceLegendItems, ruleKeys } from './chart-reference'
+import { categoryRows, referenceLegendItems, referenceNotes, ruleKeys } from './chart-reference'
 import type { BandScale, ValueScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices } from './chart-series'
 import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
@@ -306,6 +307,15 @@ export type CartesianChart = {
 	 * rule, no stop), or its scale never resolved.
 	 */
 	referencePositions: (number | null)[]
+	/**
+	 * Each category reference line's band-axis position, aligned with the
+	 * `reference` prop ({@link buildCategoryReferences}). It is `null` for a
+	 * value rule and for a category that no row carries, and empty when no
+	 * category rule exists.
+	 */
+	categoryReferencePositions: (number | null)[]
+	/** Writes a raw category as the band axis does, for the reference list. */
+	formatCategory: (category: string) => string
 	/**
 	 * The grid positions along the value axis, per-axis participation already
 	 * applied. That is the `y` axis's ticks by default, and `y2`'s on request (or
@@ -701,9 +711,12 @@ export function useChartCartesian<T>(
 	const readout = useMemo(
 		() =>
 			xKey && data.length > 0 && visible.length > 0
-				? once(() => chartReadout(categories, visible, formatAxisValue))
+				? once(() => ({
+						...chartReadout(categories, visible, formatAxisValue),
+						notes: referenceNotes(reference, rawCategories),
+					}))
 				: null,
-		[data, visible, formatAxisValue, xKey, categories],
+		[data, visible, formatAxisValue, xKey, categories, reference, rawCategories],
 	)
 
 	// The tooltip lists its rows in the marks' visible order (a vertical stack
@@ -722,6 +735,21 @@ export function useChartCartesian<T>(
 			buildReferences(reference, { y: layout.valueScale, y2: layout.value2Scale }, referenceHidden),
 		[reference, layout.valueScale, layout.value2Scale, referenceHidden],
 	)
+
+	// A category rule marks the leading edge of its slot on a chart that draws
+	// bars, so every series counts, and a legend toggle does not move the rule.
+	const bars = metas.some((meta) => meta.swatch === 'rect')
+
+	const categoryReferencePositions = useMemo(
+		() => buildCategoryReferences(reference, rawCategories, layout.band, bars),
+		[reference, rawCategories, layout.band, bars],
+	)
+
+	const formatCategory = useMemo(() => {
+		const rows = categoryRows(rawCategories)
+
+		return (category: string) => categories[rows.get(category) ?? -1] ?? category
+	}, [rawCategories, categories])
 
 	// Reference chips resolve regardless; the frame mounts the legend (and with
 	// it these) only when `legendItems` is non-null, so they join a shown legend
@@ -810,6 +838,8 @@ export function useChartCartesian<T>(
 		snapSeries: layout.snapSeries,
 		valueLabelRoom: layout.valueLabelRoom,
 		referencePositions,
+		categoryReferencePositions,
+		formatCategory,
 		gridPositions,
 		categoryGridPositions,
 		categorySeparator: axes.x?.separator,

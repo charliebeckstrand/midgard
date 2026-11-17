@@ -18,7 +18,11 @@ import type { ChartContextMenuConfig } from './chart-context-menu'
 import type { Crosshair } from './chart-crosshair'
 import type { ChartAspectRatio } from './chart-frame/sizing'
 import type { ChartLegendConfig, ChartLegendPlacement } from './chart-legend/schema'
-import type { ChartReferenceLine } from './chart-reference'
+import type {
+	ChartCategoryReference,
+	ChartReferenceLine,
+	ChartValueReference,
+} from './chart-reference'
 import type { ChartTooltipConfig } from './chart-tooltip'
 
 /** A key of `T` naming the field a chart reads from each datum. */
@@ -415,15 +419,19 @@ export type CartesianFrameProps = {
 	 */
 	crosshair?: boolean | Crosshair
 	/**
-	 * Reference lines drawn across the plot at fixed values: targets, thresholds,
-	 * or averages the marks read against. Each value folds into the domain, so an
-	 * off-data line stays on-frame. The rules draw over the marks, so a mark
-	 * crossing one stays legible. Where the legend shows, each rule also names
-	 * itself in it as a switch that toggles the rule.
+	 * Reference lines drawn across the plot. A {@link ChartValueReference} sits
+	 * at a fixed value: a target, a threshold, or an average the marks read
+	 * against. Its value folds into the domain, so an off-data line stays
+	 * on-frame. A {@link ChartCategoryReference} sits at a category: an event
+	 * such as a release on a trend. The rules draw over the marks, so a mark
+	 * crossing one stays legible. Where the legend shows, each value rule also
+	 * names itself in it as a switch that toggles the rule.
 	 *
-	 * The keyboard cursor stops on each rule as it roves the value axis. A key
-	 * that moves the cursor onto a rule speaks its label and its value through a
-	 * polite live region, or its value alone where it has no label.
+	 * The keyboard cursor stops on each value rule as it roves the value axis. A
+	 * key that moves the cursor onto a rule speaks its label and its value through
+	 * a polite live region, or its value alone where it has no label. A category
+	 * rule takes no stop: the cursor speaks its label and its description with
+	 * the readout of its category.
 	 */
 	reference?: ChartReferenceLine[]
 	/**
@@ -493,6 +501,28 @@ type ChartReadoutRow = {
 }
 
 /**
+ * A note on one category in a readout: the label and the description of a
+ * category reference line at it, keyed by a line swatch in the color of
+ * its rule.
+ *
+ * @internal
+ */
+export type ChartReadoutNote = {
+	/** The key of the rule ({@link ruleKeys}), unique in the chart. */
+	key: string
+	/** The label of the rule, or its description where it has no label. */
+	text: string
+	/** The description of the rule, after its label. */
+	description?: string
+	/** Class carrying the rule color on `currentColor`; empty for a raw color, which inks inline. */
+	swatchClass: string
+	/** A raw rule color inked inline on the swatch's `currentColor`; unset for a palette slot. */
+	swatchColor?: string
+	/** Whether the rule is dashed, which its swatch mirrors. */
+	dashed: boolean
+}
+
+/**
  * The values a chart exposes off the marks: category labels crossed with one
  * row per series. The tooltip reads one column on hover; the visually-hidden
  * table renders all of it for assistive tech, so no value is gated behind a
@@ -509,6 +539,13 @@ export type ChartReadout = {
 	corner?: string
 	categories: string[]
 	rows: ChartReadoutRow[]
+	/**
+	 * The notes on each category, aligned with `categories`: the category
+	 * references at it. The tooltip shows them under the rows, and the keyboard
+	 * cursor speaks them. The data table does not read them, because the
+	 * visually-hidden reference list names each rule.
+	 */
+	notes?: ChartReadoutNote[][]
 }
 
 /**

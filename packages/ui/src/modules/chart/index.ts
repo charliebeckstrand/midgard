@@ -31,7 +31,11 @@ export {
 export type { ChartRangeLegendConfig } from './engine/chart-legend/range'
 export type { ChartLegendConfig, ChartLegendPlacement } from './engine/chart-legend/schema'
 export type { ChartOrientation } from './engine/chart-orientation'
-export type { ChartReferenceLine } from './engine/chart-reference'
+export type {
+	ChartCategoryReference,
+	ChartReferenceLine,
+	ChartValueReference,
+} from './engine/chart-reference'
 export { ChartSkeleton, type ChartSkeletonProps } from './engine/chart-skeleton'
 export type { ChartTier } from './engine/chart-tier'
 export type { ChartTooltipConfig, ChartTooltipTrigger } from './engine/chart-tooltip'

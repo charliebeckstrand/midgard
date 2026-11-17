@@ -30,13 +30,19 @@ type ReadoutSwatchProps = {
 	className?: string
 	/** A raw color of the mark, inked inline on `currentColor`. */
 	color?: string
+	/**
+	 * Dash a line swatch, to key a dashed reference rule.
+	 * @defaultValue false
+	 */
+	dashed?: boolean
 }
 
 /** The small swatch that keys a readout row to its mark. @internal */
-export function ReadoutSwatch({ shape, className, color }: ReadoutSwatchProps) {
+export function ReadoutSwatch({ shape, className, color, dashed = false }: ReadoutSwatchProps) {
 	return (
 		<Swatch
 			shape={readoutSwatchShapes[shape]}
+			variant={dashed ? 'dashed' : undefined}
 			size="sm"
 			color={className}
 			style={color ? { color } : undefined}

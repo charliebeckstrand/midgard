@@ -167,12 +167,14 @@ export function ChartCartesianFrame({
 	const count = chart.bandPositions.length
 
 	// Placed once: the rules draw them, and the point labels drop where they meet
-	// one. The spark tier draws no label, so it places none.
-	const referenceLabels = placeReferenceLabels(
-		chart,
-		reference,
-		labels?.references && chart.tier !== 'spark',
-	)
+	// one. A category rule stands its label without the `labels.references`
+	// switch. The spark tier draws no label, so it places none.
+	const spark = chart.tier === 'spark'
+
+	const referenceLabels = placeReferenceLabels(chart, reference, {
+		values: Boolean(labels?.references) && !spark,
+		categories: !spark,
+	})
 
 	// A hidden series drops its labels at once, though the layout holds its
 	// place while its marks play their exit.
@@ -249,6 +251,7 @@ export function ChartCartesianFrame({
 					reference={reference}
 					hidden={chart.referenceHidden}
 					format={chart.formatAxisValue}
+					formatCategory={chart.formatCategory}
 				/>
 			}
 		>

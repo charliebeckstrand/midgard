@@ -398,11 +398,17 @@ export function resolveValueLabels(
 }
 
 /**
- * One rule that a standing reference label names: the value-axis position of
- * the rule, or `null` where the rule draws nothing, and the label's text.
+ * One rule that a standing reference label names: the position of the rule,
+ * or `null` where the rule draws nothing, and the label's text. A category
+ * rule sets `orientation` to the facing whose value rule it draws as
+ * ({@link crossOrientation}). Omitted, the rule is a value rule of the chart.
  * @internal
  */
-export type ReferenceLabelRule = { at: number | null; text: string }
+export type ReferenceLabelRule = {
+	at: number | null
+	text: string
+	orientation?: ChartOrientation
+}
 
 /** A placed reference label: where its text anchors, how it aligns, and its collision box. @internal */
 export type PlacedReferenceLabel = {
@@ -493,12 +499,16 @@ export function referenceLabels(
 ): (PlacedReferenceLabel | null)[] {
 	const placed: LabelBox[] = []
 
-	const lines = rules.map((rule) => (rule.at === null ? null : ruleBox(rule.at, orientation, plot)))
+	const lines = rules.map((rule) =>
+		rule.at === null ? null : ruleBox(rule.at, rule.orientation ?? orientation, plot),
+	)
 
 	return rules.map((rule, index) => {
 		if (rule.at === null) return null
 
-		const free = referenceSpots(rule.at, labelWidth(rule.text), orientation, plot).filter(
+		const facing = rule.orientation ?? orientation
+
+		const free = referenceSpots(rule.at, labelWidth(rule.text), facing, plot).filter(
 			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
 		)
 
