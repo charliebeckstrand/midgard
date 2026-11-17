@@ -137,7 +137,7 @@ function ReaderNote({ user }: { user?: User }) {
 				<Link href="/login" underline>
 					Sign in
 				</Link>{' '}
-				to be on the leaderboard.
+				to participate in the leaderboard.
 			</Text>
 		)
 	}
