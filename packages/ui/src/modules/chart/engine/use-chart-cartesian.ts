@@ -51,7 +51,7 @@ import { legendAside, legendBands, type ResolvedLegend, resolveLegend } from './
 import { REFERENCE_FALL, seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
 import { categoryRows, referenceLegendItems, referenceNotes, ruleKeys } from './chart-reference'
-import type { BandScale, ValueScale } from './chart-scale'
+import type { BandScale, ValueHeadroom, ValueScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices } from './chart-series'
 import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
 import { parseInstant } from './chart-time'
@@ -139,14 +139,14 @@ export type CartesianConfig<T> = {
 	 */
 	points?: boolean
 	/**
-	 * Pixels of clear room to reserve past a data extreme on the value axis (see
+	 * Pixels of room to keep past each data extreme on the value axis (see
 	 * {@link CartesianLayoutInput.valueHeadroom}). The hook calls it with the
 	 * visible series, because the labels draw for the visible series and a legend
 	 * toggle changes them. The line, area, and combo charts set it when they draw
-	 * single-series point value labels. The label then sits clear of its edge,
-	 * instead of flipping onto the line. Absent, no room is reserved.
+	 * single-series point value labels. It returns a constant or `undefined`, so
+	 * the layout memo holds. Absent, no room is reserved.
 	 */
-	valueHeadroom?: (visible: readonly SeriesMeta[]) => number
+	valueHeadroom?: (visible: readonly SeriesMeta[]) => ValueHeadroom | undefined
 	/**
 	 * Where the category axis rules. `'zero'` draws it at the value scale's zero,
 	 * which is what a chart whose marks stand on that zero wants. That is bars,
@@ -300,13 +300,6 @@ export type CartesianChart = {
 	 * rest.
 	 */
 	snapSeries: number[][]
-	/**
-	 * Whether the {@link CartesianConfig.valueHeadroom} asked for was affordable
-	 * in the resolved layout (see {@link CartesianLayout.valueLabelRoom}). A
-	 * chart that reserved room for its point value labels draws them only while
-	 * this holds; `true` when no headroom was asked.
-	 */
-	valueLabelRoom: boolean
 	/**
 	 * Each reference line's value-axis position, projected through its own axis's
 	 * scale. It is index-aligned to the `reference` prop, so a keyboard stop maps
@@ -648,10 +641,11 @@ export function useChartCartesian<T>(
 
 	const horizontal = orientation === 'horizontal'
 
-	// Numbers, so a new `valueHeadroom` function on each render changes no memo.
+	// A number and a constant, so a new `valueHeadroom` function on each render
+	// changes no memo.
 	const markInset = markReach(visible, config.points, stack)
 
-	const valueHeadroom = config.valueHeadroom?.(visible) ?? 0
+	const valueHeadroom = config.valueHeadroom?.(visible)
 
 	const visibleValues = useMemo(
 		() => plotted.map((meta) => ({ values: meta.values, axis: meta.axis, index: meta.index })),
@@ -849,7 +843,6 @@ export function useChartCartesian<T>(
 		bandPositions: layout.bandPositions,
 		snapPoints: layout.snapPoints,
 		snapSeries: layout.snapSeries,
-		valueLabelRoom: layout.valueLabelRoom,
 		referencePositions,
 		categoryReferencePositions,
 		formatCategory,

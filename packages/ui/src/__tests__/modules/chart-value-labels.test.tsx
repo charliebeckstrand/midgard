@@ -160,6 +160,51 @@ describe('LineChart value labels', () => {
 	})
 })
 
+describe('LineChart value labels at the axis floor', () => {
+	it.each([160, 180, 200, 240, 280, 320])(
+		'draws the floor rule on the lowest gridline, never a few px under it (height %i)',
+		(height) => {
+			// The trough label needs room under the trough. The floor makes that
+			// room by whole steps, so the lowest gridline and the category axis
+			// rule are one line.
+			const { container } = renderUI(
+				<LineChart
+					aria-label="Revenue change by month"
+					data={[
+						{ month: 'Jan', delta: 12 },
+						{ month: 'Feb', delta: -6 },
+						{ month: 'Mar', delta: 9 },
+						{ month: 'Apr', delta: -14 },
+						{ month: 'May', delta: 18 },
+						{ month: 'Jun', delta: 7 },
+					]}
+					series={[{ xKey: 'month', yKey: 'delta', yName: 'Change' }]}
+					width={360}
+					height={height}
+					points
+					labels={{ endpoints: true, extremes: true }}
+				/>,
+			)
+
+			const rule = Number(
+				bySlot(container, 'chart-axis-x')?.querySelector('line')?.getAttribute('y1'),
+			)
+
+			const grid = [...container.querySelectorAll('[data-slot="chart-grid-lines"] line')].map(
+				(line) => Number(line.getAttribute('y1')),
+			)
+
+			expect(Math.max(...grid)).toBe(rule)
+
+			const drawn = allBySlot(container, 'chart-value-label').map((node) => node.textContent)
+
+			expect(drawn).toContain('-14')
+
+			expect(drawn).toContain('18')
+		},
+	)
+})
+
 describe('AreaChart stacked value labels', () => {
 	it('labels each stacked category by its own value across a gap', () => {
 		const { container } = renderUI(

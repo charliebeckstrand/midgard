@@ -35,7 +35,8 @@ export function chartMenuDefaultKeys(fullscreen: boolean, readout: boolean): Cha
 /**
  * The entries of the chart menu that the menu button and the header row show:
  * the custom items of `config` merged with `defaults`. A press of the menu
- * button lands on no mark, so a function-form `items` gets `index: null`.
+ * button lands on no mark, so a function-form `items` gets `index: null` and
+ * `label: null`.
  *
  * @internal
  */
@@ -47,7 +48,7 @@ export function chartMenuEntries(
 
 	return resolveContextMenuEntries(
 		{
-			items: typeof items === 'function' ? items({ index: null }) : items,
+			items: typeof items === 'function' ? items({ index: null, label: null }) : items,
 			defaultItems: config?.defaultItems,
 			insert: config?.insert,
 		},

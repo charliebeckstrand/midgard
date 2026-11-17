@@ -20,7 +20,7 @@ import type { PlotTabStopProps } from '../../../../hooks/use-plot-tab-stop'
 import { k } from '../../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../../types/accessible-name'
 import { holdTextSelection } from '../../../../utilities/hold-text-selection'
-import type { ChartContextMenuConfig } from '../chart-context-menu'
+import type { ChartContextMenuConfig, ChartContextMenuTarget } from '../chart-context-menu'
 import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
 import { createChartHoverStore } from '../chart-hover-store'
@@ -370,6 +370,13 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	describePoint?: (index: number, series: number | null, stop: number) => string | null
 	/**
+	 * The text that names the mark at a hover index, for the label of the
+	 * context-menu target ({@link ChartContextMenuTarget}), for a chart whose
+	 * hover index does not index {@link readout}'s categories. Absent, the label
+	 * is the readout category at the index. The heatmap names one cell with it.
+	 */
+	nameMark?: (index: number) => string | null
+	/**
 	 * The keyboard cursor emphasizes the series it lands on (`null` off any), in
 	 * the same channel as the legend. The marks then recede the rest and the
 	 * tooltip dims their rows. Off, keyboard navigation leaves the emphasis alone:
@@ -469,6 +476,7 @@ export function ChartFrame({
 	focus,
 	describeReference,
 	describePoint,
+	nameMark,
 	keyboardEmphasis = false,
 	onActivate,
 	selected = null,
@@ -791,6 +799,7 @@ export function ChartFrame({
 			// The frame owns the hover store, and this wrapper sits outside `ChartHoverContext` (it wraps
 			// the provider), so the right-clicked mark travels down as a prop for a per-mark menu item.
 			targetIndex={menuIndex}
+			nameTarget={nameMark}
 		>
 			{chartRoot}
 		</ChartContextMenu>

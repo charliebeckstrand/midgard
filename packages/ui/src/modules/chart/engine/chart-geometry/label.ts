@@ -10,13 +10,21 @@
  * between lines with no reliable place to put them, so those charts fall back
  * to the tooltip (see {@link resolveValueLabels}). Placement estimates the
  * width of every label first, and keeps each centered on its own point. One
- * that would overshoot the top or bottom flips to the point's other side, still
- * pinned to its mark. One that would cross a side of the plot anchors inward
- * from its point instead: it starts at the point near the left side, and ends
- * at it near the right. A label never slides past its point, since a slid label
- * lands on the neighboring marks, and one that still does not fit hides.
+ * that would cross a side of the plot anchors inward from its point instead: it
+ * starts at the point near the left side, and ends at it near the right. A
+ * label never slides past its point, since a slid label lands on the
+ * neighboring marks.
+ *
+ * A label at the maximum or the minimum of its series finds its room on the
+ * outward side of its point, where no part of the line can be: centered past
+ * the point, and then level with the point on its right or its left (see
+ * {@link extremeSpots}). The value axis keeps room for it only where the
+ * extreme sits too close to its edge ({@link valueLabelHeadroom}). A label with
+ * no free spot hides. An endpoint takes its preferred side, and
+ * flips to the other side where the preferred one would clip the plot.
  * Overlaps resolve by priority: extremes outrank endpoints, and a label whose
- * box meets one already placed is dropped rather than stacked.
+ * box meets one already placed takes its next spot, or is dropped rather than
+ * stacked.
  *
  * The standing reference labels place first (see {@link referenceLabels}), by
  * the same rule: each takes the first free spot of a short list on its rule.
@@ -25,6 +33,7 @@
 
 import { MARKER_REACH, TICK_CHAR_WIDTH } from '../chart-constants'
 import { type ChartOrientation, type PlotRect, valueRule } from '../chart-orientation'
+import type { ValueHeadroom } from '../chart-scale'
 
 /** The gap from a point or a rule to its label. @internal */
 const LABEL_OFFSET = 8
@@ -38,6 +47,15 @@ const LABEL_HALF = LABEL_HEIGHT / 2
 /** The padding each side of a value label's box. @internal */
 const LABEL_PAD = 3
 
+/**
+ * The gap from a point to the near side of the box of a label level with it:
+ * the reach of the marker ring, so the box clears the marker. The text starts
+ * {@link LABEL_PAD} further out.
+ *
+ * @internal
+ */
+const MARKER_CLEARANCE = MARKER_REACH
+
 /** The gap between two rows of stacked reference labels. @internal */
 export const LABEL_ROW_GAP = 4
 
@@ -47,7 +65,7 @@ const LABEL_ROW_STEP = LABEL_HEIGHT + LABEL_ROW_GAP
 /**
  * The y that a value label centers on beside a point at `y`. It takes its
  * preferred side, `above` or below, and flips to the other side where the
- * preferred one would clip the plot.
+ * preferred one would clip the plot. The endpoint labels share this flip.
  *
  * @internal
  */
@@ -62,39 +80,52 @@ export function labelBesideY(y: number, plot: PlotRect, above: boolean): number 
 }
 
 /**
- * The value-axis room a chart reserves past its data extremes for the labels:
- * the label's footprint plus slack. That footprint is its offset from the point
- * plus its height, exactly the threshold {@link labelBesideY} flips a clipping
- * label at. The reserved gap therefore sits safely past that threshold, rather
- * than exactly on it. A reservation that only met the threshold would leave
- * every extreme's label on the flip boundary. A resize would dance it across
- * (above, below, above), landing it on the line each time it flips.
+ * The clear gap between the label of an extreme and the top or the bottom of
+ * the plot. The floor carries the axis rule, and a label on that rule reads as
+ * crowded.
  *
  * @internal
  */
-const VALUE_LABEL_HEADROOM = LABEL_OFFSET + LABEL_HEIGHT + 4
+const LABEL_EDGE_GAP = 4
+
+/** One pixel past the fit threshold of a label, so that rounding never leaves the label exactly on it. @internal */
+const LABEL_SLACK = 1
+
+/**
+ * The value-axis room a chart keeps past its data extremes for the labels.
+ * Past the peak, it is the footprint of a label centered above the point: its
+ * offset and its height. Past the trough, it is only the height of a label
+ * level with the point ({@link extremeSpots}), since the floor widens by whole
+ * steps. Each adds the {@link LABEL_EDGE_GAP} and {@link LABEL_SLACK}. A room that only met the fit threshold
+ * would leave the label on that threshold, and a resize would move it from
+ * spot to spot.
+ *
+ * @internal
+ */
+const VALUE_LABEL_HEADROOM: ValueHeadroom = {
+	ceiling: LABEL_OFFSET + LABEL_HEIGHT + LABEL_EDGE_GAP + LABEL_SLACK,
+	floor: LABEL_HEIGHT + LABEL_EDGE_GAP + LABEL_SLACK,
+}
 
 /** The point-label switches of the `labels` prop, both optional and off by default. @internal */
 export type ValueLabelConfig = { endpoints?: boolean; extremes?: boolean }
 
 /**
- * The headroom a chart passes for its point value labels. It is the
- * {@link VALUE_LABEL_HEADROOM} footprint when a single-series chart switches
- * `endpoints` or `extremes` on, and nothing otherwise. Endpoints can sit at the
- * data extremes too, so both switches reserve. That matches the single-series
- * gate in {@link resolveValueLabels}. The layout answers whether the ask was
- * affordable through `valueLabelRoom`; a chart draws the labels only while it
- * holds.
+ * The headroom a chart passes for its point value labels:
+ * {@link VALUE_LABEL_HEADROOM} when a single-series chart switches `endpoints`
+ * or `extremes` on, else `undefined`. Endpoints can sit at the data extremes
+ * too, so both switches reserve. That matches the single-series gate in
+ * {@link resolveValueLabels}.
  *
  * @internal
  */
 export function valueLabelHeadroom(
 	config: ValueLabelConfig | undefined,
 	seriesCount: number,
-): number {
+): ValueHeadroom | undefined {
 	const wants = Boolean(config?.endpoints || config?.extremes)
 
-	return wants && seriesCount === 1 ? VALUE_LABEL_HEADROOM : 0
+	return wants && seriesCount === 1 ? VALUE_LABEL_HEADROOM : undefined
 }
 
 /** One plotted point a label can annotate: its position and the value it carries. @internal */
@@ -160,11 +191,16 @@ export type PlacedValueLabel = {
 	color?: string
 }
 
-/** A candidate label before placement: its point, the side it prefers, and its rank. @internal */
+/**
+ * A candidate label before placement: its point, the side it prefers, its
+ * rank, and whether its point is at the maximum or the minimum of its series.
+ * @internal
+ */
 type Candidate = ValueLabelPoint & {
 	key: string
 	above: boolean
 	priority: number
+	extreme: boolean
 	series: ValueLabelSeries
 }
 
@@ -173,8 +209,10 @@ export type LabelBox = { x0: number; x1: number; y0: number; y1: number }
 
 /**
  * The endpoint and extreme candidates for one series, de-duped so a point that
- * is both keeps its higher rank. Extremes outrank endpoints; the maximum sits
- * above its point, the minimum below.
+ * is both keeps its higher rank. Extremes outrank endpoints. A point at the
+ * maximum or the minimum value of the series, an endpoint too, has no line past
+ * it, so its label takes the outward spots ({@link extremeSpots}): above the
+ * maximum, below the minimum. Any other endpoint prefers the side above.
  *
  * @internal
  */
@@ -188,44 +226,53 @@ function candidatesFor(
 
 	if (points.length === 0) return []
 
+	let maxIndex = 0
+
+	let minIndex = 0
+
+	for (let i = 1; i < points.length; i++) {
+		const value = (points[i] as ValueLabelPoint).value
+
+		if (value > (points[maxIndex] as ValueLabelPoint).value) maxIndex = i
+
+		if (value < (points[minIndex] as ValueLabelPoint).value) minIndex = i
+	}
+
+	const max = (points[maxIndex] as ValueLabelPoint).value
+
+	const min = (points[minIndex] as ValueLabelPoint).value
+
 	const byIndex = new Map<number, Candidate>()
 
-	const add = (index: number, priority: number, above: boolean) => {
+	const add = (index: number, priority: number) => {
 		const existing = byIndex.get(index)
 
 		if (existing && priority <= existing.priority) return
 
+		const point = points[index] as ValueLabelPoint
+
+		const trough = point.value === min && point.value !== max
+
 		byIndex.set(index, {
-			...(points[index] as ValueLabelPoint),
+			...point,
 			key: `${order}:${index}`,
-			above,
+			above: !trough,
 			priority,
+			extreme: trough || point.value === max,
 			series,
 		})
 	}
 
 	if (extremes) {
-		let maxIndex = 0
+		add(maxIndex, 4)
 
-		let minIndex = 0
-
-		for (let i = 1; i < points.length; i++) {
-			const value = (points[i] as ValueLabelPoint).value
-
-			if (value > (points[maxIndex] as ValueLabelPoint).value) maxIndex = i
-
-			if (value < (points[minIndex] as ValueLabelPoint).value) minIndex = i
-		}
-
-		add(maxIndex, 4, true)
-
-		add(minIndex, 3, false)
+		add(minIndex, 3)
 	}
 
 	if (endpoints) {
-		add(points.length - 1, 2, true)
+		add(points.length - 1, 2)
 
-		add(0, 1, true)
+		add(0, 1)
 	}
 
 	return [...byIndex.values()]
@@ -263,34 +310,97 @@ function anchorAt(
 	return (start ? x1 > right : x0 < left) ? null : { anchor: start ? 'start' : 'end', x0, x1 }
 }
 
+/** A placed label and its collision box. @internal */
+type Placement = { label: PlacedValueLabel; box: LabelBox }
+
+/** A spot a label can take: where its text anchors, and its box across the axis. @internal */
+type Spot = { x: number; y: number; anchor: PlacedValueLabel['anchor']; x0: number; x1: number }
+
 /**
- * Resolves a candidate to its placed label and collision box, or `null` where
- * it no longer fits. Clipping the top or bottom flips the label to the point's
- * other side, and vertically it never leaves its mark. Across the axis it
- * centers on its point, or anchors inward from the point near a side of the
- * plot ({@link anchorAt}). It never slides past its point, where it would land
- * on the neighboring marks.
+ * Whether the label of an extreme centered on `y` fits between the top and the
+ * bottom of the plot, {@link LABEL_EDGE_GAP} clear of each.
  *
  * @internal
  */
-function place(
-	candidate: Candidate,
-	plot: PlotRect,
-): { label: PlacedValueLabel; box: LabelBox } | null {
+function fitsAcross(y: number, plot: PlotRect): boolean {
+	return (
+		y - LABEL_HALF - LABEL_EDGE_GAP >= plot.y &&
+		y + LABEL_HALF + LABEL_EDGE_GAP <= plot.y + plot.height
+	)
+}
+
+/**
+ * The spots an extreme's label can take, in the order it tries them. Each is
+ * on the outward side of the point: above the maximum, below the minimum. No
+ * value of the series is past the extreme, and a segment between two points
+ * stays between them, so no part of the line enters these spots. The first
+ * spot centers past the point, {@link LABEL_OFFSET} away. The next two sit
+ * level with the point, one edge on its line, clear of the marker: to its
+ * right, then to its left. A spot that would cross a side of the plot, or
+ * come within {@link LABEL_EDGE_GAP} of its top or its bottom, is left out.
+ *
+ * @internal
+ */
+function extremeSpots(candidate: Candidate, width: number, plot: PlotRect): Spot[] {
+	const { x, y, above } = candidate
+
+	const outward = above ? -1 : 1
+
+	const spots: Spot[] = []
+
+	const past = y + outward * (LABEL_OFFSET + LABEL_HALF)
+
+	const across = anchorAt(x, width, plot)
+
+	if (across && fitsAcross(past, plot)) spots.push({ x, y: past, ...across })
+
+	const level = y + outward * LABEL_HALF
+
+	if (!fitsAcross(level, plot)) return spots
+
+	const right = x + MARKER_CLEARANCE
+
+	if (right + width <= plot.x + plot.width) {
+		spots.push({ x: right + LABEL_PAD, y: level, anchor: 'start', x0: right, x1: right + width })
+	}
+
+	const left = x - MARKER_CLEARANCE
+
+	if (left - width >= plot.x) {
+		spots.push({ x: left - LABEL_PAD, y: level, anchor: 'end', x0: left - width, x1: left })
+	}
+
+	return spots
+}
+
+/**
+ * The placements a candidate can take, in the order it tries them. An extreme
+ * tries its outward spots ({@link extremeSpots}). An endpoint takes one spot:
+ * centered on its point, or anchored inward from the point near a side of the
+ * plot ({@link anchorAt}), on its preferred side, or on the other side where
+ * the preferred one would clip the plot.
+ *
+ * @internal
+ */
+function placements(candidate: Candidate, plot: PlotRect): Placement[] {
 	const text = candidate.series.format(candidate.value)
 
-	const across = anchorAt(candidate.x, labelWidth(text), plot)
+	const width = labelWidth(text)
 
-	if (!across) return null
+	const spots: Spot[] = candidate.extreme
+		? extremeSpots(candidate, width, plot)
+		: [anchorAt(candidate.x, width, plot)]
+				.filter((across) => across !== null)
+				.map((across) => ({
+					x: candidate.x,
+					y: labelBesideY(candidate.y, plot, candidate.above),
+					...across,
+				}))
 
-	const { anchor, x0, x1 } = across
-
-	const y = labelBesideY(candidate.y, plot, candidate.above)
-
-	return {
+	return spots.map(({ x, y, anchor, x0, x1 }) => ({
 		label: {
 			key: candidate.key,
-			x: candidate.x,
+			x,
 			y,
 			text,
 			anchor,
@@ -298,7 +408,7 @@ function place(
 			color: candidate.series.color,
 		},
 		box: labelBox(x0, x1, y),
-	}
+	}))
 }
 
 /** The estimated width of a label's box: its text and the padding each side. @internal */
@@ -327,9 +437,9 @@ function overlaps(a: LabelBox, b: LabelBox): boolean {
 }
 
 /**
- * Places the selective value labels across every series, highest rank first. It
- * drops any that no longer fits its natural spot, and any whose box meets one
- * already placed or an obstacle.
+ * Places the selective value labels across every series, highest rank first.
+ * Each label takes the first of its {@link placements} whose box meets no label
+ * already placed and no obstacle. A label with no such spot drops.
  *
  * @internal
  */
@@ -343,11 +453,11 @@ export function valueLabels(options: ValueLabelsOptions): PlacedValueLabel[] {
 	const labels: PlacedValueLabel[] = []
 
 	for (const candidate of candidates) {
-		const placement = place(candidate, options.plot)
+		const placement = placements(candidate, options.plot).find(
+			(spot) => !placed.some((other) => overlaps(other, spot.box)),
+		)
 
 		if (!placement) continue
-
-		if (placed.some((other) => overlaps(other, placement.box))) continue
 
 		placed.push(placement.box)
 

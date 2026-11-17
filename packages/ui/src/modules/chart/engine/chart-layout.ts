@@ -27,7 +27,13 @@ import {
 } from './chart-constants'
 import { hasIsolatedPoint } from './chart-geometry/line'
 import { bandExtent, type PlotRect, valueExtent } from './chart-orientation'
-import { type BandScale, bandScale, headroomFits, type ValueScale, valueScale } from './chart-scale'
+import {
+	type BandScale,
+	bandScale,
+	type ValueHeadroom,
+	type ValueScale,
+	valueScale,
+} from './chart-scale'
 import { estimateTextWrap, type TextWidth } from './chart-text-width'
 import type { ChartBandAxisMode } from './chart-tier'
 import { timeTicks } from './chart-time'
@@ -261,19 +267,6 @@ export type CartesianLayout = {
 	snapSeries: number[][]
 	/** The axis titles (value and band), placed inside their reserved bands; empty without titles. */
 	titles: ChartAxisTitlePlacement[]
-	/**
-	 * Whether the {@link CartesianLayoutInput.valueHeadroom} asked for was
-	 * affordable. `false` sheds every point value label AND withholds the
-	 * scale's reservation. A plot too short to afford the room would otherwise
-	 * place labels back on the flip boundary the reservation exists to clear. It
-	 * would also pad the domain for labels that never draw.
-	 *
-	 * The vertical verdict reads the range floor under the tallest band chrome
-	 * the chart can wear (see {@link verticalLabelRoom}). It therefore moves one
-	 * way as the frame shrinks, instead of flashing labels back on when a smaller
-	 * tier drops the band row. `true` when nothing was asked.
-	 */
-	valueLabelRoom: boolean
 }
 
 /** One value axis's resolved layout inputs: domain candidates, pins, formatter, and title. @internal */
@@ -375,14 +368,12 @@ export type CartesianLayoutInput = {
 	 */
 	markInset?: number
 	/**
-	 * Pixels of clear room to reserve between a data extreme and its unpinned
-	 * value-axis edge. An extreme's value label then sits above the peak or below
-	 * the trough, rather than flipping onto the line. The `LineChart` sets it when
-	 * it draws single-series extreme labels. `0` is the default, and every other
-	 * chart reserves nothing.
-	 * @defaultValue 0
+	 * Pixels of room to keep between each data extreme and its unpinned
+	 * value-axis edge, for the value label there (`valueLabelHeadroom` gives it).
+	 * The line, area, and combo charts set it when they draw single-series point
+	 * labels. Unset, every other chart reserves nothing.
 	 */
-	valueHeadroom?: number
+	valueHeadroom?: ValueHeadroom
 }
 
 /** One visible series, as {@link markReach} reads it. @internal */
@@ -734,7 +725,7 @@ function buildValueScale(
 	range: [number, number],
 	tickTarget: number,
 	zeroBaseline: boolean,
-	headroom = 0,
+	headroom?: ValueHeadroom,
 ): ValueScale | null {
 	if (!axis) return null
 
@@ -771,48 +762,6 @@ function valueGutter(on: boolean, ticks: ChartAxisTick[], title: string | undefi
 /** The zero position of `scale`, else of `other`, else the plot-edge fallback. @internal */
 function getZero(scale: ValueScale | null, other: ValueScale | null, edge: number): number {
 	return scale?.map(0) ?? other?.map(0) ?? edge
-}
-
-/**
- * Whether the asked value-label headroom is affordable over `rangePx`: `true`
- * when none was asked. The same {@link headroomFits} test {@link linearScale}
- * reserves by.
- *
- * @internal
- */
-function hasLabelRoom(headroom: number | undefined, rangePx: number): boolean {
-	return !headroom || headroomFits(headroom, rangePx)
-}
-
-/**
- * The vertical layout's value-label room verdict. It gates on the range FLOOR
- * (the plot under the tallest band chrome this chart can wear), never on the
- * tier-resolved band. The actual range grows back when the band row drops at a
- * smaller tier. A verdict read from it flashes the labels back on mid-shrink
- * (hidden, shown, hidden again).
- *
- * The floor is computed from the props alone, the same posture as the tier's
- * chrome reserve. The verdict therefore moves one way as the frame shrinks. The
- * floor never exceeds the resolved range, so a granted verdict is always backed
- * by the scale's reservation.
- *
- * @internal
- */
-function verticalLabelRoom(input: CartesianLayoutInput, flatRange: [number, number]): boolean {
-	if (!input.valueHeadroom) return true
-
-	const labelBand = input.times ? X_AXIS_HEIGHT : tallestBandLabels(input.tickLayout)
-
-	// A titled band adds its title band under the labels, eating the same value room.
-	const worstBand = labelBand + (input.bandTitle ? AXIS_TITLE_BAND : 0)
-
-	// Without axes there is no band chrome to vary; the mark-inset range is
-	// already monotone in the frame.
-	const floor = input.axes
-		? input.frameHeight - PLOT_TOP_PAD - worstBand
-		: Math.abs(flatRange[0] - flatRange[1])
-
-	return headroomFits(input.valueHeadroom, floor)
 }
 
 /**
@@ -885,18 +834,6 @@ function buildValueAxes(input: CartesianLayoutInput, range: [number, number]): V
 /** The band height of one line of category labels: the gap under the plot and the label. @internal */
 function wrapHeight(lines: number): number {
 	return GUTTER_GAP + lines * BAND_LABEL_HEIGHT
-}
-
-/**
- * The tallest band of category labels that a `tickLayout` can take, from the
- * props alone: the value-label room reads it before the labels lay out.
- *
- * @internal
- */
-function tallestBandLabels(tickLayout: ChartCategoryAxis['tickLayout']): number {
-	if (tickLayout === 'rotate') return TICK_ROTATION_HEIGHT
-
-	return tickLayout === 'wrap' ? wrapHeight(TICK_WRAP_LINES) : X_AXIS_HEIGHT
 }
 
 /** How the category labels of a vertical chart lay out, and the band height they take. @internal */
@@ -1015,13 +952,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		? [frameHeight - flatHeight, PLOT_TOP_PAD]
 		: [frameHeight - markPad, Math.max(PLOT_TOP_PAD, markPad)]
 
-	const valueLabelRoom = verticalLabelRoom(input, flatRange)
-
-	// A withheld verdict reserves nothing: the scale would otherwise pad the
-	// domain for labels that will not draw.
-	const scaleInput = valueLabelRoom ? input : { ...input, valueHeadroom: 0 }
-
-	const flatAxes = buildValueAxes(scaleInput, flatRange)
+	const flatAxes = buildValueAxes(input, flatRange)
 
 	// Each side reserves its own gutter (tick labels plus a title band where a
 	// title is set), so the plot narrows only for the chrome actually drawn.
@@ -1061,7 +992,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const { valueScale, value2Scale, valueTicks, value2Ticks } =
 		axisBandHeight === flatHeight
 			? flatAxes
-			: buildValueAxes(scaleInput, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
+			: buildValueAxes(input, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
 
 	const plot: PlotRect = {
 		x: leftGutter,
@@ -1094,7 +1025,6 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		bandPositions: bandCenters(band, count),
 		...buildSnap(scales, count, input.visibleValues),
 		titles: verticalTitles(input, scales, plot, frameWidth, bandTitle, labelHeight),
-		valueLabelRoom,
 	}
 }
 
@@ -1307,6 +1237,5 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 		bandPositions: bandCenters(band, count),
 		...buildSnap(scales, count, input.visibleValues),
 		titles: horizontalTitles(input, scales, plot, bandTitle),
-		valueLabelRoom: hasLabelRoom(input.valueHeadroom, Math.abs(range[1] - range[0])),
 	}
 }

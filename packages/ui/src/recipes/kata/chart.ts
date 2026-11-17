@@ -45,7 +45,7 @@ export const k = {
 	mark: {
 		/**
 		 * The ink of an SVG label beside a mark or a rule: small, semibold, and tabular.
-		 * The color of the series or the rule fills it. A halo in the surface fill
+		 * The `ink` of the series or the rule fills it. A halo in the surface fill
 		 * paints under the glyphs, so a label stays legible where it crosses a line,
 		 * a rule, or a mark.
 		 */
