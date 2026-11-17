@@ -131,14 +131,14 @@ of a replay, move the focus by the same rule.
 
 ## Settings
 
-The Game tab of the settings has three switches and a picker:
+The Game tab of the settings has a picker above three switches:
 
 | Setting | Default | What it does |
 | --- | --- | --- |
+| CPU difficulty | Normal | The level of the CPU in Vs CPU: Easy, Normal, or Hard (see [Vs CPU](#vs-cpu)). |
 | Auto-draw | On | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button. |
 | Show score | On | The bar at the bottom shows the score. |
 | Placement order | On | At the end of a run, each filled slot shows the order of its placement to its left, also in the column of the CPU. The order is the position of the number in the deck. |
-| CPU difficulty | Normal | The level of the CPU in Vs CPU: Easy, Normal, or Hard (see [Vs CPU](#vs-cpu)). |
 
 Each setting is in a cookie (`numbers-auto-draw`, `numbers-show-score`,
 `numbers-placement-order`, and `numbers-difficulty`, `src/utilities/settings.ts`). The page reads the cookies of the request, so
