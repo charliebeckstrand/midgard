@@ -113,6 +113,77 @@ describe('resolveContextMenuEntries', () => {
 		).toEqual(defaults)
 	})
 
+	it.each(['after', 'before'] as const)(
+		'replaces a default in its place with a custom item of its key (insert %s)',
+		(insert) => {
+			const own: ContextMenuItem = { key: 'a', label: 'Own alpha', onAction: noop }
+
+			const entries = resolveContextMenuEntries({ items: [own], insert }, defaults)
+
+			// The custom group is empty once its one item replaces a default, so no rule joins it.
+			expect(entries).toEqual([own, defaults[1]])
+		},
+	)
+
+	it('keeps the other custom items in the custom group beside a replacement', () => {
+		const own: ContextMenuItem = { key: 'b', label: 'Own bravo', onAction: noop }
+
+		const entries = resolveContextMenuEntries({ items: [custom, own] }, defaults)
+
+		expect(shape(entries)).toEqual(['a', 'b', '|', 'c'])
+
+		expect(entries[1]).toBe(own)
+	})
+
+	it('renders one row for each key when a custom item repeats a default key', () => {
+		const entries = resolveContextMenuEntries(
+			{ items: [{ key: 'a', label: 'Own alpha', onAction: noop }, custom] },
+			mergeContextMenuItems([[defaults[0]], [defaults[1]]]),
+		)
+
+		const keys = entries.map((entry) => entry.key)
+
+		expect(new Set(keys).size).toBe(keys.length)
+	})
+
+	it('replaces a default submenu with a custom item of its key, and not its nested rows', () => {
+		const submenu: ContextMenuEntry = {
+			key: 'sort',
+			label: 'Sort',
+			items: [{ key: 'asc', label: 'Ascending', onAction: noop }],
+		}
+
+		const nested: ContextMenuItem = { key: 'asc', label: 'Own ascending', onAction: noop }
+
+		const own: ContextMenuItem = { key: 'sort', label: 'Own sort', onAction: noop }
+
+		expect(resolveContextMenuEntries({ items: [nested] }, [submenu])).toEqual([
+			submenu,
+			{ key: 'asc:separator', separator: true },
+			nested,
+		])
+
+		expect(resolveContextMenuEntries({ items: [own] }, [submenu])).toEqual([own])
+	})
+
+	it('replaces nothing when defaultItems is false, so the custom item stays', () => {
+		const own: ContextMenuItem = { key: 'a', label: 'Own alpha', onAction: noop }
+
+		expect(resolveContextMenuEntries({ items: [own], defaultItems: false }, defaults)).toEqual([
+			own,
+		])
+	})
+
+	it('leaves the defaults whole beside a custom item with no key', () => {
+		const bare: ContextMenuItem = { label: 'Bare', onAction: noop }
+
+		expect(resolveContextMenuEntries({ items: [bare] }, defaults)).toEqual([
+			...defaults,
+			{ separator: true },
+			bare,
+		])
+	})
+
 	it('inserts no separator when only one group is present', () => {
 		expect(resolveContextMenuEntries({ items: [] }, defaults)).toEqual(defaults)
 

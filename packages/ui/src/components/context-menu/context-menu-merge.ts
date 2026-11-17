@@ -56,6 +56,11 @@ function trimSeparators(group: ContextMenuEntry[]): ContextMenuEntry[] {
  * each group go, and a group that holds only separators counts as empty. Thus
  * no rule leads, trails, or doubles at the join.
  *
+ * A custom item or submenu with the key of a shown default item or submenu
+ * replaces that default in its place ({@link replaceDefaults}). Thus a host
+ * can give its own version of a default, and the menu shows one row for each
+ * key.
+ *
  * @param config - The caller's configuration, or `undefined` for all defaults.
  * @param defaults - The host's built-in entries: items, separators, and submenus.
  * @returns The final entries to render, in order.
@@ -64,12 +69,52 @@ export function resolveContextMenuEntries(
 	config: ContextMenuConfig | undefined,
 	defaults: ContextMenuEntry[],
 ): ContextMenuEntry[] {
-	const custom = config?.items ?? []
+	const shown = (config?.defaultItems ?? true) ? defaults : []
 
-	const shownDefaults = (config?.defaultItems ?? true) ? defaults : []
+	const { custom, defaults: shownDefaults } = replaceDefaults(config?.items ?? [], shown)
 
 	const [first, second] =
 		(config?.insert ?? 'after') === 'before' ? [custom, shownDefaults] : [shownDefaults, custom]
 
 	return mergeContextMenuItems([first, second])
+}
+
+/** The key of a row (an item or a submenu), or `undefined` for a separator or a row with no key. */
+function rowKey(entry: ContextMenuEntry): string | undefined {
+	return 'separator' in entry ? undefined : entry.key
+}
+
+/**
+ * Moves each custom row that has the key of a default row into the place of
+ * that default. The first custom row with a key replaces the default. The
+ * rows that replace a default leave the custom group, and the other custom
+ * entries stay in their order. Only the top level counts: the rows inside a
+ * submenu do not replace, and a separator never replaces.
+ */
+function replaceDefaults(
+	custom: ContextMenuEntry[],
+	defaults: ContextMenuEntry[],
+): { custom: ContextMenuEntry[]; defaults: ContextMenuEntry[] } {
+	const keys = new Set(defaults.map(rowKey).filter((key) => key !== undefined))
+
+	const replacements = new Map<string, ContextMenuEntry>()
+
+	for (const entry of custom) {
+		const key = rowKey(entry)
+
+		if (key !== undefined && keys.has(key) && !replacements.has(key)) replacements.set(key, entry)
+	}
+
+	if (replacements.size === 0) return { custom, defaults }
+
+	const replacement = (entry: ContextMenuEntry) => {
+		const key = rowKey(entry)
+
+		return key === undefined ? undefined : replacements.get(key)
+	}
+
+	return {
+		custom: custom.filter((entry) => replacement(entry) !== entry),
+		defaults: defaults.map((entry) => replacement(entry) ?? entry),
+	}
 }
