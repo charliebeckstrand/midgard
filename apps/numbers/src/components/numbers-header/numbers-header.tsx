@@ -40,11 +40,15 @@ export type NumbersHeaderProps = {
 /**
  * The bar at the top of the page: the trail, and on its right the How to play
  * button, the settings, and the menu. The solo route (Standard in the menu) is
- * the home of the app, so its trail is only `Numbers`, the current page. On another route, the trail adds the route, such as
- * `Numbers › Vs CPU`, which is the current page. There, Numbers leads to the solo
- * route, as the Standard item of the menu does, so it starts the run of a new seed. The
- * trail gives way from the left, as the trails of Places and Elections do. The
- * heading of the page is "Numbers", for a screen reader only.
+ * the home of the app, so its trail is only `Numbers`, the current page. On
+ * another route, the trail adds the route, such as `Numbers › Vs CPU`, which is
+ * the current page. There, Numbers leads to the solo route, as the Standard
+ * item of the menu does, so it starts the run of a new seed. The trail gives
+ * way from the left, as the trails of Places and Elections do. The heading of
+ * the page is "Numbers", for a screen reader only.
+ *
+ * The How to play button and the settings button are plain, as the menu
+ * button is.
  *
  * A segment in the settings switches the "UI" tab of the appearance pickers
  * and the "Game" tab, with the Auto-draw and the Show score
@@ -89,7 +93,7 @@ export function NumbersHeader({ user, route }: NumbersHeaderProps) {
 
 				<HowToPlay />
 
-				<AppearanceSettings tabs={TABS} animate="slide" />
+				<AppearanceSettings variant="plain" tabs={TABS} animate="slide" />
 
 				<NumbersMenu user={user} route={route} />
 			</Flex>
