@@ -206,5 +206,12 @@ export const LABEL_GAP = 4
  */
 export const LABEL_ROOM = 2 * LABEL_GAP
 
+/**
+ * The spacing scale of chart labels, step three: three gaps. A label that does
+ * not center on a vertical reference rule ends or starts this far past the
+ * rule, so the rule runs into the label near its end. @internal
+ */
+export const LABEL_INSET = 3 * LABEL_GAP
+
 /** Transparent stroke width making the reference rule an easy hover target. @internal */
 export const REFERENCE_HIT_WIDTH = 32

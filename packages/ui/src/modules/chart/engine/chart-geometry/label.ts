@@ -32,7 +32,13 @@
  * meets one drops.
  */
 
-import { LABEL_GAP, LABEL_ROOM, MARKER_REACH, TICK_CHAR_WIDTH } from '../chart-constants'
+import {
+	LABEL_GAP,
+	LABEL_INSET,
+	LABEL_ROOM,
+	MARKER_REACH,
+	TICK_CHAR_WIDTH,
+} from '../chart-constants'
 import { type ChartOrientation, type PlotRect, type Vec, valueRule } from '../chart-orientation'
 import type { ValueHeadroom } from '../chart-scale'
 
@@ -588,7 +594,7 @@ function referenceSpots(
 /**
  * The ways that a label `width` wide can align on a vertical rule at `at`,
  * in the order it tries them. First, the label centers on the rule. Next, it
- * ends or starts {@link LABEL_ROOM} past the rule, so the rule runs into the
+ * ends or starts {@link LABEL_INSET} past the rule, so the rule runs into the
  * label near its end. Near a side of the plot, the label stops flush with that
  * side. Last, the label ends or starts at the rule. A label that ends or starts
  * at its rule leaves the rule beside it, so it can step off a neighbor rule
@@ -622,8 +628,8 @@ function ruleAnchors(
 
 	const spots = [
 		...(middle.x0 >= left && middle.x1 <= right ? [middle] : []),
-		end(Math.min(at + LABEL_ROOM, right)),
-		start(Math.max(at - LABEL_ROOM, left)),
+		end(Math.min(at + LABEL_INSET, right)),
+		start(Math.max(at - LABEL_INSET, left)),
 		end(at),
 		start(at),
 	]

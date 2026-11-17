@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { LABEL_ROOM } from '../../modules/chart/engine/chart-constants'
+import { LABEL_INSET, LABEL_ROOM } from '../../modules/chart/engine/chart-constants'
 import {
 	LABEL_HEIGHT,
 	type LabelBox,
@@ -112,21 +112,21 @@ describe('referenceLabels', () => {
 		}
 	})
 
-	it('insets a label that cannot center the room past its rule, in a horizontal chart', () => {
-		// The centered label covers the rule at 120, and the label that ends the
-		// room past its rule keeps the room from it.
+	it('insets a label that cannot center past its rule, in a horizontal chart', () => {
+		// The centered label covers the rule at 125, and the label that ends the
+		// inset past its rule keeps the room from it.
 		const [goal] = referenceLabels(
 			[
 				{ at: 100, width: 42 },
-				{ at: 120, width: 0, unlabeled: true },
+				{ at: 125, width: 0, unlabeled: true },
 			],
 			'horizontal',
 			PLOT,
 		)
 
-		expect([goal?.anchor, goal?.x]).toEqual(['end', 100 + LABEL_ROOM])
+		expect([goal?.anchor, goal?.x]).toEqual(['end', 100 + LABEL_INSET])
 
-		expect(goal?.box.x1).toBeLessThanOrEqual(120 - LABEL_ROOM)
+		expect(goal?.box.x1).toBeLessThanOrEqual(125 - LABEL_ROOM)
 	})
 
 	it('stops an inset label flush with the side of the plot near its rule', () => {
