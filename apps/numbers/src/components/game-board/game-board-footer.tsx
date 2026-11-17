@@ -17,17 +17,16 @@ import { SETTINGS } from '../../utilities/settings'
 import { GameBoardShare } from './game-board-share'
 
 /**
- * The tint of a score cell: green for the winner, and amber for a tie or a
- * solo bust. Each tint is the fill of a soft button: 15% of its 500 shade, in
- * light and in dark.
+ * The color of a score number: green for a win, and amber for a tie or a
+ * loss. The `color` of Text gives the shade that clears AA on the page.
  */
 type Tint = 'green' | 'amber' | undefined
 
-/** The tint of the cell of the player and of the CPU, while the game goes on and for each result. */
+/** The color of the score of the player and of the CPU, while the game goes on and for each result. */
 const TINTS: Record<Outcome | 'playing', { player: Tint; cpu: Tint }> = {
 	playing: { player: undefined, cpu: undefined },
-	win: { player: 'green', cpu: undefined },
-	loss: { player: undefined, cpu: 'green' },
+	win: { player: 'green', cpu: 'amber' },
+	loss: { player: 'amber', cpu: 'green' },
 	tie: { player: 'amber', cpu: 'amber' },
 }
 
@@ -47,43 +46,21 @@ type ScoreCellProps = {
 	 */
 	showLabel?: boolean
 	game: Game
+	/** The color of the score number. The slash and the 20 after it stay muted. */
 	tint?: Tint
-	/**
-	 * Gives the cell padding, for a tint. With no tint in the bar, the cell has
-	 * no padding, so the score is flush with the slots.
-	 */
-	inset?: boolean
 	/** Shows a check before the label: green for the winner, and muted grey for the loser. */
 	check?: boolean
 }
 
 /**
  * One score: a label, and the count of the filled slots of `game`, of 20. The
- * cell has no paint while the game goes on. The cell of the winner is green,
- * and a tie makes it amber. With no tint in the bar, the cell has no padding,
- * so the score is flush with the slots, as the drawn number is. A tint gives
- * each cell of the bar its padding, so the cells align.
+ * cell has no paint and no padding, so the score is flush with the slots, as
+ * the drawn number is. At the end of a run, the number of the score is green
+ * for a win, and amber for a tie or a loss.
  */
-function ScoreCell({
-	label,
-	showLabel = true,
-	game,
-	tint,
-	inset = false,
-	check = false,
-}: ScoreCellProps) {
+function ScoreCell({ label, showLabel = true, game, tint, check = false }: ScoreCellProps) {
 	return (
-		<Flex
-			align="center"
-			justify={showLabel ? 'between' : 'start'}
-			gap="sm"
-			className={cn(
-				'rounded-lg',
-				inset && 'px-4 py-2.5',
-				tint === 'green' && 'bg-green-500/15',
-				tint === 'amber' && 'bg-amber-500/15',
-			)}
-		>
+		<Flex align="center" justify={showLabel ? 'between' : 'start'} gap="sm">
 			{(check || showLabel) && (
 				<Flex align="center" gap="sm" className="min-w-0">
 					{check && (
@@ -111,7 +88,7 @@ function ScoreCell({
 			{!showLabel && <span className="sr-only">{label}</span>}
 
 			{/* The score is one value, so it does not wrap. Safari wrapped it after its slash. */}
-			<Text as="span" className="font-semibold text-xl tabular-nums whitespace-nowrap">
+			<Text as="span" color={tint} className="font-semibold text-xl tabular-nums whitespace-nowrap">
 				{countPlaced(game.slots)}
 				<Text as="span" tone="muted" className="font-medium text-base">
 					{` / ${SLOTS}`}
@@ -142,11 +119,11 @@ export type GameBoardFooterProps = {
  * a screen reader. Against the CPU, the bar has the score of the player above the
  * score of the CPU. Away from the default level, the label of the CPU names
  * its level, such as "CPU (Hard)". When one side wins, each label gets a
- * check before it: the cell and the check of the winner are green, and the
- * check of the loser is grey. A tie makes both cells amber, with no check.
- * A solo win makes the cell green, with a green check, as the winner against
- * the CPU. A solo bust makes the cell amber, with no check, as a tie against
- * the CPU. With Show score off, the bar holds only the share menu.
+ * check before it: the score and the check of the winner are green, the score
+ * of the loser is amber, and its check is grey. A tie makes both scores amber,
+ * with no check. A solo win makes the score green, with a green check, as the
+ * winner against the CPU. A solo bust makes the score amber, with no check.
+ * With Show score off, the bar holds only the share menu.
  *
  * @remarks
  * A border at the top of the bar spans the width of the view, as the border
@@ -175,9 +152,6 @@ export function GameBoardFooter({
 
 	const soloTint: Tint = won ? 'green' : status === 'bust' ? 'amber' : undefined
 
-	// A result tints a cell, so each cell of the bar gets its padding.
-	const settled = Boolean(outcome)
-
 	return (
 		<div className="shrink-0 border-t border-zinc-950/5 dark:border-white/5">
 			<Flex
@@ -187,33 +161,14 @@ export function GameBoardFooter({
 			>
 				<div className="min-w-0 flex-1">
 					{cpu ? (
-						// With no tint, the two scores have no space between them. Two tinted cells keep a gap.
-						<Stack gap={settled ? 'sm' : undefined}>
-							<ScoreCell
-								label="You"
-								tint={tints.player}
-								inset={settled}
-								game={game}
-								check={decided}
-							/>
-							<ScoreCell
-								label={cpuName(difficulty)}
-								tint={tints.cpu}
-								inset={settled}
-								game={cpu}
-								check={decided}
-							/>
+						// The two scores have no space between them.
+						<Stack>
+							<ScoreCell label="You" tint={tints.player} game={game} check={decided} />
+							<ScoreCell label={cpuName(difficulty)} tint={tints.cpu} game={cpu} check={decided} />
 						</Stack>
 					) : (
 						showScore && (
-							<ScoreCell
-								label="Score"
-								showLabel={false}
-								game={game}
-								tint={soloTint}
-								inset={Boolean(soloTint)}
-								check={won}
-							/>
+							<ScoreCell label="Score" showLabel={false} game={game} tint={soloTint} check={won} />
 						)
 					)}
 				</div>
