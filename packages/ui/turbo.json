@@ -5,6 +5,7 @@
 		"test": {
 			"inputs": [
 				"src/**",
+				"styles/tailwind.css",
 				"fonts/**",
 				"scripts/fonts/build.ts",
 				"docs/*.md",
@@ -51,6 +52,7 @@
 			"passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"],
 			"inputs": [
 				"src/**",
+				"styles/tailwind.css",
 				"vitest.browser.config.ts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
