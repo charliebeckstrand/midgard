@@ -2,7 +2,7 @@ import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-
 import { ChartGridLines } from '../engine/chart-axes/grid-lines'
 import type { ChartAxisTitlePlacement } from '../engine/chart-layout'
 import type { PlotRect } from '../engine/chart-orientation'
-import type { LinearScale } from '../engine/chart-scale'
+import type { ValueScale } from '../engine/chart-scale'
 
 /**
  * The scatter frame's chrome: both axes' gridlines, tick labels, and titles.
@@ -19,8 +19,8 @@ export function ScatterChartChrome(props: {
 	/** Whether each axis's ticks rule the grid: resolved from the axis's own `grid` switch. */
 	xGrid: boolean
 	yGrid: boolean
-	xScale: LinearScale | null
-	yScale: LinearScale | null
+	xScale: ValueScale | null
+	yScale: ValueScale | null
 	xTicks: ChartAxisTick[]
 	yTicks: ChartAxisTick[]
 	/** The placed axis titles, empty when neither axis is titled. */

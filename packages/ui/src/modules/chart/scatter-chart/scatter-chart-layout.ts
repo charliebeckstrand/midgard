@@ -7,7 +7,7 @@
 
 import { compactTickFormat, readoutFormat, tickFormat } from '../../../utilities/format-number'
 import type { ChartAxisTick } from '../engine/chart-axes/axis'
-import type { ScatterAxes } from '../engine/chart-axes/schema'
+import type { ChartValueAxis, ScatterAxes } from '../engine/chart-axes/schema'
 import { toLegendItem } from '../engine/chart-cartesian/series'
 import type { ChartPaint } from '../engine/chart-color/paint'
 import { seriesPaint } from '../engine/chart-color/palette'
@@ -38,7 +38,7 @@ import {
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
 import { legendVisible, type ResolvedLegend } from '../engine/chart-legend/schema'
 import type { PlotRect } from '../engine/chart-orientation'
-import { type LinearScale, linearScale } from '../engine/chart-scale'
+import { type ValueScale, valueScale } from '../engine/chart-scale'
 import type { ScatterChartSeries } from '../engine/types'
 
 /** One series resolved to everything the frame parts read. @internal */
@@ -59,6 +59,32 @@ export type ScatterMeta = {
 	 * ({@link bubbleCeiling}). A plain series ignores the ceiling.
 	 */
 	radius: (ceiling: number) => (size: number | null) => number
+}
+
+/** The `scale` of each axis of a point chart: `undefined` is linear. @internal */
+export type ScatterSpacing = { x: ChartValueAxis['scale']; y: ChartValueAxis['scale'] }
+
+/**
+ * The metas with their drawn points cut to the points that the log axes can
+ * place. A log axis has no place for zero or a negative value, so such a point
+ * draws no disc, takes no hit, and offers no keyboard stop. It stays in
+ * `points`, so the readout still reads it. A meta with nothing to cut keeps its
+ * identity, and so does the list with no log axis.
+ *
+ * @internal
+ */
+export function plottedScatter(metas: ScatterMeta[], spacing: ScatterSpacing): ScatterMeta[] {
+	const logX = spacing.x === 'log'
+
+	const logY = spacing.y === 'log'
+
+	if (!logX && !logY) return metas
+
+	const placeable = (point: ScatterDatum) => (!logX || point.x > 0) && (!logY || point.y > 0)
+
+	return metas.map((meta) =>
+		meta.drawn.every(placeable) ? meta : { ...meta, drawn: meta.drawn.filter(placeable) },
+	)
 }
 
 /** The radius of each point of a plain series. @internal */
@@ -171,8 +197,8 @@ type ScatterPins = { min?: number; max?: number; xMin?: number; xMax?: number }
 /** The resolved scatter plot: rect, scales, ticks, and placed axis titles. @internal */
 type ScatterScales = {
 	plot: PlotRect
-	xScale: LinearScale | null
-	yScale: LinearScale | null
+	xScale: ValueScale | null
+	yScale: ValueScale | null
 	xTicks: ChartAxisTick[]
 	yTicks: ChartAxisTick[]
 	/** The x / y axis titles placed in the bands the plot reserved for them; empty without titles. */
@@ -260,6 +286,8 @@ export function scatterScales(args: {
 	/** The x / y axis titles; each reserves a band past its labels where the tier affords one. */
 	xTitle?: string
 	yTitle?: string
+	/** The `scale` of each axis. */
+	spacing: ScatterSpacing
 }): ScatterScales {
 	const {
 		visible,
@@ -272,6 +300,7 @@ export function scatterScales(args: {
 		pins,
 		format,
 		formatX,
+		spacing,
 	} = args
 
 	const drawAxes = axes && !spark
@@ -304,7 +333,7 @@ export function scatterScales(args: {
 
 	const yCeiling = spark ? inset : Math.max(PLOT_TOP_PAD, reach)
 
-	const yScale = linearScale({
+	const yScale = valueScale(spacing.y, {
 		values: visible.flatMap((meta) => meta.points.map((point) => point.y)),
 		range: [yFloor, yCeiling],
 		tickTarget: scaleTicks,
@@ -342,7 +371,9 @@ export function scatterScales(args: {
 	// the end ticks then read inward off that range so their labels don't crowd the
 	// y floor label at the origin or butt the frame at the far end. Spark draws no
 	// axis, so its ticks stay bare and centered over the tight-fit span.
-	const xProbe = drawAxes ? linearScale({ values: xValues, range: span, ...xOptions }) : null
+	const xProbe = drawAxes
+		? valueScale(spacing.x, { values: xValues, range: span, ...xOptions })
+		: null
 
 	const xRange = clearEdges(
 		xProbe ? valueAxisRange([{ ticks: xProbe.ticks, format: formatX }], span) : span,
@@ -350,7 +381,7 @@ export function scatterScales(args: {
 		frameWidth,
 	)
 
-	const xScale = linearScale({ values: xValues, range: xRange, ...xOptions })
+	const xScale = valueScale(spacing.x, { values: xValues, range: xRange, ...xOptions })
 
 	const xTicks = buildValueTicks(xScale, formatX)
 

@@ -1,6 +1,6 @@
 /**
- * Pure scales for the chart module: a linear value scale with nice ticks and
- * a band scale for categories. Framework- and style-free so the mapping math
+ * Pure scales for the chart module: a linear value scale with nice ticks, a
+ * log value scale over it, and a band scale for categories. Framework- and style-free so the mapping math
  * is unit-testable in isolation; all outputs are in the same user-space units
  * as the `viewBox` the charts render.
  */
@@ -9,15 +9,18 @@ import { clamp } from '../../../utilities/clamp'
 import { finiteOrUndefined } from '../../../utilities/parse-numeric'
 
 /**
- * A linear value scale: the resolved `domain`, the `ticks` spanning it, and
- * `map` from a domain value to a range coordinate.
+ * A value scale, linear or log: the resolved `domain`, the `ticks` spanning
+ * it, and `map` from a domain value to a range coordinate.
  *
  * @internal
  */
-export type LinearScale = {
+export type ValueScale = {
 	/** Resolved `[floor, ceiling]` after tick rounding and pinning. */
 	domain: [number, number]
-	/** Tick values, ascending, on clean 1/2/5 steps inside the domain. */
+	/**
+	 * Tick values, ascending, inside the domain: clean 1/2/5 steps on a linear
+	 * scale, and whole powers of ten on a log scale.
+	 */
 	ticks: number[]
 	/** Maps a domain value into the range; out-of-domain values clamp to its edges. */
 	map: (value: number) => number
@@ -276,7 +279,7 @@ export function linearScale({
 	max: pinMax,
 	integer = false,
 	headroom = 0,
-}: LinearScaleOptions): LinearScale | null {
+}: LinearScaleOptions): ValueScale | null {
 	// A non-finite pin (a `parseFloat('')` from an input) would pin the domain to
 	// NaN, so it counts as no pin.
 	const min = finiteOrUndefined(pinMin)
@@ -353,6 +356,137 @@ export function linearScale({
 		span === 0 ? (from + to) / 2 : from + clamp((value - low) / span, 0, 1) * (to - from)
 
 	return { domain: [low, high], ticks, map }
+}
+
+/** Options for {@link logScale}: the linear options less the zero baseline, which a log scale cannot reach. @internal */
+export type LogScaleOptions = Omit<LinearScaleOptions, 'zeroBaseline'>
+
+/** A finite pin above zero, else `undefined`: a log scale ignores a pin at or below zero. */
+function positivePin(pin: number | undefined): number | undefined {
+	const value = finiteOrUndefined(pin)
+
+	return value !== undefined && value > 0 ? value : undefined
+}
+
+/** The power of ten at a whole `exponent`, exact: `1e-3` is `0.001`, where `10 ** -3` can drift. */
+function decade(exponent: number): number {
+	return Number(`1e${exponent}`)
+}
+
+/** The base-10 exponent of each finite value above zero, in order. */
+function positiveExponents(values: number[]): number[] {
+	const exponents: number[] = []
+
+	for (const value of values)
+		if (value > 0 && Number.isFinite(value)) exponents.push(Math.log10(value))
+
+	return exponents
+}
+
+/** The base-10 exponent of a pin, or `undefined` for no pin. */
+function toExponent(pin: number | undefined): number | undefined {
+	return pin === undefined ? undefined : Math.log10(pin)
+}
+
+/**
+ * The pins of a flat series in decades: the decade that holds the value, or
+ * one decade on each side of a whole power of ten. No pins when the exponents
+ * are not flat. The linear widen gives a flat series air in proportion to its
+ * value, which in decades is no rule at all.
+ */
+function flatDecade(exponents: number[]): { min?: number; max?: number } {
+	const [first] = exponents
+
+	if (first === undefined || exponents.some((exponent) => exponent !== first)) return {}
+
+	return Number.isInteger(first)
+		? { min: first - 1, max: first + 1 }
+		: { min: Math.floor(first), max: Math.ceil(first) }
+}
+
+/**
+ * Builds a base-10 log value scale over `values`. It is {@link linearScale}
+ * over the exponents of the positive values, with whole steps, so each tick is
+ * a power of ten. A crowded axis steps by 2 or 5 decades, as a linear axis
+ * steps by 2 or 5. The headroom and the pins then work in decades too.
+ *
+ * A value at or below zero has no place on the scale. It does not count toward
+ * the domain, and `map` puts it at the floor, where a bar of it has no length.
+ * The caller draws it as a gap. A pin at or below zero counts as no pin.
+ *
+ * A flat series with no pin opens the decade that holds its value, or one
+ * decade on each side of a value that is a power of ten.
+ *
+ * With `integer`, the ticks under 1 drop: a count has no decade under one. The
+ * domain stays, so a value under 1 still draws.
+ *
+ * @returns The scale, or `null` when no positive value (or pin) yields a domain.
+ * @internal
+ */
+export function logScale({
+	values,
+	range,
+	tickTarget,
+	min: minOption,
+	max: maxOption,
+	integer = false,
+	headroom = 0,
+}: LogScaleOptions): ValueScale | null {
+	const pinMin = positivePin(minOption)
+
+	const pinMax = positivePin(maxOption)
+
+	const exponents = positiveExponents(values)
+
+	const pins =
+		pinMin === undefined && pinMax === undefined
+			? flatDecade(exponents)
+			: { min: toExponent(pinMin), max: toExponent(pinMax) }
+
+	const inner = linearScale({
+		values: exponents,
+		range,
+		tickTarget,
+		...pins,
+		integer: true,
+		headroom,
+	})
+
+	if (!inner) return null
+
+	const [from] = range
+
+	const [lowExponent, highExponent] = inner.domain
+
+	// A pinned bound keeps the exact pin, as a linear scale does: a power of a
+	// logarithm can miss it by a float step, and a rule at the pin then drops.
+	const bound = (exponent: number, pin: number | undefined) =>
+		pin ?? (Number.isInteger(exponent) ? decade(exponent) : 10 ** exponent)
+
+	return {
+		domain: [bound(lowExponent, pinMin), bound(highExponent, pinMax)],
+		ticks: inner.ticks.filter((exponent) => !integer || exponent >= 0).map(decade),
+		map: (value) => (value > 0 ? inner.map(Math.log10(value)) : from),
+	}
+}
+
+/**
+ * Builds the value scale of an axis: a {@link logScale} for `'log'`, else a
+ * {@link linearScale}. A log scale ignores `zeroBaseline`, since it has no
+ * zero: its bars grow from the floor.
+ *
+ * @param scale - The `scale` of the axis.
+ * @internal
+ */
+export function valueScale(
+	scale: 'linear' | 'log' | undefined,
+	options: LinearScaleOptions,
+): ValueScale | null {
+	if (scale !== 'log') return linearScale(options)
+
+	const { zeroBaseline: _zeroBaseline, ...log } = options
+
+	return logScale(log)
 }
 
 /**

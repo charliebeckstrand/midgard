@@ -9,10 +9,27 @@ import { compactTickFormat, readoutFormat, tickFormat } from '../../../../utilit
 import type { CartesianAxes, ChartValueAxisId } from '../chart-axes/schema'
 import type { CartesianLayout, ChartValueAxisInput } from '../chart-layout'
 import type { ChartReferenceLine } from '../chart-reference'
-import { bandBoundaries, type LinearScale } from '../chart-scale'
+import { bandBoundaries, type ValueScale } from '../chart-scale'
 import type { SeriesMeta } from '../chart-series'
 import type { CartesianChartProps } from '../types'
 import { type StackMode, stackEdges } from './stack'
+
+/**
+ * The spacing of each value axis: its `scale`, else linear. A stacked chart
+ * keeps every axis linear: on a log axis the length of a stacked segment does
+ * not show its value.
+ *
+ * @internal
+ */
+export function axisScales(
+	axes: Partial<CartesianAxes>,
+	stack: StackMode,
+): Record<ChartValueAxisId, 'linear' | 'log'> {
+	const spacing = (axis: ChartValueAxisId) =>
+		!stack && axes[axis]?.scale === 'log' ? 'log' : 'linear'
+
+	return { y: spacing('y'), y2: spacing('y2') }
+}
 
 /**
  * One axis's domain candidates: its visible series' values, plus the reference
@@ -20,7 +37,8 @@ import { type StackMode, stackEdges } from './stack'
  * sums. The references fold in the way min / max pins do, so an off-data target
  * line stays inside the frame.
  * A reference toggled off through its chip drops out with the series switched
- * off beside it, so the axis rescales to what is still drawn.
+ * off beside it, so the axis rescales to what is still drawn. A log axis takes
+ * no value at or below zero, which it cannot place.
  *
  * @internal
  */
@@ -31,8 +49,9 @@ function domainValuesFor<T>(args: {
 	data: T[]
 	reference: ChartReferenceLine[] | undefined
 	referenceHidden: ReadonlySet<number>
+	log: boolean
 }): number[] {
-	const { axis, visible, stack, data, reference, referenceHidden } = args
+	const { axis, visible, stack, data, reference, referenceHidden, log } = args
 
 	const bound = visible.filter((meta) => meta.axis === axis)
 
@@ -51,7 +70,7 @@ function domainValuesFor<T>(args: {
 		if ((line.axis ?? 'y') === axis && !referenceHidden.has(index)) values.push(line.value)
 	})
 
-	return values
+	return log ? values.filter((value) => value > 0) : values
 }
 
 /** The per-axis layout inputs resolved from the chart props. @internal */
@@ -101,6 +120,8 @@ export function resolveValueAxes<T>(
 
 	const y2Tick = axes.y2?.format ?? props.formatValue ?? tickDefault
 
+	const scales = axisScales(axes, stack)
+
 	const yDomainValues = domainValuesFor({
 		axis: 'y',
 		visible,
@@ -108,6 +129,7 @@ export function resolveValueAxes<T>(
 		data,
 		reference: props.reference,
 		referenceHidden,
+		log: scales.y === 'log',
 	})
 
 	const y2DomainValues = domainValuesFor({
@@ -117,6 +139,7 @@ export function resolveValueAxes<T>(
 		data,
 		reference: props.reference,
 		referenceHidden,
+		log: scales.y2 === 'log',
 	})
 
 	// The y2 axis exists only while something binds to it (a visible y2-bound
@@ -145,6 +168,7 @@ export function resolveValueAxes<T>(
 					min: axes.y?.min,
 					max: axes.y?.max,
 					integer: axes.y?.integer,
+					scale: scales.y,
 					format: yTick,
 					title: axisTitles ? axes.y?.title : undefined,
 				}
@@ -155,6 +179,7 @@ export function resolveValueAxes<T>(
 					min: axes.y2?.min,
 					max: axes.y2?.max,
 					integer: axes.y2?.integer,
+					scale: scales.y2,
 					format: y2Tick,
 					title: axisTitles ? axes.y2?.title : undefined,
 				}
@@ -255,7 +280,7 @@ export function buildCategoryGrid(
  */
 export function buildReferences(
 	reference: ChartReferenceLine[] | undefined,
-	scales: Record<ChartValueAxisId, LinearScale | null>,
+	scales: Record<ChartValueAxisId, ValueScale | null>,
 	hidden: ReadonlySet<number>,
 ): (number | null)[] {
 	return (reference ?? []).map((line, index) => {

@@ -33,6 +33,21 @@ export type ChartValueAxis = {
 	 */
 	integer?: boolean
 	/**
+	 * Space the axis by value or by order of magnitude. `'log'` is base 10: each
+	 * tick is a power of ten (1, 10, 100) in the axis `format`, and a crowded
+	 * axis ticks every few decades. A series in the thousands then does not
+	 * flatten a series in the tens.
+	 *
+	 * A log axis cannot show zero or a negative value. Such a value draws as a
+	 * gap, and the tooltip and the data table still read it. A bar grows from the
+	 * floor of the axis. A `min`, a `max`, or a reference line at or below zero
+	 * is ignored. With `integer`, the ticks under 1 drop.
+	 * @remarks No effect on a stacked chart: on a log axis, the length of a
+	 * stacked segment does not show its value.
+	 * @defaultValue 'linear'
+	 */
+	scale?: 'linear' | 'log'
+	/**
 	 * Formats this axis's ticks and its series' tooltip, label, and data-table
 	 * values: a currency for `y`, a percent for `y2`.
 	 * @defaultValue the chart's `formatValue`, except a point chart's `x` axis, which takes the locale default.

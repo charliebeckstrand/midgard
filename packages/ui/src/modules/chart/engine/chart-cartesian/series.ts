@@ -11,7 +11,7 @@ import { seriesPaint } from '../chart-color/palette'
 import type { ChartLegendItem } from '../chart-legend/legend'
 import { legendVisible, type ResolvedLegend } from '../chart-legend/schema'
 import type { ChartOrientation } from '../chart-orientation'
-import type { LinearScale } from '../chart-scale'
+import type { ValueScale } from '../chart-scale'
 import { type SeriesMeta, seriesValues } from '../chart-series'
 import type { ChartSeries } from '../types'
 import { resolveStackAxis } from './stack'
@@ -43,11 +43,36 @@ export function seriesMetas<T>(
 	})
 }
 
+/**
+ * The visible series as the marks draw them: on a log axis, each value at or
+ * below zero becomes a gap, since the axis has no place for it. The readout
+ * reads the series as they are, so the tooltip and the data table still show
+ * those values. A series with nothing to drop keeps its identity, and so does
+ * the list when no axis is a log axis.
+ *
+ * @param scales - The spacing of each value axis ({@link axisScales}).
+ * @internal
+ */
+export function plottedSeries(
+	visible: SeriesMeta[],
+	scales: Readonly<Record<ChartValueAxisId, 'linear' | 'log'>>,
+): SeriesMeta[] {
+	if (scales.y !== 'log' && scales.y2 !== 'log') return visible
+
+	const placeable = (value: number | null) => value === null || value > 0
+
+	return visible.map((meta) =>
+		scales[meta.axis] === 'log' && !meta.values.every(placeable)
+			? { ...meta, values: meta.values.map((value) => (placeable(value) ? value : null)) }
+			: meta,
+	)
+}
+
 /** One visible series resolved to the scale and baseline it draws through. @internal */
 export type DrawnSeries = {
 	meta: SeriesMeta
 	/** The series' own axis's scale, never `null`; an unresolved series drops out instead. */
-	scale: LinearScale
+	scale: ValueScale
 	/** The zero position on that scale, where the series' bars grow from. */
 	baseline: number
 }
@@ -63,8 +88,8 @@ export type DrawnSeries = {
  */
 export function drawnSeries(chart: {
 	visible: SeriesMeta[]
-	yScale: LinearScale | null
-	y2Scale: LinearScale | null
+	yScale: ValueScale | null
+	y2Scale: ValueScale | null
 	baseline: number
 	y2Baseline: number
 }): DrawnSeries[] {

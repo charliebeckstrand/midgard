@@ -44,7 +44,7 @@ export type PlotRect = {
 
 /**
  * Projects a value-axis position crossed with a band-axis position into a frame
- * point. `valuePos` is a {@link LinearScale.map} output, `bandPos` a
+ * point. `valuePos` is a {@link ValueScale.map} output, `bandPos` a
  * {@link BandScale} output; vertical reads value as y and band as x, horizontal
  * swaps them.
  *

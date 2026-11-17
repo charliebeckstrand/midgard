@@ -6,7 +6,9 @@ import {
 	bandScale,
 	headroomFits,
 	linearScale,
+	logScale,
 	nearestBandIndex,
+	valueScale,
 } from '../../modules/chart/engine/chart-scale'
 import { FLOAT } from '../helpers/geometry/tolerance'
 
@@ -656,6 +658,101 @@ describe('bandScale · properties', () => {
 			const midpoint = (scale.center(index) + scale.center(index + 1)) / 2
 
 			expect(boundary).toBeNear(midpoint, Math.abs(scale.step) * RELATIVE_FLOAT)
+		})
+	})
+})
+
+describe('logScale', () => {
+	const range: [number, number] = [100, 0]
+
+	it('rounds out to whole powers of ten and ticks on each', () => {
+		const scale = logScale({ values: [3, 4500], range, tickTarget: 5 })
+
+		expect(scale?.domain).toEqual([1, 10_000])
+
+		expect(scale?.ticks).toEqual([1, 10, 100, 1000, 10_000])
+
+		// Equal ratios take equal room: each decade is a quarter of the range.
+		expect(scale?.map(10)).toBeNear(75, FLOAT)
+
+		expect(scale?.map(1000)).toBeNear(25, FLOAT)
+	})
+
+	it('ticks every few decades when the decades crowd the axis', () => {
+		const scale = logScale({ values: [0.001, 1e9], range, tickTarget: 4 })
+
+		const ticks = scale?.ticks ?? []
+
+		expect(ticks.length).toBeLessThanOrEqual(7)
+
+		const steps = ticks.slice(1).map((tick, index) => Math.log10(tick / (ticks[index] ?? 1)))
+
+		// One step for the whole axis, and more than one decade.
+		expect(new Set(steps.map((step) => Math.round(step))).size).toBe(1)
+
+		expect(Math.round(steps[0] ?? 0)).toBeGreaterThan(1)
+	})
+
+	it('writes each fractional decade exactly', () => {
+		expect(logScale({ values: [0.002, 0.5], range, tickTarget: 5 })?.ticks).toEqual([
+			0.001, 0.01, 0.1, 1,
+		])
+	})
+
+	it('leaves zero and negative values out of the domain, and maps them to the floor', () => {
+		const scale = logScale({ values: [-40, 0, 20, 300], range, tickTarget: 5 })
+
+		expect(scale?.domain).toEqual([10, 1000])
+
+		expect(scale?.map(0)).toBe(100)
+
+		expect(scale?.map(-40)).toBe(100)
+	})
+
+	it('returns null when no value is above zero', () => {
+		expect(logScale({ values: [0, -3], range, tickTarget: 5 })).toBeNull()
+	})
+
+	it('ignores a pin at or below zero, and keeps a positive pin exact', () => {
+		expect(logScale({ values: [3, 4500], range, tickTarget: 5, min: 0 })?.domain).toEqual([
+			1, 10_000,
+		])
+
+		expect(
+			logScale({ values: [3, 4500], range, tickTarget: 5, min: 2, max: 7000 })?.domain,
+		).toEqual([2, 7000])
+	})
+
+	it.each([
+		[5, [1, 10]],
+		[100, [10, 1000]],
+		[0.3, [0.1, 1]],
+	])('opens the decade that holds a flat series of %s', (value, domain) => {
+		expect(logScale({ values: [value, value], range, tickTarget: 5 })?.domain).toEqual(domain)
+	})
+
+	it('drops the ticks under 1 on an integer axis, and keeps the domain', () => {
+		const scale = logScale({ values: [0.02, 50], range, tickTarget: 5, integer: true })
+
+		expect(scale?.domain).toEqual([0.01, 100])
+
+		expect(scale?.ticks).toEqual([1, 10, 100])
+	})
+})
+
+describe('valueScale', () => {
+	it('builds a log scale for a log axis and ignores the zero baseline there', () => {
+		const options = { values: [3, 4500], range: [100, 0] as [number, number], tickTarget: 5 }
+
+		expect(valueScale('log', { ...options, zeroBaseline: true })?.domain).toEqual([1, 10_000])
+
+		expect(valueScale('linear', { ...options, zeroBaseline: true })?.domain[0]).toBe(0)
+
+		const linear = linearScale(options)
+
+		expect(valueScale(undefined, options)).toMatchObject({
+			domain: linear?.domain,
+			ticks: linear?.ticks,
 		})
 	})
 })
