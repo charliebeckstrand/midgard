@@ -17,20 +17,20 @@ type Part = { heading?: string; paragraphs: readonly string[] }
 const PARTS: readonly Part[] = [
 	{
 		paragraphs: [
-			`Each run deals ${SLOTS} numbers from 1 to ${MAX}, one at a time. Put each number in a slot, so that the numbers go up from the top slot to the bottom slot.`,
-			`The run ends when a number fits no empty slot. Your score is the count of filled slots. Fill all ${SLOTS} to win.`,
-			'Leave room on both sides: a low number goes near the top, and a high number near the bottom.',
+			`Each run draws ${SLOTS} numbers between 1 and ${MAX}, one at a time. Place each number in a slot so that the column always runs from smallest at the top to largest at the bottom.`,
+			`The run ends when a number has nowhere to go. Your score is the number of slots you fill, and a full column of ${SLOTS} wins.`,
+			"You can't know what comes next, so leave room on both sides: low numbers belong near the top, and high numbers near the bottom.",
 		],
 	},
 	{
 		heading: 'Vs CPU',
 		paragraphs: [
-			'The CPU places the same numbers in its own column, after you. The higher score wins. Set its level in Settings.',
+			'The CPU gets the same numbers in the same order and places each one after you do. Whoever fills more slots wins. You can change its difficulty in Settings.',
 		],
 	},
 	{
 		heading: 'Daily puzzle',
-		paragraphs: ['Each player gets the same numbers on the same day. Only your first run counts.'],
+		paragraphs: ['Everyone plays the same numbers each day, and only your first run counts.'],
 	},
 ]
 

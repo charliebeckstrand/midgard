@@ -25,6 +25,6 @@ describe('HowToPlay', () => {
 			'Daily puzzle',
 		])
 
-		expect(dialog.textContent).toContain('Each run deals 20 numbers from 1 to 1000')
+		expect(dialog.textContent).toContain('Each run draws 20 numbers between 1 and 1000')
 	})
 })
