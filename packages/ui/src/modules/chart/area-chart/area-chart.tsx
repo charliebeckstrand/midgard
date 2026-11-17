@@ -144,6 +144,7 @@ function stackedToLine(band: StackedAreaGeometry, values: (number | null)[]): Li
 		points,
 		runs: band.points.length > 0 ? [band.points] : [],
 		isolated: band.points.length === 1 ? points : [],
+		smooth: false,
 	}
 }
 

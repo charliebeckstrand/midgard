@@ -129,6 +129,31 @@ describe('a category reference', () => {
 		)
 	})
 
+	it('keeps its label clear of the line of the data, with room', () => {
+		// The chart draws no point markers, so only the line moves the label.
+		const { container } = line({ reference: [RELEASE] })
+
+		// The line peaks at Feb, the rule of the label, and falls to Mar.
+		const d = getSlot(container, 'chart-line').getAttribute('d') ?? ''
+
+		const [, peak, mar] = [...d.matchAll(/[ML]\s*([-\d.]+)[ ,]+([-\d.]+)/g)].map((match) => ({
+			x: Number(match[1]),
+			y: Number(match[2]),
+		}))
+
+		const label = getSlot(container, 'chart-reference-label')
+
+		expect(label.getAttribute('text-anchor')).toBe('start')
+
+		// The label starts at the rule and runs right over the fall to Mar. Its
+		// top keeps the room (8) under the line, 40 units into the label.
+		const x = Number(label.getAttribute('x')) + 40
+
+		const lineY = peak && mar ? peak.y + ((x - peak.x) * (mar.y - peak.y)) / (mar.x - peak.x) : 0
+
+		expect(Number(label.getAttribute('y')) - 6.5).toBeGreaterThanOrEqual(lineY + 8)
+	})
+
 	it('moves its label off a value rule that shows no label', () => {
 		/** The y of the one standing label. */
 		const labelY = (container: HTMLElement) =>

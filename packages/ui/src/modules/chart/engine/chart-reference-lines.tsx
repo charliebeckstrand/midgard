@@ -24,7 +24,12 @@ import {
 	REFERENCE_HIT_WIDTH,
 	REFERENCE_STROKE_WIDTH,
 } from './chart-constants'
-import { markerBox, type PlacedReferenceLabel, referenceLabels } from './chart-geometry/label'
+import {
+	type LabelLine,
+	markerBox,
+	type PlacedReferenceLabel,
+	referenceLabels,
+} from './chart-geometry/label'
 import { type RuleBreak, ruleDashArray } from './chart-geometry/rule'
 import { REFERENCE_FALL, REFERENCE_RISE, referenceRise } from './chart-motion'
 import {
@@ -199,16 +204,18 @@ export type StandingReferenceLabel = PlacedReferenceLabel & {
 
 /**
  * Places the standing reference labels, aligned with `reference`, or none when
- * there is no rule. Each label sits on its rule, which breaks for it. A value rule takes a label only under the
- * `labels.references` mode. A category rule takes one whenever it has a label,
- * because it has no legend chip, so the plot label is its one visible name. The
- * caller turns both off at the spark tier, which draws no label. The chart
- * places them once and passes them to {@link ChartReferenceLines}, which draws
- * them, and to the point value labels, which drop where they meet one. Each
- * label takes the first free spot on its rule ({@link referenceLabels}), and
- * prefers a spot clear of the drawn point markers in `points`. A
- * value rule whose label finds none keeps its hover tooltip. A category rule
- * whose label finds none reads in the readout of its category only.
+ * there is no rule. Each label sits on its rule, which breaks for it. A value
+ * rule takes a label only under the `labels.references` mode. A category rule
+ * takes one whenever it has a label, because it has no legend chip, so the plot
+ * label is its one visible name. The caller turns both off at the spark tier,
+ * which draws no label. The chart places them once and passes them to
+ * {@link ChartReferenceLines}, which draws them, and to the point value labels,
+ * which drop where they meet one. Each label takes the most open free spot on
+ * its rule ({@link referenceLabels}). Where it can, the spot is clear of the
+ * drawn point markers in `points`, the drawn lines in `lines`, the other rules,
+ * and the other labels. A value rule whose label finds none keeps its hover
+ * tooltip. A category rule whose label finds none reads in the readout of its
+ * category only.
  *
  * @internal
  */
@@ -217,6 +224,7 @@ export function placeReferenceLabels(
 	reference: ChartReferenceLine[] | undefined,
 	modes: ReferenceLabelModes,
 	points: readonly Vec[] = [],
+	lines: readonly LabelLine[] = [],
 ): (StandingReferenceLabel | null)[] | undefined {
 	if (!reference || reference.length === 0) return undefined
 
@@ -247,7 +255,7 @@ export function placeReferenceLabels(
 		}),
 		chart.orientation,
 		chart.plot,
-		points.map(markerBox),
+		{ markers: points.map(markerBox), lines },
 	)
 
 	return placed.map((label, index) =>

@@ -26,13 +26,14 @@
  * box meets one already placed takes its next spot, or is dropped rather than
  * stacked.
  *
- * The standing reference labels place first (see {@link referenceLabels}), by
- * the same rule: each takes the first free spot of a short list on its rule.
- * A value label whose box meets one drops.
+ * The standing reference labels place first (see {@link referenceLabels}). Each
+ * takes the most open free spot of a short list on its rule, clear of the data,
+ * the other rules, and the other labels where it can. A value label whose box
+ * meets one drops.
  */
 
 import { LABEL_GAP, LABEL_ROOM, MARKER_REACH, TICK_CHAR_WIDTH } from '../chart-constants'
-import { type ChartOrientation, type PlotRect, valueRule } from '../chart-orientation'
+import { type ChartOrientation, type PlotRect, type Vec, valueRule } from '../chart-orientation'
 import type { ValueHeadroom } from '../chart-scale'
 
 /** The collision height of a label, which its flip tests. @internal */
@@ -52,9 +53,6 @@ const LABEL_PAD = 3
  * @internal
  */
 const MARKER_CLEARANCE = MARKER_REACH
-
-/** The step from one row of stacked reference labels to the next: a label height and a gap. @internal */
-const LABEL_ROW_STEP = LABEL_HEIGHT + LABEL_GAP
 
 /**
  * The y that a value label centers on beside a point at `y`. It takes its
@@ -534,12 +532,11 @@ export type PlacedReferenceLabel = {
  * names only the rule that it interrupts. In a vertical chart, a label sits at
  * the right end of its rule, and then at the left end. Each end label is flush
  * with its side of the plot, so the rule stops at the label and does not show
- * a short dash past it. In a horizontal chart, a label sits on the rule in a
- * row. The rows stack one label height and {@link LABEL_GAP} apart down
- * from the top of the plot. A label tries the rows between the edges first,
- * from the top, so a crowded label sits just under its neighbor. The top row
- * and the bottom row, against an edge of the plot, come last. In each row, it
- * centers on the rule, or ends or starts at it ({@link ruleAnchors}).
+ * a short dash past it. In a horizontal chart, a label sits on the rule at a
+ * height in the plot. The heights step one unit apart, down from the top of
+ * the plot, so a label can keep exactly {@link LABEL_ROOM} from a thing beside
+ * it. At each height, the label centers on the rule, or ends or starts at it
+ * ({@link ruleAnchors}).
  *
  * @internal
  */
@@ -566,16 +563,10 @@ function referenceSpots(
 
 	const anchors = ruleAnchors(at, padded, plot)
 
-	const rows = Math.max(0, Math.floor((plot.height + LABEL_GAP) / LABEL_ROW_STEP))
+	const rows = plot.height < LABEL_HEIGHT ? 0 : Math.floor(plot.height - LABEL_HEIGHT) + 1
 
-	// The rows between the edges first, from the top, and then the top row and
-	// the bottom row, which a label sits against the edge of the plot in.
-	const inner = Array.from({ length: Math.max(0, rows - 2) }, (_, row) => row + 1)
-
-	const order = rows > 1 ? [...inner, 0, rows - 1] : Array.from({ length: rows }, (_, row) => row)
-
-	return order.flatMap((row) => {
-		const y = plot.y + LABEL_HALF + row * LABEL_ROW_STEP
+	return Array.from({ length: rows }, (_, row) => {
+		const y = plot.y + LABEL_HALF + row
 
 		return anchors.map(({ anchor, x0, x1 }) => ({
 			x: at,
@@ -584,7 +575,7 @@ function referenceSpots(
 			width,
 			box: labelBox(x0, x1, y),
 		}))
-	})
+	}).flat()
 }
 
 /**
@@ -630,16 +621,219 @@ function ruleBox(at: number, orientation: ChartOrientation, plot: PlotRect): Lab
 }
 
 /**
+ * The drawn data that a reference label keeps clear of: the point markers, and
+ * the lines of the series.
+ * @internal
+ */
+export type ReferenceLabelMarks = {
+	/** The box of each drawn point marker ({@link markerBox}). */
+	markers?: readonly LabelBox[]
+	/** Each drawn line run of a series. */
+	lines?: readonly LabelLine[]
+}
+
+/**
+ * One drawn line run: its points in draw order, and whether it curves between
+ * them. A curve is monotone, so it stays inside the box of each two neighbor
+ * points.
+ * @internal
+ */
+export type LabelLine = { points: readonly Vec[]; smooth: boolean }
+
+/**
+ * The clear space between boxes `a` and `b` along the axis that parts them
+ * most, or less than zero where they share area. A rule's line is a box with
+ * no thickness ({@link ruleBox}).
+ * @internal
+ */
+function clearance(a: LabelBox, b: LabelBox): number {
+	return Math.max(a.x0 - b.x1, b.x0 - a.x1, a.y0 - b.y1, b.y0 - a.y1)
+}
+
+/** Box `box` grown by `by` on each side. @internal */
+function grow(box: LabelBox, by: number): LabelBox {
+	return { x0: box.x0 - by, x1: box.x1 + by, y0: box.y0 - by, y1: box.y1 + by }
+}
+
+/**
+ * Whether the straight segment from `a` to `b` meets `box`: the segment clipped
+ * to the box (Liang–Barsky) keeps some length, or a point.
+ * @internal
+ */
+function segmentMeets(a: Vec, b: Vec, box: LabelBox): boolean {
+	const dx = b.x - a.x
+
+	const dy = b.y - a.y
+
+	// Each pair is a side of the box: the change of the segment towards the
+	// side, and the room from the start of the segment to the side.
+	const sides: [number, number][] = [
+		[-dx, a.x - box.x0],
+		[dx, box.x1 - a.x],
+		[-dy, a.y - box.y0],
+		[dy, box.y1 - a.y],
+	]
+
+	let enter = 0
+
+	let leave = 1
+
+	for (const [change, room] of sides) {
+		if (change === 0) {
+			if (room < 0) return false
+
+			continue
+		}
+
+		const t = room / change
+
+		if (change < 0) enter = Math.max(enter, t)
+		else leave = Math.min(leave, t)
+
+		if (enter > leave) return false
+	}
+
+	return true
+}
+
+/**
+ * Whether a drawn line comes within `reach` of `box`. A straight line meets
+ * the box by its segments. A curve meets it by the box of each two neighbor
+ * points, which holds the curve between them.
+ * @internal
+ */
+function lineMeets(line: LabelLine, box: LabelBox, reach: number): boolean {
+	const near = grow(box, reach)
+
+	for (let i = 1; i < line.points.length; i++) {
+		const a = line.points[i - 1] as Vec
+
+		const b = line.points[i] as Vec
+
+		const meets = line.smooth
+			? clearance(
+					{
+						x0: Math.min(a.x, b.x),
+						x1: Math.max(a.x, b.x),
+						y0: Math.min(a.y, b.y),
+						y1: Math.max(a.y, b.y),
+					},
+					near,
+				) <= 0
+			: segmentMeets(a, b, near)
+
+		if (meets) return true
+	}
+
+	return false
+}
+
+/**
+ * What a reference label keeps clear of: the drawn data, the other rules, and
+ * the boxes that it keeps room from, the labels already placed and the top and
+ * bottom edges of the plot.
+ * @internal
+ */
+type LabelScene = {
+	markers: readonly LabelBox[]
+	lines: readonly LabelLine[]
+	rules: readonly LabelBox[]
+	labels: readonly LabelBox[]
+}
+
+/**
+ * A thing that a box crosses: within {@link LABEL_GAP} of it. The test is
+ * inclusive, as the test of a rule break is: a rule just at the gap breaks.
+ * @internal
+ */
+function crosses(thing: LabelBox, box: LabelBox): boolean {
+	return clearance(thing, box) <= LABEL_GAP
+}
+
+/** A thing that crowds a box: past {@link LABEL_GAP} of it, but short of {@link LABEL_ROOM}. @internal */
+function crowds(thing: LabelBox, box: LabelBox): boolean {
+	const space = clearance(thing, box)
+
+	return space > LABEL_GAP && space < LABEL_ROOM
+}
+
+/** The count of the items of `list` that `test` holds for. @internal */
+function count<T>(list: readonly T[], test: (item: T) => boolean): number {
+	let total = 0
+
+	for (const item of list) if (test(item)) total++
+
+	return total
+}
+
+/**
+ * How much a spot covers, in order of weight: the count of the data marks that
+ * it crosses, of the other rules that it crosses, and of the things that crowd
+ * it. A data mark is a point marker or a line run. A lower cost is a more open
+ * spot ({@link lessCost}).
+ * @internal
+ */
+function spotCost(box: LabelBox, scene: LabelScene): [number, number, number] {
+	const lineCrosses = scene.lines.map((line) => lineMeets(line, box, LABEL_GAP))
+
+	const crowded =
+		count(scene.markers, (marker) => crowds(marker, box)) +
+		count(scene.lines, (line) => lineMeets(line, box, LABEL_ROOM)) -
+		count(lineCrosses, Boolean) +
+		count(scene.rules, (line) => crowds(line, box)) +
+		count(scene.labels, (other) => clearance(other, box) < LABEL_ROOM)
+
+	return [
+		count(scene.markers, (marker) => crosses(marker, box)) + count(lineCrosses, Boolean),
+		count(scene.rules, (line) => crosses(line, box)),
+		crowded,
+	]
+}
+
+/** Cost `a` is less than cost `b`: the first term that differs decides. @internal */
+function lessCost(a: readonly number[], b: readonly number[]): boolean {
+	for (let i = 0; i < a.length; i++) {
+		if ((a[i] as number) !== (b[i] as number)) return (a[i] as number) < (b[i] as number)
+	}
+
+	return false
+}
+
+/** The spot of least cost ({@link spotCost}), the first of a tie, or `undefined` for no spot. @internal */
+function mostOpen(
+	spots: PlacedReferenceLabel[],
+	scene: LabelScene,
+): PlacedReferenceLabel | undefined {
+	let best: PlacedReferenceLabel | undefined
+
+	let least: number[] | undefined
+
+	for (const spot of spots) {
+		const cost = spotCost(spot.box, scene)
+
+		if (!least || lessCost(cost, least)) {
+			best = spot
+
+			least = cost
+		}
+
+		if (cost.every((term) => term === 0)) break
+	}
+
+	return best
+}
+
+/**
  * Places the standing reference labels, aligned with `rules`, in the order of
- * `rules`. Each label takes the first spot on its rule ({@link referenceSpots})
- * whose box meets no label already placed and no box of `markers`, the drawn
- * point markers. The box also stays more than {@link LABEL_GAP} from each
- * other rule, because a rule that near breaks for the label. A label first
- * takes a spot with room: {@link LABEL_ROOM} clear of each other rule and of
- * the top and bottom edges of the plot. Where no free spot has room, it takes
- * the first that clears the gap. Where every free spot meets another rule or a
- * marker, the label takes the first spot that meets no label, and the other
- * rule breaks for it.
+ * `rules`. Each label takes a spot on its rule ({@link referenceSpots}) that
+ * keeps {@link LABEL_GAP} clear of each label already placed. Of those spots,
+ * it takes the most open, and the order of the spots breaks a tie
+ * ({@link spotCost}). First, the fewer data marks of `marks` that a spot
+ * crosses (comes within the gap of), the more open it is. Next, the fewer
+ * other rules that it crosses, because a rule that near breaks for the label.
+ * Last, the fewer things inside {@link LABEL_ROOM} of it: the data marks, the
+ * other rules, the labels already placed, and the top and bottom edges of the
+ * plot.
  * A label never leaves its rule, so a label with no free spot is `null`, as is
  * the label of a rule that draws nothing or is `unlabeled`. That rule keeps its
  * hover tooltip and its keyboard stop. Every rule that draws is an obstacle,
@@ -654,11 +848,15 @@ export function referenceLabels(
 	rules: ReferenceLabelRule[],
 	orientation: ChartOrientation,
 	plot: PlotRect,
-	markers: readonly LabelBox[] = [],
+	marks: ReferenceLabelMarks = {},
 ): (PlacedReferenceLabel | null)[] {
 	const placed: LabelBox[] = []
 
-	// The top and bottom edges of the plot, which a spot with room keeps clear of.
+	const markers = marks.markers ?? []
+
+	const lines = marks.lines ?? []
+
+	// The top and bottom edges of the plot, which an open spot keeps room from.
 	const edges: LabelBox[] = [plot.y, plot.y + plot.height].map((y) => ({
 		x0: plot.x,
 		x1: plot.x + plot.width,
@@ -666,44 +864,26 @@ export function referenceLabels(
 		y1: y,
 	}))
 
-	const lines = rules.map((rule) =>
+	const drawnRules = rules.map((rule) =>
 		rule.at === null ? null : ruleBox(rule.at, rule.orientation ?? orientation, plot),
 	)
 
 	return rules.map((rule, index) => {
 		if (rule.at === null || rule.unlabeled) return null
 
-		const facing = rule.orientation ?? orientation
+		const scene: LabelScene = {
+			markers,
+			lines,
+			rules: drawnRules.filter((line, other): line is LabelBox => other !== index && line !== null),
+			labels: [...edges, ...placed],
+		}
 
-		const free = referenceSpots(rule.at, rule.width, facing, plot).filter(
-			(candidate) => !placed.some((other) => overlaps(other, candidate.box)),
+		const spot = mostOpen(
+			referenceSpots(rule.at, rule.width, rule.orientation ?? orientation, plot).filter(
+				(candidate) => !placed.some((other) => clearance(other, candidate.box) < LABEL_GAP),
+			),
+			scene,
 		)
-
-		// A line that comes within `reach` of a box. The test is inclusive, as
-		// the test of a rule break is: a rule just at the gap breaks too.
-		const nears = (line: LabelBox, box: LabelBox, reach: number) =>
-			line.x0 <= box.x1 + reach &&
-			box.x0 - reach <= line.x1 &&
-			line.y0 <= box.y1 + reach &&
-			box.y0 - reach <= line.y1
-
-		const others = lines.filter((line, other): line is LabelBox => other !== index && line !== null)
-
-		// A rule within the gap of a label breaks for it, so a spot that comes
-		// that near to another rule lies over that rule.
-		const crossed = (box: LabelBox) =>
-			others.some((line) => nears(line, box, LABEL_GAP)) ||
-			markers.some((marker) => overlaps(marker, box))
-
-		// A spot with room keeps {@link LABEL_ROOM} clear of each other rule and
-		// of the top and bottom edges of the plot.
-		const roomy = (box: LabelBox) =>
-			!crossed(box) && ![...others, ...edges].some((line) => nears(line, box, LABEL_ROOM))
-
-		const spot =
-			free.find((candidate) => roomy(candidate.box)) ??
-			free.find((candidate) => !crossed(candidate.box)) ??
-			free[0]
 
 		if (!spot) return null
 
