@@ -27,7 +27,8 @@ const PARTS: readonly Part[] = [
 		value: 'vs-cpu',
 		heading: 'Vs CPU',
 		paragraphs: [
-			'The CPU gets the same numbers in the same order and places each one after you do. Whoever fills more slots wins. You can change its difficulty in Settings.',
+			'The CPU gets the same numbers in the same order and places each one after you do. Whoever fills more slots wins.',
+			'You can change its difficulty in Settings.',
 		],
 	},
 	{
