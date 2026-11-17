@@ -39,6 +39,7 @@ import {
 	type Vec,
 	valueRule,
 } from './chart-orientation'
+import { ChartReadoutRow } from './chart-readout-card'
 import {
 	type ChartReferenceLine,
 	type ChartReferenceValue,
@@ -634,9 +635,11 @@ function ReferenceLabel({
 }
 
 /**
- * The readout of a rule in its tooltip: the key of the rule, then its value
- * for a value rule, its label, and its description. It is `aria-hidden`, since
- * {@link ChartReferenceList} carries the parity.
+ * The readout of a rule in its tooltip, in the {@link ChartReadoutRow} that the
+ * category readout gives a rule too: the key of the rule, then the value of a
+ * value rule and its label, or the label of a category rule. The description
+ * follows. The text wraps inside the width cap of the tooltip. It is
+ * `aria-hidden`, since {@link ChartReferenceList} carries the parity.
  *
  * @internal
  */
@@ -647,24 +650,32 @@ function ReferenceReadout({
 }: Pick<ReferenceRuleProps, 'line' | 'paint' | 'format'>) {
 	const color = rawColor(paint)
 
+	const category = isCategoryReference(line)
+
+	// The value rule leads with its value, as a series row does. A category rule
+	// leads with its label, as its note in the category readout does.
+	const lead = category ? line.label : format(line.value)
+
+	const rest = [category ? undefined : line.label, line.description].filter(Boolean).join(' ')
+
 	return (
-		<div aria-hidden="true" className="flex items-center gap-1.5 whitespace-nowrap">
-			{/* The same key as the legend chip of the rule, which keeps a paint
-			    under forced colors. */}
-			<Swatch
-				data-slot="chart-reference-swatch"
-				shape="line"
-				variant={line.dashed === false ? 'solid' : 'dashed'}
-				color={textClass(paint) || undefined}
-				style={color ? { color } : undefined}
-			/>
-
-			{!isCategoryReference(line) && <span className={cn(k.value)}>{format(line.value)}</span>}
-
-			{line.label && <span className={cn(k.label)}>{line.label}</span>}
-
-			{line.description && <span className={cn(k.label)}>{line.description}</span>}
-		</div>
+		<ChartReadoutRow
+			aria-hidden="true"
+			swatch={
+				// The same key as the legend chip of the rule, which keeps a paint under
+				// forced colors.
+				<Swatch
+					data-slot="chart-reference-swatch"
+					shape="line"
+					size="sm"
+					variant={line.dashed === false ? 'solid' : 'dashed'}
+					color={textClass(paint) || undefined}
+					style={color ? { color } : undefined}
+				/>
+			}
+			value={lead}
+			label={rest || undefined}
+		/>
 	)
 }
 
