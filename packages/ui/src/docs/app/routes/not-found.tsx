@@ -11,9 +11,9 @@ const messages = defineMessages({
 	},
 	home: {
 		id: 'docs.notFound.home',
-		defaultMessage: 'See each page',
+		defaultMessage: 'Go to the home page',
 		description:
-			'The text of a link on the not-found page. The link goes to the home page, which lists each page of the docs.',
+			'The text of a link on the not-found page. The link goes to the home page of the docs.',
 	},
 })
 

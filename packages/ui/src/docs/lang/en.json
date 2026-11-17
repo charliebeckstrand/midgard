@@ -5519,25 +5519,57 @@
 		"defaultMessage": "Show code",
 		"description": "The label of the button under an example that shows the source code of the example."
 	},
-	"docs.home.filter": {
-		"defaultMessage": "Filter pages",
-		"description": "The placeholder of the field on the home page of the docs that shows only the pages whose name holds the text, and the name of the field."
+	"docs.home.imports": {
+		"defaultMessage": "Import each part from its own path. ui has no root import.",
+		"description": "The last step to set up ui, above a code block of import lines. ui is the name of the library."
 	},
 	"docs.home.intro": {
 		"defaultMessage": "Each component, module, structure, provider, and primitive of ui, with a playground, examples, and an API reference.",
-		"description": "The text at the top of the home page of the docs, above the list of the pages. ui is the name of the library."
+		"description": "The text at the top of the home page of the docs, above the steps to set up ui. ui is the name of the library."
 	},
-	"docs.home.noMatch": {
-		"defaultMessage": "No page matches the filter.",
-		"description": "The text of the home page of the docs when no page matches the text of the filter."
+	"docs.home.providers": {
+		"defaultMessage": "Put the providers at the root of the app, in this order. UIProvider takes the link component of the router.",
+		"description": "The second step to set up ui, above a code block. UIProvider is the name of a component. Keep it in English."
+	},
+	"docs.home.section.components": {
+		"defaultMessage": "The controls and the content of a page, such as Button, Dialog, and Table.",
+		"description": "What the Components section of the docs holds. Button, Dialog, and Table are names of components. Keep them in English."
+	},
+	"docs.home.section.modules": {
+		"defaultMessage": "Large parts that hold their own components and state, such as Grid, Chart, and Form.",
+		"description": "What the Modules section of the docs holds. Grid, Chart, and Form are names of modules. Keep them in English."
+	},
+	"docs.home.section.primitives": {
+		"defaultMessage": "The low-level parts that the components use.",
+		"description": "What the Primitives section of the docs holds."
+	},
+	"docs.home.section.providers": {
+		"defaultMessage": "The settings that the parts under a provider read: appearance, density, language, and more.",
+		"description": "What the Providers section of the docs holds."
+	},
+	"docs.home.section.structure": {
+		"defaultMessage": "The layout units, such as Stack and Columns. Their gap follows the density.",
+		"description": "What the Structure section of the docs holds. Stack and Columns are names of components. Keep them in English."
+	},
+	"docs.home.sections": {
+		"defaultMessage": "Sections",
+		"description": "The heading of the list on the home page of the docs that tells what each section of the sidebar holds."
+	},
+	"docs.home.setUp": {
+		"defaultMessage": "Set up an app",
+		"description": "The heading of the steps on the home page of the docs that add ui to an app."
+	},
+	"docs.home.styles": {
+		"defaultMessage": "Import the styles of ui in the stylesheet of the app, and add the source of ui to the sources of Tailwind. The dark variant follows the class that AppearanceProvider sets.",
+		"description": "The first step to set up ui, above a code block of CSS. Tailwind is the name of a CSS tool, and AppearanceProvider is the name of a component. Keep both names in English."
 	},
 	"docs.notFound.body": {
 		"defaultMessage": "No page of the docs is at this path.",
 		"description": "The text of the page that shows for a path that has no page of the docs."
 	},
 	"docs.notFound.home": {
-		"defaultMessage": "See each page",
-		"description": "The text of a link on the not-found page. The link goes to the home page, which lists each page of the docs."
+		"defaultMessage": "Go to the home page",
+		"description": "The text of a link on the not-found page. The link goes to the home page of the docs."
 	},
 	"docs.page.accordion": {
 		"defaultMessage": "Accordion",

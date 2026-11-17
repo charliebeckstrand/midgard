@@ -14,6 +14,8 @@ describe('the not-found page', () => {
 			</MemoryRouter>,
 		)
 
-		expect(screen.getByRole('link', { name: 'See each page' }).classList).toContain('underline')
+		expect(screen.getByRole('link', { name: 'Go to the home page' }).classList).toContain(
+			'underline',
+		)
 	})
 })
