@@ -160,7 +160,7 @@ function plotRegionProps(keyboard: PlotTabStopProps | null, aside: boolean, fill
 		...keyboard,
 		className: cn(
 			'relative rounded-sm',
-			keyboard && k.focus,
+			keyboard && k.focus.plot,
 			(aside || fill) && 'flex-1',
 			aside && 'min-w-0',
 			fill && 'min-h-0',
