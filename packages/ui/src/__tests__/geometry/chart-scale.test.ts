@@ -173,6 +173,30 @@ describe('linearScale', () => {
 		expect(scale?.domain[0]).toBeLessThanOrEqual(base?.domain[0] ?? 0)
 	})
 
+	it.each([
+		{ values: [0, 40, 100, 60], integer: false },
+		{ values: [0, 3, 5, 2], integer: true },
+		{ values: [2, 40, 100, 60], integer: false },
+	])(
+		'never steps the floor under zero for data at or above zero ($values)',
+		({ values, integer }) => {
+			// The trough sits on, or just over, a zero floor, so it has no room for a
+			// label under it. A step under zero would print a negative tick on a count
+			// or a revenue axis. The floor holds at zero, and the trough label drops.
+			const scale = linearScale({
+				values,
+				range: [250, 0],
+				tickTarget: 4,
+				integer,
+				headroom: { ceiling: 26, floor: 18 },
+			})
+
+			expect(scale?.domain[0]).toBe(0)
+
+			expect(scale?.ticks.every((tick) => tick >= 0)).toBe(true)
+		},
+	)
+
 	it('keeps the nice floor when the trough already clears it by the floor room', () => {
 		// The trough (-14) sits 6 units over the nice floor (-20): past the 18px
 		// floor room at this height. The floor stays, so the axis rule is the -20

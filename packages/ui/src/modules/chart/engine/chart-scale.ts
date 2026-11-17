@@ -228,6 +228,11 @@ function headroomShare(headroom: number, rangePx: number): number {
  * the span. Each step down grows the span again, so the floor steps down until
  * the trough clears it at the final span.
  *
+ * The floor never steps under `floorLimit`. A domain that holds no value under
+ * zero has a limit of zero: a step under it would print a negative tick on a
+ * count or a revenue axis. Where no step above the limit clears the trough,
+ * the nice floor holds, and a trough label that has no room drops.
+ *
  * @internal
  */
 function reserveHeadroom(args: {
@@ -238,10 +243,12 @@ function reserveHeadroom(args: {
 	rangePx: number
 	headroom: ValueHeadroom
 	step: number
+	floorLimit: number
 	pinnedLow: boolean
 	pinnedHigh: boolean
 }): [number, number] {
-	const { low, high, rawLow, rawHigh, rangePx, headroom, step, pinnedLow, pinnedHigh } = args
+	const { low, high, rawLow, rawHigh, rangePx, headroom, step, floorLimit, pinnedLow, pinnedHigh } =
+		args
 
 	const f = headroomShare(headroom.ceiling, rangePx)
 
@@ -256,9 +263,11 @@ function reserveHeadroom(args: {
 	// Each candidate is a tick value, so the floor and its tick map to one
 	// position. Each step down adds the step to the trough's clearance, and at
 	// most a third of the step to the clearance it needs (`f` and `g` are at
-	// most a quarter), so the loop ends.
+	// most a quarter), so the loop ends, at the latest at `floorLimit`.
 	for (let index = Math.round(low / step); ; index--) {
 		const floor = stepMultiple(index, step)
+
+		if (floor < floorLimit) return [low, ceiling(low)]
 
 		const top = ceiling(floor)
 
@@ -349,6 +358,7 @@ export function linearScale({
 		rangePx: Math.abs(range[1] - range[0]),
 		headroom: tight ? NO_HEADROOM : headroom,
 		step,
+		floorLimit: rawLow >= 0 ? 0 : Number.NEGATIVE_INFINITY,
 		pinnedLow: min !== undefined || zeroFloor,
 		pinnedHigh: max !== undefined || zeroCeiling,
 	})
