@@ -27,8 +27,8 @@ An app mounts `AppearanceProvider` once, in `<body>` above all text. The server 
 
 | Export | Summary |
 |---|---|
-| `AppearanceProvider` | App-root owner of the theme, density, motion, sidebar, and surfaces preferences. It keeps them in `localStorage` and writes them as classes on the root element. While the surfaces are `glass`, each Dialog, Drawer, and Sheet panel is glass. It loads the latin face of the font, and `ui/tailwind.css` holds the other faces. |
-| `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
+| `AppearanceProvider` | App-root owner of the theme, density, motion, sidebar, and surfaces preferences. It keeps them in `localStorage` and writes them as classes on the root element. While the surfaces are `glass`, each Dialog, Drawer, and Sheet panel is glass. It loads the latin face of the font, and `ui/tailwind.css` holds the other faces. An app with a font of its own gives `font={false}`, and the provider loads no face. |
+| `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`: `children` and `font`. |
 | `AppearanceSettings` | Settings icon button that opens the appearance, density, motion, sidebar, and surfaces pickers. ⌘B or Ctrl+B toggles the sidebar. Under a `LocaleProvider` with `locales`, it adds the Language picker. `children` adds more fields. `tabs` adds tabs of fields after a "UI" tab of the pickers, and a `Segment` switches them. `animate` sets the switch of the tabs (`'fade'` by default, or `'slide'`). `variant` sets the fill style of the button (`'bare'` by default). |
 | `AppearanceSettingsProps` *(type)* | Props for `AppearanceSettings`: the fill style of the button, more fields for the dialog, tabs of fields, and the switch of the tabs. |
 | `AppearanceSettingsTab` *(type)* | One tab of `tabs`: its label and its fields. |

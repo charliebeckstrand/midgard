@@ -46,4 +46,25 @@ describe('AppearanceProvider in the server document', () => {
 
 		expect(inline).toEqual([])
 	})
+
+	it('renders no font script and no preload with font={false}', () => {
+		const doc = parse(
+			renderToString(
+				<html lang="en">
+					<head />
+					<body>
+						<AppearanceProvider font={false}>
+							<ThemeProbe />
+						</AppearanceProvider>
+					</body>
+				</html>,
+			),
+		)
+
+		expect(doc.body.firstElementChild?.getAttribute('data-testid')).toBe('theme')
+
+		expect(doc.querySelectorAll('script')).toHaveLength(0)
+
+		expect(doc.head.querySelector('link[rel="preload"]')).toBeNull()
+	})
 })

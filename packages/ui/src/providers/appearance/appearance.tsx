@@ -23,9 +23,18 @@ import { AppearanceContext } from './context'
 import { FontScript } from './font-script'
 import { useAppearanceChoice } from './use-appearance-choice'
 
-/** Props for {@link AppearanceProvider}: the `children` that take the appearance. */
+/** Props for {@link AppearanceProvider}: the `children` that take the appearance, and the font switch. */
 export type AppearanceProviderProps = {
 	children: ReactNode
+	/**
+	 * Whether the provider loads the latin face of the ui font
+	 * ({@link FontScript}). Give `false` when the app paints its text in a
+	 * font of its own: the provider then renders no script and no `preload`
+	 * link.
+	 *
+	 * @defaultValue true
+	 */
+	font?: boolean
 }
 
 /**
@@ -69,7 +78,7 @@ export type AppearanceProviderProps = {
  * It renders the script of the latin face of the font before its children
  * ({@link FontScript}), so latin text paints in the font from the first paint.
  * In the server render, it also puts a `preload` link for that script in the
- * head.
+ * head. With `font={false}`, it renders no script and no link.
  * Render it above all text of the page, as the root layout of an app does.
  *
  * @remarks The server render and the hydration render use the defaults
@@ -77,8 +86,15 @@ export type AppearanceProviderProps = {
  * context. The root element carries the stored choices from the first paint,
  * so each stepped `density-*` class is correct at once. A component that reads
  * the step as a JS value takes it one render after hydration.
+ *
+ * These defaults apply only to a component that hydrates together with the
+ * provider. A component in a `Suspense` boundary that hydrates after the
+ * provider reads the stored values in its hydration render, but the server
+ * rendered the defaults. If such a component renders markup from a value of
+ * {@link useAppearance}, gate that markup on `useHydrated`, so that its
+ * hydration render also uses the defaults.
  */
-export function AppearanceProvider({ children }: AppearanceProviderProps) {
+export function AppearanceProvider({ children, font = true }: AppearanceProviderProps) {
 	const [theme, setTheme] = useAppearanceChoice(THEME)
 
 	const [density, setDensity] = useAppearanceChoice(DENSITY)
@@ -178,7 +194,7 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 		<AppearanceContext value={value}>
 			<ReducedMotionContext value={motion === 'reduced'}>
 				<GlassSurfacesContext value={surfaces === 'glass'}>
-					<FontScript />
+					{font ? <FontScript /> : null}
 					{children}
 				</GlassSurfacesContext>
 			</ReducedMotionContext>
