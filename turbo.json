@@ -62,16 +62,6 @@
 			"dependsOn": ["docs:build"],
 			"cache": false
 		},
-		"lint": {
-			"inputs": [
-				"src/**",
-				"app/**",
-				"*.ts",
-				"*.json",
-				"$TURBO_ROOT$/biome.json",
-				"$TURBO_ROOT$/.biome/plugins/**"
-			]
-		},
 		"test": {
 			"dependsOn": ["^build"],
 			"inputs": [
@@ -144,7 +134,7 @@
 				"$TURBO_ROOT$/vitest.shared.mts"
 			]
 		},
-		"//#biome:check": {},
+		"//#lint": {},
 		"//#knip": {}
 	}
 }

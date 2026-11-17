@@ -35,7 +35,6 @@ No root barrel; the `exports` map exposes each component path.
 | Benchmarks | `pnpm --filter ui bench` |
 | Benchmarks, one sample each, to check that they run (CI runs it) | `pnpm --filter ui bench:smoke` / `pnpm --filter ui bench:browser:smoke` |
 | Typecheck | `pnpm --filter ui check-types` |
-| Lint | `pnpm --filter ui lint` |
 
 ## 3. Layout
 

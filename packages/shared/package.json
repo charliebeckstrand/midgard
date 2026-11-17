@@ -52,10 +52,7 @@
 		"openapi": "openapi-typescript https://raw.githubusercontent.com/charliebeckstrand/asgard/main/services/mimir/openapi.json -o src/mimir/openapi.d.ts && biome format --write src/mimir/openapi.d.ts",
 		"test": "vitest run",
 		"test:changed": "vitest run",
-		"test:related": "vitest related --run",
-		"lint": "biome check .",
-		"lint:fix": "biome check --write .",
-		"format": "biome format --write ."
+		"test:related": "vitest related --run"
 	},
 	"dependencies": {
 		"@simplewebauthn/browser": "catalog:",
