@@ -162,4 +162,30 @@ describe('a log value axis', () => {
 
 		expect(axisLabels(log.container, 'chart-axis-x')).toEqual(['1', '10', '100', '1,000'])
 	})
+
+	it('leaves a point that the log axis cannot place out of the linear axis', () => {
+		const points = [
+			{ x: 0, y: -500 },
+			{ x: 1, y: 2 },
+			{ x: 10, y: 6 },
+			{ x: 100, y: 9 },
+		]
+
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Points"
+				data={points}
+				series={[{ xKey: 'x', yKey: 'y', yName: 'Y' }]}
+				axes={{ x: { scale: 'log' } }}
+				width={400}
+			/>,
+		)
+
+		// The point at x 0 draws no disc, so its y of -500 does not stretch the y axis.
+		const ticks = axisLabels(container, 'chart-axis-y').map(Number)
+
+		expect(Math.min(...ticks)).toBeGreaterThanOrEqual(0)
+
+		expect(Math.max(...ticks)).toBeLessThanOrEqual(10)
+	})
 })

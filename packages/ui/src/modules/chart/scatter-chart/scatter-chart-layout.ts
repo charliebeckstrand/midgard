@@ -65,6 +65,23 @@ export type ScatterMeta = {
 export type ScatterSpacing = { x: ChartValueAxis['scale']; y: ChartValueAxis['scale'] }
 
 /**
+ * Whether a log axis of `spacing` can place a point: a log axis has no place
+ * for zero or a negative value. `null` with no log axis, where every point has
+ * a place.
+ *
+ * @internal
+ */
+function placeableOn(spacing: ScatterSpacing): ((point: ScatterDatum) => boolean) | null {
+	const logX = spacing.x === 'log'
+
+	const logY = spacing.y === 'log'
+
+	if (!logX && !logY) return null
+
+	return (point) => (!logX || point.x > 0) && (!logY || point.y > 0)
+}
+
+/**
  * The metas with their drawn points cut to the points that the log axes can
  * place. A log axis has no place for zero or a negative value, so such a point
  * draws no disc, takes no hit, and offers no keyboard stop. It stays in
@@ -74,13 +91,9 @@ export type ScatterSpacing = { x: ChartValueAxis['scale']; y: ChartValueAxis['sc
  * @internal
  */
 export function plottedScatter(metas: ScatterMeta[], spacing: ScatterSpacing): ScatterMeta[] {
-	const logX = spacing.x === 'log'
+	const placeable = placeableOn(spacing)
 
-	const logY = spacing.y === 'log'
-
-	if (!logX && !logY) return metas
-
-	const placeable = (point: ScatterDatum) => (!logX || point.x > 0) && (!logY || point.y > 0)
+	if (!placeable) return metas
 
 	return metas.map((meta) =>
 		meta.drawn.every(placeable) ? meta : { ...meta, drawn: meta.drawn.filter(placeable) },
@@ -333,8 +346,16 @@ export function scatterScales(args: {
 
 	const yCeiling = spark ? inset : Math.max(PLOT_TOP_PAD, reach)
 
+	// A point that a log axis cannot place draws no disc, so it sets neither
+	// domain: on the other axis, it would stretch the scale past every drawn disc.
+	const placeable = placeableOn(spacing)
+
+	const placed = visible.flatMap((meta) =>
+		placeable ? meta.points.filter(placeable) : meta.points,
+	)
+
 	const yScale = valueScale(spacing.y, {
-		values: visible.flatMap((meta) => meta.points.map((point) => point.y)),
+		values: placed.map((point) => point.y),
 		range: [yFloor, yCeiling],
 		tickTarget: scaleTicks,
 		min: pins.min,
@@ -361,7 +382,7 @@ export function scatterScales(args: {
 		height: spark ? Math.max(0, base.height - xTitleBand) : Math.max(0, yFloor - yCeiling),
 	}
 
-	const xValues = visible.flatMap((meta) => meta.points.map((point) => point.x))
+	const xValues = placed.map((point) => point.x)
 
 	const xOptions = { tickTarget: scaleTicks, min: pins.xMin, max: pins.xMax }
 
