@@ -147,14 +147,15 @@ describe('valueLabels', () => {
 	})
 
 	it('puts an extreme label level with its point when there is no room past it', () => {
-		// The trough sits 15 units over the plot floor: under the 21 a centered
-		// label needs, over the 13 a label level with the point needs. The label
+		// The trough sits 20 units over the plot floor: under the 25 a centered
+		// label needs, over the 17 a label level with the point needs (each with
+		// its 4-unit gap to the floor). The label
 		// sits on the outward half, to the right of the point, clear of the marker.
 		const [trough] = valueLabels({
 			series: [
 				series([
 					[60, 40, 5],
-					[100, 85, 1],
+					[100, 80, 1],
 					[140, 30, 7],
 				]),
 			],
@@ -167,16 +168,16 @@ describe('valueLabels', () => {
 
 		expect(trough?.x).toBeGreaterThan(100 + MARKER_RADIUS + MARKER_RING_WIDTH / 2)
 
-		expect(trough?.y).toBeGreaterThan(85)
+		expect(trough?.y).toBeGreaterThan(80)
 
-		expect((trough?.y ?? 0) + LABEL_HEIGHT / 2).toBeLessThanOrEqual(PLOT.height)
+		expect((trough?.y ?? 0) + LABEL_HEIGHT / 2).toBeLessThanOrEqual(PLOT.height - 4)
 
 		// With the right side cut off by the plot, it takes the left.
 		const [left] = valueLabels({
 			series: [
 				series([
 					[60, 40, 5],
-					[195, 85, 1],
+					[195, 80, 1],
 				]),
 			],
 			plot: PLOT,

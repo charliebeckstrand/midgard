@@ -128,27 +128,27 @@ describe('linearScale', () => {
 	})
 
 	it('keeps the label room past each extreme at every affordable height', () => {
-		// The peak's label centers above the point, 21px (offset + height) past
-		// it. The trough's label can sit level beside the point, 13px (its height)
-		// past it. The room reserved for each must clear its threshold with slack
+		// The peak's label centers above the point, 25px (offset, height, and the
+		// edge gap) past it. The trough's label can sit level beside the point,
+		// 17px (height and edge gap) past it. The room reserved for each must clear its threshold with slack
 		// at EVERY size a label can render at: a room that only met it would leave
 		// the label on that threshold, and a live resize would move it from spot
 		// to spot. Sweep the plot heights a resize passes through: past the
 		// affordability cutoff each gap holds strictly past its threshold.
 		const values = [12, -6, 9, -14, 18, 7]
 
-		const headroom = { ceiling: 25, floor: 17 }
+		const headroom = { ceiling: 26, floor: 18 }
 
-		for (let rangePx = 100; rangePx <= 400; rangePx += 1) {
+		for (let rangePx = 104; rangePx <= 400; rangePx += 1) {
 			const scale = linearScale({ values, range: [rangePx, 0], tickTarget: 4, headroom })
 
 			if (!scale) throw new Error('scale must resolve')
 
 			const perPx = (scale.domain[1] - scale.domain[0]) / rangePx
 
-			expect((scale.domain[1] - 18) / perPx).toBeGreaterThan(21)
+			expect((scale.domain[1] - 18) / perPx).toBeGreaterThan(25)
 
-			expect((-14 - scale.domain[0]) / perPx).toBeGreaterThan(13)
+			expect((-14 - scale.domain[0]) / perPx).toBeGreaterThan(17)
 
 			// The floor is always a tick.
 			expect(scale.ticks[0]).toBe(scale.domain[0])
@@ -160,28 +160,28 @@ describe('linearScale', () => {
 
 		const scale = linearScale({
 			values,
-			range: [80, 0],
+			range: [100, 0],
 			tickTarget: 4,
-			headroom: { ceiling: 25, floor: 17 },
+			headroom: { ceiling: 26, floor: 18 },
 		})
 
-		const base = linearScale({ values, range: [80, 0], tickTarget: 4 })
+		const base = linearScale({ values, range: [100, 0], tickTarget: 4 })
 
-		// The ceiling room (25 of 80px) is past the cap; the floor room (17) is not.
+		// The ceiling room (26 of 100px) is past the cap; the floor room (18) is not.
 		expect(scale?.domain[1]).toBe(base?.domain[1])
 
 		expect(scale?.domain[0]).toBeLessThanOrEqual(base?.domain[0] ?? 0)
 	})
 
 	it('keeps the nice floor when the trough already clears it by the floor room', () => {
-		// The trough (-14) sits 6 units over the nice floor (-20): past the 17px
+		// The trough (-14) sits 6 units over the nice floor (-20): past the 18px
 		// floor room at this height. The floor stays, so the axis rule is the -20
 		// gridline. The ceiling still widens for the centered peak label.
 		const scale = linearScale({
 			values: [12, -6, 9, -14, 18, 7],
-			range: [150, 0],
+			range: [200, 0],
 			tickTarget: 4,
-			headroom: { ceiling: 25, floor: 17 },
+			headroom: { ceiling: 26, floor: 18 },
 		})
 
 		expect(scale?.domain[0]).toBe(-20)

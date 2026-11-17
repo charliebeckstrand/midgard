@@ -80,23 +80,32 @@ export function labelBesideY(y: number, plot: PlotRect, above: boolean): number 
 	return up ? y - LABEL_OFFSET - LABEL_HALF : y + LABEL_OFFSET + LABEL_HALF
 }
 
-/** Extra room past the label footprint, so a label is never placed exactly on its fit threshold. @internal */
-const LABEL_SLACK = 4
+/**
+ * The clear gap between the label of an extreme and the top or the bottom of
+ * the plot. The floor carries the axis rule, and a label on that rule reads as
+ * crowded.
+ *
+ * @internal
+ */
+const LABEL_EDGE_GAP = 4
+
+/** One pixel past the fit threshold of a label, so that rounding never leaves the label exactly on it. @internal */
+const LABEL_SLACK = 1
 
 /**
  * The value-axis room a chart keeps past its data extremes for the labels.
  * Past the peak, it is the footprint of a label centered above the point: its
  * offset and its height. Past the trough, it is only the height of a label
  * level with the point ({@link extremeSpots}), since the floor widens by whole
- * steps. Each adds {@link LABEL_SLACK}. A room that only met the fit threshold
+ * steps. Each adds the {@link LABEL_EDGE_GAP} and {@link LABEL_SLACK}. A room that only met the fit threshold
  * would leave the label on that threshold, and a resize would move it from
  * spot to spot.
  *
  * @internal
  */
 const VALUE_LABEL_HEADROOM: ValueHeadroom = {
-	ceiling: LABEL_OFFSET + LABEL_HEIGHT + LABEL_SLACK,
-	floor: LABEL_HEIGHT + LABEL_SLACK,
+	ceiling: LABEL_OFFSET + LABEL_HEIGHT + LABEL_EDGE_GAP + LABEL_SLACK,
+	floor: LABEL_HEIGHT + LABEL_EDGE_GAP + LABEL_SLACK,
 }
 
 /** The point-label switches of the `labels` prop, both optional and off by default. @internal */
@@ -308,9 +317,17 @@ type Placement = { label: PlacedValueLabel; box: LabelBox }
 /** A spot a label can take: where its text anchors, and its box across the axis. @internal */
 type Spot = { x: number; y: number; anchor: PlacedValueLabel['anchor']; x0: number; x1: number }
 
-/** Whether a label centered on `y` fits between the top and the bottom of the plot. @internal */
+/**
+ * Whether the label of an extreme centered on `y` fits between the top and the
+ * bottom of the plot, {@link LABEL_EDGE_GAP} clear of each.
+ *
+ * @internal
+ */
 function fitsAcross(y: number, plot: PlotRect): boolean {
-	return y - LABEL_HALF >= plot.y && y + LABEL_HALF <= plot.y + plot.height
+	return (
+		y - LABEL_HALF - LABEL_EDGE_GAP >= plot.y &&
+		y + LABEL_HALF + LABEL_EDGE_GAP <= plot.y + plot.height
+	)
 }
 
 /**
@@ -320,7 +337,8 @@ function fitsAcross(y: number, plot: PlotRect): boolean {
  * stays between them, so no part of the line enters these spots. The first
  * spot centers past the point, {@link LABEL_OFFSET} away. The next two sit
  * level with the point, one edge on its line, clear of the marker: to its
- * right, then to its left. A spot that would clip the plot is left out.
+ * right, then to its left. A spot that would cross a side of the plot, or
+ * come within {@link LABEL_EDGE_GAP} of its top or its bottom, is left out.
  *
  * @internal
  */

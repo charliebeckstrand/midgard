@@ -38,7 +38,7 @@ import { bandScale, type ValueHeadroom } from '../../modules/chart/engine/chart-
 const PLOT_EDGE_TOLERANCE = 0.005
 
 /** The room the point labels keep past the peak and the trough. */
-const LABEL_ROOM = { ceiling: 25, floor: 17 }
+const LABEL_ROOM = { ceiling: 26, floor: 18 }
 
 const input = (frameHeight: number, valueHeadroom?: ValueHeadroom): CartesianLayoutInput => ({
 	frameWidth: 400,
@@ -68,9 +68,9 @@ describe('verticalLayout value-label room', () => {
 
 			if (!scale) throw new Error('scale must resolve')
 
-			expect(scale.map(100) - layout.plot.y).toBeGreaterThan(21)
+			expect(scale.map(100) - layout.plot.y).toBeGreaterThan(25)
 
-			expect(layout.plot.y + layout.plot.height - scale.map(23)).toBeGreaterThan(13)
+			expect(layout.plot.y + layout.plot.height - scale.map(23)).toBeGreaterThan(17)
 
 			// The floor is a tick, so the axis rule is its gridline.
 			expect(scale.map(scale.ticks[0] as number)).toBe(layout.plot.y + layout.plot.height)
