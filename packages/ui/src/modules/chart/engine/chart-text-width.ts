@@ -52,6 +52,9 @@ export function estimateTextFit(text: string, charWidth: number, maxWidth: numbe
 	return { text: cut, width: cut.length * charWidth }
 }
 
+/** The spaces a label wraps at: not a no-break space (U+00A0, U+202F). @internal */
+const BREAKABLE_SPACE = /[ \t\n\r]+/
+
 /**
  * The estimated lines of `text` wrapped at its spaces, at most `maxChars` code
  * units on each line and at most `maxLines` lines. The last line of a longer
@@ -67,7 +70,8 @@ export function estimateTextWrap(
 	maxChars: number,
 	maxLines: number,
 ): string[] | null {
-	const words = text.split(/\s+/).filter((word) => word.length > 0)
+	// A no-break space, such as the one before a day period, holds its words together.
+	const words = text.split(BREAKABLE_SPACE).filter((word) => word.length > 0)
 
 	if (words.length === 0) return ['']
 

@@ -47,6 +47,11 @@ describe('estimateTextWrap', () => {
 		expect(lines?.every((line) => line.length <= 9)).toBe(true)
 	})
 
+	it('keeps the words that a no-break space joins on one line', () => {
+		// ICU writes a narrow no-break space (U+202F) before the day period.
+		expect(estimateTextWrap('Opens 10:00\u202FAM', 9, 3)).toEqual(['Opens', '10:00\u202FAM'])
+	})
+
 	it('gives no lines when one word is longer than a line', () => {
 		expect(estimateTextWrap('Supercalifragilistic sales', 10, 3)).toBeNull()
 	})
