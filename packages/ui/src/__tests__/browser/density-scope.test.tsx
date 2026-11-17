@@ -40,7 +40,7 @@ import { holdRoot } from './helpers/root-state'
  * A static leaf with no `size` follows the nearest density scope.
  *
  * Badge, Card, and Table read no context. Their `density-*` classes select the step in CSS from
- * the nearest `data-density` scope (packages/ui/tailwind.css). The innermost scope must win at
+ * the nearest `data-density` scope (packages/ui/styles/tailwind.css). The innermost scope must win at
  * every depth. An explicit `size` makes the leaf its own scope, and a consumer `className` must
  * win over each step.
  *

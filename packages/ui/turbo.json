@@ -94,7 +94,7 @@
 				"vitest.browser.config.ts",
 				"vitest.base.ts",
 				"$TURBO_ROOT$/vitest.shared.mts",
-				"tailwind.css",
+				"styles/tailwind.css",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			]
@@ -105,7 +105,7 @@
 				"src/**",
 				"!src/**/__tests__/**",
 				"!src/__benchmarks__/**",
-				"tailwind.css",
+				"styles/tailwind.css",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			],

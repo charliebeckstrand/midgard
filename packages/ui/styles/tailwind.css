@@ -13,19 +13,19 @@
  * loops, and the breakpoint classes of the structure units. Import this file in each Tailwind entry that scans
  * ui. Each plugin explains its classes or its style.
  */
-@import './src/fonts/fonts.css';
+@import '../src/fonts/fonts.css';
 
-@plugin './src/core/density/variants.ts';
-@plugin './src/core/density/utilities.ts';
-@plugin './src/core/touch/base.ts';
-@plugin './src/core/touch/gap.ts';
-@plugin './src/core/touch/pitch.ts';
-@plugin './src/core/scheme/base.ts';
-@plugin './src/core/motion/variants.ts';
-@plugin './src/core/sidebar/variants.ts';
-@plugin './src/core/surfaces/variants.ts';
-@plugin './src/core/scroll/fade.ts';
-@plugin './src/core/panel/base.ts';
+@plugin '../src/core/density/variants.ts';
+@plugin '../src/core/density/utilities.ts';
+@plugin '../src/core/touch/base.ts';
+@plugin '../src/core/touch/gap.ts';
+@plugin '../src/core/touch/pitch.ts';
+@plugin '../src/core/scheme/base.ts';
+@plugin '../src/core/motion/variants.ts';
+@plugin '../src/core/sidebar/variants.ts';
+@plugin '../src/core/surfaces/variants.ts';
+@plugin '../src/core/scroll/fade.ts';
+@plugin '../src/core/panel/base.ts';
 
 /*
  * The `2xs` step of the text scale: 10 px. The small text ramp of the density

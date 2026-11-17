@@ -2,7 +2,7 @@
    and the classes of the source of ui and of the docs. The tests and the
    benchmarks are not sources. */
 @import 'tailwindcss' source(none);
-@import '../../../tailwind.css';
+@import '../../../styles/tailwind.css';
 
 @source '../../';
 @source not '../../__tests__';

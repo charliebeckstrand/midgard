@@ -13,7 +13,7 @@ import { uiRoot } from '../helpers/walk-source'
 
 describe('the PdfViewer viewport', () => {
 	it('gives each centering class CSS', async () => {
-		const compiler = await compile(`@import 'tailwindcss';\n@import './tailwind.css';`, {
+		const compiler = await compile(`@import 'tailwindcss';\n@import './styles/tailwind.css';`, {
 			base: uiRoot,
 			onDependency: noop,
 		})

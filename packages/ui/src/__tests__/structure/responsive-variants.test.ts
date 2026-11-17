@@ -19,7 +19,7 @@ import { uiRoot } from '../helpers/walk-source'
 // see a class that a resolver makes at run time. Each class with no prefix must
 // be a literal string in the source, because the scanner finds it only there.
 
-const ENTRY = `@import 'tailwindcss';\n@import './tailwind.css';`
+const ENTRY = `@import 'tailwindcss';\n@import './styles/tailwind.css';`
 
 /** The kata modules, by file. */
 const modules = import.meta.glob<Record<string, unknown>>('../../recipes/kata/*.ts', {

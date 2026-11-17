@@ -106,7 +106,7 @@
 			"types": "./src/modules/query/index.ts",
 			"default": "./src/modules/query/index.ts"
 		},
-		"./tailwind.css": "./tailwind.css",
+		"./tailwind.css": "./styles/tailwind.css",
 		"./scripts/intl/catalog": {
 			"types": "./scripts/intl/catalog.ts",
 			"default": "./scripts/intl/catalog.ts"
