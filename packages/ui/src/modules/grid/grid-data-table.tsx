@@ -5,6 +5,7 @@ import { Table, type TableElementProps } from '../../components/table'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { k } from '../../recipes/kata/grid'
 import type { scale } from '../../recipes/kata/table'
 import { GridHighlightContext, GridNavContext } from './context'
 import { condensedTableClass, settleBodyClass, stripedForOutline } from './engine/grid-data/classes'
@@ -168,7 +169,7 @@ export function GridDataTable<T>({
 				hover={table.hover}
 				className={condensedTableClass(
 					table.condensed,
-					cn(table.className, settleBodyClass(table.settling)),
+					cn(k.table, table.className, settleBodyClass(table.settling)),
 				)}
 				tableProps={resolveTableProps({
 					intl,

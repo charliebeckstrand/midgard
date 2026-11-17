@@ -184,6 +184,16 @@ describe('grid editor grow (real floating engine)', () => {
 		expect(input.scrollWidth).toBeLessThanOrEqual(input.clientWidth)
 	})
 
+	it('measures the figures of a value as the editor shows them', async () => {
+		const { container } = renderGrid()
+
+		// The grid sets tabular figures. A `1` is then wider than its proportional
+		// form, so a measure of proportional figures leaves the field too narrow.
+		const { input } = await openAndType(gridCell(container, 'email'), '1'.repeat(30))
+
+		await waitFor(() => expect(input.scrollWidth).toBeLessThanOrEqual(input.clientWidth))
+	})
+
 	it('caps the width at 28rem', async () => {
 		const { container } = renderGrid()
 

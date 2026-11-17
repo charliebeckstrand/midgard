@@ -26,31 +26,66 @@ import { cellChrome } from './engine/grid-sizing/measure'
 /** The widest that a grown editor gets, in rem. @internal */
 const GROW_MAX_REM = 28
 
-/** The canvas that measures the text of an editor, made at the first measure. @internal */
-let measureContext: CanvasRenderingContext2D | null | undefined
+/**
+ * The font properties that a mirror of a field copies, so that it lays out
+ * the text of the field with the same glyphs. A canvas has no
+ * `font-variant-numeric`, so it measured proportional figures where the field
+ * shows tabular figures (see `k.table`).
+ *
+ * @internal
+ */
+const FONT_PROPERTIES = [
+	'font-family',
+	'font-size',
+	'font-style',
+	'font-weight',
+	'font-stretch',
+	'font-variant',
+	'font-feature-settings',
+	'font-variation-settings',
+	'font-kerning',
+	'letter-spacing',
+	'word-spacing',
+	'text-transform',
+] as const
 
 /**
  * The width of the widest line of `text` in the font of `field`, in px. The
- * text of a field is not in the DOM, so a range cannot measure it. A canvas
- * measures it in the same font and letter spacing.
+ * text of a field is not in the DOM, so a range cannot measure it. A hidden
+ * mirror in the font of the field lays out the text for one read, and then
+ * leaves the document in the same task, so it never paints. The mirror is out
+ * of the flow, so its layout moves no other box.
  *
  * @internal
  */
 function textWidth(field: HTMLInputElement | HTMLTextAreaElement, text: string): number {
-	if (measureContext === undefined)
-		measureContext = document.createElement('canvas').getContext('2d')
-
-	const context = measureContext
-
-	if (!context) return 0
-
 	const style = getComputedStyle(field)
 
-	context.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+	const mirror = field.ownerDocument.createElement('span')
 
-	context.letterSpacing = style.letterSpacing === 'normal' ? '0px' : style.letterSpacing
+	for (const property of FONT_PROPERTIES) {
+		mirror.style.setProperty(property, style.getPropertyValue(property))
+	}
 
-	return Math.max(...text.split('\n').map((line) => context.measureText(line).width))
+	// `pre` keeps each line of the text on one line, and the box of an
+	// absolute span is as wide as its widest line.
+	Object.assign(mirror.style, {
+		position: 'absolute',
+		top: '0',
+		left: '0',
+		visibility: 'hidden',
+		whiteSpace: 'pre',
+	})
+
+	mirror.textContent = text
+
+	field.ownerDocument.body.append(mirror)
+
+	const width = mirror.getBoundingClientRect().width
+
+	mirror.remove()
+
+	return width
 }
 
 /**

@@ -171,6 +171,13 @@ const hit = ['relative', "before:absolute before:-inset-1 before:content-['']"]
 const grip = [flex.inline, 'shrink-0', ...hit, focus.inset, ...grab.grip]
 
 export const k = {
+	// On the `<table>`: tabular figures. Each digit has the same width, so the
+	// digits of a column align, and two values of the same length have the same
+	// width. The autosizer reads only the rows that render (see
+	// `createColumnSizer`), and a windowed body keeps those widths while it
+	// scrolls. Thus an ID that scrolls in later fits the width of the IDs that the
+	// autosizer read.
+	table: 'tabular-nums',
 	wrapper: {
 		// `isolate` scopes the grid's internal sticky/pinned z-indices to its own
 		// stacking context: the frozen header rides `z-20` and the sticky header

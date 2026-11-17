@@ -545,6 +545,64 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 })
 
 /**
+ * A windowed body: the autosizer reads only the rows of the first window, and
+ * the columns keep those widths while the body scrolls. The figures are
+ * tabular, so an ID of the same length that scrolls in later is not wider than
+ * the IDs that the autosizer read. With proportional figures, a `4` is wider
+ * than a `1`, and the ID below the first window truncated.
+ */
+describe('grid column auto-sizing of figures in a windowed body (real browser)', () => {
+	type Row = { id: number; loadId: string; customer: string }
+
+	// Narrow figures in the first window, and wide figures in one row below it.
+	const rows: Row[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		loadId: index === 150 ? '5208444444' : '5208111111',
+		customer: 'A customer name that is wider than the frame on its own',
+	}))
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'loadId', title: 'Load ID', cell: (row) => <a href="#load">{row.loadId}</a> },
+		{ id: 'customer', title: 'Customer', cell: (row) => row.customer },
+	]
+
+	it('shows an ID that scrolls in after the fit in full', async () => {
+		const { container } = renderUI(
+			<div style={{ width: '400px' }}>
+				<Grid columns={columns} rows={rows} getKey={(row) => row.id} maxHeight="240px" virtualize />
+			</div>,
+		)
+
+		const wide = () =>
+			[
+				...container.querySelectorAll<HTMLElement>(
+					'td[data-grid-col="loadId"] [data-grid-content]',
+				),
+			].find((leaf) => leaf.textContent === '5208444444')
+
+		await waitFor(() =>
+			expect(container.querySelector('td[data-grid-col="loadId"]')).not.toBeNull(),
+		)
+
+		// The wide row is far below the first window, so the fit did not read it.
+		expect(wide()).toBeUndefined()
+
+		const scroll = present(
+			container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		scroll.scrollTop = (scroll.scrollHeight * 150) / rows.length
+
+		await waitFor(() => expect(wide()).toBeDefined())
+
+		const leaf = wide() as HTMLElement
+
+		expect(leaf.scrollWidth).toBeLessThanOrEqual(leaf.clientWidth)
+	})
+})
+
+/**
  * Rows that land in the frame of a resize tick. The sizing observer commits its
  * fit in a `flushSync`. A `flushSync` that renders also renders each update that
  * waits, so the rows of a timer or a fetch can commit inside the callback, and
