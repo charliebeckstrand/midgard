@@ -38,7 +38,9 @@ function renderBoard(
 	return render(
 		<QueryClientProvider client={client}>
 			<UIProvider>
-				<GameSettingsProvider settings={{ autoDraw, showScore: true, difficulty: 'normal' }}>
+				<GameSettingsProvider
+					settings={{ autoDraw, showScore: true, placementOrder: true, difficulty: 'normal' }}
+				>
 					<GameBoard seed={seed} user={user} />
 				</GameSettingsProvider>
 			</UIProvider>
@@ -136,7 +138,9 @@ describe('GameBoard daily notice from the server', () => {
 	const tree = (today: string): ReactNode => (
 		<QueryClientProvider client={new QueryClient()}>
 			<UIProvider>
-				<GameSettingsProvider settings={{ autoDraw: true, showScore: true, difficulty: 'normal' }}>
+				<GameSettingsProvider
+					settings={{ autoDraw: true, showScore: true, placementOrder: true, difficulty: 'normal' }}
+				>
 					<GameBoard
 						seed={today}
 						user={user}

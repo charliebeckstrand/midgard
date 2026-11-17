@@ -85,6 +85,8 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 
 	const [difficulty] = useGameSetting('difficulty')
 
+	const [placementOrder] = useGameSetting('placementOrder')
+
 	const mode = vsCpu ? 'vsCpu' : 'solo'
 
 	const recordRun = useRunRecorder(user, mode, difficulty)
@@ -102,6 +104,9 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 	const cpu = vsCpu ? playCpu(game.seed, ended ? SLOTS : countPlaced(game.slots), difficulty) : null
 
 	const outcome = cpu && ended ? getOutcome(game, cpu) : null
+
+	// The order of the placements shows when the run ends, in each column.
+	const showOrder = placementOrder && ended
 
 	const drawRef = useRef<HTMLButtonElement>(null)
 
@@ -244,10 +249,13 @@ export function GameBoard({ seed, user, vsCpu = false, stats }: GameBoardProps) 
 						game={game}
 						status={status}
 						label={cpu ? 'You' : undefined}
+						showOrder={showOrder}
 						onPlace={(index, event) => act(event, () => place(index))}
 					/>
 
-					{cpu && <GameBoardSlots game={cpu} status={getStatus(cpu)} label="CPU" />}
+					{cpu && (
+						<GameBoardSlots game={cpu} status={getStatus(cpu)} label="CPU" showOrder={showOrder} />
+					)}
 				</Columns>
 			</div>
 

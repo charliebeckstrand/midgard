@@ -13,6 +13,8 @@ export type GameSettings = {
 	autoDraw: boolean
 	/** The bar at the bottom shows the score. */
 	showScore: boolean
+	/** At the end of a run, each filled slot shows the order of its placement (see `GameBoardSlots`). */
+	placementOrder: boolean
 	/** The level of the CPU in Vs CPU (see `chooseSlot`). */
 	difficulty: Difficulty
 }
@@ -27,6 +29,7 @@ const SWITCH = { on: true, off: false }
 export const SETTINGS: { [Name in keyof GameSettings]: Setting<GameSettings[Name]> } = {
 	autoDraw: { cookie: 'numbers-auto-draw', fallback: true, values: SWITCH },
 	showScore: { cookie: 'numbers-show-score', fallback: true, values: SWITCH },
+	placementOrder: { cookie: 'numbers-placement-order', fallback: true, values: SWITCH },
 	difficulty: {
 		cookie: 'numbers-difficulty',
 		fallback: 'normal',
@@ -62,6 +65,7 @@ export function readSettings(read: (cookie: string) => string | undefined): Game
 	return {
 		autoDraw: parseSetting('autoDraw', read(SETTINGS.autoDraw.cookie)),
 		showScore: parseSetting('showScore', read(SETTINGS.showScore.cookie)),
+		placementOrder: parseSetting('placementOrder', read(SETTINGS.placementOrder.cookie)),
 		difficulty: parseSetting('difficulty', read(SETTINGS.difficulty.cookie)),
 	}
 }
