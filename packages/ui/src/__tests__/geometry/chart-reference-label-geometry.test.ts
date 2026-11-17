@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { LABEL_INSET, LABEL_ROOM } from '../../modules/chart/engine/chart-constants'
+import { LABEL_ROOM } from '../../modules/chart/engine/chart-constants'
 import {
 	LABEL_HEIGHT,
 	type LabelBox,
@@ -110,38 +110,6 @@ describe('referenceLabels', () => {
 				expect(overlaps(label.box, other.box)).toBe(false)
 			}
 		}
-	})
-
-	it('insets a label that cannot center past its rule, in a horizontal chart', () => {
-		// The centered label covers the rule at 125, and the label that ends the
-		// inset past its rule keeps the room from it.
-		const [goal] = referenceLabels(
-			[
-				{ at: 100, width: 42 },
-				{ at: 125, width: 0, unlabeled: true },
-			],
-			'horizontal',
-			PLOT,
-		)
-
-		expect([goal?.anchor, goal?.x]).toEqual(['end', 100 + LABEL_INSET])
-
-		expect(goal?.box.x1).toBeLessThanOrEqual(125 - LABEL_ROOM)
-	})
-
-	it('stops an inset label flush with the side of the plot near its rule', () => {
-		const [near, far] = referenceLabels(
-			[
-				{ at: PLOT.x + 4, width: 42 },
-				{ at: PLOT.x + PLOT.width - 4, width: 42 },
-			],
-			'horizontal',
-			PLOT,
-		)
-
-		expect([near?.anchor, near?.x]).toEqual(['start', PLOT.x])
-
-		expect([far?.anchor, far?.x]).toEqual(['end', PLOT.x + PLOT.width])
 	})
 
 	it('steps a label off a neighbor rule, with room from the rule and from the label beside it, in a horizontal chart', () => {

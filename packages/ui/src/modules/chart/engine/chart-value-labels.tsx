@@ -59,10 +59,7 @@ export type ChartValueLabelConfig = {
 	 * prefers one with 8 px of room from the data, the other rules, the other
 	 * labels, and the top and bottom of the plot. In a vertical chart, the spots
 	 * are the right end of the rule, and then the left end. In a horizontal
-	 * chart, the spots are the heights from the top of the plot down. At each
-	 * height, the label centers on the rule. Else it ends or starts 12 px past the
-	 * rule, or flush with a side of the plot near the rule. Else it ends or
-	 * starts at the rule. A label
+	 * chart, the spots are the heights from the top of the plot down. A label
 	 * too wide for the space between two rules is cut 8 px short of the next
 	 * rule, with an ellipsis, and shows the whole label in a tooltip on hover. A
 	 * rule whose label finds no free spot keeps its tooltip. A point label that meets

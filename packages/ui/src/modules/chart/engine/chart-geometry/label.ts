@@ -32,13 +32,7 @@
  * meets one drops.
  */
 
-import {
-	LABEL_GAP,
-	LABEL_INSET,
-	LABEL_ROOM,
-	MARKER_REACH,
-	TICK_CHAR_WIDTH,
-} from '../chart-constants'
+import { LABEL_GAP, LABEL_ROOM, MARKER_REACH, TICK_CHAR_WIDTH } from '../chart-constants'
 import { type ChartOrientation, type PlotRect, type Vec, valueRule } from '../chart-orientation'
 import type { ValueHeadroom } from '../chart-scale'
 
@@ -548,8 +542,8 @@ export type PlacedReferenceLabel = {
  * a short dash past it. In a horizontal chart, a label sits on the rule at a
  * height in the plot. The heights step one unit apart, down from the top of
  * the plot, so a label can keep exactly {@link LABEL_ROOM} from a thing beside
- * it. At each height, the label centers on the rule, or ends or starts near
- * it ({@link ruleAnchors}).
+ * it. At each height, the label centers on the rule, or ends or starts at it
+ * ({@link ruleAnchors}).
  *
  * @internal
  */
@@ -581,8 +575,8 @@ function referenceSpots(
 	return Array.from({ length: rows }, (_, row) => {
 		const y = plot.y + LABEL_HALF + row
 
-		return anchors.map(({ anchor, x, x0, x1 }) => ({
-			x,
+		return anchors.map(({ anchor, x0, x1 }) => ({
+			x: at,
 			y,
 			anchor,
 			width,
@@ -593,13 +587,11 @@ function referenceSpots(
 
 /**
  * The ways that a label `width` wide can align on a vertical rule at `at`,
- * in the order it tries them. First, the label centers on the rule. Next, it
- * ends or starts {@link LABEL_INSET} past the rule, so the rule runs into the
- * label near its end. Near a side of the plot, the label stops flush with that
- * side. Last, the label ends or starts at the rule. A label that ends or starts
- * at its rule leaves the rule beside it, so it can step off a neighbor rule
- * that the other spots cover. Each one keeps its text inside the plot, and
- * each box keeps {@link LABEL_PAD} past the text on each side.
+ * in the order it tries them: centered on the rule, then ending at the rule,
+ * then starting at it. Each one keeps its text inside the plot. A label that
+ * ends or starts at its rule leaves the rule beside it, so it can step off a
+ * neighbor rule that a centered label covers. Each box keeps
+ * {@link LABEL_PAD} past the rule on the anchored side.
  *
  * @internal
  */
@@ -607,34 +599,20 @@ function ruleAnchors(
 	at: number,
 	width: number,
 	plot: PlotRect,
-): { anchor: PlacedValueLabel['anchor']; x: number; x0: number; x1: number }[] {
+): { anchor: PlacedValueLabel['anchor']; x0: number; x1: number }[] {
 	const [left, right] = [plot.x, plot.x + plot.width]
 
-	const middle = { anchor: 'middle' as const, x: at, x0: at - width / 2, x1: at + width / 2 }
+	const middle = { anchor: 'middle' as const, x0: at - width / 2, x1: at + width / 2 }
 
-	const end = (x: number) => ({
-		anchor: 'end' as const,
-		x,
-		x0: x + LABEL_PAD - width,
-		x1: x + LABEL_PAD,
-	})
+	const end = { anchor: 'end' as const, x0: at + LABEL_PAD - width, x1: at + LABEL_PAD }
 
-	const start = (x: number) => ({
-		anchor: 'start' as const,
-		x,
-		x0: x - LABEL_PAD,
-		x1: x - LABEL_PAD + width,
-	})
+	const start = { anchor: 'start' as const, x0: at - LABEL_PAD, x1: at - LABEL_PAD + width }
 
-	const spots = [
+	return [
 		...(middle.x0 >= left && middle.x1 <= right ? [middle] : []),
-		end(Math.min(at + LABEL_INSET, right)),
-		start(Math.max(at - LABEL_INSET, left)),
-		end(at),
-		start(at),
+		...(end.x0 >= left ? [end] : []),
+		...(start.x1 <= right ? [start] : []),
 	]
-
-	return spots.filter(({ x0, x1 }) => x0 >= left - LABEL_PAD && x1 <= right + LABEL_PAD)
 }
 
 /**
