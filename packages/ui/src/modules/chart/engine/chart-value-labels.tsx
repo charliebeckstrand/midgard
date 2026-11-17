@@ -20,13 +20,12 @@ import { useChartTier } from './context'
  *
  * `endpoints` and `extremes` apply only to a single-series chart. With more than
  * one series the numbers would crowd between the lines with nowhere reliable to
- * sit. They therefore stand down, and the tooltip carries the readout. The
- * chart reserves value-axis room past the data extremes. A label at an edge
- * therefore sits clear of the line, instead of flipping onto it. A
- * `ComboChart` counts only its line and area series, and the room widens the
- * value axis its bars share. A plot too short to afford that room sheds the
- * point labels whole, rather than render them crowded. `references` is
- * unaffected by either rule.
+ * sit. They therefore stand down, and the tooltip carries the readout. A
+ * `ComboChart` counts only its line and area series. The value axis reserves
+ * no room for the labels. An extreme's label takes the first free spot on the
+ * outward side of its point, where the line cannot be: centered past the
+ * point, then level with it on its right or its left. Where none is free, the
+ * label hides. `references` is unaffected by either rule.
  */
 export type ChartValueLabelConfig = {
 	/**
@@ -59,18 +58,13 @@ export type ChartValueLabelConfig = {
 
 /** The part of a cartesian chart that its point labels read. @internal */
 type ValueLabelChart = {
-	/** Whether the layout afforded the headroom that the labels asked for. */
-	valueLabelRoom: boolean
 	plot: PlotRect
 	formatAxisValue: (value: number, axis: ChartValueAxisId) => string
 }
 
 /**
- * The placed point labels of a line, area, or combo chart. A plot too short to
- * afford the reserved label room sheds the labels whole. The layout decides by
- * the same test that the scale reserved by, so a label never renders against an
- * edge that has no room. Each series formats its labels with the formatter of
- * its own value axis. A dual-axis chart therefore labels a currency series
+ * The placed point labels of a line, area, or combo chart. Each series formats
+ * its labels with the formatter of its own value axis. A dual-axis chart therefore labels a currency series
  * against `y` and a percent against `y2`.
  *
  * @param list - The drawn line or area series, aligned with `metas`.
@@ -86,8 +80,6 @@ export function cartesianValueLabels(
 	metas: { values: (number | null)[]; axis: ChartValueAxisId }[],
 	obstacles?: LabelBox[],
 ): PlacedValueLabel[] {
-	if (!chart.valueLabelRoom) return []
-
 	return resolveValueLabels(
 		config,
 		list.map((entry, index) => {

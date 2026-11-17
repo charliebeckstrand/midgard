@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { fillClass, rawColor, resolvePaint } from '../../modules/chart/engine/chart-color/paint'
+import { MARKER_RADIUS, MARKER_RING_WIDTH } from '../../modules/chart/engine/chart-constants'
 import {
+	LABEL_HEIGHT,
 	type LabelableSeries,
 	labelBesideY,
 	labelPoints,
@@ -96,7 +98,7 @@ describe('valueLabels', () => {
 		expect(labels[0]?.text).toBe('100')
 	})
 
-	it('pins a side label to its point rather than sliding it, keeping the vertical flip', () => {
+	it('pins a side label to its point rather than sliding it', () => {
 		// Near a side edge a centered box would cross the plot. The label anchors
 		// inward at its own point instead, and never slides onto the neighboring
 		// marks.
@@ -132,16 +134,59 @@ describe('valueLabels', () => {
 
 		expect(fits?.anchor).toBe('middle')
 
-		// A max sits above its point, but a point at the top still flips its label
-		// below: vertically the label never leaves its own mark, so the flip stays.
-		const [top] = valueLabels({
+		// A max has no outward room at the top of the plot. Below it, the label
+		// would land on the line, so it hides.
+		const top = valueLabels({
 			series: [series([[100, 2, 9]])],
 			plot: PLOT,
 			endpoints: false,
 			extremes: true,
 		})
 
-		expect(top?.y).toBeGreaterThan(2)
+		expect(top).toEqual([])
+	})
+
+	it('puts an extreme label level with its point when there is no room past it', () => {
+		// The trough sits 15 units over the plot floor: under the 21 a centered
+		// label needs, over the 13 a label level with the point needs. The label
+		// sits on the outward half, to the right of the point, clear of the marker.
+		const [trough] = valueLabels({
+			series: [
+				series([
+					[60, 40, 5],
+					[100, 85, 1],
+					[140, 30, 7],
+				]),
+			],
+			plot: PLOT,
+			endpoints: false,
+			extremes: true,
+		}).filter((label) => label.text === '1')
+
+		expect(trough?.anchor).toBe('start')
+
+		expect(trough?.x).toBeGreaterThan(100 + MARKER_RADIUS + MARKER_RING_WIDTH / 2)
+
+		expect(trough?.y).toBeGreaterThan(85)
+
+		expect((trough?.y ?? 0) + LABEL_HEIGHT / 2).toBeLessThanOrEqual(PLOT.height)
+
+		// With the right side cut off by the plot, it takes the left.
+		const [left] = valueLabels({
+			series: [
+				series([
+					[60, 40, 5],
+					[195, 85, 1],
+				]),
+			],
+			plot: PLOT,
+			endpoints: false,
+			extremes: true,
+		}).filter((label) => label.text === '1')
+
+		expect(left?.anchor).toBe('end')
+
+		expect(left?.x).toBeLessThan(195)
 	})
 })
 

@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 import {
 	bandBoundaries,
 	bandScale,
-	headroomFits,
 	linearScale,
 	logScale,
 	nearestBandIndex,
@@ -94,7 +93,7 @@ describe('linearScale', () => {
 			range: [100, 0],
 			tickTarget: 4,
 			min: 0,
-			headroom: 21,
+			headroom: { ceiling: 21, floor: 21 },
 		})
 
 		const [low, high] = roomy?.domain ?? [0, 0]
@@ -112,7 +111,12 @@ describe('linearScale', () => {
 	it('shares one span so both extremes clear their edges when both widen', () => {
 		// Neither pinned: the peak needs room above, the trough below. Both clear
 		// their edge by ~10px, and the data still spans the middle.
-		const scale = linearScale({ values: [20, 80], range: [100, 0], tickTarget: 4, headroom: 10 })
+		const scale = linearScale({
+			values: [20, 80],
+			range: [100, 0],
+			tickTarget: 4,
+			headroom: { ceiling: 10, floor: 10 },
+		})
 
 		const [low, high] = scale?.domain ?? [0, 0]
 
@@ -123,41 +127,66 @@ describe('linearScale', () => {
 		expect((20 - low) / perPx).toBeGreaterThanOrEqual(9.5)
 	})
 
-	it('keeps the reserved gap past the label flip threshold at every affordable height', () => {
-		// The label placement flips a label to its point's other side when the
-		// point sits within 21px (offset + height) of the plot edge. The reserved
-		// headroom must clear that threshold with slack at EVERY size a label can
-		// render at: a reservation that only met it would leave the extreme's
-		// label exactly on the flip boundary, and a live resize would dance it
-		// across, frame by frame, landing it on the line each time. Sweep the
-		// plot heights a resize passes through: past the affordability cutoff the
-		// gap holds strictly past the threshold; under it nothing is reserved and
-		// the same headroomFits verdict sheds the labels instead.
+	it('keeps the label room past each extreme at every affordable height', () => {
+		// The peak's label centers above the point, 21px (offset + height) past
+		// it. The trough's label can sit level beside the point, 13px (its height)
+		// past it. The room reserved for each must clear its threshold with slack
+		// at EVERY size a label can render at: a room that only met it would leave
+		// the label on that threshold, and a live resize would move it from spot
+		// to spot. Sweep the plot heights a resize passes through: past the
+		// affordability cutoff each gap holds strictly past its threshold.
 		const values = [12, -6, 9, -14, 18, 7]
 
-		for (let rangePx = 40; rangePx <= 400; rangePx += 1) {
-			const scale = linearScale({ values, range: [rangePx, 0], tickTarget: 4, headroom: 25 })
+		const headroom = { ceiling: 25, floor: 17 }
+
+		for (let rangePx = 100; rangePx <= 400; rangePx += 1) {
+			const scale = linearScale({ values, range: [rangePx, 0], tickTarget: 4, headroom })
 
 			if (!scale) throw new Error('scale must resolve')
-
-			if (!headroomFits(25, rangePx)) {
-				// Unaffordable: the domain stays at its plain nice bounds.
-				const base = linearScale({ values, range: [rangePx, 0], tickTarget: 4 })
-
-				expect(scale.domain).toEqual(base?.domain)
-
-				continue
-			}
 
 			const perPx = (scale.domain[1] - scale.domain[0]) / rangePx
 
 			expect((scale.domain[1] - 18) / perPx).toBeGreaterThan(21)
 
-			expect((-14 - scale.domain[0]) / perPx).toBeGreaterThan(21)
+			expect((-14 - scale.domain[0]) / perPx).toBeGreaterThan(13)
 
 			// The floor is always a tick.
 			expect(scale.ticks[0]).toBe(scale.domain[0])
 		}
+	})
+
+	it('reserves nothing on a side whose room is past a quarter of the range', () => {
+		const values = [12, -6, 9, -14, 18, 7]
+
+		const scale = linearScale({
+			values,
+			range: [80, 0],
+			tickTarget: 4,
+			headroom: { ceiling: 25, floor: 17 },
+		})
+
+		const base = linearScale({ values, range: [80, 0], tickTarget: 4 })
+
+		// The ceiling room (25 of 80px) is past the cap; the floor room (17) is not.
+		expect(scale?.domain[1]).toBe(base?.domain[1])
+
+		expect(scale?.domain[0]).toBeLessThanOrEqual(base?.domain[0] ?? 0)
+	})
+
+	it('keeps the nice floor when the trough already clears it by the floor room', () => {
+		// The trough (-14) sits 6 units over the nice floor (-20): past the 17px
+		// floor room at this height. The floor stays, so the axis rule is the -20
+		// gridline. The ceiling still widens for the centered peak label.
+		const scale = linearScale({
+			values: [12, -6, 9, -14, 18, 7],
+			range: [150, 0],
+			tickTarget: 4,
+			headroom: { ceiling: 25, floor: 17 },
+		})
+
+		expect(scale?.domain[0]).toBe(-20)
+
+		expect(scale?.domain[1]).toBeGreaterThan(20)
 	})
 
 	it('caps the reserved gaps so the data keeps at least half the plot', () => {
@@ -165,7 +194,12 @@ describe('linearScale', () => {
 		// range. The ceiling gap is exact. The floor rounds down past its gap to
 		// the next tick, which can add one step, but no more: one step higher, the
 		// trough would not clear the floor.
-		const scale = linearScale({ values: [20, 80], range: [100, 0], tickTarget: 4, headroom: 25 })
+		const scale = linearScale({
+			values: [20, 80],
+			range: [100, 0],
+			tickTarget: 4,
+			headroom: { ceiling: 25, floor: 25 },
+		})
 
 		const [low, high] = scale?.domain ?? [0, 0]
 
@@ -185,7 +219,7 @@ describe('linearScale', () => {
 			values: [12, -6, 9, -14, 18, 7],
 			range: [150, 0],
 			tickTarget: 4,
-			headroom: 25,
+			headroom: { ceiling: 25, floor: 25 },
 		})
 
 		expect(scale?.domain[0]).toBe(-30)
@@ -203,7 +237,7 @@ describe('linearScale', () => {
 			range: [100, 0],
 			tickTarget: 4,
 			max: 97,
-			headroom: 21,
+			headroom: { ceiling: 21, floor: 21 },
 		})
 
 		// The pin holds exactly despite the headroom ask; the unpinned floor is free.
@@ -406,7 +440,7 @@ describe('linearScale · float noise and large magnitudes', () => {
 			range: [200, 0],
 			tickTarget: 5,
 			zeroBaseline: true,
-			headroom: 20,
+			headroom: { ceiling: 20, floor: 20 },
 		})
 
 		expect(scale?.domain[0]).toBe(0)

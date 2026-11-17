@@ -29,7 +29,7 @@ import {
 	valueAxisRange,
 	verticalLayout,
 } from '../../modules/chart/engine/chart-layout'
-import { bandScale } from '../../modules/chart/engine/chart-scale'
+import { bandScale, type ValueHeadroom } from '../../modules/chart/engine/chart-scale'
 
 /**
  * A band scale and a value scale divide the plot span, so a case checks an edge
@@ -37,7 +37,10 @@ import { bandScale } from '../../modules/chart/engine/chart-scale'
  */
 const PLOT_EDGE_TOLERANCE = 0.005
 
-const input = (frameHeight: number, valueHeadroom: number): CartesianLayoutInput => ({
+/** The room the point labels keep past the peak and the trough. */
+const LABEL_ROOM = { ceiling: 25, floor: 17 }
+
+const input = (frameHeight: number, valueHeadroom?: ValueHeadroom): CartesianLayoutInput => ({
 	frameWidth: 400,
 	frameHeight,
 	axes: true,
@@ -51,106 +54,33 @@ const input = (frameHeight: number, valueHeadroom: number): CartesianLayoutInput
 })
 
 describe('verticalLayout value-label room', () => {
-	it('grants room that clears the flip threshold, or withholds it — never in between', () => {
-		// The invariant the reservation exists for: at any frame height, either
-		// the layout grants the label room AND every data extreme maps far enough
-		// from the plot edge that the 21px label flip can never trigger, or it
-		// withholds the room and the chart sheds its labels whole. No height
-		// leaves a label rendering against an unreserved edge: the granted /
-		// withheld verdict and the scale's reservation come from one predicate
-		// over one range, so they cannot disagree.
-		let granted = 0
-
-		let withheld = 0
-
-		for (let frameHeight = 60; frameHeight <= 400; frameHeight += 1) {
-			const layout = verticalLayout(input(frameHeight, 25))
-
-			const scale = layout.valueScale
-
-			if (!scale) throw new Error('scale must resolve')
-
-			if (!layout.valueLabelRoom) {
-				withheld += 1
-
-				continue
-			}
-
-			granted += 1
-
-			expect(scale.map(18) - layout.plot.y).toBeGreaterThan(21)
-
-			expect(layout.plot.y + layout.plot.height - scale.map(-14)).toBeGreaterThan(21)
-		}
-
-		// The sweep crosses the affordability cutoff, so both regimes are exercised.
-		expect(granted).toBeGreaterThan(0)
-
-		expect(withheld).toBeGreaterThan(0)
-	})
-
 	it('keeps the far extreme clear when one side widens and grows the span', () => {
 		// A one-sided widen grows the span, so the other unpinned extreme can fall
-		// under its share of the range. The low label then flips onto the line,
-		// the failure the reservation exists to prevent.
-		for (let frameHeight = 100; frameHeight <= 400; frameHeight += 1) {
+		// under its share of the range. The low label would then have no room.
+		for (let frameHeight = 160; frameHeight <= 400; frameHeight += 1) {
 			const layout = verticalLayout({
-				...input(frameHeight, 25),
+				...input(frameHeight, LABEL_ROOM),
 				tickTarget: 2,
 				value: { domainValues: [23, 100], format: String },
 			})
 
 			const scale = layout.valueScale
 
-			if (!scale || !layout.valueLabelRoom) continue
+			if (!scale) throw new Error('scale must resolve')
 
 			expect(scale.map(100) - layout.plot.y).toBeGreaterThan(21)
 
-			expect(layout.plot.y + layout.plot.height - scale.map(23)).toBeGreaterThan(21)
+			expect(layout.plot.y + layout.plot.height - scale.map(23)).toBeGreaterThan(13)
+
+			// The floor is a tick, so the axis rule is its gridline.
+			expect(scale.map(scale.ticks[0] as number)).toBe(layout.plot.y + layout.plot.height)
 		}
-	})
-
-	it('always grants the room when none is asked', () => {
-		expect(verticalLayout(input(80, 0)).valueLabelRoom).toBe(true)
-	})
-
-	it('gives one verdict whichever band the tier wears, so shrinking never re-shows labels', () => {
-		// The tier drops the band row at a smaller size, handing its height back
-		// to the plot: the actual range GROWS as the frame shrinks. A verdict
-		// read from the actual range would flip hidden → shown → hidden across
-		// that boundary; reading the floor under the tallest band instead makes
-		// the verdict band-independent, so it can only move one way in a shrink.
-		for (let frameHeight = 60; frameHeight <= 400; frameHeight += 1) {
-			const thin = verticalLayout({ ...input(frameHeight, 25), bandAxis: 'thinned' })
-
-			const ends = verticalLayout({ ...input(frameHeight, 25), bandAxis: 'ends' })
-
-			const off = verticalLayout({ ...input(frameHeight, 25), bandAxis: 'off' })
-
-			expect(ends.valueLabelRoom).toBe(thin.valueLabelRoom)
-
-			expect(off.valueLabelRoom).toBe(thin.valueLabelRoom)
-		}
-	})
-
-	it('withholds the reservation with the verdict, so a shed label pads no domain', () => {
-		// Under the cutoff the labels hide, and the domain must stay at its
-		// plain nice bounds rather than reserve room for labels that never draw.
-		// The band-off layout at a height whose actual range could afford the
-		// room, but whose floor cannot, is exactly the mid-shrink flash window.
-		const layout = verticalLayout({ ...input(120, 25), bandAxis: 'off' })
-
-		expect(layout.valueLabelRoom).toBe(false)
-
-		const bare = verticalLayout({ ...input(120, 0), bandAxis: 'off' })
-
-		expect(layout.valueScale?.domain).toEqual(bare.valueScale?.domain)
 	})
 })
 
 describe('verticalLayout band-edge inset', () => {
 	it('holds the first and last category the margin off the plot sides', () => {
-		const layout = verticalLayout(input(300, 0))
+		const layout = verticalLayout(input(300))
 
 		const { band, plot } = layout
 
@@ -172,7 +102,7 @@ describe('horizontalLayout value bands', () => {
 		// layout drops its left gutter. The band under the plot then holds no ticks,
 		// so the plot takes its height back.
 		const layout = horizontalLayout({
-			...input(300, 0),
+			...input(300),
 			value: undefined,
 			value2: { domainValues: [12, -6, 9], format: String },
 		})
@@ -192,7 +122,7 @@ describe('band label fit', () => {
 
 	it('thins by the span of the band centers, not the plot length', () => {
 		const layout = horizontalLayout({
-			...input(200 + PLOT_TOP_PAD + X_AXIS_HEIGHT, 0),
+			...input(200 + PLOT_TOP_PAD + X_AXIS_HEIGHT),
 			categories,
 			count: categories.length,
 		})
@@ -241,7 +171,7 @@ describe('buildBandTicks tilted labels', () => {
 describe('verticalLayout tilt', () => {
 	/** A layout input of `categories` along a 600px frame, with the tilt asked for. */
 	const tilted = (categories: string[]): CartesianLayoutInput => ({
-		...input(300, 0),
+		...input(300),
 		frameWidth: 600,
 		categories,
 		count: categories.length,
@@ -273,7 +203,7 @@ describe('verticalLayout wrap', () => {
 		categories: string[],
 		tickLayout: 'thin' | 'wrap' = 'wrap',
 	): CartesianLayoutInput => ({
-		...input(300, 0),
+		...input(300),
 		frameWidth: 600,
 		categories,
 		count: categories.length,
@@ -468,7 +398,7 @@ describe('valueAxisRange', () => {
 
 describe('verticalLayout without axes', () => {
 	const spark = (frameWidth: number, markInset?: number): CartesianLayoutInput => ({
-		...input(200, 0),
+		...input(200),
 		frameWidth,
 		axes: false,
 		markInset,
@@ -504,63 +434,20 @@ describe('verticalLayout without axes', () => {
 
 		expect(layout.band.center(0) - layout.band.step / 2).toBeNear(0, PLOT_EDGE_TOLERANCE)
 	})
-
-	it('reads the label-room verdict from the range between the mark insets', () => {
-		// Without axes, the floor is the frame less the top pad. With axes, the
-		// floor also loses the band row, so the axes-off verdict at H matches the
-		// framed verdict at H + X_AXIS_HEIGHT.
-		for (let frameHeight = 40; frameHeight <= 200; frameHeight += 1) {
-			const bare = verticalLayout({ ...input(frameHeight, 25), axes: false })
-
-			const framed = verticalLayout(input(frameHeight + X_AXIS_HEIGHT, 25))
-
-			expect(bare.valueLabelRoom).toBe(framed.valueLabelRoom)
-		}
-	})
-})
-
-describe('verticalLayout label-room floor', () => {
-	it('subtracts the tilted band row, and the band title, from the floor', () => {
-		for (let frameHeight = 60; frameHeight <= 300; frameHeight += 1) {
-			const plain = (height: number) => verticalLayout(input(height, 25)).valueLabelRoom
-
-			const tilted = verticalLayout({ ...input(frameHeight, 25), tickLayout: 'rotate' })
-
-			const titled = verticalLayout({ ...input(frameHeight, 25), bandTitle: 'Month' })
-
-			expect(tilted.valueLabelRoom).toBe(
-				plain(frameHeight - (TICK_ROTATION_HEIGHT - X_AXIS_HEIGHT)),
-			)
-
-			expect(titled.valueLabelRoom).toBe(plain(frameHeight - AXIS_TITLE_BAND))
-		}
-	})
-
-	it('reserves no tilted band row on a time axis', () => {
-		const times = [0, 1, 2, 3, 4, 5].map((month) => Date.UTC(2026, month, 1))
-
-		for (let frameHeight = 60; frameHeight <= 300; frameHeight += 1) {
-			const plain = verticalLayout({ ...input(frameHeight, 25), times }).valueLabelRoom
-
-			const tilted = verticalLayout({ ...input(frameHeight, 25), times, tickLayout: 'rotate' })
-
-			expect(tilted.valueLabelRoom).toBe(plain)
-		}
-	})
 })
 
 describe('verticalLayout band modes', () => {
 	const withCategories = (categories: string[]): CartesianLayoutInput => ({
-		...input(300, 0),
+		...input(300),
 		categories,
 		count: categories.length,
 		bandAxis: 'ends',
 	})
 
 	it('shows only the first and last label in an ends band, each anchored inward', () => {
-		const ticks = verticalLayout(input(300, 0)).bandTicks.length
+		const ticks = verticalLayout(input(300)).bandTicks.length
 
-		const ends = verticalLayout({ ...input(300, 0), bandAxis: 'ends' }).bandTicks
+		const ends = verticalLayout({ ...input(300), bandAxis: 'ends' }).bandTicks
 
 		expect(ticks).toBeGreaterThan(2)
 
@@ -585,7 +472,7 @@ describe('verticalLayout band modes', () => {
 	})
 
 	it('drops the band row and its title, and keeps a floor pad for the zero label', () => {
-		const layout = verticalLayout({ ...input(300, 0), bandAxis: 'off', bandTitle: 'Month' })
+		const layout = verticalLayout({ ...input(300), bandAxis: 'off', bandTitle: 'Month' })
 
 		expect(layout.bandTicks).toEqual([])
 
@@ -599,7 +486,7 @@ describe('verticalLayout time axis', () => {
 	it('draws calendar ticks in place of the category labels', () => {
 		const times = [0, 1, 2, 3, 4, 5].map((month) => Date.UTC(2026, month, 15))
 
-		const layout = verticalLayout({ ...input(300, 0), frameWidth: 600, times, locale: 'en-US' })
+		const layout = verticalLayout({ ...input(300), frameWidth: 600, times, locale: 'en-US' })
 
 		expect(layout.bandTicks.length).toBeGreaterThan(0)
 
@@ -607,7 +494,7 @@ describe('verticalLayout time axis', () => {
 	})
 
 	it('falls back to the category labels when no row carries a date', () => {
-		const layout = verticalLayout({ ...input(300, 0), times: [null, null, null, null, null, null] })
+		const layout = verticalLayout({ ...input(300), times: [null, null, null, null, null, null] })
 
 		expect(layout.bandTicks.map((tick) => tick.label)).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
 	})
@@ -615,7 +502,7 @@ describe('verticalLayout time axis', () => {
 
 describe('verticalLayout axis titles', () => {
 	const dual: CartesianLayoutInput = {
-		...input(300, 0),
+		...input(300),
 		value: { domainValues: [0, 120], format: String, title: 'Revenue' },
 		value2: { domainValues: [0, 1], format: String, title: 'Share' },
 		bandTitle: 'Month',
@@ -657,7 +544,7 @@ describe('verticalLayout axis titles', () => {
 describe('verticalLayout snap targets', () => {
 	it('drops a gap, and a series whose axis has no scale, from both snap lists', () => {
 		const layout = verticalLayout({
-			...input(300, 0),
+			...input(300),
 			visibleValues: [
 				{ values: [1, null, 3, 4, 5, 6], axis: 'y', index: 0 },
 				{ values: [2, 2, Number.NaN, 2, 2, 2], axis: 'y', index: 1 },
@@ -680,7 +567,7 @@ describe('verticalLayout snap targets', () => {
 describe('verticalLayout baselines', () => {
 	it('takes the zero line of the secondary scale when only it resolves', () => {
 		const layout = verticalLayout({
-			...input(300, 0),
+			...input(300),
 			zeroBaseline: true,
 			value: undefined,
 			value2: { domainValues: [4, 9], format: String },
@@ -698,7 +585,7 @@ describe('verticalLayout baselines', () => {
 
 	it('falls back to the plot floor and places no snap target without a scale', () => {
 		const layout = verticalLayout({
-			...input(300, 0),
+			...input(300),
 			value: undefined,
 			visibleValues: [{ values: [1, 2, 3, 4, 5, 6], axis: 'y', index: 0 }],
 		})
@@ -717,7 +604,7 @@ describe('horizontalLayout gutter and titles', () => {
 	const categories = ['a', 'A long middle category', 'b']
 
 	const base: CartesianLayoutInput = {
-		...input(300, 0),
+		...input(300),
 		categories,
 		count: categories.length,
 	}
@@ -778,7 +665,7 @@ describe('horizontalLayout gutter and titles', () => {
 
 describe('horizontalLayout without axes', () => {
 	it('fills the frame and insets the value range by the mark reach', () => {
-		const layout = horizontalLayout({ ...input(300, 0), axes: false, markInset: 6.5 })
+		const layout = horizontalLayout({ ...input(300), axes: false, markInset: 6.5 })
 
 		expect(layout.plot).toEqual({ x: 0, y: PLOT_TOP_PAD, width: 400, height: 300 - PLOT_TOP_PAD })
 
@@ -787,14 +674,6 @@ describe('horizontalLayout without axes', () => {
 		expect(scale?.map(scale.domain[0])).toBeNear(6.5, PLOT_EDGE_TOLERANCE)
 
 		expect(scale?.map(scale.domain[1])).toBeNear(400 - 6.5, PLOT_EDGE_TOLERANCE)
-	})
-})
-
-describe('horizontalLayout value-label room', () => {
-	it('grants the room on a wide value range and withholds it on a narrow one', () => {
-		expect(horizontalLayout({ ...input(300, 25), frameWidth: 600 }).valueLabelRoom).toBe(true)
-
-		expect(horizontalLayout({ ...input(300, 25), frameWidth: 90 }).valueLabelRoom).toBe(false)
 	})
 })
 
