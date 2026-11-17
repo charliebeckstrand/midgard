@@ -12,7 +12,7 @@ import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
 import {
 	type ChartPaint,
-	fillClass,
+	inkClass,
 	rawColor,
 	resolvePaint,
 	strokeClass,
@@ -329,7 +329,7 @@ function ReferenceLabel({
 					y={label.y}
 					textAnchor={label.anchor}
 					dominantBaseline="central"
-					className={cn(k.mark.label, fillClass(paint))}
+					className={cn(k.mark.label, inkClass(paint))}
 					style={color ? { fill: color } : undefined}
 				>
 					{referenceLabelText(line, format)}

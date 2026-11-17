@@ -21,7 +21,7 @@
 import { cn } from '../../../../core/cn'
 import { type ChartColorSlot, k } from '../../../../recipes/kata/chart'
 
-/** The mark classes for one palette slot: `stroke` / `fill` / `text` / `label`. @internal */
+/** The mark classes for one palette slot: `stroke` / `fill` / `text` / `label` / `ink`. @internal */
 export type SlotPaint = (typeof k.series)[ChartColorSlot]
 
 /**
@@ -46,7 +46,7 @@ export type ChartColor = ChartColorSlot | (string & {})
  * @internal
  */
 export type ChartPaint =
-	| ({ kind: 'slot'; slot: ChartColorSlot } & Pick<SlotPaint, 'stroke' | 'fill' | 'text'>)
+	| ({ kind: 'slot'; slot: ChartColorSlot } & Pick<SlotPaint, 'stroke' | 'fill' | 'text' | 'ink'>)
 	| { kind: 'raw'; color: string }
 
 /**
@@ -69,9 +69,9 @@ function isSlot(color: string): color is ChartColorSlot {
  */
 export function resolvePaint(color: ChartColor): ChartPaint {
 	if (isSlot(color)) {
-		const { stroke, fill, text } = k.series[color]
+		const { stroke, fill, text, ink } = k.series[color]
 
-		return { kind: 'slot', slot: color, stroke, fill, text }
+		return { kind: 'slot', slot: color, stroke, fill, text, ink }
 	}
 
 	return { kind: 'raw', color }
@@ -80,6 +80,17 @@ export function resolvePaint(color: ChartColor): ChartPaint {
 /** A mark's fill class for a slot, or `undefined` for a raw color, which fills through {@link rawColor}. @internal */
 export function fillClass(paint: ChartPaint): string | undefined {
 	return paint.kind === 'slot' ? cn(paint.fill) : undefined
+}
+
+/**
+ * The fill class of SVG text on the chart surface for a slot, or `undefined` for
+ * a raw color, which inks through {@link rawColor}. It is the slot's `ink`, which
+ * clears the text contrast floor where the mark fill does not.
+ *
+ * @internal
+ */
+export function inkClass(paint: ChartPaint): string | undefined {
+	return paint.kind === 'slot' ? cn(paint.ink) : undefined
 }
 
 /** A mark's stroke class for a slot, or `undefined` for a raw color, which strokes through {@link rawColor}. @internal */

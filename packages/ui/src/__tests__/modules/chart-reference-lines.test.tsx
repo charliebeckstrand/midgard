@@ -898,7 +898,7 @@ describe('reference value labels', () => {
 		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('50')
 	})
 
-	it('inks the label to match the rule — a slot through its fill class, a raw color inline', () => {
+	it('inks the label to match the rule — a slot through its ink class, a raw color inline', () => {
 		const { container } = lineLabels([
 			{ value: 50, label: 'Floor', color: 'green' },
 			{ value: 70, label: 'Ceiling', color: '#e11d48' },
@@ -906,7 +906,10 @@ describe('reference value labels', () => {
 
 		const [slot, raw] = allBySlot(container, 'chart-reference-label')
 
-		expect(slot?.getAttribute('class')).toContain('fill-green-600')
+		// The ink step of the slot, which clears the text floor where the 600 fill does not.
+		expect(slot?.getAttribute('class')).toContain('fill-green-700')
+
+		expect(slot?.getAttribute('class')).toContain('dark:fill-green-400')
 
 		// A raw color bypasses the fill classes and paints inline instead.
 		expect(raw?.getAttribute('class') ?? '').not.toContain('fill-')
