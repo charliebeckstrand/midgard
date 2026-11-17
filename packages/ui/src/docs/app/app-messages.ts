@@ -9,8 +9,7 @@ export const appMessages = defineMessages({
 	docs: {
 		id: 'docs.app.docs',
 		defaultMessage: 'Docs',
-		description:
-			'The name of the documentation site. It shows in the title of the browser tab and at the top of the sidebar.',
+		description: 'The name of the documentation site. It shows at the top of the sidebar.',
 	},
 })
 

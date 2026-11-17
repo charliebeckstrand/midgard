@@ -18,7 +18,6 @@ import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
 import { useIdle } from '../kit/use-idle.ts'
 import appCss from './app.css?url'
-import { appMessages } from './app-messages.ts'
 import { catalogs } from './catalogs.ts'
 import { NavigateContext, useDocumentLocale } from './context.ts'
 import { DirectionListbox } from './direction.tsx'
@@ -166,10 +165,7 @@ function Shell() {
 	// page, such as `/button/foo`, matches the not-found route, so it has no page.
 	const page = pages.find((link) => matches.some((match) => match.id === link.path))
 
-	// The root path lists the pages, and has no title of its own.
-	const title = page?.name ?? (pathname === '/' ? undefined : intl.formatMessage(messages.notFound))
-
-	const docs = intl.formatMessage(appMessages.docs)
+	const title = page?.name ?? intl.formatMessage(messages.notFound)
 
 	useIdle(warmShiki)
 
@@ -189,7 +185,7 @@ function Shell() {
 		// The links match the path of the page, so the item of a page is current
 		// on each tab of the page, and no item is current on the not-found page.
 		<UIProvider link={RouterLink} pathname={path}>
-			<title>{title ? intl.formatMessage(pageTitleMessage, { page: title }) : docs}</title>
+			<title>{intl.formatMessage(pageTitleMessage, { page: title })}</title>
 			<Stylesheet />
 			<DocsSearch>
 				<div ref={scroller} className={SCROLLER}>
@@ -212,7 +208,7 @@ function Shell() {
 									<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
 									<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
 								</Button>
-								<Heading>{title ?? docs}</Heading>
+								<Heading>{title}</Heading>
 							</Flex>
 						</SidebarLayoutHeader>
 						<SearchPaletteHost />

@@ -71,11 +71,15 @@ describe('docs page lookup', () => {
 		expect(currentItem()).toBeUndefined()
 	})
 
-	it('gives the root path the title of the docs', () => {
+	// The servers answer the root path with a redirect, and no link of the docs
+	// names it. If the router still gets the root path, the shell names no page.
+	it('names no page for the root path, which has no page', () => {
 		renderAt('/')
 
-		expect(screen.getByRole('heading', { name: 'Docs', level: 1 })).toBeTruthy()
+		expect(screen.getByRole('heading', { name: 'Not found', level: 1 })).toBeTruthy()
 
-		expect(document.title).toBe('Docs')
+		expect(document.title).toBe('Not found · Docs')
+
+		expect(currentItem()).toBeUndefined()
 	})
 })

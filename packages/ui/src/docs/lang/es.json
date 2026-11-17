@@ -1380,7 +1380,6 @@
 	"docs.example.reset": "Restablecer",
 	"docs.example.showCode": "Mostrar código",
 	"docs.notFound.body": "No hay ninguna página de la documentación en esta ruta.",
-	"docs.notFound.home": "Ir a la primera página",
 	"docs.page.accordion": "Acordeón",
 	"docs.page.address-input": "Campo de dirección",
 	"docs.page.alert": "Alerta",

@@ -41,7 +41,7 @@
 	},
 	"docs.app.docs": {
 		"defaultMessage": "Docs",
-		"description": "The name of the documentation site. It shows in the title of the browser tab and at the top of the sidebar."
+		"description": "The name of the documentation site. It shows at the top of the sidebar."
 	},
 	"docs.app.notFound": {
 		"defaultMessage": "Not found",
@@ -5522,10 +5522,6 @@
 	"docs.notFound.body": {
 		"defaultMessage": "No page of the docs is at this path.",
 		"description": "The text of the page that shows for a path that has no page of the docs."
-	},
-	"docs.notFound.home": {
-		"defaultMessage": "Go to the first page",
-		"description": "The text of a link on the not-found page. The link goes to the first page of the docs, the first page of the sidebar."
 	},
 	"docs.page.accordion": {
 		"defaultMessage": "Accordion",

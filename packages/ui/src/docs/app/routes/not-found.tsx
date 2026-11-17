@@ -1,8 +1,5 @@
-import { Link } from 'ui/link'
 import { defineMessages, IntlMessage } from 'ui/primitives/intl'
-import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
-import { HOME } from '../home.ts'
 
 const messages = defineMessages({
 	body: {
@@ -10,26 +7,13 @@ const messages = defineMessages({
 		defaultMessage: 'No page of the docs is at this path.',
 		description: 'The text of the page that shows for a path that has no page of the docs.',
 	},
-	home: {
-		id: 'docs.notFound.home',
-		defaultMessage: 'Go to the first page',
-		description:
-			'The text of a link on the not-found page. The link goes to the first page of the docs, the first page of the sidebar.',
-	},
 })
 
 /** Any path with no page. The host serves the fallback document, and the router shows this page. */
 export default function NotFound() {
 	return (
-		<Stack gap="sm">
-			<Text>
-				<IntlMessage message={messages.body} />
-			</Text>
-			<Text>
-				<Link href={HOME} underline>
-					<IntlMessage message={messages.home} />
-				</Link>
-			</Text>
-		</Stack>
+		<Text>
+			<IntlMessage message={messages.body} />
+		</Text>
 	)
 }
