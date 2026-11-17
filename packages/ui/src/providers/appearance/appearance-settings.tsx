@@ -2,7 +2,7 @@
 
 import { Settings2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
-import { Button } from '../../components/button'
+import { Button, type ButtonProps } from '../../components/button'
 import { Icon } from '../../components/icon'
 import type { TabContentsProps } from '../../components/tabs'
 import { useFail } from '../../hooks/use-fail'
@@ -26,8 +26,18 @@ export type AppearanceSettingsTab = {
 	children: ReactNode
 }
 
-/** Props for {@link AppearanceSettings}: more fields for the dialog, tabs of fields, and the switch of the tabs. */
+/**
+ * Props for {@link AppearanceSettings}: the fill style of the button, more fields
+ * for the dialog, tabs of fields, and the switch of the tabs.
+ */
 export type AppearanceSettingsProps = {
+	/**
+	 * The fill style of the settings button. Set `'plain'` to match the plain
+	 * icon buttons next to it, such as the menu of the app.
+	 *
+	 * @defaultValue 'bare'
+	 */
+	variant?: ButtonProps['variant']
 	/**
 	 * More fields for the dialog, such as the settings of one app. They go below
 	 * the pickers of the dialog, in the same stack. Their floating panels portal
@@ -65,6 +75,8 @@ export type AppearanceSettingsProps = {
  * picker. It offers System and each of the `locales`, with the name of each
  * locale in its own language.
  *
+ * The button is `bare` by default. `variant` sets another fill style.
+ *
  * With `tabs`, a segment at the top of the dialog switches between the "UI"
  * tab of the pickers and each tab of the app. The dialog opens on the "UI" tab.
  * `animate` sets how the panels switch: a fade by default, or a slide.
@@ -77,7 +89,12 @@ export type AppearanceSettingsProps = {
  * load of a press fails, the error throws in the next render, so the nearest
  * error boundary shows it.
  */
-export function AppearanceSettings({ children, tabs, animate }: AppearanceSettingsProps) {
+export function AppearanceSettings({
+	variant = 'bare',
+	children,
+	tabs,
+	animate,
+}: AppearanceSettingsProps) {
 	const [open, setOpen] = useState(false)
 
 	const fail = useFail()
@@ -91,7 +108,7 @@ export function AppearanceSettings({ children, tabs, animate }: AppearanceSettin
 	return (
 		<>
 			<Button
-				variant="bare"
+				variant={variant}
 				aria-label={intl.formatMessage(appearanceMessages.settings)}
 				onPointerEnter={preload}
 				onPointerDown={preload}

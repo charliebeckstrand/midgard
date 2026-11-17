@@ -349,6 +349,29 @@ describe('AppearanceSettings', () => {
 		return screen.findByRole('dialog', { name: 'Settings' })
 	}
 
+	it('renders a bare button by default, and the fill style of variant', () => {
+		const { unmount } = renderUI(
+			<AppearanceProvider>
+				<AppearanceSettings />
+			</AppearanceProvider>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Settings' })).toHaveAttribute('data-variant', 'bare')
+
+		unmount()
+
+		renderUI(
+			<AppearanceProvider>
+				<AppearanceSettings variant="plain" />
+			</AppearanceProvider>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Settings' })).toHaveAttribute(
+			'data-variant',
+			'plain',
+		)
+	})
+
 	it('shows the density level name without its step', async () => {
 		const dialog = await openSettings()
 
