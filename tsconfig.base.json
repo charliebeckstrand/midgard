@@ -10,16 +10,10 @@
 		"erasableSyntaxOnly": true,
 		"skipLibCheck": true,
 		"declaration": true,
-		"declarationMap": true,
-		"sourceMap": true,
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"verbatimModuleSyntax": true,
 		"allowImportingTsExtensions": true,
-		"lib": ["ES2023"],
-		"paths": {
-			"@/*": ["./src/*"]
-		}
-	},
-	"exclude": ["node_modules", "dist"]
+		"lib": ["ES2023"]
+	}
 }
