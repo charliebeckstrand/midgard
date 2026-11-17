@@ -63,6 +63,50 @@ export function measureContentBox(target: Element): ContentBox {
 }
 
 /**
+ * The content box of a scroll container, less only the scrollbar space that
+ * the container reserves. Use it to fit content to a scroll container, where
+ * the content can overflow the box.
+ *
+ * {@link measureContentBox} subtracts each scrollbar that shows. Content that
+ * takes its size from that reading and then overflows gives the box a
+ * scrollbar, and the scrollbar makes the reading smaller. The content then
+ * shrinks, and can stop the overflow. The scrollbar then goes, and the reading
+ * is large again. This reading does not change when a scrollbar comes or
+ * goes, so that loop cannot start.
+ *
+ * The reading starts from the border box. It subtracts the borders, the
+ * padding, and a gutter that `scrollbar-gutter: stable` reserves. A reserved
+ * gutter is in the box whether or not the content overflows, so the content
+ * must not lay out in it. The client width does not include the gutter, so the
+ * gutter is the border box less the borders and the client width.
+ * `scrollbar-gutter` reserves no space for a horizontal scrollbar.
+ *
+ * The offset size ignores CSS transforms, as the client size does, and the
+ * browser rounds it to a whole pixel.
+ *
+ * @param target - The scroll container to measure.
+ * @internal
+ */
+export function measureScrollContentBox(target: HTMLElement): ContentBox {
+	const style = getComputedStyle(target)
+
+	const px = (value: string) => Number.parseFloat(value) || 0
+
+	const borderX = px(style.borderLeftWidth) + px(style.borderRightWidth)
+
+	const borderY = px(style.borderTopWidth) + px(style.borderBottomWidth)
+
+	const gutter = style.scrollbarGutter?.startsWith('stable')
+		? target.offsetWidth - borderX - target.clientWidth
+		: 0
+
+	return {
+		width: target.offsetWidth - borderX - gutter - px(style.paddingLeft) - px(style.paddingRight),
+		height: target.offsetHeight - borderY - px(style.paddingTop) - px(style.paddingBottom),
+	}
+}
+
+/**
  * The tallest that `target` can be in `room`: its computed `max-height`, and
  * never more than `room`. A cap of `none` gives `room`. A `calc()` cap that
  * the browser gives back as a formula, and not as pixels, gives `room` too.

@@ -469,9 +469,9 @@ describe('PdfViewer', () => {
 		// A page that shows wider than its slot renders again at a larger scale. The viewport here
 		// fits the page at its slot size, and the zoom of 2 doubles it.
 		it('asks the queue for a sharp raster of a zoomed page', async () => {
-			vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(918)
+			vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(918)
 
-			vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(1188)
+			vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(1188)
 
 			const render = vi.fn((_index: number, _raster: string, factor = 1) => ({
 				promise: Promise.resolve({
