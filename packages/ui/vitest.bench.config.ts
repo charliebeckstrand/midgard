@@ -1,12 +1,12 @@
 import { defineConfig } from 'vitest/config'
+import { env } from './vitest.base.ts'
 
 export default defineConfig({
 	test: {
 		environment: 'jsdom',
 		globals: true,
-		// Date/calendar tests construct local-time dates (`new Date(y, m, d)`);
-		// pin the zone so every machine renders the same wall-clock day.
-		env: { TZ: 'UTC' },
+		// The pinned zone of `vitest.shared.mts`.
+		env,
 		setupFiles: ['./src/__benchmarks__/setup.ts'],
 		// A mount bench of the largest kanban board or query tree reaches the
 		// default heap limit of a worker before the garbage of its earlier

@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parseImports, resolveSource } from '../helpers/source-imports'
 import { stripSourceComments, uiRoot, workspaceRoot } from '../helpers/walk-source'
@@ -76,8 +76,16 @@ function configGraph(config: string): Graph {
 
 			if (!specifier.startsWith('.')) continue
 
-			// `resolveSource` adds the extension, and a config names it.
-			const target = resolveSource(file, specifier.replace(/\.tsx?$/, ''))
+			// A config names the extension of each file that it imports. `resolveSource`
+			// adds `.ts` or `.tsx`, so a file with another extension, such as the
+			// `vitest.shared.mts` of the repository root, resolves as it is named.
+			const named = resolve(dirname(file), specifier)
+
+			const target = /\.tsx?$/.test(specifier)
+				? resolveSource(file, specifier.replace(/\.tsx?$/, ''))
+				: existsSync(named)
+					? named
+					: undefined
 
 			if (!target) throw new Error(`${relative(workspaceRoot, file)}: no file for ${specifier}`)
 

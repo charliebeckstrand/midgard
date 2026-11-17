@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import { sharedTest } from '../../vitest.shared.mts'
+import { nextApp, sharedTest } from '../../vitest.shared.mts'
 
 /**
  * The app's test harness.
@@ -13,19 +13,13 @@ import { sharedTest } from '../../vitest.shared.mts'
  * component that keeps state opens with `// @vitest-environment jsdom`, and
  * only that file runs in jsdom.
  *
- * The zone is pinned because a visit is a local-time day, and `toDay` and
- * `fromDay` read the machine's own clock. Unpinned, a test that writes
- * `2026-08-15` reads it back as the 14th west of UTC.
- *
- * The tsconfig of Next.js keeps JSX as it is, for Next.js to compile. A test
- * can import a module that makes elements, for example a source of the
- * palette, so the transform compiles JSX here.
+ * The shared config pins the zone, and this app needs it: a visit is a
+ * local-time day, and `toDay` and `fromDay` read the machine's own clock.
+ * Unpinned, a test that writes `2026-08-15` reads it back as the 14th west of
+ * UTC. A module that makes elements, for example a source of the palette, needs
+ * the JSX transform of the shared config.
  */
 export default defineConfig({
-	oxc: { jsx: { runtime: 'automatic' } },
-	test: {
-		...sharedTest,
-		environment: 'node',
-		env: { TZ: 'UTC' },
-	},
+	...nextApp,
+	test: { ...sharedTest, environment: 'node' },
 })

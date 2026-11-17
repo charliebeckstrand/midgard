@@ -5,7 +5,7 @@ import { playwright } from '@vitest/browser-playwright'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
-import { assertions, CI, cleanup, coverageScope, sequence } from './vitest.base.ts'
+import { assertions, budgets, CI, cleanup, coverageScope, sequence } from './vitest.base.ts'
 
 /**
  * The factor by which a wall-clock budget of the browser suite scales on CI:
@@ -317,12 +317,12 @@ export default defineConfig({
 		// scales by the same rule; `browser/helpers/wall-clock.ts` reads this.
 		// It governs no real-time hold: a budget costs nothing on a green run,
 		// where a hold spends its full value every time.
-		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000, budgetFactor: BUDGET_FACTOR },
+		provide: { ...budgets.provide, budgetFactor: BUDGET_FACTOR },
 		// The budget of `expect.poll`, by the same rule. Vitest gives each poll a
 		// default of 1s on every machine, and no option above scales it. It is the
 		// budget of `asyncUtilTimeout`, so a poll and a `waitFor` fail at one time.
 		expect: { ...assertions, poll: { timeout: CI ? 4_000 : 1_000 } },
-		// The cleanup of `vitest.base.ts`, for the shared registry that `isolate`
+		// The cleanup of `vitest.shared.mts`, for the shared registry that `isolate`
 		// declares below.
 		...cleanup,
 		// One page per instance, and one module graph across the files it runs. The
