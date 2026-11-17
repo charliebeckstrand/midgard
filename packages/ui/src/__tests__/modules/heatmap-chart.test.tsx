@@ -821,7 +821,7 @@ describe('HeatmapChart context menu', () => {
 
 		fireEvent.contextMenu(hit)
 
-		expect(items).toHaveBeenLastCalledWith({ index: 2 })
+		expect(items).toHaveBeenLastCalledWith({ index: 2, label: '9, Tue' })
 	})
 })
 

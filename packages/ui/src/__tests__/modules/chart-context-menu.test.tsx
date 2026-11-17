@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	BarChart,
+	type ChartContextMenuTarget,
 	ChoroplethChart,
 	type ChoroplethChartSeries,
 	HeatmapChart,
@@ -13,6 +14,7 @@ import { Dashboard, DashboardTile } from '../../modules/dashboard'
 import { HeaderActions, HeaderActionsSlot } from '../../primitives/header-actions'
 import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen, waitFor } from '../helpers'
+import { axisLabels } from '../helpers/axis-labels'
 import { hydrateServerRender, serverMarkup } from '../helpers/hydrate'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -38,11 +40,11 @@ const BUTTON = { button: true } as const
  * `n`, and no item when no mark is the target.
  */
 function drillItems() {
-	const items = vi.fn(({ index }: { index: number | null }) => [
+	const items = vi.fn(({ index }: ChartContextMenuTarget) => [
 		{ key: 'drill', label: `Drill ${index}`, onAction: noop },
 	])
 
-	vi.when(items).calledWith({ index: null }).thenReturn([])
+	vi.when(items).calledWith({ index: null, label: null }).thenReturn([])
 
 	return items
 }
@@ -363,7 +365,7 @@ describe('Chart context menu', () => {
 			// with no mark hovered that snapshot is null, so a per-mark item is withheld.
 			fireEvent.contextMenu(root)
 
-			expect(items).toHaveBeenCalledWith({ index: null })
+			expect(items).toHaveBeenCalledWith({ index: null, label: null })
 
 			expect(screen.queryByRole('menuitem', { name: /^Drill/ })).not.toBeInTheDocument()
 
@@ -378,9 +380,42 @@ describe('Chart context menu', () => {
 
 			fireEvent.contextMenu(hit)
 
-			expect(items).toHaveBeenLastCalledWith({ index: 1 })
+			expect(items).toHaveBeenLastCalledWith({ index: 1, label: 'Q2' })
 
 			expect(screen.getByRole('menuitem', { name: 'Drill 1' })).toBeInTheDocument()
+		})
+
+		it('labels the target as the band axis writes its category', () => {
+			const items = drillItems()
+
+			const days = [
+				{ quarter: '2026-03-01', revenue: 10 },
+				{ quarter: '2026-03-02', revenue: 20 },
+			]
+
+			const { container } = renderUI(
+				<BarChart
+					aria-label="Revenue by day"
+					data={days}
+					series={[...series]}
+					width={400}
+					contextMenu={{ items }}
+				/>,
+			)
+
+			const hit = getSlot(container, 'chart-hit')
+
+			// jsdom boxes sit at 0, so (280, 100) lands inside the second bar.
+			fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
+
+			fireEvent.contextMenu(hit)
+
+			const label = axisLabels(container, 'chart-axis-x')[1]
+
+			// The axis writes the day in the locale format, not as the raw key.
+			expect(label).not.toBe('2026-03-02')
+
+			expect(items).toHaveBeenLastCalledWith({ index: 1, label })
 		})
 
 		it('still merges an array-form items block with the defaults', () => {
@@ -521,7 +556,7 @@ describe('ChartContextMenu target', () => {
 
 		fireEvent.contextMenu(hit)
 
-		expect(items).toHaveBeenLastCalledWith({ index: null })
+		expect(items).toHaveBeenLastCalledWith({ index: null, label: null })
 
 		expect(screen.queryByRole('menuitem', { name: /^Drill/ })).not.toBeInTheDocument()
 	})
@@ -843,7 +878,7 @@ describe('Chart menu button', () => {
 
 		fireEvent.contextMenu(getSlot(container, 'chart'))
 
-		expect(items).toHaveBeenCalledWith({ index: 0 })
+		expect(items).toHaveBeenCalledWith({ index: 0, label: 'Q1' })
 
 		fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
 

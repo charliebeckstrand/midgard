@@ -34,18 +34,27 @@ import type { ChartReadoutSource } from './types'
 
 /**
  * The mark the pointer was over when the right-click landed. A menu item can act on that mark,
- * rather than the chart as a whole. `index` is the datum's index within the chart's categories,
- * the same index {@link SectorChartProps.onCategoryClick} reports. It is `null` when the click
- * landed off any mark (bare plot, plot padding, the legend, the header). A chart whose crosshair
- * snaps reads the whole column, so there any point in the plot targets its column. On a heatmap,
- * `index` is the cell under the pointer or the keyboard cursor, row by row: its row times the
- * column count, plus its column.
- *
- * An index rather than a label on purpose. Labels are formatted for display (the sector charts run
- * period keys through a formatter). A consumer that needs the underlying value must therefore look
- * it up in its own data by position.
+ * rather than the chart as a whole. A chart whose crosshair snaps reads the whole column, so
+ * there any point in the plot targets its column. Both fields are `null` when the click landed
+ * off any mark (bare plot, plot padding, the legend, the header).
  */
-export type ChartContextMenuTarget = { index: number | null }
+export type ChartContextMenuTarget = {
+	/**
+	 * The datum's index within the chart's categories, the same index
+	 * {@link SectorChartProps.onCategoryClick} reports. Use it to read the underlying value out
+	 * of your own data by position. On a heatmap, it is the cell under the pointer or the
+	 * keyboard cursor, row by row: its row times the column count, plus its column.
+	 */
+	index: number | null
+	/**
+	 * The text that the chart writes for the mark: the label of its category on the band axis,
+	 * which the tooltip title also shows. A date category reads in the same format as the axis,
+	 * so an item label can name the mark without a second formatter. On a heatmap, it is the
+	 * column and the row of the cell, as the keyboard cursor speaks them. On a choropleth, it is
+	 * the region id of the row, as the CSV writes it.
+	 */
+	label: string | null
+}
 
 /**
  * The outcome of one image export, delivered to {@link ChartContextMenuConfig.onExport}.
@@ -176,8 +185,33 @@ export type ChartContextMenuProps = {
 	 * @internal
 	 */
 	targetIndex?: number | null
+	/**
+	 * The text that names the mark at a target index, for a chart whose index
+	 * does not index the categories of {@link readout}. Absent, the
+	 * {@link ChartContextMenuTarget} label is the readout category at the index.
+	 * @internal
+	 */
+	nameTarget?: (index: number) => string | null
 	/** The chart, wrapped as the right-click surface. */
 	children: ReactNode
+}
+
+/**
+ * The {@link ChartContextMenuTarget} at `index`. Its label comes from
+ * `nameTarget`, else from the readout category at the index.
+ *
+ * @internal
+ */
+function menuTarget(
+	index: number | null,
+	nameTarget: ((index: number) => string | null) | undefined,
+	readout: ChartReadoutSource | null,
+): ChartContextMenuTarget {
+	if (index === null) return { index, label: null }
+
+	const label = nameTarget ? nameTarget(index) : readout?.()?.categories[index]
+
+	return { index, label: label ?? null }
 }
 
 /** Fills the auto-height dialog's width at the chart's ratio, capped so it never runs taller than the viewport. @internal */
@@ -224,6 +258,7 @@ export function ChartContextMenu({
 	label,
 	fullscreen,
 	targetIndex,
+	nameTarget,
 	children,
 }: ChartContextMenuProps) {
 	const [open, setOpen] = useState(false)
@@ -252,9 +287,13 @@ export function ChartContextMenu({
 	// hover lives in a store. Without the memo, each host render builds a
 	// function-form `items` again, with its icon elements, and discards it. The
 	// target object is made here, so the memo keys on the index that the host holds.
+	// Only a right-click on a mark sets the index, so the mount reads no readout.
 	const customItems = useMemo(
-		() => (typeof items === 'function' ? items({ index: targetIndex ?? null }) : items),
-		[items, targetIndex],
+		() =>
+			typeof items === 'function'
+				? items(menuTarget(targetIndex ?? null, nameTarget, readout))
+				: items,
+		[items, targetIndex, nameTarget, readout],
 	)
 
 	const includeLegend = config?.downloadLegend ?? true

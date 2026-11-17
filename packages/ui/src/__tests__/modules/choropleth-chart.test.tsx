@@ -246,13 +246,13 @@ describe('ChoroplethChart context menu', () => {
 
 		fireEvent.contextMenu(alpha)
 
-		expect(items).toHaveBeenLastCalledWith({ index: 1 })
+		expect(items).toHaveBeenLastCalledWith({ index: 1, label: 'A' })
 
 		fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
 
 		fireEvent.contextMenu(gamma)
 
-		expect(items).toHaveBeenLastCalledWith({ index: null })
+		expect(items).toHaveBeenLastCalledWith({ index: null, label: null })
 	})
 
 	it('opens a live fullscreen copy that does not nest a second menu', () => {

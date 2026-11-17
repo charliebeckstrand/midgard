@@ -164,20 +164,24 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		if (x !== undefined && y !== undefined) onCellClick?.({ x, y }, [row, col], press)
 	})
 
-	// A keyboard stop speaks its one cell: the column, the row, and the value. The
-	// readout has one category for each column, so it cannot name a cell.
+	// A cell is named by its column and its row. The readout has one category for
+	// each column, so it cannot name a cell. The context menu reads this name while
+	// it renders, so it is a plain function and not a stable event.
+	const nameCell = (index: number) => {
+		const x = matrix.columns[index % cols]
+
+		const y = matrix.rows[Math.floor(index / cols)]
+
+		return x === undefined || y === undefined ? null : `${x}, ${y}`
+	}
+
+	// A keyboard stop speaks its one cell: the column, the row, and the value.
 	const describeCell = useStableEvent((index: number) => {
-		const row = Math.floor(index / cols)
+		const name = nameCell(index)
 
-		const col = index % cols
+		const value = matrix.values[Math.floor(index / cols)]?.[index % cols]
 
-		const x = matrix.columns[col]
-
-		const y = matrix.rows[row]
-
-		if (x === undefined || y === undefined) return null
-
-		return `${x}, ${y}: ${readoutCell(matrix.values[row]?.[col], format)}`
+		return name === null ? null : `${name}: ${readoutCell(value, format)}`
 	})
 
 	return (
@@ -227,6 +231,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 				}
 				focus={focus}
 				describePoint={describeCell}
+				nameMark={nameCell}
 				onActivate={onCellClick ? reportCell : undefined}
 				className={className}
 				contextMenu={contextMenu}
