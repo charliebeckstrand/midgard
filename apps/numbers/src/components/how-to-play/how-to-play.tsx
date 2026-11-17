@@ -34,7 +34,7 @@ const PARTS: readonly Part[] = [
 	{
 		value: 'daily',
 		heading: 'Daily puzzle',
-		paragraphs: ['Everyone plays the same numbers each day, and only your first run counts.'],
+		paragraphs: ['Everyone plays the same seed each day, and only your first run counts.'],
 	},
 ]
 
