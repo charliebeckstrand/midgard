@@ -17,7 +17,11 @@ import type { ChartSeriesColor } from './chart-color/palette'
 import type { ChartContextMenuConfig } from './chart-context-menu'
 import type { Crosshair } from './chart-crosshair'
 import type { ChartAspectRatio } from './chart-frame/sizing'
-import type { ChartLegendConfig, ChartLegendPlacement } from './chart-legend/schema'
+import type {
+	ChartCartesianLegendConfig,
+	ChartLegendConfig,
+	ChartLegendPlacement,
+} from './chart-legend/schema'
 import type {
 	ChartReferenceCategory,
 	ChartReferenceLine,
@@ -412,6 +416,27 @@ export type CartesianFrameProps = {
 	 */
 	axes?: boolean | CartesianAxes
 	/**
+	 * Shows the legend. Defaults to on for two or more entries and off for one:
+	 * a single series is already named by the chart's accessible name. The
+	 * entries are the series and the reference rules that the legend names
+	 * (`references`). Forced on for a lone series, its single entry is still a
+	 * live switch. Toggling it off empties the chart, and the forced-on legend
+	 * holds the switch that brings it back. A placement moves it:
+	 *
+	 * - A row under the plot (`'bottom'`, the default) or above it (`'top'`),
+	 *   centered at all widths.
+	 * - A column panel beside it (`'left'` / `'right'`). It sits side by side once
+	 *   the chart's own container is wide enough for both, and stacks under the
+	 *   plot below that width.
+	 *
+	 * The object form ({@link ChartCartesianLegendConfig}) names a `placement`,
+	 * an `inert` flag, and `references` together. An inert legend is a static
+	 * key, its switches shed. `references` names the reference rules in the
+	 * legend in place of their labels on the plot. A legend that is off names
+	 * no rule, so each rule keeps its label.
+	 */
+	legend?: boolean | ChartLegendPlacement | ChartCartesianLegendConfig
+	/**
 	 * Draws a hover crosshair. `true` (the shorthand) draws both rules: a horizontal
 	 * value rule and a vertical category rule. A {@link Crosshair} object snaps
 	 * them to the nearest point (`snap`), or drops one (`x` / `y` set `false`).
@@ -425,7 +450,9 @@ export type CartesianFrameProps = {
 	 * on-frame. A {@link ChartReferenceCategory} sits at a category: an event
 	 * such as a release on a trend. The rules draw over the marks, so a mark
 	 * crossing one stays legible. Where the legend shows, each value rule also
-	 * names itself in it as a switch that toggles the rule.
+	 * names itself in it as a switch that toggles the rule. A rule that the
+	 * legend names in place of its label (`legend` of the rule, or
+	 * `legend.references`) takes a switch there too, a category rule included.
 	 *
 	 * The keyboard cursor stops on each value rule as it roves the value axis. A
 	 * key that moves the cursor onto a rule speaks its label and its value through
@@ -468,7 +495,7 @@ export type CartesianFrameProps = {
  * @internal
  */
 export type CartesianChartProps<T> = AccessibleName &
-	Omit<ChartBaseProps<T>, 'aria-label' | 'aria-labelledby' | 'aspectRatio'> &
+	Omit<ChartBaseProps<T>, 'aria-label' | 'aria-labelledby' | 'aspectRatio' | 'legend'> &
 	CartesianFrameProps & {
 		/** The series to plot, one mark set each; slot colors follow this order. */
 		series: ChartSeries<T>[]

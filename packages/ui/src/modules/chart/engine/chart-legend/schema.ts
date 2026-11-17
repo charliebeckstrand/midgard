@@ -37,6 +37,23 @@ export type ChartLegendConfig = {
 	inert?: boolean
 }
 
+/**
+ * The object form of the `legend` prop of a cartesian chart. It adds
+ * `references` to {@link ChartLegendConfig}.
+ */
+export type ChartCartesianLegendConfig = ChartLegendConfig & {
+	/**
+	 * Name each reference rule in the legend, with a chip that shows the dash of
+	 * the rule, in place of a label on the rule. A busy chart then keeps its
+	 * plot clear. A category rule also takes a chip, and its category readout
+	 * still shows its label and its description. The `legend` of a rule
+	 * overrides this for that rule. The legend shows when it names a rule, as
+	 * for two or more series.
+	 * @defaultValue false
+	 */
+	references?: boolean
+}
+
 /** A `legend` prop resolved to what the frame, item logic, and legend each read. @internal */
 export type ResolvedLegend = {
 	/**
@@ -49,31 +66,39 @@ export type ResolvedLegend = {
 	placement: ChartLegendPlacement | undefined
 	/** The legend renders as a static key. */
 	inert: boolean
+	/** The legend names the reference rules in place of their labels ({@link ChartCartesianLegendConfig}). */
+	references: boolean
 }
 
 /**
- * Normalizes a categorical chart's `legend` prop to three things. The prop is a
- * boolean, a placement string, or a {@link ChartLegendConfig}. The three are the
- * show `value` the frame and item logic already read, the `placement` alone, and
- * the `inert` flag. A bare boolean resolves the `placement` to none. The object's
+ * Normalizes a categorical chart's `legend` prop. The prop is a boolean, a
+ * placement string, or a {@link ChartLegendConfig}. The result holds the show
+ * `value` the frame and item logic already read, the `placement` alone, the
+ * `inert` flag, and the `references` flag of a cartesian chart. A bare boolean resolves the `placement` to none. The object's
  * `placement` becomes both `value` and `placement`. A `{ placement: 'left' }`
  * therefore places exactly as `'left'`, and an object with no placement falls to
  * the default show rule. A bare boolean or string passes through with `inert`
- * off.
+ * and `references` off.
  *
  * @internal
  */
 export function resolveLegend(
-	legend: boolean | ChartLegendPlacement | ChartLegendConfig | undefined,
+	legend: boolean | ChartLegendPlacement | ChartCartesianLegendConfig | undefined,
 ): ResolvedLegend {
 	if (legend !== null && typeof legend === 'object') {
-		return { value: legend.placement, placement: legend.placement, inert: legend.inert ?? false }
+		return {
+			value: legend.placement,
+			placement: legend.placement,
+			inert: legend.inert ?? false,
+			references: legend.references ?? false,
+		}
 	}
 
 	return {
 		value: legend,
 		placement: typeof legend === 'string' ? legend : undefined,
 		inert: false,
+		references: false,
 	}
 }
 

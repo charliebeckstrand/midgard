@@ -897,6 +897,10 @@ export function ChartLegend({
 							type="button"
 							size="sm"
 							variant="plain"
+							// The entries touch, so the hit area of the chip cannot grow into the
+							// row. On a coarse pointer, the chip itself takes the touch floor, which
+							// the reserve of the chip holds (`OVERFLOW_CHIP_RESERVE`).
+							className="pointer-coarse:min-w-11"
 							data-slot="chart-legend-more"
 							aria-label={intl.formatMessage(chartMessages.showMore, { count: overflowCount })}
 						>

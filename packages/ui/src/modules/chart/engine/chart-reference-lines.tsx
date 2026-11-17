@@ -189,6 +189,11 @@ export type ReferenceLabelModes = {
 	 * `labels.references.value`.
 	 */
 	withValue: boolean
+	/**
+	 * The indexes of the rules that the legend names: each takes no label, in
+	 * either mode.
+	 */
+	listed: ReadonlySet<number>
 }
 
 /**
@@ -210,8 +215,9 @@ export type StandingReferenceLabel = PlacedReferenceLabel & {
  * Places the standing reference labels, aligned with `reference`, or none when
  * there is no rule. Each label sits on its rule, which breaks for it. A value
  * rule takes a label only under the `labels.references` mode. A category rule
- * takes one whenever it has a label, because it has no legend chip, so the plot
- * label is its one visible name. The caller turns both off at the spark tier,
+ * takes one whenever it has a label, because the plot label is its one visible
+ * name. A rule that the legend names takes none
+ * (`modes.listed`). The caller turns both off at the spark tier,
  * which draws no label. The chart places them once and passes them to
  * {@link ChartReferenceLines}, which draws them, and to the point value labels,
  * which drop where they meet one. Each label takes the most open free spot on
@@ -248,7 +254,8 @@ export function placeReferenceLabels(
 
 			const category = isCategoryReference(line)
 
-			const shown = category ? modes.categories && text.lead !== '' : modes.values
+			const shown =
+				!modes.listed.has(index) && (category ? modes.categories && text.lead !== '' : modes.values)
 
 			return {
 				at: rulePosition(chart, line, index),
