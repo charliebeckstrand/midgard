@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { ESTree } from 'vite'
-import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
+import type { CatalogEntry } from '../../../scripts/intl/catalog.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { humanize } from '../kit/humanize.ts'
 import { PAGE_ID, PLAYGROUND, TAB_ID, TITLE_ID, toSlug } from '../kit/names.ts'

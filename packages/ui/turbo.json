@@ -6,7 +6,7 @@
 			"inputs": [
 				"src/**",
 				"fonts/**",
-				"scripts/fonts.ts",
+				"scripts/fonts/build.ts",
 				"docs/*.md",
 				"REFERENCE.md",
 				"vitest.config.ts",
@@ -116,7 +116,7 @@
 			"inputs": [
 				"src/docs/dist/**",
 				"src/__tests__/docs-build/**",
-				"scripts/docs-server.ts",
+				"scripts/docs/server.ts",
 				"vitest.docs-build.config.ts",
 				"vitest.base.ts",
 				"$TURBO_ROOT$/vitest.shared.mts"

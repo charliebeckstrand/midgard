@@ -1,6 +1,6 @@
 import type { Page } from 'playwright'
 import { describe, inject, it, type TestContext } from 'vitest'
-import { STYLED } from '../../../scripts/docs-server'
+import { STYLED } from '../../../scripts/docs/server'
 import { launchChromium } from './helpers/chromium'
 
 // The first paint of the docs has the current item of the sidebar in view. The

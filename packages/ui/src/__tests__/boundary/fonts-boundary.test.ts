@@ -13,7 +13,7 @@ import {
 	SOURCE_FONT,
 	sourceCodePoints,
 	subsetBytes,
-} from '../../../scripts/fonts'
+} from '../../../scripts/fonts/build'
 
 // `pnpm fonts` writes the font files of ui, `src/fonts/fonts.css`, and the
 // script of the latin face from the source font. The font files are subsets

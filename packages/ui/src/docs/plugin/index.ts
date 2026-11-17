@@ -10,7 +10,7 @@ import type {
 	Plugin,
 	ViteDevServer,
 } from 'vite'
-import { TRANSLATIONS_MODULE } from '../../../scripts/intl-catalog.ts'
+import { TRANSLATIONS_MODULE } from '../../../scripts/intl/catalog.ts'
 import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'

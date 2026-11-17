@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { CLIENT_DIR, prerenderedPages } from '../../../scripts/docs-server'
+import { CLIENT_DIR, prerenderedPages } from '../../../scripts/docs/server'
 
 // Each link of the prerendered pages that stays on the site goes to a page of
 // the build. A link with a hash goes to an element with that id. A prop of

@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
-import { CLIENT_DIR } from '../../../scripts/docs-server'
+import { CLIENT_DIR } from '../../../scripts/docs/server'
 import { LOCALES } from '../../docs/app/language'
 
 // A size budget for the bundle of the docs app. No other gate sees a bundle

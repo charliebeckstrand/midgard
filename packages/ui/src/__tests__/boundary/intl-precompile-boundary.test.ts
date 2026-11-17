@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 import { parse } from '@formatjs/icu-messageformat-parser'
 import { describe, expect, it } from 'vitest'
-import { compileDescriptors, compileTranslation } from '../../../scripts/intl-loader'
+import { compileDescriptors, compileTranslation } from '../../../scripts/intl/loader'
 import {
 	docsSites,
 	isSourceFile,
@@ -11,7 +11,7 @@ import {
 	workspaceRoot,
 } from '../helpers/walk-source'
 
-// Precompiled messages (`scripts/intl-loader.ts`).
+// Precompiled messages (`scripts/intl/loader.ts`).
 //
 // The Next build of each app runs the message loader on each module that
 // defines messages, and it gives the bundle no message parser. A message that

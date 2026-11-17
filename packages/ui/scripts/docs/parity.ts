@@ -45,10 +45,10 @@ import { createServer } from 'node:http'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { type Browser, chromium, type Page } from 'playwright'
-import { rootDensityClasses } from '../src/core/density/steps'
-import { DENSITY, THEME } from '../src/providers/appearance/appearance-storage'
-import { type DensityLevel, levelToStep } from '../src/providers/density/context'
-import { HYDRATED, listen, prerenderedPages, resolveFile, TYPES } from './docs-server'
+import { rootDensityClasses } from '../../src/core/density/steps'
+import { DENSITY, THEME } from '../../src/providers/appearance/appearance-storage'
+import { type DensityLevel, levelToStep } from '../../src/providers/density/context'
+import { HYDRATED, listen, prerenderedPages, resolveFile, TYPES } from './server'
 
 /** One run of the docs app: a theme, a stored density level, and a viewport width. */
 type Config = {
@@ -212,7 +212,7 @@ function pagesIn(root: string, config: Config, listed: readonly string[] | undef
 }
 
 /**
- * Serves a client directory with the paths of `docs-server.ts`, and gives its
+ * Serves a client directory with the paths of `server.ts`, and gives its
  * origin.
  */
 async function serve(root: string): Promise<{ origin: string; close: () => void }> {
@@ -256,7 +256,7 @@ async function checkRoot(page: Page, config: Config): Promise<void> {
 
 	if (actual.join(' ') !== expected.join(' ')) {
 		throw new Error(
-			`density-parity: in ${config.name}, the root has \`${actual.join(' ')}\`, not \`${expected.join(' ')}\`.`,
+			`docs:parity: in ${config.name}, the root has \`${actual.join(' ')}\`, not \`${expected.join(' ')}\`.`,
 		)
 	}
 }
@@ -329,7 +329,7 @@ async function dumpBuild(root: string, options: DumpOptions): Promise<Dump> {
 	const directory = path.resolve(root)
 
 	if (!existsSync(path.join(directory, '__spa-fallback.html'))) {
-		throw new Error(`density-parity: no docs build is at ${directory}.`)
+		throw new Error(`docs:parity: no docs build is at ${directory}.`)
 	}
 
 	const { origin, close } = await serve(directory)
@@ -681,7 +681,7 @@ function selectConfigs(names: string | undefined): readonly Config[] {
 
 	if (configs.length !== wanted.length) {
 		throw new Error(
-			`density-parity: the configs are ${CONFIGS.map((config) => config.name).join(', ')}, not \`${names}\`.`,
+			`docs:parity: the configs are ${CONFIGS.map((config) => config.name).join(', ')}, not \`${names}\`.`,
 		)
 	}
 
@@ -708,7 +708,7 @@ async function compare(
 	const flaggedPages = Object.values(first.flagged).flat().length
 
 	console.error(
-		`density-parity: the first pass read ${first.totals.states} element states, flagged ${flaggedPages} pages for a second pass, and found ${first.settled.length} pages that are in one build only or did not load.`,
+		`docs:parity: the first pass read ${first.totals.states} element states, flagged ${flaggedPages} pages for a second pass, and found ${first.settled.length} pages that are in one build only or did not load.`,
 	)
 
 	for (const [config, pages] of Object.entries(first.flagged)) {
@@ -776,7 +776,7 @@ const options: DumpOptions & { detail: boolean } = {
 
 if (!first || !second || extra.length > 0) {
 	throw new Error(
-		'density-parity: give `compare <base dir> <candidate dir>`, `dump <client dir> <out.json>`, or `diff <base.json> <candidate.json>`.',
+		'docs:parity: give `compare <base dir> <candidate dir>`, `dump <client dir> <out.json>`, or `diff <base.json> <candidate.json>`.',
 	)
 }
 
@@ -789,5 +789,5 @@ if (command === 'compare') {
 
 	finish(diffDumps(await read(first), await read(second), options.detail), {})
 } else {
-	throw new Error(`density-parity: the commands are compare, dump, and diff, not \`${command}\`.`)
+	throw new Error(`docs:parity: the commands are compare, dump, and diff, not \`${command}\`.`)
 }

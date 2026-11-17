@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CATALOG_LOCALES } from 'ui/providers/locale'
 import { describe, expect, it } from 'vitest'
-import { DOCS_LANG_DIR, DOCS_SOURCE_CATALOG, extractDocsCatalog } from '../../../scripts/intl.ts'
 import {
 	argumentErrors,
 	catalogText,
@@ -12,7 +11,12 @@ import {
 	readTranslations,
 	TRANSLATIONS_MODULE,
 	translationsText,
-} from '../../../scripts/intl-catalog.ts'
+} from '../../../scripts/intl/catalog.ts'
+import {
+	DOCS_LANG_DIR,
+	DOCS_SOURCE_CATALOG,
+	extractDocsCatalog,
+} from '../../../scripts/intl/extract.ts'
 import { catalogs } from '../app/catalogs.ts'
 
 // The source catalog holds the English default of each message of the docs,
@@ -21,7 +25,7 @@ import { catalogs } from '../app/catalogs.ts'
 // This test holds the files in step, with the checks of ui:
 //
 //   1. The source catalog and the module that loads each translation equal
-//      the output of `pnpm intl` (`scripts/intl.ts`).
+//      the output of `pnpm intl` (`scripts/intl/extract.ts`).
 //   2. Each id starts with `docs.`, so no message of the docs replaces a
 //      message of ui.
 //   3. A translation of the docs is in each language that ui has a catalog

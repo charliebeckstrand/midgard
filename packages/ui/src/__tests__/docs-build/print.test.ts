@@ -1,5 +1,5 @@
 import { describe, inject, it } from 'vitest'
-import { STYLED } from '../../../scripts/docs-server'
+import { STYLED } from '../../../scripts/docs/server'
 import { launchChromium } from './helpers/chromium'
 
 // A page of the docs scrolls in a box that has the height of the viewport

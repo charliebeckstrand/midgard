@@ -10,7 +10,7 @@ import {
 	readTranslations,
 	TRANSLATIONS_MODULE,
 	translationsText,
-} from 'ui/scripts/intl-catalog'
+} from 'ui/scripts/intl/catalog'
 import { describe, expect, it } from 'vitest'
 import { CATALOG_SOURCE, LANG_DIR, SOURCE_CATALOG } from '../../scripts/intl'
 import { catalogs } from '../locale/catalogs'

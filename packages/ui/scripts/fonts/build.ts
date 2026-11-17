@@ -1,5 +1,3 @@
-/// <reference path="./subset-font.d.ts" />
-
 /**
  * Writes the font files of ui and `src/fonts/fonts.css` from the source font.
  *
@@ -50,9 +48,9 @@ import subsetFont from 'subset-font'
 const FONT_NAME = 'google-sans-flex'
 
 /** The source font. It is outside `src`, so no app ships it. */
-export const SOURCE_FONT = fileURLToPath(new URL(`../fonts/${FONT_NAME}.woff2`, import.meta.url))
+export const SOURCE_FONT = fileURLToPath(new URL(`../../fonts/${FONT_NAME}.woff2`, import.meta.url))
 
-const FONT_DIR = new URL('../src/fonts/', import.meta.url)
+const FONT_DIR = new URL('../../src/fonts/', import.meta.url)
 
 /** The path of the stylesheet that {@link fontsCss} gives. */
 export const FONTS_CSS = fileURLToPath(new URL('fonts.css', FONT_DIR))
@@ -239,7 +237,7 @@ export async function fontsCss(): Promise<string> {
 	)
 
 	return [
-		'/* Do not edit. `pnpm fonts` (`scripts/fonts.ts`) writes this file from the source font. */\n',
+		'/* Do not edit. `pnpm fonts` (`scripts/fonts/build.ts`) writes this file from the source font. */\n',
 		...faces,
 		...fallbacks,
 		block('@theme', { '--font-sans': `${quote(fontFamily)}, sans-serif` }),
@@ -283,7 +281,7 @@ export async function fontScript(): Promise<string> {
 	const base64 = (await readFile(subset.path)).toString('base64')
 
 	return [
-		'/* Do not edit. `pnpm fonts` (`scripts/fonts.ts`) writes this file from the source font. */',
+		'/* Do not edit. `pnpm fonts` (`scripts/fonts/build.ts`) writes this file from the source font. */',
 		'(() => {',
 		`\tconst base64 = '${base64}'`,
 		'\tlet bytes = Uint8Array.fromBase64?.(base64)',

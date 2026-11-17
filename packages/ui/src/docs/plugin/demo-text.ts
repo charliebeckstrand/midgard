@@ -10,7 +10,7 @@ import {
 	type MessagePart,
 	parsePlainMessage,
 	parseValueMessage,
-} from '../../../scripts/intl-catalog.ts'
+} from '../../../scripts/intl/catalog.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import type { Parser } from './examples.ts'
 

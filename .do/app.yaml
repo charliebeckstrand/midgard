@@ -241,7 +241,7 @@ services:
   # `index.es.html`. The server sends the HTML of the locale of the request at
   # the same path, so the first paint is in the language of the reader. A path
   # with no page gets the fallback document, and the app shows its own page for
-  # it (`packages/ui/scripts/docs-server.ts`).
+  # it (`packages/ui/scripts/docs/server.ts`).
   - name: docs-server
     github:
       repo: charliebeckstrand/midgard

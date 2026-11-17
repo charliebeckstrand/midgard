@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { type ESTree, Visitor } from 'vite'
-import type { CatalogEntry } from '../../../scripts/intl-catalog.ts'
+import type { CatalogEntry } from '../../../scripts/intl/catalog.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { buildFields, type Field, type Free } from '../kit/fields.ts'
 import { humanize, isWord } from '../kit/humanize.ts'

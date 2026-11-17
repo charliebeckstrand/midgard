@@ -10,7 +10,7 @@ import {
 	isFresh,
 	pickEncoding,
 	readBody,
-} from '../../../scripts/docs-server.ts'
+} from '../../../scripts/docs/server.ts'
 import { rootMarks } from '../../server/root-marks.ts'
 
 // The server of the docs compresses each text file of the build, as a CDN

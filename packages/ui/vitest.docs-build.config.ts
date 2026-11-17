@@ -12,7 +12,7 @@ import { assertions, cleanup } from './vitest.base.ts'
  * ```
  *
  * The global setup serves the build with the paths of App Platform
- * (`scripts/docs-server.ts`), and gives its origin to the tests. CI runs the
+ * (`scripts/docs/server.ts`), and gives its origin to the tests. CI runs the
  * suite in shards (`--shard`). The axe file and the touch target file hold
  * most of the time of the suite. So each shard runs them, and each file reads
  * only its part of the pages (`setup/shard.ts`). The shards divide the other

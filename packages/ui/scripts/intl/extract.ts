@@ -11,17 +11,17 @@
  * compares the catalog of ui with the output of this script, and each
  * translation with the catalog. The test `src/docs/__tests__/intl-catalog.test.ts`
  * does the same for the docs. The extraction and the checks are in
- * `intl-catalog.ts`, which the other packages also use.
+ * `catalog.ts`, which the other packages also use.
  */
 
 import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseAst } from 'vite'
-import { createApiExtractor } from '../src/docs/plugin/api.ts'
-import { demoEntries } from '../src/docs/plugin/demo-text.ts'
-import { fieldEntries } from '../src/docs/plugin/fields.ts'
-import { pageEntries, tabEntries, titleEntries } from '../src/docs/plugin/titles.ts'
+import { createApiExtractor } from '../../src/docs/plugin/api.ts'
+import { demoEntries } from '../../src/docs/plugin/demo-text.ts'
+import { fieldEntries } from '../../src/docs/plugin/fields.ts'
+import { pageEntries, tabEntries, titleEntries } from '../../src/docs/plugin/titles.ts'
 import {
 	type CatalogEntry,
 	type CatalogSource,
@@ -29,9 +29,9 @@ import {
 	extractCatalog,
 	TRANSLATIONS_MODULE,
 	translationsText,
-} from './intl-catalog'
+} from './catalog'
 
-const SRC_DIR = fileURLToPath(new URL('../src', import.meta.url))
+const SRC_DIR = fileURLToPath(new URL('../../src', import.meta.url))
 
 /** The directory of the catalog and of the translations. */
 export const LANG_DIR = join(SRC_DIR, 'primitives', 'intl', 'lang')

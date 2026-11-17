@@ -35,7 +35,7 @@ import {
 	TypeFlags,
 } from 'typescript/unstable/sync'
 import { afterAll, describe, expect, it } from 'vitest'
-import { TEXT_ATTRIBUTES, TEXT_PROP } from '../../../scripts/intl-catalog'
+import { TEXT_ATTRIBUTES, TEXT_PROP } from '../../../scripts/intl/catalog'
 import { startTypeScript } from '../helpers/ts-server'
 import { docsSites, isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
