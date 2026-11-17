@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
+import { assertions, cleanup } from './vitest.base.ts'
 
 /**
  * The suite of the docs build (src/__tests__/docs-build/). It reads the output
@@ -29,5 +30,8 @@ export default defineConfig({
 		// Playwright, before the limit of the case.
 		testTimeout: 60_000,
 		hookTimeout: 60_000,
+		// The assertion rule and the cleanup of each suite (`vitest.shared.mts`).
+		expect: assertions,
+		...cleanup,
 	},
 })
