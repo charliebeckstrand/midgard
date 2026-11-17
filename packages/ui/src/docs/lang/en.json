@@ -43,13 +43,9 @@
 		"defaultMessage": "Docs",
 		"description": "The name of the documentation site. It shows at the top of the sidebar."
 	},
-	"docs.app.notFound": {
-		"defaultMessage": "Not found",
-		"description": "The title of a page whose path has no page of the docs. It shows in the header and in the title of the browser tab."
-	},
 	"docs.app.pageTitle": {
 		"defaultMessage": "{page} · Docs",
-		"description": "The title of the browser tab on a page of the docs. The page is the name of the page, such as Button."
+		"description": "The title of the browser tab on a page of the docs. The page is the name of the page, such as Button, or the path of the address when no page is at it."
 	},
 	"docs.app.section.components": {
 		"defaultMessage": "Components",
@@ -5520,7 +5516,7 @@
 		"description": "The label of the button under an example that shows the source code of the example."
 	},
 	"docs.notFound.body": {
-		"defaultMessage": "No page of the docs is at this path.",
+		"defaultMessage": "Page not found",
 		"description": "The text of the page that shows for a path that has no page of the docs."
 	},
 	"docs.page.accordion": {

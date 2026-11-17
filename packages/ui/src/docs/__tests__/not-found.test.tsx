@@ -9,7 +9,7 @@ describe('the not-found page', () => {
 	it('states that no page is at the path, with no link', () => {
 		render(<NotFound />)
 
-		expect(screen.queryByText('No page of the docs is at this path.')).not.toBeNull()
+		expect(screen.queryByText('Page not found')).not.toBeNull()
 
 		expect(screen.queryByRole('link')).toBeNull()
 	})

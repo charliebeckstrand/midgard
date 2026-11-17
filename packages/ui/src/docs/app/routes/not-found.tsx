@@ -4,7 +4,7 @@ import { Text } from 'ui/text'
 const messages = defineMessages({
 	body: {
 		id: 'docs.notFound.body',
-		defaultMessage: 'No page of the docs is at this path.',
+		defaultMessage: 'Page not found',
 		description: 'The text of the page that shows for a path that has no page of the docs.',
 	},
 })

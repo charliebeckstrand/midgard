@@ -105,12 +105,6 @@ const SCROLLER =
 	'h-dvh overflow-y-auto @container-size print:h-auto print:overflow-visible print:@container-normal'
 
 const messages = defineMessages({
-	notFound: {
-		id: 'docs.app.notFound',
-		defaultMessage: 'Not found',
-		description:
-			'The title of a page whose path has no page of the docs. It shows in the header and in the title of the browser tab.',
-	},
 	toggleSidebar: {
 		id: 'docs.app.toggleSidebar',
 		defaultMessage: 'Toggle sidebar',
@@ -124,7 +118,7 @@ const pageTitleMessage = defineMessage<{ page: string }>({
 	id: 'docs.app.pageTitle',
 	defaultMessage: '{page} · Docs',
 	description:
-		'The title of the browser tab on a page of the docs. The page is the name of the page, such as Button.',
+		'The title of the browser tab on a page of the docs. The page is the name of the page, such as Button, or the path of the address when no page is at it.',
 })
 
 /**
@@ -165,7 +159,8 @@ function Shell() {
 	// page, such as `/button/foo`, matches the not-found route, so it has no page.
 	const page = pages.find((link) => matches.some((match) => match.id === link.path))
 
-	const title = page?.name ?? intl.formatMessage(messages.notFound)
+	// A path with no page takes the path as its title, such as `/button/foo`.
+	const title = page?.name ?? pathname
 
 	useIdle(warmShiki)
 
