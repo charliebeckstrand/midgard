@@ -1,6 +1,7 @@
 'use client'
 
 import { autoPlacement, type Middleware, offset, shift } from '@floating-ui/react'
+import { isVirtualClick } from '@floating-ui/react/utils'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import {
 	type FocusEvent,
@@ -529,14 +530,16 @@ function MenuSubFloating({
 	// one panel rather than a flash per row.
 	const handlePointerMove = useMenuRowPointer(disabled, subKey)
 
-	// A click with no pointer behind it (`detail` 0) is a key: a dropdown clicks
-	// its active row on Enter / Space, and on ArrowRight when the row
-	// carries a submenu. It goes into the panel as the keys do here.
-	// A pointer click opens the submenu and keeps the cursor on this row.
+	// A click with no pointer behind it is a key: a dropdown clicks its active
+	// row on Enter / Space, and on ArrowRight when the row carries a submenu. A
+	// screen reader press, also a TalkBack double tap, has no pointer behind it
+	// too (`isVirtualClick`), as for the root menu. It goes into the panel as the
+	// keys do here. A pointer click opens the submenu and keeps the cursor on
+	// this row.
 	const handleClick = useStableEvent((event: MouseEvent<HTMLButtonElement>) => {
 		if (disabled) return
 
-		if (event.detail === 0) {
+		if (isVirtualClick(event.nativeEvent)) {
 			openWithFocus()
 
 			return
