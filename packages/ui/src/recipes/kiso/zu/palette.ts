@@ -51,12 +51,14 @@ import { mode } from '../../../core/recipe'
  * slot hues carry the categorical palette; `zinc` sits outside the slot order
  * as the de-emphasis color for context series.
  *
- * `ink` is one step deeper than the fill in light (700) and one step lighter in
- * dark (400). A value or reference label is text, and a category reference has
- * no legend chip, so its label is its one visible name. The ink therefore
- * clears the 4.5:1 text floor (WCAG 1.4.3) on white, zinc-900, and zinc-950,
- * where some 600 fills clear only 3:1. The step keeps the hue of the mark. The
- * `__tests__/recipes/chart-ink-contrast` guard measures each pick.
+ * `ink` is 700 in light, one step deeper than the fill. It is 400 in dark: one
+ * or two steps lighter than the dark fill, and the same step as the zinc fill.
+ * A value or reference label is text, and a category reference has no legend
+ * chip, so its label is its one visible name. The ink therefore clears the
+ * 4.5:1 text floor (WCAG 1.4.3) on white, zinc-900, and zinc-950, where some
+ * 600 fills clear only 3:1. The step keeps the hue of the mark. The
+ * `__tests__/recipes/chart-ink-contrast` guard measures each shade, not its
+ * distance from the fill.
  */
 const series = {
 	blue: {
