@@ -188,7 +188,14 @@ export type ReferenceLabelModes = {
  *
  * @internal
  */
-export type StandingReferenceLabel = PlacedReferenceLabel & { parts: ReferenceLabelParts }
+export type StandingReferenceLabel = PlacedReferenceLabel & {
+	parts: ReferenceLabelParts
+	/**
+	 * The rule reads its value on hover (`valueDisplay: 'hover'`): it keeps its
+	 * hover tooltip and its keyboard stop beside the label.
+	 */
+	hover: boolean
+}
 
 /**
  * Places the standing reference labels, aligned with `reference`, or none when
@@ -244,7 +251,26 @@ export function placeReferenceLabels(
 	)
 
 	return placed.map((label, index) =>
-		label ? { ...label, parts: parts[index] ?? { lead: '', tail: '' } } : null,
+		label
+			? {
+					...label,
+					parts: parts[index] ?? { lead: '', tail: '' },
+					hover: hoversValue(reference[index]),
+				}
+			: null,
+	)
+}
+
+/**
+ * A labeled value rule that reads its value on hover, not on its standing
+ * label (`valueDisplay: 'hover'`). @internal
+ */
+function hoversValue(line: ChartReferenceLine | undefined): boolean {
+	return (
+		line !== undefined &&
+		!isCategoryReference(line) &&
+		Boolean(line.label) &&
+		line.valueDisplay === 'hover'
 	)
 }
 
@@ -252,16 +278,22 @@ export function placeReferenceLabels(
  * The keyboard stops of the reference rules: each rule's position, or `null`
  * for a rule that carries a standing label ({@link placeReferenceLabels}). A
  * labeled rule reads its value without the rove, so it leaves the value-axis
- * roving as it leaves the hover tooltip. A rule whose label found no free spot
- * keeps both.
+ * roving as it leaves the hover tooltip. A rule whose label found no free spot,
+ * or whose value reads on hover, keeps both.
  *
  * @internal
  */
 export function referenceStops(
-	labels: (PlacedReferenceLabel | null)[] | undefined,
+	labels: (StandingReferenceLabel | null)[] | undefined,
 	positions: (number | null)[],
 ): (number | null)[] {
-	return labels ? positions.map((at, index) => (labels[index] ? null : at)) : positions
+	return labels
+		? positions.map((at, index) => {
+				const label = labels[index]
+
+				return label && !label.hover ? null : at
+			})
+		: positions
 }
 
 /** Props for {@link ReferenceRule}. @internal */
@@ -281,8 +313,8 @@ type ReferenceRuleProps = {
 	 * The placed standing label of the rule ({@link placeReferenceLabels}),
 	 * which {@link ReferenceLabel} draws in place of the hover tooltip. The rule
 	 * then sheds its wide hit target and floats no surface, and the caller drops
-	 * its keyboard stop. `null` when the mode is off, or when the label found no
-	 * free spot.
+	 * its keyboard stop, unless its value reads on hover (`label.hover`). `null`
+	 * when the mode is off, or when the label found no free spot.
 	 */
 	label: StandingReferenceLabel | null
 	/**
@@ -684,8 +716,9 @@ function ReferenceRule(props: ReferenceRuleProps) {
 
 	const { line } = props
 
-	// A category rule takes no pointer: the readout of its category reads it.
-	return props.label || isCategoryReference(line) ? (
+	// A category rule takes no pointer: the readout of its category reads it. A
+	// labeled rule whose value reads on hover keeps its pointer and its tooltip.
+	return (props.label && !props.label.hover) || isCategoryReference(line) ? (
 		<LabeledReferenceRule {...props} />
 	) : (
 		<HoverReferenceRule {...props} line={line} />

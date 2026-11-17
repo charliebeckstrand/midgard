@@ -50,7 +50,8 @@ export type ChartValueLabelConfig = {
 	 * interrupts. It shows the rule's own label, inked to match the rule, and
 	 * then the rule's value, one weight lighter in the same ink. A rule with no
 	 * label shows its value. The standing readout replaces the rule's hover
-	 * tooltip and its legend chip.
+	 * tooltip and its legend chip. A rule with `valueDisplay: 'hover'` shows its
+	 * label alone, and keeps its tooltip and its keyboard stop for the value.
 	 * With it on, the rules shed their pointer target and keyboard stop, since
 	 * the label already reads what the tooltip would. Each label takes the first
 	 * free spot on its rule, and prefers a spot that no other rule and no point

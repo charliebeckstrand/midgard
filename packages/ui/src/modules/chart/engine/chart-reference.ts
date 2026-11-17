@@ -73,6 +73,15 @@ export type ChartReferenceValue = ChartReferenceShared & {
 	 * the value takes the color of the rule, as the label does.
 	 */
 	valueColor?: ChartColor
+	/**
+	 * Where a labeled rule shows its value under `labels.references`. `'inline'`
+	 * draws it after the label on the rule. `'hover'` draws the label alone, and
+	 * keeps the hover tooltip and the keyboard stop of the rule, which read the
+	 * label and the value. A rule with no label shows its value inline, because
+	 * the value names it.
+	 * @defaultValue 'inline'
+	 */
+	valueDisplay?: 'inline' | 'hover'
 }
 
 /**
@@ -93,6 +102,7 @@ export type ChartReferenceCategory = ChartReferenceShared & {
 	value?: never
 	axis?: never
 	valueColor?: never
+	valueDisplay?: never
 }
 
 /**

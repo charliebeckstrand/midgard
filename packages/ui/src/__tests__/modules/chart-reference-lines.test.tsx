@@ -432,6 +432,37 @@ describe('reference line keyboard navigation', () => {
 		expect(referenceTooltip()?.textContent).toContain('Goal')
 	})
 
+	it('keeps the stop and the tooltip of a labeled rule whose value reads on hover', async () => {
+		const { container } = bar({
+			reference: [{ value: 60, label: 'Goal', valueDisplay: 'hover' }],
+			labels: { references: true },
+		})
+
+		// The label stands on the rule with no value after it.
+		const label = bySlot(container, 'chart-reference-label')
+
+		expect(label?.textContent).toBe('Goal')
+
+		expect(label?.querySelector('tspan')).toBeNull()
+
+		// The rule keeps its wide hover target.
+		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(2)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBe('')
+
+		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
+
+		expect(referenceTooltip()?.textContent).toContain('60')
+
+		expect(referenceTooltip()?.textContent).toContain('Goal')
+	})
+
 	it('restores the marks stepping back off the rule', async () => {
 		const { container } = bar({ reference: [{ value: 60 }] })
 

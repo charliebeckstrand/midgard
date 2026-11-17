@@ -22,7 +22,8 @@ export type ReferenceLabelParts = {
 
 /**
  * The parts of a rule's standing label. A value rule shows its own label and
- * then its value, so a consumer gives the name alone. With `withValue` off, it
+ * then its value, so a consumer gives the name alone. With `withValue` off, or
+ * with a `valueDisplay` of `'hover'`, it
  * shows its own label alone, for a label that already holds the value. With no label, it shows
  * its value, which then names the rule. A category rule shows its label only,
  * because the band axis already names its category. A category rule with no
@@ -41,7 +42,7 @@ export function referenceLabelParts(
 
 	if (!line.label) return { lead: value, tail: '' }
 
-	return { lead: line.label, tail: withValue ? value : '' }
+	return { lead: line.label, tail: withValue && line.valueDisplay !== 'hover' ? value : '' }
 }
 
 /** The space between the two parts of a standing label. @internal */
