@@ -416,10 +416,24 @@ export type CartesianFrameProps = {
 	 */
 	axes?: boolean | CartesianAxes
 	/**
-	 * Shows the legend, as the `legend` of the other charts does: a boolean, or a
-	 * placement. The object form ({@link ChartCartesianLegendConfig}) also takes
-	 * `references`, which names the reference rules in the legend in place of
-	 * their labels on the plot.
+	 * Shows the legend. Defaults to on for two or more entries and off for one:
+	 * a single series is already named by the chart's accessible name. The
+	 * entries are the series and the reference rules that the legend names
+	 * (`references`). Forced on for a lone series, its single entry is still a
+	 * live switch. Toggling it off empties the chart, and the forced-on legend
+	 * holds the switch that brings it back. A placement moves it:
+	 *
+	 * - A row under the plot (`'bottom'`, the default) or above it (`'top'`),
+	 *   centered at all widths.
+	 * - A column panel beside it (`'left'` / `'right'`). It sits side by side once
+	 *   the chart's own container is wide enough for both, and stacks under the
+	 *   plot below that width.
+	 *
+	 * The object form ({@link ChartCartesianLegendConfig}) names a `placement`,
+	 * an `inert` flag, and `references` together. An inert legend is a static
+	 * key, its switches shed. `references` names the reference rules in the
+	 * legend in place of their labels on the plot. A legend that is off names
+	 * no rule, so each rule keeps its label.
 	 */
 	legend?: boolean | ChartLegendPlacement | ChartCartesianLegendConfig
 	/**
