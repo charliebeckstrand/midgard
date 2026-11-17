@@ -144,6 +144,8 @@ export type LineSeriesGeometry = {
 	runs: LinePoint[][]
 	/** Points with a gap on both sides: invisible without a marker, so they always get one. */
 	isolated: LinePoint[]
+	/** The segments follow a monotone curve, not straight lines between the points. */
+	smooth: boolean
 }
 
 /** One line series' render inputs. @internal */
@@ -322,6 +324,7 @@ export function lineGeometry(
 		points: pointRuns.flat(),
 		runs: pointRuns,
 		isolated: pointRuns.filter((run) => run.length === 1).flat(),
+		smooth: interpolation === 'smooth',
 	}
 }
 

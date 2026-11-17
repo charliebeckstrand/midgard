@@ -8,6 +8,7 @@ import {
 	crosshairSnaps,
 	resolveCrosshair,
 } from '../chart-crosshair'
+import type { LabelLine } from '../chart-geometry/label'
 import type { ChartLineSeries } from '../chart-geometry/line'
 import { ChartHitArea, cartesianHitActive } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend/legend'
@@ -49,7 +50,8 @@ export type CartesianStops = {
 
 /**
  * The line and area series of a chart: they carry the point value labels, and
- * their point markers break the reference rules that they sit on.
+ * their point markers break the reference rules that they sit on. The standing
+ * reference labels keep clear of their lines and markers where they can.
  *
  * @internal
  */
@@ -68,6 +70,19 @@ const NO_REFERENCE_ITEMS: never[] = []
  */
 function drawnPoints(list: readonly ChartLineSeries[]): Vec[] {
 	return list.flatMap(({ markers, geometry }) => (markers ? geometry.points : geometry.isolated))
+}
+
+/**
+ * The lines that a list of line and area series draws: each run of two points
+ * or more, and whether it curves. The reference labels keep clear of them.
+ * @internal
+ */
+function drawnLines(list: readonly ChartLineSeries[]): LabelLine[] {
+	return list.flatMap(({ geometry }) =>
+		geometry.runs
+			.filter((run) => run.length > 1)
+			.map((run) => ({ points: run, smooth: geometry.smooth })),
+	)
 }
 
 /** Props for {@link ChartCartesianFrame}. @internal */
@@ -123,7 +138,8 @@ export type ChartCartesianFrameProps = AccessibleName &
 		/**
 		 * The line and area series: they carry the point value labels, and their
 		 * point markers break the reference rules. Omitted, no value label layer
-		 * mounts, and no rule breaks for a point.
+		 * mounts, no rule breaks for a point, and the reference labels place
+		 * without regard to the marks.
 		 */
 		valueLabels?: CartesianValueLabelSeries
 		className?: string
@@ -204,6 +220,7 @@ export function ChartCartesianFrame({
 		reference,
 		{ values: standing, categories: !spark, withValue },
 		points,
+		labelled && drawnLines(labelled),
 	)
 
 	const marksLayer = (

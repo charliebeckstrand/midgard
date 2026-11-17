@@ -24,7 +24,12 @@ import {
 	REFERENCE_HIT_WIDTH,
 	REFERENCE_STROKE_WIDTH,
 } from './chart-constants'
-import { markerBox, type PlacedReferenceLabel, referenceLabels } from './chart-geometry/label'
+import {
+	type LabelLine,
+	markerBox,
+	type PlacedReferenceLabel,
+	referenceLabels,
+} from './chart-geometry/label'
 import { type RuleBreak, ruleDashArray } from './chart-geometry/rule'
 import { REFERENCE_FALL, REFERENCE_RISE, referenceRise } from './chart-motion'
 import {
@@ -48,6 +53,7 @@ import { seriesGroupClass } from './chart-series'
 import { useChartActions, useChartEmphasis, useChartTier } from './context'
 import {
 	LABEL_PART_SPACE,
+	type ReferenceLabelCut,
 	type ReferenceLabelParts,
 	type ReferenceLabelWidth,
 	referenceLabelParts,
@@ -64,6 +70,8 @@ export type ChartReferenceFrame = {
 	plot: PlotRect
 	/** The drawn width of a standing label ({@link useReferenceLabelWidth}). */
 	referenceLabelWidth: ReferenceLabelWidth
+	/** A standing label cut to fit a room ({@link useReferenceLabelWidth}). */
+	referenceLabelCut: ReferenceLabelCut
 	/** The resolved primary value scale, or `null` before a domain resolves. */
 	yScale: ValueScale | null
 	/** The secondary scale, for rules bound to `y2`. */
@@ -191,24 +199,26 @@ export type ReferenceLabelModes = {
 export type StandingReferenceLabel = PlacedReferenceLabel & {
 	parts: ReferenceLabelParts
 	/**
-	 * The rule reads its value on hover (`valueDisplay: 'hover'`): it keeps its
-	 * hover tooltip and its keyboard stop beside the label.
+	 * The rule reads its value on hover (`valueDisplay: 'hover'`), or its label
+	 * is cut: it keeps its hover tooltip and its keyboard stop beside the label.
 	 */
 	hover: boolean
 }
 
 /**
  * Places the standing reference labels, aligned with `reference`, or none when
- * there is no rule. Each label sits on its rule, which breaks for it. A value rule takes a label only under the
- * `labels.references` mode. A category rule takes one whenever it has a label,
- * because it has no legend chip, so the plot label is its one visible name. The
- * caller turns both off at the spark tier, which draws no label. The chart
- * places them once and passes them to {@link ChartReferenceLines}, which draws
- * them, and to the point value labels, which drop where they meet one. Each
- * label takes the first free spot on its rule ({@link referenceLabels}), and
- * prefers a spot clear of the drawn point markers in `points`. A
- * value rule whose label finds none keeps its hover tooltip. A category rule
- * whose label finds none reads in the readout of its category only.
+ * there is no rule. Each label sits on its rule, which breaks for it. A value
+ * rule takes a label only under the `labels.references` mode. A category rule
+ * takes one whenever it has a label, because it has no legend chip, so the plot
+ * label is its one visible name. The caller turns both off at the spark tier,
+ * which draws no label. The chart places them once and passes them to
+ * {@link ChartReferenceLines}, which draws them, and to the point value labels,
+ * which drop where they meet one. Each label takes the most open free spot on
+ * its rule ({@link referenceLabels}). Where it can, the spot is clear of the
+ * drawn point markers in `points`, the drawn lines in `lines`, the other rules,
+ * and the other labels. A value rule whose label finds none keeps its hover
+ * tooltip. A category rule whose label finds none reads in the readout of its
+ * category only.
  *
  * @internal
  */
@@ -217,6 +227,7 @@ export function placeReferenceLabels(
 	reference: ChartReferenceLine[] | undefined,
 	modes: ReferenceLabelModes,
 	points: readonly Vec[] = [],
+	lines: readonly LabelLine[] = [],
 ): (StandingReferenceLabel | null)[] | undefined {
 	if (!reference || reference.length === 0) return undefined
 
@@ -243,22 +254,35 @@ export function placeReferenceLabels(
 				width: chart.referenceLabelWidth(text),
 				orientation: category ? crossOrientation(chart.orientation) : undefined,
 				unlabeled: !shown,
+				cut: (room: number) => {
+					const short = chart.referenceLabelCut(text, room)
+
+					return short && chart.referenceLabelWidth(short)
+				},
 			}
 		}),
 		chart.orientation,
 		chart.plot,
-		points.map(markerBox),
+		{ markers: points.map(markerBox), lines },
 	)
 
-	return placed.map((label, index) =>
-		label
-			? {
-					...label,
-					parts: parts[index] ?? { lead: '', tail: '' },
-					hover: hoversValue(reference[index]),
-				}
-			: null,
-	)
+	return placed.map((label, index) => {
+		if (!label) return null
+
+		const text = parts[index] ?? { lead: '', tail: '' }
+
+		const line = reference[index]
+
+		// A cut label draws the cut that its width holds. A value rule then keeps
+		// its tooltip and its keyboard stop, which read the whole label.
+		return {
+			...label,
+			parts: (label.cut && chart.referenceLabelCut(text, label.width)) || text,
+			hover:
+				hoversValue(line) ||
+				(Boolean(label.cut) && line !== undefined && !isCategoryReference(line)),
+		}
+	})
 }
 
 /**
@@ -533,9 +557,11 @@ function LabeledReferenceRule(props: ReferenceRuleProps) {
  * The standing label of a rule, on the rule, which breaks for it. The name is
  * inked to match the rule: a slot through its fill class, or a raw color
  * inline. The value of a value rule follows the name, one weight lighter, in
- * the same ink or in its `valueColor` ({@link ReferenceLabelGlyphs}). It recedes with its rule and rides the same
- * mount rise, so rule and label reveal as one. It draws in a layer over every
- * rule, so its halo clears a neighboring rule that crosses it.
+ * the same ink or in its `valueColor` ({@link ReferenceLabelGlyphs}). It
+ * recedes with its rule and rides the same mount rise, so rule and label
+ * reveal as one. It draws in a layer over every rule, so its halo clears a
+ * neighboring rule that crosses it. A cut label floats the whole readout of
+ * its rule in a {@link Tooltip} on hover ({@link ReferenceReadout}).
  *
  * @internal
  */
@@ -545,7 +571,8 @@ function ReferenceLabel({
 	rise,
 	label,
 	line,
-}: Pick<ReferenceRuleProps, 'index' | 'paint' | 'rise' | 'line'> & {
+	format,
+}: Pick<ReferenceRuleProps, 'index' | 'paint' | 'rise' | 'line' | 'format'> & {
 	label: StandingReferenceLabel
 }) {
 	const { emphasizedReference } = useChartEmphasis()
@@ -554,25 +581,90 @@ function ReferenceLabel({
 
 	const receded = emphasizedReference !== null && emphasizedReference !== index
 
+	const text = (
+		<text
+			data-slot="chart-reference-label"
+			data-cut={dataAttr(Boolean(label.cut))}
+			x={label.x}
+			y={label.y}
+			textAnchor={label.anchor}
+			dominantBaseline="central"
+			className={cn(k.mark.label, inkClass(paint))}
+			style={color ? { fill: color } : undefined}
+		>
+			<ReferenceLabelGlyphs
+				parts={label.parts}
+				valuePaint={line.valueColor === undefined ? undefined : resolvePaint(line.valueColor)}
+			/>
+		</text>
+	)
+
 	return (
 		<g pointerEvents="none" className={seriesGroupClass(receded)}>
 			<RuleRise rise={rise}>
-				<text
-					data-slot="chart-reference-label"
-					x={label.x}
-					y={label.y}
-					textAnchor={label.anchor}
-					dominantBaseline="central"
-					className={cn(k.mark.label, inkClass(paint))}
-					style={color ? { fill: color } : undefined}
-				>
-					<ReferenceLabelGlyphs
-						parts={label.parts}
-						valuePaint={line.valueColor === undefined ? undefined : resolvePaint(line.valueColor)}
-					/>
-				</text>
+				{label.cut ? (
+					// A cut label floats its whole readout on hover. Its box takes the
+					// pointer, so the gaps between the glyphs do too.
+					<Tooltip placement="top" delay={0}>
+						<TooltipTrigger>
+							<g data-slot="chart-reference-label-target">
+								<rect
+									x={label.box.x0}
+									y={label.box.y0}
+									width={label.box.x1 - label.box.x0}
+									height={label.box.y1 - label.box.y0}
+									fill="transparent"
+									pointerEvents="all"
+								/>
+
+								{text}
+							</g>
+						</TooltipTrigger>
+
+						<TooltipContent size="sm">
+							<ReferenceReadout line={line} paint={paint} format={format} />
+						</TooltipContent>
+					</Tooltip>
+				) : (
+					text
+				)}
 			</RuleRise>
 		</g>
+	)
+}
+
+/**
+ * The readout of a rule in its tooltip: the key of the rule, then its value
+ * for a value rule, its label, and its description. It is `aria-hidden`, since
+ * {@link ChartReferenceList} carries the parity.
+ *
+ * @internal
+ */
+function ReferenceReadout({
+	line,
+	paint,
+	format,
+}: Pick<ReferenceRuleProps, 'line' | 'paint' | 'format'>) {
+	const color = rawColor(paint)
+
+	return (
+		<div aria-hidden="true" className="flex items-center gap-1.5 whitespace-nowrap">
+			{/* The same key as the legend chip of the rule, which keeps a paint
+			    under forced colors. */}
+			<Swatch
+				data-slot="chart-reference-swatch"
+				shape="line"
+				variant={line.dashed === false ? 'solid' : 'dashed'}
+				color={textClass(paint) || undefined}
+				style={color ? { color } : undefined}
+			/>
+
+			{!isCategoryReference(line) && <span className={cn(k.value)}>{format(line.value)}</span>}
+
+			{line.label && <span className={cn(k.label)}>{line.label}</span>}
+
+			{line.description && <span className={cn(k.label)}>{line.description}</span>}
+		</div>
 	)
 }
 
@@ -608,8 +700,6 @@ function HoverReferenceRule(props: ReferenceRuleProps & { line: ChartReferenceVa
 		},
 		[setReferenceActive],
 	)
-
-	const color = rawColor(paint)
 
 	const focused = activeReference === index
 
@@ -653,23 +743,7 @@ function HoverReferenceRule(props: ReferenceRuleProps & { line: ChartReferenceVa
 			</TooltipTrigger>
 
 			<TooltipContent size="sm">
-				<div aria-hidden="true" className="flex items-center gap-1.5 whitespace-nowrap">
-					{/* The same key as the legend chip of the rule, which keeps a paint
-					    under forced colors. */}
-					<Swatch
-						data-slot="chart-reference-swatch"
-						shape="line"
-						variant={line.dashed === false ? 'solid' : 'dashed'}
-						color={textClass(paint) || undefined}
-						style={color ? { color } : undefined}
-					/>
-
-					<span className={cn(k.value)}>{format(line.value)}</span>
-
-					{line.label && <span className={cn(k.label)}>{line.label}</span>}
-
-					{line.description && <span className={cn(k.label)}>{line.description}</span>}
-				</div>
+				<ReferenceReadout line={line} paint={paint} format={format} />
 			</TooltipContent>
 		</Tooltip>
 	)

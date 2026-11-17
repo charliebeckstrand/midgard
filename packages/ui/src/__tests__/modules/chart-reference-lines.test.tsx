@@ -432,6 +432,29 @@ describe('reference line keyboard navigation', () => {
 		expect(referenceTooltip()?.textContent).toContain('Goal')
 	})
 
+	it('keeps the hover target of a value rule whose label is cut at a category rule', () => {
+		// A category rule at Feb crosses the rule near its middle, and the label is
+		// too wide for either side of it.
+		const { container } = bar({
+			reference: [
+				{ value: 60, label: 'Hold every invoice for a second review' },
+				{ category: 'Feb' },
+			],
+			labels: { references: true },
+		})
+
+		const label = bySlot(container, 'chart-reference-label')
+
+		expect(label).toHaveAttribute('data-cut')
+
+		expect(label?.textContent).toMatch(/…$/)
+
+		// The value rule keeps its wide hover target, which reads the whole label.
+		const [valueRule] = allBySlot(container, 'chart-reference-line')
+
+		expect(valueRule?.querySelectorAll('line').length).toBe(2)
+	})
+
 	it('keeps the stop and the tooltip of a labeled rule whose value reads on hover', async () => {
 		const { container } = bar({
 			reference: [{ value: 60, label: 'Goal', valueDisplay: 'hover' }],
@@ -1110,7 +1133,7 @@ describe('reference value labels', () => {
 
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
-	it('labels the rules of a horizontal bar chart in the second row, off the top edge', () => {
+	it('labels the rules of a horizontal bar chart the room down from the top edge', () => {
 		const { container } = bar({
 			orientation: 'horizontal',
 			reference: [{ value: 60, label: 'Goal' }],
@@ -1121,15 +1144,15 @@ describe('reference value labels', () => {
 
 		expect(label?.textContent).toBe('Goal60')
 
-		// The rule is vertical, so the label stands on it one row down from the top
-		// of the plot: the top row sits against the edge, and comes last.
+		// The rule is vertical, so the label stands on it with its top the room
+		// (8) down from the top of the plot.
 		const line = rule(container)
 
 		const labelY = Number(label?.getAttribute('y')) - Number(line?.getAttribute('y1'))
 
 		expect(Number(label?.getAttribute('x'))).toBeCloseTo(Number(line?.getAttribute('x1')), 1)
 
-		expect(labelY).toBeCloseTo(6.5 + 13 + 4, 1)
+		expect(labelY).toBeCloseTo(8 + 6.5, 1)
 
 		// The rule runs across the text, so it breaks for the whole row of the label.
 		const [from = 0, to = 0] = findBreaks(line)[0] ?? []

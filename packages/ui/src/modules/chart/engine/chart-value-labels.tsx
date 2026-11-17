@@ -53,16 +53,18 @@ export type ChartValueLabelConfig = {
 	 * tooltip and its legend chip. A rule with `valueDisplay: 'hover'` shows its
 	 * label alone, and keeps its tooltip and its keyboard stop for the value.
 	 * With it on, the rules shed their pointer target and keyboard stop, since
-	 * the label already reads what the tooltip would. Each label takes the first
-	 * free spot on its rule, and prefers a spot that no other rule and no point
-	 * marker crosses or comes near. Of those, it prefers a spot with room from
-	 * each other rule and from the top and bottom of the plot. In a vertical
-	 * chart, the spots are the right end of the rule, and then the left end. In
-	 * a horizontal chart, the spots are the rows from the top of the plot down.
-	 * The top row and the bottom row, against an edge of the plot, come last. A
-	 * rule whose label finds no free spot keeps its tooltip. A point label that meets a reference label drops. Each label has a
-	 * halo in the surface color, so it stays legible where a line or a rule
-	 * crosses it. The visually-hidden reference list keeps the assistive-tech
+	 * the label already reads what the tooltip would. Each label takes the most
+	 * open free spot on its rule. It keeps off the lines and point markers of
+	 * the data first, and then off the other rules. Of the spots left, it
+	 * prefers one with 8 px of room from the data, the other rules, the other
+	 * labels, and the top and bottom of the plot. In a vertical chart, the spots
+	 * are the right end of the rule, and then the left end. In a horizontal
+	 * chart, the spots are the heights from the top of the plot down. A label
+	 * too wide for the space between two rules is cut 8 px short of the next
+	 * rule, with an ellipsis, and shows the whole label in a tooltip on hover. A
+	 * rule whose label finds no free spot keeps its tooltip. A point label that meets
+	 * a reference label drops. Each label has a halo in the surface color, so it
+	 * stays legible where a line or a rule crosses it. The visually-hidden reference list keeps the assistive-tech
 	 * parity either way. An object turns the labels on and sets them.
 	 * @defaultValue false
 	 */
