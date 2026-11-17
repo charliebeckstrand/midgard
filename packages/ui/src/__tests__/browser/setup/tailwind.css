@@ -5,7 +5,7 @@
    `../../../` resolves to `src/`. */
 @import 'tailwindcss';
 /* The density variants, as the apps and the docs import them. */
-@import '../../../../tailwind.css';
+@import '../../../../styles/tailwind.css';
 @source '../../../';
 
 /* The `dark` variant follows the `.dark` class on the root, as in the docs

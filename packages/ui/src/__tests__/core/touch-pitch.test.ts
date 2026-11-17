@@ -8,7 +8,7 @@ import { uiRoot } from '../helpers/walk-source'
 
 /** Builds the CSS of `classes` with the Tailwind extensions of ui. */
 async function buildCss(classes: string[]) {
-	const compiler = await compile(`@import 'tailwindcss';\n@import './tailwind.css';`, {
+	const compiler = await compile(`@import 'tailwindcss';\n@import './styles/tailwind.css';`, {
 		base: uiRoot,
 		onDependency: noop,
 	})

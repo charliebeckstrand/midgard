@@ -1,31 +1,27 @@
 /*
- * The Tailwind extensions of ui: the font of ui and its font stack
- * (`src/fonts/fonts.css`, with no latin face: `AppearanceProvider` adds it),
- * the `density-any` variant, the `motion-reduce` and `motion-safe` variants
- * that follow the Motion setting, the `sidebar-offcanvas` variant that follows
- * the Sidebar setting, the `surfaces-glass` variant that follows the
- * Surfaces setting, the stepped and ring utilities
- * (`density-p-[2,3,4]`, `px-ring-2`, …), the touch gaps (`touch-gap-y-0.5`), the touch pitches (`touch-pitch`), the `scroll-fade-inline` and `scroll-fade-block` edge fades,
- * the 10 px `2xs` step of the text scale, two base styles on the root
- * element: `touch-action: manipulation`, and
- * the `color-scheme` that follows the `dark` class, the rule that hides the
- * default footer of a panel that has its own, the keyframes of the two endless
- * loops, and the breakpoint classes of the structure units. Import this file in each Tailwind entry that scans
- * ui. Each plugin explains its classes or its style.
+ * The Tailwind extensions of ui. Import this file in each Tailwind entry that
+ * scans ui. The file holds these parts:
+ *
+ * - The font of ui and its font stack (`src/fonts/fonts.css`). The file has no
+ *   latin face, because `AppearanceProvider` adds it.
+ * - The plugins: the variants, the utilities, and the base styles. Each plugin
+ *   explains its classes or its styles.
+ * - The `2xs` step of the text scale and the keyframes of the two endless loops.
+ * - The breakpoint classes that the scanner does not find in the source.
  */
-@import './src/fonts/fonts.css';
+@import '../src/fonts/fonts.css';
 
-@plugin './src/core/density/variants.ts';
-@plugin './src/core/density/utilities.ts';
-@plugin './src/core/touch/base.ts';
-@plugin './src/core/touch/gap.ts';
-@plugin './src/core/touch/pitch.ts';
-@plugin './src/core/scheme/base.ts';
-@plugin './src/core/motion/variants.ts';
-@plugin './src/core/sidebar/variants.ts';
-@plugin './src/core/surfaces/variants.ts';
-@plugin './src/core/scroll/fade.ts';
-@plugin './src/core/panel/base.ts';
+@plugin '../src/core/density/variants.ts';
+@plugin '../src/core/density/utilities.ts';
+@plugin '../src/core/touch/base.ts';
+@plugin '../src/core/touch/gap.ts';
+@plugin '../src/core/touch/pitch.ts';
+@plugin '../src/core/scheme/base.ts';
+@plugin '../src/core/motion/variants.ts';
+@plugin '../src/core/sidebar/variants.ts';
+@plugin '../src/core/surfaces/variants.ts';
+@plugin '../src/core/scroll/fade.ts';
+@plugin '../src/core/panel/base.ts';
 
 /*
  * The `2xs` step of the text scale: 10 px. The small text ramp of the density
@@ -108,20 +104,20 @@
 
 /*
  * The breakpoint classes of the responsive variant axes of the components.
- * `resolveVariant` in `src/types/responsive.ts` puts the prefix on each class
- * of a value at run time. A test makes sure that each class it can make is in
- * these lines. DescriptionList `orientation` (`grid-cols-1` is a line above):
+ * `resolveVariant` in `src/utilities/responsive.ts` puts the prefix on each class
+ * of a value at run time. `responsive-variants.test.ts` makes sure that each
+ * class it can make is in these lines. DescriptionList `orientation` (`grid-cols-1` is a line above):
  */
 @source inline('{sm,md,lg,xl,2xl}:grid-cols-[min(50%,--spacing(56))_auto]');
 @source inline('{sm,md,lg,xl,2xl}:[&>dt]:pe-{0,2}');
 @source inline('{sm,md,lg,xl,2xl}:[&>dt+dd]:pt-{0,(--ui-details-top)}');
-/* Stepper `orientation`: the row, a step, an item, a title, a separator, and the content column. */
-@source inline('{sm,md,lg,xl,2xl}:{flex-row,flex-col,ps-4,ps-0,py-4,py-0,py-1}');
+/* Stepper `orientation`: the row, a step, an item, a title, a separator, and the content column (`flex-row` and `flex-col` are lines above). */
+@source inline('{sm,md,lg,xl,2xl}:{ps-4,ps-0,py-4,py-0,py-1}');
 @source inline('{sm,md,lg,xl,2xl}:{min-w-20,min-w-auto,w-32,w-full,w-auto,text-center,text-start}');
 @source inline('{sm,md,lg,xl,2xl}:gap-{0.5,(--ui-stepper-gap)}');
 @source inline('{sm,md,lg,xl,2xl}:{mt-2,mt-0,block,hidden,contents,flex}');
-/* Dialog `align`: the insets and the margins that place the panel, and its look. */
-@source inline('{sm,md,lg,xl,2xl}:{inset-0,inset-4,mt-0,mt-auto,mb-0,mb-auto}');
+/* Dialog `align`: the insets and the margins that place the panel, and its look (`mt-0` is a line above). */
+@source inline('{sm,md,lg,xl,2xl}:{inset-0,inset-4,mt-auto,mb-0,mb-auto}');
 @source inline('{sm,md,lg,xl,2xl}:max-h-[calc(100%-2rem)]');
 @source inline('{sm,md,lg,xl,2xl}:{rounded-t-2xl,rounded-b-none,rounded-b-2xl,max-h-full,overflow-y-auto,overflow-y-visible,overscroll-contain,overscroll-auto}');
 @source inline('{sm,md,lg,xl,2xl}:max-h-[85%]');
@@ -131,8 +127,8 @@
 @source inline('{sm,md,lg,xl,2xl}:data-full:rounded-t-{none,2xl}');
 @source inline('{sm,md,lg,xl,2xl}:motion-safe:transition-[border-radius]');
 @source inline('{sm,md,lg,xl,2xl}:motion-safe:duration-150');
-/* Toast `position`: the viewport (its `justify-*` are a line above) and the stack. */
-@source inline('{sm,md,lg,xl,2xl}:{left,right}-{0,auto}');
+/* Toast `position`: the viewport (its `justify-*` are a line above, and `left-0` and `right-0` are lines below) and the stack. */
+@source inline('{sm,md,lg,xl,2xl}:{left,right}-auto');
 @source inline('{sm,md,lg,xl,2xl}:w-fit');
 @source inline('{sm,md,lg,xl,2xl}:[--ui-toast-card:var(--ui-toast-width)]');
 @source inline('{sm,md,lg,xl,2xl}:[--ui-toast-card:100%]');

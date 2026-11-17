@@ -5,6 +5,7 @@
 		"test": {
 			"inputs": [
 				"src/**",
+				"styles/tailwind.css",
 				"fonts/**",
 				"scripts/fonts/build.ts",
 				"docs/*.md",
@@ -51,6 +52,7 @@
 			"passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"],
 			"inputs": [
 				"src/**",
+				"styles/tailwind.css",
 				"vitest.browser.config.ts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
@@ -62,6 +64,7 @@
 			"dependsOn": ["^build"],
 			"inputs": [
 				"src/**",
+				"styles/tailwind.css",
 				"vitest.config.ts",
 				"vitest.compiler.config.ts",
 				"vitest.compiler.preset.ts",
@@ -94,7 +97,7 @@
 				"vitest.browser.config.ts",
 				"vitest.base.ts",
 				"$TURBO_ROOT$/vitest.shared.mts",
-				"tailwind.css",
+				"styles/tailwind.css",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			]
@@ -105,7 +108,7 @@
 				"src/**",
 				"!src/**/__tests__/**",
 				"!src/__benchmarks__/**",
-				"tailwind.css",
+				"styles/tailwind.css",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			],
