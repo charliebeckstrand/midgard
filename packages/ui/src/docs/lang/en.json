@@ -5519,9 +5519,17 @@
 		"defaultMessage": "Show code",
 		"description": "The label of the button under an example that shows the source code of the example."
 	},
+	"docs.home.filter": {
+		"defaultMessage": "Filter pages",
+		"description": "The placeholder of the field on the home page of the docs that shows only the pages whose name holds the text, and the name of the field."
+	},
 	"docs.home.intro": {
 		"defaultMessage": "Each component, module, structure, provider, and primitive of ui, with a playground, examples, and an API reference.",
 		"description": "The text at the top of the home page of the docs, above the list of the pages. ui is the name of the library."
+	},
+	"docs.home.noMatch": {
+		"defaultMessage": "No page matches the filter.",
+		"description": "The text of the home page of the docs when no page matches the text of the filter."
 	},
 	"docs.notFound.body": {
 		"defaultMessage": "No page of the docs is at this path.",
