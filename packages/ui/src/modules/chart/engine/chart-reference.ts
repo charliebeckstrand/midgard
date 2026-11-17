@@ -19,7 +19,10 @@ type ChartReferenceShared = {
 	 * chart shows the value of a value rule after it. A value rule carries the
 	 * name in its hover tooltip and its legend chip. Once a chart's
 	 * `labels.references` is on, the rule draws the name and its value on the
-	 * rule, and the legend drops its chip. A category rule always draws the name
+	 * rule, and the legend drops its chip. Where the label already holds the
+	 * value, such as `'Good 5%'`, set `labels.references` to `{ value: false }`,
+	 * and the rule draws the label alone. A value rule with `valueDisplay:
+	 * 'hover'` also draws the label alone. A category rule always draws the name
 	 * near the top of the rule where it finds room, and the category readout shows
 	 * it. Each rule breaks for the label that it draws. Omitted, a value rule
 	 * reads by its value alone, and a category rule draws no label.
