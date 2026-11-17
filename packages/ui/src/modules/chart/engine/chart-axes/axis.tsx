@@ -1,6 +1,7 @@
 import { cn } from '../../../../core/cn'
 import { k } from '../../../../recipes/kata/chart'
-import { GUTTER_GAP } from '../chart-constants'
+import { rangeKeys } from '../../../../utilities/range-keys'
+import { BAND_LABEL_HEIGHT, GUTTER_GAP } from '../chart-constants'
 import type { ChartAxisTitlePlacement } from '../chart-layout'
 import type { PlotRect } from '../chart-orientation'
 
@@ -21,6 +22,11 @@ export type ChartAxisTick = {
 	key: string | number
 	/** Degrees the label tilts about `at`; unset draws it flat. Category ticks only. */
 	rotate?: number
+	/**
+	 * The lines of a wrapped label, top to bottom, in place of `label`; unset
+	 * draws `label` on one line. Category ticks under the bottom axis only.
+	 */
+	lines?: string[]
 	/**
 	 * Horizontal text anchor along an x axis, overriding the centered default.
 	 * The end labels anchor `'start'` (first) and `'end'` (last). They therefore
@@ -143,7 +149,13 @@ export function ChartAxis({ axis, plot, ticks, position, baseline, line = true }
 						transform={tick.rotate ? `rotate(${tick.rotate} ${tick.at} ${y})` : undefined}
 						className={cn(k.tick)}
 					>
-						{tick.label}
+						{tick.lines
+							? rangeKeys(tick.lines.length, 'line').map((key, index) => (
+									<tspan key={key} x={tick.at} dy={index === 0 ? 0 : BAND_LABEL_HEIGHT}>
+										{tick.lines?.[index]}
+									</tspan>
+								))
+							: tick.label}
 					</text>
 				)
 			})}

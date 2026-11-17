@@ -245,7 +245,7 @@ describe('verticalLayout tilt', () => {
 		frameWidth: 600,
 		categories,
 		count: categories.length,
-		tickRotation: true,
+		tickLayout: 'rotate',
 	})
 
 	it('keeps short labels flat, where a tilt would keep fewer of them', () => {
@@ -264,6 +264,63 @@ describe('verticalLayout tilt', () => {
 		const layout = verticalLayout(tilted(names))
 
 		expect(layout.bandTicks.every((tick) => tick.rotate !== undefined)).toBe(true)
+	})
+})
+
+describe('verticalLayout wrap', () => {
+	/** A layout input of `categories` along a 600px frame, with the wrap asked for. */
+	const wrapped = (
+		categories: string[],
+		tickLayout: 'thin' | 'wrap' = 'wrap',
+	): CartesianLayoutInput => ({
+		...input(300, 0),
+		frameWidth: 600,
+		categories,
+		count: categories.length,
+		tickLayout,
+	})
+
+	const NAMES = Array.from({ length: 6 }, (_, index) => `Category number ${index + 1}`)
+
+	it('keeps every label, each broken at its spaces to fit its band', () => {
+		const layout = verticalLayout(wrapped(NAMES))
+
+		expect(layout.bandTicks.map((tick) => tick.lines)).toEqual(
+			NAMES.map((name) => ['Category', name.slice('Category '.length)]),
+		)
+
+		expect(layout.bandTicks.every((tick) => tick.rotate === undefined)).toBe(true)
+	})
+
+	it('takes one label row more for each line it adds', () => {
+		const thin = verticalLayout(wrapped(NAMES, 'thin'))
+
+		const wrap = verticalLayout(wrapped(NAMES))
+
+		expect(thin.plot.height - wrap.plot.height).toBe(BAND_LABEL_HEIGHT)
+	})
+
+	it('thins flat when one word is wider than its band', () => {
+		const words = Array.from({ length: 6 }, (_, index) => `Supercalifragilistic ${index}`)
+
+		const thin = verticalLayout(wrapped(words, 'thin'))
+
+		const wrap = verticalLayout(wrapped(words))
+
+		expect(wrap.bandTicks).toEqual(thin.bandTicks)
+
+		expect(wrap.plot).toEqual(thin.plot)
+	})
+
+	it('keeps labels on one line when they fit flat', () => {
+		const layout = verticalLayout(wrapped(['North', 'South', 'East', 'West']))
+
+		expect(layout.bandTicks.map((tick) => tick.lines)).toEqual([
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+		])
 	})
 })
 
@@ -467,7 +524,7 @@ describe('verticalLayout label-room floor', () => {
 		for (let frameHeight = 60; frameHeight <= 300; frameHeight += 1) {
 			const plain = (height: number) => verticalLayout(input(height, 25)).valueLabelRoom
 
-			const tilted = verticalLayout({ ...input(frameHeight, 25), tickRotation: true })
+			const tilted = verticalLayout({ ...input(frameHeight, 25), tickLayout: 'rotate' })
 
 			const titled = verticalLayout({ ...input(frameHeight, 25), bandTitle: 'Month' })
 
@@ -485,7 +542,7 @@ describe('verticalLayout label-room floor', () => {
 		for (let frameHeight = 60; frameHeight <= 300; frameHeight += 1) {
 			const plain = verticalLayout({ ...input(frameHeight, 25), times }).valueLabelRoom
 
-			const tilted = verticalLayout({ ...input(frameHeight, 25), times, tickRotation: true })
+			const tilted = verticalLayout({ ...input(frameHeight, 25), times, tickLayout: 'rotate' })
 
 			expect(tilted.valueLabelRoom).toBe(plain)
 		}

@@ -88,7 +88,7 @@ export const X_AXIS_HEIGHT = 24
 export const BAND_EDGE_PAD = 16
 
 /**
- * Degrees a category label tilts under {@link ChartCategoryAxis.tickRotation},
+ * Degrees a category label tilts under `'rotate'` ({@link ChartCategoryAxis.tickLayout}),
  * once it would otherwise be thinned. It is negative, so the label reads rising
  * left to right, its near end tucked under the tick.
  *
@@ -114,6 +114,15 @@ export const TICK_ROTATION_HEIGHT = 56
  * @internal
  */
 export const BAND_LABEL_HEIGHT = 16
+
+/**
+ * The most lines a category label takes under `'wrap'`
+ * ({@link ChartCategoryAxis.tickLayout}). A longer label ends its last line
+ * with an ellipsis.
+ *
+ * @internal
+ */
+export const TICK_WRAP_LINES = 3
 
 /**
  * Air above the plot so the top tick label and markers stay inside the frame.

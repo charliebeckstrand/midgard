@@ -6,7 +6,7 @@
  */
 
 import type { ChartAxisTick } from './chart-axes/axis'
-import type { ChartValueAxis, ChartValueAxisId } from './chart-axes/schema'
+import type { ChartCategoryAxis, ChartValueAxis, ChartValueAxisId } from './chart-axes/schema'
 import {
 	AXIS_TITLE_BAND,
 	AXIS_TITLE_GAP,
@@ -23,12 +23,13 @@ import {
 	TICK_CHAR_WIDTH,
 	TICK_ROTATION_ANGLE,
 	TICK_ROTATION_HEIGHT,
+	TICK_WRAP_LINES,
 	X_AXIS_HEIGHT,
 } from './chart-constants'
 import { hasIsolatedPoint } from './chart-geometry/line'
 import { bandExtent, type PlotRect, valueExtent } from './chart-orientation'
 import { type BandScale, bandScale, headroomFits, type ValueScale, valueScale } from './chart-scale'
-import type { TextWidth } from './chart-text-width'
+import { estimateTextWrap, type TextWidth } from './chart-text-width'
 import type { ChartBandAxisMode } from './chart-tier'
 import { timeTicks } from './chart-time'
 
@@ -130,9 +131,9 @@ export function plotRect(
  * label when there is room, else every nth (thinned by default). `slot` is one
  * label's footprint along the axis with a breath of air. The same math
  * therefore thins by row width (value on x) or by column height (categories
- * down y). A vertical chart opted into {@link ChartCategoryAxis.tickRotation}
- * tilts instead of thinning once the same fit check fails (see
- * {@link willThin}).
+ * down y). A vertical chart opted into `'rotate'` or `'wrap'`
+ * ({@link ChartCategoryAxis.tickLayout}) tilts or wraps instead of thinning
+ * once the same fit check fails (see {@link willThin}).
  *
  * @internal
  */
@@ -331,11 +332,11 @@ export type CartesianLayoutInput = {
 	 */
 	bandTitle?: string
 	/**
-	 * Tilt overflowing category labels instead of thinning them; the vertical
+	 * Thin, tilt, or wrap the category labels that collide flat; the vertical
 	 * layout's own concern, ignored by the horizontal one. See {@link
-	 * ChartCategoryAxis.tickRotation}.
+	 * ChartCategoryAxis.tickLayout}.
 	 */
-	tickRotation?: boolean
+	tickLayout?: ChartCategoryAxis['tickLayout']
 	/**
 	 * How the band axis presents at the frame's resolved tier:
 	 *
@@ -801,7 +802,7 @@ function hasLabelRoom(headroom: number | undefined, rangePx: number): boolean {
 function verticalLabelRoom(input: CartesianLayoutInput, flatRange: [number, number]): boolean {
 	if (!input.valueHeadroom) return true
 
-	const labelBand = input.tickRotation && !input.times ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT
+	const labelBand = input.times ? X_AXIS_HEIGHT : tallestBandLabels(input.tickLayout)
 
 	// A titled band adds its title band under the labels, eating the same value room.
 	const worstBand = labelBand + (input.bandTitle ? AXIS_TITLE_BAND : 0)
@@ -882,16 +883,107 @@ function buildValueAxes(input: CartesianLayoutInput, range: [number, number]): V
 	return { valueScale, value2Scale, valueTicks, value2Ticks }
 }
 
+/** The band height of one line of category labels: the gap under the plot and the label. @internal */
+function wrapHeight(lines: number): number {
+	return GUTTER_GAP + lines * BAND_LABEL_HEIGHT
+}
+
+/**
+ * The tallest band of category labels that a `tickLayout` can take, from the
+ * props alone: the value-label room reads it before the labels lay out.
+ *
+ * @internal
+ */
+function tallestBandLabels(tickLayout: ChartCategoryAxis['tickLayout']): number {
+	if (tickLayout === 'rotate') return TICK_ROTATION_HEIGHT
+
+	return tickLayout === 'wrap' ? wrapHeight(TICK_WRAP_LINES) : X_AXIS_HEIGHT
+}
+
+/** How the category labels of a vertical chart lay out, and the band height they take. @internal */
+type BandLabelLayout = {
+	tilt: boolean
+	/** The lines of each label, when the labels wrap. */
+	wrapped: string[][] | null
+	height: number
+}
+
+/** Flat labels on one line, thinned where they collide. @internal */
+const FLAT_LABELS: BandLabelLayout = { tilt: false, wrapped: null, height: X_AXIS_HEIGHT }
+
+/**
+ * Lays out the category labels of a vertical chart along a `span` of band
+ * axis. Labels that fit flat stay flat. Else `'rotate'` tilts them where a
+ * tilted label takes less room than a flat one, and `'wrap'` breaks each at
+ * its spaces to fit its band. A wrap that a word wider than its band defeats
+ * falls back to the flat thinned labels.
+ *
+ * The line breaks count characters at {@link TICK_CHAR_WIDTH}, as the fit check
+ * does, so the server and the browser reserve the same band height.
+ *
+ * @param slot - The room of the longest flat label along the axis.
+ * @internal
+ */
+function bandLabelLayout(
+	tickLayout: ChartCategoryAxis['tickLayout'],
+	categories: string[],
+	span: number,
+	slot: number,
+): BandLabelLayout {
+	if (tickLayout === undefined || tickLayout === 'thin') return FLAT_LABELS
+
+	if (!willThin(categories.length, span, slot)) return FLAT_LABELS
+
+	if (tickLayout === 'rotate') {
+		return slot > TILTED_LABEL_SLOT
+			? { tilt: true, wrapped: null, height: TICK_ROTATION_HEIGHT }
+			: FLAT_LABELS
+	}
+
+	const maxChars = Math.floor((span / categories.length - GUTTER_GAP) / TICK_CHAR_WIDTH)
+
+	const wrapped: string[][] = []
+
+	for (const label of categories) {
+		const lines = estimateTextWrap(label, maxChars, TICK_WRAP_LINES)
+
+		if (!lines) return FLAT_LABELS
+
+		wrapped.push(lines)
+	}
+
+	return {
+		tilt: false,
+		wrapped,
+		height: wrapHeight(wrapped.reduce((most, lines) => Math.max(most, lines.length), 1)),
+	}
+}
+
+/**
+ * The wrapped category labels at their band centers, one for each category,
+ * since each label fits its own band.
+ *
+ * @internal
+ */
+function wrappedBandTicks(wrapped: string[][], band: BandScale): ChartAxisTick[] {
+	return wrapped.map((lines, index) => ({
+		at: band.center(index),
+		label: lines.join(' '),
+		key: index,
+		lines,
+	}))
+}
+
 /**
  * The default layout: value on y with the scales filling the height above the
  * x-axis band, categories across x. The scales resolve from the frame height
  * first, so their tick labels can size the side gutters before the plot rect
  * exists. The right gutter appears only once a right scale resolves.
  *
- * Category labels that would collide at the flat band height either thin (the
- * default) or tilt, under {@link ChartCategoryAxis.tickRotation}. A tilt takes
- * the band-height decision, so the value scales resolve a second time against
- * the taller band once tilting wins.
+ * Category labels that would collide at the flat band height thin (the
+ * default), tilt, or wrap, under {@link ChartCategoryAxis.tickLayout}. A tilt or
+ * a wrap takes the band-height decision, so the value scales resolve a second
+ * time against the taller band once it wins.
  *
  * @internal
  */
@@ -954,22 +1046,23 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const slot = longest * TICK_CHAR_WIDTH + GUTTER_GAP
 
-	// Tilting only applies to a drawn, thinned band: an ends band shows just two
-	// labels, which never collide, and a dropped band has nothing to tilt. A time
-	// axis lines calendar ticks in place of the labels tickRotation tilts, so
-	// tilting would reserve the taller band for nothing: gate it out there too.
-	// A tilted label takes a fixed room along the axis, so a tilt keeps more
-	// labels only where a flat label takes more.
-	const canTilt = drawBand && bandMode === 'thinned' && Boolean(input.tickRotation) && !input.times
+	// A tilt or a wrap applies only to a drawn, thinned band: an ends band shows
+	// just two labels, which never collide, and a dropped band has nothing to lay
+	// out. A time axis lines calendar ticks in place of the labels, so it would
+	// reserve the taller band for nothing.
+	const labels =
+		drawBand && bandMode === 'thinned' && !input.times
+			? bandLabelLayout(input.tickLayout, categories, bandSpan(input, plotWidth), slot)
+			: FLAT_LABELS
 
-	const tilt =
-		canTilt && slot > TILTED_LABEL_SLOT && willThin(count, bandSpan(input, plotWidth), slot)
+	const { tilt, wrapped, height: labelHeight } = labels
 
-	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT + titleBand : flatHeight
+	const axisBandHeight = labelHeight === X_AXIS_HEIGHT ? flatHeight : labelHeight + titleBand
 
-	const { valueScale, value2Scale, valueTicks, value2Ticks } = tilt
-		? buildValueAxes(scaleInput, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
-		: flatAxes
+	const { valueScale, value2Scale, valueTicks, value2Ticks } =
+		axisBandHeight === flatHeight
+			? flatAxes
+			: buildValueAxes(scaleInput, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
 
 	const plot: PlotRect = {
 		x: leftGutter,
@@ -996,17 +1089,12 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		value2Baseline: getZero(value2Scale, valueScale, floor),
 		valueTicks,
 		value2Ticks,
-		bandTicks: bandAxisTicks(input, band, plot.width, slot, bandMode, tilt),
+		bandTicks: wrapped
+			? wrappedBandTicks(wrapped, band)
+			: bandAxisTicks(input, band, plot.width, slot, bandMode, tilt),
 		bandPositions: bandCenters(band, count),
 		...buildSnap(scales, count, input.visibleValues),
-		titles: verticalTitles(
-			input,
-			scales,
-			plot,
-			frameWidth,
-			bandTitle,
-			tilt ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT,
-		),
+		titles: verticalTitles(input, scales, plot, frameWidth, bandTitle, labelHeight),
 		valueLabelRoom,
 	}
 }

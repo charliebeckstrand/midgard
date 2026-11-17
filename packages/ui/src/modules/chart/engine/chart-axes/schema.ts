@@ -110,18 +110,26 @@ export type ChartCategoryAxis = {
 	/** A short title drawn along the band axis, naming what the categories enumerate. */
 	title?: string
 	/**
-	 * Tilt category labels that would otherwise collide, instead of thinning them
-	 * flat. A long tilted label takes less room along the axis than a flat one,
-	 * so more of the labels draw. Short labels that take less room flat stay
-	 * flat. Where the bands are narrower than a tilted label needs, the tilted
-	 * run also thins to every nth, so no two labels overlap. Off by default, so
-	 * an unset axis keeps thinning flat.
+	 * Lay out category labels that would collide flat:
+	 *
+	 * - `'thin'` keeps every nth label, so no two labels overlap.
+	 * - `'rotate'` tilts the labels. A long tilted label takes less room along
+	 *   the axis than a flat one, so more of the labels draw. Short labels that
+	 *   take less room flat stay flat. Where the bands are narrower than a
+	 *   tilted label needs, the tilted run also thins to every nth.
+	 * - `'wrap'` breaks each label at its spaces onto at most three lines inside
+	 *   its band, so every label draws flat. A longer label ends its last line
+	 *   with an ellipsis, and the tooltip and the data table read it in full. A
+	 *   word wider than its band cannot wrap, so the axis thins instead.
+	 *
+	 * Labels that fit flat stay flat and whole.
 	 * @remarks Vertical orientation only: under `orientation="horizontal"`
 	 * category labels already run down the gutter and read straight, so this has
-	 * no effect there.
-	 * @defaultValue false
+	 * no effect there. A `type: 'time'` axis draws its own calendar ticks, so it
+	 * has no effect there either.
+	 * @defaultValue 'thin'
 	 */
-	tickRotation?: boolean
+	tickLayout?: 'thin' | 'rotate' | 'wrap'
 }
 
 /**
