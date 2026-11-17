@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { commands, userEvent } from 'vitest/browser'
+import { userEvent } from 'vitest/browser'
 import { Button } from '../../components/button'
 import { CommandPalette, CommandPaletteItem } from '../../components/command-palette'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
@@ -108,10 +108,17 @@ describe('roved row wash in a glass parent (real browser)', () => {
 		expect(readWash(row)).toBeCloseTo(GLASS_ACTIVE_HOVER, 3)
 	})
 
+	// The pointer that leaves the menu takes the cursor with it, so the pointer
+	// leaves the row for the padding of the panel. The row then keeps the
+	// cursor with no hover wash under it.
 	it('deepens a roved menu row to the glass step after the pointer leaves it', async () => {
 		const row = await rovedMenuRow(true)
 
-		await commands.parkPointer()
+		const panel = screen.getByRole('menu', { name: 'Actions' })
+
+		await userEvent.hover(panel, { position: { x: panel.clientWidth / 2, y: 1 } })
+
+		expect(row.matches(':hover')).toBe(false)
 
 		expect(row).toHaveAttribute('data-active')
 
