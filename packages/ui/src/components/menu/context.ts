@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties, KeyboardEvent, RefObject } from 'react'
+import type { CSSProperties, KeyboardEvent, PointerEvent, RefObject } from 'react'
 import { createContext } from '../../core/create-context'
 import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/menu'
@@ -128,6 +128,11 @@ export type MenuPointerValue = {
 	 * closes hands the cursor back to its parent row through this.
 	 */
 	moveCursor: (row: HTMLElement) => void
+	/**
+	 * The `pointerleave` handler of the viewport that holds the rows of the
+	 * level. It removes the roving cursor, unless a submenu is open.
+	 */
+	leave: (event: PointerEvent<HTMLElement>) => void
 	/**
 	 * Registers `subKey`'s floating panel, whose rect is the corridor
 	 * ({@link inCorridor}) a traveling pointer is measured against. Called with

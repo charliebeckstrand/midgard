@@ -22,6 +22,7 @@ import {
 import { MenuPointerLevel } from '../../components/menu/menu-pointer-level'
 import { MenuViewport } from '../../components/menu/menu-viewport'
 import {
+	act,
 	bySlot,
 	fireEvent,
 	getSlot,
@@ -1065,9 +1066,11 @@ describe('MenuViewport', () => {
 	const viewportFor = (capped: boolean, ref?: Ref<HTMLDivElement>) => {
 		const { container, unmount } = renderUI(
 			<MenuCappedContext value={capped}>
-				<MenuViewport ref={ref}>
-					<span>Item</span>
-				</MenuViewport>
+				<MenuPointerLevel>
+					<MenuViewport ref={ref}>
+						<span>Item</span>
+					</MenuViewport>
+				</MenuPointerLevel>
 			</MenuCappedContext>,
 		)
 
@@ -1258,6 +1261,162 @@ describe('MenuSub', () => {
 		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
 
 		expect(screen.getByRole('menuitem', { name: 'Nested' })).toHaveFocus()
+	})
+})
+
+// The pointer that leaves the rows of a menu takes the roving cursor with it. The next
+// arrow key then starts again at the first row, as at a pointer open.
+describe('Menu pointer leave', () => {
+	const mouse = { pointerType: 'mouse' }
+
+	/** The rows `First` and `Second`, and a submenu row `More` that holds `Nested`. */
+	const rows = (
+		<>
+			<MenuItem>First</MenuItem>
+			<MenuItem>Second</MenuItem>
+			<MenuSub label="More">
+				<MenuItem>Nested</MenuItem>
+			</MenuSub>
+		</>
+	)
+
+	const row = (name: string | RegExp) => screen.getByRole('menuitem', { name })
+
+	/** Opens a dropdown with {@link rows} by a pointer click, and gives its trigger. */
+	function openDropdown() {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>{rows}</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		fireEvent.click(trigger, { detail: 1 })
+
+		return trigger
+	}
+
+	/** Opens a context menu or a static menu with {@link rows}. */
+	function openFocusMenu(model: 'context' | 'static') {
+		const { container } = renderUI(
+			<Menu defaultOpen={model === 'static'}>
+				<MenuContent aria-label="Actions">{rows}</MenuContent>
+			</Menu>,
+		)
+
+		if (model === 'context') fireEvent.contextMenu(getSlot(container, 'menu'))
+	}
+
+	/** The viewport that holds the rows of `panel`, whose leave the level reads. */
+	const getRows = (panel: HTMLElement) => getSlot(panel, 'menu-viewport')
+
+	/** The panel of the menu, before the panel of its submenu in the order of the document. */
+	const rootPanel = () => screen.getAllByRole('menu')[0] as HTMLElement
+
+	// The jsdom mocks give the dropdown no floating element to rove, so the
+	// browser suite presses the next arrow key (`menu-pointer-leave.test.tsx`).
+	it('clears the active row of a dropdown, and focus stays on the trigger', () => {
+		const trigger = openDropdown()
+
+		fireEvent.pointerMove(row('Second'), mouse)
+
+		expect(row('Second')).toHaveAttribute('data-active')
+
+		expect(trigger).toHaveAttribute('aria-activedescendant', row('Second').id)
+
+		fireEvent.pointerLeave(getRows(rootPanel()), mouse)
+
+		expect(rootPanel().querySelector('[data-active]')).toBeNull()
+
+		expect(trigger).not.toHaveAttribute('aria-activedescendant')
+
+		expect(trigger).toHaveFocus()
+	})
+
+	it.each(['context', 'static'] as const)(
+		'moves focus from the row to the panel of a %s menu, and the next ArrowDown starts at the first row',
+		(model) => {
+			openFocusMenu(model)
+
+			fireEvent.pointerMove(row('Second'), mouse)
+
+			expect(row('Second')).toHaveFocus()
+
+			fireEvent.pointerLeave(getRows(rootPanel()), mouse)
+
+			expect(rootPanel()).toHaveFocus()
+
+			fireEvent.keyDown(rootPanel(), { key: 'ArrowDown' })
+
+			expect(row('First')).toHaveFocus()
+		},
+	)
+
+	// A tap fires `pointerleave` after it lifts. Touch has no hover to clear.
+	it('keeps the cursor on a touch leave', () => {
+		openFocusMenu('context')
+
+		act(() => row('Second').focus())
+
+		fireEvent.pointerLeave(getRows(rootPanel()), { pointerType: 'touch' })
+
+		expect(row('Second')).toHaveFocus()
+	})
+
+	// The pointer crosses the gap between the two panels on its way into the
+	// submenu. The parent row keeps the cursor, and its submenu stays open.
+	it('keeps the cursor on the parent row of an open submenu', () => {
+		openFocusMenu('context')
+
+		fireEvent.pointerMove(row(/More/), mouse)
+
+		expect(row(/More/)).toHaveAttribute('aria-expanded', 'true')
+
+		fireEvent.pointerLeave(getRows(rootPanel()), mouse)
+
+		expect(row(/More/)).toHaveFocus()
+
+		expect(row(/More/)).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('keeps the active parent row of a dropdown with an open submenu', () => {
+		const trigger = openDropdown()
+
+		fireEvent.pointerMove(row(/More/), mouse)
+
+		fireEvent.pointerLeave(getRows(rootPanel()), mouse)
+
+		expect(row(/More/)).toHaveAttribute('data-active')
+
+		expect(trigger).toHaveAttribute('aria-activedescendant', row(/More/).id)
+	})
+
+	// The submenu panel is a level of its own, so its leave clears its own rows
+	// and leaves the submenu open on its parent row.
+	it('moves focus from a submenu row to the submenu panel, and the submenu stays open', () => {
+		openFocusMenu('context')
+
+		fireEvent.pointerMove(row(/More/), mouse)
+
+		fireEvent.pointerMove(row('Nested'), mouse)
+
+		expect(row('Nested')).toHaveFocus()
+
+		const submenu = screen.getByRole('menu', { name: /More/ })
+
+		fireEvent.pointerLeave(getRows(submenu), mouse)
+
+		expect(submenu).toHaveFocus()
+
+		expect(row(/More/)).toHaveAttribute('aria-expanded', 'true')
+
+		fireEvent.keyDown(submenu, { key: 'ArrowDown' })
+
+		expect(row('Nested')).toHaveFocus()
 	})
 })
 

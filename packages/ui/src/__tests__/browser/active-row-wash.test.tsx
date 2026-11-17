@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { commands, userEvent } from 'vitest/browser'
+import { userEvent } from 'vitest/browser'
 import { Button } from '../../components/button'
 import { CommandPalette, CommandPaletteItem } from '../../components/command-palette'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
 import { GlassSurfacesContext } from '../../providers/glass/context'
-import { noop, renderUI, screen, waitFor } from '../helpers'
+import { getSlot, noop, renderUI, screen, waitFor } from '../helpers'
 import { emulateForcedColors, systemColor } from './helpers/forced-colors'
 
 /**
@@ -77,6 +77,7 @@ const rovedMenuRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElement
 			</MenuTrigger>
 			<MenuContent aria-label="Actions">
 				<MenuItem>Alpha</MenuItem>
+				<MenuItem>Beta</MenuItem>
 			</MenuContent>
 		</Menu>,
 		{ glass },
@@ -108,10 +109,22 @@ describe('roved row wash in a glass parent (real browser)', () => {
 		expect(readWash(row)).toBeCloseTo(GLASS_ACTIVE_HOVER, 3)
 	})
 
+	// The pointer that leaves the rows takes the cursor with it, so the pointer
+	// moves from the row to the gap below it, which is still among the rows.
+	// The row then keeps the cursor with no hover wash under it.
 	it('deepens a roved menu row to the glass step after the pointer leaves it', async () => {
 		const row = await rovedMenuRow(true)
 
-		await commands.parkPointer()
+		const rows = getSlot(screen.getByRole('menu', { name: 'Actions' }), 'menu-viewport')
+
+		await userEvent.hover(rows, {
+			position: {
+				x: rows.clientWidth / 2,
+				y: row.offsetTop - rows.offsetTop + row.offsetHeight + 1,
+			},
+		})
+
+		expect(row.matches(':hover')).toBe(false)
 
 		expect(row).toHaveAttribute('data-active')
 
