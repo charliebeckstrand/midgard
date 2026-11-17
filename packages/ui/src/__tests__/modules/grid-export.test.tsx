@@ -392,6 +392,8 @@ describe('Grid export', () => {
 		expect(text).toContain('Bob,Designer')
 
 		expect(download.click).toHaveBeenCalledTimes(1)
+
+		expect(download.filename()).toBe('grid.csv')
 	})
 
 	it('loads the Excel serializer, then downloads the workbook', async () => {
@@ -410,6 +412,62 @@ describe('Grid export', () => {
 		)
 
 		expect(download.click).toHaveBeenCalledTimes(1)
+
+		expect(download.filename()).toBe('grid.xlsx')
+	})
+
+	it("names each built-in download with its entry's filename", async () => {
+		const download = captureDownload()
+
+		renderUI(
+			<Grid
+				exportable={[{ csv: { filename: 'top-lanes.csv' }, excel: { filename: 'top-lanes.xlsx' } }]}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		rightClickHeader('Name')
+
+		openExportSubmenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		expect(download.filename(0)).toBe('top-lanes.csv')
+
+		rightClickHeader('Name')
+
+		openExportSubmenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to Excel' }))
+
+		await waitFor(() => expect(download.click).toHaveBeenCalledTimes(2))
+
+		expect(download.filename(1)).toBe('top-lanes.xlsx')
+	})
+
+	it('lets an onExport override write its own file over a filename', () => {
+		const download = captureDownload()
+
+		const onExport = vi.fn()
+
+		renderUI(
+			<Grid
+				exportable={[{ csv: { filename: 'top-lanes.csv', onExport } }]}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		expect(onExport).toHaveBeenCalledTimes(1)
+
+		expect(download.click).not.toHaveBeenCalled()
 	})
 
 	it('downloads the rows from the toolbar Export dropdown', async () => {

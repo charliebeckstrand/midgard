@@ -1050,7 +1050,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *   overrides a type's behavior. A bare type (`'csv'`) runs its built-in
 	 *   exporter. An object entry (`{ csv: { onExport } }`) replaces it, and is
 	 *   required for any type beyond the three built-ins, which have no default to
-	 *   fall back to.
+	 *   fall back to. An object entry also names the file of a built-in download:
+	 *   `{ excel: { filename: 'top-lanes.xlsx' } }`.
 	 * - A {@link GridExportConfig} names those same types under `types` *and* the
 	 *   surfaces they appear on.
 	 * - `false` disables export outright.

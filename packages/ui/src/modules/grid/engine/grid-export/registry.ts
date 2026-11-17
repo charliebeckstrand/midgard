@@ -4,6 +4,16 @@ import { rowsToCsv } from './csv'
 import { printRows } from './print'
 import type { GridExportContext, GridExportType } from './types'
 
+/**
+ * A built-in exporter. It takes the rows to export and the
+ * {@link GridExportTypeConfig.filename} of its entry. An exporter that
+ * downloads no file ignores the name.
+ */
+type BuiltinExporter = <T>(
+	context: GridExportContext<T>,
+	filename: string | undefined,
+) => void | Promise<void>
+
 /** The default `exportable` set for the boolean shorthand (`exportable={true}`). @internal */
 export const DEFAULT_EXPORT_TYPES: GridExportType[] = ['csv', 'excel', 'print']
 
@@ -34,10 +44,13 @@ export const BUILTIN_EXPORT_LABEL = {
  *
  * @internal
  */
-async function exportExcel<T>(context: GridExportContext<T>): Promise<void> {
+async function exportExcel<T>(
+	context: GridExportContext<T>,
+	filename = 'grid.xlsx',
+): Promise<void> {
 	const excel = await import('./excel')
 
-	excel.downloadExcel('grid.xlsx', await excel.rowsToXlsxInSteps(context.columns, context.rows))
+	excel.downloadExcel(filename, await excel.rowsToXlsxInSteps(context.columns, context.rows))
 }
 
 /**
@@ -51,11 +64,9 @@ async function exportExcel<T>(context: GridExportContext<T>): Promise<void> {
  *
  * @internal
  */
-export const BUILTIN_EXPORTERS: Record<
-	'csv' | 'excel' | 'print',
-	<T>(context: GridExportContext<T>) => void | Promise<void>
-> = {
-	csv: (context) => downloadCsv('grid.csv', rowsToCsv(context.columns, context.rows)),
+export const BUILTIN_EXPORTERS: Record<'csv' | 'excel' | 'print', BuiltinExporter> = {
+	csv: (context, filename = 'grid.csv') =>
+		downloadCsv(filename, rowsToCsv(context.columns, context.rows)),
 	excel: exportExcel,
 	print: (context) => printRows(context.columns, context.rows),
 }

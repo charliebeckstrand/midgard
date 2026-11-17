@@ -21,6 +21,7 @@ import type {
 	GridExportEntry,
 	GridExportRows,
 	GridExportType,
+	GridExportTypeConfig,
 } from './types'
 
 /**
@@ -72,6 +73,25 @@ function isBuiltinType(type: GridExportType): type is keyof typeof BUILTIN_EXPOR
 }
 
 /**
+ * The exporter of `type`: the `onExport` of its config, else the built-in
+ * exporter with the `filename` of its config, else `undefined`.
+ *
+ * @internal
+ */
+function getExporter<T>(
+	type: GridExportType,
+	config: GridExportTypeConfig<T> | undefined,
+): ((context: GridExportContext<T>) => void | Promise<void>) | undefined {
+	if (config?.onExport) return config.onExport
+
+	if (!isBuiltinType(type)) return undefined
+
+	const builtin = BUILTIN_EXPORTERS[type]
+
+	return (context) => builtin(context, config?.filename)
+}
+
+/**
  * Builds one action for `type`, or `null` when it names neither a built-in type
  * nor an `onExport`. That case logs a dev-only warning, since a right-click
  * menu or toolbar button is the wrong place to surface a config mistake.
@@ -81,12 +101,10 @@ function isBuiltinType(type: GridExportType): type is keyof typeof BUILTIN_EXPOR
 function buildAction<T>(
 	intl: IntlShape,
 	type: GridExportType,
-	onExport: ((context: GridExportContext<T>) => void) | undefined,
+	config: GridExportTypeConfig<T> | undefined,
 	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
 ): GridExportAction | null {
-	const builtin = isBuiltinType(type) ? BUILTIN_EXPORTERS[type] : undefined
-
-	const exporter = onExport ?? builtin
+	const exporter = getExporter(type, config)
 
 	if (!exporter) {
 		if (process.env.NODE_ENV !== 'production') {
@@ -147,7 +165,7 @@ function resolveEntry<T>(
 	}
 
 	return (Object.keys(entry) as GridExportType[]).flatMap((type) => {
-		const action = buildAction(intl, type, entry[type]?.onExport, getContext)
+		const action = buildAction(intl, type, entry[type], getContext)
 
 		return action ? [action] : []
 	})

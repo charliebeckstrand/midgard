@@ -14,6 +14,12 @@ export type CapturedDownload = {
 	 * @throws If that call did not happen, or carried no blob.
 	 */
 	blob: (index?: number) => Blob
+	/**
+	 * The name of the file that click `index` of the anchor downloads.
+	 *
+	 * @throws If that click did not happen.
+	 */
+	filename: (index?: number) => string
 }
 
 /**
@@ -27,14 +33,14 @@ export type CapturedDownload = {
  * files, so the mock stays for every file after it. A later `vi.spyOn` of that
  * member returns the leaked mock itself, so nothing restores it either.
  *
- * {@link CapturedDownload.blob} throws at a missing call and names the count. A
- * read through `mock.calls[0]?.[0] as Blob` puts that miss at the next member
- * access, as a `TypeError` on `undefined`.
+ * {@link CapturedDownload.blob} and {@link CapturedDownload.filename} throw at a
+ * missing call and name the count. A read through `mock.calls[0]?.[0] as Blob`
+ * puts that miss at the next member access, as a `TypeError` on `undefined`.
  *
  * Not re-exported from `helpers/index.ts`: few suites use it, and most test
  * files load that barrel.
  *
- * @returns The spies, and a reader for the blobs.
+ * @returns The spies, and the readers for the blobs and the file names.
  *
  * @example
  * ```typescript
@@ -66,6 +72,17 @@ export function captureDownload(): CapturedDownload {
 			}
 
 			return object
+		},
+		filename: (index = 0) => {
+			const anchor = click.mock.contexts[index]
+
+			if (!(anchor instanceof HTMLAnchorElement)) {
+				throw new Error(
+					`captureDownload: click ${index} did not happen; it ran ${click.mock.calls.length} times`,
+				)
+			}
+
+			return anchor.download
 		},
 	}
 }
