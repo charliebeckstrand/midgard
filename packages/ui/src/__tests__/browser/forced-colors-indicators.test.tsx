@@ -34,7 +34,7 @@ import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Timeline, TimelineItem, TimelineTitle } from '../../components/timeline'
 import { Tree, TreeItem } from '../../components/tree'
-import { HeatmapChart } from '../../modules/chart'
+import { HeatmapChart, LineChart } from '../../modules/chart'
 import { ChatList, ChatListItem } from '../../modules/chat'
 import { Dashboard, DashboardTile } from '../../modules/dashboard'
 import { Grid, type GridColumn } from '../../modules/grid'
@@ -226,6 +226,23 @@ const focusMarks = {
 	slider: {
 		ui: <Slider aria-label="Volume" value={10} />,
 		mark: (focused: Element) => focused,
+	},
+	// The focus ring of the chart plot is a box-shadow on its `::after`, over the
+	// drawing (`focus.overlay`). The `::after` draws the outline too.
+	'chart plot': {
+		ui: (
+			<LineChart
+				aria-label="Signups"
+				data={[
+					{ week: 'W1', a: 1 },
+					{ week: 'W2', a: 3 },
+				]}
+				series={[{ xKey: 'week', yKey: 'a', yName: 'A' }]}
+				width={400}
+			/>
+		),
+		mark: (focused: Element) => focused.closest('[data-slot="chart-plot"]'),
+		pseudo: '::after',
 	},
 	// The focus ring of the control frame is a box-shadow on its `::after`. The
 	// `::after` draws the outline too.
