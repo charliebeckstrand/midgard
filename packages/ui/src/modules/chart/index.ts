@@ -15,7 +15,7 @@ export type {
 	ChartValueAxisId,
 	ScatterAxes,
 } from './engine/chart-axes/schema'
-export type { ChartSeriesColor } from './engine/chart-color/palette'
+export { type ChartSeriesColor, seriesColor } from './engine/chart-color/palette'
 export type {
 	ChartContextMenuConfig,
 	ChartContextMenuTarget,

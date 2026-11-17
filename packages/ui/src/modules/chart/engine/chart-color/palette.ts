@@ -61,12 +61,24 @@ export function categorySlots(
 }
 
 /**
- * Resolves a series' color: its explicit `color` (a palette slot or a raw CSS
- * color) else its slot in the fixed categorical order.
+ * The color that a cartesian or scatter chart draws a series in: the explicit
+ * `color` of the series, else the palette slot at `index` in the fixed
+ * categorical order. The order wraps past the eighth series.
  *
- * @internal
+ * Use it to color an annotation like the series that it names, such as a
+ * reference line beside its series. The result is a chart color: give it to
+ * a `color` prop of a chart. A slot name such as `'green'` has no meaning
+ * outside the chart.
+ *
+ * @param series - The series, or any object with its `color`.
+ * @param index - The place of the series in the `series` prop. A legend toggle
+ * does not change it.
+ * @returns The palette slot or the raw CSS color that the chart paints.
  */
-function seriesColor(series: Pick<ChartSeries<unknown>, 'color'>, index: number): ChartSeriesColor {
+export function seriesColor(
+	series: Pick<ChartSeries<unknown>, 'color'>,
+	index: number,
+): ChartSeriesColor {
 	return series.color ?? paletteSlot(index)
 }
 
