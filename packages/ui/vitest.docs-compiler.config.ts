@@ -8,6 +8,6 @@ import docs from './vitest.docs.config.ts'
 // of the run reaches this project too, because a project with no cache path of
 // its own uses the cache path of the root config.
 export default mergeConfig(docs, {
-	plugins: [compileUiSource('__tests__')],
+	plugins: [compileUiSource()],
 	test: { env: { REACT_COMPILER: '1' } },
 })

@@ -36,7 +36,7 @@ const plain = {
 }
 
 export default mergeConfig(plain, {
-	plugins: [compileUiSource('__tests__')],
+	plugins: [compileUiSource()],
 	test: {
 		// `grid-compiler.test.ts` reads this to tell the two runs apart.
 		env: { REACT_COMPILER: '1' },

@@ -157,9 +157,9 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: node_modules/.vitest-cache
-          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'vitest.shared.mts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts') }}-
+            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'vitest.shared.mts') }}-
       - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
       # The other packages have few test files, and a shard of them can be
       # empty. The second shard runs them whole, with `test:workspace` below,
@@ -384,9 +384,9 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: node_modules/.vitest-cache-compiler-*
-          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/vitest.compiler.preset.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/vitest.compiler.preset.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts', 'vitest.shared.mts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/vitest.compiler.preset.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts') }}-
+            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/vitest.compiler.preset.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts', 'vitest.shared.mts') }}-
       # Filtered to `ui`, the one package with the task. Unfiltered, turbo runs
       # the `^build` of each package without it, and builds for nothing.
       - run: pnpm turbo run test:compiler --filter=ui --summarize -- --shard=${{ matrix.shard }}/2

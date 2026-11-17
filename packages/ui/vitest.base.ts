@@ -1,10 +1,14 @@
 /**
  * The test settings that the jsdom run (`vitest.config.ts`) and the browser
  * run (`vitest.browser.config.ts`) share.
+ *
+ * The settings that each suite of the repository shares come from
+ * `vitest.shared.mts` at the root: the CI flag, the cleanup, the assertion
+ * rule, the budgets, and the time zone. In ui, the setup files also restore
+ * after each test (`helpers/restore-test-state.ts`), because the shuffle gives
+ * a leak to whichever file runs next on a shared worker.
  */
-
-/** Whether the run is on CI, where the budgets scale up. */
-export const CI = Boolean(process.env.CI)
+export { assertions, budgets, CI, cleanup, env } from '../../vitest.shared.mts'
 
 const SEED = process.env.VITEST_SEED
 
@@ -20,46 +24,3 @@ if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
  * `vitest.config.ts`).
  */
 export const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) }
-
-/**
- * The cleanup before each test. A `vi.spyOn`, a `vi.stubGlobal`, or a
- * `vi.stubEnv` otherwise outlives its test, and the shuffle gives the leak to
- * whichever test runs next.
- *
- * - `restoreMocks` reverts each `vi.spyOn` spy. It does not touch a plain
- *   `vi.fn()`, so the stubs of the setup files stay.
- * - `clearMocks` drops the call history of each mock, so a shared mock (motion,
- *   shiki, floating-ui) carries no count into the next test. It keeps the
- *   implementation. `mockReset` would remove the implementations of the shared
- *   mocks, so the runs do not set it.
- * - `unstubGlobals` and `unstubEnvs` revert `vi.stubGlobal` and `vi.stubEnv`.
- *
- * Each runs before `beforeEach`, so a hook or a test body applies its setup
- * again with no change. The setup files also restore after each test
- * (`helpers/restore-test-state.ts`), so a test file restores nothing itself.
- */
-export const cleanup = {
-	restoreMocks: true,
-	clearMocks: true,
-	unstubGlobals: true,
-	unstubEnvs: true,
-} as const
-
-/**
- * A test that makes no assertion fails. Its body ran, but nothing checked the
- * result, so the pass says nothing. A type assertion (`expectTypeOf`) does not
- * count, because it does nothing at run time: the type cases live in
- * `*.test-d.ts` files, which `check-types` reads and Vitest does not run.
- */
-export const assertions = { requireAssertions: true } as const
-
-/**
- * The source that coverage measures. The jsdom run and the browser run each
- * write a report over this scope, and `scripts/merge-coverage.ts` merges the
- * two. A file that only the browser suite tests then counts as covered.
- */
-export const coverageScope = {
-	provider: 'v8' as const,
-	include: ['src/**/*.{ts,tsx}'],
-	exclude: ['src/__tests__/**', 'src/__benchmarks__/**', 'src/docs/**', 'src/index.ts'],
-}

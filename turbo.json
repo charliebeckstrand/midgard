@@ -55,7 +55,9 @@
 				"src/docs/dist/**",
 				"src/__tests__/docs-build/**",
 				"scripts/docs-server.ts",
-				"vitest.docs-build.config.ts"
+				"vitest.docs-build.config.ts",
+				"vitest.base.ts",
+				"$TURBO_ROOT$/vitest.shared.mts"
 			]
 		},
 		"docs:bench": {
@@ -103,6 +105,8 @@
 			"inputs": [
 				"src/**",
 				"vitest.bench.config.ts",
+				"vitest.base.ts",
+				"$TURBO_ROOT$/vitest.shared.mts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			]
@@ -115,6 +119,7 @@
 				"vitest.bench.browser.config.ts",
 				"vitest.browser.config.ts",
 				"vitest.base.ts",
+				"$TURBO_ROOT$/vitest.shared.mts",
 				"tailwind.css",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"

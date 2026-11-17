@@ -7,7 +7,7 @@ import {
 	docsTestDir,
 	walkSource,
 } from './src/__tests__/helpers/walk-source.ts'
-import { assertions, CI, cleanup, coverageScope, sequence } from './vitest.base.ts'
+import { assertions, budgets, CI, cleanup, env, sequence } from './vitest.base.ts'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` and `docs` exclude them. The scan skips
@@ -187,29 +187,19 @@ export const projectDefaults = {
 	// to those packages starts a cold cache. Vitest 5 turns the cache on by
 	// default. The option stays here because the cache of CI depends on it.
 	fsModuleCache: true,
-	// Machine speed must change when a test passes, never whether it passes:
-	// CI agents are slower and noisier than dev machines, so wall-clock
-	// budgets scale up there. asyncUtilTimeout is RTL's waitFor/findBy budget,
-	// injected by src/__tests__/setup/index.ts; it stays well below
-	// testTimeout so a stuck wait fails as an RTL timeout carrying the
-	// callback's last error, not an opaque test timeout.
-	testTimeout: CI ? 15_000 : 5_000,
+	// The budgets of `vitest.shared.mts`, which `src/__tests__/setup/index.ts`
+	// gives to Testing Library. The hooks of ui get a longer budget on CI too.
+	...budgets,
 	hookTimeout: CI ? 15_000 : 10_000,
-	provide: { asyncUtilTimeout: CI ? 4_000 : 1_000 },
-	// Date/calendar tests construct local-time dates (`new Date(y, m, d)`);
-	// pin the zone so every machine renders the same wall-clock day. The
-	// runtime *locale* cannot be pinned here: Node resolves ICU's default at
-	// process start and `test.env` lands inside the worker afterwards, so it
-	// would read as set and change nothing. The `test` scripts export `LANG`
-	// ahead of Node instead.
-	env: { TZ: 'UTC' },
+	// The pinned zone of `vitest.shared.mts`.
+	env,
 	// Vitest processes no CSS, and it gives each CSS import an empty module.
 	// An import with `?url` does not want the CSS but its URL, so it goes to
 	// Vite, which gives the path of the file, as the dev server does. Without
 	// it, the docs shell (`app/root.tsx`) renders its stylesheet link with an
 	// empty `href`, and React warns.
 	css: { include: [/\.css\?url$/] },
-	// See `vitest.base.ts`. `resetModules` is barred too; see the unit project
+	// See `vitest.shared.mts`. `resetModules` is barred too; see the unit project
 	// below.
 	...cleanup,
 }
@@ -395,8 +385,6 @@ export default defineConfig({
 		outputFile: {
 			junit: 'test-results/junit.xml',
 		},
-		// `test:coverage` merges this report with the report of the browser run.
-		coverage: { ...coverageScope, reporter: ['text', 'cobertura'] },
 		projects: [
 			...projects.map((project, groupOrder) => ({
 				...project,

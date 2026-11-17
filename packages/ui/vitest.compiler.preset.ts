@@ -1,11 +1,18 @@
 import babel from '@rolldown/plugin-babel'
 import reactCompiler from 'babel-plugin-react-compiler'
 
-/** The folder of each harness under `src`, as a path segment. */
-const HARNESS = {
-	__tests__: /[\\/]__tests__[\\/]/,
-	__benchmarks__: /[\\/]__benchmarks__[\\/]/,
-}
+/**
+ * The `ui` source, `src`. A file outside it is not `ui` source: for example a
+ * config of the package, or the `vitest.shared.mts` of the repository root,
+ * which a test imports through `vitest.base.ts`. Vite gives each module id
+ * with forward slashes, on Windows too.
+ */
+const SOURCE_DIR = `${import.meta.dirname.replaceAll('\\', '/')}/src/`
+
+const SOURCE = new RegExp(`^${SOURCE_DIR.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+
+/** The test harness, `src/__tests__`, as a path segment. */
+const HARNESS = /[\\/]__tests__[\\/]/
 
 /**
  * The docs site, `src/docs`. An app does not import it, and the skip gate
@@ -16,31 +23,25 @@ const DOCS = /[\\/]src[\\/]docs[\\/]/
 
 /**
  * The React Compiler over the `ui` source, for the compiled test run
- * (`vitest.compiler.config.ts`) and the compiled bench run
- * (`vitest.bench.browser.compiler.config.ts`). An app with `reactCompiler: true`
- * compiles the `ui` source that it imports, and each run compiles it the same
- * way.
+ * (`vitest.compiler.config.ts`). An app with `reactCompiler: true` compiles the
+ * `ui` source that it imports, and the run compiles it the same way.
  *
- * The compiler reads the `ui` source only. The harness of the run, the tests or
- * the benchmarks, stays plain, and so do the docs site and the dependencies in
- * `node_modules`. So the plain run and the compiled run of one suite differ
- * only in the `ui` source.
+ * The compiler reads the `ui` source only. The tests stay plain, and so do the
+ * docs site, the files outside `src`, and the dependencies. So the plain run
+ * and the compiled run differ only in the `ui` source.
  *
  * The preset is written out rather than taken from `reactCompilerPreset`. That
  * helper applies only to the client environment, and the `pure` project runs in
  * node.
- *
- * @param harness - The folder of the harness under `src`: `__tests__` or
- * `__benchmarks__`.
  */
-export function compileUiSource(harness: keyof typeof HARNESS) {
+export function compileUiSource() {
 	return babel({
 		presets: [
 			{
 				preset: () => ({ plugins: [[reactCompiler, {}]] }),
 				rolldown: {
 					filter: {
-						id: { exclude: [HARNESS[harness], DOCS, /[\\/]node_modules[\\/]/] },
+						id: { include: SOURCE, exclude: [HARNESS, DOCS] },
 						// A module with no capitalized name and no `use` call holds no
 						// component or hook, so Babel skips it.
 						code: /\b[A-Z]|\buse/,
