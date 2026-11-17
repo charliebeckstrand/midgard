@@ -115,9 +115,10 @@ two bars have no paint, so the slots scroll between them on the page
 background. A border spans the bottom of the top bar and the top of the bottom
 bar, and the slots have 1rem of space inside the borders. Each bar has 1rem of
 space at each side and 0.5rem above and below, and the drawn number and the
-score are flush with the slots. A win or a tie tints the score cells, and gives
-them padding. A solo win, on a seed or on the daily puzzle, makes the score
-green with a check. A solo bust makes it amber, as a tie against the CPU does.
+score are flush with the slots. At the end of a run, the score number is green
+for a win, and amber for a tie or a loss. The score has no fill and no padding.
+A solo win, on a seed or on the daily puzzle, makes the score green with a
+check. A solo bust makes it amber.
 
 An action can turn off the button that the reader pressed. The focus then
 moves to the first slot that can take the number, or else to Draw, or else to
@@ -175,8 +176,8 @@ At Easy and Hard, the label of the CPU names its level, such as "CPU (Hard)",
 so a screenshot shows the level. At Normal, the label is "CPU". The bar shows
 also with Show score off, because it names the columns and gives the result.
 When one side wins, each label gets a check before it: the score and the check
-of the winner are green, and the check of the loser is grey. A tie makes both
-scores amber, with no check. A screen reader hears the result at the end.
+of the winner are green, the score of the loser is amber, and its check is
+grey. A tie makes both scores amber, with no check. A screen reader hears the result at the end.
 
 ## Sign-in
 

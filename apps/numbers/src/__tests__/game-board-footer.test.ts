@@ -51,6 +51,9 @@ describe('GameBoardFooter', () => {
 
 		expect(screen.getByText('CPU (Easy)')).toBeTruthy()
 		expect(screen.getAllByRole('img', { name: 'Winner' })).toHaveLength(1)
+		// The score of the winner is green, and the score of the loser is amber.
+		expect(document.querySelectorAll('.text-green-700')).toHaveLength(1)
+		expect(document.querySelectorAll('.text-amber-700')).toHaveLength(1)
 		expect(document.querySelectorAll('.lucide-circle-check')).toHaveLength(2)
 	})
 
@@ -81,7 +84,7 @@ describe('GameBoardFooter', () => {
 			{ wrapper },
 		)
 
-		expect(container.querySelector('.bg-amber-500\\/15')).toBeTruthy()
+		expect(container.querySelector('.text-amber-700')).toBeTruthy()
 		expect(document.querySelector('.lucide-circle-check')).toBeNull()
 
 		cleanup()
@@ -92,7 +95,7 @@ describe('GameBoardFooter', () => {
 			{ wrapper },
 		)
 
-		expect(playing.querySelector('.bg-amber-500\\/15')).toBeNull()
+		expect(playing.querySelector('.text-amber-700')).toBeNull()
 	})
 
 	it('gives the solo score a label only for a screen reader', () => {
