@@ -14,7 +14,7 @@ import { useChartTier } from './context'
 
 /**
  * Selective value labels for a line-bearing chart: direct labels at the points
- * worth naming, and with `references` beside each reference rule. A reader
+ * worth naming, and with `references` on each reference rule. A reader
  * therefore gets the numbers without the tooltip. All default off; set any. The
  * full readout stays in the tooltip and data table.
  *
@@ -40,18 +40,21 @@ export type ChartValueLabelConfig = {
 	 */
 	extremes?: boolean
 	/**
-	 * Draw a standing label beside each reference rule at its far end, inked to
-	 * match the rule. It shows the rule's own label when it has one, else the
-	 * rule's value. The standing readout replaces the rule's hover tooltip. With
-	 * it on, the rules shed their pointer target and keyboard stop, since the
-	 * label already reads what the tooltip would. Each label takes the first free
-	 * spot beside its rule. In a vertical chart that is the far end, above and
-	 * then below, and it prefers a spot that no other rule crosses. In a
-	 * horizontal chart that is the first row down from the top of the rule. A
-	 * rule whose label finds no free spot keeps its tooltip. A point label that
-	 * meets a reference label drops. Each label has a halo in the surface color,
-	 * so it stays legible where a line or a rule crosses it. The visually-hidden
-	 * reference list keeps the assistive-tech parity either way.
+	 * Draw a standing label on each reference rule. The label centers on its
+	 * rule, and the rule breaks for it, so a label names only the rule that it
+	 * interrupts. It shows the rule's own label, inked to match the rule, and
+	 * then the rule's value, muted. A rule with no label shows its value. The
+	 * standing readout replaces the rule's hover tooltip and its legend chip.
+	 * With it on, the rules shed their pointer target and keyboard stop, since
+	 * the label already reads what the tooltip would. Each label takes the first
+	 * free spot on its rule, and prefers a spot that no other rule and no point
+	 * marker crosses. In a vertical chart that is the right end of the rule, and
+	 * then the left end. In a horizontal chart that is the first row down from
+	 * the top of the plot. A rule whose label finds no free spot keeps its
+	 * tooltip. A point label that meets a reference label drops. Each label has a
+	 * halo in the surface color, so it stays legible where a line or a rule
+	 * crosses it. The visually-hidden reference list keeps the assistive-tech
+	 * parity either way.
 	 * @defaultValue false
 	 */
 	references?: boolean

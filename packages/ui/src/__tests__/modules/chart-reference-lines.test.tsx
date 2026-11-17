@@ -47,6 +47,13 @@ function rule(container: HTMLElement): SVGLineElement | null {
 	return bySlot(container, 'chart-reference-line')?.querySelector('line') ?? null
 }
 
+/** The break mask of a rule: the mask that its drawn line names, or `null` for an unbroken rule. */
+function findRuleMask(container: HTMLElement, line: SVGLineElement | null): SVGMaskElement | null {
+	const id = line?.getAttribute('mask')?.match(/^url\(#(.+)\)$/)?.[1]
+
+	return id ? container.querySelector<SVGMaskElement>(`mask[id="${CSS.escape(id)}"]`) : null
+}
+
 /**
  * The animated rule wraps its lines in a motion group; the mock surfaces its
  * value-axis enter offset as `data-initial-x` / `data-initial-y`. Absent under a
@@ -854,23 +861,31 @@ describe('reference value labels', () => {
 
 		const label = labels[0]
 
-		// The label reads the rule's own label, standing in for the value.
-		expect(label?.textContent).toBe('Goal')
+		// The label reads the rule's own label, and then its value in the muted ink.
+		expect(label?.textContent).toBe('Goal 60')
 
-		// It sits at the rule's far (right) end, anchored inward, and clears the
-		// dashes by riding just above the rule's value position.
-		const ruleY = Number(rule(container)?.getAttribute('y1'))
+		expect(label?.querySelector('tspan')?.textContent).toBe(' 60')
+
+		// It sits on the rule at its right end, anchored inward and flush with the plot.
+		const line = rule(container)
 
 		expect(label?.getAttribute('text-anchor')).toBe('end')
 
-		expect(Number(label?.getAttribute('y'))).toBeLessThan(ruleY)
+		expect(label?.getAttribute('x')).toBe(line?.getAttribute('x2'))
+
+		expect(label?.getAttribute('y')).toBe(line?.getAttribute('y1'))
+
+		// The rule breaks for the label: its mask cuts the label's own glyphs.
+		const mask = findRuleMask(container, line)
+
+		expect(mask?.querySelector('text')?.textContent).toBe('Goal 60')
 
 		// No transparent hit target: the standing label replaces the hover readout,
 		// so the rule group carries only the one drawn line.
 		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
 	})
 
-	it('keeps every label at the far end, and draws the labels over every rule', () => {
+	it('moves a crowded label to the left end, and draws the labels over every rule', () => {
 		const { container } = lineLabels([
 			{ value: 60, label: 'Target' },
 			{ value: 61, label: 'Stretch' },
@@ -880,7 +895,7 @@ describe('reference value labels', () => {
 
 		expect(target?.getAttribute('text-anchor')).toBe('end')
 
-		expect(stretch?.getAttribute('text-anchor')).toBe('end')
+		expect(stretch?.getAttribute('text-anchor')).toBe('start')
 
 		// Each label follows every rule in paint order, so no rule crosses its halo.
 		const lastRule = allBySlot(container, 'chart-reference-line').at(-1) as Node
@@ -892,10 +907,43 @@ describe('reference value labels', () => {
 		}
 	})
 
-	it('reads the value alone for an unlabeled rule', () => {
+	it('reads the value alone, in the rule ink, for an unlabeled rule', () => {
 		const { container } = lineLabels([{ value: 50 }])
 
-		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('50')
+		const label = bySlot(container, 'chart-reference-label')
+
+		expect(label?.textContent).toBe('50')
+
+		expect(label?.querySelector('tspan')).toBeNull()
+	})
+
+	it('takes the rules out of the legend, since the plot names them', () => {
+		const labeled = renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[{ value: 60, label: 'Goal' }]}
+				labels={{ references: true }}
+			/>,
+		)
+
+		expect(bySlot(labeled.container, 'chart-legend-reference')).toBeNull()
+
+		const hovered = renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[{ value: 60, label: 'Goal' }]}
+			/>,
+		)
+
+		expect(bySlot(hovered.container, 'chart-legend-reference')?.textContent).toBe('Goal')
 	})
 
 	it('inks the label to match the rule — a slot through its fill class, a raw color inline', () => {
@@ -955,15 +1003,65 @@ describe('reference value labels', () => {
 
 		const label = bySlot(container, 'chart-reference-label')
 
-		expect(label?.textContent).toBe('Goal')
+		expect(label?.textContent).toBe('Goal 60')
 
-		// The rule is vertical, so the label stands at the rule's x near its top end.
+		// The rule is vertical, so the label stands on it in the top row, flush with
+		// the top of the plot, and the rule breaks for it.
 		const line = rule(container)
 
 		expect(Number(label?.getAttribute('x'))).toBeCloseTo(Number(line?.getAttribute('x1')), 1)
 
-		expect(Number(label?.getAttribute('y'))).toBeLessThan(Number(line?.getAttribute('y2')) / 2)
+		expect(Number(label?.getAttribute('y'))).toBeCloseTo(Number(line?.getAttribute('y1')) + 6.5, 1)
+
+		// The rule runs across the text, so the label cuts its whole row out of the rule.
+		const cut = findRuleMask(container, line)?.querySelector('rect:not(:first-child)')
+
+		const labelY = Number(label?.getAttribute('y'))
+
+		expect(Number(cut?.getAttribute('y'))).toBeLessThan(labelY - 6.5)
+
+		expect(Number(cut?.getAttribute('y')) + Number(cut?.getAttribute('height'))).toBeGreaterThan(
+			labelY + 6.5,
+		)
 
 		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
+	})
+})
+
+describe('reference rule breaks', () => {
+	/** A line chart with point markers over `DATA`, with one rule at `value`. */
+	function pointed(value: number, points = true) {
+		return renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				points={points}
+				reference={[{ value, label: 'Goal' }]}
+			/>,
+		)
+	}
+
+	it('breaks a rule around each point marker that sits on it', () => {
+		const value = DATA[1]?.revenue ?? 0
+
+		const { container } = pointed(value)
+
+		const line = rule(container)
+
+		const point = allBySlot(container, 'chart-point').find(
+			(dot) => dot.getAttribute('cy') === line?.getAttribute('y1'),
+		)
+
+		const holes = [...(findRuleMask(container, line)?.querySelectorAll('circle') ?? [])]
+
+		expect(holes.map((hole) => hole.getAttribute('cx'))).toEqual([point?.getAttribute('cx')])
+	})
+
+	it('leaves a rule whole where no point marker sits on it', () => {
+		const { container } = pointed(DATA[1]?.revenue ?? 0, false)
+
+		expect(rule(container)?.getAttribute('mask')).toBeNull()
 	})
 })

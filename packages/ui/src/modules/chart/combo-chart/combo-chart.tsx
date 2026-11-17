@@ -55,8 +55,8 @@ export type ComboChartProps<T = never> = AccessibleName &
 		 * Draw selective value labels (the `endpoints` and / or `extremes` of the
 		 * line or area series, bars excluded), with overlaps dropped by priority.
 		 * These labels show only while the chart shows exactly one line or area
-		 * series. With `references`, each reference rule's value draws beside it in
-		 * place of its hover tooltip. Off by default; the tooltip and data table
+		 * series. With `references`, each reference rule's label and value draw on
+		 * it in place of its hover tooltip. Off by default; the tooltip and data table
 		 * carry the full readout.
 		 */
 		labels?: ChartValueLabelConfig

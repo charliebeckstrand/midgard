@@ -15,12 +15,14 @@ import type { ChartReadoutNote } from './types'
 /** The keys that each arm of {@link ChartReferenceLine} takes. @internal */
 type ChartReferenceShared = {
 	/**
-	 * A short label naming the rule. A value rule carries it in its hover tooltip
-	 * and its legend chip, and draws it beside the rule at its far end once a
-	 * chart's `labels.references` is on. A category rule always draws it at the
-	 * top of the rule where it finds room, and the category readout shows it.
-	 * Omitted, a value rule reads by its value alone, and a category rule draws
-	 * no label.
+	 * A short name for the rule, such as `'Target'`. Give the name alone: the
+	 * chart shows the value of a value rule after it. A value rule carries the
+	 * name in its hover tooltip and its legend chip. Once a chart's
+	 * `labels.references` is on, the rule draws the name and its value on the
+	 * rule, and the legend drops its chip. A category rule always draws the name
+	 * at the top of the rule where it finds room, and the category readout shows
+	 * it. Each rule breaks for the label that it draws. Omitted, a value rule
+	 * reads by its value alone, and a category rule draws no label.
 	 */
 	label?: string
 	/**

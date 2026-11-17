@@ -4,6 +4,7 @@ import {
 	LABEL_HEIGHT,
 	LABEL_ROW_GAP,
 	type LabelBox,
+	markerBox,
 	type PlacedReferenceLabel,
 	referenceLabels,
 	type ValueLabelSeries,
@@ -33,17 +34,17 @@ function drawn(labels: (PlacedReferenceLabel | null)[]): PlacedReferenceLabel[] 
 }
 
 describe('referenceLabels', () => {
-	it('puts a label at the far end of its rule, above it, in a vertical chart', () => {
+	it('puts a label on its rule at the right end, flush with the plot, in a vertical chart', () => {
 		const [goal] = referenceLabels([{ at: 60, text: 'Goal' }], 'vertical', PLOT)
 
 		expect(goal?.anchor).toBe('end')
 
 		expect(goal?.x).toBe(PLOT.x + PLOT.width)
 
-		expect(goal?.y).toBeLessThan(60)
+		expect(goal?.y).toBe(60)
 	})
 
-	it('flips a crowded label below its rule, at the same end', () => {
+	it('moves a crowded label to the left end of its rule', () => {
 		const [target, stretch] = referenceLabels(
 			[
 				{ at: 60, text: 'Target' },
@@ -55,29 +56,30 @@ describe('referenceLabels', () => {
 
 		expect(target?.anchor).toBe('end')
 
-		expect(target?.y).toBeLessThan(60)
+		expect(stretch?.anchor).toBe('start')
 
-		expect(stretch?.anchor).toBe('end')
+		expect(stretch?.x).toBe(PLOT.x)
 
-		expect(stretch?.y).toBeGreaterThan(57)
+		expect(stretch?.y).toBe(57)
 
 		expect(overlaps(target?.box as LabelBox, stretch?.box as LabelBox)).toBe(false)
 	})
 
-	it('prefers a spot that no other rule crosses', () => {
-		const [target] = referenceLabels(
-			[
-				{ at: 60, text: 'Target' },
-				{ at: 50, text: 'Stretch' },
-			],
-			'vertical',
-			PLOT,
-		)
+	it('prefers a spot that no point marker meets', () => {
+		const [goal] = referenceLabels([{ at: 60, text: 'Goal' }], 'vertical', PLOT, [
+			markerBox({ x: PLOT.x + PLOT.width - 4, y: 61 }),
+		])
 
-		// Above, the label would sit over the Stretch rule, so it goes below its own.
-		expect(target?.anchor).toBe('end')
+		expect(goal?.anchor).toBe('start')
+	})
 
-		expect(target?.y).toBeGreaterThan(60)
+	it('keeps the first spot that meets no label where a marker meets every spot', () => {
+		const [goal] = referenceLabels([{ at: 60, text: 'Goal' }], 'vertical', PLOT, [
+			markerBox({ x: PLOT.x + 4, y: 60 }),
+			markerBox({ x: PLOT.x + PLOT.width - 4, y: 60 }),
+		])
+
+		expect(goal?.anchor).toBe('end')
 	})
 
 	it('drops a label with no free spot, so its rule keeps the tooltip', () => {
@@ -118,6 +120,9 @@ describe('referenceLabels', () => {
 		// Each label stays centered on its own rule.
 		expect([target?.x, stretch?.x, ceiling?.x]).toEqual([100, 110, 120])
 
+		// The first row is flush with the top of the plot.
+		expect(target?.y).toBe(PLOT.y + LABEL_HEIGHT / 2)
+
 		// Each crowded label sits one row, a label height and the row gap, under its neighbor.
 		expect((stretch?.y ?? 0) - (target?.y ?? 0)).toBe(LABEL_HEIGHT + LABEL_ROW_GAP)
 
@@ -151,9 +156,13 @@ describe('valueLabels against the reference labels', () => {
 
 		expect(free.map((label) => label.text)).toEqual(['9', '5'])
 
-		const [goal] = drawn(referenceLabels([{ at: 20, text: 'Goal' }], 'vertical', PLOT))
+		const at = free[0]?.y ?? 0
+
+		const [goal] = drawn(referenceLabels([{ at, text: 'Goal' }], 'vertical', PLOT))
 
 		// A box over the right half of the plot at the height of the last point's label.
+		expect(goal?.y).toBe(at)
+
 		const blocked = valueLabels({
 			series: [points],
 			plot: PLOT,

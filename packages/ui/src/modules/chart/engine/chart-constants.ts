@@ -25,6 +25,9 @@ export const MARKER_RADIUS = 5.5
 /** Surface-color ring around point markers crossing other marks. @internal */
 export const MARKER_RING_WIDTH = 2
 
+/** The reach of a drawn point marker from its center: its radius and half its ring. @internal */
+export const MARKER_REACH = MARKER_RADIUS + MARKER_RING_WIDTH / 2
+
 /** The area wash's opacity, sitting the fill under its line without muddying it. @internal */
 export const AREA_FILL_OPACITY = 0.16
 
@@ -180,6 +183,13 @@ export const REFERENCE_STROKE_WIDTH = 2
 
 /** Reference-rule dash: coarser than a hairline, so the rule reads as a deliberate annotation. @internal */
 export const REFERENCE_DASH = '6 4'
+
+/**
+ * The clear space between the dash of a reference rule and a thing that breaks
+ * it: the glyphs of its standing label, or a point marker that sits on it. The
+ * rule stops this far from each. @internal
+ */
+export const REFERENCE_GAP = 4
 
 /** Transparent stroke width making the reference rule an easy hover target. @internal */
 export const REFERENCE_HIT_WIDTH = 32

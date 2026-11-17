@@ -38,8 +38,8 @@ export type LineChartProps<T = never> = CartesianChartProps<T> & {
 	 * Draw selective value labels: the `endpoints` and / or `extremes` of the
 	 * series, placed clear of the marks with overlaps dropped by priority. These
 	 * labels show only while the chart shows exactly one series. With
-	 * `references`, each reference rule's value draws beside it in place of its
-	 * hover tooltip. Off by default; the tooltip and data table carry the full readout.
+	 * `references`, each reference rule's label and value draw on it in place of
+	 * its hover tooltip. Off by default; the tooltip and data table carry the full readout.
 	 */
 	labels?: ChartValueLabelConfig
 }
@@ -61,7 +61,7 @@ const LINE_SWATCH = () => 'line' as const
  * keyboard: the band-axis arrows step categories, the value-axis arrows cycle
  * each category's series values. A reference line joins that value-axis roving,
  * receding the marks when the cursor reaches it. `labels.references` drawing its
- * value beside it stands in for the hover and drops the rove.
+ * label on it stands in for the hover and drops the rove.
  * @example
  * ```tsx
  * <LineChart

@@ -59,6 +59,17 @@ export const k = {
 			...ink.surface,
 		],
 		/**
+		 * The value after the name in the standing label of a reference rule: one
+		 * weight lighter and muted, so the name leads.
+		 */
+		value: ['font-medium', ...mutedFill],
+		/**
+		 * The face of the cut that a standing label makes in its reference rule: the
+		 * size, weight, and figures of {@link k.mark.label}, with no ink. The cut
+		 * draws the glyphs in a mask, so it must set them as the label does.
+		 */
+		cut: ['text-xs', 'font-semibold', 'tabular-nums', '[stroke-linejoin:round]'],
+		/**
 		 * Point-marker stroke: the fill of the surface under the chart, so a dot stays legible
 		 * where it crosses an opaque mark or another dot. A white ring in dark mode showed as
 		 * a halo on each dot.
