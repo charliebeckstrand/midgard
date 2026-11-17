@@ -54,7 +54,7 @@ type ChartReferenceShared = {
  * edge. A pinned `min` or `max` can still leave it out. The rule then draws
  * nothing, and the legend and the visually-hidden list still name it.
  */
-export type ChartValueReference = ChartReferenceShared & {
+export type ChartReferenceValue = ChartReferenceShared & {
 	/** The domain value the line sits at, in the same units the series are read in. */
 	value: number
 	category?: never
@@ -76,7 +76,7 @@ export type ChartValueReference = ChartReferenceShared & {
  * pointer and the keyboard cursor both open. A category that the chart does
  * not draw draws no rule.
  */
-export type ChartCategoryReference = ChartReferenceShared & {
+export type ChartReferenceCategory = ChartReferenceShared & {
 	/**
 	 * The category the line marks: the raw `xKey` value of a row, as text. It is
 	 * the same category that `onCategoryClick` reports.
@@ -87,14 +87,14 @@ export type ChartCategoryReference = ChartReferenceShared & {
 }
 
 /**
- * One reference line: a {@link ChartValueReference} at a value, or a
- * {@link ChartCategoryReference} at a category. Both take the same label,
+ * One reference line: a {@link ChartReferenceValue} at a value, or a
+ * {@link ChartReferenceCategory} at a category. Both take the same label,
  * description, color, and dash, and draw over the marks.
  */
-export type ChartReferenceLine = ChartValueReference | ChartCategoryReference
+export type ChartReferenceLine = ChartReferenceValue | ChartReferenceCategory
 
 /** Whether a reference line marks a category, not a value. @internal */
-export function isCategoryReference(line: ChartReferenceLine): line is ChartCategoryReference {
+export function isCategoryReference(line: ChartReferenceLine): line is ChartReferenceCategory {
 	return line.category !== undefined
 }
 
@@ -219,7 +219,7 @@ export function referenceNotes(
 
 	const keys = ruleKeys(lines)
 
-	const marked = lines.flatMap((line, index): [ChartCategoryReference, string][] =>
+	const marked = lines.flatMap((line, index): [ChartReferenceCategory, string][] =>
 		isCategoryReference(line) && (line.label || line.description)
 			? [[line, keys[index] ?? '']]
 			: [],

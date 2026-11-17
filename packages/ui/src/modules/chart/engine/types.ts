@@ -19,9 +19,9 @@ import type { Crosshair } from './chart-crosshair'
 import type { ChartAspectRatio } from './chart-frame/sizing'
 import type { ChartLegendConfig, ChartLegendPlacement } from './chart-legend/schema'
 import type {
-	ChartCategoryReference,
+	ChartReferenceCategory,
 	ChartReferenceLine,
-	ChartValueReference,
+	ChartReferenceValue,
 } from './chart-reference'
 import type { ChartTooltipConfig } from './chart-tooltip'
 
@@ -419,10 +419,10 @@ export type CartesianFrameProps = {
 	 */
 	crosshair?: boolean | Crosshair
 	/**
-	 * Reference lines drawn across the plot. A {@link ChartValueReference} sits
+	 * Reference lines drawn across the plot. A {@link ChartReferenceValue} sits
 	 * at a fixed value: a target, a threshold, or an average the marks read
 	 * against. Its value folds into the domain, so an off-data line stays
-	 * on-frame. A {@link ChartCategoryReference} sits at a category: an event
+	 * on-frame. A {@link ChartReferenceCategory} sits at a category: an event
 	 * such as a release on a trend. The rules draw over the marks, so a mark
 	 * crossing one stays legible. Where the legend shows, each value rule also
 	 * names itself in it as a switch that toggles the rule.

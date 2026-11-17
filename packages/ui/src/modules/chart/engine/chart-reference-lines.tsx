@@ -29,7 +29,7 @@ import {
 } from './chart-orientation'
 import {
 	type ChartReferenceLine,
-	type ChartValueReference,
+	type ChartReferenceValue,
 	DEFAULT_REFERENCE_COLOR,
 	isCategoryReference,
 	type ReferenceFormat,
@@ -360,7 +360,7 @@ function HoverReferenceRule({
 	orientation,
 	format,
 	rise,
-}: ReferenceRuleProps & { line: ChartValueReference }) {
+}: ReferenceRuleProps & { line: ChartReferenceValue }) {
 	const { activeReference, emphasizedReference } = useChartEmphasis()
 
 	const { pointReference: setReferenceActive } = useChartActions()
