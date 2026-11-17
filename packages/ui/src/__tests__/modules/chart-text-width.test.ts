@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { estimateTextFit } from '../../modules/chart/engine/chart-text-width'
+import { estimateTextFit, estimateTextWrap } from '../../modules/chart/engine/chart-text-width'
 
 /** Whether `text` holds a UTF-16 surrogate without its pair. */
 const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/
@@ -27,5 +27,27 @@ describe('estimateTextFit', () => {
 		// Each flag is two regional letters of two code units each. The room keeps
 		// six code units: one flag and half of the next.
 		expect(estimateTextFit('🇺🇸🇫🇷🇩🇪', 1, 7).text).toBe('🇺🇸…')
+	})
+})
+
+describe('estimateTextWrap', () => {
+	it('breaks a text at its spaces, with as many words on each line as fit', () => {
+		expect(estimateTextWrap('Net revenue by region', 11, 3)).toEqual(['Net revenue', 'by region'])
+	})
+
+	it('keeps a text that fits on one line', () => {
+		expect(estimateTextWrap('Direct', 10, 3)).toEqual(['Direct'])
+	})
+
+	it('cuts the rest of a long text on its last line, with an ellipsis', () => {
+		const lines = estimateTextWrap('one two three four five six', 9, 2)
+
+		expect(lines).toEqual(['one two', 'three fo…'])
+
+		expect(lines?.every((line) => line.length <= 9)).toBe(true)
+	})
+
+	it('gives no lines when one word is longer than a line', () => {
+		expect(estimateTextWrap('Supercalifragilistic sales', 10, 3)).toBeNull()
 	})
 })

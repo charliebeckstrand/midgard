@@ -1253,7 +1253,7 @@ describe('BarChart category labels', () => {
 	})
 })
 
-describe('BarChart tickRotation', () => {
+describe('BarChart tickLayout', () => {
 	const LONG_CATEGORIES = [
 		'January Sales',
 		'February Sales',
@@ -1271,7 +1271,7 @@ describe('BarChart tickRotation', () => {
 				aria-label="Monthly totals"
 				data={LONG_CATEGORIES.map((month, index) => ({ month, total: (index + 1) * 10 }))}
 				series={[{ xKey: 'month', yKey: 'total', yName: 'Total' }]}
-				// Standard width, where the band thins its labels (and tickRotation can
+				// Standard width, where the band thins its labels (and rotate can
 				// tilt them instead); a compact frame would show only its ends.
 				width={420}
 				{...extra}
@@ -1281,9 +1281,9 @@ describe('BarChart tickRotation', () => {
 
 	it('shows only the first and last label in a compact frame, whatever the rotation', () => {
 		// Below the compact width the band drops to its ends: a more aggressive
-		// reduction than thinning that tickRotation does not override, since the
+		// reduction than thinning that rotate does not override, since the
 		// tier already spent the room a tilted run would need.
-		const { container } = longChart({ width: 360, axes: { x: { tickRotation: true } } })
+		const { container } = longChart({ width: 360, axes: { x: { tickLayout: 'rotate' } } })
 
 		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
 
@@ -1316,8 +1316,8 @@ describe('BarChart tickRotation', () => {
 		expect(ticks.every((tick) => tick.getAttribute('transform') === null)).toBe(true)
 	})
 
-	it('tilts every label instead of thinning once tickRotation is on', () => {
-		const { container } = longChart({ axes: { x: { tickRotation: true } } })
+	it('tilts every label instead of thinning under rotate', () => {
+		const { container } = longChart({ axes: { x: { tickLayout: 'rotate' } } })
 
 		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
 
@@ -1326,8 +1326,54 @@ describe('BarChart tickRotation', () => {
 		expect(ticks.every((tick) => tick.getAttribute('transform')?.startsWith('rotate('))).toBe(true)
 	})
 
-	it('leaves labels flat when they already fit, tickRotation notwithstanding', () => {
-		const { container } = renderUI(chart({ axes: { x: { tickRotation: true } } }))
+	it('wraps every label on its own lines instead of thinning under wrap', () => {
+		// A wider frame, where each band holds its longest word.
+		const { container } = longChart({ width: 640, axes: { x: { tickLayout: 'wrap' } } })
+
+		const ticks = [...getSlot(container, 'chart-axis-x').querySelectorAll('text')]
+
+		expect(
+			ticks.map((tick) => [...tick.querySelectorAll('tspan')].map((line) => line.textContent)),
+		).toEqual([
+			['January', 'Sales'],
+			['February', 'Sales'],
+			['March', 'Sales'],
+			['April', 'Sales'],
+			// A short label keeps its words on one line.
+			['May Sales'],
+			['June Sales'],
+		])
+
+		expect(ticks.every((tick) => tick.getAttribute('transform') === null)).toBe(true)
+	})
+
+	it('thins flat under wrap when a word is wider than its band', () => {
+		const wrap = longChart({ axes: { x: { tickLayout: 'wrap' } } })
+
+		const thin = longChart()
+
+		const labels = (container: HTMLElement) =>
+			[...getSlot(container, 'chart-axis-x').querySelectorAll('text')].map(
+				(tick) => tick.textContent,
+			)
+
+		expect(labels(wrap.container)).toEqual(labels(thin.container))
+
+		expect(labels(wrap.container).length).toBeLessThan(LONG_CATEGORIES.length)
+	})
+
+	it('leaves labels on one line when they already fit, under wrap', () => {
+		const { container } = renderUI(chart({ axes: { x: { tickLayout: 'wrap' } } }))
+
+		const axis = getSlot(container, 'chart-axis-x')
+
+		expect(axis.querySelectorAll('text')).toHaveLength(DATA.length)
+
+		expect(axis.querySelectorAll('tspan')).toHaveLength(0)
+	})
+
+	it('leaves labels flat when they already fit, under rotate', () => {
+		const { container } = renderUI(chart({ axes: { x: { tickLayout: 'rotate' } } }))
 
 		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
 

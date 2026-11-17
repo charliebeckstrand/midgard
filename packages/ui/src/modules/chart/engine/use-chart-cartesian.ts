@@ -633,7 +633,7 @@ export function useChartCartesian<T>(
 		[plotted],
 	)
 
-	const tickRotation = axes.x?.tickRotation ?? false
+	const tickLayout = axes.x?.tickLayout
 
 	const layoutInput: CartesianLayoutInput = useMemo(
 		() => ({
@@ -647,7 +647,7 @@ export function useChartCartesian<T>(
 			categories,
 			bandTitle,
 			bandAxis: policy.bandAxis,
-			tickRotation,
+			tickLayout,
 			times,
 			locale,
 			count: data.length,
@@ -666,7 +666,7 @@ export function useChartCartesian<T>(
 			categories,
 			bandTitle,
 			policy.bandAxis,
-			tickRotation,
+			tickLayout,
 			times,
 			locale,
 			data.length,

@@ -400,7 +400,7 @@ export type CartesianFrameProps = {
 	 * at their defaults; `false` drops the axis chrome for a bare-marks plot.
 	 * The object form configures each axis under its own key, matching the names a
 	 * series' `axis` binding uses. The category axis is `x`
-	 * (`{ type, format, separator, title, tickRotation }`), and a value axis is `y` or `y2`
+	 * (`{ type, format, separator, title, tickLayout }`), and a value axis is `y` or `y2`
 	 * (`{ min, max, format, title, grid }`). An omitted key keeps that axis's
 	 * defaults, so a chart names only the axes it tunes.
 	 * @defaultValue true
