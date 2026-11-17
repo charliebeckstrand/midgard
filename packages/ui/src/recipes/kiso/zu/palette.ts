@@ -36,6 +36,8 @@ import { mode } from '../../../core/recipe'
  *   `<Swatch>` fills from it).
  * - `label` for label text set inside the mark's own fill, the one place text
  *   sits on a series color.
+ * - `ink` for SVG text set on the chart surface in the series color: a value
+ *   label beside a point, and a reference label beside its rule.
  *
  * `label` is white-first. The percent label is a redundant graphical
  * annotation, since the tooltip and hidden data table carry the authoritative
@@ -48,6 +50,13 @@ import { mode } from '../../../core/recipe'
  * Tailwind's theme with the `readableInk` utility and fails on drift. The eight
  * slot hues carry the categorical palette; `zinc` sits outside the slot order
  * as the de-emphasis color for context series.
+ *
+ * `ink` is one step deeper than the fill in light (700) and one step lighter in
+ * dark (400). A value or reference label is text, and a category reference has
+ * no legend chip, so its label is its one visible name. The ink therefore
+ * clears the 4.5:1 text floor (WCAG 1.4.3) on white, zinc-900, and zinc-950,
+ * where some 600 fills clear only 3:1. The step keeps the hue of the mark. The
+ * `__tests__/recipes/chart-ink-contrast` guard measures each pick.
  */
 const series = {
 	blue: {
@@ -56,6 +65,7 @@ const series = {
 		fill: mode('fill-blue-600', 'dark:fill-blue-500'),
 		text: mode('text-blue-600', 'dark:text-blue-500'),
 		label: mode('fill-white', 'dark:fill-white'),
+		ink: mode('fill-blue-700', 'dark:fill-blue-400'),
 	},
 	orange: {
 		bg: mode('bg-orange-600', 'dark:bg-orange-600'),
@@ -63,6 +73,7 @@ const series = {
 		fill: mode('fill-orange-600', 'dark:fill-orange-600'),
 		text: mode('text-orange-600', 'dark:text-orange-600'),
 		label: mode('fill-white', 'dark:fill-white'),
+		ink: mode('fill-orange-700', 'dark:fill-orange-400'),
 	},
 	violet: {
 		bg: mode('bg-violet-600', 'dark:bg-violet-500'),
@@ -70,6 +81,7 @@ const series = {
 		fill: mode('fill-violet-600', 'dark:fill-violet-500'),
 		text: mode('text-violet-600', 'dark:text-violet-500'),
 		label: mode('fill-white', 'dark:fill-white'),
+		ink: mode('fill-violet-700', 'dark:fill-violet-400'),
 	},
 	green: {
 		bg: mode('bg-green-600', 'dark:bg-green-600'),
@@ -77,6 +89,7 @@ const series = {
 		fill: mode('fill-green-600', 'dark:fill-green-600'),
 		text: mode('text-green-600', 'dark:text-green-600'),
 		label: mode('fill-white', 'dark:fill-white'),
+		ink: mode('fill-green-700', 'dark:fill-green-400'),
 	},
 	red: {
 		bg: mode('bg-red-600', 'dark:bg-red-500'),
@@ -84,6 +97,7 @@ const series = {
 		fill: mode('fill-red-600', 'dark:fill-red-500'),
 		text: mode('text-red-600', 'dark:text-red-500'),
 		label: mode('fill-white', 'dark:fill-white'),
+		ink: mode('fill-red-700', 'dark:fill-red-400'),
 	},
 	sky: {
 		bg: mode('bg-sky-600', 'dark:bg-sky-600'),
@@ -91,6 +105,7 @@ const series = {
 		fill: mode('fill-sky-600', 'dark:fill-sky-600'),
 		text: mode('text-sky-600', 'dark:text-sky-600'),
 		label: mode('fill-white', 'dark:fill-white'),
+		ink: mode('fill-sky-700', 'dark:fill-sky-400'),
 	},
 	amber: {
 		bg: mode('bg-amber-600', 'dark:bg-amber-600'),
@@ -98,6 +113,7 @@ const series = {
 		fill: mode('fill-amber-600', 'dark:fill-amber-600'),
 		text: mode('text-amber-600', 'dark:text-amber-600'),
 		label: mode('fill-white', 'dark:fill-white'),
+		ink: mode('fill-amber-700', 'dark:fill-amber-400'),
 	},
 	rose: {
 		bg: mode('bg-rose-600', 'dark:bg-rose-500'),
@@ -105,6 +121,7 @@ const series = {
 		fill: mode('fill-rose-600', 'dark:fill-rose-500'),
 		text: mode('text-rose-600', 'dark:text-rose-500'),
 		label: mode('fill-white', 'dark:fill-white'),
+		ink: mode('fill-rose-700', 'dark:fill-rose-400'),
 	},
 	zinc: {
 		bg: mode('bg-zinc-600', 'dark:bg-zinc-400'),
@@ -112,6 +129,7 @@ const series = {
 		fill: mode('fill-zinc-600', 'dark:fill-zinc-400'),
 		text: mode('text-zinc-600', 'dark:text-zinc-400'),
 		label: mode('fill-white', 'dark:fill-zinc-950'),
+		ink: mode('fill-zinc-700', 'dark:fill-zinc-400'),
 	},
 }
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { LineChart } from '../../modules/chart/line-chart'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, present, renderUI } from '../helpers'
 
 const DATA = [
 	{ month: 'Jan', revenue: 40, costs: 25 },
@@ -139,6 +139,27 @@ describe('series color', () => {
 		expect(slot?.getAttribute('class')).toContain('text-blue-600')
 
 		expect(slot?.getAttribute('style')).toBeNull()
+	})
+
+	it('inks a slot series value label in the ink step of its slot', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[{ xKey: 'month', yKey: 'revenue', color: 'amber' }]}
+				width={400}
+				labels={{ extremes: true }}
+			/>,
+		)
+
+		const label = present(allBySlot(container, 'chart-value-label')[0], 'value label')
+
+		// The line strokes in the 600 fill; its text takes the 700 / 400 ink, which clears 4.5:1.
+		expect(label.getAttribute('class')).toContain('fill-amber-700')
+
+		expect(label.getAttribute('class')).toContain('dark:fill-amber-400')
+
+		expect(label.getAttribute('class')).not.toContain('fill-amber-600')
 	})
 
 	it('inks a raw series value label inline', () => {

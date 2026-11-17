@@ -5,7 +5,7 @@ import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-moti
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../recipes/kata/chart'
 import type { ChartValueAxisId } from './chart-axes/schema'
-import { type ChartPaint, fillClass, rawColor } from './chart-color/paint'
+import { type ChartPaint, inkClass, rawColor } from './chart-color/paint'
 import { type LabelBox, type PlacedValueLabel, resolveValueLabels } from './chart-geometry/label'
 import { ChartGeneration } from './chart-marks/layer'
 import { POINT_POP, POINT_UNPOP } from './chart-motion'
@@ -96,7 +96,7 @@ export function cartesianValueLabels(
 			const axis = meta?.axis ?? 'y'
 
 			return {
-				fill: fillClass(entry.paint),
+				fill: inkClass(entry.paint),
 				color: rawColor(entry.paint),
 				points: entry.geometry.points,
 				values: meta?.values ?? [],
