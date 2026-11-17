@@ -141,7 +141,7 @@ describe('referenceLabels', () => {
 })
 
 describe('valueLabels against the reference labels', () => {
-	it('drops a value label whose box meets a reference label', () => {
+	it('moves a value label off a reference label, and drops it with no free spot', () => {
 		const points = series([
 			[10, 50, 5],
 			[100, 20, 9],
@@ -153,13 +153,31 @@ describe('valueLabels against the reference labels', () => {
 
 		const [goal] = drawn(referenceLabels([{ at: 20, text: 'Goal' }], 'vertical', PLOT))
 
-		// A box over the right half of the plot at the height of the last point's label.
+		// The reference label's box, widened over the right half of the plot.
+		const right = { ...(goal?.box as LabelBox), x0: 90 }
+
+		const moved = valueLabels({
+			series: [points],
+			plot: PLOT,
+			endpoints: true,
+			extremes: false,
+			obstacles: [right],
+		})
+
+		// The last point is the maximum, so its label stays on the outward side,
+		// above the point's line: level with the point, clear of the reference
+		// label under the rule. The old flip below the point met that label.
+		expect(moved.map((label) => label.text)).toEqual(['9', '5'])
+
+		expect(moved[0]?.y).toBeLessThan(20)
+
+		// A box over every outward spot of the maximum drops its label.
 		const blocked = valueLabels({
 			series: [points],
 			plot: PLOT,
 			endpoints: true,
 			extremes: false,
-			obstacles: [{ ...(goal?.box as LabelBox), x0: 90 }],
+			obstacles: [{ x0: 60, x1: 200, y0: 0, y1: 45 }],
 		})
 
 		expect(blocked.map((label) => label.text)).toEqual(['5'])

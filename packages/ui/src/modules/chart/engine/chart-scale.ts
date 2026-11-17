@@ -50,16 +50,23 @@ export type LinearScaleOptions = {
 	 */
 	integer?: boolean
 	/**
-	 * Pixels of clear room to reserve between a data extreme and its unpinned
-	 * domain edge. It is the space a value label needs to sit above the peak or
-	 * below the trough, instead of flipping onto the line. Applied only where the
-	 * nice ceiling / floor doesn't already leave that much air, and never past a
-	 * pinned bound. Ticks stay on their clean steps; the widened edge just carries
-	 * no tick of its own.
-	 * @defaultValue 0
+	 * Pixels of clear room to keep between each data extreme and its unpinned
+	 * domain edge: the room a value label needs past the peak or the trough.
+	 * Applied only where the nice ceiling or floor does not already leave that
+	 * much room, and never past a pinned bound. Ticks stay on their clean steps.
+	 * A widened ceiling carries no tick of its own. A widened floor drops to the
+	 * next step and keeps its tick.
 	 */
-	headroom?: number
+	headroom?: ValueHeadroom
 }
+
+/**
+ * Pixels of room past each data extreme, as {@link LinearScaleOptions.headroom}
+ * reads them: `ceiling` past the peak, `floor` past the trough.
+ *
+ * @internal
+ */
+export type ValueHeadroom = { ceiling: number; floor: number }
 
 /**
  * Rounds `raw` to the nearest clean tick step: 1, 2, or 5 times a power of
@@ -182,41 +189,49 @@ function niceBound(
 
 /**
  * The largest share of the range a headroom reservation can take per side. At
- * the cap, a both-sided reservation still leaves the data half the plot. Past
- * it the plot is too short to afford labels at all, so nothing is reserved.
- * {@link headroomFits} (the same predicate) tells the layout to shed them.
+ * the cap, the gaps reserved on both sides still leave the data half the plot.
+ * The floor rounds down to its tick past its gap, which can add up to one step.
+ * Past the cap the plot is too short to afford the room, so that side reserves
+ * nothing, and a label that then has no room drops.
  *
  * @internal
  */
 const HEADROOM_CAP = 0.25
 
+/** No room past either extreme. @internal */
+const NO_HEADROOM: ValueHeadroom = { ceiling: 0, floor: 0 }
+
 /**
- * Whether a `headroom` px reservation is affordable over a `rangePx`-long
- * range: at most {@link HEADROOM_CAP} of the range per side. The single
- * arbiter for the value-label room: {@link reserveHeadroom} reserves only when
- * it holds, and the layout sheds the labels when it doesn't. The reserved space
- * and the labels that need it can therefore never disagree.
+ * A `headroom` px reservation as a share of a `rangePx`-long range, or `0`
+ * where it is more than {@link HEADROOM_CAP} of the range.
  *
  * @internal
  */
-export function headroomFits(headroom: number, rangePx: number): boolean {
-	return headroom > 0 && rangePx > 0 && headroom / rangePx <= HEADROOM_CAP
+function headroomShare(headroom: number, rangePx: number): number {
+	const share = rangePx > 0 ? headroom / rangePx : 0
+
+	return share > 0 && share <= HEADROOM_CAP ? share : 0
 }
 
 /**
- * Widens the unpinned bounds so each data extreme sits `headroom` px clear of
- * its edge. That is the room a value label needs above the peak or below the
- * trough, instead of flipping onto the line. `f` is that gap as a fraction of
- * the range. The widened span is solved so the fraction holds in the final
- * scale. A naive px→value pass under-reserves, since widening grows the span.
- * A bound is left alone when it is pinned or its nice step already clears the
- * extreme by `f`. When both sides widen they share one span, so neither crowds.
+ * Widens the unpinned bounds so each data extreme sits clear of its edge by
+ * its {@link ValueHeadroom}: the room a value label needs past the peak or the
+ * trough. `f` and `g` are the ceiling and floor rooms as shares of the range
+ * ({@link headroomShare}). A bound is left alone when it is pinned, or when
+ * its nice step already clears the extreme by its share.
  *
- * A one-sided widen grows the span, so the other side is tested again against
- * the new span. When that side then falls short and is free, both sides solve
- * together. An unaffordable ask (see {@link headroomFits}) reserves nothing:
- * the layout sheds the labels by the same test, so no label renders against
- * unreserved edges.
+ * The floor widens by whole steps, so it keeps a tick: the category axis rules
+ * the floor, and a gridline a few px above that rule would draw a second line.
+ * The ceiling has no rule. It widens by the exact amount, and the widened edge
+ * carries no tick. The ceiling is solved over the floor, so its share holds in
+ * the final scale. A naive px→value pass under-reserves, since widening grows
+ * the span. Each step down grows the span again, so the floor steps down until
+ * the trough clears it at the final span.
+ *
+ * The floor never steps under `floorLimit`. A domain that holds no value under
+ * zero has a limit of zero: a step under it would print a negative tick on a
+ * count or a revenue axis. Where no step above the limit clears the trough,
+ * the nice floor holds, and a trough label that has no room drops.
  *
  * @internal
  */
@@ -226,37 +241,38 @@ function reserveHeadroom(args: {
 	rawLow: number
 	rawHigh: number
 	rangePx: number
-	headroom: number
+	headroom: ValueHeadroom
+	step: number
+	floorLimit: number
 	pinnedLow: boolean
 	pinnedHigh: boolean
 }): [number, number] {
-	const { low, high, rawLow, rawHigh, rangePx, headroom, pinnedLow, pinnedHigh } = args
+	const { low, high, rawLow, rawHigh, rangePx, headroom, step, floorLimit, pinnedLow, pinnedHigh } =
+		args
 
-	if (!headroomFits(headroom, rangePx)) return [low, high]
+	const f = headroomShare(headroom.ceiling, rangePx)
 
-	const f = headroom / rangePx
+	const g = headroomShare(headroom.floor, rangePx)
 
-	const baseSpan = high - low
+	// The lowest ceiling that clears the peak by `f` over a given floor.
+	const ceiling = (floor: number) =>
+		pinnedHigh || high - rawHigh >= f * (high - floor) ? high : (rawHigh - f * floor) / (1 - f)
 
-	const widenLow = !pinnedLow && rawLow - low < f * baseSpan
+	if (pinnedLow || g === 0) return [low, ceiling(low)]
 
-	const widenHigh = !pinnedHigh && high - rawHigh < f * baseSpan
+	// Each candidate is a tick value, so the floor and its tick map to one
+	// position. Each step down adds the step to the trough's clearance, and at
+	// most a third of the step to the clearance it needs (`f` and `g` are at
+	// most a quarter), so the loop ends, at the latest at `floorLimit`.
+	for (let index = Math.round(low / step); ; index--) {
+		const floor = stepMultiple(index, step)
 
-	if (!widenLow && !widenHigh) return [low, high]
+		if (floor < floorLimit) return [low, ceiling(low)]
 
-	if (!widenLow) {
-		const next = (rawHigh - f * low) / (1 - f)
+		const top = ceiling(floor)
 
-		if (pinnedLow || rawLow - low >= f * (next - low)) return [low, next]
-	} else if (!widenHigh) {
-		const next = (rawLow - f * high) / (1 - f)
-
-		if (pinnedHigh || high - rawHigh >= f * (high - next)) return [next, high]
+		if (rawLow - floor >= g * (top - floor)) return [floor, top]
 	}
-
-	const span = (rawHigh - rawLow) / (1 - 2 * f)
-
-	return [rawLow - f * span, rawHigh + f * span]
 }
 
 /**
@@ -278,7 +294,7 @@ export function linearScale({
 	min: pinMin,
 	max: pinMax,
 	integer = false,
-	headroom = 0,
+	headroom = NO_HEADROOM,
 }: LinearScaleOptions): ValueScale | null {
 	// A non-finite pin (a `parseFloat('')` from an input) would pin the domain to
 	// NaN, so it counts as no pin.
@@ -340,7 +356,9 @@ export function linearScale({
 		rawLow,
 		rawHigh,
 		rangePx: Math.abs(range[1] - range[0]),
-		headroom: tight ? 0 : headroom,
+		headroom: tight ? NO_HEADROOM : headroom,
+		step,
+		floorLimit: rawLow >= 0 ? 0 : Number.NEGATIVE_INFINITY,
 		pinnedLow: min !== undefined || zeroFloor,
 		pinnedHigh: max !== undefined || zeroCeiling,
 	})
@@ -430,7 +448,7 @@ export function logScale({
 	min: minOption,
 	max: maxOption,
 	integer = false,
-	headroom = 0,
+	headroom,
 }: LogScaleOptions): ValueScale | null {
 	const pinMin = positivePin(minOption)
 
