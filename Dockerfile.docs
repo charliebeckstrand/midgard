@@ -1,5 +1,5 @@
 # The image recipe for the docs site of `ui`. App Platform builds this image
-# and runs the server of the docs build in it (`packages/ui/scripts/docs-server.ts`).
+# and runs the server of the docs build in it (`packages/ui/scripts/docs/server.ts`).
 # The server sends the HTML of each page in the locale of the request. Build
 # and run it locally with:
 #
@@ -47,7 +47,7 @@ ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=8080
 COPY --from=build --chown=node:node /app/packages/ui/src/docs/dist/client ./src/docs/dist/client
-COPY --from=build --chown=node:node /app/packages/ui/src/docs/dist/docs-server/docs-server.js ./scripts/
+COPY --from=build --chown=node:node /app/packages/ui/src/docs/dist/docs-server/docs-server.js ./scripts/docs/
 USER node
 EXPOSE 8080
-CMD ["node", "scripts/docs-server.js"]
+CMD ["node", "scripts/docs/docs-server.js"]

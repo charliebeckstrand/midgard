@@ -37,7 +37,7 @@ import { useNavigationScroll } from './use-navigation-scroll.ts'
  * would leave that file with no latin face. The root element has the
  * language of the locale that the page renders in. The docs server writes the
  * stored settings of the reader on the root element of each page
- * (`scripts/docs-server.ts`), so its classes differ from the markup of React.
+ * (`scripts/docs/server.ts`), so its classes differ from the markup of React.
  */
 export function Layout({ children }: { children: ReactNode }) {
 	return (

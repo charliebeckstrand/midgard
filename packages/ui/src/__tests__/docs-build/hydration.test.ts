@@ -1,6 +1,6 @@
 import type { Page } from 'playwright'
 import { describe, expect, inject, it } from 'vitest'
-import { HYDRATED } from '../../../scripts/docs-server'
+import { HYDRATED } from '../../../scripts/docs/server'
 import { LOCALES } from '../../docs/app/language'
 import { launchChromium } from './helpers/chromium'
 
@@ -23,7 +23,7 @@ import { launchChromium } from './helpers/chromium'
 // the recovery in WebKit.
 //
 // The server sends the HTML of each page in the language of the reader
-// (`scripts/docs-server.ts`), and the page hydrates in that language. So the
+// (`scripts/docs/server.ts`), and the page hydrates in that language. So the
 // text of a page in each translated language stays after hydration.
 
 /** A path with no page. The server sends the not-found page for it, with status 404. */

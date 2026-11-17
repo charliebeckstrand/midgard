@@ -2,7 +2,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { CATALOG_SOURCE, LANG_DIR, SOURCE_CATALOG } from '../../../scripts/intl'
 import {
 	argumentErrors,
 	catalogText,
@@ -11,7 +10,8 @@ import {
 	readTranslations,
 	TRANSLATIONS_MODULE,
 	translationsText,
-} from '../../../scripts/intl-catalog'
+} from '../../../scripts/intl/catalog'
+import { CATALOG_SOURCE, LANG_DIR, SOURCE_CATALOG } from '../../../scripts/intl/extract'
 import { loadMessages, uiChain } from '../../primitives/intl/intl-catalog'
 
 // The source catalog holds the English default of each message of ui, and each
@@ -21,7 +21,7 @@ import { loadMessages, uiChain } from '../../primitives/intl/intl-catalog'
 // English in a translated page. This test holds the files in step:
 //
 //   1. The source catalog and the module that loads each translation equal
-//      the output of `pnpm intl` (`scripts/intl.ts`).
+//      the output of `pnpm intl` (`scripts/intl/extract.ts`).
 //   2. Each translation has each id of the source catalog, and no other id, and
 //      the catalog of ui loads it.
 //   3. Each translated message parses, and it uses the same arguments as its

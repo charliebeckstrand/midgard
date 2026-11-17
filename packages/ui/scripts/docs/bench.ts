@@ -3,7 +3,7 @@
  * app first.
  *
  * The script serves the build over HTTP/2 with TLS and brotli, as a CDN does,
- * with the paths of `docs-server.ts`. It also sends the responses in the
+ * with the paths of `server.ts`. It also sends the responses in the
  * order of their priority, as a CDN does ({@link createDownlink}). Chromium
  * opens `/button` cold at 390 px, with the CPU four times slower and the
  * network of Lighthouse "Slow 4G". The table gives the median of each value:
@@ -38,15 +38,7 @@ import { createSecureServer, type Http2ServerResponse, type SecureServerOptions 
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { type Browser, type CDPSession, chromium, type Locator, type Page } from 'playwright'
-import {
-	CLIENT_DIR,
-	HYDRATED,
-	listen,
-	pickEncoding,
-	readBody,
-	resolveFile,
-	TYPES,
-} from './docs-server'
+import { CLIENT_DIR, HYDRATED, listen, pickEncoding, readBody, resolveFile, TYPES } from './server'
 
 const PAGE = '/button'
 

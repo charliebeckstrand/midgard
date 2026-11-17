@@ -53,10 +53,10 @@ export const appConfig: NextConfig = {
 		// folder. A module of a dependency defines no message, and the docs app
 		// of ui does not build with Next.
 		rules: {
-			'*.ts': { loaders: ['ui/scripts/intl-loader'], condition: definesMessages },
-			'*.tsx': { loaders: ['ui/scripts/intl-loader'], condition: definesMessages },
+			'*.ts': { loaders: ['ui/scripts/intl/loader'], condition: definesMessages },
+			'*.tsx': { loaders: ['ui/scripts/intl/loader'], condition: definesMessages },
 			'*.json': {
-				loaders: ['ui/scripts/intl-loader'],
+				loaders: ['ui/scripts/intl/loader'],
 				condition: { all: [{ not: 'foreign' }, { path: /\/lang\/[a-z]{2,3}\.json$/ }] },
 			},
 		},

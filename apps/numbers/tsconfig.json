@@ -7,5 +7,5 @@
 		"incremental": true,
 		"tsBuildInfoFile": ".tsbuildinfo/numbers.tsbuildinfo"
 	},
-	"include": ["next-env.d.ts", "app", "src", "**/*.ts", "**/*.tsx"]
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
 }

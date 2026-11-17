@@ -5,7 +5,7 @@ import { readCookie } from '../../utilities/cookie.ts'
 // in English, and `index.<locale>.html` in each other language, such as
 // `index.es.html`. The build renders each file with the locale of its
 // language, and the server of the docs sends the file of the locale of the
-// request (`scripts/docs-server.ts`). The browser hydrates the page in the
+// request (`scripts/docs/server.ts`). The browser hydrates the page in the
 // locale of the file, from the `lang` of the root element. Thus the first
 // paint and the hydration render show the language of the reader, and no text
 // changes its language after hydration.

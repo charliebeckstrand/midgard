@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { resolveFile, targetPathname } from '../../../scripts/docs-server.ts'
+import { resolveFile, targetPathname } from '../../../scripts/docs/server.ts'
 import { localeFile, requestLocale } from '../app/language.ts'
 
 // The docs have the HTML of each page in each locale, and the server sends the

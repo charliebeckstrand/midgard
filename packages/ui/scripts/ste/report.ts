@@ -8,8 +8,8 @@
  * no rule 6 debt, and the boundary suite gates them.
  */
 
-import { scanPackage } from '../src/__tests__/helpers/controlled-language.ts'
-import { startTypeScript } from '../src/__tests__/helpers/ts-server.ts'
+import { scanPackage } from '../../src/__tests__/helpers/controlled-language.ts'
+import { startTypeScript } from '../../src/__tests__/helpers/ts-server.ts'
 
 const server = startTypeScript()
 
@@ -17,6 +17,6 @@ const breaks = scanPackage(server).filter((item) => item.rule === 6)
 
 server.close()
 
-for (const item of breaks) console.log(`${item.file}:${item.line} — ${item.text}`)
+for (const item of breaks) console.log(`${item.file}:${item.line}: ${item.text}`)
 
 console.log(`\n${breaks.length} sentences past the cap (STE.md rule 6).`)

@@ -241,7 +241,6 @@
 				"packages/ui/src/components/**",
 				"packages/ui/src/structure/**",
 				"packages/ui/src/layouts/**",
-				"!packages/ui/src/components/**/variants.ts",
 				"!packages/ui/src/structure/**/variants.ts"
 			],
 			"linter": {
@@ -298,10 +297,7 @@
 			}
 		},
 		{
-			"includes": [
-				"packages/ui/src/components/**/variants.ts",
-				"packages/ui/src/structure/**/variants.ts"
-			],
+			"includes": ["packages/ui/src/structure/**/variants.ts"],
 			"linter": {
 				"rules": {
 					"style": {
@@ -340,7 +336,7 @@
 				"packages/ui/src/docs/app/routes/*.tsx",
 				"packages/ui/src/docs/app/entry.server.tsx",
 				"packages/ui/src/docs/pages/**/*.tsx",
-				"packages/ui/scripts/intl-loader.ts",
+				"packages/ui/scripts/intl/loader.ts",
 				"**/*.config.ts",
 				"**/*.d.ts"
 			],
@@ -371,8 +367,7 @@
 				"packages/auth/**",
 				"packages/shared/**",
 				"!packages/auth/src/env.ts",
-				"!packages/shared/src/server/env.ts",
-				"!apps/places/src/server/env.ts"
+				"!packages/shared/src/server/env.ts"
 			],
 			"linter": {
 				"rules": {

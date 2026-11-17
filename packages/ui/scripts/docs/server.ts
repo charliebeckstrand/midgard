@@ -41,16 +41,24 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { brotliCompress, constants, gzip } from 'node:zlib'
-import { localeFile, requestLocale } from '../src/docs/app/language.ts'
-import { markRoot, type RootMarks, rootMarks } from '../src/server/root-marks.ts'
-import { getOrCompute } from '../src/utilities/get-or-compute.ts'
+import { localeFile, requestLocale } from '../../src/docs/app/language.ts'
+import { markRoot, type RootMarks, rootMarks } from '../../src/server/root-marks.ts'
+import { getOrCompute } from '../../src/utilities/get-or-compute.ts'
 
 const brotli = promisify(brotliCompress)
 
 const gzipAsync = promisify(gzip)
 
 /** The client directory of the docs build. */
-export const CLIENT_DIR = path.resolve(import.meta.dirname, '..', 'src', 'docs', 'dist', 'client')
+export const CLIENT_DIR = path.resolve(
+	import.meta.dirname,
+	'..',
+	'..',
+	'src',
+	'docs',
+	'dist',
+	'client',
+)
 
 /**
  * The path of each prerendered page in the client directory `root`, in order,

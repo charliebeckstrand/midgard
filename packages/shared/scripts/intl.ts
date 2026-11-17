@@ -21,7 +21,7 @@ import {
 	extractCatalog,
 	TRANSLATIONS_MODULE,
 	translationsText,
-} from 'ui/scripts/intl-catalog'
+} from 'ui/scripts/intl/catalog'
 
 const SRC_DIR = fileURLToPath(new URL('../src', import.meta.url))
 

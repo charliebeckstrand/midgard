@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { type ESTree, normalizePath } from 'vite'
-import { readTranslations } from '../../../scripts/intl-catalog.ts'
+import { readTranslations } from '../../../scripts/intl/catalog.ts'
 import type { Manifest } from './asset-urls.ts'
 import { DATA_ID, DEMO_ID, demoFolders, translateDemo } from './demo-text.ts'
 import type { Parser, Translate } from './examples.ts'

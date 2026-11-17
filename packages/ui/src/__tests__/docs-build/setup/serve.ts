@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import type { TestProject } from 'vitest/node'
-import { CLIENT_DIR, serveDocs } from '../../../../scripts/docs-server'
+import { CLIENT_DIR, serveDocs } from '../../../../scripts/docs/server'
 
 declare module 'vitest' {
 	interface ProvidedContext {
