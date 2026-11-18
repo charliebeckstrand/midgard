@@ -5,6 +5,7 @@ import { Bot, ChartColumn, LogIn, Menu as MenuIcon, Numbers, Trophy } from 'luci
 import { useState } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
 import { Button } from 'ui/button'
+import { useIdleLoad } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { useNewRunClick } from '../../hooks/use-new-run-click'
@@ -13,7 +14,9 @@ import { usePrefetchStats } from '../../queries/stats-queries'
 import { dayKey } from '../../utilities/day'
 import { ROUTE_LABELS, type Route, VS_SEGMENT } from '../../utilities/seed'
 import { LeaderboardDialog } from '../leaderboard-dialog'
-import { StatsDialog } from '../stats-dialog'
+
+/** The code of the Stats dialog and its bar chart, which only a signed-in reader opens. */
+const loadStatsDialog = () => import('../stats-dialog')
 
 /**
  * The props of the item of `route`, when it is the route of the page: it is
@@ -54,9 +57,16 @@ export type NumbersMenuProps = {
  * so a route that shows again after midnight reads the new day. For a
  * signed-in reader with a verified email, the menu also reads the stats, so
  * Stats opens with its stats. The stats of any other reader are not read.
+ *
+ * The Stats dialog and its bar chart load in idle time after the mount, and
+ * only for a signed-in reader (`useIdleLoad`). Thus the chart is not in the
+ * first code of a run page, and a reader with no session never loads it. A
+ * press on Stats before the load opens the dialog when its code arrives.
  */
 export function NumbersMenu({ user, route }: NumbersMenuProps) {
 	const [statsOpen, setStatsOpen] = useState(false)
+
+	const statsDialog = useIdleLoad(user ? loadStatsDialog : null)
 
 	const [leaderboardOpen, setLeaderboardOpen] = useState(false)
 
@@ -126,7 +136,9 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 				</MenuContent>
 			</Menu>
 
-			{user && <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} user={user} />}
+			{user && statsDialog && (
+				<statsDialog.StatsDialog open={statsOpen} onOpenChange={setStatsOpen} user={user} />
+			)}
 
 			<LeaderboardDialog open={leaderboardOpen} onOpenChange={setLeaderboardOpen} user={user} />
 		</>

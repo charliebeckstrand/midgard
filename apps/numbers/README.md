@@ -213,7 +213,9 @@ one tab for each mode (Standard and Vs CPU): the runs played, the best and the
 average score, and a bar chart of the runs on each score from 1 to 20. The
 first number always has an empty slot, so no run scores 0. A switch of tab
 slides to the next mode. Mimir, in asgard, keeps the stats
-(`/api/games/numbers/*`, `src/api/stats-api.ts`).
+(`/api/games/numbers/*`, `src/api/stats-api.ts`). The dialog and its bar chart
+load in idle time after the page, and only for a signed-in reader, so the chart
+is not in the first code of a run page.
 
 Vs CPU also shows Win %, the share of the vs CPU runs that beat the CPU
 (`winRate`). Only a run that sends
