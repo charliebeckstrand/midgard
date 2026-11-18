@@ -50,9 +50,10 @@ that puts back the `_rsc` parameter, and then the page comes. A new tab opens
 the link address, and the proxy sends it to a new seed.
 
 Each page of a run preloads the run of a new seed in the other mode
-(`RunPreloadProvider`). When the page shows, it makes the seed, and Next
-prefetches the whole page of that seed. Thus a switch from Standard to Vs CPU,
-or back, needs no request. A switch takes the preloaded seed once. The page
+(`RunPreloadProvider`). After the page loads, in idle time, Next prefetches
+the whole page of that seed, so the preload does not slow the page that the
+reader opened. Thus a switch from Standard to Vs CPU, or back, needs no
+request. A switch takes the preloaded seed once. The page
 reads the session in a private cache, so the prefetch has the menu of a
 signed-in reader too. A prefetch is stale after 5 minutes, and a switch after
 that time gets the page from the server.

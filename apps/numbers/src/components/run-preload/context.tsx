@@ -15,6 +15,41 @@ type PrefetchKind = NonNullable<Parameters<ReturnType<typeof useRouter>['prefetc
  */
 const FULL = 'full' as PrefetchKind
 
+/**
+ * How long a browser with no `requestIdleCallback`, such as Safari, waits after
+ * the load of the page before the preload.
+ */
+const IDLE_FALLBACK_MS = 1000
+
+/**
+ * Calls `callback` in idle time after the load of the page, so the work stays
+ * in the background. A page that has loaded schedules it at once. A browser
+ * with no `requestIdleCallback` calls it after {@link IDLE_FALLBACK_MS}.
+ *
+ * @returns The cancel of the call.
+ */
+function whenLoadedAndIdle(callback: () => void): () => void {
+	const request =
+		window.requestIdleCallback ?? ((call: () => void) => window.setTimeout(call, IDLE_FALLBACK_MS))
+
+	const cancel = window.cancelIdleCallback ?? window.clearTimeout
+
+	let handle: number | undefined
+
+	const schedule = () => {
+		handle = request(callback)
+	}
+
+	if (document.readyState === 'complete') schedule()
+	else window.addEventListener('load', schedule, { once: true })
+
+	return () => {
+		window.removeEventListener('load', schedule)
+
+		if (handle !== undefined) cancel(handle)
+	}
+}
+
 /** Gives the preloaded seed of a mode once, or `null`. `vsCpu` is the mode: against the CPU, or solo. */
 type TakePreloaded = (vsCpu: boolean) => string | null
 
@@ -33,9 +68,12 @@ export type RunPreloadProviderProps = {
 
 /**
  * Preloads the run of a new seed in the other mode, so a switch of mode shows
- * it at once. When the page shows, the provider makes the seed, and Next
- * prefetches its page with the data of the request. A switch takes the seed
- * once ({@link useTakePreloaded}), so a second switch does not play it again.
+ * it at once. When the page shows, the provider makes the seed. After the load
+ * of the page, in idle time, Next prefetches the page of the seed with the data
+ * of the request. Thus the preload does not slow the page that the reader
+ * opened. A switch takes the seed once ({@link useTakePreloaded}), so a second
+ * switch does not play it again. A switch before the prefetch gets the page
+ * from the server.
  *
  * Cache Components holds a route that the reader leaves. The effect runs at
  * each show, so a return to a held route preloads a new seed.
@@ -53,9 +91,11 @@ export function RunPreloadProvider({ vsCpu, children }: RunPreloadProviderProps)
 
 		preloaded.current = seed
 
-		router.prefetch(runPath(seed, !vsCpu), { kind: FULL })
+		const cancel = whenLoadedAndIdle(() => router.prefetch(runPath(seed, !vsCpu), { kind: FULL }))
 
 		return () => {
+			cancel()
+
 			preloaded.current = null
 		}
 	}, [router, vsCpu])

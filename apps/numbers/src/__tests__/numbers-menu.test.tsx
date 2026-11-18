@@ -165,6 +165,13 @@ describe('NumbersMenu', () => {
 		['solo', 'Vs CPU'],
 		['vsCpu', 'Standard'],
 	] as const)('on the %s route, goes from %s to the preloaded seed', async (route, name) => {
+		// The preload runs in idle time, here at once.
+		vi.stubGlobal('requestIdleCallback', (call: () => void) => {
+			call()
+
+			return 0
+		})
+
 		render(
 			<QueryClientProvider client={new QueryClient()}>
 				<UIProvider>
