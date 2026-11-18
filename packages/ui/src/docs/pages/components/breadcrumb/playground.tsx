@@ -12,11 +12,11 @@ export default function BreadcrumbPlayground(props: BreadcrumbProps) {
 		<Breadcrumb {...props}>
 			<BreadcrumbList>
 				<BreadcrumbItem>
-					<BreadcrumbLink href="/breadcrumb">Home</BreadcrumbLink>
+					<BreadcrumbLink href="#">Home</BreadcrumbLink>
 				</BreadcrumbItem>
 				<BreadcrumbSeparator />
 				<BreadcrumbItem>
-					<BreadcrumbLink href="/breadcrumb">Components</BreadcrumbLink>
+					<BreadcrumbLink href="#">Components</BreadcrumbLink>
 				</BreadcrumbItem>
 				<BreadcrumbSeparator />
 				<BreadcrumbItem>
