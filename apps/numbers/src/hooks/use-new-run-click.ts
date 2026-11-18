@@ -2,12 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import type { MouseEvent } from 'react'
+import { useTakePreloaded } from '../components/run-preload'
 import { createSeed, runPath } from '../utilities/seed'
 
 /**
  * The click of a link that starts the run of a new seed: a link to `/`, or to
- * `/vs` against the CPU. A plain click makes the seed and goes to its address,
- * such as `/vs/k3x9q2`, in one request.
+ * `/vs` against the CPU. A plain click goes to the address of a new seed, such
+ * as `/vs/k3x9q2`, in one request. The seed of the other mode is preloaded
+ * (`RunPreloadProvider`), so a switch of mode needs no request. Else the click
+ * makes the seed.
  *
  * Through the address of the link, the navigation needs three requests in a
  * row. `proxy.ts` sends a redirect to a new seed. The redirect drops the `_rsc`
@@ -20,11 +23,13 @@ import { createSeed, runPath } from '../utilities/seed'
 export function useNewRunClick(vsCpu: boolean) {
 	const router = useRouter()
 
+	const takePreloaded = useTakePreloaded()
+
 	return (event: MouseEvent<HTMLAnchorElement>) => {
 		if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
 		event.preventDefault()
 
-		router.push(runPath(createSeed(), vsCpu))
+		router.push(runPath(takePreloaded(vsCpu) ?? createSeed(), vsCpu))
 	}
 }

@@ -5,6 +5,7 @@ import type { GameSettings } from '../../utilities/settings'
 import { GameBoard } from '../game-board'
 import { GameSettingsProvider } from '../game-settings'
 import { NumbersHeader } from '../numbers-header'
+import { RunPreloadProvider } from '../run-preload'
 
 /** Props for {@link GameFrame}. */
 export type GameFrameProps = {
@@ -23,13 +24,16 @@ export type GameFrameProps = {
  * of the request. The column has the
  * height of the viewport, and the body scrolls under the header, so the
  * document is never taller than the screen (see `StackedLayout`). Share
- * screenshot draws this box ({@link FRAME_ID}).
+ * screenshot draws this box ({@link FRAME_ID}). The header preloads the run of
+ * a new seed in the other mode, which its links go to (`RunPreloadProvider`).
  */
 export function GameFrame({ seed, settings, vsCpu = false, user }: GameFrameProps) {
 	return (
 		<GameSettingsProvider settings={settings}>
 			<StackedLayout id={FRAME_ID} className="h-dvh print:h-auto">
-				<NumbersHeader user={user} route={vsCpu ? 'vsCpu' : 'solo'} />
+				<RunPreloadProvider vsCpu={vsCpu}>
+					<NumbersHeader user={user} route={vsCpu ? 'vsCpu' : 'solo'} />
+				</RunPreloadProvider>
 
 				<StackedLayoutBody>
 					<GameBoard seed={seed} user={user} vsCpu={vsCpu} />

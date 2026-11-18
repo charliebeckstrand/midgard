@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { readBoard } from '../api/leaderboard-api'
 import { readStats } from '../api/stats-api'
 import { NumbersMenu } from '../components/numbers-menu/numbers-menu'
+import { RunPreloadProvider } from '../components/run-preload'
 import type { Route } from '../utilities/seed'
 
 vi.mock('../api/stats-api', () => ({ readStats: vi.fn() }))
@@ -15,7 +16,9 @@ vi.mock('../api/leaderboard-api', () => ({ readBoard: vi.fn() }))
 
 const push = vi.fn()
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
+const prefetch = vi.fn()
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push, prefetch }) }))
 
 /** A user, verified or not. */
 const makeUser = (verified: boolean) => ({ id: 'user-1', is_verified: verified }) as User
@@ -157,6 +160,34 @@ describe('NumbersMenu', () => {
 			expect(push.mock.calls[0]?.[0]).toMatch(address)
 		},
 	)
+
+	it.each([
+		['solo', 'Vs CPU'],
+		['vsCpu', 'Standard'],
+	] as const)('on the %s route, goes from %s to the preloaded seed', async (route, name) => {
+		// The preload runs in idle time, here at once.
+		vi.stubGlobal('requestIdleCallback', (call: () => void) => {
+			call()
+
+			return 0
+		})
+
+		render(
+			<QueryClientProvider client={new QueryClient()}>
+				<UIProvider>
+					<RunPreloadProvider vsCpu={route === 'vsCpu'}>
+						<NumbersMenu route={route} />
+					</RunPreloadProvider>
+				</UIProvider>
+			</QueryClientProvider>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+		fireEvent.click(await screen.findByRole('menuitem', { name }))
+
+		expect(push).toHaveBeenCalledWith(prefetch.mock.calls[0]?.[0])
+	})
 
 	it('leaves a click with a modifier to the browser, which opens the address of the item', async () => {
 		renderMenu()

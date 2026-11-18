@@ -43,11 +43,20 @@ partial Fisher-Yates shuffle takes the deck.
 | `/vs/k3x9q2` | The run of the seed against the CPU (see [Vs CPU](#vs-cpu)) |
 
 Standard and Vs CPU in the menu, and Numbers in the trail, link to `/` and
-`/vs`. A plain click makes the seed in the browser and goes to its address
-(`useNewRunClick`), so the navigation needs one request. Through the link
-address, it needs three requests in a row. The proxy sends a redirect, Next
-sends a second redirect that puts back the `_rsc` parameter, and then the page
-comes. A new tab opens the link address, and the proxy sends it to a new seed.
+`/vs`. A plain click goes to the address of a new seed (`useNewRunClick`), so
+the navigation needs one request. Through the link address, it needs three
+requests in a row. The proxy sends a redirect, Next sends a second redirect
+that puts back the `_rsc` parameter, and then the page comes. A new tab opens
+the link address, and the proxy sends it to a new seed.
+
+Each page of a run preloads the run of a new seed in the other mode
+(`RunPreloadProvider`). After the page loads, in idle time, Next prefetches
+the whole page of that seed, so the preload does not slow the page that the
+reader opened. Thus a switch from Standard to Vs CPU, or back, needs no
+request. A switch takes the preloaded seed once. The page
+reads the session in a private cache, so the prefetch has the menu of a
+signed-in reader too. A prefetch is stale after 5 minutes, and a switch after
+that time gets the page from the server.
 
 A Reset starts the run of a new seed in place, in the same mode, and adds its
 address to the history. While the run goes on and has a placed number, Reset
