@@ -1,14 +1,15 @@
-import type { ComponentType, ReactNode } from 'react'
+import { type ComponentType, type ReactNode, useEffect, useState } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { cn } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Link } from 'ui/link'
-import { defineMessages, useIntl } from 'ui/primitives/intl'
+import { defineMessage, defineMessages, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
+import { BreakpointFrame } from '../../primitives/breakpoint-frame/breakpoint-frame.tsx'
 import { sen } from '../../recipes/kiso/index.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { createLazyModule, type LazyModule } from '../../utilities/lazy-module.ts'
@@ -29,6 +30,14 @@ const messages = defineMessages({
 		description:
 			'The label of the button under an example that hides the source code of the example.',
 	},
+})
+
+// The size of the instance area in pixels, such as "640 × 480".
+const sizeMessage = defineMessage<{ width: number; height: number }>({
+	id: 'docs.example.size',
+	defaultMessage: '{width} × {height}',
+	description:
+		'The size of an example in pixels, which shows while the reader resizes the example, such as "640 × 480".',
 })
 
 function isExample(component: object): component is ExampleMeta {
@@ -82,6 +91,51 @@ function Code({
 	)
 }
 
+/**
+ * The width and the height of `target` in pixels, in the top end corner of the
+ * frame. It shows only while `active`, and it measures only then, so the size
+ * of an idle frame renders nothing.
+ */
+function FrameSize({ target, active }: { target: HTMLElement | null; active: boolean }) {
+	const intl = useIntl()
+
+	const [size, setSize] = useState<{ width: number; height: number } | null>(null)
+
+	useEffect(() => {
+		if (!active || target === null) return
+
+		// The observer reports the size at once, and then each change.
+		const observer = new ResizeObserver(([entry]) => {
+			if (!entry) return
+
+			setSize({
+				width: Math.round(entry.contentRect.width),
+				height: Math.round(entry.contentRect.height),
+			})
+		})
+
+		observer.observe(target)
+
+		return () => {
+			observer.disconnect()
+
+			setSize(null)
+		}
+	}, [active, target])
+
+	if (!active || size === null) return null
+
+	return (
+		<span
+			aria-hidden
+			data-slot="example-size"
+			className="pointer-events-none absolute end-2 top-2 z-10 rounded-md bg-zinc-950/80 px-1.5 py-0.5 text-xs font-medium text-white tabular-nums dark:bg-white/80 dark:text-zinc-950"
+		>
+			{intl.formatMessage(sizeMessage, size)}
+		</span>
+	)
+}
+
 // The frame stops at its CSS minimum width.
 function frameFloor(frame: HTMLElement): number {
 	return Number.parseFloat(getComputedStyle(frame).minWidth)
@@ -106,7 +160,13 @@ function frameCeiling(frame: HTMLElement): number {
  * but the gap does.
  * A drag on the end border of the frame resizes the frame, so a reader can see
  * how the instance responds to a narrow column. The drag area is 24px wide and
- * sits across the border.
+ * sits across the border. While the drag continues, the top end corner of the
+ * frame shows the width and the height of the instance area in pixels.
+ *
+ * The instance area is a breakpoint frame (`BreakpointFrame`). Its breakpoints
+ * read the width of the area and not the width of the viewport, in the CSS
+ * (`app.css`) and in `useResponsiveValue`. Thus the instance changes at each
+ * breakpoint as a page does when a reader makes the window narrower.
  *
  * Where the primary pointer is coarse, only a grip at the middle of the border
  * resizes the frame. The grip takes the whole touch, so a drag in any direction
@@ -176,6 +236,9 @@ export function ExampleFrame({
 		cursor: 'ew-resize',
 	})
 
+	// The instance area, as state, so the size readout observes it once it exists.
+	const [area, setArea] = useState<HTMLDivElement | null>(null)
+
 	return (
 		<Stack gap="sm" data-slot="example">
 			<Flex gap="md" direction="col" align="start">
@@ -209,19 +272,22 @@ export function ExampleFrame({
 					/>
 				</div>
 				<div className="overflow-auto rounded-lg border border-zinc-200 peer-hover:border-zinc-400 peer-data-dragging:border-zinc-400 dark:border-zinc-800 dark:peer-hover:border-zinc-600 dark:peer-data-dragging:border-zinc-600">
-					<div className="p-4">
-						<Stack
-							data-slot="example-instance"
-							gap="lg"
-							className={
-								surface || ratio
-									? 'w-full'
-									: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
-							}
-						>
-							{children}
-						</Stack>
-					</div>
+					{/* The breakpoint frame has no padding, so its width is the width that its container query reads. */}
+					<BreakpointFrame ref={setArea}>
+						<div className="p-4">
+							<Stack
+								data-slot="example-instance"
+								gap="lg"
+								className={
+									surface || ratio
+										? 'w-full'
+										: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
+								}
+							>
+								{children}
+							</Stack>
+						</div>
+					</BreakpointFrame>
 					<Collapse animate="slide" open={open} onOpenChange={(next) => change(() => next)}>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">
 							<CollapseTrigger
@@ -238,6 +304,7 @@ export function ExampleFrame({
 						</CollapsePanel>
 					</Collapse>
 				</div>
+				<FrameSize target={area} active={resize.handleProps['data-dragging'] !== undefined} />
 			</div>
 		</Stack>
 	)

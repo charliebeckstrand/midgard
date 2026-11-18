@@ -5531,6 +5531,10 @@
 		"defaultMessage": "Show code",
 		"description": "The label of the button under an example that shows the source code of the example."
 	},
+	"docs.example.size": {
+		"defaultMessage": "{width} × {height}",
+		"description": "The size of an example in pixels, which shows while the reader resizes the example, such as \"640 × 480\"."
+	},
 	"docs.notFound.body": {
 		"defaultMessage": "Page not found",
 		"description": "The text of the page that shows for a path that has no page of the docs."

@@ -25,6 +25,72 @@
 	}
 }
 
+/* The breakpoints. Out of an example, a breakpoint reads the width of the
+   viewport. In the frame of an example (`BreakpointFrame`), it reads the width
+   of the frame, as a container query. When a reader makes the frame narrower,
+   the instance thus changes as a page changes in a narrower window. A surface
+   that a portal moves to the body, such as a dialog, reads the viewport.
+   `useResponsiveValue` reads the same widths. */
+@custom-variant sm {
+	@media (width >= --theme(--breakpoint-sm)) {
+		&:where(:not([data-slot='breakpoint-frame'] *)) {
+			@slot;
+		}
+	}
+
+	@container breakpoint-frame (width >= --theme(--breakpoint-sm)) {
+		@slot;
+	}
+}
+
+@custom-variant md {
+	@media (width >= --theme(--breakpoint-md)) {
+		&:where(:not([data-slot='breakpoint-frame'] *)) {
+			@slot;
+		}
+	}
+
+	@container breakpoint-frame (width >= --theme(--breakpoint-md)) {
+		@slot;
+	}
+}
+
+@custom-variant lg {
+	@media (width >= --theme(--breakpoint-lg)) {
+		&:where(:not([data-slot='breakpoint-frame'] *)) {
+			@slot;
+		}
+	}
+
+	@container breakpoint-frame (width >= --theme(--breakpoint-lg)) {
+		@slot;
+	}
+}
+
+@custom-variant xl {
+	@media (width >= --theme(--breakpoint-xl)) {
+		&:where(:not([data-slot='breakpoint-frame'] *)) {
+			@slot;
+		}
+	}
+
+	@container breakpoint-frame (width >= --theme(--breakpoint-xl)) {
+		@slot;
+	}
+}
+
+@custom-variant 2xl {
+	@media (width >= --theme(--breakpoint-2xl)) {
+		&:where(:not([data-slot='breakpoint-frame'] *)) {
+			@slot;
+		}
+	}
+
+	@container breakpoint-frame (width >= --theme(--breakpoint-2xl)) {
+		@slot;
+	}
+}
+
 /* An element whose children are all phrasing content, the content that HTML
    lets sit in a line of text, such as a button, a badge, or an icon. The
    instance box of an example (`kit/example.tsx`) shows such children in a

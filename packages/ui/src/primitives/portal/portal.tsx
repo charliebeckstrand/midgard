@@ -4,6 +4,7 @@ import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import { type ReactNode, useEffectEvent, useId, useLayoutEffect, useState } from 'react'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { BreakpointFrameContext, findFrame, useBreakpointFrame } from '../breakpoint-frame/context'
 import { useDensityScope } from '../density/context'
 import { useDirectionScope } from '../direction/context'
 import { ReducedMotion } from '../reduced-motion'
@@ -85,6 +86,10 @@ function PortalScope({ children }: { children: ReactNode }) {
  * follows the root element. A host never makes a box, so it changes no
  * layout or positioning.
  *
+ * A surface that the portal moves out of a breakpoint frame reads the
+ * breakpoints of the viewport, as its CSS does. A surface in a container in
+ * the frame stays in the frame.
+ *
  * Each portal also opens a portal scope (`usePortalScope`). A context that a
  * surface keeps to itself ends there, such as the button defaults of an alert.
  *
@@ -105,6 +110,8 @@ export function Portal({ open, container, ssr = false, onExitComplete, children 
 	const density = useDensityScope()
 
 	const dir = useDirectionScope()
+
+	const frame = findFrame(useBreakpointFrame(), root)
 
 	// `mounted` flips on with `open` (adjusted during render) and off once the
 	// exit animation completes, so a closed surface keeps no portal node in the DOM.
@@ -153,11 +160,13 @@ export function Portal({ open, container, ssr = false, onExitComplete, children 
 			className="contents"
 		>
 			<PortalScope>
-				<ReducedMotion>
-					<AnimatePresence initial={!restore} onExitComplete={handleExitComplete}>
-						{open && children}
-					</AnimatePresence>
-				</ReducedMotion>
+				<BreakpointFrameContext value={frame}>
+					<ReducedMotion>
+						<AnimatePresence initial={!restore} onExitComplete={handleExitComplete}>
+							{open && children}
+						</AnimatePresence>
+					</ReducedMotion>
+				</BreakpointFrameContext>
 			</PortalScope>
 		</div>
 	)
