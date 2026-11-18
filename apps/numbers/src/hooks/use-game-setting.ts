@@ -52,7 +52,12 @@ export function useGameSetting<Name extends keyof GameSettings>(
 
 		// A storage that refuses the write leaves the other tabs on the old
 		// value until their next render. The cookie still holds the setting.
+		// A browser fires the `storage` event only when the copy changes, and the
+		// copy can hold the same value after the cookie expires. Thus the write
+		// removes the copy first, so each write tells the other tabs.
 		try {
+			window.localStorage.removeItem(cookie)
+
 			window.localStorage.setItem(cookie, raw)
 		} catch {}
 
