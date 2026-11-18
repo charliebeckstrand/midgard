@@ -9,7 +9,7 @@ import path from 'node:path'
 // - `DOCS_BASE` sets the path of the site, such as `/docs/`. With no value, the
 //   path is `/`. It is the `base` of Vite and the `basename` of React Router,
 //   so each page, each asset, and each link is under that path.
-// - `DOCS_BUILD_DIRECTORY` sets the folder of the build, relative to the folder
+// - `DOCS_BUILD_DIR` sets the folder of the build, relative to the folder
 //   of the docs app, else `dist`. The server build imports its packages by
 //   name, so the folder must be in this package, where Node finds them.
 
@@ -18,7 +18,7 @@ export type DocsTarget = {
 	/** The path of the site that the build is for: `/`, or a path such as `/docs/`. */
 	base: string
 	/** The absolute path of the folder of the build. */
-	buildDirectory: string
+	buildDir: string
 	/** The absolute path of the client folder of the build, which a host serves at the root of the site. */
 	clientDir: string
 }
@@ -30,12 +30,12 @@ const APP_DIR = path.resolve(import.meta.dirname, '..')
 export function docsTarget(env: NodeJS.ProcessEnv = process.env): DocsTarget {
 	const trimmed = (env.DOCS_BASE ?? '').replace(/^\/+|\/+$/g, '')
 
-	const buildDirectory = path.resolve(APP_DIR, env.DOCS_BUILD_DIRECTORY || 'dist')
+	const buildDir = path.resolve(APP_DIR, env.DOCS_BUILD_DIR || 'dist')
 
 	return {
 		base: trimmed ? `/${trimmed}/` : '/',
-		buildDirectory,
-		clientDir: path.join(buildDirectory, 'client'),
+		buildDir,
+		clientDir: path.join(buildDir, 'client'),
 	}
 }
 

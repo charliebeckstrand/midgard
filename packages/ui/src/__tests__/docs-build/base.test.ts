@@ -19,7 +19,7 @@ const PACKAGE_DIR = path.resolve(import.meta.dirname, '..', '..', '..')
 // The folder is in the package, where the server build finds its packages.
 const target = docsTarget({
 	DOCS_BASE: BASE,
-	DOCS_BUILD_DIRECTORY: path.join(PACKAGE_DIR, 'node_modules', '.cache', 'docs-base'),
+	DOCS_BUILD_DIR: path.join(PACKAGE_DIR, 'node_modules', '.cache', 'docs-base'),
 })
 
 /** The folder of the base in the client folder, where each file of the build goes. */
@@ -32,7 +32,7 @@ const SITE_PATH = /\s(?:href|src)="(\/(?!\/)[^"]*)"/g
 beforeAll(async () => {
 	// The build empties only a folder in the docs app, so a failed run can leave
 	// files here.
-	await rm(target.buildDirectory, { recursive: true, force: true })
+	await rm(target.buildDir, { recursive: true, force: true })
 
 	await promisify(execFile)('pnpm', ['run', 'docs:build'], {
 		cwd: PACKAGE_DIR,
@@ -42,13 +42,13 @@ beforeAll(async () => {
 			// runs only in production. The value of the run is `test`.
 			NODE_ENV: 'production',
 			DOCS_BASE: target.base,
-			DOCS_BUILD_DIRECTORY: target.buildDirectory,
+			DOCS_BUILD_DIR: target.buildDir,
 		},
 		maxBuffer: 64 * 1024 * 1024,
 	})
 }, 600_000)
 
-afterAll(() => rm(target.buildDirectory, { recursive: true, force: true }))
+afterAll(() => rm(target.buildDir, { recursive: true, force: true }))
 
 describe('the docs build with a base', () => {
 	it('puts each file in the folder of the base', () => {

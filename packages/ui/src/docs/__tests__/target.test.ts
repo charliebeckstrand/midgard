@@ -17,11 +17,11 @@ describe('docsTarget', () => {
 	it('gives the root path and the `dist` folder with no variable', () => {
 		expect(docsTarget({})).toEqual({
 			base: '/',
-			buildDirectory: path.join(APP_DIR, 'dist'),
+			buildDir: path.join(APP_DIR, 'dist'),
 			clientDir: path.join(APP_DIR, 'dist', 'client'),
 		})
 
-		expect(docsTarget({ DOCS_BASE: '/', DOCS_BUILD_DIRECTORY: '' }).base).toBe('/')
+		expect(docsTarget({ DOCS_BASE: '/', DOCS_BUILD_DIR: '' }).base).toBe('/')
 	})
 
 	it.each(['docs', '/docs', '/docs/', 'docs/', '//docs//'])('gives /docs/ for %s', (value) => {
@@ -29,7 +29,7 @@ describe('docsTarget', () => {
 	})
 
 	it('reads the folder of the build from the folder of the docs app', () => {
-		const target = docsTarget({ DOCS_BUILD_DIRECTORY: '../../node_modules/.cache/docs' })
+		const target = docsTarget({ DOCS_BUILD_DIR: '../../node_modules/.cache/docs' })
 
 		expect(target.clientDir).toBe(
 			path.resolve(APP_DIR, '..', '..', 'node_modules', '.cache', 'docs', 'client'),

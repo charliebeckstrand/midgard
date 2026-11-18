@@ -15,7 +15,7 @@ const target = docsTarget()
 const config: Config = {
 	appDirectory: 'app',
 	// The folder of the build, and the path of the site that it is for (`plugin/target.ts`).
-	buildDirectory: target.buildDirectory,
+	buildDirectory: target.buildDir,
 	basename: target.base,
 	ssr: false,
 	// Each path with no params. The not-found route has none of its own: the
@@ -29,11 +29,11 @@ const config: Config = {
 	// into the folder of the base, where React Router wrote the pages. Thus each
 	// step after the move finds each file of the build in that folder.
 	buildEnd: async () => {
-		const { base, buildDirectory, clientDir } = target
+		const { base, buildDir, clientDir } = target
 
 		await moveUnderBase(clientDir, base)
 
-		await prerenderLocales(path.join(buildDirectory, 'server'), clientDir, LOCALES)
+		await prerenderLocales(path.join(buildDir, 'server'), clientDir, LOCALES)
 
 		const stylesheet = path.join(import.meta.dirname, 'app', 'app.css')
 
