@@ -20,7 +20,7 @@ const PARTS: readonly Part[] = [
 		paragraphs: [
 			`Each run draws ${SLOTS} numbers between 1 and ${MAX}, one at a time. Place each number in a slot so that the column always runs from smallest at the top to largest at the bottom.`,
 			`The run ends when a number has nowhere to go. Your score is the number of slots you fill, and a full column of ${SLOTS} wins.`,
-			"You can't know what comes next, so leave room on both sides: low numbers belong near the top, and high numbers near the bottom.",
+			'A seed always draws the same numbers in the same order, so only your first run of a seed counts toward your stats and the leaderboards.',
 		],
 	},
 	{

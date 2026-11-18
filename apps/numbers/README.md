@@ -208,9 +208,12 @@ its first placement, with its score at that step (`isUnfinished`). A link,
 Back, or Forward leaves the run, and the run does not count. `useGame` gives an
 ended run to its `onEnd` in the action, not in an effect, so a held route that
 shows again does not count its run a second time. A run counts only for a user
-with a verified email. A reader with no session gets no Stats item in the menu.
-The menu reads the stats of a verified reader when it opens, so the dialog
-opens with them.
+with a verified email. Only the first run of each seed counts in each mode
+(Charlie, 2026-11-18): a seed always draws the same numbers in the same order,
+so a later run of it changes no stat and no board. Mimir keeps the seeds of the
+counted runs from that day, so a seed played only before then counts once more.
+A reader with no session gets no Stats item in the menu. The menu reads the
+stats of a verified reader when it opens, so the dialog opens with them.
 
 ## Leaderboard
 
@@ -220,8 +223,8 @@ Standard for the solo runs, and Vs CPU for the runs that beat the CPU. The dialo
 opens on Standard. A vs CPU run that ties or loses, or that a
 Reset ends, counts in the stats but on no board (`beatCpu` of the result). A run counts on the board of the reader's
 date. A board shows the top 10 players by their best score on it, then the
-reader when they are below them, and the count of players. A better run moves a
-player up. Equal scores share a rank. The boards open on today, and the arrows
+reader when they are below them, and the count of players. A better run on a new
+seed moves a player up. Equal scores share a rank. The boards open on today, and the arrows
 go to earlier days, but not past today. A switch of tab slides to the next
 board. Mimir keeps the boards (`/api/games/numbers/daily`,
 `src/api/leaderboard-api.ts`).
