@@ -128,6 +128,27 @@ describe('NumbersMenu', () => {
 		await waitFor(() => expect(readStats).toHaveBeenCalledTimes(1))
 	})
 
+	it('opens Stats, whose code loads in idle time after the mount, for a signed-in reader', async () => {
+		// The idle load runs at once here.
+		vi.stubGlobal('requestIdleCallback', (call: () => void) => {
+			call()
+
+			return 0
+		})
+
+		const mode = { played: 1, wins: 0, best: 5, average: 5, scores: [], winRate: null }
+
+		vi.mocked(readStats).mockResolvedValue({ solo: mode, vsCpu: mode })
+
+		renderMenu(makeUser(true))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+		fireEvent.click(await screen.findByRole('menuitem', { name: 'Stats' }))
+
+		expect(await screen.findByRole('dialog', { name: 'Stats' })).toBeTruthy()
+	})
+
 	it.each([
 		['with no verified email', makeUser(false)],
 		['with no session', undefined],

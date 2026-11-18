@@ -9,7 +9,7 @@ import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
 import { Columns } from 'ui/structure/columns'
 import { useGame } from '../../hooks/use-game'
-import { useGameSetting } from '../../hooks/use-game-setting'
+import { useGameSetting, useGameSettingChange } from '../../hooks/use-game-setting'
 import { useRunRecorder } from '../../hooks/use-run-recorder'
 import {
 	countPlaced,
@@ -79,6 +79,13 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const { game, status, draw, place, reset } = useGame(seed, autoDraw, recordRun)
 
+	// When Auto-draw comes on during a run, the run draws. The change comes from
+	// the store of the settings, so a held route that shows again does not draw
+	// in the run that the reader left (`useGameSettingChange`).
+	useGameSettingChange('autoDraw', (on) => {
+		if (on && status === 'ready') draw()
+	})
+
 	const ended = isEnded(status)
 
 	// The CPU places each number after the player places it, so the player
@@ -139,11 +146,27 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const confirm = useConfirm()
 
+	// The run on the screen, which an answer after the question compares with
+	// the run that the question named.
+	const shownGame = useRef(game)
+
+	useEffect(() => {
+		shownGame.current = game
+	}, [game])
+
 	/**
 	 * Starts the next run. A run that goes on with a placed number asks first,
-	 * because the reset discards it.
+	 * because the reset discards it. The question stays open across a
+	 * navigation, so a link, Back, or Forward during the question leaves the run
+	 * that it names. The answer then does nothing: the left run does not count,
+	 * and the address of the page stays. Two checks find a left run. A board
+	 * that a navigation hid keeps its run, but the address changed. Back and
+	 * Forward to the same address give the address back, but the board started
+	 * a new run.
 	 */
 	const resetRun = async () => {
+		const address = window.location.pathname
+
 		if (
 			isUnfinished(game) &&
 			!(await confirm({
@@ -155,6 +178,8 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 			return
 		}
 
+		if (window.location.pathname !== address || shownGame.current !== game) return
+
 		restart()
 	}
 
@@ -165,12 +190,16 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 	/**
 	 * Starts the run of the seed of the address from its start. A board that
 	 * holds that run with no placement already is at its start, so it keeps
-	 * its run: the mount keeps the run of the server render.
+	 * its run: the mount keeps the run of the server render. A run with no draw
+	 * while Auto-draw is on is not at its start: the setting came on while its
+	 * route was held, so the run starts again with its first draw.
 	 */
 	const follow = useEffectEvent((next: string) => {
 		if (!isSeed(next)) return
 
-		if (next !== game.seed || countPlaced(game.slots) > 0) reset(next)
+		const atStart = countPlaced(game.slots) === 0 && (!autoDraw || game.drawn !== null)
+
+		if (next !== game.seed || !atStart) reset(next)
 	})
 
 	// The effect runs at each change of the address. Cache Components holds a

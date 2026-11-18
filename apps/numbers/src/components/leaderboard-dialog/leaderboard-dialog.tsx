@@ -36,7 +36,10 @@ import { ROUTE_LABELS } from '../../utilities/seed'
 export type LeaderboardDialogProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	/** The signed-in user, or none. The boards are the same for each reader. */
+	/**
+	 * The signed-in user, or none. The rows of the top 10 are the same for each
+	 * reader, and a signed-in reader also gets their own row.
+	 */
 	user?: User
 }
 
@@ -80,10 +83,10 @@ function BoardRow({ entry }: { entry: BoardEntry }) {
  * The board `mode` of the day `date`: the top 10 by their best score on it,
  * then the reader when they are below them, and the count of players.
  */
-function Board({ date, mode }: { date: string; mode: BoardMode }) {
+function Board({ date, mode, viewer }: { date: string; mode: BoardMode; viewer: string | null }) {
 	const intl = useIntl()
 
-	const { data, isError, isPlaceholderData } = useBoard(date, mode)
+	const { data, isError, isPlaceholderData } = useBoard(date, mode, viewer)
 
 	if (isError) return <Text>The leaderboard could not be loaded. Try again later.</Text>
 
@@ -175,7 +178,9 @@ function Boards({ user }: { user?: User }) {
 
 	const date = day ? dayKey(day) : null
 
-	const prefetchBoards = usePrefetchBoards()
+	const viewer = user?.id ?? null
+
+	const prefetchBoards = usePrefetchBoards(viewer)
 
 	// The tab that shows reads its own board. This reads the other one, so a
 	// switch of tab slides to a board that has its rows.
@@ -215,11 +220,11 @@ function Boards({ user }: { user?: User }) {
 
 					<TabContents animate="slide">
 						<TabContent value="solo">
-							<Board date={date} mode="solo" />
+							<Board date={date} mode="solo" viewer={viewer} />
 						</TabContent>
 
 						<TabContent value="vsCpu">
-							<Board date={date} mode="vsCpu" />
+							<Board date={date} mode="vsCpu" viewer={viewer} />
 						</TabContent>
 					</TabContents>
 				</Stack>

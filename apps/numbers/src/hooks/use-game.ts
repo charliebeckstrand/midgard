@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useEffectEvent, useState } from 'react'
+import { useState } from 'react'
 import {
 	createGame,
 	drawNumber,
@@ -27,8 +27,10 @@ export type GameControls = {
  * The state of the run of `seed`, and its actions.
  *
  * With `autoDraw`, the game draws each number itself: at the start of each run,
- * after each placement, and when the setting comes on. A placement and its draw
- * are one update, so the page never renders the step between them. The first
+ * and after each placement. A placement and its draw are one update, so the
+ * page never renders the step between them. The caller draws when the setting
+ * comes on during a run (`useGameSettingChange`), so a run that the reader left
+ * does not draw when its held route shows again. The first
  * draw of the run of the page is in the first state: the deck comes from the
  * seed, so the server render and the hydration have the same drawn number, and
  * the first paint shows it.
@@ -55,16 +57,6 @@ export function useGame(
 
 		if (isEnded(getStatus(next))) onEnd?.(next)
 	}
-
-	const drawOnSetting = useEffectEvent(() => {
-		if (getStatus(game) === 'ready') advance(drawNumber(game))
-	})
-
-	// The effect draws when the setting comes on during a run. At the mount, the
-	// first state already holds the first draw, so the effect does nothing.
-	useEffect(() => {
-		if (autoDraw) drawOnSetting()
-	}, [autoDraw])
 
 	return {
 		game,

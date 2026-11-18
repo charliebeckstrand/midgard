@@ -73,7 +73,7 @@ export type RunPreloadProviderProps = {
  * of the request. Thus the preload does not slow the page that the reader
  * opened. A switch takes the seed once ({@link useTakePreloaded}), so a second
  * switch does not play it again. A switch before the prefetch gets the page
- * from the server.
+ * from the server, and the seed that it took is not prefetched.
  *
  * Cache Components holds a route that the reader leaves. The effect runs at
  * each show, so a return to a held route preloads a new seed.
@@ -91,7 +91,11 @@ export function RunPreloadProvider({ vsCpu, children }: RunPreloadProviderProps)
 
 		preloaded.current = seed
 
-		const cancel = whenLoadedAndIdle(() => router.prefetch(runPath(seed, !vsCpu), { kind: FULL }))
+		// A switch before the idle time took the seed, and its navigation fetches
+		// the page. A prefetch of the same page would be a second render.
+		const cancel = whenLoadedAndIdle(() => {
+			if (preloaded.current === seed) router.prefetch(runPath(seed, !vsCpu), { kind: FULL })
+		})
 
 		return () => {
 			cancel()

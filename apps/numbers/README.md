@@ -62,7 +62,9 @@ A Reset starts the run of a new seed in place, in the same mode, and adds its
 address to the history. While the run goes on and has a placed number, Reset
 asks the reader to confirm (`useConfirm` of `ui`). After a bust or a win, or
 before the first placement, Reset does not ask. A link, Back, and Forward start
-the run of the seed of the address again, from its start.
+the run of the seed of the address again, from its start. The question stays
+open across a navigation, so a Reset that the reader confirms after a link,
+Back, or Forward does nothing: the run that it names is gone.
 
 Share seed in the share menu of the bottom bar copies the address of the run.
 Against the CPU, the address holds the seed only. A reader of the link gets the
@@ -141,7 +143,7 @@ The Game tab of the settings has a picker above three switches:
 | Setting | Default | What it does |
 | --- | --- | --- |
 | CPU difficulty | Normal | The level of the CPU in Vs CPU: Easy, Normal, or Hard (see [Vs CPU](#vs-cpu)). |
-| Auto-draw | On | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button. |
+| Auto-draw | On | The game draws each number itself: at the load of the page, after each placement, after a Reset, and when the setting comes on during a run. The bar has no Draw button. |
 | Placement order | On | At the end of a run, each filled slot shows the order of its placement to its left, also in the column of the CPU. The order is the position of the number in the deck. |
 | Show score | On | The bar at the bottom shows the score. |
 
@@ -152,6 +154,13 @@ reader give them, and the first paint is the final layout (CONVENTIONS
 §3.13). With Auto-draw on, the first state of the run holds the first draw, so the server renders the first number too. A
 write also puts a copy in `localStorage`, and the `storage` event of the copy
 gives the change to the other tabs.
+
+The draw when Auto-draw comes on comes from the change of the setting, not from
+its value (`useGameSettingChange`). Cache Components holds a route that the
+reader leaves, and the held route has no subscription. Thus a change on another
+page does not draw in the run that the reader left, and that run does not count.
+Back starts the run again from its start, with its first draw when Auto-draw is
+on.
 
 ## Vs CPU
 
@@ -211,7 +220,9 @@ one tab for each mode (Standard and Vs CPU): the runs played, the best and the
 average score, and a bar chart of the runs on each score from 1 to 20. The
 first number always has an empty slot, so no run scores 0. A switch of tab
 slides to the next mode. Mimir, in asgard, keeps the stats
-(`/api/games/numbers/*`, `src/api/stats-api.ts`).
+(`/api/games/numbers/*`, `src/api/stats-api.ts`). The dialog and its bar chart
+load in idle time after the page, and only for a signed-in reader, so the chart
+is not in the first code of a run page.
 
 Vs CPU also shows Win %, the share of the vs CPU runs that beat the CPU
 (`winRate`). Only a run that sends
@@ -249,6 +260,9 @@ The dialog keeps its height while a board loads. The menu reads the two
 boards of today when it opens, so the dialog opens with its rows. The dialog
 reads the two boards of each day that the arrows go to, so each tab has its
 rows. Until the rows of a new day arrive, the rows of the last day stay, dimmed.
+The answer holds the row of the reader, so the client keeps the boards of each
+reader apart. A sign-in keeps the cache of the page, and the boards then read
+again for the signed-in reader.
 
 Each player shows by the name of their account, or as "Anonymous" when the
 account has no name, as an account from GitHub or Google does. Mimir keeps the

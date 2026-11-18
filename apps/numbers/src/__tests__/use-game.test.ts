@@ -48,33 +48,6 @@ describe('useGame', () => {
 		expect(drawn[0]).toBe(deck[0])
 	})
 
-	it('draws when the setting comes on, and not again when it goes off', () => {
-		const { result, rerender } = renderHook(({ autoDraw }) => useGame('charlie', autoDraw), {
-			initialProps: { autoDraw: false },
-		})
-
-		rerender({ autoDraw: true })
-
-		expect(result.current.game.drawn).toBe(deck[0])
-
-		rerender({ autoDraw: false })
-
-		expect(result.current.game.drawn).toBe(deck[0])
-	})
-
-	it('does not draw when the setting comes on while a number waits', () => {
-		const { result, rerender } = renderHook(({ autoDraw }) => useGame('charlie', autoDraw), {
-			initialProps: { autoDraw: false },
-		})
-
-		act(() => result.current.draw())
-
-		rerender({ autoDraw: true })
-
-		expect(result.current.game.drawn).toBe(deck[0])
-		expect(result.current.game.last).toBe(deck[0])
-	})
-
 	it('draws the next number in the update of a placement when Auto-draw is on', () => {
 		const { result } = renderHook(() => useGame('charlie', true))
 

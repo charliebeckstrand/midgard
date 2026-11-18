@@ -1,6 +1,6 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
+import { useEffect, useEffectEvent, useSyncExternalStore } from 'react'
 import { readCookie, writeCookie } from 'ui/core'
 import { useServerSettings } from '../components/game-settings'
 import { formatSetting, type GameSettings, parseSetting, SETTINGS } from '../utilities/settings'
@@ -52,7 +52,12 @@ export function useGameSetting<Name extends keyof GameSettings>(
 
 		// A storage that refuses the write leaves the other tabs on the old
 		// value until their next render. The cookie still holds the setting.
+		// A browser fires the `storage` event only when the copy changes, and the
+		// copy can hold the same value after the cookie expires. Thus the write
+		// removes the copy first, so each write tells the other tabs.
 		try {
+			window.localStorage.removeItem(cookie)
+
 			window.localStorage.setItem(cookie, raw)
 		} catch {}
 
@@ -60,4 +65,40 @@ export function useGameSetting<Name extends keyof GameSettings>(
 	}
 
 	return [value, write]
+}
+
+/**
+ * Calls `onChange` with the new value of the setting `name` at each change while
+ * the component is on the screen: a write in this tab, or a write in another
+ * tab. Use it for an action that a change starts, such as the draw when
+ * Auto-draw comes on.
+ *
+ * A hidden component, such as a route that Cache Components holds, holds no
+ * subscription. A change while it is hidden thus starts no action, and its next
+ * render reads the new value. An effect on the value would run again when the
+ * route shows, and start the action in a run that the reader left.
+ */
+export function useGameSettingChange<Name extends keyof GameSettings>(
+	name: Name,
+	onChange: (value: GameSettings[Name]) => void,
+): void {
+	const change = useEffectEvent(onChange)
+
+	useEffect(() => {
+		const { cookie } = SETTINGS[name]
+
+		const read = () => parseSetting(name, readCookie(cookie))
+
+		let last = read()
+
+		return subscribe(() => {
+			const next = read()
+
+			if (next === last) return
+
+			last = next
+
+			change(next)
+		})
+	}, [name])
 }

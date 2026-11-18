@@ -113,6 +113,17 @@ describe('RunPreloadProvider', () => {
 		expect(prefetch).toHaveBeenCalledTimes(1)
 	})
 
+	it('prefetches no seed that a switch took before the idle time', () => {
+		const { take } = renderProvider(false)
+
+		// The switch fetches the page itself, so a prefetch of it would be a second render.
+		expect(take(true)).not.toBeNull()
+
+		flushIdle()
+
+		expect(prefetch).not.toHaveBeenCalled()
+	})
+
 	it('preloads no run of the mode of the page', () => {
 		const { take } = renderProvider(false)
 
