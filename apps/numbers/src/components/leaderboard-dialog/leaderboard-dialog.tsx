@@ -28,8 +28,9 @@ import { TabContent, TabContents } from 'ui/tabs'
 import { Text } from 'ui/text'
 import type { BoardEntry, BoardMode } from '../../api/leaderboard-api'
 import { useBoard, usePrefetchBoards } from '../../queries/leaderboard-queries'
+import { dayKey } from '../../utilities/day'
 import { SLOTS } from '../../utilities/game'
-import { dailySeed, ROUTE_LABELS } from '../../utilities/seed'
+import { ROUTE_LABELS } from '../../utilities/seed'
 
 /** Props for {@link LeaderboardDialog}. */
 export type LeaderboardDialogProps = {
@@ -161,9 +162,9 @@ function ReaderNote({ user }: { user?: User }) {
 
 /**
  * The boards of a day that the arrows move, in the order of the menu: Standard for
- * the solo runs of other seeds, Vs CPU for the runs that beat the CPU, and Daily
- * for the daily puzzle. The dialog opens on Daily. The boards open on today,
- * and go back to earlier days, but not past today.
+ * the solo runs, and Vs CPU for the runs that beat the CPU. The dialog opens on
+ * Standard. The boards open on today, and go back to earlier days, but not past
+ * today.
  */
 function Boards({ user }: { user?: User }) {
 	const today = useToday()
@@ -172,11 +173,11 @@ function Boards({ user }: { user?: User }) {
 
 	const day = today ? addDays(today, -back) : null
 
-	const date = day ? dailySeed(day) : null
+	const date = day ? dayKey(day) : null
 
 	const prefetchBoards = usePrefetchBoards()
 
-	// The tab that shows reads its own board. This reads the other two, so a
+	// The tab that shows reads its own board. This reads the other one, so a
 	// switch of tab slides to a board that has its rows.
 	useEffect(() => {
 		if (date) prefetchBoards(date)
@@ -186,12 +187,11 @@ function Boards({ user }: { user?: User }) {
 
 	return (
 		<Stack gap="lg">
-			<Segment defaultValue="daily">
+			<Segment defaultValue="solo">
 				<Stack gap="lg">
 					<SegmentControl aria-label="Board">
 						<SegmentItem value="solo">{ROUTE_LABELS.solo}</SegmentItem>
 						<SegmentItem value="vsCpu">Vs CPU</SegmentItem>
-						<SegmentItem value="daily">Daily</SegmentItem>
 					</SegmentControl>
 
 					<Flex align="center" justify="between" gap="sm">
@@ -220,10 +220,6 @@ function Boards({ user }: { user?: User }) {
 
 						<TabContent value="vsCpu">
 							<Board date={date} mode="vsCpu" />
-						</TabContent>
-
-						<TabContent value="daily">
-							<Board date={date} mode="daily" />
 						</TabContent>
 					</TabContents>
 				</Stack>

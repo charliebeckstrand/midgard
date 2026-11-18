@@ -1,19 +1,12 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { User } from 'auth'
-import type { ReactNode } from 'react'
-import { hydrateRoot, type Root } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
-import { seed as withReadTime } from 'shared/queries'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { writeCookie } from 'ui/core'
 import { UIProvider } from 'ui/providers/ui'
-import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
-import type { NumbersStats } from '../api/stats-api'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { GameBoard } from '../components/game-board'
 import { GameSettingsProvider } from '../components/game-settings'
 import { createGame } from '../utilities/game'
-import { dailySeed } from '../utilities/seed'
 
 const address = vi.hoisted(() => ({ pathname: '/charlie' }))
 
@@ -22,26 +15,19 @@ vi.mock('next/navigation', () => ({ usePathname: () => address.pathname }))
 afterEach(cleanup)
 
 /** Renders the board of the seed `charlie` at its address, with Auto-draw on by default, as the page does. */
-function renderBoard(
-	autoDraw = true,
-	{
-		seed = 'charlie',
-		client = new QueryClient(),
-		user,
-	}: { seed?: string; client?: QueryClient; user?: User } = {},
-) {
+function renderBoard(autoDraw = true, { seed = 'charlie' }: { seed?: string } = {}) {
 	// The browser reads the setting from its cookie, and the server render from the provider.
 	writeCookie('numbers-auto-draw', autoDraw ? 'on' : 'off')
 
 	address.pathname = `/${seed}`
 
 	return render(
-		<QueryClientProvider client={client}>
+		<QueryClientProvider client={new QueryClient()}>
 			<UIProvider>
 				<GameSettingsProvider
 					settings={{ autoDraw, showScore: true, placementOrder: true, difficulty: 'normal' }}
 				>
-					<GameBoard seed={seed} user={user} />
+					<GameBoard seed={seed} />
 				</GameSettingsProvider>
 			</UIProvider>
 		</QueryClientProvider>,
@@ -55,174 +41,6 @@ describe('GameBoard', () => {
 		const first = String(createGame('charlie').deck[0])
 
 		expect(container.querySelector('[data-slot="odometer-display"]')?.textContent).toBe(first)
-	})
-})
-
-describe('GameBoard daily notice', () => {
-	/** A client whose cache holds the stats of today, with a saved daily score of 12, as after the header menu read them. */
-	const cachedStats = (today: string) => {
-		const client = new QueryClient()
-
-		const mode = {
-			played: 1,
-			wins: 0,
-			best: 12,
-			average: 12,
-			scores: [],
-			streak: 1,
-			bestStreak: 1,
-			dailyScore: 12,
-			winRate: null,
-		}
-
-		client.setQueryData<NumbersStats>(['numbers-stats', today], { solo: mode, vsCpu: mode })
-
-		return client
-	}
-
-	it('shows a banner at the top on a replay of the daily puzzle, which closes and gives the focus to the next control', () => {
-		const today = dailySeed(new Date())
-
-		const { container } = renderBoard(true, {
-			seed: today,
-			client: cachedStats(today),
-			user: { id: 'user-1', is_verified: true } as User,
-		})
-
-		// The announcer adds live regions of its own, so the query names the slot.
-		const alert = container.querySelector<HTMLElement>('[data-slot="banner"]')
-
-		if (!alert) throw new Error('The board has no banner.')
-
-		expect(alert.getAttribute('role')).toBe('status')
-
-		// The banner has no icon: its only icon is the X of the close button.
-		expect(alert.querySelectorAll('svg')).toHaveLength(1)
-
-		expect(alert.textContent).toContain("You already played today's puzzle")
-		expect(alert.textContent).toContain("Replays don't change your score.")
-
-		// The banner comes before the slots. Auto-draw drew a number, so the first
-		// slot that can take it is the next control.
-		const slot = screen
-			.getAllByRole('button', { name: /^Slot / })
-			.find((button) => !button.hasAttribute('disabled'))
-
-		if (!slot) throw new Error('The board has no open slot.')
-
-		expect(alert.compareDocumentPosition(slot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-
-		fireEvent.click(within(alert).getByRole('button', { name: 'Close' }))
-
-		expect(container.querySelector('[data-slot="banner"]')).toBeNull()
-		expect(document.activeElement).toBe(slot)
-	})
-})
-
-describe('GameBoard daily notice from the server', () => {
-	const mode = {
-		played: 1,
-		wins: 0,
-		best: 12,
-		average: 12,
-		scores: [],
-		streak: 1,
-		bestStreak: 1,
-		dailyScore: 12,
-		winRate: null,
-	}
-
-	const user = { id: 'user-1', is_verified: true } as User
-
-	/** The board of the daily puzzle of `today` with the stats that the server read, in a new cache, as on a load. */
-	const tree = (today: string): ReactNode => (
-		<QueryClientProvider client={new QueryClient()}>
-			<UIProvider>
-				<GameSettingsProvider
-					settings={{ autoDraw: true, showScore: true, placementOrder: true, difficulty: 'normal' }}
-				>
-					<GameBoard
-						seed={today}
-						user={user}
-						stats={{ today, stats: withReadTime({ solo: mode, vsCpu: mode }) }}
-					/>
-				</GameSettingsProvider>
-			</UIProvider>
-		</QueryClientProvider>
-	)
-
-	it('has the banner in the markup of the server, and keeps it through the hydration', async () => {
-		const today = dailySeed(new Date())
-
-		writeCookie('numbers-auto-draw', 'on')
-
-		address.pathname = `/${today}`
-
-		const container = document.body.appendChild(document.createElement('div'))
-
-		let root: Root | undefined
-
-		// Testing Library unmounts only the roots that its own `render` made.
-		onTestFinished(() => {
-			act(() => root?.unmount())
-
-			container.remove()
-		})
-
-		container.innerHTML = renderToString(tree(today))
-
-		const served = container.querySelector('[data-slot="banner"]')
-
-		expect(served?.textContent).toContain("You already played today's puzzle")
-
-		const errors: unknown[] = []
-
-		await act(async () => {
-			root = hydrateRoot(container, tree(today), {
-				onRecoverableError: (error) => errors.push(error),
-			})
-		})
-
-		expect(errors).toEqual([])
-
-		// The hydration keeps the banner of the server, and the browser has the same day.
-		expect(container.querySelector('[data-slot="banner"]')).toBe(served)
-	})
-
-	it('closes the banner after the hydration when the day of the browser is another day', async () => {
-		const today = dailySeed(new Date())
-
-		// The server read the stats of the day before, for the seed of the page.
-		const yesterday = dailySeed(new Date(Date.now() - 24 * 60 * 60 * 1000))
-
-		address.pathname = `/${yesterday}`
-
-		const container = document.body.appendChild(document.createElement('div'))
-
-		let root: Root | undefined
-
-		onTestFinished(() => {
-			act(() => root?.unmount())
-
-			container.remove()
-		})
-
-		container.innerHTML = renderToString(tree(yesterday))
-
-		expect(container.querySelector('[data-slot="banner"]')).not.toBeNull()
-
-		const errors: unknown[] = []
-
-		await act(async () => {
-			root = hydrateRoot(container, tree(yesterday), {
-				onRecoverableError: (error) => errors.push(error),
-			})
-		})
-
-		expect(errors).toEqual([])
-
-		expect(today).not.toBe(yesterday)
-		expect(container.querySelector('[data-slot="banner"]')).toBeNull()
 	})
 })
 
@@ -271,56 +89,14 @@ describe('GameBoard Reset', () => {
 		expect(screen.queryByRole('button', { name: /^Slot 10, / })).toBeNull()
 	})
 
-	it('shows Reset on a daily puzzle from the first placement only', () => {
-		renderBoard(true, { seed: '20261101' })
-
-		// jsdom has no styles, so the test reads the class that hides Reset.
-		expect(screen.getByRole('button', { name: 'Reset' }).classList).toContain('invisible')
-
-		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
-
-		expect(screen.getByRole('button', { name: 'Reset' }).classList).not.toContain('invisible')
-	})
-
-	it('starts the same seed again on a daily puzzle, keeps its address, and gives the focus to the next control', async () => {
+	it('starts a new seed from a date seed too, which is a seed as any other', () => {
 		window.history.replaceState(null, '', '/20261101')
 
-		const { container } = renderBoard(true, { seed: '20261101' })
+		renderBoard(true, { seed: '20261101' })
 
-		const first = String(createGame('20261101').deck[0])
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
 
-		const entries = window.history.length
-
-		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
-
-		const reset = screen.getByRole('button', { name: 'Reset' })
-
-		reset.focus()
-
-		fireEvent.click(reset, { detail: 0 })
-
-		const dialog = await screen.findByRole('alertdialog')
-
-		fireEvent.click(within(dialog).getByRole('button', { name: 'Reset' }))
-
-		await waitFor(() => expect(screen.queryByRole('button', { name: /^Slot 10, / })).toBeNull())
-
-		expect(window.location.pathname).toBe('/20261101')
-		expect(window.history.length).toBe(entries)
-
-		// Auto-draw draws the first number of the deck again.
-		expect(container.querySelector('[data-slot="odometer-value"]')?.textContent).toBe(first)
-
-		// The run is at its start, so Reset hides, and the focus goes to the first open slot.
-		expect(reset.classList).toContain('invisible')
-
-		await waitFor(() =>
-			expect(document.activeElement).toBe(
-				screen
-					.getAllByRole('button', { name: /^Slot / })
-					.find((button) => !button.hasAttribute('disabled')),
-			),
-		)
+		expect(window.location.pathname).not.toBe('/20261101')
 	})
 
 	it('gives the focus to Reset when a pressed Draw ends the run, because the bar then has no Draw', () => {

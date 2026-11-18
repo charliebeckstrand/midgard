@@ -19,9 +19,6 @@ const modeStats = (played: number, winRate: number | null): ModeStats => ({
 	best: played ? 12 : null,
 	average: played ? 9 : null,
 	scores: Array.from({ length: 21 }, () => 0),
-	streak: 0,
-	bestStreak: 0,
-	dailyScore: null,
 	winRate,
 })
 
@@ -62,7 +59,7 @@ afterEach(() => {
 })
 
 describe('StatsDialog', () => {
-	it('shows the daily streaks on Standard, and Win % in their place on Vs CPU, as a whole percent', async () => {
+	it('shows Win % on Vs CPU only, as a whole percent', async () => {
 		useStats.mockReturnValue({
 			data: { solo: modeStats(4, null), vsCpu: modeStats(9, 4 / 9) },
 			isError: false,
@@ -72,16 +69,11 @@ describe('StatsDialog', () => {
 
 		expect(tile('Played')?.textContent).toContain('4')
 
-		expect(tile('Daily streak')).not.toBeNull()
-
 		expect(tile('Win %')).toBeNull()
 
 		fireEvent.click(screen.getByRole('tab', { name: 'Vs CPU' }))
 
 		expect((await screen.findByText('Win %')).parentElement?.textContent).toContain('44%')
-
-		// Only a solo run plays the daily puzzle, so the hidden Standard tab holds the only streaks.
-		expect(screen.getAllByText('Daily streak')).toHaveLength(1)
 	})
 
 	it('shows a dash for Win % before the first run with an outcome', async () => {

@@ -1,30 +1,32 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type Seed, seededQuery } from 'shared/queries'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import { toBoardMode } from '../api/leaderboard-api'
 import { type NumbersStats, type RunResult, readStats, recordResult } from '../api/stats-api'
 import { boardKey } from './leaderboard-queries'
 
-/** The query key of the stats as of `today`, in one place, so the reader and the writer name the same entry. */
-const statsKey = (today: string) => ['numbers-stats', today] as const
+/** The query of the stats of the reader, in one place, so the reader and the writer name the same entry. */
+const statsQuery = queryOptions({ queryKey: ['numbers-stats'] as const, queryFn: readStats })
 
 /**
- * The stats of the reader as of `today` (`YYYYMMDD`). The query runs only while
- * `enabled`: the shared query client sends a `401` to `/login`, so a reader with
- * no session must send no request.
- *
- * @param seed - The stats of `today` that the server read for the page, if
- * any. The query starts from them, so the server render and the hydration
- * render have the stats (see `seededQuery`).
+ * The stats of the reader. The query runs only while `enabled`: the shared
+ * query client sends a `401` to `/login`, so a reader with no session must send
+ * no request.
  */
-export function useStats(today: string, enabled: boolean, seed?: Seed<NumbersStats>) {
-	return useQuery({
-		queryKey: statsKey(today),
-		queryFn: () => readStats(today),
-		enabled,
-		...(seed && seededQuery(seed)),
-	})
+export function useStats(enabled: boolean) {
+	return useQuery({ ...statsQuery, enabled })
+}
+
+/**
+ * Reads the stats ahead of the Stats dialog. The menu reads them when it opens,
+ * so the dialog opens with its stats. Call it only for a verified user, for the
+ * reason of {@link useStats}.
+ */
+export function usePrefetchStats() {
+	const client = useQueryClient()
+
+	return useCallback(() => void client.prefetchQuery(statsQuery), [client])
 }
 
 /**
@@ -38,7 +40,7 @@ export function useRecordResult() {
 	return useMutation({
 		mutationFn: recordResult,
 		onSuccess: (stats, result: RunResult) => {
-			client.setQueryData<NumbersStats>(statsKey(result.today), stats)
+			client.setQueryData<NumbersStats>(statsQuery.queryKey, stats)
 
 			const board = toBoardMode(result)
 

@@ -3,7 +3,6 @@
 import type { User } from 'auth'
 import { BarChart } from 'ui/chart'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
-import { useToday } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
 import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stat, StatLabel, StatValue, StatValueSkeleton } from 'ui/stat'
@@ -13,7 +12,7 @@ import { TabContent, TabContents } from 'ui/tabs'
 import { Text } from 'ui/text'
 import type { Mode, ModeStats } from '../../api/stats-api'
 import { useStats } from '../../queries/stats-queries'
-import { dailySeed, ROUTE_LABELS } from '../../utilities/seed'
+import { ROUTE_LABELS } from '../../utilities/seed'
 
 /** Props for {@link StatsDialog}. */
 export type StatsDialogProps = {
@@ -28,9 +27,8 @@ type Tile = [label: string, value: string | undefined]
 
 /**
  * The tiles of the stats of `mode`, from {@link ModeStats}, or skeletons while
- * they load. Standard shows the daily streaks, because only a solo run plays the
- * daily puzzle. Vs CPU shows Win % in their place, the share of the runs that
- * beat the CPU, which is empty until the first run that counts toward it.
+ * they load. Vs CPU also shows Win %, the share of the runs that beat the CPU,
+ * which is empty until the first run that counts toward it.
  */
 function ModeTiles({ mode, stats }: { mode: Mode; stats: ModeStats | undefined }) {
 	const intl = useIntl()
@@ -40,13 +38,7 @@ function ModeTiles({ mode, stats }: { mode: Mode; stats: ModeStats | undefined }
 	const percent = (value: number | null) =>
 		value === null ? '–' : intl.formatNumber(value, { style: 'percent', maximumFractionDigits: 0 })
 
-	const ofMode: Tile[] =
-		mode === 'solo'
-			? [
-					['Daily streak', stats && intl.formatNumber(stats.streak)],
-					['Best streak', stats && intl.formatNumber(stats.bestStreak)],
-				]
-			: [['Win %', stats && percent(stats.winRate)]]
+	const ofMode: Tile[] = mode === 'vsCpu' ? [['Win %', stats && percent(stats.winRate)]] : []
 
 	const tiles: Tile[] = [
 		['Played', stats && intl.formatNumber(stats.played)],
@@ -82,9 +74,7 @@ function ModeTiles({ mode, stats }: { mode: Mode; stats: ModeStats | undefined }
 
 /** The stats of a signed-in reader with a verified email, by mode. */
 function SignedInStats() {
-	const today = useToday()
-
-	const { data, isError } = useStats(today ? dailySeed(today) : '', today !== null)
+	const { data, isError } = useStats(true)
 
 	if (isError) return <Text>The stats could not be loaded. Try again later.</Text>
 

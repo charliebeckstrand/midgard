@@ -73,7 +73,7 @@ describe('LeaderboardDialog', () => {
 
 		const rows = screen.getAllByRole('row')
 
-		expect(readBoard).toHaveBeenCalledWith('20261116', 'daily')
+		expect(readBoard).toHaveBeenCalledWith('20261116', 'solo')
 
 		expect(rows.slice(1).map((row) => row.textContent)).toEqual([
 			'1Ada15 / 20',
@@ -99,35 +99,27 @@ describe('LeaderboardDialog', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Earlier day' }))
 
-		await waitFor(() => expect(readBoard).toHaveBeenCalledWith('20261115', 'daily'))
+		await waitFor(() => expect(readBoard).toHaveBeenCalledWith('20261115', 'solo'))
 
 		expect(screen.queryByText('Today')).toBeNull()
 	})
 
-	it('reads the three boards of the day, in the order of the menu, and shows the board of each tab', async () => {
+	it('reads the boards of the day, in the order of the menu, and shows the board of each tab', async () => {
 		vi.mocked(readBoard).mockImplementation(async (_date, mode) =>
 			board(1, [{ rank: 1, name: `Top ${mode}`, score: 12, you: false }]),
 		)
 
 		renderDialog(makeUser(true))
 
-		await screen.findByText('Top daily')
+		await screen.findByText('Top solo')
 
-		expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
-			'Standard',
-			'Vs CPU',
-			'Daily',
-		])
+		expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Standard', 'Vs CPU'])
 
-		expect(screen.getByRole('tab', { name: 'Daily' }).getAttribute('aria-selected')).toBe('true')
+		expect(screen.getByRole('tab', { name: 'Standard' }).getAttribute('aria-selected')).toBe('true')
 
-		for (const mode of ['daily', 'solo', 'vsCpu'] as const) {
+		for (const mode of ['solo', 'vsCpu'] as const) {
 			expect(readBoard).toHaveBeenCalledWith('20261116', mode)
 		}
-
-		fireEvent.click(screen.getByRole('tab', { name: 'Standard' }))
-
-		expect(await screen.findByText('Top solo')).toBeTruthy()
 
 		fireEvent.click(screen.getByRole('tab', { name: 'Vs CPU' }))
 
@@ -158,7 +150,7 @@ describe('LeaderboardDialog', () => {
 
 		expect(within(table).getByText('Ada')).toBeTruthy()
 
-		arrive.get('daily')?.(board(1, [{ rank: 1, name: 'Grace', score: 9, you: false }]))
+		arrive.get('solo')?.(board(1, [{ rank: 1, name: 'Grace', score: 9, you: false }]))
 
 		expect(await within(table).findByText('Grace')).toBeTruthy()
 

@@ -31,17 +31,12 @@ const PARTS: readonly Part[] = [
 			'You can change its difficulty in Settings.',
 		],
 	},
-	{
-		value: 'daily',
-		heading: 'Daily puzzle',
-		paragraphs: ['Everyone plays the same seed each day, and only your first run counts.'],
-	},
 ]
 
 /**
  * The question mark button of the header, which opens the "How to play"
  * dialog. An accordion in the dialog holds the Rules of a run, then the rules
- * of Vs CPU and of the daily puzzle. Rules is open when the dialog opens, and
+ * of Vs CPU. Rules is open when the dialog opens, and
  * one section is open at a time.
  */
 export function HowToPlay() {

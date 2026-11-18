@@ -1,8 +1,6 @@
 import type { User } from 'auth'
 import { StackedLayout, StackedLayoutBody } from 'ui/layouts'
-import type { ServerStats } from '../../hooks/use-daily-notice'
 import { FRAME_ID } from '../../utilities/frame'
-import { getRoute } from '../../utilities/seed'
 import type { GameSettings } from '../../utilities/settings'
 import { GameBoard } from '../game-board'
 import { GameSettingsProvider } from '../game-settings'
@@ -18,8 +16,6 @@ export type GameFrameProps = {
 	vsCpu?: boolean
 	/** The signed-in user, or none. Sign-in is optional. */
 	user?: User
-	/** The stats that the server read for the daily puzzle of the run, if any. */
-	stats?: ServerStats
 }
 
 /**
@@ -29,14 +25,14 @@ export type GameFrameProps = {
  * document is never taller than the screen (see `StackedLayout`). Share
  * screenshot draws this box ({@link FRAME_ID}).
  */
-export function GameFrame({ seed, settings, vsCpu = false, user, stats }: GameFrameProps) {
+export function GameFrame({ seed, settings, vsCpu = false, user }: GameFrameProps) {
 	return (
 		<GameSettingsProvider settings={settings}>
 			<StackedLayout id={FRAME_ID} className="h-dvh print:h-auto">
-				<NumbersHeader user={user} route={getRoute(seed, vsCpu)} />
+				<NumbersHeader user={user} route={vsCpu ? 'vsCpu' : 'solo'} />
 
 				<StackedLayoutBody>
-					<GameBoard seed={seed} user={user} vsCpu={vsCpu} stats={stats} />
+					<GameBoard seed={seed} user={user} vsCpu={vsCpu} />
 				</StackedLayoutBody>
 			</StackedLayout>
 		</GameSettingsProvider>

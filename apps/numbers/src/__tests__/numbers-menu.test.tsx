@@ -5,20 +5,11 @@ import type { User } from 'auth'
 import { UIProvider } from 'ui/providers/ui'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { readBoard } from '../api/leaderboard-api'
+import { readStats } from '../api/stats-api'
 import { NumbersMenu } from '../components/numbers-menu/numbers-menu'
 import type { Route } from '../utilities/seed'
 
-const { useStats } = vi.hoisted(() => ({
-	useStats:
-		vi.fn<
-			(
-				today: string,
-				enabled: boolean,
-			) => { data: { solo: { dailyScore: number | null } } | undefined }
-		>(),
-}))
-
-vi.mock('../queries/stats-queries', () => ({ useStats }))
+vi.mock('../api/stats-api', () => ({ readStats: vi.fn() }))
 
 vi.mock('../api/leaderboard-api', () => ({ readBoard: vi.fn() }))
 
@@ -47,7 +38,7 @@ beforeEach(() => {
 		},
 	)
 
-	useStats.mockReturnValue({ data: undefined })
+	vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
 
 	vi.useFakeTimers({ toFake: ['Date'] })
 
@@ -65,15 +56,7 @@ afterEach(() => {
 })
 
 describe('NumbersMenu', () => {
-	it('reads the stats of the daily puzzle for a verified reader before the menu opens', () => {
-		renderMenu(makeUser(true))
-
-		expect(useStats).toHaveBeenLastCalledWith('20261116', true)
-	})
-
-	it('lists the modes in order: Standard, Vs CPU, then Daily puzzle, with Leaderboard between two dividers', async () => {
-		vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
-
+	it('lists the modes in order, Standard then Vs CPU, with Leaderboard between two dividers', async () => {
 		renderMenu()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
@@ -85,29 +68,19 @@ describe('NumbersMenu', () => {
 		)
 
 		// A divider above and below Leaderboard sets it apart from the routes and the account.
-		expect(rows).toEqual([
-			'Standard',
-			'Vs CPU',
-			'Daily puzzle',
-			'---',
-			'Leaderboard',
-			'---',
-			'Sign in',
-		])
+		expect(rows).toEqual(['Standard', 'Vs CPU', '---', 'Leaderboard', '---', 'Sign in'])
 	})
 
-	it('reads the three boards of today when the menu opens, so the leaderboard opens with its rows', async () => {
-		vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
-
+	it('reads the boards of today when the menu opens, so the leaderboard opens with its rows', async () => {
 		renderMenu()
 
 		expect(readBoard).not.toHaveBeenCalled()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
 
-		await waitFor(() => expect(readBoard).toHaveBeenCalledTimes(3))
+		await waitFor(() => expect(readBoard).toHaveBeenCalledTimes(2))
 
-		for (const mode of ['daily', 'solo', 'vsCpu'] as const) {
+		for (const mode of ['solo', 'vsCpu'] as const) {
 			expect(readBoard).toHaveBeenCalledWith('20261116', mode)
 		}
 	})
@@ -115,12 +88,9 @@ describe('NumbersMenu', () => {
 	it.each([
 		['solo', 'Standard'],
 		['vsCpu', 'Vs CPU'],
-		['daily', 'Daily puzzle'],
 	] as const)(
 		'marks the item of the route %s as the current item, in bold',
 		async (route, label) => {
-			vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
-
 			renderMenu(undefined, route)
 
 			fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
@@ -128,7 +98,7 @@ describe('NumbersMenu', () => {
 			// The test reads the rows that the query found, as the test of the order does.
 			const items = await screen.findAllByRole('menuitem')
 
-			for (const name of ['Standard', 'Vs CPU', 'Daily puzzle']) {
+			for (const name of ['Standard', 'Vs CPU']) {
 				const item = items.find((row) => row.textContent === name)
 
 				const current = name === label
@@ -139,31 +109,28 @@ describe('NumbersMenu', () => {
 		},
 	)
 
-	it('shows the score of the daily puzzle of today in a green badge after its first run counts', async () => {
-		vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
-
-		useStats.mockReturnValue({ data: { solo: { dailyScore: 12 } } })
+	it('reads the stats of a verified reader when the menu opens, so Stats opens with them', async () => {
+		vi.mocked(readStats).mockResolvedValue({} as Awaited<ReturnType<typeof readStats>>)
 
 		renderMenu(makeUser(true))
 
+		expect(readStats).not.toHaveBeenCalled()
+
 		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
 
-		const items = await screen.findAllByRole('menuitem')
-
-		const badge = items
-			.find((row) => row.textContent?.startsWith('Daily puzzle'))
-			?.querySelector('[data-slot="badge"]')
-
-		expect(badge?.textContent).toBe('12/20')
+		await waitFor(() => expect(readStats).toHaveBeenCalledTimes(1))
 	})
 
-	it('reads no stats for a reader with no verified email, or with no session', () => {
-		renderMenu(makeUser(false))
+	it.each([
+		['with no verified email', makeUser(false)],
+		['with no session', undefined],
+	])('reads no stats for a reader %s', async (_, user) => {
+		renderMenu(user)
 
-		renderMenu()
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
 
-		expect(useStats).toHaveBeenCalled()
+		await waitFor(() => expect(readBoard).toHaveBeenCalledTimes(2))
 
-		expect(useStats.mock.calls.every(([, enabled]) => !enabled)).toBe(true)
+		expect(readStats).not.toHaveBeenCalled()
 	})
 })

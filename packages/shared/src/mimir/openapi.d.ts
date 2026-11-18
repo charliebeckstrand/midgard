@@ -1029,14 +1029,11 @@ export interface paths {
 		}
 		/**
 		 * Get your numbers stats
-		 * @description The stats of each mode. The streaks are as of the reader's date, which must be within one day of the server's date.
+		 * @description The stats of each mode.
 		 */
 		get: {
 			parameters: {
-				query: {
-					/** @description The reader's date, as YYYYMMDD */
-					today: string
-				}
+				query?: never
 				header?: never
 				path?: never
 				cookie?: never
@@ -1050,15 +1047,6 @@ export interface paths {
 					}
 					content: {
 						'application/json': components['schemas']['NumbersStats']
-					}
-				}
-				/** @description Invalid date */
-				400: {
-					headers: {
-						[name: string]: unknown
-					}
-					content: {
-						'application/json': components['schemas']['Error']
 					}
 				}
 				/** @description Not signed in */
@@ -1091,7 +1079,7 @@ export interface paths {
 		put?: never
 		/**
 		 * Count a finished run
-		 * @description Every run counts, replays included. A run whose seed is the reader's date is the daily puzzle, and only its first run counts toward the daily streak. Each run also counts on the leaderboard of the reader's date: a solo run of the daily puzzle on `daily`, another solo run on `solo`, and a run that beat the CPU (`beatCpu`) on `vsCpu`. A vs CPU run that tied or lost counts on no board. A board keeps the best score of each player. Each run keeps the name of the account, which the leaderboards show.
+		 * @description Only the first run of each seed counts in each mode. A replay, a later run of a seed, changes no stat and no leaderboard, and the answer is the stats as they were. Each counted run also counts on the leaderboard of the reader's date: a solo run on `solo`, and a run that beat the CPU (`beatCpu`) on `vsCpu`. A vs CPU run that tied or lost counts on no board. A board keeps the best score of each player. Each counted run keeps the name of the account, which the leaderboards show.
 		 */
 		post: {
 			parameters: {
@@ -1166,8 +1154,8 @@ export interface paths {
 				query: {
 					/** @description The day of the board, as YYYYMMDD */
 					date: string
-					/** @description The board: `daily` for the solo runs of the daily puzzle, `solo` for the solo runs of other seeds, and `vsCpu` for the runs against the CPU */
-					mode: 'daily' | 'solo' | 'vsCpu'
+					/** @description The board: `solo` for the solo runs, and `vsCpu` for the runs that beat the CPU */
+					mode: 'solo' | 'vsCpu'
 				}
 				header?: never
 				path?: never
@@ -1323,28 +1311,24 @@ export interface components {
 			solo: {
 				/** @description How many runs ended on each score, from 0 to 20 */
 				scores: number[]
-				/** @description The score of the first run of each daily puzzle, by its date */
-				daily: {
-					[key: string]: number
-				}
 				/** @description Vs CPU only: the runs that came with `beatCpu`, from 2026-11-16, and the runs of those that beat the CPU */
 				cpu?: {
 					played: number
 					beat: number
 				}
+				/** @description The seed of each counted run, from 2026-11-18. A later run of one of these seeds is a replay, and counts nowhere. */
+				seeds?: string[]
 			}
 			vsCpu: {
 				/** @description How many runs ended on each score, from 0 to 20 */
 				scores: number[]
-				/** @description The score of the first run of each daily puzzle, by its date */
-				daily: {
-					[key: string]: number
-				}
 				/** @description Vs CPU only: the runs that came with `beatCpu`, from 2026-11-16, and the runs of those that beat the CPU */
 				cpu?: {
 					played: number
 					beat: number
 				}
+				/** @description The seed of each counted run, from 2026-11-18. A later run of one of these seeds is a replay, and counts nowhere. */
+				seeds?: string[]
 			}
 		}
 		Error: {
@@ -1445,12 +1429,6 @@ export interface components {
 			average: number | null
 			/** @description How many runs ended on each score, from 0 to 20 */
 			scores: number[]
-			/** @description The consecutive daily puzzles that end today or yesterday */
-			streak: number
-			/** @description The longest daily streak */
-			bestStreak: number
-			/** @description The score of the first run of today's daily puzzle, or none before it */
-			dailyScore: number | null
 			/** @description Vs CPU only: the share, from 0 to 1, of the runs that beat the CPU, of the runs since Mimir counts the outcome (2026-11-16). None for solo, and none before the first such run. */
 			winRate: number | null
 		}
@@ -1473,7 +1451,7 @@ export interface components {
 		}
 		/** @description The best run of each player on one board of one day, by score */
 		NumbersBoard: {
-			/** @description The players of the daily puzzle */
+			/** @description The players on the board */
 			players: number
 			/** @description The top 10 by score, then the reader when they are below them */
 			entries: components['schemas']['NumbersBoardEntry'][]

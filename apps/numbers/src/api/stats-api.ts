@@ -20,9 +20,9 @@ export type Mode = RunResult['mode']
 
 const mimir = createMimirClient()
 
-/** The stats of the reader, with the daily streaks as of `today` (`YYYYMMDD`). */
-export function readStats(today: string): Promise<NumbersStats> {
-	return unwrap(mimir.GET('/api/games/numbers/stats', { params: { query: { today } } }))
+/** The stats of the reader. */
+export function readStats(): Promise<NumbersStats> {
+	return unwrap(mimir.GET('/api/games/numbers/stats'))
 }
 
 /** Counts one finished run, and answers with the new stats. */

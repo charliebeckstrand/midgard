@@ -1,8 +1,6 @@
 import { getSession } from 'auth'
 import { cookies } from 'next/headers'
 import { notFound, unstable_rethrow } from 'next/navigation'
-import { readDailyStats } from '../../server/stats'
-import { OFFSET_COOKIE } from '../../utilities/reader-offset'
 import { isSeed } from '../../utilities/seed'
 import { readSettings } from '../../utilities/settings'
 import { GameFrame } from './game-frame'
@@ -33,9 +31,7 @@ function readSession() {
 /**
  * The page of the run of the seed of the address, with the settings of the
  * cookies and the session of the request, so the first paint has the run and
- * the menu in their final layout. On the daily puzzle of today, the page also
- * reads the stats of the reader, so the first paint has the notice of a replay
- * (`readDailyStats`). An address that is not a seed has no page.
+ * the menu in their final layout. An address that is not a seed has no page.
  */
 export async function RunPage({ params, vsCpu }: RunPageProps) {
 	const { seed } = await params
@@ -44,15 +40,12 @@ export async function RunPage({ params, vsCpu }: RunPageProps) {
 
 	const [store, session] = await Promise.all([cookies(), readSession()])
 
-	const stats = await readDailyStats(seed, store.get(OFFSET_COOKIE)?.value, session?.user)
-
 	return (
 		<GameFrame
 			seed={seed}
 			settings={readSettings((name) => store.get(name)?.value)}
 			vsCpu={vsCpu}
 			user={session?.user}
-			stats={stats}
 		/>
 	)
 }

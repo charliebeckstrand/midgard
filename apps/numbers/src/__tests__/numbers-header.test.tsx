@@ -37,11 +37,10 @@ describe('NumbersHeader', () => {
 		expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Numbers')
 	})
 
-	it.each<[Route, string]>([
-		['vsCpu', 'Vs CPU'],
-		['daily', 'Daily puzzle'],
-	])('shows Numbers, then the route %s as the current page', (route, label) => {
-		const trail = renderTrail(route)
+	it('shows Numbers, then Vs CPU as the current page', () => {
+		const label = 'Vs CPU'
+
+		const trail = renderTrail('vsCpu')
 
 		expect(crumbs(trail)).toEqual(['Numbers', label])
 
