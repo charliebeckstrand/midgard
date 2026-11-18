@@ -1,6 +1,9 @@
-import type { InnerStep } from '../../core/density/steps'
-import { defineMessages } from '../../primitives/intl/intl-messages'
-import type { MessageDescriptor } from '../../primitives/intl/types'
+import type { InnerStep } from '../../core/density/steps.ts'
+import { defineMessages } from '../../primitives/intl/intl-messages.ts'
+import type { MessageDescriptor } from '../../primitives/intl/types.ts'
+
+// The API worker of the docs (`docs/plugin/api.ts`) reads `levelToStep` in
+// Node, so each import has its file extension.
 
 /**
  * A friendly density level: the stored density setting, and the `density` prop

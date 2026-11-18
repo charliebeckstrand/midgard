@@ -5,7 +5,8 @@ import { it } from './extractor.ts'
 
 // The API data that the docs plugin makes for some components whose props
 // have a union, an inherited tag, a default that is a sentence, an
-// `@internal` tag, a `Responsive<T>` type, a range, or a kind of device.
+// `@internal` tag, a `Responsive<T>` type, density levels, a range, or a kind
+// of device.
 
 const BARRELS = [
 	'components/card',
@@ -20,6 +21,7 @@ const BARRELS = [
 	'components/table',
 	'components/tabs',
 	'components/toggle-icon-button',
+	'providers/density',
 	'structure/flex',
 ]
 
@@ -140,6 +142,16 @@ describe('API extractor', { timeout: 60_000 }, () => {
 			default: "'row'",
 			defaultValue: 'row',
 		})
+	})
+
+	it('gives the density levels in step order', async ({ extractor }) => {
+		const api = await load(extractor)
+
+		expect(findProp(api, 'DensityProvider', 'density')?.values).toEqual([
+			'compact',
+			'snug',
+			'loose',
+		])
 	})
 
 	it('gives the range of a number prop from its @minimum and @maximum tags', async ({
