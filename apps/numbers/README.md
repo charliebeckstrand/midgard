@@ -143,7 +143,7 @@ The Game tab of the settings has a picker above three switches:
 | Setting | Default | What it does |
 | --- | --- | --- |
 | CPU difficulty | Normal | The level of the CPU in Vs CPU: Easy, Normal, or Hard (see [Vs CPU](#vs-cpu)). |
-| Auto-draw | On | The game draws each number itself: at the load of the page, after each placement, and after a Reset. The bar has no Draw button. |
+| Auto-draw | On | The game draws each number itself: at the load of the page, after each placement, after a Reset, and when the setting comes on during a run. The bar has no Draw button. |
 | Placement order | On | At the end of a run, each filled slot shows the order of its placement to its left, also in the column of the CPU. The order is the position of the number in the deck. |
 | Show score | On | The bar at the bottom shows the score. |
 
@@ -154,6 +154,13 @@ reader give them, and the first paint is the final layout (CONVENTIONS
 §3.13). With Auto-draw on, the first state of the run holds the first draw, so the server renders the first number too. A
 write also puts a copy in `localStorage`, and the `storage` event of the copy
 gives the change to the other tabs.
+
+The draw when Auto-draw comes on comes from the change of the setting, not from
+its value (`useGameSettingChange`). Cache Components holds a route that the
+reader leaves, and the held route has no subscription. Thus a change on another
+page does not draw in the run that the reader left, and that run does not count.
+Back starts the run again from its start, with its first draw when Auto-draw is
+on.
 
 ## Vs CPU
 

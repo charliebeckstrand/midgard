@@ -9,7 +9,7 @@ import { useA11yAnnouncements } from 'ui/hooks'
 import { useIntl } from 'ui/primitives/intl'
 import { Columns } from 'ui/structure/columns'
 import { useGame } from '../../hooks/use-game'
-import { useGameSetting } from '../../hooks/use-game-setting'
+import { useGameSetting, useGameSettingChange } from '../../hooks/use-game-setting'
 import { useRunRecorder } from '../../hooks/use-run-recorder'
 import {
 	countPlaced,
@@ -78,6 +78,13 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 	const recordRun = useRunRecorder(user, mode, difficulty)
 
 	const { game, status, draw, place, reset } = useGame(seed, autoDraw, recordRun)
+
+	// When Auto-draw comes on during a run, the run draws. The change comes from
+	// the store of the settings, so a held route that shows again does not draw
+	// in the run that the reader left (`useGameSettingChange`).
+	useGameSettingChange('autoDraw', (on) => {
+		if (on && status === 'ready') draw()
+	})
 
 	const ended = isEnded(status)
 
@@ -172,12 +179,16 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 	/**
 	 * Starts the run of the seed of the address from its start. A board that
 	 * holds that run with no placement already is at its start, so it keeps
-	 * its run: the mount keeps the run of the server render.
+	 * its run: the mount keeps the run of the server render. A run with no draw
+	 * while Auto-draw is on is not at its start: the setting came on while its
+	 * route was held, so the run starts again with its first draw.
 	 */
 	const follow = useEffectEvent((next: string) => {
 		if (!isSeed(next)) return
 
-		if (next !== game.seed || countPlaced(game.slots) > 0) reset(next)
+		const atStart = countPlaced(game.slots) === 0 && (!autoDraw || game.drawn !== null)
+
+		if (next !== game.seed || !atStart) reset(next)
 	})
 
 	// The effect runs at each change of the address. Cache Components holds a

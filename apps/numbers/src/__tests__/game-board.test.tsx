@@ -1,13 +1,15 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { User } from 'auth'
+import { Activity } from 'react'
 import { writeCookie } from 'ui/core'
 import { UIProvider } from 'ui/providers/ui'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { recordResult } from '../api/stats-api'
 import { GameBoard } from '../components/game-board'
 import { GameSettingsProvider } from '../components/game-settings'
+import { useGameSetting } from '../hooks/use-game-setting'
 import { createGame } from '../utilities/game'
 
 const address = vi.hoisted(() => ({ pathname: '/charlie' }))
@@ -184,5 +186,192 @@ describe('GameBoard Reset', () => {
 
 		expect(screen.queryByRole('button', { name: 'Draw' })).toBeNull()
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reset' }))
+	})
+})
+
+describe('GameBoard on a held route', () => {
+	beforeEach(() => window.history.replaceState(null, '', '/charlie'))
+
+	afterEach(() => vi.clearAllMocks())
+
+	it('counts no left run when Auto-draw came on while the route was held', async () => {
+		writeCookie('numbers-auto-draw', 'off')
+
+		address.pathname = '/charlie'
+
+		const user = { id: 'user-1', is_verified: true } as User
+
+		let setAutoDraw: (value: boolean) => void = () => {}
+
+		/** The Auto-draw switch of the other page, which stays on the screen. */
+		function OtherPage() {
+			setAutoDraw = useGameSetting('autoDraw')[1]
+
+			return null
+		}
+
+		const page = (mode: 'visible' | 'hidden') => (
+			<QueryClientProvider client={new QueryClient()}>
+				<UIProvider>
+					<GameSettingsProvider
+						settings={{
+							autoDraw: false,
+							showScore: true,
+							placementOrder: true,
+							difficulty: 'normal',
+						}}
+					>
+						{/* Cache Components holds the route that the reader leaves in an Activity. */}
+						<Activity mode={mode}>
+							<GameBoard seed="charlie" user={user} />
+						</Activity>
+
+						<OtherPage />
+					</GameSettingsProvider>
+				</UIProvider>
+			</QueryClientProvider>
+		)
+
+		const view = render(page('visible'))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Draw' }))
+
+		// The first number of `charlie` goes in Slot 1, so a smaller next number has no slot.
+		fireEvent.click(screen.getByRole('button', { name: 'Slot 1' }))
+
+		// The reader leaves, turns Auto-draw on on the other page, and goes Back.
+		view.rerender(page('hidden'))
+
+		act(() => setAutoDraw(true))
+
+		view.rerender(page('visible'))
+
+		// The write of a count starts in a microtask.
+		await act(async () => {})
+
+		// Back starts the run again from its start, and the left run does not count.
+		expect(recordResult).not.toHaveBeenCalled()
+		expect(screen.queryByRole('button', { name: /^Slot 1, / })).toBeNull()
+	})
+
+	it('starts a held run with no draw again when Auto-draw came on while the route was held', () => {
+		writeCookie('numbers-auto-draw', 'off')
+
+		address.pathname = '/charlie'
+
+		let setAutoDraw: (value: boolean) => void = () => {}
+
+		function OtherPage() {
+			setAutoDraw = useGameSetting('autoDraw')[1]
+
+			return null
+		}
+
+		const page = (mode: 'visible' | 'hidden') => (
+			<QueryClientProvider client={new QueryClient()}>
+				<UIProvider>
+					<GameSettingsProvider
+						settings={{
+							autoDraw: false,
+							showScore: true,
+							placementOrder: true,
+							difficulty: 'normal',
+						}}
+					>
+						<Activity mode={mode}>
+							<GameBoard seed="charlie" />
+						</Activity>
+
+						<OtherPage />
+					</GameSettingsProvider>
+				</UIProvider>
+			</QueryClientProvider>
+		)
+
+		const view = render(page('visible'))
+
+		view.rerender(page('hidden'))
+
+		act(() => setAutoDraw(true))
+
+		view.rerender(page('visible'))
+
+		// With Auto-draw on, the bar has no Draw, so the run needs its first draw.
+		expect(screen.queryByRole('button', { name: 'Draw' })).toBeNull()
+		expect(
+			screen
+				.getAllByRole('button', { name: /^Slot \d+$/ })
+				.some((slot) => !slot.hasAttribute('disabled')),
+		).toBe(true)
+	})
+})
+
+describe('GameBoard Auto-draw', () => {
+	/** Renders the board with Auto-draw off, and gives the setter of the setting. */
+	function renderWithSwitch() {
+		writeCookie('numbers-auto-draw', 'off')
+
+		address.pathname = '/charlie'
+
+		const setter: { set: (value: boolean) => void } = { set: () => {} }
+
+		function Switch() {
+			setter.set = useGameSetting('autoDraw')[1]
+
+			return null
+		}
+
+		render(
+			<QueryClientProvider client={new QueryClient()}>
+				<UIProvider>
+					<GameSettingsProvider
+						settings={{
+							autoDraw: false,
+							showScore: true,
+							placementOrder: true,
+							difficulty: 'normal',
+						}}
+					>
+						<GameBoard seed="charlie" />
+
+						<Switch />
+					</GameSettingsProvider>
+				</UIProvider>
+			</QueryClientProvider>,
+		)
+
+		return setter
+	}
+
+	/** The settled number in the readout of the bar, which a screen reader hears. */
+	const readout = () => document.querySelector('[data-slot="odometer-value"]')?.textContent
+
+	const deck = createGame('charlie').deck
+
+	it('draws when the setting comes on during a run, and not again when it goes off', () => {
+		const setter = renderWithSwitch()
+
+		expect(screen.getByRole('button', { name: 'Draw' })).toBeTruthy()
+
+		act(() => setter.set(true))
+
+		expect(screen.queryByRole('button', { name: 'Draw' })).toBeNull()
+		expect(screen.getByRole('button', { name: 'Slot 1' }).hasAttribute('disabled')).toBe(false)
+
+		act(() => setter.set(false))
+
+		// The number still waits, so the bar shows Draw turned off.
+		expect(screen.getByRole('button', { name: 'Draw' }).hasAttribute('disabled')).toBe(true)
+		expect(readout()).toBe(String(deck[0]))
+	})
+
+	it('does not draw when the setting comes on while a number waits', () => {
+		const setter = renderWithSwitch()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Draw' }))
+
+		act(() => setter.set(true))
+
+		expect(readout()).toBe(String(deck[0]))
 	})
 })
