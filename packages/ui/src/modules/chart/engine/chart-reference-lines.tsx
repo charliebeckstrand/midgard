@@ -697,6 +697,10 @@ function ReferenceReadout({
  * cursor here forces the same tooltip open, so focusing a rule reads exactly
  * like hovering it. The marks recede, and the readout floats.
  *
+ * A touch reads nothing from the rule, as it reads nothing from the marks
+ * ({@link useChartPointer}). A tap or a hold recedes no mark and floats no
+ * readout.
+ *
  * @internal
  */
 function HoverReferenceRule(props: ReferenceRuleProps & { line: ChartReferenceValue }) {
@@ -729,12 +733,15 @@ function HoverReferenceRule(props: ReferenceRuleProps & { line: ChartReferenceVa
 		<Tooltip placement={orientation === 'vertical' ? 'top' : 'right'} delay={0} open={focused}>
 			<TooltipTrigger>
 				{/* Pointing the rule recedes the marks and the sibling rules to it
-				    (composes with the tooltip's own hover handlers through the trigger). */}
+				    (composes with the tooltip's own hover handlers through the trigger).
+				    A touch is not a point, as on a legend switch. */}
 				<g
 					data-slot="chart-reference-line"
 					data-focused={dataAttr(focused)}
 					className={seriesGroupClass(receded)}
-					onPointerEnter={() => {
+					onPointerEnter={(event) => {
+						if (event.pointerType === 'touch') return
+
 						pointed.current = true
 
 						setReferenceActive(index)

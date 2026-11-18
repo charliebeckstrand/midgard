@@ -311,6 +311,26 @@ describe('reference lines', () => {
 		expect(marks()).not.toContain('opacity-25')
 	})
 
+	it('recedes nothing under a touch, as the marks do', () => {
+		const { container } = bar({
+			reference: [
+				{ value: 50, label: 'Floor' },
+				{ value: 70, label: 'Ceiling' },
+			],
+		})
+
+		const [floor] = allBySlot(container, 'chart-reference-line')
+
+		// A tap or a hold: the touch `pointerenter` is not a point.
+		fireEvent.pointerEnter(floor as Element, { pointerType: 'touch' })
+
+		expect(container.querySelector('svg [class*="opacity-25"]')).toBeNull()
+
+		fireEvent.pointerLeave(floor as Element, { pointerType: 'touch' })
+
+		expect(container.querySelector('svg [class*="opacity-25"]')).toBeNull()
+	})
+
 	it('recedes the sibling rules while one is hovered', () => {
 		const { container } = bar({
 			reference: [
