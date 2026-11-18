@@ -141,9 +141,14 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	/**
 	 * Starts the next run. A run that goes on with a placed number asks first,
-	 * because the reset discards it.
+	 * because the reset discards it. The question stays open across a
+	 * navigation, so a link, Back, or Forward during the question leaves the run
+	 * that it names. The answer then does nothing: the left run does not count,
+	 * and the address of the page stays.
 	 */
 	const resetRun = async () => {
+		const address = window.location.pathname
+
 		if (
 			isUnfinished(game) &&
 			!(await confirm({
@@ -154,6 +159,8 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 		) {
 			return
 		}
+
+		if (window.location.pathname !== address) return
 
 		restart()
 	}

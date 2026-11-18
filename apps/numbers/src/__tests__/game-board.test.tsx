@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import type { User } from 'auth'
 import { writeCookie } from 'ui/core'
 import { UIProvider } from 'ui/providers/ui'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { recordResult } from '../api/stats-api'
 import { GameBoard } from '../components/game-board'
 import { GameSettingsProvider } from '../components/game-settings'
 import { createGame } from '../utilities/game'
@@ -11,6 +13,8 @@ import { createGame } from '../utilities/game'
 const address = vi.hoisted(() => ({ pathname: '/charlie' }))
 
 vi.mock('next/navigation', () => ({ usePathname: () => address.pathname }))
+
+vi.mock('../api/stats-api', () => ({ readStats: vi.fn(), recordResult: vi.fn() }))
 
 afterEach(cleanup)
 
@@ -87,6 +91,54 @@ describe('GameBoard Reset', () => {
 		await waitFor(() => expect(window.location.pathname).not.toBe('/charlie'))
 
 		expect(screen.queryByRole('button', { name: /^Slot 10, / })).toBeNull()
+	})
+
+	it('starts no run and counts no run when the reader left the run during the question', async () => {
+		writeCookie('numbers-auto-draw', 'on')
+
+		address.pathname = '/charlie'
+
+		const user = { id: 'user-1', is_verified: true } as User
+
+		const board = () => (
+			<QueryClientProvider client={new QueryClient()}>
+				<UIProvider>
+					<GameSettingsProvider
+						settings={{
+							autoDraw: true,
+							showScore: true,
+							placementOrder: true,
+							difficulty: 'normal',
+						}}
+					>
+						<GameBoard seed="charlie" user={user} />
+					</GameSettingsProvider>
+				</UIProvider>
+			</QueryClientProvider>
+		)
+
+		const view = render(board())
+
+		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		const dialog = await screen.findByRole('alertdialog')
+
+		// Back while the question is open: the address changes, and the board follows it.
+		window.history.replaceState(null, '', '/other')
+
+		address.pathname = '/other'
+
+		view.rerender(board())
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Reset' }))
+
+		await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+
+		// The run that the question named is gone, so the answer does nothing.
+		expect(window.location.pathname).toBe('/other')
+		expect(recordResult).not.toHaveBeenCalled()
 	})
 
 	it('starts a new seed from a date seed too, which is a seed as any other', () => {

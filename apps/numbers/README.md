@@ -62,7 +62,9 @@ A Reset starts the run of a new seed in place, in the same mode, and adds its
 address to the history. While the run goes on and has a placed number, Reset
 asks the reader to confirm (`useConfirm` of `ui`). After a bust or a win, or
 before the first placement, Reset does not ask. A link, Back, and Forward start
-the run of the seed of the address again, from its start.
+the run of the seed of the address again, from its start. The question stays
+open across a navigation, so a Reset that the reader confirms after a link,
+Back, or Forward does nothing: the run that it names is gone.
 
 Share seed in the share menu of the bottom bar copies the address of the run.
 Against the CPU, the address holds the seed only. A reader of the link gets the
