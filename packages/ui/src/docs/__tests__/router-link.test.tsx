@@ -114,7 +114,7 @@ describe('RouterLink', () => {
 })
 
 // The docs build can be for a path of a site other than the root, such as
-// `/docs/` (`plugin/base.ts`). The href of a page holds no basename, as with the
+// `/docs/` (`plugin/target.ts`). The href of a page holds no basename, as with the
 // `to` of `Link`, and the anchor and the click add it.
 describe('RouterLink under a basename', () => {
 	it('gives the anchor of a page the basename, and leaves a hash and another host', () => {

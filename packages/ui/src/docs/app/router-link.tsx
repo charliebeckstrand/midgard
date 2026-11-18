@@ -41,7 +41,7 @@ function isNativeClick(event: MouseEvent<HTMLAnchorElement>, target: string | un
  * click.
  *
  * The `href` of a page does not hold the basename of the docs build
- * (`plugin/base.ts`), as with the `to` of `Link`. The `navigate` of the router
+ * (`plugin/target.ts`), as with the `to` of `Link`. The `navigate` of the router
  * adds the basename. The anchor and the prefetch do not use `navigate`, so the
  * link adds the basename for them. Thus a new tab and a copied link stay in the
  * docs, and the prefetch finds the route of the page.

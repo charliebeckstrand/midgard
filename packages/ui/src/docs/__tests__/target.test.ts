@@ -3,27 +3,37 @@ import { existsSync } from 'node:fs'
 import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
-import { docsBase, moveUnderBase } from '../plugin/base.ts'
+import { describe, expect, it, onTestFinished } from 'vitest'
+import { docsTarget, moveUnderBase } from '../plugin/target.ts'
 
 // The docs build can be for a path of a site other than the root, such as
-// `/docs/`. With no base, the build does not change.
+// `/docs/`. With no variable, the target is the target of the deploy of this
+// repository.
 
-describe('docsBase', () => {
-	it('gives the root path with no DOCS_BASE', () => {
-		vi.stubEnv('DOCS_BASE', undefined)
+/** The folder of the docs app. */
+const APP_DIR = path.resolve(import.meta.dirname, '..')
 
-		expect(docsBase()).toBe('/')
+describe('docsTarget', () => {
+	it('gives the root path and the `dist` folder with no variable', () => {
+		expect(docsTarget({})).toEqual({
+			base: '/',
+			buildDirectory: path.join(APP_DIR, 'dist'),
+			clientDir: path.join(APP_DIR, 'dist', 'client'),
+		})
 
-		vi.stubEnv('DOCS_BASE', '/')
-
-		expect(docsBase()).toBe('/')
+		expect(docsTarget({ DOCS_BASE: '/', DOCS_BUILD_DIRECTORY: '' }).base).toBe('/')
 	})
 
 	it.each(['docs', '/docs', '/docs/', 'docs/', '//docs//'])('gives /docs/ for %s', (value) => {
-		vi.stubEnv('DOCS_BASE', value)
+		expect(docsTarget({ DOCS_BASE: value }).base).toBe('/docs/')
+	})
 
-		expect(docsBase()).toBe('/docs/')
+	it('reads the folder of the build from the folder of the docs app', () => {
+		const target = docsTarget({ DOCS_BUILD_DIRECTORY: '../../node_modules/.cache/docs' })
+
+		expect(target.clientDir).toBe(
+			path.resolve(APP_DIR, '..', '..', 'node_modules', '.cache', 'docs', 'client'),
+		)
 	})
 })
 
