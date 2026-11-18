@@ -160,7 +160,15 @@ jobs:
           key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'vitest.shared.mts') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'vitest.shared.mts') }}-
-      - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
+      - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2 --coverage
+      # The coverage of this shard, for the `coverage` job. A Turbo cache hit
+      # restores the report too (`outputs` in packages/ui/turbo.json).
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-jsdom-${{ matrix.shard }}
+          path: packages/ui/coverage/jsdom/coverage-final.json
+          if-no-files-found: error
+          retention-days: 1
       # The other packages have few test files, and a shard of them can be
       # empty. The second shard runs them whole, with `test:workspace` below,
       # because its half of the ui suite is the shorter half.
@@ -201,9 +209,73 @@ jobs:
           name: browser-${{ matrix.shard }}
       - uses: ./.github/actions/playwright
       # Filtered to `ui`, as in `compiler`.
-      - run: pnpm turbo run test:browser --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
+      - run: pnpm turbo run test:browser --filter=ui --summarize -- --shard=${{ matrix.shard }}/2 --coverage
+      # The coverage of this shard, for the `coverage` job, as in `test`.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-browser-${{ matrix.shard }}
+          path: packages/ui/coverage/browser/coverage-final.json
+          if-no-files-found: error
+          retention-days: 1
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
+
+  # Merges the coverage of the `test` shards and of the `browser` shards into
+  # one Cobertura report (packages/ui/scripts/coverage/merge.ts). Each shard
+  # measures only the source that its own tests execute. Thus GitHub gets one
+  # merged report, not one report for each shard.
+  coverage:
+    runs-on: ubuntu-latest
+    needs: [test, browser]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # The merge needs only the packages of ui.
+      - uses: ./.github/actions/setup
+        with:
+          install-args: --frozen-lockfile --filter ui
+      # Each artifact goes to a folder of its own under `coverage/`.
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: coverage-*
+          path: packages/ui/coverage
+      - run: pnpm --filter=ui coverage:merge
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cobertura
+          path: packages/ui/coverage/cobertura-coverage.xml
+          if-no-files-found: error
+          retention-days: 1
+
+  # Gives the merged report to GitHub Code Quality, which compares the coverage
+  # of a pull request with the coverage of main. The job is apart from
+  # `coverage`, so that `code-quality: write` stays out of each job that runs
+  # the code of the repository or of its dependencies. The report of main is
+  # the base of the comparison, so deploy.yml grants the permission too.
+  #
+  # The coverage is a report, not a gate. An upload that fails writes an error
+  # annotation and does not fail the job. Thus a fault at GitHub cannot stop a
+  # merge or a deploy. A pull request from a fork gets no token that can write,
+  # and the action skips its upload.
+  coverage-upload:
+    runs-on: ubuntu-latest
+    needs: coverage
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      code-quality: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: cobertura
+      - uses: actions/upload-code-coverage@v1
+        with:
+          file: cobertura-coverage.xml
+          language: TypeScript
+          label: ui
+          fail-on-error: false
 
   # One sample of each benchmark (`bench:smoke` and `bench:browser:smoke` in
   # packages/ui), so that a change that breaks a bench fails before it merges.
@@ -401,7 +473,7 @@ jobs:
   # Add each new job to `needs`. The job runs when a needed job fails, and then
   # it fails. A needed job that fails, is cancelled, or is skipped makes it fail.
   ci-ok:
-    needs: [gate, build, test, browser, bench, playwright-version, density, docs, compiler]
+    needs: [gate, build, test, browser, coverage, coverage-upload, bench, playwright-version, density, docs, compiler]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

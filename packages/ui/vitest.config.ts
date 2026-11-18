@@ -7,7 +7,7 @@ import {
 	docsTestDir,
 	walkSource,
 } from './src/__tests__/helpers/walk-source.ts'
-import { assertions, budgets, CI, cleanup, env, sequence } from './vitest.base.ts'
+import { assertions, budgets, CI, cleanup, coverageScope, env, sequence } from './vitest.base.ts'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` and `docs` exclude them. The scan skips
@@ -381,6 +381,8 @@ export default defineConfig({
 		// `groupOrder` with it, which reorders the very queue the failure came
 		// from.
 		sequence,
+		// `test:coverage` merges this report with the report of the browser run.
+		coverage: coverageScope('jsdom'),
 		projects: [
 			...projects.map((project, groupOrder) => ({
 				...project,

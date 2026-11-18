@@ -20,6 +20,9 @@ dist/
 # Vitest reports, attachments, and traces
 .vitest/
 
+# the coverage reports of ui (not scripts/coverage/)
+packages/ui/coverage/
+
 # env
 .env*
 !.env.example

@@ -18,7 +18,8 @@
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"package.json"
-			]
+			],
+			"outputs": ["coverage/jsdom/**"]
 		},
 		"test:workspace": {
 			"dependsOn": ["^build"],
@@ -58,7 +59,8 @@
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"vitest.base.ts",
 				"$TURBO_ROOT$/vitest.shared.mts"
-			]
+			],
+			"outputs": ["coverage/browser/**"]
 		},
 		"test:compiler": {
 			"dependsOn": ["^build"],

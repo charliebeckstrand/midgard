@@ -24,3 +24,18 @@ if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
  * `vitest.config.ts`).
  */
 export const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) }
+
+/**
+ * The source that coverage measures. Each run with `--coverage` writes a JSON
+ * report over this scope, and `scripts/coverage/merge.ts` merges the reports.
+ * A file that only the browser suite tests then counts as covered.
+ *
+ * @param run - The folder under `coverage/` that gets the report of the run.
+ */
+export const coverageScope = (run: 'jsdom' | 'browser') => ({
+	provider: 'v8' as const,
+	include: ['src/**/*.{ts,tsx}'],
+	exclude: ['src/__tests__/**', 'src/__benchmarks__/**', 'src/docs/**'],
+	reporter: ['json' as const],
+	reportsDirectory: `coverage/${run}`,
+})

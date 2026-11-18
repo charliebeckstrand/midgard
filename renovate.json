@@ -48,7 +48,7 @@
 			"platformAutomerge": false
 		},
 		{
-			"description": "Vitest and Playwright ship as one train here. packages/ui pins @vitest/browser-playwright (which pins @vitest/browser) and playwright exactly, and the browser job installs Chromium against them, so a partial bump breaks test:browser. Membership comes from the upstream presets; the coupling is the only local fact. react and tailwindcss need no rule of their own, because config:recommended already groups each of them.",
+			"description": "Vitest and Playwright ship as one train here. packages/ui pins @vitest/browser-playwright (which pins @vitest/browser), @vitest/coverage-v8 (whose peer is the exact vitest), and playwright exactly, and the browser job installs Chromium against them, so a partial bump breaks test:browser. Membership comes from the upstream presets; the coupling is the only local fact. react and tailwindcss need no rule of their own, because config:recommended already groups each of them.",
 			"extends": ["monorepo:vitest", "monorepo:playwright"],
 			"groupName": "vitest"
 		},
