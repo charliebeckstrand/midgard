@@ -7,7 +7,7 @@ import WithForm from './with-form.tsx'
 export default function DialogPage() {
 	return (
 		<>
-			<Playground of={DialogPlayground} api={api} viewport />
+			<Playground of={DialogPlayground} api={api} viewport heightControl />
 			<Example of={WithForm} />
 			<Example of={LongContent} />
 			<ApiTable api={api} />

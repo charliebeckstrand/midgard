@@ -10,7 +10,7 @@ import WithAction from './with-action.tsx'
 export default function ToastPage() {
 	return (
 		<>
-			<Playground of={ToastPlayground} api={api} viewport />
+			<Playground of={ToastPlayground} api={api} viewport heightControl />
 			<Example of={Severity} />
 			<Example of={WithAction} />
 			<Example of={Persist} />
