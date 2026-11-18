@@ -62,6 +62,9 @@ function readBundle(): BundleReport {
  * files that pdf.js loads at run time. Most of its growth is such files, and
  * it does not move the eager sum. The copies of one language add about
  * 475 kB, so the ceiling of the total has a part for each translated language.
+ * The stylesheet of the docs writes each breakpoint rule two times: as a media
+ * query, and as a container query for the frame of an example (`app.css`).
+ * The ceiling of the total has room for the second copy.
  *
  * The eager sum is the chunks that each page preloads: the router, React, the
  * vendors that the shell uses, and the shell. A stray eager import shows up
@@ -70,7 +73,7 @@ function readBundle(): BundleReport {
 const BUDGETS = [
 	{
 		label: 'total gzip',
-		budgetKb: 5500 + 500 * (LOCALES.length - 1),
+		budgetKb: 5550 + 500 * (LOCALES.length - 1),
 		of: (report: BundleReport) => report.totalGzip,
 	},
 	{ label: 'eager gzip', budgetKb: 290, of: (report: BundleReport) => report.eagerGzip },
