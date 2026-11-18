@@ -262,9 +262,18 @@ export const k = {
 		entry: dan.gap.scale.sm,
 		row: 'min-h-8',
 		/**
-		 * The grid of the plot and a side legend. It is one column, with the
-		 * legend under the plot, below the map's `@lg`. From there it is two
-		 * columns, and the `left` or `right` entry puts the rail on that side.
+		 * The band of the plot and a side legend. Below the map's `@lg`, it is a
+		 * flex column, with the legend under the plot. From there it is a grid of
+		 * two columns, and the `left` or `right` entry puts the rail on that side.
+		 *
+		 * The column below `@lg` is a flex column, not a grid of one column.
+		 * WebKit sizes an `auto` grid row from a stale height when its item holds
+		 * a flex box that wraps. When the map becomes narrower, the legend wraps
+		 * to more rows, but the row keeps the height from the earlier width. The
+		 * legend then goes past the bottom of the frame and covers the content
+		 * under the map. A flex column takes the current height of the legend.
+		 * From `@lg`, the width of the rail does not follow the width of the
+		 * map, so the legend in the rail keeps its height.
 		 *
 		 * The `plot` line names the column of the plot, and `band` puts the plot
 		 * there. The plot is the first child from the time the browser parses it,
@@ -283,7 +292,7 @@ export const k = {
 		 * entry is written out in full.
 		 */
 		rail: {
-			band: 'grid grid-cols-1 @lg:*:first:col-start-[plot] @lg:*:first:row-start-1',
+			band: 'flex flex-col @lg:grid @lg:*:first:col-start-[plot] @lg:*:first:row-start-1',
 			panel: '[--map-rail:12rem]',
 			bar: '[--map-rail:auto]',
 			left: '@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)] rtl:@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)]',

@@ -383,7 +383,9 @@ describe('MapPlat', () => {
 
 			const stack = bySlot(container, 'map-legend-box')?.parentElement
 
-			expect(stack).toHaveClass('grid', 'grid-cols-1')
+			// A flex column below `@lg`, not a grid of one column: a WebKit grid row
+			// keeps the height of a legend from before it wraps (`k.legend.rail`).
+			expect(stack).toHaveClass('flex', 'flex-col', '@lg:grid')
 
 			expect(stack?.getAttribute('class')).toContain(columns)
 
@@ -1102,7 +1104,10 @@ describe('MapPlat choropleth mode', () => {
 
 		// The bar is in the same grid as a panel. It has the width of its labels,
 		// so its column has no fixed width.
-		expect(bySlot(container, 'map-plot')?.parentElement).toHaveClass('grid', '[--map-rail:auto]')
+		expect(bySlot(container, 'map-plot')?.parentElement).toHaveClass(
+			'@lg:grid',
+			'[--map-rail:auto]',
+		)
 
 		// The gradient bar paints the colorRange stops.
 		expect(bySlot(container, 'map-range-track')?.getAttribute('style')).toContain('--range-ramp')
