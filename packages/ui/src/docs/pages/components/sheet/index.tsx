@@ -7,7 +7,7 @@ import WithForm from './with-form.tsx'
 export default function SheetPage() {
 	return (
 		<>
-			<Playground of={SheetPlayground} api={api} />
+			<Playground of={SheetPlayground} api={api} viewport />
 			<Example of={WithForm} />
 			<Example of={InAContainer} />
 			<ApiTable api={api} />

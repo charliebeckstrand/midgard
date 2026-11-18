@@ -1382,6 +1382,7 @@
 	"docs.example.playground": "Área de pruebas",
 	"docs.example.reset": "Restablecer",
 	"docs.example.showCode": "Mostrar código",
+	"docs.example.size": "{width} × {height}",
 	"docs.notFound.body": "Página no encontrada",
 	"docs.page.accordion": "Acordeón",
 	"docs.page.address-input": "Campo de dirección",

@@ -26,6 +26,7 @@ import { Portal } from '../portal'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
 import { useOverlayAbsorb } from './use-overlay-absorb'
+import { useOverlayContainer } from './use-overlay-container'
 import { useOverlayEntering } from './use-overlay-entering'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
 import { useOverlayKeepFocus } from './use-overlay-keep-focus'
@@ -70,7 +71,8 @@ export type OverlayProps = {
 	 * chrome, such as a maximized drawer under a tab strip, thus keeps the chrome
 	 * reachable. Give it a container that is the box under the chrome.
 	 *
-	 * @defaultValue `document.body` with full-viewport `fixed` positioning.
+	 * @defaultValue `document.body` with full-viewport `fixed` positioning. In a
+	 * viewport frame, such as an example of the docs with `viewport`, the frame.
 	 */
 	container?: HTMLElement | null
 	/**
@@ -127,7 +129,8 @@ export type OverlayProps = {
  * server.
  *
  * Renders into the explicit `container`, else the ambient `<UIProvider>` portal node, else
- * `document.body`. A `container` scopes the overlay to that element
+ * `document.body`. In a viewport frame, the frame is the container when no
+ * `container` is given. A `container` scopes the overlay to that element
  * (`absolute`, no scroll lock). For transient pointer-driven surfaces,
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
  * `backdrop` is set). A modal overlay seals the box that it covers: the page
@@ -167,7 +170,7 @@ export function Overlay({
 	dismissOnBackdrop = true,
 	backdropClassName,
 	children,
-	container,
+	container: containerProp,
 	initialFocus,
 	returnFocusTo,
 	modal = true,
@@ -186,6 +189,8 @@ export function Overlay({
 		onOpenChange,
 		elements: { reference: null, floating },
 	})
+
+	const container = useOverlayContainer(containerProp)
 
 	// `Portal` owns the teleport and the mount-while-open lifecycle. An
 	// explicit `container` scopes the overlay to that element (`absolute`, no

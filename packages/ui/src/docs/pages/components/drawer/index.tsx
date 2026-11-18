@@ -7,7 +7,7 @@ import Resize from './resize.tsx'
 export default function DrawerPage() {
 	return (
 		<>
-			<Playground of={DrawerPlayground} api={api} />
+			<Playground of={DrawerPlayground} api={api} viewport heightControl />
 			<Example of={FitContent} />
 			<Example of={Resize} />
 			<ApiTable api={api} />

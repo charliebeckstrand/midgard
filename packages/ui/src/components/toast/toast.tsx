@@ -5,7 +5,8 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useIsRtl } from '../../hooks/use-is-rtl'
-import { useResponsiveValue } from '../../hooks/use-responsive-value'
+import { useResponsiveValueIn } from '../../hooks/use-responsive-value'
+import { findFrame, useBreakpointFrame } from '../../primitives/breakpoint-frame/context'
 import { useDirectionScope } from '../../primitives/direction/context'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -130,9 +131,13 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 
 	const stack = k({ position: physical })
 
+	// The stack portals out of the place that renders it, so its breakpoints
+	// read the box that holds the portal, as its CSS does.
+	const frame = findFrame(useBreakpointFrame(), portalContainer)
+
 	// The order, the motion, and the gap of the stack follow the edge that the
 	// stack is on at the viewport.
-	const isTop = useResponsiveValue(physical, 'bottom').startsWith('top')
+	const isTop = useResponsiveValueIn(frame, physical, 'bottom').startsWith('top')
 
 	// Gate on post-mount state rather than `typeof document`: an SSR/client
 	// branch makes the first client render diverge from the server HTML and

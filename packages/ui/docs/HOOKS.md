@@ -66,7 +66,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `usePlotFrame` | Resolves the drawing box of a chart or map frame from a `FrameSizing` policy, and measures only the axes that the policy uses. |
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
 | `usePrefersReducedMotion` | True when the reader asks for reduced motion through the platform or `AppearanceProvider`; true during SSR. Use it in place of the `useReducedMotion` of motion. |
-| `useResponsiveValue` | The value of a `Responsive<T>` prop at the viewport, as its classes give it. During SSR, the value of the largest breakpoint. |
+| `useResponsiveValue` | The value of a `Responsive<T>` prop at the viewport, as its classes give it. In a breakpoint frame, such as the frame of an example in the docs, the value at the width of the frame. During SSR, the value of the largest breakpoint. |
 | `useTruncation` | Callback ref plus a flag that is true while the single-line element clips its content. The first hover or focus starts the measure. |
 | `useScrollRegion` | Callback ref that makes a scroll container a tab stop while its content overflows. A `label` also makes it a named `region`. |
 | `useVirtualWindow` | Drives a vertical windowed list from a `@tanstack/virtual-core` virtualizer, over uniform or measured rows. It gives the visible items and the spacer heights. |

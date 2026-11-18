@@ -120,66 +120,57 @@ export default function DensityPlayground(props: DensityProviderProps) {
 
 	return (
 		<DensityProvider {...props}>
-			{/* The box is a size container, so the layout fills the box and not the
-			    viewport. The box scrolls in place of the page. A size container gets
-			    no width from its content, thus the box is as wide as the frame. */}
-			<div className="@container-size h-[40rem] overflow-auto rounded-lg">
-				<SidebarLayout sidebar={sidebar}>
-					<SidebarLayoutHeader>
-						<Heading level={1}>Orders</Heading>
-					</SidebarLayoutHeader>
-					<SidebarLayoutBody>
-						<Stack gap="md">
-							<OrdersFilters value={filters} onValueChange={setFilters} />
-							{filteredOrders.length ? (
-								<Table>
-									<TableHead>
-										<TableRow>
-											<TableHeader>Order</TableHeader>
-											<TableHeader>Customer</TableHeader>
-											<TableHeader>Status</TableHeader>
-											<TableHeader className="text-end">Amount</TableHeader>
-											<TableHeader className="text-end">Actions</TableHeader>
+			<SidebarLayout sidebar={sidebar}>
+				<SidebarLayoutHeader>
+					<Heading level={1}>Orders</Heading>
+				</SidebarLayoutHeader>
+				<SidebarLayoutBody>
+					<Stack gap="md">
+						<OrdersFilters value={filters} onValueChange={setFilters} />
+						{filteredOrders.length ? (
+							<Table>
+								<TableHead>
+									<TableRow>
+										<TableHeader>Order</TableHeader>
+										<TableHeader>Customer</TableHeader>
+										<TableHeader>Status</TableHeader>
+										<TableHeader className="text-end">Amount</TableHeader>
+										<TableHeader className="text-end">Actions</TableHeader>
+									</TableRow>
+								</TableHead>
+								<TableBody>
+									{filteredOrders.map((order) => (
+										<TableRow key={order.id}>
+											<TableCell className="font-medium">{order.id}</TableCell>
+											<TableCell>{order.customer}</TableCell>
+											<TableCell>{orderStatuses[order.status]}</TableCell>
+											<TableCell className="text-end">
+												{intl.formatNumber(order.amount, { style: 'currency', currency: 'USD' })}
+											</TableCell>
+											<TableCell>
+												<Flex justify="end">
+													<Button aria-label={`Edit order ${order.id}`} color="blue" variant="bare">
+														<Icon icon={<Pencil />} />
+													</Button>
+													<Button
+														aria-label={`Delete order ${order.id}`}
+														color="red"
+														variant="bare"
+													>
+														<Icon icon={<Trash />} />
+													</Button>
+												</Flex>
+											</TableCell>
 										</TableRow>
-									</TableHead>
-									<TableBody>
-										{filteredOrders.map((order) => (
-											<TableRow key={order.id}>
-												<TableCell className="font-medium">{order.id}</TableCell>
-												<TableCell>{order.customer}</TableCell>
-												<TableCell>{orderStatuses[order.status]}</TableCell>
-												<TableCell className="text-end">
-													{intl.formatNumber(order.amount, { style: 'currency', currency: 'USD' })}
-												</TableCell>
-												<TableCell>
-													<Flex justify="end">
-														<Button
-															aria-label={`Edit order ${order.id}`}
-															color="blue"
-															variant="bare"
-														>
-															<Icon icon={<Pencil />} />
-														</Button>
-														<Button
-															aria-label={`Delete order ${order.id}`}
-															color="red"
-															variant="bare"
-														>
-															<Icon icon={<Trash />} />
-														</Button>
-													</Flex>
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							) : (
-								<Text tone="warning">No orders match your filters.</Text>
-							)}
-						</Stack>
-					</SidebarLayoutBody>
-				</SidebarLayout>
-			</div>
+									))}
+								</TableBody>
+							</Table>
+						) : (
+							<Text tone="warning">No orders match your filters.</Text>
+						)}
+					</Stack>
+				</SidebarLayoutBody>
+			</SidebarLayout>
 		</DensityProvider>
 	)
 }
