@@ -105,6 +105,7 @@
 		},
 		"docs:build": {
 			"dependsOn": ["^build"],
+			"env": ["DOCS_BASE", "DOCS_BUILD_DIR"],
 			"inputs": [
 				"src/**",
 				"!src/**/__tests__/**",

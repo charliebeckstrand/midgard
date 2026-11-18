@@ -1,5 +1,5 @@
-import { type MouseEvent, useState } from 'react'
-import { PrefetchPageLinks } from 'react-router'
+import { type MouseEvent, use, useState } from 'react'
+import { PrefetchPageLinks, UNSAFE_NavigationContext } from 'react-router'
 import { composeEventHandlers } from 'ui/core'
 import { useTimeout } from 'ui/hooks'
 import type { LinkProps } from 'ui/primitives/link'
@@ -36,8 +36,15 @@ function isNativeClick(event: MouseEvent<HTMLAnchorElement>, target: string | un
  * The `Link` of React Router reads the location and the route, so each item
  * of the sidebar renders again on each change of the router state, and a
  * navigation then spends a long time on those renders at 4x CPU.
- * This link reads only the `navigate` of the shell, and it reads the location
- * at the click.
+ * This link reads only the `navigate` of the shell and the basename of the
+ * router, which do not change on a navigation. It reads the location at the
+ * click.
+ *
+ * The `href` of a page does not hold the basename of the docs build
+ * (`plugin/target.ts`), as with the `to` of `Link`. The `navigate` of the router
+ * adds the basename. The anchor and the prefetch do not use `navigate`, so the
+ * link adds the basename for them. Thus a new tab and a copied link stay in the
+ * docs, and the prefetch finds the route of the page.
  */
 export function RouterLink({
 	href,
@@ -50,6 +57,8 @@ export function RouterLink({
 	...props
 }: LinkProps) {
 	const navigate = useShellNavigate()
+
+	const { basename } = use(UNSAFE_NavigationContext)
 
 	const [prefetch, setPrefetch] = useState(false)
 
@@ -65,6 +74,9 @@ export function RouterLink({
 	// to the element, and the API table opens a closed entry again.
 	const internal = isPage || href.startsWith('#')
 
+	// The URL of the link in the browser, with the basename for a page.
+	const url = isPage ? `${basename.replace(/\/+$/, '')}${href}` : href
+
 	// A second hover or focus does not start the delay again.
 	const start = () => {
 		if (!timeout.pending()) timeout.set(() => setPrefetch(true), PREFETCH_DELAY)
@@ -79,7 +91,7 @@ export function RouterLink({
 	return (
 		<>
 			<a
-				href={href}
+				href={url}
 				target={target}
 				{...props}
 				onClick={composeEventHandlers(onClick, (event) => {
@@ -93,14 +105,14 @@ export function RouterLink({
 
 					const current = href.startsWith('#') ? hash : pathname + search + hash
 
-					navigate(href, { replace: current === href })
+					navigate(href, { replace: current === url })
 				})}
 				onMouseEnter={composeEventHandlers(onMouseEnter, start)}
 				onMouseLeave={composeEventHandlers(onMouseLeave, cancel)}
 				onFocus={composeEventHandlers(onFocus, start)}
 				onBlur={composeEventHandlers(onBlur, cancel)}
 			/>
-			{isPage && prefetch && <PrefetchPageLinks page={href} />}
+			{isPage && prefetch && <PrefetchPageLinks page={url} />}
 		</>
 	)
 }

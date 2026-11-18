@@ -23,13 +23,13 @@ function Shell() {
 	)
 }
 
-function renderShell(path: string) {
+function renderShell(path: string, basename?: string) {
 	const router = createMemoryRouter(
 		[
 			{ path: '/button', Component: Shell },
 			{ path: '/menu', Component: Shell },
 		],
-		{ initialEntries: [path] },
+		{ initialEntries: [path], basename },
 	)
 
 	// The router adds a window "pagehide" listener, and its disposal removes it.
@@ -110,6 +110,49 @@ describe('RouterLink', () => {
 		expect(click('Example')).toBe(false)
 
 		expect(router.state.location.pathname).toBe('/button')
+	})
+})
+
+// The docs build can be for a path of a site other than the root, such as
+// `/docs/` (`plugin/target.ts`). The href of a page holds no basename, as with the
+// `to` of `Link`, and the anchor and the click add it.
+describe('RouterLink under a basename', () => {
+	it('gives the anchor of a page the basename, and leaves a hash and another host', () => {
+		renderShell('/docs/button', '/docs/')
+
+		const href = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
+
+		expect(href('Menu')).toBe('/docs/menu')
+
+		expect(href('Disabled')).toBe('#disabled')
+
+		expect(href('Example')).toBe('https://example.com')
+	})
+
+	it('goes to a page under the basename through the router', () => {
+		const router = renderShell('/docs/button', '/docs/')
+
+		expect(click('Menu')).toBe(true)
+
+		expect(router.state.location.pathname).toBe('/docs/menu')
+
+		expect(router.state.historyAction).toBe('PUSH')
+	})
+
+	it('replaces the entry for a click on the current page', () => {
+		const { href } = window.location
+
+		window.history.replaceState(null, '', '/docs/button')
+
+		onTestFinished(() => window.history.replaceState(null, '', href))
+
+		const router = renderShell('/docs/button', '/docs/')
+
+		expect(click('Button')).toBe(true)
+
+		expect(router.state.location.pathname).toBe('/docs/button')
+
+		expect(router.state.historyAction).toBe('REPLACE')
 	})
 })
 

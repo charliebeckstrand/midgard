@@ -11,6 +11,10 @@ import { localeFile } from '../app/language.ts'
 // the HTML of a page in a locale next to the HTML of the page in the default
 // locale, such as `button/index.es.html` next to `button/index.html`. The
 // fallback document of a path with no page gets a copy in each locale too.
+//
+// The paths of `build.prerender` do not hold the basename of the build, and the
+// server build refuses a request outside the basename. Thus each request and
+// each file gets the basename, such as `/docs/button/` for `button`.
 
 /** The header that tells the server build to render the fallback document. */
 const SPA_MODE = 'X-React-Router-SPA-Mode'
@@ -39,8 +43,8 @@ async function render(
 
 /**
  * Writes the HTML of each prerendered page, and of the fallback document, in
- * each locale of `locales` but the first, into `clientDir`. The server build
- * is in `serverDir`.
+ * each locale of `locales` but the first, into the folder of the basename in
+ * `clientDir`. The server build is in `serverDir`.
  */
 export async function prerenderLocales(
 	serverDir: string,
@@ -54,6 +58,8 @@ export async function prerenderLocales(
 
 	const handler = createRequestHandler(build, 'production')
 
+	const base = (build.basename ?? '/').replace(/\/+$/, '')
+
 	// The server build reads the header of the fallback document only in a
 	// request of the build, as in the prerender of React Router.
 	const isBuildRequest = process.env.IS_RR_BUILD_REQUEST
@@ -63,7 +69,7 @@ export async function prerenderLocales(
 	try {
 		for (const locale of locales.slice(1)) {
 			for (const prerendered of build.prerender) {
-				const pathname = `/${prerendered}/`.replace(/\/+/g, '/')
+				const pathname = `${base}/${prerendered}/`.replace(/\/+/g, '/')
 
 				const file = path.join(clientDir, pathname, localeFile('index.html', locale))
 
@@ -73,8 +79,8 @@ export async function prerenderLocales(
 			}
 
 			await writeFile(
-				path.join(clientDir, localeFile('__spa-fallback.html', locale)),
-				await render(handler, '/', locale, { [SPA_MODE]: 'yes' }),
+				path.join(clientDir, base, localeFile('__spa-fallback.html', locale)),
+				await render(handler, `${base}/`, locale, { [SPA_MODE]: 'yes' }),
 			)
 		}
 	} finally {
