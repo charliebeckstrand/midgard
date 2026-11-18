@@ -4,6 +4,7 @@ import { type ReactNode, use, useEffect, useMemo } from 'react'
 import { ConfirmHost } from '../../components/confirm/confirm-host'
 import type { ToastProps, ToastProviderProps } from '../../components/toast'
 import { ToastHost } from '../../components/toast/toast-host'
+import { createContext } from '../../core/create-context'
 // LinkContext / PortalContext / PathnameContext live in the primitives layer:
 // the `polymorphic` primitive consumes `useLink`; the `overlay` /
 // `floating-surface` primitives consume `usePortalContainer`; the nav items
@@ -70,6 +71,10 @@ export type UIProviderProps = {
 	children: ReactNode
 }
 
+// True under a UIProvider. A nested provider reads it and does not mount a
+// second toast queue.
+const [UIProviderContext] = createContext<boolean>('UIProvider', { default: false })
+
 /**
  * Single app-root integration point for the library's framework bindings.
  * Registers the link component, the default portal container, and the current
@@ -87,7 +92,10 @@ export type UIProviderProps = {
  * binding (e.g. scopes `portalContainer` to a dialog subtree) without
  * disturbing the outer provider's others. Each provider mounts its own
  * confirm dialog, so a question asked under a nested provider portals into
- * the container of that provider.
+ * the container of that provider. Only the outermost provider mounts the toast
+ * queue and viewport. A nested provider uses the queue of the outer provider,
+ * and its `toast` prop has no effect. A `ToastProvider` in the subtree still
+ * makes a queue of its own for its descendants.
  */
 export function UIProvider({ link, portalContainer, pathname, toast, children }: UIProviderProps) {
 	const outerLink = useLink()
@@ -95,6 +103,8 @@ export function UIProvider({ link, portalContainer, pathname, toast, children }:
 	const outerPortal = usePortalContext()
 
 	const outerPathname = use(PathnameContext)
+
+	const nested = use(UIProviderContext)
 
 	// The store keeps its identity, so a navigation renders only the items whose
 	// match changes, not each consumer of the context.
@@ -117,9 +127,16 @@ export function UIProvider({ link, portalContainer, pathname, toast, children }:
 		<PortalContext value={portalContainer ?? outerPortal}>
 			<LinkContext value={linkValue}>
 				<PathnameContext value={pathname === undefined ? outerPathname : pathnameStore}>
-					<ToastHost options={toast}>
-						<ConfirmHost>{children}</ConfirmHost>
-					</ToastHost>
+					<UIProviderContext value>
+						{/* A provider does not move into or out of another provider, so this branch does not change while the provider is mounted. */}
+						{nested ? (
+							<ConfirmHost>{children}</ConfirmHost>
+						) : (
+							<ToastHost options={toast}>
+								<ConfirmHost>{children}</ConfirmHost>
+							</ToastHost>
+						)}
+					</UIProviderContext>
 				</PathnameContext>
 			</LinkContext>
 		</PortalContext>

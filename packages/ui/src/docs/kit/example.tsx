@@ -8,7 +8,7 @@ import { Heading } from 'ui/heading'
 import { Link } from 'ui/link'
 import { defineMessage, defineMessages, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
-import { ToastScope } from '../../components/toast/toast-host.tsx'
+import { ToastHost } from '../../components/toast/toast-host.tsx'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { BreakpointFrame } from '../../primitives/breakpoint-frame/breakpoint-frame.tsx'
@@ -406,11 +406,11 @@ export function ExampleFrame(
 							{viewport ? (
 								// `useToast` in the instance uses a queue of the frame, so its
 								// toasts show in the frame and not at the edge of the window.
-								<ToastScope>
+								<ToastHost>
 									<InstanceBox fill={surface || ratio} page={page}>
 										{children}
 									</InstanceBox>
-								</ToastScope>
+								</ToastHost>
 							) : (
 								<InstanceBox fill={surface || ratio} page={false}>
 									{children}

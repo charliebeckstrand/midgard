@@ -1,7 +1,6 @@
 'use client'
 
-import { type ReactNode, use } from 'react'
-import { createContext } from '../../core/create-context'
+import type { ReactNode } from 'react'
 import { useIdlePreload } from '../../hooks/use-idle-preload'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { createLazyModule } from '../../utilities/lazy-module'
@@ -48,20 +47,16 @@ function ToastViewport({ position }: Pick<ToastProps, 'position'>) {
 	return viewport && <viewport.Toast position={position} />
 }
 
-/** True under a {@link ToastHost} that mounted the queue. @internal */
-const [ToastHostContext] = createContext<boolean>('ToastHost', { default: false })
-
 /**
  * Mounts a {@link ToastProvider} and its lazy {@link Toast} viewport around its
- * children, so `useToast()` in the children uses a queue of their own. The
- * viewport loads in idle time after the hydration, or on the first toast when
- * that comes first. The viewport portals into the nearest portal container,
- * so in a viewport frame (`BreakpointFrame`) the toasts stay in the frame.
- * {@link ToastHost} mounts it for the app, and the docs mount it in each
- * viewport frame of an example.
+ * children, so `useToast()` in the children works with no setup. The viewport
+ * loads in idle time after the hydration, or on the first toast when that
+ * comes first. It portals into the nearest portal container, so in a viewport
+ * frame (`BreakpointFrame`) the toasts stay in the frame. `UIProvider` mounts
+ * it for the app, and the docs mount it in each viewport frame of an example.
  * @internal
  */
-export function ToastScope({
+export function ToastHost({
 	options,
 	children,
 }: {
@@ -73,34 +68,5 @@ export function ToastScope({
 			{children}
 			<ToastViewport position={options?.position} />
 		</ToastProvider>
-	)
-}
-
-/**
- * Mounts a {@link ToastScope} around its children, so `useToast()` works with
- * no setup. `UIProvider` mounts it.
- *
- * @remarks
- * Only the outermost host mounts the queue. A host under another host renders
- * its children only, so a nested `UIProvider` uses the queue and the viewport
- * of the outer provider, and its `options` have no effect. A `ToastProvider`
- * in the subtree still makes a queue of its own for its descendants.
- * @internal
- */
-export function ToastHost({
-	options,
-	children,
-}: {
-	options: ToastHostOptions | undefined
-	children: ReactNode
-}) {
-	const hosted = use(ToastHostContext)
-
-	if (hosted) return children
-
-	return (
-		<ToastHostContext value>
-			<ToastScope options={options}>{children}</ToastScope>
-		</ToastHostContext>
 	)
 }
