@@ -4,6 +4,7 @@ import { type ComponentProps, useMemo } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useStrokeDraw } from '../../hooks/use-stroke-draw'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k, type scale } from '../../recipes/kata/sparkline'
@@ -209,6 +210,9 @@ function AnimatedSparklineMarks({
 }: SparklineMarksProps) {
 	const still = usePrefersReducedMotion()
 
+	// The line paints nothing at zero length, so it shows no dot at its far end before the draw.
+	const draw = useStrokeDraw(still)
+
 	if (shape === 'bar') {
 		// `bar.index` paces the stagger too, so a bar rises on its own slot's beat.
 		return geometry.bars.map((bar) => (
@@ -248,7 +252,7 @@ function AnimatedSparklineMarks({
 				strokeLinecap="round"
 				strokeLinejoin="round"
 				className={strokeClass}
-				initial={still ? false : { pathLength: 0 }}
+				style={draw}
 				animate={{ pathLength: 1 }}
 				transition={k.motion.draw}
 			/>

@@ -1,3 +1,4 @@
+import type { MotionValue } from 'motion/react'
 import { describe, expect, it, vi } from 'vitest'
 import { Sparkline } from '../../components/sparkline'
 import { LineChart } from '../../modules/chart/line-chart'
@@ -12,18 +13,26 @@ import { renderUI, stubMatchMedia } from '../helpers'
  * The reduced-motion config of motion skips a transform, but the line draw
  * (`pathLength`), the point pop (`r`), and the bar grow of a sparkline
  * (`height`) are no transform. The marks therefore must skip their `initial`
- * state themselves. Motion writes the SVG values after the render, so jsdom
- * cannot read them. The suite reads the `initial` prop that each `motion`
- * element takes instead, keyed by its slot. It needs a module mock, so it sits
- * in `boundary/`.
+ * state themselves. A stroke that draws itself starts its drawn share at rest
+ * instead (`useStrokeDraw`). Motion writes the SVG values after the render, so
+ * jsdom cannot read them. The suite reads the `initial` prop and the drawn
+ * share that each `motion` element takes instead, keyed by its slot. It needs a
+ * module mock, so it sits in `boundary/`.
  */
 const initials = vi.hoisted(() => new Map<string, unknown[]>())
+
+/** The drawn share that each stroke mounts at, keyed by its slot. */
+const drawn = vi.hoisted(() => new Map<string, unknown[]>())
 
 vi.mock('motion/react-m', async (importActual) =>
 	(await import('../helpers/spy-motion')).spyMotion(await importActual(), (props, tag) => {
 		const slot = String(props['data-slot'] ?? tag)
 
 		initials.set(slot, [...(initials.get(slot) ?? []), props.initial])
+
+		const style = props.style as { pathLength?: MotionValue<number> } | undefined
+
+		if (style?.pathLength) drawn.set(slot, [...(drawn.get(slot) ?? []), style.pathLength.get()])
 	}),
 )
 
@@ -50,6 +59,8 @@ describe('animated line marks under reduced motion', () => {
 	it('mounts the stroke and the points at rest', () => {
 		initials.clear()
 
+		drawn.clear()
+
 		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
 
 		renderUI(chart())
@@ -59,11 +70,13 @@ describe('animated line marks under reduced motion', () => {
 
 		expect(initials.get('chart-point')?.at(-1)).toBe(false)
 
-		expect(initials.get('chart-line')?.at(-1)).toBe(false)
+		expect(drawn.get('chart-line')?.at(-1)).toBe(1)
 	})
 
 	it('keeps the reveal for a reader who does not ask for reduced motion', () => {
 		initials.clear()
+
+		drawn.clear()
 
 		stubMatchMedia(() => false)
 
@@ -71,7 +84,7 @@ describe('animated line marks under reduced motion', () => {
 
 		expect(initials.get('chart-point')?.at(-1)).toEqual({ r: 0, opacity: 0 })
 
-		expect(initials.get('chart-line')?.at(-1)).toEqual({ pathLength: 0 })
+		expect(drawn.get('chart-line')?.at(-1)).toBe(0)
 	})
 })
 
@@ -137,6 +150,8 @@ describe('other animated marks under reduced motion', () => {
 	])('mounts the %s at rest', (_name, chart) => {
 		initials.clear()
 
+		drawn.clear()
+
 		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
 
 		renderUI(chart())
@@ -145,5 +160,7 @@ describe('other animated marks under reduced motion', () => {
 		expect(initials.size).toBeGreaterThan(0)
 
 		expect(revealKeys()).toEqual([])
+
+		expect([...drawn.values()].flat().filter((share) => share !== 1)).toEqual([])
 	})
 })

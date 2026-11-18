@@ -1,10 +1,10 @@
 'use client'
 
 import type { Transition } from 'motion/react'
-import { useMotionValue, useTransform } from 'motion/react'
 import type { SVGProps } from 'react'
 import { useEffect } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useStrokeDraw } from '../../hooks/use-stroke-draw'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/map'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
@@ -71,12 +71,10 @@ type MapLineProps = {
  * under a non-scaling stroke covers only 1/k of its path. A zoomed route
  * therefore lost the far end of itself for as long as the view held.
  *
- * The line paints nothing until its draw starts. Motion writes the dash array as
- * `<drawn> 1` over a `pathLength` of 1. At zero, the pattern starts a new dash
- * exactly at the end of the path. A zero-length dash under a round cap paints a
- * dot, so a held draw put a dot at each end. A marker's leg holds for its start
- * pin, and the dot at the far end showed the destination before the line got to
- * it. The opacity therefore follows the drawn share, and not a timer beside it.
+ * The line paints nothing until its draw starts ({@link useStrokeDraw}). A
+ * marker's leg holds for its start pin. A held draw at zero length put a dot at
+ * each end, and the dot at the far end showed the destination before the line
+ * got to it.
  *
  * The draw is no transform, so the reduced-motion config of motion does not
  * skip it. Under reduced motion the line mounts whole, and a draw in flight
@@ -121,10 +119,9 @@ function MapLineDraw({
 }) {
 	const still = usePrefersReducedMotion()
 
-	// The drawn share, and whether it paints. The two change on the same frame.
-	const drawn = useMotionValue(still ? 1 : 0)
+	const style = useStrokeDraw(still)
 
-	const opacity = useTransform(drawn, (share) => (share > 0 ? 1 : 0))
+	const drawn = style.pathLength
 
 	// Reduced motion that turns on mid-draw changes the transition alone. The target stays
 	// `pathLength: 1`, so motion starts no new animation, and the tween in flight runs on. The jump
@@ -136,7 +133,7 @@ function MapLineDraw({
 	return (
 		<m.path
 			{...shape}
-			style={{ pathLength: drawn, opacity }}
+			style={style}
 			animate={{ pathLength: 1 }}
 			transition={still ? k.motion.instant : transition}
 		/>
