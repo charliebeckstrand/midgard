@@ -3,16 +3,19 @@ import { reactRouter } from '@react-router/dev/vite'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import { serverAssetUrls, serverStylesheetUrl } from './plugin/asset-urls.ts'
+import { docsBase, docsBuildDirectory } from './plugin/base.ts'
 import { reactDocs } from './plugin/index.ts'
 
 // The docs of ui: `pnpm --filter ui dev` serves them, and `docs:build`
-// prerenders them to `dist/client`.
-const clientDir = path.join(import.meta.dirname, 'dist', 'client')
+// prerenders them to `dist/client` (`plugin/base.ts`).
+const clientDir = path.resolve(import.meta.dirname, docsBuildDirectory(), 'client')
 
 export default defineConfig({
 	// The root is this folder for each command, also for the preview server
 	// that the prerender starts from the package folder.
 	root: import.meta.dirname,
+	// The path of the site that the build is for (`plugin/base.ts`).
+	base: docsBase(),
 	plugins: [
 		reactDocs({ clientDir }),
 		serverAssetUrls(),

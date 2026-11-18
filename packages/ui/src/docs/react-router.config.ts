@@ -1,6 +1,7 @@
 import path from 'node:path'
 import type { Config } from '@react-router/dev/config'
 import { LOCALES, localeFile } from './app/language.ts'
+import { docsBase, docsBuildDirectory, moveUnderBase } from './plugin/base.ts'
 import { prerenderLocales } from './plugin/locale-pages.ts'
 import { inlineCriticalCss } from './plugin/styles.ts'
 
@@ -11,7 +12,9 @@ import { inlineCriticalCss } from './plugin/styles.ts'
 // the docs sends the HTML of the locale of the request (`app/language.ts`).
 const config: Config = {
 	appDirectory: 'app',
-	buildDirectory: 'dist',
+	// The folder of the build, and the path of the site that it is for (`plugin/base.ts`).
+	buildDirectory: docsBuildDirectory(),
+	basename: docsBase(),
 	ssr: false,
 	// Each path with no params. The not-found route has none of its own: the
 	// host gives the SPA fallback document for any other path. The dev server
@@ -20,8 +23,13 @@ const config: Config = {
 	// shows only in a build.
 	prerender:
 		process.env.NODE_ENV === 'production' ? ({ getStaticPaths }) => getStaticPaths() : false,
+	// With a base, the build first moves the assets and the fallback document
+	// into the folder of the base, where React Router wrote the pages. Thus each
+	// step after the move finds each file of the build in that folder.
 	buildEnd: async ({ reactRouterConfig }) => {
 		const clientDir = path.join(reactRouterConfig.buildDirectory, 'client')
+
+		await moveUnderBase(clientDir, reactRouterConfig.basename)
 
 		await prerenderLocales(
 			path.join(reactRouterConfig.buildDirectory, 'server'),
@@ -31,7 +39,7 @@ const config: Config = {
 
 		const stylesheet = path.join(import.meta.dirname, 'app', 'app.css')
 
-		await inlineCriticalCss(clientDir, stylesheet, (page) =>
+		await inlineCriticalCss(path.join(clientDir, reactRouterConfig.basename), stylesheet, (page) =>
 			LOCALES.slice(1).map((locale) => localeFile(page, locale)),
 		)
 	},
