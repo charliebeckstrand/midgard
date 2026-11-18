@@ -315,11 +315,21 @@ function readBarrel(ts: Ts, ast: Ast, program: Program, checker: Checker, file: 
 
 	const exports = checker.getExportsOfModule(module)
 
-	/** The component of an export: a PascalCase value that takes props, or nothing. */
+	/**
+	 * The component of an export: a PascalCase value that takes props and has
+	 * no `@hidden` tag, or nothing.
+	 */
 	function component(exported: TsSymbol): ComponentApi | undefined {
 		if (!/^[A-Z]/.test(exported.name)) return undefined
 
 		const symbol = resolveAlias(exported)
+
+		// A `@hidden` component is for an app that builds a part of another
+		// component, such as the header row of a box with a chart. It is not in
+		// the API reference, so the search has no entry for it.
+		if (checker.getJsDocTagsOfSymbol(symbol).some((tag) => tag.name === 'hidden')) {
+			return undefined
+		}
 
 		const type = symbol.flags & SymbolFlags.Value ? checker.getTypeOfSymbol(symbol) : undefined
 

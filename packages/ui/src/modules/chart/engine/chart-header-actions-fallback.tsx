@@ -185,6 +185,8 @@ export type ChartHeaderActionsFallbackProps = Omit<ComponentProps<'span'>, 'chil
  *   {chart}
  * </HeaderActions>
  * ```
+ *
+ * @hidden
  */
 export function ChartHeaderActionsFallback({
 	chart,

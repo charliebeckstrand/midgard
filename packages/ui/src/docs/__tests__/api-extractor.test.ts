@@ -5,7 +5,8 @@ import { it } from './extractor.ts'
 
 // The API data that the docs plugin makes for some components whose props
 // have a union, an inherited tag, a default that is a sentence, an
-// `@internal` tag, a `Responsive<T>` type, a range, or a kind of device.
+// `@internal` tag, a `Responsive<T>` type, a range, or a kind of device, and
+// for a component with a `@hidden` tag.
 
 const BARRELS = [
 	'components/card',
@@ -117,6 +118,14 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(findProp(api, 'Menu', 'disabled')).toBeUndefined()
 
 		expect(findProp(api, 'Menu', 'sheet')).toBeDefined()
+	})
+
+	it('leaves out a hidden component', async ({ extractor }) => {
+		const api = await extractor.extract('modules/chart')
+
+		expect(api.ChartHeaderActionsFallback).toBeUndefined()
+
+		expect(api.SeatChart).toBeDefined()
 	})
 
 	it('gives the values of a responsive type, and the value of a default constant', async ({
