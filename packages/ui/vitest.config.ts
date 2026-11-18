@@ -7,7 +7,7 @@ import {
 	docsTestDir,
 	walkSource,
 } from './src/__tests__/helpers/walk-source.ts'
-import { assertions, budgets, CI, cleanup, coverageScope, env, sequence } from './vitest.base.ts'
+import { assertions, budgets, CI, cleanup, env, sequence } from './vitest.base.ts'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` and `docs` exclude them. The scan skips
@@ -381,8 +381,17 @@ export default defineConfig({
 		// `groupOrder` with it, which reorders the very queue the failure came
 		// from.
 		sequence,
-		// `test:coverage` merges this report with the report of the browser run.
-		coverage: coverageScope('jsdom'),
+		// The source that a run with `--coverage` measures. Each shard writes a JSON
+		// report, and `scripts/coverage/merge.ts` merges the reports. The browser
+		// suite does not measure coverage: the block coverage of Chromium made the
+		// map cases of 12,000 stops take two times their CI budget.
+		coverage: {
+			provider: 'v8',
+			include: ['src/**/*.{ts,tsx}'],
+			exclude: ['src/__tests__/**', 'src/__benchmarks__/**', 'src/docs/**'],
+			reporter: ['json'],
+			reportsDirectory: 'coverage/jsdom',
+		},
 		projects: [
 			...projects.map((project, groupOrder) => ({
 				...project,

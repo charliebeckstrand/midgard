@@ -1,16 +1,12 @@
 /**
- * Merges the coverage reports of the jsdom run and of the browser run into one
- * report.
+ * Merges the coverage reports of the jsdom suite into one report.
  *
- * Each run measures only the source that its own tests execute. The browser
- * suite tests layout, virtualization, and floating UI, which jsdom cannot, so
- * the report of one run alone understates the coverage of the package.
- *
- * A run with `--coverage` writes `coverage/<run>/coverage-final.json`
- * (`coverageScope` in `vitest.base.ts`). On CI, each shard of the two runs
- * gives its report to the `coverage` job, which puts each report in a folder
- * of its own under `coverage/`. The script merges each report that it finds
- * in a folder under `coverage/`, and writes the merged report to `coverage/`.
+ * A run with `--coverage` writes `coverage/jsdom/coverage-final.json`
+ * (`coverage` in `vitest.config.ts`). On CI, each shard measures only its half
+ * of the test files. Each shard gives its report to the `coverage` job, which
+ * puts each report in a folder of its own under `coverage/`. The script merges
+ * each report that it finds in a folder under `coverage/`, and writes the
+ * merged report to `coverage/`.
  *
  * The Cobertura report gives each path from the root of the repository. GitHub
  * Code Quality reads this report (`.github/workflows/ci.yml`).

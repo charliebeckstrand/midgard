@@ -59,8 +59,7 @@
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"vitest.base.ts",
 				"$TURBO_ROOT$/vitest.shared.mts"
-			],
-			"outputs": ["coverage/browser/**"]
+			]
 		},
 		"test:compiler": {
 			"dependsOn": ["^build"],

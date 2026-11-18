@@ -140,7 +140,7 @@
 		"test:watch": "LANG=en-US vitest",
 		"test:changed": "export LANG=en-US && base=$(git merge-base HEAD origin/main) && vitest run --project boundary && vitest run --passWithNoTests --changed=\"$base\" --project unit --project docs --project pure --project integration --project geometry",
 		"test:related": "LANG=en-US vitest related --run",
-		"test:coverage": "pnpm test --coverage && pnpm test:browser --coverage && pnpm coverage:merge",
+		"test:coverage": "pnpm test --coverage && pnpm coverage:merge",
 		"coverage:merge": "tsx scripts/coverage/merge.ts",
 		"bench": "vitest bench --run --config vitest.bench.config.ts",
 		"bench:browser": "vitest bench --run --config vitest.bench.browser.config.ts",
