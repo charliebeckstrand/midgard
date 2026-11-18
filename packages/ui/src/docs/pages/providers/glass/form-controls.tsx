@@ -52,7 +52,7 @@ export default function FormControls() {
 				</Field>
 				<Field>
 					<Label>Due date</Label>
-					<DatePicker value={date} onValueChange={setDate} />
+					<DatePicker value={date} onValueChange={setDate} className="w-full" />
 				</Field>
 				<Field>
 					<Label>Estimate (days)</Label>
