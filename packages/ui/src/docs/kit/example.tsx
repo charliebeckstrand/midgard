@@ -177,6 +177,45 @@ export type FrameOptions = {
 	 * of the viewport. It has an effect only with `viewport`.
 	 */
 	heightControl?: boolean
+	/**
+	 * Makes the instance the page of the viewport, for a layout such as
+	 * `SidebarLayout`. The instance fills the viewport with no padding, as a
+	 * layout fills a window. It has an effect only with `viewport`.
+	 */
+	page?: boolean
+}
+
+/**
+ * The box of the instance. A `page` is the page of the viewport, with no
+ * padding. Each other instance is in a padded flex box, which fills the area
+ * with `fill`, and is as wide as the instance otherwise.
+ */
+function InstanceBox({
+	fill,
+	page,
+	children,
+}: {
+	fill: boolean
+	page: boolean
+	children: ReactNode
+}) {
+	if (page) return <div data-slot="example-instance">{children}</div>
+
+	return (
+		<div className="p-4">
+			<Stack
+				data-slot="example-instance"
+				gap="lg"
+				className={
+					fill
+						? 'w-full'
+						: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
+				}
+			>
+				{children}
+			</Stack>
+		</div>
+	)
 }
 
 /**
@@ -207,7 +246,10 @@ export type FrameOptions = {
  * scrolls in it. Each surface renders in the area, covers only the area, and
  * reads the breakpoints of the area. With `heightControl` also, a drag on the
  * bottom border of the area sets its height, from 10rem to the height of the
- * window. The size readout shows during that drag too.
+ * window. The size readout shows during that drag too. With `page` also, the
+ * instance is the page of the viewport: it has no padding, and `100cqh` in
+ * it is the height of the area. A layout thus fills the area as it fills a
+ * window, and its drawers and sheets stay in the area.
  *
  * Where the primary pointer is coarse, only a grip at the middle of the border
  * resizes the frame. The grip takes the whole touch, so a drag in any direction
@@ -236,6 +278,7 @@ export function ExampleFrame({
 	ratio = false,
 	viewport = false,
 	heightControl = false,
+	page = false,
 	children,
 }: FrameOptions & {
 	meta: ExampleMeta
@@ -341,19 +384,9 @@ export function ExampleFrame({
 							}
 							className={viewport ? 'h-[32rem] min-h-40' : undefined}
 						>
-							<div className="p-4">
-								<Stack
-									data-slot="example-instance"
-									gap="lg"
-									className={
-										surface || ratio
-											? 'w-full'
-											: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
-									}
-								>
-									{children}
-								</Stack>
-							</div>
+							<InstanceBox fill={surface || ratio} page={viewport && page}>
+								{children}
+							</InstanceBox>
 						</BreakpointFrame>
 						{resizesHeight && (
 							// The drag area sits across the bottom border of the area, as the

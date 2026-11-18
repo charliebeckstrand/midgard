@@ -154,7 +154,8 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * scrolls. Make the box a size container (`@container-size`). The layout then
  * fills the box, and the box scrolls in place of the page. The breakpoints of
  * `layout` follow the width of the viewport, not the width of the box. Thus a
- * narrow box on a wide screen still shows the inline panel.
+ * narrow box on a wide screen still shows the inline panel. In a breakpoint
+ * frame, such as an example of the docs, they follow the width of the frame.
  *
  * Its padding and the width of its inline panel follow the nearest density
  * scope. The floating sheet has the width of the panel at each step. The

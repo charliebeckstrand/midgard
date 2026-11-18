@@ -60,7 +60,9 @@ export type BreakpointFrameProps = ComponentProps<'div'> & {
  * `container` takes the box as its container. The box is thus the positioning
  * box of a fixed surface (`contain: layout`), and it clips what it holds. Its
  * content scrolls in a box of its own, so a surface in the box stays in place
- * while the content scrolls, as on a page.
+ * while the content scrolls, as on a page. That box is a size container, so
+ * `100cqh` in the content is the height of the frame, as `100svh` is the
+ * height of a window. A layout, such as `SidebarLayout`, thus fills the frame.
  *
  * Before hydration, the content reads the viewport. The frame starts after the
  * first commit, when the box exists.
@@ -98,7 +100,10 @@ export function BreakpointFrame({
 			<BreakpointFrameContext value={frame}>
 				{viewport ? (
 					<PortalContext value={element}>
-						<div data-slot="breakpoint-frame-scroll" className="h-full overflow-auto">
+						<div
+							data-slot="breakpoint-frame-scroll"
+							className="@container-size h-full overflow-auto"
+						>
 							{children}
 						</div>
 					</PortalContext>
