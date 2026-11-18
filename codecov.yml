@@ -1,0 +1,12 @@
+# The configuration of Codecov (the `coverage-upload` job of
+# .github/workflows/ci.yml). The coverage is a report, not a gate. Thus each
+# status check of Codecov is informational: it shows the change in coverage,
+# and it does not fail.
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true

@@ -4,6 +4,10 @@ on:
   pull_request:
   # Pushes to main run CI through the deploy workflow (deploy.yml).
   workflow_call:
+    secrets:
+      # The upload token of Codecov, for `coverage-upload`.
+      CODECOV_TOKEN:
+        required: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -215,7 +219,7 @@ jobs:
 
   # Merges the coverage of the two `test` shards into one Cobertura report
   # (packages/ui/scripts/coverage/merge.ts). Each shard measures only the
-  # source that its own tests execute. Thus GitHub gets one merged report, not
+  # source that its own tests execute. Thus Codecov gets one merged report, not
   # one report for each shard. The `browser` jobs do not measure coverage
   # (`coverage` in packages/ui/vitest.config.ts).
   coverage:
@@ -243,33 +247,34 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # Gives the merged report to GitHub Code Quality, which compares the coverage
-  # of a pull request with the coverage of main. The job is apart from
-  # `coverage`, so that `code-quality: write` stays out of each job that runs
-  # the code of the repository or of its dependencies. The report of main is
-  # the base of the comparison, so deploy.yml grants the permission too.
+  # Gives the merged report to Codecov, which compares the coverage of a pull
+  # request with the coverage of main (codecov.yml). The job is apart from
+  # `coverage`, so that the upload token stays out of each job that runs the
+  # code of the repository or of its dependencies. The report of main is the
+  # base of the comparison, so deploy.yml gives the token to its call of CI.
   #
-  # The coverage is a report, not a gate. An upload that fails writes an error
-  # annotation and does not fail the job. Thus a fault at GitHub cannot stop a
-  # merge or a deploy. A pull request from a fork gets no token that can write,
-  # and the action skips its upload.
+  # The coverage is a report, not a gate. An upload that fails does not fail
+  # the job, so a fault at Codecov cannot stop a merge or a deploy. A pull
+  # request from a fork or from Dependabot gets no repository secret, and
+  # Codecov then takes the upload without a token or refuses it.
   coverage-upload:
     runs-on: ubuntu-latest
     needs: coverage
     timeout-minutes: 5
-    permissions:
-      contents: read
-      code-quality: write
     steps:
+      # The Codecov CLI reads the commit and the file list from the checkout.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v8
         with:
           name: cobertura
-      - uses: actions/upload-code-coverage@v1
+      - uses: codecov/codecov-action@v7
         with:
-          file: cobertura-coverage.xml
-          language: TypeScript
-          label: ui
-          fail-on-error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: cobertura-coverage.xml
+          disable_search: true
+          fail_ci_if_error: false
 
   # One sample of each benchmark (`bench:smoke` and `bench:browser:smoke` in
   # packages/ui), so that a change that breaks a bench fails before it merges.
