@@ -659,6 +659,7 @@
 			"!**/.next",
 			"!**/.react-router",
 			"!**/.turbo",
+			"!packages/ui/coverage",
 			"!**/next-env.d.ts",
 			"!.claude/worktrees",
 			"!.claude/skills"

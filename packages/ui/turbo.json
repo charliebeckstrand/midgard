@@ -18,7 +18,8 @@
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"package.json"
-			]
+			],
+			"outputs": ["coverage/jsdom/**"]
 		},
 		"test:workspace": {
 			"dependsOn": ["^build"],
