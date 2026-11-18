@@ -5,7 +5,7 @@ import DensityPlayground from './playground.tsx'
 export default function DensityPage() {
 	return (
 		<>
-			<Playground of={DensityPlayground} api={api} viewport page heightControl />
+			<Playground of={DensityPlayground} api={api} viewport page />
 			<ApiTable api={api} />
 		</>
 	)

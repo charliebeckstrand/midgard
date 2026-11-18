@@ -52,10 +52,33 @@ function ToastViewport({ position }: Pick<ToastProps, 'position'>) {
 const [ToastHostContext] = createContext<boolean>('ToastHost', { default: false })
 
 /**
- * Mounts a {@link ToastProvider} and its {@link Toast} viewport around its
- * children, so `useToast()` works with no setup. `UIProvider` mounts it. The
+ * Mounts a {@link ToastProvider} and its lazy {@link Toast} viewport around its
+ * children, so `useToast()` in the children uses a queue of their own. The
  * viewport loads in idle time after the hydration, or on the first toast when
- * that comes first.
+ * that comes first. The viewport portals into the nearest portal container,
+ * so in a viewport frame (`BreakpointFrame`) the toasts stay in the frame.
+ * {@link ToastHost} mounts it for the app, and the docs mount it in each
+ * viewport frame of an example.
+ * @internal
+ */
+export function ToastScope({
+	options,
+	children,
+}: {
+	options?: ToastHostOptions | undefined
+	children: ReactNode
+}) {
+	return (
+		<ToastProvider duration={options?.duration} maxToasts={options?.maxToasts}>
+			{children}
+			<ToastViewport position={options?.position} />
+		</ToastProvider>
+	)
+}
+
+/**
+ * Mounts a {@link ToastScope} around its children, so `useToast()` works with
+ * no setup. `UIProvider` mounts it.
  *
  * @remarks
  * Only the outermost host mounts the queue. A host under another host renders
@@ -77,10 +100,7 @@ export function ToastHost({
 
 	return (
 		<ToastHostContext value>
-			<ToastProvider duration={options?.duration} maxToasts={options?.maxToasts}>
-				{children}
-				<ToastViewport position={options?.position} />
-			</ToastProvider>
+			<ToastScope options={options}>{children}</ToastScope>
 		</ToastHostContext>
 	)
 }

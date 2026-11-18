@@ -2,12 +2,13 @@ import { useComposedRefs } from 'motion/react'
 import { type ComponentType, type ReactNode, useEffect, useState } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
-import { cn } from 'ui/core'
+import { cn, createContext } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Link } from 'ui/link'
 import { defineMessage, defineMessages, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
+import { ToastScope } from '../../components/toast/toast-host.tsx'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { BreakpointFrame } from '../../primitives/breakpoint-frame/breakpoint-frame.tsx'
@@ -169,20 +170,38 @@ export type FrameOptions = {
 	ratio?: boolean
 	/**
 	 * Makes the instance area a viewport of 32rem in height, for an instance that
-	 * opens an overlay, a popover, or a toast. The surfaces stay in the area.
+	 * opens an overlay, a popover, or a toast. The surfaces stay in the area. A
+	 * drag on the bottom border of the area sets the height of the viewport.
 	 */
 	viewport?: boolean
-	/**
-	 * Adds a drag on the bottom border of the instance area that sets the height
-	 * of the viewport. It has an effect only with `viewport`.
-	 */
-	heightControl?: boolean
 	/**
 	 * Makes the instance the page of the viewport, for a layout such as
 	 * `SidebarLayout`. The instance fills the viewport with no padding, as a
 	 * layout fills a window. It has an effect only with `viewport`.
 	 */
 	page?: boolean
+}
+
+// The frame options of a page. Each frame of the page uses them, and the props
+// of a frame override them.
+const [FrameDefaultsContext, useFrameDefaults] = createContext<FrameOptions>('FrameDefaults', {
+	default: {},
+})
+
+/**
+ * Gives each example frame in `children` the same frame options. A page whose
+ * component opens a portal, such as a dialog or a toast, gives `viewport` to
+ * each of its frames in one place, so a new example of the page cannot leave it
+ * out. A frame that sets an option overrides the default of the page.
+ *
+ * @example
+ * <FrameDefaults viewport>
+ *   <Playground of={DialogPlayground} api={api} />
+ *   <Example of={WithForm} />
+ * </FrameDefaults>
+ */
+export function FrameDefaults({ children, ...options }: FrameOptions & { children: ReactNode }) {
+	return <FrameDefaultsContext value={options}>{children}</FrameDefaultsContext>
 }
 
 /**
@@ -244,8 +263,9 @@ function InstanceBox({
  * the viewport. With `viewport`, the area is a viewport for these surfaces
  * too, as a window is for a page. The area is 32rem high, and the instance
  * scrolls in it. Each surface renders in the area, covers only the area, and
- * reads the breakpoints of the area. With `heightControl` also, a drag on the
- * bottom border of the area sets its height, from 10rem to the height of the
+ * reads the breakpoints of the area. `useToast` in the instance uses a queue
+ * of the area, so its toasts also show in the area. A drag on the bottom
+ * border of the area sets its height, from 10rem to the height of the
  * window. The size readout shows during that drag too. With `page` also, the
  * instance is the page of the viewport: it has no padding, and `100cqh` in
  * it is the height of the area. A layout thus fills the area as it fills a
@@ -269,25 +289,31 @@ function InstanceBox({
  * the frame starts at half the column but not narrower than 32rem. The frame
  * does not become wider than the column. A drag sets the width as for each
  * other frame.
+ *
+ * A {@link FrameDefaults} around the frame gives the options that the frame
+ * does not set.
  */
-export function ExampleFrame({
-	meta,
-	actions,
-	print,
-	surface = false,
-	ratio = false,
-	viewport = false,
-	heightControl = false,
-	page = false,
-	children,
-}: FrameOptions & {
-	meta: ExampleMeta
-	/** The controls on a line under the title, such as the fields of a playground. */
-	actions?: ReactNode
-	/** Writes the code of the block. The block shows the code of the file when it is not given. */
-	print?: (code: ExampleCode) => string
-	children: ReactNode
-}) {
+export function ExampleFrame(
+	props: FrameOptions & {
+		meta: ExampleMeta
+		/** The controls on a line under the title, such as the fields of a playground. */
+		actions?: ReactNode
+		/** Writes the code of the block. The block shows the code of the file when it is not given. */
+		print?: (code: ExampleCode) => string
+		children: ReactNode
+	},
+) {
+	const {
+		meta,
+		actions,
+		print,
+		surface = false,
+		ratio = false,
+		viewport = false,
+		page = false,
+		children,
+	} = { ...useFrameDefaults(), ...props }
+
 	// The code module loads in idle time, so "Show code" opens at once. It loads
 	// before that when the reader points at "Show code" or focuses it.
 	const {
@@ -325,15 +351,10 @@ export function ExampleFrame({
 		cursor: 'ns-resize',
 	})
 
-	const resizesHeight = viewport && heightControl
-
 	// The instance area, as state, so the size readout observes it once it exists.
 	const [area, setArea] = useState<HTMLDivElement | null>(null)
 
-	const areaRef = useComposedRefs<HTMLDivElement>(
-		setArea,
-		resizesHeight ? heightResize.ref : undefined,
-	)
+	const areaRef = useComposedRefs<HTMLDivElement>(setArea, viewport ? heightResize.ref : undefined)
 
 	const dragging =
 		resize.handleProps['data-dragging'] !== undefined ||
@@ -378,17 +399,25 @@ export function ExampleFrame({
 							ref={areaRef}
 							viewport={viewport}
 							style={
-								resizesHeight && heightResize.size !== null
-									? { height: heightResize.size }
-									: undefined
+								viewport && heightResize.size !== null ? { height: heightResize.size } : undefined
 							}
 							className={viewport ? 'h-[32rem] min-h-40' : undefined}
 						>
-							<InstanceBox fill={surface || ratio} page={viewport && page}>
-								{children}
-							</InstanceBox>
+							{viewport ? (
+								// `useToast` in the instance uses a queue of the frame, so its
+								// toasts show in the frame and not at the edge of the window.
+								<ToastScope>
+									<InstanceBox fill={surface || ratio} page={page}>
+										{children}
+									</InstanceBox>
+								</ToastScope>
+							) : (
+								<InstanceBox fill={surface || ratio} page={false}>
+									{children}
+								</InstanceBox>
+							)}
 						</BreakpointFrame>
-						{resizesHeight && (
+						{viewport && (
 							// The drag area sits across the bottom border of the area, as the
 							// drag area of the width sits across the end border.
 							<div
