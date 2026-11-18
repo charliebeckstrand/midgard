@@ -128,11 +128,12 @@ export function MapFrame({
 
 				    A side legend and the plot sit side by side once the map's own box
 				    reaches `@lg` (32rem). That leaves the plot at least 19rem beside
-				    the 12rem rail of a panel. Below it they stack with the legend
-				    always under the map. The legend follows the plot in the DOM on
-				    each side: the grid of `k.legend.rail` gives it its side, and the
-				    side is physical, so a left legend stays left in a right-to-left
-				    page.
+				    the 12rem rail of a panel. Below it they stack in a flex column,
+				    with the legend always under the map. `k.legend.rail` tells why
+				    that column is not a grid. The legend follows the plot in the DOM
+				    on each side: the grid of `k.legend.rail` gives it its side, and
+				    the side is physical, so a left legend stays left in a
+				    right-to-left page.
 
 				    The rail of a panel is a fixed column of that grid. The plot
 				    therefore has its final box before the panel is in the DOM, which
@@ -140,10 +141,10 @@ export function MapFrame({
 				    bar has the width of its labels, so the plot gets its final width
 				    only when the browser parses the bar.
 
-				    The grid stretches its children, because the plot reserves its
-				    height from its own width. A band legend needs no box of its own
-				    (`contents`), so the legend and plot lay out in the frame's
-				    column. */}
+				    The band stretches each child to the width of its column, because
+				    the plot reserves its height from its own width. A band legend
+				    needs no box of its own (`contents`), so the legend and plot lay
+				    out in the frame's column. */}
 				<div className={aside ? sideBand(legendPlacement, rail) : 'contents'}>
 					{legendPlacement === 'top' && legendNode}
 
