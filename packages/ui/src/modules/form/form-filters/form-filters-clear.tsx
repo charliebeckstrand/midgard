@@ -7,7 +7,7 @@ import { cloneWithAction } from '../../../primitives/trigger-child/trigger-child
 import type { ButtonVariants } from '../../../recipes/kata/button'
 import { k } from '../../../recipes/kata/form-filters'
 import { getTabbableElements } from '../../../utilities/focusable-selector'
-import { useFormFilters, useFormFiltersAxis } from './context'
+import { useFormFilters } from './context'
 
 /** Props for {@link FormFiltersClear}. */
 export type FormFiltersClearProps = {
@@ -44,9 +44,8 @@ export type FormFiltersClearProps = {
  * @remarks
  * The trigger shows only while there is something to clear: a field holds a
  * value that the bar's default does not. A Clear over an unfiltered bar offers
- * to undo nothing. Under a `stack` in a row, it keeps its box while it hides,
- * so the fields do not change width when it appears. Under a `rail`, and under
- * a `stack` on a compact viewport, it takes no space until it appears.
+ * to undo nothing. It takes no space until it appears, so the fields fill
+ * the line of the bar while there is nothing to clear.
  *
  * A clear from the keyboard hides the trigger that has the focus, so the focus
  * moves to the first control of the bar. A pointer press leaves the focus
@@ -57,9 +56,7 @@ export type FormFiltersClearProps = {
 export function FormFiltersClear({ children, variant, color, className }: FormFiltersClearProps) {
 	const { clear, clearable } = useFormFilters()
 
-	const { rail } = useFormFiltersAxis()
-
-	const classes = cn(k({ idle: !clearable, rail }).clear, className)
+	const classes = cn(k({ idle: !clearable }).clear, className)
 
 	const handleClear = (event: MouseEvent) => {
 		const trigger = event.currentTarget
