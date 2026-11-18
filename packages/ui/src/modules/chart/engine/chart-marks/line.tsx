@@ -4,6 +4,7 @@ import { AnimatePresence } from 'motion/react'
 import { memo, useId } from 'react'
 import { cn } from '../../../../core/cn'
 import { usePrefersReducedMotion } from '../../../../hooks/use-prefers-reduced-motion'
+import { useStrokeDraw } from '../../../../hooks/use-stroke-draw'
 import * as m from '../../../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../../../recipes/kata/chart'
 import { rangeKeys } from '../../../../utilities/range-keys'
@@ -80,10 +81,7 @@ const AREA_EXIT = { opacity: 0, transition: AREA_UNFADE }
 /** How far a stroke paints past its path: its half-width, and its round cap. @internal */
 const WIPE_REACH = LINE_STROKE_WIDTH / 2
 
-/** The draw of a solid stroke along its own length. @internal */
-const LINE_HIDDEN = { pathLength: 0 }
-
-/** @internal */
+/** The draw of a solid stroke along its own length, from the zero length that {@link useStrokeDraw} mounts at. @internal */
 const LINE_SHOWN = { pathLength: 1 }
 
 /**
@@ -147,19 +145,7 @@ type LineSegmentProps = Pick<LineBodyOptions, 'animated' | 'still'> & {
  * @internal
  */
 function LineSegment({ d, paint, dashed, clip, animated, still }: LineSegmentProps) {
-	if (animated && !dashed) {
-		return (
-			<m.path
-				data-slot="chart-line"
-				d={d}
-				{...segmentProps(paint, false)}
-				initial={still ? false : LINE_HIDDEN}
-				animate={LINE_SHOWN}
-				exit={still ? undefined : LINE_EXIT}
-				transition={LINE_DRAW}
-			/>
-		)
-	}
+	if (animated && !dashed) return <LineDraw d={d} paint={paint} still={still} />
 
 	if (animated) {
 		return (
@@ -174,6 +160,29 @@ function LineSegment({ d, paint, dashed, clip, animated, still }: LineSegmentPro
 	}
 
 	return <path data-slot="chart-line" d={d} clipPath={clip} {...segmentProps(paint, dashed)} />
+}
+
+/**
+ * The animated solid stroke of {@link LineSegment}. It draws itself along its
+ * own length, and paints nothing at zero length ({@link useStrokeDraw}). Thus
+ * the last frame of its un-draw puts no dot at either end.
+ *
+ * @internal
+ */
+function LineDraw({ d, paint, still }: Pick<LineSegmentProps, 'd' | 'paint' | 'still'>) {
+	const style = useStrokeDraw(still)
+
+	return (
+		<m.path
+			data-slot="chart-line"
+			d={d}
+			{...segmentProps(paint, false)}
+			style={style}
+			animate={LINE_SHOWN}
+			exit={still ? undefined : LINE_EXIT}
+			transition={LINE_DRAW}
+		/>
+	)
 }
 
 /** Props for {@link LineSeriesBody}: one series, in plain values so the memo holds. @internal */

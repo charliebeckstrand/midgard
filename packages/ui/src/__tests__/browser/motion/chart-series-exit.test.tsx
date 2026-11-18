@@ -4,7 +4,7 @@ import { MARKER_RADIUS } from '../../../modules/chart/engine/chart-constants'
 import { LineChart } from '../../../modules/chart/line-chart'
 import { ScatterChart } from '../../../modules/chart/scatter-chart'
 import { REDUCED_MOTION_QUERY } from '../../../utilities/media-query'
-import { renderUI, stubMatchMedia, waitFor } from '../../helpers'
+import { present, renderUI, stubMatchMedia, waitFor } from '../../helpers'
 import { legendItem } from '../../helpers/chart-legend'
 import { nextPaint } from '../../helpers/frames'
 import { sampleMotionFrames } from '../helpers/motion-frame'
@@ -140,6 +140,53 @@ describe('chart series exit (real Motion)', () => {
 		expect(drawn(leaving[0])).toBe(1)
 
 		await waitFor(() => expect(strokes()).toHaveLength(2), SETTLE)
+	})
+
+	it('paints nothing of a hidden line in the last frame of its un-draw', async () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Sales by quarter"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				animate
+			/>,
+		)
+
+		const strokes = () => [
+			...container.querySelectorAll<SVGPathElement>('[data-slot="chart-line"]'),
+		]
+
+		const drawn = (line: SVGPathElement) =>
+			Number.parseFloat(line.getAttribute('stroke-dasharray') ?? '1')
+
+		await waitFor(() => {
+			expect(strokes()).toHaveLength(3)
+
+			expect(strokes().every((line) => drawn(line) === 1)).toBe(true)
+		}, SETTLE)
+
+		const line = present<SVGPathElement>(strokes()[1], 'the South stroke')
+
+		// Each frame of the exit until the presence removes the stroke. A frame at
+		// zero length that paints the stroke is a dot at each end of it.
+		const painted: number[] = []
+
+		await sampleMotionFrames(
+			() => {
+				if (line.isConnected && drawn(line) === 0) {
+					painted.push(Number.parseFloat(getComputedStyle(line).opacity))
+				}
+
+				return line.isConnected
+			},
+			(connected) => !connected,
+			{ during: async () => legendItem(container, 'South').click() },
+		)
+
+		expect(painted.length).toBeGreaterThan(0)
+
+		expect(painted.filter((value) => value > 0)).toEqual([])
 	})
 
 	it('pops the discs of a hidden scatter series out', async () => {
