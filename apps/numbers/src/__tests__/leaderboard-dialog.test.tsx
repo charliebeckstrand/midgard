@@ -204,4 +204,44 @@ describe('LeaderboardDialog', () => {
 
 		expect(screen.getByText(/to participate in the leaderboard\./)).toBeTruthy()
 	})
+
+	it('reads the boards again for a reader who signs in, so the board shows their row', async () => {
+		vi.mocked(readBoard).mockImplementation(async () =>
+			board(11, [{ rank: 1, name: 'Ada', score: 15, you: false }]),
+		)
+
+		// A sign-in is a soft navigation, so the query cache of the page stays. Its
+		// stale time is the one of the app, so a cached board answers at once.
+		const client = new QueryClient({
+			defaultOptions: { queries: { retry: false, staleTime: 30_000 } },
+		})
+
+		const dialog = (user?: User) => (
+			<QueryClientProvider client={client}>
+				<UIProvider>
+					<LeaderboardDialog open onOpenChange={() => {}} user={user} />
+				</UIProvider>
+			</QueryClientProvider>
+		)
+
+		const view = render(dialog())
+
+		await screen.findByText('Ada')
+
+		const reads = vi.mocked(readBoard).mock.calls.length
+
+		// The answer of a signed-in reader holds their own row, below the top 10.
+		vi.mocked(readBoard).mockImplementation(async () =>
+			board(11, [
+				{ rank: 1, name: 'Ada', score: 15, you: false },
+				{ rank: 11, name: 'Grace', score: 3, you: true },
+			]),
+		)
+
+		view.rerender(dialog(makeUser(true)))
+
+		expect(await screen.findByText('You')).toBeTruthy()
+
+		expect(vi.mocked(readBoard).mock.calls.length).toBeGreaterThan(reads)
+	})
 })

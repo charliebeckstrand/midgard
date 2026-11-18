@@ -249,6 +249,9 @@ The dialog keeps its height while a board loads. The menu reads the two
 boards of today when it opens, so the dialog opens with its rows. The dialog
 reads the two boards of each day that the arrows go to, so each tab has its
 rows. Until the rows of a new day arrive, the rows of the last day stay, dimmed.
+The answer holds the row of the reader, so the client keeps the boards of each
+reader apart. A sign-in keeps the cache of the page, and the boards then read
+again for the signed-in reader.
 
 Each player shows by the name of their account, or as "Anonymous" when the
 account has no name, as an account from GitHub or Google does. Mimir keeps the
