@@ -42,6 +42,13 @@ partial Fisher-Yates shuffle takes the deck.
 | `/vs` | `proxy.ts` sends the reader to the address of a new seed against the CPU (`307`) |
 | `/vs/k3x9q2` | The run of the seed against the CPU (see [Vs CPU](#vs-cpu)) |
 
+Standard and Vs CPU in the menu, and Numbers in the trail, link to `/` and
+`/vs`. A plain click makes the seed in the browser and goes to its address
+(`useNewRunClick`), so the navigation needs one request. Through the link
+address, it needs three requests in a row. The proxy sends a redirect, Next
+sends a second redirect that puts back the `_rsc` parameter, and then the page
+comes. A new tab opens the link address, and the proxy sends it to a new seed.
+
 A Reset starts the run of a new seed in place, in the same mode, and adds its
 address to the history. While the run goes on and has a placed number, Reset
 asks the reader to confirm (`useConfirm` of `ui`). After a bust or a win, or
@@ -139,8 +146,8 @@ gives the change to the other tabs.
 
 ## Vs CPU
 
-Vs CPU in the menu of the header opens `/vs`, which starts the run of a new
-seed against the CPU at `/vs/<seed>`. A second column beside the slots holds
+Vs CPU in the menu of the header starts the run of a new seed against the CPU
+at `/vs/<seed>` (see [The seed](#the-seed)). A second column beside the slots holds
 the game of the CPU. The server renders the two columns, so the first paint is
 the final layout. The CPU plays the deck of the same seed, so it gets the same numbers in the
 same order. It places each number after the player places it, so the player

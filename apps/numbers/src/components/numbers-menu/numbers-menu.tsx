@@ -8,6 +8,7 @@ import { Button } from 'ui/button'
 import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
+import { useNewRunClick } from '../../hooks/use-new-run-click'
 import { usePrefetchBoards } from '../../queries/leaderboard-queries'
 import { usePrefetchStats } from '../../queries/stats-queries'
 import { dayKey } from '../../utilities/day'
@@ -41,6 +42,10 @@ export type NumbersMenuProps = {
  * signed-in reader gets Verify email (until the email is verified), Stats,
  * which opens the stats of the reader, and Sign out.
  *
+ * A plain click on Standard or Vs CPU goes to the address of a new seed at
+ * once, with no redirect (`useNewRunClick`). The address of each item, `/` or
+ * `/vs`, is for a new tab.
+ *
  * The item of the route of the page is bold, and it is the current item
  * (`aria-current`). The route comes from the props of the page, not from the
  * address after the hydration, so the item is marked at the first open.
@@ -62,6 +67,10 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 
 	const prefetchStats = usePrefetchStats()
 
+	const startSolo = useNewRunClick(false)
+
+	const startVsCpu = useNewRunClick(true)
+
 	return (
 		<>
 			<Menu
@@ -81,12 +90,12 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 				</MenuTrigger>
 
 				<MenuContent aria-label="Menu">
-					<MenuItem href="/" {...currentProps('solo', route)}>
+					<MenuItem href="/" onClick={startSolo} {...currentProps('solo', route)}>
 						<Icon icon={<Numbers />} />
 						<MenuLabel>{ROUTE_LABELS.solo}</MenuLabel>
 					</MenuItem>
 
-					<MenuItem href={`/${VS_SEGMENT}`} {...currentProps('vsCpu', route)}>
+					<MenuItem href={`/${VS_SEGMENT}`} onClick={startVsCpu} {...currentProps('vsCpu', route)}>
 						<Icon icon={<Bot />} />
 						<MenuLabel>{ROUTE_LABELS.vsCpu}</MenuLabel>
 					</MenuItem>

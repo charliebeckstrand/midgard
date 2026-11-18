@@ -13,6 +13,10 @@ vi.mock('../api/stats-api', () => ({ readStats: vi.fn() }))
 
 vi.mock('../api/leaderboard-api', () => ({ readBoard: vi.fn() }))
 
+const push = vi.fn()
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
+
 /** A user, verified or not. */
 const makeUser = (verified: boolean) => ({ id: 'user-1', is_verified: verified }) as User
 
@@ -132,5 +136,55 @@ describe('NumbersMenu', () => {
 		await waitFor(() => expect(readBoard).toHaveBeenCalledTimes(2))
 
 		expect(readStats).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		['Standard', /^\/[a-z0-9]{6}$/],
+		['Vs CPU', /^\/vs\/[a-z0-9]{6}$/],
+	])(
+		'goes from %s to the address of a new seed at once, with no redirect',
+		async (name, address) => {
+			renderMenu()
+
+			fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+			const item = await screen.findByRole('menuitem', { name })
+
+			// The click is not for the browser, so the link does not go to its own address.
+			expect(fireEvent.click(item)).toBe(false)
+
+			expect(push).toHaveBeenCalledTimes(1)
+			expect(push.mock.calls[0]?.[0]).toMatch(address)
+		},
+	)
+
+	it('leaves a click with a modifier to the browser, which opens the address of the item', async () => {
+		renderMenu()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+		const item = await screen.findByRole('menuitem', { name: 'Vs CPU' })
+
+		expect(item.getAttribute('href')).toBe('/vs')
+
+		// The listener runs after the handlers of React. It reads the click, then
+		// stops the navigation, which jsdom does not implement.
+		let forBrowser = false
+
+		window.addEventListener(
+			'click',
+			(event) => {
+				forBrowser = !event.defaultPrevented
+
+				event.preventDefault()
+			},
+			{ once: true },
+		)
+
+		fireEvent.click(item, { metaKey: true })
+
+		expect(forBrowser).toBe(true)
+
+		expect(push).not.toHaveBeenCalled()
 	})
 })

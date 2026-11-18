@@ -7,13 +7,13 @@ import {
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
 import { StackedLayoutHeader } from 'ui/layouts'
-import { Link } from 'ui/link'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { ROUTE_LABELS, type Route } from '../../utilities/seed'
 import { HowToPlay } from '../how-to-play'
 import { NumbersMenu } from '../numbers-menu'
 import { DifficultyField, SettingField } from '../setting-field'
+import { NumbersHeaderLink } from './numbers-header-link'
 
 /** The tabs of the settings of the game, after the "UI" tab of the appearance pickers. */
 const TABS = [
@@ -74,7 +74,11 @@ export function NumbersHeader({ user, route }: NumbersHeaderProps) {
 							) : (
 								<>
 									<BreadcrumbItem>
-										<BreadcrumbLink href="/" render={<Link href="/" />} className="font-semibold">
+										<BreadcrumbLink
+											href="/"
+											render={<NumbersHeaderLink href="/" />}
+											className="font-semibold"
+										>
 											Numbers
 										</BreadcrumbLink>
 									</BreadcrumbItem>
