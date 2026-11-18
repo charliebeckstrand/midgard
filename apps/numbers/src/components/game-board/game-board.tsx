@@ -146,12 +146,23 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 
 	const confirm = useConfirm()
 
+	// The run on the screen, which an answer after the question compares with
+	// the run that the question named.
+	const shownGame = useRef(game)
+
+	useEffect(() => {
+		shownGame.current = game
+	}, [game])
+
 	/**
 	 * Starts the next run. A run that goes on with a placed number asks first,
 	 * because the reset discards it. The question stays open across a
 	 * navigation, so a link, Back, or Forward during the question leaves the run
 	 * that it names. The answer then does nothing: the left run does not count,
-	 * and the address of the page stays.
+	 * and the address of the page stays. Two checks find a left run. A board
+	 * that a navigation hid keeps its run, but the address changed. Back and
+	 * Forward to the same address give the address back, but the board started
+	 * a new run.
 	 */
 	const resetRun = async () => {
 		const address = window.location.pathname
@@ -167,7 +178,7 @@ export function GameBoard({ seed, user, vsCpu = false }: GameBoardProps) {
 			return
 		}
 
-		if (window.location.pathname !== address) return
+		if (window.location.pathname !== address || shownGame.current !== game) return
 
 		restart()
 	}

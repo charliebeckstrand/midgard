@@ -143,6 +143,107 @@ describe('GameBoard Reset', () => {
 		expect(recordResult).not.toHaveBeenCalled()
 	})
 
+	it('counts no run when the reader went Back and Forward to the same address during the question', async () => {
+		writeCookie('numbers-auto-draw', 'on')
+
+		address.pathname = '/charlie'
+
+		const user = { id: 'user-1', is_verified: true } as User
+
+		const board = () => (
+			<QueryClientProvider client={new QueryClient()}>
+				<UIProvider>
+					<GameSettingsProvider
+						settings={{
+							autoDraw: true,
+							showScore: true,
+							placementOrder: true,
+							difficulty: 'normal',
+						}}
+					>
+						<GameBoard seed="charlie" user={user} />
+					</GameSettingsProvider>
+				</UIProvider>
+			</QueryClientProvider>
+		)
+
+		const view = render(board())
+
+		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		const dialog = await screen.findByRole('alertdialog')
+
+		// Back, then Forward: the address comes back, and the board starts the run again.
+		for (const pathname of ['/other', '/charlie']) {
+			window.history.replaceState(null, '', pathname)
+
+			address.pathname = pathname
+
+			view.rerender(board())
+		}
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Reset' }))
+
+		await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+
+		await act(async () => {})
+
+		// The run that the question named is gone, so the answer does nothing.
+		expect(window.location.pathname).toBe('/charlie')
+		expect(recordResult).not.toHaveBeenCalled()
+	})
+
+	it('counts no run when Back went to another route during the question, and the board is held', async () => {
+		writeCookie('numbers-auto-draw', 'on')
+
+		address.pathname = '/charlie'
+
+		const user = { id: 'user-1', is_verified: true } as User
+
+		const page = (mode: 'visible' | 'hidden') => (
+			<QueryClientProvider client={new QueryClient()}>
+				<UIProvider>
+					<GameSettingsProvider
+						settings={{
+							autoDraw: true,
+							showScore: true,
+							placementOrder: true,
+							difficulty: 'normal',
+						}}
+					>
+						<Activity mode={mode}>
+							<GameBoard seed="charlie" user={user} />
+						</Activity>
+					</GameSettingsProvider>
+				</UIProvider>
+			</QueryClientProvider>
+		)
+
+		const view = render(page('visible'))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Slot 10' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		const dialog = await screen.findByRole('alertdialog')
+
+		// Back to a page of the other mode: the board that asked is held, and its run stays.
+		window.history.replaceState(null, '', '/vs/other')
+
+		view.rerender(page('hidden'))
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Reset' }))
+
+		await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+
+		await act(async () => {})
+
+		expect(window.location.pathname).toBe('/vs/other')
+		expect(recordResult).not.toHaveBeenCalled()
+	})
+
 	it('starts a new seed from a date seed too, which is a seed as any other', () => {
 		window.history.replaceState(null, '', '/20261101')
 
