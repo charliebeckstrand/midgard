@@ -120,14 +120,13 @@ describe('RouterLink under a basename', () => {
 	it('gives the anchor of a page the basename, and leaves a hash and another host', () => {
 		renderShell('/docs/button', '/docs/')
 
-		expect(screen.getByRole('link', { name: 'Menu' })).toHaveAttribute('href', '/docs/menu')
+		const href = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
 
-		expect(screen.getByRole('link', { name: 'Disabled' })).toHaveAttribute('href', '#disabled')
+		expect(href('Menu')).toBe('/docs/menu')
 
-		expect(screen.getByRole('link', { name: 'Example' })).toHaveAttribute(
-			'href',
-			'https://example.com',
-		)
+		expect(href('Disabled')).toBe('#disabled')
+
+		expect(href('Example')).toBe('https://example.com')
 	})
 
 	it('goes to a page under the basename through the router', () => {

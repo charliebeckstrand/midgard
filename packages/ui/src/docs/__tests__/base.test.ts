@@ -48,7 +48,7 @@ describe('moveUnderBase', () => {
 		return clientDir
 	}
 
-	it('moves the assets and the fallback document into the folder of the base', async () => {
+	it('moves the assets and the fallback into the folder of the base', async () => {
 		const clientDir = await based()
 
 		await moveUnderBase(clientDir, '/docs/')
