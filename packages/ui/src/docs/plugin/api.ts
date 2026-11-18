@@ -10,6 +10,7 @@ import type {
 	Type,
 } from 'typescript/unstable/sync'
 import { densitySteps, isDensityStep } from '../../core/density/steps.ts'
+import { type DensityLevel, levelToStep } from '../../providers/density/context.ts'
 import { finiteOrUndefined } from '../../utilities/parse-numeric.ts'
 import { BREAKPOINTS, type Breakpoint } from '../../utilities/responsive.ts'
 
@@ -151,6 +152,27 @@ function getRank(value: Literal): number {
 	if (typeof value === 'string') return isDensityStep(value) ? 0 : 1
 
 	return typeof value === 'number' ? 2 : 3
+}
+
+function isDensityLevel(value: Literal): value is DensityLevel {
+	return typeof value === 'string' && Object.hasOwn(levelToStep, value)
+}
+
+/** The order of the density levels: the order of their steps, from `compact` to `loose`. */
+function compareLevels(a: DensityLevel, b: DensityLevel): number {
+	return densitySteps.indexOf(levelToStep[a]) - densitySteps.indexOf(levelToStep[b])
+}
+
+/**
+ * Sorts the values of a union. A union of density levels, such as the
+ * `density` of `DensityProvider`, is in step order. A union that has a value
+ * of a different kind, such as `'compact' | 'percent'`, is in the order of
+ * {@link compareLiterals}.
+ */
+function sortLiterals(values: readonly Literal[]): Literal[] {
+	return values.every(isDensityLevel)
+		? values.toSorted(compareLevels)
+		: values.toSorted(compareLiterals)
 }
 
 /** The locale of each sort, so that the order does not change with the locale of the build machine. */
@@ -846,7 +868,7 @@ function toLiteral(type: Type | undefined): Literal | undefined {
 function toLiterals(types: readonly Type[]): Literal[] | undefined {
 	const values = types.flatMap((type) => toLiteral(type) ?? [])
 
-	return values.length === types.length ? values.toSorted(compareLiterals) : undefined
+	return values.length === types.length ? sortLiterals(values) : undefined
 }
 
 function isBreakpoint(name: string): name is Breakpoint {
