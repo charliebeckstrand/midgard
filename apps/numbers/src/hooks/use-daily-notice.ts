@@ -23,7 +23,7 @@ type Decision = { run: number; notice: boolean }
 /**
  * Decides whether the run tells the reader that the daily puzzle of today
  * already counts: a run of it that starts after its first run counted. A
- * replay counts as a run, but it does not change the streak. The stats are
+ * replay changes no stat and no leaderboard. The stats are
  * those of `user`, so a reader with no session or with no verified email gets
  * no notice.
  *
