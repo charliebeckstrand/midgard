@@ -156,7 +156,8 @@ export function Dialog(props: DialogProps) {
  * panel, its close parts, and its dismissal share the open-state setter of the root.
  * A click in the panel stops at the panel, so it does not reach a clickable ancestor of the
  * Dialog. With a `container`, the panel stays in the box of that element. The
- * breakpoints of `align`, which select the layout and the motion, still read the viewport. The
+ * breakpoints of `align`, which select the layout and the motion, still read the viewport,
+ * or the width of the breakpoint frame that holds the container. The
  * panel stamps `data-open` while it is open.
  */
 export function DialogPanel({

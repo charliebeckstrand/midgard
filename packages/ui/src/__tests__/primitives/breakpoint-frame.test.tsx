@@ -108,4 +108,46 @@ describe('BreakpointFrame', () => {
 
 		expect(screen.getByTestId('portal')).toHaveTextContent('narrow')
 	})
+
+	it('keeps the frame for a portal nested in a portal into a box in the frame', () => {
+		stubMatchMedia(() => true)
+
+		frameWidth = MD - 1
+
+		const box = document.createElement('div')
+
+		renderUI(
+			<BreakpointFrame ref={(node) => node?.append(box)}>
+				<Portal open container={box}>
+					<Portal open>
+						<Probe label="nested" />
+					</Portal>
+				</Portal>
+			</BreakpointFrame>,
+		)
+
+		const nested = screen.getByTestId('nested')
+
+		// The node of the nested portal is in the box, so the CSS reads the frame.
+		expect(box).toContainElement(nested)
+		expect(nested).toHaveTextContent('narrow')
+	})
+
+	it('gives a portal nested in a portal to the body the breakpoints of the viewport', () => {
+		stubMatchMedia(() => true)
+
+		frameWidth = MD - 1
+
+		renderUI(
+			<BreakpointFrame>
+				<Portal open>
+					<Portal open>
+						<Probe label="nested" />
+					</Portal>
+				</Portal>
+			</BreakpointFrame>,
+		)
+
+		expect(screen.getByTestId('nested')).toHaveTextContent('wide')
+	})
 })
