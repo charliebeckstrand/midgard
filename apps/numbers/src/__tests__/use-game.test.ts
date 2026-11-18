@@ -93,20 +93,13 @@ describe('useGame', () => {
 		expect(result.current.game.drawn).toBe(createGame('k3x9q2').deck[0])
 	})
 
-	it('starts a new run at each reset, also of the same seed', () => {
+	it('starts the same seed again from its start at a reset', () => {
 		const { result } = renderHook(() => useGame('charlie', false))
-
-		expect(result.current.run).toBe(0)
 
 		act(() => result.current.draw())
 		act(() => result.current.reset('charlie'))
 
-		expect(result.current.run).toBe(1)
 		expect(result.current.game.last).toBeNull()
-
-		act(() => result.current.draw())
-
-		expect(result.current.run).toBe(1)
 	})
 
 	it('does not draw after a reset when Auto-draw is off', () => {

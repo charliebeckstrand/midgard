@@ -39,23 +39,14 @@ partial Fisher-Yates shuffle takes the deck.
 | --- | --- |
 | `/` | `proxy.ts` sends the reader to the address of a new seed (`307`) |
 | `/k3x9q2` | The run of the seed |
-| `/20261115` | The daily puzzle of a date: the seed is the date as `YYYYMMDD` |
 | `/vs` | `proxy.ts` sends the reader to the address of a new seed against the CPU (`307`) |
 | `/vs/k3x9q2` | The run of the seed against the CPU (see [Vs CPU](#vs-cpu)) |
 
 A Reset starts the run of a new seed in place, in the same mode, and adds its
-address to the history. On a daily puzzle, a Reset starts the same seed again
-from its start, and the address stays (`isDailySeed`). Reset shows there from
-the first placement, because before it the run is at its start. Its space
-stays, so the bar keeps its width. While the run goes on and has a placed number, Reset
+address to the history. While the run goes on and has a placed number, Reset
 asks the reader to confirm (`useConfirm` of `ui`). After a bust or a win, or
-before the first placement, Reset does not ask. A link, Back, and Forward start the run of the seed of
-the address again, from its start.
-
-The daily puzzle of a day is the run of the seed of its date (`dailySeed`), in
-the time zone of the reader, so each reader gets the same numbers on the same
-date. The link to the daily puzzle renders only in the open menu, because the
-browser gives the date of the reader after the hydration (`useToday`).
+before the first placement, Reset does not ask. A link, Back, and Forward start
+the run of the seed of the address again, from its start.
 
 Share seed in the share menu of the bottom bar copies the address of the run.
 Against the CPU, the address holds the seed only. A reader of the link gets the
@@ -72,8 +63,8 @@ place, and Reset.
 
 The header shows a trail, the How to play button, the settings, and a menu.
 
-The How to play button opens a dialog with an accordion of three sections:
-Rules, Vs CPU, and Daily puzzle. Rules is open when the dialog opens, and one
+The How to play button opens a dialog with an accordion of two sections: Rules
+and Vs CPU. Rules is open when the dialog opens, and one
 section is open at a time.
 
 The solo route (Standard in the menu) is the home of the app, so its trail is
@@ -81,11 +72,11 @@ only `Numbers`. Another route adds its name, such as `Numbers › Vs CPU`, where
 Numbers leads to the solo route, as the Standard item of the menu does. A narrow
 trail gives way from the left, as the trails of Places and Elections do.
 
-The menu has Standard (a new solo seed), Vs CPU (a new seed against the CPU),
-and Daily puzzle. Under a divider is Leaderboard. Under a second divider, the
-menu has Sign in, or Stats and Sign out for a signed-in reader. The item of the
-route of the page is extra bold (`aria-current`): Vs CPU on a run against the CPU,
-Daily puzzle on a solo run of a date seed, and Standard else (`getRoute`).
+The menu has Standard (a new solo seed) and Vs CPU (a new seed against the
+CPU). Under a divider is Leaderboard. Under a second divider, the menu has Sign
+in, or Stats and Sign out for a signed-in reader. The item of the route of the
+page is extra bold (`aria-current`): Vs CPU on a run against the CPU, and
+Standard else.
 
 A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
@@ -121,13 +112,11 @@ bar, and the slots have 1rem of space inside the borders. Each bar has 1rem of
 space at each side and 0.5rem above and below, and the drawn number and the
 score are flush with the slots. At the end of a run, the score number is green
 for a win, and amber for a tie or a loss. The score has no fill and no padding.
-A solo win, on a seed or on the daily puzzle, makes the score green with a
-check. A solo bust makes it amber.
+A solo win makes the score green with a check. A solo bust makes it amber.
 
 An action can turn off the button that the reader pressed. The focus then
 moves to the first slot that can take the number, or else to Draw, or else to
-Reset. A Reset that hides Reset on a daily puzzle, and the close of the notice
-of a replay, move the focus by the same rule.
+Reset.
 
 ## Settings
 
@@ -208,9 +197,8 @@ first number always has an empty slot, so no run scores 0. A switch of tab
 slides to the next mode. Mimir, in asgard, keeps the stats
 (`/api/games/numbers/*`, `src/api/stats-api.ts`).
 
-Standard also shows the daily streak and the longest one. Only a solo run plays
-the daily puzzle, so Vs CPU shows Win % in place of the streaks. Win % is the
-share of the vs CPU runs that beat the CPU (`winRate`). Only a run that sends
+Vs CPU also shows Win %, the share of the vs CPU runs that beat the CPU
+(`winRate`). Only a run that sends
 `beatCpu` counts toward it, so the runs from before 2026-11-16 do not. Until
 the first such run, Win % shows a dash. Standard has no Win %, because a run that
 fills all 20 slots is rare.
@@ -220,35 +208,16 @@ its first placement, with its score at that step (`isUnfinished`). A link,
 Back, or Forward leaves the run, and the run does not count. `useGame` gives an
 ended run to its `onEnd` in the action, not in an effect, so a held route that
 shows again does not count its run a second time. A run counts only for a user
-with a verified email. The first run of a daily puzzle counts toward the
-streak. A reader with no session gets no Stats item in the menu.
-
-After the first run of the daily puzzle of today counts, the Daily puzzle item
-of the menu shows the score in a small green badge after its label, such as
-"12/20" (`dailyScore` of the stats). A
-new run of the puzzle shows a closable banner, with no icon, across the top of
-the body, above the bar of the drawn number: the reader played the puzzle, and
-a replay does not change the score (`useDailyNotice`). The banner waits for the
-stats, and a run that ends before they arrive gets no banner, because its own
-result can be in them. A reader with no session, or with no verified email, has
-no stats, so the item stays a plain link and no banner shows.
-
-The server reads the stats of the daily puzzle of today, so the first paint
-of a load has the banner, and the banner does not move the board after the
-hydration (CONVENTIONS §3.13, `readDailyStats` in `src/server/stats.ts`).
-The server needs the day of the reader for this. Each page writes the offset
-of the time zone of the browser in the `numbers-utc-offset` cookie
-(`ReaderOffsetCookie`), and the server gets the day from the offset and its
-clock. With no cookie, the browser reads the stats after the hydration. The
-hydration render uses the day of the server, so it has the markup of the
-server, and after the hydration the day of the browser counts.
+with a verified email. A reader with no session gets no Stats item in the menu.
+The menu reads the stats of a verified reader when it opens, so the dialog
+opens with them.
 
 ## Leaderboard
 
 Leaderboard in the header menu opens a dialog with the boards of each day, for
 each reader. A tab for each board holds the board of one date, in the order of the menu:
-Standard for the solo runs of other seeds, Vs CPU for the runs that beat the CPU,
-and Daily for the solo runs of the daily puzzle. The dialog opens on Daily. A vs CPU run that ties or loses, or that a
+Standard for the solo runs, and Vs CPU for the runs that beat the CPU. The dialog
+opens on Standard. A vs CPU run that ties or loses, or that a
 Reset ends, counts in the stats but on no board (`beatCpu` of the result). A run counts on the board of the reader's
 date. A board shows the top 10 players by their best score on it, then the
 reader when they are below them, and the count of players. A better run moves a
@@ -257,9 +226,9 @@ go to earlier days, but not past today. A switch of tab slides to the next
 board. Mimir keeps the boards (`/api/games/numbers/daily`,
 `src/api/leaderboard-api.ts`).
 
-The dialog keeps its height while a board loads. The menu reads the three
+The dialog keeps its height while a board loads. The menu reads the two
 boards of today when it opens, so the dialog opens with its rows. The dialog
-reads the three boards of each day that the arrows go to, so each tab has its
+reads the two boards of each day that the arrows go to, so each tab has its
 rows. Until the rows of a new day arrive, the rows of the last day stay, dimmed.
 
 Each player shows by the name of their account, or as "Anonymous" when the

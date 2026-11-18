@@ -29,7 +29,7 @@ afterEach(() => {
 
 describe('useRecordResult', () => {
 	it.each([
-		[{ seed: TODAY, mode: 'solo' }, 'daily'],
+		[{ seed: TODAY, mode: 'solo' }, 'solo'],
 		[{ seed: 'k3x9q2', mode: 'solo' }, 'solo'],
 		[{ seed: 'k3x9q2', mode: 'vsCpu', beatCpu: true }, 'vsCpu'],
 	] as const)('makes the board of the day of %j stale: %s', async (run, board) => {

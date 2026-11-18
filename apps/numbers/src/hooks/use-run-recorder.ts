@@ -3,6 +3,7 @@
 import type { User } from 'auth'
 import type { Mode } from '../api/stats-api'
 import { useRecordResult } from '../queries/stats-queries'
+import { dayKey } from '../utilities/day'
 import {
 	countPlaced,
 	type Difficulty,
@@ -13,7 +14,6 @@ import {
 	playCpu,
 	SLOTS,
 } from '../utilities/game'
-import { dailySeed } from '../utilities/seed'
 
 /**
  * Gives the function that counts a finished run toward the stats of `user`.
@@ -37,7 +37,7 @@ export function useRunRecorder(
 			seed: game.seed,
 			score: countPlaced(game.slots),
 			mode,
-			today: dailySeed(new Date()),
+			today: dayKey(new Date()),
 		}
 
 		if (mode === 'solo') {

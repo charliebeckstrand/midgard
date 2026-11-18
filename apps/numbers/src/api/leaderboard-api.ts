@@ -14,10 +14,7 @@ export type Board = components['schemas']['NumbersBoard']
 /** One row of a leaderboard. */
 export type BoardEntry = Board['entries'][number]
 
-/**
- * A board of a day: `daily` for the solo runs of the daily puzzle, `solo` for
- * the solo runs of other seeds, and `vsCpu` for the runs that beat the CPU.
- */
+/** A board of a day: `solo` for the solo runs, and `vsCpu` for the runs that beat the CPU. */
 export type BoardMode = paths['/api/games/numbers/daily']['get']['parameters']['query']['mode']
 
 const mimir = createMimirClient()
@@ -34,5 +31,5 @@ export function readBoard(date: string, mode: BoardMode): Promise<Board> {
 export function toBoardMode(result: RunResult): BoardMode | null {
 	if (result.mode === 'vsCpu') return result.beatCpu ? 'vsCpu' : null
 
-	return result.seed === result.today ? 'daily' : 'solo'
+	return 'solo'
 }

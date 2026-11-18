@@ -1,64 +1,27 @@
 'use client'
 
 import type { User } from 'auth'
-import {
-	Bot,
-	CalendarDays,
-	ChartColumn,
-	LogIn,
-	Menu as MenuIcon,
-	Numbers,
-	Trophy,
-} from 'lucide-react'
+import { Bot, ChartColumn, LogIn, Menu as MenuIcon, Numbers, Trophy } from 'lucide-react'
 import { useState } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
-import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { useToday } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { usePrefetchBoards } from '../../queries/leaderboard-queries'
-import { useStats } from '../../queries/stats-queries'
-import { SLOTS } from '../../utilities/game'
-import { dailySeed, ROUTE_LABELS, type Route, VS_SEGMENT } from '../../utilities/seed'
+import { usePrefetchStats } from '../../queries/stats-queries'
+import { dayKey } from '../../utilities/day'
+import { ROUTE_LABELS, type Route, VS_SEGMENT } from '../../utilities/seed'
 import { LeaderboardDialog } from '../leaderboard-dialog'
 import { StatsDialog } from '../stats-dialog'
 
 /**
  * The props of the item of `route`, when it is the route of the page: it is
  * the current item, and its label is extra bold (800). The token is `true`, not `page`,
- * because the link of the item opens another page: a new seed, or the daily
- * puzzle of today.
+ * because the link of the item opens another page: a new seed.
  */
 function currentProps(route: Route, current: Route) {
 	return route === current ? ({ 'aria-current': 'true', className: 'font-extrabold' } as const) : {}
-}
-
-/**
- * The link to the daily puzzle of `today`. After the first run of the puzzle
- * counts, the item shows its `score` in a small green badge after its label,
- * at the gap of the row, such as "12/20".
- */
-function DailyPuzzleItem({
-	today,
-	score,
-	route,
-}: {
-	today: Date
-	score: number | null
-	route: Route
-}) {
-	return (
-		<MenuItem href={`/${dailySeed(today)}`} {...currentProps('daily', route)}>
-			<Icon icon={<CalendarDays />} />
-			<MenuLabel>{ROUTE_LABELS.daily}</MenuLabel>
-			{score !== null && (
-				<Badge color="green" size="sm">
-					{`${score}/${SLOTS}`}
-				</Badge>
-			)}
-		</MenuItem>
-	)
 }
 
 /** Props for {@link NumbersMenu}. */
@@ -71,11 +34,8 @@ export type NumbersMenuProps = {
 
 /**
  * The menu at the right of the header. Standard starts the solo run of a new
- * seed, and
- * Vs CPU starts the run of a new seed against the CPU. Daily puzzle opens the
- * run of the seed of today, which each reader gets on the same date, and shows
- * its score once its first run counts. A divider sets these routes apart from
- * Leaderboard, which opens the boards of each day. Each reader gets it, so it
+ * seed, and Vs CPU starts the run of a new seed against the CPU. A divider sets
+ * these routes apart from Leaderboard, which opens the boards of each day. Each reader gets it, so it
  * is above the second divider. Under the second divider are the items of the
  * account: a reader with no session gets Sign in, and a
  * signed-in reader gets Verify email (until the email is verified), Stats,
@@ -83,25 +43,16 @@ export type NumbersMenuProps = {
  *
  * The item of the route of the page is bold, and it is the current item
  * (`aria-current`). The route comes from the props of the page, not from the
- * address after the hydration, so the item is marked at the first open. A
- * daily puzzle of an earlier day is on Daily puzzle.
+ * address after the hydration, so the item is marked at the first open.
  *
- * Today is the date of the reader, which the server cannot know, so `useToday`
- * gives it after the hydration, and moves it to the next day at midnight. The
- * menu then reads the stats of a signed-in reader with a verified email, before
- * the menu opens. Thus the score of the daily puzzle shows when the menu opens,
- * and the Stats dialog opens with its stats. The stats of any other reader are
- * not read, and the item stays a plain link.
+ * When the menu opens, it reads the boards of today, so Leaderboard opens with
+ * its rows. Today is the date of the reader, which the server cannot know, so
+ * `useToday` gives it after the hydration. For a signed-in reader with a
+ * verified email, the menu also reads the stats, so Stats opens with its
+ * stats. The stats of any other reader are not read.
  */
 export function NumbersMenu({ user, route }: NumbersMenuProps) {
 	const today = useToday()
-
-	const { data } = useStats(
-		today ? dailySeed(today) : '',
-		today !== null && user?.is_verified === true,
-	)
-
-	const score = data?.solo.dailyScore ?? null
 
 	const [statsOpen, setStatsOpen] = useState(false)
 
@@ -109,12 +60,18 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 
 	const prefetchBoards = usePrefetchBoards()
 
+	const prefetchStats = usePrefetchStats()
+
 	return (
 		<>
 			<Menu
 				placement="bottom-end"
 				onOpenChange={(open) => {
-					if (open && today) prefetchBoards(dailySeed(today))
+					if (!open) return
+
+					if (today) prefetchBoards(dayKey(today))
+
+					if (user?.is_verified) prefetchStats()
 				}}
 			>
 				<MenuTrigger>
@@ -133,8 +90,6 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 						<Icon icon={<Bot />} />
 						<MenuLabel>{ROUTE_LABELS.vsCpu}</MenuLabel>
 					</MenuItem>
-
-					{today && <DailyPuzzleItem today={today} score={score} route={route} />}
 
 					<MenuSeparator />
 

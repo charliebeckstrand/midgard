@@ -26,14 +26,12 @@ const isOpen = (dialog: HTMLElement, name: string) =>
 	within(dialog).getByRole('button', { name }).getAttribute('aria-expanded') === 'true'
 
 describe('HowToPlay', () => {
-	it('opens on the Rules section, with Vs CPU and Daily puzzle closed', async () => {
+	it('opens on the Rules section, with Vs CPU closed', async () => {
 		const dialog = await openDialog()
 
 		expect(isOpen(dialog, 'Rules')).toBe(true)
 
 		expect(isOpen(dialog, 'Vs CPU')).toBe(false)
-
-		expect(isOpen(dialog, 'Daily puzzle')).toBe(false)
 
 		expect(dialog.textContent).toContain('Each run draws 20 numbers between 1 and 1000')
 	})

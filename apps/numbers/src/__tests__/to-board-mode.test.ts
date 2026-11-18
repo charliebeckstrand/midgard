@@ -8,7 +8,7 @@ const TODAY = '20261116'
 
 describe('toBoardMode', () => {
 	it.each([
-		[{ seed: TODAY, mode: 'solo' }, 'daily'],
+		[{ seed: TODAY, mode: 'solo' }, 'solo'],
 		[{ seed: 'k3x9q2', mode: 'solo' }, 'solo'],
 		[{ seed: '20261115', mode: 'solo' }, 'solo'],
 		[{ seed: 'k3x9q2', mode: 'vsCpu', beatCpu: true }, 'vsCpu'],

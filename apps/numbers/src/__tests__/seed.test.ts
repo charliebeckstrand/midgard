@@ -1,14 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-	createRandom,
-	createSeed,
-	dailySeed,
-	dailySeedAt,
-	getRoute,
-	isDailySeed,
-	isSeed,
-	runPath,
-} from '../utilities/seed'
+import { createRandom, createSeed, isSeed, runPath } from '../utilities/seed'
 
 describe('createSeed', () => {
 	it('makes a seed of six letters and digits', () => {
@@ -46,72 +37,6 @@ describe('createRandom', () => {
 
 	it('gives another sequence for another seed', () => {
 		expect(createRandom('a')()).not.toBe(createRandom('b')())
-	})
-})
-
-describe('dailySeed', () => {
-	it('gives the date of the reader as YYYYMMDD', () => {
-		expect(dailySeed(new Date(2026, 10, 15, 23, 59))).toBe('20261115')
-
-		expect(dailySeed(new Date(2027, 0, 3, 0, 0))).toBe('20270103')
-	})
-
-	it('gives a seed', () => {
-		expect(isSeed(dailySeed(new Date()))).toBe(true)
-	})
-})
-
-describe('isDailySeed', () => {
-	it('takes a real date as YYYYMMDD', () => {
-		expect(isDailySeed('20261116')).toBe(true)
-
-		expect(isDailySeed('20240229')).toBe(true)
-
-		expect(isDailySeed(dailySeed(new Date()))).toBe(true)
-	})
-
-	it('refuses a seed that the app makes, a word, and a date that does not exist', () => {
-		expect(isDailySeed('k3x9q2')).toBe(false)
-
-		expect(isDailySeed('charlie')).toBe(false)
-
-		expect(isDailySeed('20261131')).toBe(false)
-
-		expect(isDailySeed('20250229')).toBe(false)
-
-		expect(isDailySeed('2026111')).toBe(false)
-	})
-})
-
-describe('dailySeedAt', () => {
-	const now = Date.UTC(2026, 10, 16, 3, 30)
-
-	it('gives the date of the reader at an offset behind UTC', () => {
-		expect(dailySeedAt(now, 0)).toBe('20261116')
-
-		// UTC-6: 21:30 on the day before.
-		expect(dailySeedAt(now, 360)).toBe('20261115')
-
-		// UTC+14: 17:30 on the same day.
-		expect(dailySeedAt(now, -840)).toBe('20261116')
-	})
-
-	it('gives the seed of the browser for the offset of the browser', () => {
-		const date = new Date()
-
-		expect(dailySeedAt(date.getTime(), date.getTimezoneOffset())).toBe(dailySeed(date))
-	})
-})
-
-describe('getRoute', () => {
-	it('gives Vs CPU against the CPU, Daily puzzle for a solo date seed, and Solo else', () => {
-		expect(getRoute('20261116', true)).toBe('vsCpu')
-
-		expect(getRoute('k3x9q2', true)).toBe('vsCpu')
-
-		expect(getRoute('20261116', false)).toBe('daily')
-
-		expect(getRoute('k3x9q2', false)).toBe('solo')
 	})
 })
 
