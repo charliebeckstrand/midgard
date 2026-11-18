@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useResponsiveValue } from '../../hooks/use-responsive-value'
 import { BreakpointFrame } from '../../primitives/breakpoint-frame/breakpoint-frame'
+import { Overlay } from '../../primitives/overlay'
 import { Portal } from '../../primitives/portal'
 import { act, renderUI, screen, stubMatchMedia } from '../helpers'
 import { stubResizeObserver } from '../helpers/stub-resize-observer'
@@ -149,5 +150,60 @@ describe('BreakpointFrame', () => {
 		)
 
 		expect(screen.getByTestId('nested')).toHaveTextContent('wide')
+	})
+
+	describe('with viewport', () => {
+		/** The frame element of the render. */
+		const frameElement = () => document.querySelector('[data-slot="breakpoint-frame"]')
+
+		it('takes the portals of its content, and their content reads the frame', () => {
+			stubMatchMedia(() => true)
+
+			frameWidth = MD - 1
+
+			renderUI(
+				<BreakpointFrame viewport>
+					<Portal open>
+						<Probe label="portal" />
+					</Portal>
+				</BreakpointFrame>,
+			)
+
+			const probe = screen.getByTestId('portal')
+
+			expect(frameElement()).toContainElement(probe)
+			expect(probe).toHaveTextContent('narrow')
+		})
+
+		it('scopes an overlay with no container to the frame', () => {
+			renderUI(
+				<BreakpointFrame viewport>
+					<Overlay open onOpenChange={() => {}}>
+						<span>panel</span>
+					</Overlay>
+				</BreakpointFrame>,
+			)
+
+			const root = screen.getByText('panel').closest('[data-slot="overlay"]')
+
+			expect(frameElement()).toContainElement(root as HTMLElement)
+			expect(root).toHaveClass('absolute')
+			expect(root).not.toHaveClass('fixed')
+		})
+
+		it('leaves an overlay in a frame with no viewport fixed to the viewport', () => {
+			renderUI(
+				<BreakpointFrame>
+					<Overlay open onOpenChange={() => {}}>
+						<span>panel</span>
+					</Overlay>
+				</BreakpointFrame>,
+			)
+
+			const root = screen.getByText('panel').closest('[data-slot="overlay"]')
+
+			expect(root).toHaveClass('fixed')
+			expect(root).not.toHaveClass('absolute')
+		})
 	})
 })

@@ -19,7 +19,7 @@ import { omote } from '../../recipes/kiso/index.ts'
 import { SIZE_CLASSES } from '../../utilities/responsive.ts'
 import type { BarrelApi, Literal, Media } from '../plugin/api.ts'
 import type { ExampleCode } from '../plugin/examples.ts'
-import { ExampleFrame, getMeta } from './example.tsx'
+import { ExampleFrame, type FrameOptions, getMeta } from './example.tsx'
 import { buildFields, type ChoiceField, type Field, type FreeField, type Value } from './fields.ts'
 import { isWord } from './humanize.ts'
 import { formatLiteral, propLabel, valueLabel } from './names.ts'
@@ -438,9 +438,8 @@ export function Playground<P extends object>({
 	values: given = {},
 	free = {},
 	start = {},
-	surface,
-	ratio,
-}: {
+	...options
+}: FrameOptions & {
 	/**
 	 * The default export of the playground module. It types its props as the
 	 * props of its component, and the fields give them from the API data.
@@ -471,13 +470,6 @@ export function Playground<P extends object>({
 	 * "Show code" shows the start as an attribute.
 	 */
 	start?: { readonly [K in keyof P & string]?: Literal }
-	/** Makes the instance box fill the frame, for a surface of a page. */
-	surface?: boolean
-	/**
-	 * Makes the instance box fill the frame, and starts the frame at half the
-	 * column, for a surface that keeps an aspect ratio.
-	 */
-	ratio?: boolean
 }) {
 	const meta = getMeta(of)
 
@@ -509,8 +501,7 @@ export function Playground<P extends object>({
 		<ExampleFrame
 			meta={meta}
 			print={(code) => printCode(code, props)}
-			surface={surface}
-			ratio={ratio}
+			{...options}
 			actions={
 				<Rail label={intl.formatMessage(messages.props)}>
 					{fields.map((field) => {

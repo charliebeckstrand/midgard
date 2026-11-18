@@ -4,6 +4,7 @@ import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useMemo, useState } from 'react'
 import { cn } from '../../core/cn'
 import { BREAKPOINT_WIDTHS, type MinBreakpoint } from '../../utilities/responsive'
+import { PortalContext } from '../portal/context'
 import { BreakpointFrameContext, type BreakpointFrameContextValue } from './context'
 
 /** The width of `breakpoint` in pixels. A container query reads `rem` at the root font size. */
@@ -14,9 +15,10 @@ function breakpointPixels(breakpoint: MinBreakpoint): number {
 }
 
 /** The frame value of `element`. @internal */
-function createFrame(element: HTMLElement): BreakpointFrameContextValue {
+function createFrame(element: HTMLElement, viewport: boolean): BreakpointFrameContextValue {
 	return {
 		element,
+		viewport,
 		subscribe: (callback) => {
 			const observer = new ResizeObserver(callback)
 
@@ -29,7 +31,14 @@ function createFrame(element: HTMLElement): BreakpointFrameContextValue {
 }
 
 /** Props for {@link BreakpointFrame}. @internal */
-export type BreakpointFrameProps = ComponentProps<'div'>
+export type BreakpointFrameProps = ComponentProps<'div'> & {
+	/**
+	 * Makes the box also the viewport of the portals and the overlays of its
+	 * content. Give the box a height.
+	 * @defaultValue false
+	 */
+	viewport?: boolean
+}
 
 /**
  * A box that acts as the viewport for the breakpoints of its content. Each
@@ -45,27 +54,58 @@ export type BreakpointFrameProps = ComponentProps<'div'>
  *
  * A surface that a portal moves out of the box reads the viewport again.
  *
+ * With `viewport`, the box also acts as the viewport for the portals and the
+ * overlays of its content, as a window does for a page. Each portal with no
+ * container of its own renders into the box, and an `Overlay` with no
+ * `container` takes the box as its container. The box is thus the positioning
+ * box of a fixed surface (`contain: layout`), and it clips what it holds. Its
+ * content scrolls in a box of its own, so a surface in the box stays in place
+ * while the content scrolls, as on a page.
+ *
  * Before hydration, the content reads the viewport. The frame starts after the
  * first commit, when the box exists.
  *
  * @internal
  */
-export function BreakpointFrame({ className, children, ref, ...props }: BreakpointFrameProps) {
+export function BreakpointFrame({
+	viewport = false,
+	className,
+	children,
+	ref,
+	...props
+}: BreakpointFrameProps) {
 	// State, not a ref, so the frame starts once the box exists.
 	const [element, setElement] = useState<HTMLDivElement | null>(null)
 
 	const composedRef = useComposedRefs(setElement, ref)
 
-	const frame = useMemo(() => (element === null ? null : createFrame(element)), [element])
+	const frame = useMemo(
+		() => (element === null ? null : createFrame(element, viewport)),
+		[element, viewport],
+	)
 
 	return (
 		<div
 			ref={composedRef}
 			data-slot="breakpoint-frame"
-			className={cn('@container/breakpoint-frame', className)}
+			className={cn(
+				'@container/breakpoint-frame',
+				viewport && 'relative overflow-hidden contain-layout',
+				className,
+			)}
 			{...props}
 		>
-			<BreakpointFrameContext value={frame}>{children}</BreakpointFrameContext>
+			<BreakpointFrameContext value={frame}>
+				{viewport ? (
+					<PortalContext value={element}>
+						<div data-slot="breakpoint-frame-scroll" className="h-full overflow-auto">
+							{children}
+						</div>
+					</PortalContext>
+				) : (
+					children
+				)}
+			</BreakpointFrameContext>
 		</div>
 	)
 }

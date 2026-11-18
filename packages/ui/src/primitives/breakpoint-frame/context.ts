@@ -16,6 +16,11 @@ export type BreakpointFrameContextValue = {
 	subscribe: (callback: () => void) => () => void
 	/** Whether the frame is at least as wide as `breakpoint`. */
 	matches: (breakpoint: MinBreakpoint) => boolean
+	/**
+	 * Whether the frame is also the viewport of the portals and the overlays of
+	 * its content (`viewport` on {@link BreakpointFrame}).
+	 */
+	viewport: boolean
 }
 
 /**
