@@ -1,7 +1,6 @@
 'use client'
 
-import { type ReactNode, use } from 'react'
-import { createContext } from '../../core/create-context'
+import type { ReactNode } from 'react'
 import { useIdlePreload } from '../../hooks/use-idle-preload'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { createLazyModule } from '../../utilities/lazy-module'
@@ -48,39 +47,26 @@ function ToastViewport({ position }: Pick<ToastProps, 'position'>) {
 	return viewport && <viewport.Toast position={position} />
 }
 
-/** True under a {@link ToastHost} that mounted the queue. @internal */
-const [ToastHostContext] = createContext<boolean>('ToastHost', { default: false })
-
 /**
- * Mounts a {@link ToastProvider} and its {@link Toast} viewport around its
- * children, so `useToast()` works with no setup. `UIProvider` mounts it. The
- * viewport loads in idle time after the hydration, or on the first toast when
- * that comes first.
- *
- * @remarks
- * Only the outermost host mounts the queue. A host under another host renders
- * its children only, so a nested `UIProvider` uses the queue and the viewport
- * of the outer provider, and its `options` have no effect. A `ToastProvider`
- * in the subtree still makes a queue of its own for its descendants.
+ * Mounts a {@link ToastProvider} and its lazy {@link Toast} viewport around its
+ * children, so `useToast()` in the children works with no setup. The viewport
+ * loads in idle time after the hydration, or on the first toast when that
+ * comes first. It portals into the nearest portal container, so in a viewport
+ * frame (`BreakpointFrame`) the toasts stay in the frame. `UIProvider` mounts
+ * it for the app, and the docs mount it in each viewport frame of an example.
  * @internal
  */
 export function ToastHost({
 	options,
 	children,
 }: {
-	options: ToastHostOptions | undefined
+	options?: ToastHostOptions | undefined
 	children: ReactNode
 }) {
-	const hosted = use(ToastHostContext)
-
-	if (hosted) return children
-
 	return (
-		<ToastHostContext value>
-			<ToastProvider duration={options?.duration} maxToasts={options?.maxToasts}>
-				{children}
-				<ToastViewport position={options?.position} />
-			</ToastProvider>
-		</ToastHostContext>
+		<ToastProvider duration={options?.duration} maxToasts={options?.maxToasts}>
+			{children}
+			<ToastViewport position={options?.position} />
+		</ToastProvider>
 	)
 }
