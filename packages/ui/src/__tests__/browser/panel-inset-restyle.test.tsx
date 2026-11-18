@@ -17,12 +17,27 @@ const inset = dan.space.panel
  * the element. Then it adds a sibling before the element, or removes the sibling
  * after it, and counts the elements that the next style recalculation restyles.
  * The `UpdateLayoutTree` trace event of Chromium gives that count.
+ *
+ * The trace records each renderer of the browser, and other files of the suite
+ * run in other pages at the same time. A restyle in one of those pages also
+ * gives an `UpdateLayoutTree` event. Thus the count includes only the events of
+ * the frame of the test. A `TimeStamp` marker gives the identifier of that frame.
  */
 
 /** The plain descendants of the element whose state changes. */
 const DESCENDANTS = 500
 
-type TraceEvent = { name: string; args?: { elementCount?: number } }
+/** The message of the marker that identifies the frame of the test in the trace. */
+const MARKER = 'panel-inset-restyle'
+
+type TraceEvent = {
+	name: string
+	args?: {
+		elementCount?: number
+		beginData?: { frame?: string }
+		data?: { frame?: string; message?: string }
+	}
+}
 
 type Session = {
 	send: (method: string, params?: object) => Promise<unknown>
@@ -54,6 +69,8 @@ async function restyled(change: () => void, probe: Element): Promise<number> {
 		transferMode: 'ReportEvents',
 	})
 
+	console.timeStamp(MARKER)
+
 	change()
 
 	getComputedStyle(probe).marginTop
@@ -63,8 +80,14 @@ async function restyled(change: () => void, probe: Element): Promise<number> {
 
 	session.off('Tracing.dataCollected', collect)
 
+	const frame = events.find(
+		(event) => event.name === 'TimeStamp' && event.args?.data?.message === MARKER,
+	)?.args?.data?.frame
+
+	if (!frame) throw new Error('The trace has no marker that identifies the frame of the test.')
+
 	return events
-		.filter((event) => event.name === 'UpdateLayoutTree')
+		.filter((event) => event.name === 'UpdateLayoutTree' && event.args?.beginData?.frame === frame)
 		.reduce((sum, event) => sum + (event.args?.elementCount ?? 0), 0)
 }
 
