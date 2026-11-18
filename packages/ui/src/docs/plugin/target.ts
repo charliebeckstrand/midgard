@@ -11,7 +11,12 @@ import path from 'node:path'
 //   so each page, each asset, and each link is under that path.
 // - `DOCS_BUILD_DIR` sets the folder of the build, relative to the folder
 //   of the docs app, else `dist`. The server build imports its packages by
-//   name, so the folder must be in this package, where Node finds them.
+//   name, so the folder must be in this package, where Node finds them. The
+//   cache of turbo keeps only `dist`, so a cache hit does not restore a build
+//   in another folder. Run such a build with `pnpm docs:build`.
+//
+// The `docs:build` task of turbo declares each variable (`turbo.json`). Turbo
+// removes a variable that a task does not declare.
 
 /** The target of the docs build ({@link docsTarget}). */
 export type DocsTarget = {
