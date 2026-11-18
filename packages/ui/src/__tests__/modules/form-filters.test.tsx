@@ -517,9 +517,10 @@ describe('FormFiltersClear', () => {
 		expect(button?.className).toContain('from-wrapper')
 	})
 
-	it('hides while there is nothing to clear, and keeps its box in a stack row', async () => {
-		function Bar({ layout }: { layout: 'rail' | 'stack' }) {
-			return (
+	it.each(['rail', 'stack'] as const)(
+		'takes no space while there is nothing to clear in a %s',
+		async (layout) => {
+			renderUI(
 				<FormFilters aria-label="Filters" layout={layout}>
 					<FormFiltersBar>
 						<FormFiltersRow>
@@ -529,38 +530,20 @@ describe('FormFiltersClear', () => {
 						</FormFiltersRow>
 						<FormFiltersClear>Clear</FormFiltersClear>
 					</FormFiltersBar>
-				</FormFilters>
+				</FormFilters>,
 			)
-		}
 
-		const rail = renderUI(<Bar layout="rail" />)
+			const clear = screen.getByText('Clear')
 
-		const railClear = getSlot(rail.container, 'form-filters-clear')
+			expect(clear.className).toMatch(/(^| )hidden( |$)/)
 
-		// A rail's fields do not move when the row narrows, so it needs no kept box.
-		expect(railClear.className).toMatch(/(^| )hidden( |$)/)
+			expect(clear.className).not.toContain('invisible')
 
-		expect(railClear.className).not.toContain('invisible')
+			await setupUser().type(screen.getByRole('textbox', { name: 'Name' }), 'a')
 
-		rail.unmount()
-
-		// A compact stack is a column, so a kept box would be an empty band under the fields.
-		const stack = renderUI(<Bar layout="stack" />)
-
-		const stackClear = getSlot(stack.container, 'form-filters-clear')
-
-		expect(stackClear.className).toContain('invisible')
-
-		expect(stackClear.className).toMatch(/(^| )hidden( |$)/)
-
-		expect(stackClear.className).toContain('sm:inline-flex')
-
-		await setupUser().type(screen.getByRole('textbox', { name: 'Name' }), 'a')
-
-		expect(stackClear.className).not.toContain('invisible')
-
-		expect(stackClear.className).not.toMatch(/(^| )hidden( |$)/)
-	})
+			expect(clear.className).not.toMatch(/(^| )hidden( |$)/)
+		},
+	)
 
 	it('hides while the bar holds its default', () => {
 		const { container } = renderUI(
@@ -569,7 +552,7 @@ describe('FormFiltersClear', () => {
 			</FormFilters>,
 		)
 
-		expect(getSlot(container, 'form-filters-clear').className).toContain('invisible')
+		expect(getSlot(container, 'form-filters-clear').className).toMatch(/(^| )hidden( |$)/)
 	})
 
 	it('moves the focus to the first control after a clear from the keyboard', async () => {

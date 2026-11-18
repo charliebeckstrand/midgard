@@ -23,7 +23,8 @@ describe('FormFilters stack alignment (real browser)', () => {
 
 	it('puts a label-less Clear on the bottom edge of the controls', () => {
 		const { container } = renderUI(
-			<FormFilters aria-label="Filters">
+			// A Clear shows only while a field holds a value.
+			<FormFilters aria-label="Filters" value={{ search: 'a' }}>
 				<FormFiltersBar>
 					<FormFiltersRow>
 						<FormFiltersField name="search">
@@ -46,7 +47,7 @@ describe('FormFilters stack alignment (real browser)', () => {
 		)
 	})
 
-	it('keeps the width of the fields when Clear appears', async () => {
+	it('gives the fields the full bar until Clear appears', async () => {
 		const { container } = renderUI(
 			<FormFilters aria-label="Filters">
 				<FormFiltersBar>
@@ -61,13 +62,15 @@ describe('FormFilters stack alignment (real browser)', () => {
 			</FormFilters>,
 		)
 
+		const bar = present(container.querySelector('[data-slot="form-filters-bar"]'), 'bar')
+
 		const input = present(container.querySelector('[data-slot="control-frame"]'), 'input frame')
 
-		const before = input.getBoundingClientRect().width
+		expect(input.getBoundingClientRect().width).toBeNear(bar.getBoundingClientRect().width, PIXEL)
 
 		await page.getByRole('textbox').fill('a')
 
-		expect(input.getBoundingClientRect().width).toBeNear(before, PIXEL)
+		expect(input.getBoundingClientRect().width).toBeLessThan(bar.getBoundingClientRect().width)
 	})
 })
 
