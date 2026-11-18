@@ -1,10 +1,10 @@
 import { execFile } from 'node:child_process'
 import { existsSync, globSync, readdirSync, readFileSync } from 'node:fs'
-import { mkdir, mkdtemp, rm } from 'node:fs/promises'
+import { rm } from 'node:fs/promises'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { type DocsTarget, docsTarget } from '../../docs/plugin/target.ts'
+import { docsTarget } from '../../docs/plugin/target.ts'
 
 // The docs build can be for a path of a site other than the root, such as
 // `/docs/` (`src/docs/plugin/target.ts`). This file builds the docs again with
@@ -16,42 +16,39 @@ const BASE = '/docs/'
 /** The folder of the package. */
 const PACKAGE_DIR = path.resolve(import.meta.dirname, '..', '..', '..')
 
-let target: DocsTarget
+// The folder is in the package, where the server build finds its packages.
+const target = docsTarget({
+	DOCS_BASE: BASE,
+	DOCS_BUILD_DIRECTORY: path.join(PACKAGE_DIR, 'node_modules', '.cache', 'docs-base'),
+})
 
 /** The folder of the base in the client folder, where each file of the build goes. */
-let baseDir: string
+const baseDir = path.join(target.clientDir, target.base)
 
 // The value of each `href` and `src` attribute that starts with one slash: a
 // path of the site, not a URL of another host.
 const SITE_PATH = /\s(?:href|src)="(\/(?!\/)[^"]*)"/g
 
 beforeAll(async () => {
-	// The folder is in the package, where the server build finds its packages.
-	const cache = path.join(PACKAGE_DIR, 'node_modules', '.cache')
-
-	await mkdir(cache, { recursive: true })
-
-	const env = {
-		...process.env,
-		// The build sets `NODE_ENV` only when it has no value, and the prerender
-		// runs only in production. The value of the run is `test`.
-		NODE_ENV: 'production',
-		DOCS_BASE: BASE,
-		DOCS_BUILD_DIRECTORY: await mkdtemp(path.join(cache, 'docs-base-')),
-	}
-
-	target = docsTarget(env)
-
-	baseDir = path.join(target.clientDir, target.base)
+	// The build empties only a folder in the docs app, so a failed run can leave
+	// files here.
+	await rm(target.buildDirectory, { recursive: true, force: true })
 
 	await promisify(execFile)('pnpm', ['run', 'docs:build'], {
 		cwd: PACKAGE_DIR,
-		env,
+		env: {
+			...process.env,
+			// The build sets `NODE_ENV` only when it has no value, and the prerender
+			// runs only in production. The value of the run is `test`.
+			NODE_ENV: 'production',
+			DOCS_BASE: target.base,
+			DOCS_BUILD_DIRECTORY: target.buildDirectory,
+		},
 		maxBuffer: 64 * 1024 * 1024,
 	})
 }, 600_000)
 
-afterAll(() => target && rm(target.buildDirectory, { recursive: true, force: true }))
+afterAll(() => rm(target.buildDirectory, { recursive: true, force: true }))
 
 describe('the docs build with a base', () => {
 	it('puts each file in the folder of the base', () => {
