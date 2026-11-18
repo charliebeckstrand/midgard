@@ -10,6 +10,12 @@ import { NumbersMenu } from '../components/numbers-menu/numbers-menu'
 import { RunPreloadProvider } from '../components/run-preload'
 import type { Route } from '../utilities/seed'
 
+// The menu loads the Stats dialog and its bar chart in idle time (`useIdleLoad`).
+// This import loads that module before the cases run. Thus a case waits for the
+// dialog to open, not for the first transform of the module. On a slow machine,
+// that transform took longer than the budget of `findByRole`.
+import '../components/stats-dialog'
+
 vi.mock('../api/stats-api', () => ({ readStats: vi.fn() }))
 
 vi.mock('../api/leaderboard-api', () => ({ readBoard: vi.fn() }))
