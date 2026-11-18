@@ -8,8 +8,8 @@
  * each report that it finds in a folder under `coverage/`, and writes the
  * merged report to `coverage/`.
  *
- * The Cobertura report gives each path from the root of the repository. GitHub
- * Code Quality reads this report (`.github/workflows/ci.yml`).
+ * The Cobertura report gives each path from the root of the repository.
+ * Codecov reads this report (`.github/workflows/ci.yml`).
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
