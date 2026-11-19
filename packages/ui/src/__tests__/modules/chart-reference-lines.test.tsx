@@ -1392,6 +1392,23 @@ describe('reference lines that the legend names', () => {
 		expect(marks()).toContain('opacity-25')
 	})
 
+	it('recedes nothing from a note of an inert legend', () => {
+		const { container } = bar({
+			legend: { inert: true, references: { variant: 'notes' } },
+			reference: [{ value: 55, label: 'Target' }],
+		})
+
+		const notes = getSlot(container, 'chart-legend-notes')
+
+		// The notes sit under the figure, outside the inert legend, so they take
+		// the flag themselves.
+		expect(notes.hasAttribute('inert')).toBe(true)
+
+		fireEvent.pointerEnter(getSlot(container, 'chart-legend-note'))
+
+		expect(getSlot(container, 'chart-marks').getAttribute('class')).not.toContain('opacity-25')
+	})
+
 	it('heads the series and the rules of a side panel', () => {
 		const { container } = bar({
 			legend: { placement: 'right', references: true },

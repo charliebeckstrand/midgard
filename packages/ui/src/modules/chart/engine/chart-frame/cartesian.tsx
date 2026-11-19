@@ -179,7 +179,9 @@ function cartesianLegend(chart: CartesianChart): { legend: ReactNode; notes: Rea
 				inert={resolvedLegend.inert}
 			/>
 		),
-		notes: notes && referenceItems.length > 0 && <ChartLegendNotes references={referenceItems} />,
+		notes: notes && referenceItems.length > 0 && (
+			<ChartLegendNotes references={referenceItems} inert={resolvedLegend.inert} />
+		),
 	}
 }
 

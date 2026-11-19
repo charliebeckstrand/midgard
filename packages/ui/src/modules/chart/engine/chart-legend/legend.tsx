@@ -659,7 +659,7 @@ type LegendGroup<T> = {
  * cut unmounted the focused control.
  * @internal
  */
-function useLegendGroup<T extends { label: string }>(
+function useLegendGroup<T extends { label: string; value?: string }>(
 	list: T[],
 	maxRows: number | undefined,
 	rowRef: RefObject<HTMLDivElement | null>,
@@ -680,7 +680,9 @@ function useLegendGroup<T extends { label: string }>(
 	})
 
 	const [ghostRef, count] = useLegendFit(
-		list.map((control) => control.label).join('\u0000'),
+		// The key holds all the text that a control shows, so a new value of a rule,
+		// such as from new data, a formatter, or a locale, measures again.
+		list.map((control) => `${control.label}\u0001${control.value ?? ''}`).join('\u0000'),
 		list.length,
 		maxRows,
 		rowRef,
@@ -807,6 +809,13 @@ function LegendHeading({ children }: { children: ReactNode }) {
 /** Props for {@link ChartLegendNotes}. @internal */
 type ChartLegendNotesProps = {
 	references: ChartLegendReference[]
+	/**
+	 * The legend is a static key, so pointing a note recedes nothing, as in the
+	 * inert legend. Notes under the figure sit outside the legend, so they take
+	 * the flag themselves.
+	 * @defaultValue false
+	 */
+	inert?: boolean
 	/** Panel layout: the notes fill the rail. Off, the block centers under the figure. */
 	panel?: boolean
 }
@@ -822,12 +831,17 @@ type ChartLegendNotesProps = {
  *
  * @internal
  */
-export function ChartLegendNotes({ references, panel = false }: ChartLegendNotesProps) {
+export function ChartLegendNotes({
+	references,
+	panel = false,
+	inert = false,
+}: ChartLegendNotesProps) {
 	const { pointReference } = useChartActions()
 
 	return (
 		<ul
 			data-slot="chart-legend-notes"
+			inert={inert}
 			className={cn(
 				'grid gap-1',
 				panel ? 'w-full min-w-0 px-2' : 'mx-auto w-fit max-w-full min-w-0',
@@ -838,13 +852,16 @@ export function ChartLegendNotes({ references, panel = false }: ChartLegendNotes
 					key={reference.index}
 					data-slot="chart-legend-note"
 					className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 text-start text-sm leading-5"
-					// A tap is not a point, as on `LegendSwitch`.
+					// A tap is not a point, as on `LegendSwitch`. A note of an inert legend
+					// takes no pointer, as a switch of one takes none.
 					onPointerEnter={(event) => {
-						if (event.pointerType !== 'touch' && reference.drawn !== false) {
+						if (!inert && event.pointerType !== 'touch' && reference.drawn !== false) {
 							pointReference(reference.index)
 						}
 					}}
-					onPointerLeave={() => pointReference(null)}
+					onPointerLeave={() => {
+						if (!inert) pointReference(null)
+					}}
 				>
 					<span className="flex h-5 items-center">
 						<ChartLegendReferenceSwatch reference={reference} off={false} />
