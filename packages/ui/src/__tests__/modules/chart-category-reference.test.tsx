@@ -224,7 +224,7 @@ describe('a category reference', () => {
 		expect(labelY(crossed.container)).not.toBe(at)
 	})
 
-	it('takes no pointer and no legend chip, while a value rule keeps both', () => {
+	it('takes the pointer through the hit area, and no legend chip, while a value rule keeps both', () => {
 		const { container } = bar({
 			legend: true,
 			reference: [RELEASE, { value: 60, label: 'Goal' }],
@@ -232,7 +232,7 @@ describe('a category reference', () => {
 
 		const [category, value] = allBySlot(container, 'chart-reference-line')
 
-		// No rule takes the pointer of its own. The hit area resolves the value rule.
+		// No rule takes the pointer of its own. The hit area resolves both rules.
 		expect(category?.getAttribute('pointer-events')).toBe('none')
 
 		expect(value?.getAttribute('pointer-events')).toBe('none')
@@ -252,17 +252,21 @@ describe('a category reference', () => {
 			})
 		}
 
-		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
+		const receded = (element: Element | null | undefined) =>
+			(element?.getAttribute('class') ?? '').includes('opacity-25')
 
-		// On the category rule, near the top of the plot and far from the value rule.
+		// On the category rule, near the top of the plot and far from the value rule:
+		// the marks and the value rule recede, and the category rule stays lit.
 		point(category, 'x1')
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(receded(getSlot(container, 'chart-marks'))).toBe(true)
 
-		// On the value rule.
+		expect([receded(category), receded(value)]).toEqual([false, true])
+
+		// On the value rule, at the left edge of the plot, far from the category rule.
 		point(value, 'y1')
 
-		expect(marks()).toContain('opacity-25')
+		expect([receded(category), receded(value)]).toEqual([true, false])
 
 		expect(allBySlot(container, 'chart-legend-reference').map((chip) => chip.textContent)).toEqual([
 			'Goal60',

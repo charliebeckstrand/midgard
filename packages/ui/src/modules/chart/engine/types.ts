@@ -540,6 +540,8 @@ type ChartReadoutRow = {
 export type ChartReadoutNote = {
 	/** The key of the rule ({@link ruleKeys}), unique in the chart. */
 	key: string
+	/** The index of the rule in the `reference` prop, which its emphasis keys on. */
+	index: number
 	/** The label of the rule, or its description where it has no label. */
 	text: string
 	/** The description of the rule, after its label. */

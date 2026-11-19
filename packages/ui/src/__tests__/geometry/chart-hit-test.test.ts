@@ -5,6 +5,7 @@ import { TRACE_STEP, traceRun } from '../../modules/chart/engine/chart-geometry/
 import {
 	barMarkAt,
 	nearestSeriesArea,
+	type RuleStop,
 	type ThinMark,
 	thinMarksAt,
 } from '../../modules/chart/engine/chart-hit-test'
@@ -88,6 +89,9 @@ const segment = (x0: number, y0: number, x1: number, y1: number) => [
 const flat = (y: number) => [segment(0, y, 100, y)]
 
 describe('thinMarksAt', () => {
+	/** A value rule at `value`. */
+	const at = (value: number): RuleStop => ({ at: value, band: false })
+
 	it('reaches a line within 16 px in a straight line, and no farther', () => {
 		expect(thinMarksAt([flat(100)], [], 50, 116)).toEqual([{ line: 0 }])
 
@@ -103,14 +107,17 @@ describe('thinMarksAt', () => {
 
 	it('returns every mark in reach, the lines first, then the rules', () => {
 		// Lines at y 100 and 120, a rule at 112.
-		expect(thinMarksAt([flat(100), flat(120)], [112], 50, 108)).toEqual([
+		expect(thinMarksAt([flat(100), flat(120)], [at(112)], 50, 108)).toEqual([
 			{ line: 0 },
 			{ line: 1 },
 			{ rule: 0 },
 		])
 
 		// 18 px from line 1: line 0 and the rule alone.
-		expect(thinMarksAt([flat(100), flat(120)], [112], 50, 102)).toEqual([{ line: 0 }, { rule: 0 }])
+		expect(thinMarksAt([flat(100), flat(120)], [at(112)], 50, 102)).toEqual([
+			{ line: 0 },
+			{ rule: 0 },
+		])
 	})
 
 	it('never bridges the gap between runs, but reaches a lone point', () => {
@@ -122,11 +129,26 @@ describe('thinMarksAt', () => {
 	})
 
 	it('reaches a rule within 16 px along the value axis, and never a rule that takes no pointer', () => {
-		expect(thinMarksAt([], [100], 50, 116)).toEqual([{ rule: 0 }])
+		expect(thinMarksAt([], [at(100)], 50, 116)).toEqual([{ rule: 0 }])
 
-		expect(thinMarksAt([], [100], 50, 117)).toEqual([])
+		expect(thinMarksAt([], [at(100)], 50, 117)).toEqual([])
 
-		expect(thinMarksAt([], [null, 100], 50, 101)).toEqual([{ rule: 1 }])
+		expect(thinMarksAt([], [null, at(100)], 50, 101)).toEqual([{ rule: 1 }])
+	})
+
+	it('reaches a category rule within 16 px across the band axis', () => {
+		const across: RuleStop = { at: 50, band: true }
+
+		expect(thinMarksAt([], [across], 66, 300)).toEqual([{ rule: 0 }])
+
+		expect(thinMarksAt([], [across], 67, 300)).toEqual([])
+
+		// With a line and a value rule that cross it, all three are in reach.
+		expect(thinMarksAt([flat(100)], [at(104), across], 52, 102)).toEqual([
+			{ line: 0 },
+			{ rule: 0 },
+			{ rule: 1 },
+		])
 	})
 
 	it('keeps a held mark in reach 2 px farther out', () => {
@@ -136,9 +158,9 @@ describe('thinMarksAt', () => {
 
 		expect(thinMarksAt([flat(100)], [], 50, 118.5, [{ line: 0 }])).toEqual([])
 
-		expect(thinMarksAt([], [100], 50, 82.5, [{ rule: 0 }])).toEqual([{ rule: 0 }])
+		expect(thinMarksAt([], [at(100)], 50, 82.5, [{ rule: 0 }])).toEqual([{ rule: 0 }])
 
-		expect(thinMarksAt([], [100], 50, 81.5, [{ rule: 0 }])).toEqual([])
+		expect(thinMarksAt([], [at(100)], 50, 81.5, [{ rule: 0 }])).toEqual([])
 
 		// Each held mark holds, and a mark that is not held does not.
 		expect(thinMarksAt([flat(100), flat(135)], [], 50, 117.5, [{ line: 0 }, { line: 1 }])).toEqual([

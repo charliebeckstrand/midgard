@@ -168,45 +168,128 @@ describe('reference lines', () => {
 		expect(marks()).not.toContain('opacity-25')
 	})
 
-	it('isolates neither a line and a rule in reach together, and reads the data', () => {
-		const flat = (value: number) =>
-			renderUI(
-				<LineChart
-					aria-label="Revenue by month"
-					data={[
-						{ month: 'Jan', revenue: 50 },
-						{ month: 'Feb', revenue: 50 },
-						{ month: 'Mar', revenue: 50 },
-					]}
-					series={[...SERIES]}
-					width={400}
-					reference={[{ value }]}
-				/>,
-			).container
+	it('lights each line and rule in reach together, and recedes the rest', async () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Revenue and costs by month"
+				data={[
+					{ month: 'Jan', revenue: 50, costs: 20 },
+					{ month: 'Feb', revenue: 50, costs: 20 },
+					{ month: 'Mar', revenue: 50, costs: 20 },
+				]}
+				series={[
+					{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+					{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+				]}
+				width={400}
+				axes={{ y: { min: 0, max: 100 } }}
+				reference={[
+					{ value: 50, label: 'Target' },
+					{ value: 80, label: 'Cap' },
+					{ category: 'Feb', label: 'Release' },
+				]}
+			/>,
+		)
 
-		const marks = (container: HTMLElement) =>
-			getSlot(container, 'chart-marks').getAttribute('class') ?? ''
+		const receded = (element: Element | undefined) =>
+			(element?.getAttribute('class') ?? '').includes('opacity-25')
 
-		// On the line and the rule together: the marks do not recede to the rule, and
-		// the readout of the category shows with its row lit.
-		const on = flat(50)
+		const series = () => allBySlot(container, 'chart-line-series').map(receded)
 
-		pointRule(on, 0)
+		const rules = () => allBySlot(container, 'chart-reference-line').map(receded)
 
-		expect(marks(on)).not.toContain('opacity-25')
+		// On the revenue line and the target together, in the Feb column, 30 px
+		// from the release: out of its reach.
+		const [x, y] = ruleMiddle(container, 0)
 
-		const rows = allBySlot(on, 'chart-tooltip-row')
+		pointAt(container, x - 30, y)
 
-		expect(rows).toHaveLength(1)
+		// The marks do not recede as a whole: the revenue line is lit, and costs recedes.
+		expect(receded(getSlot(container, 'chart-marks'))).toBe(false)
 
-		expect(rows[0]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(series()).toEqual([false, true])
 
-		// Far from the line, the rule alone takes it.
-		const off = flat(20)
+		// The target is lit; the cap and the release, outside the reach, recede.
+		expect(rules()).toEqual([false, true, true])
 
-		pointRule(off, 0)
+		// The readout of Feb mirrors the plot: the revenue row and the row of the
+		// target are lit, and the costs row and the note of the release recede.
+		expect(allBySlot(container, 'chart-tooltip-row').map(receded)).toEqual([false, true])
 
-		expect(marks(off)).toContain('opacity-25')
+		const [target] = allBySlot(container, 'chart-tooltip-rule')
+
+		expect(target?.textContent).toBe('50Target')
+
+		expect(receded(target)).toBe(false)
+
+		expect(allBySlot(container, 'chart-tooltip-note').map(receded)).toEqual([true])
+
+		// The readout reads the target, so the tooltip of the rule stays shut.
+		expect(document.querySelector('[data-slot="chart-reference-swatch"]')).toBeNull()
+
+		// Where the revenue line, the target, and the release cross, all three are lit.
+		pointAt(container, x, y)
+
+		expect(series()).toEqual([false, true])
+
+		expect(rules()).toEqual([false, true, false])
+
+		expect(allBySlot(container, 'chart-tooltip-note').map(receded)).toEqual([false])
+
+		// On the release alone, between the target and the cap and out of their
+		// reach, the readout of Feb shows: the release is lit, and the marks recede
+		// as a whole.
+		const [, capY] = ruleMiddle(container, 1)
+
+		expect(y - capY).toBeGreaterThan(40)
+
+		pointAt(container, x, (y + capY) / 2)
+
+		expect(rules()).toEqual([true, true, false])
+
+		expect(receded(getSlot(container, 'chart-marks'))).toBe(true)
+
+		expect(allBySlot(container, 'chart-tooltip-note').map(receded)).toEqual([false])
+
+		// On the cap alone, out of the reach of the release: the marks recede as a
+		// whole, the other rules recede, and the tooltip of the cap opens.
+		pointAt(container, x - 30, capY)
+
+		expect(receded(getSlot(container, 'chart-marks'))).toBe(true)
+
+		expect(rules()).toEqual([true, false, true])
+
+		await waitFor(() =>
+			expect(document.querySelector('[data-slot="chart-reference-swatch"]')).not.toBeNull(),
+		)
+	})
+
+	it('reads each of two rules in reach together in one tooltip', async () => {
+		const { container } = bar({
+			reference: [
+				{ value: 60, label: 'Goal' },
+				{ value: 62, label: 'Stretch' },
+			],
+			axes: { y: { min: 0, max: 100 } },
+		})
+
+		const [x, y] = ruleMiddle(container, 0)
+
+		const [, stretchY] = ruleMiddle(container, 1)
+
+		pointAt(container, x, (y + stretchY) / 2)
+
+		await waitFor(() =>
+			expect(document.querySelectorAll('[data-slot="chart-reference-swatch"]')).toHaveLength(2),
+		)
+
+		const tooltips = document.querySelectorAll('[data-slot="tooltip-content"]')
+
+		expect(tooltips).toHaveLength(1)
+
+		expect(tooltips[0]?.textContent).toContain('Goal')
+
+		expect(tooltips[0]?.textContent).toContain('Stretch')
 	})
 
 	it('dashes the rule by default and draws it solid when dashed is false', () => {
@@ -594,18 +677,19 @@ describe('reference line pointer', () => {
 		expect(onCategoryClick).toHaveBeenCalledTimes(1)
 	})
 
-	it('isolates each of two close lines alone in reach, and neither where both are', () => {
+	it('lights each of two close lines alone in reach, and both where both are', () => {
 		const { container } = renderUI(
 			<LineChart
 				aria-label="Revenue and costs by month"
 				data={[
-					{ month: 'Jan', revenue: 55, costs: 45 },
-					{ month: 'Feb', revenue: 55, costs: 45 },
-					{ month: 'Mar', revenue: 55, costs: 45 },
+					{ month: 'Jan', revenue: 55, costs: 45, profit: 90 },
+					{ month: 'Feb', revenue: 55, costs: 45, profit: 90 },
+					{ month: 'Mar', revenue: 55, costs: 45, profit: 90 },
 				]}
 				series={[
 					{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
 					{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+					{ xKey: 'month', yKey: 'profit', yName: 'Profit' },
 				]}
 				width={400}
 				axes={{ y: { min: 0, max: 100 } }}
@@ -628,17 +712,20 @@ describe('reference line pointer', () => {
 
 		const x = Number(hit.getAttribute('x')) + Number(hit.getAttribute('width')) / 2
 
-		// What the pointer reads: off the lines, one line alone, or both together.
+		// What the pointer lights: no line, one line alone, or both together. The
+		// profit line, far off, recedes whenever a line is lit.
 		const state = () => {
-			const groups = allBySlot(container, 'chart-line-series').map((group) =>
-				(group.getAttribute('class') ?? '').includes('opacity-25'),
+			const lit = allBySlot(container, 'chart-line-series').map(
+				(group) => !(group.getAttribute('class') ?? '').includes('opacity-25'),
 			)
 
-			if (groups[1] && !groups[0]) return 'revenue'
+			if (lit.every(Boolean)) return 'off'
 
-			if (groups[0] && !groups[1]) return 'costs'
-
-			return allBySlot(container, 'chart-tooltip-row').length > 0 ? 'both' : 'off'
+			return (
+				{ 'true,false,false': 'revenue', 'false,true,false': 'costs', 'true,true,false': 'both' }[
+					lit.join(',')
+				] ?? lit.join(',')
+			)
 		}
 
 		const sweep = (from: number, to: number) => {
@@ -670,14 +757,21 @@ describe('reference line pointer', () => {
 
 		expect(sweep(costsY + 30, revenueY - 30)).toEqual([...down].reverse())
 
-		// Where both are in reach, both rows of the readout are lit.
+		// Where both are in reach, both rows of the readout are lit, and the row of
+		// the profit line recedes.
 		pointAt(container, x, (revenueY + costsY) / 2)
 
-		const rows = allBySlot(container, 'chart-tooltip-row')
-
-		expect(rows).toHaveLength(2)
-
-		for (const row of rows) expect(row.getAttribute('class')).not.toContain('opacity-25')
+		// The rows read top-down by value: profit, revenue, costs.
+		expect(
+			allBySlot(container, 'chart-tooltip-row').map((row) => [
+				row.textContent?.replace(/[\d.]+/g, ''),
+				(row.getAttribute('class') ?? '').includes('opacity-25'),
+			]),
+		).toEqual([
+			['Profit', true],
+			['Revenue', false],
+			['Costs', false],
+		])
 	})
 })
 

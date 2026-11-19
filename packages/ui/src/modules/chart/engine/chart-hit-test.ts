@@ -155,6 +155,16 @@ function runDistanceSquared(run: LinePoint[], x: number, y: number): number {
  */
 export type ThinMark = { line: number; rule?: never } | { rule: number; line?: never }
 
+/**
+ * Where a reference rule stands on the plot, for the hit test: its position
+ * along one axis, across the whole plot. A value rule stands at a value
+ * position (`band: false`), and a category rule at a band position
+ * (`band: true`).
+ *
+ * @internal
+ */
+export type RuleStop = { at: number; band: boolean }
+
 /** Whether two thin marks are the same mark. @internal */
 function sameThinMark(a: ThinMark, b: ThinMark): boolean {
 	return a.line === b.line && a.rule === b.rule
@@ -171,9 +181,9 @@ function sameThinMark(a: ThinMark, b: ThinMark): boolean {
  * The distance is the straight distance, so a steep line reaches as wide as a
  * flat one. Each line is its drawn shape: its trace, a polyline for each run
  * ({@link traceRun}), in band and value coordinates, so a gap between two runs
- * reaches nothing. A rule is a value position across the whole plot, or `null`
- * for a rule that takes no pointer, so its distance is the distance along the
- * value axis.
+ * reaches nothing. A rule stands across the whole plot ({@link RuleStop}), so
+ * its distance is the distance along its own axis. A rule that takes no pointer
+ * is `null`.
  *
  * The caller decides what the marks in reach mean: none, one, or more.
  *
@@ -181,7 +191,7 @@ function sameThinMark(a: ThinMark, b: ThinMark): boolean {
  */
 export function thinMarksAt(
 	lines: readonly LinePoint[][][],
-	rules: readonly (number | null)[],
+	rules: readonly (RuleStop | null)[],
 	band: number,
 	value: number,
 	held: readonly ThinMark[] = [],
@@ -201,8 +211,10 @@ export function thinMarksAt(
 		}
 	})
 
-	rules.forEach((at, rule) => {
-		if (at !== null && Math.abs(value - at) <= reach({ rule })) marks.push({ rule })
+	rules.forEach((stop, rule) => {
+		if (stop === null) return
+
+		if (Math.abs((stop.band ? band : value) - stop.at) <= reach({ rule })) marks.push({ rule })
 	})
 
 	return marks

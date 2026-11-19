@@ -31,6 +31,7 @@ import { resolveTooltip } from '../engine/chart-tooltip'
 import { type ChartMarkRef, useChartFullscreen } from '../engine/context'
 import type { ChartBaseProps, ChartReadout } from '../engine/types'
 import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
+import { markTargetAt } from '../engine/use-chart-pointer'
 import { sectorFrame, sectorLegendItems } from '../sector-chart/sector-chart-frame'
 import { SeatChartHole } from './seat-chart-hole'
 import { SeatChartMajority } from './seat-chart-majority'
@@ -405,7 +406,7 @@ export function SeatChart(props: SeatChartProps) {
 				<ChartHitArea
 					plot={{ x: 0, y: 0, width: frameWidth, height: frameHeight }}
 					resolve={groupAt}
-					markAt={markAt}
+					markAt={markTargetAt(markAt)}
 					trigger={trigger}
 				/>
 			)}
