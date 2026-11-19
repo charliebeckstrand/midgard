@@ -2,7 +2,8 @@
  * Command-palette kata: the unit of the grouped result listbox of
  * `<CommandPalette>`, with no axes. The root slot `base` is the scroll body
  * that holds the listbox, which hides while the listbox holds no result.
- * `group` holds the rows of a group, `title` is the
+ * `search` is the row of the search field and the X close, and `field` is the
+ * cell of the search field in that row. `group` holds the rows of a group, `title` is the
  * heading of a group, and `empty` is the no-results status. `item` is the unit
  * of a result row, which extends the item group.
  */
@@ -50,6 +51,9 @@ export const k = defineKata(
 		// so the body stayed hidden after the first rows came.
 		base: 'not-has-[[role=option],[data-slot=virtual-options]:not([data-empty])]:hidden',
 		slots: {
+			// The search field takes the free width, and the X close stays at the end.
+			search: [flex.row, 'items-center', dan.gap.scale.sm],
+			field: ['min-w-0', 'flex-1'],
 			// A group after any sibling takes the slot gap of the panel, which is the
 			// space between the search input and the first group. Each heading
 			// therefore has the same space above it.

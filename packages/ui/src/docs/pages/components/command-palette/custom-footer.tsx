@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	CommandPalette,
-	CommandPaletteClose,
 	CommandPaletteItem,
 	CommandPaletteLabel,
 	useCommandPaletteDeferredQuery,
@@ -35,12 +34,9 @@ export default function CustomFooter() {
 				onOpenChange={setOpen}
 				triggerShortcut={false}
 				footer={
-					<>
-						<Button variant="outline" prefix={<Icon icon={<Settings />} />}>
-							Preferences
-						</Button>
-						<CommandPaletteClose />
-					</>
+					<Button variant="outline" prefix={<Icon icon={<Settings />} />}>
+						Preferences
+					</Button>
 				}
 			>
 				<MatchingCommands />

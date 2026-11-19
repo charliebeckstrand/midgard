@@ -20,16 +20,14 @@ function MatchingCommands() {
 	const matches = commands.filter((command) => command.label.toLowerCase().includes(query))
 
 	return (
-		// The dialog body grows with its content. Give the list a fixed height, so that it scrolls.
-		<div className="h-80 overflow-y-auto">
-			<VirtualOptions items={matches} getOptionId={(command) => `command-${command.id}`}>
-				{(command, _index, meta) => (
-					<CommandPaletteItem key={command.id} id={`command-${command.id}`} {...meta}>
-						<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
-					</CommandPaletteItem>
-				)}
-			</VirtualOptions>
-		</div>
+		// The dialog body is the scroller. It grows with the rows up to the cap of the panel.
+		<VirtualOptions items={matches} getOptionId={(command) => `command-${command.id}`}>
+			{(command, _index, meta) => (
+				<CommandPaletteItem key={command.id} id={`command-${command.id}`} {...meta}>
+					<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
+				</CommandPaletteItem>
+			)}
+		</VirtualOptions>
 	)
 }
 

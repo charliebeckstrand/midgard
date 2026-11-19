@@ -74,9 +74,8 @@ const OVERSCAN = 10
  * Finds its scroll container by walking up to the nearest ancestor with a
  * scrollable `overflow-y`. In a select-like panel, that is `PopoverPanel`'s own
  * `overflow-y-auto` + `max-h-*` styling, not the plain `role="listbox"` element
- * `PopoverPanel` wraps. A `CommandPalette` has no such panel. Its caller gives
- * `VirtualOptions` a wrapper with a definite height and `overflow-y: auto`, as
- * the `children` TSDoc of the palette tells. Renders only rows in the
+ * `PopoverPanel` wraps. In a `CommandPalette`, it is the `DialogBody`, which
+ * the cap of the panel bounds. Renders only rows in the
  * viewport plus overscan; the rest are represented by top/bottom spacer divs.
  * Each rendered row sits in a presentational wrapper that measures its real
  * height. A row height changes with the density and with a description line,
@@ -124,14 +123,10 @@ export function VirtualOptions<T>({
 	// `overflow-y-auto` + `max-h-*` styling on the floating panel that *wraps*
 	// the `role="listbox"` element, not on that element itself.
 	//
-	// A *definite* height on this ancestor matters when nothing else gives it a
-	// floor. A `max-height` cap alone is not enough, and
-	// `ComboboxPanel`/`ListboxPanel` already carry a definite height. The cap bounds
-	// the *upper* end only. An ancestor that otherwise sizes to its content
-	// therefore collapses to 0 with nothing rendered yet. That is 0 content height,
-	// 0 rendered rows, 0 content height, forever. `CommandPalette`'s `DialogBody` is
-	// such an ancestor, at `min-h-0 overflow-y-auto` with no `flex-grow`. Wrap
-	// `VirtualOptions` in an explicit-height `overflow-y-auto` div there.
+	// While the window is empty, the bottom spacer holds the height of every
+	// row, so an ancestor that only a `max-height` bounds grows to its cap and
+	// the first window resolves. `CommandPalette`'s `DialogBody` is such an
+	// ancestor: the cap of the panel bounds it.
 	const getScrollElement = useCallback(() => {
 		const cached = scrollElementRef.current
 

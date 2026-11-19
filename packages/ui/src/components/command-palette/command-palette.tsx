@@ -1,6 +1,6 @@
 'use client'
 
-import { Search } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { type ComponentProps, type ReactNode, useMemo } from 'react'
 import {
 	defaultKeybindingsHandlerIgnore,
@@ -85,8 +85,8 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 		/**
 		 * Fires when the palette asks for a new open state, with that state. It asks
 		 * for `true` from `triggerShortcut` while closed. It asks for `false` from
-		 * `triggerShortcut`, Escape, a backdrop click, the Close button, or a
-		 * selected item while open.
+		 * `triggerShortcut`, Escape, a backdrop click, the X close, or a selected
+		 * item while open.
 		 */
 		onOpenChange?: (open: boolean) => void
 		/**
@@ -122,12 +122,11 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 		/** Closes the palette on a click of the backdrop. @defaultValue true */
 		dismissOnBackdrop?: boolean
 		/**
-		 * Content of the footer row under the results. Set it to replace the
-		 * default Close button with your own actions. Put a
-		 * {@link CommandPaletteClose} in it to keep the close action. Set `null` to
-		 * remove the footer row.
+		 * Content of a footer row under the results, such as your own actions. The
+		 * X close beside the search field closes the palette, so a footer needs no
+		 * close action. A {@link CommandPaletteClose} in it adds a labeled one.
 		 *
-		 * @defaultValue `<CommandPaletteClose />`
+		 * @defaultValue No footer row.
 		 */
 		footer?: ReactNode
 		/**
@@ -151,11 +150,9 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 		 * typing responsive. {@link useCommandPaletteQuery} also gives the live
 		 * query, but its consumer renders again for each keystroke. Wrap the filtered items in `VirtualOptions` with
 		 * `getOptionId` for large lists: arrow then navigates the full set by
-		 * index, reaching items outside the rendered window. Unlike
-		 * `Combobox`/`Listbox`, whose panel already carries a fixed max-height,
-		 * `DialogBody` sizes to its content. Give `VirtualOptions` a wrapper with
-		 * an explicit, definite height (not just `max-height`) and `overflow-y:
-		 * auto`, e.g. `<div style={{ height: 320, overflow: 'auto' }}>`.
+		 * index, reaching items outside the rendered window. The `DialogBody` of
+		 * the palette is the scroller of `VirtualOptions`: it grows with the rows
+		 * up to the cap of the panel in the viewport, and then scrolls.
 		 */
 		children: ReactNode
 	}
@@ -185,7 +182,10 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * `VirtualOptions` inside `children` registers its windowed item source
  * automatically, so the highlight reaches items outside the rendered window.
  * Roving type-ahead stays off: the search input owns every printable key.
- * The dialog panel of the palette stamps `data-open` while it is open.
+ * An X close at the end of the line of the search field closes the palette.
+ * The panel grows with the results up to its cap in the viewport, and the
+ * results then scroll. The dialog panel of the palette stamps `data-open`
+ * while it is open.
  */
 export function CommandPalette({
 	open: openProp,
@@ -255,9 +255,6 @@ export function CommandPalette({
 	// palette writes no "No results".
 	const searched = deferredQuery.trim() !== ''
 
-	// `undefined` takes the default Close button; `null` or `false` removes the row.
-	const footerContent = footer === undefined ? <CommandPaletteClose /> : footer
-
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogPanel
@@ -277,23 +274,33 @@ export function CommandPalette({
 					{/* A filtering consumer reads the deferred query alone, so a keystroke
 					    renders it one time and not also on the pass of the live query. */}
 					<DeferredQueryContext value={deferredQuery}>
-						<Input
-							ref={inputRef}
-							prefix={<Icon icon={<Search />} />}
-							role="combobox"
-							aria-label={placeholder}
-							// The listbox collapses on zero results, so the combobox reports it
-							// collapsed then (APG).
-							aria-expanded={open && !empty}
-							aria-haspopup="listbox"
-							aria-controls={listboxId}
-							aria-autocomplete="list"
-							data-slot="command-palette-input"
-							placeholder={placeholder}
-							value={query}
-							onChange={(event) => setQuery(event.target.value)}
-							onKeyDown={onKeyDown}
-						/>
+						<div data-slot="command-palette-search" className={results.search}>
+							<div className={results.field}>
+								<Input
+									ref={inputRef}
+									prefix={<Icon icon={<Search />} />}
+									role="combobox"
+									aria-label={placeholder}
+									// The listbox collapses on zero results, so the combobox reports it
+									// collapsed then (APG).
+									aria-expanded={open && !empty}
+									aria-haspopup="listbox"
+									aria-controls={listboxId}
+									aria-autocomplete="list"
+									data-slot="command-palette-input"
+									placeholder={placeholder}
+									value={query}
+									onChange={(event) => setQuery(event.target.value)}
+									onKeyDown={onKeyDown}
+								/>
+							</div>
+							<CommandPaletteClose
+								variant="bare"
+								aria-label={intl.formatMessage(intlMessages.close)}
+							>
+								<Icon icon={<X />} />
+							</CommandPaletteClose>
+						</div>
 						{/* A press on the chrome of the list, such as a heading or the gap
 						    between the rows, keeps the focus on the input, as a row does. */}
 						<DialogBody onMouseDown={keepInputFocus} className={results.base}>
@@ -321,8 +328,8 @@ export function CommandPalette({
 						>
 							{empty && searched ? intl.formatMessage(intlMessages.noResults) : null}
 						</output>
-						{footerContent === null || footerContent === false ? null : (
-							<DialogFooter data-slot="command-palette-footer">{footerContent}</DialogFooter>
+						{footer === undefined || footer === null || footer === false ? null : (
+							<DialogFooter data-slot="command-palette-footer">{footer}</DialogFooter>
 						)}
 					</DeferredQueryContext>
 				</QueryContext>
