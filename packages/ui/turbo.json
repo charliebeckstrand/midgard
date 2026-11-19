@@ -7,7 +7,7 @@
 				"src/**",
 				"styles/tailwind.css",
 				"fonts/**",
-				"scripts/fonts/build.ts",
+				"scripts/**",
 				"docs/*.md",
 				"REFERENCE.md",
 				"vitest.config.ts",
@@ -24,15 +24,8 @@
 		"test:workspace": {
 			"dependsOn": ["^build"],
 			"inputs": [
-				"src/**",
-				"docs/*.md",
-				"REFERENCE.md",
-				"vitest.config.ts",
-				"vitest.base.ts",
-				"vitest.compiler.config.ts",
-				"vitest.compiler.preset.ts",
+				"$TURBO_DEFAULT$",
 				"$TURBO_ROOT$/vitest.shared.mts",
-				"package.json",
 				"$TURBO_ROOT$/{CLAUDE,CONVENTIONS,STE}.md",
 				"$TURBO_ROOT$/.github/workflows/ci.yml",
 				"$TURBO_ROOT$/.claude/agents/*.md",
@@ -67,6 +60,8 @@
 			"inputs": [
 				"src/**",
 				"styles/tailwind.css",
+				"scripts/**",
+				"docs/*.md",
 				"vitest.config.ts",
 				"vitest.compiler.config.ts",
 				"vitest.compiler.preset.ts",
@@ -111,6 +106,7 @@
 				"src/**",
 				"!src/**/__tests__/**",
 				"!src/__benchmarks__/**",
+				"scripts/intl/**",
 				"styles/tailwind.css",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
@@ -122,6 +118,7 @@
 			"inputs": [
 				"src/docs/dist/**",
 				"src/__tests__/docs-build/**",
+				"src/__tests__/setup/split-sequencer.ts",
 				"scripts/docs/server.ts",
 				"vitest.docs-build.config.ts",
 				"vitest.base.ts",
