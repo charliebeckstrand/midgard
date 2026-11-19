@@ -34,7 +34,7 @@ describe('a failed load of the docs search', () => {
 		)
 
 		await act(async () => {
-			fireEvent.click(screen.getByRole('button', { name: /Search docs/ }))
+			fireEvent.click(screen.getByRole('button', { name: /^Search/ }))
 		})
 
 		expect(await screen.findByText('Failed')).toBeTruthy()

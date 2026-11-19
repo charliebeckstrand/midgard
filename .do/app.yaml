@@ -26,7 +26,7 @@ domains:
   - domain: places.ivoryimage.dev
     type: ALIAS
     zone: ivoryimage.dev
-  - domain: docs.ivoryimage.dev
+  - domain: ui.ivoryimage.dev
     type: ALIAS
     zone: ivoryimage.dev
   - domain: elections.ivoryimage.dev
@@ -55,10 +55,10 @@ ingress:
         path:
           prefix: /
     - component:
-        name: docs-server
+        name: ui
       match:
         authority:
-          exact: docs.ivoryimage.dev
+          exact: ui.ivoryimage.dev
         path:
           prefix: /
     - component:
@@ -242,7 +242,7 @@ services:
   # the same path, so the first paint is in the language of the reader. A path
   # with no page gets the fallback document, and the app shows its own page for
   # it (`packages/ui/scripts/docs/server.ts`).
-  - name: docs-server
+  - name: ui
     github:
       repo: charliebeckstrand/midgard
       branch: main
