@@ -76,9 +76,13 @@ export type OverlayProps = {
 	 */
 	container?: HTMLElement | null
 	/**
-	 * Element to receive initial focus when the overlay opens.
+	 * Element to receive initial focus when the overlay opens. It also takes
+	 * the focus when a touch opens the overlay, so give it only for an element
+	 * that must have the focus on each device.
 	 *
-	 * @defaultValue the first tabbable child.
+	 * @defaultValue the first tabbable child. After a touch, the first child
+	 * with the role `dialog` or `alertdialog`, so the focus opens no on-screen
+	 * keyboard. Give that child `tabindex="-1"`.
 	 */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**

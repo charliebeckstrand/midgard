@@ -1127,6 +1127,9 @@ describe('CommandPaletteItem', () => {
 
 		const item = screen.getByRole('option')
 
+		// A press sends its `pointerdown` before its `mousedown`.
+		fireEvent.pointerDown(item)
+
 		expect(fireEvent.mouseDown(item)).toBe(false)
 
 		expect(onMouseDown).toHaveBeenCalledTimes(1)
