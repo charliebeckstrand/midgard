@@ -88,19 +88,40 @@ function riseWrapper(container: HTMLElement): SVGGElement | null {
 	return bySlot(container, 'chart-reference-line')?.querySelector('g') ?? null
 }
 
-/** The transparent hover target of the first rule. */
-function hitTarget(container: HTMLElement): SVGPathElement | null {
-	return (
-		bySlot(container, 'chart-reference-line')?.querySelector('[data-slot="chart-reference-hit"]') ??
-		null
-	)
+/**
+ * Moves the pointer over the hit area of the chart to a point of the plot. The
+ * hit area of jsdom has no size, so the client point is the offset from the
+ * corner of the plot.
+ */
+function pointAt(container: HTMLElement, x: number, y: number, init: PointerEventInit = {}) {
+	const hit = getSlot(container, 'chart-hit')
+
+	fireEvent.pointerMove(hit, {
+		clientX: x - Number(hit.getAttribute('x')),
+		clientY: y - Number(hit.getAttribute('y')),
+		...init,
+	})
 }
 
-/** The across-axis span of a closed path of `M` and `L` commands: its lowest and highest y. */
-function ySpan(d: string | null | undefined): [number, number] {
-	const ys = [...(d ?? '').matchAll(/[ML]-?[\d.]+ (-?[\d.]+)/g)].map((match) => Number(match[1]))
+/** The middle of the drawn line of the rule at `index`, offset `dy` across it. */
+function ruleMiddle(container: HTMLElement, index: number, dy = 0): [number, number] {
+	const line = allBySlot(container, 'chart-reference-line')[index]?.querySelector('line')
 
-	return [Math.min(...ys), Math.max(...ys)]
+	const [x1, y1, x2] = ['x1', 'y1', 'x2'].map((name) => Number(line?.getAttribute(name)))
+
+	return [((x1 ?? 0) + (x2 ?? 0)) / 2, (y1 ?? 0) + dy]
+}
+
+/** Moves the pointer onto the middle of the rule at `index`. */
+function pointRule(container: HTMLElement, index: number, init: PointerEventInit = {}) {
+	const [x, y] = ruleMiddle(container, index)
+
+	pointAt(container, x, y, init)
+}
+
+/** Moves the pointer off the hit area of the chart. */
+function leavePlot(container: HTMLElement, init: PointerEventInit = {}) {
+	fireEvent.pointerLeave(getSlot(container, 'chart-hit'), init)
 }
 
 describe('reference lines', () => {
@@ -117,26 +138,37 @@ describe('reference lines', () => {
 		expect(allBySlot(none.container, 'chart-reference-line')).toHaveLength(0)
 	})
 
-	it('lays a wide transparent hover target over the rule', () => {
+	it('takes no pointer of its own: the hit area catches it within 16 px, and holds it 2 px farther', () => {
 		const { container } = bar({ reference: [{ value: 50 }] })
 
-		const ruleWidth = Number(rule(container)?.getAttribute('stroke-width'))
+		// The rule is pointer-inert, so no edge of its own takes the pointer.
+		expect(getSlot(container, 'chart-reference-line').getAttribute('pointer-events')).toBe('none')
 
-		const hit = hitTarget(container)
+		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
 
-		expect(hit?.getAttribute('fill')).toBe('transparent')
+		const [x, y] = ruleMiddle(container, 0)
 
-		expect(hit?.getAttribute('pointer-events')).toBe('fill')
+		pointAt(container, x, y - 17)
 
-		// The hover target is far wider than the drawn rule.
-		const [top, bottom] = ySpan(hit?.getAttribute('d'))
+		expect(marks()).not.toContain('opacity-25')
 
-		expect(bottom - top).toBeGreaterThan(ruleWidth * 2)
+		pointAt(container, x, y - 16)
+
+		expect(marks()).toContain('opacity-25')
+
+		// The held rule keeps the pointer 2 px past the edge of the catch.
+		pointAt(container, x, y - 17.5)
+
+		expect(marks()).toContain('opacity-25')
+
+		pointAt(container, x, y - 18.5)
+
+		expect(marks()).not.toContain('opacity-25')
 	})
 
-	it('narrows the hover target where a line of the chart runs near the rule', () => {
-		const target = (value: number) => {
-			const { container } = renderUI(
+	it('gives the pointer to a line that lies on the rule', () => {
+		const flat = (value: number) =>
+			renderUI(
 				<LineChart
 					aria-label="Revenue by month"
 					data={[
@@ -148,16 +180,24 @@ describe('reference lines', () => {
 					width={400}
 					reference={[{ value }]}
 				/>,
-			)
+			).container
 
-			return hitTarget(container)?.getAttribute('d')?.match(/[ML]/g)?.length ?? 0
-		}
+		const marks = (container: HTMLElement) =>
+			getSlot(container, 'chart-marks').getAttribute('class') ?? ''
 
-		// Far from the line, the target is a band of four corners.
-		expect(target(0)).toBe(4)
+		// On the line, the line takes the pointer, so the marks do not recede to the rule.
+		const on = flat(50)
 
-		// On the line, the rule gives up the points of the line, so the band pinches.
-		expect(target(50)).toBeGreaterThan(4)
+		pointRule(on, 0)
+
+		expect(marks(on)).not.toContain('opacity-25')
+
+		// Far from the line, the rule takes it.
+		const off = flat(20)
+
+		pointRule(off, 0)
+
+		expect(marks(off)).toContain('opacity-25')
 	})
 
 	it('dashes the rule by default and draws it solid when dashed is false', () => {
@@ -338,14 +378,12 @@ describe('reference lines', () => {
 
 		expect(marks()).not.toContain('opacity-25')
 
-		const rule = bySlot(container, 'chart-reference-line') as Element
-
-		fireEvent.pointerEnter(rule)
+		pointRule(container, 0)
 
 		// The marks dim to the rule while it is pointed.
 		expect(marks()).toContain('opacity-25')
 
-		fireEvent.pointerLeave(rule)
+		leavePlot(container)
 
 		expect(marks()).not.toContain('opacity-25')
 	})
@@ -358,14 +396,12 @@ describe('reference lines', () => {
 			],
 		})
 
-		const [floor] = allBySlot(container, 'chart-reference-line')
-
-		// A tap or a hold: the touch `pointerenter` is not a point.
-		fireEvent.pointerEnter(floor as Element, { pointerType: 'touch' })
+		// A tap or a hold: the touch move is not a point.
+		pointRule(container, 0, { pointerType: 'touch' })
 
 		expect(container.querySelector('svg [class*="opacity-25"]')).toBeNull()
 
-		fireEvent.pointerLeave(floor as Element, { pointerType: 'touch' })
+		leavePlot(container, { pointerType: 'touch' })
 
 		expect(container.querySelector('svg [class*="opacity-25"]')).toBeNull()
 	})
@@ -388,14 +424,14 @@ describe('reference lines', () => {
 
 		expect(readClass(ceiling)).not.toContain('opacity-25')
 
-		fireEvent.pointerEnter(floor as Element)
+		pointRule(container, 0)
 
 		// The pointed rule stays lit; its sibling recedes to it.
 		expect(readClass(rules()[0])).not.toContain('opacity-25')
 
 		expect(readClass(rules()[1])).toContain('opacity-25')
 
-		fireEvent.pointerLeave(floor as Element)
+		leavePlot(container)
 
 		expect(readClass(rules()[1])).not.toContain('opacity-25')
 	})
@@ -470,6 +506,132 @@ describe('reference lines', () => {
 	})
 })
 
+describe('reference line pointer', () => {
+	// The rule's floating readout, found by its swatch: the swatch renders only
+	// inside the tooltip. Queried off the document since the surface portals out
+	// of the plot.
+	const referenceTooltip = () =>
+		document
+			.querySelector('[data-slot="chart-reference-swatch"]')
+			?.closest('[data-slot="tooltip-content"]') ?? null
+
+	it('opens the tooltip of the rule that the pointer rests on, and closes it off the rule', async () => {
+		const { container } = bar({ reference: [{ value: 60, label: 'Goal' }] })
+
+		pointRule(container, 0)
+
+		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
+
+		expect(referenceTooltip()?.textContent).toContain('Goal')
+
+		// Off the rule, the tooltip of the rule closes.
+		const [x, y] = ruleMiddle(container, 0, -40)
+
+		pointAt(container, x, y)
+
+		await waitFor(() => expect(referenceTooltip()).toBeNull())
+	})
+
+	it('reads the rule with the chart tooltip off', async () => {
+		const { container } = bar({ reference: [{ value: 60, label: 'Goal' }], tooltip: false })
+
+		pointRule(container, 0)
+
+		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
+	})
+
+	it('activates nothing on a click of the rule', () => {
+		const onCategoryClick = vi.fn()
+
+		const { container } = bar({ reference: [{ value: 60 }], onCategoryClick })
+
+		const [x, y] = ruleMiddle(container, 0)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		const at = {
+			clientX: x - Number(hit.getAttribute('x')),
+			clientY: y - Number(hit.getAttribute('y')),
+		}
+
+		fireEvent.click(hit, at)
+
+		expect(onCategoryClick).not.toHaveBeenCalled()
+
+		// Off the rule, the same click reports its category.
+		fireEvent.click(hit, { ...at, clientY: at.clientY - 40 })
+
+		expect(onCategoryClick).toHaveBeenCalledTimes(1)
+	})
+
+	it('flips once each way when a shaking pointer sweeps between a line and a rule', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={[
+					{ month: 'Jan', revenue: 50 },
+					{ month: 'Feb', revenue: 50 },
+					{ month: 'Mar', revenue: 50 },
+				]}
+				series={[...SERIES]}
+				width={400}
+				axes={{ y: { min: 0, max: 100 } }}
+				reference={[{ value: 45 }]}
+			/>,
+		)
+
+		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
+
+		// The y of the flat line, from its path, and the y of the rule.
+		const lineY = Number(
+			getSlot(container, 'chart-line')
+				.getAttribute('d')
+				?.match(/^M [\d.]+ ([\d.]+)/)?.[1],
+		)
+
+		const [x, ruleY] = ruleMiddle(container, 0)
+
+		// The two must sit within each other's catch for the sweep to cross a boundary.
+		expect(Math.abs(ruleY - lineY)).toBeGreaterThan(8)
+
+		expect(Math.abs(ruleY - lineY)).toBeLessThan(28)
+
+		const sweep = (from: number, to: number) => {
+			let flips = 0
+
+			let onRule = marks().includes('opacity-25')
+
+			const steps = 60
+
+			for (let i = 0; i <= steps; i++) {
+				const y = from + ((to - from) * i) / steps
+
+				// A shake of half a px at each step, as a hand makes.
+				for (const shake of [0, 0.5, -0.5, 0]) {
+					pointAt(container, x, y + shake)
+
+					const now = marks().includes('opacity-25')
+
+					if (now !== onRule) flips++
+
+					onRule = now
+				}
+			}
+
+			return { flips, onRule }
+		}
+
+		// From the line to the rule, and back.
+		const out = sweep(lineY, ruleY)
+
+		expect(out).toEqual({ flips: 1, onRule: true })
+
+		const back = sweep(ruleY, lineY)
+
+		expect(back).toEqual({ flips: 1, onRule: false })
+	})
+})
+
 describe('reference line keyboard navigation', () => {
 	const marksClass = (container: HTMLElement) =>
 		bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
@@ -528,10 +690,10 @@ describe('reference line keyboard navigation', () => {
 
 		expect(label?.textContent).toMatch(/…$/)
 
-		// The value rule keeps its wide hover target, which reads the whole label.
-		const [valueRule] = allBySlot(container, 'chart-reference-line')
+		// The value rule keeps its hover, which reads the whole label.
+		pointRule(container, 0)
 
-		expect(valueRule?.querySelector('[data-slot="chart-reference-hit"]')).not.toBeNull()
+		expect(marksClass(container)).toContain('opacity-25')
 	})
 
 	it('keeps the stop and the tooltip of a labeled rule whose value reads on hover', async () => {
@@ -547,8 +709,12 @@ describe('reference line keyboard navigation', () => {
 
 		expect(label?.querySelector('tspan')).toBeNull()
 
-		// The rule keeps its wide hover target.
-		expect(hitTarget(container)).not.toBeNull()
+		// The rule keeps its hover.
+		pointRule(container, 0)
+
+		expect(marksClass(container)).toContain('opacity-25')
+
+		leavePlot(container)
 
 		const plot = getSlot(container, 'chart-plot')
 
@@ -1519,7 +1685,7 @@ describe('reference lines that the legend names', () => {
 
 		// A rule pointed on the plot recedes the marks. Leaving an inert note keeps
 		// that emphasis, since the note takes no pointer.
-		fireEvent.pointerEnter(getSlot(container, 'chart-reference-line'))
+		pointRule(container, 0)
 
 		expect(marks()).toContain('opacity-25')
 

@@ -235,10 +235,17 @@ describe('Chart hover renders', () => {
 
 		resetRenders()
 
-		const rule = getSlot(container, 'chart-reference-line')
+		// The hit area resolves the rule. Its box has no size in jsdom, so the client
+		// point is the offset from the corner of the plot.
+		const hit = getSlot(container, 'chart-hit')
+
+		const line = getSlot(container, 'chart-reference-line').querySelector('line')
 
 		act(() => {
-			fireEvent.pointerEnter(rule)
+			fireEvent.pointerMove(hit, {
+				clientX: 10,
+				clientY: Number(line?.getAttribute('y1')) - Number(hit.getAttribute('y')),
+			})
 		})
 
 		// The marks recede to the rule, and the legend, which writes the same
@@ -246,7 +253,7 @@ describe('Chart hover renders', () => {
 		expect(getSlot(container, 'chart-marks').getAttribute('class')).toContain('opacity-25')
 
 		act(() => {
-			fireEvent.pointerLeave(rule)
+			fireEvent.pointerLeave(hit)
 		})
 
 		await act(async () => {})

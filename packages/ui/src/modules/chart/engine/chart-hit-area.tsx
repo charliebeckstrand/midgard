@@ -10,7 +10,7 @@ import { nearestStopIndex } from './chart-snap'
 import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartTier } from './context'
 import type { ChartPress } from './types'
-import { type ChartMarkAt, useChartPointer } from './use-chart-pointer'
+import { type ChartTargetAt, useChartPointer } from './use-chart-pointer'
 
 /**
  * How the hit layer resolves the hover index: the band under the pointer on a
@@ -56,15 +56,17 @@ type ChartHitIndex =
 export type ChartHitAreaProps = ChartHitIndex & {
 	plot: PlotRect
 	/**
-	 * The chart's mark hit test: the mark under the point, a bar, a line, or a
-	 * disc, that isolation lifts and every other mark recedes behind. It is `null`
-	 * off the marks, which is also where the tooltip stays shut. `held` carries
-	 * the mark currently emphasized, so a bounded catch can stay sticky across the
-	 * midline between two overlapping catches. The `index` carries the resolved
-	 * category, so a snapping chart can hand the emphasis to the stop the tooltip
-	 * anchors in that column.
+	 * The chart's hit test: the target under the point. A mark (a bar, a line, or
+	 * a disc) is what isolation lifts and every other mark recedes behind. A
+	 * reference rule opens its own tooltip. It is `null` off the marks and the
+	 * rules, which is also where the tooltip stays shut. `held` carries the target
+	 * currently emphasized, so a bounded catch can stay sticky across the boundary
+	 * between two overlapping catches. The `index` carries the resolved category,
+	 * so a snapping chart can hand the emphasis to the stop the tooltip anchors in
+	 * that column. A chart with no rule wraps its mark hit test in
+	 * {@link markTargetAt}.
 	 */
-	markAt: ChartMarkAt
+	markAt: ChartTargetAt
 	/**
 	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`,
 	 * which also points the cursor at the marks a click can read.

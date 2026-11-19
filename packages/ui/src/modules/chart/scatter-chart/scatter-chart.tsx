@@ -38,6 +38,7 @@ import type { ChartBaseProps, ChartPress, ScatterChartSeries } from '../engine/t
 import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 import { useLaidOutHidden } from '../engine/use-chart-laid-out-hidden'
+import { markTargetAt } from '../engine/use-chart-pointer'
 import { useChartSeriesToggle } from '../engine/use-chart-toggle'
 import { ScatterChartChrome } from './scatter-chart-chrome'
 import {
@@ -176,7 +177,7 @@ function ScatterHitLayer(props: {
 		<ChartHitArea
 			plot={plot}
 			centers={centers}
-			markAt={(x, y, held, index) => {
+			markAt={markTargetAt((x, y, held, index) => {
 				// The held disc's drawn position, keeping the resolution sticky across
 				// the midline between overlapping discs.
 				const sticky = heldDisc(held, indices)
@@ -189,7 +190,7 @@ function ScatterHitLayer(props: {
 					(snapping ? scatterSnappedStop(stops, index, y) : null)
 
 				return hit && { series: indices[hit.series] ?? hit.series, datum: hit.datum }
-			}}
+			})}
 			trigger={trigger}
 			snaps={snapping}
 			// The hit test above names a disc, so each mark that it reports has a datum.

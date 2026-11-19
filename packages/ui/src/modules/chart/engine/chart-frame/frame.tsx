@@ -527,7 +527,11 @@ export function ChartFrame({
 	// data table again.
 	const [seriesEmphasis, setSeriesFocus] = useSeriesEmphasis(hidden, seriesCount)
 
+	// The rule that a legend chip points at, and the rule that the pointer rests
+	// on in the plot. Only the plot pointer opens the tooltip of the rule.
 	const [pointerReference, setPointerReference] = useState<number | null>(null)
+
+	const [hoveredReference, setHoveredReference] = useState<number | null>(null)
 
 	// The mark the pointer sits on (a bar, a line, a disc), resolved by the hit
 	// layer. It recedes every other mark behind it, and merges below with the
@@ -543,7 +547,12 @@ export function ChartFrame({
 
 	// The setters keep their identity, so the value does too.
 	const actions = useMemo<ChartActions>(
-		() => ({ pointMark, pointReference: setPointerReference, focusSeries: setSeriesFocus }),
+		() => ({
+			pointMark,
+			pointReference: setPointerReference,
+			pointRule: setHoveredReference,
+			focusSeries: setSeriesFocus,
+		}),
 		[pointMark, setSeriesFocus],
 	)
 
@@ -596,13 +605,17 @@ export function ChartFrame({
 		onActivate,
 	)
 
-	// The marks recede when either input emphasizes a reference: the pointer over a
-	// rule (or its legend chip), or the keyboard cursor parked on one. The pointed
-	// index wins over a still-held keyboard focus, and the sibling rules recede to
-	// whichever it resolves to.
+	// The marks recede when an input emphasizes a reference: the pointer over a
+	// rule or over its legend chip, or the keyboard cursor parked on one. The
+	// pointed index wins over a still-held keyboard focus, and the sibling rules
+	// recede to whichever it resolves to.
 	const emphasis = useMemo<ChartEmphasis>(
-		() => ({ activeReference, emphasizedReference: pointerReference ?? activeReference }),
-		[pointerReference, activeReference],
+		() => ({
+			activeReference,
+			hoveredReference,
+			emphasizedReference: hoveredReference ?? pointerReference ?? activeReference,
+		}),
+		[hoveredReference, pointerReference, activeReference],
 	)
 
 	// The mark emphasis the marks and tooltip both read: the pointed mark, else the

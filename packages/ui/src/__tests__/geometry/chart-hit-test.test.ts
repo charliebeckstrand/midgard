@@ -1,11 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import type { BarMark } from '../../modules/chart/engine/chart-geometry/bar'
+import { TRACE_STEP, traceRun } from '../../modules/chart/engine/chart-geometry/line'
 import {
 	barMarkAt,
 	nearestSeriesArea,
-	nearestSeriesLine,
-	ruleCatchPath,
+	type ThinMark,
+	thinMarkAt,
 } from '../../modules/chart/engine/chart-hit-test'
 
 const bar = (x: number, x1: number, top: number, bottom: number): BarMark => ({
@@ -77,92 +78,213 @@ describe('barMarkAt', () => {
 	})
 })
 
-describe('nearestSeriesLine', () => {
-	const two = [
-		[
-			[
-				{ x: 0, y: 100 },
-				{ x: 100, y: 100 },
-			],
-		],
-		[
-			[
-				{ x: 0, y: 140 },
-				{ x: 100, y: 140 },
-			],
-		],
-	]
+/** A straight run between two points. */
+const segment = (x0: number, y0: number, x1: number, y1: number) => [
+	{ x: x0, y: y0 },
+	{ x: x1, y: y1 },
+]
 
-	it('resolves the nearer line where two run close, and null beyond tolerance', () => {
-		expect(nearestSeriesLine(two, 50, 108)).toBe(0)
+/** A flat line at `y` from x 0 to x 100, as the one run of one line. */
+const flat = (y: number) => [segment(0, y, 100, y)]
 
-		expect(nearestSeriesLine(two, 50, 132)).toBe(1)
+describe('thinMarkAt', () => {
+	it('catches a line within the catch, in a straight line, and misses beyond it', () => {
+		expect(thinMarkAt([flat(100)], [], 50, 112)).toEqual({ line: 0 })
 
-		// 40px from the nearest line: past the generous catch.
-		expect(nearestSeriesLine(two, 50, 60)).toBeNull()
+		expect(thinMarkAt([flat(100)], [], 50, 117)).toBeNull()
+
+		// A steep line catches as wide across as a flat one does along y.
+		const steep = [segment(50, 0, 51, 200)]
+
+		expect(thinMarkAt([steep], [], 62, 100)).toEqual({ line: 0 })
+
+		expect(thinMarkAt([steep], [], 70, 100)).toBeNull()
 	})
 
-	it('holds the emphasized line across the midline until a challenger decisively closes', () => {
-		// Lines close enough that their catches overlap: y=100 and y=120, the
-		// midline at 110.
-		const close = [
-			[
-				[
-					{ x: 0, y: 100 },
-					{ x: 100, y: 100 },
-				],
-			],
-			[
-				[
-					{ x: 0, y: 120 },
-					{ x: 100, y: 120 },
-				],
-			],
+	it('gives the pointer to the line nearest along the value axis', () => {
+		expect(thinMarkAt([flat(100), flat(140)], [], 50, 108)).toEqual({ line: 0 })
+
+		expect(thinMarkAt([flat(100), flat(140)], [], 50, 132)).toEqual({ line: 1 })
+	})
+
+	it('parts two crossing lines at the line of their mean slope', () => {
+		// They cross at (100, 100): a steep line of slope 4, and a flat one.
+		const steep = [segment(75, 0, 125, 200)]
+
+		const level = [segment(0, 100, 200, 100)]
+
+		// The mean slope is 2, so the boundary runs through (105, 110). Below it
+		// along y, toward the flat line, the flat line takes the pointer, though the
+		// pointer is nearer the steep line in a straight line.
+		expect(thinMarkAt([steep, level], [], 105, 109)).toEqual({ line: 1 })
+
+		expect(thinMarkAt([steep, level], [], 105, 111)).toEqual({ line: 0 })
+
+		// The order of the lines does not move the boundary.
+		expect(thinMarkAt([level, steep], [], 105, 109)).toEqual({ line: 0 })
+
+		expect(thinMarkAt([level, steep], [], 105, 111)).toEqual({ line: 1 })
+	})
+
+	it('reads past an end of a run by the straight distance to the end', () => {
+		// The run ends at x 40. A pointer 9 px past the end and 9 px above it sits
+		// 12.7 px from the end. A flat line 12 px below the pointer is nearer.
+		const short = [segment(0, 100, 40, 100)]
+
+		expect(thinMarkAt([short, flat(121)], [], 49, 109)).toEqual({ line: 1 })
+
+		// At the end itself, the two distances agree: 9 px along y.
+		expect(thinMarkAt([short, flat(121)], [], 40, 109)).toEqual({ line: 0 })
+	})
+
+	it('never bridges the gap between runs, but catches a lone point', () => {
+		const gappy = [segment(0, 100, 40, 100), [{ x: 120, y: 100 }]]
+
+		expect(thinMarkAt([gappy], [], 80, 100)).toBeNull()
+
+		expect(thinMarkAt([gappy], [], 122, 102)).toEqual({ line: 0 })
+	})
+
+	it('reads a rule along the value axis, within the same catch', () => {
+		expect(thinMarkAt([], [100], 50, 116)).toEqual({ rule: 0 })
+
+		expect(thinMarkAt([], [100], 50, 117)).toBeNull()
+
+		// A rule that takes no pointer is never caught.
+		expect(thinMarkAt([], [null, 100], 50, 101)).toEqual({ rule: 1 })
+	})
+
+	it('parts a line and a rule midway along the value axis', () => {
+		expect(thinMarkAt([flat(110)], [100], 50, 104)).toEqual({ rule: 0 })
+
+		expect(thinMarkAt([flat(110)], [100], 50, 106)).toEqual({ line: 0 })
+	})
+
+	it('gives a tie to a line over a rule, and to the later line', () => {
+		expect(thinMarkAt([flat(100)], [100], 50, 100)).toEqual({ line: 0 })
+
+		expect(thinMarkAt([flat(100), flat(100)], [], 50, 100)).toEqual({ line: 1 })
+
+		expect(thinMarkAt([flat(96), flat(104)], [], 50, 100)).toEqual({ line: 1 })
+
+		expect(thinMarkAt([], [100, 100], 50, 100)).toEqual({ rule: 1 })
+	})
+
+	it('holds the held mark until another comes 2 px nearer', () => {
+		// Lines at y 100 and y 120: the boundary at 110.
+		const lines = [flat(100), flat(120)]
+
+		// Held line 0 at 10.75 px against line 1 at 9.25 px: not 2 px nearer.
+		expect(thinMarkAt(lines, [], 50, 110.75, { line: 0 })).toEqual({ line: 0 })
+
+		// At 11.25 px against 8.75 px, line 1 takes the pointer.
+		expect(thinMarkAt(lines, [], 50, 111.25, { line: 0 })).toEqual({ line: 1 })
+
+		// The hold works from the other side, and between a rule and a line.
+		expect(thinMarkAt(lines, [], 50, 109.25, { line: 1 })).toEqual({ line: 1 })
+
+		expect(thinMarkAt(lines, [], 50, 108.75, { line: 1 })).toEqual({ line: 0 })
+
+		expect(thinMarkAt([flat(120)], [100], 50, 110.75, { rule: 0 })).toEqual({ rule: 0 })
+
+		expect(thinMarkAt([flat(120)], [100], 50, 111.25, { rule: 0 })).toEqual({ line: 0 })
+
+		// A held mark out of the catch holds nothing.
+		expect(thinMarkAt([flat(100), flat(140)], [], 50, 125, { line: 0 })).toEqual({ line: 1 })
+	})
+
+	it('holds the held mark 2 px past the edge of the catch', () => {
+		expect(thinMarkAt([flat(100)], [], 50, 117.5)).toBeNull()
+
+		expect(thinMarkAt([flat(100)], [], 50, 117.5, { line: 0 })).toEqual({ line: 0 })
+
+		expect(thinMarkAt([flat(100)], [], 50, 118.5, { line: 0 })).toBeNull()
+
+		expect(thinMarkAt([], [100], 50, 82.5, { rule: 0 })).toEqual({ rule: 0 })
+
+		expect(thinMarkAt([], [100], 50, 81.5, { rule: 0 })).toBeNull()
+	})
+
+	it('flips once in each direction when the pointer sweeps across a crossing', () => {
+		const steep = [segment(75, 0, 125, 200)]
+
+		const level = [segment(0, 100, 200, 100)]
+
+		// Sweep along y through the crossing column and back, carrying the held mark.
+		const sweep = (from: number, to: number, start: ThinMark | null) => {
+			let held = start
+
+			let flips = 0
+
+			const step = from < to ? 0.25 : -0.25
+
+			for (let y = from; from < to ? y <= to : y >= to; y += step) {
+				// A shake of half a px at each step, as a hand makes.
+				for (const shake of [0, 0.5, -0.5, 0]) {
+					const next = thinMarkAt([steep, level], [], 104, y + shake, held)
+
+					if (held !== null && next !== null && next.line !== held.line) flips++
+
+					held = next
+				}
+			}
+
+			return { held, flips }
+		}
+
+		const down = sweep(85, 115, null)
+
+		expect(down.flips).toBe(1)
+
+		const up = sweep(115, 85, down.held)
+
+		expect(up.flips).toBe(1)
+	})
+})
+
+describe('traceRun', () => {
+	it('keeps a straight run, and a curve of fewer than three points, as its points', () => {
+		const run = [
+			{ x: 0, y: 0 },
+			{ x: 50, y: 40 },
+			{ x: 100, y: 10 },
 		]
 
-		// Just past the midline the held line keeps the win: the flip point is a
-		// deadband, not a knife edge.
-		expect(nearestSeriesLine(close, 50, 112, undefined, 0)).toBe(0)
+		expect(traceRun(run, 'linear')).toBe(run)
 
-		// Decisively onto the other line (under half the held distance) it flips.
-		expect(nearestSeriesLine(close, 50, 115, undefined, 0)).toBe(1)
-
-		// The hold works symmetrically, and only while the held stays a candidate:
-		// out of the catch it surrenders to whoever is within it.
-		expect(nearestSeriesLine(close, 50, 108, undefined, 1)).toBe(1)
-
-		expect(nearestSeriesLine(close, 50, 102, undefined, 1)).toBe(0)
+		expect(traceRun(run.slice(0, 2), 'smooth')).toEqual(run.slice(0, 2))
 	})
 
-	// The same single flat run as `two`'s first series.
-	const runs = two.slice(0, 1)
-
-	it('hits within the generous tolerance of a segment and misses beyond it', () => {
-		// Comfortably on the line.
-		expect(nearestSeriesLine(runs, 50, 106)).not.toBeNull()
-
-		// 12px off: inside the widened catch the tooltip and isolation lean on.
-		expect(nearestSeriesLine(runs, 50, 112)).not.toBeNull()
-
-		// Past the tolerance.
-		expect(nearestSeriesLine(runs, 50, 120)).toBeNull()
-	})
-
-	it('never bridges the gap between runs, but hits a lone point', () => {
-		const gappy = [
-			[
-				[
-					{ x: 0, y: 100 },
-					{ x: 40, y: 100 },
-				],
-				[{ x: 120, y: 100 }],
-			],
+	it('follows the drawn curve in chords of at most the trace step', () => {
+		const run = [
+			{ x: 0, y: 100 },
+			{ x: 40, y: 20 },
+			{ x: 80, y: 60 },
+			{ x: 120, y: 0 },
 		]
 
-		// Between the runs, on the imaginary bridge.
-		expect(nearestSeriesLine(gappy, 80, 100)).toBeNull()
+		const trace = traceRun(run, 'smooth')
 
-		expect(nearestSeriesLine(gappy, 122, 102)).not.toBeNull()
+		// The trace passes through each point of the run.
+		for (const point of run) {
+			expect(trace.some((p) => p.x === point.x && Math.abs(p.y - point.y) < 1e-9)).toBe(true)
+		}
+
+		// Each chord is at most the trace step long, so the trace bends with the curve.
+		for (let i = 1; i < trace.length; i++) {
+			const a = trace[i - 1] as { x: number; y: number }
+
+			const b = trace[i] as { x: number; y: number }
+
+			expect(Math.hypot(b.x - a.x, b.y - a.y)).toBeLessThanOrEqual(TRACE_STEP + 1e-9)
+		}
+
+		// A monotone curve stays inside the box of each two points of the run.
+		for (const p of trace) {
+			expect(p.y).toBeGreaterThanOrEqual(0)
+
+			expect(p.y).toBeLessThanOrEqual(100)
+		}
 	})
 })
 
@@ -292,112 +414,5 @@ describe('nearestSeriesArea', () => {
 		expect(nearestSeriesArea(signed, 200, 50, 85, true)).toBe(1)
 
 		expect(nearestSeriesArea(signed, 200, 50, 150, true)).toBe(0)
-	})
-})
-
-/** The corners of a closed path of `M` and `L` commands. */
-function outline(d: string): [number, number][] {
-	return [...d.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)].map((match) => [
-		Number(match[1]),
-		Number(match[2]),
-	])
-}
-
-/** Whether the point sits inside the polygon, by the even-odd rule. */
-function inside(polygon: [number, number][], x: number, y: number): boolean {
-	let within = false
-
-	for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-		const [xi, yi] = polygon[i] as [number, number]
-
-		const [xj, yj] = polygon[j] as [number, number]
-
-		if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) within = !within
-	}
-
-	return within
-}
-
-describe('ruleCatchPath', () => {
-	const from = { x: 0, y: 100 }
-
-	const to = { x: 200, y: 100 }
-
-	it('catches a full band on each side of a rule with no line near it', () => {
-		const far = [
-			[
-				{ x: 0, y: 10 },
-				{ x: 200, y: 10 },
-			],
-		]
-
-		const band = outline(ruleCatchPath(from, to, far, 16))
-
-		// The band keeps only its four corners.
-		expect(band).toEqual([
-			[0, 84],
-			[200, 84],
-			[200, 116],
-			[0, 116],
-		])
-
-		expect(outline(ruleCatchPath(from, to, [], 16))).toEqual(band)
-	})
-
-	it('gives a near parallel line the points that sit nearer to it', () => {
-		const line = [
-			[
-				{ x: 0, y: 90 },
-				{ x: 200, y: 90 },
-			],
-		]
-
-		const polygon = outline(ruleCatchPath(from, to, line, 16))
-
-		// The edge is midway between the rule and the line.
-		expect(inside(polygon, 100, 96)).toBe(true)
-
-		expect(inside(polygon, 100, 94)).toBe(false)
-
-		// The side away from the line keeps its full reach.
-		expect(inside(polygon, 100, 115)).toBe(true)
-	})
-
-	it('pinches the catch where a line crosses the rule', () => {
-		const crossing = [
-			[
-				{ x: 100, y: 0 },
-				{ x: 100, y: 200 },
-			],
-		]
-
-		const polygon = outline(ruleCatchPath(from, to, crossing, 16))
-
-		// Beside the crossing, the line is nearer than the rule.
-		expect(inside(polygon, 101, 94)).toBe(false)
-
-		expect(inside(polygon, 99, 106)).toBe(false)
-
-		// Far from the crossing, the rule keeps its full reach.
-		expect(inside(polygon, 20, 85)).toBe(true)
-
-		expect(inside(polygon, 180, 115)).toBe(true)
-	})
-
-	it('follows a vertical rule across x', () => {
-		const line = [
-			[
-				{ x: 110, y: 0 },
-				{ x: 110, y: 200 },
-			],
-		]
-
-		const polygon = outline(ruleCatchPath({ x: 100, y: 0 }, { x: 100, y: 200 }, line, 16))
-
-		expect(inside(polygon, 104, 100)).toBe(true)
-
-		expect(inside(polygon, 106, 100)).toBe(false)
-
-		expect(inside(polygon, 85, 100)).toBe(true)
 	})
 })

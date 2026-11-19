@@ -83,6 +83,32 @@ export function useChartHover(): ChartHoverState {
 export type ChartMarkRef = { series: number; datum: number | null }
 
 /**
+ * A reference to one reference rule that the pointer rests on, by its index in
+ * the `reference` prop.
+ *
+ * @internal
+ */
+export type ChartRuleRef = { reference: number }
+
+/**
+ * What the pointer rests on in the plot: a drawn mark, or a reference rule. The
+ * hit layer resolves both with one hit test, so it holds one of the two.
+ *
+ * @internal
+ */
+export type ChartTarget = ChartMarkRef | ChartRuleRef
+
+/** The mark that a target names, or `null` for a rule or no target. @internal */
+export function targetMark(target: ChartTarget | null): ChartMarkRef | null {
+	return target === null || 'reference' in target ? null : target
+}
+
+/** The rule that a target names, or `null` for a mark or no target. @internal */
+export function targetRule(target: ChartTarget | null): number | null {
+	return target !== null && 'reference' in target ? target.reference : null
+}
+
+/**
  * Whether `mark` lights the given series, and datum, when one is checked. A
  * whole-series emphasis (`datum: null`) lights every datum in its series, while
  * a datum emphasis lights only its own. A group-level query passes no `datum`
@@ -223,15 +249,22 @@ export function sameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolea
 export type ChartEmphasis = {
 	/**
 	 * The keyboard-focused reference line's index, or `null`: the rule the arrow
-	 * cursor parks on, so it reads as chosen while the marks recede. Pointer hover
-	 * leaves it `null`; the rule floats its own tooltip instead.
+	 * cursor parks on, so it reads as chosen while the marks recede. Its tooltip
+	 * opens.
 	 */
 	activeReference: number | null
 	/**
-	 * The reference the emphasis rests on (pointed or keyboard-focused), so its
-	 * sibling rules recede to it, the way the data marks do. Pointer wins over a
-	 * still-held keyboard focus; `null` when nothing is emphasized. While it is
-	 * set, the data marks recede behind the rule.
+	 * The index of the rule that the pointer rests on in the plot, or `null`. The
+	 * hit layer resolves it ({@link ChartActions.pointRule}). Its tooltip opens,
+	 * as for the keyboard cursor.
+	 */
+	hoveredReference: number | null
+	/**
+	 * The reference the emphasis rests on (pointed in the plot, pointed through
+	 * its legend chip, or keyboard-focused), so its sibling rules recede to it,
+	 * the way the data marks do. A pointer wins over a still-held keyboard focus;
+	 * `null` when nothing is emphasized. While it is set, the data marks recede
+	 * behind the rule.
 	 */
 	emphasizedReference: number | null
 }
@@ -254,10 +287,16 @@ export type ChartActions = {
 	 */
 	pointMark: (mark: ChartMarkRef | null) => void
 	/**
-	 * Sets the pointed reference: the index of the rule that the pointer, or
-	 * the legend chip of the rule, points at (`null` clears it).
+	 * Sets the pointed reference: the index of the rule that the legend chip of
+	 * the rule points at (`null` clears it).
 	 */
 	pointReference: (index: number | null) => void
+	/**
+	 * Sets the hovered reference: the index of the rule that the pointer rests on
+	 * in the plot (`null` clears it). The hit layer writes it, with the pointed
+	 * mark, from one hit test.
+	 */
+	pointRule: (index: number | null) => void
 	/**
 	 * Sets the series emphasis: the series that a legend entry, a keyboard
 	 * cursor, or a pie slice points at (`null` clears it). The frame owns the

@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { lineGeometry } from '../modules/chart/engine/chart-geometry/line'
-import { nearestSeriesLine } from '../modules/chart/engine/chart-hit-test'
+import { thinMarkAt } from '../modules/chart/engine/chart-hit-test'
 import {
 	buildValueTicks,
 	type CartesianLayoutInput,
@@ -211,7 +211,7 @@ compareBenches('chart-time · timeTicks (calendar boundaries on a band axis)', (
 	})
 })
 
-compareBenches('chart-hit-test · nearestSeriesLine (every pointer move)', (bench) => {
+compareBenches('chart-hit-test · thinMarkAt (every pointer move)', (bench) => {
 	// The scan a line chart runs per `pointermove`: squared point-to-segment
 	// distance over every series' every run. The browser hover sweep times it
 	// end to end through React; this is the scan alone, where an algorithmic
@@ -237,21 +237,21 @@ compareBenches('chart-hit-test · nearestSeriesLine (every pointer move)', (benc
 		const xs = Array.from({ length: count }, (_, index) => band.center(index))
 
 		const seriesRuns = values.map(
-			(series) => lineGeometry(series, xs, scale.map, HEIGHT, 'linear').runs,
+			(series) => lineGeometry(series, xs, scale.map, HEIGHT, 'linear').trace,
 		)
 
 		const label = `${count.toLocaleString()} pts × ${seriesCount} series`
 
 		// Mid-plot: the scan runs to completion and resolves a hit.
 		bench(`${label} · hit`, () => {
-			nearestSeriesLine(seriesRuns, WIDTH / 2, HEIGHT / 2)
+			thinMarkAt(seriesRuns, [], WIDTH / 2, HEIGHT / 2)
 		})
 
 		// Off every line: no candidate ever beats the tolerance, so the scan pays
 		// its full length with nothing to short-circuit on, the worst case, and
 		// the one a pointer in the plot's empty upper corner actually hits.
 		bench(`${label} · miss`, () => {
-			nearestSeriesLine(seriesRuns, WIDTH / 2, -500)
+			thinMarkAt(seriesRuns, [], WIDTH / 2, -500)
 		})
 	}
 })

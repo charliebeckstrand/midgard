@@ -232,9 +232,37 @@ describe('a category reference', () => {
 
 		const [category, value] = allBySlot(container, 'chart-reference-line')
 
+		// No rule takes the pointer of its own. The hit area resolves the value rule.
 		expect(category?.getAttribute('pointer-events')).toBe('none')
 
-		expect(value?.getAttribute('pointer-events')).toBeNull()
+		expect(value?.getAttribute('pointer-events')).toBe('none')
+
+		const hit = getSlot(container, 'chart-hit')
+
+		// The hit area of jsdom has no size, so the client point is the offset from
+		// the corner of the plot.
+		const point = (rule: Element | undefined, at: 'x1' | 'y1') => {
+			const ruleLine = rule?.querySelector('line')
+
+			fireEvent.pointerMove(hit, {
+				clientX:
+					at === 'x1' ? Number(ruleLine?.getAttribute('x1')) - Number(hit.getAttribute('x')) : 4,
+				clientY:
+					at === 'y1' ? Number(ruleLine?.getAttribute('y1')) - Number(hit.getAttribute('y')) : 2,
+			})
+		}
+
+		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
+
+		// On the category rule, near the top of the plot and far from the value rule.
+		point(category, 'x1')
+
+		expect(marks()).not.toContain('opacity-25')
+
+		// On the value rule.
+		point(value, 'y1')
+
+		expect(marks()).toContain('opacity-25')
 
 		expect(allBySlot(container, 'chart-legend-reference').map((chip) => chip.textContent)).toEqual([
 			'Goal60',

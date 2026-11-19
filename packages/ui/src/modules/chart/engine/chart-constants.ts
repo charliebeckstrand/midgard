@@ -205,10 +205,3 @@ export const LABEL_GAP = 4
  * spot has it. @internal
  */
 export const LABEL_ROOM = 2 * LABEL_GAP
-
-/**
- * The width of the transparent hover target of a reference rule, far from each
- * line. The target narrows where a line comes nearer to the pointer than the
- * rule ({@link ruleCatchPath}). @internal
- */
-export const REFERENCE_HIT_WIDTH = 32

@@ -140,8 +140,14 @@ export type LineSeriesGeometry = {
 	areas: string[]
 	/** Every plotted point, for the opt-in markers. */
 	points: LinePoint[]
-	/** The contiguous runs behind `segments`, for pointer hit tests: a gap splits them. */
+	/** The contiguous runs of plotted points behind `segments`: a gap splits them. */
 	runs: LinePoint[][]
+	/**
+	 * The drawn shape of each run, for the pointer hit tests. A straight run is
+	 * its own points. A curved run is its curve, cut into chords of at most
+	 * {@link TRACE_STEP} ({@link traceRun}).
+	 */
+	trace: LinePoint[][]
 	/** Points with a gap on both sides: invisible without a marker, so they always get one. */
 	isolated: LinePoint[]
 	/** The segments follow a monotone curve, not straight lines between the points. */
@@ -257,6 +263,68 @@ export function hasIsolatedPoint(values: readonly (number | null)[]): boolean {
 	return false
 }
 
+/**
+ * The greatest length of one chord of a traced curve, in px. Over a chord this
+ * short, the drawn curve stays well under one px from the chord.
+ *
+ * @internal
+ */
+export const TRACE_STEP = 4
+
+/**
+ * The drawn shape of one run, as a polyline. A straight run, or a run of fewer
+ * than three points, draws straight, so it is its own points. A curved run
+ * follows the cubic of {@link segmentPath} between each two points. The trace
+ * cuts each cubic into equal steps of its parameter and keeps the end of each
+ * step. The speed of a cubic along its parameter is at most three times its
+ * longest control leg. So a cut into `3 × leg / TRACE_STEP` steps gives chords
+ * of at most {@link TRACE_STEP}.
+ *
+ * @internal
+ */
+export function traceRun(run: LinePoint[], interpolation: LineInterpolation): LinePoint[] {
+	if (interpolation === 'linear' || run.length < 3) return run
+
+	const tangents = monotoneTangents(run)
+
+	const out: LinePoint[] = [run[0] as LinePoint]
+
+	for (let i = 0; i < run.length - 1; i++) {
+		const p0 = run[i] as LinePoint
+
+		const p1 = run[i + 1] as LinePoint
+
+		const dx = p1.x - p0.x
+
+		// The control points of the cubic, as segmentPath draws them.
+		const c1 = p0.y + ((tangents[i] as number) * dx) / 3
+
+		const c2 = p1.y - ((tangents[i + 1] as number) * dx) / 3
+
+		// The control points sit at one third and two thirds of the step along x.
+		const leg = Math.max(
+			Math.hypot(dx / 3, c1 - p0.y),
+			Math.hypot(dx / 3, c2 - c1),
+			Math.hypot(dx / 3, p1.y - c2),
+		)
+
+		const steps = Math.max(1, Math.ceil((3 * leg) / TRACE_STEP))
+
+		for (let step = 1; step <= steps; step++) {
+			const t = step / steps
+
+			const u = 1 - t
+
+			out.push({
+				x: p0.x + dx * t,
+				y: u * u * u * p0.y + 3 * u * u * t * c1 + 3 * u * t * t * c2 + t * t * t * p1.y,
+			})
+		}
+	}
+
+	return out
+}
+
 /** Splits the values into contiguous non-null runs of plotted points. @internal */
 function runs(values: (number | null)[], xs: number[], map: (value: number) => number) {
 	const out: LinePoint[][] = []
@@ -323,6 +391,7 @@ export function lineGeometry(
 		areas,
 		points: pointRuns.flat(),
 		runs: pointRuns,
+		trace: pointRuns.map((run) => traceRun(run, interpolation)),
 		isolated: pointRuns.filter((run) => run.length === 1).flat(),
 		smooth: interpolation === 'smooth',
 	}
