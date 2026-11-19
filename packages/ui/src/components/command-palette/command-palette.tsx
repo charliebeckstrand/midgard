@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, X } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { type ComponentProps, type ReactNode, useMemo } from 'react'
 import {
 	defaultKeybindingsHandlerIgnore,
@@ -18,6 +18,7 @@ import { k } from '../../recipes/kata/command-palette'
 import type { DialogPanelVariants } from '../../recipes/kata/dialog'
 import { isComposing } from '../../utilities/is-composing'
 import { adaptive } from '../../utilities/responsive'
+import { ButtonCloseX } from '../button/button-close'
 import { keepInputFocus } from '../combobox/combobox-utilities'
 import {
 	Dialog,
@@ -29,7 +30,7 @@ import {
 } from '../dialog'
 import { Icon } from '../icon'
 import { Input } from '../input'
-import { CommandPaletteClose } from './command-palette-close'
+import type { CommandPaletteClose } from './command-palette-close'
 import { useCommandPaletteState } from './use-command-palette-state'
 
 const messages = defineMessages({
@@ -294,12 +295,7 @@ export function CommandPalette({
 									onKeyDown={onKeyDown}
 								/>
 							</div>
-							<CommandPaletteClose
-								variant="bare"
-								aria-label={intl.formatMessage(intlMessages.close)}
-							>
-								<Icon icon={<X />} />
-							</CommandPaletteClose>
+							<ButtonCloseX slot="command-palette-dismiss" onClick={() => setOpen(false)} />
 						</div>
 						{/* A press on the chrome of the list, such as a heading or the gap
 						    between the rows, keeps the focus on the input, as a row does. */}

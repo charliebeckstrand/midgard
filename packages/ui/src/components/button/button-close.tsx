@@ -29,9 +29,12 @@ export function ButtonClose({ slot, onClick }: { slot: string; onClick?: MouseEv
 /**
  * The X close of a panel header: a `bare` icon button with the label "Close"
  * in the language of the reader. It stays live in a locked scope, as
- * {@link ButtonClose} does.
+ * {@link ButtonClose} does. `CommandPalette` also puts it at the end of the
+ * line of its search field.
+ *
+ * @internal
  */
-function ButtonCloseX({ slot, onClick }: { slot: string; onClick?: MouseEventHandler }) {
+export function ButtonCloseX({ slot, onClick }: { slot: string; onClick?: MouseEventHandler }) {
 	const intl = useIntl()
 
 	return (
