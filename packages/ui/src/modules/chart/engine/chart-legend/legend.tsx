@@ -1147,6 +1147,9 @@ function ChartLegendStack({
 			className={cn(
 				'flex w-full flex-col items-center',
 				'[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]',
+				// On a coarse pointer, the rows stand apart as the rows of one wrapping
+				// row do, so the hit areas of the two rows meet and do not overlap.
+				LEGEND_TOUCH_ROWS,
 			)}
 		>
 			<LegendRow rowRef={seriesRowRef} slot="chart-legend-series">
