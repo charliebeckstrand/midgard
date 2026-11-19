@@ -1,0 +1,13 @@
+diff --git a/dist/chunks/index.Bi0NXYPf.js b/dist/chunks/index.Bi0NXYPf.js
+index e17c9673b20533dbba519608382a71f033c3b01f..b2629149debb79f39b68ec74c1170cbaae22bc60 100644
+--- a/dist/chunks/index.Bi0NXYPf.js
++++ b/dist/chunks/index.Bi0NXYPf.js
+@@ -653,7 +653,7 @@ class VitestModuleRunner extends viteModuleRunner.ModuleRunner {
+ 		});
+ 		const url = resolved ? resolved.url : rawId;
+ 		if (options?.invalidate) {
+-			const module = this.evaluatedModules.getModuleByUrl(url);
++			const module = this.evaluatedModules.getModuleByUrl(url) ?? (resolved ? this.evaluatedModules.getModuleById(resolved.id) : void 0);
+ 			if (module?.evaluated) this.evaluatedModules.invalidateModule(module);
+ 		}
+ 		return super.import(url);

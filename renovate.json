@@ -105,6 +105,12 @@
 			"enabled": false
 		},
 		{
+			"description": "The typescript6 catalog in pnpm-workspace.yaml holds TypeScript 6 for `auth` and `shared`, because `openapi-typescript` reads the JavaScript API of TypeScript, and TypeScript 7 has no such API. A major here removes the reason that the catalog exists. Remove this rule when `openapi-typescript` supports TypeScript 7.",
+			"matchDepTypes": ["pnpm.catalog.typescript6"],
+			"matchPackageNames": ["typescript"],
+			"allowedVersions": "<7"
+		},
+		{
 			"description": "hlidskjalf is first-party, so the supply-chain cooldown buys nothing.",
 			"matchPackageNames": ["hlidskjalf"],
 			"minimumReleaseAge": null
