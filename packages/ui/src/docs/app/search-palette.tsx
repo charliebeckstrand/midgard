@@ -257,7 +257,6 @@ export function SearchPalette({
 			open={open}
 			onOpenChange={onOpenChange}
 			placeholder={intl.formatMessage(placeholderMessage)}
-			footer={null}
 		>
 			<Results onPick={onPick} />
 		</CommandPalette>
