@@ -6,6 +6,7 @@ import { Text } from '../../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import { cn } from '../../../../core/cn'
 import { useTruncation } from '../../../../hooks/use-truncation'
+import { k } from '../../../../recipes/kata/chart'
 
 /**
  * The row gap of a box that stacks or wraps {@link LegendSwitch} entries, on a
@@ -117,19 +118,21 @@ export function LegendSwitch({
 		>
 			{keys}
 
-			<span ref={labelRef} className={cn('block min-w-0 truncate text-start', labelClassName)}>
-				<Text
-					as="span"
-					size="sm"
-					tone="muted"
-					data-slot={labelSlot}
-					className={cn('leading-tight', off && 'line-through opacity-60')}
-				>
-					{label}
-				</Text>
-			</span>
+			<span className={cn(k.legendText)}>
+				<span ref={labelRef} className={cn('block min-w-0 truncate text-start', labelClassName)}>
+					<Text
+						as="span"
+						size="sm"
+						tone="muted"
+						data-slot={labelSlot}
+						className={cn('leading-tight', off && 'line-through opacity-60')}
+					>
+						{label}
+					</Text>
+				</span>
 
-			{detail}
+				{detail}
+			</span>
 		</Button>
 	)
 

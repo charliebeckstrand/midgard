@@ -40,6 +40,13 @@ export const k = {
 	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ['text-sm text-start', 'leading-tight', ...text.muted],
 	/**
+	 * The text of a legend entry: its label and the value after it, on one
+	 * baseline, apart by the gap of the button that holds them. The button
+	 * centers its swatch against the row. Each box has its own line height, so
+	 * centered boxes would set the two texts on different baselines.
+	 */
+	legendText: ['flex min-w-0 items-baseline', dan.gap.button],
+	/**
 	 * Tooltip value ink: the type of {@link k.label}, with tabular figures. Only
 	 * the ink is stronger, so the value leads and the row reads as one line.
 	 */
