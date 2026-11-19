@@ -1,8 +1,9 @@
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, vi } from 'vitest'
 import { it, onFakeClock } from '../../__tests__/helpers/fake-clock'
+import { stubResizeObserver } from '../../__tests__/helpers/stub-resize-observer'
 import { clamp } from '../../utilities/clamp.ts'
-import { bandAt, getLetters, HOLD_DELAY } from '../app/letter-rail.tsx'
+import { getLetters, getMarks, HOLD_DELAY, letterAt } from '../app/letter-rail.tsx'
 import { DocsSearch } from '../app/search.tsx'
 import { DocsSidebar } from '../app/sidebar.tsx'
 import type { PageLink } from '../plugin/pages.ts'
@@ -11,6 +12,7 @@ import type { PageLink } from '../plugin/pages.ts'
 // rail, so a press selects exactly one letter, and a slide moves from letter to
 // letter. A selection scrolls the body to the first page with the letter. The
 // rail shows the letter of the last jump that the scroll of the body is at or past.
+// A short rail collapses to some of the letters, with a dot between two of them.
 
 const page = (category: string, name: string): PageLink => ({
 	category,
@@ -123,9 +125,14 @@ function renderSidebar(pages = PAGES) {
 
 	layOut(body)
 
+	// Each mark of the track is a band high, so a collapsed track is shorter.
 	Object.defineProperty(track, 'getBoundingClientRect', {
 		value: () =>
-			DOMRect.fromRect({ y: TRACK_TOP, width: 28, height: BAND * getLetters(COMPONENTS).length }),
+			DOMRect.fromRect({
+				y: TRACK_TOP,
+				width: 28,
+				height: BAND * track.querySelectorAll(':scope > :not([data-slot])').length,
+			}),
 	})
 
 	track.setPointerCapture = vi.fn()
@@ -164,18 +171,52 @@ const tap = (track: HTMLElement, y: number, pointerType?: string) => {
 	release(track)
 }
 
-describe('bandAt', () => {
-	it('gives each point of the rail to exactly one band', () => {
-		expect(bandAt(100, 100, 120, 5)).toBe(0)
-		expect(bandAt(123.9, 100, 120, 5)).toBe(0)
-		expect(bandAt(124, 100, 120, 5)).toBe(1)
-		expect(bandAt(219.9, 100, 120, 5)).toBe(4)
+describe('letterAt', () => {
+	it('gives each point of a full rail to exactly one band', () => {
+		expect(letterAt(100, 100, 120, 5, 5)).toBe(0)
+		expect(letterAt(123.9, 100, 120, 5, 5)).toBe(0)
+		expect(letterAt(124, 100, 120, 5, 5)).toBe(1)
+		expect(letterAt(219.9, 100, 120, 5, 5)).toBe(4)
 	})
 
-	it('gives a point past an end to the band at that end', () => {
-		expect(bandAt(0, 100, 120, 5)).toBe(0)
-		expect(bandAt(220, 100, 120, 5)).toBe(4)
-		expect(bandAt(1000, 100, 120, 5)).toBe(4)
+	it('gives a point past an end to the letter at that end', () => {
+		expect(letterAt(0, 100, 120, 5, 5)).toBe(0)
+		expect(letterAt(220, 100, 120, 5, 5)).toBe(4)
+		expect(letterAt(1000, 100, 120, 5, 9)).toBe(8)
+	})
+
+	// Five marks of 24 for nine letters: the letters 0, 4, and 8 have a mark.
+	it('gives the center of a letter mark to its letter on a collapsed rail', () => {
+		expect(letterAt(12, 0, 120, 5, 9)).toBe(0)
+		expect(letterAt(60, 0, 120, 5, 9)).toBe(4)
+		expect(letterAt(108, 0, 120, 5, 9)).toBe(8)
+	})
+
+	it('gives the points of a collapsed rail to each letter, in order', () => {
+		const letters = Array.from({ length: 121 }, (_, y) => letterAt(y, 0, 120, 5, 9))
+
+		expect([...new Set(letters)]).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
+	})
+})
+
+describe('getMarks', () => {
+	const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+
+	it('gives each letter when each letter fits', () => {
+		expect(getMarks(LETTERS, 9)).toEqual(LETTERS)
+		expect(getMarks(LETTERS, 20)).toEqual(LETTERS)
+	})
+
+	it('gives the first letter, the last letter, and a dot between two letters when the letters do not fit', () => {
+		expect(getMarks(LETTERS, 7)).toEqual(['A', undefined, 'D', undefined, 'F', undefined, 'I'])
+	})
+
+	it('gives an odd count of marks, so the last mark is a letter', () => {
+		expect(getMarks(LETTERS, 6)).toEqual(['A', undefined, 'E', undefined, 'I'])
+	})
+
+	it('gives no mark when the fewest marks do not fit', () => {
+		expect(getMarks(LETTERS, 4)).toEqual([])
 	})
 })
 
@@ -423,5 +464,118 @@ describe('LetterRail', () => {
 
 		expect(active()).toBe('A')
 		expect(body.scrollTop).toBe(0)
+	})
+
+	describe('collapsed', () => {
+		// The root font size of jsdom is 16px, so the smallest mark is 14px high.
+		/** Gives the rail a height that holds `slots` marks of the smallest height. */
+		function collapse(slots: number) {
+			const observers = stubResizeObserver()
+
+			const sidebar = renderSidebar()
+
+			const rail = sidebar.track.closest<HTMLElement>('[data-slot="letter-rail"]')
+
+			if (!rail) throw new Error('The track is not in the rail.')
+
+			act(() => {
+				for (const observer of observers) {
+					const entry = { contentRect: DOMRect.fromRect({ width: 28, height: slots * 14 }) }
+
+					observer.callback([entry as ResizeObserverEntry], observer as unknown as ResizeObserver)
+				}
+			})
+
+			const marks = () =>
+				[...rail.querySelectorAll('[data-slot="letter-rail-track"] > :not([data-slot])')].map(
+					(mark) => mark.textContent,
+				)
+
+			const letter = () => rail.querySelector('[data-slot="letter-rail-bubble"]')?.textContent
+
+			return { ...sidebar, rail, marks, letter }
+		}
+
+		/** The y of the center of the mark at `index`. */
+		const atMark = (index: number) => TRACK_TOP + index * BAND + BAND / 2
+
+		it('shows the first letter, the last letter, and a letter between them, with dots', () => {
+			const { marks } = collapse(5)
+
+			expect(marks()).toEqual(['A', '•', 'E', '•', 'U'])
+		})
+
+		it('shows each letter when each letter fits', () => {
+			const { marks } = collapse(6)
+
+			expect(marks()).toEqual(['A', 'B', 'C', 'E', 'L', 'U'])
+		})
+
+		it('shows no mark when the fewest marks do not fit', () => {
+			const { rail } = collapse(4)
+
+			expect(rail.querySelector('[data-slot="letter-rail-track"]')).toBeNull()
+		})
+
+		it('selects the letter of a letter mark, and the letters between two marks', () => {
+			const { track, letter } = collapse(5)
+
+			tap(track, atMark(2))
+
+			expect(letter()).toBe('E')
+
+			tap(track, atMark(1))
+
+			expect(letter()).toBe('B')
+
+			tap(track, atMark(3))
+
+			expect(letter()).toBe('L')
+		})
+
+		it('gets to each letter in a slide', () => {
+			const { track, letter } = collapse(5)
+
+			const seen: (string | null | undefined)[] = []
+
+			press(track, TRACK_TOP)
+
+			for (let y = TRACK_TOP; y < TRACK_TOP + 5 * BAND; y++) {
+				fireEvent.pointerMove(track, { clientY: y, pointerId: 1 })
+
+				seen.push(letter())
+			}
+
+			release(track)
+
+			expect([...new Set(seen)]).toEqual(['A', 'B', 'C', 'E', 'L', 'U'])
+		})
+
+		it('shows the mark nearest to a hidden active letter as active', () => {
+			const { body, active } = collapse(5)
+
+			body.scrollTop = 100
+
+			fireEvent.scroll(body)
+
+			// B is hidden, and the dot after A is nearest to it.
+			expect(active()).toBe('•')
+		})
+
+		describe('mouse', () => {
+			onFakeClock()
+
+			it('shows the bubble for a mouse that stays on the rail', async ({ clock }) => {
+				const { track, bubble } = collapse(5)
+
+				press(track, atMark(1), 'mouse')
+
+				await clock.advance(HOLD_DELAY)
+
+				expect(bubble()).toBe(true)
+
+				release(track)
+			})
+		})
 	})
 })

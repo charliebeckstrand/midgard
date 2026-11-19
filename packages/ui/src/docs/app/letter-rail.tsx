@@ -13,6 +13,10 @@ import type { PageLink } from '../plugin/pages.ts'
 // page at the top of the body, and mutes the other letters. A page of the
 // rail has a letter, and a page after the pages of the rail has none, so when
 // the pages of the rail are above the top, the rail shows no letter.
+//
+// A short rail has no space for each letter. Then the rail collapses: it shows
+// some of the letters, with a dot between two of them, and a slide still gets
+// to each letter. A rail with no space for the fewest marks shows no mark.
 
 /** The letter that a page files under: the first character of its name, in upper case. */
 export function getInitial(page: PageLink): string {
@@ -24,14 +28,68 @@ export function getLetters(pages: readonly PageLink[]): string[] {
 	return [...new Set(pages.map(getInitial))].sort((a, b) => a.localeCompare(b))
 }
 
+/** The smallest height of a mark of the rail, in rem. A letter of the rail is 0.75rem high. */
+const MIN_SLOT = 0.875
+
+/** The fewest marks that a collapsed rail shows: three letters, with a dot between two of them. */
+export const MIN_MARKS = 5
+
 /**
- * The index of the letter under `y`. The rail divides its height into one
- * equal band for each letter, with no gap between two bands, so each point
- * selects exactly one letter. A point above the rail selects the first letter,
- * and a point below it selects the last letter.
+ * The marks of a rail with space for `slots` marks. Each mark is a letter, or
+ * `undefined` for a dot. When each letter fits, the marks are the letters.
+ *
+ * When some letters do not fit, the marks are an odd count of slots or fewer.
+ * Each even mark is a letter, and each odd mark is a dot. The first mark is the
+ * first letter, the last mark is the last letter, and the other letters
+ * divide the gap between them equally. Below {@link MIN_MARKS}, there is no mark.
  */
-export function bandAt(y: number, top: number, height: number, count: number): number {
-	return clamp(Math.floor(((y - top) / height) * count), 0, count - 1)
+export function getMarks(letters: readonly string[], slots: number): (string | undefined)[] {
+	if (slots >= letters.length) return [...letters]
+
+	if (slots < MIN_MARKS) return []
+
+	const count = slots % 2 === 0 ? slots - 1 : slots
+
+	return Array.from({ length: count }, (_, mark) =>
+		mark % 2 === 0 ? letters[slotToLetter(mark, count, letters.length)] : undefined,
+	)
+}
+
+/**
+ * The position of the letter at `index` on a rail of `slots` marks, in marks.
+ * The center of the first mark is 0, and the center of the last mark is
+ * `slots - 1`. The letters divide that distance equally.
+ */
+export function letterToSlot(index: number, slots: number, count: number): number {
+	return count < 2 ? 0 : (index * (slots - 1)) / (count - 1)
+}
+
+/** The index of the letter nearest to `slot`, the inverse of {@link letterToSlot}. */
+function slotToLetter(slot: number, slots: number, count: number): number {
+	const index = slots < 2 ? 0 : Math.round((slot * (count - 1)) / (slots - 1))
+
+	return clamp(index, 0, count - 1)
+}
+
+/**
+ * The index of the letter under `y` on a rail of `slots` marks and `count`
+ * letters. The center of a letter mark selects its letter, so a press on a
+ * letter selects that letter. A point between two marks selects the letter
+ * nearest to it in {@link letterToSlot}.
+ *
+ * When each letter has a mark, the rail divides its height into one equal band
+ * for each letter, with no gap between two bands, so each point selects
+ * exactly one letter. A point above the rail selects the first letter, and a
+ * point below it selects the last letter.
+ */
+export function letterAt(
+	y: number,
+	top: number,
+	height: number,
+	slots: number,
+	count: number,
+): number {
+	return slotToLetter(((y - top) / height) * slots - 0.5, slots, count)
 }
 
 /** The page links in `body`, in the order of the sidebar, which is also the order of their position. */
@@ -115,6 +173,17 @@ export function LetterRail({
 }) {
 	const letters = getLetters(pages)
 
+	// The count of marks that the height of the rail holds. Before the first
+	// measure, which a server render and jsdom do not make, each letter shows.
+	const [slots, setSlots] = useState<number | undefined>(undefined)
+
+	const marks = getMarks(letters, slots ?? letters.length)
+
+	// A collapsed rail hides some letters, so the bubble shows the letter for a mouse too.
+	const collapsed = marks.length < letters.length
+
+	const railRef = useRef<HTMLDivElement>(null)
+
 	const [active, setActive] = useState<string | undefined>(undefined)
 
 	// A touch covers the letter under the finger, so a slide by touch shows the
@@ -159,6 +228,26 @@ export function LetterRail({
 		return () => body.removeEventListener('scroll', follow)
 	}, [bodyRef])
 
+	useEffect(() => {
+		const rail = railRef.current
+
+		if (!rail) return
+
+		// The observer reports the first size after `observe`, so the effect does not
+		// read the size itself. A mark scales with the font size of the root.
+		const observer = new ResizeObserver(([entry]) => {
+			if (!entry) return
+
+			const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+			setSlots(Math.floor(entry.contentRect.height / (MIN_SLOT * rem)))
+		})
+
+		observer.observe(rail)
+
+		return () => observer.disconnect()
+	}, [])
+
 	const select = (y: number) => {
 		const body = bodyRef.current
 
@@ -166,7 +255,7 @@ export function LetterRail({
 
 		if (!body || !current) return
 
-		const letter = letters[bandAt(y, current.top, current.height, letters.length)]
+		const letter = letters[letterAt(y, current.top, current.height, marks.length, letters.length)]
 
 		if (letter === undefined || letter === current.letter) return
 
@@ -210,7 +299,7 @@ export function LetterRail({
 
 		gesture.current = { top, height }
 
-		if (event.pointerType !== 'mouse') hold.set(() => setBubble(true), HOLD_DELAY)
+		if (event.pointerType !== 'mouse' || collapsed) hold.set(() => setBubble(true), HOLD_DELAY)
 
 		// The capture keeps the moves of the gesture on the rail when the pointer
 		// leaves it, so the gesture ends on the rail too.
@@ -223,41 +312,50 @@ export function LetterRail({
 
 	const index = active === undefined ? -1 : letters.indexOf(active)
 
+	// The position of the active letter on the rail, in marks. A collapsed rail can
+	// hide the active letter, so the mark nearest to it shows as active.
+	const position = letterToSlot(Math.max(index, 0), marks.length, letters.length)
+
+	const activeMark = index === -1 ? -1 : Math.round(position)
+
 	return (
-		<div aria-hidden data-slot="letter-rail" className="flex flex-col justify-center">
-			<div
-				data-slot="letter-rail-track"
-				className="relative flex min-h-0 cursor-pointer touch-none select-none flex-col [-webkit-touch-callout:none]"
-				onPointerDown={onPointerDown}
-				onPointerMove={(event) => {
-					if (press.owns(event)) select(event.clientY)
-				}}
-				onPointerUp={end}
-				onPointerCancel={end}
-				onLostPointerCapture={end}
-			>
-				{letters.map((letter) => (
-					<span
-						key={letter}
-						data-active={dataAttr(letter === active)}
-						className="flex h-6 min-h-0 w-7 shrink items-center justify-center font-medium text-xs/none text-zinc-400 transition-colors not-data-active:hover:text-zinc-600 data-active:font-semibold data-active:text-zinc-950 motion-reduce:transition-none dark:text-zinc-500 dark:data-active:text-white dark:not-data-active:hover:text-zinc-300"
-					>
-						{letter}
-					</span>
-				))}
-				<span
-					data-slot="letter-rail-bubble"
-					data-visible={dataAttr(bubble && index !== -1)}
-					// The center of the band of the active letter.
-					style={{ top: `${((Math.max(index, 0) + 0.5) / letters.length) * 100}%` }}
-					className={cn(
-						'pointer-events-none absolute end-full me-8 grid size-12 -translate-y-1/2 scale-75 place-items-center rounded-full bg-zinc-900 font-semibold text-white text-xl opacity-0 shadow-lg transition-[opacity,scale] duration-150 ease-out data-visible:scale-100 data-visible:opacity-100 motion-reduce:transition-none dark:bg-white dark:text-zinc-900',
-						sen.forced.outline,
-					)}
+		<div ref={railRef} aria-hidden data-slot="letter-rail" className="flex flex-col justify-center">
+			{marks.length > 0 && (
+				<div
+					data-slot="letter-rail-track"
+					className="relative flex min-h-0 cursor-pointer touch-none select-none flex-col [-webkit-touch-callout:none]"
+					onPointerDown={onPointerDown}
+					onPointerMove={(event) => {
+						if (press.owns(event)) select(event.clientY)
+					}}
+					onPointerUp={end}
+					onPointerCancel={end}
+					onLostPointerCapture={end}
 				>
-					{active}
-				</span>
-			</div>
+					{marks.map((letter, mark) => (
+						<span
+							// A dot has no letter, and its position is fixed for each count of marks.
+							key={letter ?? `dot-${mark}`}
+							data-active={dataAttr(mark === activeMark)}
+							className="flex h-6 min-h-3.5 w-7 shrink items-center justify-center font-medium text-xs/none text-zinc-400 transition-colors not-data-active:hover:text-zinc-600 data-active:font-semibold data-active:text-zinc-950 motion-reduce:transition-none dark:text-zinc-500 dark:data-active:text-white dark:not-data-active:hover:text-zinc-300"
+						>
+							{letter ?? '•'}
+						</span>
+					))}
+					<span
+						data-slot="letter-rail-bubble"
+						data-visible={dataAttr(bubble && index !== -1)}
+						// The center of the active letter.
+						style={{ top: `${((position + 0.5) / marks.length) * 100}%` }}
+						className={cn(
+							'pointer-events-none absolute end-full me-8 grid size-12 -translate-y-1/2 scale-75 place-items-center rounded-full bg-zinc-900 font-semibold text-white text-xl opacity-0 shadow-lg transition-[opacity,scale] duration-150 ease-out data-visible:scale-100 data-visible:opacity-100 motion-reduce:transition-none dark:bg-white dark:text-zinc-900',
+							sen.forced.outline,
+						)}
+					>
+						{active}
+					</span>
+				</div>
+			)}
 		</div>
 	)
 }
