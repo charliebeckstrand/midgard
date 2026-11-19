@@ -185,9 +185,8 @@ export type CartesianConfig<T> = {
 	 * The rules stand their labels on the plot: the `labels.references` prop of
 	 * the chart. A rule that stands its label takes no legend entry, unless the
 	 * legend names it ({@link legendEntryRules}).
-	 * @defaultValue false
 	 */
-	referenceLabels?: boolean
+	referenceLabels: boolean
 }
 
 /** The classes of a category label on the horizontal band axis, as the y axis draws it. @internal */
@@ -522,7 +521,7 @@ export function useChartCartesian<T>(
 	// The rules that take a legend entry: the rules that the legend names, and
 	// each value rule that stands no label on the plot.
 	const legendEntries = useMemo(
-		() => legendEntryRules(reference, listedReferences, config.referenceLabels ?? false),
+		() => legendEntryRules(reference, listedReferences, config.referenceLabels),
 		[reference, listedReferences, config.referenceLabels],
 	)
 

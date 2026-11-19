@@ -1387,9 +1387,36 @@ describe('reference lines that the legend names', () => {
 		// A note is not a switch, but pointing it recedes the marks to its rule.
 		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
 
-		fireEvent.pointerEnter(allBySlot(container, 'chart-legend-note')[0] as Element)
+		const note = getSlot(container, 'chart-legend-note')
+
+		// A touch on a note is a tap, not a point.
+		fireEvent.pointerEnter(note, { pointerType: 'touch' })
+
+		expect(marks()).not.toContain('opacity-25')
+
+		fireEvent.pointerEnter(note, { pointerType: 'mouse' })
 
 		expect(marks()).toContain('opacity-25')
+
+		fireEvent.pointerLeave(note)
+
+		expect(marks()).not.toContain('opacity-25')
+	})
+
+	it('shows the notes of a side panel in its References section', () => {
+		const { container } = bar({
+			legend: { placement: 'right', references: { variant: 'notes' } },
+			reference: [{ value: 55, label: 'Target', description: 'Set in January' }],
+		})
+
+		const section = getSlot(container, 'chart-legend-references')
+
+		expect(section.querySelector('[data-slot="chart-legend-note"]')?.textContent).toBe(
+			'Target55Set in January',
+		)
+
+		// The panel holds the notes, so none sit under the figure.
+		expect(allBySlot(container, 'chart-legend-notes')).toHaveLength(1)
 	})
 
 	it('recedes nothing from a note of an inert legend', () => {
