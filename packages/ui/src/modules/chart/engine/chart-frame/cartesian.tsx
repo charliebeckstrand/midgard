@@ -11,7 +11,7 @@ import {
 import type { LabelLine } from '../chart-geometry/label'
 import type { ChartLineSeries } from '../chart-geometry/line'
 import { ChartHitArea, cartesianHitActive } from '../chart-hit-area'
-import { ChartLegend, ChartLegendNotes } from '../chart-legend/legend'
+import { ChartLegend, ChartLegendNotes, ChartLegendReferences } from '../chart-legend/legend'
 import { legendAside } from '../chart-legend/schema'
 import { ChartMarksLayer } from '../chart-marks/layer'
 import type { Vec } from '../chart-orientation'
@@ -146,28 +146,27 @@ export type ChartCartesianFrameProps = AccessibleName &
 const NO_VALUES: { values: (number | null)[]; axis: ChartValueAxisId } = { values: [], axis: 'y' }
 
 /**
- * The legend of a cartesian chart, and the notes of its rules under the figure.
- * No legend resolves for a lone series with `legend` unset. A stacked legend
- * puts the notes of its rules (`legend.references.variant: 'notes'`) under the
- * figure, so they take no height from the plot. A side panel holds them in its
+ * The legend of a cartesian chart, and the footer of its rules under the
+ * figure. No legend resolves for a lone series with `legend` unset. A stacked
+ * legend holds the series alone. The footer holds its rules out of the aspect
+ * box, as a row of chips or as notes (`legend.references.variant`), so they
+ * take no height from the plot. A side panel holds the rules in its
  * References section.
  *
  * @internal
  */
-function cartesianLegend(chart: CartesianChart): { legend: ReactNode; notes: ReactNode } {
+function cartesianLegend(chart: CartesianChart): { legend: ReactNode; footer: ReactNode } {
 	const { resolvedLegend, legendItems, referenceItems } = chart
 
-	if (!legendItems) return { legend: null, notes: null }
+	if (!legendItems) return { legend: null, footer: null }
 
 	const panel = legendAside(resolvedLegend.value)
-
-	const notes = resolvedLegend.referenceVariant === 'notes' && !panel
 
 	return {
 		legend: (
 			<ChartLegend
 				items={legendItems}
-				references={notes ? undefined : referenceItems}
+				references={panel ? referenceItems : undefined}
 				referenceVariant={resolvedLegend.referenceVariant}
 				hidden={chart.hidden}
 				referenceHidden={chart.referenceHidden}
@@ -179,10 +178,31 @@ function cartesianLegend(chart: CartesianChart): { legend: ReactNode; notes: Rea
 				inert={resolvedLegend.inert}
 			/>
 		),
-		notes: notes && referenceItems.length > 0 && (
-			<ChartLegendNotes references={referenceItems} inert={resolvedLegend.inert} />
-		),
+		footer: !panel && referenceItems.length > 0 && <CartesianLegendFooter chart={chart} />,
 	}
+}
+
+/**
+ * The rules of a stacked legend under the figure: a row of chips, or the notes
+ * (`legend.references.variant`).
+ *
+ * @internal
+ */
+function CartesianLegendFooter({ chart }: { chart: CartesianChart }) {
+	const { resolvedLegend, referenceItems } = chart
+
+	if (resolvedLegend.referenceVariant === 'notes') {
+		return <ChartLegendNotes references={referenceItems} inert={resolvedLegend.inert} />
+	}
+
+	return (
+		<ChartLegendReferences
+			references={referenceItems}
+			hidden={chart.referenceHidden}
+			onToggle={chart.toggleReference}
+			inert={resolvedLegend.inert}
+		/>
+	)
 }
 
 /**

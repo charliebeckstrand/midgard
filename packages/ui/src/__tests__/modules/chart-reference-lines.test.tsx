@@ -6,6 +6,7 @@ import type { ChartReferenceLine } from '../../modules/chart/engine/chart-refere
 import { ruleBreaks } from '../../modules/chart/engine/chart-reference-lines'
 import { LineChart } from '../../modules/chart/line-chart'
 import {
+	act,
 	allBySlot,
 	bySlot,
 	fireEvent,
@@ -639,26 +640,65 @@ describe('reference lines in the legend', () => {
 		])
 
 		expect(
-			[
-				...getSlot(container, 'chart-legend').querySelectorAll(
-					'[data-slot="chart-legend-reference-value"]',
-				),
-			].map((el) => el.textContent),
+			allBySlot(container, 'chart-legend-reference-value').map((el) => el.textContent),
 		).toEqual(['55', '70'])
 	})
 
-	it('puts the reference chips in their own row under the series row', () => {
+	it('puts the reference chips in a row of their own under the figure', () => {
 		const { container } = bar({ legend: true, reference: [{ value: 55, label: 'Target' }] })
 
-		expect(
-			bySlot(container, 'chart-legend-series')?.querySelector('[data-slot="chart-legend-item"]'),
-		).not.toBeNull()
+		const row = getSlot(container, 'chart-legend-references')
+
+		// The row sits out of the figure, so it takes no height from the plot, and
+		// out of the legend, which holds the series alone.
+		expect(getSlot(container, 'chart-figure').contains(row)).toBe(false)
+
+		expect(getSlot(container, 'chart-legend').contains(row)).toBe(false)
 
 		expect(
-			bySlot(container, 'chart-legend-references')?.querySelector(
-				'[data-slot="chart-legend-reference"]',
-			),
+			getSlot(container, 'chart-legend').querySelector('[data-slot="chart-legend-item"]'),
 		).not.toBeNull()
+
+		// The row is a toolbar of its own, named for the rules.
+		expect(row.getAttribute('role')).toBe('toolbar')
+
+		expect(row.getAttribute('aria-label')).toBe('References')
+
+		expect(row.querySelector('[data-slot="chart-legend-reference"]')).not.toBeNull()
+	})
+
+	it('takes no toolbar and no pointer on the chips of an inert legend', () => {
+		const { container } = bar({
+			legend: { inert: true, references: true },
+			reference: [{ value: 55, label: 'Target' }],
+		})
+
+		const row = getSlot(container, 'chart-legend-references')
+
+		expect(row.hasAttribute('inert')).toBe(true)
+
+		expect(row.getAttribute('role')).toBeNull()
+	})
+
+	it('roves between the chips under the figure with the arrow keys', () => {
+		const { container } = bar({
+			legend: true,
+			reference: [
+				{ value: 55, label: 'Target' },
+				{ value: 70, label: 'Ceiling' },
+			],
+		})
+
+		const [target, ceiling] = allBySlot(container, 'chart-legend-reference') as HTMLButtonElement[]
+
+		// The row is one Tab stop.
+		expect([target?.tabIndex, ceiling?.tabIndex]).toEqual([0, -1])
+
+		act(() => target?.focus())
+
+		fireEvent.keyDown(target as HTMLElement, { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(ceiling)
 	})
 
 	it('falls back to the value for an unlabeled reference, and shows it once', () => {

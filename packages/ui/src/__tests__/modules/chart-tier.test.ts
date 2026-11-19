@@ -305,15 +305,6 @@ describe('chartChromeReserve', () => {
 				2 * CHART_FIGURE_GAP,
 		)
 	})
-
-	it('adds a row for the reference chips under the series row of a stacked legend', () => {
-		expect(chartChromeReserve({ headerLines: 0, legend: true, referenceRow: true })).toBe(
-			2 * CHART_LEGEND_ROW_HEIGHT + CHART_FIGURE_GAP,
-		)
-
-		// A legend that does not show reserves no row for its chips either.
-		expect(chartChromeReserve({ headerLines: 0, legend: false, referenceRow: true })).toBe(0)
-	})
 })
 
 describe('policyPlotHeight', () => {
