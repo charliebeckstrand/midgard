@@ -38,7 +38,7 @@
 
 3.6 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
 
-3.7 Use the Playwright tools to examine a UI change in a real browser before you report it as done. Before a refactor merges, run `pnpm test:browser` and compare the interactions of the docs app with main.
+3.7 Use the Playwright tools to examine a UI change in a real browser before you report it as done. Before a refactor merges, run `pnpm -F ui test:browser` and compare the interactions of the docs app with main.
 
 3.8 A deployment comes only from `deploy.yml`. Never create, change, or delete an App Platform app by hand.
 
