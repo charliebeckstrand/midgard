@@ -56,9 +56,10 @@ export type ChartCartesianLegendConfig = ChartLegendConfig & {
 
 /**
  * The settings of the reference entries of a cartesian legend:
- * `legend.references` as an object. The legend puts the rules in their own
- * group after the series: a row under the series row, or a section under the
- * series in a side panel.
+ * `legend.references` as an object. A legend above or below the plot puts the
+ * rules under the chart, out of its aspect box: a row of chips that wraps to as
+ * many lines as it needs, or a list of notes. They take no height from the plot.
+ * A side panel puts the rules in a section under the series.
  */
 export type ChartLegendReferenceConfig = {
 	/**

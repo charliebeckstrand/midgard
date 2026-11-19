@@ -397,106 +397,38 @@ describe('chart legend fit after a label change', () => {
 		expect(allBySlot(container, 'chart-legend-item')).toHaveLength(expected)
 	})
 
-	/** A bar chart of one series with four rules, whose chips take two lines of the ghost. */
-	function rules(labels: [string, string, string, string]) {
-		return (
-			<BarChart
-				aria-label="Revenue by quarter"
-				data={DATA}
-				series={[{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }]}
-				// Wide enough that the plot clears the spark tier under a legend of two
-				// rows. The fake packs the ghost into its own width.
-				width={360}
-				legend
-				reference={labels.map((label, index) => ({ value: 40 + index * 10, label }))}
-			/>
-		)
-	}
+	/** The `+N` chip of the legend. */
+	const more = (container: HTMLElement) =>
+		container.querySelector<HTMLElement>('[data-slot="chart-legend-more"]')
 
-	/** The `+N` chip of the row of rules. */
-	const referenceMore = (container: HTMLElement) =>
-		bySlot(container, 'chart-legend-references')?.querySelector<HTMLElement>(
-			'[data-slot="chart-legend-more"]',
-		) ?? null
-
+	/** Whether any part of the drawing has receded behind an emphasis. */
 	const recedes = (container: HTMLElement) =>
-		(bySlot(container, 'chart-marks')?.getAttribute('class') ?? '').includes('opacity-25')
+		container.querySelector('svg [class*="opacity-25"]') !== null
 
-	it('holds the rules that do not fit in the `+N` chip of their own row', async () => {
-		const { container } = renderUI(rules(['Target', 'Ceiling', 'Floor', 'Middle']))
-
-		await act(async () => {})
-
-		// The series row has room, so it takes no chip. The rules row cuts.
-		expect(
-			bySlot(container, 'chart-legend-series')?.querySelector('[data-slot="chart-legend-more"]'),
-		).toBeNull()
-
-		const more = present(referenceMore(container), 'the +N chip of the rules')
-
-		await act(async () => {
-			fireEvent.click(more)
-		})
-
-		const chip = present(
-			document.querySelector<HTMLElement>(
-				'[data-slot="chart-legend-overflow"] [data-slot="chart-legend-reference"]',
-			),
-			'a chip in the popover',
-		)
-
-		expect(chip.getAttribute('aria-pressed')).toBe('true')
-
-		// A touch on a chip of the popover is a tap, not a point.
-		fireEvent.pointerEnter(chip, { pointerType: 'touch' })
-
-		expect(recedes(container)).toBe(false)
-
-		// A pointer recedes the marks to the rule of the chip.
-		fireEvent.pointerEnter(chip, { pointerType: 'mouse' })
-
-		expect(recedes(container)).toBe(true)
-
-		fireEvent.pointerLeave(chip)
-
-		expect(recedes(container)).toBe(false)
-
-		// A click toggles the rule off, and the chip strikes its label.
-		const drawn = allBySlot(container, 'chart-reference-line').length
-
-		fireEvent.click(chip)
-
-		expect(chip.getAttribute('aria-pressed')).toBe('false')
-
-		expect(chip.querySelector('.line-through')).not.toBeNull()
-
-		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(drawn - 1)
-	})
-
-	it('clears the emphasis of a pointed chip when the popover closes', async () => {
-		const { container } = renderUI(rules(['Target', 'Ceiling', 'Floor', 'Middle']))
+	it('clears the emphasis of a pointed switch when the overflow popover closes', async () => {
+		const { container } = renderUI(lines(['Aa', 'Bb', 'Cc', LONG]))
 
 		await act(async () => {})
 
-		const more = present(referenceMore(container), 'the +N chip of the rules')
+		const chip = present(more(container), 'the +N chip')
 
 		await act(async () => {
-			fireEvent.click(more)
+			fireEvent.click(chip)
 		})
 
-		const chip = present(
+		const switched = present(
 			document.querySelector<HTMLElement>(
-				'[data-slot="chart-legend-overflow"] [data-slot="chart-legend-reference"]',
+				'[data-slot="chart-legend-overflow"] [data-slot="chart-legend-item"]',
 			),
-			'a chip in the popover',
+			'a switch in the popover',
 		)
 
-		fireEvent.pointerEnter(chip, { pointerType: 'mouse' })
+		fireEvent.pointerEnter(switched, { pointerType: 'mouse' })
 
 		expect(recedes(container)).toBe(true)
 
 		await act(async () => {
-			fireEvent.keyDown(chip, { key: 'Escape' })
+			fireEvent.keyDown(switched, { key: 'Escape' })
 		})
 
 		expect(document.querySelector('[data-slot="chart-legend-overflow"]')).toBeNull()
@@ -504,47 +436,77 @@ describe('chart legend fit after a label change', () => {
 		expect(recedes(container)).toBe(false)
 	})
 
-	it('moves the focus to the `+N` chip when a new cut folds the focused chip', async () => {
-		const { container, rerender } = renderUI(rules(['Aa', 'Bb', 'Cc', 'Dd']))
+	// The legend orders the switches by the latest value, so `d` leads and `a`
+	// comes last.
+	it('moves the focus to the `+N` chip when a new cut folds the focused switch', async () => {
+		const { container, rerender } = renderUI(lines(['Aa', 'Bb', 'Cc', 'Dd']))
 
 		await act(async () => {})
 
-		// Four short chips fit on one line, so the row has no chip.
-		expect(referenceMore(container)).toBeNull()
+		// Four short switches fit on one line, so the row has no chip.
+		expect(more(container)).toBeNull()
 
-		const last = present(allBySlot(container, 'chart-legend-reference').at(-1), 'the last chip')
+		const last = present(allBySlot(container, 'chart-legend-item').at(-1), 'the last switch')
 
 		act(() => last.focus())
 
-		// Longer labels fold the last chips into the `+N` chip. The focused chip
-		// unmounts, so the focus moves to the chip that holds it.
-		rerender(rules(['Aa', 'Bb', 'Cc', LONG]))
+		// A long first label folds the last switches into the `+N` chip. The
+		// focused switch unmounts, so the focus moves to the chip that holds it.
+		rerender(lines(['Aa', 'Bb', 'Cc', LONG]))
 
 		await act(async () => {})
 
 		expect(last.isConnected).toBe(false)
 
-		expect(document.activeElement).toBe(referenceMore(container))
+		expect(document.activeElement).toBe(more(container))
 	})
 
-	it('moves the focus to the last chip when a new cut removes the focused `+N` chip', async () => {
-		const { container, rerender } = renderUI(rules(['Aa', 'Bb', 'Cc', LONG]))
+	it('moves the focus to the last switch when a new cut removes the focused `+N` chip', async () => {
+		const { container, rerender } = renderUI(lines(['Aa', 'Bb', 'Cc', LONG]))
 
 		await act(async () => {})
 
-		const more = present(referenceMore(container), 'the +N chip of the rules')
+		const chip = present(more(container), 'the +N chip')
 
-		act(() => more.focus())
+		act(() => chip.focus())
 
 		// Short labels fit on one line, so the row drops its chip, and the focus
-		// moves to the last chip that stays.
-		rerender(rules(['Aa', 'Bb', 'Cc', 'Dd']))
+		// moves to the last switch that stays.
+		rerender(lines(['Aa', 'Bb', 'Cc', 'Dd']))
 
 		await act(async () => {})
 
-		expect(more.isConnected).toBe(false)
+		expect(chip.isConnected).toBe(false)
 
-		expect(document.activeElement).toBe(allBySlot(container, 'chart-legend-reference').at(-1))
+		expect(document.activeElement).toBe(allBySlot(container, 'chart-legend-item').at(-1))
+	})
+
+	it('wraps the rules under the figure with no `+N` chip', async () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by quarter"
+				data={DATA}
+				series={[{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }]}
+				width={300}
+				legend
+				reference={['Target', 'Ceiling', 'Floor', LONG].map((label, index) => ({
+					value: 40 + index * 10,
+					label,
+				}))}
+			/>,
+		)
+
+		await act(async () => {})
+
+		// The row of rules takes no cap, so every chip shows, even past the width
+		// that caps the series row at one line.
+		expect(allBySlot(container, 'chart-legend-reference')).toHaveLength(4)
+
+		expect(
+			bySlot(container, 'chart-legend-references')?.querySelector(
+				'[data-slot="chart-legend-more"]',
+			),
+		).toBeNull()
 	})
 })
 

@@ -74,26 +74,31 @@ describe('chart chrome reserve (real browser)', () => {
 				).toBe(chartChromeReserve({ headerLines: 2, legend: true }))
 			})
 
-			it(`matches the rendered row of reference chips at ${density} density under ${inherited}`, async () => {
-				const { container } = renderUI(
+			it(`keeps the plot height under a row of reference chips at ${density} density under ${inherited}`, async () => {
+				const chart = (reference?: { value: number; label: string }[]) => (
 					<div data-density={density} className={inherited} style={{ width: 800 }}>
 						<BarChart
 							aria-label="Revenue and costs by month"
 							data={DATA}
 							series={[...SERIES]}
-							reference={[{ value: 45, label: 'Target' }]}
+							reference={reference}
 						/>
-					</div>,
+					</div>
 				)
 
-				const legend = await waitFor(() => getSlot(container, 'chart-legend'))
+				const bare = renderUI(chart())
 
-				// The chips take a row of their own under the series row.
-				expect(height(getSlot(container, 'chart-legend-references'))).toBe(CHART_LEGEND_ROW_HEIGHT)
+				const plain = height(await waitFor(() => getSlot(bare.container, 'chart-plot')))
 
-				expect(height(legend) + CHART_FIGURE_GAP).toBe(
-					chartChromeReserve({ headerLines: 0, legend: true, referenceRow: true }),
-				)
+				bare.unmount()
+
+				const { container } = renderUI(chart([{ value: 45, label: 'Target' }]))
+
+				await waitFor(() => getSlot(container, 'chart-legend-references'))
+
+				// The chips sit under the figure, out of the aspect box, so the plot keeps
+				// the height of a chart with no rule.
+				expect(height(getSlot(container, 'chart-plot'))).toBe(plain)
 			})
 		}
 	}

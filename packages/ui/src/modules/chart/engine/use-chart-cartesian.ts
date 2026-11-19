@@ -393,8 +393,7 @@ export type CartesianChart = {
  * legend never shares the aspect box, so it counts as no stacked band. The
  * legend otherwise shows for two or more entries unless forced, the same rule
  * {@link cartesianLegendItems} reads. The entries are the series and the
- * `rules` that the legend names in place of their labels. A stacked legend
- * with reference chips adds their row (`chips`).
+ * `rules` that the legend names in place of their labels.
  *
  * @internal
  */
@@ -402,14 +401,10 @@ function cartesianChrome<T>(
 	props: CartesianData<T>,
 	legend: ResolvedLegend['value'],
 	rules: number,
-	chips: boolean,
 ): ChartChrome {
-	const bands = legendBands(legend, props.series.length + rules)
-
 	return {
 		headerLines: headerLineCount(props.title, props.subtitle),
-		legend: bands,
-		referenceRow: bands && chips,
+		legend: legendBands(legend, props.series.length + rules),
 	}
 }
 
@@ -580,12 +575,7 @@ export function useChartCartesian<T>(
 		sizing,
 		aside,
 		aspect: outerAspect,
-		chrome: cartesianChrome(
-			props,
-			legend,
-			listedReferences.size,
-			resolvedLegend.referenceVariant === 'chips' && legendEntries.size > 0,
-		),
+		chrome: cartesianChrome(props, legend, listedReferences.size),
 		tickTarget: TICK_TARGET,
 		orientation,
 	})

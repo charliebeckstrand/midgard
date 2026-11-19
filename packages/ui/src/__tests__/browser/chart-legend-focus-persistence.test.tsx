@@ -114,15 +114,24 @@ describe('chart legend focus persistence (real browser)', () => {
 	const marksReceded = (container: HTMLElement) =>
 		(allBySlot(container, 'chart-marks')[0]?.getAttribute('class') ?? '').includes('opacity-25')
 
+	/**
+	 * Tabs from `before` until `target` holds the focus. The row of reference chips
+	 * under the figure is a Tab stop of its own, after the legend and the plot.
+	 */
+	async function tabTo(before: HTMLElement, target: HTMLElement) {
+		before.focus()
+
+		for (let stop = 0; stop < 6 && document.activeElement !== target; stop++) {
+			await userEvent.tab()
+		}
+	}
+
 	it('recedes the marks while a reference chip holds keyboard focus', async () => {
 		const { container, before, chip } = renderChart({ legend: 'top', reference: TARGET })
 
-		// Tab into the legend (landing on the first switch), then rove past the two
-		// switches to the reference chip: a keyboard focus carries the ring, so the
-		// chip recedes the marks the way pointing the rule does.
-		before.focus()
-		await userEvent.tab()
-		await userEvent.keyboard('{ArrowRight}{ArrowRight}')
+		// Tab to the row of reference chips: a keyboard focus carries the ring, so
+		// the chip recedes the marks the way pointing the rule does.
+		await tabTo(before, chip)
 
 		expect(document.activeElement).toBe(chip)
 		expect(chip.matches(':focus-visible')).toBe(true)
@@ -133,10 +142,8 @@ describe('chart legend focus persistence (real browser)', () => {
 	it('stops the recede when keyboard focus leaves a reference chip toggled off and on', async () => {
 		const { container, before, chip } = renderChart({ legend: 'top', reference: TARGET })
 
-		// Rove to the chip, then toggle its rule off and on with the keyboard.
-		before.focus()
-		await userEvent.tab()
-		await userEvent.keyboard('{ArrowRight}{ArrowRight}')
+		// Tab to the chip, then toggle its rule off and on with the keyboard.
+		await tabTo(before, chip)
 
 		expect(document.activeElement).toBe(chip)
 
@@ -148,15 +155,11 @@ describe('chart legend focus persistence (real browser)', () => {
 		await waitFor(() => expect(marksReceded(container)).toBe(true))
 
 		// The keyboard toggle wrote no pointer, so the recede follows the focus.
-		await userEvent.keyboard('{ArrowLeft}')
-		await settle()
-
-		expect(chip.matches(':focus-visible')).toBe(false)
-		expect(marksReceded(container)).toBe(false)
-
+		// Escape drops the focus from the row.
 		await userEvent.keyboard('{Escape}')
 		await settle()
 
+		expect(chip.matches(':focus-visible')).toBe(false)
 		expect(marksReceded(container)).toBe(false)
 	})
 

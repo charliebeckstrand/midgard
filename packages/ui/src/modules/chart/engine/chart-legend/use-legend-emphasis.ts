@@ -27,7 +27,8 @@ export type LegendEmphasis<Key> = {
  * @param containers - The boxes that hold the switches, in render order: the
  * legend, and a popover that holds the switches past its cap.
  * @param selector - The switches inside the boxes, in render order.
- * @param keyAt - The key of the switch at a position, or `null` for no emphasis.
+ * @param keyAt - The key of the switch at a position. `null` or `undefined`
+ * emphasizes nothing, so a lookup past the end of a list needs no fallback.
  * @param onEmphasis - Receives the emphasized key, or `null`.
  * @param live - Whether a key can take the emphasis. Absent, every key can.
  * @returns The handlers of each switch.
@@ -36,14 +37,14 @@ export type LegendEmphasis<Key> = {
 export function useLegendEmphasis<Key>(
 	containers: readonly RefObject<HTMLElement | null>[],
 	selector: string,
-	keyAt: (position: number) => Key | null,
+	keyAt: (position: number) => Key | null | undefined,
 	onEmphasis: (key: Key | null) => void,
 	live?: (key: Key) => boolean,
 ): LegendEmphasis<Key> {
 	const pointed = useRef<Key | null>(null)
 
 	const sync = useStableEvent(() => {
-		const isLive = (key: Key | null): key is Key => key !== null && (live?.(key) ?? true)
+		const isLive = (key: Key | null | undefined): key is Key => key != null && (live?.(key) ?? true)
 
 		if (isLive(pointed.current)) {
 			onEmphasis(pointed.current)
