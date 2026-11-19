@@ -212,19 +212,30 @@ jobs:
         with:
           name: browser-${{ matrix.shard }}
       - uses: ./.github/actions/playwright
-      # Filtered to `ui`, as in `compiler`.
+      # Filtered to `ui`, as in `compiler`. `COVERAGE` turns on the coverage of
+      # the suite and scales its budgets (packages/ui/vitest.browser.config.ts).
       - run: pnpm turbo run test:browser --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
+        env:
+          COVERAGE: 1
+      # The coverage of this shard, for the `coverage` job. A Turbo cache hit
+      # restores the report too (`outputs` in packages/ui/turbo.json).
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-browser-${{ matrix.shard }}
+          path: packages/ui/coverage/browser/coverage-final.json
+          if-no-files-found: error
+          retention-days: 1
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
-  # Merges the coverage of the two `test` shards into one Cobertura report
-  # (packages/ui/scripts/coverage/merge.ts). Each shard measures only the
-  # source that its own tests execute. Thus Codecov gets one merged report, not
-  # one report for each shard. The `browser` jobs do not measure coverage
-  # (`coverage` in packages/ui/vitest.config.ts).
+  # Merges the coverage of the two `test` shards and of the two `browser`
+  # shards into one Cobertura report (packages/ui/scripts/coverage/merge.ts).
+  # Each shard measures only the source that its own tests execute. Thus
+  # Codecov gets one merged report, not one report for each shard, and a line
+  # is covered when a test of either suite runs it.
   coverage:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, browser]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7

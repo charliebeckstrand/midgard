@@ -49,7 +49,7 @@
 		},
 		"test:browser": {
 			"dependsOn": ["^build"],
-			"env": ["DENSITY_ENGINES"],
+			"env": ["DENSITY_ENGINES", "COVERAGE"],
 			"passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"],
 			"inputs": [
 				"src/**",
@@ -59,7 +59,8 @@
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"vitest.base.ts",
 				"$TURBO_ROOT$/vitest.shared.mts"
-			]
+			],
+			"outputs": ["coverage/browser/**"]
 		},
 		"test:compiler": {
 			"dependsOn": ["^build"],
