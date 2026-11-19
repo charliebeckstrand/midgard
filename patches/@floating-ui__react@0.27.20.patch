@@ -1,18 +1,17 @@
 diff --git a/dist/floating-ui.react.esm.js b/dist/floating-ui.react.esm.js
-index 2a2f9af854440d949f46130ae2d2cdca721b679f..5b5a7d9d7e283453d4cff2255b8e4c882f9d7cb1 100644
+index 781983439884ff775a36b8d4368609f9a7d88644..d44cbe9fda7942b93d40ce82e94209f8553f3cf0 100644
 --- a/dist/floating-ui.react.esm.js
 +++ b/dist/floating-ui.react.esm.js
-@@ -1532,12 +1532,12 @@ function useFloatingPortalNode(props) {
+@@ -1532,12 +1532,11 @@ function useFloatingPortalNode(props) {
    useModernLayoutEffect(() => {
      return () => {
        portalNode == null || portalNode.remove();
 -      // Allow the subsequent layout effects to create a new node on updates.
 -      // The portal node will still be cleaned up on unmount.
-+      // Keep the ref, so the effects below re-attach this node instead of building a
-+      // new one. React <Activity> runs effect cleanups to *hide* a subtree and re-runs
-+      // the effects to reveal it, and a new node would change createPortal's container,
-+      // which remounts everything the portal holds. The node is still removed from the
-+      // document here, and dropped for good on unmount.
++      // Keep the ref, so that the effects below attach this node again and do not
++      // build a new node. React <Activity> runs this cleanup to hide a subtree, and
++      // it runs the effects again to show the subtree. A new node changes the
++      // container of createPortal, and React then remounts the content of the portal.
        // https://github.com/floating-ui/floating-ui/issues/2454
 -      queueMicrotask(() => {
 -        portalNodeRef.current = null;
@@ -20,93 +19,67 @@ index 2a2f9af854440d949f46130ae2d2cdca721b679f..5b5a7d9d7e283453d4cff2255b8e4c88
      };
    }, [portalNode]);
    useModernLayoutEffect(() => {
-@@ -1545,13 +1545,18 @@ function useFloatingPortalNode(props) {
+@@ -1545,12 +1544,17 @@ function useFloatingPortalNode(props) {
      // React <18 (using `useFloatingId` instead of the native `useId`).
      // https://github.com/floating-ui/floating-ui/issues/2778
      if (!uniqueId) return;
 -    if (portalNodeRef.current) return;
++    // A node in the document stays there. A node that the cleanup above removed
++    // goes back into the document.
++    if (portalNodeRef.current?.isConnected) return;
      const existingIdRoot = id ? document.getElementById(id) : null;
      if (!existingIdRoot) return;
 -    const subRoot = document.createElement('div');
 -    subRoot.id = uniqueId;
 -    subRoot.setAttribute(attr, '');
--    existingIdRoot.appendChild(subRoot);
 +    let subRoot = portalNodeRef.current;
-+    if (subRoot) {
-+      // Already built: re-attach rather than rebuild. See the cleanup above.
-+      if (!subRoot.isConnected) existingIdRoot.appendChild(subRoot);
-+    } else {
++    if (!subRoot) {
 +      subRoot = document.createElement('div');
 +      subRoot.id = uniqueId;
 +      subRoot.setAttribute(attr, '');
-+      existingIdRoot.appendChild(subRoot);
 +    }
+     existingIdRoot.appendChild(subRoot);
      portalNodeRef.current = subRoot;
      setPortalNode(subRoot);
-   }, [id, uniqueId]);
-@@ -1560,21 +1565,35 @@ function useFloatingPortalNode(props) {
+@@ -1560,7 +1564,7 @@ function useFloatingPortalNode(props) {
      // be stored in state, not a ref, for this to work reactively.
      if (root === null) return;
      if (!uniqueId) return;
 -    if (portalNodeRef.current) return;
++    if (portalNodeRef.current?.isConnected) return;
      let container = root || (portalContext == null ? void 0 : portalContext.portalNode);
      if (container && !isNode(container)) container = container.current;
      container = container || document.body;
--    let idWrapper = null;
--    if (id) {
--      idWrapper = document.createElement('div');
--      idWrapper.id = id;
--      container.appendChild(idWrapper);
--    }
+@@ -1570,9 +1574,12 @@ function useFloatingPortalNode(props) {
+       idWrapper.id = id;
+       container.appendChild(idWrapper);
+     }
 -    const subRoot = document.createElement('div');
 -    subRoot.id = uniqueId;
 -    subRoot.setAttribute(attr, '');
--    container = idWrapper || container;
--    container.appendChild(subRoot);
 +    let subRoot = portalNodeRef.current;
-+    if (subRoot) {
-+      // Already built: re-attach rather than rebuild. See the cleanup above. Appending to
-+      // the freshly resolved container is what still lets a changed `root`/`id` move the
-+      // node, which is what rebuilding it used to accomplish.
-+      if (!subRoot.isConnected) {
-+        let idWrapper = id ? container.querySelector('#' + CSS.escape(id)) : null;
-+        if (id && !idWrapper) {
-+          idWrapper = document.createElement('div');
-+          idWrapper.id = id;
-+          container.appendChild(idWrapper);
-+        }
-+        (idWrapper || container).appendChild(subRoot);
-+      }
-+    } else {
-+      let idWrapper = null;
-+      if (id) {
-+        idWrapper = document.createElement('div');
-+        idWrapper.id = id;
-+        container.appendChild(idWrapper);
-+      }
++    if (!subRoot) {
 +      subRoot = document.createElement('div');
 +      subRoot.id = uniqueId;
 +      subRoot.setAttribute(attr, '');
-+      (idWrapper || container).appendChild(subRoot);
 +    }
+     container = idWrapper || container;
+     container.appendChild(subRoot);
      portalNodeRef.current = subRoot;
-     setPortalNode(subRoot);
-   }, [id, root, uniqueId, portalContext]);
 diff --git a/dist/floating-ui.react.mjs b/dist/floating-ui.react.mjs
-index 2a2f9af854440d949f46130ae2d2cdca721b679f..5b5a7d9d7e283453d4cff2255b8e4c882f9d7cb1 100644
+index 781983439884ff775a36b8d4368609f9a7d88644..d44cbe9fda7942b93d40ce82e94209f8553f3cf0 100644
 --- a/dist/floating-ui.react.mjs
 +++ b/dist/floating-ui.react.mjs
-@@ -1532,12 +1532,12 @@ function useFloatingPortalNode(props) {
+@@ -1532,12 +1532,11 @@ function useFloatingPortalNode(props) {
    useModernLayoutEffect(() => {
      return () => {
        portalNode == null || portalNode.remove();
 -      // Allow the subsequent layout effects to create a new node on updates.
 -      // The portal node will still be cleaned up on unmount.
-+      // Keep the ref, so the effects below re-attach this node instead of building a
-+      // new one. React <Activity> runs effect cleanups to *hide* a subtree and re-runs
-+      // the effects to reveal it, and a new node would change createPortal's container,
-+      // which remounts everything the portal holds. The node is still removed from the
-+      // document here, and dropped for good on unmount.
++      // Keep the ref, so that the effects below attach this node again and do not
++      // build a new node. React <Activity> runs this cleanup to hide a subtree, and
++      // it runs the effects again to show the subtree. A new node changes the
++      // container of createPortal, and React then remounts the content of the portal.
        // https://github.com/floating-ui/floating-ui/issues/2454
 -      queueMicrotask(() => {
 -        portalNodeRef.current = null;
@@ -114,93 +87,67 @@ index 2a2f9af854440d949f46130ae2d2cdca721b679f..5b5a7d9d7e283453d4cff2255b8e4c88
      };
    }, [portalNode]);
    useModernLayoutEffect(() => {
-@@ -1545,13 +1545,18 @@ function useFloatingPortalNode(props) {
+@@ -1545,12 +1544,17 @@ function useFloatingPortalNode(props) {
      // React <18 (using `useFloatingId` instead of the native `useId`).
      // https://github.com/floating-ui/floating-ui/issues/2778
      if (!uniqueId) return;
 -    if (portalNodeRef.current) return;
++    // A node in the document stays there. A node that the cleanup above removed
++    // goes back into the document.
++    if (portalNodeRef.current?.isConnected) return;
      const existingIdRoot = id ? document.getElementById(id) : null;
      if (!existingIdRoot) return;
 -    const subRoot = document.createElement('div');
 -    subRoot.id = uniqueId;
 -    subRoot.setAttribute(attr, '');
--    existingIdRoot.appendChild(subRoot);
 +    let subRoot = portalNodeRef.current;
-+    if (subRoot) {
-+      // Already built: re-attach rather than rebuild. See the cleanup above.
-+      if (!subRoot.isConnected) existingIdRoot.appendChild(subRoot);
-+    } else {
++    if (!subRoot) {
 +      subRoot = document.createElement('div');
 +      subRoot.id = uniqueId;
 +      subRoot.setAttribute(attr, '');
-+      existingIdRoot.appendChild(subRoot);
 +    }
+     existingIdRoot.appendChild(subRoot);
      portalNodeRef.current = subRoot;
      setPortalNode(subRoot);
-   }, [id, uniqueId]);
-@@ -1560,21 +1565,35 @@ function useFloatingPortalNode(props) {
+@@ -1560,7 +1564,7 @@ function useFloatingPortalNode(props) {
      // be stored in state, not a ref, for this to work reactively.
      if (root === null) return;
      if (!uniqueId) return;
 -    if (portalNodeRef.current) return;
++    if (portalNodeRef.current?.isConnected) return;
      let container = root || (portalContext == null ? void 0 : portalContext.portalNode);
      if (container && !isNode(container)) container = container.current;
      container = container || document.body;
--    let idWrapper = null;
--    if (id) {
--      idWrapper = document.createElement('div');
--      idWrapper.id = id;
--      container.appendChild(idWrapper);
--    }
+@@ -1570,9 +1574,12 @@ function useFloatingPortalNode(props) {
+       idWrapper.id = id;
+       container.appendChild(idWrapper);
+     }
 -    const subRoot = document.createElement('div');
 -    subRoot.id = uniqueId;
 -    subRoot.setAttribute(attr, '');
--    container = idWrapper || container;
--    container.appendChild(subRoot);
 +    let subRoot = portalNodeRef.current;
-+    if (subRoot) {
-+      // Already built: re-attach rather than rebuild. See the cleanup above. Appending to
-+      // the freshly resolved container is what still lets a changed `root`/`id` move the
-+      // node, which is what rebuilding it used to accomplish.
-+      if (!subRoot.isConnected) {
-+        let idWrapper = id ? container.querySelector('#' + CSS.escape(id)) : null;
-+        if (id && !idWrapper) {
-+          idWrapper = document.createElement('div');
-+          idWrapper.id = id;
-+          container.appendChild(idWrapper);
-+        }
-+        (idWrapper || container).appendChild(subRoot);
-+      }
-+    } else {
-+      let idWrapper = null;
-+      if (id) {
-+        idWrapper = document.createElement('div');
-+        idWrapper.id = id;
-+        container.appendChild(idWrapper);
-+      }
++    if (!subRoot) {
 +      subRoot = document.createElement('div');
 +      subRoot.id = uniqueId;
 +      subRoot.setAttribute(attr, '');
-+      (idWrapper || container).appendChild(subRoot);
 +    }
+     container = idWrapper || container;
+     container.appendChild(subRoot);
      portalNodeRef.current = subRoot;
-     setPortalNode(subRoot);
-   }, [id, root, uniqueId, portalContext]);
 diff --git a/dist/floating-ui.react.umd.js b/dist/floating-ui.react.umd.js
-index 52e03a1564ad05c1c8f1727c9237b58133a75ea6..3250a71c9bf1171bcac4e5b8de7bd4fb54923939 100644
+index 20e45b4d2735c54805180d45a8890e7c0e1190db..f65f46c674252425fc89a32f4ad7b7ffab0a3ede 100644
 --- a/dist/floating-ui.react.umd.js
 +++ b/dist/floating-ui.react.umd.js
-@@ -2724,12 +2724,12 @@
+@@ -2730,12 +2730,11 @@
      index(() => {
        return () => {
          portalNode == null || portalNode.remove();
 -        // Allow the subsequent layout effects to create a new node on updates.
 -        // The portal node will still be cleaned up on unmount.
-+        // Keep the ref, so the effects below re-attach this node instead of building a
-+        // new one. React <Activity> runs effect cleanups to *hide* a subtree and re-runs
-+        // the effects to reveal it, and a new node would change createPortal's container,
-+        // which remounts everything the portal holds. The node is still removed from the
-+        // document here, and dropped for good on unmount.
++        // Keep the ref, so that the effects below attach this node again and do not
++        // build a new node. React <Activity> runs this cleanup to hide a subtree, and
++        // it runs the effects again to show the subtree. A new node changes the
++        // container of createPortal, and React then remounts the content of the portal.
          // https://github.com/floating-ui/floating-ui/issues/2454
 -        queueMicrotask(() => {
 -          portalNodeRef.current = null;
@@ -208,75 +155,50 @@ index 52e03a1564ad05c1c8f1727c9237b58133a75ea6..3250a71c9bf1171bcac4e5b8de7bd4fb
        };
      }, [portalNode]);
      index(() => {
-@@ -2737,13 +2737,18 @@
+@@ -2743,12 +2742,17 @@
        // React <18 (using `useFloatingId` instead of the native `useId`).
        // https://github.com/floating-ui/floating-ui/issues/2778
        if (!uniqueId) return;
 -      if (portalNodeRef.current) return;
++      // A node in the document stays there. A node that the cleanup above removed
++      // goes back into the document.
++      if (portalNodeRef.current?.isConnected) return;
        const existingIdRoot = id ? document.getElementById(id) : null;
        if (!existingIdRoot) return;
 -      const subRoot = document.createElement('div');
 -      subRoot.id = uniqueId;
 -      subRoot.setAttribute(attr, '');
--      existingIdRoot.appendChild(subRoot);
 +      let subRoot = portalNodeRef.current;
-+      if (subRoot) {
-+        // Already built: re-attach rather than rebuild. See the cleanup above.
-+        if (!subRoot.isConnected) existingIdRoot.appendChild(subRoot);
-+      } else {
++      if (!subRoot) {
 +        subRoot = document.createElement('div');
 +        subRoot.id = uniqueId;
 +        subRoot.setAttribute(attr, '');
-+        existingIdRoot.appendChild(subRoot);
 +      }
+       existingIdRoot.appendChild(subRoot);
        portalNodeRef.current = subRoot;
        setPortalNode(subRoot);
-     }, [id, uniqueId]);
-@@ -2752,21 +2757,35 @@
+@@ -2758,7 +2762,7 @@
        // be stored in state, not a ref, for this to work reactively.
        if (root === null) return;
        if (!uniqueId) return;
 -      if (portalNodeRef.current) return;
++      if (portalNodeRef.current?.isConnected) return;
        let container = root || (portalContext == null ? void 0 : portalContext.portalNode);
        if (container && !isNode(container)) container = container.current;
        container = container || document.body;
--      let idWrapper = null;
--      if (id) {
--        idWrapper = document.createElement('div');
--        idWrapper.id = id;
--        container.appendChild(idWrapper);
--      }
+@@ -2768,9 +2772,12 @@
+         idWrapper.id = id;
+         container.appendChild(idWrapper);
+       }
 -      const subRoot = document.createElement('div');
 -      subRoot.id = uniqueId;
 -      subRoot.setAttribute(attr, '');
--      container = idWrapper || container;
--      container.appendChild(subRoot);
 +      let subRoot = portalNodeRef.current;
-+      if (subRoot) {
-+        // Already built: re-attach rather than rebuild. See the cleanup above. Appending to
-+        // the freshly resolved container is what still lets a changed `root`/`id` move the
-+        // node, which is what rebuilding it used to accomplish.
-+        if (!subRoot.isConnected) {
-+          let idWrapper = id ? container.querySelector('#' + CSS.escape(id)) : null;
-+          if (id && !idWrapper) {
-+            idWrapper = document.createElement('div');
-+            idWrapper.id = id;
-+            container.appendChild(idWrapper);
-+          }
-+          (idWrapper || container).appendChild(subRoot);
-+        }
-+      } else {
-+        let idWrapper = null;
-+        if (id) {
-+          idWrapper = document.createElement('div');
-+          idWrapper.id = id;
-+          container.appendChild(idWrapper);
-+        }
++      if (!subRoot) {
 +        subRoot = document.createElement('div');
 +        subRoot.id = uniqueId;
 +        subRoot.setAttribute(attr, '');
-+        (idWrapper || container).appendChild(subRoot);
 +      }
+       container = idWrapper || container;
+       container.appendChild(subRoot);
        portalNodeRef.current = subRoot;
-       setPortalNode(subRoot);
-     }, [id, root, uniqueId, portalContext]);
