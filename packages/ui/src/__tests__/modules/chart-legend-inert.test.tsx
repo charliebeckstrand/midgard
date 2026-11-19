@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BarChart, DonutChart, LineChart, ScatterChart } from '../../modules/chart'
+import { findReseatTarget } from '../../modules/chart/engine/chart-legend/legend'
 import { resolveLegend } from '../../modules/chart/engine/chart-legend/schema'
 import { act, allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
 
@@ -524,5 +525,68 @@ describe('chart legend fit after a label change', () => {
 		expect(last.isConnected).toBe(false)
 
 		expect(document.activeElement).toBe(referenceMore(container))
+	})
+
+	it('moves the focus to the last chip when a new cut removes the focused `+N` chip', async () => {
+		const { container, rerender } = renderUI(rules(['Aa', 'Bb', 'Cc', LONG]))
+
+		await act(async () => {})
+
+		const more = present(referenceMore(container), 'the +N chip of the rules')
+
+		act(() => more.focus())
+
+		// Short labels fit on one line, so the row drops its chip, and the focus
+		// moves to the last chip that stays.
+		rerender(rules(['Aa', 'Bb', 'Cc', 'Dd']))
+
+		await act(async () => {})
+
+		expect(more.isConnected).toBe(false)
+
+		expect(document.activeElement).toBe(allBySlot(container, 'chart-legend-reference').at(-1))
+	})
+})
+
+describe('findReseatTarget', () => {
+	/** A row with a chip for each label, and a `+N` chip if asked. */
+	function row(labels: string[], more = false) {
+		const element = document.createElement('div')
+
+		for (const label of labels) {
+			const chip = document.createElement('button')
+
+			chip.dataset.slot = 'chart-legend-reference'
+
+			chip.textContent = label
+
+			element.append(chip)
+		}
+
+		if (more) {
+			const chip = document.createElement('button')
+
+			chip.dataset.slot = 'chart-legend-more'
+
+			element.append(chip)
+		}
+
+		return element
+	}
+
+	it('takes the `+N` chip of the row', () => {
+		const element = row(['Aa', 'Bb'], true)
+
+		expect(findReseatTarget(element)?.dataset.slot).toBe('chart-legend-more')
+	})
+
+	it('takes the last control of a row with no `+N` chip', () => {
+		expect(findReseatTarget(row(['Aa', 'Bb']))?.textContent).toBe('Bb')
+	})
+
+	it('takes nothing from an empty row, or from a row that is not mounted', () => {
+		expect(findReseatTarget(row([]))).toBeUndefined()
+
+		expect(findReseatTarget(null)).toBeUndefined()
 	})
 })

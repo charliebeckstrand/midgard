@@ -636,6 +636,23 @@ export type ChartLegendProps = {
 	inert?: boolean
 }
 
+/**
+ * The control that takes the focus when a new cut unmounts the focused control
+ * of a row: the `+N` chip of the row, else the last control that stays. A new
+ * cut folds the focused control into the chip, or removes the chip when every
+ * control fits.
+ *
+ * @param row - The row, or null before it mounts.
+ * @returns The control, or undefined when the row holds none.
+ * @internal
+ */
+export function findReseatTarget(row: ParentNode | null): HTMLElement | undefined {
+	return (
+		row?.querySelector<HTMLElement>('[data-slot="chart-legend-more"]') ??
+		[...(row?.querySelectorAll<HTMLElement>(ROW_CONTROLS) ?? [])].at(-1)
+	)
+}
+
 /** A group of legend controls that a row cap can cut. @internal */
 type LegendGroup<T> = {
 	/** The visible row, whose focus a cut can drop. */
@@ -665,16 +682,9 @@ function useLegendGroup<T extends { label: string; value?: string }>(
 	rowRef: RefObject<HTMLDivElement | null>,
 	onFocusLost: () => void,
 ): LegendGroup<T> {
-	// A cut that unmounts the focused control moves the focus to the `+N` chip of
-	// the row, else to the last control that stays.
+	// A cut that unmounts the focused control moves the focus back into the row.
 	const reseat = useStableEvent(() => {
-		const row = rowRef.current
-
-		const target =
-			row?.querySelector<HTMLElement>('[data-slot="chart-legend-more"]') ??
-			[...(row?.querySelectorAll<HTMLElement>(ROW_CONTROLS) ?? [])].at(-1)
-
-		target?.focus()
+		findReseatTarget(rowRef.current)?.focus()
 
 		onFocusLost()
 	})
@@ -943,6 +953,8 @@ export function ChartLegend({
 
 	const pages = useLegendPages(items, panel)
 
+	const pageItems = pages.items
+
 	const cap = !panel && maxRows !== undefined && maxRows > 0 ? maxRows : undefined
 
 	const notes = referenceVariant === 'notes'
@@ -954,7 +966,7 @@ export function ChartLegend({
 	const emphasis = useLegendEmphasis(
 		containers,
 		'button[data-slot="chart-legend-item"]',
-		(position) => pages.items[position]?.index ?? null,
+		(position) => pageItems[position]?.index ?? null,
 		setSeriesFocus,
 	)
 
@@ -977,12 +989,7 @@ export function ChartLegend({
 	const grouped = references.length > 0
 
 	// A legend with no rule is the series row itself, as a legend of series alone.
-	const series = useLegendGroup(
-		pages.items,
-		cap,
-		grouped || panel ? seriesRowRef : ref,
-		syncEmphasis,
-	)
+	const series = useLegendGroup(pageItems, cap, grouped || panel ? seriesRowRef : ref, syncEmphasis)
 
 	// A note is not a control, so the notes take no fit.
 	const chipList = notes ? NO_REFERENCES : references
@@ -1012,7 +1019,8 @@ export function ChartLegend({
 	const toolbarProps = useLegendToolbar(
 		ref,
 		panel,
-		!inert && (items.length > 0 || (references.length > 0 && !notes)),
+		// A note is not a control, so a legend of notes alone takes no toolbar.
+		!inert && items.length + chipList.length > 0,
 	)
 
 	const renderEntry = (item: ChartLegendItem, ghost: boolean) => (
