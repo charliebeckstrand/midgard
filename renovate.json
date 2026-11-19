@@ -28,6 +28,16 @@
 			],
 			"datasourceTemplate": "npm",
 			"versioningTemplate": "npm"
+		},
+		{
+			"description": "Renovate has no built-in manager for the MCP servers in .mcp.json. Each server runs through `npx -y` at an exact version, as a word of a shell command or as an argument, and no package.json holds it. Without this manager, the pins stay at the version of the day that they were added.",
+			"customType": "regex",
+			"managerFilePatterns": ["/^\\.mcp\\.json$/"],
+			"matchStrings": [
+				"(?:-y |\")(?<depName>(?:@[a-z0-9-]+/)?[a-z0-9.-]+)@(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+			],
+			"datasourceTemplate": "npm",
+			"versioningTemplate": "npm"
 		}
 	],
 	"packageRules": [
