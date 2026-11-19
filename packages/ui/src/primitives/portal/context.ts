@@ -46,3 +46,22 @@ export function usePortalContainer(container?: PortalContainer): PortalContainer
 
 	return container ?? ambient
 }
+
+/**
+ * The root node of the nearest surface that a `Portal` mounts: the root of an
+ * `Overlay`, or the positioned wrapper of a `FloatingSurface`. An overlay that
+ * opens in the content of the surface publishes the node as the reference of
+ * its portal (`useOverlayNesting`). The value is a getter with one identity for
+ * the life of the surface, so the mount of the node does not render the
+ * content again.
+ *
+ * @remarks Each surface gives its own node, so the reference is always the
+ * nearest surface of either kind. A Dialog that opens from a Popover in a Sheet
+ * thus has the Popover as its reference, and the Popover keeps the Dialog.
+ *
+ * @internal
+ */
+export const [SurfaceNodeContext] = createContext<(() => HTMLElement | null) | null>(
+	'SurfaceNode',
+	{ default: null },
+)

@@ -109,9 +109,9 @@ Import these from `utilities/floating-portal-registry`. They tell whether a pres
 | `publishPortalReference` | Records the reference element of the surface in a portal node, so that another surface can find it. Returns the teardown. |
 | `hasPortalReference` | Whether the surface in a portal node recorded a reference. |
 | `foreignFloatingPortal` | The floating portal that a press landed in, when it is not the portal of the container. |
-| `referenceOpenedWithin` | Whether the surface in a portal node was opened from inside a container. |
+| `referenceOpenedWithin` | Whether the surface in a portal node was opened from inside a container, at any depth. A surface that opened from a surface in the container is in the container too. |
 | `portalReference` | The reference element of the surface in a portal node, or `null`. |
-| `pressLandsInSurfaceOpenedWithin` | Whether a press landed in a floating surface opened from inside a container. `useDismissable` asks it for a boundary that is not a floating panel. |
+| `pressLandsInSurfaceOpenedWithin` | Whether a press landed in a floating surface opened from inside a container, at any depth. `useDismissable` asks it for a boundary that is not a floating panel. |
 
 ## Overlay layers
 

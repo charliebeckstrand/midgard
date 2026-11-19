@@ -103,16 +103,16 @@ export function foreignFloatingPortal(container: Element, target: Node): Element
 }
 
 /**
- * Whether the surface in `portal` was opened from inside `container`. The one
- * definition of the descendancy rule: a surface that published no reference has
- * no descendancy to claim.
+ * Whether the surface in `portal` was opened from inside `container`, at any
+ * depth. The one definition of the descendancy rule: a surface that published
+ * no reference has no descendancy to claim. A surface that opened from a
+ * surface in `container` is in `container` too, such as a listbox in a Dialog
+ * that opened from a Sheet.
  *
  * @internal
  */
 export function referenceOpenedWithin(container: Element, portal: Element): boolean {
-	const reference = portalReference(portal)
-
-	return reference != null && container.contains(reference)
+	return containsThroughPortals(container, portalReference(portal))
 }
 
 /**
