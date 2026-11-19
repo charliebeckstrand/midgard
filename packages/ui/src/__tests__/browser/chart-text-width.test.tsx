@@ -4,16 +4,22 @@ import { act, getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * `useChartTextWidth` reads the width that a label renders at, in the font of
- * its host. It measures again when a web font finishes loading, because the
- * swap changes every width.
+ * its host. It measures again when a web font or a stylesheet finishes
+ * loading, because each can change every width.
  *
  * Rides the real browser because the claim is a computed one: jsdom has no
  * text layout.
  */
 const TEXTS = ['Organic search 42%', 'Direct 26%'] as const
 
-function Probe({ font = 'monospace' }: { font?: string }) {
-	const { width, hostRef } = useChartTextWidth(TEXTS, 'text-sm', 1)
+function Probe({
+	font = 'monospace',
+	className = 'text-sm',
+}: {
+	font?: string
+	className?: string
+}) {
+	const { width, hostRef } = useChartTextWidth(TEXTS, className, 1)
 
 	return (
 		<div ref={hostRef} style={{ fontFamily: font }}>
@@ -57,5 +63,29 @@ describe('useChartTextWidth (real browser)', () => {
 		})
 
 		await waitFor(() => expect(widths(container)[0]).not.toBe(monospace))
+	})
+
+	it('measures again after a stylesheet loads', async () => {
+		const { container } = renderUI(<Probe className="probe-face" />)
+
+		await waitFor(() => expect(widths(container)[0]).toBeGreaterThan(TEXTS[0].length))
+
+		const [unstyled = 0] = widths(container)
+
+		// The stylesheet that sets the class loads after the first measure, as the
+		// full stylesheet of a prerendered page loads after hydration.
+		const sheet = document.createElement('link')
+
+		sheet.rel = 'stylesheet'
+
+		sheet.href = 'data:text/css,.probe-face{font-size:40px}'
+
+		document.head.append(sheet)
+
+		try {
+			await waitFor(() => expect(widths(container)[0]).toBeGreaterThan(unstyled * 2))
+		} finally {
+			sheet.remove()
+		}
 	})
 })
