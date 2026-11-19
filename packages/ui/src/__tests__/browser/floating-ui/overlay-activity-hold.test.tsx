@@ -13,7 +13,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * real engine that node is built in a layout effect and removed in its cleanup, and
  * `<Activity>` runs cleanups to hide a subtree and re-runs the effects to reveal it. Left
  * alone, the reveal built a *new* node, which changed `createPortal`'s container and
- * remounted the whole surface: state gone, scroll offsets gone. `patches/@floating-ui+react`
+ * remounted the whole surface: state gone, scroll offsets gone. `patches/@floating-ui__react`
  * makes the node re-attach instead. See that patch for the reasoning. The Vite dep cache can
  * serve the module from before the patch, so clear `packages/ui/node_modules/.vite` when you
  * add or remove the patch.
