@@ -25,6 +25,8 @@ type ChartValues = {
 	entriesPage: { page: number; count: number }
 	showMore: { count: number }
 	moreEntries: Record<never, never>
+	series: Record<never, never>
+	references: Record<never, never>
 	value: Record<never, never>
 }
 
@@ -121,6 +123,18 @@ export const chartMessages: MessageSet<ChartValues> = defineMessages<ChartValues
 		id: 'ui.chart.moreEntries',
 		defaultMessage: 'More legend entries',
 		description: 'The name of the panel with the legend entries that do not fit.',
+	},
+	series: {
+		id: 'ui.chart.series',
+		defaultMessage: 'Series',
+		description:
+			'The heading of the part of a chart legend that names the data series, such as Revenue and Costs.',
+	},
+	references: {
+		id: 'ui.chart.references',
+		defaultMessage: 'References',
+		description:
+			'The heading of the part of a chart legend that names the reference lines, such as a target or a release date.',
 	},
 	value: {
 		id: 'ui.chart.value',

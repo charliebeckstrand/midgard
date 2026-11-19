@@ -62,6 +62,35 @@ describe('Swatch', () => {
 		expect(el?.getAttribute('class')).toContain('repeating-linear-gradient')
 	})
 
+	it('runs a vertical line down, as wide as a horizontal line', () => {
+		const { container } = renderUI(
+			<Swatch shape="line" variant="dashed" orientation="vertical" color="text-blue-600" />,
+		)
+
+		const el = bySlot(container, 'swatch')
+
+		expect(el).toHaveAttribute('data-orientation', 'vertical')
+
+		// The dashes run down the line, and the line is 2 px thick.
+		expect(el?.getAttribute('class')).toContain('repeating-linear-gradient(to_bottom')
+
+		expect(el).toHaveClass('w-0.5')
+
+		// The inline margin gives it the width of a horizontal line, so the
+		// labels after the two start at one edge.
+		expect(el?.getAttribute('class')).toContain('density-mx-')
+	})
+
+	it('runs a line across by default, and stamps no direction on a box', () => {
+		const line = renderUI(<Swatch shape="line" color="text-blue-600" />)
+
+		expect(bySlot(line.container, 'swatch')).toHaveAttribute('data-orientation', 'horizontal')
+
+		const box = renderUI(<Swatch orientation="vertical" color="text-blue-600" />)
+
+		expect(bySlot(box.container, 'swatch')).not.toHaveAttribute('data-orientation')
+	})
+
 	it.each(['square', 'circle'] as const)(
 		'frames the dashed %s variant with a dashed border',
 		(shape) => {

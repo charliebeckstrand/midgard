@@ -8,6 +8,8 @@ import DualAxis from './dual-axis.tsx'
 import MultiSeries from './multi-series.tsx'
 import ReferenceLabels from './reference-labels.tsx'
 import ReferenceLegend from './reference-legend.tsx'
+import ReferenceNotes from './reference-notes.tsx'
+import ReferencePanel from './reference-panel.tsx'
 import SingleSeries from './single-series.tsx'
 import TimeAxis from './time-axis.tsx'
 import ValueLabels from './value-labels.tsx'
@@ -26,6 +28,8 @@ export default function LineTab() {
 			<Example of={ValueLabels} ratio />
 			<Example of={ReferenceLabels} ratio />
 			<Example of={ReferenceLegend} ratio />
+			<Example of={ReferenceNotes} ratio />
+			<Example of={ReferencePanel} ratio />
 			<Example of={Animated} ratio />
 		</>
 	)

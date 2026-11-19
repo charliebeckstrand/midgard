@@ -33,6 +33,7 @@ export type {
 	ChartCartesianLegendConfig,
 	ChartLegendConfig,
 	ChartLegendPlacement,
+	ChartLegendReferenceConfig,
 } from './engine/chart-legend/schema'
 export type { ChartOrientation } from './engine/chart-orientation'
 export type {

@@ -66,8 +66,9 @@ const NONE_HIDDEN: ReadonlySet<number> = new Set()
  * drops entirely, so the `flex-1` plot reclaims the whole aspect box and draws
  * as a pure sparkline. It therefore never wraps under a legend band that
  * crushes it to a sliver of dashes. The series then read on the hover tooltip,
- * as the title does on the veil. A chart with no title or subtitle draws no
- * header either way, and neither does a chart with `heading` off.
+ * as the title does on the veil. The notes under the figure drop with the
+ * legend. A chart with no title or subtitle draws no header either way, and
+ * neither does a chart with `heading` off.
  *
  * The figure takes its name from the title of an inline header, through
  * `aria-labelledby`. A `figcaption` would not do: the header row also holds the
@@ -89,10 +90,12 @@ function chartChrome(
 	titleId: string,
 	subtitle: string | undefined,
 	legend: ReactNode,
+	notes: ReactNode,
 ): {
 	header: ReactNode
 	sparkVeil: ReactNode
 	legend: ReactNode
+	notes: ReactNode
 	labelledBy?: string
 	corner: ReactNode
 	rootClass?: string
@@ -117,6 +120,7 @@ function chartChrome(
 		header,
 		sparkVeil: spark ? head : null,
 		legend: spark ? null : legend,
+		notes: spark ? null : notes,
 		labelledBy: !spark && heading && title ? titleId : undefined,
 		corner: header ? null : <ChartMenuButton title={title} place="corner" />,
 		rootClass: header ? undefined : 'relative',
@@ -410,6 +414,12 @@ export type ChartFrameProps = AccessibleName & {
 	 * reference is what lets a screen reader read the overlay, such as a donut's total.
 	 */
 	overlay?: ReactNode
+	/**
+	 * Notes under the figure, out of the aspect box: the notes of the reference
+	 * rules of a stacked legend. They add to the height of the chart, and take
+	 * none from the plot. Spark drops them with the legend.
+	 */
+	notes?: ReactNode
 	/** Visually-hidden HTML beside the data table: reference-line parity outside the plot. */
 	annotations?: ReactNode
 	/**
@@ -483,6 +493,7 @@ export function ChartFrame({
 	orientation,
 	className,
 	overlay,
+	notes,
 	annotations,
 	contextMenu,
 	fullscreen,
@@ -661,10 +672,11 @@ export function ChartFrame({
 		header,
 		sparkVeil,
 		legend: legendFrame,
+		notes: notesFrame,
 		labelledBy,
 		corner,
 		rootClass,
-	} = chartChrome(tier, heading, title, titleId, subtitle, legend)
+	} = chartChrome(tier, heading, title, titleId, subtitle, legend, notes)
 
 	const plotRegion = (
 		<div
@@ -761,6 +773,8 @@ export function ChartFrame({
 											containerFill={containerFill}
 											aspect={aspect}
 										/>
+
+										{notesFrame}
 									</ChartHoverContext>
 								</ChartSeriesEmphasisContext>
 							</ChartActionsContext>

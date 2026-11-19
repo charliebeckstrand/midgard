@@ -60,6 +60,17 @@ export const size = {
 		base: 'density-size-[1.5,2,2.5,3,3.5]',
 		/** The width of a line swatch. */
 		line: 'density-w-[2,2.5,3,3.5,4]',
+		/**
+		 * The height of a vertical line swatch. It is the width of a line swatch, so
+		 * the two shapes have one length.
+		 */
+		column: 'density-h-[2,2.5,3,3.5,4]',
+		/**
+		 * The inline margin of a vertical 2 px line swatch. With it, the swatch takes
+		 * the width of a horizontal line swatch, so a label after either one starts
+		 * at the same edge.
+		 */
+		columnInset: 'density-mx-[0.75,1,1.25,1.5,1.75]',
 	},
 	check: {
 		/** The check mark of a checkbox and a tree item: the glyph size less 4 px. */

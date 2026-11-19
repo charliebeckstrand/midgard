@@ -632,16 +632,72 @@ describe('reference lines in the legend', () => {
 			],
 		})
 
+		// Each chip shows the label, and then the value of its rule.
 		expect(allBySlot(container, 'chart-legend-reference').map((el) => el.textContent)).toEqual([
-			'Target',
-			'Ceiling',
+			'Target55',
+			'Ceiling70',
 		])
+
+		expect(
+			[
+				...getSlot(container, 'chart-legend').querySelectorAll(
+					'[data-slot="chart-legend-reference-value"]',
+				),
+			].map((el) => el.textContent),
+		).toEqual(['55', '70'])
 	})
 
-	it('falls back to the value for an unlabeled reference', () => {
+	it('puts the reference chips in their own row under the series row', () => {
+		const { container } = bar({ legend: true, reference: [{ value: 55, label: 'Target' }] })
+
+		expect(
+			bySlot(container, 'chart-legend-series')?.querySelector('[data-slot="chart-legend-item"]'),
+		).not.toBeNull()
+
+		expect(
+			bySlot(container, 'chart-legend-references')?.querySelector(
+				'[data-slot="chart-legend-reference"]',
+			),
+		).not.toBeNull()
+	})
+
+	it('falls back to the value for an unlabeled reference, and shows it once', () => {
 		const { container } = bar({ legend: true, reference: [{ value: 55 }] })
 
-		expect(bySlot(container, 'chart-legend-reference')?.textContent).toContain('55')
+		expect(bySlot(container, 'chart-legend-reference')?.textContent).toBe('55')
+
+		expect(bySlot(container, 'chart-legend-reference-value')).toBeNull()
+	})
+
+	it('shows the label alone with `legend.references.value` off', () => {
+		const { container } = bar({
+			legend: { references: { value: false } },
+			reference: [{ value: 55, label: 'Good 55' }],
+		})
+
+		expect(bySlot(container, 'chart-legend-reference')?.textContent).toBe('Good 55')
+	})
+
+	it('runs the swatch of a value rule across the value axis', () => {
+		const vertical = bar({ legend: true, reference: [{ value: 55, label: 'Target' }] })
+
+		expect(
+			bySlot(vertical.container, 'chart-legend-reference')
+				?.querySelector('[data-slot="swatch"]')
+				?.getAttribute('data-orientation'),
+		).toBe('horizontal')
+
+		const horizontal = bar({
+			orientation: 'horizontal',
+			legend: true,
+			reference: [{ value: 55, label: 'Target' }],
+		})
+
+		expect(
+			bySlot(horizontal.container, 'chart-legend-reference')
+				?.querySelector('[data-slot="swatch"]')
+				?.getAttribute('data-orientation'),
+		).toBe('vertical')
 	})
 
 	it('joins the default legend of a multi-series chart', () => {
@@ -758,13 +814,13 @@ describe('reference lines in the legend', () => {
 
 		await user.click(allBySlot(container, 'chart-legend-reference')[1] as Element)
 
-		expect(pressed()).toEqual(['Floor:true', 'Target:false', 'Ceiling:true'])
+		expect(pressed()).toEqual(['Floor30:true', 'Target50:false', 'Ceiling70:true'])
 
 		// The rule before the hidden one leaves. The hide stays with its rule, and
 		// the rule after it keeps its own state.
 		rerender(chart([target, ceiling]))
 
-		expect(pressed()).toEqual(['Target:false', 'Ceiling:true'])
+		expect(pressed()).toEqual(['Target50:false', 'Ceiling70:true'])
 
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
 
@@ -822,7 +878,7 @@ describe('reference lines in the legend', () => {
 
 		rerender(chart(41.7))
 
-		expect(pressed()).toEqual(['Average:false', 'Ceiling:true'])
+		expect(pressed()).toEqual(['Average41.7:false', 'Ceiling70:true'])
 
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
 	})
@@ -1119,7 +1175,7 @@ describe('reference value labels', () => {
 			/>,
 		)
 
-		expect(bySlot(hovered.container, 'chart-legend-reference')?.textContent).toBe('Goal')
+		expect(bySlot(hovered.container, 'chart-legend-reference')?.textContent).toBe('Goal60')
 	})
 
 	it('inks the label to match the rule — a slot through its ink class, a raw color inline', () => {
@@ -1287,7 +1343,7 @@ describe('reference lines that the legend names', () => {
 		// count as entries, so it shows.
 		expect(bySlot(container, 'chart-legend')).not.toBeNull()
 
-		expect(chips(container)).toEqual(['Target', 'Release'])
+		expect(chips(container)).toEqual(['Target55', 'ReleaseFeb'])
 
 		expect(allBySlot(container, 'chart-reference-label')).toHaveLength(0)
 
@@ -1297,6 +1353,112 @@ describe('reference lines that the legend names', () => {
 				chip.querySelector('[data-slot="swatch"]')?.getAttribute('data-variant'),
 			),
 		).toEqual(['dashed', 'dashed'])
+
+		// Each swatch runs as its rule does: the value rule across the plot, and
+		// the category rule up it.
+		expect(
+			allBySlot(container, 'chart-legend-reference').map((chip) =>
+				chip.querySelector('[data-slot="swatch"]')?.getAttribute('data-orientation'),
+			),
+		).toEqual(['horizontal', 'vertical'])
+	})
+
+	it('shows each rule as a note with its description', () => {
+		const { container } = bar({
+			legend: { references: { variant: 'notes' } },
+			reference: [
+				{ value: 55, label: 'Target', description: 'Set in January' },
+				{ category: 'Feb', label: 'Release' },
+			],
+		})
+
+		expect(allBySlot(container, 'chart-legend-reference')).toHaveLength(0)
+
+		expect(allBySlot(container, 'chart-legend-note').map((note) => note.textContent)).toEqual([
+			'Target55Set in January',
+			'ReleaseFeb',
+		])
+
+		// The notes sit under the figure, out of the legend.
+		expect(
+			getSlot(container, 'chart-legend').querySelector('[data-slot="chart-legend-note"]'),
+		).toBeNull()
+
+		// A note is not a switch, but pointing it recedes the marks to its rule.
+		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
+
+		const note = getSlot(container, 'chart-legend-note')
+
+		// A touch on a note is a tap, not a point.
+		fireEvent.pointerEnter(note, { pointerType: 'touch' })
+
+		expect(marks()).not.toContain('opacity-25')
+
+		fireEvent.pointerEnter(note, { pointerType: 'mouse' })
+
+		expect(marks()).toContain('opacity-25')
+
+		fireEvent.pointerLeave(note)
+
+		expect(marks()).not.toContain('opacity-25')
+	})
+
+	it('shows the notes of a side panel in its References section', () => {
+		const { container } = bar({
+			legend: { placement: 'right', references: { variant: 'notes' } },
+			reference: [{ value: 55, label: 'Target', description: 'Set in January' }],
+		})
+
+		const section = getSlot(container, 'chart-legend-references')
+
+		expect(section.querySelector('[data-slot="chart-legend-note"]')?.textContent).toBe(
+			'Target55Set in January',
+		)
+
+		// The panel holds the notes, so none sit under the figure.
+		expect(allBySlot(container, 'chart-legend-notes')).toHaveLength(1)
+	})
+
+	it('recedes nothing from a note of an inert legend', () => {
+		const { container } = bar({
+			legend: { inert: true, references: { variant: 'notes' } },
+			reference: [{ value: 55, label: 'Target' }],
+		})
+
+		const notes = getSlot(container, 'chart-legend-notes')
+
+		// The notes sit under the figure, outside the inert legend, so they take
+		// the flag themselves.
+		expect(notes.hasAttribute('inert')).toBe(true)
+
+		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
+
+		const note = getSlot(container, 'chart-legend-note')
+
+		fireEvent.pointerEnter(note)
+
+		expect(marks()).not.toContain('opacity-25')
+
+		// A rule pointed on the plot recedes the marks. Leaving an inert note keeps
+		// that emphasis, since the note takes no pointer.
+		fireEvent.pointerEnter(getSlot(container, 'chart-reference-line'))
+
+		expect(marks()).toContain('opacity-25')
+
+		fireEvent.pointerLeave(note)
+
+		expect(marks()).toContain('opacity-25')
+	})
+
+	it('heads the series and the rules of a side panel', () => {
+		const { container } = bar({
+			legend: { placement: 'right', references: true },
+			reference: [{ value: 55, label: 'Target' }],
+		})
+
+		expect(
+			allBySlot(container, 'chart-legend-heading').map((heading) => heading.textContent),
+		).toEqual(['Series', 'References'])
 	})
 
 	it('names one rule in the legend through its own legend, and a rule can opt out', () => {
@@ -1310,7 +1472,7 @@ describe('reference lines that the legend names', () => {
 			],
 		})
 
-		expect(chips(container)).toEqual(['Ceiling'])
+		expect(chips(container)).toEqual(['Ceiling70'])
 
 		expect(allBySlot(container, 'chart-reference-label').map((label) => label.textContent)).toEqual(
 			['Target55', 'Release'],
@@ -1324,7 +1486,7 @@ describe('reference lines that the legend names', () => {
 			],
 		})
 
-		expect(chips(one.container)).toEqual(['Release'])
+		expect(chips(one.container)).toEqual(['ReleaseFeb'])
 
 		expect(
 			allBySlot(one.container, 'chart-reference-label').map((label) => label.textContent),

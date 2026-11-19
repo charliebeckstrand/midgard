@@ -1,7 +1,15 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { memo, type RefObject, useLayoutEffect, useRef, useState } from 'react'
+import {
+	type ComponentProps,
+	memo,
+	type ReactNode,
+	type RefObject,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/popover'
@@ -16,6 +24,7 @@ import { useReportedChange } from '../../../../hooks/use-reported-change'
 import { useStableEvent } from '../../../../hooks/use-stable-event'
 import { useIntl } from '../../../../primitives/intl/use-intl'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
+import type { Orientation } from '../../../../types/orientation'
 import { focusDropped } from '../../../../utilities/focus-dropped'
 import { observeResizeBeforePaint } from '../../../../utilities/observe-resize-before-paint'
 import { chartMessages } from '../chart-messages'
@@ -158,17 +167,12 @@ function useLegendFit(
 	return [ghostRef, maxRows === undefined ? count : Math.min(visible, count)]
 }
 
-/** The labels of every legend control in render order, joined, so the fit measures again on a change. @internal */
-function controlLabels(
-	items: readonly ChartLegendItem[],
-	references: readonly ChartLegendReference[],
-): string {
-	return [...items, ...references].map((control) => control.label).join('\u0000')
-}
-
 /** The series switches and reference chips of a row, in render order. @internal */
 const ROW_CONTROLS =
 	'button[data-slot="chart-legend-item"], button[data-slot="chart-legend-reference"]'
+
+/** The stable empty list of chips of a legend that shows its rules as notes. @internal */
+const NO_REFERENCES: ChartLegendReference[] = []
 
 /** The stable empty set a legend without a reference toggle reads for its off chips. @internal */
 const EMPTY_HIDDEN: ReadonlySet<number> = new Set()
@@ -349,25 +353,25 @@ type ChartLegendReferenceSwitchProps = ChartLegendReference & {
 	emphasis: LegendEmphasis<number>
 	/**
 	 * Renders for measurement only, in the invisible ghost row. It carries a
-	 * distinct `chart-legend-reference-ghost` slot and no handlers, so it never
-	 * double-counts with the interactive row.
+	 * distinct `chart-legend-reference-ghost` slot, so it never double-counts
+	 * with the interactive row.
 	 * @defaultValue false
 	 */
 	ghost?: boolean
 }
 
 /**
- * One reference chip: a switch keyed to its rule, as a series entry is keyed to
- * its marks. It shows the label of the rule beside a line swatch in the color of
- * the rule.
+ * One reference chip in a row: a {@link LegendSwitch} keyed to its rule, as a
+ * series entry is keyed to its marks. It shows the label of the rule beside a
+ * line swatch in the color of the rule, and the value of the rule after the
+ * label. It has the box of a series switch, so a row of chips has the height
+ * of a row of series switches.
  *
  * @remarks
  * A click toggles the rule. A pointer or a keyboard focus on a chip that is on
  * recedes the marks to its rule, through the shared reference emphasis. A chip
- * that is off strikes its label and dims its swatch, as a series entry does. Its
- * rule is gone, so it recedes nothing. A palette slot inks the swatch through
- * its `currentColor` class, and a raw color inks it inline. The line dashes to
- * match the rule, unless the rule is solid.
+ * that is off strikes its label and dims its swatch and its value, as a series
+ * entry does. Its rule is gone, so it recedes nothing.
  *
  * The chip takes the fields of its rule as props, so a new rule with the same
  * content renders nothing, as a series entry does.
@@ -381,44 +385,118 @@ const ChartLegendReferenceSwitch = memo(function ChartLegendReferenceSwitch({
 	...reference
 }: ChartLegendReferenceSwitchProps) {
 	return (
+		<LegendSwitch
+			slot={ghost ? 'chart-legend-reference-ghost' : 'chart-legend-reference'}
+			off={off}
+			label={reference.label}
+			ghost={ghost}
+			keys={<ChartLegendReferenceSwatch reference={reference} off={off} />}
+			detail={<ChartLegendReferenceValue value={reference.value} off={off} />}
+			onToggle={() => onToggle(reference.index)}
+			onPoint={(pointed) => emphasis.point(pointed ? reference.index : null)}
+			onFocusChange={emphasis.sync}
+		/>
+	)
+})
+
+/**
+ * One reference chip in the `+N` overflow popover: the same toggle and the same
+ * emphasis as a chip in the row. Like {@link ChartLegendOverflowSwitch}, it is a
+ * plain switch with no reveal tooltip, because the popover has room for the
+ * whole label.
+ *
+ * @internal
+ */
+function ChartLegendReferenceOverflowSwitch({
+	off,
+	onToggle,
+	emphasis,
+	...reference
+}: Omit<ChartLegendReferenceSwitchProps, 'ghost'>) {
+	return (
 		<Button
 			type="button"
 			size="sm"
 			variant="plain"
-			data-slot={ghost ? 'chart-legend-reference-ghost' : 'chart-legend-reference'}
+			data-slot="chart-legend-reference"
+			className="w-full min-w-0 justify-start"
 			aria-pressed={!off}
-			{...(ghost
-				? {}
-				: {
-						onClick: () => onToggle(reference.index),
-						// A tap is not a point, as on `LegendSwitch`.
-						onPointerEnter: (event) => {
-							if (event.pointerType !== 'touch') emphasis.point(reference.index)
-						},
-						onPointerLeave: () => emphasis.point(null),
-						onFocus: emphasis.sync,
-						onBlur: emphasis.sync,
-					})}
+			onClick={() => onToggle(reference.index)}
+			// A tap is not a point, as on `LegendSwitch`.
+			onPointerEnter={(event) => {
+				if (event.pointerType !== 'touch') emphasis.point(reference.index)
+			}}
+			onPointerLeave={() => emphasis.point(null)}
+			onFocus={emphasis.sync}
+			onBlur={emphasis.sync}
 		>
-			<Swatch
-				shape="line"
-				variant={reference.dashed === false ? 'solid' : 'dashed'}
-				color={reference.swatchClass || undefined}
-				style={reference.color ? { color: reference.color } : undefined}
-				className={cn(off && 'opacity-40')}
-			/>
+			<ChartLegendReferenceSwatch reference={reference} off={off} />
 
 			<Text
 				as="span"
 				tone="muted"
 				size="sm"
-				className={cn('text-start leading-tight', off && 'line-through opacity-60')}
+				className={cn('min-w-0 text-start leading-tight', off && 'line-through opacity-60')}
 			>
 				{reference.label}
 			</Text>
+
+			<ChartLegendReferenceValue value={reference.value} off={off} />
 		</Button>
 	)
-})
+}
+
+/**
+ * The value or the category of a rule after its label, one weight lighter
+ * than the label. It dims with the label when the rule is off, but does not
+ * strike through.
+ *
+ * @internal
+ */
+function ChartLegendReferenceValue({ value, off }: { value?: string; off: boolean }) {
+	if (value === undefined) return null
+
+	return (
+		<Text
+			as="span"
+			tone="muted"
+			size="sm"
+			data-slot="chart-legend-reference-value"
+			className={cn('leading-tight font-normal tabular-nums', off && 'opacity-60')}
+		>
+			{value}
+		</Text>
+	)
+}
+
+/**
+ * The key of a reference entry: a line {@link Swatch} that runs in the
+ * direction of its rule, dashed unless the rule is solid. A palette slot inks
+ * it through its `currentColor` class, and a raw color inks it inline. A
+ * vertical line takes the width of a horizontal one, so the labels of a column
+ * of entries start at one edge.
+ *
+ * @internal
+ */
+function ChartLegendReferenceSwatch({
+	reference,
+	off,
+}: {
+	reference: ChartLegendReference
+	/** The rule is toggled off, so the swatch dims. */
+	off: boolean
+}) {
+	return (
+		<Swatch
+			shape="line"
+			variant={reference.dashed === false ? 'solid' : 'dashed'}
+			orientation={reference.orientation}
+			color={reference.swatchClass || undefined}
+			style={reference.color ? { color: reference.color } : undefined}
+			className={cn(off && 'opacity-40')}
+		/>
+	)
+}
 
 /** One legend entry: the series name keyed by its mark-mirroring swatch. @internal */
 export type ChartLegendItem = {
@@ -491,16 +569,34 @@ export type ChartLegendReference = {
 	 * @defaultValue true
 	 */
 	drawn?: boolean
+	/**
+	 * The value of a labeled value rule, or the category of a labeled category
+	 * rule, as text. The entry shows it after the label, one weight lighter.
+	 * Absent where the label is the value, or where the legend shows no value.
+	 */
+	value?: string
+	/** The description of the rule, which a note shows under its label. */
+	description?: string
+	/** The direction the rule runs on the plot, so the swatch runs the same way. */
+	orientation: Orientation
 }
 
 /** Props for {@link ChartLegend}. @internal */
 export type ChartLegendProps = {
 	items: ChartLegendItem[]
 	/**
-	 * The reference-line entries, drawn after the series switches as their own
-	 * switches. Empty (the default) draws none.
+	 * The reference-line entries, drawn in their own group after the series:
+	 * a row under the series row, or a section under the series in a side
+	 * panel. Empty (the default) draws none.
 	 */
 	references?: ChartLegendReference[]
+	/**
+	 * How the group shows the reference entries: a switch for each rule
+	 * (`'chips'`), or a note for each rule that does not toggle (`'notes'`).
+	 * @defaultValue 'chips'
+	 */
+	referenceVariant?: 'chips' | 'notes'
+
 	/** Item indexes toggled off; their marks are hidden and their text struck through. */
 	hidden: ReadonlySet<number>
 	/**
@@ -540,48 +636,264 @@ export type ChartLegendProps = {
 	inert?: boolean
 }
 
-/** The switches and chips split into the run that shows and the overflow the `+N` chip holds. @internal */
-type LegendSplit = {
-	shownItems: ChartLegendItem[]
-	shownReferences: ChartLegendReference[]
-	overflowItems: ChartLegendItem[]
-	overflowReferences: ChartLegendReference[]
+/**
+ * The control that takes the focus when a new cut unmounts the focused control
+ * of a row: the `+N` chip of the row, else the last control that stays. A new
+ * cut folds the focused control into the chip, or removes the chip when every
+ * control fits.
+ *
+ * @param row - The row, or null before it mounts.
+ * @returns The control, or undefined when the row holds none.
+ * @internal
+ */
+export function findReseatTarget(row: ParentNode | null): HTMLElement | undefined {
+	return (
+		row?.querySelector<HTMLElement>('[data-slot="chart-legend-more"]') ??
+		[...(row?.querySelectorAll<HTMLElement>(ROW_CONTROLS) ?? [])].at(-1)
+	)
+}
+
+/** A group of legend controls that a row cap can cut. @internal */
+type LegendGroup<T> = {
+	/** The visible row, whose focus a cut can drop. */
+	rowRef: RefObject<HTMLDivElement | null>
+	/** The ghost row that the fit measures ({@link useLegendFit}). */
+	ghostRef: RefObject<HTMLDivElement | null>
+	/** The controls that show in the row. */
+	shown: T[]
+	/** The controls that the `+N` chip holds. */
+	overflow: T[]
 }
 
 /**
- * Splits the switches and chips into the run that shows and the overflow the
- * `+N` chip holds. It cuts across the switches then the chips in render order, so
- * the first `visibleCount` controls show. Uncapped, everything shows (the
- * paginated page a side panel passes as `pageItems`) and nothing overflows.
+ * The fit of one group of legend controls: the series switches, or the
+ * reference chips. Each group fits against `maxRows` on its own, so the
+ * controls of one group never fold into the `+N` chip of the other. Uncapped
+ * (`maxRows` undefined), every control shows.
+ *
+ * @param rowRef - The visible row of the group.
+ * @param onFocusLost - Runs after the focus moves back into the row, when a
+ * cut unmounted the focused control.
+ * @internal
+ */
+function useLegendGroup<T extends { label: string; value?: string }>(
+	list: T[],
+	maxRows: number | undefined,
+	rowRef: RefObject<HTMLDivElement | null>,
+	onFocusLost: () => void,
+): LegendGroup<T> {
+	// A cut that unmounts the focused control moves the focus back into the row.
+	const reseat = useStableEvent(() => {
+		findReseatTarget(rowRef.current)?.focus()
+
+		onFocusLost()
+	})
+
+	const [ghostRef, count] = useLegendFit(
+		// The key holds all the text that a control shows, so a new value of a rule,
+		// such as from new data, a formatter, or a locale, measures again.
+		list.map((control) => `${control.label}\u0001${control.value ?? ''}`).join('\u0000'),
+		list.length,
+		maxRows,
+		rowRef,
+		reseat,
+	)
+
+	return { rowRef, ghostRef, shown: list.slice(0, count), overflow: list.slice(count) }
+}
+
+/**
+ * The invisible ghost row of a capped group, which always holds every control
+ * of the group. The cut measures it, so the cut is exact and never flashes on
+ * resize the way a measure-then-cut of the visible row would. It overlays the
+ * legend from the top of a relative wrapper the width of the legend, and sits
+ * out of flow (`absolute`), so it adds no height. `inert` and `invisible` keep it unpainted and out of the
+ * a11y tree while it still lays out for measurement. A box of zero height clips
+ * it, so it adds no scroll range below the chart. The row inside keeps its full
+ * height, which the fit observes. It packs to the inline start
+ * (`justify-start`), so the far edge of each control reads as the width
+ * consumed on its row, which the fit math needs.
  *
  * @internal
  */
-function splitLegend(
-	items: ChartLegendItem[],
-	references: ChartLegendReference[],
-	pageItems: ChartLegendItem[],
-	capped: boolean,
-	visibleCount: number,
-): LegendSplit {
-	if (!capped) {
-		return {
-			shownItems: pageItems,
-			shownReferences: references,
-			overflowItems: [],
-			overflowReferences: [],
-		}
-	}
+function LegendGhost({
+	ghostRef,
+	children,
+}: {
+	ghostRef: RefObject<HTMLDivElement | null>
+	children: ReactNode
+}) {
+	return (
+		<div
+			aria-hidden
+			inert
+			className="pointer-events-none invisible absolute inset-x-0 top-0 h-0 overflow-hidden"
+		>
+			<div ref={ghostRef} className="flex flex-wrap items-center justify-start">
+				{children}
+			</div>
+		</div>
+	)
+}
 
-	const shownItemCount = Math.min(visibleCount, items.length)
+/** Props for {@link LegendOverflow}. @internal */
+type LegendOverflowProps = {
+	/** The count of the controls that the chip holds. */
+	count: number
+	/** The list of the popover, which the emphasis of the legend reads. */
+	listRef: RefObject<HTMLDivElement | null>
+	/** Clears the emphasis when the popover closes. */
+	onClose: () => void
+	/** The overflow controls. */
+	children: ReactNode
+}
 
-	const shownReferenceCount = Math.max(0, visibleCount - items.length)
+/**
+ * The `+N` chip of a capped group, opening the controls that do not fit as a
+ * popover switchboard. The popover is a roomy surface, so a long label wraps,
+ * and a deep overflow scrolls rather than paginating.
+ *
+ * @internal
+ */
+function LegendOverflow({ count, listRef, onClose, children }: LegendOverflowProps) {
+	const intl = useIntl()
 
-	return {
-		shownItems: items.slice(0, shownItemCount),
-		shownReferences: references.slice(0, shownReferenceCount),
-		overflowItems: items.slice(shownItemCount),
-		overflowReferences: references.slice(shownReferenceCount),
-	}
+	return (
+		<Popover
+			placement="bottom"
+			onOpenChange={(open) => {
+				if (!open) onClose()
+			}}
+		>
+			<PopoverTrigger>
+				<Button
+					type="button"
+					size="sm"
+					variant="plain"
+					className="pointer-coarse:min-w-11"
+					data-slot="chart-legend-more"
+					aria-label={intl.formatMessage(chartMessages.showMore, { count })}
+				>
+					<Text as="span" tone="muted" size="sm" className="tabular-nums">
+						{intl.formatNumber(count, { signDisplay: 'always' })}
+					</Text>
+				</Button>
+			</PopoverTrigger>
+
+			<PopoverContent autoFocus aria-label={intl.formatMessage(chartMessages.moreEntries)}>
+				<div
+					ref={listRef}
+					data-slot="chart-legend-overflow"
+					className={cn(
+						'flex max-h-64 max-w-xs flex-col items-stretch touch-gap-y-0.5 overflow-y-auto overscroll-contain',
+						LEGEND_TOUCH_ROWS,
+					)}
+				>
+					{children}
+				</div>
+			</PopoverContent>
+		</Popover>
+	)
+}
+
+/**
+ * The heading of a section of a side panel: the series, or the reference
+ * rules. A panel shows them only when it holds both.
+ *
+ * @internal
+ */
+function LegendHeading({ children }: { children: ReactNode }) {
+	return (
+		<Text
+			as="span"
+			data-slot="chart-legend-heading"
+			tone="muted"
+			size="xs"
+			className="px-2 pt-2 pb-0.5 font-medium"
+		>
+			{children}
+		</Text>
+	)
+}
+
+/** Props for {@link ChartLegendNotes}. @internal */
+type ChartLegendNotesProps = {
+	references: ChartLegendReference[]
+	/**
+	 * The legend is a static key, so pointing a note recedes nothing, as in the
+	 * inert legend. Notes under the figure sit outside the legend, so they take
+	 * the flag themselves.
+	 * @defaultValue false
+	 */
+	inert?: boolean
+	/** Panel layout: the notes fill the rail. Off, the block centers under the figure. */
+	panel?: boolean
+}
+
+/**
+ * The notes of the reference rules (`legend.references.variant: 'notes'`): a
+ * line for each rule with its swatch, its label, and its value, and its
+ * description under them, one text step smaller. A note is not a switch, so
+ * it takes no tab stop and toggles nothing. Pointing a note recedes the marks
+ * to its rule, as pointing a chip does, unless the rule draws nothing. A stacked legend puts the notes
+ * under the figure, out of the aspect box, and a side panel puts them in its
+ * References section.
+ *
+ * @internal
+ */
+export function ChartLegendNotes({
+	references,
+	panel = false,
+	inert = false,
+}: ChartLegendNotesProps) {
+	const { pointReference } = useChartActions()
+
+	return (
+		<ul
+			data-slot="chart-legend-notes"
+			inert={inert}
+			className={cn(
+				'grid gap-1',
+				panel ? 'w-full min-w-0 px-2' : 'mx-auto w-fit max-w-full min-w-0',
+			)}
+		>
+			{references.map((reference) => (
+				<li
+					key={reference.index}
+					data-slot="chart-legend-note"
+					className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 text-start text-sm leading-5"
+					// A tap is not a point, as on `LegendSwitch`. A note of an inert legend
+					// takes no pointer, as a switch of one takes none.
+					onPointerEnter={(event) => {
+						if (!inert && event.pointerType !== 'touch' && reference.drawn !== false) {
+							pointReference(reference.index)
+						}
+					}}
+					onPointerLeave={() => {
+						if (!inert) pointReference(null)
+					}}
+				>
+					<span className="flex h-5 items-center">
+						<ChartLegendReferenceSwatch reference={reference} off={false} />
+					</span>
+
+					<span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+						<Text as="span" tone="muted" className="font-medium">
+							{reference.label}
+						</Text>
+
+						<ChartLegendReferenceValue value={reference.value} off={false} />
+					</span>
+
+					{reference.description && (
+						<Text as="span" tone="muted" size="xs" className="col-start-2 min-w-0">
+							{reference.description}
+						</Text>
+					)}
+				</li>
+			))}
+		</ul>
+	)
 }
 
 /**
@@ -594,26 +906,32 @@ function splitLegend(
  * by design, with the forced-on legend holding the switch that brings it back.
  * Emphasis is a no-op with no sibling marks to dim.
  *
- * @remarks The row is one Tab stop. The arrow keys rove between its controls:
- * the switches, the page buttons, and the `+N` chip (Home / End jump to the
- * ends). Escape drops focus, clearing the emphasis.
+ * @remarks The legend is one Tab stop. The arrow keys rove between its
+ * controls: the switches, the page buttons, and the `+N` chips (Home / End
+ * jump to the ends). Escape drops focus, clearing the emphasis.
  * Pointer and keyboard share the one emphasis slot: the pointed-at entry wins,
  * and leaving it reverts to a still-held keyboard focus rather than clearing.
  * That focus side rides `:focus-visible`, the same gate as the ring. A pointer
  * click's lingering focus therefore dims nothing without a visible ring to
- * explain it. So does the focus a backgrounded tab re-fires on return. Reference
- * lines follow the entries as their own switches. Clicking one toggles its rule
- * off. Pointing or focusing a still-shown chip recedes the marks to its rule, the
- * whole-marks equivalent of a series entry's dim. An off chip's hover recedes
- * nothing, since its rule is gone. {@link ChartReferenceList} still carries the
- * value parity. A panel past five switches pages instead of clipping. The visible
- * page still renders in `items` order, so the roving and emphasis wiring key off
- * its position there rather than the full list.
+ * explain it. So does the focus a backgrounded tab re-fires on return.
+ *
+ * The reference lines take their own group after the series: a row under the
+ * series row, or a section under the series in a side panel, with a heading
+ * on each section. Each row fits against `maxRows` on its own, with its own
+ * `+N` chip. As chips, the entries are switches: clicking one toggles its rule
+ * off, and pointing or focusing a still-shown chip recedes the marks to its
+ * rule, the whole-marks equivalent of a series entry's dim. An off chip's hover
+ * recedes nothing, since its rule is gone. As notes, the entries do not toggle
+ * ({@link ChartLegendNotes}). {@link ChartReferenceList} still carries the
+ * value parity. A panel past five series switches pages instead of clipping.
+ * The visible page still renders in `items` order, so the roving and emphasis
+ * wiring key off its position there rather than the full list.
  * @internal
  */
 export function ChartLegend({
 	items,
 	references = [],
+	referenceVariant = 'chips',
 	hidden,
 	referenceHidden = EMPTY_HIDDEN,
 	onToggle,
@@ -625,61 +943,35 @@ export function ChartLegend({
 }: ChartLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	// The popover past the cap. It renders outside the legend, so the emphasis
-	// reads the focus of its switches through this second box.
-	const overflowRef = useRef<HTMLDivElement>(null)
+	const seriesOverflowRef = useRef<HTMLDivElement>(null)
 
-	const intl = useIntl()
+	const referenceOverflowRef = useRef<HTMLDivElement>(null)
 
-	const [page, setPage] = useState(0)
+	const seriesRowRef = useRef<HTMLDivElement>(null)
 
-	// Only a side panel clips vertically: the wrap row just grows. Past one
-	// page, the column trades clipping for a prev/next page instead.
-	const paginate = panel && items.length > PAGE_SIZE
+	const chipRowRef = useRef<HTMLDivElement>(null)
 
-	const pageCount = paginate ? Math.ceil(items.length / PAGE_SIZE) : 1
+	const pages = useLegendPages(items, panel)
 
-	const currentPage = Math.min(page, pageCount - 1)
+	const pageItems = pages.items
 
-	const firstPage = currentPage === 0
+	const cap = !panel && maxRows !== undefined && maxRows > 0 ? maxRows : undefined
 
-	const lastPage = currentPage === pageCount - 1
+	const notes = referenceVariant === 'notes'
 
-	const pageItems = paginate
-		? items.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE)
-		: items
-
-	// The stacked wrap row caps to the tier's row budget, folding the rest into a
-	// `+N` chip; a side panel paginates instead, and an unset or zero budget (a
-	// spark frame passes zero) lets the row grow freely.
-	const capped = !panel && maxRows !== undefined && maxRows > 0
-
-	// The frame owns the series emphasis, so a hover renders the frame and not the
-	// chart body. The reference chips share the recede with the reference rules: a
-	// chip's hover or keyboard focus recedes the data marks and the rule's siblings
-	// to it, the same emphasis as pointing the rule. The setters keep their identity.
 	const { focusSeries: setSeriesFocus, pointReference: setReferenceActive } = useChartActions()
 
-	// The pointed entry wins, else the keyboard-focused one. Buttons render in
-	// `pageItems` order, and the overflow popover holds the entries past the row,
-	// so a focused button's position names its entry there. The entry carries the
-	// series index that the emphasis keys off, which the display order of the
-	// legend need not match.
+	const containers = [ref, seriesOverflowRef, referenceOverflowRef]
+
 	const emphasis = useLegendEmphasis(
-		[ref, overflowRef],
+		containers,
 		'button[data-slot="chart-legend-item"]',
 		(position) => pageItems[position]?.index ?? null,
 		setSeriesFocus,
 	)
 
-	// The chips take the same pointer and focus rule as the series switches. Chips
-	// render in `references` order, so a focused chip's position names its entry.
-	// The entry carries the index of the rule in the chart's `reference` array. The
-	// emphasis therefore lands on the rule the plot draws, even past a non-finite
-	// rule that the chips skip. A chip that is off names a pulled rule, so it is not
-	// live and recedes nothing.
 	const referenceEmphasis = useLegendEmphasis(
-		[ref, overflowRef],
+		containers,
 		'button[data-slot="chart-legend-reference"]',
 		(position) => references[position]?.index ?? null,
 		setReferenceActive,
@@ -688,49 +980,22 @@ export function ChartLegend({
 			references.find((reference) => reference.index === index)?.drawn !== false,
 	)
 
-	// A refit that folds the focused control into the `+N` chip moves the focus
-	// to the chip, which now holds it. A refit that removes the chip moves the
-	// focus to the last control. The gone control held the emphasis, so the
-	// emphasis reads again from the new focus.
-	const reseatFocus = useStableEvent(() => {
-		const row = ref.current
-
-		const target =
-			row?.querySelector<HTMLElement>('[data-slot="chart-legend-more"]') ??
-			[...(row?.querySelectorAll<HTMLElement>(ROW_CONTROLS) ?? [])].at(-1)
-
-		target?.focus()
-
+	const syncEmphasis = useStableEvent(() => {
 		emphasis.sync()
 
 		referenceEmphasis.sync()
 	})
 
-	// How many of the switches and chips together show before the `+N` chip,
-	// measured off the ghost row that always holds them all; the full count when
-	// nothing caps.
-	const [ghostRef, visibleCount] = useLegendFit(
-		controlLabels(items, references),
-		items.length + references.length,
-		capped ? maxRows : undefined,
-		ref,
-		reseatFocus,
-	)
+	const grouped = references.length > 0
 
-	// The cut runs across the switches then the chips in render order: the first
-	// `visibleCount` controls show, the rest fold into the chip. A side panel shows
-	// its paginated page instead; an uncapped row shows everything.
-	const { shownItems, shownReferences, overflowItems, overflowReferences } = splitLegend(
-		items,
-		references,
-		pageItems,
-		capped,
-		visibleCount,
-	)
+	// A legend with no rule is the series row itself, as a legend of series alone.
+	const series = useLegendGroup(pageItems, cap, grouped || panel ? seriesRowRef : ref, syncEmphasis)
 
-	const overflowCount = overflowItems.length + overflowReferences.length
+	// A note is not a control, so the notes take no fit.
+	const chipList = notes ? NO_REFERENCES : references
 
-	// A rule that goes recedes nothing, so its toggle clears the recede at once.
+	const chips = useLegendGroup(chipList, cap, chipRowRef, syncEmphasis)
+
 	const toggleReference = useStableEvent((index: number) => {
 		const off = referenceHidden.has(index)
 
@@ -739,19 +1004,9 @@ export function ChartLegend({
 		if (!off) setReferenceActive(null)
 	})
 
-	// A rule that comes back recedes the marks only when the plot draws it and a
-	// pointer or a visible focus still holds its chip. A tap leaves neither. The
-	// hidden set of the click is the state before the toggle, and a hidden rule
-	// reads as not drawn, so the emphasis reads again from each committed set.
 	useReportedChange(referenceHidden, referenceEmphasis.sync)
 
-	// Escape closes the overflow popover and unmounts the switch under a resting
-	// pointer, or the switch that holds the focus, so no `pointerleave` or `blur`
-	// reaches it. The close therefore clears both emphases. The focus goes back
-	// to the `+N` chip, which emphasizes nothing.
-	const onOverflowOpenChange = (open: boolean) => {
-		if (open) return
-
+	const closeOverflow = () => {
 		emphasis.point(null)
 
 		referenceEmphasis.point(null)
@@ -761,46 +1016,13 @@ export function ChartLegend({
 		setReferenceActive(null)
 	}
 
-	// The row is a toolbar (one Tab stop, arrow-key roving, Escape to drop focus)
-	// whenever it holds a focusable control: the series switches (every entry is
-	// one, a lone series included), or the reference chips, which recede the marks
-	// on hover or focus. An inert legend holds none, so it drops the toolbar role
-	// with the rest of its interactivity.
-	const interactive = !inert && (items.length > 0 || references.length > 0)
+	const toolbarProps = useLegendToolbar(
+		ref,
+		panel,
+		// A note is not a control, so a legend of notes alone takes no toolbar.
+		!inert && items.length + chipList.length > 0,
+	)
 
-	// A side panel stacks its controls in a column, so the arrows that rove them
-	// follow the layout: Up/Down down the panel, Left/Right across the wrap row.
-	const orientation = panel ? 'vertical' : 'horizontal'
-
-	// Rove across the focusable controls (series switches, page buttons,
-	// reference chips, and the `+N` chip), sharing the one Tab stop the toolbar
-	// exposes.
-	const onKeyDown = useA11yRoving(ref, {
-		itemSelector: [
-			'button[data-slot="chart-legend-item"]',
-			'button[data-slot="chart-legend-page"]',
-			'button[data-slot="chart-legend-reference"]',
-			'button[data-slot="chart-legend-more"]',
-		].join(', '),
-		orientation,
-		manageTabIndex: true,
-		escapeBlurs: true,
-	})
-
-	// The toolbar role, its orientation, and the roving handler travel together:
-	// present whenever the row holds a focusable control, absent for an empty
-	// grouping div with no interaction.
-	const toolbarProps = interactive
-		? ({
-				role: 'toolbar',
-				'aria-label': intl.formatMessage(chartMessages.legend),
-				'aria-orientation': orientation,
-				onKeyDown,
-			} as const)
-		: {}
-
-	// One series switch, in the visible row or the invisible ghost that measures
-	// the cut: the same box either way, so the ghost's width is the entry's own.
 	const renderEntry = (item: ChartLegendItem, ghost: boolean) => (
 		<ChartLegendEntry
 			key={item.index}
@@ -814,225 +1036,484 @@ export function ChartLegend({
 		/>
 	)
 
-	// The shown switches, an optional pagination row, the shown reference chips,
-	// and (once the cap trims the row) the `+N` chip that opens the rest as a
-	// popover switchboard. Rendered inline in the wrap row; in panel mode they nest
-	// in a shrink-to-content, left-aligned inner block so the reserved column can
-	// center that block rather than pin it to the plot.
-	const legendBody = (
-		<>
-			{shownItems.map((item) => renderEntry(item, false))}
+	const renderChip = (reference: ChartLegendReference, ghost: boolean) => (
+		<ChartLegendReferenceSwitch
+			key={`reference:${reference.index}`}
+			{...reference}
+			off={referenceHidden.has(reference.index)}
+			ghost={ghost}
+			onToggle={toggleReference}
+			emphasis={referenceEmphasis}
+		/>
+	)
 
-			{paginate && (
-				<div
-					data-slot="chart-legend-pagination"
-					className="flex w-full items-center justify-between gap-1 pt-1"
-				>
-					{/* A button at the end of the range announces `aria-disabled` and ignores
-					    the press. A native `disabled` drops the focus to the body. */}
-					<Button
-						type="button"
-						size="sm"
-						variant="plain"
-						data-slot="chart-legend-page"
-						aria-label={intl.formatMessage(chartMessages.previousEntries)}
-						aria-disabled={ariaAttr(firstPage)}
-						data-disabled={dataAttr(firstPage)}
-						onClick={() => {
-							if (!firstPage) setPage(currentPage - 1)
-						}}
-					>
-						<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
-					</Button>
-
-					{/* A screen reader reads "Page 2 of 3", not "2 slash 3", in the language of the reader. */}
-					<Text as="span" tone="muted" size="sm" className="tabular-nums">
-						<span aria-hidden="true">
-							{intl.formatNumber(currentPage + 1)} / {intl.formatNumber(pageCount)}
-						</span>
-						<span className="sr-only">
-							{intl.formatMessage(chartMessages.entriesPage, {
-								page: currentPage + 1,
-								count: pageCount,
-							})}
-						</span>
-					</Text>
-
-					<Button
-						type="button"
-						size="sm"
-						variant="plain"
-						data-slot="chart-legend-page"
-						aria-label={intl.formatMessage(chartMessages.nextEntries)}
-						aria-disabled={ariaAttr(lastPage)}
-						data-disabled={dataAttr(lastPage)}
-						onClick={() => {
-							if (!lastPage) setPage(currentPage + 1)
-						}}
-					>
-						<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
-					</Button>
-				</div>
+	const seriesControls = (
+		<LegendControls
+			group={series}
+			listRef={seriesOverflowRef}
+			onClose={closeOverflow}
+			renderShown={(item) => renderEntry(item, false)}
+			renderOverflow={(item) => (
+				<ChartLegendOverflowSwitch
+					key={item.index}
+					item={item}
+					off={hidden.has(item.index)}
+					texture={texture}
+					onToggle={onToggle}
+					emphasis={emphasis}
+				/>
 			)}
+		/>
+	)
 
-			{shownReferences.map((reference) => (
-				<ChartLegendReferenceSwitch
+	const referenceControls = notes ? (
+		<ChartLegendNotes references={references} panel={panel} />
+	) : (
+		<LegendControls
+			group={chips}
+			listRef={referenceOverflowRef}
+			onClose={closeOverflow}
+			renderShown={(reference) => renderChip(reference, false)}
+			renderOverflow={(reference) => (
+				<ChartLegendReferenceOverflowSwitch
 					key={`reference:${reference.index}`}
 					{...reference}
 					off={referenceHidden.has(reference.index)}
 					onToggle={toggleReference}
 					emphasis={referenceEmphasis}
 				/>
-			))}
-
-			{overflowCount > 0 && (
-				// The overflow chip: a switch-count badge opening the trimmed controls as
-				// a scrolling switchboard, so every switch past the cap stays one click
-				// away rather than clipping out of sight (the popover floats free of the
-				// aspect box the row is bound to). `autoFocus` seats focus in the panel so a
-				// keyboard open lands on the switches it just revealed.
-				<Popover placement="bottom" onOpenChange={onOverflowOpenChange}>
-					<PopoverTrigger>
-						<Button
-							type="button"
-							size="sm"
-							variant="plain"
-							// The entries touch, so the hit area of the chip cannot grow into the
-							// row. On a coarse pointer, the chip itself takes the touch floor, which
-							// the reserve of the chip holds (`OVERFLOW_CHIP_RESERVE`).
-							className="pointer-coarse:min-w-11"
-							data-slot="chart-legend-more"
-							aria-label={intl.formatMessage(chartMessages.showMore, { count: overflowCount })}
-						>
-							<Text as="span" tone="muted" size="sm" className="tabular-nums">
-								{intl.formatNumber(overflowCount, { signDisplay: 'always' })}
-							</Text>
-						</Button>
-					</PopoverTrigger>
-
-					<PopoverContent autoFocus aria-label={intl.formatMessage(chartMessages.moreEntries)}>
-						<div
-							ref={overflowRef}
-							data-slot="chart-legend-overflow"
-							// The popover is outside the legend, so it caps the hit areas of
-							// its entries at its own gap (`TouchTarget`).
-							className={cn(
-								'flex max-h-64 max-w-xs flex-col items-stretch touch-gap-y-0.5 overflow-y-auto overscroll-contain',
-								LEGEND_TOUCH_ROWS,
-							)}
-						>
-							{overflowItems.map((item) => (
-								<ChartLegendOverflowSwitch
-									key={item.index}
-									item={item}
-									off={hidden.has(item.index)}
-									texture={texture}
-									onToggle={onToggle}
-									emphasis={emphasis}
-								/>
-							))}
-
-							{overflowReferences.map((reference) => (
-								<ChartLegendReferenceSwitch
-									key={`reference:${reference.index}`}
-									{...reference}
-									off={referenceHidden.has(reference.index)}
-									onToggle={toggleReference}
-									emphasis={referenceEmphasis}
-								/>
-							))}
-						</div>
-					</PopoverContent>
-				</Popover>
 			)}
-		</>
+		/>
 	)
 
-	const legend = (
+	const rootProps = { ref, 'data-slot': 'chart-legend', inert, ...toolbarProps }
+
+	if (panel) {
+		return (
+			<ChartLegendPanel
+				rootProps={rootProps}
+				series={series}
+				chips={grouped ? chips : undefined}
+				pagination={
+					pages.count > 1 && (
+						<LegendPagination page={pages.page} pageCount={pages.count} onPage={pages.setPage} />
+					)
+				}
+				seriesControls={seriesControls}
+				referenceControls={referenceControls}
+			/>
+		)
+	}
+
+	return (
+		<ChartLegendStack
+			rootProps={rootProps}
+			seriesRowRef={seriesRowRef}
+			chipRowRef={chipRowRef}
+			grouped={grouped}
+			ghosts={
+				cap !== undefined && (
+					<>
+						<LegendGhost ghostRef={series.ghostRef}>
+							{items.map((item) => renderEntry(item, true))}
+						</LegendGhost>
+
+						{chipList.length > 0 && (
+							<LegendGhost ghostRef={chips.ghostRef}>
+								{chipList.map((reference) => renderChip(reference, true))}
+							</LegendGhost>
+						)}
+					</>
+				)
+			}
+			seriesControls={seriesControls}
+			referenceControls={referenceControls}
+		/>
+	)
+}
+
+/** Props for {@link ChartLegendStack}. @internal */
+type ChartLegendStackProps = {
+	/** The ref, the slot, and the toolbar props of the legend. */
+	rootProps: ComponentProps<'div'>
+	/** The series row of a legend that names rules. */
+	seriesRowRef: RefObject<HTMLDivElement | null>
+	/** The row of the reference entries. */
+	chipRowRef: RefObject<HTMLDivElement | null>
+	/** The legend names rules, so it shows a row of them under the series row. */
+	grouped: boolean
+	/** The ghost of each capped row, if the rows take a cap. */
+	ghosts: ReactNode
+	seriesControls: ReactNode
+	referenceControls: ReactNode
+}
+
+/**
+ * The stacked legend, above or below the plot. A legend of series alone is one
+ * centered wrapping row. A legend that names rules is a column: the series row,
+ * and the row of the reference entries under it. Each capped row measures its
+ * own ghost. The ghosts sit outside the legend, so they never count as its
+ * controls.
+ *
+ * @internal
+ */
+function ChartLegendStack({
+	rootProps,
+	seriesRowRef,
+	chipRowRef,
+	grouped,
+	ghosts,
+	seriesControls,
+	referenceControls,
+}: ChartLegendStackProps) {
+	const legend = grouped ? (
 		<div
-			ref={ref}
-			data-slot="chart-legend"
-			// A static key: the HTML `inert` attribute takes the whole subtree out of
-			// the tab order and off the pointer in one place (the switches keep their
-			// look but shed the click, hover, and focus, no per-control gating). The
-			// series names still reach assistive tech through the chart's data table.
-			inert={inert}
-			{...toolbarProps}
+			{...rootProps}
 			className={cn(
-				// Once the container has room for it (`@sm`, the same 384px the tier
-				// reads as compact), the side panel reserves a rail that scales with
-				// the chart's own container. At `min(16rem, 40cqw)`, the rail is at
-				// most a third-ish of a wide chart and shrinks in a narrow one, where a
-				// fixed column would dominate. It centers its entries: vertically down
-				// the column so a legend stretched to the plot's full height reads
-				// level with it, and horizontally so the left-aligned block sits
-				// centered in the reserved width rather than pinned to the plot. Below
-				// that width the panel stacks under the plot at full width. The wrap
-				// row centers its entries at all widths.
-				panel
-					? 'flex flex-col items-center justify-center @sm:w-[min(16rem,40cqw)] @sm:shrink-0'
-					: 'flex flex-wrap items-center justify-center',
-				// The entries touch on both axes, so each hit area keeps to its entry
-				// (`TouchTarget`), and two adjacent entries do not overlap. A coarse
-				// pointer adds a gap between the rows (`LEGEND_TOUCH_ROWS`) of the wrap
-				// row here, and of the panel on its column of entries.
+				'flex w-full flex-col items-center',
 				'[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]',
-				!panel && LEGEND_TOUCH_ROWS,
+				// On a coarse pointer, the rows stand apart as the rows of one wrapping
+				// row do, so the hit areas of the two rows meet and do not overlap.
+				LEGEND_TOUCH_ROWS,
 			)}
 		>
-			{panel ? (
-				// The left-aligned entry block, shrink-wrapped to its content and capped at
-				// the reserved column, so the column's `items-center` centers it while each
-				// entry stretches to the block's width to share one swatch edge.
-				<div
-					data-slot="chart-legend-items"
-					className={cn('flex w-fit min-w-0 max-w-full flex-col items-start', LEGEND_TOUCH_ROWS)}
-				>
-					{legendBody}
-				</div>
-			) : (
-				legendBody
+			<LegendRow rowRef={seriesRowRef} slot="chart-legend-series">
+				{seriesControls}
+			</LegendRow>
+
+			<LegendRow rowRef={chipRowRef} slot="chart-legend-references">
+				{referenceControls}
+			</LegendRow>
+		</div>
+	) : (
+		<div
+			{...rootProps}
+			className={cn(
+				'flex flex-wrap items-center justify-center',
+				'[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]',
+				LEGEND_TOUCH_ROWS,
 			)}
+		>
+			{seriesControls}
 		</div>
 	)
 
-	if (!capped) return legend
+	if (!ghosts) return legend
 
-	// The cap measures an invisible ghost row that always holds every control, so
-	// the cut is exact and never flashes on resize the way a measure-then-cut of the
-	// visible row would. The ghost overlays the row from the top of a relative
-	// wrapper and sits out of flow (`absolute`), so it adds no height; `inert` and
-	// `invisible` keep it unpainted and out of the a11y tree while it still lays out
-	// for measurement. A hidden box still takes its space, and the ghost holds many
-	// rows. A box of zero height clips it, so it adds no scroll range below the
-	// chart. The row inside keeps its full height, which the fit observes. It packs
-	// to the inline start (`justify-start`) so the far edge of each control reads
-	// as the width consumed on its row (what the fit math needs) rather than a
-	// centered offset.
 	return (
 		<div className="relative w-full">
-			<div
-				aria-hidden
-				inert
-				className="pointer-events-none invisible absolute inset-x-0 top-0 h-0 overflow-hidden"
-			>
-				<div ref={ghostRef} className="flex flex-wrap items-center justify-start">
-					{items.map((item) => renderEntry(item, true))}
-
-					{references.map((reference) => (
-						<ChartLegendReferenceSwitch
-							key={`reference:${reference.index}`}
-							{...reference}
-							off={referenceHidden.has(reference.index)}
-							ghost
-							onToggle={toggleReference}
-							emphasis={referenceEmphasis}
-						/>
-					))}
-				</div>
-			</div>
+			{ghosts}
 
 			{legend}
+		</div>
+	)
+}
+
+/** The page of series switches that a side panel shows. @internal */
+type LegendPages = {
+	/** The series switches of the page that shows: every switch when the legend does not page. */
+	items: ChartLegendItem[]
+	/** The page that shows, from `0`. */
+	page: number
+	/** The count of pages: `1` when the legend does not page. */
+	count: number
+	/** Shows a page. */
+	setPage: (page: number) => void
+}
+
+/**
+ * The pages of a side panel past five series switches. A stacked legend does
+ * not page: it caps its rows instead.
+ *
+ * @internal
+ */
+function useLegendPages(items: ChartLegendItem[], panel: boolean): LegendPages {
+	const [page, setPage] = useState(0)
+
+	const count = panel ? Math.max(1, Math.ceil(items.length / PAGE_SIZE)) : 1
+
+	const current = Math.min(page, count - 1)
+
+	return {
+		items: count > 1 ? items.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE) : items,
+		page: current,
+		count,
+		setPage,
+	}
+}
+
+/**
+ * The toolbar props of a legend with a control: one Tab stop, with the arrow
+ * keys roving between its controls. A legend with no control, such as an inert
+ * key or a legend of notes alone, takes none.
+ *
+ * @internal
+ */
+function useLegendToolbar(
+	ref: RefObject<HTMLDivElement | null>,
+	panel: boolean,
+	interactive: boolean,
+) {
+	const intl = useIntl()
+
+	const orientation = panel ? 'vertical' : 'horizontal'
+
+	const onKeyDown = useA11yRoving(ref, {
+		itemSelector: [
+			'button[data-slot="chart-legend-item"]',
+			'button[data-slot="chart-legend-page"]',
+			'button[data-slot="chart-legend-reference"]',
+			'button[data-slot="chart-legend-more"]',
+		].join(', '),
+		orientation,
+		manageTabIndex: true,
+		escapeBlurs: true,
+	})
+
+	if (!interactive) return {}
+
+	return {
+		role: 'toolbar',
+		'aria-label': intl.formatMessage(chartMessages.legend),
+		'aria-orientation': orientation,
+		onKeyDown,
+	} as const
+}
+
+/** Props for {@link LegendControls}. @internal */
+type LegendControlsProps<T> = {
+	/** The group, cut by its fit. */
+	group: LegendGroup<T>
+	/** The list of the overflow popover. */
+	listRef: RefObject<HTMLDivElement | null>
+	/** Clears the emphasis when the popover closes. */
+	onClose: () => void
+	/** Renders a control that shows in the row. */
+	renderShown: (control: T) => ReactNode
+	/** Renders a control in the overflow popover. */
+	renderOverflow: (control: T) => ReactNode
+}
+
+/**
+ * The controls of one group that show, and the `+N` chip of the rest.
+ *
+ * @internal
+ */
+function LegendControls<T>({
+	group,
+	listRef,
+	onClose,
+	renderShown,
+	renderOverflow,
+}: LegendControlsProps<T>) {
+	return (
+		<>
+			{group.shown.map(renderShown)}
+
+			{group.overflow.length > 0 && (
+				<LegendOverflow count={group.overflow.length} listRef={listRef} onClose={onClose}>
+					{group.overflow.map(renderOverflow)}
+				</LegendOverflow>
+			)}
+		</>
+	)
+}
+
+/** Props for {@link ChartLegendPanel}. @internal */
+type ChartLegendPanelProps = {
+	/** The ref, the slot, and the toolbar props of the legend. */
+	rootProps: ComponentProps<'div'>
+	/** The series group. */
+	series: LegendGroup<ChartLegendItem>
+	/** The reference group. Absent, the panel names no rule and shows no headings. */
+	chips?: LegendGroup<ChartLegendReference>
+	/** The page buttons, if the series page. */
+	pagination: ReactNode
+	seriesControls: ReactNode
+	referenceControls: ReactNode
+}
+
+/**
+ * The side panel of a legend: a column of the series switches, and a column of
+ * the reference entries under it, each under its heading.
+ *
+ * @internal
+ */
+function ChartLegendPanel({
+	rootProps,
+	series,
+	chips,
+	pagination,
+	seriesControls,
+	referenceControls,
+}: ChartLegendPanelProps) {
+	const intl = useIntl()
+
+	return (
+		<div
+			{...rootProps}
+			className={cn(
+				'flex flex-col items-center justify-center @sm:w-[min(16rem,40cqw)] @sm:shrink-0',
+				'[--touch-target-gap-x:0px] [--touch-target-gap-y:0px]',
+			)}
+		>
+			<div
+				data-slot="chart-legend-items"
+				className={cn('flex w-fit min-w-0 max-w-full flex-col items-start', LEGEND_TOUCH_ROWS)}
+			>
+				<LegendSection
+					heading={chips ? intl.formatMessage(chartMessages.series) : undefined}
+					rowRef={series.rowRef}
+					slot="chart-legend-series"
+				>
+					{seriesControls}
+
+					{pagination}
+				</LegendSection>
+
+				{chips && (
+					<LegendSection
+						heading={intl.formatMessage(chartMessages.references)}
+						rowRef={chips.rowRef}
+						slot="chart-legend-references"
+					>
+						{referenceControls}
+					</LegendSection>
+				)}
+			</div>
+		</div>
+	)
+}
+
+/** Props for {@link LegendRow}. @internal */
+type LegendRowProps = {
+	/** The row, whose focus a cut can drop. */
+	rowRef: RefObject<HTMLDivElement | null>
+	/** The `data-slot` of the row. */
+	slot: string
+	/** The controls that show, and the `+N` chip. */
+	children: ReactNode
+}
+
+/**
+ * One centered wrapping row of a stacked legend that names rules: the series,
+ * or the reference entries.
+ *
+ * @internal
+ */
+function LegendRow({ rowRef, slot, children }: LegendRowProps) {
+	return (
+		<div
+			ref={rowRef}
+			data-slot={slot}
+			className={cn('flex w-full flex-wrap items-center justify-center', LEGEND_TOUCH_ROWS)}
+		>
+			{children}
+		</div>
+	)
+}
+
+/** Props for {@link LegendSection}. @internal */
+type LegendSectionProps = {
+	/** The heading over the section. Absent, the section shows no heading. */
+	heading?: string
+	/** The column of the section, whose focus a cut can drop. */
+	rowRef: RefObject<HTMLDivElement | null>
+	/** The `data-slot` of the column. */
+	slot: string
+	children: ReactNode
+}
+
+/**
+ * One section of a side panel: a heading over a column of entries. A panel
+ * shows the headings only when it holds both the series and the rules.
+ *
+ * @internal
+ */
+function LegendSection({ heading, rowRef, slot, children }: LegendSectionProps) {
+	return (
+		<>
+			{heading && <LegendHeading>{heading}</LegendHeading>}
+
+			<div
+				ref={rowRef}
+				data-slot={slot}
+				className={cn('flex w-full min-w-0 flex-col items-start', LEGEND_TOUCH_ROWS)}
+			>
+				{children}
+			</div>
+		</>
+	)
+}
+
+/** Props for {@link LegendPagination}. @internal */
+type LegendPaginationProps = {
+	/** The page that shows, from `0`. */
+	page: number
+	pageCount: number
+	/** Shows a page. */
+	onPage: (page: number) => void
+}
+
+/**
+ * The page buttons of a side panel past five series switches, with the page
+ * between them.
+ *
+ * @internal
+ */
+function LegendPagination({ page, pageCount, onPage }: LegendPaginationProps) {
+	const intl = useIntl()
+
+	const firstPage = page === 0
+
+	const lastPage = page === pageCount - 1
+
+	return (
+		<div
+			data-slot="chart-legend-pagination"
+			className="flex w-full items-center justify-between gap-1 pt-1"
+		>
+			{/* A button at the end of the range announces `aria-disabled` and ignores
+			    the press. A native `disabled` drops the focus to the body. */}
+			<Button
+				type="button"
+				size="sm"
+				variant="plain"
+				data-slot="chart-legend-page"
+				aria-label={intl.formatMessage(chartMessages.previousEntries)}
+				aria-disabled={ariaAttr(firstPage)}
+				data-disabled={dataAttr(firstPage)}
+				onClick={() => {
+					if (!firstPage) onPage(page - 1)
+				}}
+			>
+				<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
+			</Button>
+
+			{/* A screen reader reads "Page 2 of 3", not "2 slash 3", in the language of the reader. */}
+			<Text as="span" tone="muted" size="sm" className="tabular-nums">
+				<span aria-hidden="true">
+					{intl.formatNumber(page + 1)} / {intl.formatNumber(pageCount)}
+				</span>
+				<span className="sr-only">
+					{intl.formatMessage(chartMessages.entriesPage, { page: page + 1, count: pageCount })}
+				</span>
+			</Text>
+
+			<Button
+				type="button"
+				size="sm"
+				variant="plain"
+				data-slot="chart-legend-page"
+				aria-label={intl.formatMessage(chartMessages.nextEntries)}
+				aria-disabled={ariaAttr(lastPage)}
+				data-disabled={dataAttr(lastPage)}
+				onClick={() => {
+					if (!lastPage) onPage(page + 1)
+				}}
+			>
+				<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
+			</Button>
 		</div>
 	)
 }

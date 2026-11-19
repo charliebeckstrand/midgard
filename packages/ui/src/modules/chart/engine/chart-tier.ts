@@ -287,6 +287,13 @@ export type ChartChrome = {
 	headerLines: 0 | 1 | 2
 	/** A stacked (top / bottom) legend bands inside the aspect box below the plot. */
 	legend: boolean
+	/**
+	 * The stacked legend has a row of reference chips under its series row. The
+	 * notes of the rules sit under the figure, out of the aspect box, so they
+	 * take no budget.
+	 * @defaultValue false
+	 */
+	referenceRow?: boolean
 }
 
 /** The header lines a `title` and `subtitle` draw above the plot: 0, 1, or 2. @internal */
@@ -299,20 +306,25 @@ export function headerLineCount(title?: string, subtitle?: string): 0 | 1 | 2 {
  * the header, a stacked legend, and the {@link CHART_FIGURE_GAP} gaps flanking
  * the plot. Subtracted from the figure's `width / ratio`, it recovers the plot's
  * own height without measuring a plot the tier's spark decision would resize. A
- * single legend row is budgeted: a second row only appears past the compact
- * width, where the extra height can't flip the tier. Computed, never measured
+ * single legend row is budgeted for the series: a second row only appears past
+ * the compact width, where the extra height can't flip the tier. A row of
+ * reference chips under it adds one more row (`referenceRow`). Computed, never measured
  * (the same posture as the tick-gutter estimate), so nothing the tier decides
  * feeds back into it.
  *
  * @internal
  */
-export function chartChromeReserve({ headerLines, legend }: ChartChrome): number {
+export function chartChromeReserve({
+	headerLines,
+	legend,
+	referenceRow = false,
+}: ChartChrome): number {
 	const header =
 		headerLines > 0
 			? headerLines * CHART_HEADER_LINE_HEIGHT + (headerLines - 1) * CHART_HEADER_LINE_GAP
 			: 0
 
-	const legendBand = legend ? CHART_LEGEND_ROW_HEIGHT : 0
+	const legendBand = legend ? CHART_LEGEND_ROW_HEIGHT * (referenceRow ? 2 : 1) : 0
 
 	// The plot always sits in the figure; the header and legend each add a flex
 	// child, so one gap joins each to the plot.

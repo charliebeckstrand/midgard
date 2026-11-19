@@ -44,6 +44,38 @@ describe('chart legend roving', () => {
 		expect(stops).toHaveLength(1)
 	})
 
+	it('keeps the page at an end of the range when its page button is pressed', () => {
+		const { container } = pie()
+
+		const page = () => getSlot(container, 'chart-legend-pagination').textContent ?? ''
+
+		const previous = screen.getByRole('button', { name: 'Previous legend entries' })
+
+		const next = screen.getByRole('button', { name: 'Next legend entries' })
+
+		const first = page()
+
+		// The first page has no page before it.
+		fireEvent.click(previous)
+
+		expect(page()).toBe(first)
+
+		fireEvent.click(next)
+
+		const last = page()
+
+		expect(last).not.toBe(first)
+
+		// The last page has no page after it.
+		fireEvent.click(next)
+
+		expect(page()).toBe(last)
+
+		fireEvent.click(previous)
+
+		expect(page()).toBe(first)
+	})
+
 	it('roves from the switches to the page buttons with the arrows', () => {
 		const { container } = pie()
 

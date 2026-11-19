@@ -116,6 +116,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 	const { animate = false, orientation = 'vertical', stacked = false, thick = false } = props
 
 	const chart = useChartCartesian(props, {
+		referenceLabels: Boolean(props.labels?.references),
 		zeroBaseline: true,
 		categoryRule: 'zero',
 		swatch: RECT_SWATCH,

@@ -1,9 +1,10 @@
 /**
- * Swatch kata: the color key that stands in for a mark. Three independent
+ * Swatch kata: the color key that stands in for a mark. Four independent
  * axes:
  *
  * - `shape`: the mark geometry (`square` box, `circle` dot, `line` bar)
  * - `variant`: the fill treatment (`solid` / `outline` / `soft` / `dashed`)
+ * - `orientation`: the direction of a `line` (`horizontal` / `vertical`)
  * - `size`: `xs`–`xl`, one scale shared by legends, tooltips, and StatusDot. The
  *   component writes it as a density scope. Without it, the swatch takes the
  *   step of its nearest density scope.
@@ -14,7 +15,7 @@
  * and map kata read too. The CVD-validated data-viz palette therefore never
  * forks, and any hue works. `solid` fills with it, `outline` frames with
  * it, and `soft` tints with it at 15% inside a 1px edge in the hue. `dashed`
- * renders it per shape: a dashed dash run across a `line`, a dashed border
+ * renders it per shape: a dashed run along a `line`, a dashed border
  * around a `square` or `circle`. Either mirrors a dashed reference rule in a
  * legend.
  */
@@ -50,28 +51,60 @@ export const k = defineKata({
 		// Shape-specific; the shape × dashed compounds carry the class.
 		dashed: '',
 	},
-	// A box and a dot share one 6px→14px ramp; a line holds a 2px height and
-	// grows in width. `md` matches the legend swatches, `sm` the tooltip
+	// The direction of a `line`. A box and a dot ignore it. The size of each
+	// direction lives in the compounds below.
+	orientation: {
+		horizontal: '',
+		vertical: '',
+	},
+	// A box and a dot share one 6px→14px ramp; a line holds a 2px thickness and
+	// grows in length. `md` matches the legend swatches, `sm` the tooltip
 	// swatches, and the full range covers StatusDot's dots.
 	compound: [
 		{ shape: 'square', class: dan.size.swatch.base },
 		{ shape: 'circle', class: dan.size.swatch.base },
-		{ shape: 'line', class: ['h-0.5', dan.size.swatch.line] },
+		{ shape: 'line', orientation: 'horizontal', class: ['h-0.5', dan.size.swatch.line] },
+		// A vertical line has the length of a horizontal line. Its inline margin
+		// gives it the width of a horizontal line too, so the labels in a column of
+		// mixed swatches start at one edge.
+		{
+			shape: 'line',
+			orientation: 'vertical',
+			class: ['w-0.5', dan.size.swatch.column, dan.size.swatch.columnInset],
+		},
 		// A 2px line has no room inside a 2px frame, so the frame filled it and the
-		// mark read as a solid bar. An outline line is 4px tall with a 1px edge,
-		// which leaves a 2px core in the surface color.
-		{ shape: 'line', variant: 'outline', class: ['h-1', 'border'] },
-		// Dashed treatment per shape. A line paints a horizontal `currentColor`
-		// dash run (the reference rule's 3:2 dash:gap halved so the pattern reads
-		// across a swatch-width line). A box or dot has no length to run, so it
-		// frames with a dashed border over the surface, mirroring `outline`.
+		// mark read as a solid bar. An outline line is 4px thick with a 1px edge,
+		// which leaves a 2px core in the surface color. A vertical line keeps its
+		// 2px box and draws the edge as an outline, which takes no width, so the
+		// line keeps the width of a horizontal line.
+		{ shape: 'line', variant: 'outline', orientation: 'horizontal', class: ['h-1', 'border'] },
+		{
+			shape: 'line',
+			variant: 'outline',
+			orientation: 'vertical',
+			class: ['border-0', 'outline', 'outline-current'],
+		},
+		// Dashed treatment per shape. A line paints a `currentColor` dash run along
+		// its length (the reference rule's 3:2 dash:gap halved so the pattern reads
+		// across a swatch-length line). A box or dot has no length to run, so it
+		// frames with a dashed border over the surface, mirroring `outline`. Forced
+		// colors drop a gradient, so a run opts out of them and inks in CanvasText.
+		// Without it, a dashed line disappears.
 		{
 			shape: 'line',
 			variant: 'dashed',
-			// Forced colors drop a gradient, so the run opts out of them and inks in
-			// CanvasText. Without it, a dashed line disappears.
+			orientation: 'horizontal',
 			class: [
 				'bg-[repeating-linear-gradient(to_right,currentColor_0,currentColor_3px,transparent_3px,transparent_5px)]',
+				sen.forced.text,
+			],
+		},
+		{
+			shape: 'line',
+			variant: 'dashed',
+			orientation: 'vertical',
+			class: [
+				'bg-[repeating-linear-gradient(to_bottom,currentColor_0,currentColor_3px,transparent_3px,transparent_5px)]',
 				sen.forced.text,
 			],
 		},
@@ -86,7 +119,7 @@ export const k = defineKata({
 			class: ['border-2 border-dashed border-current', ...bg.surface],
 		},
 	],
-	defaults: { shape: 'square', variant: 'solid' },
+	defaults: { shape: 'square', variant: 'solid', orientation: 'horizontal' },
 })
 
 /**
@@ -99,11 +132,19 @@ export const series = zu.palette.series
 export const scale = defineScale(dan.size.swatch.base, dan.size.swatch.line)
 
 /** Recipe variant props for {@link Swatch}: the `shape` and `variant` axes of its kata, and the `size` step that the component writes as a density scope. */
-export type SwatchVariants = Omit<VariantProps<typeof k>, 'shape' | 'variant'> & {
+export type SwatchVariants = Omit<VariantProps<typeof k>, 'shape' | 'variant' | 'orientation'> & {
 	/** The shape of the mark: a box, a dot, or a line. @defaultValue 'square' */
 	shape?: VariantProps<typeof k>['shape']
 	/** The fill style of the mark. @defaultValue 'solid' */
 	variant?: VariantProps<typeof k>['variant']
+	/**
+	 * The direction of a `line`. A `vertical` line keys a vertical mark, such as
+	 * a rule at a category. It takes the width of a `horizontal` line, so a label
+	 * after it lines up with a label after a horizontal line. A box and a dot
+	 * ignore it.
+	 * @defaultValue 'horizontal'
+	 */
+	orientation?: VariantProps<typeof k>['orientation']
 	/**
 	 * The density step of the mark. Omit it to take the step of the nearest
 	 * density scope. A step makes the mark a density scope.

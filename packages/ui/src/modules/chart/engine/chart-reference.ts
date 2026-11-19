@@ -6,10 +6,12 @@
  */
 
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
+import type { Orientation } from '../../../types/orientation'
 import { keyByOccurrence } from '../../../utilities/key-by-occurrence'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { type ChartColor, rawColor, resolvePaint, textClass } from './chart-color/paint'
 import type { ChartLegendReference } from './chart-legend/legend'
+import type { ChartOrientation } from './chart-orientation'
 import type { ChartReadoutNote } from './types'
 
 /** The keys that each arm of {@link ChartReferenceLine} takes. @internal */
@@ -206,44 +208,98 @@ export function legendRules(
 }
 
 /**
- * The legend entries for the reference lines: each finite value rule, and each
- * category rule in `listed` ({@link legendRules}). An entry shows the rule's
- * label, or else its value or its category. Each is keyed to a line swatch in the rule's
- * color, a palette slot through its `text` class or a raw color inline. The
- * swatch is dashed to match the rule, unless the rule is drawn solid. All of it
- * resolves the same way the rule itself paints. The chart legend renders these
- * as switches beside the series switches when it shows, each toggling its rule
- * off; {@link ChartReferenceList} still carries the assistive-tech parity.
+ * The indexes of the rules that take a legend entry: each rule that the legend
+ * names (`listed`, {@link legendRules}). Where the rules stand no labels on the
+ * plot (`standing` off), each finite value rule takes an entry too, so that a
+ * shown legend can toggle it. A category rule takes an entry only where the
+ * legend names it.
+ *
+ * @internal
+ */
+export function legendEntryRules(
+	reference: readonly ChartReferenceLine[] | undefined,
+	listed: ReadonlySet<number>,
+	standing: boolean,
+): ReadonlySet<number> {
+	if (standing) return listed
+
+	const entries = new Set(listed)
+
+	reference?.forEach((line, index) => {
+		if (!isCategoryReference(line) && chipped(line)) entries.add(index)
+	})
+
+	return entries
+}
+
+/** The settings of {@link referenceLegendItems}. @internal */
+type ReferenceLegendOptions = {
+	/** Writes a value with the formatter of its axis. */
+	format: ReferenceFormat
+	/** Writes a category as the band axis does. */
+	formatCategory: (category: string) => string
+	/** Each labeled entry carries the value or the category of its rule (`legend.references.value`). */
+	value: boolean
+	/** The direction of the value axis, which sets the direction of each rule. */
+	orientation: ChartOrientation
+}
+
+/**
+ * The legend entries for the reference lines in `entries`
+ * ({@link legendEntryRules}), in the order of the prop. An entry shows the
+ * label of its rule, or else its value or its category. A labeled entry also
+ * carries the value or the category, where `value` is on, and the description
+ * of its rule. Each entry is keyed to a line swatch in the color of its rule: a
+ * palette slot through its `text` class, or a raw color inline. The swatch runs
+ * in the direction of the rule, and it is dashed to match the rule, unless the
+ * rule is drawn solid. All of it resolves the same way the rule itself paints.
+ * {@link ChartReferenceList} still carries the assistive-tech parity.
  *
  * @internal
  */
 export function referenceLegendItems(
 	reference: ChartReferenceLine[] | undefined,
-	format: ReferenceFormat,
-	formatCategory: (category: string) => string,
-	listed: ReadonlySet<number>,
+	entries: ReadonlySet<number>,
+	{ format, formatCategory, value, orientation }: ReferenceLegendOptions,
 ): ChartLegendReference[] {
-	return (reference ?? [])
-		.flatMap((line, index) =>
-			chipped(line) && (!isCategoryReference(line) || listed.has(index)) ? [{ line, index }] : [],
-		)
-		.map(({ line, index }) => {
-			const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
+	return (reference ?? []).flatMap((line, index) => {
+		if (!entries.has(index)) return []
 
-			const label =
-				line.label ??
-				(isCategoryReference(line)
-					? formatCategory(line.category)
-					: format(line.value, line.axis ?? 'y'))
+		const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
 
-			// Mirror the rule: dashed unless it is explicitly drawn solid.
-			const dashed = line.dashed !== false
+		const reading = isCategoryReference(line)
+			? formatCategory(line.category)
+			: format(line.value, line.axis ?? 'y')
 
-			// Carry the rule's own array index: the plot rules key their emphasis off
-			// it, and a non-finite rule dropped from the chips leaves a gap the plot
-			// keeps, so the chip must name the index rather than its own position.
-			return { index, label, swatchClass: textClass(paint) ?? '', color: rawColor(paint), dashed }
-		})
+		// Carry the rule's own array index: the plot rules key their emphasis off
+		// it, and a non-finite rule dropped from the entries leaves a gap the plot
+		// keeps, so the entry must name the index rather than its own position.
+		return [
+			{
+				index,
+				label: line.label ?? reading,
+				value: value && line.label !== undefined ? reading : undefined,
+				description: line.description,
+				swatchClass: textClass(paint) ?? '',
+				color: rawColor(paint),
+				// Mirror the rule: dashed unless it is explicitly drawn solid.
+				dashed: line.dashed !== false,
+				orientation: ruleOrientation(line, orientation),
+			},
+		]
+	})
+}
+
+/**
+ * The direction that a rule runs on the plot. A value rule runs across the
+ * value axis, and a category rule runs along it.
+ *
+ * @internal
+ */
+function ruleOrientation(line: ChartReferenceLine, orientation: ChartOrientation): Orientation {
+	const along = isCategoryReference(line)
+
+	return (orientation === 'vertical') === along ? 'vertical' : 'horizontal'
 }
 
 /**

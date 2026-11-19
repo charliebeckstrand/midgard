@@ -432,8 +432,9 @@ export type CartesianFrameProps = {
 	 * The object form ({@link ChartCartesianLegendConfig}) names a `placement`,
 	 * an `inert` flag, and `references` together. An inert legend is a static
 	 * key, its switches shed. `references` names the reference rules in the
-	 * legend in place of their labels on the plot. A legend that is off names
-	 * no rule, so each rule keeps its label.
+	 * legend in place of their labels on the plot, as chips or as notes. The rules take their own group after
+	 * the series. A legend that is off names no rule, so each rule keeps its
+	 * label.
 	 */
 	legend?: boolean | ChartLegendPlacement | ChartCartesianLegendConfig
 	/**
