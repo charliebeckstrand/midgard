@@ -88,10 +88,3 @@ export const sharedTest = {
 	fsModuleCache: true,
 	...budgets,
 }
-
-/**
- * The transform options of a Next.js app. The tsconfig of Next.js keeps JSX as
- * it is, for Next.js to compile. A test can import a component, so the
- * transform compiles JSX here. An app spreads this object into its config.
- */
-export const nextApp = { oxc: { jsx: { runtime: 'automatic' } } } as const

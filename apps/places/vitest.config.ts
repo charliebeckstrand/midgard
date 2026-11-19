@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import { nextApp, sharedTest } from '../../vitest.shared.mts'
+import { sharedTest } from '../../vitest.shared.mts'
 
 /**
  * The app's test harness.
@@ -16,10 +16,13 @@ import { nextApp, sharedTest } from '../../vitest.shared.mts'
  * The shared config pins the zone, and this app needs it: a visit is a
  * local-time day, and `toDay` and `fromDay` read the machine's own clock.
  * Unpinned, a test that writes `2026-08-15` reads it back as the 14th west of
- * UTC. A module that makes elements, for example a source of the palette, needs
- * the JSX transform of the shared config.
+ * UTC.
  */
 export default defineConfig({
-	...nextApp,
-	test: { ...sharedTest, environment: 'node' },
+	test: {
+		...sharedTest,
+		environment: 'node',
+		// Sets the `asyncUtilTimeout` of the shared config on Testing Library.
+		setupFiles: ['src/__tests__/setup.ts'],
+	},
 })

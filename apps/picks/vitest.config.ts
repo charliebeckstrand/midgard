@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import { nextApp, sharedTest } from '../../vitest.shared.mts'
+import { sharedTest } from '../../vitest.shared.mts'
 
 /**
  * The test harness of the app. The tests cover the pure modules: the reader of
@@ -11,7 +11,6 @@ import { nextApp, sharedTest } from '../../vitest.shared.mts'
  * resolver reads them.
  */
 export default defineConfig({
-	...nextApp,
 	resolve: { tsconfigPaths: true },
 	test: {
 		...sharedTest,

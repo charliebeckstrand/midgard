@@ -1,15 +1,14 @@
 import { defineConfig } from 'vitest/config'
-import { nextApp, sharedTest } from '../../vitest.shared.mts'
+import { sharedTest } from '../../vitest.shared.mts'
 
 /**
  * The test harness of the app.
  *
  * A test renders the chrome of the app, so the environment is jsdom. The
- * setup file unmounts each render and patches `Request` for a same-origin
- * path.
+ * setup file unmounts each render, patches `Request` for a same-origin path,
+ * and sets the `asyncUtilTimeout` of the shared config on Testing Library.
  */
 export default defineConfig({
-	...nextApp,
 	test: {
 		...sharedTest,
 		environment: 'jsdom',

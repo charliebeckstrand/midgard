@@ -4,7 +4,6 @@
 		"next-devtools",
 		"chrome-devtools",
 		"context7",
-		"digitalocean",
 		"sequential-thinking"
 	],
 	"permissions": {
@@ -18,6 +17,7 @@
 	"hooks": {
 		"SessionStart": [
 			{
+				"matcher": "startup|resume",
 				"hooks": [
 					{
 						"type": "command",

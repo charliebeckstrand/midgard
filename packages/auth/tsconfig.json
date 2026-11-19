@@ -1,10 +1,8 @@
 {
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
-		"lib": ["ES2023", "DOM", "DOM.Iterable"],
-		"noEmit": true,
 		"incremental": true,
 		"tsBuildInfoFile": ".tsbuildinfo/auth.tsbuildinfo"
 	},
-	"include": ["src"]
+	"include": ["src", "*.config.ts"]
 }
