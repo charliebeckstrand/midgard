@@ -152,8 +152,10 @@ export type ChartTextWidth = {
  * that alternates between known labels does no DOM work. A change to
  * `maxWidth` keeps the whole widths, and measures again only the texts wider
  * than the new room, so a resize that every label fits does no DOM work. When a
- * web font finishes loading, the instance lets go of its widths and measures
- * again, because the widths change with the font. A label width does not
+ * web font or a stylesheet finishes loading, the instance lets go of its widths
+ * and measures again, because the widths change with the font and with the
+ * rules of `className`. A page that loads its stylesheet after hydration thus
+ * gets the widths of the drawn text. A label width does not
  * depend on the layout, so a measurement cannot feed back into the layout that
  * reads it.
  * @param texts - Every label that the chart can draw. Order and duplicates do
@@ -217,17 +219,29 @@ export function useChartTextWidth(
 		}
 	}, [key, className, maxWidth, widths, cuts])
 
-	// A web font that loads later changes the widths, so the instance measures again.
+	// A web font or a stylesheet that loads later changes the widths, so the
+	// instance measures again. A page can load the stylesheet that sets
+	// `className` after the first measure: the probe then measured the text
+	// without the size of the class. The load event of a stylesheet does not
+	// bubble, so the document captures it.
 	useLayoutEffect(() => {
-		const fonts = document.fonts
-
-		if (!fonts) return
-
 		const forget = () => setMeasured((prev) => ({ ...prev, widths: NO_WIDTHS, cuts: NO_CUTS }))
 
-		fonts.addEventListener('loadingdone', forget)
+		const forgetOnSheet = ({ target }: Event) => {
+			if (target instanceof HTMLLinkElement && target.relList.contains('stylesheet')) forget()
+		}
 
-		return () => fonts.removeEventListener('loadingdone', forget)
+		const fonts = document.fonts
+
+		fonts?.addEventListener('loadingdone', forget)
+
+		document.addEventListener('load', forgetOnSheet, true)
+
+		return () => {
+			fonts?.removeEventListener('loadingdone', forget)
+
+			document.removeEventListener('load', forgetOnSheet, true)
+		}
 	}, [])
 
 	// One identity for each set of fits, so that a memo that reads the widths
