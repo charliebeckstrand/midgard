@@ -139,6 +139,14 @@ export type ChartCartesianFrameProps = AccessibleName &
 		 * without regard to the marks.
 		 */
 		valueLabels?: CartesianValueLabelSeries
+		/**
+		 * Whether `markAt` catches each line of `valueLabels` by its distance
+		 * ({@link nearestSeriesLine}). A reference rule then gives the pointer to a
+		 * line that sits nearer to the pointer than the rule. Off, as on an area
+		 * chart that catches a series by its wash, each rule keeps a full band.
+		 * @defaultValue false
+		 */
+		lineHits?: boolean
 		className?: string
 	}
 
@@ -237,6 +245,7 @@ export function ChartCartesianFrame({
 	bars = false,
 	labels,
 	valueLabels,
+	lineHits = false,
 	className,
 	title,
 	subtitle,
@@ -397,6 +406,7 @@ export function ChartCartesianFrame({
 				animate={animate}
 				labels={referenceLabels}
 				points={points}
+				lines={lineHits ? labelled?.flatMap(({ geometry }) => geometry.runs) : undefined}
 			/>
 
 			{/* Last, over the rules, so no rule paints over a label's halo. The labels

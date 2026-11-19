@@ -283,8 +283,10 @@ describe('spark tier is non-interactive (real browser)', () => {
 		const rule = getSlot(container, 'chart-reference-line')
 
 		// The rule still draws (spark strips interactivity, not the ink) but as
-		// the bare stroke alone: no transparent hit line widens it into a target.
+		// the bare stroke alone: no transparent hit target widens it.
 		expect(rule.querySelectorAll('line')).toHaveLength(1)
+
+		expect(rule.querySelector('[data-slot="chart-reference-hit"]')).toBeNull()
 
 		expect(getComputedStyle(rule).pointerEvents).toBe('none')
 
@@ -306,12 +308,14 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		const rule = getSlot(container, 'chart-reference-line')
 
-		// The hover rendering: the drawn stroke under its wide transparent hit line.
-		expect(rule.querySelectorAll('line')).toHaveLength(2)
+		// The hover rendering: the drawn stroke under its wide transparent hit target.
+		expect(rule.querySelectorAll('line')).toHaveLength(1)
+
+		expect(rule.querySelector('[data-slot="chart-reference-hit"]')).not.toBeNull()
 
 		// Park the pointer on the rule's row. The hover targets the plot region (an
 		// SVG <g> has no client rects, so Playwright would wait on it forever) and
-		// the rule's hit line wins the point as its descendant, over the hit rect the
+		// the rule's hit target wins the point as its descendant, over the hit rect the
 		// default tooltip keeps mounted beneath it. The receded marks prove the rule's
 		// pointer-enter fired; the readout it also opens rides the floating engine
 		// this suite mocks, so the live-tooltip contract stays with the floating-ui

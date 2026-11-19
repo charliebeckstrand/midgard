@@ -191,6 +191,162 @@ export function nearestSeriesLine(
 	return best?.series ?? null
 }
 
+/**
+ * The distance between two samples of the catch of a rule, along the rule, in
+ * px. The edge of the catch bends where a line comes near the rule, and a
+ * sample at each two px follows that bend closely.
+ *
+ * @internal
+ */
+const RULE_CATCH_STEP = 2
+
+/**
+ * The halvings that find the edge of the catch at one sample. Eight halvings
+ * put the edge within 1/256 of the reach.
+ *
+ * @internal
+ */
+const RULE_CATCH_HALVINGS = 8
+
+/** A number of px, rounded to two decimals for a path. @internal */
+function px(value: number): number {
+	return Math.round(value * 100) / 100
+}
+
+/**
+ * The edge of the catch on one side of a rule at one sample, as its distance
+ * from the rule. A point at distance `d` from the rule belongs to the rule
+ * where each line is farther from it than `d`. The distance to a line changes
+ * by no more than `d` does, so the points of the rule form one span from the
+ * rule out. Halvings find the end of that span.
+ *
+ * @internal
+ */
+function catchEdge(reach: number, lineDistance: (d: number) => number): number {
+	if (reach < lineDistance(reach)) return reach
+
+	let low = 0
+
+	let high = reach
+
+	for (let i = 0; i < RULE_CATCH_HALVINGS; i++) {
+		const mid = (low + high) / 2
+
+		if (mid < lineDistance(mid)) low = mid
+		else high = mid
+	}
+
+	return low
+}
+
+/**
+ * The points of a list of samples that bend the edge of a catch: each sample
+ * whose distance from the rule differs from a neighbor. A straight stretch of
+ * the edge thus keeps only its two ends.
+ *
+ * @internal
+ */
+function edgeBends<T extends { d: number }>(samples: readonly T[]): T[] {
+	return samples.filter(
+		(sample, i) => sample.d !== samples[i - 1]?.d || sample.d !== samples[i + 1]?.d,
+	)
+}
+
+/**
+ * The catch of a reference rule from `from` to `to`, as the `d` of a closed
+ * SVG path. The catch holds each point within `reach` of the rule that sits
+ * nearer to the rule than to each line in `runs`. The nearer mark thus takes
+ * the pointer: a line that runs near the rule keeps its own catch
+ * ({@link nearestSeriesLine}), and the rule keeps the points nearer to it. A
+ * line takes a point at the same distance, so a line that lies on the rule stays
+ * easy to point. Far from each line, the catch is a band of `reach` on each
+ * side of the rule. A line that crosses the rule pinches the band to nothing at
+ * the crossing.
+ *
+ * Measure each distance as {@link nearestSeriesLine} does, against the chords
+ * of each run. Keep `reach` at or below {@link LINE_HIT_TOLERANCE}, so that the
+ * line catches each point that the rule gives up. A rule is straight along one
+ * axis.
+ *
+ * @internal
+ */
+export function ruleCatchPath(
+	from: LinePoint,
+	to: LinePoint,
+	runs: readonly LinePoint[][],
+	reach: number,
+): string {
+	// A vertical rule runs along y, and a horizontal rule along x.
+	const vertical = from.x === to.x
+
+	const at = vertical ? from.x : from.y
+
+	const [start, end] = vertical
+		? [Math.min(from.y, to.y), Math.max(from.y, to.y)]
+		: [Math.min(from.x, to.x), Math.max(from.x, to.x)]
+
+	const point = (along: number, across: number): LinePoint =>
+		vertical ? { x: across, y: along } : { x: along, y: across }
+
+	// Only a run that comes within twice the reach of the rule can come nearer to a
+	// point of the catch than the rule does.
+	const near = runs.filter((run) => {
+		const alongs = run.map((p) => (vertical ? p.y : p.x))
+
+		const acrosses = run.map((p) => (vertical ? p.x : p.y))
+
+		return (
+			Math.min(...alongs) <= end + reach &&
+			Math.max(...alongs) >= start - reach &&
+			Math.min(...acrosses) <= at + 2 * reach &&
+			Math.max(...acrosses) >= at - 2 * reach
+		)
+	})
+
+	const distance = (along: number, across: number): number => {
+		const { x, y } = point(along, across)
+
+		let best = Number.POSITIVE_INFINITY
+
+		for (const run of near) best = Math.min(best, runDistanceSquared(run, x, y))
+
+		return Math.sqrt(best)
+	}
+
+	const count = Math.max(1, Math.ceil((end - start) / RULE_CATCH_STEP))
+
+	const low: { along: number; d: number }[] = []
+
+	const high: { along: number; d: number }[] = []
+
+	for (let i = 0; i <= count; i++) {
+		const along = start + ((end - start) * i) / count
+
+		// A line twice the reach away from the rule leaves the full band on each side.
+		const clear = distance(along, at) >= 2 * reach
+
+		low.push({
+			along,
+			d: clear ? reach : catchEdge(reach, (d) => distance(along, at - d)),
+		})
+
+		high.push({
+			along,
+			d: clear ? reach : catchEdge(reach, (d) => distance(along, at + d)),
+		})
+	}
+
+	// Out along the low side, and back along the high side.
+	const outline = [
+		...edgeBends(low).map(({ along, d }) => point(along, at - d)),
+		...edgeBends(high)
+			.reverse()
+			.map(({ along, d }) => point(along, at + d)),
+	]
+
+	return `${outline.map(({ x, y }, i) => `${i === 0 ? 'M' : 'L'}${px(x)} ${px(y)}`).join(' ')} Z`
+}
+
 /** The run's top-edge y at `x` by chord interpolation, or `null` where the run doesn't cover `x`. @internal */
 function topEdgeY(run: LinePoint[], x: number): number | null {
 	for (let i = 0; i < run.length - 1; i++) {

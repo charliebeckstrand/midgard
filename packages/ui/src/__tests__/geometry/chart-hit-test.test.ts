@@ -5,6 +5,7 @@ import {
 	barMarkAt,
 	nearestSeriesArea,
 	nearestSeriesLine,
+	ruleCatchPath,
 } from '../../modules/chart/engine/chart-hit-test'
 
 const bar = (x: number, x1: number, top: number, bottom: number): BarMark => ({
@@ -291,5 +292,112 @@ describe('nearestSeriesArea', () => {
 		expect(nearestSeriesArea(signed, 200, 50, 85, true)).toBe(1)
 
 		expect(nearestSeriesArea(signed, 200, 50, 150, true)).toBe(0)
+	})
+})
+
+/** The corners of a closed path of `M` and `L` commands. */
+function outline(d: string): [number, number][] {
+	return [...d.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)].map((match) => [
+		Number(match[1]),
+		Number(match[2]),
+	])
+}
+
+/** Whether the point sits inside the polygon, by the even-odd rule. */
+function inside(polygon: [number, number][], x: number, y: number): boolean {
+	let within = false
+
+	for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+		const [xi, yi] = polygon[i] as [number, number]
+
+		const [xj, yj] = polygon[j] as [number, number]
+
+		if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) within = !within
+	}
+
+	return within
+}
+
+describe('ruleCatchPath', () => {
+	const from = { x: 0, y: 100 }
+
+	const to = { x: 200, y: 100 }
+
+	it('catches a full band on each side of a rule with no line near it', () => {
+		const far = [
+			[
+				{ x: 0, y: 10 },
+				{ x: 200, y: 10 },
+			],
+		]
+
+		const band = outline(ruleCatchPath(from, to, far, 16))
+
+		// The band keeps only its four corners.
+		expect(band).toEqual([
+			[0, 84],
+			[200, 84],
+			[200, 116],
+			[0, 116],
+		])
+
+		expect(outline(ruleCatchPath(from, to, [], 16))).toEqual(band)
+	})
+
+	it('gives a near parallel line the points that sit nearer to it', () => {
+		const line = [
+			[
+				{ x: 0, y: 90 },
+				{ x: 200, y: 90 },
+			],
+		]
+
+		const polygon = outline(ruleCatchPath(from, to, line, 16))
+
+		// The edge is midway between the rule and the line.
+		expect(inside(polygon, 100, 96)).toBe(true)
+
+		expect(inside(polygon, 100, 94)).toBe(false)
+
+		// The side away from the line keeps its full reach.
+		expect(inside(polygon, 100, 115)).toBe(true)
+	})
+
+	it('pinches the catch where a line crosses the rule', () => {
+		const crossing = [
+			[
+				{ x: 100, y: 0 },
+				{ x: 100, y: 200 },
+			],
+		]
+
+		const polygon = outline(ruleCatchPath(from, to, crossing, 16))
+
+		// Beside the crossing, the line is nearer than the rule.
+		expect(inside(polygon, 101, 94)).toBe(false)
+
+		expect(inside(polygon, 99, 106)).toBe(false)
+
+		// Far from the crossing, the rule keeps its full reach.
+		expect(inside(polygon, 20, 85)).toBe(true)
+
+		expect(inside(polygon, 180, 115)).toBe(true)
+	})
+
+	it('follows a vertical rule across x', () => {
+		const line = [
+			[
+				{ x: 110, y: 0 },
+				{ x: 110, y: 200 },
+			],
+		]
+
+		const polygon = outline(ruleCatchPath({ x: 100, y: 0 }, { x: 100, y: 200 }, line, 16))
+
+		expect(inside(polygon, 104, 100)).toBe(true)
+
+		expect(inside(polygon, 106, 100)).toBe(false)
+
+		expect(inside(polygon, 85, 100)).toBe(true)
 	})
 })

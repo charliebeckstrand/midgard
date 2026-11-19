@@ -326,6 +326,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			bars={(index) => types[index] === 'bar'}
 			// Value labels ride the line and area series only: bars read against the axis.
 			valueLabels={{ list: [...areas, ...lines] }}
+			lineHits
 		/>
 	)
 }

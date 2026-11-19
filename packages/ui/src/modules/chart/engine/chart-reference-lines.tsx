@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef } from 'react'
 import { Swatch } from '../../../components/swatch'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core/cn'
@@ -30,7 +30,9 @@ import {
 	type PlacedReferenceLabel,
 	referenceLabels,
 } from './chart-geometry/label'
+import type { LinePoint } from './chart-geometry/line'
 import { type RuleBreak, ruleDashArray } from './chart-geometry/rule'
+import { ruleCatchPath } from './chart-hit-test'
 import { REFERENCE_FALL, REFERENCE_RISE, referenceRise } from './chart-motion'
 import {
 	type ChartOrientation,
@@ -130,6 +132,13 @@ export type ChartReferenceLinesProps = {
 	 * ({@link pointsOnRule}).
 	 */
 	points?: readonly Vec[]
+	/**
+	 * The runs of the lines that the mark hit test catches by their distance
+	 * ({@link nearestSeriesLine}). A rule gives up each point of its catch that
+	 * sits nearer to one of these lines, so the nearer mark takes the pointer
+	 * ({@link ruleCatchPath}). Omitted, each rule keeps a full band.
+	 */
+	lines?: readonly LinePoint[][]
 }
 
 /**
@@ -354,10 +363,15 @@ type ReferenceRuleProps = {
 	 * ({@link ruleBreaks}), or `undefined` for a solid rule with no break.
 	 */
 	dashes: number[] | undefined
+	/** The lines that the rule gives up its catch to ({@link ChartReferenceLinesProps.lines}). */
+	lines: readonly LinePoint[][]
 }
 
 /** The two endpoints of a rule's drawn line, in `viewBox` user units. @internal */
 type RulePoints = { x1: number; y1: number; x2: number; y2: number }
+
+/** No line for a rule to give up its catch to. @internal */
+const NO_LINES: readonly LinePoint[][] = []
 
 /** The radius of the hole that a point marker cuts in a rule: its reach and the gap. @internal */
 const POINT_BREAK = MARKER_REACH + LABEL_GAP
@@ -689,7 +703,10 @@ function ReferenceReadout({
 /**
  * The hover rendering: the dashed rule under a transparent
  * {@link REFERENCE_HIT_WIDTH} hit target, wrapped in the design-system
- * {@link Tooltip} so pointing it floats a label-and-value readout. The trigger
+ * {@link Tooltip} so pointing it floats a label-and-value readout. The target
+ * gives up each point that sits nearer to a line of the chart
+ * ({@link ruleCatchPath}), so a line that runs near the rule stays easy to
+ * point. The trigger
  * sits inside the `aria-hidden` plot, so the readout is a pointer enhancement;
  * {@link ChartReferenceList} carries the parity.
  *
@@ -704,7 +721,15 @@ function ReferenceReadout({
  * @internal
  */
 function HoverReferenceRule(props: ReferenceRuleProps & { line: ChartReferenceValue }) {
-	const { line, index, paint, points, orientation, format, rise } = props
+	const { line, index, paint, points, orientation, format, rise, lines } = props
+
+	const { x1, y1, x2, y2 } = points
+
+	// The catch gives each point to the nearer mark: the rule or a line.
+	const target = useMemo(
+		() => ruleCatchPath({ x: x1, y: y1 }, { x: x2, y: y2 }, lines, REFERENCE_HIT_WIDTH / 2),
+		[x1, y1, x2, y2, lines],
+	)
 
 	const { activeReference, emphasizedReference } = useChartEmphasis()
 
@@ -753,15 +778,15 @@ function HoverReferenceRule(props: ReferenceRuleProps & { line: ChartReferenceVa
 					}}
 				>
 					{/* The drawn rule over its wide transparent hover target; the pair
-					    reveals as one, so the hit line rises with the rule it stands in for. */}
+					    reveals as one, so the target rises with the rule it stands in for. */}
 					<RuleRise rise={rise}>
 						<ReferenceRuleStroke {...props} />
 
-						<line
-							{...points}
-							stroke="transparent"
-							strokeWidth={REFERENCE_HIT_WIDTH}
-							pointerEvents="stroke"
+						<path
+							data-slot="chart-reference-hit"
+							d={target}
+							fill="transparent"
+							pointerEvents="fill"
 						/>
 					</RuleRise>
 				</g>
@@ -868,6 +893,7 @@ export function ChartReferenceLines({
 	animate = false,
 	labels,
 	points = [],
+	lines = NO_LINES,
 }: ChartReferenceLinesProps) {
 	if (!reference || reference.length === 0) return null
 
@@ -921,6 +947,7 @@ export function ChartReferenceLines({
 					format,
 					rise,
 					label: labels?.[index] ?? null,
+					lines,
 				},
 			]
 		},
