@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+# One run at a time. Each run deploys the images of its own commit, so a later
+# run never puts an older commit live. GitHub cancels a pending run when a newer
+# one queues.
 concurrency:
   group: deploy-production
   cancel-in-progress: false
@@ -20,9 +23,88 @@ jobs:
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  # Builds the image of each component of .do/app.yaml and pushes it to the
+  # container registry, tagged with the commit SHA. The job runs beside CI. An
+  # image that CI did not pass goes live never, because only `deploy` names a
+  # tag in the spec, and `deploy` needs CI.
+  #
+  # App Platform built from the HEAD of main before. When two merges came close
+  # together, the deploy of the first commit built the second commit before
+  # the CI of that commit ran.
+  image:
+    name: Image (${{ matrix.component }})
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    strategy:
+      fail-fast: true
+      # Each entry is one service of .do/app.yaml. `repository` in the spec is
+      # the same name.
+      matrix:
+        include:
+          - component: admin
+            dockerfile: Dockerfile
+            app: admin
+          - component: places
+            dockerfile: Dockerfile
+            app: places
+          - component: elections
+            dockerfile: Dockerfile
+            app: elections
+          - component: numbers
+            dockerfile: Dockerfile
+            app: numbers
+          - component: docs-server
+            dockerfile: Dockerfile.docs
+            app: ''
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check the registry name
+        if: vars.DOCR_REGISTRY == ''
+        run: |
+          echo "::error::Set the DOCR_REGISTRY variable to the name of the DigitalOcean container registry."
+          exit 1
+
+      - uses: ./.github/actions/doctl
+
+      # `next build` writes the gateway origin into the rewrites, so the build
+      # reads BIFROST_URL from the environment of the component in the spec.
+      # The spec stays the one statement of the value. The docs site has no
+      # APP and no BIFROST_URL.
+      - name: Build the image
+        env:
+          COMPONENT: ${{ matrix.component }}
+          DOCKERFILE: ${{ matrix.dockerfile }}
+          APP: ${{ matrix.app }}
+          REGISTRY: ${{ vars.DOCR_REGISTRY }}
+        run: |
+          args=()
+          if [ -n "$APP" ]; then
+            args+=(--build-arg "APP=$APP")
+          fi
+          bifrost=$(COMPONENT="$COMPONENT" yq '.services[] | select(.name == strenv(COMPONENT)) | .envs[] | select(.key == "BIFROST_URL") | .value' .do/app.yaml)
+          if [ -n "$bifrost" ]; then
+            args+=(--build-arg "BIFROST_URL=$bifrost")
+          fi
+          docker build --file "$DOCKERFILE" "${args[@]}" \
+            --tag "registry.digitalocean.com/$REGISTRY/$COMPONENT:$GITHUB_SHA" .
+
+      # The login comes after the build, so that its expiry covers the push only.
+      - name: Push the image
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          COMPONENT: ${{ matrix.component }}
+          REGISTRY: ${{ vars.DOCR_REGISTRY }}
+        run: |
+          doctl registry login --expiry-seconds 900
+          docker push "registry.digitalocean.com/$REGISTRY/$COMPONENT:$GITHUB_SHA"
+
   deploy:
     name: Deploy to DigitalOcean
-    needs: ci
+    needs: [ci, image]
     runs-on: ubuntu-latest
     environment: production
     # A stuck deploy holds the concurrency group, and the next push waits on it.
@@ -40,28 +122,14 @@ jobs:
           echo "::error::Set the DIGITALOCEAN_PROJECT_ID variable to the ID of the Ivory Image project."
           exit 1
 
-      # The digitalocean/app_action action is a Docker action. The runner builds
-      # its image from Docker Hub before the first step, so a Docker Hub rate
-      # limit or outage stops the deploy. doctl is one binary from a GitHub
-      # release, and the checksum below locks it to one build.
-      - name: Install doctl
-        env:
-          DOCTL_VERSION: 1.177.0
-          DOCTL_SHA256: 34d3954721bfb8cdb42032e78d98274f157426fa6332511ae356edcce59dade3
-        run: |
-          archive="doctl-${DOCTL_VERSION}-linux-amd64.tar.gz"
-          curl --fail --silent --show-error --location --retry 3 --output "$RUNNER_TEMP/$archive" \
-            "https://github.com/digitalocean/doctl/releases/download/v${DOCTL_VERSION}/$archive"
-          echo "$DOCTL_SHA256  $RUNNER_TEMP/$archive" | sha256sum --check --strict
-          mkdir -p "$RUNNER_TEMP/doctl"
-          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/doctl"
-          echo "$RUNNER_TEMP/doctl" >> "$GITHUB_PATH"
+      - uses: ./.github/actions/doctl
 
       # Creates the app from .do/app.yaml on the first run, in the Ivory Image
-      # project, then updates it from the latest source and waits for the
-      # deployment to go live. doctl reads `--project-id` only when it creates
-      # the app. The step puts the secret into a copy of the spec, because
-      # doctl does not expand variables in the spec.
+      # project, then updates it and waits for the deployment to go live.
+      # doctl reads `--project-id` only when it creates the app. The step puts
+      # the secret and the image tag into a copy of the spec, because doctl does
+      # not expand variables in the spec. The tag is the commit of this run, so
+      # the deployment runs the images that the `image` job built from it.
       - name: Deploy to App Platform
         env:
           DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
@@ -69,7 +137,7 @@ jobs:
           PROJECT_ID: ${{ vars.DIGITALOCEAN_PROJECT_ID }}
         run: |
           spec="$RUNNER_TEMP/app.yaml"
-          envsubst "\${CLIENT_IP_SECRET}" < .do/app.yaml > "$spec"
+          IMAGE_TAG="$GITHUB_SHA" envsubst "\${CLIENT_IP_SECRET} \${IMAGE_TAG}" < .do/app.yaml > "$spec"
 
           app=$(doctl apps create --spec "$spec" --upsert --update-sources \
             --project-id "$PROJECT_ID" --format ID --no-header)
@@ -102,3 +170,44 @@ jobs:
             echo "::error::The deployment ended in phase $phase."
             exit 1
           fi
+
+          # Each service of the deployment must run the image of this commit.
+          # The step shell has no pipefail, so a failed read must stop the step
+          # before jq, and not pass an empty list to the check.
+          live=$(doctl apps get-deployment "$app" "$deployment" --output json)
+          tags=$(jq -er '.[0].spec.services[] | "\(.name) \(.image.tag)"' <<<"$live")
+          echo "$tags"
+          if grep -v " $GITHUB_SHA\$" <<<"$tags"; then
+            echo "::error::A service of deployment $deployment does not run the image of $GITHUB_SHA."
+            exit 1
+          fi
+
+      # Keeps the newest tags of each repository, so that an earlier commit can
+      # go live again, and removes the others. Garbage collection then frees
+      # their layers. The registry takes no push while it collects, so the step
+      # waits for the end, and the next run of this workflow cannot push into it.
+      - name: Remove the old images
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          KEEP: 10
+        run: |
+          repositories=$(yq '.services[].image.repository' .do/app.yaml)
+          for repository in $repositories; do
+            # A failed list stops the step here, and not with an empty list.
+            listed=$(doctl registry repository list-tags "$repository" --output json)
+            mapfile -t old < <(jq -r --argjson keep "$KEEP" \
+              'sort_by(.updated_at) | reverse | .[$keep:][] | .tag' <<<"$listed")
+            if [ "${#old[@]}" -gt 0 ]; then
+              echo "$repository: remove ${#old[@]} tags"
+              doctl registry repository delete-tag "$repository" "${old[@]}" --force
+            fi
+          done
+
+          doctl registry garbage-collection start --include-untagged-manifests --force
+          while status=$(doctl registry garbage-collection get-active --format Status --no-header 2>/dev/null); do
+            case "$status" in
+              succeeded | failed | cancelled) break ;;
+            esac
+            sleep 10
+          done
+          echo "Garbage collection: ${status:-done}"

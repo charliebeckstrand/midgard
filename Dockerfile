@@ -1,5 +1,6 @@
-# One image recipe for each Next app in `apps/`. The App Platform spec in
-# `.do/app.yaml` sets `APP` to the name of the app. Build one app locally with:
+# One image recipe for each Next app in `apps/`. The `image` job of
+# `.github/workflows/deploy.yml` sets `APP` to the name of the app, and pushes
+# the image that App Platform runs. Build one app locally with:
 #
 #   docker build --build-arg APP=admin --build-arg BIFROST_URL=https://auth.ivoryimage.dev .
 #
@@ -25,7 +26,7 @@ RUN pnpm dlx turbo@2.11.11 prune ${APP} --docker
 FROM base AS build
 ARG APP
 # `next build` writes the gateway origin into the rewrites, so the build needs it.
-# App Platform sends each build-time variable of the spec as a build argument.
+# deploy.yml reads the value from the service of the app in `.do/app.yaml`.
 ARG BIFROST_URL
 ENV BIFROST_URL=${BIFROST_URL}
 ENV NEXT_TELEMETRY_DISABLED=1

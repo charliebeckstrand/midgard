@@ -1,7 +1,7 @@
-# The image recipe for the docs site of `ui`. App Platform builds this image
-# and runs the server of the docs build in it (`packages/ui/scripts/docs/server.ts`).
-# The server sends the HTML of each page in the locale of the request. Build
-# and run it locally with:
+# The image recipe for the docs site of `ui`. The `image` job of deploy.yml
+# builds this image, and App Platform runs the server of the docs build in it
+# (`packages/ui/scripts/docs/server.ts`). The server sends the HTML of each
+# page in the locale of the request. Build and run it locally with:
 #
 #   docker build --file Dockerfile.docs --tag docs .
 #   docker run --publish 8080:8080 docs

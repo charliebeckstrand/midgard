@@ -1,9 +1,11 @@
 # App Platform spec for midgard: one app that serves the admin app, the places
 # app, the elections app, the numbers app, and the docs site of `ui`, each on
 # its own subdomain. The deploy workflow applies it on each push to main, and
-# the first run creates the app. The Next apps build from the Dockerfile at the
-# repository root, which gets each build-time variable below as a build
-# argument. The docs site builds from Dockerfile.docs.
+# the first run creates the app. Each service runs an image from the container
+# registry of the account. The workflow builds each image from the commit of
+# its run, from the Dockerfile at the repository root or from Dockerfile.docs,
+# and puts the commit SHA in place of IMAGE_TAG. `registry` stays empty, as App
+# Platform asks for a DOCR registry.
 name: midgard
 region: nyc
 
@@ -78,11 +80,10 @@ ingress:
 
 services:
   - name: admin
-    github:
-      repo: charliebeckstrand/midgard
-      branch: main
-      deploy_on_push: false
-    dockerfile_path: Dockerfile
+    image:
+      registry_type: DOCR
+      repository: admin
+      tag: ${IMAGE_TAG}
     http_port: 3000
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
@@ -107,13 +108,11 @@ services:
     health_check:
       http_path: /
     envs:
-      - key: APP
-        scope: BUILD_TIME
-        value: admin
       # `next build` writes the gateway origin into the rewrites, and the server
-      # reads it at start, so the build and the run both need it.
+      # reads it at start. deploy.yml gives this value to the build of the
+      # image, and App Platform gives it to the run.
       - key: BIFROST_URL
-        scope: RUN_AND_BUILD_TIME
+        scope: RUN_TIME
         value: https://auth.ivoryimage.dev
       # The gateway uses the browser address that the proxy sends only with
       # this secret. The gateway holds the same value.
@@ -123,11 +122,10 @@ services:
         value: ${CLIENT_IP_SECRET}
 
   - name: places
-    github:
-      repo: charliebeckstrand/midgard
-      branch: main
-      deploy_on_push: false
-    dockerfile_path: Dockerfile
+    image:
+      registry_type: DOCR
+      repository: places
+      tag: ${IMAGE_TAG}
     http_port: 3000
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
@@ -149,12 +147,9 @@ services:
     health_check:
       http_path: /
     envs:
-      - key: APP
-        scope: BUILD_TIME
-        value: places
       # The same reason as for admin.
       - key: BIFROST_URL
-        scope: RUN_AND_BUILD_TIME
+        scope: RUN_TIME
         value: https://auth.ivoryimage.dev
       # The same reason as for admin.
       - key: CLIENT_IP_SECRET
@@ -166,11 +161,10 @@ services:
   # gateway, so it needs no BIFROST_URL and no CLIENT_IP_SECRET. Its server
   # reads civicAPI, also during `next build`, which prerenders the pages.
   - name: elections
-    github:
-      repo: charliebeckstrand/midgard
-      branch: main
-      deploy_on_push: false
-    dockerfile_path: Dockerfile
+    image:
+      registry_type: DOCR
+      repository: elections
+      tag: ${IMAGE_TAG}
     http_port: 3000
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
@@ -190,19 +184,14 @@ services:
         window: TEN_MINUTES
     health_check:
       http_path: /
-    envs:
-      - key: APP
-        scope: BUILD_TIME
-        value: elections
 
   # Sign-in is optional in the numbers app, and no page needs a session. `/`
   # sends the reader to the address of a new seed.
   - name: numbers
-    github:
-      repo: charliebeckstrand/midgard
-      branch: main
-      deploy_on_push: false
-    dockerfile_path: Dockerfile
+    image:
+      registry_type: DOCR
+      repository: numbers
+      tag: ${IMAGE_TAG}
     http_port: 3000
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
@@ -223,12 +212,9 @@ services:
     health_check:
       http_path: /
     envs:
-      - key: APP
-        scope: BUILD_TIME
-        value: numbers
       # The same reason as for admin.
       - key: BIFROST_URL
-        scope: RUN_AND_BUILD_TIME
+        scope: RUN_TIME
         value: https://auth.ivoryimage.dev
       # The same reason as for admin.
       - key: CLIENT_IP_SECRET
@@ -243,11 +229,10 @@ services:
   # with no page gets the fallback document, and the app shows its own page for
   # it (`packages/ui/scripts/docs/server.ts`).
   - name: docs-server
-    github:
-      repo: charliebeckstrand/midgard
-      branch: main
-      deploy_on_push: false
-    dockerfile_path: Dockerfile.docs
+    image:
+      registry_type: DOCR
+      repository: docs-server
+      tag: ${IMAGE_TAG}
     http_port: 8080
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
