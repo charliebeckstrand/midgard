@@ -88,6 +88,8 @@ docker build --build-arg APP=admin --build-arg BIFROST_URL=https://auth.ivoryima
 docker build --file Dockerfile.docs .
 ```
 
+The DigitalOcean MCP server in [`.mcp.json`](.mcp.json) reads the state and the logs of the app. It is off by default, because it needs a DigitalOcean token, and a cloud session has no token. To use it on your machine, set `DIGITALOCEAN_API_TOKEN`, then approve the server when Claude Code asks, or turn it on in `/mcp`. The deny rules in [`.claude/settings.json`](.claude/settings.json) block the tools that change the app (CLAUDE.md §3.8).
+
 ---
 
 **See also:** [CLAUDE.md](CLAUDE.md), [CONVENTIONS.md](CONVENTIONS.md), [STE.md](STE.md).
