@@ -8,13 +8,16 @@ import { workspaceRoot, workspaceSources } from '../helpers/walk-source'
 // The X close of a Dialog, a Drawer, or a Sheet comes from the `closable` prop
 // of its header. The header puts the X at the end of the line of the title,
 // labels it "Close" in the language of the reader, and keeps it live in a
-// locked scope. A close control built by hand repeats that work, and the copies
-// drift: the label of each copy was an English literal. This test fails on a
-// `DialogClose`, a `DrawerClose`, or a `SheetClose` that holds an X icon. The
+// locked scope. The X close of a CommandPalette is the same button, at the end
+// of the line of its search field. A close control built by hand repeats that
+// work, and the copies drift: the label of each copy was an English literal.
+// This test fails on a `DialogClose`, a `DrawerClose`, a `SheetClose`, or a
+// `CommandPaletteClose` that holds an X icon. The
 // standard Close button of a footer, and a close with a text child, pass.
 
 /** A close control of a panel that holds the X icon of lucide. */
-const HAND_X = /<(Dialog|Drawer|Sheet)Close>(?:(?!<\/\1Close>)[\s\S])*?<X\s*\/>/
+const HAND_X =
+	/<(Dialog|Drawer|Sheet|CommandPalette)Close\b[^>]*(?<!\/)>(?:(?!<\/\1Close>)[\s\S])*?<X\s*\/>/
 
 /** The text of each hand-built X close in a source, as a fix. */
 function handCloses(code: string): string[] {
@@ -49,8 +52,11 @@ describe('panel close boundary', () => {
 					<Button type="button">Done</Button>
 				</DialogClose>
 				<DrawerClose />
+				<CommandPaletteClose variant="bare">
+					<Icon icon={<X />} />
+				</CommandPaletteClose>
 				<Icon icon={<X />} />
 			`),
-		).toEqual(['SheetClose'])
+		).toEqual(['SheetClose', 'CommandPaletteClose'])
 	})
 })

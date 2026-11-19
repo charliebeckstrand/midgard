@@ -86,9 +86,12 @@ describe('CommandPalette', () => {
 
 		expect(list).toHaveAttribute('role', 'listbox')
 
-		const footer = bySlot(document.body, 'command-palette-footer')
+		// The X close sits on the line of the search field, and no footer row shows.
+		expect(bySlot(document.body, 'command-palette-search')).toContainElement(
+			screen.getByRole('button', { name: 'Close' }),
+		)
 
-		expect(footer).toContainElement(screen.getByRole('button', { name: 'Close' }))
+		expect(bySlot(document.body, 'command-palette-footer')).not.toBeInTheDocument()
 	})
 
 	it('does not render when closed', () => {
@@ -101,7 +104,7 @@ describe('CommandPalette', () => {
 		expect(bySlot(document.body, 'command-palette-input')).not.toBeInTheDocument()
 	})
 
-	it('closes the palette from the default footer Close button', async () => {
+	it('closes the palette from the X close', async () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
@@ -115,7 +118,7 @@ describe('CommandPalette', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
-	it('replaces the default Close button with the footer content', () => {
+	it('renders the footer content in a footer row', () => {
 		renderUI(
 			<CommandPalette open onOpenChange={() => {}} footer={<Button type="button">Create</Button>}>
 				<div>Items</div>
@@ -125,8 +128,6 @@ describe('CommandPalette', () => {
 		const footer = bySlot(document.body, 'command-palette-footer')
 
 		expect(footer).toContainElement(screen.getByRole('button', { name: 'Create' }))
-
-		expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
 	})
 
 	it('removes the footer row when footer is null', () => {
@@ -1304,7 +1305,7 @@ describe('CommandPalette triggerShortcut', () => {
 			</>,
 		)
 
-		// A press on the Close button of the open palette: focus can rest there,
+		// A press on the X close of the open palette: focus can rest there,
 		// and it is not a form field, so the closed palette would also take it.
 		fireEvent.keyDown(screen.getByRole('button', { name: 'Close' }), MOD_K)
 
@@ -1568,7 +1569,7 @@ describe('CommandPalette onActiveChange', () => {
 })
 
 describe('CommandPalette uncontrolled mode', () => {
-	it('opens from defaultOpen and closes from the Close button', async () => {
+	it('opens from defaultOpen and closes from the X close', async () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(

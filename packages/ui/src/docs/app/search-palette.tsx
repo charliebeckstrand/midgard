@@ -199,38 +199,37 @@ function Results({ onPick }: { onPick: () => void }) {
 		<>
 			<PrefetchResults matches={matches} />
 			{/*
-			 * The dialog body grows with its content. The list has a fixed height,
-			 * so that it scrolls. With no match, such as for an empty query, the
-			 * list does not show, and the palette is only the search field.
+			 * The dialog body is the scroller of the list. It grows with the rows, up
+			 * to the cap of the panel in the viewport, and then scrolls. With no
+			 * match, such as for an empty query, the body hides, and the palette is
+			 * only the search field.
 			 */}
-			<div className={matches.length === 0 ? 'hidden' : 'h-80 overflow-y-auto'}>
-				<VirtualOptions items={matches} getOptionId={(option) => option.id}>
-					{(option, _index, meta) => (
-						<CommandPaletteItem
-							key={option.id}
-							id={option.id}
-							href={option.href}
-							onAction={onPick}
-							{...meta}
-						>
-							{/*
-							 * A name from the code, such as <Grid />, keeps its order on a
-							 * right-to-left page in its own bdi. The description slot is a
-							 * flex box, so one bdi holds all of the description and keeps
-							 * the space before "·".
-							 */}
-							<CommandPaletteText>
-								<CommandPaletteLabel>
-									<bdi>{option.label}</bdi>
-								</CommandPaletteLabel>
-								<CommandPaletteDescription>
-									<bdi>{`${intl.formatMessage(KIND_LABELS[option.kind])} · ${option.place}`}</bdi>
-								</CommandPaletteDescription>
-							</CommandPaletteText>
-						</CommandPaletteItem>
-					)}
-				</VirtualOptions>
-			</div>
+			<VirtualOptions items={matches} getOptionId={(option) => option.id}>
+				{(option, _index, meta) => (
+					<CommandPaletteItem
+						key={option.id}
+						id={option.id}
+						href={option.href}
+						onAction={onPick}
+						{...meta}
+					>
+						{/*
+						 * A name from the code, such as <Grid />, keeps its order on a
+						 * right-to-left page in its own bdi. The description slot is a
+						 * flex box, so one bdi holds all of the description and keeps
+						 * the space before "·".
+						 */}
+						<CommandPaletteText>
+							<CommandPaletteLabel>
+								<bdi>{option.label}</bdi>
+							</CommandPaletteLabel>
+							<CommandPaletteDescription>
+								<bdi>{`${intl.formatMessage(KIND_LABELS[option.kind])} · ${option.place}`}</bdi>
+							</CommandPaletteDescription>
+						</CommandPaletteText>
+					</CommandPaletteItem>
+				)}
+			</VirtualOptions>
 		</>
 	)
 }
