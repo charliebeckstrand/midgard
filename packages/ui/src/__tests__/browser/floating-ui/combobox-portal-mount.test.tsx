@@ -11,7 +11,7 @@ import { FruitCombobox } from '../helpers/fruit-combobox'
  * Here because the jsdom projects and the default browser project mock
  * `@floating-ui/react`, and that mock renders `FloatingPortal` inline. Thus the
  * portal node does not exist there. The real engine builds the node in a layout
- * effect, and `patches/@floating-ui__react` keeps it across an `<Activity>` hide.
+ * effect, and `patches/@floating-ui+react` keeps it across an `<Activity>` hide.
  *
  * A closed Combobox must keep no `[data-floating-ui-portal]` node in `<body>`.
  * A page of closed comboboxes otherwise adds one empty node for each control.

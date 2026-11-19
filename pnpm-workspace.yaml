@@ -145,8 +145,13 @@ minimumReleaseAgeExclude:
 # Thus each package.json pins a patched package at that version, so that a lockfile refresh
 # cannot move it. A bump makes a new patch for the new version, and renovate.json holds each
 # bump for approval.
+#
+# The name of a patch for a scoped package has `+` in place of `/`, as in `node_modules/.pnpm`.
+# `pnpm patch-commit` writes `__` there, and it changes the key below to that name. After a
+# bump, rename the new patch to the `+` form, and change its key back. Then delete the old
+# patch.
 patchedDependencies:
-  '@floating-ui/react@0.27.20': patches/@floating-ui__react@0.27.20.patch
+  '@floating-ui/react@0.27.20': patches/@floating-ui+react@0.27.20.patch
   next@16.4.6: patches/next@16.4.6.patch
   react-dom@19.3.1: patches/react-dom@19.3.1.patch
   react-router@8.4.0: patches/react-router@8.4.0.patch
