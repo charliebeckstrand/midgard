@@ -2,8 +2,9 @@ name: Claude review
 
 # Claude reviews a pull request with anthropics/claude-code-action, and posts
 # inline comments and one summary comment. Each run spends usage of the Claude
-# plan that the token belongs to. Thus a review starts at two points, not at
-# each push:
+# plan that the token belongs to. When that plan reaches its usage limit, a
+# second token from a different account can do the review (see the review
+# steps below). Thus a review starts at two points, not at each push:
 #
 # - A pull request opens as ready, or a draft becomes ready for review.
 # - A collaborator writes a comment that starts with `@claude review`.
@@ -53,22 +54,27 @@ jobs:
       id-token: write
     steps:
       # The review runs only for a pull request from a branch of this
-      # repository, and only when the secret is set. A `pull_request` run from a
-      # fork gets no secrets, but an `issue_comment` run gets them for any pull
-      # request, so the step reads where the head is. Otherwise the step writes
-      # a notice, and the job passes with no review.
+      # repository, and only when one of the two secrets is set. A
+      # `pull_request` run from a fork gets no secrets, but an `issue_comment`
+      # run gets them for any pull request, so the step reads where the head
+      # is. Otherwise the step writes a notice, and the job passes with no
+      # review. The `primary` and `fallback` outputs tell the review steps which
+      # secrets are set.
       - id: token
         run: |
           fork=$(gh pr view "$PR" --repo "$REPO" --json isCrossRepository --jq .isCrossRepository)
           if [ "$fork" != "false" ]; then
             echo "::notice::The pull request comes from a fork, so no review runs."
-          elif [ -z "$TOKEN" ]; then
-            echo "::notice::CLAUDE_CODE_OAUTH_TOKEN is not set, so no review runs."
+          elif [ -z "$PRIMARY" ] && [ -z "$FALLBACK" ]; then
+            echo "::notice::CLAUDE_CODE_OAUTH_TOKEN and CLAUDE_CODE_OAUTH_TOKEN_FALLBACK are not set, so no review runs."
           else
             echo "set=true" >> "$GITHUB_OUTPUT"
+            if [ -n "$PRIMARY" ]; then echo "primary=true" >> "$GITHUB_OUTPUT"; fi
+            if [ -n "$FALLBACK" ]; then echo "fallback=true" >> "$GITHUB_OUTPUT"; fi
           fi
         env:
-          TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          PRIMARY: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          FALLBACK: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK }}
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number || github.event.issue.number }}
           REPO: ${{ github.repository }}
@@ -102,15 +108,22 @@ jobs:
       #
       # The tools can read the checkout and the pull request, and write
       # comments. They cannot edit a file or run a script of the pull request.
-      - if: steps.token.outputs.set
+      #
+      # When the fallback secret is set, a failure of this step does not fail
+      # the job, and the next step does the review again with the fallback
+      # token. The usage limit of the plan is the usual cause of a failure. When
+      # the fallback secret is not set, a failure fails the job.
+      - id: review
+        if: steps.token.outputs.primary
+        continue-on-error: ${{ steps.token.outputs.fallback == 'true' }}
         uses: anthropics/claude-code-action@f431adaf77e0fecf918431e75a2b5b45b85af002 # v1.0.283
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: >-
+          claude_args: &review-args >-
             --strict-mcp-config
             --model opus
             --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),mcp__github_inline_comment__create_inline_comment"
-          prompt: |
+          prompt: &review-prompt |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
 
@@ -125,3 +138,18 @@ jobs:
             Challenge each finding before you post it (CLAUDE.md §1.5). Drop a finding that is only a different way to write the same code, and a finding that you cannot support from the code.
 
             Post each finding as an inline comment on its line with `mcp__github_inline_comment__create_inline_comment` and `confirmed: true`. Then post one summary comment with `gh pr comment`: the findings, most severe first, one line each. When you find no defect, post one line that says so.
+
+      # The review with the token of a second account
+      # (`CLAUDE_CODE_OAUTH_TOKEN_FALLBACK`). It runs when the step above fails,
+      # or when only the fallback secret is set. The two aliases give it the
+      # arguments and the prompt of the step above.
+      #
+      # This step runs after each failure of the step above, not only after the
+      # usage limit. When the step above posted a part of its comments before it
+      # failed, this step can post the same findings again.
+      - if: steps.token.outputs.fallback && steps.review.outcome != 'success'
+        uses: anthropics/claude-code-action@f431adaf77e0fecf918431e75a2b5b45b85af002 # v1.0.283
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK }}
+          claude_args: *review-args
+          prompt: *review-prompt
