@@ -135,7 +135,7 @@
 		"test:browser": "LANG=en-US vitest run --config vitest.browser.config.ts",
 		"test:docs-build": "vitest run --config vitest.docs-build.config.ts",
 		"test:geometry": "export LANG=en-US && vitest run --project geometry && vitest run --config vitest.browser.config.ts --project geometry",
-		"test:compiler": "LANG=en-US vitest run --config vitest.compiler.config.ts --project unit --project docs --project pure --project integration --project geometry --project skips",
+		"test:compiler": "LANG=en-US vitest run --config vitest.compiler.config.ts --project unit --project docs --project pure --project integration --project skips",
 		"test:a11y": "LANG=en-US vitest run src/__tests__/a11y",
 		"test:watch": "LANG=en-US vitest",
 		"test:changed": "export LANG=en-US && base=$(git merge-base HEAD origin/main) && vitest run --project boundary && vitest run --passWithNoTests --changed=\"$base\" --project unit --project docs --project pure --project integration --project geometry",
