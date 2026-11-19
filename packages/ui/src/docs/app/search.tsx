@@ -37,7 +37,7 @@ const [SearchContext, useSearch] = createContext<SearchState>('DocsSearch')
 const messages = defineMessages({
 	button: {
 		id: 'docs.search.button',
-		defaultMessage: 'Search docs',
+		defaultMessage: 'Search',
 		description:
 			'The label of the button at the top of the sidebar that opens the search of the docs.',
 	},

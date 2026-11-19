@@ -45,12 +45,13 @@ function fit(label: string, text: string): number | undefined {
  * so `grid sort` finds the Sorting tab of Grid. An entry whose label or common
  * name holds the whole query comes before one that only its context matches.
  * Then the kinds go in the order of {@link KINDS}, and a shorter label goes
- * first. An empty query gives each page.
+ * first. An empty query gives no entry, so the palette shows no list until
+ * the reader types.
  */
 export function matchEntries<T extends Matchable>(entries: readonly T[], query: string): T[] {
 	const text = normalize(query)
 
-	if (text === '') return entries.filter((entry) => entry.kind === 'page')
+	if (text === '') return []
 
 	const words = text.split(' ')
 
