@@ -241,6 +241,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 	} = props
 
 	const chart = useChartCartesian(props, {
+		referenceLabels: Boolean(props.labels?.references),
 		zeroBaseline: true,
 		// Each wash and the first ribbon of a stack stand on the zero line, so the
 		// category rule draws there too.

@@ -99,6 +99,10 @@
 		"defaultMessage": "Previous legend entries",
 		"description": "The name of the button that shows the page of legend entries before."
 	},
+	"ui.chart.references": {
+		"defaultMessage": "References",
+		"description": "The heading of the part of a chart legend that names the reference lines, such as a target or a release date."
+	},
 	"ui.chart.seats": {
 		"defaultMessage": "Seats",
 		"description": "The name of the value of each group in a seat chart, such as the seats of a party."
@@ -106,6 +110,10 @@
 	"ui.chart.seatsToWin": {
 		"defaultMessage": "{majority, number} to win",
 		"description": "The label above the majority line of a seat chart: the seats for a majority, such as \"218 to win\"."
+	},
+	"ui.chart.series": {
+		"defaultMessage": "Series",
+		"description": "The heading of the part of a chart legend that names the data series, such as Revenue and Costs."
 	},
 	"ui.chart.showMore": {
 		"defaultMessage": "Show {count, number} more",

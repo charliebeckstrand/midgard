@@ -1,6 +1,7 @@
 import api from 'virtual:docs/api/components/swatch'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
 import Color from './color.tsx'
+import Orientation from './orientation.tsx'
 import SwatchPlayground from './playground.tsx'
 
 export default function SwatchPage() {
@@ -8,6 +9,7 @@ export default function SwatchPage() {
 		<>
 			<Playground of={SwatchPlayground} api={api} />
 			<Example of={Color} />
+			<Example of={Orientation} />
 			<ApiTable api={api} />
 		</>
 	)

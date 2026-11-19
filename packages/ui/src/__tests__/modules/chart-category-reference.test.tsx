@@ -237,7 +237,7 @@ describe('a category reference', () => {
 		expect(value?.getAttribute('pointer-events')).toBeNull()
 
 		expect(allBySlot(container, 'chart-legend-reference').map((chip) => chip.textContent)).toEqual([
-			'Goal',
+			'Goal60',
 		])
 	})
 

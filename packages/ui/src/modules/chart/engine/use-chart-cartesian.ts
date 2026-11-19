@@ -58,6 +58,7 @@ import { REFERENCE_FALL, seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
 import {
 	categoryRows,
+	legendEntryRules,
 	legendRules,
 	referenceLegendItems,
 	referenceNotes,
@@ -180,6 +181,13 @@ export type CartesianConfig<T> = {
 	 * Absent, a toggle lays out at once.
 	 */
 	seriesExit?: number
+	/**
+	 * The rules stand their labels on the plot: the `labels.references` prop of
+	 * the chart. A rule that stands its label takes no legend entry, unless the
+	 * legend names it ({@link legendEntryRules}).
+	 * @defaultValue false
+	 */
+	referenceLabels?: boolean
 }
 
 /** The classes of a category label on the horizontal band axis, as the y axis draws it. @internal */
@@ -297,10 +305,11 @@ export type CartesianChart = {
 	 */
 	readoutOrder: number[]
 	legendItems: ChartLegendItem[] | null
-	/** The reference lines' legend chips; the frame shows them only when `legendItems` is not null. */
+	/**
+	 * The legend entries of the reference lines ({@link legendEntryRules}). The
+	 * frame shows them only when `legendItems` is not null.
+	 */
 	referenceItems: ChartLegendReference[]
-	/** The chips of the rules that the legend names in place of their labels: a subset of `referenceItems`. */
-	listedReferenceItems: ChartLegendReference[]
 	/**
 	 * The indexes of the rules that the legend names in place of their labels
 	 * ({@link legendRules}). Empty where the legend does not show.
@@ -385,7 +394,8 @@ export type CartesianChart = {
  * legend never shares the aspect box, so it counts as no stacked band. The
  * legend otherwise shows for two or more entries unless forced, the same rule
  * {@link cartesianLegendItems} reads. The entries are the series and the
- * `rules` that the legend names in place of their labels.
+ * `rules` that the legend names in place of their labels. A stacked legend
+ * with reference chips adds their row (`chips`).
  *
  * @internal
  */
@@ -393,10 +403,14 @@ function cartesianChrome<T>(
 	props: CartesianData<T>,
 	legend: ResolvedLegend['value'],
 	rules: number,
+	chips: boolean,
 ): ChartChrome {
+	const bands = legendBands(legend, props.series.length + rules)
+
 	return {
 		headerLines: headerLineCount(props.title, props.subtitle),
-		legend: legendBands(legend, props.series.length + rules),
+		legend: bands,
+		referenceRow: bands && chips,
 	}
 }
 
@@ -505,6 +519,13 @@ export function useChartCartesian<T>(
 		? legendCandidates
 		: NO_RULES
 
+	// The rules that take a legend entry: the rules that the legend names, and
+	// each value rule that stands no label on the plot.
+	const legendEntries = useMemo(
+		() => legendEntryRules(reference, listedReferences, config.referenceLabels ?? false),
+		[reference, listedReferences, config.referenceLabels],
+	)
+
 	// The one place the `axes` prop's boolean-or-object union is read: the draw
 	// switch, and each axis's config under its own key. Memoized, so the memos
 	// below that read an axis config read a value that keeps its identity.
@@ -560,7 +581,12 @@ export function useChartCartesian<T>(
 		sizing,
 		aside,
 		aspect: outerAspect,
-		chrome: cartesianChrome(props, legend, listedReferences.size),
+		chrome: cartesianChrome(
+			props,
+			legend,
+			listedReferences.size,
+			resolvedLegend.referenceVariant === 'chips' && legendEntries.size > 0,
+		),
 		tickTarget: TICK_TARGET,
 		orientation,
 	})
@@ -817,28 +843,26 @@ export function useChartCartesian<T>(
 	// A chip whose rule draws nothing, as outside a pinned domain, recedes nothing.
 	const referenceItems = useMemo(
 		() =>
-			referenceLegendItems(reference, formatAxisValue, formatCategory, listedReferences).map(
-				(item) =>
-					(referencePositions[item.index] ?? categoryReferencePositions[item.index] ?? null) ===
-					null
-						? { ...item, drawn: false }
-						: item,
+			referenceLegendItems(reference, legendEntries, {
+				format: formatAxisValue,
+				formatCategory,
+				value: resolvedLegend.referenceValue,
+				orientation,
+			}).map((item) =>
+				(referencePositions[item.index] ?? categoryReferencePositions[item.index] ?? null) === null
+					? { ...item, drawn: false }
+					: item,
 			),
 		[
 			reference,
+			legendEntries,
 			formatAxisValue,
 			formatCategory,
-			listedReferences,
+			resolvedLegend.referenceValue,
+			orientation,
 			referencePositions,
 			categoryReferencePositions,
 		],
-	)
-
-	// The chips that stay where the rules stand their labels: the rules that the
-	// legend names in place of a label.
-	const listedReferenceItems = useMemo(
-		() => referenceItems.filter((item) => listedReferences.has(item.index)),
-		[referenceItems, listedReferences],
 	)
 
 	// Each visible series draws through its own axis's scale. A series whose
@@ -909,7 +933,6 @@ export function useChartCartesian<T>(
 		readoutOrder,
 		legendItems,
 		referenceItems,
-		listedReferenceItems,
 		listedReferences,
 		referenceLabelWidth: referenceLabels.width,
 		referenceLabelCut: referenceLabels.cut,

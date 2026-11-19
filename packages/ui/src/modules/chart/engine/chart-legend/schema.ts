@@ -43,15 +43,40 @@ export type ChartLegendConfig = {
  */
 export type ChartCartesianLegendConfig = ChartLegendConfig & {
 	/**
-	 * Name each reference rule in the legend, with a chip that shows the dash of
-	 * the rule, in place of a label on the rule. A busy chart then keeps its
-	 * plot clear. A category rule also takes a chip, and its category readout
-	 * still shows its label and its description. The `legend` of a rule
-	 * overrides this for that rule. The legend shows when it names a rule, as
-	 * for two or more series.
+	 * Name each reference rule in the legend, in place of a label on the rule. A
+	 * busy chart then keeps its plot clear. A category rule also takes an entry,
+	 * and its category readout still shows its label and its description. The
+	 * `legend` of a rule overrides this for that rule. The legend shows when it
+	 * names a rule, as for two or more series. An object names the rules and sets
+	 * how the legend shows them.
 	 * @defaultValue false
 	 */
-	references?: boolean
+	references?: boolean | ChartLegendReferenceConfig
+}
+
+/**
+ * The settings of the reference entries of a cartesian legend:
+ * `legend.references` as an object. The legend puts the rules in their own
+ * group after the series: a row under the series row, or a section under the
+ * series in a side panel.
+ */
+export type ChartLegendReferenceConfig = {
+	/**
+	 * How the legend shows each rule. `'chips'` gives each rule a switch, with a
+	 * swatch that shows the dash and the direction of the rule. A switch toggles
+	 * its rule. `'notes'` gives each rule a line that does not toggle: the
+	 * swatch, the label, the value, and the `description` of the rule under them.
+	 * @defaultValue 'chips'
+	 */
+	variant?: 'chips' | 'notes'
+	/**
+	 * Show the value of a value rule, or the category of a category rule, after
+	 * its label. Turn it off where the label already holds the value, such as
+	 * `'Good 5%'`, so the value does not show twice. A rule with no label shows
+	 * its value, which names it.
+	 * @defaultValue true
+	 */
+	value?: boolean
 }
 
 /** A `legend` prop resolved to what the frame, item logic, and legend each read. @internal */
@@ -68,17 +93,23 @@ export type ResolvedLegend = {
 	inert: boolean
 	/** The legend names the reference rules in place of their labels ({@link ChartCartesianLegendConfig}). */
 	references: boolean
+	/** How the legend shows each rule ({@link ChartLegendReferenceConfig}). */
+	referenceVariant: 'chips' | 'notes'
+	/** The legend shows the value of each rule after its label ({@link ChartLegendReferenceConfig}). */
+	referenceValue: boolean
 }
 
 /**
  * Normalizes a categorical chart's `legend` prop. The prop is a boolean, a
  * placement string, or a {@link ChartLegendConfig}. The result holds the show
  * `value` the frame and item logic already read, the `placement` alone, the
- * `inert` flag, and the `references` flag of a cartesian chart. A bare boolean resolves the `placement` to none. The object's
+ * `inert` flag, and the `references` flag of a cartesian chart with its
+ * variant and value settings. A bare boolean resolves the `placement` to none. The object's
  * `placement` becomes both `value` and `placement`. A `{ placement: 'left' }`
  * therefore places exactly as `'left'`, and an object with no placement falls to
- * the default show rule. A bare boolean or string passes through with `inert`
- * and `references` off.
+ * the default show rule. An object `references` turns the flag on. A bare
+ * boolean or string passes through with `inert` and `references` off, and the
+ * reference settings at their defaults.
  *
  * @internal
  */
@@ -86,11 +117,17 @@ export function resolveLegend(
 	legend: boolean | ChartLegendPlacement | ChartCartesianLegendConfig | undefined,
 ): ResolvedLegend {
 	if (legend !== null && typeof legend === 'object') {
+		const references = legend.references ?? false
+
+		const config = typeof references === 'object' ? references : {}
+
 		return {
 			value: legend.placement,
 			placement: legend.placement,
 			inert: legend.inert ?? false,
-			references: legend.references ?? false,
+			references: references !== false,
+			referenceVariant: config.variant ?? 'chips',
+			referenceValue: config.value ?? true,
 		}
 	}
 
@@ -99,6 +136,8 @@ export function resolveLegend(
 		placement: typeof legend === 'string' ? legend : undefined,
 		inert: false,
 		references: false,
+		referenceVariant: 'chips',
+		referenceValue: true,
 	}
 }
 

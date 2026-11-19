@@ -76,6 +76,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 	const { animate = false, points = false, fill = false, interpolation = 'linear', labels } = props
 
 	const chart = useChartCartesian(props, {
+		referenceLabels: Boolean(props.labels?.references),
 		zeroBaseline: false,
 		swatch: LINE_SWATCH,
 		legendByValue: true,

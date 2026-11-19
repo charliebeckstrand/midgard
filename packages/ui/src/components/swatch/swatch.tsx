@@ -36,7 +36,7 @@ function resolveColor(color: string | undefined): {
 	return { colorClass: color, colorStyle: undefined }
 }
 
-/** Props for {@link Swatch}: the `shape`/`variant`/`size` recipe axes, the `color` hue, an optional accessible `label`, plus `<span>` attributes. */
+/** Props for {@link Swatch}: the `shape`/`variant`/`orientation`/`size` recipe axes, the `color` hue, an optional accessible `label`, plus `<span>` attributes. */
 export type SwatchProps = SwatchVariants & {
 	/**
 	 * The hue on `currentColor`, one of:
@@ -69,8 +69,10 @@ export type SwatchProps = SwatchVariants & {
 
 /**
  * The color key that stands in for a mark: a `square` box, a `circle` dot, or
- * a `line` bar. `color` inks it `solid`-filled, `soft`-tinted, `outline`-framed,
- * or `dashed`, at any `size` from `xs` to `xl`. Without `size`, the swatch
+ * a `line` bar. A line runs `horizontal` or `vertical`, and a vertical line
+ * takes the width of a horizontal one, so the labels after them line up.
+ * `color` inks it `solid`-filled, `soft`-tinted, `outline`-framed, or `dashed`,
+ * at any `size` from `xs` to `xl`. Without `size`, the swatch
  * takes the step of the nearest density scope. A `dashed` swatch draws a dashed
  * run on a `line` and a dashed border on a `square` or `circle`, for a dashed
  * reference rule. A static leaf with no client hooks, so it renders in React
@@ -91,6 +93,7 @@ export type SwatchProps = SwatchVariants & {
 export function Swatch({
 	shape,
 	variant,
+	orientation,
 	size,
 	color,
 	label,
@@ -110,8 +113,9 @@ export function Swatch({
 			data-slot={slot}
 			data-shape={shape ?? 'square'}
 			data-variant={variant ?? 'solid'}
+			data-orientation={shape === 'line' ? (orientation ?? 'horizontal') : undefined}
 			data-density={size}
-			className={cn(k({ shape, variant }).base, colorClass, className)}
+			className={cn(k({ shape, variant, orientation }).base, colorClass, className)}
 			// The consumer style spreads first, and a raw `color` wins (CONVENTIONS.md §3.9).
 			style={colorStyle ? { ...style, ...colorStyle } : style}
 			{...props}

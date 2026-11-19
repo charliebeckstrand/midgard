@@ -174,6 +174,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	const { series, animate = false, points = false, interpolation = 'linear', labels } = props
 
 	const chart = useChartCartesian(props, {
+		referenceLabels: Boolean(props.labels?.references),
 		zeroBaseline: true,
 		categoryRule: 'zero',
 		swatch: comboSwatch,

@@ -73,6 +73,28 @@ describe('chart chrome reserve (real browser)', () => {
 					height(getSlot(container, 'chart-header')) + height(legend) + 2 * CHART_FIGURE_GAP,
 				).toBe(chartChromeReserve({ headerLines: 2, legend: true }))
 			})
+
+			it(`matches the rendered row of reference chips at ${density} density under ${inherited}`, async () => {
+				const { container } = renderUI(
+					<div data-density={density} className={inherited} style={{ width: 800 }}>
+						<BarChart
+							aria-label="Revenue and costs by month"
+							data={DATA}
+							series={[...SERIES]}
+							reference={[{ value: 45, label: 'Target' }]}
+						/>
+					</div>,
+				)
+
+				const legend = await waitFor(() => getSlot(container, 'chart-legend'))
+
+				// The chips take a row of their own under the series row.
+				expect(height(getSlot(container, 'chart-legend-references'))).toBe(CHART_LEGEND_ROW_HEIGHT)
+
+				expect(height(legend) + CHART_FIGURE_GAP).toBe(
+					chartChromeReserve({ headerLines: 0, legend: true, referenceRow: true }),
+				)
+			})
 		}
 	}
 })

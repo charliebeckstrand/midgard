@@ -11,7 +11,7 @@ import {
 import type { LabelLine } from '../chart-geometry/label'
 import type { ChartLineSeries } from '../chart-geometry/line'
 import { ChartHitArea, cartesianHitActive } from '../chart-hit-area'
-import { ChartLegend } from '../chart-legend/legend'
+import { ChartLegend, ChartLegendNotes } from '../chart-legend/legend'
 import { legendAside } from '../chart-legend/schema'
 import { ChartMarksLayer } from '../chart-marks/layer'
 import type { Vec } from '../chart-orientation'
@@ -146,6 +146,44 @@ export type ChartCartesianFrameProps = AccessibleName &
 const NO_VALUES: { values: (number | null)[]; axis: ChartValueAxisId } = { values: [], axis: 'y' }
 
 /**
+ * The legend of a cartesian chart, and the notes of its rules under the figure.
+ * No legend resolves for a lone series with `legend` unset. A stacked legend
+ * puts the notes of its rules (`legend.references.variant: 'notes'`) under the
+ * figure, so they take no height from the plot. A side panel holds them in its
+ * References section.
+ *
+ * @internal
+ */
+function cartesianLegend(chart: CartesianChart): { legend: ReactNode; notes: ReactNode } {
+	const { resolvedLegend, legendItems, referenceItems } = chart
+
+	if (!legendItems) return { legend: null, notes: null }
+
+	const panel = legendAside(resolvedLegend.value)
+
+	const notes = resolvedLegend.referenceVariant === 'notes' && !panel
+
+	return {
+		legend: (
+			<ChartLegend
+				items={legendItems}
+				references={notes ? undefined : referenceItems}
+				referenceVariant={resolvedLegend.referenceVariant}
+				hidden={chart.hidden}
+				referenceHidden={chart.referenceHidden}
+				onToggle={chart.toggleSeries}
+				onToggleReference={chart.toggleReference}
+				panel={panel}
+				maxRows={chart.legendRows}
+				texture={chart.tex.active}
+				inert={resolvedLegend.inert}
+			/>
+		),
+		notes: notes && referenceItems.length > 0 && <ChartLegendNotes references={referenceItems} />,
+	}
+}
+
+/**
  * The frame and the layer stack that every cartesian chart (bar, line, area,
  * combo) shares. It is the {@link ChartFrame} wired to the resolved chart's
  * sizing, tier, cartesian legend, readout, and reference annotations. Inside
@@ -244,26 +282,7 @@ export function ChartCartesianFrame({
 			fill={chart.fill}
 			aspect={chart.outerAspect ?? undefined}
 			tier={chart.tier}
-			legend={
-				// No legend resolves for a lone series with `legend` unset.
-				chart.legendItems && (
-					<ChartLegend
-						items={chart.legendItems}
-						// A rule that stands its label on the plot is named there, so the
-						// legend does not name it again. A rule that the legend names
-						// stands no label, so its chip stays.
-						references={standing ? chart.listedReferenceItems : chart.referenceItems}
-						hidden={chart.hidden}
-						referenceHidden={chart.referenceHidden}
-						onToggle={chart.toggleSeries}
-						onToggleReference={chart.toggleReference}
-						panel={legendAside(resolvedLegend.value)}
-						maxRows={chart.legendRows}
-						texture={tex.active}
-						inert={resolvedLegend.inert}
-					/>
-				)
-			}
+			{...cartesianLegend(chart)}
 			legendPlacement={resolvedLegend.placement}
 			readout={chart.readout}
 			readoutOrder={chart.readoutOrder}

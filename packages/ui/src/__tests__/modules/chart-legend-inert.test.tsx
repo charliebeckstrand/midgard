@@ -46,6 +46,8 @@ describe('resolveLegend', () => {
 			placement: undefined,
 			inert: false,
 			references: false,
+			referenceVariant: 'chips',
+			referenceValue: true,
 		})
 
 		// A bare boolean carries the show value but no placement.
@@ -54,6 +56,8 @@ describe('resolveLegend', () => {
 			placement: undefined,
 			inert: false,
 			references: false,
+			referenceVariant: 'chips',
+			referenceValue: true,
 		})
 
 		expect(resolveLegend(false)).toEqual({
@@ -61,6 +65,8 @@ describe('resolveLegend', () => {
 			placement: undefined,
 			inert: false,
 			references: false,
+			referenceVariant: 'chips',
+			referenceValue: true,
 		})
 
 		expect(resolveLegend('left')).toEqual({
@@ -68,6 +74,8 @@ describe('resolveLegend', () => {
 			placement: 'left',
 			inert: false,
 			references: false,
+			referenceVariant: 'chips',
+			referenceValue: true,
 		})
 	})
 
@@ -77,6 +85,8 @@ describe('resolveLegend', () => {
 			placement: 'left',
 			inert: true,
 			references: false,
+			referenceVariant: 'chips',
+			referenceValue: true,
 		})
 
 		// No placement falls to the default show rule (value undefined), inert defaulting off.
@@ -85,6 +95,8 @@ describe('resolveLegend', () => {
 			placement: undefined,
 			inert: true,
 			references: false,
+			referenceVariant: 'chips',
+			referenceValue: true,
 		})
 
 		expect(resolveLegend({})).toEqual({
@@ -92,6 +104,8 @@ describe('resolveLegend', () => {
 			placement: undefined,
 			inert: false,
 			references: false,
+			referenceVariant: 'chips',
+			referenceValue: true,
 		})
 	})
 
@@ -101,6 +115,19 @@ describe('resolveLegend', () => {
 			placement: undefined,
 			inert: false,
 			references: true,
+			referenceVariant: 'chips',
+			referenceValue: true,
+		})
+	})
+
+	it('reads the variant and the value of an object `references`', () => {
+		expect(resolveLegend({ references: { variant: 'notes', value: false } })).toEqual({
+			value: undefined,
+			placement: undefined,
+			inert: false,
+			references: true,
+			referenceVariant: 'notes',
+			referenceValue: false,
 		})
 	})
 })
