@@ -118,6 +118,13 @@ minimumReleaseAgeExclude:
 # file finds the DOM and the stubs of the files before it. The patch also finds the module by
 # its id. Remove the patch when upstream finds the module by its id.
 #
+# The fs module cache of Vitest holds the hash of the lockfile. A run that finds another hash
+# removes the cache directory. `pnpm check` starts the runs of the packages at the same time,
+# and the runs share one directory at the workspace root. Thus after a change to the lockfile,
+# one run removed the directory while another run wrote into it, and `rm` failed with
+# ENOTEMPTY. The patch moves the directory to a name that only its process knows, then removes
+# it there. Remove once upstream clears the cache in this way.
+#
 # React listens for each event on the container of its root. React Router and the Next.js App
 # Router hydrate the document, so that container is the document. On iOS, WebKit joins two
 # quick taps into one double-click when a node at the tap listens for `dblclick` and allows a
