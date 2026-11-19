@@ -1,10 +1,11 @@
+import { useRef, useState } from 'react'
 import { beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../../components/drawer'
 import { Input } from '../../../components/input'
 import { Sheet, SheetBody, SheetPanel, SheetTitle } from '../../../components/sheet'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { renderUI, screen, waitFor, within } from '../../helpers'
+import { act, renderUI, screen, waitFor, within } from '../../helpers'
 
 /**
  * An overlay moves the focus into its panel without a scroll of the page.
@@ -142,4 +143,117 @@ describe('overlay initial focus (real floating engine)', () => {
 
 		expectNoScroll(field)
 	})
+
+	it('focuses the panel of a drawer and not its field after a touch', async () => {
+		touch()
+
+		renderUI(<EditDrawer />)
+
+		const panel = screen.getByRole('dialog', { name: 'Edit' })
+
+		await waitFor(() => expect(panel).toHaveFocus())
+
+		expect(screen.getByRole('textbox', { name: 'Name' })).not.toHaveFocus()
+
+		expectNoScroll(panel)
+	})
+
+	it('draws no focus outline on the panel that a touch focuses after a field', async () => {
+		let open: () => void = () => {}
+
+		function Harness() {
+			const [isOpen, setOpen] = useState(false)
+
+			open = () => setOpen(true)
+
+			return (
+				<>
+					<Input aria-label="Page field" />
+					<Drawer open={isOpen} onOpenChange={setOpen}>
+						<DrawerPanel aria-label="Edit">
+							<DrawerTitle>Edit</DrawerTitle>
+						</DrawerPanel>
+					</Drawer>
+				</>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		// A tap on iOS does not move the focus out of the field, so the field still
+		// has it when the drawer opens.
+		screen.getByRole('textbox', { name: 'Page field' }).focus()
+
+		touch()
+
+		act(open)
+
+		const panel = screen.getByRole('dialog', { name: 'Edit' })
+
+		await waitFor(() => expect(panel).toHaveFocus())
+
+		// A script focus after a field matches `:focus-visible`.
+		expect(panel.matches(':focus-visible')).toBe(true)
+
+		expect(getComputedStyle(panel).outlineStyle).toBe('none')
+	})
+
+	it('focuses the first field of a drawer after a key press that follows a touch', async () => {
+		touch()
+
+		await userEvent.keyboard('{Shift}')
+
+		renderUI(<EditDrawer />)
+
+		const field = screen.getByRole('textbox', { name: 'Name' })
+
+		await waitFor(() => expect(field).toHaveFocus())
+	})
+
+	it('focuses the initialFocus of a drawer after a touch', async () => {
+		touch()
+
+		function WithInitialFocus() {
+			const ref = useRef<HTMLInputElement>(null)
+
+			return (
+				<Drawer open onOpenChange={() => {}}>
+					<DrawerPanel aria-label="Search" initialFocus={ref}>
+						<DrawerTitle>Search</DrawerTitle>
+						<DrawerBody>
+							<Input ref={ref} aria-label="Query" />
+						</DrawerBody>
+					</DrawerPanel>
+				</Drawer>
+			)
+		}
+
+		renderUI(<WithInitialFocus />)
+
+		const field = screen.getByRole('textbox', { name: 'Query' })
+
+		await waitFor(() => expect(field).toHaveFocus())
+
+		expectNoScroll(field)
+	})
 })
+
+/** A press of a finger on the page, as before the tap that opens an overlay. */
+function touch() {
+	document.body.dispatchEvent(
+		new PointerEvent('pointerdown', { pointerType: 'touch', isPrimary: true, bubbles: true }),
+	)
+}
+
+function EditDrawer() {
+	return (
+		<Drawer open onOpenChange={() => {}}>
+			<DrawerPanel aria-label="Edit">
+				<DrawerTitle>Edit</DrawerTitle>
+				<DrawerBody>
+					<Input aria-label="Name" />
+				</DrawerBody>
+			</DrawerPanel>
+		</Drawer>
+	)
+}

@@ -84,10 +84,17 @@ function continuesRun(event: PointerEvent<Element>, start: Start | null): boolea
  * the stop the tap moves the focus out of the field that the overlay focused at
  * the open.
  *
+ * The press that opened the overlay can also send its `mousedown` to the
+ * overlay. A tap that opens the overlay on its lift does this, because the
+ * mouse events of a tap come after the lift. The overlay stops the default
+ * action of each `mousedown` whose press did not start in the overlay, for each
+ * type of input. Thus that `mousedown` does not move the focus that the open
+ * put in the overlay. The overlay does not stop its propagation.
+ *
  * Each other press acts at once. A tap in the window on a control away from
  * the point of the first tap is a tap of its own, so it acts. A press after the
- * window acts. An overlay that a mouse, a pen, or a key opened stops nothing,
- * unless a finger lifted near the press in the window before the open.
+ * window acts. An overlay that a mouse, a pen, or a key opened stops no second
+ * tap, unless a finger lifted near the press in the window before the open.
  *
  * The lift comes from one listener that attaches when the module loads. An
  * overlay whose module loads on the open, through `import()`, knows no lift.
@@ -109,6 +116,9 @@ export function useOverlayAbsorb(open: boolean): OverlayAbsorb {
 	// Whether the overlay stops the mouse events of the current press.
 	const stoppingRef = useRef(false)
 
+	// Whether a press started in the overlay after the open.
+	const pressedRef = useRef(false)
+
 	useLayoutEffect(() => {
 		if (!open) return
 
@@ -119,6 +129,8 @@ export function useOverlayAbsorb(open: boolean): OverlayAbsorb {
 		startRef.current = lastLift ?? { at: performance.now(), point: null }
 
 		stoppingRef.current = false
+
+		pressedRef.current = false
 	}, [open])
 
 	// The `mousedown`, the click, and the `dblclick` of a tap come after its
@@ -134,9 +146,21 @@ export function useOverlayAbsorb(open: boolean): OverlayAbsorb {
 
 	return {
 		onPointerDownCapture: (event) => {
+			pressedRef.current = true
+
 			stoppingRef.current = continuesRun(event, startRef.current)
 		},
-		onMouseDownCapture: stop,
+		onMouseDownCapture: (event) => {
+			// The `mousedown` of the tap that opened the overlay. Its press started
+			// before the overlay opened, so the overlay saw no `pointerdown` of it.
+			if (!pressedRef.current) {
+				event.preventDefault()
+
+				return
+			}
+
+			stop(event)
+		},
 		onClickCapture: stop,
 		onDoubleClickCapture: stop,
 	}
