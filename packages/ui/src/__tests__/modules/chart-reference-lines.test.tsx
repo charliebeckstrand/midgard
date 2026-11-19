@@ -1431,9 +1431,23 @@ describe('reference lines that the legend names', () => {
 		// the flag themselves.
 		expect(notes.hasAttribute('inert')).toBe(true)
 
-		fireEvent.pointerEnter(getSlot(container, 'chart-legend-note'))
+		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
 
-		expect(getSlot(container, 'chart-marks').getAttribute('class')).not.toContain('opacity-25')
+		const note = getSlot(container, 'chart-legend-note')
+
+		fireEvent.pointerEnter(note)
+
+		expect(marks()).not.toContain('opacity-25')
+
+		// A rule pointed on the plot recedes the marks. Leaving an inert note keeps
+		// that emphasis, since the note takes no pointer.
+		fireEvent.pointerEnter(getSlot(container, 'chart-reference-line'))
+
+		expect(marks()).toContain('opacity-25')
+
+		fireEvent.pointerLeave(note)
+
+		expect(marks()).toContain('opacity-25')
 	})
 
 	it('heads the series and the rules of a side panel', () => {
