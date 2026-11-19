@@ -210,9 +210,10 @@ describe('overlay: the second tap of a double tap (real browser)', () => {
 
 		await frames(2)
 
-		const field = screen.getByRole('textbox', { name: 'Name' })
+		// A touch opens the drawer, so the panel has the focus and not the field.
+		const panel = screen.getByRole('dialog')
 
-		expect(document.activeElement).toBe(field)
+		expect(document.activeElement).toBe(panel)
 
 		await commands.tapPointer('[data-testid="opener"]')
 
@@ -220,6 +221,6 @@ describe('overlay: the second tap of a double tap (real browser)', () => {
 
 		expect(screen.queryByRole('dialog')).not.toBeNull()
 
-		expect(document.activeElement).toBe(field)
+		expect(document.activeElement).toBe(panel)
 	})
 })

@@ -63,8 +63,11 @@ export type PanelOverlayProps = {
 	 */
 	container?: HTMLElement | null
 	/**
-	 * The element that gets the focus when the panel opens.
-	 * @defaultValue the first tabbable element in the panel.
+	 * The element that gets the focus when the panel opens. It also gets the
+	 * focus when a touch opens the panel, so give it only for an element that
+	 * must have the focus on each device.
+	 * @defaultValue the first tabbable element in the panel. After a touch, the
+	 * panel, so the focus opens no on-screen keyboard.
 	 */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**

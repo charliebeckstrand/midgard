@@ -53,6 +53,9 @@ export type PanelSurfaceProps<P extends PanelMotion> = PanelOverlayProps &
  *   root does not see it. React carries a click in the portal up the component
  *   tree. A consumer `preventDefault()` does not let the click past the panel
  *   (CONVENTIONS.md §3.9).
+ * - The panel has `tabindex="-1"`. When a touch opens the panel, the panel
+ *   takes the focus and not its first field, so no on-screen keyboard opens
+ *   (`useOverlayInitialFocus`).
  * - The surface reads the Surfaces setting of the reader. The backdrop follows
  *   it, and is the backdrop of the panel group for each family.
  * - A glass panel opens the glass cascade to its contents:
@@ -105,6 +108,7 @@ export function PanelSurface<P extends PanelMotion>({
 			{...ariaProps}
 			aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 			id={panelId}
+			tabIndex={-1}
 			onClick={composeEventHandlers(onClick, (event) => event.stopPropagation(), {
 				checkForDefaultPrevented: false,
 			})}

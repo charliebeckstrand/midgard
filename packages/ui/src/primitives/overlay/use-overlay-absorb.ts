@@ -84,6 +84,12 @@ function continuesRun(event: PointerEvent<Element>, start: Start | null): boolea
  * the stop the tap moves the focus out of the field that the overlay focused at
  * the open.
  *
+ * The tap that opened the overlay also sends its `mousedown` to the overlay
+ * when the overlay opens before the mouse events of the tap. A tap that opens
+ * the overlay on its lift does this. The overlay stops the default action of
+ * that `mousedown`, so it does not move the focus that the open put in the
+ * overlay. It is the `mousedown` of a press that did not start in the overlay.
+ *
  * Each other press acts at once. A tap in the window on a control away from
  * the point of the first tap is a tap of its own, so it acts. A press after the
  * window acts. An overlay that a mouse, a pen, or a key opened stops nothing,
@@ -109,6 +115,9 @@ export function useOverlayAbsorb(open: boolean): OverlayAbsorb {
 	// Whether the overlay stops the mouse events of the current press.
 	const stoppingRef = useRef(false)
 
+	// Whether a press started in the overlay after the open.
+	const pressedRef = useRef(false)
+
 	useLayoutEffect(() => {
 		if (!open) return
 
@@ -119,6 +128,8 @@ export function useOverlayAbsorb(open: boolean): OverlayAbsorb {
 		startRef.current = lastLift ?? { at: performance.now(), point: null }
 
 		stoppingRef.current = false
+
+		pressedRef.current = false
 	}, [open])
 
 	// The `mousedown`, the click, and the `dblclick` of a tap come after its
@@ -134,9 +145,21 @@ export function useOverlayAbsorb(open: boolean): OverlayAbsorb {
 
 	return {
 		onPointerDownCapture: (event) => {
+			pressedRef.current = true
+
 			stoppingRef.current = continuesRun(event, startRef.current)
 		},
-		onMouseDownCapture: stop,
+		onMouseDownCapture: (event) => {
+			// The `mousedown` of the tap that opened the overlay. Its press started
+			// before the overlay opened, so the overlay saw no `pointerdown` of it.
+			if (!pressedRef.current) {
+				event.preventDefault()
+
+				return
+			}
+
+			stop(event)
+		},
 		onClickCapture: stop,
 		onDoubleClickCapture: stop,
 	}
