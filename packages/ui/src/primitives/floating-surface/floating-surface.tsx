@@ -10,6 +10,7 @@ import {
 	type ComponentProps,
 	type CSSProperties,
 	type ReactNode,
+	useCallback,
 	useLayoutEffect,
 	useRef,
 } from 'react'
@@ -19,6 +20,7 @@ import type { DensityStep } from '../../core/density/steps'
 import { k } from '../../recipes/kata/popover'
 import { Density } from '../density'
 import { Portal } from '../portal'
+import { SurfaceNodeContext } from '../portal/context'
 
 /**
  * Props for {@link FloatingSurface}: the floating-ui positioning handles
@@ -77,6 +79,10 @@ export type FloatingSurfaceProps = {
  *
  * The positioned wrapper carries `data-slot="floating-surface"`, and it stamps
  * `data-open` while the surface is open.
+ *
+ * An overlay that opens in the content of the surface is a part of the
+ * surface. A press in it is not outside the surface, so a Dialog that opens
+ * from a Popover does not close the Popover, and the Dialog stays.
  */
 export function FloatingSurface({
 	open,
@@ -96,6 +102,9 @@ export function FloatingSurface({
 	const wrapperRef = useRef<HTMLDivElement | null>(null)
 
 	const setWrapper = useComposedRefs<HTMLDivElement>(wrapperRef, setFloating, ref)
+
+	// An overlay that opens in the content counts as a part of this surface.
+	const getNode = useCallback(() => wrapperRef.current, [])
 
 	const inert = rest.inert === true
 
@@ -148,7 +157,7 @@ export function FloatingSurface({
 			{...getFloatingProps(rest)}
 			data-open={dataAttr(open)}
 		>
-			{children}
+			<SurfaceNodeContext value={getNode}>{children}</SurfaceNodeContext>
 		</div>
 	)
 

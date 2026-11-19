@@ -24,6 +24,7 @@ import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
 import { registerOverlayLayer } from '../../utilities/overlay-layers'
 import { Portal } from '../portal'
+import { SurfaceNodeContext } from '../portal/context'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { notifyOverlaySignal } from './overlay-signal'
 import { useOverlayAbsorb } from './use-overlay-absorb'
@@ -31,7 +32,7 @@ import { useOverlayContainer } from './use-overlay-container'
 import { useOverlayEntering } from './use-overlay-entering'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
 import { useOverlayKeepFocus } from './use-overlay-keep-focus'
-import { OverlayNodeContext, useOverlayNesting } from './use-overlay-nesting'
+import { useOverlayNesting } from './use-overlay-nesting'
 import { useOverlayReturnFocus } from './use-overlay-return-focus'
 import { useOverlayViewportFit } from './use-overlay-viewport-fit'
 
@@ -396,7 +397,7 @@ export function Overlay({
 					aria-hidden="true"
 				/>
 			)}
-			<OverlayNodeContext value={getNode}>{children}</OverlayNodeContext>
+			<SurfaceNodeContext value={getNode}>{children}</SurfaceNodeContext>
 		</div>
 	)
 

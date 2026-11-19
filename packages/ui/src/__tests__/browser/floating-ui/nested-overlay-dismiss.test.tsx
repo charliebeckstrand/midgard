@@ -104,6 +104,106 @@ describe('a Dialog that opens from a non-modal Sheet (real browser)', () => {
 	})
 })
 
+/**
+ * A Dialog in a Popover in an outer overlay. The Popover is the nearest
+ * surface, so it is the reference of the Dialog, and a press in the Dialog
+ * keeps the Popover and the outer overlay open.
+ */
+function PopoverDialog({
+	outer,
+	onOuterChange,
+	onPopoverChange,
+}: {
+	outer: 'sheet' | 'dialog'
+	onOuterChange: (open: boolean) => void
+	onPopoverChange: (open: boolean) => void
+}) {
+	const [outerOpen, setOuterOpen] = useState(false)
+
+	const [innerOpen, setInnerOpen] = useState(false)
+
+	const changeOuter = (open: boolean) => {
+		onOuterChange(open)
+
+		setOuterOpen(open)
+	}
+
+	const content = (
+		<>
+			<p>Outer</p>
+			<Popover onOpenChange={onPopoverChange}>
+				<PopoverTrigger>
+					<button type="button">Open popover</button>
+				</PopoverTrigger>
+				<PopoverContent aria-label="Actions">
+					<button type="button" onClick={() => setInnerOpen(true)}>
+						Open inner dialog
+					</button>
+					<Dialog open={innerOpen} onOpenChange={setInnerOpen}>
+						<DialogPanel>
+							<DialogTitle>Inner</DialogTitle>
+							<p data-testid="inner-body">Inner</p>
+						</DialogPanel>
+					</Dialog>
+				</PopoverContent>
+			</Popover>
+		</>
+	)
+
+	return (
+		<>
+			<button type="button" onClick={() => setOuterOpen(true)}>
+				Open outer
+			</button>
+			{outer === 'sheet' ? (
+				<Sheet open={outerOpen} onOpenChange={changeOuter}>
+					<SheetPanel side="start" modal={false} footer={null} aria-label="Navigation">
+						{content}
+					</SheetPanel>
+				</Sheet>
+			) : (
+				<Dialog open={outerOpen} onOpenChange={changeOuter}>
+					<DialogPanel>
+						<DialogTitle>Outer</DialogTitle>
+						{content}
+					</DialogPanel>
+				</Dialog>
+			)}
+		</>
+	)
+}
+
+describe.each(['sheet', 'dialog'] as const)(
+	'a Dialog in a Popover in a %s (real browser)',
+	(outer) => {
+		it('keeps the Popover and the outer overlay open on a press in the Dialog', async () => {
+			const onOuterChange = vi.fn()
+
+			const onPopoverChange = vi.fn()
+
+			renderUI(
+				<PopoverDialog
+					outer={outer}
+					onOuterChange={onOuterChange}
+					onPopoverChange={onPopoverChange}
+				/>,
+			)
+
+			fireEvent.click(screen.getByRole('button', { name: 'Open outer' }))
+
+			fireEvent.click(await screen.findByRole('button', { name: 'Open popover' }))
+
+			fireEvent.click(await screen.findByRole('button', { name: 'Open inner dialog' }))
+
+			press(await screen.findByTestId('inner-body'))
+
+			expect(onPopoverChange).not.toHaveBeenCalledWith(false)
+
+			expect(onOuterChange).not.toHaveBeenCalled()
+		})
+	},
+)
+
 describe('a non-modal Sheet with no nested overlay (real browser)', () => {
 	it('closes on a press on the page', async () => {
 		const onSheetChange = vi.fn()
