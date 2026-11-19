@@ -50,8 +50,16 @@ export const [TEST_TIMEOUT = Number.NaN] = configNumber(
 	/^\t\ttestTimeout: ([\d_]+) \* BUDGET_FACTOR,$/m,
 )
 
-/** The factors of `budget()`: the one on CI, and the one on a dev machine. */
-export const FACTORS = configNumber(/^const BUDGET_FACTOR = CI \? (\d+) : (\d+)$/m)
+/**
+ * The factors of `budget()`: the one on CI, and the one on a dev machine. A
+ * run with coverage multiplies the time limit of a case and each `budget()`
+ * wait by the same `COVERAGE_FACTOR`. Thus a wait that stays below its limit
+ * without coverage also stays below it with coverage, and the check reads the
+ * factors without coverage only.
+ */
+export const FACTORS = configNumber(
+	/^const BUDGET_FACTOR = \(CI \? (\d+) : (\d+)\) \* COVERAGE_FACTOR$/m,
+)
 
 /** The file that holds `pause()`, the one sanctioned hold. */
 export const WALL_CLOCK = '__tests__/browser/helpers/wall-clock.ts'

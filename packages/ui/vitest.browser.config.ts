@@ -5,13 +5,35 @@ import { playwright } from '@vitest/browser-playwright'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
-import { assertions, budgets, CI, cleanup, sequence } from './vitest.base.ts'
+import { assertions, budgets, CI, cleanup, coverage, sequence } from './vitest.base.ts'
 
 /**
- * The factor by which a wall-clock budget of the browser suite scales on CI:
- * the time limit of a case and of a hook, and each `budget()` wait.
+ * Whether the run measures coverage (`COVERAGE`). Turn coverage on with this
+ * variable, not with `--coverage`, so that the budgets below scale with it.
+ * V8 coverage needs Chromium, so do not set it with `DENSITY_ENGINES`.
  */
-const BUDGET_FACTOR = CI ? 2 : 1
+const COVERAGE = Boolean(process.env.COVERAGE)
+
+/**
+ * The factor by which each budget of the suite scales when the run measures
+ * coverage. V8 counts each block that runs. With coverage, the cases that
+ * place a map of 12,000 stops took 2.6 to 2.8 times as long.
+ */
+const COVERAGE_FACTOR = COVERAGE ? 3 : 1
+
+/**
+ * The factor by which a wall-clock budget of the browser suite scales on CI
+ * and under coverage: the time limit of a case and of a hook, and each
+ * `budget()` wait.
+ */
+const BUDGET_FACTOR = (CI ? 2 : 1) * COVERAGE_FACTOR
+
+/**
+ * The budget of the `waitFor` and `findBy` of Testing Library, and of
+ * `expect.poll`: the budget of the jsdom suite (`budgets` in
+ * `vitest.shared.mts`), scaled under coverage.
+ */
+const ASYNC_UTIL_TIMEOUT = budgets.provide.asyncUtilTimeout * COVERAGE_FACTOR
 
 /**
  * Whether the browser suite adds the `density-firefox` and `density-webkit`
@@ -290,6 +312,10 @@ export default defineConfig({
 		// optimizer cannot bundle for a browser stops the run, such as the native
 		// binding of Tailwind that the tests of the docs build import.
 		include: ['src/__tests__/browser/**/*.test.{ts,tsx}'],
+		// The source that a run with `COVERAGE` measures (`coverage` in
+		// `vitest.base.ts`). `scripts/coverage/merge.ts` merges this report with
+		// the reports of the jsdom suite.
+		coverage: { ...coverage, enabled: COVERAGE, reportsDirectory: 'coverage/browser' },
 		globals: true,
 		// The same rule `vitest.config.ts` states: machine speed must change when a
 		// test passes, never whether it passes. Both budgets were Vitest's own
@@ -298,7 +324,8 @@ export default defineConfig({
 		// to a number no one here chose and a version bump can move. They are
 		// declared at those values, which pins what a bump would take away.
 		//
-		// They scale on CI by `BUDGET_FACTOR`, as `budget()` does. Under load, one
+		// They scale on CI and under coverage by `BUDGET_FACTOR`, as `budget()`
+		// does. Under load, one
 		// `userEvent` call took many times longer than on a dev machine, and the
 		// first case of `radio-read-only` ran past a flat 15s. A case that is slow
 		// but still moves then fails on a slow machine only, which the rule above
@@ -308,20 +335,25 @@ export default defineConfig({
 		// `browser/setup/index.ts`. The browser suite had none, so it ran at RTL's
 		// own 1s default on every machine: the one suite that does real layout, on
 		// the most loaded page. It scales to 4s on CI now, as the jsdom projects
-		// do, and stays at 1s locally. It sits far below `testTimeout`, so a stuck
-		// wait fails as an RTL timeout carrying the callback's last error rather
-		// than as an opaque test timeout.
+		// do, and stays at 1s locally. Under coverage, it scales by
+		// `COVERAGE_FACTOR` too (`ASYNC_UTIL_TIMEOUT`). It sits far below
+		// `testTimeout`, so a stuck wait fails as an RTL timeout carrying the
+		// callback's last error rather than as an opaque test timeout.
 		testTimeout: 15_000 * BUDGET_FACTOR,
 		hookTimeout: 30_000 * BUDGET_FACTOR,
 		// A `waitFor` override in a case that needs longer than the budget above
 		// scales by the same rule; `browser/helpers/wall-clock.ts` reads this.
 		// It governs no real-time hold: a budget costs nothing on a green run,
 		// where a hold spends its full value every time.
-		provide: { ...budgets.provide, budgetFactor: BUDGET_FACTOR },
+		provide: {
+			...budgets.provide,
+			asyncUtilTimeout: ASYNC_UTIL_TIMEOUT,
+			budgetFactor: BUDGET_FACTOR,
+		},
 		// The budget of `expect.poll`, by the same rule. Vitest gives each poll a
 		// default of 1s on every machine, and no option above scales it. It is the
 		// budget of `asyncUtilTimeout`, so a poll and a `waitFor` fail at one time.
-		expect: { ...assertions, poll: { timeout: CI ? 4_000 : 1_000 } },
+		expect: { ...assertions, poll: { timeout: ASYNC_UTIL_TIMEOUT } },
 		// The cleanup of `vitest.shared.mts`, for the shared registry that `isolate`
 		// declares below.
 		...cleanup,
