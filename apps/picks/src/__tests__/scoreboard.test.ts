@@ -2,6 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Game } from '../types'
 import { game } from './fixtures'
 
+// Next keeps the shortest life of all the `cacheLife` calls in one cache scope.
+// So each case expects exactly one call: a second call with a shorter life
+// changes the life of an answer.
 const { cacheLife, readGames } = vi.hoisted(() => ({
 	cacheLife: vi.fn(),
 	readGames: vi.fn<() => Game[]>(),
@@ -20,15 +23,13 @@ const KICKOFF = '2026-09-13T17:00Z'
 
 const MINUTE = 60_000
 
-/** The cache life that `getWeekGames` sets for `games` at `now`. */
-async function lifeAt(games: Game[], now: number): Promise<unknown> {
+/** Reads a week of `games` at `now`. */
+async function readWeekAt(games: Game[], now: number): Promise<void> {
 	vi.setSystemTime(now)
 
 	readGames.mockReturnValue(games)
 
 	await getWeekGames(2026, 2)
-
-	return cacheLife.mock.lastCall?.[0]
 }
 
 beforeEach(() => {
@@ -68,7 +69,9 @@ describe('getWeekGames', () => {
 			'minutes',
 		],
 	])('%s', async ([, games, now, life]) => {
-		expect(await lifeAt(games, now)).toBe(life)
+		await readWeekAt(games, now)
+
+		expect(cacheLife).toHaveBeenCalledExactlyOnceWith(life)
 	})
 })
 
