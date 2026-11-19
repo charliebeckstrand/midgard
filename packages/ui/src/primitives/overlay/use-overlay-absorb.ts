@@ -84,16 +84,17 @@ function continuesRun(event: PointerEvent<Element>, start: Start | null): boolea
  * the stop the tap moves the focus out of the field that the overlay focused at
  * the open.
  *
- * The tap that opened the overlay also sends its `mousedown` to the overlay
- * when the overlay opens before the mouse events of the tap. A tap that opens
- * the overlay on its lift does this. The overlay stops the default action of
- * that `mousedown`, so it does not move the focus that the open put in the
- * overlay. It is the `mousedown` of a press that did not start in the overlay.
+ * The press that opened the overlay can also send its `mousedown` to the
+ * overlay. A tap that opens the overlay on its lift does this, because the
+ * mouse events of a tap come after the lift. The overlay stops the default
+ * action of each `mousedown` whose press did not start in the overlay, for each
+ * type of input. Thus that `mousedown` does not move the focus that the open
+ * put in the overlay. The overlay does not stop its propagation.
  *
  * Each other press acts at once. A tap in the window on a control away from
  * the point of the first tap is a tap of its own, so it acts. A press after the
- * window acts. An overlay that a mouse, a pen, or a key opened stops nothing,
- * unless a finger lifted near the press in the window before the open.
+ * window acts. An overlay that a mouse, a pen, or a key opened stops no second
+ * tap, unless a finger lifted near the press in the window before the open.
  *
  * The lift comes from one listener that attaches when the module loads. An
  * overlay whose module loads on the open, through `import()`, knows no lift.

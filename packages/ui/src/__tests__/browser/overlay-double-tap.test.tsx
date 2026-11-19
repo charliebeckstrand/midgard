@@ -223,4 +223,63 @@ describe('overlay: the second tap of a double tap (real browser)', () => {
 
 		expect(document.activeElement).toBe(panel)
 	})
+	/** Sends `event` to the element under `x`, `y`, and returns the event. */
+	function sendAt<E extends Event>(x: number, y: number, event: E): E {
+		const target = document.elementFromPoint(x, y)
+
+		if (target === null) throw new Error('Nothing under the press')
+
+		target.dispatchEvent(event)
+
+		return event
+	}
+
+	it('stops the default of the mousedown of the tap that opened the overlay', async () => {
+		const { x, y, slotAt, isOpen } = setup({ field: true })
+
+		const pointer = {
+			bubbles: true,
+			cancelable: true,
+			pointerType: 'touch',
+			clientX: x,
+			clientY: y,
+		}
+
+		// The lift opens the overlay. The mouse events of the tap come after it.
+		sendAt(x, y, new PointerEvent('pointerdown', pointer))
+
+		sendAt(x, y, new PointerEvent('pointerup', pointer))
+
+		await frames(2)
+
+		expect(isOpen()).toBe(true)
+
+		expect(slotAt(x, y)).toBe('overlay-backdrop')
+
+		const mousedown = sendAt(
+			x,
+			y,
+			new MouseEvent('mousedown', { bubbles: true, cancelable: true, clientX: x, clientY: y }),
+		)
+
+		expect(mousedown.defaultPrevented).toBe(true)
+	})
+
+	it('keeps the default of the mousedown of a press that starts in the overlay', async () => {
+		const { x, y, isOpen } = setup({ field: true })
+
+		tapAt(x, y)
+
+		await frames(2)
+
+		expect(isOpen()).toBe(true)
+
+		const options = { bubbles: true, cancelable: true, clientX: x, clientY: y }
+
+		sendAt(x, y, new PointerEvent('pointerdown', { ...options, pointerType: 'mouse' }))
+
+		const mousedown = sendAt(x, y, new MouseEvent('mousedown', options))
+
+		expect(mousedown.defaultPrevented).toBe(false)
+	})
 })

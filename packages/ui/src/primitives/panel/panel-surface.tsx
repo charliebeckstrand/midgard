@@ -2,6 +2,7 @@
 
 import type { HTMLMotionProps } from 'motion/react'
 import type { ReactNode } from 'react'
+import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
 import { type A11yPanelRole, useA11yPanel } from '../../hooks/a11y/use-a11y-panel'
@@ -55,7 +56,11 @@ export type PanelSurfaceProps<P extends PanelMotion> = PanelOverlayProps &
  *   (CONVENTIONS.md §3.9).
  * - The panel has `tabindex="-1"`. When a touch opens the panel, the panel
  *   takes the focus and not its first field, so no on-screen keyboard opens
- *   (`useOverlayInitialFocus`).
+ *   (`useOverlayInitialFocus`). The panel has no focus outline. A script focus
+ *   that comes after a focused field matches `:focus-visible`, and the outline
+ *   of the browser then goes around the full panel. In forced colors, the
+ *   outline of the panel edge stays, because its variant comes later in the
+ *   CSS.
  * - The surface reads the Surfaces setting of the reader. The backdrop follows
  *   it, and is the backdrop of the panel group for each family.
  * - A glass panel opens the glass cascade to its contents:
@@ -84,6 +89,7 @@ export function PanelSurface<P extends PanelMotion>({
 	container,
 	initialFocus,
 	returnFocusTo,
+	className,
 	children,
 	...props
 }: PanelSurfaceProps<P>) {
@@ -109,6 +115,7 @@ export function PanelSurface<P extends PanelMotion>({
 			aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 			id={panelId}
 			tabIndex={-1}
+			className={cn('outline-none', className)}
 			onClick={composeEventHandlers(onClick, (event) => event.stopPropagation(), {
 				checkForDefaultPrevented: false,
 			})}
