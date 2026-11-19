@@ -109,13 +109,18 @@ jobs:
       # The tools can read the checkout and the pull request, and write
       # comments. They cannot edit a file or run a script of the pull request.
       #
-      # When the fallback secret is set, a failure of this step does not fail
-      # the job, and the next step does the review again with the fallback
-      # token. The usage limit of the plan is the usual cause of a failure. When
-      # the fallback secret is not set, a failure fails the job.
+      # A failure of this step does not fail the job. The next step does the
+      # review again with the fallback token, and the last step fails the job
+      # when no review passed. The usage limit of the plan is the usual cause
+      # of a failure.
+      #
+      # `continue-on-error` is a constant. An expression on the `steps` context
+      # had no effect in run 44599245029: both secrets were set, but the
+      # failure of this step failed the job, and the runner skipped the
+      # fallback step.
       - id: review
         if: steps.token.outputs.primary
-        continue-on-error: ${{ steps.token.outputs.fallback == 'true' }}
+        continue-on-error: true
         uses: anthropics/claude-code-action@f431adaf77e0fecf918431e75a2b5b45b85af002 # v1.0.283
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -147,9 +152,22 @@ jobs:
       # This step runs after each failure of the step above, not only after the
       # usage limit. When the step above posted a part of its comments before it
       # failed, this step can post the same findings again.
-      - if: steps.token.outputs.fallback && steps.review.outcome != 'success'
+      - id: fallback
+        if: steps.token.outputs.fallback && steps.review.outcome != 'success'
         uses: anthropics/claude-code-action@f431adaf77e0fecf918431e75a2b5b45b85af002 # v1.0.283
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK }}
           claude_args: *review-args
           prompt: *review-prompt
+
+      # The first review step cannot fail the job. Thus this step fails the job
+      # when the first review failed and no fallback review passed. A failure
+      # of the fallback step fails the job itself, and then this step is
+      # skipped.
+      - if: >-
+          steps.token.outputs.set
+          && steps.review.outcome != 'success'
+          && steps.fallback.outcome != 'success'
+        run: |
+          echo "::error::The review failed, and no fallback review passed."
+          exit 1
