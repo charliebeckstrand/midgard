@@ -292,11 +292,16 @@ export function referenceLegendItems(
 
 /**
  * The direction that a rule runs on the plot. A value rule runs across the
- * value axis, and a category rule runs along it.
+ * value axis, and a category rule runs along it. Each key of a rule (its legend
+ * chip, its note in a category readout, and the swatch in its own tooltip) runs
+ * in this direction.
  *
  * @internal
  */
-function ruleOrientation(line: ChartReferenceLine, orientation: ChartOrientation): Orientation {
+export function ruleOrientation(
+	line: ChartReferenceLine,
+	orientation: ChartOrientation,
+): Orientation {
 	const along = isCategoryReference(line)
 
 	return (orientation === 'vertical') === along ? 'vertical' : 'horizontal'
@@ -326,8 +331,10 @@ export function categoryRows(rawCategories: readonly unknown[]): Map<string, num
  * for each category reference at its row ({@link categoryRows}), in the order
  * of the prop. A rule with no label and no description has nothing to say, so
  * it adds no note. A rule toggled off through its legend chip (`hidden`) adds
- * none either. `undefined` when no rule
- * adds one, so a chart with no category reference carries no notes.
+ * none either. Each note runs its key in the direction of its rule on a chart
+ * whose value axis runs in `orientation` ({@link ruleOrientation}). `undefined`
+ * when no rule adds one, so a chart with no category reference carries no
+ * notes.
  *
  * @internal
  */
@@ -335,6 +342,7 @@ export function referenceNotes(
 	reference: ChartReferenceLine[] | undefined,
 	rawCategories: readonly unknown[],
 	hidden: ReadonlySet<number>,
+	orientation: ChartOrientation,
 ): ChartReadoutNote[][] | undefined {
 	const lines = reference ?? []
 
@@ -366,6 +374,7 @@ export function referenceNotes(
 			swatchClass: textClass(paint) ?? '',
 			swatchColor: rawColor(paint),
 			dashed: line.dashed !== false,
+			orientation: ruleOrientation(line, orientation),
 		})
 	}
 

@@ -11,7 +11,7 @@ import {
 import type { LabelLine } from '../chart-geometry/label'
 import type { ChartLineSeries } from '../chart-geometry/line'
 import { ChartHitArea, cartesianHitActive } from '../chart-hit-area'
-import { type ThinMark, thinMarkAt } from '../chart-hit-test'
+import { type ThinMark, thinMarksAt } from '../chart-hit-test'
 import { ChartLegend, ChartLegendNotes, ChartLegendReferences } from '../chart-legend/legend'
 import { legendAside } from '../chart-legend/schema'
 import { ChartMarksLayer } from '../chart-marks/layer'
@@ -30,7 +30,7 @@ import {
 	ChartValueLabels,
 	cartesianValueLabels,
 } from '../chart-value-labels'
-import { type ChartTarget, targetMark, targetRule } from '../context'
+import { type ChartMarkRef, type ChartRuleRef, type ChartTarget, targetMark } from '../context'
 import type { CartesianChartProps } from '../types'
 import type { CartesianChart } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
@@ -145,7 +145,7 @@ export type ChartCartesianFrameProps = AccessibleName &
 		valueLabels?: CartesianValueLabelSeries
 		/**
 		 * Whether the frame catches each line of `valueLabels` as a thin mark,
-		 * with the reference rules, in one hit test ({@link thinMarkAt}). Off, as
+		 * with the reference rules, in one hit test ({@link thinMarksAt}). Off, as
 		 * on an area chart that catches a series by its wash, only the rules are
 		 * thin marks.
 		 * @defaultValue false
@@ -155,26 +155,26 @@ export type ChartCartesianFrameProps = AccessibleName &
 	}
 
 /**
- * The thin mark that a held target names among `strokes`: its rule, or the line
- * whose whole series it names. `null` for a bar, a disc, or no target.
+ * The thin marks that a held target holds among `strokes`: its rule, the line
+ * of the whole series it names, or each of these in a shared target. A bar, a
+ * disc, or no target holds none.
  *
  * @internal
  */
-function heldThinMark(
-	held: ChartTarget | null,
-	strokes: readonly ChartLineSeries[],
-): ThinMark | null {
-	const rule = targetRule(held)
+function heldThinMarks(held: ChartTarget | null, strokes: readonly ChartLineSeries[]): ThinMark[] {
+	if (held === null) return []
 
-	if (rule !== null) return { rule }
+	const members = 'shared' in held ? held.shared : [held]
 
-	const mark = targetMark(held)
+	return members.flatMap((member): ThinMark[] => {
+		if ('reference' in member) return [{ rule: member.reference }]
 
-	if (mark === null || mark.datum !== null) return null
+		if (member.datum !== null) return []
 
-	const line = strokes.findIndex((entry) => entry.index === mark.series)
+		const line = strokes.findIndex((entry) => entry.index === member.series)
 
-	return line < 0 ? null : { line }
+		return line < 0 ? [] : [{ line }]
+	})
 }
 
 /** What {@link cartesianTargetAt} resolves the pointer against. @internal */
@@ -229,13 +229,28 @@ function cartesianHit(input: CartesianHitInput): CartesianHit | null {
 		: null
 }
 
-/** The target that a thin mark names: its rule, or the whole series of its line. @internal */
-function thinTarget(thin: ThinMark, strokes: readonly ChartLineSeries[]): ChartTarget | null {
-	if (thin.rule !== undefined) return { reference: thin.rule }
+/**
+ * The target that the thin marks in reach name. One mark is isolated: a rule,
+ * or the whole series of a line. Two or more are shared, so none is isolated.
+ * None is no target.
+ *
+ * @internal
+ */
+function thinTarget(
+	marks: readonly ThinMark[],
+	strokes: readonly ChartLineSeries[],
+): ChartTarget | null {
+	const members = marks.flatMap((mark): (ChartMarkRef | ChartRuleRef)[] => {
+		if (mark.rule !== undefined) return [{ reference: mark.rule }]
 
-	const stroke = strokes[thin.line]
+		const stroke = strokes[mark.line]
 
-	return stroke ? { series: stroke.index, datum: null } : null
+		return stroke ? [{ series: stroke.index, datum: null }] : []
+	})
+
+	if (members.length === 0) return null
+
+	return members.length === 1 ? (members[0] as ChartMarkRef | ChartRuleRef) : { shared: members }
 }
 
 /**
@@ -259,10 +274,12 @@ function snappedTarget(hit: CartesianHit, index: number | null, value: number): 
 }
 
 /**
- * The hit test of a cartesian chart. The thin marks resolve first, the lines
- * and the rules in one hit test ({@link thinMarkAt}). Then the other marks of
- * the chart resolve: its fills and its bars. Off every mark, a snapping readout
- * isolates the stop that the tooltip anchors in the column ({@link snappedTarget}).
+ * The hit test of a cartesian chart. The thin marks resolve first: the lines
+ * and the rules in reach, in one hit test ({@link thinMarksAt}). One mark in
+ * reach is isolated, and two or more are shared ({@link thinTarget}). Off every
+ * thin mark, the other marks of the chart resolve: its fills and its bars. Off
+ * every mark, a snapping readout isolates the stop that the tooltip anchors in
+ * the column ({@link snappedTarget}).
  *
  * @internal
  */
@@ -274,9 +291,9 @@ function cartesianTargetAt(hit: CartesianHit): ChartTargetAt {
 	return (x, y, held, index) => {
 		const [band, value] = vertical ? [x, y] : [y, x]
 
-		const thin = thinMarkAt(traces, hit.ruleStops, band, value, heldThinMark(held, hit.strokes))
+		const thin = thinMarksAt(traces, hit.ruleStops, band, value, heldThinMarks(held, hit.strokes))
 
-		if (thin !== null) return thinTarget(thin, hit.strokes)
+		if (thin.length > 0) return thinTarget(thin, hit.strokes)
 
 		return hit.markAt?.(x, y, targetMark(held), index) ?? snappedTarget(hit, index, value)
 	}

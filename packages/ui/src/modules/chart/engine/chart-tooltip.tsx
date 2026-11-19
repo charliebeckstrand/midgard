@@ -272,6 +272,7 @@ export function ChartTooltip({
 									<ReadoutSwatch
 										shape="line"
 										dashed={note.dashed}
+										orientation={note.orientation}
 										className={note.swatchClass}
 										color={note.swatchColor}
 									/>

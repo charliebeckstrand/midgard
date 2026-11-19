@@ -269,6 +269,38 @@ describe('a category reference', () => {
 		])
 	})
 
+	it('keys its note in the readout in the direction of the rule, as its legend chip does', () => {
+		for (const orientation of ['vertical', 'horizontal'] as const) {
+			const { container, unmount } = bar({
+				orientation,
+				legend: true,
+				reference: [{ ...RELEASE, legend: true }],
+			})
+
+			const plot = getSlot(container, 'chart-plot')
+
+			// The band-axis arrows step onto the category of the rule.
+			const step = orientation === 'vertical' ? 'ArrowRight' : 'ArrowDown'
+
+			fireEvent.keyDown(plot, { key: step })
+
+			fireEvent.keyDown(plot, { key: step })
+
+			const direction = (slot: string) =>
+				getSlot(container, slot)
+					.querySelector('[data-orientation]')
+					?.getAttribute('data-orientation')
+
+			// A category rule runs along the value axis: across the plot from the
+			// band axis, so vertical on a vertical chart.
+			expect(direction('chart-tooltip-note')).toBe(orientation)
+
+			expect(direction('chart-legend-reference')).toBe(orientation)
+
+			unmount()
+		}
+	})
+
 	it('joins the readout of its category, which the keyboard cursor speaks', async () => {
 		const { container } = line({ reference: [RELEASE] })
 

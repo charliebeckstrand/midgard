@@ -103,13 +103,15 @@ function pointAt(container: HTMLElement, x: number, y: number, init: PointerEven
 	})
 }
 
-/** The middle of the drawn line of the rule at `index`, offset `dy` across it. */
+/** The middle of the drawn line of the rule at `index`, offset `dy` along y. */
 function ruleMiddle(container: HTMLElement, index: number, dy = 0): [number, number] {
 	const line = allBySlot(container, 'chart-reference-line')[index]?.querySelector('line')
 
-	const [x1, y1, x2] = ['x1', 'y1', 'x2'].map((name) => Number(line?.getAttribute(name)))
+	const [x1 = 0, y1 = 0, x2 = 0, y2 = 0] = ['x1', 'y1', 'x2', 'y2'].map((name) =>
+		Number(line?.getAttribute(name)),
+	)
 
-	return [((x1 ?? 0) + (x2 ?? 0)) / 2, (y1 ?? 0) + dy]
+	return [(x1 + x2) / 2, (y1 + y2) / 2 + dy]
 }
 
 /** Moves the pointer onto the middle of the rule at `index`. */
@@ -166,7 +168,7 @@ describe('reference lines', () => {
 		expect(marks()).not.toContain('opacity-25')
 	})
 
-	it('gives the pointer to a line that lies on the rule', () => {
+	it('isolates neither a line and a rule in reach together, and reads the data', () => {
 		const flat = (value: number) =>
 			renderUI(
 				<LineChart
@@ -185,14 +187,21 @@ describe('reference lines', () => {
 		const marks = (container: HTMLElement) =>
 			getSlot(container, 'chart-marks').getAttribute('class') ?? ''
 
-		// On the line, the line takes the pointer, so the marks do not recede to the rule.
+		// On the line and the rule together: the marks do not recede to the rule, and
+		// the readout of the category shows with its row lit.
 		const on = flat(50)
 
 		pointRule(on, 0)
 
 		expect(marks(on)).not.toContain('opacity-25')
 
-		// Far from the line, the rule takes it.
+		const rows = allBySlot(on, 'chart-tooltip-row')
+
+		expect(rows).toHaveLength(1)
+
+		expect(rows[0]?.getAttribute('class')).not.toContain('opacity-25')
+
+		// Far from the line, the rule alone takes it.
 		const off = flat(20)
 
 		pointRule(off, 0)
@@ -532,6 +541,27 @@ describe('reference line pointer', () => {
 		await waitFor(() => expect(referenceTooltip()).toBeNull())
 	})
 
+	it('keys the rule in its tooltip in the direction of the rule', async () => {
+		for (const [orientation, direction] of [
+			['vertical', 'horizontal'],
+			['horizontal', 'vertical'],
+		] as const) {
+			const { container, unmount } = bar({ orientation, reference: [{ value: 60, label: 'Goal' }] })
+
+			pointRule(container, 0)
+
+			await waitFor(() => expect(referenceTooltip()).not.toBeNull())
+
+			expect(
+				referenceTooltip()
+					?.querySelector('[data-slot="chart-reference-swatch"]')
+					?.getAttribute('data-orientation'),
+			).toBe(direction)
+
+			unmount()
+		}
+	})
+
 	it('reads the rule with the chart tooltip off', async () => {
 		const { container } = bar({ reference: [{ value: 60, label: 'Goal' }], tooltip: false })
 
@@ -564,44 +594,57 @@ describe('reference line pointer', () => {
 		expect(onCategoryClick).toHaveBeenCalledTimes(1)
 	})
 
-	it('flips once each way when a shaking pointer sweeps between a line and a rule', () => {
+	it('isolates each of two close lines alone in reach, and neither where both are', () => {
 		const { container } = renderUI(
 			<LineChart
-				aria-label="Revenue by month"
+				aria-label="Revenue and costs by month"
 				data={[
-					{ month: 'Jan', revenue: 50 },
-					{ month: 'Feb', revenue: 50 },
-					{ month: 'Mar', revenue: 50 },
+					{ month: 'Jan', revenue: 55, costs: 45 },
+					{ month: 'Feb', revenue: 55, costs: 45 },
+					{ month: 'Mar', revenue: 55, costs: 45 },
 				]}
-				series={[...SERIES]}
+				series={[
+					{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+					{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+				]}
 				width={400}
 				axes={{ y: { min: 0, max: 100 } }}
-				reference={[{ value: 45 }]}
 			/>,
 		)
 
-		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
+		// The y of each flat line, from its path.
+		const [revenueY, costsY] = allBySlot(container, 'chart-line').map((line) =>
+			Number(line.getAttribute('d')?.match(/^M [\d.]+ ([\d.]+)/)?.[1]),
+		) as [number, number]
 
-		// The y of the flat line, from its path, and the y of the rule.
-		const lineY = Number(
-			getSlot(container, 'chart-line')
-				.getAttribute('d')
-				?.match(/^M [\d.]+ ([\d.]+)/)?.[1],
-		)
+		// Each line must sit out of the reach of the other (16 px, held 18 px), and
+		// the reaches must overlap (under 32 px apart), for the sweep to cross each state.
+		expect(costsY - revenueY).toBeGreaterThan(18)
 
-		const [x, ruleY] = ruleMiddle(container, 0)
+		expect(costsY - revenueY).toBeLessThan(32)
 
-		// The two must sit within each other's catch for the sweep to cross a boundary.
-		expect(Math.abs(ruleY - lineY)).toBeGreaterThan(8)
+		// The middle of the plot along x.
+		const hit = getSlot(container, 'chart-hit')
 
-		expect(Math.abs(ruleY - lineY)).toBeLessThan(28)
+		const x = Number(hit.getAttribute('x')) + Number(hit.getAttribute('width')) / 2
+
+		// What the pointer reads: off the lines, one line alone, or both together.
+		const state = () => {
+			const groups = allBySlot(container, 'chart-line-series').map((group) =>
+				(group.getAttribute('class') ?? '').includes('opacity-25'),
+			)
+
+			if (groups[1] && !groups[0]) return 'revenue'
+
+			if (groups[0] && !groups[1]) return 'costs'
+
+			return allBySlot(container, 'chart-tooltip-row').length > 0 ? 'both' : 'off'
+		}
 
 		const sweep = (from: number, to: number) => {
-			let flips = 0
+			const seen: string[] = []
 
-			let onRule = marks().includes('opacity-25')
-
-			const steps = 60
+			const steps = 120
 
 			for (let i = 0; i <= steps; i++) {
 				const y = from + ((to - from) * i) / steps
@@ -610,25 +653,31 @@ describe('reference line pointer', () => {
 				for (const shake of [0, 0.5, -0.5, 0]) {
 					pointAt(container, x, y + shake)
 
-					const now = marks().includes('opacity-25')
+					const now = state()
 
-					if (now !== onRule) flips++
-
-					onRule = now
+					if (seen.at(-1) !== now) seen.push(now)
 				}
 			}
 
-			return { flips, onRule }
+			return seen
 		}
 
-		// From the line to the rule, and back.
-		const out = sweep(lineY, ruleY)
+		// Down from above the revenue line to below the costs line, and back. Each
+		// state shows once: the hand shakes, but no state returns once it leaves.
+		const down = sweep(revenueY - 30, costsY + 30)
 
-		expect(out).toEqual({ flips: 1, onRule: true })
+		expect(down).toEqual(['off', 'revenue', 'both', 'costs', 'off'])
 
-		const back = sweep(ruleY, lineY)
+		expect(sweep(costsY + 30, revenueY - 30)).toEqual([...down].reverse())
 
-		expect(back).toEqual({ flips: 1, onRule: false })
+		// Where both are in reach, both rows of the readout are lit.
+		pointAt(container, x, (revenueY + costsY) / 2)
+
+		const rows = allBySlot(container, 'chart-tooltip-row')
+
+		expect(rows).toHaveLength(2)
+
+		for (const row of rows) expect(row.getAttribute('class')).not.toContain('opacity-25')
 	})
 })
 

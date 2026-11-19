@@ -2,7 +2,7 @@
  * Pure pointer hit tests for the cartesian marks:
  *
  * - Which bar the pointer covers.
- * - Which thin mark (a line or a reference rule) it rests on.
+ * - Which thin marks (the lines and the reference rules) are in its reach.
  * - Which series' fill it sits inside.
  *
  * Each resolves to the mark or series, or `null` for a miss. The hit layer
@@ -27,12 +27,11 @@ import type { ChartOrientation } from './chart-orientation'
 export const THIN_MARK_CATCH = 16
 
 /**
- * The hold of the held thin mark, in px ({@link thinMarkAt}). Another mark must
- * come this much nearer than the held mark to take the pointer, and the held
- * mark catches the pointer this much farther out. Without it, a pointer that
- * shakes on a boundary flips the readout: the boundary between two marks, or
- * the edge of a catch. The hold is a distance on the screen because the shake
- * is one.
+ * How much farther a thin mark in reach stays in reach, in px
+ * ({@link thinMarksAt}). The edge of a catch is the only boundary that the
+ * pointer crosses among the thin marks. Without the hold, a pointer that shakes
+ * on that edge flips the readout. The hold is a distance on the screen because
+ * the shake is one.
  *
  * @internal
  */
@@ -149,79 +148,12 @@ function runDistanceSquared(run: LinePoint[], x: number, y: number): number {
 }
 
 /**
- * A thin mark that the pointer rests on: a line, by its place in the list of
- * lines, or a reference rule, by its place in the `reference` prop.
+ * A thin mark: a line, by its place in the list of lines, or a reference rule,
+ * by its place in the `reference` prop.
  *
  * @internal
  */
 export type ThinMark = { line: number; rule?: never } | { rule: number; line?: never }
-
-/**
- * The distance from the pointer to one run along the value axis, at the band
- * position of the pointer. Where no chord of the run spans that position (past
- * an end of the run, or a run of one point), it is the straight distance to
- * the nearer end. The two agree at an end, so the distance has no step there.
- * A chord that stands straight along the value axis spans one band position,
- * and the distance there is to the nearer point of the chord.
- *
- * @internal
- */
-function valueDistance(run: LinePoint[], band: number, value: number): number {
-	let best = Number.POSITIVE_INFINITY
-
-	for (let i = 0; i < run.length - 1; i++) {
-		const a = run[i] as LinePoint
-
-		const b = run[i + 1] as LinePoint
-
-		if (band < Math.min(a.x, b.x) || band > Math.max(a.x, b.x)) continue
-
-		const distance =
-			a.x === b.x
-				? Math.max(Math.min(a.y, b.y) - value, 0, value - Math.max(a.y, b.y))
-				: Math.abs(value - (a.y + ((band - a.x) / (b.x - a.x)) * (b.y - a.y)))
-
-		best = Math.min(best, distance)
-	}
-
-	if (best < Number.POSITIVE_INFINITY) return best
-
-	const first = run[0] as LinePoint
-
-	const last = run.at(-1) as LinePoint
-
-	return Math.min(
-		Math.hypot(band - first.x, value - first.y),
-		Math.hypot(band - last.x, value - last.y),
-	)
-}
-
-/**
- * The value-axis distance from the pointer to one line, over the runs that
- * catch the pointer within `reach`, or `null` where no run catches it.
- *
- * @internal
- */
-function lineReading(
-	runs: LinePoint[][],
-	band: number,
-	value: number,
-	reach: number,
-): number | null {
-	const catchSquared = reach * reach
-
-	let best: number | null = null
-
-	for (const run of runs) {
-		if (run.length === 0 || runDistanceSquared(run, band, value) > catchSquared) continue
-
-		const distance = valueDistance(run, band, value)
-
-		if (best === null || distance < best) best = distance
-	}
-
-	return best
-}
 
 /** Whether two thin marks are the same mark. @internal */
 function sameThinMark(a: ThinMark, b: ThinMark): boolean {
@@ -229,82 +161,51 @@ function sameThinMark(a: ThinMark, b: ThinMark): boolean {
 }
 
 /**
- * The thin mark that the pointer rests on: a line or a reference rule, or
- * `null` off each one. The pointer sits at `band` along the band axis and at
- * `value` along the value axis. Three rules decide.
+ * The thin marks in reach of the pointer: each line, then each reference rule,
+ * that sits within {@link THIN_MARK_CATCH} of it. The pointer sits at `band`
+ * along the band axis and at `value` along the value axis. A mark in `held`,
+ * the marks in reach at the last resolve, stays in reach
+ * {@link THIN_MARK_HOLD} farther out. So a pointer that shakes on the edge of
+ * a catch does not flip the readout.
  *
- * 1. A mark catches the pointer within {@link THIN_MARK_CATCH} of it, in a
- *    straight line. A pointer misses by the same distance in each direction,
- *    so a steep line catches as wide as a flat one.
- * 2. Among the marks that catch the pointer, the mark nearest along the value
- *    axis takes it. That is how a reader compares lines: which line is at this
- *    height here. The snapped readout and the keyboard pick a series in a
- *    category by the same axis. Two lines that cross part at the line of
- *    their mean slope through the crossing, so the flatter line takes the
- *    larger part.
- * 3. The `held` mark holds by {@link THIN_MARK_HOLD}. It catches the pointer
- *    that much farther out, and it keeps the pointer until another mark comes
- *    that much nearer. Thus a pointer that shakes on a boundary, or on the edge
- *    of a catch, does not flip the readout.
+ * The distance is the straight distance, so a steep line reaches as wide as a
+ * flat one. Each line is its drawn shape: its trace, a polyline for each run
+ * ({@link traceRun}), in band and value coordinates, so a gap between two runs
+ * reaches nothing. A rule is a value position across the whole plot, or `null`
+ * for a rule that takes no pointer, so its distance is the distance along the
+ * value axis.
  *
- * At the same distance, a line takes the pointer from a rule, and a line later
- * in `lines` takes it from an earlier line. So the data wins over the
- * annotation, and the line drawn on top wins over the line under it.
- *
- * Each line is its drawn shape: its trace, a polyline for each run
- * ({@link traceRun}), in band and value coordinates. The value distance and the
- * value at a band position follow {@link valueDistance}. A rule is a value
- * position across the whole plot, or `null` for a rule that takes no pointer,
- * so its distance is the distance along the value axis.
+ * The caller decides what the marks in reach mean: none, one, or more.
  *
  * @internal
  */
-export function thinMarkAt(
+export function thinMarksAt(
 	lines: readonly LinePoint[][][],
 	rules: readonly (number | null)[],
 	band: number,
 	value: number,
-	held: ThinMark | null = null,
-): ThinMark | null {
-	let best: { mark: ThinMark; distance: number } | null = null
-
-	let heldDistance: number | null = null
-
-	// The held mark catches the pointer farther out by the hold.
+	held: readonly ThinMark[] = [],
+): ThinMark[] {
 	const reach = (mark: ThinMark) =>
-		held !== null && sameThinMark(mark, held) ? THIN_MARK_CATCH + THIN_MARK_HOLD : THIN_MARK_CATCH
+		THIN_MARK_CATCH + (held.some((other) => sameThinMark(other, mark)) ? THIN_MARK_HOLD : 0)
 
-	const consider = (mark: ThinMark, distance: number) => {
-		if (held !== null && sameThinMark(mark, held)) heldDistance = distance
-
-		// A later mark wins a tie: the rules come first, then the lines in paint order.
-		if (best === null || distance <= best.distance) best = { mark, distance }
-	}
-
-	rules.forEach((at, rule) => {
-		if (at === null) return
-
-		const distance = Math.abs(value - at)
-
-		if (distance <= reach({ rule })) consider({ rule }, distance)
-	})
+	const marks: ThinMark[] = []
 
 	lines.forEach((runs, line) => {
-		const distance = lineReading(runs, band, value, reach({ line }))
+		const limit = reach({ line })
 
-		if (distance !== null) consider({ line }, distance)
+		if (
+			runs.some((run) => run.length > 0 && runDistanceSquared(run, band, value) <= limit * limit)
+		) {
+			marks.push({ line })
+		}
 	})
 
-	if (best === null) return null
+	rules.forEach((at, rule) => {
+		if (at !== null && Math.abs(value - at) <= reach({ rule })) marks.push({ rule })
+	})
 
-	const { mark, distance } = best as { mark: ThinMark; distance: number }
-
-	// The held mark keeps the pointer unless the nearest mark beats it by the hold.
-	if (held !== null && heldDistance !== null && distance > heldDistance - THIN_MARK_HOLD) {
-		return held
-	}
-
-	return mark
+	return marks
 }
 
 /** The run's top-edge y at `x` by chord interpolation, or `null` where the run doesn't cover `x`. @internal */

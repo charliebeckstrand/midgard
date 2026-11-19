@@ -12,6 +12,7 @@
  */
 
 import type { AccessibleName } from '../../../types/accessible-name'
+import type { Orientation } from '../../../types/orientation'
 import type { CartesianAxes, ChartValueAxisId } from './chart-axes/schema'
 import type { ChartSeriesColor } from './chart-color/palette'
 import type { ChartContextMenuConfig } from './chart-context-menu'
@@ -549,6 +550,8 @@ export type ChartReadoutNote = {
 	swatchColor?: string
 	/** Whether the rule is dashed, which its swatch mirrors. */
 	dashed: boolean
+	/** The direction of the rule on the plot, which its swatch mirrors. */
+	orientation: Orientation
 }
 
 /**

@@ -48,7 +48,7 @@ The premise: `LinePoint = { x, y }` allocating one object per datum was `lineGeo
 
 ### 5. Sub-linear line hit testing: deferred (target already sub-millisecond)
 
-`thinMarkAt` (`engine/chart-hit-test.ts`) scans every segment of every run per `pointermove`, and a binary search over the x-sorted runs would narrow it to O(log n + k). But the scan is already well under a millisecond at 10k after the squared-distance rewrite the competitive log records, and the hover residual is the per-move React commit, not the scan, so the search would optimize a cost that is not the bottleneck. Held until a bench shows the scan itself gating a sweep (a many-series or pathologically dense case today's fixtures don't reach). No bench times `thinMarkAt` today, so the first step is a case for it in `chart-geometry.bench.ts`.
+`thinMarksAt` (`engine/chart-hit-test.ts`) scans every segment of every run per `pointermove`, and a binary search over the x-sorted runs would narrow it to O(log n + k). But the scan is already well under a millisecond at 10k after the squared-distance rewrite the competitive log records, and the hover residual is the per-move React commit, not the scan, so the search would optimize a cost that is not the bottleneck. Held until a bench shows the scan itself gating a sweep (a many-series or pathologically dense case today's fixtures don't reach). No bench times `thinMarksAt` today, so the first step is a case for it in `chart-geometry.bench.ts`.
 
 ### 6. The imperative hover overlay: not justified while hover is at parity
 

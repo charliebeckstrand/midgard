@@ -43,6 +43,7 @@ import {
 	type ReferenceFormat,
 	referenceText,
 	ruleKeys,
+	ruleOrientation,
 } from './chart-reference'
 import type { ValueScale } from './chart-scale'
 import { seriesGroupClass } from './chart-series'
@@ -575,7 +576,8 @@ function ReferenceLabel({
 	label,
 	line,
 	format,
-}: Pick<ReferenceRuleProps, 'index' | 'paint' | 'rise' | 'line' | 'format'> & {
+	orientation,
+}: Pick<ReferenceRuleProps, 'index' | 'paint' | 'rise' | 'line' | 'format' | 'orientation'> & {
 	label: StandingReferenceLabel
 }) {
 	const { emphasizedReference } = useChartEmphasis()
@@ -625,7 +627,12 @@ function ReferenceLabel({
 						</TooltipTrigger>
 
 						<TooltipContent size="sm">
-							<ReferenceReadout line={line} paint={paint} format={format} />
+							<ReferenceReadout
+								line={line}
+								paint={paint}
+								format={format}
+								orientation={orientation}
+							/>
 						</TooltipContent>
 					</Tooltip>
 				) : (
@@ -640,8 +647,9 @@ function ReferenceLabel({
  * The readout of a rule in its tooltip, in the {@link ChartReadoutRow} that the
  * category readout gives a rule too: the key of the rule, then the value of a
  * value rule and its label, or the label of a category rule. The description
- * follows. The text wraps inside the width cap of the tooltip. It is
- * `aria-hidden`, since {@link ChartReferenceList} carries the parity.
+ * follows. The text wraps inside the width cap of the tooltip. The key runs in
+ * the direction of the rule ({@link ruleOrientation}). It is `aria-hidden`,
+ * since {@link ChartReferenceList} carries the parity.
  *
  * @internal
  */
@@ -649,7 +657,8 @@ function ReferenceReadout({
 	line,
 	paint,
 	format,
-}: Pick<ReferenceRuleProps, 'line' | 'paint' | 'format'>) {
+	orientation,
+}: Pick<ReferenceRuleProps, 'line' | 'paint' | 'format' | 'orientation'>) {
 	const color = rawColor(paint)
 
 	const category = isCategoryReference(line)
@@ -671,6 +680,7 @@ function ReferenceReadout({
 					shape="line"
 					size="sm"
 					variant={line.dashed === false ? 'solid' : 'dashed'}
+					orientation={ruleOrientation(line, orientation)}
 					color={textClass(paint) || undefined}
 					style={color ? { color } : undefined}
 				/>
@@ -685,9 +695,11 @@ function ReferenceReadout({
  * The hover rendering: the dashed rule, wrapped in the design-system
  * {@link Tooltip} so pointing it floats a label-and-value readout. The rule
  * takes no pointer of its own. The hit area of the chart resolves it with the
- * lines in one hit test ({@link thinMarkAt}), so the pointer never jumps
- * between two layers that each hold their own state. The rule the pointer rests
- * on is the `hoveredReference` of the emphasis. The trigger sits inside the
+ * lines in one hit test ({@link thinMarksAt}), so the pointer never jumps
+ * between two layers that each hold their own state. A rule alone in reach of
+ * the pointer is the `hoveredReference` of the emphasis. A rule in reach with
+ * another thin mark opens nothing, as a line in reach with another isolates
+ * nothing. The trigger sits inside the
  * `aria-hidden` plot, so the readout is a pointer enhancement;
  * {@link ChartReferenceList} carries the parity.
  *
@@ -732,7 +744,7 @@ function HoverReferenceRule(props: ReferenceRuleProps & { line: ChartReferenceVa
 			</TooltipTrigger>
 
 			<TooltipContent size="sm">
-				<ReferenceReadout line={line} paint={paint} format={format} />
+				<ReferenceReadout line={line} paint={paint} format={format} orientation={orientation} />
 			</TooltipContent>
 		</Tooltip>
 	)
@@ -814,7 +826,7 @@ function RulePresence({ animate, children }: { animate: boolean; children: React
  * @remarks Self-gating. A chart mounts it unconditionally, and it draws nothing
  * until both a scale and reference lines exist. The gate therefore lives here
  * instead of at every call site. The rules take no pointer: the hit area of the
- * chart resolves them with the lines ({@link thinMarkAt}), from the stops that
+ * chart resolves them with the lines ({@link thinMarksAt}), from the stops that
  * {@link referenceStops} gives. Under `animate` each rule rises along the
  * value axis from the baseline to its value ({@link referenceRise}). A
  * {@link ReducedMotion} around it settles it at rest for a reduced-motion

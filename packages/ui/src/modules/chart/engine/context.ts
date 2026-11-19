@@ -91,21 +91,46 @@ export type ChartMarkRef = { series: number; datum: number | null }
 export type ChartRuleRef = { reference: number }
 
 /**
- * What the pointer rests on in the plot: a drawn mark, or a reference rule. The
- * hit layer resolves both with one hit test, so it holds one of the two.
+ * Two or more thin marks in reach of the pointer at once: lines (each a whole
+ * series) and reference rules. The pointer is on all of them, so it isolates
+ * none of them. Where a line is among them, the pointer is on the data, and
+ * the readout of the category shows with each row lit.
  *
  * @internal
  */
-export type ChartTarget = ChartMarkRef | ChartRuleRef
+export type ChartSharedRef = { shared: readonly (ChartMarkRef | ChartRuleRef)[] }
 
-/** The mark that a target names, or `null` for a rule or no target. @internal */
+/**
+ * What the pointer rests on in the plot: a drawn mark, a reference rule, or
+ * two or more thin marks at once. The hit layer resolves all of them with one
+ * hit test, so it holds one target.
+ *
+ * @internal
+ */
+export type ChartTarget = ChartMarkRef | ChartRuleRef | ChartSharedRef
+
+/** The mark that a target isolates, or `null` for a rule, a shared target, or no target. @internal */
 export function targetMark(target: ChartTarget | null): ChartMarkRef | null {
-	return target === null || 'reference' in target ? null : target
+	return target !== null && 'series' in target ? target : null
 }
 
-/** The rule that a target names, or `null` for a mark or no target. @internal */
+/** The rule that a target isolates, or `null` for a mark, a shared target, or no target. @internal */
 export function targetRule(target: ChartTarget | null): number | null {
 	return target !== null && 'reference' in target ? target.reference : null
+}
+
+/**
+ * Whether a target puts the pointer on the data: a mark, or a shared target
+ * with a line in it. Off the data, a target is a rule or rules alone.
+ *
+ * @internal
+ */
+export function targetOnData(target: ChartTarget | null): boolean {
+	if (target === null) return false
+
+	if ('shared' in target) return target.shared.some((member) => 'series' in member)
+
+	return 'series' in target
 }
 
 /**

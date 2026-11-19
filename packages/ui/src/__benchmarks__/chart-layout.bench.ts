@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { lineGeometry } from '../modules/chart/engine/chart-geometry/line'
-import { thinMarkAt } from '../modules/chart/engine/chart-hit-test'
+import { thinMarksAt } from '../modules/chart/engine/chart-hit-test'
 import {
 	buildValueTicks,
 	type CartesianLayoutInput,
@@ -211,7 +211,7 @@ compareBenches('chart-time · timeTicks (calendar boundaries on a band axis)', (
 	})
 })
 
-compareBenches('chart-hit-test · thinMarkAt (every pointer move)', (bench) => {
+compareBenches('chart-hit-test · thinMarksAt (every pointer move)', (bench) => {
 	// The scan a line chart runs per `pointermove`: squared point-to-segment
 	// distance over every series' every run. The browser hover sweep times it
 	// end to end through React; this is the scan alone, where an algorithmic
@@ -244,14 +244,14 @@ compareBenches('chart-hit-test · thinMarkAt (every pointer move)', (bench) => {
 
 		// Mid-plot: the scan runs to completion and resolves a hit.
 		bench(`${label} · hit`, () => {
-			thinMarkAt(seriesRuns, [], WIDTH / 2, HEIGHT / 2)
+			thinMarksAt(seriesRuns, [], WIDTH / 2, HEIGHT / 2)
 		})
 
 		// Off every line: no candidate ever beats the tolerance, so the scan pays
 		// its full length with nothing to short-circuit on, the worst case, and
 		// the one a pointer in the plot's empty upper corner actually hits.
 		bench(`${label} · miss`, () => {
-			thinMarkAt(seriesRuns, [], WIDTH / 2, -500)
+			thinMarksAt(seriesRuns, [], WIDTH / 2, -500)
 		})
 	}
 })

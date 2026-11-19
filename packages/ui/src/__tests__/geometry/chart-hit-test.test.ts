@@ -6,7 +6,7 @@ import {
 	barMarkAt,
 	nearestSeriesArea,
 	type ThinMark,
-	thinMarkAt,
+	thinMarksAt,
 } from '../../modules/chart/engine/chart-hit-test'
 
 const bar = (x: number, x1: number, top: number, bottom: number): BarMark => ({
@@ -87,158 +87,112 @@ const segment = (x0: number, y0: number, x1: number, y1: number) => [
 /** A flat line at `y` from x 0 to x 100, as the one run of one line. */
 const flat = (y: number) => [segment(0, y, 100, y)]
 
-describe('thinMarkAt', () => {
-	it('catches a line within the catch, in a straight line, and misses beyond it', () => {
-		expect(thinMarkAt([flat(100)], [], 50, 112)).toEqual({ line: 0 })
+describe('thinMarksAt', () => {
+	it('reaches a line within 16 px in a straight line, and no farther', () => {
+		expect(thinMarksAt([flat(100)], [], 50, 116)).toEqual([{ line: 0 }])
 
-		expect(thinMarkAt([flat(100)], [], 50, 117)).toBeNull()
+		expect(thinMarksAt([flat(100)], [], 50, 117)).toEqual([])
 
-		// A steep line catches as wide across as a flat one does along y.
+		// A steep line reaches as wide across as a flat one reaches along y.
 		const steep = [segment(50, 0, 51, 200)]
 
-		expect(thinMarkAt([steep], [], 62, 100)).toEqual({ line: 0 })
+		expect(thinMarksAt([steep], [], 62, 100)).toEqual([{ line: 0 }])
 
-		expect(thinMarkAt([steep], [], 70, 100)).toBeNull()
+		expect(thinMarksAt([steep], [], 70, 100)).toEqual([])
 	})
 
-	it('gives the pointer to the line nearest along the value axis', () => {
-		expect(thinMarkAt([flat(100), flat(140)], [], 50, 108)).toEqual({ line: 0 })
+	it('returns every mark in reach, the lines first, then the rules', () => {
+		// Lines at y 100 and 120, a rule at 112.
+		expect(thinMarksAt([flat(100), flat(120)], [112], 50, 108)).toEqual([
+			{ line: 0 },
+			{ line: 1 },
+			{ rule: 0 },
+		])
 
-		expect(thinMarkAt([flat(100), flat(140)], [], 50, 132)).toEqual({ line: 1 })
+		// 18 px from line 1: line 0 and the rule alone.
+		expect(thinMarksAt([flat(100), flat(120)], [112], 50, 102)).toEqual([{ line: 0 }, { rule: 0 }])
 	})
 
-	it('parts two crossing lines at the line of their mean slope', () => {
-		// They cross at (100, 100): a steep line of slope 4, and a flat one.
-		const steep = [segment(75, 0, 125, 200)]
-
-		const level = [segment(0, 100, 200, 100)]
-
-		// The mean slope is 2, so the boundary runs through (105, 110). Below it
-		// along y, toward the flat line, the flat line takes the pointer, though the
-		// pointer is nearer the steep line in a straight line.
-		expect(thinMarkAt([steep, level], [], 105, 109)).toEqual({ line: 1 })
-
-		expect(thinMarkAt([steep, level], [], 105, 111)).toEqual({ line: 0 })
-
-		// The order of the lines does not move the boundary.
-		expect(thinMarkAt([level, steep], [], 105, 109)).toEqual({ line: 0 })
-
-		expect(thinMarkAt([level, steep], [], 105, 111)).toEqual({ line: 1 })
-	})
-
-	it('reads past an end of a run by the straight distance to the end', () => {
-		// The run ends at x 40. A pointer 9 px past the end and 9 px above it sits
-		// 12.7 px from the end. A flat line 12 px below the pointer is nearer.
-		const short = [segment(0, 100, 40, 100)]
-
-		expect(thinMarkAt([short, flat(121)], [], 49, 109)).toEqual({ line: 1 })
-
-		// At the end itself, the two distances agree: 9 px along y.
-		expect(thinMarkAt([short, flat(121)], [], 40, 109)).toEqual({ line: 0 })
-	})
-
-	it('never bridges the gap between runs, but catches a lone point', () => {
+	it('never bridges the gap between runs, but reaches a lone point', () => {
 		const gappy = [segment(0, 100, 40, 100), [{ x: 120, y: 100 }]]
 
-		expect(thinMarkAt([gappy], [], 80, 100)).toBeNull()
+		expect(thinMarksAt([gappy], [], 80, 100)).toEqual([])
 
-		expect(thinMarkAt([gappy], [], 122, 102)).toEqual({ line: 0 })
+		expect(thinMarksAt([gappy], [], 122, 102)).toEqual([{ line: 0 }])
 	})
 
-	it('reads a rule along the value axis, within the same catch', () => {
-		expect(thinMarkAt([], [100], 50, 116)).toEqual({ rule: 0 })
+	it('reaches a rule within 16 px along the value axis, and never a rule that takes no pointer', () => {
+		expect(thinMarksAt([], [100], 50, 116)).toEqual([{ rule: 0 }])
 
-		expect(thinMarkAt([], [100], 50, 117)).toBeNull()
+		expect(thinMarksAt([], [100], 50, 117)).toEqual([])
 
-		// A rule that takes no pointer is never caught.
-		expect(thinMarkAt([], [null, 100], 50, 101)).toEqual({ rule: 1 })
+		expect(thinMarksAt([], [null, 100], 50, 101)).toEqual([{ rule: 1 }])
 	})
 
-	it('parts a line and a rule midway along the value axis', () => {
-		expect(thinMarkAt([flat(110)], [100], 50, 104)).toEqual({ rule: 0 })
+	it('keeps a held mark in reach 2 px farther out', () => {
+		expect(thinMarksAt([flat(100)], [], 50, 117.5)).toEqual([])
 
-		expect(thinMarkAt([flat(110)], [100], 50, 106)).toEqual({ line: 0 })
+		expect(thinMarksAt([flat(100)], [], 50, 117.5, [{ line: 0 }])).toEqual([{ line: 0 }])
+
+		expect(thinMarksAt([flat(100)], [], 50, 118.5, [{ line: 0 }])).toEqual([])
+
+		expect(thinMarksAt([], [100], 50, 82.5, [{ rule: 0 }])).toEqual([{ rule: 0 }])
+
+		expect(thinMarksAt([], [100], 50, 81.5, [{ rule: 0 }])).toEqual([])
+
+		// Each held mark holds, and a mark that is not held does not.
+		expect(thinMarksAt([flat(100), flat(135)], [], 50, 117.5, [{ line: 0 }, { line: 1 }])).toEqual([
+			{ line: 0 },
+			{ line: 1 },
+		])
+
+		expect(thinMarksAt([flat(100), flat(135)], [], 50, 117.5, [{ line: 1 }])).toEqual([{ line: 1 }])
 	})
 
-	it('gives a tie to a line over a rule, and to the later line', () => {
-		expect(thinMarkAt([flat(100)], [100], 50, 100)).toEqual({ line: 0 })
-
-		expect(thinMarkAt([flat(100), flat(100)], [], 50, 100)).toEqual({ line: 1 })
-
-		expect(thinMarkAt([flat(96), flat(104)], [], 50, 100)).toEqual({ line: 1 })
-
-		expect(thinMarkAt([], [100, 100], 50, 100)).toEqual({ rule: 1 })
-	})
-
-	it('holds the held mark until another comes 2 px nearer', () => {
-		// Lines at y 100 and y 120: the boundary at 110.
-		const lines = [flat(100), flat(120)]
-
-		// Held line 0 at 10.75 px against line 1 at 9.25 px: not 2 px nearer.
-		expect(thinMarkAt(lines, [], 50, 110.75, { line: 0 })).toEqual({ line: 0 })
-
-		// At 11.25 px against 8.75 px, line 1 takes the pointer.
-		expect(thinMarkAt(lines, [], 50, 111.25, { line: 0 })).toEqual({ line: 1 })
-
-		// The hold works from the other side, and between a rule and a line.
-		expect(thinMarkAt(lines, [], 50, 109.25, { line: 1 })).toEqual({ line: 1 })
-
-		expect(thinMarkAt(lines, [], 50, 108.75, { line: 1 })).toEqual({ line: 0 })
-
-		expect(thinMarkAt([flat(120)], [100], 50, 110.75, { rule: 0 })).toEqual({ rule: 0 })
-
-		expect(thinMarkAt([flat(120)], [100], 50, 111.25, { rule: 0 })).toEqual({ line: 0 })
-
-		// A held mark out of the catch holds nothing.
-		expect(thinMarkAt([flat(100), flat(140)], [], 50, 125, { line: 0 })).toEqual({ line: 1 })
-	})
-
-	it('holds the held mark 2 px past the edge of the catch', () => {
-		expect(thinMarkAt([flat(100)], [], 50, 117.5)).toBeNull()
-
-		expect(thinMarkAt([flat(100)], [], 50, 117.5, { line: 0 })).toEqual({ line: 0 })
-
-		expect(thinMarkAt([flat(100)], [], 50, 118.5, { line: 0 })).toBeNull()
-
-		expect(thinMarkAt([], [100], 50, 82.5, { rule: 0 })).toEqual({ rule: 0 })
-
-		expect(thinMarkAt([], [100], 50, 81.5, { rule: 0 })).toBeNull()
-	})
-
-	it('flips once in each direction when the pointer sweeps across a crossing', () => {
+	it('changes the marks in reach once at each edge when a shaking pointer sweeps a crossing', () => {
 		const steep = [segment(75, 0, 125, 200)]
 
 		const level = [segment(0, 100, 200, 100)]
 
-		// Sweep along y through the crossing column and back, carrying the held mark.
-		const sweep = (from: number, to: number, start: ThinMark | null) => {
-			let held = start
+		// The marks in reach at each step, carried as the held marks of the next,
+		// and how many times each line comes into reach or leaves it.
+		const sweep = (from: number, to: number) => {
+			let held: ThinMark[] = []
 
-			let flips = 0
+			const changes = [0, 0]
+
+			const shared = { seen: false }
 
 			const step = from < to ? 0.25 : -0.25
 
 			for (let y = from; from < to ? y <= to : y >= to; y += step) {
 				// A shake of half a px at each step, as a hand makes.
 				for (const shake of [0, 0.5, -0.5, 0]) {
-					const next = thinMarkAt([steep, level], [], 104, y + shake, held)
+					const next = thinMarksAt([steep, level], [], 110, y + shake, held)
 
-					if (held !== null && next !== null && next.line !== held.line) flips++
+					for (const line of [0, 1]) {
+						const was = held.some((mark) => mark.line === line)
+
+						const is = next.some((mark) => mark.line === line)
+
+						if (was !== is) changes[line] = (changes[line] ?? 0) + 1
+					}
+
+					if (next.length === 2) shared.seen = true
 
 					held = next
 				}
 			}
 
-			return { held, flips }
+			return { changes, shared: shared.seen }
 		}
 
-		const down = sweep(85, 115, null)
+		// Down the column at x 110, past the crossing at (100, 100). Each line comes
+		// into reach once and leaves it once, though the hand shakes at each step,
+		// and between them the two lines are in reach together.
+		expect(sweep(60, 220)).toEqual({ changes: [2, 2], shared: true })
 
-		expect(down.flips).toBe(1)
-
-		const up = sweep(115, 85, down.held)
-
-		expect(up.flips).toBe(1)
+		expect(sweep(220, 60)).toEqual({ changes: [2, 2], shared: true })
 	})
 })
 

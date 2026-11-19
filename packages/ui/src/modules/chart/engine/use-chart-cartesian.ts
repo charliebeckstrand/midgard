@@ -789,9 +789,9 @@ export function useChartCartesian<T>(
 			cells &&
 			once(() => ({
 				...cells(),
-				notes: referenceNotes(reference, rawCategories, referenceHidden),
+				notes: referenceNotes(reference, rawCategories, referenceHidden, orientation),
 			})),
-		[cells, reference, rawCategories, referenceHidden],
+		[cells, reference, rawCategories, referenceHidden, orientation],
 	)
 
 	// The tooltip lists its rows in the marks' visible order (a vertical stack

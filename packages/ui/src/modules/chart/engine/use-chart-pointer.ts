@@ -18,6 +18,7 @@ import {
 	type ChartMarkRef,
 	type ChartTarget,
 	targetMark,
+	targetOnData,
 	targetRule,
 	useChartActions,
 	useChartHoverStore,
@@ -92,12 +93,13 @@ export type ChartPointerOptions = {
 	 */
 	resolveIndex: (x: number, y: number) => number | null
 	/**
-	 * The target under a frame point: a mark or a reference rule. It gates the
-	 * readout (on a mark, or off it) and feeds the isolation. A rule closes the
-	 * readout and opens the tooltip of the rule. `held` carries the target the
-	 * pointer holds, so a bounded catch can stay sticky. The resolved category
-	 * `index` rides along, so a snapping chart can hand the emphasis to the stop
-	 * the tooltip anchors in that column.
+	 * The target under a frame point: a mark, a reference rule, or thin marks
+	 * in reach together ({@link ChartSharedRef}). It gates the readout (on the
+	 * data, or off it) and feeds the isolation. A lone rule closes the readout
+	 * and opens the tooltip of the rule. A shared target isolates nothing.
+	 * `held` carries the target the pointer holds, so a bounded catch can stay
+	 * sticky. The resolved category `index` rides along, so a snapping chart can
+	 * hand the emphasis to the stop the tooltip anchors in that column.
 	 */
 	markAt: ChartTargetAt
 	/** @defaultValue 'hover' */
@@ -186,23 +188,26 @@ export function useChartPointer({
 	const held = useRef<ChartTarget | null>(null)
 
 	// The target under a frame point, which also says whether a readout shows
-	// there: on a mark, or off it. A rule shows its own tooltip and no readout.
-	// One probe, so the hit test and the isolation never disagree. The resolved
-	// category index rides along, so a snapping chart can hand the emphasis to the
-	// stop the tooltip anchors in that category's column.
+	// there. On the data (a mark, or lines in reach together) the readout shows.
+	// On rules alone (`onRules`), a lone rule shows its own tooltip, and the
+	// readout shows nothing. Off every target, it shows nothing either. One probe,
+	// so the hit test and the isolation never disagree. The resolved category
+	// index rides along, so a snapping chart can hand the emphasis to the stop
+	// the tooltip anchors in that category's column.
 	const probe = useCallback(
 		(x: number, y: number, index: number | null) => {
 			const target = markAt(x, y, held.current, index)
 
-			const mark = targetMark(target)
+			const onData = targetOnData(target)
 
-			return { target, mark, onRule: targetRule(target) !== null, onData: mark !== null }
+			return { target, mark: targetMark(target), onRules: target !== null && !onData, onData }
 		},
 		[markAt],
 	)
 
 	// Every write to the pointed target goes through here, so the held ref never
-	// drifts from what the emphasis shows. A mark and a rule never show at once.
+	// drifts from what the emphasis shows. A mark and a rule never show at once,
+	// and a shared target shows neither.
 	const point = useCallback(
 		(target: ChartTarget | null) => {
 			held.current = target
@@ -265,11 +270,10 @@ export function useChartPointer({
 
 			const index = resolveIndex(x, y)
 
-			const { target, onRule, onData: onDataHit } = probe(x, y, index)
+			const { target, onRules, onData: onDataHit } = probe(x, y, index)
 
-			// On a rule, the tooltip of the rule reads, and the category readout and
-			// the crosshair stand down.
-			if (onRule) set(null, null)
+			// On rules alone, the category readout and the crosshair stand down.
+			if (onRules) set(null, null)
 			else set(index, { x, y }, onDataHit)
 
 			point(target)
@@ -300,11 +304,11 @@ export function useChartPointer({
 
 			const index = resolveIndex(x, y)
 
-			const { mark, onRule, onData: onDataHit } = probe(x, y, index)
+			const { mark, onRules, onData: onDataHit } = probe(x, y, index)
 
-			// A click on a rule reads the rule, which its tooltip already shows, so it
-			// pins nothing and reports nothing.
-			if (onRule) return
+			// A click on rules alone reads no data, so it pins nothing and reports
+			// nothing.
+			if (onRules) return
 
 			// Toggle the shown category off; and a click that would read nothing (off
 			// the marks on a chart that doesn't snap) dismisses rather than pinning a
@@ -333,10 +337,10 @@ export function useChartPointer({
 
 			const index = resolveIndex(x, y)
 
-			const { mark, onRule } = probe(x, y, index)
+			const { mark, onRules } = probe(x, y, index)
 
-			// A press on a rule reads the rule, so it activates nothing.
-			if (onRule) return
+			// A press on rules alone reads no data, so it activates nothing.
+			if (onRules) return
 
 			if (index !== null) onIndexClick?.(index, press)
 
