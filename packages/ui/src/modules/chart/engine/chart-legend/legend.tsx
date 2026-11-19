@@ -814,9 +814,9 @@ type ChartLegendNotesProps = {
 /**
  * The notes of the reference rules (`legend.references.variant: 'notes'`): a
  * line for each rule with its swatch, its label, and its value, and its
- * description under them. A note is not a switch, so it takes no tab stop and
- * toggles nothing. Pointing a note recedes the marks to its rule, as pointing a
- * chip does, unless the rule draws nothing. A stacked legend puts the notes
+ * description under them, one text step smaller. A note is not a switch, so
+ * it takes no tab stop and toggles nothing. Pointing a note recedes the marks
+ * to its rule, as pointing a chip does, unless the rule draws nothing. A stacked legend puts the notes
  * under the figure, out of the aspect box, and a side panel puts them in its
  * References section.
  *
@@ -859,7 +859,7 @@ export function ChartLegendNotes({ references, panel = false }: ChartLegendNotes
 					</span>
 
 					{reference.description && (
-						<Text as="span" tone="muted" className="col-start-2 min-w-0">
+						<Text as="span" tone="muted" size="xs" className="col-start-2 min-w-0">
 							{reference.description}
 						</Text>
 					)}
