@@ -2,7 +2,6 @@
 
 import {
 	ChevronUpDownIcon,
-	Cog8ToothIcon,
 	KeyIcon,
 	ShieldExclamationIcon,
 	UsersIcon,
@@ -10,15 +9,15 @@ import {
 import type { User } from 'auth'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import type { ReactNode } from 'react'
+import { type ReactNode, use } from 'react'
 import { SignOutMenuItem } from 'shared/auth'
 import { Avatar } from 'ui/avatar'
 import { Button } from 'ui/button'
-import { EventsAside, EventsButton, EventsSwitch } from 'ui/events'
 import { SidebarLayout, StackedLayout, StackedLayoutBody, StackedLayoutHeader } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { NavBar } from 'ui/nav'
+import { OffcanvasContext } from 'ui/primitives/offcanvas'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
 import {
@@ -97,8 +96,6 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 		<UIProvider pathname={pathname}>
 			<div className={SCROLLER}>
 				<SidebarLayout
-					actions={<EventsButton />}
-					aside={<EventsAside />}
 					navbar={
 						<NavBar variant="plain" className="px-0 py-0">
 							<Link href="/" className="flex">
@@ -109,12 +106,7 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 					sidebar={
 						<Sidebar>
 							<SidebarHeader>
-								<SidebarItem href="/">
-									<Image src="/gradient.png" alt="" width={24} height={24} />
-									<SidebarLabel>
-										<Text className="font-black text-lg">Admin</Text>
-									</SidebarLabel>
-								</SidebarItem>
+								<SidebarBrand current={pathname === '/'} />
 							</SidebarHeader>
 							<SidebarBody>
 								<SidebarSection>
@@ -133,7 +125,7 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 						    the desktop sidebar and in the mobile drawer. */}
 								<Flex align="center" gap="sm">
 									<div className="min-w-0 flex-1">
-										<UserMenu admin placement="top-start">
+										<UserMenu placement="top-start">
 											<SidebarItem current={pathname.startsWith('/account')}>
 												<UserAvatar user={user} />
 												<SidebarLabel>{user.email}</SidebarLabel>
@@ -141,9 +133,7 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 											</SidebarItem>
 										</UserMenu>
 									</div>
-									<AppearanceSettings>
-										<EventsSwitch />
-									</AppearanceSettings>
+									<AppearanceSettings />
 								</Flex>
 							</SidebarFooter>
 						</Sidebar>
@@ -173,10 +163,7 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 							<Brand />
 						</Link>
 						<Spacer />
-						<EventsButton />
-						<AppearanceSettings>
-							<EventsSwitch />
-						</AppearanceSettings>
+						<AppearanceSettings />
 						<UserMenu placement="bottom-end">
 							<Button variant="plain" aria-label="User menu">
 								<UserAvatar user={user} />
@@ -191,6 +178,32 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 				</Container>
 			</StackedLayoutBody>
 		</StackedLayout>
+	)
+}
+
+/**
+ * The name of the app at the top of the sidebar, a link to the dashboard. The
+ * name has the size of a heading. It is solid on the dashboard and muted on
+ * each other page.
+ *
+ * @internal
+ * @remarks The link is not a `SidebarItem`, so it closes the drawer itself, as
+ * a press on an item does.
+ */
+function SidebarBrand({ current }: { current: boolean }) {
+	const offcanvas = use(OffcanvasContext)
+
+	return (
+		<Link
+			href="/"
+			aria-current={current ? 'page' : undefined}
+			className="flex"
+			onClick={() => offcanvas?.close()}
+		>
+			<Text as="span" tone={current ? 'default' : 'muted'} className="font-black text-lg">
+				Admin
+			</Text>
+		</Link>
 	)
 }
 
@@ -209,26 +222,25 @@ function UserAvatar({ user }: { user: User }) {
 	return (
 		<Avatar
 			initials={user.email[0]?.toUpperCase() ?? 'U'}
-			className="bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+			// The avatar does not shrink beside a long email, so it stays a circle.
+			className="shrink-0 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
 		/>
 	)
 }
 
 type UserMenuProps = {
-	/** Whether to show the admin-only settings link. */
-	admin?: boolean
 	placement: 'top-start' | 'bottom-end'
 	/** The trigger. */
 	children: ReactNode
 }
 
 /**
- * User menu: the account and settings links, and sign-out.
+ * User menu: the account link, and sign-out.
  *
  * @internal
  * @remarks Sign-out is `SignOutMenuItem` from `shared/auth`.
  */
-function UserMenu({ admin, placement, children }: UserMenuProps) {
+function UserMenu({ placement, children }: UserMenuProps) {
 	return (
 		<Menu placement={placement}>
 			<MenuTrigger>{children}</MenuTrigger>
@@ -237,12 +249,6 @@ function UserMenu({ admin, placement, children }: UserMenuProps) {
 					<KeyIcon />
 					<MenuLabel>Account</MenuLabel>
 				</MenuItem>
-				{admin && (
-					<MenuItem href="/settings">
-						<Cog8ToothIcon />
-						<MenuLabel>Settings</MenuLabel>
-					</MenuItem>
-				)}
 				<MenuSeparator />
 				<SignOutMenuItem />
 			</MenuContent>

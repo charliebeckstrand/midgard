@@ -72,7 +72,7 @@ export function AccountClient({
 
 	return (
 		<Stack gap="xl">
-			<PageHeader title="Account" description={user.email} />
+			<PageHeader title="Account" />
 
 			{!user.is_verified && (
 				<Alert
@@ -105,7 +105,7 @@ export function AccountClient({
 					action={
 						<Button
 							variant="outline"
-							color={passkeys.length === 0 ? 'blue' : undefined}
+							color="blue"
 							disabled={add.isPending}
 							onClick={() => add.mutate()}
 						>
@@ -126,6 +126,7 @@ export function AccountClient({
 									suffix={
 										<Button
 											variant="plain"
+											color="red"
 											size="sm"
 											disabled={remove.isPending}
 											onClick={async () => {

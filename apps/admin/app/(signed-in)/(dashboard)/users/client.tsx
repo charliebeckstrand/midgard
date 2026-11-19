@@ -81,6 +81,9 @@ export function UsersClient({ users: initialUsers }: UsersClientProps) {
 	const columns = usersColumns((user) => (
 		<Button
 			variant="outline"
+			// Amber marks the action that takes access away. A reactivate gives it
+			// back, so it keeps the default color.
+			color={user.is_active ? 'amber' : undefined}
 			size="sm"
 			disabled={user.roles.includes('admin') || saving}
 			onClick={async () => {
