@@ -18,12 +18,14 @@ updates:
       interval: weekly
     # Wait a week after a release before the pull request, so that a bad or
     # compromised release has time to be found and pulled. Renovate waits in the
-    # same way (`minimumReleaseAge` in renovate.json).
+    # same way (`minimumReleaseAge` in renovate.json). The wait applies only to
+    # a pin that Dependabot must change. A third-party action thus uses a
+    # commit SHA, with the release in a comment (.github/zizmor.yml).
     cooldown:
       default-days: 7
     # One pull request for every action in the workflows and the setup action.
-    # They are pinned to major tags, which move rarely, so separate pull
-    # requests buy nothing.
+    # One weekly pull request is enough to review, so separate pull requests
+    # buy nothing.
     groups:
       github-actions:
         patterns:
