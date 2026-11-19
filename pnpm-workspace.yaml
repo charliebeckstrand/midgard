@@ -14,7 +14,7 @@ catalog:
   '@tanstack/react-query': ^5.101.2
   '@testing-library/react': ^16.3.3
   '@types/d3-geo': ^3.1.0
-  '@types/node': ^25.3.3
+  '@types/node': ^24.19.2
   '@types/react': ^19.3.0
   '@types/react-dom': ^19.3.0
   '@types/topojson-client': ^3.1.5
@@ -72,38 +72,51 @@ overrides:
 minimumReleaseAgeExclude:
   - hlidskjalf
 
-# `useFloatingPortalNode` builds its portal node in a layout effect and removes it in that
-# effect's cleanup, deliberately rebuilding it on the next run (floating-ui#2454). React's
-# `<Activity>` runs cleanups to *hide* a subtree and re-runs the effects to reveal it, so a
-# parked surface came back with a new node — and since `createPortal` counts its container as
-# part of the portal's identity, the whole surface remounted. Every overlay inside an inactive
-# Tabs/Nav panel (`ui/primitives/mount`'s `Hold`) or a navigated-away App Router route lost its
-# state on the way back. The patch re-attaches the existing node instead of rebuilding it.
-# Covered by `overlay-activity-hold.test.tsx`, which fails without it. Mirrored in tms-ui; keep
-# the two copies identical. Remove once upstream is Activity-safe.
+# `useFloatingPortalNode` of `@floating-ui/react` builds its portal node in a layout effect.
+# The cleanup of that effect removes the node and clears the ref, so the next run builds a
+# new node (floating-ui#2454). React `<Activity>` runs the cleanups to hide a subtree, and it
+# runs the effects again to show the subtree. `createPortal` counts its container as part of
+# the identity of the portal, so a new node remounts the whole surface.
 #
-# React Router reloads the page when a route module fails to import, so a tab that a deploy
-# left on deleted chunks picks up the new build. It also did this for a prefetch: `prefetch="intent"`
-# starts on `touchstart`, so a scroll that started on a link reloaded the page, and an open menu
-# closed. The patch makes a failed prefetch give no links. A failed navigation still reloads, but
-# it loads the page of the navigation: React Router reloaded the current page, so a pick in the
-# menu of a stale tab stayed on the page it left.
-# A navigation also preloads all the chunks of its route, from the `imports` of the manifest.
-# React Router imported only the route module, so the browser found each level of chunks after
-# the level above it loaded. The Grid page waited for about 10 rounds of requests, and the
-# Dashboard page for about 20. The preload also takes the route module, at the start of the
-# navigation. Vite wraps the import of React Router in its preload helper, which starts the import
-# one microtask later. A render that the click queued first, such as the close of the mobile
-# sidebar, then ran before the request started.
-# Remove once upstream stops reloading on a prefetch and preloads the chunks of a navigation.
+# Thus each overlay in a hidden Tabs or Nav panel lost its state when the panel came back
+# (`Hold` of `ui/primitives/mount`). An overlay in an App Router route lost its state in the
+# same way when the reader came back to the route. The patch keeps the node and attaches it
+# again. `overlay-activity-hold.test.tsx` fails without the patch. tms-ui has a copy of this
+# patch, and the two copies must stay the same. Remove the patch when upstream is safe under
+# `<Activity>`.
+#
+# React Router reloads the page when a route module fails to import. Thus a tab that a deploy
+# left on deleted chunks gets the new build. It also reloaded the page for a failed prefetch.
+# `prefetch="intent"` starts on `touchstart`, so a scroll that started on a link reloaded the
+# page and closed an open menu. The patch makes a failed prefetch give no links.
+#
+# A failed navigation still reloads, but the patch makes it load the page of the navigation.
+# React Router reloaded the current page, so a pick in the menu of a stale tab stayed on the
+# page that it left.
+#
+# The patch also makes a navigation preload each chunk of its route, from the `imports` of the
+# manifest. React Router imported only the route module, so the browser found each level of
+# chunks after the level above it loaded. The Grid page waited for about 10 rounds of
+# requests, and the Dashboard page waited for about 20.
+#
+# The preload also takes the route module, at the start of the navigation. Vite wraps the
+# import of React Router in its preload helper, which starts the import one microtask later.
+# A render that the click queued first, such as the close of the mobile sidebar, then ran
+# before the request started.
+#
+# `route-module-load.test.tsx` fails without each of the three changes to React Router.
+# Remove the patch when upstream stops the reload for a prefetch and preloads the chunks of a
+# navigation.
 #
 # Under `isolate: false`, Vitest runs each setup file again for each test file. It finds the
-# module to run again by its URL, but the module keeps the URL of the first request for it.
-# A `--changed` run (`test:changed`) first reads each setup file by its absolute path, and the
+# module to run again by its URL, but the module keeps the URL of the first request for it. A
+# `--changed` run (`test:changed`) first reads each setup file by its absolute path, and the
 # fs module cache keeps that URL for later runs. The worker then asks for `/src/...`, finds no
-# module, and does not run the setup again. Thus the `afterEach` cleanup runs for the first file
-# of a worker only, and each later file finds the DOM and the stubs of the files before it. The
-# patch also finds the module by its id. Remove once upstream finds the module by its id.
+# module, and does not run the setup again.
+#
+# Thus the `afterEach` cleanup of the setup runs only for the first file of a worker. Each later
+# file finds the DOM and the stubs of the files before it. The patch also finds the module by
+# its id. Remove the patch when upstream finds the module by its id.
 #
 # The fs module cache of Vitest holds the hash of the lockfile. A run that finds another hash
 # removes the cache directory. `pnpm check` starts the runs of the packages at the same time,
@@ -113,22 +126,27 @@ minimumReleaseAgeExclude:
 # it there. Remove once upstream clears the cache in this way.
 #
 # React listens for each event on the container of its root. React Router and the Next.js App
-# Router hydrate the document, so that container is the document. On iOS, WebKit joins two quick
-# taps into one double-click when a node at the tap listens for `dblclick` and allows a double
-# tap (`nodeRespondingToDoubleClickEvent`). An element allows it only when it and each of its
-# ancestors have `touch-action: auto`. The root style of `ui/core/touch/base.ts` is
-# `manipulation`, so no element allows it. The document is not an element, and it always allows
-# a double tap. Thus the second of two quick taps near each other got no click, and the target of
-# the first tap got a second click. On an iPhone, a test page with React 18 missed 13 of 58 quick
-# taps with its root on the document, and 0 of 64 with its root on a div. The patch puts the
-# `dblclick` listeners of a root on the document on its root element. Each listener keeps the
-# document as its container, so `onDoubleClick` works as before. `next` has its own copies of
-# `react-dom` for the App Router, so it has the same patch. `react` must have the version of
-# `react-dom`, so it is pinned too. Covered by `react-double-click.test.tsx`. The listener must
-# not go on `window`: since WebKit 302274@main, a `dblclick` listener on `window` starts the
-# double tap too, and `window` has no touch-action. Remove once WebKit lets the document follow
-# the touch-action of the root element (WebKit bug 216681), or React stops listening for
-# `dblclick` on a document (React issue 31260).
+# Router hydrate the document, so that container is the document. On iOS, WebKit joins two
+# quick taps into one double-click when a node at the tap listens for `dblclick` and allows a
+# double tap (`nodeRespondingToDoubleClickEvent`). An element allows it only when it and each
+# of its ancestors have `touch-action: auto`. The root style of `ui/core/touch/base.ts` is
+# `manipulation`, so no element allows it. The document is not an element, and it always
+# allows a double tap.
+#
+# Thus the second of two quick taps near each other got no click, and the target of the first
+# tap got a second click. On an iPhone, a test page with React 18 and its root on the document
+# missed 13 of 58 quick taps. With its root on a div, the page missed 0 of 64.
+#
+# The patch puts the `dblclick` listeners of a root on the document on its root element. Each
+# listener keeps the document as its container, so `onDoubleClick` works as before. The
+# listener must not go on `window`. Since WebKit 302274@main, a `dblclick` listener on
+# `window` starts the double tap too, and `window` has no touch-action.
+#
+# `next` has its own copies of `react-dom` for the App Router, so it has the same patch.
+# `react` must have the version of `react-dom`, so it is pinned too.
+# `react-double-click.test.tsx` covers the patch. Remove the patch when one of two upstream
+# fixes lands. In WebKit bug 216681, the document follows the touch-action of the root
+# element. In React issue 31260, React stops listening for `dblclick` on a document.
 #
 # Each key names one exact version, and pnpm stops an install when a patch matches no package.
 # Thus each package.json pins a patched package at that version, so that a lockfile refresh

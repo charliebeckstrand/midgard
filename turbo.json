@@ -1,12 +1,14 @@
 {
 	"$schema": "https://v2-11-7.turborepo.dev/schema.json",
 	"agentGuidance": false,
+	"globalDependencies": [".node-version"],
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
 			"env": ["BIFROST_URL"],
 			"inputs": [
 				"$TURBO_DEFAULT$",
+				".env*",
 				"!src/**/__tests__/**",
 				"!*.md",
 				"$TURBO_ROOT$/.browserslistrc",
@@ -19,7 +21,7 @@
 		},
 		"transit": {
 			"dependsOn": ["^transit"],
-			"inputs": ["src/**", "!src/**/__tests__/**", "package.json"]
+			"inputs": ["src/**", "scripts/**", "!src/**/__tests__/**", "package.json"]
 		},
 		"check-types": {
 			"dependsOn": ["transit"],
@@ -42,11 +44,12 @@
 			"inputs": [
 				"src/**",
 				"app/**",
-				"vitest.config.ts",
+				"scripts/**",
+				"*.ts",
 				"$TURBO_ROOT$/vitest.shared.mts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
-				"docs/*.md",
+				"$TURBO_ROOT$/tsconfig.nextjs.json",
 				"package.json"
 			]
 		},

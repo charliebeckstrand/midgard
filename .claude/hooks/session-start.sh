@@ -40,6 +40,6 @@ pnpm install --prefer-offline
 nohup bash -c '
   pnpm turbo run build --filter="./packages/*" --output-logs=errors-only
   pnpm turbo run check-types --output-logs=errors-only
-  pnpm --filter ui exec vitest run --reporter=silent
+  LANG=en-US pnpm --filter ui exec vitest run --reporter=dot --silent
 ' >"${TMPDIR:-/tmp}/session-warmup.log" 2>&1 </dev/null &
 disown || true

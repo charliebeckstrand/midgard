@@ -1,9 +1,7 @@
 {
 	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
-		"jsx": "preserve",
-		"lib": ["ES2023", "DOM", "DOM.Iterable"],
-		"noEmit": true,
+		"jsx": "react-jsx",
 		"plugins": [{ "name": "next" }]
 	}
 }
