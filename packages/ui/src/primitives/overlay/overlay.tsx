@@ -11,6 +11,7 @@ import {
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
+	useCallback,
 	useEffect,
 	useLayoutEffect,
 	useRef,
@@ -30,6 +31,7 @@ import { useOverlayContainer } from './use-overlay-container'
 import { useOverlayEntering } from './use-overlay-entering'
 import { useOverlayInitialFocus } from './use-overlay-initial-focus'
 import { useOverlayKeepFocus } from './use-overlay-keep-focus'
+import { OverlayNodeContext, useOverlayNesting } from './use-overlay-nesting'
 import { useOverlayReturnFocus } from './use-overlay-return-focus'
 import { useOverlayViewportFit } from './use-overlay-viewport-fit'
 
@@ -145,6 +147,10 @@ export type OverlayProps = {
  * stays on top of it. A click on the backdrop stops at the
  * backdrop, so the React ancestors of the overlay do not receive it.
  *
+ * An overlay that opens in the content of another overlay is a part of that
+ * overlay. A press in it is not outside the other overlay, so a Dialog that
+ * opens from a non-modal Sheet does not close the Sheet, and the Dialog stays.
+ *
  * A closed overlay is `inert` for its exit animation, so it takes no press and
  * no key. The body stays locked until the exit completes. A modal overlay
  * seals the page only while it is open, so the page is in the accessibility
@@ -204,6 +210,11 @@ export function Overlay({
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	const setPanel = useComposedRefs<HTMLDivElement>(setFloating, containerRef, ref)
+
+	// An overlay that opens in the content counts as a part of this one.
+	const getNode = useCallback(() => containerRef.current, [])
+
+	useOverlayNesting(floating)
 
 	useDismissable({
 		open,
@@ -385,7 +396,7 @@ export function Overlay({
 					aria-hidden="true"
 				/>
 			)}
-			{children}
+			<OverlayNodeContext value={getNode}>{children}</OverlayNodeContext>
 		</div>
 	)
 
