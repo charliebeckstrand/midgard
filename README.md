@@ -71,7 +71,7 @@ The gateway rate-limits sign-in and register by client address. On App Platform,
 
 ## 6. Deploy
 
-Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It builds an image of each component, tagged with the commit SHA, and pushes it to the DigitalOcean container registry that the `DOCR_REGISTRY` variable names. CI runs at the same time. When CI and each image pass, the workflow applies the App Platform spec in [`.do/app.yaml`](.do/app.yaml) with that tag, so the app runs the commit that CI checked. The spec holds one app, `midgard`, with one component for each subdomain:
+Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It builds an image of each component, tagged with the commit SHA, and pushes it to the GitHub container registry as `ghcr.io/charliebeckstrand/midgard-<component>`. CI runs at the same time. When CI and each image pass, the workflow applies the App Platform spec in [`.do/app.yaml`](.do/app.yaml) with that tag, so the app runs the commit that CI checked. App Platform pulls each image with no credentials, so each package must be public. GitHub makes a new package private, so a new component needs its package made public in the package settings after its first push. The spec holds one app, `midgard`, with one component for each subdomain:
 
 | Subdomain | Component | Build |
 |---|---|---|
@@ -81,7 +81,7 @@ Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It builds
 | `numbers.ivoryimage.dev` | `apps/numbers` | [`Dockerfile`](Dockerfile), with `APP=numbers` |
 | `docs.ivoryimage.dev` | The docs site of `ui`, served in the language of the reader | [`Dockerfile.docs`](Dockerfile.docs) |
 
-The registry keeps the 10 newest images of each component, so that an earlier commit can go live again. The Next apps build with `output: 'standalone'`. To build one image locally:
+The registry keeps each image, so that an earlier commit can go live again. The Next apps build with `output: 'standalone'`. To build one image locally:
 
 ```sh
 docker build --build-arg APP=admin --build-arg BIFROST_URL=https://auth.ivoryimage.dev .

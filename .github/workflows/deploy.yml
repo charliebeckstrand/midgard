@@ -23,10 +23,10 @@ jobs:
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  # Builds the image of each component of .do/app.yaml and pushes it to the
-  # container registry, tagged with the commit SHA. The job runs beside CI. An
-  # image that CI did not pass goes live never, because only `deploy` names a
-  # tag in the spec, and `deploy` needs CI.
+  # Builds the image of each service of .do/app.yaml and pushes it to the
+  # GitHub container registry, tagged with the commit SHA. The job runs beside
+  # CI. An image that CI did not pass goes live never, because only `deploy`
+  # names a tag in the spec, and `deploy` needs CI.
   #
   # App Platform built from the HEAD of main before. When two merges came close
   # together, the deploy of the first commit built the second commit before
@@ -34,12 +34,13 @@ jobs:
   image:
     name: Image (${{ matrix.component }})
     runs-on: ubuntu-latest
-    environment: production
     timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: true
-      # Each entry is one service of .do/app.yaml. `repository` in the spec is
-      # the same name.
+      # Each entry is one service of .do/app.yaml.
       matrix:
         include:
           - component: admin
@@ -62,45 +63,44 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check the registry name
-        if: vars.DOCR_REGISTRY == ''
-        run: |
-          echo "::error::Set the DOCR_REGISTRY variable to the name of the DigitalOcean container registry."
-          exit 1
-
-      - uses: ./.github/actions/doctl
-
-      # `next build` writes the gateway origin into the rewrites, so the build
-      # reads BIFROST_URL from the environment of the component in the spec.
-      # The spec stays the one statement of the value. The docs site has no
-      # APP and no BIFROST_URL.
-      - name: Build the image
+      # The spec names the owner (`registry`) and the package (`repository`)
+      # of each image. `next build` writes the gateway origin into the
+      # rewrites, so the build also reads BIFROST_URL from the service in the
+      # spec. Thus the spec stays the one statement of each value. The docs
+      # site has no APP and no BIFROST_URL.
+      #
+      # App Platform runs one linux/amd64 image, so the build attaches no
+      # attestation. The label links the package to this repository.
+      - name: Build and push the image
         env:
           COMPONENT: ${{ matrix.component }}
           DOCKERFILE: ${{ matrix.dockerfile }}
           APP: ${{ matrix.app }}
-          REGISTRY: ${{ vars.DOCR_REGISTRY }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
+          service=$(yq '.services[] | select(.name == strenv(COMPONENT))' .do/app.yaml)
+          if [ -z "$service" ]; then
+            echo "::error::.do/app.yaml has no service $COMPONENT."
+            exit 1
+          fi
+          image="ghcr.io/$(yq '.image.registry + "/" + .image.repository' <<<"$service"):$GITHUB_SHA"
+          bifrost=$(yq '.envs[] | select(.key == "BIFROST_URL") | .value' <<<"$service")
+
           args=()
           if [ -n "$APP" ]; then
             args+=(--build-arg "APP=$APP")
           fi
-          bifrost=$(COMPONENT="$COMPONENT" yq '.services[] | select(.name == strenv(COMPONENT)) | .envs[] | select(.key == "BIFROST_URL") | .value' .do/app.yaml)
           if [ -n "$bifrost" ]; then
             args+=(--build-arg "BIFROST_URL=$bifrost")
           fi
           docker build --file "$DOCKERFILE" "${args[@]}" \
-            --tag "registry.digitalocean.com/$REGISTRY/$COMPONENT:$GITHUB_SHA" .
+            --provenance=false --sbom=false \
+            --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --tag "$image" .
 
-      # The login comes after the build, so that its expiry covers the push only.
-      - name: Push the image
-        env:
-          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          COMPONENT: ${{ matrix.component }}
-          REGISTRY: ${{ vars.DOCR_REGISTRY }}
-        run: |
-          doctl registry login --expiry-seconds 900
-          docker push "registry.digitalocean.com/$REGISTRY/$COMPONENT:$GITHUB_SHA"
+          docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin <<<"$GITHUB_TOKEN"
+          docker push "$image"
+          docker logout ghcr.io
 
   deploy:
     name: Deploy to DigitalOcean
@@ -122,7 +122,44 @@ jobs:
           echo "::error::Set the DIGITALOCEAN_PROJECT_ID variable to the ID of the Ivory Image project."
           exit 1
 
-      - uses: ./.github/actions/doctl
+      # The digitalocean/app_action action is a Docker action. The runner builds
+      # its image from Docker Hub before the first step, so a Docker Hub rate
+      # limit or outage stops the deploy. doctl is one binary from a GitHub
+      # release, and the checksum below locks it to one build.
+      - name: Install doctl
+        env:
+          DOCTL_VERSION: 1.177.0
+          DOCTL_SHA256: 34d3954721bfb8cdb42032e78d98274f157426fa6332511ae356edcce59dade3
+        run: |
+          archive="doctl-${DOCTL_VERSION}-linux-amd64.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 --output "$RUNNER_TEMP/$archive" \
+            "https://github.com/digitalocean/doctl/releases/download/v${DOCTL_VERSION}/$archive"
+          echo "$DOCTL_SHA256  $RUNNER_TEMP/$archive" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/doctl"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/doctl"
+          echo "$RUNNER_TEMP/doctl" >> "$GITHUB_PATH"
+
+      # App Platform pulls each image with no credentials, so each package must
+      # be public. GitHub makes a new package private. The step reads each
+      # manifest as an anonymous client, and stops before the deploy when one
+      # cannot be read.
+      - name: Check that App Platform can pull each image
+        run: |
+          images=$(yq '.services[].image | .registry + "/" + .repository' .do/app.yaml)
+          for image in $images; do
+            token=$(curl --fail --silent --show-error \
+              "https://ghcr.io/token?scope=repository:$image:pull" | jq -er .token) || {
+              echo "::error::ghcr.io/$image gives no anonymous token. Make the package public in its settings on GitHub."
+              exit 1
+            }
+            curl --fail --silent --show-error --head --output /dev/null \
+              --header "Authorization: Bearer $token" \
+              --header "Accept: application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
+              "https://ghcr.io/v2/$image/manifests/$GITHUB_SHA" || {
+              echo "::error::An anonymous client cannot read ghcr.io/$image:$GITHUB_SHA. Make the package public in its settings on GitHub."
+              exit 1
+            }
+          done
 
       # Creates the app from .do/app.yaml on the first run, in the Ivory Image
       # project, then updates it and waits for the deployment to go live.
@@ -181,33 +218,3 @@ jobs:
             echo "::error::A service of deployment $deployment does not run the image of $GITHUB_SHA."
             exit 1
           fi
-
-      # Keeps the newest tags of each repository, so that an earlier commit can
-      # go live again, and removes the others. Garbage collection then frees
-      # their layers. The registry takes no push while it collects, so the step
-      # waits for the end, and the next run of this workflow cannot push into it.
-      - name: Remove the old images
-        env:
-          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          KEEP: 10
-        run: |
-          repositories=$(yq '.services[].image.repository' .do/app.yaml)
-          for repository in $repositories; do
-            # A failed list stops the step here, and not with an empty list.
-            listed=$(doctl registry repository list-tags "$repository" --output json)
-            mapfile -t old < <(jq -r --argjson keep "$KEEP" \
-              'sort_by(.updated_at) | reverse | .[$keep:][] | .tag' <<<"$listed")
-            if [ "${#old[@]}" -gt 0 ]; then
-              echo "$repository: remove ${#old[@]} tags"
-              doctl registry repository delete-tag "$repository" "${old[@]}" --force
-            fi
-          done
-
-          doctl registry garbage-collection start --include-untagged-manifests --force
-          while status=$(doctl registry garbage-collection get-active --format Status --no-header 2>/dev/null); do
-            case "$status" in
-              succeeded | failed | cancelled) break ;;
-            esac
-            sleep 10
-          done
-          echo "Garbage collection: ${status:-done}"

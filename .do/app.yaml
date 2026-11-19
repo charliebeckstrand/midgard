@@ -1,11 +1,11 @@
 # App Platform spec for midgard: one app that serves the admin app, the places
 # app, the elections app, the numbers app, and the docs site of `ui`, each on
 # its own subdomain. The deploy workflow applies it on each push to main, and
-# the first run creates the app. Each service runs an image from the container
-# registry of the account. The workflow builds each image from the commit of
-# its run, from the Dockerfile at the repository root or from Dockerfile.docs,
-# and puts the commit SHA in place of IMAGE_TAG. `registry` stays empty, as App
-# Platform asks for a DOCR registry.
+# the first run creates the app. Each service runs a public image from the
+# GitHub container registry, `ghcr.io/<registry>/<repository>`. The workflow
+# builds each image from the commit of its run, from the Dockerfile at the
+# repository root or from Dockerfile.docs, and puts the commit SHA in place of
+# IMAGE_TAG. A public image needs no `registry_credentials`.
 name: midgard
 region: nyc
 
@@ -81,8 +81,9 @@ ingress:
 services:
   - name: admin
     image:
-      registry_type: DOCR
-      repository: admin
+      registry_type: GHCR
+      registry: charliebeckstrand
+      repository: midgard-admin
       tag: ${IMAGE_TAG}
     http_port: 3000
     instance_count: 1
@@ -123,8 +124,9 @@ services:
 
   - name: places
     image:
-      registry_type: DOCR
-      repository: places
+      registry_type: GHCR
+      registry: charliebeckstrand
+      repository: midgard-places
       tag: ${IMAGE_TAG}
     http_port: 3000
     instance_count: 1
@@ -162,8 +164,9 @@ services:
   # reads civicAPI, also during `next build`, which prerenders the pages.
   - name: elections
     image:
-      registry_type: DOCR
-      repository: elections
+      registry_type: GHCR
+      registry: charliebeckstrand
+      repository: midgard-elections
       tag: ${IMAGE_TAG}
     http_port: 3000
     instance_count: 1
@@ -189,8 +192,9 @@ services:
   # sends the reader to the address of a new seed.
   - name: numbers
     image:
-      registry_type: DOCR
-      repository: numbers
+      registry_type: GHCR
+      registry: charliebeckstrand
+      repository: midgard-numbers
       tag: ${IMAGE_TAG}
     http_port: 3000
     instance_count: 1
@@ -230,8 +234,9 @@ services:
   # it (`packages/ui/scripts/docs/server.ts`).
   - name: docs-server
     image:
-      registry_type: DOCR
-      repository: docs-server
+      registry_type: GHCR
+      registry: charliebeckstrand
+      repository: midgard-docs-server
       tag: ${IMAGE_TAG}
     http_port: 8080
     instance_count: 1
