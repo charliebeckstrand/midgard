@@ -173,6 +173,7 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 						action={
 							<Button
 								variant="outline"
+								color="blue"
 								disabled={start.isPending}
 								onClick={() => {
 									// Fetch the code of the QR code while the gateway makes the secret.
@@ -250,12 +251,7 @@ function RecoveryCodes({ codes, count, pending, onMake }: RecoveryCodesProps) {
 					: `You have ${count} unused recovery ${count === 1 ? 'code' : 'codes'}.`
 			}
 			action={
-				<Button
-					variant="outline"
-					color={count === 0 ? 'blue' : undefined}
-					disabled={pending}
-					onClick={onMake}
-				>
+				<Button variant="outline" disabled={pending} onClick={onMake}>
 					{count === 0 ? 'Make codes' : 'Make new codes'}
 				</Button>
 			}

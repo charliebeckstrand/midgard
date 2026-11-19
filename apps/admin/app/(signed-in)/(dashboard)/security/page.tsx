@@ -65,10 +65,7 @@ function SecurityLoading() {
 export default function SecurityPage() {
 	return (
 		<Stack gap="xl">
-			<PageHeader
-				title="Security"
-				description="The threats that Vidar found, and the addresses that cannot sign in."
-			/>
+			<PageHeader title="Security" />
 
 			<Suspense fallback={<SecurityLoading />}>
 				<Security />

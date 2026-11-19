@@ -22,8 +22,8 @@ function matchHrefs(query: string): string[] {
 }
 
 describe('matchEntries', () => {
-	it('gives each page for an empty query', () => {
-		expect(matchHrefs('  ')).toEqual(['/button', '/copy-button', '/modules/grid'])
+	it('gives no entry for an empty query', () => {
+		expect(matchHrefs('  ')).toEqual([])
 	})
 
 	it('puts an entry whose label holds the query before one that only its context matches', () => {

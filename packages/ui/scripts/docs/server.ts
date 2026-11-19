@@ -1,5 +1,5 @@
 /**
- * The server of the docs build: the `docs-server` service of `.do/app.yaml`,
+ * The server of the docs build: the `ui` service of `.do/app.yaml`,
  * and the server of `docs:preview` and `test:docs-build`. `docs:bench` serves
  * the build with the same paths, over HTTP/2.
  *

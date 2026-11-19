@@ -5,20 +5,21 @@ import { getSlot, noop, present, renderUI } from '../../helpers'
 /**
  * Command palette empty space (real layout). While the listbox holds no
  * result, the body of the list and the empty status take no part in the
- * layout. The footer then sits one gap of the panel below the search input,
- * and not two. jsdom lays nothing out, so only a real browser can measure it.
+ * layout. A footer then sits one gap of the panel below the search input,
+ * and not two. The palette shows no footer by default, so the test gives one. jsdom lays nothing out, so only a real browser can measure it.
  */
 describe('Command palette empty space (real browser)', () => {
 	it('puts one gap of the panel between the search input and the footer', () => {
 		renderUI(
-			<CommandPalette open onOpenChange={noop}>
+			<CommandPalette open onOpenChange={noop} footer={<button type="button">Create</button>}>
 				{null}
 			</CommandPalette>,
 		)
 
 		const input = getSlot(document.body, 'command-palette-input')
 
-		const frame = present(input.closest('[data-slot=control-frame]'), 'the frame of the input')
+		// The row of the search field holds the frame of the input and the X close.
+		const row = getSlot(document.body, 'command-palette-search')
 
 		const panel = present(input.closest('[role=dialog]'), 'the panel')
 
@@ -28,7 +29,7 @@ describe('Command palette empty space (real browser)', () => {
 
 		expect(gap).toBeGreaterThan(0)
 
-		expect(footer.getBoundingClientRect().top - frame.getBoundingClientRect().bottom).toBe(gap)
+		expect(footer.getBoundingClientRect().top - row.getBoundingClientRect().bottom).toBe(gap)
 	})
 
 	// The rows of a search come after the palette opens on an empty list. The

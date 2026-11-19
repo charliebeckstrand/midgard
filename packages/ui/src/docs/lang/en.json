@@ -40,7 +40,7 @@
 		"description": "The word next to the name of a prop in the API reference when the component needs a value for the prop. Write it in lowercase."
 	},
 	"docs.app.docs": {
-		"defaultMessage": "Docs",
+		"defaultMessage": "UI Docs",
 		"description": "The name of the documentation site. It shows at the top of the sidebar."
 	},
 	"docs.app.pageTitle": {
@@ -7372,7 +7372,7 @@
 		"description": "The label of a field of a playground in the docs. The field sets the prop wrap of TagInput."
 	},
 	"docs.search.button": {
-		"defaultMessage": "Search docs",
+		"defaultMessage": "Search",
 		"description": "The label of the button at the top of the sidebar that opens the search of the docs."
 	},
 	"docs.search.kind.component": {
@@ -7400,7 +7400,7 @@
 		"description": "The kind of a search result that is a tab of a page of the docs, such as Sorting."
 	},
 	"docs.search.placeholder": {
-		"defaultMessage": "Search pages, examples, props, and events",
+		"defaultMessage": "Search",
 		"description": "The placeholder of the search field of the docs, and its name. Props and events are the inputs of a component."
 	},
 	"docs.tab.area": {

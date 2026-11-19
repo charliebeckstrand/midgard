@@ -32,10 +32,7 @@ async function Users() {
 export default function UsersPage() {
 	return (
 		<Stack gap="xl">
-			<PageHeader
-				title="Users"
-				description="The accounts that sign in through the gateway. Open an account to see its activity."
-			/>
+			<PageHeader title="Users" />
 
 			<Suspense fallback={<UsersLoading />}>
 				<Users />

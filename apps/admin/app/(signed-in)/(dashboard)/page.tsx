@@ -1,7 +1,9 @@
+import { ArrowRightIcon } from '@heroicons/react/20/solid'
 import { bifrost, requireGateway } from 'auth'
 import { type ReactNode, Suspense } from 'react'
+import { Button } from 'ui/button'
 import { Card } from 'ui/card'
-import { Link } from 'ui/link'
+import { Icon } from 'ui/icon'
 import { Stat, StatDescription, StatLabel, StatValue, StatValueSkeleton } from 'ui/stat'
 import { Columns } from 'ui/structure/columns'
 import { Stack } from 'ui/structure/stack'
@@ -19,7 +21,7 @@ type SummaryProps = {
 }
 
 /**
- * One count of the dashboard, with a link to the page that manages it.
+ * One count of the dashboard, with a button that opens the page that manages it.
  *
  * @internal
  */
@@ -30,9 +32,9 @@ function Summary({ label, value, href, children }: SummaryProps) {
 				<StatLabel>{label}</StatLabel>
 				{value === null ? <StatValueSkeleton /> : <StatValue>{value ?? '—'}</StatValue>}
 				<StatDescription>
-					<Link href={href} underline>
+					<Button href={href} variant="bare" suffix={<Icon icon={<ArrowRightIcon />} />}>
 						{children}
-					</Link>
+					</Button>
 				</StatDescription>
 			</Stat>
 		</Card>
@@ -113,7 +115,7 @@ async function DashboardCounts() {
 export default function DashboardPage() {
 	return (
 		<Stack gap="xl">
-			<PageHeader title="Dashboard" description="The accounts and the security of the gateway." />
+			<PageHeader title="Dashboard" />
 
 			<Suspense fallback={<Summaries />}>
 				<DashboardCounts />

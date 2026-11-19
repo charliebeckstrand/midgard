@@ -55,7 +55,7 @@ jobs:
           - component: numbers
             dockerfile: Dockerfile
             app: numbers
-          - component: docs-server
+          - component: ui
             dockerfile: Dockerfile.docs
             app: ''
     steps:

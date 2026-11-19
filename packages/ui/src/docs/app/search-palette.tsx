@@ -30,7 +30,7 @@ import { type Matchable, matchEntries } from './search-match.ts'
 
 const placeholderMessage = defineMessage({
 	id: 'docs.search.placeholder',
-	defaultMessage: 'Search pages, examples, props, and events',
+	defaultMessage: 'Search',
 	description:
 		'The placeholder of the search field of the docs, and its name. Props and events are the inputs of a component.',
 })
@@ -102,29 +102,23 @@ const PREFETCH_SETTLE = 300
 
 /**
  * Loads the code of the pages of the first results, as a `RouterLink` does on
- * a hover. A pick then does not wait for the network. An empty query lists
- * each page in the order of the sidebar, not by relevance, so it loads nothing.
+ * a hover. A pick then does not wait for the network. An empty query has no
+ * results, so it loads nothing.
  */
-function PrefetchResults({ query, matches }: { query: string; matches: readonly Option[] }) {
+function PrefetchResults({ matches }: { matches: readonly Option[] }) {
 	const [pages, setPages] = useState<readonly string[]>([])
 
 	const timeout = useTimeout()
 
 	useEffect(() => {
-		const next =
-			// `matchEntries` reads only letters and digits, so a query with none is empty.
-			!/[\p{L}\p{N}]/u.test(query)
-				? []
-				: [
-						...new Set(
-							matches
-								.slice(0, PREFETCH_COUNT)
-								.map((option) => option.href.split('#')[0] ?? option.href),
-						),
-					]
+		const next = [
+			...new Set(
+				matches.slice(0, PREFETCH_COUNT).map((option) => option.href.split('#')[0] ?? option.href),
+			),
+		]
 
 		timeout.set(() => setPages(next), PREFETCH_SETTLE)
-	}, [query, matches, timeout])
+	}, [matches, timeout])
 
 	return pages.map((page) => <PrefetchPageLinks key={page} page={page} />)
 }
@@ -203,36 +197,39 @@ function Results({ onPick }: { onPick: () => void }) {
 
 	return (
 		<>
-			<PrefetchResults query={query} matches={matches} />
-			{/* The dialog body grows with its content. The list has a fixed height, so that it scrolls. */}
-			<div className="h-80 overflow-y-auto">
-				<VirtualOptions items={matches} getOptionId={(option) => option.id}>
-					{(option, _index, meta) => (
-						<CommandPaletteItem
-							key={option.id}
-							id={option.id}
-							href={option.href}
-							onAction={onPick}
-							{...meta}
-						>
-							{/*
-							 * A name from the code, such as <Grid />, keeps its order on a
-							 * right-to-left page in its own bdi. The description slot is a
-							 * flex box, so one bdi holds all of the description and keeps
-							 * the space before "·".
-							 */}
-							<CommandPaletteText>
-								<CommandPaletteLabel>
-									<bdi>{option.label}</bdi>
-								</CommandPaletteLabel>
-								<CommandPaletteDescription>
-									<bdi>{`${intl.formatMessage(KIND_LABELS[option.kind])} · ${option.place}`}</bdi>
-								</CommandPaletteDescription>
-							</CommandPaletteText>
-						</CommandPaletteItem>
-					)}
-				</VirtualOptions>
-			</div>
+			<PrefetchResults matches={matches} />
+			{/*
+			 * The dialog body is the scroller of the list. It grows with the rows, up
+			 * to the cap of the panel in the viewport, and then scrolls. With no
+			 * match, such as for an empty query, the body hides, and the palette is
+			 * only the search field.
+			 */}
+			<VirtualOptions items={matches} getOptionId={(option) => option.id}>
+				{(option, _index, meta) => (
+					<CommandPaletteItem
+						key={option.id}
+						id={option.id}
+						href={option.href}
+						onAction={onPick}
+						{...meta}
+					>
+						{/*
+						 * A name from the code, such as <Grid />, keeps its order on a
+						 * right-to-left page in its own bdi. The description slot is a
+						 * flex box, so one bdi holds all of the description and keeps
+						 * the space before "·".
+						 */}
+						<CommandPaletteText>
+							<CommandPaletteLabel>
+								<bdi>{option.label}</bdi>
+							</CommandPaletteLabel>
+							<CommandPaletteDescription>
+								<bdi>{`${intl.formatMessage(KIND_LABELS[option.kind])} · ${option.place}`}</bdi>
+							</CommandPaletteDescription>
+						</CommandPaletteText>
+					</CommandPaletteItem>
+				)}
+			</VirtualOptions>
 		</>
 	)
 }
@@ -259,7 +256,6 @@ export function SearchPalette({
 			open={open}
 			onOpenChange={onOpenChange}
 			placeholder={intl.formatMessage(placeholderMessage)}
-			footer={null}
 		>
 			<Results onPick={onPick} />
 		</CommandPalette>

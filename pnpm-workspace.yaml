@@ -33,7 +33,7 @@ catalog:
   tsx: ^4.19.0
   typescript: ^7.0.2
   us-atlas: ^3.0.1
-  vitest: 5.0.5
+  vitest: 5.1.0
   world-atlas: ^2.0.2
 
 # `auth` and `shared` generate their API types with `openapi-typescript`, which
@@ -149,5 +149,5 @@ patchedDependencies:
   '@floating-ui/react@0.27.20': patches/@floating-ui__react@0.27.20.patch
   next@16.4.6: patches/next@16.4.6.patch
   react-dom@19.3.1: patches/react-dom@19.3.1.patch
-  react-router@8.4.0: patches/react-router@8.4.0.patch
-  vitest@5.0.5: patches/vitest@5.0.5.patch
+  react-router@8.5.1: patches/react-router@8.5.1.patch
+  vitest@5.1.0: patches/vitest@5.1.0.patch

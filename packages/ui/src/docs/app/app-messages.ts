@@ -8,7 +8,7 @@ import { humanize } from '../kit/humanize.ts'
 export const appMessages = defineMessages({
 	docs: {
 		id: 'docs.app.docs',
-		defaultMessage: 'Docs',
+		defaultMessage: 'UI Docs',
 		description: 'The name of the documentation site. It shows at the top of the sidebar.',
 	},
 })

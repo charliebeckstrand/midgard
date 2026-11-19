@@ -79,7 +79,7 @@ Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It builds
 | `places.ivoryimage.dev` | `apps/places` | [`Dockerfile`](Dockerfile), with `APP=places` |
 | `elections.ivoryimage.dev` | `apps/elections` | [`Dockerfile`](Dockerfile), with `APP=elections` |
 | `numbers.ivoryimage.dev` | `apps/numbers` | [`Dockerfile`](Dockerfile), with `APP=numbers` |
-| `docs.ivoryimage.dev` | The docs site of `ui`, served in the language of the reader | [`Dockerfile.docs`](Dockerfile.docs) |
+| `ui.ivoryimage.dev` | The docs site of `ui`, served in the language of the reader | [`Dockerfile.docs`](Dockerfile.docs) |
 
 The registry keeps each image, so that an earlier commit can go live again. The Next apps build with `output: 'standalone'`. To build one image locally:
 

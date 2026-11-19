@@ -108,7 +108,7 @@ const loadingCards = ['Two-step sign-in', 'Connected accounts', 'Recent activity
 function AccountLoading() {
 	return (
 		<Stack gap="xl">
-			<PageHeader title="Account" description={<TextSkeleton />} />
+			<PageHeader title="Account" />
 
 			{loadingCards.map((title) => (
 				<Card key={title}>
