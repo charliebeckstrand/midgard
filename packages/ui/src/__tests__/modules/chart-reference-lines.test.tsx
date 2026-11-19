@@ -88,11 +88,19 @@ function riseWrapper(container: HTMLElement): SVGGElement | null {
 	return bySlot(container, 'chart-reference-line')?.querySelector('g') ?? null
 }
 
-function hitTarget(container: HTMLElement): SVGLineElement | null {
+/** The transparent hover target of the first rule. */
+function hitTarget(container: HTMLElement): SVGPathElement | null {
 	return (
-		(bySlot(container, 'chart-reference-line')?.querySelectorAll('line')[1] as SVGLineElement) ??
+		bySlot(container, 'chart-reference-line')?.querySelector('[data-slot="chart-reference-hit"]') ??
 		null
 	)
+}
+
+/** The across-axis span of a closed path of `M` and `L` commands: its lowest and highest y. */
+function ySpan(d: string | null | undefined): [number, number] {
+	const ys = [...(d ?? '').matchAll(/[ML]-?[\d.]+ (-?[\d.]+)/g)].map((match) => Number(match[1]))
+
+	return [Math.min(...ys), Math.max(...ys)]
 }
 
 describe('reference lines', () => {
@@ -116,10 +124,40 @@ describe('reference lines', () => {
 
 		const hit = hitTarget(container)
 
-		expect(hit?.getAttribute('stroke')).toBe('transparent')
+		expect(hit?.getAttribute('fill')).toBe('transparent')
+
+		expect(hit?.getAttribute('pointer-events')).toBe('fill')
 
 		// The hover target is far wider than the drawn rule.
-		expect(Number(hit?.getAttribute('stroke-width'))).toBeGreaterThan(ruleWidth * 2)
+		const [top, bottom] = ySpan(hit?.getAttribute('d'))
+
+		expect(bottom - top).toBeGreaterThan(ruleWidth * 2)
+	})
+
+	it('narrows the hover target where a line of the chart runs near the rule', () => {
+		const target = (value: number) => {
+			const { container } = renderUI(
+				<LineChart
+					aria-label="Revenue by month"
+					data={[
+						{ month: 'Jan', revenue: 50 },
+						{ month: 'Feb', revenue: 50 },
+						{ month: 'Mar', revenue: 50 },
+					]}
+					series={[...SERIES]}
+					width={400}
+					reference={[{ value }]}
+				/>,
+			)
+
+			return hitTarget(container)?.getAttribute('d')?.match(/[ML]/g)?.length ?? 0
+		}
+
+		// Far from the line, the target is a band of four corners.
+		expect(target(0)).toBe(4)
+
+		// On the line, the rule gives up the points of the line, so the band pinches.
+		expect(target(50)).toBeGreaterThan(4)
 	})
 
 	it('dashes the rule by default and draws it solid when dashed is false', () => {
@@ -493,7 +531,7 @@ describe('reference line keyboard navigation', () => {
 		// The value rule keeps its wide hover target, which reads the whole label.
 		const [valueRule] = allBySlot(container, 'chart-reference-line')
 
-		expect(valueRule?.querySelectorAll('line').length).toBe(2)
+		expect(valueRule?.querySelector('[data-slot="chart-reference-hit"]')).not.toBeNull()
 	})
 
 	it('keeps the stop and the tooltip of a labeled rule whose value reads on hover', async () => {
@@ -510,7 +548,7 @@ describe('reference line keyboard navigation', () => {
 		expect(label?.querySelector('tspan')).toBeNull()
 
 		// The rule keeps its wide hover target.
-		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(2)
+		expect(hitTarget(container)).not.toBeNull()
 
 		const plot = getSlot(container, 'chart-plot')
 

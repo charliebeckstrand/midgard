@@ -137,6 +137,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 				return near === null ? null : { series: list[near]?.index ?? near, datum: null }
 			}}
 			valueLabels={{ list }}
+			lineHits
 		/>
 	)
 }
