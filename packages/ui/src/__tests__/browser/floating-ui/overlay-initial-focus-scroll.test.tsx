@@ -180,6 +180,13 @@ describe('overlay initial focus (real floating engine)', () => {
 
 		renderUI(<Harness />)
 
+		// Chromium shows the focus of a script on an element that is not a field
+		// only when the last focus from a person did not come from the mouse. The
+		// files of a page share that state, so a click in an earlier file made the
+		// panel not match. A key press sets the state, and the touch after it still
+		// opens the drawer as a touch.
+		await userEvent.keyboard('{Shift}')
+
 		// A tap on iOS does not move the focus out of the field, so the field still
 		// has it when the drawer opens.
 		screen.getByRole('textbox', { name: 'Page field' }).focus()
