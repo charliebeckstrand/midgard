@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import { nextApp, sharedTest } from '../../vitest.shared.mts'
+import { sharedTest } from '../../vitest.shared.mts'
 
 /**
  * The test harness of the app. Most tests cover the pure modules: the parser
@@ -8,6 +8,10 @@ import { nextApp, sharedTest } from '../../vitest.shared.mts'
  * opens with `// @vitest-environment jsdom`, and only that file runs in jsdom.
  */
 export default defineConfig({
-	...nextApp,
-	test: { ...sharedTest, environment: 'node' },
+	test: {
+		...sharedTest,
+		environment: 'node',
+		// Sets the `asyncUtilTimeout` of the shared config on Testing Library.
+		setupFiles: ['src/__tests__/setup.ts'],
+	},
 })

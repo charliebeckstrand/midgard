@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import { nextApp, sharedTest } from '../../vitest.shared.mts'
+import { sharedTest } from '../../vitest.shared.mts'
 
 /**
  * The test harness of the app. The tests of the rules of the game touch no DOM,
@@ -7,7 +7,6 @@ import { nextApp, sharedTest } from '../../vitest.shared.mts'
  * environment in its file.
  */
 export default defineConfig({
-	...nextApp,
 	// The `@/` paths of the tsconfig, which `proxy.ts` and the pages use.
 	resolve: { tsconfigPaths: true },
 	test: {
