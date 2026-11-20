@@ -1,7 +1,7 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import type { KeyboardEvent, MouseEvent, Ref } from 'react'
+import type { KeyboardEvent, MouseEvent, PointerEvent, Ref } from 'react'
 import {
 	useCallback,
 	useEffect,
@@ -230,8 +230,17 @@ function PdfViewerHighlightLayer() {
 
 	const previewOpen = highlightsVisible && previewing && !!previewed && !previewed.active
 
-	/** One delegated handler for the whole layer, as the press below is, not one per region. */
-	function handleRegionOver(event: MouseEvent<HTMLDivElement>) {
+	/**
+	 * One delegated handler for the whole layer, as the press below is, not one per region.
+	 *
+	 * @remarks A pointer event, so that a touch is skipped. A tap sends `mouseover` after it
+	 * ends, and no `mouseleave` comes until the next tap lands elsewhere. A name that a tap
+	 * opened would thus stay on the page, the hover of a pointer that is not there. A touch
+	 * screen shows no hover name, as a `Tooltip` shows none for a tap.
+	 */
+	function handleRegionOver(event: PointerEvent<HTMLDivElement>) {
+		if (event.pointerType === 'touch') return
+
 		const hit = regionAt(event)
 
 		// The layer's own background is not a region: crossing it clears the preview rather than
@@ -260,11 +269,14 @@ function PdfViewerHighlightLayer() {
 	 * Whether the pointer has moved onto (or off) a box the name covers.
 	 *
 	 * @remarks Attached only while a name is drawn (see the handler bag below), so a viewer with
-	 * nothing selected carries no `mousemove` listener at all. The two tests are ordered by
+	 * nothing selected carries no `pointermove` listener at all. The two tests are ordered by
 	 * cost. `regionAt` walks two or three nodes. The box read behind it is a layout read that
 	 * runs only where the pointer is over a region.
 	 */
-	function handleRegionMove(event: MouseEvent<HTMLDivElement>) {
+	function handleRegionMove(event: PointerEvent<HTMLDivElement>) {
+		// A touch reads no box, as in `handleRegionOver`.
+		if (event.pointerType === 'touch') return
+
 		const name = nameRef.current
 
 		if (!name) return
@@ -419,12 +431,12 @@ function PdfViewerHighlightLayer() {
 						// Only where a region can be pressed. A decorative layer takes no pointer events
 						// at all, so these would never fire there, but naming a box a reader cannot act
 						// on promises something to do with it.
-						onMouseOver: handleRegionOver,
+						onPointerOver: handleRegionOver,
 						// Only while there is a name that could be in the way. Nothing else on this
-						// layer answers a bare move, so with no selection React has no `mousemove`
+						// layer answers a bare move, so with no selection React has no `pointermove`
 						// listener to find and allocates no event for one.
-						onMouseMove: anyActive ? handleRegionMove : undefined,
-						onMouseLeave: () => {
+						onPointerMove: anyActive ? handleRegionMove : undefined,
+						onPointerLeave: () => {
 							setPreviewing(false)
 
 							nameRef.current?.setBehind(false)
