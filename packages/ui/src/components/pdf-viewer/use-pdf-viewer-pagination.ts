@@ -18,6 +18,11 @@ type PdfPaginationOptions = {
 type PdfPaginationResult = {
 	/** Current page clamped to `[1, total]`, or `0` when `total === 0`. */
 	safePage: number
+	/**
+	 * The page that the viewer shows: `safePage` once the document has a page, and before that
+	 * the current page as the viewer asks for it.
+	 */
+	targetPage: number
 	/** Clamp, round, and commit a page number. No-op when `total === 0`. */
 	goToPage: (next: number) => void
 }
@@ -27,7 +32,7 @@ type PdfPaginationResult = {
  * uncontrolled modes. It exposes a clamped `safePage`, and a `goToPage` setter
  * that rounds and bounds incoming values.
  *
- * @returns `{ safePage, goToPage }`.
+ * @returns `{ safePage, targetPage, goToPage }`.
  * @internal
  */
 export function usePdfViewerPagination(input: PdfPaginationOptions): PdfPaginationResult {
@@ -54,5 +59,5 @@ export function usePdfViewerPagination(input: PdfPaginationOptions): PdfPaginati
 		[total, setCurrentPage],
 	)
 
-	return { safePage, goToPage }
+	return { safePage, targetPage: safePage || currentPage, goToPage }
 }

@@ -99,6 +99,13 @@ export const k = defineKata({
 				frame: ['border-b', border.color.default, 'shrink-0'],
 				section: [flex.row, 'shrink-0', dan.gap.scale.xs],
 				total: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
+				/**
+				 * The skeleton of the page count while the document opens. It holds one digit as text
+				 * that does not show, so it has the size and the baseline of a count of one digit. Most
+				 * documents have fewer than ten pages. Forced colors replace a transparent text color,
+				 * so the skeleton keeps its own colors.
+				 */
+				pending: ['inline h-auto text-transparent select-none forced-color-adjust-none'],
 				// The glyph of the thumbnail control while the rail is open: the rail
 				// glyph where the rail is pinned, and the Sheet glyph elsewhere.
 				glyph: {

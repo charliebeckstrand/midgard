@@ -5,13 +5,13 @@ import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'l
 import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { SheetTrigger } from '../sheet'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import { usePdfViewerContext } from './context'
 import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
 import { PdfViewerMagnifierSettings } from './pdf-viewer-magnifier-settings'
-import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
+import { pdfViewerMessages } from './pdf-viewer-messages'
+import { PdfViewerPageNavigation } from './pdf-viewer-page-navigation'
 import { PdfViewerSearch } from './pdf-viewer-search'
 import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
@@ -27,7 +27,8 @@ import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
  *
  * Reads everything from {@link PdfViewerContext}. The controls disable only when the document
  * has no page. They work while the pages render, because the open gives every page slot. The
- * thumbnail control also works while the document loads, because the rail shows then.
+ * thumbnail control also works while the document loads, because the rail shows then. The
+ * page navigation is there while the document loads, and is disabled until the count arrives.
  *
  * The magnifier control is one of two, and {@link PdfViewerMagnifierMode} says which: a
  * toggle, or the button that opens {@link PdfViewerMagnifierSettings}.
@@ -40,7 +41,7 @@ export function PdfViewerToolbar() {
 		total,
 		loading,
 		pending,
-		safePage,
+		targetPage,
 		goToPage,
 		zoom,
 		rotate,
@@ -65,6 +66,9 @@ export function PdfViewerToolbar() {
 	// The page count is whole when the document opens, so every control works while the
 	// pages render.
 	const controlsDisabled = empty
+
+	// `pending` is the render before the load starts, which is also the server render.
+	const opening = loading || pending
 
 	const glyph = k({ offcanvas }).toolbar.glyph
 
@@ -109,45 +113,13 @@ export function PdfViewerToolbar() {
 				className={k().toolbar.base}
 			>
 				<div className={k().toolbar.section}>
-					{/* The toggle is there while the rail shows its loading tiles, so the bar does not
-					    change when the document lands. The page navigation needs the count. */}
-					{(total > 0 || loading || pending) &&
-						(railed ? thumbnailsToggle : <SheetTrigger>{thumbnailsToggle}</SheetTrigger>)}
-					{total > 0 && (
-						<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.pageNavigation)}>
-							<Listbox<number>
-								aria-label={intl.formatMessage(pdfViewerMessages.currentPage)}
-								value={safePage}
-								onValueChange={(next) => {
-									if (next !== null) goToPage(next)
-								}}
-								displayValue={(pageNumber) => intl.formatNumber(pageNumber)}
-								disabled={controlsDisabled}
-								className="tabular-nums"
-							>
-								{pages.map((page, index) => {
-									const pageNumber = index + 1
-
-									return (
-										<ListboxOption key={page.id ?? index} value={pageNumber}>
-											<ListboxLabel>{pageLabel(intl, page, pageNumber)}</ListboxLabel>
-										</ListboxOption>
-									)
-								})}
-							</Listbox>
-							{/* A screen reader reads "of 12", not "slash 12". The visible count is hidden from it,
-								    because the sentence below says the count in the language of the reader. */}
-							<span aria-hidden="true" className="mx-1 select-none">
-								/
-							</span>
-							{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
-							<span data-slot="pdf-viewer-page-total" className={k().toolbar.total}>
-								<span aria-hidden="true">{intl.formatNumber(total)}</span>
-								<span className="sr-only">
-									{intl.formatMessage(pdfViewerMessages.ofTotal, { total })}
-								</span>
-							</span>
-						</ToolbarGroup>
+					{/* The toggle and the page navigation are there while the document opens, so the bar
+					    does not change when the document lands. */}
+					{(total > 0 || opening) && (
+						<>
+							{railed ? thumbnailsToggle : <SheetTrigger>{thumbnailsToggle}</SheetTrigger>}
+							<PdfViewerPageNavigation pages={pages} page={targetPage} goToPage={goToPage} />
+						</>
 					)}
 				</div>
 
