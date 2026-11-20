@@ -10,6 +10,7 @@
  */
 
 import { mode } from '../../../core/recipe'
+import { bg } from '../omote/bg'
 import { forced } from '../sen/forced'
 import { ring } from '../sen/ring'
 
@@ -100,6 +101,28 @@ const disabled = [
 	'has-[>:disabled]:**:cursor-not-allowed',
 ]
 
+/**
+ * The fill of a soft control: a translucent wash in place of the base ring.
+ * The wash reads on any surface, a glass panel included, because it tints what
+ * is behind it. At rest it is `omote.bg.tint`: 5% zinc on light, 10% white on
+ * dark. Hover doubles it, as `hannou.tint.filled` does: 10% zinc on light, 20%
+ * white on dark. Each mode darkens or lightens its own ground, so the two modes
+ * have the same weight. Hover skips a disabled control, like `hover`.
+ *
+ * Forced colors replace the wash with the page color, so the wash takes the
+ * outline of `sen.forced` at the place of the 1 px inset ring that it replaces
+ * (CONVENTIONS §5.10).
+ */
+const wash = [
+	...bg.tint,
+	forced.outline,
+	'forced-colors:-outline-offset-1',
+	...mode(
+		'not-has-[>:disabled]:hover:bg-zinc-950/10',
+		'not-has-[>:disabled]:dark:hover:bg-white/20',
+	),
+]
+
 /** The whole stack: each part in the correct spread order for a `className`. */
 export const layers = [
 	...base,
@@ -110,3 +133,9 @@ export const layers = [
 	...validation,
 	...disabled,
 ]
+
+/**
+ * The stack of a soft control: the wash in place of the base ring, the inset
+ * fill, and the hover ring. The focus, validation, and disabled states stay.
+ */
+export const softLayers = [...overlay, ...wash, ...focus, ...validation, ...disabled]

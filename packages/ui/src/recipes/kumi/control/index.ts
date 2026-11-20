@@ -19,7 +19,7 @@ import { defineGroup } from '../../../core/recipe'
 import { dan, hannou, iro, narabi, omote, sou, ugoki } from '../../kiso'
 import { affix } from './affix'
 import { density, inset } from './density'
-import { chrome, frame } from './frame'
+import { chrome, frame, softChrome, softPlaceholder } from './frame'
 import { reset } from './reset'
 import { surface } from './surface'
 
@@ -33,7 +33,7 @@ const { fit, flex } = narabi
  * `classes`. A `bare` control has no frame, so it takes none.
  */
 export function framed<const C>(classes: C) {
-	return { default: classes, outline: classes, glass: classes, bare: [] }
+	return { default: classes, outline: classes, soft: classes, glass: classes, bare: [] }
 }
 
 /**
@@ -47,8 +47,9 @@ export const control = defineGroup({
 	base: frame,
 	/**
 	 * The surface of the frame. `default` fills it. `outline` has no fill,
-	 * and the frame draws only its ring. `glass` is the surface inside a
-	 * glass overlay. `bare` draws no chrome, no fill, and no focus ring, and
+	 * and the frame draws only its ring. `soft` has no ring, and a translucent
+	 * wash fills it, so it reads on a glass panel. `glass` is the surface inside
+	 * a glass overlay. `bare` draws no chrome, no fill, and no focus ring, and
 	 * its field and affixes take no inset from the edge of the frame. Its
 	 * host draws the frame and the focus ring, as a grid cell does around its
 	 * editor.
@@ -56,11 +57,15 @@ export const control = defineGroup({
 	variant: {
 		default: [...chrome, ...surface.default],
 		outline: chrome,
+		soft: softChrome,
 		glass: [...chrome, ...surface.glass],
 		bare: dan.gap.control,
 	},
 	slots: {
-		field: { base: [...reset, ...density], variant: framed(inset) },
+		field: {
+			base: [...reset, ...density],
+			variant: { ...framed(inset), soft: [...inset, ...softPlaceholder] },
+		},
 		prefix: { base: affix.base, variant: framed(affix.prefix) },
 		suffix: { base: affix.base, variant: framed(affix.suffix) },
 	},

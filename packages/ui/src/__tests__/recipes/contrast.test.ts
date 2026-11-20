@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
 import { k as button } from '../../recipes/kata/button'
 import { k as commandPalette } from '../../recipes/kata/command-palette'
+import { k as input } from '../../recipes/kata/input'
 import { k as kanban } from '../../recipes/kata/kanban'
 import { k as list } from '../../recipes/kata/list'
 import { k as menu } from '../../recipes/kata/menu'
@@ -12,7 +13,7 @@ import { k as nav } from '../../recipes/kata/nav'
 import { k as option } from '../../recipes/kata/option'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as tabs } from '../../recipes/kata/tabs'
-import { hannou, iro, omote } from '../../recipes/kiso'
+import { hannou, iro, kasane, omote } from '../../recipes/kiso'
 import { onSurface, strong } from '../../recipes/kiso/iro/ramp'
 import { marker } from '../../recipes/kiso/zu/marker'
 import { classNames } from '../helpers/class-stops'
@@ -169,6 +170,17 @@ const HOVER_WASH = {
 	dark: tinted(HOVER.dark, SURFACE.dark),
 }
 
+const SOFT_HOVER = byMode(kasane.softLayers.filter((className) => className.includes('hover:bg-')))
+
+/**
+ * The composited ground of a hovered soft control: the heavier of its two
+ * washes, so the harder case in each mode.
+ */
+const SOFT_WASH = {
+	light: tinted(SOFT_HOVER.light, SURFACE.light),
+	dark: tinted(SOFT_HOVER.dark, SURFACE.dark),
+}
+
 /** The muted rung every consumer of that wash inks with. */
 const MUTED = byMode(iro.on.wash.muted)
 
@@ -243,6 +255,12 @@ const TINT_CONSUMERS: readonly {
 	// The `solid` bar; items ink at `iro.text.default`, not at a muted rung.
 	{ file: 'recipes/kata/nav.ts', surfaces: [nav.item({ affix: false }).button] },
 	{ file: 'recipes/kata/toolbar.ts', surfaces: [] },
+	// The `soft` control frame, inked by the text and the placeholder of its field.
+	{
+		file: 'recipes/kiso/kasane/layers.ts',
+		surfaces: [input({ variant: 'soft' }).field],
+		ground: SOFT_WASH,
+	},
 	{ file: 'recipes/kata/box.ts', surfaces: [] },
 	// The skeleton bubble, which holds placeholders and no ink.
 	{ file: 'recipes/kata/chat-transcript.ts', surfaces: [] },

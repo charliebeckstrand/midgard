@@ -84,7 +84,7 @@ export function PdfViewerSearch({ disabled }: PdfViewerSearchProps) {
 				<div className={k().search.bar}>
 					<SearchInput
 						ref={setField}
-						variant="outline"
+						variant="soft"
 						aria-label={intl.formatMessage(pdfViewerMessages.searchQuery)}
 						value={query}
 						onValueChange={setQuery}

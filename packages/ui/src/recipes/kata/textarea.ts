@@ -80,6 +80,6 @@ export type TextareaVariants = Omit<VariantProps<typeof k>, 'resize' | 'variant'
 	 * @defaultValue 'none'
 	 */
 	resize?: VariantProps<typeof k>['resize']
-	/** The surface of the control: `default` fills it, `outline` draws a border with no fill, and `bare` draws neither. @defaultValue 'default' */
+	/** The surface of the control: `default` fills it, `outline` draws a border with no fill, `soft` fills it with a translucent wash and no border, and `bare` draws neither. @defaultValue 'default' */
 	variant?: VariantProps<typeof k>['variant']
 }
