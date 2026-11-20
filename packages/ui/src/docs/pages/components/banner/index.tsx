@@ -12,7 +12,6 @@ export default function BannerPage() {
 				of={BannerPlayground}
 				api={api}
 				omit={['open', 'closable', 'sticky', 'announceOnMount', 'color']}
-				free={{ title: 'New version available' }}
 			/>
 			<Example of={WithDescription} />
 			<Example of={Closable} />
