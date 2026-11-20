@@ -1,7 +1,10 @@
 'use client'
 
+import { Search } from 'lucide-react'
+import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
+import { Icon } from '../icon'
 import { usePdfViewerSearchContext } from './context'
 import { pdfViewerMessages } from './pdf-viewer-messages'
 
@@ -14,8 +17,11 @@ type PdfViewerThumbnailMatchesProps = {
 }
 
 /**
- * The mark of a thumbnail tile: the number of search matches on its page, in parentheses after
- * the page number, in the type of the page number.
+ * The mark of a thumbnail tile: the number of search matches on its page and a search glyph,
+ * in parentheses after the page number, in the type of the page number.
+ *
+ * @remarks The glyph is what tells the count from the page number. A bare number beside a page
+ * number reads as a second page number.
  *
  * @remarks A leaf of its own, and the only part of the rail that reads the search. A key that
  * the reader types renders each mark again, and not the tiles, their images, or the rail.
@@ -42,9 +48,10 @@ export function PdfViewerThumbnailMatches({ pageNumber, id }: PdfViewerThumbnail
 				<span
 					aria-hidden="true"
 					data-slot="pdf-viewer-thumbnail-matches"
-					className={k().thumbnail.label}
+					className={cn(k().thumbnail.label, k().thumbnail.matches.base)}
 				>
-					{intl.formatMessage(pdfViewerMessages.pageMatchCount, { count })}
+					({intl.formatNumber(count)}
+					<Icon icon={<Search />} size={12} className={k().thumbnail.matches.glyph} />)
 				</span>
 			)}
 		</>

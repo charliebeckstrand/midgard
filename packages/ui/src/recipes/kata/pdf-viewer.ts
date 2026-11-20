@@ -252,6 +252,17 @@ export const k = defineKata({
 				},
 				/** The row under the frame: the page number, and the number of search matches after it. */
 				caption: [flex.row, 'items-center', dan.gap.scale.xs],
+				/**
+				 * The number of matches on the page and a search glyph after it, in parentheses, with the
+				 * type of the page number. The glyph tells the two numbers apart.
+				 */
+				matches: {
+					base: [flex.row, 'items-center'],
+					slots: {
+						// Space between the count and the glyph, and none inside the parentheses.
+						glyph: 'ms-0.5',
+					},
+				},
 				label: [
 					size.sm,
 					text.muted,

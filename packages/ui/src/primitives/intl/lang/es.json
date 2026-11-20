@@ -403,7 +403,6 @@
 	"ui.pdfViewer.noPages": "No hay páginas que mostrar",
 	"ui.pdfViewer.ofTotal": "de {total, number}",
 	"ui.pdfViewer.page": "Página {page}",
-	"ui.pdfViewer.pageMatchCount": "({count, number})",
 	"ui.pdfViewer.pageMatches": "{count, plural, one {# coincidencia} other {# coincidencias}}",
 	"ui.pdfViewer.pageNavigation": "Navegación de páginas",
 	"ui.pdfViewer.pageOfTotal": "Página {page, number} de {total, number}",

@@ -190,6 +190,9 @@ describe('PdfViewer search', () => {
 
 		expect(marks.map((mark) => mark.textContent)).toEqual(['(2)', '(2)'])
 
+		// The glyph tells the count from the page number.
+		expect(marks.every((mark) => mark.querySelector('svg.lucide-search'))).toBe(true)
+
 		expect(marks.every((mark) => mark.getAttribute('aria-hidden') === 'true')).toBe(true)
 
 		const tiles = screen.getAllByRole('button', { name: /^Go to Page/ })

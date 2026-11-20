@@ -55,7 +55,6 @@ type PdfViewerValues = {
 	matchOfTotal: { current: number; total: number }
 	noMatches: Record<never, never>
 	pageMatches: { count: number }
-	pageMatchCount: { count: number }
 }
 
 /**
@@ -333,12 +332,6 @@ export const pdfViewerMessages: MessageSet<PdfViewerValues> = defineMessages<Pdf
 		defaultMessage: '{count, plural, one {# match} other {# matches}}',
 		description:
 			'Read after the name of a page in the thumbnails of a PDF: the number of places on that page where the search text is.',
-	},
-	pageMatchCount: {
-		id: 'ui.pdfViewer.pageMatchCount',
-		defaultMessage: '({count, number})',
-		description:
-			'Shown after the page number of a thumbnail of a PDF, such as "(2)": the number of places on that page where the search text is.',
 	},
 })
 
