@@ -127,6 +127,41 @@ describe('Playground', () => {
 		expect(instanceProps()).toEqual({ label: 'Say "hi"', page: 2 })
 	})
 
+	it('gives a number field the range that `ranges` gives, in the place of the tags', () => {
+		const api: BarrelApi = {
+			Thing: {
+				name: 'Thing',
+				props: [
+					{
+						name: 'max',
+						type: 'number',
+						default: '100',
+						defaultValue: 100,
+						minimum: 0,
+						maximum: 1000,
+					},
+				],
+				events: [],
+			},
+		}
+
+		render(<Playground of={ThingPlayground} api={api} ranges={{ max: { min: 10, step: 10 } }} />)
+
+		const max = screen.getByRole('spinbutton', { name: 'Max' })
+
+		expect(max.getAttribute('min')).toBe('10')
+
+		expect(max.getAttribute('max')).toBe('1000')
+
+		expect(max.getAttribute('step')).toBe('10')
+	})
+
+	it('throws for a range of a prop with no number field', () => {
+		expect(() =>
+			render(<Playground of={ThingPlayground} api={API} ranges={{ label: { min: 1 } }} />),
+		).toThrow('the prop label has a range but no number field')
+	})
+
 	it('omits the prop of an empty field, and shows its default as the placeholder', () => {
 		render(<Playground of={ThingPlayground} api={API} free={{ label: '' }} />)
 

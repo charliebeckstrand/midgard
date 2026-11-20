@@ -9,7 +9,11 @@ import SuggestionsOnFocus from './suggestions-on-focus.tsx'
 export default function AddressInputPage() {
 	return (
 		<>
-			<Playground of={AddressInputPlayground} api={api} />
+			<Playground
+				of={AddressInputPlayground}
+				api={api}
+				ranges={{ debounce: { step: 100 }, minQueryLength: { min: 1 } }}
+			/>
 			<Example of={CustomProvider} />
 			<Example of={Coordinates} />
 			<Example of={SuggestionsOnFocus} />

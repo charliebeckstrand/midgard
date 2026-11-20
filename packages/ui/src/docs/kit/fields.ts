@@ -33,6 +33,8 @@ export type FreeField = {
 	min?: number
 	/** The highest value of a number field, from the `@maximum` tag of the prop. */
 	max?: number
+	/** The step of a number field. No tag gives it, so only the `ranges` of a playground does. */
+	step?: number
 	/** See {@link ChoiceField.media}. */
 	media?: Media
 }

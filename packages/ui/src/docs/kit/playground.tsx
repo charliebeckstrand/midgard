@@ -32,6 +32,11 @@ type Props = { readonly [prop: string]: Value }
 /** The value that each choice field starts at, from the `start` prop of {@link Playground}. */
 type Start = { readonly [prop: string]: Literal | undefined }
 
+/** The `min`, the `max`, and the `step` of a number field, from the `ranges` prop of {@link Playground}. */
+type Range = Pick<FreeField, 'min' | 'max' | 'step'>
+
+type Ranges = { readonly [prop: string]: Range | undefined }
+
 // The key of the option of a field whose omitted state is no value. The key of
 // a value is its JSON, which never is a bare word.
 const UNSET = 'unset'
@@ -199,6 +204,27 @@ function assertStart(fields: readonly Field[], start: Start): void {
 	}
 }
 
+/**
+ * The fields, with the range that `ranges` gives each number field. Each value
+ * of a range replaces the value from the tag of the prop. Throws for a range of
+ * a prop with no number field, because no field would take the range.
+ */
+function applyRanges(fields: readonly Field[], ranges: Ranges): readonly Field[] {
+	for (const name of Object.keys(ranges)) {
+		const field = fields.find((candidate) => candidate.name === name)
+
+		if (field?.kind !== 'number') {
+			throw new Error(`docs: the prop ${name} has a range but no number field`)
+		}
+	}
+
+	return fields.map((field) => {
+		const range = ranges[field.name]
+
+		return field.kind === 'number' && range ? { ...field, ...range } : field
+	})
+}
+
 /** Tells if `value` is a value of `field`. An omitted value is, unless the field is required. */
 function accepts(field: Field, value: Value | undefined): boolean {
 	if (field.kind !== 'choice') {
@@ -307,6 +333,7 @@ function FreePicker({
 				placeholder={placeholder}
 				min={field.min}
 				max={field.max}
+				step={field.step}
 				className={cn('w-20 shrink-0', getMediaClass(field))}
 				value={typeof value === 'number' ? value : null}
 				onValueChange={(next) => onValueChange(next ?? undefined)}
@@ -414,6 +441,8 @@ function FieldPicker({
  * field, and `free` names more props that get a text or a number field.
  * `start` gives a choice field a first value that is not its default, so the
  * instance can open in a state that shows the prop, such as a Flex with a gap.
+ * `ranges` gives a number field a `min`, a `max`, or a `step` that suits the
+ * page, such as a step of 100 for a delay in milliseconds.
  * The fields drive this one instance. "Show code" shows the file with the values
  * that are not the defaults as attributes. The field of a prop with a
  * `@media` tag shows only on the kind of device that the tag names, because
@@ -438,6 +467,7 @@ export function Playground<P extends object>({
 	values: given = {},
 	free = {},
 	start = {},
+	ranges = {},
 	...options
 }: FrameOptions & {
 	/**
@@ -470,6 +500,13 @@ export function Playground<P extends object>({
 	 * "Show code" shows the start as an attribute.
 	 */
 	start?: { readonly [K in keyof P & string]?: Literal }
+	/**
+	 * The `min`, the `max`, and the `step` of the number field of a prop. Each
+	 * value here replaces the value from the `@minimum` or the `@maximum` tag of
+	 * the prop. Use it for a range that is not a limit of the component, such as
+	 * a step of 100 for a delay, or a minimum that leaves a value to an example.
+	 */
+	ranges?: { readonly [K in keyof P & string]?: Range }
 }) {
 	const meta = getMeta(of)
 
@@ -485,7 +522,7 @@ export function Playground<P extends object>({
 
 	const step = useDensityStep()
 
-	const fields = buildFields(component.props, omit, given, free, step)
+	const fields = applyRanges(buildFields(component.props, omit, given, free, step), ranges)
 
 	assertStart(fields, start)
 
